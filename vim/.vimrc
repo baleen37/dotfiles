@@ -1,6 +1,4 @@
-set tabstop=4
 set nu
-set ts=2
 set sw=2
 set sts=2
 set showmatch
@@ -12,37 +10,54 @@ set backspace=2
 set backspace=indent,eol,start
 set ignorecase
 set smartcase
+set expandtab
 set incsearch
 set hlsearch
 
-syntax on
+au FILETYPE html set syntax=phtml
 
 " Vundle setting
 set nocompatible " not use old vim
-set laststatus=2 " for seeing powerline
 filetype off
 set rtp+=~/.vim/bundle/Vundle.vim
 call vundle#begin()
-au FILETYPE html set syntax=phtml
 
 " Vundle manage
 Plugin 'gmarik/Vundle.vim'
 
 " Plugins
 Plugin 'The-NERD-tree'
-Plugin 'SuperTab'
-Plugin 'https://github.com/Lokaltog/vim-powerline'
-Plugin 'https://github.com/mitsuhiko/vim-jinja'
-Plugin 'groenewege/vim-less'
+Plugin 'jistr/vim-nerdtree-tabs' " common nerdTree-tab
 Plugin 'L9'
-Plugin 'FuzzyFinder'
-Plugin 'octol/vim-cpp-enhanced-highlight'
+Plugin 'https://github.com/Lokaltog/vim-powerline'
 Plugin 'https://github.com/tfnico/vim-gradle'
+Plugin 'ctrlp.vim'
+Plugin 'rails.vim'
+Plugin 'slim-template/vim-slim.git'
+Plugin 'AutoComplPop'
 
+" All of your Plugins must be added before the following line
 call vundle#end()
 filetype plugin indent on
 
-nnoremap <F7> :NERDTree<CR>
-map <C-l> :tabn<CR>
-map <C-h> :tabp<CR>
+" vim-powerline
+set nocompatible   " Disable vi-compatibility
+set laststatus=2   " Always show the statusline
+set encoding=utf-8 " Necessary to show Unicode glyphs
+
+" The-NERD-tree
+map <Tab> gt
+map <S-Tab> gT
+
+" vim-nerdtree-tabs
+nnoremap <F7> :NERDTreeTabsToggle<CR>
+
+" solarized
+let g:solarized_termcolors=256
+syntax enable
+set background=dark
+colorscheme solarized
+
+"ctrlp.vim
+let g:ctrlp_map = '<c-p>'
 nnoremap ; :

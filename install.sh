@@ -1,3 +1,4 @@
 #!/bin/bash
 
-./vim/install_vim.sh
+./general/install.sh
+./vim/install.sh
