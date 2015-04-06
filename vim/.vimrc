@@ -35,6 +35,7 @@ Plugin 'ctrlp.vim'
 Plugin 'rails.vim'
 Plugin 'slim-template/vim-slim.git'
 Plugin 'AutoComplPop'
+Plugin 'fugitive.vim'
 
 " All of your Plugins must be added before the following line
 call vundle#end()
