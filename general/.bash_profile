@@ -9,7 +9,7 @@ RED="\[\e[0;31m\]"
 YELLOW="\[\e[0;33m\]"
 COLOREND="\[\e[00m\]"
 
-alias ls='ls -G --color=auto'
+alias ls='ls -G'
 alias ll='ls -lh'
 alias l='ll'
 alias lla='ll -A'
