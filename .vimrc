@@ -14,8 +14,6 @@ set expandtab
 set incsearch
 set hlsearch
 
-au FILETYPE html set syntax=phtml
-
 " Vundle setting
 set nocompatible " not use old vim
 filetype off
@@ -27,7 +25,6 @@ Plugin 'gmarik/Vundle.vim'
 
 " Plugins
 Plugin 'The-NERD-tree'
-Plugin 'jistr/vim-nerdtree-tabs' " common nerdTree-tab
 Plugin 'L9'
 Plugin 'https://github.com/Lokaltog/vim-powerline'
 Plugin 'https://github.com/tfnico/vim-gradle'
@@ -50,8 +47,8 @@ set encoding=utf-8 " Necessary to show Unicode glyphs
 map <Tab> gt
 map <S-Tab> gT
 
-" vim-nerdtree-tabs
-nnoremap <F7> :NERDTreeTabsToggle<CR>
+" vim-nerdtree
+map <C-n> :NERDTreeToggle<CR>
 
 " solarized
 let g:solarized_termcolors=256
