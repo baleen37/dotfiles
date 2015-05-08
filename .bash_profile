@@ -2,6 +2,8 @@ source "$HOME/.bashrc"
 [[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm" # Load RVM into a shell session *as a function*
 
 export EDITOR=vim
+export LANG="ko_KR.UTF-8"
+export LC_ALL="ko_KR.UTF-8"
 
 GREEN="\[\e[0;32m\]"
 BLUE="\[\e[0;34m\]"
