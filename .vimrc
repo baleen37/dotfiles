@@ -28,7 +28,8 @@ Plugin 'The-NERD-tree'
 Plugin 'L9'
 Plugin 'https://github.com/Lokaltog/vim-powerline'
 Plugin 'https://github.com/tfnico/vim-gradle'
-Plugin 'https://github.com/terryma/vim-expand-region'
+Plugin 'jelera/vim-javascript-syntax'
+Plugin 'pangloss/vim-javascript'
 Plugin 'ctrlp.vim'
 Plugin 'rails.vim'
 Plugin 'slim-template/vim-slim.git'
@@ -60,3 +61,6 @@ colorscheme solarized
 "ctrlp.vim
 let g:ctrlp_map = '<c-p>'
 nnoremap ; :
+
+" vim-javascript-syntax
+au FileType javascript call JavaScriptFold()
