@@ -64,3 +64,5 @@ nnoremap ; :
 
 " vim-javascript-syntax
 au FileType javascript call JavaScriptFold()
+
+set t_Co=256 " force vim to use 256 colors
