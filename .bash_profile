@@ -11,13 +11,12 @@ YELLOW="\[\e[0;33m\]"
 COLOREND="\[\e[00m\]"
 
 ls --color=auto &> /dev/null && alias ls='ls --color=auto' ||
-alias ls='ls -G --color'
+alias ls='ls -G'
 alias ll='ls -lh'
 alias l='ll'
 alias lla='ll -A'
 alias la='lla'
 alias vi='vim'
-alias tmux='tmux -2'
 
 ..() {
 for i in $(seq $1); do cd ..; done;
