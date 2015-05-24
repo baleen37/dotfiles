@@ -22,20 +22,28 @@ call vundle#begin()
 
 " Vundle manage
 Plugin 'gmarik/Vundle.vim'
-
-" Plugins
-Plugin 'The-NERD-tree'
 Plugin 'L9'
-Plugin 'https://github.com/Lokaltog/vim-powerline'
-Plugin 'https://github.com/tfnico/vim-gradle'
+" for tree
+Plugin 'The-NERD-tree'
+" Easy to find
+Plugin 'ctrlp.vim'
+" Git Plugin
+Plugin 'fugitive.vim'
+" statusline plugin
+Plugin 'powerline/powerline'
+" lean & mean status/tabline for vim that's light as air
+Plugin 'bling/vim-airline'
+" rails.vim: Ruby on Rails power tools
+Plugin 'tpope/vim-rails'
+" Vim/Ruby Configuration Files
+Plugin 'vim-ruby/vim-ruby'
+" check syntax error
+Plugin 'syntastic'
+" for rails-slim syntax
+Plugin 'slim-template/vim-slim.git'
+" for javascript syntax
 Plugin 'jelera/vim-javascript-syntax'
 Plugin 'pangloss/vim-javascript'
-Plugin 'ctrlp.vim'
-Plugin 'rails.vim'
-Plugin 'slim-template/vim-slim.git'
-Plugin 'AutoComplPop'
-Plugin 'fugitive.vim'
-Plugin 'syntastic'
 
 " All of your Plugins must be added before the following line
 call vundle#end()
@@ -45,10 +53,10 @@ filetype plugin indent on
 set nocompatible   " Disable vi-compatibility
 set laststatus=2   " Always show the statusline
 set encoding=utf-8 " Necessary to show Unicode glyphs
-
 " The-NERD-tree
 map <Tab> gt
 map <S-Tab> gT
+map <C-t> :tabnew<CR>
 
 " vim-nerdtree
 map <C-n> :NERDTreeToggle<CR>
@@ -65,8 +73,6 @@ nnoremap ; :
 
 " vim-javascript-syntax
 au FileType javascript call JavaScriptFold()
-
-set t_Co=256 " force vim to use 256 colors
 
 " Syntastic
 set statusline+=%#warningmsg#

@@ -5,9 +5,8 @@ cd "$(dirname "${BASH_SOURCE}")";
 git pull origin master;
 
 # syncronize config file for initaliztion
-rsync  --exclude "README.md" --exclude "bootstrap.sh" --exclude ".git/" -arv . ~;
+rsync  --exclude "README.md" --exclude "bootstrap.sh" --exclude ".git/" --exclude "setup/" -arv . ~;
 source ~/.bash_profile;
-
 
 # install Vundle
 git clone https://github.com/gmarik/Vundle.vim.git ~/.vim/bundle/Vundle.vim
