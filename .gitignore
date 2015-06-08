@@ -1,3 +1,5 @@
 ## Vim files
 *.swp
 *.swo
+
+.gitconfig
