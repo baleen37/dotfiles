@@ -28,6 +28,8 @@ for i in $(seq $1); do cd ..; done;
 
 # more PATH adjustments
 export PATH=$PATH:$HOME/.rvm/bin # Add RVM to PATH for scripting
+export GEM_HOME=$HOME/.gem
+export PATH=$GEM_HOME/bin:$PATH
 export PATH=$PATH:/usr/local/share/python # Python installed scripts
 
 # load in moar configs
