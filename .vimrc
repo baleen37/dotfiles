@@ -44,6 +44,8 @@ Plugin 'slim-template/vim-slim.git'
 " for javascript syntax
 Plugin 'jelera/vim-javascript-syntax'
 Plugin 'pangloss/vim-javascript'
+" for auto complete
+Plugin 'Valloric/YouCompleteMe'
 
 " All of your Plugins must be added before the following line
 call vundle#end()
