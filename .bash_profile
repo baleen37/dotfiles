@@ -129,7 +129,13 @@ prompt() {
     exit_status="${RED}›${COLOREND} "
   fi
 
-  PS1="$(working_directory)$(parse_git_branch)$(parse_remote_state)$exit_status"
+  if test -z "$VIRTUAL_ENV" ; then
+    PYTHON_VIRTUALENV=""
+  else
+    PYTHON_VIRTUALENV="${BLUE}[`basename \"$VIRTUAL_ENV\"`]${COLOR_NONE} "
+  fi
+
+  PS1="$PYTHON_VIRTUALENV$(working_directory)$(parse_git_branch)$(parse_remote_state)$exit_status"
 }
 
 git_complete(){
