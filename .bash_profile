@@ -23,6 +23,16 @@ alias vi='vim'
 for i in $(seq $1); do cd ..; done;
 }
 
+#diffrently manage plaform
+if [[ "$OSTYPE" == "linux-gnu" ]]; then
+  # ...
+  alias vi='vim'
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+  # Mac OSX
+  alias vim='mvim -v'
+fi
+
+
 # Load RVM into a shell session *as a function*
 [[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm"
 

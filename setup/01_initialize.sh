@@ -6,4 +6,10 @@ gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB8
 
 ruby -e "$(wget -O- https://raw.github.com/Homebrew/linuxbrew/go/install)"
 
+brew update
 brew install tmux
+brew install swfitlint
+
+# powerful reverse search bash
+brew install hh
+hh --show-configuration >> ~/.bashrc
