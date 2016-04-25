@@ -12,4 +12,3 @@ brew install swfitlint
 
 # powerful reverse search bash
 brew install hh
-hh --show-configuration >> ~/.bashrc
