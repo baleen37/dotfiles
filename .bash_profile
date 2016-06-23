@@ -41,6 +41,8 @@ export PATH=$PATH:$HOME/.rvm/bin # Add RVM to PATH for scripting
 export GEM_HOME=$HOME/.gem
 export PATH=$GEM_HOME/bin:$PATH
 export PATH=$PATH:/usr/local/share/python # Python installed scripts
+export GEM_HOME=$HOME/.gem
+export PYTHONSTARTUP="$HOME/.pythonrc.py"
 
 # load in moar configs
 [[ -e "$HOME/.bash_os" ]] && source "$HOME/.bash_os"
