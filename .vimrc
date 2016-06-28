@@ -59,6 +59,7 @@ set encoding=utf-8 " Necessary to show Unicode glyphs
 map <Tab> gt
 map <S-Tab> gT
 map <C-t> :tabnew<CR>
+let NERDTreeIgnore = ['\.pyc$']
 
 " vim-nerdtree
 map <C-n> :NERDTreeToggle<CR>
