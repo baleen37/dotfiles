@@ -1,8 +1,8 @@
 set nu
-set sw=2
-set sts=2
+set sw=4
+set sts=4
 set showmatch
-set shiftwidth=2
+set shiftwidth=4
 set si
 set cin
 set cinoptions+=j1
