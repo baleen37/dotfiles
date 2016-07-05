@@ -33,6 +33,8 @@ Plugin 'vim-airline/vim-airline-themes'
 Plugin 'syntastic'
 " for auto complete
 Plugin 'Valloric/YouCompleteMe'
+" for color scheme
+Plugin 'altercation/vim-colors-solarized'
 
 " All of your Plugins must be added before the following line
 call vundle#end()
@@ -53,7 +55,6 @@ let NERDTreeIgnore = ['\.pyc$']
 map <C-n> :NERDTreeToggle<CR>
 
 " solarized
-let g:solarized_termcolors=256
 syntax enable
 set background=dark
 colorscheme solarized
