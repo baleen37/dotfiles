@@ -1,7 +1,3 @@
-set nu
-set sw=4
-set sts=4
-set showmatch
 set shiftwidth=4
 set si
 set cin
@@ -10,9 +6,17 @@ set backspace=2
 set backspace=indent,eol,start
 set ignorecase
 set smartcase
-set expandtab
 set incsearch
 set hlsearch
+set showmatch
+set ts=4
+set sts=4
+set sw=4
+set autoindent
+set smartindent
+set smarttab
+set expandtab
+set number
 
 " Vundle setting
 set nocompatible " not use old vim
@@ -79,3 +83,6 @@ nnoremap ; :
 
 " goto sensible position
 nnoremap <leader>g :YcmCompleter GoTo<CR>
+
+" pbcopy yy
+set clipboard=unnamed
