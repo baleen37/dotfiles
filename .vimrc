@@ -26,6 +26,8 @@ call vundle#begin()
 
 " Vundle manage
 Plugin 'gmarik/Vundle.vim'
+" git tools
+Plugin 'tpope/vim-fugitive'
 " for tree
 Plugin 'The-NERD-tree'
 " Easy to find
@@ -39,6 +41,7 @@ Plugin 'syntastic'
 Plugin 'Valloric/YouCompleteMe'
 " for color scheme
 Plugin 'altercation/vim-colors-solarized'
+Plugin 'hynek/vim-python-pep8-indent'
 
 " All of your Plugins must be added before the following line
 call vundle#end()
@@ -65,7 +68,7 @@ colorscheme solarized
 
 "ctrlp.vim
 let g:ctrlp_map = '<c-p>'
-set wildignore+=*/tmp/*,*.so,*.swp,*.zip  
+set wildignore+=*/tmp/*,*.so,*.swp,*.zip
 
 " Syntastic
 set statusline+=%#warningmsg#
@@ -84,6 +87,3 @@ nnoremap ; :
 
 " goto sensible position
 nnoremap <leader>g :YcmCompleter GoTo<CR>
-
-" pbcopy yy
-set clipboard=unnamed
