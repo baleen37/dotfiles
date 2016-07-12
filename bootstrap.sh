@@ -11,3 +11,8 @@ source ~/.bash_profile;
 # install Vundle
 git clone https://github.com/gmarik/Vundle.vim.git ~/.vim/bundle/Vundle.vim
 vim +BundleInstall +qall #2&> /dev/null
+
+# git setting
+git config merge.tool vimdiff
+git config merge.conflictstyle diff3
+git config mergetool.prompt false
