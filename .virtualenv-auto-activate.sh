@@ -13,4 +13,4 @@ _virtualenv_auto_activate() {
     fi
 }
 
-export PROMPT_COMMAND=_virtualenv_auto_activate
+export PROMPT_COMMAND="_virtualenv_auto_activate; ${PROMPT_COMMAND}"

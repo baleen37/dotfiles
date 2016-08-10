@@ -158,8 +158,8 @@ git_complete(){
 
 
 virtualenv_auto_activate(){
-  if [ -f $HOME/.virtualenv_auto_activate.sh ]; then
-    . $HOME/.virtualenv_auto_activate.sh
+  if [ -f $HOME/.virtualenv-auto-activate.sh ]; then
+    . $HOME/.virtualenv-auto-activate.sh
   fi
 }
 
