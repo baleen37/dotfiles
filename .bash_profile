@@ -156,6 +156,13 @@ git_complete(){
   fi
 }
 
+
+virtualenv_auto_activate(){
+  if [ -f $HOME/.virtualenv_auto_activate.sh ]; then
+    . $HOME/.virtualenv_auto_activate.sh
+  fi
+}
+
 SSH_ENV="$HOME/.ssh/env"
 
 function start_agent {
@@ -183,6 +190,7 @@ fi
 PROMPT_COMMAND=prompt
 
 git_complete
+virtualenv_auto_activate
 
 # add this configuration to ~/.bashrc
 export HH_CONFIG=hicolor         # get more colors
