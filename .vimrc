@@ -68,7 +68,7 @@ colorscheme solarized
 
 "ctrlp.vim
 let g:ctrlp_map = '<c-p>'
-set wildignore+=*/tmp/*,*.so,*.swp,*.zip
+set wildignore+=*/tmp/*,*.so,*.swp,*.zip,*.pyc
 
 " Syntastic
 set statusline+=%#warningmsg#
