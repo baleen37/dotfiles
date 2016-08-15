@@ -11,4 +11,5 @@ brew install tmux
 brew install swfitlint
 
 # powerful reverse search bash
-brew install hh
+git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
+~/.fzf/install
