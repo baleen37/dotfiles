@@ -87,3 +87,6 @@ nnoremap ; :
 
 " goto sensible position
 nnoremap <leader>g :YcmCompleter GoTo<CR>
+
+" shortcut  ipdb
+nnoremap <leader>p oimport ipdb; ipdb.set_trace()<Esc>
