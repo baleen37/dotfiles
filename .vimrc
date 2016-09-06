@@ -16,7 +16,7 @@ set autoindent
 set smartindent
 set smarttab
 set expandtab
-set number
+set rnu
 
 " Vundle setting
 set nocompatible " not use old vim
