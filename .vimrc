@@ -42,6 +42,7 @@ Plugin 'Valloric/YouCompleteMe'
 " for color scheme
 Plugin 'altercation/vim-colors-solarized'
 Plugin 'hynek/vim-python-pep8-indent'
+Plugin 'freitass/todo.txt-vim'
 
 " All of your Plugins must be added before the following line
 call vundle#end()
