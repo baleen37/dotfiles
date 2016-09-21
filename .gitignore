@@ -4,4 +4,7 @@
 
 .gitconfig
 
-todo.txt
+## Vim plugin
+config/nvim/plugged
+config/nvim/autoload
+
