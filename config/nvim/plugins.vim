@@ -8,7 +8,7 @@ Plug 'The-NERD-tree'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 Plug 'syntastic'
-Plug 'majutsushi/tagbar', { 'on': 'TagbarToggle' }
+Plug 'majutsushi/tagbar'
 
 " git
 Plug 'tpope/vim-fugitive'
