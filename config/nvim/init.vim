@@ -14,23 +14,22 @@ syntax on                   " switch syntax highlighting on
 
 set t_Co=256                " Explicitly tell vim that the terminal supports 256 colors"
 
+if !has('nvim')
+	set encoding=utf-8 " Necessary to show Unicode glyphs
+endif
+
 " solarized
 set background=dark
 colorscheme solarized
 
 " vim-powerline
 set nocompatible   " Disable vi-compatibility
-set laststatus=2   " Always show the statusline
-set encoding=utf-8 " Necessary to show Unicode glyphs
 
 " The-NERD-tree
 map <Tab> gt
 map <S-Tab> gT
 map <C-t> :tabnew<CR>
 let NERDTreeIgnore = ['\.pyc$', '__pycache__']
-
-" vim-nerdtree
-map <C-n> :NERDTreeToggle<CR>
 
 "fzf
 nnoremap <c-p> :FZF<CR>
@@ -47,6 +46,12 @@ let g:syntastic_check_on_wq = 0
 " airline options
 let g:airline_theme='solarized'
 
+" <F10> vim-nerdtree
+map <F10> :NERDTreeToggle<CR>
+
+" <F11> tagbar
+nmap <F11> :TagbarToggle<CR>
+
 " copy into clipboard
 vnoremap <C-c> "*y
 
@@ -54,7 +59,9 @@ vnoremap <C-c> "*y
 nnoremap ; :
 
 " goto sensible position
-nnoremap <leader>g :YcmCompleter GoTo<CR>
+" nnoremap <leader>g :YcmCompleter GoTo<CR>
 
 " shortcut  ipdb
-nnoremap <leader>p oimport ipdb; ipdb.set_trace()<Esc>
+nnoremap <leader>p oimport pudb; pudb.set_trace()<Esc>
+
+set laststatus=2

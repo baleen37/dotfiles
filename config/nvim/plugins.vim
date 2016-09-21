@@ -8,13 +8,14 @@ Plug 'The-NERD-tree'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 Plug 'syntastic'
+Plug 'majutsushi/tagbar', { 'on': 'TagbarToggle' }
 
 " git
 Plug 'tpope/vim-fugitive'
 Plug 'mhinz/vim-signify'
 
 " complete
-Plug 'Valloric/YouCompleteMe'
+" Plug 'Valloric/YouCompleteMe'
 
 " code
 Plug 'hynek/vim-python-pep8-indent'
