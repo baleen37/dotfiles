@@ -16,6 +16,9 @@ Plug 'mhinz/vim-signify'
 
 " complete
 " Plug 'Valloric/YouCompleteMe'
+Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
+Plug 'zchee/deoplete-jedi'
+Plug 'carlitux/deoplete-ternjs'
 
 " code
 Plug 'hynek/vim-python-pep8-indent'

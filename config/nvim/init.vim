@@ -61,6 +61,9 @@ nnoremap ; :
 " goto sensible position
 " nnoremap <leader>g :YcmCompleter GoTo<CR>
 
+" deoplete
+let g:deoplete#enable_at_startup = 1
+
 " shortcut  ipdb
 nnoremap <leader>p oimport pudb; pudb.set_trace()<Esc>
 
