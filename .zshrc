@@ -84,4 +84,8 @@ fi
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
-[ -f .aliases ] && source .aliases
+source .aliases
+
+# python env
+eval "$(pyenv init -)"
+source ~/.autoenv/activate.sh

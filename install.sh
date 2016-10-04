@@ -13,4 +13,7 @@ if [ "$(uname)" == "Darwin" ]; then
     source install/nvim.sh
 fi
 
+# install autoenv
+git clone git://github.com/kennethreitz/autoenv.git ~/.autoenv
+
 echo "Done."
