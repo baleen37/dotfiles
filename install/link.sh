@@ -27,12 +27,14 @@ for config in $DOTFILES/config/*; do
     fi
 done
 
-echo -e "\n\nCreating vim symlinks"
+echo -e "\n\nCreating symlinks"
 echo "=============================="
-VIMFILES=( "$HOME/.config/nvim/init.vim:$DOTFILES/config/nvim/init.vim"
-        "$HOME/.config/nvim:$DOTFILES/config/nvim" )
+SYMLINKS=( "$HOME/.config/nvim/init.vim:$DOTFILES/config/nvim/init.vim"
+        "$HOME/.config/nvim:$DOTFILES/config/nvim" 
+				"$HOME/.zshrc:$DOTFILES/.zshrc"
+				"$HOME/.aliases:$DOTFILES/.aliases" )
 
-for file in "${VIMFILES[@]}" ; do
+for file in "${SYMLINKS[@]}" ; do
     KEY=${file%%:*}
     VALUE=${file#*:}
     if [ -e ${KEY} ]; then
