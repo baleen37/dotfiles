@@ -84,8 +84,21 @@ fi
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
-source .aliases
+source ~/.aliases
 
 # python env
 eval "$(pyenv init -)"
 source ~/.autoenv/activate.sh
+
+export PATH="$(brew --prefix)/bin:$PATH"
+export PATH="$(brew --prefix php55)/bin:$PATH"
+eval "$(pyenv virtualenv-init -)"
+
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init -)"
+
+PATH=$PATH:/usr/local/sbin
+
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh

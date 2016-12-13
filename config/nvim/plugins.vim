@@ -15,10 +15,10 @@ Plug 'tpope/vim-fugitive'
 Plug 'mhinz/vim-signify'
 
 " complete
-" Plug 'Valloric/YouCompleteMe'
-Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
-Plug 'zchee/deoplete-jedi'
-Plug 'carlitux/deoplete-ternjs'
+Plug 'Valloric/YouCompleteMe', { 'do': './install.py --clang-completer --tern-completer' }
+" Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
+" Plug 'zchee/deoplete-jedi'
+" Plug 'carlitux/deoplete-ternjs'
 
 " code
 Plug 'hynek/vim-python-pep8-indent'

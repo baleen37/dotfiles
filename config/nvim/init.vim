@@ -3,6 +3,8 @@ source ~/.config/nvim/plugins.vim
 set nocompatible            " not compatible with vi
 set autoread                " detect when a file is changed
 set nu
+set rnu
+set expandtab
 set autoindent
 set smartindent
 set tabstop=2
@@ -59,12 +61,17 @@ vnoremap <C-c> "*y
 nnoremap ; :
 
 " goto sensible position
-" nnoremap <leader>g :YcmCompleter GoTo<CR>
+nnoremap <leader>g :YcmCompleter GoTo<CR>
+nnoremap <leader>gr :YcmCompleter GoToReferences<CR>
+nnoremap <leader>gd :YcmCompleter GetDoc<CR>
 
 " deoplete
-let g:deoplete#enable_at_startup = 1
+" let g:deoplete#enable_at_startup = 1
 
 " shortcut  ipdb
 nnoremap <leader>p oimport pudb; pudb.set_trace()<Esc>
 
 set laststatus=2
+
+let g:python_host_prog = '/Users/baleen37/.pyenv/versions/neovim2/bin/python'
+let g:python3_host_prog = '/Users/baleen37/.pyenv/versions/neovim3/bin/python'
