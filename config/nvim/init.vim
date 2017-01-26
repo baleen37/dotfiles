@@ -64,6 +64,7 @@ nnoremap ; :
 nnoremap <leader>g :YcmCompleter GoTo<CR>
 nnoremap <leader>gr :YcmCompleter GoToReferences<CR>
 nnoremap <leader>gd :YcmCompleter GetDoc<CR>
+let g:ycm_python_binary_path = 'python'
 
 " deoplete
 " let g:deoplete#enable_at_startup = 1

@@ -31,5 +31,6 @@ Plug 'pangloss/vim-javascript'
 " commanders
 Plug 'freitass/todo.txt-vim'
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
+Plug 'groenewege/vim-less'
 
 call plug#end()
