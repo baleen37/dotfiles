@@ -36,14 +36,17 @@ let NERDTreeIgnore = ['\.pyc$', '__pycache__']
 "fzf
 nnoremap <c-p> :FZF<CR>
 
+" -----------------------------------------------------------
 " Syntastic
+" -----------------------------------------------------------
 set statusline+=%#warningmsg#
 set statusline+=%{SyntasticStatuslineFlag()}
 set statusline+=%*
 let g:syntastic_always_populate_loc_list = 1
-let g:syntastic_auto_loc_list = 0
+let g:syntastic_auto_loc_list = 1
 let g:syntastic_check_on_open = 1
-let g:syntastic_check_on_wq = 0
+let g:syntastic_check_on_wq = 1
+let g:syntastic_python_checkers=['pep8', 'python']
 
 " airline options
 let g:airline_theme='solarized'
@@ -60,14 +63,13 @@ vnoremap <C-c> "*y
 " use ; instead of :
 nnoremap ; :
 
-" goto sensible position
+" -----------------------------------------------------------
+" YcmComplete
+" -----------------------------------------------------------
 nnoremap <leader>g :YcmCompleter GoTo<CR>
 nnoremap <leader>gr :YcmCompleter GoToReferences<CR>
 nnoremap <leader>gd :YcmCompleter GetDoc<CR>
 let g:ycm_python_binary_path = 'python'
-
-" deoplete
-" let g:deoplete#enable_at_startup = 1
 
 " shortcut  ipdb
 nnoremap <leader>p oimport pudb; pudb.set_trace()<Esc>
