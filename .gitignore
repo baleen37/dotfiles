@@ -2,8 +2,6 @@
 *.swp
 *.swo
 
-.gitconfig
-
 ## Vim plugin
 config/nvim/plugged
 config/nvim/autoload
