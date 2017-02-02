@@ -11,6 +11,9 @@ if [ "$(uname)" == "Darwin" ]; then
     source install/brew.sh
 
     source install/nvim.sh
+
+    # disable showing alphabet tooltips if long press keyboard
+    defaults write -g ApplePressAndHoldEnabled -bool false
 fi
 
 # install autoenv
