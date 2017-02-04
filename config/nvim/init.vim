@@ -76,5 +76,5 @@ nnoremap <leader>p oimport pudb; pudb.set_trace()<Esc>
 
 set laststatus=2
 
-let g:python_host_prog = '/Users/baleen37/.pyenv/versions/neovim2/bin/python'
-let g:python3_host_prog = '/Users/baleen37/.pyenv/versions/neovim3/bin/python'
+let g:python_host_prog = $HOME . "/.pyenv/versions/neovim2/bin/python"
+let g:python3_host_prog = $HOME . "/.pyenv/versions/neovim3/bin/python"
