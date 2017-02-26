@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VIMFOLDER='.vim'
+NEOVIMFOLDER='config/nvim'
 
 if ! [ ! -d $NEOVIMFOLDER/autoload ]; then
     target=$NEOVIMFOLDER/autoload/plug.vim

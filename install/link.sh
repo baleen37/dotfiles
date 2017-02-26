@@ -29,8 +29,7 @@ done
 
 echo -e "\n\nCreating symlinks"
 echo "=============================="
-SYMLINKS=( "$HOME/.config/nvim/init.vim:$DOTFILES/config/nvim/init.vim"
-        "$HOME/.config/nvim:$DOTFILES/config/nvim" 
+SYMLINKS=( "$HOME/.vimrc:$DOTFILES/.vimrc" 
 				"$HOME/.zshrc:$DOTFILES/.zshrc"
 				"$HOME/.aliases:$DOTFILES/.aliases" )
 

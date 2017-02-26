@@ -10,7 +10,7 @@ sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/mas
 if [ "$(uname)" == "Darwin" ]; then
     source install/brew.sh
 
-    source install/nvim.sh
+    source install/vim.sh
 
     # disable showing alphabet tooltips if long press keyboard
     defaults write -g ApplePressAndHoldEnabled -bool false

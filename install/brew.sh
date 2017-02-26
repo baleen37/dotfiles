@@ -9,7 +9,7 @@ echo -e "\n\ninstalling homebrew packages..."
 
 brew install git
 brew install fzf
-brew install macvim --override-system-vim
+brew install vim --override-system-vim
 
 # managing python package
 brew install pyenv
