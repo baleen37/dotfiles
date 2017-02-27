@@ -29,9 +29,9 @@ done
 
 echo -e "\n\nCreating symlinks"
 echo "=============================="
-SYMLINKS=( "$HOME/.vimrc:$DOTFILES/.vimrc" 
-				"$HOME/.zshrc:$DOTFILES/.zshrc"
-				"$HOME/.aliases:$DOTFILES/.aliases" )
+SYMLINKS=( "$HOME/.vimrc:$DOTFILES/vimrc" 
+				"$HOME/.zshrc:$DOTFILES/zshrc"
+				"$HOME/.aliases:$DOTFILES/aliases" )
 
 for file in "${SYMLINKS[@]}" ; do
     KEY=${file%%:*}

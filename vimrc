@@ -29,6 +29,7 @@ Plug 'pangloss/vim-javascript'
 Plug 'freitass/todo.txt-vim'
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'groenewege/vim-less'
+Plug 'craigemery/vim-autotag'
 
 call plug#end()
 

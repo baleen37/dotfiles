@@ -1,9 +1,9 @@
 #!/bin/sh
 
-NEOVIMFOLDER='config/nvim'
+VIMFOLDER='.vim'
 
-if ! [ ! -d $NEOVIMFOLDER/autoload ]; then
-    target=$NEOVIMFOLDER/autoload/plug.vim
+if ! [ ! -d $VIMFOLDER/autoload ]; then
+    target=$VIMFOLDER/autoload/plug.vim
     if [ -e $target ]; then
         echo "${target} already exists... Skipping."
     else
