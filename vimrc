@@ -19,17 +19,15 @@ Plug 'Valloric/YouCompleteMe', { 'do': './install.py --clang-completer --tern-co
 
 " code
 Plug 'hynek/vim-python-pep8-indent'
-Plug 'Yggdroot/indentLine'
+"Plug 'nathanaelkane/vim-indent-guides'
 
 " lang
 Plug 'Glench/Vim-Jinja2-Syntax'
 Plug 'pangloss/vim-javascript'
+Plug 'groenewege/vim-less'
 
 " commanders
-Plug 'freitass/todo.txt-vim'
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
-Plug 'groenewege/vim-less'
-Plug 'craigemery/vim-autotag'
 
 call plug#end()
 

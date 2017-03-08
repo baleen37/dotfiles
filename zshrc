@@ -102,3 +102,6 @@ PATH=$PATH:/usr/local/sbin
 
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+# ssh-agent
+plugins=(git ssh-agent)
