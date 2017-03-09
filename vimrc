@@ -20,6 +20,7 @@ Plug 'Valloric/YouCompleteMe', { 'do': './install.py --clang-completer --tern-co
 " code
 Plug 'hynek/vim-python-pep8-indent'
 "Plug 'nathanaelkane/vim-indent-guides'
+Plug 'Yggdroot/indentLine'
 
 " lang
 Plug 'Glench/Vim-Jinja2-Syntax'
@@ -51,25 +52,33 @@ if !has('nvim')
 	set encoding=utf-8 " Necessary to show Unicode glyphs
 endif
 
+" ----------------------------------------------------------------------------
 " solarized
+" ----------------------------------------------------------------------------
 set background=dark
 colorscheme solarized
 
+" ----------------------------------------------------------------------------
 " vim-powerline
+" ----------------------------------------------------------------------------
 set nocompatible   " Disable vi-compatibility
 
+" ----------------------------------------------------------------------------
 " The-NERD-tree
+" ----------------------------------------------------------------------------
 map <Tab> gt
 map <S-Tab> gT
 map <C-t> :tabnew<CR>
 let NERDTreeIgnore = ['\.pyc$', '__pycache__']
 
-"fzf
+" ----------------------------------------------------------------------------
+" fzf
+" ----------------------------------------------------------------------------
 nnoremap <c-p> :FZF<CR>
 
-" -----------------------------------------------------------
+" ----------------------------------------------------------------------------
 " Syntastic
-" -----------------------------------------------------------
+" ----------------------------------------------------------------------------
 set statusline+=%#warningmsg#
 set statusline+=%{SyntasticStatuslineFlag()}
 set statusline+=%*
@@ -91,16 +100,19 @@ nmap <F11> :TagbarToggle<CR>
 " copy into clipboard
 vnoremap <C-c> "*y
 
-" use ; instead of :
-nnoremap ; :
-
-" -----------------------------------------------------------
+" ----------------------------------------------------------------------------
 " YcmComplete
-" -----------------------------------------------------------
+" ----------------------------------------------------------------------------
 nnoremap <leader>g :YcmCompleter GoTo<CR>
 nnoremap <leader>gr :YcmCompleter GoToReferences<CR>
 nnoremap <leader>gd :YcmCompleter GetDoc<CR>
 let g:ycm_python_binary_path = 'python'
+
+" ----------------------------------------------------------------------------
+" indentLine
+" ----------------------------------------------------------------------------
+let g:indentLine_enabled = 0
+autocmd FileType python,javascript IndentLinesEnable
 
 " shortcut  ipdb
 nnoremap <leader>p oimport pudb; pudb.set_trace()<Esc>
