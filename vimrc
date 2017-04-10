@@ -20,7 +20,7 @@ Plug 'Valloric/YouCompleteMe', { 'do': './install.py --clang-completer --tern-co
 " code
 Plug 'hynek/vim-python-pep8-indent'
 "Plug 'nathanaelkane/vim-indent-guides'
-Plug 'Yggdroot/indentLine'
+"Plug 'Yggdroot/indentLine'
 
 " lang
 Plug 'Glench/Vim-Jinja2-Syntax'
@@ -70,6 +70,7 @@ map <Tab> gt
 map <S-Tab> gT
 map <C-t> :tabnew<CR>
 let NERDTreeIgnore = ['\.pyc$', '__pycache__']
+autocmd BufWinEnter * NERDTreeMirror " NERDTree's buffer
 
 " ----------------------------------------------------------------------------
 " fzf
@@ -112,7 +113,7 @@ let g:ycm_python_binary_path = 'python'
 " indentLine
 " ----------------------------------------------------------------------------
 let g:indentLine_enabled = 0
-autocmd FileType python,javascript IndentLinesEnable
+"autocmd FileType python,javascript IndentLinesEnable
 
 " shortcut  ipdb
 nnoremap <leader>p oimport pudb; pudb.set_trace()<Esc>
@@ -121,3 +122,7 @@ set laststatus=2
 
 let g:python_host_prog = $HOME . "/.pyenv/versions/neovim2/bin/python"
 let g:python3_host_prog = $HOME . "/.pyenv/versions/neovim3/bin/python"
+
+autocmd filetype c nnoremap <F4> :w <bar> exec '!gcc '.shellescape('%').' -o '.shellescape('%:r').' && ./'.shellescape('%:r')<CR>
+autocmd filetype cpp nnoremap <F4> :w <bar> exec '!g++ '.shellescape('%').' -o '.shellescape('%:r').' && ./'.shellescape('%:r')<CR>
+
