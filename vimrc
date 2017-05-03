@@ -5,6 +5,7 @@ Plug 'altercation/vim-colors-solarized'
 
 " interface
 Plug 'The-NERD-tree'
+Plug 'jistr/vim-nerdtree-tabs'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 Plug 'scrooloose/syntastic'
@@ -93,7 +94,7 @@ let g:syntastic_python_checkers=['pep8', 'python']
 let g:airline_theme='solarized'
 
 " <F10> vim-nerdtree
-map <F10> :NERDTreeToggle<CR>
+map <F10> :NERDTreeTabsToggle<CR>
 
 " <F11> tagbar
 nmap <F11> :TagbarToggle<CR>
