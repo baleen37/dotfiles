@@ -1,11 +1,12 @@
+let $PATH = '/usr/local/bin:'.$PATH
+
 call plug#begin('~/.vim/plugged')
 
 " color
 Plug 'altercation/vim-colors-solarized'
 
 " interface
-Plug 'The-NERD-tree'
-Plug 'jistr/vim-nerdtree-tabs'
+Plug 'scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 Plug 'scrooloose/syntastic'
@@ -71,7 +72,6 @@ map <Tab> gt
 map <S-Tab> gT
 map <C-t> :tabnew<CR>
 let NERDTreeIgnore = ['\.pyc$', '__pycache__']
-autocmd BufWinEnter * NERDTreeMirror " NERDTree's buffer
 
 " ----------------------------------------------------------------------------
 " fzf
@@ -94,7 +94,7 @@ let g:syntastic_python_checkers=['pep8', 'python']
 let g:airline_theme='solarized'
 
 " <F10> vim-nerdtree
-map <F10> :NERDTreeTabsToggle<CR>
+map <F10> :NERDTreeToggle<CR>
 
 " <F11> tagbar
 nmap <F11> :TagbarToggle<CR>
