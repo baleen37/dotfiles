@@ -16,7 +16,6 @@ brew install pyenv
 brew install pyenv-virtualenv
 brew install autoenv
 
-brew install neovim/neovim/neovim
 brew install pidcat
 brew install android-platform-tools
 
