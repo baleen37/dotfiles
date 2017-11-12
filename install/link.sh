@@ -32,6 +32,7 @@ echo "=============================="
 SYMLINKS=( "$HOME/.vimrc:$DOTFILES/vimrc" 
 				"$HOME/.zshrc:$DOTFILES/zshrc"
 				"$HOME/.gitconfig:$DOTFILES/gitconfig"
+				"$HOME/.tmux.conf:$DOTFILES/tmux.conf"
 				"$HOME/.aliases:$DOTFILES/aliases" )
 
 for file in "${SYMLINKS[@]}" ; do

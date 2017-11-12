@@ -19,3 +19,6 @@ brew install autoenv
 brew install pidcat
 brew install android-platform-tools
 
+# for osx clipboard 
+# https://github.com/ChrisJohnsen/tmux-MacOSX-pasteboard
+brew install reattach-to-user-namespace

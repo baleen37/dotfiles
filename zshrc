@@ -99,6 +99,7 @@ export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init -)"
 
 PATH=$PATH:/usr/local/sbin
+PATH=$PATH:/usr/local/bin
 
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh

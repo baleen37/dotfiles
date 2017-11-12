@@ -127,3 +127,6 @@ let g:python3_host_prog = $HOME . "/.pyenv/versions/neovim3/bin/python"
 autocmd filetype c nnoremap <F4> :w <bar> exec '!gcc '.shellescape('%').' -o '.shellescape('%:r').' && ./'.shellescape('%:r')<CR>
 autocmd filetype cpp nnoremap <F4> :w <bar> exec '!g++ '.shellescape('%').' -o '.shellescape('%:r').' && ./'.shellescape('%:r')<CR>
 
+" yank text to OS X clipboard
+" " http://evertpot.com/osx-tmux-vim-copy-paste-clipboard/
+set clipboard=unnamed
