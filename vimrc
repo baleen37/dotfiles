@@ -17,7 +17,7 @@ Plug 'tpope/vim-fugitive'
 Plug 'mhinz/vim-signify'
 
 " complete
-Plug 'Valloric/YouCompleteMe', { 'do': './install.py --clang-completer --tern-completer' }
+" Plug 'Valloric/YouCompleteMe', { 'do': './install.py --clang-completer --tern-completer' }
 
 " code
 Plug 'hynek/vim-python-pep8-indent'
@@ -105,10 +105,10 @@ vnoremap <C-c> "*y
 " ----------------------------------------------------------------------------
 " YcmComplete
 " ----------------------------------------------------------------------------
-nnoremap <leader>g :YcmCompleter GoTo<CR>
-nnoremap <leader>gr :YcmCompleter GoToReferences<CR>
-nnoremap <leader>gd :YcmCompleter GetDoc<CR>
-let g:ycm_python_binary_path = 'python'
+" nnoremap <leader>g :YcmCompleter GoTo<CR>
+" nnoremap <leader>gr :YcmCompleter GoToReferences<CR>
+" nnoremap <leader>gd :YcmCompleter GetDoc<CR>
+" let g:ycm_python_binary_path = 'python'
 
 " ----------------------------------------------------------------------------
 " indentLine
