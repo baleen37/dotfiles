@@ -1,5 +1,3 @@
-##Get started
-
 ```bash
-./bootstrap.sh
+./install.sh
 ```

@@ -1,0 +1,1 @@
+/Users/ijiho/.dotfiles/zshrc

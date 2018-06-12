@@ -2,19 +2,29 @@
 
 echo "Installing dotfiles"
 
-source install/link.sh
+cd "$(dirname "${BASH_SOURCE[0]}")" || exit 1
 
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
+BASE=$(pwd)
+for rc in *rc tmux.conf gitgnore; do
+  mkdir -pv bak
+  [ -e ~/."$rc" ] && mv -v ~/."$rc" bak/."$rc"
+  ln -sfv "$BASE/$rc" ~/."$rc"
+done
 
-# is osx
-source install/brew.sh
+if [ "$(uname -s)" = 'Darwin' ]; then
+  # Homebrew
+  [ -z "$(which brew)" ] &&
+    ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 
-source install/vim.sh
+  echo "Updating homebrew"
+  brew install \
+    vim zsh ruby python go ctags
 
-# disable showing alphabet tooltips if long press keyboard
-defaults write -g ApplePressAndHoldEnabled -bool false
+    # disable showing alphabet tooltips if long press keyboard
+  defaults write -g ApplePressAndHoldEnabled -bool false
+fi
 
-# install autoenv
-git clone git://github.com/kennethreitz/autoenv.git ~/.autoenv
+git config --global user.email "baleen37@gmail.com"
+git config --global user.name "Jiho Lee"
 
 echo "Done."

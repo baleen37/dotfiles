@@ -1,8 +1,3 @@
 ## Vim files
 *.swp
 *.swo
-
-## Vim plugin
-config/nvim/plugged
-config/nvim/autoload
-
