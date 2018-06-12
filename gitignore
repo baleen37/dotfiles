@@ -1,2 +1,6 @@
+## Vim files
+*.swp
+*.swo
+
 # ctags
 tags

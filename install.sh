@@ -5,7 +5,7 @@ echo "Installing dotfiles"
 cd "$(dirname "${BASH_SOURCE[0]}")" || exit 1
 
 BASE=$(pwd)
-for rc in *rc tmux.conf gitgnore; do
+for rc in *rc tmux.conf gitignore; do
   mkdir -pv bak
   [ -e ~/."$rc" ] && mv -v ~/."$rc" bak/."$rc"
   ln -sfv "$BASE/$rc" ~/."$rc"
