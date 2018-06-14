@@ -43,6 +43,7 @@ set expandtab
 set tabstop=2
 set shiftwidth=2
 set exrc
+set backspace=indent,eol,start
 set secure
 set encoding=utf-8
 set t_Co=256                " Explicitly tell vim that the terminal supports 256 colors"

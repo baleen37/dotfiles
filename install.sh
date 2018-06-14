@@ -18,7 +18,9 @@ if [ "$(uname -s)" = 'Darwin' ]; then
 
   echo "Updating homebrew"
   brew install \
-    vim zsh ruby python go ctags
+    zsh ruby python go ctags tmux
+
+  brew install vim --with-override-system-vi
 
     # disable showing alphabet tooltips if long press keyboard
   defaults write -g ApplePressAndHoldEnabled -bool false
