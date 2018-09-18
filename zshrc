@@ -63,11 +63,7 @@ source $ZSH/oh-my-zsh.sh
 export LANG=en_US.UTF-8
 
 # Preferred editor for local and remote sessions
-if [[ -n $SSH_CONNECTION ]]; then
-  export EDITOR='vim'
-else
-  export EDITOR='nvim'
-fi
+export EDITOR='vim'
 
 # Compilation flags
 # export ARCHFLAGS="-arch x86_64"
@@ -76,18 +72,6 @@ fi
 # export SSH_KEY_PATH="~/.ssh/dsa_id"
 
 # python env
-eval "$(pyenv init -)"
-source ~/.autoenv/activate.sh
-
-export PATH="$(brew --prefix)/bin:$PATH"
-export PATH="$(brew --prefix php55)/bin:$PATH"
-eval "$(pyenv virtualenv-init -)"
-
-export PYENV_ROOT="$HOME/.pyenv"
-export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init -)"
-if which pyenv-virtualenv-init > /dev/null; then eval "$(pyenv virtualenv-init -)"; fi
-
 PATH=$PATH:/usr/local/sbin
 PATH=$PATH:/usr/local/bin
 
@@ -98,3 +82,12 @@ PATH=$PATH:/usr/local/bin
 plugins=(git ssh-agent)
 
 alias vi='vim'
+
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+eval `ssh-agent`
+eval "$(pyenv init -)"
+eval "$(pyenv virtualenv-init -)"

@@ -4,3 +4,10 @@
 
 # ctags
 tags
+
+.idea
+.idea/
+.idea/**
+*.iml
+
+.editorconfig
