@@ -83,10 +83,13 @@ plugins=(git ssh-agent)
 
 alias vi='vim'
 
+nvmi() {
+  export NVM_DIR="$HOME/.nvm"
+  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
+  [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+}
 
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+[[ -n "$NVM_INIT" ]] && nvmi
 
 eval `ssh-agent`
 eval "$(pyenv init -)"
@@ -96,5 +99,4 @@ eval "$(pyenv virtualenv-init -)"
 if test "$SSH_AUTH_SOCK" ; then
    ln -sf $SSH_AUTH_SOCK ~/.ssh/ssh_auth_sock
 fi
-
 
