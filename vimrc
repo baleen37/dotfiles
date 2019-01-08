@@ -25,6 +25,8 @@ Plug 'groenewege/vim-less'
 
 " commanders
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
+Plug 'jpalardy/vim-slime'
+let g:slime_target = "tmux"
 
 call plug#end()
 
