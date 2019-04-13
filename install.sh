@@ -11,6 +11,9 @@ for rc in *rc tmux.conf gitignore; do
   ln -sfv "$BASE/$rc" ~/."$rc"
 done
 
+# vim
+source $BASE/install-vim
+
 if [ "$(uname -s)" = 'Darwin' ]; then
   # Homebrew
   [ -z "$(which brew)" ] &&
@@ -20,7 +23,7 @@ if [ "$(uname -s)" = 'Darwin' ]; then
   brew install \
     zsh ruby python go ctags tmux
 
-  brew install vim --with-override-system-vi
+  brew install nvim
 
     # disable showing alphabet tooltips if long press keyboard
   defaults write -g ApplePressAndHoldEnabled -bool false

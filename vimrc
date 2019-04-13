@@ -22,6 +22,8 @@ Plug 'hynek/vim-python-pep8-indent'
 Plug 'Glench/Vim-Jinja2-Syntax'
 Plug 'pangloss/vim-javascript'
 Plug 'groenewege/vim-less'
+Plug 'leafgarland/typescript-vim'
+
 
 " commanders
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
