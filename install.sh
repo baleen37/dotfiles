@@ -23,7 +23,7 @@ if [ "$(uname -s)" = 'Darwin' ]; then
   brew install \
     zsh ruby python go ctags tmux
 
-  brew install nvim
+  brew install nvim iterm2 docker alt-tab
 
     # disable showing alphabet tooltips if long press keyboard
   defaults write -g ApplePressAndHoldEnabled -bool false
