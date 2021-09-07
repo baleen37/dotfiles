@@ -17,6 +17,7 @@ Plug 'mhinz/vim-signify'
 Plug 'hynek/vim-python-pep8-indent'
 "Plug 'nathanaelkane/vim-indent-guides'
 "Plug 'Yggdroot/indentLine'
+Plug 'vimwiki/vimwiki'
 
 " lang
 Plug 'Glench/Vim-Jinja2-Syntax'
@@ -50,6 +51,8 @@ set exrc
 set backspace=indent,eol,start
 set secure
 set encoding=utf-8
+set nocompatible
+filetype plugin on
 set t_Co=256                " Explicitly tell vim that the terminal supports 256 colors"
 syntax on
 
@@ -85,3 +88,12 @@ nnoremap <leader><tab> :FZF<CR>
 
 " ctags
 set tags=./tags;/
+
+" vimwiki
+let g:vimwiki_list = [
+    \{
+    \   'path': '~/Dropbox/wiki',
+    \   'ext' : '.md',
+    \   'diary_rel_path': '.',
+    \},
+\]
