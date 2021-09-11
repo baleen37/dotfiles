@@ -4,6 +4,7 @@ call plug#begin('~/.vim/plugged')
 
 " color
 Plug 'altercation/vim-colors-solarized'
+Plug 'plasticboy/vim-markdown'
 
 " interface
 Plug 'scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }
