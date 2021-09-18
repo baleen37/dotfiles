@@ -1,9 +1,10 @@
 [user]
-    name = baleen37
-    email = baleen37@gmail.com
+	name = Jiho Lee
+	email = baleen37@gmail.com
 [core]
     editor = /usr/bin/vim
     excludesfile = ~/.gitignore
+	autocrlf = input
 [i18n]
     commitEncoding = utf8
 [alias]

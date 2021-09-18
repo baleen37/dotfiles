@@ -1,6 +1,43 @@
-let $PATH = '/usr/local/bin:'.$PATH
+" ----------------------------------------------------------------------------
+" Basic settings
+" ----------------------------------------------------------------------------
 
-call plug#begin('~/.vim/plugged')
+set nu
+set rnu
+set autoindent
+set smartindent
+set hlsearch
+set incsearch
+set autoread                " detect when a file is changed
+set expandtab
+set tabstop=2
+set shiftwidth=2
+set exrc
+set backspace=indent,eol,start
+set secure
+set encoding=utf-8
+set nocompatible
+filetype plugin on
+filetype indent on
+set t_Co=256                " Explicitly tell vim that the terminal supports 256 colors"
+
+" NERDTree igtnore
+let NERDTreeIgnore = ['\.pyc$', '__pycache__']
+
+" yank text to OS X clipboard
+" http://evertpot.com/osx-tmux-vim-copy-paste-clipboard/
+set clipboard=unnamed
+
+" ----------------------------------------------------------------------------
+" Vim Plugins
+" ----------------------------------------------------------------------------
+"  " auto-install vim-plug
+if empty(glob('~/.config/nvim/autoload/plug.vim'))
+  silent !curl -fLo ~/.config/nvim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+  autocmd VimEnter * PlugInstall
+endif
+
+call plug#begin()
 
 " color
 Plug 'altercation/vim-colors-solarized'
@@ -25,51 +62,19 @@ Plug 'pangloss/vim-javascript'
 Plug 'groenewege/vim-less'
 Plug 'leafgarland/typescript-vim'
 
-
 " commanders
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'jpalardy/vim-slime'
 let g:slime_target = "tmux"
 
 call plug#end()
-
-" ----------------------------------------------------------------------------
-" Basic settings
-" ----------------------------------------------------------------------------
-
-set nu
-set rnu
-set autoindent
-set smartindent
-set hlsearch
-set incsearch
-set autoread                " detect when a file is changed
-set expandtab
-set tabstop=2
-set shiftwidth=2
-set exrc
-set backspace=indent,eol,start
-set secure
-set encoding=utf-8
-set nocompatible
-filetype plugin on
-set t_Co=256                " Explicitly tell vim that the terminal supports 256 colors"
-syntax on
-
-" solarized
-set background=dark
-colorscheme solarized
-
-" NERDTree igtnore
-let NERDTreeIgnore = ['\.pyc$', '__pycache__']
-
-" yank text to OS X clipboard
-" http://evertpot.com/osx-tmux-vim-copy-paste-clipboard/
-set clipboard=unnamed
-
 " ----------------------------------------------------------------------------
 " Basic mappings
 " ----------------------------------------------------------------------------
+" Use the Solarized Dark theme
+syntax enable
+set background=dark
+colorscheme solarized
 
 
 nmap <F8> :TagbarToggle<CR>
