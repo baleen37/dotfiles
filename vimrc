@@ -4,7 +4,6 @@ call plug#begin('~/.vim/plugged')
 
 " color
 Plug 'altercation/vim-colors-solarized'
-Plug 'plasticboy/vim-markdown'
 
 " interface
 Plug 'scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }
@@ -91,10 +90,12 @@ nnoremap <leader><tab> :FZF<CR>
 set tags=./tags;/
 
 " vimwiki
+let g:vimwiki_header_type = '#'     " set to '=' for wiki syntax
 let g:vimwiki_list = [
     \{
     \   'path': '~/Dropbox/wiki',
     \   'ext' : '.md',
-    \   'diary_rel_path': '.',
+    \   'diary_rel_path': 'diary/',
     \},
 \]
+let g:vimwiki_folding='list'
