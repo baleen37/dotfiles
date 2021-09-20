@@ -22,6 +22,7 @@ brew install --cask docker
 brew install --cask alt-tab
 brew install --cask iterm2
 brew install --cask appcleaner
+brew install --cask karabiner-elements
 
 # Remove outdated versions from the cellar.
 brew cleanup
