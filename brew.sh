@@ -8,6 +8,8 @@ brew upgrade
 
 # Install more recent versions of some macOS tools.
 brew install vim --with-override-system-vi
+# nvim
+brew install nvim 
 
 # zsh
 brew install zsh 
@@ -15,19 +17,11 @@ brew install zsh
 # tmux
 brew install tmux
 
-# nvim
-brew install nvim 
 
-
-# docker
-brew install docker 
-
-# alt-tab
-brew install alt-tab
-
-# iterms2
-brew install iterm2
-
+brew install --cask docker 
+brew install --cask alt-tab
+brew install --cask iterm2
+brew install --cask appcleaner
 
 # Remove outdated versions from the cellar.
 brew cleanup
