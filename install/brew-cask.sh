@@ -9,6 +9,16 @@ apps=(
     google-chrome
     iterm2
     visual-studio-code
+    1password
+    anki
+    slack
+    discord
+    postman
 )
 
 brew install "${apps[@]}" --cask
+
+mas install 869223134 # kakaotalk
+mas install 441258766 # magnet
+mas install 1529448980 # reeder 5
+mas install 461788075 # movist
