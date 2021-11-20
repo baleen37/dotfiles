@@ -1,2 +1,1 @@
-eval "$(pyenv virtualenv-init -)"
-echo 'source /usr/local/opt/autoenv/activate.sh'
+eval "$(/opt/homebrew/bin/brew shellenv)"
