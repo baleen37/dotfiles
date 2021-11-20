@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 eval "$(/opt/homebrew/bin/brew shellenv)"
 
 # Make sure we’re using the latest Homebrew.
@@ -12,6 +12,7 @@ brew upgrade
 apps=(
     nvim
     git
+    zsh
     tmux
     tree
     vim
