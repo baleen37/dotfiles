@@ -18,6 +18,9 @@ apps=(
     vim
     wget
     mas
+    nvm
+    npm
+    pyenv
 )
 
 brew install "${apps[@]}"
