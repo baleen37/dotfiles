@@ -14,7 +14,9 @@ apps=(
     slack
     discord
     postman
+    intellij-idea
 )
+
 
 brew install "${apps[@]}" --cask
 
