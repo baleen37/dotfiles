@@ -27,5 +27,8 @@ apps=(
 
 brew install "${apps[@]}"
 
+# fzf key binding
+$(brew --prefix)/opt/fzf/install
+
 # Remove outdated versions from the cellar.
 brew cleanup

@@ -16,3 +16,7 @@ export NVM_DIR="$HOME/.nvm"
 
 # ssh
 eval "$(ssh-agent -s)"
+
+# fzf
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
