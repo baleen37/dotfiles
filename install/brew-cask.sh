@@ -24,3 +24,8 @@ mas install 869223134 # kakaotalk
 mas install 441258766 # magnet
 mas install 1529448980 # reeder 5
 mas install 461788075 # movist
+
+
+# font
+brew tap homebrew/cask-fonts
+brew install font-roboto-mono

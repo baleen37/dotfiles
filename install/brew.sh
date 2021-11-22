@@ -21,6 +21,8 @@ apps=(
     nvm
     npm
     pyenv
+    svn
+    fzf
 )
 
 brew install "${apps[@]}"
