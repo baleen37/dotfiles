@@ -23,6 +23,7 @@ apps=(
     pyenv
     svn
     fzf
+    nvim
 )
 
 brew install "${apps[@]}"
