@@ -54,7 +54,8 @@ Plug 'mhinz/vim-signify'
 Plug 'hynek/vim-python-pep8-indent'
 "Plug 'nathanaelkane/vim-indent-guides'
 "Plug 'Yggdroot/indentLine'
-Plug 'vimwiki/vimwiki'
+Plug 'lervag/wiki.vim'
+Plug 'lervag/wiki-ft.vim'
 
 " lang
 Plug 'Glench/Vim-Jinja2-Syntax'
@@ -64,7 +65,7 @@ Plug 'leafgarland/typescript-vim'
 
 " commanders
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
-Plug 'jpalardy/vim-slime'
+Plug 'mhinz/vim-startify'
 let g:slime_target = "tmux"
 
 call plug#end()
@@ -89,18 +90,13 @@ nnoremap <F10> :NERDTreeToggle<cr>
 map <F5> :!ctags -R –c++-kinds=+p –fields=+iaS –extra=+q .<CR>
 
 " fzf
-nnoremap <leader><tab> :FZF<CR>
+nnoremap <silent> <leader>f :FZF<cr>
+nnoremap <silent> <leader>F :FZF ~<cr>
 
 " ctags
 set tags=./tags;/
 
 " vimwiki
-let g:vimwiki_header_type = '#'     " set to '=' for wiki syntax
-let g:vimwiki_list = [
-    \{
-    \   'path': '~/Dropbox/wiki',
-    \   'ext' : '.md',
-    \   'diary_rel_path': 'diary/',
-    \},
-\]
-let g:vimwiki_folding='list'
+let g:wiki_root = '~/Dropbox/wiki'
+let g:wiki_filetypes = ['md']
+let g:wiki_link_extension = '.md'
