@@ -20,3 +20,6 @@ eval "$(ssh-agent -s)"
 # fzf
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
+# ls color
+export CLICOLOR=1
+
