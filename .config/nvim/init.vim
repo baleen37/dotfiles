@@ -105,3 +105,7 @@ let g:vimwiki_list = [
     \},
 \]
 let g:vimwiki_folding='list'
+
+
+# directory change current path
+nnoremap <leader>cd :cd %:p:h<CR>
