@@ -54,7 +54,8 @@ Plug 'mhinz/vim-signify'
 Plug 'hynek/vim-python-pep8-indent'
 "Plug 'nathanaelkane/vim-indent-guides'
 "Plug 'Yggdroot/indentLine'
-Plug 'vimwiki/vimwiki'
+Plug 'lervag/wiki.vim'
+Plug 'lervag/wiki-ft.vim'
 
 " lang
 Plug 'Glench/Vim-Jinja2-Syntax'
@@ -96,16 +97,9 @@ nnoremap <silent> <leader>F :FZF ~<cr>
 set tags=./tags;/
 
 " vimwiki
-let g:vimwiki_header_type = '#'     " set to '=' for wiki syntax
-let g:vimwiki_list = [
-    \{
-    \   'path': '~/Dropbox/wiki',
-    \   'ext' : '.md',
-    \   'diary_rel_path': 'diary/',
-    \},
-\]
-let g:vimwiki_folding='list'
+let g:wiki_root = '~/Dropbox/wiki'
+let g:wiki_filetypes = ['wiki']
+let g:wiki_link_extension = '.wiki'
 
-
-# directory change current path
+" directory change current path
 nnoremap <leader>cd :cd %:p:h<CR>
