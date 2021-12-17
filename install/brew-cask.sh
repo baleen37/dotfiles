@@ -15,6 +15,7 @@ apps=(
     discord
     postman
     intellij-idea
+    datagrip
 )
 
 
