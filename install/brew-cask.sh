@@ -11,11 +11,11 @@ apps=(
     visual-studio-code
     1password
     anki
-    slack
     discord
     postman
     intellij-idea
     datagrip
+    slack
 )
 
 
