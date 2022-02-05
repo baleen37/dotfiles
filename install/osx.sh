@@ -15,3 +15,7 @@ defaults write com.googlecode.iterm2.plist PrefsCustomFolder -string "~/dotfiles
 defaults write com.googlecode.iterm2.plist LoadPrefsFromCustomFolder -bool true
 
 defaults write -g ApplePressAndHoldEnabled -bool false
+
+# Intellij
+defaults write com.jetbrains.intellij ApplePressAndHoldEnabled -bool false
+defaults write com.jetbrains.intellij.ce ApplePressAndHoldEnabled -bool false
