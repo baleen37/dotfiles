@@ -70,7 +70,7 @@ ZSH_THEME="robbyrussell"
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git)
+plugins=(git ssh-agent)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -111,13 +111,20 @@ done;
 # brew
 eval "$(/opt/homebrew/bin/brew shellenv)"
 
+# If you come from bash you might have to change your $PATH.
+# need this for x86_64 brew
+export PATH=$HOME/bin:/usr/local/bin:$PATH
+# for intel x86_64 brew
+alias axbrew='arch -x86_64 /usr/local/homebrew/bin/brew'
+
 # nvm
 export NVM_DIR="$HOME/.nvm"
 [ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && . "/opt/homebrew/opt/nvm/nvm.sh"  # This loads nvm
 [ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && . "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
 
-# ssh
-eval "$(ssh-agent -s)"
+export CPPFLAGS=-I/opt/homebrew/opt/openssl/include
+export LDFLAGS=-L/opt/homebrew/opt/openssl/lib
 
 # fzf
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
