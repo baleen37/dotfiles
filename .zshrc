@@ -58,4 +58,3 @@ export LDFLAGS=-L/opt/homebrew/opt/openssl/lib
 
 # fzf
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-
