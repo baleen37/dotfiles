@@ -15,7 +15,7 @@ function doIt() {
     --exclude "LICENSE-MIT.txt" \
     -avh --no-perms \
     . ~;
-  source ~/.bash_profile;
+  source ~/.zshrc;
 }
 
 if [ "$1" == "-f" ]; then

@@ -5,7 +5,26 @@
 # ctags
 tags
 
+# Compiled source #
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+
+# intellij
 .idea
 .idea/
 .idea/**
 *.iml
+
+# OS generated files #
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+ehthumbs.db
+Thumbs.db
