@@ -55,3 +55,8 @@ defaults write com.googlecode.iterm2.plist LoadPrefsFromCustomFolder -bool true
 # massively increase virtualized macOS by disabling spotlight.
 sudo mdutil -i off -a
 
+
+#########################################################
+# alttab
+#########################################################
+defaults write com.lwouis.alt-tab-macos holdShortcut2 "\\U2318"
