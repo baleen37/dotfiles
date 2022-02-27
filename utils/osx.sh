@@ -52,8 +52,6 @@ defaults write com.googlecode.iterm2.plist LoadPrefsFromCustomFolder -bool true
 #########################################################
 # Spotlight
 #########################################################
-# massively increase virtualized macOS by disabling spotlight.
-sudo mdutil -i off -a
 
 
 #########################################################
