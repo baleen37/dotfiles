@@ -20,6 +20,7 @@ apps=(
 
 
 brew install "${apps[@]}" --cask
+brew install notion --appdir ~/Applications
 
 mas install 869223134 # kakaotalk
 mas install 441258766 # magnet
