@@ -3,7 +3,7 @@
 	email = baleen37@gmail.com
 [core]
     editor = /usr/bin/vim
-    excludesfile = ~/.gitignore
+	excludesfile = ~/.gitignore_global
 	autocrlf = input
 [i18n]
     commitEncoding = utf8
