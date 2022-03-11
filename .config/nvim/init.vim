@@ -65,6 +65,8 @@ Plug 'leafgarland/typescript-vim'
 " commanders
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'mhinz/vim-startify'
+Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app && yarn install'  }
+
 let g:slime_target = "tmux"
 
 call plug#end()
@@ -112,3 +114,7 @@ let g:vimwiki_list = [
     \},
 \]
 let g:vimwiki_folding='list'
+
+
+" toggle Markdown preview 
+nmap <leader>p <Plug>MarkdownPreviewToggle
