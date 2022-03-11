@@ -24,6 +24,7 @@ apps=(
     svn
     fzf
     nvim
+    yarn
 )
 
 brew install "${apps[@]}"

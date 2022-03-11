@@ -13,7 +13,7 @@ ln -sfv "$DOTFILES_DIR/.gitignore_global" ~
 ln -sfv "$DOTFILES_DIR/.aliases" ~
 ln -sfv "$DOTFILES_DIR/.vimrc" ~
 ln -sfv "$DOTFILES_DIR/.ideavimrc" ~
-ln -sfv "$DOTFILES_DIR/.config/nvim" ~/.config
+ln -sfv "$DOTFILES_DIR/.config/nvim/init.vim" ~/.config/nvim
 
 # Package managers & packages
 . "$DOTFILES_DIR/utils/brew.sh"
