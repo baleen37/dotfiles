@@ -10,7 +10,6 @@ brew update
 brew upgrade
 
 apps=(
-    nvim
     git
     zsh
     tmux
