@@ -21,8 +21,7 @@ filetype plugin on
 filetype indent on
 set t_Co=256                " Explicitly tell vim that the terminal supports 256 colors"
 
-" NERDTree igtnore
-let NERDTreeIgnore = ['\.pyc$', '__pycache__']
+" NERDTree igtnoret let NERDTreeIgnore = ['\.pyc$', '__pycache__']
 
 " yank text to OS X clipboard
 " http://evertpot.com/osx-tmux-vim-copy-paste-clipboard/
@@ -66,6 +65,9 @@ Plug 'leafgarland/typescript-vim'
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'mhinz/vim-startify'
 Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app && yarn install'  }
+Plug 'tpope/vim-surround'
+Plug 'junegunn/goyo.vim'
+Plug 'junegunn/limelight.vim'
 
 let g:slime_target = "tmux"
 
@@ -77,6 +79,11 @@ call plug#end()
 syntax enable
 set background=dark
 colorscheme solarized
+
+" Goyo + limelight
+nnoremap <leader>G :Goyo<CR>
+let g:limelight_conceal_ctermfg = 245  " Solarized Base1
+let g:limelight_conceal_guifg = '#8a8a8a'  " Solarized Base1
 
 
 nmap <F8> :TagbarToggle<CR>
@@ -108,7 +115,7 @@ nnoremap <leader>cd :cd %:p:h<CR>
 let g:vimwiki_header_type = '#'     " set to '=' for wiki syntax
 let g:vimwiki_list = [
     \{
-    \   'path': '~/Dropbox/wiki',
+    \   'path': '~/wiki',
     \   'ext' : '.md',
     \   'diary_rel_path': 'diary/',
     \},
