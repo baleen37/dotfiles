@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
 
-alias idea='open -na "IntelliJ IDEA.app" --args "$@"'
 alias vi='nvim'
 alias la='ls -al'

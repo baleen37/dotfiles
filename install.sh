@@ -13,6 +13,7 @@ ln -sfv "$DOTFILES_DIR/.gitignore_global" ~
 ln -sfv "$DOTFILES_DIR/.aliases" ~
 ln -sfv "$DOTFILES_DIR/.vimrc" ~
 ln -sfv "$DOTFILES_DIR/.ideavimrc" ~
+ln -sfv "$DOTFILES_DIR/bin" ~
 
 . "$DOTFILES_DIR/install-vim.sh"
 
