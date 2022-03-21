@@ -1,1 +1,0 @@
-/Users/kakao/dotfiles/vimrc
