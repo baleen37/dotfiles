@@ -53,8 +53,7 @@ Plug 'mhinz/vim-signify'
 Plug 'hynek/vim-python-pep8-indent'
 "Plug 'nathanaelkane/vim-indent-guides'
 "Plug 'Yggdroot/indentLine'
-Plug 'lervag/wiki.vim'
-Plug 'lervag/wiki-ft.vim'
+Plug 'vimwiki/vimwiki'
 
 " lang
 Plug 'Glench/Vim-Jinja2-Syntax'
@@ -106,10 +105,8 @@ nnoremap <silent> <leader>F :FZF ~<cr>
 set tags=./tags;/
 
 " vimwiki
-let g:wiki_root = '~/wiki'
-let g:wiki_filetypes = ['md']
-let g:wiki_link_extension = '.md'
-
+let g:vimwiki_list = [{'path': '~/wiki/',
+                      \ 'syntax': 'markdown', 'ext': '.md'}]
 " directory change current path
 nnoremap <leader>cd :cd %:p:h<CR>
 

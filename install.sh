@@ -14,6 +14,7 @@ ln -sfv "$DOTFILES_DIR/.aliases" ~
 ln -sfv "$DOTFILES_DIR/.vimrc" ~
 ln -sfv "$DOTFILES_DIR/.ideavimrc" ~
 ln -sfv "$DOTFILES_DIR/bin" ~
+ln -s "~/Dropbox/wiki" ~
 
 . "$DOTFILES_DIR/install-vim.sh"
 
