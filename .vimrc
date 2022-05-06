@@ -44,6 +44,10 @@ Plug 'altercation/vim-colors-solarized'
 " interface
 Plug 'scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }
 Plug 'majutsushi/tagbar'
+  let g:tagbar_sort = 0
+Plug 'Yggdroot/indentLine', { 'on': 'IndentLinesEnable' }
+  let g:indentLine_color_term = 239
+  let g:indentLine_color_gui = '#616161'
 
 " git
 Plug 'tpope/vim-fugitive'
@@ -60,6 +64,7 @@ Plug 'Glench/Vim-Jinja2-Syntax'
 Plug 'pangloss/vim-javascript'
 Plug 'groenewege/vim-less'
 Plug 'leafgarland/typescript-vim'
+Plug 'sgur/vim-editorconfig'
 
 " commanders
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
@@ -68,6 +73,10 @@ Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app && yarn install'  }
 Plug 'tpope/vim-surround'
 Plug 'junegunn/goyo.vim'
 Plug 'junegunn/limelight.vim'
+Plug 'ferrine/md-img-paste.vim'
+  autocmd FileType markdown nnoremap <buffer> <silent> <leader>v :call mdip#MarkdownClipboardImage()<CR>
+  let g:mdip_imgdir = 'images'
+  let g:mdip_imgname = 'image'
 
 let g:slime_target = "tmux"
 
