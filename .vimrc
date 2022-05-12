@@ -68,6 +68,7 @@ Plug 'sgur/vim-editorconfig'
 
 " commanders
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
+Plug 'junegunn/fzf.vim'
 Plug 'mhinz/vim-startify'
 Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app && yarn install'  }
 Plug 'tpope/vim-surround'

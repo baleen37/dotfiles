@@ -25,6 +25,8 @@ apps=(
     nvim
     yarn
     tfenv
+    awscli
+    ripgrep
 )
 
 brew install "${apps[@]}"
