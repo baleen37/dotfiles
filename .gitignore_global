@@ -28,3 +28,7 @@ tags
 Icon?
 ehthumbs.db
 Thumbs.db
+
+
+# java
+*.hprof
