@@ -34,5 +34,9 @@ brew install "${apps[@]}"
 # fzf key binding
 $(brew --prefix)/opt/fzf/install
 
+# universal-ctags
+brew tap universal-ctags/universal-ctags
+brew install --HEAD universal-ctags
+
 # Remove outdated versions from the cellar.
 brew cleanup

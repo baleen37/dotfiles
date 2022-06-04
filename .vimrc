@@ -43,7 +43,7 @@ Plug 'altercation/vim-colors-solarized'
 
 " interface
 Plug 'scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }
-Plug 'majutsushi/tagbar'
+Plug 'majutsushi/tagbar', { 'on': 'TagbarToggle' }
   let g:tagbar_sort = 0
 Plug 'Yggdroot/indentLine', { 'on': 'IndentLinesEnable' }
   let g:indentLine_color_term = 239
@@ -78,6 +78,8 @@ Plug 'ferrine/md-img-paste.vim'
   autocmd FileType markdown nnoremap <buffer> <silent> <leader>v :call mdip#MarkdownClipboardImage()<CR>
   let g:mdip_imgdir = 'images'
   let g:mdip_imgname = 'image'
+Plug 'junegunn/vim-easy-align'
+Plug 'mzlogin/vim-markdown-toc'
 
 let g:slime_target = "tmux"
 
@@ -115,8 +117,14 @@ nnoremap <silent> <leader>F :FZF ~<cr>
 set tags=./tags;/
 
 " vimwiki
-let g:vimwiki_list = [{'path': '~/wiki/',
-                      \ 'syntax': 'markdown', 'ext': '.md'}]
+let g:vimwiki_list = [
+  \{ 
+  \  'path': '~/wiki/',
+  \  'syntax': 'markdown',
+  \  'ext': '.md'
+  \},
+\]
+let g:vimwiki_conceallevel = 0
 " directory change current path
 nnoremap <leader>cd :cd %:p:h<CR>
 
