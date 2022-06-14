@@ -38,5 +38,9 @@ $(brew --prefix)/opt/fzf/install
 brew tap universal-ctags/universal-ctags
 brew install --HEAD universal-ctags
 
+# nvm
+nvm install 14
+nvm install 16
+
 # Remove outdated versions from the cellar.
 brew cleanup
