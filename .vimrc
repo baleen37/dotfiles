@@ -19,7 +19,8 @@ set encoding=utf-8
 set nocompatible
 filetype plugin on
 filetype indent on
-let mapleader=" "
+let mapleader      = ' '
+let maplocalleader = ' '
 set t_Co=256                " Explicitly tell vim that the terminal supports 256 colors"
 
 " NERDTree igtnoret let NERDTreeIgnore = ['\.pyc$', '__pycache__']
@@ -94,7 +95,7 @@ set background=dark
 colorscheme solarized
 
 " Goyo + limelight
-nnoremap <leader>G :Goyo<CR>
+nnoremap <Leader>G :Goyo<CR>
 let g:limelight_conceal_ctermfg = 245  " Solarized Base1
 let g:limelight_conceal_guifg = '#8a8a8a'  " Solarized Base1
 
@@ -105,7 +106,7 @@ nmap <F8> :TagbarToggle<CR>
 map <C-t> :tabnew<CR>
 nnoremap ]t :tabn<cr>
 nnoremap [t :tabp<cr>
-nnoremap <F10> :NERDTreeToggle<cr>
+nnoremap <Leader>n :NERDTreeToggle<cr>
 
 " recreate tags
 map <F5> :!ctags -R –c++-kinds=+p –fields=+iaS –extra=+q .<CR>
