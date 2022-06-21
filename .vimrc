@@ -23,6 +23,8 @@ let mapleader      = ' '
 let maplocalleader = ' '
 set t_Co=256                " Explicitly tell vim that the terminal supports 256 colors"
 
+let s:darwin = has('mac')
+
 " NERDTree igtnoret let NERDTreeIgnore = ['\.pyc$', '__pycache__']
 
 " yank text to OS X clipboard
@@ -101,6 +103,30 @@ let g:limelight_conceal_guifg = '#8a8a8a'  " Solarized Base1
 
 
 nmap <F8> :TagbarToggle<CR>
+
+" ----------------------------------------------------------------------------
+" markdown-preview
+" ----------------------------------------------------------------------------
+if s:darwin && executable('x5050')
+  function! MKDPSplit(url)
+    let script = '
+    \│ ~/Library/Application\ Support/iTerm2/iterm2env/versions/*/bin/python3 <<_
+    \│ import iterm2
+    \│ async def main(connection):
+    \│   app = await iterm2.async_get_app(connection)
+    \│   window = app.current_terminal_window
+    \│   if window is not None:
+    \│     await window.async_set_fullscreen(False)
+    \│ iterm2.run_until_complete(main)
+    \│ _
+    \│ x5050 '.shellescape(a:url)
+    call system(join(split(script, '│ '), "\n"))
+  endfunction
+  let g:mkdp_browserfunc = 'MKDPSplit'
+endif
+let g:mkdp_open_to_the_world = 1
+let g:mkdp_auto_close = 0
+
 
 " The-NERD-tree
 map <C-t> :tabnew<CR>

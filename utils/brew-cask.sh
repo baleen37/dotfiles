@@ -24,6 +24,10 @@ mas install 461788075 # movist
 mas install 904280696 # things3
 
 
+## jdk 11
+brew tap AdoptOpenJDK/openjdk
+brew cask install adoptopenjdk11
+
 # font
 brew tap homebrew/cask-fonts
 brew install font-roboto-mono

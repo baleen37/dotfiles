@@ -1,2 +1,5 @@
-set nu
+let mapleader = ' '
+
+set number
 set rnu
+set hlsearch
