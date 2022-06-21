@@ -26,7 +26,7 @@ mas install 904280696 # things3
 
 ## jdk 11
 brew tap AdoptOpenJDK/openjdk
-brew cask install adoptopenjdk11
+brew install --cask adoptopenjdk11
 
 # font
 brew tap homebrew/cask-fonts
