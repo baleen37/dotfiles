@@ -57,6 +57,8 @@ export NVM_DIR="$HOME/.nvm"
 #export CPPFLAGS=-I/opt/homebrew/opt/openssl/include
 #export LDFLAGS=-L/opt/homebrew/opt/openssl/lib
 
+#export CPPFLAGS=-I/usr/local/opt/openssl/include
+#export LDFLAGS=-L/usr/local/opt/openssl/lib
 # fzf
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 source /opt/homebrew/opt/chruby/share/chruby/chruby.sh

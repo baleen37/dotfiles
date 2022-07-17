@@ -143,6 +143,7 @@ nnoremap <silent> <leader>F :FZF ~<cr>
 
 " ctags
 set tags=./tags;/
+nnoremap <Leader>t :TagbarToggle<cr>
 
 " vimwiki
 let g:vimwiki_list = [
