@@ -23,6 +23,8 @@ let mapleader      = ' '
 let maplocalleader = ' '
 set t_Co=256                " Explicitly tell vim that the terminal supports 256 colors"
 
+set directory^=$HOME/.vim/swap
+
 let s:darwin = has('mac')
 
 " NERDTree igtnoret let NERDTreeIgnore = ['\.pyc$', '__pycache__']
@@ -43,7 +45,8 @@ endif
 call plug#begin()
 
 " color
-Plug 'altercation/vim-colors-solarized'
+Plug 'junegunn/seoul256.vim'
+let g:seoul256_background = 236
 
 " interface
 Plug 'scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }
@@ -61,7 +64,7 @@ Plug 'mhinz/vim-signify'
 Plug 'hynek/vim-python-pep8-indent'
 "Plug 'nathanaelkane/vim-indent-guides'
 "Plug 'Yggdroot/indentLine'
-Plug 'vimwiki/vimwiki'
+" Plug 'vimwiki/vimwiki'
 
 " lang
 Plug 'Glench/Vim-Jinja2-Syntax'
@@ -84,6 +87,10 @@ Plug 'ferrine/md-img-paste.vim'
   let g:mdip_imgname = 'image'
 Plug 'junegunn/vim-easy-align'
 Plug 'mzlogin/vim-markdown-toc'
+Plug 'ludovicchabant/vim-gutentags'
+"Plug 'preservim/vim-markdown'
+Plug 'neoclide/coc.nvim', {'branch': 'release'}
+
 
 let g:slime_target = "tmux"
 
@@ -94,7 +101,9 @@ call plug#end()
 " Use the Solarized Dark theme
 syntax enable
 set background=dark
-colorscheme solarized
+
+let g:seoul256_background = 236
+colo seoul256
 
 " Goyo + limelight
 nnoremap <Leader>G :Goyo<CR>
@@ -119,13 +128,14 @@ if s:darwin && executable('x5050')
     \│     await window.async_set_fullscreen(False)
     \│ iterm2.run_until_complete(main)
     \│ _
-    \│ x5050 '.shellescape(a:url)
+    \│ x5050 left '.shellescape(a:url)
     call system(join(split(script, '│ '), "\n"))
   endfunction
   let g:mkdp_browserfunc = 'MKDPSplit'
 endif
 let g:mkdp_open_to_the_world = 1
 let g:mkdp_auto_close = 0
+let g:mkdp_open_ip = '127.0.0.1'
 
 
 " The-NERD-tree
@@ -134,28 +144,30 @@ nnoremap ]t :tabn<cr>
 nnoremap [t :tabp<cr>
 nnoremap <Leader>n :NERDTreeToggle<cr>
 
-" recreate tags
-map <F5> :!ctags -R –c++-kinds=+p –fields=+iaS –extra=+q .<CR>
-
 " fzf
 nnoremap <silent> <leader>f :FZF<cr>
 nnoremap <silent> <leader>F :FZF ~<cr>
 
 " ctags
-set tags=./tags;/
-nnoremap <Leader>t :TagbarToggle<cr>
-
-" vimwiki
-let g:vimwiki_list = [
-  \{ 
-  \  'path': '~/Dropbox/wiki/',
-  \  'syntax': 'markdown',
-  \  'ext': '.md'
-  \},
-\]
-let g:vimwiki_conceallevel = 0
+set tags=./tags/;
 " directory change current path
 nnoremap <leader>cd :cd %:p:h<CR>
 
 " toggle Markdown preview 
 nmap <leader>p <Plug>MarkdownPreviewToggle
+
+" tagbar
+let g:tagbar_type_vimwiki = {
+    \ 'ctagstype' : 'vimwiki',
+    \ 'sort': 0,
+    \ 'kinds' : [
+        \ 'h:Heading'
+    \ ]
+\ }
+nnoremap <Leader>t :TagbarToggle<cr>
+
+" gutentags
+set statusline+=%{gutentags#statusline()}
+
+
+map gt <Nop>

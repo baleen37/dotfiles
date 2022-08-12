@@ -1,0 +1,11 @@
+--langdef=vimwiki
+--langmap=vimwiki:.md
+
+--regex-vimwiki=/^# (.+)/\1/h,subTitle,sub_title/
+--regex-vimwiki=/^## (.+)/··\1/h,subTitle,sub_title/
+--regex-vimwiki=/^### (.+)/····\1/h,subTitle,sub_title/
+--regex-vimwiki=/^#### (.+)/······\1/h,subTitle,sub_title/
+--regex-vimwiki=/^##### (.+)/········\1/h,subTitle,sub_title/
+--regex-vimwiki=/^###### (.+)/············\1/h,subTitle,sub_title/
+--regex-vimwiki=/^####### (.+)/··············\1/h,subTitle,sub_title/
+

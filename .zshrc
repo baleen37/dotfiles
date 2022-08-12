@@ -64,3 +64,6 @@ export NVM_DIR="$HOME/.nvm"
 source /opt/homebrew/opt/chruby/share/chruby/chruby.sh
 source /opt/homebrew/opt/chruby/share/chruby/auto.sh
 chruby ruby-3.1.2
+
+export LC_CTYPE=en_US.UTF-8
+export LC_ALL=en_US.UTF-8

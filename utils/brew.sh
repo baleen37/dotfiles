@@ -42,5 +42,13 @@ brew install --HEAD universal-ctags
 nvm install 14
 nvm install 16
 
+# ruby
+brew install rbenv ruby-build
+rbenv install $(rbenv install -l | grep -v - | tail -1) # install ruby latest
+
+# Create
+gem install gem-ctags
+gem ctags
+
 # Remove outdated versions from the cellar.
 brew cleanup
