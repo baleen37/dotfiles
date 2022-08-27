@@ -96,13 +96,16 @@ Plug 'mzlogin/vim-markdown-toc'
 Plug 'ludovicchabant/vim-gutentags'
 "Plug 'preservim/vim-markdown'
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
-Plug 'lervag/wiki.vim'
-  let g:wiki_filetypes = ['md']
-  let g:wiki_link_extension = '.md'
-  let g:wiki_root = '~/Dropbox/wiki/'
-Plug 'lervag/wiki-ft.vim'
-  autocmd BufRead,BufNewFile *.md set filetype=wiki
+" Plug 'lervag/wiki.vim'
+"   let g:wiki_filetypes = ['md']
+"   let g:wiki_link_extension = '.md'
+"   let g:wiki_root = '~/Dropbox/wiki/'
+"   let g:wiki_link_target_type = 'md'
+" 
+" Plug 'lervag/wiki-ft.vim'
+"   autocmd BufRead,BufNewFile *.md set filetype=wiki
 
+Plug 'mickael-menu/zk-nvim'
 
 
 
@@ -160,8 +163,34 @@ nnoremap [t :tabp<cr>
 nnoremap <Leader>n :NERDTreeToggle<cr>
 
 " fzf
-nnoremap <silent> <leader>f :FZF<cr>
-nnoremap <silent> <leader>F :FZF ~<cr>
+nnoremap <silent> <Leader><Leader> :Files<CR>
+nnoremap <silent> <Leader><Enter>  :Buffers<CR>
+nnoremap <silent> <Leader>C        :Colors<CR>
+nnoremap <silent> <Leader>L        :Lines<CR>
+nnoremap <silent> <Leader>ag       :Ag <C-R><C-W><CR>
+nnoremap <silent> <Leader>AG       :Ag <C-R><C-A><CR>
+xnoremap <silent> <Leader>ag       y:Ag <C-R>"<CR>
+nnoremap <silent> <Leader>`        :Marks<CR>
+
+imap <c-x><c-k> <plug>(fzf-complete-word)
+imap <c-x><c-f> <plug>(fzf-complete-path)
+inoremap <expr> <c-x><c-d> fzf#vim#complete#path('blsd')
+imap <c-x><c-j> <plug>(fzf-complete-file-ag)
+imap <c-x><c-l> <plug>(fzf-complete-line)
+
+function! s:copy_results(lines)
+  let joined_lines = join(a:lines, "\n")
+  if len(a:lines) > 1
+    let joined_lines .= "\n"
+  endif
+  let @+ = joined_lines
+endfunction
+let g:fzf_action = {
+  \ 'ctrl-t': 'tab split',
+  \ 'ctrl-x': 'split',
+  \ 'ctrl-v': 'vsplit',
+  \ 'ctrl-y': {lines -> setreg('*', join(lines, "\n"))},
+  \ }
 
 " ctags
 set tags=./tags/;
@@ -186,3 +215,28 @@ set statusline+=%{gutentags#statusline()}
 
 
 map gt <Nop>
+
+
+
+" zettelkasten
+let g:zettelkasten = "~/Dropbox/wiki/zettel/"
+" command! -nargs=1 NewZettel :execute ":e" zettelkasten . strftime("%Y%m%d%H%M") . "-<args>.md"
+command! NewZettel :execute ":e" zettelkasten . strftime("%Y%m%d%H%M") . ".md"
+nnoremap <leader>nz :NewZettel 
+
+" make_note_link: List -> Str
+" returned string: [Title](YYYYMMDDHH.md)
+function! s:make_note_link(l)
+        " fzf#vim#complete returns a list with all info in index 0
+        let line = split(a:l[0], ':')
+        let ztk_id = l:line[0]
+        let ztk_title = substitute(l:line[1], '\#\s\+', '', 'g')
+        let mdlink = "[" . ztk_title ."](". ztk_id .")"
+        return mdlink
+endfunction
+" mnemonic link zettel
+inoremap <expr> <c-l>z fzf#vim#complete({
+  \ 'source':  'rg --no-heading --smart-case  ^\#',
+  \ 'reducer': function('<sid>make_note_link'),
+  \ 'options': '--multi --reverse --margin 15%,0',
+  \ 'up':    5})
