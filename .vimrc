@@ -63,8 +63,6 @@ Plug 'mhinz/vim-signify'
 " code
 Plug 'hynek/vim-python-pep8-indent'
 "Plug 'nathanaelkane/vim-indent-guides'
-"Plug 'Yggdroot/indentLine'
-" Plug 'vimwiki/vimwiki'
 
 " lang
 Plug 'Glench/Vim-Jinja2-Syntax'
@@ -72,6 +70,14 @@ Plug 'pangloss/vim-javascript'
 Plug 'groenewege/vim-less'
 Plug 'leafgarland/typescript-vim'
 Plug 'sgur/vim-editorconfig'
+
+" edit
+Plug 'AndrewRadev/switch.vim'
+  let g:switch_mapping = '-'
+  let g:switch_custom_definitions = [
+  \   ['MON', 'TUE', 'WED', 'THU', 'FRI']
+  \ ]
+
 
 " commanders
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
@@ -90,6 +96,14 @@ Plug 'mzlogin/vim-markdown-toc'
 Plug 'ludovicchabant/vim-gutentags'
 "Plug 'preservim/vim-markdown'
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
+Plug 'lervag/wiki.vim'
+  let g:wiki_filetypes = ['md']
+  let g:wiki_link_extension = '.md'
+  let g:wiki_root = '~/Dropbox/wiki/'
+Plug 'lervag/wiki-ft.vim'
+  autocmd BufRead,BufNewFile *.md set filetype=wiki
+
+
 
 
 let g:slime_target = "tmux"
@@ -116,26 +130,27 @@ nmap <F8> :TagbarToggle<CR>
 " ----------------------------------------------------------------------------
 " markdown-preview
 " ----------------------------------------------------------------------------
-if s:darwin && executable('x5050')
-  function! MKDPSplit(url)
-    let script = '
-    \│ ~/Library/Application\ Support/iTerm2/iterm2env/versions/*/bin/python3 <<_
-    \│ import iterm2
-    \│ async def main(connection):
-    \│   app = await iterm2.async_get_app(connection)
-    \│   window = app.current_terminal_window
-    \│   if window is not None:
-    \│     await window.async_set_fullscreen(False)
-    \│ iterm2.run_until_complete(main)
-    \│ _
-    \│ x5050 left '.shellescape(a:url)
-    call system(join(split(script, '│ '), "\n"))
-  endfunction
-  let g:mkdp_browserfunc = 'MKDPSplit'
-endif
+" if s:darwin && executable('x5050')
+"   function! MKDPSplit(url)
+"     let script = '
+"     \│ ~/Library/Application\ Support/iTerm2/iterm2env/versions/*/bin/python3 <<_
+"     \│ import iterm2
+"     \│ async def main(connection):
+"     \│   app = await iterm2.async_get_app(connection)
+"     \│   window = app.current_terminal_window
+"     \│   if window is not None:
+"     \│     await window.async_set_fullscreen(False)
+"     \│ iterm2.run_until_complete(main)
+"     \│ _
+"     \│ x5050 left '.shellescape(a:url)
+"     call system(join(split(script, '│ '), "\n"))
+"   endfunction
+"   let g:mkdp_browserfunc = 'MKDPSplit'
+" endif
 let g:mkdp_open_to_the_world = 1
 let g:mkdp_auto_close = 0
 let g:mkdp_open_ip = '127.0.0.1'
+let g:mkdp_browser = 'safari'
 
 
 " The-NERD-tree
