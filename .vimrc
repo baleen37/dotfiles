@@ -15,6 +15,8 @@ set shiftwidth=2
 set exrc
 set backspace=indent,eol,start
 set secure
+set foldlevelstart=99
+set formatoptions+=1
 set encoding=utf-8
 set nocompatible
 filetype plugin on
@@ -25,6 +27,19 @@ set t_Co=256                " Explicitly tell vim that the terminal supports 256
 
 set directory^=$HOME/.vim/swap
 
+function! s:statusline_expr()
+  let mod = "%{&modified ? '[+] ' : !&modifiable ? '[x] ' : ''}"
+  let ro  = "%{&readonly ? '[RO] ' : ''}"
+  let ft  = "%{len(&filetype) ? '['.&filetype.'] ' : ''}"
+  let fug = "%{exists('g:loaded_fugitive') ? fugitive#statusline() : ''}"
+  let sep = ' %= '
+  let pos = ' %-12(%l : %c%V%) '
+  let pct = ' %P'
+
+  return '[%n] %F %<'.mod.ro.ft.fug.sep.pos.'%*'.pct
+endfunction
+let &statusline = s:statusline_expr()
+
 let s:darwin = has('mac')
 
 " NERDTree igtnoret let NERDTreeIgnore = ['\.pyc$', '__pycache__']
@@ -32,6 +47,27 @@ let s:darwin = has('mac')
 " yank text to OS X clipboard
 " http://evertpot.com/osx-tmux-vim-copy-paste-clipboard/
 set clipboard=unnamed
+
+" 80 chars/line
+set textwidth=0
+if exists('&colorcolumn')
+  set colorcolumn=80
+endif
+
+" Tabs
+nnoremap ]t :tabn<cr>
+nnoremap [t :tabp<cr>
+
+" <tab> / <s-tab> circular windows navigation
+nnoremap <tab>   <c-w>w
+nnoremap <S-tab> <c-w>W
+
+" ----------------------------------------------------------------------------
+" <leader>ij | Open in IntelliJ
+" ----------------------------------------------------------------------------
+if s:darwin
+  nnoremap <silent> <leader>ij :call system('nohup "/Applications/IntelliJ IDEA.app/Contents/MacOS/idea" '.expand('%:p').'> /dev/null 2>&1 < /dev/null &')<cr>
+endif
 
 " ----------------------------------------------------------------------------
 " Vim Plugins
@@ -95,17 +131,18 @@ Plug 'junegunn/vim-easy-align'
 Plug 'mzlogin/vim-markdown-toc'
 Plug 'ludovicchabant/vim-gutentags'
 "Plug 'preservim/vim-markdown'
+" Plug 'preservim/vim-markdown'
+  " let g:vim_markdown_frontmatter = 1
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
-" Plug 'lervag/wiki.vim'
-"   let g:wiki_filetypes = ['md']
-"   let g:wiki_link_extension = '.md'
-"   let g:wiki_root = '~/Dropbox/wiki/'
-"   let g:wiki_link_target_type = 'md'
-" 
+"Plug 'lervag/wiki.vim'
+"  let g:wiki_filetypes = ['md']
+"  let g:wiki_link_extension = '.md'
+"  let g:wiki_root = '~/Dropbox/wiki/'
+"  let g:wiki_link_target_type = 'md'
+"" 
 " Plug 'lervag/wiki-ft.vim'
 "   autocmd BufRead,BufNewFile *.md set filetype=wiki
-
-Plug 'mickael-menu/zk-nvim'
+"   
 
 
 
@@ -158,8 +195,6 @@ let g:mkdp_browser = 'safari'
 
 " The-NERD-tree
 map <C-t> :tabnew<CR>
-nnoremap ]t :tabn<cr>
-nnoremap [t :tabp<cr>
 nnoremap <Leader>n :NERDTreeToggle<cr>
 
 " fzf
@@ -222,7 +257,7 @@ map gt <Nop>
 let g:zettelkasten = "~/Dropbox/wiki/"
 " command! -nargs=1 NewZettel :execute ":e" zettelkasten . strftime("%Y%m%d%H%M") . "-<args>.md"
 command! -nargs=1 NewZettel :execute ":e" zettelkasten . "/<args>/" . strftime("%y%m%d%H%M%S") . ".md"
-nnoremap <leader>nz :NewZettel 
+nnoremap <leader>z :NewZettel 
 
 " make_note_link: List -> Str
 " returned string: [Title](YYYYMMDDHH.md)
