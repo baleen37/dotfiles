@@ -219,9 +219,9 @@ map gt <Nop>
 
 
 " zettelkasten
-let g:zettelkasten = "~/Dropbox/wiki/zettel/"
+let g:zettelkasten = "~/Dropbox/wiki/"
 " command! -nargs=1 NewZettel :execute ":e" zettelkasten . strftime("%Y%m%d%H%M") . "-<args>.md"
-command! NewZettel :execute ":e" zettelkasten . strftime("%Y%m%d%H%M") . ".md"
+command! -nargs=1 NewZettel :execute ":e" zettelkasten . "/<args>/" . strftime("%y%m%d%H%M%S") . ".md"
 nnoremap <leader>nz :NewZettel 
 
 " make_note_link: List -> Str
