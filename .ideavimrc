@@ -2,4 +2,5 @@ let mapleader = ' '
 
 set number
 set rnu
-set hlsearch
+set incsearch hlsearch
+set clipboard=unnamed

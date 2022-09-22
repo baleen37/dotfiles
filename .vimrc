@@ -15,6 +15,7 @@ set shiftwidth=2
 set exrc
 set backspace=indent,eol,start
 set secure
+set conceallevel=2
 set foldlevelstart=99
 set formatoptions+=1
 set encoding=utf-8
@@ -113,6 +114,13 @@ Plug 'AndrewRadev/switch.vim'
   let g:switch_custom_definitions = [
   \   ['MON', 'TUE', 'WED', 'THU', 'FRI']
   \ ]
+" Plug 'preservim/vim-markdown'
+"   let g:vim_markdown_frontmatter = 1
+"   let g:vim_markdown_conceal = 1
+"   let g:vim_markdown_conceal_code_blocks = 0
+"   let g:vim_markdown_fenced_languages = [
+"      \ 'css', 'erb=eruby', 'javascript', 'js=javascript', 'json=javascript', 'ruby', 'sass', 'xml', 'html',
+"      \ 'sh', 'bash=sh', 'scala', 'java']
 
 
 " commanders
@@ -123,6 +131,9 @@ Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app && yarn install'  }
 Plug 'tpope/vim-surround'
 Plug 'junegunn/goyo.vim'
 Plug 'junegunn/limelight.vim'
+  nmap <Leader>l <Plug>(Limelight)
+  xmap <Leader>l <Plug>(Limelight)
+  nnoremap <Leader>ll :Limelight!<cr>
 Plug 'ferrine/md-img-paste.vim'
   autocmd FileType markdown nnoremap <buffer> <silent> <leader>v :call mdip#MarkdownClipboardImage()<CR>
   let g:mdip_imgdir = 'images'
@@ -143,6 +154,11 @@ Plug 'neoclide/coc.nvim', {'branch': 'release'}
 " Plug 'lervag/wiki-ft.vim'
 "   autocmd BufRead,BufNewFile *.md set filetype=wiki
 "   
+"Plug 'Furkanzmc/zettelkasten.nvim'
+
+if has('nvim')
+  Plug 'github/copilot.vim'
+endif
 
 
 
@@ -161,9 +177,37 @@ colo seoul256
 
 " Goyo + limelight
 nnoremap <Leader>G :Goyo<CR>
-let g:limelight_conceal_ctermfg = 245  " Solarized Base1
-let g:limelight_conceal_guifg = '#8a8a8a'  " Solarized Base1
+let g:limelight_paragraph_span = 1
+let g:limelight_priority = -1
 
+function! s:goyo_enter()
+  if has('gui_running')
+    set fullscreen
+    set background=light
+    set linespace=7
+  elseif exists('$TMUX')
+    silent !tmux set status off
+  endif
+  Limelight
+  let &l:statusline = '%M'
+  hi StatusLine ctermfg=red guifg=red cterm=NONE gui=NONE
+endfunction
+
+function! s:goyo_leave()
+  if has('gui_running')
+    set nofullscreen
+    set background=dark
+    set linespace=0
+  elseif exists('$TMUX')
+    silent !tmux set status on
+  endif
+  Limelight!
+endfunction
+
+autocmd! User GoyoEnter nested call <SID>goyo_enter()
+autocmd! User GoyoLeave nested call <SID>goyo_leave()
+
+nnoremap <Leader>G :Goyo<CR>
 
 nmap <F8> :TagbarToggle<CR>
 
@@ -199,6 +243,7 @@ nnoremap <Leader>n :NERDTreeToggle<cr>
 
 " fzf
 nnoremap <silent> <Leader><Leader> :Files<CR>
+nnoremap <silent> <Leader>f :Files <C-W><CR>
 nnoremap <silent> <Leader><Enter>  :Buffers<CR>
 nnoremap <silent> <Leader>C        :Colors<CR>
 nnoremap <silent> <Leader>L        :Lines<CR>
@@ -212,6 +257,9 @@ imap <c-x><c-f> <plug>(fzf-complete-path)
 inoremap <expr> <c-x><c-d> fzf#vim#complete#path('blsd')
 imap <c-x><c-j> <plug>(fzf-complete-file-ag)
 imap <c-x><c-l> <plug>(fzf-complete-line)
+inoremap <expr> <c-x><c-f> fzf#vim#complete#path('rg --files')
+
+
 
 function! s:copy_results(lines)
   let joined_lines = join(a:lines, "\n")
@@ -220,12 +268,41 @@ function! s:copy_results(lines)
   endif
   let @+ = joined_lines
 endfunction
+
 let g:fzf_action = {
   \ 'ctrl-t': 'tab split',
   \ 'ctrl-x': 'split',
   \ 'ctrl-v': 'vsplit',
-  \ 'ctrl-y': {lines -> setreg('*', join(lines, "\n"))},
+  \ 'ctrl-y': function('s:copy_results'),
   \ }
+
+function! s:plug_help_sink(line)
+  let dir = g:plugs[a:line].dir
+  for pat in ['doc/*.txt', 'README.md']
+    let match = get(split(globpath(dir, pat), "\n"), 0, '')
+    if len(match)
+      execute 'tabedit' match
+      return
+    endif
+  endfor
+  tabnew
+  execute 'Explore' dir
+endfunction
+
+command! PlugHelp call fzf#run(fzf#wrap({
+  \ 'source': sort(keys(g:plugs)),
+  \ 'sink':   function('s:plug_help_sink')}))
+
+function! RipgrepFzf(query, fullscreen)
+  let command_fmt = 'rg --column --line-number --no-heading --color=always --smart-case %s || true'
+  let initial_command = printf(command_fmt, shellescape(a:query))
+  let reload_command = printf(command_fmt, '{q}')
+  let options = {'options': ['--phony', '--query', a:query, '--bind', 'change:reload:'.reload_command]}
+  let options = fzf#vim#with_preview(options, 'right', 'ctrl-/')
+  call fzf#vim#grep(initial_command, 1, options, a:fullscreen)
+endfunction
+
+command! -nargs=* -bang RG call RipgrepFzf(<q-args>, <bang>0)
 
 " ctags
 set tags=./tags/;
@@ -252,7 +329,6 @@ set statusline+=%{gutentags#statusline()}
 map gt <Nop>
 
 
-
 " zettelkasten
 let g:zettelkasten = "~/Dropbox/wiki/"
 " command! -nargs=1 NewZettel :execute ":e" zettelkasten . strftime("%Y%m%d%H%M") . "-<args>.md"
@@ -275,3 +351,6 @@ inoremap <expr> <c-l>z fzf#vim#complete({
   \ 'reducer': function('<sid>make_note_link'),
   \ 'options': '--multi --reverse --margin 15%,0',
   \ 'up':    5})
+
+let g:nv_search_paths = ['~/wiki', '~/code']
+nnoremap <silent> <c-s> :NV<CR>
