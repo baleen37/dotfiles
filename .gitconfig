@@ -12,7 +12,7 @@
     st = status
     co = checkout
     ci = commit
-    b = branch
+    b = branch --sort=-committerdate
 [mergetool "vimdiff"]
     keepBackup = false
 
