@@ -89,7 +89,9 @@ let g:seoul256_background = 236
 Plug 'scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }
 Plug 'majutsushi/tagbar', { 'on': 'TagbarToggle' }
   let g:tagbar_sort = 0
-Plug 'Yggdroot/indentLine', { 'on': 'IndentLinesEnable' }
+"Plug 'Yggdroot/indentLine', { 'on': 'IndentLinesEnable' }
+Plug 'Yggdroot/indentLine'
+  autocmd! User indentLine doautocmd indentLine Syntax
   let g:indentLine_color_term = 239
   let g:indentLine_color_gui = '#616161'
 
@@ -145,14 +147,14 @@ Plug 'ludovicchabant/vim-gutentags'
 " Plug 'preservim/vim-markdown'
   " let g:vim_markdown_frontmatter = 1
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
-"Plug 'lervag/wiki.vim'
-"  let g:wiki_filetypes = ['md']
-"  let g:wiki_link_extension = '.md'
-"  let g:wiki_root = '~/Dropbox/wiki/'
-"  let g:wiki_link_target_type = 'md'
+Plug 'lervag/wiki.vim'
+  let g:wiki_filetypes = ['md']
+  let g:wiki_link_extension = '.md'
+  let g:wiki_root = '~/Dropbox/wiki/'
+  let g:wiki_link_target_type = 'md'
 "" 
-" Plug 'lervag/wiki-ft.vim'
-"   autocmd BufRead,BufNewFile *.md set filetype=wiki
+Plug 'lervag/wiki-ft.vim'
+  
 "   
 "Plug 'Furkanzmc/zettelkasten.nvim'
 
@@ -352,5 +354,3 @@ inoremap <expr> <c-l>z fzf#vim#complete({
   \ 'options': '--multi --reverse --margin 15%,0',
   \ 'up':    5})
 
-let g:nv_search_paths = ['~/wiki', '~/code']
-nnoremap <silent> <c-s> :NV<CR>
