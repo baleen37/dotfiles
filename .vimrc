@@ -116,6 +116,7 @@ Plug 'AndrewRadev/switch.vim'
   let g:switch_custom_definitions = [
   \   ['MON', 'TUE', 'WED', 'THU', 'FRI']
   \ ]
+Plug 'tpope/vim-markdown'
 " Plug 'preservim/vim-markdown'
 "   let g:vim_markdown_frontmatter = 1
 "   let g:vim_markdown_conceal = 1
@@ -154,6 +155,7 @@ Plug 'lervag/wiki.vim'
   let g:wiki_link_target_type = 'md'
 "" 
 Plug 'lervag/wiki-ft.vim'
+  autocmd BufNewFile,BufFilePre,BufRead *.md set filetype=wiki
   
 "   
 "Plug 'Furkanzmc/zettelkasten.nvim'
