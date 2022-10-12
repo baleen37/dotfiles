@@ -15,7 +15,7 @@ set shiftwidth=2
 set exrc
 set backspace=indent,eol,start
 set secure
-set conceallevel=2
+set conceallevel=0
 set foldlevelstart=99
 set formatoptions+=1
 set encoding=utf-8
@@ -117,6 +117,9 @@ Plug 'AndrewRadev/switch.vim'
   \   ['MON', 'TUE', 'WED', 'THU', 'FRI']
   \ ]
 Plug 'tpope/vim-markdown'
+Plug 'lervag/vim-rainbow-lists'
+Plug 'lervag/lists.vim'
+  let g:lists_filetypes = ['markdown']
 " Plug 'preservim/vim-markdown'
 "   let g:vim_markdown_frontmatter = 1
 "   let g:vim_markdown_conceal = 1
@@ -153,6 +156,17 @@ Plug 'lervag/wiki.vim'
   let g:wiki_link_extension = '.md'
   let g:wiki_root = '~/Dropbox/wiki/'
   let g:wiki_link_target_type = 'md'
+  let g:wiki_journal = {
+    \ 'name': 'diary',
+    \ 'frequency': 'daily',
+    \ 'date_format': {
+    \   'daily' : '%Y-%m-%d',
+    \   'weekly' : '%Y_w%V',
+    \   'monthly' : '%Y_m%m',
+    \ },
+    \ 'index_use_journal_scheme': v:true,
+    \}
+
 "" 
 Plug 'lervag/wiki-ft.vim'
   autocmd BufNewFile,BufFilePre,BufRead *.md set filetype=wiki
