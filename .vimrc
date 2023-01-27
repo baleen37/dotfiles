@@ -104,11 +104,20 @@ Plug 'hynek/vim-python-pep8-indent'
 "Plug 'nathanaelkane/vim-indent-guides'
 
 " lang
+"Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 Plug 'Glench/Vim-Jinja2-Syntax'
 Plug 'pangloss/vim-javascript'
 Plug 'groenewege/vim-less'
 Plug 'leafgarland/typescript-vim'
 Plug 'sgur/vim-editorconfig'
+
+Plug 'godlygeek/tabular'
+Plug 'preservim/vim-markdown'
+  let g:vim_markdown_folding_disabled = 1
+  let g:markdown_syntax_conceal=0
+  let g:vim_markdown_auto_insert_bullets = 0
+  let g:vim_markdown_new_list_item_indent = 0
+
 
 " edit
 Plug 'AndrewRadev/switch.vim'
@@ -116,10 +125,11 @@ Plug 'AndrewRadev/switch.vim'
   let g:switch_custom_definitions = [
   \   ['MON', 'TUE', 'WED', 'THU', 'FRI']
   \ ]
-Plug 'tpope/vim-markdown'
+"Plug 'godlygeek/tabular'
+"Plug 'preservim/vim-markdown'
+"  let g:markdown_syntax_conceal=0
 Plug 'lervag/vim-rainbow-lists'
-Plug 'lervag/lists.vim'
-  let g:lists_filetypes = ['markdown']
+  autocmd BufNewFile,BufFilePre,BufRead *.md :RBListEnable<CR>
 " Plug 'preservim/vim-markdown'
 "   let g:vim_markdown_frontmatter = 1
 "   let g:vim_markdown_conceal = 1
@@ -134,6 +144,7 @@ Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'junegunn/fzf.vim'
 Plug 'mhinz/vim-startify'
 Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app && yarn install'  }
+  let g:mkdp_command_for_global = 1
 Plug 'tpope/vim-surround'
 Plug 'junegunn/goyo.vim'
 Plug 'junegunn/limelight.vim'
@@ -150,29 +161,31 @@ Plug 'ludovicchabant/vim-gutentags'
 "Plug 'preservim/vim-markdown'
 " Plug 'preservim/vim-markdown'
   " let g:vim_markdown_frontmatter = 1
-Plug 'neoclide/coc.nvim', {'branch': 'release'}
-Plug 'lervag/wiki.vim'
-  let g:wiki_filetypes = ['md']
-  let g:wiki_link_extension = '.md'
-  let g:wiki_root = '~/Dropbox/wiki/'
-  let g:wiki_link_target_type = 'md'
-  let g:wiki_journal = {
-    \ 'name': 'diary',
-    \ 'frequency': 'daily',
-    \ 'date_format': {
-    \   'daily' : '%Y-%m-%d',
-    \   'weekly' : '%Y_w%V',
-    \   'monthly' : '%Y_m%m',
-    \ },
-    \ 'index_use_journal_scheme': v:true,
-    \}
+Plug 'neovim/nvim-lspconfig'
+"Plug 'neoclide/coc.nvim', {'branch': 'master', 'do': 'yarn install --frozen-lockfile'}
+"Plug 'lervag/wiki.vim'
+"  let g:wiki_filetypes = ['md']
+"  let g:wiki_link_extension = '.md'
+"  let g:wiki_root = '~/Dropbox/wiki/'
+"  let g:wiki_link_target_type = 'md'
+"  let g:wiki_journal = {
+"    \ 'name': 'diary',
+"    \ 'frequency': 'daily',
+"    \ 'date_format': {
+"    \   'daily' : '%Y-%m-%d',
+"    \   'weekly' : '%Y_w%V',
+"    \   'monthly' : '%Y_m%m',
+"    \ },
+"    \ 'index_use_journal_scheme': v:true,
+"    \}
 
 "" 
-Plug 'lervag/wiki-ft.vim'
-  autocmd BufNewFile,BufFilePre,BufRead *.md set filetype=wiki
+"Plug 'lervag/wiki-ft.vim'
+"  autocmd BufNewFile,BufFilePre,BufRead *.md set filetype=wiki
   
-"   
-"Plug 'Furkanzmc/zettelkasten.nvim'
+Plug 'mickael-menu/zk-nvim'
+Plug 'jkramer/vim-checkbox'
+  map <silent> <C-Space> :call checkbox#ToggleCB()<cr>
 
 if has('nvim')
   Plug 'github/copilot.vim'
@@ -344,29 +357,4 @@ nnoremap <Leader>t :TagbarToggle<cr>
 set statusline+=%{gutentags#statusline()}
 
 
-map gt <Nop>
-
-
-" zettelkasten
-let g:zettelkasten = "~/Dropbox/wiki/"
-" command! -nargs=1 NewZettel :execute ":e" zettelkasten . strftime("%Y%m%d%H%M") . "-<args>.md"
-command! -nargs=1 NewZettel :execute ":e" zettelkasten . "/<args>/" . strftime("%y%m%d%H%M%S") . ".md"
-nnoremap <leader>z :NewZettel 
-
-" make_note_link: List -> Str
-" returned string: [Title](YYYYMMDDHH.md)
-function! s:make_note_link(l)
-        " fzf#vim#complete returns a list with all info in index 0
-        let line = split(a:l[0], ':')
-        let ztk_id = l:line[0]
-        let ztk_title = substitute(l:line[1], '\#\s\+', '', 'g')
-        let mdlink = "[" . ztk_title ."](". ztk_id .")"
-        return mdlink
-endfunction
-" mnemonic link zettel
-inoremap <expr> <c-l>z fzf#vim#complete({
-  \ 'source':  'rg --no-heading --smart-case  ^\#',
-  \ 'reducer': function('<sid>make_note_link'),
-  \ 'options': '--multi --reverse --margin 15%,0',
-  \ 'up':    5})
-
+map gt <Nop

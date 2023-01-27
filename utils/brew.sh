@@ -27,6 +27,7 @@ apps=(
     tfenv
     awscli
     ripgrep
+    zk
 )
 
 brew install "${apps[@]}"
