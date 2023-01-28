@@ -1,0 +1,4 @@
+{
+  // Important, otherwise link completion containing spaces and other special characters won't work.
+  "suggest.invalidInsertCharacters": []
+}
