@@ -19,6 +19,7 @@ set conceallevel=0
 set foldlevelstart=99
 set formatoptions+=1
 set encoding=utf-8
+set signcolumn=yes
 set nocompatible
 filetype plugin on
 filetype indent on
