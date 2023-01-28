@@ -27,6 +27,7 @@ jobs:
         run: |
           set -eo pipefail
           bash ./utils/brew.sh
+          brew -v
 #      - name: Run setup_new_mach_machine script
 #        run: |
 #          set -eo pipefail
