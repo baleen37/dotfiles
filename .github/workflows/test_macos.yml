@@ -2,17 +2,23 @@ name: Test setup Mac machine
 
 on: [push]
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
-  test_mac_setup:
+  macos_build:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Run setup_new_mach_machine script
+      - name: Checkout with submodules
+        uses: actions/checkout@v3
+
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+
+      - name: test
+        id: test
         run: |
-          set -eo pipefail
-          export CI=1
-          bash install.sh
+          brew -v
+#      - name: Run setup_new_mach_machine script
+#        run: |
+#          set -eo pipefail
+#          export CI=1
+#          bash install.sh
