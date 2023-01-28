@@ -5,7 +5,7 @@ on: [push]
 jobs:
   macos_build:
     runs-on: macos-latest
-    timeout-minutes: 10
+    timeout-minutes: 30
     steps:
       - name: Checkout with submodules
         uses: actions/checkout@v3
@@ -21,7 +21,7 @@ jobs:
           path: ${{ steps.set-up-homebrew.outputs.gems-path }}
           key: ${{ runner.os }}-rubygems-${{ steps.set-up-homebrew.outputs.gems-hash }}
           restore-keys: ${{ runner.os }}-rubygems-
-          
+
       - name: test
         id: test
         run: |
