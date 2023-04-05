@@ -9,6 +9,7 @@ set smartindent
 set hlsearch
 set incsearch
 set autoread                " detect when a file is changed
+au CursorHold * silent! checktime
 set expandtab
 set tabstop=2
 set shiftwidth=2
@@ -130,7 +131,7 @@ Plug 'AndrewRadev/switch.vim'
 "Plug 'preservim/vim-markdown'
 "  let g:markdown_syntax_conceal=0
 Plug 'lervag/vim-rainbow-lists'
-  autocmd BufNewFile,BufFilePre,BufRead *.md :RBListEnable<CR>
+  "autocmd BufNewFile,BufFilePre,BufRead *.md :RBListEnable<CR>
 " Plug 'preservim/vim-markdown'
 "   let g:vim_markdown_frontmatter = 1
 "   let g:vim_markdown_conceal = 1
@@ -164,21 +165,21 @@ Plug 'ludovicchabant/vim-gutentags'
   " let g:vim_markdown_frontmatter = 1
 Plug 'neovim/nvim-lspconfig'
 "Plug 'neoclide/coc.nvim', {'branch': 'master', 'do': 'yarn install --frozen-lockfile'}
-"Plug 'lervag/wiki.vim'
-"  let g:wiki_filetypes = ['md']
-"  let g:wiki_link_extension = '.md'
-"  let g:wiki_root = '~/Dropbox/wiki/'
-"  let g:wiki_link_target_type = 'md'
-"  let g:wiki_journal = {
-"    \ 'name': 'diary',
-"    \ 'frequency': 'daily',
-"    \ 'date_format': {
-"    \   'daily' : '%Y-%m-%d',
-"    \   'weekly' : '%Y_w%V',
-"    \   'monthly' : '%Y_m%m',
-"    \ },
-"    \ 'index_use_journal_scheme': v:true,
-"    \}
+Plug 'lervag/wiki.vim'
+  let g:wiki_filetypes = ['md']
+  let g:wiki_link_extension = '.md'
+  let g:wiki_root = '~/Dropbox/wiki/'
+  let g:wiki_link_target_type = 'md'
+  let g:wiki_journal = {
+    \ 'name': 'diary',
+    \ 'frequency': 'daily',
+    \ 'date_format': {
+    \   'daily' : '%Y-%m-%d',
+    \   'weekly' : '%Y_w%V',
+    \   'monthly' : '%Y_m%m',
+    \ },
+    \ 'index_use_journal_scheme': v:true,
+    \}
 
 "" 
 "Plug 'lervag/wiki-ft.vim'
@@ -359,3 +360,12 @@ set statusline+=%{gutentags#statusline()}
 
 
 map gt <Nop
+
+
+" Move by visual line
+nnoremap j gj
+nnoremap k gk
+
+set breakindent                     " keep indentation when lines break
+set breakindentopt=shift:2          " but shift it by 2 spaces
+set linebreak                       " break only at specific characters, :h breakat
