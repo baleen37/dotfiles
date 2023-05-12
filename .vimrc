@@ -203,10 +203,10 @@ call plug#end()
 " ----------------------------------------------------------------------------
 " Use the Solarized Dark theme
 syntax enable
-set background=dark
+set background=light
 
 let g:seoul256_background = 236
-colo seoul256
+colo seoul256-light
 
 " Goyo + limelight
 nnoremap <Leader>G :Goyo<CR>

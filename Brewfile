@@ -81,6 +81,7 @@ cask "syncthing"
 cask "unofficial-wineskin"
 cask "vimmotion"
 cask "visual-studio-code"
+cask "1password-cli"
 mas "FBReader", id: 1067172178
 mas "GarageBand", id: 682658836
 mas "KakaoTalk", id: 869223134
