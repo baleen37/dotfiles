@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cd $(dirname $BASH_SOURCE)
-BASE=$(pwd)
 # Works on both Mac and GNU/Linux.
 BASE="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
@@ -10,10 +8,10 @@ BASE="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # This detection only works for mac and linux.
 if [ "$(uname)" == "Darwin" ]; then
   echo "Setting up $HOME/.bashrc"
-  echo "source $DIR/_bashrc" >> $HOME/.bash_profile
+  echo "source $BASE/_bashrc" >> $HOME/.bash_profile
 elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
   echo "Seeting up $HOME/.bash_profile"
-  echo "source $DIR/_bashrc" >> $HOME/.bashrc
+  echo "source $BASE/_bashrc" >> $HOME/.bashrc
 fi
 
 export GIT_SSL_NO_VERIFY=true
