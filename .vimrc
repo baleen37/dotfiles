@@ -338,7 +338,7 @@ endfunction
 command! -nargs=* -bang RG call RipgrepFzf(<q-args>, <bang>0)
 
 " ctags
-set tags=./tags/;
+" set tags=./tags/;
 " directory change current path
 nnoremap <leader>cd :cd %:p:h<CR>
 
