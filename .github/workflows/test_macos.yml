@@ -1,18 +1,40 @@
-name: Test setup Mac machine
+name: Test Setup dotfiles on Mac OS
 
-on: [push]
+on:  # yamllint disable-line rule:truthy
+  push:
+    branches: ["master", "main"]
+    paths:
+      - ".github/workflows/test_macos_1.yml"
+      - "setup_dotfiles.sh"
+      - "_*"
+      - "gradle.properties"
+  pull_request:
+    branches: ["master", "main"]
+    paths:
+      - ".github/workflows/test_macos_1.yml"
+      - "setup_dotfiles.sh"
+      - "_*"
+      - "gradle.properties"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  test_mac_setup:
+  test_macos:
+
     runs-on: macos-latest
+    timeout-minutes: 15
+
     steps:
       - uses: actions/checkout@v3
-      - name: Run setup_new_mach_machine script
+      - name: Install coreutils
         run: |
           set -eo pipefail
           export CI=1
-          bash install.sh
+          brew install coreutils  # For tac
+      - name: Run setup dotfiles
+        run: |
+          set -eo pipefail
+          export CI=1
+          bash install.sh # Test dotfile setup
