@@ -40,8 +40,8 @@ brew tap universal-ctags/universal-ctags
 brew install --HEAD universal-ctags
 
 # nvm
-nvm install 14
-nvm install 16
+# nvm install 14
+# nvm install 16
 
 # ruby
 brew install rbenv ruby-build

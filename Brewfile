@@ -7,6 +7,7 @@ tap "homebrew/cask-fonts"
 tap "homebrew/core"
 tap "universal-ctags/universal-ctags"
 tap "yt-dlp/taps"
+
 brew "act"
 brew "python@3.10"
 brew "awscli"
@@ -60,6 +61,7 @@ brew "yarn"
 brew "zk"
 brew "zsh"
 brew "yt-dlp/taps/yt-dlp"
+
 cask "1password"
 cask "adoptopenjdk11"
 cask "alfred"
@@ -82,6 +84,7 @@ cask "unofficial-wineskin"
 cask "vimmotion"
 cask "visual-studio-code"
 cask "1password-cli"
+
 mas "FBReader", id: 1067172178
 mas "GarageBand", id: 682658836
 mas "KakaoTalk", id: 869223134

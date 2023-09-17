@@ -22,3 +22,7 @@ if [ "$(uname)" == "Darwin" ]; then
   . "$DOTFILES_DIR/utils/osx.sh"
   . "$DOTFILES_DIR/utils/brew-cask.sh"
 fi
+
+# ohmyzsh
+echo "Setting up ohmyzsh"
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"

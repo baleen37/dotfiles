@@ -12,4 +12,4 @@ ln -sfv "$DOTFILES_DIR/.ideavimrc" ~
 ln -sfv "$DOTFILES_DIR/.ctags.d" ~
 ln -sfv "$DOTFILES_DIR/bin" ~
 ln -sfv "$DOTFILES_DIR/.config/nvim" ~/.config/nvim
-ln -s "~/Dropbox/wiki" ~
+ln -sfv "~/Library/Mobile Documents/iCloud~md~obsidian/Documents/wiki" ~

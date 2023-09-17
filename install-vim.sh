@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+cd $(dirname $BASH_SOURCE)
+BASE=$(pwd)
 # Works on both Mac and GNU/Linux.
 BASE="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
