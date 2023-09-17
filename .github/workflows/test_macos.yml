@@ -3,7 +3,6 @@ name: Test Setup dotfiles on Mac OS
 on:  # yamllint disable-line rule:truthy
   push:
     branches: ["master", "main"]
-  pull_request:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -11,9 +10,7 @@ concurrency:
 
 jobs:
   test_macos:
-
-    runs-on: [self-hosted, macOS]
-    # runs-on: [self-hosted, macos-latest]
+    runs-on: macos-latest
     timeout-minutes: 15
 
     steps:
