@@ -8,7 +8,7 @@ echo "Setting up ohmyzsh"
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 
 # Bunch of symlinks
-. "$DOTFILES_DIR/setup.sh"
+. "$DOTFILES_DIR/setup_dotfiles.sh"
 
 echo "Setting up vim"
 . "$DOTFILES_DIR/install-vim.sh"

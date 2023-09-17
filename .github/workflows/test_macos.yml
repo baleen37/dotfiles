@@ -17,6 +17,10 @@ jobs:
     timeout-minutes: 15
 
     steps:
+      - name: Clean Workspace Folder
+        run: |
+          rm -rf ./* || true
+          rm -rf ./.??* || true
       - uses: actions/checkout@v3
       - name: Install coreutils
         run: |
