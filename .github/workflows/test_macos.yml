@@ -3,18 +3,7 @@ name: Test Setup dotfiles on Mac OS
 on:  # yamllint disable-line rule:truthy
   push:
     branches: ["master", "main"]
-    paths:
-      - ".github/workflows/test_macos_1.yml"
-      - "setup_dotfiles.sh"
-      - "_*"
-      - "gradle.properties"
   pull_request:
-    branches: ["master", "main"]
-    paths:
-      - ".github/workflows/test_macos_1.yml"
-      - "setup_dotfiles.sh"
-      - "_*"
-      - "gradle.properties"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
