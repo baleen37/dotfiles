@@ -4,8 +4,8 @@ set -euo pipefail
 DOTFILES_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # ohmyzsh
-echo "Setting up ohmyzsh"
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+# echo "Setting up ohmyzsh"
+# sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 
 # Bunch of symlinks
 . "$DOTFILES_DIR/setup_dotfiles.sh"
