@@ -32,4 +32,4 @@ jobs:
           set -eo pipefail
           export CI=1
           # Test Mac OS package installation
-          bash bootstrap.sh -f
+          bash brew.sh
