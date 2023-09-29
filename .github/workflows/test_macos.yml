@@ -1,23 +1,23 @@
+---
 name: Test Setup dotfiles on Mac OS
 
 on:  # yamllint disable-line rule:truthy
   push:
     branches: ["master", "main"]
   pull_request:
+    branches: ["master", "main"]
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   test_macos:
+
     runs-on: macos-latest
     timeout-minutes: 15
 
     steps:
-      - name: Clean Workspace Folder
-        run: |
-          rm -rf ./* || true
-          rm -rf ./.??* || true
       - uses: actions/checkout@v3
       - name: Install coreutils
         run: |
@@ -28,4 +28,4 @@ jobs:
         run: |
           set -eo pipefail
           export CI=1
-          bash install.sh # Test dotfile setup
+          bash setup_dotfiles.sh # Test dotfile setup
