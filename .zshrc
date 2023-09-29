@@ -54,12 +54,6 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && . "/opt/homebrew/opt/nvm/nvm.sh"  # This loads nvm
 [ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && . "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
 
-#export CPPFLAGS=-I/opt/homebrew/opt/openssl/include
-#export LDFLAGS=-L/opt/homebrew/opt/openssl/lib
-
-#export CPPFLAGS=-I/usr/local/opt/openssl/include
-#export LDFLAGS=-L/usr/local/opt/openssl/lib
-# fzf
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 export LC_CTYPE=en_US.UTF-8

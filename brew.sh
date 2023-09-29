@@ -103,6 +103,39 @@ brew install ssh-copy-id
 brew install tree
 brew install vbindiff
 brew install zopfli
+brew install tmux
+brew install wget
+brew install nvm
+brew install npm
+
+# fzf key binding
+brew install fzf
+$(brew --prefix)/opt/fzf/install
+
+
+# Install cask packages
+brew install docker
+brew install alt-tab
+brew install appcleaner
+brew install alfred
+brew install dropbox
+brew install google-chrome
+brew install iterm2
+brew install visual-studio-code
+brew install 1password
+brew install anki
+brew install discord
+brew install postman
+brew install intellij-idea
+brew install datagrip
+brew install slack
+brew install notion --appdir ~/Applications
+brew install obsidian
+
+## jdk
+brew tap AdoptOpenJDK/openjdk
+brew install --cask adoptopenjdk11
+brew install --cask adoptopenjdk17
 
 # Remove outdated versions from the cellar.
 brew cleanup
