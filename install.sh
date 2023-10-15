@@ -11,11 +11,11 @@ DOTFILES_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 . "$DOTFILES_DIR/setup_dotfiles.sh"
 
 echo "Setting up vim"
-. "$DOTFILES_DIR/install-vim.sh"
+# . "$DOTFILES_DIR/install-vim.sh"
 
 # Package managers & packages
 echo "Setting up package managers"
-. "$DOTFILES_DIR/utils/brew.sh"
+. "$DOTFILES_DIR/brew.sh"
 . "$DOTFILES_DIR/utils/misc.sh"
 
 if [ "$(uname)" == "Darwin" ]; then
