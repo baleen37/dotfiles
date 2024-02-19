@@ -90,12 +90,12 @@ let g:seoul256_background = 236
 " interface
 Plug 'scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }
 Plug 'majutsushi/tagbar', { 'on': 'TagbarToggle' }
-  let g:tagbar_sort = 0
+let g:tagbar_sort = 0
 "Plug 'Yggdroot/indentLine', { 'on': 'IndentLinesEnable' }
 Plug 'Yggdroot/indentLine'
-  autocmd! User indentLine doautocmd indentLine Syntax
-  let g:indentLine_color_term = 239
-  let g:indentLine_color_gui = '#616161'
+autocmd! User indentLine doautocmd indentLine Syntax
+let g:indentLine_color_term = 239
+let g:indentLine_color_gui = '#616161'
 
 " git
 Plug 'tpope/vim-fugitive'
@@ -115,23 +115,23 @@ Plug 'sgur/vim-editorconfig'
 
 Plug 'godlygeek/tabular'
 Plug 'preservim/vim-markdown'
-  let g:vim_markdown_folding_disabled = 1
-  let g:markdown_syntax_conceal=0
-  let g:vim_markdown_auto_insert_bullets = 0
-  let g:vim_markdown_new_list_item_indent = 0
+let g:vim_markdown_folding_disabled = 1
+let g:markdown_syntax_conceal=0
+let g:vim_markdown_auto_insert_bullets = 0
+let g:vim_markdown_new_list_item_indent = 0
 
 
 " edit
 Plug 'AndrewRadev/switch.vim'
-  let g:switch_mapping = '-'
-  let g:switch_custom_definitions = [
-  \   ['MON', 'TUE', 'WED', 'THU', 'FRI']
-  \ ]
+let g:switch_mapping = '-'
+let g:switch_custom_definitions = [
+      \   ['MON', 'TUE', 'WED', 'THU', 'FRI']
+      \ ]
 "Plug 'godlygeek/tabular'
 "Plug 'preservim/vim-markdown'
 "  let g:markdown_syntax_conceal=0
 Plug 'lervag/vim-rainbow-lists'
-  "autocmd BufNewFile,BufFilePre,BufRead *.md :RBListEnable<CR>
+"autocmd BufNewFile,BufFilePre,BufRead *.md :RBListEnable<CR>
 " Plug 'preservim/vim-markdown'
 "   let g:vim_markdown_frontmatter = 1
 "   let g:vim_markdown_conceal = 1
@@ -146,48 +146,51 @@ Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'junegunn/fzf.vim'
 Plug 'mhinz/vim-startify'
 Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app && yarn install'  }
-  let g:mkdp_command_for_global = 1
+let g:mkdp_command_for_global = 1
 Plug 'tpope/vim-surround'
 Plug 'junegunn/goyo.vim'
 Plug 'junegunn/limelight.vim'
-  nmap <Leader>l <Plug>(Limelight)
-  xmap <Leader>l <Plug>(Limelight)
-  nnoremap <Leader>ll :Limelight!<cr>
+nmap <Leader>l <Plug>(Limelight)
+xmap <Leader>l <Plug>(Limelight)
+nnoremap <Leader>ll :Limelight!<cr>
 Plug 'ferrine/md-img-paste.vim'
-  autocmd FileType markdown nnoremap <buffer> <silent> <leader>v :call mdip#MarkdownClipboardImage()<CR>
-  let g:mdip_imgdir = 'images'
-  let g:mdip_imgname = 'image'
+autocmd FileType markdown nnoremap <buffer> <silent> <leader>v :call mdip#MarkdownClipboardImage()<CR>
+let g:mdip_imgdir = 'images'
+let g:mdip_imgname = 'image'
 Plug 'junegunn/vim-easy-align'
 Plug 'mzlogin/vim-markdown-toc'
 Plug 'ludovicchabant/vim-gutentags'
 "Plug 'preservim/vim-markdown'
 " Plug 'preservim/vim-markdown'
-  " let g:vim_markdown_frontmatter = 1
+" let g:vim_markdown_frontmatter = 1
 Plug 'neovim/nvim-lspconfig'
 "Plug 'neoclide/coc.nvim', {'branch': 'master', 'do': 'yarn install --frozen-lockfile'}
 Plug 'lervag/wiki.vim'
-  let g:wiki_filetypes = ['md']
-  let g:wiki_link_extension = '.md'
-  let g:wiki_root = '~/Dropbox/wiki/'
-  let g:wiki_link_target_type = 'md'
-  let g:wiki_journal = {
-    \ 'name': 'diary',
-    \ 'frequency': 'daily',
-    \ 'date_format': {
-    \   'daily' : '%Y-%m-%d',
-    \   'weekly' : '%Y_w%V',
-    \   'monthly' : '%Y_m%m',
-    \ },
-    \ 'index_use_journal_scheme': v:true,
-    \}
+let g:wiki_filetypes = ['md']
+let g:wiki_link_extension = '.md'
+let g:wiki_root = '~/Dropbox/wiki/'
+let g:wiki_link_target_type = 'md'
+let g:wiki_journal = {
+      \ 'name': 'diary',
+      \ 'frequency': 'daily',
+      \ 'date_format': {
+      \   'daily' : '%Y-%m-%d',
+      \   'weekly' : '%Y_w%V',
+      \   'monthly' : '%Y_m%m',
+      \ },
+      \ 'index_use_journal_scheme': v:true,
+      \}
 
 "" 
 "Plug 'lervag/wiki-ft.vim'
 "  autocmd BufNewFile,BufFilePre,BufRead *.md set filetype=wiki
-  
+
+Plug 'nvim-neorg/neorg' 
+Plug 'nvim-lua/plenary.nvim'
+Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 Plug 'mickael-menu/zk-nvim'
 Plug 'jkramer/vim-checkbox'
-  map <silent> <C-Space> :call checkbox#ToggleCB()<cr>
+map <silent> <C-Space> :call checkbox#ToggleCB()<cr>
 
 if has('nvim')
   Plug 'github/copilot.vim'
@@ -303,11 +306,11 @@ function! s:copy_results(lines)
 endfunction
 
 let g:fzf_action = {
-  \ 'ctrl-t': 'tab split',
-  \ 'ctrl-x': 'split',
-  \ 'ctrl-v': 'vsplit',
-  \ 'ctrl-y': function('s:copy_results'),
-  \ }
+      \ 'ctrl-t': 'tab split',
+      \ 'ctrl-x': 'split',
+      \ 'ctrl-v': 'vsplit',
+      \ 'ctrl-y': function('s:copy_results'),
+      \ }
 
 function! s:plug_help_sink(line)
   let dir = g:plugs[a:line].dir
@@ -323,8 +326,8 @@ function! s:plug_help_sink(line)
 endfunction
 
 command! PlugHelp call fzf#run(fzf#wrap({
-  \ 'source': sort(keys(g:plugs)),
-  \ 'sink':   function('s:plug_help_sink')}))
+      \ 'source': sort(keys(g:plugs)),
+      \ 'sink':   function('s:plug_help_sink')}))
 
 function! RipgrepFzf(query, fullscreen)
   let command_fmt = 'rg --column --line-number --no-heading --color=always --smart-case %s || true'
@@ -347,12 +350,12 @@ nmap <leader>p <Plug>MarkdownPreviewToggle
 
 " tagbar
 let g:tagbar_type_vimwiki = {
-    \ 'ctagstype' : 'vimwiki',
-    \ 'sort': 0,
-    \ 'kinds' : [
-        \ 'h:Heading'
-    \ ]
-\ }
+      \ 'ctagstype' : 'vimwiki',
+      \ 'sort': 0,
+      \ 'kinds' : [
+      \ 'h:Heading'
+      \ ]
+      \ }
 nnoremap <Leader>t :TagbarToggle<cr>
 
 " gutentags
@@ -369,3 +372,4 @@ nnoremap k gk
 set breakindent                     " keep indentation when lines break
 set breakindentopt=shift:2          " but shift it by 2 spaces
 set linebreak                       " break only at specific characters, :h breakat
+
