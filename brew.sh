@@ -34,7 +34,7 @@ brew install gnupg
 
 
 # Install more recent versions of some macOS tools.
-brew install vim --with-override-system-vi
+brew install vim
 brew install grep
 brew install openssh
 brew install screen
@@ -80,7 +80,7 @@ brew install ack
 brew install git
 brew install git-lfs
 brew install gs
-brew install imagemagick --with-webp
+brew install imagemagick
 brew install lua
 brew install lynx
 brew install p7zip
@@ -123,8 +123,8 @@ brew install obsidian
 
 ## jdk
 brew tap AdoptOpenJDK/openjdk
-brew install --cask adoptopenjdk11
-brew install --cask adoptopenjdk17
+# brew install --cask adoptopenjdk11
+# brew install --cask adoptopenjdk17
 
 # Remove outdated versions from the cellar.
 brew cleanup

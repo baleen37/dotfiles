@@ -226,7 +226,7 @@
 	<key>HapticFeedbackForEsc</key>
 	<false/>
 	<key>Hotkey</key>
-	<true/>
+	<false/>
 	<key>HotkeyChar</key>
 	<integer>73</integer>
 	<key>HotkeyCode</key>
