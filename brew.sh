@@ -35,6 +35,7 @@ brew install gnupg
 
 # Install more recent versions of some macOS tools.
 brew install vim
+brew install nvim
 brew install grep
 brew install openssh
 brew install screen
@@ -96,6 +97,8 @@ brew install tmux
 brew install wget
 brew install nvm
 brew install npm
+brew install pyenv
+brew install pyenv-virtualenv
 
 # fzf key binding
 brew install fzf
