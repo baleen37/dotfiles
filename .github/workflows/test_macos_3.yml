@@ -1,9 +1,10 @@
 ---
-name: Test setup Mac machine with packages
+name: Test setup Mac machine with vim
 
 on:  # yamllint disable-line rule:truthy
-  pull_request:
   push:
+    branches: ["main"]
+  pull_request:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -19,9 +20,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Run Setup new Mac machine script
+      - name: install vim
         run: |
           set -eo pipefail
           export CI=1
-          # Test Mac OS package installation
-          bash brew.sh
+          # Test install vim
+          bash install-vim.sh
