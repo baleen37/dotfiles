@@ -20,14 +20,16 @@ curl --insecure -fLo ~/.vim/autoload/plug.vim https://raw.github.com/junegunn/vi
 
 # vimrc
 echo "Setting up $HOME/.vimrc"
-mv -v ~/.vimrc ~/.vimrc.old 2> /dev/null
-ln -sf $BASE/.vimrc ~/.vimrc
+mv -v ~/.vimrc ~/.vimrc.old 2> /dev/null || true
+ln -sf $BASE/config/nvim/init.vim ~/.vimrc
 
 # nvim
 echo "Setting up $HOME/.config/nvim/init.vim"
 mkdir -p ~/.config/nvim/autoload
-ln -sf $BASE/.vimrc ~/.config/nvim/init.vim
+ln -sf $BASE/config/nvim/init.vim ~/.config/nvim/init.vim
 ln -sf ~/.vim/autoload/plug.vim ~/.config/nvim/autoload/
 
 vim +PlugInstall +qall
 
+
+echo "done install-vim.sh >>"

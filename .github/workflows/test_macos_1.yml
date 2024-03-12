@@ -3,9 +3,8 @@ name: Test Setup dotfiles on Mac OS
 
 on:  # yamllint disable-line rule:truthy
   push:
-    branches: ["master", "main"]
+    branches: ["main"]
   pull_request:
-    branches: ["master", "main"]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

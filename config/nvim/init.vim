@@ -1,1 +1,1 @@
-/Users/jito/dotfiles/.vimrc
+/Users/jito/dotfiles/config/nvim/init.vim
