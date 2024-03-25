@@ -112,6 +112,7 @@ brew install appcleaner
 brew install alfred
 brew install dropbox
 brew install google-chrome
+brew tap homebrew/cask-versions && brew install --cask google-chrome-canary
 brew install iterm2
 brew install visual-studio-code
 brew install 1password
