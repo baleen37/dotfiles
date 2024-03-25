@@ -14,4 +14,4 @@ ln -sfv "$DOTFILES_DIR/.ctags.d" ~
 ln -sfv "$DOTFILES_DIR/bin" ~
 ln -sfv "$DOTFILES_DIR/config/nvim" ~/.config/nvim
 ln -sfv "$DOTFILES_DIR/.hammerspoon" ~/.hammerspoon
-ln -sfv "~/Library/Mobile\ Documents/iCloud~md~obsidian/Documents/wiki" ~
+ln -sfv ~/Library/Mobile\ Documents/iCloud~md~obsidian/Documents/wiki ~

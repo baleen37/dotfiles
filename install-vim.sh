@@ -4,7 +4,6 @@ set -euo pipefail
 # Works on both Mac and GNU/Linux.
 BASE="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-
 # This detection only works for mac and linux.
 if [ "$(uname)" == "Darwin" ]; then
   echo "Setting up $HOME/.bashrc"
@@ -30,6 +29,5 @@ ln -sf $BASE/config/nvim/init.vim ~/.config/nvim/init.vim
 ln -sf ~/.vim/autoload/plug.vim ~/.config/nvim/autoload/
 
 vim +PlugInstall +qall
-
 
 echo "done install-vim.sh >>"
