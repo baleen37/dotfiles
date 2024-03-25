@@ -123,11 +123,12 @@ brew install datagrip
 brew install slack
 brew install notion --appdir ~/Applications
 brew install obsidian
+brew install hammerspoon
 
 ## jdk
 brew tap AdoptOpenJDK/openjdk
-# brew install --cask adoptopenjdk11
-# brew install --cask adoptopenjdk17
+brew install --cask adoptopenjdk11
+brew install --cask adoptopenjdk17
 
 # Remove outdated versions from the cellar.
 brew cleanup
