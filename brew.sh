@@ -99,6 +99,7 @@ brew install nvm
 brew install npm
 brew install pyenv
 brew install pyenv-virtualenv
+brew install awscli
 
 # fzf key binding
 brew install fzf
