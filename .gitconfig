@@ -2,17 +2,16 @@
 	name = Jiho Lee
 	email = baleen37@gmail.com
 [core]
-    editor = /usr/bin/vim
+  editor = /usr/bin/vim
 	excludesfile = ~/.gitignore_global
 	autocrlf = input
 [i18n]
-    commitEncoding = utf8
+  commitEncoding = utf8
 [alias]
-    r = log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold cyan)%aD%C(reset) %C(bold green)(%ar)%C(reset)%C(bold yellow)%d%C(reset)%n''          %C(white)%s%C(reset) %C(dim white)- %an%C(reset)' --all
-    st = status
-    co = checkout
-    ci = commit
-    b = branch --sort=-committerdate
+  r = log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold cyan)%aD%C(reset) %C(bold green)(%ar)%C(reset)%C(bold yellow)%d%C(reset)%n''          %C(white)%s%C(reset) %C(dim white)- %an%C(reset)' --all
+  st = status
+  co = checkout
+  ci = commit
+  b = branch --sort=-committerdate
 [mergetool "vimdiff"]
-    keepBackup = false
-
+  keepBackup = false
