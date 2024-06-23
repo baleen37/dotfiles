@@ -20,7 +20,13 @@ end
 
 hs.fnutils.each(Config.applications, function(appConfig)
   if appConfig.hyperKey then
-    Hyper:bind({}, appConfig.hyperKey, function() hs.application.launchOrFocusByBundleID(appConfig.bundleID) end)
+    Hyper:bind({}, appConfig.hyperKey, function()
+        if hs.application.get(appConfig.bundleID) and hs.application.get(appConfig.bundleID):isFrontmost() then
+            hs.application.get(appConfig.bundleID):hide()
+        else
+            hs.application.launchOrFocusByBundleID(appConfig.bundleID)
+        end
+    end)
   end
   if appConfig.localBindings then
     hs.fnutils.each(appConfig.localBindings, function(key)
@@ -29,6 +35,7 @@ hs.fnutils.each(Config.applications, function(appConfig)
   end
 end)
 
+HyperModal = spoon.HyperModal
 Hyper:bind({}, 'm', function() HyperModal:toggle() end)
 
 
