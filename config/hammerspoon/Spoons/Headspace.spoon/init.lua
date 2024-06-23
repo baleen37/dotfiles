@@ -20,7 +20,7 @@ local m = {
     license = "MIT <https://opensource.org/licenses/MIT>",
     homepage = "https://github.com/evantravers/headspace.spoon",
   }
-  
+--  print("Headspace loaded")
   -- CONFIG ==============
   
   local fn    = require('hs.fnutils')
