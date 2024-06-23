@@ -108,7 +108,7 @@ return {
   },
   ['md.obsidian'] = {
     bundleID = 'md.obsidian',
-    hyperKey = 'g',
+    hyperKey = 'o',
     tags = {'research', 'notes'},
   },
   ['us.zoom.xos'] = {
@@ -140,5 +140,10 @@ return {
   ['com.flexibits.cardhop.mac'] = {
     bundleID = 'com.flexibits.cardhop.mac',
     localBindings = {'u'}
-  }
+  },
+  ['com.googlecode.iterm2'] = {
+    bundleID = 'com.googlecode.iterm2',
+    hyperKey = 'i',
+    tags = {'coding'}
+  },
 }
