@@ -126,6 +126,7 @@ brew install slack
 brew install notion --appdir ~/Applications
 brew install obsidian
 brew install hammerspoon
+brew install karabiner-elements
 
 ## jdk
 brew tap AdoptOpenJDK/openjdk
