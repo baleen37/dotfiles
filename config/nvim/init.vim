@@ -362,9 +362,6 @@ nnoremap <Leader>t :TagbarToggle<cr>
 set statusline+=%{gutentags#statusline()}
 
 
-map gt <Nop
-
-
 " Move by visual line
 nnoremap j gj
 nnoremap k gk
