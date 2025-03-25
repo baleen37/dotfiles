@@ -108,3 +108,34 @@ export ZK_NOTEBOOK_DIR="$HOME/wiki"
 #   export EDITOR='mvim'
 # fi
 
+
+# Only run in interactive shells
+case $- in
+    *i*) ;;
+      *) return;;
+esac
+
+DOTFILES_DIR="$HOME/dotfiles"
+CACHE_FILE="$HOME/.cache/dotfiles_last_update"
+THRESHOLD=86400  # 86400 seconds = 1 day
+
+if [ -d "$DOTFILES_DIR" ]; then
+  # Ensure cache directory exists
+  mkdir -p "$(dirname "$CACHE_FILE")"
+
+  LAST_UPDATE=0
+  if [ -f "$CACHE_FILE" ]; then
+    LAST_UPDATE=$(cat "$CACHE_FILE")
+  fi
+
+  CURRENT_TIME=$(date +%s)
+  # Check if the last update was done more than THRESHOLD seconds ago
+  if [ $(( CURRENT_TIME - LAST_UPDATE )) -gt $THRESHOLD ]; then
+    cd "$DOTFILES_DIR" || exit
+    if [ -d ".git" ]; then
+      echo "Updating dotfiles in $DOTFILES_DIR..."
+      git pull && echo "$CURRENT_TIME" > "$CACHE_FILE"
+    fi
+    cd - > /dev/null
+  fi
+fi
