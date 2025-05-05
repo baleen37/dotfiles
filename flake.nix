@@ -14,7 +14,7 @@
 
     homeConfigurations."baleen" = home-manager.lib.homeManagerConfiguration {
       pkgs = nixpkgs.legacyPackages.${system};
-      modules = [ 
+      modules = [
         ./home.nix
         {
           home = {
