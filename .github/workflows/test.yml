@@ -22,7 +22,7 @@ jobs:
       - uses: cachix/install-nix-action@v25
         with:
           nix_path: nixpkgs=channel:nixos-unstable
-          extra_nix_config: "experimental-features = nix-command flakes"
+
 
       - name: Pre-fetch flake inputs
         run: nix flake update --recreate-lock-file
@@ -33,8 +33,7 @@ jobs:
       - name: Run tests
         run: nix flake check
 
-      # ▼ v3 대신 v3.1.2 로 핀
-      - uses: actions/upload-artifact@v3.1.2
+      - uses: actions/upload-artifact@v3
         with:
           name: build-results-${{ matrix.os }}
           path: ./result
