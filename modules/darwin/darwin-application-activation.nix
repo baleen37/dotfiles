@@ -1,28 +1,35 @@
-{ lib, pkgs, config, ... }:
-{
-  # Copy GUI apps to "~/Applications/Home Manager Apps"
-  # Based on this comment: https://github.com/nix-community/home-manager/issues/1341#issuecomment-778820334
-  home.activation.darwinApps =
-    if pkgs.stdenv.isDarwin then
-      let
-        apps = pkgs.buildEnv {
-          name = "home-manager-applications";
-          paths = config.home.packages;
-          pathsToLink = "/Applications";
-        };
-      in
-      lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        # Install MacOS applications to the user environment.
-        HM_APPS="$HOME/Applications/Home Manager Apps"
-        # Reset current state
-        [ -e "$HM_APPS" ] && $DRY_RUN_CMD rm -r "$HM_APPS"
-        $DRY_RUN_CMD mkdir -p "$HM_APPS"
-        # .app dirs need to be actual directories for Finder to detect them as Apps.
-        # In the env of Apps we build, the .apps are symlinks. We pass all of them as
-        # arguments to cp and make it dereference those using -H
-        $DRY_RUN_CMD cp --archive -H --dereference ${apps}/Applications/* "$HM_APPS"
-        $DRY_RUN_CMD chmod +w -R "$HM_APPS"
-      ''
-    else
-      "";
+{ config, lib, pkgs, ... }:
+
+with lib;
+
+let
+  cfg = config.homebrew;
+in {
+  config = mkIf pkgs.stdenv.isDarwin {
+    home.activation = {
+      copyApplications = lib.hm.dag.entryAfter ["writeBoundary"] ''
+        baseDir="$HOME/Applications/Home Manager Apps"
+
+        # 디렉토리 백업 후 새로 생성
+        if [ -d "$baseDir" ]; then
+          $DRY_RUN_CMD echo "Backing up $baseDir to $baseDir.backup"
+          $DRY_RUN_CMD mv "$baseDir" "$baseDir.backup"
+        fi
+
+        # 새 디렉토리 생성
+        $DRY_RUN_CMD mkdir -p "$baseDir"
+
+        # 애플리케이션 복사
+        if [ -d "${config.home.homeDirectory}/.nix-profile/Applications" ]; then
+          for appFile in $(find ${config.home.homeDirectory}/.nix-profile/Applications -type l -maxdepth 1); do
+            target="$baseDir/$(basename "$appFile")"
+            $DRY_RUN_CMD cp -fR "$appFile" "$target"
+            $DRY_RUN_CMD chmod -R +w "$target"
+          done
+        else
+          $DRY_RUN_CMD echo "No applications found in ${config.home.homeDirectory}/.nix-profile/Applications"
+        fi
+      '';
+    };
+  };
 }
