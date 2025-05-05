@@ -38,7 +38,7 @@
       darwinConfigurations.darwin = nix-darwin.lib.darwinSystem {
         system = "aarch64-darwin";
         modules = [
-          # home-manager-shared
+          home-manager-shared
           nixpkgs-shared
           home-manager.darwinModules.home-manager
           # ./modules/shared/configuration.nix

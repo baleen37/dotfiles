@@ -28,7 +28,11 @@
           ../shared/programs/tmux
           ../shared/programs/nvim
           ../shared/programs/vscode
+          ../shared/programs/ssh
+          ../shared/programs/act
+
           ./programs/raycast
+          ./programs/homerow
         ];
 
         # Install the gitconfig file, as .gitconfig in the home directory
