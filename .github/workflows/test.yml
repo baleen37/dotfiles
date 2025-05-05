@@ -8,16 +8,19 @@ on:
 
 jobs:
   lint-build-test:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
 
-      # Nix 3.0+ 설치
+      # Nix 3.0+ 설치 (macOS에서도 동작)
       - uses: cachix/install-nix-action@v25
         with:
           nix_path: nixpkgs=channel:nixos-unstable
 
-      # Flake 의존성 확보 (optional, cache speedup)
+      # Optional: Flake 의존성 미리 가져오기 (캐시 가속)
       - name: Pre-fetch flake inputs
         run: nix flake update --recreate-lock-file
 
@@ -32,5 +35,5 @@ jobs:
       # 3) (Optional) Artifacts 업로드
       - uses: actions/upload-artifact@v3
         with:
-          name: build-results
+          name: build-results-${{ matrix.os }}
           path: ./result
