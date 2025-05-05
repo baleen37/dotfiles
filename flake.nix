@@ -12,18 +12,27 @@
 
   outputs = { self, nixpkgs, home-manager, ... }:
     let
-      system = "aarch64-darwin";
-      pkgs = import nixpkgs {
+      # Define supported systems
+      supportedSystems = [ "aarch64-darwin" "aarch64-linux" "x86_64-linux" "x86_64-darwin" ];
+      darwinSystems = [ "aarch64-darwin" "x86_64-darwin" ];
+
+      # Helper function to generate outputs for each system
+      forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
+      forDarwinSystems = nixpkgs.lib.genAttrs darwinSystems;
+
+      # Import nixpkgs for each system
+      nixpkgsFor = forAllSystems (system: import nixpkgs {
         inherit system;
         config = {
           allowUnfree = true;
         };
-      };
+      });
     in {
+      # Only Darwin home configuration
       homeConfigurations."baleen" = home-manager.lib.homeManagerConfiguration {
-        inherit pkgs;
+        pkgs = nixpkgsFor."aarch64-darwin";
 
-        # 모듈 경로를 올바르게 참조하기 위해 self 사용
+        # Use proper path reference using self
         modules = [
           (import ./modules/darwin/home.nix)
         ];
@@ -33,5 +42,27 @@
           # Add any special arguments you want to pass to your modules here
         };
       };
+
+      # Add default packages for each system
+      packages = forAllSystems (system:
+        let
+          isDarwin = builtins.elem system darwinSystems;
+        in
+        if isDarwin then {
+          # For Darwin systems, provide the home configuration
+          default = self.homeConfigurations."baleen".activationPackage;
+        } else {
+          # For non-Darwin systems, provide a dummy package
+          default = nixpkgsFor.${system}.runCommand "unsupported-system" {} ''
+            echo "This system (${system}) is not supported for home configuration"
+            mkdir -p $out/bin
+            echo "echo 'This system is not supported for home configuration'" > $out/bin/unsupported
+            chmod +x $out/bin/unsupported
+          '';
+        }
+      );
+
+      # Add default package shortcuts
+      defaultPackage = forAllSystems (system: self.packages.${system}.default);
     };
 }
