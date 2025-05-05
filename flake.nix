@@ -48,13 +48,14 @@
         specialArgs = { inherit inputs; };
       };
 
-      # nixosConfigurations.linux = nixpkgs.lib.nixosSystem {
-      #   system = "x86_64-linux";
-      #   modules = [
-      #     home-manager.nixosModules.home-manager
-      #   ];
-      #   specialArgs = { inherit inputs; };
-      # };
+      nixosConfigurations.linux = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          home-manager.nixosModules.home-manager
+          nixpkgs-shared
+        ];
+        specialArgs = { inherit inputs; };
+      };
 
       # System-specific default packages
       packages = forAllSystems (system: {

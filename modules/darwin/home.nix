@@ -26,6 +26,8 @@
           ../shared/programs/wezterm
           ../shared/programs/git
           ../shared/programs/tmux
+          ../shared/programs/nvim
+          ../shared/programs/vscode
           ./programs/raycast
         ];
 
