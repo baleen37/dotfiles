@@ -25,7 +25,6 @@
       # dev-shell = import ./libraries/dev-shell { inherit inputs; };
       home-manager-shared = ./libraries/home-manager;
       nixpkgs-shared = ./libraries/nixpkgs;
-
     in
     {
       darwinConfigurations.darwin = nix-darwin.lib.darwinSystem {
@@ -35,8 +34,8 @@
           # nixpkgs-shared
           home-manager.darwinModules.home-manager
           # ./modules/shared/configuration.nix
-          # ./modules/darwin/configuration.nix
-          # ./modules/darwin/home.nix
+          ./modules/darwin/configuration.nix
+          ./modules/darwin/home.nix
         ];
         specialArgs = { inherit inputs; };
       };
