@@ -25,6 +25,7 @@
         imports = [
           ../shared/programs/wezterm
           ../shared/programs/git
+          ../shared/programs/tmux
           ./programs/raycast
         ];
 
