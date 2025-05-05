@@ -25,6 +25,14 @@
       # dev-shell = import ./libraries/dev-shell { inherit inputs; };
       home-manager-shared = ./libraries/home-manager;
       nixpkgs-shared = ./libraries/nixpkgs;
+
+      # Helper function to provide system-specific default packages
+      forAllSystems = nixpkgs.lib.genAttrs [
+        "aarch64-darwin"
+        "x86_64-darwin"
+        "aarch64-linux"
+        "x86_64-linux"
+      ];
     in
     {
       darwinConfigurations.darwin = nix-darwin.lib.darwinSystem {
@@ -47,5 +55,13 @@
       #   ];
       #   specialArgs = { inherit inputs; };
       # };
+
+      # System-specific default packages
+      packages = forAllSystems (system: {
+        default =
+          if nixpkgs.lib.strings.hasInfix "darwin" system
+          then self.darwinConfigurations.darwin.system
+          else nixpkgs.legacyPackages.${system}.hello; # Fallback for non-Darwin systems
+      });
     };
 }
