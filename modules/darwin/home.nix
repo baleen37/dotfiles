@@ -24,6 +24,7 @@
         ];
         imports = [
           ../shared/programs/wezterm
+          ../shared/programs/git
           ./programs/raycast
         ];
 
