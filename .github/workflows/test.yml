@@ -33,7 +33,7 @@ jobs:
       - name: Run tests
         run: nix flake check
 
-      - uses: actions/upload-artifact@v3
-        with:
-          name: build-results-${{ matrix.os }}
-          path: ./result
+      # - uses: actions/upload-artifact@v3
+      #   with:
+      #     name: build-results-${{ matrix.os }}
+      #     path: ./result
