@@ -23,7 +23,7 @@
             jetbrains.idea-ultimate
         ];
         imports = [
-          # ../shared/programs/1password
+          ../shared/programs/wezterm
           ./programs/raycast
         ];
 

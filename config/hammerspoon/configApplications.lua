@@ -5,7 +5,7 @@ return {
   },
   ['com.github.wez.wezterm'] = {
     bundleID = 'com.github.wez.wezterm',
-    hyperKey = 'j',
+    hyperKey = 'i',
     tags = {'coding'}
   },
   ['com.brave.Browser'] = {
@@ -140,10 +140,5 @@ return {
   ['com.flexibits.cardhop.mac'] = {
     bundleID = 'com.flexibits.cardhop.mac',
     localBindings = {'u'}
-  },
-  ['com.googlecode.iterm2'] = {
-    bundleID = 'com.googlecode.iterm2',
-    hyperKey = 'i',
-    tags = {'coding'}
   },
 }
