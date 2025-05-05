@@ -1,0 +1,36 @@
+# .github/workflows/ci.yml
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint-build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Nix 3.0+ 설치
+      - uses: cachix/install-nix-action@v25
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+
+      # Flake 의존성 확보 (optional, cache speedup)
+      - name: Pre-fetch flake inputs
+        run: nix flake update --recreate-lock-file
+
+      # 1) 빌드
+      - name: Build all outputs
+        run: nix build --impure --no-link
+
+      # 2) 테스트
+      - name: Run tests
+        run: nix flake check
+
+      # 3) (Optional) Artifacts 업로드
+      - uses: actions/upload-artifact@v3
+        with:
+          name: build-results
+          path: ./result
