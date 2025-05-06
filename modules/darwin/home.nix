@@ -17,6 +17,7 @@
         home.packages = with pkgs; [
             git
             fzf
+            google-chrome
 
             # devtools
             jetbrains.datagrip
@@ -33,6 +34,8 @@
 
           ./programs/raycast
           ./programs/homerow
+          ./programs/obsidian
+          ./programs/hammerspoon
         ];
 
         # Install the gitconfig file, as .gitconfig in the home directory

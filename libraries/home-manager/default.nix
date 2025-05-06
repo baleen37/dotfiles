@@ -13,7 +13,7 @@ in
 {
   home-manager.sharedModules = [
     # local programs (local)
-    # ./programs/hammerspoon
+    ./programs/hammerspoon
     ./programs/homerow
 
     # os systems
