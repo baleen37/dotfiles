@@ -18,6 +18,7 @@
             git
             fzf
             google-chrome
+            brave
 
             # devtools
             jetbrains.datagrip
@@ -36,6 +37,7 @@
           ./programs/homerow
           ./programs/obsidian
           ./programs/hammerspoon
+          ./programs/karabiner-elements
         ];
 
         # Install the gitconfig file, as .gitconfig in the home directory

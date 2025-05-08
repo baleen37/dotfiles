@@ -17,7 +17,7 @@
 
   xdg.configFile = {
     "hammerspoon" = {
-      source = ./files;
+      source = lib.cleanSource ./files;
       recursive = true;
     };
   };
