@@ -1,29 +1,26 @@
 {
   "profiles": [
-    {
-      "name": "Default",
-      "selected": true,
-      "complex_modifications": {
-        "rules": [
-          {
-            "description": "Right Command → Hyper → F19",
-            "manipulators": [
-              {
-                "type": "basic",
-                "from": {
-                  "key_code": "right_command",
-                  "modifiers": { "optional": ["any"] }
-                },
-                "to": [
+      {
+          "complex_modifications": {
+              "rules": [
                   {
-                    "key_code": "f19"
+                      "description": "Right Command → Hyper → F19",
+                      "manipulators": [
+                          {
+                              "from": {
+                                  "key_code": "right_command",
+                                  "modifiers": { "optional": ["any"] }
+                              },
+                              "to": [{ "key_code": "f19" }],
+                              "type": "basic"
+                          }
+                      ]
                   }
-                ]
-              }
-            ]
-          }
-        ]
+              ]
+          },
+          "name": "Default",
+          "selected": true,
+          "virtual_hid_keyboard": { "keyboard_type_v2": "ansi" }
       }
-    }
   ]
 }

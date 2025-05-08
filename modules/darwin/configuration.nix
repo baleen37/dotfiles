@@ -31,7 +31,7 @@
       NSWindowResizeTime = null;
       NSAutomaticWindowAnimationsEnabled = false;
 
-      "com.apple.trackpad.scaling" = 1.0;
+      "com.apple.trackpad.scaling" = 3.0;
     };
 
   };
