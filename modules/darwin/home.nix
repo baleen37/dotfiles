@@ -38,6 +38,7 @@
           ./programs/obsidian
           ./programs/hammerspoon
           ./programs/karabiner-elements
+          ./programs/syncthing
         ];
 
         # Install the gitconfig file, as .gitconfig in the home directory
