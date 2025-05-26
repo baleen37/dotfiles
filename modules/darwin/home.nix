@@ -13,8 +13,8 @@
       google-chrome
       brave
       # devtools
-      jetbrains.datagrip
-      jetbrains.idea-ultimate
+      # jetbrains.datagrip
+      # jetbrains.idea-ultimate
     ];
     imports = [
       ../shared/programs/wezterm

@@ -35,8 +35,21 @@
       ];
     in
     {
-      darwinConfigurations.darwin = nix-darwin.lib.darwinSystem {
+      darwinConfigurations.baleen = nix-darwin.lib.darwinSystem {
         system = "aarch64-darwin";
+        modules = [
+          home-manager-shared
+          nixpkgs-shared
+          home-manager.darwinModules.home-manager
+          # ./modules/shared/configuration.nix
+          ./modules/darwin/configuration.nix
+          ./modules/darwin/home.nix
+        ];
+        specialArgs = { inherit inputs; };
+      };
+
+      darwinConfigurations.jito = nix-darwin.lib.darwinSystem {
+        system = "aarch64-darwin"; # jito 머신이 Intel Mac인 경우 "x86_64-darwin"으로 변경해야 할 수 있습니다.
         modules = [
           home-manager-shared
           nixpkgs-shared
@@ -61,7 +74,7 @@
       packages = forAllSystems (system: {
         default =
           if nixpkgs.lib.strings.hasInfix "darwin" system
-          then self.darwinConfigurations.darwin.system
+          then self.darwinConfigurations.baleen.system # 이전 darwin에서 baleen으로 변경
           else nixpkgs.legacyPackages.${system}.hello; # Fallback for non-Darwin systems
       });
     };

@@ -6,6 +6,11 @@
     home = "/Users/baleen";
   };
 
+  users.users.jito = {
+    shell = pkgs.zsh; # Using zsh as it's your default shell
+    home = "/Users/jito";
+  };
+
   # 트랙패드 설정
   system.defaults = {
     # dock configurations
