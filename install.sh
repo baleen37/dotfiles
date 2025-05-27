@@ -22,4 +22,4 @@ fi
 echo "Selected configuration: $TARGET_HOST"
 
 nix --experimental-features 'nix-command flakes' build ".#darwinConfigurations.$TARGET_HOST.system"
-./result/sw/bin/darwin-rebuild switch --flake ".#$TARGET_HOST"
+sudo ./result/sw/bin/darwin-rebuild switch --flake ".#$TARGET_HOST"

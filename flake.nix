@@ -45,7 +45,7 @@
           ./modules/darwin/configuration.nix
           ./modules/darwin/home.nix
         ];
-        specialArgs = { inherit inputs; };
+        specialArgs = { inherit inputs; hostName = "baleen"; };
       };
 
       darwinConfigurations.jito = nix-darwin.lib.darwinSystem {
@@ -58,7 +58,7 @@
           ./modules/darwin/configuration.nix
           ./modules/darwin/home.nix
         ];
-        specialArgs = { inherit inputs; };
+        specialArgs = { inherit inputs; hostName = "jito"; };
       };
 
       nixosConfigurations.linux = nixpkgs.lib.nixosSystem {

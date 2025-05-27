@@ -2,6 +2,7 @@
   config,
   pkgs,
   inputs,
+  hostName, # hostName 추가
   ...
 }: let
   commonUserConfig = { username, homeDirectory }: {
@@ -21,7 +22,7 @@
       ../shared/programs/git
       ../shared/programs/tmux
       ../shared/programs/nvim
-      ../shared/programs/vscode
+      ../shared/progterams/vscode
       ../shared/programs/ssh
       ../shared/programs/act
       ./programs/raycast
@@ -40,15 +41,16 @@ in
     home-manager.useUserPackages = true;
     nixpkgs.config.allowUnfree = true;
 
-    home-manager.users.baleen =
-        { config, ... }: commonUserConfig {
+    home-manager.users =
+      if hostName == "baleen" then {
+        baleen = commonUserConfig {
           username = "baleen";
           homeDirectory = "/Users/baleen";
         };
-
-    home-manager.users.jito =
-        { config, ... }: commonUserConfig {
+      } else if hostName == "jito" then {
+        jito = commonUserConfig {
           username = "jito";
           homeDirectory = "/Users/jito";
         };
+      } else {}; # 다른 호스트 이름의 경우 빈 사용자 설정을 반환하거나 오류 처리
 }
