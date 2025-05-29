@@ -5,7 +5,7 @@
   hostName, # hostName 추가
   ...
 }: let
-  commonUserConfig = { username, homeDirectory }: {
+  commonUserConfig = { username, homeDirectory, extraPackages ? [] }: {
     home.username = username;
     home.homeDirectory = homeDirectory;
     home.packages = with pkgs; [
@@ -22,7 +22,7 @@
       ../shared/programs/git
       ../shared/programs/tmux
       ../shared/programs/nvim
-      ../shared/progterams/vscode
+      ../shared/programs/vscode
       ../shared/programs/ssh
       ../shared/programs/act
       ./programs/raycast

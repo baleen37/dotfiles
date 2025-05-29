@@ -1,14 +1,14 @@
-# .github/workflows/ci.yml
+# .github/workflows/test.yml
 name: CI
 
 permissions:
   contents: read         # repo 내용 접근
-  actions: write         # actions/<…> 메타데이터 접근 권한
 
 on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 jobs:
   lint-build-test:
@@ -24,12 +24,9 @@ jobs:
         with:
           nix_path: nixpkgs=channel:nixos-unstable
 
-      - name: Pre-fetch flake inputs
-        run: nix flake update --recreate-lock-file
-
       - name: Build all outputs
         run: |
           nix build --impure --no-link
 
       - name: Run tests
-        run: nix flake check || echo "일부 테스트가 실패했습니다"
+        run: nix flake check

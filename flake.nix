@@ -33,6 +33,14 @@
         "aarch64-linux"
         "x86_64-linux"
       ];
+
+      # 시스템별 Home Manager 환경을 추상화해서 생성하는 함수
+      mkHomeConfig = system: home-manager.lib.homeManagerConfiguration {
+        pkgs = import nixpkgs { inherit system; };
+        modules = [ home-manager-shared nixpkgs-shared ];
+        extraSpecialArgs = { inherit inputs; };
+      };
+      linuxSystems = ["x86_64-linux" "aarch64-linux"];
     in
     {
       darwinConfigurations.baleen = nix-darwin.lib.darwinSystem {
@@ -61,14 +69,21 @@
         specialArgs = { inherit inputs; hostName = "jito"; };
       };
 
-      nixosConfigurations.linux = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
-        modules = [
-          home-manager.nixosModules.home-manager
-          nixpkgs-shared
-        ];
-        specialArgs = { inherit inputs; };
-      };
+      # nixosConfigurations.linux = nixpkgs.lib.nixosSystem {
+      #   system = "x86_64-linux";
+      #   modules = [
+      #     home-manager.nixosModules.home-manager
+      #     nixpkgs-shared
+      #     ({ config, ... }: {
+      #       fileSystems."/" = {
+      #         device = "/dev/disk/by-label/nixos";
+      #         fsType = "ext4";
+      #       };
+      #       boot.loader.grub.devices = [ "/dev/vda" ];
+      #     })
+      #   ];
+      #   specialArgs = { inherit inputs; };
+      # };
 
       # System-specific default packages
       packages = forAllSystems (system: {
@@ -77,5 +92,7 @@
           then self.darwinConfigurations.baleen.system # 이전 darwin에서 baleen으로 변경
           else nixpkgs.legacyPackages.${system}.hello; # Fallback for non-Darwin systems
       });
+
+      homeConfigurations = nixpkgs.lib.genAttrs linuxSystems mkHomeConfig;
     };
 }
