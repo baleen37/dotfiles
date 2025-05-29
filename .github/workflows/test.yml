@@ -65,5 +65,24 @@ jobs:
             fi
           done < hosts.txt
 
+      - name: Nvim smoke test for all home-manager hosts/archs
+        run: |
+          while read host; do
+            if [ "${{ matrix.kind }}" = "linux" ] || [ "${{ matrix.kind }}" = "darwin" ]; then
+              echo "Testing nvim for home-manager: $host"
+              nix build ".#homeConfigurations.$host.activationPackage"
+              # Try to activate the environment and run nvim --version
+              if [ -f result/activate ]; then
+                . ./result/activate || true
+              fi
+              if command -v nvim >/dev/null 2>&1; then
+                nvim --version
+              else
+                echo "nvim not found in PATH after activation for $host" >&2
+                exit 1
+              fi
+            fi
+          done < hosts.txt
+
       - name: Run tests
         run: nix flake check

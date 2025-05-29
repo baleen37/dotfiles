@@ -49,6 +49,7 @@
             extraSpecialArgs = { inherit inputs; };
           };
       linuxSystems = ["x86_64-linux" "aarch64-linux"];
+      macosSystems = ["aarch64-darwin" "x86_64-darwin"];
     in
     {
       darwinConfigurations.baleen = nix-darwin.lib.darwinSystem {
@@ -103,6 +104,6 @@
           else nixpkgs.legacyPackages.${system}.hello;
       });
 
-      homeConfigurations = nixpkgs.lib.genAttrs linuxSystems mkHomeConfig;
+      homeConfigurations = nixpkgs.lib.genAttrs (linuxSystems ++ macosSystems) mkHomeConfig;
     };
 }
