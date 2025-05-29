@@ -24,12 +24,12 @@
       brave
     ];
     imports = sharedImports ++ [
-      ./programs/raycast
-      ./programs/homerow
-      ./programs/obsidian
-      ./programs/hammerspoon
-      ./programs/karabiner-elements
-      ./programs/syncthing
+      ../../common/modules/user-env/raycast
+      ../../common/modules/user-env/homerow
+      ../../common/modules/user-env/obsidian
+      ../../common/modules/user-env/hammerspoon
+      ../../common/modules/user-env/karabiner-elements
+      ../../common/modules/user-env/syncthing
     ];
     home.file.".gitconfig".source = ../../.gitconfig;
     home.stateVersion = "25.05";
