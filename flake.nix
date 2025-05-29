@@ -95,14 +95,24 @@
       # };
 
       # System-specific default packages
-      packages = forAllSystems (system: {
-        default =
-          if nixpkgs.lib.strings.hasInfix "darwin" system then
-            self.darwinConfigurations.baleen.system
-          else if nixpkgs.lib.strings.hasInfix "linux" system && self ? homeConfigurations && self.homeConfigurations ? ${system}
-          then self.homeConfigurations.${system}.activationPackage or nixpkgs.legacyPackages.${system}.hello
-          else nixpkgs.legacyPackages.${system}.hello;
-      });
+      packages = forAllSystems (system:
+        let
+          pkgs = import nixpkgs {
+            inherit system;
+            config.allowUnfree = true;
+          };
+        in {
+          default =
+            if nixpkgs.lib.strings.hasInfix "darwin" system then
+              self.darwinConfigurations.baleen.system
+            else if nixpkgs.lib.strings.hasInfix "linux" system && self ? homeConfigurations && self.homeConfigurations ? ${system}
+            then self.homeConfigurations.${system}.activationPackage or nixpkgs.legacyPackages.${system}.hello
+            else nixpkgs.legacyPackages.${system}.hello;
+
+          # 커스텀 패키지 노출
+          hammerspoon = pkgs.callPackage ./libraries/nixpkgs/programs/hammerspoon {};
+          homerow = pkgs.callPackage ./libraries/nixpkgs/programs/homerow {};
+        });
 
       homeConfigurations = nixpkgs.lib.genAttrs (linuxSystems ++ macosSystems) mkHomeConfig;
     };

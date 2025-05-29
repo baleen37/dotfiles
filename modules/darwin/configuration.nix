@@ -1,6 +1,8 @@
 { config, pkgs, hostName, ... }: # hostName 추가
 
 {
+  nixpkgs.config.allowUnfree = true;
+
   users.users =
     if hostName == "baleen" then {
       baleen = {
