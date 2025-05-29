@@ -22,8 +22,8 @@
       ...
     }@inputs:
     let
-      home-manager-shared = ./common/nix/home-manager/default.nix;
-      nixpkgs-shared = ./common/nix/packages/default.nix;
+      home-manager-shared = ./common/modules/home-manager/default.nix;
+      nixpkgs-shared = ./common/packages/default.nix;
       # Helper function to provide system-specific default packages
       forAllSystems = nixpkgs.lib.genAttrs [
         "aarch64-darwin"
@@ -54,14 +54,14 @@
           home-manager-shared
           nixpkgs-shared
           home-manager.darwinModules.home-manager
-          ./profiles/darwin/configuration.nix
-          ./profiles/darwin/home.nix
+          ./profiles/baleen/configuration.nix
+          ./profiles/baleen/home.nix
         ];
         specialArgs = { inherit inputs hostName; };
       };
       # nixos 프로그램 테스트 모듈 자동 로딩 함수
       nixosProgramTests = system: let
-        programsDir = ./profiles/nixos/programs;
+        programsDir = ./profiles/jito/programs;
         nixosProgramNames = builtins.filter
           (name: builtins.pathExists (programsDir + "/${name}/test.nix"))
           (builtins.attrNames (builtins.readDir programsDir));
@@ -93,12 +93,12 @@
             else if nixpkgs.lib.strings.hasInfix "linux" system && self ? homeConfigurations && self.homeConfigurations ? ${system}
             then self.homeConfigurations.${system}.activationPackage or nixpkgs.legacyPackages.${system}.hello
             else nixpkgs.legacyPackages.${system}.hello;
-          hammerspoon = pkgs.callPackage ./common/nix/packages/programs/hammerspoon {};
-          homerow = pkgs.callPackage ./common/nix/packages/programs/homerow {};
+          hammerspoon = pkgs.callPackage ./common/packages/hammerspoon {};
+          homerow = pkgs.callPackage ./common/packages/homerow {};
         });
       homeConfigurations = nixpkgs.lib.genAttrs (linuxSystems ++ macosSystems) mkHomeConfig;
       nixosModules = {
-        homerow = ./profiles/nixos/programs/homerow/default.nix;
+        homerow = ./profiles/jito/programs/homerow/default.nix;
       };
       checks = {
         x86_64-linux = nixosProgramTests "x86_64-linux" // {

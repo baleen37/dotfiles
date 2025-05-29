@@ -2,47 +2,44 @@
 
 이 프로젝트는 Nix, Home Manager, nix-darwin을 활용하여 macOS 및 공통 개발 환경을 선언적으로 관리합니다.
 
-## 폴더 구조 (2024 리팩토링)
+## 폴더 구조 (phip1611 스타일)
 
 ```
 dotfiles/
   .github/
   common/
+    modules/
+      home-manager/
+        nvim/
+        tmux/
+        git/
+        ssh/
+        vscode/
+        wezterm/
+        ...
+      nixos/
+        ...
+    packages/
+      homerow/
+      hammerspoon/
+      ...
     config/
       hammerspoon/
-        Spoons/
-        configApplications.lua
-        init.lua
-    nix/
-      packages/
-        default.nix
-        programs/
-      home-manager/
-        default.nix
-        programs/
-    programs/
-      act/
-      git/
-      nvim/
-      ssh/
-      tmux/
-      vscode/
-      wezterm/
+      ...
+    lib/
+      (필요시 Nix 함수/유틸)
   profiles/
-    darwin/
+    baleen/
       home.nix
       configuration.nix
       darwin-application-activation.nix
       programs/
-        hammerspoon/
-        homerow/
         ...
-    nixos/
-      programs/
-        homerow/
-  hosts/
-    baleen/
     jito/
+      home.nix
+      configuration.nix
+      programs/
+        ...
   utils/
     bin/
     setup/
@@ -52,9 +49,12 @@ dotfiles/
   ...
 ```
 
-- `common/`: 공통 Nix 모듈, 패키지, 앱별 설정
-- `profiles/`: OS별(특히 macOS, NixOS) 환경/프로그램 선언
-- `hosts/`: 호스트별(기기별) 오버레이/설정
+- `common/modules/home-manager/`: Home Manager용 공통 모듈(예: nvim, tmux, git 등)
+- `common/modules/nixos/`: NixOS용 공통 모듈(필요시)
+- `common/packages/`: 직접 빌드하는 패키지(homerow, hammerspoon 등)
+- `common/config/`: 앱별/공통 설정파일
+- `common/lib/`: Nix 함수/유틸리티(필요시)
+- `profiles/<host>/`: 각 호스트(혹은 역할별) 환경 선언(home.nix, configuration.nix 등)
 - `utils/`: bin, setup 등 유틸리티/스크립트
 
 ## 설치 및 적용
@@ -67,18 +67,17 @@ dotfiles/
 darwin-rebuild switch --flake .#baleen
 
 # 환경 적용 (NixOS)
-nixos-rebuild switch --flake .#<hostname>
+nixos-rebuild switch --flake .#jito
 
 # 테스트
 nix flake check
 ```
 
 ## 주요 파일/폴더 설명
-- `common/nix/packages/`: 직접 빌드하는 Nix 패키지 (예: Hammerspoon, Homerow)
-- `common/nix/home-manager/`: Home Manager 확장 모듈
+- `common/modules/home-manager/`: Home Manager 공통 모듈
+- `common/packages/`: 직접 빌드하는 Nix 패키지 (예: Hammerspoon, Homerow)
 - `common/config/`: 앱별 설정파일(예: nvim, hammerspoon)
-- `profiles/darwin/`: macOS(darwin) 전용 시스템/유저/프로그램 설정
-- `profiles/nixos/`: NixOS 전용 프로그램 설정
+- `profiles/<host>/`: 호스트별 시스템/유저/프로그램 설정
 - `utils/`: bin, setup 등 유틸리티/스크립트
 
 ## 참고
