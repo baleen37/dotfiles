@@ -57,6 +57,14 @@ jobs:
         run: |
           make test
 
+      - name: Build custom Nix packages (hammerspoon, homerow)
+        run: |
+          make build-custom
+
+      - name: Home Manager dry-run for all hosts
+        run: |
+          make dryrun-home
+
       - name: Nvim smoke test for all home-manager hosts/archs
         run: |
           # 이미 make test에서 통합 테스트를 모두 실행하므로 별도 실행 불필요

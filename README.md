@@ -64,50 +64,27 @@ darwin-rebuild switch --flake .#<host>
 - 실제 시스템에 변경사항을 적용하여 정상 동작하는지 확인합니다.
 - `<host>`는 flake에서 정의한 호스트 이름으로 교체해야 합니다. 예: `darwin-rebuild switch --flake .#my-macbook`
 
-### 3. (선택) CI 테스트
+### 3. 통합 테스트 (로컬 및 CI)
 
-- GitHub Actions에서 아래와 같은 Nix smoke test 및 빌드/체크가 자동으로 실행됩니다:
-  - `nix --version`, `nix flake show` (smoke test)
-  - `nix build --impure --no-link`
-  - `nix flake check`
-  - (macOS) flake에 정의된 모든 `darwinConfigurations.<host>`에 대해 `darwin-rebuild build --flake .#<host>` (설치 시뮬레이션)
-  - (Linux) flake에 정의된 모든 `homeConfigurations.<arch>`에 대해 `nix build .#homeConfigurations.<arch>.activationPackage` (Home Manager 환경 설치 시뮬레이션)
-- 즉, 호스트/아키텍처가 flake에 추가되면 CI가 자동으로 모두 테스트합니다.
-- PR 생성 시 결과를 확인하세요.
-
-### 4. 로컬 테스트 방법
-
-CI에서 수행하는 테스트를 로컬에서도 직접 실행할 수 있습니다. 아래 명령어를 참고하세요.
+아래 명령어 또는 CI에서 자동으로 다음 테스트가 실행됩니다:
+- flake에 정의된 모든 darwin/home-manager 호스트별 빌드 및 nvim smoke test
+- 커스텀 Nix 패키지(hammerspoon, homerow) 빌드
+- Home Manager dry-run
 
 ```sh
-# 1. flake에 정의된 모든 호스트/아키텍처 목록 확인
-nix eval --json '.#darwinConfigurations' | jq -r 'keys[]'  # macOS
-nix eval --json '.#homeConfigurations' | jq -r 'keys[]'    # Linux
-
-# 2. 각 호스트별로 빌드 테스트 (macOS)
-while read host; do
-  echo "Testing darwin host: $host"
-  darwin-rebuild build --flake ".#$host"
-done < hosts.txt
-
-# 3. 각 호스트별로 home-manager 환경 빌드 및 nvim smoke test
-while read host; do
-  echo "Testing nvim for home-manager: $host"
-  nix build ".#homeConfigurations.$host.activationPackage"
-  if [ -f result/activate ]; then
-    . ./result/activate || true
-  fi
-  if command -v nvim >/dev/null 2>&1; then
-    nvim --version
-  else
-    echo "nvim not found in PATH after activation for $host" >&2
-    exit 1
-  fi
-done < hosts.txt
+make test         # 전체 통합 테스트 (아래 모든 항목 포함)
+make build-custom # 커스텀 패키지 빌드만 별도 실행
+make dryrun-home  # home-manager dry-run만 별도 실행
 ```
 
-- 위 명령어는 `.github/workflows/test.yml`의 CI와 동일한 방식으로 동작합니다.
-- 필요에 따라 `hosts.txt` 파일을 직접 생성하거나, 위 명령어에서 바로 파이프라인으로 넘길 수 있습니다.
+#### 통합 테스트 상세 동작
+- `nix flake check`로 flake checks 실행
+- 각 darwin 호스트: `darwin-rebuild build --flake .#<host>`
+- 각 home-manager 호스트: `nix build .#homeConfigurations.<host>.activationPackage` 및 nvim smoke test
+- 커스텀 패키지(hammerspoon, homerow): Nix 빌드
+- 각 home-manager 호스트: `home-manager switch --dry-run` (nix run 기반)
+
+> 위 테스트는 `.github/workflows/test.yml`의 CI에서도 동일하게 자동 실행됩니다. PR 생성 시 결과를 확인하세요.
 
 ## 주요 관리 프로그램
 - Home Manager: 유저별 dotfiles 선언적 관리
