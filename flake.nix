@@ -17,34 +17,31 @@
   # --- Outputs ---
   outputs = { self, nixpkgs, nix-darwin, home-manager, ... }@inputs:
     let
-      # 호스트 정의
+      # 호스트 정의 (직접 인라인)
       hosts = [
-        (import ./hosts/baleen.nix)
-        (import ./hosts/jito.nix)
-        (import ./hosts/my-linux.nix)
+        { host = "baleen"; system = "aarch64-darwin"; extraModules = []; }
+        { host = "jito"; system = "aarch64-darwin"; extraModules = []; }
+        { host = "my-linux"; system = "x86_64-linux"; extraModules = []; }
       ];
 
       # 모듈 경로
-      nixpkgsShared = ./libraries/nixpkgs;
       homeManagerModules = [
-        ./modules/shared/programs/wezterm
-        ./modules/shared/programs/git
-        ./modules/shared/programs/tmux
-        ./modules/shared/programs/nvim
-        ./modules/shared/programs/vscode
-        ./modules/shared/programs/ssh
-        ./modules/shared/programs/act
-        ./libraries/home-manager/programs/hammerspoon
-        ./libraries/home-manager/programs/homerow
+        ./programs/wezterm/default.nix
+        ./programs/git/default.nix
+        ./programs/tmux/default.nix
+        ./programs/nvim/default.nix
+        ./programs/vscode/default.nix
+        ./programs/ssh/default.nix
+        ./programs/act/default.nix
+        ./programs/hammerspoon/default.nix
+        ./programs/homerow/default.nix
       ];
       darwinOnlyModules = [
-        nixpkgsShared
         home-manager.darwinModules.home-manager
         ./modules/darwin/configuration.nix
         ./modules/darwin/home.nix
       ];
       linuxOnlyModules = [
-        nixpkgsShared
         ./modules/shared/home-linux.nix
       ];
 
