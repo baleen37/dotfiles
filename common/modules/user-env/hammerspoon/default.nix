@@ -1,24 +1,31 @@
-{
-  config,
-  lib,
-  pkgs,
-  ...
-}:
+{ config, pkgs, lib, ... }:
 
-{
-  services.hammerspoon = {
-    enable = true;
+let
+  inherit (pkgs.stdenvNoCC.hostPlatform) isDarwin;
+  hammerspoonPkg = pkgs.callPackage ../../../nix/packages/hammerspoon {};
+  filesDir = ./files;
 
-    config = {
-      HSUploadCrashData = 0;
-      MJConfigFile = "${config.xdg.configHome}/hammerspoon/init.lua";
-    };
-  };
+in
+lib.mkIf isDarwin {
+  home.packages = [ hammerspoonPkg ];
 
   xdg.configFile = {
     "hammerspoon" = {
-      source = lib.cleanSource ./files;
+      source = lib.cleanSource filesDir;
       recursive = true;
+    };
+  };
+
+  launchd.agents.hammerspoon = {
+    enable = true;
+    config = {
+      ProgramArguments = [
+        "${config.home.homeDirectory}/Applications/Home Manager Apps/${hammerspoonPkg.sourceRoot}/Contents/MacOS/Hammerspoon"
+      ];
+      KeepAlive = true;
+      ProcessType = "Interactive";
+      StandardOutPath = "${config.xdg.cacheHome}/hammerspoon.log";
+      StandardErrorPath = "${config.xdg.cacheHome}/hammerspoon.log";
     };
   };
 }
