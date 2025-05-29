@@ -1,63 +1,102 @@
 {
   description = "Home Manager configuration of baleen";
 
+  # --- Inputs ---
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     nix-darwin = {
       url = "github:nix-darwin/nix-darwin";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
-  outputs = {
-      self,
-      nixpkgs,
-      nix-darwin,
-      home-manager,
-      ...
-    }@inputs:
+  # --- Outputs ---
+  outputs = { self, nixpkgs, nix-darwin, home-manager, ... }@inputs:
     let
-      homeManagerShared = ./libraries/home-manager;
-      nixpkgsShared = ./libraries/nixpkgs;
-      linuxSystems = ["x86_64-linux" "aarch64-linux"];
-      darwinSystems = [
-        { name = "baleen"; system = "aarch64-darwin"; }
-        { name = "jito";   system = "aarch64-darwin"; } # 필요시 "x86_64-darwin"으로 변경
+      # 호스트 정의
+      hosts = [
+        (import ./hosts/baleen.nix)
+        (import ./hosts/jito.nix)
+        (import ./hosts/my-linux.nix)
       ];
-      darwinModules = [
-        homeManagerShared
+
+      # 모듈 경로
+      nixpkgsShared = ./libraries/nixpkgs;
+      sharedModules = [
+        ./modules/shared/programs/wezterm
+        ./modules/shared/programs/git
+        ./modules/shared/programs/tmux
+        ./modules/shared/programs/nvim
+        ./modules/shared/programs/vscode
+        ./modules/shared/programs/ssh
+        ./modules/shared/programs/act
+      ];
+      darwinOnlyModules = [
         nixpkgsShared
         home-manager.darwinModules.home-manager
         ./modules/darwin/configuration.nix
         ./modules/darwin/home.nix
+        ./libraries/home-manager/programs/hammerspoon
+        ./libraries/home-manager/programs/homerow
+        ./modules/darwin/programs/raycast
+        ./modules/darwin/programs/obsidian
+        ./modules/darwin/programs/karabiner-elements
+        ./modules/darwin/programs/syncthing
       ];
-      forAllSystems = nixpkgs.lib.genAttrs [
-        "aarch64-darwin"
-        "x86_64-darwin"
-        "aarch64-linux"
-        "x86_64-linux"
+      linuxOnlyModules = [
+        nixpkgsShared
+        ./modules/shared/home-linux.nix
       ];
-      mkHomeConfig = system: home-manager.lib.homeManagerConfiguration {
-        pkgs = import nixpkgs { inherit system; };
-        modules = [ homeManagerShared nixpkgsShared ];
-        extraSpecialArgs = { inherit inputs; };
-      };
-      mkDarwinConfig = { name, system }: nix-darwin.lib.darwinSystem {
-        inherit system;
-        modules = darwinModules;
-        specialArgs = { inherit inputs; hostName = name; };
-      };
-    in
-    {
-      darwinConfigurations = nixpkgs.lib.genAttrs (map (x: x.name) darwinSystems)
-        (name: let cfg = builtins.head (builtins.filter (x: x.name == name) darwinSystems); in mkDarwinConfig cfg);
 
-      # System-specific default packages
+      # 시스템별 모듈 조합
+      getModules = system: extraModules:
+        if nixpkgs.lib.strings.hasInfix "darwin" system
+        then darwinOnlyModules ++ sharedModules ++ extraModules
+        else sharedModules ++ linuxOnlyModules ++ extraModules;
+
+      # Home Manager config 생성
+      mkHomeConfig = { system, modules }:
+        home-manager.lib.homeManagerConfiguration {
+          pkgs = import nixpkgs { inherit system; };
+          modules = modules;
+          extraSpecialArgs = { inherit inputs; };
+        };
+
+      # Darwin config 생성
+      mkDarwinConfig = { name, system, modules }:
+        nix-darwin.lib.darwinSystem {
+          inherit system;
+          modules = modules;
+          specialArgs = { inherit inputs; hostName = name; };
+        };
+
+      # 시스템별 attr 생성
+      forAllSystems = nixpkgs.lib.genAttrs [
+        "aarch64-darwin" "x86_64-darwin" "aarch64-linux" "x86_64-linux"
+      ];
+
+      # 호스트 필터링
+      filterHosts = pred: map (h: h.host) (builtins.filter pred hosts);
+      getHostCfg = hostName: hostList:
+        builtins.head (builtins.filter (h: h.host == hostName) hostList);
+
+    in {
+      # macOS용 nix-darwin 설정
+      darwinConfigurations = nixpkgs.lib.genAttrs
+        (filterHosts (h: nixpkgs.lib.strings.hasInfix "darwin" h.system))
+        (hostName:
+          let
+            cfg = getHostCfg hostName hosts;
+            modules = getModules cfg.system cfg.extraModules;
+          in
+            mkDarwinConfig { name = cfg.host; system = cfg.system; modules = modules; }
+        );
+
+      # 시스템별 default 패키지
       packages = forAllSystems (system: {
         default =
           if nixpkgs.lib.strings.hasInfix "darwin" system
@@ -65,6 +104,15 @@
           else nixpkgs.legacyPackages.${system}.hello;
       });
 
-      homeConfigurations = nixpkgs.lib.genAttrs linuxSystems mkHomeConfig;
+      # Linux용 Home Manager 설정
+      homeConfigurations = nixpkgs.lib.genAttrs
+        (filterHosts (h: nixpkgs.lib.strings.hasInfix "linux" h.system))
+        (hostName:
+          let
+            cfg = getHostCfg hostName hosts;
+            modules = getModules cfg.system cfg.extraModules;
+          in
+            mkHomeConfig { system = cfg.system; modules = modules; }
+        );
     };
 }

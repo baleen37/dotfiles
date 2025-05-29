@@ -1,0 +1,59 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Nix 프로젝트 구조 가이드
+
+이 프로젝트는 Nix flakes를 사용하여 macOS(darwin)와 Linux 시스템의 개발 환경 및 사용자 환경을 관리합니다.
+
+## 주요 파일 및 디렉토리
+
+- **[flake.nix](mdc:flake.nix)**
+  - 프로젝트의 진입점입니다.
+  - `inputs`로 nixpkgs, nix-darwin, home-manager를 사용합니다.
+  - `outputs`로 darwinConfigurations(호스트별 macOS 설정), homeConfigurations(Linux용 home-manager 설정), packages(시스템별 패키지)를 정의합니다.
+  - 시스템별로 사용할 모듈 목록(`darwinModules`, `linuxModules`, `sharedModules`)을 조합합니다.
+
+- **[modules/darwin/configuration.nix](mdc:modules/darwin/configuration.nix)**
+  - macOS 시스템 레벨(darwin) 설정을 정의합니다.
+  - 호스트 이름별로 사용자 계정, 트랙패드, Dock, 글로벌 시스템 설정 등을 지정합니다.
+
+- **[modules/darwin/home.nix](mdc:modules/darwin/home.nix)**
+  - macOS 사용자별(home-manager) 설정을 정의합니다.
+  - `commonUserConfig` 함수로 공통 설정을 재사용하며, 호스트별로 사용자 디렉토리, 패키지, import할 모듈 등을 지정합니다.
+
+- **[modules/shared/programs/](mdc:modules/shared/programs)**
+  - macOS와 Linux에서 공통으로 사용하는 프로그램별 Nix 모듈(wezterm, git, tmux, nvim, vscode, ssh, act 등)이 위치합니다.
+
+- **[libraries/home-manager/](mdc:libraries/home-manager)**
+  - home-manager용 공통 모듈(hammerspoon, homerow 등)이 위치합니다.
+  - [default.nix](mdc:libraries/home-manager/default.nix)에서 `sharedModules`로 묶어 관리합니다.
+
+- **[libraries/nixpkgs/](mdc:libraries/nixpkgs)**
+  - nixpkgs 관련 공통 설정을 관리합니다.
+
+- **[modules/darwin/programs/](mdc:modules/darwin/programs)**
+  - macOS(darwin)에서만 사용하는 프로그램별 모듈(raycast, obsidian, karabiner-elements, syncthing 등)이 위치합니다.
+
+## 호스트/시스템 구분
+
+- `flake.nix`의 `darwinSystems` 배열에 macOS 호스트(baleen, jito 등)를 정의합니다.
+- 각 호스트별로 시스템/사용자 설정이 분리되어 적용됩니다.
+- Linux 시스템은 `linuxSystems` 배열로 관리하며, home-manager만 적용됩니다.
+
+## 적용 방법
+
+- macOS:
+  ```
+  nixos-rebuild switch --flake .#<hostname>
+  ```
+- Linux(home-manager):
+  ```
+  home-manager switch --flake .#<username>@<hostname>
+  ```
+
+## 참고
+
+- 각 모듈 디렉토리(예: `modules/shared/programs/`, `modules/darwin/programs/`)에는 프로그램별 Nix 모듈이 존재하며, 필요에 따라 flake.nix에서 import하여 사용합니다.
+- Spoons 등 Hammerspoon 관련 파일은 `modules/darwin/programs/hammerspoon/files/Spoons/` 및 `config/hammerspoon/Spoons/`에 위치합니다.
