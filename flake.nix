@@ -121,24 +121,35 @@
         homerow = ./modules/nixos/programs/homerow/default.nix;
       };
 
-      nixosTests = forAllSystems (system: {
-        homerow = (import "${nixpkgs}/nixos/tests/make-test-python.nix") {
-          name = "homerow-basic";
-          nodes.machine = { pkgs, ... }: {
-            imports = [ self.nixosModules.homerow ];
-            services.homerow.enable = true;
-          };
-          testScript = ''
-            machine.start()
-            machine.wait_for_unit("multi-user.target")
-            machine.succeed("pgrep Homerow")
-          '';
-        };
-      });
-
       checks = {
-        x86_64-linux = { homerow = self.nixosTests.x86_64-linux.homerow.driver; };
-        aarch64-linux = { homerow = self.nixosTests.aarch64-linux.homerow.driver; };
+        x86_64-linux = {
+          homerow = (import "${nixpkgs}/nixos/tests/make-test-python.nix") {
+            name = "homerow-basic";
+            nodes.machine = { pkgs, ... }: {
+              imports = [ self.nixosModules.homerow ];
+              services.homerow.enable = true;
+            };
+            testScript = ''
+              machine.start()
+              machine.wait_for_unit("multi-user.target")
+              machine.succeed("pgrep Homerow")
+            '';
+          }.driver;
+        };
+        aarch64-linux = {
+          homerow = (import "${nixpkgs}/nixos/tests/make-test-python.nix") {
+            name = "homerow-basic";
+            nodes.machine = { pkgs, ... }: {
+              imports = [ self.nixosModules.homerow ];
+              services.homerow.enable = true;
+            };
+            testScript = ''
+              machine.start()
+              machine.wait_for_unit("multi-user.target")
+              machine.succeed("pgrep Homerow")
+            '';
+          }.driver;
+        };
       };
     };
 }
