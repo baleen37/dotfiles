@@ -14,17 +14,10 @@
     ../../common/modules/user-env/cli/act
     ../../common/modules/user-env/cli/ssh
     ../../common/modules/user-env/cli/1password
-    ../../common/modules/user-env/gui/raycast
-    ../../common/modules/user-env/gui/homerow
-    ../../common/modules/user-env/gui/obsidian
-    ../../common/modules/user-env/gui/hammerspoon
-    ../../common/modules/user-env/gui/karabiner-elements
-    ../../common/modules/user-env/gui/syncthing
-    ../../common/modules/user-env/gui/vscode
   ];
 
-  home.username = "baleen";
-  home.homeDirectory = "/Users/baleen";
+  home.username = "jito";
+  home.homeDirectory = "/Users/jito";
   home.packages = with pkgs; [
     git
     fzf
