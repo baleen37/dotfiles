@@ -3,7 +3,7 @@
 with lib;
 
 let
-  cfg = config.homebrew;
+  # Removed cfg = config.homebrew;
 in {
   config = mkIf pkgs.stdenv.isDarwin {
     home.activation = {

@@ -4,14 +4,6 @@
 # Add user's bin directory and system paths
 export PATH="$HOME/bin:/usr/local/bin:$PATH"
 
-# Homebrew (for Apple Silicon)
-if [ -x "/opt/homebrew/bin/brew" ]; then
-  eval "$(/opt/homebrew/bin/brew shellenv)"
-fi
-
-# Alias for using Homebrew under x86_64 architecture (if needed)
-alias axbrew='arch -x86_64 /usr/local/homebrew/bin/brew'
-
 # ============================================
 # Oh My Zsh Configuration
 # ============================================
@@ -36,17 +28,6 @@ for file in ~/.{aliases,functions}; do
     source "$file"
   fi
 done
-
-# ============================================
-# nvm (Node Version Manager) Setup
-# ============================================
-export NVM_DIR="$HOME/.nvm"
-if [ -s "/opt/homebrew/opt/nvm/nvm.sh" ]; then
-  . "/opt/homebrew/opt/nvm/nvm.sh"  # Load nvm
-fi
-if [ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ]; then
-  . "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"  # Load nvm bash completion
-fi
 
 # ============================================
 # fzf (Fuzzy Finder) Setup
