@@ -35,11 +35,19 @@
       ];
 
       # 시스템별 Home Manager 환경을 추상화해서 생성하는 함수
-      mkHomeConfig = system: home-manager.lib.homeManagerConfiguration {
-        pkgs = import nixpkgs { inherit system; };
-        modules = [ home-manager-shared nixpkgs-shared ];
-        extraSpecialArgs = { inherit inputs; };
-      };
+      mkHomeConfig = system:
+        if nixpkgs.lib.strings.hasInfix "linux" system then
+          home-manager.lib.homeManagerConfiguration {
+            pkgs = import nixpkgs { inherit system; };
+            modules = [ ./modules/shared/home-linux.nix nixpkgs-shared ];
+            extraSpecialArgs = { inherit inputs; };
+          }
+        else
+          home-manager.lib.homeManagerConfiguration {
+            pkgs = import nixpkgs { inherit system; };
+            modules = [ home-manager-shared nixpkgs-shared { home.stateVersion = "25.05"; } ];
+            extraSpecialArgs = { inherit inputs; };
+          };
       linuxSystems = ["x86_64-linux" "aarch64-linux"];
     in
     {
@@ -88,9 +96,11 @@
       # System-specific default packages
       packages = forAllSystems (system: {
         default =
-          if nixpkgs.lib.strings.hasInfix "darwin" system
-          then self.darwinConfigurations.baleen.system # 이전 darwin에서 baleen으로 변경
-          else nixpkgs.legacyPackages.${system}.hello; # Fallback for non-Darwin systems
+          if nixpkgs.lib.strings.hasInfix "darwin" system then
+            self.darwinConfigurations.baleen.system
+          else if nixpkgs.lib.strings.hasInfix "linux" system && self ? homeConfigurations && self.homeConfigurations ? ${system}
+          then self.homeConfigurations.${system}.activationPackage or nixpkgs.legacyPackages.${system}.hello
+          else nixpkgs.legacyPackages.${system}.hello;
       });
 
       homeConfigurations = nixpkgs.lib.genAttrs linuxSystems mkHomeConfig;
