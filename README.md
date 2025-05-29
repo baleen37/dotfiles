@@ -43,6 +43,29 @@
 - 적용할 호스트명(`baleen` 또는 `jito`)을 입력
 - flake 기반 환경 빌드 및 적용 자동화
 
+## 테스트 실행 방법
+
+Nix 관련 파일(예: flake.nix, 모듈, 패키지 등)을 수정한 후에는 반드시 아래 테스트를 수행해야 합니다.
+
+### 1. Nix flake 테스트
+
+```sh
+nix flake check
+```
+- 전체 flake 구성이 정상적으로 동작하는지 확인합니다.
+
+### 2. macOS 환경 적용 테스트
+
+```sh
+darwin-rebuild switch --flake .#<host>
+```
+- 실제 시스템에 변경사항을 적용하여 정상 동작하는지 확인합니다.
+- `<host>`는 flake에서 정의한 호스트 이름으로 교체해야 합니다. 예: `darwin-rebuild switch --flake .#my-macbook`
+
+### 3. (선택) CI 테스트
+
+- GitHub Actions 등 CI 환경에서 Nix 관련 테스트가 자동으로 실행되는 경우, PR 생성 시 결과를 확인합니다.
+
 ## 주요 관리 프로그램
 - Home Manager: 유저별 dotfiles 선언적 관리
 - nix-darwin: macOS 시스템 설정 선언적 관리
