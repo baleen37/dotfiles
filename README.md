@@ -71,8 +71,9 @@ Nix 관련 파일(예: flake.nix, 모듈, 패키지 등)을 수정한 후에는 
 ```sh
 make verify-all
 ```
-- `nix flake check` + 모든 호스트별 빌드, nvim smoke test, 커스텀 패키지 빌드, home-manager dry-run, NixOS VM 테스트까지 포함
-- CI와 동일한 수준의 검증을 로컬에서 한 번에 수행할 수 있습니다.
+- `nix flake check` + 모든 호스트별 빌드, nvim smoke test, 커스텀 패키지 빌드(예: hammerspoon, homerow), home-manager dry-run, NixOS VM 테스트까지 포함
+- flake.nix의 checks에는 각 시스템별로 패키지(hammerspoon, homerow) 빌드 성공 여부도 자동 검증됩니다.
+- CI(GitHub Actions)에서도 동일하게 `make build-test`, `make e2e-test`, `nix flake check`가 자동 실행되어, 모든 환경/패키지/테스트가 통합적으로 검증됩니다.
 
 ### 2. NixOS VM 테스트 (로컬/CI 공통)
 

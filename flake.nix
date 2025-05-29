@@ -99,8 +99,22 @@
         homerow = ./modules/nixos/programs/homerow/default.nix;
       };
       checks = {
-        x86_64-linux = { homerow = mkHomerowTest "x86_64-linux"; };
-        aarch64-linux = { homerow = mkHomerowTest "aarch64-linux"; };
+        x86_64-linux = {
+          homerow = mkHomerowTest "x86_64-linux";
+          build-homerow = self.packages.x86_64-linux.homerow;
+        };
+        aarch64-linux = {
+          homerow = mkHomerowTest "aarch64-linux";
+          build-homerow = self.packages.aarch64-linux.homerow;
+        };
+        aarch64-darwin = {
+          build-homerow = self.packages.aarch64-darwin.homerow;
+          build-hammerspoon = self.packages.aarch64-darwin.hammerspoon;
+        };
+        x86_64-darwin = {
+          build-homerow = self.packages.x86_64-darwin.homerow;
+          build-hammerspoon = self.packages.x86_64-darwin.hammerspoon;
+        };
       };
     };
 }
