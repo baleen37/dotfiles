@@ -9,7 +9,7 @@ in
     enable = lib.mkEnableOption "Homerow background service";
     package = lib.mkOption {
       type = lib.types.package;
-      default = pkgs.callPackage ../../../../nix/packages/homerow {};
+      default = pkgs.callPackage ../../../nix/packages/homerow {};
       description = "Homerow package to use";
     };
     config = { };
