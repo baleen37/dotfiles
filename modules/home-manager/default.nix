@@ -13,10 +13,10 @@ in
 {
   home-manager.sharedModules =
     (lib.optionals isDarwin [
-      ./programs/hammerspoon
+      ./hammerspoon
       # macOS 전용 모듈은 여기에 추가
     ]) ++ [
-      ./programs/homerow
+      ./homerow
       # 공통 모듈은 여기에 추가
     ];
 }
