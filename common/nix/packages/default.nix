@@ -11,8 +11,8 @@ in
 {
   nixpkgs.overlays = [
     (final: prev: {
-      hammerspoon = final.callPackage ./programs/hammerspoon {};
-      homerow = final.callPackage ./programs/homerow {};
+      hammerspoon = final.callPackage ./hammerspoon {};
+      homerow = final.callPackage ./homerow {};
       # 필요시 다른 패키지를 여기에 추가
     })
   ];
