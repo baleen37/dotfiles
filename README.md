@@ -38,6 +38,8 @@
 
 ```bash
 ./install.sh
+# 또는
+make install
 ```
 - Nix가 없으면 자동 설치
 - 적용할 호스트명(`baleen` 또는 `jito`)을 입력
@@ -72,6 +74,40 @@ darwin-rebuild switch --flake .#<host>
   - (Linux) flake에 정의된 모든 `homeConfigurations.<arch>`에 대해 `nix build .#homeConfigurations.<arch>.activationPackage` (Home Manager 환경 설치 시뮬레이션)
 - 즉, 호스트/아키텍처가 flake에 추가되면 CI가 자동으로 모두 테스트합니다.
 - PR 생성 시 결과를 확인하세요.
+
+### 4. 로컬 테스트 방법
+
+CI에서 수행하는 테스트를 로컬에서도 직접 실행할 수 있습니다. 아래 명령어를 참고하세요.
+
+```sh
+# 1. flake에 정의된 모든 호스트/아키텍처 목록 확인
+nix eval --json '.#darwinConfigurations' | jq -r 'keys[]'  # macOS
+nix eval --json '.#homeConfigurations' | jq -r 'keys[]'    # Linux
+
+# 2. 각 호스트별로 빌드 테스트 (macOS)
+while read host; do
+  echo "Testing darwin host: $host"
+  darwin-rebuild build --flake ".#$host"
+done < hosts.txt
+
+# 3. 각 호스트별로 home-manager 환경 빌드 및 nvim smoke test
+while read host; do
+  echo "Testing nvim for home-manager: $host"
+  nix build ".#homeConfigurations.$host.activationPackage"
+  if [ -f result/activate ]; then
+    . ./result/activate || true
+  fi
+  if command -v nvim >/dev/null 2>&1; then
+    nvim --version
+  else
+    echo "nvim not found in PATH after activation for $host" >&2
+    exit 1
+  fi
+done < hosts.txt
+```
+
+- 위 명령어는 `.github/workflows/test.yml`의 CI와 동일한 방식으로 동작합니다.
+- 필요에 따라 `hosts.txt` 파일을 직접 생성하거나, 위 명령어에서 바로 파이프라인으로 넘길 수 있습니다.
 
 ## 주요 관리 프로그램
 - Home Manager: 유저별 dotfiles 선언적 관리
