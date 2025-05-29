@@ -49,19 +49,27 @@ make install
 
 Nix 관련 파일(예: flake.nix, 모듈, 패키지 등)을 수정한 후에는 반드시 아래 테스트를 수행해야 합니다.
 
-### 1. 전체 통합 검증 (verify-all)
+### 1. 전체 통합 검증 (로컬)
 
 모든 주요 테스트를 한 번에 실행하려면 아래 명령어를 사용하세요:
 
 ```sh
 make verify-all
 ```
-- `nix flake check` + 모든 호스트별 빌드, nvim smoke test, 커스텀 패키지 빌드, home-manager dry-run, NixOS 테스트(nixosTests)까지 포함
+- `nix flake check` + 모든 호스트별 빌드, nvim smoke test, 커스텀 패키지 빌드, home-manager dry-run, NixOS VM 테스트까지 포함
 - CI와 동일한 수준의 검증을 로컬에서 한 번에 수행할 수 있습니다.
 
-> 더 이상 `make test`, `make build-custom`, `make dryrun-home` 등 개별 테스트 타겟은 제공하지 않으며, `make verify-all`만 사용하면 됩니다.
+### 2. NixOS VM 테스트 (로컬/CI 공통)
 
-### 2. macOS 환경 적용 테스트
+flake 기반 NixOS VM 테스트(homerow 등)는 아래 명령어로 직접 실행할 수 있습니다:
+
+```sh
+nix flake check
+```
+- `flake.nix`의 checks에 등록된 모든 VM 테스트가 실행됩니다.
+- homerow VM 테스트 정의는 `libraries/nixpkgs/programs/homerow/test.nix`에 선언되어 있습니다.
+
+### 3. macOS 환경 적용 테스트
 
 ```sh
 darwin-rebuild switch --flake .#<host>
@@ -69,12 +77,16 @@ darwin-rebuild switch --flake .#<host>
 - 실제 시스템에 변경사항을 적용하여 정상 동작하는지 확인합니다.
 - `<host>`는 flake에서 정의한 호스트 이름으로 교체해야 합니다. 예: `darwin-rebuild switch --flake .#my-macbook`
 
-### 3. 설치
+### 4. 설치
 
 ```sh
 make install
 ```
 - Nix 및 환경 설치 스크립트 실행
+
+## CI(GitHub Actions) 테스트
+- PR, main 브랜치 push 시 자동으로 `nix flake check`를 실행하여 모든 VM 테스트 및 환경 검증을 수행합니다.
+- 별도의 개별 NixOS 테스트 스크립트는 사용하지 않습니다.
 
 ## 주요 관리 프로그램
 - Home Manager: 유저별 dotfiles 선언적 관리

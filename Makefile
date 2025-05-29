@@ -1,10 +1,9 @@
 # Nix flake and system test Makefile
 
-.PHONY: verify-all darwin-rebuild install
+.PHONY: verify-all darwin-rebuild install build-test e2e-test
 
-# 전체 통합 검증 (flake check + 모든 테스트)
-verify-all:
-	nix flake check
+# 빌드/스모크/드라이런 등 사전 검증 (build-test)
+build-test:
 	# macOS 호스트별 빌드 테스트 (존재할 때만)
 	@if nix flake show --json | jq -r '.outputs.darwinConfigurations // {} | keys[]' | grep . >/dev/null; then \
 		nix flake show --json | jq -r '.outputs.darwinConfigurations // {} | keys[]' | while read host; do \
@@ -37,13 +36,6 @@ verify-all:
 		echo "[custom] Building package: $$pkg"; \
 		nix build .#packages.aarch64-darwin.$$pkg || nix build .#packages.x86_64-linux.$$pkg || true; \
 	done
-	# NixOS tests
-	for system in aarch64-linux x86_64-linux; do \
-		for test in homerow; do \
-			echo "[nixosTests] Running test: $$test on $$system"; \
-			nix build .#nixosTests.$$system.$$test || exit 1; \
-		done \
-	done
 	# Home Manager dry-run
 	@if nix flake show --json | jq -r '.outputs.homeConfigurations // {} | keys[]' | grep . >/dev/null; then \
 		nix flake show --json | jq -r '.outputs.homeConfigurations // {} | keys[]' | while read host; do \
@@ -53,6 +45,13 @@ verify-all:
 	else \
 		echo "[home-manager] No hosts found. Skipping home-manager dry-run."; \
 	fi
+
+# NixOS VM 기반 e2e 테스트만 별도로 실행
+e2e-test:
+	nix flake check
+
+# 전체 통합 검증 (build-test + e2e-test)
+verify-all: build-test e2e-test
 
 # macOS 환경에 실제 적용 (baleen 호스트)
 darwin-rebuild:

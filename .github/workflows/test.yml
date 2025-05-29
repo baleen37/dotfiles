@@ -30,10 +30,12 @@ jobs:
         with:
           nix_path: nixpkgs=channel:nixos-unstable
 
-      - name: Run all Nix/flake/home-manager tests (verify-all)
+      - name: Run build-test (빌드/스모크/드라이런)
         run: |
-          make verify-all
-      - name: Run NixOS tests (fail on error)
+          make build-test
+      - name: Run e2e-test (NixOS VM 기반 end-to-end)
         run: |
-          nix build .#nixosTests.aarch64-linux.homerow
-          nix build .#nixosTests.x86_64-linux.homerow
+          make e2e-test
+      - name: Run Nix flake checks (NixOS VM test 포함)
+        run: |
+          nix flake check
