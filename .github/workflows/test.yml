@@ -30,44 +30,6 @@ jobs:
         with:
           nix_path: nixpkgs=channel:nixos-unstable
 
-      - name: Nix smoke test
+      - name: Run all Nix/flake/home-manager tests (verify-all)
         run: |
-          nix --version
-          nix flake show
-
-      - name: Build all outputs
-        run: |
-          nix build --impure --no-link
-
-      - name: Run nvim (smoke test)
-        run: |
-          ./result/bin/nvim --version
-
-      - name: Query flake hosts/archs
-        id: flake-hosts
-        run: |
-          if [ "${{ matrix.kind }}" = "darwin" ]; then
-            nix eval --json '.#darwinConfigurations' | jq -r 'keys[]' > hosts.txt
-          else
-            nix eval --json '.#homeConfigurations' | jq -r 'keys[]' > hosts.txt
-          fi
-          cat hosts.txt
-
-      - name: Dry-run build for all hosts/archs
-        run: |
-          make test
-
-      - name: Build custom Nix packages (hammerspoon, homerow)
-        run: |
-          make build-custom
-
-      - name: Home Manager dry-run for all hosts
-        run: |
-          make dryrun-home
-
-      - name: Nvim smoke test for all home-manager hosts/archs
-        run: |
-          # 이미 make test에서 통합 테스트를 모두 실행하므로 별도 실행 불필요
-
-      - name: Run tests
-        run: nix flake check
+          make verify-all

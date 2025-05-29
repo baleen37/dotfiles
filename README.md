@@ -49,12 +49,17 @@ make install
 
 Nix 관련 파일(예: flake.nix, 모듈, 패키지 등)을 수정한 후에는 반드시 아래 테스트를 수행해야 합니다.
 
-### 1. Nix flake 테스트
+### 1. 전체 통합 검증 (verify-all)
+
+모든 주요 테스트를 한 번에 실행하려면 아래 명령어를 사용하세요:
 
 ```sh
-nix flake check
+make verify-all
 ```
-- 전체 flake 구성이 정상적으로 동작하는지 확인합니다.
+- `nix flake check` + 모든 호스트별 빌드, nvim smoke test, 커스텀 패키지 빌드, home-manager dry-run까지 포함
+- CI와 동일한 수준의 검증을 로컬에서 한 번에 수행할 수 있습니다.
+
+> 더 이상 `make test`, `make build-custom`, `make dryrun-home` 등 개별 테스트 타겟은 제공하지 않으며, `make verify-all`만 사용하면 됩니다.
 
 ### 2. macOS 환경 적용 테스트
 
@@ -64,27 +69,12 @@ darwin-rebuild switch --flake .#<host>
 - 실제 시스템에 변경사항을 적용하여 정상 동작하는지 확인합니다.
 - `<host>`는 flake에서 정의한 호스트 이름으로 교체해야 합니다. 예: `darwin-rebuild switch --flake .#my-macbook`
 
-### 3. 통합 테스트 (로컬 및 CI)
-
-아래 명령어 또는 CI에서 자동으로 다음 테스트가 실행됩니다:
-- flake에 정의된 모든 darwin/home-manager 호스트별 빌드 및 nvim smoke test
-- 커스텀 Nix 패키지(hammerspoon, homerow) 빌드
-- Home Manager dry-run
+### 3. 설치
 
 ```sh
-make test         # 전체 통합 테스트 (아래 모든 항목 포함)
-make build-custom # 커스텀 패키지 빌드만 별도 실행
-make dryrun-home  # home-manager dry-run만 별도 실행
+make install
 ```
-
-#### 통합 테스트 상세 동작
-- `nix flake check`로 flake checks 실행
-- 각 darwin 호스트: `darwin-rebuild build --flake .#<host>`
-- 각 home-manager 호스트: `nix build .#homeConfigurations.<host>.activationPackage` 및 nvim smoke test
-- 커스텀 패키지(hammerspoon, homerow): Nix 빌드
-- 각 home-manager 호스트: `home-manager switch --dry-run` (nix run 기반)
-
-> 위 테스트는 `.github/workflows/test.yml`의 CI에서도 동일하게 자동 실행됩니다. PR 생성 시 결과를 확인하세요.
+- Nix 및 환경 설치 스크립트 실행
 
 ## 주요 관리 프로그램
 - Home Manager: 유저별 dotfiles 선언적 관리
