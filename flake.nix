@@ -22,8 +22,8 @@
       ...
     }@inputs:
     let
-      home-manager-shared = ./libraries/home-manager;
-      nixpkgs-shared = ./libraries/nixpkgs;
+      home-manager-shared = ./common/nix/home-manager/default.nix;
+      nixpkgs-shared = ./common/nix/packages/default.nix;
       # Helper function to provide system-specific default packages
       forAllSystems = nixpkgs.lib.genAttrs [
         "aarch64-darwin"
@@ -36,7 +36,7 @@
         if nixpkgs.lib.strings.hasInfix "linux" system then
           home-manager.lib.homeManagerConfiguration {
             pkgs = import nixpkgs { inherit system; };
-            modules = [ ./modules/shared/home-linux.nix nixpkgs-shared ];
+            modules = [ ./common/home-linux.nix nixpkgs-shared ];
             extraSpecialArgs = { inherit inputs; };
           }
         else
@@ -54,14 +54,14 @@
           home-manager-shared
           nixpkgs-shared
           home-manager.darwinModules.home-manager
-          ./modules/darwin/configuration.nix
-          ./modules/darwin/home.nix
+          ./profiles/darwin/configuration.nix
+          ./profiles/darwin/home.nix
         ];
         specialArgs = { inherit inputs hostName; };
       };
       # nixos 프로그램 테스트 모듈 자동 로딩 함수
       nixosProgramTests = system: let
-        programsDir = ./modules/nixos/programs;
+        programsDir = ./profiles/nixos/programs;
         nixosProgramNames = builtins.filter
           (name: builtins.pathExists (programsDir + "/${name}/test.nix"))
           (builtins.attrNames (builtins.readDir programsDir));
@@ -93,12 +93,12 @@
             else if nixpkgs.lib.strings.hasInfix "linux" system && self ? homeConfigurations && self.homeConfigurations ? ${system}
             then self.homeConfigurations.${system}.activationPackage or nixpkgs.legacyPackages.${system}.hello
             else nixpkgs.legacyPackages.${system}.hello;
-          hammerspoon = pkgs.callPackage ./libraries/nixpkgs/programs/hammerspoon {};
-          homerow = pkgs.callPackage ./libraries/nixpkgs/programs/homerow {};
+          hammerspoon = pkgs.callPackage ./common/nix/packages/programs/hammerspoon {};
+          homerow = pkgs.callPackage ./common/nix/packages/programs/homerow {};
         });
       homeConfigurations = nixpkgs.lib.genAttrs (linuxSystems ++ macosSystems) mkHomeConfig;
       nixosModules = {
-        homerow = ./modules/nixos/programs/homerow/default.nix;
+        homerow = ./profiles/nixos/programs/homerow/default.nix;
       };
       checks = {
         x86_64-linux = nixosProgramTests "x86_64-linux" // {
