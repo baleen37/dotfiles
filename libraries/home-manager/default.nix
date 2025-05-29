@@ -12,12 +12,8 @@ let
 in
 {
   home-manager.sharedModules = [
-    # local programs (local)
     ./programs/hammerspoon
     ./programs/homerow
-
-    # os systems
-    # (lib.mkIf isDarwin ./systems/darwin)
-    # (lib.mkIf isLinux ./systems/linux)
+    # 필요시 다른 모듈을 여기에 추가
   ];
 }
