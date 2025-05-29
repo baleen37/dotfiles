@@ -83,7 +83,7 @@ flake 기반 NixOS VM 테스트(homerow 등)는 아래 명령어로 직접 실�
 nix flake check
 ```
 - `flake.nix`의 checks에 등록된 모든 VM 테스트가 실행됩니다.
-- homerow VM 테스트 정의는 `libraries/nixpkgs/programs/homerow/test.nix`에 선언되어 있습니다.
+- 각 프로그램별 NixOS 테스트는 `modules/<os>/programs/<program>/test.nix`에 위치합니다. (예: `modules/nixos/programs/homerow/test.nix`)
 
 ### 3. macOS 환경 적용 테스트
 
@@ -114,6 +114,6 @@ make install
 - 새로운 프로그램/설정 추가는 `modules/` 또는 `libraries/`에 Nix로 선언하면 됩니다.
 - macOS 외 Linux도 공통 모듈(`modules/shared/`)을 통해 확장 가능합니다.
 
-```bash
-./install.sh
-```
+## Nix flake outputs
+- 주요 outputs: darwinConfigurations, homeConfigurations, packages, checks, nixosModules
+- NixOS 테스트는 checks.<system>.homerow로 노출됨 (nixosTests output은 사용하지 않음)

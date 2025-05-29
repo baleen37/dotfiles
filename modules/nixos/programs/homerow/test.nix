@@ -1,4 +1,4 @@
-{
+nixpkgs: nixpkgs.lib.nixosTest {
   name = "homerow-basic";
   nodes.machine = { pkgs, ... }: {
     services.homerow.enable = true;
@@ -9,3 +9,4 @@
     machine.succeed("pgrep Homerow")
   '';
 }
+

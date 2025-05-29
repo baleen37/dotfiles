@@ -59,19 +59,6 @@
         ];
         specialArgs = { inherit inputs hostName; };
       };
-      # homerow 테스트 중복 제거 함수
-      mkHomerowTest = system: (import "${nixpkgs}/nixos/tests/make-test-python.nix") {
-        name = "homerow-basic";
-        nodes.machine = { pkgs, ... }: {
-          imports = [ self.nixosModules.homerow ];
-          services.homerow.enable = true;
-        };
-        testScript = ''
-          machine.start()
-          machine.wait_for_unit("multi-user.target")
-          machine.succeed("pgrep Homerow")
-        '';
-      }.driver;
     in
     {
       darwinConfigurations = {
@@ -99,14 +86,40 @@
         homerow = ./modules/nixos/programs/homerow/default.nix;
       };
       checks = {
-        x86_64-linux = {
-          homerow = mkHomerowTest "x86_64-linux";
-          build-homerow = self.packages.x86_64-linux.homerow;
-        };
-        aarch64-linux = {
-          homerow = mkHomerowTest "aarch64-linux";
-          build-homerow = self.packages.aarch64-linux.homerow;
-        };
+        x86_64-linux =
+          let
+            nixosProgramNames = builtins.filter
+              (name: builtins.pathExists (./modules/nixos/programs + "/${name}/test.nix"))
+              (builtins.attrNames (builtins.readDir ./modules/nixos/programs));
+            nixosProgramTests = builtins.listToAttrs (
+              map
+                (name: {
+                  name = name;
+                  value = import (./modules/nixos/programs + "/${name}/test.nix") nixpkgs;
+                })
+                nixosProgramNames
+            );
+          in
+            nixosProgramTests // {
+              build-homerow = self.packages.x86_64-linux.homerow;
+            };
+        aarch64-linux =
+          let
+            nixosProgramNames = builtins.filter
+              (name: builtins.pathExists (./modules/nixos/programs + "/${name}/test.nix"))
+              (builtins.attrNames (builtins.readDir ./modules/nixos/programs));
+            nixosProgramTests = builtins.listToAttrs (
+              map
+                (name: {
+                  name = name;
+                  value = import (./modules/nixos/programs + "/${name}/test.nix") nixpkgs;
+                })
+                nixosProgramNames
+            );
+          in
+            nixosProgramTests // {
+              build-homerow = self.packages.aarch64-linux.homerow;
+            };
         aarch64-darwin = {
           build-homerow = self.packages.aarch64-darwin.homerow;
           build-hammerspoon = self.packages.aarch64-darwin.hammerspoon;
