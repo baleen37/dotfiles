@@ -13,8 +13,8 @@ in
 {
   home-manager.sharedModules = [
     # local programs (local)
-    ./modules/darwin/programs/hammerspoon
-    ./modules/darwin/programs/homerow
+    ./programs/hammerspoon
+    ./programs/homerow
 
     # os systems
     # (lib.mkIf isDarwin ./systems/darwin)

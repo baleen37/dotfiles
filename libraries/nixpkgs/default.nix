@@ -17,8 +17,8 @@ in
       # clop = final.callPackage ./modules/darwin/programs/clop { };
       # deskpad = final.callPackage ./modules/darwin/programs/deskpad { };
       # git-spr = final.callPackage ./modules/darwin/programs/git-spr { };
-      hammerspoon = final.callPackage ./modules/darwin/programs/hammerspoon { };
-      homerow = final.callPackage ./modules/darwin/programs/homerow { };
+      hammerspoon = final.callPackage ./programs/hammerspoon { };
+      homerow = final.callPackage ./programs/homerow { };
       # nix-activate = final.callPackage ./modules/darwin/programs/nix-activate { };
       # orbstack = final.callPackage ./modules/darwin/programs/orbstack { };
       # pragmatapro = final.callPackage ./modules/darwin/programs/pragmatapro { };
