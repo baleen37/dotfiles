@@ -8,7 +8,7 @@ in
   options.services.homerow = {
     enable = lib.mkEnableOption "Homerow background service";
     package = lib.mkOption {
-      type = types.package;
+      type = lib.types.package;
       default = pkgs.callPackage ../../../../nix/packages/homerow {};
       description = "Homerow package to use";
     };
