@@ -19,13 +19,13 @@ in
     config = {
       HSUploadCrashData = lib.mkOption {
         type = lib.types.int;
-        default = 1;
+        default = 0;
         description = "Send crash data (required restart)";
       };
 
       MJConfigFile = lib.mkOption {
         type = lib.types.str;
-        default = "~/.hammerspoon/init.lua";
+        default = "${config.xdg.configHome}/hammerspoon/init.lua";
         description = "Config file";
       };
 
@@ -88,4 +88,11 @@ in
       };
     })
   ];
+
+  xdg.configFile = {
+    "hammerspoon" = {
+      source = lib.cleanSource ./files;
+      recursive = true;
+    };
+  };
 }

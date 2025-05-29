@@ -26,7 +26,7 @@
 
       # 모듈 경로
       nixpkgsShared = ./libraries/nixpkgs;
-      sharedModules = [
+      homeManagerModules = [
         ./modules/shared/programs/wezterm
         ./modules/shared/programs/git
         ./modules/shared/programs/tmux
@@ -34,18 +34,14 @@
         ./modules/shared/programs/vscode
         ./modules/shared/programs/ssh
         ./modules/shared/programs/act
+        ./libraries/home-manager/programs/hammerspoon
+        ./libraries/home-manager/programs/homerow
       ];
       darwinOnlyModules = [
         nixpkgsShared
         home-manager.darwinModules.home-manager
         ./modules/darwin/configuration.nix
         ./modules/darwin/home.nix
-        ./libraries/home-manager/programs/hammerspoon
-        ./libraries/home-manager/programs/homerow
-        ./modules/darwin/programs/raycast
-        ./modules/darwin/programs/obsidian
-        ./modules/darwin/programs/karabiner-elements
-        ./modules/darwin/programs/syncthing
       ];
       linuxOnlyModules = [
         nixpkgsShared
@@ -55,8 +51,8 @@
       # 시스템별 모듈 조합
       getModules = system: extraModules:
         if nixpkgs.lib.strings.hasInfix "darwin" system
-        then darwinOnlyModules ++ sharedModules ++ extraModules
-        else sharedModules ++ linuxOnlyModules ++ extraModules;
+        then darwinOnlyModules ++ extraModules
+        else linuxOnlyModules ++ extraModules;
 
       # Home Manager config 생성
       mkHomeConfig = { system, modules }:
@@ -110,7 +106,7 @@
         (hostName:
           let
             cfg = getHostCfg hostName hosts;
-            modules = getModules cfg.system cfg.extraModules;
+            modules = homeManagerModules ++ linuxOnlyModules ++ cfg.extraModules;
           in
             mkHomeConfig { system = cfg.system; modules = modules; }
         );

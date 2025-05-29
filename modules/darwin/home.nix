@@ -25,12 +25,6 @@
       ../shared/programs/vscode
       ../shared/programs/ssh
       ../shared/programs/act
-      ./programs/raycast
-      ./programs/homerow
-      ./programs/obsidian
-      ./programs/hammerspoon
-      ./programs/karabiner-elements
-      ./programs/syncthing
     ];
     home.file.".gitconfig".source = ../../.gitconfig;
     home.stateVersion = "25.05";
