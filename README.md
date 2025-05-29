@@ -64,7 +64,14 @@ darwin-rebuild switch --flake .#<host>
 
 ### 3. (선택) CI 테스트
 
-- GitHub Actions 등 CI 환경에서 Nix 관련 테스트가 자동으로 실행되는 경우, PR 생성 시 결과를 확인합니다.
+- GitHub Actions에서 아래와 같은 Nix smoke test 및 빌드/체크가 자동으로 실행됩니다:
+  - `nix --version`, `nix flake show` (smoke test)
+  - `nix build --impure --no-link`
+  - `nix flake check`
+  - (macOS) flake에 정의된 모든 `darwinConfigurations.<host>`에 대해 `darwin-rebuild build --flake .#<host>` (설치 시뮬레이션)
+  - (Linux) flake에 정의된 모든 `homeConfigurations.<arch>`에 대해 `nix build .#homeConfigurations.<arch>.activationPackage` (Home Manager 환경 설치 시뮬레이션)
+- 즉, 호스트/아키텍처가 flake에 추가되면 CI가 자동으로 모두 테스트합니다.
+- PR 생성 시 결과를 확인하세요.
 
 ## 주요 관리 프로그램
 - Home Manager: 유저별 dotfiles 선언적 관리

@@ -14,7 +14,13 @@ jobs:
   lint-build-test:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        include:
+          - os: macos-latest
+            kind: darwin
+            flake_attr: darwinConfigurations
+          - os: ubuntu-latest
+            kind: linux
+            flake_attr: homeConfigurations
     runs-on: ${{ matrix.os }}
     continue-on-error: true
     steps:
@@ -36,6 +42,28 @@ jobs:
       - name: Run nvim (smoke test)
         run: |
           ./result/bin/nvim --version
+
+      - name: Query flake hosts/archs
+        id: flake-hosts
+        run: |
+          if [ "${{ matrix.kind }}" = "darwin" ]; then
+            nix eval --json '.#darwinConfigurations' | jq -r 'keys[]' > hosts.txt
+          else
+            nix eval --json '.#homeConfigurations' | jq -r 'keys[]' > hosts.txt
+          fi
+          cat hosts.txt
+
+      - name: Dry-run build for all hosts/archs
+        run: |
+          while read host; do
+            if [ "${{ matrix.kind }}" = "darwin" ]; then
+              echo "Testing darwin host: $host"
+              darwin-rebuild build --flake ".#$host"
+            else
+              echo "Testing linux home-manager: $host"
+              nix build ".#homeConfigurations.$host.activationPackage"
+            fi
+          done < hosts.txt
 
       - name: Run tests
         run: nix flake check
