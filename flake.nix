@@ -59,6 +59,21 @@
         ];
         specialArgs = { inherit inputs hostName; };
       };
+      # nixos 프로그램 테스트 모듈 자동 로딩 함수
+      nixosProgramTests = system: let
+        programsDir = ./modules/nixos/programs;
+        nixosProgramNames = builtins.filter
+          (name: builtins.pathExists (programsDir + "/${name}/test.nix"))
+          (builtins.attrNames (builtins.readDir programsDir));
+      in
+        builtins.listToAttrs (
+          map
+            (name: {
+              inherit name;
+              value = import (programsDir + "/${name}/test.nix") nixpkgs;
+            })
+            nixosProgramNames
+        );
     in
     {
       darwinConfigurations = {
@@ -86,40 +101,12 @@
         homerow = ./modules/nixos/programs/homerow/default.nix;
       };
       checks = {
-        x86_64-linux =
-          let
-            nixosProgramNames = builtins.filter
-              (name: builtins.pathExists (./modules/nixos/programs + "/${name}/test.nix"))
-              (builtins.attrNames (builtins.readDir ./modules/nixos/programs));
-            nixosProgramTests = builtins.listToAttrs (
-              map
-                (name: {
-                  name = name;
-                  value = import (./modules/nixos/programs + "/${name}/test.nix") nixpkgs;
-                })
-                nixosProgramNames
-            );
-          in
-            nixosProgramTests // {
-              build-homerow = self.packages.x86_64-linux.homerow;
-            };
-        aarch64-linux =
-          let
-            nixosProgramNames = builtins.filter
-              (name: builtins.pathExists (./modules/nixos/programs + "/${name}/test.nix"))
-              (builtins.attrNames (builtins.readDir ./modules/nixos/programs));
-            nixosProgramTests = builtins.listToAttrs (
-              map
-                (name: {
-                  name = name;
-                  value = import (./modules/nixos/programs + "/${name}/test.nix") nixpkgs;
-                })
-                nixosProgramNames
-            );
-          in
-            nixosProgramTests // {
-              build-homerow = self.packages.aarch64-linux.homerow;
-            };
+        x86_64-linux = nixosProgramTests "x86_64-linux" // {
+          build-homerow = self.packages.x86_64-linux.homerow;
+        };
+        aarch64-linux = nixosProgramTests "aarch64-linux" // {
+          build-homerow = self.packages.aarch64-linux.homerow;
+        };
         aarch64-darwin = {
           build-homerow = self.packages.aarch64-darwin.homerow;
           build-hammerspoon = self.packages.aarch64-darwin.hammerspoon;
