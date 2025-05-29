@@ -9,14 +9,29 @@
 let
   inherit (pkgs.stdenvNoCC.hostPlatform) isDarwin isLinux;
 
+  cliModules = [
+    ./cli/tmux
+    ./cli/ssh
+    ./cli/git
+    ./cli/act
+    ./cli/nvim
+    ./cli/wezterm
+    ./cli/1password
+  ];
+
+  guiModules = [
+    ./gui/hammerspoon
+    ./gui/homerow
+    ./gui/karabiner-elements
+    ./gui/raycast
+    ./gui/vscode
+    ./gui/obsidian
+    ./gui/syncthing
+  ];
+
 in
 {
   home-manager.sharedModules =
-    (lib.optionals isDarwin [
-      ./hammerspoon
-      # macOS 전용 모듈은 여기에 추가
-    ]) ++ [
-      ./homerow
-      # 공통 모듈은 여기에 추가
-    ];
+    (lib.optionals isDarwin guiModules)
+    ++ cliModules;
 }
