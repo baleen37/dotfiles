@@ -22,8 +22,8 @@
       ...
     }@inputs:
     let
-      home-manager-shared = ./modules/home-manager/default.nix;
-      nixpkgs-shared = ./nix/packages/default.nix;
+      home-manager-shared = ./common/modules/user-env/default.nix;
+      nixpkgs-shared = ./common/nix/packages/default.nix;
       # Helper function to provide system-specific default packages
       forAllSystems = nixpkgs.lib.genAttrs [
         "aarch64-darwin"
@@ -93,8 +93,8 @@
             else if nixpkgs.lib.strings.hasInfix "linux" system && self ? homeConfigurations && self.homeConfigurations ? ${system}
             then self.homeConfigurations.${system}.activationPackage or nixpkgs.legacyPackages.${system}.hello
             else nixpkgs.legacyPackages.${system}.hello;
-          hammerspoon = pkgs.callPackage ./nix/packages/hammerspoon {};
-          homerow = pkgs.callPackage ./nix/packages/homerow {};
+          hammerspoon = pkgs.callPackage ./common/nix/packages/hammerspoon {};
+          homerow = pkgs.callPackage ./common/nix/packages/homerow {};
         });
       homeConfigurations = nixpkgs.lib.genAttrs (linuxSystems ++ macosSystems) mkHomeConfig;
       nixosModules = {

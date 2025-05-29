@@ -6,13 +6,13 @@
   ...
 }: let
   sharedImports = [
-    ../../common/programs/wezterm
-    ../../common/programs/git
-    ../../common/programs/tmux
-    ../../common/programs/nvim
-    ../../common/programs/vscode
-    ../../common/programs/ssh
-    ../../common/programs/act
+    ../../common/modules/user-env/wezterm
+    ../../common/modules/user-env/git
+    ../../common/modules/user-env/tmux
+    ../../common/modules/user-env/nvim
+    ../../common/modules/user-env/vscode
+    ../../common/modules/user-env/ssh
+    ../../common/modules/user-env/act
   ];
   commonUserConfig = { username, homeDirectory, extraPackages ? [] }: {
     home.username = username;
