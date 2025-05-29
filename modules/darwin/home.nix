@@ -18,13 +18,15 @@
       # jetbrains.idea-ultimate
     ];
     imports = [
-      ../../programs/wezterm/default.nix
-      ../../programs/git/default.nix
-      ../../programs/tmux/default.nix
-      ../../programs/nvim/default.nix
-      ../../programs/vscode/default.nix
-      ../../programs/ssh/default.nix
-      ../../programs/act/default.nix
+      ../../programs/common/wezterm/default.nix
+      ../../programs/common/git/default.nix
+      ../../programs/common/tmux/default.nix
+      ../../programs/common/nvim/default.nix
+      ../../programs/common/vscode/default.nix
+      ../../programs/common/ssh/default.nix
+      ../../programs/common/act/default.nix
+      ../../programs/common/syncthing/default.nix
+      ../../programs/common/obsidian/default.nix
     ];
     home.file.".gitconfig".source = ../../.gitconfig;
     home.stateVersion = "25.05";

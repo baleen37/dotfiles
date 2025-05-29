@@ -13,8 +13,10 @@ in
 {
   sharedModules = [
     # local programs (local)
-    ./programs/hammerspoon
-    ./programs/homerow
+    ./common/hammerspoon
+    ./common/homerow
+    ./common/syncthing
+    ./common/obsidian
 
     # os systems
     # (lib.mkIf isDarwin ./systems/darwin)

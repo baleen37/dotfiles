@@ -24,25 +24,28 @@
         { host = "my-linux"; system = "x86_64-linux"; extraModules = []; }
       ];
 
-      # 모듈 경로
+      # 모듈 경로 (폴더 구조에 맞게 수정)
       homeManagerModules = [
-        ./programs/wezterm/default.nix
-        ./programs/git/default.nix
-        ./programs/tmux/default.nix
-        ./programs/nvim/default.nix
-        ./programs/vscode/default.nix
-        ./programs/ssh/default.nix
-        ./programs/act/default.nix
-        ./programs/hammerspoon/default.nix
-        ./programs/homerow/default.nix
+        ./programs/common/wezterm/default.nix
+        ./programs/common/git/default.nix
+        ./programs/common/tmux/default.nix
+        ./programs/common/nvim/default.nix
+        ./programs/common/vscode/default.nix
+        ./programs/common/ssh/default.nix
+        ./programs/common/act/default.nix
+        ./programs/common/syncthing/default.nix
+        ./programs/common/obsidian/default.nix
       ];
       darwinOnlyModules = [
         home-manager.darwinModules.home-manager
         ./modules/darwin/configuration.nix
         ./modules/darwin/home.nix
+        # ./programs/darwin/hammerspoon/default.nix
+        # ./programs/darwin/homerow/default.nix
       ];
       linuxOnlyModules = [
         ./modules/shared/home-linux.nix
+        # ./programs/linux/...(필요시 추가)
       ];
 
       # 시스템별 모듈 조합
