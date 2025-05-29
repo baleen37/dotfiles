@@ -5,6 +5,15 @@
   hostName, # hostName 추가
   ...
 }: let
+  sharedImports = [
+    ../shared/programs/wezterm
+    ../shared/programs/git
+    ../shared/programs/tmux
+    ../shared/programs/nvim
+    ../shared/programs/vscode
+    ../shared/programs/ssh
+    ../shared/programs/act
+  ];
   commonUserConfig = { username, homeDirectory, extraPackages ? [] }: {
     home.username = username;
     home.homeDirectory = homeDirectory;
@@ -13,18 +22,8 @@
       fzf
       google-chrome
       brave
-      # devtools
-      # jetbrains.datagrip
-      # jetbrains.idea-ultimate
     ];
-    imports = [
-      ../shared/programs/wezterm
-      ../shared/programs/git
-      ../shared/programs/tmux
-      ../shared/programs/nvim
-      ../shared/programs/vscode
-      ../shared/programs/ssh
-      ../shared/programs/act
+    imports = sharedImports ++ [
       ./programs/raycast
       ./programs/homerow
       ./programs/obsidian

@@ -22,11 +22,8 @@
       ...
     }@inputs:
     let
-      # dev-shell = import ./libraries/dev-shell { inherit inputs; };
       home-manager-shared = ./libraries/home-manager;
       nixpkgs-shared = ./libraries/nixpkgs;
-      homerowTestPath = builtins.path { path = ./libraries/nixpkgs/programs/homerow/test.nix; };
-
       # Helper function to provide system-specific default packages
       forAllSystems = nixpkgs.lib.genAttrs [
         "aarch64-darwin"
@@ -34,7 +31,6 @@
         "aarch64-linux"
         "x86_64-linux"
       ];
-
       # 시스템별 Home Manager 환경을 추상화해서 생성하는 함수
       mkHomeConfig = system:
         if nixpkgs.lib.strings.hasInfix "linux" system then
@@ -51,51 +47,37 @@
           };
       linuxSystems = ["x86_64-linux" "aarch64-linux"];
       macosSystems = ["aarch64-darwin" "x86_64-darwin"];
+      # darwinConfigurations 중복 제거 함수
+      mkDarwinConfig = hostName: system: nix-darwin.lib.darwinSystem {
+        inherit system;
+        modules = [
+          home-manager-shared
+          nixpkgs-shared
+          home-manager.darwinModules.home-manager
+          ./modules/darwin/configuration.nix
+          ./modules/darwin/home.nix
+        ];
+        specialArgs = { inherit inputs hostName; };
+      };
+      # homerow 테스트 중복 제거 함수
+      mkHomerowTest = system: (import "${nixpkgs}/nixos/tests/make-test-python.nix") {
+        name = "homerow-basic";
+        nodes.machine = { pkgs, ... }: {
+          imports = [ self.nixosModules.homerow ];
+          services.homerow.enable = true;
+        };
+        testScript = ''
+          machine.start()
+          machine.wait_for_unit("multi-user.target")
+          machine.succeed("pgrep Homerow")
+        '';
+      }.driver;
     in
     {
-      darwinConfigurations.baleen = nix-darwin.lib.darwinSystem {
-        system = "aarch64-darwin";
-        modules = [
-          home-manager-shared
-          nixpkgs-shared
-          home-manager.darwinModules.home-manager
-          # ./modules/shared/configuration.nix
-          ./modules/darwin/configuration.nix
-          ./modules/darwin/home.nix
-        ];
-        specialArgs = { inherit inputs; hostName = "baleen"; };
+      darwinConfigurations = {
+        baleen = mkDarwinConfig "baleen" "aarch64-darwin";
+        jito = mkDarwinConfig "jito" "aarch64-darwin"; # Intel Mac이면 "x86_64-darwin"으로 변경
       };
-
-      darwinConfigurations.jito = nix-darwin.lib.darwinSystem {
-        system = "aarch64-darwin"; # jito 머신이 Intel Mac인 경우 "x86_64-darwin"으로 변경해야 할 수 있습니다.
-        modules = [
-          home-manager-shared
-          nixpkgs-shared
-          home-manager.darwinModules.home-manager
-          # ./modules/shared/configuration.nix
-          ./modules/darwin/configuration.nix
-          ./modules/darwin/home.nix
-        ];
-        specialArgs = { inherit inputs; hostName = "jito"; };
-      };
-
-      # nixosConfigurations.linux = nixpkgs.lib.nixosSystem {
-      #   system = "x86_64-linux";
-      #   modules = [
-      #     home-manager.nixosModules.home-manager
-      #     nixpkgs-shared
-      #     ({ config, ... }: {
-      #       fileSystems."/" = {
-      #         device = "/dev/disk/by-label/nixos";
-      #         fsType = "ext4";
-      #       };
-      #       boot.loader.grub.devices = [ "/dev/vda" ];
-      #     })
-      #   ];
-      #   specialArgs = { inherit inputs; };
-      # };
-
-      # System-specific default packages
       packages = forAllSystems (system:
         let
           pkgs = import nixpkgs {
@@ -109,47 +91,16 @@
             else if nixpkgs.lib.strings.hasInfix "linux" system && self ? homeConfigurations && self.homeConfigurations ? ${system}
             then self.homeConfigurations.${system}.activationPackage or nixpkgs.legacyPackages.${system}.hello
             else nixpkgs.legacyPackages.${system}.hello;
-
-          # 커스텀 패키지 노출
           hammerspoon = pkgs.callPackage ./libraries/nixpkgs/programs/hammerspoon {};
           homerow = pkgs.callPackage ./libraries/nixpkgs/programs/homerow {};
         });
-
       homeConfigurations = nixpkgs.lib.genAttrs (linuxSystems ++ macosSystems) mkHomeConfig;
-
       nixosModules = {
         homerow = ./modules/nixos/programs/homerow/default.nix;
       };
-
       checks = {
-        x86_64-linux = {
-          homerow = (import "${nixpkgs}/nixos/tests/make-test-python.nix") {
-            name = "homerow-basic";
-            nodes.machine = { pkgs, ... }: {
-              imports = [ self.nixosModules.homerow ];
-              services.homerow.enable = true;
-            };
-            testScript = ''
-              machine.start()
-              machine.wait_for_unit("multi-user.target")
-              machine.succeed("pgrep Homerow")
-            '';
-          }.driver;
-        };
-        aarch64-linux = {
-          homerow = (import "${nixpkgs}/nixos/tests/make-test-python.nix") {
-            name = "homerow-basic";
-            nodes.machine = { pkgs, ... }: {
-              imports = [ self.nixosModules.homerow ];
-              services.homerow.enable = true;
-            };
-            testScript = ''
-              machine.start()
-              machine.wait_for_unit("multi-user.target")
-              machine.succeed("pgrep Homerow")
-            '';
-          }.driver;
-        };
+        x86_64-linux = { homerow = mkHomerowTest "x86_64-linux"; };
+        aarch64-linux = { homerow = mkHomerowTest "aarch64-linux"; };
       };
     };
 }

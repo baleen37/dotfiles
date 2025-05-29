@@ -1,6 +1,6 @@
 # dotfiles (Nix 기반 환경 관리)
 
-이 저장소는 Nix, Home Manager, nix-darwin을 활용하여 macOS 개발 환경을 선언적으로 관리합니다.
+이 저장소는 Nix, Home Manager, nix-darwin을 활용하여 macOS 및 공통 개발 환경을 선언적으로 관리합니다.
 
 ## 디렉토리 구조 및 역할
 
@@ -11,13 +11,23 @@
 ├── install.sh               # Nix 및 환경 설치 스크립트
 ├── modules/                 # Nix 모듈(프로그램별/공통/OS별 설정)
 │   ├── darwin/              # macOS(darwin) 전용 설정
+│   │   └── programs/        # macOS용 프로그램별 모듈 및 파일
+│   ├── nixos/               # NixOS 전용 설정
+│   │   └── programs/        # NixOS용 프로그램별 모듈
 │   └── shared/              # macOS/Linux 공통 설정
-├── libraries/               # 커스텀 Nix 패키지(직접 빌드, 예: Hammerspoon)
+│       └── programs/        # 공통 프로그램별 모듈
+├── libraries/               # 커스텀 Nix 패키지/모듈
 │   ├── home-manager/        # Home Manager 확장 모듈
+│   │   └── programs/        # Home Manager용 프로그램별 모듈
 │   └── nixpkgs/             # 직접 빌드하는 패키지
+│       └── programs/        # 패키지별 소스/테스트
 ├── config/                  # 앱별 설정파일(예: nvim, hammerspoon)
+│   └── hammerspoon/         # 예시: Hammerspoon 설정
+│       └── Spoons/          # Hammerspoon Spoons
 ├── bin/                     # 사용자 스크립트/실행파일
-└── ...                      # 기타 dotfiles 및 설정
+├── result/                  # Nix 빌드 결과물(환경 적용 시 자동 생성)
+├── .zshrc, .tmux.conf 등    # 기타 dotfiles
+└── ...
 ```
 
 ## Nix 환경 적용 흐름
@@ -26,13 +36,18 @@
    - Home Manager, nix-darwin, nixpkgs 등 주요 입력을 선언
    - `darwinConfigurations.<host>`로 macOS 환경을 선언적으로 정의
 2. **modules/**
-   - `modules/darwin/`: macOS 전용 시스템/유저 설정(Nix-darwin)
-   - `modules/shared/`: 공통 프로그램 설정(Home Manager)
+   - `modules/darwin/`: macOS 전용 시스템/유저/프로그램 설정(Nix-darwin)
+   - `modules/nixos/`: NixOS 전용 시스템/프로그램 설정
+   - `modules/shared/`: macOS/Linux 공통 프로그램 설정(Home Manager)
 3. **libraries/**
    - 직접 빌드하는 패키지(예: Hammerspoon, Homerow 등)
    - Home Manager 확장 모듈
 4. **config/**
-   - nvim, hammerspoon 등 앱별 설정파일
+   - nvim, hammerspoon 등 앱별 설정파일 및 하위 구조
+5. **result/**
+   - Nix 빌드 및 환경 적용 결과물이 저장되는 경로(자동 생성)
+6. **기타 dotfiles**
+   - `.zshrc`, `.tmux.conf` 등 쉘/에디터/툴 설정파일
 
 ## 설치 방법
 
@@ -96,7 +111,7 @@ make install
 ## 참고
 - 모든 설정은 Nix로 선언적으로 관리됩니다.
 - 새로운 프로그램/설정 추가는 `modules/` 또는 `libraries/`에 Nix로 선언하면 됩니다.
-- macOS 외 Linux도 확장 가능(공통 모듈 활용)
+- macOS 외 Linux도 공통 모듈(`modules/shared/`)을 통해 확장 가능합니다.
 
 ```bash
 ./install.sh

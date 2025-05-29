@@ -11,9 +11,12 @@ let
 
 in
 {
-  home-manager.sharedModules = [
-    ./programs/hammerspoon
-    ./programs/homerow
-    # 필요시 다른 모듈을 여기에 추가
-  ];
+  home-manager.sharedModules =
+    (lib.optionals isDarwin [
+      ./programs/hammerspoon
+      # macOS 전용 모듈은 여기에 추가
+    ]) ++ [
+      ./programs/homerow
+      # 공통 모듈은 여기에 추가
+    ];
 }
