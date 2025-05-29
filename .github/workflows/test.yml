@@ -33,3 +33,7 @@ jobs:
       - name: Run all Nix/flake/home-manager tests (verify-all)
         run: |
           make verify-all
+      - name: Run NixOS tests (fail on error)
+        run: |
+          nix build .#nixosTests.aarch64-linux.homerow
+          nix build .#nixosTests.x86_64-linux.homerow

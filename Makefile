@@ -37,6 +37,13 @@ verify-all:
 		echo "[custom] Building package: $$pkg"; \
 		nix build .#packages.aarch64-darwin.$$pkg || nix build .#packages.x86_64-linux.$$pkg || true; \
 	done
+	# NixOS tests
+	for system in aarch64-linux x86_64-linux; do \
+		for test in homerow; do \
+			echo "[nixosTests] Running test: $$test on $$system"; \
+			nix build .#nixosTests.$$system.$$test || exit 1; \
+		done \
+	done
 	# Home Manager dry-run
 	@if nix flake show --json | jq -r '.outputs.homeConfigurations // {} | keys[]' | grep . >/dev/null; then \
 		nix flake show --json | jq -r '.outputs.homeConfigurations // {} | keys[]' | while read host; do \

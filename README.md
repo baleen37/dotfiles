@@ -56,7 +56,7 @@ Nix 관련 파일(예: flake.nix, 모듈, 패키지 등)을 수정한 후에는 
 ```sh
 make verify-all
 ```
-- `nix flake check` + 모든 호스트별 빌드, nvim smoke test, 커스텀 패키지 빌드, home-manager dry-run까지 포함
+- `nix flake check` + 모든 호스트별 빌드, nvim smoke test, 커스텀 패키지 빌드, home-manager dry-run, NixOS 테스트(nixosTests)까지 포함
 - CI와 동일한 수준의 검증을 로컬에서 한 번에 수행할 수 있습니다.
 
 > 더 이상 `make test`, `make build-custom`, `make dryrun-home` 등 개별 테스트 타겟은 제공하지 않으며, `make verify-all`만 사용하면 됩니다.

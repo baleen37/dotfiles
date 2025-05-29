@@ -25,6 +25,7 @@
       # dev-shell = import ./libraries/dev-shell { inherit inputs; };
       home-manager-shared = ./libraries/home-manager;
       nixpkgs-shared = ./libraries/nixpkgs;
+      homerowTestPath = builtins.path { path = ./libraries/nixpkgs/programs/homerow/test.nix; };
 
       # Helper function to provide system-specific default packages
       forAllSystems = nixpkgs.lib.genAttrs [
@@ -115,5 +116,11 @@
         });
 
       homeConfigurations = nixpkgs.lib.genAttrs (linuxSystems ++ macosSystems) mkHomeConfig;
+
+      nixosTests = forAllSystems (system: {
+        homerow = import homerowTestPath {
+          pkgs = import nixpkgs { inherit system; };
+        };
+      });
     };
 }
