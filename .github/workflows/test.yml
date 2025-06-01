@@ -14,7 +14,13 @@ jobs:
   lint-build-test:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        include:
+          - os: macos-latest
+            kind: darwin
+            flake_attr: darwinConfigurations
+          - os: ubuntu-latest
+            kind: linux
+            flake_attr: homeConfigurations
     runs-on: ${{ matrix.os }}
     continue-on-error: true
     steps:
@@ -24,9 +30,12 @@ jobs:
         with:
           nix_path: nixpkgs=channel:nixos-unstable
 
-      - name: Build all outputs
+      - name: Run build-test (빌드/스모크/드라이런)
         run: |
-          nix build --impure --no-link
-
-      - name: Run tests
-        run: nix flake check
+          make build-test
+      - name: Run e2e-test (NixOS VM 기반 end-to-end)
+        run: |
+          make e2e-test
+      - name: Run Nix flake checks (NixOS VM test 포함)
+        run: |
+          nix flake check
