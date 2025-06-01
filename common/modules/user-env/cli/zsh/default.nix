@@ -115,7 +115,7 @@
           ) &
         fi
       fi
-    '''''';
+    ''''''; # Ensuring correct closing for multiline string
   };
 
   # fzf integration
