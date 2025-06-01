@@ -14,17 +14,36 @@
   };
 
   outputs = { self, nixpkgs, ... }@inputs: {
-    packages.aarch64-darwin = let
-      overlays = (import ./common/nix/packages { inherit inputs; }).default;
-      pkgs = import nixpkgs { system = "aarch64-darwin"; config.allowUnfree = true; inherit overlays; };
-    in {
-      hammerspoon = pkgs.callPackage ./common/nix/packages/hammerspoon {};
-      homerow = pkgs.callPackage ./common/nix/packages/homerow {};
+    overlays = {
+      default = import ./overlays;
     };
 
-    homeConfigurations = import ./common/home-configs { inherit inputs; };
-    darwinConfigurations = import ./common/darwin-configs { inherit inputs; };
-    nixosModules = import ./common/nixos-modules { inherit inputs; };
-    checks = import ./common/checks { inherit inputs; };
+    packages.aarch64-darwin = let
+      pkgs = import nixpkgs {
+        system = "aarch64-darwin";
+        config.allowUnfree = true;
+        overlays = [ self.overlays.default ];
+      };
+    in {
+      hammerspoon = pkgs.callPackage ./modules/nix/packages/hammerspoon {};
+      homerow = pkgs.callPackage ./modules/nix/packages/homerow {};
+    };
+
+    darwinConfigurations = {
+      baleen = inputs.nix-darwin.lib.darwinSystem {
+        system = "aarch64-darwin";
+        modules = [
+          ./hosts/darwin/baleen/configuration.nix
+        ];
+      };
+      # jito 등 다른 호스트도 필요시 추가
+    };
+
+    apps = {
+      x86_64-darwin = import ./apps/darwin { pkgs = nixpkgs.legacyPackages.x86_64-darwin; };
+      aarch64-darwin = import ./apps/darwin { pkgs = nixpkgs.legacyPackages.aarch64-darwin; };
+      x86_64-linux = import ./apps/linux { pkgs = nixpkgs.legacyPackages.x86_64-linux; };
+      aarch64-linux = import ./apps/linux { pkgs = nixpkgs.legacyPackages.aarch64-linux; };
+    };
   };
 }

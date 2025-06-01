@@ -2,6 +2,61 @@
 
 이 저장소는 macOS 및 Linux 개발 환경을 [Nix](https://nixos.org/), [Home Manager](https://nix-community.github.io/home-manager/), [nix-darwin](https://github.com/LnL7/nix-darwin)로 선언적으로 관리합니다. [phip1611/nixos-configs](https://github.com/phip1611/nixos-configs) 스타일 구조를 따릅니다.
 
+## Directory Structure
+
+```
+.
+├── apps/
+│   ├── darwin/   # macOS용 Nix app 정의 (mkApp 기반, 예: switch)
+│   └── linux/    # Linux용 Nix app 정의 (mkApp 기반, 예: switch)
+│
+├── hosts/
+│   └── darwin/
+│       ├── baleen/
+│       │   ├── configuration.nix
+│       │   └── home.nix
+│       └── jito/
+│           ├── configuration.nix
+│           └── home.nix
+│   └── linux/
+│       └── (필요시 Linux 호스트별 디렉토리)
+│
+├── modules/
+│   ├── nixos/
+│   │   ├── core/         # 시스템 공통(core) 설정
+│   │   ├── services/     # 서비스(nginx, monitoring 등)
+│   │   ├── programs/     # 프로그램별(nvim, zsh 등)
+│   │   └── desktop/      # 데스크탑 환경(i3, polybar 등)
+│   ├── darwin/           # macOS 전용 모듈
+│   ├── shared/           # macOS/Linux 공통 모듈
+│   ├── overlays/         # 오버레이(패치, 커스텀 패키지)
+│
+├── overlays/             # Nixpkgs 오버레이
+│   └── default.nix
+│
+├── templates/            # 템플릿(호스트, 모듈)
+│   ├── new-host/
+│   │   └── configuration.nix.template
+│   └── new-module/
+│       └── default.nix.template
+│
+├── flake.nix
+├── flake.lock
+└── README.md
+```
+
+## Apps
+The apps in this directory are Nix installables, created using the `mkApp` function declared within my `flake.nix` file.
+
+These Nix commands are tailored for different systems, including Linux (`x86_64-linux`, `aarch64-linux`) and Darwin (`aarch64-darwin`, `x86_64-darwin`).
+
+They execute with `nix run .#switch` (on the appropriate platform) and are referenced as part of the step-by-step instructions found in the README.
+
+### Example
+
+- macOS: `nix run .#switch` (runs darwin-rebuild)
+- Linux: `nix run .#switch` (runs nixos-rebuild)
+
 ## 폴더 구조
 
 ```
@@ -26,6 +81,9 @@ install.sh           # 설치 스크립트
   - CLI 예: `tmux`, `nvim`, `git`, `ssh`, `wezterm`, `act`, `1password` 등
   - GUI 예: `hammerspoon`, `homerow`, `karabiner-elements`, `raycast`, `vscode`, `obsidian`, `syncthing` 등
 - **호스트별 설정**: `hosts/<host>/home.nix`에서 공통 모듈을 import하여 사용
+  - 예시: `hosts/baleen/home.nix`, `hosts/jito/home.nix` 등
+  - flake에서 homeConfigurations = { baleen = hosts/baleen/home.nix; jito = hosts/jito/home.nix; } 형태로 명시적으로 관리
+  - 적용 시: `home-manager switch --flake .#baleen` 또는 `home-manager switch --flake .#jito`
 - **패키지/오버레이**: `common/nix/packages/`, `common/nix/overlays/`
 
 ## 테스트/적용 방법
@@ -39,6 +97,7 @@ install.sh           # 설치 스크립트
   - `hammerspoon`, `homerow` 등 Home Manager 스타일로 리팩토링
   - import 경로 및 Nix 표현식 일관성 유지
   - user-env/cli, gui 분리
+  - **공통 home-linux.nix 삭제, 호스트별 home.nix로 통합**
 
 ## 참고
 - 새로운 앱/설정은 `common/modules/user-env/cli/` 또는 `common/modules/user-env/gui/`에 Home Manager 스타일로 추가

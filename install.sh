@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Always run from the directory where this script is located (flake root)
+cd "$(dirname "$0")"
+
 # Ask for sudo password upfront
 sudo -v
 # Keep-alive: update existing sudo time stamp until the script has finished
