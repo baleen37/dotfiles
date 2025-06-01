@@ -36,7 +36,12 @@
           ./hosts/darwin/baleen/configuration.nix
         ];
       };
-      # jito 등 다른 호스트도 필요시 추가
+      jito = inputs.nix-darwin.lib.darwinSystem {
+        system = "aarch64-darwin";
+        modules = [
+          ./hosts/darwin/jito/configuration.nix
+        ];
+      };
     };
 
     apps = {
