@@ -14,10 +14,9 @@
   };
 
   outputs = { self, nixpkgs, ... }@inputs: {
-    overlays = import ./common/nix/packages { inherit inputs; };
-
     packages.aarch64-darwin = let
-      pkgs = import nixpkgs { system = "aarch64-darwin"; config.allowUnfree = true; overlays = self.overlays.default; };
+      overlays = (import ./common/nix/packages { inherit inputs; }).default;
+      pkgs = import nixpkgs { system = "aarch64-darwin"; config.allowUnfree = true; inherit overlays; };
     in {
       hammerspoon = pkgs.callPackage ./common/nix/packages/hammerspoon {};
       homerow = pkgs.callPackage ./common/nix/packages/homerow {};

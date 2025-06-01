@@ -1,4 +1,4 @@
 { inputs, ... }:
 {
-  homerow = import ../../hosts/jito/programs/homerow/default.nix;
+  homerow = import ../modules/user-env/gui/homerow/default.nix;
 }
