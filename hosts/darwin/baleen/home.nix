@@ -1,22 +1,22 @@
 { config, pkgs, ... }:
 {
   imports = [
-    ../../../common/modules/shared/wezterm
-    ../../../common/modules/shared/git
-    ../../../common/modules/shared/tmux
-    ../../../common/modules/shared/nvim
-    ../../../common/modules/shared/act
-    ../../../common/modules/shared/ssh
-    ../../../common/modules/shared/1password
-    ../../../common/modules/shared/zsh
-    ../../../common/modules/shared/raycast
-    ../../../common/modules/shared/homerow
-    ../../../common/modules/shared/obsidian
-    ../../../common/modules/darwin/hammerspoon
-    ../../../common/modules/darwin/karabiner-elements
-    ../../../common/modules/shared/syncthing
-    ../../../common/modules/shared/vscode
-    ../../../common/modules/darwin/application-activation.nix
+    ../../../modules/shared/wezterm
+    ../../../modules/shared/git
+    ../../../modules/shared/tmux
+    ../../../modules/shared/nvim
+    ../../../modules/shared/act
+    ../../../modules/shared/ssh
+    ../../../modules/shared/1password
+    ../../../modules/shared/zsh
+    ../../../modules/shared/raycast
+    ../../../modules/shared/homerow
+    ../../../modules/shared/obsidian
+    ../../../modules/darwin/hammerspoon
+    ../../../modules/darwin/karabiner-elements
+    ../../../modules/shared/syncthing
+    ../../../modules/shared/vscode
+    ../../../modules/darwin/application-activation.nix
   ];
 
   home.username = "baleen";

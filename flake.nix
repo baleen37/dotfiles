@@ -18,8 +18,8 @@
       overlays = (import ./common/nix/packages { inherit inputs; }).default;
       pkgs = import nixpkgs { system = "aarch64-darwin"; config.allowUnfree = true; inherit overlays; };
     in {
-      hammerspoon = pkgs.callPackage ./common/nix/packages/hammerspoon {};
-      homerow = pkgs.callPackage ./common/nix/packages/homerow {};
+      hammerspoon = pkgs.callPackage ./modules/nix/packages/hammerspoon {};
+      homerow = pkgs.callPackage ./modules/nix/packages/homerow {};
     };
 
     homeConfigurations = import ./common/home-configs { inherit inputs; };
