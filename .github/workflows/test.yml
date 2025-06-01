@@ -22,7 +22,6 @@ jobs:
             kind: linux
             flake_attr: homeConfigurations
     runs-on: ${{ matrix.os }}
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
 
