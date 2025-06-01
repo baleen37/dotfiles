@@ -7,5 +7,5 @@ repos:
         name: Nix Flake Check
         entry: nix flake check --all-systems --no-build
         language: system
-        files: ^flake\\.nix$
+        files: ^.*\\.nix$
         pass_filenames: false

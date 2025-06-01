@@ -22,9 +22,10 @@ jobs:
             kind: linux
             flake_attr: homeConfigurations
     runs-on: ${{ matrix.os }}
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: cachix/install-nix-action@v25
         with:
@@ -38,4 +39,4 @@ jobs:
           make e2e-test
       - name: Run Nix flake checks (NixOS VM test 포함)
         run: |
-          nix flake check
+          nix flake check --system ${{ matrix.system }} --no-build

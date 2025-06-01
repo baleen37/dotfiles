@@ -1,10 +1,4 @@
-{
-  config,
-  pkgs,
-  inputs,
-  hostName,
-  ...
-}:
+{ config, pkgs, ... }:
 {
   imports = [
     ../../common/modules/user-env/cli/wezterm
@@ -14,6 +8,8 @@
     ../../common/modules/user-env/cli/act
     ../../common/modules/user-env/cli/ssh
     ../../common/modules/user-env/cli/1password
+    ../../common/modules/user-env/cli/zsh
+    ../../common/modules/user-env/gui/homerow
   ];
 
   home.username = "jito";
@@ -25,8 +21,8 @@
     brave
   ];
   home.file.".gitconfig".source = ../../.gitconfig;
+  home.file.".aliases".source = ../../.aliases;
   home.stateVersion = "25.05";
-  home-manager.useGlobalPkgs = true;
-  home-manager.useUserPackages = true;
   nixpkgs.config.allowUnfree = true;
+  programs.zsh.enable = true;
 }

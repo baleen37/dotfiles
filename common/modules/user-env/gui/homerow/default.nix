@@ -1,30 +1,22 @@
-{ config, pkgs, lib, ... }:
+{ config, lib, pkgs, ... }:
 
+with lib;
 let
-  inherit (pkgs.stdenvNoCC.hostPlatform) isDarwin;
-  homerowPkg = pkgs.callPackage ../../../../nix/packages/homerow {};
-
+  inherit (lib) types;
+  cfg = config.services.homerow;
 in
-lib.mkIf isDarwin {
-  assertions = [
-    {
-      assertion = true;
-      message = "Nix homerow only supports darwin.";
-    }
-  ];
-
-  home.packages = [ homerowPkg ];
-
-  launchd.agents.homerow = {
-    enable = true;
-    config = {
-      ProgramArguments = [
-        "${config.home.homeDirectory}/Applications/Home Manager Apps/${homerowPkg.sourceRoot}/Contents/MacOS/Homerow"
-      ];
-      KeepAlive = true;
-      ProcessType = "Interactive";
-      StandardOutPath = "${config.xdg.cacheHome}/homerow.log";
-      StandardErrorPath = "${config.xdg.cacheHome}/homerow.log";
+{
+  options.services.homerow = {
+    enable = mkEnableOption "Homerow background service";
+    package = mkOption {
+      type = types.nullOr types.package;
+      default = if pkgs ? homerow then pkgs.homerow else null;
+      description = "Homerow package to use";
     };
+  };
+
+  config = mkIf (cfg.enable && pkgs.stdenv.isDarwin) {
+    home.packages = [ cfg.package ];
+    # LaunchAgent 설정이 필요하다면 여기에 추가
   };
 }

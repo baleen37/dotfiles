@@ -1,8 +1,8 @@
 { config, pkgs, ... }:
 {
   system.stateVersion = 4;
-  users.users.baleen = {
-    home = "/Users/baleen";
+  users.users.jito = {
+    home = "/Users/jito";
     shell = pkgs.zsh;
   };
 }
