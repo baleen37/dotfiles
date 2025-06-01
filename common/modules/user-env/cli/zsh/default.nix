@@ -38,7 +38,7 @@
     # };
 
     # Init script (기존 .zshrc의 나머지 부분)
-    initExtraBeforeCompInit = ''\'\'
+    initExtraBeforeCompInit = ''
       # PATH Setup
       export PATH="$HOME/bin:/usr/local/bin:$PATH"
 
@@ -115,7 +115,7 @@
           ) &
         fi
       fi
-    ''''''; # Ensuring correct closing for multiline string
+    '''''; # Corrected: Nix multiline string closing
   };
 
   # fzf integration
