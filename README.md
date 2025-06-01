@@ -27,7 +27,8 @@ install.sh           # 설치 스크립트
   - GUI 예: `hammerspoon`, `homerow`, `karabiner-elements`, `raycast`, `vscode`, `obsidian`, `syncthing` 등
 - **호스트별 설정**: `hosts/<host>/home.nix`에서 공통 모듈을 import하여 사용
   - 예시: `hosts/baleen/home.nix`, `hosts/jito/home.nix` 등
-  - 시스템별로 flake에서 자동으로 해당 호스트의 home.nix를 import함 (예: x86_64-linux → jito, aarch64-darwin → baleen)
+  - flake에서 homeConfigurations = { baleen = hosts/baleen/home.nix; jito = hosts/jito/home.nix; } 형태로 명시적으로 관리
+  - 적용 시: `home-manager switch --flake .#baleen` 또는 `home-manager switch --flake .#jito`
 - **패키지/오버레이**: `common/nix/packages/`, `common/nix/overlays/`
 
 ## 테스트/적용 방법
