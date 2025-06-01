@@ -34,6 +34,7 @@
   ];
   home.file.".gitconfig".source = ../../.gitconfig;
   home.file.".aliases".source = ../../.aliases; # .aliases 파일 연결 추가
-  home.stateVersion = "25.05";
+  home.stateVersion = "23.11";
   nixpkgs.config.allowUnfree = true;
+  programs.zsh.enable = true;
 }

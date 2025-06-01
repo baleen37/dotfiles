@@ -13,8 +13,17 @@
     };
   };
 
-  outputs = { self, ... }@inputs: {
-    overlays = import ./common/nix/packages { inherit inputs; };
+  outputs = { self, nixpkgs, ... }@inputs: {
+    # overlays = import ./common/nix/packages { inherit inputs; };
+
+    packages.aarch64-darwin = let
+      overlays = (import ./common/nix/packages { inherit inputs; }).default;
+      pkgs = import nixpkgs { system = "aarch64-darwin"; config.allowUnfree = true; inherit overlays; };
+    in {
+      hammerspoon = pkgs.callPackage ./common/nix/packages/hammerspoon {};
+      homerow = pkgs.callPackage ./common/nix/packages/homerow {};
+    };
+
     homeConfigurations = import ./common/home-configs { inherit inputs; };
     darwinConfigurations = import ./common/darwin-configs { inherit inputs; };
     nixosModules = import ./common/nixos-modules { inherit inputs; };
