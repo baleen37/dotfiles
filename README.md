@@ -43,3 +43,4 @@ install.sh           # 설치 스크립트
 ## 참고
 - 새로운 앱/설정은 `common/modules/user-env/cli/` 또는 `common/modules/user-env/gui/`에 Home Manager 스타일로 추가
 - macOS/Linux 공통 모듈은 `common/modules/shared/` 활용
+
