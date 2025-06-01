@@ -21,7 +21,28 @@
 │   └── linux/
 │       └── (필요시 Linux 호스트별 디렉토리)
 │
-# ... (modules, overlays 등 기존 구조 설명은 유지)
+├── modules/
+│   ├── nixos/
+│   │   ├── core/         # 시스템 공통(core) 설정
+│   │   ├── services/     # 서비스(nginx, monitoring 등)
+│   │   ├── programs/     # 프로그램별(nvim, zsh 등)
+│   │   └── desktop/      # 데스크탑 환경(i3, polybar 등)
+│   ├── darwin/           # macOS 전용 모듈
+│   ├── shared/           # macOS/Linux 공통 모듈
+│   ├── overlays/         # 오버레이(패치, 커스텀 패키지)
+│
+├── overlays/             # Nixpkgs 오버레이
+│   └── default.nix
+│
+├── templates/            # 템플릿(호스트, 모듈)
+│   ├── new-host/
+│   │   └── configuration.nix.template
+│   └── new-module/
+│       └── default.nix.template
+│
+├── flake.nix
+├── flake.lock
+└── README.md
 ```
 
 ## Apps
