@@ -7,13 +7,6 @@
     autosuggestion.enable = true;
     syntaxHighlighting.enable = true;
 
-    # Oh My Zsh
-    ohMyZsh = {
-      enable = true;
-      theme = "af-magic";
-      plugins = [ "git" "kubectl" ];
-    };
-
     # History
     history = {
       size = 10000;
@@ -78,8 +71,8 @@
       # fi
 
       # iTerm2 Shell Integration (if available)
-      if [ -e "${HOME}/.iterm2_shell_integration.zsh" ]; then
-        source "${HOME}/.iterm2_shell_integration.zsh"
+      if [ -e "$HOME/.iterm2_shell_integration.zsh" ]; then
+        source "$HOME/.iterm2_shell_integration.zsh"
       fi
 
       # dotfiles auto-update script (기존 .zshrc의 마지막 부분)
