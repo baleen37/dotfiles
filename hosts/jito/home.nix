@@ -23,8 +23,6 @@
   home.file.".gitconfig".source = ../../.gitconfig;
   home.file.".aliases".source = ../../.aliases;
   home.stateVersion = "25.05";
-  home-manager.useGlobalPkgs = true;
-  home-manager.useUserPackages = true;
   nixpkgs.config.allowUnfree = true;
   programs.zsh.enable = true;
 }
