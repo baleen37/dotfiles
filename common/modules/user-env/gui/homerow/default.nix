@@ -2,7 +2,7 @@
 
 let
   inherit (pkgs.stdenvNoCC.hostPlatform) isDarwin;
-  homerowPkg = pkgs.callPackage ../../../nix/packages/homerow {};
+  homerowPkg = pkgs.callPackage ../../../../nix/packages/homerow {};
 
 in
 lib.mkIf isDarwin {

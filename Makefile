@@ -1,6 +1,6 @@
 # Nix flake and system test Makefile
 
-.PHONY: verify-all darwin-rebuild install build-test e2e-test
+.PHONY: verify-all darwin-rebuild install build-test e2e-test update
 
 # 빌드/스모크/드라이런 등 사전 검증 (build-test)
 build-test:
@@ -60,3 +60,7 @@ darwin-rebuild:
 # 설치 스크립트 실행 (Nix 및 환경 설치)
 install:
 	bash ./install.sh
+
+# update
+update:
+	nix flake update
