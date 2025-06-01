@@ -14,6 +14,7 @@
     ../../common/modules/user-env/cli/act
     ../../common/modules/user-env/cli/ssh
     ../../common/modules/user-env/cli/1password
+    ../../common/modules/user-env/cli/zsh
   ];
 
   home.username = "jito";
@@ -25,6 +26,7 @@
     brave
   ];
   home.file.".gitconfig".source = ../../.gitconfig;
+  home.file.".aliases".source = ../../.aliases; # .aliases 파일 연결 추가
   home.stateVersion = "25.05";
   home-manager.useGlobalPkgs = true;
   home-manager.useUserPackages = true;

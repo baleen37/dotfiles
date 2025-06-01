@@ -14,6 +14,7 @@
     ../../common/modules/user-env/cli/act
     ../../common/modules/user-env/cli/ssh
     ../../common/modules/user-env/cli/1password
+    ../../common/modules/user-env/cli/zsh
     ../../common/modules/user-env/gui/raycast
     ../../common/modules/user-env/gui/homerow
     ../../common/modules/user-env/gui/obsidian
@@ -32,6 +33,7 @@
     brave
   ];
   home.file.".gitconfig".source = ../../.gitconfig;
+  home.file.".aliases".source = ../../.aliases; # .aliases 파일 연결 추가
   home.stateVersion = "25.05";
   nixpkgs.config.allowUnfree = true;
 }

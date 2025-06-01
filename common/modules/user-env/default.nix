@@ -17,6 +17,7 @@ let
     ./cli/nvim
     ./cli/wezterm
     ./cli/1password
+    ./cli/zsh
   ];
 
   guiModules = [
