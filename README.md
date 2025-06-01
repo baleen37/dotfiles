@@ -26,6 +26,8 @@ install.sh           # 설치 스크립트
   - CLI 예: `tmux`, `nvim`, `git`, `ssh`, `wezterm`, `act`, `1password` 등
   - GUI 예: `hammerspoon`, `homerow`, `karabiner-elements`, `raycast`, `vscode`, `obsidian`, `syncthing` 등
 - **호스트별 설정**: `hosts/<host>/home.nix`에서 공통 모듈을 import하여 사용
+  - 예시: `hosts/baleen/home.nix`, `hosts/jito/home.nix` 등
+  - 시스템별로 flake에서 자동으로 해당 호스트의 home.nix를 import함 (예: x86_64-linux → jito, aarch64-darwin → baleen)
 - **패키지/오버레이**: `common/nix/packages/`, `common/nix/overlays/`
 
 ## 테스트/적용 방법
@@ -39,6 +41,7 @@ install.sh           # 설치 스크립트
   - `hammerspoon`, `homerow` 등 Home Manager 스타일로 리팩토링
   - import 경로 및 Nix 표현식 일관성 유지
   - user-env/cli, gui 분리
+  - **공통 home-linux.nix 삭제, 호스트별 home.nix로 통합**
 
 ## 참고
 - 새로운 앱/설정은 `common/modules/user-env/cli/` 또는 `common/modules/user-env/gui/`에 Home Manager 스타일로 추가
