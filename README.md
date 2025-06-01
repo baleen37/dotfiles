@@ -7,8 +7,8 @@
 ```
 .
 ├── apps/
-│   ├── darwin/   # macOS용 Nix app 정의 (mkApp 기반)
-│   └── linux/    # Linux용 Nix app 정의 (mkApp 기반)
+│   ├── darwin/   # macOS용 Nix app 정의 (mkApp 기반, 예: switch)
+│   └── linux/    # Linux용 Nix app 정의 (mkApp 기반, 예: switch)
 │
 ├── hosts/
 │   └── darwin/
@@ -29,7 +29,12 @@ The apps in this directory are Nix installables, created using the `mkApp` funct
 
 These Nix commands are tailored for different systems, including Linux (`x86_64-linux`, `aarch64-linux`) and Darwin (`aarch64-darwin`, `x86_64-darwin`).
 
-They execute with `nix run` and are referenced as part of the step-by-step instructions found in the README.
+They execute with `nix run .#switch` (on the appropriate platform) and are referenced as part of the step-by-step instructions found in the README.
+
+### Example
+
+- macOS: `nix run .#switch` (runs darwin-rebuild)
+- Linux: `nix run .#switch` (runs nixos-rebuild)
 
 ## 폴더 구조
 

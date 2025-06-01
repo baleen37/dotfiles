@@ -1,15 +1,15 @@
 { config, pkgs, ... }:
 {
   imports = [
-    ../../../common/modules/user-env/cli/wezterm
-    ../../../common/modules/user-env/cli/git
-    ../../../common/modules/user-env/cli/tmux
-    ../../../common/modules/user-env/cli/nvim
-    ../../../common/modules/user-env/cli/act
-    ../../../common/modules/user-env/cli/ssh
-    ../../../common/modules/user-env/cli/1password
-    ../../../common/modules/user-env/cli/zsh
-    ../../../common/modules/user-env/gui/homerow
+    ../../../common/modules/shared/wezterm
+    ../../../common/modules/shared/git
+    ../../../common/modules/shared/tmux
+    ../../../common/modules/shared/nvim
+    ../../../common/modules/shared/act
+    ../../../common/modules/shared/ssh
+    ../../../common/modules/shared/1password
+    ../../../common/modules/shared/zsh
+    ../../../common/modules/shared/homerow
   ];
 
   home.username = "jito";

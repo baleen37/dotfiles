@@ -1,21 +1,21 @@
 { config, pkgs, ... }:
 {
   imports = [
-    ../../../common/modules/user-env/cli/wezterm
-    ../../../common/modules/user-env/cli/git
-    ../../../common/modules/user-env/cli/tmux
-    ../../../common/modules/user-env/cli/nvim
-    ../../../common/modules/user-env/cli/act
-    ../../../common/modules/user-env/cli/ssh
-    ../../../common/modules/user-env/cli/1password
-    ../../../common/modules/user-env/cli/zsh
-    ../../../common/modules/user-env/gui/raycast
-    ../../../common/modules/user-env/gui/homerow
-    ../../../common/modules/user-env/gui/obsidian
-    ../../../common/modules/user-env/gui/hammerspoon
-    ../../../common/modules/user-env/gui/karabiner-elements
-    ../../../common/modules/user-env/gui/syncthing
-    ../../../common/modules/user-env/gui/vscode
+    ../../../common/modules/shared/wezterm
+    ../../../common/modules/shared/git
+    ../../../common/modules/shared/tmux
+    ../../../common/modules/shared/nvim
+    ../../../common/modules/shared/act
+    ../../../common/modules/shared/ssh
+    ../../../common/modules/shared/1password
+    ../../../common/modules/shared/zsh
+    ../../../common/modules/shared/raycast
+    ../../../common/modules/shared/homerow
+    ../../../common/modules/shared/obsidian
+    ../../../common/modules/darwin/hammerspoon
+    ../../../common/modules/darwin/karabiner-elements
+    ../../../common/modules/shared/syncthing
+    ../../../common/modules/shared/vscode
     ../../../common/modules/darwin/application-activation.nix
   ];
 

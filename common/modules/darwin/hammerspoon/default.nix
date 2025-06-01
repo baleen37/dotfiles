@@ -2,7 +2,7 @@
 
 let
   inherit (pkgs.stdenvNoCC.hostPlatform) isDarwin;
-  hammerspoonPkg = pkgs.callPackage ../../../../nix/packages/hammerspoon {};
+  hammerspoonPkg = pkgs.callPackage ../../../nix/packages/hammerspoon {};
   filesDir = ./files;
 
 in
