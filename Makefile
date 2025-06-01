@@ -9,6 +9,8 @@ build-test:
 		nix flake show --json | jq -r '.outputs.darwinConfigurations // {} | keys[]' | while read host; do \
 			echo "[darwin] Testing host: $$host"; \
 			darwin-rebuild build --flake ".#$$host" || exit 1; \
+			echo "[darwin] Dry-run switch for host: $$host"; \
+			darwin-rebuild switch --flake ".#$$host" --dry-run || exit 1; \
 		done; \
 	else \
 		echo "[darwin] No hosts found. Skipping darwin tests."; \
