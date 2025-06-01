@@ -12,6 +12,7 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    self = { url = "."; flake = false; };
   };
 
   outputs = {
@@ -22,8 +23,8 @@
       ...
     }@inputs:
     let
-      home-manager-shared = ./common/modules/user-env/default.nix;
-      nixpkgs-shared = ./common/nix/packages/default.nix;
+      home-manager-shared = builtins.path { path = ./common/modules/user-env/default.nix; };
+      nixpkgs-shared = builtins.path { path = ./common/nix/packages/default.nix; };
       # Helper function to provide system-specific default packages
       forAllSystems = nixpkgs.lib.genAttrs [
         "aarch64-darwin"
