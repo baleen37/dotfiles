@@ -18,6 +18,7 @@ let
     ./cli/wezterm
     ./cli/1password
     ./cli/zsh
+    ./cli/pre-commit
   ];
 
   guiModules = [
