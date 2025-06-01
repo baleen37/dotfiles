@@ -33,7 +33,5 @@
   ];
   home.file.".gitconfig".source = ../../.gitconfig;
   home.stateVersion = "25.05";
-  home-manager.useGlobalPkgs = true;
-  home-manager.useUserPackages = true;
   nixpkgs.config.allowUnfree = true;
 }

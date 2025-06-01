@@ -24,4 +24,6 @@
       tag.sort = "version:refname";
     };
   };
+
+  home.packages = [ pkgs.git ];
 }

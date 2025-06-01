@@ -42,7 +42,7 @@
         else
           home-manager.lib.homeManagerConfiguration {
             pkgs = import nixpkgs { inherit system; };
-            modules = [ home-manager-shared nixpkgs-shared { home.stateVersion = "25.05"; } ];
+            modules = [ nixpkgs-shared { home.stateVersion = "25.05"; } ];
             extraSpecialArgs = { inherit inputs; };
           };
       linuxSystems = ["x86_64-linux" "aarch64-linux"];
@@ -51,11 +51,12 @@
       mkDarwinConfig = hostName: system: nix-darwin.lib.darwinSystem {
         inherit system;
         modules = [
-          home-manager-shared
-          nixpkgs-shared
           home-manager.darwinModules.home-manager
+          nixpkgs-shared
           ./hosts/baleen/configuration.nix
-          ./hosts/baleen/home.nix
+          {
+            home-manager.users.baleen = import ./hosts/baleen/home.nix;
+          }
         ];
         specialArgs = { inherit inputs hostName; };
       };

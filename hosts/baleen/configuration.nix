@@ -7,6 +7,8 @@ in
 {
   nixpkgs.config.allowUnfree = true;
 
+  system.primaryUser = "baleen";
+
   users.users =
     if hostName == "baleen" then
       mkUser { username = "baleen"; homeDirectory = "/Users/baleen"; shell = pkgs.bashInteractive; }

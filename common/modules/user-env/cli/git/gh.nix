@@ -2,7 +2,6 @@
 
 let
   yamlFormat = pkgs.formats.yaml { };
-
 in
 {
   home.packages = with pkgs; [ gh ];
