@@ -1,7 +1,7 @@
 { pkgs, ... }:
-pkgs.mkApp {
-  name = "switch";
-  drv = pkgs.writeShellScriptBin "switch" ''
+{
+  type = "app";
+  program = "${pkgs.writeShellScript "switch" ''
     nixos-rebuild switch --flake .
-  '';
+  ''}";
 }

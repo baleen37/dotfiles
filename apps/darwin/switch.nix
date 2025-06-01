@@ -1,8 +1,8 @@
 { pkgs, ... }:
-pkgs.mkApp {
-  name = "switch";
-  drv = pkgs.writeShellScriptBin "switch" ''
+{
+  type = "app";
+  program = "${pkgs.writeShellScript "switch" ''
     darwin-rebuild switch --flake .
-  '';
+  ''}";
 }
 
