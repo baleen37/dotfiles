@@ -4,8 +4,8 @@ let
     inherit system;
     modules = [
       inputs.home-manager.darwinModules.home-manager
-      ../../hosts/${host}/configuration.nix
-      { home-manager.users.${host} = import ../../hosts/${host}/home.nix; }
+      ../../hosts/darwin/${host}/configuration.nix
+      { home-manager.users.${host} = import ../../hosts/darwin/${host}/home.nix; }
     ];
     specialArgs = { inherit inputs; };
   };

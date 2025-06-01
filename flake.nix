@@ -26,5 +26,20 @@
     darwinConfigurations = import ./common/darwin-configs { inherit inputs; };
     nixosModules = import ./common/nixos-modules { inherit inputs; };
     checks = import ./common/checks { inherit inputs; };
+
+    hosts = {
+      darwin = {
+        baleen = import ./hosts/darwin/baleen;
+        jito = import ./hosts/darwin/jito;
+      };
+      # linux = { ... } # 필요시 추가
+    };
+
+    apps = {
+      x86_64-darwin = import ./apps/darwin;
+      aarch64-darwin = import ./apps/darwin;
+      x86_64-linux = import ./apps/linux;
+      aarch64-linux = import ./apps/linux;
+    };
   };
 }

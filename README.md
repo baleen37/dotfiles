@@ -2,6 +2,35 @@
 
 이 저장소는 macOS 및 Linux 개발 환경을 [Nix](https://nixos.org/), [Home Manager](https://nix-community.github.io/home-manager/), [nix-darwin](https://github.com/LnL7/nix-darwin)로 선언적으로 관리합니다. [phip1611/nixos-configs](https://github.com/phip1611/nixos-configs) 스타일 구조를 따릅니다.
 
+## Directory Structure
+
+```
+.
+├── apps/
+│   ├── darwin/   # macOS용 Nix app 정의 (mkApp 기반)
+│   └── linux/    # Linux용 Nix app 정의 (mkApp 기반)
+│
+├── hosts/
+│   └── darwin/
+│       ├── baleen/
+│       │   ├── configuration.nix
+│       │   └── home.nix
+│       └── jito/
+│           ├── configuration.nix
+│           └── home.nix
+│   └── linux/
+│       └── (필요시 Linux 호스트별 디렉토리)
+│
+# ... (modules, overlays 등 기존 구조 설명은 유지)
+```
+
+## Apps
+The apps in this directory are Nix installables, created using the `mkApp` function declared within my `flake.nix` file.
+
+These Nix commands are tailored for different systems, including Linux (`x86_64-linux`, `aarch64-linux`) and Darwin (`aarch64-darwin`, `x86_64-darwin`).
+
+They execute with `nix run` and are referenced as part of the step-by-step instructions found in the README.
+
 ## 폴더 구조
 
 ```
