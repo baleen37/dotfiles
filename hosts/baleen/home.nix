@@ -1,10 +1,4 @@
-{
-  config,
-  pkgs,
-  inputs,
-  hostName,
-  ...
-}:
+{ config, pkgs, ... }:
 {
   imports = [
     ../../common/modules/user-env/cli/wezterm
@@ -33,8 +27,10 @@
     brave
   ];
   home.file.".gitconfig".source = ../../.gitconfig;
-  home.file.".aliases".source = ../../.aliases; # .aliases 파일 연결 추가
-  home.stateVersion = "23.11";
+  home.file.".aliases".source = ../../.aliases;
+  home.stateVersion = "25.05";
+  home-manager.useGlobalPkgs = true;
+  home-manager.useUserPackages = true;
   nixpkgs.config.allowUnfree = true;
   programs.zsh.enable = true;
 }
