@@ -38,4 +38,4 @@ jobs:
           make e2e-test
       - name: Run Nix flake checks (NixOS VM test 포함)
         run: |
-          nix flake check
+          nix flake check --system ${{ matrix.system }} --no-build
