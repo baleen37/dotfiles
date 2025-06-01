@@ -16,6 +16,7 @@
     ../../common/modules/user-env/gui/karabiner-elements
     ../../common/modules/user-env/gui/syncthing
     ../../common/modules/user-env/gui/vscode
+    ../../common/modules/darwin/application-activation.nix
   ];
 
   home.username = "baleen";

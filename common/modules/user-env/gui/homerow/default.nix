@@ -1,30 +1,28 @@
-{ config, pkgs, lib, ... }:
+{ config, lib, pkgs, ... }:
+
+with lib;
 
 let
-  inherit (pkgs.stdenvNoCC.hostPlatform) isDarwin;
-  homerowPkg = pkgs.callPackage ../../../../nix/packages/homerow {};
-
+  cfg = config.services.homerow;
 in
-lib.mkIf isDarwin {
-  assertions = [
-    {
-      assertion = true;
-      message = "Nix homerow only supports darwin.";
-    }
-  ];
+{
+  options.services.homerow = {
+    enable = mkEnableOption "Homerow background service";
+    package = mkOption {
+      type = types.package;
+      default = pkgs.homerow;
+      description = "Homerow package to use";
+    };
+  };
 
-  home.packages = [ homerowPkg ];
-
-  launchd.agents.homerow = {
-    enable = true;
-    config = {
-      ProgramArguments = [
-        "${config.home.homeDirectory}/Applications/Home Manager Apps/${homerowPkg.sourceRoot}/Contents/MacOS/Homerow"
-      ];
-      KeepAlive = true;
-      ProcessType = "Interactive";
-      StandardOutPath = "${config.xdg.cacheHome}/homerow.log";
-      StandardErrorPath = "${config.xdg.cacheHome}/homerow.log";
+  config = mkIf cfg.enable {
+    systemd.services.homerow = {
+      description = "Homerow";
+      wantedBy = [ "multi-user.target" ];
+      serviceConfig = {
+        ExecStart = "${cfg.package}/Applications/Homerow.app/Contents/MacOS/Homerow";
+        Restart = "always";
+      };
     };
   };
 }

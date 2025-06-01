@@ -9,6 +9,7 @@
     ../../common/modules/user-env/cli/ssh
     ../../common/modules/user-env/cli/1password
     ../../common/modules/user-env/cli/zsh
+    ../../common/modules/user-env/gui/homerow
   ];
 
   home.username = "jito";
