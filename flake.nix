@@ -88,35 +88,34 @@
             inherit system;
             config.allowUnfree = true;
           };
-        in {
-          default =
-            if nixpkgs.lib.strings.hasInfix "darwin" system then
-              self.darwinConfigurations.baleen.system
-            else if nixpkgs.lib.strings.hasInfix "linux" system && self ? homeConfigurations && self.homeConfigurations ? ${system}
-            then self.homeConfigurations.${system}.activationPackage or nixpkgs.legacyPackages.${system}.hello
-            else nixpkgs.legacyPackages.${system}.hello;
-          hammerspoon = pkgs.callPackage ./common/nix/packages/hammerspoon {};
-          homerow = pkgs.callPackage ./common/nix/packages/homerow {};
-        });
+        in
+          if nixpkgs.lib.strings.hasInfix "darwin" system then {
+            default = self.darwinConfigurations.baleen.system;
+            hammerspoon = pkgs.callPackage ./common/nix/packages/hammerspoon {};
+            homerow = pkgs.callPackage ./common/nix/packages/homerow {};
+          } else if nixpkgs.lib.strings.hasInfix "linux" system && self ? homeConfigurations && self.homeConfigurations ? ${system} then {
+            default = self.homeConfigurations.${system}.activationPackage or nixpkgs.legacyPackages.${system}.hello;
+            # Linux에서는 macOS 전용 패키지 노출 X
+          } else {
+            default = nixpkgs.legacyPackages.${system}.hello;
+          }
+      );
       homeConfigurations = nixpkgs.lib.genAttrs (linuxSystems ++ macosSystems) mkHomeConfig;
       nixosModules = {
         homerow = ./hosts/jito/programs/homerow/default.nix;
       };
-      checks = {
-        x86_64-linux = nixosProgramTests "x86_64-linux" // {
-          build-homerow = self.packages.x86_64-linux.homerow;
-        };
-        aarch64-linux = nixosProgramTests "aarch64-linux" // {
-          build-homerow = self.packages.aarch64-linux.homerow;
-        };
-        aarch64-darwin = {
-          build-homerow = self.packages.aarch64-darwin.homerow;
-          build-hammerspoon = self.packages.aarch64-darwin.hammerspoon;
-        };
-        x86_64-darwin = {
-          build-homerow = self.packages.x86_64-darwin.homerow;
-          build-hammerspoon = self.packages.x86_64-darwin.hammerspoon;
-        };
-      };
+      checks = let
+        mkChecks = system:
+          if nixpkgs.lib.strings.hasInfix "darwin" system then {
+            build-homerow = self.packages.${system}.homerow;
+            build-hammerspoon = self.packages.${system}.hammerspoon;
+          } else if nixpkgs.lib.strings.hasInfix "linux" system then {
+            # NixOS 환경에서만 nixosTest 포함
+            ${if system == "x86_64-linux" || system == "aarch64-linux" then ''
+              build-homerow = (self.nixosModules ? homerow) && (import ./hosts/jito/programs/homerow/test.nix nixpkgs);
+            '' else ''
+            ''}
+          } else {};
+      in forAllSystems mkChecks;
     };
 }
