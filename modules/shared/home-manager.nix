@@ -73,6 +73,14 @@ let name = "Jiho Lee";
       };
       pull.rebase = true;
       rebase.autoStash = true;
+      alias = {
+        st = "status";
+        co = "checkout";
+        br = "branch";
+        ci = "commit";
+        df = "diff";
+        lg = "log --graph --oneline --decorate --all";
+      };
     };
   };
 

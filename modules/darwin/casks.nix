@@ -3,6 +3,7 @@ _:
 [
   # Development Tools
   "homebrew/cask/docker"
+  "intellij-idea"
   "visual-studio-code"
   "cursor"
 
@@ -12,6 +13,7 @@ _:
   "slack"
   "telegram"
   "zoom"
+  "obsidian"
 
   # Utility Tools
   "syncthing"
