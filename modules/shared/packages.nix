@@ -9,6 +9,9 @@ with pkgs; [
   docker
   docker-compose
 
+  # Password management
+  _1password-cli
+
   # Media-related packages
   ffmpeg
 

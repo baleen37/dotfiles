@@ -40,6 +40,15 @@ let name = "Jiho Lee";
       export EDITOR="emacsclient -t"
       export VISUAL="emacsclient -c -a emacs"
 
+      if command -v op >/dev/null 2>&1; then
+        if [[ -z "$${OP_SESSION_MY_1PASSWORD_COM:-}" ]]; then
+          eval "$(op signin my.1password.com 1password@mail.wooto.in --raw)"
+        fi
+        if [[ -z "$SSH_AUTH_SOCK" ]]; then
+          eval "$(op ssh-agent)"
+        fi
+      fi
+
       e() {
           emacsclient -t "$@"
       }
@@ -193,6 +202,10 @@ let name = "Jiho Lee";
       let g:airline_powerline_fonts = 1
       '';
      };
+
+  wezterm = {
+    enable = true;
+  };
 
   alacritty = {
     enable = true;

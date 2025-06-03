@@ -5,4 +5,7 @@ let shared-packages = import ../shared/packages.nix { inherit pkgs; }; in
 shared-packages ++ [
   dockutil
   karabiner-elements
+
+  # Password management
+  _1password-cli
 ]
