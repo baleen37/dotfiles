@@ -1,105 +1,117 @@
-# dotfiles (Nix, Home Manager, nix-darwin)
+# dotfiles: Declarative macOS & NixOS Environment
 
-이 저장소는 macOS 및 Linux 개발 환경을 [Nix](https://nixos.org/), [Home Manager](https://nix-community.github.io/home-manager/), [nix-darwin](https://github.com/LnL7/nix-darwin)로 선언적으로 관리합니다. [phip1611/nixos-configs](https://github.com/phip1611/nixos-configs) 스타일 구조를 따릅니다.
+> Nix, Home Manager, nix-darwin 기반의 macOS/Linux 개발 환경 선언적 관리
 
-## Directory Structure
+## Overview
+
+이 저장소는 Nix, Home Manager, nix-darwin을 활용해 macOS 및 Linux 개발 환경을 **완전히 선언적**으로 관리합니다. 모든 설정은 코드로 관리되며, 새로운 시스템에서도 한 번의 명령어로 동일한 환경을 재현할 수 있습니다.
+
+## Features
+
+- macOS, NixOS 모두 지원
+- flakes 기반의 reproducible 환경
+- Home Manager, nix-darwin 통합
+- 공통/호스트별/역할별 모듈화
+- 주요 개발 도구 및 앱 자동 설치/설정
+
+## Directory Layout
 
 ```
 .
-├── apps/
-│   ├── darwin/   # macOS용 Nix app 정의 (mkApp 기반, 예: switch)
-│   └── linux/    # Linux용 Nix app 정의 (mkApp 기반, 예: switch)
-│
-├── hosts/
-│   └── darwin/
-│       ├── baleen/
-│       │   ├── configuration.nix
-│       │   └── home.nix
-│       └── jito/
-│           ├── configuration.nix
-│           └── home.nix
-│   └── linux/
-│       └── (필요시 Linux 호스트별 디렉토리)
-│
-├── modules/
+├── apps/           # Nix installable apps (mkApp 기반, 플랫폼별)
+│   ├── x86_64-darwin/
+│   ├── aarch64-darwin/
+│   ├── x86_64-linux/
+│   └── aarch64-linux/
+├── hosts/          # 호스트별 설정 (macOS, NixOS)
+│   ├── darwin/
+│   └── nixos/
+├── modules/        # 시스템/공통/프로그램별 모듈
+│   ├── darwin/
 │   ├── nixos/
-│   │   ├── core/         # 시스템 공통(core) 설정
-│   │   ├── services/     # 서비스(nginx, monitoring 등)
-│   │   ├── programs/     # 프로그램별(nvim, zsh 등)
-│   │   └── desktop/      # 데스크탑 환경(i3, polybar 등)
-│   ├── darwin/           # macOS 전용 모듈
-│   ├── shared/           # macOS/Linux 공통 모듈
-│   ├── overlays/         # 오버레이(패치, 커스텀 패키지)
-│
-├── overlays/             # Nixpkgs 오버레이
-│   └── default.nix
-│
-├── templates/            # 템플릿(호스트, 모듈)
-│   ├── new-host/
-│   │   └── configuration.nix.template
-│   └── new-module/
-│       └── default.nix.template
-│
-├── flake.nix
+│   └── shared/
+├── overlays/       # Nixpkgs 오버레이
+├── legacy/         # 이전 버전/백업/마이그레이션 자료
+├── flake.nix       # Nix flake entrypoint
 ├── flake.lock
 └── README.md
 ```
 
-## Apps
-The apps in this directory are Nix installables, created using the `mkApp` function declared within my `flake.nix` file.
+- **apps/**: `nix run .#switch` 등으로 실행할 수 있는 Nix 앱 정의 (플랫폼별)
+- **hosts/**: 각 호스트별 시스템/유저 설정(nix-darwin, home-manager, nixos)
+- **modules/**: 공통/프로그램별/서비스별 Nix 모듈 (darwin, nixos, shared)
+- **overlays/**: 패치, 커스텀 패키지
+- **legacy/**: 이전 구조/마이그레이션 자료
 
-These Nix commands are tailored for different systems, including Linux (`x86_64-linux`, `aarch64-linux`) and Darwin (`aarch64-darwin`, `x86_64-darwin`).
+## Getting Started
 
-They execute with `nix run .#switch` (on the appropriate platform) and are referenced as part of the step-by-step instructions found in the README.
+### 1. Nix 설치 및 flakes 활성화
 
-### Example
-
-- macOS: `nix run .#switch` (runs darwin-rebuild)
-- Linux: `nix run .#switch` (runs nixos-rebuild)
-
-## 폴더 구조
-
-```
-common/
-  modules/           # 공통 Nix 모듈 (user-env, services, system 등)
-    user-env/
-      cli/           # CLI(터미널/텍스트 기반) 프로그램 모듈 (tmux, nvim, git 등)
-      gui/           # GUI(그래픽 기반) 프로그램 모듈 (hammerspoon, vscode, raycast 등)
-    ...
-  nix/               # 공통 패키지, 오버레이, 라이브러리
-  config/            # 앱별 설정파일 (nvim, hammerspoon 등)
-hosts/               # 호스트별 설정 (baleen, jito 등)
-profiles/            # 역할/목적별 프로필
-modules/             # (필요시) 시스템/공통 모듈
-utils/               # 설치/유틸 스크립트
-flake.nix            # Nix flake 진입점
-install.sh           # 설치 스크립트
+```sh
+xcode-select --install
+curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install
+# flakes 활성화: ~/.config/nix/nix.conf에 아래 추가
+mkdir -p ~/.config/nix
+echo "experimental-features = nix-command flakes" >> ~/.config/nix/nix.conf
 ```
 
-## 주요 파일/모듈 작성법
-- **공통 앱/환경 모듈**: `common/modules/user-env/cli/<name>/default.nix` 또는 `common/modules/user-env/gui/<name>/default.nix` (Home Manager 스타일)
-  - CLI 예: `tmux`, `nvim`, `git`, `ssh`, `wezterm`, `act`, `1password` 등
-  - GUI 예: `hammerspoon`, `homerow`, `karabiner-elements`, `raycast`, `vscode`, `obsidian`, `syncthing` 등
-- **호스트별 설정**: `hosts/<host>/home.nix`에서 공통 모듈을 import하여 사용
-  - 예시: `hosts/baleen/home.nix`, `hosts/jito/home.nix` 등
-  - flake에서 homeConfigurations = { baleen = hosts/baleen/home.nix; jito = hosts/jito/home.nix; } 형태로 명시적으로 관리
-  - 적용 시: `home-manager switch --flake .#baleen` 또는 `home-manager switch --flake .#jito`
-- **패키지/오버레이**: `common/nix/packages/`, `common/nix/overlays/`
+### 2. 저장소 클론
 
-## 테스트/적용 방법
-- Nix flake 테스트: `nix flake check`
-- 실제 적용(macOS): `darwin-rebuild switch --flake .#<host>`
-- Home Manager 적용: `home-manager switch --flake .#<host>`
+```sh
+git clone https://github.com/yourname/dotfiles.git
+cd dotfiles
+```
 
-## 변경 이력
-- 2024-06: phip1611 스타일 구조로 전체 마이그레이션 및 user-env/cli, gui 분리
-  - 모든 공통 모듈/패키지 `common/`으로 이동
-  - `hammerspoon`, `homerow` 등 Home Manager 스타일로 리팩토링
-  - import 경로 및 Nix 표현식 일관성 유지
-  - user-env/cli, gui 분리
-  - **공통 home-linux.nix 삭제, 호스트별 home.nix로 통합**
+### 3. 환경 적용
+
+#### macOS
+
+```sh
+nix run .#switch
+# 또는
+./apps/x86_64-darwin/build-switch
+# 또는
+./apps/aarch64-darwin/build-switch
+# 또는
+sudo darwin-rebuild switch --flake .#<host>
+```
+
+#### NixOS
+
+```sh
+sudo nixos-rebuild switch --flake .#<host>
+```
+
+#### Home Manager만 적용
+
+```sh
+home-manager switch --flake .#<host>
+```
+
+## Development Workflow
+
+1. 설정 파일 수정
+2. 아래 명령어로 적용/테스트
+   - `nix flake check`
+   - `nix run .#switch`
+   - `darwin-rebuild switch --flake .#<host>`
+   - `home-manager switch --flake .#<host>`
+
+## How to Add/Modify Modules
+
+- 공통 CLI 프로그램: `modules/shared/user-env/cli/<name>/default.nix`
+- 공통 GUI 프로그램: `modules/shared/user-env/gui/<name>/default.nix`
+- macOS 전용: `modules/darwin/`
+- NixOS 전용: `modules/nixos/`
+- 호스트별: `hosts/<platform>/<host>/home.nix`, `hosts/<platform>/<host>/configuration.nix`
 
 ## 참고
-- 새로운 앱/설정은 `common/modules/user-env/cli/` 또는 `common/modules/user-env/gui/`에 Home Manager 스타일로 추가
-- macOS/Linux 공통 모듈은 `common/modules/shared/` 활용
+
+- [dustinlyons/nixos-config](https://github.com/dustinlyons/nixos-config)
+- [phip1611/nixos-configs](https://github.com/phip1611/nixos-configs)
+- [NixOS Manual](https://nixos.org/manual/nixos/stable/)
+
+---
+
+> 변경 이력, 마이그레이션 내역 등은 legacy/ 디렉토리와 커밋 로그를 참고하세요.
 
