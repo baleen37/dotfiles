@@ -111,6 +111,7 @@
               useGlobalPkgs = true;
               useUserPackages = true;
               users.${user} = import ./modules/nixos/home-manager.nix;
+              backupFileExtension = "bak";
             };
           }
           ./hosts/nixos

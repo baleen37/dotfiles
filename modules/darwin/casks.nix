@@ -4,6 +4,7 @@ _:
   # Development Tools
   "homebrew/cask/docker"
   "visual-studio-code"
+  "cursor"
 
   # Communication Tools
   "discord"
@@ -23,4 +24,8 @@ _:
 
   # Browsers
   "google-chrome"
+  "brave-browser"
+  "firefox"
+
+  "hammerspoon"
 ]
