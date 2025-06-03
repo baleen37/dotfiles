@@ -59,7 +59,9 @@ in
         ];
         stateVersion = "23.11";
       };
-      programs = {} // import ../shared/home-manager.nix { inherit config pkgs lib; };
+      programs = lib.mkMerge [
+        (import ../shared/home-manager.nix { inherit config pkgs lib; })
+      ];
 
       # Marked broken Oct 20, 2022 check later to remove this
       # https://github.com/nix-community/home-manager/issues/3344
@@ -82,6 +84,7 @@ in
     { path = "/System/Applications/Photo Booth.app/"; }
     { path = "/System/Applications/TV.app/"; }
     { path = "/System/Applications/Home.app/"; }
+    { path = "/Applications/Karabiner-Elements.app/"; }
     {
       path = toString myEmacsLauncher;
       section = "others";

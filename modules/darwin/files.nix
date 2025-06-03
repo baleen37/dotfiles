@@ -39,4 +39,9 @@ let
   };
 
 
+  "${xdg_configHome}/karabiner" = {
+    source = ./config/karabiner;
+    recursive = true;
+  };
+
 }
