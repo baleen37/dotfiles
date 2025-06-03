@@ -85,6 +85,8 @@ in
     { path = "/System/Applications/TV.app/"; }
     { path = "/System/Applications/Home.app/"; }
     { path = "/Applications/Karabiner-Elements.app/"; }
+    { path = "/Applications/Raycast.app/"; }
+    { path = "/Applications/Obsidian.app/"; }
     {
       path = toString myEmacsLauncher;
       section = "others";
