@@ -18,6 +18,7 @@
 - GitHub Actions 기반 CI로 macOS/Linux(x86_64, aarch64) 빌드 및 테스트
 - 멀티플랫폼 matrix smoke 테스트로 기본 빌드 오류 조기 확인
 - 오래된 PR은 자동으로 stale로 표시 후 닫힘
+- Makefile 기반 로컬/CI 명령어 통합
 
 ## Directory Layout
 
@@ -72,19 +73,13 @@ cd dotfiles
 #### macOS
 
 ```sh
-nix run .#switch
-# 또는
-./apps/x86_64-darwin/build-switch
-# 또는
-./apps/aarch64-darwin/build-switch
-# 또는
-sudo darwin-rebuild switch --flake .#<host>
+make switch HOST=<host>
 ```
 
 #### NixOS
 
 ```sh
-sudo nixos-rebuild switch --flake .#<host>
+make switch HOST=<host>
 ```
 
 #### Home Manager만 적용
@@ -97,22 +92,15 @@ home-manager switch --flake .#<host>
 
 1. 설정 파일 수정
 2. 아래 명령어로 적용/테스트
-   - `nix flake check`
-   - `nix run .#switch`
-   - `darwin-rebuild switch --flake .#<host>`
+   - `make lint`
+   - `make smoke`
+   - `make build`
+   - `make switch HOST=<host>`
    - `home-manager switch --flake .#<host>`
-   - `pre-commit run --all-files`
 
 ## Smoke Tests
 
-GitHub Actions에서 각 플랫폼(macOS, Linux)의 x86_64와 aarch64 환경에 대해 smoke test를 실행해 빌드 오류를 조기에 확인합니다. 로컬에서도 다음 명령어로 동일하게 테스트할 수 있습니다.
-
-```sh
-nix flake check --system x86_64-linux --no-build
-nix flake check --system aarch64-linux --no-build
-nix flake check --system x86_64-darwin --no-build
-nix flake check --system aarch64-darwin --no-build
-```
+GitHub Actions에서 각 플랫폼(macOS, Linux)의 x86_64와 aarch64 환경에 대해 smoke test를 실행해 빌드 오류를 조기에 확인합니다. 로컬에서는 `make smoke` 명령어로 동일한 테스트를 수행할 수 있습니다.
 
 ## How to Add/Modify Modules
 

@@ -15,9 +15,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: pre-commit/action@v3.0.1
-        with:
-          extra_args: --all-files
+      - name: Install pre-commit
+        run: pip install pre-commit
+      - name: Run lint
+        run: make lint
 
   smoke:
     needs: lint
@@ -49,7 +50,7 @@ jobs:
             ${{ runner.os }}-nix-
       - name: Run smoke test
         run: |
-          nix flake check --system ${{ matrix.system }} --no-build
+          make smoke SYSTEM=${{ matrix.system }}
 
   build-test:
     needs: [lint, smoke]
@@ -91,4 +92,4 @@ jobs:
           nix build --no-link ".#${{ matrix.build_attr }}"
       - name: Run Nix flake checks
         run: |
-          nix flake check --system ${{ matrix.system }} --no-build
+          make smoke SYSTEM=${{ matrix.system }}
