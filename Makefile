@@ -17,22 +17,22 @@ lint:
 
 ifdef SYSTEM
 smoke:
-	$(NIX) flake check --system $(SYSTEM) --no-build $(ARGS)
+	$(NIX) flake check --impure --system $(SYSTEM) --no-build $(ARGS)
 else
 smoke:
-	$(NIX) flake check --all-systems --no-build $(ARGS)
+	$(NIX) flake check --impure --all-systems --no-build $(ARGS)
 endif
 
 test:
-	@USER=$${USER:-codex} $(NIX) flake check --impure --no-build
+	$(NIX) flake check --impure --no-build
 
 build-linux:
-	$(NIX) build --no-link ".#nixosConfigurations.x86_64-linux.config.system.build.toplevel" $(ARGS)
-	$(NIX) build --no-link ".#nixosConfigurations.aarch64-linux.config.system.build.toplevel" $(ARGS)
+	$(NIX) build --impure --no-link ".#nixosConfigurations.x86_64-linux.config.system.build.toplevel" $(ARGS)
+	$(NIX) build --impure --no-link ".#nixosConfigurations.aarch64-linux.config.system.build.toplevel" $(ARGS)
 
 build-darwin:
-	$(NIX) build --no-link ".#darwinConfigurations.x86_64-darwin.system" $(ARGS)
-	$(NIX) build --no-link ".#darwinConfigurations.aarch64-darwin.system" $(ARGS)
+	$(NIX) build --impure --no-link ".#darwinConfigurations.x86_64-darwin.system" $(ARGS)
+	$(NIX) build --impure --no-link ".#darwinConfigurations.aarch64-darwin.system" $(ARGS)
 
 build: build-linux build-darwin
 
@@ -46,11 +46,11 @@ switch:
 	fi; \
 	TARGET=${HOST-$${DEFAULT_SYSTEM}}; \
 	if [ "$${OS}" = "Darwin" ]; then \
-	nix --extra-experimental-features 'nix-command flakes' build .#darwinConfigurations.$${TARGET}.system $(ARGS); \
+	nix --extra-experimental-features 'nix-command flakes' build --impure .#darwinConfigurations.$${TARGET}.system $(ARGS); \
 	sudo ./result/sw/bin/darwin-rebuild switch --flake .#$${TARGET} $(ARGS); \
 	unlink ./result; \
 	else \
-	sudo SSH_AUTH_SOCK=$$SSH_AUTH_SOCK /run/current-system/sw/bin/nixos-rebuild switch --flake .#$${TARGET} $(ARGS); \
+	sudo SSH_AUTH_SOCK=$$SSH_AUTH_SOCK /run/current-system/sw/bin/nixos-rebuild switch --impure --flake .#$${TARGET} $(ARGS); \
 	fi
 
 .PHONY: help lint smoke test build build-linux build-darwin switch
