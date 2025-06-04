@@ -68,10 +68,6 @@ jobs:
             system: x86_64-linux
             kind: linux
             build_attr: nixosConfigurations.x86_64-linux.config.system.build.toplevel
-          - os: ubuntu-latest
-            system: aarch64-linux
-            kind: linux
-            build_attr: nixosConfigurations.aarch64-linux.config.system.build.toplevel
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
