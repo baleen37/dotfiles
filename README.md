@@ -100,6 +100,17 @@ home-manager switch --flake .#<host>
    - `home-manager switch --flake .#<host>`
    - `pre-commit run --all-files`
 
+## Smoke Tests
+
+GitHub Actions에서 각 플랫폼(macOS, Linux)의 x86_64와 aarch64 환경에 대해 smoke test를 실행해 빌드 오류를 조기에 확인합니다. 로컬에서도 다음 명령어로 동일하게 테스트할 수 있습니다.
+
+```sh
+nix flake check --system x86_64-linux --no-build
+nix flake check --system aarch64-linux --no-build
+nix flake check --system x86_64-darwin --no-build
+nix flake check --system aarch64-darwin --no-build
+```
+
 ## How to Add/Modify Modules
 
 - 공통 CLI 프로그램: `modules/shared/user-env/cli/<name>/default.nix`
