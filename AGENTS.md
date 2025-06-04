@@ -56,3 +56,13 @@ agent는 변경 사항이 Nix flake에 영향을 줄 경우 다음 절차를 수
    - `nix build --no-link ".#darwinConfigurations.x86_64-darwin.system"`
    - `nix build --no-link ".#darwinConfigurations.aarch64-darwin.system"`
 4. **최종 확인**: 빌드 후 다시 한 번 각 시스템에서 `nix flake check --system <SYSTEM> --no-build`을 실행합니다.
+
+## Quick Test Workflow
+아래 명령을 순서대로 실행하면 CI와 동일한 검증을 로컬에서 수행할 수 있습니다.
+
+```sh
+make lint   # pre-commit run --all-files
+make smoke  # nix flake check --all-systems --no-build
+make build  # build all NixOS/darwin configurations
+make smoke  # final flake check after build
+```

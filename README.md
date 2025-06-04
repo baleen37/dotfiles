@@ -105,11 +105,13 @@ home-manager switch --flake .#<host>
 
 ## Contributing & Testing
 
-프로젝트 수정 후에는 아래 명령어로 기본 검증을 수행합니다.
+프로젝트 수정 후에는 아래 명령을 순서대로 실행해 CI와 동일한 검증을 로컬에서 진행합니다.
 
 ```sh
-pre-commit run --all-files
-nix flake check --all-systems --no-build
+make lint   # pre-commit run --all-files
+make smoke  # nix flake check --all-systems --no-build
+make build  # build all NixOS/darwin configurations
+make smoke  # final flake check after build
 ```
 
 Codex agent 규칙은 `AGENTS.md`에서 확인할 수 있습니다.
