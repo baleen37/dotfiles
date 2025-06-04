@@ -108,8 +108,8 @@ home-manager switch --flake .#<host>
    - `make switch HOST=<host>`
    - `home-manager switch --flake .#<host>`
    
-Makefile targets internally use `nix --extra-experimental-features 'nix-command flakes'`.
-If these features are not enabled globally, the commands will still work.
+Makefile targets internally run `nix` with `--extra-experimental-features 'nix-command flakes'` and `--impure` so that the `USER` environment variable is respected.
+Even if these features are not globally enabled, the commands will still work.
 
 ## Contributing & Testing
 
