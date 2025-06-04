@@ -24,7 +24,7 @@ smoke:
 endif
 
 test:
-	$(NIX) flake check --no-build
+	@USER=$${USER:-codex} $(NIX) flake check --impure --no-build
 
 build-linux:
 	$(NIX) build --no-link ".#nixosConfigurations.x86_64-linux.config.system.build.toplevel" $(ARGS)
