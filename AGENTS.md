@@ -37,6 +37,10 @@
   - `nix flake check --no-build`
   - 필요한 경우 `pre-commit run --files <경로>`
 
+## Agent 테스트
+- 문서나 설정 변경 후 `pre-commit run --all-files`로 전체 검사를 수행합니다.
+- Nix 환경 통합을 확인하려면 `nix flake check --all-systems --no-build`를 실행합니다.
+
 ## GitHub CI 테스트
 agent는 변경 사항이 Nix flake에 영향을 줄 경우 다음 절차를 수행해 CI와 동일한 검증을 선행합니다.
 
