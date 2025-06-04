@@ -4,25 +4,29 @@ ARCH := $(shell uname -m)
 OS := $(shell uname -s | tr A-Z a-z)
 
 help:
-	@echo "Available targets:"
-	@echo "  lint   - Run pre-commit lint"
-	@echo "  smoke  - Run nix flake checks for all systems"
-	@echo "  build  - Build all Darwin and NixOS configurations"
-	@echo "  switch - Apply configuration on the current machine (HOST=<system> optional)"
+        @echo "Available targets:"
+        @echo "  lint   - Run pre-commit lint"
+        @echo "  smoke  - Run nix flake checks for all systems"
+        @echo "  test   - Run flake unit tests"
+        @echo "  build  - Build all Darwin and NixOS configurations"
+        @echo "  switch - Apply configuration on the current machine (HOST=<system> optional)"
 
 lint:
 	pre-commit run --all-files
 
 ifdef SYSTEM
 smoke:
-	nix flake check --system $(SYSTEM) --no-build
+        nix flake check --system $(SYSTEM) --no-build
 else
 smoke:
-	nix flake check --system x86_64-linux --no-build
-	nix flake check --system aarch64-linux --no-build
-	nix flake check --system x86_64-darwin --no-build
-	nix flake check --system aarch64-darwin --no-build
+        nix flake check --system x86_64-linux --no-build
+        nix flake check --system aarch64-linux --no-build
+        nix flake check --system x86_64-darwin --no-build
+        nix flake check --system aarch64-darwin --no-build
 endif
+
+test:
+        nix flake check --no-build
 
 build-linux:
 	nix build --no-link ".#nixosConfigurations.x86_64-linux.config.system.build.toplevel"
@@ -51,4 +55,4 @@ switch:
 	  sudo SSH_AUTH_SOCK=$$SSH_AUTH_SOCK /run/current-system/sw/bin/nixos-rebuild switch --flake .#$${TARGET}; \
 	fi
 
-.PHONY: help lint smoke build build-linux build-darwin switch
+.PHONY: help lint smoke test build build-linux build-darwin switch
