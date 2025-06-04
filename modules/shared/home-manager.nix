@@ -35,10 +35,8 @@ let name = "Jiho Lee";
       # Remove history data we don't want to see
       export HISTIGNORE="pwd:ls:cd"
 
-      # Emacs is my editor
-      export ALTERNATE_EDITOR=""
-      export EDITOR="emacsclient -t"
-      export VISUAL="emacsclient -c -a emacs"
+      export EDITOR="vim"
+      export VISUAL="vim"
 
       if command -v op >/dev/null 2>&1; then
         if [[ -z "$${OP_SESSION_MY_1PASSWORD_COM:-}" ]]; then
@@ -49,9 +47,6 @@ let name = "Jiho Lee";
         fi
       fi
 
-      e() {
-          emacsclient -t "$@"
-      }
 
       # nix shortcuts
       shell() {
