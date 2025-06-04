@@ -117,5 +117,17 @@
           ./hosts/nixos
         ];
      });
+
+      checks = forAllSystems (system:
+        let
+          overlays = let path = ./overlays; in with builtins;
+            map (n: import (path + "/${n}"))
+              (filter (n: match ".*\\.nix" n != null ||
+                        pathExists (path + "/${n}/default.nix"))
+                      (attrNames (readDir path)));
+          pkgs = import nixpkgs { inherit system overlays; };
+        in {
+          feather-font = pkgs.callPackage ./tests/feather-font.nix {};
+        });
   };
 }
