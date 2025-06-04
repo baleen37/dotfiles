@@ -118,6 +118,10 @@ Codex agent 규칙은 `AGENTS.md`에서 확인할 수 있습니다.
 
 GitHub Actions에서 각 플랫폼(macOS, Linux)의 x86_64와 aarch64 환경에 대해 smoke test를 실행해 빌드 오류를 조기에 확인합니다. 로컬에서는 `make smoke` 명령어로 동일한 테스트를 수행할 수 있습니다.
 
+## Makefile Tests
+
+`tests/makefile.nix`에서 `make help` 출력 여부를 확인합니다. `nix flake check`에 포함되어 자동 실행됩니다.
+
 ## How to Add/Modify Modules
 
 - 공통 CLI 프로그램: `modules/shared/user-env/cli/<name>/default.nix`
