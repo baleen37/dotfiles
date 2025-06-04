@@ -2,7 +2,7 @@
 
 let
   # The main user for this configuration
-  user = "jito";
+  user = "baleen";
   sharedFiles = import ../shared/files.nix { inherit config pkgs; };
   additionalFiles = import ./files.nix { inherit user config pkgs; };
 in

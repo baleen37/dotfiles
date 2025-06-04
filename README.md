@@ -6,6 +6,8 @@
 
 이 저장소는 Nix, Home Manager, nix-darwin을 활용해 macOS 및 Linux 개발 환경을 **완전히 선언적**으로 관리합니다. 모든 설정은 코드로 관리되며, 새로운 시스템에서도 한 번의 명령어로 동일한 환경을 재현할 수 있습니다.
 
+자동화된 변경 작업을 담당하는 Codex agent를 위해 별도의 가이드 파일(`AGENTS.md`)을 유지합니다. 에이전트 관련 규칙이나 작업 흐름을 수정할 경우 이 파일을 우선 갱신하세요.
+
 ## Features
 
 - macOS, NixOS 모두 지원
@@ -14,6 +16,8 @@
 - 공통/호스트별/역할별 모듈화
 - 주요 개발 도구 및 앱 자동 설치/설정
 - GitHub Actions 기반 CI로 macOS/Linux(x86_64, aarch64) 빌드 및 테스트
+- 멀티플랫폼 matrix smoke 테스트로 기본 빌드 오류 조기 확인
+- 오래된 PR은 자동으로 stale로 표시 후 닫힘
 
 ## Directory Layout
 
@@ -98,6 +102,17 @@ home-manager switch --flake .#<host>
    - `darwin-rebuild switch --flake .#<host>`
    - `home-manager switch --flake .#<host>`
    - `pre-commit run --all-files`
+
+## Smoke Tests
+
+GitHub Actions에서 각 플랫폼(macOS, Linux)의 x86_64와 aarch64 환경에 대해 smoke test를 실행해 빌드 오류를 조기에 확인합니다. 로컬에서도 다음 명령어로 동일하게 테스트할 수 있습니다.
+
+```sh
+nix flake check --system x86_64-linux --no-build
+nix flake check --system aarch64-linux --no-build
+nix flake check --system x86_64-darwin --no-build
+nix flake check --system aarch64-darwin --no-build
+```
 
 ## How to Add/Modify Modules
 

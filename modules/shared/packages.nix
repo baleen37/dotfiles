@@ -8,6 +8,7 @@ with pkgs; [
   # Cloud-related tools and SDKs
   docker
   docker-compose
+  act
 
   # Password management
   _1password-cli
@@ -24,6 +25,7 @@ with pkgs; [
   unrar
   unzip
   zsh-powerlevel10k
+  fzf
 
   # Terminal applications
   wezterm

@@ -1,7 +1,7 @@
 { config, pkgs, lib, ... }:
 
 let name = "Jiho Lee";
-    user = "jito";
+    user = "baleen";
     email = "baleen37@gmail.com"; in
 {
   # Shared shell configuration
@@ -21,7 +21,7 @@ let name = "Jiho Lee";
       }
     ];
 
-    initExtraFirst = ''
+    initContent = lib.mkBefore ''
       if [[ -f /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]]; then
         . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
         . /nix/var/nix/profiles/default/etc/profile.d/nix.sh

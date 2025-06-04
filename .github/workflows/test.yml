@@ -1,14 +1,12 @@
-# .github/workflows/test.yml
 name: CI
-
-permissions:
-  contents: read         # repo 내용 접근
-
 on:
   push:
     branches: [main]
   pull_request:
   workflow_dispatch:
+
+permissions:
+  contents: read         # repo 내용 접근
 
 jobs:
   lint:
@@ -21,27 +19,55 @@ jobs:
         with:
           extra_args: --all-files
 
-  build-test:
+  smoke:
     needs: lint
     strategy:
       matrix:
         include:
-          - os: macos-latest
-            kind: darwin
-            system: x86_64-darwin
-            flake_attr: darwinConfigurations
-          - os: macos-latest
-            kind: darwin
-            system: aarch64-darwin
-            flake_attr: darwinConfigurations
           - os: ubuntu-latest
-            kind: linux
             system: x86_64-linux
-            flake_attr: homeConfigurations
           - os: ubuntu-latest
-            kind: linux
             system: aarch64-linux
-            flake_attr: homeConfigurations
+          - os: macos-latest
+            system: x86_64-darwin
+          - os: macos-latest
+            system: aarch64-darwin
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: cachix/install-nix-action@v25
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+      - name: Cache Nix store
+        uses: actions/cache@v4
+        with:
+          path: /nix/store
+          key: ${{ runner.os }}-nix-${{ hashFiles('flake.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-nix-
+      - name: Run smoke test
+        run: |
+          nix flake check --system ${{ matrix.system }} --no-build
+
+  build-test:
+    needs: [lint, smoke]
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            system: x86_64-darwin
+            kind: darwin
+            build_attr: darwinConfigurations.x86_64-darwin.system
+          - os: macos-latest
+            system: aarch64-darwin
+            kind: darwin
+            build_attr: darwinConfigurations.aarch64-darwin.system
+          - os: ubuntu-latest
+            system: x86_64-linux
+            kind: linux
+            build_attr: nixosConfigurations.x86_64-linux.config.system.build.toplevel
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -52,9 +78,17 @@ jobs:
         with:
           nix_path: nixpkgs=channel:nixos-unstable
 
+      - name: Cache Nix store
+        uses: actions/cache@v4
+        with:
+          path: /nix/store
+          key: ${{ runner.os }}-nix-${{ hashFiles('flake.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-nix-
+
       - name: Build flake outputs
         run: |
-          nix build --no-link
+          nix build --no-link ".#${{ matrix.build_attr }}"
       - name: Run Nix flake checks
         run: |
           nix flake check --system ${{ matrix.system }} --no-build
