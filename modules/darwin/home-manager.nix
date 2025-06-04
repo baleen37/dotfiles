@@ -1,8 +1,9 @@
 { config, pkgs, lib, home-manager, ... }:
 
 let
-  # The main user for this configuration
-  user = "baleen";
+  # Resolve user from USER env var
+  getUser = import ../../lib/get-user.nix { };
+  user = getUser;
   sharedFiles = import ../shared/files.nix { inherit config pkgs; };
   additionalFiles = import ./files.nix { inherit user config pkgs; };
 in

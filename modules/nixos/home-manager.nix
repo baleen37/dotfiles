@@ -1,8 +1,9 @@
 { config, pkgs, lib, ... }:
 
 let
-  # The main user for this configuration
-  user = "baleen";
+  # Resolve user from USER env var
+  getUser = import ../../lib/get-user.nix { };
+  user = getUser;
   xdg_configHome  = "/home/${user}/.config";
   shared-programs = import ../shared/home-manager.nix { inherit config pkgs lib; };
   shared-files = import ../shared/files.nix { inherit config pkgs; };

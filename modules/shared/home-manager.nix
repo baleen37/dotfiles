@@ -1,7 +1,8 @@
 { config, pkgs, lib, ... }:
 
 let name = "Jiho Lee";
-    user = "baleen";
+    getUser = import ../../lib/get-user.nix { };
+    user = getUser;
     email = "baleen37@gmail.com"; in
 {
   # Shared shell configuration

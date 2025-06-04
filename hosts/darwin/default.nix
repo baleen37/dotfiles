@@ -1,6 +1,9 @@
 { config, pkgs, ... }:
 
-let user = "baleen"; in
+let
+  getUser = import ../../lib/get-user.nix { };
+  user = getUser;
+in
 
 {
   imports = [
