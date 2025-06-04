@@ -2,7 +2,7 @@
 
 let
   # The main user for this configuration
-  user = "jito";
+  user = "baleen";
   xdg_configHome  = "/home/${user}/.config";
   shared-programs = import ../shared/home-manager.nix { inherit config pkgs lib; };
   shared-files = import ../shared/files.nix { inherit config pkgs; };

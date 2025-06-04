@@ -2,7 +2,7 @@
 
 let
   # The main user for this configuration
-  user = "jito";
+  user = "baleen";
   # Define the content of your file as a derivation
   myEmacsLauncher = pkgs.writeScript "emacs-launcher.command" ''
     #!/bin/sh
