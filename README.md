@@ -14,6 +14,7 @@
 - 공통/호스트별/역할별 모듈화
 - 주요 개발 도구 및 앱 자동 설치/설정
 - GitHub Actions 기반 CI로 macOS/Linux(x86_64, aarch64) 빌드 및 테스트
+- 멀티플랫폼 matrix smoke 테스트로 기본 빌드 오류 조기 확인
 
 ## Directory Layout
 
