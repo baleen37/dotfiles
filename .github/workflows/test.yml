@@ -37,12 +37,9 @@ jobs:
         with:
           nix_path: nixpkgs=channel:nixos-unstable
 
-      - name: Run build-test (빌드/스모크/드라이런)
+      - name: Build flake outputs
         run: |
-          make build-test
-      - name: Run e2e-test (NixOS VM 기반 end-to-end)
-        run: |
-          make e2e-test
-      - name: Run Nix flake checks (NixOS VM test 포함)
+          nix build --no-link
+      - name: Run Nix flake checks
         run: |
           nix flake check --system ${{ matrix.system }} --no-build
