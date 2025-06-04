@@ -16,25 +16,22 @@ lint:
 
 ifdef SYSTEM
 smoke:
-        nix flake check --system $(SYSTEM) --no-build
+	nix flake check --system $(SYSTEM) --no-build $(ARGS)
 else
 smoke:
-        nix flake check --system x86_64-linux --no-build
-        nix flake check --system aarch64-linux --no-build
-        nix flake check --system x86_64-darwin --no-build
-        nix flake check --system aarch64-darwin --no-build
+	nix flake check --all-systems --no-build $(ARGS)
 endif
 
 test:
         nix flake check --no-build
 
 build-linux:
-	nix build --no-link ".#nixosConfigurations.x86_64-linux.config.system.build.toplevel"
-	nix build --no-link ".#nixosConfigurations.aarch64-linux.config.system.build.toplevel"
+	nix build --no-link ".#nixosConfigurations.x86_64-linux.config.system.build.toplevel" $(ARGS)
+	nix build --no-link ".#nixosConfigurations.aarch64-linux.config.system.build.toplevel" $(ARGS)
 
 build-darwin:
-	nix build --no-link ".#darwinConfigurations.x86_64-darwin.system"
-	nix build --no-link ".#darwinConfigurations.aarch64-darwin.system"
+	nix build --no-link ".#darwinConfigurations.x86_64-darwin.system" $(ARGS)
+	nix build --no-link ".#darwinConfigurations.aarch64-darwin.system" $(ARGS)
 
 build: build-linux build-darwin
 
@@ -48,11 +45,11 @@ switch:
 	fi; \
 	TARGET=${HOST-$${DEFAULT_SYSTEM}}; \
 	if [ "$${OS}" = "Darwin" ]; then \
-	  nix --extra-experimental-features 'nix-command flakes' build .#darwinConfigurations.$${TARGET}.system; \
-	  sudo ./result/sw/bin/darwin-rebuild switch --flake .#$${TARGET}; \
+	  nix --extra-experimental-features 'nix-command flakes' build .#darwinConfigurations.$${TARGET}.system $(ARGS); \
+	  sudo ./result/sw/bin/darwin-rebuild switch --flake .#$${TARGET} $(ARGS); \
 	  unlink ./result; \
 	else \
-	  sudo SSH_AUTH_SOCK=$$SSH_AUTH_SOCK /run/current-system/sw/bin/nixos-rebuild switch --flake .#$${TARGET}; \
+	  sudo SSH_AUTH_SOCK=$$SSH_AUTH_SOCK /run/current-system/sw/bin/nixos-rebuild switch --flake .#$${TARGET} $(ARGS); \
 	fi
 
 .PHONY: help lint smoke test build build-linux build-darwin switch
