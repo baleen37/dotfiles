@@ -36,6 +36,7 @@
 │   ├── darwin/
 │   ├── nixos/
 │   └── shared/
+├── lib/            # 공통 Nix 함수
 ├── overlays/       # Nixpkgs 오버레이
 ├── legacy/         # 이전 버전/백업/마이그레이션 자료
 ├── tests/          # flake checks and unit tests
@@ -48,6 +49,7 @@
 - **apps/**: `nix run .#switch` 등으로 실행할 수 있는 Nix 앱 정의 (플랫폼별)
 - **hosts/**: 각 호스트별 시스템/유저 설정(nix-darwin, home-manager, nixos)
 - **modules/**: 공통/프로그램별/서비스별 Nix 모듈 (darwin, nixos, shared)
+- **lib/**: 공통 함수 모음 (`get-user.nix`은 `USER`를 읽음)
 - **overlays/**: 패치, 커스텀 패키지
 - **legacy/**: 이전 구조/마이그레이션 자료
 - **tests/**: flake checks and unit tests
@@ -70,6 +72,9 @@ echo "experimental-features = nix-command flakes" >> ~/.config/nix/nix.conf
 ```sh
 git clone https://github.com/yourname/dotfiles.git
 cd dotfiles
+# 필요 시 USER 환경변수로 대상 계정을 지정할 수 있습니다.
+export USER=<username>
+# USER가 비어 있으면 flake 평가 단계에서 오류가 발생합니다.
 ```
 
 ### 3. 환경 적용
