@@ -103,6 +103,17 @@ home-manager switch --flake .#<host>
    - `make switch HOST=<host>`
    - `home-manager switch --flake .#<host>`
 
+## Contributing & Testing
+
+프로젝트 수정 후에는 아래 명령어로 기본 검증을 수행합니다.
+
+```sh
+pre-commit run --all-files
+nix flake check --all-systems --no-build
+```
+
+Codex agent 규칙은 `AGENTS.md`에서 확인할 수 있습니다.
+
 ## Smoke Tests
 
 GitHub Actions에서 각 플랫폼(macOS, Linux)의 x86_64와 aarch64 환경에 대해 smoke test를 실행해 빌드 오류를 조기에 확인합니다. 로컬에서는 `make smoke` 명령어로 동일한 테스트를 수행할 수 있습니다.
