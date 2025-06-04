@@ -4,12 +4,12 @@ ARCH := $(shell uname -m)
 OS := $(shell uname -s | tr A-Z a-z)
 
 help:
-        @echo "Available targets:"
-        @echo "  lint   - Run pre-commit lint"
-        @echo "  smoke  - Run nix flake checks for all systems"
-        @echo "  test   - Run flake unit tests"
-        @echo "  build  - Build all Darwin and NixOS configurations"
-        @echo "  switch - Apply configuration on the current machine (HOST=<system> optional)"
+	@echo "Available targets:"
+	@echo "  lint   - Run pre-commit lint"
+	@echo "  smoke  - Run nix flake checks for all systems"
+	@echo "  test   - Run flake unit tests"
+	@echo "  build  - Build all Darwin and NixOS configurations"
+	@echo "  switch - Apply configuration on the current machine (HOST=<system> optional)"
 
 lint:
 	pre-commit run --all-files
@@ -23,7 +23,7 @@ smoke:
 endif
 
 test:
-        nix flake check --no-build
+	nix flake check --no-build
 
 build-linux:
 	nix build --no-link ".#nixosConfigurations.x86_64-linux.config.system.build.toplevel" $(ARGS)
