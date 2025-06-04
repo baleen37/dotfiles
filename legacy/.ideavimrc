@@ -1,6 +1,0 @@
-let mapleader = ' '
-
-set number
-set rnu
-set incsearch hlsearch
-set clipboard=unnamed

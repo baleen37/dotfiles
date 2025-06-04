@@ -1,6 +1,6 @@
 { config, pkgs, ... }:
 
-let user = "baleen"; in
+let user = "jito"; in
 
 {
   imports = [
@@ -13,8 +13,8 @@ let user = "baleen"; in
 
     settings = {
       trusted-users = [ "@admin" "${user}" ];
-      substituters = [ "https://nix-community.cachix.org" "https://cache.nixos.org" ];
-      trusted-public-keys = [ "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=" ];
+      # substituters = [ "https://nix-community.cachix.org" "https://cache.nixos.org" ];
+      # trusted-public-keys = [ "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=" ];
     };
 
     gc = {
