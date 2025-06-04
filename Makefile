@@ -23,6 +23,7 @@ smoke:
 	$(NIX) flake check --impure --all-systems --no-build $(ARGS)
 endif
 
+test: export USER ?= codex
 test:
 	$(NIX) flake check --impure --no-build
 
