@@ -112,6 +112,13 @@ home-manager switch --flake .#<host>
 
 프로젝트 수정 후에는 아래 명령을 순서대로 실행해 CI와 동일한 검증을 로컬에서 진행합니다.
 
+Makefile은 `NIX_FLAGS` 환경변수로 Nix 옵션을 전달합니다. 필요한 경우 아래와 같이 설정합니다.
+
+```sh
+export USER=<username>
+export NIX_FLAGS="--impure --extra-experimental-features 'nix-command flakes'"
+```
+
 ```sh
 make lint   # pre-commit run --all-files
 make smoke  # nix flake check --all-systems --no-build
