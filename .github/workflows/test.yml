@@ -29,19 +29,19 @@ jobs:
           - os: macos-latest
             kind: darwin
             system: x86_64-darwin
-            flake_attr: darwinConfigurations
+            build_attr: darwinConfigurations.x86_64-darwin.system
           - os: macos-latest
             kind: darwin
             system: aarch64-darwin
-            flake_attr: darwinConfigurations
+            build_attr: darwinConfigurations.aarch64-darwin.system
           - os: ubuntu-latest
             kind: linux
             system: x86_64-linux
-            flake_attr: homeConfigurations
+            build_attr: nixosConfigurations.x86_64-linux.config.system.build.toplevel
           - os: ubuntu-latest
             kind: linux
             system: aarch64-linux
-            flake_attr: homeConfigurations
+            build_attr: nixosConfigurations.aarch64-linux.config.system.build.toplevel
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -54,7 +54,7 @@ jobs:
 
       - name: Build flake outputs
         run: |
-          nix build --no-link
+          nix build --no-link ".#${{ matrix.build_attr }}"
       - name: Run Nix flake checks
         run: |
           nix flake check --system ${{ matrix.system }} --no-build
