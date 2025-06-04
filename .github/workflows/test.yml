@@ -27,12 +27,8 @@ jobs:
         include:
           - os: ubuntu-latest
             system: x86_64-linux
-          - os: ubuntu-latest
-            system: aarch64-linux
           - os: macos-latest
             system: x86_64-darwin
-          - os: macos-latest
-            system: aarch64-darwin
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -61,10 +57,6 @@ jobs:
             system: x86_64-darwin
             kind: darwin
             build_attr: darwinConfigurations.x86_64-darwin.system
-          - os: macos-latest
-            system: aarch64-darwin
-            kind: darwin
-            build_attr: darwinConfigurations.aarch64-darwin.system
           - os: ubuntu-latest
             system: x86_64-linux
             kind: linux
