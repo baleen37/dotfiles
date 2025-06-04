@@ -74,7 +74,7 @@ git clone https://github.com/yourname/dotfiles.git
 cd dotfiles
 # 필요 시 USER 환경변수로 대상 계정을 지정할 수 있습니다.
 export USER=<username>
-# USER가 비어 있으면 flake 평가 단계에서 오류가 발생합니다.
+# USER가 없으면 SUDO_USER, LOGNAME, USERNAME 값을 순서대로 찾고, 모두 없으면 오류가 발생합니다.
 ```
 
 ### 3. 환경 적용

@@ -1,6 +1,13 @@
-{ envVar ? "USER" }:
+{ envVar ? "USER", altVars ? ["LOGNAME" "USERNAME"] }:
 let
-  envValue = builtins.getEnv envVar; # read from USER environment variable
+  sudoUser = builtins.getEnv "SUDO_USER"; # original user when run via sudo
+  envValue = builtins.getEnv envVar;
+  fallback = builtins.foldl' (acc: var: if acc != "" then acc else builtins.getEnv var) "" altVars;
+  result =
+    if sudoUser != "" then sudoUser
+    else if envValue != "" then envValue
+    else fallback;
 in
-  if envValue != "" then envValue else
+  if result != "" then result else
     builtins.throw "Environment variable ${envVar} must be set"
+

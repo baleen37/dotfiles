@@ -7,10 +7,26 @@ pkgs.runCommand "get-user-test" {} ''
     exit 1
   fi
   unset USER
-  if ${pkgs.nix}/bin/nix eval --impure --extra-experimental-features nix-command --expr 'import ../lib/get-user.nix {}' >/tmp/out 2>&1; then
-    echo "expected failure when USER unset"
+  export LOGNAME=codex
+  result=$(${pkgs.nix}/bin/nix eval --impure --extra-experimental-features nix-command --expr 'import ../lib/get-user.nix {}')
+  if [ "$result" != "\"codex\"" ]; then
+    echo "expected codex via LOGNAME but got $result"
     exit 1
   fi
-  grep -q "must be set" /tmp/out
+  unset LOGNAME
+  export SUDO_USER=codex
+  export USER=root
+  result=$(${pkgs.nix}/bin/nix eval --impure --extra-experimental-features nix-command --expr 'import ../lib/get-user.nix {}')
+  if [ "$result" != "\"codex\"" ]; then
+    echo "expected codex via SUDO_USER but got $result"
+    exit 1
+  fi
+  unset USER SUDO_USER
+  if ${pkgs.nix}/bin/nix eval --impure --extra-experimental-features nix-command --expr 'import ../lib/get-user.nix {}' >/dev/null 2>&1; then
+    echo "expected failure when no user vars"
+    exit 1
+  fi
   touch $out
 ''
+
+
