@@ -103,7 +103,7 @@ home-manager switch --flake .#<host>
 2. 아래 명령어로 적용/테스트
    - `make lint`
    - `make smoke`
-   - `make test` - unit 및 e2e( `tests/e2e.nix` ) 테스트 실행
+   - `make test` - unit 및 e2e( `tests/e2e.nix` ) 테스트 실행. 환경변수 `USER`가 없으면 `codex`로 설정합니다.
    - `make build`
    - `make switch HOST=<host>`
    - `home-manager switch --flake .#<host>`
