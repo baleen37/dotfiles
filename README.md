@@ -18,6 +18,7 @@
 - GitHub Actions 기반 CI로 macOS/Linux(x86_64, aarch64) 빌드 및 테스트
 - 멀티플랫폼 matrix smoke 테스트로 기본 빌드 오류 조기 확인
 - 오래된 PR은 자동으로 stale로 표시 후 닫힘
+- GitHub Actions 버전을 주기적으로 자동 업데이트
 
 ## Directory Layout
 
