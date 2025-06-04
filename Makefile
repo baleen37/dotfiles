@@ -2,6 +2,7 @@
 
 ARCH := $(shell uname -m)
 OS := $(shell uname -s | tr A-Z a-z)
+FILES ?= $(shell git ls-files)
 
 help:
 	@echo "Available targets:"
@@ -12,7 +13,8 @@ help:
 	@echo "  switch - Apply configuration on the current machine (HOST=<system> optional)"
 
 lint:
-	pre-commit run --all-files
+        # run lint only on specified files to avoid unnecessary checks
+        pre-commit run --files $(FILES)
 
 ifdef SYSTEM
 smoke:

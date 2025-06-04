@@ -96,7 +96,7 @@ home-manager switch --flake .#<host>
 
 1. 설정 파일 수정
 2. 아래 명령어로 적용/테스트
-   - `make lint`
+   - `make lint` (optional `FILES=<paths>`)
    - `make smoke`
    - `make test`
    - `make build`
@@ -106,6 +106,7 @@ home-manager switch --flake .#<host>
 ## Smoke Tests
 
 GitHub Actions에서 각 플랫폼(macOS, Linux)의 x86_64와 aarch64 환경에 대해 smoke test를 실행해 빌드 오류를 조기에 확인합니다. 로컬에서는 `make smoke` 명령어로 동일한 테스트를 수행할 수 있습니다.
+추가된 `tests/smoke.nix` 파일은 flake의 기본 정보를 검증하는 간단한 smoke 테스트를 제공합니다.
 
 ## How to Add/Modify Modules
 
