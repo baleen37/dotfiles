@@ -12,3 +12,14 @@ This document provides additional context on the layout and purpose of the `dotf
 - `docs/`: Extra documentation files like this one.
 
 See `README.md` for general usage instructions.
+
+## Tests and Automation
+
+Run the following commands after making changes:
+
+```sh
+pre-commit run --all-files
+nix flake check --all-systems --no-build
+```
+
+More details are documented in `AGENTS.md`.
