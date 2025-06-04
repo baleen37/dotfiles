@@ -8,7 +8,7 @@
 - 문서 갱신
 
 ## 기본 원칙
-1. **테스트 실행**: Nix 관련 파일을 수정하면 `nix flake check --no-build`을 실행해 빌드 오류가 없는지 확인합니다.
+1. **테스트 실행**: Nix 관련 파일을 수정하면 GitHub Actions에서 수행하는 테스트와 동일한 절차를 로컬에서도 실행합니다. 자세한 단계는 아래 "GitHub CI 테스트" 절을 참고하세요.
 2. **문서 업데이트**: 주요 설정이나 구조가 바뀌면 반드시 README.md와 관련 문서를 최신 상태로 갱신합니다.
 3. **커밋 규칙**: 의미 있는 단위로 커밋하며 커밋 메시지는 영어로 간결하게 작성합니다.
 
@@ -28,3 +28,19 @@
 - **코드 수정 후에는 반드시 테스트를 실행합니다.**
   - `nix flake check --no-build`
   - 필요한 경우 `pre-commit run --files <경로>`
+
+## GitHub CI 테스트
+agent는 변경 사항이 Nix flake에 영향을 줄 경우 다음 절차를 수행해 CI와 동일한 검증을 선행합니다.
+
+1. **Lint**: `pre-commit run --all-files`를 실행합니다.
+2. **Smoke test**: 아래 네 가지 시스템을 대상으로 `nix flake check --system <SYSTEM> --no-build`을 수행합니다.
+   - `x86_64-linux`
+   - `aarch64-linux`
+   - `x86_64-darwin`
+   - `aarch64-darwin`
+3. **Build test**: 각 시스템별 빌드가 필요한 경우 다음 명령을 실행합니다.
+   - `nix build --no-link ".#nixosConfigurations.x86_64-linux.config.system.build.toplevel"`
+   - `nix build --no-link ".#nixosConfigurations.aarch64-linux.config.system.build.toplevel"`
+   - `nix build --no-link ".#darwinConfigurations.x86_64-darwin.system"`
+   - `nix build --no-link ".#darwinConfigurations.aarch64-darwin.system"`
+4. **최종 확인**: 빌드 후 다시 한 번 각 시스템에서 `nix flake check --system <SYSTEM> --no-build`을 실행합니다.
