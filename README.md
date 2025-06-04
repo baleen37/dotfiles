@@ -38,6 +38,7 @@
 │   └── shared/
 ├── overlays/       # Nixpkgs 오버레이
 ├── legacy/         # 이전 버전/백업/마이그레이션 자료
+├── tests/          # flake checks and unit tests
 ├── flake.nix       # Nix flake entrypoint
 ├── flake.lock
 └── README.md
@@ -48,6 +49,7 @@
 - **modules/**: 공통/프로그램별/서비스별 Nix 모듈 (darwin, nixos, shared)
 - **overlays/**: 패치, 커스텀 패키지
 - **legacy/**: 이전 구조/마이그레이션 자료
+- **tests/**: flake checks and unit tests
 
 ## Getting Started
 
@@ -94,6 +96,7 @@ home-manager switch --flake .#<host>
 2. 아래 명령어로 적용/테스트
    - `make lint`
    - `make smoke`
+   - `make test`
    - `make build`
    - `make switch HOST=<host>`
    - `home-manager switch --flake .#<host>`

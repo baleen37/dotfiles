@@ -4,11 +4,12 @@ ARCH := $(shell uname -m)
 OS := $(shell uname -s | tr A-Z a-z)
 
 help:
-	@echo "Available targets:"
-	@echo "  lint   - Run pre-commit lint"
-	@echo "  smoke  - Run nix flake checks for all systems"
-	@echo "  build  - Build all Darwin and NixOS configurations"
-	@echo "  switch - Apply configuration on the current machine (HOST=<system> optional)"
+        @echo "Available targets:"
+        @echo "  lint   - Run pre-commit lint"
+        @echo "  smoke  - Run nix flake checks for all systems"
+        @echo "  test   - Run flake unit tests"
+        @echo "  build  - Build all Darwin and NixOS configurations"
+        @echo "  switch - Apply configuration on the current machine (HOST=<system> optional)"
 
 lint:
 	pre-commit run --all-files
@@ -20,6 +21,9 @@ else
 smoke:
 	nix flake check --all-systems --no-build $(ARGS)
 endif
+
+test:
+        nix flake check --no-build
 
 build-linux:
 	nix build --no-link ".#nixosConfigurations.x86_64-linux.config.system.build.toplevel" $(ARGS)
@@ -48,4 +52,4 @@ switch:
 	  sudo SSH_AUTH_SOCK=$$SSH_AUTH_SOCK /run/current-system/sw/bin/nixos-rebuild switch --flake .#$${TARGET} $(ARGS); \
 	fi
 
-.PHONY: help lint smoke build build-linux build-darwin switch
+.PHONY: help lint smoke test build build-linux build-darwin switch
