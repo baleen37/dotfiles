@@ -46,7 +46,7 @@
 └── README.md
 ```
 
-- **apps/**: `nix run .#switch` 등으로 실행할 수 있는 Nix 앱 정의 (플랫폼별)
+- **apps/**: `nix run .#switch` 또는 `nix run .#build` 등으로 실행할 수 있는 Nix 앱 정의 (플랫폼별)
 - **hosts/**: 각 호스트별 시스템/유저 설정(nix-darwin, home-manager, nixos)
 - **modules/**: 공통/프로그램별/서비스별 Nix 모듈 (darwin, nixos, shared)
 - **lib/**: 공통 함수 모음 (`get-user.nix`은 `USER`를 읽음)
