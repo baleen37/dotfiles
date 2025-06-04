@@ -46,11 +46,11 @@ switch:
 	fi; \
 	TARGET=${HOST-$${DEFAULT_SYSTEM}}; \
 	if [ "$${OS}" = "Darwin" ]; then \
-	nix --extra-experimental-features 'nix-command flakes' build --impure .#darwinConfigurations.$${TARGET}.system $(ARGS); \
-	sudo ./result/sw/bin/darwin-rebuild switch --flake .#$${TARGET} $(ARGS); \
-	unlink ./result; \
-	else \
-	sudo SSH_AUTH_SOCK=$$SSH_AUTH_SOCK /run/current-system/sw/bin/nixos-rebuild switch --impure --flake .#$${TARGET} $(ARGS); \
-	fi
+        nix --extra-experimental-features 'nix-command flakes' build --impure .#darwinConfigurations.$${TARGET}.system $(ARGS); \
+        sudo --preserve-env=USER ./result/sw/bin/darwin-rebuild switch --flake .#$${TARGET} $(ARGS); \
+        unlink ./result; \
+        else \
+        sudo --preserve-env=USER SSH_AUTH_SOCK=$$SSH_AUTH_SOCK /run/current-system/sw/bin/nixos-rebuild switch --impure --flake .#$${TARGET} $(ARGS); \
+        fi
 
 .PHONY: help lint smoke test build build-linux build-darwin switch
