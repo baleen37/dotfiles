@@ -11,7 +11,18 @@ on:
   workflow_dispatch:
 
 jobs:
-  lint-build-test:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: --all-files
+
+  build-test:
+    needs: lint
     strategy:
       matrix:
         include:
@@ -26,6 +37,10 @@ jobs:
           - os: ubuntu-latest
             kind: linux
             system: x86_64-linux
+            flake_attr: homeConfigurations
+          - os: ubuntu-latest
+            kind: linux
+            system: aarch64-linux
             flake_attr: homeConfigurations
     runs-on: ${{ matrix.os }}
     steps:
