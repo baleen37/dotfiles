@@ -1,4 +1,5 @@
-nixpkgs: nixpkgs.lib.nixosTest {
+{ nixpkgs ? import <nixpkgs> {} }:
+nixpkgs.lib.nixosTest {
   name = "homerow-basic";
   nodes.machine = { pkgs, ... }: {
     services.homerow.enable = true;

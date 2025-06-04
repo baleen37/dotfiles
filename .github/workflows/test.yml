@@ -17,9 +17,15 @@ jobs:
         include:
           - os: macos-latest
             kind: darwin
+            system: x86_64-darwin
+            flake_attr: darwinConfigurations
+          - os: macos-latest
+            kind: darwin
+            system: aarch64-darwin
             flake_attr: darwinConfigurations
           - os: ubuntu-latest
             kind: linux
+            system: x86_64-linux
             flake_attr: homeConfigurations
     runs-on: ${{ matrix.os }}
     steps:
