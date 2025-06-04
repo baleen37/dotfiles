@@ -107,6 +107,9 @@ home-manager switch --flake .#<host>
    - `make build`
    - `make switch HOST=<host>`
    - `home-manager switch --flake .#<host>`
+   
+Makefile targets internally use `nix --extra-experimental-features 'nix-command flakes'`.
+If these features are not enabled globally, the commands will still work.
 
 ## Contributing & Testing
 
