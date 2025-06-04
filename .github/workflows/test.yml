@@ -26,17 +26,13 @@ jobs:
     strategy:
       matrix:
         include:
-          - &linux_x86
-            os: ubuntu-latest
+          - os: ubuntu-latest
             system: x86_64-linux
-          - &linux_arm
-            os: ubuntu-latest
+          - os: ubuntu-latest
             system: aarch64-linux
-          - &darwin_x86
-            os: macos-latest
+          - os: macos-latest
             system: x86_64-darwin
-          - &darwin_arm
-            os: macos-latest
+          - os: macos-latest
             system: aarch64-darwin
     runs-on: ${{ matrix.os }}
     steps:
@@ -50,21 +46,46 @@ jobs:
         run: |
           nix flake check --system ${{ matrix.system }} --no-build
 
-  build-test:
-    needs: [lint, smoke]
+  smoke-devshell:
+    needs: lint
     strategy:
       matrix:
         include:
-          - <<: *darwin_x86
+          - os: ubuntu-latest
+            system: x86_64-linux
+          - os: macos-latest
+            system: x86_64-darwin
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: cachix/install-nix-action@v25
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+      - name: Run devShell smoke test
+        run: |
+          nix develop . --system ${{ matrix.system }} -c true
+
+  build-test:
+    needs: [lint, smoke, smoke-devshell]
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            system: x86_64-darwin
             kind: darwin
             build_attr: darwinConfigurations.x86_64-darwin.system
-          - <<: *darwin_arm
+          - os: macos-latest
+            system: aarch64-darwin
             kind: darwin
             build_attr: darwinConfigurations.aarch64-darwin.system
-          - <<: *linux_x86
+          - os: ubuntu-latest
+            system: x86_64-linux
             kind: linux
             build_attr: nixosConfigurations.x86_64-linux.config.system.build.toplevel
-          - <<: *linux_arm
+          - os: ubuntu-latest
+            system: aarch64-linux
             kind: linux
             build_attr: nixosConfigurations.aarch64-linux.config.system.build.toplevel
     runs-on: ${{ matrix.os }}
