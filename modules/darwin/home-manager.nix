@@ -83,10 +83,6 @@ in
     { path = "/Applications/Raycast.app/"; }
     { path = "/Applications/Obsidian.app/"; }
     {
-      path = toString myEmacsLauncher;
-      section = "others";
-    }
-    {
       path = "${config.users.users.${user}.home}/.local/share/";
       section = "others";
       options = "--sort name --view grid --display folder";
