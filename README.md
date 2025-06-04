@@ -13,8 +13,8 @@
 - Home Manager, nix-darwin 통합
 - 공통/호스트별/역할별 모듈화
 - 주요 개발 도구 및 앱 자동 설치/설정
-- GitHub Actions 기반 CI로 macOS/Linux(x86_64, aarch64) 빌드 및 테스트
-- 멀티플랫폼 matrix smoke 테스트로 기본 빌드 오류 조기 확인
+- GitHub Actions 기반 CI로 macOS/Linux 기본 아키텍처 빌드 및 테스트
+- 멀티플랫폼 smoke 테스트로 기본 빌드 오류 조기 확인
 - OS별 기본 아키텍처 devShell 스모크 테스트로 개발 환경 정의 검증
 
 ## Directory Layout
