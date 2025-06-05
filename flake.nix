@@ -31,7 +31,7 @@
 
   outputs = { self, darwin, nix-homebrew, homebrew-bundle, homebrew-core, homebrew-cask, home-manager, nixpkgs, disko } @inputs:
     let
-      getUser = import ./lib/get-user.nix { };
+      getUser = import ./lib/get-user.nix { default = "baleen"; };
       user = getUser;
       linuxSystems = [ "x86_64-linux" "aarch64-linux" ];
       darwinSystems = [ "aarch64-darwin" "x86_64-darwin" ];

@@ -27,6 +27,9 @@ with pkgs; [
   zsh-powerlevel10k
   fzf
 
+  #nodejs
+  nodejs_22
+
   # Terminal applications
   wezterm
 
