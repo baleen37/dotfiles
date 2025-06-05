@@ -17,6 +17,7 @@
 - 주요 개발 도구 및 앱 자동 설치/설정
 - GitHub Actions 기반 CI로 macOS/Linux(x86_64, aarch64) 빌드 및 테스트
 - 멀티플랫폼 matrix smoke 테스트로 기본 빌드 오류 조기 확인
+- CI 환경에서는 `USER` 값이 없을 때 자동으로 `codex` 계정을 사용해 flake 평가가 실패하지 않도록 합니다.
 - 오래된 PR은 자동으로 stale로 표시 후 닫힘
 - Makefile 기반 로컬/CI 명령어 통합
 
@@ -74,7 +75,7 @@ git clone https://github.com/yourname/dotfiles.git
 cd dotfiles
 # 필요 시 USER 환경변수로 대상 계정을 지정할 수 있습니다.
 export USER=<username>
-# USER가 비어 있으면 flake 평가 단계에서 오류가 발생합니다.
+# USER가 비어 있으면 Makefile이 기본 사용자 `codex`를 사용합니다.
 ```
 
 ### 3. 환경 적용
@@ -103,12 +104,12 @@ home-manager switch --flake .#<host>
 2. 아래 명령어로 적용/테스트
    - `make lint`
    - `make smoke`
-   - `make test` - unit 및 e2e( `tests/e2e.nix` ) 테스트 실행. 환경변수 `USER`가 없으면 `codex`로 설정합니다.
+  - `make test` - unit 및 e2e( `tests/e2e.nix` ) 테스트 실행. `USER`가 비어 있으면 기본 사용자 `codex`로 실행합니다.
    - `make build`
    - `make switch HOST=<host>`
    - `home-manager switch --flake .#<host>`
    
-Makefile targets internally run `nix` with `--extra-experimental-features 'nix-command flakes'` and `--impure` so that the `USER` environment variable is respected.
+Makefile targets internally run `nix` with `--extra-experimental-features 'nix-command flakes'` and `--impure` so that the `USER` environment variable is respected. 값이 없을 경우 자동으로 `codex`를 사용합니다.
 Even if these features are not globally enabled, the commands will still work.
 
 ## Contributing & Testing

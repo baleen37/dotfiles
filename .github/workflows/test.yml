@@ -47,6 +47,8 @@ jobs:
       - name: Run smoke test
         run: |
           make smoke SYSTEM=${{ matrix.system }}
+        env:
+          USER: codex
 
   build-test:
     needs: [lint, smoke]
@@ -82,6 +84,10 @@ jobs:
       - name: Build flake outputs
         run: |
           nix build --no-link ".#${{ matrix.build_attr }}"
+        env:
+          USER: codex
       - name: Run Nix flake checks
         run: |
           make smoke SYSTEM=${{ matrix.system }}
+        env:
+          USER: codex
