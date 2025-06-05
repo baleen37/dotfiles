@@ -3,6 +3,7 @@
 ARCH := $(shell uname -m)
 OS := $(shell uname -s | tr A-Z a-z)
 NIX := nix --extra-experimental-features 'nix-command flakes'
+TEST_USER ?= codex
 
 help:
 	@echo "Available targets:"
@@ -24,7 +25,7 @@ smoke:
 endif
 
 test:
-	$(NIX) flake check --impure --no-build
+	USER=$(TEST_USER) $(NIX) flake check --impure --no-build
 
 build-linux:
 	$(NIX) build --impure --no-link ".#nixosConfigurations.x86_64-linux.config.system.build.toplevel" $(ARGS)
