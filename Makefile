@@ -3,6 +3,8 @@
 ARCH := $(shell uname -m)
 OS := $(shell uname -s | tr A-Z a-z)
 NIX := nix --extra-experimental-features 'nix-command flakes'
+# Use current user when USER not provided
+RUNUSER := $(if $(USER),$(USER),codex)
 
 help:
 	@echo "Available targets:"
@@ -17,22 +19,22 @@ lint:
 
 ifdef SYSTEM
 smoke:
-	$(NIX) flake check --impure --system $(SYSTEM) --no-build $(ARGS)
+	USER=$(RUNUSER) $(NIX) flake check --impure --system $(SYSTEM) --no-build $(ARGS)
 else
 smoke:
-	$(NIX) flake check --impure --all-systems --no-build $(ARGS)
+	USER=$(RUNUSER) $(NIX) flake check --impure --all-systems --no-build $(ARGS)
 endif
 
 test:
-	$(NIX) flake check --impure --no-build
+	USER=$(RUNUSER) $(NIX) flake check --impure --no-build
 
 build-linux:
-	$(NIX) build --impure --no-link ".#nixosConfigurations.x86_64-linux.config.system.build.toplevel" $(ARGS)
-	$(NIX) build --impure --no-link ".#nixosConfigurations.aarch64-linux.config.system.build.toplevel" $(ARGS)
+	USER=$(RUNUSER) $(NIX) build --impure --no-link ".#nixosConfigurations.x86_64-linux.config.system.build.toplevel" $(ARGS)
+	USER=$(RUNUSER) $(NIX) build --impure --no-link ".#nixosConfigurations.aarch64-linux.config.system.build.toplevel" $(ARGS)
 
 build-darwin:
-	$(NIX) build --impure --no-link ".#darwinConfigurations.x86_64-darwin.system" $(ARGS)
-	$(NIX) build --impure --no-link ".#darwinConfigurations.aarch64-darwin.system" $(ARGS)
+	USER=$(RUNUSER) $(NIX) build --impure --no-link ".#darwinConfigurations.x86_64-darwin.system" $(ARGS)
+	USER=$(RUNUSER) $(NIX) build --impure --no-link ".#darwinConfigurations.aarch64-darwin.system" $(ARGS)
 
 build: build-linux build-darwin
 
