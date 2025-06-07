@@ -59,12 +59,45 @@ let name = "Jiho Lee";
 
       # Always color ls and group directories
       alias ls='ls --color=auto'
+
+      # Initialize direnv
+      eval "$(direnv hook zsh)"
     '';
   };
 
   git = {
     enable = true;
-    ignores = [ "*.swp" ];
+    ignores = [
+      # Editor files
+      "*.swp"
+      "*.swo"
+      "*~"
+      ".vscode/"
+      ".idea/"
+      
+      # OS files
+      ".DS_Store"
+      "Thumbs.db"
+      "desktop.ini"
+      
+      # Development files
+      ".direnv/"
+      "result"
+      "result-*"
+      "node_modules/"
+      ".env.local"
+      ".env.*.local"
+      
+      # Temporary files
+      "*.tmp"
+      "*.log"
+      ".cache/"
+      
+      # Build artifacts
+      "dist/"
+      "build/"
+      "target/"
+    ];
     userName = name;
     userEmail = email;
     lfs = {
@@ -278,6 +311,12 @@ let name = "Jiho Lee";
         "/Users/${user}/.ssh/config_external"
       )
     ];
+  };
+
+  direnv = {
+    enable = true;
+    enableZshIntegration = true;
+    nix-direnv.enable = true;
   };
 
   tmux = {

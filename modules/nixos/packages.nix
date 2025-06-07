@@ -27,7 +27,6 @@ shared-packages ++ [
   pavucontrol # Pulse audio controls
 
   # Testing and development tools
-  direnv
   rofi
   rofi-calc
   postgresql

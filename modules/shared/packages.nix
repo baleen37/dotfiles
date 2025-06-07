@@ -34,6 +34,9 @@ with pkgs; [
   # Terminal applications
   wezterm
 
+  # Development tools
+  direnv
+
   # Python packages
   python3
   virtualenv
