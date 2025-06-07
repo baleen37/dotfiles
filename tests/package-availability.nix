@@ -7,7 +7,7 @@ let
   
   # Test that packages can be built/accessed
   testPackage = pkg: 
-    if builtins.isDerivation pkg then
+    if builtins.isAttrs pkg && builtins.hasAttr "type" pkg && pkg.type or null == "derivation" then
       builtins.seq pkg.name true
     else if builtins.isString pkg then
       builtins.hasAttr pkg pkgs
