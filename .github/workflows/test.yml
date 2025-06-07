@@ -38,8 +38,10 @@ jobs:
       - name: Cache Nix store
         uses: actions/cache@v4
         with:
-          path: /nix/store
-          key: ${{ runner.os }}-nix-${{ hashFiles('flake.lock') }}
+          path: |
+            /nix/store
+            ~/.cache/nix
+          key: ${{ runner.os }}-nix-${{ hashFiles('**/*.nix', 'flake.lock') }}
           restore-keys: |
             ${{ runner.os }}-nix-
       - name: Run smoke test
@@ -68,8 +70,10 @@ jobs:
       - name: Cache Nix store
         uses: actions/cache@v4
         with:
-          path: /nix/store
-          key: ${{ runner.os }}-nix-${{ hashFiles('flake.lock') }}
+          path: |
+            /nix/store
+            ~/.cache/nix
+          key: ${{ runner.os }}-nix-${{ hashFiles('**/*.nix', 'flake.lock') }}
           restore-keys: |
             ${{ runner.os }}-nix-
 
