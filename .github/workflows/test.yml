@@ -81,7 +81,8 @@ jobs:
 
       - name: Build flake outputs
         run: |
-          nix build --no-link ".#${{ matrix.build_attr }}"
+          export USER=ci
+          nix build --impure --no-link ".#${{ matrix.build_attr }}"
       - name: Run Nix flake checks
         run: |
           make smoke SYSTEM=${{ matrix.system }}
