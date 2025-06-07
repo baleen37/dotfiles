@@ -9,6 +9,7 @@ with pkgs; [
   docker
   docker-compose
   act
+  gh
 
   # Password management
   _1password-cli
@@ -26,6 +27,9 @@ with pkgs; [
   unzip
   zsh-powerlevel10k
   fzf
+
+  #nodejs
+  nodejs_22
 
   # Terminal applications
   wezterm

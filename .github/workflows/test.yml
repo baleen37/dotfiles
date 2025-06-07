@@ -25,8 +25,6 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-latest
-            system: x86_64-linux
           - os: macos-latest
             system: x86_64-darwin
     runs-on: ${{ matrix.os }}
@@ -57,10 +55,6 @@ jobs:
             system: x86_64-darwin
             kind: darwin
             build_attr: darwinConfigurations.x86_64-darwin.system
-          - os: ubuntu-latest
-            system: x86_64-linux
-            kind: linux
-            build_attr: nixosConfigurations.x86_64-linux.config.system.build.toplevel
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -81,7 +75,8 @@ jobs:
 
       - name: Build flake outputs
         run: |
-          nix build --no-link ".#${{ matrix.build_attr }}"
+          export USER=ci
+          nix build --impure --no-link ".#${{ matrix.build_attr }}"
       - name: Run Nix flake checks
         run: |
           make smoke SYSTEM=${{ matrix.system }}

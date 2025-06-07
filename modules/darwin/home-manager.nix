@@ -2,7 +2,7 @@
 
 let
   # Resolve user from USER env var
-  getUser = import ../../lib/get-user.nix { };
+  getUser = import ../../lib/get-user.nix { default = "baleen"; };
   user = getUser;
   sharedFiles = import ../shared/files.nix { inherit config pkgs; };
   additionalFiles = import ./files.nix { inherit user config pkgs; };

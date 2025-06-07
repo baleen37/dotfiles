@@ -1,9 +1,9 @@
 { config, inputs, pkgs, ... }:
 
 let
-  getUser = import ../../lib/get-user.nix { };
+  getUser = import ../../lib/get-user.nix { default = "baleen"; };
   user = getUser;
-    keys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOk8iAnIaa1deoc7jw8YACPNVka1ZFJxhnU4G74TmS+p" ]; in
+  keys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOk8iAnIaa1deoc7jw8YACPNVka1ZFJxhnU4G74TmS+p" ]; in
 {
   imports = [
     ../../modules/nixos/disk-config.nix
@@ -257,7 +257,7 @@ let
     ${user} = {
       isNormalUser = true;
       extraGroups = [
-        "wheel" # Enable ‘sudo’ for the user.
+        "wheel" # Enable 'sudo' for the user.
         "docker"
       ];
       shell = pkgs.zsh;

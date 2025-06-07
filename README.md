@@ -97,6 +97,20 @@ make switch HOST=<host>
 home-manager switch --flake .#<host>
 ```
 
+## 환경 변수 USER 지정 방법
+
+flake 평가 및 빌드 시 USER 환경변수가 필요합니다. 아래와 같이 명령어 앞에 USER를 지정하거나, --impure 옵션을 사용하세요:
+
+```sh
+USER=<username> nix run #build
+# 또는
+nix run --impure #build
+```
+
+## 기본값 동작 (23.06 이후)
+
+USER 환경변수가 없을 경우, 일부 Nix 코드에서 기본값을 사용할 수 있도록 개선되었습니다. (lib/get-user.nix 참고)
+
 ## Development Workflow
 
 1. 설정 파일 수정
