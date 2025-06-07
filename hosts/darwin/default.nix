@@ -1,7 +1,7 @@
 { config, pkgs, ... }:
 
 let
-  getUser = import ../../lib/get-user.nix { default = "baleen"; };
+  getUser = import ../../lib/get-user.nix { };
   user = getUser;
 in
 
