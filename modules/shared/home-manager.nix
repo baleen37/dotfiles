@@ -43,9 +43,7 @@ let name = "Jiho Lee";
         if [[ -z "$${OP_SESSION_MY_1PASSWORD_COM:-}" ]]; then
           eval "$(op signin my.1password.com 1password@mail.wooto.in --raw)"
         fi
-        if [[ -z "$SSH_AUTH_SOCK" ]]; then
-          eval "$(op ssh-agent)"
-        fi
+        export SSH_AUTH_SOCK=$(op ssh-agent --out socket)
       fi
 
 
@@ -311,6 +309,13 @@ let name = "Jiho Lee";
         "/Users/${user}/.ssh/config_external"
       )
     ];
+    extraConfig = ''
+      Host *
+        IdentitiesOnly yes
+        AddKeysToAgent yes
+    '' + lib.optionalString pkgs.stdenv.hostPlatform.isDarwin ''
+        UseKeychain yes
+    '';
   };
 
   direnv = {
