@@ -319,6 +319,21 @@ let name = "Jiho Lee";
     nix-direnv.enable = true;
   };
 
+  fzf = {
+    enable = true;
+    enableZshIntegration = true;
+    defaultCommand = "rg --files --hidden --follow --glob '!.git/*'";
+    defaultOptions = [
+      "--height 40%"
+      "--layout=reverse"
+      "--border"
+    ];
+    historyWidgetOptions = [
+      "--sort"
+      "--exact"
+    ];
+  };
+
   tmux = {
     enable = true;
     plugins = with pkgs.tmuxPlugins; [
