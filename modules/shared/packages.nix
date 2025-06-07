@@ -9,6 +9,7 @@ with pkgs; [
   docker
   docker-compose
   act
+  gh
 
   # Password management
   _1password-cli
