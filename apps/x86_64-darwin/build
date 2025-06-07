@@ -10,8 +10,13 @@ FLAKE_SYSTEM="darwinConfigurations.${SYSTEM_TYPE}.system"
 
 export NIXPKGS_ALLOW_UNFREE=1
 
+# Set USER if not already set
+if [ -z "$USER" ]; then
+    export USER=$(whoami)
+fi
+
 echo "${YELLOW}Starting build...${NC}"
-nix --extra-experimental-features 'nix-command flakes' build .#$FLAKE_SYSTEM $@
+nix --extra-experimental-features 'nix-command flakes' build --impure .#$FLAKE_SYSTEM $@
 
 echo "${YELLOW}Cleaning up...${NC}"
 unlink ./result
