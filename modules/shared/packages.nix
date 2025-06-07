@@ -36,6 +36,7 @@ with pkgs; [
 
   # Development tools
   direnv
+  claude-code
 
   # Python packages
   python3
