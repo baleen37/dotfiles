@@ -35,13 +35,11 @@ jobs:
       - uses: cachix/install-nix-action@v25
         with:
           nix_path: nixpkgs=channel:nixos-unstable
-      - name: Cache Nix store
+      - name: Cache Nix store  
         uses: actions/cache@v4
         with:
-          path: |
-            /nix/store
-            ~/.cache/nix
-          key: ${{ runner.os }}-nix-${{ hashFiles('**/*.nix', 'flake.lock') }}
+          path: /nix/store
+          key: ${{ runner.os }}-nix-${{ hashFiles('flake.lock') }}
           restore-keys: |
             ${{ runner.os }}-nix-
       - name: Run smoke test
@@ -67,13 +65,11 @@ jobs:
         with:
           nix_path: nixpkgs=channel:nixos-unstable
 
-      - name: Cache Nix store
+      - name: Cache Nix store  
         uses: actions/cache@v4
         with:
-          path: |
-            /nix/store
-            ~/.cache/nix
-          key: ${{ runner.os }}-nix-${{ hashFiles('**/*.nix', 'flake.lock') }}
+          path: /nix/store
+          key: ${{ runner.os }}-nix-${{ hashFiles('flake.lock') }}
           restore-keys: |
             ${{ runner.os }}-nix-
 
