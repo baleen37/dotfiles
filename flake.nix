@@ -76,7 +76,12 @@
       devShells = forAllSystems devShell;
       apps = nixpkgs.lib.genAttrs linuxSystems mkLinuxApps // nixpkgs.lib.genAttrs darwinSystems mkDarwinApps;
       checks = forAllSystems (system:
-        import ./tests { pkgs = nixpkgs.legacyPackages.${system}; });
+        import ./tests { 
+          pkgs = import nixpkgs { 
+            inherit system; 
+            config.allowUnfree = true; 
+          }; 
+        });
 
       darwinConfigurations = nixpkgs.lib.genAttrs darwinSystems (system: let
         user = getUser;
