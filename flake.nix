@@ -53,6 +53,20 @@
           exec ${self}/apps/${system}/${scriptName}
         '')}/bin/${scriptName}";
       };
+      mkSetupDevApp = system: 
+        if builtins.pathExists ./scripts/setup-dev
+        then {
+          type = "app";
+          program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "setup-dev" (builtins.readFile ./scripts/setup-dev))}/bin/setup-dev";
+        }
+        else {
+          type = "app";
+          program = "${nixpkgs.legacyPackages.${system}.writeScriptBin "setup-dev" ''
+            #!/usr/bin/env bash
+            echo "setup-dev script not found. Please run: ./scripts/install-setup-dev"
+            exit 1
+          ''}/bin/setup-dev";
+        };
       mkLinuxApps = system: {
         "apply" = mkApp "apply" system;
         "build" = mkApp "build" system;
@@ -61,6 +75,7 @@
         "create-keys" = mkApp "create-keys" system;
         "check-keys" = mkApp "check-keys" system;
         "install" = mkApp "install" system;
+        "setup-dev" = mkSetupDevApp system;
       };
       mkDarwinApps = system: {
         "apply" = mkApp "apply" system;
@@ -70,6 +85,7 @@
         "create-keys" = mkApp "create-keys" system;
         "check-keys" = mkApp "check-keys" system;
         "rollback" = mkApp "rollback" system;
+        "setup-dev" = mkSetupDevApp system;
       };
     in
     {
