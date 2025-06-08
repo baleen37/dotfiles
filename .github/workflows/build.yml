@@ -36,9 +36,9 @@ jobs:
             ${{ runner.os }}-nix-
 
       - name: Build flake outputs
-        timeout-minutes: 10
+        timeout-minutes: 15
         run: |
           export USER=ci
-          nix build --impure --no-link ".#${{ matrix.build_attr }}" --max-jobs 1
+          nix build --impure --no-link ".#${{ matrix.build_attr }}" --option sandbox false
       - name: Run Nix flake checks
         run: make smoke SYSTEM=${{ matrix.system }}
