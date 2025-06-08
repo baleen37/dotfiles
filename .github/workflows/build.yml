@@ -43,8 +43,17 @@ jobs:
             ${{ runner.os }}-${{ matrix.system }}-build-
             ${{ runner.os }}-build-
 
-      - name: Build flake outputs (with Homebrew)
-        timeout-minutes: 45
+      - name: Build Nix packages only
+        timeout-minutes: 15
+        run: |
+          export USER=ci
+          echo "Building Nix packages..."
+          nix build --impure --no-link ".#${{ matrix.build_attr }}.config.environment.systemPackages" \
+            --option max-jobs auto \
+            --option cores 0
+
+      - name: Build with Homebrew integration
+        timeout-minutes: 30
         run: |
           export USER=ci
           echo "Building full Darwin system with Homebrew..."
