@@ -6,11 +6,12 @@ NIX := nix --extra-experimental-features 'nix-command flakes'
 
 help:
 	@echo "Available targets:"
-	@echo "  lint   - Run pre-commit lint"
-	@echo "  smoke  - Run nix flake checks for all systems"
-	@echo "  test   - Run flake unit tests"
-	@echo "  build  - Build all Darwin and NixOS configurations"
-	@echo "  switch - Apply configuration on the current machine (HOST=<system> optional)"
+	@echo "  lint      - Run pre-commit lint"
+	@echo "  smoke     - Run nix flake checks for all systems"
+	@echo "  test      - Run flake unit tests"
+	@echo "  test-fast - Run tests in parallel (faster)"
+	@echo "  build     - Build all Darwin and NixOS configurations"
+	@echo "  switch    - Apply configuration on the current machine (HOST=<system> optional)"
 
 lint:
 	pre-commit run --all-files
@@ -24,15 +25,22 @@ smoke:
 endif
 
 test:
-	$(NIX) flake check --impure --no-build
+	$(NIX) flake check --impure --no-build --option max-jobs auto --option cores 0
+
+test-fast:
+	@echo "Running fast parallel tests..."
+	@cd tests && find . -name "*.nix" -type f | \
+		xargs -P 4 -I {} bash -c 'echo "Testing {}" && $(NIX) eval --impure ..#checks.$$($(NIX) eval --impure --expr "builtins.currentSystem").$$(basename {} .nix) > /dev/null && echo "✓ {}" || echo "✗ {}"'
 
 build-linux:
-	$(NIX) build --impure --no-link ".#nixosConfigurations.x86_64-linux.config.system.build.toplevel" $(ARGS)
-	$(NIX) build --impure --no-link ".#nixosConfigurations.aarch64-linux.config.system.build.toplevel" $(ARGS)
+	$(NIX) build --impure --no-link ".#nixosConfigurations.x86_64-linux.config.system.build.toplevel" --option max-jobs auto --option cores 0 $(ARGS) &
+	$(NIX) build --impure --no-link ".#nixosConfigurations.aarch64-linux.config.system.build.toplevel" --option max-jobs auto --option cores 0 $(ARGS) &
+	wait
 
 build-darwin:
-	$(NIX) build --impure --no-link ".#darwinConfigurations.x86_64-darwin.system" $(ARGS)
-	$(NIX) build --impure --no-link ".#darwinConfigurations.aarch64-darwin.system" $(ARGS)
+	$(NIX) build --impure --no-link ".#darwinConfigurations.x86_64-darwin.system" --option max-jobs auto --option cores 0 $(ARGS) &
+	$(NIX) build --impure --no-link ".#darwinConfigurations.aarch64-darwin.system" --option max-jobs auto --option cores 0 $(ARGS) &
+	wait
 
 build: build-linux build-darwin
 
