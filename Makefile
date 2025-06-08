@@ -6,12 +6,11 @@ NIX := nix --extra-experimental-features 'nix-command flakes'
 
 help:
 	@echo "Available targets:"
-	@echo "  lint      - Run pre-commit lint"
-	@echo "  smoke     - Run nix flake checks for all systems"
-	@echo "  test      - Run flake unit tests"
-	@echo "  test-fast - Run tests in parallel (faster)"
-	@echo "  build     - Build all Darwin and NixOS configurations"
-	@echo "  switch    - Apply configuration on the current machine (HOST=<system> optional)"
+	@echo "  lint   - Run pre-commit lint"
+	@echo "  smoke  - Run nix flake checks for all systems"
+	@echo "  test   - Run flake unit tests"
+	@echo "  build  - Build all Darwin and NixOS configurations"
+	@echo "  switch - Apply configuration on the current machine (HOST=<system> optional)"
 
 lint:
 	pre-commit run --all-files
@@ -25,12 +24,7 @@ smoke:
 endif
 
 test:
-	$(NIX) flake check --impure --no-build --option max-jobs auto --option cores 0
-
-test-fast:
-	@echo "Running fast parallel tests..."
-	@cd tests && find . -name "*.nix" -type f | \
-		xargs -P 4 -I {} bash -c 'echo "Testing {}" && $(NIX) eval --impure ..#checks.$$($(NIX) eval --impure --expr "builtins.currentSystem").$$(basename {} .nix) > /dev/null && echo "✓ {}" || echo "✗ {}"'
+	$(NIX) flake check --impure --no-build
 
 build-linux:
 	$(NIX) build --impure --no-link ".#nixosConfigurations.x86_64-linux.config.system.build.toplevel" --option max-jobs auto --option cores 0 $(ARGS) &
