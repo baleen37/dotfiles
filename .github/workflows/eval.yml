@@ -31,5 +31,4 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nix-
       - name: Run smoke test
-        run: |
-          make smoke SYSTEM=${{ matrix.system }}
+        run: make smoke SYSTEM=${{ matrix.system }}
