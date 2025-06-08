@@ -27,4 +27,5 @@ tasks.json
 tasks/
 
 # Claude Code (local only)
-.claude/ 
+.claude/
+CLAUDE.local.md 
