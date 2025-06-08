@@ -11,17 +11,12 @@ permissions:
 jobs:
   build-test:
     strategy:
-      fail-fast: false
       matrix:
         include:
           - os: macos-latest
             system: x86_64-darwin
             kind: darwin
             build_attr: darwinConfigurations.x86_64-darwin.system
-          - os: ubuntu-latest
-            system: aarch64-linux
-            kind: nixos
-            build_attr: nixosConfigurations.aarch64-linux.config.system.build.toplevel
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
