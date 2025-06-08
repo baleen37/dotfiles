@@ -23,6 +23,13 @@ make switch HOST=<host>  # Apply configuration to current system
 # Platform-specific builds
 nix run .#build     # Build for current system
 nix run .#switch    # Build and switch for current system
+
+# Project initialization
+./scripts/setup-dev [project-dir]  # Initialize new Nix project with flake.nix and direnv
+nix run .#setup-dev [project-dir]  # Same as above, using nix flake app
+
+# Global installation (bl command system)
+./scripts/install-setup-dev        # Install bl command system (run once)
 ```
 
 ### Testing Requirements (Follow CI Pipeline)
@@ -140,6 +147,43 @@ Refer to `AGENTS.md` for specific guidelines when making automated changes. Key 
 3. Test on all affected platforms
 4. Document any new conventions in AGENTS.md
 
+### Creating a New Nix Project
+
+1. Run `./scripts/setup-dev [project-directory]` to initialize a new project
+2. The script creates:
+   - Basic `flake.nix` with development shell
+   - `.envrc` for direnv integration
+   - `.gitignore` with Nix patterns
+3. Customize `flake.nix` to add project-specific dependencies
+4. Use `nix develop` or let direnv auto-activate the environment
+
+### Script Reusability
+
+- Copy `scripts/setup-dev` to any location for standalone use
+- No dependencies on dotfiles repository structure
+- Includes help with `-h` or `--help` flag
+
+### Global Installation (bl command system)
+
+Run `./scripts/install-setup-dev` to install the `bl` command system:
+- Installs `bl` dispatcher to `~/.local/bin`
+- Sets up command directory at `~/.bl/commands/`
+- Installs `setup-dev` as `bl setup-dev`
+
+After installation:
+```bash
+bl list              # List available commands
+bl setup-dev my-app  # Initialize Nix project
+bl setup-dev --help  # Get help
+```
+
+### Adding Custom Commands
+
+To add new commands to the bl system:
+1. Create executable script in `~/.bl/commands/`
+2. Use `bl <command-name>` to run it
+3. All arguments are passed through to your script
+
 ### Debugging Build Failures
 ```bash
 # Show detailed error trace
@@ -151,3 +195,6 @@ nix flake show --impure
 # Validate flake structure
 nix flake check --impure --no-build
 ```
+
+## Memories
+- `nix run .#build-switch 로 실행시켜야지 switch하는거야`: Note for using build-switch command in Nix for system configuration
