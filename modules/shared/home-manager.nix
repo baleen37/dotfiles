@@ -39,11 +39,28 @@ let name = "Jiho Lee";
       export EDITOR="vim"
       export VISUAL="vim"
 
-      if command -v op >/dev/null 2>&1; then
-        if [[ -z "$${OP_SESSION_MY_1PASSWORD_COM:-}" ]]; then
-          eval "$(op signin my.1password.com 1password@mail.wooto.in --raw)"
+      # 1Password SSH agent (데스크톱 앱)
+      # Group Container 디렉토리를 동적으로 찾기
+      for container_dir in ~/Library/Group\ Containers/*.com.1password/t/agent.sock; do
+        if [[ -S "$container_dir" ]]; then
+          export SSH_AUTH_SOCK="$container_dir"
+          break
         fi
-        export SSH_AUTH_SOCK=$(op ssh-agent --out socket)
+      done
+      
+      # 기본 위치들도 확인
+      if [[ -z "$${SSH_AUTH_SOCK:-}" ]]; then
+        _1password_sockets=(
+          ~/.1password/agent.sock
+          /tmp/1password-ssh-agent.sock
+        )
+        
+        for sock in "$${_1password_sockets[@]}"; do
+          if [[ -S "$sock" ]]; then
+            export SSH_AUTH_SOCK="$sock"
+            break
+          fi
+        done
       fi
 
 
