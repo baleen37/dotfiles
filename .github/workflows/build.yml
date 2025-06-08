@@ -5,6 +5,10 @@ on:
   pull_request:
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
@@ -21,7 +25,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
       - uses: cachix/install-nix-action@v25
         with:
@@ -36,9 +40,9 @@ jobs:
             ${{ runner.os }}-nix-
 
       - name: Build flake outputs
-        timeout-minutes: 15
+        timeout-minutes: 30
         run: |
           export USER=ci
-          nix build --impure --no-link ".#${{ matrix.build_attr }}" --option sandbox false
+          nix build --impure --no-link ".#${{ matrix.build_attr }}"
       - name: Run Nix flake checks
         run: make smoke SYSTEM=${{ matrix.system }}
