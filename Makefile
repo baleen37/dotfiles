@@ -27,14 +27,12 @@ test:
 	$(NIX) flake check --impure --no-build
 
 build-linux:
-	$(NIX) build --impure --no-link ".#nixosConfigurations.x86_64-linux.config.system.build.toplevel" --option max-jobs auto --option cores 0 $(ARGS) &
-	$(NIX) build --impure --no-link ".#nixosConfigurations.aarch64-linux.config.system.build.toplevel" --option max-jobs auto --option cores 0 $(ARGS) &
-	wait
+	$(NIX) build --impure --no-link ".#nixosConfigurations.x86_64-linux.config.system.build.toplevel" $(ARGS)
+	$(NIX) build --impure --no-link ".#nixosConfigurations.aarch64-linux.config.system.build.toplevel" $(ARGS)
 
 build-darwin:
-	$(NIX) build --impure --no-link ".#darwinConfigurations.x86_64-darwin.system" --option max-jobs auto --option cores 0 $(ARGS) &
-	$(NIX) build --impure --no-link ".#darwinConfigurations.aarch64-darwin.system" --option max-jobs auto --option cores 0 $(ARGS) &
-	wait
+	$(NIX) build --impure --no-link ".#darwinConfigurations.x86_64-darwin.system" $(ARGS)
+	$(NIX) build --impure --no-link ".#darwinConfigurations.aarch64-darwin.system" $(ARGS)
 
 build: build-linux build-darwin
 
