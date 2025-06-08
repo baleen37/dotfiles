@@ -39,12 +39,14 @@ jobs:
             ${{ runner.os }}-${{ matrix.system }}-build-
             ${{ runner.os }}-build-
 
-      - name: Build flake outputs
-        timeout-minutes: 30
+      - name: Build flake outputs (with Homebrew)
+        timeout-minutes: 45
         run: |
           export USER=ci
+          echo "Building full Darwin system with Homebrew..."
           nix build --impure --no-link ".#${{ matrix.build_attr }}" \
             --option max-jobs auto \
-            --option cores 0
+            --option cores 0 \
+            --option keep-going true
       - name: Run Nix flake checks
         run: make smoke SYSTEM=${{ matrix.system }}
