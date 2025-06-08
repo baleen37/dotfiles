@@ -26,7 +26,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
       - uses: cachix/install-nix-action@v25
         with:
@@ -34,33 +34,22 @@ jobs:
           extra_nix_config: |
             max-jobs = auto
             cores = 0
-            substituters = https://cache.nixos.org/ https://nix-community.cachix.org/
-            trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
 
       - name: Cache Nix store  
         uses: actions/cache@v4
         with:
-          path: |
-            /nix/store
-            /nix/var/nix/db
-            ~/.cache/nix
-          key: ${{ runner.os }}-${{ matrix.system }}-nix-${{ hashFiles('flake.lock', 'flake.nix') }}
+          path: /nix/store
+          key: ${{ runner.os }}-${{ matrix.system }}-build-${{ hashFiles('flake.lock') }}
           restore-keys: |
-            ${{ runner.os }}-${{ matrix.system }}-nix-
-            ${{ runner.os }}-nix-
+            ${{ runner.os }}-${{ matrix.system }}-build-
+            ${{ runner.os }}-build-
 
       - name: Build flake outputs
-        timeout-minutes: 20
+        timeout-minutes: 30
         run: |
           export USER=ci
-          # Pre-download all dependencies first
-          nix flake archive --json "." | jq -r '.inputs[].path' | xargs -P 4 -I {} nix build --no-link {} || true
-          # Build with optimized settings
           nix build --impure --no-link ".#${{ matrix.build_attr }}" \
-            --option sandbox false \
             --option max-jobs auto \
-            --option cores 0 \
-            --option keep-going true \
-            --print-build-logs
+            --option cores 0
       - name: Run Nix flake checks
         run: make smoke SYSTEM=${{ matrix.system }}
