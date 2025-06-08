@@ -17,6 +17,7 @@
 - 주요 개발 도구 및 앱 자동 설치/설정
 - GitHub Actions 기반 CI로 macOS/Linux(x86_64, aarch64) 빌드 및 테스트
 - 멀티플랫폼 matrix smoke 테스트로 기본 빌드 오류 조기 확인
+- FlakeHub를 활용한 Nix cache로 CI 빌드 시간 단축
 - 오래된 PR은 자동으로 stale로 표시 후 닫힘
 - Makefile 기반 로컬/CI 명령어 통합
 
