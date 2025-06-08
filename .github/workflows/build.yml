@@ -39,13 +39,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nix-
 
-      - name: Build Nix packages
-        timeout-minutes: 15
-        run: |
-          export USER=ci
-          nix build --impure --no-link ".#${{ matrix.build_attr }}.config.environment.systemPackages"
-
-      - name: Build full system
+      - name: Build flake outputs
         timeout-minutes: 30
         run: |
           export USER=ci
