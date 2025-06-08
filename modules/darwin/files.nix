@@ -19,4 +19,27 @@ let
     recursive = true;
   };
 
+  "${userHome}/Library/Preferences/com.lwouis.alt-tab-macos.plist" = {
+    text = ''
+      <?xml version="1.0" encoding="UTF-8"?>
+      <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+      <plist version="1.0">
+      <dict>
+      	<key>holdShortcut</key>
+      	<string>⌥⇥</string>
+      	<key>holdShortcut2</key>
+      	<string>⌥`</string>
+      	<key>nextWindowShortcut</key>
+      	<string>⌥⇥</string>
+      	<key>nextWindowShortcut2</key>
+      	<string>⌥`</string>
+      	<key>previousWindowShortcut</key>
+      	<string>⌥⇧⇥</string>
+      	<key>previousWindowShortcut2</key>
+      	<string>⌥⇧`</string>
+      </dict>
+      </plist>
+    '';
+  };
+
 }

@@ -17,6 +17,7 @@ _:
 
   # Utility Tools
   "syncthing"
+  "alt-tab"
 
   # Entertainment Tools
   "vlc"
