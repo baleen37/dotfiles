@@ -30,9 +30,6 @@ jobs:
       - uses: cachix/install-nix-action@v25
         with:
           nix_path: nixpkgs=channel:nixos-unstable
-          extra_nix_config: |
-            max-jobs = auto
-            cores = 0
 
       - name: Cache Nix store  
         uses: actions/cache@v4
@@ -43,23 +40,16 @@ jobs:
             ${{ runner.os }}-${{ matrix.system }}-build-
             ${{ runner.os }}-build-
 
-      - name: Build Nix packages only
+      - name: Build Nix packages
         timeout-minutes: 15
         run: |
           export USER=ci
-          echo "Building Nix packages..."
-          nix build --impure --no-link ".#${{ matrix.build_attr }}.config.environment.systemPackages" \
-            --option max-jobs auto \
-            --option cores 0
+          nix build --impure --no-link ".#${{ matrix.build_attr }}.config.environment.systemPackages"
 
-      - name: Build with Homebrew integration
+      - name: Build full system
         timeout-minutes: 30
         run: |
           export USER=ci
-          echo "Building full Darwin system with Homebrew..."
-          nix build --impure --no-link ".#${{ matrix.build_attr }}" \
-            --option max-jobs auto \
-            --option cores 0 \
-            --option keep-going true
+          nix build --impure --no-link ".#${{ matrix.build_attr }}"
       - name: Run Nix flake checks
         run: make smoke SYSTEM=${{ matrix.system }}
