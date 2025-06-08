@@ -1,0 +1,44 @@
+name: Build
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            system: x86_64-darwin
+            kind: darwin
+            build_attr: darwinConfigurations.x86_64-darwin.system
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: cachix/install-nix-action@v25
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+
+      - name: Cache Nix store  
+        uses: actions/cache@v4
+        with:
+          path: /nix/store
+          key: ${{ runner.os }}-nix-${{ hashFiles('flake.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-nix-
+
+      - name: Build flake outputs
+        timeout-minutes: 15
+        run: |
+          export USER=ci
+          nix build --impure --no-link ".#${{ matrix.build_attr }}" --option sandbox false
+      - name: Run Nix flake checks
+        run: make smoke SYSTEM=${{ matrix.system }}

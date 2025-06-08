@@ -1,4 +1,4 @@
-name: Test
+name: Eval
 on:
   push:
     branches: [main]
@@ -9,8 +9,13 @@ permissions:
   contents: read
 
 jobs:
-  unit-tests:
-    runs-on: ubuntu-latest
+  smoke:
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            system: x86_64-darwin
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -25,5 +30,5 @@ jobs:
           key: ${{ runner.os }}-nix-${{ hashFiles('flake.lock') }}
           restore-keys: |
             ${{ runner.os }}-nix-
-      - name: Run tests
-        run: make test
+      - name: Run smoke test
+        run: make smoke SYSTEM=${{ matrix.system }}
