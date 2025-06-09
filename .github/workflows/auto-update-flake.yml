@@ -1,24 +1,40 @@
 name: Auto Update Flake Dependencies
+
 on:
   schedule:
     # Run every day at 09:00 KST (00:00 UTC)
     - cron: '0 0 * * *'
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
 permissions:
   contents: write
   pull-requests: write
+  checks: read
+
+env:
+  USER: ci
 
 jobs:
-  update-flake:
+  update-dependencies:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      has-changes: ${{ steps.check-changes.outputs.has-changes }}
+      pr-number: ${{ steps.create-pr.outputs.pr-number }}
+    
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
-      - uses: cachix/install-nix-action@v25
+      - name: Install Nix
+        uses: cachix/install-nix-action@v25
         with:
           nix_path: nixpkgs=channel:nixos-unstable
           extra_nix_config: |
@@ -27,58 +43,156 @@ jobs:
             substituters = https://cache.nixos.org https://nix-community.cachix.org
             trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
 
+      - name: Cache Nix store
+        uses: actions/cache@v4
+        with:
+          path: |
+            /nix/store
+            ~/.cache/nix
+          key: ${{ runner.os }}-auto-update-nix-${{ hashFiles('flake.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-auto-update-nix-
+            ${{ runner.os }}-nix-
+
       - name: Update flake inputs
+        id: update
         run: |
-          export USER=ci
-          nix flake update --commit-lock-file
+          echo "::group::Updating flake inputs"
+          
+          # Store original lock file hash
+          ORIGINAL_HASH=$(sha256sum flake.lock | cut -d' ' -f1)
+          echo "original-hash=$ORIGINAL_HASH" >> $GITHUB_OUTPUT
+          
+          # Update all inputs
+          if ! nix flake update --commit-lock-file; then
+            echo "::error::Failed to update flake inputs"
+            exit 1
+          fi
+          
+          # Store new lock file hash
+          NEW_HASH=$(sha256sum flake.lock | cut -d' ' -f1)
+          echo "new-hash=$NEW_HASH" >> $GITHUB_OUTPUT
+          
+          echo "::endgroup::"
+
+      - name: Validate flake after update
+        run: |
+          echo "::group::Validating flake structure"
+          
+          if ! nix flake check --impure --no-build; then
+            echo "::error::Flake validation failed after update"
+            exit 1
+          fi
+          
+          echo "::endgroup::"
 
       - name: Check for changes
-        id: changes
+        id: check-changes
         run: |
-          if git diff --exit-code HEAD~1 HEAD -- flake.lock; then
-            echo "has_changes=false" >> $GITHUB_OUTPUT
+          if [ "${{ steps.update.outputs.original-hash }}" = "${{ steps.update.outputs.new-hash }}" ]; then
+            echo "has-changes=false" >> $GITHUB_OUTPUT
+            echo "::notice::No dependency updates available"
           else
-            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "has-changes=true" >> $GITHUB_OUTPUT
+            echo "::notice::Dependency updates found"
           fi
 
-      - name: Create Pull Request
-        if: steps.changes.outputs.has_changes == 'true'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Configure Git
+        if: steps.check-changes.outputs.has-changes == 'true'
         run: |
-          # Configure git
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          
-          # Create branch
-          BRANCH_NAME="auto-update/flake-$(date +%Y%m%d-%H%M%S)"
-          git checkout -b $BRANCH_NAME
-          
-          # Push branch
-          git push origin $BRANCH_NAME
-          
-          # Create PR with GitHub CLI
-          gh pr create \
-            --title "chore: 자동 flake 의존성 업데이트" \
-            --body "## Summary
-          • flake.lock 자동 업데이트
-          • CI 테스트 통과 시 자동 머지
-          
-          ## Test plan
-          - [ ] 모든 플랫폼에서 빌드 성공
-          - [ ] CI 파이프라인 통과
-          
-          🤖 자동으로 생성된 PR입니다." \
-            --base main \
-            --head $BRANCH_NAME
 
-      - name: Enable auto-merge
-        if: steps.changes.outputs.has_changes == 'true'
+      - name: Create and push branch
+        if: steps.check-changes.outputs.has-changes == 'true'
+        id: create-branch
+        run: |
+          BRANCH_NAME="auto-update/flake-$(date +%Y%m%d-%H%M%S)"
+          echo "branch-name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          
+          git checkout -b "$BRANCH_NAME"
+          git push origin "$BRANCH_NAME"
+
+      - name: Generate dependency update summary
+        if: steps.check-changes.outputs.has-changes == 'true'
+        id: summary
+        run: |
+          echo "::group::Generating update summary"
+          
+          # Create a summary of what changed
+          {
+            echo "## 의존성 업데이트 요약"
+            echo ""
+            echo "다음 의존성들이 업데이트되었습니다:"
+            echo ""
+            git show --name-only --pretty=format:"" HEAD | grep -E "\.(nix|lock)$" | while read file; do
+              echo "- \`$file\`"
+            done
+            echo ""
+            echo "## 상세 변경사항"
+            echo ""
+            echo "\`\`\`"
+            git show --stat HEAD
+            echo "\`\`\`"
+            echo ""
+            echo "## 테스트 계획"
+            echo "- [ ] 모든 플랫폼에서 빌드 성공"
+            echo "- [ ] CI 파이프라인 통과"
+            echo "- [ ] 스모크 테스트 통과"
+            echo ""
+            echo "🤖 자동으로 생성된 PR입니다. CI 테스트가 통과하면 자동으로 머지됩니다."
+          } > pr_body.md
+          
+          echo "::endgroup::"
+
+      - name: Create Pull Request
+        if: steps.check-changes.outputs.has-changes == 'true'
+        id: create-pr
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Get PR number
-          PR_NUMBER=$(gh pr list --head auto-update/flake-* --json number --jq '.[0].number')
+          echo "::group::Creating Pull Request"
           
-          # Enable auto-merge
-          gh pr merge $PR_NUMBER --auto --squash
+          PR_URL=$(gh pr create \
+            --title "chore: 자동 flake 의존성 업데이트 $(date +%Y-%m-%d)" \
+            --body-file pr_body.md \
+            --base main \
+            --head "${{ steps.create-branch.outputs.branch-name }}" \
+            --label "dependencies,automated")
+          
+          PR_NUMBER=$(echo "$PR_URL" | grep -o '[0-9]\+$')
+          echo "pr-number=$PR_NUMBER" >> $GITHUB_OUTPUT
+          echo "pr-url=$PR_URL" >> $GITHUB_OUTPUT
+          
+          echo "::notice::Created PR #$PR_NUMBER: $PR_URL"
+          echo "::endgroup::"
+
+  enable-auto-merge:
+    runs-on: ubuntu-latest
+    needs: update-dependencies
+    if: needs.update-dependencies.outputs.has-changes == 'true'
+    timeout-minutes: 5
+    
+    steps:
+      - name: Wait for CI checks to start
+        run: |
+          echo "Waiting 30 seconds for CI checks to be created..."
+          sleep 30
+
+      - name: Enable auto-merge
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "::group::Enabling auto-merge"
+          
+          PR_NUMBER="${{ needs.update-dependencies.outputs.pr-number }}"
+          
+          # Enable auto-merge with squash
+          if gh pr merge "$PR_NUMBER" --auto --squash; then
+            echo "::notice::Auto-merge enabled for PR #$PR_NUMBER"
+          else
+            echo "::warning::Failed to enable auto-merge for PR #$PR_NUMBER"
+            echo "::notice::PR will need to be merged manually after CI passes"
+          fi
+          
+          echo "::endgroup::"
