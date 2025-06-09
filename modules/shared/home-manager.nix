@@ -114,8 +114,6 @@ let name = "Jiho Lee";
       "build/"
       "target/"
       
-      # Local gitignore files
-      ".gitignore.local"
     ];
     userName = name;
     userEmail = email;
@@ -140,6 +138,10 @@ let name = "Jiho Lee";
         lg = "log --graph --oneline --decorate --all";
       };
     };
+  };
+
+  home.file.".gitconfig_global" = {
+    text = "";
   };
 
   vim = {
