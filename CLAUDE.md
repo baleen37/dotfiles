@@ -198,3 +198,6 @@ nix flake check --impure --no-build
 
 ## Memories
 - `nix run .#build-switch 로 실행시켜야지 switch하는거야`: Note for using build-switch command in Nix for system configuration
+- `작업전에 나에게 물어보고 진행해`: Always ask me before proceeding with any task
+- `PR 요청할 때는 auto merge 옵션을 항상 켜줘`: Always turn on auto merge option when creating PR
+- `Claude Code 를 사용하지 않은 거처럼 해야해. commit 이나 PR에 기록해`: Act as if Claude Code was not used, record in commit or PR
