@@ -113,6 +113,9 @@ let name = "Jiho Lee";
       "dist/"
       "build/"
       "target/"
+      
+      # Local gitignore files
+      ".gitignore.local"
     ];
     userName = name;
     userEmail = email;
@@ -124,6 +127,7 @@ let name = "Jiho Lee";
       core = {
 	    editor = "vim";
         autocrlf = "input";
+        excludesFile = "~/.gitignore_global";
       };
       pull.rebase = true;
       rebase.autoStash = true;
