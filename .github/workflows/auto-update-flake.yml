@@ -1,0 +1,84 @@
+name: Auto Update Flake Dependencies
+on:
+  schedule:
+    # Run every day at 09:00 KST (00:00 UTC)
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-flake:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - uses: cachix/install-nix-action@v25
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+          extra_nix_config: |
+            max-jobs = auto
+            cores = 0
+            substituters = https://cache.nixos.org https://nix-community.cachix.org
+            trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
+
+      - name: Update flake inputs
+        run: |
+          export USER=ci
+          nix flake update --commit-lock-file
+
+      - name: Check for changes
+        id: changes
+        run: |
+          if git diff --exit-code HEAD~1 HEAD -- flake.lock; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Pull Request
+        if: steps.changes.outputs.has_changes == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Configure git
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          
+          # Create branch
+          BRANCH_NAME="auto-update/flake-$(date +%Y%m%d-%H%M%S)"
+          git checkout -b $BRANCH_NAME
+          
+          # Push branch
+          git push origin $BRANCH_NAME
+          
+          # Create PR with GitHub CLI
+          gh pr create \
+            --title "chore: 자동 flake 의존성 업데이트" \
+            --body "## Summary
+          • flake.lock 자동 업데이트
+          • CI 테스트 통과 시 자동 머지
+          
+          ## Test plan
+          - [ ] 모든 플랫폼에서 빌드 성공
+          - [ ] CI 파이프라인 통과
+          
+          🤖 자동으로 생성된 PR입니다." \
+            --base main \
+            --head $BRANCH_NAME
+
+      - name: Enable auto-merge
+        if: steps.changes.outputs.has_changes == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Get PR number
+          PR_NUMBER=$(gh pr list --head auto-update/flake-* --json number --jq '.[0].number')
+          
+          # Enable auto-merge
+          gh pr merge $PR_NUMBER --auto --squash
