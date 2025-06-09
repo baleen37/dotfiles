@@ -139,5 +139,9 @@ in
   "${userHome}/.claude/CLAUDE.md" = {
     source = ./config/claude.md;
   };
+
+  "${userHome}/.gitconfig_global" = {
+    text = "";
+  };
 }
 
