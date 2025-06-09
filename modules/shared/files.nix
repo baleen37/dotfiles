@@ -9,6 +9,7 @@ in
   "${userHome}/.claude/settings.json" = {
     text = ''
       {
+        "model": "sonnet",
         "permissions": {
           "allow": [
             "Bash(export USER=${user})",
