@@ -1,4 +1,4 @@
-{ pkgs, config, user, ... }:
+{ pkgs, config, user, self, ... }:
 
 let
   userHome = if pkgs.stdenv.isDarwin 
@@ -6,138 +6,10 @@ let
     else builtins.getEnv "HOME";
 in
 {
-  "${userHome}/.claude/settings.json" = {
-    text = ''
-      {
-        "model": "sonnet",
-        "permissions": {
-          "allow": [
-            "Bash(export USER=${user})",
-            "Bash(npm:*)",
-            "Bash(yarn:*)",
-            "Bash(pnpm:*)",
-            "Bash(bun:*)",
-            "Bash(python:*)",
-            "Bash(python3:*)",
-            "Bash(pip:*)",
-            "Bash(pip3:*)",
-            "Bash(pipx:*)",
-            "Bash(poetry:*)",
-            "Bash(conda:*)",
-            "Bash(mamba:*)",
-            "Bash(virtualenv:*)",
-            "Bash(venv:*)",
-            "Bash(pytest:*)",
-            "Bash(black:*)",
-            "Bash(flake8:*)",
-            "Bash(mypy:*)",
-            "Bash(ruff:*)",
-            "Bash(isort:*)",
-            "Bash(pylint:*)",
-            "Bash(jupyter:*)",
-            "Bash(ipython:*)",
-            "Bash(sudo:*)",
-            "Bash(find:*)",
-            "Bash(grep:*)",
-            "Bash(rg:*)",
-            "Bash(ls:*)",
-            "Bash(cat:*)",
-            "Bash(head:*)",
-            "Bash(tail:*)",
-            "Bash(less:*)",
-            "Bash(more:*)",
-            "Bash(git:*)",
-            "Bash(make:*)",
-            "Bash(nix:*)",
-            "Bash(echo:*)",
-            "Bash(printf:*)",
-            "Bash(gh:*)",
-            "Bash(curl:*)",
-            "Bash(wget:*)",
-            "WebFetch(domain:github.com)",
-            "WebFetch(domain:docs.rs)",
-            "WebFetch(domain:crates.io)",
-            "WebFetch(domain:npmjs.com)",
-            "WebFetch(domain:pypi.org)",
-            "WebFetch(domain:python.org)",
-            "WebFetch(domain:docs.python.org)",
-            "Bash(op:*)",
-            "Bash(brew:*)",
-            "Bash(mkdir:*)",
-            "Bash(rmdir:*)",
-            "Bash(cp:*)",
-            "Bash(mv:*)",
-            "Bash(rm:*)",
-            "Bash(ln:*)",
-            "Bash(chmod:*)",
-            "Bash(chown:*)",
-            "Bash(ssh:*)",
-            "Bash(ssh-add:*)",
-            "Bash(ssh-keygen:*)",
-            "Bash(scp:*)",
-            "Bash(rsync:*)",
-            "Bash(ps:*)",
-            "Bash(top:*)",
-            "Bash(htop:*)",
-            "Bash(kill:*)",
-            "Bash(killall:*)",
-            "Bash(which:*)",
-            "Bash(whereis:*)",
-            "Bash(type:*)",
-            "Bash(pwd:*)",
-            "Bash(cd:*)",
-            "Bash(pushd:*)",
-            "Bash(popd:*)",
-            "Bash(tar:*)",
-            "Bash(zip:*)",
-            "Bash(unzip:*)",
-            "Bash(gzip:*)",
-            "Bash(gunzip:*)",
-            "Bash(df:*)",
-            "Bash(du:*)",
-            "Bash(free:*)",
-            "Bash(uname:*)",
-            "Bash(date:*)",
-            "Bash(cal:*)",
-            "Bash(wc:*)",
-            "Bash(sort:*)",
-            "Bash(uniq:*)",
-            "Bash(cut:*)",
-            "Bash(awk:*)",
-            "Bash(sed:*)",
-            "Bash(tr:*)",
-            "Bash(xargs:*)",
-            "Bash(tee:*)",
-            "Bash(diff:*)",
-            "Bash(patch:*)",
-            "Bash(watch:*)",
-            "Bash(screen:*)",
-            "Bash(tmux:*)",
-            "Bash(vim:*)",
-            "Bash(nvim:*)",
-            "Bash(nano:*)",
-            "Bash(emacs:*)",
-            "Bash(code:*)",
-            "Bash(open:*)",
-            "Bash(pbcopy:*)",
-            "Bash(pbpaste:*)",
-            "Bash(defaults:*)",
-            "Bash(launchctl:*)"
-          ],
-          "deny": []
-        },
-        "mcpServers": {
-          "context7": {
-            "command": "npx",
-            "args": ["-y", "@upstash/context7-mcp"]
-          }
-        }
-      }
-    '';
-  };
 
-  "${userHome}/.claude/CLAUDE.md" = {
-    source = ./config/claude.md;
+  "${userHome}/.claude" = {
+    source = ./config/claude;
+    recursive = true;
   };
 
   "${userHome}/.gitconfig_global" = {

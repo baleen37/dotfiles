@@ -1,4 +1,4 @@
-{ config, pkgs, lib, ... }:
+{ config, pkgs, lib, self, ... }:
 
 let
   # Resolve user from USER env var
@@ -6,7 +6,6 @@ let
   user = getUser;
   xdg_configHome  = "/home/${user}/.config";
   shared-programs = import ../shared/home-manager.nix { inherit config pkgs lib; };
-  shared-files = import ../shared/files.nix { inherit config pkgs user; };
 
   polybar-user_modules =
     let
@@ -44,7 +43,7 @@ in
     username = "${user}";
     homeDirectory = "/home/${user}";
     packages = pkgs.callPackage ./packages.nix {};
-    file = shared-files // import ./files.nix { inherit user; };
+    file = (import ../shared/files.nix { inherit config pkgs user self; }) // import ./files.nix { inherit user; };
     stateVersion = "21.05";
   };
 

@@ -75,6 +75,9 @@ let name = "Jiho Lee";
 
       # Always color ls and group directories
       alias ls='ls --color=auto'
+      
+      # Use Cursor as code editor
+      alias code=cursor
 
       # Initialize direnv
       eval "$(direnv hook zsh)"
