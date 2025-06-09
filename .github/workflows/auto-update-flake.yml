@@ -158,7 +158,7 @@ jobs:
             --body-file pr_body.md \
             --base main \
             --head "${{ steps.create-branch.outputs.branch-name }}" \
-            --label "dependencies,automated")
+            --label "dependencies")
           
           PR_NUMBER=$(echo "$PR_URL" | grep -o '[0-9]\+$')
           echo "pr-number=$PR_NUMBER" >> $GITHUB_OUTPUT
