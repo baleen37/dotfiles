@@ -54,6 +54,11 @@ jobs:
             ${{ runner.os }}-auto-update-nix-
             ${{ runner.os }}-nix-
 
+      - name: Configure Git for updates
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
       - name: Update flake inputs
         id: update
         run: |
@@ -97,11 +102,6 @@ jobs:
             echo "::notice::Dependency updates found"
           fi
 
-      - name: Configure Git
-        if: steps.check-changes.outputs.has-changes == 'true'
-        run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
 
       - name: Create and push branch
         if: steps.check-changes.outputs.has-changes == 'true'
