@@ -1,0 +1,15 @@
+# direnv.toml - Basic configuration for direnv
+# See https://direnv.net/docs/configuration.html for more options
+
+[global]
+# Allow loading .envrc files from outside the project root for flexibility
+load_dotenv = true
+
+# Optionally, restrict allowed .envrc locations (uncomment and edit as needed)
+# allowed_envrc_paths = ["./.envrc"]
+
+# Optionally, set log level (info, debug, warn, error)
+# log_level = "info"
+
+# Optionally, set strict_env to true to only allow whitelisted variables
+# strict_env = false 
