@@ -13,15 +13,8 @@ permissions:
   contents: read
 
 jobs:
-  build-test:
-    strategy:
-      matrix:
-        include:
-          - os: macos-latest
-            system: x86_64-darwin
-            kind: darwin
-            build_attr: darwinConfigurations.x86_64-darwin.system
-    runs-on: ${{ matrix.os }}
+  core-build:
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
         with:
@@ -42,15 +35,63 @@ jobs:
           path: |
             /nix/store
             ~/.cache/nix
-          key: ${{ runner.os }}-build-nix-${{ hashFiles('flake.lock', '**/*.nix') }}
+          key: ${{ runner.os }}-core-nix-${{ hashFiles('flake.lock', 'modules/shared/**/*.nix', 'modules/darwin/packages.nix') }}
           restore-keys: |
-            ${{ runner.os }}-build-nix-
+            ${{ runner.os }}-core-nix-
             ${{ runner.os }}-nix-
 
-      - name: Build flake outputs
-        timeout-minutes: 45
+      - name: Build core Nix packages
+        timeout-minutes: 10
         run: |
           export USER=ci
-          nix build --impure --no-link ".#${{ matrix.build_attr }}" --max-jobs auto --cores 0
-      - name: Run Nix flake checks
-        run: make smoke SYSTEM=${{ matrix.system }}
+          # Test basic package building first
+          nix build --impure --no-link .#devShells.x86_64-darwin.default --max-jobs auto --cores 0
+
+      - name: Build core system configuration  
+        timeout-minutes: 15
+        run: |
+          export USER=ci
+          # Build the full system configuration (includes Homebrew setup)
+          nix build --impure --no-link .#darwinConfigurations.x86_64-darwin.system --max-jobs auto --cores 0
+
+      - name: Run core validation
+        run: make smoke SYSTEM=x86_64-darwin
+
+  full-build:
+    runs-on: macos-latest
+    if: github.event_name == 'pull_request'
+    needs: core-build
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: cachix/install-nix-action@v25
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+          extra_nix_config: |
+            max-jobs = auto
+            cores = 0
+            substituters = https://cache.nixos.org https://nix-community.cachix.org
+            trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
+
+      - name: Cache Nix store
+        uses: actions/cache@v4
+        with:
+          path: |
+            /nix/store
+            ~/.cache/nix
+          key: ${{ runner.os }}-full-nix-${{ hashFiles('flake.lock', '**/*.nix') }}
+          restore-keys: |
+            ${{ runner.os }}-core-nix-
+            ${{ runner.os }}-full-nix-
+            ${{ runner.os }}-nix-
+
+      - name: Build full system (with Homebrew)
+        timeout-minutes: 30
+        run: |
+          export USER=ci
+          nix build --impure --no-link .#darwinConfigurations.x86_64-darwin.system --max-jobs auto --cores 0
+
+      - name: Run full validation
+        run: make smoke SYSTEM=x86_64-darwin
