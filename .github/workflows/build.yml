@@ -97,3 +97,17 @@ jobs:
 
       - name: Run full validation
         run: make smoke SYSTEM=x86_64-darwin
+
+  # Required status check for auto-merge protection
+  build-status:
+    runs-on: ubuntu-latest
+    needs: [core-build]
+    if: always()
+    steps:
+      - name: Check build status
+        run: |
+          if [ "${{ needs.core-build.result }}" != "success" ]; then
+            echo "Core build failed"
+            exit 1
+          fi
+          echo "All required builds passed"

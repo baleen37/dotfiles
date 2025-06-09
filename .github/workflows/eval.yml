@@ -40,3 +40,17 @@ jobs:
             ${{ runner.os }}-nix-
       - name: Run smoke test
         run: make smoke SYSTEM=${{ matrix.system }}
+
+  # Required status check for auto-merge protection
+  eval-status:
+    runs-on: ubuntu-latest
+    needs: [smoke]
+    if: always()
+    steps:
+      - name: Check eval status
+        run: |
+          if [ "${{ needs.smoke.result }}" != "success" ]; then
+            echo "Smoke test failed"
+            exit 1
+          fi
+          echo "Smoke test passed"

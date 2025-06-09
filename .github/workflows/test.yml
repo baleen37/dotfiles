@@ -38,3 +38,17 @@ jobs:
           export USER=ci
           # Run tests with parallelization
           make test ARGS="--max-jobs auto --cores 0"
+
+  # Required status check for auto-merge protection
+  test-status:
+    runs-on: ubuntu-latest
+    needs: [unit-tests]
+    if: always()
+    steps:
+      - name: Check test status
+        run: |
+          if [ "${{ needs.unit-tests.result }}" != "success" ]; then
+            echo "Tests failed"
+            exit 1
+          fi
+          echo "All tests passed"
