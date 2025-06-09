@@ -1,10 +1,9 @@
-{ config, pkgs, lib, home-manager, ... }:
+{ config, pkgs, lib, home-manager, self, ... }:
 
 let
   # Resolve user from USER env var
   getUser = import ../../lib/get-user.nix { };
   user = getUser;
-  sharedFiles = import ../shared/files.nix { inherit config pkgs user; };
   additionalFiles = import ./files.nix { inherit user config pkgs; };
 in
 {
@@ -50,7 +49,7 @@ in
         enableNixpkgsReleaseCheck = false;
         packages = pkgs.callPackage ./packages.nix {};
         file = lib.mkMerge [
-          sharedFiles
+          (import ../shared/files.nix { inherit config pkgs user self; })
           additionalFiles
         ];
         stateVersion = "23.11";

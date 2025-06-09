@@ -137,6 +137,7 @@
               useUserPackages = true;
               users.${user} = import ./modules/nixos/home-manager.nix;
               backupFileExtension = "bak";
+              extraSpecialArgs = inputs;
             };
           }
           ./hosts/nixos
