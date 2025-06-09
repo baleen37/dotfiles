@@ -140,10 +140,6 @@ let name = "Jiho Lee";
     };
   };
 
-  home.file.".gitconfig_global" = {
-    text = "";
-  };
-
   vim = {
     enable = true;
     plugins = with pkgs.vimPlugins; [ vim-airline vim-airline-themes vim-startify vim-tmux-navigator ];
