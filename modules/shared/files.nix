@@ -15,5 +15,9 @@ in
   "${userHome}/.gitconfig_global" = {
     text = "";
   };
+
+  "${userHome}/.config/wezterm/wezterm.lua" = {
+    source = ./config/wezterm.lua;
+  };
 }
 
