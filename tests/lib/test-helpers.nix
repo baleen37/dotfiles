@@ -27,12 +27,14 @@ let
   '';
   
   # Assertion helpers
-  assert = condition: message: 
-    if condition then ''
-      echo "${colors.green}✓${colors.reset} ${message}"
-    '' else ''
-      echo "${colors.red}✗${colors.reset} ${message}"
-      exit 1
+  assertTrue = condition: message: 
+    ''
+      if ${condition}; then
+        echo "${colors.green}✓${colors.reset} ${message}"
+      else
+        echo "${colors.red}✗${colors.reset} ${message}"
+        exit 1
+      fi
     '';
     
   assertExists = path: message:
@@ -164,7 +166,7 @@ EOF
   
 in {
   inherit colors platform setupTestEnv;
-  inherit assert assertExists assertCommand assertContains;
+  inherit assertTrue assertExists assertCommand assertContains;
   inherit testSection testSubsection;
   inherit skipOn onlyOn benchmark;
   inherit mockFlake mockConfig;

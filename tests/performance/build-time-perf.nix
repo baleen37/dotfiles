@@ -1,4 +1,4 @@
-{ pkgs }:
+{ pkgs, flake ? null, src }:
 let
   testHelpers = import ../lib/test-helpers.nix { inherit pkgs; };
   system = pkgs.system;

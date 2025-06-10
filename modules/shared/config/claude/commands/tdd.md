@@ -2,6 +2,12 @@
 
 > This workflow emphasizes writing tests first to define clear success criteria, then implementing code to satisfy those tests.
 
+## Usage
+
+```
+tdd; <description>
+```
+
 ## Step 1: Write Tests
 
 **Objective:** Create test cases that define expected behavior before any implementation.
@@ -38,8 +44,3 @@ First, write the tests based on:
 ## Step 4: Commit Final Code
 
 **Objective:** After all tests pass, commit the implementation code.
-
-**Prompt Example:**
-```text
-"All tests are passing. Commit the implementation with message: 'Feat: Implement [feature name]'."
-```

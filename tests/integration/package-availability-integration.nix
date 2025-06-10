@@ -1,14 +1,14 @@
-{ pkgs }:
+{ pkgs, flake ? null, src }:
 let
   testHelpers = import ../lib/test-helpers.nix { inherit pkgs; };
   
   # Import package configurations
-  sharedPackages = import ../../modules/shared/packages.nix { inherit pkgs; };
+  sharedPackages = import (src + "/modules/shared/packages.nix") { inherit pkgs; };
   darwinPackages = if testHelpers.platform.isDarwin then
-    import ../../modules/darwin/packages.nix { inherit pkgs; }
+    import (src + "/modules/darwin/packages.nix") { inherit pkgs; }
   else [];
   nixosPackages = if testHelpers.platform.isLinux then
-    import ../../modules/nixos/packages.nix { inherit pkgs; }
+    import (src + "/modules/nixos/packages.nix") { inherit pkgs; }
   else [];
   
   # Combine all packages for current platform
@@ -41,7 +41,7 @@ pkgs.runCommand "package-availability-integration-test" {} ''
   # Test 1: Shared packages availability
   ${testHelpers.testSubsection "Shared Packages"}
   SHARED_COUNT=${toString (builtins.length sharedPackages)}
-  ${testHelpers.assert ''[ $SHARED_COUNT -gt 0 ]'' "Shared packages list is not empty ($SHARED_COUNT packages)"}
+  ${testHelpers.assertTrue ''[ $SHARED_COUNT -gt 0 ]'' "Shared packages list is not empty ($SHARED_COUNT packages)"}
   
   # Test core shared packages
   ${testHelpers.assertCommand "nix-instantiate --eval --expr 'builtins.hasAttr \"git\" (import <nixpkgs> {})'" "Git package is available"}
@@ -53,14 +53,14 @@ pkgs.runCommand "package-availability-integration-test" {} ''
     ${testHelpers.testSubsection "Darwin-specific Packages"}
     DARWIN_COUNT=${toString (builtins.length darwinPackages)}
     echo "Darwin packages count: $DARWIN_COUNT"
-    ${testHelpers.assert ''[ $DARWIN_COUNT -ge 0 ]'' "Darwin packages list is valid"}
+    ${testHelpers.assertTrue ''[ $DARWIN_COUNT -ge 0 ]'' "Darwin packages list is valid"}
   ''}
   
   ${testHelpers.onlyOn ["aarch64-linux" "x86_64-linux"] "Linux-specific packages" ''
     ${testHelpers.testSubsection "Linux-specific Packages"} 
     NIXOS_COUNT=${toString (builtins.length nixosPackages)}
     echo "NixOS packages count: $NIXOS_COUNT"
-    ${testHelpers.assert ''[ $NIXOS_COUNT -ge 0 ]'' "NixOS packages list is valid"}
+    ${testHelpers.assertTrue ''[ $NIXOS_COUNT -ge 0 ]'' "NixOS packages list is valid"}
   ''}
   
   # Test 3: Package derivation validity
@@ -75,8 +75,8 @@ pkgs.runCommand "package-availability-integration-test" {} ''
   echo "Available packages: $AVAILABLE_PACKAGES"
   echo "Unavailable packages: $UNAVAILABLE_PACKAGES"
   
-  ${testHelpers.assert ''[ $TOTAL_PACKAGES -gt 0 ]'' "Total package count is positive"}
-  ${testHelpers.assert ''[ $AVAILABLE_PACKAGES -ge $((TOTAL_PACKAGES * 80 / 100)) ]'' "At least 80% of packages are available"}
+  ${testHelpers.assertTrue ''[ $TOTAL_PACKAGES -gt 0 ]'' "Total package count is positive"}
+  ${testHelpers.assertTrue ''[ $AVAILABLE_PACKAGES -ge $((TOTAL_PACKAGES * 80 / 100)) ]'' "At least 80% of packages are available"}
   
   # Test 4: Essential packages are available
   ${testHelpers.testSubsection "Essential Packages"}
@@ -104,7 +104,7 @@ pkgs.runCommand "package-availability-integration-test" {} ''
   
   # Test that packages have basic metadata
   GIT_META=$(nix-instantiate --eval --expr '(import <nixpkgs> {}).git.meta.description or "none"' 2>/dev/null | tr -d '"')
-  ${testHelpers.assert ''[ "$GIT_META" != "none" ]'' "Git package has description metadata"}
+  ${testHelpers.assertTrue ''[ "$GIT_META" != "none" ]'' "Git package has description metadata"}
   
   # Test 7: Package installation (dry-run)
   ${testHelpers.testSubsection "Package Installation Test"}

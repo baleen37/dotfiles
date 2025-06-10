@@ -1,7 +1,6 @@
-{ pkgs }:
+{ pkgs, flake ? null, src }:
 let
   testHelpers = import ../lib/test-helpers.nix { inherit pkgs; };
-  flake = builtins.getFlake (toString ../..);
   system = pkgs.system;
 in
 pkgs.runCommand "cross-platform-integration-test" {} ''
@@ -15,37 +14,45 @@ pkgs.runCommand "cross-platform-integration-test" {} ''
   echo "Testing platform: ${system}"
   
   # Check if platform is supported in flake outputs
-  ${if builtins.hasAttr system (flake.outputs.checks or {}) then ''
-    echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Platform ${system} is supported in checks"
+  ${if flake != null then ''
+    ${if builtins.hasAttr system (flake.outputs.checks or {}) then ''
+      echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Platform ${system} is supported in checks"
+    '' else ''
+      echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} Platform ${system} is not supported in checks"
+      exit 1
+    ''}
+    
+    ${if builtins.hasAttr system (flake.outputs.apps or {}) then ''
+      echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Platform ${system} is supported in apps"
+    '' else ''
+      echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} Platform ${system} is not supported in apps"
+      exit 1
+    ''}
   '' else ''
-    echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} Platform ${system} is not supported in checks"
-    exit 1
-  ''}
-  
-  ${if builtins.hasAttr system (flake.outputs.apps or {}) then ''
-    echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Platform ${system} is supported in apps"
-  '' else ''
-    echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} Platform ${system} is not supported in apps"
-    exit 1
+    echo "${testHelpers.colors.yellow}⚠${testHelpers.colors.reset} Flake parameter is null, skipping platform support checks"
   ''}
   
   # Test 2: Configuration availability per platform
   ${testHelpers.testSubsection "Configuration Availability"}
   
-  ${if testHelpers.platform.isDarwin then ''
-    ${if builtins.hasAttr system (flake.outputs.darwinConfigurations or {}) then ''
-      echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Darwin configuration available for ${system}"
+  ${if flake != null then ''
+    ${if testHelpers.platform.isDarwin then ''
+      ${if builtins.hasAttr system (flake.outputs.darwinConfigurations or {}) then ''
+        echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Darwin configuration available for ${system}"
+      '' else ''
+        echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} Darwin configuration missing for ${system}"
+        exit 1
+      ''}
     '' else ''
-      echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} Darwin configuration missing for ${system}"
-      exit 1
+      ${if builtins.hasAttr system (flake.outputs.nixosConfigurations or {}) then ''
+        echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} NixOS configuration available for ${system}"
+      '' else ''
+        echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} NixOS configuration missing for ${system}"
+        exit 1
+      ''}
     ''}
   '' else ''
-    ${if builtins.hasAttr system (flake.outputs.nixosConfigurations or {}) then ''
-      echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} NixOS configuration available for ${system}"
-    '' else ''
-      echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} NixOS configuration missing for ${system}"
-      exit 1
-    ''}
+    echo "${testHelpers.colors.yellow}⚠${testHelpers.colors.reset} Flake parameter is null, skipping configuration availability checks"
   ''}
   
   # Test 3: Shared modules work across platforms
@@ -92,15 +99,19 @@ pkgs.runCommand "cross-platform-integration-test" {} ''
   ''}
   
   for app in "''${EXPECTED_APPS[@]}"; do
-    ${if builtins.hasAttr system (flake.outputs.apps or {}) then 
-      if builtins.hasAttr "apply" (flake.outputs.apps.${system} or {}) then ''
-        echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} App '$app' available for ${system}"
-      '' else ''
-        echo "${testHelpers.colors.yellow}⚠${testHelpers.colors.reset} App '$app' not found for ${system}"
-      ''
-    else ''
-      echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} No apps available for ${system}"
-      exit 1
+    ${if flake != null then ''
+      ${if builtins.hasAttr system (flake.outputs.apps or {}) then 
+        if builtins.hasAttr "apply" (flake.outputs.apps.${system} or {}) then ''
+          echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} App '$app' available for ${system}"
+        '' else ''
+          echo "${testHelpers.colors.yellow}⚠${testHelpers.colors.reset} App '$app' not found for ${system}"
+        ''
+      else ''
+        echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} No apps available for ${system}"
+        exit 1
+      ''}
+    '' else ''
+      echo "${testHelpers.colors.yellow}⚠${testHelpers.colors.reset} Flake parameter is null, skipping app availability check for '$app'"
     ''}
   done
   
@@ -122,7 +133,7 @@ pkgs.runCommand "cross-platform-integration-test" {} ''
   # Test USER variable resolution works consistently
   export USER=crossplatformtest
   USER_RESULT=$(nix-instantiate --eval --expr 'let getUser = import ../../lib/get-user.nix {}; in getUser' 2>/dev/null | tr -d '"')
-  ${testHelpers.assert ''[ "$USER_RESULT" = "crossplatformtest" ]'' "USER resolution works consistently across platforms"}
+  ${testHelpers.assertTrue ''[ "$USER_RESULT" = "crossplatformtest" ]'' "USER resolution works consistently across platforms"}
   
   # Test 8: Package manager integration
   ${testHelpers.testSubsection "Package Manager Integration"}

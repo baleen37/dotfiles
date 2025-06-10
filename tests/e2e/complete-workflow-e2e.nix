@@ -1,7 +1,6 @@
-{ pkgs }:
+{ pkgs, flake ? null, src }:
 let
   testHelpers = import ../lib/test-helpers.nix { inherit pkgs; };
-  flake = builtins.getFlake (toString ../..);
   system = pkgs.system;
 in
 pkgs.runCommand "complete-workflow-e2e-test" {} ''
@@ -142,7 +141,7 @@ pkgs.runCommand "complete-workflow-e2e-test" {} ''
     fi
   done
   
-  ${testHelpers.assert ''[ $AVAILABLE_SYSTEMS -ge 2 ]'' "At least 2 system configurations are available"}
+  ${testHelpers.assertTrue ''[ $AVAILABLE_SYSTEMS -ge 2 ]'' "At least 2 system configurations are available"}
   
   # Test 7: Configuration inheritance and modularity
   ${testHelpers.testSubsection "Configuration Inheritance and Modularity"}

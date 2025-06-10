@@ -1,4 +1,4 @@
-{ pkgs }:
+{ pkgs, flake ? null }:
 let
   # Helper function to convert filename to valid Nix attribute name
   sanitizeName = name: 
@@ -18,7 +18,7 @@ let
         ) (builtins.attrNames entries);
       in builtins.listToAttrs (map (file: {
         name = sanitizeName file;
-        value = import (dir + ("/" + file)) { inherit pkgs; };
+        value = import (dir + ("/" + file)) { inherit pkgs flake; src = ../.; };
       }) testFiles)
     else {};
     

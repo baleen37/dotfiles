@@ -1,4 +1,4 @@
-{ pkgs }:
+{ pkgs, flake ? null, src }:
 let
   testHelpers = import ../lib/test-helpers.nix { inherit pkgs; };
 in
@@ -18,15 +18,20 @@ pkgs.runCommand "basic-functionality-unit-test" {} ''
   fi
   
   MATH_RESULT=$((5 * 3))
-  ${testHelpers.assert ''[ $MATH_RESULT -eq 15 ]'' "Basic multiplication works"}
+  if [ $MATH_RESULT -eq 15 ]; then
+    echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Basic multiplication works"
+  else
+    echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} Basic multiplication works"
+    exit 1
+  fi
   
   # Test 2: String operations
   ${testHelpers.testSubsection "String Operations"}
   STRING="hello"
-  ${testHelpers.assert ''[ "$STRING" = "hello" ]'' "String assignment works"}
+  ${testHelpers.assertTrue ''[ "$STRING" = "hello" ]'' "String assignment works"}
   
   CONCAT="$STRING world"
-  ${testHelpers.assert ''[ "$CONCAT" = "hello world" ]'' "String concatenation works"}
+  ${testHelpers.assertTrue ''[ "$CONCAT" = "hello world" ]'' "String concatenation works"}
   
   # Test 3: File operations
   ${testHelpers.testSubsection "File Operations"}
@@ -45,10 +50,10 @@ pkgs.runCommand "basic-functionality-unit-test" {} ''
   # Test 5: Environment variables
   ${testHelpers.testSubsection "Environment Variables"}
   export TEST_VAR="test_value"
-  ${testHelpers.assert ''[ "$TEST_VAR" = "test_value" ]'' "Environment variable setting works"}
+  ${testHelpers.assertTrue ''[ "$TEST_VAR" = "test_value" ]'' "Environment variable setting works"}
   
   unset TEST_VAR
-  ${testHelpers.assert ''[ -z "$TEST_VAR" ]'' "Environment variable unsetting works"}
+  ${testHelpers.assertTrue ''[ -z "$TEST_VAR" ]'' "Environment variable unsetting works"}
   
   # Test 6: Command execution
   ${testHelpers.testSubsection "Command Execution"}
@@ -63,10 +68,10 @@ pkgs.runCommand "basic-functionality-unit-test" {} ''
   # Test 8: Nix evaluation basics
   ${testHelpers.testSubsection "Nix Evaluation"}
   NIX_RESULT=$(nix-instantiate --eval --expr '1 + 1' 2>/dev/null || echo "")
-  ${testHelpers.assert ''[ "$NIX_RESULT" = "2" ]'' "Nix basic evaluation works"}
+  ${testHelpers.assertTrue ''[ "$NIX_RESULT" = "2" ]'' "Nix basic evaluation works"}
   
   NIX_STRING=$(nix-instantiate --eval --expr '"hello"' 2>/dev/null | tr -d '"' || echo "")
-  ${testHelpers.assert ''[ "$NIX_STRING" = "hello" ]'' "Nix string evaluation works"}
+  ${testHelpers.assertTrue ''[ "$NIX_STRING" = "hello" ]'' "Nix string evaluation works"}
   
   ${testHelpers.cleanup}
   ${testHelpers.reportResults "Basic Functionality Unit Tests" 15 15}

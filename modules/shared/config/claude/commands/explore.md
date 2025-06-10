@@ -2,13 +2,6 @@
 
 A systematic development workflow command for solving complex problems.
 
-## Usage
-
-```
-/code <problem description>
-```
-
----
 
 ## Step 1: Explore (Analysis)
 
