@@ -49,7 +49,7 @@ in
         enableNixpkgsReleaseCheck = false;
         packages = pkgs.callPackage ./packages.nix {};
         file = lib.mkMerge [
-          (import ../shared/files.nix { inherit config pkgs user self; })
+          (import ../shared/files.nix { inherit config pkgs user self lib; })
           additionalFiles
         ];
         stateVersion = "23.11";

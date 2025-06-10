@@ -43,7 +43,7 @@ in
     username = "${user}";
     homeDirectory = "/home/${user}";
     packages = pkgs.callPackage ./packages.nix {};
-    file = (import ../shared/files.nix { inherit config pkgs user self; }) // import ./files.nix { inherit user; };
+    file = (import ../shared/files.nix { inherit config pkgs user self lib; }) // import ./files.nix { inherit user; };
     stateVersion = "21.05";
   };
 

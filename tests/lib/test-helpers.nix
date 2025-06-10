@@ -164,6 +164,31 @@ EOF
     fi
   '';
   
+  # Nix attribute set test helpers
+  assertSetContains = attrSet: expectedKeys:
+    pkgs.runCommand "assert-set-contains" {} ''
+      ${builtins.concatStringsSep "\n" (map (key:
+        ''if [ -z "${if builtins.hasAttr key attrSet then "has" else ""}" ]; then
+            echo "Missing key: ${key}"
+            exit 1
+          fi''
+      ) expectedKeys)}
+      echo "All keys found"
+      touch $out
+    '';
+    
+  # Check if value is true
+  assertTrue = condition:
+    pkgs.runCommand "assert-true" {} ''
+      ${if condition then ''
+        echo "Assertion passed"
+        touch $out
+      '' else ''
+        echo "Assertion failed"
+        exit 1
+      ''}
+    '';
+
 in {
   inherit colors platform setupTestEnv;
   inherit assertTrue assertExists assertCommand assertContains;
@@ -172,4 +197,5 @@ in {
   inherit mockFlake mockConfig;
   inherit createTempFile createTempDir;
   inherit evalFlake reportResults cleanup;
+  inherit assertSetContains;
 }
