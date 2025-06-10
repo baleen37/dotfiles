@@ -20,5 +20,8 @@ in
   "${userHome}/.claude/CLAUDE.md".text = builtins.readFile ./config/claude/CLAUDE.md;
   "${userHome}/.claude/settings.json".text = builtins.readFile ./config/claude/settings.json;
   "${userHome}/.gitconfig_global".text = "";
+  
+  # WezTerm configuration
+  "${userHome}/.wezterm.lua".text = builtins.readFile ./config/wezterm/wezterm.lua;
 } // mkCommandFiles ./config/claude/commands
 
