@@ -32,7 +32,7 @@ with pkgs; [
   nodejs_22
 
   # Terminal applications
-  wezterm
+  iterm2
 
   # Development tools
   direnv

@@ -253,9 +253,6 @@ let name = "Jiho Lee";
       '';
      };
 
-  wezterm = {
-    enable = true;
-  };
 
   alacritty = {
     enable = true;
