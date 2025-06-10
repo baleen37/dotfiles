@@ -61,6 +61,40 @@ in
       # Marked broken Oct 20, 2022 check later to remove this
       # https://github.com/nix-community/home-manager/issues/3344
       manual.manpages.enable = false;
+      
+      # Force copy Claude config files instead of symlinks
+      home.activation.copyClaudeFiles = lib.hm.dag.entryAfter ["linkGeneration"] ''
+        $DRY_RUN_CMD mkdir -p "${config.home.homeDirectory}/.claude/commands"
+        
+        # Function to copy symlink to real file
+        copy_if_symlink() {
+          local file="$1"
+          if [[ -L "$file" ]]; then
+            local target=$(readlink "$file")
+            if [[ -n "$target" && -f "$target" ]]; then
+              $DRY_RUN_CMD rm "$file"
+              $DRY_RUN_CMD cp "$target" "$file"
+              $DRY_RUN_CMD chmod 644 "$file"
+              echo "Copied $file from symlink"
+            fi
+          fi
+        }
+        
+        # Remove any existing backup files that might cause conflicts
+        $DRY_RUN_CMD rm -f "${config.home.homeDirectory}/.claude"/*.bak
+        $DRY_RUN_CMD rm -f "${config.home.homeDirectory}/.claude/commands"/*.bak
+        
+        # Copy CLAUDE.md
+        copy_if_symlink "${config.home.homeDirectory}/.claude/CLAUDE.md"
+        
+        # Copy settings.json
+        copy_if_symlink "${config.home.homeDirectory}/.claude/settings.json"
+        
+        # Copy command files
+        for file in "${config.home.homeDirectory}/.claude/commands"/*.md; do
+          [[ -e "$file" ]] && copy_if_symlink "$file"
+        done
+      '';
     };
   };
 

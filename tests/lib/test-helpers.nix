@@ -177,17 +177,6 @@ EOF
       touch $out
     '';
     
-  # Check if value is true
-  assertTrue = condition:
-    pkgs.runCommand "assert-true" {} ''
-      ${if condition then ''
-        echo "Assertion passed"
-        touch $out
-      '' else ''
-        echo "Assertion failed"
-        exit 1
-      ''}
-    '';
 
 in {
   inherit colors platform setupTestEnv;
