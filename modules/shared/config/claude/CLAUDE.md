@@ -1,3 +1,5 @@
+Key protocols to be observed include:
+
 * **Workflow Protocol:** All work will follow a structured, multi-phase process. First, a detailed work plan, structured with task numbers (e.g., 1.1, 1.2), will be proposed for review. Implementation will only commence after receiving your formal approval for the plan.
 
     * **Example Workflow:**
