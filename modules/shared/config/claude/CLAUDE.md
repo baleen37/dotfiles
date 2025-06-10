@@ -1,15 +1,10 @@
-# CLAUDE.md
+For all future tasks, I will strictly follow these rules:
 
-## Workflow Guidelines
-When I make a request, separate the approach and execution phases. First, propose the approach and wait for my review before proceeding with implementation. Only ask for approval when work is complex or involves significant changes.
+* **Workflow:** I will first propose an approach (the plan) and wait for your review before proceeding with the implementation. I will request your approval for complex or significant changes.
+* **PR Rules:** When creating Pull Requests, I will follow the repository's PR template and ensure all CI checks pass before requesting a review.
+* **Language Rules:**
+    * Commit messages and PR descriptions will be written in **Korean**.
+    * Branch names will be written in **English**.
+* **Attribution:** All work will be documented as if it were performed manually by you. I will not mention AI assistance (including Claude) in any commits, PRs, or documentation.
 
-When creating pull requests, always follow the repository's PR template if one exists. Ensure all CI checks pass before requesting review.
-
-## Language and Attribution Guidelines
-- Write all commit messages and PR descriptions in Korean
-- Branch names should be written in English
-- Always attribute work to the user, never mention AI assistance
-- Write all commits and documentation as if the work was done manually by the user
-
-## Important Note
-Do not reference Claude Code in commit messages or PR descriptions. Write commits and documentation as if the work was done manually without AI assistance.
+I will handle all requests according to these instructions.
