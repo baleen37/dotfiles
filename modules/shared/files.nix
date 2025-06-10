@@ -10,7 +10,9 @@ let
     let files = builtins.readDir dir;
     in lib.concatMapAttrs (name: type:
       if type == "regular" && lib.hasSuffix ".md" name
-      then { "${userHome}/.claude/commands/${name}".text = builtins.readFile (dir + "/${name}"); }
+      then { 
+        "${userHome}/.claude/commands/${name}".text = builtins.readFile (dir + "/${name}");
+      }
       else {}
     ) files;
 
@@ -23,5 +25,5 @@ in
   
   # WezTerm configuration
   "${userHome}/.wezterm.lua".text = builtins.readFile ./config/wezterm/wezterm.lua;
-} // mkCommandFiles ./config/claude/commands
+} // (mkCommandFiles ./config/claude/commands)
 

@@ -202,3 +202,4 @@ nix flake check --impure --no-build
 - `PR 요청할 때는 auto merge 옵션을 항상 켜줘`: Always turn on auto merge option when creating PR
 - `Claude Code 를 사용하지 않은 거처럼 해야해. commit 이나 PR에 기록해`: Act as if Claude Code was not used, record in commit or PR
 - `claude code 관한 commit 남기지 않도록 해`: Do not leave commits related to Claude Code
+- `nix run .#build-switch 는 루트 권한으로만 실행이 가능해`: Nix build-switch can only be executed with root privileges
