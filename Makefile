@@ -6,11 +6,16 @@ NIX := nix --extra-experimental-features 'nix-command flakes'
 
 help:
 	@echo "Available targets:"
-	@echo "  lint   - Run pre-commit lint"
-	@echo "  smoke  - Run nix flake checks for all systems"
-	@echo "  test   - Run flake unit tests"
-	@echo "  build  - Build all Darwin and NixOS configurations"
-	@echo "  switch - Apply configuration on the current machine (HOST=<system> optional)"
+	@echo "  lint        - Run pre-commit lint"
+	@echo "  smoke       - Run nix flake checks for all systems"
+	@echo "  test        - Run all tests (unit, integration, e2e)"
+	@echo "  test-unit   - Run unit tests only"
+	@echo "  test-integration - Run integration tests only"
+	@echo "  test-e2e    - Run end-to-end tests only"
+	@echo "  test-perf   - Run performance tests only"
+	@echo "  test-status - Show test framework status"
+	@echo "  build       - Build all Darwin and NixOS configurations"
+	@echo "  switch      - Apply configuration on the current machine (HOST=<system> optional)"
 
 lint:
 	pre-commit run --all-files
@@ -25,6 +30,31 @@ endif
 
 test:
 	$(NIX) flake check --impure --no-build
+
+test-unit:
+	@echo "Running unit tests..."
+	@SYSTEM=$$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"'); \
+	$(NIX) build --impure --no-link ".#checks.$$SYSTEM.basic_functionality_unit" $(ARGS) && echo "✓ Unit tests passed"
+
+test-integration:
+	@echo "Running integration tests..."
+	@SYSTEM=$$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"'); \
+	$(NIX) build --impure --no-link ".#checks.$$SYSTEM.package_availability_integration" $(ARGS) && echo "✓ Integration tests passed"
+
+test-e2e:
+	@echo "Running end-to-end tests..."
+	@SYSTEM=$$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"'); \
+	$(NIX) build --impure --no-link ".#checks.$$SYSTEM.system_build_e2e" $(ARGS) && echo "✓ E2E tests passed"
+
+test-perf:
+	@echo "Running performance tests..."
+	@SYSTEM=$$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"'); \
+	$(NIX) build --impure --no-link ".#checks.$$SYSTEM.build_time_perf" $(ARGS) && echo "✓ Performance tests completed"
+
+test-status:
+	@echo "Checking test framework status..."
+	@SYSTEM=$$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"'); \
+	$(NIX) build --impure --no-link ".#checks.$$SYSTEM.framework_status" $(ARGS)
 
 build-linux:
 	$(NIX) build --impure --no-link ".#nixosConfigurations.x86_64-linux.config.system.build.toplevel" $(ARGS)
@@ -53,4 +83,4 @@ switch:
 	sudo SSH_AUTH_SOCK=$$SSH_AUTH_SOCK /run/current-system/sw/bin/nixos-rebuild switch --impure --flake .#$${TARGET} $(ARGS); \
 	fi
 
-.PHONY: help lint smoke test build build-linux build-darwin switch
+.PHONY: help lint smoke test test-unit test-integration test-e2e test-perf test-status build build-linux build-darwin switch

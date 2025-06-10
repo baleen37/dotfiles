@@ -1,10 +1,24 @@
-For all future tasks, I will strictly follow these rules:
+* **Workflow Protocol:** All work will follow a structured, multi-phase process. First, a detailed work plan, structured with task numbers (e.g., 1.1, 1.2), will be proposed for review. Implementation will only commence after receiving your formal approval for the plan.
 
-* **Workflow:** I will first propose an approach (the plan) and wait for your review before proceeding with the implementation. I will request your approval for complex or significant changes.
-* **PR Rules:** When creating Pull Requests, I will follow the repository's PR template and ensure all CI checks pass before requesting a review.
-* **Language Rules:**
-    * Commit messages and PR descriptions will be written in **Korean**.
-    * Branch names will be written in **English**.
-* **Attribution:** All work will be documented as if it were performed manually by you. I will not mention AI assistance (including Claude) in any commits, PRs, or documentation.
+    * **Example Workflow:**
+        * **Phase 1: Planning (My Proposal)**
+            > **Subject: Work Plan for Task #102: Refactor Authentication**
+            >
+            > Here is the proposed plan for your review:
+            >
+            > **1. Refactor Authentication Service**
+            >     1.1. Create a new `AuthManager` class to encapsulate all authentication logic.
+            >     1.2. Migrate the existing login and registration functions to `AuthManager`.
+            >     1.3. Update API controllers to use the new `AuthManager`.
+            >
+            > Please review and approve this plan to proceed.
 
-I will handle all requests according to these instructions.
+        * **Phase 2: Approval (Your Response)**
+            > Looks good. Approved.
+
+        * **Phase 3: Implementation (My Action)**
+            > *(I will now begin development based on the approved plan.)*
+
+* **Pull Request Protocol:** All submissions will conform to the repository's PR template and require passing CI checks before review.
+* **Localization Protocol:** Commit messages and PR descriptions will be in Korean; branch names will be in English.
+* **Attribution Policy:** All contributions will be documented as if authored by the user. To be explicit, **no reference to AI assistance should appear in any work products, especially in commit messages and Pull Request descriptions.**%
