@@ -21,10 +21,8 @@ config.window_padding = {
   bottom = 10,
 }
 
--- Tab bar
-config.enable_tab_bar = true
-config.use_fancy_tab_bar = false
-config.tab_bar_at_bottom = false
+-- Tab bar (disabled)
+config.enable_tab_bar = false
 
 -- Performance
 config.enable_wayland = false

@@ -39,7 +39,7 @@
 ├── lib/            # 공통 Nix 함수
 ├── overlays/       # Nixpkgs 오버레이
 ├── legacy/         # 이전 버전/백업/마이그레이션 자료
-├── tests/          # flake checks and unit tests
+├── tests/          # 계층적 테스트 구조 (unit/, integration/, e2e/, performance/)
 ├── docs/           # 추가 문서
 ├── flake.nix       # Nix flake entrypoint
 ├── flake.lock
@@ -52,7 +52,7 @@
 - **lib/**: 공통 함수 모음 (`get-user.nix`은 `USER`를 읽음)
 - **overlays/**: 패치, 커스텀 패키지
 - **legacy/**: 이전 구조/마이그레이션 자료
-- **tests/**: flake checks and unit tests
+- **tests/**: 계층적 테스트 구조 (unit/, integration/, e2e/, performance/)
 - **docs/**: 추가 설명을 위한 문서 모음
 
 ## Getting Started
@@ -117,10 +117,19 @@ USER 환경변수가 없을 경우, 일부 Nix 코드에서 기본값을 사용�
 2. 아래 명령어로 적용/테스트
    - `make lint`
    - `make smoke`
-   - `make test` - unit 및 e2e( `tests/e2e.nix` ) 테스트 실행. 환경변수 `USER`가 없으면 `codex`로 설정합니다.
+   - `make test` - 포괄적인 테스트 스위트 실행
    - `make build`
    - `make switch HOST=<host>`
    - `home-manager switch --flake .#<host>`
+
+### 세부 테스트 카테고리
+```bash
+nix run .#test-unit               # 단위 테스트
+nix run .#test-integration        # 통합 테스트  
+nix run .#test-e2e                # 종단간 테스트
+nix run .#test-perf               # 성능 테스트
+nix run .#test-smoke              # 빠른 검증 테스트
+```
    
 Makefile targets internally run `nix` with `--extra-experimental-features 'nix-command flakes'` and `--impure` so that the `USER` environment variable is respected.
 Even if these features are not globally enabled, the commands will still work.
