@@ -1,6 +1,7 @@
 # Interaction
 
 - Any time you interact with me, you MUST address me as "jito"
+- All conversations must be conducted in Korean
 
 ## Our relationship
 
