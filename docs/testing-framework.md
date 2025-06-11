@@ -85,28 +85,47 @@ make lint        # Code quality checks
 make smoke       # Fast validation without builds
 make test        # Unit and integration tests
 make build       # Full system builds
-make perf        # Performance benchmarks (optional)
+
+# Individual test categories (Darwin systems only)
+nix run .#test-unit         # Unit tests only
+nix run .#test-integration  # Integration tests only
+nix run .#test-e2e          # End-to-end tests only
+nix run .#test-perf         # Performance benchmarks
+nix run .#test-smoke        # Quick smoke tests
 ```
 
 ## Test Categories
 
-### Current Test Migration
-Reorganize existing tests into proper categories:
+### Current Test Structure
+Tests are organized into hierarchical categories:
 
-#### Unit Tests
-- `simple.nix` → `unit/basic-functionality-unit.nix`
-- `get-user.nix` → `unit/user-resolution-unit.nix`
-- `module-validation.nix` → `unit/module-imports-unit.nix`
+#### Unit Tests (`tests/unit/`)
+- `basic-functionality-unit.nix` - Core functionality tests
+- `user-resolution-unit.nix` - User resolution system tests
+- `module-imports-unit.nix` - Module import validation
+- `claude-config-copy-unit.nix` - Claude configuration management
+- `claude-file-overwrite-unit.nix` - File overwrite behavior
+- `auto-update-dotfiles-unit.nix` - Auto-update system tests
 
-#### Integration Tests
-- `module-dependency-integration.nix` → Keep as-is
-- `package-availability.nix` → `integration/package-availability-integration.nix`
-- `overlay-functionality.nix` → `integration/overlay-integration.nix`
+#### Integration Tests (`tests/integration/`)
+- `package-availability-integration.nix` - Package availability across systems
+- `module-dependency-integration.nix` - Module dependency resolution
+- `cross-platform-integration.nix` - Cross-platform compatibility
+- `claude-config-overwrite-integration.nix` - Claude config integration
+- `auto-update-integration.nix` - Auto-update integration tests
 
-#### E2E Tests
-- `full-system-integration.nix` → `e2e/system-build-e2e.nix`
-- `configuration-build.nix` → `e2e/config-switching-e2e.nix`
-- `workflow-integration.nix` → `e2e/complete-workflow-e2e.nix`
+#### E2E Tests (`tests/e2e/`)
+- `system-build-e2e.nix` - Full system build tests
+- `claude-config-overwrite-e2e.nix` - Claude configuration end-to-end
+- `complete-workflow-e2e.nix` - Complete workflow validation
+- `legacy-system-integration-e2e.nix` - Legacy system compatibility
+- `legacy-workflow-e2e.nix` - Legacy workflow tests
+
+#### Performance Tests (`tests/performance/`)
+- `build-time-perf.nix` - Build time benchmarks
+
+#### Legacy Tests (Root level)
+- `simple.nix`, `get-user.nix`, `module-validation.nix` - Maintained for compatibility
 
 ## Implementation Plan
 
