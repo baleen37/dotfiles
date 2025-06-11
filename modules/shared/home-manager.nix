@@ -84,7 +84,8 @@ let name = "Jiho Lee";
       
       # Auto-update dotfiles on shell startup (with TTL)
       if [[ -x "$HOME/dotfiles/scripts/auto-update-dotfiles" ]]; then
-        "$HOME/dotfiles/scripts/auto-update-dotfiles" --silent &
+        "$HOME/dotfiles/scripts/auto-update-dotfiles" --silent &>/dev/null &
+        disown
       fi
     '';
   };
