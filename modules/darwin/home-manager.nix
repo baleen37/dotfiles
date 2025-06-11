@@ -66,7 +66,7 @@ in
       home.activation.copyClaudeFiles = lib.hm.dag.entryAfter ["linkGeneration"] ''
         $DRY_RUN_CMD mkdir -p "${config.home.homeDirectory}/.claude/commands"
         
-        # Function to copy symlink to real file
+        # Function to copy symlink to real file with overwrite support
         copy_if_symlink() {
           local file="$1"
           if [[ -L "$file" ]]; then
@@ -76,6 +76,15 @@ in
               $DRY_RUN_CMD cp "$target" "$file"
               $DRY_RUN_CMD chmod 644 "$file"
               echo "Copied $file from symlink"
+            fi
+          elif [[ -f "$file" ]]; then
+            # File exists but is not a symlink, check if we have a newer version to overwrite
+            local source_file="${"\$"}{file##*/}"
+            local nix_store_file=$(find /nix/store -name "$source_file" -type f 2>/dev/null | head -1)
+            if [[ -n "$nix_store_file" ]]; then
+              $DRY_RUN_CMD cp "$nix_store_file" "$file"
+              $DRY_RUN_CMD chmod 644 "$file"
+              echo "Overwritten existing $file with latest version"
             fi
           fi
         }
