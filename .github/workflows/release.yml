@@ -75,7 +75,8 @@ jobs:
 
       - name: 플랫폼 빌드
         run: |
-          if [[ "${{ matrix.platform }}" == *"linux"* ]]; then
+          PLATFORM="${{ matrix.platform }}"
+          if [[ "$PLATFORM" == *"linux"* ]]; then
             make build-linux
           else
             make build-darwin

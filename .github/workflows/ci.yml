@@ -144,7 +144,8 @@ jobs:
 
       - name: 플랫폼별 빌드 테스트
         run: |
-          if [[ "${{ matrix.platform }}" == *"linux"* ]]; then
+          PLATFORM="${{ matrix.platform }}"
+          if [[ "$PLATFORM" == *"linux"* ]]; then
             make build-linux
           else
             make build-darwin

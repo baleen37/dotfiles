@@ -165,8 +165,8 @@ jobs:
             --label "dependencies")
 
           PR_NUMBER=$(echo "$PR_URL" | grep -o '[0-9]\+$')
-          echo "pr-number=$PR_NUMBER" >> $GITHUB_OUTPUT
-          echo "pr-url=$PR_URL" >> $GITHUB_OUTPUT
+          echo "pr-number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+          echo "pr-url=$PR_URL" >> "$GITHUB_OUTPUT"
 
           echo "::notice::Created PR #$PR_NUMBER: $PR_URL"
           echo "::endgroup::"
