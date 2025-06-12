@@ -32,7 +32,7 @@ help:
 	@echo "  build       - Build all Darwin and NixOS configurations"
 	@echo "  switch      - Apply configuration on the current machine (HOST=<system> optional)"
 
-lint:
+lint: ## Run pre-commit hooks on all files
 	$(call run_in_nix_if_needed,pre-commit,pre-commit run --all-files)
 
 ifdef SYSTEM
