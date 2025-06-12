@@ -30,7 +30,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PAT_TOKEN }}
           fetch-depth: 0
 
       - name: Install Nix
@@ -153,7 +153,7 @@ jobs:
         if: steps.check-changes.outputs.has-changes == 'true'
         id: create-pr
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
           echo "::group::Creating Pull Request"
           
@@ -180,7 +180,7 @@ jobs:
     steps:
       - name: Wait for CI checks to be created
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
           echo "::group::Waiting for CI checks to be created"
           
