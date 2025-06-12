@@ -21,6 +21,7 @@ in
   # Claude configuration files
   "${userHome}/.claude/CLAUDE.md".text = builtins.readFile ./config/claude/CLAUDE.md;
   "${userHome}/.claude/settings.json".text = builtins.readFile ./config/claude/settings.json;
+  "${userHome}/.claude/.mcp.json".text = builtins.readFile ./config/claude/.mcp.json;
   "${userHome}/.gitconfig_global".text = "";
   
   # WezTerm configuration
