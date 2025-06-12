@@ -37,6 +37,9 @@ let
   integrationTests = discoverTests ./integration ".*-integration\\.nix";
   e2eTests = discoverTests ./e2e ".*-e2e\\.nix";
   performanceTests = discoverTests ./performance ".*-perf\\.nix";
+  contractTests = discoverTests ./contract ".*-contract\\.nix";
+  securityTests = discoverTests ./security ".*-security\\.nix";
+  compatibilityTests = discoverTests ./compatibility ".*-compatibility\\.nix";
   
   
   # Legacy tests (to be gradually migrated)
@@ -46,7 +49,7 @@ let
   }) legacyFiles);
   
   # Combine all tests with clear categorization
-  allTests = unitTests // integrationTests // e2eTests // performanceTests // legacyTests;
+  allTests = unitTests // integrationTests // e2eTests // performanceTests // contractTests // securityTests // compatibilityTests // legacyTests;
   
   # Test metadata for reporting
   testMetadata = {
@@ -55,6 +58,9 @@ let
       integration = builtins.length (builtins.attrNames integrationTests);
       e2e = builtins.length (builtins.attrNames e2eTests);
       performance = builtins.length (builtins.attrNames performanceTests);
+      contract = builtins.length (builtins.attrNames contractTests);
+      security = builtins.length (builtins.attrNames securityTests);
+      compatibility = builtins.length (builtins.attrNames compatibilityTests);
       legacy = builtins.length (builtins.attrNames legacyTests);
     };
     total = builtins.length (builtins.attrNames allTests);
@@ -67,6 +73,9 @@ let
     echo "Integration tests: ${toString testMetadata.categories.integration}"
     echo "E2E tests: ${toString testMetadata.categories.e2e}"
     echo "Performance tests: ${toString testMetadata.categories.performance}"
+    echo "Contract tests: ${toString testMetadata.categories.contract}"
+    echo "Security tests: ${toString testMetadata.categories.security}"
+    echo "Compatibility tests: ${toString testMetadata.categories.compatibility}"
     echo "Legacy tests: ${toString testMetadata.categories.legacy}"
     echo "Total tests: ${toString testMetadata.total}"
     echo ""

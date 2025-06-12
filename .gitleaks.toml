@@ -1,0 +1,58 @@
+# ABOUTME: GitLeaks 보안 스캔 설정
+# ABOUTME: 민감정보 패턴 검출 규칙 정의
+
+[extend]
+# 기본 규칙 사용
+useDefault = true
+
+[[rules]]
+id = "nix-store-path"
+description = "Nix store path (허용됨)"
+regex = '''/nix/store/[a-z0-9]{32}-'''
+keywords = ["nix", "store"]
+# Nix store path는 공개되어도 안전함
+[rules.allowlist]
+regexes = ['''/nix/store/[a-z0-9]{32}-''']
+
+[[rules]]
+id = "ssh-key-pattern"
+description = "SSH 개인키 패턴"
+regex = '''-----BEGIN [A-Z ]*PRIVATE KEY-----'''
+keywords = ["private", "key", "BEGIN"]
+
+[[rules]]
+id = "api-token-pattern"
+description = "API 토큰 패턴"
+regex = '''(api[_-]?key|token|secret)["\s]*[:=]["\s]*[a-zA-Z0-9]{20,}'''
+keywords = ["api", "token", "secret", "key"]
+
+[[rules]]
+id = "github-token"
+description = "GitHub 토큰"
+regex = '''gh[pousr]_[A-Za-z0-9_]{36}'''
+keywords = ["github", "token"]
+
+# 허용 목록
+[allowlist]
+# 테스트 파일들
+paths = [
+    '''tests/.*''',
+    '''\.md$''',
+    '''\.nix$''',
+    '''CLAUDE\.md$'''
+]
+
+# 허용되는 패턴들
+regexes = [
+    '''password.*placeholder''',
+    '''password.*example''',
+    '''key.*example''',
+    '''token.*placeholder''',
+    '''secret.*example''',
+    '''/nix/store/[a-z0-9]{32}-''',
+    '''testuser''',
+    '''test-.*'''
+]
+
+# 허용되는 커밋들
+commits = []

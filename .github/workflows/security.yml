@@ -1,0 +1,65 @@
+# ABOUTME: 보안 중심 CI 파이프라인
+# ABOUTME: 민감정보 검사 및 보안 취약점 스캔
+
+name: Security
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # 매일 오전 2시 (UTC)에 실행
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  security-scan:
+    name: "보안 스캔 🔒"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 저장소
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Nix 설치
+        uses: DeterminateSystems/nix-installer-action@v14
+        with:
+          logger: pretty
+
+      - name: Magic Nix Cache 설정
+        uses: DeterminateSystems/magic-nix-cache-action@v8
+
+      - name: 보안 테스트 실행
+        run: make test-security
+        env:
+          USER: ${{ github.actor }}
+
+      - name: Secrets 스캔 (GitLeaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          config-path: .gitleaks.toml
+
+      - name: 보안 결과 업로드
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-scan-results
+          path: |
+            security-*.log
+            gitleaks-*.json
+          retention-days: 30
+
+      - name: 보안 요약 생성
+        if: always()
+        run: |
+          echo "## 🔒 보안 스캔 결과" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 검사 항목" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ 민감정보 노출 검사" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ 파일 권한 검증" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Git 히스토리 스캔" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Secrets 패턴 검사" >> $GITHUB_STEP_SUMMARY

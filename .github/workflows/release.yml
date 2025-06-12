@@ -1,0 +1,139 @@
+# ABOUTME: 릴리스 및 배포 워크플로우
+# ABOUTME: 태그 기반 릴리스 자동화
+
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: '릴리스 버전 (예: v1.0.0)'
+        required: true
+        type: string
+
+jobs:
+  test-before-release:
+    name: "릴리스 전 테스트 🧪"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 저장소
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Nix 설치
+        uses: DeterminateSystems/nix-installer-action@v14
+        with:
+          logger: pretty
+
+      - name: Magic Nix Cache 설정
+        uses: DeterminateSystems/magic-nix-cache-action@v8
+
+      - name: 전체 테스트 스위트 실행
+        run: |
+          make lint
+          make smoke
+          make test-fast
+          make test-contract
+          make test-security
+          make test-compatibility
+        env:
+          USER: ${{ github.actor }}
+
+  build-release-artifacts:
+    name: "릴리스 아티팩트 빌드 📦"
+    needs: test-before-release
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: x86_64-linux
+          - os: ubuntu-latest
+            platform: aarch64-linux
+          - os: macos-13
+            platform: x86_64-darwin
+          - os: macos-14
+            platform: aarch64-darwin
+
+    steps:
+      - name: Checkout 저장소
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Nix 설치
+        uses: DeterminateSystems/nix-installer-action@v14
+        with:
+          logger: pretty
+
+      - name: Magic Nix Cache 설정
+        uses: DeterminateSystems/magic-nix-cache-action@v8
+
+      - name: 플랫폼 빌드
+        run: |
+          if [[ "${{ matrix.platform }}" == *"linux"* ]]; then
+            make build-linux
+          else
+            make build-darwin
+          fi
+        env:
+          USER: ${{ github.actor }}
+
+      - name: 빌드 결과 아카이브
+        run: |
+          mkdir -p release-artifacts
+          tar -czf release-artifacts/dotfiles-${{ matrix.platform }}.tar.gz \
+            --exclude='.git' \
+            --exclude='result*' \
+            --exclude='release-artifacts' \
+            .
+
+      - name: 아티팩트 업로드
+        uses: actions/upload-artifact@v4
+        with:
+          name: dotfiles-${{ matrix.platform }}
+          path: release-artifacts/
+          retention-days: 90
+
+  create-release:
+    name: "GitHub 릴리스 생성 🚀"
+    needs: build-release-artifacts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 저장소
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 모든 아티팩트 다운로드
+        uses: actions/download-artifact@v4
+        with:
+          path: all-artifacts
+
+      - name: 릴리스 노트 생성
+        run: |
+          echo "## 🎉 Dotfiles 릴리스 ${{ github.ref_name }}" > release-notes.md
+          echo "" >> release-notes.md
+          echo "### ✨ 주요 변경사항" >> release-notes.md
+          git log --oneline --since="$(git describe --tags --abbrev=0 HEAD^)" >> release-notes.md
+          echo "" >> release-notes.md
+          echo "### 🧪 테스트 현황" >> release-notes.md
+          echo "- ✅ 모든 플랫폼 빌드 성공" >> release-notes.md
+          echo "- ✅ 전체 테스트 스위트 통과" >> release-notes.md
+          echo "- ✅ 보안 검사 완료" >> release-notes.md
+
+      - name: GitHub 릴리스 생성
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "Dotfiles ${{ github.ref_name }}"
+          body_path: release-notes.md
+          files: |
+            all-artifacts/**/*.tar.gz
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

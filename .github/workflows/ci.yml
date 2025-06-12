@@ -1,0 +1,229 @@
+# ABOUTME: GitHub Actions CI/CD 파이프라인
+# ABOUTME: 다중 플랫폼에서 포괄적인 테스트 실행
+
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  # 빠른 검증 (lint, smoke)
+  quick-checks:
+    name: "빠른 검증 🚀"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 저장소
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Nix 설치
+        uses: DeterminateSystems/nix-installer-action@v14
+        with:
+          logger: pretty
+
+      - name: Magic Nix Cache 설정
+        uses: DeterminateSystems/magic-nix-cache-action@v8
+
+      - name: Lint 검사
+        run: make lint
+
+      - name: Smoke 테스트
+        run: make smoke
+
+      - name: 테스트 프레임워크 상태 확인
+        run: make test-status
+
+  # 플랫폼별 테스트 매트릭스
+  test-matrix:
+    name: "테스트 ${{ matrix.test-type }} on ${{ matrix.os }}"
+    needs: quick-checks
+    runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.experimental }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-13      # x86_64
+          - macos-14      # aarch64
+        test-type:
+          - unit
+          - integration
+          - contract
+          - security
+          - compatibility
+        exclude:
+          # Ubuntu에서는 일부 테스트만 실행
+          - os: ubuntu-latest
+            test-type: integration
+          - os: ubuntu-latest  
+            test-type: security
+        include:
+          # 실험적 테스트들
+          - os: ubuntu-latest
+            test-type: e2e
+            experimental: true
+          - os: macos-13
+            test-type: e2e
+            experimental: true
+          - os: macos-14
+            test-type: e2e
+            experimental: true
+          - os: macos-14
+            test-type: perf
+            experimental: true
+
+    steps:
+      - name: Checkout 저장소
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Nix 설치
+        uses: DeterminateSystems/nix-installer-action@v14
+        with:
+          logger: pretty
+
+      - name: Magic Nix Cache 설정
+        uses: DeterminateSystems/magic-nix-cache-action@v8
+
+      - name: 테스트 실행 - ${{ matrix.test-type }}
+        run: make test-${{ matrix.test-type }}
+        env:
+          USER: ${{ github.actor }}
+
+      - name: 테스트 결과 업로드
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.test-type }}-${{ matrix.os }}
+          path: |
+            /tmp/test-*
+            *.log
+          retention-days: 7
+
+  # 빌드 테스트 (각 플랫폼별)
+  build-test:
+    name: "빌드 테스트 ${{ matrix.platform }}"
+    needs: quick-checks
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: "x86_64-linux"
+            runner: ubuntu-latest
+          - platform: "aarch64-linux" 
+            runner: ubuntu-latest
+          - platform: "x86_64-darwin"
+            runner: macos-13
+          - platform: "aarch64-darwin"
+            runner: macos-14
+
+    steps:
+      - name: Checkout 저장소
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Nix 설치
+        uses: DeterminateSystems/nix-installer-action@v14
+        with:
+          logger: pretty
+
+      - name: Magic Nix Cache 설정
+        uses: DeterminateSystems/magic-nix-cache-action@v8
+
+      - name: 플랫폼별 빌드 테스트
+        run: |
+          if [[ "${{ matrix.platform }}" == *"linux"* ]]; then
+            make build-linux
+          else
+            make build-darwin
+          fi
+        env:
+          USER: ${{ github.actor }}
+
+  # 종합 보고서
+  test-summary:
+    name: "테스트 요약 📊"
+    needs: [test-matrix, build-test]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Checkout 저장소
+        uses: actions/checkout@v4
+
+      - name: 테스트 결과 다운로드
+        uses: actions/download-artifact@v4
+        with:
+          path: test-results
+
+      - name: 테스트 요약 생성
+        run: |
+          echo "## 🧪 테스트 결과 요약" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 플랫폼별 테스트 상태" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| 플랫폼 | Unit | Integration | Contract | Security | Compatibility |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|------|-------------|----------|----------|---------------|" >> $GITHUB_STEP_SUMMARY
+          
+          for os in ubuntu-latest macos-13 macos-14; do
+            echo -n "| $os |" >> $GITHUB_STEP_SUMMARY
+            for test_type in unit integration contract security compatibility; do
+              if ls test-results/test-results-${test_type}-${os}* >/dev/null 2>&1; then
+                echo -n " ✅ |" >> $GITHUB_STEP_SUMMARY
+              else
+                echo -n " ❌ |" >> $GITHUB_STEP_SUMMARY
+              fi
+            done
+            echo "" >> $GITHUB_STEP_SUMMARY
+          done
+
+      - name: 실패한 작업 확인
+        if: needs.test-matrix.result == 'failure' || needs.build-test.result == 'failure'
+        run: |
+          echo "일부 테스트가 실패했습니다. 로그를 확인해주세요." >&2
+          exit 1
+
+  # 성능 벤치마크 (선택적)
+  performance-benchmark:
+    name: "성능 벤치마크 ⚡"
+    needs: quick-checks
+    runs-on: macos-14  # 일관된 성능 측정을 위해 고정
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout 저장소
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Nix 설치
+        uses: DeterminateSystems/nix-installer-action@v14
+        with:
+          logger: pretty
+
+      - name: Magic Nix Cache 설정
+        uses: DeterminateSystems/magic-nix-cache-action@v8
+
+      - name: 성능 테스트 실행
+        run: make test-perf
+        env:
+          USER: ${{ github.actor }}
+
+      - name: 성능 결과 업로드
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-results
+          path: |
+            perf-*.json
+            benchmark-*.log
+          retention-days: 30
