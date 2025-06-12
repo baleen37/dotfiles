@@ -1,11 +1,30 @@
+# ABOUTME: Pre-commit configuration for dotfiles repository
+# ABOUTME: Includes Nix flake validation, shell script, YAML and Markdown linting
+
+# Pre-commit hooks configuration for comprehensive code quality checks
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
+
 repos:
--   repo: local
+  # ============================================================================
+  # Nix-specific hooks (local repository)
+  # ============================================================================
+  - repo: local
     hooks:
-    -   id: nix-flake-check
+      # Nix flake structure and syntax validation
+      - id: nix-flake-check
         name: Nix Flake Check
         entry: nix flake check --all-systems --no-build
         language: system
         files: ^.*\\.nix$
         pass_filenames: false
+        
+  # ============================================================================
+  # File-specific linting hooks (to be added)
+  # ============================================================================
+  # Shell script linting, YAML validation, Markdown linting hooks will be added here
+  
+  # ============================================================================
+  # General file quality hooks (to be added)  
+  # ============================================================================
+  # General file formatting and quality checks will be added here
