@@ -27,7 +27,7 @@ Whenever you build out a new project and specifically start a new Claude.md - yo
 # Writing code
 
 - CRITICAL: NEVER USE --no-verify WHEN COMMITTING CODE
-- CLAUDE.md files MUST be written in English
+- CLAUDE.md and CLAUDE.local.md files MUST be written in English
 - We prefer simple, clean, maintainable solutions over clever or complex ones, even if the latter are more concise or performant. Readability and maintainability are primary concerns.
 - Make the smallest reasonable changes to get to the desired outcome. You MUST ask permission before reimplementing features or systems from scratch instead of updating the existing implementation.
 - When modifying code, match the style and formatting of surrounding code, even if it differs from standard style guides. Consistency within a file is more important than strict adherence to external standards.
