@@ -1,10 +1,43 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+> **Last Updated:** 2025-01-06  
+> **Version:** 2.0  
+> **For:** Claude Code (claude.ai/code)
+
+This file provides comprehensive guidance for Claude Code when working with this Nix flake-based dotfiles repository.
+
+## Quick Start
+
+### TL;DR - Essential Commands
+```bash
+# Setup (run once)
+export USER=<username>
+
+# Daily workflow
+make lint    # Always run before committing
+make build   # Test your changes
+make switch HOST=<host>  # Apply to system
+
+# Emergency fixes
+nix run --impure .#build-switch  # Build and switch (requires sudo)
+```
+
+### First Time Setup
+1. Set user environment: `export USER=<username>`
+2. Test the build: `make build`
+3. Apply configuration: `make switch HOST=<host>`
+4. Install global tools: `./scripts/install-setup-dev`
 
 ## Repository Overview
 
 This is a Nix flake-based dotfiles repository for managing macOS and NixOS development environments declaratively. It supports x86_64 and aarch64 architectures on both platforms.
+
+**Key Features:**
+- Declarative environment management with Nix flakes
+- Cross-platform support (macOS via nix-darwin, NixOS via nixos-rebuild)
+- Comprehensive testing suite with CI/CD
+- Modular architecture for easy customization
+- Global command system (`bl`) for project management
 
 ## Essential Commands
 
@@ -13,7 +46,7 @@ This is a Nix flake-based dotfiles repository for managing macOS and NixOS devel
 # Required: Set USER environment variable (or use --impure flag)
 export USER=<username>
 
-# Core development commands
+# Core development commands (in order of frequency)
 make lint           # Run pre-commit hooks (MUST pass before committing)
 make smoke          # Quick flake validation without building
 make test           # Run all unit and e2e tests
@@ -23,17 +56,11 @@ make switch HOST=<host>  # Apply configuration to current system
 # Platform-specific builds
 nix run .#build     # Build for current system
 nix run .#switch    # Build and switch for current system
-
-# Project initialization
-./scripts/setup-dev [project-dir]  # Initialize new Nix project with flake.nix and direnv
-nix run .#setup-dev [project-dir]  # Same as above, using nix flake app
-
-# Global installation (bl command system)
-./scripts/install-setup-dev        # Install bl command system (run once)
+nix run .#build-switch  # Build and switch with sudo (immediate application)
 ```
 
 ### Testing Requirements (Follow CI Pipeline)
-Before submitting any changes, run these commands in order:
+**Always run these commands in order before submitting changes:**
 ```bash
 make lint   # pre-commit run --all-files  
 make smoke  # nix flake check --all-systems --no-build
@@ -58,9 +85,59 @@ nix run .#test-smoke              # Quick smoke tests
 nix eval --impure .#checks.$(nix eval --impure --expr 'builtins.currentSystem').simple
 ```
 
+## Development Workflows
+
+### 🔄 Daily Development Cycle
+```bash
+# 1. Start work
+git checkout -b feature/my-change
+export USER=<username>
+
+# 2. Make changes
+# ... edit files ...
+
+# 3. Test changes
+make lint && make build
+
+# 4. Apply locally (optional)
+make switch HOST=<host>
+
+# 5. Commit and push
+git add . && git commit -m "feat: description"
+git push -u origin feature/my-change
+
+# 6. Create PR
+gh pr create --assignee @me
+```
+
+### 🚀 Quick Configuration Apply
+```bash
+# For immediate system changes (requires sudo)
+nix run --impure .#build-switch
+
+# For testing without system changes
+make build
+```
+
+### 🔧 Adding New Software
+```bash
+# 1. Identify target platform
+# All platforms: modules/shared/packages.nix
+# macOS only: modules/darwin/packages.nix  
+# NixOS only: modules/nixos/packages.nix
+# Homebrew casks: modules/darwin/casks.nix
+
+# 2. Edit appropriate file
+# 3. Test the change
+make build
+
+# 4. Apply if successful
+make switch HOST=<host>
+```
+
 ## Architecture Overview
 
-### Module System
+### Module System Hierarchy
 The codebase follows a strict modular hierarchy:
 
 1. **Platform-specific modules** (`modules/darwin/`, `modules/nixos/`)
@@ -110,66 +187,128 @@ The codebase follows a strict modular hierarchy:
 - `apps/{architecture}/`: Platform-specific shell scripts
 - `tests/`: Unit and integration tests
 - `lib/`: Shared Nix functions (especially `get-user.nix`)
-
-## Critical Development Notes
-
-1. **Always use `--impure` flag** when running nix commands that need environment variables:
-   ```bash
-   nix run --impure .#build
-   ```
-
-2. **Module Dependencies**: When modifying modules, check both direct imports and any modules that might transitively import your changes.
-
-3. **Platform Testing**: Changes to shared modules should be tested on all four platforms:
-   - x86_64-darwin
-   - aarch64-darwin  
-   - x86_64-linux
-   - aarch64-linux
-
-4. **Configuration Application**: 
-   - Darwin: Uses `darwin-rebuild switch`
-   - NixOS: Uses `nixos-rebuild switch`
-   - Both are wrapped by platform-specific scripts in `apps/`
-
-5. **Home Manager Integration**: User-specific configurations are managed through Home Manager, integrated into both Darwin and NixOS system configurations.
-
-## Agent Guidelines
-
-Refer to `AGENTS.md` for specific guidelines when making automated changes. Key points:
-- Test changes using the testing workflow before committing
-- Update documentation when adding new modules or changing architecture
-- Follow existing code patterns and conventions
-- Use Korean language in AGENTS.md updates
+- `scripts/`: Management and development tools
 
 ## Common Tasks
 
 ### Adding a New Package
-1. For all platforms: Edit `modules/shared/packages.nix`
-2. For macOS only: Edit `modules/darwin/packages.nix`
-3. For NixOS only: Edit `modules/nixos/packages.nix`
-4. For Homebrew casks: Edit `modules/darwin/casks.nix`
+1. **For all platforms**: Edit `modules/shared/packages.nix`
+2. **For macOS only**: Edit `modules/darwin/packages.nix`
+3. **For NixOS only**: Edit `modules/nixos/packages.nix`
+4. **For Homebrew casks**: Edit `modules/darwin/casks.nix`
+
+**Testing checklist:**
+- [ ] `make lint` passes
+- [ ] `make build` succeeds
+- [ ] Package installs correctly on target platform(s)
+- [ ] No conflicts with existing packages
 
 ### Adding a New Module
 1. Create module file in appropriate directory
 2. Import it in relevant host configurations or parent modules
-3. Test on all affected platforms
-4. Document any new conventions in AGENTS.md
+3. Test on all affected platforms:
+   - x86_64-darwin
+   - aarch64-darwin  
+   - x86_64-linux
+   - aarch64-linux
+4. Document any new conventions
 
 ### Creating a New Nix Project
 
-1. Run `./scripts/setup-dev [project-directory]` to initialize a new project
-2. The script creates:
+1. **Using setup-dev script:**
+   ```bash
+   ./scripts/setup-dev [project-directory]  # Local execution
+   nix run .#setup-dev [project-directory]  # Via flake app
+   ```
+
+2. **What it creates:**
    - Basic `flake.nix` with development shell
    - `.envrc` for direnv integration
    - `.gitignore` with Nix patterns
-3. Customize `flake.nix` to add project-specific dependencies
-4. Use `nix develop` or let direnv auto-activate the environment
 
-### Script Reusability
+3. **Next steps:**
+   - Customize `flake.nix` to add project-specific dependencies
+   - Use `nix develop` or let direnv auto-activate the environment
 
-- Copy `scripts/setup-dev` to any location for standalone use
-- No dependencies on dotfiles repository structure
-- Includes help with `-h` or `--help` flag
+## Troubleshooting & Best Practices
+
+### 🔍 Common Issues & Solutions
+
+#### Build Failures
+```bash
+# Show detailed error trace
+nix build --impure --show-trace .#darwinConfigurations.aarch64-darwin.system
+
+# Check flake outputs
+nix flake show --impure
+
+# Validate flake structure
+nix flake check --impure --no-build
+
+# Clear build cache
+nix store gc
+```
+
+#### Environment Variable Issues
+```bash
+# USER not set
+export USER=$(whoami)
+
+# For CI/scripts
+nix run --impure .#build
+
+# Persistent solution
+echo "export USER=$(whoami)" >> ~/.bashrc  # or ~/.zshrc
+```
+
+#### Permission Issues with build-switch
+```bash
+# build-switch requires sudo from the start
+sudo nix run --impure .#build-switch
+
+# Alternative: use separate commands
+nix run .#build
+sudo nix run .#switch
+```
+
+### 🔒 Security Best Practices
+
+1. **Never commit secrets**
+   - Use `age` encryption for sensitive files
+   - Store secrets in separate encrypted repository
+   - Use environment variables for dynamic secrets
+
+2. **Verify package sources**
+   - Only use packages from nixpkgs or trusted overlays
+   - Review custom overlays before applying
+
+3. **Limit sudo usage**
+   - Only use `build-switch` when necessary
+   - Test builds without sudo first
+
+### ⚡ Performance Optimization
+
+1. **Build optimization**
+   - Use `make smoke` for quick validation
+   - Run `nix store gc` regularly to clean cache
+   - Use `--max-jobs` flag for parallel builds
+
+2. **Development workflow**
+   - Use `direnv` for automatic environment activation
+   - Keep separate dev shells for different projects
+   - Cache frequently used packages
+
+### 📋 Pre-commit Checklist
+
+- [ ] `export USER=<username>` is set
+- [ ] `make lint` passes without errors
+- [ ] `make smoke` validates flake structure
+- [ ] `make build` completes successfully
+- [ ] Changes tested on target platform(s)
+- [ ] Documentation updated if needed
+- [ ] No secrets or sensitive information committed
+
+## Advanced Topics
 
 ### Global Installation (bl command system)
 
@@ -178,7 +317,7 @@ Run `./scripts/install-setup-dev` to install the `bl` command system:
 - Sets up command directory at `~/.bl/commands/`
 - Installs `setup-dev` as `bl setup-dev`
 
-After installation:
+**Available commands after installation:**
 ```bash
 bl list              # List available commands
 bl setup-dev my-app  # Initialize Nix project
@@ -192,23 +331,35 @@ To add new commands to the bl system:
 2. Use `bl <command-name>` to run it
 3. All arguments are passed through to your script
 
-### Debugging Build Failures
-```bash
-# Show detailed error trace
-nix build --impure --show-trace .#darwinConfigurations.aarch64-darwin.system
+### Script Reusability
 
-# Check flake outputs
-nix flake show --impure
+- Copy `scripts/setup-dev` to any location for standalone use
+- No dependencies on dotfiles repository structure
+- Includes help with `-h` or `--help` flag
 
-# Validate flake structure
-nix flake check --impure --no-build
-```
+## Important Notes
 
-## Memories
-- `nix run .#build-switch 로 실행시켜야지 switch하는거야`: Note for using build-switch command in Nix for system configuration
-- `작업전에 나에게 물어보고 진행해`: Always ask me before proceeding with any task
-- `PR 요청할 때는 auto merge 옵션을 항상 켜줘`: Always turn on auto merge option when creating PR
-- `Claude Code 를 사용하지 않은 거처럼 해야해. commit 이나 PR에 기록해`: Act as if Claude Code was not used, record in commit or PR
-- `claude code 관한 commit 남기지 않도록 해`: Do not leave commits related to Claude Code
-- `nix run .#build-switch 는 루트 권한으로만 실행이 가능해`: Nix build-switch can only be executed with root privileges
-- `아니 tab naivgation은 필요해`: Note about tab navigation requirement
+### Critical Development Guidelines
+
+1. **Always use `--impure` flag** when running nix commands that need environment variables
+2. **Module Dependencies**: When modifying modules, check both direct imports and transitive dependencies
+3. **Platform Testing**: Changes to shared modules should be tested on all four platforms
+4. **Configuration Application**: 
+   - Darwin: Uses `darwin-rebuild switch`
+   - NixOS: Uses `nixos-rebuild switch`
+   - Both are wrapped by platform-specific scripts in `apps/`
+5. **Home Manager Integration**: User-specific configurations are managed through Home Manager
+
+### Workflow Requirements
+
+- **Ask before major changes**: Always confirm before proceeding with significant modifications
+- **Enable auto-merge for PRs**: Always turn on auto-merge option when creating pull requests
+- **No AI attribution**: Act as if Claude Code was not used - do not mention AI assistance in commits or PRs
+- **sudo requirements**: `nix run .#build-switch` can only be executed with root privileges
+- **Tab navigation**: Maintain tab navigation functionality in UI components
+
+### Legacy Information
+
+- System uses `build-switch` command for immediate configuration application
+- All builds require USER environment variable to be set
+- Root privileges are required for system-level configuration changes
