@@ -39,6 +39,9 @@ let name = "Jiho Lee";
 
       export EDITOR="vim"
       export VISUAL="vim"
+      
+      # Fix NIX_PATH to avoid warnings about non-existent channels
+      export NIX_PATH="nixpkgs=flake:nixpkgs"
 
       # 1Password SSH agent (데스크톱 앱)
       # Group Container 디렉토리를 동적으로 찾기
