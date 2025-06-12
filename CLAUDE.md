@@ -68,6 +68,52 @@ make build  # build all NixOS/darwin configurations
 make smoke  # final flake check after build
 ```
 
+### Pre-commit Hooks (Code Quality)
+This repository uses comprehensive pre-commit hooks for code quality assurance. **All commits are automatically validated.**
+
+#### 🛠️ Available Linting Tools
+```bash
+# Enter development environment (required for linting tools)
+nix-shell
+
+# Comprehensive linting (runs all hooks)
+make lint                           # ~1.1 seconds execution time
+pre-commit run --all-files          # Direct pre-commit execution
+
+# Individual linting tools
+shellcheck scripts/setup-dev        # Shell script analysis
+yamllint flake.lock                 # YAML validation
+markdownlint README.md              # Markdown style checking
+```
+
+#### 📋 Hook Categories
+
+1. **File-specific Linting**
+   - **shellcheck**: Shell script analysis (`.sh`, `.bash`, `.zsh`)
+     - Detects quoting issues, variable errors, best practices
+     - Excludes: `p10k.zsh`, `node_modules/`, `.git/`, `result/`
+   - **yamllint**: YAML file validation (`.yaml`, `.yml`)
+     - Checks indentation, syntax, line length (120 chars)
+     - Relaxed rules for better compatibility
+   - **markdownlint**: Markdown style checking (`.md`)
+     - Enforces consistent formatting and structure
+     - Disabled: MD013 (line length), MD047 (trailing newlines)
+
+2. **General File Quality**
+   - **trailing-whitespace**: Removes trailing spaces
+   - **end-of-file-fixer**: Ensures newline at end of files
+   - **check-merge-conflict**: Detects merge conflict markers
+   - **check-json**: JSON syntax validation
+
+3. **Nix-specific Validation**
+   - **nix-flake-check**: Comprehensive flake structure validation
+   - Serial execution to prevent resource conflicts
+
+#### ⚡ Performance Optimizations
+- **Execution time**: ~1.1 seconds for full repository scan
+- **Exclude patterns**: Skips `node_modules/`, `.git/`, `result/`, `.nix-store/`
+- **Serial execution**: Nix flake check runs independently for stability
+
 ### Running Individual Tests
 ```bash
 # Run all tests for current system
@@ -271,6 +317,30 @@ nix run .#build
 sudo nix run .#switch
 ```
 
+#### Pre-commit Hook Issues
+```bash
+# Linting tools not found
+nix-shell                           # Enter development environment first
+pre-commit install                  # Install git hooks
+
+# Individual tool debugging
+nix-shell --run "shellcheck --version"    # Check shellcheck availability
+nix-shell --run "yamllint --version"      # Check yamllint availability
+nix-shell --run "markdownlint --version"  # Check markdownlint availability
+
+# Hook execution failures
+pre-commit run --all-files --verbose      # Detailed execution info
+pre-commit run shellcheck --verbose       # Debug specific hook
+
+# Performance issues
+pre-commit run --all-files --show-diff-on-failure  # Show only failures
+git add . && git commit --no-verify       # Skip hooks temporarily (NOT recommended)
+
+# Cache and cleanup
+pre-commit clean                          # Clear hook cache
+pre-commit install --install-hooks        # Reinstall all hooks
+```
+
 ### 🔒 Security Best Practices
 
 1. **Never commit secrets**
@@ -300,13 +370,28 @@ sudo nix run .#switch
 
 ### 📋 Pre-commit Checklist
 
+#### Environment Setup
 - [ ] `export USER=<username>` is set
-- [ ] `make lint` passes without errors
+- [ ] `nix-shell` environment activated for linting tools
+
+#### Code Quality (Automated)
+- [ ] `make lint` passes without errors (~1.1s execution)
+  - [ ] **shellcheck**: Shell scripts follow best practices
+  - [ ] **yamllint**: YAML files properly formatted
+  - [ ] **markdownlint**: Markdown follows style guidelines
+  - [ ] **check-json**: JSON syntax is valid
+  - [ ] **trailing-whitespace**: No trailing spaces
+  - [ ] **end-of-file-fixer**: Files end with newlines
+
+#### Build Validation
 - [ ] `make smoke` validates flake structure
 - [ ] `make build` completes successfully
 - [ ] Changes tested on target platform(s)
+
+#### Documentation & Security
 - [ ] Documentation updated if needed
 - [ ] No secrets or sensitive information committed
+- [ ] Commit message follows Korean localization standards
 
 ## Advanced Topics
 

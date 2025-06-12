@@ -24,13 +24,21 @@ pkgs.mkShell {
 
   shellHook = ''
     echo "🔧 Dotfiles development environment loaded"
-    echo "Available linting tools:"
+    echo ""
+    echo "📋 Available linting tools:"
     echo "  - shellcheck (Shell script analysis)"
     echo "  - yamllint (YAML validation)"
     echo "  - markdownlint-cli (Markdown linting)"
     echo "  - pre-commit (Git hooks)"
     echo ""
-    echo "Run 'pre-commit install' to setup git hooks"
-    echo "Run 'make lint' to run all pre-commit checks"
+    echo "🚀 Quick start:"
+    echo "  pre-commit install              # Setup git hooks (one-time)"
+    echo "  make lint                       # Run all checks (~1.1s)"
+    echo "  pre-commit run --all-files      # Direct execution"
+    echo ""
+    echo "🔍 Individual tools:"
+    echo "  shellcheck scripts/setup-dev    # Check specific script"
+    echo "  yamllint .pre-commit-config.yaml"
+    echo "  markdownlint README.md"
   '';
 }
