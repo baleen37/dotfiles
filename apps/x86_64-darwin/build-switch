@@ -15,6 +15,10 @@ if [ -z "$USER" ]; then
     export USER=$(whoami)
 fi
 
+# Request sudo access upfront
+echo "${YELLOW}Requesting sudo access...${NC}"
+sudo -v
+
 echo "${YELLOW}Starting build...${NC}"
 nix --extra-experimental-features 'nix-command flakes' build --impure .#$FLAKE_SYSTEM $@
 
