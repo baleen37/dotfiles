@@ -338,6 +338,124 @@ To add new commands to the bl system:
 - Includes help with `-h` or `--help` flag
 
 ## Important Notes
+<<<<<<< HEAD
+
+### Critical Development Guidelines
+
+1. **Always use `--impure` flag** when running nix commands that need environment variables
+2. **Module Dependencies**: When modifying modules, check both direct imports and transitive dependencies
+3. **Platform Testing**: Changes to shared modules should be tested on all four platforms
+4. **Configuration Application**: 
+   - Darwin: Uses `darwin-rebuild switch`
+   - NixOS: Uses `nixos-rebuild switch`
+   - Both are wrapped by platform-specific scripts in `apps/`
+5. **Home Manager Integration**: User-specific configurations are managed through Home Manager
+
+## Claude 설정 보존 시스템
+
+이 dotfiles는 **스마트 Claude 설정 보존 시스템**을 포함하고 있어, 사용자가 개인화한 Claude 설정이 시스템 업데이트 시에도 안전하게 보존됩니다.
+
+### 작동 방식
+
+1. **자동 수정 감지**: SHA256 해시를 통해 사용자 수정 여부를 자동 감지
+2. **우선순위 기반 보존**: 중요한 파일(`settings.json`, `CLAUDE.md`)은 항상 보존
+3. **안전한 업데이트**: 새 버전을 `.new` 파일로 저장하여 안전한 업데이트 제공
+4. **사용자 알림**: 업데이트 발생 시 자동 알림 생성
+5. **병합 도구**: 대화형 병합 도구로 설정 통합 지원
+
+### 주요 특징
+
+- ✅ **무손실 보존**: 사용자 설정이 절대 손실되지 않음
+- ✅ **자동 백업**: 모든 변경 시 자동 백업 생성
+- ✅ **대화형 병합**: JSON 및 텍스트 파일 병합 지원
+- ✅ **커스텀 파일 보호**: 사용자가 추가한 명령어 파일 완전 보존
+- ✅ **깔끔한 정리**: 병합 후 임시 파일 자동 정리
+
+### 사용법
+
+#### 일반적인 상황 (자동 처리)
+시스템 재빌드 시 자동으로 작동합니다:
+```bash
+nix run --impure .#build-switch
+# 또는
+make switch HOST=<host>
+```
+
+사용자 수정이 감지되면 다음과 같은 파일들이 생성됩니다:
+- `~/.claude/settings.json.new` - 새로운 dotfiles 버전
+- `~/.claude/settings.json.update-notice` - 업데이트 알림
+
+#### 수동 병합
+업데이트 알림을 받은 후 병합 도구를 사용하세요:
+
+```bash
+# 병합이 필요한 파일 확인
+./scripts/merge-claude-config --list
+
+# 특정 파일 병합
+./scripts/merge-claude-config settings.json
+
+# 모든 파일 대화형 병합
+./scripts/merge-claude-config
+
+# 차이점만 확인
+./scripts/merge-claude-config --diff CLAUDE.md
+```
+
+#### 고급 사용법
+
+**JSON 설정 병합**: `settings.json`은 키별로 선택적 병합 가능
+```bash
+./scripts/merge-claude-config settings.json
+# c) 현재 값 유지
+# n) 새 값 사용  
+# s) 건너뛰기
+```
+
+**백업 관리**: 
+```bash
+# 백업 파일 위치
+ls ~/.claude/.backups/
+
+# 30일 이상된 백업 자동 정리됨
+```
+
+### 문제 해결
+
+#### 업데이트 알림이 생성된 경우
+```bash
+# 1. 알림 파일 확인
+find ~/.claude -name "*.update-notice"
+
+# 2. 변경사항 검토
+./scripts/merge-claude-config --diff settings.json
+
+# 3. 병합 또는 현재 버전 유지 결정
+./scripts/merge-claude-config settings.json
+
+# 4. 완료 후 정리
+rm ~/.claude/*.new ~/.claude/*.update-notice
+```
+
+#### 백업에서 복원
+```bash
+# 백업 파일 확인
+ls ~/.claude/.backups/
+
+# 원하는 백업으로 복원
+cp ~/.claude/.backups/settings.json.backup.20240106_143022 ~/.claude/settings.json
+```
+
+### 보존 정책
+
+| 파일 | 우선순위 | 동작 |
+|------|----------|------|
+| `settings.json` | 높음 | 사용자 수정 시 보존, 새 버전 `.new`로 저장 |
+| `CLAUDE.md` | 높음 | 사용자 수정 시 보존, 새 버전 `.new`로 저장 |
+| `commands/*.md` (dotfiles) | 중간 | 백업 후 덮어쓰기 |
+| `commands/*.md` (사용자) | 높음 | 항상 보존 (dotfiles에 없는 파일) |
+
+## Important Notes
 
 ### Critical Development Guidelines
 
@@ -357,6 +475,7 @@ To add new commands to the bl system:
 - **No AI attribution**: Act as if Claude Code was not used - do not mention AI assistance in commits or PRs
 - **sudo requirements**: `nix run .#build-switch` can only be executed with root privileges
 - **Tab navigation**: Maintain tab navigation functionality in UI components
+- **Claude config preservation**: User modifications to Claude settings are automatically preserved
 
 ### Legacy Information
 
