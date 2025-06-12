@@ -110,6 +110,10 @@ jobs:
           BRANCH_NAME="auto-update/flake-$(date +%Y%m%d-%H%M%S)"
           echo "branch-name=$BRANCH_NAME" >> $GITHUB_OUTPUT
           
+          # Ensure we're up to date with main before creating branch
+          git fetch origin main
+          git rebase origin/main
+          
           git checkout -b "$BRANCH_NAME"
           git push origin "$BRANCH_NAME"
 
@@ -171,13 +175,40 @@ jobs:
     runs-on: ubuntu-latest
     needs: update-dependencies
     if: needs.update-dependencies.outputs.has-changes == 'true'
-    timeout-minutes: 5
+    timeout-minutes: 10
     
     steps:
-      - name: Wait for CI checks to start
+      - name: Wait for CI checks to be created
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "Waiting 30 seconds for CI checks to be created..."
-          sleep 30
+          echo "::group::Waiting for CI checks to be created"
+          
+          PR_NUMBER="${{ needs.update-dependencies.outputs.pr-number }}"
+          MAX_WAIT=300  # 5 minutes
+          WAIT_TIME=0
+          
+          while [ $WAIT_TIME -lt $MAX_WAIT ]; do
+            # Check if required checks have been created
+            CHECKS=$(gh api repos/baleen37/dotfiles/pulls/$PR_NUMBER/commits --jq '.[0].sha' | \
+                     xargs -I {} gh api repos/baleen37/dotfiles/commits/{}/check-runs --jq '.check_runs | length')
+            
+            echo "Found $CHECKS check runs (waiting for CI to start...)"
+            
+            if [ "$CHECKS" -gt 0 ]; then
+              echo "CI checks have been created, proceeding..."
+              break
+            fi
+            
+            sleep 30
+            WAIT_TIME=$((WAIT_TIME + 30))
+          done
+          
+          if [ $WAIT_TIME -ge $MAX_WAIT ]; then
+            echo "::warning::Timeout waiting for CI checks to be created"
+          fi
+          
+          echo "::endgroup::"
 
       - name: Enable auto-merge
         env:
@@ -190,9 +221,13 @@ jobs:
           # Enable auto-merge with squash
           if gh pr merge "$PR_NUMBER" --auto --squash; then
             echo "::notice::Auto-merge enabled for PR #$PR_NUMBER"
+            echo "::notice::PR will be automatically merged when all required checks pass"
           else
-            echo "::warning::Failed to enable auto-merge for PR #$PR_NUMBER"
+            echo "::error::Failed to enable auto-merge for PR #$PR_NUMBER"
             echo "::notice::PR will need to be merged manually after CI passes"
+            
+            # Show current PR status for debugging
+            gh pr view "$PR_NUMBER" --json mergeable,mergeStateStatus,statusCheckRollup
           fi
           
           echo "::endgroup::"
