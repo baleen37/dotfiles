@@ -19,6 +19,8 @@
 - 멀티플랫폼 matrix smoke 테스트로 기본 빌드 오류 조기 확인
 - 오래된 PR은 자동으로 stale로 표시 후 닫힘
 - Makefile 기반 로컬/CI 명령어 통합
+- **bl command system**: 전역 명령어 시스템으로 프로젝트 초기화 및 관리 도구 제공
+- **setup-dev 스크립트**: 새로운 Nix 프로젝트 자동 초기화 (flake.nix, direnv 설정 포함)
 
 ## Directory Layout
 
@@ -38,11 +40,20 @@
 │   └── shared/
 ├── lib/            # 공통 Nix 함수
 ├── overlays/       # Nixpkgs 오버레이
-├── legacy/         # 이전 버전/백업/마이그레이션 자료
+├── scripts/        # 관리 및 개발 스크립트
+│   ├── auto-update-dotfiles
+│   ├── bl          # bl command system 디스패처
+│   ├── install-setup-dev
+│   └── setup-dev   # 새 Nix 프로젝트 초기화 스크립트
 ├── tests/          # 계층적 테스트 구조 (unit/, integration/, e2e/, performance/)
 ├── docs/           # 추가 문서
+├── node_modules/   # npm 의존성
+├── package.json    # npm 패키지 설정
+├── package-lock.json
 ├── flake.nix       # Nix flake entrypoint
 ├── flake.lock
+├── Makefile        # 개발 워크플로우 명령어
+├── CLAUDE.md       # Claude Code 가이드
 └── README.md
 ```
 
@@ -51,7 +62,7 @@
 - **modules/**: 공통/프로그램별/서비스별 Nix 모듈 (darwin, nixos, shared)
 - **lib/**: 공통 함수 모음 (`get-user.nix`은 `USER`를 읽음)
 - **overlays/**: 패치, 커스텀 패키지
-- **legacy/**: 이전 구조/마이그레이션 자료
+- **scripts/**: 프로젝트 관리 및 개발 도구 스크립트
 - **tests/**: 계층적 테스트 구조 (unit/, integration/, e2e/, performance/)
 - **docs/**: 추가 설명을 위한 문서 모음
 
@@ -70,7 +81,7 @@ echo "experimental-features = nix-command flakes" >> ~/.config/nix/nix.conf
 ### 2. 저장소 클론
 
 ```sh
-git clone https://github.com/yourname/dotfiles.git
+git clone https://github.com/baleen/dotfiles.git
 cd dotfiles
 # 필요 시 USER 환경변수로 대상 계정을 지정할 수 있습니다.
 export USER=<username>
@@ -111,26 +122,67 @@ nix run --impure #build
 
 USER 환경변수가 없을 경우, 일부 Nix 코드에서 기본값을 사용할 수 있도록 개선되었습니다. (lib/get-user.nix 참고)
 
-## Development Workflow
+## Essential Commands
 
-1. 설정 파일 수정
-2. 아래 명령어로 적용/테스트
-   - `make lint`
-   - `make smoke`
-   - `make test` - 포괄적인 테스트 스위트 실행
-   - `make build`
-   - `make switch HOST=<host>`
-   - `home-manager switch --flake .#<host>`
-
-### 세부 테스트 카테고리
+### Development Workflow
 ```bash
-nix run .#test-unit               # 단위 테스트
-nix run .#test-integration        # 통합 테스트  
-nix run .#test-e2e                # 종단간 테스트
-nix run .#test-perf               # 성능 테스트
-nix run .#test-smoke              # 빠른 검증 테스트
+# 필수: USER 환경 변수 설정 (또는 --impure 플래그 사용)
+export USER=<username>
+
+# 핵심 개발 명령어
+make lint           # pre-commit 훅 실행 (커밋 전 필수 통과)
+make smoke          # 빌드 없이 빠른 flake 검증
+make test           # 모든 단위 및 e2e 테스트 실행
+make build          # 모든 구성 빌드
+make switch HOST=<host>  # 현재 시스템에 구성 적용
+
+# 플랫폼별 빌드
+nix run .#build     # 현재 시스템용 빌드
+nix run .#switch    # 현재 시스템용 빌드 및 전환
+nix run .#build-switch  # 빌드 후 즉시 전환 (sudo 권한 필요)
 ```
-   
+
+### 새 프로젝트 초기화
+```bash
+# 프로젝트 초기화
+./scripts/setup-dev [project-dir]  # flake.nix와 direnv로 새 Nix 프로젝트 초기화
+nix run .#setup-dev [project-dir]  # 위와 동일 (nix flake app 사용)
+
+# 전역 설치 (bl command system)
+./scripts/install-setup-dev        # bl command system 설치 (한 번만 실행)
+```
+
+### bl Command System
+```bash
+# 설치 후 사용 가능한 명령어들
+bl list              # 사용 가능한 명령어 목록
+bl setup-dev my-app  # Nix 프로젝트 초기화
+bl setup-dev --help  # 도움말
+```
+
+### Testing Requirements (CI 파이프라인 따르기)
+변경사항 제출 전 아래 명령어들을 순서대로 실행:
+```bash
+make lint   # pre-commit run --all-files  
+make smoke  # nix flake check --all-systems --no-build
+make build  # 모든 NixOS/darwin 구성 빌드
+make smoke  # 빌드 후 최종 flake 검증
+```
+
+### 개별 테스트 실행
+```bash
+# 현재 시스템용 모든 테스트 실행
+nix run .#test                    # 종합 테스트 스위트 실행
+nix flake check --impure          # flake 검증 실행
+
+# 특정 테스트 카테고리 실행
+nix run .#test-unit               # 단위 테스트만
+nix run .#test-integration        # 통합 테스트만  
+nix run .#test-e2e                # 종단간 테스트만
+nix run .#test-perf               # 성능 테스트만
+nix run .#test-smoke              # 빠른 smoke 테스트
+```
+
 Makefile targets internally run `nix` with `--extra-experimental-features 'nix-command flakes'` and `--impure` so that the `USER` environment variable is respected.
 Even if these features are not globally enabled, the commands will still work.
 
@@ -155,13 +207,65 @@ GitHub Actions에서 각 플랫폼(macOS, Linux)의 x86_64와 aarch64 환경에 
 
 `tests/makefile.nix`에서 `make help` 출력 여부를 확인합니다. `nix flake check`에 포함되어 자동 실행됩니다.
 
+## Architecture Overview
+
+### Module System
+코드베이스는 엄격한 모듈 계층 구조를 따릅니다:
+
+1. **플랫폼별 모듈** (`modules/darwin/`, `modules/nixos/`)
+   - OS 특화 구성 (예: Homebrew casks, systemd 서비스)
+   - 해당 플랫폼 구성에서만 import
+
+2. **공유 모듈** (`modules/shared/`)
+   - 크로스 플랫폼 구성 (패키지, dotfiles, 셸 설정)
+   - Darwin, NixOS 구성 모두에서 import 가능
+
+3. **호스트 구성** (`hosts/`)
+   - 개별 머신 구성
+   - 적절한 플랫폼 및 공유 모듈 import
+   - 호스트별 설정 정의
+
+### Key Architectural Patterns
+
+1. **사용자 해결**: 시스템이 `lib/get-user.nix`를 통해 `$USER` 환경 변수를 동적으로 읽습니다. 항상 이것을 설정하거나 `--impure` 플래그를 사용하세요.
+
+2. **Flake 출력 구조**:
+   ```nix
+   {
+     darwinConfigurations."aarch64-darwin" = ...;
+     nixosConfigurations."x86_64-linux" = ...;
+     apps.{system}.{build,switch,rollback} = ...;
+     checks.{system}.{test-name} = ...;
+   }
+   ```
+
+3. **모듈 Import 패턴**:
+   ```nix
+   imports = [
+     ../../modules/darwin/packages.nix
+     ../../modules/shared/packages.nix
+     ./configuration.nix
+   ];
+   ```
+
 ## How to Add/Modify Modules
 
-- 공통 CLI 프로그램: `modules/shared/user-env/cli/<name>/default.nix`
-- 공통 GUI 프로그램: `modules/shared/user-env/gui/<name>/default.nix`
-- macOS 전용: `modules/darwin/`
-- NixOS 전용: `modules/nixos/`
-- 호스트별: `hosts/<platform>/<host>/home.nix`, `hosts/<platform>/<host>/configuration.nix`
+- **공통 패키지**: `modules/shared/packages.nix`
+- **macOS 전용**: `modules/darwin/packages.nix`, `modules/darwin/casks.nix`
+- **NixOS 전용**: `modules/nixos/packages.nix`
+- **호스트별**: `hosts/<platform>/<host>/home.nix`, `hosts/<platform>/<host>/configuration.nix`
+
+### Adding a New Package
+1. 모든 플랫폼용: `modules/shared/packages.nix` 편집
+2. macOS 전용: `modules/darwin/packages.nix` 편집
+3. NixOS 전용: `modules/nixos/packages.nix` 편집
+4. Homebrew casks용: `modules/darwin/casks.nix` 편집
+
+### Adding a New Module
+1. 적절한 디렉토리에 모듈 파일 생성
+2. 관련 호스트 구성 또는 상위 모듈에서 import
+3. 영향받는 모든 플랫폼에서 테스트
+4. 새로운 컨벤션을 문서화
 
 ## 참고
 
