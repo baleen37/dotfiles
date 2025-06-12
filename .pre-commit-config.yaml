@@ -41,6 +41,14 @@ repos:
         files: ^scripts/[^/]*$
         exclude: \.txt$
         args: [--external-sources, --exclude=SC1091, --severity=error]
+        
+      # YAML file validation with yamllint
+      - id: yamllint
+        name: yamllint
+        entry: yamllint
+        language: system
+        files: \.(yaml|yml)$
+        args: [-d, "{extends: relaxed, rules: {line-length: {max: 120}, trailing-spaces: disable, new-line-at-end-of-file: disable}}"]
   
   # ============================================================================
   # General file quality hooks (to be added)  
