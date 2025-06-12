@@ -5,18 +5,18 @@
 
 pkgs.mkShell {
   name = "dotfiles-dev";
-  
+
   buildInputs = with pkgs; [
     # Pre-commit and linting tools
     pre-commit
     shellcheck      # Shell script analysis
-    yamllint        # YAML file validation  
+    yamllint        # YAML file validation
     markdownlint-cli # Markdown linting
-    
+
     # General development tools
     git
     gnumake
-    
+
     # For debugging and development
     nix
     nixpkgs-fmt

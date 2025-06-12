@@ -25,7 +25,7 @@ jobs:
     outputs:
       has-changes: ${{ steps.check-changes.outputs.has-changes }}
       pr-number: ${{ steps.create-pr.outputs.pr-number }}
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -63,32 +63,32 @@ jobs:
         id: update
         run: |
           echo "::group::Updating flake inputs"
-          
+
           # Store original lock file hash
           ORIGINAL_HASH=$(sha256sum flake.lock | cut -d' ' -f1)
           echo "original-hash=$ORIGINAL_HASH" >> $GITHUB_OUTPUT
-          
+
           # Update all inputs
           if ! nix flake update --commit-lock-file; then
             echo "::error::Failed to update flake inputs"
             exit 1
           fi
-          
+
           # Store new lock file hash
           NEW_HASH=$(sha256sum flake.lock | cut -d' ' -f1)
           echo "new-hash=$NEW_HASH" >> $GITHUB_OUTPUT
-          
+
           echo "::endgroup::"
 
       - name: Validate flake after update
         run: |
           echo "::group::Validating flake structure"
-          
+
           if ! nix flake check --impure --no-build; then
             echo "::error::Flake validation failed after update"
             exit 1
           fi
-          
+
           echo "::endgroup::"
 
       - name: Check for changes
@@ -109,11 +109,11 @@ jobs:
         run: |
           BRANCH_NAME="auto-update/flake-$(date +%Y%m%d-%H%M%S)"
           echo "branch-name=$BRANCH_NAME" >> $GITHUB_OUTPUT
-          
+
           # Ensure we're up to date with main before creating branch
           git fetch origin main
           git rebase origin/main
-          
+
           git checkout -b "$BRANCH_NAME"
           git push origin "$BRANCH_NAME"
 
@@ -122,7 +122,7 @@ jobs:
         id: summary
         run: |
           echo "::group::Generating update summary"
-          
+
           # Create a summary of what changed
           {
             echo "## 의존성 업데이트 요약"
@@ -146,7 +146,7 @@ jobs:
             echo ""
             echo "🤖 자동으로 생성된 PR입니다. CI 테스트가 통과하면 자동으로 머지됩니다."
           } > pr_body.md
-          
+
           echo "::endgroup::"
 
       - name: Create Pull Request
@@ -156,18 +156,18 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
           echo "::group::Creating Pull Request"
-          
+
           PR_URL=$(gh pr create \
             --title "chore: 자동 flake 의존성 업데이트 $(date +%Y-%m-%d)" \
             --body-file pr_body.md \
             --base main \
             --head "${{ steps.create-branch.outputs.branch-name }}" \
             --label "dependencies")
-          
+
           PR_NUMBER=$(echo "$PR_URL" | grep -o '[0-9]\+$')
           echo "pr-number=$PR_NUMBER" >> $GITHUB_OUTPUT
           echo "pr-url=$PR_URL" >> $GITHUB_OUTPUT
-          
+
           echo "::notice::Created PR #$PR_NUMBER: $PR_URL"
           echo "::endgroup::"
 
@@ -176,38 +176,38 @@ jobs:
     needs: update-dependencies
     if: needs.update-dependencies.outputs.has-changes == 'true'
     timeout-minutes: 10
-    
+
     steps:
       - name: Wait for CI checks to be created
         env:
           GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
           echo "::group::Waiting for CI checks to be created"
-          
+
           PR_NUMBER="${{ needs.update-dependencies.outputs.pr-number }}"
           MAX_WAIT=300  # 5 minutes
           WAIT_TIME=0
-          
+
           while [ $WAIT_TIME -lt $MAX_WAIT ]; do
             # Check if required checks have been created
             CHECKS=$(gh api repos/baleen37/dotfiles/pulls/$PR_NUMBER/commits --jq '.[0].sha' | \
                      xargs -I {} gh api repos/baleen37/dotfiles/commits/{}/check-runs --jq '.check_runs | length')
-            
+
             echo "Found $CHECKS check runs (waiting for CI to start...)"
-            
+
             if [ "$CHECKS" -gt 0 ]; then
               echo "CI checks have been created, proceeding..."
               break
             fi
-            
+
             sleep 30
             WAIT_TIME=$((WAIT_TIME + 30))
           done
-          
+
           if [ $WAIT_TIME -ge $MAX_WAIT ]; then
             echo "::warning::Timeout waiting for CI checks to be created"
           fi
-          
+
           echo "::endgroup::"
 
       - name: Enable auto-merge
@@ -215,9 +215,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
           echo "::group::Enabling auto-merge"
-          
+
           PR_NUMBER="${{ needs.update-dependencies.outputs.pr-number }}"
-          
+
           # Enable auto-merge with squash
           if gh pr merge "$PR_NUMBER" --auto --squash; then
             echo "::notice::Auto-merge enabled for PR #$PR_NUMBER"
@@ -225,9 +225,9 @@ jobs:
           else
             echo "::error::Failed to enable auto-merge for PR #$PR_NUMBER"
             echo "::notice::PR will need to be merged manually after CI passes"
-            
+
             # Show current PR status for debugging
             gh pr view "$PR_NUMBER" --json mergeable,mergeStateStatus,statusCheckRollup
           fi
-          
+
           echo "::endgroup::"

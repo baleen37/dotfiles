@@ -1,7 +1,7 @@
 # CLAUDE.md
 
-> **Last Updated:** 2025-01-06  
-> **Version:** 2.0  
+> **Last Updated:** 2025-01-06
+> **Version:** 2.0
 > **For:** Claude Code (claude.ai/code)
 
 This file provides comprehensive guidance for Claude Code when working with this Nix flake-based dotfiles repository.
@@ -62,7 +62,7 @@ nix run .#build-switch  # Build and switch with sudo (immediate application)
 ### Testing Requirements (Follow CI Pipeline)
 **Always run these commands in order before submitting changes:**
 ```bash
-make lint   # pre-commit run --all-files  
+make lint   # pre-commit run --all-files
 make smoke  # nix flake check --all-systems --no-build
 make build  # build all NixOS/darwin configurations
 make smoke  # final flake check after build
@@ -76,7 +76,7 @@ nix flake check --impure          # Run flake checks
 
 # Run specific test categories
 nix run .#test-unit               # Unit tests only
-nix run .#test-integration        # Integration tests only  
+nix run .#test-integration        # Integration tests only
 nix run .#test-e2e                # End-to-end tests only
 nix run .#test-perf               # Performance tests only
 nix run .#test-smoke              # Quick smoke tests
@@ -123,7 +123,7 @@ make build
 ```bash
 # 1. Identify target platform
 # All platforms: modules/shared/packages.nix
-# macOS only: modules/darwin/packages.nix  
+# macOS only: modules/darwin/packages.nix
 # NixOS only: modules/nixos/packages.nix
 # Homebrew casks: modules/darwin/casks.nix
 
@@ -208,7 +208,7 @@ The codebase follows a strict modular hierarchy:
 2. Import it in relevant host configurations or parent modules
 3. Test on all affected platforms:
    - x86_64-darwin
-   - aarch64-darwin  
+   - aarch64-darwin
    - x86_64-linux
    - aarch64-linux
 4. Document any new conventions
@@ -345,7 +345,7 @@ To add new commands to the bl system:
 1. **Always use `--impure` flag** when running nix commands that need environment variables
 2. **Module Dependencies**: When modifying modules, check both direct imports and transitive dependencies
 3. **Platform Testing**: Changes to shared modules should be tested on all four platforms
-4. **Configuration Application**: 
+4. **Configuration Application**:
    - Darwin: Uses `darwin-rebuild switch`
    - NixOS: Uses `nixos-rebuild switch`
    - Both are wrapped by platform-specific scripts in `apps/`
@@ -408,11 +408,11 @@ make switch HOST=<host>
 ```bash
 ./scripts/merge-claude-config settings.json
 # c) 현재 값 유지
-# n) 새 값 사용  
+# n) 새 값 사용
 # s) 건너뛰기
 ```
 
-**백업 관리**: 
+**백업 관리**:
 ```bash
 # 백업 파일 위치
 ls ~/.claude/.backups/
@@ -462,7 +462,7 @@ cp ~/.claude/.backups/settings.json.backup.20240106_143022 ~/.claude/settings.js
 1. **Always use `--impure` flag** when running nix commands that need environment variables
 2. **Module Dependencies**: When modifying modules, check both direct imports and transitive dependencies
 3. **Platform Testing**: Changes to shared modules should be tested on all four platforms
-4. **Configuration Application**: 
+4. **Configuration Application**:
    - Darwin: Uses `darwin-rebuild switch`
    - NixOS: Uses `nixos-rebuild switch`
    - Both are wrapped by platform-specific scripts in `apps/`

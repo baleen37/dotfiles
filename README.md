@@ -163,7 +163,7 @@ bl setup-dev --help  # 도움말
 ### Testing Requirements (CI 파이프라인 따르기)
 변경사항 제출 전 아래 명령어들을 순서대로 실행:
 ```bash
-make lint   # pre-commit run --all-files  
+make lint   # pre-commit run --all-files
 make smoke  # nix flake check --all-systems --no-build
 make build  # 모든 NixOS/darwin 구성 빌드
 make smoke  # 빌드 후 최종 flake 검증
@@ -177,7 +177,7 @@ nix flake check --impure          # flake 검증 실행
 
 # 특정 테스트 카테고리 실행
 nix run .#test-unit               # 단위 테스트만
-nix run .#test-integration        # 통합 테스트만  
+nix run .#test-integration        # 통합 테스트만
 nix run .#test-e2e                # 종단간 테스트만
 nix run .#test-perf               # 성능 테스트만
 nix run .#test-smoke              # 빠른 smoke 테스트
@@ -276,4 +276,3 @@ GitHub Actions에서 각 플랫폼(macOS, Linux)의 x86_64와 aarch64 환경에 
 ---
 
 > 변경 이력, 마이그레이션 내역 등은 legacy/ 디렉토리와 커밋 로그를 참고하세요.
-

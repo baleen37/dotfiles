@@ -53,7 +53,7 @@
           exec ${self}/apps/${system}/${scriptName}
         '')}/bin/${scriptName}";
       };
-      mkSetupDevApp = system: 
+      mkSetupDevApp = system:
         if builtins.pathExists ./scripts/setup-dev
         then {
           type = "app";
@@ -85,7 +85,7 @@
           '')}/bin/test";
         };
         "test-smoke" = {
-          type = "app"; 
+          type = "app";
           program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "test-smoke" ''
             #!/usr/bin/env bash
             echo "Running smoke tests for ${system}..."
@@ -111,7 +111,7 @@
           '')}/bin/test";
         };
         "test-smoke" = {
-          type = "app"; 
+          type = "app";
           program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "test-smoke" ''
             #!/usr/bin/env bash
             echo "Running smoke tests for ${system}..."
@@ -157,9 +157,9 @@
       apps = nixpkgs.lib.genAttrs linuxSystems mkLinuxApps // nixpkgs.lib.genAttrs darwinSystems mkDarwinApps;
       checks = forAllSystems (system:
         let
-          pkgs = import nixpkgs { 
-            inherit system; 
-            config.allowUnfree = true; 
+          pkgs = import nixpkgs {
+            inherit system;
+            config.allowUnfree = true;
           };
           testSuite = import ./tests { inherit pkgs; flake = self; };
         in testSuite // {
@@ -169,16 +169,16 @@
           } ''
             echo "Running comprehensive test suite for ${system}"
             echo "========================================"
-            
+
             # Run all individual tests
-            ${builtins.concatStringsSep "\n" (map (testName: 
+            ${builtins.concatStringsSep "\n" (map (testName:
               "echo 'Testing: ${testName}' && ${testSuite.${testName}}/bin/* || echo 'Test ${testName} completed'"
             ) (builtins.attrNames testSuite))}
-            
+
             echo "All tests completed successfully!"
             touch $out
           '';
-          
+
           # Quick smoke test for CI/CD
           smoke-test = pkgs.runCommand "smoke-test" {} ''
             echo "Running smoke tests for ${system}"
@@ -186,19 +186,19 @@
             echo "Basic functionality check: PASSED"
             touch $out
           '';
-          
+
           # Lint and format checks
           lint-check = pkgs.runCommand "lint-check" {
             buildInputs = with pkgs; [ nixpkgs-fmt statix deadnix ];
           } ''
             echo "Running lint checks for ${system}"
-            
+
             # Check Nix formatting
             echo "Checking Nix file formatting..."
             find ${self} -name "*.nix" -type f | head -10 | while read file; do
               echo "Checking format: $file"
             done
-            
+
             echo "Lint checks completed"
             touch $out
           '';

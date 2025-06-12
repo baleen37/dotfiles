@@ -84,10 +84,10 @@ list_commands() {
 # Function to install bl system
 install_bl() {
     print_status "Installing bl command system..."
-    
+
     # Create bl commands directory
     mkdir -p "$BL_DIR"
-    
+
     # Copy setup-dev if it exists
     local dotfiles_setup_dev=""
     if [[ -f "$HOME/dotfiles/scripts/setup-dev" ]]; then
@@ -95,23 +95,23 @@ install_bl() {
     elif [[ -f "$(dirname "${BASH_SOURCE[0]}")/setup-dev" ]]; then
         dotfiles_setup_dev="$(dirname "${BASH_SOURCE[0]}")/setup-dev"
     fi
-    
+
     if [[ -n "$dotfiles_setup_dev" ]]; then
         cp "$dotfiles_setup_dev" "$BL_DIR/setup-dev"
         chmod +x "$BL_DIR/setup-dev"
         print_status "Installed: bl setup-dev"
     fi
-    
+
     # Install bl itself to PATH
     local local_bin="$HOME/.local/bin"
     mkdir -p "$local_bin"
-    
+
     # Copy this script to ~/.local/bin
     cp "${BASH_SOURCE[0]}" "$local_bin/bl"
     chmod +x "$local_bin/bl"
-    
+
     print_status "bl command system installed!"
-    
+
     # Check if ~/.local/bin is in PATH
     if [[ ":$PATH:" != *":$local_bin:"* ]]; then
         print_warning "$local_bin is not in your PATH."
@@ -120,7 +120,7 @@ install_bl() {
     else
         print_status "bl is now available globally!"
     fi
-    
+
     echo ""
     print_header "Usage:"
     echo "  bl list           # List available commands"

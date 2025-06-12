@@ -18,7 +18,7 @@ repos:
         language: system
         files: ^.*\\.nix$
         pass_filenames: false
-        
+
   # ============================================================================
   # File-specific linting hooks
   # ============================================================================
@@ -32,7 +32,7 @@ repos:
         files: \.(sh|bash|zsh)$
         exclude: modules/shared/config/p10k\.zsh$
         args: [--external-sources, --exclude=SC1091]
-        
+
       # Additional shellcheck for scripts/ directory (executable files)
       - id: shellcheck-scripts
         name: ShellCheck (scripts/)
@@ -41,7 +41,7 @@ repos:
         files: ^scripts/[^/]*$
         exclude: \.txt$
         args: [--external-sources, --exclude=SC1091, --severity=error]
-        
+
       # YAML file validation with yamllint
       - id: yamllint
         name: yamllint
@@ -49,7 +49,7 @@ repos:
         language: system
         files: \.(yaml|yml)$
         args: [-d, "{extends: relaxed, rules: {line-length: {max: 120}, trailing-spaces: disable, new-line-at-end-of-file: disable}}"]
-        
+
       # Markdown file linting with markdownlint
       - id: markdownlint
         name: markdownlint
@@ -57,8 +57,27 @@ repos:
         language: system
         files: \.md$
         args: [--disable, MD013, MD033]
-  
+
   # ============================================================================
-  # General file quality hooks (to be added)  
+  # General file quality hooks
   # ============================================================================
-  # General file formatting and quality checks will be added here
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      # Remove trailing whitespace from all files
+      - id: trailing-whitespace
+        exclude: \.patch$
+
+      # Ensure files end with a newline character
+      - id: end-of-file-fixer
+        exclude: \.patch$
+
+      # Check for merge conflict markers
+      - id: check-merge-conflict
+
+      # Basic YAML syntax validation (disabled - using yamllint instead)
+      # - id: check-yaml
+      #   exclude: \.github/
+
+      # Basic JSON syntax validation
+      - id: check-json

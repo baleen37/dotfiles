@@ -7,4 +7,3 @@ pkgs.runCommand "simple-test" {} ''
   fi
   touch $out
 ''
-
