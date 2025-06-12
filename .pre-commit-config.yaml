@@ -20,9 +20,27 @@ repos:
         pass_filenames: false
         
   # ============================================================================
-  # File-specific linting hooks (to be added)
+  # File-specific linting hooks
   # ============================================================================
-  # Shell script linting, YAML validation, Markdown linting hooks will be added here
+  - repo: local
+    hooks:
+      # Shell script analysis with shellcheck
+      - id: shellcheck
+        name: ShellCheck
+        entry: shellcheck
+        language: system
+        files: \.(sh|bash|zsh)$
+        exclude: modules/shared/config/p10k\.zsh$
+        args: [--external-sources, --exclude=SC1091]
+        
+      # Additional shellcheck for scripts/ directory (executable files)
+      - id: shellcheck-scripts
+        name: ShellCheck (scripts/)
+        entry: shellcheck
+        language: system
+        files: ^scripts/[^/]*$
+        exclude: \.txt$
+        args: [--external-sources, --exclude=SC1091, --severity=error]
   
   # ============================================================================
   # General file quality hooks (to be added)  
