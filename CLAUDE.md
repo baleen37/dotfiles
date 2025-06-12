@@ -338,6 +338,7 @@ To add new commands to the bl system:
 - Includes help with `-h` or `--help` flag
 
 ## Important Notes
+<<<<<<< HEAD
 
 ### Critical Development Guidelines
 
@@ -453,6 +454,19 @@ cp ~/.claude/.backups/settings.json.backup.20240106_143022 ~/.claude/settings.js
 | `CLAUDE.md` | 높음 | 사용자 수정 시 보존, 새 버전 `.new`로 저장 |
 | `commands/*.md` (dotfiles) | 중간 | 백업 후 덮어쓰기 |
 | `commands/*.md` (사용자) | 높음 | 항상 보존 (dotfiles에 없는 파일) |
+
+## Important Notes
+
+### Critical Development Guidelines
+
+1. **Always use `--impure` flag** when running nix commands that need environment variables
+2. **Module Dependencies**: When modifying modules, check both direct imports and transitive dependencies
+3. **Platform Testing**: Changes to shared modules should be tested on all four platforms
+4. **Configuration Application**: 
+   - Darwin: Uses `darwin-rebuild switch`
+   - NixOS: Uses `nixos-rebuild switch`
+   - Both are wrapped by platform-specific scripts in `apps/`
+5. **Home Manager Integration**: User-specific configurations are managed through Home Manager
 
 ### Workflow Requirements
 
