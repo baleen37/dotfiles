@@ -66,7 +66,7 @@ jobs:
 
           # Store original lock file hash
           ORIGINAL_HASH=$(sha256sum flake.lock | cut -d' ' -f1)
-          echo "original-hash=$ORIGINAL_HASH" >> $GITHUB_OUTPUT
+          echo "original-hash=$ORIGINAL_HASH" >> "$GITHUB_OUTPUT"
 
           # Update all inputs
           if ! nix flake update --commit-lock-file; then
@@ -76,7 +76,7 @@ jobs:
 
           # Store new lock file hash
           NEW_HASH=$(sha256sum flake.lock | cut -d' ' -f1)
-          echo "new-hash=$NEW_HASH" >> $GITHUB_OUTPUT
+          echo "new-hash=$NEW_HASH" >> "$GITHUB_OUTPUT"
 
           echo "::endgroup::"
 
@@ -95,10 +95,10 @@ jobs:
         id: check-changes
         run: |
           if [ "${{ steps.update.outputs.original-hash }}" = "${{ steps.update.outputs.new-hash }}" ]; then
-            echo "has-changes=false" >> $GITHUB_OUTPUT
+            echo "has-changes=false" >> "$GITHUB_OUTPUT"
             echo "::notice::No dependency updates available"
           else
-            echo "has-changes=true" >> $GITHUB_OUTPUT
+            echo "has-changes=true" >> "$GITHUB_OUTPUT"
             echo "::notice::Dependency updates found"
           fi
 
@@ -108,7 +108,7 @@ jobs:
         id: create-branch
         run: |
           BRANCH_NAME="auto-update/flake-$(date +%Y%m%d-%H%M%S)"
-          echo "branch-name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          echo "branch-name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
 
           # Ensure we're up to date with main before creating branch
           git fetch origin main
@@ -129,7 +129,7 @@ jobs:
             echo ""
             echo "다음 의존성들이 업데이트되었습니다:"
             echo ""
-            git show --name-only --pretty=format:"" HEAD | grep -E "\.(nix|lock)$" | while read file; do
+            git show --name-only --pretty=format:"" HEAD | grep -E "\.(nix|lock)$" | while read -r file; do
               echo "- \`$file\`"
             done
             echo ""

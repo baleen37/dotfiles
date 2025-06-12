@@ -116,15 +116,19 @@ jobs:
 
       - name: 릴리스 노트 생성
         run: |
-          echo "## 🎉 Dotfiles 릴리스 ${{ github.ref_name }}" > release-notes.md
-          echo "" >> release-notes.md
-          echo "### ✨ 주요 변경사항" >> release-notes.md
+          {
+            echo "## 🎉 Dotfiles 릴리스 ${{ github.ref_name }}"
+            echo ""
+            echo "### ✨ 주요 변경사항"
+          } > release-notes.md
           git log --oneline --since="$(git describe --tags --abbrev=0 HEAD^)" >> release-notes.md
-          echo "" >> release-notes.md
-          echo "### 🧪 테스트 현황" >> release-notes.md
-          echo "- ✅ 모든 플랫폼 빌드 성공" >> release-notes.md
-          echo "- ✅ 전체 테스트 스위트 통과" >> release-notes.md
-          echo "- ✅ 보안 검사 완료" >> release-notes.md
+          {
+            echo ""
+            echo "### 🧪 테스트 현황"
+            echo "- ✅ 모든 플랫폼 빌드 성공"
+            echo "- ✅ 전체 테스트 스위트 통과"
+            echo "- ✅ 보안 검사 완료"
+          } >> release-notes.md
 
       - name: GitHub 릴리스 생성
         uses: softprops/action-gh-release@v2

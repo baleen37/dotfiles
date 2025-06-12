@@ -169,23 +169,25 @@ jobs:
 
       - name: 테스트 요약 생성
         run: |
-          echo "## 🧪 테스트 결과 요약" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 플랫폼별 테스트 상태" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| 플랫폼 | Unit | Integration | Contract | Security | Compatibility |" >> $GITHUB_STEP_SUMMARY
-          echo "|--------|------|-------------|----------|----------|---------------|" >> $GITHUB_STEP_SUMMARY
+          {
+            echo "## 🧪 테스트 결과 요약"
+            echo ""
+            echo "### 플랫폼별 테스트 상태"
+            echo ""
+            echo "| 플랫폼 | Unit | Integration | Contract | Security | Compatibility |"
+            echo "|--------|------|-------------|----------|----------|---------------|"
+          } >> "$GITHUB_STEP_SUMMARY"
 
           for os in ubuntu-latest macos-13 macos-14; do
-            echo -n "| $os |" >> $GITHUB_STEP_SUMMARY
+            echo -n "| $os |" >> "$GITHUB_STEP_SUMMARY"
             for test_type in unit integration contract security compatibility; do
-              if ls test-results/test-results-${test_type}-${os}* >/dev/null 2>&1; then
-                echo -n " ✅ |" >> $GITHUB_STEP_SUMMARY
+              if ls test-results/test-results-"${test_type}"-"${os}"* >/dev/null 2>&1; then
+                echo -n " ✅ |" >> "$GITHUB_STEP_SUMMARY"
               else
-                echo -n " ❌ |" >> $GITHUB_STEP_SUMMARY
+                echo -n " ❌ |" >> "$GITHUB_STEP_SUMMARY"
               fi
             done
-            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "" >> "$GITHUB_STEP_SUMMARY"
           done
 
       - name: 실패한 작업 확인

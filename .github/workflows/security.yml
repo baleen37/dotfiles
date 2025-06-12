@@ -56,10 +56,12 @@ jobs:
       - name: 보안 요약 생성
         if: always()
         run: |
-          echo "## 🔒 보안 스캔 결과" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 검사 항목" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ 민감정보 노출 검사" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ 파일 권한 검증" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Git 히스토리 스캔" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Secrets 패턴 검사" >> $GITHUB_STEP_SUMMARY
+          {
+            echo "## 🔒 보안 스캔 결과"
+            echo ""
+            echo "### 검사 항목"
+            echo "- ✅ 민감정보 노출 검사"
+            echo "- ✅ 파일 권한 검증"
+            echo "- ✅ Git 히스토리 스캔"
+            echo "- ✅ Secrets 패턴 검사"
+          } >> "$GITHUB_STEP_SUMMARY"
