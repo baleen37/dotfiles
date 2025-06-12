@@ -298,7 +298,7 @@ EOF
   diff "$target_file" "$target_file.new"
 
 병합 도구 사용:
-  ${MERGE_SCRIPT} $file_name
+  $MERGE_SCRIPT $file_name
 
 병합 완료 후 다음 파일들을 삭제하세요:
   rm "$target_file.new" "$target_file.update-notice"
