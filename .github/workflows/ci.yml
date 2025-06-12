@@ -33,7 +33,7 @@ jobs:
         uses: DeterminateSystems/magic-nix-cache-action@v8
 
       - name: Lint 검사
-        run: make lint
+        run: nix develop --command make lint
 
       - name: Smoke 테스트
         run: make smoke
@@ -64,7 +64,7 @@ jobs:
           # Ubuntu에서는 일부 테스트만 실행
           - os: ubuntu-latest
             test-type: integration
-          - os: ubuntu-latest  
+          - os: ubuntu-latest
             test-type: security
         include:
           # 실험적 테스트들
@@ -96,7 +96,7 @@ jobs:
         uses: DeterminateSystems/magic-nix-cache-action@v8
 
       - name: 테스트 실행 - ${{ matrix.test-type }}
-        run: make test-${{ matrix.test-type }}
+        run: nix develop --command make test-${{ matrix.test-type }}
         env:
           USER: ${{ github.actor }}
 
@@ -121,7 +121,7 @@ jobs:
         include:
           - platform: "x86_64-linux"
             runner: ubuntu-latest
-          - platform: "aarch64-linux" 
+          - platform: "aarch64-linux"
             runner: ubuntu-latest
           - platform: "x86_64-darwin"
             runner: macos-13
@@ -175,7 +175,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| 플랫폼 | Unit | Integration | Contract | Security | Compatibility |" >> $GITHUB_STEP_SUMMARY
           echo "|--------|------|-------------|----------|----------|---------------|" >> $GITHUB_STEP_SUMMARY
-          
+
           for os in ubuntu-latest macos-13 macos-14; do
             echo -n "| $os |" >> $GITHUB_STEP_SUMMARY
             for test_type in unit integration contract security compatibility; do

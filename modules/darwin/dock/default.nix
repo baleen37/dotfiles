@@ -1,8 +1,7 @@
-{
-  config,
-  pkgs,
-  lib,
-  ...
+{ config
+, pkgs
+, lib
+, ...
 }:
 
 # Original source: https://gist.github.com/antifuchs/10138c4d838a63c0a05e725ccd7bccdd
@@ -82,10 +81,12 @@ in
           (normalize path)
         );
       wantURIs = concatMapStrings (entry: "${entryURI entry.path}\n") cfg.entries;
-      createEntries = concatMapStrings (
-        entry:
-        "${dockutil}/bin/dockutil --no-restart --add '${entry.path}' --section ${entry.section} ${entry.options}\n"
-      ) cfg.entries;
+      createEntries = concatMapStrings
+        (
+          entry:
+          "${dockutil}/bin/dockutil --no-restart --add '${entry.path}' --section ${entry.section} ${entry.options}\n"
+        )
+        cfg.entries;
     in
     {
       system.activationScripts.postActivation.text = ''

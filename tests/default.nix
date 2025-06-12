@@ -1,37 +1,45 @@
 { pkgs, flake ? null }:
 let
   # Helper function to convert filename to valid Nix attribute name
-  sanitizeName = name: 
+  sanitizeName = name:
     let
       baseName = builtins.substring 0 ((builtins.stringLength name) - 4) name;
       # Replace hyphens with underscores for valid Nix attribute names
-      sanitized = builtins.replaceStrings ["-"] ["_"] baseName;
-    in sanitized;
-  
+      sanitized = builtins.replaceStrings [ "-" ] [ "_" ] baseName;
+    in
+    sanitized;
+
   # Discover tests in a directory with a pattern
   discoverTests = dir: pattern:
     if builtins.pathExists dir then
       let
         entries = builtins.readDir dir;
-        testFiles = builtins.filter (name: 
-          builtins.match pattern name != null
-        ) (builtins.attrNames entries);
-      in builtins.listToAttrs (map (file: {
-        name = sanitizeName file;
-        value = import (dir + ("/" + file)) { inherit pkgs flake; src = ../.; };
-      }) testFiles)
-    else {};
-    
+        testFiles = builtins.filter
+          (name:
+            builtins.match pattern name != null
+          )
+          (builtins.attrNames entries);
+      in
+      builtins.listToAttrs (map
+        (file: {
+          name = sanitizeName file;
+          value = import (dir + ("/" + file)) { inherit pkgs flake; src = ../.; };
+        })
+        testFiles)
+    else { };
+
   # Current directory for legacy tests
   legacyDir = ./.;
   legacyEntries = builtins.readDir legacyDir;
-  legacyFiles = builtins.filter (name: 
-    name != "default.nix" && 
-    builtins.match ".*\\.nix" name != null &&
-    # Only include files, not directories
-    legacyEntries.${name} == "regular"
-  ) (builtins.attrNames legacyEntries);
-  
+  legacyFiles = builtins.filter
+    (name:
+      name != "default.nix" &&
+      builtins.match ".*\\.nix" name != null &&
+      # Only include files, not directories
+      legacyEntries.${name} == "regular"
+    )
+    (builtins.attrNames legacyEntries);
+
   # Test categories with their patterns
   unitTests = discoverTests ./unit ".*-unit\\.nix";
   integrationTests = discoverTests ./integration ".*-integration\\.nix";
@@ -40,17 +48,19 @@ let
   contractTests = discoverTests ./contract ".*-contract\\.nix";
   securityTests = discoverTests ./security ".*-security\\.nix";
   compatibilityTests = discoverTests ./compatibility ".*-compatibility\\.nix";
-  
-  
+
+
   # Legacy tests (to be gradually migrated)
-  legacyTests = builtins.listToAttrs (map (file: {
-    name = "legacy_" + (sanitizeName file);
-    value = import (legacyDir + ("/" + file)) { inherit pkgs; };
-  }) legacyFiles);
-  
+  legacyTests = builtins.listToAttrs (map
+    (file: {
+      name = "legacy_" + (sanitizeName file);
+      value = import (legacyDir + ("/" + file)) { inherit pkgs; };
+    })
+    legacyFiles);
+
   # Combine all tests with clear categorization
   allTests = unitTests // integrationTests // e2eTests // performanceTests // contractTests // securityTests // compatibilityTests // legacyTests;
-  
+
   # Test metadata for reporting
   testMetadata = {
     categories = {
@@ -65,9 +75,9 @@ let
     };
     total = builtins.length (builtins.attrNames allTests);
   };
-  
+
   # Add a special test that reports the framework status
-  frameworkStatus = pkgs.runCommand "test-framework-status" {} ''
+  frameworkStatus = pkgs.runCommand "test-framework-status" { } ''
     echo "=== Test Framework Status ==="
     echo "Unit tests: ${toString testMetadata.categories.unit}"
     echo "Integration tests: ${toString testMetadata.categories.integration}"
@@ -82,8 +92,9 @@ let
     echo "Framework successfully loaded!"
     touch $out
   '';
-  
-in allTests // { 
+
+in
+allTests // {
   # Include framework status as a test
   framework_status = frameworkStatus;
 }

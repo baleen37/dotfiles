@@ -8,7 +8,7 @@ let
     blue = "\033[34m";
     reset = "\033[0m";
   };
-  
+
   # Platform detection helpers
   platform = {
     isDarwin = pkgs.stdenv.isDarwin;
@@ -17,7 +17,7 @@ let
     isX86_64 = pkgs.stdenv.isx86_64;
     system = pkgs.system;
   };
-  
+
   # Test environment setup
   setupTestEnv = ''
     export USER=testuser
@@ -25,9 +25,9 @@ let
     mkdir -p $HOME
     export PATH=${pkgs.coreutils}/bin:${pkgs.bash}/bin:$PATH
   '';
-  
+
   # Assertion helpers
-  assertTrue = condition: message: 
+  assertTrue = condition: message:
     ''
       if ${condition}; then
         echo "${colors.green}✓${colors.reset} ${message}"
@@ -36,7 +36,7 @@ let
         exit 1
       fi
     '';
-    
+
   assertExists = path: message:
     ''
       if [ -e "${path}" ]; then
@@ -46,7 +46,7 @@ let
         exit 1
       fi
     '';
-    
+
   assertCommand = cmd: message:
     ''
       if ${cmd} >/dev/null 2>&1; then
@@ -56,7 +56,7 @@ let
         exit 1
       fi
     '';
-    
+
   assertContains = file: pattern: message:
     ''
       if grep -q "${pattern}" "${file}" 2>/dev/null; then
@@ -66,17 +66,17 @@ let
         exit 1
       fi
     '';
-    
+
   # Test section helpers
   testSection = name: ''
     echo ""
     echo "${colors.blue}=== ${name} ===${colors.reset}"
   '';
-  
+
   testSubsection = name: ''
     echo "${colors.yellow}--- ${name} ---${colors.reset}"
   '';
-  
+
   # Skip test on unsupported platforms
   skipOn = platforms: reason: testBody:
     if builtins.elem platform.system platforms then ''
@@ -84,7 +84,7 @@ let
       touch $out
       exit 0
     '' else testBody;
-    
+
   # Only run test on specific platforms
   onlyOn = platforms: reason: testBody:
     if builtins.elem platform.system platforms then testBody else ''
@@ -92,7 +92,7 @@ let
       touch $out
       exit 0
     '';
-    
+
   # Benchmark helpers
   benchmark = name: cmd: ''
     echo "${colors.blue}Benchmarking: ${name}${colors.reset}"
@@ -102,49 +102,49 @@ let
     DURATION=$(( (END_TIME - START_TIME) / 1000000 ))
     echo "${colors.green}✓${colors.reset} ${name} completed in ''${DURATION}ms"
   '';
-  
+
   # Mock data generators
   mockFlake = attrs: {
     description = "Test flake";
-    inputs = {};
-    outputs = {};
+    inputs = { };
+    outputs = { };
   } // attrs;
-  
+
   mockConfig = attrs: {
     system = platform.system;
-    modules = [];
+    modules = [ ];
   } // attrs;
-  
+
   # File system test helpers
   createTempFile = content: ''
-    TEMP_FILE=$(mktemp)
-    cat > $TEMP_FILE << 'EOF'
-${content}
-EOF
-    echo $TEMP_FILE
+        TEMP_FILE=$(mktemp)
+        cat > $TEMP_FILE << 'EOF'
+    ${content}
+    EOF
+        echo $TEMP_FILE
   '';
-  
+
   createTempDir = ''
     TEMP_DIR=$(mktemp -d)
     echo $TEMP_DIR
   '';
-  
+
   # Flake evaluation helpers
-  evalFlake = flakePath: attr: 
+  evalFlake = flakePath: attr:
     let
       flake = builtins.getFlake (toString flakePath);
-    in 
+    in
     if builtins.hasAttr attr flake.outputs then
       flake.outputs.${attr}
     else
       throw "Attribute ${attr} not found in flake outputs";
-      
+
   # Test result reporting
   reportResults = testName: passed: total: ''
     echo ""
     echo "${colors.blue}=== Test Results: ${testName} ===${colors.reset}"
     echo "Passed: ${colors.green}${toString passed}${colors.reset}/${toString total}"
-    
+
     if [ ${toString passed} -eq ${toString total} ]; then
       echo "${colors.green}✓ All tests passed!${colors.reset}"
     else
@@ -153,7 +153,7 @@ EOF
       exit 1
     fi
   '';
-  
+
   # Cleanup helpers
   cleanup = ''
     if [ -n "$TEMP_DIR" ] && [ -d "$TEMP_DIR" ]; then
@@ -163,10 +163,10 @@ EOF
       rm -f "$TEMP_FILE"
     fi
   '';
-  
+
   # Nix attribute set test helpers
   assertSetContains = attrSet: expectedKeys:
-    pkgs.runCommand "assert-set-contains" {} ''
+    pkgs.runCommand "assert-set-contains" { } ''
       ${builtins.concatStringsSep "\n" (map (key:
         ''if [ -z "${if builtins.hasAttr key attrSet then "has" else ""}" ]; then
             echo "Missing key: ${key}"
@@ -176,9 +176,10 @@ EOF
       echo "All keys found"
       touch $out
     '';
-    
 
-in {
+
+in
+{
   inherit colors platform setupTestEnv;
   inherit assertTrue assertExists assertCommand assertContains;
   inherit testSection testSubsection;

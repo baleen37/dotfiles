@@ -2,7 +2,7 @@
 let
   flake = builtins.getFlake (toString ../.);
   system = pkgs.system;
-  
+
   # Test module file existence and basic structure
   moduleTests = {
     shared = {
@@ -28,25 +28,26 @@ let
       diskConfig = builtins.pathExists ../modules/nixos/disk-config.nix;
     };
   };
-  
+
   # Test host configurations and their module imports
   hostTests = {
     darwin = builtins.pathExists ../hosts/darwin/default.nix;
     nixos = builtins.pathExists ../hosts/nixos/default.nix;
   };
-  
+
   # Test configuration evaluation with module dependencies
-  testConfig = if pkgs.stdenv.isDarwin then
-    flake.outputs.darwinConfigurations.${system} or null
-  else
-    flake.outputs.nixosConfigurations.${system} or null;
-  
+  testConfig =
+    if pkgs.stdenv.isDarwin then
+      flake.outputs.darwinConfigurations.${system} or null
+    else
+      flake.outputs.nixosConfigurations.${system} or null;
+
 in
-pkgs.runCommand "module-dependency-integration-test" {} ''
+pkgs.runCommand "module-dependency-integration-test" { } ''
   export USER=testuser
-  
+
   echo "=== Module Dependency Integration Test ==="
-  
+
   # Test 1: Shared Module Structure
   echo "1. Testing shared module structure..."
   ${if moduleTests.shared.base then ''
@@ -55,22 +56,22 @@ pkgs.runCommand "module-dependency-integration-test" {} ''
     echo "✗ Shared modules base directory missing"
     exit 1
   ''}
-  
+
   ${if moduleTests.shared.default then ''
     echo "✓ Shared default.nix exists"
   '' else ''
     echo "✗ Shared default.nix missing"
     exit 1
   ''}
-  
-  ${builtins.concatStringsSep "\n" (builtins.attrValues (builtins.mapAttrs (name: exists: 
+
+  ${builtins.concatStringsSep "\n" (builtins.attrValues (builtins.mapAttrs (name: exists:
     if exists then ''
       echo "✓ Shared ${name} module exists"
     '' else ''
       echo "⚠ Shared ${name} module missing (may be expected)"
     ''
   ) (builtins.removeAttrs moduleTests.shared ["base" "default"])))}
-  
+
   # Test 2: Platform-Specific Module Structure
   echo "2. Testing platform-specific module structure..."
   ${if pkgs.stdenv.isDarwin then ''
@@ -80,8 +81,8 @@ pkgs.runCommand "module-dependency-integration-test" {} ''
       echo "✗ Darwin modules base directory missing"
       exit 1
     ''}
-    
-    ${builtins.concatStringsSep "\n" (builtins.attrValues (builtins.mapAttrs (name: exists: 
+
+    ${builtins.concatStringsSep "\n" (builtins.attrValues (builtins.mapAttrs (name: exists:
       if exists then ''
         echo "✓ Darwin ${name} module exists"
       '' else ''
@@ -95,8 +96,8 @@ pkgs.runCommand "module-dependency-integration-test" {} ''
       echo "✗ NixOS modules base directory missing"
       exit 1
     ''}
-    
-    ${builtins.concatStringsSep "\n" (builtins.attrValues (builtins.mapAttrs (name: exists: 
+
+    ${builtins.concatStringsSep "\n" (builtins.attrValues (builtins.mapAttrs (name: exists:
       if exists then ''
         echo "✓ NixOS ${name} module exists"
       '' else ''
@@ -104,7 +105,7 @@ pkgs.runCommand "module-dependency-integration-test" {} ''
       ''
     ) (builtins.removeAttrs moduleTests.nixos ["base"])))}
   ''}
-  
+
   # Test 3: Host Configuration Structure
   echo "3. Testing host configuration structure..."
   ${if hostTests.darwin then ''
@@ -112,49 +113,49 @@ pkgs.runCommand "module-dependency-integration-test" {} ''
   '' else ''
     echo "⚠ Darwin host configuration missing"
   ''}
-  
+
   ${if hostTests.nixos then ''
     echo "✓ NixOS host configuration exists"
   '' else ''
     echo "⚠ NixOS host configuration missing"
   ''}
-  
+
   # Test 4: Module Import Chain Validation
   echo "4. Testing module import chain..."
   ${if testConfig != null then ''
     echo "✓ Configuration loads successfully (module imports working)"
-    
+
     # Test that configuration has expected structure from module imports
     ${if testConfig ? config then ''
       echo "✓ Configuration has 'config' attribute from modules"
     '' else ''
       echo "⚠ Configuration missing 'config' attribute"
     ''}
-    
+
     ${if testConfig ? system then ''
       echo "✓ Configuration has 'system' attribute"
     '' else ''
       echo "✗ Configuration missing 'system' attribute"
       exit 1
     ''}
-    
+
   '' else ''
     echo "✗ Configuration failed to load (module import issues)"
     exit 1
   ''}
-  
+
   # Test 5: Cross-Platform Module Compatibility
   echo "5. Testing cross-platform module compatibility..."
   # Shared modules should be importable by both platforms
   echo "✓ Shared modules are platform-agnostic"
-  
+
   # Platform-specific modules should not conflict
   ${if pkgs.stdenv.isDarwin then ''
     echo "✓ Darwin-specific modules loaded correctly"
   '' else ''
     echo "✓ NixOS-specific modules loaded correctly"
   ''}
-  
+
   # Test 6: Home Manager Integration Across Modules
   echo "6. Testing Home Manager integration across modules..."
   ${if testConfig ? config.home-manager then ''
@@ -162,7 +163,7 @@ pkgs.runCommand "module-dependency-integration-test" {} ''
   '' else ''
     echo "⚠ Home Manager integration not detected (may be optional)"
   ''}
-  
+
   echo "=== Module Dependency Integration Tests Passed! ==="
   echo "✓ All module files exist and are structured correctly"
   echo "✓ Module import chain works properly"
@@ -170,6 +171,6 @@ pkgs.runCommand "module-dependency-integration-test" {} ''
   echo "✓ Shared modules are accessible across platforms"
   echo "✓ Host configurations properly import modules"
   echo "✓ No circular dependencies detected"
-  
+
   touch $out
 ''

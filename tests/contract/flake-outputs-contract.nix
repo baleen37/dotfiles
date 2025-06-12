@@ -1,10 +1,10 @@
 # ABOUTME: Flake outputs 구조의 계약을 검증하는 테스트
 # ABOUTME: API 인터페이스의 일관성과 호환성을 보장함
 
-{ pkgs, flake ? null, src ? ../.. }:
+{ pkgs, src ? ../.. }:
 let
   testHelpers = import ../lib/test-helpers.nix { inherit pkgs; };
-  
+
   # Expected flake outputs structure
   expectedOutputs = {
     darwinConfigurations = [ "aarch64-darwin" "x86_64-darwin" ];
@@ -12,20 +12,20 @@ let
     apps = [ "aarch64-darwin" "x86_64-darwin" "aarch64-linux" "x86_64-linux" ];
     checks = [ "aarch64-darwin" "x86_64-darwin" "aarch64-linux" "x86_64-linux" ];
   };
-  
+
   # Expected app names for each platform
   expectedApps = [ "build" "switch" "rollback" ];
-  
+
 in
 pkgs.runCommand "flake-outputs-contract-test" { } ''
   ${testHelpers.setupTestEnv}
   ${testHelpers.testSection "Flake Outputs Contract 검증"}
-  
+
   cd ${src}
-  
+
   # Check if flake.nix exists
   ${testHelpers.assertExists "flake.nix" "flake.nix 파일 존재 확인"}
-  
+
   # Validate flake structure without building
   echo "Flake 구조 검증 중..."
   if nix flake show --no-build . >/dev/null 2>&1; then
@@ -34,10 +34,10 @@ pkgs.runCommand "flake-outputs-contract-test" { } ''
     echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} Flake 구조가 잘못되었습니다"
     exit 1
   fi
-  
+
   # Check expected outputs exist
   FLAKE_INFO=$(nix flake show --json --no-build . 2>/dev/null)
-  
+
   # Check darwinConfigurations
   ${testHelpers.testSubsection "darwinConfigurations 검증"}
   for system in ${builtins.concatStringsSep " " expectedOutputs.darwinConfigurations}; do
@@ -48,8 +48,8 @@ pkgs.runCommand "flake-outputs-contract-test" { } ''
       exit 1
     fi
   done
-  
-  # Check nixosConfigurations  
+
+  # Check nixosConfigurations
   ${testHelpers.testSubsection "nixosConfigurations 검증"}
   for system in ${builtins.concatStringsSep " " expectedOutputs.nixosConfigurations}; do
     if echo "$FLAKE_INFO" | grep -q "nixosConfigurations.*$system"; then
@@ -59,7 +59,7 @@ pkgs.runCommand "flake-outputs-contract-test" { } ''
       exit 1
     fi
   done
-  
+
   # Check apps for each platform
   ${testHelpers.testSubsection "Apps 검증"}
   for system in ${builtins.concatStringsSep " " expectedOutputs.apps}; do
@@ -71,7 +71,7 @@ pkgs.runCommand "flake-outputs-contract-test" { } ''
       fi
     done
   done
-  
+
   # Check checks exist
   ${testHelpers.testSubsection "Checks 검증"}
   for system in ${builtins.concatStringsSep " " expectedOutputs.checks}; do
@@ -82,7 +82,7 @@ pkgs.runCommand "flake-outputs-contract-test" { } ''
       exit 1
     fi
   done
-  
+
   ${testHelpers.reportResults "Flake Outputs Contract" 1 1}
   touch $out
 ''

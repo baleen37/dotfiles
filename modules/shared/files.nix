@@ -1,20 +1,23 @@
-{ pkgs, config, user, self, lib, ... }:
+{ pkgs, config, user, lib, ... }:
 
 let
-  userHome = if pkgs.stdenv.isDarwin 
+  userHome =
+    if pkgs.stdenv.isDarwin
     then config.users.users.${user}.home or "/Users/${user}"
     else builtins.getEnv "HOME";
 
   # Generate file entries for all markdown files in commands directory
   mkCommandFiles = dir:
     let files = builtins.readDir dir;
-    in lib.concatMapAttrs (name: type:
-      if type == "regular" && lib.hasSuffix ".md" name
-      then { 
-        "${userHome}/.claude/commands/${name}".text = builtins.readFile (dir + "/${name}");
-      }
-      else {}
-    ) files;
+    in lib.concatMapAttrs
+      (name: type:
+        if type == "regular" && lib.hasSuffix ".md" name
+        then {
+          "${userHome}/.claude/commands/${name}".text = builtins.readFile (dir + "/${name}");
+        }
+        else { }
+      )
+      files;
 
 in
 {
@@ -22,8 +25,7 @@ in
   "${userHome}/.claude/CLAUDE.md".text = builtins.readFile ./config/claude/CLAUDE.md;
   "${userHome}/.claude/settings.json".text = builtins.readFile ./config/claude/settings.json;
   "${userHome}/.gitconfig_global".text = "";
-  
+
   # WezTerm configuration
   "${userHome}/.wezterm.lua".text = builtins.readFile ./config/wezterm/wezterm.lua;
 } // (mkCommandFiles ./config/claude/commands)
-

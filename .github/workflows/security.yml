@@ -32,7 +32,7 @@ jobs:
         uses: DeterminateSystems/magic-nix-cache-action@v8
 
       - name: 보안 테스트 실행
-        run: make test-security
+        run: nix develop --command make test-security
         env:
           USER: ${{ github.actor }}
 

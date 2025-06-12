@@ -1,11 +1,84 @@
-# See https://pre-commit.com for more information
-# See https://pre-commit.com/hooks.html for more hooks
+# ABOUTME: pre-commit hooks 설정
+# ABOUTME: 코드 품질 및 일관성을 위한 자동 검사
+
 repos:
--   repo: local
+  # Nix 관련 hooks
+  - repo: local
     hooks:
-    -   id: nix-flake-check
+      - id: nix-flake-check
         name: Nix Flake Check
-        entry: nix flake check --all-systems --no-build
+        entry: nix flake check --all-systems --no-build --impure
         language: system
-        files: ^.*\\.nix$
+        files: '^.*\.nix$'
         pass_filenames: false
+
+      - id: nixpkgs-fmt
+        name: nixpkgs-fmt
+        entry: nixpkgs-fmt
+        language: system
+        files: '\.nix$'
+
+      - id: statix
+        name: statix check
+        entry: statix check
+        language: system
+        files: '\.nix$'
+        pass_filenames: false
+
+      - id: deadnix
+        name: deadnix
+        entry: deadnix --edit
+        language: system
+        files: '\.nix$'
+
+  # 일반적인 hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: '\.patch$'
+      - id: end-of-file-fixer
+        exclude: '\.patch$'
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: check-yaml
+        exclude: '^\.github/workflows/'
+      - id: check-json
+      - id: check-toml
+      - id: mixed-line-ending
+        args: ['--fix=lf']
+
+  # GitHub Actions workflow 검증
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.1
+    hooks:
+      - id: actionlint
+        name: actionlint
+        files: '^\.github/workflows/.*\.ya?ml$'
+
+# 전역 제외 패턴
+exclude: |
+  (?x)^(
+    flake\.lock|
+    .*\.patch|
+    result|
+    result-.*
+  )$
+
+# 기본 언어 버전
+default_language_version:
+  python: python3
+
+# CI에서 실행 시 빠른 실행을 위한 설정
+ci:
+  autofix_commit_msg: |
+    [pre-commit.ci] auto fixes from pre-commit hooks
+
+    for more information, see https://pre-commit.ci
+  autofix_prs: true
+  autoupdate_branch: ''
+  autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
+  autoupdate_schedule: weekly
+  skip: []  # 모든 hook 실행
+  submodules: false

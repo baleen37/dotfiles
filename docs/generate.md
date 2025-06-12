@@ -35,7 +35,7 @@ globs: {{add here file globs like "**/*.tsx,**/.jsx"}}
 alwaysApply: true
 ---
 
-You are an expert in {{add here framework, typescript, libraries}}. You are focusing on producing clear, readable code.  
+You are an expert in {{add here framework, typescript, libraries}}. You are focusing on producing clear, readable code.
 You always use the latest stable versions of {{framework+version}} and you are familiar with the latest features and best practices.
 
 # Project Structure

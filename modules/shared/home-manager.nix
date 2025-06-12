@@ -1,9 +1,11 @@
 { config, pkgs, lib, ... }:
 
-let name = "Jiho Lee";
-    getUser = import ../../lib/get-user.nix { };
-    user = getUser;
-    email = "baleen37@gmail.com"; in
+let
+  name = "Jiho Lee";
+  getUser = import ../../lib/get-user.nix { };
+  user = getUser;
+  email = "baleen37@gmail.com";
+in
 {
   # Shared shell configuration
   zsh = {
@@ -48,14 +50,14 @@ let name = "Jiho Lee";
           break
         fi
       done
-      
+
       # 기본 위치들도 확인
       if [[ -z "$${SSH_AUTH_SOCK:-}" ]]; then
         _1password_sockets=(
           ~/.1password/agent.sock
           /tmp/1password-ssh-agent.sock
         )
-        
+
         for sock in "$${_1password_sockets[@]}"; do
           if [[ -S "$sock" ]]; then
             export SSH_AUTH_SOCK="$sock"
@@ -75,13 +77,13 @@ let name = "Jiho Lee";
 
       # Always color ls and group directories
       alias ls='ls --color=auto'
-      
+
       # Use Cursor as code editor
       alias code=cursor
 
       # Initialize direnv
       eval "$(direnv hook zsh)"
-      
+
       # Auto-update dotfiles on shell startup (with TTL)
       if [[ -x "$HOME/dotfiles/scripts/auto-update-dotfiles" ]]; then
         (nohup "$HOME/dotfiles/scripts/auto-update-dotfiles" --silent &>/dev/null &)
@@ -98,12 +100,12 @@ let name = "Jiho Lee";
       "*~"
       ".vscode/"
       ".idea/"
-      
+
       # OS files
       ".DS_Store"
       "Thumbs.db"
       "desktop.ini"
-      
+
       # Development files
       ".direnv/"
       "result"
@@ -111,17 +113,17 @@ let name = "Jiho Lee";
       "node_modules/"
       ".env.local"
       ".env.*.local"
-      
+
       # Temporary files
       "*.tmp"
       "*.log"
       ".cache/"
-      
+
       # Build artifacts
       "dist/"
       "build/"
       "target/"
-      
+
     ];
     userName = name;
     userEmail = email;
@@ -131,7 +133,7 @@ let name = "Jiho Lee";
     extraConfig = {
       init.defaultBranch = "main";
       core = {
-	    editor = "vim";
+        editor = "vim";
         autocrlf = "input";
         excludesFile = "~/.gitignore_global";
       };
@@ -255,8 +257,8 @@ let name = "Jiho Lee";
 
       let g:airline_theme='bubblegum'
       let g:airline_powerline_fonts = 1
-      '';
-     };
+    '';
+  };
 
 
   alacritty = {
@@ -339,7 +341,7 @@ let name = "Jiho Lee";
         IdentitiesOnly yes
         AddKeysToAgent yes
     '' + lib.optionalString pkgs.stdenv.hostPlatform.isDarwin ''
-        UseKeychain yes
+      UseKeychain yes
     '';
   };
 
@@ -400,7 +402,7 @@ let name = "Jiho Lee";
       set -g status-right-length 50
       set -g status-left '#[fg=colour233,bg=colour241,bold] #S '
       set -g status-right '#[fg=colour233,bg=colour241,bold] %d/%m #[fg=colour233,bg=colour245,bold] %H:%M:%S '
-      
+
       # 윈도우 상태 표시
       setw -g window-status-current-format ' #I#[fg=colour250]:#[fg=colour255]#W#[fg=colour50]#F '
       setw -g window-status-format ' #I#[fg=colour237]:#[fg=colour250]#W#[fg=colour244]#F '
@@ -409,13 +411,13 @@ let name = "Jiho Lee";
       bind | split-window -h
       bind - split-window -v
       bind r source-file ~/.tmux.conf \; display "Config reloaded!"
-      
+
       # 세션 저장/복원 설정
       set -g @resurrect-capture-pane-contents 'on'
       set -g @continuum-restore 'on'
       set -g @continuum-save-interval '15'
-      '';
-    };
+    '';
+  };
 
 
 }

@@ -36,14 +36,30 @@
       linuxSystems = [ "x86_64-linux" "aarch64-linux" ];
       darwinSystems = [ "aarch64-darwin" "x86_64-darwin" ];
       forAllSystems = f: nixpkgs.lib.genAttrs (linuxSystems ++ darwinSystems) f;
-      devShell = system: let pkgs = nixpkgs.legacyPackages.${system}; in {
-        default = with pkgs; mkShell {
-          nativeBuildInputs = with pkgs; [ bashInteractive git ];
-          shellHook = with pkgs; ''
-            export EDITOR=vim
-          '';
+      devShell = system:
+        let pkgs = nixpkgs.legacyPackages.${system}; in {
+          default = with pkgs; mkShell {
+            nativeBuildInputs = with pkgs; [
+              bashInteractive
+              git
+              pre-commit
+              nixpkgs-fmt
+              statix
+              deadnix
+              gh
+            ];
+            shellHook = with pkgs; ''
+              export EDITOR=vim
+              export PATH="$PWD/scripts:$PATH"
+
+              # Initialize pre-commit hooks if not already done
+              if [ ! -f .git/hooks/pre-commit ]; then
+                echo "🔧 Setting up pre-commit hooks..."
+                pre-commit install --allow-missing-config || echo "⚠️  pre-commit config missing, skipping hook install"
+              fi
+            '';
+          };
         };
-      };
       mkApp = scriptName: system: {
         type = "app";
         program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin scriptName ''
@@ -53,7 +69,7 @@
           exec ${self}/apps/${system}/${scriptName}
         '')}/bin/${scriptName}";
       };
-      mkSetupDevApp = system: 
+      mkSetupDevApp = system:
         if builtins.pathExists ./scripts/setup-dev
         then {
           type = "app";
@@ -85,7 +101,7 @@
           '')}/bin/test";
         };
         "test-smoke" = {
-          type = "app"; 
+          type = "app";
           program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "test-smoke" ''
             #!/usr/bin/env bash
             echo "Running smoke tests for ${system}..."
@@ -111,7 +127,7 @@
           '')}/bin/test";
         };
         "test-smoke" = {
-          type = "app"; 
+          type = "app";
           program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "test-smoke" ''
             #!/usr/bin/env bash
             echo "Running smoke tests for ${system}..."
@@ -157,56 +173,60 @@
       apps = nixpkgs.lib.genAttrs linuxSystems mkLinuxApps // nixpkgs.lib.genAttrs darwinSystems mkDarwinApps;
       checks = forAllSystems (system:
         let
-          pkgs = import nixpkgs { 
-            inherit system; 
-            config.allowUnfree = true; 
+          pkgs = import nixpkgs {
+            inherit system;
+            config.allowUnfree = true;
           };
           testSuite = import ./tests { inherit pkgs; flake = self; };
-        in testSuite // {
+        in
+        testSuite // {
           # Add a comprehensive test runner
-          test-all = pkgs.runCommand "test-all" {
-            buildInputs = [ pkgs.bash ];
-          } ''
+          test-all = pkgs.runCommand "test-all"
+            {
+              buildInputs = [ pkgs.bash ];
+            } ''
             echo "Running comprehensive test suite for ${system}"
             echo "========================================"
-            
+
             # Run all individual tests
-            ${builtins.concatStringsSep "\n" (map (testName: 
+            ${builtins.concatStringsSep "\n" (map (testName:
               "echo 'Testing: ${testName}' && ${testSuite.${testName}}/bin/* || echo 'Test ${testName} completed'"
             ) (builtins.attrNames testSuite))}
-            
+
             echo "All tests completed successfully!"
             touch $out
           '';
-          
+
           # Quick smoke test for CI/CD
-          smoke-test = pkgs.runCommand "smoke-test" {} ''
+          smoke-test = pkgs.runCommand "smoke-test" { } ''
             echo "Running smoke tests for ${system}"
             echo "Flake structure validation: PASSED"
             echo "Basic functionality check: PASSED"
             touch $out
           '';
-          
+
           # Lint and format checks
-          lint-check = pkgs.runCommand "lint-check" {
-            buildInputs = with pkgs; [ nixpkgs-fmt statix deadnix ];
-          } ''
+          lint-check = pkgs.runCommand "lint-check"
+            {
+              buildInputs = with pkgs; [ nixpkgs-fmt statix deadnix ];
+            } ''
             echo "Running lint checks for ${system}"
-            
+
             # Check Nix formatting
             echo "Checking Nix file formatting..."
             find ${self} -name "*.nix" -type f | head -10 | while read file; do
               echo "Checking format: $file"
             done
-            
+
             echo "Lint checks completed"
             touch $out
           '';
         });
 
-      darwinConfigurations = nixpkgs.lib.genAttrs darwinSystems (system: let
-        user = getUser;
-      in
+      darwinConfigurations = nixpkgs.lib.genAttrs darwinSystems (system:
+        let
+          user = getUser;
+        in
         darwin.lib.darwinSystem {
           inherit system;
           specialArgs = inputs;
@@ -236,7 +256,8 @@
         specialArgs = inputs;
         modules = [
           disko.nixosModules.disko
-          home-manager.nixosModules.home-manager {
+          home-manager.nixosModules.home-manager
+          {
             home-manager = {
               useGlobalPkgs = true;
               useUserPackages = true;
@@ -247,6 +268,6 @@
           }
           ./hosts/nixos
         ];
-     });
-  };
+      });
+    };
 }

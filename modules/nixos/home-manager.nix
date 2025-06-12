@@ -4,7 +4,7 @@ let
   # Resolve user from USER env var
   getUser = import ../../lib/get-user.nix { };
   user = getUser;
-  xdg_configHome  = "/home/${user}/.config";
+  xdg_configHome = "/home/${user}/.config";
   shared-programs = import ../shared/home-manager.nix { inherit config pkgs lib; };
 
   polybar-user_modules =
@@ -24,13 +24,15 @@ let
         "${xdg_configHome}/rofi/bin/powermenu.sh"
         "${xdg_configHome}/polybar/bin/popup-calendar.sh"
       ];
-    in builtins.replaceStrings from to src;
+    in
+    builtins.replaceStrings from to src;
 
   polybar-config =
     let
       src = builtins.readFile ./config/polybar/config.ini;
-      text = builtins.replaceStrings ["@font0@" "@font1@"] ["DejaVu Sans:size=12;3" "feather:size=12;3"] src;
-    in builtins.toFile "polybar-config.ini" text;
+      text = builtins.replaceStrings [ "@font0@" "@font1@" ] [ "DejaVu Sans:size=12;3" "feather:size=12;3" ] src;
+    in
+    builtins.toFile "polybar-config.ini" text;
 
   polybar-modules = builtins.readFile ./config/polybar/modules.ini;
   polybar-bars = builtins.readFile ./config/polybar/bars.ini;
@@ -42,7 +44,7 @@ in
     enableNixpkgsReleaseCheck = false;
     username = "${user}";
     homeDirectory = "/home/${user}";
-    packages = pkgs.callPackage ./packages.nix {};
+    packages = pkgs.callPackage ./packages.nix { };
     file = (import ../shared/files.nix { inherit config pkgs user self lib; }) // import ./files.nix { inherit user; };
     stateVersion = "21.05";
   };
@@ -125,6 +127,6 @@ in
     };
   };
 
-  programs = shared-programs // {};
+  programs = shared-programs // { };
 
 }

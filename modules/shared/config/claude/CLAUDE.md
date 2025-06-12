@@ -27,6 +27,7 @@ Whenever you build out a new project and specifically start a new Claude.md - yo
 # Writing code
 
 - CRITICAL: NEVER USE --no-verify WHEN COMMITTING CODE
+- CLAUDE.md files MUST be written in English
 - We prefer simple, clean, maintainable solutions over clever or complex ones, even if the latter are more concise or performant. Readability and maintainability are primary concerns.
 - Make the smallest reasonable changes to get to the desired outcome. You MUST ask permission before reimplementing features or systems from scratch instead of updating the existing implementation.
 - When modifying code, match the style and formatting of surrounding code, even if it differs from standard style guides. Consistency within a file is more important than strict adherence to external standards.
@@ -72,6 +73,15 @@ Whenever you build out a new project and specifically start a new Claude.md - yo
 - @~/.claude/docs/python.md
 - @~/.claude/docs/source-control.md
 - @~/.claude/docs/using-uv.md
+
+## Nix Environment Setup
+
+Project installation and development environment setup should follow these practices:
+
+- Use `nix-shell` for development environment activation
+- Use `shell.nix` files for dependency management
+- Configure `direnv` with `.envrc` files for automatic environment activation
+- Use `nix develop` for flake-based development environment entry
 
 * **Workflow Protocol:** All work will follow a structured, multi-phase process. First, a detailed work plan, structured with task numbers (e.g., 1.1, 1.2), will be proposed for review. Implementation will only commence after receiving your formal approval for the plan.
 

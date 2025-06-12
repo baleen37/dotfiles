@@ -4,6 +4,16 @@ ARCH := $(shell uname -m)
 OS := $(shell uname -s | tr A-Z a-z)
 NIX := nix --extra-experimental-features 'nix-command flakes'
 
+# Helper function to run command in Nix dev shell if tool not available
+define run_in_nix_if_needed
+	@if command -v $(1) >/dev/null 2>&1; then \
+		$(2); \
+	else \
+		echo "⚠️  $(1) not found. Running via nix develop..."; \
+		$(NIX) develop --command bash -c "$(2)"; \
+	fi
+endef
+
 help:
 	@echo "Available targets:"
 	@echo "  lint        - Run pre-commit lint"
@@ -23,7 +33,7 @@ help:
 	@echo "  switch      - Apply configuration on the current machine (HOST=<system> optional)"
 
 lint:
-	pre-commit run --all-files
+	$(call run_in_nix_if_needed,pre-commit,pre-commit run --all-files)
 
 ifdef SYSTEM
 smoke:

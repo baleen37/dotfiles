@@ -1,35 +1,28 @@
-{ pkgs, flake ? null, src ? ../.. }:
+{ pkgs, src ? ../.. }:
 
 let
-  lib = pkgs.lib;
-  
+
   # Mock environment for testing
-  mockUser = "testuser";
-  mockUserHome = "/home/${mockUser}";
-  mockConfig = {
-    users.users.${mockUser}.home = mockUserHome;
-    home.homeDirectory = mockUserHome;
-  };
-  
+
   # Test the overwrite functionality
   testOverwriteScript = pkgs.writeShellScript "test-overwrite" ''
     set -e
-    
+
     # Create test directory
     TEST_DIR=$(mktemp -d)
     mkdir -p "$TEST_DIR/.claude/commands"
-    
+
     # Create existing files to test overwrite
     echo "old content" > "$TEST_DIR/.claude/settings.json"
     echo "old claude content" > "$TEST_DIR/.claude/CLAUDE.md"
     echo "old command" > "$TEST_DIR/.claude/commands/test.md"
-    
+
     # Create mock nix store files (newer content)
     MOCK_NIX_STORE=$(mktemp -d)
     echo "new settings content" > "$MOCK_NIX_STORE/settings.json"
     echo "new claude content" > "$MOCK_NIX_STORE/CLAUDE.md"
     echo "new command content" > "$MOCK_NIX_STORE/test.md"
-    
+
     # Function to copy symlink to real file with overwrite support
     copy_if_symlink() {
       local file="$1"
@@ -52,10 +45,10 @@ let
         fi
       fi
     }
-    
+
     # Test overwrite functionality
     echo "=== Testing File Overwrite Functionality ==="
-    
+
     # Test settings.json overwrite
     copy_if_symlink "$TEST_DIR/.claude/settings.json"
     if grep -q "new settings content" "$TEST_DIR/.claude/settings.json"; then
@@ -64,7 +57,7 @@ let
       echo "✗ settings.json overwrite failed"
       exit 1
     fi
-    
+
     # Test CLAUDE.md overwrite
     copy_if_symlink "$TEST_DIR/.claude/CLAUDE.md"
     if grep -q "new claude content" "$TEST_DIR/.claude/CLAUDE.md"; then
@@ -73,7 +66,7 @@ let
       echo "✗ CLAUDE.md overwrite failed"
       exit 1
     fi
-    
+
     # Test command file overwrite
     copy_if_symlink "$TEST_DIR/.claude/commands/test.md"
     if grep -q "new command content" "$TEST_DIR/.claude/commands/test.md"; then
@@ -82,7 +75,7 @@ let
       echo "✗ command file overwrite failed"
       exit 1
     fi
-    
+
     # Test permissions
     if [[ "$(stat -c %a "$TEST_DIR/.claude/settings.json" 2>/dev/null || stat -f %A "$TEST_DIR/.claude/settings.json")" == "644" ]]; then
       echo "✓ File permissions set correctly"
@@ -90,20 +83,20 @@ let
       echo "✗ File permissions incorrect"
       exit 1
     fi
-    
+
     # Cleanup
     rm -rf "$TEST_DIR" "$MOCK_NIX_STORE"
-    
+
     echo "All overwrite tests passed!"
   '';
 
 in
-pkgs.runCommand "claude-file-overwrite-unit-test" {} ''
+pkgs.runCommand "claude-file-overwrite-unit-test" { } ''
   echo "=== Claude File Overwrite Unit Test ==="
-  
+
   # Run the overwrite functionality test
   ${testOverwriteScript}
-  
+
   echo "Unit test completed successfully!"
   touch $out
 ''

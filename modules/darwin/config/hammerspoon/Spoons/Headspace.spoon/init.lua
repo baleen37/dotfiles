@@ -22,18 +22,18 @@ local m = {
   }
 --  print("Headspace loaded")
   -- CONFIG ==============
-  
+
   local fn    = require('hs.fnutils')
-  
+
   local moduleStyle = fn.copy(hs.alert.defaultStyle)
         moduleStyle.atScreenEdge = 1
         moduleStyle.strokeColor = { white = 1, alpha = 0 }
         moduleStyle.textSize = 36
         moduleStyle.radius = 9
         moduleStyle.padding = 36
-  
+
   -- API =================
-  
+
   --- Headspace:start() -> table
   --- Method
   --- Starts the application watcher that "blocks" applications and sets up
@@ -53,14 +53,14 @@ local m = {
         end
       end
     end):start()
-  
+
     hs.urlevent.bind("setBlacklist", m.setBlacklist)
     hs.urlevent.bind("setWhitelist", m.setWhitelist)
     hs.urlevent.bind("stopHeadspace", m.stopHeadspace)
-  
+
     return self
   end
-  
+
   --- Headspace:stop() -> table
   --- Method
   ---
@@ -69,42 +69,42 @@ local m = {
   function m:stop()
     -- kill any watchers
     m.watcher = nil
-  
+
     -- clear residual spaces
     hs.settings.clear("headspace")
-  
+
     -- destroy URL watchers
     hs.urlevent.bind("setBlacklist", nil)
     hs.urlevent.bind("setWhitelist", nil)
     hs.urlevent.bind("stopHeadspace", nil)
-  
+
     return self
   end
-  
+
   m.getWhitelist = function()
     if hs.settings.get("headspace") then
       return hs.settings.get("headspace")["whitelist"]
     end
   end
-  
+
   m.getBlacklist = function()
     if hs.settings.get("headspace") then
       return hs.settings.get("headspace")["blacklist"]
     end
   end
-  
+
   m.allowed = function(app)
     local tags = hs.fs.tagsGet(app:path())
     local name = app:name()
-  
+
     if tags and fn.contains(tags, "whitelisted") then
       return true
     end
-  
+
     if m.getWhitelist() then
       local appAllowed = false
       local tagAllowed = false
-  
+
       if m.getWhitelist().apps then
         appAllowed = fn.contains(m.getWhitelist().apps, name)
       end
@@ -113,79 +113,79 @@ local m = {
           return fn.contains(tags, tag)
         end)
       end
-  
+
       return tagAllowed or appAllowed
     end
-  
+
     if m.getBlacklist() then
       local appBlocked = false
       local tagBlocked = false
-  
+
       if m.getBlacklist().apps then
         appBlocked = fn.contains(m.getBlacklist().apps, name)
       end
-  
+
       if m.getBlacklist().tags and tags then
         tagBlocked = fn.some(m.getBlacklist().tags, function(tag)
           return fn.contains(tags, tag)
         end)
       end
-  
+
       return (not appBlocked) and (not tagBlocked)
     end
-  
+
     return true
   end
-  
+
   m.dockedAndNotFinder = function(app)
     return app:bundleID() ~= "com.apple.finder" and app:kind() == 1
   end
-  
+
   m.killBlockedDockedApps = function()
     local dockedAndBlocked =
       fn.filter(hs.application.runningApplications(), function(app)
         return m.dockedAndNotFinder(app) and not m.allowed(app)
       end)
-  
+
     fn.each(dockedAndBlocked, function(app) app:kill() end)
   end
-  
+
   function m.setBlacklist(_eventName, params)
     local list = {}
-  
+
     if params["tags"] then
       list["tags"] = fn.split(params["tags"], ",")
     end
     if params["apps"] then
       list["apps"] = fn.split(params["apps"], ",")
     end
-  
+
     hs.settings.set("headspace", { ["blacklist"] = list })
-  
+
     if params["kill"] then
       m.killBlockedDockedApps()
     end
   end
-  
+
   function m.setWhitelist(_eventName, params)
     local list = {}
-  
+
     if params["tags"] then
       list["tags"] = fn.split(params["tags"], ",")
     end
     if params["apps"] then
       list["apps"] = fn.split(params["apps"], ",")
     end
-  
+
     hs.settings.set("headspace", { ["whitelist"] = list })
-  
+
     if params["kill"] then
       m.killBlockedDockedApps()
     end
   end
-  
+
   function m.stopHeadspace(_eventName, _params)
     hs.settings.clear("headspace")
   end
-  
+
   return m
