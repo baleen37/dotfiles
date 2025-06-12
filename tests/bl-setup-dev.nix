@@ -1,4 +1,4 @@
-{ pkgs }:
+{ pkgs, flake ? null, src ? ../.. }:
 
 pkgs.stdenv.mkDerivation {
   name = "bl-setup-dev-test";

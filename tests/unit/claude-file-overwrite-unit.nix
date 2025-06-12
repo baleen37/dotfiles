@@ -1,4 +1,4 @@
-{ pkgs, src ? ../.. }:
+{ pkgs, flake ? null, src ? ../.. }:
 
 let
 

@@ -345,7 +345,7 @@ To add new commands to the bl system:
 1. **Always use `--impure` flag** when running nix commands that need environment variables
 2. **Module Dependencies**: When modifying modules, check both direct imports and transitive dependencies
 3. **Platform Testing**: Changes to shared modules should be tested on all four platforms
-4. **Configuration Application**: 
+4. **Configuration Application**:
    - Darwin: Uses `darwin-rebuild switch`
    - NixOS: Uses `nixos-rebuild switch`
    - Both are wrapped by platform-specific scripts in `apps/`
@@ -408,11 +408,11 @@ make switch HOST=<host>
 ```bash
 ./scripts/merge-claude-config settings.json
 # c) 현재 값 유지
-# n) 새 값 사용  
+# n) 새 값 사용
 # s) 건너뛰기
 ```
 
-**백업 관리**: 
+**백업 관리**:
 ```bash
 # 백업 파일 위치
 ls ~/.claude/.backups/

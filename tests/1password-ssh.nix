@@ -1,4 +1,4 @@
-{ pkgs }:
+{ pkgs, flake ? null, src ? ../.. }:
 let
   # Import the user function to get consistent user handling
   getUser = import ../lib/get-user.nix { };

@@ -1,7 +1,7 @@
 # ABOUTME: 설정 마이그레이션 및 하위 호환성을 검증하는 테스트
 # ABOUTME: 기존 설정에서 새 버전으로의 안전한 마이그레이션을 보장함
 
-{ pkgs, src ? ../.. }:
+{ pkgs, flake ? null, src ? ../.. }:
 let
   testHelpers = import ../lib/test-helpers.nix { inherit pkgs; };
 

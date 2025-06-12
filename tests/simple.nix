@@ -1,4 +1,4 @@
-{ pkgs }:
+{ pkgs, flake ? null, src ? ../.. }:
 pkgs.runCommand "simple-test" { } ''
   echo "Running simple test"
   if [ $((1 + 1)) -ne 2 ]; then

@@ -1,4 +1,4 @@
-{ pkgs }:
+{ pkgs, flake ? null, src ? ../.. }:
 let
   # Color codes for test output
   colors = {

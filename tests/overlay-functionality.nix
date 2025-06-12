@@ -1,4 +1,4 @@
-{ pkgs }:
+{ pkgs, flake ? null, src ? ../.. }:
 let
   # Test that overlays are properly applied
   hasFeatherFont = pkgs ? feather-font;

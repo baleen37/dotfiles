@@ -1,4 +1,4 @@
-{ pkgs }:
+{ pkgs, flake ? null, src ? ../.. }:
 let
   # Import package lists from modules
   sharedPackages = import ../modules/shared/packages.nix { inherit pkgs; };

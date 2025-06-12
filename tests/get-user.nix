@@ -1,4 +1,4 @@
-{ pkgs }:
+{ pkgs, flake ? null, src ? ../.. }:
 let
   # Test get-user function with current environment
   getUserLib = import ../lib/get-user.nix;

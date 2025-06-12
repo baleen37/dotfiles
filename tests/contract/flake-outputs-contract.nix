@@ -1,7 +1,7 @@
 # ABOUTME: Flake outputs 구조의 계약을 검증하는 테스트
 # ABOUTME: API 인터페이스의 일관성과 호환성을 보장함
 
-{ pkgs, src ? ../.. }:
+{ pkgs, flake ? null, src ? ../.. }:
 let
   testHelpers = import ../lib/test-helpers.nix { inherit pkgs; };
 

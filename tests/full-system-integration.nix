@@ -1,4 +1,4 @@
-{ pkgs }:
+{ pkgs, flake ? null, src ? ../.. }:
 let
   flake = builtins.getFlake (toString ../.);
   system = pkgs.system;

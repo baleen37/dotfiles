@@ -1,4 +1,4 @@
-{ pkgs }:
+{ pkgs, flake ? null, src ? ../.. }:
 let
   darwinModules = import ../modules/darwin/packages.nix { inherit pkgs; };
   nixosModules = import ../modules/nixos/packages.nix { inherit pkgs; };

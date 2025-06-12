@@ -1,7 +1,7 @@
 # ABOUTME: 파일 및 디렉토리 권한을 검증하는 보안 테스트
 # ABOUTME: 부적절한 권한 설정으로 인한 보안 취약점을 방지함
 
-{ pkgs, src ? ../.. }:
+{ pkgs, flake ? null, src ? ../.. }:
 let
   testHelpers = import ../lib/test-helpers.nix { inherit pkgs; };
 

@@ -1,4 +1,4 @@
-{ pkgs }:
+{ pkgs, flake ? null, src ? ../.. }:
 let
   flake = builtins.getFlake (toString ../.);
   buildAppExists = builtins.hasAttr pkgs.system flake.outputs.apps &&

@@ -1,7 +1,7 @@
 # ABOUTME: Nix 버전 및 플랫폼 호환성을 검증하는 테스트
 # ABOUTME: 다양한 환경에서의 설정 호환성을 보장함
 
-{ pkgs, src ? ../.. }:
+{ pkgs, flake ? null, src ? ../.. }:
 let
   testHelpers = import ../lib/test-helpers.nix { inherit pkgs; };
 

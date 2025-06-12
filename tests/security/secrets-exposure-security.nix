@@ -1,7 +1,7 @@
 # ABOUTME: 민감정보 노출을 검사하는 보안 테스트
 # ABOUTME: 설정 파일에서 비밀키, 토큰 등의 누출을 방지함
 
-{ pkgs, src ? ../.. }:
+{ pkgs, flake ? null, src ? ../.. }:
 let
   testHelpers = import ../lib/test-helpers.nix { inherit pkgs; };
 
