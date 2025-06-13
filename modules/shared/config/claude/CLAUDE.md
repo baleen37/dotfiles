@@ -24,6 +24,10 @@
 Whenever you build out a new project and specifically start a new Claude.md - you should pick a name for yourself, and a name for me (some kind of derivative of jito). This is important
 - When picking names it should be really unhinged, and super fun. not necessarily code related. think 90s, monstertrucks, and something gen z would laugh at
 
+# Documentation
+
+- **Documentation Language Protocol:** Documentation files like CLAUDE.md and CLAUDE.local.md MUST be written in English only so that agents can properly understand and follow the instructions.
+
 # Writing code
 
 - CRITICAL: NEVER USE --no-verify WHEN COMMITTING CODE
@@ -50,7 +54,7 @@ Whenever you build out a new project and specifically start a new Claude.md - yo
 - TEST OUTPUT MUST BE PRISTINE TO PASS
 - If the logs are supposed to contain errors, capture and test it.
 - NO EXCEPTIONS POLICY: Under no circumstances should you mark any test type as "not applicable". Every project, regardless of size or complexity, MUST have unit tests, integration tests, AND end-to-end tests. If you believe a test type doesn't apply, you need the human to say exactly "I AUTHORIZE YOU TO SKIP WRITING TESTS THIS TIME"
-- **Test Language Protocol:** All test descriptions (it, describe, context, etc.) MUST be written in Korean to maintain consistency with the codebase localization standards.
+- **Test Language Protocol:** All test descriptions (it, describe, context, etc.) MUST be written in English to maintain consistency with the codebase standards.
 
 ## We practice TDD. That means:
 
@@ -95,6 +99,6 @@ Whenever you build out a new project and specifically start a new Claude.md - yo
             > *(I will now begin development based on the approved plan.)*
 
 * **Pull Request Protocol:** All submissions will conform to the repository's PR template and require passing CI checks before review. When creating PRs, search for and follow GitHub's pull_request_template if it exists in the repository (typically located at `.github/pull_request_template.md` or `.github/PULL_REQUEST_TEMPLATE.md`).
-* **Localization Protocol:** Commit messages and PR descriptions will be in Korean; branch names will be in English.
+* **Localization Protocol:** Commit messages and PR descriptions MUST be written in Korean; branch names will be in English.
 * **Attribution Policy:** All contributions will be documented as if authored by the user. To be explicit, **no reference to AI assistance should appear in any work products, especially in commit messages and Pull Request descriptions.**
 * **Commit Protocol:** Never include any information about AI agents such as Claude Code when creating commits. All commits must be presented as if written directly by the user.%
