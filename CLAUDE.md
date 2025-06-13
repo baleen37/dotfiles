@@ -392,20 +392,6 @@ To add new commands to the bl system:
 - No dependencies on dotfiles repository structure
 - Includes help with `-h` or `--help` flag
 
-## Important Notes
-<<<<<<< HEAD
-
-### Critical Development Guidelines
-
-1. **Always use `--impure` flag** when running nix commands that need environment variables
-2. **Module Dependencies**: When modifying modules, check both direct imports and transitive dependencies
-3. **Platform Testing**: Changes to shared modules should be tested on all four platforms
-4. **Configuration Application**: 
-   - Darwin: Uses `darwin-rebuild switch`
-   - NixOS: Uses `nixos-rebuild switch`
-   - Both are wrapped by platform-specific scripts in `apps/`
-5. **Home Manager Integration**: User-specific configurations are managed through Home Manager
-
 ## Claude 설정 보존 시스템
 
 이 dotfiles는 **스마트 Claude 설정 보존 시스템**을 포함하고 있어, 사용자가 개인화한 Claude 설정이 시스템 업데이트 시에도 안전하게 보존됩니다.
