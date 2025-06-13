@@ -308,6 +308,61 @@ sudo nix run .#switch
 - [ ] Documentation updated if needed
 - [ ] No secrets or sensitive information committed
 
+## Pre-commit Hooks
+
+이 프로젝트는 pre-commit 훅을 사용하여 코드 품질을 보장합니다.
+
+### 설치 및 설정
+
+```bash
+# pre-commit 설치 (pip 또는 conda 사용)
+pip install pre-commit
+
+# 또는 nix로 설치 (권장)
+nix-shell -p pre-commit
+
+# 훅 설치
+pre-commit install
+
+# 모든 파일에 대해 훅 실행
+pre-commit run --all-files
+```
+
+### 현재 설정된 훅
+
+- **Nix Flake Check**: 모든 `.nix` 파일이 변경될 때 `nix flake check --all-systems --no-build` 실행
+- 빠른 구문 검사와 플레이크 유효성 검증을 제공합니다
+
+### 사용법
+
+```bash
+# 커밋 전 자동 실행 (훅 설치 후)
+git commit -m "your commit message"
+
+# 수동으로 모든 파일 체크
+pre-commit run --all-files
+
+# 특정 파일만 체크
+pre-commit run --files flake.nix
+
+# 훅 우회 (권장하지 않음)
+git commit --no-verify -m "emergency commit"
+```
+
+### 문제 해결
+
+```bash
+# pre-commit 캐시 정리
+pre-commit clean
+
+# 훅 재설치
+pre-commit uninstall
+pre-commit install
+
+# 특정 훅 비활성화 (임시)
+SKIP=nix-flake-check git commit -m "message"
+```
+
 ## Advanced Topics
 
 ### Global Installation (bl command system)

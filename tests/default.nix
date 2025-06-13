@@ -16,9 +16,20 @@ let
         testFiles = builtins.filter (name: 
           builtins.match pattern name != null
         ) (builtins.attrNames entries);
+        
+        # Function to check if a test file needs lib parameter
+        needsLib = file: 
+          let
+            fileContent = builtins.readFile (dir + ("/" + file));
+          in builtins.match ".*\\{ pkgs, lib,.*" fileContent != null;
+          
       in builtins.listToAttrs (map (file: {
         name = sanitizeName file;
-        value = import (dir + ("/" + file)) { inherit pkgs flake; src = ../.; };
+        value = 
+          if needsLib file then
+            import (dir + ("/" + file)) { inherit pkgs flake; lib = pkgs.lib; src = ../.; }
+          else
+            import (dir + ("/" + file)) { inherit pkgs flake; src = ../.; };
       }) testFiles)
     else {};
     

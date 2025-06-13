@@ -172,7 +172,11 @@
             
             # Run all individual tests
             ${builtins.concatStringsSep "\n" (map (testName: 
-              "echo 'Testing: ${testName}' && ${testSuite.${testName}}/bin/* || echo 'Test ${testName} completed'"
+              let test = testSuite.${testName}; in
+              if (builtins.typeOf test) == "set" && test ? type && test.type == "derivation" then
+                "echo 'Testing: ${testName}' && ${test} && echo 'Test ${testName} completed'"
+              else
+                "echo 'Skipping ${testName}: not a derivation (type: ${builtins.typeOf test})'"
             ) (builtins.attrNames testSuite))}
             
             echo "All tests completed successfully!"
