@@ -4,7 +4,6 @@ _:
   # Development Tools
   "homebrew/cask/docker"
   "intellij-idea"
-  "visual-studio-code"
   "cursor"
 
   # Communication Tools
