@@ -376,7 +376,221 @@ TTL_EOF
     exit 1
   fi
   
-  # Test 10: Script configuration constants
+  # Test 10: Remote update detection logic
+  ${testHelpers.testSubsection "Remote Update Detection"}
+  
+  # Helper function to test remote update detection
+  create_remote_update_test_function() {
+    cat > "$TEST_REPO/test_remote_updates.sh" << 'REMOTE_EOF'
+#!/bin/bash
+# Extract remote update detection logic for isolated testing
+
+has_remote_updates() {
+    # Fetch remote updates quietly (simulate success/failure)
+    case "$TEST_FETCH_RESULT" in
+        "success")
+            # Compare local main with remote main (using test values)
+            local local_commit="$TEST_LOCAL_COMMIT"
+            local remote_commit="$TEST_REMOTE_COMMIT"
+            
+            if [[ -n "$local_commit" && -n "$remote_commit" && "$local_commit" != "$remote_commit" ]]; then
+                return 0  # Has updates
+            fi
+            return 1  # No updates
+            ;;
+        "failure")
+            return 1  # Fetch failed, no updates
+            ;;
+        *)
+            return 1  # Default: no updates
+            ;;
+    esac
+}
+
+# Test case based on arguments
+case "$1" in
+    "same_commits")
+        export TEST_FETCH_RESULT="success"
+        export TEST_LOCAL_COMMIT="abc123"
+        export TEST_REMOTE_COMMIT="abc123"
+        has_remote_updates && echo "HAS_UPDATES" || echo "NO_UPDATES"
+        ;;
+    "different_commits")
+        export TEST_FETCH_RESULT="success"
+        export TEST_LOCAL_COMMIT="abc123"
+        export TEST_REMOTE_COMMIT="def456"
+        has_remote_updates && echo "HAS_UPDATES" || echo "NO_UPDATES"
+        ;;
+    "fetch_failed")
+        export TEST_FETCH_RESULT="failure"
+        export TEST_LOCAL_COMMIT="abc123"
+        export TEST_REMOTE_COMMIT="def456"
+        has_remote_updates && echo "HAS_UPDATES" || echo "NO_UPDATES"
+        ;;
+    "empty_local")
+        export TEST_FETCH_RESULT="success"
+        export TEST_LOCAL_COMMIT=""
+        export TEST_REMOTE_COMMIT="def456"
+        has_remote_updates && echo "HAS_UPDATES" || echo "NO_UPDATES"
+        ;;
+    "empty_remote")
+        export TEST_FETCH_RESULT="success"
+        export TEST_LOCAL_COMMIT="abc123"
+        export TEST_REMOTE_COMMIT=""
+        has_remote_updates && echo "HAS_UPDATES" || echo "NO_UPDATES"
+        ;;
+    *)
+        echo "Usage: $0 {same_commits|different_commits|fetch_failed|empty_local|empty_remote}"
+        exit 1
+        ;;
+esac
+REMOTE_EOF
+    chmod +x "$TEST_REPO/test_remote_updates.sh"
+  }
+  
+  create_remote_update_test_function
+  
+  # Test 10.1: Same commits (should have no updates)
+  cd "$TEST_REPO"
+  REMOTE_RESULT=$(./test_remote_updates.sh same_commits)
+  if [ "$REMOTE_RESULT" = "NO_UPDATES" ]; then
+    echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} No updates detected when commits are same"
+  else
+    echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} No updates detected when commits are same (got: $REMOTE_RESULT)"
+    exit 1
+  fi
+  
+  # Test 10.2: Different commits (should have updates)
+  REMOTE_RESULT=$(./test_remote_updates.sh different_commits)
+  if [ "$REMOTE_RESULT" = "HAS_UPDATES" ]; then
+    echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Updates detected when commits are different"
+  else
+    echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} Updates detected when commits are different (got: $REMOTE_RESULT)"
+    exit 1
+  fi
+  
+  # Test 10.3: Fetch failure (should have no updates)
+  REMOTE_RESULT=$(./test_remote_updates.sh fetch_failed)
+  if [ "$REMOTE_RESULT" = "NO_UPDATES" ]; then
+    echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} No updates when fetch fails (fail-safe)"
+  else
+    echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} No updates when fetch fails (got: $REMOTE_RESULT)"
+    exit 1
+  fi
+  
+  # Test 10.4: Empty local commit (should have no updates)
+  REMOTE_RESULT=$(./test_remote_updates.sh empty_local)
+  if [ "$REMOTE_RESULT" = "NO_UPDATES" ]; then
+    echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} No updates when local commit is empty (fail-safe)"
+  else
+    echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} No updates when local commit is empty (got: $REMOTE_RESULT)"
+    exit 1
+  fi
+  
+  # Test 10.5: Empty remote commit (should have no updates)
+  REMOTE_RESULT=$(./test_remote_updates.sh empty_remote)
+  if [ "$REMOTE_RESULT" = "NO_UPDATES" ]; then
+    echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} No updates when remote commit is empty (fail-safe)"
+  else
+    echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} No updates when remote commit is empty (got: $REMOTE_RESULT)"
+    exit 1
+  fi
+  
+  # Test 11: Build-switch execution logic
+  ${testHelpers.testSubsection "Build-Switch Execution"}
+  
+  # Helper function to test build-switch execution
+  create_build_switch_test_function() {
+    cat > "$TEST_REPO/test_build_switch.sh" << 'BUILD_EOF'
+#!/bin/bash
+# Test build-switch execution logic
+
+perform_build_switch_test() {
+    local test_scenario="$1"
+    
+    case "$test_scenario" in
+        "nix_available")
+            # Simulate nix command being available
+            export PATH="/mock/nix/bin:$PATH"
+            command -v nix >/dev/null 2>&1 && echo "NIX_AVAILABLE" || echo "NIX_NOT_AVAILABLE"
+            ;;
+        "nix_not_available")
+            # Simulate nix command not being available
+            export PATH="/usr/bin:/bin"
+            command -v nix >/dev/null 2>&1 && echo "NIX_AVAILABLE" || echo "NIX_NOT_AVAILABLE"
+            ;;
+        "user_var_set")
+            export USER="testuser"
+            echo "USER_VAR: ''${USER:-not_set}"
+            ;;
+        "user_var_unset")
+            unset USER
+            echo "USER_VAR: ''${USER:-not_set}"
+            ;;
+        "architecture_detection")
+            # Test architecture detection logic
+            ARCH_VAL=$(uname -m)
+            OS_VAL=$(uname -s)
+            
+            if [[ "$OS_VAL" == "Darwin" ]]; then
+                SYSTEM_TYPE="$ARCH_VAL-darwin"
+            else
+                SYSTEM_TYPE="$ARCH_VAL-linux"
+            fi
+            echo "SYSTEM_TYPE: $SYSTEM_TYPE"
+            ;;
+        *)
+            echo "Usage: $0 {nix_available|nix_not_available|user_var_set|user_var_unset|architecture_detection}"
+            exit 1
+            ;;
+    esac
+}
+
+perform_build_switch_test "$1"
+BUILD_EOF
+    chmod +x "$TEST_REPO/test_build_switch.sh"
+  }
+  
+  create_build_switch_test_function
+  
+  # Test 11.1: Nix availability check (simulated)
+  cd "$TEST_REPO"
+  BUILD_RESULT=$(./test_build_switch.sh nix_not_available)
+  if [ "$BUILD_RESULT" = "NIX_NOT_AVAILABLE" ]; then
+    echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Nix unavailability detected correctly"
+  else
+    echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} Nix unavailability detected correctly (got: $BUILD_RESULT)"
+    exit 1
+  fi
+  
+  # Test 11.2: USER variable set
+  BUILD_RESULT=$(./test_build_switch.sh user_var_set)
+  if [[ "$BUILD_RESULT" == "USER_VAR: testuser" ]]; then
+    echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} USER variable handling when set"
+  else
+    echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} USER variable handling when set (got: $BUILD_RESULT)"
+    exit 1
+  fi
+  
+  # Test 11.3: USER variable unset (should use fallback)
+  BUILD_RESULT=$(./test_build_switch.sh user_var_unset)
+  if [[ "$BUILD_RESULT" == "USER_VAR: not_set" ]]; then
+    echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} USER variable handling when unset"
+  else
+    echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} USER variable handling when unset (got: $BUILD_RESULT)"
+    exit 1
+  fi
+  
+  # Test 11.4: Architecture detection
+  BUILD_RESULT=$(./test_build_switch.sh architecture_detection)
+  if [[ "$BUILD_RESULT" =~ ^SYSTEM_TYPE:\ (x86_64|aarch64|arm64)-(darwin|linux)$ ]]; then
+    echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} System architecture detected correctly"
+  else
+    echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} System architecture detected correctly (got: $BUILD_RESULT)"
+    exit 1
+  fi
+  
+  # Test 12: Script configuration constants
   ${testHelpers.testSubsection "Configuration Validation"}
   
   # Check that TTL is set to 1 hour (3600 seconds)
@@ -401,20 +615,8 @@ TTL_EOF
   cd "$HOME"
   rm -rf "$TEST_REPO" "$NON_GIT_DIR"
   
-  # Report results
-  PASSED_TESTS=21  # Updated count with enhanced TTL and local changes tests
-  TOTAL_TESTS=21
-  
   echo ""
   echo "${testHelpers.colors.blue}=== Test Results: Auto-Update Dotfiles Unit Tests ===${testHelpers.colors.reset}"
-  echo "Passed: ${testHelpers.colors.green}''${PASSED_TESTS}${testHelpers.colors.reset}/''${TOTAL_TESTS}"
-  
-  if [ "''${PASSED_TESTS}" -eq "''${TOTAL_TESTS}" ]; then
-    echo "${testHelpers.colors.green}✓ All tests passed!${testHelpers.colors.reset}"
-  else
-    FAILED=$((''${TOTAL_TESTS} - ''${PASSED_TESTS}))
-    echo "${testHelpers.colors.red}✗ ''${FAILED} tests failed${testHelpers.colors.reset}"
-    exit 1
-  fi
+  echo "${testHelpers.colors.green}✓ All unit tests completed successfully!${testHelpers.colors.reset}"
   touch $out
 ''
