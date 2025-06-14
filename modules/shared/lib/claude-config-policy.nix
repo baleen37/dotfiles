@@ -60,7 +60,7 @@ let
   };
 
   # 파일 우선순위에 따른 정책 결정
-  getPolicyForFile = filePath: userModified: 
+  getPolicyForFile = filePath: userModified: options:
     let
       fileName = baseNameOf filePath;
       fileConfig = claudeConfigFiles.${fileName} or null;
@@ -68,9 +68,15 @@ let
       # 설정에 정의되지 않은 파일은 사용자 커스텀 파일로 간주
       isCustomFile = fileConfig == null;
       
-      # 사용자 커스텀 파일은 항상 보존
+      # 기존 파일 보존 비활성화 옵션 확인
+      forceOverwrite = options.forceOverwrite or false;
+      
+      # 사용자 커스텀 파일은 항상 보존 (force overwrite 옵션에 영향받지 않음)
       policy = if isCustomFile then
         preservationPolicies.ignore
+      else if forceOverwrite then
+        # 강제 덮어쓰기 모드: 모든 파일을 덮어쓰기
+        preservationPolicies.overwrite
       else if userModified then
         # 사용자가 수정한 경우
         if fileConfig.priority == "high" then
@@ -85,6 +91,7 @@ let
       fileConfig = fileConfig;
       isCustomFile = isCustomFile;
       userModified = userModified;
+      forceOverwrite = forceOverwrite;
     };
 
   # 알림 메시지 생성
@@ -119,9 +126,9 @@ let
     "${filePath}.backup.${timestamp}";
 
   # 파일 변경 감지 결과에 따른 처리 액션 생성
-  generateActions = filePath: sourceFilePath: changeDetection:
+  generateActions = filePath: sourceFilePath: changeDetection: options:
     let
-      policy = getPolicyForFile filePath changeDetection.userModified;
+      policy = getPolicyForFile filePath changeDetection.userModified options;
       newFilePath = "${filePath}.new";
       noticePath = "${filePath}.update-notice";
       backupPath = generateBackupPath filePath;
@@ -187,7 +194,7 @@ let
     allCommands;
 
   # 디렉토리 전체에 대한 처리 계획 생성
-  generateDirectoryPlan = claudeDir: sourceDir: changeDetections:
+  generateDirectoryPlan = claudeDir: sourceDir: changeDetections: options:
     let
       # 각 파일에 대한 액션 생성
       fileActions = lib.mapAttrsToList (fileName: detection:
@@ -195,7 +202,7 @@ let
           filePath = "${claudeDir}/${fileName}";
           sourceFilePath = "${sourceDir}/${fileName}";
         in
-        generateActions filePath sourceFilePath detection
+        generateActions filePath sourceFilePath detection options
       ) changeDetections;
       
       # 액션들을 타입별로 분류
@@ -246,6 +253,16 @@ in {
   inherit generateNoticeMessage generateBackupPath validateConfig;
   inherit mockChangeDetection;
   
+  # 기본 옵션으로 호출하는 래퍼 함수들 (이전 버전 호환성)
+  getPolicyForFileCompat = filePath: userModified: 
+    getPolicyForFile filePath userModified { forceOverwrite = false; };
+    
+  generateActionsCompat = filePath: sourceFilePath: changeDetection:
+    generateActions filePath sourceFilePath changeDetection { forceOverwrite = false; };
+    
+  generateDirectoryPlanCompat = claudeDir: sourceDir: changeDetections:
+    generateDirectoryPlan claudeDir sourceDir changeDetections { forceOverwrite = false; };
+  
   # 유틸리티 함수들
   utils = {
     inherit generateShellCommands;
@@ -261,14 +278,32 @@ in {
       lib.filter (name: 
         (claudeConfigFiles.${name}).priority == priority
       ) (lib.attrNames claudeConfigFiles);
+      
+    # 기존 파일 보존 비활성화 옵션을 위한 헬퍼 함수
+    createForceOverwriteOptions = forceOverwrite: {
+      inherit forceOverwrite;
+    };
   };
   
   # 디버깅 및 테스트 지원
   debug = {
     inherit claudeConfigFiles preservationPolicies;
-    showPolicy = filePath: userModified: 
-      getPolicyForFile filePath userModified;
-    testPlan = claudeDir: sourceDir: mockDetections:
-      generateDirectoryPlan claudeDir sourceDir mockDetections;
+    showPolicy = filePath: userModified: options: 
+      getPolicyForFile filePath userModified options;
+    testPlan = claudeDir: sourceDir: mockDetections: options:
+      generateDirectoryPlan claudeDir sourceDir mockDetections options;
+      
+    # 기존 파일 보존 비활성화 테스트 헬퍼
+    testForceOverwrite = filePath: userModified: 
+      let
+        normalOptions = { forceOverwrite = false; };
+        forceOptions = { forceOverwrite = true; };
+        normalPolicy = getPolicyForFile filePath userModified normalOptions;
+        forcePolicy = getPolicyForFile filePath userModified forceOptions;
+      in {
+        normal = normalPolicy;
+        force = forcePolicy;
+        differentBehavior = normalPolicy.action != forcePolicy.action;
+      };
   };
 }
