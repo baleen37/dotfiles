@@ -297,8 +297,10 @@ let
                 ;;
             esac
           else
-            echo "  파일 동일함, 건너뜀"
-            ${if includeLogging then ''log_action "SKIPPED" "$target_file"'' else ""}
+            echo "  파일 동일하지만 강제 덮어쓰기"
+            ${if includeLogging then ''log_action "FORCE_OVERWRITE" "$target_file"'' else ""}
+            cp "$source_file" "$target_file"
+            chmod 644 "$target_file"
           fi
         }
         
