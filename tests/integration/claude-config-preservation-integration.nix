@@ -184,7 +184,9 @@ EOF
             ;;
         esac
       else
-        echo "  파일 동일함, 건너뜀"
+        echo "  파일 동일하지만 강제 덮어쓰기"
+        cp "$source_file" "$target_file"
+        chmod 644 "$target_file"
       fi
     }
     

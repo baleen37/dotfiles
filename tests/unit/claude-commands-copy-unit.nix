@@ -1,7 +1,7 @@
 # ABOUTME: Claude 명령어 파일 복사 기능에 대한 단위 테스트
 # ABOUTME: mkCommandFiles 함수가 올바르게 명령어 파일들을 복사하는지 검증
 
-{ pkgs, lib, src ? ../.., ... }:
+{ pkgs, src ? ../.., ... }:
 
 let
   # 테스트용 임시 명령어 디렉토리 생성
@@ -15,8 +15,8 @@ let
   # 실제 files.nix에서 사용하는 mkCommandFiles 함수 복사
   mkCommandFiles = dir:
     let files = builtins.readDir dir;
-    in lib.concatMapAttrs (name: type:
-      if type == "regular" && lib.hasSuffix ".md" name
+    in pkgs.lib.concatMapAttrs (name: type:
+      if type == "regular" && pkgs.lib.hasSuffix ".md" name
       then { 
         "/tmp/.claude/commands/${name}".text = builtins.readFile (dir + "/${name}");
       }

@@ -161,7 +161,9 @@ EOF
                 ;;
             esac
           else
-            echo "  파일 동일함, 건너뜀"
+            echo "  파일 동일하지만 강제 덮어쓰기"
+            $DRY_RUN_CMD cp "$source_file" "$target_file"
+            $DRY_RUN_CMD chmod 644 "$target_file"
           fi
         }
         
