@@ -17,6 +17,7 @@ permissions:
 
 env:
   USER: ci
+  REPO: ${{ github.repository }}
 
 jobs:
   update-dependencies:
@@ -190,8 +191,8 @@ jobs:
           
           while [ $WAIT_TIME -lt $MAX_WAIT ]; do
             # Check if required checks have been created
-            CHECKS=$(gh api repos/baleen37/dotfiles/pulls/$PR_NUMBER/commits --jq '.[0].sha' | \
-                     xargs -I {} gh api repos/baleen37/dotfiles/commits/{}/check-runs --jq '.check_runs | length')
+            CHECKS=$(gh api repos/$REPO/pulls/$PR_NUMBER/commits --jq '.[0].sha' | \
+                     xargs -I {} gh api repos/$REPO/commits/{}/check-runs --jq '.check_runs | length')
             
             echo "Found $CHECKS check runs (waiting for CI to start...)"
             
@@ -219,7 +220,7 @@ jobs:
           PR_NUMBER="${{ needs.update-dependencies.outputs.pr-number }}"
           
           # Enable auto-merge with squash
-          if gh pr merge "$PR_NUMBER" --auto --squash; then
+          if gh pr merge "$PR_NUMBER" --auto --squash --repo "$REPO"; then
             echo "::notice::Auto-merge enabled for PR #$PR_NUMBER"
             echo "::notice::PR will be automatically merged when all required checks pass"
           else
@@ -227,7 +228,7 @@ jobs:
             echo "::notice::PR will need to be merged manually after CI passes"
             
             # Show current PR status for debugging
-            gh pr view "$PR_NUMBER" --json mergeable,mergeStateStatus,statusCheckRollup
+            gh pr view "$PR_NUMBER" --json mergeable,mergeStateStatus,statusCheckRollup --repo "$REPO"
           fi
           
           echo "::endgroup::"
