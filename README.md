@@ -31,7 +31,10 @@ This repository provides a comprehensive solution for managing development envir
 
 ### Development Tools
 - **bl Command System**: Global command dispatcher and tool management
-- **setup-dev**: Automated Nix project initialization
+- **setup-dev**: Automated Nix project initialization with flake.nix and direnv
+- **auto-update-dotfiles**: TTL-based automatic system updates with safety checks
+- **merge-claude-config**: Interactive configuration merger for safe updates
+- **test-all-local**: Comprehensive local testing mirroring CI pipeline
 - **Smart Configuration Preservation**: Intelligent user customization protection
 - **Integrated Workflows**: Makefile-based development processes
 
@@ -266,6 +269,80 @@ nix run .#test-smoke              # Quick smoke tests
 
 > **Note**: Makefile targets internally run `nix` with `--extra-experimental-features 'nix-command flakes'` and `--impure`, ensuring USER environment variable support even if flakes aren't globally enabled.
 
+## 🛠️ Advanced Tools and Automation
+
+### Automatic Update System
+
+The repository includes an intelligent auto-update system that keeps your environment current while preserving your customizations.
+
+```bash
+# Manual update check (respects 1-hour TTL)
+./scripts/auto-update-dotfiles
+
+# Force immediate check and update
+./scripts/auto-update-dotfiles --force
+
+# Run silently in background (used by shell startup)
+./scripts/auto-update-dotfiles --silent
+```
+
+**Features:**
+- **TTL-based checking**: Only checks for updates every hour to avoid overhead
+- **Local change detection**: Automatically skips updates if you have uncommitted changes
+- **Safe application**: Uses `build-switch` for immediate system integration
+- **Background operation**: Integrated into shell startup for seamless experience
+
+### Configuration Merge Tools
+
+When system updates conflict with your personal configurations, use the interactive merge tool:
+
+```bash
+# List files needing merge attention
+./scripts/merge-claude-config --list
+
+# Interactively merge a specific file
+./scripts/merge-claude-config settings.json
+
+# View differences without merging
+./scripts/merge-claude-config --diff CLAUDE.md
+
+# Merge all pending files interactively
+./scripts/merge-claude-config
+```
+
+**Capabilities:**
+- **JSON merging**: Key-by-key selection for settings.json
+- **Text merging**: Multiple strategies for markdown and config files
+- **Backup creation**: Automatic backups before any changes
+- **Conflict resolution**: Interactive resolution of configuration conflicts
+
+### Local Testing Suite
+
+Run the complete CI/CD pipeline locally to catch issues before pushing:
+
+```bash
+# Run all tests (mirrors CI exactly)
+./scripts/test-all-local
+
+# Results include comprehensive reporting
+========================
+    TEST RESULTS SUMMARY
+========================
+Total Tests: 7
+Passed: 7
+Failed: 0
+Log File: test-results-20240106-143022.log
+========================
+```
+
+**Test Coverage:**
+- Pre-commit lint checks
+- Smoke tests (flake validation)
+- Unit tests (individual components)
+- Integration tests (module interactions)
+- Build tests (full configurations)
+- End-to-end tests (complete workflows)
+
 ## 🛠️ Development and Customization
 
 ### Module System Architecture
@@ -490,6 +567,10 @@ sudo systemctl restart NetworkManager
 
 #### Support Resources
 - **Documentation**: Check `CLAUDE.md` for detailed development guidelines
+- **Contributing**: See `CONTRIBUTING.md` for contribution workflow and standards
+- **Development Scenarios**: Refer to `docs/DEVELOPMENT-SCENARIOS.md` for practical step-by-step guides
+- **Scripts Reference**: Refer to `docs/SCRIPTS.md` for comprehensive tool documentation
+- **Module Library**: See `docs/MODULE-LIBRARY.md` for advanced library functions
 - **Testing**: Refer to `docs/testing-framework.md` for testing strategies
 - **Architecture**: See `docs/structure.md` for system design details
 
