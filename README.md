@@ -1,146 +1,183 @@
 # dotfiles: Declarative macOS & NixOS Environment
 
-> Nix flakes 기반의 크로스 플랫폼 개발 환경 선언적 관리
+> **Complete development environment management with Nix flakes, Home Manager, and nix-darwin**
+
+Fully reproducible, cross-platform development environments managed as code. Deploy identical setups across macOS and NixOS systems with a single command.
 
 ## 🚀 Overview
 
-이 저장소는 **Nix flakes**, **Home Manager**, **nix-darwin**을 활용해 macOS 및 NixOS 개발 환경을 완전히 선언적으로 관리합니다. 모든 설정은 코드로 관리되며, 새로운 시스템에서도 한 번의 명령어로 동일한 환경을 재현할 수 있습니다.
+This repository provides a comprehensive solution for managing development environments using **Nix flakes**, **Home Manager**, and **nix-darwin**. Everything is declaratively configured as code, ensuring complete reproducibility across different machines and platforms.
 
-### 🎯 주요 특징
-- **완전한 재현성**: 코드로 관리되는 모든 설정
-- **멀티 플랫폼**: macOS (Intel/Apple Silicon), NixOS (x86_64/aarch64) 지원
-- **스마트 설정 보존**: 사용자 개인화 설정 자동 보존 시스템
-- **통합 테스트**: 포괄적인 CI/CD 파이프라인
-- **개발자 친화적**: bl command system과 자동화 도구
+### ✨ Key Features
 
-상세한 문서는 `docs/` 디렉터리에서 확인할 수 있습니다:
-- 📋 `docs/overview.md` - 프로젝트 개요
-- 🏗️ `docs/structure.md` - 아키텍처 구조  
-- 🧪 `docs/testing-framework.md` - 테스트 프레임워크
+- **🔄 Complete Reproducibility**: Every setting, package, and configuration managed as code
+- **🌐 Multi-Platform Support**: macOS (Intel/Apple Silicon) and NixOS (x86_64/aarch64)
+- **🛡️ Smart Configuration Preservation**: Automatic preservation of user customizations during updates
+- **🧪 Comprehensive Testing**: Full CI/CD pipeline with unit, integration, and e2e tests
+- **⚡ Developer-Friendly Tools**: `bl` command system and automated project initialization
+- **📦 Advanced Package Management**: Custom overlays and cross-platform package resolution
 
-## ✨ Features
+## 🏗️ Architecture
 
-### 🏗️ 아키텍처
-- **Nix flakes** 기반 완전 재현 가능한 환경
-- **모듈화된 구조**: 공통/호스트별/플랫폼별 분리
-- **Home Manager** + **nix-darwin** 통합
+### System Structure
+- **Nix Flakes Foundation**: Fully reproducible environment declarations
+- **Modular Design**: Shared, platform-specific, and host-specific modules
+- **Integrated Management**: Home Manager + nix-darwin + NixOS unified approach
 
-### 🖥️ 플랫폼 지원
-- **macOS**: Intel (x86_64) / Apple Silicon (aarch64)
-- **NixOS**: x86_64 / aarch64 아키텍처
-- 크로스 플랫폼 패키지 및 설정 관리
+### Supported Platforms
+- **macOS**: Intel (x86_64) and Apple Silicon (aarch64)
+- **NixOS**: x86_64 and aarch64 architectures
+- **Cross-Platform**: Unified package and configuration management
 
-### ⚡ 개발 도구
-- **bl command system**: 전역 명령어 시스템
-- **setup-dev**: 새 Nix 프로젝트 자동 초기화
-- **Claude 설정 보존**: 개인화 설정 스마트 보존 시스템
-- Makefile 기반 통합 워크플로우
+### Development Tools
+- **bl Command System**: Global command dispatcher and tool management
+- **setup-dev**: Automated Nix project initialization
+- **Smart Configuration Preservation**: Intelligent user customization protection
+- **Integrated Workflows**: Makefile-based development processes
 
-### 🧪 품질 보증
-- GitHub Actions CI/CD 파이프라인
-- 멀티플랫폼 매트릭스 테스트
-- 포괄적인 테스트 스위트 (unit/integration/e2e/performance)
-- 자동 코드 품질 검사 (pre-commit hooks)
+### Quality Assurance
+- **CI/CD Pipeline**: GitHub Actions with multi-platform matrix testing
+- **Comprehensive Testing**: Unit, integration, e2e, and performance test suites
+- **Code Quality**: Automated pre-commit hooks and linting
+- **Build Validation**: Cross-platform build verification
 
-## Directory Layout
+## 📁 Project Structure
 
 ```
 .
-├── apps/           # Nix installable apps (mkApp 기반, 플랫폼별)
-│   ├── x86_64-darwin/
-│   ├── aarch64-darwin/
-│   ├── x86_64-linux/
-│   └── aarch64-linux/
-├── hosts/          # 호스트별 설정 (macOS, NixOS)
-│   ├── darwin/
-│   └── nixos/
-├── modules/        # 시스템/공통/프로그램별 모듈
-│   ├── darwin/
-│   ├── nixos/
-│   └── shared/
-├── lib/            # 공통 Nix 함수
-├── overlays/       # Nixpkgs 오버레이
-├── scripts/        # 관리 및 개발 스크립트
-│   ├── auto-update-dotfiles
-│   ├── bl          # bl command system 디스패처
-│   ├── install-setup-dev
-│   └── setup-dev   # 새 Nix 프로젝트 초기화 스크립트
-├── tests/          # 계층적 테스트 구조 (unit/, integration/, e2e/, performance/)
-├── docs/           # 추가 문서
-├── node_modules/   # npm 의존성
-├── package.json    # npm 패키지 설정
-├── package-lock.json
-├── flake.nix       # Nix flake entrypoint
-├── flake.lock
-├── Makefile        # 개발 워크플로우 명령어
-├── CLAUDE.md       # Claude Code 가이드
-└── README.md
+├── flake.nix              # Main Nix flake configuration
+├── flake.lock             # Flake input locks
+├── Makefile               # Development workflow commands
+├── CLAUDE.md              # Claude Code integration guide
+├── apps/                  # Platform-specific executable apps
+│   ├── aarch64-darwin/    # macOS Apple Silicon executables
+│   ├── x86_64-darwin/     # macOS Intel executables
+│   ├── aarch64-linux/     # Linux ARM64 executables
+│   └── x86_64-linux/      # Linux x86_64 executables
+├── hosts/                 # Host-specific configurations
+│   ├── darwin/            # macOS host configurations
+│   └── nixos/             # NixOS host configurations
+├── modules/               # Reusable Nix modules
+│   ├── darwin/            # macOS-specific modules
+│   ├── nixos/             # NixOS-specific modules
+│   └── shared/            # Cross-platform modules
+├── lib/                   # Nix utility functions
+│   └── get-user.nix       # Dynamic user resolution
+├── overlays/              # Custom package overlays
+├── scripts/               # Management and development tools
+│   ├── bl                 # Command system dispatcher
+│   ├── setup-dev          # Project initialization
+│   ├── install-setup-dev  # Global tool installer
+│   └── merge-claude-config # Configuration merger
+├── tests/                 # Comprehensive test suite
+│   ├── unit/              # Unit tests
+│   ├── integration/       # Integration tests
+│   ├── e2e/               # End-to-end tests
+│   └── performance/       # Performance benchmarks
+└── docs/                  # Additional documentation
+    ├── overview.md
+    ├── structure.md
+    └── testing-framework.md
 ```
 
-- **apps/**: `nix run .#switch` 또는 `nix run .#build` 등으로 실행할 수 있는 Nix 앱 정의 (플랫폼별)
-- **hosts/**: 각 호스트별 시스템/유저 설정(nix-darwin, home-manager, nixos)
-- **modules/**: 공통/프로그램별/서비스별 Nix 모듈 (darwin, nixos, shared)
-- **lib/**: 공통 함수 모음 (`get-user.nix`은 `USER`를 읽음)
-- **overlays/**: 패치, 커스텀 패키지
-- **scripts/**: 프로젝트 관리 및 개발 도구 스크립트
-- **tests/**: 계층적 테스트 구조 (unit/, integration/, e2e/, performance/)
-- **docs/**: 추가 설명을 위한 문서 모음
+### Key Components
 
-## Getting Started
+- **`flake.nix`**: Entry point defining all system configurations and applications
+- **`apps/`**: Platform-specific executables accessible via `nix run .#command`
+- **`hosts/`**: Individual machine configurations using nix-darwin or NixOS
+- **`modules/`**: Reusable configuration modules (shared, darwin-specific, nixos-specific)
+- **`lib/get-user.nix`**: Dynamic user resolution supporting `$USER` environment variable
+- **`scripts/`**: Development and management utilities
+- **`tests/`**: Hierarchical test structure ensuring code quality across platforms
 
-### 1. Nix 설치 및 flakes 활성화
+## 🚀 Quick Start
 
-```sh
+### Prerequisites
+
+Before getting started, ensure you have the following requirements:
+
+1. **Nix Package Manager** with flakes support
+2. **Git** for cloning the repository
+3. **Administrative access** for system-level configurations
+
+### Installation
+
+#### Step 1: Install Nix
+
+**macOS:**
+```bash
+# Install Command Line Tools
 xcode-select --install
+
+# Install Nix with the Determinate Systems installer (recommended)
 curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install
-# flakes 활성화: ~/.config/nix/nix.conf에 아래 추가
+```
+
+**Linux:**
+```bash
+# Install Nix with flakes support
+curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install
+```
+
+**Enable Flakes (if using traditional Nix install):**
+```bash
 mkdir -p ~/.config/nix
 echo "experimental-features = nix-command flakes" >> ~/.config/nix/nix.conf
 ```
 
-### 2. 저장소 클론
+#### Step 2: Clone and Configure
 
-```sh
+```bash
+# Clone the repository
 git clone https://github.com/baleen/dotfiles.git
 cd dotfiles
-# 필요 시 USER 환경변수로 대상 계정을 지정할 수 있습니다.
-export USER=<username>
-# USER가 비어 있으면 flake 평가 단계에서 오류가 발생합니다.
+
+# Set the target user (required for build/evaluation)
+export USER=<your-username>
+
+# Test the configuration
+make smoke
 ```
 
-### 3. 환경 적용
+#### Step 3: Deploy Configuration
 
-#### macOS
-
-```sh
-make switch HOST=<host>
+**For macOS:**
+```bash
+# Build and apply configuration
+make build
+make switch HOST=aarch64-darwin  # or x86_64-darwin for Intel Macs
 ```
 
-#### NixOS
-
-```sh
-make switch HOST=<host>
+**For NixOS:**
+```bash
+# Build and apply configuration
+make build
+make switch HOST=x86_64-linux   # or aarch64-linux for ARM systems
 ```
 
-#### Home Manager만 적용
-
-```sh
-home-manager switch --flake .#<host>
+**Quick Deploy (Build + Apply):**
+```bash
+# Requires sudo privileges - builds and applies immediately
+nix run --impure .#build-switch
 ```
 
-## 환경 변수 USER 지정 방법
+### Environment Variables
 
-flake 평가 및 빌드 시 USER 환경변수가 필요합니다. 아래와 같이 명령어 앞에 USER를 지정하거나, --impure 옵션을 사용하세요:
+**USER Variable**: Required for proper system evaluation and user resolution.
 
-```sh
-USER=<username> nix run #build
-# 또는
-nix run --impure #build
+```bash
+# Method 1: Export before commands
+export USER=<your-username>
+make build
+
+# Method 2: Inline with command
+USER=<your-username> nix run .#build
+
+# Method 3: Use impure evaluation (reads environment automatically)
+nix run --impure .#build
 ```
 
-## 기본값 동작 (23.06 이후)
-
-USER 환경변수가 없을 경우, 일부 Nix 코드에서 기본값을 사용할 수 있도록 개선되었습니다. (lib/get-user.nix 참고)
+The system uses `lib/get-user.nix` to dynamically resolve the target user, supporting both `$USER` and `$SUDO_USER` environment variables.
 
 ## Essential Commands
 
