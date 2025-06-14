@@ -1,19 +1,37 @@
 # Create Pull Request Command
 
-Create a new branch, commit changes, and submit a pull request.
+Create a clean, conflict-free pull request with proper branch management.
 
-## Behavior
-- Creates a new branch based on current changes
-- Formats modified files using Biome
-- Analyzes changes and automatically splits into logical commits when appropriate
-- Each commit focuses on a single logical change or feature
-- Creates descriptive commit messages for each logical unit
-- Pushes branch to remote
-- Creates pull request with proper summary and test plan
+## Pre-flight Process
+1. **Fetch latest**: `git fetch origin`
+2. **Detect default branch**: Auto-detect main/master/develop from remote
+3. **Check branch status**: ahead/behind/diverged analysis
+4. **Update if needed**: Rebase on latest default branch
+5. **Resolve conflicts**: Guide manual resolution if needed
+6. **Clean duplicates**: Remove duplicate commits
+7. **Verify readiness**: Ensure branch has commits to merge
 
-## Guidelines for Automatic Commit Splitting
-- Split commits by feature, component, or concern
-- Keep related file changes together in the same commit
-- Separate refactoring from feature additions
-- Ensure each commit can be understood independently
-- Multiple unrelated changes should be split into separate commits
+## Branch Health Requirements
+- Must be ahead of default branch
+- No merge conflicts
+- No duplicate commits
+- Clean commit history
+
+## Auto-Resolution Strategy
+- **Behind**: `git rebase origin/[default-branch]`
+- **Diverged**: Interactive rebase to clean history
+- **Conflicts**: Pause and provide resolution guidance
+- **No ahead commits**: Exit with "nothing to PR"
+
+## PR Creation Flow
+- Format code with available tools
+- Split changes into logical commits
+- Create descriptive commit messages
+- Push clean branch to remote
+- Generate PR with summary and test plan
+
+## Commit Organization
+- One logical change per commit
+- Related files grouped together
+- Refactoring separate from features
+- Self-contained, reviewable commits

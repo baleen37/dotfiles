@@ -1,6 +1,3 @@
-# ABOUTME: Claude 설정 파일 보존 정책을 정의하는 라이브러리
-# ABOUTME: 사용자 수정 감지, 보존/덮어쓰기 규칙, 백업 정책 등을 관리
-
 { lib, pkgs }:
 
 let
