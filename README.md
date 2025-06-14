@@ -1,26 +1,46 @@
 # dotfiles: Declarative macOS & NixOS Environment
 
-> Nix, Home Manager, nix-darwin 기반의 macOS/Linux 개발 환경 선언적 관리
+> Nix flakes 기반의 크로스 플랫폼 개발 환경 선언적 관리
 
-## Overview
+## 🚀 Overview
 
-이 저장소는 Nix, Home Manager, nix-darwin을 활용해 macOS 및 Linux 개발 환경을 **완전히 선언적**으로 관리합니다. 모든 설정은 코드로 관리되며, 새로운 시스템에서도 한 번의 명령어로 동일한 환경을 재현할 수 있습니다.
+이 저장소는 **Nix flakes**, **Home Manager**, **nix-darwin**을 활용해 macOS 및 NixOS 개발 환경을 완전히 선언적으로 관리합니다. 모든 설정은 코드로 관리되며, 새로운 시스템에서도 한 번의 명령어로 동일한 환경을 재현할 수 있습니다.
 
-자동화된 변경 작업을 담당하는 Codex agent를 위해 별도의 가이드 파일(`AGENTS.md`)을 유지합니다. 에이전트 관련 규칙이나 작업 흐름을 수정할 경우 이 파일을 우선 갱신하세요. 이제 AGENTS.md에는 에이전트 테스트 방법도 포함됩니다. 추가 문서는 `docs/` 디렉터리에 저장되며, 프로젝트 구조 설명은 `docs/structure.md`와 간략한 개요는 `docs/overview.md`에서 확인할 수 있습니다.
+### 🎯 주요 특징
+- **완전한 재현성**: 코드로 관리되는 모든 설정
+- **멀티 플랫폼**: macOS (Intel/Apple Silicon), NixOS (x86_64/aarch64) 지원
+- **스마트 설정 보존**: 사용자 개인화 설정 자동 보존 시스템
+- **통합 테스트**: 포괄적인 CI/CD 파이프라인
+- **개발자 친화적**: bl command system과 자동화 도구
 
-## Features
+상세한 문서는 `docs/` 디렉터리에서 확인할 수 있습니다:
+- 📋 `docs/overview.md` - 프로젝트 개요
+- 🏗️ `docs/structure.md` - 아키텍처 구조  
+- 🧪 `docs/testing-framework.md` - 테스트 프레임워크
 
-- macOS, NixOS 모두 지원
-- flakes 기반의 reproducible 환경
-- Home Manager, nix-darwin 통합
-- 공통/호스트별/역할별 모듈화
-- 주요 개발 도구 및 앱 자동 설치/설정
-- GitHub Actions 기반 CI로 macOS/Linux(x86_64, aarch64) 빌드 및 테스트
-- 멀티플랫폼 matrix smoke 테스트로 기본 빌드 오류 조기 확인
-- 오래된 PR은 자동으로 stale로 표시 후 닫힘
-- Makefile 기반 로컬/CI 명령어 통합
-- **bl command system**: 전역 명령어 시스템으로 프로젝트 초기화 및 관리 도구 제공
-- **setup-dev 스크립트**: 새로운 Nix 프로젝트 자동 초기화 (flake.nix, direnv 설정 포함)
+## ✨ Features
+
+### 🏗️ 아키텍처
+- **Nix flakes** 기반 완전 재현 가능한 환경
+- **모듈화된 구조**: 공통/호스트별/플랫폼별 분리
+- **Home Manager** + **nix-darwin** 통합
+
+### 🖥️ 플랫폼 지원
+- **macOS**: Intel (x86_64) / Apple Silicon (aarch64)
+- **NixOS**: x86_64 / aarch64 아키텍처
+- 크로스 플랫폼 패키지 및 설정 관리
+
+### ⚡ 개발 도구
+- **bl command system**: 전역 명령어 시스템
+- **setup-dev**: 새 Nix 프로젝트 자동 초기화
+- **Claude 설정 보존**: 개인화 설정 스마트 보존 시스템
+- Makefile 기반 통합 워크플로우
+
+### 🧪 품질 보증
+- GitHub Actions CI/CD 파이프라인
+- 멀티플랫폼 매트릭스 테스트
+- 포괄적인 테스트 스위트 (unit/integration/e2e/performance)
+- 자동 코드 품질 검사 (pre-commit hooks)
 
 ## Directory Layout
 

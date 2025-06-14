@@ -52,6 +52,7 @@ make smoke          # Quick flake validation without building
 make test           # Run all unit and e2e tests
 make build          # Build all configurations
 make switch HOST=<host>  # Apply configuration to current system
+make help           # Show all available Makefile targets
 
 # Platform-specific builds
 nix run .#build     # Build for current system
@@ -74,7 +75,14 @@ make smoke  # final flake check after build
 nix run .#test                    # Run comprehensive test suite
 nix flake check --impure          # Run flake checks
 
-# Run specific test categories
+# Run specific test categories using Makefile (recommended)
+make test-unit                    # Unit tests only
+make test-integration             # Integration tests only  
+make test-e2e                     # End-to-end tests only
+make test-perf                    # Performance tests only
+make test-status                  # Check test framework status
+
+# Direct nix commands for specific test categories
 nix run .#test-unit               # Unit tests only
 nix run .#test-integration        # Integration tests only  
 nix run .#test-e2e                # End-to-end tests only
@@ -185,9 +193,11 @@ The codebase follows a strict modular hierarchy:
 - `modules/{platform}/`: Platform-specific modules
 - `modules/shared/`: Cross-platform modules
 - `apps/{architecture}/`: Platform-specific shell scripts
-- `tests/`: Unit and integration tests
+- `tests/`: Hierarchical test structure (unit/, integration/, e2e/, performance/)
 - `lib/`: Shared Nix functions (especially `get-user.nix`)
 - `scripts/`: Management and development tools
+- `docs/`: Additional documentation (overview.md, structure.md, testing-framework.md)
+- `overlays/`: Custom packages and patches
 
 ## Common Tasks
 
@@ -226,7 +236,14 @@ The codebase follows a strict modular hierarchy:
    - `.envrc` for direnv integration
    - `.gitignore` with Nix patterns
 
-3. **Next steps:**
+3. **Global installation (bl command system):**
+   ```bash
+   ./scripts/install-setup-dev        # Install once to enable bl commands
+   bl setup-dev [project-directory]   # Use globally after installation
+   bl list                            # List available commands
+   ```
+
+4. **Next steps:**
    - Customize `flake.nix` to add project-specific dependencies
    - Use `nix develop` or let direnv auto-activate the environment
 
