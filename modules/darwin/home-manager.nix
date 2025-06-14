@@ -64,6 +64,7 @@ in
       
       # Smart Claude config files management with user modification preservation
       home.activation.copyClaudeFiles = lib.hm.dag.entryAfter ["linkGeneration"] ''
+        set -euo pipefail  # Enable strict error handling
         $DRY_RUN_CMD mkdir -p "${config.home.homeDirectory}/.claude/commands"
         
         CLAUDE_DIR="${config.home.homeDirectory}/.claude"
