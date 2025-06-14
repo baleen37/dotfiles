@@ -12,7 +12,8 @@ let
     claudeDir ? null,
     policy ? null,
     dryRun ? false,
-    verbose ? true
+    verbose ? true,
+    forceOverwrite ? false
   }:
     let
       # 기본값 설정
@@ -22,12 +23,15 @@ let
       # 변경 감지 실행
       detection = detectorLib.compareFiles sourcePath targetPath;
       
+      # 옵션 생성
+      options = { inherit forceOverwrite; };
+      
       # 정책 결정 (전달된 정책이 없으면 자동 결정)
       finalPolicy = if policy != null then policy 
-                   else policyLib.getPolicyForFile targetPath detection.userModified;
+                   else policyLib.getPolicyForFile targetPath detection.userModified options;
       
       # 액션 생성
-      actions = policyLib.generateActions targetPath sourcePath detection;
+      actions = policyLib.generateActions targetPath sourcePath detection options;
       
       # 실제 실행할 쉘 명령어들
       commands = if dryRun then 
@@ -72,7 +76,8 @@ let
     fileList ? null,
     dryRun ? false,
     verbose ? true,
-    parallelJobs ? 1
+    parallelJobs ? 1,
+    forceOverwrite ? false
   }:
     let
       # 파일 목록 자동 생성 (제공되지 않은 경우)
@@ -82,8 +87,11 @@ let
       # 전체 디렉토리 변경 감지
       detectionResults = detectorLib.detectClaudeConfigChanges targetDir sourceDir;
       
+      # 옵션 생성
+      options = { inherit forceOverwrite; };
+      
       # 전체 처리 계획 생성
-      directoryPlan = policyLib.generateDirectoryPlan targetDir sourceDir detectionResults.fileResults;
+      directoryPlan = policyLib.generateDirectoryPlan targetDir sourceDir detectionResults.fileResults options;
       
       # 각 파일에 대해 개별 처리
       fileResults = map (fileName:
@@ -94,7 +102,7 @@ let
         in
         if fileDetection != null then
           conditionalCopyFile {
-            inherit sourcePath targetPath dryRun verbose;
+            inherit sourcePath targetPath dryRun verbose forceOverwrite;
             claudeDir = targetDir;
           }
         else {
@@ -345,7 +353,8 @@ let
     dryRun ? false,
     verbose ? true,
     createBackups ? true,
-    notifyUser ? true
+    notifyUser ? true,
+    forceOverwrite ? false
   }:
     let
       # 기본 소스 경로 설정
@@ -356,7 +365,7 @@ let
       result = conditionalCopyDirectory {
         sourceDir = actualSourcePath;
         targetDir = claudeDir;
-        inherit dryRun verbose;
+        inherit dryRun verbose forceOverwrite;
       };
       
       # 추가 처리 (알림, 백업 정리 등)

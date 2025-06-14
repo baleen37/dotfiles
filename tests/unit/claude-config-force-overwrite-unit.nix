@@ -9,7 +9,8 @@ let
     set -e
     ${testHelpers.setupTestEnv}
     
-    ${testHelpers.testSection "Claude 설정 파일 강제 덮어쓰기 단위 테스트"}
+    echo ""
+    echo "=== Claude 설정 파일 기존 파일 보존 비활성화 단위 테스트 ==="
     
     # 테스트 환경 준비
     CLAUDE_DIR="$HOME/.claude"
@@ -18,7 +19,7 @@ let
     
     mkdir -p "$CLAUDE_DIR" "$TEST_WORK_DIR"
     
-    ${testHelpers.testSubsection "시나리오 1: 기존 파일 보존 비활성화 테스트"}
+    echo "--- 시나리오 1: 기존 파일 보존 비활성화 테스트 ---"
     
     # 사용자 수정 파일 생성 (보존되어야 할 파일)
     cat > "$CLAUDE_DIR/settings.json" << 'EOF'
@@ -60,7 +61,7 @@ EOF
       local force_overwrite="$3"  # 새 매개변수: 기존 파일 보존 비활성화
       local file_name=$(basename "$source_file")
       
-      echo "처리 중: $file_name (force_overwrite: ${force_overwrite:-false})"
+      echo "처리 중: $file_name (force_overwrite: ''${force_overwrite:-false})"
       
       if [[ ! -f "$source_file" ]]; then
         echo "  소스 파일 없음, 건너뜀"
@@ -148,7 +149,7 @@ EOF
       exit 1
     fi
     
-    ${testHelpers.testSubsection "시나리오 2: 정상 모드에서는 수정된 파일이 보존되는지 확인"}
+    echo "--- 시나리오 2: 정상 모드에서는 수정된 파일이 보존되는지 확인 ---"
     
     # 기존 테스트 파일 정리
     rm -f "$CLAUDE_DIR/settings.json" "$CLAUDE_DIR/CLAUDE.md"
@@ -199,7 +200,7 @@ EOF
       exit 1
     fi
     
-    ${testHelpers.testSubsection "시나리오 3: 명령어 파일 덮어쓰기 테스트"}
+    echo "--- 시나리오 3: 명령어 파일 덮어쓰기 테스트 ---"
     
     # commands 디렉토리 테스트
     mkdir -p "$CLAUDE_DIR/commands"
@@ -210,8 +211,8 @@ EOF
     BUILD_MD_BEFORE=$(stat -c %Y "$CLAUDE_DIR/commands/build.md" 2>/dev/null || stat -f %m "$CLAUDE_DIR/commands/build.md")
     sleep 1
     
-    # 명령어 파일은 우선순위가 낮아서 무조건 덮어쓰기
-    smart_copy "$SOURCE_DIR/commands/build.md" "$CLAUDE_DIR/commands/build.md"
+    # 명령어 파일은 우선순위가 낮아서 무조건 덮어쓰기, force_overwrite=true로 테스트
+    smart_copy "$SOURCE_DIR/commands/build.md" "$CLAUDE_DIR/commands/build.md" "true"
     
     BUILD_MD_AFTER=$(stat -c %Y "$CLAUDE_DIR/commands/build.md" 2>/dev/null || stat -f %m "$CLAUDE_DIR/commands/build.md")
     
@@ -222,7 +223,7 @@ EOF
       exit 1
     fi
     
-    ${testHelpers.testSubsection "시나리오 4: 로그 메시지 확인"}
+    echo "--- 시나리오 4: 로그 메시지 확인 ---"
     
     # 기존 파일 보존 비활성화 모드 로그 메시지 확인
     cp "$SOURCE_DIR/settings.json" "$CLAUDE_DIR/settings.json"
