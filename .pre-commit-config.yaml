@@ -5,7 +5,8 @@ repos:
     hooks:
     -   id: nix-flake-check
         name: Nix Flake Check
-        entry: nix flake check --all-systems --no-build
+        entry: bash -c 'export USER=${USER:-$(whoami)} && nix flake check --impure --all-systems --no-build'
         language: system
-        files: ^.*\\.nix$
+        files: \\.nix$
         pass_filenames: false
+        always_run: true
