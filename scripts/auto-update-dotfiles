@@ -47,11 +47,11 @@ is_ttl_expired() {
     if [[ ! -f "$CACHE_FILE" ]]; then
         return 0  # No cache file, consider expired
     fi
-    
+
     local last_check=$(cat "$CACHE_FILE" 2>/dev/null || echo "0")
     local current_time=$(date +%s)
     local elapsed=$((current_time - last_check))
-    
+
     if [[ $elapsed -ge $TTL_SECONDS ]]; then
         return 0  # TTL expired
     else
@@ -80,12 +80,12 @@ has_local_changes() {
     if ! git diff --quiet HEAD 2>/dev/null; then
         return 0  # Has changes
     fi
-    
+
     # Check for untracked files (excluding common patterns)
     if [[ -n $(git ls-files --others --exclude-standard 2>/dev/null) ]]; then
         return 0  # Has changes
     fi
-    
+
     return 1  # No changes
 }
 
@@ -96,48 +96,48 @@ has_remote_updates() {
         print_warning "Failed to fetch remote updates"
         return 1
     fi
-    
+
     # Compare local main with remote main
     local local_commit=$(git rev-parse main 2>/dev/null || echo "")
     local remote_commit=$(git rev-parse origin/main 2>/dev/null || echo "")
-    
+
     if [[ -n "$local_commit" && -n "$remote_commit" && "$local_commit" != "$remote_commit" ]]; then
         return 0  # Has updates
     fi
-    
+
     return 1  # No updates
 }
 
 # Function to perform auto-update
 perform_auto_update() {
     print_status "Remote updates detected, performing auto-update..."
-    
+
     # Ensure we're on main branch
     local current_branch=$(git branch --show-current)
     if [[ "$current_branch" != "main" ]]; then
         print_info "Switching from $current_branch to main branch"
         git checkout main --quiet
     fi
-    
+
     # Pull updates
     print_info "Pulling latest changes..."
     if ! git pull origin main --quiet; then
         print_error "Failed to pull updates"
         return 1
     fi
-    
+
     # Get the architecture for build-switch
     local arch=$(uname -m)
     local os=$(uname -s)
-    
+
     if [[ "$os" == "Darwin" ]]; then
         local system_type="${arch}-darwin"
     else
         local system_type="${arch}-linux"
     fi
-    
+
     print_info "Running build-switch for $system_type..."
-    
+
     # Run build-switch (requires sudo)
     if command -v nix >/dev/null 2>&1; then
         export USER=${USER:-$(whoami)}
@@ -172,7 +172,7 @@ usage() {
 main() {
     local force_check=false
     local silent_mode=false
-    
+
     # Parse command line arguments
     while [[ $# -gt 0 ]]; do
         case $1 in
@@ -195,11 +195,11 @@ main() {
                 ;;
         esac
     done
-    
+
     # Initialize log
     mkdir -p "$CACHE_DIR"
     log_message "Starting auto-update check (force: $force_check, silent: $silent_mode)"
-    
+
     # Check TTL unless forced
     if [[ "$force_check" != "true" ]] && ! is_ttl_expired; then
         if [[ "$silent_mode" != "true" ]]; then
@@ -210,13 +210,13 @@ main() {
         log_message "TTL not expired, skipping check"
         exit 0
     fi
-    
+
     # Update TTL cache
     update_ttl_cache
-    
+
     # Ensure we're in the right directory
     ensure_dotfiles_dir
-    
+
     # Check for local changes
     if has_local_changes; then
         if [[ "$silent_mode" != "true" ]]; then
@@ -226,7 +226,7 @@ main() {
         log_message "Local changes detected, skipping auto-update"
         exit 0
     fi
-    
+
     # Check for remote updates
     if has_remote_updates; then
         if [[ "$silent_mode" != "true" ]]; then

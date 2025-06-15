@@ -10,7 +10,7 @@ let
       backup = true;
       notifyUser = true;
     };
-    
+
     "CLAUDE.md" = {
       path = "CLAUDE.md";
       source = "modules/shared/config/claude/CLAUDE.md";
@@ -18,7 +18,7 @@ let
       backup = true;
       notifyUser = true;
     };
-    
+
     "commands" = {
       path = "commands";
       source = "modules/shared/config/claude/commands";
@@ -39,7 +39,7 @@ let
       createNotice = true;
       backup = true;
     };
-    
+
     # 덮어쓰기하되 백업 생성
     overwrite = {
       action = "overwrite";
@@ -48,7 +48,7 @@ let
       createNotice = false;
       backup = true;
     };
-    
+
     # 아무것도 하지 않음 (사용자 파일 그대로 유지)
     ignore = {
       action = "ignore";
@@ -64,13 +64,13 @@ let
     let
       fileName = baseNameOf filePath;
       fileConfig = claudeConfigFiles.${fileName} or null;
-      
+
       # 설정에 정의되지 않은 파일은 사용자 커스텀 파일로 간주
       isCustomFile = fileConfig == null;
-      
+
       # 기존 파일 보존 비활성화 옵션 확인
       forceOverwrite = options.forceOverwrite or false;
-      
+
       # 사용자 커스텀 파일은 항상 보존 (force overwrite 옵션에 영향받지 않음)
       policy = if isCustomFile then
         preservationPolicies.ignore
@@ -97,29 +97,29 @@ let
   # 알림 메시지 생성
   generateNoticeMessage = filePath: policy: newFilePath: ''
     파일 업데이트 알림: ${baseNameOf filePath}
-    
+
     ${policy.description}
-    
+
     파일 위치:
     - 현재 파일: ${filePath} (사용자 수정 버전)
     ${if policy.createNewFile then "- 새 버전: ${newFilePath} (dotfiles 최신 버전)" else ""}
-    
+
     ${if policy.createNewFile then ''
     변경 사항을 확인하고 수동으로 병합하세요:
       diff "${filePath}" "${newFilePath}"
-    
+
     또는 수동 병합 도구를 사용하세요:
       nix run .#merge-claude-config
     '' else ""}
-    
+
     이 알림을 확인한 후 삭제하세요:
       rm "${filePath}.update-notice"
-      
+
     생성 시간: $(date)
   '';
 
   # 백업 파일 경로 생성
-  generateBackupPath = filePath: 
+  generateBackupPath = filePath:
     let
       timestamp = "$(date +%Y%m%d_%H%M%S)";
     in
@@ -132,24 +132,24 @@ let
       newFilePath = "${filePath}.new";
       noticePath = "${filePath}.update-notice";
       backupPath = generateBackupPath filePath;
-      
+
       actions = {
         # 기본 정보
         inherit filePath sourceFilePath policy;
-        
+
         # 실행할 액션들
         preserve = policy.action == "preserve";
         overwrite = policy.action == "overwrite";
         ignore = policy.action == "ignore";
-        
+
         # 파일 경로들
         inherit newFilePath noticePath backupPath;
-        
+
         # 생성할 콘텐츠
         noticeContent = if policy.createNotice then
           generateNoticeMessage filePath policy newFilePath
         else null;
-        
+
         # 실행할 쉘 명령어들
         commands = generateShellCommands filePath sourceFilePath policy newFilePath noticePath backupPath;
       };
@@ -157,19 +157,19 @@ let
     actions;
 
   # 쉘 명령어 생성
-  generateShellCommands = filePath: sourceFilePath: policy: newFilePath: noticePath: backupPath: 
+  generateShellCommands = filePath: sourceFilePath: policy: newFilePath: noticePath: backupPath:
     let
       baseCommands = [
         "echo \"Processing ${filePath} with policy: ${policy.action}\""
       ];
-      
+
       preserveCommands = if policy.action == "preserve" then [
         # 새 버전을 .new 파일로 저장
         "cp \"${sourceFilePath}\" \"${newFilePath}\""
         "chmod 644 \"${newFilePath}\""
         "echo \"New version saved as ${newFilePath}\""
       ] else [];
-      
+
       overwriteCommands = if policy.action == "overwrite" then [
         # 백업 생성
         (if policy.backup then "cp \"${filePath}\" \"${backupPath}\"" else "")
@@ -178,14 +178,14 @@ let
         "chmod 644 \"${filePath}\""
         "echo \"File ${filePath} updated\""
       ] else [];
-      
+
       noticeCommands = if policy.createNotice then [
         "cat > \"${noticePath}\" << 'EOF'"
         (generateNoticeMessage filePath policy newFilePath)
         "EOF"
         "echo \"Notice created: ${noticePath}\""
       ] else [];
-      
+
       # 빈 문자열 제거
       allCommands = lib.filter (cmd: cmd != "") (
         baseCommands ++ preserveCommands ++ overwriteCommands ++ noticeCommands
@@ -204,16 +204,16 @@ let
         in
         generateActions filePath sourceFilePath detection options
       ) changeDetections;
-      
+
       # 액션들을 타입별로 분류
       preserveActions = lib.filter (action: action.preserve) fileActions;
       overwriteActions = lib.filter (action: action.overwrite) fileActions;
       ignoreActions = lib.filter (action: action.ignore) fileActions;
-      
+
       # 전체 실행 계획
       plan = {
         inherit fileActions preserveActions overwriteActions ignoreActions;
-        
+
         # 요약 정보
         summary = {
           total = lib.length fileActions;
@@ -221,7 +221,7 @@ let
           overwritten = lib.length overwriteActions;
           ignored = lib.length ignoreActions;
         };
-        
+
         # 전체 쉘 스크립트 생성
         shellScript = lib.concatMapStringsSep "\n" (action:
           lib.concatStringsSep "\n" action.commands
@@ -252,49 +252,49 @@ in {
   inherit getPolicyForFile generateActions generateDirectoryPlan;
   inherit generateNoticeMessage generateBackupPath validateConfig;
   inherit mockChangeDetection;
-  
+
   # 기본 옵션으로 호출하는 래퍼 함수들 (이전 버전 호환성)
-  getPolicyForFileCompat = filePath: userModified: 
+  getPolicyForFileCompat = filePath: userModified:
     getPolicyForFile filePath userModified { forceOverwrite = false; };
-    
+
   generateActionsCompat = filePath: sourceFilePath: changeDetection:
     generateActions filePath sourceFilePath changeDetection { forceOverwrite = false; };
-    
+
   generateDirectoryPlanCompat = claudeDir: sourceDir: changeDetections:
     generateDirectoryPlan claudeDir sourceDir changeDetections { forceOverwrite = false; };
-  
+
   # 유틸리티 함수들
   utils = {
     inherit generateShellCommands;
-    
+
     # 파일 이름에서 설정 정보 조회
     getFileConfig = fileName: claudeConfigFiles.${fileName} or null;
-    
+
     # 모든 설정 파일 목록 반환
     getAllConfigFiles = lib.attrNames claudeConfigFiles;
-    
+
     # 우선순위별 파일 목록
-    getFilesByPriority = priority: 
-      lib.filter (name: 
+    getFilesByPriority = priority:
+      lib.filter (name:
         (claudeConfigFiles.${name}).priority == priority
       ) (lib.attrNames claudeConfigFiles);
-      
+
     # 기존 파일 보존 비활성화 옵션을 위한 헬퍼 함수
     createForceOverwriteOptions = forceOverwrite: {
       inherit forceOverwrite;
     };
   };
-  
+
   # 디버깅 및 테스트 지원
   debug = {
     inherit claudeConfigFiles preservationPolicies;
-    showPolicy = filePath: userModified: options: 
+    showPolicy = filePath: userModified: options:
       getPolicyForFile filePath userModified options;
     testPlan = claudeDir: sourceDir: mockDetections: options:
       generateDirectoryPlan claudeDir sourceDir mockDetections options;
-      
+
     # 기존 파일 보존 비활성화 테스트 헬퍼
-    testForceOverwrite = filePath: userModified: 
+    testForceOverwrite = filePath: userModified:
       let
         normalOptions = { forceOverwrite = false; };
         forceOptions = { forceOverwrite = true; };

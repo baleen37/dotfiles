@@ -7,7 +7,7 @@ let
   xdg_stateHome  = "${config.users.users.${user}.home}/.local/state"; in
 {
 
-  
+
   "${userHome}/.hammerspoon" = {
     source = ./config/hammerspoon;
     recursive = true;

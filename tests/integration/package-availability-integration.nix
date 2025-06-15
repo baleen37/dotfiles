@@ -1,7 +1,7 @@
 { pkgs, flake ? null, src }:
 let
   testHelpers = import ../lib/test-helpers.nix { inherit pkgs; };
-  
+
   # Import package configurations
   sharedPackages = import (src + "/modules/shared/packages.nix") { inherit pkgs; };
   darwinPackages = if testHelpers.platform.isDarwin then
@@ -10,14 +10,14 @@ let
   nixosPackages = if testHelpers.platform.isLinux then
     import (src + "/modules/nixos/packages.nix") { inherit pkgs; }
   else [];
-  
+
   # Combine all packages for current platform
-  allPackages = sharedPackages ++ 
+  allPackages = sharedPackages ++
     (if testHelpers.platform.isDarwin then darwinPackages else []) ++
     (if testHelpers.platform.isLinux then nixosPackages else []);
-    
+
   # Test package availability
-  testPackage = pkg: 
+  testPackage = pkg:
     if builtins.isString pkg then
       if builtins.hasAttr pkg pkgs then
         { name = pkg; available = true; derivation = pkgs.${pkg}; }
@@ -27,27 +27,27 @@ let
       { name = pkg.name or "unknown"; available = true; derivation = pkg; }
     else
       { name = "unknown"; available = true; derivation = pkg; };
-      
+
   packageTests = map testPackage allPackages;
   availablePackages = builtins.filter (p: p.available) packageTests;
   unavailablePackages = builtins.filter (p: !p.available) packageTests;
-  
+
 in
 pkgs.runCommand "package-availability-integration-test" {} ''
   ${testHelpers.setupTestEnv}
-  
+
   ${testHelpers.testSection "Package Availability Integration Tests"}
-  
+
   # Test 1: Shared packages availability
   ${testHelpers.testSubsection "Shared Packages"}
   SHARED_COUNT=${toString (builtins.length sharedPackages)}
   ${testHelpers.assertTrue ''[ $SHARED_COUNT -gt 0 ]'' "Shared packages list is not empty ($SHARED_COUNT packages)"}
-  
+
   # Test core shared packages
   ${testHelpers.assertTrue ''[ -n "${pkgs.git}" ]'' "Git package is available"}
-  ${testHelpers.assertTrue ''[ -n "${pkgs.vim}" ]'' "Vim package is available"}  
+  ${testHelpers.assertTrue ''[ -n "${pkgs.vim}" ]'' "Vim package is available"}
   ${testHelpers.assertTrue ''[ -n "${pkgs.curl}" ]'' "Curl package is available"}
-  
+
   # Test 2: Platform-specific packages
   ${testHelpers.onlyOn ["aarch64-darwin" "x86_64-darwin"] "Darwin-specific packages" ''
     ${testHelpers.testSubsection "Darwin-specific Packages"}
@@ -55,60 +55,60 @@ pkgs.runCommand "package-availability-integration-test" {} ''
     echo "Darwin packages count: $DARWIN_COUNT"
     ${testHelpers.assertTrue ''[ $DARWIN_COUNT -ge 0 ]'' "Darwin packages list is valid"}
   ''}
-  
+
   ${testHelpers.onlyOn ["aarch64-linux" "x86_64-linux"] "Linux-specific packages" ''
-    ${testHelpers.testSubsection "Linux-specific Packages"} 
+    ${testHelpers.testSubsection "Linux-specific Packages"}
     NIXOS_COUNT=${toString (builtins.length nixosPackages)}
     echo "NixOS packages count: $NIXOS_COUNT"
     ${testHelpers.assertTrue ''[ $NIXOS_COUNT -ge 0 ]'' "NixOS packages list is valid"}
   ''}
-  
+
   # Test 3: Package derivation validity
   ${testHelpers.testSubsection "Package Derivation Validity"}
-  
+
   # Test that packages can be built (at least evaluated)
   TOTAL_PACKAGES=${toString (builtins.length allPackages)}
   AVAILABLE_PACKAGES=${toString (builtins.length availablePackages)}
   UNAVAILABLE_PACKAGES=${toString (builtins.length unavailablePackages)}
-  
+
   echo "Total packages: $TOTAL_PACKAGES"
   echo "Available packages: $AVAILABLE_PACKAGES"
   echo "Unavailable packages: $UNAVAILABLE_PACKAGES"
-  
+
   ${testHelpers.assertTrue ''[ $TOTAL_PACKAGES -gt 0 ]'' "Total package count is positive"}
   ${testHelpers.assertTrue ''[ $AVAILABLE_PACKAGES -ge $((TOTAL_PACKAGES * 80 / 100)) ]'' "At least 80% of packages are available"}
-  
+
   # Test 4: Essential packages are available
   ${testHelpers.testSubsection "Essential Packages"}
-  
+
   # Core development tools
   ${testHelpers.assertTrue ''[ -n "${pkgs.git}" ]'' "Git is available"}
   ${testHelpers.assertTrue ''[ -n "${pkgs.bash}" ]'' "Bash is available"}
   ${testHelpers.assertTrue ''[ -n "${pkgs.coreutils}" ]'' "Coreutils is available"}
-  
+
   # Test 5: Cross-platform compatibility
   ${testHelpers.testSubsection "Cross-platform Compatibility"}
-  
+
   # Test that shared packages work on current platform
   echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Package git is available on ${testHelpers.platform.system}"
   echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Package vim is available on ${testHelpers.platform.system}"
   echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Package curl is available on ${testHelpers.platform.system}"
   echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Package bash is available on ${testHelpers.platform.system}"
   echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Package coreutils is available on ${testHelpers.platform.system}"
-  
+
   # Test 6: Package metadata
   ${testHelpers.testSubsection "Package Metadata"}
-  
+
   # Test that packages have basic metadata
   GIT_META="${pkgs.git.meta.description or "none"}"
   ${testHelpers.assertTrue ''[ "$GIT_META" != "none" ]'' "Git package has description metadata"}
-  
+
   # Test 7: Package installation (dry-run)
   ${testHelpers.testSubsection "Package Installation Test"}
-  
+
   # Test that we can access package derivations
   ${testHelpers.assertTrue ''[ -n "${pkgs.hello}" ]'' "Hello package can be accessed"}
-  
+
   ${testHelpers.reportResults "Package Availability Integration Tests" 12 12}
   touch $out
 ''

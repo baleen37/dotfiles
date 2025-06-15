@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# ABOUTME: 로컬에서 모든 테스트를 CI와 동일하게 실행하는 스크립트  
+# ABOUTME: 로컬에서 모든 테스트를 CI와 동일하게 실행하는 스크립트
 # ABOUTME: CI 실패를 미리 방지하기 위한 종합 테스트 도구
 
 set -euo pipefail
@@ -36,10 +36,10 @@ print_info() {
 run_test() {
     local test_name="$1"
     local test_command="$2"
-    
+
     print_info "Running: $test_name"
     echo "=== $test_name ===" >> "$LOG_FILE"
-    
+
     if eval "$test_command" >> "$LOG_FILE" 2>&1; then
         print_status "✅ PASS: $test_name"
         return 0
@@ -54,7 +54,7 @@ show_summary() {
     local passed=$1
     local total=$2
     local failed=$((total - passed))
-    
+
     echo ""
     echo "=========================="
     echo "    TEST RESULTS SUMMARY"
@@ -71,56 +71,56 @@ show_summary() {
 main() {
     print_info "Starting comprehensive local test suite..."
     print_info "Export USER=$EXPORT_USER"
-    
+
     export USER="$EXPORT_USER"
-    
+
     local passed=0
     local total=0
-    
+
     # Test 1: Lint checks (like CI)
     ((total++))
     if run_test "Pre-commit Lint" "make lint"; then
         ((passed++))
     fi
-    
+
     # Test 2: Smoke test (like CI)
     ((total++))
     if run_test "Smoke Test" "make smoke"; then
         ((passed++))
     fi
-    
+
     # Test 3: Individual unit test (our enhanced test)
     ((total++))
     if run_test "Auto-Update Unit Test" "nix build --impure .#checks.aarch64-darwin.auto_update_dotfiles_unit -L"; then
         ((passed++))
     fi
-    
+
     # Test 4: All unit tests
     ((total++))
     if run_test "All Unit Tests" "nix run --impure .#test-unit"; then
         ((passed++))
     fi
-    
+
     # Test 5: Build test (like CI)
     ((total++))
     if run_test "Build All Configs" "make build"; then
         ((passed++))
     fi
-    
+
     # Test 6: Claude commands copy test (problematic one)
     ((total++))
     if run_test "Claude Commands Copy" "nix build --impure .#checks.aarch64-darwin.claude_commands_copy_unit -L"; then
         ((passed++))
     fi
-    
+
     # Test 7: Full test suite (like CI)
     ((total++))
     if run_test "Full Test Suite" "make test"; then
         ((passed++))
     fi
-    
+
     show_summary $passed $total
-    
+
     if [ $passed -eq $total ]; then
         print_status "🎉 All tests passed! Ready for CI."
         exit 0

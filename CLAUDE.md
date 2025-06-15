@@ -471,7 +471,7 @@ make switch HOST=<host>
 # s) 건너뛰기
 ```
 
-**백업 관리**: 
+**백업 관리**:
 ```bash
 # 백업 파일 위치
 ls ~/.claude/.backups/
@@ -521,7 +521,7 @@ cp ~/.claude/.backups/settings.json.backup.20240106_143022 ~/.claude/settings.js
 1. **Always use `--impure` flag** when running nix commands that need environment variables
 2. **Module Dependencies**: When modifying modules, check both direct imports and transitive dependencies
 3. **Platform Testing**: Changes to shared modules should be tested on all four platforms
-4. **Configuration Application**: 
+4. **Configuration Application**:
    - Darwin: Uses `darwin-rebuild switch`
    - NixOS: Uses `nixos-rebuild switch`
    - Both are wrapped by platform-specific scripts in `apps/`
@@ -535,20 +535,20 @@ cp ~/.claude/.backups/settings.json.backup.20240106_143022 ~/.claude/settings.js
   # Method 1: Enable during PR creation
   gh pr create --assignee @me
   gh pr merge --auto --squash
-  
+
   # Method 2: Enable for existing PR
   gh pr merge --auto --squash <PR-number>
-  
+
   # Method 3: Via GitHub web interface
   # Navigate to PR → Click "Enable auto-merge" → Select "Squash and merge"
   ```
-  
+
   **Auto-merge Benefits:**
   - ✅ Automatically merges when all CI checks pass
   - ✅ Reduces manual monitoring of PR status  
   - ✅ Ensures consistent squash-and-merge workflow
   - ✅ Speeds up development cycle
-  
+
   **Prerequisites for auto-merge:**
   - All required CI checks must pass (lint, test, build)
   - No merge conflicts
