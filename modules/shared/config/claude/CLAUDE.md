@@ -48,7 +48,7 @@ Whenever you build out a new project and specifically start a new Claude.md - yo
 - When writing comments, avoid referring to temporal context about refactors or recent changes. Comments should be evergreen and describe the code as it is, not how it evolved or was recently changed.
 - NEVER implement a mock mode for testing or for any purpose. We always use real data and real APIs, never mock implementations.
 - When you are trying to fix a bug or compilation error or any other issue, YOU MUST NEVER throw away the old implementation and rewrite without expliicit permission from the user. If you are going to do this, YOU MUST STOP and get explicit permission from the user.
-- NEVER name things as 'improved' or 'new' or 'enhanced', etc. Code naming should be evergreen. What is new today will be "old" someday.
+- NEVER use temporal qualifiers, version indicators, or status descriptors in naming. Forbidden examples include: 'improved', 'new', 'enhanced', 'v2', 'simple', '개선버전', 'better', 'updated', 'latest', 'old', 'legacy', 'fixed', 'refactored', 'optimized', 'clean', 'final', 'temp', 'draft', etc. Code naming must be evergreen and describe functionality, not development history or relative quality.
 
 # Getting help
 
