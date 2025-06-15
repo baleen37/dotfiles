@@ -29,8 +29,57 @@ mount_usb() {
   fi
 }
 
+# Validate SSH key integrity
+validate_ssh_key() {
+  local key_file="$1"
+  local key_name="$2"
+
+  if [[ ! -f "$key_file" ]]; then
+    echo -e "${RED}Key file not found: $key_file${NC}"
+    return 1
+  fi
+
+  if ! ssh-keygen -l -f "$key_file" >/dev/null 2>&1; then
+    echo -e "${RED}Invalid SSH key: $key_name${NC}"
+    return 1
+  fi
+
+  echo -e "${GREEN}✓ Valid SSH key: $key_name${NC}"
+  return 0
+}
+
+# Backup existing SSH keys
+backup_existing_keys() {
+  local timestamp=$(date +%Y%m%d_%H%M%S)
+  local backup_dir="${SSH_DIR}/backup_${timestamp}"
+
+  if [[ -f "${SSH_DIR}/id_ed25519" ]] || [[ -f "${SSH_DIR}/id_ed25519_agenix" ]]; then
+    echo -e "${GREEN}Creating backup of existing keys...${NC}"
+    mkdir -p "$backup_dir"
+
+    for key in id_ed25519 id_ed25519.pub id_ed25519_agenix id_ed25519_agenix.pub; do
+      if [[ -f "${SSH_DIR}/$key" ]]; then
+        cp "${SSH_DIR}/$key" "$backup_dir/"
+        echo -e "${GREEN}✓ Backed up: $key${NC}"
+      fi
+    done
+
+    echo -e "${GREEN}Backup created at: $backup_dir${NC}"
+  fi
+}
+
 copy_keys() {
   if [ -n "${MOUNT_PATH}" ]; then
+    # Validate keys before copying
+    echo -e "${GREEN}Validating SSH keys...${NC}"
+    validate_ssh_key "${MOUNT_PATH}/id_ed25519_agenix.pub" "agenix public key" || exit 1
+    validate_ssh_key "${MOUNT_PATH}/id_ed25519_agenix" "agenix private key" || exit 1
+
+    # Backup existing keys
+    backup_existing_keys
+
+    # Copy validated keys
+    echo -e "${GREEN}Copying SSH keys...${NC}"
     cp "${MOUNT_PATH}/id_ed25519_agenix.pub" ${SSH_DIR}
     cp "${MOUNT_PATH}/id_ed25519_agenix" ${SSH_DIR}
     chmod 600 ${SSH_DIR}/id_ed25519_{agenix,agenix.pub}
@@ -45,6 +94,13 @@ setup_ssh_directory() {
 }
 
 set_keys() {
+  # Validate GitHub keys before copying
+  echo -e "${GREEN}Validating GitHub SSH keys...${NC}"
+  validate_ssh_key "${MOUNT_PATH}/id_ed25519_github.pub" "GitHub public key" || exit 1
+  validate_ssh_key "${MOUNT_PATH}/id_ed25519_github" "GitHub private key" || exit 1
+
+  # Copy GitHub keys
+  echo -e "${GREEN}Setting up GitHub SSH keys...${NC}"
   cp ${MOUNT_PATH}/id_ed25519_github.pub ${SSH_DIR}/id_ed25519.pub
   cp ${MOUNT_PATH}/id_ed25519_github ${SSH_DIR}/id_ed25519
   chmod 600 ${SSH_DIR}/id_ed25519
