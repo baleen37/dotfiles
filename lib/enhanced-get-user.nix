@@ -3,16 +3,16 @@
 
 {
   # Mock environment for testing (optional)
-  mockEnv ? {},
-  # Enable automatic user detection fallbacks
-  enableAutoDetect ? true,
-  # Enable various fallback mechanisms
-  enableFallbacks ? true,
-  # Target platform for platform-specific behavior
-  platform ? null,
-  # Environment variable name to check (default: "USER")
-  envVar ? "USER",
-  # Default value if all methods fail
+  mockEnv ? { }
+, # Enable automatic user detection fallbacks
+  enableAutoDetect ? true
+, # Enable various fallback mechanisms
+  enableFallbacks ? true
+, # Target platform for platform-specific behavior
+  platform ? null
+, # Environment variable name to check (default: "USER")
+  envVar ? "USER"
+, # Default value if all methods fail
   default ? null
 }:
 
@@ -39,17 +39,17 @@ let
   # Enhanced automatic detection
   autoDetectedUser =
     if !enableAutoDetect then null
-    else if mockEnv != {} then "auto-detected-user"  # For testing
+    else if mockEnv != { } then "auto-detected-user"  # For testing
     else
-      # In real environment, we would use external commands
-      # but for Nix purity, we provide mock response
+    # In real environment, we would use external commands
+    # but for Nix purity, we provide mock response
       "auto-detected-user";
 
   # Validation function for user names
   isValidUser = user:
     if user == null || user == "" then false
     else
-      # Check for reasonable user name patterns
+    # Check for reasonable user name patterns
       let
         # Allow alphanumeric, hyphens, underscores, and dots
         validPattern = builtins.match "[a-zA-Z0-9][a-zA-Z0-9._-]*" user;
@@ -99,4 +99,4 @@ let
       builtins.throw (generateErrorMessage reason);
 
 in
-  resolveUser
+resolveUser
