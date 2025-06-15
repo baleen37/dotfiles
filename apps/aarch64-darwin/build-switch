@@ -15,14 +15,11 @@ if [ -z "$USER" ]; then
     export USER=$(whoami)
 fi
 
-# Request sudo access upfront
-echo "${YELLOW}Requesting sudo access...${NC}"
-sudo -v
-
 echo "${YELLOW}Starting build...${NC}"
 nix --extra-experimental-features 'nix-command flakes' build --impure .#$FLAKE_SYSTEM $@
 
 echo "${YELLOW}Switching to new generation...${NC}"
+echo "${YELLOW}Admin access required for system configuration changes...${NC}"
 # See https://github.com/nix-darwin/nix-darwin/issues/1457 on why we need sudo
 sudo -E USER="$USER" ./result/sw/bin/darwin-rebuild switch --impure --flake .#${SYSTEM_TYPE} $@
 

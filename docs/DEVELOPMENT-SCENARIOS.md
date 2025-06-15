@@ -16,7 +16,7 @@ This guide provides concrete, actionable instructions for real-world development
    ```bash
    # Check if the package exists in nixpkgs
    nix search nixpkgs your-package-name
-   
+
    # Example: Adding 'jq' JSON processor
    nix search nixpkgs jq
    ```
@@ -43,10 +43,10 @@ This guide provides concrete, actionable instructions for real-world development
    ```bash
    # Build to ensure no conflicts
    make build
-   
+
    # Apply locally to test
    nix run --impure .#build-switch
-   
+
    # Verify package is available
    which jq
    jq --version
@@ -68,7 +68,7 @@ This guide provides concrete, actionable instructions for real-world development
    ```bash
    # Search Homebrew casks
    brew search your-app-name
-   
+
    # Example: Adding Visual Studio Code
    brew search visual-studio-code
    ```
@@ -94,7 +94,7 @@ This guide provides concrete, actionable instructions for real-world development
    ```bash
    # Build Darwin configuration
    make build-darwin
-   
+
    # Apply to see the application install
    nix run --impure .#build-switch
    ```
@@ -153,12 +153,12 @@ This guide provides concrete, actionable instructions for real-world development
        patches = (oldAttrs.patches or []) ++ [
          ./patches/your-patch.patch
        ];
-       
+
        # Example: Change build configuration
        configureFlags = (oldAttrs.configureFlags or []) ++ [
          "--enable-my-feature"
        ];
-       
+
        # Example: Add build dependencies
        buildInputs = (oldAttrs.buildInputs or []) ++ [
          final.some-additional-dependency
@@ -171,7 +171,7 @@ This guide provides concrete, actionable instructions for real-world development
    ```bash
    # The overlay is automatically applied due to modules/shared/default.nix
    make build
-   
+
    # Test the modified package
    nix run --impure .#build-switch
    your-package --version  # Should show your modifications
@@ -196,24 +196,24 @@ This guide provides concrete, actionable instructions for real-world development
      my-new-tool = final.stdenv.mkDerivation {
        pname = "my-new-tool";
        version = "1.0.0";
-       
+
        src = final.fetchFromGitHub {
          owner = "owner-name";
          repo = "repo-name";
          rev = "v1.0.0";
          hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
        };
-       
+
        nativeBuildInputs = with final; [
          cmake
          pkg-config
        ];
-       
+
        buildInputs = with final; [
          openssl
          curl
        ];
-       
+
        meta = with final.lib; {
          description = "My awesome new tool";
          homepage = "https://github.com/owner-name/repo-name";
@@ -235,7 +235,7 @@ This guide provides concrete, actionable instructions for real-world development
    # Build and test
    nix build .#my-new-tool
    ./result/bin/my-new-tool --help
-   
+
    # Apply to system
    make build
    nix run --impure .#build-switch
@@ -260,7 +260,7 @@ This guide provides concrete, actionable instructions for real-world development
    ```bash
    # Darwin hosts use a single configuration
    # No additional host-specific files needed
-   
+
    # Simply clone and apply
    export USER=$(whoami)
    make build-darwin
@@ -271,23 +271,23 @@ This guide provides concrete, actionable instructions for real-world development
    ```bash
    # Create host-specific directory if needed
    mkdir -p hosts/nixos/your-hostname
-   
+
    # Create hardware configuration
    sudo nixos-generate-config --root /mnt --show-hardware-config > hosts/nixos/your-hostname/hardware-configuration.nix
-   
+
    # Create host configuration
    cat > hosts/nixos/your-hostname/configuration.nix << 'EOF'
    { config, pkgs, ... }:
-   
+
    {
      imports = [
        ./hardware-configuration.nix
        ../default.nix
      ];
-     
+
      # Host-specific settings
      networking.hostName = "your-hostname";
-     
+
      # Add any host-specific configuration here
    }
    EOF
@@ -326,7 +326,7 @@ This guide provides concrete, actionable instructions for real-world development
    ```nix
    # hosts/darwin/default.nix
    { config, pkgs, ... }:
-   
+
    let
      getUser = import ../../lib/get-user.nix { };
      user = getUser;
@@ -335,9 +335,9 @@ This guide provides concrete, actionable instructions for real-world development
    in
    {
      # Existing configuration...
-     
+
      # Machine-specific configuration example
-     system.defaults.dock.tilesize = 
+     system.defaults.dock.tilesize =
        if lib.hasPrefix "work-" hostname then 64    # Work machines
        else if lib.hasPrefix "home-" hostname then 48  # Home machines
        else 56;  # Default
@@ -377,26 +377,26 @@ This guide provides concrete, actionable instructions for real-world development
    {
      options.programs.my-app = {
        enable = mkEnableOption "my-app";
-       
+
        package = mkOption {
          type = types.package;
          default = pkgs.my-app;
          description = "The my-app package to use";
        };
-       
+
        config = mkOption {
          type = types.attrs;
          default = {};
          description = "Configuration for my-app";
        };
      };
-     
+
      config = mkIf cfg.enable {
        home.packages = [ cfg.package ];
-       
-       home.file.".config/my-app/config.json".text = 
+
+       home.file.".config/my-app/config.json".text =
          builtins.toJSON cfg.config;
-         
+
        # Add any additional configuration here
      };
    }
@@ -411,13 +411,13 @@ This guide provides concrete, actionable instructions for real-world development
    ```nix
    # modules/shared/default.nix
    { config, pkgs, ... }:
-   
+
    {
      imports = [
        # Existing imports...
        ./my-app.nix
      ];
-     
+
      # Existing configuration...
    }
    ```
@@ -431,10 +431,10 @@ This guide provides concrete, actionable instructions for real-world development
    ```nix
    # modules/shared/home-manager.nix
    { config, pkgs, lib, ... }:
-   
+
    {
      # Existing configuration...
-     
+
      programs.my-app = {
        enable = true;
        config = {
@@ -459,14 +459,14 @@ This guide provides concrete, actionable instructions for real-world development
    in
    {
      # Use change detection
-     myFileCheck = fileDetector.compareFiles 
-       "/path/to/original" 
+     myFileCheck = fileDetector.compareFiles
+       "/path/to/original"
        "/path/to/current";
-       
+
      # Detect changes in directory
-     myDirCheck = fileDetector.detectChangesInDirectory 
-       "/source/dir" 
-       "/target/dir" 
+     myDirCheck = fileDetector.detectChangesInDirectory
+       "/source/dir"
+       "/target/dir"
        ["file1.txt" "file2.json"];
    }
    ```
@@ -479,16 +479,16 @@ This guide provides concrete, actionable instructions for real-world development
    in
    {
      # Get policy for a file
-     myFilePolicy = configPolicy.getPolicyForFile 
-       "/path/to/file" 
+     myFilePolicy = configPolicy.getPolicyForFile
+       "/path/to/file"
        true  # userModified
        { forceOverwrite = false; };
-       
+
      # Generate actions for directory
-     myDirPlan = configPolicy.generateDirectoryPlan 
-       "/target/dir" 
-       "/source/dir" 
-       changeDetections 
+     myDirPlan = configPolicy.generateDirectoryPlan
+       "/target/dir"
+       "/source/dir"
+       changeDetections
        { forceOverwrite = false; };
    }
    ```
@@ -501,7 +501,7 @@ This guide provides concrete, actionable instructions for real-world development
    let
      fileDetector = import ../../lib/file-change-detector.nix { inherit lib pkgs; };
      configPolicy = import ../../lib/claude-config-policy.nix { inherit lib pkgs; };
-     
+
      cfg = config.my-config-manager;
    in
    {
@@ -516,13 +516,13 @@ This guide provides concrete, actionable instructions for real-world development
          description = "Target directory for configuration files";
        };
      };
-     
+
      config = lib.mkIf cfg.enable {
        # Use the detection and policy systems
        home.activation.my-config-sync = lib.hm.dag.entryAfter ["writeBoundary"] ''
          # Detection logic using the library
          echo "Checking for config changes..."
-         
+
          # This would use the Nix functions in a real scenario
          # For activation scripts, you'd generate shell commands
        '';
@@ -549,7 +549,7 @@ This guide provides concrete, actionable instructions for real-world development
    {
      zsh = {
        enable = true;
-       
+
        # Add custom aliases
        shellAliases = {
          ll = "ls -la";
@@ -557,17 +557,17 @@ This guide provides concrete, actionable instructions for real-world development
          grep = "grep --color=auto";
          # Add your custom aliases here
        };
-       
+
        # Add to initContent
        initContent = lib.mkBefore ''
          # Your custom shell initialization
          export MY_CUSTOM_VAR="value"
-         
+
          # Custom functions
          myfunction() {
            echo "Hello from my function"
          }
-         
+
          # Existing content continues...
        '';
      };
@@ -611,7 +611,7 @@ This guide provides concrete, actionable instructions for real-world development
      enable = true;
      userName = "Your Name";
      userEmail = "your.email@example.com";
-     
+
      # Add custom aliases
      aliases = {
        co = "checkout";
@@ -623,12 +623,12 @@ This guide provides concrete, actionable instructions for real-world development
        visual = "!gitk";
        # Your custom aliases
      };
-     
+
      # Custom configuration
      extraConfig = {
        init.defaultBranch = "main";
        core.editor = "vim";
-       
+
        # Add your custom git settings
        push.default = "simple";
        pull.rebase = true;
@@ -647,17 +647,17 @@ This guide provides concrete, actionable instructions for real-world development
        vim-commentary
        nerdtree
      ];
-     
+
      extraConfig = ''
        # Your custom vim configuration
        set number relativenumber
        set tabstop=4
        set shiftwidth=4
        set expandtab
-       
+
        # Custom key mappings
        nnoremap <leader>n :NERDTreeToggle<CR>
-       
+
        # Custom settings...
      '';
    };
@@ -675,7 +675,7 @@ This guide provides concrete, actionable instructions for real-world development
    ```bash
    # Add to your shell profile or run before builds
    export NIX_BUILD_CORES=0  # Use all available cores
-   
+
    # For persistent setting, add to modules/shared/home-manager.nix
    ```
 
@@ -683,7 +683,7 @@ This guide provides concrete, actionable instructions for real-world development
    ```bash
    # Check current cache settings
    cat ~/.config/nix/nix.conf
-   
+
    # Add cache settings to hosts/darwin/default.nix or hosts/nixos/default.nix
    ```
 
@@ -695,13 +695,13 @@ This guide provides concrete, actionable instructions for real-world development
        # Use all available cores
        max-jobs = "auto";
        cores = 0;
-       
+
        # Enable additional caches
        substituters = [
          "https://cache.nixos.org"
          "https://nix-community.cachix.org"
        ];
-       
+
        trusted-public-keys = [
          "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
          "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
@@ -714,10 +714,10 @@ This guide provides concrete, actionable instructions for real-world development
    ```bash
    # Clean old generations
    nix-collect-garbage -d
-   
+
    # Clean build cache
    nix store gc
-   
+
    # Optimize store
    nix store optimise
    ```
@@ -732,7 +732,7 @@ This guide provides concrete, actionable instructions for real-world development
    ```bash
    # For detailed build information
    nix build --impure --show-trace .#darwinConfigurations.aarch64-darwin.system
-   
+
    # For very detailed debugging
    nix build --impure --show-trace --verbose .#your-target
    ```
@@ -741,7 +741,7 @@ This guide provides concrete, actionable instructions for real-world development
    ```bash
    # Test specific packages
    nix-instantiate --eval --expr 'with import <nixpkgs> {}; your-package.version'
-   
+
    # Test specific modules
    nix-instantiate --eval --expr 'with import ./.; darwinConfigurations.aarch64-darwin.config.system.packages'
    ```
@@ -750,10 +750,10 @@ This guide provides concrete, actionable instructions for real-world development
    ```bash
    # Start Nix REPL
    nix repl '<nixpkgs>'
-   
+
    # Load your flake
    :l .
-   
+
    # Inspect configurations
    :t darwinConfigurations.aarch64-darwin
    ```
@@ -763,16 +763,16 @@ This guide provides concrete, actionable instructions for real-world development
    # Create a test file for your module
    cat > test-module.nix << 'EOF'
    { pkgs ? import <nixpkgs> {} }:
-   
+
    let
-     module = import ./modules/shared/my-module.nix { 
-       config = {}; 
-       inherit pkgs; 
-       lib = pkgs.lib; 
+     module = import ./modules/shared/my-module.nix {
+       config = {};
+       inherit pkgs;
+       lib = pkgs.lib;
      };
    in module
    EOF
-   
+
    # Test the module
    nix-instantiate --eval test-module.nix
    ```
@@ -795,7 +795,7 @@ This guide provides concrete, actionable instructions for real-world development
    ```bash
    # Build to check for errors
    make build
-   
+
    # Build specific configurations
    nix build --impure .#darwinConfigurations.aarch64-darwin.system
    nix build --impure .#nixosConfigurations.x86_64-linux.config.system.build.toplevel
@@ -811,11 +811,11 @@ This guide provides concrete, actionable instructions for real-world development
    ```bash
    # Create test branch
    git checkout -b test-my-changes
-   
+
    # Make changes and test
    # ... make changes ...
    make lint && make build
-   
+
    # Only apply if tests pass
    nix run --impure .#build-switch
    ```
@@ -830,13 +830,13 @@ This guide provides concrete, actionable instructions for real-world development
    ```bash
    # Create feature branch
    git checkout -b feature/my-improvement
-   
+
    # Make your changes following the patterns in this guide
    # ... development work ...
-   
+
    # Run comprehensive tests
    ./scripts/test-all-local
-   
+
    # Ensure code quality
    make lint && make smoke && make build && make smoke
    ```
@@ -852,15 +852,15 @@ This guide provides concrete, actionable instructions for real-world development
    ```bash
    # Push your branch
    git push -u origin feature/my-improvement
-   
+
    # Create PR with proper description
    gh pr create --title "feat: description of your improvement" --body "
    ## Description
    Brief description of changes
-   
+
    ## Type of Change
    - [x] New feature
-   
+
    ## Testing
    - [x] Local tests pass (./scripts/test-all-local)
    - [x] Pre-commit workflow complete

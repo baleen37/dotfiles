@@ -41,7 +41,7 @@ echo "Branch status: $AHEAD ahead, $BEHIND behind"
 if [[ $BEHIND -gt 0 ]]; then
   echo "🔄 Updating branch with latest changes..."
   git rebase origin/$DEFAULT_BRANCH
-  
+
   # Check for conflicts
   if [[ $? -ne 0 ]]; then
     echo "❌ Conflicts detected. Please resolve manually:"
@@ -152,7 +152,7 @@ if [[ -n "$EXISTING_PR" ]]; then
   gh pr view $EXISTING_PR
 else
   echo "🚀 Creating new pull request..."
-  
+
   # Generate PR with template
   gh pr create \
     --title "$PR_TITLE" \

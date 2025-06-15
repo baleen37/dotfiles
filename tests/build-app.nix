@@ -1,7 +1,7 @@
 { pkgs }:
 let
   flake = builtins.getFlake (toString ../.);
-  buildAppExists = builtins.hasAttr pkgs.system flake.outputs.apps && 
+  buildAppExists = builtins.hasAttr pkgs.system flake.outputs.apps &&
                    builtins.hasAttr "build" flake.outputs.apps.${pkgs.system};
 in
 pkgs.runCommand "build-app-test" {} ''

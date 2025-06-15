@@ -36,11 +36,11 @@
       linuxSystems = [ "x86_64-linux" "aarch64-linux" ];
       darwinSystems = [ "aarch64-darwin" "x86_64-darwin" ];
       forAllSystems = f: nixpkgs.lib.genAttrs (linuxSystems ++ darwinSystems) f;
-      
+
       # Import modularized app builders
       platformApps = import ./lib/platform-apps.nix { inherit nixpkgs self; };
       testApps = import ./lib/test-apps.nix { inherit nixpkgs self; };
-      
+
       devShell = system: let pkgs = nixpkgs.legacyPackages.${system}; in {
         default = with pkgs; mkShell {
           nativeBuildInputs = with pkgs; [ bashInteractive git ];
@@ -49,14 +49,14 @@
           '';
         };
       };
-      
+
       # Simplified app builders using modules
-      mkLinuxApps = system: 
-        platformApps.mkLinuxCoreApps system // 
+      mkLinuxApps = system:
+        platformApps.mkLinuxCoreApps system //
         testApps.mkLinuxTestApps system;
-        
-      mkDarwinApps = system: 
-        platformApps.mkDarwinCoreApps system // 
+
+      mkDarwinApps = system:
+        platformApps.mkDarwinCoreApps system //
         testApps.mkDarwinTestApps system;
     in
     {
@@ -64,9 +64,9 @@
       apps = nixpkgs.lib.genAttrs linuxSystems mkLinuxApps // nixpkgs.lib.genAttrs darwinSystems mkDarwinApps;
       checks = forAllSystems (system:
         let
-          pkgs = import nixpkgs { 
-            inherit system; 
-            config.allowUnfree = true; 
+          pkgs = import nixpkgs {
+            inherit system;
+            config.allowUnfree = true;
           };
           testSuite = import ./tests { inherit pkgs; flake = self; };
         in testSuite // {
@@ -76,20 +76,20 @@
           } ''
             echo "Running comprehensive test suite for ${system}"
             echo "========================================"
-            
+
             # Run all individual tests
-            ${builtins.concatStringsSep "\n" (map (testName: 
+            ${builtins.concatStringsSep "\n" (map (testName:
               let test = testSuite.${testName}; in
               if (builtins.typeOf test) == "set" && test ? type && test.type == "derivation" then
                 "echo 'Testing: ${testName}' && ${test} && echo 'Test ${testName} completed'"
               else
                 "echo 'Skipping ${testName}: not a derivation (type: ${builtins.typeOf test})'"
             ) (builtins.attrNames testSuite))}
-            
+
             echo "All tests completed successfully!"
             touch $out
           '';
-          
+
           # Quick smoke test for CI/CD
           smoke-test = pkgs.runCommand "smoke-test" {} ''
             echo "Running smoke tests for ${system}"
@@ -97,19 +97,19 @@
             echo "Basic functionality check: PASSED"
             touch $out
           '';
-          
+
           # Lint and format checks
           lint-check = pkgs.runCommand "lint-check" {
             buildInputs = with pkgs; [ nixpkgs-fmt statix deadnix ];
           } ''
             echo "Running lint checks for ${system}"
-            
+
             # Check Nix formatting
             echo "Checking Nix file formatting..."
             find ${self} -name "*.nix" -type f | head -10 | while read file; do
               echo "Checking format: $file"
             done
-            
+
             echo "Lint checks completed"
             touch $out
           '';

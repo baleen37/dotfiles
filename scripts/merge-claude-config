@@ -20,7 +20,7 @@ show_help() {
     cat << EOF
 ${BLUE}Claude 설정 파일 병합 도구${NC}
 
-이 도구는 dotfiles 업데이트로 인해 생성된 .new 파일들과 
+이 도구는 dotfiles 업데이트로 인해 생성된 .new 파일들과
 사용자가 수정한 기존 설정을 안전하게 병합할 수 있도록 도와줍니다.
 
 ${YELLOW}사용법:${NC}
@@ -82,7 +82,7 @@ check_file_exists() {
 # 병합이 필요한 파일 목록 조회
 find_merge_candidates() {
     local candidates=()
-    
+
     for new_file in "$CLAUDE_DIR"/*.new; do
         if [[ -f "$new_file" ]]; then
             local base_file="${new_file%.new}"
@@ -91,7 +91,7 @@ find_merge_candidates() {
             fi
         fi
     done
-    
+
     for new_file in "$CLAUDE_DIR/commands"/*.new; do
         if [[ -f "$new_file" ]]; then
             local base_file="${new_file%.new}"
@@ -100,7 +100,7 @@ find_merge_candidates() {
             fi
         fi
     done
-    
+
     printf '%s\n' "${candidates[@]}"
 }
 
@@ -109,16 +109,16 @@ show_diff() {
     local current_file="$1"
     local new_file="$2"
     local file_name="$(basename "$current_file")"
-    
+
     echo ""
     echo -e "${BLUE}=== $file_name 변경사항 ===ND{NC}"
-    
+
     if command -v colordiff >/dev/null 2>&1; then
         colordiff -u "$current_file" "$new_file" || true
     else
         diff -u "$current_file" "$new_file" || true
     fi
-    
+
     echo ""
 }
 
@@ -128,7 +128,7 @@ create_backup() {
     local backup_dir="$CLAUDE_DIR/.backups"
     local timestamp=$(date +%Y%m%d_%H%M%S)
     local backup_file="$backup_dir/$(basename "$file").backup.$timestamp"
-    
+
     mkdir -p "$backup_dir"
     cp "$file" "$backup_file"
     log_success "백업 생성됨: $backup_file"
@@ -140,26 +140,26 @@ merge_json_interactive() {
     local current_file="$1"
     local new_file="$2"
     local output_file="$3"
-    
+
     log_info "JSON 설정 파일 병합: $(basename "$current_file")"
-    
+
     # jq가 설치되어 있는지 확인
     if ! command -v jq >/dev/null 2>&1; then
         log_warning "jq가 설치되지 않음. 텍스트 병합으로 진행합니다."
         return 1
     fi
-    
+
     # JSON 유효성 검사
     if ! jq empty "$current_file" 2>/dev/null; then
         log_warning "현재 파일이 유효한 JSON이 아닙니다."
         return 1
     fi
-    
+
     if ! jq empty "$new_file" 2>/dev/null; then
         log_warning "새 파일이 유효한 JSON이 아닙니다."
         return 1
     fi
-    
+
     # 키별로 병합 옵션 제공
     echo ""
     echo "JSON 키별 병합 옵션을 선택하세요:"
@@ -167,27 +167,27 @@ merge_json_interactive() {
     echo "n) 새 값 사용"
     echo "s) 건너뛰기"
     echo ""
-    
+
     # 새 파일의 모든 키를 추출
     local new_keys
     new_keys=$(jq -r 'keys[]' "$new_file")
-    
+
     # 현재 파일을 베이스로 시작
     cp "$current_file" "$output_file"
-    
+
     while IFS= read -r key; do
         local current_value
         local new_value
-        
+
         current_value=$(jq -r ".$key // null" "$current_file")
         new_value=$(jq -r ".$key" "$new_file")
-        
+
         if [[ "$current_value" != "$new_value" ]]; then
             echo ""
             echo -e "${YELLOW}키: $key${NC}"
             echo "현재 값: $current_value"
             echo "새 값: $new_value"
-            
+
             while true; do
                 read -p "선택 [c/n/s]: " choice
                 case $choice in
@@ -216,11 +216,11 @@ merge_json_interactive() {
             done
         fi
     done <<< "$new_keys"
-    
+
     # 새 파일에만 있는 키들 추가
     local current_keys
     current_keys=$(jq -r 'keys[]' "$current_file")
-    
+
     while IFS= read -r key; do
         if ! echo "$current_keys" | grep -q "^$key$"; then
             echo ""
@@ -228,7 +228,7 @@ merge_json_interactive() {
             local new_value
             new_value=$(jq -r ".$key" "$new_file")
             echo "값: $new_value"
-            
+
             while true; do
                 read -p "추가하시겠습니까? [y/n]: " choice
                 case $choice in
@@ -251,7 +251,7 @@ merge_json_interactive() {
             done
         fi
     done <<< "$new_keys"
-    
+
     log_success "JSON 병합 완료"
     return 0
 }
@@ -262,9 +262,9 @@ merge_text_interactive() {
     local new_file="$2"
     local output_file="$3"
     local file_name="$(basename "$current_file")"
-    
+
     log_info "텍스트 파일 병합: $file_name"
-    
+
     echo ""
     echo "병합 방법을 선택하세요:"
     echo "1) 현재 파일 유지 (변경사항 무시)"
@@ -273,7 +273,7 @@ merge_text_interactive() {
     echo "4) 섹션별 선택 병합"
     echo "5) 건너뛰기"
     echo ""
-    
+
     while true; do
         read -p "선택하세요 [1-5]: " choice
         case $choice in
@@ -325,56 +325,56 @@ merge_file() {
     local current_file="$CLAUDE_DIR/$file_name"
     local new_file="$CLAUDE_DIR/${file_name}.new"
     local notice_file="$CLAUDE_DIR/${file_name}.update-notice"
-    
+
     # 파일 존재 확인
     if [[ ! -f "$current_file" ]]; then
         log_error "현재 파일이 존재하지 않습니다: $file_name"
         return 1
     fi
-    
+
     if [[ ! -f "$new_file" ]]; then
         log_error "새 파일이 존재하지 않습니다: ${file_name}.new"
         return 1
     fi
-    
+
     echo ""
     echo -e "${BLUE}=== $file_name 병합 시작 ===${NC}"
-    
+
     # 차이점 출력
     show_diff "$current_file" "$new_file"
-    
+
     # 백업 생성
     local backup_file
     backup_file=$(create_backup "$current_file")
-    
+
     # 임시 출력 파일
     local temp_output="$current_file.merge.tmp"
-    
+
     # 파일 타입에 따른 병합
     local merge_success=false
-    
+
     if [[ "$file_name" == "settings.json" ]]; then
         if merge_json_interactive "$current_file" "$new_file" "$temp_output"; then
             merge_success=true
         fi
     fi
-    
+
     # JSON 병합 실패 시 또는 다른 파일 타입인 경우 텍스트 병합
     if [[ "$merge_success" != "true" ]]; then
         if merge_text_interactive "$current_file" "$new_file" "$temp_output"; then
             merge_success=true
         fi
     fi
-    
+
     if [[ "$merge_success" == "true" ]]; then
         # 병합된 파일 적용
         mv "$temp_output" "$current_file"
         chmod 644 "$current_file"
-        
+
         # 정리
         rm -f "$new_file"
         rm -f "$notice_file"
-        
+
         log_success "$file_name 병합 완료"
         echo "백업 파일: $backup_file"
         return 0
@@ -391,9 +391,9 @@ auto_merge_file() {
     local file_name="$1"
     local current_file="$CLAUDE_DIR/$file_name"
     local new_file="$CLAUDE_DIR/${file_name}.new"
-    
+
     log_info "자동 병합 시도: $file_name"
-    
+
     # 현재는 안전을 위해 자동 병합 비활성화
     log_warning "자동 병합은 현재 지원되지 않습니다. 대화형 병합을 사용하세요."
     return 1
@@ -406,7 +406,7 @@ main() {
     local diff_only=false
     local verbose=false
     local target_file=""
-    
+
     # 옵션 파싱
     while [[ $# -gt 0 ]]; do
         case $1 in
@@ -441,29 +441,29 @@ main() {
                 ;;
         esac
     done
-    
+
     # Claude 디렉토리 존재 확인
     if [[ ! -d "$CLAUDE_DIR" ]]; then
         log_error "Claude 디렉토리가 존재하지 않습니다: $CLAUDE_DIR"
         exit 1
     fi
-    
+
     # 병합 후보 파일 찾기
     local candidates
     mapfile -t candidates < <(find_merge_candidates)
-    
+
     if [[ ${#candidates[@]} -eq 0 ]]; then
         log_info "병합이 필요한 파일이 없습니다."
         exit 0
     fi
-    
+
     # 목록만 출력
     if [[ "$list_only" == "true" ]]; then
         echo "병합이 필요한 파일:"
         printf '  %s\n' "${candidates[@]}"
         exit 0
     fi
-    
+
     # 특정 파일 지정 시 해당 파일만 처리
     if [[ -n "$target_file" ]]; then
         # candidates에 있는지 확인
@@ -474,16 +474,16 @@ main() {
                 break
             fi
         done
-        
+
         if [[ "$found" != "true" ]]; then
             log_error "$target_file은 병합 후보에 없습니다."
             log_info "사용 가능한 파일: ${candidates[*]}"
             exit 1
         fi
-        
+
         candidates=("$target_file")
     fi
-    
+
     # 차이점만 출력
     if [[ "$diff_only" == "true" ]]; then
         for file_name in "${candidates[@]}"; do
@@ -493,15 +493,15 @@ main() {
         done
         exit 0
     fi
-    
+
     # 병합 시작
     echo -e "${BLUE}Claude 설정 파일 병합 도구${NC}"
     echo "병합할 파일 ${#candidates[@]}개 발견"
     echo ""
-    
+
     local success_count=0
     local skip_count=0
-    
+
     for file_name in "${candidates[@]}"; do
         if [[ "$auto_mode" == "true" ]]; then
             if auto_merge_file "$file_name"; then
@@ -517,13 +517,13 @@ main() {
             fi
         fi
     done
-    
+
     # 결과 요약
     echo ""
     echo -e "${BLUE}=== 병합 완료 ===${NC}"
     echo "성공: $success_count개"
     echo "건너뜀: $skip_count개"
-    
+
     if [[ $success_count -gt 0 ]]; then
         echo ""
         log_success "병합이 완료되었습니다!"

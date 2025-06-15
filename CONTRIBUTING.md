@@ -167,7 +167,7 @@ print_error() {
 
    with pkgs; [
      # Existing packages...
-     
+
      # New package with comment
      new-package    # Brief description of what this package does
    ]
@@ -201,7 +201,7 @@ print_error() {
    ```bash
    # Test on current platform
    make build
-   
+
    # Test specific platforms if needed
    nix build --impure .#darwinConfigurations.aarch64-darwin.system
    nix build --impure .#nixosConfigurations.x86_64-linux.config.system.build.toplevel
@@ -228,10 +228,10 @@ tests/
 
 pkgs.runCommand "my-feature-unit-test" {} ''
   echo "Testing my feature..."
-  
+
   # Your test logic here
   ${pkgs.my-package}/bin/my-command --version
-  
+
   echo "Test passed!"
   touch $out
 ''

@@ -111,6 +111,6 @@ Whenever you build out a new project and specifically start a new Claude.md - yo
             > *(I will now begin development based on the approved plan.)*
 
 * **Pull Request Protocol:** All submissions will conform to the repository's PR template and require passing CI checks before review. When creating PRs, search for and follow GitHub's pull_request_template if it exists in the repository (typically located at `.github/pull_request_template.md` or `.github/PULL_REQUEST_TEMPLATE.md`).
-* **Localization Protocol:** Commit messages and PR descriptions MUST be written in Korean; branch names will be in English.
+* **Localization Protocol:** Commit messages and PR descriptions MUST be written in Korean; branch names MUST be written in English.
 * **Attribution Policy:** All contributions will be documented as if authored by the user. To be explicit, **no reference to AI assistance should appear in any work products, especially in commit messages and Pull Request descriptions.**
 * **Commit Protocol:** Never include any information about AI agents such as Claude Code when creating commits. All commits must be presented as if written directly by the user.%

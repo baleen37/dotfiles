@@ -100,7 +100,6 @@ mkdir -p ./tree
 # Create worktrees for all open PRs
 gh pr list --json number,headRefName --jq '.[] | "\(.number):\(.headRefName)"' | while IFS=':' read pr_num branch; do
   branch_path="./.local/tree/pr-${pr_num}-${branch//\//-}"
-  
   if [ ! -d "$branch_path" ]; then
     echo "Creating worktree for PR #$pr_num ($branch)"
     # Fetch the branch first
@@ -151,6 +150,7 @@ done
 ### Safety Tips
 - **Always commit or stash** changes before switching worktrees
 - **Use descriptive names** for worktree directories
+- **Branch names MUST be in English** following repository conventions
 - **Clean up regularly** to avoid disk space issues
 - **Don't delete branches** that have active worktrees
 - **Check git status** before removing worktrees

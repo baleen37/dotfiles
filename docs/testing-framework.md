@@ -10,7 +10,7 @@ This document outlines the comprehensive testing strategy for the Nix dotfiles r
 **Purpose**: Test individual functions, modules, and components in isolation
 **Location**: `tests/unit/`
 **Naming**: `*-unit.nix`
-**Scope**: 
+**Scope**:
 - Individual Nix functions
 - Module imports and exports
 - Configuration validation
@@ -53,7 +53,7 @@ This document outlines the comprehensive testing strategy for the Nix dotfiles r
 let
   # Test setup and helpers
   testHelpers = import ../lib/test-helpers.nix { inherit pkgs; };
-  
+
   # Test data and fixtures
   testData = {
     # Test-specific data
@@ -62,10 +62,10 @@ in
 pkgs.runCommand "test-name" { } ''
   # Test implementation
   echo "Running test..."
-  
+
   # Assertions
   ${testHelpers.assert "condition" "error message"}
-  
+
   # Success indicator
   touch $out
 ''
@@ -160,22 +160,22 @@ let
   discoverTests = dir: pattern:
     let
       entries = builtins.readDir dir;
-      testFiles = builtins.filter (name: 
+      testFiles = builtins.filter (name:
         builtins.match pattern name != null
       ) (builtins.attrNames entries);
     in builtins.listToAttrs (map (file: {
       name = sanitizeName file;
       value = import (dir + ("/" + file)) { inherit pkgs; };
     }) testFiles);
-    
+
   # Test categories
   unitTests = if builtins.pathExists ./unit then discoverTests ./unit ".*-unit\\.nix" else {};
   integrationTests = if builtins.pathExists ./integration then discoverTests ./integration ".*-integration\\.nix" else {};
   e2eTests = if builtins.pathExists ./e2e then discoverTests ./e2e ".*-e2e\\.nix" else {};
-  
+
   # Legacy tests (to be migrated)
   legacyTests = discoverTests ./. ".*\\.nix" // { default = null; };
-  
+
 in unitTests // integrationTests // e2eTests // legacyTests
 ```
 

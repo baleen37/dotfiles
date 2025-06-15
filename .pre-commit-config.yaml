@@ -1,11 +1,57 @@
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
--   repo: local
+  # Standard pre-commit hooks for general file quality
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
     hooks:
-    -   id: nix-flake-check
-        name: Nix Flake Check
-        entry: nix flake check --all-systems --no-build
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+      - id: end-of-file-fixer
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: check-symlinks
+      - id: check-yaml
+        args: ['--unsafe']  # Allow custom YAML tags
+      - id: check-json
+      - id: pretty-format-json
+        args: ['--autofix', '--indent=2']
+
+  # Nix-specific quality checks
+  - repo: local
+    hooks:
+      # Fast syntax validation for .nix files (skip if nix not available)
+      - id: nix-syntax-check
+        name: Nix Syntax Check
+        entry: bash -c 'if command -v nix-instantiate >/dev/null 2>&1; then for file in "$@"; do echo "Checking $file..."; nix-instantiate --parse "$file" > /dev/null || exit 1; done; else echo "Nix not available, skipping syntax check"; fi'
         language: system
-        files: ^.*\\.nix$
+        files: \\.nix$
+        pass_filenames: true
+
+      # Comprehensive flake validation (skip if nix not available)
+      - id: nix-flake-check
+        name: Nix Flake Check
+        entry: bash -c 'if command -v nix >/dev/null 2>&1; then export USER=${USER:-$(whoami)} && nix flake check --impure --all-systems --no-build; else echo "Nix not available, skipping flake check"; fi'
+        language: system
+        files: \\.nix$
         pass_filenames: false
+        always_run: true
+
+  # Repository quality checks
+  - repo: local
+    hooks:
+      # Check for secrets and sensitive information
+      - id: check-secrets
+        name: Check for Secrets
+        entry: bash -c 'grep -r --exclude-dir=.git -E "(password\s*[=:]\s*[^[:space:]]+|secret\s*[=:]\s*[^[:space:]]+|api_key\s*[=:]\s*[^[:space:]]+|token\s*[=:]\s*[^[:space:]]+)" . | grep -v "\.md:" | grep -v "test" | grep -v "example" | grep -v "secrets\." | grep -v ";;.*password" | grep -v "\${{" && echo "Potential secrets found!" && exit 1 || true'
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      # Ensure no large files are committed
+      - id: check-large-files
+        name: Check Large Files
+        entry: bash -c 'large_files=$(find . -type f -size +10M | grep -v ".git"); if [ -n "$large_files" ]; then echo "Large files detected:"; echo "$large_files"; exit 1; fi'
+        language: system
+        pass_filenames: false
+        always_run: true
