@@ -34,6 +34,15 @@ Whenever you build out a new project and specifically start a new Claude.md - yo
 - We prefer simple, clean, maintainable solutions over clever or complex ones, even if the latter are more concise or performant. Readability and maintainability are primary concerns.
 - Make the smallest reasonable changes to get to the desired outcome. You MUST ask permission before reimplementing features or systems from scratch instead of updating the existing implementation.
 - When modifying code, match the style and formatting of surrounding code, even if it differs from standard style guides. Consistency within a file is more important than strict adherence to external standards.
+
+## Incremental Improvement Protocol
+
+- **ALWAYS analyze existing systems first** before proposing changes. Use tools to understand current structure, patterns, and conventions.
+- **Preserve existing architecture** whenever possible. Maintain established patterns, naming conventions, and file organization.
+- **Minimal viable changes**: Make the smallest possible change that achieves the desired improvement. Avoid wholesale rewrites or structural overhauls.
+- **Backward compatibility**: Ensure changes don't break existing functionality, workflows, or integrations.
+- **Evidence-based improvements**: Identify specific bottlenecks or issues through analysis before proposing solutions.
+- **Progressive enhancement**: Build upon existing foundations rather than replacing them. Add new capabilities without disrupting current operations.
 - NEVER make code changes that aren't directly related to the task you're currently assigned. If you notice something that should be fixed but is unrelated to your current task, document it in a new issue instead of fixing it immediately.
 - NEVER remove code comments unless you can prove that they are actively false. Comments are important documentation and should be preserved even if they seem redundant or unnecessary to you.
 - When writing comments, avoid referring to temporal context about refactors or recent changes. Comments should be evergreen and describe the code as it is, not how it evolved or was recently changed.
