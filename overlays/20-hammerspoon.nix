@@ -30,4 +30,4 @@ self: super: with super; {
       platforms = [ "x86_64-darwin" "aarch64-darwin" ];
     };
   };
-} 
+}

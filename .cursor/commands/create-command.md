@@ -169,4 +169,4 @@ This command itself serves as an example of creating a `create-command` command:
 - Ensure prompt examples are clear and actionable
 - Consider user workflow and experience
 - Adhere to English-only documentation principle
-- Test thoroughly before finalizing%                                    
+- Test thoroughly before finalizing%  

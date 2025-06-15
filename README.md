@@ -584,4 +584,3 @@ sudo systemctl restart NetworkManager
 ---
 
 > For migration history and legacy information, refer to commit logs and any legacy/ directories.
-

@@ -100,7 +100,6 @@ mkdir -p ./tree
 # Create worktrees for all open PRs
 gh pr list --json number,headRefName --jq '.[] | "\(.number):\(.headRefName)"' | while IFS=':' read pr_num branch; do
   branch_path="./.local/tree/pr-${pr_num}-${branch//\//-}"
-  
   if [ ! -d "$branch_path" ]; then
     echo "Creating worktree for PR #$pr_num ($branch)"
     # Fetch the branch first

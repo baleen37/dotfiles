@@ -61,91 +61,89 @@ in
       # Marked broken Oct 20, 2022 check later to remove this
       # https://github.com/nix-community/home-manager/issues/3344
       manual.manpages.enable = false;
-      
+
       # Smart Claude config files management with user modification preservation
       home.activation.copyClaudeFiles = lib.hm.dag.entryAfter ["linkGeneration"] ''
         set -euo pipefail  # Enable strict error handling
-        
+
         # DRY_RUN_CMD 변수 초기화
         DRY_RUN_CMD=""
         if [[ "$DRY_RUN" == "1" ]]; then
           DRY_RUN_CMD="echo '[DRY RUN]'"
         fi
-        
+
         $DRY_RUN_CMD mkdir -p "${config.home.homeDirectory}/.claude/commands"
-        
+
         CLAUDE_DIR="${config.home.homeDirectory}/.claude"
         SOURCE_DIR="${self}/modules/shared/config/claude"
-        
         echo "=== 스마트 Claude 설정 업데이트 시작 ==="
         echo "Claude 디렉토리: $CLAUDE_DIR"
         echo "소스 디렉토리: $SOURCE_DIR"
-        
+
         # 파일 해시 비교 함수
         files_differ() {
           local source="$1"
           local target="$2"
-          
+
           if [[ ! -f "$source" ]] || [[ ! -f "$target" ]]; then
             return 0  # 파일이 없으면 다른 것으로 간주
           fi
-          
+
           # macOS에서는 shasum 사용
           local source_hash=$(shasum -a 256 "$source" | cut -d' ' -f1)
           local target_hash=$(shasum -a 256 "$target" | cut -d' ' -f1)
-          
           [[ "$source_hash" != "$target_hash" ]]
         }
-        
+
         # 백업 생성 함수
         create_backup() {
           local file="$1"
           local backup_dir="$CLAUDE_DIR/.backups"
           local timestamp=$(date +%Y%m%d_%H%M%S)
-          
+
           if [[ -f "$file" ]]; then
             $DRY_RUN_CMD mkdir -p "$backup_dir"
             $DRY_RUN_CMD cp "$file" "$backup_dir/$(basename "$file").backup.$timestamp"
             echo "백업 생성: $backup_dir/$(basename "$file").backup.$timestamp"
           fi
         }
-        
+
         # 조건부 복사 함수 (사용자 수정 보존)
         smart_copy() {
           local source_file="$1"
           local target_file="$2"
           local file_name=$(basename "$source_file")
-          
+
           echo "처리 중: $file_name"
-          
+
           if [[ ! -f "$source_file" ]]; then
             echo "  소스 파일 없음, 건너뜀"
             return 0
           fi
-          
+
           if [[ ! -f "$target_file" ]]; then
             echo "  새 파일 복사"
             $DRY_RUN_CMD cp "$source_file" "$target_file"
             $DRY_RUN_CMD chmod 644 "$target_file"
             return 0
           fi
-          
+
           if files_differ "$source_file" "$target_file"; then
             echo "  사용자 수정 감지됨"
-            
+
             # 높은 우선순위 파일들은 보존 (settings.json, CLAUDE.md)
             case "$file_name" in
               "settings.json"|"CLAUDE.md")
                 echo "  사용자 버전 보존, 새 버전을 .new로 저장"
                 $DRY_RUN_CMD cp "$source_file" "$target_file.new"
                 $DRY_RUN_CMD chmod 644 "$target_file.new"
-                
+
                 # 사용자 알림 메시지 생성
                 if [[ "$DRY_RUN_CMD" == "" ]]; then
                   cat > "$target_file.update-notice" << EOF
 파일 업데이트 알림: $file_name
 
-이 파일이 dotfiles에서 업데이트되었지만, 사용자가 수정한 내용이 감지되어 
+이 파일이 dotfiles에서 업데이트되었지만, 사용자가 수정한 내용이 감지되어
 기존 파일을 보존했습니다.
 
 - 현재 파일: $target_file (사용자 수정 버전)
@@ -175,7 +173,7 @@ EOF
             $DRY_RUN_CMD chmod 644 "$target_file"
           fi
         }
-        
+
         # symlink를 실제 파일로 변환하는 함수
         convert_symlink() {
           local file="$1"
@@ -189,12 +187,12 @@ EOF
             fi
           fi
         }
-        
+
         # 기존 home-manager backup 파일 정리 (우리가 직접 관리하므로)
         echo "기존 백업 파일 정리..."
         $DRY_RUN_CMD rm -f "$CLAUDE_DIR"/*.bak
         $DRY_RUN_CMD rm -f "$CLAUDE_DIR/commands"/*.bak
-        
+
         # 먼저 symlink들을 실제 파일로 변환
         for config_file in "CLAUDE.md" "settings.json"; do
           target_file="$CLAUDE_DIR/$config_file"
@@ -202,22 +200,22 @@ EOF
             convert_symlink "$target_file"
           fi
         done
-        
+
         for cmd_file in "$CLAUDE_DIR/commands"/*.md; do
           if [[ -L "$cmd_file" ]]; then
             convert_symlink "$cmd_file"
           fi
         done
-        
+
         # 스마트 복사 실행
         echo ""
         echo "=== Claude 설정 파일 업데이트 ==="
-        
+
         # 메인 설정 파일들 처리
         for config_file in "settings.json" "CLAUDE.md"; do
           smart_copy "$SOURCE_DIR/$config_file" "$CLAUDE_DIR/$config_file"
         done
-        
+
         # commands 디렉토리 처리
         if [[ -d "$SOURCE_DIR/commands" ]]; then
           for cmd_file in "$SOURCE_DIR/commands"/*.md; do
@@ -227,14 +225,14 @@ EOF
             fi
           done
         fi
-        
+
         # 오래된 백업 파일 정리 (30일 이상)
         if [[ -d "$CLAUDE_DIR/.backups" ]]; then
           echo ""
           echo "오래된 백업 파일 정리 중..."
           $DRY_RUN_CMD find "$CLAUDE_DIR/.backups" -name "*.backup.*" -mtime +30 -delete 2>/dev/null || true
         fi
-        
+
         # 사용자 알림 요약
         NOTICE_COUNT=$(find "$CLAUDE_DIR" -name "*.update-notice" 2>/dev/null | wc -l)
         if [[ $NOTICE_COUNT -gt 0 ]]; then
@@ -243,7 +241,7 @@ EOF
           echo "다음 명령어로 확인하세요: find $CLAUDE_DIR -name '*.update-notice'"
           echo ""
         fi
-        
+
         echo "=== Claude 설정 업데이트 완료 ==="
       '';
     };

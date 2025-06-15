@@ -62,17 +62,17 @@ compareFiles = originalFilePath: currentFilePath: {
 ```nix
 let
   detector = import ./modules/shared/lib/file-change-detector.nix { inherit lib pkgs; };
-  comparison = detector.compareFiles 
-    "/source/settings.json" 
+  comparison = detector.compareFiles
+    "/source/settings.json"
     "/target/settings.json";
 in
 {
   # Check if user modified the file
   needsAttention = comparison.userModified;
-  
+
   # Get detailed information
   changeDetails = comparison.details;
-  
+
   # Make decisions based on results
   action = if comparison.userModified then "preserve" else "update";
 }
@@ -99,19 +99,19 @@ detectChangesInDirectory = sourceDir: targetDir: fileList: {
 ```nix
 let
   detector = import ./modules/shared/lib/file-change-detector.nix { inherit lib pkgs; };
-  results = detector.detectChangesInDirectory 
-    "/dotfiles/config/claude" 
-    "/home/user/.claude" 
+  results = detector.detectChangesInDirectory
+    "/dotfiles/config/claude"
+    "/home/user/.claude"
     ["settings.json" "CLAUDE.md" "commands/setup.md"];
 in
 {
   # Quick summary
   totalFiles = results.summary.total;
   modifiedCount = results.summary.modified;
-  
+
   # Detailed analysis
   modifiedFiles = map (result: result.fileName) results.modifiedFiles;
-  
+
   # For each file, decide what to do
   actions = lib.mapAttrs (fileName: result:
     if result.userModified then "preserve-and-notify"
@@ -137,15 +137,15 @@ detectClaudeConfigChanges = claudeDir: sourceConfigDir: {
 ```nix
 let
   detector = import ./modules/shared/lib/file-change-detector.nix { inherit lib pkgs; };
-  claudeAnalysis = detector.detectClaudeConfigChanges 
-    "/home/user/.claude" 
+  claudeAnalysis = detector.detectClaudeConfigChanges
+    "/home/user/.claude"
     "/dotfiles/config/claude";
 in
 {
   # Claude-specific insights
   settingsNeedMerge = claudeAnalysis.claudeSpecific.settingsModified;
   customCommandCount = lib.length claudeAnalysis.claudeSpecific.customCommands;
-  
+
   # Standard file analysis
   overallModificationRate = claudeAnalysis.summary.modificationRate;
 }
@@ -159,14 +159,14 @@ Generates human-readable reports:
 formatDetectionReport = detection: ''
   파일 변경 감지 결과:
   ================
-  
+
   요약:
   - 전체 파일: 5개
   - 수정된 파일: 2개
   - 동일한 파일: 3개
   - 없는 파일: 0개
   - 수정률: 40%
-  
+
   파일별 상태:
     settings.json: 수정됨 (ab12cd34...)
     CLAUDE.md: 동일함 (ef56gh78...)
@@ -229,7 +229,7 @@ claudeConfigFiles = {
     backup = true;
     notifyUser = true;
   };
-  
+
   "CLAUDE.md" = {
     path = "CLAUDE.md";
     source = "modules/shared/config/claude/CLAUDE.md";
@@ -237,7 +237,7 @@ claudeConfigFiles = {
     backup = true;
     notifyUser = true;
   };
-  
+
   "commands" = {
     path = "commands";
     source = "modules/shared/config/claude/commands";
@@ -260,7 +260,7 @@ preservationPolicies = {
     createNotice = true;
     backup = true;
   };
-  
+
   overwrite = {
     action = "overwrite";
     description = "새 버전으로 덮어쓰기하고 기존 파일을 백업";
@@ -268,7 +268,7 @@ preservationPolicies = {
     createNotice = false;
     backup = true;
   };
-  
+
   ignore = {
     action = "ignore";
     description = "사용자 파일을 그대로 유지하고 아무것도 하지 않음";
@@ -298,7 +298,7 @@ getPolicyForFile = filePath: userModified: options: {
 
 **Decision Logic:**
 1. **Custom files** (not in `claudeConfigFiles`): Always `ignore`
-2. **Force overwrite mode**: All known files get `overwrite` 
+2. **Force overwrite mode**: All known files get `overwrite`
 3. **User modified + high priority**: `preserve`
 4. **User modified + medium/low priority**: `overwrite`
 5. **User not modified**: `overwrite` (safe update)
@@ -307,8 +307,8 @@ getPolicyForFile = filePath: userModified: options: {
 ```nix
 let
   policy = import ./modules/shared/lib/claude-config-policy.nix { inherit lib pkgs; };
-  filePolicy = policy.getPolicyForFile 
-    "/home/user/.claude/settings.json" 
+  filePolicy = policy.getPolicyForFile
+    "/home/user/.claude/settings.json"
     true                                # userModified
     { forceOverwrite = false; };        # options
 in
@@ -328,15 +328,15 @@ generateActions = filePath: sourceFilePath: changeDetection: options: {
   newFilePath = "/target/file.new";
   noticePath = "/target/file.update-notice";
   backupPath = "/target/file.backup.20240106_143022";
-  
+
   # Policy decision
   policy = { /* policy object */ };
-  
+
   # Action flags
   preserve = true/false;
   overwrite = true/false;
   ignore = true/false;
-  
+
   # Generated content
   noticeContent = "Human-readable notice text";
   commands = [ /* shell commands to execute */ ];
@@ -348,24 +348,24 @@ generateActions = filePath: sourceFilePath: changeDetection: options: {
 let
   policy = import ./modules/shared/lib/claude-config-policy.nix { inherit lib pkgs; };
   detector = import ./modules/shared/lib/file-change-detector.nix { inherit lib pkgs; };
-  
+
   # First detect changes
   changes = detector.compareFiles "/source/settings.json" "/target/settings.json";
-  
+
   # Then generate actions
-  actions = policy.generateActions 
+  actions = policy.generateActions
     "/target/settings.json"
-    "/source/settings.json" 
-    changes 
+    "/source/settings.json"
+    changes
     { forceOverwrite = false; };
 in
 {
   # Execute the actions
   shellScript = lib.concatStringsSep "\n" actions.commands;
-  
+
   # Handle notifications
   userNotice = actions.noticeContent;
-  
+
   # Check what will happen
   willPreserveUserChanges = actions.preserve;
 }
@@ -378,14 +378,14 @@ generateDirectoryPlan = claudeDir: sourceDir: changeDetections: options: {
   preserveActions = [ /* actions that preserve user changes */ ];
   overwriteActions = [ /* actions that overwrite files */ ];
   ignoreActions = [ /* actions that ignore files */ ];
-  
+
   summary = {
     total = 5;
     preserved = 2;
     overwritten = 2;
     ignored = 1;
   };
-  
+
   shellScript = "#!/bin/bash\n# Complete script to execute all actions";
 };
 ```
@@ -395,19 +395,19 @@ generateDirectoryPlan = claudeDir: sourceDir: changeDetections: options: {
 let
   detector = import ./modules/shared/lib/file-change-detector.nix { inherit lib pkgs; };
   policy = import ./modules/shared/lib/claude-config-policy.nix { inherit lib pkgs; };
-  
+
   # Step 1: Detect all changes
-  changes = detector.detectClaudeConfigChanges 
-    "/home/user/.claude" 
+  changes = detector.detectClaudeConfigChanges
+    "/home/user/.claude"
     "/dotfiles/config/claude";
-  
+
   # Step 2: Generate action plan
-  plan = policy.generateDirectoryPlan 
-    "/home/user/.claude" 
-    "/dotfiles/config/claude" 
-    changes.fileResults 
+  plan = policy.generateDirectoryPlan
+    "/home/user/.claude"
+    "/dotfiles/config/claude"
+    changes.fileResults
     { forceOverwrite = false; };
-  
+
   # Step 3: Execute or analyze
   executionScript = plan.shellScript;
   preservedFiles = map (action: action.filePath) plan.preserveActions;
@@ -416,10 +416,10 @@ in
 {
   # Summary for user
   summary = "Will preserve ${toString plan.summary.preserved} files, update ${toString plan.summary.overwritten} files";
-  
+
   # Files that need user attention
   requiresAttention = plan.preserveActions != [];
-  
+
   # Ready-to-execute script
   inherit executionScript;
 }
@@ -447,22 +447,22 @@ forcePolicy = getPolicyForFile "settings.json" true forceOptions;
 ```nix
 generateNoticeMessage = filePath: policy: newFilePath: ''
   파일 업데이트 알림: settings.json
-  
+
   사용자 수정 내용을 보존하고 새 버전을 .new 파일로 저장
-  
+
   파일 위치:
   - 현재 파일: /home/user/.claude/settings.json (사용자 수정 버전)
   - 새 버전: /home/user/.claude/settings.json.new (dotfiles 최신 버전)
-  
+
   변경 사항을 확인하고 수동으로 병합하세요:
     diff "/home/user/.claude/settings.json" "/home/user/.claude/settings.json.new"
-  
+
   또는 수동 병합 도구를 사용하세요:
     nix run .#merge-claude-config
-  
+
   이 알림을 확인한 후 삭제하세요:
     rm "/home/user/.claude/settings.json.update-notice"
-    
+
   생성 시간: $(date)
 '';
 ```
@@ -488,7 +488,7 @@ Provides conditional file operations based on detection and policy results.
 let
   detector = import ../lib/file-change-detector.nix { inherit lib pkgs; };
   policy = import ../lib/claude-config-policy.nix { inherit lib pkgs; };
-  
+
   cfg = config.programs.my-config-manager;
 in
 {
@@ -508,20 +508,20 @@ in
       description = "Force overwrite user modifications";
     };
   };
-  
+
   config = lib.mkIf cfg.enable {
     home.activation.my-config-sync = lib.hm.dag.entryAfter ["writeBoundary"] ''
       echo "Syncing configuration files..."
-      
+
       # Detection phase
       echo "Detecting changes..."
-      
+
       # Policy phase  
       echo "Applying policies..."
-      
+
       # Execution phase
       echo "Executing file operations..."
-      
+
       # This would use the library functions to generate
       # the actual shell commands for execution
     '';
@@ -537,26 +537,26 @@ in
 let
   detector = import ../../modules/shared/lib/file-change-detector.nix { inherit (pkgs) lib; inherit pkgs; };
   policy = import ../../modules/shared/lib/claude-config-policy.nix { inherit (pkgs) lib; inherit pkgs; };
-  
+
   # Create mock scenarios
   mockModifiedFile = detector.createMockDetection {
     fileName = "settings.json";
     userModified = true;
   };
-  
+
   mockIdenticalFile = detector.createMockDetection {
     fileName = "CLAUDE.md";
     userModified = false;
   };
-  
+
   # Test policy decisions
   modifiedPolicy = policy.getPolicyForFile "settings.json" true { forceOverwrite = false; };
   identicalPolicy = policy.getPolicyForFile "CLAUDE.md" false { forceOverwrite = false; };
-  
+
 in
 pkgs.runCommand "policy-test" {} ''
   echo "Testing policy decisions..."
-  
+
   # Test that user modifications are preserved
   ${if modifiedPolicy.action == "preserve" then ''
     echo "✓ Modified files are preserved"
@@ -564,7 +564,7 @@ pkgs.runCommand "policy-test" {} ''
     echo "✗ Modified files should be preserved"
     exit 1
   ''}
-  
+
   # Test that identical files are updated
   ${if identicalPolicy.action == "overwrite" then ''
     echo "✓ Identical files are updated"
@@ -572,7 +572,7 @@ pkgs.runCommand "policy-test" {} ''
     echo "✗ Identical files should be updated"
     exit 1
   ''}
-  
+
   echo "All policy tests passed!"
   touch $out
 ''
@@ -586,7 +586,7 @@ pkgs.runCommand "policy-test" {} ''
 let
   detector = import ../lib/file-change-detector.nix { inherit lib pkgs; };
   policy = import ../lib/claude-config-policy.nix { inherit lib pkgs; };
-  
+
   claudeDir = "${config.home.homeDirectory}/.claude";
   sourceDir = "modules/shared/config/claude";
 in
@@ -596,9 +596,9 @@ in
     # This is where the magic happens
     # The activation script uses the library functions
     # to intelligently manage configuration files
-    
+
     echo "Managing Claude configuration with preservation..."
-    
+
     # Detection and policy application would happen here
     # using the sophisticated library functions
   '';
@@ -619,10 +619,10 @@ in
   # Access debug utilities
   detectorDebug = detector.debug;
   policyDebug = policy.debug;
-  
+
   # Test with mock data
   mockResults = detector.debug.mockResults.someModified;
-  
+
   # Test policy decisions
   policyTest = policy.debug.showPolicy "/path/to/file" true { forceOverwrite = false; };
 }
@@ -632,7 +632,7 @@ in
 ```nix
 let
   policy = import ./modules/shared/lib/claude-config-policy.nix { inherit lib pkgs; };
-  
+
   forceTest = policy.debug.testForceOverwrite "settings.json" true;
 in
 {
@@ -650,7 +650,7 @@ in
 # Extend the policy system for new file types
 let
   policy = import ./modules/shared/lib/claude-config-policy.nix { inherit lib pkgs; };
-  
+
   customFileConfig = {
     "my-custom.conf" = {
       path = "my-custom.conf";
@@ -660,7 +660,7 @@ let
       notifyUser = true;
     };
   };
-  
+
   extendedClaudeConfigFiles = policy.claudeConfigFiles // customFileConfig;
 in
 # Use extended configuration
@@ -672,13 +672,13 @@ in
 let
   detector = import ./modules/shared/lib/file-change-detector.nix { inherit lib pkgs; };
   policy = import ./modules/shared/lib/claude-config-policy.nix { inherit lib pkgs; };
-  
-  processDirectory = sourceDir: targetDir: options: 
+
+  processDirectory = sourceDir: targetDir: options:
     let
       changes = detector.detectChangesInDirectory sourceDir targetDir ["config.json" "settings.yml"];
       plan = policy.generateDirectoryPlan targetDir sourceDir changes.fileResults options;
     in plan;
-    
+
   claudePlan = processDirectory "/dotfiles/claude" "/home/user/.claude" { forceOverwrite = false; };
   appPlan = processDirectory "/dotfiles/app" "/home/user/.config/app" { forceOverwrite = true; };
 in
@@ -695,10 +695,10 @@ in
 
 let
   detector = import ../lib/file-change-detector.nix { inherit lib pkgs; };
-  
+
   hasChanges = let
-    changes = detector.detectClaudeConfigChanges 
-      "${config.home.homeDirectory}/.claude" 
+    changes = detector.detectClaudeConfigChanges
+      "${config.home.homeDirectory}/.claude"
       "modules/shared/config/claude";
   in changes.summary.modified > 0;
 in

@@ -16,7 +16,7 @@ Follow these steps to check CI status and resolve issues:
 1. **Find PR**: If PR number is provided, use `gh pr view <pr-number>`. If not provided, get current branch name with `git branch --show-current` then find PR with `gh pr list --head <branch-name>`
 2. **Check PR status**: Verify PR is open and not in draft mode
 3. **Check conflicts**: Use `gh pr view <pr-number> --json mergeable` to check for conflicts
-4. **Initial CI assessment**: 
+4. **Initial CI assessment**:
    ```bash
    gh pr checks <pr-number>  # Get current status
    gh pr checks <pr-number> --json  # Get detailed JSON for parsing
@@ -62,7 +62,7 @@ Based on the actual CI structure (.github/workflows/):
 
 #### 1. Lint Failures (lint.yml)
 - **Detection**: `make lint` fails on pre-commit hooks
-- **Common causes**: 
+- **Common causes**:
   - Formatting issues (nixpkgs-fmt, prettier)
   - Nix syntax errors
   - File permission changes
@@ -191,7 +191,7 @@ Check CI status for current branch's PR and wait for completion
 
 🚀 Triggered new CI run...
 
-✅ All CI checks passed! 
+✅ All CI checks passed!
 🎉 PR #85 is ready to merge
 ```
 
