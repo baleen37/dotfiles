@@ -34,7 +34,8 @@ let
 
         ${testHelpers.testSubsection "2단계: 사용자 수정 시뮬레이션"}
 
-        # settings.json 사용자 수정
+        # settings.json 사용자 수정 (권한 문제 해결)
+        chmod +w "$CLAUDE_DIR/settings.json"
         cat > "$CLAUDE_DIR/settings.json" << 'EOF'
     {
       "model": "claude-3.5-sonnet",
