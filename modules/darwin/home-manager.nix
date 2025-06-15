@@ -65,10 +65,17 @@ in
       # Smart Claude config files management with user modification preservation
       home.activation.copyClaudeFiles = lib.hm.dag.entryAfter ["linkGeneration"] ''
         set -euo pipefail  # Enable strict error handling
+        
+        # DRY_RUN_CMD 변수 초기화
+        DRY_RUN_CMD=""
+        if [[ "$DRY_RUN" == "1" ]]; then
+          DRY_RUN_CMD="echo '[DRY RUN]'"
+        fi
+        
         $DRY_RUN_CMD mkdir -p "${config.home.homeDirectory}/.claude/commands"
         
         CLAUDE_DIR="${config.home.homeDirectory}/.claude"
-        SOURCE_DIR="${../shared/config/claude}"
+        SOURCE_DIR="${self}/modules/shared/config/claude"
         
         echo "=== 스마트 Claude 설정 업데이트 시작 ==="
         echo "Claude 디렉토리: $CLAUDE_DIR"
@@ -83,8 +90,9 @@ in
             return 0  # 파일이 없으면 다른 것으로 간주
           fi
           
-          local source_hash=$(sha256sum "$source" | cut -d' ' -f1)
-          local target_hash=$(sha256sum "$target" | cut -d' ' -f1)
+          # macOS에서는 shasum 사용
+          local source_hash=$(shasum -a 256 "$source" | cut -d' ' -f1)
+          local target_hash=$(shasum -a 256 "$target" | cut -d' ' -f1)
           
           [[ "$source_hash" != "$target_hash" ]]
         }
@@ -133,7 +141,7 @@ in
                 $DRY_RUN_CMD chmod 644 "$target_file.new"
                 
                 # 사용자 알림 메시지 생성
-                if [[ -z "$DRY_RUN_CMD" ]]; then
+                if [[ "$DRY_RUN_CMD" == "" ]]; then
                   cat > "$target_file.update-notice" << EOF
 파일 업데이트 알림: $file_name
 
