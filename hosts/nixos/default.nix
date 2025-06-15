@@ -23,7 +23,7 @@ in
     initrd.availableKernelModules = [ "xhci_pci" "ahci" "nvme" "usbhid" "usb_storage" "sd_mod" ];
     # Uncomment for AMD GPU
     # initrd.kernelModules = [ "amdgpu" ];
-    kernelPackages = pkgs.linuxPackages_latest;
+    kernelPackages = pkgs.linuxPackages;
     kernelModules = [ "uinput" ];
   };
 
