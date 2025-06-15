@@ -5,7 +5,7 @@ let
   nixosModules = import ../modules/nixos/packages.nix { inherit pkgs; };
   sharedModules = import ../modules/shared/packages.nix { inherit pkgs; };
 in
-pkgs.runCommand "module-validation-test" {} ''
+pkgs.runCommand "module-validation-test" { } ''
   export USER=testuser
 
   # Test that all module imports are valid

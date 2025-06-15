@@ -6,7 +6,7 @@ let
   getUserLib = import (src + "/lib/get-user.nix");
 
 in
-pkgs.runCommand "dotfiles-core-unit-test" {} ''
+pkgs.runCommand "dotfiles-core-unit-test" { } ''
   ${testHelpers.setupTestEnv}
 
   ${testHelpers.testSection "Dotfiles Core Unit Tests"}

@@ -1,5 +1,5 @@
 { pkgs }:
-pkgs.runCommand "simple-test" {} ''
+pkgs.runCommand "simple-test" { } ''
   echo "Running simple test"
   if [ $((1 + 1)) -ne 2 ]; then
     echo "math is broken"

@@ -2,10 +2,10 @@
 let
   # Test get-user function with current environment
   getUserLib = import ../lib/get-user.nix;
-  currentUser = getUserLib {};
+  currentUser = getUserLib { };
   defaultUser = getUserLib { default = "fallback"; };
 in
-pkgs.runCommand "get-user-test" {} ''
+pkgs.runCommand "get-user-test" { } ''
   # Test that get-user returns a non-empty value
   current_result="${currentUser}"
   if [ -z "$current_result" ]; then

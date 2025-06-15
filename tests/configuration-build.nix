@@ -8,15 +8,16 @@ let
   nixosConfigExists = builtins.hasAttr system flake.outputs.nixosConfigurations;
 
   # Get the configuration for current system
-  config = if pkgs.stdenv.isDarwin && darwinConfigExists then
-    flake.outputs.darwinConfigurations.${system}
-  else if pkgs.stdenv.isLinux && nixosConfigExists then
-    flake.outputs.nixosConfigurations.${system}
-  else
-    null;
+  config =
+    if pkgs.stdenv.isDarwin && darwinConfigExists then
+      flake.outputs.darwinConfigurations.${system}
+    else if pkgs.stdenv.isLinux && nixosConfigExists then
+      flake.outputs.nixosConfigurations.${system}
+    else
+      null;
 
 in
-pkgs.runCommand "configuration-build-test" {} ''
+pkgs.runCommand "configuration-build-test" { } ''
   export USER=testuser
 
   echo "Testing configuration evaluation..."

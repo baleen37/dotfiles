@@ -106,22 +106,22 @@ let
   # Mock data generators
   mockFlake = attrs: {
     description = "Test flake";
-    inputs = {};
-    outputs = {};
+    inputs = { };
+    outputs = { };
   } // attrs;
 
   mockConfig = attrs: {
     system = platform.system;
-    modules = [];
+    modules = [ ];
   } // attrs;
 
   # File system test helpers
   createTempFile = content: ''
-    TEMP_FILE=$(mktemp)
-    cat > $TEMP_FILE << 'EOF'
-${content}
-EOF
-    echo $TEMP_FILE
+        TEMP_FILE=$(mktemp)
+        cat > $TEMP_FILE << 'EOF'
+    ${content}
+    EOF
+        echo $TEMP_FILE
   '';
 
   createTempDir = ''
@@ -166,7 +166,7 @@ EOF
 
   # Nix attribute set test helpers
   assertSetContains = attrSet: expectedKeys:
-    pkgs.runCommand "assert-set-contains" {} ''
+    pkgs.runCommand "assert-set-contains" { } ''
       ${builtins.concatStringsSep "\n" (map (key:
         ''if [ -z "${if builtins.hasAttr key attrSet then "has" else ""}" ]; then
             echo "Missing key: ${key}"
@@ -178,7 +178,8 @@ EOF
     '';
 
 
-in {
+in
+{
   inherit colors platform setupTestEnv;
   inherit assertTrue assertExists assertCommand assertContains;
   inherit testSection testSubsection;

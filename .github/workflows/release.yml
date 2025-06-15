@@ -1,0 +1,191 @@
+name: Release
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.2.3)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    outputs:
+      release-url: ${{ steps.create-release.outputs.html_url }}
+      version: ${{ steps.get-version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get version
+        id: get-version
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            VERSION="${{ inputs.version }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/}"
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          # Get the previous tag
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+
+          # Generate changelog
+          if [ -z "$PREV_TAG" ]; then
+            CHANGES=$(git log --pretty=format:"- %s (%h)" --no-merges)
+          else
+            CHANGES=$(git log --pretty=format:"- %s (%h)" --no-merges ${PREV_TAG}..HEAD)
+          fi
+
+          # Create release notes
+          cat > release-notes.md << EOF
+          ## What's Changed
+
+          $CHANGES
+
+          ## Installation
+
+          \`\`\`bash
+          # Clone the repository
+          git clone https://github.com/${{ github.repository }}.git
+          cd dotfiles
+
+          # Apply configuration
+          export USER=\$(whoami)
+          nix run --impure .#build-switch
+          \`\`\`
+
+          ## Testing
+
+          \`\`\`bash
+          # Run all tests
+          make test
+
+          # List available tests
+          nix run --impure .#test-list
+          \`\`\`
+
+          **Full Changelog**: ${PREV_TAG}...${{ steps.get-version.outputs.version }}
+          EOF
+
+      - name: Create release
+        id: create-release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.get-version.outputs.version }}
+          release_name: Release ${{ steps.get-version.outputs.version }}
+          body_path: release-notes.md
+          draft: false
+          prerelease: false
+
+  build-artifacts:
+    needs: create-release
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            system: x86_64-linux
+          - os: ubuntu-latest
+            system: aarch64-linux
+          - os: macos-latest
+            system: x86_64-darwin
+          - os: macos-latest
+            system: aarch64-darwin
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: cachix/install-nix-action@v25
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+          extra_nix_config: |
+            max-jobs = auto
+            cores = 0
+
+      - name: Build configuration
+        run: |
+          export USER=ci
+
+          # Build appropriate configuration
+          if [[ "${{ matrix.system }}" == *"darwin"* ]]; then
+            nix build --impure .#darwinConfigurations.${{ matrix.system }}.system
+          else
+            nix build --impure .#nixosConfigurations.${{ matrix.system }}.config.system.build.toplevel
+          fi
+
+      - name: Create artifact
+        run: |
+          # Create a summary of the build
+          cat > build-info-${{ matrix.system }}.txt << EOF
+          System: ${{ matrix.system }}
+          Version: ${{ needs.create-release.outputs.version }}
+          Build Date: $(date -u)
+          Nix Version: $(nix --version)
+          EOF
+
+          # Package the result
+          tar -czf dotfiles-${{ matrix.system }}-${{ needs.create-release.outputs.version }}.tar.gz \
+            build-info-${{ matrix.system }}.txt \
+            result
+
+      - name: Upload release asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.release-url }}
+          asset_path: ./dotfiles-${{ matrix.system }}-${{ needs.create-release.outputs.version }}.tar.gz
+          asset_name: dotfiles-${{ matrix.system }}-${{ needs.create-release.outputs.version }}.tar.gz
+          asset_content_type: application/gzip
+
+  update-documentation:
+    needs: [create-release, build-artifacts]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Update version references
+        run: |
+          # Update version in documentation
+          VERSION="${{ needs.create-release.outputs.version }}"
+
+          # Update README if it contains version references
+          if grep -q "Version:" README.md; then
+            sed -i "s/Version: .*/Version: ${VERSION}/" README.md
+          fi
+
+          # Update CLAUDE.md version
+          if grep -q "Version:" CLAUDE.md; then
+            sed -i "s/Version: .*/Version: ${VERSION}/" CLAUDE.md
+          fi
+
+      - name: Create PR for version updates
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore: update version to ${{ needs.create-release.outputs.version }}"
+          title: "chore: update documentation for ${{ needs.create-release.outputs.version }}"
+          body: |
+            This PR updates version references in documentation files for the ${{ needs.create-release.outputs.version }} release.
+
+            - Updates version in README.md
+            - Updates version in CLAUDE.md
+
+            Auto-generated by release workflow.
+          branch: update-version-${{ needs.create-release.outputs.version }}
+          delete-branch: true

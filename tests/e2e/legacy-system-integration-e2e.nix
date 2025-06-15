@@ -4,7 +4,7 @@ let
   system = pkgs.system;
 
 in
-pkgs.runCommand "legacy-system-integration-e2e-test" {} ''
+pkgs.runCommand "legacy-system-integration-e2e-test" { } ''
   ${testHelpers.setupTestEnv}
 
   ${testHelpers.testSection "Legacy System Integration E2E Tests"}

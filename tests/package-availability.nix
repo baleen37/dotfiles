@@ -18,7 +18,7 @@ let
     builtins.all testPackage packages;
 
 in
-pkgs.runCommand "package-availability-test" {} ''
+pkgs.runCommand "package-availability-test" { } ''
   export USER=testuser
 
   echo "Testing package availability..."

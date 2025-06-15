@@ -6,19 +6,20 @@ let
   detectorLib = import ./file-change-detector.nix { inherit lib pkgs; };
 
   # 단일 파일에 대한 조건부 복사 실행
-  conditionalCopyFile = {
-    sourcePath,
-    targetPath,
-    claudeDir ? null,
-    policy ? null,
-    dryRun ? false,
-    verbose ? true,
-    forceOverwrite ? false
-  }:
+  conditionalCopyFile =
+    { sourcePath
+    , targetPath
+    , claudeDir ? null
+    , policy ? null
+    , dryRun ? false
+    , verbose ? true
+    , forceOverwrite ? false
+    }:
     let
       # 기본값 설정
-      actualClaudeDir = if claudeDir != null then claudeDir
-                       else builtins.dirOf targetPath;
+      actualClaudeDir =
+        if claudeDir != null then claudeDir
+        else builtins.dirOf targetPath;
 
       # 변경 감지 실행
       detection = detectorLib.compareFiles sourcePath targetPath;
@@ -27,17 +28,19 @@ let
       options = { inherit forceOverwrite; };
 
       # 정책 결정 (전달된 정책이 없으면 자동 결정)
-      finalPolicy = if policy != null then policy
-                   else policyLib.getPolicyForFile targetPath detection.userModified options;
+      finalPolicy =
+        if policy != null then policy
+        else policyLib.getPolicyForFile targetPath detection.userModified options;
 
       # 액션 생성
       actions = policyLib.generateActions targetPath sourcePath detection options;
 
       # 실제 실행할 쉘 명령어들
-      commands = if dryRun then
-        map (cmd: "echo \"DRY RUN: ${cmd}\"") actions.commands
-      else
-        actions.commands;
+      commands =
+        if dryRun then
+          map (cmd: "echo \"DRY RUN: ${cmd}\"") actions.commands
+        else
+          actions.commands;
 
       # 로그 메시지들
       logMessages = [
@@ -49,7 +52,7 @@ let
       ] ++ (if verbose then [
         "원본 해시: ${detection.details.originalHash or "null"}"
         "현재 해시: ${detection.details.currentHash or "null"}"
-      ] else []);
+      ] else [ ]);
 
       result = {
         inherit sourcePath targetPath detection finalPolicy actions;
@@ -70,19 +73,20 @@ let
     result;
 
   # 여러 파일에 대한 일괄 조건부 복사
-  conditionalCopyDirectory = {
-    sourceDir,
-    targetDir,
-    fileList ? null,
-    dryRun ? false,
-    verbose ? true,
-    parallelJobs ? 1,
-    forceOverwrite ? false
-  }:
+  conditionalCopyDirectory =
+    { sourceDir
+    , targetDir
+    , fileList ? null
+    , dryRun ? false
+    , verbose ? true
+    , parallelJobs ? 1
+    , forceOverwrite ? false
+    }:
     let
       # 파일 목록 자동 생성 (제공되지 않은 경우)
-      actualFileList = if fileList != null then fileList
-                      else policyLib.utils.getAllConfigFiles;
+      actualFileList =
+        if fileList != null then fileList
+        else policyLib.utils.getAllConfigFiles;
 
       # 전체 디렉토리 변경 감지
       detectionResults = detectorLib.detectClaudeConfigChanges targetDir sourceDir;
@@ -94,28 +98,31 @@ let
       directoryPlan = policyLib.generateDirectoryPlan targetDir sourceDir detectionResults.fileResults options;
 
       # 각 파일에 대해 개별 처리
-      fileResults = map (fileName:
-        let
-          sourcePath = "${sourceDir}/${fileName}";
-          targetPath = "${targetDir}/${fileName}";
-          fileDetection = detectionResults.fileResults.${fileName} or null;
-        in
-        if fileDetection != null then
-          conditionalCopyFile {
-            inherit sourcePath targetPath dryRun verbose forceOverwrite;
-            claudeDir = targetDir;
+      fileResults = map
+        (fileName:
+          let
+            sourcePath = "${sourceDir}/${fileName}";
+            targetPath = "${targetDir}/${fileName}";
+            fileDetection = detectionResults.fileResults.${fileName} or null;
+          in
+          if fileDetection != null then
+            conditionalCopyFile
+              {
+                inherit sourcePath targetPath dryRun verbose forceOverwrite;
+                claudeDir = targetDir;
+              }
+          else {
+            # 감지 결과가 없는 파일 (새 파일 등)
+            sourcePath = sourcePath;
+            targetPath = targetPath;
+            detection = null;
+            finalPolicy = policyLib.preservationPolicies.ignore;
+            actions = { commands = [ "echo \"Skipping ${fileName} (not detected)\"" ]; };
+            success = true;
+            stats = { preserved = false; overwritten = false; ignored = true; };
           }
-        else {
-          # 감지 결과가 없는 파일 (새 파일 등)
-          sourcePath = sourcePath;
-          targetPath = targetPath;
-          detection = null;
-          finalPolicy = policyLib.preservationPolicies.ignore;
-          actions = { commands = [ "echo \"Skipping ${fileName} (not detected)\"" ]; };
-          success = true;
-          stats = { preserved = false; overwritten = false; ignored = true; };
-        }
-      ) actualFileList;
+        )
+        actualFileList;
 
       # 전체 통계 계산
       overallStats = {
@@ -161,59 +168,62 @@ let
     result;
 
   # 쉘 스크립트 형태의 조건부 복사 함수 생성
-  generateConditionalCopyScript = {
-    sourceDir,
-    targetDir,
-    scriptName ? "conditional-copy",
-    includeValidation ? true,
-    includeBackup ? true,
-    includeLogging ? true
-  }:
+  generateConditionalCopyScript =
+    { sourceDir
+    , targetDir
+    , scriptName ? "conditional-copy"
+    , includeValidation ? true
+    , includeBackup ? true
+    , includeLogging ? true
+    }:
     let
-      validationSection = if includeValidation then ''
-        # 입력 검증
-        validate_inputs() {
-          if [[ ! -d "${sourceDir}" ]]; then
-            echo "오류: 소스 디렉토리가 존재하지 않음: ${sourceDir}" >&2
-            exit 1
-          fi
+      validationSection =
+        if includeValidation then ''
+          # 입력 검증
+          validate_inputs() {
+            if [[ ! -d "${sourceDir}" ]]; then
+              echo "오류: 소스 디렉토리가 존재하지 않음: ${sourceDir}" >&2
+              exit 1
+            fi
 
-          if [[ ! -d "${targetDir}" ]]; then
-            echo "타겟 디렉토리 생성: ${targetDir}"
-            mkdir -p "${targetDir}"
-          fi
+            if [[ ! -d "${targetDir}" ]]; then
+              echo "타겟 디렉토리 생성: ${targetDir}"
+              mkdir -p "${targetDir}"
+            fi
 
-          if [[ ! -w "${targetDir}" ]]; then
-            echo "오류: 타겟 디렉토리에 쓰기 권한이 없음: ${targetDir}" >&2
-            exit 1
-          fi
-        }
-      '' else "";
+            if [[ ! -w "${targetDir}" ]]; then
+              echo "오류: 타겟 디렉토리에 쓰기 권한이 없음: ${targetDir}" >&2
+              exit 1
+            fi
+          }
+        '' else "";
 
-      backupSection = if includeBackup then ''
-        # 백업 함수
-        create_backup() {
-          local file="$1"
-          local backup_dir="${targetDir}/.backups"
-          local timestamp=$(date +%Y%m%d_%H%M%S)
+      backupSection =
+        if includeBackup then ''
+          # 백업 함수
+          create_backup() {
+            local file="$1"
+            local backup_dir="${targetDir}/.backups"
+            local timestamp=$(date +%Y%m%d_%H%M%S)
 
-          if [[ -f "$file" ]]; then
-            mkdir -p "$backup_dir"
-            cp "$file" "$backup_dir/$(basename "$file").backup.$timestamp"
-            echo "백업 생성: $backup_dir/$(basename "$file").backup.$timestamp"
-          fi
-        }
-      '' else "";
+            if [[ -f "$file" ]]; then
+              mkdir -p "$backup_dir"
+              cp "$file" "$backup_dir/$(basename "$file").backup.$timestamp"
+              echo "백업 생성: $backup_dir/$(basename "$file").backup.$timestamp"
+            fi
+          }
+        '' else "";
 
-      loggingSection = if includeLogging then ''
-        # 로깅 함수
-        log_action() {
-          local action="$1"
-          local file="$2"
-          local timestamp=$(date -Iseconds)
-          echo "[$timestamp] $action: $file" >> "${targetDir}/.copy-log"
-        }
-      '' else "";
+      loggingSection =
+        if includeLogging then ''
+          # 로깅 함수
+          log_action() {
+            local action="$1"
+            local file="$2"
+            local timestamp=$(date -Iseconds)
+            echo "[$timestamp] $action: $file" >> "${targetDir}/.copy-log"
+          }
+        '' else "";
 
       scriptContent = ''
         #!/bin/bash
@@ -347,19 +357,20 @@ let
     pkgs.writeShellScript scriptName scriptContent;
 
   # Claude 설정 전용 고수준 인터페이스
-  updateClaudeConfig = {
-    claudeDir ? "$HOME/.claude",
-    sourceConfigPath ? null,
-    dryRun ? false,
-    verbose ? true,
-    createBackups ? true,
-    notifyUser ? true,
-    forceOverwrite ? false
-  }:
+  updateClaudeConfig =
+    { claudeDir ? "$HOME/.claude"
+    , sourceConfigPath ? null
+    , dryRun ? false
+    , verbose ? true
+    , createBackups ? true
+    , notifyUser ? true
+    , forceOverwrite ? false
+    }:
     let
       # 기본 소스 경로 설정
-      actualSourcePath = if sourceConfigPath != null then sourceConfigPath
-                        else ./../../modules/shared/config/claude;
+      actualSourcePath =
+        if sourceConfigPath != null then sourceConfigPath
+        else ./../../modules/shared/config/claude;
 
       # Claude 설정 업데이트 실행
       result = conditionalCopyDirectory {
@@ -371,19 +382,21 @@ let
       # 추가 처리 (알림, 백업 정리 등)
       postProcessing = {
         # 오래된 백업 파일 정리
-        cleanupOldBackups = if createBackups then ''
-          find "${claudeDir}" -name "*.backup.*" -mtime +30 -delete 2>/dev/null || true
-        '' else "";
+        cleanupOldBackups =
+          if createBackups then ''
+            find "${claudeDir}" -name "*.backup.*" -mtime +30 -delete 2>/dev/null || true
+          '' else "";
 
         # 사용자 알림 요약
-        userNotification = if notifyUser && !dryRun then ''
-          if [[ ${toString result.overallStats.noticesCreated} -gt 0 ]]; then
-            echo ""
-            echo "주의: ${toString result.overallStats.noticesCreated}개의 업데이트 알림이 생성되었습니다."
-            echo "다음 명령어로 확인하세요: find ${claudeDir} -name '*.update-notice'"
-            echo ""
-          fi
-        '' else "";
+        userNotification =
+          if notifyUser && !dryRun then ''
+            if [[ ${toString result.overallStats.noticesCreated} -gt 0 ]]; then
+              echo ""
+              echo "주의: ${toString result.overallStats.noticesCreated}개의 업데이트 알림이 생성되었습니다."
+              echo "다음 명령어로 확인하세요: find ${claudeDir} -name '*.update-notice'"
+              echo ""
+            fi
+          '' else "";
       };
 
       enhancedResult = result // {
@@ -398,7 +411,8 @@ let
     in
     enhancedResult;
 
-in {
+in
+{
   # 공개 API
   inherit conditionalCopyFile conditionalCopyDirectory;
   inherit generateConditionalCopyScript updateClaudeConfig;
@@ -432,21 +446,21 @@ in {
   # 테스트 지원
   test = {
     # 테스트용 목 결과 생성
-    mockCopyResult = {
-      preserved ? 1,
-      overwritten ? 1,
-      ignored ? 1
-    }: {
-      overallStats = {
-        total = preserved + overwritten + ignored;
-        inherit preserved overwritten ignored;
-        backupsCreated = overwritten;
-        noticesCreated = preserved;
-        errors = 0;
-      };
+    mockCopyResult =
+      { preserved ? 1
+      , overwritten ? 1
+      , ignored ? 1
+      }: {
+        overallStats = {
+          total = preserved + overwritten + ignored;
+          inherit preserved overwritten ignored;
+          backupsCreated = overwritten;
+          noticesCreated = preserved;
+          errors = 0;
+        };
 
-      summary = "Mock copy result with ${toString (preserved + overwritten + ignored)} files";
-    };
+        summary = "Mock copy result with ${toString (preserved + overwritten + ignored)} files";
+      };
 
     # 테스트용 간단한 스크립트
     simpleTestScript = generateConditionalCopyScript {

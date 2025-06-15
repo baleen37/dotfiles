@@ -147,7 +147,7 @@ let
   '';
 
 in
-pkgs.runCommand "claude-config-overwrite-integration-test" {} ''
+pkgs.runCommand "claude-config-overwrite-integration-test" { } ''
   echo "=== Claude Configuration Overwrite Integration Test ==="
 
   # Run the integration test

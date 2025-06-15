@@ -14,7 +14,7 @@ let
   makefileExists = builtins.pathExists ../Makefile;
 
   # Test flake apps
-  flakeApps = flake.outputs.apps.${system} or {};
+  flakeApps = flake.outputs.apps.${system} or { };
 
   # Test that essential commands are available
   testCommands = [
@@ -26,10 +26,11 @@ let
     "create-keys"
     "check-keys"
     "rollback"
-  ] else []);
+  ] else [ ]);
 
 in
-pkgs.runCommand "workflow-integration-test" {
+pkgs.runCommand "workflow-integration-test"
+{
   buildInputs = with pkgs; [
     bash
     coreutils

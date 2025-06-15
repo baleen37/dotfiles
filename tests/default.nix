@@ -5,43 +5,52 @@ let
     let
       baseName = builtins.substring 0 ((builtins.stringLength name) - 4) name;
       # Replace hyphens with underscores for valid Nix attribute names
-      sanitized = builtins.replaceStrings ["-"] ["_"] baseName;
-    in sanitized;
+      sanitized = builtins.replaceStrings [ "-" ] [ "_" ] baseName;
+    in
+    sanitized;
 
   # Discover tests in a directory with a pattern
   discoverTests = dir: pattern:
     if builtins.pathExists dir then
       let
         entries = builtins.readDir dir;
-        testFiles = builtins.filter (name:
-          builtins.match pattern name != null
-        ) (builtins.attrNames entries);
+        testFiles = builtins.filter
+          (name:
+            builtins.match pattern name != null
+          )
+          (builtins.attrNames entries);
 
         # Function to check if a test file needs lib parameter
         needsLib = file:
           let
             fileContent = builtins.readFile (dir + ("/" + file));
-          in builtins.match ".*\\{ pkgs, lib,.*" fileContent != null;
+          in
+          builtins.match ".*\\{ pkgs, lib,.*" fileContent != null;
 
-      in builtins.listToAttrs (map (file: {
-        name = sanitizeName file;
-        value =
-          if needsLib file then
-            import (dir + ("/" + file)) { inherit pkgs flake; lib = pkgs.lib; src = ../.; }
-          else
-            import (dir + ("/" + file)) { inherit pkgs flake; src = ../.; };
-      }) testFiles)
-    else {};
+      in
+      builtins.listToAttrs (map
+        (file: {
+          name = sanitizeName file;
+          value =
+            if needsLib file then
+              import (dir + ("/" + file)) { inherit pkgs flake; lib = pkgs.lib; src = ../.; }
+            else
+              import (dir + ("/" + file)) { inherit pkgs flake; src = ../.; };
+        })
+        testFiles)
+    else { };
 
   # Current directory for legacy tests
   legacyDir = ./.;
   legacyEntries = builtins.readDir legacyDir;
-  legacyFiles = builtins.filter (name:
-    name != "default.nix" &&
-    builtins.match ".*\\.nix" name != null &&
-    # Only include files, not directories
-    legacyEntries.${name} == "regular"
-  ) (builtins.attrNames legacyEntries);
+  legacyFiles = builtins.filter
+    (name:
+      name != "default.nix" &&
+      builtins.match ".*\\.nix" name != null &&
+      # Only include files, not directories
+      legacyEntries.${name} == "regular"
+    )
+    (builtins.attrNames legacyEntries);
 
   # Test categories with their patterns
   unitTests = discoverTests ./unit ".*-unit\\.nix";
@@ -51,10 +60,12 @@ let
 
 
   # Legacy tests (to be gradually migrated)
-  legacyTests = builtins.listToAttrs (map (file: {
-    name = "legacy_" + (sanitizeName file);
-    value = import (legacyDir + ("/" + file)) { inherit pkgs; };
-  }) legacyFiles);
+  legacyTests = builtins.listToAttrs (map
+    (file: {
+      name = "legacy_" + (sanitizeName file);
+      value = import (legacyDir + ("/" + file)) { inherit pkgs; };
+    })
+    legacyFiles);
 
   # Combine all tests with clear categorization
   allTests = unitTests // integrationTests // e2eTests // performanceTests // legacyTests;
@@ -72,7 +83,7 @@ let
   };
 
   # Add a special test that reports the framework status
-  frameworkStatus = pkgs.runCommand "test-framework-status" {} ''
+  frameworkStatus = pkgs.runCommand "test-framework-status" { } ''
     echo "=== Test Framework Status ==="
     echo "Unit tests: ${toString testMetadata.categories.unit}"
     echo "Integration tests: ${toString testMetadata.categories.integration}"
@@ -85,7 +96,8 @@ let
     touch $out
   '';
 
-in allTests // {
+in
+allTests // {
   # Include framework status as a test
   framework_status = frameworkStatus;
 }

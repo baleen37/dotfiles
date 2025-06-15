@@ -6,7 +6,7 @@ let
   testHome = "/home/${testUser}";
 
   # Mock activation script result
-  mockActivationResult = pkgs.runCommand "mock-claude-files" {} ''
+  mockActivationResult = pkgs.runCommand "mock-claude-files" { } ''
     mkdir -p $out/.claude/commands
 
     # Create actual files (not symlinks)
@@ -18,7 +18,7 @@ let
   '';
 
 in
-pkgs.runCommand "claude-file-copy-test" {} ''
+pkgs.runCommand "claude-file-copy-test" { } ''
   echo "=== Claude File Copy Test ==="
 
   # Test that CLAUDE.md is a regular file (not symlink)

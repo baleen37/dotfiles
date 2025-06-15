@@ -76,21 +76,22 @@ nix run .#test                    # Run comprehensive test suite
 nix flake check --impure          # Run flake checks
 
 # Run specific test categories using Makefile (recommended)
-make test-unit                    # Unit tests only
-make test-integration             # Integration tests only  
-make test-e2e                     # End-to-end tests only
-make test-perf                    # Performance tests only
+make test-unit                    # Unit tests only (Darwin only)
+make test-integration             # Integration tests only (Darwin only)
+make test-e2e                     # End-to-end tests only (Darwin only)
+make test-perf                    # Performance tests only (Darwin only)
 make test-status                  # Check test framework status
 
 # Direct nix commands for specific test categories
-nix run .#test-unit               # Unit tests only
-nix run .#test-integration        # Integration tests only  
-nix run .#test-e2e                # End-to-end tests only
-nix run .#test-perf               # Performance tests only
-nix run .#test-smoke              # Quick smoke tests
+nix run .#test-unit               # Unit tests (Darwin only)
+nix run .#test-integration        # Integration tests (Darwin only)
+nix run .#test-e2e                # End-to-end tests (Darwin only)
+nix run .#test-perf               # Performance tests (Darwin only)
+nix run .#test-smoke              # Quick smoke tests (all platforms)
 
-# Run specific test file
-nix eval --impure .#checks.$(nix eval --impure --expr 'builtins.currentSystem').simple
+# Platform availability:
+# - Darwin systems: Full test suite available
+# - Linux systems: Basic tests (test, test-smoke, test-list) only
 ```
 
 ## Development Workflows
@@ -169,9 +170,18 @@ The codebase follows a strict modular hierarchy:
 2. **Flake Outputs Structure**:
    ```nix
    {
-     darwinConfigurations."aarch64-darwin" = ...;
-     nixosConfigurations."x86_64-linux" = ...;
-     apps.{system}.{build,switch,rollback} = ...;
+     # Generated for all systems using genAttrs
+     darwinConfigurations = genAttrs darwinSystems (system: ...);
+     nixosConfigurations = genAttrs linuxSystems (system: ...);
+
+     # Platform-specific apps with different availability
+     apps = {
+       aarch64-darwin = { build, build-switch, apply, rollback, test-unit, ... };
+       x86_64-darwin = { build, build-switch, apply, rollback, test-unit, ... };
+       aarch64-linux = { build, build-switch, apply, install, test, ... };
+       x86_64-linux = { build, build-switch, apply, install, test, ... };
+     };
+
      checks.{system}.{test-name} = ...;
    }
    ```
@@ -193,7 +203,7 @@ The codebase follows a strict modular hierarchy:
 - `hosts/{platform}/{host}/`: Host-specific configurations
 - `modules/{platform}/`: Platform-specific modules
 - `modules/shared/`: Cross-platform modules
-- `apps/{architecture}/`: Platform-specific shell scripts
+- `apps/{architecture}/`: Platform-specific shell scripts (actual availability varies by platform)
 - `tests/`: Hierarchical test structure (unit/, integration/, e2e/, performance/)
 - `lib/`: Shared Nix functions (especially `get-user.nix`)
 - `scripts/`: Management and development tools

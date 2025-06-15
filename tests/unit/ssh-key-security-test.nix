@@ -97,7 +97,8 @@ let
   '';
 
 in
-pkgs.runCommand "ssh-key-security-test" {
+pkgs.runCommand "ssh-key-security-test"
+{
   buildInputs = [ pkgs.bash pkgs.gnugrep ];
 } ''
   echo "Running SSH key security tests..."

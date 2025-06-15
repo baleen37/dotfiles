@@ -3,7 +3,7 @@ let
   testHelpers = import ../lib/test-helpers.nix { inherit pkgs; };
   getUserFn = import (src + "/lib/get-user.nix") { };
 in
-pkgs.runCommand "user-resolution-unit-test" {} ''
+pkgs.runCommand "user-resolution-unit-test" { } ''
   export SRC_PATH="${src}"
   ${testHelpers.setupTestEnv}
 

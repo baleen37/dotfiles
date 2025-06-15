@@ -20,7 +20,7 @@ let
   hasSystemDevShell = hasDevShells && builtins.hasAttr system flake.outputs.devShells;
 
 in
-pkgs.runCommand "flake-structure-test" {} ''
+pkgs.runCommand "flake-structure-test" { } ''
   export USER=testuser
 
   echo "Testing flake output structure..."

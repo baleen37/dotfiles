@@ -4,32 +4,35 @@ let
   system = pkgs.system;
 
   # Test system configuration evaluation and basic build components
-  testSystemConfig = if pkgs.stdenv.isDarwin then
-    flake.outputs.darwinConfigurations.${system} or null
-  else
-    flake.outputs.nixosConfigurations.${system} or null;
+  testSystemConfig =
+    if pkgs.stdenv.isDarwin then
+      flake.outputs.darwinConfigurations.${system} or null
+    else
+      flake.outputs.nixosConfigurations.${system} or null;
 
   # Test apps functionality
-  testApps = flake.outputs.apps.${system} or {};
-  expectedApps = if pkgs.stdenv.isDarwin then
-    [ "apply" "build" "build-switch" "copy-keys" "create-keys" "check-keys" "rollback" ]
-  else
-    [ "apply" "build" "build-switch" ];
+  testApps = flake.outputs.apps.${system} or { };
+  expectedApps =
+    if pkgs.stdenv.isDarwin then
+      [ "apply" "build" "build-switch" "copy-keys" "create-keys" "check-keys" "rollback" ]
+    else
+      [ "apply" "build" "build-switch" ];
 
   # Test module imports and dependencies
   testModules = {
     shared = builtins.pathExists ../modules/shared/default.nix;
-    platform = if pkgs.stdenv.isDarwin then
-      builtins.pathExists ../modules/darwin
-    else
-      builtins.pathExists ../modules/nixos;
+    platform =
+      if pkgs.stdenv.isDarwin then
+        builtins.pathExists ../modules/darwin
+      else
+        builtins.pathExists ../modules/nixos;
   };
 
   # Test overlay integration
-  testOverlays = builtins.length (flake.outputs.overlays or []) > 0;
+  testOverlays = builtins.length (flake.outputs.overlays or [ ]) > 0;
 
 in
-pkgs.runCommand "full-system-integration-test" {} ''
+pkgs.runCommand "full-system-integration-test" { } ''
   export USER=testuser
   export HOME=/tmp/test-home
   mkdir -p $HOME

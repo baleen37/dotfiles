@@ -25,7 +25,7 @@ let
   ];
 
 in
-pkgs.runCommand "claude-config-copy-consistency-unit-test" {} ''
+pkgs.runCommand "claude-config-copy-consistency-unit-test" { } ''
   ${testHelpers.setupTestEnv}
 
   ${testHelpers.testSection "Claude Config Copy Consistency Unit Tests"}

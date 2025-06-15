@@ -98,7 +98,7 @@ let
   '';
 
 in
-pkgs.runCommand "claude-file-overwrite-unit-test" {} ''
+pkgs.runCommand "claude-file-overwrite-unit-test" { } ''
   echo "=== Claude File Overwrite Unit Test ==="
 
   # Run the overwrite functionality test

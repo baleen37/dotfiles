@@ -36,71 +36,29 @@
       linuxSystems = [ "x86_64-linux" "aarch64-linux" ];
       darwinSystems = [ "aarch64-darwin" "x86_64-darwin" ];
       forAllSystems = f: nixpkgs.lib.genAttrs (linuxSystems ++ darwinSystems) f;
-      devShell = system: let pkgs = nixpkgs.legacyPackages.${system}; in {
-        default = with pkgs; mkShell {
-          nativeBuildInputs = with pkgs; [ bashInteractive git ];
-          shellHook = with pkgs; ''
-            export EDITOR=vim
-          '';
-        };
-      };
-      mkApp = scriptName: system: {
-        type = "app";
-        program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin scriptName ''
-          #!/usr/bin/env bash
-          PATH=${nixpkgs.legacyPackages.${system}.git}/bin:$PATH
-          echo "Running ${scriptName} for ${system}"
-          exec ${self}/apps/${system}/${scriptName}
-        '')}/bin/${scriptName}";
-      };
-      mkSetupDevApp = system:
-        if builtins.pathExists ./scripts/setup-dev
-        then {
-          type = "app";
-          program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "setup-dev" (builtins.readFile ./scripts/setup-dev))}/bin/setup-dev";
-        }
-        else {
-          type = "app";
-          program = "${nixpkgs.legacyPackages.${system}.writeScriptBin "setup-dev" ''
-            #!/usr/bin/env bash
-            echo "setup-dev script not found. Please run: ./scripts/install-setup-dev"
-            exit 1
-          ''}/bin/setup-dev";
+
+      # Import modularized app builders
+      platformApps = import ./lib/platform-apps.nix { inherit nixpkgs self; };
+      testApps = import ./lib/test-apps.nix { inherit nixpkgs self; };
+
+      devShell = system:
+        let pkgs = nixpkgs.legacyPackages.${system}; in {
+          default = with pkgs; mkShell {
+            nativeBuildInputs = with pkgs; [ bashInteractive git ];
+            shellHook = with pkgs; ''
+              export EDITOR=vim
+            '';
+          };
         };
 
-      # Common test app builder to reduce duplication
-      mkTestApp = testName: checkName: system: {
-        type = "app";
-        program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin testName ''
-          #!/usr/bin/env bash
-          echo "Running ${testName} for ${system}..."
-          nix build --impure .#checks.${system}.${checkName} -L
-        '')}/bin/${testName}";
-      };
+      # Simplified app builders using modules
+      mkLinuxApps = system:
+        platformApps.mkLinuxCoreApps system //
+        testApps.mkLinuxTestApps system;
 
-      # Common apps shared between platforms
-      mkCommonApps = system: {
-        "apply" = mkApp "apply" system;
-        "build" = mkApp "build" system;
-        "build-switch" = mkApp "build-switch" system;
-        "copy-keys" = mkApp "copy-keys" system;
-        "create-keys" = mkApp "create-keys" system;
-        "check-keys" = mkApp "check-keys" system;
-        "setup-dev" = mkSetupDevApp system;
-        "test" = mkTestApp "test" "test-all" system;
-        "test-smoke" = mkTestApp "test-smoke" "smoke-test" system;
-      };
-
-      mkLinuxApps = system: mkCommonApps system // {
-        "install" = mkApp "install" system;
-      };
-      mkDarwinApps = system: mkCommonApps system // {
-        "rollback" = mkApp "rollback" system;
-        "test-unit" = mkTestApp "test-unit" "basic_functionality_unit" system;
-        "test-integration" = mkTestApp "test-integration" "package_availability_integration" system;
-        "test-e2e" = mkTestApp "test-e2e" "system_build_e2e" system;
-        "test-perf" = mkTestApp "test-perf" "build_time_perf" system;
-      };
+      mkDarwinApps = system:
+        platformApps.mkDarwinCoreApps system //
+        testApps.mkDarwinTestApps system;
     in
     {
       devShells = forAllSystems devShell;
@@ -112,11 +70,13 @@
             config.allowUnfree = true;
           };
           testSuite = import ./tests { inherit pkgs; flake = self; };
-        in testSuite // {
+        in
+        testSuite // {
           # Add a comprehensive test runner
-          test-all = pkgs.runCommand "test-all" {
-            buildInputs = [ pkgs.bash ];
-          } ''
+          test-all = pkgs.runCommand "test-all"
+            {
+              buildInputs = [ pkgs.bash ];
+            } ''
             echo "Running comprehensive test suite for ${system}"
             echo "========================================"
 
@@ -134,7 +94,7 @@
           '';
 
           # Quick smoke test for CI/CD
-          smoke-test = pkgs.runCommand "smoke-test" {} ''
+          smoke-test = pkgs.runCommand "smoke-test" { } ''
             echo "Running smoke tests for ${system}"
             echo "Flake structure validation: PASSED"
             echo "Basic functionality check: PASSED"
@@ -142,9 +102,10 @@
           '';
 
           # Lint and format checks
-          lint-check = pkgs.runCommand "lint-check" {
-            buildInputs = with pkgs; [ nixpkgs-fmt statix deadnix ];
-          } ''
+          lint-check = pkgs.runCommand "lint-check"
+            {
+              buildInputs = with pkgs; [ nixpkgs-fmt statix deadnix ];
+            } ''
             echo "Running lint checks for ${system}"
 
             # Check Nix formatting
@@ -158,9 +119,10 @@
           '';
         });
 
-      darwinConfigurations = nixpkgs.lib.genAttrs darwinSystems (system: let
-        user = getUser;
-      in
+      darwinConfigurations = nixpkgs.lib.genAttrs darwinSystems (system:
+        let
+          user = getUser;
+        in
         darwin.lib.darwinSystem {
           inherit system;
           specialArgs = inputs;
@@ -190,7 +152,8 @@
         specialArgs = inputs;
         modules = [
           disko.nixosModules.disko
-          home-manager.nixosModules.home-manager {
+          home-manager.nixosModules.home-manager
+          {
             home-manager = {
               useGlobalPkgs = true;
               useUserPackages = true;
@@ -201,6 +164,6 @@
           }
           ./hosts/nixos
         ];
-     });
-  };
+      });
+    };
 }
