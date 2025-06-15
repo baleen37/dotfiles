@@ -66,9 +66,9 @@ in
       home.activation.copyClaudeFiles = lib.hm.dag.entryAfter ["linkGeneration"] ''
         set -euo pipefail  # Enable strict error handling
 
-        # DRY_RUN_CMD 변수 초기화
+        # DRY_RUN_CMD 변수 초기화 (DRY_RUN이 정의되지 않은 경우 기본값 설정)
         DRY_RUN_CMD=""
-        if [[ "$DRY_RUN" == "1" ]]; then
+        if [[ "''${DRY_RUN:-}" == "1" ]]; then
           DRY_RUN_CMD="echo '[DRY RUN]'"
         fi
 
