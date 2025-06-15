@@ -150,6 +150,7 @@ done
 ### Safety Tips
 - **Always commit or stash** changes before switching worktrees
 - **Use descriptive names** for worktree directories
+- **Branch names MUST be in English** following repository conventions
 - **Clean up regularly** to avoid disk space issues
 - **Don't delete branches** that have active worktrees
 - **Check git status** before removing worktrees

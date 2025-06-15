@@ -67,89 +67,39 @@
             exit 1
           ''}/bin/setup-dev";
         };
-      mkLinuxApps = system: {
-        "apply" = mkApp "apply" system;
-        "build" = mkApp "build" system;
-        "build-switch" = mkApp "build-switch" system;
-        "copy-keys" = mkApp "copy-keys" system;
-        "create-keys" = mkApp "create-keys" system;
-        "check-keys" = mkApp "check-keys" system;
-        "install" = mkApp "install" system;
-        "setup-dev" = mkSetupDevApp system;
-        "test" = {
-          type = "app";
-          program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "test" ''
-            #!/usr/bin/env bash
-            echo "Running tests for ${system}..."
-            nix build --impure .#checks.${system}.test-all -L
-          '')}/bin/test";
-        };
-        "test-smoke" = {
-          type = "app";
-          program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "test-smoke" ''
-            #!/usr/bin/env bash
-            echo "Running smoke tests for ${system}..."
-            nix build --impure .#checks.${system}.smoke-test -L
-          '')}/bin/test-smoke";
-        };
+
+      # Common test app builder to reduce duplication
+      mkTestApp = testName: checkName: system: {
+        type = "app";
+        program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin testName ''
+          #!/usr/bin/env bash
+          echo "Running ${testName} for ${system}..."
+          nix build --impure .#checks.${system}.${checkName} -L
+        '')}/bin/${testName}";
       };
-      mkDarwinApps = system: {
+
+      # Common apps shared between platforms
+      mkCommonApps = system: {
         "apply" = mkApp "apply" system;
         "build" = mkApp "build" system;
         "build-switch" = mkApp "build-switch" system;
         "copy-keys" = mkApp "copy-keys" system;
         "create-keys" = mkApp "create-keys" system;
         "check-keys" = mkApp "check-keys" system;
-        "rollback" = mkApp "rollback" system;
         "setup-dev" = mkSetupDevApp system;
-        "test" = {
-          type = "app";
-          program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "test" ''
-            #!/usr/bin/env bash
-            echo "Running tests for ${system}..."
-            nix build --impure .#checks.${system}.test-all -L
-          '')}/bin/test";
-        };
-        "test-smoke" = {
-          type = "app";
-          program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "test-smoke" ''
-            #!/usr/bin/env bash
-            echo "Running smoke tests for ${system}..."
-            nix build --impure .#checks.${system}.smoke-test -L
-          '')}/bin/test-smoke";
-        };
-        "test-unit" = {
-          type = "app";
-          program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "test-unit" ''
-            #!/usr/bin/env bash
-            echo "Running unit tests for ${system}..."
-            nix build --impure .#checks.${system}.basic_functionality_unit -L
-          '')}/bin/test-unit";
-        };
-        "test-integration" = {
-          type = "app";
-          program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "test-integration" ''
-            #!/usr/bin/env bash
-            echo "Running integration tests for ${system}..."
-            nix build --impure .#checks.${system}.package_availability_integration -L
-          '')}/bin/test-integration";
-        };
-        "test-e2e" = {
-          type = "app";
-          program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "test-e2e" ''
-            #!/usr/bin/env bash
-            echo "Running end-to-end tests for ${system}..."
-            nix build --impure .#checks.${system}.system_build_e2e -L
-          '')}/bin/test-e2e";
-        };
-        "test-perf" = {
-          type = "app";
-          program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "test-perf" ''
-            #!/usr/bin/env bash
-            echo "Running performance tests for ${system}..."
-            nix build --impure .#checks.${system}.build_time_perf -L
-          '')}/bin/test-perf";
-        };
+        "test" = mkTestApp "test" "test-all" system;
+        "test-smoke" = mkTestApp "test-smoke" "smoke-test" system;
+      };
+
+      mkLinuxApps = system: mkCommonApps system // {
+        "install" = mkApp "install" system;
+      };
+      mkDarwinApps = system: mkCommonApps system // {
+        "rollback" = mkApp "rollback" system;
+        "test-unit" = mkTestApp "test-unit" "basic_functionality_unit" system;
+        "test-integration" = mkTestApp "test-integration" "package_availability_integration" system;
+        "test-e2e" = mkTestApp "test-e2e" "system_build_e2e" system;
+        "test-perf" = mkTestApp "test-perf" "build_time_perf" system;
       };
     in
     {
