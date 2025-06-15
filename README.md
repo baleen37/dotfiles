@@ -44,6 +44,15 @@ This repository provides a comprehensive solution for managing development envir
 - **Code Quality**: Automated pre-commit hooks and linting
 - **Build Validation**: Cross-platform build verification
 
+## 📚 Documentation
+
+- **[CLAUDE.md](./CLAUDE.md)** - Comprehensive guide for working with this repository
+- **[Architecture Overview](./docs/architecture.md)** - System design and module hierarchy
+- **[API Reference](./docs/api-reference.md)** - Complete function and module documentation
+- **[Testing Framework](./docs/testing-framework.md)** - Test structure and guidelines
+- **[Module Library](./docs/MODULE-LIBRARY.md)** - Available modules and their usage
+- **[Development Scenarios](./docs/DEVELOPMENT-SCENARIOS.md)** - Common workflow examples
+
 ## 📁 Project Structure
 
 ```
