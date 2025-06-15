@@ -3,21 +3,24 @@
 
 {
   # Error categorization
-  errorType ? "user",  # "build" | "config" | "dependency" | "user" | "system"
+  errorType ? "user"
+, # "build" | "config" | "dependency" | "user" | "system"
   # Component that failed
-  component ? "unknown",
-  # The actual error description
-  message,
-  # Array of suggested solutions
-  suggestions ? [],
-  # Severity level
-  severity ? "error",  # "critical" | "error" | "warning" | "info"
+  component ? "unknown"
+, # The actual error description
+  message
+, # Array of suggested solutions
+  suggestions ? [ ]
+, # Severity level
+  severity ? "error"
+, # "critical" | "error" | "warning" | "info"
   # Language preference
-  locale ? "ko",  # "ko" | "en"
+  locale ? "ko"
+, # "ko" | "en"
   # Debug mode for detailed output
-  debugMode ? false,
-  # Additional context information
-  context ? {}
+  debugMode ? false
+, # Additional context information
+  context ? { }
 }:
 
 let
@@ -81,20 +84,23 @@ let
 
   # Format suggestions list
   formatSuggestions = suggestions:
-    if suggestions == [] then
+    if suggestions == [ ] then
       "   ${t "no_suggestions"}"
     else
       builtins.concatStringsSep "\n" (
-        map (i: let
-          idx = toString (i + 1);
-          suggestion = builtins.elemAt suggestions i;
-        in "   ${idx}. ${suggestion}")
-        (builtins.genList (x: x) (builtins.length suggestions))
+        map
+          (i:
+            let
+              idx = toString (i + 1);
+              suggestion = builtins.elemAt suggestions i;
+            in
+            "   ${idx}. ${suggestion}")
+          (builtins.genList (x: x) (builtins.length suggestions))
       );
 
   # Format context information
   formatContext = context:
-    if context == {} then ""
+    if context == { } then ""
     else
       let
         contextLines = builtins.attrNames context;
@@ -150,7 +156,7 @@ let
         (pattern: builtins.match ".*${pattern}.*" message != null)
         (builtins.attrNames commonErrorPatterns);
     in
-    if matchingPattern != [] then
+    if matchingPattern != [ ] then
       let
         pattern = builtins.head matchingPattern;
         patternInfo = commonErrorPatterns.${pattern};
@@ -158,7 +164,8 @@ let
       if locale == "ko" && builtins.hasAttr "ko" patternInfo then
         {
           message = patternInfo.ko;
-          suggestions = if suggestions == [] && builtins.hasAttr "suggestions_ko" patternInfo
+          suggestions =
+            if suggestions == [ ] && builtins.hasAttr "suggestions_ko" patternInfo
             then patternInfo.suggestions_ko
             else suggestions;
         }
@@ -188,7 +195,7 @@ let
     "${colors.red}${finalErrorInfo.message}${colors.reset}";
 
   suggestionsDisplay =
-    if finalErrorInfo.suggestions != [] then
+    if finalErrorInfo.suggestions != [ ] then
       "\n\n${colors.green}${colors.bold}${t "suggestions"}:${colors.reset}\n" +
       formatSuggestions finalErrorInfo.suggestions
     else "";
@@ -218,4 +225,4 @@ let
   '';
 
 in
-  builtins.throw completeErrorMessage
+builtins.throw completeErrorMessage
