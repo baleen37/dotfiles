@@ -131,11 +131,17 @@ in
   # Same as Darwin implementation for platform consistency
   home.activation.copyClaudeFiles = lib.hm.dag.entryAfter ["linkGeneration"] ''
     set -euo pipefail  # Enable strict error handling
+
+    # DRY_RUN_CMD 변수 초기화
+    DRY_RUN_CMD=""
+    if [[ "$DRY_RUN" == "1" ]]; then
+      DRY_RUN_CMD="echo '[DRY RUN]'"
+    fi
+
     $DRY_RUN_CMD mkdir -p "${config.home.homeDirectory}/.claude/commands"
 
     CLAUDE_DIR="${config.home.homeDirectory}/.claude"
-    SOURCE_DIR="${../shared/config/claude}"
-
+    SOURCE_DIR="${self}/modules/shared/config/claude"
     echo "=== 스마트 Claude 설정 업데이트 시작 ==="
     echo "Claude 디렉토리: $CLAUDE_DIR"
     echo "소스 디렉토리: $SOURCE_DIR"
@@ -199,7 +205,7 @@ in
             $DRY_RUN_CMD chmod 644 "$target_file.new"
 
             # 사용자 알림 메시지 생성
-            if [[ -z "$DRY_RUN_CMD" ]]; then
+            if [[ "$DRY_RUN_CMD" == "" ]]; then
               cat > "$target_file.update-notice" << EOF
 파일 업데이트 알림: $file_name
 
