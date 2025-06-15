@@ -20,18 +20,18 @@ repos:
   # Nix-specific quality checks
   - repo: local
     hooks:
-      # Fast syntax validation for .nix files
+      # Fast syntax validation for .nix files (skip if nix not available)
       - id: nix-syntax-check
         name: Nix Syntax Check
-        entry: bash -c 'for file in "$@"; do echo "Checking $file..."; nix-instantiate --parse "$file" > /dev/null || exit 1; done'
+        entry: bash -c 'if command -v nix-instantiate >/dev/null 2>&1; then for file in "$@"; do echo "Checking $file..."; nix-instantiate --parse "$file" > /dev/null || exit 1; done; else echo "Nix not available, skipping syntax check"; fi'
         language: system
         files: \\.nix$
         pass_filenames: true
 
-      # Comprehensive flake validation
+      # Comprehensive flake validation (skip if nix not available)
       - id: nix-flake-check
         name: Nix Flake Check
-        entry: bash -c 'export USER=${USER:-$(whoami)} && nix flake check --impure --all-systems --no-build'
+        entry: bash -c 'if command -v nix >/dev/null 2>&1; then export USER=${USER:-$(whoami)} && nix flake check --impure --all-systems --no-build; else echo "Nix not available, skipping flake check"; fi'
         language: system
         files: \\.nix$
         pass_filenames: false
