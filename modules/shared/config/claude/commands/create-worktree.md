@@ -14,29 +14,29 @@ Efficient git worktree management for parallel development workflows.
 
 ```bash
 # Most common: Create feature branch worktree
-git worktree add -b feature/new-feature ./tree/feature/new-feature
+git worktree add -b feature/new-feature ./.local/tree/feature/new-feature
 
 # Review PR: Create worktree for existing remote branch
-git worktree add ./tree/pr-123 origin/feature/some-feature
+git worktree add ./.local/tree/pr-123 origin/feature/some-feature
 
 # Hotfix: Create worktree from main
-git worktree add -b hotfix/critical-bug ./tree/hotfix/critical-bug main
+git worktree add -b hotfix/critical-bug ./.local/tree/hotfix/critical-bug main
 ```
 
 ## Core Commands
 
 ```bash
 # Create new branch and worktree (from current HEAD)
-git worktree add -b BRANCH_NAME ./tree/BRANCH_NAME
+git worktree add -b BRANCH_NAME ./.local/tree/BRANCH_NAME
 
 # Create new branch and worktree from specific base
-git worktree add -b BRANCH_NAME ./tree/BRANCH_NAME BASE_BRANCH
+git worktree add -b BRANCH_NAME ./.local/tree/BRANCH_NAME BASE_BRANCH
 
 # Create worktree for existing branch
-git worktree add ./tree/BRANCH_NAME BRANCH_NAME
+git worktree add ./.local/tree/BRANCH_NAME BRANCH_NAME
 
 # Create worktree for remote branch
-git worktree add ./tree/BRANCH_NAME origin/BRANCH_NAME
+git worktree add ./.local/tree/BRANCH_NAME origin/BRANCH_NAME
 ```
 
 ## Management Commands
@@ -46,13 +46,13 @@ git worktree add ./tree/BRANCH_NAME origin/BRANCH_NAME
 git worktree list
 
 # Move worktree to new location
-git worktree move ./tree/old-path ./tree/new-path
+git worktree move ./.local/tree/old-path ./.local/tree/new-path
 
 # Remove worktree (safe - checks for uncommitted changes)
-git worktree remove ./tree/BRANCH_NAME
+git worktree remove ./.local/tree/BRANCH_NAME
 
 # Remove worktree (force - ignores uncommitted changes)
-git worktree remove --force ./tree/BRANCH_NAME
+git worktree remove --force ./.local/tree/BRANCH_NAME
 
 # Prune deleted worktree references
 git worktree prune
@@ -65,23 +65,23 @@ git worktree prune
 # Create worktree for PR review
 pr_number=123
 gh pr checkout $pr_number --detach
-git worktree add ./tree/review-pr-$pr_number HEAD
+git worktree add ./.local/tree/review-pr-$pr_number HEAD
 
 # Switch to review environment
-cd ./tree/review-pr-$pr_number
+cd ./.local/tree/review-pr-$pr_number
 # Run tests, review code, etc.
 
 # Clean up after review
 cd ../..
-git worktree remove ./tree/review-pr-$pr_number
+git worktree remove ./.local/tree/review-pr-$pr_number
 ```
 
 ### Multi-feature Development
 ```bash
 # Create worktrees for parallel features
-git worktree add -b feature/auth ./tree/feature/auth
-git worktree add -b feature/api ./tree/feature/api
-git worktree add -b feature/ui ./tree/feature/ui
+git worktree add -b feature/auth ./.local/tree/feature/auth
+git worktree add -b feature/api ./.local/tree/feature/api
+git worktree add -b feature/ui ./.local/tree/feature/ui
 
 # Work on different features in parallel
 # Each worktree maintains its own working directory state
@@ -99,7 +99,7 @@ mkdir -p ./tree
 
 # Create worktrees for all open PRs
 gh pr list --json number,headRefName --jq '.[] | "\(.number):\(.headRefName)"' | while IFS=':' read pr_num branch; do
-  branch_path="./tree/pr-${pr_num}-${branch//\//-}"
+  branch_path="./.local/tree/pr-${pr_num}-${branch//\//-}"
   
   if [ ! -d "$branch_path" ]; then
     echo "Creating worktree for PR #$pr_num ($branch)"
@@ -140,7 +140,7 @@ done
 
 ### Directory Structure
 ```
-./tree/
+./.local/tree/
 ├── feature/auth/           # Feature branches
 ├── feature/api/
 ├── hotfix/bug-123/         # Hotfixes
@@ -165,7 +165,7 @@ done
 
 ```bash
 # Fix "worktree already exists" error
-git worktree remove --force ./tree/problematic-worktree
+git worktree remove --force ./.local/tree/problematic-worktree
 git worktree prune
 
 # Fix "branch is already checked out" error
