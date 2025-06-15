@@ -29,27 +29,19 @@ smoke:
 endif
 
 test:
-	$(NIX) flake check --impure --no-build
+	@$(NIX) run --impure .#test $(ARGS)
 
 test-unit:
-	@echo "Running unit tests..."
-	@SYSTEM=$$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"'); \
-	$(NIX) build --impure --no-link ".#checks.$$SYSTEM.basic_functionality_unit" $(ARGS) && echo "✓ Unit tests passed"
+	@$(NIX) run --impure .#test-unit $(ARGS)
 
 test-integration:
-	@echo "Running integration tests..."
-	@SYSTEM=$$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"'); \
-	$(NIX) build --impure --no-link ".#checks.$$SYSTEM.package_availability_integration" $(ARGS) && echo "✓ Integration tests passed"
+	@$(NIX) run --impure .#test-integration $(ARGS)
 
 test-e2e:
-	@echo "Running end-to-end tests..."
-	@SYSTEM=$$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"'); \
-	$(NIX) build --impure --no-link ".#checks.$$SYSTEM.system_build_e2e" $(ARGS) && echo "✓ E2E tests passed"
+	@$(NIX) run --impure .#test-e2e $(ARGS)
 
 test-perf:
-	@echo "Running performance tests..."
-	@SYSTEM=$$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"'); \
-	$(NIX) build --impure --no-link ".#checks.$$SYSTEM.build_time_perf" $(ARGS) && echo "✓ Performance tests completed"
+	@$(NIX) run --impure .#test-perf $(ARGS)
 
 test-status:
 	@echo "Checking test framework status..."
