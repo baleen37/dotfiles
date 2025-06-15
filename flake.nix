@@ -36,6 +36,11 @@
       linuxSystems = [ "x86_64-linux" "aarch64-linux" ];
       darwinSystems = [ "aarch64-darwin" "x86_64-darwin" ];
       forAllSystems = f: nixpkgs.lib.genAttrs (linuxSystems ++ darwinSystems) f;
+      
+      # Import modularized app builders
+      platformApps = import ./lib/platform-apps.nix { inherit nixpkgs self; };
+      testApps = import ./lib/test-apps.nix { inherit nixpkgs self; };
+      
       devShell = system: let pkgs = nixpkgs.legacyPackages.${system}; in {
         default = with pkgs; mkShell {
           nativeBuildInputs = with pkgs; [ bashInteractive git ];
@@ -44,113 +49,15 @@
           '';
         };
       };
-      mkApp = scriptName: system: {
-        type = "app";
-        program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin scriptName ''
-          #!/usr/bin/env bash
-          PATH=${nixpkgs.legacyPackages.${system}.git}/bin:$PATH
-          echo "Running ${scriptName} for ${system}"
-          exec ${self}/apps/${system}/${scriptName}
-        '')}/bin/${scriptName}";
-      };
-      mkSetupDevApp = system: 
-        if builtins.pathExists ./scripts/setup-dev
-        then {
-          type = "app";
-          program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "setup-dev" (builtins.readFile ./scripts/setup-dev))}/bin/setup-dev";
-        }
-        else {
-          type = "app";
-          program = "${nixpkgs.legacyPackages.${system}.writeScriptBin "setup-dev" ''
-            #!/usr/bin/env bash
-            echo "setup-dev script not found. Please run: ./scripts/install-setup-dev"
-            exit 1
-          ''}/bin/setup-dev";
-        };
-      mkLinuxApps = system: {
-        "apply" = mkApp "apply" system;
-        "build" = mkApp "build" system;
-        "build-switch" = mkApp "build-switch" system;
-        "copy-keys" = mkApp "copy-keys" system;
-        "create-keys" = mkApp "create-keys" system;
-        "check-keys" = mkApp "check-keys" system;
-        "install" = mkApp "install" system;
-        "setup-dev" = mkSetupDevApp system;
-        "test" = {
-          type = "app";
-          program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "test" ''
-            #!/usr/bin/env bash
-            echo "Running tests for ${system}..."
-            nix build --impure .#checks.${system}.test-all -L
-          '')}/bin/test";
-        };
-        "test-smoke" = {
-          type = "app"; 
-          program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "test-smoke" ''
-            #!/usr/bin/env bash
-            echo "Running smoke tests for ${system}..."
-            nix build --impure .#checks.${system}.smoke-test -L
-          '')}/bin/test-smoke";
-        };
-      };
-      mkDarwinApps = system: {
-        "apply" = mkApp "apply" system;
-        "build" = mkApp "build" system;
-        "build-switch" = mkApp "build-switch" system;
-        "copy-keys" = mkApp "copy-keys" system;
-        "create-keys" = mkApp "create-keys" system;
-        "check-keys" = mkApp "check-keys" system;
-        "rollback" = mkApp "rollback" system;
-        "setup-dev" = mkSetupDevApp system;
-        "test" = {
-          type = "app";
-          program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "test" ''
-            #!/usr/bin/env bash
-            echo "Running tests for ${system}..."
-            nix build --impure .#checks.${system}.test-all -L
-          '')}/bin/test";
-        };
-        "test-smoke" = {
-          type = "app"; 
-          program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "test-smoke" ''
-            #!/usr/bin/env bash
-            echo "Running smoke tests for ${system}..."
-            nix build --impure .#checks.${system}.smoke-test -L
-          '')}/bin/test-smoke";
-        };
-        "test-unit" = {
-          type = "app";
-          program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "test-unit" ''
-            #!/usr/bin/env bash
-            echo "Running unit tests for ${system}..."
-            nix build --impure .#checks.${system}.basic_functionality_unit -L
-          '')}/bin/test-unit";
-        };
-        "test-integration" = {
-          type = "app";
-          program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "test-integration" ''
-            #!/usr/bin/env bash
-            echo "Running integration tests for ${system}..."
-            nix build --impure .#checks.${system}.package_availability_integration -L
-          '')}/bin/test-integration";
-        };
-        "test-e2e" = {
-          type = "app";
-          program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "test-e2e" ''
-            #!/usr/bin/env bash
-            echo "Running end-to-end tests for ${system}..."
-            nix build --impure .#checks.${system}.system_build_e2e -L
-          '')}/bin/test-e2e";
-        };
-        "test-perf" = {
-          type = "app";
-          program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "test-perf" ''
-            #!/usr/bin/env bash
-            echo "Running performance tests for ${system}..."
-            nix build --impure .#checks.${system}.build_time_perf -L
-          '')}/bin/test-perf";
-        };
-      };
+      
+      # Simplified app builders using modules
+      mkLinuxApps = system: 
+        platformApps.mkLinuxCoreApps system // 
+        testApps.mkLinuxTestApps system;
+        
+      mkDarwinApps = system: 
+        platformApps.mkDarwinCoreApps system // 
+        testApps.mkDarwinTestApps system;
     in
     {
       devShells = forAllSystems devShell;
