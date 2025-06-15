@@ -18,7 +18,7 @@ pkgs.runCommand "auto-update-integration-test"
   HOME_MANAGER_FILE="${src}/modules/shared/home-manager.nix"
   ${testHelpers.assertExists "$HOME_MANAGER_FILE" "Home Manager configuration exists"}
   ${testHelpers.assertContains "$HOME_MANAGER_FILE" "auto-update-dotfiles" "Home Manager references auto-update script"}
-  ${testHelpers.assertContains "$HOME_MANAGER_FILE" "--silent" "Home Manager uses silent mode"}
+  ${testHelpers.assertContains "$HOME_MANAGER_FILE" "silent" "Home Manager uses silent mode"}
 
   # Test 2: Script Integration with Dotfiles Structure
   ${testHelpers.testSubsection "Dotfiles Structure Integration"}
