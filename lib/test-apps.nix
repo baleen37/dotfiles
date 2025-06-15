@@ -86,6 +86,25 @@ let
       inherit system; 
       command = "smoke-test"; 
     };
+    "test-list" = {
+      type = "app";
+      program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "test-list" ''
+        #!/usr/bin/env bash
+        echo "Available test categories for ${system}:"
+        echo ""
+        echo "Unit tests (${toString (builtins.length testCategories.unit)} tests):"
+        ${nixpkgs.lib.concatStringsSep "\n" (map (test: "echo \"  - ${test}\"") testCategories.unit)}
+        echo ""
+        echo "Integration tests (${toString (builtins.length testCategories.integration)} tests):"
+        ${nixpkgs.lib.concatStringsSep "\n" (map (test: "echo \"  - ${test}\"") testCategories.integration)}
+        echo ""
+        echo "E2E tests (${toString (builtins.length testCategories.e2e)} tests):"
+        ${nixpkgs.lib.concatStringsSep "\n" (map (test: "echo \"  - ${test}\"") testCategories.e2e)}
+        echo ""
+        echo "Performance tests (${toString (builtins.length testCategories.perf)} tests):"
+        ${nixpkgs.lib.concatStringsSep "\n" (map (test: "echo \"  - ${test}\"") testCategories.perf)}
+      '')}/bin/test-list";
+    };
   };
 
   # Build extended test apps (Darwin only for now)
