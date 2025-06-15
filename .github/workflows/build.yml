@@ -14,7 +14,18 @@ permissions:
 
 jobs:
   core-build:
-    runs-on: macos-latest
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            system: x86_64-darwin
+          - os: macos-latest
+            system: aarch64-darwin
+          - os: ubuntu-latest
+            system: x86_64-linux
+          - os: ubuntu-latest
+            system: aarch64-linux
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -35,9 +46,10 @@ jobs:
           path: |
             /nix/store
             ~/.cache/nix
-          key: ${{ runner.os }}-core-nix-${{ hashFiles('flake.lock', 'modules/shared/**/*.nix', 'modules/darwin/packages.nix') }}
+          key: ${{ runner.os }}-${{ matrix.system }}-core-nix-${{ hashFiles('flake.lock', 'modules/shared/**/*.nix', 'modules/darwin/packages.nix') }}
           restore-keys: |
-            ${{ runner.os }}-core-nix-
+            ${{ runner.os }}-${{ matrix.system }}-core-nix-
+            ${{ runner.os }}-${{ matrix.system }}-nix-
             ${{ runner.os }}-nix-
 
       - name: Build development shell
@@ -45,23 +57,23 @@ jobs:
         run: |
           export USER=ci
           # Test basic development environment
-          nix build --impure --no-link .#devShells.x86_64-darwin.default --max-jobs auto --cores 0
+          nix build --impure --no-link .#devShells.${{ matrix.system }}.default --max-jobs auto --cores 0
 
       - name: Build core Nix packages
         timeout-minutes: 10
         run: |
           export USER=ci
           # Build individual packages without system integration
-          nix build --impure --no-link .#packages.x86_64-darwin --max-jobs auto --cores 0 || true
+          nix build --impure --no-link .#packages.${{ matrix.system }} --max-jobs auto --cores 0 || true
           # Validate flake structure
-          nix flake check --impure --no-build --system x86_64-darwin
+          nix flake check --impure --no-build --system ${{ matrix.system }}
 
       - name: Run core validation
-        run: make smoke SYSTEM=x86_64-darwin
+        run: make smoke SYSTEM=${{ matrix.system }}
 
   full-build:
     runs-on: macos-latest
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
     needs: core-build
     steps:
       - uses: actions/checkout@v4
