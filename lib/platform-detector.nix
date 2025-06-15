@@ -3,10 +3,10 @@
 
 {
   # Override platform detection (for testing)
-  overridePlatform ? null,
-  # Override architecture detection (for testing)
-  overrideArch ? null,
-  # Enable debug output
+  overridePlatform ? null
+, # Override architecture detection (for testing)
+  overrideArch ? null
+, # Enable debug output
   debugMode ? false
 }:
 
@@ -28,8 +28,10 @@ let
   supportedPlatforms = [ "darwin" "linux" ];
   supportedArchs = [ "x86_64" "aarch64" ];
   supportedSystems = [
-    "x86_64-darwin" "aarch64-darwin"
-    "x86_64-linux" "aarch64-linux"
+    "x86_64-darwin"
+    "aarch64-darwin"
+    "x86_64-linux"
+    "aarch64-linux"
   ];
 
   # Validation functions
@@ -62,7 +64,7 @@ let
   getCurrentOptimizations =
     if builtins.hasAttr currentPlatform buildOptimizations
     then buildOptimizations.${currentPlatform}
-    else { extraArgs = []; parallelism = "auto"; substituters = []; };
+    else { extraArgs = [ ]; parallelism = "auto"; substituters = [ ]; };
 
   # Debug information
   debugInfo = {
@@ -135,7 +137,7 @@ let
     getSupportedSystems = supportedSystems;
 
     # Debug information
-    getDebugInfo = if debugMode then debugInfo else {};
+    getDebugInfo = if debugMode then debugInfo else { };
 
     # Utility functions
     getOtherPlatforms = builtins.filter (p: p != currentPlatform) supportedPlatforms;
@@ -149,4 +151,4 @@ let
   };
 
 in
-  api
+api
