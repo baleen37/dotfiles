@@ -1,5 +1,9 @@
 result
 
+# Worktree directories
+tree/
+.local/tree/
+
 # Added by Task Master AI
 # Logs
 logs

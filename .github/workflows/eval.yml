@@ -15,6 +15,12 @@ jobs:
         include:
           - os: macos-latest
             system: x86_64-darwin
+          - os: macos-latest
+            system: aarch64-darwin
+          - os: ubuntu-latest
+            system: x86_64-linux
+          - os: ubuntu-latest
+            system: aarch64-linux
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -34,9 +40,10 @@ jobs:
           path: |
             /nix/store
             ~/.cache/nix
-          key: ${{ runner.os }}-eval-nix-${{ hashFiles('flake.lock', '**/*.nix') }}
+          key: ${{ runner.os }}-${{ matrix.system }}-eval-nix-${{ hashFiles('flake.lock', '**/*.nix') }}
           restore-keys: |
-            ${{ runner.os }}-eval-nix-
+            ${{ runner.os }}-${{ matrix.system }}-eval-nix-
+            ${{ runner.os }}-${{ matrix.system }}-nix-
             ${{ runner.os }}-nix-
       - name: Run smoke test
         run: make smoke SYSTEM=${{ matrix.system }}
