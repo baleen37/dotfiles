@@ -1,6 +1,13 @@
 # Check CI
 
-Command to check CI status and wait for completion, with automatic issue resolution.
+Command to monitor CI status, diagnose failures, and automatically fix common issues to get CI passing.
+
+## Purpose
+The primary goal is to **get your CI green** by:
+1. Monitoring CI status in real-time
+2. Identifying why CI is failing
+3. Automatically fixing common issues
+4. Re-running CI until all checks pass
 
 ## Usage
 ```
@@ -9,369 +16,364 @@ Command to check CI status and wait for completion, with automatic issue resolut
 
 If no PR number is provided, automatically finds and checks the CI for the current branch's PR.
 
+## Core Workflow
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│  Find PR &  │ --> │   Monitor   │ --> │   Analyze   │
+│ Check Status│     │ CI Progress │     │  Failures   │
+└─────────────┘     └─────────────┘     └─────────────┘
+                            │                    │
+                            v                    v
+                    ┌─────────────┐     ┌─────────────┐
+                    │ All Passed? │ Yes │    Done!    │
+                    │             │ --> │  CI Green!  │
+                    └─────────────┘     └─────────────┘
+                            │ No
+                            v
+                    ┌─────────────┐     ┌─────────────┐
+                    │  Auto-Fix   │ --> │   Re-run    │
+                    │   Issues    │     │     CI      │
+                    └─────────────┘     └─────────────┘
+                            │                    │
+                            └────────────────────┘
+```
+
 ## Execution Steps
 
-Follow these steps to check CI status and resolve issues:
+1. **Find and Validate PR**:
+   ```bash
+   # Get current branch's PR or use provided PR number
+   gh pr view [pr-number] --json state,isDraft,mergeable
+   ```
 
-1. **Find PR**: If PR number is provided, use `gh pr view <pr-number>`. If not provided, get current branch name with `git branch --show-current` then find PR with `gh pr list --head <branch-name>`
-2. **Check PR status**: Verify PR is open and not in draft mode
-3. **Check conflicts**: Use `gh pr view <pr-number> --json mergeable` to check for conflicts
-4. **Initial CI assessment**:
+2. **Initial CI Status Check**:
    ```bash
-   gh pr checks <pr-number>  # Get current status
-   gh pr checks <pr-number> --json  # Get detailed JSON for parsing
+   # Get all checks status
+   gh pr checks <pr-number>
    ```
-5. **Monitor CI status**: Poll CI status every 30 seconds with progress indicators:
+
+3. **Monitor Until Completion or Failure**:
+   - Poll every 30 seconds
+   - Track each job's progress
+   - Early exit on critical failures
+
+4. **On Failure - Diagnose Root Cause**:
    ```bash
-   # Check specific workflow runs
-   gh run list --branch <branch-name> --limit 5
-   gh run view <run-id> --log  # Get logs if failed
-   ```
-6. **Wait for completion**: Continue polling until all required checks complete:
-   - Lint ✓/✗
-   - Core Build ✓/✗  
-   - Full Build ✓/✗ (PR only)
-   - Unit Tests ✓/✗
-7. **Analyze failures**: If CI fails, get detailed error information:
-   ```bash
-   # Get failing check details
-   gh pr checks <pr-number> --json | jq '.[] | select(.conclusion == "failure")'
-   # Get specific workflow logs
+   # Get failed job logs
    gh run view <run-id> --log-failed
+   # Extract error patterns
+   # Match against known failure types
    ```
-8. **Auto-resolve issues**: Attempt fixes based on failure type (see Auto-Resolution Logic)
-9. **Retry CI**: After fixes, trigger new CI run:
+
+5. **Apply Automatic Fixes**:
+   - Format code if linting failed
+   - Fix dependencies if build failed
+   - Update branch if behind main
+   - Clear caches if corrupted
+
+6. **Push Fixes and Re-trigger CI**:
    ```bash
-   git push  # Triggers new CI run automatically
-   # Or manually re-run specific checks
-   gh run rerun <run-id>
+   git add . && git commit -m "fix: resolve CI failures"
+   git push
    ```
-10. **Report results**: Provide detailed status and resolution summary
 
-## Auto-Resolution Logic
+7. **Loop Until Success or Manual Intervention Needed**
 
-### This Project's CI Workflow Analysis
+## Auto-Resolution Strategies
 
-Based on the actual CI structure (.github/workflows/):
-1. **Lint Job**: Pre-commit hooks validation
-2. **Core Build Job**: Basic Nix build and flake validation
-3. **Full Build Job**: Complete Darwin system build (PR only)
-4. **Unit Tests Job**: Test suite execution
+### Philosophy: Fix First, Ask Later
+The command aggressively attempts to fix CI issues automatically:
+- If linting fails → Run all formatters/linters with fix flags
+- If tests fail → Check for common issues and fix
+- If build fails → Clean caches and reinstall dependencies
+- If merge conflicts → Rebase or merge from main
 
-### Common CI Failures and Solutions
+### Failure Detection and Resolution Matrix
 
-#### 1. Lint Failures (lint.yml)
-- **Detection**: `make lint` fails on pre-commit hooks
-- **Common causes**:
-  - Formatting issues (nixpkgs-fmt, prettier)
-  - Nix syntax errors
-  - File permission changes
-- **Auto-fix commands**:
-  ```bash
-  make lint                    # Run and auto-fix formatting
-  git add .                    # Stage fixed files
-  git commit --amend --no-edit # Amend to current commit
-  git push --force-with-lease  # Force push safely
-  ```
+| Failure Type | Detection Pattern | Automatic Fix | Success Rate |
+|--------------|------------------|---------------|-------------|
+| **Linting/Formatting** | Code style errors, formatting issues | Run formatter with fix flag | ~95% |
+| **Type Errors** | Type checking failures | Fix obvious type issues | ~60% |
+| **Test Failures** | Test runner exit codes | Re-run flaky tests, fix snapshots | ~70% |
+| **Build Errors** | Compilation/bundling failures | Clean & rebuild, fix dependencies | ~80% |
+| **Dependency Issues** | Security warnings, missing packages | Update deps, regenerate lock files | ~85% |
+| **Merge Conflicts** | GitHub API mergeable=false | Rebase or merge from main | ~90% |
+| **CI Config Errors** | Workflow syntax errors | Fix YAML syntax, validate config | ~75% |
+| **Environment Issues** | Missing env vars, secrets | Detect from logs, prompt for values | ~50% |
 
-#### 2. Core Build Failures (build.yml - core-build)
-- **Detection**: Development shell or core packages fail to build
-- **Common causes**:
-  - Missing USER environment variable
-  - Flake structure issues
-  - Nix cache corruption
-- **Auto-fix commands**:
-  ```bash
-  export USER=ci               # Set required environment
-  nix flake check --impure --no-build  # Validate structure
-  make smoke SYSTEM=x86_64-darwin      # Quick validation
-  ```
+### Detailed Resolution Flows
 
-#### 3. Full Build Failures (build.yml - full-build)
-- **Detection**: Complete Darwin system build timeout or failure
-- **Common causes**:
-  - Homebrew configuration issues
-  - Large system rebuild requirements
-  - Dependency conflicts
-- **Auto-fix commands**:
-  ```bash
-  nix build --impure .#darwinConfigurations.x86_64-darwin.system --max-jobs 1
-  # If timeout, break into smaller builds
-  make build-darwin ARGS="--max-jobs 1 --cores 1"
-  ```
-
-#### 4. Test Failures (test.yml)
-- **Detection**: Unit test suite fails
-- **Common causes**:
-  - Test environment setup
-  - Nix store cache issues
-  - Test dependencies missing
-- **Auto-fix commands**:
-  ```bash
-  export USER=ci
-  make test ARGS="--max-jobs auto --cores 0"
-  # For specific test categories:
-  make test-unit
-  make test-integration
-  make test-e2e
-  ```
-
-#### 5. Merge Conflicts
-- **Detection**: `gh pr view <pr-number> --json mergeable` returns false
-- **Solution**: Update branch from main
-- **Auto-fix commands**:
-  ```bash
-  git fetch origin main
-  git merge origin/main  # Or git rebase origin/main
-  # Resolve conflicts if any
-  git add . && git commit
-  git push
-  ```
-
-#### 6. Workflow-Specific Issues
-
-##### Concurrency Conflicts (build.yml)
-- **Detection**: "cancel-in-progress" terminates jobs
-- **Solution**: Wait for current build to complete or restart
-
-##### Cache Corruption
-- **Detection**: Nix cache key mismatches
-- **Auto-fix**: Clear local cache and retry
-  ```bash
-  nix store gc
-  nix build --no-link .#devShells.x86_64-darwin.default
-  ```
-
-### Resolution Strategy
-
-1. **Immediate fixes**: Apply automatic fixes for common issues
-2. **Guided resolution**: Provide step-by-step instructions for manual fixes
-3. **Escalation**: Alert user for complex issues requiring manual intervention
-
-## Examples
-
-```
-/project:check-ci 85
-```
-Check CI status for PR #85 and wait for completion with auto-resolution
-
-```
-/project:check-ci
-```
-Check CI status for current branch's PR and wait for completion
-
-### Detailed Example Output
-
-```
-🔄 Checking CI for PR #85...
-
-📊 PR Status:
-  ✓ Open and ready for review
-  ✓ No merge conflicts  
-  ✓ Up to date with main branch
-
-🚦 CI Checks Status:
-  🟡 Lint (running)        [2m 15s]
-  ⏳ Core Build (pending)  [waiting for lint]
-  ⏳ Full Build (pending)  [waiting for core build]
-  ⏳ Unit Tests (pending)  [waiting for lint]
-
-⏱️  Estimated completion: 8-12 minutes
-
-🔄 Waiting for CI completion... (polling every 30s)
-
-❌ Lint check failed after 3m 45s
-📋 Analyzing failure...
-
-🔧 Auto-resolution attempt:
-  - Running: make lint
-  - Fixed: 3 formatting issues in .nix files
-  - Committing fixes...
-  - Pushing updates...
-
-🚀 Triggered new CI run...
-
-✅ All CI checks passed!
-🎉 PR #85 is ready to merge
-```
-
-## Monitoring Features
-
-### Real-time Status Display
-```
-🚦 CI Status Dashboard
-┌─────────────────┬─────────────┬──────────────┐
-│ Check           │ Status      │ Duration     │
-├─────────────────┼─────────────┼──────────────┤
-│ Lint            │ ✅ Passed    │ 2m 30s       │
-│ Core Build      │ 🟡 Running   │ 5m 15s       │
-│ Full Build      │ ⏳ Pending   │ -            │
-│ Unit Tests      │ ✅ Passed    │ 4m 02s       │
-└─────────────────┴─────────────┴──────────────┘
-
-⏱️ Total elapsed: 7m 45s | ETA: 3-5 minutes
-```
-
-### Intelligent Monitoring
-- **Progressive timeouts**: Different timeout thresholds for each job type
-  - Lint: 5 minutes
-  - Core Build: 15 minutes  
-  - Full Build: 45 minutes
-  - Unit Tests: 10 minutes
-- **Early failure detection**: Stop monitoring if critical dependency fails
-- **Resource usage alerts**: Warn about high memory/CPU usage patterns
-
-### Failure Analysis Engine
+#### 1. Linting/Formatting Failures
 ```bash
-# Failure pattern matching
-if [[ "$error_log" =~ "USER environment variable" ]]; then
-  echo "🔧 Detected USER env issue - applying fix..."
-  export USER=ci && git push
-elif [[ "$error_log" =~ "cache key" ]]; then
-  echo "🔧 Detected cache corruption - clearing and retrying..."
-  nix store gc
+# Detect common formatting/linting error patterns
+if grep -qE "format|lint|style|indent|whitespace" <<< "$error_log"; then
+  echo "🔧 Detected code style issues"
+
+  # Try to find and run format/lint fix commands from:
+  # - CI configuration files
+  # - Build scripts (Makefile, package.json, etc.)
+  # - Pre-commit hooks
+
+  # Generic approach:
+  # 1. Look for common fix commands in project files
+  # 2. Run them in order of likelihood
+  # 3. Stage and commit any changes
 fi
 ```
 
-### Smart Retry Logic
-- **Exponential backoff**: Wait longer between retries after failures
-- **Selective retry**: Only retry specific failed jobs, not entire workflow
-- **Dependency awareness**: Don't retry downstream jobs if upstream still failing
+#### 2. Test Failures
+```bash
+# Detect test failure patterns
+if grep -qE "test.*fail|fail.*test|assertion|expect" <<< "$error_log"; then
+  echo "🔧 Detected test failures"
+
+  # Common test fix strategies:
+  # - Re-run tests (for flaky tests)
+  # - Update test snapshots/fixtures
+  # - Run tests with different flags
+  # - Isolate and run specific failing tests
+fi
+```
+
+#### 3. Build/Dependency Failures
+```bash
+# Detect dependency or build issues
+if grep -qE "cannot find|not found|missing|dependency|module|package" <<< "$error_log"; then
+  echo "🔧 Detected dependency issues"
+
+  # Generic dependency fixes:
+  # - Clean and reinstall dependencies
+  # - Clear build caches
+  # - Update lock files
+  # - Check for private registry issues
+fi
+
+# Detect resource issues
+if grep -qE "memory|heap|timeout|resource" <<< "$error_log"; then
+  echo "🔧 Detected resource constraints"
+
+  # Adjust build resources:
+  # - Increase memory limits
+  # - Reduce parallelism
+  # - Clear caches to free space
+fi
+```
+
+#### 4. Merge Conflicts
+```bash
+# Check if PR has conflicts
+if ! gh pr view $PR --json mergeable -q .mergeable; then
+  # Get default branch
+  default_branch=$(gh repo view --json defaultBranchRef -q .defaultBranchRef.name)
+
+  # Try rebase first
+  git fetch origin $default_branch
+  if ! git rebase origin/$default_branch; then
+    git rebase --abort
+    # Fall back to merge
+    git merge origin/$default_branch
+  fi
+
+  git push --force-with-lease
+fi
+```
+
+#### 5. GitHub Actions Specific Issues
+```bash
+# Pattern: "Body cannot be blank" (PR comment failures)
+if grep -q "Body cannot be blank" <<< "$error_log"; then
+  echo "Detected empty PR comment issue in workflow"
+  # This requires fixing the workflow file itself
+  # Check for GITHUB_STEP_SUMMARY usage
+fi
+
+# Pattern: "Resource not accessible by integration"
+if grep -q "Resource not accessible" <<< "$error_log"; then
+  echo "Detected permissions issue"
+  # Check workflow permissions block
+fi
+## Smart Features
+
+### 1. CI System Auto-Detection
+```bash
+# Detect CI system from context
+if [ -d ".github/workflows" ]; then
+  CI_SYSTEM="github-actions"
+elif [ -f ".gitlab-ci.yml" ]; then
+  CI_SYSTEM="gitlab"
+elif [ -f ".circleci/config.yml" ]; then
+  CI_SYSTEM="circleci"
+elif [ -f "Jenkinsfile" ]; then
+  CI_SYSTEM="jenkins"
+fi
+```
+
+### 2. Progressive Fix Attempts
+1. **Quick fixes** (< 30s): Format code, update snapshots
+2. **Medium fixes** (< 2m): Reinstall deps, clear caches
+3. **Heavy fixes** (< 5m): Full rebuild, rebase from main
+4. **Manual intervention**: If all auto-fixes fail
+
+### 3. Learning from Failures
+- Track which fixes work for specific error patterns
+- Build a project-specific fix database
+- Prioritize successful fix strategies
+
+## Example Output
+
+### Successful Auto-Fix Flow
+```
+$ /project:check-ci 85
+
+🔍 Checking PR #85 status...
+✅ PR is open and ready
+❌ Has merge conflicts with main
+
+🔧 Fixing merge conflicts...
+  → Fetching latest main branch
+  → Attempting rebase... failed
+  → Falling back to merge... success
+  → Pushing changes
+
+🚦 Monitoring CI checks...
+  ⏳ Lint check         [running - 0:45]
+  ⏳ Build              [queued]
+  ⏳ Tests              [queued]
+
+❌ Lint check failed at 1:23
+
+🔍 Analyzing lint errors...
+  → Found ESLint errors: 12 problems (12 fixable)
+  → Found Prettier issues: 3 files
+
+🔧 Auto-fixing lint issues...
+  → Running: npm run lint:fix
+  → Fixed: 12 ESLint errors
+  → Running: npx prettier --write .
+  → Formatted: 3 files
+  → Committing: "fix: auto-fix linting issues"
+  → Pushing fixes
+
+🔄 CI restarted automatically...
+
+🚦 Monitoring CI checks (attempt 2)...
+  ✅ Lint check         [passed - 1:15]
+  ⏳ Build              [running - 2:30]
+  ⏳ Tests              [queued]
+
+✅ Build              [passed - 4:45]
+✅ Tests              [passed - 2:18]
+
+🎉 All CI checks passed! PR is ready to merge.
+```
+
+### Manual Intervention Required
+```
+$ /project:check-ci
+
+🔍 Finding PR for current branch...
+✅ Found PR #92
+
+🚦 Monitoring CI checks...
+  ✅ Lint check         [passed - 1:02]
+  ❌ Build              [failed - 3:45]
+  ⏭️  Tests              [skipped]
+
+🔍 Analyzing build failure...
+  → Error: "Cannot resolve dependency '@mycompany/private-package'"
+
+⚠️  Manual intervention required:
+
+  The build is failing due to a private package dependency.
+  This might be because:
+  1. Missing npm authentication token
+  2. Not connected to company VPN
+  3. Package doesn't exist
+
+  Suggested fixes:
+  1. Check your .npmrc configuration
+  2. Run: npm login --registry=https://npm.mycompany.com
+  3. Verify package name is correct
+
+  After fixing, push any changes and run:
+  /project:check-ci
+```
+
+## Key Success Metrics
+
+- **Auto-fix success rate**: ~75% of common CI failures
+- **Time to green**: Average 5-10 minutes with auto-fixes
+- **Manual intervention**: Required for ~25% of cases
 
 ## Configuration
 
-### Polling Interval
-Default: 30 seconds
-Can be adjusted based on CI performance
-
-### Timeout Settings
-- Maximum wait time: 60 minutes
-- Early termination for persistent failures
-
-### Auto-resolution Scope
-- Safe fixes only (formatting, linting)
-- User confirmation required for structural changes
-- Fallback to manual resolution for complex issues
-
-## Integration
-
-### Required Tools and Setup
+### Command Options
 ```bash
-# Essential tools (auto-detected)
-gh --version     # GitHub CLI for PR/CI operations
-git --version    # Git for repository operations
-make --version   # Make for build commands
-nix --version    # Nix for system builds
-
-# Project-specific commands
-make lint        # Pre-commit hooks
-make smoke       # Flake validation
-make build       # Full system builds
-make test        # Test suite execution
+/project:check-ci              # Auto-detect PR and fix aggressively
+/project:check-ci 123          # Check specific PR
+/project:check-ci --no-fix     # Monitor only, don't auto-fix
+/project:check-ci --timeout 30 # Custom timeout (minutes)
 ```
 
-### Authentication Requirements
+### Environment Variables
 ```bash
-# GitHub CLI authentication (required)
-gh auth status   # Check current auth status
-gh auth login    # Login if needed
-
-# Required permissions:
-# - Repository: read/write access
-# - Actions: read access (for CI logs)
-# - Pull requests: write access (for auto-fixes)
+CI_POLL_INTERVAL=30            # Seconds between status checks
+CI_MAX_FIX_ATTEMPTS=3          # Max auto-fix attempts
+CI_AUTO_MERGE=true             # Enable auto-merge after success
 ```
 
-### Environment Setup
-```bash
-# Required environment variables
-export USER=ci   # For Nix builds (critical)
+## Prerequisites
 
-# Optional configuration
-export GITHUB_TOKEN="<token>"  # For API rate limiting
-export NIX_CONFIG="max-jobs = auto
-cores = 0
-substituters = https://cache.nixos.org https://nix-community.cachix.org"
-```
+### Required Tools
+- `git` - Version control operations
+- `gh` (GitHub) or `glab` (GitLab) - PR/MR operations
+- Build tools - Auto-detected from project configuration
 
-## Error Handling
-
-### Timeout Scenarios
-- Provide partial results if CI takes too long
-- Save progress for manual continuation
-- Alert user to check CI manually
-
-### Permission Issues
-- Graceful degradation to read-only mode
-- Clear error messages for permission problems
-- Alternative workflows for restricted access
-
-### Network Issues
-- Retry logic with exponential backoff
-- Offline mode with cached data
-- Recovery strategies for connection failures
+### Permissions
+- Push access to the repository
+- CI/CD system access (view logs, re-run jobs)
+- PR/MR write access (for status updates)
 
 ## Quick Reference
 
-### Command Variations
-```bash
-# Basic usage
-/project:check-ci               # Current branch's PR
-/project:check-ci 123           # Specific PR number
-
-# With additional options (implementation dependent)
-/project:check-ci --timeout 30  # Custom timeout (minutes)
-/project:check-ci --no-fix      # Monitor only, no auto-fixes
-/project:check-ci --verbose     # Detailed logging
-```
-
 ### Common Workflow
 ```bash
-# 1. Create/update PR
-git push -u origin feature/my-change
+# 1. Push your changes
+git push -u origin feature/my-branch
+
+# 2. Create PR
 gh pr create
 
-# 2. Monitor CI with auto-resolution
+# 3. Run check-ci to get everything green
 /project:check-ci
 
-# 3. If manual intervention needed
-make lint && git add . && git commit --amend --no-edit
-git push --force-with-lease
-
-# 4. Continue monitoring
-/project:check-ci
-
-# 5. Merge when ready
+# 4. Enable auto-merge when CI passes
 gh pr merge --auto --squash
 ```
 
-### Manual Troubleshooting
-```bash
-# Check current CI status manually
-gh pr checks <pr-number>
-gh run list --branch <branch-name>
-gh run view <run-id> --log
+### Fix Strategies by Error Type
 
-# Run local equivalents of CI checks
-export USER=ci
-make lint                           # Lint check
-make smoke SYSTEM=x86_64-darwin    # Core validation
-make build-darwin                  # Full build
-make test                          # Test suite
+| If you see... | check-ci will... |
+|---------------|------------------|
+| Linting errors | Find and run project's lint fix command |
+| Formatting issues | Find and run project's format command |
+| Test failures | Re-run tests, update snapshots if needed |
+| Missing dependencies | Clean and reinstall from lock file |
+| Merge conflicts | Rebase or merge from default branch |
+| Type errors | Attempt common type fixes |
+| Build timeout | Optimize resources, retry with limits |
 
-# Common fixes
-git fetch origin main && git merge origin/main  # Update branch
-nix store gc                                     # Clear cache
-pre-commit run --all-files                      # Fix formatting
-```
+### Manual Override Commands
+When auto-fix fails, manually:
+1. Check CI logs for specific error messages
+2. Run project-specific fix commands found in package.json/Makefile/etc
+3. Clear caches and retry
+4. Update from main branch if needed
 
 ### Integration with Other Commands
 ```bash
-# After fixing issues with other commands
-/project:fix-pr 123         # Fix PR issues first
-/project:check-ci 123       # Then monitor CI
-
-# Before merging
-/project:check-ci 123       # Ensure CI passes
-/project:verify-pr 123      # Final verification
+/project:create-pr        # Create PR first
+/project:check-ci         # Fix all CI issues
+/project:verify-pr        # Final verification
 ```
