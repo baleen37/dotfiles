@@ -16,7 +16,7 @@ let
         nix build --impure .#checks.${system}.smoke-test -L
       '' else ''
         # For specific test categories, run the corresponding tests
-        ${nixpkgs.lib.concatStringsSep "\n" (map (test: 
+        ${nixpkgs.lib.concatStringsSep "\n" (map (test:
           "nix build --impure .#checks.${system}.${test} -L"
         ) extraTests)}
       ''}
@@ -76,15 +76,15 @@ let
 
   # Build base test apps (common for all platforms)
   mkBaseTestApps = system: {
-    "test" = mkTestApp { 
-      name = "test"; 
-      inherit system; 
-      command = "test-all"; 
+    "test" = mkTestApp {
+      name = "test";
+      inherit system;
+      command = "test-all";
     };
-    "test-smoke" = mkTestApp { 
-      name = "test-smoke"; 
-      inherit system; 
-      command = "smoke-test"; 
+    "test-smoke" = mkTestApp {
+      name = "test-smoke";
+      inherit system;
+      command = "smoke-test";
     };
     "test-list" = {
       type = "app";
@@ -109,24 +109,24 @@ let
 
   # Build extended test apps (Darwin only for now)
   mkExtendedTestApps = system: {
-    "test-unit" = mkTestApp { 
-      name = "test-unit"; 
-      inherit system; 
+    "test-unit" = mkTestApp {
+      name = "test-unit";
+      inherit system;
       extraTests = testCategories.unit;
     };
-    "test-integration" = mkTestApp { 
-      name = "test-integration"; 
-      inherit system; 
+    "test-integration" = mkTestApp {
+      name = "test-integration";
+      inherit system;
       extraTests = testCategories.integration;
     };
-    "test-e2e" = mkTestApp { 
-      name = "test-e2e"; 
-      inherit system; 
+    "test-e2e" = mkTestApp {
+      name = "test-e2e";
+      inherit system;
       extraTests = testCategories.e2e;
     };
-    "test-perf" = mkTestApp { 
-      name = "test-perf"; 
-      inherit system; 
+    "test-perf" = mkTestApp {
+      name = "test-perf";
+      inherit system;
       extraTests = testCategories.perf;
     };
   };
@@ -135,7 +135,7 @@ in
   # Export functions for use in flake.nix
   mkLinuxTestApps = system: mkBaseTestApps system;
   mkDarwinTestApps = system: mkBaseTestApps system // mkExtendedTestApps system;
-  
+
   # Export test categories for potential reuse
   inherit testCategories;
 }

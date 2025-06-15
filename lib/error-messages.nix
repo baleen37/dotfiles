@@ -42,7 +42,7 @@ in
       command = ''
         # Show detailed trace:
         nix build --impure --show-trace .#${system}
-        
+
         # Clear cache and retry:
         nix store gc && nix build --impure .#${system}
       '';
@@ -65,7 +65,7 @@ in
       command = ''
         # If you need sudo:
         sudo ${operation}
-        
+
         # For build-switch:
         sudo nix run --impure .#build-switch
       '';
@@ -90,7 +90,7 @@ in
       command = ''
         # Run specific test with details:
         nix build --impure --show-trace .#checks.$(nix eval --impure --expr 'builtins.currentSystem').${test}
-        
+
         # Run all ${category} tests:
         nix run --impure .#test-${category}
       '';
@@ -103,7 +103,7 @@ in
       command = ''
         # Validate configuration:
         nix flake check --impure --show-trace
-        
+
         # Check specific file syntax:
         nix-instantiate --parse ${file}
       '';
@@ -116,7 +116,7 @@ in
       command = ''
         # Test connectivity:
         curl -I ${url}
-        
+
         # Retry with fallback substituters:
         nix build --substituters https://cache.nixos.org --impure .#build
       '';
@@ -127,10 +127,10 @@ in
   helpers = {
     # Print error and exit
     throwError = error: builtins.throw error;
-    
+
     # Print warning but continue
     printWarning = warning: builtins.trace warning;
-    
+
     # Conditional error based on environment
     requireEnv = var: default:
       let value = builtins.getEnv var;

@@ -16,11 +16,11 @@ let
   };
 
   # Setup-dev app builder with fallback handling
-  mkSetupDevApp = system: 
+  mkSetupDevApp = system:
     if builtins.pathExists (self + "/scripts/setup-dev")
     then {
       type = "app";
-      program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "setup-dev" 
+      program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "setup-dev"
         (builtins.readFile (self + "/scripts/setup-dev"))
       )}/bin/setup-dev";
     }
@@ -58,25 +58,25 @@ let
   ];
 
   # Build app set for a system
-  mkAppSet = { system, includeApps }: 
+  mkAppSet = { system, includeApps }:
     nixpkgs.lib.genAttrs includeApps (appName: mkApp appName system);
 
 in
 {
   # Build Linux apps (core + SSH + linux-specific)
-  mkLinuxCoreApps = system: 
-    mkAppSet { 
-      inherit system; 
-      includeApps = coreApps ++ sshApps ++ linuxOnlyApps; 
+  mkLinuxCoreApps = system:
+    mkAppSet {
+      inherit system;
+      includeApps = coreApps ++ sshApps ++ linuxOnlyApps;
     } // {
       "setup-dev" = mkSetupDevApp system;
     };
 
   # Build Darwin apps (core + SSH + darwin-specific)
-  mkDarwinCoreApps = system: 
-    mkAppSet { 
-      inherit system; 
-      includeApps = coreApps ++ sshApps ++ darwinOnlyApps; 
+  mkDarwinCoreApps = system:
+    mkAppSet {
+      inherit system;
+      includeApps = coreApps ++ sshApps ++ darwinOnlyApps;
     } // {
       "setup-dev" = mkSetupDevApp system;
     };

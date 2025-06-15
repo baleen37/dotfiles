@@ -57,9 +57,9 @@ spinner() {
 # Check prerequisites
 check_prerequisites() {
     print_header "Checking Prerequisites"
-    
+
     local errors=0
-    
+
     # Check Nix
     print_step "Checking Nix installation..."
     if command -v nix &> /dev/null; then
@@ -68,7 +68,7 @@ check_prerequisites() {
         print_error "Nix not found"
         ((errors++))
     fi
-    
+
     # Check USER environment
     print_step "Checking USER environment variable..."
     if [[ -n "${USER:-}" ]]; then
@@ -82,7 +82,7 @@ check_prerequisites() {
             ((errors++))
         fi
     fi
-    
+
     # Check disk space
     print_step "Checking disk space..."
     if [[ "$(uname)" == "Darwin" ]]; then
@@ -90,13 +90,13 @@ check_prerequisites() {
     else
         available=$(df -BG /nix 2>/dev/null | awk 'NR==2 {print $4}' | sed 's/G//' || echo "0")
     fi
-    
+
     if [[ "$available" -gt 10 ]]; then
         print_success "Sufficient disk space: ${available}GB available"
     else
         print_warning "Low disk space: ${available}GB available (10GB recommended)"
     fi
-    
+
     # Check network
     print_step "Checking network connectivity..."
     if ping -c 1 cache.nixos.org &> /dev/null; then
@@ -104,12 +104,12 @@ check_prerequisites() {
     else
         print_warning "Cannot reach cache.nixos.org (builds may be slower)"
     fi
-    
+
     if [[ $errors -gt 0 ]]; then
         print_error "Prerequisites check failed"
         return 1
     fi
-    
+
     print_success "All prerequisites met"
     return 0
 }
@@ -117,13 +117,13 @@ check_prerequisites() {
 # Build with progress
 build_system() {
     local system="${1:-}"
-    
+
     if [[ -z "$system" ]]; then
         system=$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"')
     fi
-    
+
     print_header "Building Configuration for $system"
-    
+
     # Determine build target
     local target
     if [[ "$system" == *"darwin"* ]]; then
@@ -131,42 +131,42 @@ build_system() {
     else
         target="nixosConfigurations.$system.config.system.build.toplevel"
     fi
-    
+
     # Pre-build optimization
     print_step "Optimizing build environment..."
     nix store gc --max 1G &> /dev/null &
     spinner $!
     print_success "Build environment optimized"
-    
+
     # Start build with progress
     print_step "Starting build for $target..."
     echo ""
-    
+
     local build_log=$(mktemp)
     local start_time=$(date +%s)
-    
+
     # Run build with real-time output
     if nix build --impure --log-format bar-with-logs ".#$target" 2>&1 | tee "$build_log"; then
         local end_time=$(date +%s)
         local duration=$((end_time - start_time))
-        
+
         print_success "Build completed successfully in ${duration}s"
-        
+
         # Show build size
         if [[ -L "result" ]]; then
             local size=$(du -sh result | cut -f1)
             print_step "Build size: $size"
         fi
-        
+
         return 0
     else
         print_error "Build failed"
         print_warning "Check the log above for errors"
-        
+
         # Show last few error lines
         echo -e "\n${BOLD}Last error lines:${NC}"
         tail -20 "$build_log" | grep -E "(error:|warning:)" || true
-        
+
         rm -f "$build_log"
         return 1
     fi
@@ -175,14 +175,14 @@ build_system() {
 # Apply configuration
 apply_system() {
     print_header "Applying System Configuration"
-    
+
     if [[ ! -L "result" ]]; then
         print_error "No build result found. Run build first."
         return 1
     fi
-    
+
     print_step "Switching to new configuration..."
-    
+
     if [[ "$(uname)" == "Darwin" ]]; then
         if sudo ./result/sw/bin/darwin-rebuild switch; then
             print_success "Configuration applied successfully"
@@ -198,7 +198,7 @@ apply_system() {
             return 1
         fi
     fi
-    
+
     # Clean up
     print_step "Cleaning up..."
     rm -f result
@@ -209,7 +209,7 @@ apply_system() {
 main() {
     local command="${1:-build}"
     shift || true
-    
+
     case "$command" in
         build)
             check_prerequisites || exit 1

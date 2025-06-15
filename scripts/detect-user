@@ -22,42 +22,42 @@ print_error() {
 # Try multiple methods to detect user
 detect_user() {
     local detected_user=""
-    
+
     # Method 1: USER environment variable
     if [[ -n "${USER:-}" ]]; then
         detected_user="$USER"
         echo "Detected from USER env: $detected_user"
         return 0
     fi
-    
+
     # Method 2: LOGNAME environment variable
     if [[ -n "${LOGNAME:-}" ]]; then
         detected_user="$LOGNAME"
         echo "Detected from LOGNAME env: $detected_user"
         return 0
     fi
-    
+
     # Method 3: whoami command
     if command -v whoami &> /dev/null; then
         detected_user=$(whoami)
         echo "Detected from whoami: $detected_user"
         return 0
     fi
-    
+
     # Method 4: id command
     if command -v id &> /dev/null; then
         detected_user=$(id -un)
         echo "Detected from id: $detected_user"
         return 0
     fi
-    
+
     # Method 5: Check home directory
     if [[ -n "${HOME:-}" ]]; then
         detected_user=$(basename "$HOME")
         echo "Detected from HOME: $detected_user"
         return 0
     fi
-    
+
     # Failed to detect
     return 1
 }
@@ -66,15 +66,15 @@ detect_user() {
 echo "Detecting current user..."
 if user=$(detect_user); then
     print_success "User detected: $user"
-    
+
     # Export for current session
     export USER="$user"
-    
+
     # Provide instructions for persistence
     echo ""
     echo "To make this permanent, add to your shell profile:"
     echo ""
-    
+
     if [[ -f "$HOME/.zshrc" ]]; then
         echo "  echo 'export USER=\"$user\"' >> ~/.zshrc"
     elif [[ -f "$HOME/.bashrc" ]]; then
@@ -82,7 +82,7 @@ if user=$(detect_user); then
     else
         echo "  export USER=\"$user\""
     fi
-    
+
     echo ""
     echo "Or run commands with:"
     echo "  USER=$user nix run --impure .#build-switch"
