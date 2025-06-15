@@ -1,7 +1,8 @@
 { pkgs, config, user, self, lib, ... }:
 
 let
-  userHome = if pkgs.stdenv.isDarwin
+  userHome =
+    if pkgs.stdenv.isDarwin
     then config.users.users.${user}.home or "/Users/${user}"
     else builtins.getEnv "HOME";
 

@@ -3,7 +3,7 @@ let
   testHelpers = import ../lib/test-helpers.nix { inherit pkgs; };
   system = pkgs.system;
 in
-pkgs.runCommand "cross-platform-integration-test" {} ''
+pkgs.runCommand "cross-platform-integration-test" { } ''
   ${testHelpers.setupTestEnv}
 
   ${testHelpers.testSection "Cross-Platform Integration Tests"}

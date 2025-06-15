@@ -19,7 +19,7 @@ let
   };
 
 in
-pkgs.runCommand "claude-config-copy-unit-test" {} ''
+pkgs.runCommand "claude-config-copy-unit-test" { } ''
   echo "=== Claude Config Copy Unit Test ==="
 
   # Test that CLAUDE.md is generated with text content

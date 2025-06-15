@@ -10,7 +10,7 @@ let
   nixOverlays = builtins.filter (name: builtins.match ".*\\.nix" name != null) overlayFiles;
 
 in
-pkgs.runCommand "overlay-functionality-test" {} ''
+pkgs.runCommand "overlay-functionality-test" { } ''
   export USER=testuser
 
   echo "Testing overlay functionality..."

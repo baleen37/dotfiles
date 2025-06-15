@@ -3,7 +3,8 @@ let
   testHelpers = import ../lib/test-helpers.nix { inherit pkgs; };
 
 in
-pkgs.runCommand "network-dependencies-integration-test" {
+pkgs.runCommand "network-dependencies-integration-test"
+{
   nativeBuildInputs = with pkgs; [ nix git jq ];
 } ''
   ${testHelpers.setupTestEnv}

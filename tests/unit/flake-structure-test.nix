@@ -90,7 +90,8 @@ let
   '';
 
 in
-pkgs.runCommand "flake-structure-test" {
+pkgs.runCommand "flake-structure-test"
+{
   buildInputs = [ pkgs.bash pkgs.gnugrep pkgs.coreutils ];
 } ''
   echo "Running flake structure tests..."

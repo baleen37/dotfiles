@@ -5,8 +5,8 @@
   # Nix daemon settings for optimal performance
   nixSettings = {
     # Parallel building
-    max-jobs = "auto";  # Use all available cores
-    cores = 0;          # Use all cores for each job
+    max-jobs = "auto"; # Use all available cores
+    cores = 0; # Use all cores for each job
 
     # Build optimization
     sandbox = true;
@@ -15,9 +15,9 @@
     keep-derivations = true;
 
     # Network optimization
-    http-connections = 50;  # Increase parallel downloads
-    connect-timeout = 5;    # Faster timeout for unresponsive servers
-    download-attempts = 3;  # Retry failed downloads
+    http-connections = 50; # Increase parallel downloads
+    connect-timeout = 5; # Faster timeout for unresponsive servers
+    download-attempts = 3; # Retry failed downloads
 
     # Substituter configuration
     substituters = [
@@ -32,8 +32,8 @@
     # Garbage collection
     gc-keep-outputs = true;
     gc-keep-derivations = true;
-    min-free = 1073741824;      # 1GB minimum free space
-    max-free = 10737418240;     # 10GB to free when GC runs
+    min-free = 1073741824; # 1GB minimum free space
+    max-free = 10737418240; # 10GB to free when GC runs
 
     # Experimental features
     experimental-features = [
@@ -43,8 +43,8 @@
     ];
 
     # Build log settings
-    build-poll-interval = 1;    # Check build progress every second
-    log-lines = 100;            # Show last 100 lines on failure
+    build-poll-interval = 1; # Check build progress every second
+    log-lines = 100; # Show last 100 lines on failure
 
     # Security
     allowed-users = [ "@wheel" "@admin" ];
@@ -75,13 +75,13 @@
       enable = true;
       path = "/var/cache/nix";
       maxSize = "50G";
-      priority = 10;  # Prefer local cache
+      priority = 10; # Prefer local cache
     };
 
     # Remote cache settings
     remoteCache = {
       enable = true;
-      pushTo = null;  # Set to push builds to cachix
+      pushTo = null; # Set to push builds to cachix
       priority = 20;
     };
   };

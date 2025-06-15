@@ -3,7 +3,7 @@ let
   testHelpers = import ../lib/test-helpers.nix { inherit pkgs; };
   system = pkgs.system;
 in
-pkgs.runCommand "build-time-performance-test" {} ''
+pkgs.runCommand "build-time-performance-test" { } ''
   ${testHelpers.setupTestEnv}
 
   ${testHelpers.testSection "Build Time Performance Tests"}

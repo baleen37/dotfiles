@@ -3,7 +3,7 @@ let
   testHelpers = import ../lib/test-helpers.nix { inherit pkgs; };
 
 in
-pkgs.runCommand "platform-detection-unit-test" {} ''
+pkgs.runCommand "platform-detection-unit-test" { } ''
   ${testHelpers.setupTestEnv}
 
   ${testHelpers.testSection "Platform Detection Unit Tests"}

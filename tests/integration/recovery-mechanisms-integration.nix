@@ -3,7 +3,8 @@ let
   testHelpers = import ../lib/test-helpers.nix { inherit pkgs; };
 
 in
-pkgs.runCommand "recovery-mechanisms-integration-test" {
+pkgs.runCommand "recovery-mechanisms-integration-test"
+{
   nativeBuildInputs = with pkgs; [ nix git ];
 } ''
   ${testHelpers.setupTestEnv}

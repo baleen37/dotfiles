@@ -3,7 +3,7 @@ let
   testHelpers = import ../lib/test-helpers.nix { inherit pkgs; };
 
 in
-pkgs.runCommand "module-dependency-integration-test" {} ''
+pkgs.runCommand "module-dependency-integration-test" { } ''
   ${testHelpers.setupTestEnv}
 
   ${testHelpers.testSection "Module Dependency Integration Tests"}

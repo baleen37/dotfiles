@@ -4,16 +4,17 @@ let
   system = pkgs.system;
 
   # System configuration for current platform
-  systemConfig = if flake != null then
-    if testHelpers.platform.isDarwin then
-      flake.outputs.darwinConfigurations.${system} or null
+  systemConfig =
+    if flake != null then
+      if testHelpers.platform.isDarwin then
+        flake.outputs.darwinConfigurations.${system} or null
+      else
+        flake.outputs.nixosConfigurations.${system} or null
     else
-      flake.outputs.nixosConfigurations.${system} or null
-  else
-    null;
+      null;
 
 in
-pkgs.runCommand "system-build-e2e-test" {} ''
+pkgs.runCommand "system-build-e2e-test" { } ''
   ${testHelpers.setupTestEnv}
 
   ${testHelpers.testSection "System Build End-to-End Tests"}

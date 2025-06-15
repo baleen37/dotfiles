@@ -1,9 +1,11 @@
 { config, pkgs, lib, ... }:
 
-let name = "Jiho Lee";
-    getUser = import ../../lib/get-user.nix { };
-    user = getUser;
-    email = "baleen37@gmail.com"; in
+let
+  name = "Jiho Lee";
+  getUser = import ../../lib/get-user.nix { };
+  user = getUser;
+  email = "baleen37@gmail.com";
+in
 {
   # Shared shell configuration
   zsh = {
@@ -131,7 +133,7 @@ let name = "Jiho Lee";
     extraConfig = {
       init.defaultBranch = "main";
       core = {
-	    editor = "vim";
+        editor = "vim";
         autocrlf = "input";
         excludesFile = "~/.gitignore_global";
       };
@@ -255,8 +257,8 @@ let name = "Jiho Lee";
 
       let g:airline_theme='bubblegum'
       let g:airline_powerline_fonts = 1
-      '';
-     };
+    '';
+  };
 
 
   alacritty = {
@@ -339,7 +341,7 @@ let name = "Jiho Lee";
         IdentitiesOnly yes
         AddKeysToAgent yes
     '' + lib.optionalString pkgs.stdenv.hostPlatform.isDarwin ''
-        UseKeychain yes
+      UseKeychain yes
     '';
   };
 
@@ -414,8 +416,8 @@ let name = "Jiho Lee";
       set -g @resurrect-capture-pane-contents 'on'
       set -g @continuum-restore 'on'
       set -g @continuum-save-interval '15'
-      '';
-    };
+    '';
+  };
 
 
 }

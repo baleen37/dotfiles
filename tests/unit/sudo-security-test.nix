@@ -75,7 +75,8 @@ let
   '';
 
 in
-pkgs.runCommand "sudo-security-test" {
+pkgs.runCommand "sudo-security-test"
+{
   buildInputs = [ pkgs.bash pkgs.gnugrep ];
 } ''
   echo "Running sudo security tests..."

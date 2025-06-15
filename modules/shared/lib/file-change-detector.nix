@@ -20,9 +20,10 @@ let
     path = filePath;
     exists = builtins.pathExists filePath;
     hash = calculateFileHash filePath;
-    size = if builtins.pathExists filePath then
-      builtins.toString (builtins.stringLength (builtins.readFile filePath))
-    else null;
+    size =
+      if builtins.pathExists filePath then
+        builtins.toString (builtins.stringLength (builtins.readFile filePath))
+      else null;
     timestamp = "$(stat -c %Y \"${filePath}\" 2>/dev/null || echo 0)";
   };
 
@@ -65,20 +66,23 @@ let
   detectChangesInDirectory = sourceDir: targetDir: fileList:
     let
       # 각 파일에 대해 변경 감지 수행
-      fileResults = lib.listToAttrs (map (fileName:
-        let
-          sourcePath = "${sourceDir}/${fileName}";
-          targetPath = "${targetDir}/${fileName}";
-          comparison = compareFiles sourcePath targetPath;
-        in {
-          name = fileName;
-          value = comparison // {
-            fileName = fileName;
-            sourcePath = sourcePath;
-            targetPath = targetPath;
-          };
-        }
-      ) fileList);
+      fileResults = lib.listToAttrs (map
+        (fileName:
+          let
+            sourcePath = "${sourceDir}/${fileName}";
+            targetPath = "${targetDir}/${fileName}";
+            comparison = compareFiles sourcePath targetPath;
+          in
+          {
+            name = fileName;
+            value = comparison // {
+              fileName = fileName;
+              sourcePath = sourcePath;
+              targetPath = targetPath;
+            };
+          }
+        )
+        fileList);
 
       # 통계 계산
       allFiles = lib.attrValues fileResults;
@@ -96,7 +100,8 @@ let
             (summary.modified * 100) / summary.total
           else 0;
       };
-    in {
+    in
+    {
       inherit fileResults summary;
       modifiedFiles = modifiedFiles;
       identicalFiles = identicalFiles;
@@ -121,11 +126,14 @@ let
         if builtins.pathExists commandsDir then
           let
             entries = builtins.readDir commandsDir;
-            mdFiles = lib.filter (name:
-              lib.hasSuffix ".md" name && entries.${name} == "regular"
-            ) (lib.attrNames entries);
-          in map (name: "commands/${name}") mdFiles
-        else [];
+            mdFiles = lib.filter
+              (name:
+                lib.hasSuffix ".md" name && entries.${name} == "regular"
+              )
+              (lib.attrNames entries);
+          in
+          map (name: "commands/${name}") mdFiles
+        else [ ];
 
       allFiles = claudeConfigFiles ++ commandFiles;
 
@@ -144,18 +152,22 @@ let
             detection.fileResults."CLAUDE.md".userModified
           else false;
 
-        customCommands = lib.filter (fileName:
-          let
-            sourcePath = "${sourceCommandsDir}/${lib.removePrefix "commands/" fileName}";
-          in
-          lib.hasPrefix "commands/" fileName &&
-          !builtins.pathExists sourcePath
-        ) allFiles;
+        customCommands = lib.filter
+          (fileName:
+            let
+              sourcePath = "${sourceCommandsDir}/${lib.removePrefix "commands/" fileName}";
+            in
+            lib.hasPrefix "commands/" fileName &&
+            !builtins.pathExists sourcePath
+          )
+          allFiles;
 
-        modifiedCommands = lib.filter (fileName:
-          lib.hasPrefix "commands/" fileName &&
-          detection.fileResults.${fileName}.userModified or false
-        ) allFiles;
+        modifiedCommands = lib.filter
+          (fileName:
+            lib.hasPrefix "commands/" fileName &&
+            detection.fileResults.${fileName}.userModified or false
+          )
+          allFiles;
       };
     in
     detection // { inherit claudeSpecific; };
@@ -168,13 +180,15 @@ let
 
       formatFileStatus = fileName: result:
         let
-          status = if result.userModified then "수정됨"
-                  else if result.identical then "동일함"
-                  else if !result.current.exists then "없음"
-                  else "알 수 없음";
-          hash = if result.current.hash != null then
-            "(${lib.substring 0 8 result.current.hash}...)"
-          else "";
+          status =
+            if result.userModified then "수정됨"
+            else if result.identical then "동일함"
+            else if !result.current.exists then "없음"
+            else "알 수 없음";
+          hash =
+            if result.current.hash != null then
+              "(${lib.substring 0 8 result.current.hash}...)"
+            else "";
         in
         "  ${fileName}: ${status} ${hash}";
 
@@ -268,37 +282,38 @@ let
   '';
 
   # 테스트를 위한 목 데이터 생성
-  createMockDetection = {
-    fileName ? "test.json",
-    userModified ? false,
-    originalHash ? "abc123",
-    currentHash ? if userModified then "def456" else "abc123",
-    originalSize ? "100",
-    currentSize ? if userModified then "150" else "100"
-  }: {
-    inherit fileName userModified;
-    original = {
-      path = "/mock/source/${fileName}";
-      exists = true;
-      hash = originalHash;
-      size = originalSize;
+  createMockDetection =
+    { fileName ? "test.json"
+    , userModified ? false
+    , originalHash ? "abc123"
+    , currentHash ? if userModified then "def456" else "abc123"
+    , originalSize ? "100"
+    , currentSize ? if userModified then "150" else "100"
+    }: {
+      inherit fileName userModified;
+      original = {
+        path = "/mock/source/${fileName}";
+        exists = true;
+        hash = originalHash;
+        size = originalSize;
+      };
+      current = {
+        path = "/mock/target/${fileName}";
+        exists = true;
+        hash = currentHash;
+        size = currentSize;
+      };
+      bothExist = true;
+      identical = !userModified;
+      details = {
+        hashChanged = userModified;
+        sizeChanged = userModified;
+        inherit originalHash currentHash originalSize currentSize;
+      };
     };
-    current = {
-      path = "/mock/target/${fileName}";
-      exists = true;
-      hash = currentHash;
-      size = currentSize;
-    };
-    bothExist = true;
-    identical = !userModified;
-    details = {
-      hashChanged = userModified;
-      sizeChanged = userModified;
-      inherit originalHash currentHash originalSize currentSize;
-    };
-  };
 
-in {
+in
+{
   # 공개 API
   inherit calculateFileHash calculateContentHash getFileMetadata;
   inherit compareFiles detectChangesInDirectory detectClaudeConfigChanges;

@@ -15,7 +15,7 @@ let
     in if result.success then result.value else default;
 
 in
-pkgs.runCommand "module-imports-unit-test" {} ''
+pkgs.runCommand "module-imports-unit-test" { } ''
   ${testHelpers.setupTestEnv}
 
   ${testHelpers.testSection "Module Import Unit Tests"}

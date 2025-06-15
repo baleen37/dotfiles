@@ -3,7 +3,7 @@ let
   testHelpers = import ../lib/test-helpers.nix { inherit pkgs; };
 
 in
-pkgs.runCommand "configuration-validation-unit-test" {} ''
+pkgs.runCommand "configuration-validation-unit-test" { } ''
   ${testHelpers.setupTestEnv}
 
   ${testHelpers.testSection "Configuration Validation Unit Tests"}

@@ -76,7 +76,8 @@ let
   '';
 
 in
-pkgs.runCommand "makefile-usability-test" {
+pkgs.runCommand "makefile-usability-test"
+{
   buildInputs = [ pkgs.bash pkgs.gnugrep pkgs.coreutils ];
 } ''
   echo "Running Makefile usability tests..."

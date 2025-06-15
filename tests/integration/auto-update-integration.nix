@@ -3,7 +3,8 @@ let
   testHelpers = import ../lib/test-helpers.nix { inherit pkgs; };
   autoUpdateScript = "${src}/scripts/auto-update-dotfiles";
 in
-pkgs.runCommand "auto-update-integration-test" {
+pkgs.runCommand "auto-update-integration-test"
+{
   buildInputs = with pkgs; [ git coreutils bash findutils ];
 } ''
   ${testHelpers.setupTestEnv}

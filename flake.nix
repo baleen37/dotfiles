@@ -41,14 +41,15 @@
       platformApps = import ./lib/platform-apps.nix { inherit nixpkgs self; };
       testApps = import ./lib/test-apps.nix { inherit nixpkgs self; };
 
-      devShell = system: let pkgs = nixpkgs.legacyPackages.${system}; in {
-        default = with pkgs; mkShell {
-          nativeBuildInputs = with pkgs; [ bashInteractive git ];
-          shellHook = with pkgs; ''
-            export EDITOR=vim
-          '';
+      devShell = system:
+        let pkgs = nixpkgs.legacyPackages.${system}; in {
+          default = with pkgs; mkShell {
+            nativeBuildInputs = with pkgs; [ bashInteractive git ];
+            shellHook = with pkgs; ''
+              export EDITOR=vim
+            '';
+          };
         };
-      };
 
       # Simplified app builders using modules
       mkLinuxApps = system:
@@ -69,11 +70,13 @@
             config.allowUnfree = true;
           };
           testSuite = import ./tests { inherit pkgs; flake = self; };
-        in testSuite // {
+        in
+        testSuite // {
           # Add a comprehensive test runner
-          test-all = pkgs.runCommand "test-all" {
-            buildInputs = [ pkgs.bash ];
-          } ''
+          test-all = pkgs.runCommand "test-all"
+            {
+              buildInputs = [ pkgs.bash ];
+            } ''
             echo "Running comprehensive test suite for ${system}"
             echo "========================================"
 
@@ -91,7 +94,7 @@
           '';
 
           # Quick smoke test for CI/CD
-          smoke-test = pkgs.runCommand "smoke-test" {} ''
+          smoke-test = pkgs.runCommand "smoke-test" { } ''
             echo "Running smoke tests for ${system}"
             echo "Flake structure validation: PASSED"
             echo "Basic functionality check: PASSED"
@@ -99,9 +102,10 @@
           '';
 
           # Lint and format checks
-          lint-check = pkgs.runCommand "lint-check" {
-            buildInputs = with pkgs; [ nixpkgs-fmt statix deadnix ];
-          } ''
+          lint-check = pkgs.runCommand "lint-check"
+            {
+              buildInputs = with pkgs; [ nixpkgs-fmt statix deadnix ];
+            } ''
             echo "Running lint checks for ${system}"
 
             # Check Nix formatting
@@ -115,9 +119,10 @@
           '';
         });
 
-      darwinConfigurations = nixpkgs.lib.genAttrs darwinSystems (system: let
-        user = getUser;
-      in
+      darwinConfigurations = nixpkgs.lib.genAttrs darwinSystems (system:
+        let
+          user = getUser;
+        in
         darwin.lib.darwinSystem {
           inherit system;
           specialArgs = inputs;
@@ -147,7 +152,8 @@
         specialArgs = inputs;
         modules = [
           disko.nixosModules.disko
-          home-manager.nixosModules.home-manager {
+          home-manager.nixosModules.home-manager
+          {
             home-manager = {
               useGlobalPkgs = true;
               useUserPackages = true;
@@ -158,6 +164,6 @@
           }
           ./hosts/nixos
         ];
-     });
-  };
+      });
+    };
 }

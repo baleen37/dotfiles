@@ -3,7 +3,8 @@ let
   testHelpers = import ../lib/test-helpers.nix { inherit pkgs; };
 
 in
-pkgs.runCommand "legacy-workflow-e2e-test" {
+pkgs.runCommand "legacy-workflow-e2e-test"
+{
   buildInputs = with pkgs; [
     bash
     coreutils

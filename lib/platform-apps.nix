@@ -65,19 +65,21 @@ in
 {
   # Build Linux apps (core + SSH + linux-specific)
   mkLinuxCoreApps = system:
-    mkAppSet {
-      inherit system;
-      includeApps = coreApps ++ sshApps ++ linuxOnlyApps;
-    } // {
+    mkAppSet
+      {
+        inherit system;
+        includeApps = coreApps ++ sshApps ++ linuxOnlyApps;
+      } // {
       "setup-dev" = mkSetupDevApp system;
     };
 
   # Build Darwin apps (core + SSH + darwin-specific)
   mkDarwinCoreApps = system:
-    mkAppSet {
-      inherit system;
-      includeApps = coreApps ++ sshApps ++ darwinOnlyApps;
-    } // {
+    mkAppSet
+      {
+        inherit system;
+        includeApps = coreApps ++ sshApps ++ darwinOnlyApps;
+      } // {
       "setup-dev" = mkSetupDevApp system;
     };
 

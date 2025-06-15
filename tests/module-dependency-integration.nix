@@ -36,13 +36,14 @@ let
   };
 
   # Test configuration evaluation with module dependencies
-  testConfig = if pkgs.stdenv.isDarwin then
-    flake.outputs.darwinConfigurations.${system} or null
-  else
-    flake.outputs.nixosConfigurations.${system} or null;
+  testConfig =
+    if pkgs.stdenv.isDarwin then
+      flake.outputs.darwinConfigurations.${system} or null
+    else
+      flake.outputs.nixosConfigurations.${system} or null;
 
 in
-pkgs.runCommand "module-dependency-integration-test" {} ''
+pkgs.runCommand "module-dependency-integration-test" { } ''
   export USER=testuser
 
   echo "=== Module Dependency Integration Test ==="

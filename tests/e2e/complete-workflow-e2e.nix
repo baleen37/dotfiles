@@ -3,7 +3,7 @@ let
   testHelpers = import ../lib/test-helpers.nix { inherit pkgs; };
   system = pkgs.system;
 in
-pkgs.runCommand "complete-workflow-e2e-test" {} ''
+pkgs.runCommand "complete-workflow-e2e-test" { } ''
   ${testHelpers.setupTestEnv}
 
   ${testHelpers.testSection "Complete Workflow End-to-End Tests"}

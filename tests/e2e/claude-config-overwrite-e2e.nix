@@ -243,7 +243,7 @@ let
   '';
 
 in
-pkgs.runCommand "claude-config-overwrite-e2e-test" {} ''
+pkgs.runCommand "claude-config-overwrite-e2e-test" { } ''
   echo "=== Starting Claude Configuration E2E Test ==="
 
   # Run the comprehensive end-to-end test

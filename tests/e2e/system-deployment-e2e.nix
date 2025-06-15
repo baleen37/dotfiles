@@ -3,7 +3,8 @@ let
   testHelpers = import ../lib/test-helpers.nix { inherit pkgs; };
 
 in
-pkgs.runCommand "system-deployment-e2e-test" {
+pkgs.runCommand "system-deployment-e2e-test"
+{
   nativeBuildInputs = with pkgs; [ nix git ];
 } ''
   ${testHelpers.setupTestEnv}

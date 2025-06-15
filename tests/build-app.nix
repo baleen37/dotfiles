@@ -2,9 +2,9 @@
 let
   flake = builtins.getFlake (toString ../.);
   buildAppExists = builtins.hasAttr pkgs.system flake.outputs.apps &&
-                   builtins.hasAttr "build" flake.outputs.apps.${pkgs.system};
+    builtins.hasAttr "build" flake.outputs.apps.${pkgs.system};
 in
-pkgs.runCommand "build-app-test" {} ''
+pkgs.runCommand "build-app-test" { } ''
   export USER=baleen
   # Check if the build app exists for this system
   ${if buildAppExists then ''

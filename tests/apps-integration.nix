@@ -4,18 +4,21 @@ let
   system = pkgs.system;
 
   # Check that all expected apps exist for the current system
-  expectedApps = if pkgs.stdenv.isDarwin then
-    [ "apply" "build" "build-switch" "copy-keys" "create-keys" "check-keys" "rollback" ]
-  else
-    [ "apply" "build" "build-switch" ];
+  expectedApps =
+    if pkgs.stdenv.isDarwin then
+      [ "apply" "build" "build-switch" "copy-keys" "create-keys" "check-keys" "rollback" ]
+    else
+      [ "apply" "build" "build-switch" ];
 
-  hasAllApps = builtins.all (app:
-    builtins.hasAttr system flake.outputs.apps &&
-    builtins.hasAttr app flake.outputs.apps.${system}
-  ) expectedApps;
+  hasAllApps = builtins.all
+    (app:
+      builtins.hasAttr system flake.outputs.apps &&
+      builtins.hasAttr app flake.outputs.apps.${system}
+    )
+    expectedApps;
 
 in
-pkgs.runCommand "apps-integration-test" {} ''
+pkgs.runCommand "apps-integration-test" { } ''
   export USER=testuser
 
   echo "Testing flake apps integration..."

@@ -4,17 +4,19 @@ let
 
   # Import package configurations
   sharedPackages = import (src + "/modules/shared/packages.nix") { inherit pkgs; };
-  darwinPackages = if testHelpers.platform.isDarwin then
-    import (src + "/modules/darwin/packages.nix") { inherit pkgs; }
-  else [];
-  nixosPackages = if testHelpers.platform.isLinux then
-    import (src + "/modules/nixos/packages.nix") { inherit pkgs; }
-  else [];
+  darwinPackages =
+    if testHelpers.platform.isDarwin then
+      import (src + "/modules/darwin/packages.nix") { inherit pkgs; }
+    else [ ];
+  nixosPackages =
+    if testHelpers.platform.isLinux then
+      import (src + "/modules/nixos/packages.nix") { inherit pkgs; }
+    else [ ];
 
   # Combine all packages for current platform
   allPackages = sharedPackages ++
-    (if testHelpers.platform.isDarwin then darwinPackages else []) ++
-    (if testHelpers.platform.isLinux then nixosPackages else []);
+    (if testHelpers.platform.isDarwin then darwinPackages else [ ]) ++
+    (if testHelpers.platform.isLinux then nixosPackages else [ ]);
 
   # Test package availability
   testPackage = pkg:
@@ -33,7 +35,7 @@ let
   unavailablePackages = builtins.filter (p: !p.available) packageTests;
 
 in
-pkgs.runCommand "package-availability-integration-test" {} ''
+pkgs.runCommand "package-availability-integration-test" { } ''
   ${testHelpers.setupTestEnv}
 
   ${testHelpers.testSection "Package Availability Integration Tests"}

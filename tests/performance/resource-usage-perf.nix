@@ -4,14 +4,15 @@ let
 
   # Resource usage thresholds
   thresholds = {
-    max_memory_mb = 2048;        # 2GB max memory for builds
-    max_disk_usage_mb = 5120;    # 5GB max disk usage
+    max_memory_mb = 2048; # 2GB max memory for builds
+    max_disk_usage_mb = 5120; # 5GB max disk usage
     max_build_time_minutes = 30; # 30 minutes max build time
     max_file_descriptors = 1024; # Maximum file descriptors
   };
 
 in
-pkgs.runCommand "resource-usage-perf-test" {
+pkgs.runCommand "resource-usage-perf-test"
+{
   nativeBuildInputs = with pkgs; [ nix git time procps ];
 } ''
   ${testHelpers.setupTestEnv}

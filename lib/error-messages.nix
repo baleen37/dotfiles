@@ -18,7 +18,7 @@ let
       hintText = if hint != null then "\nHint: ${hint}" else "";
       commandText = if command != null then "\n\nRun: ${command}" else "";
     in
-      "${header}${hintText}${commandText}";
+    "${header}${hintText}${commandText}";
 
 in
 {
@@ -135,8 +135,8 @@ in
     requireEnv = var: default:
       let value = builtins.getEnv var;
       in if value == "" && default == null
-         then throwError (errors.userNotSet)
-         else if value == "" then default else value;
+      then throwError (errors.userNotSet)
+      else if value == "" then default else value;
   };
 
   # Progress indicators

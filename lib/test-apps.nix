@@ -5,7 +5,7 @@
 
 let
   # Common test app builder
-  mkTestApp = { name, system, command ? name, extraTests ? [] }: {
+  mkTestApp = { name, system, command ? name, extraTests ? [ ] }: {
     type = "app";
     program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin name ''
       #!/usr/bin/env bash
