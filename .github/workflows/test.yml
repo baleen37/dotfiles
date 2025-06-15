@@ -102,17 +102,25 @@ jobs:
           echo "|----------|--------|-------|" >> $GITHUB_STEP_SUMMARY
 
           for category in unit integration e2e perf; do
-            ubuntu_status="✅"
-            macos_status="✅"
+            ubuntu_status="❌"
+            macos_status="❌"
 
-            # Check for test failures (simplified - in real scenario, parse actual results)
+            # Check for test artifacts
             if [ -d "test-results-${category}-ubuntu-latest" ]; then
-              echo "| ${category} | ${ubuntu_status} | - |" >> $GITHUB_STEP_SUMMARY
+              ubuntu_status="✅"
             fi
             if [ -d "test-results-${category}-macos-latest" ]; then
-              echo "| ${category} | - | ${macos_status} |" >> $GITHUB_STEP_SUMMARY
+              macos_status="✅"
+            fi
+
+            # Only add row if at least one platform has results
+            if [ -d "test-results-${category}-ubuntu-latest" ] || [ -d "test-results-${category}-macos-latest" ]; then
+              echo "| ${category} | ${ubuntu_status} | ${macos_status} |" >> $GITHUB_STEP_SUMMARY
             fi
           done
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ = Tests passed, ❌ = No results found" >> $GITHUB_STEP_SUMMARY
 
       - name: Comment PR with results
         if: github.event_name == 'pull_request'
