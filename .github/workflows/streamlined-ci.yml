@@ -41,12 +41,11 @@ jobs:
           if [[ "${{ github.event_name }}" == "pull_request" && "${{ github.event.pull_request.draft }}" == "true" ]]; then
             echo "should-test=smoke" >> $GITHUB_OUTPUT
             echo "should-build-full=false" >> $GITHUB_OUTPUT
-          elif git diff --name-only HEAD~1 | grep -E '\.(nix|yml|yaml)$' > /dev/null; then
+            echo "🔍 Draft PR detected - smoke test only"
+          else
             echo "should-test=full" >> $GITHUB_OUTPUT
             echo "should-build-full=true" >> $GITHUB_OUTPUT
-          else
-            echo "should-test=smoke" >> $GITHUB_OUTPUT
-            echo "should-build-full=false" >> $GITHUB_OUTPUT
+            echo "🚀 Ready PR detected - full pipeline"
           fi
 
       - uses: cachix/install-nix-action@v25
