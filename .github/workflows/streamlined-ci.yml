@@ -113,7 +113,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{ matrix.config.system }}-build-
             ${{ runner.os }}-build-
-          save-always: true
 
       - name: Build configuration
         timeout-minutes: 15
