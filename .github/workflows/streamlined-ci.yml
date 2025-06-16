@@ -112,26 +112,31 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.config.system }}-build-${{ hashFiles('flake.lock', 'modules/**/*.nix') }}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.config.system }}-build-
-            validate-nix-
+            ${{ runner.os }}-build-
+          save-always: true
 
       - name: Build configuration
         timeout-minutes: 15
         run: |
           export USER=ci
+          echo "🏗️ Building ${{ matrix.config.name }} (${{ matrix.config.system }}) - Priority: ${{ matrix.config.priority }}"
 
           if [[ "${{ matrix.config.system }}" == *"darwin"* ]]; then
             if [[ "${{ runner.os }}" == "macOS" ]]; then
-              # Use optimized build for core platforms
               if [[ "${{ matrix.config.priority }}" == "high" ]]; then
+                echo "Running full build for high-priority platform..."
                 nix build --impure --no-link --max-jobs auto --cores 0 .#darwinConfigurations.${{ matrix.config.system }}.system
+                echo "✅ Full build completed successfully"
               else
-                # Quick validation for secondary platforms - check if derivation exists
+                echo "Running quick validation for secondary platform..."
                 nix eval --impure .#darwinConfigurations.${{ matrix.config.system }}.system --json >/dev/null
+                echo "✅ Quick validation completed successfully"
               fi
             fi
           else
-            # Linux systems: validate config only (faster)
+            echo "Running NixOS configuration validation..."
             nix eval --impure .#nixosConfigurations.${{ matrix.config.system }}.config.system.name --json >/dev/null
+            echo "✅ NixOS validation completed successfully"
           fi
 
   # Parallel test stage (2-3 minutes) - Using existing parallel infrastructure
@@ -158,17 +163,21 @@ jobs:
           path: |
             /nix/store
             ~/.cache/nix
-          key: ${{ runner.os }}-aarch64-darwin-build-${{ hashFiles('flake.lock', 'modules/**/*.nix') }}
+          key: ${{ runner.os }}-build-${{ hashFiles('flake.lock', 'modules/**/*.nix') }}
           restore-keys: |
+            ${{ runner.os }}-build-
             ${{ runner.os }}-aarch64-darwin-build-
             validate-nix-
 
-      - name: Run parallel tests
-        timeout-minutes: 10
+      - name: Run tests
+        timeout-minutes: 15
         run: |
           export USER=ci
-          # Use existing parallel test infrastructure
-          nix run --impure .#test-parallel-${{ matrix.category }}
+          echo "🧪 Running ${{ matrix.category }} tests on ${{ runner.os }}"
+          echo "Available test apps:"
+          nix flake show --impure 2>/dev/null | grep -E "test-|test_" || true
+          echo "Starting test execution..."
+          nix run --impure .#test-${{ matrix.category }}
 
   # Smoke test for all scenarios (30 seconds)
   smoke-test:
