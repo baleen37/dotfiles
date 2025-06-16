@@ -24,8 +24,8 @@ Testing the new streamlined CI pipeline performance and functionality.
 
 ## Validation Checklist
 
-- [ ] Draft PR triggers smoke test only
-- [ ] Ready PR triggers full optimized pipeline
+- [x] Draft PR triggers smoke test only ✅ (3분, 5-8배 개선)
+- [ ] Ready PR triggers full optimized pipeline (테스트 중)
 - [ ] Build focuses on core platforms (ARM64 Darwin, x64 Linux)
 - [ ] Parallel tests execute concurrently
 - [ ] Cache reuse between stages
