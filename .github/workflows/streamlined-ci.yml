@@ -125,13 +125,13 @@ jobs:
               if [[ "${{ matrix.config.priority }}" == "high" ]]; then
                 nix build --impure --no-link --max-jobs auto --cores 0 .#darwinConfigurations.${{ matrix.config.system }}.system
               else
-                # Quick validation for secondary platforms
-                nix eval --impure .#darwinConfigurations.${{ matrix.config.system }}.system.config.system.name
+                # Quick validation for secondary platforms - check if derivation exists
+                nix eval --impure .#darwinConfigurations.${{ matrix.config.system }}.system --json >/dev/null
               fi
             fi
           else
             # Linux systems: validate config only (faster)
-            nix eval --impure .#nixosConfigurations.${{ matrix.config.system }}.config.system.name
+            nix eval --impure .#nixosConfigurations.${{ matrix.config.system }}.config.system.name --json >/dev/null
           fi
 
   # Parallel test stage (2-3 minutes) - Using existing parallel infrastructure
