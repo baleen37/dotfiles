@@ -89,9 +89,9 @@ in
                     return 0  # 파일이 없으면 다른 것으로 간주
                   fi
 
-                  # macOS에서는 shasum 사용
-                  local source_hash=$(shasum -a 256 "$source" | cut -d' ' -f1)
-                  local target_hash=$(shasum -a 256 "$target" | cut -d' ' -f1)
+                  # Nix 환경에서는 sha256sum 사용
+                  local source_hash=$(sha256sum "$source" | cut -d' ' -f1)
+                  local target_hash=$(sha256sum "$target" | cut -d' ' -f1)
                   [[ "$source_hash" != "$target_hash" ]]
                 }
 
