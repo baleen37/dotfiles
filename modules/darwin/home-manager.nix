@@ -217,13 +217,19 @@ in
                 done
 
                 # commands 디렉토리 처리
+                echo ""
+                echo "=== Claude 명령어 파일 복사 ==="
                 if [[ -d "$SOURCE_DIR/commands" ]]; then
                   for cmd_file in "$SOURCE_DIR/commands"/*.md; do
                     if [[ -f "$cmd_file" ]]; then
-                      local base_name=$(basename "$cmd_file")
+                      base_name=$(basename "$cmd_file")
+                      echo "명령어 파일 처리: $base_name"
                       smart_copy "$cmd_file" "$CLAUDE_DIR/commands/$base_name"
                     fi
                   done
+                  echo "명령어 파일 복사 완료"
+                else
+                  echo "경고: $SOURCE_DIR/commands 디렉토리를 찾을 수 없습니다"
                 fi
 
                 # 오래된 백업 파일 정리 (30일 이상)
