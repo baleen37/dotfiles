@@ -66,7 +66,7 @@ jobs:
   build-core:
     name: Build ${{ matrix.name }}
     needs: validate
-    if: env.CI_MODE == 'full' || env.IS_MAIN == 'true'
+    if: (github.event.pull_request.draft != true) || (github.ref == 'refs/heads/main')
     strategy:
       fail-fast: false
       matrix:
@@ -127,7 +127,7 @@ jobs:
   test-parallel:
     name: Test ${{ matrix.category }}
     needs: [validate, build-core]
-    if: env.CI_MODE == 'full' || env.IS_MAIN == 'true'
+    if: (github.event.pull_request.draft != true) || (github.ref == 'refs/heads/main')
     strategy:
       fail-fast: false
       matrix:
@@ -162,7 +162,7 @@ jobs:
   smoke-test:
     name: Smoke Test
     needs: validate
-    if: env.CI_MODE == 'draft' && env.IS_MAIN != 'true'
+    if: github.event.pull_request.draft == true && github.ref != 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
