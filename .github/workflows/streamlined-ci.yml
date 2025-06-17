@@ -20,33 +20,24 @@ env:
     cores = 0
     substituters = https://cache.nixos.org https://nix-community.cachix.org
     trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
+  # 단일 환경 변수로 전체 파이프라인 제어
+  CI_MODE: ${{ github.event.pull_request.draft == true && 'draft' || 'full' }}
+  IS_MAIN: ${{ github.ref == 'refs/heads/main' }}
 
 jobs:
   # Fast validation stage (1-2 minutes)
   validate:
     name: Validate & Lint
     runs-on: ubuntu-latest
-    outputs:
-      should-test: ${{ steps.changes.outputs.should-test }}
-      should-build-full: ${{ steps.changes.outputs.should-build-full }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Check file changes
-        id: changes
+      - name: Show CI mode
         run: |
-          # Determine build scope based on changes
-          if [[ "${{ github.event_name }}" == "pull_request" && "${{ github.event.pull_request.draft }}" == "true" ]]; then
-            echo "should-test=smoke" >> $GITHUB_OUTPUT
-            echo "should-build-full=false" >> $GITHUB_OUTPUT
-            echo "🔍 Draft PR detected - smoke test only"
-          else
-            echo "should-test=full" >> $GITHUB_OUTPUT
-            echo "should-build-full=true" >> $GITHUB_OUTPUT
-            echo "🚀 Ready PR detected - full pipeline"
-          fi
+          echo "🎯 CI Mode: $CI_MODE"
+          echo "📍 Is Main: $IS_MAIN"
 
       - uses: cachix/install-nix-action@v25
         with:
@@ -73,28 +64,26 @@ jobs:
 
   # Core build stage (2-4 minutes) - Only essential platforms
   build-core:
-    name: Build ${{ matrix.config.name }}
+    name: Build ${{ matrix.name }}
     needs: validate
-    if: needs.validate.outputs.should-build-full == 'true' || github.ref == 'refs/heads/main'
+    if: env.CI_MODE == 'full' || env.IS_MAIN == 'true'
     strategy:
       fail-fast: false
       matrix:
-        config:
+        include:
           - name: "Darwin ARM64"
             system: aarch64-darwin
             os: macos-latest
-            priority: high
+            build_type: full
           - name: "Linux x64"
             system: x86_64-linux
             os: ubuntu-latest
-            priority: high
+            build_type: full
           - name: "Darwin x64"
             system: x86_64-darwin
             os: macos-13
-            priority: low
-    runs-on: ${{ matrix.config.os }}
-    outputs:
-      build-cache-key: ${{ steps.cache.outputs.cache-primary-key }}
+            build_type: validate
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
 
@@ -103,52 +92,47 @@ jobs:
           nix_path: nixpkgs=channel:nixos-unstable
 
       - name: Cache Nix store
-        id: cache
         uses: actions/cache@v4
         with:
           path: |
             /nix/store
             ~/.cache/nix
-          key: ${{ runner.os }}-${{ matrix.config.system }}-build-${{ hashFiles('flake.lock', 'modules/**/*.nix') }}
-          restore-keys: |
-            ${{ runner.os }}-${{ matrix.config.system }}-build-
-            ${{ runner.os }}-build-
+          key: ${{ runner.os }}-${{ matrix.system }}-${{ hashFiles('flake.lock') }}
+          restore-keys: ${{ runner.os }}-${{ matrix.system }}-
 
       - name: Build configuration
         timeout-minutes: 15
         run: |
           export USER=ci
-          echo "🏗️ Building ${{ matrix.config.name }} (${{ matrix.config.system }}) - Priority: ${{ matrix.config.priority }}"
+          echo "🏗️ Building ${{ matrix.name }} (${{ matrix.system }}) - Type: ${{ matrix.build_type }}"
 
-          if [[ "${{ matrix.config.system }}" == *"darwin"* ]]; then
-            if [[ "${{ runner.os }}" == "macOS" ]]; then
-              if [[ "${{ matrix.config.priority }}" == "high" ]]; then
-                echo "Running full build for high-priority platform..."
-                nix build --impure --no-link --max-jobs auto --cores 0 .#darwinConfigurations.${{ matrix.config.system }}.system
-                echo "✅ Full build completed successfully"
+          case "${{ matrix.system }}" in
+            *darwin*)
+              if [[ "${{ matrix.build_type }}" == "full" ]]; then
+                echo "Running full Darwin build..."
+                nix build --impure --no-link .#darwinConfigurations.${{ matrix.system }}.system
               else
-                echo "Running quick validation for secondary platform..."
-                nix eval --impure .#darwinConfigurations.${{ matrix.config.system }}.system --json >/dev/null
-                echo "✅ Quick validation completed successfully"
+                echo "Running Darwin validation..."
+                nix eval --impure .#darwinConfigurations.${{ matrix.system }}.system --json >/dev/null
               fi
-            fi
-          else
-            echo "Running NixOS configuration validation..."
-            nix eval --impure .#nixosConfigurations.${{ matrix.config.system }}.config.system.name --json >/dev/null
-            echo "✅ NixOS validation completed successfully"
-          fi
+              ;;
+            *linux*)
+              echo "Running NixOS validation..."
+              nix eval --impure .#nixosConfigurations.${{ matrix.system }}.config.system.name --json >/dev/null
+              ;;
+          esac
+          echo "✅ Build completed successfully"
 
-  # Parallel test stage (2-3 minutes) - Using existing parallel infrastructure
+  # Parallel test stage (2-3 minutes)
   test-parallel:
     name: Test ${{ matrix.category }}
     needs: [validate, build-core]
-    if: needs.validate.outputs.should-test == 'full' || github.ref == 'refs/heads/main'
+    if: env.CI_MODE == 'full' || env.IS_MAIN == 'true'
     strategy:
       fail-fast: false
       matrix:
         category: [unit, integration]
-        os: [macos-latest]  # Only Darwin for advanced tests
-    runs-on: ${{ matrix.os }}
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -162,27 +146,23 @@ jobs:
           path: |
             /nix/store
             ~/.cache/nix
-          key: ${{ runner.os }}-build-${{ hashFiles('flake.lock', 'modules/**/*.nix') }}
+          key: macOS-aarch64-darwin-${{ hashFiles('flake.lock') }}
           restore-keys: |
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-aarch64-darwin-build-
+            macOS-aarch64-darwin-
             validate-nix-
 
       - name: Run tests
         timeout-minutes: 15
         run: |
           export USER=ci
-          echo "🧪 Running ${{ matrix.category }} tests on ${{ runner.os }}"
-          echo "Available test apps:"
-          nix flake show --impure 2>/dev/null | grep -E "test-|test_" || true
-          echo "Starting test execution..."
+          echo "🧪 Running ${{ matrix.category }} tests"
           nix run --impure .#test-${{ matrix.category }}
 
-  # Smoke test for all scenarios (30 seconds)
+  # Smoke test for draft PRs (30 seconds)
   smoke-test:
     name: Smoke Test
     needs: validate
-    if: needs.validate.outputs.should-test == 'smoke' && github.ref != 'refs/heads/main'
+    if: env.CI_MODE == 'draft' && env.IS_MAIN != 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -207,12 +187,17 @@ jobs:
       - name: Determine overall status
         id: status
         run: |
-          # Check if any required job failed
-          if [[ "${{ needs.validate.result }}" != "success" ]]; then
+          validation_result="${{ needs.validate.result }}"
+          build_result="${{ needs.build-core.result }}"
+          test_result="${{ needs.test-parallel.result }}"
+          smoke_result="${{ needs.smoke-test.result }}"
+
+          # 상태 결정 로직 단순화
+          if [[ "$validation_result" != "success" ]]; then
             echo "status=failed" >> $GITHUB_OUTPUT
             echo "message=Validation failed" >> $GITHUB_OUTPUT
-          elif [[ "${{ github.event.pull_request.draft }}" == "true" ]]; then
-            if [[ "${{ needs.smoke-test.result }}" == "success" ]]; then
+          elif [[ "$CI_MODE" == "draft" ]]; then
+            if [[ "$smoke_result" == "success" ]]; then
               echo "status=success" >> $GITHUB_OUTPUT
               echo "message=Draft PR validation passed (smoke test only)" >> $GITHUB_OUTPUT
             else
@@ -220,7 +205,7 @@ jobs:
               echo "message=Draft PR smoke test failed" >> $GITHUB_OUTPUT
             fi
           else
-            if [[ "${{ needs.build-core.result }}" == "success" && "${{ needs.test-parallel.result }}" == "success" ]]; then
+            if [[ "$build_result" == "success" && "$test_result" == "success" ]]; then
               echo "status=success" >> $GITHUB_OUTPUT
               echo "message=Full CI pipeline completed successfully" >> $GITHUB_OUTPUT
             else
@@ -234,59 +219,75 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const status = '${{ steps.status.outputs.status }}';
-            const message = '${{ steps.status.outputs.message }}';
-            const isDraft = ${{ github.event.pull_request.draft }};
+            try {
+              const status = '${{ steps.status.outputs.status }}';
+              const message = '${{ steps.status.outputs.message }}';
+              const ciMode = '${{ env.CI_MODE }}';
 
-            const statusIcon = status === 'success' ? '✅' : '❌';
-            const efficiency = isDraft ? '⚡ **Ultra Fast** (smoke test only)' : '🚀 **Streamlined** (parallel execution)';
+              // 상태 아이콘 및 결과 맵핑
+              const statusIcon = status === 'success' ? '✅' : '❌';
+              const isDraft = ciMode === 'draft';
 
-            const validationIcon = '${{ needs.validate.result }}' === 'success' ? '✅' : '❌';
-            const buildIcon = '${{ needs.build-core.result }}' === 'success' ? '✅' : '❌';
-            const testIcon = '${{ needs.test-parallel.result }}' === 'success' ? '✅' : '❌';
+              const validationIcon = '${{ needs.validate.result }}' === 'success' ? '✅' : '❌';
+              const buildIcon = '${{ needs.build-core.result }}' === 'success' ? '✅' : '❌';
+              const testIcon = '${{ needs.test-parallel.result }}' === 'success' ? '✅' : '❌';
 
-            let body = '## ' + statusIcon + ' Streamlined CI Results\n\n';
-            body += efficiency + '\n\n';
-            body += '**Status**: ' + message + '\n\n';
-            body += '**Pipeline Summary**:\n';
-            body += '- **Validation**: ' + validationIcon + ' Lint & flake check\n';
-            body += '- **Build**: ' + (isDraft ? '⏭️ Skipped (draft)' : buildIcon + ' Core platforms') + '\n';
-            body += '- **Tests**: ' + (isDraft ? '⏭️ Skipped (draft)' : testIcon + ' Parallel execution') + '\n\n';
-            body += isDraft ? '_💡 Mark as ready to run full CI pipeline_' : '_🎯 Optimized for speed: ~5-8 minutes total_';
+              // 간단한 템플릿 생성
+              const efficiency = isDraft ? '⚡ **Ultra Fast** (smoke test only)' : '🚀 **Streamlined** (parallel execution)';
+              const buildStatus = isDraft ? '⏭️ Skipped (draft)' : buildIcon + ' Core platforms';
+              const testStatus = isDraft ? '⏭️ Skipped (draft)' : testIcon + ' Parallel execution';
+              const footer = isDraft ? '_💡 Mark as ready to run full CI pipeline_' : '_🎯 Optimized for speed: ~5-8 minutes total_';
 
-            // Find and update existing CI comment
-            const { data: comments } = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-            });
+              const template = '## ' + statusIcon + ' Streamlined CI Results\n\n' +
+                efficiency + '\n\n' +
+                '**Status**: ' + message + '\n\n' +
+                '**Pipeline Summary**:\n' +
+                '- **Validation**: ' + validationIcon + ' Lint & flake check\n' +
+                '- **Build**: ' + buildStatus + '\n' +
+                '- **Tests**: ' + testStatus + '\n\n' +
+                footer;
 
-            const existingComment = comments.find(comment =>
-              comment.user.type === 'Bot' &&
-              comment.body.includes('Streamlined CI Results')
-            );
-
-            if (existingComment) {
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: existingComment.id,
-                body: body
-              });
-            } else {
-              await github.rest.issues.createComment({
+              // 기존 코멘트 찾기 및 업데이트
+              const { data: comments } = await github.rest.issues.listComments({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: context.issue.number,
-                body: body
               });
+
+              const existingComment = comments.find(comment =>
+                comment.user.type === 'Bot' && comment.body.includes('Streamlined CI Results')
+              );
+
+              if (existingComment) {
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: existingComment.id,
+                  body: template
+                });
+                console.log('Updated existing CI comment');
+              } else {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  body: template
+                });
+                console.log('Created new CI comment');
+              }
+            } catch (error) {
+              console.error('Failed to update PR comment:', error);
+              // 코멘트 실패해도 워크플로우는 계속 진행
             }
 
       - name: Final status check
         run: |
-          if [[ "${{ steps.status.outputs.status }}" != "success" ]]; then
-            echo "❌ CI pipeline failed: ${{ steps.status.outputs.message }}"
+          status="${{ steps.status.outputs.status }}"
+          message="${{ steps.status.outputs.message }}"
+
+          if [[ "$status" != "success" ]]; then
+            echo "❌ CI pipeline failed: $message"
             exit 1
           else
-            echo "✅ CI pipeline succeeded: ${{ steps.status.outputs.message }}"
+            echo "✅ CI pipeline succeeded: $message"
           fi
