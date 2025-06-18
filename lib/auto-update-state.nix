@@ -9,7 +9,7 @@ let
   CLEANUP_DAYS = "30"; # Days after which to clean up old entries
 
   # Create helper scripts for state management
-  scripts = pkgs.runCommand "auto-update-state-scripts" 
+  scripts = pkgs.runCommand "auto-update-state-scripts"
   {
     buildInputs = with pkgs; [ bash coreutils jq ];
   } ''
@@ -29,7 +29,7 @@ LOCK_TIMEOUT="${LOCK_TIMEOUT}"
 acquire_lock() {
     local timeout="$1"
     local start_time=$(date +%s)
-    
+
     while true; do
         # Check if lock file exists and is stale
         if [[ -f "$LOCK_FILE" ]]; then
@@ -46,18 +46,18 @@ acquire_lock() {
                 rm -f "$LOCK_FILE" 2>/dev/null || true
             fi
         fi
-        
+
         # Try to acquire lock
         if (set -C; echo $$ > "$LOCK_FILE") 2>/dev/null; then
             return 0
         fi
-        
+
         # Check timeout
         local current_time=$(date +%s)
         if [[ $((current_time - start_time)) -gt $timeout ]]; then
             return 1
         fi
-        
+
         sleep 0.1
     done
 }
@@ -76,18 +76,18 @@ init_state() {
 # Function to validate and repair state file
 validate_state() {
     local state_content="$1"
-    
+
     # Check if it's valid JSON
     if ! echo "$state_content" | jq empty 2>/dev/null; then
         return 1
     fi
-    
+
     # Check if it has required structure
     local has_structure=$(echo "$state_content" | jq 'has("pending_updates") and has("user_decisions") and has("last_cleanup")' 2>/dev/null)
     if [[ "$has_structure" != "true" ]]; then
         return 1
     fi
-    
+
     return 0
 }
 
@@ -95,26 +95,26 @@ validate_state() {
 main() {
     # Ensure cache directory exists
     mkdir -p "$CACHE_DIR"
-    
+
     # Acquire lock
     if ! acquire_lock 10; then
         echo "Failed to acquire lock for state file" >&2
         exit 1
     fi
-    
+
     # Ensure lock is released on exit
     trap release_lock EXIT
-    
+
     # Check if state file exists and is valid
     if [[ -f "$STATE_FILE" ]]; then
         local state_content=$(cat "$STATE_FILE" 2>/dev/null || echo "")
-        
+
         if [[ -n "$state_content" ]] && validate_state "$state_content"; then
             echo "$state_content"
             return 0
         fi
     fi
-    
+
     # Initialize or repair state file
     local new_state=$(init_state)
     echo "$new_state" > "$STATE_FILE"
@@ -175,7 +175,7 @@ fi
 acquire_lock() {
     local timeout="$1"
     local start_time=$(date +%s)
-    
+
     while true; do
         if [[ -f "$LOCK_FILE" ]]; then
             # Use cross-platform stat command
@@ -190,16 +190,16 @@ acquire_lock() {
                 rm -f "$LOCK_FILE" 2>/dev/null || true
             fi
         fi
-        
+
         if (set -C; echo $$ > "$LOCK_FILE") 2>/dev/null; then
             return 0
         fi
-        
+
         local current_time=$(date +%s)
         if [[ $((current_time - start_time)) -gt $timeout ]]; then
             return 1
         fi
-        
+
         sleep 0.1
     done
 }
@@ -213,16 +213,16 @@ release_lock() {
 main() {
     # Ensure cache directory exists
     mkdir -p "$CACHE_DIR"
-    
+
     # Acquire lock
     if ! acquire_lock 10; then
         echo "Failed to acquire lock for state file" >&2
         exit 1
     fi
-    
+
     # Ensure lock is released on exit
     trap release_lock EXIT
-    
+
     # Get current state (without lock since we already have it)
     local current_state
     if [[ -f "$STATE_FILE" ]]; then
@@ -234,14 +234,14 @@ main() {
     else
         current_state='{"pending_updates":{},"user_decisions":{},"last_cleanup":0}'
     fi
-    
+
     # Add user decision
     local updated_state=$(echo "$current_state" | jq \
         --arg commit "$COMMIT_HASH" \
         --arg decision "$DECISION" \
         --arg timestamp "$TIMESTAMP" \
         '.user_decisions[$commit] = {"decision": $decision, "timestamp": ($timestamp | tonumber)}')
-    
+
     # Write back to file
     echo "$updated_state" > "$STATE_FILE"
 }
@@ -298,7 +298,7 @@ CLEANUP_DAYS="${CLEANUP_DAYS}"
 acquire_lock() {
     local timeout="$1"
     local start_time=$(date +%s)
-    
+
     while true; do
         if [[ -f "$LOCK_FILE" ]]; then
             # Use cross-platform stat command
@@ -313,16 +313,16 @@ acquire_lock() {
                 rm -f "$LOCK_FILE" 2>/dev/null || true
             fi
         fi
-        
+
         if (set -C; echo $$ > "$LOCK_FILE") 2>/dev/null; then
             return 0
         fi
-        
+
         local current_time=$(date +%s)
         if [[ $((current_time - start_time)) -gt $timeout ]]; then
             return 1
         fi
-        
+
         sleep 0.1
     done
 }
@@ -336,16 +336,16 @@ release_lock() {
 main() {
     # Ensure cache directory exists
     mkdir -p "$CACHE_DIR"
-    
+
     # Acquire lock
     if ! acquire_lock 10; then
         echo "Failed to acquire lock for state file" >&2
         exit 1
     fi
-    
+
     # Ensure lock is released on exit
     trap release_lock EXIT
-    
+
     # Get current state (without lock since we already have it)
     local current_state
     if [[ -f "$STATE_FILE" ]]; then
@@ -357,21 +357,21 @@ main() {
     else
         current_state='{"pending_updates":{},"user_decisions":{},"last_cleanup":0}'
     fi
-    
+
     # Calculate cutoff timestamp
     local current_time=$(date +%s)
     local cutoff_time=$((current_time - CLEANUP_DAYS * 24 * 3600))
-    
+
     # Clean up old user decisions
     local cleaned_state=$(echo "$current_state" | jq \
         --arg cutoff "$cutoff_time" \
         '.user_decisions = (.user_decisions | to_entries | map(select(.value.timestamp >= ($cutoff | tonumber))) | from_entries)')
-    
+
     # Update last cleanup timestamp
     local final_state=$(echo "$cleaned_state" | jq \
         --arg timestamp "$current_time" \
         '.last_cleanup = ($timestamp | tonumber)')
-    
+
     # Write back to file
     echo "$final_state" > "$STATE_FILE"
 }

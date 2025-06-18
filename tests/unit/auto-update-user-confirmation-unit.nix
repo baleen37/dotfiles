@@ -44,7 +44,7 @@ pkgs.runCommand "auto-update-user-confirmation-unit-test"
     rm -f "$STATE_FILE"
     local expected_structure='{"pending_updates":{},"user_decisions":{},"last_cleanup":0}'
     ${stateLib}/bin/get_state > /dev/null 2>&1  # Initialize file
-    
+
     if [[ -f "$STATE_FILE" ]]; then
       local actual=$(cat "$STATE_FILE" | jq -c 'keys | sort')
       local expected='["last_cleanup","pending_updates","user_decisions"]'
@@ -70,13 +70,13 @@ pkgs.runCommand "auto-update-user-confirmation-unit-test"
     local commit_hash="abc123def456"
     local decision="defer"
     local timestamp=$(date +%s)
-    
+
     # First initialize state file
     ${stateLib}/bin/get_state > /dev/null 2>&1
-    
+
     # Store decision
     timeout 10 ${stateLib}/bin/set_decision "$commit_hash" "$decision" "$timestamp" 2>/dev/null || echo "SET_DECISION_FAILED"
-    
+
     # Verify storage
     if [[ -f "$STATE_FILE" ]]; then
       local stored_decision=$(cat "$STATE_FILE" | jq -r ".user_decisions.\"$commit_hash\".decision // \"NOT_FOUND\"" 2>/dev/null)
@@ -99,10 +99,10 @@ pkgs.runCommand "auto-update-user-confirmation-unit-test"
     local commit_hash="test123hash"
     local decision="apply"
     local timestamp=$(date +%s)
-    
+
     # Store decision first
     ${stateLib}/bin/set_decision "$commit_hash" "$decision" "$timestamp" 2>/dev/null
-    
+
     # Retrieve decision
     local retrieved=$(${stateLib}/bin/get_decision "$commit_hash" 2>/dev/null)
     if [[ "$retrieved" == "$decision" ]]; then
@@ -121,17 +121,17 @@ pkgs.runCommand "auto-update-user-confirmation-unit-test"
     local commit2="hash002"
     local commit3="hash003"
     local timestamp=$(date +%s)
-    
+
     # Store multiple decisions
     ${stateLib}/bin/set_decision "$commit1" "defer" "$timestamp" 2>/dev/null
     ${stateLib}/bin/set_decision "$commit2" "apply" "$((timestamp + 60))" 2>/dev/null
     ${stateLib}/bin/set_decision "$commit3" "skip" "$((timestamp + 120))" 2>/dev/null
-    
+
     # Verify all decisions are stored
     local decision1=$(${stateLib}/bin/get_decision "$commit1" 2>/dev/null)
     local decision2=$(${stateLib}/bin/get_decision "$commit2" 2>/dev/null)
     local decision3=$(${stateLib}/bin/get_decision "$commit3" 2>/dev/null)
-    
+
     if [[ "$decision1" == "defer" && "$decision2" == "apply" && "$decision3" == "skip" ]]; then
       echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Multiple user decisions stored and retrieved correctly"
     else
@@ -148,7 +148,7 @@ pkgs.runCommand "auto-update-user-confirmation-unit-test"
   test_invalid_json_handling() {
     rm -f "$STATE_FILE"
     echo "invalid json content {" > "$STATE_FILE"
-    
+
     # Should gracefully handle corruption and recreate
     local result=$(${stateLib}/bin/get_state 2>/dev/null || echo "ERROR")
     if [[ "$result" != "ERROR" ]] && [[ -f "$STATE_FILE" ]]; then
@@ -170,7 +170,7 @@ pkgs.runCommand "auto-update-user-confirmation-unit-test"
   test_empty_file_handling() {
     rm -f "$STATE_FILE"
     touch "$STATE_FILE"  # Create empty file
-    
+
     # Should handle empty file gracefully
     local result=$(${stateLib}/bin/get_state 2>/dev/null)
     if [[ -n "$result" ]]; then
@@ -193,7 +193,7 @@ pkgs.runCommand "auto-update-user-confirmation-unit-test"
     rm -f "$STATE_FILE"
     # Create partially valid JSON (missing closing brace)
     echo '{"pending_updates":{},"user_decisions":{"hash1":{"decision":"defer","timestamp":1234567890}' > "$STATE_FILE"
-    
+
     # Should detect corruption and recreate with clean state
     local result=$(${stateLib}/bin/get_state 2>/dev/null)
     if [[ -n "$result" ]]; then
@@ -220,18 +220,18 @@ pkgs.runCommand "auto-update-user-confirmation-unit-test"
     local current_time=$(date +%s)
     local old_time=$((current_time - 32 * 24 * 3600))  # 32 days ago
     local recent_time=$((current_time - 10 * 24 * 3600))  # 10 days ago
-    
+
     # Store old and recent decisions
     ${stateLib}/bin/set_decision "old_hash" "defer" "$old_time" 2>/dev/null
     ${stateLib}/bin/set_decision "recent_hash" "defer" "$recent_time" 2>/dev/null
-    
+
     # Run cleanup
     ${stateLib}/bin/cleanup_old 2>/dev/null
-    
+
     # Verify old entry is removed, recent entry remains
     local old_decision=$(${stateLib}/bin/get_decision "old_hash" 2>/dev/null || echo "NOT_FOUND")
     local recent_decision=$(${stateLib}/bin/get_decision "recent_hash" 2>/dev/null || echo "NOT_FOUND")
-    
+
     if [[ "$old_decision" == "NOT_FOUND" && "$recent_decision" == "defer" ]]; then
       echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Old entries cleaned up correctly"
     else
@@ -244,7 +244,7 @@ pkgs.runCommand "auto-update-user-confirmation-unit-test"
   # Test 4.2: Cleanup with empty state
   test_cleanup_empty_state() {
     rm -f "$STATE_FILE"
-    
+
     # Run cleanup on empty/missing state file
     local result=$(${stateLib}/bin/cleanup_old 2>/dev/null && echo "SUCCESS" || echo "FAILED")
     if [[ "$result" == "SUCCESS" ]]; then
@@ -260,12 +260,12 @@ pkgs.runCommand "auto-update-user-confirmation-unit-test"
   test_cleanup_timestamp_update() {
     rm -f "$STATE_FILE"
     ${stateLib}/bin/get_state > /dev/null 2>&1  # Initialize file
-    
+
     local before_cleanup=$(cat "$STATE_FILE" | jq -r '.last_cleanup' 2>/dev/null)
     sleep 1  # Ensure timestamp difference
     ${stateLib}/bin/cleanup_old 2>/dev/null
     local after_cleanup=$(cat "$STATE_FILE" | jq -r '.last_cleanup' 2>/dev/null)
-    
+
     if [[ "$after_cleanup" -gt "$before_cleanup" ]]; then
       echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Cleanup timestamp updated correctly"
     else
@@ -282,10 +282,10 @@ pkgs.runCommand "auto-update-user-confirmation-unit-test"
   test_file_locking() {
     rm -f "$STATE_FILE"
     local lock_file="$CACHE_DIR/dotfiles-update-state.lock"
-    
+
     # Test that lock file is created and cleaned up during normal operation
     ${stateLib}/bin/get_state > /dev/null 2>&1
-    
+
     # Lock file should not exist after operation
     if [[ ! -f "$lock_file" ]]; then
       echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} File locking mechanism working"
@@ -300,10 +300,10 @@ pkgs.runCommand "auto-update-user-confirmation-unit-test"
   test_lock_cleanup() {
     rm -f "$STATE_FILE"
     local lock_file="$CACHE_DIR/dotfiles-update-state.lock"
-    
+
     # Run operation that should clean up its own lock
     ${stateLib}/bin/get_state > /dev/null 2>&1
-    
+
     # Lock file should not exist after operation
     if [[ ! -f "$lock_file" ]]; then
       echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Lock cleanup after successful operation"
@@ -318,7 +318,7 @@ pkgs.runCommand "auto-update-user-confirmation-unit-test"
   test_stale_lock_handling() {
     rm -f "$STATE_FILE"
     local lock_file="$CACHE_DIR/dotfiles-update-state.lock"
-    
+
     # Test basic stale lock detection by ensuring operations work normally
     local result=$(${stateLib}/bin/get_state 2>/dev/null)
     if [[ -n "$result" ]]; then
@@ -327,7 +327,7 @@ pkgs.runCommand "auto-update-user-confirmation-unit-test"
       echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} Stale lock handled correctly"
       exit 1
     fi
-    
+
     # Clean up
     rm -f "$lock_file"
   }
@@ -339,10 +339,10 @@ pkgs.runCommand "auto-update-user-confirmation-unit-test"
   # Test 6.1: get_state function
   test_get_state_function() {
     rm -f "$STATE_FILE"
-    
+
     local state=$(${stateLib}/bin/get_state 2>/dev/null)
     local has_required_keys=$(echo "$state" | jq 'has("pending_updates") and has("user_decisions") and has("last_cleanup")' 2>/dev/null)
-    
+
     if [[ "$has_required_keys" == "true" ]]; then
       echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} get_state function working correctly"
     else
@@ -355,26 +355,26 @@ pkgs.runCommand "auto-update-user-confirmation-unit-test"
   # Test 6.2: set_decision function parameter validation
   test_set_decision_validation() {
     rm -f "$STATE_FILE"
-    
+
     # Test with invalid parameters - should return non-zero exit codes
     if ! ${stateLib}/bin/set_decision "" "defer" "$(date +%s)" 2>/dev/null; then
       local test1_passed=true
     else
       local test1_passed=false
     fi
-    
+
     if ! ${stateLib}/bin/set_decision "hash123" "" "$(date +%s)" 2>/dev/null; then
       local test2_passed=true
     else
       local test2_passed=false
     fi
-    
+
     if ! ${stateLib}/bin/set_decision "hash123" "invalid_decision" "$(date +%s)" 2>/dev/null; then
       local test3_passed=true
     else
       local test3_passed=false
     fi
-    
+
     # All should fail validation
     if [[ "$test1_passed" == "true" && "$test2_passed" == "true" && "$test3_passed" == "true" ]]; then
       echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} set_decision parameter validation working"
@@ -388,10 +388,10 @@ pkgs.runCommand "auto-update-user-confirmation-unit-test"
   # Test 6.3: cleanup_old function timing
   test_cleanup_timing() {
     rm -f "$STATE_FILE"
-    
+
     # Benchmark cleanup operation
     ${testHelpers.benchmark "cleanup_old operation" "${stateLib}/bin/cleanup_old"}
-    
+
     echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} cleanup_old function timing acceptable"
   }
   test_cleanup_timing
@@ -406,6 +406,6 @@ pkgs.runCommand "auto-update-user-confirmation-unit-test"
   echo "${testHelpers.colors.green}✓ All state management system tests completed successfully!${testHelpers.colors.reset}"
   echo ""
   echo "${testHelpers.colors.yellow}Next: Implement lib/auto-update-state.nix to make these tests pass${testHelpers.colors.reset}"
-  
+
   touch $out
 ''
