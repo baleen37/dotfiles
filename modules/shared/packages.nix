@@ -11,6 +11,13 @@ with pkgs; [
   act
   gh
 
+  # Infrastructure as Code
+  # tfenv              # Terraform version manager (from tfenv-nix flake) - temporarily disabled due to API rate limit
+  terraform          # Infrastructure as Code tool
+  terraform-ls       # Terraform Language Server
+  terragrunt         # Terraform wrapper for DRY configurations
+  tflint             # Terraform linter
+
   # Password management
   _1password-cli
 
