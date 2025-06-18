@@ -420,6 +420,33 @@ To add new commands to the bl system:
 - No dependencies on dotfiles repository structure
 - Includes help with `-h` or `--help` flag
 
+## Claude Commands Development Guidelines
+
+Claude commands in `modules/shared/config/claude/commands/` are universal commands used globally across all projects.
+
+**Important**: All Claude-related documentation must be written in English as they are read and processed by AI agents.
+
+### Universal Requirements
+
+- **Language agnostic**: Must not depend on specific programming languages (Python, JavaScript, Rust, etc.)
+- **Framework agnostic**: Must not rely on specific frameworks (React, Django, Rails, etc.)
+- **Tool agnostic**: Must not assume specific build tools or package managers (npm, pip, cargo, etc.)
+- **Platform neutral**: Must work across all OS and environments
+
+### Good Examples
+
+- ✅ Using `git` commands (available in all projects)
+- ✅ General file system operations
+- ✅ Standard commit convention suggestions
+- ✅ Language-neutral testing strategies
+
+### Examples to Avoid
+
+- ❌ Tool-specific commands like `npm test`, `cargo build`
+- ❌ Assuming specific config files like `package.json`, `Cargo.toml`
+- ❌ Enforcing language-specific syntax or patterns
+- ❌ Assuming specific framework structures
+
 ## Claude 설정 보존 시스템
 
 이 dotfiles는 **스마트 Claude 설정 보존 시스템**을 포함하고 있어, 사용자가 개인화한 Claude 설정이 시스템 업데이트 시에도 안전하게 보존됩니다.
