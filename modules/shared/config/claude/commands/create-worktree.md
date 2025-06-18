@@ -13,17 +13,17 @@ When jito requests:
 
 1. **Analyze the request** to extract the feature name
 2. **Generate appropriate branch name** following conventions:
-   - `feature/` prefix for new features
-   - `hotfix/` prefix for urgent fixes
-   - `bugfix/` prefix for bug fixes
-   - Convert Korean to English descriptive terms
-   - Use kebab-case (lowercase with hyphens)
+   - Format: `{type}/{username}/{ticket-id}/{feature-name}`
+   - Types: `feat`, `fix`, `chore`, `docs`, `hotfix`
+   - Username: `jito` (or current developer)
+   - Ticket ID: JIRA ticket format (e.g., SEARCH-0000, USER-1234)
+   - Feature name: Convert Korean to English, use kebab-case
    - Keep names concise but descriptive
 
 3. **Execute worktree creation** with the generated name:
    ```bash
-   # For the example above, generate: feature/user-authentication
-   git worktree add -b feature/user-authentication ./.local/tree/feature/user-authentication
+   # For the example above, generate: feat/jito/SEARCH-0000/user-authentication
+   git worktree add -b feat/jito/SEARCH-0000/user-authentication ./.local/tree/feat/jito/SEARCH-0000/user-authentication
    ```
 
 4. **Provide confirmation** with the created path and next steps
@@ -32,16 +32,20 @@ When jito requests:
 
 | Request | Generated Branch | Command |
 |---------|------------------|---------|
-| "사용자 인증 기능" | `feature/user-authentication` | `git worktree add -b feature/user-authentication ./.local/tree/feature/user-authentication` |
-| "결제 시스템 버그 수정" | `bugfix/payment-system` | `git worktree add -b bugfix/payment-system ./.local/tree/bugfix/payment-system` |
-| "긴급 보안 패치" | `hotfix/security-patch` | `git worktree add -b hotfix/security-patch ./.local/tree/hotfix/security-patch` |
-| "API 성능 개선" | `feature/api-performance` | `git worktree add -b feature/api-performance ./.local/tree/feature/api-performance` |
+| "사용자 인증 기능" | `feat/jito/USER-1234/user-authentication` | `git worktree add -b feat/jito/USER-1234/user-authentication ./.local/tree/feat/jito/USER-1234/user-authentication` |
+| "결제 시스템 버그 수정" | `fix/jito/PAY-5678/payment-system` | `git worktree add -b fix/jito/PAY-5678/payment-system ./.local/tree/fix/jito/PAY-5678/payment-system` |
+| "긴급 보안 패치" | `hotfix/jito/SEC-9999/security-patch` | `git worktree add -b hotfix/jito/SEC-9999/security-patch ./.local/tree/hotfix/jito/SEC-9999/security-patch` |
+| "API 성능 개선" | `feat/jito/API-1111/api-performance` | `git worktree add -b feat/jito/API-1111/api-performance ./.local/tree/feat/jito/API-1111/api-performance` |
+| "문서 업데이트" | `docs/jito/DOC-2222/update-readme` | `git worktree add -b docs/jito/DOC-2222/update-readme ./.local/tree/docs/jito/DOC-2222/update-readme` |
 
 **Branch Naming Rules:**
+- Format: `{type}/{username}/{ticket-id}/{feature-name}`
+- Types: `feat`, `fix`, `chore`, `docs`, `hotfix`
+- Username: `jito` (current developer)
+- Ticket ID: JIRA format (PROJECT-XXXX, e.g., SEARCH-0000, USER-1234)
 - Always use English for branch names
 - Use descriptive but concise terms
-- Follow git flow conventions (feature/, hotfix/, bugfix/)
-- Use kebab-case formatting
+- Use kebab-case formatting for feature names
 - Avoid temporal descriptors (new, old, temp, etc.)
 
 ## When to Use Worktrees
@@ -56,13 +60,13 @@ When jito requests:
 
 ```bash
 # Most common: Create feature branch worktree
-git worktree add -b feature/new-feature ./.local/tree/feature/new-feature
+git worktree add -b feat/jito/SEARCH-0000/new-feature ./.local/tree/feat/jito/SEARCH-0000/new-feature
 
 # Review PR: Create worktree for existing remote branch
-git worktree add ./.local/tree/pr-123 origin/feature/some-feature
+git worktree add ./.local/tree/pr-123 origin/feat/developer/USER-1234/some-feature
 
 # Hotfix: Create worktree from main
-git worktree add -b hotfix/critical-bug ./.local/tree/hotfix/critical-bug main
+git worktree add -b hotfix/jito/SEC-9999/critical-bug ./.local/tree/hotfix/jito/SEC-9999/critical-bug main
 ```
 
 ## Core Commands
@@ -120,9 +124,9 @@ git worktree remove ./.local/tree/review-pr-$pr_number
 ### Multi-feature Development
 ```bash
 # Create worktrees for parallel features
-git worktree add -b feature/auth ./.local/tree/feature/auth
-git worktree add -b feature/api ./.local/tree/feature/api
-git worktree add -b feature/ui ./.local/tree/feature/ui
+git worktree add -b feat/jito/USER-1234/auth ./.local/tree/feat/jito/USER-1234/auth
+git worktree add -b feat/jito/API-5678/api ./.local/tree/feat/jito/API-5678/api
+git worktree add -b feat/jito/UI-9999/ui ./.local/tree/feat/jito/UI-9999/ui
 
 # Work on different features in parallel
 # Each worktree maintains its own working directory state
@@ -185,11 +189,14 @@ done
 ### Directory Structure
 ```
 project/.local/tree/
-├── feature/auth/           # Feature branches
-├── feature/api/
-├── hotfix/bug-123/         # Hotfixes
-├── pr-456-some-feature/    # PR reviews
-└── release/v2.0/           # Release branches
+├── feat/jito/USER-1234/auth/               # Feature branches
+├── feat/jito/API-5678/api/
+├── fix/jito/PAY-9999/payment-bug/          # Bug fixes
+├── hotfix/jito/SEC-1111/security-patch/    # Hotfixes
+├── docs/jito/DOC-2222/update-readme/       # Documentation
+├── chore/jito/MAINT-3333/cleanup/          # Maintenance
+├── pr-456-some-feature/                    # PR reviews
+└── release/v2.0/                           # Release branches
 ```
 
 ### Safety Tips
