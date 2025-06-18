@@ -1,0 +1,1 @@
+I apologize, but the web page content you've shared appears to be incomplete or cut off. The text ends abruptly with "The spec is in the file called:" without providing the full context or specification. Without the complete information, I cannot generate a comprehensive response or plan. Could you please provide the full content of the web page or the missing specification file?

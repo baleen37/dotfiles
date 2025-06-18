@@ -31,5 +31,5 @@ tasks.json
 tasks/
 
 # Claude Code (local only)
-.claude/
 CLAUDE.local.md
+.claude/settings.local.json
