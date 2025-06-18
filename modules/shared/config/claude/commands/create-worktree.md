@@ -2,6 +2,48 @@
 
 Efficient git worktree management for parallel development workflows.
 
+## Claude Command Usage
+
+When jito requests:
+```
+/user:create-worktree 사용자 인증 기능을 만들고 싶어
+```
+
+**Your Response Protocol:**
+
+1. **Analyze the request** to extract the feature name
+2. **Generate appropriate branch name** following conventions:
+   - `feature/` prefix for new features
+   - `hotfix/` prefix for urgent fixes
+   - `bugfix/` prefix for bug fixes
+   - Convert Korean to English descriptive terms
+   - Use kebab-case (lowercase with hyphens)
+   - Keep names concise but descriptive
+
+3. **Execute worktree creation** with the generated name:
+   ```bash
+   # For the example above, generate: feature/user-authentication
+   git worktree add -b feature/user-authentication ./.local/tree/feature/user-authentication
+   ```
+
+4. **Provide confirmation** with the created path and next steps
+
+**Examples:**
+
+| Request | Generated Branch | Command |
+|---------|------------------|---------|
+| "사용자 인증 기능" | `feature/user-authentication` | `git worktree add -b feature/user-authentication ./.local/tree/feature/user-authentication` |
+| "결제 시스템 버그 수정" | `bugfix/payment-system` | `git worktree add -b bugfix/payment-system ./.local/tree/bugfix/payment-system` |
+| "긴급 보안 패치" | `hotfix/security-patch` | `git worktree add -b hotfix/security-patch ./.local/tree/hotfix/security-patch` |
+| "API 성능 개선" | `feature/api-performance` | `git worktree add -b feature/api-performance ./.local/tree/feature/api-performance` |
+
+**Branch Naming Rules:**
+- Always use English for branch names
+- Use descriptive but concise terms
+- Follow git flow conventions (feature/, hotfix/, bugfix/)
+- Use kebab-case formatting
+- Avoid temporal descriptors (new, old, temp, etc.)
+
 ## When to Use Worktrees
 
 - **PR Reviews**: Create isolated environments for reviewing pull requests
@@ -64,8 +106,7 @@ git worktree prune
 ```bash
 # Create worktree for PR review
 pr_number=123
-gh pr checkout $pr_number --detach
-git worktree add ./.local/tree/review-pr-$pr_number HEAD
+git worktree add ./.local/tree/review-pr-$pr_number origin/pr-$pr_number
 
 # Switch to review environment
 cd ./.local/tree/review-pr-$pr_number
@@ -94,17 +135,21 @@ git worktree add -b feature/ui ./.local/tree/feature/ui
 # Ensure GitHub CLI is authenticated
 gh auth status || gh auth login
 
-# Create ./tree directory if it doesn't exist
-mkdir -p ./tree
+# Create ./.local/tree directory if it doesn't exist
+mkdir -p ./.local/tree
 
 # Create worktrees for all open PRs
 gh pr list --json number,headRefName --jq '.[] | "\(.number):\(.headRefName)"' | while IFS=':' read pr_num branch; do
   branch_path="./.local/tree/pr-${pr_num}-${branch//\//-}"
   if [ ! -d "$branch_path" ]; then
     echo "Creating worktree for PR #$pr_num ($branch)"
-    # Fetch the branch first
-    git fetch origin "$branch"
-    git worktree add "$branch_path" "origin/$branch"
+    # Check if branch exists on remote before fetching
+    if git ls-remote --exit-code origin "$branch" >/dev/null 2>&1; then
+      git fetch origin "$branch"
+      git worktree add "$branch_path" "origin/$branch"
+    else
+      echo "Warning: Branch $branch not found on remote"
+    fi
   else
     echo "Worktree for PR #$pr_num already exists"
   fi
@@ -139,7 +184,7 @@ done
 
 ### Directory Structure
 ```
-./.local/tree/
+project/.local/tree/
 ├── feature/auth/           # Feature branches
 ├── feature/api/
 ├── hotfix/bug-123/         # Hotfixes
