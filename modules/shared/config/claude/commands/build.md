@@ -1,6 +1,6 @@
 # Code Development Workflow
 
-A systematic development workflow command for solving complex problems.
+A systematic development workflow command for solving complex problems through iterative cycles.
 
 ## Step 1: Explore (Analysis)
 
@@ -20,16 +20,24 @@ A systematic development workflow command for solving complex problems.
 
 ## Step 2: Plan (Design)
 
-**Objective:** Create a detailed, step-by-step plan based on the analysis.
+**Objective:** Create a detailed plan with small, iterative tasks that can be completed independently.
 **Prompt Example:**
 
 > "Great, your analysis is complete. Now, please develop a detailed plan for '\[description of the problem]'.
 > Use the **think hard** command to explore different approaches before finalizing the plan.
-> Structure the plan in Markdown with numbered steps, for example:
 >
-> 1. Step 1: \[Task description]
-> 2. Step 2: \[Task description]
-> 3. Step 3: \[Task description]"
+> Break down the work into small, iterative tasks (each completable in 1-4 hours):
+> - Each task should deliver working functionality
+> - Tasks should be independent when possible
+> - Include verification steps after each task
+>
+> Structure the plan in Markdown:
+> 1. Task 1: \[Specific, small task]
+>    - Implementation details
+>    - Success criteria
+> 2. Task 2: \[Next iterative improvement]
+>    - Implementation details
+>    - Success criteria"
 
 ---
 
@@ -46,40 +54,97 @@ A systematic development workflow command for solving complex problems.
 
 ---
 
-## Step 4: Implement Code (Coding)
+## Step 4: Iterative Development
 
-**Objective:** Write the actual code according to the approved plan.
+**Objective:** Execute each task through simple cycles of implement → test → commit.
 **Prompt Example:**
 
-> "The plan has been approved. Now, implement the code following the plan exactly. Verify each part against the plan and ensure it's a sound solution."
+> "Starting development. First, create the feature branch based on the approved plan.
+>
+> For each task in the plan:
+>
+> **1. Implement**
+> - Build the working solution for this task
+> - Focus on making it work first
+>
+> **2. Test**  
+> - Run tests immediately
+> - Fix any issues until tests pass
+>
+> **3. Commit**
+> - Create a focused commit: `type: what was done`
+> - Examples: `feat: add user login`, `fix: resolve memory leak`
+> - Include docs/comments in the same commit
+>
+> Repeat for all tasks. Each commit shows progress naturally.
+> If blocked or tests keep failing, stop and ask for help."
 
 ---
 
-## Step 5: Review Implementation
+## Step 5: Final Integration Review
 
-**Objective:** Review the implemented code to ensure it meets all requirements and follows best practices.
+**Objective:** Review the complete implementation as a whole after all tasks are done.
 **Prompt Example:**
 
-> "Let's review the implementation:
+> "All tasks are complete. Let's do a final integration review:
 >
-> 1. Check if the code follows the approved plan
-> 2. Verify all requirements are properly implemented
-> 3. Review code quality and adherence to conventions
-> 4. Identify any potential issues or improvements
-> 5. Ensure proper error handling and edge cases
+> 1. Verify all tasks from the original plan are implemented
+> 2. Run the full test suite
+> 3. Check that all components work together correctly
+> 4. Review the overall code quality and architecture
+> 5. Ensure documentation is complete
+> 6. **Capture learnings**:
+>    - What went well?
+>    - What was challenging?
+>    - What patterns emerged that could be reused?
+>    - Any architectural insights?
 >
-> Provide a summary of the review findings."
+> Provide a summary of what was accomplished and key learnings."
 
 ---
 
-## Step 6: Commit & Document
+## Step 6: Final Commit & PR
 
-**Objective:** Commit the completed code and update documentation to finalize the task.
+**Objective:** Prepare the final pull request with all changes.
 **Prompt Example:**
 
-> "The code has been reviewed and is ready. Please:
+> "Ready to create the pull request:
 >
-> 1. Commit with message: '\[Feat: Brief description]'.
-> 2. Push to the feature branch: 'feat/\[branch-name]'.
-> 3. Open a Pull Request targeting 'main'.
-> 4. Update README.md and CHANGELOG.md with a summary of the changes."
+> 1. Create a summary commit if needed (or use existing atomic commits)
+> 2. Push to appropriate branch based on change type:
+>    - `feat/[descriptive-name]` - new features
+>    - `fix/[descriptive-name]` - bug fixes
+>    - `chore/[descriptive-name]` - maintenance tasks
+>    - `refactor/[descriptive-name]` - code improvements
+>    - Or follow team's existing convention
+> 3. Open a Pull Request targeting the default branch
+> 4. Write comprehensive PR description summarizing all changes
+> 5. Link any related issues or tickets
+> 6. Include a 'Lessons Learned' section if applicable"
+
+---
+
+## Error Handling Guidelines
+
+**When things go wrong:**
+
+1. **Implementation Blockers**
+   - Stop immediately when truly stuck
+   - Clearly describe what you're trying to do
+   - Share what you've tried
+   - Ask specific questions
+
+2. **Test Failures**
+   - First attempt: Analyze and fix
+   - Second attempt: Try different approach
+   - Third time: Stop and ask for guidance
+
+3. **Plan Deviations**
+   - Minor adjustments: Note and continue
+   - Major changes: Stop and re-plan with user
+   - Always communicate why plans changed
+
+4. **Time Overruns**
+   - Alert when task exceeds estimated time
+   - Suggest splitting into smaller tasks
+   - Update estimates for similar future tasks
