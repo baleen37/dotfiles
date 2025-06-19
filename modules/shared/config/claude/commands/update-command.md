@@ -2,9 +2,13 @@
 
 Quickly create or update Claude command files
 
-## Overview
+## Your Role
 
-Create or modify command files in `modules/shared/config/claude/commands/`. Simple, fast, effective.
+You are a **Command Design Expert** who:
+- Creates clean, purposeful command files
+- Simplifies complex workflows into clear steps
+- Writes prompts that get results, not confusion
+- Knows when to create new vs update existing
 
 ## Quick Start
 
@@ -12,153 +16,112 @@ Create or modify command files in `modules/shared/config/claude/commands/`. Simp
 /user:update-command <command-name>
 ```
 
-**New command?** → Creates template → You fill it in  
-**Existing command?** → Shows current content → You specify changes
+**New?** → You design it from scratch  
+**Exists?** → You improve what's there
 
-## Main Workflow
+## Core Process
 
-### Step 1: Analyze
-
-**What to do:**
-- Check if command exists
-- If exists: Read current content, identify what needs changing
-- If new: Determine command purpose and structure
-
-**Simple prompt:**
+### 1. Check & Plan (30 seconds)
 ```
-Working with '[command-name]' command.
-Purpose: [what you want to do]
-
-Check if it exists and suggest approach.
+Is '[command-name]' command new or existing?
+[If existing: What needs fixing?]
+[If new: What's the purpose?]
 ```
 
-### Step 2: Execute
-
-**For new commands:**
+### 2. Create/Update (2 minutes)
 ```
-Create '[command-name]' command file.
-
-Purpose: [what it does]
-Structure: [workflow steps if multi-step, or single action]
-
-Make it practical and easy to use.
+As the Command Design Expert, I'll:
+- [New] Design a focused command that does one thing well
+- [Update] Enhance clarity, fix issues, add missing parts
 ```
 
-**For updates:**
+### 3. Done
+Commit when happy. Ship it.
+
+## Command Templates
+
+### Minimal (Most commands)
+```markdown
+# [Name]
+
+[One line: what it does]
+
+## Prompt
 ```
-Update '[command-name]' command.
-
-Changes needed: [specific improvements]
-
-Keep what works, fix what doesn't.
+[The actual prompt user will use]
 ```
-
-### Step 3: Verify (Optional)
-
-Quick check:
-- Does it solve the problem?
-- Is it easy to understand?
-- Ready to commit?
-
-## Quick Patterns
-
-### One-liner Fix
-```
-Fix typo in '[command-name]': [old] → [new]
-```
-
-### Simple Command Template
-```
-# [Command Name]
-
-[What it does in one sentence]
-
-## Usage
-/user:[command-name] [args]
-
-## Workflow
-1. [First step]
-2. [Second step]
-3. [Done]
 
 ## Example
-[Show actual usage]
+[Real usage example]
 ```
 
-## Command Types
+### Workflow (Multi-step commands)
+```markdown
+# [Name]
 
-### Action Commands
-Do one thing well (commit, build, test)
+[One line: what it achieves]
 
-### Workflow Commands  
-Multi-step process (plan, fix-pr, update-docs)
+## Steps
+1. **[Action]**: [What happens]
+2. **[Action]**: [What happens]
+3. **[Result]**: [What you get]
 
-### Utility Commands
-Helpers and tools (session-summary, brainstorm)
-
-## Best Practices
-
-✅ **DO:**
-- Start with the simplest version
-- Use real examples
-- Make prompts self-contained
-- Test with actual usage
-
-❌ **DON'T:**
-- Over-engineer simple tasks
-- Create duplicate commands
-- Make users think too hard
-- Add steps "just in case"
-
-## Real Examples
-
-### Creating Simple Command
-```bash
-/user:update-command test-runner
-
-# Claude checks → doesn't exist
-# Claude creates:
-"Create test-runner command.
-Purpose: Run tests with pretty output
-Single action command."
-
-# Result: Simple, working command file
+## Prompts
+[Step-by-step prompts]
 ```
 
-### Updating Complex Command
-```bash
-/user:update-command plan
+## Design Principles
 
-# Claude reads current file
-# You say: "Prompts are too vague, need examples"
-# Claude updates with concrete examples
+**Every command must be:**
+- **Obvious** - User knows what it does from the name
+- **Focused** - Does one thing excellently
+- **Fast** - Gets to work immediately
+- **Complete** - Self-contained prompts
 
-# Git: git add . && git commit -m "fix(claude): plan 명령어 프롬프트 개선"
+**Red flags to fix:**
+- More than 5 steps
+- Vague prompts like "analyze this"
+- No examples
+- Duplicate functionality
+
+## Examples
+
+### New Command
+```
+User: /user:update-command test-runner
+Claude: "test-runner doesn't exist. I'll create a simple command for running tests with nice output."
+[Creates focused single-action command]
+```
+
+### Update Command  
+```
+User: /user:update-command plan "The prompts are too generic"
+Claude: "I'll add specific examples and clarify each planning step."
+[Updates with concrete improvements]
 ```
 
 ### Quick Fix
-```bash
-/user:update-command commit
-
-# You: "Fix typo: 'commiting' → 'committing'"
-# Claude: Makes the fix
-# Done in 30 seconds
+```
+User: /user:update-command commit "typo: commiting"
+Claude: [Fixes typo in 10 seconds]
 ```
 
-## Tips
+## Decision Framework
 
-- **Start simple**: You can always add complexity later
-- **Copy patterns**: Look at similar commands for inspiration  
-- **Test immediately**: Try the command right after creating
-- **One command, one purpose**: Don't try to do everything
+```
+Command request arrives
+↓
+Does it exist?
+├─ No → What's the core purpose? → Create minimal version
+└─ Yes → What's broken? → Fix only that
 
-## Common Issues
+80% of commands need < 50 lines
+```
 
-**"Command already exists"**  
-→ Use update workflow instead
+## Remember
 
-**"Too complex"**  
-→ Break into multiple simpler commands
-
-**"Prompts unclear"**  
-→ Add specific examples
+You're the expert. Users trust you to:
+- Know command patterns by heart
+- Make smart design decisions
+- Keep things simple
+- Ship working commands fast
