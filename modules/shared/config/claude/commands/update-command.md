@@ -24,6 +24,10 @@ Please:
 3. If it doesn't exist: Verify this is a new command we should create
 4. List any related commands that might be affected
 5. Recommend the appropriate workflow (create new or update existing)
+
+**Todo Tracking:**
+- Create initial todos for the selected workflow
+- Mark assessment task as complete
 ```
 
 ### Step 2: Planning Phase
@@ -44,6 +48,10 @@ Design should include:
 5. Example use cases
 
 Ensure it follows established patterns from similar commands.
+
+**Todo Tracking:**
+- Break down design into subtasks
+- Track each design element completion
 ```
 
 **For Existing Commands - Prompt Template:**
@@ -58,6 +66,10 @@ Update plan should include:
 3. Outdated content to remove
 4. Improved prompt templates
 5. Impact on current users
+
+**Todo Tracking:**
+- Create todos for each section to modify
+- Track progress on design elements
 ```
 
 ### Step 3: Review and Approval
@@ -75,6 +87,10 @@ Review the [creation/update] plan for '[command-name]' command:
 5. Are there any risks or breaking changes?
 
 Please approve or suggest modifications.
+
+**Git Workflow:**
+- Create feature branch: `git checkout -b feat/update-[command-name]`
+- Stage work-in-progress if needed
 ```
 
 ### Step 4: Implementation
@@ -96,6 +112,13 @@ Ensure:
 - Consistent structure
 - Helpful examples
 - Complete documentation
+
+**Todo Tracking:**
+- Mark planning todos as complete
+- Create implementation todos
+
+**Git Workflow:**
+- Commit changes: `git add -A && git commit -m "feat(claude): [action] [command-name] 명령어"`
 ```
 
 ### Step 5: Validation
@@ -113,6 +136,20 @@ Validate the [new/updated] '[command-name]' command:
 5. Confirm it addresses the original need
 
 Report any issues or confirm readiness.
+
+**Testing Process:**
+1. Copy the command to a test session
+2. Run through each workflow step with real inputs
+3. Verify prompts produce expected results
+4. Check edge cases (missing files, errors, etc.)
+
+**Todo Tracking:**
+- Mark all implementation todos as complete
+- Create follow-up tasks if issues found
+
+**Git Workflow:**
+- Final commit if changes made during validation
+- Ready for PR creation if needed
 ```
 
 ## Quick Operations
@@ -212,21 +249,68 @@ Need to work with a command?
 ### Example 1: Creating a New Command
 ```
 User: "I need a command for reviewing security vulnerabilities"
-Step 1: Check - security-review.md doesn't exist
-Step 2: Design - Create multi-step security analysis workflow
-Step 3: Review - Approve design with security checklist
-Step 4: Create - Generate security-review.md
-Step 5: Validate - Test with example vulnerability
+
+**Step 1: Assessment**
+Prompt: "I need to work with the 'security-review' Claude command.
+Purpose: create new feature
+Please check if it exists and recommend workflow."
+
+Result: "security-review.md doesn't exist. Recommend creating new command."
+Todos created: [Assessment ✓, Design, Review, Implementation, Validation]
+
+**Step 2: Design**
+Prompt: "Create a design for the new 'security-review' command.
+Purpose: Systematic security vulnerability review
+Include workflow steps and prompt templates."
+
+Result: Multi-step security workflow designed
+Todos: [Assessment ✓, Design ✓, Review, Implementation, Validation]
+
+**Step 3: Review**
+Git: `git checkout -b feat/add-security-review`
+Prompt: "Review the security-review command plan. Does it cover OWASP top 10?"
+
+**Step 4: Implementation**
+Create security-review.md with approved design
+Git: `git add . && git commit -m "feat(claude): security-review 명령어 추가"`
+
+**Step 5: Validation**
+Test: Run security-review on sample vulnerable code
+Confirm: All vulnerabilities detected as expected
 ```
 
 ### Example 2: Updating Existing Command
 ```
 User: "The plan command needs better prompt examples"
-Step 1: Check - plan.md exists, prompts are too generic
-Step 2: Design - Enhance prompts with specific examples
-Step 3: Review - Compare before/after versions
-Step 4: Update - Modify plan.md with improvements
-Step 5: Validate - Test improved prompts
+
+**Step 1: Assessment**
+Prompt: "I need to work with the 'plan' Claude command.
+Purpose: improve prompts
+Analyze current structure and identify improvements."
+
+Result: "plan.md exists. Current prompts too generic, need concrete examples."
+Todos: [Analyze current ✓, Design improvements, Review changes, Update file, Test]
+
+**Step 2: Design Updates**
+Prompt: "Design updates for 'plan' command.
+Issues: Prompts lack concrete examples
+Show before/after comparisons."
+
+Todos: [Analyze ✓, Design improvements (in progress), Review, Update, Test]
+
+**Step 3: Review**
+Git: `git checkout -b fix/improve-plan-prompts`
+Compare proposed changes, get approval
+
+**Step 4: Update**
+Modify plan.md with enhanced prompts
+Git: `git add . && git commit -m "fix(claude): plan 명령어 프롬프트 개선"`
+Todos: [Analyze ✓, Design ✓, Review ✓, Update ✓, Test]
+
+**Step 5: Validate**
+Test: Use updated plan command on real project
+Verify: Prompts now generate better results
+Todos: [All complete ✓]
 ```
 
 ## Related Commands
