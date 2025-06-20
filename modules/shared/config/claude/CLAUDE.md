@@ -34,6 +34,45 @@
     <rule>When starting, <strong>STOP</strong> and ask how to handle uncommitted changes. Suggest committing first.</rule>
     <rule><strong>ALWAYS</strong> create a WIP branch for the current task if one isn't specified.</rule>
     <rule><strong>TRACK</strong> all non-trivial changes in git with frequent commits.</rule>
+
+    <branch_naming>
+        <title>Branch Naming Guidelines</title>
+        <rule><strong>Priority 1:</strong> Follow existing repository conventions if they exist (check .github/, CONTRIBUTING.md, or ask team)</rule>
+        <rule><strong>Priority 2:</strong> Use personal namespace format when no team convention exists</rule>
+
+        <personal_format>
+            <pattern><strong>Personal Format:</strong> {type}/{username}/{scope}-{description}</pattern>
+            <rule><strong>Type prefixes:</strong>
+                • feat/ - New features or enhancements
+                • fix/ - Bug fixes and corrections
+                • refactor/ - Code restructuring without behavior change
+                • docs/ - Documentation updates
+                • test/ - Test additions or modifications
+                • chore/ - Maintenance tasks (deps, config, etc.)</rule>
+            <rule><strong>Username:</strong> Your GitHub username or initials (for personal identification)</rule>
+            <rule><strong>Scope (optional):</strong> Component/module being changed (e.g., auth, api, ui, cli)</rule>
+            <rule><strong>Description:</strong> Short kebab-case summary (2-4 words max)</rule>
+            <examples>
+                • feat/jito/auth-oauth-integration
+                • fix/jito/api-timeout-handling  
+                • refactor/jito/db-connection-pool
+                • docs/jito/api-reference-update
+                • test/jito/user-registration-e2e
+                • chore/jito/deps-security-patch</examples>
+        </personal_format>
+
+        <fallback_format>
+            <pattern><strong>Simple Format:</strong> {type}/{scope}-{description} (when username not needed)</pattern>
+            <examples>
+                • feat/auth-oauth-integration
+                • fix/api-timeout-handling</examples>
+        </fallback_format>
+
+        <rule><strong>Discovery process:</strong> Check for CONTRIBUTING.md, .github/PULL_REQUEST_TEMPLATE.md, or recent branch patterns first</rule>
+        <rule><strong>Avoid:</strong> Generic names (update, fix, change), temporal qualifiers (new, old), or ticket numbers alone</rule>
+        <rule><strong>Length limit:</strong> Maximum 60 characters total</rule>
+        <rule><strong>Use English only</strong> for branch names to maintain consistency</rule>
+    </branch_naming>
 </version_control>
 <testing>
     <title>Testing Protocol</title>
