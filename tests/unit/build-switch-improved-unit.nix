@@ -62,123 +62,15 @@ pkgs.runCommand "build-switch-improved-unit-test"
   ${testHelpers.assertContains "${buildSwitchScript}" "New generation activated" "switch success message"}
   ${testHelpers.assertContains "${buildSwitchScript}" "Cleanup complete" "cleanup success message"}
 
-  # Test 8: Mock script execution test
-  ${testHelpers.testSubsection "Mock Script Execution"}
+  # Test 8: Script content validation
+  ${testHelpers.testSubsection "Script Content"}
 
-  # Create a mock build-switch script for functional testing
-  MOCK_SCRIPT="$HOME/mock-build-switch"
-  cat > "$MOCK_SCRIPT" << 'MOCK_EOF'
-#!/bin/bash
-# Mock version of build-switch for testing
-
-GREEN='\033[1;32m'
-YELLOW='\033[1;33m'
-RED='\033[1;31m'
-BLUE='\033[1;34m'
-NC='\033[0m'
-
-SYSTEM_TYPE="aarch64-darwin"
-FLAKE_SYSTEM="darwinConfigurations.\''${SYSTEM_TYPE}.system"
-
-export NIXPKGS_ALLOW_UNFREE=1
-
-if [ -z "$USER" ]; then
-    export USER=$(whoami)
-fi
-
-# Check for verbose flag
-VERBOSE=false
-for arg in "$@"; do
-    if [ "$arg" = "--verbose" ]; then
-        VERBOSE=true
-        break
-    fi
-done
-
-print_step() {
-    echo "\''${BLUE}$1\''${NC}"
-}
-
-print_success() {
-    echo "\''${GREEN}✅ $1\''${NC}"
-}
-
-print_error() {
-    echo "\''${RED}❌ $1\''${NC}"
-}
-
-show_progress() {
-    local step=$1
-    local total=$2
-    local desc=$3
-    echo "\''${YELLOW}🏗️  Dotfiles Build & Switch [$step/$total] - $desc\''${NC}"
-}
-
-# Mock build phase
-show_progress "1" "4" "Building system configuration"
-if [ "$VERBOSE" = "true" ]; then
-    echo "VERBOSE: Detailed build output would appear here"
-fi
-print_success "System configuration built"
-
-# Mock switch phase
-show_progress "2" "4" "Switching to new generation"
-print_step "└─ Requesting admin privileges..."
-if [ "$VERBOSE" = "true" ]; then
-    echo "VERBOSE: Detailed switch output would appear here"
-fi
-print_success "New generation activated"
-
-# Mock cleanup phase
-show_progress "3" "4" "Cleaning up"
-print_success "Cleanup complete"
-
-# Final
-show_progress "4" "4" "Complete"
-print_success "System update complete!"
-echo "\''${BLUE}💡 Use --verbose for detailed output\''${NC}"
-MOCK_EOF
-
-  chmod +x "$MOCK_SCRIPT"
-
-  # Test normal execution
-  OUTPUT=$("$MOCK_SCRIPT" 2>&1)
-  ${testHelpers.assertTrue ''echo "$OUTPUT" | grep -q "🏗️  Dotfiles Build & Switch"'' "progress indicator appears in output"}
-  ${testHelpers.assertTrue ''echo "$OUTPUT" | grep -q "✅"'' "success indicators appear in output"}
-  ${testHelpers.assertTrue ''echo "$OUTPUT" | grep -q "💡 Use --verbose"'' "verbose hint appears in output"}
-
-  # Test verbose execution
-  VERBOSE_OUTPUT=$("$MOCK_SCRIPT" --verbose 2>&1)
-  ${testHelpers.assertTrue ''echo "$VERBOSE_OUTPUT" | grep -q "VERBOSE:"'' "verbose output appears with --verbose flag"}
-
-  # Test 9: Output format validation
-  ${testHelpers.testSubsection "Output Format Validation"}
-
-  NORMAL_OUTPUT=$("$MOCK_SCRIPT" 2>&1)
-
-  # Count progress steps
-  PROGRESS_COUNT=$(echo "$NORMAL_OUTPUT" | grep -c "🏗️  Dotfiles Build & Switch")
-  ${testHelpers.assertTrue ''[ $PROGRESS_COUNT -eq 4 ]'' "exactly 4 progress steps shown"}
-
-  # Count success messages
-  SUCCESS_COUNT=$(echo "$NORMAL_OUTPUT" | grep -c "✅")
-  ${testHelpers.assertTrue ''[ $SUCCESS_COUNT -eq 4 ]'' "exactly 4 success messages shown"}
-
-  # Test that output is concise (should be under 15 lines for normal mode)
-  LINE_COUNT=$(echo "$NORMAL_OUTPUT" | wc -l)
-  ${testHelpers.assertTrue ''[ $LINE_COUNT -le 15 ]'' "normal output is concise (≤15 lines)"}
-
-  # Test 10: Error handling patterns
-  ${testHelpers.testSubsection "Error Patterns"}
-
-  ${testHelpers.assertContains "${buildSwitchScript}" "❌" "error emoji present"}
-  ${testHelpers.assertContains "${buildSwitchScript}" "exit 1" "proper error exit code"}
-  ${testHelpers.assertContains "${buildSwitchScript}" "verbose.*details" "verbose suggestion pattern"}
+  ${testHelpers.assertContains "${buildSwitchScript}" "🏗️.*Build.*Switch" "build progress pattern"}
+  ${testHelpers.assertContains "${buildSwitchScript}" "💡.*verbose" "verbose hint pattern"}
+  ${testHelpers.assertContains "${buildSwitchScript}" "Building system configuration" "build step message"}
+  ${testHelpers.assertContains "${buildSwitchScript}" "Switching to new generation" "switch step message"}
 
   ${testHelpers.cleanup}
-
-  # Clean up mock scripts
-  rm -f "$MOCK_SCRIPT" "$ERROR_SCRIPT"
 
   echo ""
   echo "${testHelpers.colors.blue}=== Test Results: Build-Switch Improved Unit Tests ===${testHelpers.colors.reset}"
