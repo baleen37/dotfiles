@@ -43,7 +43,7 @@ repos:
       # Check for secrets and sensitive information
       - id: check-secrets
         name: Check for Secrets
-        entry: bash -c 'grep -r --exclude-dir=.git -E "(password\s*[=:]\s*[^[:space:]]+|secret\s*[=:]\s*[^[:space:]]+|api_key\s*[=:]\s*[^[:space:]]+|token\s*[=:]\s*[^[:space:]]+)" . | grep -v "\.md:" | grep -v "test" | grep -v "example" | grep -v "secrets\." | grep -v ";;.*password" | grep -v "\${{" && echo "Potential secrets found!" && exit 1 || true'
+        entry: bash -c 'grep -r --exclude-dir=.git -E "(password\s*[=:]\s*[^[:space:]]+|secret\s*[=:]\s*[^[:space:]]+|api_key\s*[=:]\s*[^[:space:]]+|token\s*[=:]\s*[^[:space:]]+)" . | grep -v "\.md:" | grep -v "test" | grep -v "example" | grep -v "secrets\." | grep -v ";;.*password" | grep -v "\${{" | grep -v "id-token:" && echo "Potential secrets found!" && exit 1 || true'
         language: system
         pass_filenames: false
         always_run: true
