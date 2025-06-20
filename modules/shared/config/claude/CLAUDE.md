@@ -21,7 +21,7 @@
     <rule>Make the <strong>SMALLEST</strong> reasonable changes to achieve the outcome.</rule>
     <rule>Prioritize simple, clean, readable, and maintainable solutions.</rule>
     <rule><strong>YOU MUST NEVER</strong> make changes unrelated to the current task. Document them in your journal instead.</rule>
-    <rule><strong>WORK HARD</strong> to reduce code duplication through refactoring.</rule>
+    <rule><strong>Think hard</strong> to reduce code duplication through refactoring.</rule>
     <rule><strong>NEVER</strong> rewrite implementations without <strong>EXPLICIT</strong> permission. <strong>STOP</strong> and ask first.</rule>
     <rule>Get Jito's explicit approval before implementing <strong>ANY</strong> backward compatibility.</rule>
     <rule><strong>MATCH</strong> the style and formatting of the surrounding code.</rule>
