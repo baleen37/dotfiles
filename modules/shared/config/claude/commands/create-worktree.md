@@ -221,9 +221,9 @@ git worktree prune
 ```bash
 # Show all worktrees with current branch and last commit
 git worktree list --porcelain | \
-awk '/^worktree/ {wt=$2} 
-     /^HEAD/ {head=$2} 
-     /^branch/ {branch=$2; gsub("refs/heads/", "", branch); 
+awk '/^worktree/ {wt=$2}
+     /^HEAD/ {head=$2}
+     /^branch/ {branch=$2; gsub("refs/heads/", "", branch);
               print wt, branch ? branch : "detached", head}'
 ```
 

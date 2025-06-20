@@ -89,9 +89,9 @@ in
                     return 0  # 파일이 없으면 다른 것으로 간주
                   fi
 
-                  # Nix 환경에서는 sha256sum 사용
-                  local source_hash=$(sha256sum "$source" | cut -d' ' -f1)
-                  local target_hash=$(sha256sum "$target" | cut -d' ' -f1)
+                  # macOS에서는 shasum 사용
+                  local source_hash=$(shasum -a 256 "$source" | cut -d' ' -f1)
+                  local target_hash=$(shasum -a 256 "$target" | cut -d' ' -f1)
                   [[ "$source_hash" != "$target_hash" ]]
                 }
 
@@ -224,71 +224,65 @@ in
                 done
 
                 # commands 디렉토리 처리
-                echo ""
-                echo "=== Claude 명령어 파일 복사 ==="
                 if [[ -d "$SOURCE_DIR/commands" ]]; then
                   for cmd_file in "$SOURCE_DIR/commands"/*.md; do
                     if [[ -f "$cmd_file" ]]; then
-                      base_name=$(basename "$cmd_file")
-                      echo "명령어 파일 처리: $base_name"
+                      local base_name=$(basename "$cmd_file")
                       smart_copy "$cmd_file" "$CLAUDE_DIR/commands/$base_name"
                     fi
                   done
-                  echo "명령어 파일 복사 완료"
-                else
-                  echo "경고: $SOURCE_DIR/commands 디렉토리를 찾을 수 없습니다"
                 fi
 
                 # 소스에 없는 파일을 찾아서 삭제하는 함수
                 sync_and_clean_files() {
                   echo ""
                   echo "소스에 없는 파일 정리 중..."
-                  
+
                   # 소스 파일 목록 생성
                   local source_files=()
-                  
+
                   # 루트 디렉토리 파일들
                   for f in "$SOURCE_DIR"/*.md "$SOURCE_DIR"/*.json; do
                     [[ -f "$f" ]] && source_files+=("$(basename "$f")")
                   done
-                  
+
                   # commands 디렉토리 파일들
                   for f in "$SOURCE_DIR/commands"/*.md; do
                     [[ -f "$f" ]] && source_files+=("commands/$(basename "$f")")
                   done
-                  
+
                   # 타겟의 파일들 확인
                   for target_file in "$CLAUDE_DIR"/*.md "$CLAUDE_DIR"/*.json "$CLAUDE_DIR/commands"/*.md; do
                     [[ -f "$target_file" ]] || continue
-                    
+
                     # 상대 경로 계산
-                    local rel_path="${target_file#$CLAUDE_DIR/}"
-                    
+                    local rel_path="''${target_file#$CLAUDE_DIR/}"
+
                     # .new, .bak, .update-notice 파일은 건너뛰기
-                    if [[ "$rel_path" == *.new ]] || [[ "$rel_path" == *.bak ]] || [[ "$rel_path" == *.update-notice ]]; then
-                      continue
-                    fi
-                    
+                    case "''${rel_path}" in
+                      *.new|*.bak|*.update-notice) continue ;;
+                    esac
+
                     # 소스에 해당 파일이 있는지 확인
                     local found=false
-                    for src in "${source_files[@]}"; do
-                      if [[ "$src" == "$rel_path" ]]; then
+                    for src in "''${source_files[@]}"; do
+                      if [[ "$src" == "''${rel_path}" ]]; then
                         found=true
                         break
                       fi
                     done
-                    
+
                     # 소스에 없으면 삭제
                     if [[ "$found" == "false" ]]; then
-                      echo "  더 이상 사용하지 않는 파일 삭제: $rel_path"
+                      echo "  더 이상 사용하지 않는 파일 삭제: ''${rel_path}"
                       $DRY_RUN_CMD rm -f "$target_file"
                     fi
                   done
                 }
-                
+
                 # 소스에 없는 파일 삭제
                 sync_and_clean_files
-                
+
                 # 오래된 백업 파일 정리 (30일 이상)
                 if [[ -d "$CLAUDE_DIR/.backups" ]]; then
                   echo ""

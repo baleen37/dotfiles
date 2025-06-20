@@ -301,6 +301,56 @@ in
           done
         fi
 
+        # 소스에 없는 파일을 찾아서 삭제하는 함수
+        sync_and_clean_files() {
+          echo ""
+          echo "소스에 없는 파일 정리 중..."
+
+          # 소스 파일 목록 생성
+          local source_files=()
+
+          # 루트 디렉토리 파일들
+          for f in "$SOURCE_DIR"/*.md "$SOURCE_DIR"/*.json; do
+            [[ -f "$f" ]] && source_files+=("$(basename "$f")")
+          done
+
+          # commands 디렉토리 파일들
+          for f in "$SOURCE_DIR/commands"/*.md; do
+            [[ -f "$f" ]] && source_files+=("commands/$(basename "$f")")
+          done
+
+          # 타겟의 파일들 확인
+          for target_file in "$CLAUDE_DIR"/*.md "$CLAUDE_DIR"/*.json "$CLAUDE_DIR/commands"/*.md; do
+            [[ -f "$target_file" ]] || continue
+
+            # 상대 경로 계산
+            local rel_path="''${target_file#$CLAUDE_DIR/}"
+
+            # .new, .bak, .update-notice 파일은 건너뛰기
+            if [[ "''${rel_path}" == *".new" ]] || [[ "''${rel_path}" == *".bak" ]] || [[ "''${rel_path}" == *".update-notice" ]]; then
+              continue
+            fi
+
+            # 소스에 해당 파일이 있는지 확인
+            local found=false
+            for src in "''${source_files[@]}"; do
+              if [[ "$src" == "''${rel_path}" ]]; then
+                found=true
+                break
+              fi
+            done
+
+            # 소스에 없으면 삭제
+            if [[ "$found" == "false" ]]; then
+              echo "  더 이상 사용하지 않는 파일 삭제: $rel_path"
+              $DRY_RUN_CMD rm -f "$target_file"
+            fi
+          done
+        }
+
+        # 소스에 없는 파일 삭제
+        sync_and_clean_files
+
         # 오래된 백업 파일 정리 (30일 이상)
         if [[ -d "$CLAUDE_DIR/.backups" ]]; then
           echo ""
