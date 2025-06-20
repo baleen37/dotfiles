@@ -56,6 +56,11 @@ Your Task:
 - Architecture decisions are needed
 - Unexpected errors that require human judgment
 - Test failures that seem to indicate fundamental design issues
+- **PLAN CHANGES: When the implementation strategy needs to be modified**
+  - IMMEDIATELY update todo.md to reflect the new plan
+  - Document what changed and why
+  - Update task priorities and dependencies
+  - Ensure todo.md stays in sync with the actual implementation direction
 
 Note: Always follow the project's established commit conventions (e.g., feat:, fix:, refactor:, etc.)
 [Todo Management & Adaptation - CRITICAL WORKFLOW COMPONENT]
@@ -73,6 +78,12 @@ Dynamic Todo Updates: Throughout development, continuously update todo.md to ref
 2. **After each completed task (NON-NEGOTIABLE - this is where most projects lose momentum)**
 3. When new dependencies or blockers are discovered
 4. If requirements evolve during implementation
+5. **MID-CYCLE PLAN CHANGES - CRITICAL SYNC POINT**
+   - When you realize the current approach won't work
+   - When I interrupt the flow to suggest a different direction
+   - When implementation reveals new requirements or constraints
+   - When debugging uncovers fundamental design issues
+   - **IMMEDIATELY pause and update todo.md before continuing**
 
 **GOLDEN RULE: Every TGVRI cycle completion = Immediate todo.md update**
 - Mark task status clearly (completed, in-progress, blocked, etc.)
@@ -80,7 +91,13 @@ Dynamic Todo Updates: Throughout development, continuously update todo.md to ref
 - Note any lessons learned or follow-up items
 - Update dependencies and priorities based on new learnings
 
-Always sync the todo.md with current project reality - it should be our single source of truth and project compass.
+**PLATINUM RULE: Any plan change = Immediate todo.md documentation**
+- Mid-implementation strategy pivots must be captured immediately
+- Record what changed, why it changed, and the new direction
+- Update affected tasks and their dependencies
+- Maintain todo.md as the definitive project roadmap, not just task tracking
+
+Always sync the todo.md with current project reality - it should be our single source of truth and project compass. **Never let implementation drift away from documented plans without updating the documentation first.**
 
 [Workflow Flexibility (New!)]
 
