@@ -34,3 +34,18 @@ jobs:
           claude_refresh_token: ${{ secrets.CLAUDE_REFRESH_TOKEN }}
           claude_expires_at: ${{ secrets.CLAUDE_EXPIRES_AT }}
           timeout_minutes: "60"
+          allowed_tools : |
+            Bash(*)
+            Edit
+            MultiEdit
+            Write
+            Read
+            Grep
+            Glob
+            LS
+            NotebookRead
+            NotebookEdit
+            WebFetch
+            WebSearch
+            TodoRead
+            TodoWrite
