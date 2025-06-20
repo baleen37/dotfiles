@@ -236,9 +236,16 @@ in
                 ;;
             esac
           else
-            echo "  파일 동일하지만 강제 덮어쓰기"
-            $DRY_RUN_CMD cp "$source_file" "$target_file"
-            $DRY_RUN_CMD chmod 644 "$target_file"
+            # 파일이 심볼릭 링크인 경우에만 실제 파일로 변환
+            if [[ -L "$target_file" ]]; then
+              echo "  심볼릭 링크를 실제 파일로 변환"
+              local link_target=$(readlink "$target_file")
+              $DRY_RUN_CMD rm "$target_file"
+              $DRY_RUN_CMD cp "$link_target" "$target_file"
+              $DRY_RUN_CMD chmod 644 "$target_file"
+            else
+              echo "  파일 동일, 건너뜀"
+            fi
           fi
         }
 

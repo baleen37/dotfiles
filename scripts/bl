@@ -102,6 +102,26 @@ install_bl() {
         print_status "Installed: bl setup-dev"
     fi
 
+    # Copy auto-update commands if they exist
+    local dotfiles_scripts_dir=""
+    if [[ -d "$HOME/dotfiles/scripts" ]]; then
+        dotfiles_scripts_dir="$HOME/dotfiles/scripts"
+    elif [[ -d "$(dirname "${BASH_SOURCE[0]}")" ]]; then
+        dotfiles_scripts_dir="$(dirname "${BASH_SOURCE[0]}")"
+    fi
+
+    if [[ -n "$dotfiles_scripts_dir" ]]; then
+        # Install bl-auto-update-* commands
+        for cmd in "$dotfiles_scripts_dir"/bl-auto-update-*; do
+            if [[ -f "$cmd" && -x "$cmd" ]]; then
+                local cmd_name=$(basename "$cmd" | sed 's/^bl-//')
+                cp "$cmd" "$BL_DIR/$cmd_name"
+                chmod +x "$BL_DIR/$cmd_name"
+                print_status "Installed: bl $cmd_name"
+            fi
+        done
+    fi
+
     # Install bl itself to PATH
     local local_bin="$HOME/.local/bin"
     mkdir -p "$local_bin"

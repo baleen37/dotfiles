@@ -33,6 +33,27 @@ let
       '')}/bin/setup-dev";
     };
 
+  # BL auto-update command builders
+  mkBlAutoUpdateApp = { system, commandName }:
+    let
+      scriptPath = self + "/scripts/bl-auto-update-${commandName}";
+    in
+    if builtins.pathExists scriptPath
+    then {
+      type = "app";
+      program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "bl-auto-update-${commandName}"
+        (builtins.readFile scriptPath)
+      )}/bin/bl-auto-update-${commandName}";
+    }
+    else {
+      type = "app";
+      program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "bl-auto-update-${commandName}" ''
+        #!/usr/bin/env bash
+        echo "bl-auto-update-${commandName} script not found at: ${scriptPath}"
+        exit 1
+      '')}/bin/bl-auto-update-${commandName}";
+    };
+
   # Core apps available on all platforms
   coreApps = [
     "apply"
@@ -71,6 +92,9 @@ in
         includeApps = coreApps ++ sshApps ++ linuxOnlyApps;
       } // {
       "setup-dev" = mkSetupDevApp system;
+      "bl-auto-update-status" = mkBlAutoUpdateApp { inherit system; commandName = "status"; };
+      "bl-auto-update-check" = mkBlAutoUpdateApp { inherit system; commandName = "check"; };
+      "bl-auto-update-apply" = mkBlAutoUpdateApp { inherit system; commandName = "apply"; };
     };
 
   # Build Darwin apps (core + SSH + darwin-specific)
@@ -81,8 +105,11 @@ in
         includeApps = coreApps ++ sshApps ++ darwinOnlyApps;
       } // {
       "setup-dev" = mkSetupDevApp system;
+      "bl-auto-update-status" = mkBlAutoUpdateApp { inherit system; commandName = "status"; };
+      "bl-auto-update-check" = mkBlAutoUpdateApp { inherit system; commandName = "check"; };
+      "bl-auto-update-apply" = mkBlAutoUpdateApp { inherit system; commandName = "apply"; };
     };
 
   # Export for potential reuse
-  inherit mkApp mkSetupDevApp;
+  inherit mkApp mkSetupDevApp mkBlAutoUpdateApp;
 }
