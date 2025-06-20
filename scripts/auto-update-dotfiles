@@ -259,9 +259,69 @@ has_remote_updates() {
     return 1  # No updates
 }
 
+# Function to prompt user for update confirmation
+prompt_for_update() {
+    local commit_count=$1
+    local latest_message=$2
+    local local_commit=$3
+    local remote_commit=$4
+
+    # Display update information
+    echo ""
+    echo -e "${BLUE}========== Dotfiles Update Available ===========${NC}"
+    echo -e "${GREEN}Updates:${NC} ${commit_count} new commit(s)"
+    echo -e "${GREEN}Latest:${NC} ${latest_message}"
+    echo -e "${GREEN}Current:${NC} ${local_commit:0:8}"
+    echo -e "${GREEN}Remote:${NC} ${remote_commit:0:8}"
+    echo -e "${BLUE}==============================================${NC}"
+    echo ""
+
+    # Prompt for user confirmation
+    echo -n -e "${YELLOW}Apply updates now? [y/N]${NC} "
+
+    # Read user input with timeout
+    local response
+    read -r -t 30 response || response="N"
+
+    # Handle timeout
+    if [[ $? -eq 142 ]]; then
+        echo ""
+        echo -e "${YELLOW}[Timeout - defaulting to No]${NC}"
+        response="N"
+    fi
+
+    # Process response
+    case "${response}" in
+        [yY]|[yY][eE][sS])
+            return 0
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
+
+# Function to get update information
+get_update_info() {
+    local local_commit=$(git rev-parse main 2>/dev/null || echo "")
+    local remote_commit=$(git rev-parse origin/main 2>/dev/null || echo "")
+
+    if [[ -n "$local_commit" && -n "$remote_commit" ]]; then
+        # Count commits between local and remote
+        local commit_count=$(git rev-list --count "$local_commit".."$remote_commit" 2>/dev/null || echo "0")
+
+        # Get latest commit message
+        local latest_message=$(git log --format="%s" -n 1 origin/main 2>/dev/null || echo "No message available")
+
+        echo "$commit_count|$latest_message|$local_commit|$remote_commit"
+    else
+        echo "0|No updates available||"
+    fi
+}
+
 # Function to perform auto-update
 perform_auto_update() {
-    print_status "Remote updates detected, performing auto-update..."
+    print_status "Preparing to apply updates..."
 
     # Create backup before making changes
     create_backup
@@ -395,9 +455,11 @@ usage() {
     echo "Auto-update dotfiles script with TTL-based checking"
     echo ""
     echo "Options:"
-    echo "  -f, --force     Force check even if TTL hasn't expired"
-    echo "  -s, --silent    Run silently (no output unless errors)"
-    echo "  -h, --help      Show this help message"
+    echo "  -f, --force           Force check even if TTL hasn't expired"
+    echo "  -s, --silent          Run silently (no output unless errors)"
+    echo "  -c, --check-on-start  Check for updates on shell startup (interactive mode)"
+    echo "      --scheduled       Run in scheduled mode (no prompts)"
+    echo "  -h, --help            Show this help message"
     echo ""
     echo "TTL: $TTL_SECONDS seconds ($(($TTL_SECONDS / 60)) minutes)"
 }
@@ -406,6 +468,8 @@ usage() {
 main() {
     local force_check=false
     local silent_mode=false
+    local check_on_start=false
+    local scheduled_mode=false
 
     # Parse command line arguments
     while [[ $# -gt 0 ]]; do
@@ -415,6 +479,15 @@ main() {
                 shift
                 ;;
             -s|--silent)
+                silent_mode=true
+                shift
+                ;;
+            -c|--check-on-start)
+                check_on_start=true
+                shift
+                ;;
+            --scheduled)
+                scheduled_mode=true
                 silent_mode=true
                 shift
                 ;;
@@ -466,30 +539,50 @@ main() {
 
     # Check for remote updates
     if has_remote_updates; then
-        if [[ "$silent_mode" != "true" ]]; then
+        # Get update information for prompt
+        local update_info=$(get_update_info)
+        IFS='|' read -r commit_count latest_message local_commit remote_commit <<< "$update_info"
+
+        # Determine whether to prompt user
+        local should_prompt=false
+        local user_approved=false
+
+        # In interactive mode (not silent, not scheduled), prompt the user
+        if [[ "$silent_mode" != "true" && "$scheduled_mode" != "true" ]]; then
+            should_prompt=true
+        fi
+
+        # If running with --check-on-start, always prompt in foreground
+        if [[ "$check_on_start" == "true" ]]; then
+            should_prompt=true
+            silent_mode=false
+        fi
+
+        # Prompt user if in interactive mode
+        if [[ "$should_prompt" == "true" ]]; then
+            if prompt_for_update "$commit_count" "$latest_message" "$local_commit" "$remote_commit"; then
+                user_approved=true
+                print_info "User approved update, proceeding..."
+            else
+                print_info "Update declined by user"
+                log_message "Update declined by user for commit: $remote_commit"
+                exit 0
+            fi
+        fi
+
+        # Perform update based on mode
+        if [[ "$scheduled_mode" == "true" || "$silent_mode" == "true" ]]; then
+            # In scheduled/silent mode, skip update (no auto-apply without user consent)
+            log_message "Updates available but running in scheduled/silent mode - skipping auto-apply"
+            if [[ "$scheduled_mode" != "true" ]]; then
+                print_info "Updates available - run with -f to check and apply"
+            fi
+        elif [[ "$user_approved" == "true" || "$force_check" == "true" ]]; then
+            # User approved or force mode - perform update
             perform_auto_update
         else
-            # In silent mode, still log critical errors but suppress normal output
-            # Run in background but capture critical errors
-            (
-                # Redirect stdout to log, but keep stderr for critical errors
-                exec 1>>"$LOG_FILE"
-                perform_auto_update
-                local update_result=$?
-
-                # Log critical errors even in silent mode
-                if [[ $update_result -ne 0 ]]; then
-                    log_message "CRITICAL: Auto-update failed in silent mode (exit code: $update_result)"
-                    # Also write to stderr so it's not completely silent on critical failures
-                    echo "[AUTO-UPDATE] CRITICAL: Update failed, check log: $LOG_FILE" >&2
-                fi
-
-                exit $update_result
-            ) &
-
-            # Store background process PID for potential cleanup
-            local bg_pid=$!
-            log_message "Auto-update running in background (PID: $bg_pid)"
+            # Should not reach here, but just in case
+            print_info "Updates available but not applying"
         fi
     else
         if [[ "$silent_mode" != "true" ]]; then
