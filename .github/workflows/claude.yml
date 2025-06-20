@@ -19,6 +19,7 @@ jobs:
       actions: write
       checks: write
       statuses: write
+      id-token: write
     steps:
       - name: Run Claude PR Action
         uses: grll/claude-code-action@beta
