@@ -16,39 +16,46 @@ Step 0: Strategic Review (New!)
 Before we write any code or tests, first analyze the task from todo.md.
 Your Task: Provide a brief, high-level implementation strategy. Mention potential challenges, required changes to the project structure, and any alternative approaches you think are better.
 Example: "Okay, the next task is 'Add pagination to search results.' My initial thought is to add page and limit query parameters. This will impact the controller and the service layer. A potential edge case is a request for a page that doesn't exist. Does this high-level approach sound good?"
-Wait for my approval before proceeding to Step 1.
+
+**Once you receive approval, automatically proceed through Steps 1-5 without stopping for permission.**
+- Only interrupt the flow if something seems problematic or requires architectural decisions
+- Complete the entire TGVRI cycle autonomously after strategic approval
+**AUTONOMOUS EXECUTION MODE (Steps 1-5)**
+
+After Step 0 approval, execute the following steps automatically:
+
 Step 1: T (Test-First)
+Your Task: Break down the approved strategy into the first small, testable requirement and write the minimal failing test.
 
-Based on our agreed-upon strategy, I will define a small, specific requirement.
-Your Task: Write the minimal failing test for that requirement.
 Step 2: G (Generate)
-
-Once I approve the test, I will ask you to write the code to pass it.
 Your Task: Write the minimum amount of code necessary to pass the new test.
+
 Step 3: V (Verify) & Debug (Enhanced!)
+Your Task: **Automatically run the tests.**
+- Identify and execute the appropriate test command for the project (npm test, pytest, cargo test, etc.)
+- If tests pass, proceed to Step 4
+- If tests fail, immediately debug:
+  - Analyze error output and stack trace
+  - Identify root cause and implement fix
+  - Re-run tests until they pass
 
-This step is performed by me. I will run the tests.
-Your Task: Wait for my result.
-If I say "Tests passed," we move to Step 4.
-If I say "Tests failed," immediately switch to debugging mode. Ask me for the error output, then analyze it and propose a fix. We will stay in this debug loop until the test passes.
 Step 4: R (Refactor)
+Your Task: Proactively refactor the code for better design while keeping tests green.
 
-Once the tests pass, we improve the code.
-Your Task: Proactively suggest refactoring opportunities (e.g., separating concerns, improving readability) or act on my requests.
 Step 5: I (Integrate) & Commit
-
-I will commit the changes to version control.
 Your Task:
-1. Suggest a conventional commit message following the repository's commit conventions
-2. Wait for my confirmation of the commit message
-3. Once confirmed, execute git commands to commit:
+1. **Automatically suggest a conventional commit message** following repository conventions
+2. **Execute git commands immediately:**
    - `git add .` (or specific files)
-   - `git commit -m "approved message"` (using conventional commit format)
-4. **CRITICAL: After successful commit, IMMEDIATELY update todo.md to mark the task as completed**
-   - This is non-negotiable - every completed cycle MUST result in todo.md being updated
-   - Mark the task with proper completion status (completed, timestamp, notes if needed)
-   - This maintains project continuity and prevents losing track of progress
-5. Await instructions for the next task or cycle
+   - `git commit -m "suggested message"` (using conventional commit format)
+3. **CRITICAL: IMMEDIATELY update todo.md to mark the task as completed**
+   - Mark completion status, timestamp, and any notes
+4. **Automatically proceed to next task or await new instructions**
+
+**Exception Handling**: Only interrupt this autonomous flow if:
+- Architecture decisions are needed
+- Unexpected errors that require human judgment
+- Test failures that seem to indicate fundamental design issues
 
 Note: Always follow the project's established commit conventions (e.g., feat:, fix:, refactor:, etc.)
 [Todo Management & Adaptation - CRITICAL WORKFLOW COMPONENT]
