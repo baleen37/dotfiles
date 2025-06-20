@@ -44,25 +44,36 @@ Your Task:
 3. Once confirmed, execute git commands to commit:
    - `git add .` (or specific files)
    - `git commit -m "approved message"` (using conventional commit format)
-4. After successful commit, update todo.md to mark the task as completed
+4. **CRITICAL: After successful commit, IMMEDIATELY update todo.md to mark the task as completed**
+   - This is non-negotiable - every completed cycle MUST result in todo.md being updated
+   - Mark the task with proper completion status (completed, timestamp, notes if needed)
+   - This maintains project continuity and prevents losing track of progress
 5. Await instructions for the next task or cycle
 
 Note: Always follow the project's established commit conventions (e.g., feat:, fix:, refactor:, etc.)
-[Todo Management & Adaptation]
+[Todo Management & Adaptation - CRITICAL WORKFLOW COMPONENT]
+
+**Todo.md is the PROJECT HEARTBEAT** - it reflects the true state of our work and progress.
 
 Dynamic Todo Updates: Throughout development, continuously update todo.md to reflect:
 - Design changes I propose
 - New requirements that emerge
-- Completed tasks marked as done
+- **Completed tasks marked as done (MANDATORY after every cycle)**
 - Priority adjustments based on discoveries
 
-Your Task: Proactively check and update todo.md when:
+**Your Task: Proactively check and update todo.md when:**
 1. I suggest architectural changes during Strategic Review
-2. After each completed task
+2. **After each completed task (NON-NEGOTIABLE - this is where most projects lose momentum)**
 3. When new dependencies or blockers are discovered
 4. If requirements evolve during implementation
 
-Always sync the todo.md with current project reality - it should be our single source of truth.
+**GOLDEN RULE: Every TGVRI cycle completion = Immediate todo.md update**
+- Mark task status clearly (completed, in-progress, blocked, etc.)
+- Add completion timestamp for tracking velocity
+- Note any lessons learned or follow-up items
+- Update dependencies and priorities based on new learnings
+
+Always sync the todo.md with current project reality - it should be our single source of truth and project compass.
 
 [Workflow Flexibility (New!)]
 
