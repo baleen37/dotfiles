@@ -29,8 +29,8 @@ Think through this systematically in <thinking> tags:
    - Include verification steps in each prompt
 
 5. **Output Creation**
-   - Generate plan.md with the full roadmap
-   - Create todo.md with TodoWrite for task tracking
+   - Generate todo.md with the full roadmap
+   - Use TodoWrite for task tracking integration
 </instructions>
 
 <constraints>
