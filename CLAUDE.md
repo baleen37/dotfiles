@@ -126,4 +126,22 @@ See `modules/shared/config/claude/CLAUDE.md` for detailed development rules incl
 - Debugging methodology
 - Code style guidelines
 
-The global commands in `modules/shared/config/claude/commands/` are language/framework agnostic and work across all projects.
+### Command Design Principles
+
+The global commands in `modules/shared/config/claude/commands/` are designed to be:
+
+**Language/Framework Agnostic**: Commands must work across all projects regardless of technology stack (Python, Node.js, Rust, Go, etc.)
+
+**Project Independent**: Commands should not reference specific:
+- File paths beyond standard patterns (src/, tests/, package.json, etc.)
+- Build tools beyond common conventions (make, npm, cargo, etc.)
+- Project-specific configurations or naming
+
+**Universal Workflows**: Focus on common development patterns:
+- Planning and task breakdown
+- Test-driven development cycles
+- Git workflows and commit patterns
+- Code review and PR management
+- Documentation and build processes
+
+Commands should be immediately usable in any software project without modification.
