@@ -168,45 +168,12 @@ MOCK_EOF
   LINE_COUNT=$(echo "$NORMAL_OUTPUT" | wc -l)
   ${testHelpers.assertTrue ''[ $LINE_COUNT -le 15 ]'' "normal output is concise (≤15 lines)"}
 
-  # Test 10: Error simulation
-  ${testHelpers.testSubsection "Error Simulation"}
+  # Test 10: Error handling patterns
+  ${testHelpers.testSubsection "Error Patterns"}
 
-  # Create a script that simulates build failure
-  ERROR_SCRIPT="$HOME/error-build-switch"
-  cat > "$ERROR_SCRIPT" << 'ERROR_EOF'
-#!/bin/bash
-RED='\033[1;31m'
-YELLOW='\033[1;33m'
-NC='\033[0m'
-
-print_error() {
-    echo "\''${RED}❌ $1\''${NC}"
-}
-
-show_progress() {
-    local step=$1
-    local total=$2
-    local desc=$3
-    echo "\''${YELLOW}🏗️  Dotfiles Build & Switch [$step/$total] - $desc\''${NC}"
-}
-
-show_progress "1" "4" "Building system configuration"
-print_error "Build failed. Run with \\-\\-verbose for details"
-exit 1
-ERROR_EOF
-
-  chmod +x "$ERROR_SCRIPT"
-
-  # Test error handling
-  if ! "$ERROR_SCRIPT" >/dev/null 2>&1; then
-    ERROR_OUTPUT=$("$ERROR_SCRIPT" 2>&1)
-    ${testHelpers.assertTrue ''echo "$ERROR_OUTPUT" | grep -q "❌"'' "error indicator appears on failure"}
-    ${testHelpers.assertTrue ''echo "$ERROR_OUTPUT" | grep -q "Run with \\-\\-verbose"'' "verbose suggestion appears on error"}
-    echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Error handling works correctly"
-  else
-    echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} Error script should exit with non-zero code"
-    exit 1
-  fi
+  ${testHelpers.assertContains "${buildSwitchScript}" "❌" "error emoji present"}
+  ${testHelpers.assertContains "${buildSwitchScript}" "exit 1" "proper error exit code"}
+  ${testHelpers.assertContains "${buildSwitchScript}" "verbose.*details" "verbose suggestion pattern"}
 
   ${testHelpers.cleanup}
 
