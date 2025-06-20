@@ -5,7 +5,7 @@ let
 in
 pkgs.runCommand "build-switch-improved-unit-test"
 {
-  buildInputs = with pkgs; [ bash coreutils grep findutils ];
+  buildInputs = with pkgs; [ bash coreutils gnugrep findutils ];
 } ''
   ${testHelpers.setupTestEnv}
 

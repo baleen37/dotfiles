@@ -5,7 +5,7 @@ let
 in
 pkgs.runCommand "build-switch-improved-e2e-test"
 {
-  buildInputs = with pkgs; [ bash coreutils nix git findutils ];
+  buildInputs = with pkgs; [ bash coreutils nix git findutils gnugrep ];
 } ''
   ${testHelpers.setupTestEnv}
 
@@ -44,7 +44,7 @@ pkgs.runCommand "build-switch-improved-e2e-test"
       packages.aarch64-darwin.build-switch = pkgs.writeScript "build-switch" ''
         #!/bin/bash
         # Simple build-switch for E2E testing
-        
+
         # Check for verbose flag
         VERBOSE=false
         for arg in "$@"; do
@@ -92,7 +92,7 @@ E2E_FLAKE_EOF
   ${testHelpers.testSubsection "Complete Workflow Simulation"}
 
   export USER="e2e-testuser"
-  
+
   # Test flake check first
   ${testHelpers.assertCommand "nix flake check --impure" "flake passes basic validation"}
 
@@ -101,22 +101,22 @@ E2E_FLAKE_EOF
 
   # Test normal execution
   NORMAL_E2E_OUTPUT=$(nix run --impure .#build-switch 2>&1)
-  
+
   ${testHelpers.assertTrue ''echo "$NORMAL_E2E_OUTPUT" | grep -q "🏗️  Dotfiles Build & Switch \[1/4\]"'' "step 1 progress shown"}
   ${testHelpers.assertTrue ''echo "$NORMAL_E2E_OUTPUT" | grep -q "🏗️  Dotfiles Build & Switch \[2/4\]"'' "step 2 progress shown"}
   ${testHelpers.assertTrue ''echo "$NORMAL_E2E_OUTPUT" | grep -q "🏗️  Dotfiles Build & Switch \[3/4\]"'' "step 3 progress shown"}
   ${testHelpers.assertTrue ''echo "$NORMAL_E2E_OUTPUT" | grep -q "🏗️  Dotfiles Build & Switch \[4/4\]"'' "step 4 progress shown"}
-  
+
   ${testHelpers.assertTrue ''echo "$NORMAL_E2E_OUTPUT" | grep -q "✅ System configuration built"'' "build success message shown"}
   ${testHelpers.assertTrue ''echo "$NORMAL_E2E_OUTPUT" | grep -q "✅ New generation activated"'' "switch success message shown"}
   ${testHelpers.assertTrue ''echo "$NORMAL_E2E_OUTPUT" | grep -q "✅ Cleanup complete"'' "cleanup success message shown"}
   ${testHelpers.assertTrue ''echo "$NORMAL_E2E_OUTPUT" | grep -q "✅ System update complete!"'' "final success message shown"}
-  
+
   ${testHelpers.assertTrue ''echo "$NORMAL_E2E_OUTPUT" | grep -q "💡 Use --verbose for detailed output"'' "verbose hint shown"}
 
   # Test verbose execution
   VERBOSE_E2E_OUTPUT=$(nix run --impure .#build-switch -- --verbose 2>&1)
-  
+
   ${testHelpers.assertTrue ''echo "$VERBOSE_E2E_OUTPUT" | grep -q "VERBOSE: Starting build process"'' "verbose build details shown"}
   ${testHelpers.assertTrue ''echo "$VERBOSE_E2E_OUTPUT" | grep -q "VERBOSE: Activating new system generation"'' "verbose switch details shown"}
   ${testHelpers.assertTrue ''echo "$VERBOSE_E2E_OUTPUT" | grep -q "VERBOSE: Removing temporary files"'' "verbose cleanup details shown"}
@@ -127,7 +127,7 @@ E2E_FLAKE_EOF
   # Measure output conciseness
   NORMAL_LINE_COUNT=$(echo "$NORMAL_E2E_OUTPUT" | wc -l)
   VERBOSE_LINE_COUNT=$(echo "$VERBOSE_E2E_OUTPUT" | wc -l)
-  
+
   ${testHelpers.assertTrue ''[ "$NORMAL_LINE_COUNT" -le 12 ]'' "normal output is concise (≤12 lines)"}
   ${testHelpers.assertTrue ''[ "$VERBOSE_LINE_COUNT" -gt "$NORMAL_LINE_COUNT" ]'' "verbose output is more detailed"}
 
@@ -135,7 +135,7 @@ E2E_FLAKE_EOF
   SUCCESS_EMOJI_COUNT=$(echo "$NORMAL_E2E_OUTPUT" | grep -o "✅" | wc -l)
   PROGRESS_EMOJI_COUNT=$(echo "$NORMAL_E2E_OUTPUT" | grep -o "🏗️" | wc -l)
   INFO_EMOJI_COUNT=$(echo "$NORMAL_E2E_OUTPUT" | grep -o "💡" | wc -l)
-  
+
   ${testHelpers.assertTrue ''[ "$SUCCESS_EMOJI_COUNT" -eq 4 ]'' "exactly 4 success indicators"}
   ${testHelpers.assertTrue ''[ "$PROGRESS_EMOJI_COUNT" -eq 4 ]'' "exactly 4 progress indicators"}
   ${testHelpers.assertTrue ''[ "$INFO_EMOJI_COUNT" -eq 1 ]'' "exactly 1 info indicator"}
@@ -148,7 +148,7 @@ E2E_FLAKE_EOF
   nix run --impure .#build-switch >/dev/null 2>&1
   END_TIME=$(date +%s%N)
   NORMAL_DURATION=$(( (END_TIME - START_TIME) / 1000000 ))
-  
+
   echo "${testHelpers.colors.blue}Normal execution time: ''${NORMAL_DURATION}ms${testHelpers.colors.reset}"
   ${testHelpers.assertTrue ''[ "$NORMAL_DURATION" -lt 30000 ]'' "normal execution completes within 30 seconds"}
 
@@ -156,7 +156,7 @@ E2E_FLAKE_EOF
   ${testHelpers.testSubsection "Multi-Platform Compatibility"}
 
   cd "$E2E_TEST_DIR"
-  
+
   # Check that the flake defines apps for the right platforms
   PLATFORMS=$(nix flake show --json --impure 2>/dev/null | grep -o '"aarch64-darwin"' | wc -l || echo "0")
   ${testHelpers.assertTrue ''[ "$PLATFORMS" -gt 0 ]'' "flake defines aarch64-darwin platform"}
@@ -165,13 +165,13 @@ E2E_FLAKE_EOF
   ${testHelpers.testSubsection "Long-Running Simulation"}
 
   cd "$E2E_TEST_DIR"
-  
+
   # Simulate multiple consecutive runs
   for i in 1 2 3; do
     ITERATION_OUTPUT=$(nix run --impure .#build-switch 2>&1)
     ${testHelpers.assertTrue ''echo "$ITERATION_OUTPUT" | grep -q "System update complete"'' "iteration $i completes successfully"}
   done
-  
+
   echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Multiple consecutive runs work correctly"
 
   ${testHelpers.cleanup}

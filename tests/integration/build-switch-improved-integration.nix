@@ -5,7 +5,7 @@ let
 in
 pkgs.runCommand "build-switch-improved-integration-test"
 {
-  buildInputs = with pkgs; [ bash coreutils nix git findutils ];
+  buildInputs = with pkgs; [ bash coreutils nix git findutils gnugrep ];
 } ''
   ${testHelpers.setupTestEnv}
 
