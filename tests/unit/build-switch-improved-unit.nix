@@ -38,7 +38,7 @@ pkgs.runCommand "build-switch-improved-unit-test"
   ${testHelpers.testSubsection "Verbose Flag Handling"}
 
   ${testHelpers.assertContains "${buildSwitchScript}" "VERBOSE=false" "VERBOSE variable initialized"}
-  ${testHelpers.assertContains "${buildSwitchScript}" "--verbose" "verbose flag check implemented"}
+  ${testHelpers.assertContains "${buildSwitchScript}" "\\-\\-verbose" "verbose flag check implemented"}
   ${testHelpers.assertContains "${buildSwitchScript}" "VERBOSE=true" "verbose flag setting implemented"}
 
   # Test 5: Progress indicator format
@@ -51,7 +51,7 @@ pkgs.runCommand "build-switch-improved-unit-test"
   ${testHelpers.testSubsection "Error Handling"}
 
   ${testHelpers.assertContains "${buildSwitchScript}" "2>/dev/null" "error suppression for non-verbose mode"}
-  ${testHelpers.assertContains "${buildSwitchScript}" "Run with --verbose for details" "verbose suggestion in error messages"}
+  ${testHelpers.assertContains "${buildSwitchScript}" "Run with \\-\\-verbose for details" "verbose suggestion in error messages"}
   ${testHelpers.assertContains "${buildSwitchScript}" "exit 1" "proper exit code on failure"}
 
   # Test 7: Success indicators
@@ -191,7 +191,7 @@ show_progress() {
 }
 
 show_progress "1" "4" "Building system configuration"
-print_error "Build failed. Run with --verbose for details"
+print_error "Build failed. Run with \\-\\-verbose for details"
 exit 1
 ERROR_EOF
 
@@ -201,7 +201,7 @@ ERROR_EOF
   if ! "$ERROR_SCRIPT" >/dev/null 2>&1; then
     ERROR_OUTPUT=$("$ERROR_SCRIPT" 2>&1)
     ${testHelpers.assertTrue ''echo "$ERROR_OUTPUT" | grep -q "❌"'' "error indicator appears on failure"}
-    ${testHelpers.assertTrue ''echo "$ERROR_OUTPUT" | grep -q "Run with --verbose"'' "verbose suggestion appears on error"}
+    ${testHelpers.assertTrue ''echo "$ERROR_OUTPUT" | grep -q "Run with \\-\\-verbose"'' "verbose suggestion appears on error"}
     echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Error handling works correctly"
   else
     echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} Error script should exit with non-zero code"
