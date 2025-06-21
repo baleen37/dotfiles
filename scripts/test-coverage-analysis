@@ -1,0 +1,448 @@
+#!/usr/bin/env bash
+
+# Test Coverage Analysis Tool
+# Analyzes test coverage across the Nix flake dotfiles repository
+# Provides detailed reports on tested vs untested modules, libraries, and scripts
+
+set -euo pipefail
+
+# Color codes for output
+readonly RED='\033[31m'
+readonly GREEN='\033[32m'
+readonly YELLOW='\033[33m'
+readonly BLUE='\033[34m'
+readonly RESET='\033[0m'
+
+# Coverage configuration
+readonly REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+readonly LIB_DIR="$REPO_ROOT/lib"
+readonly MODULES_DIR="$REPO_ROOT/modules"
+readonly SCRIPTS_DIR="$REPO_ROOT/scripts"
+readonly APPS_DIR="$REPO_ROOT/apps"
+readonly TESTS_DIR="$REPO_ROOT/tests"
+
+# Output configuration
+declare -g VERBOSE=false
+declare -g OUTPUT_FORMAT="text"  # text, json, markdown
+declare -g SHOW_UNTESTED_ONLY=false
+declare -g MINIMUM_COVERAGE=85
+
+usage() {
+    cat <<EOF
+Test Coverage Analysis Tool
+
+USAGE:
+    $0 [OPTIONS] [COMMAND]
+
+COMMANDS:
+    report              Generate comprehensive coverage report (default)
+    gaps                Show only coverage gaps
+    summary             Show summary statistics only
+    lib                 Analyze library coverage only
+    modules             Analyze module coverage only
+    scripts             Analyze script coverage only
+
+OPTIONS:
+    -v, --verbose       Enable verbose output
+    -f, --format FORMAT Output format: text (default), json, markdown
+    -u, --untested-only Show only untested files
+    -m, --min-coverage  Minimum coverage threshold (default: 85%)
+    -h, --help          Show this help message
+
+EXAMPLES:
+    $0                          # Generate full coverage report
+    $0 gaps                     # Show only coverage gaps
+    $0 -f json summary          # JSON summary statistics
+    $0 --untested-only lib      # Show untested library files only
+
+EOF
+}
+
+log() {
+    if [[ "$VERBOSE" == "true" ]]; then
+        echo -e "${BLUE}[DEBUG]${RESET} $*" >&2
+    fi
+}
+
+info() {
+    echo -e "${GREEN}[INFO]${RESET} $*" >&2
+}
+
+warn() {
+    echo -e "${YELLOW}[WARN]${RESET} $*" >&2
+}
+
+error() {
+    echo -e "${RED}[ERROR]${RESET} $*" >&2
+}
+
+# Parse command line arguments
+parse_args() {
+    local command=""
+
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            -v|--verbose)
+                VERBOSE=true
+                shift
+                ;;
+            -f|--format)
+                OUTPUT_FORMAT="$2"
+                shift 2
+                ;;
+            -u|--untested-only)
+                SHOW_UNTESTED_ONLY=true
+                shift
+                ;;
+            -m|--min-coverage)
+                MINIMUM_COVERAGE="$2"
+                shift 2
+                ;;
+            -h|--help)
+                usage
+                exit 0
+                ;;
+            report|gaps|summary|lib|modules|scripts)
+                command="$1"
+                shift
+                ;;
+            *)
+                error "Unknown option: $1"
+                usage
+                exit 1
+                ;;
+        esac
+    done
+
+    # Set default command
+    if [[ -z "$command" ]]; then
+        command="report"
+    fi
+
+    echo "$command"
+}
+
+# Discover all source files
+discover_source_files() {
+    local category="$1"
+
+    case "$category" in
+        "lib")
+            find "$LIB_DIR" -name "*.nix" -type f | sort
+            ;;
+        "modules")
+            find "$MODULES_DIR" -name "*.nix" -type f | sort
+            ;;
+        "scripts")
+            find "$SCRIPTS_DIR" -type f -perm +111 | sort
+            find "$APPS_DIR" -type f -perm +111 | sort
+            ;;
+        "all")
+            discover_source_files "lib"
+            discover_source_files "modules"
+            discover_source_files "scripts"
+            ;;
+    esac
+}
+
+# Discover all test files
+discover_test_files() {
+    local category="$1"
+
+    case "$category" in
+        "unit")
+            find "$TESTS_DIR" -name "*-unit.nix" -type f | sort
+            ;;
+        "integration")
+            find "$TESTS_DIR" -name "*-integration.nix" -type f | sort
+            ;;
+        "e2e")
+            find "$TESTS_DIR" -name "*-e2e.nix" -type f | sort
+            ;;
+        "performance")
+            find "$TESTS_DIR" -name "*-perf.nix" -type f | sort
+            ;;
+        "all")
+            discover_test_files "unit"
+            discover_test_files "integration"
+            discover_test_files "e2e"
+            discover_test_files "performance"
+            ;;
+    esac
+}
+
+# Extract source file references from test files
+extract_source_references() {
+    local test_file="$1"
+
+    log "Analyzing test file: $test_file"
+
+    # Initialize array to collect references
+    local -a references=()
+
+    # Extract various patterns of source file references
+
+    # Pattern 1: Direct relative imports like "../lib/get-user.nix"
+    while IFS= read -r ref; do
+        if [[ -n "$ref" ]]; then
+            references+=("$ref")
+        fi
+    done < <(grep -oE '\.\.\/[^"[:space:]]+\.(nix|sh)' "$test_file" 2>/dev/null | sed 's/^\.\.\/*//' || true)
+
+    # Pattern 2: Import statements with src prefix like "import (src + "/lib/get-user.nix")"
+    while IFS= read -r ref; do
+        if [[ -n "$ref" ]]; then
+            references+=("$ref")
+        fi
+    done < <(grep -oE '\/[^"[:space:]]+\.(nix|sh)' "$test_file" 2>/dev/null | sed 's/^\///' || true)
+
+    # Pattern 3: SRC_PATH references like "$SRC_PATH/lib/get-user.nix"
+    while IFS= read -r ref; do
+        if [[ -n "$ref" ]]; then
+            references+=("$ref")
+        fi
+    done < <(grep -oE '\$SRC_PATH\/[^"[:space:]]+\.(nix|sh)' "$test_file" 2>/dev/null | sed 's/^\$SRC_PATH\///' || true)
+
+    # Pattern 4: Look for specific filenames mentioned in the test file name
+    local test_basename
+    test_basename=$(basename "$test_file" | sed 's/-unit\.nix$//' | sed 's/-integration\.nix$//' | sed 's/-e2e\.nix$//' | sed 's/-perf\.nix$//')
+
+    # Map test names to likely source files
+    case "$test_basename" in
+        "user-resolution")
+            references+=("lib/get-user.nix" "lib/enhanced-get-user.nix")
+            ;;
+        "platform-detection")
+            references+=("lib/platform-detector.nix")
+            ;;
+        "error-handling")
+            references+=("lib/error-messages.nix" "lib/enhanced-error-handler.nix")
+            ;;
+        "parallel-test-"*)
+            references+=("lib/parallel-test-runner.nix")
+            ;;
+        "auto-update-"*)
+            references+=("lib/auto-update-notifications.nix" "lib/auto-update-prompt.nix" "lib/auto-update-state.nix")
+            ;;
+        "claude-config"*)
+            references+=("modules/shared/lib/claude-config-policy.nix")
+            ;;
+        "conditional-file-copy"*)
+            references+=("modules/shared/lib/conditional-file-copy.nix")
+            ;;
+        "file-change-detector"*)
+            references+=("modules/shared/lib/file-change-detector.nix")
+            ;;
+    esac
+
+    # Output unique references
+    printf '%s\n' "${references[@]}" | sort -u
+}
+
+# Analyze coverage for a category
+analyze_category_coverage() {
+    local category="$1"
+    local source_files test_files tested_files untested_files
+    local total_sources total_tested coverage_percent
+
+    log "Analyzing coverage for category: $category"
+
+    # Get all source files for this category
+    readarray -t source_files < <(discover_source_files "$category")
+    total_sources=${#source_files[@]}
+
+    if [[ $total_sources -eq 0 ]]; then
+        warn "No source files found for category: $category"
+        return
+    fi
+
+    # Get all test files
+    readarray -t test_files < <(discover_test_files "all")
+
+    # Track which source files are tested
+    declare -A tested_map
+
+    # Analyze each test file to find source references
+    for test_file in "${test_files[@]}"; do
+        while IFS= read -r source_ref; do
+            if [[ -n "$source_ref" ]]; then
+                tested_map["$source_ref"]=1
+            fi
+        done < <(extract_source_references "$test_file")
+    done
+
+    # Categorize source files as tested or untested
+    tested_files=()
+    untested_files=()
+
+    for source_file in "${source_files[@]}"; do
+        local relative_path="${source_file#$REPO_ROOT/}"
+
+        if [[ -n "${tested_map[$relative_path]:-}" ]]; then
+            tested_files+=("$source_file")
+        else
+            untested_files+=("$source_file")
+        fi
+    done
+
+    total_tested=${#tested_files[@]}
+
+    # Calculate coverage percentage
+    if [[ $total_sources -gt 0 ]]; then
+        coverage_percent=$((total_tested * 100 / total_sources))
+    else
+        coverage_percent=0
+    fi
+
+    # Output results based on format
+    case "$OUTPUT_FORMAT" in
+        "json")
+            output_json_coverage "$category" "$total_sources" "$total_tested" "$coverage_percent" tested_files untested_files
+            ;;
+        "markdown")
+            output_markdown_coverage "$category" "$total_sources" "$total_tested" "$coverage_percent" tested_files untested_files
+            ;;
+        *)
+            output_text_coverage "$category" "$total_sources" "$total_tested" "$coverage_percent" tested_files untested_files
+            ;;
+    esac
+}
+
+# Output text format coverage
+output_text_coverage() {
+    local category="$1" total_sources="$2" total_tested="$3" coverage_percent="$4"
+    local tested_files_ref="$5"
+    local untested_files_ref="$6"
+
+    # Use nameref to access the arrays
+    local -n tested_files_array="$tested_files_ref"
+    local -n untested_files_array="$untested_files_ref"
+
+    # Coverage status color
+    local coverage_color="$RED"
+    if [[ $coverage_percent -ge $MINIMUM_COVERAGE ]]; then
+        coverage_color="$GREEN"
+    elif [[ $coverage_percent -ge 70 ]]; then
+        coverage_color="$YELLOW"
+    fi
+
+    echo -e "\n${BLUE}=== ${category^^} COVERAGE ===${RESET}"
+    echo -e "Total files: $total_sources"
+    echo -e "Tested files: $total_tested"
+    echo -e "Coverage: ${coverage_color}${coverage_percent}%${RESET}"
+
+    if [[ "$SHOW_UNTESTED_ONLY" == "false" && ${#tested_files_array[@]} -gt 0 ]]; then
+        echo -e "\n${GREEN}✓ Tested Files:${RESET}"
+        for file in "${tested_files_array[@]}"; do
+            echo "  ${file#$REPO_ROOT/}"
+        done
+    fi
+
+    if [[ ${#untested_files_array[@]} -gt 0 ]]; then
+        echo -e "\n${RED}✗ Untested Files:${RESET}"
+        for file in "${untested_files_array[@]}"; do
+            echo "  ${file#$REPO_ROOT/}"
+        done
+    fi
+}
+
+# Generate comprehensive coverage report
+generate_report() {
+    echo -e "${BLUE}Test Coverage Analysis Report${RESET}"
+    echo -e "Generated: $(date)"
+    echo -e "Repository: $REPO_ROOT"
+    echo -e "Minimum Coverage Threshold: ${MINIMUM_COVERAGE}%"
+
+    analyze_category_coverage "lib"
+    analyze_category_coverage "modules"
+    analyze_category_coverage "scripts"
+
+    # Overall summary
+    echo -e "\n${BLUE}=== OVERALL SUMMARY ===${RESET}"
+
+    local total_lib_sources total_module_sources total_script_sources
+    total_lib_sources=$(discover_source_files "lib" | wc -l)
+    total_module_sources=$(discover_source_files "modules" | wc -l)
+    total_script_sources=$(discover_source_files "scripts" | wc -l)
+
+    local total_test_files
+    total_test_files=$(discover_test_files "all" | wc -l)
+
+    echo "Total source files: $((total_lib_sources + total_module_sources + total_script_sources))"
+    echo "Total test files: $total_test_files"
+
+    # Test category breakdown
+    echo -e "\n${BLUE}Test Categories:${RESET}"
+    echo "  Unit tests: $(discover_test_files "unit" | wc -l)"
+    echo "  Integration tests: $(discover_test_files "integration" | wc -l)"
+    echo "  E2E tests: $(discover_test_files "e2e" | wc -l)"
+    echo "  Performance tests: $(discover_test_files "performance" | wc -l)"
+}
+
+# Show only coverage gaps
+show_gaps() {
+    SHOW_UNTESTED_ONLY=true
+    echo -e "${RED}Coverage Gaps Analysis${RESET}"
+    echo -e "Showing only untested files\n"
+
+    analyze_category_coverage "lib"
+    analyze_category_coverage "modules"
+    analyze_category_coverage "scripts"
+}
+
+# Show summary statistics only
+show_summary() {
+    echo -e "${BLUE}Coverage Summary${RESET}"
+
+    local lib_count module_count script_count test_count
+    lib_count=$(discover_source_files "lib" | wc -l)
+    module_count=$(discover_source_files "modules" | wc -l)
+    script_count=$(discover_source_files "scripts" | wc -l)
+    test_count=$(discover_test_files "all" | wc -l)
+
+    echo "Library files: $lib_count"
+    echo "Module files: $module_count"
+    echo "Script files: $script_count"
+    echo "Test files: $test_count"
+    echo "Test density: $(( (test_count * 100) / (lib_count + module_count + script_count) ))%"
+}
+
+# Main execution
+main() {
+    local command
+    command=$(parse_args "$@")
+
+    log "Repository root: $REPO_ROOT"
+    log "Command: $command"
+    log "Output format: $OUTPUT_FORMAT"
+    log "Minimum coverage: $MINIMUM_COVERAGE%"
+
+    case "$command" in
+        "report")
+            generate_report
+            ;;
+        "gaps")
+            show_gaps
+            ;;
+        "summary")
+            show_summary
+            ;;
+        "lib")
+            analyze_category_coverage "lib"
+            ;;
+        "modules")
+            analyze_category_coverage "modules"
+            ;;
+        "scripts")
+            analyze_category_coverage "scripts"
+            ;;
+        *)
+            error "Unknown command: $command"
+            usage
+            exit 1
+            ;;
+    esac
+}
+
+# Execute main function with all arguments
+main "$@"

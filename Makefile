@@ -41,6 +41,9 @@ help:
 	@echo "  test-e2e    - Run end-to-end tests only"
 	@echo "  test-perf   - Run performance tests only"
 	@echo "  test-status - Show test framework status"
+	@echo "  test-coverage - Generate test coverage analysis report"
+	@echo "  test-coverage-gaps - Show only coverage gaps"
+	@echo "  test-coverage-summary - Show coverage summary statistics"
 	@echo ""
 	@echo "⚡ Parallel Testing (70-80% faster):"
 	@echo "  test-parallel - Run parallelizable tests concurrently ($(OPTIMAL_JOBS) jobs)"
@@ -277,4 +280,17 @@ test-parallel-integration: check-user
 	duration=$$((end_time - start_time)); \
 	echo "✅ Parallel integration tests completed in $${duration}s"
 
-.PHONY: help check-user lint smoke test test-unit test-integration test-e2e test-perf test-status build build-linux build-darwin switch test-categories test-timing test-parallel test-parallel-unit test-parallel-integration
+# Coverage analysis targets
+test-coverage:
+	@echo "📊 Generating test coverage analysis report..."
+	@./scripts/test-coverage-analysis report
+
+test-coverage-gaps:
+	@echo "🔍 Analyzing coverage gaps..."
+	@./scripts/test-coverage-analysis gaps
+
+test-coverage-summary:
+	@echo "📈 Showing coverage summary..."
+	@./scripts/test-coverage-analysis summary
+
+.PHONY: help check-user lint smoke test test-unit test-integration test-e2e test-perf test-status test-coverage test-coverage-gaps test-coverage-summary build build-linux build-darwin switch test-categories test-timing test-parallel test-parallel-unit test-parallel-integration
