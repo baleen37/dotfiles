@@ -164,6 +164,111 @@ let
     fi
   '';
 
+  # Enhanced Mock File System Operations
+  createMockFileSystem = ''
+    MOCK_FS_DIR=$(mktemp -d)
+    MOCK_FS_STATE="$MOCK_FS_DIR/fs_state"
+    echo "MOCK_FS_STATE=$MOCK_FS_STATE"
+
+    # Initialize empty state
+    echo "# Mock File System State" > "$MOCK_FS_STATE"
+    echo "operations=0" >> "$MOCK_FS_STATE"
+    echo "MOCK_FS_DIR=$MOCK_FS_DIR"
+  '';
+
+  # Mock file operations with tracking
+  mockFileCreate = path: content: ''
+    if [ -n "$MOCK_FS_STATE" ]; then
+      echo "CREATE:${path}" >> "$MOCK_FS_STATE"
+      OPERATIONS=$(grep "operations=" "$MOCK_FS_STATE" | cut -d'=' -f2)
+      OPERATIONS=$((OPERATIONS + 1))
+      sed -i "s/operations=.*/operations=$OPERATIONS/" "$MOCK_FS_STATE"
+    fi
+    mkdir -p "$(dirname "${path}")"
+    echo "${content}" > "${path}"
+  '';
+
+  mockFileRead = path: ''
+    if [ -n "$MOCK_FS_STATE" ]; then
+      echo "READ:${path}" >> "$MOCK_FS_STATE"
+      OPERATIONS=$(grep "operations=" "$MOCK_FS_STATE" | cut -d'=' -f2)
+      OPERATIONS=$((OPERATIONS + 1))
+      sed -i "s/operations=.*/operations=$OPERATIONS/" "$MOCK_FS_STATE"
+    fi
+    if [ -f "${path}" ]; then
+      cat "${path}"
+    else
+      echo "Mock: File not found: ${path}" >&2
+      return 1
+    fi
+  '';
+
+  mockFileDelete = path: ''
+    if [ -n "$MOCK_FS_STATE" ]; then
+      echo "DELETE:${path}" >> "$MOCK_FS_STATE"
+      OPERATIONS=$(grep "operations=" "$MOCK_FS_STATE" | cut -d'=' -f2)
+      OPERATIONS=$((OPERATIONS + 1))
+      sed -i "s/operations=.*/operations=$OPERATIONS/" "$MOCK_FS_STATE"
+    fi
+    rm -f "${path}"
+  '';
+
+  # Permission error simulation
+  mockPermissionError = path: errorType: ''
+    if [ -n "$MOCK_FS_STATE" ]; then
+      echo "PERMISSION_ERROR:${errorType}:${path}" >> "$MOCK_FS_STATE"
+    fi
+    echo "Mock: Permission denied: ${errorType} on ${path}" >&2
+    echo "PERMISSION_ERROR_OCCURRED"
+  '';
+
+  # File content verification
+  mockFileVerify = path: expectedContent: ''
+    if [ -f "${path}" ]; then
+      if [ "$(cat "${path}")" = "${expectedContent}" ]; then
+        echo "${colors.green}✓${colors.reset} File content matches: ${path}"
+        return 0
+      else
+        echo "${colors.red}✗${colors.reset} File content mismatch: ${path}"
+        echo "Expected: ${expectedContent}"
+        echo "Actual: $(cat "${path}")"
+        return 1
+      fi
+    else
+      echo "${colors.red}✗${colors.reset} File does not exist: ${path}"
+      return 1
+    fi
+  '';
+
+  # Directory operations
+  mockDirCreate = path: ''
+    if [ -n "$MOCK_FS_STATE" ]; then
+      echo "MKDIR:${path}" >> "$MOCK_FS_STATE"
+      OPERATIONS=$(grep "operations=" "$MOCK_FS_STATE" | cut -d'=' -f2)
+      OPERATIONS=$((OPERATIONS + 1))
+      sed -i "s/operations=.*/operations=$OPERATIONS/" "$MOCK_FS_STATE"
+    fi
+    mkdir -p "${path}"
+  '';
+
+  # Get mock operation count
+  getMockOperationCount = ''
+    if [ -n "$MOCK_FS_STATE" ] && [ -f "$MOCK_FS_STATE" ]; then
+      grep "operations=" "$MOCK_FS_STATE" | cut -d'=' -f2
+    else
+      echo "0"
+    fi
+  '';
+
+  # Get mock operation history
+  getMockOperationHistory = ''
+    if [ -n "$MOCK_FS_STATE" ] && [ -f "$MOCK_FS_STATE" ]; then
+      grep -v "^#\|^operations=" "$MOCK_FS_STATE" || echo "No operations recorded"
+    else
+      echo "Mock file system not initialized"
+    fi
+  '';
+
   # Nix attribute set test helpers
   assertSetContains = attrSet: expectedKeys:
     pkgs.runCommand "assert-set-contains" { } ''
@@ -188,4 +293,8 @@ in
   inherit createTempFile createTempDir;
   inherit evalFlake reportResults cleanup;
   inherit assertSetContains;
+  # Enhanced Mock File System
+  inherit createMockFileSystem mockFileCreate mockFileRead mockFileDelete;
+  inherit mockPermissionError mockFileVerify mockDirCreate;
+  inherit getMockOperationCount getMockOperationHistory;
 }
