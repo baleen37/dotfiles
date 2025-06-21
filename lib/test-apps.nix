@@ -43,6 +43,7 @@ let
       "claude_config_preserve_user_changes_test"
       "claude_config_force_overwrite_feature_test"
       "auto_update_dotfiles_unit"
+      "file_change_detector_unit"
     ];
     integration = [
       "package_availability_integration"
