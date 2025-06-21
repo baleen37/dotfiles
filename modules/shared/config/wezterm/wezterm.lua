@@ -8,8 +8,17 @@ end
 -- Color scheme
 config.color_scheme = 'Catppuccin Mocha'
 
--- Font configuration
-config.font = wezterm.font('JetBrains Mono', { weight = 'Regular' })
+-- Font configuration with fallback for CJK characters
+config.font = wezterm.font_with_fallback({
+  'JetBrains Mono',
+  'Apple Color Emoji',
+  'Hiragino Sans',
+  'Hiragino Kaku Gothic ProN',
+  'Noto Sans CJK JP',
+  'Noto Sans CJK KR',
+  'Noto Sans CJK SC',
+  'Noto Sans CJK TC',
+})
 config.font_size = 14.0
 
 -- Unicode handling
