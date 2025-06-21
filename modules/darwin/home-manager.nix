@@ -298,7 +298,7 @@ in
 
                 # 사용자 알림 요약
                 NOTICE_COUNT=$(find "$CLAUDE_DIR" -name "*.update-notice" 2>/dev/null | wc -l || echo "0")
-                NOTICE_COUNT=''${NOTICE_COUNT:-0}
+                NOTICE_COUNT=$${NOTICE_COUNT:-0}
                 if [[ $NOTICE_COUNT -gt 0 ]]; then
                   echo ""
                   echo "주의: $NOTICE_COUNT개의 업데이트 알림이 생성되었습니다."
