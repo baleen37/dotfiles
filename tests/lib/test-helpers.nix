@@ -269,6 +269,18 @@ let
     fi
   '';
 
+  # Clean up mock file system
+  cleanupMockFileSystem = ''
+    if [ -n "$MOCK_FS_DIR" ] && [ -d "$MOCK_FS_DIR" ]; then
+      echo "Cleaning up mock file system at $MOCK_FS_DIR"
+      rm -rf "$MOCK_FS_DIR"
+    fi
+    if [ -n "$MOCK_FS_STATE" ] && [ -f "$MOCK_FS_STATE" ]; then
+      rm -f "$MOCK_FS_STATE"
+    fi
+    unset MOCK_FS_DIR MOCK_FS_STATE
+  '';
+
   # Nix attribute set test helpers
   assertSetContains = attrSet: expectedKeys:
     pkgs.runCommand "assert-set-contains" { } ''
@@ -296,5 +308,5 @@ in
   # Enhanced Mock File System
   inherit createMockFileSystem mockFileCreate mockFileRead mockFileDelete;
   inherit mockPermissionError mockFileVerify mockDirCreate;
-  inherit getMockOperationCount getMockOperationHistory;
+  inherit getMockOperationCount getMockOperationHistory cleanupMockFileSystem;
 }
