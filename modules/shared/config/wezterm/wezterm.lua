@@ -11,13 +11,14 @@ config.color_scheme = 'Catppuccin Mocha'
 -- Font configuration with fallback for CJK characters
 config.font = wezterm.font_with_fallback({
   'JetBrains Mono',
-  'Apple Color Emoji',
+  'SF Mono',
+  'Menlo',
   'Hiragino Sans',
   'Hiragino Kaku Gothic ProN',
-  'Noto Sans CJK JP',
-  'Noto Sans CJK KR',
-  'Noto Sans CJK SC',
-  'Noto Sans CJK TC',
+  'Apple SD Gothic Neo',
+  'PingFang SC',
+  'PingFang TC',
+  'Apple Color Emoji',
 })
 config.font_size = 14.0
 
