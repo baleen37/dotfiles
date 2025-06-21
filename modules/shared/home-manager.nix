@@ -39,6 +39,10 @@ in
       # Remove history data we don't want to see
       export HISTIGNORE="pwd:ls:cd"
 
+      # Set locale for proper UTF-8 support
+      export LANG="en_US.UTF-8"
+      export LC_ALL="en_US.UTF-8"
+
       export EDITOR="vim"
       export VISUAL="vim"
 
