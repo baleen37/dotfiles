@@ -1,22 +1,29 @@
 #!/bin/sh -e
 
+# Colors
 GREEN='\033[1;32m'
 YELLOW='\033[1;33m'
 RED='\033[1;31m'
 BLUE='\033[1;34m'
+DIM='\033[2m'
 NC='\033[0m'
 
+# Configuration
 SYSTEM_TYPE="aarch64-darwin"
 FLAKE_SYSTEM="darwinConfigurations.${SYSTEM_TYPE}.system"
 
+# Environment setup
 export NIXPKGS_ALLOW_UNFREE=1
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+export LC_MESSAGES=en_US.UTF-8
 
 # Set USER if not already set
 if [ -z "$USER" ]; then
     export USER=$(whoami)
 fi
 
-# Check for verbose flag
+# Parse arguments
 VERBOSE=false
 for arg in "$@"; do
     if [ "$arg" = "--verbose" ]; then
@@ -25,77 +32,109 @@ for arg in "$@"; do
     fi
 done
 
-print_step() {
-    echo "${BLUE}$1${NC}"
+# Logging functions
+log_header() {
+    echo ""
+    echo "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo "${BLUE}  Nix Darwin Build & Switch${NC}"
+    echo "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo ""
 }
 
-print_success() {
-    echo "${GREEN}✅ $1${NC}"
+log_step() {
+    echo "${YELLOW}▶ $1${NC}"
 }
 
-print_error() {
-    echo "${RED}❌ $1${NC}"
+log_info() {
+    echo "${DIM}  $1${NC}"
 }
 
-# Progress indicator
-show_progress() {
-    local step=$1
-    local total=$2
-    local desc=$3
-    echo "${YELLOW}🏗️  Dotfiles Build & Switch [$step/$total] - $desc${NC}"
+log_success() {
+    echo "${GREEN}✓ $1${NC}"
 }
+
+log_error() {
+    echo "${RED}✗ $1${NC}" >&2
+}
+
+log_footer() {
+    echo ""
+    echo "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    if [ "$1" = "success" ]; then
+        echo "${GREEN}✓ Build & switch completed successfully${NC}"
+    else
+        echo "${RED}✗ Build & switch failed${NC}"
+    fi
+    echo "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo ""
+}
+
+# Main execution
+log_header
 
 # Build phase
-show_progress "1" "4" "Building system configuration"
+log_step "Building system configuration"
+log_info "Target: ${SYSTEM_TYPE}"
+log_info "User: ${USER}"
+
 if [ "$VERBOSE" = "true" ]; then
     nix --extra-experimental-features 'nix-command flakes' build --impure .#$FLAKE_SYSTEM $@
 else
     nix --extra-experimental-features 'nix-command flakes' build --impure .#$FLAKE_SYSTEM $@ 2>/dev/null || {
-        print_error "Build failed. Run with --verbose for details"
+        log_error "Build failed. Run with --verbose for details"
+        log_footer "failed"
         exit 1
     }
 fi
-print_success "System configuration built"
+log_success "Build completed"
 
 # Switch phase
-show_progress "2" "4" "Switching to new generation"
-print_step "└─ Requesting admin privileges..."
+echo ""
+log_step "Applying system configuration"
+if [ "$(id -u)" -ne 0 ]; then
+    log_info "Administrator privileges required"
+fi
+
 if [ "$VERBOSE" = "true" ]; then
-    echo "${BLUE}Running: sudo -E USER=\"$USER\" ./result/sw/bin/darwin-rebuild switch --impure --flake .#${SYSTEM_TYPE}${NC}"
-    # darwin-rebuild must be run as root, check if we're already root
+    log_info "Command: darwin-rebuild switch --impure --flake .#${SYSTEM_TYPE}"
     if [ "$(id -u)" -eq 0 ]; then
         USER="$USER" ./result/sw/bin/darwin-rebuild switch --impure --flake .#${SYSTEM_TYPE} $@ 2>&1 || {
-            print_error "Switch failed with exit code: $?"
+            log_error "Switch failed (exit code: $?)"
+            log_footer "failed"
             exit 1
         }
     else
         sudo -E USER="$USER" ./result/sw/bin/darwin-rebuild switch --impure --flake .#${SYSTEM_TYPE} $@ 2>&1 || {
-            print_error "Switch failed with exit code: $?"
+            log_error "Switch failed (exit code: $?)"
+            log_footer "failed"
             exit 1
         }
     fi
 else
-    # darwin-rebuild must be run as root, check if we're already root
     if [ "$(id -u)" -eq 0 ]; then
-        USER="$USER" ./result/sw/bin/darwin-rebuild switch --impure --flake .#${SYSTEM_TYPE} $@ 2>/dev/null || {
-            print_error "Switch failed. Run with --verbose for details"
+        USER="$USER" ./result/sw/bin/darwin-rebuild switch --impure --flake .#${SYSTEM_TYPE} $@ >/dev/null 2>&1 || {
+            log_error "Switch failed. Run with --verbose for details"
+            log_footer "failed"
             exit 1
         }
     else
-        sudo -E USER="$USER" ./result/sw/bin/darwin-rebuild switch --impure --flake .#${SYSTEM_TYPE} $@ 2>/dev/null || {
-            print_error "Switch failed. Run with --verbose for details"
+        sudo -E USER="$USER" ./result/sw/bin/darwin-rebuild switch --impure --flake .#${SYSTEM_TYPE} $@ >/dev/null 2>&1 || {
+            log_error "Switch failed. Run with --verbose for details"
+            log_footer "failed"
             exit 1
         }
     fi
 fi
-print_success "New generation activated"
+log_success "Configuration applied"
 
 # Cleanup phase
-show_progress "3" "4" "Cleaning up"
-unlink ./result
-print_success "Cleanup complete"
+echo ""
+log_step "Cleaning up"
+unlink ./result >/dev/null 2>&1
+log_success "Cleanup completed"
 
-# Final
-show_progress "4" "4" "Complete"
-print_success "System update complete!"
-echo "${BLUE}💡 Use --verbose for detailed output${NC}"
+# Done
+log_footer "success"
+if [ "$VERBOSE" = "false" ]; then
+    echo "${DIM}Tip: Use --verbose for detailed output${NC}"
+fi

@@ -1,29 +1,125 @@
 #!/bin/sh -e
 
+# Colors
 GREEN='\033[1;32m'
 YELLOW='\033[1;33m'
 RED='\033[1;31m'
+BLUE='\033[1;34m'
+DIM='\033[2m'
 NC='\033[0m'
 
+# Configuration
 SYSTEM_TYPE="x86_64-darwin"
 FLAKE_SYSTEM="darwinConfigurations.${SYSTEM_TYPE}.system"
 
+# Environment setup
 export NIXPKGS_ALLOW_UNFREE=1
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+export LC_MESSAGES=en_US.UTF-8
 
 # Set USER if not already set
 if [ -z "$USER" ]; then
     export USER=$(whoami)
 fi
 
-echo "${YELLOW}Starting build...${NC}"
-nix --extra-experimental-features 'nix-command flakes' build --impure .#$FLAKE_SYSTEM $@
+# Parse arguments
+VERBOSE=false
+for arg in "$@"; do
+    if [ "$arg" = "--verbose" ]; then
+        VERBOSE=true
+        break
+    fi
+done
 
-echo "${YELLOW}Switching to new generation...${NC}"
-echo "${YELLOW}Admin access required for system configuration changes...${NC}"
-# See https://github.com/nix-darwin/nix-darwin/issues/1457 on why we need sudo
-sudo -E USER="$USER" ./result/sw/bin/darwin-rebuild switch --impure --flake .#${SYSTEM_TYPE} $@
+# Logging functions
+log_header() {
+    echo ""
+    echo "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo "${BLUE}  Nix Darwin Build & Switch${NC}"
+    echo "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo ""
+}
 
-echo "${YELLOW}Cleaning up...${NC}"
-unlink ./result
+log_step() {
+    echo "${YELLOW}▶ $1${NC}"
+}
 
-echo "${GREEN}Switch to new generation complete!${NC}"
+log_info() {
+    echo "${DIM}  $1${NC}"
+}
+
+log_success() {
+    echo "${GREEN}✓ $1${NC}"
+}
+
+log_error() {
+    echo "${RED}✗ $1${NC}" >&2
+}
+
+log_footer() {
+    echo ""
+    echo "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    if [ "$1" = "success" ]; then
+        echo "${GREEN}✓ Build & switch completed successfully${NC}"
+    else
+        echo "${RED}✗ Build & switch failed${NC}"
+    fi
+    echo "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo ""
+}
+
+# Main execution
+log_header
+
+# Build phase
+log_step "Building system configuration"
+log_info "Target: ${SYSTEM_TYPE}"
+log_info "User: ${USER}"
+
+if [ "$VERBOSE" = "true" ]; then
+    nix --extra-experimental-features 'nix-command flakes' build --impure .#$FLAKE_SYSTEM $@
+else
+    nix --extra-experimental-features 'nix-command flakes' build --impure .#$FLAKE_SYSTEM $@ 2>/dev/null || {
+        log_error "Build failed. Run with --verbose for details"
+        log_footer "failed"
+        exit 1
+    }
+fi
+log_success "Build completed"
+
+# Switch phase
+echo ""
+log_step "Applying system configuration"
+if [ "$(id -u)" -ne 0 ]; then
+    log_info "Administrator privileges required"
+fi
+
+if [ "$VERBOSE" = "true" ]; then
+    log_info "Command: darwin-rebuild switch --impure --flake .#${SYSTEM_TYPE}"
+    # See https://github.com/nix-darwin/nix-darwin/issues/1457 on why we need sudo
+    sudo -E USER="$USER" ./result/sw/bin/darwin-rebuild switch --impure --flake .#${SYSTEM_TYPE} $@ 2>&1 || {
+        log_error "Switch failed (exit code: $?)"
+        log_footer "failed"
+        exit 1
+    }
+else
+    sudo -E USER="$USER" ./result/sw/bin/darwin-rebuild switch --impure --flake .#${SYSTEM_TYPE} $@ >/dev/null 2>&1 || {
+        log_error "Switch failed. Run with --verbose for details"
+        log_footer "failed"
+        exit 1
+    }
+fi
+log_success "Configuration applied"
+
+# Cleanup phase
+echo ""
+log_step "Cleaning up"
+unlink ./result >/dev/null 2>&1
+log_success "Cleanup completed"
+
+# Done
+log_footer "success"
+if [ "$VERBOSE" = "false" ]; then
+    echo "${DIM}Tip: Use --verbose for detailed output${NC}"
+fi
