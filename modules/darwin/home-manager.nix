@@ -93,9 +93,9 @@ in
                   local source_hash=""
                   local target_hash=""
 
-                  if [[ -x /usr/bin/shasum ]]; then
-                    source_hash=$(/usr/bin/shasum -a 256 "$source" | cut -d' ' -f1)
-                    target_hash=$(/usr/bin/shasum -a 256 "$target" | cut -d' ' -f1)
+                  if command -v shasum >/dev/null 2>&1; then
+                    source_hash=$(shasum -a 256 "$source" | cut -d' ' -f1)
+                    target_hash=$(shasum -a 256 "$target" | cut -d' ' -f1)
                   elif command -v sha256sum >/dev/null 2>&1; then
                     source_hash=$(sha256sum "$source" | cut -d' ' -f1)
                     target_hash=$(sha256sum "$target" | cut -d' ' -f1)
@@ -250,17 +250,17 @@ in
                   echo ""
                   echo "소스에 없는 파일 정리 중..."
 
-                  # 소스 파일 목록 생성
-                  local source_files=()
+                  # 임시 파일로 소스 파일 목록 생성
+                  local source_list_file=$(mktemp)
 
                   # 루트 디렉토리 파일들
                   for f in "$SOURCE_DIR"/*.md "$SOURCE_DIR"/*.json; do
-                    [[ -f "$f" ]] && source_files+=("$(basename "$f")")
+                    [[ -f "$f" ]] && echo "$(basename "$f")" >> "$source_list_file"
                   done
 
                   # commands 디렉토리 파일들
                   for f in "$SOURCE_DIR/commands"/*.md; do
-                    [[ -f "$f" ]] && source_files+=("commands/$(basename "$f")")
+                    [[ -f "$f" ]] && echo "commands/$(basename "$f")" >> "$source_list_file"
                   done
 
                   # 타겟의 파일들 확인
@@ -271,25 +271,19 @@ in
                     local rel_path="''${target_file#$CLAUDE_DIR/}"
 
                     # .new, .bak, .update-notice 파일은 건너뛰기
-                    case "''${rel_path}" in
+                    case "$rel_path" in
                       *.new|*.bak|*.update-notice) continue ;;
                     esac
 
                     # 소스에 해당 파일이 있는지 확인
-                    local found=false
-                    for src in "''${source_files[@]}"; do
-                      if [[ "$src" == "''${rel_path}" ]]; then
-                        found=true
-                        break
-                      fi
-                    done
-
-                    # 소스에 없으면 삭제
-                    if [[ "$found" == "false" ]]; then
-                      echo "  더 이상 사용하지 않는 파일 삭제: ''${rel_path}"
+                    if ! grep -Fxq "$rel_path" "$source_list_file"; then
+                      echo "  더 이상 사용하지 않는 파일 삭제: $rel_path"
                       $DRY_RUN_CMD rm -f "$target_file"
                     fi
                   done
+
+                  # 임시 파일 정리
+                  rm -f "$source_list_file"
                 }
 
                 # 소스에 없는 파일 삭제
@@ -303,7 +297,8 @@ in
                 fi
 
                 # 사용자 알림 요약
-                NOTICE_COUNT=$(find "$CLAUDE_DIR" -name "*.update-notice" 2>/dev/null | wc -l)
+                NOTICE_COUNT=$(find "$CLAUDE_DIR" -name "*.update-notice" 2>/dev/null | wc -l || echo "0")
+                NOTICE_COUNT=''${NOTICE_COUNT:-0}
                 if [[ $NOTICE_COUNT -gt 0 ]]; then
                   echo ""
                   echo "주의: $NOTICE_COUNT개의 업데이트 알림이 생성되었습니다."

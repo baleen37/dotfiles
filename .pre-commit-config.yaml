@@ -55,3 +55,22 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
+
+  # Development quality checks
+  - repo: local
+    hooks:
+      # Run quick tests when .nix files change
+      - id: test-quick
+        name: Quick Test Suite
+        entry: bash -c 'export USER=${USER:-$(whoami)} && echo "Running quick test suite..." && nix run --impure .#test-unit'
+        language: system
+        files: '\.nix$'
+        pass_filenames: false
+
+      # Run full test suite (optional, can be enabled for pre-push)
+      - id: test-full
+        name: Full Test Suite
+        entry: bash -c 'export USER=${USER:-$(whoami)} && echo "Running full test suite..." && nix run --impure .#test'
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
