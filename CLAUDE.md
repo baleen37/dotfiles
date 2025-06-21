@@ -524,6 +524,235 @@ cp ~/.claude/.backups/settings.json.backup.20240106_143022 ~/.claude/settings.js
 | `commands/*.md` (dotfiles) | Medium | Overwrite after backup |
 | `commands/*.md` (user) | High | Always preserved (files not in dotfiles) |
 
+## Prompt Engineering Guide
+
+### Overview
+This guide provides best practices for creating effective command prompts in `modules/shared/config/claude/commands/`. Well-crafted prompts ensure consistent, high-quality outputs from Claude.
+
+### Core Principles
+
+1. **Be Specific and Clear**
+   - Define exact outputs and formats
+   - Use concrete examples
+   - Avoid ambiguous instructions
+
+2. **Structure Information Hierarchically**
+   - Start with role/persona
+   - Follow with objectives
+   - End with constraints/warnings
+
+3. **Use Multiple Prompting Techniques**
+   - Combine different techniques for better results
+   - Layer constraints and guidance
+   - Build in self-correction mechanisms
+
+### Essential Prompting Techniques
+
+#### 1. Role-Based Prompting (Persona)
+```markdown
+<persona>
+You are an experienced software architect with 15+ years building distributed systems.
+You prioritize reliability, maintainability, and clear documentation.
+</persona>
+```
+
+#### 2. Chain-of-Thought (CoT)
+```markdown
+<thinking_framework>
+Before making decisions, think step-by-step:
+1. What is the core problem?
+2. What are the constraints?
+3. What's the simplest solution?
+4. What could go wrong?
+5. How do we mitigate risks?
+</thinking_framework>
+```
+
+#### 3. Few-Shot Examples
+```markdown
+<examples>
+Good commit message: "fix: resolve race condition in auth token refresh"
+Bad commit message: "fix bug"
+
+Good branch name: "feat/user/auth-multi-factor"
+Bad branch name: "new-feature"
+</examples>
+```
+
+#### 4. Structured Output Templates
+```markdown
+<output_template>
+## Summary
+[1-2 sentences describing the change]
+
+## Changes
+- Change 1: [specific file/function modified]
+- Change 2: [specific file/function modified]
+
+## Testing
+- [ ] Unit tests pass
+- [ ] Integration tests pass
+- [ ] Manual testing completed
+</output_template>
+```
+
+#### 5. Constraint-Based Instructions
+```markdown
+<constraints>
+- NEVER modify files outside the current module
+- ALWAYS run tests before committing
+- MUST use existing patterns found in codebase
+- Maximum 500 lines per file
+</constraints>
+```
+
+#### 6. Self-Validation Checkpoints
+```markdown
+<validation>
+Before proceeding, verify:
+✓ Does this follow existing patterns?
+✓ Are all edge cases handled?
+✓ Is the code testable?
+✓ Would a new developer understand this?
+</validation>
+```
+
+#### 7. Anti-Pattern Warnings
+```markdown
+<anti_patterns>
+❌ DO NOT create mega-functions > 50 lines
+❌ AVOID nested callbacks > 3 levels deep
+❌ NEVER commit sensitive data
+❌ DON'T use magic numbers without constants
+</anti_patterns>
+```
+
+#### 8. Progressive Disclosure
+```markdown
+### Quick Start
+[Essential information for 80% of use cases]
+
+### Advanced Usage
+[Detailed information for complex scenarios]
+
+### Edge Cases
+[Rare but important scenarios]
+```
+
+#### 9. Interactive Decision Points
+```markdown
+<decision_points>
+- [ ] Present technology choices → STOP for user input
+- [ ] Show implementation plan → STOP for approval
+- [ ] Complete implementation → STOP before deployment
+</decision_points>
+```
+
+#### 10. Meta-Prompting (Self-Improvement)
+```markdown
+<reflection>
+After completing the task:
+1. What worked well?
+2. What was challenging?
+3. How could the process improve?
+4. Document lessons learned in journal
+</reflection>
+```
+
+### Advanced Techniques
+
+#### XML-Style Semantic Structure
+```markdown
+<task_definition>
+  <objective>Build a REST API for user management</objective>
+  <requirements>
+    <functional>CRUD operations, authentication, authorization</functional>
+    <non_functional>< 100ms response time, 99.9% uptime</non_functional>
+  </requirements>
+  <constraints>
+    <technical>Node.js, PostgreSQL, JWT</technical>
+    <timeline>2 weeks</timeline>
+  </constraints>
+</task_definition>
+```
+
+#### Cognitive Load Management
+- Break complex tasks into phases
+- Use clear section headers
+- Provide visual indicators (✓, ❌, ⚠️)
+- Limit choices to 3-5 options
+
+#### Prompt Chaining
+Link multiple prompts for complex workflows:
+```markdown
+Step 1: Use `/plan` to create project structure
+Step 2: Use `/implement` for each component
+Step 3: Use `/test` to verify functionality
+Step 4: Use `/document` to create docs
+```
+
+### Best Practices Checklist
+
+- [ ] **Clear Persona**: Define expertise and approach
+- [ ] **Specific Objectives**: State exact goals
+- [ ] **Concrete Examples**: Show good/bad patterns
+- [ ] **Structured Output**: Define expected format
+- [ ] **Decision Points**: Mark where to pause for input
+- [ ] **Error Prevention**: Include validation steps
+- [ ] **Escape Hatches**: Provide fallback options
+- [ ] **Concise Language**: Remove unnecessary words
+- [ ] **Action-Oriented**: Use imperative mood
+- [ ] **Measurable Success**: Define completion criteria
+
+### Command Prompt Template
+
+```markdown
+<persona>
+[Define role and expertise]
+</persona>
+
+<objective>
+[State the primary goal]
+</objective>
+
+<context>
+[Provide necessary background]
+</context>
+
+<approach>
+[Describe the methodology]
+</approach>
+
+<steps>
+1. [First action]
+2. [Second action]
+3. [Continue...]
+</steps>
+
+<constraints>
+- [Limitation 1]
+- [Limitation 2]
+</constraints>
+
+<output>
+[Define expected deliverables]
+</output>
+
+<validation>
+[How to verify success]
+</validation>
+
+⚠️ STOP: [When to pause for user input]
+```
+
+### Testing Your Prompts
+
+1. **Clarity Test**: Can another person understand the intent?
+2. **Completeness Test**: Are all edge cases covered?
+3. **Consistency Test**: Does it produce similar outputs for similar inputs?
+4. **Efficiency Test**: Is it concise without losing effectiveness?
+5. **Robustness Test**: Does it handle unexpected scenarios gracefully?
+
 ## Important Notes
 
 ### Critical Development Guidelines
