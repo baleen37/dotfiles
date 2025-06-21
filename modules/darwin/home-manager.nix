@@ -93,9 +93,9 @@ in
                   local source_hash=""
                   local target_hash=""
 
-                  if command -v shasum >/dev/null 2>&1; then
-                    source_hash=$(shasum -a 256 "$source" | cut -d' ' -f1)
-                    target_hash=$(shasum -a 256 "$target" | cut -d' ' -f1)
+                  if [[ -x /usr/bin/shasum ]]; then
+                    source_hash=$(/usr/bin/shasum -a 256 "$source" | cut -d' ' -f1)
+                    target_hash=$(/usr/bin/shasum -a 256 "$target" | cut -d' ' -f1)
                   elif command -v sha256sum >/dev/null 2>&1; then
                     source_hash=$(sha256sum "$source" | cut -d' ' -f1)
                     target_hash=$(sha256sum "$target" | cut -d' ' -f1)
