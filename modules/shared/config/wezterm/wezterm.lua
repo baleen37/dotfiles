@@ -12,6 +12,9 @@ config.color_scheme = 'Catppuccin Mocha'
 config.font = wezterm.font('JetBrains Mono', { weight = 'Regular' })
 config.font_size = 14.0
 
+-- Unicode handling
+config.unicode_version = 14
+
 -- Window configuration
 config.window_decorations = 'RESIZE'
 config.window_padding = {

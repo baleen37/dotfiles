@@ -62,15 +62,31 @@ show_progress "2" "4" "Switching to new generation"
 print_step "└─ Requesting admin privileges..."
 if [ "$VERBOSE" = "true" ]; then
     echo "${BLUE}Running: sudo -E USER=\"$USER\" ./result/sw/bin/darwin-rebuild switch --impure --flake .#${SYSTEM_TYPE}${NC}"
-    sudo -E USER="$USER" ./result/sw/bin/darwin-rebuild switch --impure --flake .#${SYSTEM_TYPE} $@ 2>&1 || {
-        print_error "Switch failed with exit code: $?"
-        exit 1
-    }
+    # darwin-rebuild must be run as root, check if we're already root
+    if [ "$(id -u)" -eq 0 ]; then
+        USER="$USER" ./result/sw/bin/darwin-rebuild switch --impure --flake .#${SYSTEM_TYPE} $@ 2>&1 || {
+            print_error "Switch failed with exit code: $?"
+            exit 1
+        }
+    else
+        sudo -E USER="$USER" ./result/sw/bin/darwin-rebuild switch --impure --flake .#${SYSTEM_TYPE} $@ 2>&1 || {
+            print_error "Switch failed with exit code: $?"
+            exit 1
+        }
+    fi
 else
-    sudo -E USER="$USER" ./result/sw/bin/darwin-rebuild switch --impure --flake .#${SYSTEM_TYPE} $@ 2>/dev/null || {
-        print_error "Switch failed. Run with --verbose for details"
-        exit 1
-    }
+    # darwin-rebuild must be run as root, check if we're already root
+    if [ "$(id -u)" -eq 0 ]; then
+        USER="$USER" ./result/sw/bin/darwin-rebuild switch --impure --flake .#${SYSTEM_TYPE} $@ 2>/dev/null || {
+            print_error "Switch failed. Run with --verbose for details"
+            exit 1
+        }
+    else
+        sudo -E USER="$USER" ./result/sw/bin/darwin-rebuild switch --impure --flake .#${SYSTEM_TYPE} $@ 2>/dev/null || {
+            print_error "Switch failed. Run with --verbose for details"
+            exit 1
+        }
+    fi
 fi
 print_success "New generation activated"
 

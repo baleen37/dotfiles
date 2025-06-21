@@ -89,9 +89,21 @@ in
                     return 0  # 파일이 없으면 다른 것으로 간주
                   fi
 
-                  # macOS에서는 shasum 사용
-                  local source_hash=$(shasum -a 256 "$source" | cut -d' ' -f1)
-                  local target_hash=$(shasum -a 256 "$target" | cut -d' ' -f1)
+                  # macOS에서는 shasum 또는 sha256sum 사용
+                  local source_hash=""
+                  local target_hash=""
+
+                  if command -v shasum >/dev/null 2>&1; then
+                    source_hash=$(shasum -a 256 "$source" | cut -d' ' -f1)
+                    target_hash=$(shasum -a 256 "$target" | cut -d' ' -f1)
+                  elif command -v sha256sum >/dev/null 2>&1; then
+                    source_hash=$(sha256sum "$source" | cut -d' ' -f1)
+                    target_hash=$(sha256sum "$target" | cut -d' ' -f1)
+                  else
+                    # Fallback: Nix의 nix-hash 사용
+                    source_hash=$(nix-hash --type sha256 --flat "$source")
+                    target_hash=$(nix-hash --type sha256 --flat "$target")
+                  fi
                   [[ "$source_hash" != "$target_hash" ]]
                 }
 
@@ -227,7 +239,7 @@ in
                 if [[ -d "$SOURCE_DIR/commands" ]]; then
                   for cmd_file in "$SOURCE_DIR/commands"/*.md; do
                     if [[ -f "$cmd_file" ]]; then
-                      local base_name=$(basename "$cmd_file")
+                      base_name=$(basename "$cmd_file")
                       smart_copy "$cmd_file" "$CLAUDE_DIR/commands/$base_name"
                     fi
                   done
