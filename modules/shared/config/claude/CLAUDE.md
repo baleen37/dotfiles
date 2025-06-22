@@ -82,6 +82,7 @@ Before committing any code change:
 3. Create appropriate branch if none specified
 4. Make frequent, focused commits
 5. Use clear, descriptive commit messages
+6. NEVER use --no-verify flag when committing (bypasses important hooks)
 </git_workflow>
 
 <branch_naming>
