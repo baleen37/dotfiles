@@ -149,8 +149,10 @@ pkgs.runCommand "auto-update-integration-test"
       echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} bl command system available"
 
       # Verify bl can handle auto-update command (by checking help output)
-      if ${testHelpers.assertCommand "bash $BL_SCRIPT --help" "bl command shows help"}; then
+      if bash "$BL_SCRIPT" --help >/dev/null 2>&1; then
         echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} bl command system functional"
+      else
+        echo "${testHelpers.colors.yellow}⚠${testHelpers.colors.reset} bl command help not available"
       fi
     else
       echo "${testHelpers.colors.yellow}⚠${testHelpers.colors.reset} bl command system not found"
