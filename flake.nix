@@ -31,8 +31,8 @@
 
   outputs = { self, darwin, nix-homebrew, homebrew-bundle, homebrew-core, homebrew-cask, home-manager, nixpkgs, disko } @inputs:
     let
-      getUser = import ./lib/get-user.nix { };
-      user = getUser;
+      getUserFn = import ./lib/get-user.nix;
+      user = getUserFn { };
       linuxSystems = [ "x86_64-linux" "aarch64-linux" ];
       darwinSystems = [ "aarch64-darwin" "x86_64-darwin" ];
       forAllSystems = f: nixpkgs.lib.genAttrs (linuxSystems ++ darwinSystems) f;
@@ -120,9 +120,6 @@
         });
 
       darwinConfigurations = nixpkgs.lib.genAttrs darwinSystems (system:
-        let
-          user = getUser;
-        in
         darwin.lib.darwinSystem {
           inherit system;
           specialArgs = inputs;
