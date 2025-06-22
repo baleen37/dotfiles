@@ -102,16 +102,25 @@ let
   '';
 
 in
-pkgs.runCommand "1password-ssh-test"
-{
-  buildInputs = [ pkgs._1password-cli ];
-} ''
-  export USER=${user}
-  export PATH=${pkgs._1password-cli}/bin:$PATH
+# Check if 1password-cli is available for this platform
+if pkgs._1password-cli.meta.available or false then
+  pkgs.runCommand "1password-ssh-test"
+  {
+    buildInputs = [ pkgs._1password-cli ];
+  } ''
+    export USER=${user}
+    export PATH=${pkgs._1password-cli}/bin:$PATH
 
-  echo "Running 1Password SSH integration tests..."
-  ${testScript}
+    echo "Running 1Password SSH integration tests..."
+    ${testScript}
 
-  echo "1Password SSH integration test completed successfully"
-  touch $out
-''
+    echo "1Password SSH integration test completed successfully"
+    touch $out
+  ''
+else
+  pkgs.runCommand "1password-ssh-test-skipped" {} ''
+    echo "⚠️  1Password CLI not available for this platform, skipping test"
+    echo "Platform: ${pkgs.system}"
+    echo "Available: ${toString (pkgs._1password-cli.meta.available or false)}"
+    touch $out
+  ''
