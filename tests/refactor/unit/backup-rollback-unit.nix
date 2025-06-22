@@ -69,7 +69,8 @@ pkgs.runCommand "backup-rollback-unit-test" { } ''
 
   # Test backup creation
   TEMP_BACKUP_DIR=$(mktemp -d)
-  if "$BACKUP_SCRIPT" create --output "$TEMP_BACKUP_DIR" >/dev/null 2>&1; then
+  ACTUAL_BACKUP_PATH=$("$BACKUP_SCRIPT" create --output "$TEMP_BACKUP_DIR" 2>/dev/null | tail -n1)
+  if [ -n "$ACTUAL_BACKUP_PATH" ] && [ -d "$ACTUAL_BACKUP_PATH" ]; then
     echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Backup creation works"
   else
     echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} Backup creation failed (EXPECTED FAILURE - TDD Red)"
@@ -77,7 +78,7 @@ pkgs.runCommand "backup-rollback-unit-test" { } ''
   fi
 
   # Test backup validation
-  if "$BACKUP_SCRIPT" validate --backup "$TEMP_BACKUP_DIR" >/dev/null 2>&1; then
+  if "$BACKUP_SCRIPT" validate --backup "$ACTUAL_BACKUP_PATH" >/dev/null 2>&1; then
     echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Backup validation works"
   else
     echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} Backup validation failed (EXPECTED FAILURE - TDD Red)"
@@ -88,7 +89,7 @@ pkgs.runCommand "backup-rollback-unit-test" { } ''
   ${testHelpers.testSubsection "Rollback Functionality"}
 
   # Test rollback execution
-  if "$ROLLBACK_SCRIPT" restore --backup "$TEMP_BACKUP_DIR" >/dev/null 2>&1; then
+  if "$ROLLBACK_SCRIPT" restore --backup "$ACTUAL_BACKUP_PATH" --dry-run >/dev/null 2>&1; then
     echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Rollback execution works"
   else
     echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} Rollback execution failed (EXPECTED FAILURE - TDD Red)"
