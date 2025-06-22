@@ -766,6 +766,77 @@ Step 4: Use `/document` to create docs
    - Both are wrapped by platform-specific scripts in `apps/`
 5. **Home Manager Integration**: User-specific configurations are managed through Home Manager
 
+## Auto Branch Update System
+
+This repository includes an **intelligent auto branch update system** that keeps PR branches synchronized with the main branch, enabling seamless auto-merge functionality.
+
+### How It Works
+
+**Problem Solved:**
+- PRs become "behind" main branch when new commits are merged
+- Branch protection rules prevent auto-merge until branches are up-to-date
+- Manual branch updates are time-consuming and easy to forget
+
+**Automated Solution:**
+1. **Trigger**: Automatically runs when new commits are pushed to main
+2. **Detection**: Scans all open PRs to find branches that are behind main
+3. **Smart Update Strategy**:
+   - First attempts `git merge main` (preserves commit history)
+   - Falls back to `git rebase main` if merge fails (creates cleaner history)
+   - If both fail, creates detailed conflict notification on PR
+4. **Auto-merge Preservation**: Maintains auto-merge settings after successful updates
+
+### Usage
+
+**Automatic Operation:**
+```bash
+# No manual intervention needed - system runs automatically
+git push origin main  # Triggers auto-update for all stale PRs
+```
+
+**Manual Testing:**
+```bash
+# Test the system locally
+./scripts/test-branch-update
+
+# Test with dry-run in GitHub Actions
+gh workflow run auto-branch-update.yml -f dry_run=true
+```
+
+**Monitoring:**
+- Check Actions tab for workflow execution status
+- PR comments show detailed update results or conflict information
+- Workflow summary provides overview of all processed PRs
+
+### Configuration
+
+The system is configured in `.github/workflows/auto-branch-update.yml` with:
+
+- **Triggers**: Push to main, manual workflow_dispatch
+- **Permissions**: Contents write, pull-requests write, checks read
+- **Timeout**: 20 minutes for branch updates, 10 minutes for detection
+- **Concurrency**: Only one update workflow runs at a time
+
+### Conflict Resolution
+
+When conflicts occur, the system:
+1. **Automatically comments on PR** with detailed conflict information
+2. **Lists conflicted files** for easy identification
+3. **Provides resolution steps** for developers
+4. **Preserves original branch state** (no data loss)
+
+**Manual Resolution Process:**
+```bash
+# In your local repository
+git checkout your-feature-branch
+git merge main  # or git rebase main
+# Resolve conflicts manually
+git add .
+git commit -m "resolve conflicts"
+git push origin your-feature-branch
+# Auto-merge will resume automatically
+```
+
 ### Workflow Requirements
 
 - **Ask before major changes**: Always confirm before proceeding with significant modifications

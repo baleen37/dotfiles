@@ -1,0 +1,33 @@
+name: Auto Branch Update
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+          fetch-depth: 0
+
+      - name: Update PR branches
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          gh pr list --state open --json number,headRefName | jq -r '.[] | "\(.number):\(.headRefName)"' | while IFS=':' read pr branch; do
+            if [ "$(git rev-list --count "origin/$branch..main")" -gt 0 ]; then
+              echo "Updating PR #$pr ($branch)"
+              git fetch origin "$branch"
+              git checkout -b "update-$branch" "origin/$branch"
+              if git merge main --no-edit; then
+                git push origin "update-$branch:$branch"
+                gh pr merge "$pr" --auto --squash || true
+              else
+                gh pr comment "$pr" --body "❌ Merge conflict - please update manually"
+              fi
+              git checkout main && git branch -D "update-$branch" || true
+            fi
+          done
