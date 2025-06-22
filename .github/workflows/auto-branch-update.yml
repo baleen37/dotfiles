@@ -4,12 +4,8 @@ on:
   push:
     branches: [main]
 
-permissions:
-  contents: write
-  pull-requests: write
-
 jobs:
-  update-branches:
+  update:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -17,40 +13,21 @@ jobs:
           token: ${{ secrets.PAT_TOKEN }}
           fetch-depth: 0
 
-      - name: Update stale PR branches
+      - name: Update PR branches
         env:
           GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
-          # Get all open PRs
-          gh pr list --state open --json number,headRefName,baseRefName | \
-          jq -r '.[] | select(.baseRefName == "main") | "\(.number):\(.headRefName)"' | \
-          while IFS=':' read -r pr_number branch_name; do
-            echo "Checking PR #$pr_number ($branch_name)"
-
-            # Check if branch is behind main
-            git fetch origin "$branch_name"
-            BEHIND=$(git rev-list --count "origin/$branch_name..main")
-
-            if [ "$BEHIND" -gt 0 ]; then
-              echo "PR #$pr_number is $BEHIND commits behind, updating..."
-
-              # Try to update branch
-              git checkout -b "temp-$branch_name" "origin/$branch_name"
-
+          gh pr list --state open --json number,headRefName | jq -r '.[] | "\(.number):\(.headRefName)"' | while IFS=':' read pr branch; do
+            if [ "$(git rev-list --count "origin/$branch..main")" -gt 0 ]; then
+              echo "Updating PR #$pr ($branch)"
+              git fetch origin "$branch"
+              git checkout -b "update-$branch" "origin/$branch"
               if git merge main --no-edit; then
-                git push origin "temp-$branch_name:$branch_name"
-                echo "✅ Updated PR #$pr_number"
-
-                # Re-enable auto-merge if it was disabled
-                gh pr merge "$pr_number" --auto --squash || true
+                git push origin "update-$branch:$branch"
+                gh pr merge "$pr" --auto --squash || true
               else
-                echo "❌ Merge conflict in PR #$pr_number"
-                gh pr comment "$pr_number" --body "⚠️ **Auto-update failed**: Merge conflicts detected. Please manually update your branch with latest main."
+                gh pr comment "$pr" --body "❌ Merge conflict - please update manually"
               fi
-
-              git checkout main
-              git branch -D "temp-$branch_name" || true
-            else
-              echo "✅ PR #$pr_number is up to date"
+              git checkout main && git branch -D "update-$branch" || true
             fi
           done
