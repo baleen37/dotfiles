@@ -58,6 +58,10 @@ let
   e2eTests = discoverTests ./e2e ".*-e2e\\.nix";
   performanceTests = discoverTests ./performance ".*-perf\\.nix";
 
+  # Refactor tests (for system refactoring project)
+  refactorUnitTests = discoverTests ./refactor/unit ".*-unit\\.nix";
+  refactorIntegrationTests = discoverTests ./refactor/integration ".*-integration\\.nix";
+
 
   # Legacy tests (to be gradually migrated)
   legacyTests = builtins.listToAttrs (map
@@ -68,7 +72,7 @@ let
     legacyFiles);
 
   # Combine all tests with clear categorization
-  allTests = unitTests // integrationTests // e2eTests // performanceTests // legacyTests;
+  allTests = unitTests // integrationTests // e2eTests // performanceTests // refactorUnitTests // refactorIntegrationTests // legacyTests;
 
   # Test metadata for reporting
   testMetadata = {
@@ -77,6 +81,8 @@ let
       integration = builtins.length (builtins.attrNames integrationTests);
       e2e = builtins.length (builtins.attrNames e2eTests);
       performance = builtins.length (builtins.attrNames performanceTests);
+      refactor_unit = builtins.length (builtins.attrNames refactorUnitTests);
+      refactor_integration = builtins.length (builtins.attrNames refactorIntegrationTests);
       legacy = builtins.length (builtins.attrNames legacyTests);
     };
     total = builtins.length (builtins.attrNames allTests);
@@ -89,6 +95,8 @@ let
     echo "Integration tests: ${toString testMetadata.categories.integration}"
     echo "E2E tests: ${toString testMetadata.categories.e2e}"
     echo "Performance tests: ${toString testMetadata.categories.performance}"
+    echo "Refactor unit tests: ${toString testMetadata.categories.refactor_unit}"
+    echo "Refactor integration tests: ${toString testMetadata.categories.refactor_integration}"
     echo "Legacy tests: ${toString testMetadata.categories.legacy}"
     echo "Total tests: ${toString testMetadata.total}"
     echo ""

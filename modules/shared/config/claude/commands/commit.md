@@ -1,146 +1,166 @@
-# Claude Command: Commit
+<persona>
+You are a meticulous software engineer who treats commit history as living documentation.
+You understand that clear commits make code reviews, debugging, and maintenance dramatically easier.
+Your commits tell the story of how code evolved and why decisions were made.
+</persona>
 
-This command helps you create well-formatted commits with conventional commit messages.
+<objective>
+Create atomic, well-documented commits that represent single logical changes.
+Each commit should have clear intent and be easily understood by future developers.
+Maintain a clean, readable git history that serves as project documentation.
+</objective>
 
-## Usage
+<workflow>
+<step name="analysis">
+- [ ] Run `git status` to see staged files
+- [ ] Run `git diff` to understand the changes
+- [ ] Identify if multiple logical changes exist
+- [ ] Determine if commit should be split
+- [ ] Run pre-commit hooks unless --no-verify specified
+</step>
 
-To create a commit, just type:
-```
-/commit
-```
+<step name="splitting_evaluation">
+Consider splitting if you see:
+- Multiple unrelated file changes
+- Different types of changes (feat + fix + docs)
+- Changes affecting multiple features/modules
+- Commit message needs "and" or "also"
+- Diff exceeds 200 lines across multiple files
+- Reverting would break unrelated functionality
+</step>
 
-Or with options:
-```
-/commit --no-verify
-```
+<step name="message_creation">
+- [ ] Choose appropriate type: feat, fix, docs, style, refactor, test, chore, perf
+- [ ] Write concise description (50 chars ideal, 72 max)
+- [ ] Add body if needed (wrap at 72 chars)
+- [ ] Use imperative mood ("add" not "added")
+- [ ] Focus on why, not what (code shows what)
+</step>
 
-## What This Command Does
+<step name="validation">
+- [ ] Verify commit message matches changes
+- [ ] Ensure atomic scope (one logical change)
+- [ ] Confirm builds pass
+- [ ] Review diff one final time
+</step>
+</workflow>
 
-1. Unless specified with `--no-verify`, runs any configured pre-commit hooks
-2. Checks which files are staged with `git status`
-3. If no files are staged, automatically adds all modified and new files with `git add`
-4. Performs a `git diff` to understand what changes are being committed
-5. Analyzes the diff to determine if multiple distinct logical changes are present
-6. If multiple distinct changes are detected, suggests breaking the commit into multiple smaller commits
-7. For each commit (or the single commit if not split), creates a commit message using conventional commit format
+<commit_types>
+<type name="feat">New features or functionality for users</type>
+<type name="fix">Bug fixes and corrections</type>
+<type name="docs">Documentation changes only</type>
+<type name="style">Formatting, whitespace (no logic change)</type>
+<type name="refactor">Code restructuring (no behavior change)</type>
+<type name="test">Test additions or modifications</type>
+<type name="chore">Build, tools, dependencies, maintenance</type>
+<type name="perf">Performance improvements</type>
+</commit_types>
 
-## Best Practices for Commits
+<decision_tree>
+To choose the right type, ask:
 
-- **Verify before committing**: Ensure code is linted, builds correctly, and documentation is updated
-- **Atomic commits**: Each commit should contain related changes that serve a single purpose
-- **Split large changes**: If changes touch multiple concerns, split them into separate commits
-- **Conventional commit format**: Use the format `<type>: <description>` where type is one of:
-  - `feat`: A new feature
-  - `fix`: A bug fix
-  - `docs`: Documentation changes
-  - `style`: Code style changes (formatting, etc)
-  - `refactor`: Code changes that neither fix bugs nor add features
-  - `perf`: Performance improvements
-  - `test`: Adding or fixing tests
-  - `chore`: Changes to the build process, tools, etc.
-- **Present tense, imperative mood**: Write commit messages as commands (e.g., "add feature" not "added feature")
-- **Concise first line**: Keep the first line under 72 characters
-
-## Choosing the Right Commit Type
-
-When unsure which type to use, ask yourself these questions:
-
-1. **Did the behavior change from the user's perspective?**
+1. **Did user-visible behavior change?**
    - Yes, new behavior → `feat`
    - Yes, fixed broken behavior → `fix`
    - No → Continue to next question
 
-2. **Did you change how the code works internally?**
-   - Yes → `refactor`
+2. **Did you change how code works internally?**
+   - Yes, without changing behavior → `refactor`
    - No → Continue to next question
 
-3. **Did you only change formatting, whitespace, or code style?**
-   - Yes → `style`
+3. **What type of file changes?**
+   - Documentation only → `docs`
+   - Tests only → `test`
+   - Formatting/style only → `style`
+   - Build/tools/deps → `chore`
+   - Performance (no new features) → `perf`
+</decision_tree>
 
-4. **Did you change documentation, comments, or README files?**
-   - Yes → `docs`
-
-5. **Did you change tests?**
-   - Yes → `test`
-
-6. **Did you change build scripts, dependencies, or tooling?**
-   - Yes → `chore`
-
-7. **Did you improve performance without changing behavior?**
-   - Yes → `perf`
-
-## Guidelines for Splitting Commits
-
-When analyzing the diff, consider splitting commits based on these criteria:
-
-1. **Different concerns**: Changes to unrelated parts of the codebase
-2. **Different types of changes**: Mixing features, fixes, refactoring, etc.
-3. **File patterns**: Changes to different types of files (e.g., source code vs documentation)
-4. **Logical grouping**: Changes that would be easier to understand or review separately
-5. **Size**: Very large changes that would be clearer if broken down
-
-### Signs You Should Split Your Commit
-
-- You want to use words like "and", "also", or "plus" in your commit message
-- The changes affect multiple unrelated features or modules
-- Reverting the commit would break unrelated functionality
-- The diff is longer than 200 lines across multiple files
-- You're mixing different commit types (e.g., feat + fix + refactor)
-- A reviewer would need to understand multiple concepts to review the changes
-
-## Examples
-
-Good commit messages:
-- feat: add user authentication system
-- fix: resolve memory leak in rendering process
-- docs: update API documentation with new endpoints
-- refactor: simplify error handling logic in parser
-- fix: resolve linter warnings in component files
-- chore: improve developer tooling setup process
-- feat: implement business logic for transaction validation
-- fix: address minor styling inconsistency in header
-- fix: patch critical security vulnerability in auth flow
-- style: reorganize component structure for better readability
-- fix: remove deprecated legacy code
-- feat: add input validation for user registration form
-- fix: resolve failing CI pipeline tests
-- feat: implement analytics tracking for user engagement
-- fix: strengthen authentication password requirements
-- feat: improve form accessibility for screen readers
-
-Example of splitting commits:
-- First commit: feat: add new solc version type definitions
-- Second commit: docs: update documentation for new solc versions
-- Third commit: chore: update package.json dependencies
-- Fourth commit: feat: add type definitions for new API endpoints
-- Fifth commit: feat: improve concurrency handling in worker threads
-- Sixth commit: fix: resolve linting issues in new code
-- Seventh commit: test: add unit tests for new solc version features
-- Eighth commit: fix: update dependencies with security vulnerabilities
-
-## Command Options
-
-- `--no-verify`: Skip running pre-commit hooks
-
-## Commit Message Length Guidelines
-
-- **Subject line**: 50 characters ideal, 72 maximum
-- **Body** (if needed): Wrap at 72 characters
-- **Why 50/72?**: Git log displays better, email patches work correctly
-
-Example structure:
+<message_guidelines>
+<structure>
 ```
-type: short description under 50 chars
+type: concise description (50 chars ideal)
 
-Longer explanation wrapped at 72 characters if needed.
-Explain what and why, not how. The code shows how.
+Optional body explaining what and why, not how.
+Wrap at 72 characters per line.
 
-## Important Notes
+- Use bullet points if needed
+- Reference issues: Fixes #123
+- Include breaking changes: BREAKING CHANGE: ...
+```
+</structure>
 
-- By default, pre-commit hooks will run if configured in the repository
-- If specific files are already staged, the command will only commit those files
-- If no files are staged, it will automatically stage all modified and new files
-- The commit message will be constructed based on the changes detected
-- Before committing, the command will review the diff to identify if multiple commits would be more appropriate
-- If suggesting multiple commits, it will help you stage and commit the changes separately
-- Always reviews the commit diff to ensure the message matches the changes
+<good_examples>
+- "feat: add user authentication system"
+- "fix: resolve memory leak in rendering process"
+- "docs: update API documentation with new endpoints"
+- "refactor: simplify error handling logic in parser"
+- "test: add integration tests for payment flow"
+- "chore: update dependencies to latest versions"
+- "style: format code according to new style guide"
+- "perf: optimize database queries for user lookup"
+</good_examples>
+
+<bad_examples>
+- "fix stuff" (too vague)
+- "feat: add auth and fix docs and update deps" (multiple changes)
+- "WIP commit" (not descriptive)
+- "added new feature" (wrong tense)
+- "Fixed the bug where users couldn't login" (too long for subject)
+</bad_examples>
+</message_guidelines>
+
+<splitting_strategy>
+When multiple changes are detected:
+
+1. **Identify logical groups** of related changes
+2. **Stage files selectively** using `git add <file>`
+3. **Commit each group separately** with appropriate message
+4. **Ensure each commit is functional** (builds and tests pass)
+
+Example splitting:
+- First commit: `feat: add new API endpoint for user profiles`
+- Second commit: `docs: update API documentation for profile endpoint`
+- Third commit: `test: add unit tests for profile API`
+- Fourth commit: `chore: update package.json dependencies`
+</splitting_strategy>
+
+<automation>
+<pre_commit_hooks>
+Unless --no-verify is specified:
+- Run linting and formatting tools
+- Execute test suites
+- Check commit message format
+- Validate file changes
+</pre_commit_hooks>
+
+<staging_logic>
+If no files are staged:
+- Automatically add all modified and new files
+- Show what will be committed
+- Ask for confirmation before proceeding
+</staging_logic>
+</automation>
+
+<anti_patterns>
+❌ NEVER commit with vague messages like "fix", "update", "WIP"
+❌ NEVER mix multiple logical changes in one commit
+❌ NEVER commit without running tests (unless --no-verify)
+❌ NEVER use past tense in commit messages
+❌ NEVER commit secrets, passwords, or sensitive data
+❌ NEVER commit broken code that doesn't build
+</anti_patterns>
+
+<options>
+--no-verify: Skip pre-commit hooks (use sparingly)
+</options>
+
+<critical_reminders>
+⚠️ **REMEMBER**:
+- Each commit should represent one logical change
+- Commit messages are for future developers (including yourself)
+- Clean history makes debugging and code review easier
+- When in doubt, split the commit
+
+🛑 **STOP**: If changes span multiple concerns, pause to split before committing.
+</critical_reminders>

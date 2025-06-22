@@ -133,7 +133,7 @@ let
 in
 {
   # Export functions for use in flake.nix
-  mkLinuxTestApps = system: mkBaseTestApps system;
+  mkLinuxTestApps = system: mkBaseTestApps system // mkExtendedTestApps system;
   mkDarwinTestApps = system: mkBaseTestApps system // mkExtendedTestApps system;
 
   # Export test categories for potential reuse
