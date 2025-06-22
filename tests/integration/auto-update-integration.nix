@@ -28,12 +28,11 @@ pkgs.runCommand "auto-update-integration-test"
     # Test 2: Script Integration with Dotfiles Structure
     ${testHelpers.testSubsection "Dotfiles Structure Integration"}
 
-    # Verify script exists in correct location (with fallback check)
-    if [ -f "$autoUpdateScript" ]; then
-      echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Auto-update script exists in scripts directory"
-    elif [ -f "${src}/scripts/auto-update-dotfiles" ]; then
+    # Use the correct script path
+    ACTUAL_SCRIPT="${src}/scripts/auto-update-dotfiles"
+    if [ -f "$ACTUAL_SCRIPT" ]; then
       echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Auto-update script found in alternative location"
-      autoUpdateScript="${src}/scripts/auto-update-dotfiles"
+      autoUpdateScript="$ACTUAL_SCRIPT"
     else
       echo "${testHelpers.colors.yellow}⚠${testHelpers.colors.reset} Auto-update script not found, skipping path-dependent tests"
       # Create a minimal script for remaining tests
@@ -65,7 +64,7 @@ pkgs.runCommand "auto-update-integration-test"
 
     # Check that script uses nix run command correctly
     ${testHelpers.assertContains "$autoUpdateScript" "nix run" "Script uses nix run command"}
-    ${testHelpers.assertContains "$autoUpdateScript" "--impure" "Script uses impure flag"}
+    ${testHelpers.assertContains "$autoUpdateScript" "\\-\\-impure" "Script uses impure flag"}
     ${testHelpers.assertContains "$autoUpdateScript" ".#build-switch" "Script references correct flake app"}
 
     # Test 4: Platform Detection Integration
