@@ -1,0 +1,33 @@
+{
+  "architecture": "aarch64",
+  "home_manager": {
+    "users": {
+      "baleen": {
+        "dotfiles": [
+          "init.vim",
+          "zshrc",
+          "bashrc"
+        ],
+        "shell": "zsh"
+      }
+    },
+    "version": "24.05"
+  },
+  "packages": [
+    "git-2.49.0",
+    "neovim-0.10.1",
+    "curl-8.13.0",
+    "wget-1.24.5",
+    "jq-1.7.1"
+  ],
+  "platform": "darwin",
+  "system_settings": {
+    "nix-daemon": true,
+    "programs": {
+      "bash": true,
+      "zsh": true
+    },
+    "stateVersion": "24.05"
+  },
+  "timestamp": "2024-01-06T16:45:33Z"
+}
