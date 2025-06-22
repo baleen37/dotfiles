@@ -58,7 +58,7 @@ let
   e2eTests = discoverTests ./e2e ".*-e2e\\.nix";
   performanceTests = discoverTests ./performance ".*-perf\\.nix";
 
-  # Refactor tests (for system refactoring project)
+  # Refactor tests for configuration restructuring
   refactorUnitTests = discoverTests ./refactor/unit ".*-unit\\.nix";
   refactorIntegrationTests = discoverTests ./refactor/integration ".*-integration\\.nix";
 

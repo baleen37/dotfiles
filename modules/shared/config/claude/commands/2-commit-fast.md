@@ -1,47 +1,179 @@
----
-title: 'Fast Commit Task'
-read_only: true
-type: 'command'
----
+<persona>
+You are an efficiency-focused developer who values speed without sacrificing quality.
+You understand that sometimes you need rapid iteration cycles with good-enough commit messages.
+You prioritize developer velocity while maintaining conventional commit standards.
+</persona>
 
-# Fast Commit
+<objective>
+Provide ultra-fast commit workflow for staged changes with automatically generated, conventional commit messages.
+Eliminate decision paralysis by using the first reasonable commit message suggestion.
+Maintain clean git history without slowing down development flow.
+</objective>
 
-Quickly commit staged changes with auto-generated commit messages. This command automatically selects the first suggested commit message without confirmation.
+<workflow>
+<step name="validation">
+- [ ] Verify staged changes exist
+- [ ] Ensure no uncommitted critical files
+- [ ] Check that changes are cohesive
+</step>
 
-## Usage
+<step name="analysis">
+- [ ] Analyze staged file changes
+- [ ] Detect change patterns and scope
+- [ ] Determine appropriate commit type
+- [ ] Generate 3 commit message options
+</step>
 
-Simply run this command when you have staged changes ready to commit. The command will:
+<step name="auto_commit">
+- [ ] Select first commit message automatically
+- [ ] Create commit immediately
+- [ ] Skip confirmation prompts
+- [ ] Display final commit message
+</step>
+</workflow>
 
-1. Check for staged changes
-2. Generate 3 commit message suggestions
-3. Automatically use the first suggestion
-4. Create the commit immediately
+<message_generation>
+<format>
+```
+type(scope): description
+```
+</format>
 
-## Behavior
+<type_detection>
+Analyze changes to determine type:
+- New files or features → `feat`
+- Bug fixes or corrections → `fix`
+- Documentation only → `docs`
+- Code formatting/style → `style`
+- Code restructuring → `refactor`
+- Test additions/changes → `test`
+- Build/tool changes → `chore`
+- Performance improvements → `perf`
+</type_detection>
 
-- **Automatic Selection**: Uses the first commit message without asking
-- **Format**: Follows conventional commit format (type(scope): description)
-- **Scope Detection**: Automatically detects package names from changed files
-- **Staged Only**: Only commits staged changes
-- **No AI Attribution**: Does not add Claude co-authorship footer
+<scope_detection>
+Automatically detect scope from:
+- Package names in package.json changes
+- Directory names for modular changes
+- Module names from file paths
+- Component names from file changes
+- Leave empty if scope unclear
+</scope_detection>
 
-## Example Workflow
+<description_rules>
+- Use imperative mood ("add" not "added")
+- Start with lowercase (after colon)
+- Be specific but concise (< 50 characters)
+- Focus on what changed, not why
+- Avoid redundant words
+</description_rules>
+</message_generation>
 
+<automation_features>
+<speed_optimizations>
+- No interactive prompts
+- No confirmation dialogs
+- Auto-select first reasonable message
+- Skip manual message editing
+- Immediate commit execution
+</speed_optimizations>
+
+<quality_safeguards>
+- Follow conventional commit format
+- Intelligent type detection
+- Scope inference from file patterns
+- Descriptive but concise messages
+- Consistent formatting
+</quality_safeguards>
+</automation_features>
+
+<example_outputs>
+<good_messages>
+- `feat(auth): add OAuth2 integration`
+- `fix(parser): resolve null pointer exception`
+- `docs(readme): update installation steps`
+- `refactor(core): simplify error handling`
+- `test(unit): add payment validation tests`
+- `chore(deps): update lodash to v4.17.21`
+- `style(components): format according to prettier`
+- `perf(db): optimize user query performance`
+</good_messages>
+
+<pattern_examples>
+New feature → `feat(scope): add [functionality]`
+Bug fix → `fix(scope): resolve [issue]`
+Documentation → `docs(scope): update [section]`
+Refactoring → `refactor(scope): simplify [component]`
+Testing → `test(scope): add [test type] for [feature]`
+Dependencies → `chore(deps): update [package]`
+</pattern_examples>
+</example_outputs>
+
+<usage>
 ```bash
 # Stage your changes
 git add .
 
-# Run fast commit
-# The command will generate messages and immediately commit with the first one
+# Run fast commit (automatically commits with first suggested message)
+/2-commit-fast
 ```
 
-## Commit Message Format
+**Expected behavior:**
+1. Analyzes staged changes
+2. Generates commit message
+3. Commits immediately
+4. Shows final commit hash and message
+</usage>
 
-Messages follow the pattern:
-- `feat(package): Add new feature`
-- `fix(module): Resolve issue with X`
-- `docs(readme): Update installation instructions`
-- `refactor(core): Simplify logic in Y`
-- `test(unit): Add tests for Z`
+<behavioral_characteristics>
+<what_it_does>
+✓ Commits staged changes only
+✓ Auto-generates conventional commit messages
+✓ Uses first message suggestion without asking
+✓ Detects scope from file patterns
+✓ Maintains clean commit format
+✓ Executes immediately without confirmation
+</what_it_does>
 
-The command intelligently detects the appropriate type, scope, and description based on the staged changes.
+<what_it_does_not_do>
+❌ Does not stage unstaged files
+❌ Does not ask for message confirmation
+❌ Does not add Claude co-authorship footer
+❌ Does not run pre-commit hooks by default
+❌ Does not handle merge conflicts
+❌ Does not split commits automatically
+</what_it_does_not_do>
+</behavioral_characteristics>
+
+<error_handling>
+<no_staged_changes>
+If no staged changes:
+- Display helpful message
+- Show current git status
+- Suggest staging files first
+</no_staged_changes>
+
+<large_changes>
+If too many files changed:
+- Warn about large commit
+- Suggest using regular commit command
+- Proceed if user explicitly wants fast commit
+</large_changes>
+
+<unclear_scope>
+If scope cannot be determined:
+- Use generic scope or no scope
+- Focus on clear description
+- Prioritize speed over perfect scoping
+</unclear_scope>
+</error_handling>
+
+<critical_reminders>
+⚠️ **REMEMBER**:
+- Speed is the primary goal
+- First reasonable message wins
+- No confirmation prompts
+- Maintain conventional commit format
+
+🚀 **FAST**: This command prioritizes velocity over message perfection.
+</critical_reminders>
