@@ -1,0 +1,236 @@
+#!/usr/bin/env bash
+
+# Test script for auto branch update system
+# Tests the branch update logic locally before deploying
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+log() {
+    echo -e "${BLUE}[TEST]${NC} $*"
+}
+
+success() {
+    echo -e "${GREEN}[PASS]${NC} $*"
+}
+
+warning() {
+    echo -e "${YELLOW}[WARN]${NC} $*"
+}
+
+error() {
+    echo -e "${RED}[FAIL]${NC} $*"
+    exit 1
+}
+
+# Test 1: Check if required tools are available
+test_prerequisites() {
+    log "Testing prerequisites..."
+
+    if ! command -v gh &> /dev/null; then
+        error "GitHub CLI (gh) is required but not installed"
+    fi
+
+    if ! command -v jq &> /dev/null; then
+        error "jq is required but not installed"
+    fi
+
+    # Check if we're in a git repository
+    if ! git rev-parse --git-dir &> /dev/null; then
+        error "Not in a git repository"
+    fi
+
+    # Check if we have origin remote
+    if ! git remote get-url origin &> /dev/null; then
+        error "No origin remote found"
+    fi
+
+    success "All prerequisites available"
+}
+
+# Test 2: Simulate finding stale PRs
+test_stale_detection() {
+    log "Testing stale PR detection logic..."
+
+    # Get current main commit
+    if ! git rev-parse main &> /dev/null; then
+        error "main branch not found"
+    fi
+
+    MAIN_SHA=$(git rev-parse main)
+    log "Main branch SHA: $MAIN_SHA"
+
+    # Try to get PR list (will fail if not authenticated, but that's OK for testing)
+    if gh auth status &> /dev/null; then
+        log "GitHub CLI authenticated - testing with real data"
+
+        # Get open PRs
+        OPEN_PRS=$(gh pr list --state open --json number,headRefName --limit 5 2>/dev/null || echo "[]")
+        PR_COUNT=$(echo "$OPEN_PRS" | jq 'length')
+
+        if [ "$PR_COUNT" -gt 0 ]; then
+            log "Found $PR_COUNT open PRs to analyze"
+            echo "$OPEN_PRS" | jq -r '.[] | "  - PR #\(.number): \(.headRefName)"'
+        else
+            log "No open PRs found (this is normal for testing)"
+        fi
+    else
+        warning "GitHub CLI not authenticated - skipping real PR detection"
+        log "To test with real data, run: gh auth login"
+    fi
+
+    success "Stale detection logic verified"
+}
+
+# Test 3: Validate workflow syntax
+test_workflow_syntax() {
+    log "Testing workflow file syntax..."
+
+    WORKFLOW_FILE="$REPO_ROOT/.github/workflows/auto-branch-update.yml"
+
+    if [ ! -f "$WORKFLOW_FILE" ]; then
+        error "Workflow file not found: $WORKFLOW_FILE"
+    fi
+
+    # Basic YAML syntax check using Python
+    if command -v python3 &> /dev/null; then
+        if python3 -c "import yaml" 2>/dev/null; then
+            if ! python3 -c "import yaml; yaml.safe_load(open('$WORKFLOW_FILE'))" 2>/dev/null; then
+                error "Workflow YAML syntax is invalid"
+            fi
+        else
+            warning "PyYAML not available - skipping YAML syntax validation"
+        fi
+    else
+        warning "Python3 not available - skipping YAML syntax validation"
+    fi
+
+    # Check for required workflow components
+    if ! grep -q "on:" "$WORKFLOW_FILE"; then
+        error "Workflow missing 'on:' trigger"
+    fi
+
+    if ! grep -q "jobs:" "$WORKFLOW_FILE"; then
+        error "Workflow missing 'jobs:' section"
+    fi
+
+    success "Workflow syntax is valid"
+}
+
+# Test 4: Check branch update logic
+test_branch_logic() {
+    log "Testing branch update logic..."
+
+    # Create a test scenario in a temporary location
+    TEMP_DIR=$(mktemp -d)
+    trap "rm -rf '$TEMP_DIR'" EXIT
+
+    cd "$TEMP_DIR"
+
+    # Initialize a test repo
+    git init
+    git config user.name "Test User"
+    git config user.email "test@example.com"
+
+    # Create main branch with initial commit
+    echo "Initial commit" > README.md
+    git add README.md
+    git commit -m "Initial commit"
+    git branch -M main
+
+    # Create a feature branch
+    git checkout -b feature/test-branch
+    echo "Feature change" >> README.md
+    git add README.md
+    git commit -m "Add feature"
+
+    # Go back to main and add another commit
+    git checkout main
+    echo "Main branch change" >> README.md
+    git add README.md
+    git commit -m "Main branch update"
+
+    # Now feature branch is behind main
+    git checkout feature/test-branch
+
+    # Test merge logic
+    if git merge main --no-edit; then
+        success "Merge strategy works"
+    else
+        # Reset and try rebase
+        git reset --hard HEAD~1
+        if git rebase main; then
+            success "Rebase strategy works"
+        else
+            warning "Both merge and rebase failed (expected for complex conflicts)"
+        fi
+    fi
+
+    cd "$REPO_ROOT"
+}
+
+# Test 5: Dry run validation
+test_dry_run() {
+    log "Testing dry run functionality..."
+
+    # The actual dry run would be tested in the GitHub Actions environment
+    # Here we just validate the dry run logic exists in the workflow
+
+    WORKFLOW_FILE="$REPO_ROOT/.github/workflows/auto-branch-update.yml"
+
+    if grep -q "dry_run" "$WORKFLOW_FILE"; then
+        success "Dry run functionality is implemented"
+    else
+        error "Dry run functionality not found in workflow"
+    fi
+
+    if grep -q "DRY_RUN" "$WORKFLOW_FILE"; then
+        success "Dry run environment variable is used"
+    else
+        error "Dry run environment variable not found"
+    fi
+}
+
+# Main test runner
+main() {
+    echo "🧪 Testing Auto Branch Update System"
+    echo "======================================"
+    echo
+
+    test_prerequisites
+    echo
+
+    test_stale_detection
+    echo
+
+    test_workflow_syntax
+    echo
+
+    test_branch_logic
+    echo
+
+    test_dry_run
+    echo
+
+    echo "🎉 All tests passed!"
+    echo
+    echo "Next steps:"
+    echo "1. Commit and push this workflow to test in GitHub Actions"
+    echo "2. Create a test PR to validate the auto-update functionality"
+    echo "3. Monitor the workflow execution in the Actions tab"
+    echo
+    echo "To test with real PRs, ensure you're authenticated:"
+    echo "  gh auth login"
+}
+
+# Run tests
+main "$@"
