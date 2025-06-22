@@ -42,6 +42,12 @@ help:
 	@echo "  test-perf   - Run performance tests only"
 	@echo "  test-status - Show test framework status"
 	@echo ""
+	@echo "🔄 Refactor Testing:"
+	@echo "  refactor-test - Run refactor validation tests"
+	@echo "  refactor-baseline - Capture current config as baseline"
+	@echo "  refactor-compare - Compare current config against baseline"
+	@echo "  refactor-list-baselines - List available baselines"
+	@echo ""
 	@echo "⚡ Parallel Testing (70-80% faster):"
 	@echo "  test-parallel - Run parallelizable tests concurrently ($(OPTIMAL_JOBS) jobs)"
 	@echo "  test-parallel-unit - Run unit tests in parallel"
@@ -92,6 +98,37 @@ test-status:
 	@echo "Checking test framework status..."
 	@SYSTEM=$$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"'); \
 	$(NIX) build --impure --no-link ".#checks.$$SYSTEM.framework_status" $(ARGS)
+
+# 🔄 Refactor testing targets
+refactor-test: check-user
+	@echo "🧪 Running refactor validation tests..."
+	@$(NIX) build --impure --no-link ".#checks.$(CURRENT_SYSTEM).config_comparison_unit" $(ARGS)
+	@$(NIX) build --impure --no-link ".#checks.$(CURRENT_SYSTEM).refactor_workflow_integration" $(ARGS)
+	@echo "✅ Refactor tests completed"
+
+refactor-baseline: check-user
+	@echo "📸 Capturing configuration baseline..."
+	@export USER=$(USER); ./tests/refactor/scripts/capture-baseline.sh capture
+	@echo "✅ Baseline captured"
+
+refactor-compare: check-user
+	@echo "🔍 Comparing current configuration against latest baseline..."
+	@if [ -z "$(BASELINE)" ]; then \
+		LATEST_BASELINE=$$(ls -1 tests/refactor/baselines/baseline-*.manifest 2>/dev/null | tail -1 | sed 's/.*\/\(baseline-[^.]*\).*/\1/' || echo ""); \
+		if [ -z "$$LATEST_BASELINE" ]; then \
+			echo "❌ No baselines found. Run 'make refactor-baseline' first."; \
+			exit 1; \
+		fi; \
+		echo "Using latest baseline: $$LATEST_BASELINE"; \
+		./tests/refactor/scripts/compare-configs.sh compare "$$LATEST_BASELINE"; \
+	else \
+		./tests/refactor/scripts/compare-configs.sh compare "$(BASELINE)"; \
+	fi
+	@echo "✅ Configuration comparison completed"
+
+refactor-list-baselines:
+	@echo "📋 Available configuration baselines:"
+	@./tests/refactor/scripts/compare-configs.sh list
 
 build-linux: check-user
 	@echo "🔨 Building Linux configurations with USER=$(USER)..."
