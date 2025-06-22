@@ -62,7 +62,7 @@ repos:
       # Run quick tests when .nix files change
       - id: test-quick
         name: Quick Test Suite
-        entry: bash -c 'export USER=${USER:-$(whoami)} && echo "Running quick test suite..." && nix run --impure .#test-unit'
+        entry: bash -c 'export USER=${USER:-$(whoami)} && echo "Running quick test suite..." && nix run --impure .#test-smoke'
         language: system
         files: '\.nix$'
         pass_filenames: false
