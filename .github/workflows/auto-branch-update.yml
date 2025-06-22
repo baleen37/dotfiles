@@ -3,31 +3,155 @@ name: Auto Branch Update
 on:
   push:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run mode (no actual changes)'
+        required: false
+        default: 'false'
+        type: boolean
+
+permissions:
+  contents: write
+  pull-requests: write
+  checks: read
 
 jobs:
   update:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout with token
+        uses: actions/checkout@v4
         with:
           token: ${{ secrets.PAT_TOKEN }}
           fetch-depth: 0
 
-      - name: Update PR branches
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Setup GitHub CLI
         env:
           GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
-          gh pr list --state open --json number,headRefName | jq -r '.[] | "\(.number):\(.headRefName)"' | while IFS=':' read pr branch; do
-            if [ "$(git rev-list --count "origin/$branch..main")" -gt 0 ]; then
-              echo "Updating PR #$pr ($branch)"
-              git fetch origin "$branch"
-              git checkout -b "update-$branch" "origin/$branch"
-              if git merge main --no-edit; then
-                git push origin "update-$branch:$branch"
-                gh pr merge "$pr" --auto --squash || true
-              else
-                gh pr comment "$pr" --body "❌ Merge conflict - please update manually"
+          echo "$GITHUB_TOKEN" | gh auth login --with-token
+          gh auth status
+
+      - name: Find PRs to update
+        id: find-prs
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          echo "🔍 Finding open PRs that need updates..."
+
+          # Get all open PRs
+          prs_json=$(gh pr list --state open --json number,headRefName,headRefOid,autoMergeRequest || echo "[]")
+
+          if [ "$prs_json" = "[]" ]; then
+            echo "✅ No open PRs found"
+            echo "prs_to_update=" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Check which PRs are behind main
+          prs_to_update=""
+          main_sha=$(git rev-parse origin/main)
+
+          echo "$prs_json" | jq -r '.[] | "\(.number):\(.headRefName):\(.headRefOid):\(.autoMergeRequest != null)"' | while IFS=':' read -r pr_num branch head_sha has_auto_merge; do
+            # Check if PR branch is behind main
+            if ! git merge-base --is-ancestor "$head_sha" "$main_sha"; then
+              commits_behind=$(git rev-list --count "$head_sha..origin/main" 2>/dev/null || echo "0")
+              if [ "$commits_behind" -gt 0 ]; then
+                echo "📍 PR #$pr_num ($branch) is $commits_behind commits behind main"
+                if [ -z "$prs_to_update" ]; then
+                  prs_to_update="$pr_num:$branch:$has_auto_merge"
+                else
+                  prs_to_update="$prs_to_update,$pr_num:$branch:$has_auto_merge"
+                fi
               fi
-              git checkout main && git branch -D "update-$branch" || true
             fi
+          done
+
+          echo "prs_to_update=$prs_to_update" >> $GITHUB_OUTPUT
+          echo "Found PRs to update: $prs_to_update"
+
+      - name: Update PR branches
+        if: steps.find-prs.outputs.prs_to_update != ''
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          set -e
+
+          IFS=',' read -ra PR_ARRAY <<< "${{ steps.find-prs.outputs.prs_to_update }}"
+
+          for pr_info in "${PR_ARRAY[@]}"; do
+            IFS=':' read -r pr_num branch has_auto_merge <<< "$pr_info"
+
+            echo "🔄 Processing PR #$pr_num ($branch)"
+
+            if [ "$DRY_RUN" = "true" ]; then
+              echo "🚫 DRY RUN: Would update PR #$pr_num"
+              continue
+            fi
+
+            # Fetch the PR branch
+            if ! git fetch origin "$branch:pr-$pr_num"; then
+              echo "❌ Failed to fetch PR branch"
+              gh pr comment "$pr_num" --body "❌ **Auto-update failed**: Could not fetch branch \`$branch\`"
+              continue
+            fi
+
+            # Switch to PR branch
+            git checkout "pr-$pr_num"
+
+            # Try to merge main
+            if git merge origin/main --no-edit --no-ff; then
+              echo "✅ Merge successful"
+
+              # Push the updated branch
+              if git push origin "pr-$pr_num:$branch"; then
+                echo "✅ Successfully updated PR #$pr_num"
+
+                # Re-enable auto-merge if it was previously enabled
+                if [ "$has_auto_merge" = "true" ]; then
+                  echo "🔄 Re-enabling auto-merge..."
+                  gh pr merge "$pr_num" --auto --squash --delete-branch 2>/dev/null || echo "⚠️ Could not re-enable auto-merge"
+                fi
+
+                gh pr comment "$pr_num" --body "✅ **Auto-updated**: Branch has been automatically updated with latest changes from \`main\`"
+
+              else
+                echo "❌ Failed to push updated branch"
+                gh pr comment "$pr_num" --body "❌ **Auto-update failed**: Could not push updated branch. Please update manually."
+              fi
+
+            else
+              echo "❌ Merge conflict detected"
+              git merge --abort
+
+              gh pr comment "$pr_num" --body "❌ **Merge conflict detected**
+
+              Your branch has conflicts with \`main\` that need manual resolution.
+
+              **To resolve:**
+              \`\`\`bash
+              git checkout $branch
+              git pull origin main
+              # Resolve conflicts in your editor
+              git add .
+              git commit
+              git push origin $branch
+              \`\`\`
+
+              The auto-merge will resume once conflicts are resolved."
+            fi
+
+            # Cleanup
+            git checkout main
+            git branch -D "pr-$pr_num" 2>/dev/null || true
+
           done
