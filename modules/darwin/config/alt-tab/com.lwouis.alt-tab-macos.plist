@@ -3,16 +3,16 @@
 <plist version="1.0">
 <dict>
 	<key>holdShortcut</key>
-	<string>⌥⇥</string>
+	<string>⌘⇥</string>
 	<key>holdShortcut2</key>
-	<string>⌥`</string>
+	<string>⌘`</string>
 	<key>nextWindowShortcut</key>
-	<string>⌥⇥</string>
+	<string>⌘⇥</string>
 	<key>nextWindowShortcut2</key>
-	<string>⌥`</string>
+	<string>⌘`</string>
 	<key>previousWindowShortcut</key>
-	<string>⌥⇧⇥</string>
+	<string>⌘⇧⇥</string>
 	<key>previousWindowShortcut2</key>
-	<string>⌥⇧`</string>
+	<string>⌘⇧`</string>
 </dict>
 </plist>
