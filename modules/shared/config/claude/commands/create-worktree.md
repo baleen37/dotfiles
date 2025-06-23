@@ -23,31 +23,85 @@ This allows developers to work on multiple features, review PRs, and handle hotf
 <protocol>
 When Jito requests worktree creation:
 
-1. **Convention Discovery**: Check for team patterns (.github/, CONTRIBUTING.md, recent branches)
-2. **Branch Generation**: Create appropriate branch name following discovered or default conventions
-3. **Worktree Creation**: Execute git worktree commands with proper directory structure
-4. **Navigation Setup**: Change to new worktree directory and confirm setup
+1. **Content Analysis**:
+   - If URL provided: Analyze content to understand requirements
+   - If issue number/description: Extract context and intent
+   - Use intelligent interpretation to create meaningful branch names
+2. **Convention Discovery**: Check for team patterns (.github/, CONTRIBUTING.md, recent branches)
+3. **Branch Generation**: Create appropriate branch name following discovered or default conventions
+4. **Worktree Creation**: Execute git worktree commands with proper directory structure
+5. **Navigation Setup**: Change to new worktree directory and confirm setup
 </protocol>
 
+<content_interpretation>
+**URL Analysis Strategy:**
+- **GitHub URLs** (Priority order):
+  1. Use `gh` CLI for authenticated access:
+     - `gh issue view 123 --json title,body,labels`
+     - `gh pr view 456 --json title,body,headRefName`
+  2. Fallback to WebFetch for public repositories
+  3. Extract: title, labels, assignees, priority indicators
+
+- **Other URLs**: Use WebFetch to retrieve and parse content
+
+**Text Analysis Process:**
+1. **Korean → English Mapping**:
+   - 버그/오류 → fix
+   - 기능/개발 → feat  
+   - 개선/최적화 → refactor
+   - 문서 → docs
+   - 테스트 → test
+   - 설정/배포 → chore
+
+2. **Scope Extraction**: Identify components (인증→auth, 결제→payment, API, UI, 데이터베이스→db)
+</content_interpretation>
+
 <steps>
-1. Analyze request to identify feature type and scope
-2. Check repository for existing naming conventions
-3. Generate branch name using appropriate format
-4. Execute: `git worktree add -b {branch} ./.local/tree/{branch}`
-5. Navigate: `cd ./.local/tree/{branch}`
-6. Confirm setup and provide next steps
+1. **Parse Input**: Determine if input is URL, issue reference, or description
+2. **Content Extraction**:
+   - For GitHub URLs: Try `gh` CLI first, fallback to WebFetch
+   - For other URLs: Use WebFetch to analyze content
+   - For text: Parse Korean/English for intent and scope
+3. **Convention Check**: Review repository for existing naming patterns
+4. **Branch Generation**: Create descriptive branch name with extracted context
+5. **Worktree Creation**: Execute git worktree commands with proper directory structure
+6. **Navigation Setup**: Change to new worktree directory and confirm setup
+7. **Context Summary**: Provide summary of interpreted content and next steps
 </steps>
 </approach>
 
 <examples>
 <request_patterns>
-| Korean Request | English Branch | Command |
-|----------------|----------------|---------|
-| "사용자 인증 기능" | `feat/auth-system` | `git worktree add -b feat/auth-system ./.local/tree/feat/auth-system && cd ./.local/tree/feat/auth-system` |
-| "결제 시스템 버그 수정" | `fix/payment-bug` | `git worktree add -b fix/payment-bug ./.local/tree/fix/payment-bug && cd ./.local/tree/fix/payment-bug` |
-| "API 성능 개선" | `feat/api-performance` | `git worktree add -b feat/api-performance ./.local/tree/feat/api-performance && cd ./.local/tree/feat/api-performance` |
-| "문서 업데이트" | `docs/readme-update` | `git worktree add -b docs/readme-update ./.local/tree/docs/readme-update && cd ./.local/tree/docs/readme-update` |
+| Input Type | Example | Interpretation | Generated Branch |
+|------------|---------|----------------|------------------|
+| **GitHub Issue URL** | `https://github.com/owner/repo/issues/123` | Extract title/labels via `gh issue view 123` | `feat/issue-123-oauth-integration` |
+| **GitHub PR URL** | `https://github.com/owner/repo/pull/456` | Extract title via `gh pr view 456` | `fix/pr-456-api-timeout` |
+| **Korean Description** | "사용자 인증 기능 추가" | feat + auth system | `feat/jito/auth-system` |
+| **Korean Bug Report** | "결제 시스템 버그 수정" | fix + payment bug | `fix/jito/payment-bug` |
+| **Issue Number** | "#123" or "123" | Fetch via `gh issue view 123` | `feat/issue-123-[title-slug]` |
+| **Mixed Content** | "Fix #123 - 로그인 오류" | Combine issue context + description | `fix/issue-123-login-error` |
+| **URL + Description** | URL + "긴급 수정 필요" | Priority extraction + URL content | `hotfix/issue-123-critical-auth` |
 </request_patterns>
+
+<extraction_examples>
+**GitHub CLI Extraction:**
+```bash
+# Issue analysis
+gh issue view 123 --json title,body,labels,assignees
+# Output: {"title": "OAuth integration fails", "labels": ["bug", "auth"]}
+# Result: fix/issue-123-oauth-integration
+
+# PR analysis  
+gh pr view 456 --json title,headRefName,labels
+# Output: {"title": "Add user dashboard", "headRefName": "feature/dashboard"}
+# Result: feat/pr-456-user-dashboard
+```
+
+**Content Analysis Pattern:**
+- **Priority Keywords**: 긴급, 핫픽스, 중요 → `hotfix/` prefix
+- **Scope Keywords**: 인증→auth, 결제→payment, 대시보드→dashboard
+- **Action Keywords**: 추가→add, 수정→fix, 개선→improve, 제거→remove
+</extraction_examples>
 </examples>
 
 <constraints>
@@ -60,11 +114,33 @@ When Jito requests worktree creation:
 </constraints>
 
 <validation>
-Before creating worktree:
-✓ Is the branch name following team conventions?
-✓ Does the branch type match the request intent?
-✓ Is the description clear and specific?
-✓ Will the directory structure be clean and navigable?
+**Convention Analysis (CRITICAL FIRST STEP):**
+1. **Check Repository Patterns**:
+   ```bash
+   # Analyze recent branches
+   git branch -r --sort=-committerdate | head -20
+
+   # Check for convention docs
+   find . -name "CONTRIBUTING.md" -o -name ".github" -o -name "docs" | head -5
+   ```
+
+2. **Pattern Detection**:
+   - Username inclusion: `feat/jito/feature` vs `feat/feature`
+   - Separator style: `feat/auth-system` vs `feat/auth_system` vs `feat/authSystem`
+   - Issue reference: `feat/issue-123` vs `feat/123-feature` vs `feature/123`
+   - Scope format: `feat/auth/oauth` vs `feat/auth-oauth`
+
+**Pre-Creation Validation:**
+✓ Does branch name match EXACT repository patterns?
+✓ Is branch type consistent with existing conventions?
+✓ Are separators (-, _, /) used consistently?
+✓ Is username inclusion following team practice?
+✓ Does issue numbering match existing format?
+✓ Will directory structure be clean and navigable?
+
+**Convention Override Warning:**
+⚠️ If no clear pattern exists, STOP and ask Jito to confirm branch naming preference
+⚠️ NEVER assume conventions - always verify with actual repository data
 </validation>
 
 <anti_patterns>
