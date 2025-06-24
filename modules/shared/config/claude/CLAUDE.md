@@ -35,7 +35,6 @@ Rule #1: If you want exception to ANY rule, YOU MUST STOP and get explicit permi
 - YOU MUST MATCH the style and formatting of surrounding code, even if it differs from standard style guides. Consistency within a file trumps external standards.
 - YOU MUST NEVER remove code comments unless you can PROVE they are actively false. Comments are important documentation and must be preserved.
 - YOU MUST NEVER refer to temporal context in comments (like "recently refactored" "moved") or code. Comments should be evergreen and describe the code as it is. If you name something "new" or "enhanced" or "improved", you've probably made a mistake and MUST STOP and ask me what to do.
-- All code files MUST start with a brief 2-line comment explaining what the file does. Each line MUST start with "ABOUTME: " to make them easily greppable.
 - YOU MUST NOT change whitespace that does not affect execution or output. Otherwise, use a formatting tool.
 
 
@@ -49,7 +48,7 @@ Rule #1: If you want exception to ANY rule, YOU MUST STOP and get explicit permi
 
 ## Testing
 
-- Tests MUST comprehensively cover ALL functionality. 
+- Tests MUST comprehensively cover ALL functionality.
 - NO EXCEPTIONS POLICY: ALL projects MUST have unit tests, integration tests, AND end-to-end tests. The only way to skip any test type is if Jito EXPLICITLY states: "I AUTHORIZE YOU TO SKIP WRITING TESTS THIS TIME."
 - FOR EVERY NEW FEATURE OR BUGFIX, YOU MUST follow TDD:
     1. Write a failing test that correctly validates the desired functionality
@@ -63,7 +62,7 @@ Rule #1: If you want exception to ANY rule, YOU MUST STOP and get explicit permi
 
 ## Issue tracking
 
-- You MUST use your TodoWrite tool to keep track of what you're doing 
+- You MUST use your TodoWrite tool to keep track of what you're doing
 - You MUST NEVER discard tasks from your TodoWrite todo list without Jito's explicit approval
 
 ## Systematic Debugging Process
@@ -108,4 +107,3 @@ YOU MUST follow this debugging framework for ANY technical issue:
 # Summary instructions
 
 When you are using /compact, please focus on our conversation, your most recent (and most significant) learnings, and what you need to do next. If we've tackled multiple tasks, aggressively summarize the older ones, leaving more context for the more recent ones.
-
