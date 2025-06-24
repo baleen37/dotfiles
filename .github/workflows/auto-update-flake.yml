@@ -14,6 +14,7 @@ permissions:
   contents: write
   pull-requests: write
   checks: read
+  actions: read
 
 env:
   USER: ci
@@ -22,7 +23,7 @@ env:
 jobs:
   update-dependencies:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     outputs:
       has-changes: ${{ steps.check-changes.outputs.has-changes }}
       pr-number: ${{ steps.create-pr.outputs.pr-number }}
@@ -31,7 +32,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.PAT_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
       - name: Install Nix
@@ -154,7 +155,7 @@ jobs:
         if: steps.check-changes.outputs.has-changes == 'true'
         id: create-pr
         env:
-          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "::group::Creating Pull Request"
 
@@ -181,7 +182,7 @@ jobs:
     steps:
       - name: Wait for CI checks to be created
         env:
-          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "::group::Waiting for CI checks to be created"
 
@@ -213,7 +214,7 @@ jobs:
 
       - name: Enable auto-merge
         env:
-          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "::group::Enabling auto-merge"
 
