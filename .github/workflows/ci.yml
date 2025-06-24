@@ -98,10 +98,13 @@ jobs:
             /nix/store
             ~/.cache/nix
           key: ${{ runner.os }}-${{ matrix.system }}-${{ hashFiles('flake.lock') }}
-          restore-keys: ${{ runner.os }}-${{ matrix.system }}-
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.system }}-
+            ${{ runner.os }}-nix-
+            validate-nix-
 
       - name: Build configuration
-        timeout-minutes: 15
+        timeout-minutes: 20
         run: |
           export USER=ci
           echo "🏗️ Building ${{ matrix.name }} (${{ matrix.system }}) - Type: ${{ matrix.build_type }}"
