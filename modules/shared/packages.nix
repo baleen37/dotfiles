@@ -48,5 +48,7 @@ with pkgs; [
 
   # Python packages
   python3
+  python3Packages.pipx
   virtualenv
+  uv
 ]
