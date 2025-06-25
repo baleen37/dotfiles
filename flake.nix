@@ -31,6 +31,10 @@
 
   outputs = { self, darwin, nix-homebrew, homebrew-bundle, homebrew-core, homebrew-cask, home-manager, nixpkgs, disko } @inputs:
     let
+      # Import core flake configuration - TEST: This should work now
+      flakeConfig = import ./lib/flake-config.nix;
+      
+      # Basic system definitions
       getUserFn = import ./lib/get-user.nix;
       user = getUserFn { };
       linuxSystems = [ "x86_64-linux" "aarch64-linux" ];
@@ -71,53 +75,8 @@
           };
           testSuite = import ./tests { inherit pkgs; flake = self; };
         in
-        testSuite // {
-          # Add a comprehensive test runner
-          test-all = pkgs.runCommand "test-all"
-            {
-              buildInputs = [ pkgs.bash ];
-            } ''
-            echo "Running comprehensive test suite for ${system}"
-            echo "========================================"
-
-            # Run all individual tests
-            ${builtins.concatStringsSep "\n" (map (testName:
-              let test = testSuite.${testName}; in
-              if (builtins.typeOf test) == "set" && test ? type && test.type == "derivation" then
-                "echo 'Testing: ${testName}' && ${test} && echo 'Test ${testName} completed'"
-              else
-                "echo 'Skipping ${testName}: not a derivation (type: ${builtins.typeOf test})'"
-            ) (builtins.attrNames testSuite))}
-
-            echo "All tests completed successfully!"
-            touch $out
-          '';
-
-          # Quick smoke test for CI/CD
-          smoke-test = pkgs.runCommand "smoke-test" { } ''
-            echo "Running smoke tests for ${system}"
-            echo "Flake structure validation: PASSED"
-            echo "Basic functionality check: PASSED"
-            touch $out
-          '';
-
-          # Lint and format checks
-          lint-check = pkgs.runCommand "lint-check"
-            {
-              buildInputs = with pkgs; [ nixpkgs-fmt statix deadnix ];
-            } ''
-            echo "Running lint checks for ${system}"
-
-            # Check Nix formatting
-            echo "Checking Nix file formatting..."
-            find ${self} -name "*.nix" -type f | head -10 | while read file; do
-              echo "Checking format: $file"
-            done
-
-            echo "Lint checks completed"
-            touch $out
-          '';
-        });
+        testSuite
+      );
 
       darwinConfigurations = nixpkgs.lib.genAttrs darwinSystems (system:
         darwin.lib.darwinSystem {
