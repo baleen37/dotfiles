@@ -19,7 +19,7 @@ make build   # Test your changes
 make switch HOST=<host>  # Apply to system
 
 # Emergency fixes
-nix run --impure .#build-switch  # Build and switch (requires sudo)
+nix run --impure .#build-switch  # Build and switch (handles sudo automatically)
 ```
 
 ### First Time Setup
@@ -57,7 +57,7 @@ make help           # Show all available Makefile targets
 # Platform-specific builds
 nix run .#build     # Build for current system
 nix run .#switch    # Build and switch for current system
-nix run .#build-switch  # Build and switch with sudo (immediate application)
+nix run .#build-switch  # Build and switch (prompts for sudo early, then runs seamlessly)
 ```
 
 ### Testing Requirements (Follow CI Pipeline)
@@ -122,7 +122,7 @@ gh pr merge --auto --squash  # Enable auto-merge after CI passes
 
 ### 🚀 Quick Configuration Apply
 ```bash
-# For immediate system changes (requires sudo)
+# For immediate system changes (requests sudo permission upfront)
 nix run --impure .#build-switch
 
 # For testing without system changes
@@ -289,15 +289,34 @@ nix run --impure .#build
 echo "export USER=$(whoami)" >> ~/.bashrc  # or ~/.zshrc
 ```
 
-#### Permission Issues with build-switch
-```bash
-# build-switch requires sudo from the start
-sudo nix run --impure .#build-switch
+#### Enhanced Permission Management for build-switch
 
-# Alternative: use separate commands
-nix run .#build
-sudo nix run .#switch
+The build-switch command now features **intelligent early permission acquisition** for a seamless user experience:
+
+```bash
+# ✅ NEW: Just run build-switch - it handles everything automatically
+nix run --impure .#build-switch
+# → Explains why sudo is needed
+# → Requests password once at the beginning  
+# → Keeps privileges active throughout the operation
+# → Automatically cleans up when finished
+
+# ❌ OLD: Manual sudo management (no longer needed)
+# sudo nix run --impure .#build-switch
 ```
+
+**What happens when you run build-switch:**
+
+1. **📋 Clear Explanation**: Shows why administrator privileges are needed
+2. **🔐 Early Permission Request**: Asks for your password once at the start
+3. **⚡ Seamless Execution**: Runs build and switch without interruption
+4. **🧹 Automatic Cleanup**: Cleans up privileges when finished
+
+**Benefits:**
+- ✅ No more waiting mid-build for password prompts
+- ✅ Clear understanding of why privileges are needed
+- ✅ Consistent behavior across all platforms (Darwin/Linux)
+- ✅ Automatic session management and cleanup
 
 ### 🔒 Security Best Practices
 
@@ -310,9 +329,10 @@ sudo nix run .#switch
    - Only use packages from nixpkgs or trusted overlays
    - Review custom overlays before applying
 
-3. **Limit sudo usage**
-   - Only use `build-switch` when necessary
-   - Test builds without sudo first
+3. **Smart privilege management**
+   - `build-switch` now handles privileges automatically and safely
+   - Uses early permission acquisition to minimize security window
+   - Automatically cleans up privileges when operation completes
 
 ### ⚡ Performance Optimization
 
