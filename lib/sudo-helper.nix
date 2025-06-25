@@ -90,7 +90,7 @@ let
           echo ""
           echo -e "''${YELLOW}Why are administrator privileges needed?''${NC}"
           echo ""
-          
+
           case "''${PLATFORM}" in
               *"darwin"*)
                   echo "• System configuration changes require elevated privileges"
@@ -109,7 +109,7 @@ let
                   echo "• System configuration changes require elevated privileges"
                   ;;
           esac
-          
+
           echo ""
           echo -e "''${DIM}This will:''${NC}"
           echo -e "''${DIM}  1. Request your password once at the beginning''${NC}"
@@ -125,7 +125,7 @@ let
           if [ "''${CLEANUP_REGISTERED}" = "true" ]; then
               return 0
           fi
-          
+
           trap 'cleanup_sudo_session' EXIT INT TERM
           CLEANUP_REGISTERED=true
           log_info "Cleanup handlers registered"
@@ -135,15 +135,15 @@ let
       cleanup_sudo_session() {
           if [ "''${SUDO_ACQUIRED}" = "true" ]; then
               log_step "Cleaning up administrator privileges"
-              
+
               # Kill background sudo process if it exists
               if [ -n "''${SUDO_PID}" ] && kill -0 "''${SUDO_PID}" 2>/dev/null; then
                   kill "''${SUDO_PID}" 2>/dev/null || true
               fi
-              
+
               # Reset sudo timestamp
               sudo -k 2>/dev/null || true
-              
+
               log_success "Administrator privileges cleaned up"
               SUDO_ACQUIRED=false
               SUDO_PID=""
@@ -169,7 +169,7 @@ let
           register_cleanup
 
           log_step "Requesting administrator privileges"
-          
+
           # Request sudo access
           if ! sudo -v; then
               log_error "Failed to acquire administrator privileges"
@@ -197,7 +197,7 @@ let
       # Execute command with appropriate privileges
       execute_with_sudo() {
           local cmd="$*"
-          
+
           if [ -z "''${cmd}" ]; then
               log_error "No command provided to execute_with_sudo"
               return 1
@@ -209,19 +209,19 @@ let
           elif [ "''${SUDO_ACQUIRED}" = "true" ]; then
               # Sudo acquired, use it with environment preservation
               local sudo_cmd="sudo"
-              
+
               # Add environment variable preservation
               ${pkgs.lib.concatMapStrings (var: ''
               sudo_cmd="''${sudo_cmd} -E"
               '') environmentVars}
-              
+
               # Add SSH forwarding if needed
               ${if sshForwarding then ''
               if [ -n "''${SSH_AUTH_SOCK:-}" ]; then
                   sudo_cmd="''${sudo_cmd} SSH_AUTH_SOCK=''${SSH_AUTH_SOCK}"
               fi
               '' else ""}
-              
+
               eval "''${sudo_cmd} ''${cmd}"
           else
               log_error "Administrator privileges not acquired. Call acquire_sudo_early first."
@@ -257,19 +257,19 @@ let
           fi
 
           local prefix="sudo"
-          
+
           # Add environment preservation
           ${pkgs.lib.concatMapStrings (var: ''
           prefix="''${prefix} -E"
           '') environmentVars}
-          
+
           # Add SSH forwarding for Linux
           ${if sshForwarding then ''
           if [ -n "''${SSH_AUTH_SOCK:-}" ]; then
               prefix="''${prefix} SSH_AUTH_SOCK=''${SSH_AUTH_SOCK}"
           fi
           '' else ""}
-          
+
           echo "''${prefix}"
       }
 
@@ -321,7 +321,7 @@ let
     sshForwarding = false;
   };
 
-  # Linux-specific sudo helper  
+  # Linux-specific sudo helper
   mkLinuxSudoHelper = mkSudoHelper {
     platform = system;
     environmentVars = [ "USER" ];
@@ -332,10 +332,10 @@ in
 {
   # Export helper builders
   inherit mkSudoHelper mkDarwinSudoHelper mkLinuxSudoHelper;
-  
+
   # Platform-specific helpers
-  sudoHelper = 
-    if pkgs.stdenv.isDarwin 
+  sudoHelper =
+    if pkgs.stdenv.isDarwin
     then mkDarwinSudoHelper
     else mkLinuxSudoHelper;
 }
