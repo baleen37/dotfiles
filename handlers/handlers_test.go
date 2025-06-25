@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 	"testing"
@@ -111,4 +112,86 @@ func TestAddHandlerErrorMessages(t *testing.T) {
 	if !strings.Contains(err.Error(), "invalid parameter b") {
 		t.Errorf("Error message should contain 'invalid parameter b', got: %v", err)
 	}
+}
+
+// Benchmark tests for performance measurement
+func BenchmarkHelloHandler(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		HelloHandler()
+	}
+}
+
+func BenchmarkAddHandler(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		AddHandler("1000", "2000")
+	}
+}
+
+func BenchmarkAddHandlerError(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		AddHandler("invalid", "2000")
+	}
+}
+
+func BenchmarkReverseHandler(b *testing.B) {
+	testString := "The quick brown fox jumps over the lazy dog"
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		ReverseHandler(testString)
+	}
+}
+
+func BenchmarkReverseHandlerEmpty(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		ReverseHandler("")
+	}
+}
+
+func BenchmarkHealthCheckHandler(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		HealthCheckHandler()
+	}
+}
+
+// Example tests for documentation
+func ExampleHelloHandler() {
+	result := HelloHandler()
+	fmt.Println(result)
+	// Output: Hello, World!
+}
+
+func ExampleAddHandler() {
+	result, err := AddHandler("10", "20")
+	if err != nil {
+		fmt.Printf("Error: %v", err)
+		return
+	}
+	fmt.Println(result)
+	// Output: Result: 30
+}
+
+func ExampleAddHandler_error() {
+	_, err := AddHandler("invalid", "20")
+	if err != nil {
+		fmt.Println("Error occurred")
+	}
+	// Output: Error occurred
+}
+
+func ExampleReverseHandler() {
+	result := ReverseHandler("hello")
+	fmt.Println(result)
+	// Output: olleh
+}
+
+func ExampleReverseHandler_empty() {
+	result := ReverseHandler("")
+	fmt.Println(result)
+	// Output: No text provided
+}
+
+func ExampleHealthCheckHandler() {
+	status, message := HealthCheckHandler()
+	fmt.Printf("Status: %d, Message: %s", status, message)
+	// Output: Status: 200, Message: Service is healthy
 }
