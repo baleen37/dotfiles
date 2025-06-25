@@ -2,8 +2,8 @@ name: Auto Update Flake Dependencies
 
 on:
   schedule:
-    # Run every day at 09:00 KST (00:00 UTC)
-    - cron: '0 0 * * *'
+    # Run every Monday at 09:00 KST (00:00 UTC)
+    - cron: '0 0 * * 1'
   workflow_dispatch:
 
 concurrency:
