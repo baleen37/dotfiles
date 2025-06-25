@@ -31,136 +31,43 @@
 
   outputs = { self, darwin, nix-homebrew, homebrew-bundle, homebrew-core, homebrew-cask, home-manager, nixpkgs, disko } @inputs:
     let
-      getUserFn = import ./lib/get-user.nix;
-      user = getUserFn { };
-      linuxSystems = [ "x86_64-linux" "aarch64-linux" ];
-      darwinSystems = [ "aarch64-darwin" "x86_64-darwin" ];
-      forAllSystems = f: nixpkgs.lib.genAttrs (linuxSystems ++ darwinSystems) f;
+      # Import modular flake configuration
+      flakeConfig = import ./lib/flake-config.nix;
 
-      # Import modularized app builders
-      platformApps = import ./lib/platform-apps.nix { inherit nixpkgs self; };
-      testApps = import ./lib/test-apps.nix { inherit nixpkgs self; };
+      # Import modular system configuration builders
+      systemConfigs = import ./lib/system-configs.nix { inherit inputs nixpkgs; };
 
-      devShell = system:
-        let pkgs = nixpkgs.legacyPackages.${system}; in {
-          default = with pkgs; mkShell {
-            nativeBuildInputs = with pkgs; [ bashInteractive git ];
-            shellHook = with pkgs; ''
-              export EDITOR=vim
-            '';
-          };
-        };
+      # Import modular check builders
+      checkBuilders = import ./lib/check-builders.nix { inherit nixpkgs self; };
 
-      # Simplified app builders using modules
-      mkLinuxApps = system:
-        platformApps.mkLinuxCoreApps system //
-        testApps.mkLinuxTestApps system;
+      # Use architecture definitions from flake config
+      inherit (flakeConfig.systemArchitectures) linux darwin all;
+      linuxSystems = linux;
+      darwinSystems = darwin;
 
-      mkDarwinApps = system:
-        platformApps.mkDarwinCoreApps system //
-        testApps.mkDarwinTestApps system;
+      # Use utilities from flake config
+      utils = flakeConfig.utils nixpkgs;
+      forAllSystems = utils.forAllSystems;
+
+      # Development shell using flake config utils
+      devShell = system: utils.mkDevShell system;
     in
     {
+      # Development shells using modular config
       devShells = forAllSystems devShell;
-      apps = nixpkgs.lib.genAttrs linuxSystems mkLinuxApps // nixpkgs.lib.genAttrs darwinSystems mkDarwinApps;
-      checks = forAllSystems (system:
-        let
-          pkgs = import nixpkgs {
-            inherit system;
-            config.allowUnfree = true;
-          };
-          testSuite = import ./tests { inherit pkgs; flake = self; };
-        in
-        testSuite // {
-          # Add a comprehensive test runner
-          test-all = pkgs.runCommand "test-all"
-            {
-              buildInputs = [ pkgs.bash ];
-            } ''
-            echo "Running comprehensive test suite for ${system}"
-            echo "========================================"
 
-            # Run all individual tests
-            ${builtins.concatStringsSep "\n" (map (testName:
-              let test = testSuite.${testName}; in
-              if (builtins.typeOf test) == "set" && test ? type && test.type == "derivation" then
-                "echo 'Testing: ${testName}' && ${test} && echo 'Test ${testName} completed'"
-              else
-                "echo 'Skipping ${testName}: not a derivation (type: ${builtins.typeOf test})'"
-            ) (builtins.attrNames testSuite))}
+      # Apps using modular app configurations
+      apps =
+        (nixpkgs.lib.genAttrs linuxSystems systemConfigs.mkAppConfigurations.mkLinuxApps) //
+        (nixpkgs.lib.genAttrs darwinSystems systemConfigs.mkAppConfigurations.mkDarwinApps);
 
-            echo "All tests completed successfully!"
-            touch $out
-          '';
+      # Checks using modular check builders
+      checks = forAllSystems checkBuilders.mkChecks;
 
-          # Quick smoke test for CI/CD
-          smoke-test = pkgs.runCommand "smoke-test" { } ''
-            echo "Running smoke tests for ${system}"
-            echo "Flake structure validation: PASSED"
-            echo "Basic functionality check: PASSED"
-            touch $out
-          '';
+      # Darwin configurations using modular system configs
+      darwinConfigurations = systemConfigs.mkDarwinConfigurations darwinSystems;
 
-          # Lint and format checks
-          lint-check = pkgs.runCommand "lint-check"
-            {
-              buildInputs = with pkgs; [ nixpkgs-fmt statix deadnix ];
-            } ''
-            echo "Running lint checks for ${system}"
-
-            # Check Nix formatting
-            echo "Checking Nix file formatting..."
-            find ${self} -name "*.nix" -type f | head -10 | while read file; do
-              echo "Checking format: $file"
-            done
-
-            echo "Lint checks completed"
-            touch $out
-          '';
-        });
-
-      darwinConfigurations = nixpkgs.lib.genAttrs darwinSystems (system:
-        darwin.lib.darwinSystem {
-          inherit system;
-          specialArgs = inputs;
-          modules = [
-            home-manager.darwinModules.home-manager
-            nix-homebrew.darwinModules.nix-homebrew
-            {
-              nix-homebrew = {
-                inherit user;
-                enable = true;
-                taps = {
-                  "homebrew/homebrew-core" = homebrew-core;
-                  "homebrew/homebrew-cask" = homebrew-cask;
-                  "homebrew/homebrew-bundle" = homebrew-bundle;
-                };
-                mutableTaps = false;
-                autoMigrate = true;
-              };
-            }
-            ./hosts/darwin
-          ];
-        }
-      );
-
-      nixosConfigurations = nixpkgs.lib.genAttrs linuxSystems (system: nixpkgs.lib.nixosSystem {
-        inherit system;
-        specialArgs = inputs;
-        modules = [
-          disko.nixosModules.disko
-          home-manager.nixosModules.home-manager
-          {
-            home-manager = {
-              useGlobalPkgs = true;
-              useUserPackages = true;
-              users.${user} = import ./modules/nixos/home-manager.nix;
-              backupFileExtension = "bak";
-              extraSpecialArgs = inputs;
-            };
-          }
-          ./hosts/nixos
-        ];
-      });
+      # NixOS configurations using modular system configs
+      nixosConfigurations = systemConfigs.mkNixosConfigurations linuxSystems;
     };
 }
