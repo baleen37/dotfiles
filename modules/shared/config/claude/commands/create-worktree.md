@@ -31,6 +31,8 @@ When Jito requests worktree creation:
 3. **Branch Generation**: Create appropriate branch name following discovered or default conventions
 4. **Worktree Creation**: Execute git worktree commands with proper directory structure
 5. **Navigation Setup**: Change to new worktree directory and confirm setup
+6. **Clean State Verification**: Verify worktree is clean and based on main branch
+7. **Cleanup Confirmation**: Ask user if cleanup is needed if worktree is not clean
 </protocol>
 
 <content_interpretation>
@@ -66,7 +68,9 @@ When Jito requests worktree creation:
 4. **Branch Generation**: Create descriptive branch name with extracted context
 5. **Worktree Creation**: Execute git worktree commands with proper directory structure
 6. **Navigation Setup**: Change to new worktree directory and confirm setup
-7. **Context Summary**: Provide summary of interpreted content and next steps
+7. **Clean State Verification**: Verify worktree is clean and based on main branch
+8. **Cleanup Confirmation**: Ask user if cleanup is needed if worktree is not clean
+9. **Context Summary**: Provide summary of interpreted content and next steps
 </steps>
 </approach>
 
@@ -138,6 +142,10 @@ gh pr view 456 --json title,headRefName,labels
 ✓ Does issue numbering match existing format?
 ✓ Will directory structure be clean and navigable?
 
+**Post-Creation Validation:**
+✓ Is worktree clean? (`git status --porcelain` empty)
+✓ Based on main? (`git rev-parse HEAD` matches main)
+
 **Convention Override Warning:**
 ⚠️ If no clear pattern exists, STOP and ask Jito to confirm branch naming preference
 ⚠️ NEVER assume conventions - always verify with actual repository data
@@ -178,6 +186,9 @@ git worktree add -b feature/issue-$issue_num ./.local/tree/feature/issue-$issue_
 # List all worktrees
 git worktree list
 
+# Verify clean state
+git status --porcelain  # Should be empty
+
 # Remove worktree when done
 git worktree remove ./.local/tree/feature/new-feature
 ```
@@ -199,6 +210,14 @@ git worktree add ./.local/tree/BRANCH_NAME origin/BRANCH_NAME
 
 # Create detached worktree (for temporary work)
 git worktree add --detach ./.local/tree/temp-work
+```
+
+## Worktree State Verification
+
+```bash
+# Essential checks after worktree creation
+git status --porcelain                    # Should be empty (clean)
+git rev-parse HEAD && git rev-parse main  # Should match (same commit)
 ```
 
 ## Management Commands
@@ -224,6 +243,17 @@ git worktree prune
 
 # Repair worktree administrative files
 git worktree repair
+```
+
+## Worktree Cleanup Commands
+
+```bash
+# Safe cleanup (backup first)
+git stash push -m "backup-before-cleanup" --include-untracked
+git reset --hard HEAD
+
+# Force cleanup (WARNING: discards all changes)
+git reset --hard && git clean -fd
 ```
 
 ## Common Workflows
@@ -350,11 +380,10 @@ awk '/^worktree/ {wt=$2}
 
 ## Best Practices
 
-1. **Consistent Naming**: Use clear, descriptive branch names that indicate purpose
-2. **Regular Cleanup**: Remove worktrees after merging to prevent clutter
-3. **Commit Before Switching**: Always commit or stash changes before changing directories
-4. **Use .gitignore**: Add `.local/tree/` to `.gitignore` if not already present
-5. **Avoid Nested Worktrees**: Don't create worktrees inside other worktrees
+1. **Consistent Naming**: Use clear, descriptive branch names
+2. **Verify Clean State**: Check worktree is clean after creation
+3. **Backup Before Reset**: Use `git stash` before cleanup operations
+4. **Regular Cleanup**: Remove worktrees after merging
 
 ## Troubleshooting
 
