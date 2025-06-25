@@ -4,7 +4,7 @@
 { nixpkgs, self }:
 let
   # Import test suite from tests directory
-  mkTestSuite = system: 
+  mkTestSuite = system:
     let
       pkgs = import nixpkgs {
         inherit system;
@@ -49,8 +49,8 @@ in
         touch $out
       '';
 
-      # Quick smoke test for CI/CD pipelines  
-      smoke-test = pkgs.runCommand "smoke-test" 
+      # Quick smoke test for CI/CD pipelines
+      smoke-test = pkgs.runCommand "smoke-test"
         {
           meta = {
             description = "Quick smoke tests for ${system}";
@@ -59,12 +59,12 @@ in
         } ''
         echo "Running smoke tests for ${system}"
         echo "================================="
-        
+
         # Basic validation checks
         echo "✓ Flake structure validation: PASSED"
         echo "✓ Basic functionality check: PASSED"
         echo "✓ System compatibility: PASSED"
-        
+
         echo "Smoke tests completed successfully!"
         touch $out
       '';
@@ -106,22 +106,22 @@ in
         } ''
         echo "Running performance checks for ${system}"
         echo "======================================="
-        
+
         # Build time measurements
         start_time=$(date +%s)
         echo "✓ Build time measurement started"
-        
+
         # Simulate build performance check
         sleep 2
-        
+
         end_time=$(date +%s)
         duration=$((end_time - start_time))
         echo "✓ Build completed in $duration seconds"
-        
+
         # Memory usage validation
         echo "✓ Memory usage: Within acceptable limits"
         echo "✓ Resource efficiency: PASSED"
-        
+
         echo "Performance checks completed successfully!"
         touch $out
       '';
@@ -136,13 +136,13 @@ in
         } ''
         echo "Running security checks for ${system}"
         echo "===================================="
-        
+
         # Check for common security issues
         echo "✓ Secrets scanning: No secrets found"
         echo "✓ Permission validation: PASSED"
         echo "✓ Input sanitization: PASSED"
         echo "✓ Dependency security: PASSED"
-        
+
         echo "Security checks completed successfully!"
         touch $out
       '';
@@ -157,13 +157,13 @@ in
         } ''
         echo "Running integration tests for ${system}"
         echo "====================================="
-        
+
         # Test system integration points
         echo "✓ Module integration: PASSED"
         echo "✓ Platform compatibility: PASSED"
         echo "✓ Configuration validation: PASSED"
         echo "✓ Dependency resolution: PASSED"
-        
+
         echo "Integration tests completed successfully!"
         touch $out
       '';
@@ -173,9 +173,9 @@ in
   utils = {
     # Filter derivations from attribute set
     filterDerivations = attrs:
-      nixpkgs.lib.filterAttrs (name: value: 
-        (builtins.typeOf value) == "set" && 
-        value ? type && 
+      nixpkgs.lib.filterAttrs (name: value:
+        (builtins.typeOf value) == "set" &&
+        value ? type &&
         value.type == "derivation"
       ) attrs;
 
@@ -184,9 +184,9 @@ in
       pkgs.runCommand "${name}-test-group" {} ''
         echo "Running test group: ${name}"
         echo "==================${builtins.concatStringsSep "" (map (_: "=") (nixpkgs.lib.stringToCharacters name))}"
-        
+
         ${builtins.concatStringsSep "\n" (map (test: "${test}") tests)}
-        
+
         echo "Test group ${name} completed successfully!"
         touch $out
       '';
@@ -197,15 +197,15 @@ in
         buildInputs = [ pkgs.parallel ];
       } ''
         echo "Running tests in parallel..."
-        
+
         # Create test script
         cat > test-runner.sh << 'EOF'
         ${builtins.concatStringsSep "\n" (map (test: "echo 'Running ${test}' && ${test}") tests)}
         EOF
-        
+
         chmod +x test-runner.sh
         parallel -j4 < test-runner.sh
-        
+
         echo "Parallel tests completed!"
         touch $out
       '';

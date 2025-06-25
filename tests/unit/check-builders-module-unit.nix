@@ -14,20 +14,20 @@ pkgs.runCommand "check-builders-module-unit-test" {
 
   # Test 1: Module should be importable with mock inputs
   echo "Test 1: Checking module import..."
-  
+
   # Create a test Nix expression that imports the module with mock inputs
   cat > test-import.nix << 'EOF'
   let
-    mockNixpkgs = { 
-      lib = { 
-        filterAttrs = pred: attrs: {}; 
+    mockNixpkgs = {
+      lib = {
+        filterAttrs = pred: attrs: {};
         stringToCharacters = s: [];
-      }; 
+      };
     };
     mockSelf = null;
-    checkBuilders = import ./lib/check-builders.nix { 
-      nixpkgs = mockNixpkgs; 
-      self = mockSelf; 
+    checkBuilders = import ./lib/check-builders.nix {
+      nixpkgs = mockNixpkgs;
+      self = mockSelf;
     };
   in
   checkBuilders
@@ -43,19 +43,19 @@ pkgs.runCommand "check-builders-module-unit-test" {
 
   # Test 2: Module should have required check builder functions
   echo "Test 2: Checking required builder functions..."
-  
+
   cat > test-builders.nix << 'EOF'
   let
-    mockNixpkgs = { 
-      lib = { 
-        filterAttrs = pred: attrs: {}; 
+    mockNixpkgs = {
+      lib = {
+        filterAttrs = pred: attrs: {};
         stringToCharacters = s: [];
-      }; 
+      };
     };
     mockSelf = null;
-    checkBuilders = import ./lib/check-builders.nix { 
-      nixpkgs = mockNixpkgs; 
-      self = mockSelf; 
+    checkBuilders = import ./lib/check-builders.nix {
+      nixpkgs = mockNixpkgs;
+      self = mockSelf;
     };
     requiredBuilders = [ "mkChecks" "utils" ];
     hasAllBuilders = builtins.all (builder: builtins.hasAttr builder checkBuilders) requiredBuilders;
@@ -72,19 +72,19 @@ pkgs.runCommand "check-builders-module-unit-test" {
 
   # Test 3: mkChecks should be a function that accepts system parameter
   echo "Test 3: Checking mkChecks function..."
-  
+
   cat > test-mkChecks.nix << 'EOF'
   let
-    mockNixpkgs = { 
-      lib = { 
-        filterAttrs = pred: attrs: {}; 
+    mockNixpkgs = {
+      lib = {
+        filterAttrs = pred: attrs: {};
         stringToCharacters = s: [];
-      }; 
+      };
     };
     mockSelf = ./.; # Use current directory as mock self
-    checkBuilders = import ./lib/check-builders.nix { 
-      nixpkgs = mockNixpkgs; 
-      self = mockSelf; 
+    checkBuilders = import ./lib/check-builders.nix {
+      nixpkgs = mockNixpkgs;
+      self = mockSelf;
     };
     isMkChecksFunction = builtins.isFunction checkBuilders.mkChecks;
   in
@@ -100,19 +100,19 @@ pkgs.runCommand "check-builders-module-unit-test" {
 
   # Test 4: Utils should have required utility functions
   echo "Test 4: Checking utils structure..."
-  
+
   cat > test-utils.nix << 'EOF'
   let
-    mockNixpkgs = { 
-      lib = { 
-        filterAttrs = pred: attrs: {}; 
+    mockNixpkgs = {
+      lib = {
+        filterAttrs = pred: attrs: {};
         stringToCharacters = s: [];
-      }; 
+      };
     };
     mockSelf = null;
-    checkBuilders = import ./lib/check-builders.nix { 
-      nixpkgs = mockNixpkgs; 
-      self = mockSelf; 
+    checkBuilders = import ./lib/check-builders.nix {
+      nixpkgs = mockNixpkgs;
+      self = mockSelf;
     };
     utils = checkBuilders.utils;
     hasFilterDerivations = utils ? filterDerivations && builtins.isFunction utils.filterDerivations;
@@ -131,19 +131,19 @@ pkgs.runCommand "check-builders-module-unit-test" {
 
   # Test 5: mkChecks should return an attribute set with required checks when called
   echo "Test 5: Checking mkChecks return structure..."
-  
+
   cat > test-mkChecks-output.nix << 'EOF'
   let
-    mockNixpkgs = { 
-      lib = { 
-        filterAttrs = pred: attrs: {}; 
+    mockNixpkgs = {
+      lib = {
+        filterAttrs = pred: attrs: {};
         stringToCharacters = s: [];
-      }; 
+      };
     };
     mockSelf = ./.;
-    checkBuilders = import ./lib/check-builders.nix { 
-      nixpkgs = mockNixpkgs; 
-      self = mockSelf; 
+    checkBuilders = import ./lib/check-builders.nix {
+      nixpkgs = mockNixpkgs;
+      self = mockSelf;
     };
     # This will partially evaluate, we just want to ensure mkChecks is callable
     isMkChecksCallable = builtins.isFunction checkBuilders.mkChecks;

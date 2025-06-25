@@ -5,7 +5,7 @@
 let
   # Extract inputs for cleaner access
   inherit (inputs) darwin nix-homebrew homebrew-bundle homebrew-core homebrew-cask disko home-manager;
-  
+
   # Get user information
   getUserFn = import ./get-user.nix;
   user = getUserFn { };
@@ -16,7 +16,7 @@ let
 in
 {
   # Darwin system configuration builder
-  mkDarwinConfigurations = systems: 
+  mkDarwinConfigurations = systems:
     nixpkgs.lib.genAttrs systems (system:
       darwin.lib.darwinSystem {
         inherit system;
@@ -44,7 +44,7 @@ in
 
   # NixOS system configuration builder
   mkNixosConfigurations = systems:
-    nixpkgs.lib.genAttrs systems (system: 
+    nixpkgs.lib.genAttrs systems (system:
       nixpkgs.lib.nixosSystem {
         inherit system;
         specialArgs = inputs;
@@ -72,7 +72,7 @@ in
       platformApps.mkLinuxCoreApps system //
       testApps.mkLinuxTestApps system;
 
-    # Darwin apps builder  
+    # Darwin apps builder
     mkDarwinApps = system:
       platformApps.mkDarwinCoreApps system //
       testApps.mkDarwinTestApps system;
@@ -85,16 +85,16 @@ in
   utils = {
     # Check if system is Darwin
     isDarwin = system: builtins.match ".*-darwin" system != null;
-    
+
     # Check if system is Linux
     isLinux = system: builtins.match ".*-linux" system != null;
-    
+
     # Get architecture from system string
-    getArch = system: 
+    getArch = system:
       if builtins.match "x86_64-.*" system != null then "x86_64"
       else if builtins.match "aarch64-.*" system != null then "aarch64"
       else throw "Unknown architecture in system: ${system}";
-    
+
     # Get platform from system string
     getPlatform = system:
       if builtins.match ".*-darwin" system != null then "darwin"

@@ -14,7 +14,7 @@ pkgs.runCommand "system-configs-module-unit-test" {
 
   # Test 1: Module should be importable with mock inputs
   echo "Test 1: Checking module import..."
-  
+
   # Create a test Nix expression that imports the module with mock inputs
   cat > test-import.nix << 'EOF'
   let
@@ -22,24 +22,24 @@ pkgs.runCommand "system-configs-module-unit-test" {
       darwin = { lib = { darwinSystem = null; }; darwinModules = { home-manager = null; }; };
       nix-homebrew = { darwinModules = { nix-homebrew = null; }; };
       homebrew-bundle = null;
-      homebrew-core = null;  
+      homebrew-core = null;
       homebrew-cask = null;
       disko = { nixosModules = { disko = null; }; };
-      home-manager = { 
-        darwinModules = { home-manager = null; }; 
-        nixosModules = { home-manager = null; }; 
+      home-manager = {
+        darwinModules = { home-manager = null; };
+        nixosModules = { home-manager = null; };
       };
       self = null;
     };
-    mockNixpkgs = { 
-      lib = { 
-        genAttrs = systems: f: {}; 
+    mockNixpkgs = {
+      lib = {
+        genAttrs = systems: f: {};
         nixosSystem = null;
-      }; 
+      };
     };
-    systemConfigs = import ./lib/system-configs.nix { 
-      inputs = mockInputs; 
-      nixpkgs = mockNixpkgs; 
+    systemConfigs = import ./lib/system-configs.nix {
+      inputs = mockInputs;
+      nixpkgs = mockNixpkgs;
     };
   in
   systemConfigs
@@ -55,7 +55,7 @@ pkgs.runCommand "system-configs-module-unit-test" {
 
   # Test 2: Module should have required configuration builders
   echo "Test 2: Checking required builder functions..."
-  
+
   cat > test-builders.nix << 'EOF'
   let
     mockInputs = {
@@ -65,20 +65,20 @@ pkgs.runCommand "system-configs-module-unit-test" {
       homebrew-core = null;
       homebrew-cask = null;
       disko = { nixosModules = { disko = null; }; };
-      home-manager = { 
-        darwinModules = { home-manager = null; }; 
-        nixosModules = { home-manager = null; }; 
+      home-manager = {
+        darwinModules = { home-manager = null; };
+        nixosModules = { home-manager = null; };
       };
     };
-    mockNixpkgs = { 
-      lib = { 
-        genAttrs = systems: f: {}; 
+    mockNixpkgs = {
+      lib = {
+        genAttrs = systems: f: {};
         nixosSystem = null;
-      }; 
+      };
     };
-    systemConfigs = import ./lib/system-configs.nix { 
-      inputs = mockInputs; 
-      nixpkgs = mockNixpkgs; 
+    systemConfigs = import ./lib/system-configs.nix {
+      inputs = mockInputs;
+      nixpkgs = mockNixpkgs;
     };
     requiredBuilders = [ "mkDarwinConfigurations" "mkNixosConfigurations" "mkAppConfigurations" "utils" ];
     hasAllBuilders = builtins.all (builder: builtins.hasAttr builder systemConfigs) requiredBuilders;
@@ -95,7 +95,7 @@ pkgs.runCommand "system-configs-module-unit-test" {
 
   # Test 3: mkAppConfigurations should have correct structure
   echo "Test 3: Checking mkAppConfigurations structure..."
-  
+
   cat > test-app-configs.nix << 'EOF'
   let
     mockInputs = {
@@ -105,20 +105,20 @@ pkgs.runCommand "system-configs-module-unit-test" {
       homebrew-core = null;
       homebrew-cask = null;
       disko = { nixosModules = { disko = null; }; };
-      home-manager = { 
-        darwinModules = { home-manager = null; }; 
-        nixosModules = { home-manager = null; }; 
+      home-manager = {
+        darwinModules = { home-manager = null; };
+        nixosModules = { home-manager = null; };
       };
     };
-    mockNixpkgs = { 
-      lib = { 
-        genAttrs = systems: f: {}; 
+    mockNixpkgs = {
+      lib = {
+        genAttrs = systems: f: {};
         nixosSystem = null;
-      }; 
+      };
     };
-    systemConfigs = import ./lib/system-configs.nix { 
-      inputs = mockInputs; 
-      nixpkgs = mockNixpkgs; 
+    systemConfigs = import ./lib/system-configs.nix {
+      inputs = mockInputs;
+      nixpkgs = mockNixpkgs;
     };
     appConfigs = systemConfigs.mkAppConfigurations;
     hasLinuxApps = appConfigs ? mkLinuxApps && builtins.isFunction appConfigs.mkLinuxApps;
@@ -136,7 +136,7 @@ pkgs.runCommand "system-configs-module-unit-test" {
 
   # Test 4: Utils should have platform detection functions
   echo "Test 4: Checking utils platform detection..."
-  
+
   cat > test-utils.nix << 'EOF'
   let
     mockInputs = {
@@ -146,20 +146,20 @@ pkgs.runCommand "system-configs-module-unit-test" {
       homebrew-core = null;
       homebrew-cask = null;
       disko = { nixosModules = { disko = null; }; };
-      home-manager = { 
-        darwinModules = { home-manager = null; }; 
-        nixosModules = { home-manager = null; }; 
+      home-manager = {
+        darwinModules = { home-manager = null; };
+        nixosModules = { home-manager = null; };
       };
     };
-    mockNixpkgs = { 
-      lib = { 
-        genAttrs = systems: f: {}; 
+    mockNixpkgs = {
+      lib = {
+        genAttrs = systems: f: {};
         nixosSystem = null;
-      }; 
+      };
     };
-    systemConfigs = import ./lib/system-configs.nix { 
-      inputs = mockInputs; 
-      nixpkgs = mockNixpkgs; 
+    systemConfigs = import ./lib/system-configs.nix {
+      inputs = mockInputs;
+      nixpkgs = mockNixpkgs;
     };
     utils = systemConfigs.utils;
     hasIsDarwin = utils ? isDarwin && builtins.isFunction utils.isDarwin;
@@ -179,7 +179,7 @@ pkgs.runCommand "system-configs-module-unit-test" {
 
   # Test 5: Configuration builders should be functions
   echo "Test 5: Checking configuration builders are functions..."
-  
+
   cat > test-config-builders.nix << 'EOF'
   let
     mockInputs = {
@@ -189,20 +189,20 @@ pkgs.runCommand "system-configs-module-unit-test" {
       homebrew-core = null;
       homebrew-cask = null;
       disko = { nixosModules = { disko = null; }; };
-      home-manager = { 
-        darwinModules = { home-manager = null; }; 
-        nixosModules = { home-manager = null; }; 
+      home-manager = {
+        darwinModules = { home-manager = null; };
+        nixosModules = { home-manager = null; };
       };
     };
-    mockNixpkgs = { 
-      lib = { 
-        genAttrs = systems: f: {}; 
+    mockNixpkgs = {
+      lib = {
+        genAttrs = systems: f: {};
         nixosSystem = null;
-      }; 
+      };
     };
-    systemConfigs = import ./lib/system-configs.nix { 
-      inputs = mockInputs; 
-      nixpkgs = mockNixpkgs; 
+    systemConfigs = import ./lib/system-configs.nix {
+      inputs = mockInputs;
+      nixpkgs = mockNixpkgs;
     };
     isDarwinBuilder = builtins.isFunction systemConfigs.mkDarwinConfigurations;
     isNixosBuilder = builtins.isFunction systemConfigs.mkNixosConfigurations;

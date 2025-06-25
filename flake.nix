@@ -33,18 +33,18 @@
     let
       # Import modular flake configuration
       flakeConfig = import ./lib/flake-config.nix;
-      
+
       # Import modular system configuration builders
       systemConfigs = import ./lib/system-configs.nix { inherit inputs nixpkgs; };
-      
+
       # Import modular check builders
       checkBuilders = import ./lib/check-builders.nix { inherit nixpkgs self; };
-      
+
       # Use architecture definitions from flake config
       inherit (flakeConfig.systemArchitectures) linux darwin all;
       linuxSystems = linux;
       darwinSystems = darwin;
-      
+
       # Use utilities from flake config
       utils = flakeConfig.utils nixpkgs;
       forAllSystems = utils.forAllSystems;
@@ -55,12 +55,12 @@
     {
       # Development shells using modular config
       devShells = forAllSystems devShell;
-      
+
       # Apps using modular app configurations
-      apps = 
+      apps =
         (nixpkgs.lib.genAttrs linuxSystems systemConfigs.mkAppConfigurations.mkLinuxApps) //
         (nixpkgs.lib.genAttrs darwinSystems systemConfigs.mkAppConfigurations.mkDarwinApps);
-      
+
       # Checks using modular check builders
       checks = forAllSystems checkBuilders.mkChecks;
 

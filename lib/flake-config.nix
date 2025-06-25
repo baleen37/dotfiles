@@ -1,7 +1,7 @@
 # Core flake configuration and inputs
 # This module centralizes the basic flake setup and input definitions
 
-{ 
+{
   # Core flake metadata
   description = "Starter Configuration for MacOS and NixOS";
 
@@ -44,14 +44,14 @@
   # Common utility functions for flake configuration
   utils = nixpkgs: {
     # Generate attributes for all systems
-    forAllSystems = f: nixpkgs.lib.genAttrs 
+    forAllSystems = f: nixpkgs.lib.genAttrs
       ([ "x86_64-linux" "aarch64-linux" "aarch64-darwin" "x86_64-darwin" ]) f;
-    
+
     # Generate attributes for specific system types
-    forLinuxSystems = f: nixpkgs.lib.genAttrs 
+    forLinuxSystems = f: nixpkgs.lib.genAttrs
       [ "x86_64-linux" "aarch64-linux" ] f;
-    
-    forDarwinSystems = f: nixpkgs.lib.genAttrs 
+
+    forDarwinSystems = f: nixpkgs.lib.genAttrs
       [ "aarch64-darwin" "x86_64-darwin" ] f;
 
     # Get user from environment with proper fallback
@@ -59,8 +59,8 @@
     getUser = (import ./get-user.nix) { };
 
     # Create development shell for a system
-    mkDevShell = system: 
-      let pkgs = nixpkgs.legacyPackages.${system}; 
+    mkDevShell = system:
+      let pkgs = nixpkgs.legacyPackages.${system};
       in {
         default = with pkgs; mkShell {
           nativeBuildInputs = [ bashInteractive git ];
