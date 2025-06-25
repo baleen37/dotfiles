@@ -1,0 +1,124 @@
+#!/usr/bin/env bash
+set -e
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m'
+
+username=${USER}
+export SSH_DIR=/Users/${username}/.ssh
+
+handle_no_usb() {
+  echo -e ${RED}No USB drive found or mounted.${NC}"
+  echo -e ${GREEN}If you have not yet set up your keys, run the script to generate new SSH keys.${NC}"
+  exit 1
+}
+
+mount_usb() {
+  MOUNT_PATH=""
+  for dev in $(diskutil list | grep -o 'disk[0-9]'); do
+    MOUNT_PATH="$(diskutil info /dev/${dev} | grep \"Mount Point\" | awk -F: '{print $2}' | xargs)"
+    if [ -n "${MOUNT_PATH}" ]; then
+      echo -e "${GREEN}USB drive found at ${MOUNT_PATH}.${NC}"
+      break
+    fi
+  done
+
+  if [ -z "${MOUNT_PATH}" ]; then
+    echo -e "${RED}No USB drive found.${NC}"
+  fi
+}
+
+# Validate SSH key integrity
+validate_ssh_key() {
+  local key_file="$1"
+  local key_name="$2"
+
+  if [[ ! -f "$key_file" ]]; then
+    echo -e "${RED}Key file not found: $key_file${NC}"
+    return 1
+  fi
+
+  if ! ssh-keygen -l -f "$key_file" >/dev/null 2>&1; then
+    echo -e "${RED}Invalid SSH key: $key_name${NC}"
+    return 1
+  fi
+
+  echo -e "${GREEN}✓ Valid SSH key: $key_name${NC}"
+  return 0
+}
+
+# Backup existing SSH keys
+backup_existing_keys() {
+  local timestamp=$(date +%Y%m%d_%H%M%S)
+  local backup_dir="${SSH_DIR}/backup_${timestamp}"
+
+  if [[ -f "${SSH_DIR}/id_ed25519" ]] || [[ -f "${SSH_DIR}/id_ed25519_agenix" ]]; then
+    echo -e "${GREEN}Creating backup of existing keys...${NC}"
+    mkdir -p "$backup_dir"
+
+    for key in id_ed25519 id_ed25519.pub id_ed25519_agenix id_ed25519_agenix.pub; do
+      if [[ -f "${SSH_DIR}/$key" ]]; then
+        cp "${SSH_DIR}/$key" "$backup_dir/"
+        echo -e "${GREEN}✓ Backed up: $key${NC}"
+      fi
+    done
+
+    echo -e "${GREEN}Backup created at: $backup_dir${NC}"
+  fi
+}
+
+copy_keys() {
+  if [ -n "${MOUNT_PATH}" ]; then
+    # Validate keys before copying
+    echo -e "${GREEN}Validating SSH keys...${NC}"
+    validate_ssh_key "${MOUNT_PATH}/id_ed25519_agenix.pub" "agenix public key" || exit 1
+    validate_ssh_key "${MOUNT_PATH}/id_ed25519_agenix" "agenix private key" || exit 1
+
+    # Backup existing keys
+    backup_existing_keys
+
+    # Copy validated keys
+    echo -e "${GREEN}Copying SSH keys...${NC}"
+    cp "${MOUNT_PATH}/id_ed25519_agenix.pub" ${SSH_DIR}
+    cp "${MOUNT_PATH}/id_ed25519_agenix" ${SSH_DIR}
+    chmod 600 ${SSH_DIR}/id_ed25519_{agenix,agenix.pub}
+  else
+    echo -e "${RED}No USB drive found. Aborting.${NC}"
+    exit 1
+  fi
+}
+
+setup_ssh_directory() {
+  mkdir -p ${SSH_DIR}
+}
+
+set_keys() {
+  # Validate GitHub keys before copying
+  echo -e "${GREEN}Validating GitHub SSH keys...${NC}"
+  validate_ssh_key "${MOUNT_PATH}/id_ed25519_github.pub" "GitHub public key" || exit 1
+  validate_ssh_key "${MOUNT_PATH}/id_ed25519_github" "GitHub private key" || exit 1
+
+  # Copy GitHub keys
+  echo -e "${GREEN}Setting up GitHub SSH keys...${NC}"
+  cp ${MOUNT_PATH}/id_ed25519_github.pub ${SSH_DIR}/id_ed25519.pub
+  cp ${MOUNT_PATH}/id_ed25519_github ${SSH_DIR}/id_ed25519
+  chmod 600 ${SSH_DIR}/id_ed25519
+  chmod 644 ${SSH_DIR}/id_ed25519.pub
+}
+
+change_ownership() {
+  chown ${username}:staff ${SSH_DIR}/id_ed25519{,.pub}
+  chown ${username}:staff ${SSH_DIR}/id_ed25519_{agenix,agenix.pub}
+}
+
+setup_ssh_directory
+mount_usb
+
+if [ -z "${MOUNT_PATH}" ]; then
+  handle_no_usb
+else
+  copy_keys
+  set_keys
+  change_ownership
+fi
