@@ -2,38 +2,27 @@ package main
 
 import (
 	"fmt"
-	"strings"
+	"ssulmeta-go/handlers"
+	"ssulmeta-go/utils"
 )
 
 func main() {
-	fmt.Println(GetHelloMessage())
-}
-
-// GetHelloMessage returns a greeting message
-func GetHelloMessage() string {
-	return "Hello, World!"
-}
-
-// Add returns the sum of two integers
-func Add(a, b int) int {
-	return a + b
-}
-
-// Multiply returns the product of two integers
-func Multiply(a, b int) int {
-	return a * b
-}
-
-// ReverseString returns the reversed version of the input string
-func ReverseString(s string) string {
-	runes := []rune(s)
-	for i, j := 0, len(runes)-1; i < j; i, j = i+1, j-1 {
-		runes[i], runes[j] = runes[j], runes[i]
+	// Demonstrate handlers
+	fmt.Println(handlers.HelloHandler())
+	
+	// Demonstrate utils
+	fmt.Printf("Add(5, 3) = %d\n", utils.Add(5, 3))
+	fmt.Printf("Reverse('hello') = %s\n", utils.ReverseString("hello"))
+	
+	// Demonstrate handlers with utils
+	result, err := handlers.AddHandler("10", "20")
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+	} else {
+		fmt.Println(result)
 	}
-	return string(runes)
-}
-
-// CapitalizeWords capitalizes the first letter of each word
-func CapitalizeWords(s string) string {
-	return strings.Title(strings.ToLower(s))
+	
+	// Health check
+	status, message := handlers.HealthCheckHandler()
+	fmt.Printf("Health Check [%d]: %s\n", status, message)
 }
