@@ -264,13 +264,12 @@ in
     '';
   };
 
-  # @todo: Don't use hardcoded src paths
   "${xdg_configHome}/rofi/bin/powermenu.sh" = {
     executable = true;
     text = ''
             #!/bin/sh
 
-            configDir="~/.local/share/src/nixos-config/nixos/config/rofi"
+            configDir="${xdg_configHome}/rofi"
             uptime=$(uptime -p | sed -e 's/up //g')
             rofi_command="rofi -no-config -theme $configDir/powermenu.rasi"
 
