@@ -4,6 +4,8 @@
 
 Declaratively manage your entire development environment using Nix flakes. Everything from packages and configurations to system settings is version-controlled and instantly reproducible across machines.
 
+**🤖 Enhanced with Claude Code Integration** - Get AI-powered development assistance with 20+ specialized commands, smart configuration management, and context-aware project guidance.
+
 ## ⚡ Quick Start
 
 ### Prerequisites
@@ -155,9 +157,100 @@ bl setup-dev my-new-project    # Initialize Nix project anywhere
 bl list                        # Show available commands
 ```
 
+## 🤖 Claude Code Integration
+
+Transform your development workflow with AI-powered assistance. This dotfiles repository includes comprehensive Claude Code integration with specialized commands, smart configuration management, and context-aware guidance.
+
+### ⚡ Quick Claude Setup
+
+```bash
+# 1. Apply Claude configuration (included in dotfiles)
+make switch
+
+# 2. Restart Claude Code to load new configuration
+# (Quit and reopen Claude Code application)
+
+# 3. Verify integration
+# In Claude Code, try: /help
+```
+
+### 🎯 Key Features
+
+**20+ Specialized Commands**
+- `/do-plan` - Create detailed implementation plans
+- `/build` - Build and test dotfiles with comprehensive validation
+- `/commit` - Generate semantic commit messages
+- `/create-pr` - Create comprehensive pull requests
+- `/do-issue` - Systematically work on GitHub issues
+
+**Smart Configuration Management**
+- **Automatic preservation** of your Claude customizations
+- **Safe updates** during dotfiles system updates
+- **Interactive merging** for configuration conflicts
+- **Automatic backups** of all configuration changes
+
+**Development Workflow Integration**
+- **Context-aware assistance** for Nix, Git, and system operations
+- **Pre-configured permissions** for development tools
+- **MCP server integration** for enhanced capabilities
+- **Dotfiles-specific guidance** and best practices
+
+### 🚀 Common Workflows
+
+**Starting a New Feature**
+```
+User: I want to add dark mode support
+
+Claude: I'll help you plan and implement dark mode support.
+/do-plan
+
+## Implementation Plan: Dark Mode Support
+[Detailed plan with phases, tasks, and timeline]
+```
+
+**Working on GitHub Issues**
+```
+User: Work on issue #180
+
+Claude: I'll systematically address issue #180.
+/do-issue 180
+
+[Analyzes issue, creates implementation plan, tracks progress]
+```
+
+**Building and Testing Changes**
+```
+User: Test my configuration changes
+
+Claude: I'll run comprehensive build and test validation.
+/build
+
+[Validates all platforms, runs tests, provides detailed results]
+```
+
+### 📖 Getting Started
+
+1. **[Complete Setup Guide](./docs/CLAUDE-SETUP.md)** - Installation, configuration, and troubleshooting
+2. **[Command Reference](./docs/CLAUDE-COMMANDS.md)** - All 20+ commands with examples and usage patterns
+3. **[Development Scenarios](./docs/DEVELOPMENT-SCENARIOS.md)** - Real-world workflow examples
+
+### 🛠️ Advanced Configuration
+
+**Custom Commands**: Add your own specialized prompts
+**Permission Management**: Fine-tune tool access and security
+**MCP Integration**: Connect additional context servers
+**Workflow Automation**: Chain commands for complex processes
+
+[Learn more →](./docs/CLAUDE-SETUP.md)
+
 ## 📚 Documentation
 
-- **[CLAUDE.md](./CLAUDE.md)** - Complete Claude Code integration guide
+### 🤖 Claude Code Integration
+- **[Claude Setup Guide](./docs/CLAUDE-SETUP.md)** - Complete installation and configuration
+- **[Claude Commands Reference](./docs/CLAUDE-COMMANDS.md)** - All 20+ available commands with examples
+- **[CLAUDE.md](./CLAUDE.md)** - Project-specific instructions for Claude
+
+### 🛠️ Development
 - **[CONTRIBUTING.md](./CONTRIBUTING.md)** - Development workflows and standards
 - **[docs/ARCHITECTURE.md](./docs/architecture.md)** - System design and architecture
 - **[docs/TESTING.md](./docs/testing-framework.md)** - Testing framework and strategies
