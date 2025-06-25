@@ -7,15 +7,18 @@ on:
 jobs:
   update:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
         with:
-          token: ${{ secrets.PAT_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
       - name: Update PR branches
         env:
-          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh pr list --state open --json number,headRefName | jq -r '.[] | "\(.number):\(.headRefName)"' | while IFS=':' read pr branch; do
             if [ "$(git rev-list --count "origin/$branch..main")" -gt 0 ]; then
