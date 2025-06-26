@@ -51,7 +51,7 @@ golangci-lint linters
 
 ### Linting Configuration
 
-The project uses `golangci-lint` with default configuration including these key linters:
+The project uses `golangci-lint` version 2.1.6 with default configuration.
 
 #### Default Enabled Linters
 - **errcheck**: Checks for unchecked errors (very important in Go!)
@@ -60,11 +60,15 @@ The project uses `golangci-lint` with default configuration including these key 
 - **staticcheck**: Advanced static analysis
 - **unused**: Finds unused code
 
-#### Usage Notes
-- The current version (2.1.6) in Nix is older and uses default configuration
+#### Configuration Notes
+- Uses default configuration (no custom .golangci.yml file)
+- Version 2.1.6 is older but stable and sufficient for basic Go linting
 - Focus on `errcheck` - Go's philosophy requires explicit error handling
 - All production code should pass linting without issues
-- Test files may occasionally ignore certain checks for demonstration purposes
+- Test files may occasionally ignore certain checks for demonstration purposes using `// nolint:` comments
+
+#### Advanced Configuration
+If you need custom linting rules, you can create a `.golangci.yml` file, but note that version 2.1.6 has limited configuration options compared to newer versions.
 
 ### Testing Commands
 
