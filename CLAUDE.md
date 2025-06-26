@@ -10,6 +10,7 @@ This project uses Nix flakes for development environment management. The develop
 - go-tools (goimports, gofmt, etc.)
 - delve (Go debugger)
 - golangci-lint (comprehensive Go linter)
+- pre-commit (Git hooks for code quality)
 
 ### Setup Commands
 
@@ -211,8 +212,29 @@ ssulmeta-go/
 - Introducing new libraries or dependencies
 - Adding new Go concepts or patterns
 - Making architectural decisions
+- Adding any external tools or configurations
 
 Take time to explain Go concepts when implementing features.
+
+### Pre-commit Hooks
+
+The project uses pre-commit to ensure code quality:
+
+```bash
+# Install pre-commit hooks (after entering nix develop)
+pre-commit install
+
+# Run hooks manually on all files
+pre-commit run --all-files
+
+# Run hooks on staged files only
+pre-commit run
+```
+
+**Current hooks:**
+- golangci-lint: Runs Go linting on all .go files
+
+**Adding new hooks**: Always ask for permission before adding additional pre-commit hooks or changing the configuration.
 
 ## Nix Integration
 

@@ -19,6 +19,7 @@
             go-tools
             delve
             golangci-lint
+            pre-commit
           ];
 
           shellHook = ''
