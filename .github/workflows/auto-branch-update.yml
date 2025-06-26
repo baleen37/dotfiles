@@ -3,9 +3,10 @@ name: Auto Branch Update
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
-  update:
+  update-prs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -13,24 +14,43 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Update PR branches
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh pr list --state open --json number,headRefName | jq -r '.[] | "\(.number):\(.headRefName)"' | while IFS=':' read pr branch; do
-            if [ "$(git rev-list --count "origin/$branch..main")" -gt 0 ]; then
-              echo "Updating PR #$pr ($branch)"
-              git fetch origin "$branch"
-              git checkout -b "update-$branch" "origin/$branch"
-              if git merge main --no-edit; then
-                git push origin "update-$branch:$branch"
-                gh pr merge "$pr" --auto --squash || true
+          # Get all open PRs
+          gh pr list --state open --json number,headRefName --jq '.[] | "\(.number):\(.headRefName)"' | while IFS=':' read pr branch; do
+            echo "Checking PR #$pr ($branch)..."
+
+            # Check if branch is behind main
+            BEHIND=$(git rev-list --count "origin/$branch..origin/main" 2>/dev/null || echo "0")
+
+            if [ "$BEHIND" -gt 0 ]; then
+              echo "PR #$pr is $BEHIND commits behind main. Updating..."
+
+              # Checkout branch
+              git checkout -B "$branch" "origin/$branch"
+
+              # Try to merge main
+              if git merge origin/main --no-edit; then
+                git push origin "$branch"
+                echo "✅ Successfully updated PR #$pr"
               else
-                gh pr comment "$pr" --body "❌ Merge conflict - please update manually"
+                echo "❌ Merge conflict in PR #$pr"
+                git merge --abort
+                gh pr comment "$pr" --body "⚠️ This PR has conflicts with main and needs manual update."
               fi
-              git checkout main && git branch -D "update-$branch" || true
+
+              git checkout main
+            else
+              echo "✅ PR #$pr is already up to date"
             fi
           done
