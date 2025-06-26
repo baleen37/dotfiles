@@ -13,7 +13,7 @@ func HandleHealth(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := map[string]interface{}{
-		"status": "healthy",
+		"status":  "healthy",
 		"service": "ssulmeta-go",
 	}
 

@@ -32,9 +32,9 @@ func (h *HTTPAdapter) HandleReverse(w http.ResponseWriter, r *http.Request) {
 	result := h.processor.Reverse(text)
 
 	response := map[string]interface{}{
-		"result": result,
+		"result":    result,
 		"operation": "reverse",
-		"original": text,
+		"original":  text,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -60,9 +60,9 @@ func (h *HTTPAdapter) HandleCapitalize(w http.ResponseWriter, r *http.Request) {
 	result := h.processor.Capitalize(text)
 
 	response := map[string]interface{}{
-		"result": result,
+		"result":    result,
 		"operation": "capitalize",
-		"original": text,
+		"original":  text,
 	}
 
 	w.Header().Set("Content-Type", "application/json")

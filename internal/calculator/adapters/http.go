@@ -43,10 +43,10 @@ func (h *HTTPAdapter) HandleAdd(w http.ResponseWriter, r *http.Request) {
 	result := h.calc.Add(a, b)
 
 	response := map[string]interface{}{
-		"result": result,
+		"result":    result,
 		"operation": "add",
-		"a": a,
-		"b": b,
+		"a":         a,
+		"b":         b,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -81,10 +81,10 @@ func (h *HTTPAdapter) HandleMultiply(w http.ResponseWriter, r *http.Request) {
 	result := h.calc.Multiply(a, b)
 
 	response := map[string]interface{}{
-		"result": result,
+		"result":    result,
 		"operation": "multiply",
-		"a": a,
-		"b": b,
+		"a":         a,
+		"b":         b,
 	}
 
 	w.Header().Set("Content-Type", "application/json")

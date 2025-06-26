@@ -27,22 +27,22 @@ func (s *ChannelService) CreateChannel(ctx context.Context, id, name, concept st
 	if err != nil {
 		return nil, fmt.Errorf("failed to create channel: %w", err)
 	}
-	
+
 	// Check if channel already exists
 	exists, err := s.repo.Exists(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check if channel exists: %w", err)
 	}
-	
+
 	if exists {
 		return nil, fmt.Errorf("channel with ID %s already exists", id)
 	}
-	
+
 	// Save to repository
 	if err := s.repo.Create(ctx, channel); err != nil {
 		return nil, fmt.Errorf("failed to save channel: %w", err)
 	}
-	
+
 	return channel, nil
 }
 
@@ -51,12 +51,12 @@ func (s *ChannelService) GetChannel(ctx context.Context, id string) (*core.Chann
 	if id == "" {
 		return nil, fmt.Errorf("channel ID cannot be empty")
 	}
-	
+
 	channel, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get channel: %w", err)
 	}
-	
+
 	return channel, nil
 }
 
@@ -67,17 +67,17 @@ func (s *ChannelService) UpdateChannelSettings(ctx context.Context, id string, s
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// Update settings (includes validation)
 	if err := channel.UpdateSettings(settings); err != nil {
 		return nil, fmt.Errorf("failed to update channel settings: %w", err)
 	}
-	
+
 	// Save updated channel
 	if err := s.repo.Update(ctx, channel); err != nil {
 		return nil, fmt.Errorf("failed to save updated channel: %w", err)
 	}
-	
+
 	return channel, nil
 }
 
@@ -90,23 +90,23 @@ func (s *ChannelService) UpdateChannelInfo(ctx context.Context, id, name, concep
 	if concept == "" {
 		return nil, fmt.Errorf("channel concept cannot be empty")
 	}
-	
+
 	// Get existing channel
 	channel, err := s.GetChannel(ctx, id)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// Update info
 	channel.Name = name
 	channel.Concept = concept
 	channel.UpdatedAt = time.Now()
-	
+
 	// Save updated channel
 	if err := s.repo.Update(ctx, channel); err != nil {
 		return nil, fmt.Errorf("failed to save updated channel: %w", err)
 	}
-	
+
 	return channel, nil
 }
 
@@ -117,15 +117,15 @@ func (s *ChannelService) ActivateChannel(ctx context.Context, id string) (*core.
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// Activate channel
 	channel.Activate()
-	
+
 	// Save updated channel
 	if err := s.repo.Update(ctx, channel); err != nil {
 		return nil, fmt.Errorf("failed to save activated channel: %w", err)
 	}
-	
+
 	return channel, nil
 }
 
@@ -136,15 +136,15 @@ func (s *ChannelService) DeactivateChannel(ctx context.Context, id string) (*cor
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// Deactivate channel
 	channel.Deactivate()
-	
+
 	// Save updated channel
 	if err := s.repo.Update(ctx, channel); err != nil {
 		return nil, fmt.Errorf("failed to save deactivated channel: %w", err)
 	}
-	
+
 	return channel, nil
 }
 
@@ -153,22 +153,22 @@ func (s *ChannelService) DeleteChannel(ctx context.Context, id string) error {
 	if id == "" {
 		return fmt.Errorf("channel ID cannot be empty")
 	}
-	
+
 	// Check if channel exists
 	exists, err := s.repo.Exists(ctx, id)
 	if err != nil {
 		return fmt.Errorf("failed to check if channel exists: %w", err)
 	}
-	
+
 	if !exists {
 		return fmt.Errorf("channel with ID %s not found", id)
 	}
-	
+
 	// Delete from repository
 	if err := s.repo.Delete(ctx, id); err != nil {
 		return fmt.Errorf("failed to delete channel: %w", err)
 	}
-	
+
 	return nil
 }
 
@@ -178,7 +178,7 @@ func (s *ChannelService) ListChannels(ctx context.Context, activeOnly bool) ([]*
 	if err != nil {
 		return nil, fmt.Errorf("failed to list channels: %w", err)
 	}
-	
+
 	return channels, nil
 }
 
@@ -187,11 +187,11 @@ func (s *ChannelService) ChannelExists(ctx context.Context, id string) (bool, er
 	if id == "" {
 		return false, fmt.Errorf("channel ID cannot be empty")
 	}
-	
+
 	exists, err := s.repo.Exists(ctx, id)
 	if err != nil {
 		return false, fmt.Errorf("failed to check if channel exists: %w", err)
 	}
-	
+
 	return exists, nil
 }

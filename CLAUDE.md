@@ -236,6 +236,54 @@ pre-commit run
 
 **Adding new hooks**: Always ask for permission before adding additional pre-commit hooks or changing the configuration.
 
+## Pull Request Guidelines
+
+### Auto-merge 설정
+
+PR 생성 시 자동 병합(auto-merge) 옵션을 활성화하려면 다음 GitHub CLI 명령어를 사용하세요:
+
+```bash
+# PR 생성 후 auto-merge 활성화
+gh pr merge --auto --squash [PR번호]
+
+# 또는 PR 생성과 동시에 설정
+gh pr create --title "제목" --body "내용" && gh pr merge --auto --squash
+```
+
+#### Auto-merge 조건
+- **모든 CI 검사 통과**: format-check, lint-check, test-check, coverage-check 모두 성공
+- **리뷰 승인**: 필요한 리뷰어의 승인 완료
+- **브랜치 보호 규칙**: 저장소의 브랜치 보호 설정 준수
+
+#### 병합 전략
+- **Squash and merge**: 기본 설정으로 모든 커밋을 하나로 합쳐서 병합
+- **커밋 메시지**: PR 제목과 설명을 기반으로 자동 생성
+
+#### 주의사항
+- Auto-merge 활성화 후에도 CI 실패 시 자동 병합되지 않음
+- 충돌 발생 시 수동 해결 후 다시 설정 필요
+- 긴급 수정이 아닌 경우 리뷰 후 병합 권장
+
+### PR 체크리스트
+
+각 PR은 다음 항목들을 확인해야 합니다:
+
+#### 코드 품질
+- [ ] `make fmt`: 코드 포맷팅 통과
+- [ ] `make lint`: golangci-lint 검사 통과  
+- [ ] `make test`: 모든 테스트 통과
+- [ ] `make coverage-html`: 커버리지 목표 달성
+
+#### 문서화
+- [ ] 코드 변경사항에 대한 적절한 주석
+- [ ] 새로운 기능의 경우 README 업데이트
+- [ ] API 변경사항의 경우 문서 업데이트
+
+#### 테스트
+- [ ] 새로운 기능에 대한 단위 테스트 작성
+- [ ] 기존 테스트가 여전히 통과하는지 확인
+- [ ] 엣지 케이스에 대한 테스트 고려
+
 ## Nix Integration
 
 - `flake.nix`: Defines the development environment with Go toolchain

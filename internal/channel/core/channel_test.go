@@ -50,7 +50,7 @@ func TestNewChannel(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			channel, err := NewChannel(tt.id, tt.channelName, tt.concept)
-			
+
 			if tt.wantErr {
 				if err == nil {
 					t.Errorf("NewChannel() error = nil, wantErr %v", tt.wantErr)
@@ -61,32 +61,32 @@ func TestNewChannel(t *testing.T) {
 				}
 				return
 			}
-			
+
 			if err != nil {
 				t.Errorf("NewChannel() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			
+
 			if channel.ID != tt.id {
 				t.Errorf("Channel.ID = %v, want %v", channel.ID, tt.id)
 			}
-			
+
 			if channel.Name != tt.channelName {
 				t.Errorf("Channel.Name = %v, want %v", channel.Name, tt.channelName)
 			}
-			
+
 			if channel.Concept != tt.concept {
 				t.Errorf("Channel.Concept = %v, want %v", channel.Concept, tt.concept)
 			}
-			
+
 			if channel.IsActive != true {
 				t.Errorf("Channel.IsActive = %v, want %v", channel.IsActive, true)
 			}
-			
+
 			if channel.CreatedAt.IsZero() {
 				t.Error("Channel.CreatedAt should not be zero")
 			}
-			
+
 			if channel.UpdatedAt.IsZero() {
 				t.Error("Channel.UpdatedAt should not be zero")
 			}
@@ -96,7 +96,7 @@ func TestNewChannel(t *testing.T) {
 
 func TestChannel_UpdateSettings(t *testing.T) {
 	channel, _ := NewChannel("ch_123", "Tech Shorts", "Technology trends")
-	
+
 	tests := []struct {
 		name       string
 		settings   ChannelSettings
@@ -163,11 +163,11 @@ func TestChannel_UpdateSettings(t *testing.T) {
 			errMessage: "language cannot be empty",
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := channel.UpdateSettings(tt.settings)
-			
+
 			if tt.wantErr {
 				if err == nil {
 					t.Errorf("UpdateSettings() error = nil, wantErr %v", tt.wantErr)
@@ -178,7 +178,7 @@ func TestChannel_UpdateSettings(t *testing.T) {
 				}
 				return
 			}
-			
+
 			if err != nil {
 				t.Errorf("UpdateSettings() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -188,19 +188,19 @@ func TestChannel_UpdateSettings(t *testing.T) {
 
 func TestChannel_Deactivate(t *testing.T) {
 	channel, _ := NewChannel("ch_123", "Tech Shorts", "Technology trends")
-	
+
 	// Initially should be active
 	if !channel.IsActive {
 		t.Error("Channel should be active initially")
 	}
-	
+
 	// Deactivate channel
 	channel.Deactivate()
-	
+
 	if channel.IsActive {
 		t.Error("Channel should be deactivated")
 	}
-	
+
 	// UpdatedAt should be updated
 	if channel.UpdatedAt.Before(channel.CreatedAt) || channel.UpdatedAt.Equal(channel.CreatedAt) {
 		t.Error("UpdatedAt should be after CreatedAt after deactivation")
@@ -210,21 +210,21 @@ func TestChannel_Deactivate(t *testing.T) {
 func TestChannel_Activate(t *testing.T) {
 	channel, _ := NewChannel("ch_123", "Tech Shorts", "Technology trends")
 	channel.Deactivate()
-	
+
 	// Should be inactive
 	if channel.IsActive {
 		t.Error("Channel should be inactive")
 	}
-	
+
 	time.Sleep(1 * time.Millisecond) // Ensure time difference
-	
+
 	// Activate channel
 	channel.Activate()
-	
+
 	if !channel.IsActive {
 		t.Error("Channel should be activated")
 	}
-	
+
 	// UpdatedAt should be updated again
 	if channel.UpdatedAt.Before(channel.CreatedAt) || channel.UpdatedAt.Equal(channel.CreatedAt) {
 		t.Error("UpdatedAt should be after CreatedAt after activation")
