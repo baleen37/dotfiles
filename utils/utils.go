@@ -1,6 +1,10 @@
 package utils
 
-import "strings"
+import (
+	"strings"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
+)
 
 // Add returns the sum of two integers
 func Add(a, b int) int {
@@ -23,7 +27,8 @@ func ReverseString(s string) string {
 
 // CapitalizeWords capitalizes the first letter of each word
 func CapitalizeWords(s string) string {
-	return strings.Title(strings.ToLower(s))
+	caser := cases.Title(language.English)
+	return caser.String(strings.ToLower(s))
 }
 
 // IsEven checks if a number is even

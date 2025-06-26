@@ -18,6 +18,7 @@
             gopls
             go-tools
             delve
+            golangci-lint
           ];
 
           shellHook = ''

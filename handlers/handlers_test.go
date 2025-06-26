@@ -123,13 +123,13 @@ func BenchmarkHelloHandler(b *testing.B) {
 
 func BenchmarkAddHandler(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		AddHandler("1000", "2000")
+		AddHandler("1000", "2000") // nolint: errcheck
 	}
 }
 
 func BenchmarkAddHandlerError(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		AddHandler("invalid", "2000")
+		AddHandler("invalid", "2000") // nolint: errcheck
 	}
 }
 

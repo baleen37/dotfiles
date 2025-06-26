@@ -9,6 +9,7 @@ This project uses Nix flakes for development environment management. The develop
 - gopls (Go language server)
 - go-tools (goimports, gofmt, etc.)
 - delve (Go debugger)
+- golangci-lint (comprehensive Go linter)
 
 ### Setup Commands
 
@@ -35,9 +36,35 @@ gofmt -w .
 # Import organization
 goimports -w .
 
-# Lint (requires golangci-lint to be added to flake.nix)
+# Lint with golangci-lint
 golangci-lint run
+
+# Lint specific directories
+golangci-lint run ./utils ./handlers
+
+# Lint with detailed output
+golangci-lint run --verbose
+
+# Show linter information
+golangci-lint linters
 ```
+
+### Linting Configuration
+
+The project uses `golangci-lint` with default configuration including these key linters:
+
+#### Default Enabled Linters
+- **errcheck**: Checks for unchecked errors (very important in Go!)
+- **govet**: Go's built-in analyzer for common mistakes
+- **ineffassign**: Detects ineffectual assignments
+- **staticcheck**: Advanced static analysis
+- **unused**: Finds unused code
+
+#### Usage Notes
+- The current version (2.1.6) in Nix is older and uses default configuration
+- Focus on `errcheck` - Go's philosophy requires explicit error handling
+- All production code should pass linting without issues
+- Test files may occasionally ignore certain checks for demonstration purposes
 
 ### Testing Commands
 

@@ -42,5 +42,5 @@ func TestMainCompiles(t *testing.T) {
 	}
 	
 	// Clean up the test binary
-	os.Remove("/tmp/ssulmeta-go-test")
+	os.Remove("/tmp/ssulmeta-go-test") // nolint: errcheck
 }
