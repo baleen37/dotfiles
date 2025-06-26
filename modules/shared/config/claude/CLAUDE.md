@@ -37,6 +37,14 @@ Rule #1: If you want exception to ANY rule, YOU MUST STOP and get explicit permi
 - YOU MUST NEVER remove code comments unless you can PROVE they are actively false. Comments are important documentation and must be preserved.
 - YOU MUST NEVER refer to temporal context in comments (like "recently refactored" "moved") or code. Comments should be evergreen and describe the code as it is. If you name something "new" or "enhanced" or "improved", you've probably made a mistake and MUST STOP and ask me what to do.
 - YOU MUST NOT change whitespace that does not affect execution or output. Otherwise, use a formatting tool.
+- **DEADCODE PROHIBITION**: YOU MUST NEVER leave behind any deadcode, including but not limited to:
+  - Commented-out code blocks (except for essential documentation purposes)
+  - Backup files (`.bak`, `.old`, `.backup`, etc.)
+  - Test dummy files or temporary test data
+  - Unused functions, classes, or variables
+  - Experimental code branches that didn't make it to production
+  - YOU MUST actively search for and remove such deadcode during development
+  - YOU MUST verify no deadcode remains before committing changes
 
 
 ## Version Control
