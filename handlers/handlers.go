@@ -18,12 +18,12 @@ func AddHandler(aStr, bStr string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("invalid parameter a: %v", err)
 	}
-	
+
 	b, err := strconv.Atoi(bStr)
 	if err != nil {
 		return "", fmt.Errorf("invalid parameter b: %v", err)
 	}
-	
+
 	result := utils.Add(a, b)
 	return fmt.Sprintf("Result: %d", result), nil
 }

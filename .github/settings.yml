@@ -1,0 +1,27 @@
+# Repository settings configuration
+# This file manages branch protection rules and other repository settings
+
+# Branch protection configuration
+branches:
+  - name: main
+    protection:
+      # Required status checks before merging
+      required_status_checks:
+        strict: true
+        contexts:
+          - "test"  # Our CI job name from workflows/ci.yml
+      
+      # No required pull request reviews (keeping it simple)
+      required_pull_request_reviews: null
+      
+      # Don't enforce restrictions on administrators
+      enforce_admins: false
+      
+      # No user/team restrictions
+      restrictions: null
+      
+      # Prevent force pushes to main branch
+      allow_force_pushes: false
+      
+      # Allow branch deletion by admins if needed
+      allow_deletions: false

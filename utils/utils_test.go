@@ -233,7 +233,7 @@ func ExampleReverseString() {
 func ExampleReverseString_empty() {
 	result := ReverseString("")
 	fmt.Println(result)
-	// Output: 
+	// Output:
 }
 
 func ExampleCapitalizeWords() {

@@ -38,7 +38,7 @@ func TestAddHandler(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result, err := AddHandler(tt.aStr, tt.bStr)
-			
+
 			if tt.expectError {
 				if err == nil {
 					t.Errorf("AddHandler(%q, %q) expected error, got nil", tt.aStr, tt.bStr)
@@ -82,14 +82,14 @@ func TestReverseHandler(t *testing.T) {
 
 func TestHealthCheckHandler(t *testing.T) {
 	status, message := HealthCheckHandler()
-	
+
 	expectedStatus := http.StatusOK
 	expectedMessage := "Service is healthy"
-	
+
 	if status != expectedStatus {
 		t.Errorf("HealthCheckHandler() status = %d, want %d", status, expectedStatus)
 	}
-	
+
 	if message != expectedMessage {
 		t.Errorf("HealthCheckHandler() message = %q, want %q", message, expectedMessage)
 	}
@@ -104,7 +104,7 @@ func TestAddHandlerErrorMessages(t *testing.T) {
 	if !strings.Contains(err.Error(), "invalid parameter a") {
 		t.Errorf("Error message should contain 'invalid parameter a', got: %v", err)
 	}
-	
+
 	_, err = AddHandler("5", "invalid")
 	if err == nil {
 		t.Error("Expected error for invalid second parameter")

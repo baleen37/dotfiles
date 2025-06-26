@@ -1,9 +1,9 @@
 package utils
 
 import (
-	"strings"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
+	"strings"
 )
 
 // Add returns the sum of two integers
