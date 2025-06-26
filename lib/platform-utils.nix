@@ -5,13 +5,13 @@
 
 let
   # Internal helper functions (defined in let block to avoid recursion issues)
-  
+
   # Extract architecture from system string
   getArchFromSystem = system:
     let parts = builtins.split "-" system;
     in if builtins.length parts >= 1 then builtins.head parts else "unknown";
-  
-  # Extract platform from system string  
+
+  # Extract platform from system string
   getPlatformFromSystem = system:
     let parts = builtins.split "-" system;
     in if builtins.length parts >= 3 then builtins.elemAt parts 2 else "unknown";
@@ -65,88 +65,88 @@ in
   # Architecture extraction utilities (expose let-defined functions)
   getArchFromSystem = getArchFromSystem;
   getPlatformFromSystem = getPlatformFromSystem;
-  
+
   # System compatibility utilities
-  
+
   # Check if two systems are compatible (same system)
   isCompatibleSystem = system1: system2: system1 == system2;
-  
+
   # Check if cross-compilation is possible (same platform, different arch)
   canCrossCompile = fromSystem: toSystem:
     let
       fromPlatform = builtins.elemAt (builtins.split "-" fromSystem) 2;
       toPlatform = builtins.elemAt (builtins.split "-" toSystem) 2;
     in fromPlatform == toPlatform;
-  
+
   # Platform-specific configuration utilities
-  
+
   # Get default configuration for platform (expose internal function)
   getPlatformDefaults = getPlatformDefaults;
-  
+
   # Build optimization utilities
-  
+
   # Get build flags for system
   getBuildFlags = system:
     let
       platform = builtins.elemAt (builtins.split "-" system) 2;
       defaults = getPlatformDefaults platform;
     in defaults.buildOptimizations.extraFlags;
-  
+
   # Get maximum parallel jobs for system
   getMaxJobs = system:
     let
       platform = builtins.elemAt (builtins.split "-" system) 2;
       defaults = getPlatformDefaults platform;
     in defaults.buildOptimizations.parallelJobs;
-  
+
   # System path utilities
-  
+
   # Get system paths for platform
   getSystemPaths = platform:
     let defaults = getPlatformDefaults platform;
     in defaults.systemPaths;
-  
+
   # Get package manager command for platform
   getPackageManagerCommand = platform:
     let defaults = getPlatformDefaults platform;
     in defaults.packageManager;
-  
+
   # Shell utilities
-  
+
   # Get default shell for platform
   getDefaultShell = platform:
     let defaults = getPlatformDefaults platform;
     in defaults.shellPath;
-  
+
   # Platform feature detection
-  
+
   # Check if platform supports Homebrew
   supportsHomebrew = platform:
     let defaults = getPlatformDefaults platform;
     in defaults.hasHomebrew;
-  
+
   # Check if platform supports systemd
   supportsSystemd = platform: platform == "linux";
-  
+
   # Check if platform supports launchd
   supportsLaunchd = platform: platform == "darwin";
-  
+
   # Cross-compilation utilities (expose let-defined functions)
   getCrossCompileTargets = getCrossCompileTargets;
-  
-  # Check if system supports cross-compilation  
+
+  # Check if system supports cross-compilation
   supportsCrossCompilation = system:
     let platform = getPlatformFromSystem system;
     in builtins.length (getCrossCompileTargets platform) > 0;
-  
+
   # Environment utilities
-  
+
   # Get environment variable prefix for platform
   getEnvPrefix = platform:
     if platform == "darwin" then "DARWIN_"
     else if platform == "linux" then "LINUX_"
     else "UNKNOWN_";
-  
+
   # Get temp directory for platform
   getTempDir = platform:
     if platform == "darwin" then "/tmp"
