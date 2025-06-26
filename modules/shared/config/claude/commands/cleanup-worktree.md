@@ -83,10 +83,10 @@ When Jito requests worktree cleanup:
    ```bash
    # Check if branches are merged
    git branch --merged main
-   
+
    # Check remote branch status
    git remote prune origin --dry-run
-   
+
    # Find stale branches
    git for-each-ref --format='%(refname:short) %(committerdate)' refs/heads/
    ```
@@ -352,7 +352,7 @@ name: Worktree Cleanup Reminder
 on:
   schedule:
     - cron: '0 9 * * 1'  # Weekly on Monday
-  
+
 jobs:
   check-stale-worktrees:
     runs-on: ubuntu-latest
