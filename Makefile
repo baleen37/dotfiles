@@ -5,7 +5,7 @@
 .DEFAULT_GOAL := help
 
 # Non-file targets
-.PHONY: help build run fmt lint test test-verbose coverage coverage-html bench pre-commit-install pre-commit-run pre-commit-check check clean
+.PHONY: help build run fmt lint test test-verbose coverage coverage-html bench pre-commit-install pre-commit-run pre-commit-check check clean docker-up docker-down docker-build docker-logs docker-test
 
 # Help target - shows available commands
 help:
@@ -24,6 +24,11 @@ help:
 	@echo "  pre-commit-check - Run pre-commit on staged files"
 	@echo "  check            - Complete validation (fmt + lint + test)"
 	@echo "  clean            - Remove generated files"
+	@echo "  docker-up        - Start Docker services"
+	@echo "  docker-down      - Stop Docker services"
+	@echo "  docker-build     - Build Docker images"
+	@echo "  docker-logs      - View Docker logs"
+	@echo "  docker-test      - Test Docker setup"
 	@echo "  help             - Show this help message"
 
 # Build targets
@@ -77,3 +82,22 @@ check: fmt lint test
 clean:
 	rm -f coverage.out coverage.html
 	@echo "Cleaned generated files"
+
+# Docker targets
+docker-up:
+	docker-compose up -d
+	@echo "Docker services started"
+
+docker-down:
+	docker-compose down
+	@echo "Docker services stopped"
+
+docker-build:
+	docker-compose build
+	@echo "Docker images built"
+
+docker-logs:
+	docker-compose logs -f
+
+docker-test:
+	@./scripts/test-docker-compose.sh

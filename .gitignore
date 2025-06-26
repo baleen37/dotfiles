@@ -33,3 +33,17 @@ result-*
 # OS
 .DS_Store
 Thumbs.db
+
+# Environment files
+.env
+.env.local
+
+# Docker
+docker-compose.override.yml
+
+# Media files
+media/
+temp/
+
+# Application binary
+ssulmeta-api

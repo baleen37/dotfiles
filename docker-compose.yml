@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: ssulmeta-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - ssulmeta-network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ssulmeta-app
+    ports:
+      - "8080:8080"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - APP_ENV=development
+      - PORT=8080
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - .:/app
+      - /app/ssulmeta-api  # Exclude binary from volume mount
+    working_dir: /app
+    networks:
+      - ssulmeta-network
+    restart: unless-stopped
+
+volumes:
+  redis-data:
+    driver: local
+
+networks:
+  ssulmeta-network:
+    driver: bridge
