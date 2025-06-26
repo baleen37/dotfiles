@@ -14,8 +14,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          token: ${{ secrets.REPO_PAT }}
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Git
         run: |
@@ -24,7 +24,7 @@ jobs:
 
       - name: Update PR branches
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.REPO_PAT }}
         run: |
           # Get all open PRs
           gh pr list --state open --json number,headRefName --jq '.[] | "\(.number):\(.headRefName)"' | while IFS=':' read pr branch; do
