@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+
+# 테스트 스크립트: auto-branch-update 워크플로우 동작 확인
+
+set -e
+
+echo "🧪 Auto Branch Update 테스트 시작..."
+
+# 현재 브랜치 저장
+ORIGINAL_BRANCH=$(git branch --show-current)
+
+# 테스트용 브랜치 생성
+TEST_BRANCH="test-auto-update-$(date +%s)"
+echo "📌 테스트 브랜치 생성: $TEST_BRANCH"
+
+# 1. 테스트 브랜치 생성 및 파일 추가
+git checkout -b "$TEST_BRANCH"
+echo "test content" > test-file.txt
+git add test-file.txt
+git commit -m "test: add test file"
+git push -u origin "$TEST_BRANCH"
+
+# 2. PR 생성
+echo "📝 PR 생성 중..."
+PR_NUMBER=$(gh pr create --title "Test Auto Update" --body "Testing auto branch update" --base main --head "$TEST_BRANCH" | grep -o '[0-9]*$')
+echo "✅ PR #$PR_NUMBER 생성 완료"
+
+# 3. main 브랜치에 새 커밋 추가
+git checkout main
+echo "main update" > main-update.txt
+git add main-update.txt
+git commit -m "test: update main branch"
+git push origin main
+
+echo "⏳ GitHub Actions가 실행되도록 30초 대기..."
+sleep 30
+
+# 4. PR 브랜치 확인
+git fetch origin "$TEST_BRANCH"
+git checkout "$TEST_BRANCH"
+
+if git log --oneline | grep -q "update main branch"; then
+    echo "✅ PR 브랜치가 성공적으로 업데이트됨!"
+else
+    echo "❌ PR 브랜치가 업데이트되지 않음"
+fi
+
+# 5. 정리
+echo "🧹 테스트 정리 중..."
+git checkout "$ORIGINAL_BRANCH"
+gh pr close "$PR_NUMBER" --delete-branch
+git branch -D "$TEST_BRANCH" 2>/dev/null || true
+git push origin --delete "$TEST_BRANCH" 2>/dev/null || true
+
+# main 브랜치 원상복구
+git checkout main
+git reset --hard HEAD~1
+git push --force-with-lease origin main
+
+echo "✅ 테스트 완료!"
