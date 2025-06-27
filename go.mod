@@ -20,6 +20,7 @@ require (
 	github.com/googleapis/gax-go/v2 v2.14.2 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/lib/pq v1.10.9 // indirect
+	github.com/matthewmcnew/archtest v0.0.0-20191104172020-f1b53a45c22d // indirect
 	github.com/redis/go-redis/v9 v9.11.0 // indirect
 	github.com/u2takey/ffmpeg-go v0.5.0 // indirect
 	github.com/u2takey/go-utils v0.3.1 // indirect
@@ -29,9 +30,12 @@ require (
 	go.opentelemetry.io/otel/metric v1.36.0 // indirect
 	go.opentelemetry.io/otel/trace v1.36.0 // indirect
 	golang.org/x/crypto v0.39.0 // indirect
+	golang.org/x/mod v0.25.0 // indirect
 	golang.org/x/net v0.41.0 // indirect
 	golang.org/x/oauth2 v0.30.0 // indirect
+	golang.org/x/sync v0.15.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
+	golang.org/x/tools v0.33.0 // indirect
 	google.golang.org/api v0.239.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250603155806-513f23925822 // indirect
 	google.golang.org/grpc v1.73.0 // indirect

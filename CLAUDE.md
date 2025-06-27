@@ -30,7 +30,7 @@ go run ./cmd/pipeline-test
 ### Testing
 
 ```bash
-# Run all tests
+# Run all tests (includes architecture tests)
 make test
 
 # Run tests with coverage
@@ -40,9 +40,24 @@ make coverage
 go test -v ./internal/story/...
 go test -v ./internal/channel/...
 
+# Run architecture tests only
+go test -v ./internal -run TestHexagonalArchitecture
+go test -v ./internal -run TestSharedPackages
+
 # Run integration tests with Docker
 docker-compose -f docker-compose.test.yml up --abort-on-error
 ```
+
+#### Architecture Testing
+
+The project includes automated architecture testing using [archtest](https://github.com/matthewmcnew/archtest) to enforce Hexagonal Architecture principles:
+
+- **Core → Adapters isolation**: Core business logic cannot depend on external adapters
+- **Domain isolation**: Domains (story, channel, text) cannot depend on each other
+- **Shared package boundaries**: pkg/ packages remain independent of internal/ packages
+- **HTTP dependency constraints**: Only adapters can import net/http
+
+Architecture tests run automatically with `make test` and in CI/CD pipeline.
 
 ### Code Quality
 
