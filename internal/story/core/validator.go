@@ -1,4 +1,4 @@
-package story
+package core
 
 import (
 	"fmt"

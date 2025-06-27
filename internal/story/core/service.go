@@ -1,28 +1,21 @@
-package story
+package core
 
 import (
 	"context"
 	"fmt"
 	"ssulmeta-go/internal/config"
+	"ssulmeta-go/internal/story/ports"
 	"ssulmeta-go/pkg/models"
 )
 
 // Service provides story generation functionality
 type Service struct {
-	generator Generator
+	generator ports.Generator
 	validator *Validator
 }
 
 // NewService creates a new story service
-func NewService(cfg *config.APIConfig) (*Service, error) {
-	var generator Generator
-
-	if cfg.UseMock {
-		generator = NewMockGenerator()
-	} else {
-		generator = NewOpenAIGenerator(&cfg.OpenAI)
-	}
-
+func NewService(cfg *config.APIConfig, generator ports.Generator) (*Service, error) {
 	return &Service{
 		generator: generator,
 		validator: NewValidator(),
