@@ -1,0 +1,40 @@
+# Test environment configuration
+app:
+  name: "YouTube Shorts Generator"
+  env: "test"
+  debug: true
+
+database:
+  host: "localhost"
+  port: 5432
+  user: "testuser"
+  password: "testpass"
+  dbname: "youtube_shorts_test"
+  sslmode: "disable"
+
+api:
+  # Mock mode for testing
+  use_mock: true
+  
+  openai:
+    api_key: "test-key"
+    model: "gpt-3.5-turbo"
+    max_tokens: 500
+    temperature: 0.7
+  
+  image:
+    provider: "mock"
+    api_key: "test-key"
+    
+  tts:
+    provider: "mock"
+    api_key: "test-key"
+
+storage:
+  base_path: "./assets/test"
+  temp_path: "./assets/test/temp"
+
+logging:
+  level: "debug"
+  format: "text"
+  output: "stdout"

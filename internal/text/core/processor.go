@@ -1,9 +1,10 @@
 package core
 
 import (
+	"strings"
+
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
-	"strings"
 )
 
 // Processor implements text processing business logic

@@ -1,103 +1,79 @@
-# Makefile for ssulmeta-go
-# Aligns with pre-commit configuration and CLAUDE.md documentation
+.PHONY: build test run clean lint fmt coverage coverage-html
 
-# Default target
-.DEFAULT_GOAL := help
+# Variables
+BINARY_NAME=youtube-shorts-generator
+MAIN_PATH=./cmd/cli
+GO=go
+GOFLAGS=-v
 
-# Non-file targets
-.PHONY: help build run fmt lint test test-verbose coverage coverage-html bench pre-commit-install pre-commit-run pre-commit-check check clean docker-up docker-down docker-build docker-logs docker-test
-
-# Help target - shows available commands
-help:
-	@echo "Available targets:"
-	@echo "  build            - Compile the project"
-	@echo "  run              - Execute main program"
-	@echo "  fmt              - Format code (gofmt)"
-	@echo "  lint             - Run golangci-lint (matches pre-commit)"
-	@echo "  test             - Run all tests"
-	@echo "  test-verbose     - Run tests with verbose output"
-	@echo "  coverage         - Generate test coverage report"
-	@echo "  coverage-html    - Generate HTML coverage report"
-	@echo "  bench            - Run benchmark tests"
-	@echo "  pre-commit-install - Install pre-commit hooks"
-	@echo "  pre-commit-run   - Run pre-commit on all files"
-	@echo "  pre-commit-check - Run pre-commit on staged files"
-	@echo "  check            - Complete validation (fmt + lint + test)"
-	@echo "  clean            - Remove generated files"
-	@echo "  docker-up        - Start Docker services"
-	@echo "  docker-down      - Stop Docker services"
-	@echo "  docker-build     - Build Docker images"
-	@echo "  docker-logs      - View Docker logs"
-	@echo "  docker-test      - Test Docker setup"
-	@echo "  help             - Show this help message"
-
-# Build targets
+# Build the application
 build:
-	go build ./...
+	$(GO) build $(GOFLAGS) -o $(BINARY_NAME) $(MAIN_PATH)
 
-run:
-	go run ./cmd/api
+# Run tests
+test:
+	$(GO) test $(GOFLAGS) ./...
 
-# Code formatting
+# Run tests with coverage
+coverage:
+	$(GO) test -v -cover -coverprofile=coverage.out ./...
+
+# Generate HTML coverage report
+coverage-html: coverage
+	$(GO) tool cover -html=coverage.out -o coverage.html
+
+# Run the application
+run: build
+	./$(BINARY_NAME)
+
+# Clean build artifacts
+clean:
+	rm -f $(BINARY_NAME)
+	rm -f coverage.out coverage.html
+	rm -rf assets/temp/*
+
+# Format code
 fmt:
-	gofmt -w .
+	$(GO) fmt ./...
+	@if command -v goimports >/dev/null 2>&1; then \
+		goimports -w .; \
+	else \
+		echo "Warning: goimports not found, skipping import formatting"; \
+	fi
 
-# Linting (matches pre-commit hook exactly)
+# Run linter
 lint:
 	golangci-lint run
 
-# Testing targets
-test:
-	go test ./...
+# Install dependencies
+deps:
+	$(GO) mod download
+	$(GO) mod tidy
 
-test-verbose:
-	go test -v ./...
+# Database migrations
+migrate-up:
+	@echo "Running database migrations..."
+	# Add migration command here
 
-coverage:
-	go test -cover ./...
+migrate-down:
+	@echo "Rolling back database migrations..."
+	# Add rollback command here
 
-coverage-html:
-	go test -coverprofile=coverage.out ./...
-	go tool cover -html=coverage.out -o coverage.html
-	@echo "Coverage report generated: coverage.html"
+# Development mode with hot reload
+dev:
+	@echo "Starting in development mode..."
+	APP_ENV=local $(GO) run $(MAIN_PATH)
 
-bench:
-	go test -bench=. ./...
-
-# Pre-commit integration
-pre-commit-install:
-	pre-commit install
-
-pre-commit-run:
-	pre-commit run --all-files
-
-pre-commit-check:
-	pre-commit run
-
-# Compound targets
-check: fmt lint test
-	@echo "All checks passed!"
-
-# Cleanup
-clean:
-	rm -f coverage.out coverage.html
-	@echo "Cleaned generated files"
-
-# Docker targets
-docker-up:
-	docker-compose up -d
-	@echo "Docker services started"
-
-docker-down:
-	docker-compose down
-	@echo "Docker services stopped"
-
-docker-build:
-	docker-compose build
-	@echo "Docker images built"
-
-docker-logs:
-	docker-compose logs -f
-
-docker-test:
-	@./scripts/test-docker-compose.sh
+# Help
+help:
+	@echo "Available commands:"
+	@echo "  make build     - Build the application"
+	@echo "  make test      - Run tests"
+	@echo "  make coverage  - Run tests with coverage"
+	@echo "  make run       - Build and run the application"
+	@echo "  make clean     - Clean build artifacts"
+	@echo "  make fmt       - Format code"
+	@echo "  make lint      - Run linter"
+	@echo "  make deps      - Install dependencies"
+	@echo "  make dev       - Run in development mode"
+	@echo "  make help      - Show this help message"

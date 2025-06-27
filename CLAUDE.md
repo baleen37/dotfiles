@@ -2,290 +2,263 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Development Environment
+## Project Overview
 
-This project uses Nix flakes for development environment management. The development shell includes:
-- Go compiler and tools
-- gopls (Go language server)
-- go-tools (goimports, gofmt, etc.)
-- delve (Go debugger)
-- golangci-lint (comprehensive Go linter)
-- pre-commit (Git hooks for code quality)
+This is a YouTube Shorts automatic generation system that creates storytelling-based videos and uploads them automatically. The project follows Hexagonal Architecture (Ports and Adapters Pattern) and is currently in active development (Phase 2 completed).
 
-### Setup Commands
+## Development Commands
+
+### Build and Run
 
 ```bash
-# Enter development environment (requires direnv and nix)
-direnv allow
+# Build the CLI application
+make build
 
-# Or manually activate the nix shell
-nix develop
+# Run in development mode
+make dev
+
+# Run with specific environment
+APP_ENV=test go run ./cmd/cli
+
+# Build and run API server
+go run ./cmd/api
+
+# Run pipeline test
+go run ./cmd/pipeline-test
 ```
 
-### Common Go Commands
-
-```bash
-# Build the project
-go build ./...
-
-# Run the main program
-go run main.go
-
-# Format code
-gofmt -w .
-
-# Import organization
-goimports -w .
-
-# Lint with golangci-lint
-golangci-lint run
-
-# Lint specific directories
-golangci-lint run ./utils ./handlers
-
-# Lint with detailed output
-golangci-lint run --verbose
-
-# Show linter information
-golangci-lint linters
-```
-
-### Linting Configuration
-
-The project uses `golangci-lint` version 2.1.6 with default configuration.
-
-#### Default Enabled Linters
-- **errcheck**: Checks for unchecked errors (very important in Go!)
-- **govet**: Go's built-in analyzer for common mistakes
-- **ineffassign**: Detects ineffectual assignments
-- **staticcheck**: Advanced static analysis
-- **unused**: Finds unused code
-
-#### Configuration Notes
-- Uses default configuration (no custom .golangci.yml file)
-- Version 2.1.6 is older but stable and sufficient for basic Go linting
-- Focus on `errcheck` - Go's philosophy requires explicit error handling
-- All production code should pass linting without issues
-- Test files may occasionally ignore certain checks for demonstration purposes using `// nolint:` comments
-
-#### Advanced Configuration
-If you need custom linting rules, you can create a `.golangci.yml` file, but note that version 2.1.6 has limited configuration options compared to newer versions.
-
-### Testing Commands
-
-This project includes comprehensive test suite with unit tests, benchmarks, and example tests.
-
-#### Basic Testing
+### Testing
 
 ```bash
 # Run all tests
-go test ./...
+make test
 
-# Run tests with verbose output
-go test -v ./...
+# Run tests with coverage
+make coverage
 
-# Run tests for specific package
-go test ./utils
-go test ./handlers
+# Run specific package tests
+go test -v ./internal/story/...
+go test -v ./internal/channel/...
 
-# Run specific test by name
-go test -run TestAdd ./utils
-go test -run TestHelloHandler ./handlers
+# Run integration tests with Docker
+docker-compose -f docker-compose.test.yml up --abort-on-error
 ```
 
-#### Test Coverage
+### Code Quality
 
 ```bash
-# Run tests with basic coverage report
-go test -cover ./...
+# Format code (gofmt + goimports)
+make fmt
 
-# Generate detailed coverage profile
-go test -coverprofile=coverage.out ./...
+# Run linter
+make lint
 
-# View coverage as HTML report
-go tool cover -html=coverage.out -o coverage.html
-
-# View function-level coverage in terminal
-go tool cover -func=coverage.out
-
-# Open HTML coverage report in browser (macOS)
-open coverage.html
+# Run all CI checks locally
+make fmt && make lint && make test
 ```
 
-#### Benchmark Testing
+### Database Operations
 
 ```bash
-# Run all benchmark tests
-go test -bench=. ./...
+# Run PostgreSQL and Redis locally
+docker-compose up -d
 
-# Run benchmarks for specific package
-go test -bench=. ./utils
-go test -bench=. ./handlers
-
-# Run specific benchmark
-go test -bench=BenchmarkAdd ./utils
-go test -bench=BenchmarkReverseString ./utils
-
-# Run benchmarks with memory allocation stats
-go test -bench=. -benchmem ./...
-
-# Run benchmarks multiple times for accuracy
-go test -bench=. -count=5 ./utils
+# Connect to database
+psql "host=localhost port=5432 user=ssulmeta password=ssulmeta123! dbname=ssulmeta sslmode=disable"
 ```
 
-#### Example Testing
+## Architecture
+
+This project follows **Hexagonal Architecture** with clear separation of concerns:
+
+```
+internal/{feature}/
+├── core/       # Business logic (no external dependencies)
+├── ports/      # Interface definitions
+└── adapters/   # External system implementations (HTTP, Redis, APIs)
+```
+
+### Key Domains
+
+1. **Story**: Story generation using OpenAI API
+   - Prompt templates per channel (configs/channels/*.yaml)
+   - 270-300 character validation
+   - Mock mode available for testing
+
+2. **Channel**: Channel management with Redis caching
+   - HTTP API endpoints
+   - Redis-based caching for performance
+   - Channel configurations in YAML
+
+3. **Image**: Scene splitting and image generation (TODO)
+   - Stable Diffusion API integration planned
+   - 1080x1920 vertical format
+
+4. **TTS**: Text-to-speech generation (TODO)
+   - Google Cloud TTS integration planned
+   - Korean voice support
+
+5. **Video**: Video composition with ffmpeg (TODO)
+   - Ken Burns effects
+   - Scene transitions
+
+6. **YouTube**: Upload automation (TODO)
+   - OAuth2 authentication
+   - Metadata generation
+
+## Configuration
+
+### Environment-based Config Files
+
+```yaml
+# configs/test.yaml    - Test environment (uses mocks)
+# configs/local.yaml   - Local development
+# configs/dev.yaml     - Development server
+# configs/prod.yaml    - Production
+```
+
+Set environment with `APP_ENV` variable (defaults to "local").
+
+### Channel Configurations
+
+Channel-specific settings in `configs/channels/*.yaml`:
+- fairy_tale: Children's fairy tales
+- horror: Horror stories
+- romance: Romance stories
+
+## Working with APIs
+
+### Current Integrations
+
+1. **OpenAI API** (Story Generation)
+   ```go
+   // Set OPENAI_API_KEY environment variable
+   // Implementation in internal/story/adapters/openai_client.go
+   ```
+
+2. **Redis** (Channel Caching)
+   ```go
+   // Connection configured in config files
+   // Implementation in internal/channel/adapters/redis_repository.go
+   ```
+
+### Mock Mode
+
+Test environment (`APP_ENV=test`) uses mock implementations:
+- Returns predefined test data
+- No external API calls
+- Useful for development and testing
+
+## CI/CD Pipeline
+
+GitHub Actions workflow includes:
+
+1. **format-check**: Ensures code is properly formatted
+2. **lint-check**: Runs golangci-lint
+3. **test-check**: Executes all tests
+4. **coverage-check**: Generates coverage report
+5. **ci-complete**: Final status check for auto-merge
+
+### Auto-merge Setup
 
 ```bash
-# Run example tests (also serves as documentation)
-go test -run=Example ./...
-
-# Run examples for specific package
-go test -run=Example ./utils
-go test -run=Example ./handlers
-
-# View example output
-go test -v -run=Example ./utils
+# Enable auto-merge after PR creation
+gh pr merge --auto --squash [PR_NUMBER]
 ```
 
-#### Advanced Testing Options
+## Development Status
+
+### Completed Phases (0-2)
+- ✅ Project foundation and configuration system
+- ✅ Hexagonal architecture implementation
+- ✅ Domain models and interfaces
+- ✅ Mock implementations
+- ✅ Story generation with OpenAI
+- ✅ Channel management with Redis
+
+### In Progress (Phase 3+)
+- ⏳ Scene splitting and image generation
+- ⏳ TTS narration generation
+- ⏳ Video composition with ffmpeg-go
+- ⏳ YouTube upload automation
+- ⏳ CLI interface improvements
+- ⏳ Scheduler implementation
+
+## Important Implementation Notes
+
+1. **Error Handling**: Always check and handle errors explicitly (Go philosophy)
+2. **Testing**: Maintain high test coverage for business logic packages
+3. **Configuration**: Use YAML files for all configurations, not hardcoded values
+4. **Logging**: Use structured logging with slog package
+5. **Dependencies**: Check go.mod before adding new dependencies
+
+## Common Tasks
+
+### Adding a New Feature
+
+1. Create package structure following hexagonal architecture:
+   ```
+   internal/newfeature/
+   ├── core/
+   │   └── service.go
+   ├── ports/
+   │   └── interfaces.go
+   └── adapters/
+       └── implementation.go
+   ```
+
+2. Define interfaces in ports package
+3. Implement business logic in core package
+4. Add external integrations in adapters
+5. Write comprehensive tests
+6. Update configuration if needed
+
+### Running Specific Services
 
 ```bash
-# Run tests with race detection
-go test -race ./...
+# Story generation test
+go run ./cmd/pipeline-test
 
-# Run tests in parallel
-go test -parallel 4 ./...
+# API server
+go run ./cmd/api
 
-# Run tests with timeout
-go test -timeout 30s ./...
-
-# Run only short tests (skip long-running tests)
-go test -short ./...
-
-# Combine multiple options
-go test -v -cover -race -bench=. ./...
+# CLI with specific channel
+go run ./cmd/cli generate --channel fairy_tale
 ```
 
-#### Test File Organization
-
-- `*_test.go`: Test files (automatically discovered by go test)
-- `TestXxx(t *testing.T)`: Unit tests
-- `BenchmarkXxx(b *testing.B)`: Benchmark tests  
-- `ExampleXxx()`: Example tests (with Output: comments for verification)
-
-#### Coverage Goals
-
-- **Current Coverage**: utils (100%), handlers (100%), overall (72.7%)
-- **Target**: Maintain 100% coverage for all business logic packages
-- **Note**: main.go shows 0% because integration tests don't count toward coverage
-
-## Project Structure
-
-```
-ssulmeta-go/
-├── main.go                 # Entry point with demonstrations
-├── main_test.go           # Integration tests for main package
-├── go.mod                 # Go module definition
-├── utils/                 # Utility functions package
-│   ├── utils.go          # Math and string utility functions
-│   └── utils_test.go     # Unit tests, benchmarks, and examples
-├── handlers/              # Handler functions package
-│   ├── handlers.go       # HTTP-like handler functions
-│   └── handlers_test.go  # Unit tests, benchmarks, and examples
-├── plan.md               # Development plan and progress tracking
-├── CLAUDE.md             # This file - development guidelines
-├── flake.nix             # Nix development environment
-├── .envrc                # direnv configuration
-└── .gitignore            # Git ignore rules
-```
-
-### Package Organization
-
-- **main**: Entry point demonstrating all functionality
-- **utils**: Pure utility functions (math, string operations)
-- **handlers**: Application handlers with error handling and business logic
-- Each package has comprehensive tests including unit tests, benchmarks, and examples
-
-## Development Guidelines
-
-**IMPORTANT**: The developer is new to Go and wants to learn step by step. Always ask for permission before:
-- Introducing new libraries or dependencies
-- Adding new Go concepts or patterns
-- Making architectural decisions
-- Adding any external tools or configurations
-
-Take time to explain Go concepts when implementing features.
-
-### Pre-commit Hooks
-
-The project uses pre-commit to ensure code quality:
+### Debugging
 
 ```bash
-# Install pre-commit hooks (after entering nix develop)
-pre-commit install
+# Enable debug logging
+APP_LOG_LEVEL=debug go run ./cmd/cli
 
-# Run hooks manually on all files
-pre-commit run --all-files
+# Check Redis connection
+redis-cli ping
 
-# Run hooks on staged files only
-pre-commit run
+# View PostgreSQL logs
+docker-compose logs -f postgres
 ```
 
-**Current hooks:**
-- golangci-lint: Runs Go linting on all .go files
+## Project-Specific Guidelines
 
-**Adding new hooks**: Always ask for permission before adding additional pre-commit hooks or changing the configuration.
+1. **Phase-based Development**: Follow the plan.md for feature implementation order
+2. **Mock First**: Implement mock versions before integrating external services
+3. **Channel Abstraction**: All content generation should be channel-aware
+4. **Resource Management**: Clean up temporary files in assets/temp/
+5. **API Keys**: Never commit API keys; use environment variables
 
-## Pull Request Guidelines
+## Troubleshooting
 
-### Auto-merge 설정
+### Common Issues
 
-PR 생성 시 자동 병합(auto-merge) 옵션을 활성화하려면 다음 GitHub CLI 명령어를 사용하세요:
+1. **"Missing configuration"**: Ensure APP_ENV is set correctly
+2. **"Redis connection failed"**: Run `docker-compose up -d`
+3. **"API key not found"**: Set required environment variables
+4. **Test failures**: Check if using test environment (`APP_ENV=test`)
 
-```bash
-# PR 생성 후 auto-merge 활성화
-gh pr merge --auto --squash [PR번호]
+### Development Tips
 
-# 또는 PR 생성과 동시에 설정
-gh pr create --title "제목" --body "내용" && gh pr merge --auto --squash
-```
-
-#### Auto-merge 조건
-- **모든 CI 검사 통과**: format-check, lint-check, test-check, coverage-check 모두 성공
-- **리뷰 승인**: 필요한 리뷰어의 승인 완료
-- **브랜치 보호 규칙**: 저장소의 브랜치 보호 설정 준수
-
-#### 병합 전략
-- **Squash and merge**: 기본 설정으로 모든 커밋을 하나로 합쳐서 병합
-- **커밋 메시지**: PR 제목과 설명을 기반으로 자동 생성
-
-#### 주의사항
-- Auto-merge 활성화 후에도 CI 실패 시 자동 병합되지 않음
-- 충돌 발생 시 수동 해결 후 다시 설정 필요
-- 긴급 수정이 아닌 경우 리뷰 후 병합 권장
-
-### PR 체크리스트
-
-각 PR은 다음 항목들을 확인해야 합니다:
-
-#### 코드 품질
-- [ ] `make fmt`: 코드 포맷팅 통과
-- [ ] `make lint`: golangci-lint 검사 통과  
-- [ ] `make test`: 모든 테스트 통과
-- [ ] `make coverage-html`: 커버리지 목표 달성
-
-#### 문서화
-- [ ] 코드 변경사항에 대한 적절한 주석
-- [ ] 새로운 기능의 경우 README 업데이트
-- [ ] API 변경사항의 경우 문서 업데이트
-
-#### 테스트
-- [ ] 새로운 기능에 대한 단위 테스트 작성
-- [ ] 기존 테스트가 여전히 통과하는지 확인
-- [ ] 엣지 케이스에 대한 테스트 고려
-
-## Nix Integration
-
-- `flake.nix`: Defines the development environment with Go toolchain
-- `.envrc`: Enables automatic environment activation with direnv
-- Development shell automatically activates when entering the directory (with direnv)
+- Use `make dev` for quick development cycles
+- Run `make coverage` to check test coverage
+- Always run `make fmt` before committing
+- Check `plan.md` for current development phase
