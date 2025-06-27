@@ -116,7 +116,7 @@ gh pr view 456 --json title,headRefName,labels
 - **Branch types**: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`
 - **Language**: English only for branch names
 - **Case format**: kebab-case for all components
-- **Directory structure**: Always use `./.local/{branch-name}`
+- **Directory structure**: Always create worktrees under `./.local/{branch-name}` directory
 </constraints>
 
 <validation>
@@ -157,7 +157,7 @@ gh pr view 456 --json title,headRefName,labels
 ❌ DO NOT use temporal descriptors (new, old, temp)
 ❌ DO NOT create generic branch names (feature, fix, update)
 ❌ DO NOT ignore existing team conventions
-❌ DO NOT create worktrees outside `./.local/` structure
+❌ DO NOT create worktrees outside `./.local/` directory structure
 </anti_patterns>
 
 ## Why Use Worktrees
@@ -381,6 +381,8 @@ awk '/^worktree/ {wt=$2}
 
 ## Directory Structure
 
+All worktrees are created under the `.local/` directory to maintain organization and avoid cluttering the main repository:
+
 ```
 ./.local/
 ├── feature-issue-101-login/
@@ -390,6 +392,12 @@ awk '/^worktree/ {wt=$2}
 ├── review-pr-123/
 └── release-v2-0-prep/
 ```
+
+**Benefits of using `.local/`:**
+- Keeps worktrees organized in a single location
+- Easy to identify and manage all parallel development branches
+- Avoids cluttering the main repository directory
+- Consistent with gitignore patterns (`.local/` is typically ignored)
 
 ## Best Practices
 

@@ -54,6 +54,7 @@ Rule #1: If you want exception to ANY rule, YOU MUST STOP and get explicit permi
 - When starting work without a clear branch for the current task, YOU MUST create a WIP branch.
 - YOU MUST TRACK All non-trivial changes in git.
 - YOU MUST commit frequently throughout the development process, even if your high-level tasks are not yet done.
+- **ABSOLUTE PROHIBITION**: YOU MUST NEVER use `git commit --no-verify` under ANY circumstances. Pre-commit hooks exist for a reason and MUST ALWAYS run. If hooks are failing, fix the underlying issue instead of bypassing them.
 
 ## Testing
 
