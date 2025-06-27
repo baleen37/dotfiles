@@ -78,7 +78,16 @@ type usage struct {
 
 // GenerateStory generates a story using OpenAI API
 func (g *OpenAIGenerator) GenerateStory(ctx context.Context, channel *models.Channel) (*models.Story, error) {
+	startTime := time.Now()
+	apiLogger := logger.WithOperation("openai_generate_story")
+
 	prompt := g.buildPrompt(channel)
+
+	apiLogger.Debug("starting story generation",
+		"channel_name", channel.Name,
+		"model", g.model,
+		"max_tokens", g.maxTokens,
+	)
 
 	// Prepare request
 	reqBody := openAIRequest{
@@ -113,7 +122,10 @@ func (g *OpenAIGenerator) GenerateStory(ctx context.Context, channel *models.Cha
 
 	// Send request
 	resp, err := g.httpClient.Do(req)
+	duration := time.Since(startTime)
+
 	if err != nil {
+		logger.LogAPICall("openai", "chat/completions", 0, duration, err)
 		// Check if it's a timeout
 		if ctx.Err() == context.DeadlineExceeded {
 			return nil, errors.Wrap(err, errors.ErrorTypeExternal, errors.CodeOpenAITimeout, "OpenAI API request timed out")
@@ -128,11 +140,22 @@ func (g *OpenAIGenerator) GenerateStory(ctx context.Context, channel *models.Cha
 
 	// Check status code
 	if resp.StatusCode != http.StatusOK {
+		logger.LogAPICall("openai", "chat/completions", resp.StatusCode, duration, nil)
+
 		var errorResp map[string]interface{}
 		if decodeErr := json.NewDecoder(resp.Body).Decode(&errorResp); decodeErr != nil {
+			apiLogger.Error("failed to decode openai error response",
+				"status_code", resp.StatusCode,
+				"decode_error", decodeErr,
+			)
 			return nil, errors.Wrap(decodeErr, errors.ErrorTypeExternal, errors.CodeOpenAIAPIError, "failed to decode OpenAI error response").
 				WithDetails("statusCode", resp.StatusCode)
 		}
+
+		apiLogger.Error("openai api returned error",
+			"status_code", resp.StatusCode,
+			"error_response", errorResp,
+		)
 
 		// Determine specific error type based on status code
 		var errorCode string
@@ -155,13 +178,17 @@ func (g *OpenAIGenerator) GenerateStory(ctx context.Context, channel *models.Cha
 			WithDetails("error", errorResp)
 	}
 
+	logger.LogAPICall("openai", "chat/completions", resp.StatusCode, duration, nil)
+
 	// Parse response
 	var openAIResp openAIResponse
 	if err := json.NewDecoder(resp.Body).Decode(&openAIResp); err != nil {
+		apiLogger.Error("failed to decode openai response", "error", err)
 		return nil, errors.Wrap(err, errors.ErrorTypeExternal, errors.CodeOpenAIAPIError, "failed to decode OpenAI response")
 	}
 
 	if len(openAIResp.Choices) == 0 {
+		apiLogger.Error("no choices returned from openai")
 		return nil, errors.New(errors.ErrorTypeExternal, errors.CodeOpenAIAPIError, "no choices returned from OpenAI")
 	}
 
@@ -171,13 +198,21 @@ func (g *OpenAIGenerator) GenerateStory(ctx context.Context, channel *models.Cha
 	// Parse the structured response
 	story, err := g.parseStoryResponse(content)
 	if err != nil {
+		apiLogger.Error("failed to parse story response", "error", err, "content", content)
 		return nil, errors.Wrap(err, errors.ErrorTypeInternal, errors.CodeStoryGenerationFailed, "failed to parse story response")
 	}
 
-	logger.Info("story generated successfully",
+	// Log successful operation with structured fields
+	totalDuration := time.Since(startTime)
+	logger.LogOperation("openai_generate_story", totalDuration, nil)
+
+	apiLogger.Info("story generated successfully",
 		"title", story.Title,
-		"length", len(story.Content),
+		"content_length", len(story.Content),
 		"tokens_used", openAIResp.Usage.TotalTokens,
+		"prompt_tokens", openAIResp.Usage.PromptTokens,
+		"completion_tokens", openAIResp.Usage.CompletionTokens,
+		"channel", channel.Name,
 	)
 
 	return story, nil

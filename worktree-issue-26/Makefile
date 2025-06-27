@@ -53,6 +53,8 @@ lint:
 deps:
 	$(GO) mod download
 	$(GO) mod tidy
+	@echo "Setting up pre-commit hooks..."
+	@$(MAKE) setup-hooks
 
 # Database migrations
 migrate-up:
@@ -66,7 +68,15 @@ migrate-down:
 # Development mode with hot reload
 dev:
 	@echo "Starting in development mode..."
+	@$(MAKE) ensure-hooks
 	APP_ENV=local $(GO) run $(MAIN_PATH)
+
+# Ensure git hooks are installed (skip if already exists)
+ensure-hooks:
+	@if [ ! -f ".git/hooks/pre-commit" ] && [ ! -f "$$(cat .git 2>/dev/null | sed 's/gitdir: //')/hooks/pre-commit" 2>/dev/null ]; then \
+		echo "Installing pre-commit hooks..."; \
+		$(MAKE) setup-hooks; \
+	fi
 
 # Custom git hooks setup
 setup-hooks:
@@ -85,7 +95,7 @@ help:
 	@echo "  make clean       - Clean build artifacts"
 	@echo "  make fmt         - Format code"
 	@echo "  make lint        - Run linter"
-	@echo "  make deps        - Install dependencies"
-	@echo "  make dev         - Run in development mode"
+	@echo "  make deps        - Install dependencies and pre-commit hooks"
+	@echo "  make dev         - Run in development mode (auto-installs hooks)"
 	@echo "  make setup-hooks - Install custom git pre-commit hooks"
 	@echo "  make help        - Show this help message"
