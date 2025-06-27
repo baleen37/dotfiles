@@ -2,8 +2,8 @@ package core
 
 import (
 	"context"
-	"fmt"
 	"ssulmeta-go/internal/story/ports"
+	"ssulmeta-go/pkg/errors"
 	"ssulmeta-go/pkg/models"
 )
 
@@ -29,17 +29,26 @@ func (s *Service) GenerateStory(ctx context.Context, channel *models.Channel) (*
 	// Generate story
 	story, err := s.generator.GenerateStory(ctx, channel)
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate story: %w", err)
+		// Check if it's already an AppError
+		if appErr, ok := errors.GetAppError(err); ok {
+			return nil, appErr
+		}
+		return nil, errors.Wrap(err, errors.ErrorTypeInternal, errors.CodeStoryGenerationFailed, "failed to generate story")
 	}
 
 	// Validate story
 	if err := s.validator.ValidateStory(story); err != nil {
-		return nil, fmt.Errorf("story validation failed: %w", err)
+		// Validator already returns AppError
+		return nil, err
 	}
 
 	// Divide into scenes
 	if err := s.generator.DivideIntoScenes(ctx, story); err != nil {
-		return nil, fmt.Errorf("failed to divide into scenes: %w", err)
+		// Check if it's already an AppError
+		if appErr, ok := errors.GetAppError(err); ok {
+			return nil, appErr
+		}
+		return nil, errors.Wrap(err, errors.ErrorTypeInternal, errors.CodeStoryGenerationFailed, "failed to divide into scenes")
 	}
 
 	// Validate scenes
@@ -48,7 +57,8 @@ func (s *Service) GenerateStory(ctx context.Context, channel *models.Channel) (*
 		scenePointers[i] = &story.Scenes[i]
 	}
 	if err := s.validator.ValidateScenes(scenePointers); err != nil {
-		return nil, fmt.Errorf("scene validation failed: %w", err)
+		// Validator already returns AppError
+		return nil, err
 	}
 
 	return story, nil

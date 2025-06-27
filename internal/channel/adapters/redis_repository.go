@@ -3,10 +3,10 @@ package adapters
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"ssulmeta-go/internal/channel/core"
 	"ssulmeta-go/internal/channel/ports"
+	"ssulmeta-go/pkg/errors"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -55,13 +55,13 @@ func (cd *channelData) toChannel() (*core.Channel, error) {
 	// We can't use NewChannel because it would reset timestamps and settings
 	// Instead, create the struct directly with validation
 	if cd.ID == "" {
-		return nil, errors.New("channel ID cannot be empty")
+		return nil, errors.New(errors.ErrorTypeInternal, errors.CodeInternalError, "channel ID cannot be empty")
 	}
 	if cd.Name == "" {
-		return nil, errors.New("channel name cannot be empty")
+		return nil, errors.New(errors.ErrorTypeInternal, errors.CodeInternalError, "channel name cannot be empty")
 	}
 	if cd.Concept == "" {
-		return nil, errors.New("channel concept cannot be empty")
+		return nil, errors.New(errors.ErrorTypeInternal, errors.CodeInternalError, "channel concept cannot be empty")
 	}
 
 	return &core.Channel{
@@ -92,11 +92,12 @@ func (r *RedisChannelRepository) Create(ctx context.Context, channel *core.Chann
 	// Check if channel already exists
 	exists, err := r.client.Exists(ctx, key).Result()
 	if err != nil {
-		return fmt.Errorf("failed to check if channel exists: %w", err)
+		return errors.Wrap(err, errors.ErrorTypeExternal, errors.CodeRedisOperationFail, "failed to check if channel exists")
 	}
 
 	if exists > 0 {
-		return errors.New("channel already exists")
+		return errors.New(errors.ErrorTypeConflict, errors.CodeChannelAlreadyExists, "channel already exists").
+			WithDetails("channelId", channel.ID)
 	}
 
 	// Convert to storage format
@@ -105,7 +106,7 @@ func (r *RedisChannelRepository) Create(ctx context.Context, channel *core.Chann
 	// Serialize to JSON
 	jsonData, err := json.Marshal(data)
 	if err != nil {
-		return fmt.Errorf("failed to marshal channel data: %w", err)
+		return errors.Wrap(err, errors.ErrorTypeInternal, errors.CodeInternalError, "failed to marshal channel data")
 	}
 
 	// Store in Redis using a transaction
@@ -115,7 +116,7 @@ func (r *RedisChannelRepository) Create(ctx context.Context, channel *core.Chann
 
 	_, err = pipe.Exec(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to create channel: %w", err)
+		return errors.Wrap(err, errors.ErrorTypeExternal, errors.CodeRedisOperationFail, "failed to create channel")
 	}
 
 	return nil
@@ -129,15 +130,16 @@ func (r *RedisChannelRepository) GetByID(ctx context.Context, id string) (*core.
 	jsonData, err := r.client.Get(ctx, key).Result()
 	if err != nil {
 		if err == redis.Nil {
-			return nil, errors.New("channel not found")
+			return nil, errors.New(errors.ErrorTypeNotFound, errors.CodeChannelNotFound, "channel not found").
+				WithDetails("channelId", id)
 		}
-		return nil, fmt.Errorf("failed to get channel: %w", err)
+		return nil, errors.Wrap(err, errors.ErrorTypeExternal, errors.CodeRedisOperationFail, "failed to get channel")
 	}
 
 	// Deserialize from JSON
 	var data channelData
 	if err := json.Unmarshal([]byte(jsonData), &data); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal channel data: %w", err)
+		return nil, errors.Wrap(err, errors.ErrorTypeInternal, errors.CodeInternalError, "failed to unmarshal channel data")
 	}
 
 	// Convert back to Channel
@@ -151,11 +153,12 @@ func (r *RedisChannelRepository) Update(ctx context.Context, channel *core.Chann
 	// Check if channel exists
 	exists, err := r.client.Exists(ctx, key).Result()
 	if err != nil {
-		return fmt.Errorf("failed to check if channel exists: %w", err)
+		return errors.Wrap(err, errors.ErrorTypeExternal, errors.CodeRedisOperationFail, "failed to check if channel exists")
 	}
 
 	if exists == 0 {
-		return errors.New("channel not found")
+		return errors.New(errors.ErrorTypeNotFound, errors.CodeChannelNotFound, "channel not found").
+			WithDetails("channelId", channel.ID)
 	}
 
 	// Convert to storage format
@@ -164,13 +167,13 @@ func (r *RedisChannelRepository) Update(ctx context.Context, channel *core.Chann
 	// Serialize to JSON
 	jsonData, err := json.Marshal(data)
 	if err != nil {
-		return fmt.Errorf("failed to marshal channel data: %w", err)
+		return errors.Wrap(err, errors.ErrorTypeInternal, errors.CodeInternalError, "failed to marshal channel data")
 	}
 
 	// Update in Redis
 	err = r.client.Set(ctx, key, jsonData, 0).Err()
 	if err != nil {
-		return fmt.Errorf("failed to update channel: %w", err)
+		return errors.Wrap(err, errors.ErrorTypeExternal, errors.CodeRedisOperationFail, "failed to update channel")
 	}
 
 	return nil
@@ -183,11 +186,12 @@ func (r *RedisChannelRepository) Delete(ctx context.Context, id string) error {
 	// Check if channel exists
 	exists, err := r.client.Exists(ctx, key).Result()
 	if err != nil {
-		return fmt.Errorf("failed to check if channel exists: %w", err)
+		return errors.Wrap(err, errors.ErrorTypeExternal, errors.CodeRedisOperationFail, "failed to check if channel exists")
 	}
 
 	if exists == 0 {
-		return errors.New("channel not found")
+		return errors.New(errors.ErrorTypeNotFound, errors.CodeChannelNotFound, "channel not found").
+			WithDetails("channelId", id)
 	}
 
 	// Delete from Redis using a transaction
@@ -197,7 +201,7 @@ func (r *RedisChannelRepository) Delete(ctx context.Context, id string) error {
 
 	_, err = pipe.Exec(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to delete channel: %w", err)
+		return errors.Wrap(err, errors.ErrorTypeExternal, errors.CodeRedisOperationFail, "failed to delete channel")
 	}
 
 	return nil
@@ -208,7 +212,7 @@ func (r *RedisChannelRepository) List(ctx context.Context, activeOnly bool) ([]*
 	// Get all channel IDs from the index
 	channelIDs, err := r.client.SMembers(ctx, r.getIndexKey()).Result()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get channel index: %w", err)
+		return nil, errors.Wrap(err, errors.ErrorTypeExternal, errors.CodeRedisOperationFail, "failed to get channel index")
 	}
 
 	var channels []*core.Channel

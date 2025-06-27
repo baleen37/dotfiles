@@ -1,6 +1,8 @@
 package core
 
 import (
+	"ssulmeta-go/pkg/errors"
+	"strings"
 	"testing"
 	"time"
 )
@@ -56,8 +58,13 @@ func TestNewChannel(t *testing.T) {
 					t.Errorf("NewChannel() error = nil, wantErr %v", tt.wantErr)
 					return
 				}
-				if err.Error() != tt.errMessage {
-					t.Errorf("NewChannel() error = %v, wantErr %v", err.Error(), tt.errMessage)
+				// Check if it's an AppError and contains the expected message
+				if appErr, ok := errors.GetAppError(err); ok {
+					if !strings.Contains(appErr.Message, tt.errMessage) {
+						t.Errorf("NewChannel() error message = %v, want to contain %v", appErr.Message, tt.errMessage)
+					}
+				} else {
+					t.Errorf("NewChannel() error is not an AppError: %v", err)
 				}
 				return
 			}
@@ -173,8 +180,13 @@ func TestChannel_UpdateSettings(t *testing.T) {
 					t.Errorf("UpdateSettings() error = nil, wantErr %v", tt.wantErr)
 					return
 				}
-				if err.Error() != tt.errMessage {
-					t.Errorf("UpdateSettings() error = %v, wantErr %v", err.Error(), tt.errMessage)
+				// Check if it's an AppError and contains the expected message
+				if appErr, ok := errors.GetAppError(err); ok {
+					if !strings.Contains(appErr.Message, tt.errMessage) {
+						t.Errorf("UpdateSettings() error message = %v, want to contain %v", appErr.Message, tt.errMessage)
+					}
+				} else {
+					t.Errorf("UpdateSettings() error is not an AppError: %v", err)
 				}
 				return
 			}

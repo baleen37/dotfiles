@@ -1,8 +1,8 @@
 package core
 
 import (
-	"fmt"
 	"ssulmeta-go/internal/story/ports"
+	"ssulmeta-go/pkg/errors"
 	"ssulmeta-go/pkg/models"
 	"strings"
 	"unicode/utf8"
@@ -28,22 +28,22 @@ func NewValidator() *Validator {
 // ValidateStory validates a story
 func (v *Validator) ValidateStory(story *models.Story) error {
 	if story == nil {
-		return fmt.Errorf("story is nil")
+		return errors.New(errors.ErrorTypeValidation, errors.CodeStoryValidationFailed, "story is nil")
 	}
 
 	// Check title
 	if err := v.validateTitle(story.Title); err != nil {
-		return fmt.Errorf("title validation failed: %w", err)
+		return errors.Wrap(err, errors.ErrorTypeValidation, errors.CodeStoryValidationFailed, "title validation failed")
 	}
 
 	// Check content
 	if err := v.validateContent(story.Content); err != nil {
-		return fmt.Errorf("content validation failed: %w", err)
+		return errors.Wrap(err, errors.ErrorTypeValidation, errors.CodeStoryValidationFailed, "content validation failed")
 	}
 
 	// Check story structure
 	if err := v.validateStructure(story.Content); err != nil {
-		return fmt.Errorf("structure validation failed: %w", err)
+		return errors.Wrap(err, errors.ErrorTypeValidation, errors.CodeStoryValidationFailed, "structure validation failed")
 	}
 
 	return nil
@@ -52,11 +52,14 @@ func (v *Validator) ValidateStory(story *models.Story) error {
 // validateTitle validates the story title
 func (v *Validator) validateTitle(title string) error {
 	if title == "" {
-		return fmt.Errorf("title is empty")
+		return errors.New(errors.ErrorTypeValidation, errors.CodeStoryEmpty, "title is empty")
 	}
 
-	if utf8.RuneCountInString(title) > 50 {
-		return fmt.Errorf("title too long (max 50 characters)")
+	titleLength := utf8.RuneCountInString(title)
+	if titleLength > 50 {
+		return errors.New(errors.ErrorTypeValidation, errors.CodeStoryTooLong, "title too long").
+			WithDetails("maxLength", 50).
+			WithDetails("actualLength", titleLength)
 	}
 
 	return nil
@@ -65,18 +68,22 @@ func (v *Validator) validateTitle(title string) error {
 // validateContent validates the story content
 func (v *Validator) validateContent(content string) error {
 	if content == "" {
-		return fmt.Errorf("content is empty")
+		return errors.New(errors.ErrorTypeValidation, errors.CodeStoryEmpty, "content is empty")
 	}
 
 	// Count characters (not bytes)
 	charCount := utf8.RuneCountInString(content)
 
 	if charCount < v.minLength {
-		return fmt.Errorf("content too short: %d characters (min %d)", charCount, v.minLength)
+		return errors.New(errors.ErrorTypeValidation, errors.CodeStoryTooShort, "content too short").
+			WithDetails("minLength", v.minLength).
+			WithDetails("actualLength", charCount)
 	}
 
 	if charCount > v.maxLength {
-		return fmt.Errorf("content too long: %d characters (max %d)", charCount, v.maxLength)
+		return errors.New(errors.ErrorTypeValidation, errors.CodeStoryTooLong, "content too long").
+			WithDetails("maxLength", v.maxLength).
+			WithDetails("actualLength", charCount)
 	}
 
 	// Check for inappropriate content (basic check)
@@ -101,7 +108,9 @@ func (v *Validator) validateStructure(content string) error {
 	}
 
 	if len(cleanSentences) < 3 {
-		return fmt.Errorf("story needs at least 3 sentences for proper structure")
+		return errors.New(errors.ErrorTypeValidation, errors.CodeStoryValidationFailed, "story needs at least 3 sentences for proper structure").
+			WithDetails("minSentences", 3).
+			WithDetails("actualSentences", len(cleanSentences))
 	}
 
 	return nil
@@ -120,7 +129,8 @@ func (v *Validator) checkInappropriateContent(content string) error {
 	lowerContent := strings.ToLower(content)
 	for _, word := range inappropriateWords {
 		if strings.Contains(lowerContent, word) {
-			return fmt.Errorf("inappropriate content detected")
+			return errors.New(errors.ErrorTypeValidation, errors.CodeStoryValidationFailed, "inappropriate content detected").
+				WithDetails("reason", "inappropriate content")
 		}
 	}
 
@@ -130,24 +140,32 @@ func (v *Validator) checkInappropriateContent(content string) error {
 // ValidateScenes validates the scenes
 func (v *Validator) ValidateScenes(scenes []*models.Scene) error {
 	if len(scenes) < 6 {
-		return fmt.Errorf("too few scenes: %d (min 6)", len(scenes))
+		return errors.New(errors.ErrorTypeValidation, errors.CodeStoryValidationFailed, "too few scenes").
+			WithDetails("minScenes", 6).
+			WithDetails("actualScenes", len(scenes))
 	}
 
 	if len(scenes) > 10 {
-		return fmt.Errorf("too many scenes: %d (max 10)", len(scenes))
+		return errors.New(errors.ErrorTypeValidation, errors.CodeStoryValidationFailed, "too many scenes").
+			WithDetails("maxScenes", 10).
+			WithDetails("actualScenes", len(scenes))
 	}
 
 	for i, scene := range scenes {
 		if scene.Description == "" {
-			return fmt.Errorf("scene %d has empty description", i+1)
+			return errors.New(errors.ErrorTypeValidation, errors.CodeStoryValidationFailed, "scene has empty description").
+				WithDetails("sceneNumber", i+1)
 		}
 
 		if scene.ImagePrompt == "" {
-			return fmt.Errorf("scene %d has empty image prompt", i+1)
+			return errors.New(errors.ErrorTypeValidation, errors.CodeStoryValidationFailed, "scene has empty image prompt").
+				WithDetails("sceneNumber", i+1)
 		}
 
 		if scene.Duration <= 0 {
-			return fmt.Errorf("scene %d has invalid duration: %f", i+1, scene.Duration)
+			return errors.New(errors.ErrorTypeValidation, errors.CodeStoryValidationFailed, "scene has invalid duration").
+				WithDetails("sceneNumber", i+1).
+				WithDetails("duration", scene.Duration)
 		}
 	}
 

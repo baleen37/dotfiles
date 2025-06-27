@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"ssulmeta-go/internal/config"
 	"ssulmeta-go/internal/story/ports"
+	"ssulmeta-go/pkg/errors"
 	"ssulmeta-go/pkg/logger"
 	"ssulmeta-go/pkg/models"
 	"strings"
@@ -99,13 +100,13 @@ func (g *OpenAIGenerator) GenerateStory(ctx context.Context, channel *models.Cha
 
 	jsonData, err := json.Marshal(reqBody)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal request: %w", err)
+		return nil, errors.Wrap(err, errors.ErrorTypeInternal, errors.CodeInternalError, "failed to marshal request")
 	}
 
 	// Create HTTP request
 	req, err := http.NewRequestWithContext(ctx, "POST", "https://api.openai.com/v1/chat/completions", bytes.NewBuffer(jsonData))
 	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
+		return nil, errors.Wrap(err, errors.ErrorTypeInternal, errors.CodeInternalError, "failed to create request")
 	}
 
 	req.Header.Set("Content-Type", "application/json")
@@ -114,7 +115,11 @@ func (g *OpenAIGenerator) GenerateStory(ctx context.Context, channel *models.Cha
 	// Send request
 	resp, err := g.httpClient.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("failed to send request: %w", err)
+		// Check if it's a timeout
+		if ctx.Err() == context.DeadlineExceeded {
+			return nil, errors.Wrap(err, errors.ErrorTypeExternal, errors.CodeOpenAITimeout, "OpenAI API request timed out")
+		}
+		return nil, errors.Wrap(err, errors.ErrorTypeExternal, errors.CodeOpenAIAPIError, "failed to send request to OpenAI")
 	}
 	defer func() {
 		if closeErr := resp.Body.Close(); closeErr != nil {
@@ -126,19 +131,39 @@ func (g *OpenAIGenerator) GenerateStory(ctx context.Context, channel *models.Cha
 	if resp.StatusCode != http.StatusOK {
 		var errorResp map[string]interface{}
 		if decodeErr := json.NewDecoder(resp.Body).Decode(&errorResp); decodeErr != nil {
-			return nil, fmt.Errorf("OpenAI API error (status %d): failed to decode error response: %w", resp.StatusCode, decodeErr)
+			return nil, errors.Wrap(decodeErr, errors.ErrorTypeExternal, errors.CodeOpenAIAPIError, "failed to decode OpenAI error response").
+				WithDetails("statusCode", resp.StatusCode)
 		}
-		return nil, fmt.Errorf("OpenAI API error (status %d): %v", resp.StatusCode, errorResp)
+
+		// Determine specific error type based on status code
+		var errorCode string
+		var errorType errors.ErrorType
+
+		switch resp.StatusCode {
+		case http.StatusTooManyRequests:
+			errorCode = errors.CodeOpenAIRateLimited
+			errorType = errors.ErrorTypeExternal
+		case http.StatusUnauthorized:
+			errorCode = errors.CodeUnauthorized
+			errorType = errors.ErrorTypeUnauthorized
+		default:
+			errorCode = errors.CodeOpenAIAPIError
+			errorType = errors.ErrorTypeExternal
+		}
+
+		return nil, errors.New(errorType, errorCode, "OpenAI API error").
+			WithDetails("statusCode", resp.StatusCode).
+			WithDetails("error", errorResp)
 	}
 
 	// Parse response
 	var openAIResp openAIResponse
 	if err := json.NewDecoder(resp.Body).Decode(&openAIResp); err != nil {
-		return nil, fmt.Errorf("failed to decode response: %w", err)
+		return nil, errors.Wrap(err, errors.ErrorTypeExternal, errors.CodeOpenAIAPIError, "failed to decode OpenAI response")
 	}
 
 	if len(openAIResp.Choices) == 0 {
-		return nil, fmt.Errorf("no choices returned from OpenAI")
+		return nil, errors.New(errors.ErrorTypeExternal, errors.CodeOpenAIAPIError, "no choices returned from OpenAI")
 	}
 
 	// Extract story content
@@ -147,7 +172,7 @@ func (g *OpenAIGenerator) GenerateStory(ctx context.Context, channel *models.Cha
 	// Parse the structured response
 	story, err := g.parseStoryResponse(content)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse story response: %w", err)
+		return nil, errors.Wrap(err, errors.ErrorTypeInternal, errors.CodeStoryGenerationFailed, "failed to parse story response")
 	}
 
 	logger.Info("story generated successfully",

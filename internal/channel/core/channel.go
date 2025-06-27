@@ -1,7 +1,7 @@
 package core
 
 import (
-	"errors"
+	"ssulmeta-go/pkg/errors"
 	"time"
 )
 
@@ -28,15 +28,18 @@ type ChannelSettings struct {
 // NewChannel creates a new channel with validation
 func NewChannel(id, name, concept string) (*Channel, error) {
 	if id == "" {
-		return nil, errors.New("channel ID cannot be empty")
+		return nil, errors.New(errors.ErrorTypeValidation, errors.CodeChannelValidationFailed, "channel ID cannot be empty").
+			WithDetails("field", "id")
 	}
 
 	if name == "" {
-		return nil, errors.New("channel name cannot be empty")
+		return nil, errors.New(errors.ErrorTypeValidation, errors.CodeChannelValidationFailed, "channel name cannot be empty").
+			WithDetails("field", "name")
 	}
 
 	if concept == "" {
-		return nil, errors.New("channel concept cannot be empty")
+		return nil, errors.New(errors.ErrorTypeValidation, errors.CodeChannelValidationFailed, "channel concept cannot be empty").
+			WithDetails("field", "concept")
 	}
 
 	now := time.Now()
@@ -55,19 +58,26 @@ func NewChannel(id, name, concept string) (*Channel, error) {
 // UpdateSettings updates the channel settings with validation
 func (c *Channel) UpdateSettings(settings ChannelSettings) error {
 	if settings.MaxVideoDuration <= 0 {
-		return errors.New("max video duration must be greater than 0")
+		return errors.New(errors.ErrorTypeValidation, errors.CodeChannelValidationFailed, "max video duration must be greater than 0").
+			WithDetails("field", "maxVideoDuration").
+			WithDetails("value", settings.MaxVideoDuration)
 	}
 
 	if settings.VideoWidth <= 0 || settings.VideoHeight <= 0 {
-		return errors.New("video width and height must be greater than 0")
+		return errors.New(errors.ErrorTypeValidation, errors.CodeChannelValidationFailed, "video width and height must be greater than 0").
+			WithDetails("videoWidth", settings.VideoWidth).
+			WithDetails("videoHeight", settings.VideoHeight)
 	}
 
 	if settings.VideoFPS <= 0 {
-		return errors.New("video FPS must be greater than 0")
+		return errors.New(errors.ErrorTypeValidation, errors.CodeChannelValidationFailed, "video FPS must be greater than 0").
+			WithDetails("field", "videoFPS").
+			WithDetails("value", settings.VideoFPS)
 	}
 
 	if settings.Language == "" {
-		return errors.New("language cannot be empty")
+		return errors.New(errors.ErrorTypeValidation, errors.CodeChannelValidationFailed, "language cannot be empty").
+			WithDetails("field", "language")
 	}
 
 	c.Settings = settings
