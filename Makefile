@@ -1,4 +1,4 @@
-.PHONY: build test run clean lint fmt coverage coverage-html
+.PHONY: build test run clean lint fmt coverage
 
 # Variables
 BINARY_NAME=youtube-shorts-generator
@@ -64,16 +64,23 @@ dev:
 	@echo "Starting in development mode..."
 	APP_ENV=local $(GO) run $(MAIN_PATH)
 
+# Custom git hooks setup
+setup-hooks:
+	@echo "Setting up custom git hooks..."
+	@chmod +x scripts/setup-hooks.sh
+	@./scripts/setup-hooks.sh
+
 # Help
 help:
 	@echo "Available commands:"
-	@echo "  make build     - Build the application"
-	@echo "  make test      - Run tests"
-	@echo "  make coverage  - Run tests with coverage"
-	@echo "  make run       - Build and run the application"
-	@echo "  make clean     - Clean build artifacts"
-	@echo "  make fmt       - Format code"
-	@echo "  make lint      - Run linter"
-	@echo "  make deps      - Install dependencies"
-	@echo "  make dev       - Run in development mode"
-	@echo "  make help      - Show this help message"
+	@echo "  make build       - Build the application"
+	@echo "  make test        - Run tests"
+	@echo "  make coverage    - Run tests with coverage"
+	@echo "  make run         - Build and run the application"
+	@echo "  make clean       - Clean build artifacts"
+	@echo "  make fmt         - Format code"
+	@echo "  make lint        - Run linter"
+	@echo "  make deps        - Install dependencies"
+	@echo "  make dev         - Run in development mode"
+	@echo "  make setup-hooks - Install custom git pre-commit hooks"
+	@echo "  make help        - Show this help message"

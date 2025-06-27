@@ -55,6 +55,9 @@ make lint
 
 # Run all CI checks locally
 make fmt && make lint && make test
+
+# Install custom pre-commit hooks
+make setup-hooks
 ```
 
 ### Database Operations
@@ -238,6 +241,33 @@ redis-cli ping
 # View PostgreSQL logs
 docker-compose logs -f postgres
 ```
+
+## Git Pre-commit Hooks
+
+The project supports custom git hooks for automatic code quality checks:
+
+### Installation
+```bash
+# Install custom pre-commit hooks
+make setup-hooks
+```
+
+### Features
+- Automatic code formatting with `gofmt` and `goimports`
+- Comprehensive linting with `golangci-lint` 
+- Automatic staging of formatted files
+- Clear error messages and guidance
+- Works in both git repositories and worktrees
+
+### Hook Files
+- `scripts/pre-commit`: The actual git hook script
+- `scripts/setup-hooks.sh`: Installation script for custom hooks
+
+### Development Guidelines
+- NEVER create dummy or test scripts unless they serve a critical purpose
+- All scripts should have clear, essential functionality
+- Avoid adding unnecessary files to the repository
+- `--no-verify` usage is strictly prohibited
 
 ## Project-Specific Guidelines
 
