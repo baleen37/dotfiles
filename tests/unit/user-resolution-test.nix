@@ -7,10 +7,10 @@
 let
   # Import get-user library
   getUserLib = import (src + "/lib/get-user.nix");
-  
+
   # Check if enhanced version exists
   enhancedGetUserExists = builtins.pathExists (src + "/lib/enhanced-get-user.nix");
-  enhancedGetUserLib = 
+  enhancedGetUserLib =
     if enhancedGetUserExists
     then import (src + "/lib/enhanced-get-user.nix")
     else null;
@@ -30,7 +30,7 @@ pkgs.runCommand "user-resolution-test"
   echo ""
   echo "📋 Test 1: Basic User Resolution"
   echo "-------------------------------"
-  
+
   # Test with USER set
   export USER="testuser"
   result=$(nix eval --impure --expr '(import ${src}/lib/get-user.nix).currentUser' --raw)
@@ -39,7 +39,7 @@ pkgs.runCommand "user-resolution-test"
   else
     echo "❌ Failed to resolve USER variable"
   fi
-  
+
   # Test without USER
   unset USER
   result=$(nix eval --impure --expr '(import ${src}/lib/get-user.nix).currentUser' --raw 2>&1)
@@ -53,7 +53,7 @@ pkgs.runCommand "user-resolution-test"
   echo ""
   echo "📋 Test 2: Return Type Validation"
   echo "--------------------------------"
-  
+
   export USER="testuser"
   type_result=$(nix eval --impure --expr 'builtins.typeOf (import ${src}/lib/get-user.nix).currentUser' --raw)
   if [[ "$type_result" == "string" ]]; then
@@ -66,10 +66,10 @@ pkgs.runCommand "user-resolution-test"
   echo ""
   echo "📋 Test 3: Special Character Handling"
   echo "------------------------------------"
-  
+
   # Test various special characters
   special_users=("user-name" "user_name" "user123" "user.name")
-  
+
   for special_user in "''${special_users[@]}"; do
     export USER="$special_user"
     result=$(nix eval --impure --expr '(import ${src}/lib/get-user.nix).currentUser' --raw 2>&1)
@@ -84,18 +84,18 @@ pkgs.runCommand "user-resolution-test"
   echo ""
   echo "📋 Test 4: SUDO_USER Priority Handling"
   echo "-------------------------------------"
-  
+
   if [[ -n "$enhancedGetUserLib" ]]; then
     export USER="regularuser"
     export SUDO_USER="sudouser"
-    
+
     result=$(nix eval --impure --expr '(import ${src}/lib/enhanced-get-user.nix).currentUser' --raw 2>&1)
     if [[ "$result" == "regularuser" ]]; then
       echo "✅ USER takes priority over SUDO_USER"
     else
       echo "⚠️  Unexpected priority behavior"
     fi
-    
+
     unset USER
     result=$(nix eval --impure --expr '(import ${src}/lib/enhanced-get-user.nix).currentUser' --raw 2>&1)
     if [[ "$result" == "sudouser" ]]; then
@@ -109,10 +109,10 @@ pkgs.runCommand "user-resolution-test"
   echo ""
   echo "📋 Test 5: Platform-Specific Behavior"
   echo "------------------------------------"
-  
+
   current_system=$(nix eval --impure --expr 'builtins.currentSystem' --raw)
   echo "✅ Testing on system: $current_system"
-  
+
   # Test platform detection
   case "$current_system" in
     *-darwin)
@@ -136,10 +136,10 @@ pkgs.runCommand "user-resolution-test"
   echo ""
   echo "📋 Test 6: Auto-Detection Fallback"
   echo "---------------------------------"
-  
+
   unset USER
   unset SUDO_USER
-  
+
   # Test if system can auto-detect user
   if command -v whoami &>/dev/null; then
     detected_user=$(whoami)
@@ -152,10 +152,10 @@ pkgs.runCommand "user-resolution-test"
   echo ""
   echo "📋 Test 7: Error Messages and Guidance"
   echo "-------------------------------------"
-  
+
   unset USER
   error_output=$(nix eval --impure --expr '(import ${src}/lib/get-user.nix).currentUser' 2>&1 || true)
-  
+
   echo "✅ Helpful error guidance should include:"
   echo "  - Clear explanation of the issue"
   echo "  - Suggested fix: export USER=\$(whoami)"
@@ -165,7 +165,7 @@ pkgs.runCommand "user-resolution-test"
   echo ""
   echo "📋 Test 8: Empty Username Handling"
   echo "---------------------------------"
-  
+
   export USER=""
   result=$(nix eval --impure --expr '(import ${src}/lib/get-user.nix).currentUser' --raw 2>&1)
   if [[ "$result" != "" ]]; then
@@ -178,7 +178,7 @@ pkgs.runCommand "user-resolution-test"
   echo ""
   echo "📋 Test 9: System Integration"
   echo "----------------------------"
-  
+
   echo "✅ User resolution integrates with:"
   echo "  - Home directory paths (/Users/\$USER or /home/\$USER)"
   echo "  - Configuration file locations"
@@ -189,17 +189,17 @@ pkgs.runCommand "user-resolution-test"
   echo ""
   echo "📋 Test 10: Performance"
   echo "----------------------"
-  
+
   # Test that user resolution is cached/efficient
   start_time=$(date +%s%N)
   for i in {1..10}; do
     nix eval --impure --expr '(import ${src}/lib/get-user.nix).currentUser' --raw &>/dev/null
   done
   end_time=$(date +%s%N)
-  
+
   elapsed=$(( (end_time - start_time) / 1000000 ))
   echo "✅ 10 resolutions completed in $elapsed ms"
-  
+
   if [[ $elapsed -lt 1000 ]]; then
     echo "✅ Performance is acceptable"
   else
@@ -222,6 +222,6 @@ pkgs.runCommand "user-resolution-test"
   echo "- Empty handling: ✅"
   echo "- System integration: ✅"
   echo "- Performance: ✅"
-  
+
   touch $out
 ''

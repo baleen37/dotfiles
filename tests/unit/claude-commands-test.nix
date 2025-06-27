@@ -30,7 +30,7 @@ let
   testEnv = pkgs.runCommand "test-env" { } ''
     mkdir -p $out/claude/commands
     mkdir -p $out/source/commands
-    
+
     # Source has command files
     echo "# Build Command" > $out/source/commands/build.md
     echo "# Plan Command" > $out/source/commands/plan.md
@@ -78,12 +78,12 @@ pkgs.runCommand "claude-commands-test"
   echo ""
   echo "📋 Test 1: mkCommandFiles Function"
   echo "-----------------------------------"
-  
+
   # Test with actual commands directory
   echo "Testing actual commands directory..."
   actualResult=$(echo '${builtins.toJSON (mkCommandFiles sourceCommandsDir)}' | ${pkgs.jq}/bin/jq -r 'keys[]' | wc -l)
   echo "✅ mkCommandFiles processes actual directory (found entries: $actualResult)"
-  
+
   # Test with test commands directory
   echo "Testing test commands directory..."
   testResult=$(echo '${builtins.toJSON (mkCommandFiles testCommandsDir)}' | ${pkgs.jq}/bin/jq -r 'keys[]' | wc -l)
@@ -93,7 +93,7 @@ pkgs.runCommand "claude-commands-test"
   echo ""
   echo "📋 Test 2: Source Directory Validation"
   echo "-------------------------------------"
-  
+
   if [[ -d "${sourceCommandsDir}" ]]; then
     echo "✅ Source directory exists: ${sourceCommandsDir}"
   else
@@ -117,10 +117,10 @@ pkgs.runCommand "claude-commands-test"
   echo ""
   echo "📋 Test 3: Expected Files Verification"
   echo "-------------------------------------"
-  
+
   expected_files=("build.md" "plan.md" "tdd.md" "do-todo.md")
   found_files=0
-  
+
   for expected in "''${expected_files[@]}"; do
     if [[ -f "${sourceCommandsDir}/$expected" ]]; then
       echo "✅ Found: $expected"
@@ -129,14 +129,14 @@ pkgs.runCommand "claude-commands-test"
       echo "⚠️  Missing: $expected"
     fi
   done
-  
+
   echo "📊 Found $found_files/${#expected_files[@]} expected files"
 
   # Test 4: Bash Syntax Validation
   echo ""
   echo "📋 Test 4: Bash Syntax Validation"
   echo "---------------------------------"
-  
+
   # Test variable assignment without 'local' keyword
   for cmd_file in "${sourceCommandsDir}"/*.md; do
     if [[ -f "$cmd_file" ]]; then
@@ -150,7 +150,7 @@ pkgs.runCommand "claude-commands-test"
   echo ""
   echo "📋 Test 5: Copy Failure Scenario"
   echo "--------------------------------"
-  
+
   echo "Testing copy to non-existent target..."
   if ${copyCommandsScript} ${testEnv}/source ${testEnv}/claude 2>&1 | grep -q "Copy failed"; then
     echo "✅ Copy fails as expected when target doesn't exist"
@@ -163,14 +163,14 @@ pkgs.runCommand "claude-commands-test"
   echo ""
   echo "📋 Test 6: Activation Script Syntax"
   echo "-----------------------------------"
-  
+
   # Check if local keyword is removed from home-manager.nix
   if grep -q "local base_name" ${src}/modules/darwin/home-manager.nix 2>/dev/null; then
     echo "⚠️  'local' keyword still present in home-manager.nix"
   else
     echo "✅ 'local' keyword removed from home-manager.nix"
   fi
-  
+
   # Check base_name variable assignment pattern
   if grep -q "base_name=.*basename" ${src}/modules/darwin/home-manager.nix 2>/dev/null; then
     echo "✅ base_name assignment pattern found"
@@ -182,12 +182,12 @@ pkgs.runCommand "claude-commands-test"
   echo ""
   echo "📋 Test 7: File Type Filtering"
   echo "------------------------------"
-  
+
   # Verify only .md files are processed
   test_files_count=$(ls ${testCommandsDir} | wc -l)
   test_md_count=$(ls ${testCommandsDir}/*.md 2>/dev/null | wc -l)
   test_txt_count=$(ls ${testCommandsDir}/*.txt 2>/dev/null | wc -l)
-  
+
   echo "✅ Total files in test dir: $test_files_count"
   echo "✅ .md files: $test_md_count"
   echo "✅ .txt files: $test_txt_count (should be ignored)"
@@ -205,6 +205,6 @@ pkgs.runCommand "claude-commands-test"
   echo "- Copy failure handling: ✅"
   echo "- Activation script syntax: ✅"
   echo "- File type filtering: ✅"
-  
+
   touch $out
 ''

@@ -28,10 +28,10 @@ Each consolidated test file follows this structure:
 let
   # Test environment setup
   testEnv = ...;
-  
+
   # Helper functions
   helpers = ...;
-  
+
   # Mock data
   mocks = ...;
 
@@ -40,24 +40,24 @@ pkgs.runCommand "feature-test" {
   buildInputs = with pkgs; [ bash jq ... ];
 } ''
   echo "🧪 Comprehensive [Feature] Test Suite"
-  
+
   # Test 1: Basic Functionality
   echo "📋 Test 1: [Description]"
   # ... test implementation ...
-  
+
   # Test 2: Advanced Features
   echo "📋 Test 2: [Description]"
   # ... test implementation ...
-  
+
   # ... more tests ...
-  
+
   # Final Summary
   echo "🎉 All [Feature] Tests Completed!"
   echo "Summary:"
   echo "- Test 1: ✅"
   echo "- Test 2: ✅"
   # ... summary ...
-  
+
   touch $out
 ''
 ```

@@ -6,7 +6,7 @@
 
 let
   # Import error handling library if it exists
-  errorHandlingLib = 
+  errorHandlingLib =
     if builtins.pathExists (src + "/lib/error-handling.nix")
     then import (src + "/lib/error-handling.nix") { inherit pkgs; }
     else null;
@@ -14,11 +14,11 @@ let
   # Test environment setup
   testEnv = pkgs.runCommand "error-test-env" { } ''
     mkdir -p $out/{lib,flake}
-    
+
     # Create test files
     echo '{ description = "test"; }' > $out/flake/flake.nix
     echo '{}' > $out/flake/flake.lock
-    
+
     # Create module with syntax error
     cat > $out/lib/broken-module.nix <<'EOF'
     { pkgs }:
@@ -26,14 +26,14 @@ let
       # Missing closing brace
       test = "value";
     EOF
-    
+
     # Create circular dependency modules
     cat > $out/lib/module-a.nix <<'EOF'
-    { pkgs }: 
+    { pkgs }:
     let b = import ./module-b.nix { inherit pkgs; };
     in { a = "value"; inherit b; }
     EOF
-    
+
     cat > $out/lib/module-b.nix <<'EOF'
     { pkgs }:
     let a = import ./module-a.nix { inherit pkgs; };
@@ -53,10 +53,10 @@ pkgs.runCommand "error-handling-test"
   echo ""
   echo "📋 Test 1: Error Handling Library"
   echo "--------------------------------"
-  
+
   if [[ -f "${src}/lib/error-handling.nix" ]]; then
     echo "✅ Error handling library exists"
-    
+
     # Test if we can import it
     if nix eval --impure --expr 'import ${src}/lib/error-handling.nix { pkgs = import <nixpkgs> {}; }' &>/dev/null; then
       echo "✅ Library imports successfully"
@@ -71,7 +71,7 @@ pkgs.runCommand "error-handling-test"
   echo ""
   echo "📋 Test 2: Error Creation and Formatting"
   echo "---------------------------------------"
-  
+
   if [[ -n "$errorHandlingLib" ]]; then
     # Test error creation via nix eval
     result=$(nix eval --impure --expr '
@@ -81,7 +81,7 @@ pkgs.runCommand "error-handling-test"
       in
         error.code or "NO_CODE"
     ' 2>&1 || echo "EVAL_FAILED")
-    
+
     if [[ "$result" == *"TEST_ERROR"* ]] || [[ "$result" == *"NO_CODE"* ]]; then
       echo "✅ Error creation works"
     else
@@ -95,21 +95,21 @@ pkgs.runCommand "error-handling-test"
   echo ""
   echo "📋 Test 3: Real-World Error Scenarios"
   echo "------------------------------------"
-  
+
   # Missing USER environment variable
   echo "Testing missing USER variable..."
   unset USER
   if nix eval --impure --expr 'builtins.getEnv "USER"' 2>&1 | grep -q '""'; then
     echo "✅ Missing USER variable detected"
   fi
-  
+
   # Corrupted flake.lock
   echo "Testing corrupted flake.lock..."
   echo "invalid json" > ${testEnv}/flake/flake.lock
   if nix eval --impure --expr 'builtins.fromJSON (builtins.readFile ${testEnv}/flake/flake.lock)' 2>&1 | grep -q "error"; then
     echo "✅ Corrupted flake.lock detected"
   fi
-  
+
   # Module syntax error
   echo "Testing module syntax error..."
   if nix eval --impure --expr 'import ${testEnv}/lib/broken-module.nix { pkgs = import <nixpkgs> {}; }' 2>&1 | grep -q "error"; then
@@ -120,7 +120,7 @@ pkgs.runCommand "error-handling-test"
   echo ""
   echo "📋 Test 4: Circular Dependencies"
   echo "-------------------------------"
-  
+
   echo "Testing circular dependency detection..."
   if nix eval --impure --expr 'import ${testEnv}/lib/module-a.nix { pkgs = import <nixpkgs> {}; }' 2>&1 | grep -q "infinite recursion"; then
     echo "✅ Circular dependency detected"
@@ -132,14 +132,14 @@ pkgs.runCommand "error-handling-test"
   echo ""
   echo "📋 Test 5: Error Categories and Severity"
   echo "---------------------------------------"
-  
+
   echo "✅ Error categories supported:"
   echo "  - Configuration errors"
   echo "  - Dependency errors"
   echo "  - Permission errors"
   echo "  - Validation errors"
   echo "  - System errors"
-  
+
   echo "✅ Severity levels:"
   echo "  - low: Warnings that don't block operation"
   echo "  - medium: Errors requiring user attention"
@@ -149,7 +149,7 @@ pkgs.runCommand "error-handling-test"
   echo ""
   echo "📋 Test 6: Error Recovery Mechanisms"
   echo "-----------------------------------"
-  
+
   echo "✅ Recovery strategies:"
   echo "  - Fallback to defaults for missing config"
   echo "  - Retry with exponential backoff for network"
@@ -160,7 +160,7 @@ pkgs.runCommand "error-handling-test"
   echo ""
   echo "📋 Test 7: Error Context and Suggestions"
   echo "---------------------------------------"
-  
+
   echo "Example error with context:"
   echo "  Error: MISSING_USER"
   echo "  Message: USER environment variable not set"
@@ -172,10 +172,10 @@ pkgs.runCommand "error-handling-test"
   echo ""
   echo "📋 Test 8: Platform-Specific Error Handling"
   echo "------------------------------------------"
-  
+
   current_system=$(nix eval --impure --expr 'builtins.currentSystem' --raw)
   echo "✅ Current system: $current_system"
-  
+
   case "$current_system" in
     *-darwin)
       echo "✅ Darwin-specific error handling available"
@@ -193,7 +193,7 @@ pkgs.runCommand "error-handling-test"
   echo ""
   echo "📋 Test 9: Error Aggregation"
   echo "---------------------------"
-  
+
   echo "✅ Multiple errors can be collected and reported together"
   echo "✅ Errors maintain their individual context"
   echo "✅ Summary provides overview of all issues"
@@ -202,7 +202,7 @@ pkgs.runCommand "error-handling-test"
   echo ""
   echo "📋 Test 10: Logging and Debugging"
   echo "--------------------------------"
-  
+
   echo "✅ Error logging features:"
   echo "  - Structured error output"
   echo "  - Stack trace for debugging"
@@ -225,6 +225,6 @@ pkgs.runCommand "error-handling-test"
   echo "- Platform-specific: ✅"
   echo "- Error aggregation: ✅"
   echo "- Logging & debugging: ✅"
-  
+
   touch $out
 ''
