@@ -1,7 +1,7 @@
 # Comprehensive test suite for refactored error-handling.nix
 # Tests all core functionality to ensure no regressions after refactoring
 
-{ lib, pkgs }:
+{ pkgs, flake ? null, src ? ../.. }:
 
 let
   errorHandling = import ../../lib/error-handling.nix { inherit pkgs; };
