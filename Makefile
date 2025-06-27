@@ -130,15 +130,30 @@ refactor-list-baselines:
 	@echo "📋 Available configuration baselines:"
 	@./tests/refactor/scripts/compare-configs.sh list
 
+# 🔧 Reusable Build Function
+# This function encapsulates common build logic to reduce duplication
+# Parameters:
+#   $(1) = Description of what's being built
+#   $(2) = Platform type ("darwin" or "nixos")
+#   $(3) = Space-separated list of systems to build
+#   $(4) = Extra flags to pass to nix build
+# Usage: $(call build-systems,description,platform,systems,flags)
+define build-systems
+	@echo "🔨 Building $(1) with USER=$(USER)..."
+	@for system in $(3); do \
+		if [ "$(2)" = "darwin" ]; then \
+			export USER=$(USER); $(NIX) build --impure --no-link $(4) ".#darwinConfigurations.$$system.system" $(ARGS) || exit 1; \
+		elif [ "$(2)" = "nixos" ]; then \
+			export USER=$(USER); $(NIX) build --impure --no-link $(4) ".#nixosConfigurations.$$system.config.system.build.toplevel" $(ARGS) || exit 1; \
+		fi; \
+	done
+endef
+
 build-linux: check-user
-	@echo "🔨 Building Linux configurations with USER=$(USER)..."
-	@export USER=$(USER); $(NIX) build --impure --no-link ".#nixosConfigurations.x86_64-linux.config.system.build.toplevel" $(ARGS)
-	@export USER=$(USER); $(NIX) build --impure --no-link ".#nixosConfigurations.aarch64-linux.config.system.build.toplevel" $(ARGS)
+	$(call build-systems,Linux configurations,nixos,x86_64-linux aarch64-linux,)
 
 build-darwin: check-user
-	@echo "🔨 Building Darwin configurations with USER=$(USER)..."
-	@export USER=$(USER); $(NIX) build --impure --no-link ".#darwinConfigurations.x86_64-darwin.system" $(ARGS)
-	@export USER=$(USER); $(NIX) build --impure --no-link ".#darwinConfigurations.aarch64-darwin.system" $(ARGS)
+	$(call build-systems,Darwin configurations,darwin,x86_64-darwin aarch64-darwin,)
 
 build: check-user build-linux build-darwin
 	@echo "✅ All builds completed successfully with USER=$(USER)"
@@ -160,12 +175,7 @@ platform-info:
 build-current: check-user
 	@echo "⚡ Building current platform only: $(CURRENT_SYSTEM) with USER=$(USER)..."
 	@start_time=$$(date +%s); \
-	export USER=$(USER); \
-	if [ "$(CURRENT_PLATFORM)" = "darwin" ]; then \
-		$(NIX) build --impure --no-link ".#darwinConfigurations.$(CURRENT_SYSTEM).system" $(ARGS); \
-	else \
-		$(NIX) build --impure --no-link ".#nixosConfigurations.$(CURRENT_SYSTEM).config.system.build.toplevel" $(ARGS); \
-	fi; \
+	$(call build-systems,current platform,$(CURRENT_PLATFORM),$(CURRENT_SYSTEM),); \
 	end_time=$$(date +%s); \
 	duration=$$((end_time - start_time)); \
 	echo "✅ Current platform build completed in $${duration}s with USER=$(USER)"
@@ -173,13 +183,8 @@ build-current: check-user
 build-fast: check-user
 	@echo "⚡⚡ Fast build with optimizations for $(CURRENT_SYSTEM)..."
 	@start_time=$$(date +%s); \
-	export USER=$(USER); \
 	OPTS=$$($(NIX) eval --impure --expr '(import ./lib/platform-detector.nix {}).getOptimizations.extraArgs' | tr -d '[]"' | tr ',' ' '); \
-	if [ "$(CURRENT_PLATFORM)" = "darwin" ]; then \
-		$(NIX) build --impure --no-link $$OPTS ".#darwinConfigurations.$(CURRENT_SYSTEM).system" $(ARGS); \
-	else \
-		$(NIX) build --impure --no-link $$OPTS ".#nixosConfigurations.$(CURRENT_SYSTEM).config.system.build.toplevel" $(ARGS); \
-	fi; \
+	$(call build-systems,optimized current platform,$(CURRENT_PLATFORM),$(CURRENT_SYSTEM),$$OPTS); \
 	end_time=$$(date +%s); \
 	duration=$$((end_time - start_time)); \
 	echo "✅ Fast build completed in $${duration}s with optimizations"
