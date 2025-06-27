@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log/slog"
 	"net/http"
 	"ssulmeta-go/internal/config"
 	"ssulmeta-go/internal/story/ports"
@@ -123,7 +122,7 @@ func (g *OpenAIGenerator) GenerateStory(ctx context.Context, channel *models.Cha
 	}
 	defer func() {
 		if closeErr := resp.Body.Close(); closeErr != nil {
-			slog.Warn("Failed to close response body", "error", closeErr)
+			logger.Warn("failed to close response body", "error", closeErr)
 		}
 	}()
 

@@ -117,12 +117,12 @@ func TestService_GenerateStory_Enhanced(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:      "nil channel",
-			generator: adapters.NewMockGenerator(),
-			validator: NewValidator(),
-			channel:   nil,
-			timeout:   5 * time.Second,
-			wantErr:   true,
+			name:        "nil channel",
+			generator:   adapters.NewMockGenerator(),
+			validator:   NewValidator(),
+			channel:     nil,
+			timeout:     5 * time.Second,
+			wantErr:     true,
 			errContains: "channel is nil",
 		},
 		{
@@ -181,23 +181,23 @@ func TestService_GenerateStory_Enhanced(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			service := NewService(tt.generator, tt.validator)
-			
+
 			ctx, cancel := context.WithTimeout(context.Background(), tt.timeout)
 			defer cancel()
 
 			story, err := service.GenerateStory(ctx, tt.channel)
-			
+
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GenerateStory() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			
+
 			if err != nil && tt.errContains != "" {
 				if !strings.Contains(err.Error(), tt.errContains) {
 					t.Errorf("GenerateStory() error = %v, want error containing %s", err, tt.errContains)
 				}
 			}
-			
+
 			if !tt.wantErr && story == nil {
 				t.Error("GenerateStory() returned nil story without error")
 			}
@@ -227,7 +227,7 @@ func TestService_GenerateStory_Concurrent(t *testing.T) {
 	for i := 0; i < numGoroutines; i++ {
 		go func(id int) {
 			defer wg.Done()
-			
+
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
 
@@ -260,7 +260,7 @@ func TestService_GenerateStory_Concurrent(t *testing.T) {
 	}
 
 	if storyCount+errorCount != numGoroutines {
-		t.Errorf("Expected %d results, got %d stories and %d errors", 
+		t.Errorf("Expected %d results, got %d stories and %d errors",
 			numGoroutines, storyCount, errorCount)
 	}
 }

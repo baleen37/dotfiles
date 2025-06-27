@@ -73,19 +73,19 @@ func TestChannelService_UpdateChannelInfo(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			channel, err := service.UpdateChannelInfo(ctx, tt.channelID, tt.newName, tt.newConcept)
-			
+
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UpdateChannelInfo() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			
+
 			if err != nil && tt.errContains != "" {
 				if !strings.Contains(err.Error(), tt.errContains) {
 					t.Errorf("UpdateChannelInfo() error = %v, want error containing %s", err, tt.errContains)
 				}
 				return
 			}
-			
+
 			if !tt.wantErr {
 				if channel.Name != tt.newName {
 					t.Errorf("Channel name = %s, want %s", channel.Name, tt.newName)
@@ -189,19 +189,19 @@ func TestChannelService_ChannelExists_EdgeCases(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			exists, err := service.ChannelExists(ctx, tt.channelID)
-			
+
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ChannelExists() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			
+
 			if err != nil && tt.errContains != "" {
 				if !strings.Contains(err.Error(), tt.errContains) {
 					t.Errorf("ChannelExists() error = %v, want error containing %s", err, tt.errContains)
 				}
 				return
 			}
-			
+
 			if !tt.wantErr && exists != tt.wantExists {
 				t.Errorf("ChannelExists() = %v, want %v", exists, tt.wantExists)
 			}
@@ -255,7 +255,7 @@ func TestChannelService_RepositoryErrors(t *testing.T) {
 		errorRepo.failOn = ""
 		ch, _ := core.NewChannel("ch_123", "Test", "Test")
 		errorRepo.channels["ch_123"] = ch
-		
+
 		// Now test update failure
 		errorRepo.failOn = "Update"
 		settings := core.ChannelSettings{
@@ -280,7 +280,7 @@ func TestChannelService_RepositoryErrors(t *testing.T) {
 		errorRepo.failOn = ""
 		ch, _ := core.NewChannel("ch_123", "Test", "Test")
 		errorRepo.channels["ch_123"] = ch
-		
+
 		// Now test update failure
 		errorRepo.failOn = "Update"
 		_, err := service.UpdateChannelInfo(ctx, "ch_123", "New Name", "New Concept")
@@ -298,7 +298,7 @@ func TestChannelService_RepositoryErrors(t *testing.T) {
 		errorRepo.failOn = ""
 		ch, _ := core.NewChannel("ch_123", "Test", "Test")
 		errorRepo.channels["ch_123"] = ch
-		
+
 		// Now test update failure
 		errorRepo.failOn = "Update"
 		_, err := service.ActivateChannel(ctx, "ch_123")
@@ -316,7 +316,7 @@ func TestChannelService_RepositoryErrors(t *testing.T) {
 		errorRepo.failOn = ""
 		ch, _ := core.NewChannel("ch_123", "Test", "Test")
 		errorRepo.channels["ch_123"] = ch
-		
+
 		// Now test update failure
 		errorRepo.failOn = "Update"
 		_, err := service.DeactivateChannel(ctx, "ch_123")
@@ -345,7 +345,7 @@ func TestChannelService_RepositoryErrors(t *testing.T) {
 		errorRepo.failOn = ""
 		ch, _ := core.NewChannel("ch_123", "Test", "Test")
 		errorRepo.channels["ch_123"] = ch
-		
+
 		// Now test delete failure
 		errorRepo.failOn = "Delete"
 		err := service.DeleteChannel(ctx, "ch_123")

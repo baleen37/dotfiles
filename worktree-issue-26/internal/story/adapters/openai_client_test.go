@@ -33,7 +33,7 @@ func createMockResponse(statusCode int, body interface{}) *http.Response {
 	if body != nil {
 		bodyBytes, _ = json.Marshal(body)
 	}
-	
+
 	return &http.Response{
 		StatusCode: statusCode,
 		Body:       io.NopCloser(bytes.NewReader(bodyBytes)),
@@ -48,29 +48,29 @@ func TestNewOpenAIGenerator(t *testing.T) {
 		MaxTokens:   500,
 		Temperature: 0.7,
 	}
-	
+
 	generator := NewOpenAIGenerator(cfg)
-	
+
 	if generator == nil {
 		t.Fatal("NewOpenAIGenerator() returned nil")
 	}
-	
+
 	if generator.apiKey != cfg.APIKey {
 		t.Errorf("apiKey = %v, want %v", generator.apiKey, cfg.APIKey)
 	}
-	
+
 	if generator.model != cfg.Model {
 		t.Errorf("model = %v, want %v", generator.model, cfg.Model)
 	}
-	
+
 	if generator.maxTokens != cfg.MaxTokens {
 		t.Errorf("maxTokens = %v, want %v", generator.maxTokens, cfg.MaxTokens)
 	}
-	
+
 	if generator.temperature != cfg.Temperature {
 		t.Errorf("temperature = %v, want %v", generator.temperature, cfg.Temperature)
 	}
-	
+
 	if generator.httpClient == nil {
 		t.Error("httpClient is nil")
 	}
@@ -111,11 +111,11 @@ func TestOpenAIGenerator_GenerateStory(t *testing.T) {
 				if story == nil {
 					t.Fatal("GenerateStory() returned nil story")
 				}
-				
+
 				if story.Title != "테스트 이야기" {
 					t.Errorf("Title = %v, want 테스트 이야기", story.Title)
 				}
-				
+
 				if !strings.Contains(story.Content, "가") {
 					t.Error("Content doesn't contain expected characters")
 				}
@@ -144,11 +144,11 @@ func TestOpenAIGenerator_GenerateStory(t *testing.T) {
 				body, _ := io.ReadAll(mockTransport.requestLog.Body)
 				var reqBody openAIRequest
 				json.Unmarshal(body, &reqBody)
-				
+
 				if len(reqBody.Messages) < 2 {
 					t.Fatal("Request should have at least 2 messages")
 				}
-				
+
 				if reqBody.Messages[1].Content != "Custom prompt for testing" {
 					t.Errorf("User message = %v, want Custom prompt for testing", reqBody.Messages[1].Content)
 				}
@@ -221,7 +221,7 @@ func TestOpenAIGenerator_GenerateStory(t *testing.T) {
 				if story.Title != "무제" {
 					t.Errorf("Title = %v, want 무제", story.Title)
 				}
-				
+
 				if story.Content != "이것은 구조화되지 않은 이야기 내용입니다" {
 					t.Errorf("Content = %v, want full content", story.Content)
 				}
@@ -249,7 +249,7 @@ func TestOpenAIGenerator_GenerateStory(t *testing.T) {
 				if !strings.HasPrefix(authHeader, "Bearer ") {
 					t.Errorf("Authorization header = %v, want Bearer prefix", authHeader)
 				}
-				
+
 				// Check content type
 				contentType := mockTransport.requestLog.Header.Get("Content-Type")
 				if contentType != "application/json" {
@@ -258,18 +258,18 @@ func TestOpenAIGenerator_GenerateStory(t *testing.T) {
 			},
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Create mock transport
 			mockTransport := &mockHTTPTransport{
 				err: tt.mockErr,
 			}
-			
+
 			if tt.mockResponse != nil {
 				mockTransport.response = createMockResponse(tt.mockStatusCode, tt.mockResponse)
 			}
-			
+
 			// Create generator with mock transport
 			generator := &OpenAIGenerator{
 				apiKey:      "test-key",
@@ -278,18 +278,18 @@ func TestOpenAIGenerator_GenerateStory(t *testing.T) {
 				temperature: 0.7,
 				httpClient:  &http.Client{Transport: mockTransport},
 			}
-			
+
 			ctx := context.Background()
 			story, err := generator.GenerateStory(ctx, tt.channel)
-			
+
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GenerateStory() error = %v, wantErr %v", err, tt.wantErr)
 			}
-			
+
 			if err != nil && tt.errContains != "" && !strings.Contains(err.Error(), tt.errContains) {
 				t.Errorf("GenerateStory() error = %v, want error containing %s", err, tt.errContains)
 			}
-			
+
 			if tt.verify != nil && err == nil {
 				tt.verify(t, story, mockTransport)
 			}
@@ -299,7 +299,7 @@ func TestOpenAIGenerator_GenerateStory(t *testing.T) {
 
 func TestOpenAIGenerator_buildPrompt(t *testing.T) {
 	generator := &OpenAIGenerator{}
-	
+
 	tests := []struct {
 		name     string
 		channel  *models.Channel
@@ -339,7 +339,7 @@ func TestOpenAIGenerator_buildPrompt(t *testing.T) {
 이야기는 시작, 중간, 끝이 명확해야 하고, 시각적으로 표현하기 좋은 장면들이 포함되어야 합니다.`,
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := generator.buildPrompt(tt.channel)
@@ -352,7 +352,7 @@ func TestOpenAIGenerator_buildPrompt(t *testing.T) {
 
 func TestOpenAIGenerator_parseStoryResponse(t *testing.T) {
 	generator := &OpenAIGenerator{}
-	
+
 	tests := []struct {
 		name    string
 		content string
@@ -396,7 +396,7 @@ func TestOpenAIGenerator_parseStoryResponse(t *testing.T) {
 			},
 		},
 		{
-			name: "handles missing title",
+			name:    "handles missing title",
 			content: `내용: 제목이 없는 이야기입니다.`,
 			want: &models.Story{
 				Title:   "무제",
@@ -408,7 +408,7 @@ func TestOpenAIGenerator_parseStoryResponse(t *testing.T) {
 			content: `제목: 레이블이 없는 내용
 이것은 내용 레이블 없이 바로 시작하는 내용입니다.`,
 			want: &models.Story{
-				Title:   "무제",
+				Title: "무제",
 				Content: `제목: 레이블이 없는 내용
 이것은 내용 레이블 없이 바로 시작하는 내용입니다.`,
 			},
@@ -431,18 +431,18 @@ func TestOpenAIGenerator_parseStoryResponse(t *testing.T) {
 			},
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := generator.parseStoryResponse(tt.content)
 			if err != nil {
 				t.Fatalf("parseStoryResponse() error = %v", err)
 			}
-			
+
 			if got.Title != tt.want.Title {
 				t.Errorf("parseStoryResponse() title = %v, want %v", got.Title, tt.want.Title)
 			}
-			
+
 			if got.Content != tt.want.Content {
 				t.Errorf("parseStoryResponse() content = %v, want %v", got.Content, tt.want.Content)
 			}
@@ -453,7 +453,7 @@ func TestOpenAIGenerator_parseStoryResponse(t *testing.T) {
 func TestOpenAIGenerator_DivideIntoScenes(t *testing.T) {
 	generator := &OpenAIGenerator{}
 	ctx := context.Background()
-	
+
 	tests := []struct {
 		name    string
 		story   *models.Story
@@ -472,12 +472,12 @@ func TestOpenAIGenerator_DivideIntoScenes(t *testing.T) {
 				if len(story.Scenes) != 2 {
 					t.Errorf("Expected 2 scenes, got %d", len(story.Scenes))
 				}
-				
+
 				// Check first scene
 				if story.Scenes[0].Number != 1 {
 					t.Errorf("First scene number = %d, want 1", story.Scenes[0].Number)
 				}
-				
+
 				// Check scene descriptions
 				for i, scene := range story.Scenes {
 					if scene.Description == "" {
@@ -498,11 +498,11 @@ func TestOpenAIGenerator_DivideIntoScenes(t *testing.T) {
 					if !strings.Contains(scene.ImagePrompt, "Korean story illustration") {
 						t.Errorf("Scene %d image prompt missing Korean story prefix", i+1)
 					}
-					
+
 					if !strings.Contains(scene.ImagePrompt, "vertical format") {
 						t.Errorf("Scene %d image prompt missing vertical format", i+1)
 					}
-					
+
 					if !strings.Contains(scene.ImagePrompt, "soft colors") {
 						t.Errorf("Scene %d image prompt missing soft colors", i+1)
 					}
@@ -521,7 +521,7 @@ func TestOpenAIGenerator_DivideIntoScenes(t *testing.T) {
 					if scene.Duration <= 0 {
 						t.Errorf("Scene %d has non-positive duration: %f", i+1, scene.Duration)
 					}
-					
+
 					// Duration should be proportional to text length (len/30.0)
 					expectedDuration := float64(len(scene.Description)) / 30.0
 					if scene.Duration != expectedDuration {
@@ -575,7 +575,7 @@ func TestOpenAIGenerator_DivideIntoScenes(t *testing.T) {
 			},
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Create a copy to avoid modifying original
@@ -583,13 +583,13 @@ func TestOpenAIGenerator_DivideIntoScenes(t *testing.T) {
 				Title:   tt.story.Title,
 				Content: tt.story.Content,
 			}
-			
+
 			err := generator.DivideIntoScenes(ctx, storyCopy)
-			
+
 			if (err != nil) != tt.wantErr {
 				t.Errorf("DivideIntoScenes() error = %v, wantErr %v", err, tt.wantErr)
 			}
-			
+
 			if err == nil && tt.verify != nil {
 				tt.verify(t, storyCopy)
 			}
@@ -599,7 +599,7 @@ func TestOpenAIGenerator_DivideIntoScenes(t *testing.T) {
 
 func TestOpenAIGenerator_simpleDivideScenes(t *testing.T) {
 	generator := &OpenAIGenerator{}
-	
+
 	tests := []struct {
 		name  string
 		story *models.Story
@@ -627,14 +627,14 @@ func TestOpenAIGenerator_simpleDivideScenes(t *testing.T) {
 			want: 1, // All treated as one sentence since split is on ". "
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := generator.simpleDivideScenes(tt.story)
 			if err != nil {
 				t.Fatalf("simpleDivideScenes() error = %v", err)
 			}
-			
+
 			if len(tt.story.Scenes) != tt.want {
 				t.Errorf("simpleDivideScenes() created %d scenes, want %d", len(tt.story.Scenes), tt.want)
 			}
@@ -646,7 +646,7 @@ func TestOpenAIGenerator_ContextCancellation(t *testing.T) {
 	// Create a canceled context
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
-	
+
 	generator := &OpenAIGenerator{
 		apiKey:      "test-key",
 		model:       "gpt-3.5-turbo",
@@ -656,14 +656,14 @@ func TestOpenAIGenerator_ContextCancellation(t *testing.T) {
 			Timeout: 30 * time.Second,
 		},
 	}
-	
+
 	channel := &models.Channel{ID: 5}
-	
+
 	_, err := generator.GenerateStory(ctx, channel)
 	if err == nil {
 		t.Error("GenerateStory() with canceled context should return error")
 	}
-	
+
 	if !strings.Contains(err.Error(), "context canceled") {
 		t.Errorf("Expected context canceled error, got %v", err)
 	}
@@ -675,7 +675,7 @@ func BenchmarkOpenAIGenerator_parseStoryResponse(b *testing.B) {
 	generator := &OpenAIGenerator{}
 	content := `제목: 벤치마크 테스트 이야기
 내용: 이것은 벤치마크를 위한 테스트 이야기입니다. 여러 문장이 포함되어 있으며, 파싱 성능을 측정하기 위한 것입니다. 세 번째 문장도 있습니다.`
-	
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		_, err := generator.parseStoryResponse(content)
@@ -691,14 +691,14 @@ func BenchmarkOpenAIGenerator_simpleDivideScenes(b *testing.B) {
 		Title:   "Benchmark Story",
 		Content: strings.Repeat("테스트 문장입니다. ", 20),
 	}
-	
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		storyCopy := &models.Story{
 			Title:   story.Title,
 			Content: story.Content,
 		}
-		
+
 		err := generator.simpleDivideScenes(storyCopy)
 		if err != nil {
 			b.Fatal(err)

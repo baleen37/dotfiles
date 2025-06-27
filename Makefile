@@ -62,7 +62,7 @@ fmt:
 	@if command -v goimports >/dev/null 2>&1; then \
 		goimports -w .; \
 	else \
-		echo "Warning: goimports not found, skipping import formatting"; \
+		GOPATH=$$(go env GOPATH) && [ -x "$$GOPATH/bin/goimports" ] && $$GOPATH/bin/goimports -w . || echo "Warning: goimports not available - install with 'make install-tools'"; \
 	fi
 
 # Strict format code (requires all tools)

@@ -10,7 +10,7 @@ import (
 
 func TestMockGenerator_NewMockGenerator(t *testing.T) {
 	generator := NewMockGenerator()
-	
+
 	if generator == nil {
 		t.Fatal("NewMockGenerator() returned nil")
 	}
@@ -19,7 +19,7 @@ func TestMockGenerator_NewMockGenerator(t *testing.T) {
 func TestMockGenerator_GenerateStory(t *testing.T) {
 	generator := NewMockGenerator()
 	ctx := context.Background()
-	
+
 	tests := []struct {
 		name    string
 		channel *models.Channel
@@ -35,16 +35,16 @@ func TestMockGenerator_GenerateStory(t *testing.T) {
 				if err != nil {
 					t.Fatalf("GenerateStory() error = %v, want nil", err)
 				}
-				
+
 				if story == nil {
 					t.Fatal("GenerateStory() returned nil story")
 				}
-				
+
 				// Check title
 				if story.Title == "" {
 					t.Error("GenerateStory() returned empty title")
 				}
-				
+
 				// Check content length (should be 270-300 characters)
 				contentLen := utf8.RuneCountInString(story.Content)
 				if contentLen < 270 || contentLen > 300 {
@@ -62,13 +62,13 @@ func TestMockGenerator_GenerateStory(t *testing.T) {
 				if err != nil {
 					t.Fatalf("GenerateStory() error = %v, want nil", err)
 				}
-				
+
 				// Mock generator should return consistent content
 				expectedTitle := "테스트 이야기: 작은 별의 모험"
 				if story.Title != expectedTitle {
 					t.Errorf("GenerateStory() title = %v, want %v", story.Title, expectedTitle)
 				}
-				
+
 				// Check that content contains expected keywords
 				if !strings.Contains(story.Content, "별") {
 					t.Error("GenerateStory() content doesn't contain expected keyword '별'")
@@ -86,7 +86,7 @@ func TestMockGenerator_GenerateStory(t *testing.T) {
 				if err != nil {
 					t.Fatalf("GenerateStory() error = %v, want nil", err)
 				}
-				
+
 				if story == nil {
 					t.Fatal("GenerateStory() returned nil story")
 				}
@@ -101,7 +101,7 @@ func TestMockGenerator_GenerateStory(t *testing.T) {
 				if err != nil {
 					t.Fatalf("GenerateStory() error = %v, want nil", err)
 				}
-				
+
 				// Check that content has proper sentence structure
 				sentences := strings.Split(story.Content, ". ")
 				if len(sentences) < 3 {
@@ -110,7 +110,7 @@ func TestMockGenerator_GenerateStory(t *testing.T) {
 			},
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			story, err := generator.GenerateStory(ctx, tt.channel)
@@ -122,7 +122,7 @@ func TestMockGenerator_GenerateStory(t *testing.T) {
 func TestMockGenerator_DivideIntoScenes(t *testing.T) {
 	generator := NewMockGenerator()
 	ctx := context.Background()
-	
+
 	tests := []struct {
 		name    string
 		story   *models.Story
@@ -140,7 +140,7 @@ func TestMockGenerator_DivideIntoScenes(t *testing.T) {
 				if len(story.Scenes) == 0 {
 					t.Error("DivideIntoScenes() created no scenes")
 				}
-				
+
 				// Check scene numbers
 				for i, scene := range story.Scenes {
 					if scene.Number != i+1 {
@@ -161,12 +161,12 @@ func TestMockGenerator_DivideIntoScenes(t *testing.T) {
 					if scene.ImagePrompt == "" {
 						t.Errorf("Scene %d has empty image prompt", i+1)
 					}
-					
+
 					// Check that image prompt contains expected format
 					if !strings.Contains(scene.ImagePrompt, "Fairy tale illustration:") {
 						t.Errorf("Scene %d image prompt doesn't contain expected prefix", i+1)
 					}
-					
+
 					if !strings.Contains(scene.ImagePrompt, "soft colors, magical atmosphere") {
 						t.Errorf("Scene %d image prompt doesn't contain expected style", i+1)
 					}
@@ -185,7 +185,7 @@ func TestMockGenerator_DivideIntoScenes(t *testing.T) {
 					if scene.Duration <= 0 {
 						t.Errorf("Scene %d has invalid duration %f", i+1, scene.Duration)
 					}
-					
+
 					// Mock sets duration to 10.0 for all scenes
 					if scene.Duration != 10.0 {
 						t.Errorf("Scene %d duration = %f, want 10.0", i+1, scene.Duration)
@@ -245,7 +245,7 @@ func TestMockGenerator_DivideIntoScenes(t *testing.T) {
 			},
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Create a copy to avoid modifying the original
@@ -256,20 +256,20 @@ func TestMockGenerator_DivideIntoScenes(t *testing.T) {
 					Content: tt.story.Content,
 				}
 			}
-			
+
 			err := generator.DivideIntoScenes(ctx, storyCopy)
-			
+
 			// For nil story case, we expect panic which is recovered as error
 			if tt.story == nil {
 				// Mock doesn't handle nil, so it will panic
 				// In real implementation, this should be handled
 				return
 			}
-			
+
 			if (err != nil) != tt.wantErr {
 				t.Errorf("DivideIntoScenes() error = %v, wantErr %v", err, tt.wantErr)
 			}
-			
+
 			if err == nil {
 				tt.verify(t, storyCopy)
 			}
@@ -280,23 +280,23 @@ func TestMockGenerator_DivideIntoScenes(t *testing.T) {
 func TestMockGenerator_SceneDescriptionFormatting(t *testing.T) {
 	generator := NewMockGenerator()
 	ctx := context.Background()
-	
+
 	story := &models.Story{
 		Title:   "Test Story",
 		Content: "문장 하나. 문장 둘. 문장 셋",
 	}
-	
+
 	err := generator.DivideIntoScenes(ctx, story)
 	if err != nil {
 		t.Fatalf("DivideIntoScenes() error = %v", err)
 	}
-	
+
 	// Check that descriptions end with period
 	for i, scene := range story.Scenes {
 		if !strings.HasSuffix(scene.Description, ".") {
 			t.Errorf("Scene %d description doesn't end with period: %s", i+1, scene.Description)
 		}
-		
+
 		// Check that descriptions don't have double periods
 		if strings.Contains(scene.Description, "..") {
 			t.Errorf("Scene %d description has double periods: %s", i+1, scene.Description)
@@ -308,7 +308,7 @@ func TestMockGenerator_ConsistentOutput(t *testing.T) {
 	generator := NewMockGenerator()
 	ctx := context.Background()
 	channel := &models.Channel{ID: 4}
-	
+
 	// Generate story multiple times
 	stories := make([]*models.Story, 3)
 	for i := 0; i < 3; i++ {
@@ -318,7 +318,7 @@ func TestMockGenerator_ConsistentOutput(t *testing.T) {
 		}
 		stories[i] = story
 	}
-	
+
 	// Check that all stories are identical (mock should be deterministic)
 	for i := 1; i < len(stories); i++ {
 		if stories[i].Title != stories[0].Title {
@@ -336,7 +336,7 @@ func BenchmarkMockGenerator_GenerateStory(b *testing.B) {
 	generator := NewMockGenerator()
 	ctx := context.Background()
 	channel := &models.Channel{ID: 5}
-	
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		_, err := generator.GenerateStory(ctx, channel)
@@ -349,13 +349,13 @@ func BenchmarkMockGenerator_GenerateStory(b *testing.B) {
 func BenchmarkMockGenerator_DivideIntoScenes(b *testing.B) {
 	generator := NewMockGenerator()
 	ctx := context.Background()
-	
+
 	// Prepare a story
 	story := &models.Story{
 		Title:   "Benchmark Story",
 		Content: strings.Repeat("테스트 문장입니다. ", 20),
 	}
-	
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		// Create a copy for each iteration
@@ -363,7 +363,7 @@ func BenchmarkMockGenerator_DivideIntoScenes(b *testing.B) {
 			Title:   story.Title,
 			Content: story.Content,
 		}
-		
+
 		err := generator.DivideIntoScenes(ctx, storyCopy)
 		if err != nil {
 			b.Fatal(err)

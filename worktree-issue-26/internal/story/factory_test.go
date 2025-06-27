@@ -52,7 +52,7 @@ func TestNewServiceWithConfig(t *testing.T) {
 				t.Errorf("NewServiceWithConfig() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			
+
 			if !tt.wantErr && service == nil {
 				t.Error("NewServiceWithConfig() returned nil service")
 			}
@@ -77,25 +77,25 @@ func TestNewServiceWithConfig_Integration(t *testing.T) {
 					Name:           "Test Channel",
 					PromptTemplate: "Test prompt",
 				}
-				
+
 				ctx := context.Background()
 				story, err := service.GenerateStory(ctx, channel)
 				if err != nil {
 					t.Fatalf("Failed to generate story: %v", err)
 				}
-				
+
 				if story == nil {
 					t.Fatal("Generated story is nil")
 				}
-				
+
 				if story.Title == "" {
 					t.Error("Story title is empty")
 				}
-				
+
 				if len(story.Scenes) == 0 {
 					t.Error("Story has no scenes")
 				}
-				
+
 				// Verify it's using mock generator by checking consistent output
 				story2, _ := service.GenerateStory(ctx, channel)
 				if story.Title != story2.Title {
@@ -117,19 +117,19 @@ func TestNewServiceWithConfig_Integration(t *testing.T) {
 					Name:           "Test Channel",
 					PromptTemplate: "Test prompt",
 				}
-				
+
 				ctx := context.Background()
 				story, err := service.GenerateStory(ctx, channel)
 				if err != nil {
 					t.Fatalf("Service should generate valid story: %v", err)
 				}
-				
+
 				// Verify story meets validation criteria
 				contentLength := len([]rune(story.Content))
 				if contentLength < 270 || contentLength > 300 {
 					t.Errorf("Story content length %d is outside valid range [270, 300]", contentLength)
 				}
-				
+
 				if len(story.Scenes) < 6 || len(story.Scenes) > 10 {
 					t.Errorf("Story has %d scenes, expected between 6 and 10", len(story.Scenes))
 				}
@@ -143,7 +143,7 @@ func TestNewServiceWithConfig_Integration(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Failed to create service: %v", err)
 			}
-			
+
 			tt.validate(t, service)
 		})
 	}
@@ -153,7 +153,7 @@ func BenchmarkNewServiceWithConfig(b *testing.B) {
 	cfg := &config.APIConfig{
 		UseMock: true,
 	}
-	
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		_, _ = NewServiceWithConfig(cfg)
@@ -164,7 +164,7 @@ func BenchmarkServiceWithMockGenerator(b *testing.B) {
 	cfg := &config.APIConfig{
 		UseMock: true,
 	}
-	
+
 	service, _ := NewServiceWithConfig(cfg)
 	channel := &models.Channel{
 		ID:             1,
@@ -172,7 +172,7 @@ func BenchmarkServiceWithMockGenerator(b *testing.B) {
 		PromptTemplate: "Benchmark prompt",
 	}
 	ctx := context.Background()
-	
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		_, _ = service.GenerateStory(ctx, channel)

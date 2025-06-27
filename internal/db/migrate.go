@@ -2,7 +2,6 @@ package db
 
 import (
 	"fmt"
-	"log/slog"
 	"os"
 	"path/filepath"
 	"sort"
@@ -97,7 +96,7 @@ func runMigration(filename string) error {
 	defer func() {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
 			// Log rollback error but don't override the main error
-			slog.Warn("Failed to rollback transaction", "error", rollbackErr)
+			logger.Warn("failed to rollback transaction", "error", rollbackErr)
 		}
 	}()
 

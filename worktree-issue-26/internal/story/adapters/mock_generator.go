@@ -35,7 +35,7 @@ func (m *MockGenerator) DivideIntoScenes(ctx context.Context, story *models.Stor
 	if story == nil {
 		return fmt.Errorf("story is nil")
 	}
-	
+
 	// Simple division based on sentences
 	sentences := strings.Split(story.Content, ". ")
 
