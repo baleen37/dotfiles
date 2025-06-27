@@ -18,8 +18,6 @@ with pkgs; [
   terragrunt         # Terraform wrapper for DRY configurations
   tflint             # Terraform linter
 
-  # Password management
-  _1password-cli
 
   # Media-related packages
   ffmpeg
