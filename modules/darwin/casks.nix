@@ -24,6 +24,10 @@ _:
   # Productivity Tools
   "raycast"
 
+  # Password Management
+  "1password"
+  "1password-cli"
+
   # Browsers
   "google-chrome"
   "brave-browser"

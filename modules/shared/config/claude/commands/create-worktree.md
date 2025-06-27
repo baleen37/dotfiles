@@ -29,10 +29,11 @@ When Jito requests worktree creation:
    - Use intelligent interpretation to create meaningful branch names
 2. **Convention Discovery**: Check for team patterns (.github/, CONTRIBUTING.md, recent branches)
 3. **Branch Generation**: Create appropriate branch name following discovered or default conventions
-4. **Worktree Creation**: Execute git worktree commands with proper directory structure
-5. **Navigation Setup**: Change to new worktree directory and confirm setup
-6. **Clean State Verification**: Verify worktree is clean and based on main branch
-7. **Cleanup Confirmation**: Ask user if cleanup is needed if worktree is not clean
+4. **Main Branch Reset**: Update main branch reference without checkout (`git fetch origin main:main`)
+5. **Worktree Creation**: Execute git worktree commands with proper directory structure
+6. **Navigation Setup**: Change to new worktree directory and confirm setup
+7. **Clean State Verification**: Verify worktree is clean and based on main branch
+8. **Cleanup Confirmation**: Ask user if cleanup is needed if worktree is not clean
 </protocol>
 
 <content_interpretation>
@@ -66,11 +67,12 @@ When Jito requests worktree creation:
    - For text: Parse Korean/English for intent and scope
 3. **Convention Check**: Review repository for existing naming patterns
 4. **Branch Generation**: Create descriptive branch name with extracted context
-5. **Worktree Creation**: Execute git worktree commands with proper directory structure
-6. **Navigation Setup**: Change to new worktree directory and confirm setup
-7. **Clean State Verification**: Verify worktree is clean and based on main branch
-8. **Cleanup Confirmation**: Ask user if cleanup is needed if worktree is not clean
-9. **Context Summary**: Provide summary of interpreted content and next steps
+5. **Main Branch Reset**: Reset to latest main branch before creating worktree
+6. **Worktree Creation**: Execute git worktree commands with proper directory structure
+7. **Navigation Setup**: Change to new worktree directory and confirm setup
+8. **Clean State Verification**: Verify worktree is clean and based on main branch
+9. **Cleanup Confirmation**: Ask user if cleanup is needed if worktree is not clean
+10. **Context Summary**: Provide summary of interpreted content and next steps
 </steps>
 </approach>
 
@@ -114,7 +116,7 @@ gh pr view 456 --json title,headRefName,labels
 - **Branch types**: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`
 - **Language**: English only for branch names
 - **Case format**: kebab-case for all components
-- **Directory structure**: Always use `./.local/tree/{branch-name}`
+- **Directory structure**: Always use `./.local/{branch-name}`
 </constraints>
 
 <validation>
@@ -155,7 +157,7 @@ gh pr view 456 --json title,headRefName,labels
 ❌ DO NOT use temporal descriptors (new, old, temp)
 ❌ DO NOT create generic branch names (feature, fix, update)
 ❌ DO NOT ignore existing team conventions
-❌ DO NOT create worktrees outside `./.local/tree/` structure
+❌ DO NOT create worktrees outside `./.local/` structure
 </anti_patterns>
 
 ## Why Use Worktrees
@@ -169,19 +171,26 @@ gh pr view 456 --json title,headRefName,labels
 ## Quick Start
 
 ```bash
+# Reset main branch to latest (IMPORTANT: do this first)
+git fetch origin main:main
+
 # Create worktree with new branch from main
-git worktree add -b feature/new-feature ./.local/tree/feature/new-feature
+git worktree add -b feature/new-feature ./.local/feature-new-feature main
+
+# Navigate to worktree
+cd ./.local/feature-new-feature
 
 # Create worktree from existing branch
-git worktree add ./.local/tree/feature/existing feature/existing
+git worktree add ./.local/feature-existing feature/existing
 
 # Create worktree from specific base branch
-git worktree add -b hotfix/urgent ./.local/tree/hotfix/urgent production
+git worktree add -b hotfix/urgent ./.local/hotfix-urgent production
 
 # From GitHub issue URL
 issue_url="https://github.com/wooto/ssulmeta/issues/101"
 issue_num=$(echo "$issue_url" | grep -oE '[0-9]+$')
-git worktree add -b feature/issue-$issue_num ./.local/tree/feature/issue-$issue_num
+git worktree add -b feature/issue-$issue_num ./.local/feature-issue-$issue_num main
+cd ./.local/feature-issue-$issue_num
 
 # List all worktrees
 git worktree list
@@ -190,26 +199,32 @@ git worktree list
 git status --porcelain  # Should be empty
 
 # Remove worktree when done
-git worktree remove ./.local/tree/feature/new-feature
+git worktree remove ./.local/feature-new-feature
 ```
 
 ## Core Commands
 
 ```bash
-# Create new branch and worktree (from current HEAD)
-git worktree add -b BRANCH_NAME ./.local/tree/BRANCH_NAME
+# FIRST: Reset main branch to latest
+git fetch origin main:main
+
+# Create new branch and worktree from main
+git worktree add -b BRANCH_NAME ./.local/BRANCH_NAME main
 
 # Create new branch and worktree from specific base
-git worktree add -b BRANCH_NAME ./.local/tree/BRANCH_NAME BASE_BRANCH
+git worktree add -b BRANCH_NAME ./.local/BRANCH_NAME BASE_BRANCH
+
+# Navigate to worktree
+cd ./.local/BRANCH_NAME
 
 # Create worktree for existing branch
-git worktree add ./.local/tree/BRANCH_NAME BRANCH_NAME
+git worktree add ./.local/BRANCH_NAME BRANCH_NAME
 
 # Create worktree for remote branch
-git worktree add ./.local/tree/BRANCH_NAME origin/BRANCH_NAME
+git worktree add ./.local/BRANCH_NAME origin/BRANCH_NAME
 
 # Create detached worktree (for temporary work)
-git worktree add --detach ./.local/tree/temp-work
+git worktree add --detach ./.local/temp-work
 ```
 
 ## Worktree State Verification
@@ -230,19 +245,19 @@ git worktree list
 git worktree list --porcelain
 
 # Move worktree to new location
-git worktree move ./.local/tree/old-path ./.local/tree/new-path
+git worktree move ./.local/old-path ./.local/new-path
 
 # Remove worktree (safe - preserves uncommitted changes)
-git worktree remove ./.local/tree/BRANCH_NAME
+git worktree remove ./.local/BRANCH_NAME
 
 # Force remove worktree (discards changes)
-git worktree remove --force ./.local/tree/BRANCH_NAME
+git worktree remove --force ./.local/BRANCH_NAME
 
 # Clean up stale worktree entries
 git worktree prune
 
 # Repair worktree administrative files
-git worktree repair
+git worktree repair ./.local/BRANCH_NAME
 ```
 
 ## Worktree Cleanup Commands
@@ -265,14 +280,15 @@ git reset --hard && git clean -fd
 issue_url="https://github.com/owner/repo/issues/101"
 issue_num=$(echo "$issue_url" | grep -oE '[0-9]+$')
 branch_name="feature/issue-$issue_num"
-git worktree add -b "$branch_name" "./.local/tree/$branch_name"
-cd "./.local/tree/$branch_name"
+git worktree add -b "$branch_name" "./.local/${branch_name//\//-}" main
+cd "./.local/${branch_name//\//-}"
 
 # With descriptive suffix
 issue_num=101
 desc="login-bug"
 branch_name="feature/issue-$issue_num-$desc"
-git worktree add -b "$branch_name" "./.local/tree/$branch_name"
+git worktree add -b "$branch_name" "./.local/${branch_name//\//-}" main
+cd "./.local/${branch_name//\//-}"
 ```
 
 ### PR Review Workflow
@@ -281,17 +297,17 @@ git worktree add -b "$branch_name" "./.local/tree/$branch_name"
 # Option 1: Using GitHub CLI
 pr_number=123
 gh pr checkout $pr_number --detach
-git worktree add --detach ./.local/tree/review-pr-$pr_number HEAD
-cd ./.local/tree/review-pr-$pr_number
+git worktree add --detach ./.local/review-pr-$pr_number HEAD
+cd ./.local/review-pr-$pr_number
 
 # Option 2: Direct from remote
 pr_branch="feature/awesome-feature"
 git fetch origin pull/$pr_number/head:pr-$pr_number
-git worktree add ./.local/tree/review-pr-$pr_number pr-$pr_number
+git worktree add ./.local/review-pr-$pr_number pr-$pr_number
 
 # Clean up after review
-cd ../..
-git worktree remove ./.local/tree/review-pr-$pr_number
+cd ..
+git worktree remove ./.local/review-pr-$pr_number
 git branch -D pr-$pr_number  # If using Option 2
 ```
 
@@ -299,14 +315,14 @@ git branch -D pr-$pr_number  # If using Option 2
 
 ```bash
 # Create worktrees for parallel features
-git worktree add -b feature/auth ./.local/tree/feature/auth
-git worktree add -b feature/api ./.local/tree/feature/api main
-git worktree add -b feature/ui ./.local/tree/feature/ui develop
+git worktree add -b feature/auth ./.local/feature-auth main
+git worktree add -b feature/api ./.local/feature-api main
+git worktree add -b feature/ui ./.local/feature-ui develop
 
 # Quick navigation between worktrees
-cd ./.local/tree/feature/auth   # Work on authentication
-cd ./.local/tree/feature/api    # Switch to API work
-cd ./.local/tree/feature/ui     # Switch to UI work
+cd ./.local/feature-auth   # Work on authentication
+cd ./.local/feature-api    # Switch to API work
+cd ./.local/feature-ui     # Switch to UI work
 ```
 
 ## Advanced Operations
@@ -317,7 +333,7 @@ cd ./.local/tree/feature/ui     # Switch to UI work
 # Create worktrees for all open PRs
 gh pr list --json number,headRefName --jq '.[] | "\(.number):\(.headRefName)"' | \
 while IFS=':' read -r pr_num branch; do
-  worktree_path="./.local/tree/pr-${pr_num}"
+  worktree_path="./.local/pr-${pr_num}"
   if [ ! -d "$worktree_path" ]; then
     echo "Creating worktree for PR #$pr_num"
     git fetch origin "$branch"
@@ -366,16 +382,13 @@ awk '/^worktree/ {wt=$2}
 ## Directory Structure
 
 ```
-./.local/tree/
-├── feature/
-│   ├── issue-101-login/
-│   ├── issue-102-api/
-│   └── new-dashboard/
-├── hotfix/
-│   └── critical-security/
+./.local/
+├── feature-issue-101-login/
+├── feature-issue-102-api/
+├── feature-new-dashboard/
+├── hotfix-critical-security/
 ├── review-pr-123/
-└── release/
-    └── v2.0-prep/
+└── release-v2-0-prep/
 ```
 
 ## Best Practices
@@ -389,7 +402,7 @@ awk '/^worktree/ {wt=$2}
 
 ```bash
 # "worktree already exists" error
-git worktree remove --force ./.local/tree/BRANCH_NAME
+git worktree remove --force ./.local/BRANCH_NAME
 git worktree prune
 
 # "branch already checked out" error
@@ -397,22 +410,22 @@ git worktree list  # Find where branch is checked out
 # Remove the conflicting worktree first
 
 # Corrupted worktree
-git worktree repair ./.local/tree/BRANCH_NAME
+git worktree repair ./.local/BRANCH_NAME
 # Or remove and recreate
-git worktree remove --force ./.local/tree/BRANCH_NAME
+git worktree remove --force ./.local/BRANCH_NAME
 git worktree prune
 
 # List detailed worktree info
 git worktree list --porcelain
 
 # Clean up all worktrees (nuclear option)
-git worktree list | grep ".local/tree" | awk '{print $1}' | \
+git worktree list | grep ".local/" | awk '{print $1}' | \
 xargs -I {} git worktree remove --force {}
 ```
 
 ## Tips for Efficiency
 
-- **Tab Completion**: Most shells autocomplete worktree paths after typing `.local/tree/`
+- **Tab Completion**: Most shells autocomplete worktree paths after typing `.local/`
 - **Shell Aliases**: Add to your shell config for quick access:
   ```bash
   alias wtl='git worktree list'
