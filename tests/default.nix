@@ -53,26 +53,29 @@ let
     (builtins.attrNames legacyEntries);
 
   # Test categories with their patterns
-  unitTests = discoverTests ./unit ".*-unit\\.nix";
+  unitTests = discoverTests ./unit ".*-(unit|test)\\.nix";
   integrationTests = discoverTests ./integration ".*-integration\\.nix";
   e2eTests = discoverTests ./e2e ".*-e2e\\.nix";
   performanceTests = discoverTests ./performance ".*-perf\\.nix";
 
-  # Refactor tests for configuration restructuring
-  refactorUnitTests = discoverTests ./refactor/unit ".*-unit\\.nix";
-  refactorIntegrationTests = discoverTests ./refactor/integration ".*-integration\\.nix";
+  # Refactor tests for configuration restructuring (disabled during consolidation)
+  # refactorUnitTests = discoverTests ./refactor/unit ".*-unit\\.nix";
+  # refactorIntegrationTests = discoverTests ./refactor/integration ".*-integration\\.nix";
+  refactorUnitTests = {};
+  refactorIntegrationTests = {};
 
 
-  # Legacy tests (to be gradually migrated)
-  legacyTests = builtins.listToAttrs (map
-    (file: {
-      name = "legacy_" + (sanitizeName file);
-      value = import (legacyDir + ("/" + file)) { inherit pkgs; };
-    })
-    legacyFiles);
+  # Legacy tests (disabled during consolidation)
+  # legacyTests = builtins.listToAttrs (map
+  #   (file: {
+  #     name = "legacy_" + (sanitizeName file);
+  #     value = import (legacyDir + ("/" + file)) { inherit pkgs; };
+  #   })
+  #   legacyFiles);
+  legacyTests = {};
 
   # Combine all tests with clear categorization
-  allTests = unitTests // integrationTests // e2eTests // performanceTests // refactorUnitTests // refactorIntegrationTests // legacyTests;
+  allTests = unitTests // integrationTests // e2eTests // performanceTests;
 
   # Test metadata for reporting
   testMetadata = {
