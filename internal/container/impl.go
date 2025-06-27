@@ -12,6 +12,8 @@ import (
 	storyAdapters "ssulmeta-go/internal/story/adapters"
 	"ssulmeta-go/internal/story/core"
 	storyPorts "ssulmeta-go/internal/story/ports"
+	"ssulmeta-go/internal/tts"
+	ttsPorts "ssulmeta-go/internal/tts/ports"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -36,6 +38,10 @@ type ContainerImpl struct {
 	storyService     storyPorts.Service
 	storyServiceOnce sync.Once
 	storyServiceErr  error
+
+	ttsService     ttsPorts.Service
+	ttsServiceOnce sync.Once
+	ttsServiceErr  error
 }
 
 // NewContainer creates a new dependency injection container
@@ -130,6 +136,30 @@ func (c *ContainerImpl) StoryService() storyPorts.Service {
 	}
 
 	return c.storyService
+}
+
+// TTSService returns the TTS service instance
+func (c *ContainerImpl) TTSService() ttsPorts.Service {
+	c.ttsServiceOnce.Do(func() {
+		// Determine if we should use mock mode
+		useMock := c.config.API.UseMock || c.config.API.TTS.APIKey == ""
+
+		// Create TTS factory
+		factory := tts.NewServiceFactory(
+			c.config.API.TTS.APIKey,
+			c.config.Storage.BasePath,
+			useMock,
+		)
+
+		// Create TTS service
+		c.ttsService = factory.CreateService()
+	})
+
+	if c.ttsServiceErr != nil {
+		return nil
+	}
+
+	return c.ttsService
 }
 
 // Close closes all resources managed by the container

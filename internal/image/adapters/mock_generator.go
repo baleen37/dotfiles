@@ -1,10 +1,12 @@
-package image
+package adapters
 
 import (
 	"context"
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"ssulmeta-go/internal/image/ports"
 	"ssulmeta-go/pkg/models"
 )
 
@@ -14,7 +16,7 @@ type MockGenerator struct {
 }
 
 // NewMockGenerator creates a new mock generator
-func NewMockGenerator(assetPath string) *MockGenerator {
+func NewMockGenerator(assetPath string) ports.Generator {
 	return &MockGenerator{
 		assetPath: assetPath,
 	}

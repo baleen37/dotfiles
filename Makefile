@@ -1,5 +1,5 @@
 .PHONY: build test run clean lint fmt coverage arch-test coverage-html deps \
-        migrate-up migrate-down dev install-tools setup-hooks setup-dev help \
+        migrate-up migrate-down dev install-tools setup-hooks ensure-hooks setup-dev help \
         check-env ci-check ci-fmt fmt-strict check-strict
 
 # Variables
@@ -103,6 +103,8 @@ check-strict: fmt-strict lint test arch-test
 deps:
 	$(GO) mod download
 	$(GO) mod tidy
+	@echo "Setting up pre-commit hooks..."
+	@$(MAKE) setup-hooks
 
 # Database migrations
 migrate-up:
@@ -116,7 +118,15 @@ migrate-down:
 # Development mode with hot reload
 dev:
 	@echo "Starting in development mode..."
+	@$(MAKE) ensure-hooks
 	APP_ENV=local $(GO) run $(MAIN_PATH)
+
+# Ensure git hooks are installed (skip if already exists)
+ensure-hooks:
+	@if [ ! -f ".git/hooks/pre-commit" ] && [ ! -f "$$(cat .git 2>/dev/null | sed 's/gitdir: //')/hooks/pre-commit" 2>/dev/null ]; then \
+		echo "Installing pre-commit hooks..."; \
+		$(MAKE) setup-hooks; \
+	fi
 
 # Custom git hooks setup
 setup-hooks:

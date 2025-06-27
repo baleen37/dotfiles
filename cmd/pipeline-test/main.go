@@ -91,9 +91,15 @@ func runPipeline(cfg *config.Config, channelName string, outputDir string) error
 
 	// 3. Generate images
 	fmt.Println("\n🎨 Step 3: Generating images for scenes...")
-	imageSvc := image.NewMockGenerator(outputDir)
 
-	images, err := imageSvc.GenerateSceneImages(ctx, generatedStory.Scenes)
+	// Create image container
+	imageContainer, err := image.NewContainer(cfg, logger.Get())
+	if err != nil {
+		return fmt.Errorf("failed to create image container: %w", err)
+	}
+
+	// Generate images with channel style
+	images, err := imageContainer.Service.GenerateStoryImages(ctx, *generatedStory, channelCfg.GetSceneStyle())
 	if err != nil {
 		return fmt.Errorf("failed to generate images: %w", err)
 	}
@@ -104,17 +110,28 @@ func runPipeline(cfg *config.Config, channelName string, outputDir string) error
 
 	// 4. Generate audio
 	fmt.Println("\n🎙️ Step 4: Generating narration...")
-	ttsSvc := tts.NewMockGenerator(outputDir)
 
-	audioPath, err := ttsSvc.GenerateAudio(ctx, generatedStory.Content)
-	if err != nil {
-		return fmt.Errorf("failed to generate audio: %w", err)
+	// Debug: Print scene descriptions
+	fmt.Println("   Scene descriptions:")
+	for i, scene := range generatedStory.Scenes {
+		fmt.Printf("   Scene %d: %q\n", i+1, scene.Description)
 	}
 
-	duration, err := ttsSvc.GetAudioDuration(audioPath)
+	ttsFactory := tts.NewServiceFactory("", outputDir, true) // Use mock mode
+	ttsSvc := ttsFactory.CreateService()
+
+	audioFiles, err := ttsSvc.GenerateNarration(ctx, generatedStory)
 	if err != nil {
-		return fmt.Errorf("failed to get audio duration: %w", err)
+		return fmt.Errorf("failed to generate narration: %w", err)
 	}
+
+	if len(audioFiles) == 0 {
+		return fmt.Errorf("no audio files generated")
+	}
+
+	// Use the first audio file for pipeline test
+	audioPath := audioFiles[0].Path
+	duration := audioFiles[0].Duration
 
 	fmt.Printf("   Audio file: %s\n", filepath.Base(audioPath))
 	fmt.Printf("   Duration: %.1f seconds\n", duration)

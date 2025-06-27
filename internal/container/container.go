@@ -5,6 +5,7 @@ import (
 	"ssulmeta-go/internal/channel/ports"
 	"ssulmeta-go/internal/config"
 	storyPorts "ssulmeta-go/internal/story/ports"
+	ttsPorts "ssulmeta-go/internal/tts/ports"
 )
 
 // Container defines the dependency injection container interface
@@ -20,6 +21,9 @@ type Container interface {
 
 	// ChannelRepository returns the channel repository instance
 	ChannelRepository() ports.ChannelRepository
+
+	// TTSService returns the TTS service instance
+	TTSService() ttsPorts.Service
 
 	// Close closes all resources managed by the container
 	Close(ctx context.Context) error
