@@ -1,0 +1,85 @@
+# YouTube OAuth2 Configuration
+youtube:
+  oauth2:
+    # OAuth2 client credentials (set via environment variables)
+    client_id: ${YOUTUBE_CLIENT_ID}
+    client_secret: ${YOUTUBE_CLIENT_SECRET}
+    
+    # Authorized redirect URLs
+    redirect_urls:
+      - "http://localhost:8080/auth/youtube/callback"
+      - "urn:ietf:wg:oauth:2.0:oob"  # For installed applications
+    
+    # Required OAuth2 scopes for YouTube API
+    scopes:
+      - "https://www.googleapis.com/auth/youtube.upload"
+      - "https://www.googleapis.com/auth/youtube"
+      - "https://www.googleapis.com/auth/youtube.readonly"
+    
+    # OAuth2 endpoints
+    auth_url: "https://accounts.google.com/o/oauth2/auth"
+    token_url: "https://oauth2.googleapis.com/token"
+    
+    # Token storage settings
+    token_storage:
+      enabled: true
+      file_path: "data/tokens/youtube_tokens.json"
+      encrypt: true
+      encryption_key: ${YOUTUBE_TOKEN_ENCRYPTION_KEY}
+
+# YouTube API Configuration
+api:
+  base_url: "https://www.googleapis.com/youtube/v3"
+  upload_url: "https://www.googleapis.com/upload/youtube/v3/videos"
+  
+  # Rate limiting settings
+  rate_limit:
+    requests_per_second: 100
+    burst_size: 10
+    
+  # Upload settings
+  upload:
+    chunk_size: 8388608  # 8MB chunks
+    max_retries: 3
+    retry_delay: "5s"
+    timeout: "30m"
+    
+  # Default video settings
+  defaults:
+    category_id: "22"  # People & Blogs
+    privacy: "private"
+    language: "ko"
+    
+# Content guidelines
+content:
+  title:
+    max_length: 100
+    forbidden_chars: ["<", ">", "\"", "'"]
+    
+  description:
+    max_length: 5000
+    include_hashtags: true
+    include_timestamps: false
+    
+  tags:
+    max_count: 500
+    max_total_length: 500
+    suggested_tags:
+      fairy_tale: ["동화", "이야기", "아이들", "교육", "상상력"]
+      horror: ["공포", "스릴러", "무서운이야기", "괴담"]
+      romance: ["로맨스", "사랑", "감동", "연애"]
+      
+# Channel-specific settings
+channels:
+  fairy_tale:
+    default_category: "27"  # Education
+    default_tags: ["동화", "어린이", "교육콘텐츠"]
+    
+  horror:
+    default_category: "24"  # Entertainment
+    default_tags: ["공포", "무서운이야기", "성인용"]
+    age_restriction: true
+    
+  romance:
+    default_category: "24"  # Entertainment
+    default_tags: ["로맨스", "사랑이야기", "감동"]

@@ -59,6 +59,9 @@ jobs:
         go-version: '1.24.4'
         
     - name: Run tests
+      env:
+        SKIP_FFMPEG_EXECUTION: "true"
+        SKIP_YOUTUBE_API: "true"
       run: make test
 
   architecture-check:
@@ -88,6 +91,9 @@ jobs:
         go-version: '1.24.4'
         
     - name: Generate coverage report
+      env:
+        SKIP_FFMPEG_EXECUTION: "true"
+        SKIP_YOUTUBE_API: "true"
       run: make coverage-html
       
     - name: Upload coverage report

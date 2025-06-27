@@ -85,3 +85,33 @@ func GetAppError(err error) (*AppError, bool) {
 	appErr, ok := err.(*AppError)
 	return appErr, ok
 }
+
+// NewInternalError creates a new internal error with details
+func NewInternalError(code string, message string, details map[string]interface{}) *AppError {
+	return &AppError{
+		Type:    ErrorTypeInternal,
+		Code:    code,
+		Message: message,
+		Details: details,
+	}
+}
+
+// NewValidationError creates a new validation error with details
+func NewValidationError(code string, message string, details map[string]interface{}) *AppError {
+	return &AppError{
+		Type:    ErrorTypeValidation,
+		Code:    code,
+		Message: message,
+		Details: details,
+	}
+}
+
+// NewExternalError creates a new external service error with details
+func NewExternalError(code string, message string, details map[string]interface{}) *AppError {
+	return &AppError{
+		Type:    ErrorTypeExternal,
+		Code:    code,
+		Message: message,
+		Details: details,
+	}
+}

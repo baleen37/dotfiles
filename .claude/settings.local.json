@@ -2,7 +2,12 @@
   "permissions": {
     "allow": [
       "Bash(go test:*)",
-      "Bash(golangci-lint run:*)"
+      "Bash(golangci-lint run:*)",
+      "Bash(go get:*)",
+      "Bash(go build:*)",
+      "Bash(SKIP_FFMPEG_EXECUTION=true go test -v ./internal/video/adapters/... -run TestVideoValidator)",
+      "Bash(SKIP_FFMPEG_EXECUTION=true go test -v ./internal/video/...)",
+      "Bash(SKIP_FFMPEG_EXECUTION=true go test -v ./internal/video/... -run TestVideoIntegration)"
     ],
     "deny": []
   }

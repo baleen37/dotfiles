@@ -21,6 +21,20 @@ const (
 	CodeOpenAITimeout       = "OPENAI_TIMEOUT"
 	CodeRedisConnectionFail = "REDIS_CONNECTION_FAILED"
 	CodeRedisOperationFail  = "REDIS_OPERATION_FAILED"
+	CodeExternalAPIError    = "EXTERNAL_API_ERROR"
+
+	// YouTube API error codes
+	CodeYouTubeAPIError      = "YOUTUBE_API_ERROR"
+	CodeYouTubeUploadFailed  = "YOUTUBE_UPLOAD_FAILED"
+	CodeYouTubeAuthFailed    = "YOUTUBE_AUTH_FAILED"
+	CodeYouTubeQuotaExceeded = "YOUTUBE_QUOTA_EXCEEDED"
+
+	// Video domain error codes
+	CodeDependencyUnavailable  = "DEPENDENCY_UNAVAILABLE"
+	CodeVideoCompositionFailed = "VIDEO_COMPOSITION_FAILED"
+	CodeVideoValidationFailed  = "VIDEO_VALIDATION_FAILED"
+	CodeFFmpegNotFound         = "FFMPEG_NOT_FOUND"
+	CodeFFprobeNotFound        = "FFPROBE_NOT_FOUND"
 
 	// Configuration error codes
 	CodeConfigNotFound   = "CONFIG_NOT_FOUND"
@@ -29,6 +43,7 @@ const (
 
 	// General error codes
 	CodeInternalError    = "INTERNAL_ERROR"
+	CodeValidationError  = "VALIDATION_ERROR"
 	CodeInvalidInput     = "INVALID_INPUT"
 	CodeUnauthorized     = "UNAUTHORIZED"
 	CodeForbidden        = "FORBIDDEN"

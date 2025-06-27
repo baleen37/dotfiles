@@ -13,7 +13,8 @@ import (
 	"ssulmeta-go/internal/image"
 	"ssulmeta-go/internal/story"
 	"ssulmeta-go/internal/tts"
-	"ssulmeta-go/internal/video"
+
+	// "ssulmeta-go/internal/video" // TODO: Update to new video domain structure
 	"ssulmeta-go/pkg/logger"
 	"ssulmeta-go/pkg/models"
 )
@@ -136,28 +137,24 @@ func runPipeline(cfg *config.Config, channelName string, outputDir string) error
 	fmt.Printf("   Audio file: %s\n", filepath.Base(audioPath))
 	fmt.Printf("   Duration: %.1f seconds\n", duration)
 
-	// 5. Compose video
-	fmt.Println("\n🎬 Step 5: Composing video...")
-	videoSvc := video.NewMockComposer(outputDir)
+	// 5. Compose video (TODO: Implement with new video domain)
+	fmt.Println("\n🎬 Step 5: Video composition (Placeholder)")
+	fmt.Printf("   Input images: %d files\n", len(images))
+	fmt.Printf("   Audio file: %s\n", filepath.Base(audioPath))
+	fmt.Printf("   TODO: Implement video composition with new domain structure\n")
 
-	videoMeta, err := videoSvc.ComposeVideo(ctx, images, audioPath, generatedStory.Scenes)
-	if err != nil {
-		return fmt.Errorf("failed to compose video: %w", err)
+	// Create a placeholder video file
+	videoPath := filepath.Join(outputDir, "output_video.mp4")
+	if err := os.WriteFile(videoPath, []byte("# Placeholder video file\n"), 0644); err != nil {
+		return fmt.Errorf("failed to create placeholder video: %w", err)
 	}
 
-	fmt.Printf("   Video file: %s\n", filepath.Base(videoMeta.FilePath))
-	fmt.Printf("   Resolution: %dx%d\n", videoMeta.Width, videoMeta.Height)
-	fmt.Printf("   Duration: %.1f seconds\n", videoMeta.Duration)
-	fmt.Printf("   FPS: %d\n", videoMeta.FPS)
-	fmt.Printf("   Size: %.2f MB\n", float64(videoMeta.FileSizeBytes)/(1024*1024))
-
-	// 6. Generate thumbnail
-	fmt.Println("\n🖼️ Step 6: Generating thumbnail...")
-	thumbnailPath, err := videoSvc.GenerateThumbnail(ctx, videoMeta.FilePath)
-	if err != nil {
-		return fmt.Errorf("failed to generate thumbnail: %w", err)
+	// 6. Generate thumbnail (TODO: Implement with new video domain)
+	fmt.Println("\n🖼️ Step 6: Thumbnail generation (Placeholder)")
+	thumbnailPath := filepath.Join(outputDir, "thumbnail.jpg")
+	if err := os.WriteFile(thumbnailPath, []byte("# Placeholder thumbnail file\n"), 0644); err != nil {
+		return fmt.Errorf("failed to create placeholder thumbnail: %w", err)
 	}
-
 	fmt.Printf("   Thumbnail: %s\n", filepath.Base(thumbnailPath))
 
 	// 7. Prepare for upload (mock)
