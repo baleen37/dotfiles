@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"ssulmeta-go/internal/config"
+	"ssulmeta-go/internal/story/ports"
 	"ssulmeta-go/pkg/logger"
 	"ssulmeta-go/pkg/models"
 	"time"
@@ -21,6 +22,9 @@ type OpenAIGenerator struct {
 	temperature float64
 	httpClient  *http.Client
 }
+
+// Ensure OpenAIGenerator implements the Generator interface
+var _ ports.Generator = (*OpenAIGenerator)(nil)
 
 // NewOpenAIGenerator creates a new OpenAI generator
 func NewOpenAIGenerator(cfg *config.OpenAIConfig) *OpenAIGenerator {

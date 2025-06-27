@@ -2,7 +2,6 @@ package core
 
 import (
 	"context"
-	"ssulmeta-go/internal/config"
 	"ssulmeta-go/internal/story/adapters"
 	"ssulmeta-go/pkg/models"
 	"testing"
@@ -10,16 +9,10 @@ import (
 )
 
 func TestService_GenerateStory(t *testing.T) {
-	// Create mock service
-	cfg := &config.APIConfig{
-		UseMock: true,
-	}
-
+	// Create mock service using dependency injection
 	generator := adapters.NewMockGenerator()
-	service, err := NewService(cfg, generator)
-	if err != nil {
-		t.Fatalf("Failed to create service: %v", err)
-	}
+	validator := NewValidator()
+	service := NewService(generator, validator)
 
 	// Create test channel
 	channel := models.NewChannel("test_channel")

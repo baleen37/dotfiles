@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+	"ssulmeta-go/internal/story/ports"
 	"ssulmeta-go/pkg/models"
 	"strings"
 	"unicode/utf8"
@@ -12,6 +13,9 @@ type Validator struct {
 	minLength int
 	maxLength int
 }
+
+// Ensure Validator implements the Validator interface
+var _ ports.Validator = (*Validator)(nil)
 
 // NewValidator creates a new story validator
 func NewValidator() *Validator {
@@ -124,7 +128,7 @@ func (v *Validator) checkInappropriateContent(content string) error {
 }
 
 // ValidateScenes validates the scenes
-func (v *Validator) ValidateScenes(scenes []models.Scene) error {
+func (v *Validator) ValidateScenes(scenes []*models.Scene) error {
 	if len(scenes) < 6 {
 		return fmt.Errorf("too few scenes: %d (min 6)", len(scenes))
 	}

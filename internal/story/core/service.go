@@ -3,7 +3,6 @@ package core
 import (
 	"context"
 	"fmt"
-	"ssulmeta-go/internal/config"
 	"ssulmeta-go/internal/story/ports"
 	"ssulmeta-go/pkg/models"
 )
@@ -14,12 +13,15 @@ type Service struct {
 	validator *Validator
 }
 
-// NewService creates a new story service
-func NewService(cfg *config.APIConfig, generator ports.Generator) (*Service, error) {
+// Ensure Service implements the Service interface
+var _ ports.Service = (*Service)(nil)
+
+// NewService creates a new story service with dependency injection
+func NewService(generator ports.Generator, validator *Validator) *Service {
 	return &Service{
 		generator: generator,
-		validator: NewValidator(),
-	}, nil
+		validator: validator,
+	}
 }
 
 // GenerateStory generates and validates a story
@@ -41,7 +43,11 @@ func (s *Service) GenerateStory(ctx context.Context, channel *models.Channel) (*
 	}
 
 	// Validate scenes
-	if err := s.validator.ValidateScenes(story.Scenes); err != nil {
+	scenePointers := make([]*models.Scene, len(story.Scenes))
+	for i := range story.Scenes {
+		scenePointers[i] = &story.Scenes[i]
+	}
+	if err := s.validator.ValidateScenes(scenePointers); err != nil {
 		return nil, fmt.Errorf("scene validation failed: %w", err)
 	}
 

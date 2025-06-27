@@ -3,12 +3,16 @@ package adapters
 import (
 	"context"
 	"fmt"
+	"ssulmeta-go/internal/story/ports"
 	"ssulmeta-go/pkg/models"
 	"strings"
 )
 
 // MockGenerator is a mock implementation of Generator
 type MockGenerator struct{}
+
+// Ensure MockGenerator implements the Generator interface
+var _ ports.Generator = (*MockGenerator)(nil)
 
 // NewMockGenerator creates a new mock generator
 func NewMockGenerator() *MockGenerator {
