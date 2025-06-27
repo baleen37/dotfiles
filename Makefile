@@ -1,4 +1,6 @@
-.PHONY: build test run clean lint fmt coverage arch-test coverage-html deps migrate-up migrate-down dev install-tools setup-hooks setup-dev help check-env ci-check ci-fmt fmt-strict check-strict
+.PHONY: build test run clean lint fmt coverage arch-test coverage-html deps \
+        migrate-up migrate-down dev install-tools setup-hooks setup-dev help \
+        check-env ci-check ci-fmt fmt-strict check-strict
 
 # Variables
 BINARY_NAME=youtube-shorts-generator
@@ -59,11 +61,7 @@ check-env:
 # Format code (CI-compatible with graceful degradation)
 fmt:
 	$(GO) fmt ./...
-	@if command -v goimports >/dev/null 2>&1; then \
-		goimports -w .; \
-	else \
-		GOPATH=$$(go env GOPATH) && [ -x "$$GOPATH/bin/goimports" ] && $$GOPATH/bin/goimports -w . || echo "Warning: goimports not available - install with 'make install-tools'"; \
-	fi
+	$(shell go env GOPATH)/bin/goimports -w .
 
 # Strict format code (requires all tools)
 fmt-strict:
@@ -74,7 +72,6 @@ fmt-strict:
 		echo "❌ goimports not found. Run 'make install-tools' first"; \
 		exit 1; \
 	fi
-
 # CI-compatible format check (same logic as CI)
 ci-fmt:
 	@echo "🔍 Running CI-compatible format check..."
