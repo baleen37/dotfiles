@@ -1,24 +1,32 @@
 #!/bin/sh
 
-echo "🔍 Running pre-commit checks..."
+echo "🔍 Running pre-commit checks (matching CI)..."
 
-# Format check
-echo "📝 Formatting code..."
-make fmt
-if [ $? -ne 0 ]; then
-    echo "❌ Format failed"
+# Check if tools are installed
+if ! command -v golangci-lint >/dev/null 2>&1 || ! command -v goimports >/dev/null 2>&1; then
+    echo "❌ Development tools not found"
+    echo "💡 Run 'make install-tools' to install CI-compatible tools"
     exit 1
 fi
 
-# Lint check
-echo "🔍 Running linter..."
-make lint
+# Format check with tools available
+echo "📝 Running format check..."
+make fmt-strict
 if [ $? -ne 0 ]; then
-    echo "❌ Lint failed"
+    echo "❌ Format check failed"
+    echo "💡 Run 'make install-tools' to install required tools"
     exit 1
 fi
 
 # Stage formatted files
 git add -A
 
-echo "✅ Pre-commit checks passed"
+# Lint check (same as CI lint-check job)
+echo "🔍 Running linter (same as CI)..."
+make lint
+if [ $? -ne 0 ]; then
+    echo "❌ Lint check failed (same as CI)"
+    exit 1
+fi
+
+echo "✅ Pre-commit checks passed (CI compatible)"

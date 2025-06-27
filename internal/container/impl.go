@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/redis/go-redis/v9"
 	channelAdapters "ssulmeta-go/internal/channel/adapters"
 	"ssulmeta-go/internal/channel/ports"
 	channelService "ssulmeta-go/internal/channel/service"
@@ -13,6 +12,8 @@ import (
 	storyAdapters "ssulmeta-go/internal/story/adapters"
 	"ssulmeta-go/internal/story/core"
 	storyPorts "ssulmeta-go/internal/story/ports"
+
+	"github.com/redis/go-redis/v9"
 )
 
 // ContainerImpl implements the Container interface
