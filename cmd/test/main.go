@@ -48,7 +48,7 @@ func main() {
 		ch := channelCfg.ToModel()
 
 		// Create story service (using mock)
-		storySvc, err := story.NewServiceWithConfig(&cfg.API)
+		storySvc, err := story.NewServiceWithConfig(&cfg.API, &cfg.Story, cfg.HTTPClient.OpenAITimeout)
 		if err != nil {
 			logger.Error("Failed to create story service", "error", err)
 			continue
@@ -113,7 +113,7 @@ func testRealAPI(cfg *config.Config) {
 	ch := channelCfg.ToModel()
 
 	// Create story service with real API
-	storySvc, err := story.NewServiceWithConfig(&cfg.API)
+	storySvc, err := story.NewServiceWithConfig(&cfg.API, &cfg.Story, cfg.HTTPClient.OpenAITimeout)
 	if err != nil {
 		logger.Error("Failed to create story service", "error", err)
 		return

@@ -12,23 +12,54 @@ database:
   dbname: "youtube_shorts_test"
   sslmode: "disable"
 
+server:
+  port: ":8081"  # Different port for tests
+  redis_addr: "localhost:6379"
+  redis_db: 1    # Different DB for tests
+  read_timeout: "10s"
+  write_timeout: "10s"
+
 api:
   # Mock mode for testing
   use_mock: true
   
   openai:
     api_key: "test-key"
+    base_url: "https://api.openai.com/v1/chat/completions"
     model: "gpt-3.5-turbo"
     max_tokens: 500
     temperature: 0.7
+    rate_limit: 60
+    system_prompt: "당신은 YouTube Shorts를 위한 1분 분량의 짧은 스토리를 작성하는 전문 작가입니다. 270-300자 내외로 작성해주세요."
   
   image:
     provider: "mock"
     api_key: "test-key"
+    base_url: "https://api.mock.com"
+    width: 1080
+    height: 1920
+    steps: 20  # Faster for tests
+    guidance_scale: 7.0
+    sampler: "Euler"
+    negative_prompt: "test negative prompt"
+    jpeg_quality: 80  # Lower quality for tests
+    max_file_size: 5242880  # 5MB for tests
+    rate_limit: 10
+    rate_limit_delay: "100ms"  # Faster for tests
     
   tts:
     provider: "mock"
     api_key: "test-key"
+    base_url: "https://api.mock.com"
+    credentials_file: ""
+    language_code: "ko-KR"
+    voice_name: "test-voice"
+    speaking_rate: 1.2  # Faster for tests
+    pitch: 0.0
+    volume_gain: 0.0
+    sample_rate: 16000  # Lower quality for tests
+    audio_encoding: "MP3"
+    rate_limit: 100
 
 storage:
   base_path: "./assets/test"
@@ -38,3 +69,21 @@ logging:
   level: "debug"
   format: "text"
   output: "stdout"
+
+story:
+  reading_rate: 20.0   # Faster reading for tests
+  min_duration: 2.0    # Shorter durations for tests
+  max_duration: 8.0
+  default_prompt: |
+    Test prompt for YouTube Shorts:
+    
+    제목: [Test Title]
+    내용: [Test Content]
+  default_title: "테스트"
+
+http_client:
+  openai_timeout: "5s"    # Shorter timeouts for tests
+  tts_timeout: "5s"
+  image_timeout: "10s"
+  retry_count: 2          # Fewer retries for tests
+  retry_interval: "100ms"

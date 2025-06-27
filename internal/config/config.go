@@ -5,17 +5,21 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"gopkg.in/yaml.v3"
 )
 
 type Config struct {
-	App      AppConfig      `yaml:"app"`
-	Database DatabaseConfig `yaml:"database"`
-	API      APIConfig      `yaml:"api"`
-	YouTube  YouTubeConfig  `yaml:"youtube"`
-	Storage  StorageConfig  `yaml:"storage"`
-	Logging  LoggingConfig  `yaml:"logging"`
+	App        AppConfig        `yaml:"app"`
+	Database   DatabaseConfig   `yaml:"database"`
+	Server     ServerConfig     `yaml:"server"`
+	API        APIConfig        `yaml:"api"`
+	YouTube    YouTubeConfig    `yaml:"youtube"`
+	Storage    StorageConfig    `yaml:"storage"`
+	Logging    LoggingConfig    `yaml:"logging"`
+	Story      StoryConfig      `yaml:"story"`
+	HTTPClient HTTPClientConfig `yaml:"http_client"`
 }
 
 type AppConfig struct {
@@ -43,27 +47,44 @@ type APIConfig struct {
 }
 
 type OpenAIConfig struct {
-	APIKey      string  `yaml:"api_key"`
-	Model       string  `yaml:"model"`
-	MaxTokens   int     `yaml:"max_tokens"`
-	Temperature float64 `yaml:"temperature"`
-	RateLimit   int     `yaml:"rate_limit"`
+	APIKey       string  `yaml:"api_key"`
+	BaseURL      string  `yaml:"base_url"`
+	Model        string  `yaml:"model"`
+	MaxTokens    int     `yaml:"max_tokens"`
+	Temperature  float64 `yaml:"temperature"`
+	RateLimit    int     `yaml:"rate_limit"`
+	SystemPrompt string  `yaml:"system_prompt"`
 }
 
 type ImageAPIConfig struct {
-	Provider  string `yaml:"provider"`
-	APIKey    string `yaml:"api_key"`
-	BaseURL   string `yaml:"base_url"`
-	RateLimit int    `yaml:"rate_limit"`
+	Provider       string        `yaml:"provider"`
+	APIKey         string        `yaml:"api_key"`
+	BaseURL        string        `yaml:"base_url"`
+	Width          int           `yaml:"width"`
+	Height         int           `yaml:"height"`
+	Steps          int           `yaml:"steps"`
+	GuidanceScale  float64       `yaml:"guidance_scale"`
+	Sampler        string        `yaml:"sampler"`
+	NegativePrompt string        `yaml:"negative_prompt"`
+	JPEGQuality    int           `yaml:"jpeg_quality"`
+	MaxFileSize    int64         `yaml:"max_file_size"`
+	RateLimit      int           `yaml:"rate_limit"`
+	RateLimitDelay time.Duration `yaml:"rate_limit_delay"`
 }
 
 type TTSConfig struct {
-	Provider        string `yaml:"provider"`
-	APIKey          string `yaml:"api_key"`
-	CredentialsFile string `yaml:"credentials_file"`
-	LanguageCode    string `yaml:"language_code"`
-	VoiceName       string `yaml:"voice_name"`
-	RateLimit       int    `yaml:"rate_limit"`
+	Provider        string  `yaml:"provider"`
+	APIKey          string  `yaml:"api_key"`
+	BaseURL         string  `yaml:"base_url"`
+	CredentialsFile string  `yaml:"credentials_file"`
+	LanguageCode    string  `yaml:"language_code"`
+	VoiceName       string  `yaml:"voice_name"`
+	SpeakingRate    float64 `yaml:"speaking_rate"`
+	Pitch           float64 `yaml:"pitch"`
+	VolumeGain      float64 `yaml:"volume_gain"`
+	SampleRate      int     `yaml:"sample_rate"`
+	AudioEncoding   string  `yaml:"audio_encoding"`
+	RateLimit       int     `yaml:"rate_limit"`
 }
 
 type YouTubeConfig struct {
@@ -87,6 +108,30 @@ type LoggingConfig struct {
 	MaxSize    int    `yaml:"max_size"`
 	MaxBackups int    `yaml:"max_backups"`
 	MaxAge     int    `yaml:"max_age"`
+}
+
+type ServerConfig struct {
+	Port         string        `yaml:"port"`
+	RedisAddr    string        `yaml:"redis_addr"`
+	RedisDB      int           `yaml:"redis_db"`
+	ReadTimeout  time.Duration `yaml:"read_timeout"`
+	WriteTimeout time.Duration `yaml:"write_timeout"`
+}
+
+type StoryConfig struct {
+	ReadingRate   float64 `yaml:"reading_rate"`
+	MinDuration   float64 `yaml:"min_duration"`
+	MaxDuration   float64 `yaml:"max_duration"`
+	DefaultPrompt string  `yaml:"default_prompt"`
+	DefaultTitle  string  `yaml:"default_title"`
+}
+
+type HTTPClientConfig struct {
+	OpenAITimeout time.Duration `yaml:"openai_timeout"`
+	TTSTimeout    time.Duration `yaml:"tts_timeout"`
+	ImageTimeout  time.Duration `yaml:"image_timeout"`
+	RetryCount    int           `yaml:"retry_count"`
+	RetryInterval time.Duration `yaml:"retry_interval"`
 }
 
 // Load loads configuration from yaml file based on APP_ENV
@@ -129,9 +174,47 @@ func (c *Config) Validate() error {
 		return fmt.Errorf("database host and port are required")
 	}
 
+	// Server validation
+	if c.Server.Port == "" {
+		return fmt.Errorf("server port is required")
+	}
+	if c.Server.RedisAddr == "" {
+		return fmt.Errorf("redis address is required")
+	}
+
+	// HTTP client timeout validation
+	if c.HTTPClient.OpenAITimeout <= 0 {
+		return fmt.Errorf("openAI timeout must be positive")
+	}
+	if c.HTTPClient.TTSTimeout <= 0 {
+		return fmt.Errorf("tTS timeout must be positive")
+	}
+	if c.HTTPClient.ImageTimeout <= 0 {
+		return fmt.Errorf("image timeout must be positive")
+	}
+
+	// Story configuration validation
+	if c.Story.ReadingRate <= 0 {
+		return fmt.Errorf("reading rate must be positive")
+	}
+	if c.Story.MinDuration <= 0 || c.Story.MaxDuration <= 0 {
+		return fmt.Errorf("scene duration bounds must be positive")
+	}
+	if c.Story.MinDuration >= c.Story.MaxDuration {
+		return fmt.Errorf("min duration must be less than max duration")
+	}
+
+	// API configuration validation
+	if c.API.OpenAI.BaseURL == "" {
+		return fmt.Errorf("openAI base URL is required")
+	}
+	if c.API.Image.Width <= 0 || c.API.Image.Height <= 0 {
+		return fmt.Errorf("image dimensions must be positive")
+	}
+
 	// Check for unexpanded environment variables
 	if strings.Contains(c.API.OpenAI.APIKey, "${") && !c.API.UseMock {
-		return fmt.Errorf("OpenAI API key is not set")
+		return fmt.Errorf("openAI API key is not set")
 	}
 
 	return nil

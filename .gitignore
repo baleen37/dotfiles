@@ -45,5 +45,8 @@ docker-compose.override.yml
 media/
 temp/
 
-# Application binary
+# Application binaries
 ssulmeta-api
+cli
+pipeline-test
+test

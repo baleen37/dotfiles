@@ -68,7 +68,7 @@ func runPipeline(cfg *config.Config, channelName string, outputDir string) error
 
 	// 2. Generate story
 	fmt.Println("\n📝 Step 2: Generating story...")
-	storySvc, err := story.NewServiceWithConfig(&cfg.API)
+	storySvc, err := story.NewServiceWithConfig(&cfg.API, &cfg.Story, cfg.HTTPClient.OpenAITimeout)
 	if err != nil {
 		return fmt.Errorf("failed to create story service: %w", err)
 	}

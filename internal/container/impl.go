@@ -122,7 +122,7 @@ func (c *ContainerImpl) StoryService() storyPorts.Service {
 		if c.config.API.UseMock {
 			generator = storyAdapters.NewMockGenerator()
 		} else {
-			generator = storyAdapters.NewOpenAIGenerator(&c.config.API.OpenAI)
+			generator = storyAdapters.NewOpenAIGenerator(&c.config.API.OpenAI, &c.config.Story, c.config.HTTPClient.OpenAITimeout)
 		}
 
 		validator := core.NewValidator()

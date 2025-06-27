@@ -18,9 +18,12 @@ import (
 // OpenAIGenerator implements Generator using OpenAI API
 type OpenAIGenerator struct {
 	apiKey        string
+	baseURL       string
 	model         string
 	maxTokens     int
 	temperature   float64
+	systemPrompt  string
+	storyConfig   *config.StoryConfig
 	httpClient    *http.Client
 	sceneSplitter *SceneSplitter
 }
@@ -29,14 +32,17 @@ type OpenAIGenerator struct {
 var _ ports.Generator = (*OpenAIGenerator)(nil)
 
 // NewOpenAIGenerator creates a new OpenAI generator
-func NewOpenAIGenerator(cfg *config.OpenAIConfig) *OpenAIGenerator {
+func NewOpenAIGenerator(cfg *config.OpenAIConfig, storyCfg *config.StoryConfig, httpTimeout time.Duration) *OpenAIGenerator {
 	return &OpenAIGenerator{
-		apiKey:      cfg.APIKey,
-		model:       cfg.Model,
-		maxTokens:   cfg.MaxTokens,
-		temperature: cfg.Temperature,
+		apiKey:       cfg.APIKey,
+		baseURL:      cfg.BaseURL,
+		model:        cfg.Model,
+		maxTokens:    cfg.MaxTokens,
+		temperature:  cfg.Temperature,
+		systemPrompt: cfg.SystemPrompt,
+		storyConfig:  storyCfg,
 		httpClient: &http.Client{
-			Timeout: 30 * time.Second,
+			Timeout: httpTimeout,
 		},
 		sceneSplitter: NewSceneSplitter(),
 	}
@@ -95,7 +101,7 @@ func (g *OpenAIGenerator) GenerateStory(ctx context.Context, channel *models.Cha
 		Messages: []message{
 			{
 				Role:    "system",
-				Content: "당신은 YouTube Shorts를 위한 1분 분량의 짧은 스토리를 작성하는 전문 작가입니다. 270-300자 내외로 작성해주세요.",
+				Content: g.systemPrompt,
 			},
 			{
 				Role:    "user",
@@ -112,7 +118,7 @@ func (g *OpenAIGenerator) GenerateStory(ctx context.Context, channel *models.Cha
 	}
 
 	// Create HTTP request
-	req, err := http.NewRequestWithContext(ctx, "POST", "https://api.openai.com/v1/chat/completions", bytes.NewBuffer(jsonData))
+	req, err := http.NewRequestWithContext(ctx, "POST", g.baseURL, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return nil, errors.Wrap(err, errors.ErrorTypeInternal, errors.CodeInternalError, "failed to create request")
 	}
@@ -220,18 +226,11 @@ func (g *OpenAIGenerator) GenerateStory(ctx context.Context, channel *models.Cha
 
 // buildPrompt builds the prompt for story generation
 func (g *OpenAIGenerator) buildPrompt(channel *models.Channel) string {
-	basePrompt := `다음 형식으로 YouTube Shorts용 1분 짧은 이야기를 만들어주세요:
-
-제목: [이야기 제목]
-내용: [270-300자의 이야기 내용]
-
-이야기는 시작, 중간, 끝이 명확해야 하고, 시각적으로 표현하기 좋은 장면들이 포함되어야 합니다.`
-
 	if channel.PromptTemplate != "" {
 		return channel.PromptTemplate
 	}
 
-	return basePrompt
+	return g.storyConfig.DefaultPrompt
 }
 
 // parseStoryResponse parses the structured response from OpenAI
@@ -256,7 +255,7 @@ func (g *OpenAIGenerator) parseStoryResponse(content string) (*models.Story, err
 	// Validate
 	if story.Title == "" || story.Content == "" {
 		// If parsing failed, use the entire content as story
-		story.Title = "무제"
+		story.Title = g.storyConfig.DefaultTitle
 		story.Content = content
 	}
 
@@ -328,21 +327,17 @@ func (g *OpenAIGenerator) generateImagePrompt(scene SceneContent) string {
 // calculateSceneDuration estimates the duration based on text length and scene type
 func (g *OpenAIGenerator) calculateSceneDuration(text string) float64 {
 	// Base duration calculation (characters per second for Korean reading)
-	baseRate := 15.0 // characters per second for comfortable reading
 	textLength := float64(len([]rune(text)))
 
 	// Base duration from text length
-	baseDuration := textLength / baseRate
+	baseDuration := textLength / g.storyConfig.ReadingRate
 
 	// Ensure minimum and maximum duration bounds
-	minDuration := 3.0  // seconds
-	maxDuration := 12.0 // seconds
-
-	if baseDuration < minDuration {
-		return minDuration
+	if baseDuration < g.storyConfig.MinDuration {
+		return g.storyConfig.MinDuration
 	}
-	if baseDuration > maxDuration {
-		return maxDuration
+	if baseDuration > g.storyConfig.MaxDuration {
+		return g.storyConfig.MaxDuration
 	}
 
 	return baseDuration

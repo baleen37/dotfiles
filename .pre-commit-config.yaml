@@ -1,9 +1,9 @@
 repos:
   - repo: local
     hooks:
-      - id: make-check
-        name: make check (fmt + lint + test)
-        entry: make check
+      - id: make-ci-check
+        name: make ci-check (fmt + lint + test)
+        entry: make ci-check
         language: system
         files: \.go$
         pass_filenames: false

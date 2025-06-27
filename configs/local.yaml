@@ -12,26 +12,54 @@ database:
   dbname: "youtube_shorts_local"
   sslmode: "disable"
 
+server:
+  port: ":8080"
+  redis_addr: "localhost:6379"
+  redis_db: 0
+  read_timeout: "30s"
+  write_timeout: "30s"
+
 api:
   # Can toggle between mock and real APIs
   use_mock: true
   
   openai:
     api_key: "${OPENAI_API_KEY}"
+    base_url: "https://api.openai.com/v1/chat/completions"
     model: "gpt-3.5-turbo"
     max_tokens: 500
     temperature: 0.7
+    rate_limit: 60
+    system_prompt: "당신은 YouTube Shorts를 위한 1분 분량의 짧은 스토리를 작성하는 전문 작가입니다. 270-300자 내외로 작성해주세요."
   
   image:
     provider: "stable-diffusion"
     api_key: "${IMAGE_API_KEY}"
     base_url: "https://stablediffusionapi.com/api/v3"
+    width: 1080
+    height: 1920
+    steps: 30
+    guidance_scale: 7.5
+    sampler: "DPM++ 2M Karras"
+    negative_prompt: "low quality, blurry, distorted, ugly, deformed, bad anatomy, bad proportions, text, watermark, signature"
+    jpeg_quality: 90
+    max_file_size: 10485760  # 10MB
+    rate_limit: 50
+    rate_limit_delay: "2s"
     
   tts:
     provider: "google"
+    api_key: "${GOOGLE_TTS_API_KEY}"
+    base_url: "https://texttospeech.googleapis.com/v1/text:synthesize"
     credentials_file: "${GOOGLE_CREDENTIALS_FILE}"
     language_code: "ko-KR"
-    voice_name: "ko-KR-Wavenet-A"
+    voice_name: "ko-KR-Standard-A"
+    speaking_rate: 1.0
+    pitch: 0.0
+    volume_gain: 0.0
+    sample_rate: 22050
+    audio_encoding: "MP3"
+    rate_limit: 100
 
 youtube:
   client_id: "${YOUTUBE_CLIENT_ID}"
@@ -46,3 +74,23 @@ logging:
   level: "info"
   format: "text"
   output: "stdout"
+
+story:
+  reading_rate: 15.0  # characters per second for Korean reading
+  min_duration: 3.0   # minimum scene duration in seconds
+  max_duration: 12.0  # maximum scene duration in seconds
+  default_prompt: |
+    다음 형식으로 YouTube Shorts용 1분 짧은 이야기를 만들어주세요:
+    
+    제목: [이야기 제목]
+    내용: [270-300자의 이야기 내용]
+    
+    이야기는 시작, 중간, 끝이 명확해야 하고, 시각적으로 표현하기 좋은 장면들이 포함되어야 합니다.
+  default_title: "무제"
+
+http_client:
+  openai_timeout: "30s"
+  tts_timeout: "30s"
+  image_timeout: "120s"  # Longer timeout for image generation
+  retry_count: 3
+  retry_interval: "1s"
