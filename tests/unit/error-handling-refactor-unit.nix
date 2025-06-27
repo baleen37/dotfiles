@@ -17,7 +17,7 @@ pkgs.runCommand "error-handling-refactor-unit-test" { } ''
     let
       pkgs = import <nixpkgs> {};
       errorHandling = import ${src}/lib/error-handling.nix { inherit pkgs; };
-      
+
       # Try to access all major functions to ensure they work
       testError = errorHandling.createError { message = "Test message"; };
       testFormat = errorHandling.formatError testError;
@@ -25,7 +25,7 @@ pkgs.runCommand "error-handling-refactor-unit-test" { } ''
     in
     "SUCCESS: No circular dependencies detected"
   ' > test_result.txt
-  
+
   if grep -q "SUCCESS" test_result.txt; then
     echo "✅ No circular dependencies detected"
   else
@@ -40,7 +40,7 @@ pkgs.runCommand "error-handling-refactor-unit-test" { } ''
     let
       pkgs = import <nixpkgs> {};
       errorHandling = import ${src}/lib/error-handling.nix { inherit pkgs; };
-      
+
       error = errorHandling.createError {
         message = "Test error message";
         component = "test-component";
@@ -49,7 +49,7 @@ pkgs.runCommand "error-handling-refactor-unit-test" { } ''
       };
     in
     assert error.message == "Test error message";
-    assert error.component == "test-component"; 
+    assert error.component == "test-component";
     assert error.errorType == "validation";
     assert error.severity == "warning";
     assert builtins.hasAttr "id" error;
@@ -57,7 +57,7 @@ pkgs.runCommand "error-handling-refactor-unit-test" { } ''
     assert builtins.hasAttr "category" error;
     "SUCCESS: Basic error creation works correctly"
   ' > test_result2.txt
-  
+
   if grep -q "SUCCESS" test_result2.txt; then
     echo "✅ Basic error creation functionality verified"
   else
@@ -72,7 +72,7 @@ pkgs.runCommand "error-handling-refactor-unit-test" { } ''
     let
       pkgs = import <nixpkgs> {};
       errorHandling = import ${src}/lib/error-handling.nix { inherit pkgs; };
-      
+
       error = errorHandling.createError {
         message = "Test formatting";
         component = "formatter";
@@ -90,7 +90,7 @@ pkgs.runCommand "error-handling-refactor-unit-test" { } ''
     assert builtins.match ".*file.*test.nix.*" formatted != null;
     "SUCCESS: Error formatting works correctly"
   ' > test_result3.txt
-  
+
   if grep -q "SUCCESS" test_result3.txt; then
     echo "✅ Error formatting functionality verified"
   else
@@ -105,10 +105,10 @@ pkgs.runCommand "error-handling-refactor-unit-test" { } ''
     let
       pkgs = import <nixpkgs> {};
       errorHandling = import ${src}/lib/error-handling.nix { inherit pkgs; };
-      
+
       validError = errorHandling.createError { message = "Valid error"; };
       invalidError = { message = "Invalid"; }; # Missing required fields
-      
+
       validResult = errorHandling.validateError validError;
       invalidResult = errorHandling.validateError invalidError;
     in
@@ -118,7 +118,7 @@ pkgs.runCommand "error-handling-refactor-unit-test" { } ''
     assert invalidResult.error != null;
     "SUCCESS: Error validation works correctly"
   ' > test_result4.txt
-  
+
   if grep -q "SUCCESS" test_result4.txt; then
     echo "✅ Error validation functionality verified"
   else
@@ -133,11 +133,11 @@ pkgs.runCommand "error-handling-refactor-unit-test" { } ''
     let
       pkgs = import <nixpkgs> {};
       errorHandling = import ${src}/lib/error-handling.nix { inherit pkgs; };
-      
+
       # Test tryWithFallback
       successOp = x: x + 1;
       successResult = errorHandling.tryWithFallback successOp 5 0;
-      
+
       # Test retryWithBackoff (with success operation)
       retryResult = errorHandling.recovery.retryWithBackoff successOp 3 5;
     in
@@ -145,7 +145,7 @@ pkgs.runCommand "error-handling-refactor-unit-test" { } ''
     assert retryResult == 10;
     "SUCCESS: Recovery mechanisms work correctly"
   ' > test_result5.txt
-  
+
   if grep -q "SUCCESS" test_result5.txt; then
     echo "✅ Recovery mechanisms functionality verified"
   else
@@ -160,14 +160,14 @@ pkgs.runCommand "error-handling-refactor-unit-test" { } ''
     let
       pkgs = import <nixpkgs> {};
       errorHandling = import ${src}/lib/error-handling.nix { inherit pkgs; };
-      
+
       errors = [
         (errorHandling.createError { message = "Error 1"; severity = "error"; })
         (errorHandling.createError { message = "Error 2"; severity = "error"; })
         (errorHandling.createError { message = "Warning 1"; severity = "warning"; })
         (errorHandling.createError { message = "Critical 1"; severity = "critical"; })
       ];
-      
+
       summary = errorHandling.aggregation.summarizeErrors errors;
       grouped = errorHandling.groupByCategory errors;
     in
@@ -181,7 +181,7 @@ pkgs.runCommand "error-handling-refactor-unit-test" { } ''
     assert builtins.hasAttr "external" grouped;
     "SUCCESS: Error aggregation works correctly"
   ' > test_result6.txt
-  
+
   if grep -q "SUCCESS" test_result6.txt; then
     echo "✅ Error aggregation functionality verified"
   else
@@ -202,10 +202,10 @@ pkgs.runCommand "error-handling-refactor-unit-test" { } ''
   echo "  ✅ Error aggregation"
   echo ""
   echo "✨ Refactored error handling system is working correctly!"
-  
+
   # Clean up test files
   rm -f test_result*.txt
-  
+
   # Create success marker
   echo "success" > $out
 ''
