@@ -32,7 +32,7 @@ func (m *MockGenerator) GenerateStory(ctx context.Context, channel *models.Chann
 
 // DivideIntoScenes divides the story into scenes
 func (m *MockGenerator) DivideIntoScenes(ctx context.Context, story *models.Story) error {
-	// Simple division based on sentences
+	// Simple division based on sentences for mock implementation
 	sentences := strings.Split(story.Content, ". ")
 
 	scenes := make([]models.Scene, 0)
@@ -44,8 +44,8 @@ func (m *MockGenerator) DivideIntoScenes(ctx context.Context, story *models.Stor
 		scene := models.Scene{
 			Number:      i + 1,
 			Description: sentence + ".",
-			ImagePrompt: fmt.Sprintf("Fairy tale illustration: %s, soft colors, magical atmosphere", sentence),
-			Duration:    10.0, // 10 seconds per scene
+			ImagePrompt: fmt.Sprintf("Fairy tale illustration: %s, soft colors, magical atmosphere, vertical format 9:16", sentence),
+			Duration:    8.0, // 8 seconds per scene
 		}
 		scenes = append(scenes, scene)
 	}

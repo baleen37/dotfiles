@@ -11,16 +11,18 @@ import (
 	"ssulmeta-go/internal/story/ports"
 	"ssulmeta-go/pkg/logger"
 	"ssulmeta-go/pkg/models"
+	"strings"
 	"time"
 )
 
 // OpenAIGenerator implements Generator using OpenAI API
 type OpenAIGenerator struct {
-	apiKey      string
-	model       string
-	maxTokens   int
-	temperature float64
-	httpClient  *http.Client
+	apiKey        string
+	model         string
+	maxTokens     int
+	temperature   float64
+	httpClient    *http.Client
+	sceneSplitter *SceneSplitter
 }
 
 // Ensure OpenAIGenerator implements the Generator interface
@@ -36,6 +38,7 @@ func NewOpenAIGenerator(cfg *config.OpenAIConfig) *OpenAIGenerator {
 		httpClient: &http.Client{
 			Timeout: 30 * time.Second,
 		},
+		sceneSplitter: NewSceneSplitter(),
 	}
 }
 
@@ -201,43 +204,87 @@ func (g *OpenAIGenerator) parseStoryResponse(content string) (*models.Story, err
 	return story, nil
 }
 
-// DivideIntoScenes divides the story into scenes using AI
+// DivideIntoScenes divides the story into scenes using advanced splitting logic
 func (g *OpenAIGenerator) DivideIntoScenes(ctx context.Context, story *models.Story) error {
-	// TODO: Implement AI-based scene division
-	// For now, we'll implement a simple sentence-based division
+	// Use the advanced scene splitter
+	result, err := g.sceneSplitter.SplitIntoScenes(story)
+	if err != nil {
+		return fmt.Errorf("failed to split story into scenes: %w", err)
+	}
 
-	// This is a placeholder implementation
-	return g.simpleDivideScenes(story)
-}
-
-// simpleDivideScenes provides a simple implementation of scene division
-func (g *OpenAIGenerator) simpleDivideScenes(story *models.Story) error {
-	// This is a simplified version - in production, use AI for better results
-	sentences := bytes.Split([]byte(story.Content), []byte(". "))
-
-	scenes := make([]models.Scene, 0)
-	sceneText := ""
-	sceneNum := 1
-
-	for i, sentence := range sentences {
-		sceneText += string(sentence) + ". "
-
-		// Create a scene every 2-3 sentences or at the end
-		if (i+1)%2 == 0 || i == len(sentences)-1 {
-			if sceneText != "" {
-				scene := models.Scene{
-					Number:      sceneNum,
-					Description: sceneText,
-					ImagePrompt: fmt.Sprintf("Korean story illustration: %s, vertical format, soft colors", sceneText),
-					Duration:    float64(len(sceneText)) / 30.0, // Rough estimate
-				}
-				scenes = append(scenes, scene)
-				sceneNum++
-				sceneText = ""
-			}
+	// Convert SceneContent to models.Scene
+	scenes := make([]models.Scene, len(result.Scenes))
+	for i, sceneContent := range result.Scenes {
+		scenes[i] = models.Scene{
+			Number:      sceneContent.Number,
+			Description: sceneContent.Text,
+			ImagePrompt: g.generateImagePrompt(sceneContent),
+			Duration:    g.calculateSceneDuration(sceneContent.Text),
 		}
 	}
 
 	story.Scenes = scenes
+
+	logger.Info("story divided into scenes successfully",
+		"total_scenes", len(scenes),
+		"story_title", story.Title,
+	)
+
 	return nil
+}
+
+// generateImagePrompt creates an optimized image prompt based on scene content
+func (g *OpenAIGenerator) generateImagePrompt(scene SceneContent) string {
+	basePrompt := fmt.Sprintf("Korean story illustration: %s", scene.Text)
+
+	// Add style modifiers based on scene type
+	var styleModifiers string
+	switch scene.SceneType {
+	case OpeningScene:
+		styleModifiers = "opening scene, establishing shot, soft lighting"
+	case ActionScene:
+		styleModifiers = "dynamic action scene, motion blur, dramatic lighting"
+	case DialogueScene:
+		styleModifiers = "character interaction, emotional expression, warm lighting"
+	case TransitionScene:
+		styleModifiers = "transition scene, atmospheric, cinematic"
+	case ClimaxScene:
+		styleModifiers = "climactic moment, intense drama, high contrast"
+	case ClosingScene:
+		styleModifiers = "resolution scene, peaceful atmosphere, golden hour"
+	default:
+		styleModifiers = "narrative scene, balanced composition"
+	}
+
+	// Include key phrases if available
+	if len(scene.KeyPhrases) > 0 {
+		keyPhrasesStr := fmt.Sprintf(", featuring: %s", strings.Join(scene.KeyPhrases, ", "))
+		basePrompt += keyPhrasesStr
+	}
+
+	return fmt.Sprintf("%s, %s, vertical format 9:16, high quality illustration",
+		basePrompt, styleModifiers)
+}
+
+// calculateSceneDuration estimates the duration based on text length and scene type
+func (g *OpenAIGenerator) calculateSceneDuration(text string) float64 {
+	// Base duration calculation (characters per second for Korean reading)
+	baseRate := 15.0 // characters per second for comfortable reading
+	textLength := float64(len([]rune(text)))
+
+	// Base duration from text length
+	baseDuration := textLength / baseRate
+
+	// Ensure minimum and maximum duration bounds
+	minDuration := 3.0  // seconds
+	maxDuration := 12.0 // seconds
+
+	if baseDuration < minDuration {
+		return minDuration
+	}
+	if baseDuration > maxDuration {
+		return maxDuration
+	}
+
+	return baseDuration
 }
