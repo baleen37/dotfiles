@@ -40,24 +40,13 @@ make coverage
 go test -v ./internal/story/...
 go test -v ./internal/channel/...
 
-# Run architecture tests only
-go test -v ./internal -run TestHexagonalArchitecture
-go test -v ./internal -run TestSharedPackages
+# Run architecture tests
+make arch-test
 
 # Run integration tests with Docker
 docker-compose -f docker-compose.test.yml up --abort-on-error
 ```
 
-#### Architecture Testing
-
-The project includes automated architecture testing using [archtest](https://github.com/matthewmcnew/archtest) to enforce Hexagonal Architecture principles:
-
-- **Core → Adapters isolation**: Core business logic cannot depend on external adapters
-- **Domain isolation**: Domains (story, channel, text) cannot depend on each other
-- **Shared package boundaries**: pkg/ packages remain independent of internal/ packages
-- **HTTP dependency constraints**: Only adapters can import net/http
-
-Architecture tests run automatically with `make test` and in CI/CD pipeline.
 
 ### Code Quality
 
@@ -69,7 +58,7 @@ make fmt
 make lint
 
 # Run all CI checks locally
-make fmt && make lint && make test
+make fmt && make lint && make test && make arch-test
 
 # Install custom pre-commit hooks
 make setup-hooks
@@ -167,6 +156,38 @@ Test environment (`APP_ENV=test`) uses mock implementations:
 - No external API calls
 - Useful for development and testing
 
+## Architecture Testing
+
+This project uses automated architecture testing to enforce Hexagonal Architecture principles:
+
+### What is Tested
+
+1. **Layer Dependencies**: Core packages cannot depend on adapters
+2. **External Dependencies**: Only adapters can import external libraries
+3. **Domain Isolation**: Business domains should not cross-depend
+4. **Interface Segregation**: Ports should not depend on adapters
+
+### Running Architecture Tests
+
+```bash
+# Run architecture tests only
+make arch-test
+
+# Run as part of full test suite
+make test && make arch-test
+```
+
+### Architecture Rules
+
+- **Core packages** (`internal/*/core`): Pure business logic, no external dependencies
+- **Ports packages** (`internal/*/ports`): Interface definitions only
+- **Adapters packages** (`internal/*/adapters`): External system integrations
+- **Models package** (`pkg/models`): Should not depend on internal packages
+
+### Implementation
+
+Architecture tests are implemented using [archtest](https://github.com/matthewmcnew/archtest) library and located in `architecture_test.go`. Tests run automatically in CI/CD pipeline.
+
 ## CI/CD Pipeline
 
 GitHub Actions workflow includes:
@@ -174,8 +195,9 @@ GitHub Actions workflow includes:
 1. **format-check**: Ensures code is properly formatted
 2. **lint-check**: Runs golangci-lint
 3. **test-check**: Executes all tests
-4. **coverage-check**: Generates coverage report
-5. **ci-complete**: Final status check for auto-merge
+4. **architecture-check**: Validates Hexagonal Architecture rules
+5. **coverage-check**: Generates coverage report
+6. **ci-complete**: Final status check for auto-merge
 
 ### Auto-merge Setup
 

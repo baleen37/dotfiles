@@ -14,6 +14,10 @@ build:
 test:
 	$(GO) test $(GOFLAGS) ./...
 
+# Run architecture tests
+arch-test:
+	$(GO) test $(GOFLAGS) ./architecture_test.go
+
 # Run tests with coverage
 coverage:
 	$(GO) test -v -cover -coverprofile=coverage.out ./...
@@ -75,6 +79,7 @@ help:
 	@echo "Available commands:"
 	@echo "  make build       - Build the application"
 	@echo "  make test        - Run tests"
+	@echo "  make arch-test   - Run architecture tests"
 	@echo "  make coverage    - Run tests with coverage"
 	@echo "  make run         - Build and run the application"
 	@echo "  make clean       - Clean build artifacts"

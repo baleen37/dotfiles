@@ -58,6 +58,20 @@ jobs:
     - name: Run tests
       run: make test
 
+  architecture-check:
+    runs-on: self-hosted
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.24.4'
+        
+    - name: Run architecture tests
+      run: make arch-test
+
   coverage-check:
     runs-on: self-hosted
     needs: test-check
@@ -82,7 +96,7 @@ jobs:
 
   ci-complete:
     runs-on: self-hosted
-    needs: [format-check, lint-check, test-check, coverage-check]
+    needs: [format-check, lint-check, test-check, architecture-check, coverage-check]
     if: success()
     steps:
     - name: Set final CI status
@@ -91,6 +105,7 @@ jobs:
         echo "- Formatting: ✓"
         echo "- Linting: ✓"  
         echo "- Tests: ✓"
+        echo "- Architecture: ✓"
         echo "- Coverage: ✓"
         
     - name: Update commit status
