@@ -1,0 +1,24 @@
+#!/bin/sh
+
+echo "🔍 Running pre-commit checks..."
+
+# Format check
+echo "📝 Formatting code..."
+make fmt
+if [ $? -ne 0 ]; then
+    echo "❌ Format failed"
+    exit 1
+fi
+
+# Lint check
+echo "🔍 Running linter..."
+make lint
+if [ $? -ne 0 ]; then
+    echo "❌ Lint failed"
+    exit 1
+fi
+
+# Stage formatted files
+git add -A
+
+echo "✅ Pre-commit checks passed"

@@ -1,0 +1,24 @@
+# Fairy tale channel configuration
+name: "동화 이야기"
+youtube_channel_id: "YOUR_FAIRY_TALE_CHANNEL_ID"
+tags:
+  - "동화"
+  - "어린이이야기"
+  - "교육"
+  - "shorts"
+  - "키즈"
+
+prompt_template: |
+  어린이를 위한 교육적이고 따뜻한 동화를 만들어주세요.
+  
+  조건:
+  - 270-300자 내외
+  - 교훈이 담긴 내용
+  - 밝고 희망적인 결말
+  - 동물이나 자연을 소재로
+  
+  형식:
+  제목: [이야기 제목]
+  내용: [이야기 내용]
+
+scene_style: "children's book illustration, bright colors, cute characters, whimsical, watercolor style"

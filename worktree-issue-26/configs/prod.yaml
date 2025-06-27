@@ -1,0 +1,58 @@
+# Production environment configuration
+app:
+  name: "YouTube Shorts Generator"
+  env: "prod"
+  debug: false
+
+database:
+  host: "${DB_HOST}"
+  port: 5432
+  user: "${DB_USER}"
+  password: "${DB_PASSWORD}"
+  dbname: "youtube_shorts_prod"
+  sslmode: "require"
+  max_connections: 100
+  max_idle_connections: 10
+
+api:
+  use_mock: false
+  
+  openai:
+    api_key: "${OPENAI_API_KEY}"
+    model: "gpt-4"
+    max_tokens: 500
+    temperature: 0.7
+    rate_limit: 100  # requests per minute
+  
+  image:
+    provider: "stable-diffusion"
+    api_key: "${IMAGE_API_KEY}"
+    base_url: "${IMAGE_API_URL}"
+    rate_limit: 60
+    
+  tts:
+    provider: "google"
+    credentials_file: "${GOOGLE_CREDENTIALS_FILE}"
+    language_code: "ko-KR"
+    voice_name: "ko-KR-Wavenet-D"
+    rate_limit: 100
+
+youtube:
+  client_id: "${YOUTUBE_CLIENT_ID}"
+  client_secret: "${YOUTUBE_CLIENT_SECRET}"
+  redirect_url: "${YOUTUBE_REDIRECT_URL}"
+  upload_timeout: 3600  # 1 hour
+
+storage:
+  base_path: "/data/youtube-shorts/prod"
+  temp_path: "/data/youtube-shorts/prod/temp"
+  max_temp_age: 86400  # 24 hours
+
+logging:
+  level: "warn"
+  format: "json"
+  output: "file"
+  file_path: "/var/log/youtube-shorts/prod.log"
+  max_size: 100  # MB
+  max_backups: 10
+  max_age: 30  # days

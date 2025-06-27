@@ -1,0 +1,48 @@
+# Local development environment configuration
+app:
+  name: "YouTube Shorts Generator"
+  env: "local"
+  debug: true
+
+database:
+  host: "localhost"
+  port: 5432
+  user: "postgres"
+  password: "postgres"
+  dbname: "youtube_shorts_local"
+  sslmode: "disable"
+
+api:
+  # Can toggle between mock and real APIs
+  use_mock: true
+  
+  openai:
+    api_key: "${OPENAI_API_KEY}"
+    model: "gpt-3.5-turbo"
+    max_tokens: 500
+    temperature: 0.7
+  
+  image:
+    provider: "stable-diffusion"
+    api_key: "${IMAGE_API_KEY}"
+    base_url: "https://stablediffusionapi.com/api/v3"
+    
+  tts:
+    provider: "google"
+    credentials_file: "${GOOGLE_CREDENTIALS_FILE}"
+    language_code: "ko-KR"
+    voice_name: "ko-KR-Wavenet-A"
+
+youtube:
+  client_id: "${YOUTUBE_CLIENT_ID}"
+  client_secret: "${YOUTUBE_CLIENT_SECRET}"
+  redirect_url: "http://localhost:8080/callback"
+
+storage:
+  base_path: "./assets/local"
+  temp_path: "./assets/local/temp"
+
+logging:
+  level: "info"
+  format: "text"
+  output: "stdout"
