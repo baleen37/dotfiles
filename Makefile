@@ -1,4 +1,4 @@
-.PHONY: build test run clean lint fmt coverage install-tools check-env ci-check ci-fmt
+.PHONY: build test run clean lint fmt coverage arch-test coverage-html deps migrate-up migrate-down dev install-tools setup-hooks setup-dev help check-env ci-check ci-fmt fmt-strict check-strict
 
 # Variables
 BINARY_NAME=youtube-shorts-generator
@@ -43,11 +43,11 @@ clean:
 # Install development tools (matching CI versions)
 install-tools:
 	@echo "📦 Installing development tools..."
-	@echo "Installing goimports@$(GOIMPORTS_VERSION)..."
-	$(GO) install golang.org/x/tools/cmd/goimports@$(GOIMPORTS_VERSION)
-	@echo "Installing golangci-lint@$(GOLANGCI_LINT_VERSION)..."
-	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION)
-	@echo "✅ Tools installed successfully"
+	@echo "  • Installing goimports@$(GOIMPORTS_VERSION)..."
+	@$(GO) install golang.org/x/tools/cmd/goimports@$(GOIMPORTS_VERSION)
+	@echo "  • Installing golangci-lint@$(GOLANGCI_LINT_VERSION)..."
+	@$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION)
+	@echo "✅ Development tools installed successfully"
 
 # Check development environment
 check-env:
@@ -127,6 +127,21 @@ setup-hooks:
 	@chmod +x scripts/setup-hooks.sh
 	@./scripts/setup-hooks.sh
 
+# Complete development environment setup
+setup-dev: install-tools setup-hooks
+	@echo ""
+	@echo "🚀 Development environment setup complete!"
+	@echo ""
+	@echo "📋 Installed tools:"
+	@echo "   • goimports - Code formatting"
+	@echo "   • golangci-lint - Code linting"
+	@echo "   • git pre-commit hooks - Automated quality checks"
+	@echo ""
+	@echo "💡 Next steps:"
+	@echo "   • Run 'make dev' to start development"
+	@echo "   • Run 'make test' to run tests"
+	@echo "   • Run 'make help' for all available commands"
+
 # Help
 help:
 	@echo "Available commands:"
@@ -134,6 +149,7 @@ help:
 	@echo "  make test          - Run tests"
 	@echo "  make arch-test     - Run architecture tests"
 	@echo "  make coverage      - Run tests with coverage"
+	@echo "  make coverage-html - Generate HTML coverage report"
 	@echo "  make run           - Build and run the application"
 	@echo "  make clean         - Clean build artifacts"
 	@echo "  make fmt           - Format code (graceful if tools missing)"
@@ -146,5 +162,6 @@ help:
 	@echo "  make check-env     - Check development environment"
 	@echo "  make deps          - Install dependencies"
 	@echo "  make dev           - Run in development mode"
+	@echo "  make setup-dev     - Complete development environment setup"
 	@echo "  make setup-hooks   - Install custom git pre-commit hooks"
 	@echo "  make help          - Show this help message"

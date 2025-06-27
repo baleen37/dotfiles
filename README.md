@@ -35,6 +35,34 @@ ssulmeta-go/
 
 ### 개발 환경 설정
 
+#### 빠른 설정 (권장)
+
+새로운 개발자는 다음 명령어로 모든 개발 도구와 git hooks를 한 번에 설치할 수 있습니다:
+
+```bash
+# 모든 개발 도구 및 hooks 자동 설치
+make setup-dev
+```
+
+이 명령어는 다음을 자동으로 수행합니다:
+- `goimports` 설치 (코드 포맷팅)
+- `golangci-lint` 설치 (코드 품질 검사)
+- Git pre-commit hooks 설정 (커밋 시 자동 검사)
+
+#### 개별 설치
+
+필요에 따라 개별적으로 설치할 수도 있습니다:
+
+```bash
+# 개발 도구만 설치
+make install-tools
+
+# Git hooks만 설치
+make setup-hooks
+```
+
+#### Nix 사용 (선택사항)
+
 Nix를 사용하는 경우:
 ```bash
 direnv allow
