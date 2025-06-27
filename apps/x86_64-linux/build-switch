@@ -39,10 +39,8 @@ for arg in "$@"; do
     fi
 done
 
-# Sudo session management
-SUDO_ACQUIRED=false
-SUDO_PID=""
-CLEANUP_REGISTERED=false
+# Sudo session management (simplified)
+SUDO_REQUIRED=false
 
 # Logging functions
 log_header() {
@@ -108,47 +106,29 @@ explain_sudo_requirement() {
     echo "• Bootloader updates require root access"
     echo "• SSH key forwarding for private repository access"
     echo ""
-    echo "${DIM}This will:${NC}"
-    echo "${DIM}  1. Request your password once at the beginning${NC}"
-    echo "${DIM}  2. Keep privileges active for the entire operation${NC}"
-    echo "${DIM}  3. Forward your SSH keys to root for private repositories${NC}"
-    echo "${DIM}  4. Automatically clean up when finished${NC}"
+    echo "${DIM}Administrator access will be requested when needed for the rebuild command.${NC}"
     echo ""
     echo "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo ""
 }
 
+# Simplified cleanup - no sudo session management needed
 register_cleanup() {
-    if [ "${CLEANUP_REGISTERED}" = "true" ]; then
-        return 0
-    fi
-
-    trap 'cleanup_sudo_session' EXIT INT TERM
-    CLEANUP_REGISTERED=true
-    log_info "Cleanup handlers registered"
+    # No cleanup needed for just-in-time sudo usage
+    return 0
 }
 
+# No sudo session cleanup needed
 cleanup_sudo_session() {
-    if [ "${SUDO_ACQUIRED}" = "true" ]; then
-        log_step "Cleaning up administrator privileges"
-
-        # Kill background sudo process if it exists
-        if [ -n "${SUDO_PID}" ] && kill -0 "${SUDO_PID}" 2>/dev/null; then
-            kill "${SUDO_PID}" 2>/dev/null || true
-        fi
-
-        # Reset sudo timestamp
-        sudo -k 2>/dev/null || true
-
-        log_success "Administrator privileges cleaned up"
-        SUDO_ACQUIRED=false
-        SUDO_PID=""
-    fi
+    # No cleanup needed for just-in-time sudo usage
+    return 0
 }
 
-acquire_sudo_early() {
+# Determine if sudo will be needed later
+check_sudo_requirement() {
     # Skip if already root
     if check_current_privileges; then
+        SUDO_REQUIRED=false
         return 0
     fi
 
@@ -158,52 +138,28 @@ acquire_sudo_early() {
         return 1
     fi
 
-    # Explain why we need sudo
+    SUDO_REQUIRED=true
+
+    # Explain why we need sudo (but don't acquire it yet)
     explain_sudo_requirement
 
-    # Register cleanup handlers
-    register_cleanup
-
-    log_step "Requesting administrator privileges"
-
-    # Request sudo access
-    if ! sudo -v; then
-        log_error "Failed to acquire administrator privileges"
-        log_error "Please check your sudo configuration or contact your system administrator"
-        return 1
-    fi
-
-    log_success "Administrator privileges acquired"
-
-    # Keep sudo alive in background
-    log_info "Keeping privileges active during operation..."
-    (
-        while true; do
-            sleep 30
-            sudo -n true 2>/dev/null || exit 1
-        done
-    ) &
-    SUDO_PID=$!
-
-    SUDO_ACQUIRED=true
-    log_success "Privilege session established (valid for 60 minutes)"
     return 0
 }
 
 get_sudo_prefix() {
-    if check_current_privileges; then
-        echo ""
-    else
+    if [ "$SUDO_REQUIRED" = "true" ]; then
         if [ -n "${SSH_AUTH_SOCK:-}" ]; then
             echo "sudo SSH_AUTH_SOCK=${SSH_AUTH_SOCK}"
         else
             echo "sudo"
         fi
+    else
+        echo ""
     fi
 }
 
-# Early privilege acquisition
-if ! acquire_sudo_early; then
+# Check if sudo will be needed (but don't acquire privileges yet)
+if ! check_sudo_requirement; then
     log_error "Cannot proceed without administrator privileges"
     exit 1
 fi
@@ -214,8 +170,12 @@ log_header
 # Build & Switch phase
 log_step "Building and switching system configuration"
 log_info "Target: ${FLAKE_TARGET}"
-log_info "Using pre-acquired administrator privileges"
-log_info "SSH forwarding enabled for private repositories"
+if [ "$SUDO_REQUIRED" = "true" ]; then
+    log_info "Administrator privileges will be requested for system changes"
+    log_info "SSH forwarding enabled for private repositories"
+else
+    log_info "Running with current privileges"
+fi
 
 SUDO_PREFIX=$(get_sudo_prefix)
 
