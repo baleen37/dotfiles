@@ -1,213 +1,287 @@
 # ssulmeta-go
 
-Hexagonal Architecture를 적용한 Go 웹 애플리케이션 예제입니다.
+An automated YouTube Shorts generation system that creates storytelling-based videos with AI-generated content, narration, and automatic upload capabilities.
 
-## 프로젝트 구조
+## Overview
 
-이 프로젝트는 **Hexagonal Architecture** (Ports and Adapters Pattern)를 사용하여 구성되어 있습니다.
+This project automatically generates YouTube Shorts by:
+1. Creating stories using OpenAI GPT
+2. Generating scene images with AI
+3. Converting text to speech for narration
+4. Composing videos with transitions and effects
+5. Uploading to YouTube with optimized metadata
 
-```
-ssulmeta-go/
-├── cmd/
-│   └── api/
-│       └── main.go              # HTTP 서버 엔트리포인트
-├── internal/                    
-│   ├── calculator/              # 계산기 기능
-│   │   ├── core/               # 비즈니스 로직
-│   │   ├── ports/              # 인터페이스
-│   │   └── adapters/           # HTTP 어댑터
-│   ├── text/                    # 텍스트 처리 기능
-│   │   ├── core/               # 비즈니스 로직
-│   │   ├── ports/              # 인터페이스
-│   │   └── adapters/           # HTTP 어댑터
-│   └── health/                  # 헬스체크
-│       └── adapters/           # HTTP 어댑터
-├── ARCHITECTURE.md              # 아키텍처 상세 문서
-└── CLAUDE.md                    # 개발 가이드라인
-```
+Built with Go 1.24+ following Hexagonal Architecture principles for clean separation of business logic and external integrations.
 
-## 시작하기
+## Features
 
-### 필수 요구사항
+- **AI Story Generation**: Creates channel-specific stories (fairy tales, horror, romance) using OpenAI
+- **Scene Splitting**: Intelligently divides stories into visual scenes
+- **Image Generation**: Creates vertical format (1080x1920) images for each scene
+- **Text-to-Speech**: Generates Korean narration using Google Cloud TTS
+- **Video Composition**: Combines images with Ken Burns effects using ffmpeg
+- **YouTube Integration**: OAuth2-based automatic upload with SEO-optimized metadata
+- **Channel Management**: Redis-cached channel configurations and templates
+- **Production Ready**: Comprehensive testing, CI/CD pipeline, and monitoring
 
-- Go 1.19 이상
-- Nix (선택사항, 개발 환경용)
+## Quick Start
 
-### 개발 환경 설정
+### Prerequisites
 
-#### 빠른 설정 (권장)
+- Go 1.24+
+- Docker & Docker Compose
+- ffmpeg (for video processing)
+- Redis (for caching)
+- PostgreSQL (for data persistence)
 
-새로운 개발자는 다음 명령어로 모든 개발 도구와 git hooks를 한 번에 설치할 수 있습니다:
+### Installation
 
 ```bash
-# 모든 개발 도구 및 hooks 자동 설치
+# Clone the repository
+git clone https://github.com/your-org/ssulmeta-go.git
+cd ssulmeta-go
+
+# Install dependencies and development tools
 make setup-dev
+
+# Start infrastructure services
+docker-compose up -d
+
+# Copy and configure environment variables
+cp .env.example .env
+# Edit .env with your API keys and configuration
 ```
 
-이 명령어는 다음을 자동으로 수행합니다:
-- `goimports` 설치 (코드 포맷팅)
-- `golangci-lint` 설치 (코드 품질 검사)
-- Git pre-commit hooks 설정 (커밋 시 자동 검사)
+### Configuration
 
-#### 개별 설치
-
-필요에 따라 개별적으로 설치할 수도 있습니다:
+Create configuration files for your environment:
 
 ```bash
-# 개발 도구만 설치
-make install-tools
+# Copy the example configuration
+cp configs/local.yaml configs/local.yaml
 
-# Git hooks만 설치
-make setup-hooks
+# Required API Keys (add to .env or config files):
+# - OPENAI_API_KEY: For story generation
+# - GOOGLE_APPLICATION_CREDENTIALS: For TTS
+# - YouTube OAuth2 credentials in configs/oauth.yaml
 ```
 
-#### Nix 사용 (선택사항)
-
-Nix를 사용하는 경우:
-```bash
-direnv allow
-# 또는
-nix develop
-```
-
-### 빌드 및 실행
+### Running the Application
 
 ```bash
-# 빌드
-go build -o ssulmeta-api ./cmd/api
+# Run in development mode
+make dev
 
-# 실행
-./ssulmeta-api
-# 또는
-go run ./cmd/api
+# Or run specific components:
+go run ./cmd/cli          # CLI interface
+go run ./cmd/api          # REST API server
+go run ./cmd/pipeline-test # Test the full pipeline
 ```
 
-서버는 기본적으로 `:8080` 포트에서 실행됩니다.
+## Architecture
 
-## API 엔드포인트
+This project follows Hexagonal Architecture (Ports and Adapters) with feature-based organization:
 
-### 헬스체크
+```
+internal/
+├── story/       # Story generation domain
+├── channel/     # Channel management
+├── image/       # Image generation
+├── tts/         # Text-to-speech
+├── video/       # Video composition
+└── youtube/     # YouTube upload
+    ├── core/    # Business logic
+    ├── ports/   # Interfaces
+    └── adapters/ # External integrations
+```
+
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for detailed architecture documentation.
+
+## API Documentation
+
+### REST API Endpoints
+
+Start the API server:
 ```bash
-GET /health
+go run ./cmd/api  # Runs on :8080
 ```
 
-응답 예시:
-```json
-{
-    "status": "healthy",
-    "service": "ssulmeta-go"
-}
-```
+#### Channel Management
+- `POST /channels` - Create a new channel
+- `GET /channels` - List all channels
+- `GET /channels/{id}` - Get channel details
+- `PUT /channels/{id}` - Update channel info
+- `DELETE /channels/{id}` - Delete channel
+- `PUT /channels/{id}/settings` - Update channel settings
+- `POST /channels/{id}/activate` - Activate channel
+- `POST /channels/{id}/deactivate` - Deactivate channel
 
-### 계산기 기능
+#### Health Check
+- `GET /health` - Service health status
 
-#### 덧셈
-```bash
-GET /calculator/add?a=5&b=3
-```
-
-응답 예시:
-```json
-{
-    "result": 8,
-    "operation": "add",
-    "a": 5,
-    "b": 3
-}
-```
-
-#### 곱셈
-```bash
-GET /calculator/multiply?a=5&b=3
-```
-
-응답 예시:
-```json
-{
-    "result": 15,
-    "operation": "multiply",
-    "a": 5,
-    "b": 3
-}
-```
-
-### 텍스트 처리 기능
-
-#### 문자열 뒤집기
-```bash
-GET /text/reverse?text=hello
-```
-
-응답 예시:
-```json
-{
-    "result": "olleh",
-    "operation": "reverse",
-    "original": "hello"
-}
-```
-
-#### 대문자 변환
-```bash
-GET /text/capitalize?text=hello%20world
-```
-
-응답 예시:
-```json
-{
-    "result": "Hello World",
-    "operation": "capitalize",
-    "original": "hello world"
-}
-```
-
-## 테스트
+### CLI Commands
 
 ```bash
-# 모든 테스트 실행
-go test ./...
+# Generate a video for a specific channel
+./youtube-shorts-generator generate --channel fairy_tale
 
-# 상세 출력과 함께 실행
-go test -v ./...
+# Upload existing video
+./youtube-shorts-generator upload --video path/to/video.mp4
 
-# 커버리지와 함께 실행
-go test -cover ./...
+# List available channels
+./youtube-shorts-generator channels list
 
-# 벤치마크 실행
-go test -bench=. ./...
+# Show version
+./youtube-shorts-generator --version
 ```
 
-## 코드 품질
+## Development
 
-### 린트
+### Testing
+
 ```bash
-golangci-lint run ./...
+# Run all tests with coverage
+make test
+
+# Run architecture tests
+make arch-test
+
+# Generate coverage report
+make coverage-html
+
+# Run specific domain tests
+go test -v ./internal/story/...
 ```
 
-### 포맷팅
+### Code Quality
+
 ```bash
-gofmt -w .
-goimports -w .
+# Format code
+make fmt
+
+# Run linter
+make lint
+
+# Run all CI checks locally
+make ci-check
 ```
 
-## 아키텍처
+### Adding New Features
 
-이 프로젝트는 Hexagonal Architecture를 따릅니다:
+1. Create domain structure:
+   ```bash
+   mkdir -p internal/newfeature/{core,ports,adapters}
+   ```
 
-- **Core**: 순수한 비즈니스 로직 (외부 의존성 없음)
-- **Ports**: 코어가 제공하는 기능의 인터페이스
-- **Adapters**: 외부 시스템과의 통신 (HTTP, DB 등)
+2. Define interfaces in `ports/`
+3. Implement business logic in `core/`
+4. Add external integrations in `adapters/`
+5. Write comprehensive tests
+6. Update configuration if needed
 
-자세한 내용은 [ARCHITECTURE.md](./ARCHITECTURE.md)를 참조하세요.
+## Configuration
 
-## 기여하기
+### Environment Variables
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'feat: add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+See `.env.example` for all available options. Key variables:
 
-## 라이선스
+- `APP_ENV`: Environment (test/local/dev/prod)
+- `OPENAI_API_KEY`: OpenAI API key for story generation
+- `GOOGLE_APPLICATION_CREDENTIALS`: Path to Google Cloud credentials
+- `REDIS_URL`: Redis connection URL
+- `DATABASE_URL`: PostgreSQL connection string
 
-이 프로젝트는 MIT 라이선스 하에 배포됩니다.
+### Channel Configuration
+
+Channel-specific prompts and settings in `configs/channels/`:
+- `fairy_tale.yaml` - Children's fairy tale generation
+- `horror.yaml` - Horror story generation
+- `romance.yaml` - Romance story generation
+
+## Deployment
+
+### Docker
+
+```bash
+# Build Docker image
+docker build -t ssulmeta-go .
+
+# Run with Docker Compose
+docker-compose up
+```
+
+### Environment-Specific Configs
+
+- `configs/test.yaml` - Test environment (uses mocks)
+- `configs/local.yaml` - Local development
+- `configs/dev.yaml` - Development server
+- `configs/prod.yaml` - Production
+
+## Contributing
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for contribution guidelines.
+
+### Branch Naming
+- Format: `{type}/{username}/{scope}-{description}`
+- Example: `feat/jito/youtube-metadata-generation`
+
+### Pre-commit Hooks
+Automatically installed with `make setup-dev`. Ensures code quality before commits.
+
+## Development Status
+
+### Current Phase: 6.4 - Metadata Generator Implementation
+
+See [progress.md](./progress.md) for detailed development status.
+
+**Completed**:
+- ✅ Core architecture and configuration
+- ✅ Story generation with OpenAI
+- ✅ Channel management with Redis
+- ✅ Video composition with ffmpeg
+- ✅ YouTube API integration
+
+**In Progress**:
+- 🔄 Metadata generation for SEO
+- 🔄 CLI improvements
+
+**Planned**:
+- ⏳ Scheduler implementation
+- ⏳ Job queue system
+- ⏳ Analytics dashboard
+
+## Troubleshooting
+
+### Common Issues
+
+1. **"Redis connection failed"**
+   ```bash
+   docker-compose up -d redis
+   ```
+
+2. **"Missing API key"**
+   - Check `.env` file has all required keys
+   - Ensure `APP_ENV` matches your config file
+
+3. **"ffmpeg not found"**
+   ```bash
+   # macOS
+   brew install ffmpeg
+   
+   # Ubuntu/Debian
+   sudo apt-get install ffmpeg
+   ```
+
+4. **Test failures**
+   - Run with test environment: `APP_ENV=test go test ./...`
+   - Check if mocks are properly configured
+
+## License
+
+MIT License - see LICENSE file for details.
+
+## Support
+
+- Issues: [GitHub Issues](https://github.com/your-org/ssulmeta-go/issues)
+- Documentation: See `/docs` folder
+- Slack: #ssulmeta-dev channel

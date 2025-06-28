@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a YouTube Shorts automatic generation system that creates storytelling-based videos and uploads them automatically. The project follows Hexagonal Architecture (Ports and Adapters Pattern) and is currently in active development (Phase 2 completed).
+This is a YouTube Shorts automatic generation system that creates storytelling-based videos and uploads them automatically. The project follows Hexagonal Architecture (Ports and Adapters Pattern) and is currently in active development (Phase 6.3 completed, working on Phase 6.4).
 
 ## Development Commands
 
@@ -87,31 +87,35 @@ internal/{feature}/
 
 ### Key Domains
 
-1. **Story**: Story generation using OpenAI API
+1. **Story**: Story generation using OpenAI API ✅
    - Prompt templates per channel (configs/channels/*.yaml)
    - 270-300 character validation
    - Mock mode available for testing
 
-2. **Channel**: Channel management with Redis caching
+2. **Channel**: Channel management with Redis caching ✅
    - HTTP API endpoints
    - Redis-based caching for performance
    - Channel configurations in YAML
 
-3. **Image**: Scene splitting and image generation (TODO)
-   - Stable Diffusion API integration planned
+3. **Image**: Scene splitting and image generation ✅
+   - Stable Diffusion API integration
    - 1080x1920 vertical format
+   - Scene-based image generation
 
-4. **TTS**: Text-to-speech generation (TODO)
-   - Google Cloud TTS integration planned
+4. **TTS**: Text-to-speech generation ✅
+   - Google Cloud TTS integration
    - Korean voice support
+   - Multiple voice options per channel
 
-5. **Video**: Video composition with ffmpeg (TODO)
+5. **Video**: Video composition with ffmpeg ✅
    - Ken Burns effects
    - Scene transitions
+   - Audio synchronization
 
-6. **YouTube**: Upload automation (TODO)
-   - OAuth2 authentication
-   - Metadata generation
+6. **YouTube**: Upload automation (In Progress)
+   - OAuth2 authentication ✅
+   - YouTube API v3 integration ✅
+   - Metadata generation 🔄 (Phase 6.4)
 
 ## Configuration
 
@@ -208,21 +212,22 @@ gh pr merge --auto --squash [PR_NUMBER]
 
 ## Development Status
 
-### Completed Phases (0-2)
-- ✅ Project foundation and configuration system
-- ✅ Hexagonal architecture implementation
-- ✅ Domain models and interfaces
-- ✅ Mock implementations
-- ✅ Story generation with OpenAI
-- ✅ Channel management with Redis
+### Completed Phases (0-6.3)
+- ✅ Phase 0-1: Project foundation and configuration system
+- ✅ Phase 2: Hexagonal architecture implementation
+- ✅ Phase 3: Story generation with OpenAI
+- ✅ Phase 4: TTS narration generation system
+- ✅ Phase 5: Video domain with ffmpeg integration
+- ✅ Phase 6.1-6.3: YouTube OAuth2 and API integration
 
-### In Progress (Phase 3+)
-- ⏳ Scene splitting and image generation
-- ⏳ TTS narration generation
-- ⏳ Video composition with ffmpeg-go
-- ⏳ YouTube upload automation
-- ⏳ CLI interface improvements
-- ⏳ Scheduler implementation
+### In Progress (Phase 6.4)
+- 🔄 YouTube metadata generation for SEO optimization
+
+### Upcoming Phases
+- ⏳ Phase 7: CLI system implementation
+- ⏳ Phase 8: Scheduler system
+- ⏳ Phase 9: Job queue system
+- ⏳ Phase 10: Integration testing and optimization
 
 ## Important Implementation Notes
 

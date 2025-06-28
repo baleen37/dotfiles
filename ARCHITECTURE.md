@@ -1,253 +1,560 @@
 # Hexagonal Architecture Guide
 
-이 문서는 ssulmeta-go 프로젝트의 헥사고날 아키텍처 구조를 설명합니다.
+This document describes the Hexagonal Architecture implementation in the ssulmeta-go project, an automated YouTube Shorts generation system.
 
-## 아키텍처 개요
+## Architecture Overview
 
-이 프로젝트는 **Hexagonal Architecture** (Ports and Adapters Pattern)와 **Feature-First** 구조를 결합하여 구현되었습니다.
+This project implements **Hexagonal Architecture** (Ports and Adapters Pattern) with **Domain-Driven Design** principles to create a maintainable, testable, and scalable system for generating YouTube Shorts automatically.
 
-### 핵심 원칙
+### Core Principles
 
-1. **비즈니스 로직 격리**: 코어 도메인 로직은 외부 의존성으로부터 완전히 분리
-2. **의존성 역전**: 모든 의존성은 안쪽(코어)을 향함
-3. **Feature-First 구성**: 기능별로 모든 레이어를 함께 배치
-4. **테스트 용이성**: 각 레이어를 독립적으로 테스트 가능
+1. **Business Logic Isolation**: Core domain logic is completely separated from external dependencies
+2. **Dependency Inversion**: All dependencies point inward toward the core
+3. **Domain-First Organization**: Features are organized by business domains
+4. **Test-Driven Development**: Each layer is independently testable with high coverage
+5. **Clean Boundaries**: Clear interfaces between layers prevent coupling
 
-## 디렉토리 구조
+## System Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         External Systems                         │
+│  (OpenAI, Google TTS, YouTube API, Redis, PostgreSQL, ffmpeg)   │
+└────────────────────────────┬───────────────────────────────────┘
+                             │
+┌────────────────────────────▼───────────────────────────────────┐
+│                          Adapters                               │
+│  (HTTP Handlers, API Clients, Database Repositories, CLI)      │
+└────────────────────────────┬───────────────────────────────────┘
+                             │
+┌────────────────────────────▼───────────────────────────────────┐
+│                           Ports                                 │
+│              (Interfaces defining contracts)                    │
+└────────────────────────────┬───────────────────────────────────┘
+                             │
+┌────────────────────────────▼───────────────────────────────────┐
+│                           Core                                  │
+│         (Pure Business Logic - No External Dependencies)        │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+## Directory Structure
 
 ```
 ssulmeta-go/
-├── cmd/
-│   └── api/
-│       └── main.go              # HTTP 서버 엔트리포인트
-├── internal/                    # 내부 패키지 (외부에서 접근 불가)
-│   ├── calculator/              # 계산기 기능
-│   │   ├── core/               
-│   │   │   └── calculator.go    # 비즈니스 로직 (순수 함수)
-│   │   ├── ports/              
-│   │   │   └── calculator.go    # 입출력 인터페이스 정의
-│   │   └── adapters/           
-│   │       └── http.go          # HTTP 핸들러 구현
-│   ├── text/                    # 텍스트 처리 기능
-│   │   ├── core/
-│   │   │   └── processor.go     # 비즈니스 로직
-│   │   ├── ports/
-│   │   │   └── processor.go     # 인터페이스 정의
-│   │   └── adapters/
-│   │       └── http.go          # HTTP 핸들러 구현
-│   └── health/                  # 헬스체크 기능
-│       └── adapters/
-│           └── http.go          # 단순 핸들러 (포트/코어 불필요)
+├── cmd/                        # Application entry points
+│   ├── api/                    # REST API server
+│   ├── cli/                    # Command-line interface
+│   └── pipeline-test/          # Pipeline testing tool
+│
+├── internal/                   # Private application code
+│   ├── story/                  # Story generation domain
+│   │   ├── core/              
+│   │   │   ├── service.go      # Story generation logic
+│   │   │   └── validator.go    # Story validation rules
+│   │   ├── ports/             
+│   │   │   └── interfaces.go   # StoryGenerator, StoryValidator interfaces
+│   │   └── adapters/          
+│   │       ├── openai_client.go    # OpenAI API integration
+│   │       └── mock_generator.go   # Mock for testing
+│   │
+│   ├── channel/                # Channel management domain
+│   │   ├── core/              
+│   │   │   └── service.go      # Channel business logic
+│   │   ├── ports/             
+│   │   │   └── repository.go   # ChannelRepository interface
+│   │   ├── adapters/          
+│   │   │   ├── http.go         # REST API handlers
+│   │   │   └── redis_repository.go # Redis caching
+│   │   └── service/           
+│   │       └── channel_service.go  # Service orchestration
+│   │
+│   ├── image/                  # Image generation domain
+│   │   ├── core/              
+│   │   │   └── service.go      # Scene splitting logic
+│   │   ├── ports/             
+│   │   │   └── interfaces.go   # ImageGenerator, SceneSplitter
+│   │   └── adapters/          
+│   │       └── stable_diffusion.go # AI image generation
+│   │
+│   ├── tts/                    # Text-to-speech domain
+│   │   ├── core/              
+│   │   │   └── service.go      # TTS orchestration
+│   │   ├── ports/             
+│   │   │   └── interfaces.go   # TTSGenerator interface
+│   │   └── adapters/          
+│   │       └── google_tts.go   # Google Cloud TTS
+│   │
+│   ├── video/                  # Video composition domain
+│   │   ├── core/              
+│   │   │   └── service.go      # Video composition logic
+│   │   ├── ports/             
+│   │   │   └── interfaces.go   # VideoComposer, EffectApplier
+│   │   └── adapters/          
+│   │       ├── ffmpeg_adapter.go   # ffmpeg integration
+│   │       └── validator.go        # Video validation
+│   │
+│   ├── youtube/                # YouTube upload domain
+│   │   ├── core/              
+│   │   │   └── service.go      # Upload orchestration
+│   │   ├── ports/             
+│   │   │   └── interfaces.go   # Uploader, MetadataGenerator
+│   │   └── adapters/          
+│   │       ├── youtube_adapter.go  # YouTube API v3
+│   │       ├── oauth_service.go    # OAuth2 authentication
+│   │       └── metadata_generator.go # SEO metadata
+│   │
+│   ├── config/                 # Configuration management
+│   ├── container/              # Dependency injection
+│   └── db/                     # Database utilities
+│
+├── pkg/                        # Public packages
+│   ├── models/                 # Shared domain models
+│   ├── errors/                 # Custom error types
+│   └── logger/                 # Structured logging
+│
+└── configs/                    # Configuration files
+    ├── channels/               # Channel-specific configs
+    └── *.yaml                  # Environment configs
 ```
 
-## 레이어 설명
+## Layer Responsibilities
 
-### 1. Core (비즈니스 로직)
+### 1. Core Layer (Business Logic)
 
-코어는 순수한 비즈니스 로직을 포함합니다. 외부 의존성이 없으며, 프레임워크나 데이터베이스와 무관합니다.
+The core contains pure business logic with no external dependencies. It defines the essential business rules and operations.
 
 ```go
-// internal/calculator/core/calculator.go
-type Calculator struct{}
+// internal/story/core/service.go
+type StoryService struct {
+    validator StoryValidator
+}
 
-func (c *Calculator) Add(a, b int) int {
-    return a + b
+func (s *StoryService) GenerateStory(prompt string, channelType string) (*Story, error) {
+    // Pure business logic for story generation
+    story := &Story{
+        Content: processPrompt(prompt),
+        Type:    channelType,
+    }
+    
+    if err := s.validator.Validate(story); err != nil {
+        return nil, err
+    }
+    
+    return story, nil
 }
 ```
 
-**특징:**
-- 순수 함수와 구조체만 포함
-- 외부 패키지 import 최소화
-- 100% 테스트 가능
-- 비즈니스 규칙과 도메인 로직 구현
+**Characteristics:**
+- No imports from external packages (except standard library)
+- Pure functions and business entities
+- 100% unit testable
+- Contains domain models and business rules
 
-### 2. Ports (인터페이스)
+### 2. Ports Layer (Interfaces)
 
-포트는 코어와 외부 세계 간의 계약을 정의합니다.
+Ports define the contracts between core and external world. They act as the API for the core domain.
 
 ```go
-// internal/calculator/ports/calculator.go
-type CalculatorService interface {
-    Add(a, b int) int
-    Multiply(a, b int) int
+// internal/story/ports/interfaces.go
+type StoryGenerator interface {
+    Generate(ctx context.Context, req GenerateRequest) (*GenerateResponse, error)
+}
+
+type StoryValidator interface {
+    Validate(story *models.Story) error
+}
+
+type StoryRepository interface {
+    Save(ctx context.Context, story *models.Story) error
+    FindByID(ctx context.Context, id string) (*models.Story, error)
 }
 ```
 
-**특징:**
-- 인터페이스만 정의
-- 코어가 제공하는 기능 명세
-- 어댑터가 의존하는 계약
+**Characteristics:**
+- Interface definitions only
+- No implementation details
+- Defines input/output contracts
+- Enables dependency inversion
 
-### 3. Adapters (외부 통신)
+### 3. Adapters Layer (External Integration)
 
-어댑터는 외부 시스템과의 통신을 담당합니다.
+Adapters implement the port interfaces and handle communication with external systems.
 
 ```go
-// internal/calculator/adapters/http.go
-type HTTPAdapter struct {
-    calc ports.CalculatorService
+// internal/story/adapters/openai_client.go
+type OpenAIAdapter struct {
+    client     *openai.Client
+    config     *config.OpenAIConfig
+    rateLimit  *rateLimiter
 }
 
-func (h *HTTPAdapter) HandleAdd(w http.ResponseWriter, r *http.Request) {
-    // HTTP 요청 처리 → 코어 호출 → HTTP 응답
+func (a *OpenAIAdapter) Generate(ctx context.Context, req GenerateRequest) (*GenerateResponse, error) {
+    // Convert domain request to OpenAI API format
+    completion, err := a.client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
+        Model:       a.config.Model,
+        Messages:    buildMessages(req),
+        Temperature: a.config.Temperature,
+    })
+    
+    // Convert OpenAI response to domain response
+    return toDomainResponse(completion), nil
 }
 ```
 
-**특징:**
-- HTTP, 데이터베이스, 메시지 큐 등과의 통신
-- 포트 인터페이스에 의존
-- 외부 프로토콜을 내부 도메인으로 변환
+**Characteristics:**
+- Implements port interfaces
+- Handles external protocols (HTTP, gRPC, etc.)
+- Manages external dependencies
+- Converts between external and domain formats
 
-## 의존성 주입
-
-`cmd/api/main.go`에서 모든 의존성을 조립합니다:
+## Dependency Flow
 
 ```go
+// cmd/cli/main.go - Dependency injection at application root
 func main() {
-    // 1. 코어 생성
-    calculator := calcCore.NewCalculator()
-    textProcessor := textCore.NewProcessor()
-
-    // 2. 어댑터에 코어 주입
-    calcAdapter := calcAdapters.NewHTTPAdapter(calculator)
-    textAdapter := textAdapters.NewHTTPAdapter(textProcessor)
-
-    // 3. HTTP 라우팅 설정
-    mux := http.NewServeMux()
-    mux.HandleFunc("/calculator/add", calcAdapter.HandleAdd)
-    // ...
+    // Load configuration
+    cfg := config.Load()
+    
+    // Create core services
+    storyValidator := storyCore.NewValidator()
+    storyService := storyCore.NewService(storyValidator)
+    
+    // Create adapters with configuration
+    var storyGenerator ports.StoryGenerator
+    if cfg.API.UseMock {
+        storyGenerator = storyAdapters.NewMockGenerator()
+    } else {
+        storyGenerator = storyAdapters.NewOpenAIAdapter(cfg.API.OpenAI)
+    }
+    
+    // Wire everything together
+    pipeline := NewPipeline(storyService, storyGenerator)
+    
+    // Run application
+    pipeline.Execute()
 }
 ```
 
-## 새로운 기능 추가하기
+## Domain Interactions
 
-### 1. 기능 디렉토리 생성
+### Example: Generating a YouTube Short
 
-```bash
-mkdir -p internal/myfeature/{core,ports,adapters}
+```
+1. CLI Command → Story Domain
+   - User requests video generation
+   - Story core validates channel type
+   - OpenAI adapter generates story
+
+2. Story → Image Domain
+   - Scene splitter divides story
+   - Image generator creates visuals
+   - Validator ensures correct format
+
+3. Story → TTS Domain
+   - TTS generator creates narration
+   - Audio validator checks quality
+
+4. Image + Audio → Video Domain
+   - Video composer combines assets
+   - ffmpeg adapter applies effects
+   - Validator checks output
+
+5. Video → YouTube Domain
+   - Metadata generator creates SEO data
+   - YouTube adapter uploads video
+   - OAuth service handles authentication
 ```
 
-### 2. 포트 정의
+## Testing Strategy
+
+### 1. Core Layer Tests
+
+Test pure business logic without any external dependencies:
 
 ```go
-// internal/myfeature/ports/myfeature.go
-package ports
-
-type MyFeatureService interface {
-    DoSomething(input string) (string, error)
+func TestStoryValidator_Validate(t *testing.T) {
+    validator := NewValidator()
+    
+    tests := []struct {
+        name    string
+        story   *models.Story
+        wantErr bool
+    }{
+        {
+            name: "valid story",
+            story: &models.Story{
+                Content: "Valid story content with proper length...",
+                Type:    "fairy_tale",
+            },
+            wantErr: false,
+        },
+        {
+            name: "story too short",
+            story: &models.Story{
+                Content: "Too short",
+                Type:    "fairy_tale",
+            },
+            wantErr: true,
+        },
+    }
+    
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            err := validator.Validate(tt.story)
+            assert.Equal(t, tt.wantErr, err != nil)
+        })
+    }
 }
 ```
 
-### 3. 코어 구현
+### 2. Adapter Tests
+
+Test external integrations with mocks:
 
 ```go
-// internal/myfeature/core/myfeature.go
-package core
-
-type MyFeature struct{}
-
-func NewMyFeature() *MyFeature {
-    return &MyFeature{}
-}
-
-func (f *MyFeature) DoSomething(input string) (string, error) {
-    // 비즈니스 로직 구현
-    return "processed: " + input, nil
-}
-```
-
-### 4. 어댑터 구현
-
-```go
-// internal/myfeature/adapters/http.go
-package adapters
-
-type HTTPAdapter struct {
-    feature ports.MyFeatureService
-}
-
-func NewHTTPAdapter(feature ports.MyFeatureService) *HTTPAdapter {
-    return &HTTPAdapter{feature: feature}
-}
-
-func (h *HTTPAdapter) HandleRequest(w http.ResponseWriter, r *http.Request) {
-    // HTTP 요청 처리
-}
-```
-
-### 5. 메인에 통합
-
-```go
-// cmd/api/main.go에 추가
-myFeature := myFeatureCore.NewMyFeature()
-myFeatureAdapter := myFeatureAdapters.NewHTTPAdapter(myFeature)
-mux.HandleFunc("/myfeature", myFeatureAdapter.HandleRequest)
-```
-
-## 테스트 전략
-
-### 1. 코어 테스트
-
-비즈니스 로직의 단위 테스트:
-
-```go
-func TestMyFeature_DoSomething(t *testing.T) {
-    feature := NewMyFeature()
-    result, err := feature.DoSomething("test")
+func TestOpenAIAdapter_Generate(t *testing.T) {
+    mockClient := &MockOpenAIClient{}
+    adapter := NewOpenAIAdapter(mockClient, testConfig)
+    
+    mockClient.On("CreateChatCompletion", mock.Anything, mock.Anything).
+        Return(mockResponse, nil)
+    
+    resp, err := adapter.Generate(context.Background(), testRequest)
+    
     assert.NoError(t, err)
-    assert.Equal(t, "processed: test", result)
+    assert.NotNil(t, resp)
+    mockClient.AssertExpectations(t)
 }
 ```
 
-### 2. 어댑터 테스트
+### 3. Integration Tests
 
-HTTP 핸들러 테스트:
-
-```go
-func TestHTTPAdapter_HandleRequest(t *testing.T) {
-    feature := mockFeature{} // 또는 실제 구현
-    adapter := NewHTTPAdapter(feature)
-    
-    req := httptest.NewRequest("GET", "/myfeature", nil)
-    rr := httptest.NewRecorder()
-    
-    adapter.HandleRequest(rr, req)
-    assert.Equal(t, http.StatusOK, rr.Code)
-}
-```
-
-### 3. 통합 테스트
-
-전체 시스템 테스트:
+Test complete workflows:
 
 ```go
-func TestFullIntegration(t *testing.T) {
-    srv := setupServer()
-    ts := httptest.NewServer(srv.Handler)
-    defer ts.Close()
+func TestFullPipeline_Integration(t *testing.T) {
+    if testing.Short() {
+        t.Skip("Skipping integration test")
+    }
     
-    resp, err := http.Get(ts.URL + "/myfeature")
+    // Setup real services
+    pipeline := setupTestPipeline()
+    
+    // Execute full workflow
+    result, err := pipeline.GenerateVideo(testChannel)
+    
     assert.NoError(t, err)
-    assert.Equal(t, http.StatusOK, resp.StatusCode)
+    assert.FileExists(t, result.VideoPath)
 }
 ```
 
-## 장점
+### 4. Architecture Tests
 
-1. **테스트 용이성**: 각 레이어를 독립적으로 테스트 가능
-2. **유연성**: 어댑터를 교체하여 다른 프로토콜 지원 가능
-3. **명확한 경계**: 각 레이어의 책임이 명확히 분리
-4. **확장성**: 새로운 기능을 쉽게 추가 가능
-5. **유지보수성**: 변경사항이 격리되어 영향 범위 최소화
+Automated tests to enforce architectural rules:
 
-## 주의사항
+```go
+func TestArchitecture(t *testing.T) {
+    // Core packages cannot depend on adapters
+    corePkgs := Package("ssulmeta-go/internal/*/core/...")
+    adapterPkgs := Package("ssulmeta-go/internal/*/adapters/...")
+    
+    corePkgs.ShouldNot().DependDirectlyOn(adapterPkgs).
+        Because("core should not depend on adapters")
+    
+    // Only adapters can import external libraries
+    allPkgs := Package("ssulmeta-go/...")
+    externalPkgs := Package("github.com/...", "google.golang.org/...", "golang.org/x/...")
+    
+    allPkgs.That().Are().Not(adapterPkgs).
+        ShouldNot().DependDirectlyOn(externalPkgs).
+        Because("only adapters should use external dependencies")
+}
+```
 
-1. **과도한 추상화 피하기**: 필요하지 않은 인터페이스는 만들지 않음
-2. **YAGNI 원칙**: 당장 필요하지 않은 기능은 구현하지 않음
-3. **실용주의**: 단순한 기능(예: 헬스체크)은 어댑터만으로 충분
+## Configuration Management
 
-## 참고 자료
+### Environment-Based Configuration
 
-- [Hexagonal Architecture by Alistair Cockburn](https://alistair.cockburn.us/hexagonal-architecture/)
-- [Ports and Adapters Pattern](https://en.wikipedia.org/wiki/Hexagonal_architecture_(software))
-- [Clean Architecture by Robert C. Martin](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
+```yaml
+# configs/local.yaml
+app:
+  name: ssulmeta-go
+  env: local
+  debug: true
+
+api:
+  use_mock: false
+  openai:
+    model: gpt-4
+    temperature: 0.7
+    rate_limit: 10
+
+storage:
+  base_path: ./storage
+  temp_path: ./temp
+```
+
+### Secrets Management
+
+```go
+// Secrets loaded from environment or vault
+type Secrets struct {
+    OpenAIKey    string `env:"OPENAI_API_KEY"`
+    GoogleCreds  string `env:"GOOGLE_APPLICATION_CREDENTIALS"`
+    YouTubeOAuth OAuth2Config
+}
+```
+
+## Best Practices
+
+### 1. Domain Modeling
+
+- Keep domain models in `pkg/models` for sharing
+- Use value objects for business concepts
+- Implement domain-specific validation
+
+### 2. Error Handling
+
+```go
+// Define domain-specific errors
+var (
+    ErrStoryTooShort = errors.New("story must be at least 270 characters")
+    ErrInvalidChannel = errors.New("invalid channel type")
+)
+
+// Wrap errors with context
+return fmt.Errorf("failed to generate story: %w", err)
+```
+
+### 3. Dependency Injection
+
+- Wire dependencies in `main.go` or container package
+- Use interfaces for all dependencies
+- Prefer constructor injection
+
+### 4. Testing
+
+- Aim for >80% coverage in core packages
+- Use table-driven tests
+- Mock external dependencies
+- Test error scenarios
+
+## Adding New Features
+
+### Step-by-Step Guide
+
+1. **Define the Domain**
+   ```bash
+   mkdir -p internal/newfeature/{core,ports,adapters}
+   ```
+
+2. **Create Port Interfaces**
+   ```go
+   // internal/newfeature/ports/interfaces.go
+   type FeatureService interface {
+       Process(ctx context.Context, input Input) (*Output, error)
+   }
+   ```
+
+3. **Implement Core Logic**
+   ```go
+   // internal/newfeature/core/service.go
+   type Service struct {
+       validator Validator
+   }
+   
+   func (s *Service) Process(input Input) (*Output, error) {
+       // Business logic here
+   }
+   ```
+
+4. **Create Adapters**
+   ```go
+   // internal/newfeature/adapters/http.go
+   type HTTPAdapter struct {
+       service ports.FeatureService
+   }
+   ```
+
+5. **Write Tests**
+   - Core logic unit tests
+   - Adapter integration tests
+   - End-to-end tests
+
+6. **Wire Dependencies**
+   ```go
+   // In main.go
+   featureService := featureCore.NewService()
+   featureAdapter := featureAdapters.NewHTTPAdapter(featureService)
+   ```
+
+## Performance Considerations
+
+### Caching Strategy
+
+- Redis for channel configurations
+- In-memory cache for frequently accessed data
+- Cache invalidation on updates
+
+### Concurrency
+
+- Use context for cancellation
+- Implement timeouts for external calls
+- Use worker pools for parallel processing
+
+### Resource Management
+
+- Clean up temporary files
+- Implement connection pooling
+- Monitor memory usage
+
+## Security
+
+### API Security
+
+- OAuth2 for YouTube authentication
+- API key validation for external services
+- Rate limiting per client
+
+### Data Protection
+
+- Encrypt sensitive configuration
+- Sanitize user inputs
+- Audit logging for sensitive operations
+
+## Monitoring and Observability
+
+### Structured Logging
+
+```go
+logger.Info("story generated",
+    slog.String("channel", channelType),
+    slog.Int("length", len(story.Content)),
+    slog.Duration("duration", time.Since(start)),
+)
+```
+
+### Metrics
+
+- Request duration histograms
+- Error rate counters
+- Business metrics (videos generated, etc.)
+
+### Health Checks
+
+- Database connectivity
+- External API availability
+- Disk space for video processing
+
+## Conclusion
+
+This architecture provides:
+
+- **Maintainability**: Clear separation of concerns
+- **Testability**: Each layer independently testable
+- **Flexibility**: Easy to swap implementations
+- **Scalability**: Domain-driven design supports growth
+- **Reliability**: Comprehensive error handling and monitoring
+
+The hexagonal architecture ensures that business logic remains pure and testable while keeping external concerns at the boundaries of the system.
