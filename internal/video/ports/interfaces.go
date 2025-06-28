@@ -23,6 +23,131 @@ type KenBurnsEffect struct {
 	EndY      float64 // Final Y position (0.0-1.0)
 }
 
+// KenBurnsConfig defines the configuration for Ken Burns effect
+type KenBurnsConfig struct {
+	StartZoom float64 // Initial zoom level (1.0 = no zoom, range: 1.0-3.0)
+	EndZoom   float64 // Final zoom level (range: 1.0-3.0)
+	StartX    float64 // Initial X position (0.0-1.0, 0.5 = center)
+	StartY    float64 // Initial Y position (0.0-1.0, 0.5 = center)
+	EndX      float64 // Final X position (0.0-1.0)
+	EndY      float64 // Final Y position (0.0-1.0)
+}
+
+// KenBurnsParams defines the calculated parameters for Ken Burns effect
+type KenBurnsParams struct {
+	StartZoom float64       // Initial zoom level
+	EndZoom   float64       // Final zoom level
+	StartX    float64       // Initial X position
+	StartY    float64       // Initial Y position
+	EndX      float64       // Final X position
+	EndY      float64       // Final Y position
+	ZoomDelta float64       // Change in zoom (EndZoom - StartZoom)
+	XDelta    float64       // Change in X position (EndX - StartX)
+	YDelta    float64       // Change in Y position (EndY - StartY)
+	Duration  time.Duration // Duration of the effect
+}
+
+// TransitionType defines the type of transition between scenes
+type TransitionType string
+
+const (
+	TransitionTypeCrossfade TransitionType = "crossfade"
+	TransitionTypeFadeIn    TransitionType = "fadein"
+	TransitionTypeFadeOut   TransitionType = "fadeout"
+	TransitionTypeWipe      TransitionType = "wipe"
+	TransitionTypeSlide     TransitionType = "slide"
+)
+
+// TransitionParams defines the parameters for scene transitions
+type TransitionParams struct {
+	Type     TransitionType // Type of transition
+	Duration time.Duration  // Duration of the transition
+	Offset   time.Duration  // Time offset from start of clip
+}
+
+// SubtitlePosition defines the position of subtitles on screen
+type SubtitlePosition string
+
+const (
+	SubtitlePositionBottom      SubtitlePosition = "bottom"
+	SubtitlePositionTop         SubtitlePosition = "top"
+	SubtitlePositionCenter      SubtitlePosition = "center"
+	SubtitlePositionTopLeft     SubtitlePosition = "top-left"
+	SubtitlePositionTopRight    SubtitlePosition = "top-right"
+	SubtitlePositionBottomLeft  SubtitlePosition = "bottom-left"
+	SubtitlePositionBottomRight SubtitlePosition = "bottom-right"
+)
+
+// SubtitleConfig defines the configuration for subtitle overlay
+type SubtitleConfig struct {
+	Text      string           // Text to display
+	Position  SubtitlePosition // Position on screen
+	FontSize  int              // Font size in pixels
+	FontColor string           // Font color (hex: #FFFFFF)
+	BgColor   string           // Background color (hex: #000000, empty for no background)
+	Duration  time.Duration    // How long to show the subtitle
+	StartTime time.Duration    // When to start showing the subtitle
+}
+
+// SubtitleParams defines the calculated parameters for subtitle overlay
+type SubtitleParams struct {
+	Text      string        // Text to display
+	X         string        // X position expression for FFmpeg
+	Y         string        // Y position expression for FFmpeg
+	FontSize  int           // Font size in pixels
+	FontColor string        // Font color
+	BgColor   string        // Background color
+	Duration  time.Duration // Duration to show
+	StartTime time.Duration // Start time
+}
+
+// WatermarkPosition defines the position of watermark on screen
+type WatermarkPosition string
+
+const (
+	WatermarkPositionTopLeft     WatermarkPosition = "top-left"
+	WatermarkPositionTopRight    WatermarkPosition = "top-right"
+	WatermarkPositionBottomLeft  WatermarkPosition = "bottom-left"
+	WatermarkPositionBottomRight WatermarkPosition = "bottom-right"
+	WatermarkPositionCenter      WatermarkPosition = "center"
+)
+
+// WatermarkConfig defines the configuration for watermark overlay
+type WatermarkConfig struct {
+	ImagePath string            // Path to watermark image
+	Position  WatermarkPosition // Position on screen
+	Scale     float64           // Scale factor (0.1 = 10% of original size)
+	Opacity   float64           // Opacity (0.0-1.0, 1.0 = fully opaque)
+}
+
+// WatermarkParams defines the calculated parameters for watermark overlay
+type WatermarkParams struct {
+	ImagePath string  // Path to watermark image
+	X         string  // X position expression for FFmpeg
+	Y         string  // Y position expression for FFmpeg
+	Scale     float64 // Scale factor
+	Opacity   float64 // Opacity
+}
+
+// EffectType defines the type of video effect
+type EffectType string
+
+const (
+	EffectTypeKenBurns   EffectType = "kenburns"
+	EffectTypeTransition EffectType = "transition"
+	EffectTypeSubtitle   EffectType = "subtitle"
+	EffectTypeWatermark  EffectType = "watermark"
+)
+
+// VideoEffect defines a single video effect
+type VideoEffect struct {
+	Type       EffectType        // Type of effect
+	KenBurns   *KenBurnsParams   // Ken Burns parameters (if applicable)
+	Transition *TransitionParams // Transition parameters (if applicable)
+	Subtitle   *SubtitleParams   // Subtitle parameters (if applicable)
+	Watermark  *WatermarkParams  // Watermark parameters (if applicable)
+}
+
 // VideoSettings defines output video settings
 type VideoSettings struct {
 	Width                 int     // Video width (1080 for Shorts)
@@ -100,4 +225,55 @@ type FFmpegChecker interface {
 
 	// GetFFmpegPath returns the path to ffmpeg binary
 	GetFFmpegPath() string
+
+	// IsAvailable checks if ffmpeg is available (for compatibility)
+	IsAvailable() bool
+}
+
+// EffectProcessor defines interface for video effect processing
+type EffectProcessor interface {
+	// ProcessEffects applies effects to video and returns FFmpeg filter string
+	ProcessEffects(effects []VideoEffect, width, height, fps int) (string, error)
+}
+
+// KenBurnsProcessor defines interface for Ken Burns effect processing
+type KenBurnsProcessor interface {
+	// CalculateParameters calculates Ken Burns parameters from configuration
+	CalculateParameters(config KenBurnsConfig, duration time.Duration) (*KenBurnsParams, error)
+
+	// GenerateFFmpegFilter generates FFmpeg filter string for Ken Burns effect
+	GenerateFFmpegFilter(params KenBurnsParams, width, height int) string
+}
+
+// TransitionProcessor defines interface for transition effect processing
+type TransitionProcessor interface {
+	// CalculateParameters calculates transition parameters
+	CalculateParameters(transitionType TransitionType, duration time.Duration) (*TransitionParams, error)
+
+	// GenerateFFmpegFilter generates FFmpeg filter string for transitions
+	GenerateFFmpegFilter(params TransitionParams, fps int) string
+}
+
+// SubtitleProcessor defines interface for subtitle overlay processing
+type SubtitleProcessor interface {
+	// CalculateParameters calculates subtitle parameters from configuration
+	CalculateParameters(config SubtitleConfig) (*SubtitleParams, error)
+
+	// GenerateFFmpegFilter generates FFmpeg filter string for subtitle overlay
+	GenerateFFmpegFilter(params SubtitleParams) string
+}
+
+// WatermarkProcessor defines interface for watermark overlay processing
+type WatermarkProcessor interface {
+	// CalculateParameters calculates watermark parameters from configuration
+	CalculateParameters(config WatermarkConfig) (*WatermarkParams, error)
+
+	// GenerateFFmpegFilter generates FFmpeg filter string for watermark overlay
+	GenerateFFmpegFilter(params WatermarkParams) string
+}
+
+// EffectChain defines interface for chaining multiple effects
+type EffectChain interface {
+	// BuildComplexFilter builds a complex FFmpeg filter from multiple effects
+	BuildComplexFilter(effects []VideoEffect, width, height, fps int) (string, error)
 }

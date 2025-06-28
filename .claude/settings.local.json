@@ -7,7 +7,16 @@
       "Bash(go build:*)",
       "Bash(SKIP_FFMPEG_EXECUTION=true go test -v ./internal/video/adapters/... -run TestVideoValidator)",
       "Bash(SKIP_FFMPEG_EXECUTION=true go test -v ./internal/video/...)",
-      "Bash(SKIP_FFMPEG_EXECUTION=true go test -v ./internal/video/... -run TestVideoIntegration)"
+      "Bash(SKIP_FFMPEG_EXECUTION=true go test -v ./internal/video/... -run TestVideoIntegration)",
+      "Bash(SKIP_FFMPEG_EXECUTION=true go test -v ./internal/video/core/ -run TestKenBurnsEffect_CalculateParameters)",
+      "Bash(SKIP_FFMPEG_EXECUTION=true go test -v ./internal/video/core/ -run TestKenBurnsEffect_GenerateFFmpegFilter)",
+      "Bash(SKIP_FFMPEG_EXECUTION=true go test -v ./internal/video/core/ -run TestTransitionEffect)",
+      "Bash(SKIP_FFMPEG_EXECUTION=true go test -v ./internal/video/core/ -run TestSubtitleOverlay)",
+      "Bash(SKIP_FFMPEG_EXECUTION=true go test -v ./internal/video/core/ -run TestWatermarkOverlay)",
+      "Bash(SKIP_FFMPEG_EXECUTION=true go test -v ./internal/video/core/ -run TestEffectChain)",
+      "Bash(SKIP_FFMPEG_EXECUTION=true go test -v ./internal/video/core/ -run Test.*Effect)",
+      "Bash(SKIP_FFMPEG_EXECUTION=true go test -v ./internal/video/core/effects_test.go)",
+      "Bash(SKIP_FFMPEG_EXECUTION=true go test -v ./internal/video/core/ -run TestKenBurns)"
     ],
     "deny": []
   }

@@ -107,6 +107,12 @@ func (f *FFmpegChecker) GetFFmpegPath() string {
 	return f.ffmpegPath
 }
 
+// IsAvailable checks if ffmpeg is available (for compatibility)
+func (f *FFmpegChecker) IsAvailable() bool {
+	ctx := context.Background()
+	return f.IsFFmpegAvailable(ctx) == nil
+}
+
 // IsFFprobeAvailable checks if ffprobe binary is available (needed for validation)
 func (f *FFmpegChecker) IsFFprobeAvailable(ctx context.Context) error {
 	ffprobePath := "ffprobe"
