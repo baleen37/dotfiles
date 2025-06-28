@@ -200,7 +200,7 @@ pkgs.runCommand "user-resolution-test"
 
   # Restore USER for performance test
   export USER="testuser"
-  
+
   # Test that user resolution is cached/efficient
   start_time=$(date +%s%N)
   for i in {1..10}; do
