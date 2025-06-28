@@ -13,12 +13,24 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Set up Go
+    - name: Set up Go with caching
       uses: actions/setup-go@v5
       with:
         go-version: '1.24.4'
-        
+        cache: true
+        cache-dependency-path: go.sum
+    
+    - name: Cache development tools
+      id: cache-tools
+      uses: actions/cache@v4
+      with:
+        path: ~/go/bin
+        key: ${{ runner.os }}-go-tools-${{ hashFiles('Makefile') }}-v1
+        restore-keys: |
+          ${{ runner.os }}-go-tools-
+    
     - name: Install development tools
+      if: steps.cache-tools.outputs.cache-hit != 'true'
       run: make install-tools
         
     - name: Check code formatting
@@ -37,15 +49,18 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Set up Go
+    - name: Set up Go with caching
       uses: actions/setup-go@v5
       with:
         go-version: '1.24.4'
+        cache: true
+        cache-dependency-path: go.sum
         
     - name: Run golangci-lint
       uses: golangci/golangci-lint-action@v6
       with:
         version: latest
+        # The action has built-in caching
 
   test-check:
     runs-on: self-hosted
@@ -53,10 +68,12 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Set up Go
+    - name: Set up Go with caching
       uses: actions/setup-go@v5
       with:
         go-version: '1.24.4'
+        cache: true
+        cache-dependency-path: go.sum
         
     - name: Run tests
       env:
@@ -70,10 +87,12 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Set up Go
+    - name: Set up Go with caching
       uses: actions/setup-go@v5
       with:
         go-version: '1.24.4'
+        cache: true
+        cache-dependency-path: go.sum
         
     - name: Run architecture tests
       run: make arch-test
@@ -85,10 +104,12 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Set up Go
+    - name: Set up Go with caching
       uses: actions/setup-go@v5
       with:
         go-version: '1.24.4'
+        cache: true
+        cache-dependency-path: go.sum
         
     - name: Generate coverage report
       env:
