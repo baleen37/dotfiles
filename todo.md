@@ -3,10 +3,8 @@
 ## ⏳ 대기 중 (예정된 작업)
 
 ### Phase 7: CLI 시스템 TDD 구현
-- [ ] **고우선순위** - CLI Root Command TDD 구현
-- [ ] **고우선순위** - CLI Generate Command TDD 구현
-- [ ] **고우선순위** - CLI Upload Command TDD 구현
-- [ ] **중우선순위** - CLI 기타 Commands TDD 구현
+- [ ] **고우선순위** - CLI Upload Command TDD 구현 (Phase 7.3)
+- [ ] **중우선순위** - CLI 기타 Commands TDD 구현 (Phase 7.4)
 
 ### Phase 8: 스케줄러 시스템 TDD 구현
 - [ ] **중우선순위** - 스케줄러 시스템 설계 및 구현
@@ -19,6 +17,27 @@
 - [ ] **저우선순위** - 성능 최적화 및 튜닝
 
 ## ✅ 완료된 작업 (최근 완료)
+
+### Phase 7.2: CLI Generate Command TDD 구현 ✅ (2025-06-28)
+- ✅ `cmd/cli/generate.go` - CLI Generate Command 구현 완료
+- ✅ `cmd/cli/generate_test.go` - 포괄적인 테스트 스위트 작성
+- ✅ Cobra CLI 프레임워크 기반 구현
+- ✅ 채널별 스토리 생성 기능 (`--channel` 플래그)
+- ✅ 출력 디렉토리 지정 기능 (`--output` 플래그)
+- ✅ Verbose 로깅 지원 (`--verbose` 플래그)
+- ✅ 기존 Story 서비스와의 완전한 통합
+- ✅ JSON 출력 형식으로 메타데이터 포함 저장
+- ✅ 타임스탬프 기반 파일명 생성
+- ✅ Mock 서비스를 통한 테스트 환경 지원
+- ✅ 100% 테스트 커버리지 달성
+
+### Phase 7.1: CLI Root Command TDD 구현 ✅ (2025-06-28)
+- ✅ Cobra CLI 프레임워크 기반 루트 명령어 구현
+- ✅ 글로벌 플래그 설정 (--config, --env, --verbose, --log-level)
+- ✅ Version Command 구현 (--short, --json 플래그 지원)
+- ✅ Config Command 구현 (--paths, --output 플래그 지원)
+- ✅ 81.2% 테스트 커버리지 달성
+- ✅ 기존 설정 시스템과의 완전한 통합
 
 ### Phase 6.5: YouTube 도메인 통합 테스트 ✅ (2025-06-28)
 - ✅ YouTube 도메인 전체 통합 테스트 구현

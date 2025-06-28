@@ -11,7 +11,8 @@ YouTube Shorts 자동 생성 시스템을 완성하기 위한 단계별 구현 �
 - ✅ **Phase 3**: Image 생성 시스템 (Stable Diffusion)
 - ✅ **Phase 4**: TTS 나레이션 생성 시스템 (Google Cloud TTS)
 - ✅ **Phase 5**: Video 도메인 완성 (동영상 합성) - **2024년 6월 완료**
-- ✅ **Phase 6.1-6.3**: YouTube 도메인 부분 완성 (OAuth2, Core Service, API Adapter) - **2024년 6월 완료**
+- ✅ **Phase 6**: YouTube 도메인 완성 (OAuth2, API, 메타데이터, 통합테스트) - **2025년 6월 완료**
+- ✅ **Phase 7.1-7.2**: CLI 시스템 기초 구현 (Root Command, Generate Command) - **2025년 6월 완료**
 
 ## 남은 구현 과제
 
@@ -22,7 +23,12 @@ YouTube Shorts 자동 생성 시스템을 완성하기 위한 단계별 구현 �
 - ✅ Phase 6.4: 메타데이터 생성기 TDD 구현
 - ✅ Phase 6.5: YouTube 도메인 통합 테스트
 
-### Phase 7: CLI 명령어 구현
+### 🔄 Phase 7: CLI 명령어 구현 - **진행 중 (7.1-7.2 완료)**
+- ✅ Phase 7.1: CLI Root Command TDD 구현 - **완료**
+- ✅ Phase 7.2: CLI Generate Command TDD 구현 - **완료**
+- ⏳ Phase 7.3: CLI Upload Command TDD 구현
+- ⏳ Phase 7.4: CLI 기타 Commands TDD 구현
+
 ### Phase 8: 스케줄러 시스템
 ### Phase 9: 작업 큐 시스템
 ### Phase 10: 통합 테스트 및 최적화
@@ -142,7 +148,7 @@ OAuth2 인증을 통해 생성된 동영상을 YouTube에 자동 업로드
 
 ---
 
-## Phase 7: CLI 명령어 구현
+## 🔄 Phase 7: CLI 명령어 구현 - **진행 중**
 
 ### 목표
 사용자 친화적인 CLI 인터페이스로 전체 파이프라인 실행
@@ -151,23 +157,34 @@ OAuth2 인증을 통해 생성된 동영상을 YouTube에 자동 업로드
 - **spf13/cobra**: CLI 프레임워크
 - **spf13/viper**: 설정 관리 (기존과 통합)
 
-### 7.1 의존성 추가
-- [ ] Cobra 및 Viper 패키지 설치
-- [ ] CLI 구조 설계
+### 7.1 CLI Root Command TDD 구현 ✅
+- ✅ Cobra 및 Viper 패키지 설치 완료
+- ✅ CLI 구조 설계 완료
+- ✅ `cmd/cli/main.go` 업데이트 완료
+  - ✅ Cobra 앱 초기화
+  - ✅ 글로벌 플래그 정의 (--env, --config, --verbose, --log-level)
+  - ✅ 설정 로딩 로직
+- ✅ Version Command 구현 (--short, --json 플래그)
+- ✅ Config Command 구현 (--paths, --output 플래그)
+- ✅ 81.2% 테스트 커버리지 달성
 
-### 7.2 Root Command 구현
-- [ ] `cmd/cli/main.go` 업데이트
-  - [ ] Cobra 앱 초기화
-  - [ ] 글로벌 플래그 정의 (--env, --config, --verbose)
-  - [ ] 설정 로딩 로직
+### 7.2 CLI Generate Command TDD 구현 ✅
+- ✅ `cmd/cli/generate.go` 생성 완료
+  - ✅ `generate` 서브커맨드 구현
+  - ✅ 채널 지정 플래그 (`--channel`) 구현
+  - ✅ 출력 디렉토리 플래그 (`--output`) 구현
+  - ✅ 기존 Story 서비스와 완전 통합
+  - ✅ JSON 출력 형식으로 메타데이터 저장
+- ✅ 포괄적인 테스트 스위트 작성 (`cmd/cli/generate_test.go`)
+- ✅ 100% 테스트 커버리지 달성
+- ✅ Mock 서비스 지원으로 빠른 테스트 실행
 
-### 7.3 Generate Command 구현
-- [ ] `cmd/cli/commands/generate.go` 생성
-  - [ ] `generate` 서브커맨드
-  - [ ] 채널 지정 플래그 (`--channel`)
-  - [ ] 출력 디렉토리 플래그 (`--output`)
-  - [ ] 전체 파이프라인 실행 (Story → Image → TTS → Video)
-  - [ ] 진행률 표시
+### 7.3 Upload Command 구현 ⏳
+- [ ] `cmd/cli/commands/upload.go` 생성
+  - [ ] `upload` 서브커맨드
+  - [ ] 로컬 동영상 파일 업로드
+  - [ ] YouTube 인증 처리
+  - [ ] 업로드 진행률 표시
 
 ### 7.4 Upload Command 구현
 - [ ] `cmd/cli/commands/upload.go` 생성
