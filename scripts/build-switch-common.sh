@@ -328,3 +328,4 @@ execute_build_switch() {
         echo "${DIM}Tip: Use --verbose for detailed output${NC}"
     fi
 }
+

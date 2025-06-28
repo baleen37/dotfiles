@@ -212,6 +212,15 @@ Before moving to next phase:
 ✓ Ready for next phase
 </validation>
 
+<output>
+- **Phase 1 (Explore)**: Comprehensive analysis (NO CODE)
+- **Phase 2 (Plan)**: Structured plan in Markdown
+- **Phase 3 (Review)**: Approved plan
+- **Phase 4 (Develop)**: Working implementation with clean commits
+- **Phase 5 (Integrate)**: Validated, complete implementation
+- **Phase 6 (Ship)**: Production-ready Pull Request
+</output>
+
 <critical_reminders>
 ⚠️ **REMEMBER**:
 - Each phase builds on the previous
@@ -221,3 +230,17 @@ Before moving to next phase:
 
 🛑 **STOP**: Wait for explicit approval after planning phase.
 </critical_reminders>
+
+<decision_points>
+- [ ] After Explore phase: Present analysis and ask for approval to proceed to Plan phase.
+- [ ] After Plan phase: Present detailed plan and ask for explicit approval to proceed to Develop phase.
+- [ ] During Develop phase: If blocked or tests repeatedly fail, stop and ask for help/guidance.
+- [ ] After Integrate phase: Present validated implementation and ask for approval to proceed to Ship phase.
+</decision_points>
+
+<constraints>
+- ALWAYS adhere to the defined 6-phase workflow.
+- NEVER proceed to the next phase without explicit user approval, especially after planning.
+- MUST use the specified commit message format.
+- ALWAYS prioritize clear communication and ask clarifying questions when uncertain.
+</constraints>
