@@ -13,12 +13,14 @@
     - If the user hasn't provided a specification, ask for one.
     - Read the spec, and propose a technology stack (language, frameworks, etc.).
     - **STOP** and get user feedback on the tech stack, iterating until approved.
+    **IF USER DOES NOT PROVIDE SPECIFICATION OR APPROVAL**: Report the specific blocker (e.g., "Awaiting project specification from user.") and **STOP**.
   </phase>
 
   <phase name="Decomposition" number="2">
     - Draft a high-level blueprint for the project.
     - Decompose the blueprint into small, concrete tasks, each delivering a testable piece of functionality.
     - Ensure each task has a clear "definition of done" and a testing strategy.
+    **IF UNABLE TO DECOMPOSE**: Report the specific blocker (e.g., "Unable to decompose the project into manageable tasks due to unclear requirements.") and **STOP**.
   </phase>
 
   <phase name="Finalization" number="3">
@@ -26,6 +28,7 @@
     - Store the final plan in `plan.md`.
     - Create a `todo.md` file to track the state of each task.
     - Optionally, create issues for each task in the designated tracker (GitHub, Jira).
+    **IF PLAN GENERATION FAILS**: Report the specific error (e.g., "Failed to generate plan.md due to file system error.") and **STOP**.
   </phase>
 
 </workflow>

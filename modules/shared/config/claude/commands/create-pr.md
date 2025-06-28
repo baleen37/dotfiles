@@ -11,12 +11,16 @@
 
   <step name="Pre-PR Checks" number="1">
     - **Sync Branch**: Ensure the current branch is up-to-date with the target branch (usually `main`) by merging or rebasing to prevent conflicts.
-    - **Local Validation**: Run all local quality checks (`make lint`, `make test`) one last time to ensure everything passes.
+      - **IF SYNC FAILS**: Report the specific Git error (e.g., "Merge/rebase failed due to conflicts.") and **STOP**.
+    - **Local Validation**: Run all local quality checks (`make lint`, `make test`).
+      - **IF VALIDATION FAILS**: Report the specific failure (e.g., "Linting failed. Please fix the issues before proceeding.") and **STOP**.
     - **Check Status**: Use `git status` to confirm there are no uncommitted or untracked files.
+      - **IF UNCLEAN**: Report "Working directory is not clean. Please commit or stash changes." and **STOP**.
   </step>
 
   <step name="PR Creation" number="2">
     - **Initiate**: Execute `gh pr create` to begin the process.
+      - **IF GH PR CREATE FAILS**: Report the specific `gh` CLI error (e.g., "Failed to create PR. Check GitHub authentication.") and **STOP**.
     - **Title**: Write a title that follows the Conventional Commits standard (e.g., `feat: ...`, `fix: ...`). It must be clear and concise.
     - **Body**: Write a comprehensive description using the PR template, including:
       - **Summary**: What is the purpose of this PR and why is it needed?
@@ -27,8 +31,11 @@
 
   <step name="Post-Creation Actions" number="3">
     - **Assign Reviewers**: Assign at least one relevant reviewer to the PR.
+      - **IF ASSIGNMENT FAILS**: Report the error (e.g., "Failed to assign reviewer.") but **CONTINUE** if PR was created.
     - **Add Labels**: Add appropriate labels (e.g., `bug`, `feature`, `needs-review`).
+      - **IF LABELING FAILS**: Report the error (e.g., "Failed to add labels.") but **CONTINUE** if PR was created.
     - **Enable Auto-Merge**: If the CI/CD pipeline is robust, enable auto-merge with `gh pr merge --auto --squash`.
+      - **IF AUTO-MERGE FAILS**: Report the error (e.g., "Failed to enable auto-merge. Check repository settings.") but **CONTINUE** if PR was created.
   </step>
 
 </workflow>

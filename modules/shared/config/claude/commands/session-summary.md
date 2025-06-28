@@ -19,6 +19,7 @@
   ### Insights & Observations
   - [Note any interesting observations, efficiency insights, or potential process improvements.]
 
+  **IF FILE CREATION FAILS**: Report "Failed to create session summary file." and **STOP**.
 </output_template>
 
 <constraints>

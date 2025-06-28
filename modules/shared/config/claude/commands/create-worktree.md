@@ -12,22 +12,28 @@
   <step name="Analyze Request" number="1">
     - **Parse Input**: Analyze the user's request to determine the task's intent (from a URL, issue number, or raw description).
     - **Extract Context**: Use `gh` or `web_fetch` to get context from URLs or issue numbers. For text, map keywords (e.g., 버그 -> fix, 기능 -> feat) to an intent.
+      - **IF CONTEXT EXTRACTION FAILS**: Report the specific error (e.g., "Failed to extract context from URL.") and **STOP**.
   </step>
 
   <step name="Discover Conventions" number="2">
     - **Check Branch History**: Analyze recent branch names (`git branch -r --sort=-committerdate | head-20`) to identify existing naming patterns (e.g., `type/scope`, `type/username/scope`).
     - **Check for Docs**: Look for `CONTRIBUTING.md` for explicit guidelines.
+      - **IF CONVENTION DISCOVERY FAILS**: Report the specific error (e.g., "Unable to discover branch naming conventions.") and **STOP**.
   </step>
 
   <step name="Create Worktree" number="3">
     - **Generate Branch Name**: Create a descriptive, kebab-case branch name that follows the discovered convention (e.g., `feat/issue-123-oauth-integration`).
     - **Update Main**: Ensure the local `main` reference is up-to-date (`git fetch origin main:main`).
+      - **IF MAIN UPDATE FAILS**: Report the specific Git error (e.g., "Failed to update main branch.") and **STOP**.
     - **Execute**: Run `git worktree add -b <branch-name> ./.local/<branch-name> main`.
+      - **IF WORKTREE CREATION FAILS**: Report the specific Git error (e.g., "Failed to create worktree. Worktree might already exist.") and **STOP**.
   </step>
 
   <step name="Verify and Report" number="4">
     - **Navigate**: Change the current directory to the new worktree path (`cd ./.local/<branch-name>`).
+      - **IF NAVIGATION FAILS**: Report the error (e.g., "Failed to navigate to new worktree directory.") and **STOP**.
     - **Verify State**: Confirm the worktree is clean (`git status --porcelain` should be empty).
+      - **IF NOT CLEAN**: Report "New worktree is not clean. Investigate further." and **STOP**.
     - **Report Success**: Inform the user that the worktree is ready for development at the specified path.
   </step>
 
