@@ -22,3 +22,70 @@ prompt_template: |
   내용: [이야기 내용]
 
 scene_style: "romantic atmosphere, soft lighting, pastel colors, Korean drama style, emotional"
+
+# YouTube metadata generation configuration
+youtube:
+  metadata:
+    # Title generation templates
+    title_templates:
+      - "💕 {title} | 달콤한 로맨스 #Shorts"
+      - "💖 {title} | 감동적인 사랑 이야기"
+      - "☕ {title} | 설렘 가득한 로맨스"
+      - "🌸 {title} | 따뜻한 만남 이야기"
+    
+    # Description template with placeholders
+    description_template: |
+      {hook_line}
+      
+      💕 {summary}
+      
+      💖 이 로맨스의 하이라이트:
+      {romantic_moments}
+      
+      ☕ 감동 포인트: {emotional_points}
+      
+      🌸 더 많은 달콤한 로맨스가 보고 싶다면 구독해주세요!
+      
+      #로맨스 #사랑 #감동 #연애 #Shorts #유튜브쇼츠 #달콤한이야기
+    
+    # SEO-optimized hook lines for different romance types
+    hook_lines:
+      first_love: "첫사랑의 설렘을 그린 달콤한 로맨스입니다! 💕"
+      reunion: "오랜만에 만난 두 사람의 감동적인 재회! 💖"
+      workplace: "직장에서 시작된 로맨틱한 사랑 이야기! ☕"
+      fate: "운명처럼 만난 두 사람의 특별한 인연! 🌸"
+      everyday: "일상 속에서 피어난 소중한 사랑 이야기! 💝"
+      default: "마음이 따뜻해지는 달콤한 로맨스 이야기입니다! 💕"
+    
+    # Base tags that should always be included
+    base_tags:
+      - "로맨스"
+      - "사랑"
+      - "감동"
+      - "연애"
+      - "Shorts"
+      - "유튜브쇼츠"
+      - "설렘"
+      - "달콤한이야기"
+      - "만남"
+    
+    # Content-specific tag patterns for intelligent tagging
+    content_tags:
+      patterns:
+        meeting: ["만남", "첫만남", "소개팅", "우연"]
+        emotions: ["설렘", "사랑", "마음", "감정"]
+        places: ["카페", "공원", "도서관", "회사"]
+        moments: ["고백", "데이트", "프로포즈", "키스"]
+        relationships: ["연인", "커플", "애인", "남자친구", "여자친구"]
+    
+    # YouTube metadata constraints
+    constraints:
+      title_max_length: 100
+      description_max_length: 5000
+      max_tags: 15
+      tag_total_max_length: 500
+    
+    # Category and privacy settings
+    category_id: "24"  # Entertainment
+    default_language: "ko"
+    privacy: "public"
