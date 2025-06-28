@@ -19,4 +19,3 @@ PROJECT_ROOT=$(cd "$SCRIPT_DIR/../.." && pwd)
 
 # Execute the common build-switch workflow
 execute_build_switch "$@"
-

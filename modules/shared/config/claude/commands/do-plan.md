@@ -34,4 +34,20 @@ When requirements or scope change:
 4. Keep the plan current and realistic
 </plan_update_protocol>
 
-STOP. ASK THE USER WHAT TO DO NEXT. DO NOT IMPLEMENT ANYTHING.
+<constraints>
+- ALWAYS store the final plan in `plan.md`.
+- NEVER implement anything without explicit user approval.
+- MUST iterate on technology choices and plan steps until user approval.
+- ALWAYS keep the plan current and realistic, reflecting changes during development.
+</constraints>
+
+<output>
+- A detailed, step-by-step project plan in `plan.md`, organized by phase.
+- Iterative updates to `plan.md` as requirements or scope change.
+</output>
+
+<decision_points>
+- [ ] After proposing technology choices: Stop and get feedback from the user.
+- [ ] After drafting the detailed plan: Iterate until the user approves.
+- [ ] After integrating the whole plan: Stop and ask the user what to do next.
+</decision_points>
