@@ -22,6 +22,12 @@ func NewFFmpegChecker() ports.FFmpegChecker {
 	}
 }
 
+// IsAvailable is a convenience method that checks ffmpeg availability
+func (f *FFmpegChecker) IsAvailable() bool {
+	ctx := context.Background()
+	return f.IsFFmpegAvailable(ctx) == nil
+}
+
 // NewFFmpegCheckerWithPath creates a new FFmpegChecker with custom ffmpeg path
 func NewFFmpegCheckerWithPath(path string) ports.FFmpegChecker {
 	return &FFmpegChecker{
@@ -105,12 +111,6 @@ func (f *FFmpegChecker) GetFFmpegVersion(ctx context.Context) (string, error) {
 // GetFFmpegPath returns the path to ffmpeg binary
 func (f *FFmpegChecker) GetFFmpegPath() string {
 	return f.ffmpegPath
-}
-
-// IsAvailable checks if ffmpeg is available (for compatibility)
-func (f *FFmpegChecker) IsAvailable() bool {
-	ctx := context.Background()
-	return f.IsFFmpegAvailable(ctx) == nil
 }
 
 // IsFFprobeAvailable checks if ffprobe binary is available (needed for validation)

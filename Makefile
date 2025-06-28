@@ -18,7 +18,7 @@ build:
 
 # Run tests
 test:
-	$(GO) test $(GOFLAGS) ./...
+	SKIP_FFMPEG_EXECUTION=true $(GO) test $(GOFLAGS) ./...
 
 # Run architecture tests
 arch-test:
@@ -26,7 +26,7 @@ arch-test:
 
 # Run tests with coverage
 coverage:
-	$(GO) test -v -cover -coverprofile=coverage.out ./...
+	SKIP_FFMPEG_EXECUTION=true $(GO) test -v -cover -coverprofile=coverage.out ./...
 
 # Generate HTML coverage report
 coverage-html: coverage

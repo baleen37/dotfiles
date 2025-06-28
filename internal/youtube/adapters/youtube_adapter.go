@@ -87,7 +87,9 @@ func (a *YouTubeAdapter) UploadVideo(ctx context.Context, video *ports.Video, pr
 			},
 		)
 	}
-	defer file.Close()
+	defer func() {
+		_ = file.Close() // Ignore close error
+	}()
 
 	// Create video upload object
 	uploadVideo := &youtube.Video{
@@ -542,7 +544,9 @@ func (a *YouTubeAdapter) uploadThumbnail(service *youtube.Service, videoID, thum
 			},
 		)
 	}
-	defer file.Close()
+	defer func() {
+		_ = file.Close() // Ignore close error
+	}()
 
 	// Upload thumbnail
 	_, err = service.Thumbnails.Set(videoID).Media(file).Do()

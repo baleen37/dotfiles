@@ -310,6 +310,7 @@ make setup-hooks
 - All scripts should have clear, essential functionality
 - Avoid adding unnecessary files to the repository
 - `--no-verify` usage is strictly prohibited
+- AVOID inline environment variables (e.g., `SKIP_FFMPEG_EXECUTION=true go run ...`); use proper configuration files or export statements instead
 
 ## Project-Specific Guidelines
 

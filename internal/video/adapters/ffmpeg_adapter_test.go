@@ -341,7 +341,11 @@ func createTestImage(t *testing.T, dir, filename string) string {
 	// Create a dummy file for testing
 	file, err := os.Create(imagePath)
 	require.NoError(t, err, "Failed to create test image file")
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			t.Logf("Failed to close file: %v", err)
+		}
+	}()
 
 	// Write minimal image content
 	_, err = file.WriteString("fake image content")
@@ -358,7 +362,11 @@ func createTestAudio(t *testing.T, dir, filename string) string {
 	// Create a dummy file for testing
 	file, err := os.Create(audioPath)
 	require.NoError(t, err, "Failed to create test audio file")
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			t.Logf("Failed to close file: %v", err)
+		}
+	}()
 
 	// Write minimal audio content
 	_, err = file.WriteString("fake audio content")
@@ -375,7 +383,11 @@ func createTestVideo(t *testing.T, videoPath string) error {
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			t.Logf("Failed to close file: %v", err)
+		}
+	}()
 
 	// Write minimal video content
 	_, err = file.WriteString("fake video content")

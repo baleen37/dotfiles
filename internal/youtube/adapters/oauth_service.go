@@ -146,7 +146,9 @@ func (s *OAuthService) ValidateToken(ctx context.Context, accessToken string) er
 			},
 		)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close() // Ignore close error
+	}()
 
 	if resp.StatusCode != 200 {
 		return errors.NewExternalError(
@@ -180,7 +182,9 @@ func (s *OAuthService) RevokeToken(ctx context.Context, token string) error {
 			},
 		)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close() // Ignore close error
+	}()
 
 	if resp.StatusCode != 200 {
 		return errors.NewExternalError(
@@ -214,7 +218,9 @@ func (s *OAuthService) GetTokenInfo(ctx context.Context, accessToken string) (ma
 			},
 		)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close() // Ignore close error
+	}()
 
 	if resp.StatusCode != 200 {
 		return nil, errors.NewExternalError(

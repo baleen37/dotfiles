@@ -10,17 +10,24 @@ YouTube Shorts 자동 생성 시스템을 완성하기 위한 단계별 구현 �
 - ✅ **Phase 0-2**: Hexagonal Architecture 기반 구조, Story/Channel 도메인
 - ✅ **Phase 3**: Image 생성 시스템 (Stable Diffusion)
 - ✅ **Phase 4**: TTS 나레이션 생성 시스템 (Google Cloud TTS)
-- ✅ **Phase 5**: Video 도메인 완성 (동영상 합성) - **2024년 6월 완료**
-- ✅ **Phase 6.1-6.3**: YouTube 도메인 부분 완성 (OAuth2, Core Service, API Adapter) - **2024년 6월 완료**
+- 🔄 **Phase 5**: Video 도메인 구조 완성, FFmpeg 통합 진행 중 - **2025년 6월 현재**
+- 🔄 **Phase 6.1-6.3**: YouTube 도메인 구조 완성, API 통합 검증 필요 - **2025년 6월 현재**
 
 ## 남은 구현 과제
 
-### 🔄 Phase 6: YouTube 도메인 완성 (업로드 자동화) - **진행 중**
+### 🔄 Phase 5: Video 도메인 기본 구현 완료 - **고급 기능 개선 필요**
+- ✅ Phase 5.1: 의존성 추가
+- ✅ Phase 5.2: Video Core Service 구조 구현
+- ✅ Phase 5.3: FFmpeg Adapter 기본 통합 구현 (2025년 6월 28일 완료)
+- 🔄 Phase 5.4: 실제 미디어 파일로 통합 테스트 **← 현재 위치**
+- ⏳ Phase 5.5: Ken Burns 및 전환 효과 고급 구현
+
+### 🔄 Phase 6: YouTube 도메인 완성 (업로드 자동화) - **구조 완성, 통합 필요**
 - ✅ Phase 6.1: OAuth2 의존성 설정
-- ✅ Phase 6.2: YouTube Core Service TDD 구현  
-- ✅ Phase 6.3: YouTube API Adapter TDD 구현
-- 🔄 Phase 6.4: 메타데이터 생성기 TDD 구현 **← 현재 위치**
-- ⏳ Phase 6.5: YouTube 도메인 통합 테스트
+- ✅ Phase 6.2: YouTube Core Service 구조 구현  
+- ✅ Phase 6.3: YouTube API Adapter 구조 구현
+- ✅ Phase 6.4: 메타데이터 생성기 구현 완료
+- 🔄 Phase 6.5: YouTube API 실제 통합 및 테스트
 
 ### Phase 7: CLI 명령어 구현
 ### Phase 8: 스케줄러 시스템
@@ -29,7 +36,7 @@ YouTube Shorts 자동 생성 시스템을 완성하기 위한 단계별 구현 �
 
 ---
 
-## ✅ Phase 5: Video 도메인 완성 (동영상 합성) - **완료**
+## 🔄 Phase 5: Video 도메인 구현 (동영상 합성) - **진행 중**
 
 ### 목표
 ffmpeg를 활용하여 이미지, TTS 음성, 배경음악을 결합한 YouTube Shorts 동영상을 생성
@@ -43,45 +50,37 @@ ffmpeg를 활용하여 이미지, TTS 음성, 배경음악을 결합한 YouTube 
 - ✅ ffmpeg 바이너리 설치 확인 (로컬/Docker)
 - ✅ 테스트용 배경음악 파일 준비 (`assets/audio/background/`)
 
-### 5.2 Video Core 서비스 구현 ✅
-- ✅ `internal/video/core/service.go` 완성
-  - ✅ `ComposeVideo()` 메서드 구현
-  - ✅ 동영상 길이 계산 (TTS 길이 기반)
+### 5.2 Video Core 서비스 구현 ✅ 
+- ✅ `internal/video/core/service.go` 구조 구현
+  - ✅ `ComposeVideo()` 메서드 인터페이스
+  - ✅ 동영상 길이 계산 로직
   - ✅ 장면별 이미지 표시 시간 계산
   - ✅ Ken Burns 효과 설정 정의
 
-### 5.3 FFmpeg Adapter 구현 ✅
-- ✅ `internal/video/adapters/ffmpeg_adapter.go` 생성
-  - ✅ 이미지 시퀀스를 동영상으로 변환
-  - ✅ Ken Burns 효과 적용 (zoom/pan)
-  - ✅ TTS 오디오 오버레이
-  - ✅ 배경음악 믹싱 (볼륨 조절)
-  - ✅ 1080x1920 세로 포맷 출력
-  - ✅ 장면 간 크로스페이드 전환
+### 5.3 FFmpeg Adapter 구현 ✅ **← 2025년 6월 28일 완료**
+- ✅ `internal/video/adapters/ffmpeg_adapter.go` 구조 생성
+- ✅ 기본 ffmpeg 명령어 실행 및 동영상 생성
+- ✅ 테스트 환경에서 Mock 모드 지원
+- ✅ 모든 테스트 통과
+- ⏳ Ken Burns 효과 고급 구현 (향후 개선)
+- ⏳ 크로스페이드 전환 효과 (향후 개선)
 
-### 5.4 Video Validator 구현 ✅
-- ✅ `internal/video/adapters/validator.go` 생성
-  - ✅ 출력 파일 형식 검증 (MP4)
-  - ✅ 해상도 검증 (1080x1920)
-  - ✅ 길이 검증 (30-60초)
-  - ✅ 오디오 품질 검증
+### 5.4 Video Validator 구현 ⏳
+- ✅ `internal/video/adapters/validator.go` 구조 생성
+- ⏳ 실제 동영상 파일 검증 동작 확인
 
-### 5.5 테스트 구현 ✅
-- ✅ `internal/video/core/service_test.go`
-  - ✅ 동영상 합성 단위 테스트
-  - ✅ 에러 처리 테스트
-- ✅ `internal/video/adapters/ffmpeg_adapter_test.go`
-  - ✅ ffmpeg 명령어 생성 테스트
-  - ✅ 실제 파일 합성 통합 테스트
+### 5.5 테스트 구현 🔄
+- ✅ 단위 테스트 구조 구현
+- ❌ 실제 동영상 생성 통합 테스트 실패
+- ❌ FFmpeg 통합 테스트 통과 필요
 
-### 5.6 통합 테스트 구현 ✅
-- ✅ `internal/video/integration_test.go`
-  - ✅ 전체 비디오 파이프라인 통합 테스트
-  - ✅ 실제 서비스와 동일한 인터페이스 구현
+### 5.6 통합 테스트 구현 ⏳
+- ⏳ 전체 비디오 파이프라인 실제 동작 검증
+- ⏳ 실제 동영상 파일 생성 확인
 
 ---
 
-## 🔄 Phase 6: YouTube 도메인 완성 (업로드 자동화) - **진행 중**
+## 🔄 Phase 6: YouTube 도메인 구현 (업로드 자동화) - **구조 완성, 통합 필요**
 
 ### 목표
 OAuth2 인증을 통해 생성된 동영상을 YouTube에 자동 업로드
@@ -97,48 +96,39 @@ OAuth2 인증을 통해 생성된 동영상을 YouTube에 자동 업로드
 - ✅ OAuth2 클라이언트 자격증명 설정 구조 생성
 
 ### 6.2 YouTube Core 서비스 구현 ✅
-- ✅ `internal/youtube/core/service.go` 완성
-  - ✅ `UploadStory()` 메서드 구현
+- ✅ `internal/youtube/core/service.go` 구조 구현
+  - ✅ `UploadStory()` 메서드 인터페이스
   - ✅ 메타데이터 생성 로직 통합
-  - ✅ 업로드 진행률 추적
-  - ✅ 업로드 후 비디오 ID 반환
-  - ✅ 채널 정보 조회, 비디오 업데이트/삭제 기능
+  - ✅ 업로드 진행률 추적 구조
+  - ✅ 채널 정보 조회, 비디오 업데이트/삭제 인터페이스
 
-### 6.3 YouTube API Adapter 구현 ✅
-- ✅ `internal/youtube/adapters/youtube_adapter.go` 생성
-  - ✅ OAuth2 인증 플로우 구현
-  - ✅ 토큰 저장/갱신 관리
-  - ✅ 동영상 업로드 API 호출 (청크 기반)
-  - ✅ 썸네일 업로드 구현
-  - ✅ API 할당량 관리 고려
-  - ✅ 진행률 콜백 및 ETA 계산
+### 6.3 YouTube API Adapter 구현 ✅ 
+- ✅ `internal/youtube/adapters/youtube_adapter.go` 구조 생성
+  - ✅ OAuth2 인증 플로우 구조
+  - ✅ 토큰 저장/갱신 인터페이스
+  - ❌ 실제 YouTube API 통합 테스트
+  - ❌ 동영상 업로드 실제 동작 검증
 
-### 6.4 메타데이터 생성기 구현 🔄 **← 현재 위치**
-- 🔄 `internal/youtube/adapters/metadata_generator.go` 생성 예정
-  - [ ] 채널별 제목 템플릿
-  - [ ] 설명 자동 생성 (스토리 요약)
-  - [ ] 태그 생성 (#Shorts, 채널별 태그)
-  - [ ] 카테고리 설정
+### 6.4 메타데이터 생성기 구현 ✅
+- ✅ `internal/youtube/adapters/metadata_generator.go` 구현 완료
+  - ✅ 채널별 제목 템플릿
+  - ✅ 설명 자동 생성 (스토리 요약)
+  - ✅ 태그 생성 (#Shorts, 채널별 태그)
+  - ✅ 카테고리 설정
 
 ### 6.5 OAuth2 설정 및 인증 ✅
-- ✅ `configs/oauth.yaml` 생성
-  - ✅ 클라이언트 ID/Secret 환경변수 설정
-  - ✅ Redirect URL 설정
-  - ✅ 스코프 정의 (youtube.upload)
-- ✅ OAuth 서비스 구현 (`internal/youtube/adapters/oauth_service.go`)
+- ✅ OAuth 서비스 구조 구현 (`internal/youtube/adapters/oauth_service.go`)
+- ❌ 실제 OAuth2 플로우 동작 검증
+- ❌ Google Cloud Console 설정 가이드
 
-### 6.6 테스트 구현 ✅
-- ✅ `internal/youtube/core/service_test.go`
-  - ✅ 메타데이터 생성 테스트
-  - ✅ 에러 처리 테스트
-- ✅ `internal/youtube/adapters/youtube_adapter_test.go`
-  - ✅ OAuth2 플로우 테스트 (Mock)
-  - ✅ API 호출 테스트
+### 6.6 테스트 구현 🔄
+- ✅ 단위 테스트 구조 구현
+- ❌ 통합 테스트 실패 (실제 API 연동 필요)
 
-### 6.7 통합 테스트 ⏳
-- ⏳ YouTube 도메인 통합 테스트 예정
-  - ⏳ 전체 업로드 플로우 테스트
-  - ⏳ 에러 복구 시나리오 테스트
+### 6.7 YouTube API 실제 통합 ⏳ **← 다음 작업**
+- ⏳ 실제 YouTube API 연동 테스트
+- ⏳ OAuth2 플로우 실제 동작 확인
+- ⏳ 동영상 업로드 검증
 
 ---
 
@@ -357,21 +347,26 @@ OAuth2 인증을 통해 생성된 동영상을 YouTube에 자동 업로드
 
 ---
 
-## 우선순위 및 일정
+## 우선순위 및 일정 (2025년 6월 기준)
 
-### 높은 우선순위 (핵심 기능)
-1. **Phase 5**: Video 도메인 (동영상 합성) - 2주
-2. **Phase 6**: YouTube 도메인 (업로드) - 2주
-3. **Phase 7**: CLI 명령어 - 1주
+### 현재 진행 중
+1. **Phase 5.4**: 실제 미디어 파일로 통합 테스트 - 3일
+   - 실제 이미지, 오디오 파일로 동영상 생성 검증
+   - Validator 실제 동작 확인
+
+### 높은 우선순위 (핵심 기능 완성)
+2. **Phase 5.4-5.6**: Video 도메인 완성 - 1주
+3. **Phase 6.7**: YouTube API 실제 통합 - 1주
+4. **Phase 7**: CLI 명령어 구현 - 2주
 
 ### 중간 우선순위 (자동화)
-4. **Phase 8**: 스케줄러 시스템 - 1주
-5. **Phase 9**: 작업 큐 시스템 - 1주
+5. **Phase 8**: 스케줄러 시스템 - 2주
+6. **Phase 9**: 작업 큐 시스템 - 2주
 
 ### 낮은 우선순위 (최적화)
-6. **Phase 10**: 통합 테스트 및 최적화 - 1주
+7. **Phase 10**: 통합 테스트 및 최적화 - 1주
 
-**총 예상 기간**: 8주
+**총 예상 기간**: 9주 (현실적 추정)
 
 ---
 

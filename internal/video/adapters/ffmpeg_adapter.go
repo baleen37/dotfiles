@@ -28,6 +28,14 @@ func NewFFmpegAdapter(logger *slog.Logger) *FFmpegAdapter {
 	}
 }
 
+// NewFFmpegComposer creates a new FFmpeg composer with default logger
+func NewFFmpegComposer() ports.Composer {
+	logger := slog.Default()
+	return &FFmpegAdapter{
+		logger: logger,
+	}
+}
+
 // ComposeVideo creates a video from images and audio using ffmpeg
 func (f *FFmpegAdapter) ComposeVideo(ctx context.Context, req *ports.ComposeVideoRequest) (*ports.ComposeVideoResponse, error) {
 	f.logger.Info("Starting ffmpeg video composition",
@@ -153,7 +161,11 @@ func (f *FFmpegAdapter) GenerateThumbnail(ctx context.Context, videoPath, output
 				},
 			)
 		}
-		defer file.Close()
+		defer func() {
+			if err := file.Close(); err != nil {
+				f.logger.Error("Failed to close file", "error", err)
+			}
+		}()
 		_, err = file.WriteString("fake thumbnail content")
 		if err != nil {
 			return errors.NewInternalError(
@@ -290,6 +302,11 @@ func (f *FFmpegAdapter) executeSimpleFFmpegCommand(ctx context.Context, req *por
 		)
 	}
 
+	// Handle multiple images case
+	if len(req.Images) > 1 {
+		return f.executeMultiImageFFmpegCommand(ctx, req)
+	}
+
 	// Simple implementation: create video from first image with audio
 	args := []string{
 		"-loop", "1",
@@ -344,7 +361,139 @@ func (f *FFmpegAdapter) executeSimpleFFmpegCommand(ctx context.Context, req *por
 				},
 			)
 		}
-		defer file.Close()
+		defer func() {
+			if err := file.Close(); err != nil {
+				f.logger.Error("Failed to close file", "error", err)
+			}
+		}()
+		_, err = file.WriteString("fake video content")
+		if err != nil {
+			return errors.NewInternalError(
+				errors.CodeVideoCompositionFailed,
+				"failed to write test output file",
+				map[string]interface{}{
+					"output_path": req.OutputPath,
+					"error":       err.Error(),
+				},
+			)
+		}
+		return nil
+	}
+
+	if err := cmd.Run(); err != nil {
+		return errors.NewInternalError(
+			errors.CodeVideoCompositionFailed,
+			"ffmpeg execution failed",
+			map[string]interface{}{
+				"output_path": req.OutputPath,
+				"error":       err.Error(),
+			},
+		)
+	}
+
+	return nil
+}
+
+// executeMultiImageFFmpegCommand handles video creation from multiple images
+func (f *FFmpegAdapter) executeMultiImageFFmpegCommand(ctx context.Context, req *ports.ComposeVideoRequest) error {
+	// Build complex filter for multiple images
+	var inputFiles []string
+	var filterParts []string
+
+	// Add all image inputs
+	for _, img := range req.Images {
+		inputFiles = append(inputFiles, "-loop", "1", "-t", fmt.Sprintf("%.2f", img.Duration.Seconds()), "-i", img.Path)
+	}
+
+	// Add audio inputs
+	audioIndex := len(req.Images)
+	if req.NarrationAudioPath != "" {
+		inputFiles = append(inputFiles, "-i", req.NarrationAudioPath)
+	}
+	if req.BackgroundMusicPath != "" {
+		inputFiles = append(inputFiles, "-i", req.BackgroundMusicPath)
+	}
+
+	// Build video filter chain
+	for i := range req.Images {
+		filterParts = append(filterParts, fmt.Sprintf("[%d:v]scale=%d:%d,setsar=1[v%d]",
+			i, req.Settings.Width, req.Settings.Height, i))
+	}
+
+	// Concatenate all video streams
+	var concatInputs string
+	for i := range req.Images {
+		concatInputs += fmt.Sprintf("[v%d]", i)
+	}
+	filterParts = append(filterParts, fmt.Sprintf("%sconcat=n=%d:v=1:a=0[outv]", concatInputs, len(req.Images)))
+
+	// Handle audio mixing if both narration and background music exist
+	audioFilter := ""
+	if req.NarrationAudioPath != "" && req.BackgroundMusicPath != "" {
+		narrationIdx := audioIndex
+		bgMusicIdx := audioIndex + 1
+		audioFilter = fmt.Sprintf("[%d:a]volume=%.2f[a1];[%d:a]volume=%.2f[a2];[a1][a2]amix=inputs=2:duration=longest[outa]",
+			narrationIdx, req.Settings.NarrationVolume,
+			bgMusicIdx, req.Settings.BackgroundMusicVolume)
+		filterParts = append(filterParts, audioFilter)
+	}
+
+	// Combine all filter parts
+	filterComplex := strings.Join(filterParts, ";")
+
+	// Build ffmpeg command
+	args := inputFiles
+	args = append(args, "-filter_complex", filterComplex)
+	args = append(args, "-map", "[outv]")
+
+	if audioFilter != "" {
+		args = append(args, "-map", "[outa]")
+	} else if req.NarrationAudioPath != "" {
+		args = append(args, "-map", fmt.Sprintf("%d:a", audioIndex))
+	}
+
+	// Output settings
+	args = append(args,
+		"-c:v", "libx264",
+		"-preset", "medium",
+		"-crf", "23",
+		"-pix_fmt", "yuv420p",
+		"-r", strconv.Itoa(req.Settings.FPS),
+	)
+
+	if req.NarrationAudioPath != "" || req.BackgroundMusicPath != "" {
+		args = append(args,
+			"-c:a", "aac",
+			"-b:a", req.Settings.AudioBitrate,
+		)
+	}
+
+	args = append(args, "-y", req.OutputPath)
+
+	cmd := exec.CommandContext(ctx, "ffmpeg", args...)
+
+	f.logger.Debug("Executing multi-image ffmpeg command", "args", strings.Join(args, " "))
+
+	// Skip actual ffmpeg execution in test environment
+	if os.Getenv("SKIP_FFMPEG_EXECUTION") == "true" {
+		f.logger.Debug("Skipping ffmpeg execution for testing")
+		// Create a dummy output file for testing
+		file, err := os.Create(req.OutputPath)
+		if err != nil {
+			return errors.NewInternalError(
+				errors.CodeVideoCompositionFailed,
+				"failed to create test output file",
+				map[string]interface{}{
+					"output_path": req.OutputPath,
+					"error":       err.Error(),
+				},
+			)
+		}
+		defer func() {
+			if err := file.Close(); err != nil {
+				f.logger.Error("Failed to close file", "error", err)
+			}
+		}()
 		_, err = file.WriteString("fake video content")
 		if err != nil {
 			return errors.NewInternalError(

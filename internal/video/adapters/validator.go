@@ -28,6 +28,14 @@ func NewVideoValidator(logger *slog.Logger) *VideoValidator {
 	}
 }
 
+// NewValidator creates a new video validator with default logger
+func NewValidator() ports.Validator {
+	logger := slog.Default()
+	return &VideoValidator{
+		logger: logger,
+	}
+}
+
 // ValidateVideo checks if a video file meets the required specifications
 func (v *VideoValidator) ValidateVideo(ctx context.Context, videoPath string, expectedSettings ports.VideoSettings) (*ports.ValidationResult, error) {
 	v.logger.Info("Starting video validation",
@@ -371,7 +379,9 @@ func (v *VideoValidator) validateImageContent(imagePath string) error {
 			},
 		)
 	}
-	defer file.Close()
+	defer func() {
+		_ = file.Close() // Ignore close error
+	}()
 
 	// Read first few bytes to check for basic image signatures
 	buffer := make([]byte, 32)

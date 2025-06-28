@@ -200,7 +200,9 @@ func TestVideoValidator_ValidateAudioFile(t *testing.T) {
 				// Create a file with wrong extension
 				file, err := os.Create(audioPath)
 				require.NoError(t, err)
-				defer file.Close()
+				defer func() {
+					_ = file.Close() // Ignore close error in test
+				}()
 
 				_, err = file.WriteString("not audio content")
 				require.NoError(t, err)
@@ -270,7 +272,9 @@ func TestVideoValidator_ValidateImageFile(t *testing.T) {
 				// Create a file with wrong extension
 				file, err := os.Create(imagePath)
 				require.NoError(t, err)
-				defer file.Close()
+				defer func() {
+					_ = file.Close() // Ignore close error in test
+				}()
 
 				_, err = file.WriteString("not image content")
 				require.NoError(t, err)
@@ -294,7 +298,9 @@ func TestVideoValidator_ValidateImageFile(t *testing.T) {
 				// Create a file with jpg extension but invalid content
 				file, err := os.Create(imagePath)
 				require.NoError(t, err)
-				defer file.Close()
+				defer func() {
+					_ = file.Close() // Ignore close error in test
+				}()
 
 				_, err = file.WriteString("corrupted image data")
 				require.NoError(t, err)
@@ -334,7 +340,9 @@ func createValidTestVideo(t *testing.T, videoPath string) error {
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func() {
+		_ = file.Close() // Ignore close error in test
+	}()
 
 	// Write some fake video content
 	_, err = file.WriteString("fake valid video content with proper metadata")
@@ -349,7 +357,9 @@ func createTestVideoWithDimensions(t *testing.T, videoPath string, width, height
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func() {
+		_ = file.Close() // Ignore close error in test
+	}()
 
 	// Write fake video content that will be interpreted as having specific dimensions
 	_, err = file.WriteString("fake video content with wrong dimensions")
@@ -364,7 +374,9 @@ func createTestVideoWithFormat(t *testing.T, videoPath, format string) error {
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func() {
+		_ = file.Close() // Ignore close error in test
+	}()
 
 	// Write fake video content for specific format
 	_, err = file.WriteString("fake video content with format: " + format)
@@ -379,7 +391,9 @@ func createValidTestAudio(t *testing.T, audioPath string) error {
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func() {
+		_ = file.Close() // Ignore close error in test
+	}()
 
 	// Write some fake audio content
 	_, err = file.WriteString("fake valid audio content")
@@ -394,9 +408,20 @@ func createValidTestImage(t *testing.T, imagePath string) error {
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func() {
+		_ = file.Close() // Ignore close error in test
+	}()
 
-	// Write some fake image content
-	_, err = file.WriteString("fake valid image content")
+	// Write minimal valid JPEG header
+	// JPEG files start with FF D8 FF
+	jpegHeader := []byte{0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46}
+	_, err = file.Write(jpegHeader)
+	if err != nil {
+		return err
+	}
+
+	// Add some dummy content to make it look more like a real file
+	dummyContent := make([]byte, 100)
+	_, err = file.Write(dummyContent)
 	return err
 }

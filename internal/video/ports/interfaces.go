@@ -220,14 +220,14 @@ type FFmpegChecker interface {
 	// IsFFmpegAvailable checks if ffmpeg binary is available in the system
 	IsFFmpegAvailable(ctx context.Context) error
 
+	// IsAvailable is a convenience method that checks ffmpeg availability
+	IsAvailable() bool
+
 	// GetFFmpegVersion returns the version of ffmpeg
 	GetFFmpegVersion(ctx context.Context) (string, error)
 
 	// GetFFmpegPath returns the path to ffmpeg binary
 	GetFFmpegPath() string
-
-	// IsAvailable checks if ffmpeg is available (for compatibility)
-	IsAvailable() bool
 }
 
 // EffectProcessor defines interface for video effect processing

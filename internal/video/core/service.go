@@ -146,11 +146,17 @@ func (s *Service) validateVideoSettings(settings *ports.VideoSettings) error {
 		)
 	}
 
-	if settings.FrameRate <= 0 {
+	fps := settings.FPS
+	if fps <= 0 {
+		// Fallback to deprecated FrameRate field
+		fps = settings.FrameRate
+	}
+	if fps <= 0 {
 		return errors.NewValidationError(
 			errors.CodeInvalidInput,
 			"frame rate must be greater than 0",
 			map[string]interface{}{
+				"fps":        settings.FPS,
 				"frame_rate": settings.FrameRate,
 			},
 		)
