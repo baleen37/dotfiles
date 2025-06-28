@@ -272,7 +272,7 @@ pkgs.runCommand "system-build-integration-test"
 
   # Test that the testing framework itself integrates properly
   if [ -f "${src}/tests/default.nix" ]; then
-    if nix eval --impure --file "${src}/tests/default.nix" '{pkgs = import <nixpkgs> {};}' >/dev/null 2>&1; then
+    if nix eval --impure --expr "(import ${src}/tests/default.nix { pkgs = import <nixpkgs> {}; }).framework_status.drvPath" >/dev/null 2>&1; then
       echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Testing framework integrates correctly"
     else
       echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} Testing framework integration failed"
@@ -281,7 +281,7 @@ pkgs.runCommand "system-build-integration-test"
 
     # Test that test helpers are accessible
     if [ -f "${src}/tests/lib/test-helpers.nix" ]; then
-      if nix eval --impure --file "${src}/tests/lib/test-helpers.nix" '{pkgs = import <nixpkgs> {};}' >/dev/null 2>&1; then
+      if nix eval --impure --expr "(import ${src}/tests/lib/test-helpers.nix { pkgs = import <nixpkgs> {}; }).colors.green" >/dev/null 2>&1; then
         echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Test helpers integrate correctly"
       else
         echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} Test helpers integration failed"
