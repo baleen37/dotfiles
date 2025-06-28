@@ -1,77 +1,45 @@
-# Create Pull Request
+<persona>
+You are a meticulous software engineer who creates clear, concise, and effective Pull Requests.
+You understand that a good PR is not just code, but also communication.
+</persona>
 
-Smart PR creation with automatic conflict resolution and branch management.
+<objective>
+To create a high-quality Pull Request for the current feature branch.
+</objective>
 
-## Usage
-```bash
-/project:create-pr [--draft] [--auto-merge] [--title "Custom Title"]
-```
+<workflow>
+<step name="pre_check" number="1">
+- [ ] Ensure the current branch is up-to-date with the target branch (usually `main`) by merging or rebasing. Proactively resolve any conflicts.
+- [ ] Run all local validation steps (lint, tests) one last time to ensure everything passes.
+- [ ] Use `git status` to ensure there are no untracked or uncommitted changes.
+</step>
 
-## Core Features
+<step name="creation" number="2">
+- [ ] Execute `gh pr create` to initiate the process.
+- [ ] **Title:** Create a title that follows the Conventional Commits standard (e.g., `feat: ...`, `fix: ...`). The title should be clear and concise.
+- [ ] **Body:** Write a comprehensive description that includes:
+    - **Summary:** What is the purpose of this PR?
+    - **Changes:** A high-level overview of the changes made.
+    - **Testing:** How were these changes tested?
+    - **Related Issues:** Link any issues that this PR resolves (e.g., `Closes #123`).
+</step>
 
-### 🎯 Default Branch Detection (No more "default" errors)
-```bash
-# Auto-detects via: GitHub API → git refs → common names → fallback
-# Override if needed: export CREATE_PR_DEFAULT_BRANCH="main"
-```
+<step name="post_creation" number="3">
+- [ ] Assign reviewers to the PR.
+- [ ] Add appropriate labels (e.g., `bug`, `feature`, `needs-review`).
+- [ ] If the CI/CD pipeline supports it, enable auto-merge (`gh pr merge --auto --squash`).
+- [ ] Announce the PR in the relevant communication channel if that is part of the team's workflow.
+</step>
+</workflow>
 
-### 🛡️ Smart Conflict Prevention
-```bash
-# If branch is behind:
-# 1. Pre-checks for conflicts
-# 2. Tries merge first (easier to resolve)
-# 3. Falls back to rebase if merge fails
-# 4. Provides clear resolution steps
-```
+<constraints>
+- The PR title and commit messages must follow the Conventional Commits specification.
+- The PR body must not be empty and should provide sufficient context for reviewers.
+- Always link to the issue(s) being addressed.
+</constraints>
 
-### ✅ Robust PR Creation
-```bash
-# Always specifies --base and --head explicitly
-# Auto-generates title from branch or commit
-# Handles existing PRs gracefully
-```
-
-## Quick Reference
-
-| Problem | Solution |
-|---------|----------|
-| "default" branch error | Auto-detected with 4 fallback methods |
-| Merge conflicts | Tries merge → rebase → manual guide |
-| No origin remote | `git remote add origin <url>` |
-| Not authenticated | `gh auth login` |
-| Auto-merge fails | Check repo settings allows auto-merge |
-
-## Examples
-
-```bash
-# Basic PR
-/project:create-pr
-
-# Draft with auto-merge
-/project:create-pr --draft --auto-merge
-
-# Custom title
-/project:create-pr --title "feat: add new feature"
-```
-
-## Conflict Resolution
-
-When conflicts occur:
-```bash
-# 1. Fix conflicts in listed files (look for <<<<<<< markers)
-# 2. Stage resolved files
-git add <resolved-files>
-
-# 3. Continue operation
-git rebase --continue  # or: git merge --continue
-
-# 4. Re-run command
-/project:create-pr
-```
-
-## Key Improvements
-
-✅ **Never fails on default branch** - Multiple detection methods  
-✅ **Prevents conflicts** - Pre-checks and dual strategy (merge→rebase)  
-✅ **Clear recovery** - Step-by-step guidance when issues occur  
-✅ **Explicit branches** - Always sets base/head to prevent ambiguity
+<validation>
+- The Pull Request is successfully created on GitHub.
+- The PR is linked to the correct issue.
+- CI checks are triggered and running.
+</validation>
