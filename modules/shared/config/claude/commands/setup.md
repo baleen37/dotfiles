@@ -11,11 +11,11 @@
   <phase name="environment_analysis" number="1">
     <description>First, you must understand the project's technical foundation.</description>
     <steps>
-      - [ ] Scan the root directory for common project configuration files (e.g., `Makefile`, `package.json`, `pom.xml`, `Cargo.toml`, `requirements.txt`, `build.gradle`, `shell.nix`, `flake.nix`, etc.).
+      - [ ] Scan the root directory for common project configuration files (e.g., `Makefile`, `package.json`, `pom.xml`, `Cargo.toml`, `requirements.txt`, `build.gradle`, `shell.nix`, `flake.nix`, `.envrc`, etc.).
         - **IF NO CONFIG FILES FOUND**: Report "No primary configuration files found. Unable to determine project type." and **STOP**.
       - [ ] If a `Makefile` exists, recognize it as a primary source of high-level commands.
       - [ ] Based on the files found, determine the project's primary technologies and dependency management approach.
-      - [ ] Briefly state your findings, for example: "I have identified this project's type and its primary source for commands. (e.g., 'This is a Nix-based project using `shell.nix` for its development environment.')"
+      - [ ] Briefly state your findings, for example: "I have identified this project's type and its primary source for commands. (e.g., 'This is a Nix-based project using `shell.nix` for its development environment.' or 'This project uses `direnv` for environment management.')"
     </steps>
   </phase>
 
@@ -27,6 +27,7 @@
       - [ ] **Fallback to Config Files**: If no `Makefile` is present, parse the project's primary configuration files (e.g., `package.json`, `pyproject.toml`, etc.) to find script sections or equivalent command definitions.
         - **IF COMMAND DISCOVERY FAILS**: Report "Unable to discover essential commands (lint, test, build)." and **STOP**.
       - [ ] **Consider `nix develop`**: If `shell.nix` or `flake.nix` is present, recognize that `nix develop` can be used to enter a development environment where project-specific commands might be available.
+      - [ ] **Consider `direnv`**: If `.envrc` is present, recognize that `direnv` can be used to load project-specific environment variables and paths, which might include commands.
       - [ ] **Identify Quality Gates**: You must identify the specific commands for **linting** and **testing**. These are non-negotiable quality checks.
     </steps>
   </phase>
