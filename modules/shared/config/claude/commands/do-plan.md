@@ -34,6 +34,14 @@ When requirements or scope change:
 4. Keep the plan current and realistic
 </plan_update_protocol>
 
+<progress_tracking>
+When tasks within the plan are completed:
+1. Locate the completed task in `plan.md`.
+2. Mark the task as complete (e.g., change `[ ]` to `[x]`).
+3. Add a brief note or date of completion if relevant.
+4. Periodically review `plan.md` to ensure it accurately reflects current progress.
+</progress_tracking>
+
 <constraints>
 - ALWAYS store the final plan in `plan.md`.
 - NEVER implement anything without explicit user approval.

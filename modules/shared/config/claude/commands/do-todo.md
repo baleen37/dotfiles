@@ -172,6 +172,14 @@ Before marking todo items complete:
 ✓ Todo.md updated with completion status
 </validation_checklist>
 
+<progress_tracking>
+When tasks within `todo.md` are completed or their status changes:
+1. Locate the relevant todo item in `todo.md`.
+2. Mark the item as complete (e.g., change `[ ]` to `[x]`) or update its status.
+3. Add a brief note or date of completion/status change if relevant.
+4. Periodically review `todo.md` to ensure it accurately reflects current progress and priorities.
+</progress_tracking>
+
 <error_handling>
 <implementation_blockers>
 If blocked during implementation:
