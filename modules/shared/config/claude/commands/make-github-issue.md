@@ -28,6 +28,7 @@ Review code systematically for:
 **Title**: [Clear, specific description]
 
 **Severity**: Critical/High/Medium/Low
+**Labels**: [Check repository's existing labels and select relevant ones, e.g., bug, enhancement, refactor, documentation, performance, security]
 
 **Description**:
 - What is the problem?
@@ -46,6 +47,15 @@ Review code systematically for:
 
 **Additional Context**:
 [Any relevant background or considerations]
+
+**Related Issues/PRs**:
+- [Link to #ISSUE_NUMBER or PR_NUMBER]
+
+**Component/Module Affected**: [e.g., Frontend UI, Backend API, Database, Authentication, Specific Service Name]
+
+**Acceptance Criteria**:
+- [Criterion 1: What defines a successful resolution?]
+- [Criterion 2: How can the fix/feature be verified?]
 </issue_template>
 
 <constraints>
