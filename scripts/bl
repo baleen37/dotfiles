@@ -90,16 +90,29 @@ install_bl() {
 
     # Copy setup-dev if it exists
     local dotfiles_setup_dev=""
-    if [[ -f "$HOME/dotfiles/scripts/setup-dev" ]]; then
-        dotfiles_setup_dev="$HOME/dotfiles/scripts/setup-dev"
-    elif [[ -f "$(dirname "${BASH_SOURCE[0]}")/setup-dev" ]]; then
-        dotfiles_setup_dev="$(dirname "${BASH_SOURCE[0]}")/setup-dev"
-    fi
+    local script_dir="$(dirname "${BASH_SOURCE[0]}")"
+
+    # Try multiple locations for setup-dev
+    local possible_paths=(
+        "$HOME/dotfiles/scripts/setup-dev"
+        "$script_dir/setup-dev"
+        "./scripts/setup-dev"
+        "../scripts/setup-dev"
+    )
+
+    for path in "${possible_paths[@]}"; do
+        if [[ -f "$path" && -x "$path" ]]; then
+            dotfiles_setup_dev="$path"
+            break
+        fi
+    done
 
     if [[ -n "$dotfiles_setup_dev" ]]; then
         cp "$dotfiles_setup_dev" "$BL_DIR/setup-dev"
         chmod +x "$BL_DIR/setup-dev"
         print_status "Installed: bl setup-dev"
+    else
+        print_warning "setup-dev script not found - will need to be installed manually"
     fi
 
     # Copy auto-update commands if they exist
@@ -126,9 +139,16 @@ install_bl() {
     local local_bin="$HOME/.local/bin"
     mkdir -p "$local_bin"
 
-    # Copy this script to ~/.local/bin
-    cp "${BASH_SOURCE[0]}" "$local_bin/bl"
-    chmod +x "$local_bin/bl"
+    # Copy this script to ~/.local/bin (avoid copying same file)
+    local source_script="${BASH_SOURCE[0]}"
+    local target_script="$local_bin/bl"
+
+    if [[ "$source_script" != "$target_script" ]]; then
+        cp "$source_script" "$target_script"
+        chmod +x "$target_script"
+    else
+        print_status "bl already installed at: $target_script"
+    fi
 
     print_status "bl command system installed!"
 
