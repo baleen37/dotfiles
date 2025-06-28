@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -11,14 +12,15 @@ import (
 )
 
 // Migrate runs all pending migrations
-func Migrate() error {
-	db := GetDB()
-	if db == nil {
-		return fmt.Errorf("database not initialized")
+func (m *Manager) Migrate(ctx context.Context) error {
+	// Verify database is available
+	_, err := m.DB()
+	if err != nil {
+		return fmt.Errorf("database not available: %w", err)
 	}
 
 	// Create migrations table if not exists
-	if err := createMigrationsTable(); err != nil {
+	if err := m.createMigrationsTable(ctx); err != nil {
 		return fmt.Errorf("failed to create migrations table: %w", err)
 	}
 
@@ -30,7 +32,7 @@ func Migrate() error {
 
 	// Run each migration
 	for _, migration := range migrations {
-		if err := runMigration(migration); err != nil {
+		if err := m.runMigration(ctx, migration); err != nil {
 			return fmt.Errorf("failed to run migration %s: %w", migration, err)
 		}
 	}
@@ -39,14 +41,14 @@ func Migrate() error {
 	return nil
 }
 
-func createMigrationsTable() error {
+func (m *Manager) createMigrationsTable(ctx context.Context) error {
 	query := `
 	CREATE TABLE IF NOT EXISTS schema_migrations (
 		version VARCHAR(255) PRIMARY KEY,
 		applied_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 	)`
 
-	_, err := db.Exec(query)
+	_, err := m.ExecContext(ctx, query)
 	return err
 }
 
@@ -69,10 +71,10 @@ func getMigrationFiles() ([]string, error) {
 	return migrations, nil
 }
 
-func runMigration(filename string) error {
+func (m *Manager) runMigration(ctx context.Context, filename string) error {
 	// Check if migration already applied
 	var count int
-	err := db.QueryRow("SELECT COUNT(*) FROM schema_migrations WHERE version = $1", filename).Scan(&count)
+	err := m.QueryRowContext(ctx, "SELECT COUNT(*) FROM schema_migrations WHERE version = $1", filename).Scan(&count)
 	if err != nil {
 		return err
 	}
@@ -89,7 +91,7 @@ func runMigration(filename string) error {
 	}
 
 	// Execute migration
-	tx, err := db.Begin()
+	tx, err := m.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}

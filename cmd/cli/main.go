@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"ssulmeta-go/internal/config"
 	"ssulmeta-go/internal/db"
@@ -60,19 +62,27 @@ func main() {
 		"debug", cfg.App.Debug,
 	)
 
-	// Initialize database
-	if err := db.Init(&cfg.Database); err != nil {
-		logger.Error("failed to initialize database", "error", err)
+	// Initialize database manager
+	dbManager, err := db.NewManager(&cfg.Database)
+	if err != nil {
+		logger.Error("failed to initialize database manager", "error", err)
 		os.Exit(1)
 	}
 	defer func() {
-		if err := db.Close(); err != nil {
+		if err := dbManager.Close(); err != nil {
 			log.Printf("Failed to close database: %v", err)
 		}
 	}()
 
+	// Start database connection monitoring
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go dbManager.MonitorConnection(ctx, 30*time.Second)
+
 	// Run migrations
-	if err := db.Migrate(); err != nil {
+	migrateCtx, migrateCancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer migrateCancel()
+	if err := dbManager.Migrate(migrateCtx); err != nil {
 		logger.Error("failed to run migrations", "error", err)
 		os.Exit(1)
 	}
