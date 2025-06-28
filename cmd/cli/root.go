@@ -71,6 +71,7 @@ func init() {
 	// Add subcommands
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(configCmd)
+	rootCmd.AddCommand(generateCmd)
 }
 
 var (
