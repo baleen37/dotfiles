@@ -33,7 +33,7 @@ pkgs.runCommand "system-build-integration-test"
   case "$CURRENT_SYSTEM" in
     *-darwin)
       CONFIG_PATH="darwinConfigurations.\"$CURRENT_SYSTEM\""
-      if nix eval --impure '.#'$CONFIG_PATH'.system.build.toplevel.drvPath' >/dev/null 2>&1; then
+      if nix eval --impure '.#'$CONFIG_PATH'.config.system.build.toplevel.drvPath' >/dev/null 2>&1; then
         echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Darwin configuration builds successfully"
       else
         echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} Darwin configuration build failed"
@@ -52,7 +52,17 @@ pkgs.runCommand "system-build-integration-test"
   esac
 
   # Step 3: Test apps integration
-  for app in build switch rollback; do
+  # Test platform-specific apps
+  case "$CURRENT_SYSTEM" in
+    *-darwin)
+      APPS=("build" "apply" "rollback")
+      ;;
+    *-linux)
+      APPS=("build" "apply" "install")
+      ;;
+  esac
+
+  for app in "''${APPS[@]}"; do
     if nix eval --impure '.#apps.'$CURRENT_SYSTEM'.'$app'.program' >/dev/null 2>&1; then
       echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} App '$app' integrates correctly"
     else
@@ -71,7 +81,7 @@ pkgs.runCommand "system-build-integration-test"
     case "$platform" in
       *-darwin)
         CONFIG="darwinConfigurations.\"$platform\""
-        ATTR="system.build.toplevel.drvPath"
+        ATTR="config.system.build.toplevel.drvPath"
         ;;
       *-linux)
         CONFIG="nixosConfigurations.\"$platform\""
@@ -195,7 +205,15 @@ pkgs.runCommand "system-build-integration-test"
   # Test platform-specific scripts
   SCRIPT_DIR="${src}/apps/$CURRENT_SYSTEM"
   if [ -d "$SCRIPT_DIR" ]; then
-    EXPECTED_SCRIPTS=("build" "apply" "rollback")
+    # Platform-specific expected scripts
+    case "$CURRENT_SYSTEM" in
+      *-darwin)
+        EXPECTED_SCRIPTS=("build" "apply" "rollback")
+        ;;
+      *-linux)
+        EXPECTED_SCRIPTS=("build" "apply" "install")
+        ;;
+    esac
 
     for script in "''${EXPECTED_SCRIPTS[@]}"; do
       SCRIPT_PATH="$SCRIPT_DIR/$script"
