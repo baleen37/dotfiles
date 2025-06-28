@@ -14,11 +14,15 @@ pkgs.runCommand "user-resolution-unit-test" { } ''
   USER_RESULT=$(nix-instantiate --eval --expr "let getUser = import $SRC_PATH/lib/get-user.nix {}; in getUser" 2>/dev/null | tr -d '"' || echo "")
   ${testHelpers.assertTrue ''[ "$USER_RESULT" = "testuser" ]'' "User resolution works with USER environment variable"}
 
-  # Test 2: Fallback behavior when USER is empty
+  # Test 2: Error handling when USER is empty
   unset USER
   export USER=""
-  USER_RESULT=$(nix-instantiate --eval --expr "let getUser = import $SRC_PATH/lib/get-user.nix {}; in getUser" 2>/dev/null | tr -d '"' || echo "")
-  ${testHelpers.assertTrue ''[ -n "$USER_RESULT" ]'' "User resolution provides fallback when USER is empty"}
+  if nix-instantiate --eval --expr "let getUser = import $SRC_PATH/lib/get-user.nix {}; in getUser" 2>&1 | grep -q "Failed to detect valid user"; then
+    echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} User resolution correctly errors when USER is empty"
+  else
+    echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} User resolution should error when USER is empty"
+    exit 1
+  fi
 
   # Test 3: Function returns string type
   export USER=testuser

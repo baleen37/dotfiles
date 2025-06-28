@@ -34,11 +34,11 @@ pkgs.runCommand "input-validation-unit-test"
       echo "${testHelpers.colors.yellow}⚠${testHelpers.colors.reset} Testing with user: '$invalid_user' (may be allowed)"
     elif [ -z "$invalid_user" ]; then
       # Empty user should be rejected
-      if nix eval --impure --file ${src}/lib/get-user.nix 2>/dev/null | grep -q "''${invalid_user}"; then
+      if nix eval --impure --file ${src}/lib/get-user.nix 2>&1 | grep -q "error"; then
+        echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Empty user properly rejected"
+      else
         echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} Empty user incorrectly accepted"
         exit 1
-      else
-        echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Empty user properly rejected"
       fi
     else
       echo "${testHelpers.colors.yellow}⚠${testHelpers.colors.reset} Testing with user: '$invalid_user'"

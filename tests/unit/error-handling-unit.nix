@@ -38,26 +38,33 @@ pkgs.runCommand "error-handling-unit-test"
     # Test 2: Corrupted flake.lock handling
     ${testHelpers.testSubsection "Corrupted Flake Lock Handling"}
 
-    # Backup original flake.lock
-    if [ -f "flake.lock" ]; then
-      cp flake.lock flake.lock.backup
+    # Create a temporary directory for testing
+    TEST_DIR=$(mktemp -d)
+    cd $TEST_DIR
 
-      # Corrupt flake.lock
-      echo "invalid json content" > flake.lock
+    # Create a minimal flake
+    cat > flake.nix << 'EOF'
+{
+  description = "Test flake";
+  outputs = { self }: {};
+}
+EOF
 
-      # Test that system detects corruption
-      if nix flake check --impure --no-build 2>/dev/null >/dev/null; then
-        echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} System failed to detect corrupted flake.lock"
-        exit 1
-      else
-        echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} System properly detects corrupted flake.lock"
-      fi
+    # Create corrupted flake.lock
+    echo "invalid json content" > flake.lock
 
-      # Restore flake.lock
-      mv flake.lock.backup flake.lock
+    # Test that system detects corruption
+    if nix flake check --no-build 2>/dev/null >/dev/null; then
+      echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} System failed to detect corrupted flake.lock"
+      cd - > /dev/null
+      rm -rf $TEST_DIR
+      exit 1
     else
-      echo "${testHelpers.colors.yellow}⚠${testHelpers.colors.reset} No flake.lock found to test corruption handling"
+      echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} System properly detects corrupted flake.lock"
     fi
+
+    cd - > /dev/null
+    rm -rf $TEST_DIR
 
     # Test 3: Invalid module syntax handling
     ${testHelpers.testSubsection "Invalid Module Syntax Handling"}
