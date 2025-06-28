@@ -65,7 +65,7 @@ let
           preserved = actions.preserve;
           overwritten = actions.overwrite;
           ignored = actions.ignore;
-          backupCreated = finalPolicy.backup and actions.overwrite;
+          backupCreated = finalPolicy.backup && actions.overwrite;
           noticeCreated = actions.policy.createNotice;
         };
       };

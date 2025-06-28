@@ -10,6 +10,10 @@ Transform vague requirements into working software via analysis, planning, and i
 Ensure each phase builds confidence for the next phase.
 </objective>
 
+<context>
+This workflow is designed for comprehensive feature development, bug fixes, and refactoring tasks within a software engineering project. It assumes an iterative development process and emphasizes clear communication and approval at key stages.
+</context>
+
 <workflow>
 <phase name="explore" number="1">
 **Objective**: Deep analysis and context gathering
