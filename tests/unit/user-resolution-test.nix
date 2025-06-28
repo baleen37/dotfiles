@@ -22,6 +22,7 @@ in
 pkgs.runCommand "user-resolution-test"
 {
   buildInputs = with pkgs; [ bash ];
+  nativeBuildInputs = with pkgs; [ nix ];
 } ''
   echo "🧪 Comprehensive User Resolution Test Suite"
   echo "========================================="
@@ -33,7 +34,7 @@ pkgs.runCommand "user-resolution-test"
 
   # Test with USER set
   export USER="testuser"
-  result=$(nix eval --impure --expr '(import ${src}/lib/get-user.nix).currentUser' --raw)
+  result=$(nix eval --impure --expr '(import ${src}/lib/get-user.nix) {}' --raw)
   if [[ "$result" == "testuser" ]]; then
     echo "✅ USER environment variable resolved correctly"
   else
@@ -42,11 +43,11 @@ pkgs.runCommand "user-resolution-test"
 
   # Test without USER
   unset USER
-  result=$(nix eval --impure --expr '(import ${src}/lib/get-user.nix).currentUser' --raw 2>&1)
-  if [[ "$result" == *"jito"* ]] || [[ "$result" == *"baleen"* ]]; then
-    echo "✅ Fallback to default user works"
+  result=$(nix eval --impure --expr '(import ${src}/lib/get-user.nix) {}' --raw 2>&1 || echo "ERROR")
+  if [[ "$result" == *"Failed to detect valid user"* ]] || [[ "$result" == *"Environment variable USER must be set"* ]] || [[ "$result" == "ERROR" ]]; then
+    echo "✅ Correctly errors when USER is unset"
   else
-    echo "⚠️  Unexpected fallback behavior: $result"
+    echo "⚠️  Unexpected behavior when USER unset: $result"
   fi
 
   # Test 2: Return Type Validation
@@ -55,7 +56,7 @@ pkgs.runCommand "user-resolution-test"
   echo "--------------------------------"
 
   export USER="testuser"
-  type_result=$(nix eval --impure --expr 'builtins.typeOf (import ${src}/lib/get-user.nix).currentUser' --raw)
+  type_result=$(nix eval --impure --expr 'builtins.typeOf ((import ${src}/lib/get-user.nix) {})' --raw)
   if [[ "$type_result" == "string" ]]; then
     echo "✅ Returns string type as expected"
   else
@@ -72,11 +73,18 @@ pkgs.runCommand "user-resolution-test"
 
   for special_user in "''${special_users[@]}"; do
     export USER="$special_user"
-    result=$(nix eval --impure --expr '(import ${src}/lib/get-user.nix).currentUser' --raw 2>&1)
-    if [[ "$result" == "$special_user" ]]; then
+    result=$(nix eval --impure --expr '(import ${src}/lib/get-user.nix) {}' --raw 2>&1 || echo "VALIDATION_ERROR")
+    if [[ "$special_user" == "user.name" ]]; then
+      # Dots are not allowed in usernames
+      if [[ "$result" == *"invalid format"* ]] || [[ "$result" == "VALIDATION_ERROR" ]]; then
+        echo "✅ Invalid username 'user.name' correctly rejected"
+      else
+        echo "❌ Invalid username 'user.name' was incorrectly accepted"
+      fi
+    elif [[ "$result" == "$special_user" ]]; then
       echo "✅ Special character user '$special_user' handled correctly"
     else
-      echo "❌ Failed with user '$special_user'"
+      echo "❌ Failed with user '$special_user': $result"
     fi
   done
 
@@ -89,7 +97,7 @@ pkgs.runCommand "user-resolution-test"
     export USER="regularuser"
     export SUDO_USER="sudouser"
 
-    result=$(nix eval --impure --expr '(import ${src}/lib/enhanced-get-user.nix).currentUser' --raw 2>&1)
+    result=$(nix eval --impure --expr '(import ${src}/lib/enhanced-get-user.nix) {}' --raw 2>&1)
     if [[ "$result" == "regularuser" ]]; then
       echo "✅ USER takes priority over SUDO_USER"
     else
@@ -97,7 +105,7 @@ pkgs.runCommand "user-resolution-test"
     fi
 
     unset USER
-    result=$(nix eval --impure --expr '(import ${src}/lib/enhanced-get-user.nix).currentUser' --raw 2>&1)
+    result=$(nix eval --impure --expr '(import ${src}/lib/enhanced-get-user.nix) {}' --raw 2>&1)
     if [[ "$result" == "sudouser" ]]; then
       echo "✅ Falls back to SUDO_USER when USER unset"
     fi
@@ -154,7 +162,7 @@ pkgs.runCommand "user-resolution-test"
   echo "-------------------------------------"
 
   unset USER
-  error_output=$(nix eval --impure --expr '(import ${src}/lib/get-user.nix).currentUser' 2>&1 || true)
+  error_output=$(nix eval --impure --expr '(import ${src}/lib/get-user.nix) {}' 2>&1 || true)
 
   echo "✅ Helpful error guidance should include:"
   echo "  - Clear explanation of the issue"
@@ -167,11 +175,11 @@ pkgs.runCommand "user-resolution-test"
   echo "---------------------------------"
 
   export USER=""
-  result=$(nix eval --impure --expr '(import ${src}/lib/get-user.nix).currentUser' --raw 2>&1)
-  if [[ "$result" != "" ]]; then
-    echo "✅ Empty USER variable handled with fallback"
+  result=$(nix eval --impure --expr '(import ${src}/lib/get-user.nix) {}' --raw 2>&1 || echo "ERROR")
+  if [[ "$result" == *"Failed to detect valid user"* ]] || [[ "$result" == "ERROR" ]]; then
+    echo "✅ Empty USER variable correctly rejected"
   else
-    echo "❌ Empty USER not handled properly"
+    echo "❌ Empty USER not handled properly, got: $result"
   fi
 
   # Test 9: Integration with System
@@ -190,10 +198,13 @@ pkgs.runCommand "user-resolution-test"
   echo "📋 Test 10: Performance"
   echo "----------------------"
 
+  # Restore USER for performance test
+  export USER="testuser"
+  
   # Test that user resolution is cached/efficient
   start_time=$(date +%s%N)
   for i in {1..10}; do
-    nix eval --impure --expr '(import ${src}/lib/get-user.nix).currentUser' --raw &>/dev/null
+    nix eval --impure --expr '(import ${src}/lib/get-user.nix) {}' --raw &>/dev/null
   done
   end_time=$(date +%s%N)
 
