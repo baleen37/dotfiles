@@ -773,6 +773,105 @@ Step 4: Use `/document` to create docs
 4. **Efficiency Test**: Is it concise without losing effectiveness?
 5. **Robustness Test**: Does it handle unexpected scenarios gracefully?
 
+## Claude Commands Documentation Best Practices
+
+### Critical Principles for `claude/commands/*.md` Files
+
+When working with command documentation in `modules/shared/config/claude/commands/`, follow these essential principles:
+
+#### 🎯 Maximum Conciseness
+- **Target**: 50-100 lines maximum per command file
+- **Focus**: Essential information only - eliminate redundancy
+- **Structure**: Quick reference format over verbose explanations
+- **Examples**: Show 2-3 practical examples, not 10+ variations
+
+#### 🧠 Applied Prompt Engineering
+Every command file MUST incorporate these techniques:
+
+1. **Clear Persona Definition**
+   ```markdown
+   <persona>
+   You are a [specific expert] who [key traits].
+   </persona>
+   ```
+
+2. **Structured Constraints**
+   ```markdown
+   <constraints>
+   - NEVER [critical prohibition]
+   - ALWAYS [essential requirement]
+   - MUST [non-negotiable action]
+   </constraints>
+   ```
+
+3. **Validation Checkpoints**
+   ```markdown
+   <validation>
+   Before completing, verify:
+   ✓ [Essential check 1]
+   ✓ [Essential check 2]
+   </validation>
+   ```
+
+4. **Quick Reference Table**
+   ```markdown
+   | Problem | Solution |
+   |---------|----------|
+   | [Common issue] | [Specific fix] |
+   ```
+
+#### 📝 Content Organization Strategy
+
+**Ideal Structure** (in order of priority):
+1. **Usage** (1-2 lines)
+2. **Core Features** (3-5 bullet points)
+3. **Quick Reference Table** (common issues → solutions)
+4. **Examples** (2-3 practical cases)
+5. **Key Improvements** (what this solves)
+
+**Avoid These Anti-Patterns:**
+- ❌ Verbose explanations of obvious concepts
+- ❌ Multiple similar examples
+- ❌ Step-by-step tutorials for basic operations
+- ❌ Extensive troubleshooting sections
+- ❌ Historical context or migration guides
+
+#### 🎯 Real Example: create-pr.md Optimization
+
+**Before**: 789 lines with verbose explanations and redundant examples
+**After**: 77 lines (90% reduction) focusing on:
+- Essential features (default branch detection, conflict prevention)
+- Quick reference table for common problems
+- 3 practical examples
+- Key improvements summary
+
+**Key Changes Applied:**
+- Eliminated redundant code blocks
+- Condensed multiple similar examples into one
+- Created problem→solution mapping table
+- Focused on actionable information only
+- Removed verbose explanations of obvious operations
+
+#### 📋 Quality Checklist for Command Files
+
+Before finalizing any `claude/commands/*.md` file:
+
+- [ ] **Length**: Under 100 lines total
+- [ ] **Persona**: Clear role definition included
+- [ ] **Constraints**: Essential prohibitions/requirements listed
+- [ ] **Examples**: 2-3 practical cases maximum
+- [ ] **Reference**: Quick lookup table for common issues
+- [ ] **Validation**: Clear success criteria defined
+- [ ] **Actionable**: Every section leads to specific actions
+- [ ] **Scannable**: Headers and bullets for quick reading
+
+#### 🔄 Maintenance Philosophy
+
+- **Regular Review**: Audit command files monthly for bloat
+- **User-Centric**: Focus on what users actually need to know
+- **Evidence-Based**: Remove sections that aren't frequently referenced
+- **Continuous Refinement**: Each edit should make the file more concise
+
 ## Important Notes
 
 ### Critical Development Guidelines
