@@ -223,12 +223,11 @@ func TestEnhancedMetadataGenerator_SpecialCharacterValidation(t *testing.T) {
 			validateFunc: func(t *testing.T, metadata *ports.Metadata) {
 				assert.NotEmpty(t, metadata.Title)
 				assert.NotEmpty(t, metadata.Description)
-				// 적절한 양의 이모지는 허용되어야 함 (any fairy tale emoji)
-				hasFairyTaleEmoji := strings.Contains(metadata.Title, "✨") ||
-					strings.Contains(metadata.Title, "🌟") ||
-					strings.Contains(metadata.Title, "🏰") ||
-					strings.Contains(metadata.Title, "💖")
-				assert.True(t, hasFairyTaleEmoji, "Title should contain fairy tale emoji")
+				// Title should be properly formatted (contains | separator which indicates template was applied)
+				assert.Contains(t, metadata.Title, "|", "Title should be formatted with template")
+				// Check that description contains expected emojis
+				assert.Contains(t, metadata.Description, "📚", "Description should contain book emoji")
+				assert.Contains(t, metadata.Description, "✨", "Description should contain sparkle emoji")
 			},
 		},
 		{

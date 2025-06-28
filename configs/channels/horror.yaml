@@ -23,69 +23,49 @@ prompt_template: |
 
 scene_style: "dark atmosphere, horror movie style, nighttime, shadowy, cinematic lighting"
 
-# YouTube metadata generation configuration
 youtube:
   metadata:
-    # Title generation templates
     title_templates:
-      - "🌙 {title} | 오싹한 공포 이야기 #Shorts"
-      - "👻 {title} | 미스터리 호러"
-      - "😱 {title} | 심야 공포 한편"
-      - "🔍 {title} | 수수께끼 호러"
-    
-    # Description template with placeholders
+      - "👻 {title} | 공포 이야기 #Shorts"
+      - "😱 {title} | 무서운 이야기"
+      - "🌙 {title} | 깊은 밤 공포"
     description_template: |
       {hook_line}
       
-      🌙 {summary}
+      🌙 오늘의 이야기:
+      {summary}
       
-      👻 이 이야기의 포인트:
+      👻 핵심 포인트:
       {key_points}
       
-      🔍 미스터리 요소: {mystery_elements}
+      🔍 미스터리 요소:
+      {mystery_elements}
       
-      😱 더 많은 오싹한 이야기가 보고 싶다면 구독해주세요!
+      📱 더 많은 공포 이야기를 보고 싶다면 구독해주세요!
       
-      #공포 #호러 #미스터리 #오싹 #Shorts #유튜브쇼츠 #심야이야기
-    
-    # SEO-optimized hook lines for different horror types
+      #공포 #무서운이야기 #Shorts #호러 #미스터리
     hook_lines:
-      psychological: "심리적 공포가 가득한 오싹한 이야기입니다! 🌙"
-      mystery: "마지막까지 예측할 수 없는 미스터리 호러! 👻"
-      supernatural: "초자연적 현상이 펼쳐지는 무서운 이야기! 😱"
-      suspense: "긴장감 넘치는 서스펜스 호러를 만나보세요! 🔍"
-      twist: "충격적인 반전이 기다리는 공포 이야기! 💀"
-      default: "오싹하면서도 흥미진진한 공포 이야기입니다! 🌙"
-    
-    # Base tags that should always be included
+      mystery: "🔍 미스터리한 수수께끼가 시작됩니다..."
+      fear: "😰 등골이 오싹해지는 이야기"
+      twist: "🌀 충격적인 반전이 기다립니다"
     base_tags:
       - "공포"
       - "호러"
-      - "미스터리"
-      - "오싹"
       - "Shorts"
-      - "유튜브쇼츠"
-      - "심야"
-      - "서스펜스"
       - "무서운이야기"
-    
-    # Content-specific tag patterns for intelligent tagging
+      - "미스터리"
     content_tags:
       patterns:
-        supernatural: ["귀신", "유령", "초자연", "영혼"]
-        mystery: ["수수께끼", "미스터리", "비밀", "진실"]
-        psychological: ["심리", "정신", "환상", "착각"]
-        location: ["저택", "학교", "병원", "숲"]
-        atmosphere: ["밤", "어둠", "소음", "침묵"]
-    
-    # YouTube metadata constraints
+        supernatural: ["귀신", "유령", "초자연"]
+        mystery: ["수수께끼", "미스터리", "비밀"]
+        psychological: ["심리", "정신", "환상"]
+        location: ["저택", "학교", "병원"]
+        atmosphere: ["밤", "어둠", "소음"]
     constraints:
       title_max_length: 100
       description_max_length: 5000
       max_tags: 15
       tag_total_max_length: 500
-    
-    # Category and privacy settings
-    category_id: "24"  # Entertainment
+    category_id: "24"
     default_language: "ko"
     privacy: "public"

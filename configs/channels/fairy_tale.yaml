@@ -23,69 +23,49 @@ prompt_template: |
 
 scene_style: "children's book illustration, bright colors, cute characters, whimsical, watercolor style"
 
-# YouTube metadata generation configuration
 youtube:
   metadata:
-    # Title generation templates
     title_templates:
-      - "✨ {title} | 감동적인 동화 #Shorts"
-      - "🌟 {title} | 교훈이 있는 이야기"
-      - "🏰 {title} | 따뜻한 동화 한편"
-      - "💖 {title} | 마법같은 이야기"
-    
-    # Description template with placeholders
+      - "✨ {title} | 동화 이야기 #Shorts"
+      - "🧚‍♀️ {title} | 마법같은 이야기"
+      - "🌟 {title} | 어린이 동화"
     description_template: |
       {hook_line}
       
-      📚 {summary}
+      📚 이야기 소개:
+      {summary}
       
-      ✨ 이 동화를 통해 배울 수 있는 것:
+      ✨ 주요 교훈:
       {lesson_points}
       
-      🎭 등장인물: {characters}
+      🌟 등장인물:
+      {characters}
       
-      📖 더 많은 감동적인 동화 이야기를 보고 싶다면 구독과 좋아요 부탁드려요!
+      📱 더 많은 동화를 보고 싶다면 구독해주세요!
       
-      #동화 #교육 #감동 #아이들 #Shorts #유튜브쇼츠 #따뜻한이야기
-    
-    # SEO-optimized hook lines for different story types
+      #동화 #이야기 #Shorts #감동 #교훈
     hook_lines:
-      adventure: "모험과 용기가 가득한 감동적인 이야기를 만나보세요! 🌟"
-      friendship: "진정한 우정의 의미를 알려주는 따뜻한 동화입니다! 💝"
-      family: "가족의 소중함을 일깨워주는 아름다운 이야기예요! 🏡"
-      nature: "자연과 함께하는 신비로운 모험 이야기입니다! 🌲"
-      growth: "성장과 깨달음이 담긴 의미있는 동화를 들려드려요! 🌱"
-      default: "따뜻한 마음을 전해주는 특별한 동화 이야기입니다! ✨"
-    
-    # Base tags that should always be included
+      magic: "✨ 마법 같은 이야기가 시작됩니다!"
+      adventure: "🏰 신나는 모험이 기다려요!"
+      moral: "💖 따뜻한 교훈이 담긴 이야기예요"
     base_tags:
       - "동화"
-      - "교육"
-      - "아이들"
       - "이야기"
       - "Shorts"
-      - "유튜브쇼츠"
-      - "감동"
-      - "교훈"
-      - "따뜻한이야기"
-    
-    # Content-specific tag patterns for intelligent tagging
+      - "어린이"
+      - "교육"
     content_tags:
       patterns:
-        animals: ["동물", "친구들", "숲속", "자연"]
-        magic: ["마법", "마법사", "요정", "신비"]
-        adventure: ["모험", "여행", "탐험", "용기"]
-        family: ["가족", "엄마", "아빠", "형제"]
-        friendship: ["친구", "우정", "도움", "협력"]
-    
-    # YouTube metadata constraints
+        animals: ["동물", "친구들", "숲속"]
+        magic: ["마법", "마법사", "요정"]
+        adventure: ["모험", "여행", "탐험"]
+        family: ["가족", "엄마", "아빠"]
+        friendship: ["친구", "우정", "도움"]
     constraints:
       title_max_length: 100
       description_max_length: 5000
       max_tags: 15
       tag_total_max_length: 500
-    
-    # Category and privacy settings
-    category_id: "27"  # Education
+    category_id: "27"
     default_language: "ko"
     privacy: "public"
