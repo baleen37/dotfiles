@@ -1,77 +1,46 @@
-# Create Pull Request
+<persona>
+  You are a meticulous software engineer who creates clear, concise, and effective Pull Requests.
+  You understand that a good PR is not just about code, but also about clear communication for the reviewers.
+</persona>
 
-Smart PR creation with automatic conflict resolution and branch management.
+<objective>
+  To create a high-quality, review-ready Pull Request for the current feature branch that adheres to project standards.
+</objective>
 
-## Usage
-```bash
-/project:create-pr [--draft] [--auto-merge] [--title "Custom Title"]
-```
+<workflow>
 
-## Core Features
+  <step name="Pre-PR Checks" number="1">
+    - **Sync Branch**: Ensure the current branch is up-to-date with the target branch (usually `main`) by merging or rebasing to prevent conflicts.
+    - **Local Validation**: Run all local quality checks (`make lint`, `make test`) one last time to ensure everything passes.
+    - **Check Status**: Use `git status` to confirm there are no uncommitted or untracked files.
+  </step>
 
-### 🎯 Default Branch Detection (No more "default" errors)
-```bash
-# Auto-detects via: GitHub API → git refs → common names → fallback
-# Override if needed: export CREATE_PR_DEFAULT_BRANCH="main"
-```
+  <step name="PR Creation" number="2">
+    - **Initiate**: Execute `gh pr create` to begin the process.
+    - **Title**: Write a title that follows the Conventional Commits standard (e.g., `feat: ...`, `fix: ...`). It must be clear and concise.
+    - **Body**: Write a comprehensive description using the PR template, including:
+      - **Summary**: What is the purpose of this PR and why is it needed?
+      - **Changes**: A high-level overview of the technical changes.
+      - **Testing**: How were these changes tested?
+      - **Related Issues**: Link any issues this PR resolves (e.g., `Closes #123`).
+  </step>
 
-### 🛡️ Smart Conflict Prevention
-```bash
-# If branch is behind:
-# 1. Pre-checks for conflicts
-# 2. Tries merge first (easier to resolve)
-# 3. Falls back to rebase if merge fails
-# 4. Provides clear resolution steps
-```
+  <step name="Post-Creation Actions" number="3">
+    - **Assign Reviewers**: Assign at least one relevant reviewer to the PR.
+    - **Add Labels**: Add appropriate labels (e.g., `bug`, `feature`, `needs-review`).
+    - **Enable Auto-Merge**: If the CI/CD pipeline is robust, enable auto-merge with `gh pr merge --auto --squash`.
+  </step>
 
-### ✅ Robust PR Creation
-```bash
-# Always specifies --base and --head explicitly
-# Auto-generates title from branch or commit
-# Handles existing PRs gracefully
-```
+</workflow>
 
-## Quick Reference
+<constraints>
+  - The PR title **must** follow the Conventional Commits specification.
+  - The PR body **must not** be empty and must provide sufficient context.
+  - **Always** link to the issue(s) being addressed.
+</constraints>
 
-| Problem | Solution |
-|---------|----------|
-| "default" branch error | Auto-detected with 4 fallback methods |
-| Merge conflicts | Tries merge → rebase → manual guide |
-| No origin remote | `git remote add origin <url>` |
-| Not authenticated | `gh auth login` |
-| Auto-merge fails | Check repo settings allows auto-merge |
-
-## Examples
-
-```bash
-# Basic PR
-/project:create-pr
-
-# Draft with auto-merge
-/project:create-pr --draft --auto-merge
-
-# Custom title
-/project:create-pr --title "feat: add new feature"
-```
-
-## Conflict Resolution
-
-When conflicts occur:
-```bash
-# 1. Fix conflicts in listed files (look for <<<<<<< markers)
-# 2. Stage resolved files
-git add <resolved-files>
-
-# 3. Continue operation
-git rebase --continue  # or: git merge --continue
-
-# 4. Re-run command
-/project:create-pr
-```
-
-## Key Improvements
-
-✅ **Never fails on default branch** - Multiple detection methods  
-✅ **Prevents conflicts** - Pre-checks and dual strategy (merge→rebase)  
-✅ **Clear recovery** - Step-by-step guidance when issues occur  
-✅ **Explicit branches** - Always sets base/head to prevent ambiguity
+<validation>
+  - The Pull Request is successfully created on GitHub.
+  - The PR is correctly linked to the corresponding issue.
+  - All required CI checks are triggered and running.
+</validation>
