@@ -35,9 +35,13 @@ let
       if [[ -f "$script" ]]; then
         script_name=$(basename $(dirname "$script"))/$(basename "$script")
 
-        # Should only use sudo with specific commands, not pre-validation
-        if grep -q "sudo.*darwin-rebuild\|sudo.*nixos-rebuild" "$script"; then
-          echo "✅ PASS: $script_name uses sudo only for specific rebuild commands"
+        # Check for new sudo management pattern with SUDO_PREFIX
+        if grep -q "SUDO_PREFIX.*darwin-rebuild\|SUDO_PREFIX.*nixos-rebuild" "$script" && \
+           grep -q "get_sudo_prefix()" "$script"; then
+          echo "✅ PASS: $script_name uses proper sudo management pattern"
+        # Also accept direct sudo usage for backward compatibility
+        elif grep -q "sudo.*darwin-rebuild\|sudo.*nixos-rebuild" "$script"; then
+          echo "✅ PASS: $script_name uses sudo for rebuild commands"
         else
           echo "❌ FAIL: $script_name doesn't use sudo for rebuild commands"
           FAILED_SCRIPTS+=("$script_name")
@@ -53,8 +57,11 @@ let
       if [[ -f "$script" ]]; then
         script_name=$(basename $(dirname "$script"))/$(basename "$script")
 
-        # Look for informative message before sudo usage
-        if grep -B5 -A5 "sudo.*darwin-rebuild\|sudo.*nixos-rebuild" "$script" | grep -q "Admin access\|admin access\|root access\|sudo"; then
+        # Look for the explain_sudo_requirement function or similar informative messages
+        if grep -q "explain_sudo_requirement\|Administrator Privileges Required\|Administrator privileges acquired" "$script"; then
+          echo "✅ PASS: $script_name has informative message before sudo"
+        # Also check for legacy patterns
+        elif grep -B5 -A5 "sudo.*darwin-rebuild\|sudo.*nixos-rebuild" "$script" | grep -q "Admin access\|admin access\|root access\|sudo"; then
           echo "✅ PASS: $script_name has informative message before sudo"
         else
           echo "⚠️  WARN: $script_name should have informative message before sudo"

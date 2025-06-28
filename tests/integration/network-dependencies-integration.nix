@@ -83,7 +83,7 @@ pkgs.runCommand "network-dependencies-integration-test"
   case "$CURRENT_SYSTEM" in
     *-darwin)
       CONFIG_PATH="darwinConfigurations.\"$CURRENT_SYSTEM\""
-      ATTR_PATH="system.build.toplevel.drvPath"
+      ATTR_PATH="config.system.build.toplevel.drvPath"
       ;;
     *-linux)
       CONFIG_PATH="nixosConfigurations.\"$CURRENT_SYSTEM\""

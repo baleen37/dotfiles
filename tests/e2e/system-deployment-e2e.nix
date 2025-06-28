@@ -35,7 +35,7 @@ pkgs.runCommand "system-deployment-e2e-test"
   case "$CURRENT_SYSTEM" in
     *-darwin)
       CONFIG_PATH="darwinConfigurations.\"$CURRENT_SYSTEM\""
-      if nix eval --impure '.#'$CONFIG_PATH'.system.build.toplevel.drvPath' >/dev/null 2>&1; then
+      if nix eval --impure '.#'$CONFIG_PATH'.config.system.build.toplevel.drvPath' >/dev/null 2>&1; then
         echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Darwin configuration syntax validation passed"
       else
         echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} Darwin configuration syntax validation failed"
@@ -116,7 +116,7 @@ pkgs.runCommand "system-deployment-e2e-test"
     case "$platform" in
       *-darwin)
         CONFIG="darwinConfigurations.\"$platform\""
-        ATTR="system.build.toplevel.drvPath"
+        ATTR="config.system.build.toplevel.drvPath"
         ;;
       *-linux)
         CONFIG="nixosConfigurations.\"$platform\""
@@ -132,7 +132,17 @@ pkgs.runCommand "system-deployment-e2e-test"
     fi
 
     # Test app availability for platform
-    for app in build switch rollback; do
+    # Test platform-specific apps
+    case "$CURRENT_SYSTEM" in
+      *-darwin)
+        APPS=("build" "apply" "rollback")
+        ;;
+      *-linux)
+        APPS=("build" "apply" "install")
+        ;;
+    esac
+
+    for app in "''${APPS[@]}"; do
       if nix eval --impure '.#apps.'$platform'.'$app'.program' >/dev/null 2>&1; then
         echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} $platform.$app app ready for deployment"
       else
