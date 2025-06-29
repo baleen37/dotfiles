@@ -4,6 +4,7 @@ _:
   # Development Tools
   "homebrew/cask/docker"
   "intellij-idea"
+  "iterm2"  # Terminal emulator for macOS
 
   # Communication Tools
   "discord"
