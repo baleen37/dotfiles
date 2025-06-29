@@ -1,5 +1,5 @@
 # Test for portable path utilities functionality
-{ pkgs }:
+{ pkgs, flake ? null, src ? ../.., ... }:
 
 let
   portablePaths = import ../lib/portable-paths.nix { inherit pkgs; };
@@ -65,7 +65,30 @@ pkgs.runCommand "portable-paths-test" { } ''
   )
 
   for binary in "''${BINARIES[@]}"; do
-    BINARY_PATH="${portablePaths.getSystemBinary binary}"
+    case "$binary" in
+      "echo")
+        BINARY_PATH="${portablePaths.getSystemBinary "echo"}"
+        ;;
+      "cat")
+        BINARY_PATH="${portablePaths.getSystemBinary "cat"}"
+        ;;
+      "touch")
+        BINARY_PATH="${portablePaths.getSystemBinary "touch"}"
+        ;;
+      "rm")
+        BINARY_PATH="${portablePaths.getSystemBinary "rm"}"
+        ;;
+      "mkdir")
+        BINARY_PATH="${portablePaths.getSystemBinary "mkdir"}"
+        ;;
+      "find")
+        BINARY_PATH="${portablePaths.getSystemBinary "find"}"
+        ;;
+      *)
+        echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} Unknown binary: $binary"
+        exit 1
+        ;;
+    esac
     if [ -x "$BINARY_PATH" ]; then
       echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Binary '$binary' resolved to: $BINARY_PATH"
     else
