@@ -166,13 +166,13 @@ run_build() {
     fi
 
     if [ "$VERBOSE" = "true" ]; then
-        nix --extra-experimental-features 'nix-command flakes' build --impure .#$FLAKE_SYSTEM $@ || {
+        nix --extra-experimental-features 'nix-command flakes' build --impure .#$FLAKE_SYSTEM "$@" || {
             log_error "Build failed"
             log_footer "failed"
             exit 1
         }
     else
-        nix --extra-experimental-features 'nix-command flakes' build --impure .#$FLAKE_SYSTEM $@ 2>/dev/null || {
+        nix --extra-experimental-features 'nix-command flakes' build --impure .#$FLAKE_SYSTEM "$@" 2>/dev/null || {
             log_error "Build failed. Run with --verbose for details"
             log_footer "failed"
             exit 1
@@ -199,20 +199,20 @@ run_switch() {
     if [ "$VERBOSE" = "true" ]; then
         log_info "Command: ${REBUILD_COMMAND} switch --impure --flake .#${SYSTEM_TYPE}"
         if [ -n "${SUDO_PREFIX}" ]; then
-            ${SUDO_PREFIX} ${REBUILD_COMMAND_PATH} switch --impure --flake .#${SYSTEM_TYPE} $@ 2>&1 || {
+            ${SUDO_PREFIX} ${REBUILD_COMMAND_PATH} switch --impure --flake .#${SYSTEM_TYPE} "$@" 2>&1 || {
                 log_error "Switch failed (exit code: $?)"
                 log_footer "failed"
                 exit 1
             }
         else
             if [ "$PLATFORM_TYPE" = "darwin" ]; then
-                USER="$USER" ${REBUILD_COMMAND_PATH} switch --impure --flake .#${SYSTEM_TYPE} $@ 2>&1 || {
+                USER="$USER" ${REBUILD_COMMAND_PATH} switch --impure --flake .#${SYSTEM_TYPE} "$@" 2>&1 || {
                     log_error "Switch failed (exit code: $?)"
                     log_footer "failed"
                     exit 1
                 }
             else
-                ${REBUILD_COMMAND_PATH} switch --impure --flake .#${SYSTEM_TYPE} $@ 2>&1 || {
+                ${REBUILD_COMMAND_PATH} switch --impure --flake .#${SYSTEM_TYPE} "$@" 2>&1 || {
                     log_error "Switch failed (exit code: $?)"
                     log_footer "failed"
                     exit 1
@@ -221,20 +221,20 @@ run_switch() {
         fi
     else
         if [ -n "${SUDO_PREFIX}" ]; then
-            ${SUDO_PREFIX} ${REBUILD_COMMAND_PATH} switch --impure --flake .#${SYSTEM_TYPE} $@ >/dev/null 2>&1 || {
+            ${SUDO_PREFIX} ${REBUILD_COMMAND_PATH} switch --impure --flake .#${SYSTEM_TYPE} "$@" >/dev/null 2>&1 || {
                 log_error "Switch failed. Run with --verbose for details"
                 log_footer "failed"
                 exit 1
             }
         else
             if [ "$PLATFORM_TYPE" = "darwin" ]; then
-                USER="$USER" ${REBUILD_COMMAND_PATH} switch --impure --flake .#${SYSTEM_TYPE} $@ >/dev/null 2>&1 || {
+                USER="$USER" ${REBUILD_COMMAND_PATH} switch --impure --flake .#${SYSTEM_TYPE} "$@" >/dev/null 2>&1 || {
                     log_error "Switch failed. Run with --verbose for details"
                     log_footer "failed"
                     exit 1
                 }
             else
-                ${REBUILD_COMMAND_PATH} switch --impure --flake .#${SYSTEM_TYPE} $@ >/dev/null 2>&1 || {
+                ${REBUILD_COMMAND_PATH} switch --impure --flake .#${SYSTEM_TYPE} "$@" >/dev/null 2>&1 || {
                     log_error "Switch failed. Run with --verbose for details"
                     log_footer "failed"
                     exit 1
@@ -289,13 +289,13 @@ execute_build_switch() {
         if [ "$VERBOSE" = "true" ]; then
             log_info "Command: ${REBUILD_COMMAND} switch --flake .#${SYSTEM_TYPE}"
             if [ -n "${SUDO_PREFIX}" ]; then
-                ${SUDO_PREFIX} ${REBUILD_COMMAND_PATH} switch --flake .#${SYSTEM_TYPE} $@ || {
+                ${SUDO_PREFIX} ${REBUILD_COMMAND_PATH} switch --flake .#${SYSTEM_TYPE} "$@" || {
                     log_error "Build & switch failed (exit code: $?)"
                     log_footer "failed"
                     exit 1
                 }
             else
-                ${REBUILD_COMMAND_PATH} switch --flake .#${SYSTEM_TYPE} $@ || {
+                ${REBUILD_COMMAND_PATH} switch --flake .#${SYSTEM_TYPE} "$@" || {
                     log_error "Build & switch failed (exit code: $?)"
                     log_footer "failed"
                     exit 1
@@ -303,13 +303,13 @@ execute_build_switch() {
             fi
         else
             if [ -n "${SUDO_PREFIX}" ]; then
-                ${SUDO_PREFIX} ${REBUILD_COMMAND_PATH} switch --flake .#${SYSTEM_TYPE} $@ 2>/dev/null || {
+                ${SUDO_PREFIX} ${REBUILD_COMMAND_PATH} switch --flake .#${SYSTEM_TYPE} "$@" 2>/dev/null || {
                     log_error "Build & switch failed. Run with --verbose for details"
                     log_footer "failed"
                     exit 1
                 }
             else
-                ${REBUILD_COMMAND_PATH} switch --flake .#${SYSTEM_TYPE} $@ 2>/dev/null || {
+                ${REBUILD_COMMAND_PATH} switch --flake .#${SYSTEM_TYPE} "$@" 2>/dev/null || {
                     log_error "Build & switch failed. Run with --verbose for details"
                     log_footer "failed"
                     exit 1

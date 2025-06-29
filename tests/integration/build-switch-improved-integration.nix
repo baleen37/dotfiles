@@ -44,7 +44,7 @@ pkgs.runCommand "build-switch-improved-integration-test"
   ${testHelpers.testSubsection "Build Process Integration"}
 
   ${testHelpers.assertContains "$COMMON_SCRIPT" "nix.*build.*--impure" "nix build command present"}
-  ${testHelpers.assertContains "$COMMON_SCRIPT" "USER=" "USER variable handling"}
+  ${testHelpers.assertContains "$COMMON_SCRIPT" "sudo.*USER=" "sudo with USER variable"}
   ${testHelpers.assertContains "${buildSwitchScript}" "REBUILD_COMMAND=" "rebuild command variable defined"}
 
   # Test 6: Cleanup integration

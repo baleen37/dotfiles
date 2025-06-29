@@ -30,11 +30,13 @@
     - **Labels & Assignees**: Add appropriate labels and assign the PR to relevant team members.
   </step>
 
-  <step name="Post-Creation" number="3">
-    - **Auto-Merge**: Enable auto-merge if all CI checks are expected to pass (`gh pr merge --auto --squash`).
-      - **IF AUTO-MERGE FAILS**: Report "Auto-merge could not be enabled. Check repository settings or branch protection rules." but **CONTINUE**.
-    - **Notifications**: Notify relevant stakeholders (e.g., team leads, reviewers) about the PR.
-      - **IF NOTIFICATION FAILS**: Report "Failed to notify team members. Please notify manually." but **CONTINUE**.
+  <step name="Post-Creation Actions" number="3">
+    - **Assign Reviewers**: Assign at least one relevant reviewer to the PR.
+      - **IF ASSIGNMENT FAILS**: Report the error (e.g., "Failed to assign reviewer.") but **CONTINUE** if PR was created.
+    - **Add Labels**: Add appropriate labels (e.g., `bug`, `feature`, `needs-review`).
+      - **IF LABELING FAILS**: Report the error (e.g., "Failed to add labels.") but **CONTINUE** if PR was created.
+    - **Enable Auto-Merge**: If the CI/CD pipeline is robust, enable auto-merge with `gh pr merge --auto --squash`.
+      - **IF AUTO-MERGE FAILS**: Report the error (e.g., "Failed to enable auto-merge. Check repository settings.") but **CONTINUE** if PR was created.
     - **CI Monitoring**: Monitor the initial CI run to catch any immediate failures.
       - **IF CI FAILS IMMEDIATELY**: Report "CI checks failed immediately. Please review and fix the issues." but **CONTINUE**.
   </step>
@@ -43,7 +45,8 @@
 
 <constraints>
   - **NEVER** push unfinished or untested code.
-  - **ALWAYS** ensure the PR title follows Conventional Commits.
+  - The PR title **must** follow the Conventional Commits specification.
+  - The PR body **must not** be empty and must provide sufficient context.
   - **MUST** include comprehensive test coverage information in the PR description.
   - **ALWAYS** link to related issues using GitHub's linking syntax.
 </constraints>
