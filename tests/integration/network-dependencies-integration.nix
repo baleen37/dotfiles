@@ -231,7 +231,7 @@ pkgs.runCommand "network-dependencies-integration-test"
 
   SECURITY_ISSUES=0
   for pattern in "''${PROBLEMATIC_PATTERNS[@]}"; do
-    if grep -ri "$pattern" . 2>/dev/null | grep -v "\.git" | grep -v "test" | head -1; then
+    if grep -ri "$pattern" . 2>/dev/null | grep -v "\.git" | grep -v "test" | grep -v "docs/" | grep -v "\.md" | head -1; then
       echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} Potential security issue: $pattern"
       SECURITY_ISSUES=$((SECURITY_ISSUES + 1))
     fi

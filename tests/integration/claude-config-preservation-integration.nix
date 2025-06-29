@@ -204,7 +204,7 @@ let
         # commands 디렉토리 처리
         for cmd_file in "$SOURCE_DIR/commands"/*.md; do
           if [[ -f "$cmd_file" ]]; then
-            local base_name=$(basename "$cmd_file")
+            base_name=$(basename "$cmd_file")
             smart_copy "$cmd_file" "$CLAUDE_DIR/commands/$base_name"
           fi
         done
@@ -263,12 +263,12 @@ let
         UPDATED_COUNT=0
         for cmd_file in "$SOURCE_DIR/commands"/*.md; do
           if [[ -f "$cmd_file" ]]; then
-            local base_name=$(basename "$cmd_file")
-            local target_file="$CLAUDE_DIR/commands/$base_name"
+            base_name=$(basename "$cmd_file")
+            target_file="$CLAUDE_DIR/commands/$base_name"
             if [[ -f "$target_file" ]]; then
               # 해시 비교로 동일성 확인
-              local source_hash=$(sha256sum "$cmd_file" | cut -d' ' -f1)
-              local target_hash=$(sha256sum "$target_file" | cut -d' ' -f1)
+              source_hash=$(sha256sum "$cmd_file" | cut -d' ' -f1)
+              target_hash=$(sha256sum "$target_file" | cut -d' ' -f1)
               if [[ "$source_hash" == "$target_hash" ]]; then
                 ((UPDATED_COUNT++))
               fi
