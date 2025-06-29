@@ -135,8 +135,11 @@ pkgs.runCommand "user-resolution-test"
     *-linux)
       echo "✅ Linux platform detected"
       # Linux specific tests
-      if [[ -f /etc/passwd ]]; then
-        echo "✅ /etc/passwd available for user validation"
+      # Use portable system file checking instead of hardcoded path
+      if ${pkgs.coreutils}/bin/test -f /etc/passwd 2>/dev/null; then
+        echo "✅ System passwd file available for user validation"
+      else
+        echo "⚠️ System passwd file not available (acceptable on some systems)"
       fi
       ;;
   esac

@@ -1,5 +1,8 @@
 { pkgs }:
 let
+  # Import portable path utilities
+  portablePaths = import ./portable-paths.nix { inherit pkgs; };
+
   # Color codes for test output
   colors = {
     red = "\033[31m";
@@ -18,11 +21,10 @@ let
     system = pkgs.system;
   };
 
-  # Test environment setup
+  # Test environment setup using portable paths
   setupTestEnv = ''
     export USER=testuser
-    export HOME=/tmp/test-home-$$
-    mkdir -p $HOME
+    ${portablePaths.getTestHome}
     export PATH=${pkgs.coreutils}/bin:${pkgs.bash}/bin:$PATH
   '';
 
@@ -115,17 +117,19 @@ let
     modules = [ ];
   } // attrs;
 
-  # File system test helpers
+  # File system test helpers using portable paths
   createTempFile = content: ''
-        TEMP_FILE=$(mktemp)
-        cat > $TEMP_FILE << 'EOF'
+    ${portablePaths.getTempDir}
+    TEMP_FILE=$(${pkgs.coreutils}/bin/mktemp "$TEST_TEMP_DIR/tempfile-XXXXXX")
+    ${pkgs.coreutils}/bin/cat > $TEMP_FILE << 'EOF'
     ${content}
     EOF
-        echo $TEMP_FILE
+    echo $TEMP_FILE
   '';
 
   createTempDir = ''
-    TEMP_DIR=$(mktemp -d)
+    ${portablePaths.getTempDir}
+    TEMP_DIR=$(${pkgs.coreutils}/bin/mktemp -d "$TEST_TEMP_DIR/tempdir-XXXXXX")
     echo $TEMP_DIR
   '';
 
@@ -154,14 +158,15 @@ let
     fi
   '';
 
-  # Cleanup helpers
+  # Cleanup helpers using portable paths
   cleanup = ''
     if [ -n "$TEMP_DIR" ] && [ -d "$TEMP_DIR" ]; then
-      rm -rf "$TEMP_DIR"
+      ${pkgs.coreutils}/bin/rm -rf "$TEMP_DIR"
     fi
     if [ -n "$TEMP_FILE" ] && [ -f "$TEMP_FILE" ]; then
-      rm -f "$TEMP_FILE"
+      ${pkgs.coreutils}/bin/rm -f "$TEMP_FILE"
     fi
+    # Main temp directory cleanup is handled by trap in getTempDir
   '';
 
   # Nix attribute set test helpers

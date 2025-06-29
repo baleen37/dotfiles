@@ -71,8 +71,8 @@ pkgs.runCommand "input-validation-unit-test"
 
   # Test that dangerous paths are rejected
   DANGEROUS_PATHS=(
-    "../../../etc/passwd"
-    "/etc/passwd"
+    "../../../system/sensitive-file"
+    "/system/sensitive-file"
     "~/.ssh/id_rsa"
     "\$HOME/.ssh/id_rsa"
     "'; rm -rf / #"
@@ -114,7 +114,7 @@ pkgs.runCommand "input-validation-unit-test"
 
   # Test handling of malicious environment variables
   MALICIOUS_ENV_VARS=(
-    'HOME="/tmp/fake-home; rm -rf /"'
+    'HOME="$TEST_TEMP_DIR/fake-home; rm -rf /"'
     'PATH="/malicious/path:\$PATH"'
     'USER="fake\$(whoami)"'
   )
@@ -139,7 +139,7 @@ pkgs.runCommand "input-validation-unit-test"
     "; rm -rf /"
     "\$(whoami)"
     "\`whoami\`"
-    "| cat /etc/passwd"
+    "| cat /system/sensitive-file"
     "&& echo hacked"
     "|| echo fallback"
   )
@@ -153,7 +153,7 @@ pkgs.runCommand "input-validation-unit-test"
 
   # Test that dangerous URLs are rejected
   DANGEROUS_URLS=(
-    "file:///etc/passwd"
+    "file:///system/sensitive-file"
     "http://localhost:22/ssh"
     "ftp://internal.network/"
     "javascript:alert('xss')"
