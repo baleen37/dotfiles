@@ -56,6 +56,26 @@ let
       '';
     };
 
+    # Run unit tests (alias for test-core)
+    "test-unit" = mkTestApp {
+      name = "test-unit";
+      inherit system;
+      command = ''
+        echo "Running unit tests..."
+        nix build --impure .#checks.${system}.test-core -L
+      '';
+    };
+
+    # Run integration tests (alias for test-workflow) 
+    "test-integration" = mkTestApp {
+      name = "test-integration";
+      inherit system;
+      command = ''
+        echo "Running integration tests..."
+        nix build --impure .#checks.${system}.test-workflow -L
+      '';
+    };
+
     # Quick smoke test (just flake checks)
     "test-smoke" = mkTestApp {
       name = "test-smoke";
@@ -82,6 +102,8 @@ let
         echo "  test         - Run all tests"
         echo "  test-core    - Run core tests (fast, essential)"
         echo "  test-workflow - Run workflow tests (end-to-end)"
+        echo "  test-unit    - Run unit tests (alias for test-core)"
+        echo "  test-integration - Run integration tests (alias for test-workflow)"
         echo "  test-perf    - Run performance tests"
         echo "  test-smoke   - Quick smoke test (flake check)"
         echo ""
