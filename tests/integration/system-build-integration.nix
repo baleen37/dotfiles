@@ -272,7 +272,8 @@ pkgs.runCommand "system-build-integration-test"
 
   # Test that the testing framework itself integrates properly
   if [ -f "${src}/tests/default.nix" ]; then
-    if nix eval --impure --expr "(import ${src}/tests/default.nix { pkgs = import <nixpkgs> {}; }).framework_status.drvPath" >/dev/null 2>&1; then
+    # The tests/default.nix expects both pkgs and flake parameters
+    if nix eval --impure --expr "(import ${src}/tests/default.nix { pkgs = import <nixpkgs> {}; flake = null; }).framework_status.drvPath" >/dev/null 2>&1; then
       echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Testing framework integrates correctly"
     else
       echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} Testing framework integration failed"
