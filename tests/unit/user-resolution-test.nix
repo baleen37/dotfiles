@@ -38,7 +38,8 @@ pkgs.runCommand "user-resolution-test"
   if [[ "$result" == "testuser" ]]; then
     echo "✅ USER environment variable resolved correctly"
   else
-    echo "❌ Failed to resolve USER variable"
+    echo "❌ Failed to resolve USER variable. Expected: testuser, Got: $result"
+    exit 1
   fi
 
   # Test without USER

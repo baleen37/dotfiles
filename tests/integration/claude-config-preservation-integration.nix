@@ -53,6 +53,7 @@ let
     EOF
 
         # CLAUDE.md 사용자 수정
+        chmod +w "$CLAUDE_DIR/CLAUDE.md"
         cat >> "$CLAUDE_DIR/CLAUDE.md" << 'EOF'
 
     # 개인 작업 환경 설정 (사용자 추가)
