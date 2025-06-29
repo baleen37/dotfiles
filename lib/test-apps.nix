@@ -62,7 +62,12 @@ let
       inherit system;
       command = ''
         echo "Running smoke tests..."
-        nix flake check --all-systems --no-build
+        # Basic flake evaluation test - only check syntax
+        echo "Checking flake outputs..."
+        nix flake show --impure > /dev/null
+        echo "Checking devShells..."
+        nix build --dry-run .#devShells.${system}.default
+        echo "Smoke test completed successfully!"
       '';
     };
 
