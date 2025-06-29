@@ -18,11 +18,17 @@ env:
   NIX_CONFIG: |
     max-jobs = auto
     cores = 0
-    substituters = https://cache.nixos.org https://nix-community.cachix.org
-    trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
+    substituters = https://cache.nixos.org https://nix-community.cachix.org https://dotfiles-nix.cachix.org
+    trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= dotfiles-nix.cachix.org-1:oGA3+IujM7OxnTwxdKuJLPE1J6REd6tIjJ5+r5CzHBs=
+    experimental-features = nix-command flakes
+    keep-outputs = true
+    keep-derivations = true
   # 단일 환경 변수로 전체 파이프라인 제어
   CI_MODE: ${{ github.event.pull_request.draft == true && 'draft' || 'full' }}
   IS_MAIN: ${{ github.ref == 'refs/heads/main' }}
+  # Cache optimization settings
+  CACHE_VERSION: v2
+  NIX_CACHE_HIT_RATIO_TARGET: 80
 
 jobs:
   # Fast validation stage (1-2 minutes)
@@ -42,15 +48,29 @@ jobs:
       - uses: cachix/install-nix-action@v25
         with:
           nix_path: nixpkgs=channel:nixos-unstable
+          extra_nix_config: |
+            substituters = https://cache.nixos.org https://nix-community.cachix.org https://dotfiles-nix.cachix.org
+            trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= dotfiles-nix.cachix.org-1:oGA3+IujM7OxnTwxdKuJLPE1J6REd6tIjJ5+r5CzHBs=
 
-      - name: Cache Nix store
+      - name: Setup Cachix
+        uses: cachix/cachix-action@v14
+        with:
+          name: dotfiles-nix
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+          pushFilter: (-source$|nixpkgs\.tar\.gz$)
+
+      - name: Multi-level Nix cache
         uses: actions/cache@v4
         with:
           path: |
             /nix/store
             ~/.cache/nix
-          key: validate-nix-${{ hashFiles('flake.lock') }}
-          restore-keys: validate-nix-
+            ~/.cache/pre-commit
+          key: ${{ env.CACHE_VERSION }}-validate-${{ runner.os }}-${{ hashFiles('flake.lock', '**/*.nix', '.pre-commit-config.yaml') }}
+          restore-keys: |
+            ${{ env.CACHE_VERSION }}-validate-${{ runner.os }}-${{ hashFiles('flake.lock') }}
+            ${{ env.CACHE_VERSION }}-validate-${{ runner.os }}-
+            ${{ env.CACHE_VERSION }}-build-${{ runner.os }}-
 
       - name: Lint
         run: |
@@ -90,18 +110,29 @@ jobs:
       - uses: cachix/install-nix-action@v25
         with:
           nix_path: nixpkgs=channel:nixos-unstable
+          extra_nix_config: |
+            substituters = https://cache.nixos.org https://nix-community.cachix.org https://dotfiles-nix.cachix.org
+            trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= dotfiles-nix.cachix.org-1:oGA3+IujM7OxnTwxdKuJLPE1J6REd6tIjJ5+r5CzHBs=
 
-      - name: Cache Nix store
+      - name: Setup Cachix
+        uses: cachix/cachix-action@v14
+        with:
+          name: dotfiles-nix
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+          pushFilter: (-source$|nixpkgs\.tar\.gz$)
+
+      - name: Platform-specific Nix cache
         uses: actions/cache@v4
         with:
           path: |
             /nix/store
             ~/.cache/nix
-          key: ${{ runner.os }}-${{ matrix.system }}-${{ hashFiles('flake.lock') }}
+          key: ${{ env.CACHE_VERSION }}-build-${{ matrix.system }}-${{ hashFiles('flake.lock', 'modules/**/*.nix', 'hosts/**/*.nix') }}
           restore-keys: |
-            ${{ runner.os }}-${{ matrix.system }}-
-            ${{ runner.os }}-nix-
-            validate-nix-
+            ${{ env.CACHE_VERSION }}-build-${{ matrix.system }}-${{ hashFiles('flake.lock') }}
+            ${{ env.CACHE_VERSION }}-build-${{ matrix.system }}-
+            ${{ env.CACHE_VERSION }}-validate-${{ runner.os }}-${{ hashFiles('flake.lock') }}
+            ${{ env.CACHE_VERSION }}-validate-${{ runner.os }}-
 
       - name: Build configuration
         timeout-minutes: 20
@@ -109,22 +140,60 @@ jobs:
           export USER=ci
           echo "🏗️ Building ${{ matrix.name }} (${{ matrix.system }}) - Type: ${{ matrix.build_type }}"
 
+          # Record build start time
+          BUILD_START=$(date +%s)
+
           case "${{ matrix.system }}" in
             *darwin*)
               if [[ "${{ matrix.build_type }}" == "full" ]]; then
                 echo "Running full Darwin build..."
-                nix build --impure --no-link .#darwinConfigurations.${{ matrix.system }}.system
+                if time nix build --impure --no-link .#darwinConfigurations.${{ matrix.system }}.system; then
+                  BUILD_END=$(date +%s)
+                  BUILD_DURATION=$((BUILD_END - BUILD_START))
+                  echo "✅ Full Darwin build completed in ${BUILD_DURATION}s"
+                  echo "build_duration_seconds=${BUILD_DURATION}" >> $GITHUB_OUTPUT
+                  echo "build_type=full" >> $GITHUB_OUTPUT
+                else
+                  echo "❌ Darwin build failed"
+                  exit 1
+                fi
               else
                 echo "Running Darwin validation..."
-                nix eval --impure .#darwinConfigurations.${{ matrix.system }}.system --json >/dev/null
+                if time nix eval --impure .#darwinConfigurations.${{ matrix.system }}.system --json >/dev/null; then
+                  BUILD_END=$(date +%s)
+                  BUILD_DURATION=$((BUILD_END - BUILD_START))
+                  echo "✅ Darwin validation completed in ${BUILD_DURATION}s"
+                  echo "build_duration_seconds=${BUILD_DURATION}" >> $GITHUB_OUTPUT
+                  echo "build_type=validate" >> $GITHUB_OUTPUT
+                else
+                  echo "❌ Darwin validation failed"
+                  exit 1
+                fi
               fi
               ;;
             *linux*)
               echo "Running NixOS validation..."
-              nix eval --impure .#nixosConfigurations.${{ matrix.system }}.config.system.name --json >/dev/null
+              if time nix eval --impure .#nixosConfigurations.${{ matrix.system }}.config.system.name --json >/dev/null; then
+                BUILD_END=$(date +%s)
+                BUILD_DURATION=$((BUILD_END - BUILD_START))
+                echo "✅ NixOS validation completed in ${BUILD_DURATION}s"
+                echo "build_duration_seconds=${BUILD_DURATION}" >> $GITHUB_OUTPUT
+                echo "build_type=validate" >> $GITHUB_OUTPUT
+              else
+                echo "❌ NixOS validation failed"
+                exit 1
+              fi
               ;;
           esac
-          echo "✅ Build completed successfully"
+
+      - name: Save build cache
+        if: success() && matrix.build_type == 'full'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            /nix/store
+            ~/.cache/nix
+          key: ${{ env.CACHE_VERSION }}-build-${{ matrix.system }}-${{ hashFiles('flake.lock', 'modules/**/*.nix', 'hosts/**/*.nix') }}
 
   # Parallel test stage (2-3 minutes)
   test-parallel:
@@ -142,24 +211,58 @@ jobs:
       - uses: cachix/install-nix-action@v25
         with:
           nix_path: nixpkgs=channel:nixos-unstable
+          extra_nix_config: |
+            substituters = https://cache.nixos.org https://nix-community.cachix.org https://dotfiles-nix.cachix.org
+            trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= dotfiles-nix.cachix.org-1:oGA3+IujM7OxnTwxdKuJLPE1J6REd6tIjJ5+r5CzHBs=
 
-      - name: Restore Nix cache
+      - name: Setup Cachix
+        uses: cachix/cachix-action@v14
+        with:
+          name: dotfiles-nix
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+          pushFilter: (-source$|nixpkgs\.tar\.gz$)
+
+      - name: Test-specific cache restore
         uses: actions/cache/restore@v4
         with:
           path: |
             /nix/store
             ~/.cache/nix
-          key: macOS-aarch64-darwin-${{ hashFiles('flake.lock') }}
+          key: ${{ env.CACHE_VERSION }}-test-${{ matrix.category }}-${{ hashFiles('flake.lock', 'tests/**/*.nix') }}
           restore-keys: |
-            macOS-aarch64-darwin-
-            validate-nix-
+            ${{ env.CACHE_VERSION }}-test-${{ matrix.category }}-
+            ${{ env.CACHE_VERSION }}-build-aarch64-darwin-${{ hashFiles('flake.lock') }}
+            ${{ env.CACHE_VERSION }}-build-aarch64-darwin-
+            ${{ env.CACHE_VERSION }}-validate-macOS-
 
       - name: Run tests
         timeout-minutes: 15
         run: |
           export USER=ci
           echo "🧪 Running ${{ matrix.category }} tests"
-          nix run --impure .#test-${{ matrix.category }}
+
+          # Record test start time for performance metrics
+          TEST_START=$(date +%s)
+
+          # Run tests with timing
+          if time nix run --impure .#test-${{ matrix.category }}; then
+            TEST_END=$(date +%s)
+            TEST_DURATION=$((TEST_END - TEST_START))
+            echo "✅ ${{ matrix.category }} tests completed in ${TEST_DURATION}s"
+            echo "test_duration_seconds=${TEST_DURATION}" >> $GITHUB_OUTPUT
+          else
+            echo "❌ ${{ matrix.category }} tests failed"
+            exit 1
+          fi
+
+      - name: Save test cache
+        if: success()
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            /nix/store
+            ~/.cache/nix
+          key: ${{ env.CACHE_VERSION }}-test-${{ matrix.category }}-${{ hashFiles('flake.lock', 'tests/**/*.nix') }}
 
   # Smoke test for draft PRs (30 seconds)
   smoke-test:
@@ -173,12 +276,40 @@ jobs:
       - uses: cachix/install-nix-action@v25
         with:
           nix_path: nixpkgs=channel:nixos-unstable
+          extra_nix_config: |
+            substituters = https://cache.nixos.org https://nix-community.cachix.org https://dotfiles-nix.cachix.org
+            trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= dotfiles-nix.cachix.org-1:oGA3+IujM7OxnTwxdKuJLPE1J6REd6tIjJ5+r5CzHBs=
+
+      - name: Setup Cachix (read-only for smoke test)
+        uses: cachix/cachix-action@v14
+        with:
+          name: dotfiles-nix
+
+      - name: Minimal cache for smoke test
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.cache/nix
+          key: ${{ env.CACHE_VERSION }}-smoke-${{ hashFiles('flake.lock') }}
+          restore-keys: |
+            ${{ env.CACHE_VERSION }}-validate-Linux-${{ hashFiles('flake.lock') }}
+            ${{ env.CACHE_VERSION }}-validate-Linux-
 
       - name: Quick smoke test
         run: |
           export USER=ci
-          nix flake check --impure --no-build --all-systems
-          echo "✅ Smoke test passed - Draft PR validation complete"
+
+          # Record smoke test timing
+          SMOKE_START=$(date +%s)
+
+          if nix flake check --impure --no-build --all-systems; then
+            SMOKE_END=$(date +%s)
+            SMOKE_DURATION=$((SMOKE_END - SMOKE_START))
+            echo "✅ Smoke test passed in ${SMOKE_DURATION}s - Draft PR validation complete"
+          else
+            echo "❌ Smoke test failed"
+            exit 1
+          fi
 
   # Summary and status reporting
   ci-complete:
@@ -235,19 +366,26 @@ jobs:
               const buildIcon = '${{ needs.build-core.result }}' === 'success' ? '✅' : '❌';
               const testIcon = '${{ needs.test-parallel.result }}' === 'success' ? '✅' : '❌';
 
-              // 간단한 템플릿 생성
+              // Cache optimization status
+              const cacheOptimization = '🚀 **Cache Optimized** (Cachix + multi-level GitHub Actions cache)';
               const efficiency = isDraft ? '⚡ **Ultra Fast** (smoke test only)' : '🚀 **Streamlined** (parallel execution)';
               const buildStatus = isDraft ? '⏭️ Skipped (draft)' : buildIcon + ' Core platforms';
               const testStatus = isDraft ? '⏭️ Skipped (draft)' : testIcon + ' Parallel execution';
-              const footer = isDraft ? '_💡 Mark as ready to run full CI pipeline_' : '_🎯 Optimized for speed: ~5-8 minutes total_';
+              const footer = isDraft ? '_💡 Mark as ready to run full CI pipeline_' : '_🎯 Cache-optimized: Target ~2-3 minutes total (50-70% faster)_';
 
-              const template = '## ' + statusIcon + ' Streamlined CI Results\n\n' +
+              const template = '## ' + statusIcon + ' Cache-Optimized CI Results\n\n' +
+                cacheOptimization + '\n' +
                 efficiency + '\n\n' +
                 '**Status**: ' + message + '\n\n' +
                 '**Pipeline Summary**:\n' +
                 '- **Validation**: ' + validationIcon + ' Lint & flake check\n' +
                 '- **Build**: ' + buildStatus + '\n' +
                 '- **Tests**: ' + testStatus + '\n\n' +
+                '**Cache Performance**:\n' +
+                '- Cachix integration for shared Nix store\n' +
+                '- Multi-level GitHub Actions cache\n' +
+                '- Platform-specific cache optimization\n' +
+                '- Granular cache keys for maximum efficiency\n\n' +
                 footer;
 
               // 기존 코멘트 찾기 및 업데이트
@@ -258,7 +396,7 @@ jobs:
               });
 
               const existingComment = comments.find(comment =>
-                comment.user.type === 'Bot' && comment.body.includes('Streamlined CI Results')
+                comment.user.type === 'Bot' && (comment.body.includes('Streamlined CI Results') || comment.body.includes('Cache-Optimized CI Results'))
               );
 
               if (existingComment) {

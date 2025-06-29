@@ -42,19 +42,30 @@ jobs:
           extra_nix_config: |
             max-jobs = auto
             cores = 0
-            substituters = https://cache.nixos.org https://nix-community.cachix.org
-            trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
+            substituters = https://cache.nixos.org https://nix-community.cachix.org https://dotfiles-nix.cachix.org
+            trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= dotfiles-nix.cachix.org-1:oGA3+IujM7OxnTwxdKuJLPE1J6REd6tIjJ5+r5CzHBs=
+            experimental-features = nix-command flakes
+            keep-outputs = true
+            keep-derivations = true
 
-      - name: Cache Nix store
+      - name: Setup Cachix
+        uses: cachix/cachix-action@v14
+        with:
+          name: dotfiles-nix
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+          pushFilter: (-source$|nixpkgs\.tar\.gz$)
+
+      - name: Optimized Nix cache for auto-update
         uses: actions/cache@v4
         with:
           path: |
             /nix/store
             ~/.cache/nix
-          key: ${{ runner.os }}-auto-update-nix-${{ hashFiles('flake.lock') }}
+          key: v2-auto-update-${{ runner.os }}-${{ hashFiles('flake.lock') }}
           restore-keys: |
-            ${{ runner.os }}-auto-update-nix-
-            ${{ runner.os }}-nix-
+            v2-auto-update-${{ runner.os }}-
+            v2-validate-${{ runner.os }}-
+            v2-build-x86_64-linux-
 
       - name: Configure Git for updates
         run: |
