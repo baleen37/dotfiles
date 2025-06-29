@@ -104,7 +104,7 @@ jobs:
             validate-nix-
 
       - name: Build configuration
-        timeout-minutes: 20
+        timeout-minutes: 30
         run: |
           export USER=ci
           echo "🏗️ Building ${{ matrix.name }} (${{ matrix.system }}) - Type: ${{ matrix.build_type }}"
