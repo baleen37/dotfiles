@@ -2,16 +2,19 @@
 
 let
   lib = pkgs.lib;
+  portablePaths = import ../lib/portable-paths.nix { inherit pkgs; };
 
   # Create a test configuration that simulates the real environment
   testUser = "integrationtest";
-  testUserHome = "/tmp/integration-test-${testUser}";
+  # Use portable temp directory for test home
+  testUserHome = "TEST_HOME_PLACEHOLDER";
 
   # Import modules for testing
+  # Note: Module will be tested with dynamic home directory set by portable paths
   filesModule = import ../../modules/shared/files.nix {
     inherit lib pkgs;
     config = {
-      users.users.${testUser}.home = testUserHome;
+      users.users.${testUser}.home = testUserHome; # Will be overridden by $HOME at runtime
     };
     user = testUser;
     self = src;
@@ -20,8 +23,8 @@ let
   # Create a mock darwin configuration
   darwinConfig = {
     config = {
-      home.homeDirectory = testUserHome;
-      users.users.${testUser}.home = testUserHome;
+      home.homeDirectory = testUserHome; # Will be overridden by $HOME at runtime
+      users.users.${testUser}.home = testUserHome; # Will be overridden by $HOME at runtime
     };
     lib = lib;
   };
@@ -32,14 +35,16 @@ let
 
     echo "=== Claude Configuration Integration Test ==="
 
+    # Set up portable test environment
+    ${portablePaths.getTestHome}
+
     # Create test environment
-    TEST_HOME="${testUserHome}"
-    mkdir -p "$TEST_HOME/.claude/commands"
+    ${pkgs.coreutils}/bin/mkdir -p "$HOME/.claude/commands"
 
     # Simulate existing configuration files
-    echo '{"model": "old-model"}' > "$TEST_HOME/.claude/settings.json"
-    echo "# Old CLAUDE.md content" > "$TEST_HOME/.claude/CLAUDE.md"
-    echo "# Old command" > "$TEST_HOME/.claude/commands/old-command.md"
+    echo '{"model": "old-model"}' > "$HOME/.claude/settings.json"
+    echo "# Old CLAUDE.md content" > "$HOME/.claude/CLAUDE.md"
+    echo "# Old command" > "$HOME/.claude/commands/old-command.md"
 
     echo "Created existing configuration files..."
 

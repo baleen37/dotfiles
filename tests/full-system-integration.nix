@@ -33,9 +33,9 @@ let
 
 in
 pkgs.runCommand "full-system-integration-test" { } ''
+  # Set up portable test environment
+  ${(import ./lib/portable-paths.nix { inherit pkgs; }).getTestHome}
   export USER=testuser
-  export HOME=/tmp/test-home
-  mkdir -p $HOME
 
   echo "=== Full System Integration Test ==="
 

@@ -29,12 +29,12 @@ pkgs.runCommand "build-switch-auto-update-e2e-test"
     outputs = { self, nixpkgs, ... }: {
       apps.aarch64-darwin.build-switch = {
         type = "app";
-        program = "/bin/echo";
+        program = "${(import ../lib/portable-paths.nix { inherit pkgs; }).getSystemBinary "echo"}";
       };
 
       apps.x86_64-linux.build-switch = {
         type = "app";
-        program = "/bin/echo";
+        program = "${(import ../lib/portable-paths.nix { inherit pkgs; }).getSystemBinary "echo"}";
       };
     };
   }
@@ -59,8 +59,11 @@ pkgs.runCommand "build-switch-auto-update-e2e-test"
   #!/bin/bash
   # Mock build-switch for testing
   echo "Running build-switch for $(uname -m)-$(uname -s | tr '[:upper:]' '[:lower:]')"
-  touch /tmp/build_switch_result
-  echo "MOCK_BUILD_SWITCH_SUCCESS" | tee /tmp/build_switch_result
+
+  # Use portable temp directory (should be set by parent environment)
+  BUILD_RESULT_FILE="$TEST_TEMP_DIR/build_switch_result"
+  ${(import ../lib/portable-paths.nix { inherit pkgs; }).getSystemBinary "touch"} "$BUILD_RESULT_FILE"
+  echo "MOCK_BUILD_SWITCH_SUCCESS" | ${(import ../lib/portable-paths.nix { inherit pkgs; }).getSystemBinary "tee"} "$BUILD_RESULT_FILE"
   echo "Build completed successfully"
   MOCK_EOF
     chmod +x "$TEST_REPO/.test/mock-build-switch.sh"
@@ -68,7 +71,8 @@ pkgs.runCommand "build-switch-auto-update-e2e-test"
     # Test successful build-switch execution
     cd "$TEST_REPO"
     if "$TEST_REPO/.test/mock-build-switch.sh" >/dev/null 2>&1; then
-      if [ -f "/tmp/build_switch_result" ] && grep -q "MOCK_BUILD_SWITCH_SUCCESS" /tmp/build_switch_result; then
+      BUILD_RESULT_FILE="$TEST_TEMP_DIR/build_switch_result"
+      if [ -f "$BUILD_RESULT_FILE" ] && ${pkgs.gnugrep}/bin/grep -q "MOCK_BUILD_SWITCH_SUCCESS" "$BUILD_RESULT_FILE"; then
         echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Mock build-switch 실행 성공"
       else
         echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} Mock build-switch 실행 성공"
@@ -80,7 +84,7 @@ pkgs.runCommand "build-switch-auto-update-e2e-test"
     fi
 
     # Clean up
-    rm -f /tmp/build_switch_result
+    ${pkgs.coreutils}/bin/rm -f "$TEST_TEMP_DIR/build_switch_result"
 
     # Test 2: 권한 오류 시나리오
     ${testHelpers.testSubsection "권한 오류 시나리오"}
@@ -296,8 +300,8 @@ pkgs.runCommand "build-switch-auto-update-e2e-test"
 
     # Clean up test directories
     cd "$HOME"
-    rm -rf "$TEST_REPO" "$NON_GIT_DIR"
-    rm -f /tmp/build_switch_result
+    ${pkgs.coreutils}/bin/rm -rf "$TEST_REPO" "$NON_GIT_DIR"
+    ${pkgs.coreutils}/bin/rm -f "$TEST_TEMP_DIR/build_switch_result"
 
     echo ""
     echo "${testHelpers.colors.blue}=== Test Results: Build-Switch Auto-Update E2E Tests ===${testHelpers.colors.reset}"

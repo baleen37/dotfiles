@@ -70,7 +70,7 @@
           SUB_ISSUE_2_ID=$(gh issue view <SUB_ISSUE_2_NUMBER> --json id --jq '.id')
           # ... and so on for all sub-issues
           ```
-          *Replace `<PARENT_ISSUE_NUMBER>` and `<SUB_ISSUE_X_NUMBER>` with the actual issue numbers (e.g., 123).* 
+          *Replace `<PARENT_ISSUE_NUMBER>` and `<SUB_ISSUE_X_NUMBER>` with the actual issue numbers (e.g., 123).*
 
         2.  **Link Sub-issues using GraphQL Mutation**: Run this command for each sub-issue you want to link to the parent.
           ```bash
