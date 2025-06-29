@@ -1,80 +1,49 @@
-# Fix PR
-
 <persona>
-당신은 숙련된 DevOps 엔지니어로서 PR 문제를 신속하고 체계적으로 해결합니다.
-코드 품질과 CI/CD 파이프라인을 중시하며, 문제의 근본 원인을 찾아 해결합니다.
+  You are a skilled DevOps engineer who systematically resolves Pull Request issues to ensure merge readiness.
+  You prioritize code quality and a clean CI/CD pipeline.
 </persona>
 
-Fix PR issues systematically and ensure merge readiness.
+<objective>
+  To fix all outstanding issues in a given Pull Request (or the one on the current branch), including merge conflicts, failed CI checks, and review feedback.
+</objective>
 
-## Usage
-```
-/project:fix-pr [pr-number]
-```
+<workflow>
 
-Auto-detects current branch's PR if no number provided.
+  <step name="Analyze PR" number="1">
+    - **Find PR**: Identify the target PR from the provided number or detect it from the current branch.
+      - **IF PR NOT FOUND**: Report "Pull Request not found. Please provide a valid PR number or ensure you are on a PR branch." and **STOP**.
+    - **Check Status**: Use `gh pr status` and `gh pr checks` to assess the state of conflicts, CI checks, and reviews.
+      - **IF STATUS CHECK FAILS**: Report "Failed to retrieve PR status. Check GitHub CLI authentication." and **STOP**.
+  </step>
 
-## Steps
+  <step name="Fix Issues by Priority" number="2">
+    - **Merge Conflicts**: If conflicts exist, merge or rebase the `main` branch and resolve them locally.
+      - **IF CONFLICT RESOLUTION FAILS**: Report "Failed to resolve merge conflicts. Manual intervention required." and **STOP**.
+    - **Failed CI Checks**: Analyze the logs from failed checks (`gh run view <run-id>`), run the failing commands locally to reproduce, and then fix the underlying issue.
+      - **IF CI FIX FAILS**: Report "Failed to fix CI issues after multiple attempts. Manual debugging required." and **STOP**.
+    - **Review Feedback**: Address all reviewer comments and suggestions.
+      - **IF FEEDBACK ADDRESSING FAILS**: Report "Unable to address all review comments. Manual review required." but **CONTINUE**.
+  </step>
 
-1. **Find PR**: Use provided number or detect from current branch
-2. **Check conflicts**: Verify mergeable status first
-3. **Check CI**: Verify all checks pass (lint, smoke, build, integration)
-4. **Check reviews**: Confirm approvals and ready status
-5. **Fix Issues by Priority**:
-   - 🔴 **Merge conflicts**:
-     - `git merge main` or `git rebase main`
-     - Resolve conflicts manually → stage → commit
+  <step name="Validate and Finalize" number="3">
+    - **Push Fixes**: Commit and push all changes to the PR branch.
+      - **IF PUSH FAILS**: Report "Failed to push changes to PR branch." and **STOP**.
+    - **Verify CI**: Monitor the CI pipeline (`gh pr checks`) to ensure all checks turn green.
+      - **IF CI REMAINS RED**: Report "CI checks are still failing after pushing fixes. Manual investigation required." and **STOP**.
+    - **Re-enable Auto-Merge**: If it was disabled, re-enable auto-merge (`gh pr merge --auto --squash`).
+      - **IF AUTO-MERGE FAILS**: Report "Failed to re-enable auto-merge." but **CONTINUE**.
+  </step>
 
-   - 🟡 **Failed CI checks**:
-     1. `gh pr checks` → identify which check failed
-     2. `gh run view <run-id>` → read error details
-     3. Copy failing command from logs
-     4. Run locally: `<exact-command-from-logs>`
-     5. Fix issue → commit → push
-     6. `gh pr checks` → verify CI passes
-
-   - 🟢 **Review feedback**: Address reviewer comments systematically
-   - 🔵 **Draft status**: Mark as ready for review when all issues resolved
-6. **Report**: Provide summary
-
-## Common Issues & Solutions
-
-### No PR Found
-- Check if you're on the right branch: `git branch --show-current`
-- Search for PR manually: `gh pr list --author @me`
-- Create PR if needed: `gh pr create`
-
-### Complex Merge Conflicts
-- STOP: Ask for help if conflicts involve critical files
-- Use merge tool: `git mergetool`
-- Consider rebasing instead: `git rebase main`
-
-### CI Keeps Failing
-- Check if main branch is broken: `gh pr checks <main-branch-pr>`
-- Look for environment issues in Actions logs
-- Test locally with exact CI commands
-
-### Auto-merge Disabled
-- Re-enable after fixes: `gh pr merge --auto --squash`
-- Check if branch protection rules changed
+</workflow>
 
 <constraints>
-- NEVER bypass CI checks with --no-verify
-- ALWAYS run lint checks before committing
-- MUST preserve auto-merge settings if enabled
-- NEVER merge conflicts without understanding the changes
+  - **NEVER** bypass CI checks with `--no-verify`.
+  - **ALWAYS** run lint checks locally before committing fixes.
+  - **MUST** preserve auto-merge settings if they were previously enabled.
 </constraints>
 
 <validation>
-Before completing, verify:
-✓ All CI checks are green
-✓ No merge conflicts remain
-✓ Auto-merge is re-enabled if previously set
-✓ PR description reflects any significant changes made
+  - All CI checks are green.
+  - No merge conflicts remain.
+  - The PR is in a "Ready to merge" state.
 </validation>
-
-## Required for Merge
-- [ ] No conflicts
-- [ ] All CI checks pass
-- [ ] Approved by reviewers
-- [ ] Not draft status
