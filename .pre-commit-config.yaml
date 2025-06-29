@@ -31,7 +31,7 @@ repos:
       # Comprehensive flake validation (skip if nix not available)
       - id: nix-flake-check
         name: Nix Flake Check
-        entry: bash -c 'if command -v nix >/dev/null 2>&1; then export USER=${USER:-$(whoami)} && nix flake check --impure --all-systems --no-build; else echo "Nix not available, skipping flake check"; fi'
+        entry: bash -c 'if command -v nix >/dev/null 2>&1; then USER=$(whoami) nix flake check --impure --all-systems --no-build; else echo "Nix not available, skipping flake check"; fi'
         language: system
         files: \\.nix$
         pass_filenames: false
@@ -62,7 +62,7 @@ repos:
       # Run quick tests when .nix files change
       - id: test-quick
         name: Quick Test Suite
-        entry: bash -c 'export USER=${USER:-$(whoami)} && echo "Running quick test suite..." && nix run --impure .#test-smoke'
+        entry: bash -c 'USER=$(whoami) nix run --impure .#test-smoke'
         language: system
         files: '\.nix$'
         pass_filenames: false
@@ -70,7 +70,7 @@ repos:
       # Run full test suite (optional, can be enabled for pre-push)
       - id: test-full
         name: Full Test Suite
-        entry: bash -c 'export USER=${USER:-$(whoami)} && echo "Running full test suite..." && nix run --impure .#test'
+        entry: bash -c 'USER=$(whoami) nix run --impure .#test'
         language: system
         pass_filenames: false
         stages: [pre-push]
