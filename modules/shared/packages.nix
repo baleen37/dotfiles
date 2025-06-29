@@ -1,52 +1,70 @@
 { pkgs }:
 
-with pkgs; [
-  # General packages for development and system management
-  wget
-  zip
+with pkgs; let
+  # Core system utilities - essential tools for basic system operations
+  coreSystemTools = [
+    wget          # HTTP/FTP download utility
+    zip           # Archive creation utility
+    unzip         # Archive extraction utility
+    unrar         # RAR archive extraction
+    tree          # Directory structure visualization
+  ];
 
-  # Cloud-related tools and SDKs
-  docker
-  docker-compose
-  act
-  gh
+  # Terminal and text processing utilities
+  terminalUtilities = [
+    htop          # Interactive process viewer
+    jq            # JSON processor and query tool
+    ripgrep       # Fast text search tool (rg command)
+    tmux          # Terminal multiplexer for session management
+    fzf           # Fuzzy finder for files and commands
+    zsh-powerlevel10k  # Enhanced Zsh prompt theme
+  ];
 
-  # Infrastructure as Code
-  # tfenv              # Terraform version manager (from tfenv-nix flake) - temporarily disabled due to API rate limit
-  terraform          # Infrastructure as Code tool
-  terraform-ls       # Terraform Language Server
-  terragrunt         # Terraform wrapper for DRY configurations
-  tflint             # Terraform linter
+  # Development tools and programming languages
+  developmentTools = [
+    nodejs_22     # JavaScript runtime (LTS version)
+    python3       # Python programming language
+    python3Packages.pipx  # Install Python applications in isolated environments
+    virtualenv    # Python virtual environment tool
+    uv            # Fast Python package installer
+    direnv        # Environment variable management per directory
+    pre-commit    # Pre-commit hooks framework
+    claude-code   # Claude AI development assistant
+  ];
 
+  # Cloud and containerization tools
+  cloudTools = [
+    docker        # Container platform
+    docker-compose # Multi-container Docker application management
+    act           # Run GitHub Actions locally
+    gh            # GitHub CLI tool
+  ];
 
-  # Media-related packages
-  ffmpeg
+  # Infrastructure as Code (IaC) toolchain
+  infrastructureTools = [
+    # tfenv              # Terraform version manager (from tfenv-nix flake) - temporarily disabled due to API rate limit
+    terraform     # Infrastructure as Code tool
+    terraform-ls  # Terraform Language Server for IDE support
+    terragrunt    # Terraform wrapper for DRY configurations
+    tflint        # Terraform linter for best practices
+  ];
 
-  # Text and terminal utilities
-  htop
-  jq
-  ripgrep
-  tree
-  tmux
-  unrar
-  unzip
-  zsh-powerlevel10k
-  fzf
-
-  #nodejs
-  nodejs_22
+  # Media processing tools
+  mediaTools = [
+    ffmpeg        # Video/audio processing and conversion
+  ];
 
   # Terminal applications
-  wezterm
+  terminalApps = [
+    wezterm       # GPU-accelerated terminal emulator
+  ];
 
-  # Development tools
-  direnv
-  claude-code
-  pre-commit
-
-  # Python packages
-  python3
-  python3Packages.pipx
-  virtualenv
-  uv
-]
+in
+  # Combine all package categories
+  coreSystemTools
+  ++ terminalUtilities
+  ++ developmentTools
+  ++ cloudTools
+  ++ infrastructureTools
+  ++ mediaTools
+  ++ terminalApps
