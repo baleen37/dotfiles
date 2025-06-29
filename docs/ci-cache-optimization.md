@@ -11,7 +11,7 @@ This document outlines the comprehensive cache optimization strategy implemented
 #### Level 1: Cachix (Shared Nix Store)
 - **Purpose**: Shared binary cache across all workflows and external contributors
 - **Cache Name**: `dotfiles-nix`
-- **Benefits**: 
+- **Benefits**:
   - Cross-workflow cache sharing
   - External contributor cache hits
   - Reduced rebuild times for unchanged derivations
