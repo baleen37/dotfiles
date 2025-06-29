@@ -61,20 +61,20 @@
         4.  Paste the URLs of the **Sub-issues** you saved earlier.
 
     - **Option 3.2: Using `gh` CLI with GraphQL API (Advanced)**
-      - **Reason**: For users who prefer to stay in the terminal, this method uses the `gh api graphql` command to interact directly with GitHub's GraphQL API.
+      - **Reason**: For advanced users who prefer to stay entirely within the terminal, this method leverages the `gh api graphql` command to directly interact with GitHub's powerful GraphQL API. This allows for more granular control and automation of issue relationships, especially when the standard `gh` CLI commands do not offer direct support for specific features like linking sub-issues.
       - **Steps**:
-        1.  **Get `node_id` for Parent and Sub-issues**: You need the `node_id` for both the parent and each sub-issue. The `gh issue view` command can retrieve this.
+        1.  **Obtain `node_id`s for Parent and Sub-issues**: GitHub's GraphQL API identifies objects (like issues) using a unique `node_id` rather than their sequential issue number. You *must* retrieve the `node_id` for both your parent issue and each sub-issue you intend to link. The `gh issue view` command is used for this purpose, extracting the `id` field from its JSON output.
           ```bash
           PARENT_ID=$(gh issue view <PARENT_ISSUE_NUMBER> --json id --jq '.id')
           SUB_ISSUE_1_ID=$(gh issue view <SUB_ISSUE_1_NUMBER> --json id --jq '.id')
           SUB_ISSUE_2_ID=$(gh issue view <SUB_ISSUE_2_NUMBER> --json id --jq '.id')
-          # ... and so on for all sub-issues
+          # ... and so on for all sub-issues you created
           ```
-          *Replace `<PARENT_ISSUE_NUMBER>` and `<SUB_ISSUE_X_NUMBER>` with the actual issue numbers (e.g., 123).*
+          *Replace `<PARENT_ISSUE_NUMBER>` and `<SUB_ISSUE_X_NUMBER>` with the actual issue numbers (e.g., 123) that `gh issue create` returned.*
 
-        2.  **Link Sub-issues using GraphQL Mutation**: Run this command for each sub-issue you want to link to the parent.
+        2.  **Link Sub-issues using a GraphQL Mutation**: Once you have the `node_id`s, you can execute a GraphQL mutation to establish the parent-child relationship. You will run this command *for each sub-issue* you want to link to the parent. The `addSubIssue` mutation is specifically designed for this purpose.
           ```bash
-          # Example for linking SUB_ISSUE_1_ID to PARENT_ID
+          # Example: Linking SUB_ISSUE_1_ID to PARENT_ID
           gh api graphql -H "GraphQL-Features: issue_subissues" -f query='\
             mutation AddSubIssue($issueId: ID!, $subIssueId: ID!) {\
               addSubIssue(input: {\
@@ -90,7 +90,7 @@
               }\
             }' -f issueId="$PARENT_ID" -f subIssueId="$SUB_ISSUE_1_ID"
           ```
-          *Repeat the `gh api graphql` command for each sub-issue you want to link. This command has been verified to work.*
+          *Repeat the `gh api graphql` command for every sub-issue you need to link. This method directly manipulates the issue hierarchy via the API and has been verified to work.*
   </phase>
 
   <phase name="Verification" number="4">

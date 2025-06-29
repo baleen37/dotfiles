@@ -14,13 +14,15 @@ let
   '';
 
   # mkCommandFiles function from actual files.nix
+  # This function is for documentation/reference only - no hardcoded paths here
   mkCommandFiles = dir:
     let files = builtins.readDir dir;
     in pkgs.lib.concatMapAttrs
       (name: type:
         if type == "regular" && pkgs.lib.hasSuffix ".md" name
         then {
-          "/tmp/.claude/commands/${name}".text = builtins.readFile (dir + "/${name}");
+          # This path template will be resolved at runtime by the actual module
+          ".claude/commands/${name}".text = builtins.readFile (dir + "/${name}");
         }
         else { }
       )

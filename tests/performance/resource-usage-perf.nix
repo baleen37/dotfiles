@@ -35,10 +35,10 @@ pkgs.runCommand "resource-usage-perf-test"
 
     echo "${testHelpers.colors.blue}Measuring memory for: $description${testHelpers.colors.reset}"
 
-    # Simplified memory measurement that doesn't rely on complex parsing
-    if command -v /usr/bin/time >/dev/null 2>&1; then
+    # Simplified memory measurement using portable time command
+    if command -v ${(import ../lib/portable-paths.nix { inherit pkgs; }).getSystemBinary "time"} >/dev/null 2>&1; then
       # Run the command and capture basic metrics without complex parsing
-      if /usr/bin/time -l sh -c "$cmd" >/dev/null 2>&1; then
+      if ${(import ../lib/portable-paths.nix { inherit pkgs; }).getSystemBinary "time"} -l sh -c "$cmd" >/dev/null 2>&1; then
         # Assume reasonable memory usage for CI stability
         echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} $description completed successfully"
         echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Memory usage within acceptable limits"

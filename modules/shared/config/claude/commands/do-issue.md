@@ -11,12 +11,22 @@
 
   <step name="Analysis & Planning" number="1">
     - **Understand the Issue**: Use `gh issue view $ISSUE_NUMBER --json title,body,state,labels,assignees,subIssues` to get the full context.
-      - **IF ISSUE VIEW FAILS**: Report the specific `gh` CLI error (e.g., "Failed to fetch issue details.") and **STOP**.
+      - **IF ISSUE VIEW FAILS**: Report the specific `gh` CLI error (e.g., "Failed to fetch issue details. Ensure the issue number is correct and you have network access.") and **STOP**.
     - **Determine Issue Type**:
+      - **Agent's Understanding**: Clearly state whether the issue is identified as a parent, sub-issue, or regular issue.
       - **IF** the issue has `subIssues` (i.e., it's a Parent/Epic issue):
-        - **Action**: Inform the user that this is a parent issue. List its open sub-issues and ask the user to select one to work on.
-        - **Example Prompt**: "This is a parent issue. You should work on its sub-issues. Here are the open sub-issues:\n[list sub-issues with their titles and numbers]\nPlease re-run `do-issue.md <SUB_ISSUE_NUMBER>` to start working on a specific task."
-        - **STOP**: Wait for the user to provide a sub-issue number.
+        - **Action**: Inform the user that this is a parent issue.
+        - **IF** there are open sub-issues:
+          - List its open sub-issues.
+          - **IF** only one open sub-issue: Suggest working on it and ask for confirmation.
+          - **ELSE**: Ask the user to select one to work on.
+          - **Example Prompt (Multiple Sub-issues)**: "This is a parent issue. You should work on its sub-issues. Here are the open sub-issues:\n[list sub-issues with their titles and numbers]\nPlease re-run `do-issue.md <SUB_ISSUE_NUMBER>` to start working on a specific task."
+          - **Example Prompt (Single Sub-issue)**: "This is a parent issue with one open sub-issue: [sub-issue title and number]. Would you like me to proceed with this sub-issue? If so, I will re-run `do-issue.md <SUB_ISSUE_NUMBER>`."
+          - **STOP**: Wait for the user's decision.
+        - **ELSE** (no open sub-issues for a parent issue):
+          - **Action**: Inform the user that this parent issue has no open sub-issues.
+          - **Example Prompt**: "This is a parent issue, but it has no open sub-issues. What would you like to do? (e.g., close this parent issue, create new sub-issues, etc.)"
+          - **STOP**: Wait for the user's instruction.
       - **ELSE** (it's a regular issue or a sub-issue):
         - **Action**: Proceed with the current issue.
         - **Context**: If this issue is a sub-issue (check if it has a parent link, though `gh issue view` doesn't directly show parent links easily), suggest viewing its parent for broader context. (This might be too complex to implement reliably within the current tool constraints, so let's stick to simpler checks for now).
