@@ -15,7 +15,7 @@
   <step name="Analysis & Planning" number="1">
     - **Understand the Issue**: Use `gh issue view $ISSUE_NUMBER --json title,body,state,labels,assignees,subIssues` to get the full context.
       - **IF ISSUE VIEW FAILS**: Report the specific `gh` CLI error (e.g., "Failed to fetch issue details.") and **STOP**.
-    - **Determine Issue Type**: 
+    - **Determine Issue Type**:
       - **IF** the issue has `subIssues` (i.e., it's a Parent/Epic issue):
         - **Action**: Inform the user that this is a parent issue. List its open sub-issues and ask the user to select one to work on.
         - **Example Prompt**: "This is a parent issue. You should work on its sub-issues. Here are the open sub-issues:\n[list sub-issues with their titles and numbers]\nPlease re-run `do-issue.md <SUB_ISSUE_NUMBER>` to start working on a specific task."
