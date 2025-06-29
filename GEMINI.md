@@ -12,7 +12,7 @@ This file helps Gemini-powered agents understand the project's context, conventi
 
 ## Important Commands
 
-*(List the common commands used for development, testing, and building the project. This helps the agent automate and verify its work.)*
+*(List the common commands used for development, testing, building, and **any project-specific commands for managing issues or tasks (e.g., creating, linking, or querying sub-issues)**. This helps the agent automate and verify its work.)*
 
 - **Build:** `your-build-command`
 - **Test:** `your-test-command`
