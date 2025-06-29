@@ -47,6 +47,6 @@ temp/
 
 # Application binaries
 ssulmeta-api
-cli
+/cli
 pipeline-test
-test
+/test
