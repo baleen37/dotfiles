@@ -24,6 +24,20 @@
     - **IF ANALYSIS FAILS**: Report "Code analysis failed. Please check the provided code." and **STOP**.
   3. Prioritize issues by severity: Critical → High → Medium → Low.
   4. Create specific, actionable GitHub issues.
+    - **Issue Creation Strategy**: Choose the most appropriate method for structuring the issue(s):
+      - **Option 4.1: Single Issue**: For isolated, self-contained problems.
+        - **Action**: Create a single GitHub issue using `gh issue create`.
+        ```bash
+        gh issue create --title "[Bug] Fix NRE in UserProfileService" --body "..." --label "bug,backend" --assignee "@me"
+        ```
+      - **Option 4.2: Parent/Sub-issue Hierarchy**: For larger problems that can be broken down into smaller, trackable sub-tasks.
+        - **Action**: Create a parent issue and then create sub-issues linked to it. Refer to `~/.claude/commands/create-plan-gh.md` for detailed guidance on using `gh` CLI and GitHub UI to establish this hierarchy.
+        - **Reference**: See `~/.claude/commands/create-plan-gh.md` for full instructions.
+      - **Option 4.3: Checklist within an Issue**: For a small set of related tasks that don't warrant separate issues.
+        - **Action**: Create a single issue and include a Markdown checklist in its body.
+        ```bash
+        gh issue create --title "[Refactor] Improve data validation" --body "Refactor data validation logic.\n\n- [ ] Validate email format\n- [ ] Sanitize user input\n- [ ] Add unit tests for validation" --label "refactor" --assignee "@me"
+        ```
     - **IF ISSUE CREATION FAILS**: Report "Failed to create GitHub issue. Check GitHub CLI authentication or repository permissions." and **STOP**.
   5. Check for duplicate issues before creating.
     - **IF DUPLICATE FOUND**: Report "Duplicate issue found. Skipping creation." and **CONTINUE** to next issue or **STOP** if no more issues.

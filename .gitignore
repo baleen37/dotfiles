@@ -33,3 +33,4 @@ tasks/
 # Claude Code (local only)
 CLAUDE.local.md
 .claude/settings.local.json
+.gemini_temp/
