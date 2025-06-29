@@ -66,7 +66,7 @@ let
       '';
     };
 
-    # Run integration tests (alias for test-workflow) 
+    # Run integration tests (alias for test-workflow)
     "test-integration" = mkTestApp {
       name = "test-integration";
       inherit system;
