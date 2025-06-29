@@ -1,4 +1,4 @@
-{ pkgs, lib, src }:
+{ pkgs, lib, src, flake ? null }:
 
 let
   # Test for code duplication and structure issues in flake.nix

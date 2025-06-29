@@ -231,8 +231,15 @@ pkgs.runCommand "network-dependencies-integration-test"
 
   SECURITY_ISSUES=0
   for pattern in "''${PROBLEMATIC_PATTERNS[@]}"; do
-    if grep -ri "$pattern" . 2>/dev/null | grep -v "\.git" | grep -v "test" | head -1; then
+    # Search for patterns but exclude test files and this file itself
+    FOUND=$(find . -type f \( -name "*.nix" -o -name "*.md" -o -name "*.sh" \) \
+            ! -path "./tests/*" \
+            ! -path "./.git/*" \
+            -exec grep -l "$pattern" {} \; 2>/dev/null)
+
+    if [ -n "$FOUND" ]; then
       echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} Potential security issue: $pattern"
+      echo "Found in: $FOUND"
       SECURITY_ISSUES=$((SECURITY_ISSUES + 1))
     fi
   done

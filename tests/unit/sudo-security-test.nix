@@ -1,4 +1,4 @@
-{ pkgs, lib, src }:
+{ pkgs, lib, src, flake ? null }:
 
 let
   # Test for sudo security issues in build-switch scripts

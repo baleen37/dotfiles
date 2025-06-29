@@ -1,4 +1,4 @@
-{ pkgs, lib, src }:
+{ pkgs, lib, src, flake ? null }:
 
 let
   # Test for SSH key validation and security in copy-keys script

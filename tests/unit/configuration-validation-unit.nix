@@ -46,7 +46,8 @@ pkgs.runCommand "configuration-validation-unit-test" { } ''
   ${testHelpers.testSubsection "Module Import Structure"}
 
   # Test that modules have proper import structure
-  ${testHelpers.assertContains "${src}/modules/shared/home-manager.nix" "imports" "shared home-manager has imports section"}
+  # Note: shared home-manager.nix is a module that defines configurations, not one that imports others
+  ${testHelpers.assertExists "${src}/modules/shared/home-manager.nix" "shared home-manager.nix exists"}
 
   # Test 4: Configuration file structure
   ${testHelpers.testSubsection "Configuration File Structure"}

@@ -30,25 +30,27 @@ pkgs.runCommand "build-switch-improved-integration-test"
   ${testHelpers.assertContains "${buildSwitchScript}" "FLAKE_SYSTEM=" "flake system variable defined"}
   ${testHelpers.assertContains "${buildSwitchScript}" "NIXPKGS_ALLOW_UNFREE=1" "unfree packages enabled"}
 
-  # Test 4: Function definitions
-  ${testHelpers.testSubsection "Function Definitions"}
+  # Test 4: Common script integration
+  ${testHelpers.testSubsection "Common Script Integration"}
 
-  ${testHelpers.assertContains "${buildSwitchScript}" "print_step()" "print_step function defined"}
-  ${testHelpers.assertContains "${buildSwitchScript}" "print_success()" "print_success function defined"}
-  ${testHelpers.assertContains "${buildSwitchScript}" "print_error()" "print_error function defined"}
-  ${testHelpers.assertContains "${buildSwitchScript}" "show_progress()" "show_progress function defined"}
+  COMMON_SCRIPT="${src}/scripts/build-switch-common.sh"
+  ${testHelpers.assertExists "$COMMON_SCRIPT" "common build-switch script exists"}
+  ${testHelpers.assertContains "$COMMON_SCRIPT" "log_step()" "log_step function defined"}
+  ${testHelpers.assertContains "$COMMON_SCRIPT" "log_success()" "log_success function defined"}
+  ${testHelpers.assertContains "$COMMON_SCRIPT" "log_error()" "log_error function defined"}
+  ${testHelpers.assertContains "$COMMON_SCRIPT" "execute_build_switch()" "execute_build_switch function defined"}
 
   # Test 5: Build process integration
   ${testHelpers.testSubsection "Build Process Integration"}
 
-  ${testHelpers.assertContains "${buildSwitchScript}" "nix.*build.*--impure" "nix build command present"}
-  ${testHelpers.assertContains "${buildSwitchScript}" "darwin-rebuild.*switch" "darwin-rebuild command present"}
-  ${testHelpers.assertContains "${buildSwitchScript}" "sudo.*USER=" "sudo with USER variable"}
+  ${testHelpers.assertContains "$COMMON_SCRIPT" "nix.*build.*--impure" "nix build command present"}
+  ${testHelpers.assertContains "$COMMON_SCRIPT" "sudo.*USER=" "sudo with USER variable"}
+  ${testHelpers.assertContains "${buildSwitchScript}" "REBUILD_COMMAND=" "rebuild command variable defined"}
 
   # Test 6: Cleanup integration
   ${testHelpers.testSubsection "Cleanup Integration"}
 
-  ${testHelpers.assertContains "${buildSwitchScript}" "unlink.*result" "result cleanup command"}
+  ${testHelpers.assertContains "$COMMON_SCRIPT" "unlink.*result" "result cleanup command"}
 
   ${testHelpers.cleanup}
 

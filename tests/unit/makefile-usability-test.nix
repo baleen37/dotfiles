@@ -1,4 +1,4 @@
-{ pkgs, lib, src }:
+{ pkgs, lib, src, flake ? null }:
 
 let
   # Test for Makefile usability improvements (USER auto-detection)
