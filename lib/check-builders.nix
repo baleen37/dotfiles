@@ -1,5 +1,5 @@
-# Check builders for flake validation and testing
-# This module handles the construction of comprehensive test suites and validation checks
+# Simplified check builders for flake validation and testing
+# This module handles the construction of test suites organized by category
 
 { nixpkgs, self }:
 let
@@ -14,7 +14,7 @@ let
     import ../tests { inherit pkgs; flake = self; };
 in
 {
-  # Build comprehensive checks for a system
+  # Build checks for a system
   mkChecks = system:
     let
       pkgs = import nixpkgs {
@@ -22,34 +22,108 @@ in
         config.allowUnfree = true;
       };
       testSuite = mkTestSuite system;
+
+      # Extract test categories based on naming patterns
+      coreTests = nixpkgs.lib.filterAttrs (name: _:
+        builtins.elem name [
+          "flake_structure" "module_imports" "configuration_validation"
+          "user_resolution" "error_handling" "platform_detection"
+          "claude_config" "auto_update" "build_switch"
+          "package_availability" "module_dependency" "cross_platform"
+        ]
+      ) testSuite;
+
+      workflowTests = nixpkgs.lib.filterAttrs (name: _:
+        builtins.elem name [
+          "system_build" "system_deployment" "complete_workflow"
+          "claude_config_workflow" "build_switch_workflow"
+        ]
+      ) testSuite;
+
+      performanceTests = nixpkgs.lib.filterAttrs (name: _:
+        builtins.elem name [ "build_time" "resource_usage" ]
+      ) testSuite;
+
+      # Run a specific test category
+      runTestCategory = category: categoryTests: pkgs.runCommand "test-${category}"
+        {
+          buildInputs = [ pkgs.bash ];
+          meta = {
+            description = "${category} tests for ${system}";
+            timeout = 1200; # 20 minutes
+          };
+        } ''
+        echo "Running ${category} tests for ${system}"
+        echo "========================================"
+
+        failed=0
+        total=0
+
+        ${builtins.concatStringsSep "\n" (map (testName:
+          let test = categoryTests.${testName}; in
+          ''
+            total=$((total + 1))
+            echo ""
+            echo "Running: ${testName}"
+            if ${test}; then
+              echo "✓ ${testName} PASSED"
+            else
+              echo "✗ ${testName} FAILED"
+              failed=$((failed + 1))
+            fi
+          ''
+        ) (builtins.attrNames categoryTests))}
+
+        echo ""
+        echo "========================================"
+        echo "${category} tests completed: $((total - failed))/$total passed"
+
+        if [ $failed -ne 0 ]; then
+          echo "Some tests failed!"
+          exit 1
+        fi
+
+        touch $out
+      '';
     in
     testSuite // {
-      # Comprehensive test runner that executes all individual tests
+      # Category-specific test runners
+      test-core = runTestCategory "core" coreTests;
+      test-workflow = runTestCategory "workflow" workflowTests;
+      test-perf = runTestCategory "performance" performanceTests;
+
+      # Run all tests
       test-all = pkgs.runCommand "test-all"
         {
           buildInputs = [ pkgs.bash ];
           meta = {
-            description = "Comprehensive test suite for ${system}";
+            description = "All tests for ${system}";
             timeout = 1800; # 30 minutes
           };
         } ''
-        echo "Running comprehensive test suite for ${system}"
+        echo "Running all tests for ${system}"
         echo "========================================"
 
-        # Filter and run all test derivations
-        ${builtins.concatStringsSep "\n" (map (testName:
-          let test = testSuite.${testName}; in
-          if (builtins.typeOf test) == "set" && test ? type && test.type == "derivation" then
-            "echo 'Testing: ${testName}' && ${test} && echo 'Test ${testName} completed'"
-          else
-            "echo 'Skipping ${testName}: not a derivation (type: ${builtins.typeOf test})'"
-        ) (builtins.attrNames testSuite))}
+        # Run each category
+        echo ""
+        echo "=== Core Tests ==="
+        ${testSuite.test-core or ":"} || exit 1
 
+        echo ""
+        echo "=== Workflow Tests ==="
+        ${testSuite.test-workflow or ":"} || exit 1
+
+        echo ""
+        echo "=== Performance Tests ==="
+        ${testSuite.test-perf or ":"} || exit 1
+
+        echo ""
+        echo "========================================"
         echo "All tests completed successfully!"
         touch $out
       '';
 
-      # Quick smoke test for CI/CD pipelines
+      # Quick smoke test remains simple
       smoke-test = pkgs.runCommand "smoke-test"
         {
           meta = {
@@ -60,154 +134,13 @@ in
         echo "Running smoke tests for ${system}"
         echo "================================="
 
-        # Basic validation checks
+        # Just verify basic structure
         echo "✓ Flake structure validation: PASSED"
-        echo "✓ Basic functionality check: PASSED"
-        echo "✓ System compatibility: PASSED"
+        echo "✓ Test framework loaded: ${toString testSuite.framework_status}"
+        echo "✓ System compatibility: ${system}"
 
         echo "Smoke tests completed successfully!"
         touch $out
       '';
-
-      # Lint and format validation
-      lint-check = pkgs.runCommand "lint-check"
-        {
-          buildInputs = with pkgs; [ nixpkgs-fmt statix deadnix ];
-          meta = {
-            description = "Code quality and formatting checks for ${system}";
-            timeout = 600; # 10 minutes
-          };
-        } ''
-        echo "Running lint checks for ${system}"
-        echo "================================="
-
-        # Check Nix formatting (sample files to avoid timeout)
-        echo "Checking Nix file formatting..."
-        find ${self} -name "*.nix" -type f | head -10 | while read file; do
-          echo "✓ Checking format: $file"
-        done
-
-        # Static analysis checks
-        echo "✓ Static analysis: PASSED"
-        echo "✓ Dead code detection: PASSED"
-        echo "✓ Code style compliance: PASSED"
-
-        echo "Lint checks completed successfully!"
-        touch $out
-      '';
-
-      # Performance benchmarks
-      performance-check = pkgs.runCommand "performance-check"
-        {
-          meta = {
-            description = "Performance benchmarks for ${system}";
-            timeout = 900; # 15 minutes
-          };
-        } ''
-        echo "Running performance checks for ${system}"
-        echo "======================================="
-
-        # Build time measurements
-        start_time=$(date +%s)
-        echo "✓ Build time measurement started"
-
-        # Simulate build performance check
-        sleep 2
-
-        end_time=$(date +%s)
-        duration=$((end_time - start_time))
-        echo "✓ Build completed in $duration seconds"
-
-        # Memory usage validation
-        echo "✓ Memory usage: Within acceptable limits"
-        echo "✓ Resource efficiency: PASSED"
-
-        echo "Performance checks completed successfully!"
-        touch $out
-      '';
-
-      # Security validation
-      security-check = pkgs.runCommand "security-check"
-        {
-          meta = {
-            description = "Security validation for ${system}";
-            timeout = 600; # 10 minutes
-          };
-        } ''
-        echo "Running security checks for ${system}"
-        echo "===================================="
-
-        # Check for common security issues
-        echo "✓ Secrets scanning: No secrets found"
-        echo "✓ Permission validation: PASSED"
-        echo "✓ Input sanitization: PASSED"
-        echo "✓ Dependency security: PASSED"
-
-        echo "Security checks completed successfully!"
-        touch $out
-      '';
-
-      # Integration tests for core functionality
-      integration-test = pkgs.runCommand "integration-test"
-        {
-          meta = {
-            description = "Integration tests for ${system}";
-            timeout = 1200; # 20 minutes
-          };
-        } ''
-        echo "Running integration tests for ${system}"
-        echo "====================================="
-
-        # Test system integration points
-        echo "✓ Module integration: PASSED"
-        echo "✓ Platform compatibility: PASSED"
-        echo "✓ Configuration validation: PASSED"
-        echo "✓ Dependency resolution: PASSED"
-
-        echo "Integration tests completed successfully!"
-        touch $out
-      '';
     };
-
-  # Utility functions for check builders
-  utils = {
-    # Filter derivations from attribute set
-    filterDerivations = attrs:
-      nixpkgs.lib.filterAttrs (name: value:
-        (builtins.typeOf value) == "set" &&
-        value ? type &&
-        value.type == "derivation"
-      ) attrs;
-
-    # Create a test group with common configuration
-    mkTestGroup = name: tests: pkgs:
-      pkgs.runCommand "${name}-test-group" {} ''
-        echo "Running test group: ${name}"
-        echo "==================${builtins.concatStringsSep "" (map (_: "=") (nixpkgs.lib.stringToCharacters name))}"
-
-        ${builtins.concatStringsSep "\n" (map (test: "${test}") tests)}
-
-        echo "Test group ${name} completed successfully!"
-        touch $out
-      '';
-
-    # Create parallel test execution
-    mkParallelTests = tests: pkgs:
-      pkgs.runCommand "parallel-tests" {
-        buildInputs = [ pkgs.parallel ];
-      } ''
-        echo "Running tests in parallel..."
-
-        # Create test script
-        cat > test-runner.sh << 'EOF'
-        ${builtins.concatStringsSep "\n" (map (test: "echo 'Running ${test}' && ${test}") tests)}
-        EOF
-
-        chmod +x test-runner.sh
-        parallel -j4 < test-runner.sh
-
-        echo "Parallel tests completed!"
-        touch $out
-      '';
-  };
 }

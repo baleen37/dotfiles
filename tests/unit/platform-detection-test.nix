@@ -24,7 +24,7 @@ let
   testHelpers = import (src + "/tests/helpers/test-helpers.nix") { inherit pkgs; };
 
   # Current system information
-  currentSystem = builtins.currentSystem;
+  currentSystem = pkgs.system;
   systemParts = builtins.split "-" currentSystem;
   currentArch = builtins.elemAt systemParts 0;
   currentOS = builtins.elemAt systemParts 2;

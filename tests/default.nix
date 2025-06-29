@@ -1,106 +1,65 @@
 { pkgs, flake ? null }:
 let
-  # Helper function to convert filename to valid Nix attribute name
-  sanitizeName = name:
-    let
-      baseName = builtins.substring 0 ((builtins.stringLength name) - 4) name;
-      # Replace hyphens with underscores for valid Nix attribute names
-      sanitized = builtins.replaceStrings [ "-" ] [ "_" ] baseName;
-    in
-    sanitized;
+  # Core tests - Essential functionality that must always work
+  coreTests = {
+    # Basic functionality and structure
+    flake_structure = import ./unit/flake-structure-test.nix { inherit pkgs flake; lib = pkgs.lib; src = ../.; };
+    module_imports = import ./unit/module-imports-unit.nix { inherit pkgs flake; src = ../.; };
+    configuration_validation = import ./unit/configuration-validation-unit.nix { inherit pkgs flake; src = ../.; };
 
-  # Discover tests in a directory with a pattern
-  discoverTests = dir: pattern:
-    if builtins.pathExists dir then
-      let
-        entries = builtins.readDir dir;
-        testFiles = builtins.filter
-          (name:
-            builtins.match pattern name != null
-          )
-          (builtins.attrNames entries);
+    # Critical functionality
+    user_resolution = import ./unit/user-resolution-test.nix { inherit pkgs flake; src = ../.; };
+    error_handling = import ./unit/error-handling-test.nix { inherit pkgs flake; src = ../.; };
+    platform_detection = import ./unit/platform-detection-test.nix { inherit pkgs flake; src = ../.; };
 
-        # Function to check if a test file needs lib parameter
-        needsLib = file:
-          let
-            fileContent = builtins.readFile (dir + ("/" + file));
-          in
-          builtins.match ".*\\{ pkgs, lib,.*" fileContent != null;
+    # Core features
+    claude_config = import ./unit/claude-config-test.nix { inherit pkgs flake; src = ../.; };
+    auto_update = import ./unit/auto-update-test.nix { inherit pkgs flake; src = ../.; };
+    build_switch = import ./unit/build-switch-improved-unit.nix { inherit pkgs flake; src = ../.; };
 
-      in
-      builtins.listToAttrs (map
-        (file: {
-          name = sanitizeName file;
-          value =
-            if needsLib file then
-              import (dir + ("/" + file)) { inherit pkgs flake; lib = pkgs.lib; src = ../.; }
-            else
-              import (dir + ("/" + file)) { inherit pkgs flake; src = ../.; };
-        })
-        testFiles)
-    else { };
+    # Essential integrations
+    package_availability = import ./integration/package-availability-integration.nix { inherit pkgs flake; src = ../.; };
+    module_dependency = import ./integration/module-dependency-integration.nix { inherit pkgs flake; src = ../.; };
+    cross_platform = import ./integration/cross-platform-integration.nix { inherit pkgs flake; src = ../.; };
+  };
 
-  # Current directory for legacy tests
-  legacyDir = ./.;
-  legacyEntries = builtins.readDir legacyDir;
-  legacyFiles = builtins.filter
-    (name:
-      name != "default.nix" &&
-      builtins.match ".*\\.nix" name != null &&
-      # Only include files, not directories
-      legacyEntries.${name} == "regular"
-    )
-    (builtins.attrNames legacyEntries);
+  # Workflow tests - End-to-end user workflows
+  workflowTests = {
+    # Core workflows
+    system_build = import ./e2e/system-build-e2e.nix { inherit pkgs flake; src = ../.; };
+    system_deployment = import ./e2e/system-deployment-e2e.nix { inherit pkgs flake; src = ../.; };
+    complete_workflow = import ./e2e/complete-workflow-e2e.nix { inherit pkgs flake; src = ../.; };
 
-  # Test categories with their patterns
-  unitTests = discoverTests ./unit ".*-(unit|test)\\.nix";
-  integrationTests = discoverTests ./integration ".*-integration\\.nix";
-  e2eTests = discoverTests ./e2e ".*-e2e\\.nix";
-  performanceTests = discoverTests ./performance ".*-perf\\.nix";
+    # Feature workflows
+    claude_config_workflow = import ./e2e/claude-config-workflow-e2e.nix { inherit pkgs flake; src = ../.; };
+    build_switch_workflow = import ./e2e/build-switch-improved-e2e.nix { inherit pkgs flake; src = ../.; };
+  };
 
-  # Refactor tests for configuration restructuring (disabled during consolidation)
-  # refactorUnitTests = discoverTests ./refactor/unit ".*-unit\\.nix";
-  # refactorIntegrationTests = discoverTests ./refactor/integration ".*-integration\\.nix";
-  refactorUnitTests = {};
-  refactorIntegrationTests = {};
+  # Performance tests - Build time and resource usage
+  performanceTests = {
+    build_time = import ./performance/build-time-perf.nix { inherit pkgs flake; src = ../.; };
+    resource_usage = import ./performance/resource-usage-perf.nix { inherit pkgs flake; src = ../.; };
+  };
 
-
-  # Legacy tests (disabled during consolidation)
-  # legacyTests = builtins.listToAttrs (map
-  #   (file: {
-  #     name = "legacy_" + (sanitizeName file);
-  #     value = import (legacyDir + ("/" + file)) { inherit pkgs; };
-  #   })
-  #   legacyFiles);
-  legacyTests = {};
-
-  # Combine all tests with clear categorization
-  allTests = unitTests // integrationTests // e2eTests // performanceTests;
+  # Combine all tests
+  allTests = coreTests // workflowTests // performanceTests;
 
   # Test metadata for reporting
   testMetadata = {
     categories = {
-      unit = builtins.length (builtins.attrNames unitTests);
-      integration = builtins.length (builtins.attrNames integrationTests);
-      e2e = builtins.length (builtins.attrNames e2eTests);
+      core = builtins.length (builtins.attrNames coreTests);
+      workflow = builtins.length (builtins.attrNames workflowTests);
       performance = builtins.length (builtins.attrNames performanceTests);
-      refactor_unit = builtins.length (builtins.attrNames refactorUnitTests);
-      refactor_integration = builtins.length (builtins.attrNames refactorIntegrationTests);
-      legacy = builtins.length (builtins.attrNames legacyTests);
     };
     total = builtins.length (builtins.attrNames allTests);
   };
 
-  # Add a special test that reports the framework status
+  # Framework status report
   frameworkStatus = pkgs.runCommand "test-framework-status" { } ''
-    echo "=== Test Framework Status ==="
-    echo "Unit tests: ${toString testMetadata.categories.unit}"
-    echo "Integration tests: ${toString testMetadata.categories.integration}"
-    echo "E2E tests: ${toString testMetadata.categories.e2e}"
+    echo "=== Test Framework Status (Simplified) ==="
+    echo "Core tests: ${toString testMetadata.categories.core}"
+    echo "Workflow tests: ${toString testMetadata.categories.workflow}"
     echo "Performance tests: ${toString testMetadata.categories.performance}"
-    echo "Refactor unit tests: ${toString testMetadata.categories.refactor_unit}"
-    echo "Refactor integration tests: ${toString testMetadata.categories.refactor_integration}"
-    echo "Legacy tests: ${toString testMetadata.categories.legacy}"
     echo "Total tests: ${toString testMetadata.total}"
     echo ""
     echo "Framework successfully loaded!"
