@@ -107,7 +107,7 @@ let
     fi
 
     # Check CLAUDE.md was updated
-    if grep -q "jito" "$TEST_HOME/.claude/CLAUDE.md"; then
+    if grep -q "pragmatic software engineer" "$TEST_HOME/.claude/CLAUDE.md"; then
       echo "✓ CLAUDE.md updated successfully"
     else
       echo "✗ CLAUDE.md not updated properly"

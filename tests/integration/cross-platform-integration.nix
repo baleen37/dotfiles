@@ -85,19 +85,19 @@ pkgs.runCommand "cross-platform-integration-test" { } ''
 
   ${testHelpers.onlyOn ["aarch64-darwin" "x86_64-darwin"] "Darwin modules test" ''
     # Darwin modules should work on Darwin
-    ${testHelpers.assertCommand "nix-instantiate --eval --expr 'import ../../modules/darwin/packages.nix { pkgs = import <nixpkgs> {}; }'" "Darwin packages module works on Darwin"}
+    ${testHelpers.assertCommand "nix-instantiate --eval --expr 'import ${src}/modules/darwin/packages.nix { pkgs = import <nixpkgs> {}; }'" "Darwin packages module works on Darwin"}
 
     # Check Darwin-specific features
-    ${testHelpers.assertExists "../../modules/darwin/casks.nix" "Darwin casks module exists"}
-    ${testHelpers.assertExists "../../modules/darwin/dock" "Darwin dock configuration exists"}
+    ${testHelpers.assertExists "${src}/modules/darwin/casks.nix" "Darwin casks module exists"}
+    ${testHelpers.assertExists "${src}/modules/darwin/dock" "Darwin dock configuration exists"}
   ''}
 
   ${testHelpers.onlyOn ["aarch64-linux" "x86_64-linux"] "NixOS modules test" ''
     # NixOS modules should work on Linux
-    ${testHelpers.assertCommand "nix-instantiate --eval --expr 'import ../../modules/nixos/packages.nix { pkgs = import <nixpkgs> {}; }'" "NixOS packages module works on Linux"}
+    ${testHelpers.assertCommand "nix-instantiate --eval --expr 'import ${src}/modules/nixos/packages.nix { pkgs = import <nixpkgs> {}; }'" "NixOS packages module works on Linux"}
 
     # Check NixOS-specific features
-    ${testHelpers.assertExists "../../modules/nixos/files.nix" "NixOS files module exists"}
+    ${testHelpers.assertExists "${src}/modules/nixos/files.nix" "NixOS files module exists"}
   ''}
 
   # Test 5: Architecture-specific features
