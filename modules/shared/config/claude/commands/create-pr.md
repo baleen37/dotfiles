@@ -27,6 +27,7 @@
       - **Changes**: A high-level overview of the technical changes.
       - **Testing**: How were these changes tested?
       - **Related Issues**: Link any issues this PR resolves (e.g., `Closes #123`).
+    - **Labels & Assignees**: Add appropriate labels and assign the PR to relevant team members.
   </step>
 
   <step name="Post-Creation Actions" number="3">
@@ -36,14 +37,18 @@
       - **IF LABELING FAILS**: Report the error (e.g., "Failed to add labels.") but **CONTINUE** if PR was created.
     - **Enable Auto-Merge**: If the CI/CD pipeline is robust, enable auto-merge with `gh pr merge --auto --squash`.
       - **IF AUTO-MERGE FAILS**: Report the error (e.g., "Failed to enable auto-merge. Check repository settings.") but **CONTINUE** if PR was created.
+    - **CI Monitoring**: Monitor the initial CI run to catch any immediate failures.
+      - **IF CI FAILS IMMEDIATELY**: Report "CI checks failed immediately. Please review and fix the issues." but **CONTINUE**.
   </step>
 
 </workflow>
 
 <constraints>
+  - **NEVER** push unfinished or untested code.
   - The PR title **must** follow the Conventional Commits specification.
   - The PR body **must not** be empty and must provide sufficient context.
-  - **Always** link to the issue(s) being addressed.
+  - **MUST** include comprehensive test coverage information in the PR description.
+  - **ALWAYS** link to related issues using GitHub's linking syntax.
 </constraints>
 
 <validation>

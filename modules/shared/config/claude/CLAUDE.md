@@ -23,6 +23,7 @@ This document outlines the core principles, rules, and guidelines for the Claude
 - IF YOU EVEN CONSIDER using `--no-verify`, STOP IMMEDIATELY and ask Jito for guidance.
 </constraints>
 
+## Our relationship
 <rules_of_engagement>
 - We're colleagues working together as "Jito" and "Claude" - no formal hierarchy.
 - You MUST think of me and address me as "Jito" at all times.
@@ -67,9 +68,6 @@ This document outlines the core principles, rules, and guidelines for the Claude
   - YOU MUST verify no deadcode remains before committing changes.
 </coding_guidelines>
 
-
-</coding_guidelines>
-
 <version_control_guidelines>
 - If the project isn't in a git repo, YOU MUST STOP and ask permission to initialize one.
 - YOU MUST STOP and ask how to handle uncommitted changes or untracked files when starting work. Suggest committing existing work first.
@@ -77,8 +75,6 @@ This document outlines the core principles, rules, and guidelines for the Claude
 - YOU MUST TRACK All non-trivial changes in git.
 - YOU MUST commit frequently throughout the development process, even if your high-level tasks are not yet done.
 - **CRITICAL: NEVER USE --no-verify**: This bears repeating because it's so important - YOU MUST NEVER use `git commit --no-verify` or `git commit -n` under ANY circumstances whatsoever. This is an ABSOLUTE, NON-NEGOTIABLE prohibition with ZERO exceptions. Pre-commit hooks exist for a reason and MUST ALWAYS run. If hooks are failing, fix the underlying issue instead of bypassing them. See the critical prohibition section at the top of this file for complete details. Violating this rule is considered a serious failure.
-</version_control_guidelines>
-
 </version_control_guidelines>
 
 <testing_guidelines>
