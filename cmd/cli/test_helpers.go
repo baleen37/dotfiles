@@ -49,9 +49,15 @@ It creates storytelling-based videos and uploads them automatically.`,
 	rootCmd.PersistentFlags().StringVar(&logLevel, "log-level", "", "log level (debug, info, warn, error)")
 
 	// Bind flags to viper
-	viper.BindPFlag("config", rootCmd.PersistentFlags().Lookup("config"))
-	viper.BindPFlag("env", rootCmd.PersistentFlags().Lookup("env"))
-	viper.BindPFlag("log-level", rootCmd.PersistentFlags().Lookup("log-level"))
+	if err := viper.BindPFlag("config", rootCmd.PersistentFlags().Lookup("config")); err != nil {
+		panic(fmt.Sprintf("failed to bind config flag: %v", err))
+	}
+	if err := viper.BindPFlag("env", rootCmd.PersistentFlags().Lookup("env")); err != nil {
+		panic(fmt.Sprintf("failed to bind env flag: %v", err))
+	}
+	if err := viper.BindPFlag("log-level", rootCmd.PersistentFlags().Lookup("log-level")); err != nil {
+		panic(fmt.Sprintf("failed to bind log-level flag: %v", err))
+	}
 
 	// Bind environment variables
 	viper.SetEnvPrefix("SSULMETA")

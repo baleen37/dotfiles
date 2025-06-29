@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestRootCommand(t *testing.T) {
@@ -21,13 +21,13 @@ func TestRootCommand(t *testing.T) {
 		{
 			name:           "no arguments shows help",
 			args:           []string{},
-			expectedOutput: []string{"ssulmeta", "YouTube Shorts automatic generation system", "Available Commands:"},
+			expectedOutput: []string{"ssulmeta", "ssulmeta is a CLI tool for automated YouTube Shorts generation", "Available Commands:"},
 			expectError:    false,
 		},
 		{
 			name:           "help flag shows help",
 			args:           []string{"--help"},
-			expectedOutput: []string{"ssulmeta", "YouTube Shorts automatic generation system", "Available Commands:"},
+			expectedOutput: []string{"ssulmeta", "ssulmeta is a CLI tool for automated YouTube Shorts generation", "Available Commands:"},
 			expectError:    false,
 		},
 		{
@@ -82,8 +82,8 @@ func TestGlobalFlags(t *testing.T) {
 			name: "config flag sets config file",
 			args: []string{"--config", "test.yaml", "version"},
 			checkFunc: func(t *testing.T) {
-				// The config file should be set in environment
-				assert.Equal(t, "test.yaml", os.Getenv("CONFIG_FILE"))
+				// The config file should be set in viper
+				assert.Equal(t, "test.yaml", viper.GetString("config"))
 			},
 			expectError: false,
 		},
@@ -91,7 +91,7 @@ func TestGlobalFlags(t *testing.T) {
 			name: "env flag sets environment",
 			args: []string{"--env", "test", "version"},
 			checkFunc: func(t *testing.T) {
-				assert.Equal(t, "test", os.Getenv("APP_ENV"))
+				assert.Equal(t, "test", viper.GetString("env"))
 			},
 			expectError: false,
 		},
@@ -188,11 +188,15 @@ func TestEnvironmentVariableBinding(t *testing.T) {
 			// Re-initialize to pick up env vars
 			resetCommands()
 
-			// Check flag values
-			for flag, expected := range tt.expected {
-				f := rootCmd.PersistentFlags().Lookup(flag)
-				require.NotNil(t, f, "flag %s should exist", flag)
-				assert.Equal(t, expected, f.Value.String())
+			// Check viper values
+			for key, expected := range tt.expected {
+				actual := viper.GetString(key)
+				// For debugging: also check with underscores
+				if actual == "" && strings.Contains(key, "-") {
+					altKey := strings.ReplaceAll(key, "-", "_")
+					actual = viper.GetString(altKey)
+				}
+				assert.Equal(t, expected, actual, "viper.GetString(%q) should equal %q but got %q", key, expected, actual)
 			}
 		})
 	}

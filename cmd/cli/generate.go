@@ -139,5 +139,7 @@ func init() {
 	generateCmd.Flags().IntP("count", "n", 1, "Number of stories to generate")
 	generateCmd.Flags().Bool("dry-run", false, "Perform a dry run without saving files")
 
-	generateCmd.MarkFlagRequired("channel")
+	if err := generateCmd.MarkFlagRequired("channel"); err != nil {
+		panic(fmt.Sprintf("failed to mark channel flag as required: %v", err))
+	}
 }

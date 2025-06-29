@@ -142,7 +142,8 @@ func TestCLILogger(t *testing.T) {
 		os.Stdout = old
 
 		var buf bytes.Buffer
-		buf.ReadFrom(r)
+		_, err := buf.ReadFrom(r)
+		assert.NoError(t, err)
 		assert.Equal(t, "Hello World\n", buf.String())
 	})
 
@@ -159,7 +160,8 @@ func TestCLILogger(t *testing.T) {
 		os.Stderr = old
 
 		var buf bytes.Buffer
-		buf.ReadFrom(r)
+		_, err := buf.ReadFrom(r)
+		assert.NoError(t, err)
 		assert.Equal(t, "Error: failed\n", buf.String())
 	})
 

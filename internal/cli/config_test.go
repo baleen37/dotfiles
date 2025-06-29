@@ -136,10 +136,14 @@ func TestFindConfigFile(t *testing.T) {
 		require.NoError(t, err)
 
 		// Change to temp directory
-		oldWd, _ := os.Getwd()
+		oldWd, err := os.Getwd()
+		require.NoError(t, err)
 		err = os.Chdir(tmpDir)
 		require.NoError(t, err)
-		defer os.Chdir(oldWd)
+		defer func() {
+			err := os.Chdir(oldWd)
+			require.NoError(t, err)
+		}()
 
 		// Find the config file
 		found, err := FindConfigFile("test")
@@ -153,7 +157,11 @@ func TestFindConfigFile(t *testing.T) {
 		oldWd, _ := os.Getwd()
 		err := os.Chdir(tmpDir)
 		require.NoError(t, err)
-		defer os.Chdir(oldWd)
+		defer func() {
+			if err := os.Chdir(oldWd); err != nil {
+				t.Errorf("Failed to change back to original directory: %v", err)
+			}
+		}()
 
 		found, err := FindConfigFile("nonexistent")
 		assert.Error(t, err)
@@ -174,10 +182,14 @@ func TestFindConfigFile(t *testing.T) {
 		require.NoError(t, err)
 
 		// Change to temp directory
-		oldWd, _ := os.Getwd()
+		oldWd, err := os.Getwd()
+		require.NoError(t, err)
 		err = os.Chdir(tmpDir)
 		require.NoError(t, err)
-		defer os.Chdir(oldWd)
+		defer func() {
+			err := os.Chdir(oldWd)
+			require.NoError(t, err)
+		}()
 
 		// Find the config file
 		found, err := FindConfigFile("dev")

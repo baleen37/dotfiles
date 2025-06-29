@@ -193,11 +193,3 @@ func TestVersionFlags(t *testing.T) {
 		assert.Equal(t, "1.0.0", outputStr)
 	})
 }
-
-// Reset version variables to defaults for testing
-func resetVersionVars() {
-	version = "dev"
-	commit = "unknown"
-	buildDate = "unknown"
-	builtBy = "unknown"
-}

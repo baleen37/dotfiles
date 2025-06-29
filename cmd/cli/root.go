@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -53,6 +54,11 @@ It creates storytelling-based videos and uploads them automatically.`,
 }
 
 func init() {
+	// Setup viper for environment variables
+	viper.SetEnvPrefix("SSULMETA")
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+	viper.AutomaticEnv()
+	
 	// Global flags
 	rootCmd.PersistentFlags().StringVarP(&configFile, "config", "c", "", "config file path")
 	rootCmd.PersistentFlags().StringVarP(&environment, "env", "e", "", "environment (local, dev, test, prod)")
@@ -60,13 +66,15 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&logLevel, "log-level", "", "log level (debug, info, warn, error)")
 
 	// Bind flags to viper
-	viper.BindPFlag("config", rootCmd.PersistentFlags().Lookup("config"))
-	viper.BindPFlag("env", rootCmd.PersistentFlags().Lookup("env"))
-	viper.BindPFlag("log-level", rootCmd.PersistentFlags().Lookup("log-level"))
-
-	// Bind environment variables
-	viper.SetEnvPrefix("SSULMETA")
-	viper.AutomaticEnv()
+	if err := viper.BindPFlag("config", rootCmd.PersistentFlags().Lookup("config")); err != nil {
+		panic(fmt.Sprintf("failed to bind config flag: %v", err))
+	}
+	if err := viper.BindPFlag("env", rootCmd.PersistentFlags().Lookup("env")); err != nil {
+		panic(fmt.Sprintf("failed to bind env flag: %v", err))
+	}
+	if err := viper.BindPFlag("log-level", rootCmd.PersistentFlags().Lookup("log-level")); err != nil {
+		panic(fmt.Sprintf("failed to bind log-level flag: %v", err))
+	}
 
 	// Add subcommands
 	rootCmd.AddCommand(versionCmd)

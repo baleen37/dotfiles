@@ -8,6 +8,8 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 	"gopkg.in/yaml.v3"
 
 	"ssulmeta-go/internal/cli"
@@ -111,11 +113,11 @@ func printConfigSection(cmd *cobra.Command, config map[string]interface{}, inden
 	for key, value := range config {
 		switch v := value.(type) {
 		case map[string]interface{}:
-			title := strings.Title(strings.ReplaceAll(key, "_", " "))
+			title := cases.Title(language.English).String(strings.ReplaceAll(key, "_", " "))
 			fmt.Fprintf(cmd.OutOrStdout(), "%s%s:\n", indent, title)
 			printConfigSection(cmd, v, indent+"  ")
 		default:
-			title := strings.Title(strings.ReplaceAll(key, "_", " "))
+			title := cases.Title(language.English).String(strings.ReplaceAll(key, "_", " "))
 			fmt.Fprintf(cmd.OutOrStdout(), "%s%s: %v\n", indent, title, v)
 		}
 	}

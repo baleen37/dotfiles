@@ -333,16 +333,21 @@ func TestConfigCommandIntegration(t *testing.T) {
 
 		// Create a temp directory
 		tmpDir := t.TempDir()
-		oldWd, _ := os.Getwd()
-		os.Chdir(tmpDir)
-		defer os.Chdir(oldWd)
+		oldWd, err := os.Getwd()
+		require.NoError(t, err)
+		err = os.Chdir(tmpDir)
+		require.NoError(t, err)
+		defer func() {
+			err := os.Chdir(oldWd)
+			require.NoError(t, err)
+		}()
 
 		output := &bytes.Buffer{}
 		rootCmd.SetOut(output)
 		rootCmd.SetErr(output)
 		rootCmd.SetArgs([]string{"config", "--paths"})
 
-		err := rootCmd.Execute()
+		err = rootCmd.Execute()
 		require.NoError(t, err)
 
 		outputStr := output.String()
@@ -355,15 +360,22 @@ func TestConfigCommandIntegration(t *testing.T) {
 		// Create a temp directory with config
 		tmpDir := t.TempDir()
 		configDir := filepath.Join(tmpDir, "configs")
-		os.MkdirAll(configDir, 0755)
+		err := os.MkdirAll(configDir, 0755)
+		require.NoError(t, err)
 
 		// Create a test config file
 		configFile := filepath.Join(configDir, "test.yaml")
-		os.WriteFile(configFile, []byte("app:\n  name: test"), 0644)
+		err = os.WriteFile(configFile, []byte("app:\n  name: test"), 0644)
+		require.NoError(t, err)
 
-		oldWd, _ := os.Getwd()
-		os.Chdir(tmpDir)
-		defer os.Chdir(oldWd)
+		oldWd, err := os.Getwd()
+		require.NoError(t, err)
+		err = os.Chdir(tmpDir)
+		require.NoError(t, err)
+		defer func() {
+			err := os.Chdir(oldWd)
+			require.NoError(t, err)
+		}()
 
 		os.Setenv("APP_ENV", "test")
 		defer os.Unsetenv("APP_ENV")
@@ -373,7 +385,7 @@ func TestConfigCommandIntegration(t *testing.T) {
 		rootCmd.SetErr(output)
 		rootCmd.SetArgs([]string{"config", "--paths"})
 
-		err := rootCmd.Execute()
+		err = rootCmd.Execute()
 		require.NoError(t, err)
 
 		outputStr := output.String()
