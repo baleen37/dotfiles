@@ -38,7 +38,7 @@ let
       if grep -q "SUDO_PREFIX.*darwin-rebuild\|SUDO_PREFIX.*nixos-rebuild" "$COMMON_SCRIPT" || \
          (grep -q "get_sudo_prefix()" "$COMMON_SCRIPT" && grep -q "SUDO_PREFIX=\$(get_sudo_prefix)" "$COMMON_SCRIPT"); then
         echo "✅ PASS: Common script uses proper sudo management pattern"
-        
+
         # Mark all build-switch scripts as passing since they use the common script
         for script in ${src}/apps/*/build-switch; do
           if [[ -f "$script" ]]; then
@@ -85,11 +85,11 @@ let
     if [[ -f "$COMMON_SCRIPT" ]]; then
       if grep -q "explain_sudo_requirement\|Administrator Privileges Required" "$COMMON_SCRIPT"; then
         echo "✅ PASS: Common script has explain_sudo_requirement function"
-        
+
         # Verify that the function is called
         if grep -q "check_sudo_requirement" "$COMMON_SCRIPT" && grep -A20 "check_sudo_requirement" "$COMMON_SCRIPT" | grep -q "explain_sudo_requirement"; then
           echo "✅ PASS: explain_sudo_requirement is called in check_sudo_requirement"
-          
+
           # Mark all build-switch scripts as passing since they use the common script
           for script in ${src}/apps/*/build-switch; do
             if [[ -f "$script" ]]; then
