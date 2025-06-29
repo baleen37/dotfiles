@@ -13,7 +13,7 @@
     - **Goal**: Break down a large project into a clear, written list of tasks.
     - **Action**: Before touching the CLI, write down a list of all tasks in a text editor.
       - 1.  **Parent/Epic Task**: A high-level task that represents the whole project. (e.g., `Epic: Implement new auth system`)
-      - 2.  **Child Tasks**: The smaller, concrete tasks required to complete the project. (e.g., `Design DB schema`, `Create login API`, `Build UI form`)
+      - 2.  **Sub-issues**: The smaller, concrete tasks required to complete the project. (e.g., `Design DB schema`, `Create login API`, `Build UI form`)
   </phase>
 
   <phase name="Bulk Issue Creation (CLI)" number="2">
@@ -26,9 +26,9 @@
       gh issue create --title "Epic: Implement new auth system" --body "This Epic tracks all tasks for the new authentication system." --label "epic,new-plan" --assignee "@me"
       ```
 
-    - **Step 2.2: Create the Child Issues**
+    - **Step 2.2: Create the Sub-issues**
       ```bash
-      # Run one command for each child task. The CLI will prompt you for the body text.
+      # Run one command for each sub-issue. The CLI will prompt you for the body text.
       gh issue create --title "Design auth DB schema" --label "new-plan" --assignee "@me"
       gh issue create --title "Create login API endpoint" --label "new-plan" --assignee "@me"
       gh issue create --title "Build login UI form" --label "new-plan" --assignee "@me"
@@ -39,14 +39,14 @@
   </phase>
 
   <phase name="Establish Hierarchy (UI)" number="3">
-    - **Goal**: Connect the child issues to the parent issue.
+    - **Goal**: Connect the sub-issues to the parent issue.
     - **Reason**: This step is done in the UI because `gh` CLI does not yet have a simple command (e.g., `--parent`) for this.
 
     - **Action**:
       1.  Open the URL of the **Parent Issue** in your browser.
       2.  In the right-hand sidebar, find the **"Development"** section and click the gear icon.
       3.  Select **"Add issue from URL"**.
-      4.  Paste the URLs of the **Child Issues** you saved earlier.
+      4.  Paste the URLs of the **Sub-issues** you saved earlier.
   </phase>
 
   <phase name="Verification" number="4">
