@@ -9,11 +9,11 @@
     else
       TEMP_BASE="/tmp"
     fi
-    
+
     # Create unique test directory
     TEST_TEMP_DIR=$(${pkgs.coreutils}/bin/mktemp -d "$TEMP_BASE/dotfiles-test-XXXXXX")
     export TEST_TEMP_DIR
-    
+
     # Cleanup function
     cleanup_temp() {
       if [ -n "$TEST_TEMP_DIR" ] && [ -d "$TEST_TEMP_DIR" ]; then
@@ -29,7 +29,7 @@
     TEST_HOME=$(${pkgs.coreutils}/bin/mktemp -d "''${TMPDIR:-/tmp}/test-home-XXXXXX")
     export HOME="$TEST_HOME"
     export TEST_HOME
-    
+
     # Cleanup function for test home
     cleanup_test_home() {
       if [ -n "$TEST_HOME" ] && [ -d "$TEST_HOME" ]; then
@@ -40,7 +40,7 @@
   '';
 
   # Get system binary path using Nix packages
-  getSystemBinary = name: 
+  getSystemBinary = name:
     if name == "time" then "${pkgs.time}/bin/time"
     else if name == "echo" then "${pkgs.coreutils}/bin/echo"
     else if name == "cat" then "${pkgs.coreutils}/bin/cat"
@@ -51,6 +51,7 @@
     else if name == "cp" then "${pkgs.coreutils}/bin/cp"
     else if name == "mv" then "${pkgs.coreutils}/bin/mv"
     else if name == "ls" then "${pkgs.coreutils}/bin/ls"
+    else if name == "tee" then "${pkgs.coreutils}/bin/tee"
     else throw "Unknown system binary: ${name}";
 
   # Create a mock system file for testing
@@ -61,7 +62,7 @@
   '';
 
   # Get portable path separator and create cross-platform paths
-  getPortablePath = path: 
+  getPortablePath = path:
     # Convert Windows-style paths to Unix-style if needed
     builtins.replaceStrings ["\\"] ["/"] path;
 
@@ -71,7 +72,7 @@
       export PLATFORM="macos"
       export HOME_PREFIX="/Users"
     else
-      export PLATFORM="linux" 
+      export PLATFORM="linux"
       export HOME_PREFIX="/home"
     fi
   '';

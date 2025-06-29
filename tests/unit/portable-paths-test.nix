@@ -12,9 +12,9 @@ pkgs.runCommand "portable-paths-test" { } ''
 
   # Test 1: Verify portable temp directory creation
   ${testHelpers.testSubsection "Portable Temp Directory"}
-  
+
   ${portablePaths.getTempDir}
-  
+
   if [ -n "$TEST_TEMP_DIR" ] && [ -d "$TEST_TEMP_DIR" ]; then
     echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} TEST_TEMP_DIR created: $TEST_TEMP_DIR"
   else
@@ -33,9 +33,9 @@ pkgs.runCommand "portable-paths-test" { } ''
 
   # Test 2: Verify portable test home creation
   ${testHelpers.testSubsection "Portable Test Home"}
-  
+
   ${portablePaths.getTestHome}
-  
+
   if [ -n "$HOME" ] && [ -d "$HOME" ]; then
     echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} HOME directory created: $HOME"
   else
@@ -53,11 +53,11 @@ pkgs.runCommand "portable-paths-test" { } ''
 
   # Test 3: Verify system binary resolution
   ${testHelpers.testSubsection "System Binary Resolution"}
-  
+
   # Test common system binaries
   BINARIES=(
     "echo"
-    "cat" 
+    "cat"
     "touch"
     "rm"
     "mkdir"
@@ -76,12 +76,12 @@ pkgs.runCommand "portable-paths-test" { } ''
 
   # Test 4: Verify mock system file creation
   ${testHelpers.testSubsection "Mock System File Creation"}
-  
+
   ${portablePaths.createMockSystemFile "test user:x:1000:1000:Test User:/home/test:/bin/bash"}
-  
+
   if [ -n "$MOCK_SYSTEM_FILE" ] && [ -f "$MOCK_SYSTEM_FILE" ]; then
     echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Mock system file created: $MOCK_SYSTEM_FILE"
-    
+
     # Verify content
     if grep -q "test user" "$MOCK_SYSTEM_FILE"; then
       echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Mock system file has correct content"
@@ -96,13 +96,13 @@ pkgs.runCommand "portable-paths-test" { } ''
 
   # Test 5: Verify platform detection
   ${testHelpers.testSubsection "Platform Detection"}
-  
+
   ${portablePaths.getPlatformInfo}
-  
+
   if [ -n "$PLATFORM" ] && [ -n "$HOME_PREFIX" ]; then
     echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Platform detected: $PLATFORM"
     echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Home prefix: $HOME_PREFIX"
-    
+
     # Verify platform makes sense
     case "$PLATFORM" in
       "macos"|"linux")
@@ -120,11 +120,11 @@ pkgs.runCommand "portable-paths-test" { } ''
 
   # Test 6: Verify cleanup works properly
   ${testHelpers.testSubsection "Cleanup Verification"}
-  
+
   # Create some test files to be cleaned up
   TEST_CLEANUP_FILE="$TEST_TEMP_DIR/cleanup-test"
   echo "cleanup test" > "$TEST_CLEANUP_FILE"
-  
+
   if [ -f "$TEST_CLEANUP_FILE" ]; then
     echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Test cleanup file created"
   else
