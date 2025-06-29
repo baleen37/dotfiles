@@ -102,24 +102,24 @@ let
 
         # 파일 해시 비교 함수
         files_differ() {
-          local source="$1"
-          local target="$2"
+          source="$1"
+          target="$2"
 
           if [[ ! -f "$source" ]] || [[ ! -f "$target" ]]; then
             return 0  # 파일이 없으면 다른 것으로 간주
           fi
 
-          local source_hash=$(sha256sum "$source" | cut -d' ' -f1)
-          local target_hash=$(sha256sum "$target" | cut -d' ' -f1)
+          source_hash=$(sha256sum "$source" | cut -d' ' -f1)
+          target_hash=$(sha256sum "$target" | cut -d' ' -f1)
 
           [[ "$source_hash" != "$target_hash" ]]
         }
 
         # 백업 생성 함수
         create_backup() {
-          local file="$1"
-          local backup_dir="$CLAUDE_DIR/.backups"
-          local timestamp=$(date +%Y%m%d_%H%M%S)
+          file="$1"
+          backup_dir="$CLAUDE_DIR/.backups"
+          timestamp=$(date +%Y%m%d_%H%M%S)
 
           if [[ -f "$file" ]]; then
             mkdir -p "$backup_dir"
@@ -130,9 +130,9 @@ let
 
         # 조건부 복사 함수 (사용자 수정 보존)
         smart_copy() {
-          local source_file="$1"
-          local target_file="$2"
-          local file_name=$(basename "$source_file")
+          source_file="$1"
+          target_file="$2"
+          file_name=$(basename "$source_file")
 
           echo "처리 중: $file_name"
 
