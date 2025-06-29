@@ -236,7 +236,7 @@ pkgs.runCommand "network-dependencies-integration-test"
             ! -path "./tests/*" \
             ! -path "./.git/*" \
             -exec grep -l "$pattern" {} \; 2>/dev/null)
-    
+
     if [ -n "$FOUND" ]; then
       echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} Potential security issue: $pattern"
       echo "Found in: $FOUND"
