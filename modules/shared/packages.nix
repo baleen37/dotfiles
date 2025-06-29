@@ -56,7 +56,7 @@ with pkgs; let
 
   # Terminal applications
   terminalApps = [
-    wezterm       # GPU-accelerated terminal emulator
+    # Terminal emulators moved to platform-specific configs (e.g., iTerm2 via Darwin casks)
   ];
 
 in
