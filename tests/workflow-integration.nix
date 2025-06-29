@@ -41,11 +41,11 @@ pkgs.runCommand "workflow-integration-test"
     nix
   ];
 } ''
+  # Set up portable test environment
+  ${(import ./lib/portable-paths.nix { inherit pkgs; }).getTestHome}
   export USER=testuser
-  export HOME=/tmp/test-home
   export PATH=${pkgs.lib.makeBinPath (with pkgs; [ bash coreutils findutils gnused gnugrep git nix ])}:$PATH
 
-  mkdir -p $HOME
   cd $HOME
 
   echo "=== Workflow Integration Test ==="
