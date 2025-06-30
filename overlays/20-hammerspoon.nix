@@ -7,6 +7,8 @@ self: super: with super; {
     stdenv.mkDerivation {
       name = "${pname}-${version}";
 
+      # Note: Using release zip is acceptable since it's a specific versioned artifact
+      # However, for maximum security, consider using fetchFromGitHub with commit hash
       src = fetchzip {
         url = "https://github.com/Hammerspoon/hammerspoon/releases/download/${version}/Hammerspoon-${version}.zip";
         sha256 = "0zkagvnzf2ia68l998nzblqvvgl5xy8qv57mx03c6zd4bnsh5dsx";
