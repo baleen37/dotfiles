@@ -58,10 +58,10 @@ pkgs.runCommand "build-switch-improved-unit-test"
   # Test 7: Success indicators (check in common script)
   ${testHelpers.testSubsection "Success Indicators"}
 
-  ${testHelpers.assertContains "${buildSwitchCommon}" "✅" "success emoji used"}
-  ${testHelpers.assertContains "${buildSwitchCommon}" "Successfully built" "build success message"}
-  ${testHelpers.assertContains "${buildSwitchCommon}" "Successfully switched" "switch success message"}
-  ${testHelpers.assertContains "${buildSwitchCommon}" "cleanup" "cleanup functionality"}
+  ${testHelpers.assertContains "${buildSwitchCommon}" "✓" "success checkmark used"}
+  ${testHelpers.assertContains "${buildSwitchCommon}" "Build completed" "build success message"}
+  ${testHelpers.assertContains "${buildSwitchCommon}" "Configuration applied" "switch success message"}
+  ${testHelpers.assertContains "${buildSwitchCommon}" "Cleanup completed" "cleanup success message"}
 
   # Test 8: Script content validation (check in common script)
   ${testHelpers.testSubsection "Script Content"}
