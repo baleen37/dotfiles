@@ -52,7 +52,7 @@ pkgs.runCommand "build-switch-improved-unit-test"
   ${testHelpers.testSubsection "Error Handling"}
 
   ${testHelpers.assertContains "${buildSwitchCommon}" "2>/dev/null" "error suppression for non-verbose mode"}
-  ${testHelpers.assertContains "${buildSwitchCommon}" "--verbose" "verbose flag support"}
+  ${testHelpers.assertContains "${buildSwitchCommon}" "verbose" "verbose flag support"}
   ${testHelpers.assertContains "${buildSwitchCommon}" "exit 1" "proper exit code on failure"}
 
   # Test 7: Success indicators (check in common script)

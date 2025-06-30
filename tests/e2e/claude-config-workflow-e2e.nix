@@ -328,7 +328,7 @@ let
 
         for cmd_file in "$SOURCE_DIR/commands"/*.md; do
           if [[ -f "$cmd_file" ]]; then
-            local base_name=$(basename "$cmd_file")
+            base_name=$(basename "$cmd_file")
             smart_copy "$cmd_file" "$CLAUDE_DIR/commands/$base_name"
           fi
         done
