@@ -193,6 +193,8 @@ pkgs.runCommand "auto-update-test"
   echo "📋 Test 3: State Management System"
   echo "---------------------------------"
 
+  # Ensure cache directory exists before creating state file
+  mkdir -p "$CACHE_DIR"
   STATE_FILE="$CACHE_DIR/test-state.json"
   source ${stateScript}
 
