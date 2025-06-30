@@ -21,7 +21,7 @@ let
     else null;
 
   # Test helpers
-  testHelpers = import (src + "/tests/helpers/test-helpers.nix") { inherit pkgs; };
+  testHelpers = import ../lib/test-helpers.nix { inherit pkgs; };
 
   # Current system information
   currentSystem = pkgs.system;
@@ -32,8 +32,10 @@ let
 in
 pkgs.runCommand "platform-detection-test"
 {
-  buildInputs = with pkgs; [ bash jq ];
+  buildInputs = with pkgs; [ bash jq nix ];
 } ''
+  ${testHelpers.setupTestEnv}
+
   echo "🧪 Comprehensive Platform Detection Test Suite"
   echo "==========================================="
 

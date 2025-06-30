@@ -13,8 +13,8 @@ let
 
         # 테스트 환경 준비
         CLAUDE_DIR="$HOME/.claude"
-        SOURCE_DIR="${../../modules/shared/config/claude}"
-        MERGE_SCRIPT="${../../scripts/merge-claude-config}"
+        SOURCE_DIR="${src}/modules/shared/config/claude"
+        MERGE_SCRIPT="${src}/scripts/merge-claude-config"
 
         echo "테스트 환경:"
         echo "  Claude 디렉토리: $CLAUDE_DIR"
