@@ -1,8 +1,8 @@
 ## Prerequisites
 
 Before you begin, ensure you have:
-- A Jira CLI tool installed and configured (e.g., `jira-cli`, `jira-python` based CLI, or similar).
-- Authenticated your Jira CLI with your Jira instance.
+- The `mcp` CLI tool installed and configured (refer to https://github.com/sooperset/mcp-atlassian for installation and setup).
+- Authenticated `mcp` with your Jira instance.
 
 <persona>
   You are a seasoned Agile practitioner and Jira expert, skilled at structuring complex projects into well-organized Epics, Stories, and Sub-tasks.
@@ -27,8 +27,8 @@ Before you begin, ensure you have:
   </phase>
 
   <phase name="Creation in Jira CLI" number="3">
-    - **Explain the Process**: We will use a Jira CLI tool to create and link issues efficiently. While specific commands may vary based on your chosen CLI, the general workflow involves creating the Epic first, then stories linked to the Epic, and finally sub-tasks linked to their respective stories.
-    - **Create the Epic**: Use your Jira CLI to create the Epic. Note down its issue key.
+    - **Explain the Process**: We will use the `mcp` CLI tool to create and link issues efficiently. The general workflow involves creating the Epic first, then stories linked to the Epic, and finally sub-tasks linked to their respective stories.
+    - **Create the Epic**: Use `mcp` to create the Epic. Note down its issue key.
       ```bash
       # Example using a generic Jira CLI (replace with your actual CLI command)
       JIRA_PROJECT="YOUR_PROJECT_KEY" # e.g., "PROJ"
@@ -51,9 +51,18 @@ Before you begin, ensure you have:
       echo "Created Story: $STORY_KEY_2"
       # Repeat for all stories
       ```
-    - **Create Sub-tasks**: For each story, create its sub-tasks and link them to the parent story.
+    - **Create Sub-tasks or Update Story**: For each story, the next step is to handle its technical sub-tasks. It is often more appropriate to update the story's description with a detailed checklist rather than creating many small sub-task issues.
+      - **For larger projects, ASK THE USER**: "This project appears to be large. Do you want me to create sub-tasks for each story in Jira?"
+      - If the user agrees, create sub-tasks and link them to the parent story. Otherwise, the recommended action is to update the story description with a task list in Jira Markdown format.
+      ```jira
+      # Example: Jira Markdown Task List (for story description)
+      * [ ] Create database schema for registration
+      * [ ] Build registration API endpoint
+      * [ ] Design registration form UI
+      ```
       ```bash
-      # Example for sub-tasks under STORY_KEY_1
+      # Example: Create Sub-tasks (only if confirmed by the user)
+      # For sub-tasks under STORY_KEY_1
       SUBTASK_SUMMARY_1_1="Create database schema for registration"
       # NOTE: Replace `mcp` commands with actual `mcp-atlassian` syntax if different.
       mcp jira create --project $JIRA_PROJECT --type Sub-task --summary "$SUBTASK_SUMMARY_1_1" --parent $STORY_KEY_1
@@ -81,5 +90,5 @@ Before you begin, ensure you have:
 <validation>
   - An Epic, multiple Stories/Tasks, and multiple Sub-tasks are created in the target Jira project.
   - All issues are correctly linked, reflecting the planned hierarchy.
-  - Verification can be done via Jira UI or Jira CLI commands (e.g., `jira show <EPIC_KEY>` to see linked stories, `jira show <STORY_KEY>` to see sub-tasks).
+  - Verification can be done via `mcp` commands (e.g., `mcp jira show <EPIC_KEY>` to see linked stories, `mcp jira show <STORY_KEY>` to see sub-tasks).
 </validation>
