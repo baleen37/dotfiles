@@ -14,7 +14,5 @@ in
   # to ensure proper preservation of user modifications
   "${userHome}/.gitconfig_global".text = "";
 
-  # WezTerm configuration
-  "${userHome}/.wezterm.lua".text = builtins.readFile ./config/wezterm/wezterm.lua;
   # Claude command files are also managed by platform-specific activation scripts
 }
