@@ -137,10 +137,10 @@ pkgs.runCommand "cross-platform-integration-test" { } ''
   # Test that we can evaluate other platform configurations (without building)
   ${if testHelpers.platform.isDarwin then ''
     # From Darwin, test if we can evaluate NixOS configs
-    ${testHelpers.assertCommand "nix eval --impure .#nixosConfigurations.x86_64-linux.config.system.name" "Can evaluate NixOS config from Darwin"}
+    ${testHelpers.assertCommand "nix eval --impure ${src}#nixosConfigurations.x86_64-linux.config.system.name" "Can evaluate NixOS config from Darwin"}
   '' else ''
     # From Linux, test if we can evaluate Darwin configs
-    ${testHelpers.assertCommand "nix eval --impure .#darwinConfigurations.aarch64-darwin.system" "Can evaluate Darwin config from Linux"}
+    ${testHelpers.assertCommand "nix eval --impure ${src}#darwinConfigurations.aarch64-darwin.system" "Can evaluate Darwin config from Linux"}
   ''}
 
   # Test 7: Environment variable handling across platforms
@@ -148,7 +148,7 @@ pkgs.runCommand "cross-platform-integration-test" { } ''
 
   # Test USER variable resolution works consistently
   export USER=crossplatformtest
-  USER_RESULT=$(nix-instantiate --eval --expr 'let getUser = import ../../lib/get-user.nix {}; in getUser' 2>/dev/null | tr -d '"')
+  USER_RESULT=$(nix-instantiate --eval --expr 'let getUser = import ${src}/lib/get-user.nix {}; in getUser' 2>/dev/null | tr -d '"')
   ${testHelpers.assertTrue ''[ "$USER_RESULT" = "crossplatformtest" ]'' "USER resolution works consistently across platforms"}
 
   # Test 8: Package manager integration
@@ -156,7 +156,7 @@ pkgs.runCommand "cross-platform-integration-test" { } ''
 
   ${if testHelpers.platform.isDarwin then ''
     # Test Homebrew integration on Darwin
-    ${testHelpers.assertExists "../../modules/darwin/casks.nix" "Homebrew casks configuration exists"}
+    ${testHelpers.assertExists "${src}/modules/darwin/casks.nix" "Homebrew casks configuration exists"}
     echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Darwin uses Homebrew integration"
   '' else ''
     # Test native package management on NixOS
