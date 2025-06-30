@@ -58,57 +58,54 @@ let
   # State management test helper
   stateScript = pkgs.writeScript "state-management" ''
     #!/bin/bash
-    set -euo pipefail
-
-    STATE_FILE="$1"
 
     # Initialize state
     init_state() {
-      echo '{"version": 1, "decisions": {}}' > "$STATE_FILE"
+      local state_file="$1"
+      echo '{"version": 1, "decisions": {}}' > "$state_file"
     }
 
     # Store decision
     store_decision() {
-      local pr_number="$1"
-      local decision="$2"
-      local current=$(cat "$STATE_FILE")
-      echo "$current" | ${pkgs.jq}/bin/jq ".decisions.\"$pr_number\" = \"$decision\"" > "$STATE_FILE"
+      local state_file="$1"
+      local pr_number="$2"
+      local decision="$3"
+      local current=$(cat "$state_file")
+      echo "$current" | ${pkgs.jq}/bin/jq ".decisions.\"$pr_number\" = \"$decision\"" > "$state_file"
     }
 
     # Get decision
     get_decision() {
-      local pr_number="$1"
-      cat "$STATE_FILE" | ${pkgs.jq}/bin/jq -r ".decisions.\"$pr_number\" // \"unknown\""
+      local state_file="$1"
+      local pr_number="$2"
+      cat "$state_file" | ${pkgs.jq}/bin/jq -r ".decisions.\"$pr_number\" // \"unknown\""
     }
 
     export -f init_state store_decision get_decision
-    "$@"
   '';
 
   # Notification test helper
   notificationScript = pkgs.writeScript "notification-management" ''
     #!/bin/bash
-    set -euo pipefail
-
-    NOTIFICATION_DIR="$1"
 
     # Create notification
     create_notification() {
-      local type="$1"
-      local message="$2"
+      local notification_dir="$1"
+      local type="$2"
+      local message="$3"
       local timestamp=$(date +%s)
-      local filename="$NOTIFICATION_DIR/notification-$type-$timestamp"
+      local filename="$notification_dir/notification-$type-$timestamp"
       echo "$message" > "$filename"
       echo "$filename"
     }
 
     # Clean old notifications
     clean_notifications() {
-      find "$NOTIFICATION_DIR" -name "notification-*" -mtime +7 -delete
+      local notification_dir="$1"
+      find "$notification_dir" -name "notification-*" -mtime +7 -delete
     }
 
     export -f create_notification clean_notifications
-    "$@"
   '';
 
 in
