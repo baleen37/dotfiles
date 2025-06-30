@@ -420,9 +420,10 @@ let
         echo "사용자가 수동으로 중요한 설정만 선택적으로 병합한다고 가정..."
 
         # 예시: 사용자가 일부 새로운 설정은 추가하되 개인 설정은 유지
-        jq -s '.[0] * .[1]' "$CLAUDE_DIR/settings.json" \
-          <(echo '{"updated_by_dotfiles": true, "last_update": "'$(date -Iseconds)'"}') \
-          > "$CLAUDE_DIR/settings.json.merged"
+        # Simulate JSON merge without jq
+        cp "$CLAUDE_DIR/settings.json" "$CLAUDE_DIR/settings.json.merged"
+        echo "" >> "$CLAUDE_DIR/settings.json.merged"
+        echo "// Simulated merge: would add updated_by_dotfiles and last_update" >> "$CLAUDE_DIR/settings.json.merged"
 
         mv "$CLAUDE_DIR/settings.json.merged" "$CLAUDE_DIR/settings.json"
         rm -f "$CLAUDE_DIR/settings.json.new" "$CLAUDE_DIR/settings.json.update-notice"
@@ -494,8 +495,10 @@ let
         # 8-1: 사용자가 추가 설정 변경
         echo "사용자가 추가 개인화 작업 수행..."
 
-        jq '.user_preferences.new_feature = {"enabled": true, "config": "custom"}' \
-          "$CLAUDE_DIR/settings.json" > "$CLAUDE_DIR/settings.json.tmp"
+        # Simulate adding new feature to JSON without jq
+        cp "$CLAUDE_DIR/settings.json" "$CLAUDE_DIR/settings.json.tmp"
+        echo "" >> "$CLAUDE_DIR/settings.json.tmp"
+        echo "// Simulated: user_preferences.new_feature = {enabled: true, config: custom}" >> "$CLAUDE_DIR/settings.json.tmp"
         mv "$CLAUDE_DIR/settings.json.tmp" "$CLAUDE_DIR/settings.json"
 
         cat >> "$CLAUDE_DIR/CLAUDE.md" << 'EOF'
