@@ -105,10 +105,14 @@ pkgs.runCommand "error-handling-test"
 
   # Corrupted flake.lock
   echo "Testing corrupted flake.lock..."
-  echo "invalid json" > ${testEnv}/flake/flake.lock
-  if nix eval --impure --expr 'builtins.fromJSON (builtins.readFile ${testEnv}/flake/flake.lock)' 2>&1 | grep -q "error"; then
+  TEST_DIR=$(mktemp -d)
+  cp -r ${testEnv}/* "$TEST_DIR/"
+  chmod -R 755 "$TEST_DIR"
+  echo "invalid json" > "$TEST_DIR/flake/flake.lock"
+  if nix eval --impure --expr 'builtins.fromJSON (builtins.readFile '"$TEST_DIR"'/flake/flake.lock)' 2>&1 | grep -q "error"; then
     echo "✅ Corrupted flake.lock detected"
   fi
+  rm -rf "$TEST_DIR"
 
   # Module syntax error
   echo "Testing module syntax error..."
