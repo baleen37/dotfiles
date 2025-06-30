@@ -1,5 +1,5 @@
 # Unit tests for bl auto-update commands
-{ pkgs, flake ? null, ... }:
+{ pkgs, src, ... }:
 
 let
   inherit (pkgs) lib;
@@ -33,17 +33,17 @@ let
 
   # Test script for bl-auto-update-status
   testStatusCommand = pkgs.writeShellScript "test-status-command" ''
-    ${makeTestScript "${flake}/scripts/bl-auto-update-status" ""}
+    ${makeTestScript "${src}/scripts/bl-auto-update-status" ""}
   '';
 
   # Test script for bl-auto-update-check
   testCheckCommand = pkgs.writeShellScript "test-check-command" ''
-    ${makeTestScript "${flake}/scripts/bl-auto-update-check" ""}
+    ${makeTestScript "${src}/scripts/bl-auto-update-check" ""}
   '';
 
   # Test script for bl-auto-update-apply
   testApplyCommand = pkgs.writeShellScript "test-apply-command" ''
-    ${makeTestScript "${flake}/scripts/bl-auto-update-apply" ""}
+    ${makeTestScript "${src}/scripts/bl-auto-update-apply" ""}
   '';
 
 in
@@ -62,7 +62,7 @@ pkgs.writeShellScriptBin "test-bl-auto-update-commands" ''
     # Mock the status command for now
     cat > "$TEST_TMP/bl-auto-update-status" << 'EOF'
 #!/usr/bin/env bash
-source "${flake}/scripts/auto-update-dotfiles" --source-only 2>/dev/null || true
+source "${src}/scripts/auto-update-dotfiles" --source-only 2>/dev/null || true
 
 # Display status information
 echo "Auto-update status:"
@@ -157,7 +157,7 @@ EOF
   if TEST_TMP=$(mktemp -d) && cd "$TEST_TMP"; then
     cat > "$TEST_TMP/bl-auto-update-status" << 'EOF'
 #!/usr/bin/env bash
-if [[ ! -f "${flake}/scripts/auto-update-dotfiles" ]]; then
+if [[ ! -f "${src}/scripts/auto-update-dotfiles" ]]; then
   echo "Error: auto-update-dotfiles script not found"
   exit 1
 fi
