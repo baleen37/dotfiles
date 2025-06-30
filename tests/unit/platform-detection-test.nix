@@ -65,8 +65,8 @@ pkgs.runCommand "platform-detection-test"
 
     # Test detection functions
     result=$(nix eval --impure --expr '
-      let detector = import ${src}/lib/platform-detector.nix { pkgs = import <nixpkgs> {}; };
-      in detector.currentPlatform or "unknown"
+      let detector = import ${src}/lib/platform-detector.nix {};
+      in detector.getCurrentPlatform or "unknown"
     ' --raw 2>&1 || echo "EVAL_FAILED")
 
     if [[ "$result" != "EVAL_FAILED" ]] && [[ "$result" != "unknown" ]]; then
