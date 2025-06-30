@@ -155,7 +155,11 @@ pkgs.runCommand "auto-update-test"
   echo "📋 Test 2: TTL Cache Management"
   echo "-------------------------------"
 
-  CACHE_DIR="${testEnv}/.cache/auto-update-dotfiles"
+  # Create writable temp directory for cache
+  TEST_TMP=$(mktemp -d)
+  cp -r ${testEnv}/.cache "$TEST_TMP/" 2>/dev/null || true
+  CACHE_DIR="$TEST_TMP/.cache/auto-update-dotfiles"
+  mkdir -p "$CACHE_DIR"
 
   # Test cache directory
   if [[ -d "$CACHE_DIR" ]]; then
@@ -361,6 +365,9 @@ pkgs.runCommand "auto-update-test"
   echo "- Environment variables: ✅"
   echo "- Error handling: ✅"
   echo "- Integration workflow: ✅"
+
+  # Cleanup
+  [[ -n "$TEST_TMP" ]] && rm -rf "$TEST_TMP"
 
   touch $out
 ''
