@@ -420,13 +420,13 @@ let
         echo "사용자가 수동으로 중요한 설정만 선택적으로 병합한다고 가정..."
 
         # 예시: 사용자가 일부 새로운 설정은 추가하되 개인 설정은 유지
-        # Simulate JSON merge without jq
+        # Simulate JSON merge without jq - add updated_by_dotfiles flag
         cp "$CLAUDE_DIR/settings.json" "$CLAUDE_DIR/settings.json.merged"
-        echo "" >> "$CLAUDE_DIR/settings.json.merged"
-        echo "// Simulated merge: would add updated_by_dotfiles and last_update" >> "$CLAUDE_DIR/settings.json.merged"
+        # Add a simple flag at the end of the file to simulate merge
+        sed -i.bak 's/}$/,\n  "updated_by_dotfiles": true\n}/' "$CLAUDE_DIR/settings.json.merged"
 
         mv "$CLAUDE_DIR/settings.json.merged" "$CLAUDE_DIR/settings.json"
-        rm -f "$CLAUDE_DIR/settings.json.new" "$CLAUDE_DIR/settings.json.update-notice"
+        rm -f "$CLAUDE_DIR/settings.json.new" "$CLAUDE_DIR/settings.json.update-notice" "$CLAUDE_DIR/settings.json.merged.bak"
 
         echo "✓ settings.json 병합 완료"
 

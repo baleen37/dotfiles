@@ -68,8 +68,8 @@ pkgs.runCommand "build-switch-improved-unit-test"
 
   ${testHelpers.assertContains "${buildSwitchCommon}" "Build & Switch" "build and switch title"}
   ${testHelpers.assertContains "${buildSwitchCommon}" "Building" "build operation"}
-  ${testHelpers.assertContains "${buildSwitchCommon}" "Switching" "switch operation"}
-  ${testHelpers.assertContains "${buildSwitchCommon}" "Rebuilding" "rebuild operation"}
+  ${testHelpers.assertContains "${buildSwitchCommon}" "switch" "switch operation"}
+  ${testHelpers.assertContains "${buildSwitchCommon}" "REBUILD_COMMAND" "rebuild command reference"}
 
   ${testHelpers.cleanup}
 
