@@ -16,6 +16,13 @@ NC='\033[0m'
 EXPORT_USER=${USER:-$(whoami)}
 LOG_FILE="test-results-$(date +%Y%m%d-%H%M%S).log"
 
+# Detect current platform
+CURRENT_PLATFORM=$(nix eval --impure --raw --expr 'builtins.currentSystem' 2>/dev/null || echo "unknown")
+if [ "$CURRENT_PLATFORM" = "unknown" ]; then
+    print_error "Failed to detect platform"
+    exit 1
+fi
+
 print_status() {
     echo -e "${GREEN}[TEST-ALL]${NC} $1" | tee -a "$LOG_FILE"
 }
@@ -71,6 +78,7 @@ show_summary() {
 main() {
     print_info "Starting comprehensive local test suite..."
     print_info "Export USER=$EXPORT_USER"
+    print_info "Current Platform: $CURRENT_PLATFORM"
 
     export USER="$EXPORT_USER"
 
@@ -91,7 +99,7 @@ main() {
 
     # Test 3: Individual unit test (our enhanced test)
     ((total++))
-    if run_test "Auto-Update Unit Test" "nix build --impure .#checks.aarch64-darwin.auto_update_dotfiles_unit -L"; then
+    if run_test "Auto-Update Unit Test" "nix build --impure .#checks.${CURRENT_PLATFORM}.auto_update_dotfiles_unit -L"; then
         ((passed++))
     fi
 
@@ -109,7 +117,7 @@ main() {
 
     # Test 6: Claude commands copy test (problematic one)
     ((total++))
-    if run_test "Claude Commands Copy" "nix build --impure .#checks.aarch64-darwin.claude_commands_copy_unit -L"; then
+    if run_test "Claude Commands Copy" "nix build --impure .#checks.${CURRENT_PLATFORM}.claude_commands_copy_unit -L"; then
         ((passed++))
     fi
 
@@ -135,14 +143,15 @@ if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
     echo "Usage: $0"
     echo ""
     echo "Runs all tests locally to match CI behavior and prevent CI failures."
+    echo "Automatically detects the current platform (x86_64-darwin, aarch64-darwin, x86_64-linux)"
     echo ""
     echo "This script runs:"
     echo "  1. Pre-commit lint checks"
     echo "  2. Smoke tests"
-    echo "  3. Individual unit tests"
+    echo "  3. Individual unit tests (platform-specific)"
     echo "  4. All unit tests"
     echo "  5. Build all configurations"
-    echo "  6. Problematic tests (like claude-commands-copy)"
+    echo "  6. Problematic tests (like claude-commands-copy, platform-specific)"
     echo "  7. Full test suite"
     echo ""
     echo "Options:"
