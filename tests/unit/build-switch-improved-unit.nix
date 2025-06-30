@@ -2,6 +2,7 @@
 let
   testHelpers = import ../lib/test-helpers.nix { inherit pkgs; };
   buildSwitchScript = "${src}/apps/aarch64-darwin/build-switch";
+  buildSwitchCommon = "${src}/scripts/build-switch-common.sh";
 in
 pkgs.runCommand "build-switch-improved-unit-test"
 {
@@ -17,31 +18,58 @@ pkgs.runCommand "build-switch-improved-unit-test"
   ${testHelpers.assertExists "${buildSwitchScript}" "build-switch script exists"}
   ${testHelpers.assertCommand "[ -x '${buildSwitchScript}' ]" "build-switch script is executable"}
 
-  # Test 2: Platform configuration
-  ${testHelpers.testSubsection "Platform Configuration"}
+  # Test 2: Color constants definition (check in common script)
+  ${testHelpers.testSubsection "Color Constants"}
 
-  ${testHelpers.assertContains "${buildSwitchScript}" "SYSTEM_TYPE=" "System type defined"}
-  ${testHelpers.assertContains "${buildSwitchScript}" "FLAKE_SYSTEM=" "Flake system defined"}
-  ${testHelpers.assertContains "${buildSwitchScript}" "PLATFORM_TYPE=" "Platform type defined"}
-  ${testHelpers.assertContains "${buildSwitchScript}" "REBUILD_COMMAND=" "Rebuild command defined"}
+  ${testHelpers.assertContains "${buildSwitchCommon}" "GREEN=" "GREEN color constant defined"}
+  ${testHelpers.assertContains "${buildSwitchCommon}" "YELLOW=" "YELLOW color constant defined"}
+  ${testHelpers.assertContains "${buildSwitchCommon}" "RED=" "RED color constant defined"}
+  ${testHelpers.assertContains "${buildSwitchCommon}" "BLUE=" "BLUE color constant defined"}
+  ${testHelpers.assertContains "${buildSwitchCommon}" "NC=" "No color constant defined"}
 
-  # Test 3: Common script integration
-  ${testHelpers.testSubsection "Common Script Integration"}
+  # Test 3: Helper functions definition (check in common script)
+  ${testHelpers.testSubsection "Helper Functions"}
 
-  ${testHelpers.assertContains "${buildSwitchScript}" "build-switch-common.sh" "Common script sourced"}
-  ${testHelpers.assertContains "${buildSwitchScript}" "execute_build_switch" "Main function called"}
+  ${testHelpers.assertContains "${buildSwitchCommon}" "print_step()" "print_step function defined"}
+  ${testHelpers.assertContains "${buildSwitchCommon}" "print_success()" "print_success function defined"}
+  ${testHelpers.assertContains "${buildSwitchCommon}" "print_error()" "print_error function defined"}
+  ${testHelpers.assertContains "${buildSwitchCommon}" "show_progress()" "show_progress function defined"}
 
-  # Test 4: Environment setup
-  ${testHelpers.testSubsection "Environment Setup"}
+  # Test 4: Verbose flag handling (check in common script)
+  ${testHelpers.testSubsection "Verbose Flag Handling"}
 
-  ${testHelpers.assertContains "${buildSwitchScript}" "NIXPKGS_ALLOW_UNFREE=1" "Unfree packages allowed"}
-  ${testHelpers.assertContains "${buildSwitchScript}" "PROJECT_ROOT=" "Project root variable set"}
+  ${testHelpers.assertContains "${buildSwitchCommon}" "VERBOSE=false" "VERBOSE variable initialized"}
+  ${testHelpers.assertContains "${buildSwitchCommon}" "\\-\\-verbose" "verbose flag check implemented"}
+  ${testHelpers.assertContains "${buildSwitchCommon}" "VERBOSE=true" "verbose flag setting implemented"}
 
-  # Test 5: Script structure validation
-  ${testHelpers.testSubsection "Script Structure"}
+  # Test 5: Progress indicator format (check in common script)
+  ${testHelpers.testSubsection "Progress Indicator Format"}
 
-  ${testHelpers.assertContains "${buildSwitchScript}" "#!/bin/sh -e" "Proper shebang with error handling"}
-  ${testHelpers.assertContains "${buildSwitchScript}" "\\\$@" "Arguments passed through"}
+  ${testHelpers.assertContains "${buildSwitchCommon}" "🏗️  Dotfiles Build & Switch" "progress indicator with emoji"}
+  ${testHelpers.assertContains "${buildSwitchCommon}" "\[\$step/\$total\]" "step counter format"}
+
+  # Test 6: Error handling patterns (check in common script)
+  ${testHelpers.testSubsection "Error Handling"}
+
+  ${testHelpers.assertContains "${buildSwitchCommon}" "2>/dev/null" "error suppression for non-verbose mode"}
+  ${testHelpers.assertContains "${buildSwitchCommon}" "Run with \\-\\-verbose for details" "verbose suggestion in error messages"}
+  ${testHelpers.assertContains "${buildSwitchCommon}" "exit 1" "proper exit code on failure"}
+
+  # Test 7: Success indicators (check in common script)
+  ${testHelpers.testSubsection "Success Indicators"}
+
+  ${testHelpers.assertContains "${buildSwitchCommon}" "✅" "success emoji used"}
+  ${testHelpers.assertContains "${buildSwitchCommon}" "System configuration built" "build success message"}
+  ${testHelpers.assertContains "${buildSwitchCommon}" "New generation activated" "switch success message"}
+  ${testHelpers.assertContains "${buildSwitchCommon}" "Cleanup complete" "cleanup success message"}
+
+  # Test 8: Script content validation (check in common script)
+  ${testHelpers.testSubsection "Script Content"}
+
+  ${testHelpers.assertContains "${buildSwitchCommon}" "🏗️.*Build.*Switch" "build progress pattern"}
+  ${testHelpers.assertContains "${buildSwitchCommon}" "💡.*verbose" "verbose hint pattern"}
+  ${testHelpers.assertContains "${buildSwitchCommon}" "Building system configuration" "build step message"}
+  ${testHelpers.assertContains "${buildSwitchCommon}" "Switching to new generation" "switch step message"}
 
   ${testHelpers.cleanup}
 

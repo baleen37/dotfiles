@@ -3,8 +3,8 @@ return {
     bundleID = 'com.raycast.macos',
     localBindings = {'c', 'space', 'o'}
   },
-  ['com.github.wez.wezterm'] = {
-    bundleID = 'com.github.wez.wezterm',
+  ['com.googlecode.iterm2'] = {
+    bundleID = 'com.googlecode.iterm2',
     hyperKey = 'i',
     tags = {'coding'}
   },

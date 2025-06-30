@@ -7,6 +7,9 @@ self: super: with super; {
     stdenv.mkDerivation {
       name = "${pname}-${version}";
 
+      # Security consideration: This uses a tag reference which could be moved
+      # For maximum security, consider switching to fetchFromGitHub with commit hash:
+      # rev = "b7138c5a9e3fa9fb9de3722d818af9f53660393b"; # v1.0
       src = fetchzip {
         url = "https://github.com/dustinlyons/feather-font/archive/refs/tags/${version}.zip";
         sha256 = "sha256-Zsz8/qn7XAG6BVp4XdqooEqioFRV7bLH0bQkHZvFbsg=";
