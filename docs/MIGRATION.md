@@ -16,7 +16,7 @@ This guide helps users migrate from other dotfiles systems or upgrade existing N
    ```bash
    # List current dotfiles
    ls -la ~ | grep '^\.'
-   
+
    # Document installed packages
    brew list > brew-packages.txt  # macOS
    apt list --installed > apt-packages.txt  # Ubuntu/Debian
@@ -88,7 +88,7 @@ done
    ```bash
    # Check for existing home-manager
    home-manager --version
-   
+
    # List current generations
    nix-env --list-generations
    ```
@@ -116,7 +116,7 @@ done
    ```bash
    # Check current configuration location
    readlink /etc/nixos/configuration.nix
-   
+
    # Review hardware configuration
    cat /etc/nixos/hardware-configuration.nix
    ```
@@ -125,7 +125,7 @@ done
    ```bash
    # List custom packages
    nix-env -qa --installed
-   
+
    # Review system packages
    sudo nixos-rebuild dry-run
    ```
@@ -146,7 +146,7 @@ done
    ```bash
    # Test build without applying
    sudo nixos-rebuild dry-build --flake .#hostname
-   
+
    # Apply when ready
    sudo nixos-rebuild switch --flake .#hostname
    ```
@@ -238,7 +238,7 @@ nix build --impure --show-trace .#darwinConfigurations.system
    ```bash
    # List available generations
    sudo nixos-rebuild list-generations
-   
+
    # Rollback to previous generation
    sudo nixos-rebuild switch --rollback
    ```
@@ -247,7 +247,7 @@ nix build --impure --show-trace .#darwinConfigurations.system
    ```bash
    # List home-manager generations
    home-manager generations
-   
+
    # Activate previous generation
    /nix/store/...-home-manager-generation/activate
    ```
@@ -256,7 +256,7 @@ nix build --impure --show-trace .#darwinConfigurations.system
    ```bash
    # Restore backed up configuration
    cp -r ~/dotfiles-backup/.* ~/
-   
+
    # Reinstall previous package manager
    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
    ```
@@ -270,7 +270,7 @@ nix build --impure --show-trace .#darwinConfigurations.system
    # Test shell functionality
    echo $SHELL
    which zsh
-   
+
    # Test package availability
    git --version
    vim --version
@@ -289,7 +289,7 @@ nix build --impure --show-trace .#darwinConfigurations.system
    ```bash
    # Check build times
    make build-time
-   
+
    # Test update process
    ./scripts/auto-update-dotfiles --force
    ```

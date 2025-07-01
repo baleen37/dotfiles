@@ -246,13 +246,13 @@ homebrew.casks = [
 {
   # Enable firewall
   networking.firewall.enable = true;
-  
+
   # Disable unnecessary services
   services.unnecessary-service.enable = false;
-  
+
   # Configure fail2ban
   services.fail2ban.enable = true;
-  
+
   # Regular security updates
   system.autoUpgrade.enable = true;
 }

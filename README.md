@@ -164,7 +164,7 @@ The system follows a strict modular architecture:
 { pkgs }: with pkgs; [
   # Development tools
   your-development-tool
-  
+
   # System utilities
   your-utility-package
 ]

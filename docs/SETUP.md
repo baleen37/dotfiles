@@ -19,7 +19,7 @@ This guide provides step-by-step instructions for setting up the Nix dotfiles sy
    ```bash
    # Install Nix (if not already installed)
    curl -L https://nixos.org/nix/install | sh -s -- --daemon
-   
+
    # Enable flakes (add to ~/.config/nix/nix.conf)
    experimental-features = nix-command flakes
    ```
@@ -28,7 +28,7 @@ This guide provides step-by-step instructions for setting up the Nix dotfiles sy
    ```bash
    # macOS (via Homebrew)
    brew install git
-   
+
    # NixOS (usually pre-installed)
    nix-env -iA nixos.git
    ```
