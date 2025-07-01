@@ -1,161 +1,246 @@
-# Nix Dotfiles: Cross-Platform Development Environment
+# Professional Nix Dotfiles System
 
-> **Complete, reproducible development environments for macOS and NixOS**
+> **Enterprise-grade, declarative development environments for macOS and NixOS**
 
-Declaratively manage your entire development environment using Nix flakes. Everything from packages and configurations to system settings is version-controlled and instantly reproducible across machines.
+A comprehensive Nix flakes-based dotfiles system that provides reproducible, version-controlled development environments across multiple platforms. Features advanced module architecture, comprehensive testing framework, and integrated AI development assistance.
 
-**🤖 Enhanced with Claude Code Integration** - Get AI-powered development assistance with 20+ specialized commands, smart configuration management, and context-aware project guidance.
+## System Overview
 
-## ⚡ Quick Start
+This repository implements a sophisticated dotfiles management system using Nix flakes with the following core capabilities:
 
-### Prerequisites
-- **Nix** with flakes support ([install guide](https://nixos.org/download))
+- **Cross-platform compatibility**: Native support for macOS (Intel + Apple Silicon) and NixOS (x86_64 + ARM64)
+- **Modular architecture**: Clean separation between platform-specific and shared configurations
+- **Comprehensive testing**: Unit, integration, end-to-end, and performance test suites
+- **Claude Code integration**: AI-powered development assistance with 20+ specialized commands
+- **Advanced automation**: Auto-update system, configuration preservation, and intelligent build optimization
+
+## Quick Start
+
+### System Requirements
+
+- **Nix** with flakes support ([installation guide](https://nixos.org/download))
 - **Git** for version control
-- **Admin access** for system-level configuration
+- **Administrative privileges** for system-level configuration
+- **Supported platforms**: macOS 11+, NixOS 21.11+
 
-### 5-Minute Setup
+### Installation
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/baleen/dotfiles.git
+# 1. Clone and enter repository
+git clone https://github.com/baleen37/dotfiles.git
 cd dotfiles
 
-# 2. Quick validation
+# 2. Set user context (required)
 export USER=$(whoami)
+
+# 3. Validate system compatibility
 make smoke
 
-# 3. Build and apply to your system
+# 4. Build all platform configurations
 make build
-nix run --impure .#build-switch  # Requires sudo
+
+# 5. Apply to current system
+nix run --impure .#build-switch
 ```
 
-That's it! Your system now has a complete, reproducible development environment.
+**Result**: A complete, reproducible development environment with 50+ tools, optimized configurations, and AI integration.
 
-## 🏗️ What You Get
+## System Capabilities
 
-### 📦 Comprehensive Package Management
-- **46+ development tools** (git, vim, curl, jq, etc.)
-- **Cross-platform support**: macOS (Intel + Apple Silicon) and NixOS (x86_64 + ARM64)
-- **macOS apps via Homebrew**: 34+ GUI applications managed declaratively
-- **Automatic package resolution** across different platforms
+### Package Management
 
-### 🔧 Development Tools
-- **Global command system**: `bl` dispatcher for project management
-- **Automated project setup**: `setup-dev` for instant Nix project initialization
-- **Smart configuration preservation**: Claude settings safely preserved during updates
-- **Auto-update system**: Background updates with safety checks
+- **50+ development tools**: Comprehensive toolchain including git, vim, docker, terraform, nodejs, python
+- **Platform-optimized**: Automatic package selection based on macOS/NixOS platform
+- **Homebrew integration**: 34+ GUI applications managed declaratively on macOS
+- **Version consistency**: Reproducible package versions across all environments
 
-### 🧪 Quality Assurance
-- **Comprehensive testing**: Unit, integration, e2e, and performance tests
-- **CI/CD pipeline**: GitHub Actions with multi-platform validation
-- **Pre-commit hooks**: Automated code quality checks
-- **Local testing**: Mirror CI pipeline locally with `./scripts/test-all-local`
+### Development Infrastructure
 
-## 🚀 Essential Commands
+- **Global command system**: `bl` dispatcher for cross-project development tasks
+- **Project initialization**: `setup-dev` creates instant Nix development environments
+- **Configuration preservation**: Intelligent preservation of user customizations during updates
+- **Auto-update mechanism**: TTL-based update system with safety validation
 
-### Daily Workflow
+### Quality Assurance Framework
+
+- **Multi-tier testing**: Unit (component), integration (module), end-to-end (workflow), performance
+- **CI/CD pipeline**: Comprehensive GitHub Actions workflow with multi-platform validation
+- **Development lifecycle**: Pre-commit hooks, automated testing, build validation
+- **Local testing capability**: Full CI pipeline replication via `./scripts/test-all-local`
+
+## Core Operations
+
+### Development Workflow
+
 ```bash
-# Set USER (required for all operations)
+# Set user context (required)
 export USER=$(whoami)
 
-# Core development commands
-make lint           # Code quality checks (run before committing)
-make build          # Build all platform configurations  
+# Quality assurance
+make lint           # Run pre-commit hooks and code quality checks
+make smoke          # Fast flake validation without building
+make test           # Execute comprehensive test suite
+
+# Build and deployment
+make build          # Build all platform configurations
+make build-current  # Build current platform only (faster)
 make switch         # Apply configuration to current system
-make test           # Run comprehensive test suite
 ```
 
 ### Platform-Specific Operations
-```bash
-# Build specific platforms
-make build-darwin   # macOS configurations only
-make build-linux    # NixOS configurations only
 
-# Direct nix commands
+```bash
+# Targeted builds
+make build-darwin   # macOS configurations (x86_64, aarch64)
+make build-linux    # NixOS configurations (x86_64, aarch64)
+
+# Direct operations
 nix run .#build         # Build current platform
-nix run .#build-switch  # Build and apply immediately (requires sudo)
+nix run .#build-switch  # Build and apply with sudo handling
+nix run .#test          # Run platform-appropriate test suite
 ```
 
-### Available Apps (per Platform)
+### Platform Capability Matrix
 
-| Command | aarch64-darwin | x86_64-darwin | aarch64-linux | x86_64-linux |
-|---------|:--------------:|:-------------:|:-------------:|:------------:|
+| Operation | macOS (Intel) | macOS (ARM) | NixOS (x86_64) | NixOS (ARM64) |
+|-----------|:-------------:|:-----------:|:--------------:|:-------------:|
+| **Core Operations** | | | | |
 | build | ✅ | ✅ | ✅ | ✅ |
 | build-switch | ✅ | ✅ | ✅ | ✅ |
 | apply | ✅ | ✅ | ✅ | ✅ |
 | rollback | ✅ | ✅ | ❌ | ❌ |
+| **Testing Framework** | | | | |
 | test | ✅ | ✅ | ✅ | ✅ |
-| test-unit | ✅ | ✅ | ❌ | ❌ |
-| test-integration | ✅ | ✅ | ❌ | ❌ |
-| test-e2e | ✅ | ✅ | ❌ | ❌ |
+| test-unit | ✅ | ✅ | ❌¹ | ❌¹ |
+| test-integration | ✅ | ✅ | ❌¹ | ❌¹ |
+| test-e2e | ✅ | ✅ | ❌¹ | ❌¹ |
+| **Development Tools** | | | | |
 | setup-dev | ✅ | ✅ | ✅ | ✅ |
-| SSH key tools | ✅ | ✅ | ✅ | ✅ |
+| SSH key management | ✅ | ✅ | ✅ | ✅ |
 
-## 📁 Repository Structure
+¹ Linux systems use consolidated testing approach due to platform limitations
+
+## Architecture
+
+### Repository Structure
 
 ```
-├── flake.nix              # Main entry point and system configurations
+├── flake.nix              # Flake entry point and output definitions
 ├── Makefile               # Development workflow automation
-├── CLAUDE.md              # Claude Code integration guide
-├── CONTRIBUTING.md        # Development and contribution guidelines
-├── modules/               # Modular system configuration
-│   ├── shared/            #   Cross-platform packages and settings
-│   ├── darwin/            #   macOS-specific configuration
-│   └── nixos/             #   NixOS-specific configuration
-├── hosts/                 # Individual machine configurations
-│   ├── darwin/            #   macOS host setups
-│   └── nixos/             #   NixOS host setups
-├── lib/                   # Nix utility functions
-├── scripts/               # Management and development tools
-├── tests/                 # Comprehensive test suite
-└── docs/                  # Additional documentation
+├── CLAUDE.md              # Claude Code project instructions
+├── CONTRIBUTING.md        # Development guidelines and standards
+│
+├── modules/               # Modular configuration system
+│   ├── shared/            #   Cross-platform configurations
+│   ├── darwin/            #   macOS-specific modules
+│   └── nixos/             #   NixOS-specific modules
+│
+├── hosts/                 # Host-specific configurations
+│   ├── darwin/            #   macOS system definitions
+│   └── nixos/             #   NixOS system definitions
+│
+├── lib/                   # Nix utility functions and builders
+├── scripts/               # Automation and management tools
+├── tests/                 # Multi-tier testing framework
+├── docs/                  # Comprehensive documentation
+└── overlays/              # Custom package definitions and patches
 ```
 
-## 🛠️ Customization
+### Module Hierarchy
 
-### Adding Packages
+The system follows a strict modular architecture:
+
+1. **Platform modules** (`modules/{darwin,nixos}/`) contain OS-specific configurations
+2. **Shared modules** (`modules/shared/`) provide cross-platform functionality
+3. **Host configurations** (`hosts/`) define individual machine setups
+4. **Library functions** (`lib/`) provide reusable Nix utilities
+
+## Customization
+
+### Package Management
+
+**Cross-platform packages** (`modules/shared/packages.nix`):
 ```nix
-# For all platforms: modules/shared/packages.nix
 { pkgs }: with pkgs; [
-  # Add your package here
-  your-new-package
+  # Development tools
+  your-development-tool
+  
+  # System utilities
+  your-utility-package
 ]
-
-# For macOS only: modules/darwin/packages.nix or modules/darwin/casks.nix
-# For NixOS only: modules/nixos/packages.nix
 ```
 
-### Testing Changes
+**Platform-specific packages**:
+- macOS packages: `modules/darwin/packages.nix`
+- macOS GUI apps: `modules/darwin/casks.nix`
+- NixOS packages: `modules/nixos/packages.nix`
+
+### Validation Workflow
+
 ```bash
-# Always test before committing
-make lint && make build && make test
+# Comprehensive validation
+make lint           # Code quality and formatting
+make smoke          # Fast flake structure validation
+make build          # Multi-platform build verification
+make test           # Full test suite execution
 
-# Apply locally to test
-make switch
+# Local application
+make switch         # Apply to current system
 ```
 
-## 🔧 Advanced Features
+### Testing Strategy
 
-### Claude Configuration Preservation
-Automatically preserves user customizations during system updates:
-- **Smart detection**: SHA256-based change detection
-- **Safe updates**: New versions saved as `.new` files
-- **Interactive merging**: Resolve conflicts with `./scripts/merge-claude-config`
+1. **Unit tests**: Individual component validation
+2. **Integration tests**: Module interaction verification
+3. **End-to-end tests**: Complete workflow validation
+4. **Performance tests**: Build time and resource monitoring
 
-### Auto-Update System
-Keeps your environment current with TTL-based checking:
+## Advanced Features
+
+### Configuration Preservation System
+
+Intelligent preservation of user customizations during system updates:
+
+- **Change detection**: SHA256-based modification tracking
+- **Safe update mechanism**: New versions preserved as `.new` files with user notification
+- **Interactive conflict resolution**: `./scripts/merge-claude-config` for manual merging
+- **Automatic backup**: Timestamped backups with 30-day retention policy
+
+### Automated Update Framework
+
+TTL-based update system with safety validation:
+
 ```bash
-./scripts/auto-update-dotfiles         # Manual check (respects 1h TTL)
-./scripts/auto-update-dotfiles --force # Force immediate update
+# Automatic updates (respects 1-hour TTL)
+./scripts/auto-update-dotfiles
+
+# Force immediate update
+./scripts/auto-update-dotfiles --force
+
+# Silent background updates
+./scripts/auto-update-dotfiles --silent
 ```
 
-### Global Command System
-Install once, use everywhere:
+### Global Development Tools
+
+Cross-project development assistance:
+
 ```bash
-./scripts/install-setup-dev    # Install `bl` command system
-bl setup-dev my-new-project    # Initialize Nix project anywhere
-bl list                        # Show available commands
+# Install global command system
+./scripts/install-setup-dev
+
+# Available commands
+bl setup-dev <project>    # Initialize Nix development environment
+bl list                   # Show available commands
+bl --help                 # Usage information
 ```
+
+### Performance Optimization
+
+- **Build optimization**: Parallel builds with optimal job configuration
+- **Platform-specific builds**: Target current platform for faster iteration
+- **Intelligent caching**: Build artifact caching and reuse
+- **Resource monitoring**: Build time and memory usage tracking
 
 ## 🤖 Claude Code Integration
 
@@ -228,13 +313,13 @@ Claude: I'll run comprehensive build and test validation.
 [Validates all platforms, runs tests, provides detailed results]
 ```
 
-### 📖 Getting Started
+### Documentation
 
 1. **[Complete Setup Guide](./docs/CLAUDE-SETUP.md)** - Installation, configuration, and troubleshooting
 2. **[Command Reference](./docs/CLAUDE-COMMANDS.md)** - All 20+ commands with examples and usage patterns
 3. **[Development Scenarios](./docs/DEVELOPMENT-SCENARIOS.md)** - Real-world workflow examples
 
-### 🛠️ Advanced Configuration
+### Advanced Configuration
 
 **Custom Commands**: Add your own specialized prompts
 **Permission Management**: Fine-tune tool access and security
