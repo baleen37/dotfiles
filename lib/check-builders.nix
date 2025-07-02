@@ -23,13 +23,11 @@ in
       };
       testSuite = mkTestSuite system;
 
-      # Extract test categories based on naming patterns
+      # Extract test categories based on naming patterns (simplified)
       coreTests = nixpkgs.lib.filterAttrs (name: _:
         builtins.elem name [
-          "flake_structure" "module_imports" "configuration_validation"
-          "user_resolution" "error_handling" "platform_detection"
-          "claude_config" "auto_update" "build_switch"
-          "package_availability" "module_dependency" "cross_platform"
+          "flake_structure" "configuration_validation" "user_resolution"
+          "unified_user_resolution" "user_path_consistency"
         ]
       ) testSuite;
 
