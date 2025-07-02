@@ -4,8 +4,8 @@
 { pkgs, lib, ... }:
 
 let
-  # Import the enhanced get-user.nix
-  getUserFunc = import ../../lib/get-user.nix;
+  # Import the enhanced get-user-extended.nix for full feature testing
+  getUserFunc = import ../../lib/get-user-extended.nix;
 
   # Test suite for user resolution
   runTest = name: test:

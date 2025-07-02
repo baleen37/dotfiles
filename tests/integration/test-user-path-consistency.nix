@@ -9,7 +9,7 @@ let
   mockEnv = { USER = testUser; };
 
   # Import modules to test
-  getUserInfo = import ../../lib/get-user.nix {
+  getUserInfo = import ../../lib/get-user-extended.nix {
     inherit mockEnv;
     platform = "darwin";
   };
@@ -51,11 +51,11 @@ let
   # Test platform-specific path resolution
   testPlatformPaths =
     let
-      darwinInfo = import ../../lib/get-user.nix {
+      darwinInfo = import ../../lib/get-user-extended.nix {
         inherit mockEnv;
         platform = "darwin";
       };
-      linuxInfo = import ../../lib/get-user.nix {
+      linuxInfo = import ../../lib/get-user-extended.nix {
         inherit mockEnv;
         platform = "linux";
       };
