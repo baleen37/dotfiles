@@ -43,7 +43,7 @@ in
       ) testSuite;
 
       # Run a specific test category by ensuring all tests build
-      runTestCategory = category: categoryTests: 
+      runTestCategory = category: categoryTests:
         let
           testsList = builtins.attrValues categoryTests;
           testsCount = builtins.length testsList;
