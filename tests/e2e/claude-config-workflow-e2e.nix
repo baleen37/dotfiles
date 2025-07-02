@@ -422,7 +422,7 @@ let
         # 예시: 사용자가 일부 새로운 설정은 추가하되 개인 설정은 유지
         # Simulate JSON merge without jq - preserve user_preferences while adding dotfiles flag
         cp "$CLAUDE_DIR/settings.json" "$CLAUDE_DIR/settings.json.merged"
-        
+
         # Create a proper merge that preserves the user_preferences section
         # Find the last closing brace and add the dotfiles flag before it
         # This approach preserves the entire JSON structure including user_preferences
