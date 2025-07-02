@@ -7,13 +7,13 @@
 let
   claudeDir = "${config.home.homeDirectory}/.claude";
   sourceDir = "${self}/modules/shared/config/claude";
-  
+
   # Platform-specific hash command selection
   hashCommand = if platform == "darwin" then ''
     # macOS에서는 shasum 또는 sha256sum 사용
     local source_hash=""
     local target_hash=""
-    
+
     if command -v shasum >/dev/null 2>&1; then
       source_hash=$(shasum -a 256 "$source" | cut -d' ' -f1)
       target_hash=$(shasum -a 256 "$target" | cut -d' ' -f1)
