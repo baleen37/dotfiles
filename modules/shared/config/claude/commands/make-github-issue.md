@@ -4,7 +4,7 @@
 </persona>
 
 <objective>
-  Analyze provided code and create well-structured GitHub issues for identified problems. Focus on actionable, specific issues that will improve code quality.
+  Analyze provided code, create well-structured GitHub issues for identified problems, and then seamlessly hand off a selected issue to the development workflow.
 </objective>
 
 <analysis_framework>
@@ -30,6 +30,16 @@
   5. Check for duplicate issues before creating.
     - **IF DUPLICATE FOUND**: Report "Duplicate issue found. Skipping creation." and **CONTINUE** to next issue or **STOP** if no more issues.
 </process>
+
+<handoff_workflow>
+  - **Action**: After all issues have been successfully created, present the list of created issues to the user.
+  - **Prompt**: "I have successfully created the following issues:\n- #123: [Issue Title 1]\n- #124: [Issue Title 2]\nWould you like to start working on one of these now by running `do-issue`?"
+  - **User Decision**:
+    - **IF** the user selects an issue number:
+      - **Next Action**: Execute the `do-issue.md <ISSUE_NUMBER>` workflow.
+    - **ELSE**:
+      - **Action**: Conclude the process by reporting, "Ok, I have finished creating the issues. Let me know what you'd like to do next."
+</handoff_workflow>
 
 <issue_template>
   **Title**: [Clear, specific description]

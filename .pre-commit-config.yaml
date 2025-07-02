@@ -67,10 +67,17 @@ repos:
         files: '\.nix$'
         pass_filenames: false
 
-      # Run full test suite (optional, can be enabled for pre-push)
-      - id: test-full
-        name: Full Test Suite
-        entry: bash -c 'USER=$(whoami) nix run --impure .#test'
+      # Run comprehensive tests that match CI execution (pre-push only)
+      - id: test-unit-prepush
+        name: Unit Tests (Pre-push)
+        entry: bash -c 'export USER=${USER:-$(whoami)} && echo "Running unit tests (matching CI)..." && nix run --impure .#test-unit'
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+
+      - id: test-integration-prepush
+        name: Integration Tests (Pre-push)
+        entry: bash -c 'export USER=${USER:-$(whoami)} && echo "Running integration tests (matching CI)..." && nix run --impure .#test-integration'
         language: system
         pass_filenames: false
         stages: [pre-push]

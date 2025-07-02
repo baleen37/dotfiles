@@ -2,8 +2,10 @@
 
 let
   name = "Jiho Lee";
-  getUser = import ../../lib/get-user.nix { };
-  user = getUser;
+  getUserInfo = import ../../lib/get-user-extended.nix {
+    platform = if pkgs.stdenv.isDarwin then "darwin" else "linux";
+  };
+  user = getUserInfo.user;
   email = "baleen37@gmail.com";
 in
 {
@@ -338,12 +340,7 @@ in
   ssh = {
     enable = true;
     includes = [
-      (lib.mkIf pkgs.stdenv.hostPlatform.isLinux
-        "/home/${user}/.ssh/config_external"
-      )
-      (lib.mkIf pkgs.stdenv.hostPlatform.isDarwin
-        "/Users/${user}/.ssh/config_external"
-      )
+      "${getUserInfo.homePath}/.ssh/config_external"
     ];
     extraConfig = ''
       Host *
