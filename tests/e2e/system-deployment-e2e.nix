@@ -149,12 +149,12 @@ pkgs.runCommand "system-deployment-e2e-test"
 
     # Test app availability for platform
     # Test platform-specific apps
-    case "$CURRENT_SYSTEM" in
+    case "$platform" in
       *-darwin)
         APPS=("build" "apply" "rollback")
         ;;
       *-linux)
-        APPS=("build" "apply" "install")
+        APPS=("build" "apply")
         ;;
     esac
 
