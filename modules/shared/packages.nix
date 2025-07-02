@@ -30,6 +30,9 @@ with pkgs; let
     direnv        # Environment variable management per directory
     pre-commit    # Pre-commit hooks framework
     claude-code   # Claude AI development assistant
+    gnumake       # GNU make build automation tool
+    cmake         # Cross-platform build system generator
+    home-manager  # Nix-based user environment management
   ];
 
   # Cloud and containerization tools
@@ -52,11 +55,33 @@ with pkgs; let
   # Media processing tools
   mediaTools = [
     ffmpeg        # Video/audio processing and conversion
+    vlc           # Cross-platform media player
+    fontconfig    # Font configuration and customization library
+    font-manager  # Font management application
   ];
 
   # Terminal applications
   terminalApps = [
     # Terminal emulators moved to platform-specific configs (e.g., iTerm2 via Darwin casks)
+  ];
+
+  # Security and authentication tools
+  securityTools = [
+    yubikey-agent # YubiKey support for SSH and other applications
+    keepassxc     # Cross-platform password manager
+  ];
+
+  # Database tools
+  databaseTools = [
+    postgresql    # Object-relational database system
+    sqlite        # Lightweight SQL database engine
+  ];
+
+  # Productivity and utility applications
+  productivityTools = [
+    bc            # Command-line calculator
+    google-chrome # Google Chrome web browser
+    spotify       # Music streaming application
   ];
 
 in
@@ -68,3 +93,6 @@ in
   ++ infrastructureTools
   ++ mediaTools
   ++ terminalApps
+  ++ securityTools
+  ++ databaseTools
+  ++ productivityTools

@@ -4,45 +4,28 @@ with pkgs;
 let shared-packages = import ../shared/packages.nix { inherit pkgs; }; in
 shared-packages ++ [
 
-  # Security and authentication
-  yubikey-agent
-  keepassxc
+  # NixOS-specific packages (cross-platform packages moved to shared/packages.nix)
 
-  # App and package management
+  # Linux-specific app management
   appimage-run
-  gnumake
-  cmake
-  home-manager
 
-  # Media and design tools
-  vlc
-  fontconfig
-  font-manager
-
-  # Productivity tools
-  bc # old school calculator
+  # Linux desktop productivity tools
   galculator
 
-  # Audio tools
+  # Linux audio tools
   pavucontrol # Pulse audio controls
 
-  # Testing and development tools
+  # Linux desktop and window management tools
   rofi
   rofi-calc
-  postgresql
   libnotify
   pcmanfm # File browser
-  sqlite
   xdg-utils
 
-  # Other utilities
+  # Linux desktop utilities
   yad # yad-calendar is used with polybar
   xdotool
-  google-chrome
 
-  # PDF viewer
+  # PDF viewer (Linux-focused, though available on other platforms)
   zathura
-
-  # Music and entertainment
-  spotify
 ]
