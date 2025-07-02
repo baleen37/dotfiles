@@ -98,24 +98,19 @@ let
   ];
 
 in
-{
-  # Test derivation
-  unified-user-resolution-test = pkgs.runCommand "test-unified-user-resolution" {} ''
-    echo "Running unified user resolution tests..."
+# Test derivation - return directly instead of wrapped in attribute set
+pkgs.runCommand "test-unified-user-resolution" {} ''
+  echo "Running unified user resolution tests..."
 
-    # All tests should have passed (they throw on failure)
-    echo "✅ All user resolution tests passed!"
-    echo "- Basic resolution: ✓"
-    echo "- SUDO_USER priority: ✓"
-    echo "- Platform-specific paths: ✓"
-    echo "- User config object: ✓"
-    echo "- Backward compatibility: ✓"
-    echo "- Invalid user validation: ✓"
-    echo "- Default value fallback: ✓"
+  # All tests should have passed (they throw on failure)
+  echo "✅ All user resolution tests passed!"
+  echo "- Basic resolution: ✓"
+  echo "- SUDO_USER priority: ✓"
+  echo "- Platform-specific paths: ✓"
+  echo "- User config object: ✓"
+  echo "- Backward compatibility: ✓"
+  echo "- Invalid user validation: ✓"
+  echo "- Default value fallback: ✓"
 
-    echo "Tests completed successfully" > $out
-  '';
-
-  # Individual test results for debugging
-  inherit allTests;
-}
+  echo "Tests completed successfully" > $out
+''
