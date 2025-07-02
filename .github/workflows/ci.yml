@@ -20,7 +20,7 @@ env:
     cores = 0
     substituters = https://cache.nixos.org https://nix-community.cachix.org
     trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
-  # 단일 환경 변수로 전체 파이프라인 제어
+  # Single environment variable to control entire pipeline
   CI_MODE: ${{ github.event.pull_request.draft == true && 'draft' || 'full' }}
   IS_MAIN: ${{ github.ref == 'refs/heads/main' }}
 
@@ -195,7 +195,7 @@ jobs:
           test_result="${{ needs.test-parallel.result }}"
           smoke_result="${{ needs.smoke-test.result }}"
 
-          # 상태 결정 로직 단순화
+          # Simplified status determination logic
           if [[ "$validation_result" != "success" ]]; then
             echo "status=failed" >> $GITHUB_OUTPUT
             echo "message=Validation failed" >> $GITHUB_OUTPUT
@@ -223,34 +223,42 @@ jobs:
         with:
           script: |
             try {
+              // Helper functions for cleaner code
+              function getStatusIcon(result) {
+                return result === 'success' ? '✅' : '❌';
+              }
+
+              function buildTemplate(isDraft, statusIcon, message, icons, footer) {
+                const efficiency = isDraft ? '⚡ **Ultra Fast** (smoke test only)' : '🚀 **Streamlined** (parallel execution)';
+                const buildStatus = isDraft ? '⏭️ Skipped (draft)' : icons.build + ' Core platforms';
+                const testStatus = isDraft ? '⏭️ Skipped (draft)' : icons.test + ' Parallel execution';
+
+                return '## ' + statusIcon + ' Streamlined CI Results\n\n' +
+                  efficiency + '\n\n' +
+                  '**Status**: ' + message + '\n\n' +
+                  '**Pipeline Summary**:\n' +
+                  '- **Validation**: ' + icons.validation + ' Lint & flake check\n' +
+                  '- **Build**: ' + buildStatus + '\n' +
+                  '- **Tests**: ' + testStatus + '\n\n' +
+                  footer;
+              }
+
+              // Main logic
               const status = '${{ steps.status.outputs.status }}';
               const message = '${{ steps.status.outputs.message }}';
-              const ciMode = '${{ env.CI_MODE }}';
+              const isDraft = '${{ env.CI_MODE }}' === 'draft';
 
-              // 상태 아이콘 및 결과 맵핑
-              const statusIcon = status === 'success' ? '✅' : '❌';
-              const isDraft = ciMode === 'draft';
+              const statusIcon = getStatusIcon(status);
+              const icons = {
+                validation: getStatusIcon('${{ needs.validate.result }}'),
+                build: getStatusIcon('${{ needs.build-core.result }}'),
+                test: getStatusIcon('${{ needs.test-parallel.result }}')
+              };
 
-              const validationIcon = '${{ needs.validate.result }}' === 'success' ? '✅' : '❌';
-              const buildIcon = '${{ needs.build-core.result }}' === 'success' ? '✅' : '❌';
-              const testIcon = '${{ needs.test-parallel.result }}' === 'success' ? '✅' : '❌';
-
-              // 간단한 템플릿 생성
-              const efficiency = isDraft ? '⚡ **Ultra Fast** (smoke test only)' : '🚀 **Streamlined** (parallel execution)';
-              const buildStatus = isDraft ? '⏭️ Skipped (draft)' : buildIcon + ' Core platforms';
-              const testStatus = isDraft ? '⏭️ Skipped (draft)' : testIcon + ' Parallel execution';
               const footer = isDraft ? '_💡 Mark as ready to run full CI pipeline_' : '_🎯 Optimized for speed: ~5-8 minutes total_';
+              const template = buildTemplate(isDraft, statusIcon, message, icons, footer);
 
-              const template = '## ' + statusIcon + ' Streamlined CI Results\n\n' +
-                efficiency + '\n\n' +
-                '**Status**: ' + message + '\n\n' +
-                '**Pipeline Summary**:\n' +
-                '- **Validation**: ' + validationIcon + ' Lint & flake check\n' +
-                '- **Build**: ' + buildStatus + '\n' +
-                '- **Tests**: ' + testStatus + '\n\n' +
-                footer;
-
-              // 기존 코멘트 찾기 및 업데이트
+              // Find and update existing comment
               const { data: comments } = await github.rest.issues.listComments({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
@@ -280,7 +288,7 @@ jobs:
               }
             } catch (error) {
               console.error('Failed to update PR comment:', error);
-              // 코멘트 실패해도 워크플로우는 계속 진행
+              // Continue workflow even if comment fails
             }
 
       - name: Final status check
