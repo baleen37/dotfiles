@@ -127,26 +127,26 @@ jobs:
 
           # Create a summary of what changed
           {
-            echo "## 의존성 업데이트 요약"
+            echo "## Dependency Update Summary"
             echo ""
-            echo "다음 의존성들이 업데이트되었습니다:"
+            echo "The following dependencies have been updated:"
             echo ""
             git show --name-only --pretty=format:"" HEAD | grep -E "\.(nix|lock)$" | while read file; do
               echo "- \`$file\`"
             done
             echo ""
-            echo "## 상세 변경사항"
+            echo "## Detailed Changes"
             echo ""
             echo "\`\`\`"
             git show --stat HEAD
             echo "\`\`\`"
             echo ""
-            echo "## 테스트 계획"
-            echo "- [ ] 모든 플랫폼에서 빌드 성공"
-            echo "- [ ] CI 파이프라인 통과"
-            echo "- [ ] 스모크 테스트 통과"
+            echo "## Test Plan"
+            echo "- [ ] Successful build on all platforms"
+            echo "- [ ] CI pipeline passes"
+            echo "- [ ] Smoke tests pass"
             echo ""
-            echo "🤖 자동으로 생성된 PR입니다. CI 테스트가 통과하면 자동으로 머지됩니다."
+            echo "🤖 This PR was automatically generated. It will be auto-merged when CI tests pass."
           } > pr_body.md
 
           echo "::endgroup::"
@@ -160,7 +160,7 @@ jobs:
           echo "::group::Creating Pull Request"
 
           PR_URL=$(gh pr create \
-            --title "chore: 자동 flake 의존성 업데이트 $(date +%Y-%m-%d)" \
+            --title "chore: automatic flake dependency update $(date +%Y-%m-%d)" \
             --body-file pr_body.md \
             --base main \
             --head "${{ steps.create-branch.outputs.branch-name }}" \
