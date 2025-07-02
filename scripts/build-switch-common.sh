@@ -199,7 +199,7 @@ run_switch() {
     if [ "$VERBOSE" = "true" ]; then
         log_info "Command: ${REBUILD_COMMAND} switch --impure --flake .#${SYSTEM_TYPE}"
         if [ -n "${SUDO_PREFIX}" ]; then
-            ${SUDO_PREFIX} ${REBUILD_COMMAND_PATH} switch --impure --flake .#${SYSTEM_TYPE} "$@" 2>&1 || {
+            eval "${SUDO_PREFIX} ${REBUILD_COMMAND_PATH} switch --impure --flake .#${SYSTEM_TYPE} \"\$@\"" || {
                 log_error "Switch failed (exit code: $?)"
                 log_footer "failed"
                 exit 1
@@ -221,7 +221,7 @@ run_switch() {
         fi
     else
         if [ -n "${SUDO_PREFIX}" ]; then
-            ${SUDO_PREFIX} ${REBUILD_COMMAND_PATH} switch --impure --flake .#${SYSTEM_TYPE} "$@" >/dev/null 2>&1 || {
+            eval "${SUDO_PREFIX} ${REBUILD_COMMAND_PATH} switch --impure --flake .#${SYSTEM_TYPE} \"\$@\"" >/dev/null || {
                 log_error "Switch failed. Run with --verbose for details"
                 log_footer "failed"
                 exit 1
@@ -289,7 +289,7 @@ execute_build_switch() {
         if [ "$VERBOSE" = "true" ]; then
             log_info "Command: ${REBUILD_COMMAND} switch --flake .#${SYSTEM_TYPE}"
             if [ -n "${SUDO_PREFIX}" ]; then
-                ${SUDO_PREFIX} ${REBUILD_COMMAND_PATH} switch --flake .#${SYSTEM_TYPE} "$@" || {
+                eval "${SUDO_PREFIX} ${REBUILD_COMMAND_PATH} switch --flake .#${SYSTEM_TYPE} \"\$@\"" || {
                     log_error "Build & switch failed (exit code: $?)"
                     log_footer "failed"
                     exit 1
@@ -303,7 +303,7 @@ execute_build_switch() {
             fi
         else
             if [ -n "${SUDO_PREFIX}" ]; then
-                ${SUDO_PREFIX} ${REBUILD_COMMAND_PATH} switch --flake .#${SYSTEM_TYPE} "$@" 2>/dev/null || {
+                eval "${SUDO_PREFIX} ${REBUILD_COMMAND_PATH} switch --flake .#${SYSTEM_TYPE} \"\$@\"" >/dev/null || {
                     log_error "Build & switch failed. Run with --verbose for details"
                     log_footer "failed"
                     exit 1
