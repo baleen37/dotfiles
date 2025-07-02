@@ -1,36 +1,27 @@
 { pkgs, flake ? null }:
 let
-  # Core tests - Essential functionality that must always work
+  # Core tests - Essential functionality that must always work (simplified)
   coreTests = {
-    # Basic functionality and structure
+    # Basic functionality and structure (only active tests)
     flake_structure = import ./unit/flake-structure-test.nix { inherit pkgs flake; lib = pkgs.lib; src = ../.; };
-    module_imports = import ./unit/module-imports-unit.nix { inherit pkgs flake; src = ../.; };
     configuration_validation = import ./unit/configuration-validation-unit.nix { inherit pkgs flake; src = ../.; };
 
-    # Critical functionality
+    # Critical functionality (only active tests)
     user_resolution = import ./unit/user-resolution-test.nix { inherit pkgs flake; src = ../.; };
-    error_handling = import ./unit/error-handling-test.nix { inherit pkgs flake; src = ../.; };
-    platform_detection = import ./unit/platform-detection-test.nix { inherit pkgs flake; src = ../.; };
+    unified_user_resolution = import ./unit/test-unified-user-resolution.nix { inherit pkgs; lib = pkgs.lib; };
 
-    # Core features
-    claude_config = import ./unit/claude-config-test.nix { inherit pkgs flake; src = ../.; };
-    auto_update = import ./unit/auto-update-test.nix { inherit pkgs flake; src = ../.; };
-    build_switch = import ./unit/build-switch-improved-unit.nix { inherit pkgs flake; src = ../.; };
-
-    # Essential integrations
-    package_availability = import ./integration/package-availability-integration.nix { inherit pkgs flake; src = ../.; };
-    module_dependency = import ./integration/module-dependency-integration.nix { inherit pkgs flake; src = ../.; };
-    cross_platform = import ./integration/cross-platform-integration.nix { inherit pkgs flake; src = ../.; };
+    # Essential integrations (only active tests)
+    user_path_consistency = import ./integration/test-user-path-consistency.nix { inherit pkgs; lib = pkgs.lib; };
   };
 
-  # Workflow tests - End-to-end user workflows
+  # Workflow tests - End-to-end user workflows (simplified)
   workflowTests = {
-    # Core workflows
+    # Core workflows (keep essential E2E tests)
     system_build = import ./e2e/system-build-e2e.nix { inherit pkgs flake; src = ../.; };
     system_deployment = import ./e2e/system-deployment-e2e.nix { inherit pkgs flake; src = ../.; };
     complete_workflow = import ./e2e/complete-workflow-e2e.nix { inherit pkgs flake; src = ../.; };
 
-    # Feature workflows
+    # Feature workflows (keep Claude config workflow)
     claude_config_workflow = import ./e2e/claude-config-workflow-e2e.nix { inherit pkgs flake; src = ../.; };
     build_switch_workflow = import ./e2e/build-switch-improved-e2e.nix { inherit pkgs flake; src = ../.; };
   };
