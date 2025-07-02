@@ -55,9 +55,7 @@ with pkgs; let
   # Media processing tools
   mediaTools = [
     ffmpeg        # Video/audio processing and conversion
-    vlc           # Cross-platform media player
     fontconfig    # Font configuration and customization library
-    font-manager  # Font management application
   ];
 
   # Terminal applications

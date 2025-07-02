@@ -15,6 +15,10 @@ shared-packages ++ [
   # Linux audio tools
   pavucontrol # Pulse audio controls
 
+  # Linux media tools
+  vlc           # Cross-platform media player (Linux only)
+  font-manager  # Font management application (Linux only)
+
   # Linux desktop and window management tools
   rofi
   rofi-calc
