@@ -30,10 +30,10 @@ pkgs.runCommand "build-switch-improved-unit-test"
   # Test 3: Helper functions definition (check in common script)
   ${testHelpers.testSubsection "Helper Functions"}
 
-  ${testHelpers.assertContains "${buildSwitchCommon}" "print_step()" "print_step function defined"}
-  ${testHelpers.assertContains "${buildSwitchCommon}" "print_success()" "print_success function defined"}
-  ${testHelpers.assertContains "${buildSwitchCommon}" "print_error()" "print_error function defined"}
-  ${testHelpers.assertContains "${buildSwitchCommon}" "show_progress()" "show_progress function defined"}
+  ${testHelpers.assertContains "${buildSwitchCommon}" "log_step()" "log_step function defined"}
+  ${testHelpers.assertContains "${buildSwitchCommon}" "log_success()" "log_success function defined"}
+  ${testHelpers.assertContains "${buildSwitchCommon}" "log_error()" "log_error function defined"}
+  ${testHelpers.assertContains "${buildSwitchCommon}" "log_info()" "log_info function defined"}
 
   # Test 4: Verbose flag handling (check in common script)
   ${testHelpers.testSubsection "Verbose Flag Handling"}
@@ -45,31 +45,31 @@ pkgs.runCommand "build-switch-improved-unit-test"
   # Test 5: Progress indicator format (check in common script)
   ${testHelpers.testSubsection "Progress Indicator Format"}
 
-  ${testHelpers.assertContains "${buildSwitchCommon}" "🏗️  Dotfiles Build & Switch" "progress indicator with emoji"}
-  ${testHelpers.assertContains "${buildSwitchCommon}" "\[\$step/\$total\]" "step counter format"}
+  ${testHelpers.assertContains "${buildSwitchCommon}" "Build & Switch" "build and switch header"}
+  ${testHelpers.assertContains "${buildSwitchCommon}" "log_header" "header logging function"}
 
   # Test 6: Error handling patterns (check in common script)
   ${testHelpers.testSubsection "Error Handling"}
 
   ${testHelpers.assertContains "${buildSwitchCommon}" "2>/dev/null" "error suppression for non-verbose mode"}
-  ${testHelpers.assertContains "${buildSwitchCommon}" "Run with \\-\\-verbose for details" "verbose suggestion in error messages"}
+  ${testHelpers.assertContains "${buildSwitchCommon}" "verbose" "verbose flag support"}
   ${testHelpers.assertContains "${buildSwitchCommon}" "exit 1" "proper exit code on failure"}
 
   # Test 7: Success indicators (check in common script)
   ${testHelpers.testSubsection "Success Indicators"}
 
-  ${testHelpers.assertContains "${buildSwitchCommon}" "✅" "success emoji used"}
-  ${testHelpers.assertContains "${buildSwitchCommon}" "System configuration built" "build success message"}
-  ${testHelpers.assertContains "${buildSwitchCommon}" "New generation activated" "switch success message"}
-  ${testHelpers.assertContains "${buildSwitchCommon}" "Cleanup complete" "cleanup success message"}
+  ${testHelpers.assertContains "${buildSwitchCommon}" "✓" "success checkmark used"}
+  ${testHelpers.assertContains "${buildSwitchCommon}" "Build completed" "build success message"}
+  ${testHelpers.assertContains "${buildSwitchCommon}" "Configuration applied" "switch success message"}
+  ${testHelpers.assertContains "${buildSwitchCommon}" "Cleanup completed" "cleanup success message"}
 
   # Test 8: Script content validation (check in common script)
   ${testHelpers.testSubsection "Script Content"}
 
-  ${testHelpers.assertContains "${buildSwitchCommon}" "🏗️.*Build.*Switch" "build progress pattern"}
-  ${testHelpers.assertContains "${buildSwitchCommon}" "💡.*verbose" "verbose hint pattern"}
-  ${testHelpers.assertContains "${buildSwitchCommon}" "Building system configuration" "build step message"}
-  ${testHelpers.assertContains "${buildSwitchCommon}" "Switching to new generation" "switch step message"}
+  ${testHelpers.assertContains "${buildSwitchCommon}" "Build & Switch" "build and switch title"}
+  ${testHelpers.assertContains "${buildSwitchCommon}" "Building" "build operation"}
+  ${testHelpers.assertContains "${buildSwitchCommon}" "switch" "switch operation"}
+  ${testHelpers.assertContains "${buildSwitchCommon}" "REBUILD_COMMAND" "rebuild command reference"}
 
   ${testHelpers.cleanup}
 

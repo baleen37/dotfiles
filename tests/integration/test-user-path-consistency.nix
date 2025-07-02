@@ -9,7 +9,7 @@ let
   mockEnv = { USER = testUser; };
 
   # Import modules to test
-  getUserInfo = import ../../lib/get-user.nix {
+  getUserInfo = import ../../lib/get-user-extended.nix {
     inherit mockEnv;
     platform = "darwin";
   };
@@ -51,11 +51,11 @@ let
   # Test platform-specific path resolution
   testPlatformPaths =
     let
-      darwinInfo = import ../../lib/get-user.nix {
+      darwinInfo = import ../../lib/get-user-extended.nix {
         inherit mockEnv;
         platform = "darwin";
       };
-      linuxInfo = import ../../lib/get-user.nix {
+      linuxInfo = import ../../lib/get-user-extended.nix {
         inherit mockEnv;
         platform = "linux";
       };
@@ -81,20 +81,15 @@ let
   ];
 
 in
-{
-  # Integration test derivation
-  user-path-consistency-test = pkgs.runCommand "test-user-path-consistency" {} ''
-    echo "Running user path consistency integration tests..."
+# Integration test derivation - return directly instead of wrapped in attribute set
+pkgs.runCommand "test-user-path-consistency" {} ''
+  echo "Running user path consistency integration tests..."
 
-    echo "✅ All user path consistency tests passed!"
-    echo "- Shared files module: ✓"
-    echo "- SSH config paths: ✓"
-    echo "- Platform-specific paths: ✓"
-    echo "- User config consistency: ✓"
+  echo "✅ All user path consistency tests passed!"
+  echo "- Shared files module: ✓"
+  echo "- SSH config paths: ✓"
+  echo "- Platform-specific paths: ✓"
+  echo "- User config consistency: ✓"
 
-    echo "Integration tests completed successfully" > $out
-  '';
-
-  # Test results for debugging
-  inherit allTests;
-}
+  echo "Integration tests completed successfully" > $out
+''

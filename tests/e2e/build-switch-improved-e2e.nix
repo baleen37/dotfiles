@@ -17,43 +17,40 @@ pkgs.runCommand "build-switch-improved-e2e-test"
   ${testHelpers.assertExists "${buildSwitchScript}" "build-switch script exists"}
   ${testHelpers.assertCommand "[ -x '${buildSwitchScript}' ]" "build-switch script is executable"}
 
-  # Test 2: Script content validation
-  ${testHelpers.testSubsection "Script Content Validation"}
+  # Test 2: Platform-specific configuration
+  ${testHelpers.testSubsection "Platform Configuration"}
 
-  ${testHelpers.assertContains "${buildSwitchScript}" "show_progress" "progress function exists"}
-  ${testHelpers.assertContains "${buildSwitchScript}" "print_success" "success function exists"}
-  ${testHelpers.assertContains "${buildSwitchScript}" "🏗️" "progress emoji present"}
-  ${testHelpers.assertContains "${buildSwitchScript}" "✅" "success emoji present"}
+  ${testHelpers.assertContains "${buildSwitchScript}" "aarch64-darwin" "correct system type"}
+  ${testHelpers.assertContains "${buildSwitchScript}" "darwinConfigurations" "correct flake path"}
+  ${testHelpers.assertContains "${buildSwitchScript}" "darwin-rebuild" "correct rebuild command"}
 
-  # Test 3: Verbose flag handling
-  ${testHelpers.testSubsection "Verbose Flag Handling"}
+  # Test 3: Integration patterns
+  ${testHelpers.testSubsection "Integration Patterns"}
 
-  ${testHelpers.assertContains "${buildSwitchScript}" "VERBOSE=false" "verbose variable initialization"}
-  ${testHelpers.assertContains "${buildSwitchScript}" "\\-\\-verbose" "verbose flag check"}
+  ${testHelpers.assertContains "${buildSwitchScript}" "build-switch-common.sh" "common script integration"}
+  ${testHelpers.assertContains "${buildSwitchScript}" "execute_build_switch" "main execution function"}
 
-  # Test 4: Error handling patterns
-  ${testHelpers.testSubsection "Error Handling"}
+  # Test 4: Environment setup
+  ${testHelpers.testSubsection "Environment Setup"}
 
-  ${testHelpers.assertContains "${buildSwitchScript}" "2>/dev/null" "error suppression pattern"}
-  ${testHelpers.assertContains "${buildSwitchScript}" "exit 1" "proper error exit"}
+  ${testHelpers.assertContains "${buildSwitchScript}" "NIXPKGS_ALLOW_UNFREE=1" "unfree packages enabled"}
+  ${testHelpers.assertContains "${buildSwitchScript}" "SCRIPT_DIR=" "script directory resolution"}
 
-  # Test 5: Output structure validation
-  ${testHelpers.testSubsection "Output Structure"}
+  # Test 5: Workflow structure validation
+  ${testHelpers.testSubsection "Workflow Structure"}
 
-  ${testHelpers.assertContains "${buildSwitchScript}" "\[1/4\]" "step 1 indicator"}
-  ${testHelpers.assertContains "${buildSwitchScript}" "\[2/4\]" "step 2 indicator"}
-  ${testHelpers.assertContains "${buildSwitchScript}" "\[3/4\]" "step 3 indicator"}
-  ${testHelpers.assertContains "${buildSwitchScript}" "\[4/4\]" "step 4 indicator"}
+  ${testHelpers.assertContains "${buildSwitchScript}" "PROJECT_ROOT=" "project root detection"}
+  ${testHelpers.assertContains "${buildSwitchScript}" "\\\$@" "argument forwarding"}
 
   echo ""
   echo "${testHelpers.colors.blue}=== Test Results: Build-Switch Improved E2E Tests ===${testHelpers.colors.reset}"
   echo "${testHelpers.colors.green}✓ All E2E tests completed successfully!${testHelpers.colors.reset}"
   echo "${testHelpers.colors.blue}Summary:${testHelpers.colors.reset}"
   echo "  - Script structure validation: ✓"
-  echo "  - Content verification: ✓"
-  echo "  - Flag handling: ✓"
-  echo "  - Error patterns: ✓"
-  echo "  - Output structure: ✓"
+  echo "  - Platform configuration: ✓"
+  echo "  - Integration patterns: ✓"
+  echo "  - Environment setup: ✓"
+  echo "  - Workflow structure: ✓"
 
   touch $out
 ''

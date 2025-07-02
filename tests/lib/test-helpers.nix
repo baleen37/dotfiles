@@ -25,7 +25,7 @@ let
   setupTestEnv = ''
     export USER=testuser
     ${portablePaths.getTestHome}
-    export PATH=${pkgs.coreutils}/bin:${pkgs.bash}/bin:$PATH
+    export PATH=${pkgs.nix}/bin:${pkgs.coreutils}/bin:${pkgs.bash}/bin:$PATH
   '';
 
   # Assertion helpers

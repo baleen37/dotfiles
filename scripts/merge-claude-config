@@ -450,7 +450,10 @@ main() {
 
     # 병합 후보 파일 찾기
     local candidates
-    mapfile -t candidates < <(find_merge_candidates)
+    candidates=()
+    while IFS= read -r line; do
+        candidates+=("$line")
+    done < <(find_merge_candidates)
 
     if [[ ${#candidates[@]} -eq 0 ]]; then
         log_info "병합이 필요한 파일이 없습니다."

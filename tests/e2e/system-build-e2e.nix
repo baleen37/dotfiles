@@ -42,8 +42,8 @@ pkgs.runCommand "system-build-e2e-test" { } ''
   ${testHelpers.testSubsection "Flake Evaluation Performance"}
 
   ${testHelpers.benchmark "Flake evaluation" ''
-    nix eval --impure .#darwinConfigurations.${system}.system --no-warn-dirty >/dev/null 2>&1 || \
-    nix eval --impure .#nixosConfigurations.${system}.config.system.build.toplevel --no-warn-dirty >/dev/null 2>&1
+    nix eval --impure ${src}#darwinConfigurations.${system}.system --no-warn-dirty >/dev/null 2>&1 || \
+    nix eval --impure ${src}#nixosConfigurations.${system}.config.system.build.toplevel --no-warn-dirty >/dev/null 2>&1
   ''}
 
   # Test 3: All platform configurations can be evaluated
@@ -51,7 +51,7 @@ pkgs.runCommand "system-build-e2e-test" { } ''
 
   # Test Darwin configurations
   for platform in aarch64-darwin x86_64-darwin; do
-    if nix eval --impure .#darwinConfigurations.$platform.system --no-warn-dirty >/dev/null 2>&1; then
+    if nix eval --impure ${src}#darwinConfigurations.$platform.system --no-warn-dirty >/dev/null 2>&1; then
       echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Darwin configuration evaluates for $platform"
     else
       echo "${testHelpers.colors.yellow}⚠${testHelpers.colors.reset} Darwin configuration evaluation failed for $platform"
@@ -60,7 +60,7 @@ pkgs.runCommand "system-build-e2e-test" { } ''
 
   # Test NixOS configurations
   for platform in x86_64-linux aarch64-linux; do
-    if nix eval --impure .#nixosConfigurations.$platform.config.system.build.toplevel --no-warn-dirty >/dev/null 2>&1; then
+    if nix eval --impure ${src}#nixosConfigurations.$platform.config.system.build.toplevel --no-warn-dirty >/dev/null 2>&1; then
       echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} NixOS configuration evaluates for $platform"
     else
       echo "${testHelpers.colors.yellow}⚠${testHelpers.colors.reset} NixOS configuration evaluation failed for $platform"
@@ -79,7 +79,7 @@ pkgs.runCommand "system-build-e2e-test" { } ''
   ''}
 
   for app in "''${APPS[@]}"; do
-    if nix eval --impure .#apps.${system}.$app.type --no-warn-dirty 2>/dev/null | grep -q "app"; then
+    if nix eval --impure ${src}#apps.${system}.$app.type --no-warn-dirty 2>/dev/null | grep -q "app"; then
       echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} App '$app' has correct type"
     else
       echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} App '$app' missing or invalid type"

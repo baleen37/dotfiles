@@ -21,10 +21,10 @@ let
     else null;
 
   # Test helpers
-  testHelpers = import (src + "/tests/helpers/test-helpers.nix") { inherit pkgs; };
+  testHelpers = import ../lib/test-helpers.nix { inherit pkgs; };
 
   # Current system information
-  currentSystem = builtins.currentSystem;
+  currentSystem = pkgs.system;
   systemParts = builtins.split "-" currentSystem;
   currentArch = builtins.elemAt systemParts 0;
   currentOS = builtins.elemAt systemParts 2;
@@ -32,8 +32,10 @@ let
 in
 pkgs.runCommand "platform-detection-test"
 {
-  buildInputs = with pkgs; [ bash jq ];
+  buildInputs = with pkgs; [ bash jq nix ];
 } ''
+  ${testHelpers.setupTestEnv}
+
   echo "🧪 Comprehensive Platform Detection Test Suite"
   echo "==========================================="
 
@@ -63,8 +65,8 @@ pkgs.runCommand "platform-detection-test"
 
     # Test detection functions
     result=$(nix eval --impure --expr '
-      let detector = import ${src}/lib/platform-detector.nix { pkgs = import <nixpkgs> {}; };
-      in detector.currentPlatform or "unknown"
+      let detector = import ${src}/lib/platform-detector.nix {};
+      in detector.getCurrentPlatform or "unknown"
     ' --raw 2>&1 || echo "EVAL_FAILED")
 
     if [[ "$result" != "EVAL_FAILED" ]] && [[ "$result" != "unknown" ]]; then
