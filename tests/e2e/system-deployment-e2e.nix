@@ -60,7 +60,7 @@ pkgs.runCommand "system-deployment-e2e-test"
   if nix eval --impure '.#apps.'$CURRENT_SYSTEM'.build.program' --raw >/dev/null 2>&1; then
     BUILD_APP_PATH=$(nix eval --impure '.#apps.'$CURRENT_SYSTEM'.build.program' --raw 2>/dev/null)
     echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Build app is defined: $BUILD_APP_PATH"
-    
+
     # Test build app script exists in expected location
     if [ -f "${src}/apps/$CURRENT_SYSTEM/build" ]; then
       echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Build app script exists"
