@@ -424,9 +424,10 @@ let
         cp "$CLAUDE_DIR/settings.json" "$CLAUDE_DIR/settings.json.merged"
 
         # Create a proper merge that preserves the user_preferences section
-        # Find the last closing brace and add the dotfiles flag before it
+        # Find the LAST closing brace and add the dotfiles flag before it
         # This approach preserves the entire JSON structure including user_preferences
-        sed -i.bak 's/    }$/    },\n  "updated_by_dotfiles": true/' "$CLAUDE_DIR/settings.json.merged"
+        # Use a more specific pattern to avoid multiple replacements
+        sed -i.bak '$ s/^}$/,\n  "updated_by_dotfiles": true\n}/' "$CLAUDE_DIR/settings.json.merged"
 
         mv "$CLAUDE_DIR/settings.json.merged" "$CLAUDE_DIR/settings.json"
         rm -f "$CLAUDE_DIR/settings.json.new" "$CLAUDE_DIR/settings.json.update-notice" "$CLAUDE_DIR/settings.json.merged.bak"
@@ -443,7 +444,7 @@ let
         echo "=== 최종 시스템 상태 검증 ==="
 
         # 7-1: 사용자 설정이 여전히 보존되어 있는지 확인
-        if grep -q "user_preferences.*korean" "$CLAUDE_DIR/settings.json"; then
+        if grep -q "user_preferences" "$CLAUDE_DIR/settings.json" && grep -q '"language": "korean"' "$CLAUDE_DIR/settings.json"; then
           echo "✓ 사용자 언어 설정 보존됨"
         else
           echo "✗ 사용자 언어 설정 손실됨"
