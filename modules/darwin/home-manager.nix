@@ -1,9 +1,9 @@
 { config, pkgs, lib, home-manager, self, ... }:
 
 let
-  # Resolve user from USER env var
-  getUser = import ../../lib/get-user.nix { };
-  user = getUser;
+  # Resolve user with platform information
+  getUserInfo = import ../../lib/get-user-extended.nix { platform = "darwin"; };
+  user = getUserInfo.user;
   additionalFiles = import ./files.nix { inherit user config pkgs; };
 in
 {
@@ -14,7 +14,7 @@ in
   # It me
   users.users.${user} = {
     name = "${user}";
-    home = "/Users/${user}";
+    home = getUserInfo.homePath;
     isHidden = false;
     shell = pkgs.zsh;
   };

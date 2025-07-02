@@ -1,10 +1,11 @@
 { pkgs, config, user, self, lib, ... }:
 
 let
-  userHome =
-    if pkgs.stdenv.isDarwin
-    then config.users.users.${user}.home or "/Users/${user}"
-    else builtins.getEnv "HOME";
+  # Use standardized user resolution with extended features
+  getUserInfo = import ../../lib/get-user-extended.nix {
+    platform = if pkgs.stdenv.isDarwin then "darwin" else "linux";
+  };
+  userHome = getUserInfo.homePath;
 
   # mkCommandFiles function removed - Claude files are now managed by platform-specific activation scripts
 

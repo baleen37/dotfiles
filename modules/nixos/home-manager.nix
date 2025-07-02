@@ -1,10 +1,10 @@
 { config, pkgs, lib, self, ... }:
 
 let
-  # Resolve user from USER env var
-  getUser = import ../../lib/get-user.nix { };
-  user = getUser;
-  xdg_configHome = "/home/${user}/.config";
+  # Resolve user with platform information
+  getUserInfo = import ../../lib/get-user-extended.nix { platform = "linux"; };
+  user = getUserInfo.user;
+  xdg_configHome = "${getUserInfo.homePath}/.config";
   shared-programs = import ../shared/home-manager.nix { inherit config pkgs lib; };
 
   polybar-user_modules =
@@ -43,7 +43,7 @@ in
   home = {
     enableNixpkgsReleaseCheck = false;
     username = "${user}";
-    homeDirectory = "/home/${user}";
+    homeDirectory = getUserInfo.homePath;
     packages = pkgs.callPackage ./packages.nix { };
     file = (import ../shared/files.nix { inherit config pkgs user self lib; }) // import ./files.nix { inherit user; };
     stateVersion = "21.05";

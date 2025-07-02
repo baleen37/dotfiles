@@ -8,7 +8,8 @@ let
 
   # Get user information
   getUserFn = import ./get-user.nix;
-  user = getUserFn { };
+  userInfo = getUserFn { };
+  user = "${userInfo}"; # Use as string for backward compatibility
 
   # Import modularized app and test builders
   platformApps = import ./platform-apps.nix { inherit nixpkgs; self = inputs.self; };
