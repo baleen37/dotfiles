@@ -4,6 +4,8 @@
 { nixpkgs, self }:
 
 let
+  # Import sudo-helper utilities
+  sudoHelperLib = import (self + "/lib/sudo-helper.nix");
   # Generic app builder that wraps platform-specific scripts
   mkApp = scriptName: system: {
     type = "app";
@@ -32,6 +34,12 @@ let
         exit 1
       '')}/bin/setup-dev";
     };
+
+  # Sudo helper app builder
+  mkSudoHelperApp = system: {
+    type = "app";
+    program = "${(sudoHelperLib { inherit nixpkgs system; }).sudoHelper}/bin/sudo-helper";
+  };
 
   # BL auto-update command builders
   mkBlAutoUpdateApp = { system, commandName }:
@@ -92,6 +100,7 @@ in
         includeApps = coreApps ++ sshApps ++ linuxOnlyApps;
       } // {
       "setup-dev" = mkSetupDevApp system;
+      "sudo-helper" = mkSudoHelperApp system;
       "bl-auto-update-status" = mkBlAutoUpdateApp { inherit system; commandName = "status"; };
       "bl-auto-update-check" = mkBlAutoUpdateApp { inherit system; commandName = "check"; };
       "bl-auto-update-apply" = mkBlAutoUpdateApp { inherit system; commandName = "apply"; };
@@ -105,11 +114,12 @@ in
         includeApps = coreApps ++ sshApps ++ darwinOnlyApps;
       } // {
       "setup-dev" = mkSetupDevApp system;
+      "sudo-helper" = mkSudoHelperApp system;
       "bl-auto-update-status" = mkBlAutoUpdateApp { inherit system; commandName = "status"; };
       "bl-auto-update-check" = mkBlAutoUpdateApp { inherit system; commandName = "check"; };
       "bl-auto-update-apply" = mkBlAutoUpdateApp { inherit system; commandName = "apply"; };
     };
 
   # Export for potential reuse
-  inherit mkApp mkSetupDevApp mkBlAutoUpdateApp;
+  inherit mkApp mkSetupDevApp mkSudoHelperApp mkBlAutoUpdateApp;
 }
