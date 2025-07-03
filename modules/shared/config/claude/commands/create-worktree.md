@@ -46,7 +46,6 @@
     - **Verify State**: Confirm the worktree is clean (`git status --porcelain` should be empty).
       - **IF NOT CLEAN**: Report "New worktree is not clean. Investigate further." and **STOP**.
     - **Report Success**: Inform the user that the worktree is ready for development at the specified path.
-    - **⚠️ CRITICAL**: **ALWAYS** remind the user to run `cd <worktree-path>` to enter the new worktree directory before starting work.
   </step>
 
 </workflow>
@@ -56,7 +55,7 @@
   - All worktrees **must** be created under the `./.local/` directory.
   - **Always** prioritize discovered repository conventions over default patterns.
   - If no clear convention exists, **ask the user** for their preferred naming format.
-  - **CRITICAL**: **Always** remind the user to `cd` into the new worktree directory after creation.
+  - **Navigate**: Automatically change the current directory to the new worktree path after creation.
 </constraints>
 
 <validation>

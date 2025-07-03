@@ -56,6 +56,14 @@ repos:
         pass_filenames: false
         always_run: true
 
+  # Documentation quality checks
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.39.0
+    hooks:
+      - id: markdownlint
+        args: [--config=.markdownlint.yaml]
+        files: \\.md$
+
   # Development quality checks
   - repo: local
     hooks:
