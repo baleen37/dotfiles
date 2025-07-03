@@ -10,8 +10,12 @@ let
     user_resolution = import ./unit/user-resolution-test.nix { inherit pkgs flake; src = ../.; };
     unified_user_resolution = import ./unit/test-unified-user-resolution.nix { inherit pkgs; lib = pkgs.lib; };
 
+    # Build system functionality
+    build_parallelization_unit = import ./unit/build-parallelization-unit.nix { inherit pkgs; };
+
     # Essential integrations (only active tests)
     user_path_consistency = import ./integration/test-user-path-consistency.nix { inherit pkgs; lib = pkgs.lib; };
+    build_parallelization_integration = import ./integration/build-parallelization-integration.nix { inherit pkgs; };
   };
 
   # Workflow tests - End-to-end user workflows (simplified)
@@ -30,6 +34,7 @@ let
   performanceTests = {
     build_time = import ./performance/build-time-perf.nix { inherit pkgs flake; src = ../.; };
     resource_usage = import ./performance/resource-usage-perf.nix { inherit pkgs flake; src = ../.; };
+    build_parallelization_perf = import ./performance/build-parallelization-perf.nix { inherit pkgs; };
   };
 
   # Combine all tests

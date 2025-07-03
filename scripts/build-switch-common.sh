@@ -182,6 +182,37 @@ cleanup_sudo_session() {
     return 0
 }
 
+# Detect optimal number of build jobs for parallelization
+detect_optimal_jobs() {
+    # Check environment override first
+    if [ -n "${NIX_BUILD_JOBS:-}" ]; then
+        if [ "$NIX_BUILD_JOBS" -gt 0 ] 2>/dev/null; then
+            echo "$NIX_BUILD_JOBS"
+            return 0
+        fi
+    fi
+
+    # Auto-detect based on platform
+    if [ "$PLATFORM_TYPE" = "darwin" ]; then
+        CORES=$(sysctl -n hw.ncpu 2>/dev/null || echo 1)
+    else
+        CORES=$(nproc 2>/dev/null || echo 1)
+    fi
+
+    # Apply conservative limits for CI environments
+    if [ -n "${CI:-}" ] || [ -n "${GITHUB_ACTIONS:-}" ]; then
+        # In CI: Use at most 2 jobs to prevent resource contention and timeouts
+        CORES=$([ "$CORES" -gt 2 ] && echo 2 || echo "$CORES")
+        log_info "CI environment detected, limiting parallel jobs to $CORES"
+    else
+        # Local development: Use more cores but cap at 8 for safety
+        CORES=$([ "$CORES" -gt 8 ] && echo 8 || echo "$CORES")
+    fi
+
+    # Return cores (minimum 1)
+    echo "$([ "$CORES" -gt 0 ] && echo "$CORES" || echo 1)"
+}
+
 # Determine if sudo will be needed later
 check_sudo_requirement() {
     # Skip if already root
@@ -228,14 +259,18 @@ run_build() {
         log_info "User: ${USER}"
     fi
 
+    # Get optimal job count for parallelization
+    JOBS=$(detect_optimal_jobs)
+    log_info "Using ${JOBS} parallel jobs for build"
+
     if [ "$VERBOSE" = "true" ]; then
-        nix --extra-experimental-features 'nix-command flakes' build --impure .#$FLAKE_SYSTEM "$@" || {
+        nix --extra-experimental-features 'nix-command flakes' build --impure --max-jobs "$JOBS" --cores 0 .#$FLAKE_SYSTEM "$@" || {
             log_error "Build failed"
             log_footer "failed"
             exit 1
         }
     else
-        nix --extra-experimental-features 'nix-command flakes' build --impure .#$FLAKE_SYSTEM "$@" 2>/dev/null || {
+        nix --extra-experimental-features 'nix-command flakes' build --impure --max-jobs "$JOBS" --cores 0 .#$FLAKE_SYSTEM "$@" 2>/dev/null || {
             log_error "Build failed. Run with --verbose for details"
             log_footer "failed"
             exit 1
@@ -263,23 +298,26 @@ run_switch() {
 
     SUDO_PREFIX=$(get_sudo_prefix)
 
+    # Get optimal job count for parallelization
+    JOBS=$(detect_optimal_jobs)
+
     if [ "$VERBOSE" = "true" ]; then
-        log_info "Command: ${REBUILD_COMMAND} switch --impure --flake .#${SYSTEM_TYPE}"
+        log_info "Command: ${REBUILD_COMMAND} switch --impure --max-jobs ${JOBS} --cores 0 --flake .#${SYSTEM_TYPE}"
         if [ -n "${SUDO_PREFIX}" ]; then
-            eval "${SUDO_PREFIX} ${REBUILD_COMMAND_PATH} switch --impure --flake .#${SYSTEM_TYPE} \"\$@\"" || {
+            eval "${SUDO_PREFIX} ${REBUILD_COMMAND_PATH} switch --impure --max-jobs ${JOBS} --cores 0 --flake .#${SYSTEM_TYPE} \"\$@\"" || {
                 log_error "Switch failed (exit code: $?)"
                 log_footer "failed"
                 exit 1
             }
         else
             if [ "$PLATFORM_TYPE" = "darwin" ]; then
-                USER="$USER" ${REBUILD_COMMAND_PATH} switch --impure --flake .#${SYSTEM_TYPE} "$@" 2>&1 || {
+                USER="$USER" ${REBUILD_COMMAND_PATH} switch --impure --max-jobs ${JOBS} --cores 0 --flake .#${SYSTEM_TYPE} "$@" 2>&1 || {
                     log_error "Switch failed (exit code: $?)"
                     log_footer "failed"
                     exit 1
                 }
             else
-                ${REBUILD_COMMAND_PATH} switch --impure --flake .#${SYSTEM_TYPE} "$@" 2>&1 || {
+                ${REBUILD_COMMAND_PATH} switch --impure --max-jobs ${JOBS} --cores 0 --flake .#${SYSTEM_TYPE} "$@" 2>&1 || {
                     log_error "Switch failed (exit code: $?)"
                     log_footer "failed"
                     exit 1
@@ -288,20 +326,20 @@ run_switch() {
         fi
     else
         if [ -n "${SUDO_PREFIX}" ]; then
-            eval "${SUDO_PREFIX} ${REBUILD_COMMAND_PATH} switch --impure --flake .#${SYSTEM_TYPE} \"\$@\"" >/dev/null || {
+            eval "${SUDO_PREFIX} ${REBUILD_COMMAND_PATH} switch --impure --max-jobs ${JOBS} --cores 0 --flake .#${SYSTEM_TYPE} \"\$@\"" >/dev/null || {
                 log_error "Switch failed. Run with --verbose for details"
                 log_footer "failed"
                 exit 1
             }
         else
             if [ "$PLATFORM_TYPE" = "darwin" ]; then
-                USER="$USER" ${REBUILD_COMMAND_PATH} switch --impure --flake .#${SYSTEM_TYPE} "$@" >/dev/null 2>&1 || {
+                USER="$USER" ${REBUILD_COMMAND_PATH} switch --impure --max-jobs ${JOBS} --cores 0 --flake .#${SYSTEM_TYPE} "$@" >/dev/null 2>&1 || {
                     log_error "Switch failed. Run with --verbose for details"
                     log_footer "failed"
                     exit 1
                 }
             else
-                ${REBUILD_COMMAND_PATH} switch --impure --flake .#${SYSTEM_TYPE} "$@" >/dev/null 2>&1 || {
+                ${REBUILD_COMMAND_PATH} switch --impure --max-jobs ${JOBS} --cores 0 --flake .#${SYSTEM_TYPE} "$@" >/dev/null 2>&1 || {
                     log_error "Switch failed. Run with --verbose for details"
                     log_footer "failed"
                     exit 1
@@ -359,16 +397,19 @@ execute_build_switch() {
 
         SUDO_PREFIX=$(get_sudo_prefix)
 
+        # Get optimal job count for parallelization
+        JOBS=$(detect_optimal_jobs)
+
         if [ "$VERBOSE" = "true" ]; then
-            log_info "Command: ${REBUILD_COMMAND} switch --flake .#${SYSTEM_TYPE}"
+            log_info "Command: ${REBUILD_COMMAND} switch --max-jobs ${JOBS} --cores 0 --flake .#${SYSTEM_TYPE}"
             if [ -n "${SUDO_PREFIX}" ]; then
-                eval "${SUDO_PREFIX} ${REBUILD_COMMAND_PATH} switch --flake .#${SYSTEM_TYPE} \"\$@\"" || {
+                eval "${SUDO_PREFIX} ${REBUILD_COMMAND_PATH} switch --max-jobs ${JOBS} --cores 0 --flake .#${SYSTEM_TYPE} \"\$@\"" || {
                     log_error "Build & switch failed (exit code: $?)"
                     log_footer "failed"
                     exit 1
                 }
             else
-                ${REBUILD_COMMAND_PATH} switch --flake .#${SYSTEM_TYPE} "$@" || {
+                ${REBUILD_COMMAND_PATH} switch --max-jobs ${JOBS} --cores 0 --flake .#${SYSTEM_TYPE} "$@" || {
                     log_error "Build & switch failed (exit code: $?)"
                     log_footer "failed"
                     exit 1
@@ -376,13 +417,13 @@ execute_build_switch() {
             fi
         else
             if [ -n "${SUDO_PREFIX}" ]; then
-                eval "${SUDO_PREFIX} ${REBUILD_COMMAND_PATH} switch --flake .#${SYSTEM_TYPE} \"\$@\"" >/dev/null || {
+                eval "${SUDO_PREFIX} ${REBUILD_COMMAND_PATH} switch --max-jobs ${JOBS} --cores 0 --flake .#${SYSTEM_TYPE} \"\$@\"" >/dev/null || {
                     log_error "Build & switch failed. Run with --verbose for details"
                     log_footer "failed"
                     exit 1
                 }
             else
-                ${REBUILD_COMMAND_PATH} switch --flake .#${SYSTEM_TYPE} "$@" 2>/dev/null || {
+                ${REBUILD_COMMAND_PATH} switch --max-jobs ${JOBS} --cores 0 --flake .#${SYSTEM_TYPE} "$@" 2>/dev/null || {
                     log_error "Build & switch failed. Run with --verbose for details"
                     log_footer "failed"
                     exit 1
