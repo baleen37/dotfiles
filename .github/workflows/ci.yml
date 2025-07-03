@@ -134,7 +134,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        category: [unit, integration]
+        category: [unit, integration, perf]
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
