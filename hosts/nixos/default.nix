@@ -281,7 +281,7 @@ in
   ];
 
   environment.systemPackages = with pkgs; [
-    gitAndTools.gitFull
+    git
     inetutils
   ];
 
