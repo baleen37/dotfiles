@@ -75,6 +75,15 @@ repos:
         files: '\.nix$'
         pass_filenames: false
 
+      # Build validation for critical files to catch build-breaking changes
+      - id: build-validation
+        name: Build Validation (Critical Files)
+        entry: bash -c 'export USER=${USER:-$(whoami)}; if [[ -n "${CI:-}" || -n "${GITHUB_ACTIONS:-}" ]]; then echo "⏭️ Skipping build validation in CI environment (handled by CI pipeline)"; exit 0; fi; echo "🏗️ Validating build for critical file changes..."; if nix run --impure .#build; then echo "✅ Build validation passed"; else echo "❌ Build validation failed - please fix build issues before committing"; exit 1; fi'
+        language: system
+        files: '\.(nix|lock)$'
+        pass_filenames: false
+        stages: [pre-commit]
+
       # Run comprehensive tests that match CI execution (pre-push only)
       - id: test-unit-prepush
         name: Unit Tests (Pre-push)
