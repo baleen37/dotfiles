@@ -42,18 +42,29 @@ jobs:
           extra_nix_config: |
             max-jobs = auto
             cores = 0
+            keep-outputs = true
+            keep-derivations = true
+            auto-optimise-store = true
+            fallback = true
+            connect-timeout = 5
+            log-lines = 25
+            experimental-features = nix-command flakes
             substituters = https://cache.nixos.org https://nix-community.cachix.org
             trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
 
-      - name: Cache Nix store
+      - name: Cache Nix store (Auto-update optimized)
         uses: actions/cache@v4
         with:
           path: |
             /nix/store
             ~/.cache/nix
-          key: ${{ runner.os }}-auto-update-nix-${{ hashFiles('flake.lock') }}
+            ~/.nix-profile
+            /etc/nix/registry.json
+          key: auto-update-${{ runner.os }}-${{ hashFiles('flake.lock', 'flake.nix') }}
           restore-keys: |
-            ${{ runner.os }}-auto-update-nix-
+            auto-update-${{ runner.os }}-
+            build-${{ runner.os }}-x86_64-linux-${{ hashFiles('flake.lock') }}
+            validate-nix-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('flake.lock') }}
             ${{ runner.os }}-nix-
 
       - name: Configure Git for updates
@@ -82,14 +93,21 @@ jobs:
 
           echo "::endgroup::"
 
-      - name: Validate flake after update
+      - name: Validate flake after update (Optimized)
         run: |
-          echo "::group::Validating flake structure"
+          echo "::group::Validating flake structure with enhanced performance"
 
-          if ! nix flake check --impure --no-build; then
+          # Run fast validation with caching optimization
+          if ! nix flake check --impure --no-build --cores 0 --max-jobs auto; then
             echo "::error::Flake validation failed after update"
             exit 1
           fi
+
+          # Quick smoke test to ensure basic functionality
+          echo "Running quick smoke test..."
+          export USER=ci
+          nix eval --impure .#nixosConfigurations.x86_64-linux.config.system.name --json >/dev/null
+          echo "✅ Smoke test passed"
 
           echo "::endgroup::"
 

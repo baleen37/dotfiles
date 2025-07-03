@@ -18,8 +18,16 @@ env:
   NIX_CONFIG: |
     max-jobs = auto
     cores = 0
+    keep-outputs = true
+    keep-derivations = true
+    fallback = true
+    connect-timeout = 5
+    log-lines = 25
     substituters = https://cache.nixos.org https://nix-community.cachix.org
     trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
+    experimental-features = nix-command flakes
+    auto-optimise-store = true
+    warn-dirty = false
   # Single environment variable to control entire pipeline
   CI_MODE: ${{ github.event.pull_request.draft == true && 'draft' || 'full' }}
   IS_MAIN: ${{ github.ref == 'refs/heads/main' }}
@@ -39,18 +47,35 @@ jobs:
           echo "🎯 CI Mode: $CI_MODE"
           echo "📍 Is Main: $IS_MAIN"
 
+      - name: Initialize performance monitoring
+        run: |
+          echo "PERF_START_TIME=$(date +%s)" >> $GITHUB_ENV
+          echo "🚀 Starting performance monitoring for validation stage"
+
       - uses: cachix/install-nix-action@v25
         with:
           nix_path: nixpkgs=channel:nixos-unstable
 
-      - name: Cache Nix store
+      - name: Setup advanced Nix configuration
+        run: |
+          if [ -f .github/scripts/optimize-cache.sh ]; then
+            ./.github/scripts/optimize-cache.sh setup-nix
+          fi
+
+      - name: Cache Nix store (Advanced)
         uses: actions/cache@v4
         with:
           path: |
             /nix/store
             ~/.cache/nix
-          key: validate-nix-${{ hashFiles('flake.lock') }}
-          restore-keys: validate-nix-
+            ~/.nix-profile
+            /etc/nix/registry.json
+          key: validate-nix-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('flake.lock', 'flake.nix', '**/*.nix') }}
+          restore-keys: |
+            validate-nix-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('flake.lock') }}
+            validate-nix-${{ runner.os }}-${{ runner.arch }}-
+            validate-nix-${{ runner.os }}-
+            validate-nix-
 
       - name: Lint
         run: |
@@ -62,27 +87,49 @@ jobs:
           export USER=ci
           nix flake check --impure --no-build --all-systems
 
-  # Core build stage (2-4 minutes) - Only essential platforms
+      - name: Optimize cache before save
+        run: |
+          if [ -f .github/scripts/optimize-cache.sh ]; then
+            ./.github/scripts/optimize-cache.sh optimize
+          fi
+
+      - name: Performance monitoring - Validation
+        if: always()
+        run: |
+          if [ -f .github/scripts/monitor-cache-performance.sh ]; then
+            ./.github/scripts/monitor-cache-performance.sh summary validation
+          fi
+
+  # Core build stage (2-4 minutes) - Optimized parallel builds
   build-core:
     name: Build ${{ matrix.name }}
     needs: validate
     if: (github.event.pull_request.draft != true) || (github.ref == 'refs/heads/main')
     strategy:
       fail-fast: false
+      max-parallel: 4
       matrix:
         include:
           - name: "Darwin ARM64"
             system: aarch64-darwin
             os: macos-latest
             build_type: full
+            priority: high
           - name: "Linux x64"
             system: x86_64-linux
             os: ubuntu-latest
             build_type: full
+            priority: high
           - name: "Darwin x64"
             system: x86_64-darwin
             os: macos-13
             build_type: validate
+            priority: medium
+          - name: "Linux ARM64"
+            system: aarch64-linux
+            os: ubuntu-latest
+            build_type: validate
+            priority: low
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -91,50 +138,74 @@ jobs:
         with:
           nix_path: nixpkgs=channel:nixos-unstable
 
-      - name: Cache Nix store
+      - name: Cache Nix store (Platform-optimized)
         uses: actions/cache@v4
         with:
           path: |
             /nix/store
             ~/.cache/nix
-          key: ${{ runner.os }}-${{ matrix.system }}-${{ hashFiles('flake.lock') }}
+            ~/.nix-profile
+            /etc/nix/registry.json
+          key: build-${{ runner.os }}-${{ matrix.system }}-${{ hashFiles('flake.lock', 'flake.nix', 'modules/**/*.nix', 'hosts/**/*.nix') }}
           restore-keys: |
-            ${{ runner.os }}-${{ matrix.system }}-
+            build-${{ runner.os }}-${{ matrix.system }}-${{ hashFiles('flake.lock') }}
+            build-${{ runner.os }}-${{ matrix.system }}-
+            validate-nix-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('flake.lock') }}
+            validate-nix-${{ runner.os }}-${{ runner.arch }}-
             ${{ runner.os }}-nix-
-            validate-nix-
 
-      - name: Build configuration
-        timeout-minutes: 30
+      - name: Build configuration (Optimized)
+        timeout-minutes: 25
         run: |
           export USER=ci
-          echo "🏗️ Building ${{ matrix.name }} (${{ matrix.system }}) - Type: ${{ matrix.build_type }}"
+          echo "🏗️ Building ${{ matrix.name }} (${{ matrix.system }}) - Type: ${{ matrix.build_type }} (Priority: ${{ matrix.priority }})"
+
+          # Enable parallel builds for better performance
+          export NIX_BUILD_CORES=${NIX_BUILD_CORES:-0}
+          export NIX_BUILD_JOBS=${NIX_BUILD_JOBS:-auto}
+
+          # Set build flags for optimization
+          BUILD_FLAGS="--impure --no-link --cores 0 --max-jobs auto"
 
           case "${{ matrix.system }}" in
             *darwin*)
               if [[ "${{ matrix.build_type }}" == "full" ]]; then
-                echo "Running full Darwin build..."
-                nix build --impure --no-link .#darwinConfigurations.${{ matrix.system }}.system
+                echo "Running optimized Darwin build..."
+                nix build $BUILD_FLAGS .#darwinConfigurations.${{ matrix.system }}.system
               else
-                echo "Running Darwin validation..."
+                echo "Running fast Darwin validation..."
                 nix eval --impure .#darwinConfigurations.${{ matrix.system }}.system --json >/dev/null
               fi
               ;;
             *linux*)
-              echo "Running NixOS validation..."
-              nix eval --impure .#nixosConfigurations.${{ matrix.system }}.config.system.name --json >/dev/null
+              if [[ "${{ matrix.build_type }}" == "full" ]]; then
+                echo "Running optimized NixOS build..."
+                nix build $BUILD_FLAGS .#nixosConfigurations.${{ matrix.system }}.config.system.build.toplevel
+              else
+                echo "Running fast NixOS validation..."
+                nix eval --impure .#nixosConfigurations.${{ matrix.system }}.config.system.name --json >/dev/null
+              fi
               ;;
           esac
-          echo "✅ Build completed successfully"
+          echo "✅ Build completed successfully for ${{ matrix.name }}"
 
-  # Parallel test stage (2-3 minutes)
+      - name: Performance monitoring - Build
+        if: always()
+        run: |
+          if [ -f .github/scripts/monitor-cache-performance.sh ]; then
+            ./.github/scripts/monitor-cache-performance.sh summary "build-${{ matrix.system }}"
+          fi
+
+  # Parallel test stage (2-3 minutes) - Enhanced parallelism
   test-parallel:
     name: Test ${{ matrix.category }}
     needs: [validate, build-core]
     if: (github.event.pull_request.draft != true) || (github.ref == 'refs/heads/main')
     strategy:
       fail-fast: false
+      max-parallel: 3
       matrix:
-        category: [unit, integration]
+        category: [unit, integration, e2e]
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -143,23 +214,47 @@ jobs:
         with:
           nix_path: nixpkgs=channel:nixos-unstable
 
-      - name: Restore Nix cache
-        uses: actions/cache/restore@v4
+      - name: Cache Nix store (Test-optimized)
+        uses: actions/cache@v4
         with:
           path: |
             /nix/store
             ~/.cache/nix
-          key: macOS-aarch64-darwin-${{ hashFiles('flake.lock') }}
+            ~/.nix-profile
+            /etc/nix/registry.json
+          key: test-${{ matrix.category }}-${{ runner.os }}-${{ hashFiles('flake.lock', 'tests/**/*', 'flake.nix') }}
           restore-keys: |
-            macOS-aarch64-darwin-
-            validate-nix-
+            test-${{ matrix.category }}-${{ runner.os }}-${{ hashFiles('flake.lock') }}
+            test-${{ matrix.category }}-${{ runner.os }}-
+            build-${{ runner.os }}-aarch64-darwin-${{ hashFiles('flake.lock') }}
+            build-${{ runner.os }}-aarch64-darwin-
+            validate-nix-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('flake.lock') }}
+            validate-nix-${{ runner.os }}-${{ runner.arch }}-
 
-      - name: Run tests
-        timeout-minutes: 15
+      - name: Run tests (Optimized)
+        timeout-minutes: 12
         run: |
           export USER=ci
-          echo "🧪 Running ${{ matrix.category }} tests"
-          nix run --impure .#test-${{ matrix.category }}
+          echo "🧪 Running ${{ matrix.category }} tests with enhanced caching"
+
+          # Set optimization flags
+          export NIX_BUILD_CORES=0
+          export NIX_BUILD_JOBS=auto
+
+          # Run tests with optimized settings
+          if nix run --impure --cores 0 --max-jobs auto .#test-${{ matrix.category }}; then
+            echo "✅ ${{ matrix.category }} tests passed"
+          else
+            echo "❌ ${{ matrix.category }} tests failed"
+            exit 1
+          fi
+
+      - name: Performance monitoring - Test
+        if: always()
+        run: |
+          if [ -f .github/scripts/monitor-cache-performance.sh ]; then
+            ./.github/scripts/monitor-cache-performance.sh summary "test-${{ matrix.category }}"
+          fi
 
   # Smoke test for draft PRs (30 seconds)
   smoke-test:
