@@ -24,6 +24,13 @@ fi
 # Sudo session management (simplified)
 SUDO_REQUIRED=false
 
+# Performance monitoring variables
+PERF_START_TIME=""
+PERF_BUILD_START_TIME=""
+PERF_SWITCH_START_TIME=""
+PERF_BUILD_DURATION=""
+PERF_SWITCH_DURATION=""
+
 # Parse arguments
 VERBOSE=false
 for arg in "$@"; do
@@ -72,6 +79,60 @@ log_footer() {
     fi
     echo "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo ""
+}
+
+# Performance monitoring functions
+perf_start_total() {
+    PERF_START_TIME=$(date +%s)
+}
+
+perf_start_phase() {
+    case "$1" in
+        "build")
+            PERF_BUILD_START_TIME=$(date +%s)
+            ;;
+        "switch")
+            PERF_SWITCH_START_TIME=$(date +%s)
+            ;;
+    esac
+}
+
+perf_end_phase() {
+    local end_time=$(date +%s)
+    case "$1" in
+        "build")
+            if [ -n "$PERF_BUILD_START_TIME" ]; then
+                PERF_BUILD_DURATION=$((end_time - PERF_BUILD_START_TIME))
+                log_info "Build phase completed in ${PERF_BUILD_DURATION}s"
+            fi
+            ;;
+        "switch")
+            if [ -n "$PERF_SWITCH_START_TIME" ]; then
+                PERF_SWITCH_DURATION=$((end_time - PERF_SWITCH_START_TIME))
+                log_info "Switch phase completed in ${PERF_SWITCH_DURATION}s"
+            fi
+            ;;
+    esac
+}
+
+perf_show_summary() {
+    if [ -n "$PERF_START_TIME" ]; then
+        local end_time=$(date +%s)
+        local total_duration=$((end_time - PERF_START_TIME))
+
+        echo ""
+        echo "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+        echo "${BLUE}  Performance Summary${NC}"
+        echo "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+
+        if [ -n "$PERF_BUILD_DURATION" ] && [ -n "$PERF_SWITCH_DURATION" ]; then
+            echo "${DIM}  Build phase:  ${PERF_BUILD_DURATION}s${NC}"
+            echo "${DIM}  Switch phase: ${PERF_SWITCH_DURATION}s${NC}"
+        fi
+        echo "${DIM}  Total time:   ${total_duration}s${NC}"
+        echo "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+        echo ""
+    fi
 }
 
 # Sudo management functions
@@ -180,6 +241,8 @@ get_sudo_prefix() {
 
 # Execute platform-specific build
 run_build() {
+    perf_start_phase "build"
+
     log_step "Building system configuration"
     log_info "Target: ${SYSTEM_TYPE}"
     if [ "$PLATFORM_TYPE" = "darwin" ]; then
@@ -203,11 +266,15 @@ run_build() {
             exit 1
         }
     fi
+
+    perf_end_phase "build"
     log_success "Build completed"
 }
 
 # Execute platform-specific switch
 run_switch() {
+    perf_start_phase "switch"
+
     echo ""
     log_step "Applying system configuration"
     if [ "$SUDO_REQUIRED" = "true" ]; then
@@ -270,6 +337,8 @@ run_switch() {
             fi
         fi
     fi
+
+    perf_end_phase "switch"
     log_success "Configuration applied"
 }
 
@@ -285,6 +354,9 @@ run_cleanup() {
 
 # Main execution function
 execute_build_switch() {
+    # Start performance monitoring
+    perf_start_total
+
     # Check if sudo will be needed (but don't acquire privileges yet)
     if ! check_sudo_requirement; then
         log_error "Cannot proceed without administrator privileges"
@@ -301,6 +373,7 @@ execute_build_switch() {
         run_switch "$@"
     else
         # Linux: combined build & switch phase
+        perf_start_phase "build"
         log_step "Building and switching system configuration"
         log_info "Target: ${SYSTEM_TYPE}"
         if [ "$SUDO_REQUIRED" = "true" ]; then
@@ -347,11 +420,15 @@ execute_build_switch() {
                 }
             fi
         fi
+        perf_end_phase "build"
         log_success "Configuration applied"
     fi
 
     # Cleanup phase
     run_cleanup
+
+    # Show performance summary
+    perf_show_summary
 
     # Done
     log_footer "success"
