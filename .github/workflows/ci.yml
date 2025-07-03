@@ -59,7 +59,7 @@ jobs:
 
       - name: Validate flake
         run: |
-          export USER=ci
+          export USER=${USER:-ci}
           nix flake check --impure --no-build --all-systems
 
   # Core build stage (2-4 minutes) - Only essential platforms
@@ -106,7 +106,7 @@ jobs:
       - name: Build configuration
         timeout-minutes: 30
         run: |
-          export USER=ci
+          export USER=${USER:-ci}
           echo "🏗️ Building ${{ matrix.name }} (${{ matrix.system }}) - Type: ${{ matrix.build_type }}"
 
           case "${{ matrix.system }}" in
@@ -157,7 +157,7 @@ jobs:
       - name: Run tests
         timeout-minutes: 15
         run: |
-          export USER=ci
+          export USER=${USER:-ci}
           echo "🧪 Running ${{ matrix.category }} tests"
           nix run --impure .#test-${{ matrix.category }}
 
@@ -176,7 +176,7 @@ jobs:
 
       - name: Quick smoke test
         run: |
-          export USER=ci
+          export USER=${USER:-ci}
           nix flake check --impure --no-build --all-systems
           echo "✅ Smoke test passed - Draft PR validation complete"
 
