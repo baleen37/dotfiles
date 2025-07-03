@@ -37,8 +37,6 @@ with pkgs; let
 
   # Cloud and containerization tools
   cloudTools = [
-    docker        # Container platform
-    docker-compose # Multi-container Docker application management
     act           # Run GitHub Actions locally
     gh            # GitHub CLI tool
   ];
