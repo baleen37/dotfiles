@@ -1,0 +1,57 @@
+# Markdown Linting Configuration
+# Documentation: https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md
+
+# Line length - disable as technical documentation often has long lines
+MD013: false
+
+# Inline HTML - allow for enhanced formatting in documentation
+MD033: false
+
+# First line in file - disable to allow metadata blocks
+MD041: false
+
+# Multiple spaces after blockquote - allow for formatting flexibility
+MD027: false
+
+# Fenced code blocks - require language specification
+MD040: 
+  # Allow empty code blocks for templates and examples
+  allowed_languages: ["", "bash", "nix", "yaml", "json", "markdown", "text", "shell"]
+
+# Emphasis used instead of header - allow for metadata blocks
+MD036: false
+
+# Multiple consecutive blank lines - allow up to 2 for section separation
+MD012:
+  maximum: 2
+
+# Trailing spaces - allow for line breaks
+MD009: false
+
+# Hard tabs - allow mixed usage for different contexts
+MD010: false
+
+# Heading levels - allow skipping levels for documentation structure
+MD001: false
+
+# Trailing punctuation in heading - allow for flexibility
+MD026: false
+
+# Multiple headings with same content - allow for documentation structure
+MD024: false
+
+# Ordered list item prefix - allow both styles
+MD029: false
+
+# Bare URLs - allow for simplicity in documentation
+MD034: false
+
+# Horizontal rule style - allow different styles
+MD035: false
+
+# Emphasis markers - allow both * and _
+MD049: false
+MD050: false
+
+# Link fragments - allow for flexibility
+MD051: false
