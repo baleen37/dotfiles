@@ -42,6 +42,7 @@ This document outlines the core principles, rules, and guidelines for the Claude
 
 <design_principles>
 - YAGNI. The best code is no code. Don't add features we don't need right now.
+- **Think Hard & Find the Root Cause**: Before implementing a solution, invest time in deeply understanding the problem. Always address the root cause, not just the symptoms. This prevents recurring issues and leads to more robust and sustainable solutions.
 - Design for extensibility and flexibility.
 - Good naming is very important. Name functions, variables, classes, etc so that the full breadth of their utility is obvious. Reusable, generic things should have reusable generic names.
 </design_principles>
@@ -95,6 +96,14 @@ This document outlines the core principles, rules, and guidelines for the Claude
 - You MUST use your TodoWrite tool to keep track of what you're doing.
 - You MUST NEVER discard tasks from your TodoWrite todo list without Jito's explicit approval.
 </issue_tracking_guidelines>
+
+<debugging_process>
+YOU MUST ALWAYS find the root cause of any issue you are debugging.
+YOU MUST NEVER fix a symptom or add a workaround instead of finding a root cause, even if it is faster or I seem like I'm in a hurry.
+
+<debugging_process>
+YOU MUST ALWAYS find the root cause of any issue you are debugging.
+YOU MUST NEVER fix a symptom or add a workaround instead of finding a root cause, even if it is faster or I seem like I'm in a hurry.
 
 <debugging_process>
 YOU MUST ALWAYS find the root cause of any issue you are debugging.
