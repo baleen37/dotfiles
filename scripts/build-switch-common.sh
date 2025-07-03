@@ -199,6 +199,16 @@ detect_optimal_jobs() {
         CORES=$(nproc 2>/dev/null || echo 1)
     fi
 
+    # Apply conservative limits for CI environments
+    if [ -n "${CI:-}" ] || [ -n "${GITHUB_ACTIONS:-}" ]; then
+        # In CI: Use at most 2 jobs to prevent resource contention and timeouts
+        CORES=$([ "$CORES" -gt 2 ] && echo 2 || echo "$CORES")
+        log_info "CI environment detected, limiting parallel jobs to $CORES"
+    else
+        # Local development: Use more cores but cap at 8 for safety
+        CORES=$([ "$CORES" -gt 8 ] && echo 8 || echo "$CORES")
+    fi
+
     # Return cores (minimum 1)
     echo "$([ "$CORES" -gt 0 ] && echo "$CORES" || echo 1)"
 }
