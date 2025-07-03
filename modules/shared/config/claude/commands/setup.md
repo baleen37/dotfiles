@@ -44,7 +44,6 @@
 </discovery_protocol>
 
 <initialization_check>
-- Before starting any work, verify that a `GEMINI.md` or `CLAUDE.md` project guide exists.
 - If it does not, stop and inform the user that the project needs to be initialized.
 </initialization_check>
 
