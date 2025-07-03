@@ -14,7 +14,7 @@ MD041: false
 MD027: false
 
 # Fenced code blocks - require language specification
-MD040: 
+MD040:
   # Allow empty code blocks for templates and examples
   allowed_languages: ["", "bash", "nix", "yaml", "json", "markdown", "text", "shell"]
 
