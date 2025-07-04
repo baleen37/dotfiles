@@ -192,7 +192,7 @@ nix-shell -p python312 python312Packages.numpy
 **증상:**
 ```bash
 $ npm install
-node-pre-gyp ERR! build error 
+node-pre-gyp ERR! build error
 node-pre-gyp ERR! stack Error: Failed to execute 'node-gyp build'
 ```
 
