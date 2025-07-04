@@ -5,15 +5,11 @@
 { pkgs, src ? ../.., ... }:
 
 let
-  # Import get-user library
-  getUserLib = import (src + "/lib/get-user.nix");
+  # Import unified user resolution library
+  userResolutionLib = import (src + "/lib/user-resolution.nix");
 
-  # Check if enhanced version exists
-  enhancedGetUserExists = builtins.pathExists (src + "/lib/enhanced-get-user.nix");
-  enhancedGetUserLib =
-    if enhancedGetUserExists
-    then import (src + "/lib/enhanced-get-user.nix")
-    else null;
+  # Test helper for compatibility testing
+  testCompatibility = format: userResolutionLib { returnFormat = format; };
 
   # Test helper to run with different environment setups
   runWithEnv = env: expr: pkgs.runCommand "env-test" env expr;
@@ -34,7 +30,7 @@ pkgs.runCommand "user-resolution-test"
 
   # Test with USER set
   export USER="testuser"
-  result=$(nix eval --impure --expr '(import ${src}/lib/get-user.nix) {}' --raw)
+  result=$(nix eval --impure --expr '(import ${src}/lib/user-resolution.nix) {}' --raw)
   if [[ "$result" == "testuser" ]]; then
     echo "✅ USER environment variable resolved correctly"
   else
@@ -44,7 +40,7 @@ pkgs.runCommand "user-resolution-test"
 
   # Test without USER
   unset USER
-  result=$(nix eval --impure --expr '(import ${src}/lib/get-user.nix) {}' --raw 2>&1 || echo "ERROR")
+  result=$(nix eval --impure --expr '(import ${src}/lib/user-resolution.nix) {}' --raw 2>&1 || echo "ERROR")
   if [[ "$result" == *"Failed to detect valid user"* ]] || [[ "$result" == *"Environment variable USER must be set"* ]] || [[ "$result" == "ERROR" ]]; then
     echo "✅ Correctly errors when USER is unset"
   else
@@ -57,7 +53,7 @@ pkgs.runCommand "user-resolution-test"
   echo "--------------------------------"
 
   export USER="testuser"
-  type_result=$(nix eval --impure --expr 'builtins.typeOf ((import ${src}/lib/get-user.nix) {})' --raw)
+  type_result=$(nix eval --impure --expr 'builtins.typeOf ((import ${src}/lib/user-resolution.nix) {})' --raw)
   if [[ "$type_result" == "string" ]]; then
     echo "✅ Returns string type as expected"
   else
@@ -74,7 +70,7 @@ pkgs.runCommand "user-resolution-test"
 
   for special_user in "''${special_users[@]}"; do
     export USER="$special_user"
-    result=$(nix eval --impure --expr '(import ${src}/lib/get-user.nix) {}' --raw 2>&1 || echo "VALIDATION_ERROR")
+    result=$(nix eval --impure --expr '(import ${src}/lib/user-resolution.nix) {}' --raw 2>&1 || echo "VALIDATION_ERROR")
     if [[ "$special_user" == "user.name" ]]; then
       # Dots are not allowed in usernames
       if [[ "$result" == *"invalid format"* ]] || [[ "$result" == "VALIDATION_ERROR" ]]; then
@@ -94,24 +90,23 @@ pkgs.runCommand "user-resolution-test"
   echo "📋 Test 4: SUDO_USER Priority Handling"
   echo "-------------------------------------"
 
-  if [[ -n "$enhancedGetUserLib" ]]; then
-    export USER="regularuser"
-    export SUDO_USER="sudouser"
+  export USER="regularuser"
+  export SUDO_USER="sudouser"
 
-    result=$(nix eval --impure --expr '(import ${src}/lib/enhanced-get-user.nix) {}' --raw 2>&1)
-    if [[ "$result" == "regularuser" ]]; then
-      echo "✅ USER takes priority over SUDO_USER"
-    else
-      echo "⚠️  Unexpected priority behavior"
-    fi
-
-    unset USER
-    result=$(nix eval --impure --expr '(import ${src}/lib/enhanced-get-user.nix) {}' --raw 2>&1)
-    if [[ "$result" == "sudouser" ]]; then
-      echo "✅ Falls back to SUDO_USER when USER unset"
-    fi
+  # Test unified system with allowSudoUser enabled
+  result=$(nix eval --impure --expr '(import ${src}/lib/user-resolution.nix) { allowSudoUser = true; }' --raw 2>&1)
+  if [[ "$result" == "regularuser" ]]; then
+    echo "✅ USER takes priority over SUDO_USER"
   else
-    echo "⚠️  Enhanced get-user.nix not found, skipping SUDO_USER tests"
+    echo "⚠️  Unexpected priority behavior: $result"
+  fi
+
+  unset USER
+  result=$(nix eval --impure --expr '(import ${src}/lib/user-resolution.nix) { allowSudoUser = true; }' --raw 2>&1)
+  if [[ "$result" == "sudouser" ]]; then
+    echo "✅ Falls back to SUDO_USER when USER unset"
+  else
+    echo "⚠️  SUDO_USER fallback not working: $result"
   fi
 
   # Test 5: Platform-Specific Behavior
@@ -179,17 +174,31 @@ pkgs.runCommand "user-resolution-test"
   echo "---------------------------------"
 
   export USER=""
-  result=$(nix eval --impure --expr '(import ${src}/lib/get-user.nix) {}' --raw 2>&1 || echo "ERROR")
+  result=$(nix eval --impure --expr '(import ${src}/lib/user-resolution.nix) {}' --raw 2>&1 || echo "ERROR")
   if [[ "$result" == *"Failed to detect valid user"* ]] || [[ "$result" == "ERROR" ]]; then
     echo "✅ Empty USER variable correctly rejected"
   else
     echo "❌ Empty USER not handled properly, got: $result"
   fi
 
-  # Test 9: Integration with System
+  # Test 9: Extended Format Testing
   echo ""
-  echo "📋 Test 9: System Integration"
-  echo "----------------------------"
+  echo "📋 Test 9: Extended Format Testing"
+  echo "--------------------------------"
+
+  export USER="testuser"
+  # Test extended format return
+  result=$(nix eval --impure --expr '(import ${src}/lib/user-resolution.nix) { returnFormat = "extended"; }' --json 2>&1)
+  if [[ "$result" == *"\"user\":\"testuser\""* ]]; then
+    echo "✅ Extended format returns structured data"
+  else
+    echo "❌ Extended format not working properly: $result"
+  fi
+
+  # Test 10: System Integration
+  echo ""
+  echo "📋 Test 10: System Integration"
+  echo "-----------------------------"
 
   echo "✅ User resolution integrates with:"
   echo "  - Home directory paths (/Users/\$USER or /home/\$USER)"
@@ -197,9 +206,9 @@ pkgs.runCommand "user-resolution-test"
   echo "  - Build artifact paths"
   echo "  - System service definitions"
 
-  # Test 10: Performance Considerations
+  # Test 11: Performance Considerations
   echo ""
-  echo "📋 Test 10: Performance"
+  echo "📋 Test 11: Performance"
   echo "----------------------"
 
   # Restore USER for performance test
@@ -208,7 +217,7 @@ pkgs.runCommand "user-resolution-test"
   # Test that user resolution is cached/efficient
   start_time=$(date +%s%N)
   for i in {1..10}; do
-    nix eval --impure --expr '(import ${src}/lib/get-user.nix) {}' --raw &>/dev/null
+    nix eval --impure --expr '(import ${src}/lib/user-resolution.nix) {}' --raw &>/dev/null
   done
   end_time=$(date +%s%N)
 
@@ -235,6 +244,7 @@ pkgs.runCommand "user-resolution-test"
   echo "- Auto-detection: ✅"
   echo "- Error messages: ✅"
   echo "- Empty handling: ✅"
+  echo "- Extended format: ✅"
   echo "- System integration: ✅"
   echo "- Performance: ✅"
 

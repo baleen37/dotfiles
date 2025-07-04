@@ -1,7 +1,7 @@
 { config, pkgs, lib, self, ... }:
 
 let
-  # Resolve user with platform information
+  # Resolve user with platform information using unified system
   getUserInfo = import ../../lib/user-resolution.nix {
     platform = "linux";
     returnFormat = "extended";
