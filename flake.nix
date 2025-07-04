@@ -56,7 +56,7 @@
       # Shared library functions
       lib = {
         packageUtils = import ./lib/package-utils.nix { lib = nixpkgs.lib; };
-        getUserUtils = import ./lib/get-user.nix;
+        userResolution = import ./lib/user-resolution.nix;
         platformUtils = import ./lib/platform-utils.nix { inherit nixpkgs; };
       };
 

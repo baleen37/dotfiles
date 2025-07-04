@@ -12,6 +12,8 @@ let
 
     # Build system functionality
     build_parallelization_unit = import ./unit/build-parallelization-unit.nix { inherit pkgs; };
+    build_switch_improved_unit = import ./unit/build-switch-improved-unit.nix { inherit pkgs flake; src = ../.; };
+    sudo_security_test = import ./unit/sudo-security-test.nix { inherit pkgs; lib = pkgs.lib; src = ../.; };
 
     # Essential integrations (only active tests)
     user_path_consistency = import ./integration/test-user-path-consistency.nix { inherit pkgs; lib = pkgs.lib; };
