@@ -14,6 +14,7 @@ in
   ];
 
   nix = {
+    enable = false;  # Determinate Nix와의 충돌 방지
     package = pkgs.nix;
 
     settings = {
