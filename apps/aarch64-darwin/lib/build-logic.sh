@@ -5,7 +5,6 @@
 # Pre-flight checks for Darwin system
 check_darwin_prerequisites() {
     local conflicts_found=false
-    
     log_step "Checking system prerequisites"
     
     # Check for conflicting system files
