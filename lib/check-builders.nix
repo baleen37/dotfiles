@@ -43,26 +43,54 @@ in
         builtins.elem name [ "build_time" "resource_usage" ]
       ) testSuite;
 
-      # Simple test category runner - just validates test count
+      # Test category runner - executes actual tests
       runTestCategory = category: categoryTests:
         let
           testsCount = builtins.length (builtins.attrNames categoryTests);
+          testList = builtins.attrValues categoryTests;
         in
         pkgs.runCommand "test-${category}"
         {
+          buildInputs = testList;
           meta = {
-            description = "${category} tests for ${system} (simplified)";
+            description = "${category} tests for ${system}";
           };
         } ''
-        echo "Test Framework Simplification - ${category} tests"
+        echo "Running ${category} tests for ${system}"
         echo "================================================"
         echo ""
-        echo "✓ ${category} test category contains ${toString testsCount} tests"
-        echo "✓ All tests in category are properly defined"
-        echo "✓ Test framework successfully simplified from 84+ to ~12 tests"
+        echo "📊 Test category: ${category}"
+        echo "📝 Test count: ${toString testsCount}"
         echo ""
-        echo "Simplified ${category} tests: PASSED"
+        
+        # Execute all tests in this category
+        FAILED_TESTS=0
+        PASSED_TESTS=0
+        
+        ${builtins.concatStringsSep "\n" (builtins.attrValues (builtins.mapAttrs (name: test:
+          ''
+            echo "🧪 Running ${name}..."
+            if [ -f "${test}" ]; then
+              echo "✅ ${name}: PASSED"
+              PASSED_TESTS=$((PASSED_TESTS + 1))
+            else
+              echo "❌ ${name}: FAILED"
+              FAILED_TESTS=$((FAILED_TESTS + 1))
+            fi
+          ''
+        ) categoryTests))}
+        
+        echo ""
         echo "================================================"
+        echo "📊 Results: $PASSED_TESTS passed, $FAILED_TESTS failed"
+        
+        if [ $FAILED_TESTS -gt 0 ]; then
+          echo "❌ ${category} tests: FAILED"
+          exit 1
+        else
+          echo "✅ ${category} tests: PASSED"
+        fi
+        
         touch $out
       '';
     in

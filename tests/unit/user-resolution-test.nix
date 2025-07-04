@@ -1,22 +1,11 @@
-# Consolidated test for user resolution functionality
-# Combines tests from: enhanced-user-resolution-unit, enhanced-user-functionality-unit,
-# and user-resolution-unit
+# Unified User Resolution System Test
+# Tests the new consolidated user-resolution.nix system
 
 { pkgs, src ? ../.., ... }:
 
 let
-  # Import get-user library
-  getUserLib = import (src + "/lib/get-user.nix");
-
-  # Check if enhanced version exists
-  enhancedGetUserExists = builtins.pathExists (src + "/lib/enhanced-get-user.nix");
-  enhancedGetUserLib =
-    if enhancedGetUserExists
-    then import (src + "/lib/enhanced-get-user.nix")
-    else null;
-
-  # Test helper to run with different environment setups
-  runWithEnv = env: expr: pkgs.runCommand "env-test" env expr;
+  # Import unified user resolution library
+  getUserLib = import (src + "/lib/user-resolution.nix");
 
 in
 pkgs.runCommand "user-resolution-test"
@@ -24,219 +13,147 @@ pkgs.runCommand "user-resolution-test"
   buildInputs = with pkgs; [ bash ];
   nativeBuildInputs = with pkgs; [ nix ];
 } ''
-  echo "🧪 Comprehensive User Resolution Test Suite"
-  echo "========================================="
+  echo "🧪 Unified User Resolution Test Suite"
+  echo "==================================="
 
-  # Test 1: Basic get-user.nix Functionality
+  # Test 1: Basic String Mode (Default)
   echo ""
-  echo "📋 Test 1: Basic User Resolution"
-  echo "-------------------------------"
+  echo "📋 Test 1: Basic String Mode"
+  echo "---------------------------"
 
   # Test with USER set
   export USER="testuser"
-  result=$(nix eval --impure --expr '(import ${src}/lib/get-user.nix) {}' --raw)
+  result=$(nix eval --impure --expr '(import ${src}/lib/user-resolution.nix) { mockEnv = { USER = "testuser"; }; }' --raw)
   if [[ "$result" == "testuser" ]]; then
-    echo "✅ USER environment variable resolved correctly"
+    echo "✅ Basic string mode works correctly"
   else
-    echo "❌ Failed to resolve USER variable. Expected: testuser, Got: $result"
+    echo "❌ Failed basic string mode. Expected: testuser, Got: $result"
     exit 1
   fi
 
-  # Test without USER
-  unset USER
-  result=$(nix eval --impure --expr '(import ${src}/lib/get-user.nix) {}' --raw 2>&1 || echo "ERROR")
-  if [[ "$result" == *"Failed to detect valid user"* ]] || [[ "$result" == *"Environment variable USER must be set"* ]] || [[ "$result" == "ERROR" ]]; then
-    echo "✅ Correctly errors when USER is unset"
+  # Test 2: Extended Mode
+  echo ""
+  echo "📋 Test 2: Extended Mode"
+  echo "-----------------------"
+
+  user_result=$(nix eval --impure --expr '((import ${src}/lib/user-resolution.nix) { mockEnv = { USER = "testuser"; }; returnFormat = "extended"; }).user' --raw)
+  if [[ "$user_result" == "testuser" ]]; then
+    echo "✅ Extended mode user field works correctly"
   else
-    echo "⚠️  Unexpected behavior when USER unset: $result"
+    echo "❌ Failed extended mode. Expected: testuser, Got: $user_result"
+    exit 1
   fi
 
-  # Test 2: Return Type Validation
+  # Test 3: SUDO_USER Priority
   echo ""
-  echo "📋 Test 2: Return Type Validation"
-  echo "--------------------------------"
-
-  export USER="testuser"
-  type_result=$(nix eval --impure --expr 'builtins.typeOf ((import ${src}/lib/get-user.nix) {})' --raw)
-  if [[ "$type_result" == "string" ]]; then
-    echo "✅ Returns string type as expected"
-  else
-    echo "❌ Unexpected return type: $type_result"
-  fi
-
-  # Test 3: Special Character Handling
-  echo ""
-  echo "📋 Test 3: Special Character Handling"
-  echo "------------------------------------"
-
-  # Test various special characters
-  special_users=("user-name" "user_name" "user123" "user.name")
-
-  for special_user in "''${special_users[@]}"; do
-    export USER="$special_user"
-    result=$(nix eval --impure --expr '(import ${src}/lib/get-user.nix) {}' --raw 2>&1 || echo "VALIDATION_ERROR")
-    if [[ "$special_user" == "user.name" ]]; then
-      # Dots are not allowed in usernames
-      if [[ "$result" == *"invalid format"* ]] || [[ "$result" == "VALIDATION_ERROR" ]]; then
-        echo "✅ Invalid username 'user.name' correctly rejected"
-      else
-        echo "❌ Invalid username 'user.name' was incorrectly accepted"
-      fi
-    elif [[ "$result" == "$special_user" ]]; then
-      echo "✅ Special character user '$special_user' handled correctly"
-    else
-      echo "❌ Failed with user '$special_user': $result"
-    fi
-  done
-
-  # Test 4: SUDO_USER Priority (Enhanced Features)
-  echo ""
-  echo "📋 Test 4: SUDO_USER Priority Handling"
-  echo "-------------------------------------"
-
-  if [[ -n "$enhancedGetUserLib" ]]; then
-    export USER="regularuser"
-    export SUDO_USER="sudouser"
-
-    result=$(nix eval --impure --expr '(import ${src}/lib/enhanced-get-user.nix) {}' --raw 2>&1)
-    if [[ "$result" == "regularuser" ]]; then
-      echo "✅ USER takes priority over SUDO_USER"
-    else
-      echo "⚠️  Unexpected priority behavior"
-    fi
-
-    unset USER
-    result=$(nix eval --impure --expr '(import ${src}/lib/enhanced-get-user.nix) {}' --raw 2>&1)
-    if [[ "$result" == "sudouser" ]]; then
-      echo "✅ Falls back to SUDO_USER when USER unset"
-    fi
-  else
-    echo "⚠️  Enhanced get-user.nix not found, skipping SUDO_USER tests"
-  fi
-
-  # Test 5: Platform-Specific Behavior
-  echo ""
-  echo "📋 Test 5: Platform-Specific Behavior"
-  echo "------------------------------------"
-
-  current_system=$(nix eval --impure --expr 'builtins.currentSystem' --raw)
-  echo "✅ Testing on system: $current_system"
-
-  # Test platform detection
-  case "$current_system" in
-    *-darwin)
-      echo "✅ Darwin platform detected"
-      # macOS specific user resolution tests
-      if command -v whoami &>/dev/null; then
-        actual_user=$(whoami)
-        echo "✅ whoami command available: $actual_user"
-      fi
-      ;;
-    *-linux)
-      echo "✅ Linux platform detected"
-      # Linux specific tests
-      # Use portable system file checking instead of hardcoded path
-      if ${pkgs.coreutils}/bin/test -f /etc/passwd 2>/dev/null; then
-        echo "✅ System passwd file available for user validation"
-      else
-        echo "⚠️ System passwd file not available (acceptable on some systems)"
-      fi
-      ;;
-  esac
-
-  # Test 6: Auto-Detection Fallback
-  echo ""
-  echo "📋 Test 6: Auto-Detection Fallback"
-  echo "---------------------------------"
-
-  unset USER
-  unset SUDO_USER
-
-  # Test if system can auto-detect user
-  if command -v whoami &>/dev/null; then
-    detected_user=$(whoami)
-    echo "✅ System can auto-detect user: $detected_user"
-  else
-    echo "⚠️  whoami command not available"
-  fi
-
-  # Test 7: Error Messages and User Guidance
-  echo ""
-  echo "📋 Test 7: Error Messages and Guidance"
-  echo "-------------------------------------"
-
-  unset USER
-  error_output=$(nix eval --impure --expr '(import ${src}/lib/get-user.nix) {}' 2>&1 || true)
-
-  echo "✅ Helpful error guidance should include:"
-  echo "  - Clear explanation of the issue"
-  echo "  - Suggested fix: export USER=\$(whoami)"
-  echo "  - Alternative solutions"
-
-  # Test 8: Empty Username Handling
-  echo ""
-  echo "📋 Test 8: Empty Username Handling"
-  echo "---------------------------------"
-
-  export USER=""
-  result=$(nix eval --impure --expr '(import ${src}/lib/get-user.nix) {}' --raw 2>&1 || echo "ERROR")
-  if [[ "$result" == *"Failed to detect valid user"* ]] || [[ "$result" == "ERROR" ]]; then
-    echo "✅ Empty USER variable correctly rejected"
-  else
-    echo "❌ Empty USER not handled properly, got: $result"
-  fi
-
-  # Test 9: Integration with System
-  echo ""
-  echo "📋 Test 9: System Integration"
+  echo "📋 Test 3: SUDO_USER Priority"
   echo "----------------------------"
 
-  echo "✅ User resolution integrates with:"
-  echo "  - Home directory paths (/Users/\$USER or /home/\$USER)"
-  echo "  - Configuration file locations"
-  echo "  - Build artifact paths"
-  echo "  - System service definitions"
-
-  # Test 10: Performance Considerations
-  echo ""
-  echo "📋 Test 10: Performance"
-  echo "----------------------"
-
-  # Restore USER for performance test
-  export USER="testuser"
-
-  # Test that user resolution is cached/efficient
-  start_time=$(date +%s%N)
-  for i in {1..10}; do
-    nix eval --impure --expr '(import ${src}/lib/get-user.nix) {}' --raw &>/dev/null
-  done
-  end_time=$(date +%s%N)
-
-  elapsed=$(( (end_time - start_time) / 1000000 ))
-  echo "✅ 10 resolutions completed in $elapsed ms"
-
-  if [[ $elapsed -lt 1000 ]]; then
-    echo "✅ Performance is acceptable"
+  sudo_result=$(nix eval --impure --expr '(import ${src}/lib/user-resolution.nix) { mockEnv = { USER = "regularuser"; SUDO_USER = "sudouser"; }; }' --raw)
+  if [[ "$sudo_result" == "sudouser" ]]; then
+    echo "✅ SUDO_USER takes priority correctly"
   else
-    echo "⚠️  Performance may need optimization"
+    echo "❌ SUDO_USER priority failed. Expected: sudouser, Got: $sudo_result"
+    exit 1
   fi
 
-  # Final Summary
+  # Test 4: Disable SUDO_USER
   echo ""
-  echo "🎉 All User Resolution Tests Completed!"
-  echo "====================================="
+  echo "📋 Test 4: Disable SUDO_USER"
+  echo "---------------------------"
+
+  no_sudo_result=$(nix eval --impure --expr '(import ${src}/lib/user-resolution.nix) { mockEnv = { USER = "regularuser"; SUDO_USER = "sudouser"; }; allowSudoUser = false; }' --raw)
+  if [[ "$no_sudo_result" == "regularuser" ]]; then
+    echo "✅ SUDO_USER disabled correctly"
+  else
+    echo "❌ Failed to disable SUDO_USER. Expected: regularuser, Got: $no_sudo_result"
+    exit 1
+  fi
+
+  # Test 5: Platform Detection (Extended Mode)
   echo ""
-  echo "Summary:"
-  echo "- Basic resolution: ✅"
-  echo "- Type validation: ✅"
-  echo "- Special characters: ✅"
-  echo "- SUDO_USER priority: ✅"
-  echo "- Platform-specific: ✅"
-  echo "- Auto-detection: ✅"
-  echo "- Error messages: ✅"
-  echo "- Empty handling: ✅"
-  echo "- System integration: ✅"
-  echo "- Performance: ✅"
+  echo "📋 Test 5: Platform Detection"
+  echo "----------------------------"
+
+  platform_result=$(nix eval --impure --expr '((import ${src}/lib/user-resolution.nix) { mockEnv = { USER = "testuser"; }; platform = "darwin"; returnFormat = "extended"; }).platform' --raw)
+  if [[ "$platform_result" == "darwin" ]]; then
+    echo "✅ Platform detection works correctly"
+  else
+    echo "❌ Platform detection failed. Expected: darwin, Got: $platform_result"
+    exit 1
+  fi
+
+  # Test 6: Home Path Generation
+  echo ""
+  echo "📋 Test 6: Home Path Generation"
+  echo "------------------------------"
+
+  darwin_home=$(nix eval --impure --expr '((import ${src}/lib/user-resolution.nix) { mockEnv = { USER = "testuser"; }; platform = "darwin"; returnFormat = "extended"; }).homePath' --raw)
+  if [[ "$darwin_home" == "/Users/testuser" ]]; then
+    echo "✅ Darwin home path generation works"
+  else
+    echo "❌ Darwin home path failed. Expected: /Users/testuser, Got: $darwin_home"
+    exit 1
+  fi
+
+  linux_home=$(nix eval --impure --expr '((import ${src}/lib/user-resolution.nix) { mockEnv = { USER = "testuser"; }; platform = "linux"; returnFormat = "extended"; }).homePath' --raw)
+  if [[ "$linux_home" == "/home/testuser" ]]; then
+    echo "✅ Linux home path generation works"
+  else
+    echo "❌ Linux home path failed. Expected: /home/testuser, Got: $linux_home"
+    exit 1
+  fi
+
+  # Test 7: Utility Functions
+  echo ""
+  echo "📋 Test 7: Utility Functions"
+  echo "---------------------------"
+
+  config_path=$(nix eval --impure --expr '((import ${src}/lib/user-resolution.nix) { mockEnv = { USER = "testuser"; }; platform = "linux"; returnFormat = "extended"; }).utils.getConfigPath' --raw)
+  if [[ "$config_path" == "/home/testuser/.config" ]]; then
+    echo "✅ Config path utility works"
+  else
+    echo "❌ Config path utility failed. Expected: /home/testuser/.config, Got: $config_path"
+    exit 1
+  fi
+
+  # Test 8: Return Type Validation
+  echo ""
+  echo "📋 Test 8: Return Type Validation"
+  echo "--------------------------------"
+
+  string_type=$(nix eval --impure --expr 'builtins.typeOf ((import ${src}/lib/user-resolution.nix) { mockEnv = { USER = "testuser"; }; })' --raw)
+  if [[ "$string_type" == "string" ]]; then
+    echo "✅ Default mode returns string type"
+  else
+    echo "❌ Wrong return type for string mode. Expected: string, Got: $string_type"
+    exit 1
+  fi
+
+  extended_type=$(nix eval --impure --expr 'builtins.typeOf ((import ${src}/lib/user-resolution.nix) { mockEnv = { USER = "testuser"; }; returnFormat = "extended"; })' --raw)
+  if [[ "$extended_type" == "set" ]]; then
+    echo "✅ Extended mode returns set type"
+  else
+    echo "❌ Wrong return type for extended mode. Expected: set, Got: $extended_type"
+    exit 1
+  fi
+
+  # Test 9: Custom Environment Variable
+  echo ""
+  echo "📋 Test 9: Custom Environment Variable"
+  echo "------------------------------------"
+
+  custom_result=$(nix eval --impure --expr '(import ${src}/lib/user-resolution.nix) { mockEnv = { CUSTOM_USER = "customuser"; }; envVar = "CUSTOM_USER"; allowSudoUser = false; }' --raw)
+  if [[ "$custom_result" == "customuser" ]]; then
+    echo "✅ Custom environment variable works"
+  else
+    echo "❌ Custom env var failed. Expected: customuser, Got: $custom_result"
+    exit 1
+  fi
+
+  echo ""
+  echo "🎉 All unified user resolution tests passed!"
+  echo "=========================================="
 
   touch $out
 ''
