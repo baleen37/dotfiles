@@ -38,7 +38,6 @@ in
     # you may receive an error message "Redownload Unavailable with This Apple ID".
     # This message is safe to ignore. (https://github.com/dustinlyons/nixos-config/issues/83)
     masApps = {
-      "1password" = 1333542190;
       "wireguard" = 1451685025;
     };
   };
