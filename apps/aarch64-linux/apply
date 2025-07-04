@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Apply Script for x86_64-darwin
+# Apply Script for aarch64-linux
 # Uses the common apply template
 
 # Get script directory

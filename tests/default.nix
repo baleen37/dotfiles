@@ -15,6 +15,18 @@ let
     build_switch_improved_unit = import ./unit/build-switch-improved-unit.nix { inherit pkgs flake; src = ../.; };
     sudo_security_test = import ./unit/sudo-security-test.nix { inherit pkgs; lib = pkgs.lib; src = ../.; };
 
+    # Build script modularization tests (TDD)
+    build_script_logging_unit = import ./unit/build-script-logging-unit.nix { inherit pkgs; };
+    build_script_performance_unit = import ./unit/build-script-performance-unit.nix { inherit pkgs; };
+    build_script_sudo_management_unit = import ./unit/build-script-sudo-management-unit.nix { inherit pkgs; };
+    build_script_build_logic_unit = import ./unit/build-script-build-logic-unit.nix { inherit pkgs; };
+    build_script_modularization_integration = import ./unit/build-script-modularization-integration.nix { inherit pkgs; };
+
+    # Apply script deduplication tests (TDD - Issue #301)
+    apply_script_deduplication_unit = import ./unit/apply-script-deduplication-unit.nix { inherit pkgs; };
+    apply_template_system_unit = import ./unit/apply-template-system-unit.nix { inherit pkgs; };
+    apply_functional_integration_unit = import ./unit/apply-functional-integration-unit.nix { inherit pkgs; };
+
     # Essential integrations (only active tests)
     user_path_consistency = import ./integration/test-user-path-consistency.nix { inherit pkgs; lib = pkgs.lib; };
     build_parallelization_integration = import ./integration/build-parallelization-integration.nix { inherit pkgs; };
