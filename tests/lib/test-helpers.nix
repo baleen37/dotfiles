@@ -182,6 +182,78 @@ let
       touch $out
     '';
 
+  # Package list test helpers
+  assertListIncludes = { name, haystack, needles, description }:
+    pkgs.runCommand "assert-list-includes-${name}" { } ''
+      echo "Testing: ${description}"
+      ${builtins.concatStringsSep "\n" (map (needle:
+        let
+          needleName = if builtins.hasAttr "name" needle then needle.name else needle.pname or "unknown";
+        in
+        ''
+          FOUND=0
+          for item in ${builtins.concatStringsSep " " (map (item:
+            if builtins.hasAttr "name" item then item.name else item.pname or "unknown"
+          ) haystack)}; do
+            if [ "$item" = "${needleName}" ]; then
+              FOUND=1
+              break
+            fi
+          done
+          if [ $FOUND -eq 0 ]; then
+            echo "Package ${needleName} not found in haystack"
+            exit 1
+          fi
+        ''
+      ) needles)}
+      echo "All packages found"
+      touch $out
+    '';
+
+  assertListContains = { name, list, items, description }:
+    pkgs.runCommand "assert-list-contains-${name}" { } ''
+      echo "Testing: ${description}"
+      ${builtins.concatStringsSep "\n" (map (item:
+        let
+          itemName = if builtins.hasAttr "name" item then item.name else item.pname or "unknown";
+        in
+        ''
+          FOUND=0
+          for listItem in ${builtins.concatStringsSep " " (map (listItem:
+            if builtins.hasAttr "name" listItem then listItem.name else listItem.pname or "unknown"
+          ) list)}; do
+            if [ "$listItem" = "${itemName}" ]; then
+              FOUND=1
+              break
+            fi
+          done
+          if [ $FOUND -eq 0 ]; then
+            echo "Package ${itemName} not found in list"
+            exit 1
+          fi
+        ''
+      ) items)}
+      echo "All required packages found"
+      touch $out
+    '';
+
+  assertAllDerivations = { name, lists, description }:
+    pkgs.runCommand "assert-all-derivations-${name}" { } ''
+      echo "Testing: ${description}"
+      ${builtins.concatStringsSep "\n" (builtins.attrValues (builtins.mapAttrs (listName: list:
+        builtins.concatStringsSep "\n" (map (item:
+          ''
+            if [ ! -d "${item}" ]; then
+              echo "Item ${item} is not a valid derivation"
+              exit 1
+            fi
+          ''
+        ) list)
+      ) lists))}
+      echo "All packages are valid derivations"
+      touch $out
+    '';
+
 
 in
 {
@@ -192,5 +264,5 @@ in
   inherit mockFlake mockConfig;
   inherit createTempFile createTempDir;
   inherit evalFlake reportResults cleanup;
-  inherit assertSetContains;
+  inherit assertSetContains assertListIncludes assertListContains assertAllDerivations;
 }
