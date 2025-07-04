@@ -8,7 +8,7 @@ let
 
     # Critical functionality (only active tests)
     user_resolution = import ./unit/user-resolution-test.nix { inherit pkgs flake; src = ../.; };
-    unified_user_resolution = import ./unit/test-unified-user-resolution.nix { inherit pkgs; lib = pkgs.lib; };
+    unified_user_resolution = import ./unit/unified-user-resolution-unit.nix { inherit pkgs; lib = pkgs.lib; };
 
     # Build system functionality
     build_parallelization_unit = import ./unit/build-parallelization-unit.nix { inherit pkgs; };
