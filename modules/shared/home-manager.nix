@@ -2,8 +2,9 @@
 
 let
   name = "Jiho Lee";
-  getUserInfo = import ../../lib/get-user-extended.nix {
+  getUserInfo = import ../../lib/user-resolution.nix {
     platform = if pkgs.stdenv.isDarwin then "darwin" else "linux";
+    returnFormat = "extended";
   };
   user = getUserInfo.user;
   email = "baleen37@gmail.com";

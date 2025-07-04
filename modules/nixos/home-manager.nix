@@ -2,7 +2,10 @@
 
 let
   # Resolve user with platform information
-  getUserInfo = import ../../lib/get-user-extended.nix { platform = "linux"; };
+  getUserInfo = import ../../lib/user-resolution.nix {
+    platform = "linux";
+    returnFormat = "extended";
+  };
   user = getUserInfo.user;
   xdg_configHome = "${getUserInfo.homePath}/.config";
   shared-programs = import ../shared/home-manager.nix { inherit config pkgs lib; };

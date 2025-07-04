@@ -9,9 +9,10 @@ let
   mockEnv = { USER = testUser; };
 
   # Import modules to test
-  getUserInfo = import ../../lib/get-user-extended.nix {
+  getUserInfo = import ../../lib/user-resolution.nix {
     inherit mockEnv;
     platform = "darwin";
+    returnFormat = "extended";
   };
 
   # Test that modules would resolve to the same paths

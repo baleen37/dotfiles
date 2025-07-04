@@ -7,13 +7,13 @@
     let
       # Import shared packages
       sharedPackages = import sharedPackagesPath { inherit pkgs; };
-      
+
       # Validate that shared packages is a list
-      validSharedPackages = if builtins.isList sharedPackages 
-        then sharedPackages 
+      validSharedPackages = if builtins.isList sharedPackages
+        then sharedPackages
         else throw "Shared packages must be a list, got: ${builtins.typeOf sharedPackages}";
-      
-      # Validate that platform packages is a list  
+
+      # Validate that platform packages is a list
       validPlatformPackages = if builtins.isList platformPackages
         then platformPackages
         else throw "Platform packages must be a list, got: ${builtins.typeOf platformPackages}";
@@ -23,9 +23,9 @@
 
   # Helper function to get package names for debugging/testing
   getPackageNames = packages: map (pkg: pkg.name or pkg.pname or "unknown") packages;
-  
+
   # Validation function to ensure packages are valid derivations
-  validatePackages = packages: 
+  validatePackages = packages:
     let
       invalidPackages = builtins.filter (pkg: !(pkg ? name || pkg ? pname)) packages;
     in
