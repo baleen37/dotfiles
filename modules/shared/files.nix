@@ -1,9 +1,10 @@
 { pkgs, config, user, self, lib, ... }:
 
 let
-  # Use standardized user resolution with extended features
-  getUserInfo = import ../../lib/get-user-extended.nix {
+  # Use unified user resolution system
+  getUserInfo = import ../../lib/user-resolution.nix {
     platform = if pkgs.stdenv.isDarwin then "darwin" else "linux";
+    returnFormat = "extended";
   };
   userHome = getUserInfo.homePath;
 

@@ -9,9 +9,10 @@ let
   mockEnv = { USER = testUser; };
 
   # Import modules to test
-  getUserInfo = import ../../lib/get-user-extended.nix {
+  getUserInfo = import ../../lib/user-resolution.nix {
     inherit mockEnv;
     platform = "darwin";
+    returnFormat = "extended";
   };
 
   # Test that modules would resolve to the same paths
@@ -51,13 +52,15 @@ let
   # Test platform-specific path resolution
   testPlatformPaths =
     let
-      darwinInfo = import ../../lib/get-user-extended.nix {
+      darwinInfo = import ../../lib/user-resolution.nix {
         inherit mockEnv;
         platform = "darwin";
+        returnFormat = "extended";
       };
-      linuxInfo = import ../../lib/get-user-extended.nix {
+      linuxInfo = import ../../lib/user-resolution.nix {
         inherit mockEnv;
         platform = "linux";
+        returnFormat = "extended";
       };
     in
     runPathConsistencyTest "Darwin home path" "/Users/${testUser}" darwinInfo.homePath &&
