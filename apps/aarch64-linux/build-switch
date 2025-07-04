@@ -1,0 +1,21 @@
+#!/bin/sh -e
+
+VERSION=1.0
+
+# Platform-specific configuration for x86_64-linux
+SYSTEM_TYPE="x86_64-linux"
+FLAKE_SYSTEM="nixosConfigurations.${SYSTEM_TYPE}.config.system.build.toplevel"
+PLATFORM_TYPE="linux"
+PLATFORM_NAME="NixOS"
+REBUILD_COMMAND="nixos-rebuild"
+REBUILD_COMMAND_PATH="/run/current-system/sw/bin/nixos-rebuild"
+
+# Get the directory of this script
+SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
+PROJECT_ROOT=$(cd "$SCRIPT_DIR/../.." && pwd)
+
+# Source the common build-switch logic
+. "$PROJECT_ROOT/scripts/build-switch-common.sh"
+
+# Execute the common build-switch workflow
+execute_build_switch "$@"

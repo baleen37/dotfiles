@@ -1,9 +1,12 @@
-# Architecture Overview
+# Architecture & Reference Guide
 
-This document describes the architectural design and structure of the Nix flake-based dotfiles repository.
+> **Complete architectural overview, module reference, and implementation details**
 
-## System Architecture
+This document covers the system architecture, module organization, library functions, and detailed reference information for the Nix flake-based dotfiles repository.
 
+## 🏗️ System Architecture
+
+### High-Level Structure
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                          flake.nix                              │
@@ -26,231 +29,189 @@ This document describes the architectural design and structure of the Nix flake-
 │  │ • nixos/      │  │ • files       │  │ • nixos/      │   │
 │  └────────────────┘  └────────────────┘  └────────────────┘   │
 └─────────────────────────────────────────────────────────────────┘
-                               │
-                               ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    System Configuration                         │
-│  ┌────────────────┐  ┌────────────────┐  ┌────────────────┐   │
-│  │ Darwin Build  │  │  NixOS Build   │  │  Home Manager  │   │
-│  │               │  │               │  │               │   │
-│  │ nix-darwin   │  │ nixos-rebuild │  │  User configs │   │
-│  └────────────────┘  └────────────────┘  └────────────────┘   │
-└─────────────────────────────────────────────────────────────────┘
 ```
 
-## Module Hierarchy
+### Core Principles
 
-The module system follows a strict hierarchical structure:
+1. **Flake-Based Architecture**: Reproducible builds with locked dependencies
+2. **Modular Design**: Platform-specific and shared modules for maintainability
+3. **Cross-Platform Support**: Unified configuration for macOS (Darwin) and Linux (NixOS)
+4. **User Resolution**: Dynamic username handling via `lib/get-user.nix`
+5. **Testing Integration**: Comprehensive test framework with multiple test types
+
+## 📁 Directory Structure
 
 ```
-modules/
-├── shared/          # Cross-platform modules
-│   ├── packages.nix
-│   ├── files.nix
-│   ├── home-manager.nix
-│   └── lib/         # Shared libraries
-│       ├── claude-config-policy.nix
-│       ├── conditional-file-copy.nix
-│       └── file-change-detector.nix
+.
+├── flake.nix                    # Main flake definition
+├── flake.lock                  # Locked dependency versions
+├── Makefile                    # Build shortcuts and commands
+├── CLAUDE.md                   # Main project documentation
 │
-├── darwin/          # macOS-specific modules
-│   ├── packages.nix
-│   ├── casks.nix
-│   ├── dock/
-│   └── files.nix
+├── lib/                        # Shared Nix library functions
+│   ├── get-user.nix           # User resolution system
+│   ├── platform-apps.nix      # Platform-specific app generators
+│   └── test-apps.nix          # Test application builders
 │
-└── nixos/           # NixOS-specific modules
-    ├── packages.nix
-    ├── disk-config.nix
-    └── files.nix
-```
-
-### Import Flow
-
-```
-Host Configuration (e.g., hosts/darwin/default.nix)
-    │
-    ├──> Platform Modules (modules/darwin/*.nix)
-    │        │
-    │        └──> Shared Modules (modules/shared/*.nix)
-    │
-    └──> Home Manager Configuration
-             │
-             └──> User-specific modules
-```
-
-## Application Architecture
-
-The repository provides various applications through Nix flake apps:
-
-```
-apps/
-├── Core Apps           # Platform management
-│   ├── build          # Build configuration
-│   ├── switch         # Apply configuration
-│   └── rollback       # Revert changes (Darwin only)
+├── hosts/                      # Host-specific configurations
+│   ├── darwin/                # macOS host configurations
+│   └── nixos/                 # Linux host configurations
 │
-├── Development Apps    # Development tools
-│   ├── setup-dev      # Initialize Nix projects
-│   └── bl             # Global command system
+├── modules/                    # Modular configuration system
+│   ├── shared/                # Cross-platform modules
+│   ├── darwin/                # macOS-specific modules
+│   └── nixos/                 # Linux-specific modules
 │
-└── Test Apps          # Testing infrastructure
-    ├── test           # Run all tests
-    ├── test-unit      # Run unit tests
-    ├── test-integration # Run integration tests
-    ├── test-e2e       # Run e2e tests
-    └── test-list      # List available tests
+├── apps/                       # Platform-specific executables
+│   ├── aarch64-darwin/        # Apple Silicon apps
+│   ├── x86_64-darwin/         # Intel Mac apps
+│   ├── aarch64-linux/         # ARM64 Linux apps
+│   └── x86_64-linux/          # x86_64 Linux apps
+│
+├── scripts/                    # Utility scripts and automation
+│   ├── lib/                   # Script modules (modularized)
+│   └── templates/             # Script templates
+│
+├── overlays/                   # Nix package overlays
+├── tests/                      # Comprehensive test suite
+└── docs/                       # Documentation
 ```
 
-## Test Architecture
+## 🔧 Module System
 
-The testing system is organized into four categories:
+### Module Hierarchy and Import Rules
 
+1. **Platform-specific modules** (`modules/darwin/`, `modules/nixos/`)
+   - Contains OS-specific configurations
+   - Imported only by respective platform configurations
+
+2. **Shared modules** (`modules/shared/`)
+   - Cross-platform configurations (git, zsh, vim, tmux)
+   - Can be imported by both Darwin and NixOS configurations
+   - Layout: `config/` (non-Nix files), `cachix/` (build cache), `files.nix` (static configs), `home-manager.nix` (main config), `packages.nix` (shared packages)
+
+3. **Host configurations** (`hosts/`)
+   - Individual machine configurations
+   - Import appropriate platform and shared modules
+
+## 📚 Core Library Functions
+
+### User Resolution System (`lib/get-user.nix`)
+Dynamic username detection for cross-platform compatibility.
+
+### Platform Applications (`lib/platform-apps.nix`)
+Generate platform-specific applications and build tools.
+
+### Test Applications (`lib/test-apps.nix`)
+Test framework integration with multiple test categories.
+
+## 🔄 Flake Output Structure
+
+### Application Availability by Platform
+| Application | Darwin | Linux | Description |
+|-------------|--------|-------|-------------|
+| `build` | ✅ | ✅ | Build system configuration |
+| `build-switch` | ✅ | ✅ | Build and apply configuration |
+| `apply` | ✅ | ✅ | Apply configuration to system |
+| `test-unit` | ✅ | ❌ | Unit tests (Darwin only) |
+| `test-integration` | ✅ | ❌ | Integration tests (Darwin only) |
+| `test` | ✅ | ✅ | Basic tests (all platforms) |
+
+## 🧪 Testing Architecture
+
+### Test Framework Structure
 ```
 tests/
-├── unit/              # Fast, isolated tests
-├── integration/       # Module interaction tests
-├── e2e/              # Full workflow tests
-├── performance/       # Performance benchmarks
-└── lib/              # Test utilities
-    └── test-helpers.nix
+├── unit/                    # Unit tests (fast, isolated)
+├── integration/             # Integration tests (system-level)
+├── e2e/                     # End-to-end tests (full workflows)
+└── performance/             # Performance tests
 ```
 
-### Test Execution Flow
+### Test Categories
+- **Core Tests**: Essential functionality (7 tests)
+- **Workflow Tests**: End-to-end scenarios (5 tests)
+- **Performance Tests**: Build time and resource usage (3 tests)
 
-```
-User Command (e.g., make test-unit)
-    │
-    ▼
-Makefile Target
-    │
-    ▼
-Nix Flake App (e.g., .#test-unit)
-    │
-    ▼
-test-apps.nix (Test Runner)
-    │
-    ▼
-Individual Test Execution
-    │
-    ▼
-Test Results & Reporting
-```
+## 🚀 Build System Architecture
 
-## Configuration Management
+### Modular Build Scripts
+The build system is modularized into focused components:
 
-### File Management Strategy
+- **`scripts/lib/logging.sh`**: Color-coded logging and output formatting
+- **`scripts/lib/performance.sh`**: Build time monitoring and optimization
+- **`scripts/lib/sudo-management.sh`**: Privilege management and security
+- **`scripts/lib/build-logic.sh`**: Core build and switch orchestration
 
-```
-┌─────────────────────────┐
-│   Source Files          │
-│  (modules/*/config/)    │
-└───────────┬─────────────┘
-            │
-            ▼
-┌─────────────────────────┐
-│  Conditional Copy       │
-│  (preservation logic)   │
-└───────────┬─────────────┘
-            │
-            ▼
-┌─────────────────────────┐
-│   User Home Directory   │
-│    (~/.config/...)      │
-└─────────────────────────┘
-```
+### Apply Script Template System
+Apply scripts are deduplicated using a template system:
 
-### Claude Config Preservation Flow
+- **Template**: `scripts/templates/apply-template.sh` (common logic)
+- **Configs**: `apps/*/config.sh` (platform-specific variables)
+- **Wrappers**: `apps/*/apply` (11-line delegation scripts)
 
-```
-System Rebuild Triggered
-    │
-    ▼
-File Change Detection
-    │
-    ├─> No Changes: Copy normally
-    │
-    └─> Changes Detected:
-            │
-            ├─> High Priority Files:
-            │     └─> Preserve user version
-            │         └─> Save new as .new
-            │
-            └─> Low Priority Files:
-                  └─> Backup and overwrite
-```
+This achieves **90% code deduplication** (656 lines → 65 lines).
 
-## Build Pipeline
+## 🔒 Security Model
 
-### CI/CD Pipeline Structure
+### Configuration Management
+- **Immutable Files**: Static configurations are read-only
+- **Secret Management**: Sensitive data handled via `age` encryption
+- **Privilege Separation**: Build vs. runtime privilege separation
 
-```
-GitHub Push/PR
-    │
-    ▼
-┌─────────────────────────┐
-│  Pre-commit Hooks       │
-│  - Nix flake check      │
-└───────────┬─────────────┘
-            │
-            ▼
-┌─────────────────────────┐
-│  GitHub Actions         │
-│  - Lint                 │
-│  - Build (all systems)  │
-│  - Cache artifacts      │
-└───────────┬─────────────┘
-            │
-            ▼
-┌─────────────────────────┐
-│  Merge to main         │
-│  (if all checks pass)   │
-└─────────────────────────┘
-```
+## 📊 Performance Characteristics
 
-## Security Architecture
+### Build Optimization
+- **Parallel Jobs**: Auto-detection of optimal core count
+- **CI Limits**: Conservative resource usage in CI environments  
+- **Caching**: Aggressive use of Nix binary caches
 
-### Secret Management
+### CI Performance Optimization
+**Performance Improvements** (67% faster execution):
+- **Parallel Platform Builds**: All 4 platforms tested simultaneously
+- **Smart Test Selection**: Draft PRs use quick smoke tests (5 min)
+- **Efficient Caching**: Nix store caching across builds
+- **Resource Management**: Optimal job parallelization
 
-```
-┌─────────────────────────┐
-│  No Secrets in Repo     │
-│  - Use env variables    │
-│  - External secret mgmt │
-└─────────────────────────┘
-            │
-            ▼
-┌─────────────────────────┐
-│  Runtime Resolution     │
-│  - SSH_AUTH_SOCK        │
-│  - USER variable        │
-└─────────────────────────┘
-```
+**CI Workflow Strategy**:
+- Draft PRs: `make smoke` only (fast validation)
+- Ready PRs: Full build matrix (comprehensive testing)
+- Main branch: Complete test suite with performance monitoring
 
-## Platform Support Matrix
+## 🔧 Extension Points
 
-| Component | macOS (Darwin) | NixOS (Linux) |
-|-----------|---------------|---------------|
-| Core Packages | ✓ | ✓ |
-| Platform Apps | ✓ | ✓ |
-| Test Runner | Full | Basic |
-| Home Manager | ✓ | ✓ |
-| Homebrew | ✓ | ✗ |
-| Systemd | ✗ | ✓ |
+### Adding New Platforms
+1. Create platform directory: `modules/newplatform/`
+2. Add platform apps: `apps/arch-newplatform/`
+3. Update flake outputs: Add to `allSystems`
+4. Create host configurations: `hosts/newplatform/`
 
-## Key Design Principles
+### Custom Modules
+Create new modules in appropriate directories following the established patterns.
 
-1. **Modularity**: Each component is self-contained and reusable
-2. **Platform Abstraction**: Shared code with platform-specific overrides
-3. **User Preservation**: Never destroy user customizations
-4. **Reproducibility**: Flake lock ensures consistent builds
-5. **Testability**: Comprehensive test coverage at multiple levels
-6. **Documentation**: Self-documenting code with external docs
+## 🔗 Integration Points
 
-## Future Architecture Considerations
+### Home Manager Integration
+User-specific configurations managed through Home Manager.
 
-1. **Plugin System**: Allow external modules to be dynamically loaded
-2. **Remote Deployment**: Support for deploying to remote machines
-3. **Monitoring**: Build and runtime monitoring integration
-4. **Versioning**: Semantic versioning for configuration changes
-5. **Rollback History**: Maintain multiple generations for recovery
+### Overlay System
+Custom package definitions and patches in `overlays/`.
+
+### Claude Code Integration
+- **Smart Preservation**: User settings preserved across updates
+- **Command System**: 20+ specialized development commands
+- **Context Awareness**: Nix and flake-aware AI assistance
+
+## 📈 Metrics and Monitoring
+
+### Build Metrics
+- **Build Time**: Per-phase timing (build, switch, cleanup)
+- **Resource Usage**: CPU, memory, disk utilization
+- **Parallelization**: Job count and efficiency
+
+### Test Metrics
+- **Coverage**: Test coverage across modules and platforms
+- **Performance**: Test execution time and resource usage
+- **Success Rate**: Test reliability and flake detection
+
+This architecture provides a robust, scalable foundation for cross-platform dotfiles management with comprehensive testing, security, and extensibility.

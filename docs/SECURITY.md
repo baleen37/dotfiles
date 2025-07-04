@@ -48,6 +48,42 @@ nix show-derivation nixpkgs#package-name
 **Trusted Sources Policy**:
 - Primary: Official nixpkgs repository
 - Secondary: Trusted overlays with explicit review
+
+### Overlay Security Guidelines
+
+**Use Commit Hashes Instead of Tags**:
+```nix
+# ❌ Insecure: Uses tag reference
+src = fetchFromGitHub {
+  owner = "example";
+  repo = "project";
+  rev = "v1.0.0";  # Tags can be moved!
+  sha256 = "...";
+};
+
+# ✅ Secure: Uses commit hash
+src = fetchFromGitHub {
+  owner = "example";
+  repo = "project";
+  rev = "abc123def456...";  # Immutable commit hash
+  sha256 = "...";
+};
+```
+
+**Finding Commit Hashes**:
+```bash
+# Using GitHub API
+curl -s https://api.github.com/repos/OWNER/REPO/git/refs/tags/TAG_NAME | jq -r '.object.sha'
+
+# Using git
+git ls-remote https://github.com/OWNER/REPO refs/tags/TAG_NAME
+```
+
+**Overlay Best Practices**:
+- Document commit hash origins with version comments
+- Use versioned release artifacts for pre-built packages
+- Regular security audits for tag usage
+- Implement additional verification for exceptional cases
 - Prohibited: Arbitrary URLs or unverified sources
 
 ### Overlay Security

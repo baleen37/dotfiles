@@ -18,12 +18,46 @@ This document describes the simplified testing framework, organized into three f
 ```
 tests/
 ├── default.nix     # Simplified test entry point
-├── unit/          # Core functionality tests
+├── unit/          # Core functionality tests (organized strategy below)
 ├── integration/   # Integration tests (part of core)
 ├── e2e/          # Workflow tests
 ├── performance/  # Performance benchmarks
 └── lib/          # Test helpers
 ```
+
+### Unit Test Organization Strategy
+
+**Consolidation Principles** (47+ files → ~24 files):
+- **One Test File Per Feature/Module**: Each major feature has a single comprehensive test file
+- **Numbered Test Categories**: 1-10 covering basic functionality to full workflow
+- **Reduced Redundancy**: Eliminated TDD setup tests and overlapping validations
+- **Maintained Coverage**: Preserved all real-world test scenarios
+
+**Test File Structure**:
+```nix
+pkgs.runCommand "feature-test" {
+  buildInputs = with pkgs; [ bash jq ... ];
+} ''
+  echo "🧪 Comprehensive [Feature] Test Suite"
+
+  # Test 1: Basic Functionality
+  echo "📋 Test 1: [Description]"
+  # ... test implementation ...
+
+  # Test 2-10: Advanced Features, Integration, Error Handling, etc.
+
+  echo "🎉 All [Feature] Tests Completed!"
+  touch $out
+''
+```
+
+**Key Consolidated Files**:
+- `claude-commands-test.nix` - All Claude command functionality
+- `claude-config-test.nix` - Configuration management
+- `auto-update-test.nix` - Core auto-update features
+- `error-handling-test.nix` - Error scenarios and recovery
+- `user-resolution-test.nix` - User detection and resolution
+- `platform-detection-test.nix` - Platform detection utilities
 
 ## 📊 Simplified Test Structure
 
