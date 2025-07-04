@@ -38,6 +38,7 @@ in
     # you may receive an error message "Redownload Unavailable with This Apple ID".
     # This message is safe to ignore. (https://github.com/dustinlyons/nixos-config/issues/83)
     masApps = {
+      "magnet" = 441258766;
       "wireguard" = 1451685025;
     };
   };
