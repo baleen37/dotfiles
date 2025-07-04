@@ -24,7 +24,7 @@ in
     };
 
     gc = {
-      automatic = true;
+      automatic = false;  # nix.enable = false일 때는 자동 GC 비활성화
       interval = { Weekday = 0; Hour = 2; Minute = 0; };
       options = "--delete-older-than 30d";
     };
