@@ -53,6 +53,7 @@ let
   autoDetectedUser =
     if !enableAutoDetect then null
     else if mockEnv != { } then "auto-detected-user"  # For testing
+    else if builtins.getEnv "CI" != "" then "runner"  # CI environment fallback
     else null;  # In real environment, fall back to existing env vars
 
   # Generate detailed error message with actionable steps

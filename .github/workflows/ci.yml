@@ -59,7 +59,11 @@ jobs:
 
       - name: Validate flake
         run: |
+          echo "Debug: USER before export: '$USER'"
+          echo "Debug: SUDO_USER: '$SUDO_USER'"
+          echo "Debug: whoami: $(whoami)"
           export USER=${USER:-ci}
+          echo "Debug: USER after export: '$USER'"
           nix flake check --impure --no-build --all-systems
 
   # Core build stage (2-4 minutes) - Only essential platforms
