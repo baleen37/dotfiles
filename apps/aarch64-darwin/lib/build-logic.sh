@@ -5,24 +5,24 @@
 # Pre-flight checks for Darwin system
 check_darwin_prerequisites() {
     local conflicts_found=false
-    
+
     log_step "Checking system prerequisites"
-    
+
     # Check for conflicting system files
     if [ -f "/etc/bashrc" ] && [ ! -f "/etc/bashrc.before-nix-darwin" ]; then
         log_warning "Found /etc/bashrc - will be backed up during activation"
         conflicts_found=true
     fi
-    
+
     if [ -f "/etc/zshrc" ] && [ ! -f "/etc/zshrc.before-nix-darwin" ]; then
         log_warning "Found /etc/zshrc - will be backed up during activation"
         conflicts_found=true
     fi
-    
+
     # Check for nix configuration conflicts
     if [ "$PLATFORM_TYPE" = "darwin" ]; then
         log_info "Checking nix configuration consistency"
-        
+
         # This will be caught during build, but we can provide better messaging
         if grep -q "nix\.enable.*=.*false" "$PROJECT_ROOT/hosts/darwin/default.nix" 2>/dev/null; then
             if grep -q "nix\.gc\.automatic.*=.*true" "$PROJECT_ROOT/hosts/darwin/default.nix" 2>/dev/null; then
@@ -32,31 +32,31 @@ check_darwin_prerequisites() {
             fi
         fi
     fi
-    
+
     if [ "$conflicts_found" = "true" ]; then
         log_info "System file conflicts detected but will be handled automatically"
         log_info "Original files will be backed up with .before-nix-darwin suffix"
-        
+
         # Automatically backup files if we have sudo access
         if [ "$SUDO_REQUIRED" = "true" ] && [ "$SUDO_SESSION_ACTIVE" = "true" ]; then
             log_info "Auto-backing up conflicting system files"
-            
+
             if [ -f "/etc/bashrc" ] && [ ! -f "/etc/bashrc.before-nix-darwin" ]; then
                 sudo mv /etc/bashrc /etc/bashrc.before-nix-darwin
                 log_info "  Backed up /etc/bashrc"
             fi
-            
+
             if [ -f "/etc/zshrc" ] && [ ! -f "/etc/zshrc.before-nix-darwin" ]; then
                 sudo mv /etc/zshrc /etc/zshrc.before-nix-darwin
                 log_info "  Backed up /etc/zshrc"
             fi
-            
+
             log_success "System files backed up successfully"
         else
             log_warning "Cannot auto-backup files - manual intervention required"
         fi
     fi
-    
+
     log_success "Prerequisites check completed"
 }
 
