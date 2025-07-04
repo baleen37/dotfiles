@@ -18,7 +18,6 @@ fi
 echo "${YELLOW}Starting build...${NC}"
 nix --extra-experimental-features 'nix-command flakes' build --impure .#$FLAKE_SYSTEM $@
 
-echo "${YELLOW}Cleaning up...${NC}"
-unlink ./result
-
-echo "${GREEN}Switch to new generation complete!${NC}"
+echo "${GREEN}Build completed successfully!${NC}"
+echo "${YELLOW}To apply changes, run: nix run --impure .#build-switch${NC}"
+echo "${YELLOW}Or use the result link: ./result/sw/bin/darwin-rebuild switch --impure --flake .#aarch64-darwin${NC}"

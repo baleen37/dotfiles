@@ -40,7 +40,9 @@ help:
 	@echo "  build       - Build all Darwin and NixOS configurations"
 	@echo "  build-current - Build only current platform (faster)"
 	@echo "  build-fast  - Fast build with optimizations"
-	@echo "  switch      - Apply configuration to current machine (HOST=<system> optional)"
+	@echo "  apply       - Apply already built configuration"
+	@echo "  switch      - Build + apply in one step (requires sudo)"
+	@echo "  deploy      - Build+switch (works on any computer)"
 	@echo ""
 	@echo "💡 Tips:"
 	@echo "  - USER is automatically detected, but you can override: USER=myuser make build"
@@ -142,4 +144,18 @@ switch: check-user
 	fi; \
 	echo "✅ System switch completed successfully!"
 
-.PHONY: help check-user lint smoke test test-core test-workflow test-perf test-list build build-linux build-darwin build-current build-fast switch platform-info
+# Simple apply for built configuration
+apply:
+	@if [ ! -L "./result" ]; then \
+		echo "❌ No build found. Run 'make build' first."; \
+		exit 1; \
+	fi
+	@echo "🔧 Applying built configuration..."
+	@./apply.sh
+
+# Build and switch (works on any computer)
+deploy:
+	@echo "🚀 Deploying configuration..."
+	@./deploy.sh
+
+.PHONY: help check-user lint smoke test test-core test-workflow test-perf test-list build build-linux build-darwin build-current build-fast switch apply deploy platform-info

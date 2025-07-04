@@ -21,8 +21,7 @@ if [ -z "$USER" ]; then
     export USER=$(whoami)
 fi
 
-# Sudo session management with sudo-helper
-SUDO_HELPER_PATH=""
+# Sudo session management
 SUDO_REQUIRED=false
 
 # Performance monitoring variables
@@ -136,56 +135,42 @@ perf_show_summary() {
     fi
 }
 
-# Sudo helper integration functions
-get_sudo_helper_path() {
-    if [ -n "$SUDO_HELPER_PATH" ]; then
-        echo "$SUDO_HELPER_PATH"
-        return 0
-    fi
+# Basic sudo management functions
 
-    # Try to get sudo-helper from nix run
-    if command -v nix >/dev/null 2>&1; then
-        # Try to get the sudo-helper app path
-        SUDO_HELPER_PATH=$(nix eval --impure --raw .#apps.${SYSTEM_TYPE}.sudo-helper.program 2>/dev/null || echo "")
-        if [ -n "$SUDO_HELPER_PATH" ] && [ -x "$SUDO_HELPER_PATH" ]; then
-            echo "$SUDO_HELPER_PATH"
-            return 0
-        fi
-    fi
-
-    log_error "sudo-helper not found. Please ensure the flake build is working correctly."
-    return 1
-}
-
-# Sudo management functions using sudo-helper
 check_current_privileges() {
-    local sudo_helper
-    sudo_helper=$(get_sudo_helper_path) || return 1
-
-    "$sudo_helper" check
+    [ "$(id -u)" -eq 0 ]
 }
 
 acquire_sudo_early() {
-    local sudo_helper
-    sudo_helper=$(get_sudo_helper_path) || return 1
+    # Skip if already root
+    if check_current_privileges; then
+        return 0
+    fi
 
-    # Use sudo-helper to acquire permissions early
-    # This includes explanation, early acquisition, and session management
-    "$sudo_helper" acquire
-}
+    # Check if we're in non-interactive environment
+    if [ ! -t 0 ]; then
+        log_warning "Non-interactive environment - sudo may fail"
+        return 0
+    fi
 
-# Register cleanup handlers (delegated to sudo-helper)
-register_cleanup() {
-    # sudo-helper manages its own cleanup via traps
+    # Simple sudo validation
+    if ! sudo -v; then
+        log_error "Failed to acquire sudo privileges"
+        return 1
+    fi
+
+    log_success "Sudo privileges acquired"
     return 0
 }
 
-# Cleanup sudo session (delegated to sudo-helper)
+# Register cleanup handlers
+register_cleanup() {
+    return 0
+}
+
+# Cleanup sudo session
 cleanup_sudo_session() {
-    local sudo_helper
-    if sudo_helper=$(get_sudo_helper_path 2>/dev/null); then
-        "$sudo_helper" cleanup 2>/dev/null || true
-    fi
+    return 0
 }
 
 # Detect optimal number of build jobs for parallelization
@@ -227,10 +212,12 @@ check_sudo_requirement() {
         return 0
     fi
 
-    # Check if sudo-helper is available
-    if ! get_sudo_helper_path >/dev/null 2>&1; then
-        log_error "sudo-helper not available. Please ensure the flake is built correctly."
-        return 1
+    # Check if we're in non-interactive environment (Claude Code)
+    if [ ! -t 0 ]; then
+        log_warning "Non-interactive environment detected"
+        log_info "System changes will require manual sudo execution"
+        SUDO_REQUIRED=false
+        return 0
     fi
 
     SUDO_REQUIRED=true
@@ -239,11 +226,7 @@ check_sudo_requirement() {
 
 get_sudo_prefix() {
     if [ "$SUDO_REQUIRED" = "true" ]; then
-        local sudo_helper
-        sudo_helper=$(get_sudo_helper_path) || return 1
-
-        # Get the appropriate sudo prefix from sudo-helper
-        "$sudo_helper" prefix
+        echo "sudo"
     else
         echo ""
     fi
