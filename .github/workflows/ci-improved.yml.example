@@ -37,7 +37,7 @@ jobs:
             os: macos-latest
             command: "nix build --impure --no-link .#darwinConfigurations.aarch64-darwin.system"
           - name: "Linux x64"
-            system: x86_64-linux  
+            system: x86_64-linux
             os: ubuntu-latest
             command: "nix build --impure --no-link .#nixosConfigurations.x86_64-linux.config.system.build.toplevel"
     runs-on: ${{ matrix.os }}
