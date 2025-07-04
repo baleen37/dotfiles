@@ -4,8 +4,8 @@
 { pkgs, lib, ... }:
 
 let
-  # Import the enhanced get-user-extended.nix for full feature testing
-  getUserFunc = import ../../lib/get-user-extended.nix;
+  # Import the unified user resolution system for full feature testing
+  getUserFunc = import ../../lib/user-resolution.nix { returnFormat = "extended"; };
 
   # Test suite for user resolution
   runTest = name: test:

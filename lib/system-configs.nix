@@ -7,8 +7,8 @@ let
   inherit (inputs) darwin nix-homebrew homebrew-bundle homebrew-core homebrew-cask disko home-manager;
 
   # Get user information
-  getUserFn = import ./get-user.nix;
-  userInfo = getUserFn { };
+  getUserFn = import ./user-resolution.nix;
+  userInfo = getUserFn { returnFormat = "string"; };
   user = "${userInfo}"; # Use as string for backward compatibility
 
   # Import modularized app and test builders

@@ -2,7 +2,10 @@
 
 let
   # Resolve user with platform information
-  getUserInfo = import ../../lib/get-user-extended.nix { platform = "darwin"; };
+  getUserInfo = import ../../lib/user-resolution.nix {
+    platform = "darwin";
+    returnFormat = "extended";
+  };
   user = getUserInfo.user;
   additionalFiles = import ./files.nix { inherit user config pkgs; };
 in

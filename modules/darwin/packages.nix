@@ -1,8 +1,15 @@
 { pkgs }:
 
 with pkgs;
-let shared-packages = import ../shared/packages.nix { inherit pkgs; }; in
-shared-packages ++ [
-  dockutil
-  karabiner-elements
-]
+let
+  # Import shared packages directly
+  shared-packages = import ../shared/packages.nix { inherit pkgs; };
+
+  # Platform-specific packages
+  platform-packages = [
+    dockutil
+    karabiner-elements
+  ];
+in
+# Use the standardized merging pattern
+shared-packages ++ platform-packages

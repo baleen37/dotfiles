@@ -1,7 +1,9 @@
 { config, pkgs, ... }:
 
 let
-  getUser = import ../../lib/get-user.nix { };
+  getUser = import ../../lib/user-resolution.nix {
+    returnFormat = "string";
+  };
   user = getUser;
 in
 

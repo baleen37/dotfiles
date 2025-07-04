@@ -53,6 +53,13 @@
       devShell = system: utils.mkDevShell system;
     in
     {
+      # Shared library functions
+      lib = {
+        packageUtils = import ./lib/package-utils.nix { lib = nixpkgs.lib; };
+        userResolution = import ./lib/user-resolution.nix;
+        platformUtils = import ./lib/platform-utils.nix { inherit nixpkgs; };
+      };
+
       # Development shells using modular config
       devShells = forAllSystems devShell;
 

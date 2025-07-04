@@ -55,8 +55,8 @@
       [ "aarch64-darwin" "x86_64-darwin" ] f;
 
     # Get user from environment with proper fallback
-    getUserFn = import ./get-user.nix;
-    getUser = (import ./get-user.nix) { };
+    getUserFn = import ./user-resolution.nix;
+    getUser = (import ./user-resolution.nix) { returnFormat = "string"; };
 
     # Create development shell for a system
     mkDevShell = system:
