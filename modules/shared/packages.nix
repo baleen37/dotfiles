@@ -30,6 +30,7 @@ with pkgs; let
     direnv        # Environment variable management per directory
     pre-commit    # Pre-commit hooks framework
     claude-code   # Claude AI development assistant
+    gemini-cli    # Command-line interface for Gemini
     gnumake       # GNU make build automation tool
     cmake         # Cross-platform build system generator
     home-manager  # Nix-based user environment management
