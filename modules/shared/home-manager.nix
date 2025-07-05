@@ -56,7 +56,7 @@ in
           export SSH_AUTH_SOCK="$container_dir"
           break
         fi
-      done
+      done 2>/dev/null || true
 
       # 기본 위치들도 확인
       if [[ -z "$${SSH_AUTH_SOCK:-}" ]]; then

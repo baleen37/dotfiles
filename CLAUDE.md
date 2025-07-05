@@ -41,3 +41,23 @@ nix run #build-switch
 # 3. 문제 발생 시 상세 로그 확인
 nix run #build-switch --verbose
 ```
+
+## Claude Code Limitations & Workarounds
+
+### Root Privilege Requirements
+
+`nix run #build-switch` 실행 시 root 권한이 필요하지만 Claude에서는 sudo 명령을 실행할 수 없음.
+
+**해결 방법:**
+1. **코드 분석을 통한 추측**: 빌드 오류 시 `nix build .#darwinConfigurations.aarch64-darwin.system` 명령으로 구체적인 오류 파악
+2. **설정 검증**: nix 평가 단계에서 오류 확인 가능
+3. **사용자 직접 실행**: Claude가 수정한 코드는 사용자가 직접 테스트 필요
+
+### macOS System Configuration Limitations
+
+nix-darwin에서 일부 macOS 시스템 설정은 `system.defaults`에서 직접 지원하지 않음.
+예: `com.apple.HIToolbox.AppleSymbolicHotKeys`
+
+**해결 방법:**
+- `system.activationScripts`를 사용하여 Python 스크립트로 plist 파일 직접 수정
+- 빌드 시점에 설정 적용되도록 구현
