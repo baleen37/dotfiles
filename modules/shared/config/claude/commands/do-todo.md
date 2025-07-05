@@ -8,7 +8,7 @@ Execute tasks from `todo.md` through structured workflow: plan → implement →
 
 <workflow>
 1. **Planning**: Open `todo.md`, assess task size, link to GitHub issue, create implementation plan
-2. **Development**: Execute `do-issue` command workflow  
+2. **Development**: Execute `do-issue` command workflow
 3. **Delivery**: Monitor PR, update `todo.md` with completion status, sync main branch
 </workflow>
 

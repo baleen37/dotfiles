@@ -72,7 +72,7 @@ claude /do-plan "Refactor authentication system"
 **Best for**: Bug fixes, feature implementations, issue resolution
 
 ```bash
-# Examples  
+# Examples
 claude /do-issue 123  # Work on issue #123
 claude /do-issue "fix login bug"  # Search and work on issue
 ```
