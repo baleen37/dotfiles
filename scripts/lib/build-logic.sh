@@ -16,21 +16,28 @@ run_build() {
     JOBS=$(detect_optimal_jobs)
     log_info "Using ${JOBS} parallel jobs for build"
 
+    # Start progress indicator
+    progress_start "시스템 구성 빌드" "$(progress_estimate_time build)"
+
     if [ "$VERBOSE" = "true" ]; then
         nix --extra-experimental-features 'nix-command flakes' build --impure --max-jobs "$JOBS" --cores 0 .#$FLAKE_SYSTEM "$@" || {
+            progress_stop
             log_error "Build failed"
             log_footer "failed"
             exit 1
         }
     else
         nix --extra-experimental-features 'nix-command flakes' build --impure --max-jobs "$JOBS" --cores 0 .#$FLAKE_SYSTEM "$@" 2>/dev/null || {
+            progress_stop
             log_error "Build failed. Run with --verbose for details"
             log_footer "failed"
             exit 1
         }
     fi
 
+    progress_stop
     perf_end_phase "build"
+    progress_complete "빌드" "$PERF_BUILD_DURATION"
     log_success "Build completed"
 }
 
@@ -54,10 +61,14 @@ run_switch() {
     # Get optimal job count for parallelization
     JOBS=$(detect_optimal_jobs)
 
+    # Start progress indicator
+    progress_start "시스템 구성 적용" "$(progress_estimate_time switch)"
+
     if [ "$VERBOSE" = "true" ]; then
         log_info "Command: ${REBUILD_COMMAND} switch --impure --max-jobs ${JOBS} --cores 0 --flake .#${SYSTEM_TYPE}"
         if [ -n "${SUDO_PREFIX}" ]; then
             eval "${SUDO_PREFIX} ${REBUILD_COMMAND_PATH} switch --impure --max-jobs ${JOBS} --cores 0 --flake .#${SYSTEM_TYPE} \"\$@\"" || {
+                progress_stop
                 log_error "Switch failed (exit code: $?)"
                 log_footer "failed"
                 exit 1
@@ -65,12 +76,14 @@ run_switch() {
         else
             if [ "$PLATFORM_TYPE" = "darwin" ]; then
                 USER="$USER" ${REBUILD_COMMAND_PATH} switch --impure --max-jobs ${JOBS} --cores 0 --flake .#${SYSTEM_TYPE} "$@" 2>&1 || {
+                    progress_stop
                     log_error "Switch failed (exit code: $?)"
                     log_footer "failed"
                     exit 1
                 }
             else
                 ${REBUILD_COMMAND_PATH} switch --impure --max-jobs ${JOBS} --cores 0 --flake .#${SYSTEM_TYPE} "$@" 2>&1 || {
+                    progress_stop
                     log_error "Switch failed (exit code: $?)"
                     log_footer "failed"
                     exit 1
@@ -80,6 +93,7 @@ run_switch() {
     else
         if [ -n "${SUDO_PREFIX}" ]; then
             eval "${SUDO_PREFIX} ${REBUILD_COMMAND_PATH} switch --impure --max-jobs ${JOBS} --cores 0 --flake .#${SYSTEM_TYPE} \"\$@\"" >/dev/null || {
+                progress_stop
                 log_error "Switch failed. Run with --verbose for details"
                 log_footer "failed"
                 exit 1
@@ -87,12 +101,14 @@ run_switch() {
         else
             if [ "$PLATFORM_TYPE" = "darwin" ]; then
                 USER="$USER" ${REBUILD_COMMAND_PATH} switch --impure --max-jobs ${JOBS} --cores 0 --flake .#${SYSTEM_TYPE} "$@" >/dev/null 2>&1 || {
+                    progress_stop
                     log_error "Switch failed. Run with --verbose for details"
                     log_footer "failed"
                     exit 1
                 }
             else
                 ${REBUILD_COMMAND_PATH} switch --impure --max-jobs ${JOBS} --cores 0 --flake .#${SYSTEM_TYPE} "$@" >/dev/null 2>&1 || {
+                    progress_stop
                     log_error "Switch failed. Run with --verbose for details"
                     log_footer "failed"
                     exit 1
@@ -101,7 +117,9 @@ run_switch() {
         fi
     fi
 
+    progress_stop
     perf_end_phase "switch"
+    progress_complete "구성 적용" "$PERF_SWITCH_DURATION"
     log_success "Configuration applied"
 }
 
@@ -110,7 +128,10 @@ run_cleanup() {
     if [ "$PLATFORM_TYPE" = "darwin" ]; then
         echo ""
         log_step "Cleaning up"
+        progress_start "정리 작업" "$(progress_estimate_time cleanup)"
         unlink ./result >/dev/null 2>&1
+        progress_stop
+        progress_complete "정리 작업"
         log_success "Cleanup completed"
     fi
 }
@@ -119,6 +140,9 @@ run_cleanup() {
 execute_build_switch() {
     # Start performance monitoring
     perf_start_total
+
+    # Initialize progress system
+    progress_init
 
     # Check if sudo will be needed
     if ! check_sudo_requirement; then
@@ -160,15 +184,20 @@ execute_build_switch() {
         JOBS=$(detect_optimal_jobs)
         log_info "Using ${JOBS} parallel jobs for build and switch"
 
+        # Start progress indicator for combined build & switch
+        progress_start "시스템 빌드 및 적용" "$(progress_estimate_time build)"
+
         if [ "$VERBOSE" = "true" ]; then
             if [ -n "${SUDO_PREFIX}" ]; then
                 eval "${SUDO_PREFIX} ${REBUILD_COMMAND_PATH} switch --impure --max-jobs ${JOBS} --cores 0 --flake .#${SYSTEM_TYPE} \"\$@\"" || {
+                    progress_stop
                     log_error "Build and switch failed (exit code: $?)"
                     log_footer "failed"
                     exit 1
                 }
             else
                 ${REBUILD_COMMAND_PATH} switch --impure --max-jobs ${JOBS} --cores 0 --flake .#${SYSTEM_TYPE} "$@" || {
+                    progress_stop
                     log_error "Build and switch failed (exit code: $?)"
                     log_footer "failed"
                     exit 1
@@ -177,12 +206,14 @@ execute_build_switch() {
         else
             if [ -n "${SUDO_PREFIX}" ]; then
                 eval "${SUDO_PREFIX} ${REBUILD_COMMAND_PATH} switch --impure --max-jobs ${JOBS} --cores 0 --flake .#${SYSTEM_TYPE} \"\$@\"" >/dev/null || {
+                    progress_stop
                     log_error "Build and switch failed. Run with --verbose for details"
                     log_footer "failed"
                     exit 1
                 }
             else
                 ${REBUILD_COMMAND_PATH} switch --impure --max-jobs ${JOBS} --cores 0 --flake .#${SYSTEM_TYPE} "$@" >/dev/null 2>&1 || {
+                    progress_stop
                     log_error "Build and switch failed. Run with --verbose for details"
                     log_footer "failed"
                     exit 1
@@ -190,7 +221,9 @@ execute_build_switch() {
             fi
         fi
 
+        progress_stop
         perf_end_phase "build"
+        progress_complete "빌드 및 적용" "$PERF_BUILD_DURATION"
         log_success "Build and switch completed"
     fi
 
@@ -206,4 +239,7 @@ execute_build_switch() {
     # Cleanup handlers
     register_cleanup
     cleanup_sudo_session
+
+    # Cleanup progress system
+    progress_cleanup
 }
