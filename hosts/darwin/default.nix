@@ -14,14 +14,11 @@ in
   ];
 
   nix = {
-    enable = false;  # Determinate Nix와의 충돌 방지
+    enable = false;  # Determinate Nix가 nix 설정 관리
     package = pkgs.nix;
 
-    settings = {
-      trusted-users = [ "@admin" "${user}" ];
-      # substituters = [ "https://nix-community.cachix.org" "https://cache.nixos.org" ];
-      # trusted-public-keys = [ "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=" ];
-    };
+    # Determinate Nix가 자동으로 관리하므로 settings 제거
+    # trusted-users, substituters, trusted-public-keys 모두 자동 설정됨
 
     gc = {
       automatic = false;  # nix.enable = false일 때는 자동 GC 비활성화
