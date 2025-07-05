@@ -38,6 +38,10 @@ in
   environment.systemPackages = with pkgs;
     (import ../../modules/shared/packages.nix { inherit pkgs; });
 
+  # zsh를 시스템에서 사용 가능한 쉘로 등록 (사용자 shell은 modules/darwin/home-manager.nix에서 설정됨)
+  environment.shells = [ pkgs.zsh ];
+  programs.zsh.enable = true;
+
   system = {
     checks.verifyNixPath = false;
     primaryUser = user;
