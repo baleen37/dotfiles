@@ -43,6 +43,43 @@ in
     primaryUser = user;
     stateVersion = 4;
 
+    activationScripts.postActivation.text = ''
+      # 한영키 전환을 Shift+Cmd+Space로 설정
+      echo "Setting up Korean input switching to Shift+Cmd+Space..."
+      
+      # HIToolbox의 AppleSymbolicHotKeys 설정
+      ${pkgs.python3}/bin/python3 -c "
+import plistlib
+import os
+
+plist_path = os.path.expanduser('~/Library/Preferences/com.apple.HIToolbox.plist')
+
+try:
+    with open(plist_path, 'rb') as f:
+        data = plistlib.load(f)
+except FileNotFoundError:
+    data = {}
+
+if 'AppleSymbolicHotKeys' not in data:
+    data['AppleSymbolicHotKeys'] = {}
+
+# 키 ID 60과 61을 Shift+Cmd+Space로 설정
+for key_id in ['60', '61']:
+    data['AppleSymbolicHotKeys'][key_id] = {
+        'enabled': True,
+        'value': {
+            'parameters': [49, 49, 1179648],  # Space (49) + Shift+Cmd (1179648)
+            'type': 'standard'
+        }
+    }
+
+with open(plist_path, 'wb') as f:
+    plistlib.dump(data, f)
+
+print('Korean input switching configured successfully')
+"
+    '';
+
     defaults = {
       NSGlobalDomain = {
         AppleShowAllExtensions = true;
@@ -56,25 +93,6 @@ in
         "com.apple.sound.beep.feedback" = 0;
       };
 
-      "com.apple.HIToolbox" = {
-        AppleSymbolicHotKeys = {
-          # 한영키 전환을 Shift+Cmd+Space로 설정
-          "60" = {
-            enabled = true;
-            value = {
-              parameters = [ 49 49 1179648 ]; # Space (49) + Shift+Cmd (1179648)
-              type = "standard";
-            };
-          };
-          "61" = {
-            enabled = true;
-            value = {
-              parameters = [ 49 49 1179648 ]; # Space (49) + Shift+Cmd (1179648)
-              type = "standard";
-            };
-          };
-        };
-      };
 
       dock = {
         autohide = true;
