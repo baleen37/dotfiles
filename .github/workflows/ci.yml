@@ -329,3 +329,4 @@ jobs:
           else
             echo "✅ CI pipeline succeeded: $message"
           fi
+# PR #312 CI 트리거 확인용 주석
