@@ -163,7 +163,7 @@ This achieves **90% code deduplication** (656 lines → 65 lines).
 
 ### Build Optimization
 - **Parallel Jobs**: Auto-detection of optimal core count
-- **CI Limits**: Conservative resource usage in CI environments  
+- **CI Limits**: Conservative resource usage in CI environments
 - **Caching**: Aggressive use of Nix binary caches
 
 ### CI Performance Optimization

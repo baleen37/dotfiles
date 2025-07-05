@@ -72,7 +72,7 @@ nix run --impure .#build-switch  # Test system integration
 #### 3. Pre-Commit Workflow
 **Always run these commands in order before committing:**
 ```bash
-make lint     # pre-commit run --all-files  
+make lint     # pre-commit run --all-files
 make smoke    # nix flake check --all-systems --no-build
 make build    # build all NixOS/darwin configurations
 make smoke    # final flake check after build
@@ -87,7 +87,7 @@ make smoke    # final flake check after build
 
 # Individual test categories
 make test-unit                    # Unit tests only
-make test-integration             # Integration tests only  
+make test-integration             # Integration tests only
 make test-e2e                     # End-to-end tests only
 make test-perf                    # Performance tests only
 ```

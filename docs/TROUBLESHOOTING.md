@@ -132,7 +132,7 @@ $ make build
    echo "export USER=\$(whoami)" >> ~/.bashrc
    source ~/.bashrc
 
-   # For Zsh  
+   # For Zsh
    echo "export USER=\$(whoami)" >> ~/.zshrc
    source ~/.zshrc
 
@@ -607,7 +607,7 @@ When seeking help, please provide:
 uname -a
 nix --version
 
-# Flake information  
+# Flake information
 nix flake show --impure
 git status
 git log --oneline -5

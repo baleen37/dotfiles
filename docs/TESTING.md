@@ -180,7 +180,7 @@ pkgs.runCommand "test-name" { } ''
 The CI pipeline runs tests in this simplified order:
 
 1. `make lint` - Code quality checks
-2. `make smoke` - Quick flake validation  
+2. `make smoke` - Quick flake validation
 3. `make build` - Build configurations
 4. `make test` - Run all tests
 
