@@ -56,6 +56,26 @@ in
         "com.apple.sound.beep.feedback" = 0;
       };
 
+      "com.apple.HIToolbox" = {
+        AppleSymbolicHotKeys = {
+          # 한영키 전환을 Shift+Cmd+Space로 설정
+          "60" = {
+            enabled = true;
+            value = {
+              parameters = [ 49 49 1179648 ]; # Space (49) + Shift+Cmd (1179648)
+              type = "standard";
+            };
+          };
+          "61" = {
+            enabled = true;
+            value = {
+              parameters = [ 49 49 1179648 ]; # Space (49) + Shift+Cmd (1179648)
+              type = "standard";
+            };
+          };
+        };
+      };
+
       dock = {
         autohide = true;
         show-recents = false;
