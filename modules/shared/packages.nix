@@ -39,6 +39,7 @@ with pkgs; let
   cloudTools = [
     act           # Run GitHub Actions locally
     gh            # GitHub CLI tool
+    docker        # Container platform
   ];
 
   # Infrastructure as Code (IaC) toolchain
@@ -78,6 +79,7 @@ with pkgs; let
     bc            # Command-line calculator
     google-chrome # Google Chrome web browser
     spotify       # Music streaming application
+    syncthing     # Continuous file synchronization
   ];
 
 in
