@@ -15,7 +15,7 @@ run_build() {
     # Get optimal job count for parallelization
     JOBS=$(detect_optimal_jobs)
     log_info "Using ${JOBS} parallel jobs for build"
-    
+
     # Start progress indicator
     progress_start "시스템 구성 빌드" "$(progress_estimate_time build)"
 
@@ -60,7 +60,7 @@ run_switch() {
 
     # Get optimal job count for parallelization
     JOBS=$(detect_optimal_jobs)
-    
+
     # Start progress indicator
     progress_start "시스템 구성 적용" "$(progress_estimate_time switch)"
 
@@ -140,7 +140,7 @@ run_cleanup() {
 execute_build_switch() {
     # Start performance monitoring
     perf_start_total
-    
+
     # Initialize progress system
     progress_init
 
@@ -183,7 +183,7 @@ execute_build_switch() {
         SUDO_PREFIX=$(get_sudo_prefix)
         JOBS=$(detect_optimal_jobs)
         log_info "Using ${JOBS} parallel jobs for build and switch"
-        
+
         # Start progress indicator for combined build & switch
         progress_start "시스템 빌드 및 적용" "$(progress_estimate_time build)"
 
@@ -239,7 +239,7 @@ execute_build_switch() {
     # Cleanup handlers
     register_cleanup
     cleanup_sudo_session
-    
+
     # Cleanup progress system
     progress_cleanup
 }
