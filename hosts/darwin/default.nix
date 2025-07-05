@@ -46,7 +46,7 @@ in
     activationScripts.postActivation.text = ''
       # 한영키 전환을 Shift+Cmd+Space로 설정
       echo "Setting up Korean input switching to Shift+Cmd+Space..."
-      
+
       # HIToolbox의 AppleSymbolicHotKeys 설정
       ${pkgs.python3}/bin/python3 -c "
 import plistlib

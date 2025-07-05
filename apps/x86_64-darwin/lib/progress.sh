@@ -19,7 +19,7 @@ PROGRESS_BAR_WIDTH=30
 progress_init() {
     PROGRESS_ACTIVE=true
     PROGRESS_CURRENT_STEP=0
-    
+
     # Set total steps based on platform
     if [ "$PLATFORM_TYPE" = "darwin" ]; then
         PROGRESS_TOTAL_STEPS=4  # build, switch, cleanup, summary
@@ -32,18 +32,18 @@ progress_init() {
 progress_start() {
     local step_name="$1"
     local estimated_time="$2"
-    
+
     PROGRESS_CURRENT_STEP=$((PROGRESS_CURRENT_STEP + 1))
     PROGRESS_STEP_NAME="$step_name"
-    
+
     if [ "$VERBOSE" = "false" ]; then
         # Start spinner in background for non-verbose mode
         progress_spinner &
         PROGRESS_PID=$!
-        
+
         # Show progress bar
         progress_show_bar
-        
+
         # Show estimated time if provided
         if [ -n "$estimated_time" ]; then
             echo "${DIM}  예상 소요 시간: ${estimated_time}${NC}"
@@ -60,7 +60,7 @@ progress_stop() {
         kill "$PROGRESS_PID" 2>/dev/null
         PROGRESS_PID=""
     fi
-    
+
     # Clear the spinner line
     if [ "$VERBOSE" = "false" ]; then
         printf "\r\033[K"
@@ -71,25 +71,25 @@ progress_stop() {
 progress_show_bar() {
     local filled=$(( PROGRESS_BAR_WIDTH * PROGRESS_CURRENT_STEP / PROGRESS_TOTAL_STEPS ))
     local empty=$(( PROGRESS_BAR_WIDTH - filled ))
-    
+
     local bar=""
     local i=0
-    
+
     # Build filled part
     while [ $i -lt $filled ]; do
         bar="${bar}${PROGRESS_BAR_FILLED}"
         i=$((i + 1))
     done
-    
+
     # Build empty part
     i=0
     while [ $i -lt $empty ]; do
         bar="${bar}${PROGRESS_BAR_EMPTY}"
         i=$((i + 1))
     done
-    
+
     local percentage=$(( 100 * PROGRESS_CURRENT_STEP / PROGRESS_TOTAL_STEPS ))
-    
+
     echo "${BLUE}[${bar}] ${percentage}% - ${PROGRESS_STEP_NAME}${NC}"
 }
 
@@ -97,15 +97,15 @@ progress_show_bar() {
 progress_spinner() {
     local i=0
     local spinner_len=${#PROGRESS_SPINNER_CHARS}
-    
+
     while true; do
         # Get current spinner character
         local char_pos=$(( i % spinner_len ))
         local spinner_char=$(echo "$PROGRESS_SPINNER_CHARS" | cut -c$((char_pos + 1)))
-        
+
         # Show spinner
         printf "\r${YELLOW}%s${NC} %s" "$spinner_char" "$PROGRESS_STEP_NAME"
-        
+
         sleep 0.1
         i=$((i + 1))
     done
@@ -115,7 +115,7 @@ progress_spinner() {
 progress_nix_detailed() {
     local operation="$1"
     local logfile="$2"
-    
+
     if [ "$VERBOSE" = "false" ] && [ -f "$logfile" ]; then
         # Parse nix output for progress information
         tail -f "$logfile" | while read -r line; do
@@ -142,14 +142,14 @@ progress_long_operation() {
     local operation="$1"
     local pid="$2"
     local dots=""
-    
+
     if [ "$VERBOSE" = "false" ]; then
         while kill -0 "$pid" 2>/dev/null; do
             dots="${dots}."
             if [ ${#dots} -gt 3 ]; then
                 dots=""
             fi
-            
+
             printf "\r${YELLOW}⏳${NC} %s%s   " "$operation" "$dots"
             sleep 1
         done
@@ -160,7 +160,7 @@ progress_long_operation() {
 # Estimate time for operations
 progress_estimate_time() {
     local operation="$1"
-    
+
     case "$operation" in
         "build")
             if [ "$PLATFORM_TYPE" = "darwin" ]; then
@@ -185,7 +185,7 @@ progress_estimate_time() {
 progress_complete() {
     local operation="$1"
     local duration="$2"
-    
+
     if [ -n "$duration" ]; then
         echo "${GREEN}✅ ${operation} 완료 (${duration}초)${NC}"
     else
