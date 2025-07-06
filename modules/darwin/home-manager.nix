@@ -88,7 +88,7 @@ in
       { path = "/System/Applications/TV.app/"; }
       { path = "/System/Applications/Home.app/"; }
       { path = "/Applications/Karabiner-Elements.app/"; }
-      { path = "/Applications/Raycast.app/"; }
+      { path = "/Applications/Alfred 4.app/"; }
       { path = "/Applications/Obsidian.app/"; }
       {
         path = "${config.users.users.${user}.home}/.local/share/";
