@@ -165,11 +165,11 @@ jobs:
           echo "🧪 Running ${{ matrix.category }} tests"
           nix run --impure .#test-${{ matrix.category }}
 
-  # Smoke test for draft PRs (30 seconds)
+  # Smoke test for all PRs (30 seconds)
   smoke-test:
     name: Smoke Test
     needs: validate
-    if: github.event.pull_request.draft == true && github.ref != 'refs/heads/main'
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -212,12 +212,12 @@ jobs:
               echo "message=Draft PR smoke test failed" >> $GITHUB_OUTPUT
             fi
           else
-            if [[ "$build_result" == "success" && "$test_result" == "success" ]]; then
+            if [[ "$build_result" == "success" && "$test_result" == "success" && "$smoke_result" == "success" ]]; then
               echo "status=success" >> $GITHUB_OUTPUT
               echo "message=Full CI pipeline completed successfully" >> $GITHUB_OUTPUT
             else
               echo "status=failed" >> $GITHUB_OUTPUT
-              echo "message=Build or test stage failed" >> $GITHUB_OUTPUT
+              echo "message=Build, test, or smoke test stage failed" >> $GITHUB_OUTPUT
             fi
           fi
 
@@ -243,7 +243,8 @@ jobs:
                   '**Pipeline Summary**:\n' +
                   '- **Validation**: ' + icons.validation + ' Lint & flake check\n' +
                   '- **Build**: ' + buildStatus + '\n' +
-                  '- **Tests**: ' + testStatus + '\n\n' +
+                  '- **Tests**: ' + testStatus + '\n' +
+                  '- **Smoke Test**: ' + icons.smoke + ' Quick validation\n\n' +
                   footer;
               }
 
@@ -256,7 +257,8 @@ jobs:
               const icons = {
                 validation: getStatusIcon('${{ needs.validate.result }}'),
                 build: getStatusIcon('${{ needs.build-core.result }}'),
-                test: getStatusIcon('${{ needs.test-parallel.result }}')
+                test: getStatusIcon('${{ needs.test-parallel.result }}'),
+                smoke: getStatusIcon('${{ needs.smoke-test.result }}')
               };
 
               const footer = isDraft ? '_💡 Mark as ready to run full CI pipeline_' : '_🎯 Optimized for speed: ~5-8 minutes total_';
