@@ -1,8 +1,4 @@
 return {
-  ['com.raycast.macos'] = {
-    bundleID = 'com.raycast.macos',
-    localBindings = {'c', 'space', 'o'}
-  },
   ['com.googlecode.iterm2'] = {
     bundleID = 'com.googlecode.iterm2',
     hyperKey = 'i',

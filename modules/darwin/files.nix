@@ -24,4 +24,8 @@ in
     source = ./config/alt-tab/com.lwouis.alt-tab-macos.plist;
   };
 
+  "${userHome}/Library/Preferences/com.runningwithcrayons.Alfred.plist" = {
+    source = ./config/alfred/com.runningwithcrayons.Alfred.plist;
+  };
+
 }
