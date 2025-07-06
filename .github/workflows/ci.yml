@@ -213,12 +213,24 @@ jobs:
               echo "message=Draft PR smoke test failed" >> $GITHUB_OUTPUT
             fi
           else
-            if [[ "$build_result" == "success" && "$test_result" == "success" && "$smoke_result" == "success" ]]; then
-              echo "status=success" >> $GITHUB_OUTPUT
-              echo "message=Full CI pipeline completed successfully" >> $GITHUB_OUTPUT
+            # For main branch (push events), smoke test is skipped
+            if [[ "${{ github.event_name }}" == "push" ]]; then
+              if [[ "$build_result" == "success" && "$test_result" == "success" ]]; then
+                echo "status=success" >> $GITHUB_OUTPUT
+                echo "message=Full CI pipeline completed successfully" >> $GITHUB_OUTPUT
+              else
+                echo "status=failed" >> $GITHUB_OUTPUT
+                echo "message=Build or test stage failed" >> $GITHUB_OUTPUT
+              fi
             else
-              echo "status=failed" >> $GITHUB_OUTPUT
-              echo "message=Build, test, or smoke test stage failed" >> $GITHUB_OUTPUT
+              # For PR events, include smoke test
+              if [[ "$build_result" == "success" && "$test_result" == "success" && "$smoke_result" == "success" ]]; then
+                echo "status=success" >> $GITHUB_OUTPUT
+                echo "message=Full CI pipeline completed successfully" >> $GITHUB_OUTPUT
+              else
+                echo "status=failed" >> $GITHUB_OUTPUT
+                echo "message=Build, test, or smoke test stage failed" >> $GITHUB_OUTPUT
+              fi
             fi
           fi
 
