@@ -18,26 +18,60 @@
 </analysis_framework>
 
 <process>
-  1. First, understand the code's purpose and context.
-    - **IF CONTEXT UNCLEAR**: Report "Unable to understand code context. Please provide more information." and **STOP**.
+  1. **Check for $ARGUMENTS**:
+    - **IF $ARGUMENTS are provided**: Focus analysis on the specific problem described in $ARGUMENTS.
+      - **Action**: Interpret $ARGUMENTS as a specific problem description (e.g., "fix the memory leak in the data processing module"). Narrow the scope of analysis to relevant files, functions, or modules. Utilize search patterns (e.g., `search_file_content`) to pinpoint relevant code sections.
+      - **Next**: Proceed directly to step 2, but narrow the scope of analysis to the specified problem.
+    - **ELSE (no $ARGUMENTS)**: Proceed with general code review.
+      - **Action**: Understand the code's overall purpose and context.
+      - **IF CONTEXT UNCLEAR**: Report "Unable to understand code context. Please provide more information." and **STOP**.
   2. Systematically review using the analysis framework.
     - **IF ANALYSIS FAILS**: Report "Code analysis failed. Please check the provided code." and **STOP**.
-  3. Prioritize issues by severity: Critical → High → Medium → Low.
-  4. Create specific, actionable GitHub issues.
+  3. **IF NO ISSUES FOUND**: Report "No significant issues found after analysis." and **STOP**.
+    - **IF $ARGUMENTS were provided**: Report "No relevant issues found for the specific problem: [$ARGUMENTS]." and **STOP**.
+  4. Prioritize issues by severity: Critical → High → Medium → Low.
+    - Severity is determined based on potential impact (e.g., data loss, system downtime), likelihood of occurrence, and effort required for resolution.
+  5. **Self-validate identified issues**: Before presenting to the user, rigorously ensure each identified issue adheres to ALL criteria specified in the `<constraints>` and `<validation>` sections.
+    - **IF self-validation fails**: Refine the issue (e.g., make it more specific, add missing details) or discard it if it doesn't meet the criteria. Report any discarded issues to the user with a brief explanation of why they were not included.
+  6. **Present identified problems to the user for review and confirmation.**
+    - **Action**: Summarize the findings (e.g., "Found X issues: Y critical, Z high, etc.") and list the proposed issues with their titles, severities, and a brief description of the nature of each issue (e.g., 'Critical: Potential SQL Injection in auth module', 'High: Performance bottleneck in data processing').
+    - **Prompt**: "I have identified the following potential issues. Please review them. Which ones would you like me to create GitHub issues for? (Enter numbers, e.g., '1, 3' or 'all')"
+
+    - **User Decision**:
+
+      - **IF** user approves specific issues: Proceed to create only those issues.
+
+      - **IF** user approves 'all': Proceed to create all identified issues.
+
+      - **IF** user declines: Report "Issue creation cancelled by user." and **STOP**.
+
+      - **IF** user provides invalid input: Report "Invalid input. Please enter issue numbers (e.g., '1, 3') or 'all'." and **REPROMPT**.
+
+  7. Create specific, actionable GitHub issues.
+
     - **Issue Creation Strategy**: Autonomously select the issue structure based on task size. Decide whether sub-issues are needed.
+
       - Based on the complexity and scope of the identified problem, determine whether a single issue, a parent issue with sub-issues, or a checklist within a single issue is most appropriate.
-    - **IF ISSUE CREATION FAILS**: Report "Failed to create GitHub issue. Check GitHub CLI authentication or repository permissions." and **STOP**.
-  5. Check for duplicate issues before creating.
+
+      - **Example**: For a refactoring impacting 3+ files, consider a parent issue with sub-issues for each major component.
+
+    - **IF ISSUE CREATION FAILS**: Report "Failed to create GitHub issue. Check GitHub CLI authentication or repository permissions. Consider running `gh auth status` to diagnose." and **STOP**.
+
+  8. Check for duplicate issues before creating by searching existing GitHub issues for similar titles or descriptions.
+
     - **IF DUPLICATE FOUND**: Report "Duplicate issue found. Skipping creation." and **CONTINUE** to next issue or **STOP** if no more issues.
 </process>
 
 <handoff_workflow>
   - **Action**: After all issues have been successfully created, present the list of created issues to the user.
-  - **Prompt**: "I have successfully created the following issues:\n- #123: [Issue Title 1]\n- #124: [Issue Title 2]\nWould you like to start working on one of these now by running `do-issue`?"
+  - **Prompt**: "I have successfully created the following issues:
+- #123: [Issue Title 1]
+- #124: [Issue Title 2]
+To start working on one of these, you can run `do-issue <ISSUE_NUMBER>`."
   - **User Decision**:
     - **IF** the user selects an issue number:
       - **Next Action**: Execute the `do-issue.md <ISSUE_NUMBER>` workflow.
-    - **ELSE**:
+    - **ELSE (user does not select an issue number)**:
       - **Action**: Conclude the process by reporting, "Ok, I have finished creating the issues. Let me know what you'd like to do next."
 </handoff_workflow>
 
@@ -45,7 +79,7 @@
   **Title**: [Clear, specific description]
 
   **Severity**: Critical/High/Medium/Low
-  **Labels**: [Check repository's existing labels and select relevant ones, e.g., bug, enhancement, refactor, documentation, performance, security]
+  **Labels**: [Check repository's existing labels and select relevant ones, e.g., bug, enhancement, refactor, documentation, performance, security. If no suitable label exists, suggest adding a temporary label like 'needs-label'.]
 
   **Description**:
   - What is the problem?
@@ -93,4 +127,4 @@
   ✓ Will fixing this provide clear value?
 </validation>
 
-⚠️ STOP: Before creating GitHub issues, present the list of identified problems for review and confirmation.
+
