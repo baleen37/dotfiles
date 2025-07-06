@@ -126,5 +126,3 @@ To start working on one of these, you can run `do-issue <ISSUE_NUMBER>`."
   ✓ Does a similar issue already exist?
   ✓ Will fixing this provide clear value?
 </validation>
-
-
