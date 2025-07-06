@@ -22,7 +22,7 @@ _:
   "vlc"
 
   # Productivity Tools
-  "raycast"
+  "alfred"
 
   # Password Management
   "1password"

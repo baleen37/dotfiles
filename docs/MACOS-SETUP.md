@@ -97,7 +97,7 @@ nix flake check --impure
 - **개발 환경**: Node.js, Python, Go, Rust
 
 ### 생산성 도구
-- **런처**: Raycast
+- **런처**: Alfred
 - **창 관리**: Hammerspoon, Rectangle
 - **패스워드**: 1Password + CLI
 - **노트**: Obsidian, Notion
