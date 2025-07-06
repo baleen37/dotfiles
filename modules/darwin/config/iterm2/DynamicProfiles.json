@@ -1,0 +1,402 @@
+{
+  "Profiles": [
+    {
+      "Name": "Default",
+      "Guid": "00000000-0000-0000-0000-000000000001",
+      "Badge Text": "",
+      "Working Directory": "~",
+      "Command": "",
+      "Custom Command": "No",
+      "Custom Directory": "No",
+      "Rows": 25,
+      "Columns": 80,
+      "Normal Font": "MesloLGS-NF-Regular 14",
+      "Bold Font": "MesloLGS-NF-Bold 14",
+      "Use Bold Font": true,
+      "Use Bright Bold": true,
+      "Use Italic Font": true,
+      "ASCII Anti Aliased": true,
+      "Non-ASCII Anti Aliased": true,
+      "Use Non-ASCII Font": false,
+      "Transparency": 0.1,
+      "Blur": false,
+      "Blur Radius": 2,
+      "Background Color": {
+        "Red Component": 0.0,
+        "Green Component": 0.0,
+        "Blue Component": 0.0,
+        "Alpha Component": 1.0
+      },
+      "Foreground Color": {
+        "Red Component": 1.0,
+        "Green Component": 1.0,
+        "Blue Component": 1.0,
+        "Alpha Component": 1.0
+      },
+      "Cursor Color": {
+        "Red Component": 1.0,
+        "Green Component": 1.0,
+        "Blue Component": 1.0,
+        "Alpha Component": 1.0
+      },
+      "Selection Color": {
+        "Red Component": 0.2,
+        "Green Component": 0.2,
+        "Blue Component": 0.2,
+        "Alpha Component": 1.0
+      },
+      "Ansi 0 Color": {
+        "Red Component": 0.0,
+        "Green Component": 0.0,
+        "Blue Component": 0.0,
+        "Alpha Component": 1.0
+      },
+      "Ansi 1 Color": {
+        "Red Component": 0.8,
+        "Green Component": 0.0,
+        "Blue Component": 0.0,
+        "Alpha Component": 1.0
+      },
+      "Ansi 2 Color": {
+        "Red Component": 0.0,
+        "Green Component": 0.8,
+        "Blue Component": 0.0,
+        "Alpha Component": 1.0
+      },
+      "Ansi 3 Color": {
+        "Red Component": 0.8,
+        "Green Component": 0.8,
+        "Blue Component": 0.0,
+        "Alpha Component": 1.0
+      },
+      "Ansi 4 Color": {
+        "Red Component": 0.0,
+        "Green Component": 0.0,
+        "Blue Component": 0.8,
+        "Alpha Component": 1.0
+      },
+      "Ansi 5 Color": {
+        "Red Component": 0.8,
+        "Green Component": 0.0,
+        "Blue Component": 0.8,
+        "Alpha Component": 1.0
+      },
+      "Ansi 6 Color": {
+        "Red Component": 0.0,
+        "Green Component": 0.8,
+        "Blue Component": 0.8,
+        "Alpha Component": 1.0
+      },
+      "Ansi 7 Color": {
+        "Red Component": 0.8,
+        "Green Component": 0.8,
+        "Blue Component": 0.8,
+        "Alpha Component": 1.0
+      },
+      "Ansi 8 Color": {
+        "Red Component": 0.4,
+        "Green Component": 0.4,
+        "Blue Component": 0.4,
+        "Alpha Component": 1.0
+      },
+      "Ansi 9 Color": {
+        "Red Component": 1.0,
+        "Green Component": 0.0,
+        "Blue Component": 0.0,
+        "Alpha Component": 1.0
+      },
+      "Ansi 10 Color": {
+        "Red Component": 0.0,
+        "Green Component": 1.0,
+        "Blue Component": 0.0,
+        "Alpha Component": 1.0
+      },
+      "Ansi 11 Color": {
+        "Red Component": 1.0,
+        "Green Component": 1.0,
+        "Blue Component": 0.0,
+        "Alpha Component": 1.0
+      },
+      "Ansi 12 Color": {
+        "Red Component": 0.0,
+        "Green Component": 0.0,
+        "Blue Component": 1.0,
+        "Alpha Component": 1.0
+      },
+      "Ansi 13 Color": {
+        "Red Component": 1.0,
+        "Green Component": 0.0,
+        "Blue Component": 1.0,
+        "Alpha Component": 1.0
+      },
+      "Ansi 14 Color": {
+        "Red Component": 0.0,
+        "Green Component": 1.0,
+        "Blue Component": 1.0,
+        "Alpha Component": 1.0
+      },
+      "Ansi 15 Color": {
+        "Red Component": 1.0,
+        "Green Component": 1.0,
+        "Blue Component": 1.0,
+        "Alpha Component": 1.0
+      },
+      "Cursor Type": 0,
+      "Cursor Blink": false,
+      "Blinking Cursor": false,
+      "Character Encoding": 4,
+      "Mouse Reporting": true,
+      "Mouse Reporting allow mouse wheel": true,
+      "Scrollback Lines": 10000,
+      "Unlimited Scrollback": false,
+      "Scrollback With Status Bar": false,
+      "Scrollback in Alternate Screen": true,
+      "Terminal Type": "xterm-256color",
+      "Environment": {},
+      "Silence Bell": false,
+      "Visual Bell": true,
+      "Flashing Bell": false,
+      "Bell Alert Action": 0,
+      "Close Sessions On End": true,
+      "Prompt Before Closing 2": false,
+      "Session Close Undo Timeout": 5,
+      "Reduce Flicker": false,
+      "Send Code When Idle": false,
+      "Application Keypad Allowed": false,
+      "Place Prompt at First Column": true,
+      "Show Mark Indicators": true,
+      "Idle Code": 0,
+      "Unicode Normalization": 0,
+      "Horizontal Spacing": 1,
+      "Vertical Spacing": 1,
+      "Use HFS Plus Mapping": false,
+      "Keyboard Map": {
+        "0xf700-0x260000": {
+          "Action": 10,
+          "Text": "[1;6A"
+        },
+        "0xf701-0x260000": {
+          "Action": 10,
+          "Text": "[1;6B"
+        },
+        "0xf702-0x260000": {
+          "Action": 10,
+          "Text": "[1;6D"
+        },
+        "0xf703-0x260000": {
+          "Action": 10,
+          "Text": "[1;6C"
+        },
+        "0xf72b-0x40000": {
+          "Action": 10,
+          "Text": "[1;5F"
+        },
+        "0xf729-0x40000": {
+          "Action": 10,
+          "Text": "[1;5H"
+        }
+      },
+      "Touchbar Items": []
+    },
+    {
+      "Name": "Development",
+      "Guid": "00000000-0000-0000-0000-000000000002",
+      "Badge Text": "DEV",
+      "Working Directory": "~/Development",
+      "Command": "",
+      "Custom Command": "No",
+      "Custom Directory": "Yes",
+      "Rows": 30,
+      "Columns": 120,
+      "Normal Font": "MesloLGS-NF-Regular 13",
+      "Bold Font": "MesloLGS-NF-Bold 13",
+      "Use Bold Font": true,
+      "Use Bright Bold": true,
+      "Use Italic Font": true,
+      "ASCII Anti Aliased": true,
+      "Non-ASCII Anti Aliased": true,
+      "Use Non-ASCII Font": false,
+      "Transparency": 0.05,
+      "Blur": false,
+      "Blur Radius": 2,
+      "Background Color": {
+        "Red Component": 0.05,
+        "Green Component": 0.05,
+        "Blue Component": 0.05,
+        "Alpha Component": 1.0
+      },
+      "Foreground Color": {
+        "Red Component": 0.9,
+        "Green Component": 0.9,
+        "Blue Component": 0.9,
+        "Alpha Component": 1.0
+      },
+      "Cursor Color": {
+        "Red Component": 0.0,
+        "Green Component": 0.8,
+        "Blue Component": 0.0,
+        "Alpha Component": 1.0
+      },
+      "Selection Color": {
+        "Red Component": 0.2,
+        "Green Component": 0.3,
+        "Blue Component": 0.4,
+        "Alpha Component": 1.0
+      },
+      "Ansi 0 Color": {
+        "Red Component": 0.0,
+        "Green Component": 0.0,
+        "Blue Component": 0.0,
+        "Alpha Component": 1.0
+      },
+      "Ansi 1 Color": {
+        "Red Component": 0.9,
+        "Green Component": 0.3,
+        "Blue Component": 0.3,
+        "Alpha Component": 1.0
+      },
+      "Ansi 2 Color": {
+        "Red Component": 0.3,
+        "Green Component": 0.9,
+        "Blue Component": 0.3,
+        "Alpha Component": 1.0
+      },
+      "Ansi 3 Color": {
+        "Red Component": 0.9,
+        "Green Component": 0.9,
+        "Blue Component": 0.3,
+        "Alpha Component": 1.0
+      },
+      "Ansi 4 Color": {
+        "Red Component": 0.3,
+        "Green Component": 0.3,
+        "Blue Component": 0.9,
+        "Alpha Component": 1.0
+      },
+      "Ansi 5 Color": {
+        "Red Component": 0.9,
+        "Green Component": 0.3,
+        "Blue Component": 0.9,
+        "Alpha Component": 1.0
+      },
+      "Ansi 6 Color": {
+        "Red Component": 0.3,
+        "Green Component": 0.9,
+        "Blue Component": 0.9,
+        "Alpha Component": 1.0
+      },
+      "Ansi 7 Color": {
+        "Red Component": 0.9,
+        "Green Component": 0.9,
+        "Blue Component": 0.9,
+        "Alpha Component": 1.0
+      },
+      "Ansi 8 Color": {
+        "Red Component": 0.5,
+        "Green Component": 0.5,
+        "Blue Component": 0.5,
+        "Alpha Component": 1.0
+      },
+      "Ansi 9 Color": {
+        "Red Component": 1.0,
+        "Green Component": 0.5,
+        "Blue Component": 0.5,
+        "Alpha Component": 1.0
+      },
+      "Ansi 10 Color": {
+        "Red Component": 0.5,
+        "Green Component": 1.0,
+        "Blue Component": 0.5,
+        "Alpha Component": 1.0
+      },
+      "Ansi 11 Color": {
+        "Red Component": 1.0,
+        "Green Component": 1.0,
+        "Blue Component": 0.5,
+        "Alpha Component": 1.0
+      },
+      "Ansi 12 Color": {
+        "Red Component": 0.5,
+        "Green Component": 0.5,
+        "Blue Component": 1.0,
+        "Alpha Component": 1.0
+      },
+      "Ansi 13 Color": {
+        "Red Component": 1.0,
+        "Green Component": 0.5,
+        "Blue Component": 1.0,
+        "Alpha Component": 1.0
+      },
+      "Ansi 14 Color": {
+        "Red Component": 0.5,
+        "Green Component": 1.0,
+        "Blue Component": 1.0,
+        "Alpha Component": 1.0
+      },
+      "Ansi 15 Color": {
+        "Red Component": 1.0,
+        "Green Component": 1.0,
+        "Blue Component": 1.0,
+        "Alpha Component": 1.0
+      },
+      "Cursor Type": 0,
+      "Cursor Blink": false,
+      "Blinking Cursor": false,
+      "Character Encoding": 4,
+      "Mouse Reporting": true,
+      "Mouse Reporting allow mouse wheel": true,
+      "Scrollback Lines": 50000,
+      "Unlimited Scrollback": false,
+      "Scrollback With Status Bar": false,
+      "Scrollback in Alternate Screen": true,
+      "Terminal Type": "xterm-256color",
+      "Environment": {
+        "TERM_PROGRAM": "iTerm.app"
+      },
+      "Silence Bell": true,
+      "Visual Bell": false,
+      "Flashing Bell": false,
+      "Bell Alert Action": 0,
+      "Close Sessions On End": true,
+      "Prompt Before Closing 2": false,
+      "Session Close Undo Timeout": 5,
+      "Reduce Flicker": false,
+      "Send Code When Idle": false,
+      "Application Keypad Allowed": false,
+      "Place Prompt at First Column": true,
+      "Show Mark Indicators": true,
+      "Idle Code": 0,
+      "Unicode Normalization": 0,
+      "Horizontal Spacing": 1,
+      "Vertical Spacing": 1,
+      "Use HFS Plus Mapping": false,
+      "Keyboard Map": {
+        "0xf700-0x260000": {
+          "Action": 10,
+          "Text": "[1;6A"
+        },
+        "0xf701-0x260000": {
+          "Action": 10,
+          "Text": "[1;6B"
+        },
+        "0xf702-0x260000": {
+          "Action": 10,
+          "Text": "[1;6D"
+        },
+        "0xf703-0x260000": {
+          "Action": 10,
+          "Text": "[1;6C"
+        },
+        "0xf72b-0x40000": {
+          "Action": 10,
+          "Text": "[1;5F"
+        },
+        "0xf729-0x40000": {
+          "Action": 10,
+          "Text": "[1;5H"
+        }
+      },
+      "Touchbar Items": []
+    }
+  ]
+}

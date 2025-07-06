@@ -28,4 +28,8 @@ in
     source = ./config/alfred/com.runningwithcrayons.Alfred.plist;
   };
 
+  "${userHome}/Library/Application Support/iTerm2/DynamicProfiles/DynamicProfiles.json" = {
+    source = ./config/iterm2/DynamicProfiles.json;
+  };
+
 }
