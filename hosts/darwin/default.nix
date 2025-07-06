@@ -10,6 +10,7 @@ in
 {
   imports = [
     ../../modules/darwin/home-manager.nix
+    ../../modules/darwin/app-links.nix
     ../../modules/shared
   ];
 
@@ -38,6 +39,15 @@ in
   # zsh를 시스템에서 사용 가능한 쉘로 등록 (사용자 shell은 modules/darwin/home-manager.nix에서 설정됨)
   environment.shells = [ pkgs.zsh ];
   programs.zsh.enable = true;
+
+  # Nix 앱들을 /Applications에 자동으로 심볼릭 링크 생성
+  system.nixAppLinks = {
+    enable = true;
+    apps = [
+      "Karabiner-Elements.app"
+      # 필요한 다른 앱들을 여기에 추가 가능
+    ];
+  };
 
   system = {
     checks.verifyNixPath = false;
@@ -80,15 +90,11 @@ with open(plist_path, 'wb') as f:
 print('Korean input switching configured successfully')
 "
 
-      # Karabiner-Elements 권한 설정 안내
+      # 추가 설정 안내
       echo ""
-      echo "⚠️  Karabiner-Elements 설정 필요:"
-      echo "1. System Settings > Privacy & Security > Input Monitoring"
-      echo "   → Karabiner-Elements 권한 허용"
-      echo "2. System Settings > General > Login Items & Extensions"
-      echo "   → Karabiner-Elements Non-Privileged Agents 활성화"
-      echo "   → Karabiner-Elements Privileged Daemons 활성화"
-      echo "3. Karabiner-Elements 앱을 한 번 실행하여 시스템 확장 승인"
+      echo "📝 추가 설정 안내:"
+      echo "• Karabiner-Elements가 /Applications에 자동 링크되어 보안 권한 설정 가능"
+      echo "• 시스템 설정에서 필요한 권한들을 허용해주세요"
       echo ""
     '';
 
