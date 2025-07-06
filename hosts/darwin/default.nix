@@ -79,6 +79,17 @@ with open(plist_path, 'wb') as f:
 
 print('Korean input switching configured successfully')
 "
+
+      # Karabiner-Elements 권한 설정 안내
+      echo ""
+      echo "⚠️  Karabiner-Elements 설정 필요:"
+      echo "1. System Settings > Privacy & Security > Input Monitoring"
+      echo "   → Karabiner-Elements 권한 허용"
+      echo "2. System Settings > General > Login Items & Extensions"
+      echo "   → Karabiner-Elements Non-Privileged Agents 활성화"
+      echo "   → Karabiner-Elements Privileged Daemons 활성화"
+      echo "3. Karabiner-Elements 앱을 한 번 실행하여 시스템 확장 승인"
+      echo ""
     '';
 
     defaults = {
