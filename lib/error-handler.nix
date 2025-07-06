@@ -1,5 +1,5 @@
-# Enhanced Error Handler System
-# 개선된 에러 처리 시스템 - 컨텍스트 기반 메시지, 해결책 제시, 한국어 지원
+# Error Handler System
+# 에러 처리 시스템 - 컨텍스트 기반 메시지, 해결책 제시, 한국어 지원
 
 {
   # Error categorization

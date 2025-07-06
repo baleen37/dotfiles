@@ -3,7 +3,7 @@ let
   testHelpers = import ../lib/test-helpers.nix { inherit pkgs; };
   buildSwitchScript = "${src}/apps/aarch64-darwin/build-switch";
 in
-pkgs.runCommand "build-switch-improved-e2e-test"
+pkgs.runCommand "build-switch-e2e-test"
 {
   buildInputs = with pkgs; [ bash coreutils nix git findutils gnugrep ];
 } ''

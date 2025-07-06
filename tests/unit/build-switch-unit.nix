@@ -4,7 +4,7 @@ let
   buildSwitchScript = "${src}/apps/aarch64-darwin/build-switch";
   buildSwitchCommon = "${src}/scripts/build-switch-common.sh";
 in
-pkgs.runCommand "build-switch-improved-unit-test"
+pkgs.runCommand "build-switch-unit-test"
 {
   buildInputs = with pkgs; [ bash coreutils gnugrep findutils ];
 } ''
