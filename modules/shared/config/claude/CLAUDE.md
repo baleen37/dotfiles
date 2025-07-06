@@ -192,6 +192,43 @@ nix run #build-switch
 nix run #build-switch --verbose
 ```
 
+### Pre-commit Hook 실패 대응 프로토콜
+
+**절대 금지 사항:**
+- `--no-verify` 플래그 사용 절대 금지
+- pre-commit hook 비활성화나 우회 시도 금지
+- hook 실패를 무시하고 강제 커밋 시도 금지
+
+**표준 해결 절차:**
+1. **Hook 실행 및 자동 수정 적용:**
+   ```bash
+   nix develop -c pre-commit run --all-files
+   ```
+
+2. **자동 수정된 파일 스테이징:**
+   ```bash
+   git add .
+   ```
+
+3. **정상적인 커밋 진행:**
+   ```bash
+   git commit -m "fix: pre-commit hook 오류 수정"
+   ```
+
+**일반적인 Hook 실패 원인과 해결:**
+- `end-of-file-fixer`: 파일 끝 개행 문자 누락 → 자동 수정 적용
+- `trailing-whitespace`: 줄 끝 공백 제거 → 자동 수정 적용  
+- `check-yaml/check-json`: 형식 오류 → 수동 수정 필요
+- Nix 포맷팅 오류: `nixpkgs-fmt` 또는 `alejandra` 자동 실행
+- `markdownlint`: 마크다운 린팅 오류 → 자동 수정 적용
+
+**Multi-PR 환경에서의 Hook 수정:**
+동일한 hook 오류가 여러 PR에서 발생하는 경우:
+1. 각 PR 브랜치로 개별 체크아웃
+2. 동일한 수정 절차 적용
+3. 개별 커밋 및 푸시 수행
+4. CI 상태 재확인
+
 ## Claude Code Limitations & Workarounds
 
 ### Root Privilege Requirements
