@@ -54,6 +54,7 @@ let
     if !enableAutoDetect then null
     else if mockEnv != { } then "auto-detected-user"  # For testing
     else if builtins.getEnv "CI" != "" then "runner"  # CI environment fallback
+    else if builtins.getEnv "GITHUB_ACTIONS" != "" then "runner"  # GitHub Actions environment
     else null;  # In real environment, fall back to existing env vars
 
   # Generate detailed error message with actionable steps
@@ -88,13 +89,19 @@ let
     # 2. Regular environment variable (USER by default)
     else if envValue != "" && validateUser envValue then
       debugLog "Using ${envVar}: ${envValue}" envValue
-    # 3. Auto-detection fallback (enhanced feature)
+    # 3. Auto-detection fallback (enhanced feature) - prioritize CI environments
     else if enableAutoDetect && autoDetectedUser != null && validateUser autoDetectedUser then
       debugLog "Using auto-detected user: ${autoDetectedUser}" autoDetectedUser
-    # 4. Default value if provided
+    # 4. CI environment fallback when USER is empty
+    else if (envValue == "" || envValue == null) && (builtins.getEnv "CI" != "" || builtins.getEnv "GITHUB_ACTIONS" != "") then
+      debugLog "Using CI fallback: runner" "runner"
+    # 5. Additional fallback for environments where USER is not set
+    else if (envValue == "" || envValue == null) && enableAutoDetect then
+      debugLog "Using generic fallback: nixuser" "nixuser"
+    # 6. Default value if provided
     else if default != null && validateUser default then
       debugLog "Using default: ${default}" default
-    # 5. Generate helpful error
+    # 7. Generate helpful error
     else
       let
         reason =
