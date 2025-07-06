@@ -12,7 +12,7 @@ let
 
     # Build system functionality
     build_parallelization_unit = import ./unit/build-parallelization-unit.nix { inherit pkgs; };
-    build_switch_improved_unit = import ./unit/build-switch-improved-unit.nix { inherit pkgs flake; src = ../.; };
+    build_switch_unit = import ./unit/build-switch-unit.nix { inherit pkgs flake; src = ../.; };
     sudo_security_test = import ./unit/sudo-security-test.nix { inherit pkgs; lib = pkgs.lib; src = ../.; };
 
     # Build script modularization tests (TDD)
@@ -41,7 +41,7 @@ let
 
     # Feature workflows (keep Claude config workflow)
     claude_config_workflow = import ./e2e/claude-config-workflow-e2e.nix { inherit pkgs flake; src = ../.; };
-    build_switch_workflow = import ./e2e/build-switch-improved-e2e.nix { inherit pkgs flake; src = ../.; };
+    build_switch_workflow = import ./e2e/build-switch-e2e.nix { inherit pkgs flake; src = ../.; };
   };
 
   # Performance tests - Build time and resource usage
