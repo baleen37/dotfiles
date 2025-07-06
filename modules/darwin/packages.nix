@@ -17,7 +17,7 @@ let
   # Platform-specific packages
   platform-packages = [
     dockutil
-    karabiner-elements-v14
+    # karabiner-elements-v14 is handled in home-manager.nix
   ];
 in
 # Use the standardized merging pattern

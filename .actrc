@@ -1,0 +1,2 @@
+-P catthehacker/ubuntu:act-latest=medium
+--container-architecture linux/amd64
