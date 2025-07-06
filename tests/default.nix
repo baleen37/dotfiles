@@ -27,9 +27,13 @@ let
     apply_template_system_unit = import ./unit/apply-template-system-unit.nix { inherit pkgs; };
     apply_functional_integration_unit = import ./unit/apply-functional-integration-unit.nix { inherit pkgs; };
 
+    # App links module tests
+    app_links_unit = import ./unit/app-links-unit.nix { inherit pkgs flake; src = ../.; };
+
     # Essential integrations (only active tests)
     user_path_consistency = import ./integration/test-user-path-consistency.nix { inherit pkgs; lib = pkgs.lib; };
     build_parallelization_integration = import ./integration/build-parallelization-integration.nix { inherit pkgs; };
+    app_links_integration = import ./integration/app-links-integration.nix { inherit pkgs flake; src = ../.; };
   };
 
   # Workflow tests - End-to-end user workflows (simplified)
@@ -42,6 +46,7 @@ let
     # Feature workflows (keep Claude config workflow)
     claude_config_workflow = import ./e2e/claude-config-workflow-e2e.nix { inherit pkgs flake; src = ../.; };
     build_switch_workflow = import ./e2e/build-switch-e2e.nix { inherit pkgs flake; src = ../.; };
+    app_links_e2e = import ./e2e/app-links-e2e.nix { inherit pkgs flake; src = ../.; };
   };
 
   # Performance tests - Build time and resource usage
