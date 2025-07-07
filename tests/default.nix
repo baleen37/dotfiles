@@ -34,6 +34,10 @@ let
     # Pre-commit and CI consistency tests
     precommit_ci_consistency = import ./unit/precommit-ci-consistency.nix { inherit pkgs; };
 
+    # Keyboard input settings tests (TDD)
+    keyboard_input_settings_test = import ./unit/keyboard-input-settings-test.nix { inherit pkgs; lib = pkgs.lib; };
+    keyboard_input_settings_nix_test = import ./unit/keyboard-input-settings-nix-test.nix { inherit pkgs; lib = pkgs.lib; };
+
     # Essential integrations (only active tests)
     user_path_consistency = import ./integration/test-user-path-consistency.nix { inherit pkgs; lib = pkgs.lib; };
     build_parallelization_integration = import ./integration/build-parallelization-integration.nix { inherit pkgs; };
