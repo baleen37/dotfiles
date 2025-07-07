@@ -2,7 +2,7 @@ _:
 
 [
   # Development Tools
-  "docker"
+  "docker-desktop"
   "intellij-idea"
   "iterm2"  # Terminal emulator for macOS
 
