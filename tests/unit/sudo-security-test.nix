@@ -31,13 +31,17 @@ let
     echo ""
     echo "🔍 Testing for proper sudo usage..."
 
-    # Check if common script has proper sudo patterns
+    # Check if common script and its modules have proper sudo patterns
     COMMON_SCRIPT="${src}/scripts/build-switch-common.sh"
-    if [[ -f "$COMMON_SCRIPT" ]]; then
-      # Check for new sudo management pattern with SUDO_PREFIX in common script
-      if grep -q "SUDO_PREFIX.*darwin-rebuild\|SUDO_PREFIX.*nixos-rebuild" "$COMMON_SCRIPT" || \
-         (grep -q "get_sudo_prefix()" "$COMMON_SCRIPT" && grep -q "SUDO_PREFIX=\$(get_sudo_prefix)" "$COMMON_SCRIPT"); then
-        echo "✅ PASS: Common script uses proper sudo management pattern"
+    BUILD_LOGIC_MODULE="${src}/scripts/lib/build-logic.sh"
+    SUDO_MODULE="${src}/scripts/lib/sudo-management.sh"
+    if [[ -f "$COMMON_SCRIPT" ]] && [[ -f "$BUILD_LOGIC_MODULE" ]] && [[ -f "$SUDO_MODULE" ]]; then
+      # Check for modular sudo management pattern
+      if grep -q "sudo-management.sh" "$COMMON_SCRIPT" && \
+         grep -q "build-logic.sh" "$COMMON_SCRIPT" && \
+         (grep -q "SUDO_PREFIX.*darwin-rebuild\|SUDO_PREFIX.*nixos-rebuild" "$BUILD_LOGIC_MODULE" || \
+          (grep -q "get_sudo_prefix()" "$SUDO_MODULE" && grep -q "SUDO_PREFIX=\$(get_sudo_prefix)" "$BUILD_LOGIC_MODULE")); then
+        echo "✅ PASS: Common script uses modular sudo management pattern"
 
         # Mark all build-switch scripts as passing since they use the common script
         for script in ${src}/apps/*/build-switch; do
@@ -52,7 +56,7 @@ let
           fi
         done
       else
-        echo "❌ FAIL: Common script doesn't use proper sudo management pattern"
+        echo "❌ FAIL: Common script doesn't use modular sudo management pattern"
         FAILED_SCRIPTS+=("build-switch-common.sh")
       fi
     else
@@ -80,14 +84,17 @@ let
     echo ""
     echo "🔍 Testing for user-friendly sudo messages..."
 
-    # Check the common script for sudo management functions
+    # Check the common script and its modules for sudo management functions
     COMMON_SCRIPT="${src}/scripts/build-switch-common.sh"
-    if [[ -f "$COMMON_SCRIPT" ]]; then
-      if grep -q "explain_sudo_requirement\|Administrator Privileges Required" "$COMMON_SCRIPT"; then
-        echo "✅ PASS: Common script has explain_sudo_requirement function"
+    SUDO_MODULE="${src}/scripts/lib/sudo-management.sh"
+    if [[ -f "$COMMON_SCRIPT" ]] && [[ -f "$SUDO_MODULE" ]]; then
+      # Check if common script sources the sudo management module
+      if grep -q "sudo-management.sh" "$COMMON_SCRIPT" && \
+         grep -q "explain_sudo_requirement\|Administrator Privileges Required" "$SUDO_MODULE"; then
+        echo "✅ PASS: Common script sources sudo module with explain_sudo_requirement function"
 
-        # Verify that the function is called
-        if grep -q "check_sudo_requirement" "$COMMON_SCRIPT" && grep -A20 "check_sudo_requirement" "$COMMON_SCRIPT" | grep -q "explain_sudo_requirement"; then
+        # Verify that the function is called in the sudo module
+        if grep -q "check_sudo_requirement" "$SUDO_MODULE" && grep -A20 "check_sudo_requirement" "$SUDO_MODULE" | grep -q "explain_sudo_requirement"; then
           echo "✅ PASS: explain_sudo_requirement is called in check_sudo_requirement"
 
           # Mark all build-switch scripts as passing since they use the common script
@@ -102,11 +109,11 @@ let
             fi
           done
         else
-          echo "❌ FAIL: explain_sudo_requirement is not called properly"
-          FAILED_SCRIPTS+=("build-switch-common.sh")
+          echo "❌ FAIL: explain_sudo_requirement is not called properly in sudo module"
+          FAILED_SCRIPTS+=("sudo-management.sh")
         fi
       else
-        echo "❌ FAIL: Common script lacks sudo explanation messages"
+        echo "❌ FAIL: Common script doesn't source sudo module or module lacks explanation messages"
         FAILED_SCRIPTS+=("build-switch-common.sh")
       fi
     else
