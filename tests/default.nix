@@ -30,6 +30,9 @@ let
     # App links module tests
     app_links_unit = import ./unit/app-links-unit.nix { inherit pkgs flake; src = ../.; };
 
+    # Pre-commit and CI consistency tests
+    precommit_ci_consistency = import ./unit/precommit-ci-consistency.nix { inherit pkgs; };
+
     # Essential integrations (only active tests)
     user_path_consistency = import ./integration/test-user-path-consistency.nix { inherit pkgs; lib = pkgs.lib; };
     build_parallelization_integration = import ./integration/build-parallelization-integration.nix { inherit pkgs; };

@@ -20,14 +20,14 @@ run_build() {
     progress_start "시스템 구성 빌드" "$(progress_estimate_time build)"
 
     if [ "$VERBOSE" = "true" ]; then
-        nix --extra-experimental-features 'nix-command flakes' build --impure --max-jobs "$JOBS" --cores 0 .#$FLAKE_SYSTEM "$@" || {
+        nix --extra-experimental-features 'nix-command flakes' build --impure --no-warn-dirty --max-jobs "$JOBS" --cores 0 .#$FLAKE_SYSTEM "$@" || {
             progress_stop
             log_error "Build failed"
             log_footer "failed"
             exit 1
         }
     else
-        nix --extra-experimental-features 'nix-command flakes' build --impure --max-jobs "$JOBS" --cores 0 .#$FLAKE_SYSTEM "$@" 2>/dev/null || {
+        nix --extra-experimental-features 'nix-command flakes' build --impure --no-warn-dirty --max-jobs "$JOBS" --cores 0 .#$FLAKE_SYSTEM "$@" 2>/dev/null || {
             progress_stop
             log_error "Build failed. Run with --verbose for details"
             log_footer "failed"

@@ -367,6 +367,23 @@ sudo nix run --impure .#build-switch
 echo "export USER=\$(whoami)" >> ~/.bashrc  # or ~/.zshrc
 ```
 
+### CI/CD and Pre-commit Issues
+
+**Nix warnings and noise:**
+- Recent improvements filter out trusted user warnings and git dirty tree warnings
+- Set `CI_MODE=local` for consistent behavior between local and CI environments
+- Use `nix run --impure .#test-smoke` for quick validation
+
+**Pre-commit vs CI inconsistencies:**
+- Pre-push hooks now run the same tests as CI (unit, integration, perf)
+- Warning filtering ensures clean output while preserving actual errors
+- Tests are executed with environment variables matching CI configuration
+
+**Performance optimization:**
+- Consider setting up as a trusted user for better build performance
+- Use `nix.settings.trusted-users = ["your-username"]` in system configuration
+- cachix substituter will be utilized when trusted user is configured
+
 ### Getting Help
 - Check [troubleshooting guide](./docs/TROUBLESHOOTING.md) for detailed solutions
 - Review [CLAUDE.md](./CLAUDE.md) for development-specific guidance
