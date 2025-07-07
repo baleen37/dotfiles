@@ -14,6 +14,7 @@ let
     build_parallelization_unit = import ./unit/build-parallelization-unit.nix { inherit pkgs; };
     build_switch_unit = import ./unit/build-switch-unit.nix { inherit pkgs flake; src = ../.; };
     sudo_security_test = import ./unit/sudo-security-test.nix { inherit pkgs; lib = pkgs.lib; src = ../.; };
+    sudo_session_persistence_test = import ./unit/sudo-session-persistence-test.nix { inherit pkgs; };
 
     # Build script modularization tests (TDD)
     build_script_logging_unit = import ./unit/build-script-logging-unit.nix { inherit pkgs; };
