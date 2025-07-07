@@ -7,7 +7,7 @@
 # - Added eval-cache support for faster evaluation
 # - Modularized optimization settings for better maintainability
 
-# Execute nix build with parallelization
+# Execute nix build with parallelization and cache optimization
 run_build() {
     perf_start_phase "build"
 
@@ -16,6 +16,9 @@ run_build() {
     if [ "$PLATFORM_TYPE" = "darwin" ]; then
         log_info "User: ${USER}"
     fi
+
+    # Optimize cache before building
+    optimize_cache "$SYSTEM_TYPE"
 
     # Get optimal job count for parallelization
     JOBS=$(detect_optimal_jobs)
@@ -28,22 +31,32 @@ run_build() {
     # Start progress indicator
     progress_start "시스템 구성 빌드" "$(progress_estimate_time build)"
 
+    # Record build start time for cache statistics
+    BUILD_START_TIME=$(date +%s)
+
+    # Get optimized nix command with cache settings
+    BASE_NIX_CMD="nix --extra-experimental-features 'nix-command flakes' build $BUILD_OPTIMIZATION_FLAGS --impure --no-warn-dirty --max-jobs $JOBS --cores 0"
+    OPTIMIZED_NIX_CMD=$(get_optimized_nix_command "$BASE_NIX_CMD")
 
     if [ "$VERBOSE" = "true" ]; then
-        nix --extra-experimental-features 'nix-command flakes' build $BUILD_OPTIMIZATION_FLAGS --max-jobs "$JOBS" --cores 0 .#$FLAKE_SYSTEM "$@" || {
+        eval "$OPTIMIZED_NIX_CMD .#$FLAKE_SYSTEM \"\$@\"" || {
             progress_stop
             log_error "Build failed"
             log_footer "failed"
             exit 1
         }
     else
-        nix --extra-experimental-features 'nix-command flakes' build $BUILD_OPTIMIZATION_FLAGS --max-jobs "$JOBS" --cores 0 .#$FLAKE_SYSTEM "$@" 2>/dev/null || {
+        eval "$OPTIMIZED_NIX_CMD .#$FLAKE_SYSTEM \"\$@\"" 2>/dev/null || {
             progress_stop
             log_error "Build failed. Run with --verbose for details"
             log_footer "failed"
             exit 1
         }
     fi
+
+    # Record build end time and update cache statistics
+    BUILD_END_TIME=$(date +%s)
+    update_post_build_stats "true" "$BUILD_START_TIME" "$BUILD_END_TIME"
 
     progress_stop
     perf_end_phase "build"
@@ -74,10 +87,14 @@ run_switch() {
     # Start progress indicator
     progress_start "시스템 구성 적용" "$(progress_estimate_time switch)"
 
+    # Get optimized switch command with cache settings
+    BASE_SWITCH_CMD="${REBUILD_COMMAND_PATH} switch --impure --max-jobs ${JOBS} --cores 0 --flake .#${SYSTEM_TYPE}"
+    OPTIMIZED_SWITCH_CMD=$(get_optimized_nix_command "$BASE_SWITCH_CMD")
+
     if [ "$VERBOSE" = "true" ]; then
         log_info "Command: ${REBUILD_COMMAND} switch --impure --max-jobs ${JOBS} --cores 0 --flake .#${SYSTEM_TYPE}"
         if [ -n "${SUDO_PREFIX}" ]; then
-            eval "${SUDO_PREFIX} ${REBUILD_COMMAND_PATH} switch --impure --max-jobs ${JOBS} --cores 0 --flake .#${SYSTEM_TYPE} \"\$@\"" || {
+            eval "${SUDO_PREFIX} ${OPTIMIZED_SWITCH_CMD} \"\$@\"" || {
                 progress_stop
                 log_error "Switch failed (exit code: $?)"
                 log_footer "failed"
@@ -85,14 +102,14 @@ run_switch() {
             }
         else
             if [ "$PLATFORM_TYPE" = "darwin" ]; then
-                USER="$USER" ${REBUILD_COMMAND_PATH} switch --impure --max-jobs ${JOBS} --cores 0 --flake .#${SYSTEM_TYPE} "$@" 2>&1 || {
+                USER="$USER" eval "${OPTIMIZED_SWITCH_CMD} \"\$@\"" 2>&1 || {
                     progress_stop
                     log_error "Switch failed (exit code: $?)"
                     log_footer "failed"
                     exit 1
                 }
             else
-                ${REBUILD_COMMAND_PATH} switch --impure --max-jobs ${JOBS} --cores 0 --flake .#${SYSTEM_TYPE} "$@" 2>&1 || {
+                eval "${OPTIMIZED_SWITCH_CMD} \"\$@\"" 2>&1 || {
                     progress_stop
                     log_error "Switch failed (exit code: $?)"
                     log_footer "failed"
@@ -102,7 +119,7 @@ run_switch() {
         fi
     else
         if [ -n "${SUDO_PREFIX}" ]; then
-            eval "${SUDO_PREFIX} ${REBUILD_COMMAND_PATH} switch --impure --max-jobs ${JOBS} --cores 0 --flake .#${SYSTEM_TYPE} \"\$@\"" >/dev/null || {
+            eval "${SUDO_PREFIX} ${OPTIMIZED_SWITCH_CMD} \"\$@\"" >/dev/null || {
                 progress_stop
                 log_error "Switch failed. Run with --verbose for details"
                 log_footer "failed"
@@ -110,7 +127,7 @@ run_switch() {
             }
         else
             if [ "$PLATFORM_TYPE" = "darwin" ]; then
-                USER="$USER" ${REBUILD_COMMAND_PATH} switch --impure --max-jobs ${JOBS} --cores 0 --flake .#${SYSTEM_TYPE} "$@" >/dev/null 2>&1 || {
+                USER="$USER" eval "${OPTIMIZED_SWITCH_CMD} \"\$@\"" >/dev/null 2>&1 || {
                     progress_stop
                     echo ""
                     log_warning "Switch failed - likely requires administrator privileges"
@@ -122,7 +139,7 @@ run_switch() {
                     exit 0
                 }
             else
-                ${REBUILD_COMMAND_PATH} switch --impure --max-jobs ${JOBS} --cores 0 --flake .#${SYSTEM_TYPE} "$@" >/dev/null 2>&1 || {
+                eval "${OPTIMIZED_SWITCH_CMD} \"\$@\"" >/dev/null 2>&1 || {
                     progress_stop
                     log_error "Switch failed. Run with --verbose for details"
                     log_footer "failed"
@@ -187,6 +204,9 @@ execute_build_switch() {
             log_info "Running with current privileges"
         fi
 
+        # Optimize cache before building
+        optimize_cache "$SYSTEM_TYPE"
+
         SUDO_PREFIX=$(get_sudo_prefix)
         JOBS=$(detect_optimal_jobs)
         log_info "Using ${JOBS} parallel jobs for build and switch"
@@ -194,16 +214,23 @@ execute_build_switch() {
         # Start progress indicator for combined build & switch
         progress_start "시스템 빌드 및 적용" "$(progress_estimate_time build)"
 
+        # Record build start time for cache statistics
+        BUILD_START_TIME=$(date +%s)
+
+        # Get optimized rebuild command with cache settings
+        BASE_REBUILD_CMD="${REBUILD_COMMAND_PATH} switch --impure --max-jobs ${JOBS} --cores 0 --flake .#${SYSTEM_TYPE}"
+        OPTIMIZED_REBUILD_CMD=$(get_optimized_nix_command "$BASE_REBUILD_CMD")
+
         if [ "$VERBOSE" = "true" ]; then
             if [ -n "${SUDO_PREFIX}" ]; then
-                eval "${SUDO_PREFIX} ${REBUILD_COMMAND_PATH} switch --impure --max-jobs ${JOBS} --cores 0 --flake .#${SYSTEM_TYPE} \"\$@\"" || {
+                eval "${SUDO_PREFIX} ${OPTIMIZED_REBUILD_CMD} \"\$@\"" || {
                     progress_stop
                     log_error "Build and switch failed (exit code: $?)"
                     log_footer "failed"
                     exit 1
                 }
             else
-                ${REBUILD_COMMAND_PATH} switch --impure --max-jobs ${JOBS} --cores 0 --flake .#${SYSTEM_TYPE} "$@" || {
+                eval "${OPTIMIZED_REBUILD_CMD} \"\$@\"" || {
                     progress_stop
                     log_error "Build and switch failed (exit code: $?)"
                     log_footer "failed"
@@ -212,14 +239,14 @@ execute_build_switch() {
             fi
         else
             if [ -n "${SUDO_PREFIX}" ]; then
-                eval "${SUDO_PREFIX} ${REBUILD_COMMAND_PATH} switch --impure --max-jobs ${JOBS} --cores 0 --flake .#${SYSTEM_TYPE} \"\$@\"" >/dev/null || {
+                eval "${SUDO_PREFIX} ${OPTIMIZED_REBUILD_CMD} \"\$@\"" >/dev/null || {
                     progress_stop
                     log_error "Build and switch failed. Run with --verbose for details"
                     log_footer "failed"
                     exit 1
                 }
             else
-                ${REBUILD_COMMAND_PATH} switch --impure --max-jobs ${JOBS} --cores 0 --flake .#${SYSTEM_TYPE} "$@" >/dev/null 2>&1 || {
+                eval "${OPTIMIZED_REBUILD_CMD} \"\$@\"" >/dev/null 2>&1 || {
                     progress_stop
                     log_error "Build and switch failed. Run with --verbose for details"
                     log_footer "failed"
@@ -227,6 +254,10 @@ execute_build_switch() {
                 }
             fi
         fi
+
+        # Record build end time and update cache statistics
+        BUILD_END_TIME=$(date +%s)
+        update_post_build_stats "true" "$BUILD_START_TIME" "$BUILD_END_TIME"
 
         progress_stop
         perf_end_phase "build"

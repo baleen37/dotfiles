@@ -117,8 +117,13 @@ pkgs.runCommand "resource-usage-perf-test"
     echo "${testHelpers.colors.yellow}⚠${testHelpers.colors.reset} File descriptor monitoring not available"
   fi
 
-  # Test file handle leaks
-  BEFORE_FD_COUNT=$(ls /proc/self/fd 2>/dev/null | wc -l || echo "0")
+  # Test file handle leaks (portable across systems)
+  BEFORE_FD_COUNT=$(ls /proc/self/fd 2>/dev/null | wc -l | tr -d ' ' || echo "10")
+
+  # Ensure we have a valid numeric value
+  if [ -z "$BEFORE_FD_COUNT" ] || ! [ "$BEFORE_FD_COUNT" -eq "$BEFORE_FD_COUNT" ] 2>/dev/null || [ "$BEFORE_FD_COUNT" -lt 1 ]; then
+    BEFORE_FD_COUNT=10
+  fi
 
   # Perform operations that might leak file descriptors
   for i in {1..10}; do
@@ -128,7 +133,12 @@ pkgs.runCommand "resource-usage-perf-test"
     rm -f "$TEMP_FILE"
   done
 
-  AFTER_FD_COUNT=$(ls /proc/self/fd 2>/dev/null | wc -l || echo "0")
+  AFTER_FD_COUNT=$(ls /proc/self/fd 2>/dev/null | wc -l | tr -d ' ' || echo "$BEFORE_FD_COUNT")
+
+  # Ensure we have a valid numeric value
+  if [ -z "$AFTER_FD_COUNT" ] || ! [ "$AFTER_FD_COUNT" -eq "$AFTER_FD_COUNT" ] 2>/dev/null || [ "$AFTER_FD_COUNT" -lt 1 ]; then
+    AFTER_FD_COUNT=$BEFORE_FD_COUNT
+  fi
 
   if [ "$AFTER_FD_COUNT" -le $((BEFORE_FD_COUNT + 2)) ]; then
     echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} No significant file descriptor leaks detected"
@@ -136,10 +146,20 @@ pkgs.runCommand "resource-usage-perf-test"
     echo "${testHelpers.colors.yellow}⚠${testHelpers.colors.reset} Potential file descriptor leak (before: $BEFORE_FD_COUNT, after: $AFTER_FD_COUNT)"
   fi
 
-  # Test 4: Build cache efficiency
-  ${testHelpers.testSubsection "Build Cache Efficiency"}
+  # Test 4: Build cache efficiency and optimization
+  ${testHelpers.testSubsection "Build Cache Efficiency and Optimization"}
 
-  echo "${testHelpers.colors.blue}Testing build cache efficiency${testHelpers.colors.reset}"
+  echo "${testHelpers.colors.blue}Testing build cache efficiency and optimization features${testHelpers.colors.reset}"
+
+  # Source required modules for cache management testing
+  . ${src}/scripts/lib/logging.sh
+  . ${src}/scripts/lib/cache-management.sh
+
+  # Create cache directory if it doesn't exist
+  mkdir -p "$HOME/.cache"
+
+  # Initialize cache statistics
+  init_cache_stats
 
   # Test cold build performance
   if [ -d "$HOME/.cache/nix" ]; then
@@ -153,13 +173,44 @@ pkgs.runCommand "resource-usage-perf-test"
 
   echo "${testHelpers.colors.blue}Cold evaluation time: ''${COLD_DURATION}s${testHelpers.colors.reset}"
 
-  # Test warm build performance
+  # Test cache optimization
+  configure_cache_settings
+  if [ -n "$NIX_CACHE_OPTIONS" ]; then
+    echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Cache optimization settings configured"
+  else
+    echo "${testHelpers.colors.yellow}⚠${testHelpers.colors.reset} Cache settings already optimal"
+  fi
+
+  # Test warm build performance with optimization
   WARM_START_TIME=$(date +%s)
-  nix eval --impure '.#'$CONFIG_PATH'.'$ATTR_PATH >/dev/null 2>&1 || true
+  BASE_CMD="nix eval --impure '.#'$CONFIG_PATH'.'$ATTR_PATH"
+  OPTIMIZED_CMD=$(get_optimized_nix_command "$BASE_CMD")
+  eval "$OPTIMIZED_CMD >/dev/null 2>&1 || true"
   WARM_END_TIME=$(date +%s)
   WARM_DURATION=$((WARM_END_TIME - WARM_START_TIME))
 
-  echo "${testHelpers.colors.blue}Warm evaluation time: ''${WARM_DURATION}s${testHelpers.colors.reset}"
+  echo "${testHelpers.colors.blue}Warm evaluation time (optimized): ''${WARM_DURATION}s${testHelpers.colors.reset}"
+
+  # Update cache statistics
+  if [ "$WARM_DURATION" -lt "$COLD_DURATION" ]; then
+    update_cache_stats "true"
+  else
+    update_cache_stats "false"
+  fi
+
+  # Test cache size detection
+  CACHE_SIZE=$(get_cache_size)
+  echo "${testHelpers.colors.blue}Current cache size: ''${CACHE_SIZE}MB${testHelpers.colors.reset}"
+
+  # Test cache cleanup logic
+  if needs_cache_cleanup; then
+    echo "${testHelpers.colors.blue}Cache cleanup recommended${testHelpers.colors.reset}"
+  else
+    echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Cache size is optimal"
+  fi
+
+  # Display cache statistics
+  show_cache_stats
 
   # Cache should improve performance
   if [ "$WARM_DURATION" -le "$COLD_DURATION" ]; then

@@ -23,6 +23,9 @@ let
     build_script_build_logic_unit = import ./unit/build-script-build-logic-unit.nix { inherit pkgs; };
     build_script_modularization_integration = import ./unit/build-script-modularization-integration.nix { inherit pkgs; };
 
+    # Cache management tests (Issue #287)
+    cache_management_unit = import ./unit/cache-management-unit.nix { inherit pkgs; };
+
     # Apply script deduplication tests (TDD - Issue #301)
     apply_script_deduplication_unit = import ./unit/apply-script-deduplication-unit.nix { inherit pkgs; };
     apply_template_system_unit = import ./unit/apply-template-system-unit.nix { inherit pkgs; };
@@ -55,6 +58,9 @@ let
     claude_config_workflow = import ./e2e/claude-config-workflow-e2e.nix { inherit pkgs flake; src = ../.; };
     build_switch_workflow = import ./e2e/build-switch-e2e.nix { inherit pkgs flake; src = ../.; };
     app_links_e2e = import ./e2e/app-links-e2e.nix { inherit pkgs flake; src = ../.; };
+
+    # Cache optimization workflow (Issue #287)
+    cache_optimization_e2e = import ./e2e/cache-optimization-e2e.nix { inherit pkgs flake; src = ../.; };
   };
 
   # Performance tests - Build time and resource usage

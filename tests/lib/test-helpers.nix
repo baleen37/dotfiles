@@ -254,6 +254,19 @@ let
       touch $out
     '';
 
+  # Create a test derivation with a script
+  createTestScript = { name, script }:
+    pkgs.runCommand name
+      {
+        buildInputs = with pkgs; [ bash coreutils ];
+      } ''
+      set -e
+      ${setupTestEnv}
+      ${script}
+      echo "Test ${name} completed successfully"
+      touch $out
+    '';
+
 
 in
 {
@@ -265,4 +278,5 @@ in
   inherit createTempFile createTempDir;
   inherit evalFlake reportResults cleanup;
   inherit assertSetContains assertListIncludes assertListContains assertAllDerivations;
+  inherit createTestScript;
 }

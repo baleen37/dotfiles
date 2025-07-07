@@ -69,6 +69,21 @@ perf_show_summary() {
             echo "${DIM}  Switch phase: ${PERF_SWITCH_DURATION}s${NC}"
         fi
         echo "${DIM}  Total time:   ${total_duration}s${NC}"
+
+        # Show cache statistics if available
+        if [ -f "$HOME/.cache/nix-build-stats" ]; then
+            local hits=$(grep "cache_hits=" "$HOME/.cache/nix-build-stats" | cut -d'=' -f2)
+            local misses=$(grep "cache_misses=" "$HOME/.cache/nix-build-stats" | cut -d'=' -f2)
+            local total_builds=$(grep "total_builds=" "$HOME/.cache/nix-build-stats" | cut -d'=' -f2)
+
+            if [ "$total_builds" -gt 0 ]; then
+                local hit_rate=$((hits * 100 / total_builds))
+                local cache_size=$(du -sm "$HOME/.cache/nix" 2>/dev/null | cut -f1 || echo "0")
+                echo "${DIM}  Cache hits:   ${hits}/${total_builds} (${hit_rate}%)${NC}"
+                echo "${DIM}  Cache size:   ${cache_size}MB${NC}"
+            fi
+        fi
+
         echo "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
         echo ""
     fi

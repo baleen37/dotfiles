@@ -66,7 +66,7 @@ This document outlines the core principles, rules, and guidelines for the Claude
 - YOU MUST NEVER remove code comments unless you can PROVE they are actively false. Comments are important documentation and must be preserved.
 - YOU MUST NEVER refer to temporal context in comments (like "recently refactored" "moved") or code. Comments should be evergreen and describe the code as it is. If you name something "new" or "enhanced" or "improved", you've probably made a mistake and MUST STOP and ask me what to do.
 - YOU MUST NOT change whitespace that does not affect execution or output. Otherwise, use a formatting tool.
-- **DEADCODE PROHIBITION**: YOU MUST NEVER leave behind any deadcode, including but not limited to:
+- **DEADCODE PROHIBITION**: YOU MUST NEVER create or leave behind any dead code. This includes but is not limited to:
   - Commented-out code blocks (except for essential documentation purposes)
   - Backup files (`.bak`, `.old`, `.backup`, etc.)
   - Test dummy files or temporary test data
