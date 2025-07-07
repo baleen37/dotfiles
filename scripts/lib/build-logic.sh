@@ -28,6 +28,7 @@ run_build() {
     # Start progress indicator
     progress_start "시스템 구성 빌드" "$(progress_estimate_time build)"
 
+
     if [ "$VERBOSE" = "true" ]; then
         nix --extra-experimental-features 'nix-command flakes' build $BUILD_OPTIMIZATION_FLAGS --max-jobs "$JOBS" --cores 0 .#$FLAKE_SYSTEM "$@" || {
             progress_stop
@@ -111,9 +112,14 @@ run_switch() {
             if [ "$PLATFORM_TYPE" = "darwin" ]; then
                 USER="$USER" ${REBUILD_COMMAND_PATH} switch --impure --max-jobs ${JOBS} --cores 0 --flake .#${SYSTEM_TYPE} "$@" >/dev/null 2>&1 || {
                     progress_stop
-                    log_error "Switch failed. Run with --verbose for details"
-                    log_footer "failed"
-                    exit 1
+                    echo ""
+                    log_warning "Switch failed - likely requires administrator privileges"
+                    echo ""
+                    echo "${YELLOW}Please run the following command manually:${NC}"
+                    echo "${BLUE}sudo ./result/sw/bin/darwin-rebuild switch --impure --max-jobs ${JOBS} --cores 0 --flake .#${SYSTEM_TYPE}${NC}"
+                    echo ""
+                    log_footer "manual_execution_required"
+                    exit 0
                 }
             else
                 ${REBUILD_COMMAND_PATH} switch --impure --max-jobs ${JOBS} --cores 0 --flake .#${SYSTEM_TYPE} "$@" >/dev/null 2>&1 || {
@@ -153,18 +159,10 @@ execute_build_switch() {
     # Initialize progress system
     progress_init
 
-    # Check if sudo will be needed
+    # Check if sudo will be needed and acquire it
     if ! check_sudo_requirement; then
         log_error "Cannot proceed without administrator privileges"
         exit 1
-    fi
-
-    # Acquire sudo privileges EARLY if needed
-    if [ "$SUDO_REQUIRED" = "true" ]; then
-        if ! acquire_sudo_early; then
-            log_error "Failed to acquire administrator privileges"
-            exit 1
-        fi
     fi
 
     # Main execution

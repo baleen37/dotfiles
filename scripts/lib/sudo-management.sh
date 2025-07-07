@@ -32,9 +32,20 @@ acquire_sudo_early() {
     # Check if we're in non-interactive environment
     if [ ! -t 0 ]; then
         if command -v log_warning >/dev/null 2>&1; then
-            log_warning "Non-interactive environment - sudo may fail"
+            log_warning "Non-interactive environment - will attempt passwordless sudo"
         fi
-        return 0
+        # Try passwordless sudo first
+        if sudo -n true 2>/dev/null; then
+            if command -v log_success >/dev/null 2>&1; then
+                log_success "Passwordless sudo access confirmed"
+            fi
+            return 0
+        else
+            if command -v log_error >/dev/null 2>&1; then
+                log_error "Passwordless sudo not available - manual sudo execution required"
+            fi
+            return 1
+        fi
     fi
 
     # Simple sudo validation
@@ -109,7 +120,12 @@ check_sudo_requirement() {
         if command -v log_info >/dev/null 2>&1; then
             log_info "System changes will require manual sudo execution"
         fi
-        SUDO_REQUIRED=false
+        # Darwin always requires sudo for system activation, even in non-interactive mode
+        if [ "$PLATFORM_TYPE" = "darwin" ]; then
+            SUDO_REQUIRED=true
+        else
+            SUDO_REQUIRED=false
+        fi
         return 0
     fi
 
@@ -117,6 +133,12 @@ check_sudo_requirement() {
     explain_sudo_requirement
 
     SUDO_REQUIRED=true
+
+    # Acquire sudo immediately to avoid duplicate prompts
+    if ! acquire_sudo_early; then
+        return 1
+    fi
+
     return 0
 }
 

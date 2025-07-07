@@ -15,14 +15,14 @@ in
   ];
 
   nix = {
-    enable = true;  # trusted-users 설정 적용을 위해 활성화
-    package = pkgs.nix;
+    enable = false;  # Determinate Nix와 충돌 방지를 위해 비활성화
+    # package = pkgs.nix;  # Determinate가 관리하므로 비활성화
 
-    gc = {
-      automatic = true;  # nix.enable = true일 때 자동 GC 활성화
-      interval = { Weekday = 0; Hour = 2; Minute = 0; };
-      options = "--delete-older-than 30d";
-    };
+    # gc = {
+    #   automatic = false;  # nix.enable = false일 때 자동 GC 비활성화
+    #   interval = { Weekday = 0; Hour = 2; Minute = 0; };
+    #   options = "--delete-older-than 30d";
+    # };
 
     # nix-community.cachix.org 활용을 위한 trusted-users 설정
     settings = {

@@ -1,7 +1,7 @@
 # CLAUDE.md
 
-> **Last Updated:** 2025-01-06
-> **Version:** 2.0
+> **Last Updated:** 2025-07-07
+> **Version:** 2.1
 > **For:** Claude Code (claude.ai/code)
 
 [... existing content remains unchanged ...]
@@ -44,23 +44,97 @@ nix run #build-switch --verbose
 
 ## Claude Code Limitations & Workarounds
 
-### Root Privilege Requirements
+### System-Level Operations & Privilege Management
 
-`nix run #build-switch` 실행 시 root 권한이 필요하지만 Claude에서는 sudo 명령을 실행할 수 없음.
+Claude Code는 비대화식 환경에서 실행되므로 특별한 권한 처리 전략이 필요합니다.
 
-**해결 방법:**
-1. **코드 분석을 통한 추측**: 빌드 오류 시 `nix build .#darwinConfigurations.aarch64-darwin.system` 명령으로 구체적인 오류 파악
-2. **설정 검증**: nix 평가 단계에서 오류 확인 가능
-3. **사용자 직접 실행**: Claude가 수정한 코드는 사용자가 직접 테스트 필요
+#### Root Privilege Requirements
+
+**Darwin/macOS 특별 요구사항:**
+- `darwin-rebuild switch`는 **항상** root 권한이 필요함
+- `nix run #build-switch` 실행 시 시스템 활성화 단계에서 sudo 필요
+- 비대화식 환경에서도 passwordless sudo 시도 또는 사용자 수동 실행 필요
+
+**Claude의 제약사항:**
+- 대화식 sudo 명령 실행 불가능
+- 패스워드 프롬프트 처리 불가능
+- 시스템 레벨 명령 직접 실행 제한
+
+#### 권한 문제 해결 전략
+
+**1. 코드 분석 우선 접근법**
+```bash
+# 빌드 단계 오류 확인
+nix build .#darwinConfigurations.aarch64-darwin.system --show-trace
+
+# 설정 검증
+nix flake check --show-trace
+
+# 스크립트 로직 분석
+# sudo 관리 로직, 실행 경로, 권한 요구사항 추적
+```
+
+**2. 단계별 진단 프로세스**
+- **Phase 1**: 빌드 vs 스위치 단계 분리 확인
+- **Phase 2**: sudo 요구사항 및 관리 로직 분석
+- **Phase 3**: 플랫폼별 특수 요구사항 식별
+- **Phase 4**: 사용자 수동 실행 가이드 제공
+
+**3. 사용자 가이드 전략**
+- 명확한 수동 실행 지침 제공
+- 오류 예측 및 해결 방법 제시
+- 대안적 접근법 (비특권 진단 도구 활용)
+
+### Debugging in Constrained Environments
+
+Claude는 시스템 명령 실행 제약이 있으므로 특별한 디버깅 전략이 필요합니다.
+
+#### Phase 0: Environment Assessment
+**실행 제약 사항 식별**
+- sudo 권한 필요 여부 확인
+- 대화식 vs 비대화식 환경 구분
+- 플랫폼별 특수 요구사항 파악
+
+#### Enhanced Root Cause Investigation
+**코드 분석 우선 접근법**
+- 직접 실행이 불가능한 경우 코드 경로 추적
+- 설정 파일 및 스크립트 로직 분석
+- 로그 파일 및 오류 메시지 패턴 분석
+
+**실행 제약 하에서의 가설 형성**
+- 코드 분석을 통한 논리적 추론
+- 유사한 패턴 및 기존 구현 참조
+- 플랫폼별 문서 및 요구사항 검토
+
+#### Alternative Diagnostic Approaches
+**비특권 진단 도구**
+- `nix flake check` - 설정 검증
+- `nix build` - 빌드 단계 분리 테스트
+- 스크립트 로직 정적 분석
+- 설정 파일 구문 검사
 
 ### macOS System Configuration Limitations
 
-nix-darwin에서 일부 macOS 시스템 설정은 `system.defaults`에서 직접 지원하지 않음.
-예: `com.apple.HIToolbox.AppleSymbolicHotKeys`
+#### nix-darwin 특수 요구사항
+- `system.defaults`에서 직접 지원하지 않는 설정들
+- 시스템 활성화 스크립트 권한 요구사항
+- 플랫폼별 plist 파일 직접 수정 필요성
 
-**해결 방법:**
-- `system.activationScripts`를 사용하여 Python 스크립트로 plist 파일 직접 수정
-- 빌드 시점에 설정 적용되도록 구현
+**예시: Advanced System Settings**
+```nix
+# com.apple.HIToolbox.AppleSymbolicHotKeys 등
+system.activationScripts.customSettings = {
+  text = ''
+    # Python 스크립트를 통한 plist 직접 수정
+    ${pkgs.python3}/bin/python3 ${./scripts/configure-hotkeys.py}
+  '';
+};
+```
+
+#### 권한 및 시스템 통합 고려사항
+- 빌드 시점 vs 런타임 설정 적용
+- 시스템 무결성 보호(SIP) 제약사항
+- 사용자 세션 vs 시스템 전역 설정
 
 ## Project Context & History Preservation
 
@@ -150,3 +224,91 @@ grep -r "similar_pattern" . --include="*.extension"
   2. **Plan**: 변경 계획을 상세히 수립하고, 예상되는 영향과 컨벤션 준수 방안을 명시합니다.
   3. **Verify**: 변경 적용 후 모든 테스트를 다시 실행하고, 린터, 타입 체커 등 프로젝트의 품질 검사 도구를 실행하여 문제가 없는지 확인합니다.
 - **활용**: 에이전트는 이 사이클을 반복하며 점진적으로 변경사항을 적용하고 검증하여 오류 발생 가능성을 최소화합니다.
+
+## Claude-Specific Debugging Enhancement
+
+### 실행 제약 환경에서의 디버깅 전략
+
+Claude Code의 실행 제약을 고려한 강화된 디버깅 프로세스:
+
+#### Phase 0: Execution Constraint Assessment
+**🚨 CRITICAL**: 실행 전 환경 제약사항 반드시 확인
+- **sudo 권한 요구사항**: 명령이 root 권한이 필요한가?
+- **대화식 환경 필요성**: 사용자 입력이나 프롬프트가 필요한가?
+- **플랫폼별 특수 요구사항**: Darwin vs Linux 등 플랫폼 특화 제약사항
+
+#### Enhanced Investigation Strategies
+
+**Code-First Analysis (실행 불가 시)**
+```bash
+# 1. 정적 분석을 통한 문제 파악
+# - 스크립트 로직 추적
+# - 설정 파일 검증
+# - 의존성 및 경로 확인
+
+# 2. 로그 및 오류 메시지 패턴 분석
+# - 기존 실행 결과 분석
+# - 알려진 오류 패턴 매칭
+# - 공식 문서 및 이슈 트래킹
+
+# 3. 대안적 진단 도구 활용
+nix flake check --show-trace
+nix build .#target --show-trace
+./scripts/check-config
+```
+
+**Think Hard Protocol for Complex Issues**
+1. **코드 경로 완전 추적**: 실행 흐름을 처음부터 끝까지 정적 분석
+2. **조건문 및 분기 분석**: 환경에 따른 다른 실행 경로 확인
+3. **의존성 체인 분석**: 실패 지점까지의 모든 의존성 검토
+4. **유사 사례 패턴 매칭**: 과거 유사한 문제 해결 방법 참조
+
+#### User Guidance Strategy
+
+**명확한 수동 실행 지침**
+- 실행할 정확한 명령어 제공
+- 예상되는 오류 및 해결 방법 사전 설명
+- 대안적 접근 방법 제시
+
+**오류 예측 및 해결 방법**
+- 일반적인 실패 시나리오 사전 식별
+- 각 시나리오별 구체적 해결책 제공
+- 트러블슈팅 단계별 가이드
+
+### Think Hard Mandate for System-Level Issues
+
+**ABSOLUTE REQUIREMENT**: 시스템 레벨 문제 발생 시 반드시 Think Hard 적용
+
+1. **전체 시스템 아키텍처 이해**: 문제 지점이 전체 시스템에서 어떤 역할인지 파악
+2. **의존성 체인 완전 분석**: 실패 지점까지의 모든 구성 요소 검토
+3. **플랫폼별 특수성 고려**: Darwin, Linux 등 플랫폼 특화 요구사항 반영
+4. **코드 분석을 통한 논리적 추론**: 실행 불가 시 정적 분석으로 원인 파악
+
+**금지사항**:
+- 추측에 기반한 임시방편 제안 금지
+- 근본 원인 분석 없는 워크어라운드 금지
+- 불완전한 이해 상태에서의 해결책 제시 금지
+
+---
+
+## Critical Execution Constraints Reminder
+
+**🚨 CLAUDE CODE 실행 환경 제약사항 - 반드시 숙지**
+
+### 환경 제약사항
+- **비대화식 환경**: sudo 패스워드 프롬프트 처리 불가
+- **Darwin 시스템**: `darwin-rebuild switch` 항상 root 권한 필요
+- **시스템 명령 실행 제한**: 권한이 필요한 시스템 레벨 명령 직접 실행 불가
+
+### 대응 전략
+- **시스템 레벨 실패 시**: 코드 분석으로 원인 파악 후 사용자 가이드 제공
+- **Think Hard 의무 적용**: 복잡한 시스템 문제는 반드시 완전한 분석 후 해결책 제시
+- **단계별 진단**: 빌드 vs 스위치 단계 분리, sudo 요구사항 분석, 플랫폼별 특수사항 고려
+
+### 성공 사례 패턴
+오늘의 `build-switch` 문제 해결 과정이 모범 사례:
+1. **실행 실패 → 코드 분석으로 전환**
+2. **sudo 관리 로직 완전 추적**
+3. **비대화식 환경 처리 로직 식별**
+4. **근본 원인 (SUDO_REQUIRED=false) 발견**
+5. **정확한 수정 (플랫폼별 조건 추가) 적용**

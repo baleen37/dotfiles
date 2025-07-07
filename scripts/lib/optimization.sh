@@ -13,14 +13,14 @@ get_optimization_flags() {
     if [ "${CI:-}" = "true" ]; then
         # CI environment: conservative settings
         optimization_flags="$optimization_flags --quiet"
-        log_info "CI optimization flags applied"
+        log_info "CI optimization flags applied" >&2
     elif [ "${DEVELOPMENT:-}" = "true" ]; then
         # Development environment: more verbose for debugging
-        log_info "Development optimization flags applied"
+        log_info "Development optimization flags applied" >&2
     else
         # Production environment: balanced settings
         optimization_flags="$optimization_flags --quiet"
-        log_info "Production optimization flags applied"
+        log_info "Production optimization flags applied" >&2
     fi
 
     echo "$optimization_flags"
