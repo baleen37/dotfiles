@@ -49,6 +49,7 @@ in
     masApps = {
       "magnet" = 441258766;
       "wireguard" = 1451685025;
+      "kakaotalk" = 869223134;
     };
   };
 
