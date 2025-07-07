@@ -14,6 +14,10 @@
     - **Check Git Status**: `git status` to verify current working tree state.
       - **IF Uncommitted Changes**: Ask user what to do (commit, stash, or proceed anyway).
       - **IF User Requests Reset**: Only then perform `git reset --hard origin/main`.
+    - **Update Repository**: Fetch latest changes from remote.
+      - **Fetch Latest**: `git fetch origin main` to get latest remote changes.
+      - **Show Status**: Inform user if local branch is behind, ahead, or up-to-date.
+      - **IF Behind**: Suggest updating with `git pull origin main` or rebasing.
     - **Project Context Discovery**: Understand the project structure and conventions.
       - **Read CLAUDE.md**: Check project-specific instructions and conventions.
       - **Check Recent Commits**: `git log --oneline -10` to understand recent changes.
