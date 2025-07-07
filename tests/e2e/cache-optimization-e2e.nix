@@ -4,14 +4,11 @@
 { pkgs, flake ? null, src }:
 let
   testHelpers = import ../lib/test-helpers.nix { inherit pkgs; };
+in
+testHelpers.createTestScript {
+  name = "cache-optimization-e2e";
 
-  testCacheOptimizationE2E = {
-    name = "cache-optimization-e2e";
-
-    testScript = testHelpers.createTestScript {
-      name = "Cache Optimization End-to-End Tests";
-
-      script = ''
+  script = ''
         set -e
 
         # Test environment setup
@@ -168,9 +165,4 @@ let
         echo "${testHelpers.colors.green}  Cache Optimization E2E Tests: PASSED${testHelpers.colors.reset}"
         echo "${testHelpers.colors.green}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${testHelpers.colors.reset}"
       '';
-    };
-  };
-in
-{
-  inherit testCacheOptimizationE2E;
 }
