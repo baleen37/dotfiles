@@ -11,15 +11,9 @@
 <workflow>
 
   <step name="Environment Setup" number="0">
-    - **Git State Reset**: Always start with a clean state based on the main branch.
-      - **Check Current Status**: `git status` to verify current branch and working tree state.
-      - **Handle Uncommitted Changes**: If there are uncommitted changes:
-        - **Stash Changes**: `git stash push -m "WIP: before issue work"` to save work in progress.
-        - **OR Commit Changes**: If changes are ready, commit them first.
-        - **WARN USER**: Inform about stashed changes that can be restored later with `git stash pop`.
-      - **Reset to Main**: `git reset --hard origin/main` to ensure clean state from main.
-      - **Update**: `git pull origin main` to get the latest changes.
-      - **IF GIT OPERATIONS FAIL**: Report the specific Git error and **STOP**.
+    - **Check Git Status**: `git status` to verify current working tree state.
+      - **IF Uncommitted Changes**: Ask user what to do (commit, stash, or proceed anyway).
+      - **IF User Requests Reset**: Only then perform `git reset --hard origin/main`.
     - **Project Context Discovery**: Understand the project structure and conventions.
       - **Read CLAUDE.md**: Check project-specific instructions and conventions.
       - **Check Recent Commits**: `git log --oneline -10` to understand recent changes.
