@@ -58,6 +58,8 @@ let
     build_time = import ./performance/build-time-perf.nix { inherit pkgs flake; src = ../.; };
     resource_usage = import ./performance/resource-usage-perf.nix { inherit pkgs flake; src = ../.; };
     build_parallelization_perf = import ./performance/build-parallelization-perf.nix { inherit pkgs; };
+    build_switch_perf = import ./performance/build-switch-perf.nix { inherit pkgs flake; src = ../.; };
+    parallel_processing_perf = import ./performance/parallel-processing-perf.nix { inherit pkgs flake; src = ../.; };
   };
 
   # Combine all tests
