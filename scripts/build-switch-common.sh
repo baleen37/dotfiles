@@ -39,6 +39,5 @@ fi
 . "$LIB_DIR/sudo-management.sh"
 . "$LIB_DIR/build-logic.sh"
 
-# Execute main build-switch logic
-# This is the entry point that platform-specific scripts will call
-execute_build_switch "$@"
+# Main build-switch logic loaded
+# Platform-specific scripts will call execute_build_switch directly

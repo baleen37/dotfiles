@@ -102,7 +102,7 @@ detect_optimal_jobs() {
             # Use P-cores + some E-cores for optimal performance
             CORES=$(( P_CORES + (E_CORES / 2) ))
             if command -v log_info >/dev/null 2>&1; then
-                log_info "Apple Silicon detected: P-cores=$P_CORES, E-cores=$E_CORES, using $CORES cores"
+                log_info "Apple Silicon detected: P-cores=$P_CORES, E-cores=$E_CORES, using $CORES cores" >&2
             fi
         fi
     fi
