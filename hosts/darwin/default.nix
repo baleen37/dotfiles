@@ -15,11 +15,11 @@ in
   ];
 
   nix = {
-    enable = false;  # Determinate Nix가 nix 설정 관리
+    enable = true;  # trusted-users 설정 적용을 위해 활성화
     package = pkgs.nix;
 
     gc = {
-      automatic = false;  # nix.enable = false일 때는 자동 GC 비활성화
+      automatic = true;  # nix.enable = true일 때 자동 GC 활성화
       interval = { Weekday = 0; Hour = 2; Minute = 0; };
       options = "--delete-older-than 30d";
     };
