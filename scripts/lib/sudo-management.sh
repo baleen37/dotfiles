@@ -136,7 +136,14 @@ check_sudo_requirement() {
 
     # Acquire sudo immediately to avoid duplicate prompts
     if ! acquire_sudo_early; then
-        return 1
+        if [ "$PLATFORM_TYPE" = "darwin" ]; then
+            # For Darwin, continue without sudo but warn
+            log_warning "Administrator privileges not available - build will continue, switch will require manual execution"
+            SUDO_REQUIRED=false
+            return 0
+        else
+            return 1
+        fi
     fi
 
     return 0
@@ -182,6 +189,7 @@ keep_sudo_session_alive() {
 
 # Start background daemon to refresh sudo session
 start_sudo_refresh_daemon() {
+    # Only start daemon in interactive environments where sudo was actually acquired
     if [ "$SUDO_REQUIRED" = "true" ] && [ -t 0 ]; then
         # Ensure no existing daemon is running
         stop_sudo_refresh_daemon
@@ -231,14 +239,20 @@ stop_sudo_refresh_daemon() {
             # Send TERM signal first for graceful shutdown
             kill -TERM "$SUDO_REFRESH_PID" 2>/dev/null || true
 
-            # Wait briefly for graceful shutdown
-            sleep 1
+            # Wait longer for graceful shutdown
+            local wait_count=0
+            while [ $wait_count -lt 5 ] && kill -0 "$SUDO_REFRESH_PID" 2>/dev/null; do
+                sleep 0.5
+                wait_count=$((wait_count + 1))
+            done
 
-            # Force kill if still running
+            # Only force kill if absolutely necessary
             if kill -0 "$SUDO_REFRESH_PID" 2>/dev/null; then
                 kill -KILL "$SUDO_REFRESH_PID" 2>/dev/null || true
+                # Suppress the "Killed: 9" message by redirecting to null
+                wait "$SUDO_REFRESH_PID" 2>/dev/null || true
                 if command -v log_debug >/dev/null 2>&1; then
-                    log_debug "Sudo refresh daemon force-killed"
+                    log_debug "Sudo refresh daemon force-killed" >&2
                 fi
             fi
 
