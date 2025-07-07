@@ -30,14 +30,14 @@ run_build() {
 
 
     if [ "$VERBOSE" = "true" ]; then
-        nix --extra-experimental-features 'nix-command flakes' build $BUILD_OPTIMIZATION_FLAGS --max-jobs "$JOBS" --cores 0 .#$FLAKE_SYSTEM "$@" || {
+        nix --extra-experimental-features 'nix-command flakes' build $BUILD_OPTIMIZATION_FLAGS --impure --no-warn-dirty --max-jobs "$JOBS" --cores 0 .#$FLAKE_SYSTEM "$@" || {
             progress_stop
             log_error "Build failed"
             log_footer "failed"
             exit 1
         }
     else
-        nix --extra-experimental-features 'nix-command flakes' build $BUILD_OPTIMIZATION_FLAGS --max-jobs "$JOBS" --cores 0 .#$FLAKE_SYSTEM "$@" 2>/dev/null || {
+        nix --extra-experimental-features 'nix-command flakes' build $BUILD_OPTIMIZATION_FLAGS --impure --no-warn-dirty --max-jobs "$JOBS" --cores 0 .#$FLAKE_SYSTEM "$@" 2>/dev/null || {
             progress_stop
             log_error "Build failed. Run with --verbose for details"
             log_footer "failed"
