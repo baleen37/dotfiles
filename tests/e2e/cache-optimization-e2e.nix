@@ -1,9 +1,9 @@
 # Cache Optimization End-to-End Tests
 # Tests complete build-switch process with cache optimization
 
-{ pkgs, lib, config, ... }:
+{ pkgs, flake ? null, src }:
 let
-  testHelpers = import ../test-helpers.nix { inherit pkgs lib; };
+  testHelpers = import ../lib/test-helpers.nix { inherit pkgs; };
 
   testCacheOptimizationE2E = {
     name = "cache-optimization-e2e";
@@ -31,9 +31,9 @@ let
         rm -f "$TEST_STAT_FILE"
 
         # Source all required modules
-        . ${config.build.scriptPath}/lib/logging.sh
-        . ${config.build.scriptPath}/lib/performance.sh
-        . ${config.build.scriptPath}/lib/cache-management.sh
+        . ${src}/scripts/lib/logging.sh
+        . ${src}/scripts/lib/performance.sh
+        . ${src}/scripts/lib/cache-management.sh
 
         # Set up test environment variables
         export SYSTEM_TYPE="test-system"

@@ -23,7 +23,7 @@ let
     build_script_build_logic_unit = import ./unit/build-script-build-logic-unit.nix { inherit pkgs; };
     build_script_modularization_integration = import ./unit/build-script-modularization-integration.nix { inherit pkgs; };
 
-    # Cache management tests
+    # Cache management tests (Issue #287)
     cache_management_unit = import ./unit/cache-management-unit.nix { inherit pkgs; };
 
     # Apply script deduplication tests (TDD - Issue #301)

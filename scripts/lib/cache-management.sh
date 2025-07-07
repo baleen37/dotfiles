@@ -169,7 +169,7 @@ configure_cache_settings() {
 
     # Set binary caches if not already configured
     local current_caches
-    current_caches=$(nix show-config | grep "binary-caches" | cut -d'=' -f2 | tr -d ' ')
+    current_caches=$(nix config show 2>/dev/null | grep "binary-caches" | cut -d'=' -f2 | tr -d ' ' || echo "")
 
     # Check if our optimized caches are already configured
     local needs_config=false
