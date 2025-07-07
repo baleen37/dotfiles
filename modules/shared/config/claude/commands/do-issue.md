@@ -13,9 +13,8 @@
   <step name="Environment Setup" number="0">
     - **Git State Reset**: Always start with a clean state based on the main branch.
       - **Check Current Status**: `git status` to verify current branch and working tree state.
-      - **Switch to Main**: `git checkout main` to ensure working from the main branch.
-      - **Update Main**: `git pull origin main` to get the latest changes.
-      - **Clean Reset**: If needed, `git reset --hard origin/main` to ensure clean state.
+      - **Reset to Main**: `git reset --hard origin/main` to ensure clean state from main.
+      - **Update**: `git pull origin main` to get the latest changes.
       - **IF GIT OPERATIONS FAIL**: Report the specific Git error and **STOP**.
     - **Project Context Discovery**: Understand the project structure and conventions.
       - **Read CLAUDE.md**: Check project-specific instructions and conventions.
