@@ -47,8 +47,14 @@ let
     # Verify Default profile exists
     ${testHelpers.assertContains "profile-names.txt" "Default" "Default profile exists"}
 
-    # Verify Development profile exists
-    ${testHelpers.assertContains "profile-names.txt" "Development" "Development profile exists"}
+    # Only Default profile should exist now
+    PROFILE_COUNT=$(wc -l < profile-names.txt)
+    if [ "$PROFILE_COUNT" -eq 1 ]; then
+      echo "✓ Only Default profile exists (as expected)"
+    else
+      echo "✗ Expected only 1 profile, got $PROFILE_COUNT"
+      exit 1
+    fi
 
     # Test Default profile structure
     DEFAULT_PROFILE=$(cat $SOURCE_CONFIG | ${pkgs.jq}/bin/jq '.Profiles[] | select(.Name=="Default")')
@@ -62,27 +68,14 @@ let
 
     echo "✓ Default profile structure is valid"
 
-    # Test Development profile structure
-    DEV_PROFILE=$(cat $SOURCE_CONFIG | ${pkgs.jq}/bin/jq '.Profiles[] | select(.Name=="Development")')
-
-    # Check required fields for Development profile
-    echo "$DEV_PROFILE" | ${pkgs.jq}/bin/jq -e '.Guid' > /dev/null || { echo "✗ Development profile missing Guid"; exit 1; }
-    echo "$DEV_PROFILE" | ${pkgs.jq}/bin/jq -e '.Name' > /dev/null || { echo "✗ Development profile missing Name"; exit 1; }
-    echo "$DEV_PROFILE" | ${pkgs.jq}/bin/jq -e '."Badge Text"' > /dev/null || { echo "✗ Development profile missing Badge Text"; exit 1; }
-    echo "$DEV_PROFILE" | ${pkgs.jq}/bin/jq -e '."Working Directory"' > /dev/null || { echo "✗ Development profile missing Working Directory"; exit 1; }
-
-    # Verify Development profile has larger dimensions
-    DEV_ROWS=$(echo "$DEV_PROFILE" | ${pkgs.jq}/bin/jq -r '.Rows')
-    DEV_COLS=$(echo "$DEV_PROFILE" | ${pkgs.jq}/bin/jq -r '.Columns')
-
-    if [ "$DEV_ROWS" -gt 25 ] && [ "$DEV_COLS" -gt 80 ]; then
-      echo "✓ Development profile has larger dimensions ($DEV_COLS x $DEV_ROWS)"
+    # Verify only Default profile exists
+    TOTAL_PROFILES=$(cat $SOURCE_CONFIG | ${pkgs.jq}/bin/jq '.Profiles | length')
+    if [ "$TOTAL_PROFILES" -eq 1 ]; then
+      echo "✓ Configuration contains exactly 1 profile (Default only)"
     else
-      echo "✗ Development profile should have larger dimensions than Default"
+      echo "✗ Expected exactly 1 profile, got $TOTAL_PROFILES"
       exit 1
     fi
-
-    echo "✓ Development profile structure is valid"
 
     # Clean up
     rm -f profile-names.txt
@@ -129,30 +122,29 @@ let
       exit 1
     fi
 
-    # Test Development profile scrollback is larger
-    DEV_SCROLLBACK=$(cat $SOURCE_CONFIG | ${pkgs.jq}/bin/jq -r '.Profiles[] | select(.Name=="Development") | ."Scrollback Lines"')
-    if [ "$DEV_SCROLLBACK" -gt "$SCROLLBACK" ]; then
-      echo "✓ Development profile has larger scrollback ($DEV_SCROLLBACK lines)"
+    # Test Default profile has reasonable scrollback
+    if [ "$SCROLLBACK" -eq 10000 ]; then
+      echo "✓ Default profile has expected scrollback (10000 lines)"
     else
-      echo "✗ Development profile should have larger scrollback than Default"
+      echo "✗ Default profile should have 10000 scrollback lines, got: $SCROLLBACK"
       exit 1
     fi
 
-    # Test that Development profile has badge text
-    DEV_BADGE=$(cat $SOURCE_CONFIG | ${pkgs.jq}/bin/jq -r '.Profiles[] | select(.Name=="Development") | ."Badge Text"')
-    if [ -n "$DEV_BADGE" ] && [ "$DEV_BADGE" != "null" ]; then
-      echo "✓ Development profile has badge text: $DEV_BADGE"
+    # Test that Default profile has empty badge text
+    DEFAULT_BADGE=$(cat $SOURCE_CONFIG | ${pkgs.jq}/bin/jq -r '.Profiles[] | select(.Name=="Default") | ."Badge Text"')
+    if [ "$DEFAULT_BADGE" = "" ]; then
+      echo "✓ Default profile has empty badge text (as expected)"
     else
-      echo "✗ Development profile should have badge text"
+      echo "✗ Default profile should have empty badge text, got: $DEFAULT_BADGE"
       exit 1
     fi
 
-    # Test that Development profile has custom working directory
-    DEV_WORKDIR=$(cat $SOURCE_CONFIG | ${pkgs.jq}/bin/jq -r '.Profiles[] | select(.Name=="Development") | ."Working Directory"')
-    if [ "$DEV_WORKDIR" != "~" ]; then
-      echo "✓ Development profile has custom working directory: $DEV_WORKDIR"
+    # Test that Default profile has home working directory
+    DEFAULT_WORKDIR=$(cat $SOURCE_CONFIG | ${pkgs.jq}/bin/jq -r '.Profiles[] | select(.Name=="Default") | ."Working Directory"')
+    if [ "$DEFAULT_WORKDIR" = "~" ]; then
+      echo "✓ Default profile has home working directory: $DEFAULT_WORKDIR"
     else
-      echo "✗ Development profile should have custom working directory"
+      echo "✗ Default profile should have home working directory, got: $DEFAULT_WORKDIR"
       exit 1
     fi
 
@@ -165,8 +157,8 @@ let
 
     SOURCE_CONFIG="${../../modules/darwin/config/iterm2/DynamicProfiles.json}"
 
-    # Test that all profiles have color configurations
-    for profile in "Default" "Development"; do
+    # Test that Default profile has color configurations
+    for profile in "Default"; do
       echo "Testing color scheme for $profile profile..."
 
       PROFILE_DATA=$(cat $SOURCE_CONFIG | ${pkgs.jq}/bin/jq ".Profiles[] | select(.Name==\"$profile\")")
@@ -194,8 +186,8 @@ let
 
     SOURCE_CONFIG="${../../modules/darwin/config/iterm2/DynamicProfiles.json}"
 
-    # Test that profiles have keyboard mappings
-    for profile in "Default" "Development"; do
+    # Test that Default profile has keyboard mappings
+    for profile in "Default"; do
       echo "Testing keyboard mappings for $profile profile..."
 
       PROFILE_DATA=$(cat $SOURCE_CONFIG | ${pkgs.jq}/bin/jq ".Profiles[] | select(.Name==\"$profile\")")
