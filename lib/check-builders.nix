@@ -30,6 +30,7 @@ in
           "unified_user_resolution" "user_path_consistency"
           "build_switch_improved_unit" "sudo_security_test"
           "sudo_session_persistence_test" "precommit_ci_consistency"
+          "keyboard_input_settings_test" "keyboard_input_settings_nix_test"
         ]
       ) testSuite;
 
