@@ -8,7 +8,6 @@ _:
 
   # Communication Tools
   "discord"
-  "kakaotalk"
   "notion"
   "slack"
   "telegram"
