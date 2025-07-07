@@ -29,6 +29,7 @@ in
           "flake_structure" "configuration_validation" "user_resolution"
           "unified_user_resolution" "user_path_consistency"
           "build_switch_improved_unit" "sudo_security_test"
+          "precommit_ci_consistency"
         ]
       ) testSuite;
 
