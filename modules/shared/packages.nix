@@ -34,6 +34,7 @@ with pkgs; let
     gnumake       # GNU make build automation tool
     cmake         # Cross-platform build system generator
     home-manager  # Nix-based user environment management
+    vscode        # Visual Studio Code editor
   ];
 
   # Cloud and containerization tools
