@@ -136,10 +136,16 @@ pkgs.runCommand "resource-usage-perf-test"
     echo "${testHelpers.colors.yellow}⚠${testHelpers.colors.reset} Potential file descriptor leak (before: $BEFORE_FD_COUNT, after: $AFTER_FD_COUNT)"
   fi
 
-  # Test 4: Build cache efficiency
-  ${testHelpers.testSubsection "Build Cache Efficiency"}
+  # Test 4: Build cache efficiency and optimization
+  ${testHelpers.testSubsection "Build Cache Efficiency and Optimization"}
 
-  echo "${testHelpers.colors.blue}Testing build cache efficiency${testHelpers.colors.reset}"
+  echo "${testHelpers.colors.blue}Testing build cache efficiency and optimization features${testHelpers.colors.reset}"
+
+  # Source cache management module for testing
+  . ${config.build.scriptPath}/lib/cache-management.sh
+
+  # Initialize cache statistics
+  init_cache_stats
 
   # Test cold build performance
   if [ -d "$HOME/.cache/nix" ]; then
@@ -153,13 +159,44 @@ pkgs.runCommand "resource-usage-perf-test"
 
   echo "${testHelpers.colors.blue}Cold evaluation time: ''${COLD_DURATION}s${testHelpers.colors.reset}"
 
-  # Test warm build performance
+  # Test cache optimization
+  configure_cache_settings
+  if [ -n "$NIX_CACHE_OPTIONS" ]; then
+    echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Cache optimization settings configured"
+  else
+    echo "${testHelpers.colors.yellow}⚠${testHelpers.colors.reset} Cache settings already optimal"
+  fi
+
+  # Test warm build performance with optimization
   WARM_START_TIME=$(date +%s)
-  nix eval --impure '.#'$CONFIG_PATH'.'$ATTR_PATH >/dev/null 2>&1 || true
+  BASE_CMD="nix eval --impure '.#'$CONFIG_PATH'.'$ATTR_PATH"
+  OPTIMIZED_CMD=$(get_optimized_nix_command "$BASE_CMD")
+  eval "$OPTIMIZED_CMD >/dev/null 2>&1 || true"
   WARM_END_TIME=$(date +%s)
   WARM_DURATION=$((WARM_END_TIME - WARM_START_TIME))
 
-  echo "${testHelpers.colors.blue}Warm evaluation time: ''${WARM_DURATION}s${testHelpers.colors.reset}"
+  echo "${testHelpers.colors.blue}Warm evaluation time (optimized): ''${WARM_DURATION}s${testHelpers.colors.reset}"
+
+  # Update cache statistics
+  if [ "$WARM_DURATION" -lt "$COLD_DURATION" ]; then
+    update_cache_stats "true"
+  else
+    update_cache_stats "false"
+  fi
+
+  # Test cache size detection
+  CACHE_SIZE=$(get_cache_size)
+  echo "${testHelpers.colors.blue}Current cache size: ''${CACHE_SIZE}MB${testHelpers.colors.reset}"
+
+  # Test cache cleanup logic
+  if needs_cache_cleanup; then
+    echo "${testHelpers.colors.blue}Cache cleanup recommended${testHelpers.colors.reset}"
+  else
+    echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Cache size is optimal"
+  fi
+
+  # Display cache statistics
+  show_cache_stats
 
   # Cache should improve performance
   if [ "$WARM_DURATION" -le "$COLD_DURATION" ]; then
