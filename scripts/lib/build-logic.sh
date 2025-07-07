@@ -1,6 +1,11 @@
 #!/bin/sh
 # Build Logic Module for Build Scripts
 # Contains core build, switch, and orchestration functions
+#
+# Performance Optimizations (TDD Cycle 1.1):
+# - Integrated optimization module for dynamic flag management
+# - Added eval-cache support for faster evaluation
+# - Modularized optimization settings for better maintainability
 
 # Execute nix build with parallelization
 run_build() {
@@ -16,18 +21,22 @@ run_build() {
     JOBS=$(detect_optimal_jobs)
     log_info "Using ${JOBS} parallel jobs for build"
 
+    # Get optimized build flags
+    BUILD_OPTIMIZATION_FLAGS=$(get_build_optimization_flags)
+    log_info "Using optimization flags: $BUILD_OPTIMIZATION_FLAGS"
+
     # Start progress indicator
     progress_start "시스템 구성 빌드" "$(progress_estimate_time build)"
 
     if [ "$VERBOSE" = "true" ]; then
-        nix --extra-experimental-features 'nix-command flakes' build --impure --no-warn-dirty --max-jobs "$JOBS" --cores 0 .#$FLAKE_SYSTEM "$@" || {
+        nix --extra-experimental-features 'nix-command flakes' build $BUILD_OPTIMIZATION_FLAGS --max-jobs "$JOBS" --cores 0 .#$FLAKE_SYSTEM "$@" || {
             progress_stop
             log_error "Build failed"
             log_footer "failed"
             exit 1
         }
     else
-        nix --extra-experimental-features 'nix-command flakes' build --impure --no-warn-dirty --max-jobs "$JOBS" --cores 0 .#$FLAKE_SYSTEM "$@" 2>/dev/null || {
+        nix --extra-experimental-features 'nix-command flakes' build $BUILD_OPTIMIZATION_FLAGS --max-jobs "$JOBS" --cores 0 .#$FLAKE_SYSTEM "$@" 2>/dev/null || {
             progress_stop
             log_error "Build failed. Run with --verbose for details"
             log_footer "failed"

@@ -24,11 +24,18 @@ done
 
 # Get script directory for module loading
 SCRIPT_DIR="$(dirname "$0")"
-LIB_DIR="$SCRIPT_DIR/lib"
+# Determine if we're being called from an app (contains PROJECT_ROOT) or directly
+if [ -n "${PROJECT_ROOT:-}" ]; then
+    LIB_DIR="$PROJECT_ROOT/scripts/lib"
+else
+    LIB_DIR="$SCRIPT_DIR/lib"
+fi
 
 # Load all modules
 . "$LIB_DIR/logging.sh"
 . "$LIB_DIR/performance.sh"
+. "$LIB_DIR/progress.sh"
+. "$LIB_DIR/optimization.sh"
 . "$LIB_DIR/sudo-management.sh"
 . "$LIB_DIR/build-logic.sh"
 
