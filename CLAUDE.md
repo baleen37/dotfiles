@@ -35,11 +35,29 @@
 # 1. 구성 검증
 ./scripts/check-config
 
-# 2. 변경사항 적용
+# 2. build-switch 헬스 체크 (Issue #367 방지)
+./scripts/test-build-switch-health
+
+# 3. 변경사항 적용
 nix run #build-switch
 
-# 3. 문제 발생 시 상세 로그 확인
+# 4. 문제 발생 시 상세 로그 확인
 nix run #build-switch --verbose
+```
+
+### Testing Build-Switch Reliability
+
+Issue #367에서 발생한 문제들을 방지하기 위한 테스트 시스템:
+
+```bash
+# 1. 단위 테스트: Claude Code 환경 특화 테스트
+nix build .#checks.aarch64-darwin.build_switch_claude_code_environment_test
+
+# 2. 통합 테스트: 전체 워크플로우 검증
+nix build .#checks.aarch64-darwin.build_switch_workflow_integration_test
+
+# 3. 헬스 체크: 실시간 상태 모니터링
+./scripts/test-build-switch-health
 ```
 
 ## Claude Code Limitations & Workarounds

@@ -31,6 +31,7 @@ in
           "build_switch_improved_unit" "sudo_security_test"
           "sudo_session_persistence_test" "precommit_ci_consistency"
           "keyboard_input_settings_test" "keyboard_input_settings_nix_test"
+          "build_switch_claude_code_environment_test"
         ]
       ) testSuite;
 
@@ -38,6 +39,7 @@ in
         builtins.elem name [
           "system_build" "system_deployment" "complete_workflow"
           "claude_config_workflow" "build_switch_workflow"
+          "build_switch_workflow_integration_test"
         ]
       ) testSuite;
 

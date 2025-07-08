@@ -44,6 +44,9 @@ let
     keyboard_input_settings_test = import ./unit/keyboard-input-settings-test.nix { inherit pkgs; lib = pkgs.lib; };
     keyboard_input_settings_nix_test = import ./unit/keyboard-input-settings-nix-test.nix { inherit pkgs; lib = pkgs.lib; };
 
+    # Build-switch Claude Code environment tests (simplified)
+    build_switch_claude_code_environment_test = import ./unit/build-switch-claude-code-environment-test-simple.nix { inherit pkgs; lib = pkgs.lib; src = ../.; };
+
     # Essential integrations (only active tests)
     user_path_consistency = import ./integration/test-user-path-consistency.nix { inherit pkgs; lib = pkgs.lib; };
     build_parallelization_integration = import ./integration/build-parallelization-integration.nix { inherit pkgs; };
@@ -64,6 +67,9 @@ let
 
     # Cache optimization workflow (Issue #287)
     cache_optimization_e2e = import ./e2e/cache-optimization-e2e.nix { inherit pkgs flake; src = ../.; };
+
+    # Build-switch workflow integration test
+    build_switch_workflow_integration_test = import ./integration/build-switch-workflow-integration-test.nix { inherit pkgs; lib = pkgs.lib; src = ../.; };
   };
 
   # Performance tests - Build time and resource usage
