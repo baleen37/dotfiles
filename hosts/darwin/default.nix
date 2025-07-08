@@ -86,7 +86,7 @@ in
 
       # 한영키 전환을 Shift+Cmd+Space로 설정 (Nix 구현)
       ${(import ../../lib/keyboard-input-settings.nix { inherit pkgs lib; }).activationScript}
-      
+
       # Trackpad Speed 설정 (실제 tracking speed 제어)
       echo "Setting trackpad speed to maximum..."
       defaults write com.apple.AppleMultitouchTrackpad TrackpadSpeed -int 5
