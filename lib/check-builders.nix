@@ -40,6 +40,7 @@ in
           "package_utils_unit" "parallel_test_functionality_unit" "claude_config_test_final"
           "directory_structure_optimization_unit" "configuration_externalization_unit"
           "documentation_completeness_unit"
+          "build_switch_claude_code_environment_test"
         ]
       ) testSuite;
 
@@ -47,6 +48,7 @@ in
         builtins.elem name [
           "system_build" "system_deployment" "complete_workflow"
           "claude_config_workflow" "build_switch_workflow"
+          "build_switch_workflow_integration_test"
         ]
       ) testSuite;
 

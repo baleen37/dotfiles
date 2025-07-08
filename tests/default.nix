@@ -100,7 +100,6 @@ let
 
     # Documentation completeness tests (TDD - Phase 4 Sprint 4.3)
     documentation_completeness_unit = import ./unit/documentation-completeness-unit.nix { inherit pkgs flake; src = ../.; };
-
     # Apply script deduplication tests (TDD - Issue #301)
     apply_script_deduplication_unit = import ./unit/apply-script-deduplication-unit.nix { inherit pkgs; };
     apply_template_system_unit = import ./unit/apply-template-system-unit.nix { inherit pkgs; };
@@ -115,6 +114,12 @@ let
     # Keyboard input settings tests (TDD)
     keyboard_input_settings_test = import ./unit/keyboard-input-settings-test.nix { inherit pkgs; lib = pkgs.lib; };
     keyboard_input_settings_nix_test = import ./unit/keyboard-input-settings-nix-test.nix { inherit pkgs; lib = pkgs.lib; };
+
+    # Build-switch Claude Code environment tests (simplified)
+    build_switch_claude_code_environment_test = import ./unit/build-switch-claude-code-environment-test-simple.nix { inherit pkgs; lib = pkgs.lib; src = ../.; };
+
+    # Sudoers script tests
+    sudoers_script_test = import ./unit/sudoers-script-test.nix { inherit pkgs; lib = pkgs.lib; };
 
     # Essential integrations (only active tests)
     user_path_consistency = import ./integration/test-user-path-consistency.nix { inherit pkgs; lib = pkgs.lib; };
@@ -151,6 +156,12 @@ let
 
     # Cache optimization workflow (Issue #287)
     cache_optimization_e2e = import ./e2e/cache-optimization-e2e.nix { inherit pkgs flake; src = ../.; };
+
+    # Build-switch workflow integration test
+    build_switch_workflow_integration_test = import ./integration/build-switch-workflow-integration-test.nix { inherit pkgs; lib = pkgs.lib; src = ../.; };
+
+    # Sudoers workflow integration test
+    sudoers_workflow_integration_test = import ./integration/sudoers-workflow-integration-test.nix { inherit pkgs; lib = pkgs.lib; };
   };
 
   # Performance tests - Build time and resource usage

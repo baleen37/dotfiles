@@ -61,6 +61,7 @@ This document outlines the core principles, rules, and guidelines for the Claude
 - YOU MUST NEVER make code changes unrelated to your current task. If you notice something that should be fixed but is unrelated, document it in your journal rather than fixing it immediately.
 - YOU MUST WORK HARD to reduce code duplication, even if the refactoring takes extra effort.
 - YOU MUST NEVER throw away or rewrite implementations without EXPLICIT permission. If you're considering this, YOU MUST STOP and ask first.
+- **Refactoring Naming Convention**: When refactoring, you MUST NOT create new files with suffixes or prefixes that indicate a new version or a refactored state (e.g., `_new`, `_v2`, `Refactored`, `_old`, `_backup`). Instead, refactor the existing file in place, ensuring the new code directly replaces the old. This prevents the creation of legacy files and maintains a clean codebase.
 - YOU MUST get Jito's explicit approval before implementing ANY backward compatibility.
 - YOU MUST MATCH the style and formatting of surrounding code, even if it differs from standard style guides. Consistency within a file trumps external standards.
 - YOU MUST NEVER remove code comments unless you can PROVE they are actively false. Comments are important documentation and must be preserved.

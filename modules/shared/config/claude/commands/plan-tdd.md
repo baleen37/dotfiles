@@ -32,34 +32,51 @@ This phase involves iterative cycles of writing a failing test, making it pass, 
 
 ### 4.1. Red: Write a Failing Test
 
-*   **Write Test:** Create a new test case that specifically targets the smallest piece of functionality identified in the plan.
+*   **Write Test:** Create the *smallest possible* new test case that specifically targets the *single, smallest piece of functionality* identified in the plan.
 *   **Ensure Failure:** Run the tests and confirm that the newly added test fails. This confirms the test is correctly written and the functionality does not yet exist.
 *   **Checkpoint:** Confirm the new test fails for the expected reason.
 
 ### 4.2. Green: Write Just Enough Code to Pass
 
-*   **Implement Minimal Solution:** Write *only* the necessary code to make the failing test pass. Do not add extra functionality.
+*   **Implement Minimal Solution:** Write *only* the absolutely necessary code to make the failing test pass. Do not add *any* extra functionality, even if you anticipate needing it later.
 *   **Run Tests:** Run all tests (including the new one) and ensure they all pass.
 *   **Checkpoint:** Confirm all tests pass after the minimal implementation.
 
 ### 4.3. Refactor: Improve Code Quality
 
 *   **Refactor Code:** Improve the design, readability, and maintainability of the code without changing its external behavior. This includes removing duplication, simplifying logic, and adhering to coding standards.
+    *   **CRITICAL: Dead Code Prohibition**: Actively identify and remove any dead code introduced during the Green phase or existing in the refactored area. Refer to `CLAUDE.md`'s `DEADCODE PROHIBITION` for details.
+    *   **CRITICAL: File Naming/Creation**: Do NOT rename existing files or create new files with suffixes like `Refactored`, `New`, `V2`, `_old`, `_backup`, etc. Refactor in place.
 *   **Run Tests:** Run all tests again to ensure that refactoring has not introduced any regressions.
-*   **Checkpoint:** Confirm all tests still pass after refactoring.
+*   **Checkpoint:** Confirm all tests still pass after refactoring and no dead code or improperly named files remain.
 
-### 4.4. Iterate
+### 4.4. Handling Test Failures (During Red-Green-Refactor)
+*   **CRITICAL: If a test does not behave as expected (e.g., does not fail in Red, does not pass in Green, or fails after Refactoring):**
+    *   **STOP IMMEDIATELY.** Do NOT proceed with any further implementation or refactoring.
+    *   **Think Hard & Find the Root Cause**: This is a critical juncture. Do not apply quick fixes or workarounds. Your primary goal is to understand *why* the test is failing or not behaving as expected.
+    *   **Debugging Protocol**:
+        1.  **Review Test Output**: Carefully examine the full test output, including stack traces and error messages.
+        2.  **Inspect Recent Changes**: Use `git diff` to review your most recent code changes.
+        3.  **Isolate the Problem**: If possible, simplify the test case or the code under test to pinpoint the exact source of the issue.
+        4.  **Consult CLAUDE.md Debugging Process**: Systematically apply the debugging framework outlined in the `<debugging_process>` section of `CLAUDE.md`. This includes reproducing consistently, checking recent changes, asking "WHY" repeatedly, and forming/testing hypotheses.
+    *   **Resolution**: You MUST resolve the underlying issue and ensure the test behaves correctly (failing in Red, passing in Green/Refactor) before attempting to move to the next step in the TDD cycle.
+
+### 4.5. Iterate
 
 *   Repeat steps 4.1 to 4.3 for the next smallest piece of functionality until the entire feature is implemented.
 
 ## 5. Verify and Test (Continuous Integration)
 
 *   **Run All Tests:** Execute the project's entire test suite to ensure no regressions have been introduced throughout the TDD cycles.
+    *   **ACTION:** Identify the project's test command by checking `package.json` scripts, `Makefile`, `README.md`, or common test runners (e.g., `npm test`, `pytest`, `go test ./...`). Run it and report the outcome.
 *   **Linting and Formatting:** Run linters and formatters to ensure code quality and consistency.
+    *   **ACTION:** Identify the project's linting and formatting commands by checking `package.json` scripts, `Makefile`, `README.md`, or common linters (e.g., `npm run lint`, `black .`, `ruff check .`). Run them and report the outcome.
 *   **Manual Verification:** If necessary, perform manual checks to confirm the changes work as expected.
 *   **Checkpoint:** Confirm that the entire test suite passes and all code quality checks are met.
 
 ## 6. Commit and Finalize
+
+## 7. Final Task Completion Check
 
 *   **Review Changes:** Use `git status` and `git diff` to review the modifications.
 *   **Stage and Commit:** Use `git add` and `git commit` with a clear and descriptive commit message that follows the project's conventions. Commits should ideally reflect completed Red-Green-Refactor cycles.

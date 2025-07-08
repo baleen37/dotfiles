@@ -119,7 +119,6 @@ load_platform_build_overrides() {
             ;;
     esac
 }
-
 # Main initialization function to be called by build scripts
 init_platform() {
     initialize_platform_interface "$@"
