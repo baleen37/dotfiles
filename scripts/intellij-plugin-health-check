@@ -1,0 +1,272 @@
+#!/usr/bin/env bash
+
+# IntelliJ IDEA 플러그인 호환성 확인 및 수정 스크립트
+# 이 스크립트는 IntelliJ IDEA 플러그인 호환성 문제를 감지하고 해결합니다.
+
+set -euo pipefail
+
+# 색상 정의
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# 로깅 함수들
+log_info() {
+    echo -e "${BLUE}[INFO]${NC} $1"
+}
+
+log_success() {
+    echo -e "${GREEN}[SUCCESS]${NC} $1"
+}
+
+log_warning() {
+    echo -e "${YELLOW}[WARNING]${NC} $1"
+}
+
+log_error() {
+    echo -e "${RED}[ERROR]${NC} $1"
+}
+
+# IntelliJ IDEA 설치 경로 감지
+detect_intellij_paths() {
+    local paths=(
+        "/Applications/IntelliJ IDEA.app"
+        "/Applications/IntelliJ IDEA Community Edition.app"
+        "$HOME/Applications/IntelliJ IDEA.app"
+        "$HOME/Applications/IntelliJ IDEA Community Edition.app"
+    )
+
+    for path in "${paths[@]}"; do
+        if [[ -d "$path" ]]; then
+            echo "$path"
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+# IntelliJ IDEA 버전 확인
+get_intellij_version() {
+    local app_path="$1"
+    local info_plist="$app_path/Contents/Info.plist"
+
+    if [[ -f "$info_plist" ]]; then
+        /usr/libexec/PlistBuddy -c "Print CFBundleVersion" "$info_plist" 2>/dev/null || echo "unknown"
+    else
+        echo "unknown"
+    fi
+}
+
+# 플러그인 디렉토리 확인
+get_plugin_directories() {
+    local dirs=(
+        "$HOME/Library/Application Support/JetBrains/IntelliJIdea2024.2/plugins"
+        "$HOME/Library/Application Support/JetBrains/IntelliJIdea2024.1/plugins"
+        "$HOME/Library/Application Support/JetBrains/IntelliJIdea2023.3/plugins"
+    )
+
+    for dir in "${dirs[@]}"; do
+        if [[ -d "$dir" ]]; then
+            echo "$dir"
+        fi
+    done
+}
+
+# 플러그인 호환성 문제 감지
+check_plugin_compatibility() {
+    local plugin_dir="$1"
+    local intellij_version="$2"
+    local issues_found=0
+
+    log_info "플러그인 호환성 확인 중: $plugin_dir"
+
+    if [[ ! -d "$plugin_dir" ]]; then
+        log_warning "플러그인 디렉토리를 찾을 수 없습니다: $plugin_dir"
+        return 0
+    fi
+
+    # 플러그인 메타데이터 확인
+    for plugin_path in "$plugin_dir"/*; do
+        if [[ -d "$plugin_path" ]]; then
+            local plugin_name=$(basename "$plugin_path")
+            local plugin_xml="$plugin_path/META-INF/plugin.xml"
+
+            if [[ -f "$plugin_xml" ]]; then
+                # 플러그인 버전 요구사항 확인
+                local since_build=$(grep -o 'since-build="[^"]*"' "$plugin_xml" 2>/dev/null | cut -d'"' -f2 || echo "")
+                local until_build=$(grep -o 'until-build="[^"]*"' "$plugin_xml" 2>/dev/null | cut -d'"' -f2 || echo "")
+
+                if [[ -n "$since_build" ]]; then
+                    # 간단한 버전 비교 (숫자 비교)
+                    local since_version=$(echo "$since_build" | tr -d '.' | head -c 6)
+                    local current_version=$(echo "$intellij_version" | tr -d '.' | head -c 6)
+
+                    if [[ "$current_version" -lt "$since_version" ]] 2>/dev/null; then
+                        log_error "호환성 문제 발견: $plugin_name (필요: $since_build, 현재: $intellij_version)"
+                        echo "INCOMPATIBLE_PLUGIN:$plugin_name:$since_build:$intellij_version"
+                        ((issues_found++))
+                    fi
+                fi
+            fi
+        fi
+    done
+
+    return $issues_found
+}
+
+# IntelliJ IDEA 업데이트 확인
+check_intellij_updates() {
+    log_info "IntelliJ IDEA 업데이트 확인 중..."
+
+    # Homebrew cask 정보 확인
+    if command -v brew >/dev/null 2>&1; then
+        local current_version=$(brew list --cask intellij-idea --versions 2>/dev/null | cut -d' ' -f2 || echo "not_installed")
+        local latest_version=$(brew info --cask intellij-idea 2>/dev/null | head -1 | cut -d' ' -f3 || echo "unknown")
+
+        log_info "현재 설치된 버전: $current_version"
+        log_info "최신 버전: $latest_version"
+
+        if [[ "$current_version" != "$latest_version" && "$latest_version" != "unknown" ]]; then
+            log_warning "새로운 버전이 사용 가능합니다: $latest_version"
+            echo "UPDATE_AVAILABLE:$current_version:$latest_version"
+            return 1
+        else
+            log_success "IntelliJ IDEA가 최신 버전입니다"
+            return 0
+        fi
+    else
+        log_error "Homebrew를 찾을 수 없습니다"
+        return 1
+    fi
+}
+
+# IntelliJ IDEA 업데이트 실행
+update_intellij() {
+    log_info "IntelliJ IDEA 업데이트 중..."
+
+    if command -v brew >/dev/null 2>&1; then
+        # Homebrew cask 업데이트
+        brew update
+        brew upgrade --cask intellij-idea
+
+        log_success "IntelliJ IDEA 업데이트 완료"
+        return 0
+    else
+        log_error "Homebrew를 찾을 수 없어 자동 업데이트할 수 없습니다"
+        log_info "수동으로 다음 방법 중 하나를 사용하세요:"
+        log_info "1. IntelliJ IDEA > Help > Check for Updates..."
+        log_info "2. JetBrains Toolbox에서 업데이트"
+        return 1
+    fi
+}
+
+# 플러그인 비활성화
+disable_incompatible_plugins() {
+    local plugin_dir="$1"
+    local incompatible_plugins=("$@")
+
+    log_info "호환되지 않는 플러그인 비활성화 중..."
+
+    for plugin in "${incompatible_plugins[@]:1}"; do
+        local plugin_name=$(echo "$plugin" | cut -d':' -f2)
+        local plugin_path="$plugin_dir/$plugin_name"
+
+        if [[ -d "$plugin_path" ]]; then
+            # 플러그인 비활성화 (플러그인 디렉토리 이름 변경)
+            mv "$plugin_path" "$plugin_path.disabled"
+            log_warning "플러그인 비활성화됨: $plugin_name"
+        fi
+    done
+}
+
+# 메인 함수
+main() {
+    local action="${1:-check}"
+    local force_update="${2:-false}"
+
+    log_info "IntelliJ IDEA 플러그인 호환성 확인 시작"
+
+    # IntelliJ IDEA 경로 감지
+    local intellij_path
+    if ! intellij_path=$(detect_intellij_paths); then
+        log_error "IntelliJ IDEA가 설치되지 않았습니다"
+        exit 1
+    fi
+
+    log_success "IntelliJ IDEA 경로: $intellij_path"
+
+    # IntelliJ 버전 확인
+    local intellij_version
+    intellij_version=$(get_intellij_version "$intellij_path")
+    log_info "IntelliJ IDEA 버전: $intellij_version"
+
+    # 업데이트 확인
+    local update_available=false
+    if ! check_intellij_updates; then
+        update_available=true
+    fi
+
+    # 플러그인 디렉토리 확인
+    local plugin_dirs
+    readarray -t plugin_dirs < <(get_plugin_directories)
+
+    if [[ ${#plugin_dirs[@]} -eq 0 ]]; then
+        log_warning "플러그인 디렉토리를 찾을 수 없습니다"
+    else
+        # 플러그인 호환성 확인
+        local total_issues=0
+        local incompatible_plugins=()
+
+        for plugin_dir in "${plugin_dirs[@]}"; do
+            local issues
+            issues=$(check_plugin_compatibility "$plugin_dir" "$intellij_version")
+
+            while IFS= read -r line; do
+                if [[ "$line" == INCOMPATIBLE_PLUGIN:* ]]; then
+                    incompatible_plugins+=("$line")
+                    ((total_issues++))
+                fi
+            done <<< "$issues"
+        done
+
+        # 결과 보고
+        if [[ $total_issues -gt 0 ]]; then
+            log_error "$total_issues개의 플러그인 호환성 문제 발견"
+
+            case "$action" in
+                "fix")
+                    if [[ "$update_available" == "true" && "$force_update" == "true" ]]; then
+                        update_intellij
+                    elif [[ ${#incompatible_plugins[@]} -gt 0 ]]; then
+                        disable_incompatible_plugins "${plugin_dirs[0]}" "${incompatible_plugins[@]}"
+                    fi
+                    ;;
+                "update")
+                    if [[ "$update_available" == "true" ]]; then
+                        update_intellij
+                    else
+                        log_info "업데이트가 필요하지 않습니다"
+                    fi
+                    ;;
+                *)
+                    log_info "문제 해결을 위해 다음 명령어를 실행하세요:"
+                    log_info "  $0 fix           # 플러그인 비활성화"
+                    log_info "  $0 update        # IntelliJ IDEA 업데이트"
+                    log_info "  $0 fix true      # 업데이트 + 플러그인 정리"
+                    ;;
+            esac
+        else
+            log_success "모든 플러그인이 호환됩니다"
+        fi
+    fi
+
+    log_info "플러그인 호환성 확인 완료"
+}
+
+# 스크립트 실행
+if [[ "${BASH_SOURCE[0]:-}" == "${0}" ]]; then
+    main "$@"
+fi
