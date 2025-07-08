@@ -26,6 +26,12 @@ let
     # Cache management tests (Issue #287)
     cache_management_unit = import ./unit/cache-management-unit.nix { inherit pkgs; };
 
+    # Lib consolidation tests (TDD - Phase 1 Sprint 1.1)
+    lib_consolidation_unit = import ./unit/lib-consolidation-unit.nix { inherit pkgs; lib = pkgs.lib; };
+
+    # Build logic unification tests (TDD - Phase 1 Sprint 1.3)
+    build_logic_unified_unit = import ./unit/build-logic-unified-unit.nix { inherit pkgs; lib = pkgs.lib; };
+
     # Apply script deduplication tests (TDD - Issue #301)
     apply_script_deduplication_unit = import ./unit/apply-script-deduplication-unit.nix { inherit pkgs; };
     apply_template_system_unit = import ./unit/apply-template-system-unit.nix { inherit pkgs; };

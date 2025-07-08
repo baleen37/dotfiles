@@ -6,6 +6,11 @@
 # - Integrated optimization module for dynamic flag management
 # - Added eval-cache support for faster evaluation
 # - Modularized optimization settings for better maintainability
+#
+# Unified Build Logic (TDD Cycle 1.3):
+# - Platform-agnostic error handling
+# - Consistent build steps across all platforms
+# - Enhanced failure recovery mechanisms
 
 # Execute nix build with parallelization and cache optimization
 run_build() {
@@ -40,17 +45,13 @@ run_build() {
 
     if [ "$VERBOSE" = "true" ]; then
         eval "$OPTIMIZED_NIX_CMD .#$FLAKE_SYSTEM \"\$@\"" || {
-            progress_stop
-            log_error "Build failed"
-            log_footer "failed"
-            exit 1
+            handle_build_error $? "build"
+            exit $?
         }
     else
         eval "$OPTIMIZED_NIX_CMD .#$FLAKE_SYSTEM \"\$@\"" 2>/dev/null || {
-            progress_stop
-            log_error "Build failed. Run with --verbose for details"
-            log_footer "failed"
-            exit 1
+            handle_build_error $? "build"
+            exit $?
         }
     fi
 
@@ -280,4 +281,69 @@ execute_build_switch() {
 
     # Cleanup progress system
     progress_cleanup
+}
+
+# Unified error handling for build failures
+handle_build_error() {
+    local exit_code="${1:-1}"
+    local operation="${2:-build}"
+
+    progress_stop 2>/dev/null || true
+
+    if command -v log_error >/dev/null 2>&1; then
+        log_error "$operation failed (exit code: $exit_code)"
+
+        # Provide helpful debugging information based on exit code
+        case "$exit_code" in
+            1)
+                log_info "General build failure - check build dependencies"
+                log_info "Common causes: missing packages, network issues, or configuration errors"
+                ;;
+            2)
+                log_info "Permission error - check sudo requirements"
+                log_info "Run with administrator privileges if needed"
+                ;;
+            130)
+                log_info "Build interrupted by user (Ctrl+C)"
+                ;;
+            *)
+                log_info "Unexpected error - run with --verbose for detailed output"
+                if [ "$VERBOSE" != "true" ]; then
+                    log_info "Retry with: $0 --verbose"
+                fi
+                ;;
+        esac
+
+        # Footer with failure status
+        log_footer "failed"
+    else
+        echo "ERROR: $operation failed (exit code: $exit_code)" >&2
+    fi
+
+    # Cleanup on failure
+    cleanup_on_failure
+
+    return "$exit_code"
+}
+
+# Cleanup operations when build fails
+cleanup_on_failure() {
+    # Stop any background processes
+    if command -v stop_sudo_refresh_daemon >/dev/null 2>&1; then
+        stop_sudo_refresh_daemon 2>/dev/null || true
+    fi
+
+    # Clean up temporary files
+    if [ -n "${BUILD_TEMP_DIR:-}" ] && [ -d "$BUILD_TEMP_DIR" ]; then
+        rm -rf "$BUILD_TEMP_DIR" 2>/dev/null || true
+    fi
+
+    # Reset performance monitoring
+    if command -v perf_cleanup >/dev/null 2>&1; then
+        perf_cleanup 2>/dev/null || true
+    fi
+
+    if command -v log_info >/dev/null 2>&1; then
+        log_info "Cleanup completed"
+    fi
 }
