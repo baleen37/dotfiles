@@ -267,6 +267,9 @@ let
       touch $out
     '';
 
+  # Alias for compatibility
+  runShellTest = createTestScript;
+
 
 in
 {
@@ -278,5 +281,5 @@ in
   inherit createTempFile createTempDir;
   inherit evalFlake reportResults cleanup;
   inherit assertSetContains assertListIncludes assertListContains assertAllDerivations;
-  inherit createTestScript;
+  inherit createTestScript runShellTest;
 }

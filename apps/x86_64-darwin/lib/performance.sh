@@ -1,6 +1,13 @@
 #!/bin/sh
 # Performance Monitoring Module for Build Scripts
-# Contains performance measurement and monitoring functions
+# Contains performance measurement, monitoring, and parallel optimization functions
+#
+# Performance Optimizations (TDD Cycle 1.2):
+# - Intelligent CPU core detection with platform-specific optimization
+# - Dynamic scaling based on system resources and environment
+# - Apple Silicon P-core/E-core optimization support
+# - Multiple performance modes (default, conservative, aggressive)
+# - CI environment resource conservation
 
 # Performance monitoring variables
 PERF_START_TIME=""
@@ -62,35 +69,89 @@ perf_show_summary() {
             echo "${DIM}  Switch phase: ${PERF_SWITCH_DURATION}s${NC}"
         fi
         echo "${DIM}  Total time:   ${total_duration}s${NC}"
+
+        # Show cache statistics if available
+        if [ -f "$HOME/.cache/nix-build-stats" ]; then
+            local hits=$(grep "cache_hits=" "$HOME/.cache/nix-build-stats" | cut -d'=' -f2)
+            local misses=$(grep "cache_misses=" "$HOME/.cache/nix-build-stats" | cut -d'=' -f2)
+            local total_builds=$(grep "total_builds=" "$HOME/.cache/nix-build-stats" | cut -d'=' -f2)
+
+            if [ "$total_builds" -gt 0 ]; then
+                local hit_rate=$((hits * 100 / total_builds))
+                local cache_size=$(du -sm "$HOME/.cache/nix" 2>/dev/null | cut -f1 || echo "0")
+                echo "${DIM}  Cache hits:   ${hits}/${total_builds} (${hit_rate}%)${NC}"
+                echo "${DIM}  Cache size:   ${cache_size}MB${NC}"
+            fi
+        fi
+
         echo "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
         echo ""
     fi
 }
 
-# CPU core detection for parallel builds
+# CPU core detection for parallel builds with intelligent scaling
 detect_optimal_jobs() {
     local CORES
+    local PLATFORM=$(uname -s)
 
+    # Step 1: Detect system cores
     if command -v nproc >/dev/null 2>&1; then
         # Linux
         CORES=$(nproc)
     elif command -v sysctl >/dev/null 2>&1; then
-        # macOS
+        # macOS - get total logical cores
         CORES=$(sysctl -n hw.ncpu)
     else
         # Fallback
-        CORES=2
+        CORES=4
     fi
 
-    # Check if we're in CI environment
+    # Step 2: Platform-specific optimizations
+    if [ "$PLATFORM" = "Darwin" ]; then
+        # macOS: Check for Apple Silicon optimization
+        P_CORES=$(sysctl -n hw.perflevel0.physicalcpu 2>/dev/null || echo "0")
+        E_CORES=$(sysctl -n hw.perflevel1.physicalcpu 2>/dev/null || echo "0")
+
+        if [ "$P_CORES" -gt 0 ] && [ "$E_CORES" -gt 0 ]; then
+            # Apple Silicon: Focus on P-cores for compute-intensive tasks
+            # Use P-cores + some E-cores for optimal performance
+            CORES=$(( P_CORES + (E_CORES / 2) ))
+            if command -v log_info >/dev/null 2>&1; then
+                log_info "Apple Silicon detected: P-cores=$P_CORES, E-cores=$E_CORES, using $CORES cores" >&2
+            fi
+        fi
+    fi
+
+    # Step 3: Environment-based scaling
     if [ -n "$CI" ]; then
-        # CI: Use fewer cores to avoid overwhelming runners
+        # CI: Conservative approach to avoid overwhelming runners
         CORES=$([ "$CORES" -gt 4 ] && echo 4 || echo "$CORES")
+    elif [ "${PERFORMANCE_MODE:-}" = "conservative" ]; then
+        # Conservative mode: Use 75% of cores
+        CORES=$(echo "scale=0; $CORES * 3 / 4" | bc 2>/dev/null || echo $(( CORES * 3 / 4 )))
+    elif [ "${PERFORMANCE_MODE:-}" = "aggressive" ]; then
+        # Aggressive mode: Use all cores up to reasonable limit
+        CORES=$([ "$CORES" -gt 32 ] && echo 32 || echo "$CORES")
     else
-        # Local development: Use more cores but cap at 8 for safety
-        CORES=$([ "$CORES" -gt 8 ] && echo 8 || echo "$CORES")
+        # Default mode: Dynamic scaling based on core count
+        if [ "$CORES" -le 4 ]; then
+            # Low core systems: use all cores
+            CORES="$CORES"
+        elif [ "$CORES" -le 8 ]; then
+            # Medium core systems: use all cores
+            CORES="$CORES"
+        elif [ "$CORES" -le 16 ]; then
+            # High core systems: use most cores
+            CORES=$(( CORES - 1 ))
+        else
+            # Very high core systems: use 75% to leave room for system
+            CORES=$(echo "scale=0; $CORES * 3 / 4" | bc 2>/dev/null || echo $(( CORES * 3 / 4 )))
+        fi
     fi
 
-    # Return cores (minimum 1)
-    echo "$([ "$CORES" -gt 0 ] && echo "$CORES" || echo 1)"
+    # Step 4: Safety bounds
+    CORES=$([ "$CORES" -lt 1 ] && echo 1 || echo "$CORES")
+    CORES=$([ "$CORES" -gt 64 ] && echo 64 || echo "$CORES")
+
+    echo "$CORES"
 }
