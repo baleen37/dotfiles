@@ -1,12 +1,23 @@
 #!/usr/bin/env bash
 # Apply Script for aarch64-darwin
-# Uses the common apply template
+# Updated to use new optimized structure
 
 # Get script directory
 SCRIPT_DIR="$(dirname "$0")"
 
-# Load platform configuration
+# Load legacy configuration for backward compatibility
 . "$SCRIPT_DIR/config.sh"
 
-# Execute apply template
-exec "$SCRIPT_DIR/../../scripts/templates/apply-template.sh" "$@"
+# Load common apply logic
+source "$SCRIPT_DIR/../common/apply-core.sh"
+
+# Load target configuration
+source "$SCRIPT_DIR/../targets/aarch64-darwin.sh"
+
+# Execute optimized apply process (fallback to legacy if needed)
+if command -v run_apply >/dev/null 2>&1; then
+  run_apply "$@"
+else
+  # Fallback to legacy implementation
+  exec "$SCRIPT_DIR/../../scripts/templates/apply-template.sh" "$@"
+fi
