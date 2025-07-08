@@ -63,17 +63,6 @@
       # Development shells using modular config
       devShells = forAllSystems devShell;
 
-      # Packages for IntelliJ plugin health check
-      packages = forAllSystems (system:
-        let
-          pkgs = nixpkgs.legacyPackages.${system};
-        in
-        {
-          intellij-health-check = pkgs.writeShellScriptBin "intellij-health-check" ''
-            exec ${./scripts/intellij-plugin-health-check} "$@"
-          '';
-        });
-
       # Apps using modular app configurations
       apps =
         (nixpkgs.lib.genAttrs linuxSystems systemConfigs.mkAppConfigurations.mkLinuxApps) //

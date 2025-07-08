@@ -3,7 +3,7 @@ _:
 [
   # Development Tools
   "docker-desktop"
-  "intellij-idea"  # IntelliJ IDEA IDE (자동 업데이트 관리됨)
+  "intellij-idea"
   "iterm2"  # Terminal emulator for macOS
 
   # Communication Tools
