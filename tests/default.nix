@@ -47,6 +47,9 @@ let
     # Build-switch Claude Code environment tests (simplified)
     build_switch_claude_code_environment_test = import ./unit/build-switch-claude-code-environment-test-simple.nix { inherit pkgs; lib = pkgs.lib; src = ../.; };
 
+    # Sudoers script tests
+    sudoers_script_test = import ./unit/sudoers-script-test.nix { inherit pkgs; lib = pkgs.lib; };
+
     # Essential integrations (only active tests)
     user_path_consistency = import ./integration/test-user-path-consistency.nix { inherit pkgs; lib = pkgs.lib; };
     build_parallelization_integration = import ./integration/build-parallelization-integration.nix { inherit pkgs; };
@@ -70,6 +73,9 @@ let
 
     # Build-switch workflow integration test
     build_switch_workflow_integration_test = import ./integration/build-switch-workflow-integration-test.nix { inherit pkgs; lib = pkgs.lib; src = ../.; };
+
+    # Sudoers workflow integration test
+    sudoers_workflow_integration_test = import ./integration/sudoers-workflow-integration-test.nix { inherit pkgs; lib = pkgs.lib; };
   };
 
   # Performance tests - Build time and resource usage
