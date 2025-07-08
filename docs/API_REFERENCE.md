@@ -8,26 +8,71 @@
 
 이 문서는 dotfiles 프로젝트의 주요 API와 함수들에 대한 참조 가이드입니다. 모든 API는 **외부화된 설정 시스템**과 **모듈화된 아키텍처**를 기반으로 설계되었습니다.
 
-## Configuration API
+## Phase 4 Configuration API
 
-### config-loader.sh
+### scripts/utils/config-loader.sh
 
-설정 파일 로드 및 환경변수 관리를 위한 API입니다.
+외부 설정 파일 로드 및 통합 설정 관리를 위한 API입니다.
 
-#### `load_config(config_file, key_path, default_value)`
+#### `load_all_configs()`
 
-YAML 설정 파일에서 값을 로드합니다.
+모든 설정 파일을 로드하고 환경변수를 설정합니다.
+
+**Performance:** 캐싱을 통해 중복 로딩 방지
+
+**Example:**
+```bash
+source scripts/utils/config-loader.sh
+load_all_configs
+```
+
+#### `get_config(config_type, key, default_value)`
+
+특정 설정 타입에서 값을 가져옵니다.
 
 **Parameters:**
-- `config_file` (string): 설정 파일명 (예: "cache.yaml")
-- `key_path` (string): YAML 경로 (예: ".cache.local.max_size_gb")  
+- `config_type` (string): 설정 타입 ("build", "platform", "path")
+- `key` (string): 설정 키 (예: "timeout", "parallel_jobs")
 - `default_value` (string): 기본값
 
 **Returns:** 설정값 또는 기본값
 
 **Example:**
 ```bash
-source scripts/lib/config-loader.sh
+timeout=$(get_config build timeout "3600")
+ssh_dir=$(get_config path ssh_dir_darwin "/Users/${USER}/.ssh")
+```
+
+#### `get_unified_config(key, default_value)`
+
+지능적 통합 설정 접근 - 모든 설정 타입에서 자동 검색합니다.
+
+**Parameters:**
+- `key` (string): 설정 키
+- `default_value` (string): 기본값
+
+**Search Order:** build → platform → path
+
+**Example:**
+```bash
+# 모든 설정 타입에서 자동 검색
+timeout=$(get_unified_config timeout "3600")
+platform_name=$(get_unified_config platform_name "Unknown")
+```
+
+#### `is_config_loaded()`
+
+설정이 이미 로드되었는지 확인합니다.
+
+**Returns:** true/false
+
+**Example:**
+```bash
+if is_config_loaded; then
+  echo "Configuration already loaded"
+else
+  load_all_configs
+fi
 cache_size=$(load_config "cache.yaml" ".cache.local.max_size_gb" "5")
 ```
 
@@ -423,6 +468,86 @@ with lib;
 }
 ```
 
+## Performance Optimization Guide
+
+### Configuration Loading Optimization
+
+#### Best Practices for Performance
+
+1. **Use Configuration Caching**
+```bash
+# Check if config is already loaded before loading again
+if ! is_config_loaded; then
+    load_all_configs
+fi
+
+# Subsequent calls will use cached values
+value=$(get_unified_config "key" "default")
+```
+
+2. **Prefer Unified Interface**
+```bash
+# Efficient: Single function call with intelligent search
+timeout=$(get_unified_config "timeout" "3600")
+
+# Less efficient: Multiple specific calls
+build_timeout=$(get_config "build" "timeout" "")
+platform_timeout=$(get_config "platform" "timeout" "")
+path_timeout=$(get_config "path" "timeout" "3600")
+```
+
+3. **Environment Variable Override Strategy**
+```bash
+# Leverage environment variables for frequently used values
+export CACHE_MAX_SIZE_GB=10
+export BUILD_TIMEOUT=7200
+
+# Config system automatically respects these overrides
+cache_size=$(get_unified_config "max_size_gb" "5")  # Returns 10
+timeout=$(get_unified_config "timeout" "3600")     # Returns 7200
+```
+
+### Configuration State Management
+
+#### Cache Invalidation
+```bash
+# Force reload if configuration files change
+unset CONFIG_CACHE_LOADED
+load_all_configs
+```
+
+#### Profile Switching
+```bash
+# Switch profiles efficiently
+export CONFIG_PROFILE="production"
+unset CONFIG_CACHE_LOADED  # Clear cache for new profile
+load_all_configs
+```
+
+## Migration Compatibility
+
+### Legacy API Support
+
+The configuration system maintains backward compatibility with legacy environment variables:
+
+```bash
+# Legacy patterns still supported
+CACHE_SIZE="${CACHE_SIZE:-5}"
+SSH_DIR="${SSH_DIR:-$HOME/.ssh}"
+BUILD_TIMEOUT="${BUILD_TIMEOUT:-3600}"
+
+# Modern equivalent using unified config
+cache_size=$(get_unified_config "max_size_gb" "5")
+ssh_dir=$(get_unified_config "ssh_dir_darwin" "$HOME/.ssh")
+timeout=$(get_unified_config "timeout" "3600")
+```
+
+### Deprecation Notices
+
+- **Direct file reading**: Use config API instead of direct YAML parsing
+- **Hardcoded values**: Migrate to external configuration files
+- **Platform-specific scripts**: Use unified configuration interface
+
 ## Support
 
 ### API Support
@@ -431,3 +556,18 @@ with lib;
 - **Examples**: `docs/examples/` 디렉토리
 - **Tests**: 각 API 함수별 테스트 케이스
 - **Issues**: GitHub Issues를 통한 API 관련 문의
+
+### Quick Reference Card
+
+```bash
+# Essential Configuration API Commands
+source scripts/utils/config-loader.sh     # Load config system
+load_all_configs                          # Initialize all configs
+get_config TYPE KEY DEFAULT                # Get specific config
+get_unified_config KEY DEFAULT             # Smart config search
+is_config_loaded                          # Check cache state
+get_dotfiles_root                         # Get project root
+
+# Configuration Types: build, platform, path, cache, network, security
+# Profile Support: export CONFIG_PROFILE="development|production"
+```

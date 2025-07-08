@@ -17,6 +17,10 @@ declare -A BUILD_CONFIG
 declare -A PLATFORM_CONFIG
 declare -A PATH_CONFIG
 
+# Configuration cache variables
+CONFIG_CACHE_LOADED=false
+CONFIG_CACHE_DIR="/tmp/dotfiles-config-cache"
+
 # Load YAML configuration (simple key-value parsing)
 load_yaml_config() {
   local config_file="$1"
@@ -158,7 +162,53 @@ load_all_configs() {
   load_platform_config
   load_path_config
 
+  # Mark as loaded
+  CONFIG_CACHE_LOADED=true
+
   printf "${GREEN}All configurations loaded successfully${NC}\n"
+}
+
+# Check if configuration is already loaded (performance optimization)
+is_config_loaded() {
+  [[ "$CONFIG_CACHE_LOADED" == true ]]
+}
+
+# Unified configuration getter with intelligent defaults
+get_unified_config() {
+  local key="$1"
+  local default_value="$2"
+
+  # Ensure config is loaded
+  if ! is_config_loaded; then
+    load_all_configs >/dev/null 2>&1
+  fi
+
+  # Search across all config types
+  local value=""
+
+  # Try build config first
+  value=$(get_config build "$key" "" 2>/dev/null)
+  if [[ -n "$value" ]]; then
+    echo "$value"
+    return 0
+  fi
+
+  # Try platform config
+  value=$(get_config platform "$key" "" 2>/dev/null)
+  if [[ -n "$value" ]]; then
+    echo "$value"
+    return 0
+  fi
+
+  # Try path config
+  value=$(get_config path "$key" "" 2>/dev/null)
+  if [[ -n "$value" ]]; then
+    echo "$value"
+    return 0
+  fi
+
+  # Return default if not found
+  echo "${default_value}"
 }
 
 # Main function for standalone execution

@@ -15,6 +15,14 @@
 - **Shell**: Bash/Zsh 지원
 - **yq**: YAML 파싱 (선택사항, 설정 로더에서 활용)
 
+### Phase 4 Development Features (2025-07-08)
+
+- **External Configuration System**: YAML-based configuration management
+- **Unified Config Interface**: `get_unified_config()` for intelligent config access
+- **Configuration Profiles**: Environment-specific settings (dev/prod)
+- **Performance Optimization**: Configuration caching and state tracking
+- **Advanced Directory Structure**: Modularized apps, scripts, and modules organization
+
 ### Quick Setup
 
 ```bash
@@ -250,8 +258,150 @@ load_config "cache.yaml" ".cache.max_size_gb" "5"
 
 각 Phase는 Sprint 단위로 세분화되어 TDD 방식으로 진행됩니다.
 
+## Advanced Development Patterns
+
+### Phase 4 Development Workflow
+
+#### Configuration-Driven Development
+```bash
+# 1. Define configuration requirements first
+# config/feature-settings.yaml
+feature:
+  enabled: true
+  timeout: 30
+  retry_count: 3
+
+# 2. Write failing test for configuration usage
+# tests/unit/feature-config-unit.nix
+
+# 3. Implement configuration loading
+source scripts/utils/config-loader.sh
+feature_enabled=$(get_unified_config "feature_enabled" "false")
+```
+
+#### Modular Component Development
+```bash
+# 1. Create component in appropriate directory
+# apps/common/feature-core.sh      # Shared logic
+# apps/platforms/feature-darwin.sh # Platform-specific
+# apps/targets/feature-aarch64.sh  # Architecture-specific
+
+# 2. Follow TDD for each component
+# Red → Green → Refactor for each module
+
+# 3. Integration testing across modules
+```
+
+### Performance-Oriented Development
+
+#### Configuration Optimization Patterns
+```bash
+# Cache configuration at component level
+if [[ -z "$COMPONENT_CONFIG_LOADED" ]]; then
+    load_component_config
+    COMPONENT_CONFIG_LOADED=true
+fi
+
+# Use unified config for cross-component settings
+shared_timeout=$(get_unified_config "timeout" "30")
+```
+
+#### Build Performance Testing
+```bash
+# Include performance validation in TDD cycle
+# tests/performance/feature-performance.nix
+start_time=$(date +%s%N)
+# ... feature execution ...
+end_time=$(date +%s%N)
+execution_time=$(( (end_time - start_time) / 1000000 ))
+
+# Assert performance requirements
+if [[ $execution_time -gt 1000 ]]; then
+    echo "❌ Performance regression: ${execution_time}ms > 1000ms"
+    exit 1
+fi
+```
+
+### Code Quality Standards
+
+#### Documentation-Driven Development
+1. **API Documentation First**: Write API docs before implementation
+2. **Example-Driven**: Include working examples in all documentation
+3. **Test Documentation**: Document test strategy and coverage
+
+#### Configuration Best Practices
+```bash
+# ✅ Good: Use unified config with fallbacks
+timeout=$(get_unified_config "build_timeout" "3600")
+
+# ❌ Avoid: Hardcoded values
+timeout=3600
+
+# ✅ Good: Environment variable override support
+export BUILD_TIMEOUT=7200  # User override
+timeout=$(get_unified_config "timeout" "3600")  # Returns 7200
+
+# ✅ Good: Profile-aware configuration
+export CONFIG_PROFILE="development"
+load_all_configs  # Loads development-specific settings
+```
+
+### Refactoring Guidelines
+
+#### Configuration Externalization Pattern
+```bash
+# Before (Phase 3): Hardcoded values
+CACHE_SIZE=5
+SSH_DIR="/Users/$USER/.ssh"
+
+# After (Phase 4): External configuration
+source scripts/utils/config-loader.sh
+cache_size=$(get_unified_config "max_size_gb" "5")
+ssh_dir=$(get_unified_config "ssh_dir_darwin" "/Users/$USER/.ssh")
+```
+
+#### Module Extraction Pattern
+```bash
+# Before: Monolithic script
+# apps/aarch64-darwin/apply (200+ lines)
+
+# After: Modular architecture
+# apps/common/apply-core.sh         # Shared logic
+# apps/platforms/darwin.sh          # Platform-specific
+# apps/targets/aarch64-darwin.sh    # Target-specific
+# apps/aarch64-darwin/apply         # 11-line delegation
+```
+
 ## Support
 
+### Development Resources
+
 - **Documentation**: `docs/` 디렉토리 참조
-- **Issues**: GitHub Issues 활용
+- **Examples**: `docs/examples/` 실용적 예제
+- **Architecture**: `docs/ARCHITECTURE.md` 시스템 설계
+- **Configuration**: `docs/CONFIGURATION-GUIDE.md` 설정 가이드
+- **Migration**: `docs/MIGRATION-GUIDE.md` 업그레이드 가이드
+
+### Community Support
+
+- **Issues**: GitHub Issues 활용 (버그 리포트, 기능 요청)
 - **Discussions**: 아키텍처 관련 논의
+- **Wiki**: 커뮤니티 가이드 및 팁
+
+### Development Tools Quick Reference
+
+```bash
+# Essential Development Commands
+./scripts/check-config              # Validate configuration
+nix develop                         # Enter development shell
+nix build .#checks.aarch64-darwin.test-all  # Run all tests
+
+# TDD Workflow Commands
+nix build .#checks.aarch64-darwin.unit-tests      # Unit tests
+nix build .#checks.aarch64-darwin.integration-tests  # Integration
+nix build .#checks.aarch64-darwin.e2e-tests       # End-to-end
+
+# Performance Monitoring
+nix build .#checks.aarch64-darwin.performance-tests
+nix run #build-switch --verbose                    # Detailed output
+```

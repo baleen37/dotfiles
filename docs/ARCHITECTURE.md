@@ -17,10 +17,28 @@ This dotfiles system is built on a **modular, test-driven architecture** that pr
 ### Key Design Principles
 
 1. **Modularity**: Clear separation of concerns with independent, reusable modules
-2. **Configuration Externalization**: No hardcoded values, everything configurable
-3. **Test-Driven Development**: All features developed using TDD methodology
+2. **Configuration Externalization**: No hardcoded values, everything configurable via YAML
+3. **Test-Driven Development**: All features developed using Red-Green-Refactor TDD methodology
 4. **Platform Independence**: Common core with platform-specific overlays
 5. **Incremental Improvement**: Preserve existing functionality while adding enhancements
+
+### Phase 4 Architectural Improvements (2025-07-08)
+
+#### 📁 Optimized Directory Structure
+- **apps/common/**: Shared logic across all platforms
+- **apps/platforms/**: Platform-specific implementations (Darwin/Linux)
+- **apps/targets/**: Architecture-specific configurations
+- **scripts/build/**: Modularized build system with platform separation
+- **scripts/utils/**: Utility scripts and configuration loaders
+- **config/**: External configuration files (YAML-based)
+- **modules/platform/**: Platform-specific Nix modules organization
+
+#### ⚙️ Configuration Externalization System
+- **Unified Config Interface**: `get_unified_config()` for intelligent config access
+- **Performance Caching**: Configuration loading optimization with state tracking
+- **Profile System**: Environment-specific configuration profiles (dev/prod)
+- **Advanced Settings**: Extended configuration for power users
+- **Backward Compatibility**: Graceful fallbacks for legacy systems
 
 ## 🏗️ System Architecture
 
