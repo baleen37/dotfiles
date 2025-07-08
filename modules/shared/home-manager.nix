@@ -100,6 +100,9 @@ in
           uv tool install claude-monitor
         fi
       fi
+
+      # IntelliJ IDEA 백그라운드 실행 alias
+      alias idea='nohup /opt/homebrew/bin/idea "$@" >/dev/null 2>&1 &'
     '';
   };
 
