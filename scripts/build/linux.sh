@@ -33,10 +33,10 @@ build_linux() {
 
   case "$arch" in
     aarch64)
-      system_type="aarch64-linux"
+      system_type="$LINUX_AARCH64_TARGET"
       ;;
     x86_64)
-      system_type="x86_64-linux"
+      system_type="$LINUX_X86_64_TARGET"
       ;;
     *)
       echo -e "${RED}Unsupported architecture for Linux: $arch${NC}"

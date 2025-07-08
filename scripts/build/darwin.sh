@@ -39,10 +39,10 @@ build_darwin() {
   # Improve architecture detection
   case "$arch" in
     arm64|aarch64)
-      system_type="aarch64-darwin"
+      system_type="$DARWIN_AARCH64_TARGET"
       ;;
     x86_64)
-      system_type="x86_64-darwin"
+      system_type="$DARWIN_X86_64_TARGET"
       ;;
     "")
       # Fallback: detect from current directory if running from app dir

@@ -27,17 +27,37 @@ detect_platform() {
   esac
 }
 
+# Load build environment from external configuration
+load_build_environment() {
+  local config_loader="${SCRIPT_DIR:-$(dirname "$0")}/../utils/config-loader.sh"
+
+  if [[ -f "$config_loader" ]]; then
+    source "$config_loader"
+    load_build_config
+    printf "${GREEN}External build configuration loaded${NC}\n"
+  else
+    printf "${YELLOW}Config loader not found, using defaults${NC}\n"
+    # Default values
+    export BUILD_TIMEOUT="3600"
+    export PARALLEL_JOBS="4"
+    export NIXPKGS_ALLOW_UNFREE="true"
+  fi
+}
+
 # Common build preparation
 prepare_build_environment() {
   printf "${YELLOW}Preparing build environment...${NC}\n"
+
+  # Load external configuration
+  load_build_environment
 
   # Set USER if not already set
   if [ -z "$USER" ]; then
     export USER=$(whoami)
   fi
 
-  # Enable experimental features
-  export NIX_CONFIG="experimental-features = nix-command flakes"
+  # Enable experimental features from config
+  export NIX_CONFIG="experimental-features = ${NIX_EXPERIMENTAL_FEATURES:-nix-command flakes}"
 }
 
 # Common build execution
