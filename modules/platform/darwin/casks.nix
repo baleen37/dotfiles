@@ -17,6 +17,7 @@ _:
   # Utility Tools
   "alt-tab"
   "claude"
+  "karabiner-elements"
 
   # Entertainment Tools
   "vlc"

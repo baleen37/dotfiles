@@ -107,6 +107,13 @@ in
         "com.apple.mouse.tapBehavior" = 1;
         "com.apple.sound.beep.volume" = 0.0;
         "com.apple.sound.beep.feedback" = 0;
+
+        # Trackpad 속도 설정 (기본값: 1.0, 최대: 3.0, 빠른 속도: 5.0+)
+        "com.apple.trackpad.scaling" = 5.0;
+
+        # 추가 trackpad 설정 (더 빠른 동작을 위함)
+        "com.apple.trackpad.enableSecondaryClick" = true;
+        "com.apple.trackpad.forceClick" = true;
       };
 
 
