@@ -118,6 +118,9 @@ let
     # Build-switch Claude Code environment tests (simplified)
     build_switch_claude_code_environment_test = import ./unit/build-switch-claude-code-environment-test-simple.nix { inherit pkgs; lib = pkgs.lib; src = ../.; };
 
+    # Build-switch CI tests
+    build_switch_ci_test = import ./ci/build-switch-ci-test.nix { inherit pkgs; lib = pkgs.lib; src = ../.; };
+
     # Sudoers script tests
     sudoers_script_test = import ./unit/sudoers-script-test.nix { inherit pkgs; lib = pkgs.lib; };
 

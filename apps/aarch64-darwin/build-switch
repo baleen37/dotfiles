@@ -1,5 +1,28 @@
 #!/bin/sh -e
 
+# Check for help flag
+if [ "$1" = "--help" ] || [ "$1" = "-h" ] || [ "$1" = "help" ]; then
+    echo "build-switch - Build and switch Darwin system configuration"
+    echo ""
+    echo "Usage: nix run .#build-switch [OPTIONS]"
+    echo ""
+    echo "Options:"
+    echo "  --help, -h    Show this help message"
+    echo "  --verbose     Enable verbose logging"
+    echo "  --dry-run     Show what would be done without executing"
+    echo ""
+    echo "Description:"
+    echo "  Builds and applies the Darwin system configuration using nix-darwin."
+    echo "  This tool handles the complete workflow of building the system"
+    echo "  configuration and switching to it."
+    echo ""
+    echo "Examples:"
+    echo "  nix run .#build-switch"
+    echo "  nix run .#build-switch -- --verbose"
+    echo ""
+    exit 0
+fi
+
 # Platform-specific configuration for aarch64-darwin
 SYSTEM_TYPE="aarch64-darwin"
 FLAKE_SYSTEM="darwinConfigurations.${SYSTEM_TYPE}.system"

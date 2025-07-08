@@ -39,6 +39,12 @@ log_error() {
     echo "${RED}❌ $1${NC}"
 }
 
+log_debug() {
+    if [ "$VERBOSE" = "true" ]; then
+        echo "${DIM}🔍 $1${NC}"
+    fi
+}
+
 log_footer() {
     echo ""
     echo "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
