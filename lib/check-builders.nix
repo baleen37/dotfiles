@@ -41,6 +41,7 @@ in
           "directory_structure_optimization_unit" "configuration_externalization_unit"
           "documentation_completeness_unit"
           "build_switch_claude_code_environment_test"
+          "build_switch_ci_test"
         ]
       ) testSuite;
 
