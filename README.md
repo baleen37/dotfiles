@@ -120,6 +120,52 @@ nix run .#test          # Run platform-appropriate test suite
 
 ¹ Linux systems use consolidated testing approach due to platform limitations
 
+## Configuration
+
+This system uses an **externalized configuration approach** that allows flexible customization across different environments.
+
+### Configuration Files
+
+```bash
+config/
+├── platforms.yaml     # Platform-specific settings
+├── cache.yaml         # Cache management configuration  
+├── network.yaml       # Network and download settings
+├── performance.yaml   # Build and system performance
+└── security.yaml      # Security policies and SSH settings
+```
+
+### Environment Variables
+
+Override any configuration using environment variables:
+
+```bash
+# Cache settings
+export CACHE_MAX_SIZE_GB=10
+export CACHE_CLEANUP_DAYS=14
+
+# Network settings  
+export HTTP_CONNECTIONS=100
+export CONNECT_TIMEOUT=10
+
+# Platform overrides
+export PLATFORM_TYPE="darwin"
+export ARCH="aarch64"
+```
+
+### Configuration Validation
+
+```bash
+# Validate all configuration files
+./scripts/validate-config
+
+# Load configuration in scripts
+source scripts/lib/config-loader.sh
+cache_size=$(load_cache_config "max_size_gb" "5")
+```
+
+For detailed configuration options, see [Configuration Guide](docs/CONFIGURATION.md).
+
 ## Architecture
 
 ### Repository Structure

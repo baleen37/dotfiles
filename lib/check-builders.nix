@@ -31,6 +31,15 @@ in
           "build_switch_improved_unit" "sudo_security_test"
           "sudo_session_persistence_test" "precommit_ci_consistency"
           "keyboard_input_settings_test" "keyboard_input_settings_nix_test"
+          "module_imports_unit" "error_handling_test" "flake_config_module_unit"
+          "system_configs_module_unit" "common_utils_unit" "auto_update_test"
+          "bl_auto_update_commands_unit" "check_builders_module_unit" "claude_commands_test" "flake_integration_unit"
+          "parallel_test_execution_unit" "enhanced_error_functionality_unit" "portable_paths_test"
+          "ssh_key_security_test" "cross_platform_integration" "auto_update_integration"
+          "package_availability_integration" "system_build_integration" "file_generation_integration"
+          "package_utils_unit" "parallel_test_functionality_unit" "claude_config_test_final"
+          "directory_structure_optimization_unit" "configuration_externalization_unit"
+          "documentation_completeness_unit"
         ]
       ) testSuite;
 

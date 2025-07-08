@@ -32,6 +32,75 @@ let
     # Build logic unification tests (TDD - Phase 1 Sprint 1.3)
     build_logic_unified_unit = import ./unit/build-logic-unified-unit.nix { inherit pkgs; lib = pkgs.lib; };
 
+    # Conditional file copy modularization tests (TDD - Phase 2 Sprint 2.1)
+    conditional_file_copy_modularization_unit = import ./unit/conditional-file-copy-modularization-unit.nix { inherit pkgs; lib = pkgs.lib; };
+
+    # Platform detection tests (TDD - Phase 3 Sprint 3.1)
+    platform_detection_test = import ./unit/platform-detection-test.nix { inherit pkgs; };
+
+    # Claude configuration tests (TDD - Phase 3 Sprint 3.1)
+    claude_config_test = import ./unit/claude-config-test.nix { inherit pkgs; };
+
+    # Module imports tests (TDD - Phase 3 Sprint 3.1)
+    module_imports_unit = import ./unit/module-imports-unit.nix { inherit pkgs flake; src = ../.; };
+
+    # Error handling tests (TDD - Phase 3 Sprint 3.1)
+    error_handling_test = import ./unit/error-handling-test.nix { inherit pkgs; src = ../.; };
+
+    # Flake config module tests (TDD - Phase 3 Sprint 3.1 Medium Priority)
+    flake_config_module_unit = import ./unit/flake-config-module-unit.nix { inherit pkgs flake; src = ../.; };
+
+    # System configs module tests (TDD - Phase 3 Sprint 3.1 Medium Priority)
+    system_configs_module_unit = import ./unit/system-configs-module-unit.nix { inherit pkgs flake; src = ../.; };
+
+    # Common utils tests (TDD - Phase 3 Sprint 3.1 Medium Priority)
+    common_utils_unit = import ./unit/common-utils-unit.nix { inherit pkgs flake; src = ../.; };
+
+    # Auto-update tests (TDD - Phase 3 Sprint 3.1 Build System Tests)
+    auto_update_test = import ./unit/auto-update-test.nix { inherit pkgs; src = ../.; };
+
+    # BL auto-update commands tests (TDD - Phase 3 Sprint 3.1 Build System Tests)
+    bl_auto_update_commands_unit = import ./unit/bl-auto-update-commands-unit.nix { inherit pkgs; src = ../.; };
+
+    # Check builders module tests (TDD - Phase 3 Sprint 3.1 Build System Tests)
+    check_builders_module_unit = import ./unit/check-builders-module-unit.nix { inherit pkgs flake; src = ../.; };
+
+    # Flake integration tests (TDD - Phase 3 Sprint 3.1 Integration Tests)
+    flake_integration_unit = import ./unit/flake-integration-unit.nix { inherit pkgs flake; src = ../.; };
+
+    # Parallel test execution tests (TDD - Phase 3 Sprint 3.1 Integration Tests)
+    parallel_test_execution_unit = import ./unit/parallel-test-execution-unit.nix { inherit pkgs flake; src = ../.; };
+
+    # Enhanced error functionality tests (TDD - Phase 3 Sprint 3.1 Performance Tests)
+    enhanced_error_functionality_unit = import ./unit/enhanced-error-functionality-unit.nix { inherit pkgs flake; src = ../.; };
+
+    # Portable paths tests (TDD - Phase 3 Sprint 3.1 Performance Tests)
+    portable_paths_test = import ./unit/portable-paths-test.nix { inherit pkgs flake; src = ../.; };
+
+    # SSH key security tests (TDD - Phase 3 Sprint 3.1 Additional Tests)
+    ssh_key_security_test = import ./unit/ssh-key-security-test.nix { inherit pkgs; lib = pkgs.lib; src = ../.; };
+
+    # Package utils tests (TDD - Phase 3 Sprint 3.2 Coverage Expansion)
+    package_utils_unit = import ./unit/package-utils-unit.nix { inherit pkgs flake; src = ../.; };
+
+    # Claude commands tests (TDD - Phase 3 Sprint 3.2 Coverage Expansion)
+    claude_commands_test = import ./unit/claude-commands-test.nix { inherit pkgs; src = ../.; };
+
+    # Parallel test functionality tests (TDD - Phase 3 Sprint 3.2 Coverage Expansion)
+    parallel_test_functionality_unit = import ./unit/parallel-test-functionality-unit.nix { inherit pkgs flake; src = ../.; };
+
+    # Claude config test final (TDD - Phase 3 Sprint 3.2 Coverage Expansion - Final Test)
+    claude_config_test_final = import ./unit/claude-config-test-final.nix { inherit pkgs; src = ../.; };
+
+    # Directory structure optimization tests (TDD - Phase 4 Sprint 4.1)
+    directory_structure_optimization_unit = import ./unit/directory-structure-optimization-unit.nix { inherit pkgs flake; src = ../.; };
+
+    # Configuration externalization tests (TDD - Phase 4 Sprint 4.2)
+    configuration_externalization_unit = import ./unit/configuration-externalization-unit.nix { inherit pkgs flake; src = ../.; };
+
+    # Documentation completeness tests (TDD - Phase 4 Sprint 4.3)
+    documentation_completeness_unit = import ./unit/documentation-completeness-unit.nix { inherit pkgs flake; src = ../.; };
+
     # Apply script deduplication tests (TDD - Issue #301)
     apply_script_deduplication_unit = import ./unit/apply-script-deduplication-unit.nix { inherit pkgs; };
     apply_template_system_unit = import ./unit/apply-template-system-unit.nix { inherit pkgs; };
@@ -51,6 +120,21 @@ let
     user_path_consistency = import ./integration/test-user-path-consistency.nix { inherit pkgs; lib = pkgs.lib; };
     build_parallelization_integration = import ./integration/build-parallelization-integration.nix { inherit pkgs; };
     app_links_integration = import ./integration/app-links-integration.nix { inherit pkgs flake; src = ../.; };
+
+    # Cross-platform integration tests (TDD - Phase 3 Sprint 3.1 Additional Tests)
+    cross_platform_integration = import ./integration/cross-platform-integration.nix { inherit pkgs flake; src = ../.; };
+
+    # Auto-update integration tests (TDD - Phase 3 Sprint 3.1 Additional Tests)
+    auto_update_integration = import ./integration/auto-update-integration.nix { inherit pkgs flake; src = ../.; };
+
+    # Package availability integration tests (TDD - Phase 3 Sprint 3.1 Additional Tests)
+    package_availability_integration = import ./integration/package-availability-integration.nix { inherit pkgs flake; src = ../.; };
+
+    # System build integration tests (TDD - Phase 3 Sprint 3.1 Additional Tests)
+    system_build_integration = import ./integration/system-build-integration.nix { inherit pkgs flake; src = ../.; };
+
+    # File generation integration tests (TDD - Phase 3 Sprint 3.1 Additional Tests)
+    file_generation_integration = import ./integration/file-generation-integration.nix { inherit pkgs flake; src = ../.; };
   };
 
   # Workflow tests - End-to-end user workflows (simplified)

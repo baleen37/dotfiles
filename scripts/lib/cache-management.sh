@@ -2,13 +2,13 @@
 # Cache Management Module for Build Scripts
 # Provides intelligent build cache optimization and management
 
-# Cache configuration constants
-CACHE_MAX_SIZE_GB=5
-CACHE_CLEANUP_DAYS=7
-CACHE_STAT_FILE="$HOME/.cache/nix-build-stats"
+# Cache configuration with environment variable defaults
+CACHE_MAX_SIZE_GB="${CACHE_MAX_SIZE_GB:-5}"
+CACHE_CLEANUP_DAYS="${CACHE_CLEANUP_DAYS:-7}"
+CACHE_STAT_FILE="${CACHE_STAT_FILE:-$HOME/.cache/nix-build-stats}"
 
-# Binary cache URLs
-BINARY_CACHES="https://cache.nixos.org https://nix-community.cachix.org"
+# Binary cache URLs with environment variable default
+BINARY_CACHES="${BINARY_CACHES:-https://cache.nixos.org https://nix-community.cachix.org}"
 
 # Cache statistics tracking
 init_cache_stats() {

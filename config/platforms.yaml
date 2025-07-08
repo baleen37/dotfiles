@@ -1,0 +1,32 @@
+# Platform Configuration
+# Supported systems and their architectures
+
+platforms:
+  supported_systems:
+    - "x86_64-darwin"
+    - "aarch64-darwin"
+    - "x86_64-linux"
+    - "aarch64-linux"
+
+  platform_configs:
+    darwin:
+      type: "darwin"
+      rebuild_command: "darwin-rebuild"
+      rebuild_command_path: "./result/sw/bin/darwin-rebuild"
+      flake_prefix: "darwinConfigurations"
+      platform_name: "Nix Darwin"
+
+    linux:
+      type: "linux"
+      rebuild_command: "nixos-rebuild"
+      rebuild_command_path: "nixos-rebuild"
+      flake_prefix: "nixosConfigurations"
+      platform_name: "NixOS"
+
+  architectures:
+    aarch64:
+      name: "ARM64"
+      description: "ARM 64-bit architecture"
+    x86_64:
+      name: "Intel/AMD 64-bit"
+      description: "x86_64 architecture"
