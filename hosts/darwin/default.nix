@@ -108,8 +108,8 @@ in
         "com.apple.sound.beep.volume" = 0.0;
         "com.apple.sound.beep.feedback" = 0;
 
-        # Trackpad tracking speed 설정 (기본값: 1.0, 시스템 최대: 3.0, 고속: 8.0+)
-        "com.apple.trackpad.scaling" = 8.0;
+        # Trackpad tracking speed 설정 (0.0 ~ 3.0, 기본값: 1.0, 최대: 3.0)
+        "com.apple.trackpad.scaling" = 3.0;
 
         # 추가 trackpad 설정 (더 빠른 동작을 위함)
         "com.apple.trackpad.enableSecondaryClick" = true;
