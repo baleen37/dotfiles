@@ -1,0 +1,27 @@
+# Development Profile
+# Optimized settings for development environment
+
+# Override base settings for development
+build:
+  timeout: 7200  # Longer timeout for dev builds
+  parallel_jobs: 8  # More parallel jobs for faster dev cycles
+  allow_unfree: true
+  experimental_features: "nix-command flakes ca-derivations"
+
+development:
+  debug_mode: true
+  verbose_logging: true
+  test_mode: true
+  performance_monitoring: true
+
+# Development-specific paths
+paths:
+  dev_cache: ".cache/dev"
+  test_results: ".cache/test-results"
+  build_artifacts: ".cache/build"
+
+# Enhanced error reporting for development
+error_handling:
+  detailed_stack_traces: true
+  preserve_build_logs: true
+  interactive_debugging: true

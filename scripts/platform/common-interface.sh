@@ -83,11 +83,42 @@ initialize_platform_interface() {
     # Then load platform-specific overrides
     load_platform_overrides
 
+    # Load platform-specific build overrides
+    load_platform_build_overrides
+
     if command -v log_success >/dev/null 2>&1; then
         log_success "Platform interface initialized successfully"
     fi
 }
 
+# Load platform-specific build overrides
+load_platform_build_overrides() {
+    local platform_type="${PLATFORM_TYPE:-$(detect_platform_type)}"
+    local script_dir="$(dirname "$0")"
+
+    case "$platform_type" in
+        darwin)
+            if [ -f "$script_dir/darwin-build.sh" ]; then
+                . "$script_dir/darwin-build.sh"
+                apply_darwin_build_overrides
+            else
+                if command -v log_debug >/dev/null 2>&1; then
+                    log_debug "No Darwin build overrides found"
+                fi
+            fi
+            ;;
+        linux)
+            if [ -f "$script_dir/linux-build.sh" ]; then
+                . "$script_dir/linux-build.sh"
+                apply_linux_build_overrides
+            else
+                if command -v log_debug >/dev/null 2>&1; then
+                    log_debug "No Linux build overrides found"
+                fi
+            fi
+            ;;
+    esac
+}
 # Main initialization function to be called by build scripts
 init_platform() {
     initialize_platform_interface "$@"

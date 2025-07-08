@@ -1,23 +1,45 @@
 #!/bin/sh -e
+# Updated build script for aarch64-darwin using optimized structure
 
-GREEN='\033[1;32m'
-YELLOW='\033[1;33m'
-RED='\033[1;31m'
-NC='\033[0m'
+# Get script directory
+SCRIPT_DIR="$(dirname "$0")"
 
-SYSTEM_TYPE="aarch64-darwin"
-FLAKE_SYSTEM="darwinConfigurations.${SYSTEM_TYPE}.system"
+# Try to use new optimized build system
+DARWIN_BUILD_SCRIPT="$SCRIPT_DIR/../../scripts/build/darwin.sh"
+if [ -f "$DARWIN_BUILD_SCRIPT" ]; then
+  echo "Using optimized build system..."
+  # Set up proper environment for build scripts
+  ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+  BUILD_SCRIPT_DIR="$ROOT_DIR/scripts/build"
 
-export NIXPKGS_ALLOW_UNFREE=1
+  # Source scripts with absolute paths
+  source "$BUILD_SCRIPT_DIR/common.sh"
+  source "$BUILD_SCRIPT_DIR/darwin.sh"
 
-# Set USER if not already set
-if [ -z "$USER" ]; then
-    export USER=$(whoami)
+  build_darwin "$@"
+else
+  # Fallback to legacy implementation
+  echo "Falling back to legacy build system..."
+
+  GREEN='\033[1;32m'
+  YELLOW='\033[1;33m'
+  RED='\033[1;31m'
+  NC='\033[0m'
+
+  SYSTEM_TYPE="aarch64-darwin"
+  FLAKE_SYSTEM="darwinConfigurations.${SYSTEM_TYPE}.system"
+
+  export NIXPKGS_ALLOW_UNFREE=1
+
+  # Set USER if not already set
+  if [ -z "$USER" ]; then
+      export USER=$(whoami)
+  fi
+
+  echo "${YELLOW}Starting build...${NC}"
+  nix --extra-experimental-features 'nix-command flakes' build --impure .#$FLAKE_SYSTEM $@
+
+  echo "${GREEN}Build completed successfully!${NC}"
+  echo "${YELLOW}To apply changes, run: nix run --impure .#build-switch${NC}"
+  echo "${YELLOW}Or use the result link: ./result/sw/bin/darwin-rebuild switch --impure --flake .#aarch64-darwin${NC}"
 fi
-
-echo "${YELLOW}Starting build...${NC}"
-nix --extra-experimental-features 'nix-command flakes' build --impure .#$FLAKE_SYSTEM $@
-
-echo "${GREEN}Build completed successfully!${NC}"
-echo "${YELLOW}To apply changes, run: nix run --impure .#build-switch${NC}"
-echo "${YELLOW}Or use the result link: ./result/sw/bin/darwin-rebuild switch --impure --flake .#aarch64-darwin${NC}"

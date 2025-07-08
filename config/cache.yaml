@@ -1,0 +1,30 @@
+# Cache Management Configuration
+# Settings for Nix binary cache and local cache management
+
+cache:
+  # Local cache settings
+  local:
+    max_size_gb: 5
+    cleanup_days: 7
+    stat_file: "$HOME/.cache/nix-build-stats"
+    cache_dir: "$HOME/.cache/nix"
+
+  # Binary cache servers
+  binary_caches:
+    - "https://cache.nixos.org"
+    - "https://nix-community.cachix.org"
+
+  # Cache behavior settings
+  behavior:
+    # Maximum disk space for Nix store cache
+    max_cache_size: "50G"
+    # Minimum free space to maintain
+    min_free_space: "1G"
+    # Maximum free space before cleanup
+    max_free_space: "10G"
+
+  # Cache optimization
+  optimization:
+    auto_optimize: true
+    compress_logs: true
+    parallel_downloads: 10

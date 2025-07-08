@@ -8,13 +8,13 @@ let
 
   # Extract architecture from system string
   getArchFromSystem = system:
-    let parts = builtins.split "-" system;
+    let parts = pkgs.lib.splitString "-" system;
     in if builtins.length parts >= 1 then builtins.head parts else "unknown";
 
   # Extract platform from system string
   getPlatformFromSystem = system:
-    let parts = builtins.split "-" system;
-    in if builtins.length parts >= 3 then builtins.elemAt parts 2 else "unknown";
+    let parts = pkgs.lib.splitString "-" system;
+    in if builtins.length parts >= 2 then builtins.elemAt parts 1 else "unknown";
 
   # Platform defaults function
   getPlatformDefaults = platform:
@@ -119,6 +119,16 @@ in
     in defaults.shellPath;
 
   # Platform feature detection
+
+  # Check if current system is Darwin/macOS
+  isDarwin =
+    let currentPlatform = getPlatformFromSystem pkgs.system;
+    in currentPlatform == "darwin";
+
+  # Check if current system is Linux
+  isLinux =
+    let currentPlatform = getPlatformFromSystem pkgs.system;
+    in currentPlatform == "linux";
 
   # Check if platform supports Homebrew
   supportsHomebrew = platform:

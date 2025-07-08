@@ -1,0 +1,54 @@
+# Platform Configuration
+# External configuration for platform-specific settings
+
+platforms:
+  # Supported systems
+  supported_systems:
+    - "x86_64-darwin"
+    - "aarch64-darwin"
+    - "x86_64-linux"
+    - "aarch64-linux"
+
+  # Platform-specific configurations
+  platform_configs:
+    darwin:
+      type: "darwin"
+      rebuild_command: "darwin-rebuild"
+      rebuild_command_path: "./result/sw/bin/darwin-rebuild"
+      flake_prefix: "darwinConfigurations"
+      platform_name: "Nix Darwin"
+      allow_unfree: true
+      impure_mode: true
+      system_suffix: ".system"
+
+    linux:
+      type: "linux"
+      rebuild_command: "nixos-rebuild"
+      rebuild_command_path: "nixos-rebuild"
+      flake_prefix: "nixosConfigurations"
+      platform_name: "NixOS"
+      allow_unfree: false
+      impure_mode: false
+      system_suffix: ".config.system.build.toplevel"
+
+  # Architecture definitions
+  architectures:
+    aarch64:
+      name: "ARM64"
+      description: "ARM 64-bit architecture"
+      aliases: ["arm64"]
+    x86_64:
+      name: "Intel/AMD 64-bit"
+      description: "x86_64 architecture"
+      aliases: ["x64"]
+
+# External configuration additions
+system_detection:
+  auto_detect: true
+  fallback_architecture: "x86_64"
+  fallback_platform: "darwin"
+
+# Flake system patterns
+flake_patterns:
+  darwin: "darwinConfigurations.{architecture}-darwin.system"
+  linux: "nixosConfigurations.{architecture}-linux.config.system.build.toplevel"
