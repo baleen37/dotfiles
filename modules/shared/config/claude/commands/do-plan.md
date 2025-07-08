@@ -37,7 +37,8 @@ For each project specification, systematically analyze:
 
 **Phase 4: Final Integration & Documentation**
 - Consolidate all phases into master project plan
-- Generate `plan.md` with phase-organized task list
+- IF `plan.md` exists: Read existing `plan.md`. Based on content similarity to the new plan, suggest either 'modify/improve' (if similar) or 'overwrite' (if very different). Always ask for user confirmation.
+- ELSE → Generate `plan.md` with phase-organized task list
 - Include risk mitigation and testing strategies for each phase
 </workflow>
 
@@ -67,6 +68,7 @@ For each project specification, systematically analyze:
 </output_template>
 
 <constraints>
+- After generating `plan.md`, STOP and await further user instructions. Do NOT propose modifications or next steps unless explicitly asked.
 - NEVER proceed without user approval on technology choices
 - ALWAYS ensure phases are independently deliverable
 - MUST validate that sprint tasks are 1-2 week efforts
