@@ -12,10 +12,8 @@ NC='\033[0m'
 CONFIG_DIR="${CONFIG_DIR:-$(dirname "$0")/../../config}"
 DEFAULT_CONFIG_DIR="${CONFIG_DIR}/defaults"
 
-# Global configuration variables
-declare -A BUILD_CONFIG
-declare -A PLATFORM_CONFIG
-declare -A PATH_CONFIG
+# Global configuration variables (using simple approach for compatibility)
+# Note: Avoid associative arrays for compatibility with different bash versions
 
 # Configuration cache variables
 CONFIG_CACHE_LOADED=false

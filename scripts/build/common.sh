@@ -29,18 +29,43 @@ detect_platform() {
 
 # Load build environment from external configuration
 load_build_environment() {
-  local config_loader="${SCRIPT_DIR:-$(dirname "$0")}/../utils/config-loader.sh"
+  local script_dir="${SCRIPT_DIR:-$(dirname "$0")}"
+  local config_loader="$script_dir/../utils/config-loader.sh"
 
-  if [[ -f "$config_loader" ]]; then
-    source "$config_loader"
-    load_build_config
-    printf "${GREEN}External build configuration loaded${NC}\n"
+  # Try multiple possible locations for config-loader.sh
+  local possible_paths=(
+    "$script_dir/../utils/config-loader.sh"
+    "$script_dir/../../scripts/utils/config-loader.sh"
+    "$(pwd)/scripts/utils/config-loader.sh"
+  )
+
+  local found_config_loader=""
+  for path in "${possible_paths[@]}"; do
+    if [[ -f "$path" ]]; then
+      found_config_loader="$path"
+      break
+    fi
+  done
+
+  # Always set default values first
+  export BUILD_TIMEOUT="3600"
+  export PARALLEL_JOBS="4"
+  export NIXPKGS_ALLOW_UNFREE="true"
+  export DARWIN_AARCH64_TARGET="aarch64-darwin"
+  export DARWIN_X86_64_TARGET="x86_64-darwin"
+  export LINUX_AARCH64_TARGET="aarch64-linux"
+  export LINUX_X86_64_TARGET="x86_64-linux"
+
+  if [[ -n "$found_config_loader" ]]; then
+    # Try to load external config (may override defaults)
+    if source "$found_config_loader" 2>/dev/null && type load_build_config >/dev/null 2>&1; then
+      load_build_config 2>/dev/null || true
+      printf "${GREEN}External build configuration loaded from $found_config_loader${NC}\n"
+    else
+      printf "${YELLOW}Config loader found but failed to load, using defaults${NC}\n"
+    fi
   else
     printf "${YELLOW}Config loader not found, using defaults${NC}\n"
-    # Default values
-    export BUILD_TIMEOUT="3600"
-    export PARALLEL_JOBS="4"
-    export NIXPKGS_ALLOW_UNFREE="true"
   fi
 }
 
