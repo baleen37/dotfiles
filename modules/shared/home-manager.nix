@@ -120,7 +120,7 @@ in
         elif command -v idea >/dev/null 2>&1; then
           # 무한 재귀 방지: 현재 함수가 아닌 실제 바이너리인지 확인
           local idea_path=$(command -v idea)
-          if [[ "$idea_path" != *"function"* ]] && [[ -x "$idea_path" ]]; then
+          if ! [[ "$idea_path" =~ function ]] && [[ -x "$idea_path" ]]; then
             idea_cmd="$idea_path"
           else
             echo "Error: IntelliJ IDEA executable not found."
