@@ -101,8 +101,46 @@ in
         fi
       fi
 
-      # IntelliJ IDEA 백그라운드 실행 alias
-      alias idea='nohup /opt/homebrew/bin/idea "$@" >/dev/null 2>&1 &'
+      # IntelliJ IDEA 백그라운드 실행 함수
+      idea() {
+        local idea_cmd=""
+        
+        # 1. Nix 환경에서 IDEA 확인 (우선순위)
+        if command -v intellij-idea-ultimate >/dev/null 2>&1; then
+          idea_cmd="intellij-idea-ultimate"
+        elif command -v intellij-idea-community >/dev/null 2>&1; then
+          idea_cmd="intellij-idea-community"
+        # 2. Homebrew 경로 확인 (대체)
+        elif [[ -x "/opt/homebrew/bin/idea" ]]; then
+          idea_cmd="/opt/homebrew/bin/idea"
+        # 3. Linux Homebrew 경로 확인
+        elif [[ -x "/home/linuxbrew/.linuxbrew/bin/idea" ]]; then
+          idea_cmd="/home/linuxbrew/.linuxbrew/bin/idea"
+        # 4. 일반 PATH에서 확인 (최후 수단)
+        elif command -v idea >/dev/null 2>&1; then
+          # 무한 재귀 방지: 현재 함수가 아닌 실제 바이너리인지 확인
+          local idea_path=$(command -v idea)
+          if [[ "$idea_path" != *"function"* ]] && [[ -x "$idea_path" ]]; then
+            idea_cmd="$idea_path"
+          else
+            echo "Error: IntelliJ IDEA executable not found."
+            return 1
+          fi
+        else
+          echo "Error: IntelliJ IDEA not found. Please install via:"
+          echo "  - Nix: nix-env -iA nixpkgs.jetbrains.idea-ultimate"
+          echo "  - Homebrew: brew install --cask intellij-idea"
+          return 1
+        fi
+        
+        # 백그라운드에서 IDEA 실행
+        if ! nohup "$idea_cmd" "$@" >/dev/null 2>&1 &; then
+          echo "Error: Failed to start IntelliJ IDEA with command: $idea_cmd"
+          return 1
+        fi
+        
+        echo "IntelliJ IDEA started in background with: $idea_cmd"
+      }
     '';
   };
 
