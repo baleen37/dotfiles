@@ -134,7 +134,10 @@ in
         fi
 
         # 백그라운드에서 IDEA 실행
-        if ! nohup "$idea_cmd" "$@" >/dev/null 2>&1 &; then
+        nohup "$idea_cmd" "$@" >/dev/null 2>&1 &
+        local nohup_exit=$?
+        
+        if [ $nohup_exit -ne 0 ]; then
           echo "Error: Failed to start IntelliJ IDEA with command: $idea_cmd"
           return 1
         fi
