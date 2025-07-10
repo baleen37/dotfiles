@@ -1,89 +1,82 @@
-# Development Plan (Test-Driven Development)
+# TDD Workflow & Development Protocol
 
-This document outlines the standard procedure for addressing user requests using a Test-Driven Development (TDD) approach.
+This document outlines the standard procedure for addressing user requests using a Test-Driven Development (TDD) approach. This protocol is a specific implementation of the **Test-Plan-Verify (TPV) Development Cycle** described in `CLAUDE.md`.
 
-## 1. Understand the Request
+## Core Principles (Guiding the Entire Process)
 
-*   **Clarify the Goal:** Fully understand what the user wants to achieve. If the request is ambiguous, ask clarifying questions.
-*   **Identify Constraints:** Note any specific constraints or requirements mentioned by the user.
-*   **Checkpoint:** Confirm understanding with Jito if there is any ambiguity.
+Before starting any task, internalize these principles from `CLAUDE.md`. They are not steps, but a mindset to maintain throughout the workflow.
 
-## 2. Analyze the Codebase
+*   **Context Preservation:** Your primary duty is to understand and maintain the project's existing conventions, architecture, and history. Never introduce changes that deviate from established patterns without a compelling, documented reason.
+*   **Think Hard Mandate:** For complex problems, especially test failures or system-level issues, you must stop and engage in deep analysis. Do not guess or apply superficial fixes. Understand the root cause before proceeding.
+*   **Convention Adherence:** Strictly follow existing file structures, naming conventions, and coding styles.
 
-*   **File & Directory Search:** Use `glob` to find relevant files and directories.
-*   **Content Search:** Use `search_file_content` to locate specific code snippets, functions, or variables.
-*   **Read and Understand:** Use `read_file` or `read_many_files` to thoroughly understand the existing code, its structure, and conventions.
-*   **Context Discovery:** Analyze `git log`, related files, and existing patterns to understand the project's history and conventions.
-*   **Checkpoint:** Ensure a comprehensive understanding of the relevant code, its history, and conventions before proceeding.
+## Phase 1: Understand & Analyze
 
-## 3. Formulate a TDD Plan
+*   **1.1. Clarify the Goal:** Fully understand what the user wants to achieve. If the request is ambiguous, ask clarifying questions. Note any specific constraints or requirements.
+*   **1.2. Analyze the Codebase (Context Discovery Protocol):**
+    *   **File & Directory Search:** Use `glob` to find relevant files and directories.
+    *   **Content Search:** Use `search_file_content` to locate specific code snippets, functions, or variables.
+    *   **Read and Understand:** Use `read_file` or `read_many_files` to thoroughly understand the existing code.
+    *   **Analyze History:** Review `git log` and related file histories to understand the evolution of the code and its conventions.
+*   **Checkpoint:** Do you have a comprehensive understanding of the request, the relevant code, its history, and its conventions? If there is any ambiguity, confirm with the user.
 
-*   **Outline the Steps (TDD Cycle):** Create a clear, step-by-step plan for implementing the required changes, focusing on the Red-Green-Refactor cycle.
-    *   Identify the smallest piece of functionality to implement.
-    *   Determine how to test this functionality *before* writing the code.
-*   **Consider Edge Cases:** Think about potential side effects and edge cases, and how they will be covered by tests.
-*   **Plan for Verification:** Decide how you will test the changes (i.g., running existing tests, creating new tests).
-*   **Propose to User:** Present the plan to the user for approval before making any modifications.
-*   **Checkpoint:** Obtain explicit approval from Jito before starting implementation.
+## Phase 2: Plan
 
-## 4. Implement Changes (TDD Cycle: Red-Green-Refactor)
+*   **2.1. Formulate a TDD Strategy:**
+    *   **Outline the Steps (TDD Cycle):** Create a clear, step-by-step plan that follows the Red-Green-Refactor cycle. Identify the smallest possible piece of functionality to implement first.
+    *   **Plan for Tests:** Determine how to test this functionality *before* writing the implementation code. Consider edge cases and potential side effects.
+*   **2.2. Propose to User:** Present the high-level plan to the user for approval before making any modifications.
+*   **Checkpoint:** Has the user explicitly approved the plan?
+
+## Phase 3: Implement (The Red-Green-Refactor Cycle)
 
 This phase involves iterative cycles of writing a failing test, making it pass, and then refactoring.
 
-### 4.1. Red: Write a Failing Test
+### 3.1. Red: Write a Failing Test
+*   **Write Test:** Create the *smallest possible* new test case that targets the *single, smallest piece of functionality* you're implementing.
+*   **Ensure Failure:** Run the tests and confirm that the new test fails for the expected reason. This proves the test is working correctly and the functionality doesn't exist yet.
+*   **Checkpoint:** Did the new test fail as expected?
 
-*   **Write Test:** Create the *smallest possible* new test case that specifically targets the *single, smallest piece of functionality* identified in the plan.
-*   **Ensure Failure:** Run the tests and confirm that the newly added test fails. This confirms the test is correctly written and the functionality does not yet exist.
-*   **Checkpoint:** Confirm the new test fails for the expected reason.
+### 3.2. Green: Write Just Enough Code to Pass
+*   **Implement Minimal Solution:** Write *only* the code necessary to make the failing test pass. Do not add any extra functionality.
+*   **Run Tests:** Run the entire test suite and ensure all tests pass.
+*   **Checkpoint:** Do all tests now pass?
 
-### 4.2. Green: Write Just Enough Code to Pass
+### 3.3. Refactor: Improve Code Quality
+*   **Refactor Code:** Improve the design, readability, and maintainability of the implementation without changing its external behavior. Remove duplication, simplify logic, and adhere to project conventions.
+    *   **CRITICAL: Dead Code Prohibition**: Actively identify and remove any dead code.
+    *   **CRITICAL: No Temporary Files**: Refactor in place. Do NOT rename files or create new files with suffixes like `_new`, `_v2`, or `_backup`.
+*   **Run Tests:** Run all tests again to ensure refactoring has not introduced any regressions.
+*   **Checkpoint:** Do all tests still pass after refactoring?
 
-*   **Implement Minimal Solution:** Write *only* the absolutely necessary code to make the failing test pass. Do not add *any* extra functionality, even if you anticipate needing it later.
-*   **Run Tests:** Run all tests (including the new one) and ensure they all pass.
-*   **Checkpoint:** Confirm all tests pass after the minimal implementation.
-
-### 4.3. Refactor: Improve Code Quality
-
-*   **Refactor Code:** Improve the design, readability, and maintainability of the code without changing its external behavior. This includes removing duplication, simplifying logic, and adhering to coding standards.
-    *   **CRITICAL: Dead Code Prohibition**: Actively identify and remove any dead code introduced during the Green phase or existing in the refactored area. Refer to `CLAUDE.md`'s `DEADCODE PROHIBITION` for details.
-    *   **CRITICAL: File Naming/Creation**: Do NOT rename existing files or create new files with suffixes like `Refactored`, `New`, `V2`, `_old`, `_backup`, etc. Refactor in place.
-*   **Run Tests:** Run all tests again to ensure that refactoring has not introduced any regressions.
-*   **Checkpoint:** Confirm all tests still pass after refactoring and no dead code or improperly named files remain.
-
-### 4.4. Handling Test Failures (During Red-Green-Refactor)
-*   **CRITICAL: If a test does not behave as expected (e.g., does not fail in Red, does not pass in Green, or fails after Refactoring):**
-    *   **STOP IMMEDIATELY.** Do NOT proceed with any further implementation or refactoring.
-    *   **Think Hard & Find the Root Cause**: This is a critical juncture. Do not apply quick fixes or workarounds. Your primary goal is to understand *why* the test is failing or not behaving as expected.
+### 3.4. Critical Protocol: Handling Test Deviations
+*   **CRITICAL: If a test does not behave as expected at any point (e.g., doesn't fail in Red, doesn't pass in Green, or fails after Refactor):**
+    *   **STOP IMMEDIATELY.** Do not proceed.
+    *   **Think Hard & Find the Root Cause**: This is a critical failure. Your primary goal is to understand *why* the test is not behaving as expected.
     *   **Debugging Protocol**:
         1.  **Review Test Output**: Carefully examine the full test output, including stack traces and error messages.
         2.  **Inspect Recent Changes**: Use `git diff` to review your most recent code changes.
-        3.  **Isolate the Problem**: If possible, simplify the test case or the code under test to pinpoint the exact source of the issue.
-        4.  **Consult CLAUDE.md Debugging Process**: Systematically apply the debugging framework outlined in the `<debugging_process>` section of `CLAUDE.md`. This includes reproducing consistently, checking recent changes, asking "WHY" repeatedly, and forming/testing hypotheses.
-    *   **Resolution**: You MUST resolve the underlying issue and ensure the test behaves correctly (failing in Red, passing in Green/Refactor) before attempting to move to the next step in the TDD cycle.
+        3.  **Isolate the Problem**: Simplify the test case or the code to pinpoint the source of the issue.
+        4.  **Consult `CLAUDE.md`**: Systematically apply the debugging frameworks outlined in `CLAUDE.md`.
+    *   **Resolution**: You MUST resolve the underlying issue before moving to the next step.
 
-### 4.5. Iterate
+### 3.5. Document Progress
+*   **ACTION: Update `plan.md`**: After each successful Red-Green-Refactor cycle, update `plan.md` to mark the completed functionality and reflect the current progress. This ensures the plan is always up-to-date.
 
-*   Repeat steps 4.1 to 4.3 for the next smallest piece of functionality until the entire feature is implemented.
+### 3.6. Iterate
+*   Repeat steps 3.1 to 3.5 for the next smallest piece of functionality until the entire feature is implemented.
 
-## 5. Verify and Test (Continuous Integration)
+## Phase 4: Verify
 
-*   **Run All Tests:** Execute the project's entire test suite to ensure no regressions have been introduced throughout the TDD cycles.
-    *   **ACTION:** Identify the project's test command by checking `package.json` scripts, `Makefile`, `README.md`, or common test runners (e.g., `npm test`, `pytest`, `go test ./...`). Run it and report the outcome.
-*   **Linting and Formatting:** Run linters and formatters to ensure code quality and consistency.
-    *   **ACTION:** Identify the project's linting and formatting commands by checking `package.json` scripts, `Makefile`, `README.md`, or common linters (e.g., `npm run lint`, `black .`, `ruff check .`). Run them and report the outcome.
-*   **Manual Verification:** If necessary, perform manual checks to confirm the changes work as expected.
-*   **Checkpoint:** Confirm that the entire test suite passes and all code quality checks are met.
+*   **4.1. Run All Project Checks:**
+    *   **ACTION: Run Test Suite:** Identify and execute the project's entire test suite (e.g., `npm test`, `pytest`).
+    *   **ACTION: Run Linters/Formatters:** Identify and execute project quality tools (e.g., `npm run lint`, `ruff check .`).
+*   **4.2. Manual Verification:** If necessary, perform a final manual check to confirm the changes work as expected from a user's perspective.
+*   **Checkpoint:** Does the entire test suite pass, and are all code quality checks met?
 
-## 6. Commit and Finalize
+## Phase 5: Finalize
 
-## 7. Final Task Completion Check
-
-*   **Review Changes:** Use `git status` and `git diff` to review the modifications.
-*   **Stage and Commit:** Use `git add` and `git commit` with a clear and descriptive commit message that follows the project's conventions. Commits should ideally reflect completed Red-Green-Refactor cycles.
-*   **Checkpoint:** Double-check the commit message and the staged changes (`git diff --staged`) before committing.
-
-## Project Context & History Preservation
-
-*   **Analyze History:** Before making changes, review `git log` and related file histories to understand the evolution of the code.
-*   **Maintain Conventions:** Strictly adhere to existing naming conventions, architectural patterns, and coding styles.
-*   **Document Rationale:** If significant changes are made, be prepared to explain the reasoning behind them, referencing the project's history and goals.
+*   **5.1. Review Changes:** Use `git status` and `git diff --staged` to review all modifications one last time. Ensure no temporary or debug code is included.
+*   **5.2. Craft Commit Message:** Write a clear and descriptive commit message that follows the project's conventions (review `git log` for examples). The message should explain the "why" behind the change.
+*   **5.3. Commit:** Use `git add` and `git commit` to finalize the task. Commits should ideally represent complete, self-contained Red-Green-Refactor cycles.
+*   **Checkpoint:** Is the commit message clear and conventional? Are the staged changes correct?
