@@ -34,6 +34,7 @@ let
     # 임시 디렉토리에서 테스트
     temp_dir=$(mktemp -d)
     cd "$temp_dir"
+
     # idea 명령어가 정상적으로 실행되는지 확인 (실제 실행은 백그라운드)
     if ! idea . 2>/dev/null; then
       echo "❌ FAIL: 'idea .' command fails in temporary directory"
