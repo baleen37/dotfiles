@@ -38,8 +38,6 @@
     - **Generate Worktree Path**: Create a short, convenient path for the worktree under `./.local/`.
       - If an issue number is available, prefix it with "issue-" (e.g., `./.local/issue-123`).
       - Otherwise, use a short summary of the task (e.g., `./.local/oauth-integration`).
-    - **Propose and Confirm**: Present the generated branch name and worktree path to the user for confirmation. **WAIT FOR USER APPROVAL**.
-      - **IF USER REJECTS**: Ask for alternative name/path and regenerate. **DO NOT STOP**.
     - **Check for Path Collision**: Verify that the generated `<worktree-path>` does not already exist.
       - **IF PATH EXISTS**: Report the error (e.g., "Worktree path `/.local/issue-123` already exists. Please choose a different path or remove the existing one.") and **STOP**.
     - **Sanitize Names**: Ensure both branch name and path are valid and sanitized.
