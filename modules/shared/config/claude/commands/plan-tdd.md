@@ -29,8 +29,8 @@ This document mandates a **strict, sequential, and non-skippable** Test-Driven D
 *   **Action:** Present the detailed plan to the user.
 *   **Checkpoint:** **Obtain explicit user approval for the plan.** Do not proceed without it.
 
-## Phase 4: Execute the TDD Cycle (Red-Green-Refactor)
-This phase is iterative. For each small piece of functionality, you must follow this exact sub-sequence:
+## Phase 4: Execute the TDD Cycle & Commit Iteratively
+This phase is iterative. For each functional unit, you must follow this exact sub-sequence. Each completed unit will be committed.
 
 ### 4.1. RED: Write a Failing Test
 *   **Action:** Write the smallest possible test case for the next piece of functionality.
@@ -43,22 +43,23 @@ This phase is iterative. For each small piece of functionality, you must follow 
 *   **Checkpoint:** **Confirm that all tests now pass.**
 
 ### 4.3. REFACTOR: Improve Code Quality
-*   **Action:** Refactor the code you just wrote to improve its design, readability, and maintainability without changing its behavior.
+*   **Action:** Refactor the implementation and test code to improve design, readability, and maintainability without changing behavior.
     *   **CRITICAL:** Remove any dead code.
     *   **CRITICAL:** Do not create temporary files (`_new`, `_refactored`). Refactor in place.
 *   **Action:** Run the entire test suite again.
 *   **Checkpoint:** **Confirm that all tests still pass.**
 
-### 4.4. ITERATE
-*   **Action:** If the feature is not yet complete, return to step 4.1 for the next piece of functionality. Otherwise, proceed to Phase 5.
-
-## Phase 5: Final Verification
-*   **Action:** Execute the project's **entire** test suite one last time. Identify the command from `package.json`, `Makefile`, etc., and run it.
+### 4.4. VERIFY: Final Quality Check
+*   **Action:** Execute the project's **entire** test suite one last time.
 *   **Action:** Run the project's linter and formatter.
 *   **Checkpoint:** Confirm all tests pass and the code adheres to all quality standards.
 
-## Phase 6: Commit and Finalize
-*   **Action:** Review all changes with `git status` and `git diff`.
-*   **Action:** Stage the changes with `git add`.
-*   **Action:** Write a clear, conventional commit message and commit the changes with `git commit`.
-*   **Checkpoint:** The work is successfully committed, and the working directory is clean.
+### 4.5. COMMIT: Save the Work
+*   **Action:** Review all changes with `git status` and `git diff --staged`.
+*   **Action:** Stage all related changes with `git add`.
+*   **Action:** Write a clear, conventional commit message for the completed unit.
+*   **Action:** Commit the changes with `git commit`.
+*   **Checkpoint:** The functional unit is successfully committed.
+
+### 4.6. ITERATE
+*   **Action:** If the overall request is not yet complete, return to Phase 3 to plan the next TDD cycle. Otherwise, the task is complete.
