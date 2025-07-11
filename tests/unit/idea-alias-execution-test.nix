@@ -19,7 +19,7 @@ let
 
     # 2. idea alias 실행 시 오류 발생 여부 확인
     echo "Testing 'idea .' command execution..."
-    
+
     # 현재 디렉토리에서 idea . 실행 시 오류 발생 여부 확인
     if idea . 2>&1 | grep -q "not enough arguments"; then
       echo "❌ FAIL: 'idea .' command fails with 'not enough arguments' error"
@@ -30,11 +30,10 @@ let
     # 3. path 전달이 제대로 되는지 확인
     # 정상적으로 실행되면 백그라운드에서 실행되어야 함
     echo "Testing path argument passing..."
-    
+
     # 임시 디렉토리에서 테스트
     temp_dir=$(mktemp -d)
     cd "$temp_dir"
-    
     # idea 명령어가 정상적으로 실행되는지 확인 (실제 실행은 백그라운드)
     if ! idea . 2>/dev/null; then
       echo "❌ FAIL: 'idea .' command fails in temporary directory"

@@ -87,6 +87,11 @@ in
       # 한영키 전환을 Shift+Cmd+Space로 설정 (Nix 구현)
       ${(import ../../lib/keyboard-input-settings.nix { inherit pkgs lib; }).activationScript}
 
+      # Trackpad Speed 설정 (실제 tracking speed 제어)
+      echo "Setting trackpad speed to maximum..."
+      defaults write com.apple.AppleMultitouchTrackpad TrackpadSpeed -int 5
+      defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad TrackpadSpeed -int 5
+
       # 추가 설정 안내
       echo ""
       echo "📝 추가 설정 안내:"
@@ -107,6 +112,13 @@ in
         "com.apple.mouse.tapBehavior" = 1;
         "com.apple.sound.beep.volume" = 0.0;
         "com.apple.sound.beep.feedback" = 0;
+
+        # Trackpad tracking speed 설정 (0.0 ~ 3.0, 기본값: 1.0, 최대: 3.0)
+        "com.apple.trackpad.scaling" = 3.0;
+
+        # 추가 trackpad 설정 (더 빠른 동작을 위함)
+        "com.apple.trackpad.enableSecondaryClick" = true;
+        "com.apple.trackpad.forceClick" = true;
       };
 
 

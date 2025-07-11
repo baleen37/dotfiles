@@ -1,82 +1,90 @@
-# TDD Workflow & Development Protocol
+# TDD (Test-Driven Development) Workflow Guide
 
-This document outlines the standard procedure for addressing user requests using a Test-Driven Development (TDD) approach. This protocol is a specific implementation of the **Test-Plan-Verify (TPV) Development Cycle** described in `CLAUDE.md`.
+This document outlines the standard procedure for using Test-Driven Development (TDD). Following these principles and phases will help you produce high-quality, well-tested, and maintainable code.
 
-## Core Principles (Guiding the Entire Process)
+---
 
-Before starting any task, internalize these principles from `CLAUDE.md`. They are not steps, but a mindset to maintain throughout the workflow.
+### **Core Principles of TDD**
 
-*   **Context Preservation:** Your primary duty is to understand and maintain the project's existing conventions, architecture, and history. Never introduce changes that deviate from established patterns without a compelling, documented reason.
-*   **Think Hard Mandate:** For complex problems, especially test failures or system-level issues, you must stop and engage in deep analysis. Do not guess or apply superficial fixes. Understand the root cause before proceeding.
-*   **Convention Adherence:** Strictly follow existing file structures, naming conventions, and coding styles.
+Keep these guiding principles in mind throughout the development cycle. They are the "why" behind the TDD process.
 
-## Phase 1: Understand & Analyze
+*   **Test Behavior, Not Implementation:** Focus your tests on *what* the code should do, not *how* it does it. This makes your tests more resilient to refactoring.
+*   **One Reason to Fail:** Each test should be specific enough that it fails for only one reason. This makes debugging much faster.
+*   **The Simplest Thing That Could Possibly Work:** In the "Green" phase, write the absolute minimum amount of code to pass the test. Avoid premature optimization or adding features that haven't been tested for.
+*   **You Aren't Gonna Need It (YAGNI):** Do not add functionality until a test requires it.
 
-*   **1.1. Clarify the Goal:** Fully understand what the user wants to achieve. If the request is ambiguous, ask clarifying questions. Note any specific constraints or requirements.
-*   **1.2. Analyze the Codebase (Context Discovery Protocol):**
-    *   **File & Directory Search:** Use `glob` to find relevant files and directories.
-    *   **Content Search:** Use `search_file_content` to locate specific code snippets, functions, or variables.
-    *   **Read and Understand:** Use `read_file` or `read_many_files` to thoroughly understand the existing code.
-    *   **Analyze History:** Review `git log` and related file histories to understand the evolution of the code and its conventions.
-*   **Checkpoint:** Do you have a comprehensive understanding of the request, the relevant code, its history, and its conventions? If there is any ambiguity, confirm with the user.
+---
 
-## Phase 2: Plan
+### **Phase 1: Planning & Understanding**
 
-*   **2.1. Formulate a TDD Strategy:**
-    *   **Outline the Steps (TDD Cycle):** Create a clear, step-by-step plan that follows the Red-Green-Refactor cycle. Identify the smallest possible piece of functionality to implement first.
-    *   **Plan for Tests:** Determine how to test this functionality *before* writing the implementation code. Consider edge cases and potential side effects.
-*   **2.2. Propose to User:** Present the high-level plan to the user for approval before making any modifications.
-*   **Checkpoint:** Has the user explicitly approved the plan?
+This phase is about preparation. **Do not write any implementation code yet.**
 
-## Phase 3: Implement (The Red-Green-Refactor Cycle)
+**1.1. Understand the Request**
+*   **Goal:** Fully understand the user's objective. Ask clarifying questions if there's any ambiguity.
+*   **Constraints:** Identify all constraints and requirements mentioned by the user.
+*   **Checkpoint:** Confirm your understanding with the user if there is any ambiguity.
 
-This phase involves iterative cycles of writing a failing test, making it pass, and then refactoring.
+**1.2. Analyze Codebase & Context**
+*   **Search:** Use `glob` and `search_file_content` to find relevant files and directories.
+*   **Read:** Use `read_file` or `read_many_files` to understand the existing code.
+*   **History & Conventions:** Analyze `git log`, related files, and existing patterns to understand the project's history and conventions. Strictly adhere to them.
 
-### 3.1. Red: Write a Failing Test
-*   **Write Test:** Create the *smallest possible* new test case that targets the *single, smallest piece of functionality* you're implementing.
-*   **Ensure Failure:** Run the tests and confirm that the new test fails for the expected reason. This proves the test is working correctly and the functionality doesn't exist yet.
-*   **Checkpoint:** Did the new test fail as expected?
+**1.3. Formulate & Propose TDD Plan**
+*   **TDD Cycle Plan:** Create a clear, step-by-step plan focusing on the Red-Green-Refactor cycle. Identify the smallest piece of functionality to implement first.
+*   **Edge Cases:** Think about potential side effects and edge cases and plan how to test them.
+*   **Propose to User:** Present the plan to the user for approval before making any modifications.
+*   **Checkpoint:** Obtain explicit approval from the user before starting implementation.
 
-### 3.2. Green: Write Just Enough Code to Pass
-*   **Implement Minimal Solution:** Write *only* the code necessary to make the failing test pass. Do not add any extra functionality.
-*   **Run Tests:** Run the entire test suite and ensure all tests pass.
-*   **Checkpoint:** Do all tests now pass?
+---
 
-### 3.3. Refactor: Improve Code Quality
-*   **Refactor Code:** Improve the design, readability, and maintainability of the implementation without changing its external behavior. Remove duplication, simplify logic, and adhere to project conventions.
-    *   **CRITICAL: Dead Code Prohibition**: Actively identify and remove any dead code.
-    *   **CRITICAL: No Temporary Files**: Refactor in place. Do NOT rename files or create new files with suffixes like `_new`, `_v2`, or `_backup`.
-*   **Run Tests:** Run all tests again to ensure refactoring has not introduced any regressions.
-*   **Checkpoint:** Do all tests still pass after refactoring?
+### **Phase 2: TDD Implementation Cycle**
 
-### 3.4. Critical Protocol: Handling Test Deviations
-*   **CRITICAL: If a test does not behave as expected at any point (e.g., doesn't fail in Red, doesn't pass in Green, or fails after Refactor):**
-    *   **STOP IMMEDIATELY.** Do not proceed.
-    *   **Think Hard & Find the Root Cause**: This is a critical failure. Your primary goal is to understand *why* the test is not behaving as expected.
-    *   **Debugging Protocol**:
-        1.  **Review Test Output**: Carefully examine the full test output, including stack traces and error messages.
-        2.  **Inspect Recent Changes**: Use `git diff` to review your most recent code changes.
-        3.  **Isolate the Problem**: Simplify the test case or the code to pinpoint the source of the issue.
-        4.  **Consult `CLAUDE.md`**: Systematically apply the debugging frameworks outlined in `CLAUDE.md`.
-    *   **Resolution**: You MUST resolve the underlying issue before moving to the next step.
+Iterate through the Red-Green-Refactor cycle for each piece of functionality.
 
-### 3.5. Document Progress
-*   **ACTION: Update `plan.md`**: After each successful Red-Green-Refactor cycle, update `plan.md` to mark the completed functionality and reflect the current progress. This ensures the plan is always up-to-date.
+| Step | Action | Verification |
+| :--- | :--- | :--- |
+| **RED** | Write the *smallest possible* test case for a single piece of functionality. | Run tests and confirm the new test **fails** for the expected reason. |
+| **GREEN** | Write the *absolute minimum* code required to make the test pass. | Run all tests and confirm they **all pass**. |
+| **REFACTOR** | Improve code quality (readability, remove duplication, etc.) without changing its external behavior. | Run all tests again and confirm they **still pass**. |
 
-### 3.6. Iterate
-*   Repeat steps 3.1 to 3.5 for the next smallest piece of functionality until the entire feature is implemented.
+**Key Refactoring Rules:**
+*   **CRITICAL: Dead Code Prohibition**: Actively identify and remove any dead code. Refer to `CLAUDE.md`'s `DEADCODE PROHIBITION` for details.
+*   **CRITICAL: File Naming/Creation**: Do NOT rename existing files or create new files with suffixes like `Refactored`, `New`, `_old`, etc. Refactor in place.
 
-## Phase 4: Verify
+**CRITICAL: If a test does not behave as expected:**
+1.  **STOP.** Do not proceed with any further implementation.
+2.  **INVESTIGATE.** Find the root cause. Do not apply quick fixes or workarounds.
+3.  **DEBUGGING PROTOCOL:**
+    *   Review the full test output and `git diff` of your recent changes.
+    *   Isolate the problem by simplifying the test or code.
+    *   Systematically apply the debugging framework in `CLAUDE.md`.
+4.  **RESOLVE.** You MUST resolve the underlying issue before continuing the TDD cycle.
 
-*   **4.1. Run All Project Checks:**
-    *   **ACTION: Run Test Suite:** Identify and execute the project's entire test suite (e.g., `npm test`, `pytest`).
-    *   **ACTION: Run Linters/Formatters:** Identify and execute project quality tools (e.g., `npm run lint`, `ruff check .`).
-*   **4.2. Manual Verification:** If necessary, perform a final manual check to confirm the changes work as expected from a user's perspective.
-*   **Checkpoint:** Does the entire test suite pass, and are all code quality checks met?
+---
 
-## Phase 5: Finalize
+### **Common Pitfalls to Avoid**
 
-*   **5.1. Review Changes:** Use `git status` and `git diff --staged` to review all modifications one last time. Ensure no temporary or debug code is included.
-*   **5.2. Craft Commit Message:** Write a clear and descriptive commit message that follows the project's conventions (review `git log` for examples). The message should explain the "why" behind the change.
-*   **5.3. Commit:** Use `git add` and `git commit` to finalize the task. Commits should ideally represent complete, self-contained Red-Green-Refactor cycles.
-*   **Checkpoint:** Is the commit message clear and conventional? Are the staged changes correct?
+Be mindful of these common traps that can undermine the benefits of TDD.
+
+*   **Writing Tests That Are Too Large:** Tests should be small and focused. If a test is too complex, it's a sign that your implementation step is too large. Break it down.
+*   **Skipping the Refactor Step:** The "Refactor" step is not optional. Skipping it leads to technical debt and makes the code harder to work with in the future.
+*   **Writing Tests That Don't Fail First:** If a test passes the first time you run it, it's not a valid test. It might be testing something that already works, or the test itself could be flawed.
+*   **Forgetting to Run All Tests:** Only running the new test is not enough. You must run the entire test suite to ensure your changes haven't broken existing functionality (regressions).
+*   **Testing Implementation Details:** Coupling tests to implementation details makes them brittle. When you refactor the code, the tests will break even if the behavior is still correct.
+
+---
+
+### **Phase 3: Verification & Finalization**
+
+**3.1. Final Verification**
+*   **Run All Tests:** Execute the project's entire test suite to ensure no regressions.
+    *   **ACTION:** Identify and run the project's test command (e.g., from `package.json`, `Makefile`). Report the outcome.
+*   **Linting and Formatting:** Run linters and formatters to ensure code quality.
+    *   **ACTION:** Identify and run the project's linting/formatting commands. Report the outcome.
+*   **Manual Verification:** If necessary, perform manual checks to confirm the changes work as expected.
+*   **Checkpoint:** Confirm that all tests and quality checks pass.
+
+**3.2. Commit Changes**
+*   **Review:** Use `git status` and `git diff` to review all modifications.
+*   **Stage and Commit:** Use `git add` and `git commit` with a clear, descriptive, and conventional commit message. Commits should reflect complete, logical units of work.
+*   **Checkpoint:** Double-check the staged changes (`git diff --staged`) before committing.

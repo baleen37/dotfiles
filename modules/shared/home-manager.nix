@@ -104,7 +104,7 @@ in
       # IntelliJ IDEA 백그라운드 실행 함수
       idea() {
         local idea_cmd=""
-        
+
         # 1. Nix 환경에서 IDEA 확인 (우선순위)
         if command -v intellij-idea-ultimate >/dev/null 2>&1; then
           idea_cmd="intellij-idea-ultimate"
@@ -120,7 +120,7 @@ in
         elif command -v idea >/dev/null 2>&1; then
           # 무한 재귀 방지: 현재 함수가 아닌 실제 바이너리인지 확인
           local idea_path=$(command -v idea)
-          if [[ "$idea_path" != *"function"* ]] && [[ -x "$idea_path" ]]; then
+          if ! [[ "$idea_path" =~ function ]] && [[ -x "$idea_path" ]]; then
             idea_cmd="$idea_path"
           else
             echo "Error: IntelliJ IDEA executable not found."
@@ -132,13 +132,13 @@ in
           echo "  - Homebrew: brew install --cask intellij-idea"
           return 1
         fi
-        
+
         # 백그라운드에서 IDEA 실행
         if ! nohup "$idea_cmd" "$@" >/dev/null 2>&1 &; then
           echo "Error: Failed to start IntelliJ IDEA with command: $idea_cmd"
           return 1
         fi
-        
+
         echo "IntelliJ IDEA started in background with: $idea_cmd"
       }
     '';
