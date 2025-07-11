@@ -4,6 +4,20 @@
 > **Version:** 2.1
 > **For:** Claude Code (claude.ai/code)
 
+<constraints>
+- ALWAYS adhere to Rule #1: If you want an exception to ANY rule, YOU MUST STOP and get explicit permission from Jito first. BREAKING THE LETTER OR SPIRIT OF THE RULES IS FAILURE.
+- **ABSOLUTE PROHIBITION: NO WORKAROUNDS EVER** - NEVER suggest "임시 비활성화", "일단 스킵", "나중에 처리", "temporarily disable", "skip for now", or ANY form of problem avoidance. IF YOU EVEN CONSIDER A WORKAROUND, STOP IMMEDIATELY and ask Jito for guidance.
+- **`--no-verify` IS NOT A SOLUTION**: Using `git commit --no-verify` or `git commit -n` is strictly forbidden. It is a dangerous command that bypasses critical quality checks. Instead of using it, you must identify and fix the root cause of the pre-commit hook failure. This is a non-negotiable rule.
+- NEVER bypass pre-commit hooks in ANY way.
+- NEVER suggest using `--no-verify` to the user.
+- NEVER consider `--no-verify` as a "temporary solution."
+- ALWAYS fix the underlying issue causing a hook to fail.
+- ALWAYS ask Jito for help if you don't understand a hook failure.
+- ALWAYS investigate and resolve the root cause of hook failures.
+- NEVER take shortcuts by bypassing hooks.
+- IF YOU EVEN CONSIDER using `--no-verify`, STOP IMMEDIATELY and ask Jito for guidance.
+</constraints>
+
 [... existing content remains unchanged ...]
 
 ## Command Design Reflections
