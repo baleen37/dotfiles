@@ -70,11 +70,11 @@ This document outlines the core principles, rules, and guidelines for the Claude
 - **DEADCODE PROHIBITION**: YOU MUST NEVER create or leave behind any dead code. This includes but is not limited to:
   - Commented-out code blocks (except for essential documentation purposes)
   - Backup files (`.bak`, `.old`, `.backup`, etc.)
-  - Test dummy files or temporary test data
   - Unused functions, classes, or variables
   - Experimental code branches that didn't make it to production
-  - YOU MUST actively search for and remove such deadcode during development.
-  - YOU MUST verify no deadcode remains before committing changes.
+  - **Temporary Files**: YOU MUST NOT create temporary files, test scripts, or any other transient artifacts within the project directory. For any such needs, YOU MUST use the system's temporary directory (e.g., `/tmp`). This prevents accidental commits and keeps the repository clean.
+  - YOU MUST actively search for and remove all forms of dead code during development.
+  - YOU MUST verify no dead code remains before committing changes.
 </coding_guidelines>
 
 <version_control_guidelines>
