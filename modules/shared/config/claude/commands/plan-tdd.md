@@ -43,8 +43,8 @@ Iterate through the Red-Green-Refactor cycle for each piece of functionality.
 
 | Step | Action | Verification |
 | :--- | :--- | :--- |
-| **RED** | Write the *smallest possible* test case for a single piece of functionality. | Run tests and confirm the new test **fails** for the expected reason. |
-| **GREEN** | Write the *absolute minimum* code required to make the test pass. | Run all tests and confirm they **all pass**. |
+| **RED** | Write the *smallest possible* test case. Use `TodoWrite` to create a new test file if needed, or `replace` to add the test to an existing file. | Run tests and confirm the new test **fails** for the expected reason. |
+| **GREEN** | Write the *absolute minimum* code to pass the test. Use `TodoWrite` to create a new source file if needed, or `replace` to add code to an existing file. | Run all tests and confirm they **all pass**. |
 | **REFACTOR** | Improve code quality (readability, remove duplication, etc.) without changing its external behavior. | Run all tests again and confirm they **still pass**. |
 
 **Key Refactoring Rules:**
