@@ -31,7 +31,7 @@ This phase is about preparation. **Do not write any implementation code yet.**
 
 **1.3. Formulate & Propose TDD Plan**
 *   **TDD Cycle Plan:** Create a clear, step-by-step plan focusing on the Red-Green-Refactor cycle. Identify the smallest piece of functionality to implement first.
-*   **Task Planning:** Use `TodoWrite` to create a structured task list breaking down each Red-Green-Refactor cycle into specific, trackable items.
+*   **Task Planning with `TodoWrite`:** It is **highly recommended** to use the `TodoWrite` tool to create a structured task list. This helps break down each Red-Green-Refactor cycle into specific, trackable items, ensuring a systematic approach. For each step (Red, Green, Refactor), a corresponding todo item should be created.
 *   **Edge Cases:** Think about potential side effects and edge cases and plan how to test them.
 *   **Propose to User:** Present the plan to the user for approval before making any modifications.
 *   **Checkpoint:** Obtain explicit approval from the user before starting implementation.
@@ -41,6 +41,8 @@ This phase is about preparation. **Do not write any implementation code yet.**
 ### **Phase 2: TDD Implementation Cycle**
 
 Iterate through the Red-Green-Refactor cycle for each piece of functionality.
+
+**Tool Usage:** Throughout this phase, you **must** use the `TodoWrite` tool to manage your tasks for each step of the cycle. Mark todos as complete as you finish each step.
 
 | Step | Action | Verification |
 | :--- | :--- | :--- |
