@@ -6,12 +6,24 @@ This document outlines the standard procedure for using Test-Driven Development 
 
 ### **Core Principles of TDD**
 
-Keep these guiding principles in mind throughout the development cycle. They are the "why" behind the TDD process.
-
-*   **Test Behavior, Not Implementation:** Focus your tests on *what* the code should do, not *how* it does it. This makes your tests more resilient to refactoring.
-*   **One Reason to Fail:** Each test should be specific enough that it fails for only one reason. This makes debugging much faster.
-*   **The Simplest Thing That Could Possibly Work:** In the "Green" phase, write the absolute minimum amount of code to pass the test. Avoid premature optimization or adding features that haven't been tested for.
+*   **Test Behavior, Not Implementation:** Focus on *what* the code should do, not *how*.
+*   **One Reason to Fail:** Each test should fail for only one reason.
+*   **The Simplest Thing That Could Possibly Work:** Write the minimum code to pass the test.
 *   **You Aren't Gonna Need It (YAGNI):** Do not add functionality until a test requires it.
+
+---
+
+### **Guiding Principle: Autonomy and Efficiency**
+
+Your primary goal is to be an efficient assistant. Avoid asking for confirmation on obvious steps. Trust your judgment based on the complexity of the user's request.
+
+*   ✅ **For Simple & Unambiguous Requests:**
+    *   **Definition:** A small, self-contained task (e.g., "add a test for this function," "refactor this small block," "fix this typo").
+    *   **Action:** You have **assumed consent**. Announce your plan concisely and **proceed directly to execution.** Do NOT ask for approval.
+
+*   ⚠️ **For Complex & Ambiguous Requests:**
+    *   **Definition:** A broad, vague, or multi-part task (e.g., "implement the new auth feature," "refactor the entire module," "improve performance").
+    *   **Action:** You **must** formulate a detailed plan and **get explicit user approval** before proceeding.
 
 ---
 
@@ -19,21 +31,22 @@ Keep these guiding principles in mind throughout the development cycle. They are
 
 This phase is about preparation. **Do not write any implementation code yet.**
 
-**1.1. Understand the Request**
-*   **Goal:** Fully understand the user's objective. Ask clarifying questions if there's any ambiguity.
-*   **Constraints:** Identify all constraints and requirements mentioned by the user.
-*   **Checkpoint:** Confirm your understanding with the user if there is any ambiguity.
+**1.1. Understand & Assess the Request**
+*   **Goal:** Fully understand the user's objective.
+*   **Assess Complexity:** Based on the `Autonomy and Efficiency` principle, determine if the request is simple or complex. This dictates whether you need to ask for approval.
+*   **Constraints:** Identify all technical and business constraints.
 
 **1.2. Analyze Codebase & Context**
-*   **Search:** Use `glob` and `search_file_content` to find relevant files and directories.
-*   **Read:** Use `read_file` or `read_many_files` to understand the existing code.
-*   **History & Conventions:** Analyze `git log`, related files, and existing patterns to understand the project's history and conventions. Strictly adhere to them.
+*   **Search & Read:** Use `glob`, `search_file_content`, and `read_file` to understand the existing code and conventions.
+*   **History:** Analyze `git log` to ensure your changes are consistent with the project's evolution.
 
-**1.3. Formulate & Propose TDD Plan**
-*   **TDD Cycle Plan:** Create a clear, step-by-step plan focusing on the Red-Green-Refactor cycle. Identify the smallest piece of functionality to implement first.
-*   **Edge Cases:** Think about potential side effects and edge cases and plan how to test them.
-*   **Propose to User:** Present the plan to the user for approval before making any modifications.
-*   **Checkpoint:** Obtain explicit approval from the user before starting implementation.
+**1.3. Formulate TDD Plan**
+*   **TDD Cycle Plan:** Create a clear, step-by-step plan (Red-Green-Refactor).
+*   **Task Planning:** Use `TodoWrite` to break down the plan into atomic tasks.
+*   **Edge Cases:** Consider and plan for potential side effects and edge cases.
+*   **Checkpoint (Conditional):**
+    *   If **Simple Task:** Announce the plan and proceed to Phase 2.
+    *   If **Complex Task:** Propose the plan and wait for user approval before proceeding.
 
 ---
 
