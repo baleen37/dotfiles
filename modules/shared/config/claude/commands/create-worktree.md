@@ -35,13 +35,15 @@
 
   <step name="Create Worktree" number="5">
     - **Generate Branch Name**: Create a descriptive branch name that follows the discovered (or user-provided) convention (e.g., `feat/issue-123-oauth-integration`).
-    - **Generate Worktree Path**: Create a short, convenient path for the worktree under `./.local/`.
-      - If an issue number is available, prefix it with "issue-" (e.g., `./.local/issue-123`).
-      - Otherwise, use a short summary of the task (e.g., `./.local/oauth-integration`).
+    - **Generate Worktree Path**: Create a path for the worktree in the parent directory.
+      - Get the project name from the current directory's basename (e.g., `dotfiles`).
+      - Sanitize the branch name by replacing slashes (`/`) with hyphens (`-`).
+      - Combine them to form the path: `../<project_name>-<sanitized_branch_name>`.
+      - **Example**: If the project is `dotfiles` and branch is `feat/new-command`, the path becomes `../dotfiles-feat-new-command`.
     - **Propose and Confirm**: Present the generated branch name and worktree path to the user for confirmation. **WAIT FOR USER APPROVAL**.
-      - **IF USER REJECTS**: Ask for alternative name/path and regenerate. **DO NOT STOP**.
+      - **IF USER REJECTS**: Ask for an alternative path and regenerate. **DO NOT STOP**.
     - **Check for Path Collision**: Verify that the generated `<worktree-path>` does not already exist.
-      - **IF PATH EXISTS**: Report the error (e.g., "Worktree path `/.local/issue-123` already exists. Please choose a different path or remove the existing one.") and **STOP**.
+      - **IF PATH EXISTS**: Report the error (e.g., "Worktree path `../dotfiles-feat-new-command` already exists. Please choose a different path or remove the existing one.") and **STOP**.
     - **Sanitize Names**: Ensure both branch name and path are valid and sanitized.
     - **Execute**: Run `git worktree add -b <branch-name> <worktree-path> <base-branch>`.
       - **IF WORKTREE CREATION FAILS**: Report the specific Git error (e.g., "Failed to create worktree: [Git error message]. This might be due to an invalid branch name or path, or a corrupted Git repository. Please check the error and try again. You might need to run `git worktree prune` to clean up any stale worktree entries.") and **STOP**.
@@ -59,14 +61,14 @@
 
 <constraints>
   - Branch names **must** be in English and kebab-case.
-  - All worktrees **must** be created under the `./.local/` directory.
+  - All worktrees **must** be created in the parent directory (`../`) with the format `../<project_name>-<sanitized_branch_name>`.
   - **Always** prioritize discovered repository conventions over default patterns.
   - If no clear convention exists, **ask the user** for their preferred naming format.
   - **Navigate**: Automatically change the current directory to the new worktree path after creation.
 </constraints>
 
 <validation>
-  - A new directory for the worktree exists under `./.local/`.
+  - A new directory for the worktree exists under `../` with the expected name.
   - `git worktree list` shows the newly created worktree.
   - The new worktree is on the correct base branch.
   - The new worktree is on a new branch with a clean git status.
