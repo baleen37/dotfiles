@@ -106,23 +106,146 @@ execute_platform_build() {
     return 0
 }
 
-# Execute Darwin-specific separate build and switch phases
+# Execute Darwin-specific optimized build and switch
 execute_darwin_build_switch() {
-    log_debug "Starting Darwin separate build and switch phases"
+    log_debug "Starting Darwin optimized build and switch"
 
-    # Darwin: separate build and switch phases for better error isolation
-    if ! run_build "$@"; then
-        log_error "Darwin build phase failed"
-        return 1
+    # Check if DARWIN_USE_COMBINED_MODE is set to false for legacy behavior
+    if [ "${DARWIN_USE_COMBINED_MODE:-true}" = "false" ]; then
+        log_info "Using legacy separate build and switch phases"
+
+        # Legacy: separate build and switch phases for better error isolation
+        if ! run_build "$@"; then
+            log_error "Darwin build phase failed"
+            return 1
+        fi
+
+        if ! run_switch "$@"; then
+            log_error "Darwin switch phase failed"
+            return 1
+        fi
+    else
+        log_info "Using optimized combined build and switch"
+
+        # Optimized: combined build and switch similar to Linux
+        if ! run_darwin_combined_build_switch "$@"; then
+            log_error "Darwin combined build and switch failed"
+            return 1
+        fi
     fi
 
-    if ! run_switch "$@"; then
-        log_error "Darwin switch phase failed"
-        return 1
-    fi
-
-    log_debug "Darwin build and switch phases completed successfully"
+    log_debug "Darwin build and switch completed successfully"
     return 0
+}
+
+# Execute Darwin-specific combined build and switch (optimized)
+run_darwin_combined_build_switch() {
+    perf_start_phase "build"
+    log_step "Building and applying system configuration"
+    log_info "Target: ${SYSTEM_TYPE}"
+    log_info "User: ${USER}"
+
+    # Log privilege information
+    if [ "$SUDO_REQUIRED" = "true" ]; then
+        log_info "Administrator privileges will be requested for system changes"
+    else
+        log_info "Running with current privileges"
+    fi
+
+    # Optimize cache before building
+    optimize_cache "$SYSTEM_TYPE"
+
+    # Get build parameters
+    local sudo_prefix=$(get_sudo_prefix)
+    local jobs=$(detect_optimal_jobs)
+    log_info "Using ${jobs} parallel jobs for combined build and switch"
+
+    # Start progress indicator
+    progress_start "시스템 빌드 및 적용" "$(progress_estimate_time build)"
+
+    # Record build start time
+    BUILD_START_TIME=$(date +%s)
+
+    # Execute the combined build and switch
+    execute_darwin_combined_command "$sudo_prefix" "$jobs" "$@" || {
+        handle_darwin_build_failure
+        return 1
+    }
+
+    # Record completion and update stats
+    BUILD_END_TIME=$(date +%s)
+    update_post_build_stats "true" "$BUILD_START_TIME" "$BUILD_END_TIME"
+
+    progress_stop
+    perf_end_phase "build"
+    progress_complete "빌드 및 적용" "$PERF_BUILD_DURATION"
+    log_success "Combined build and switch completed"
+
+    return 0
+}
+
+# Handle Darwin build failure
+handle_darwin_build_failure() {
+    progress_stop
+    log_error "Combined build and switch failed"
+    log_footer "failed"
+}
+
+# Execute the actual Darwin combined rebuild command with proper error handling
+execute_darwin_combined_command() {
+    local sudo_prefix="$1"
+    local jobs="$2"
+    shift 2  # Remove first two arguments, keep the rest
+
+    # Get optimized rebuild command - use darwin-rebuild switch directly
+    local base_rebuild_cmd="${REBUILD_COMMAND_PATH} switch --impure --max-jobs ${jobs} --cores 0 --flake .#${SYSTEM_TYPE}"
+    local optimized_rebuild_cmd=$(get_optimized_nix_command "$base_rebuild_cmd")
+
+    # Execute with appropriate verbosity and privilege level
+    if [ "$VERBOSE" = "true" ]; then
+        execute_darwin_with_verbose_output "$sudo_prefix" "$optimized_rebuild_cmd" "$@"
+    else
+        execute_darwin_with_quiet_output "$sudo_prefix" "$optimized_rebuild_cmd" "$@"
+    fi
+}
+
+# Execute Darwin command with verbose output
+execute_darwin_with_verbose_output() {
+    local sudo_prefix="$1"
+    local command="$2"
+    shift 2
+
+    if [ -n "$sudo_prefix" ]; then
+        eval "${sudo_prefix} ${command} \"\$@\"" || return 1
+    else
+        USER="$USER" eval "${command} \"\$@\"" || return 1
+    fi
+}
+
+# Execute Darwin command with quiet output
+execute_darwin_with_quiet_output() {
+    local sudo_prefix="$1"
+    local command="$2"
+    shift 2
+
+    if [ -n "$sudo_prefix" ]; then
+        eval "${sudo_prefix} ${command} \"\$@\"" >/dev/null || {
+            log_error "Combined build and switch failed. Run with --verbose for details"
+            return 1
+        }
+    else
+        USER="$USER" eval "${command} \"\$@\"" >/dev/null 2>&1 || {
+            progress_stop
+            echo ""
+            log_warning "Combined build and switch failed - likely requires administrator privileges"
+            echo ""
+            echo "${YELLOW}Please run the following command manually:${NC}"
+            echo "${BLUE}sudo ./result/sw/bin/darwin-rebuild switch --impure --max-jobs ${jobs} --cores 0 --flake .#${SYSTEM_TYPE}${NC}"
+            echo ""
+            log_footer "manual_execution_required"
+            return 1
+        }
+    fi
 }
 
 # Execute Linux-specific combined build and switch
