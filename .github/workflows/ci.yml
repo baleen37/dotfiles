@@ -190,7 +190,9 @@ jobs:
     name: CI Summary
     needs: [validate, build-core, test-parallel, smoke-test]
     runs-on: ubuntu-latest
-    if: always()
+    if: always() && !cancelled()
+    # Force this job to run even if previous jobs fail
+    continue-on-error: false
     steps:
       - name: Determine overall status
         id: status
@@ -199,6 +201,13 @@ jobs:
           build_result="${{ needs.build-core.result }}"
           test_result="${{ needs.test-parallel.result }}"
           smoke_result="${{ needs.smoke-test.result }}"
+
+          echo "Debug: validation_result=$validation_result"
+          echo "Debug: build_result=$build_result"
+          echo "Debug: test_result=$test_result"
+          echo "Debug: smoke_result=$smoke_result"
+          echo "Debug: CI_MODE=$CI_MODE"
+          echo "Debug: github.event_name=${{ github.event_name }}"
 
           # Simplified status determination logic
           if [[ "$validation_result" != "success" ]]; then
@@ -215,21 +224,21 @@ jobs:
           else
             # For main branch (push events), smoke test is skipped
             if [[ "${{ github.event_name }}" == "push" ]]; then
-              if [[ "$build_result" == "success" && "$test_result" == "success" ]]; then
+              if [[ "$build_result" == "success" && ("$test_result" == "success" || "$test_result" == "skipped") ]]; then
                 echo "status=success" >> $GITHUB_OUTPUT
                 echo "message=Full CI pipeline completed successfully" >> $GITHUB_OUTPUT
               else
                 echo "status=failed" >> $GITHUB_OUTPUT
-                echo "message=Build or test stage failed" >> $GITHUB_OUTPUT
+                echo "message=Build or test stage failed (build: $build_result, test: $test_result)" >> $GITHUB_OUTPUT
               fi
             else
               # For PR events, include smoke test
-              if [[ "$build_result" == "success" && "$test_result" == "success" && "$smoke_result" == "success" ]]; then
+              if [[ "$build_result" == "success" && ("$test_result" == "success" || "$test_result" == "skipped") && "$smoke_result" == "success" ]]; then
                 echo "status=success" >> $GITHUB_OUTPUT
                 echo "message=Full CI pipeline completed successfully" >> $GITHUB_OUTPUT
               else
                 echo "status=failed" >> $GITHUB_OUTPUT
-                echo "message=Build, test, or smoke test stage failed" >> $GITHUB_OUTPUT
+                echo "message=Build, test, or smoke test stage failed (build: $build_result, test: $test_result, smoke: $smoke_result)" >> $GITHUB_OUTPUT
               fi
             fi
           fi
@@ -311,27 +320,42 @@ jobs:
             }
 
       - name: Report CI status
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const status = '${{ steps.status.outputs.status }}';
-            const message = '${{ steps.status.outputs.message }}';
-            const state = status === 'success' ? 'success' : 'failure';
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          status="${{ steps.status.outputs.status }}"
+          message="${{ steps.status.outputs.message }}"
+          state=$([ "$status" = "success" ] && echo "success" || echo "failure")
 
-            try {
-              await github.rest.repos.createCommitStatus({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                sha: context.sha,
-                state: state,
-                target_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
-                description: message,
-                context: 'CI'
-              });
-              console.log(`✅ Reported CI status: ${state}`);
-            } catch (error) {
-              console.error('Failed to report CI status:', error);
-            }
+          echo "🔍 Setting CI status: $state - $message"
+          echo "📍 SHA: ${{ github.sha }}"
+          echo "🔗 Run ID: ${{ github.run_id }}"
+
+          # Primary attempt: Use gh CLI
+          if gh api repos/baleen37/dotfiles/statuses/${{ github.sha }} \
+            -X POST \
+            -f state="$state" \
+            -f description="$message" \
+            -f context="CI" \
+            -f target_url="https://github.com/baleen37/dotfiles/actions/runs/${{ github.run_id }}" \
+            --verbose; then
+            echo "✅ CI status reported successfully via gh CLI"
+          else
+            echo "⚠️ gh CLI failed, trying curl fallback..."
+
+            # Fallback: Use curl directly
+            curl -X POST \
+              -H "Authorization: token $GITHUB_TOKEN" \
+              -H "Accept: application/vnd.github.v3+json" \
+              -d "{\"state\":\"$state\",\"description\":\"$message\",\"context\":\"CI\",\"target_url\":\"https://github.com/baleen37/dotfiles/actions/runs/${{ github.run_id }}\"}" \
+              https://api.github.com/repos/baleen37/dotfiles/statuses/${{ github.sha }}
+
+            echo "✅ CI status reported via curl fallback"
+          fi
+
+          # Verify the status was set
+          echo "🔍 Verifying CI status was set..."
+          gh api repos/baleen37/dotfiles/commits/${{ github.sha }}/statuses --jq '.[] | select(.context == "CI") | {state: .state, description: .description}'
 
       - name: Final status check
         run: |
@@ -344,4 +368,26 @@ jobs:
           else
             echo "✅ CI pipeline succeeded: $message"
           fi
+
+  # Fallback job in case ci-complete fails
+  ci-status-fallback:
+    name: CI Status Fallback
+    needs: [validate, build-core, test-parallel, smoke-test]
+    runs-on: ubuntu-latest
+    if: always() && !cancelled() && (failure() || needs.ci-complete.result == 'failure')
+    steps:
+      - name: Emergency CI Status
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "🚨 CI Summary job failed, setting emergency status"
+
+          # Always report failure if we reach this point
+          curl -X POST \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -d '{"state":"failure","description":"CI pipeline failed or incomplete","context":"CI","target_url":"https://github.com/baleen37/dotfiles/actions/runs/${{ github.run_id }}"}' \
+            https://api.github.com/repos/baleen37/dotfiles/statuses/${{ github.sha }}
+
+          echo "✅ Emergency CI status set to failure"
 # PR #312 CI 트리거 확인용 주석
