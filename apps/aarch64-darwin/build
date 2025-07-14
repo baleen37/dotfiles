@@ -6,7 +6,7 @@ SCRIPT_DIR="$(dirname "$0")"
 
 # Try to use new optimized build system
 DARWIN_BUILD_SCRIPT="$SCRIPT_DIR/../../scripts/build/darwin.sh"
-if [ -f "$DARWIN_BUILD_SCRIPT" ]; then
+if false; then
   echo "Using optimized build system..."
   # Set up proper environment for build scripts
   ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
