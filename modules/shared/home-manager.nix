@@ -436,7 +436,7 @@ in
       # 기본 설정
       set -g default-terminal "screen-256color"
       set -g default-shell ${config.programs.zsh.package}/bin/zsh
-      set -g default-command ${config.programs.zsh.package}/bin/zsh
+      set -g default-command "${config.programs.zsh.package}/bin/zsh -l"
       set -g focus-events on
       set -g mouse on
       set -g base-index 1
