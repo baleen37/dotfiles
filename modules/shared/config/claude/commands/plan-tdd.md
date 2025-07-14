@@ -31,6 +31,7 @@ This phase is about preparation. **Do not write any implementation code yet.**
 
 **1.3. Formulate & Propose TDD Plan**
 *   **TDD Cycle Plan:** Create a clear, step-by-step plan focusing on the Red-Green-Refactor cycle. Identify the smallest piece of functionality to implement first.
+*   **Task Planning with `TodoWrite`:** It is **highly recommended** to use the `TodoWrite` tool to create a structured task list. This helps break down each Red-Green-Refactor cycle into specific, trackable items, ensuring a systematic approach. For each step (Red, Green, Refactor), a corresponding todo item should be created.
 *   **Edge Cases:** Think about potential side effects and edge cases and plan how to test them.
 *   **Propose to User:** Present the plan to the user for approval before making any modifications.
 *   **Checkpoint:** Obtain explicit approval from the user before starting implementation.
@@ -41,11 +42,13 @@ This phase is about preparation. **Do not write any implementation code yet.**
 
 Iterate through the Red-Green-Refactor cycle for each piece of functionality.
 
+**Tool Usage:** Throughout this phase, you **must** use the `TodoWrite` tool to manage your tasks for each step of the cycle. Mark todos as complete as you finish each step.
+
 | Step | Action | Verification |
 | :--- | :--- | :--- |
-| **RED** | Write the *smallest possible* test case for a single piece of functionality. | Run tests and confirm the new test **fails** for the expected reason. |
-| **GREEN** | Write the *absolute minimum* code required to make the test pass. | Run all tests and confirm they **all pass**. |
-| **REFACTOR** | Improve code quality (readability, remove duplication, etc.) without changing its external behavior. | Run all tests again and confirm they **still pass**. |
+| **RED** | Write the *smallest possible* test case. Use `TodoWrite` to track "Write failing test for [feature]" task, then use `Write`/`Edit` to implement. | Run tests and confirm the new test **fails** for the expected reason. Mark todo as completed. |
+| **GREEN** | Write the *absolute minimum* code to pass the test. Use `TodoWrite` to track "Implement minimal code for [feature]" task, then use `Write`/`Edit` to implement. | Run all tests and confirm they **all pass**. Mark todo as completed. |
+| **REFACTOR** | Improve code quality (readability, remove duplication, etc.) without changing its external behavior. Use `TodoWrite` to track "Refactor [specific area]" task if needed. | Run all tests again and confirm they **still pass**. Mark refactoring todo as completed. |
 
 **Key Refactoring Rules:**
 *   **CRITICAL: Dead Code Prohibition**: Actively identify and remove any dead code. Refer to `CLAUDE.md`'s `DEADCODE PROHIBITION` for details.
