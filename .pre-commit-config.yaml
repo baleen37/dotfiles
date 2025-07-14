@@ -78,7 +78,7 @@ repos:
       # Build validation for critical files to catch build-breaking changes
       - id: build-validation
         name: Build Validation (Critical Files)
-        entry: bash -c 'export USER=${USER:-$(whoami)}; if [[ -n "${CI:-}" || -n "${GITHUB_ACTIONS:-}" ]]; then echo "⏭️ Skipping build validation in CI environment"; exit 0; fi; echo "🏗️ Validating build..."; if nix run --impure .#build 2>&1 | grep -v "warning:" | tee /dev/stderr | grep -q "✅\|Build completed successfully"; then echo "✅ Build validation passed"; else echo "❌ Build validation failed"; exit 1; fi'
+        entry: bash -c 'export USER=${USER:-$(whoami)}; if [[ -n "${CI:-}" || -n "${GITHUB_ACTIONS:-}" ]]; then echo "⏭️ Skipping build validation in CI environment"; exit 0; fi; echo "🏗️ Validating build..."; if nix run --impure .#build 2>&1 | grep -v "warning:" | tee /dev/stderr | grep -q "Build completed successfully"; then echo "✅ Build validation passed"; else echo "❌ Build validation failed"; exit 1; fi'
         language: system
         files: '\.(nix|lock)$'
         pass_filenames: false

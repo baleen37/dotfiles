@@ -435,7 +435,7 @@ in
     extraConfig = ''
       # 기본 설정
       set -g default-terminal "screen-256color"
-      set -g default-shell ${pkgs.zsh}/bin/zsh
+      set -g default-shell /bin/zsh
       set -g focus-events on
       set -g mouse on
       set -g base-index 1
