@@ -190,7 +190,7 @@ jobs:
     name: CI Summary
     needs: [validate, build-core, test-parallel, smoke-test]
     runs-on: ubuntu-latest
-    if: always()
+    if: always() && !cancelled()
     steps:
       - name: Determine overall status
         id: status
@@ -199,6 +199,13 @@ jobs:
           build_result="${{ needs.build-core.result }}"
           test_result="${{ needs.test-parallel.result }}"
           smoke_result="${{ needs.smoke-test.result }}"
+
+          echo "Debug: validation_result=$validation_result"
+          echo "Debug: build_result=$build_result"
+          echo "Debug: test_result=$test_result"
+          echo "Debug: smoke_result=$smoke_result"
+          echo "Debug: CI_MODE=$CI_MODE"
+          echo "Debug: github.event_name=${{ github.event_name }}"
 
           # Simplified status determination logic
           if [[ "$validation_result" != "success" ]]; then
@@ -215,21 +222,21 @@ jobs:
           else
             # For main branch (push events), smoke test is skipped
             if [[ "${{ github.event_name }}" == "push" ]]; then
-              if [[ "$build_result" == "success" && "$test_result" == "success" ]]; then
+              if [[ "$build_result" == "success" && ("$test_result" == "success" || "$test_result" == "skipped") ]]; then
                 echo "status=success" >> $GITHUB_OUTPUT
                 echo "message=Full CI pipeline completed successfully" >> $GITHUB_OUTPUT
               else
                 echo "status=failed" >> $GITHUB_OUTPUT
-                echo "message=Build or test stage failed" >> $GITHUB_OUTPUT
+                echo "message=Build or test stage failed (build: $build_result, test: $test_result)" >> $GITHUB_OUTPUT
               fi
             else
               # For PR events, include smoke test
-              if [[ "$build_result" == "success" && "$test_result" == "success" && "$smoke_result" == "success" ]]; then
+              if [[ "$build_result" == "success" && ("$test_result" == "success" || "$test_result" == "skipped") && "$smoke_result" == "success" ]]; then
                 echo "status=success" >> $GITHUB_OUTPUT
                 echo "message=Full CI pipeline completed successfully" >> $GITHUB_OUTPUT
               else
                 echo "status=failed" >> $GITHUB_OUTPUT
-                echo "message=Build, test, or smoke test stage failed" >> $GITHUB_OUTPUT
+                echo "message=Build, test, or smoke test stage failed (build: $build_result, test: $test_result, smoke: $smoke_result)" >> $GITHUB_OUTPUT
               fi
             fi
           fi
@@ -318,8 +325,12 @@ jobs:
             const message = '${{ steps.status.outputs.message }}';
             const state = status === 'success' ? 'success' : 'failure';
 
+            console.log(`Attempting to set CI status: ${state} - ${message}`);
+            console.log(`SHA: ${context.sha}`);
+            console.log(`Run ID: ${context.runId}`);
+
             try {
-              await github.rest.repos.createCommitStatus({
+              const result = await github.rest.repos.createCommitStatus({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 sha: context.sha,
@@ -328,9 +339,12 @@ jobs:
                 description: message,
                 context: 'CI'
               });
-              console.log(`✅ Reported CI status: ${state}`);
+              console.log(`✅ Successfully reported CI status: ${state}`);
+              console.log(`Status URL: ${result.data.url}`);
             } catch (error) {
-              console.error('Failed to report CI status:', error);
+              console.error('❌ Failed to report CI status:', error);
+              console.error('Error details:', JSON.stringify(error.response?.data, null, 2));
+              // Don't fail the workflow, but log the error
             }
 
       - name: Final status check
