@@ -67,16 +67,16 @@ pkgs.runCommand "resource-usage-perf-test"
 
   # Use batched evaluation for improved performance
   echo "${testHelpers.colors.blue}Testing batched vs individual evaluation performance${testHelpers.colors.reset}"
-  
+
   # Test individual evaluations (legacy)
   echo "Legacy individual evaluations:"
   measure_memory "nix eval --impure '.#$CONFIG_PATH.$ATTR_PATH'" "Configuration evaluation (individual)"
   measure_memory "nix flake show --impure --no-build" "Flake show (individual)"
   measure_memory "nix flake check --impure --no-build" "Flake check (individual)"
-  
+
   # Test batched evaluation (optimized)
   echo "Optimized batched evaluation:"
-  measure_memory "nix eval --impure --json '.#$CONFIG_PATH' '.#apps.\"$CURRENT_SYSTEM\"' --apply '{ ${CONFIG_PATH##*.}, apps }: { inherit ${CONFIG_PATH##*.} apps; }'" "Batched configuration and apps evaluation"
+  measure_memory "nix eval --impure --json '.#$CONFIG_PATH' '.#apps.\"$CURRENT_SYSTEM\"' --apply '{ \''${CONFIG_PATH##*.}, apps }: { inherit \''${CONFIG_PATH##*.} apps; }'" "Batched configuration and apps evaluation"
 
   # Test 2: Disk usage monitoring
   ${testHelpers.testSubsection "Disk Usage Monitoring"}
