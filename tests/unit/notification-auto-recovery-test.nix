@@ -224,10 +224,10 @@ send_notifications() {
     esac
 
     # Create notification receipt
-    cat > "\$NOTIFICATION_LOG_DIR/notification_receipt_\${alert_id}.json" << RECEIPT_EOF
+    cat > "\$NOTIFICATION_LOG_DIR/notification_receipt_\$alert_id.json" << RECEIPT_EOF
 {
   "notification_id": "notif_$(date +%s)",
-  "alert_id": "$alert_id",
+  "alert_id": "\$alert_id",
   "notification_type": "$notification_type",
   "sent_timestamp": "$(date -Iseconds)",
   "severity": "$alert_severity",
@@ -312,7 +312,7 @@ auto_recovery_system() {
 
     # Create recovery log
     local recovery_id="recovery_$(date +%s)"
-    local recovery_log="${RECOVERY_STATE_DIR}/recovery_${recovery_id}.log"
+    local recovery_log="\$RECOVERY_STATE_DIR/recovery_\$recovery_id.log"
 
     echo "$(date -Iseconds) RECOVERY_START recovery_id=$recovery_id action=$recovery_action" > "$recovery_log"
 
@@ -334,7 +334,7 @@ auto_recovery_system() {
             sleep 0.1
 
             # Generate recovery result
-            cat > "$RECOVERY_STATE_DIR/recovery_result_${recovery_id}.json" << RESULT_EOF
+            cat > "\$RECOVERY_STATE_DIR/recovery_result_\$recovery_id.json" << RESULT_EOF
 {
   "recovery_id": "$recovery_id",
   "action": "$recovery_action",
@@ -372,7 +372,7 @@ RESULT_EOF
             echo "$(date -Iseconds) Step 2: Optimizing job scheduling" >> "$recovery_log"
             echo "$(date -Iseconds) Step 3: Implementing parallel processing" >> "$recovery_log"
 
-            cat > "$RECOVERY_STATE_DIR/recovery_result_${recovery_id}.json" << RESULT_EOF
+            cat > "\$RECOVERY_STATE_DIR/recovery_result_\$recovery_id.json" << RESULT_EOF
 {
   "recovery_id": "$recovery_id",
   "action": "$recovery_action",
@@ -398,7 +398,7 @@ RESULT_EOF
             echo "$(date -Iseconds) Step 3: System restart" >> "$recovery_log"
             echo "$(date -Iseconds) Step 4: State restoration" >> "$recovery_log"
 
-            cat > "$RECOVERY_STATE_DIR/recovery_result_${recovery_id}.json" << RESULT_EOF
+            cat > "\$RECOVERY_STATE_DIR/recovery_result_\$recovery_id.json" << RESULT_EOF
 {
   "recovery_id": "$recovery_id",
   "action": "$recovery_action",
@@ -417,7 +417,7 @@ RESULT_EOF
         "manual_intervention_required")
             echo "$(date -Iseconds) Recovery requires manual intervention..." >> "$recovery_log"
 
-            cat > "$RECOVERY_STATE_DIR/recovery_result_${recovery_id}.json" << RESULT_EOF
+            cat > "\$RECOVERY_STATE_DIR/recovery_result_\$recovery_id.json" << RESULT_EOF
 {
   "recovery_id": "$recovery_id",
   "action": "$recovery_action",
@@ -516,7 +516,7 @@ escalation_management() {
         return 1
     fi
 
-    local escalation_file="${ESCALATION_LOG_FILE}"
+    local escalation_file="\$ESCALATION_LOG_FILE"
     local escalation_timestamp=$(date -Iseconds)
 
     case "$escalation_type" in
@@ -525,7 +525,7 @@ escalation_management() {
             echo "$escalation_timestamp ESCALATION_TIME_BASED alert_id=$alert_id duration_exceeded=15min" >> "$escalation_file"
 
             # Generate escalation notification
-            cat > "$NOTIFICATION_LOG_DIR/escalation_${alert_id}.json" << ESCALATION_EOF
+            cat > "$NOTIFICATION_LOG_DIR/escalation_\$alert_id.json" << ESCALATION_EOF
 {
   "escalation_id": "esc_$(date +%s)",
   "alert_id": "$alert_id",
@@ -545,7 +545,7 @@ ESCALATION_EOF
             # Escalate based on severity level
             echo "$escalation_timestamp ESCALATION_SEVERITY_BASED alert_id=$alert_id severity=critical" >> "$escalation_file"
 
-            cat > "$NOTIFICATION_LOG_DIR/escalation_${alert_id}.json" << ESCALATION_EOF
+            cat > "$NOTIFICATION_LOG_DIR/escalation_\$alert_id.json" << ESCALATION_EOF
 {
   "escalation_id": "esc_$(date +%s)",
   "alert_id": "$alert_id",
@@ -565,7 +565,7 @@ ESCALATION_EOF
             # Escalate when auto-recovery fails
             echo "$escalation_timestamp ESCALATION_RECOVERY_FAILED alert_id=$alert_id recovery_attempts=3" >> "$escalation_file"
 
-            cat > "$NOTIFICATION_LOG_DIR/escalation_${alert_id}.json" << ESCALATION_EOF
+            cat > "$NOTIFICATION_LOG_DIR/escalation_\$alert_id.json" << ESCALATION_EOF
 {
   "escalation_id": "esc_$(date +%s)",
   "alert_id": "$alert_id",
@@ -594,7 +594,7 @@ ESCALATION_EOF
             # De-escalate resolved alert
             echo "$escalation_timestamp ESCALATION_RESOLVED alert_id=$alert_id resolution=automatic" >> "$escalation_file"
 
-            cat > "$NOTIFICATION_LOG_DIR/escalation_${alert_id}.json" << ESCALATION_EOF
+            cat > "$NOTIFICATION_LOG_DIR/escalation_\$alert_id.json" << ESCALATION_EOF
 {
   "escalation_id": "esc_$(date +%s)",
   "alert_id": "$alert_id",
