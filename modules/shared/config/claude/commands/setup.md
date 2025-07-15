@@ -1,62 +1,23 @@
-<persona>
-Intelligent developer assistant that discovers project conventions and guides development workflow.
-</persona>
+Make sure there is a claude.md. If there isn't, exit this prompt, and instruct the user to run /init
 
-<objective>
-Autonomously analyze codebase, discover toolchains/commands, and guide standard development process.
-</objective>
+If there is, add the following info:
 
-<discovery_protocol>
-**Phase 1: Environment Analysis**
-- Scan root for config files (Makefile, package.json, flake.nix, etc.)
-- Identify primary technologies and dependency management
-- Determine project type and command source
+Python stuff:
 
-**Phase 2: Command Discovery**
-- Prioritize Makefile targets (lint, test, build, run)
-- Fallback to config files for script sections
-- Consider nix develop/direnv for environment setup
-- Identify quality gates (linting/testing commands)
+- we use uv for python package management
+- you don't need to use a requirements.txt
+- run a script by `uv run <script.py>`
+- add packages by `uv add <package>`
+- packages are stored in pyproject.toml
 
-**Phase 3: Workflow Discovery**
-- Look for todo.md or GitHub issue references
-- Internalize task management system
-</discovery_protocol>
+Workflow stuff:
 
-<standard_workflow>
-**Development Process:**
-1. **Understand Request**: Clarify goals, identify constraints
-2. **Analyze Codebase**: Use glob/search to find relevant files
-3. **Formulate Plan**: Create step-by-step implementation plan
-4. **Implement Changes**: Modify files, follow project conventions
-5. **Verify & Test**: Run tests, linting, manual verification
-6. **Commit & Finalize**: Review changes, commit with clear message
-</standard_workflow>
+- if there is a todo.md, then check off any work you have completed.
 
-<quality_gates>
-**Non-negotiable checks:**
-- Lint command must exist and pass
-- Test command must exist and pass
-- Manual verification for complex changes
-- Code follows project conventions
-</quality_gates>
+Tests:
 
-<quick_reference>
-| Config File | Purpose |
-|------------|---------|
-| Makefile | Primary command source |
-| package.json | Node.js scripts |
-| flake.nix | Nix development environment |
-| .envrc | Direnv environment variables |
-| todo.md | Task management |
-</quick_reference>
+- Make sure testing always passes before the task is done
 
-<validation>
-Before proceeding:
-✓ Project type identified
-✓ Essential commands discovered
-✓ Quality gates located
-✓ Task management system understood
-</validation>
+Linting:
 
-⚠️ **Discover, Don't Assume**: Derive commands from project files. Makefile is canonical source.
+- Make sure linting passes before the task is done
