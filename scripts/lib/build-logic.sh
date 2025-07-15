@@ -415,9 +415,35 @@ run_build() {
     # Record build start time for cache statistics
     BUILD_START_TIME=$(date +%s)
 
-    # Get optimized nix command with cache settings
-    BASE_NIX_CMD="nix --extra-experimental-features 'nix-command flakes' build $BUILD_OPTIMIZATION_FLAGS --impure --no-warn-dirty --max-jobs $JOBS --cores 0"
-    OPTIMIZED_NIX_CMD=$(get_optimized_nix_command "$BASE_NIX_CMD")
+    # Use optimized flake evaluation for better performance
+    log_info "Using batched flake evaluation for improved performance"
+    if ! replace_individual_evaluations "$SYSTEM_TYPE" "build"; then
+        log_warn "Batched evaluation failed, falling back to individual evaluation"
+
+        # Get optimized nix command with cache settings (fallback)
+        BASE_NIX_CMD="nix --extra-experimental-features 'nix-command flakes' build $BUILD_OPTIMIZATION_FLAGS --impure --no-warn-dirty --max-jobs $JOBS --cores 0"
+        OPTIMIZED_NIX_CMD=$(get_optimized_nix_command "$BASE_NIX_CMD")
+    else
+        # Use optimized flake build with batched evaluation
+        log_info "Using optimized flake build with batched evaluation"
+        if optimized_flake_build "$SYSTEM_TYPE" "system"; then
+            # Record build completion
+            BUILD_END_TIME=$(date +%s)
+            update_post_build_stats "true" "$BUILD_START_TIME" "$BUILD_END_TIME"
+
+            progress_stop
+            perf_end_phase "build"
+            progress_complete "빌드" "$PERF_BUILD_DURATION"
+            log_success "Optimized build completed"
+            return 0
+        else
+            log_warn "Optimized flake build failed, falling back to traditional build"
+
+            # Fallback to traditional build
+            BASE_NIX_CMD="nix --extra-experimental-features 'nix-command flakes' build $BUILD_OPTIMIZATION_FLAGS --impure --no-warn-dirty --max-jobs $JOBS --cores 0"
+            OPTIMIZED_NIX_CMD=$(get_optimized_nix_command "$BASE_NIX_CMD")
+        fi
+    fi
 
     if [ "$VERBOSE" = "true" ]; then
         eval "$OPTIMIZED_NIX_CMD .#$FLAKE_SYSTEM \"\$@\"" || {
