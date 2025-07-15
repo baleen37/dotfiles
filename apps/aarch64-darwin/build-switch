@@ -29,7 +29,14 @@ FLAKE_SYSTEM="darwinConfigurations.${SYSTEM_TYPE}.system"
 PLATFORM_TYPE="darwin"
 PLATFORM_NAME="Nix Darwin"
 REBUILD_COMMAND="darwin-rebuild"
-REBUILD_COMMAND_PATH="./result/sw/bin/darwin-rebuild"
+# Implement fallback path resolution for REBUILD_COMMAND_PATH
+if [ -f "./result/sw/bin/darwin-rebuild" ]; then
+    REBUILD_COMMAND_PATH="./result/sw/bin/darwin-rebuild"
+elif command -v darwin-rebuild >/dev/null 2>&1; then
+    REBUILD_COMMAND_PATH="darwin-rebuild"
+else
+    REBUILD_COMMAND_PATH="/run/current-system/sw/bin/darwin-rebuild"
+fi
 
 # Darwin-specific environment
 export NIXPKGS_ALLOW_UNFREE=1

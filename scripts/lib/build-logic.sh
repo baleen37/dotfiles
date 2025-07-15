@@ -240,7 +240,7 @@ execute_darwin_with_quiet_output() {
             log_warning "Combined build and switch failed - likely requires administrator privileges"
             echo ""
             echo "${YELLOW}Please run the following command manually:${NC}"
-            echo "${BLUE}sudo ./result/sw/bin/darwin-rebuild switch --impure --max-jobs ${jobs} --cores 0 --flake .#${SYSTEM_TYPE}${NC}"
+            echo "${BLUE}sudo ${REBUILD_COMMAND_PATH} switch --impure --max-jobs ${jobs} --cores 0 --flake .#${SYSTEM_TYPE}${NC}"
             echo ""
             log_footer "manual_execution_required"
             return 1
@@ -536,7 +536,7 @@ run_switch() {
                     log_warning "Switch failed - likely requires administrator privileges"
                     echo ""
                     echo "${YELLOW}Please run the following command manually:${NC}"
-                    echo "${BLUE}sudo ./result/sw/bin/darwin-rebuild switch --impure --max-jobs ${JOBS} --cores 0 --flake .#${SYSTEM_TYPE}${NC}"
+                    echo "${BLUE}sudo ${REBUILD_COMMAND_PATH} switch --impure --max-jobs ${JOBS} --cores 0 --flake .#${SYSTEM_TYPE}${NC}"
                     echo ""
                     log_footer "manual_execution_required"
                     exit 0
