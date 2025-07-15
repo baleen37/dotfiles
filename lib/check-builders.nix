@@ -45,6 +45,14 @@ in
           "build_switch_path_resolution_regression"
           "build_switch_combined_mode_hardcoded_paths_regression"
           "build_switch_error_handling_consistency_regression"
+          "build_switch_offline_mode_integration"
+          "build_switch_rollback_integration"
+          "pre_validation_system_test"
+          "alternative_execution_paths_test"
+          "enhanced_error_messaging_test"
+          "cache_optimization_strategy_test"
+          "performance_dashboard_test"
+          "notification_auto_recovery_test"
         ]
       ) testSuite;
 
@@ -53,6 +61,7 @@ in
           "system_build" "system_deployment" "complete_workflow"
           "claude_config_workflow" "build_switch_workflow"
           "build_switch_workflow_integration_test"
+          "network_failure_recovery_e2e"
         ]
       ) testSuite;
 
