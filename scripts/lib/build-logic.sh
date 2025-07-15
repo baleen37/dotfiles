@@ -259,16 +259,16 @@ execute_darwin_with_verbose_output() {
     if is_offline_mode; then
         log_info "Executing in offline mode with local cache only"
         if [ -n "$sudo_prefix" ]; then
-            eval "${sudo_prefix} ${command} \"\$@\"" || return 1
+            ${sudo_prefix} ${command} || return 1
         else
-            USER="$USER" eval "${command} \"\$@\"" || return 1
+            USER="$USER" ${command} || return 1
         fi
     else
         # Use retry mechanism for online builds
         if [ -n "$sudo_prefix" ]; then
-            retry_with_backoff "eval \"${sudo_prefix} ${command} \\\"\\\$@\\\"\"" 2 3 || return 1
+            ${sudo_prefix} ${command} || return 1
         else
-            retry_with_backoff "USER=\"$USER\" eval \"${command} \\\"\\\$@\\\"\"" 2 3 || return 1
+            USER="$USER" ${command} || return 1
         fi
     fi
 }
@@ -283,12 +283,12 @@ execute_darwin_with_quiet_output() {
     if is_offline_mode; then
         log_info "Executing in offline mode with local cache only"
         if [ -n "$sudo_prefix" ]; then
-            eval "${sudo_prefix} ${command} \"\$@\"" >/dev/null || {
+            ${sudo_prefix} ${command} >/dev/null || {
                 log_error "Combined build and switch failed. Run with --verbose for details"
                 return 1
             }
         else
-            USER="$USER" eval "${command} \"\$@\"" >/dev/null 2>&1 || {
+            USER="$USER" ${command} >/dev/null 2>&1 || {
                 progress_stop
                 echo ""
                 log_warning "Combined build and switch failed - likely requires administrator privileges"
@@ -303,12 +303,12 @@ execute_darwin_with_quiet_output() {
     else
         # Use retry mechanism for online builds with quiet output
         if [ -n "$sudo_prefix" ]; then
-            retry_with_backoff "eval \"${sudo_prefix} ${command} \\\"\\\$@\\\"\" >/dev/null" 2 3 || {
+            ${sudo_prefix} ${command} >/dev/null || {
                 log_error "Combined build and switch failed. Run with --verbose for details"
                 return 1
             }
         else
-            retry_with_backoff "USER=\"$USER\" eval \"${command} \\\"\\\$@\\\"\" >/dev/null 2>&1" 2 3 || {
+            USER="$USER" ${command} >/dev/null 2>&1 || {
                 progress_stop
                 echo ""
                 log_warning "Combined build and switch failed - likely requires administrator privileges"

@@ -185,9 +185,13 @@ configure_cache_settings() {
             log_info "Adding binary caches: $BINARY_CACHES"
         fi
 
-        # Note: We'll add cache settings as command-line options instead of
-        # modifying system configuration to avoid permission issues
-        export NIX_CACHE_OPTIONS="--option binary-caches '$BINARY_CACHES'"
+        # Note: darwin-rebuild doesn't support --option binary-caches flag
+        # Use environment variables instead for Darwin systems
+        if [ "$PLATFORM_TYPE" = "darwin" ]; then
+            export NIX_CONFIG="binary-caches = $BINARY_CACHES"
+        else
+            export NIX_CACHE_OPTIONS="--option binary-caches $BINARY_CACHES"
+        fi
     fi
 }
 

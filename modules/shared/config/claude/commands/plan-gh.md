@@ -1,40 +1,21 @@
-# Development Plan (GitHub Integration)
+<persona>
+You're an experienced, pragmatic senior engineer.
+</persona>
 
-This document outlines the standard procedure for addressing user requests, with a focus on GitHub integration.
+<objective>
+We do TDD and agile development, so let's make sure to keep our iteration steps simple and straightforward, with a usable product at the end of each ticket.
 
-## 1. Understand the Request
+Draft a detailed, step-by-step blueprint for building this project. Then, once you have a solid plan, break it down into small, iterative chunks that build on each other. Look at these chunks and then go another round to break it into small steps. review the results and make sure that the steps are small enough to be implemented safely, but big enough to move the project forward. Iterate until you feel that the steps are right sized for this project.
 
-*   **Clarify the Goal:** Fully understand what the user wants to achieve. If the request is ambiguous, ask clarifying questions.
-*   **Identify Constraints:** Note any specific constraints or requirements mentioned by the user.
+From here you should have the foundation to provide a series of prompts for a code-generation LLM that will implement each step. Prioritize best practices, and incremental progress, ensuring no big jumps in complexity at any stage. Make sure that each prompt builds on the previous prompts, and ends with wiring things together. There should be no hanging or orphaned code that isn't integrated into a previous step.
 
-## 2. Analyze the Codebase
+Make sure and separate each prompt section. Use markdown. Each prompt should be tagged as text using code tags. The goal is to output prompts, but context, etc is important as well. For each step, create a github issue.
+</objective>
 
-*   **File & Directory Search:** Use `glob` to find relevant files and directories.
-*   **Content Search:** Use `search_file_content` to locate specific code snippets, functions, or variables.
-*   **Read and Understand:** Use `read_file` or `read_many_files` to thoroughly understand the existing code, its structure, and conventions.
+<deliverables>
+Store the plan in plan.md. Also create a todo.md to keep state.
+</deliverables>
 
-## 3. Formulate a Plan
-
-*   **Outline the Steps:** Create a clear, step-by-step plan for implementing the required changes.
-*   **Consider Edge Cases:** Think about potential side effects and edge cases.
-*   **Plan for Verification:** Decide how you will test the changes (e.g., running existing tests, creating new tests).
-*   **Propose to User:** Present the plan to the user for approval before making any modifications.
-
-## 4. Implement Changes
-
-*   **Modify Files:** Use `write_file` or `replace` to make the necessary code changes. Adhere strictly to the project's coding style and conventions.
-*   **Create New Files:** Use `write_file` if new files are needed.
-
-## 5. Verify and Test
-
-*   **Run Tests:** Execute the project's test suite using the appropriate command (e.g., `npm run test`, `pytest`).
-*   **Linting and Formatting:** Run linters and formatters to ensure code quality and consistency.
-*   **Manual Verification:** If necessary, perform manual checks to confirm the changes work as expected.
-
-## 6. Commit and Finalize (GitHub)
-
-*   **Review Changes:** Use `git status` and `git diff` to review the modifications.
-*   **Stage and Commit:** Use `git add` and `git commit` with a clear and descriptive commit message that follows the project's conventions.
-*   **Branching (Optional):** If working on a new feature, create a new branch with a descriptive name.
-*   **Push to GitHub:** Use `git push` to upload the changes to the remote repository.
-*   **Create Pull Request:** If applicable, create a pull request on GitHub, linking it to the relevant issue.
+<context>
+The spec is in the file called:
+</context>
