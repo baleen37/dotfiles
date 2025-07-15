@@ -29,15 +29,7 @@ PROTECTION_CONFIG=$(cat <<EOF
 {
   "required_status_checks": {
     "strict": true,
-    "contexts": [$(printf '"%s",' "${REQUIRED_CHECKS[@]}" | sed 's/,$//')],
-    "checks": [
-$(for check in "${REQUIRED_CHECKS[@]}"; do
-    echo "      {"
-    echo "        \"context\": \"$check\","
-    echo "        \"app_id\": null"
-    echo "      },"
-done | sed '$s/,$//')
-    ]
+    "contexts": [$(printf '"%s",' "${REQUIRED_CHECKS[@]}" | sed 's/,$//')]
   },
   "enforce_admins": false,
   "required_pull_request_reviews": {
