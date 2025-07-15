@@ -42,6 +42,9 @@ in
           "documentation_completeness_unit"
           "build_switch_claude_code_environment_test"
           "build_switch_ci_test"
+          "build_switch_path_resolution_regression"
+          "build_switch_combined_mode_hardcoded_paths_regression"
+          "build_switch_error_handling_consistency_regression"
         ]
       ) testSuite;
 

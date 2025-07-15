@@ -121,6 +121,15 @@ let
     # Build-switch CI tests
     build_switch_ci_test = import ./ci/build-switch-ci-test.nix { inherit pkgs; lib = pkgs.lib; src = ../.; };
 
+    # Regression tests for build-switch path resolution (TDD Phase 1.1)
+    build_switch_path_resolution_regression = import ./regression/build-switch-path-resolution-test.nix { inherit pkgs flake; src = ../.; };
+
+    # Regression tests for combined mode hardcoded paths (TDD Phase 1.2)
+    build_switch_combined_mode_hardcoded_paths_regression = import ./regression/build-switch-combined-mode-hardcoded-paths-test.nix { inherit pkgs flake; src = ../.; };
+
+    # Regression tests for error handling consistency (TDD Phase 1.3)
+    build_switch_error_handling_consistency_regression = import ./regression/build-switch-error-handling-consistency-test.nix { inherit pkgs flake; src = ../.; };
+
     # Sudoers script tests
     sudoers_script_test = import ./unit/sudoers-script-test.nix { inherit pkgs; lib = pkgs.lib; };
 
