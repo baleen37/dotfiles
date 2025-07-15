@@ -130,6 +130,10 @@ let
     # Regression tests for error handling consistency (TDD Phase 1.3)
     build_switch_error_handling_consistency_regression = import ./regression/build-switch-error-handling-consistency-test.nix { inherit pkgs flake; src = ../.; };
 
+    # Phase 2.1: Enhanced system state and network resilience tests
+    build_switch_offline_mode_integration = import ./integration/build-switch-offline-mode-test.nix { inherit pkgs flake; src = ../.; };
+    build_switch_rollback_integration = import ./integration/build-switch-rollback-integration.nix { inherit pkgs flake; src = ../.; };
+
     # Sudoers script tests
     sudoers_script_test = import ./unit/sudoers-script-test.nix { inherit pkgs; lib = pkgs.lib; };
 
@@ -168,6 +172,9 @@ let
 
     # Cache optimization workflow (Issue #287)
     cache_optimization_e2e = import ./e2e/cache-optimization-e2e.nix { inherit pkgs flake; src = ../.; };
+
+    # Phase 2.1: Network resilience end-to-end tests
+    network_failure_recovery_e2e = import ./e2e/network-failure-recovery-e2e.nix { inherit pkgs flake; src = ../.; };
 
     # Build-switch workflow integration test
     build_switch_workflow_integration_test = import ./integration/build-switch-workflow-integration-test.nix { inherit pkgs; lib = pkgs.lib; src = ../.; };

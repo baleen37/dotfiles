@@ -39,6 +39,14 @@ setup_build_monitoring() {
 prepare_build_environment() {
     log_debug "Preparing build environment and validating requirements"
 
+    # Configure network mode based on connectivity
+    configure_network_mode || {
+        log_warning "Network mode configuration encountered issues"
+        if is_offline_mode; then
+            get_offline_mode_message >&2
+        fi
+    }
+
     # Check if sudo will be needed and acquire it
     if ! check_sudo_requirement; then
         log_error "Cannot proceed without administrator privileges"
@@ -215,10 +223,21 @@ execute_darwin_with_verbose_output() {
     local command="$2"
     shift 2
 
-    if [ -n "$sudo_prefix" ]; then
-        eval "${sudo_prefix} ${command} \"\$@\"" || return 1
+    # Try with network retry if network connectivity is uncertain
+    if is_offline_mode; then
+        log_info "Executing in offline mode with local cache only"
+        if [ -n "$sudo_prefix" ]; then
+            eval "${sudo_prefix} ${command} \"\$@\"" || return 1
+        else
+            USER="$USER" eval "${command} \"\$@\"" || return 1
+        fi
     else
-        USER="$USER" eval "${command} \"\$@\"" || return 1
+        # Use retry mechanism for online builds
+        if [ -n "$sudo_prefix" ]; then
+            retry_with_backoff "eval \"${sudo_prefix} ${command} \\\"\\\$@\\\"\"" 2 3 || return 1
+        else
+            retry_with_backoff "USER=\"$USER\" eval \"${command} \\\"\\\$@\\\"\"" 2 3 || return 1
+        fi
     fi
 }
 
@@ -228,23 +247,47 @@ execute_darwin_with_quiet_output() {
     local command="$2"
     shift 2
 
-    if [ -n "$sudo_prefix" ]; then
-        eval "${sudo_prefix} ${command} \"\$@\"" >/dev/null || {
-            log_error "Combined build and switch failed. Run with --verbose for details"
-            return 1
-        }
+    # Try with network retry if network connectivity is uncertain
+    if is_offline_mode; then
+        log_info "Executing in offline mode with local cache only"
+        if [ -n "$sudo_prefix" ]; then
+            eval "${sudo_prefix} ${command} \"\$@\"" >/dev/null || {
+                log_error "Combined build and switch failed. Run with --verbose for details"
+                return 1
+            }
+        else
+            USER="$USER" eval "${command} \"\$@\"" >/dev/null 2>&1 || {
+                progress_stop
+                echo ""
+                log_warning "Combined build and switch failed - likely requires administrator privileges"
+                echo ""
+                echo "${YELLOW}Please run the following command manually:${NC}"
+                echo "${BLUE}sudo ${REBUILD_COMMAND_PATH} switch --impure --max-jobs ${jobs} --cores 0 --flake .#${SYSTEM_TYPE}${NC}"
+                echo ""
+                log_footer "manual_execution_required"
+                return 1
+            }
+        fi
     else
-        USER="$USER" eval "${command} \"\$@\"" >/dev/null 2>&1 || {
-            progress_stop
-            echo ""
-            log_warning "Combined build and switch failed - likely requires administrator privileges"
-            echo ""
-            echo "${YELLOW}Please run the following command manually:${NC}"
-            echo "${BLUE}sudo ${REBUILD_COMMAND_PATH} switch --impure --max-jobs ${jobs} --cores 0 --flake .#${SYSTEM_TYPE}${NC}"
-            echo ""
-            log_footer "manual_execution_required"
-            return 1
-        }
+        # Use retry mechanism for online builds with quiet output
+        if [ -n "$sudo_prefix" ]; then
+            retry_with_backoff "eval \"${sudo_prefix} ${command} \\\"\\\$@\\\"\" >/dev/null" 2 3 || {
+                log_error "Combined build and switch failed. Run with --verbose for details"
+                return 1
+            }
+        else
+            retry_with_backoff "USER=\"$USER\" eval \"${command} \\\"\\\$@\\\"\" >/dev/null 2>&1" 2 3 || {
+                progress_stop
+                echo ""
+                log_warning "Combined build and switch failed - likely requires administrator privileges"
+                echo ""
+                echo "${YELLOW}Please run the following command manually:${NC}"
+                echo "${BLUE}sudo ${REBUILD_COMMAND_PATH} switch --impure --max-jobs ${jobs} --cores 0 --flake .#${SYSTEM_TYPE}${NC}"
+                echo ""
+                log_footer "manual_execution_required"
+                return 1
+            }
+        fi
     fi
 }
 

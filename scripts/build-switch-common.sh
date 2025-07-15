@@ -39,6 +39,7 @@ fi
 . "$LIB_DIR/sudo-management.sh"
 . "$LIB_DIR/cache-management.sh"
 . "$LIB_DIR/flake-evaluation.sh"
+. "$LIB_DIR/network-detection.sh"
 . "$LIB_DIR/build-logic.sh"
 
 # Main build-switch logic loaded
