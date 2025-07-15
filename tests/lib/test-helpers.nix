@@ -1,4 +1,4 @@
-{ pkgs }:
+{ pkgs, lib ? pkgs.lib }:
 let
   # Import portable path utilities
   portablePaths = import ./portable-paths.nix { inherit pkgs; };
@@ -270,6 +270,41 @@ let
   # Alias for compatibility
   runShellTest = createTestScript;
 
+  # Python test framework for complex testing
+  makeTest = { name, testScript }:
+    pkgs.runCommand name
+      {
+        buildInputs = with pkgs; [ python3 bash coreutils ];
+      } ''
+      set -e
+      ${setupTestEnv}
+
+      # Create a Python test script
+      cat > test_${name}.py << 'EOF'
+import subprocess
+import os
+import sys
+import tempfile
+
+# Change to a temporary directory for the test
+os.chdir(tempfile.mkdtemp())
+
+try:
+${testScript}
+except Exception as e:
+    print(f"Test failed with exception: {e}")
+    sys.exit(1)
+
+print("Test ${name} completed successfully")
+EOF
+
+      # Run the Python test
+      python3 test_${name}.py
+
+      echo "Test ${name} passed"
+      touch $out
+    '';
+
 
 in
 {
@@ -281,5 +316,5 @@ in
   inherit createTempFile createTempDir;
   inherit evalFlake reportResults cleanup;
   inherit assertSetContains assertListIncludes assertListContains assertAllDerivations;
-  inherit createTestScript runShellTest;
+  inherit createTestScript runShellTest makeTest;
 }

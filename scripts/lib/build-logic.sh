@@ -39,6 +39,16 @@ setup_build_monitoring() {
 prepare_build_environment() {
     log_debug "Preparing build environment and validating requirements"
 
+    # Initialize state persistence system
+    init_state_persistence || {
+        log_warning "State persistence initialization failed - continuing without state management"
+    }
+
+    # Create pre-build snapshot
+    create_pre_build_snapshot || {
+        log_warning "Failed to create pre-build snapshot - continuing without backup"
+    }
+
     # Configure network mode based on connectivity
     configure_network_mode || {
         log_warning "Network mode configuration encountered issues"
@@ -210,11 +220,33 @@ execute_darwin_combined_command() {
     local optimized_rebuild_cmd=$(get_optimized_nix_command "$base_rebuild_cmd")
 
     # Execute with appropriate verbosity and privilege level
+    local build_result=0
     if [ "$VERBOSE" = "true" ]; then
         execute_darwin_with_verbose_output "$sudo_prefix" "$optimized_rebuild_cmd" "$@"
+        build_result=$?
     else
         execute_darwin_with_quiet_output "$sudo_prefix" "$optimized_rebuild_cmd" "$@"
+        build_result=$?
     fi
+
+    # Detect and handle build failures
+    if detect_build_failure "$build_result" "darwin_combined_rebuild"; then
+        local recovery_strategy=$(decide_recovery_strategy)
+        log_warning "Build failure detected - suggested recovery: $recovery_strategy"
+
+        case "$recovery_strategy" in
+            "rollback")
+                log_info "Attempting automatic rollback..."
+                get_recovery_recommendations "$recovery_strategy" >&2
+                execute_rollback
+                ;;
+            "retry"|"manual_review"|*)
+                get_recovery_recommendations "$recovery_strategy" >&2
+                ;;
+        esac
+    fi
+
+    return $build_result
 }
 
 # Execute Darwin command with verbose output

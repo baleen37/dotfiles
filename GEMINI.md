@@ -18,6 +18,12 @@
 - IF YOU EVEN CONSIDER using `--no-verify`, STOP IMMEDIATELY and ask Jito for guidance.
 </constraints>
 
+## Key File Conventions
+
+- **`GEMINI.md` (Project Root)**: This is the **primary, project-specific** configuration file. It contains rules, context, and instructions tailored to the current project (e.g., Nix workflows, `build-switch` commands, `Jito` as the user). It overrides or extends the generic template.
+
+- **`modules/shared/config/claude/CLAUDE.md`**: This is the **generic, shared template** for agent behavior. It MUST NOT contain project-specific details. It serves as a base for all projects, defining core principles and universal rules.
+
 [... existing content remains unchanged ...]
 
 ## Command Design Reflections

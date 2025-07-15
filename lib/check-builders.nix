@@ -47,6 +47,12 @@ in
           "build_switch_error_handling_consistency_regression"
           "build_switch_offline_mode_integration"
           "build_switch_rollback_integration"
+          "pre_validation_system_test"
+          "alternative_execution_paths_test"
+          "enhanced_error_messaging_test"
+          "cache_optimization_strategy_test"
+          "performance_dashboard_test"
+          "notification_auto_recovery_test"
         ]
       ) testSuite;
 
