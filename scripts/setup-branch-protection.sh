@@ -13,10 +13,8 @@ echo "Setting up branch protection for $REPO_FULL_NAME branch: $BRANCH"
 
 # Define required status checks based on available workflows
 REQUIRED_CHECKS=(
-    "Fast Tests"
-    "Build Core"
-    "CI"
-    "Security"
+    "CI Summary"
+    "Validate & Lint"
 )
 
 echo "Required status checks to be configured:"
