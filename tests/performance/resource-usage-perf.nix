@@ -76,7 +76,7 @@ pkgs.runCommand "resource-usage-perf-test"
 
   # Test batched evaluation (optimized)
   echo "Optimized batched evaluation:"
-  measure_memory "nix eval --impure --json '.#$CONFIG_PATH' '.#apps.\"$CURRENT_SYSTEM\"' --apply '{ ${CONFIG_PATH##*.}, apps }: { inherit ${CONFIG_PATH##*.} apps; }'" "Batched configuration and apps evaluation"
+  measure_memory "nix eval --impure --json '.#$CONFIG_PATH' '.#apps.\"$CURRENT_SYSTEM\"' --apply '{ \''${CONFIG_PATH##*.}, apps }: { inherit \''${CONFIG_PATH##*.} apps; }'" "Batched configuration and apps evaluation"
 
   # Test 2: Disk usage monitoring
   ${testHelpers.testSubsection "Disk Usage Monitoring"}
