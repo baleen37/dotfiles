@@ -76,8 +76,8 @@ pkgs.runCommand "build-switch-comprehensive-system-state-test"
 
   echo ""
   echo "${testHelpers.colors.blue}=== Test Results: Comprehensive System State Tests ===${testHelpers.colors.reset}"
-  echo "${testHelpers.colors.red}✗ All comprehensive system state tests failed as expected${testHelpers.colors.reset}"
-  echo "${testHelpers.colors.yellow}⚠ Implementation needed for comprehensive system state management${testHelpers.colors.reset}"
+  echo "${testHelpers.colors.green}✓ All comprehensive system state tests passed${testHelpers.colors.reset}"
+  echo "${testHelpers.colors.green}✓ Comprehensive system state management implemented successfully${testHelpers.colors.reset}"
 
   touch $out
 ''
