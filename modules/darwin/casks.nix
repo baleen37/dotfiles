@@ -21,6 +21,9 @@ _:
   # Entertainment Tools
   "vlc"
 
+  # Study Tools
+  "anki"
+
   # Productivity Tools
   "alfred"
 
