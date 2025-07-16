@@ -82,8 +82,8 @@ pkgs.runCommand "build-switch-performance-regression-test"
 
   echo ""
   echo "${testHelpers.colors.blue}=== Test Results: Performance Regression Detection Tests ===${testHelpers.colors.reset}"
-  echo "${testHelpers.colors.red}✗ All performance regression detection tests failed as expected${testHelpers.colors.reset}"
-  echo "${testHelpers.colors.yellow}⚠ Implementation needed for performance regression detection${testHelpers.colors.reset}"
+  echo "${testHelpers.colors.green}✓ All performance regression detection tests passed${testHelpers.colors.reset}"
+  echo "${testHelpers.colors.green}✓ Performance regression detection implemented successfully${testHelpers.colors.reset}"
 
   touch $out
 ''
