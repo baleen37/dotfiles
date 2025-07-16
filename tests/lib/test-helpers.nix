@@ -95,36 +95,34 @@ let
       exit 0
     '';
 
-  # Benchmark helpers
-  benchmark = name: cmd: ''
-    echo "${colors.blue}Benchmarking: ${name}${colors.reset}"
+  # Internal helper for timing measurements
+  _measureTime = cmd: ''
     START_TIME=$(date +%s%N)
     ${cmd}
     END_TIME=$(date +%s%N)
     DURATION=$(( (END_TIME - START_TIME) / 1000000 ))
+  '';
+
+  # Benchmark helpers
+  benchmark = name: cmd: ''
+    echo "${colors.blue}Benchmarking: ${name}${colors.reset}"
+    ${_measureTime cmd}
     echo "${colors.green}✓${colors.reset} ${name} completed in ''${DURATION}ms"
   '';
 
   # Performance measurement utilities
   measureExecutionTime = cmd: ''
-    MEASURE_START_TIME=$(date +%s%N)
-    ${cmd}
-    MEASURE_END_TIME=$(date +%s%N)
-    MEASURE_DURATION=$(( (MEASURE_END_TIME - MEASURE_START_TIME) / 1000000 ))
-    echo "$MEASURE_DURATION"
+    ${_measureTime cmd}
+    echo "$DURATION"
   '';
 
   # Performance assertion helpers
   assertPerformance = { command, maxDuration, message ? "Performance assertion" }: ''
-    PERF_START_TIME=$(date +%s%N)
-    ${command}
-    PERF_END_TIME=$(date +%s%N)
-    PERF_DURATION=$(( (PERF_END_TIME - PERF_START_TIME) / 1000000 ))
-
-    if [ "$PERF_DURATION" -le "${toString maxDuration}" ]; then
-      echo "${colors.green}✓${colors.reset} ${message} (''${PERF_DURATION}ms <= ${toString maxDuration}ms)"
+    ${_measureTime command}
+    if [ "$DURATION" -le "${toString maxDuration}" ]; then
+      echo "${colors.green}✓${colors.reset} ${message} (''${DURATION}ms <= ${toString maxDuration}ms)"
     else
-      echo "${colors.red}✗${colors.reset} ${message} (''${PERF_DURATION}ms > ${toString maxDuration}ms)"
+      echo "${colors.red}✗${colors.reset} ${message} (''${DURATION}ms > ${toString maxDuration}ms)"
       exit 1
     fi
   '';
