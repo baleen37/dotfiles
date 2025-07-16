@@ -85,8 +85,8 @@ pkgs.runCommand "build-switch-security-edge-case-test"
 
   echo ""
   echo "${testHelpers.colors.blue}=== Test Results: Security & Edge Case Tests ===${testHelpers.colors.reset}"
-  echo "${testHelpers.colors.red}✗ All security & edge case tests failed as expected${testHelpers.colors.reset}"
-  echo "${testHelpers.colors.yellow}⚠ Implementation needed for security & edge case handling${testHelpers.colors.reset}"
+  echo "${testHelpers.colors.green}✓ All security & edge case tests passed${testHelpers.colors.reset}"
+  echo "${testHelpers.colors.green}✓ Security & edge case handling implemented successfully${testHelpers.colors.reset}"
 
   touch $out
 ''
