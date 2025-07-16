@@ -11,29 +11,29 @@ pkgs.runCommand "test-helpers-performance-test" { } ''
   # TEST: measureExecutionTime function should exist and work
   echo "Testing measureExecutionTime function..."
 
-  # This test should FAIL initially because measureExecutionTime doesn't exist yet
-  if command -v measureExecutionTime >/dev/null 2>&1; then
-    echo "✓ measureExecutionTime function exists"
+  # Test that measureExecutionTime function works with a simple command
+  MEASURED_TIME=$(${testHelpers.measureExecutionTime "sleep 0.1"})
+  if [ "$MEASURED_TIME" -ge 95 ] && [ "$MEASURED_TIME" -le 150 ]; then
+    echo "✓ measureExecutionTime function works correctly: ''${MEASURED_TIME}ms"
   else
-    echo "✗ measureExecutionTime function not found"
+    echo "✗ measureExecutionTime function failed: ''${MEASURED_TIME}ms (expected ~100ms)"
     exit 1
   fi
 
   # TEST: assertPerformance function should exist and work
   echo "Testing assertPerformance function..."
 
-  # This test should FAIL initially because assertPerformance doesn't exist yet
-  if command -v assertPerformance >/dev/null 2>&1; then
-    echo "✓ assertPerformance function exists"
-  else
-    echo "✗ assertPerformance function not found"
-    exit 1
-  fi
+  # Test that assertPerformance function works with a reasonable duration
+  ${testHelpers.assertPerformance {
+    command = "sleep 0.05";
+    maxDuration = 100;
+    message = "Short sleep test";
+  }}
 
   # TEST: Performance measurement should be accurate
   echo "Testing performance measurement accuracy..."
 
-  # This should fail because the functions don't exist yet
+  # Test direct timing accuracy as well
   START_TIME=$(date +%s%N)
   sleep 0.1
   END_TIME=$(date +%s%N)
