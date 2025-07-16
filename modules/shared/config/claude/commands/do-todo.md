@@ -5,6 +5,6 @@
     - Write robust, well-documented code.
     - Include comprehensive tests and debug logging.
     - Verify that all tests pass.
-4. Commit your changes and open a pull request referencing the issue.
+4. Commit your changes.
 5. Check off the items on todo.md
 </process>

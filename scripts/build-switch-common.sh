@@ -932,7 +932,7 @@ validate_input_parameters() {
             ;;
         "command")
             # Command validation
-            if [[ "$param_value" =~ [;&|`\$\(\)] ]]; then
+            if [[ "$param_value" =~ [;\&\|`\$\(\)] ]]; then
                 log_error "Potentially dangerous command detected: $param_value"
                 return 1
             fi
