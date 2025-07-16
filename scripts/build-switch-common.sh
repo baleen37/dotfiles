@@ -584,5 +584,140 @@ EOF
     fi
 }
 
+# System state management functions
+capture_system_state() {
+    local state_id="${1:-$(date +%s)}"
+    local state_file="${XDG_STATE_HOME:-$HOME/.local/state}/build-switch/system_state_${state_id}.json"
+
+    mkdir -p "$(dirname "$state_file")"
+
+    # Capture current system state
+    cat > "$state_file" << EOF
+{
+  "timestamp": "$(date -Iseconds)",
+  "state_id": "$state_id",
+  "platform": "${PLATFORM_TYPE:-unknown}",
+  "system_type": "${SYSTEM_TYPE:-unknown}",
+  "working_directory": "$PWD",
+  "git_status": "$(git status --porcelain 2>/dev/null || echo 'not_a_git_repo')",
+  "result_symlink": "$(readlink result 2>/dev/null || echo 'none')",
+  "user": "${USER:-unknown}",
+  "environment": {
+    "PATH": "$PATH",
+    "NIXPKGS_ALLOW_UNFREE": "${NIXPKGS_ALLOW_UNFREE:-unset}"
+  }
+}
+EOF
+
+    echo "$state_file"
+}
+
+restore_system_state() {
+    local state_file="$1"
+
+    if [ ! -f "$state_file" ]; then
+        log_error "State file not found: $state_file"
+        return 1
+    fi
+
+    log_info "Restoring system state from: $state_file"
+
+    # Extract state information (basic implementation)
+    if command -v jq >/dev/null 2>&1; then
+        local original_dir=$(jq -r '.working_directory' "$state_file")
+        if [ "$original_dir" != "$PWD" ]; then
+            log_info "Changing directory to: $original_dir"
+            cd "$original_dir" || return 1
+        fi
+    fi
+
+    log_info "System state restoration completed"
+    return 0
+}
+
+manage_state_transition() {
+    local from_state="$1"
+    local to_state="$2"
+    local operation="${3:-build}"
+
+    log_debug "Managing state transition: $from_state -> $to_state ($operation)"
+
+    # Capture current state before transition
+    local state_file=$(capture_system_state "transition_${operation}")
+
+    case "$operation" in
+        "build")
+            log_info "Managing build state transition"
+            ;;
+        "switch")
+            log_info "Managing switch state transition"
+            ;;
+        "rollback")
+            log_info "Managing rollback state transition"
+            ;;
+        *)
+            log_warning "Unknown operation: $operation"
+            ;;
+    esac
+
+    return 0
+}
+
+detect_concurrent_operations() {
+    local lock_file="${XDG_RUNTIME_DIR:-/tmp}/build-switch.lock"
+
+    if [ -f "$lock_file" ]; then
+        local pid=$(cat "$lock_file")
+        if kill -0 "$pid" 2>/dev/null; then
+            log_warning "Concurrent build-switch operation detected (PID: $pid)"
+            return 1
+        else
+            log_info "Removing stale lock file"
+            rm -f "$lock_file"
+        fi
+    fi
+
+    # Create lock file
+    echo $$ > "$lock_file"
+
+    # Register cleanup on exit
+    trap "rm -f '$lock_file'" EXIT
+
+    return 0
+}
+
+validate_system_state() {
+    local validation_mode="${1:-basic}"
+
+    log_debug "Validating system state (mode: $validation_mode)"
+
+    # Basic validation
+    if [ -z "$PLATFORM_TYPE" ]; then
+        log_error "PLATFORM_TYPE not set"
+        return 1
+    fi
+
+    if [ -z "$SYSTEM_TYPE" ]; then
+        log_error "SYSTEM_TYPE not set"
+        return 1
+    fi
+
+    # Extended validation
+    if [ "$validation_mode" = "extended" ]; then
+        if [ ! -f "flake.nix" ]; then
+            log_error "flake.nix not found in current directory"
+            return 1
+        fi
+
+        if ! command -v nix >/dev/null 2>&1; then
+            log_error "nix command not available"
+            return 1
+        fi
+    fi
+
+    log_debug "System state validation passed"
+    return 0
+}
+
 # Main build-switch logic loaded
 # Platform-specific scripts will call execute_build_switch directly
