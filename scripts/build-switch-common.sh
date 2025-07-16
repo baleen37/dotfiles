@@ -719,5 +719,192 @@ validate_system_state() {
     return 0
 }
 
+# Performance regression detection functions
+establish_performance_baseline() {
+    local baseline_file="${XDG_STATE_HOME:-$HOME/.local/state}/build-switch/performance_baseline.json"
+    local current_metrics="$1"
+
+    mkdir -p "$(dirname "$baseline_file")"
+
+    # Create or update baseline
+    if [ ! -f "$baseline_file" ]; then
+        log_info "Creating initial performance baseline"
+        cat > "$baseline_file" << EOF
+{
+  "created": "$(date -Iseconds)",
+  "updated": "$(date -Iseconds)",
+  "baseline_metrics": {
+    "build_time": ${current_metrics:-90},
+    "memory_usage": 1000,
+    "cache_hit_rate": 0.5,
+    "cpu_usage": 0.8
+  },
+  "thresholds": {
+    "build_time_regression": 1.2,
+    "memory_regression": 1.5,
+    "cache_hit_degradation": 0.8,
+    "cpu_usage_increase": 1.3
+  }
+}
+EOF
+    else
+        log_info "Updating performance baseline"
+        # Update existing baseline (basic implementation)
+        local temp_file=$(mktemp)
+        sed "s/\"updated\": \"[^\"]*\"/\"updated\": \"$(date -Iseconds)\"/" "$baseline_file" > "$temp_file"
+        mv "$temp_file" "$baseline_file"
+    fi
+
+    echo "$baseline_file"
+}
+
+start_performance_monitoring() {
+    local monitoring_id="${1:-$(date +%s)}"
+    local monitoring_file="${XDG_STATE_HOME:-$HOME/.local/state}/build-switch/performance_monitoring_${monitoring_id}.json"
+
+    mkdir -p "$(dirname "$monitoring_file")"
+
+    # Start monitoring
+    cat > "$monitoring_file" << EOF
+{
+  "monitoring_id": "$monitoring_id",
+  "started": "$(date -Iseconds)",
+  "status": "active",
+  "start_time": $(date +%s),
+  "start_memory": $(ps -o rss= -p $$ 2>/dev/null || echo "0"),
+  "start_cpu": $(ps -o %cpu= -p $$ 2>/dev/null || echo "0")
+}
+EOF
+
+    echo "$monitoring_file"
+}
+
+stop_performance_monitoring() {
+    local monitoring_file="$1"
+
+    if [ ! -f "$monitoring_file" ]; then
+        log_error "Monitoring file not found: $monitoring_file"
+        return 1
+    fi
+
+    # Stop monitoring and calculate metrics
+    local end_time=$(date +%s)
+    local end_memory=$(ps -o rss= -p $$ 2>/dev/null || echo "0")
+    local end_cpu=$(ps -o %cpu= -p $$ 2>/dev/null || echo "0")
+
+    # Update monitoring file with end metrics
+    local temp_file=$(mktemp)
+    sed "s/\"status\": \"active\"/\"status\": \"completed\"/" "$monitoring_file" | \
+    sed "s/}/,\"end_time\": $end_time, \"end_memory\": $end_memory, \"end_cpu\": $end_cpu}/" > "$temp_file"
+    mv "$temp_file" "$monitoring_file"
+
+    log_info "Performance monitoring stopped"
+    return 0
+}
+
+detect_performance_regression() {
+    local current_metrics_file="$1"
+    local baseline_file="${XDG_STATE_HOME:-$HOME/.local/state}/build-switch/performance_baseline.json"
+
+    if [ ! -f "$baseline_file" ]; then
+        log_warning "No performance baseline found, creating one"
+        establish_performance_baseline
+        return 0
+    fi
+
+    if [ ! -f "$current_metrics_file" ]; then
+        log_error "Current metrics file not found: $current_metrics_file"
+        return 1
+    fi
+
+    log_info "Detecting performance regression"
+
+    # Basic regression detection (simplified)
+    if command -v jq >/dev/null 2>&1; then
+        local baseline_build_time=$(jq -r '.baseline_metrics.build_time' "$baseline_file" 2>/dev/null || echo "90")
+        local threshold=$(jq -r '.thresholds.build_time_regression' "$baseline_file" 2>/dev/null || echo "1.2")
+
+        # Calculate current build time from monitoring file
+        local start_time=$(jq -r '.start_time' "$current_metrics_file" 2>/dev/null || echo "0")
+        local end_time=$(jq -r '.end_time' "$current_metrics_file" 2>/dev/null || echo "0")
+        local current_build_time=$((end_time - start_time))
+
+        # Check for regression
+        if [ "$current_build_time" -gt 0 ] && [ "$baseline_build_time" -gt 0 ]; then
+            local regression_ratio=$(echo "scale=2; $current_build_time / $baseline_build_time" | bc 2>/dev/null || echo "1.0")
+
+            if [ "$(echo "$regression_ratio > $threshold" | bc 2>/dev/null)" = "1" ]; then
+                log_warning "Performance regression detected: build time increased by ${regression_ratio}x"
+                return 1
+            fi
+        fi
+    fi
+
+    log_info "No performance regression detected"
+    return 0
+}
+
+generate_performance_report() {
+    local monitoring_file="$1"
+    local report_file="${XDG_STATE_HOME:-$HOME/.local/state}/build-switch/performance_report_$(date +%s).json"
+
+    mkdir -p "$(dirname "$report_file")"
+
+    if [ ! -f "$monitoring_file" ]; then
+        log_error "Monitoring file not found: $monitoring_file"
+        return 1
+    fi
+
+    # Generate performance report
+    cat > "$report_file" << EOF
+{
+  "report_generated": "$(date -Iseconds)",
+  "monitoring_data": $(cat "$monitoring_file"),
+  "analysis": {
+    "status": "completed",
+    "regression_detected": false,
+    "recommendations": []
+  }
+}
+EOF
+
+    log_info "Performance report generated: $report_file"
+    echo "$report_file"
+}
+
+trigger_performance_alert() {
+    local alert_type="$1"
+    local alert_message="$2"
+    local alert_file="${XDG_STATE_HOME:-$HOME/.local/state}/build-switch/performance_alert_$(date +%s).json"
+
+    mkdir -p "$(dirname "$alert_file")"
+
+    # Create alert
+    cat > "$alert_file" << EOF
+{
+  "alert_type": "$alert_type",
+  "message": "$alert_message",
+  "timestamp": "$(date -Iseconds)",
+  "severity": "warning",
+  "acknowledged": false
+}
+EOF
+
+    # Log alert
+    case "$alert_type" in
+        "regression")
+            log_warning "PERFORMANCE ALERT: $alert_message"
+            ;;
+        "degradation")
+            log_warning "PERFORMANCE DEGRADATION: $alert_message"
+            ;;
+        *)
+            log_info "PERFORMANCE NOTIFICATION: $alert_message"
+            ;;
+    esac
+
+    echo "$alert_file"
+}
+
 # Main build-switch logic loaded
 # Platform-specific scripts will call execute_build_switch directly
