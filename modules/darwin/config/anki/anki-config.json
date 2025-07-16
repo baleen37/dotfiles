@@ -1,0 +1,36 @@
+{
+  "preferences": {
+    "appearance": {
+      "interrupt_audio": true,
+      "show_play_buttons": true,
+      "theme": "light"
+    },
+    "backup": {
+      "backup_interval_minutes": 30,
+      "backup_on_close": true
+    },
+    "daily_learning": {
+      "maximum_answer_seconds": 60,
+      "new_cards_per_day": 20,
+      "reviews_per_day": 200
+    },
+    "scheduling": {
+      "learn_ahead_limit": 20,
+      "show_next_review_time": true,
+      "time_limit_for_review": 0
+    },
+    "sync": {
+      "auto_sync": true,
+      "media_sync": true
+    }
+  },
+  "shortcuts": {
+    "bury_card": "-",
+    "delete_note": "Ctrl+Delete",
+    "edit_current": "e",
+    "mark_card": "*",
+    "replay_audio": "r",
+    "show_answer": "Space",
+    "suspend_card": "@"
+  }
+}
