@@ -105,6 +105,30 @@ let
     echo "${colors.green}✓${colors.reset} ${name} completed in ''${DURATION}ms"
   '';
 
+  # Performance measurement utilities
+  measureExecutionTime = cmd: ''
+    MEASURE_START_TIME=$(date +%s%N)
+    ${cmd}
+    MEASURE_END_TIME=$(date +%s%N)
+    MEASURE_DURATION=$(( (MEASURE_END_TIME - MEASURE_START_TIME) / 1000000 ))
+    echo "$MEASURE_DURATION"
+  '';
+
+  # Performance assertion helpers
+  assertPerformance = { command, maxDuration, message ? "Performance assertion" }: ''
+    PERF_START_TIME=$(date +%s%N)
+    ${command}
+    PERF_END_TIME=$(date +%s%N)
+    PERF_DURATION=$(( (PERF_END_TIME - PERF_START_TIME) / 1000000 ))
+
+    if [ "$PERF_DURATION" -le "${toString maxDuration}" ]; then
+      echo "${colors.green}✓${colors.reset} ${message} (''${PERF_DURATION}ms <= ${toString maxDuration}ms)"
+    else
+      echo "${colors.red}✗${colors.reset} ${message} (''${PERF_DURATION}ms > ${toString maxDuration}ms)"
+      exit 1
+    fi
+  '';
+
   # Mock data generators
   mockFlake = attrs: {
     description = "Test flake";
@@ -311,7 +335,7 @@ in
   inherit colors platform setupTestEnv;
   inherit assertTrue assertExists assertCommand assertContains;
   inherit testSection testSubsection;
-  inherit skipOn onlyOn benchmark;
+  inherit skipOn onlyOn benchmark measureExecutionTime assertPerformance;
   inherit mockFlake mockConfig;
   inherit createTempFile createTempDir;
   inherit evalFlake reportResults cleanup;
