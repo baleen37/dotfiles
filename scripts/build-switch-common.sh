@@ -906,5 +906,216 @@ EOF
     echo "$alert_file"
 }
 
+# Security and edge case handling functions
+validate_input_parameters() {
+    local param_name="$1"
+    local param_value="$2"
+    local validation_type="${3:-basic}"
+
+    log_debug "Validating input parameter: $param_name (type: $validation_type)"
+
+    # Basic validation
+    case "$validation_type" in
+        "path")
+            # Path validation
+            if [[ "$param_value" =~ \.\./|\.\.\\ ]]; then
+                log_error "Path traversal attempt detected in $param_name: $param_value"
+                return 1
+            fi
+            ;;
+        "system_type")
+            # System type validation
+            if [[ ! "$param_value" =~ ^[a-zA-Z0-9_-]+$ ]]; then
+                log_error "Invalid system type format: $param_value"
+                return 1
+            fi
+            ;;
+        "command")
+            # Command validation
+            if [[ "$param_value" =~ [;&|`\$\(\)] ]]; then
+                log_error "Potentially dangerous command detected: $param_value"
+                return 1
+            fi
+            ;;
+        *)
+            # Basic string validation
+            if [ ${#param_value} -gt 1000 ]; then
+                log_error "Parameter value too long: $param_name"
+                return 1
+            fi
+            ;;
+    esac
+
+    log_debug "Input parameter validation passed: $param_name"
+    return 0
+}
+
+prevent_path_traversal() {
+    local input_path="$1"
+    local base_path="${2:-$PWD}"
+
+    # Normalize path
+    local normalized_path=$(realpath "$input_path" 2>/dev/null || echo "$input_path")
+    local normalized_base=$(realpath "$base_path" 2>/dev/null || echo "$base_path")
+
+    # Check if path is within base directory
+    if [[ "$normalized_path" != "$normalized_base"* ]]; then
+        log_error "Path traversal attempt detected: $input_path"
+        return 1
+    fi
+
+    # Check for dangerous patterns
+    if [[ "$input_path" =~ \.\./|\.\.\\ ]]; then
+        log_error "Path traversal pattern detected: $input_path"
+        return 1
+    fi
+
+    log_debug "Path traversal check passed: $input_path"
+    return 0
+}
+
+check_privilege_escalation() {
+    local current_user="$USER"
+    local effective_uid=$(id -u)
+    local real_uid=$(id -ru)
+
+    log_debug "Checking privilege escalation: user=$current_user, euid=$effective_uid, ruid=$real_uid"
+
+    # Check for unexpected privilege escalation
+    if [ "$effective_uid" -eq 0 ] && [ "$real_uid" -ne 0 ]; then
+        log_warning "Privilege escalation detected: running as root but started as user $real_uid"
+
+        # Check if this is expected (via sudo)
+        if [ -z "${SUDO_USER:-}" ]; then
+            log_error "Unexpected privilege escalation - no SUDO_USER set"
+            return 1
+        fi
+    fi
+
+    # Check for setuid/setgid executables
+    if command -v find >/dev/null 2>&1; then
+        local suspicious_files=$(find . -type f \( -perm -4000 -o -perm -2000 \) 2>/dev/null | head -5)
+        if [ -n "$suspicious_files" ]; then
+            log_warning "Setuid/setgid files detected in current directory:"
+            echo "$suspicious_files" | while read -r file; do
+                log_warning "  - $file"
+            done
+        fi
+    fi
+
+    log_debug "Privilege escalation check passed"
+    return 0
+}
+
+monitor_resource_usage() {
+    local monitoring_type="${1:-basic}"
+    local pid="${2:-$$}"
+
+    log_debug "Monitoring resource usage: type=$monitoring_type, pid=$pid"
+
+    # Check memory usage
+    if command -v ps >/dev/null 2>&1; then
+        local memory_mb=$(ps -o rss= -p "$pid" 2>/dev/null | awk '{print int($1/1024)}')
+        if [ "$memory_mb" -gt 2000 ]; then
+            log_warning "High memory usage detected: ${memory_mb}MB"
+        fi
+    fi
+
+    # Check CPU usage
+    if command -v ps >/dev/null 2>&1; then
+        local cpu_usage=$(ps -o %cpu= -p "$pid" 2>/dev/null | awk '{print int($1)}')
+        if [ "$cpu_usage" -gt 80 ]; then
+            log_warning "High CPU usage detected: ${cpu_usage}%"
+        fi
+    fi
+
+    # Check disk usage
+    if command -v df >/dev/null 2>&1; then
+        local disk_usage=$(df . | tail -1 | awk '{print $5}' | sed 's/%//')
+        if [ "$disk_usage" -gt 90 ]; then
+            log_warning "High disk usage detected: ${disk_usage}%"
+        fi
+    fi
+
+    log_debug "Resource usage monitoring completed"
+    return 0
+}
+
+detect_malicious_symlinks() {
+    local check_path="${1:-.}"
+    local max_depth="${2:-3}"
+
+    log_debug "Detecting malicious symlinks in: $check_path (depth: $max_depth)"
+
+    if ! command -v find >/dev/null 2>&1; then
+        log_warning "find command not available, skipping symlink detection"
+        return 0
+    fi
+
+    # Check for symlinks pointing outside the project
+    local suspicious_links=$(find "$check_path" -maxdepth "$max_depth" -type l 2>/dev/null | while read -r link; do
+        local target=$(readlink "$link" 2>/dev/null || echo "")
+        if [ -n "$target" ]; then
+            # Check for absolute paths outside expected directories
+            if [[ "$target" =~ ^/etc/|^/usr/bin/|^/bin/|^/sbin/ ]]; then
+                echo "$link -> $target"
+            fi
+            # Check for path traversal in symlinks
+            if [[ "$target" =~ \.\./|\.\.\\ ]]; then
+                echo "$link -> $target (traversal)"
+            fi
+        fi
+    done)
+
+    if [ -n "$suspicious_links" ]; then
+        log_warning "Suspicious symlinks detected:"
+        echo "$suspicious_links" | while read -r link; do
+            log_warning "  - $link"
+        done
+        return 1
+    fi
+
+    log_debug "Malicious symlink detection completed - no issues found"
+    return 0
+}
+
+sanitize_environment() {
+    local sanitization_level="${1:-standard}"
+
+    log_debug "Sanitizing environment: level=$sanitization_level"
+
+    # List of potentially dangerous environment variables
+    local dangerous_vars="IFS CDPATH ENV BASH_ENV GLOBIGNORE"
+
+    # Clear dangerous variables
+    for var in $dangerous_vars; do
+        if [ -n "${!var:-}" ]; then
+            log_warning "Clearing potentially dangerous environment variable: $var"
+            unset "$var"
+        fi
+    done
+
+    # Sanitize PATH
+    if [ "$sanitization_level" = "strict" ]; then
+        log_info "Applying strict PATH sanitization"
+        export PATH="/usr/bin:/bin:/usr/sbin:/sbin"
+    else
+        # Remove current directory from PATH if present
+        export PATH=$(echo "$PATH" | sed 's/:\.:/:/g' | sed 's/^\.://' | sed 's/:\.$//')
+    fi
+
+    # Ensure essential variables are set
+    if [ -z "${USER:-}" ]; then
+        export USER=$(whoami 2>/dev/null || echo "unknown")
+    fi
+
+    if [ -z "${HOME:-}" ]; then
+        export HOME=$(eval echo ~$USER 2>/dev/null || echo "/tmp")
+    fi
+
+    log_debug "Environment sanitization completed"
+    return 0
+}
+
 # Main build-switch logic loaded
 # Platform-specific scripts will call execute_build_switch directly
