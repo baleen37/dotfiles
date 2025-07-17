@@ -2,7 +2,7 @@
 This document outlines the standard procedure for addressing user requests, with a focus on Jira integration using the `mcp-atlassian` tool.
 </objective>
 
-<process>
+<steps>
   <step name="1. Understand the Request">
     - *Clarify the Goal:* Fully understand what the user wants to achieve. If the request is ambiguous, ask clarifying questions.
     - *Identify Constraints:* Note any specific constraints or requirements mentioned by the user.
