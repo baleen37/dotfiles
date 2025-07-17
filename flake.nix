@@ -53,8 +53,15 @@
       devShell = system: utils.mkDevShell system;
     in
     {
-      # Shared library functions
+      # Shared library functions - using unified systems
       lib = {
+        # Unified systems
+        utilsSystem = import ./lib/utils-system.nix { pkgs = nixpkgs.legacyPackages.x86_64-linux; lib = nixpkgs.lib; };
+        platformSystem = import ./lib/platform-system.nix { pkgs = nixpkgs.legacyPackages.x86_64-linux; lib = nixpkgs.lib; inherit nixpkgs self; };
+        errorSystem = import ./lib/error-system.nix { pkgs = nixpkgs.legacyPackages.x86_64-linux; lib = nixpkgs.lib; };
+        testSystem = import ./lib/test-system.nix { pkgs = nixpkgs.legacyPackages.x86_64-linux; inherit nixpkgs self; };
+
+        # Legacy compatibility - redirect to unified systems
         packageUtils = import ./lib/package-utils.nix { lib = nixpkgs.lib; };
         userResolution = import ./lib/user-resolution.nix;
         platformUtils = import ./lib/platform-utils.nix { inherit nixpkgs; };

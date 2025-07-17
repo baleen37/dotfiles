@@ -1,4 +1,5 @@
-# Platform Detection System
+# Platform Detection System - Legacy Compatibility Wrapper
+# Redirects to unified platform-system.nix
 # 현재 플랫폼 감지 및 빌드 최적화를 위한 시스템
 
 {
@@ -11,144 +12,115 @@
 }:
 
 let
-  # Get current system from Nix
-  nixSystem = builtins.currentSystem or "unknown";
-
-  # Extract platform and architecture from Nix system
-  systemParts = builtins.split "-" nixSystem;
-  detectedArch = if builtins.length systemParts >= 1 then builtins.head systemParts else "unknown";
-  detectedPlatform = if builtins.length systemParts >= 3 then builtins.elemAt systemParts 2 else "unknown";
+  # Import unified platform system
+  platformSystem = import ./platform-system.nix { };
 
   # Apply overrides if provided
-  currentArch = if overrideArch != null then overrideArch else detectedArch;
-  currentPlatform = if overridePlatform != null then overridePlatform else detectedPlatform;
-  currentSystem = "${currentArch}-${currentPlatform}";
+  actualArch = if overrideArch != null then overrideArch else platformSystem.arch;
+  actualPlatform = if overridePlatform != null then overridePlatform else platformSystem.platform;
+  actualSystem = "${actualArch}-${actualPlatform}";
 
-  # Supported platforms and architectures
-  supportedPlatforms = [ "darwin" "linux" ];
-  supportedArchs = [ "x86_64" "aarch64" ];
-  supportedSystems = [
-    "x86_64-darwin"
-    "aarch64-darwin"
-    "x86_64-linux"
-    "aarch64-linux"
-  ];
+  # Override detection results if needed
+  overriddenSystem = if overridePlatform != null || overrideArch != null then {
+    arch = actualArch;
+    platform = actualPlatform;
+    system = actualSystem;
+    isDarwin = actualPlatform == "darwin";
+    isLinux = actualPlatform == "linux";
+    isX86_64 = actualArch == "x86_64";
+    isAarch64 = actualArch == "aarch64";
+    isValidPlatform = platformSystem.validate.platform actualPlatform;
+    isValidArch = platformSystem.validate.arch actualArch;
+    isValidSystem = platformSystem.validate.system actualSystem;
+  } else platformSystem.detect.current;
+
+in
+{
+  # Export detection results (with overrides if provided)
+  inherit (overriddenSystem) arch platform system isDarwin isLinux isX86_64 isAarch64;
+  inherit (overriddenSystem) isValidPlatform isValidArch isValidSystem;
+
+  # Original API compatibility
+  currentArch = overriddenSystem.arch;
+  currentPlatform = overriddenSystem.platform;
+  currentSystem = overriddenSystem.system;
+
+  # Supported configurations
+  inherit (platformSystem.detect) supportedPlatforms supportedArchs supportedSystems;
 
   # Validation functions
-  isValidPlatform = platform: builtins.elem platform supportedPlatforms;
-  isValidArch = arch: builtins.elem arch supportedArchs;
-  isValidSystem = system: builtins.elem system supportedSystems;
+  isValidPlatform = platformSystem.validate.platform;
+  isValidArch = platformSystem.validate.arch;
+  isValidSystem = platformSystem.validate.system;
 
-  # Platform checks
-  isDarwin = currentPlatform == "darwin";
-  isLinux = currentPlatform == "linux";
-  isX86_64 = currentArch == "x86_64";
-  isAarch64 = currentArch == "aarch64";
+  # Build optimizations from unified system
+  buildOptimizations = platformSystem.utils.getOptimizedBuildConfig overriddenSystem.platform;
 
-  # Build optimization hints
-  buildOptimizations = {
-    # Platform-specific build flags
-    darwin = {
-      extraArgs = [ "--option" "system-features" "nixos-test" ];
-      parallelism = "auto";
-      substituters = [ "https://cache.nixos.org" "https://nix-community.cachix.org" ];
-    };
-    linux = {
-      extraArgs = [ "--option" "sandbox" "true" ];
-      parallelism = "auto";
-      substituters = [ "https://cache.nixos.org" ];
-    };
-  };
-
-  # Get platform-specific optimizations
-  getCurrentOptimizations =
-    if builtins.hasAttr currentPlatform buildOptimizations
-    then buildOptimizations.${currentPlatform}
-    else { extraArgs = [ ]; parallelism = "auto"; substituters = [ ]; };
-
-  # Debug information
-  debugInfo = {
-    nixSystem = nixSystem;
-    detectedArch = detectedArch;
-    detectedPlatform = detectedPlatform;
-    currentArch = currentArch;
-    currentPlatform = currentPlatform;
-    currentSystem = currentSystem;
+  # Debug information if requested
+  debugInfo = if debugMode then {
+    inherit (overriddenSystem) arch platform system;
     overrides = {
       platform = overridePlatform;
       arch = overrideArch;
     };
-    validations = {
-      validPlatform = isValidPlatform currentPlatform;
-      validArch = isValidArch currentArch;
-      validSystem = isValidSystem currentSystem;
-    };
-  };
-
-  # Error handling
-  validateCurrentSystem =
-    if !isValidSystem currentSystem then
-      builtins.throw ''
-        ❌ Unsupported system detected: ${currentSystem}
-
-        🖥️  Supported systems:
-          ${builtins.concatStringsSep "\n  " supportedSystems}
-
-        🔍 Detection details:
-          - Nix system: ${nixSystem}
-          - Detected arch: ${detectedArch}
-          - Detected platform: ${detectedPlatform}
-          - Current arch: ${currentArch}
-          - Current platform: ${currentPlatform}
-
-        💡 해결 방법:
-          1. 지원되는 시스템에서 실행하세요
-          2. --override-platform=<platform> 옵션 사용
-          3. --override-arch=<arch> 옵션 사용
-      ''
-    else currentSystem;
-
-  # Main API functions
-  api = {
-    # Core detection functions
-    getCurrentPlatform = currentPlatform;
-    getCurrentArch = currentArch;
-    getCurrentSystem = validateCurrentSystem;
-
-    # Boolean checks
-    isPlatform = platform: currentPlatform == platform;
-    isArch = arch: currentArch == arch;
-    isDarwin = isDarwin;
-    isLinux = isLinux;
-    isX86_64 = isX86_64;
-    isAarch64 = isAarch64;
-
-    # Validation functions
-    validatePlatform = isValidPlatform;
-    validateArch = isValidArch;
-    validateSystem = isValidSystem;
-
-    # Build optimization
-    getOptimizations = getCurrentOptimizations;
-
-    # Supported values
-    getSupportedPlatforms = supportedPlatforms;
-    getSupportedArchs = supportedArchs;
-    getSupportedSystems = supportedSystems;
-
-    # Debug information
-    getDebugInfo = if debugMode then debugInfo else { };
-
-    # Utility functions
-    getOtherPlatforms = builtins.filter (p: p != currentPlatform) supportedPlatforms;
-    getOtherArchs = builtins.filter (a: a != currentArch) supportedArchs;
-    getOtherSystems = builtins.filter (s: s != currentSystem) supportedSystems;
-
-    # Build target helpers
-    getCurrentTarget = currentSystem;
-    getAllTargets = supportedSystems;
-    getCrossTargets = builtins.filter (s: s != currentSystem) supportedSystems;
-  };
+    config = platformSystem.currentConfig;
+  } else {};
 
 in
-api
+{
+  # Export detection results (with overrides if provided)
+  inherit (overriddenSystem) arch platform system isDarwin isLinux isX86_64 isAarch64;
+  inherit (overriddenSystem) isValidPlatform isValidArch isValidSystem;
+
+  # Original API compatibility
+  currentArch = overriddenSystem.arch;
+  currentPlatform = overriddenSystem.platform;
+  currentSystem = overriddenSystem.system;
+
+  # Supported configurations
+  inherit (platformSystem.detect) supportedPlatforms supportedArchs supportedSystems;
+
+  # Validation functions
+  isValidPlatform = platformSystem.validate.platform;
+  isValidArch = platformSystem.validate.arch;
+  isValidSystem = platformSystem.validate.system;
+
+  # Build optimizations from unified system
+  buildOptimizations = buildOptimizations;
+  getCurrentOptimizations = buildOptimizations;
+
+  # Legacy API functions for backward compatibility
+  getCurrentPlatform = overriddenSystem.platform;
+  getCurrentArch = overriddenSystem.arch;
+  getCurrentSystem = overriddenSystem.system;
+
+  # Boolean checks
+  isPlatform = platform: overriddenSystem.platform == platform;
+  isArch = arch: overriddenSystem.arch == arch;
+
+  # Validation functions
+  validatePlatform = platformSystem.validate.platform;
+  validateArch = platformSystem.validate.arch;
+  validateSystem = platformSystem.validate.system;
+
+  # Build optimization
+  getOptimizations = buildOptimizations;
+
+  # Supported values
+  getSupportedPlatforms = platformSystem.detect.supportedPlatforms;
+  getSupportedArchs = platformSystem.detect.supportedArchs;
+  getSupportedSystems = platformSystem.detect.supportedSystems;
+
+  # Debug information
+  getDebugInfo = debugInfo;
+
+  # Utility functions
+  getOtherPlatforms = builtins.filter (p: p != overriddenSystem.platform) platformSystem.detect.supportedPlatforms;
+  getOtherArchs = builtins.filter (a: a != overriddenSystem.arch) platformSystem.detect.supportedArchs;
+  getOtherSystems = builtins.filter (s: s != overriddenSystem.system) platformSystem.detect.supportedSystems;
+
+  # Build target helpers
+  getCurrentTarget = overriddenSystem.system;
+  getAllTargets = platformSystem.detect.supportedSystems;
+  getCrossTargets = builtins.filter (s: s != overriddenSystem.system) platformSystem.detect.supportedSystems;
+}
