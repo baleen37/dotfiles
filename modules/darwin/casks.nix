@@ -2,6 +2,7 @@ _:
 
 [
   # Development Tools
+  "datagrip"  # Database IDE from JetBrains
   "docker-desktop"
   "intellij-idea"
   "iterm2"  # Terminal emulator for macOS

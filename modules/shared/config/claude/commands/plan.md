@@ -3,11 +3,18 @@ Draft a detailed, step-by-step blueprint for building this project.
 </objective>
 
 <process>
-Once you have a solid plan, break it down into small, iterative chunks that build on each other. Look at these chunks and then go another round to break it into small steps. review the results and make sure that the steps are small enough to be implemented safely, but big enough to move the project forward. Iterate until you feel that the steps are right sized for this project.
+First, use the "TodoWrite" tool to register all high-level tasks for the entire planning and implementation process.
 
-From here you should have the foundation to provide a series of prompts for a code-generation LLM that will implement each step. Prioritize best practices, and incremental progress, ensuring no big jumps in complexity at any stage. Make sure that each prompt builds on the previous prompts, and ends with wiring things together. There should be no hanging or orphaned code that isn't integrated into a previous step.
+Once you have a solid overall plan, break it down into small, iterative chunks that build on each other. For each chunk, your plan should provide a clear, step-by-step guide for the implementation. This means structuring the work into a series of prompts for a code-generation LLM that explicitly follows these steps:
 
-Make sure and separate each prompt section. Use markdown. Each prompt should be tagged as text using code tags. The goal is to output prompts, but context, etc is important as well.
+1.  **Define the Goal:** Clearly state the objective for the current step.
+2.  **Break Down the Task:** Provide a detailed, sequential plan for the LLM to follow.
+3.  **Provide Context:** Include any necessary code snippets, file paths, or other context the LLM will need.
+4.  **Specify the Output:** Clearly define the expected output, whether it's a new file, a modification to an existing one, or a command to be run.
+
+Review the results of this breakdown and make sure that the steps are small enough to be implemented safely, but big enough to move the project forward. Iterate on this planning process until you feel the steps are the right size for this project.
+
+Each prompt should build on the previous ones, creating a clear, incremental path. This ensures there are no big jumps in complexity and that all code is integrated from the moment it's created. Make sure to separate each prompt section using markdown, and tag the prompt text itself using code tags. The goal is to output a complete implementation plan as a series of LLM prompts.
 </process>
 
 <deliverables>
