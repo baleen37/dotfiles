@@ -1,4 +1,4 @@
-<process>
+<steps>
 1. **Review the GitHub issues** and choose a small, quick-to-complete task.
 2. **Plan your approach** carefully and post that plan as a comment on the chosen issue.
 3. **Create a new branch** and implement your solution:
