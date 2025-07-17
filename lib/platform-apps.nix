@@ -1,116 +1,35 @@
-# Platform application definitions module
+# Platform Application Definitions - Legacy Compatibility Wrapper
+# Redirects to unified platform-system.nix
 # Provides common app builders for Darwin and Linux systems
 
 { nixpkgs, self }:
 
 let
-  # Generic app builder that wraps platform-specific scripts
-  mkApp = scriptName: system: {
-    type = "app";
-    program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin scriptName ''
-      #!/usr/bin/env bash
-      PATH=${nixpkgs.legacyPackages.${system}.git}/bin:$PATH
-      echo "Running ${scriptName} for ${system}"
-      exec ${self}/apps/${system}/${scriptName} "$@"
-    '')}/bin/${scriptName}";
+  # Import unified platform system with nixpkgs and self
+  platformSystem = import ./platform-system.nix {
+    pkgs = nixpkgs.legacyPackages.${builtins.currentSystem or "x86_64-linux"};
+    inherit nixpkgs self;
   };
 
-  # Setup-dev app builder with fallback handling
-  mkSetupDevApp = system:
-    if builtins.pathExists (self + "/scripts/setup-dev")
-    then {
-      type = "app";
-      program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "setup-dev"
-        (builtins.readFile (self + "/scripts/setup-dev"))
-      )}/bin/setup-dev";
-    }
-    else {
-      type = "app";
-      program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "setup-dev" ''
-        #!/usr/bin/env bash
-        echo "setup-dev script not found. Please run: ./scripts/install-setup-dev"
-        exit 1
-      '')}/bin/setup-dev";
-    };
-
-
-  # BL auto-update command builders
-  mkBlAutoUpdateApp = { system, commandName }:
-    let
-      scriptPath = self + "/scripts/bl-auto-update-${commandName}";
-    in
-    if builtins.pathExists scriptPath
-    then {
-      type = "app";
-      program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "bl-auto-update-${commandName}"
-        (builtins.readFile scriptPath)
-      )}/bin/bl-auto-update-${commandName}";
-    }
-    else {
-      type = "app";
-      program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "bl-auto-update-${commandName}" ''
-        #!/usr/bin/env bash
-        echo "bl-auto-update-${commandName} script not found at: ${scriptPath}"
-        exit 1
-      '')}/bin/bl-auto-update-${commandName}";
-    };
-
-  # Core apps available on all platforms
-  coreApps = [
-    "apply"
-    "build"
-    "build-switch"
-  ];
-
-  # SSH key management apps
-  sshApps = [
-    "copy-keys"
-    "create-keys"
-    "check-keys"
-  ];
-
-  # Linux-specific apps
-  linuxOnlyApps = [
-    "install"
-  ];
-
-  # Darwin-specific apps
-  darwinOnlyApps = [
-    "rollback"
-  ];
-
-  # Build app set for a system
-  mkAppSet = { system, includeApps }:
-    nixpkgs.lib.genAttrs includeApps (appName: mkApp appName system);
-
 in
-{
-  # Build Linux apps (core + SSH + linux-specific)
-  mkLinuxCoreApps = system:
-    mkAppSet
-      {
-        inherit system;
-        includeApps = coreApps ++ sshApps ++ linuxOnlyApps;
-      } // {
-      "setup-dev" = mkSetupDevApp system;
-      "bl-auto-update-status" = mkBlAutoUpdateApp { inherit system; commandName = "status"; };
-      "bl-auto-update-check" = mkBlAutoUpdateApp { inherit system; commandName = "check"; };
-      "bl-auto-update-apply" = mkBlAutoUpdateApp { inherit system; commandName = "apply"; };
-    };
+# Re-export apps from unified system with legacy compatibility
+platformSystem.apps // {
+  # Export current platform apps as the main interface
+  inherit (platformSystem.apps) mkApp mkSetupDevApp mkBlAutoUpdateApp;
+  inherit (platformSystem.apps) platformApps getCurrentPlatformApps;
 
-  # Build Darwin apps (core + SSH + darwin-specific)
+  # Legacy function names for backward compatibility
   mkDarwinCoreApps = system:
-    mkAppSet
-      {
-        inherit system;
-        includeApps = coreApps ++ sshApps ++ darwinOnlyApps;
-      } // {
-      "setup-dev" = mkSetupDevApp system;
-      "bl-auto-update-status" = mkBlAutoUpdateApp { inherit system; commandName = "status"; };
-      "bl-auto-update-check" = mkBlAutoUpdateApp { inherit system; commandName = "check"; };
-      "bl-auto-update-apply" = mkBlAutoUpdateApp { inherit system; commandName = "apply"; };
-    };
+    if platformSystem.apps.platformApps ? darwin then
+      platformSystem.apps.platformApps.darwin
+    else {};
 
-  # Export for potential reuse
-  inherit mkApp mkSetupDevApp mkBlAutoUpdateApp;
+  mkLinuxCoreApps = system:
+    if platformSystem.apps.platformApps ? linux then
+      platformSystem.apps.platformApps.linux
+    else {};
+
+  # Version metadata
+  version = "2.0.0-unified";
+  description = "Platform applications with unified backend";
 }
