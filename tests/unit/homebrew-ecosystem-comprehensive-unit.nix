@@ -72,14 +72,14 @@ pkgs.runCommand "homebrew-ecosystem-comprehensive-unit-test"
   ${homebrewHelpers.assertMasAppValid 869223134 "Valid MAS app ID for KakaoTalk"}
 
   # Test invalid MAS app IDs
-  if ${homebrewHelpers.validMasAppId (-1)}; then
+  if ${if homebrewHelpers.validMasAppId (-1) then "true" else "false"}; then
     echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} Negative MAS app ID should be invalid"
     exit 1
   else
     echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Negative MAS app ID correctly rejected"
   fi
 
-  if ${homebrewHelpers.validMasAppId 0}; then
+  if ${if homebrewHelpers.validMasAppId 0 then "true" else "false"}; then
     echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} Zero MAS app ID should be invalid"
     exit 1
   else
@@ -136,14 +136,14 @@ pkgs.runCommand "homebrew-ecosystem-comprehensive-unit-test"
   ${homebrewHelpers.assertCaskValid "alt-tab" "Alt-Tab cask name valid"}
 
   # Test invalid cask names
-  if ${homebrewHelpers.validCaskName "Invalid_Cask"}; then
+  if ${if homebrewHelpers.validCaskName "Invalid_Cask" then "true" else "false"}; then
     echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} Invalid cask name with underscore should be rejected"
     exit 1
   else
     echo "${testHelpers.colors.green}✓${testHelpers.colors.reset} Invalid cask name correctly rejected"
   fi
 
-  if ${homebrewHelpers.validCaskName "-invalid-start"}; then
+  if ${if homebrewHelpers.validCaskName "-invalid-start" then "true" else "false"}; then
     echo "${testHelpers.colors.red}✗${testHelpers.colors.reset} Cask name starting with dash should be rejected"
     exit 1
   else
