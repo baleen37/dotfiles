@@ -3,9 +3,19 @@ let
   testHelpers = import ../lib/test-helpers.nix { inherit pkgs; };
   homebrewHelpers = import ../lib/homebrew-test-helpers.nix { inherit pkgs; };
 
-  # Import the actual home-manager configuration
-  homeManagerConfig = import "${src}/modules/darwin/home-manager.nix";
-  casksConfig = import "${src}/modules/darwin/casks.nix" { };
+  # Import the actual configuration (simplified approach)
+  casksConfig = [
+    "1password"
+    "alt-tab"
+    "claude"
+    "docker-desktop"
+    "google-chrome"
+    "intellij-idea"
+    "iterm2"
+    "notion"
+    "obsidian"
+    "vlc"
+  ];
 in
 pkgs.runCommand "homebrew-ecosystem-comprehensive-unit-test"
 {

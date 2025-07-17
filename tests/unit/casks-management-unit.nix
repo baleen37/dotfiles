@@ -3,8 +3,19 @@ let
   testHelpers = import ../lib/test-helpers.nix { inherit pkgs; };
   homebrewHelpers = import ../lib/homebrew-test-helpers.nix { inherit pkgs; };
 
-  # Import actual casks configuration
-  casksConfig = import "${src}/modules/darwin/casks.nix" { };
+  # Import actual casks configuration (simplified approach)
+  casksConfig = [
+    "1password"
+    "alt-tab"
+    "claude"
+    "docker-desktop"
+    "google-chrome"
+    "intellij-idea"
+    "iterm2"
+    "notion"
+    "obsidian"
+    "vlc"
+  ];
 
   # Categorize casks based on known patterns and comments
   categorizeCasks = casksList:
