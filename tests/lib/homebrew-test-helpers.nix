@@ -254,8 +254,8 @@ let
     in
     ''
       echo "Simulating installation of ${caskName}..."
-      ${testHelpers._measureTime ''sleep ${toString (estimatedTime / 1000)}''}
-      echo "${colors.green}✓${colors.reset} ${caskName} installed in ''${DURATION}ms"
+      sleep ${toString (estimatedTime / 1000)}
+      echo "${colors.green}✓${colors.reset} ${caskName} installed (estimated time: ${toString estimatedTime}ms)"
     '';
 
 in
