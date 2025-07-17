@@ -1,29 +1,32 @@
-# Standardized error messages for better user experience
-{ lib }:
+# Standardized error messages - Legacy Compatibility Wrapper
+# Redirects to unified error-system.nix
+{ lib ? null }:
 
 let
-  # Color codes for terminal output (when supported)
-  colors = {
-    red = "\\033[0;31m";
-    yellow = "\\033[1;33m";
-    green = "\\033[0;32m";
-    blue = "\\033[0;34m";
-    reset = "\\033[0m";
-  };
+  # Import unified error system
+  errorSystem = import ./error-system.nix { };
 
-  # Format error message with consistent styling
+  # Legacy format function for backward compatibility
   formatError = { type, message, hint ? null, command ? null }:
     let
-      header = "[${type}] ${message}";
-      hintText = if hint != null then "\nHint: ${hint}" else "";
-      commandText = if command != null then "\n\nRun: ${command}" else "";
+      suggestions = if hint != null then [ hint ] else [];
+      contextInfo = if command != null then { command = command; } else {};
     in
-    "${header}${hintText}${commandText}";
+    errorSystem.formatError (errorSystem.createError {
+      inherit message suggestions;
+      component = type;
+      errorType = "user";
+      context = contextInfo;
+    });
 
 in
 {
-  # Common error messages
-  errors = {
+  # Export unified system functions
+  inherit (errorSystem) colors errorTypes severityLevels;
+
+  # Common error messages using new system
+  errors = errorSystem.errors // {
+    # Legacy wrapper functions
     userNotSet = formatError {
       type = "ENVIRONMENT";
       message = "USER environment variable is not set";
@@ -123,7 +126,7 @@ in
     };
   };
 
-  # Helper functions
+  # Helper functions using new system
   helpers = {
     # Print error and exit
     throwError = error: builtins.throw error;
@@ -132,18 +135,9 @@ in
     printWarning = warning: builtins.trace warning;
 
     # Conditional error based on environment
-    requireEnv = var: default:
-      let value = builtins.getEnv var;
-      in if value == "" && default == null
-      then throwError (errors.userNotSet)
-      else if value == "" then default else value;
+    requireEnv = var: default: errorSystem.utils.requireEnv var default;
   };
 
-  # Progress indicators
-  progress = {
-    starting = phase: "Starting ${phase}...";
-    completed = phase: "✓ ${phase} completed successfully";
-    failed = phase: "✗ ${phase} failed";
-    skipped = phase: "- ${phase} skipped";
-  };
+  # Progress indicators using new system
+  progress = errorSystem.progress;
 }

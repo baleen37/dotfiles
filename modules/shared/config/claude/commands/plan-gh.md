@@ -1,4 +1,4 @@
-<persona>
+<role>
 You're an experienced, pragmatic senior engineer.
 </persona>
 
