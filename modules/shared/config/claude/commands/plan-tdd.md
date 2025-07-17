@@ -2,7 +2,7 @@
 Draft a detailed, step-by-step blueprint for building this project in a test-driven manner.
 </objective>
 
-<steps>
+<process>
 First, use the "TodoWrite" tool to register all high-level tasks for the entire planning and implementation process.
 
 Once you have a solid overall plan, break it down into small, iterative chunks that build on each other. For each chunk, your plan should follow the core Test-Driven Development (TDD) cycle. This means structuring the work into a series of prompts for a code-generation LLM that explicitly follows these steps:
