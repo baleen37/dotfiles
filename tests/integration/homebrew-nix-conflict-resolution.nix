@@ -5,7 +5,7 @@ let
 
   # Import configurations
   darwinPackages = import "${src}/modules/darwin/packages.nix" { inherit pkgs; };
-  casksConfig = import "${src}/modules/darwin/casks.nix" { };
+  casksConfig = import "${src}/modules/darwin/casks.nix" null;
   sharedPackages = import "${src}/modules/shared/packages.nix" { inherit pkgs; };
 
   # Combined Nix packages
