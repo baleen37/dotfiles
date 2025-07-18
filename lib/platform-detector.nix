@@ -48,11 +48,6 @@ in
   # Supported configurations
   inherit (platformSystem.detect) supportedPlatforms supportedArchs supportedSystems;
 
-  # Validation functions
-  isValidPlatform = platformSystem.validate.platform;
-  isValidArch = platformSystem.validate.arch;
-  isValidSystem = platformSystem.validate.system;
-
   # Build optimizations from unified system
   buildOptimizations = platformSystem.utils.getOptimizedBuildConfig overriddenSystem.platform;
 
@@ -80,13 +75,7 @@ in
   # Supported configurations
   inherit (platformSystem.detect) supportedPlatforms supportedArchs supportedSystems;
 
-  # Validation functions
-  isValidPlatform = platformSystem.validate.platform;
-  isValidArch = platformSystem.validate.arch;
-  isValidSystem = platformSystem.validate.system;
-
   # Build optimizations from unified system
-  buildOptimizations = buildOptimizations;
   getCurrentOptimizations = buildOptimizations;
 
   # Legacy API functions for backward compatibility
