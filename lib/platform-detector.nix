@@ -34,20 +34,6 @@ let
     isValidSystem = platformSystem.validate.system actualSystem;
   } else platformSystem.detect.current;
 
-in
-{
-  # Export detection results (with overrides if provided)
-  inherit (overriddenSystem) arch platform system isDarwin isLinux isX86_64 isAarch64;
-  inherit (overriddenSystem) isValidPlatform isValidArch isValidSystem;
-
-  # Original API compatibility
-  currentArch = overriddenSystem.arch;
-  currentPlatform = overriddenSystem.platform;
-  currentSystem = overriddenSystem.system;
-
-  # Supported configurations
-  inherit (platformSystem.detect) supportedPlatforms supportedArchs supportedSystems;
-
   # Build optimizations from unified system
   buildOptimizations = platformSystem.utils.getOptimizedBuildConfig overriddenSystem.platform;
 
