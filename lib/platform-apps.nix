@@ -2,13 +2,13 @@
 # Redirects to unified platform-system.nix
 # Provides common app builders for Darwin and Linux systems
 
-{ nixpkgs, self }:
+{ nixpkgs, self, system ? "x86_64-linux" }:
 
 let
   # Import unified platform system with nixpkgs and self
   platformSystem = import ./platform-system.nix {
-    pkgs = nixpkgs.legacyPackages.${builtins.currentSystem or "x86_64-linux"};
-    inherit nixpkgs self;
+    pkgs = nixpkgs.legacyPackages.${system};
+    inherit nixpkgs self system;
   };
 
 in

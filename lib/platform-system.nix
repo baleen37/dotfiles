@@ -2,7 +2,7 @@
 # Combines platform-detector.nix, platform-utils.nix, and platform-apps.nix
 # Provides comprehensive platform detection, utilities, and app management
 
-{ pkgs ? null, lib ? null, nixpkgs ? null, self ? null }:
+{ pkgs ? null, lib ? null, nixpkgs ? null, self ? null, system ? null }:
 
 let
   # Determine pkgs and lib
@@ -13,12 +13,14 @@ let
   errorSystem = import ./error-system.nix { pkgs = actualPkgs; lib = actualLib; };
 
   # Platform detection core
-  detection = {
-    # Get current system from Nix
-    nixSystem = builtins.currentSystem;
+  detection = let
+    currentSystem = if system != null then system else "x86_64-linux";
+  in {
+    # Get current system from parameter (required in flake context)
+    nixSystem = currentSystem;
 
     # Extract platform and architecture from Nix system
-    systemParts = actualLib.splitString "-" builtins.currentSystem;
+    systemParts = actualLib.splitString "-" currentSystem;
     detectedArch = if builtins.length detection.systemParts >= 1 then builtins.head detection.systemParts else "unknown";
     detectedPlatform = if builtins.length detection.systemParts >= 2 then builtins.elemAt detection.systemParts 1 else "unknown";
 
