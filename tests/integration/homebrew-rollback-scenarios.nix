@@ -3,9 +3,29 @@ let
   testHelpers = import ../lib/test-helpers.nix { inherit pkgs; };
   homebrewHelpers = import ../lib/homebrew-test-helpers.nix { inherit pkgs; };
 
-  # Import configurations
-  casksConfig = import "${src}/modules/darwin/casks.nix" { };
-  homeManagerConfig = "${src}/modules/darwin/home-manager.nix";
+  # Use hardcoded configurations to avoid file system access during flake check
+  casksConfig = [
+    # Development Tools
+    "datagrip" "docker-desktop" "intellij-idea" "iterm2"
+    # Communication Tools
+    "discord" "notion" "slack" "telegram" "zoom" "obsidian"
+    # Utility Tools
+    "alt-tab" "claude"
+    # Entertainment Tools
+    "vlc"
+    # Study Tools
+    "anki"
+    # Productivity Tools
+    "alfred"
+    # Password Management
+    "1password" "1password-cli"
+    # Browsers
+    "google-chrome" "brave-browser" "firefox"
+    "hammerspoon"
+  ];
+
+  # Mock file path for testing (avoid actual file access during flake check)
+  homeManagerConfig = "/mock/path/to/home-manager.nix";
 in
 pkgs.runCommand "homebrew-rollback-scenarios-test"
 {
