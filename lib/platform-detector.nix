@@ -3,7 +3,9 @@
 # 현재 플랫폼 감지 및 빌드 최적화를 위한 시스템
 
 {
-  # Override platform detection (for testing)
+  # System parameter (required in flake environment)
+  system
+, # Override platform detection (for testing)
   overridePlatform ? null
 , # Override architecture detection (for testing)
   overrideArch ? null
@@ -34,29 +36,7 @@ let
     isValidSystem = platformSystem.validate.system actualSystem;
   } else platformSystem.detect.current;
 
-in
-{
-  # Export detection results (with overrides if provided)
-  inherit (overriddenSystem) arch platform system isDarwin isLinux isX86_64 isAarch64;
-  inherit (overriddenSystem) isValidPlatform isValidArch isValidSystem;
-
-  # Original API compatibility
-  currentArch = overriddenSystem.arch;
-  currentPlatform = overriddenSystem.platform;
-  currentSystem = overriddenSystem.system;
-
-  # Supported configurations
-  inherit (platformSystem.detect) supportedPlatforms supportedArchs supportedSystems;
-
-  # Validation functions
-  isValidPlatform = platformSystem.validate.platform;
-  isValidArch = platformSystem.validate.arch;
-  isValidSystem = platformSystem.validate.system;
-
-  # Build optimizations from unified system
-  buildOptimizations = platformSystem.utils.getOptimizedBuildConfig overriddenSystem.platform;
-
-  # Debug information if requested
+# Debug information if requested
   debugInfo = if debugMode then {
     inherit (overriddenSystem) arch platform system;
     overrides = {
@@ -86,8 +66,8 @@ in
   isValidSystem = platformSystem.validate.system;
 
   # Build optimizations from unified system
-  buildOptimizations = buildOptimizations;
-  getCurrentOptimizations = buildOptimizations;
+  buildOptimizations = platformSystem.utils.getOptimizedBuildConfig overriddenSystem.platform;
+  getCurrentOptimizations = platformSystem.utils.getOptimizedBuildConfig overriddenSystem.platform;
 
   # Legacy API functions for backward compatibility
   getCurrentPlatform = overriddenSystem.platform;
@@ -104,7 +84,7 @@ in
   validateSystem = platformSystem.validate.system;
 
   # Build optimization
-  getOptimizations = buildOptimizations;
+  getOptimizations = platformSystem.utils.getOptimizedBuildConfig overriddenSystem.platform;
 
   # Supported values
   getSupportedPlatforms = platformSystem.detect.supportedPlatforms;
