@@ -7,7 +7,7 @@
   To create a high-quality, review-ready Pull Request for the current feature branch that adheres to project standards.
 </objective>
 
-<steps>
+<pr_creation>
 
   <step name="Pre-PR Checks" number="1">
     - **Sync Branch**: Ensure the current branch is up-to-date with the target branch (usually `main`) by merging or rebasing to prevent conflicts.

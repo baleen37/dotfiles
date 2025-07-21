@@ -19,7 +19,7 @@
   - **`CLAUDE.md`:** Agent-specific instructions, project context, and protocols. **Do not place general project documentation here.**
 </documentation_hierarchy>
 
-<steps>
+<documentation_update>
 
   <step name="Comprehensive Documentation Analysis" number="1">
     - **Understand the Goal:** Clarify the user's documentation request.
