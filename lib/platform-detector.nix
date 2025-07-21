@@ -36,7 +36,10 @@ let
     isValidSystem = platformSystem.validate.system actualSystem;
   } else platformSystem.detect.current;
 
-# Debug information if requested
+  # Build optimizations from unified system
+  buildOptimizations = platformSystem.utils.getOptimizedBuildConfig overriddenSystem.platform;
+
+  # Debug information if requested
   debugInfo = if debugMode then {
     inherit (overriddenSystem) arch platform system;
     overrides = {
@@ -60,14 +63,8 @@ in
   # Supported configurations
   inherit (platformSystem.detect) supportedPlatforms supportedArchs supportedSystems;
 
-  # Validation functions
-  isValidPlatform = platformSystem.validate.platform;
-  isValidArch = platformSystem.validate.arch;
-  isValidSystem = platformSystem.validate.system;
-
   # Build optimizations from unified system
-  buildOptimizations = platformSystem.utils.getOptimizedBuildConfig overriddenSystem.platform;
-  getCurrentOptimizations = platformSystem.utils.getOptimizedBuildConfig overriddenSystem.platform;
+  getCurrentOptimizations = buildOptimizations;
 
   # Legacy API functions for backward compatibility
   getCurrentPlatform = overriddenSystem.platform;

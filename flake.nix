@@ -55,11 +55,11 @@
     {
       # Shared library functions - using unified systems
       lib = {
-        # Unified systems
-        utilsSystem = import ./lib/utils-system.nix { pkgs = nixpkgs.legacyPackages.x86_64-linux; lib = nixpkgs.lib; };
-        platformSystem = import ./lib/platform-system.nix { pkgs = nixpkgs.legacyPackages.x86_64-linux; lib = nixpkgs.lib; inherit nixpkgs self; };
-        errorSystem = import ./lib/error-system.nix { pkgs = nixpkgs.legacyPackages.x86_64-linux; lib = nixpkgs.lib; };
-        testSystem = import ./lib/test-system.nix { pkgs = nixpkgs.legacyPackages.x86_64-linux; inherit nixpkgs self; };
+        # Unified systems (functions that take system as parameter)
+        utilsSystem = system: import ./lib/utils-system.nix { pkgs = nixpkgs.legacyPackages.${system}; lib = nixpkgs.lib; };
+        platformSystem = system: import ./lib/platform-system.nix { pkgs = nixpkgs.legacyPackages.${system}; lib = nixpkgs.lib; inherit nixpkgs self system; };
+        errorSystem = system: import ./lib/error-system.nix { pkgs = nixpkgs.legacyPackages.${system}; lib = nixpkgs.lib; };
+        testSystem = system: import ./lib/test-system.nix { pkgs = nixpkgs.legacyPackages.${system}; inherit nixpkgs self; };
 
         # Legacy compatibility - redirect to unified systems
         packageUtils = import ./lib/package-utils.nix { lib = nixpkgs.lib; };

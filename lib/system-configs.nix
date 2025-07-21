@@ -11,9 +11,9 @@ let
   userInfo = getUserFn { returnFormat = "string"; };
   user = "${userInfo}"; # Use as string for backward compatibility
 
-  # Import modularized app and test builders
-  platformApps = import ./platform-apps.nix { inherit nixpkgs; self = inputs.self; };
-  testApps = import ./test-apps.nix { inherit nixpkgs; self = inputs.self; };
+  # Import modularized app and test builders (functions that take system)
+  platformApps = system: import ./platform-apps.nix { inherit nixpkgs system; self = inputs.self; };
+  testApps = system: import ./test-apps.nix { inherit nixpkgs system; self = inputs.self; };
 in
 {
   # Darwin system configuration builder
@@ -70,13 +70,13 @@ in
   mkAppConfigurations = {
     # Linux apps builder
     mkLinuxApps = system:
-      platformApps.mkLinuxCoreApps system //
-      testApps.mkLinuxTestApps system;
+      (platformApps system).mkLinuxCoreApps system //
+      (testApps system).mkLinuxTestApps system;
 
     # Darwin apps builder
     mkDarwinApps = system:
-      platformApps.mkDarwinCoreApps system //
-      testApps.mkDarwinTestApps system;
+      (platformApps system).mkDarwinCoreApps system //
+      (testApps system).mkDarwinTestApps system;
   };
 
   # Development shell builder
