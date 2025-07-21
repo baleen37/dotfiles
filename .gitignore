@@ -1,4 +1,13 @@
+# Nix build results
 result
+result-*
+
+# Nix direnv
+.direnv/
+
+# Nix shell temporary files
+shell.nix.drv
+.nix-build
 
 # Worktree directories
 tree/
@@ -34,3 +43,6 @@ tasks/
 CLAUDE.local.md
 .claude/settings.local.json
 .gemini_temp/
+
+# Issues (local project management)
+issues/

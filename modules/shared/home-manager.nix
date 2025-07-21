@@ -177,6 +177,9 @@ in
       "build/"
       "target/"
 
+      # Issues (local project management)
+      "issues/"
+
     ];
     userName = name;
     userEmail = email;
