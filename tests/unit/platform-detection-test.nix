@@ -12,7 +12,7 @@ let
   # Import libraries if they exist
   platformDetector =
     if platformDetectorExists
-    then import (src + "/lib/platform-detector.nix") { inherit pkgs; }
+    then import (src + "/lib/platform-detector.nix") { system = pkgs.system; }
     else null;
 
   platformUtils =
@@ -65,7 +65,7 @@ pkgs.runCommand "platform-detection-test"
 
     # Test detection functions
     result=$(nix-instantiate --eval --expr '
-      let detector = import ${src}/lib/platform-detector.nix {};
+      let detector = import ${src}/lib/platform-detector.nix { system = builtins.currentSystem; };
       in detector.getCurrentPlatform or "unknown"
     ' 2>&1 || echo "EVAL_FAILED")
 
