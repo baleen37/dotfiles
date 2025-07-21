@@ -121,7 +121,15 @@ main() {
         ((passed++))
     fi
 
-    # Test 7: Full test suite (like CI)
+    # Test 7: Homebrew integration tests (Darwin only)
+    if [[ "$CURRENT_PLATFORM" == *"darwin"* ]]; then
+        ((total++))
+        if run_test "Homebrew Integration Tests" "./scripts/test-homebrew"; then
+            ((passed++))
+        fi
+    fi
+
+    # Test 8: Full test suite (like CI)
     ((total++))
     if run_test "Full Test Suite" "make test"; then
         ((passed++))
@@ -152,7 +160,8 @@ if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
     echo "  4. All unit tests"
     echo "  5. Build all configurations"
     echo "  6. Problematic tests (like claude-commands-copy, platform-specific)"
-    echo "  7. Full test suite"
+    echo "  7. Homebrew integration tests (Darwin only)"
+    echo "  8. Full test suite"
     echo ""
     echo "Options:"
     echo "  -h, --help    Show this help message"

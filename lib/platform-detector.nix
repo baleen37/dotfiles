@@ -3,7 +3,9 @@
 # 현재 플랫폼 감지 및 빌드 최적화를 위한 시스템
 
 {
-  # Override platform detection (for testing)
+  # System parameter (required in flake environment)
+  system
+, # Override platform detection (for testing)
   overridePlatform ? null
 , # Override architecture detection (for testing)
   overrideArch ? null
@@ -79,7 +81,7 @@ in
   validateSystem = platformSystem.validate.system;
 
   # Build optimization
-  getOptimizations = buildOptimizations;
+  getOptimizations = platformSystem.utils.getOptimizedBuildConfig overriddenSystem.platform;
 
   # Supported values
   getSupportedPlatforms = platformSystem.detect.supportedPlatforms;

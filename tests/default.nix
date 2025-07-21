@@ -150,6 +150,11 @@ let
     # Sudoers script tests
     sudoers_script_test = import ./unit/sudoers-script-test.nix { inherit pkgs; lib = pkgs.lib; };
 
+    # Homebrew ecosystem tests (Phase 5 - Homebrew Integration)
+    homebrew_ecosystem_comprehensive_unit = import ./unit/homebrew-ecosystem-comprehensive-unit.nix { inherit pkgs flake; src = ../.; };
+    casks_management_unit = import ./unit/casks-management-unit.nix { inherit pkgs flake; src = ../.; };
+    brew_karabiner_integration_unit = import ./unit/brew-karabiner-integration-unit.nix { inherit pkgs flake; src = ../.; };
+
     # Essential integrations (only active tests)
     user_path_consistency = import ./integration/test-user-path-consistency.nix { inherit pkgs; lib = pkgs.lib; };
     build_parallelization_integration = import ./integration/build-parallelization-integration.nix { inherit pkgs; };
@@ -169,6 +174,11 @@ let
 
     # File generation integration tests (TDD - Phase 3 Sprint 3.1 Additional Tests)
     file_generation_integration = import ./integration/file-generation-integration.nix { inherit pkgs flake; src = ../.; };
+
+    # Homebrew integration tests (Phase 5 - Homebrew Integration)
+    homebrew_nix_conflict_resolution = import ./integration/homebrew-nix-conflict-resolution.nix { inherit pkgs flake; src = ../.; };
+    build_switch_homebrew_integration = import ./integration/build-switch-homebrew-integration.nix { inherit pkgs flake; src = ../.; };
+    homebrew_rollback_scenarios = import ./integration/homebrew-rollback-scenarios.nix { inherit pkgs flake; src = ../.; };
   };
 
   # Workflow tests - End-to-end user workflows (simplified)
