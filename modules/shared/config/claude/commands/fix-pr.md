@@ -7,7 +7,7 @@
   To fix all outstanding issues in a given Pull Request (or the one on the current branch), including merge conflicts, failed CI checks, and review feedback.
 </objective>
 
-<steps>
+<pr_fix>
 
   <step name="Analyze PR" number="1">
     - **Find PR**: Identify the target PR from the provided number or detect it from the current branch.

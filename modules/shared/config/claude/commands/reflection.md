@@ -24,7 +24,7 @@ This project uses a layered approach to AI instructions:
 *   **Evolve with Best Practices:** Proactively seek and integrate new, proven patterns for AI instruction and interaction.
 </philosophy>
 
-<steps>
+<reflection_process>
 Follow this structured process for continuous improvement:
 
   <step name="1. Context Gathering & Retrospective">
