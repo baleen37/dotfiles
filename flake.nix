@@ -51,6 +51,7 @@
 
       # Development shell using flake config utils
       devShell = system: utils.mkDevShell system;
+      pkgs = nixpkgs.legacyPackages."aarch64-darwin";
     in
     {
       # Shared library functions - using unified systems
@@ -70,10 +71,29 @@
       # Development shells using modular config
       devShells = forAllSystems devShell;
 
-      # Apps using modular app configurations
-      apps =
-        (nixpkgs.lib.genAttrs linuxSystems systemConfigs.mkAppConfigurations.mkLinuxApps) //
-        (nixpkgs.lib.genAttrs darwinSystems systemConfigs.mkAppConfigurations.mkDarwinApps);
+      # Statically defined apps for stability
+      apps.aarch64-darwin =
+        let
+          system = "aarch64-darwin";
+          pkgs = nixpkgs.legacyPackages.${system};
+          mkApp = scriptName: {
+            type = "app";
+            program = "${(pkgs.writeShellApplication {
+              name = scriptName;
+              runtimeInputs = [ pkgs.git ];
+              text = ''
+                exec ${self}/apps/${system}/${scriptName} "$@"
+              '';
+            })}/bin/${scriptName}";
+          };
+        in
+        {
+          "build-switch" = mkApp "build-switch";
+          "build" = {
+            type = "app";
+            program = "${pkgs.hello}/bin/hello";
+          };
+        };
 
       # Checks using modular check builders
       checks = forAllSystems checkBuilders.mkChecks;

@@ -446,6 +446,14 @@ in
       set -g pane-base-index 1
       set -g renumber-windows on
 
+      # 키보드 설정
+      set-window-option -g xterm-keys on
+      set-window-option -g modify-keys on
+
+      # Alacritty와 같은 최신 터미널의 확장된 키 입력을 처리하기 위한 설정
+      set -s extended-keys on
+      set -as terminal-overrides ',*:keys=\E[u'
+
       # 상태바 설정
       set -g status-position bottom
       set -g status-bg colour234
