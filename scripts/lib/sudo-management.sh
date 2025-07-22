@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # Sudo Management Module for Build Scripts
 # Contains privilege management and sudo-related functions
 

@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/usr/bin/env bash
 
 # build-switch-common.sh - Modular Build & Switch Logic
 # Simplified main script that orchestrates modular components
