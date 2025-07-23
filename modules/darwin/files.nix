@@ -28,8 +28,14 @@ in
     source = ./config/alfred/com.runningwithcrayons.Alfred.plist;
   };
 
-  "${userHome}/Library/Application Support/iTerm2/DynamicProfiles/DynamicProfiles.json" = {
-    source = ./config/iterm2/DynamicProfiles.json;
+  # WezTerm configuration (replaced iTerm2)
+  "${xdg_configHome}/wezterm/wezterm.lua" = {
+    source = ./config/wezterm/wezterm.lua;
   };
+
+  # Keep iTerm2 config commented for backup
+  # "${userHome}/Library/Application Support/iTerm2/DynamicProfiles/DynamicProfiles.json" = {
+  #   source = ./config/iterm2/DynamicProfiles.json;
+  # };
 
 }

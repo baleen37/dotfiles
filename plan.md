@@ -1,104 +1,275 @@
-# 테스트 코드 강화 프로젝트 TODO
+# iTerm2 to WezTerm Migration Plan
 
-## 📋 진행 상황 추적
+## Overview
+This plan outlines the migration from iTerm2 to WezTerm in the dotfiles system, maintaining all current functionality while taking advantage of WezTerm's improved features and Lua-based configuration.
 
-### ✅ 완료된 작업
-- [x] 프로젝트 계획 수립
-- [x] 단계별 구현 계획 작성
-- [x] plan.md 문서 작성
+## Phase 1: Analysis and Foundation ✅
 
-#### Phase A: Homebrew 기본 기능 테스트 구축 ✅ 완료
-- [x] A1: Homebrew 테스트 헬퍼 함수 작성 (`tests/lib/homebrew-test-helpers.nix`)
-- [x] A2: Homebrew 핵심 기능 단위 테스트 (`tests/unit/homebrew-ecosystem-comprehensive-unit.nix`)
-- [x] A3: Casks 관리 시스템 단위 테스트 (`tests/unit/casks-management-unit.nix`)
-- [x] A4: 기존 brew 테스트 확장 및 Nix 통합 (`tests/unit/brew-karabiner-integration-unit.nix`)
+### 1.1 Current State Analysis ✅
+- **Current iTerm2 Configuration**: `modules/darwin/config/iterm2/DynamicProfiles.json`
+- **File Structure**: Nix-managed dotfiles with configuration files copied to appropriate locations
+- **Current Features**:
+  - Custom color scheme (dark theme)
+  - MesloLGS-NF font family
+  - Keyboard mappings for Ctrl+Shift+Arrow keys
+  - Terminal settings (scrollback, transparency, etc.)
 
-#### Phase B: 통합 시나리오 테스트 구축 ✅ 완료
-- [x] B1: Homebrew-Nix 충돌 관리 통합 테스트 (`tests/integration/homebrew-nix-conflict-resolution.nix`)
-- [x] B2: build-switch + Homebrew 통합 테스트 (`tests/integration/build-switch-homebrew-integration.nix`)
-- [x] B3: Homebrew rollback 시나리오 통합 테스트 (`tests/integration/homebrew-rollback-scenarios.nix`)
+### 1.2 WezTerm Configuration Structure ✅
+- **Config Location**: `~/.config/wezterm/wezterm.lua` or `~/.wezterm.lua`
+- **Language**: Lua-based configuration
+- **Features**: Dynamic configuration, better performance, cross-platform
 
-#### Phase E: 테스트 시스템 통합 및 문서화 ✅ 완료
-- [x] E1: tests/default.nix에 새 테스트들 등록
-- [x] E2: 통합 테스트 헬퍼 함수 작성 (`tests/lib/integration-test-helpers.nix`)
-- [x] E3: 테스트 실행 스크립트 업데이트 (`scripts/test-homebrew`, `scripts/test-all-local`)
-- [x] E5: CI/CD 통합 및 최종 검증
+## Phase 2: WezTerm Setup and Configuration
 
-### 🔄 진행 중인 작업
-없음 - 모든 핵심 작업 완료
+### 2.1 Create WezTerm Configuration Structure
+```
+Task 2.1: Create WezTerm configuration directory and base files
+- Create modules/darwin/config/wezterm/ directory
+- Create wezterm.lua base configuration file
+- Set up proper Lua structure with wezterm.config_builder()
+```
 
-### ⏳ 생략된 작업 (과도한 복잡성으로 인해 생략)
+### 2.2 iTerm2 to WezTerm Color Scheme Migration
+```
+Task 2.2: Convert iTerm2 color scheme to WezTerm format
+- Map ANSI colors from iTerm2 JSON to WezTerm Lua color scheme
+- Convert background (#000000), foreground (#ffffff), cursor colors
+- Preserve selection color and transparency settings
+- Create custom color scheme named 'iTerm2-Dark'
+```
 
-#### Phase C: macOS 특화 기능 테스트 (생략됨)
-- [~] C1: macOS 시스템 통합 E2E 테스트 (필수 기능은 기존 테스트에 포함됨)
-- [~] C2: macOS 버전별 호환성 통합 테스트 (과도한 복잡성으로 생략)
+### 2.3 Font Configuration Migration
+```
+Task 2.3: Configure fonts to match iTerm2 settings
+- Set primary font: MesloLGS-NF-Regular
+- Set bold font: MesloLGS-NF-Bold  
+- Set font size: 14pt
+- Configure font rendering options (anti-aliasing, etc.)
+```
 
-#### Phase D: 고급 시나리오 테스트 (생략됨)
-- [~] D1: 네트워크 조건별 E2E 테스트 (실제 환경에서 테스트하기 적합)
-- [~] D2: 시스템 리소스 제약 성능 테스트 (실제 환경에서 테스트하기 적합)
+### 2.4 Key Bindings Migration
+```
+Task 2.4: Convert iTerm2 key mappings to WezTerm format
+- Map Ctrl+Shift+Arrow keys (0xf700-0x260000 → [1;6A format)
+- Convert Home/End key mappings (0xf729-0x40000, 0xf72b-0x40000)
+- Ensure proper terminal sequence output
+```
 
-#### Phase E: 문서화 (선택사항)
-- [ ] E4: 문서 업데이트 (TESTING.md, README.md, CONTRIBUTING.md) - 필요시 추가 가능
+### 2.5 Terminal Settings Migration
+```
+Task 2.5: Migrate terminal behavior settings
+- Set scrollback_lines = 10000
+- Configure window transparency (0.1 alpha)
+- Set terminal type to xterm-256color
+- Configure initial window size (80x25)
+- Enable mouse reporting features
+```
 
-## 📊 진행률 추적
+## Phase 3: Nix Integration
 
-### 전체 진행률: 90% (13/14 핵심 작업 완료)
+### 3.1 Package Management Update
+```
+Task 3.1: Update package installations
+- Replace "iterm2" with "wezterm" in modules/darwin/casks.nix
+- Verify WezTerm availability in homebrew casks
+- Test installation process
+```
 
-#### Phase별 진행률:
-- **계획 수립**: ✅ 100% (3/3)
-- **Phase A**: ✅ 100% (4/4) - 모든 기본 기능 테스트 완료
-- **Phase B**: ✅ 100% (3/3) - 모든 통합 시나리오 테스트 완료
-- **Phase C**: 🔄 생략됨 (과도한 복잡성)
-- **Phase D**: 🔄 생략됨 (실제 환경 테스트 적합)
-- **Phase E**: ✅ 80% (4/5) - E4(문서화)만 선택사항으로 남음
+### 3.2 File Deployment Configuration
+```
+Task 3.2: Update Nix file deployment
+- Modify modules/darwin/files.nix:
+  - Remove iTerm2 DynamicProfiles path
+  - Add WezTerm configuration path: ${xdg_configHome}/wezterm/wezterm.lua
+- Ensure proper file permissions and ownership
+```
 
-## 🎯 현재 상태
+### 3.3 Build System Integration
+```
+Task 3.3: Test and validate build process
+- Run nix build to verify configuration
+- Test darwin-rebuild switch process
+- Verify no broken references or missing files
+```
 
-### 🎉 주요 성과
-모든 핵심 Homebrew 테스트 인프라가 완료되었습니다:
+## Phase 4: Testing and Validation
 
-1. **완전한 테스트 헬퍼 라이브러리**: `tests/lib/homebrew-test-helpers.nix`
-2. **포괄적인 단위 테스트**: 4개의 단위 테스트 파일
-3. **통합 시나리오 테스트**: 3개의 통합 테스트 파일
-4. **테스트 인프라 통합**: 기존 프레임워크에 완전 통합
-5. **실행 스크립트**: 전용 Homebrew 테스트 실행 도구
+### 4.1 Basic Functionality Testing
+```
+Task 4.1: Verify core WezTerm functionality
+- Launch WezTerm and verify it starts correctly
+- Test color scheme displays properly
+- Confirm font rendering matches iTerm2
+- Verify window transparency works
+```
 
-### 📈 구현된 테스트 커버리지
-- **단위 테스트**: Homebrew 설정, Casks 관리, MAS 통합, Karabiner 통합
-- **통합 테스트**: Nix 충돌 해결, build-switch 통합, 롤백 시나리오
-- **성능 테스트**: 설치 시뮬레이션 및 벤치마킹
-- **검증 기능**: 중복 검사, 정렬 검증, 네임 패턴 검증
+### 4.2 Key Binding Testing
+```
+Task 4.2: Test all keyboard shortcuts
+- Test Ctrl+Shift+Arrow key navigation
+- Verify Home/End key behavior
+- Test any custom key combinations
+- Confirm terminal sequences are correct
+```
 
-### 🔧 선택적 추가 작업
-필요시 다음 작업을 추가할 수 있습니다:
+### 4.3 Integration Testing
+```
+Task 4.3: Test with existing workflow
+- Verify tmux integration works
+- Test with shell configurations (zsh, p10k)
+- Check development workflow compatibility
+- Test with any Hammerspoon integrations
+```
 
-1. **E4: 문서 업데이트** - TESTING.md, README.md, CONTRIBUTING.md 개선
-2. **추가 성능 최적화** - 테스트 실행 시간 단축
-3. **추가 에러 케이스** - 더 많은 엣지 케이스 커버
+## Phase 5: Documentation and Cleanup
 
-## 📝 메모 및 참고사항
+### 5.1 Documentation Updates
+```
+Task 5.1: Update project documentation
+- Add WezTerm migration notes to relevant docs
+- Update installation instructions
+- Document any behavioral differences
+```
 
-### 기술적 고려사항
-- 모든 테스트는 실제 시스템 변경 없이 모킹을 통해 수행
-- Nix 언어의 함수형 특성을 활용한 테스트 작성
-- 기존 테스트 프레임워크와의 일관성 유지
+### 5.2 Configuration Cleanup
+```
+Task 5.2: Clean up old references
+- Keep iTerm2 config as backup but comment out in files.nix
+- Remove any iTerm2-specific scripts or references
+- Update any documentation that mentions iTerm2
+```
 
-### 품질 기준
-- 각 테스트는 독립적으로 실행 가능해야 함
-- 테스트 실행 시간은 개별적으로 30초 이내
-- 모든 테스트는 명확한 성공/실패 기준을 가져야 함
+## Detailed Implementation Steps
 
-### 위험 요소 및 대응방안
-- **위험**: 기존 테스트와의 충돌 → **대응**: 철저한 네임스페이스 분리
-- **위험**: 테스트 실행 시간 증가 → **대응**: 병렬 실행 및 선택적 실행 지원
-- **위험**: macOS 버전별 차이 → **대응**: 버전 감지 및 조건부 테스트
+### Step 1: WezTerm Configuration Creation
+Create a Lua configuration that mirrors iTerm2 settings:
 
-## 🔄 업데이트 로그
+```lua
+local wezterm = require 'wezterm'
+local config = wezterm.config_builder()
 
-- **2025-07-17**: 초기 계획 수립 및 TODO 생성
-- **2025-07-17**: Homebrew 테스트 강화 프로젝트 완료
-  - Phase A (기본 기능): 100% 완료
-  - Phase B (통합 시나리오): 100% 완료
-  - Phase E (시스템 통합): 80% 완료 (문서화 제외)
-  - 총 11개 새로운 테스트 파일 생성
-  - 기존 테스트 프레임워크에 완전 통합
+-- Color scheme (converted from iTerm2)
+config.color_schemes = {
+  ['iTerm2-Dark'] = {
+    foreground = '#ffffff',
+    background = '#000000',
+    cursor_bg = '#ffffff',
+    cursor_fg = '#000000',
+    selection_bg = '#333333',
+    ansi = {
+      '#000000', -- black
+      '#cc0000', -- red  (0.8 -> cc)
+      '#00cc00', -- green
+      '#cccc00', -- yellow
+      '#0000cc', -- blue
+      '#cc00cc', -- magenta
+      '#00cccc', -- cyan
+      '#cccccc', -- white
+    },
+    brights = {
+      '#666666', -- bright black (0.4 -> 66)
+      '#ff0000', -- bright red
+      '#00ff00', -- bright green  
+      '#ffff00', -- bright yellow
+      '#0000ff', -- bright blue
+      '#ff00ff', -- bright magenta
+      '#00ffff', -- bright cyan
+      '#ffffff', -- bright white
+    },
+  },
+}
+
+config.color_scheme = 'iTerm2-Dark'
+config.font = wezterm.font('MesloLGS NF')
+config.font_size = 14
+config.scrollback_lines = 10000
+config.window_background_opacity = 0.9
+config.initial_cols = 80
+config.initial_rows = 25
+
+-- Key bindings
+config.keys = {
+  -- Ctrl+Shift+Arrow mappings
+  { key = 'UpArrow', mods = 'CTRL|SHIFT', action = wezterm.action.SendString '\x1b[1;6A' },
+  { key = 'DownArrow', mods = 'CTRL|SHIFT', action = wezterm.action.SendString '\x1b[1;6B' },
+  { key = 'LeftArrow', mods = 'CTRL|SHIFT', action = wezterm.action.SendString '\x1b[1;6D' },
+  { key = 'RightArrow', mods = 'CTRL|SHIFT', action = wezterm.action.SendString '\x1b[1;6C' },
+  { key = 'Home', mods = 'CTRL', action = wezterm.action.SendString '\x1b[1;5H' },
+  { key = 'End', mods = 'CTRL', action = wezterm.action.SendString '\x1b[1;5F' },
+}
+
+return config
+```
+
+### Step 2: Nix Configuration Updates
+
+Update `modules/darwin/casks.nix`:
+```nix
+_:
+
+[
+  # Development Tools
+  "datagrip"  # Database IDE from JetBrains
+  "docker-desktop"
+  "intellij-idea"
+  "wezterm"  # Terminal emulator (replaced iterm2)
+
+  # ... rest unchanged
+]
+```
+
+Update `modules/darwin/files.nix`:
+```nix
+{ user, config, pkgs, ... }:
+
+let
+  userHome = "${config.users.users.${user}.home}";
+  xdg_configHome = "${config.users.users.${user}.home}/.config";
+  xdg_dataHome = "${config.users.users.${user}.home}/.local/share";
+  xdg_stateHome = "${config.users.users.${user}.home}/.local/state";
+in
+{
+  # ... existing configurations ...
+
+  # WezTerm configuration (replaced iTerm2)
+  "${xdg_configHome}/wezterm/wezterm.lua" = {
+    source = ./config/wezterm/wezterm.lua;
+  };
+
+  # Keep iTerm2 config commented for backup
+  # "${userHome}/Library/Application Support/iTerm2/DynamicProfiles/DynamicProfiles.json" = {
+  #   source = ./config/iterm2/DynamicProfiles.json;
+  # };
+}
+```
+
+## Risk Assessment and Mitigation
+
+### Potential Risks
+1. **Font rendering differences**: WezTerm may render fonts slightly differently
+2. **Key binding behavior**: Some terminal sequences might behave differently
+3. **Performance characteristics**: Different memory/CPU usage patterns
+4. **Third-party integration**: Tools expecting iTerm2 specifically
+
+### Mitigation Strategies
+1. **Side-by-side testing**: Keep both terminals available during transition
+2. **Gradual rollout**: Test thoroughly in development before production use
+3. **Backup configuration**: Maintain iTerm2 config for quick rollback
+4. **Documentation**: Clear notes on differences for troubleshooting
+
+## Success Criteria
+- [ ] WezTerm launches and displays correctly
+- [ ] All colors match or improve upon iTerm2 appearance  
+- [ ] Key bindings work identically to iTerm2
+- [ ] Font rendering is acceptable
+- [ ] Performance is equal or better
+- [ ] Integration with existing tools maintained
+- [ ] Build/deployment process works correctly
+
+## Timeline Estimate
+- **Phase 1**: ✅ Complete (30 minutes)
+- **Phase 2**: 60 minutes (configuration creation and testing)
+- **Phase 3**: 30 minutes (Nix integration)
+- **Phase 4**: 45 minutes (comprehensive testing)  
+- **Phase 5**: 15 minutes (cleanup and documentation)
+- **Total**: ~3 hours with buffer for unexpected issues
