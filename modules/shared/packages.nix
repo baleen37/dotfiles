@@ -61,7 +61,8 @@ with pkgs; let
 
   # Terminal applications
   terminalApps = [
-    # Terminal emulators moved to platform-specific configs (e.g., iTerm2 via Darwin casks)
+    wezterm       # Modern GPU-accelerated terminal emulator
+    # iTerm2 via Darwin casks for additional macOS-specific features
   ];
 
   # Security and authentication tools
