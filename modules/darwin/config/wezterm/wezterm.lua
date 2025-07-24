@@ -1,25 +1,28 @@
 local wezterm = require 'wezterm'
 local config = wezterm.config_builder()
 
--- Catppuccin Mocha 테마 사용 (OS 다크모드 자동 연동)
-local function scheme_for_appearance(appearance)
-  if appearance:find 'Dark' then
-    return 'Catppuccin Mocha'
-  else
-    return 'Catppuccin Latte'
-  end
-end
+-- 다크 테마 고정 설정 (더 어두운 테마 사용)
+config.color_scheme = 'Tokyo Night'
 
-config.color_scheme = scheme_for_appearance(wezterm.gui.get_appearance())
-
--- 폰트 설정 (SF Mono - macOS 기본 모노스페이스 폰트)
-config.font = wezterm.font('SF Mono', { weight = 'Regular' })
+-- 폰트 설정 (JetBrains Mono 우선, CJK 지원)
+config.font = wezterm.font_with_fallback({
+  'JetBrains Mono',
+  'Apple Color Emoji',
+  'Hiragino Sans',
+  'Hiragino Kaku Gothic ProN',
+  'Noto Sans CJK JP',
+  'Noto Sans CJK KR',
+  'Noto Sans CJK SC',
+  'Noto Sans CJK TC',
+  'Menlo',
+  'Monaco',
+})
 config.font_size = 14
 config.use_fancy_tab_bar = false
 
 -- 터미널 설정
 config.scrollback_lines = 10000
-config.window_background_opacity = 0.9
+config.window_background_opacity = 1.0  -- 완전 불투명
 config.initial_cols = 80
 config.initial_rows = 25
 
@@ -45,8 +48,8 @@ config.mouse_bindings = {
   },
 }
 
--- 윈도우 설정
-config.window_decorations = 'RESIZE'
+-- 윈도우 설정 (둥근 모서리 제거)
+config.window_decorations = 'MACOS_FORCE_SQUARE_CORNERS|RESIZE'
 config.hide_tab_bar_if_only_one_tab = true
 config.tab_bar_at_bottom = false
 

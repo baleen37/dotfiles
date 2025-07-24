@@ -59,9 +59,16 @@ with pkgs; let
     fontconfig    # Font configuration and customization library
   ];
 
+  # Font packages
+  fontTools = [
+    noto-fonts-cjk-sans    # Noto Sans CJK fonts for Korean, Japanese, Chinese
+    jetbrains-mono         # JetBrains Mono programming font
+  ];
+
   # Terminal applications
   terminalApps = [
-    # Terminal emulators moved to platform-specific configs (e.g., iTerm2 via Darwin casks)
+    wezterm       # Modern GPU-accelerated terminal emulator
+    # iTerm2 via Darwin casks for additional macOS-specific features
   ];
 
   # Security and authentication tools
@@ -92,6 +99,7 @@ in
   ++ cloudTools
   ++ infrastructureTools
   ++ mediaTools
+  ++ fontTools
   ++ terminalApps
   ++ securityTools
   ++ databaseTools
