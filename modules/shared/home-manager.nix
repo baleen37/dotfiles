@@ -472,7 +472,7 @@ in
       continuum
     ];
     terminal = "screen-256color";
-    prefix = "C-b";
+    prefix = "C-a";
     escapeTime = 0;
     historyLimit = 50000;
     extraConfig = ''
@@ -511,6 +511,14 @@ in
       bind | split-window -h
       bind - split-window -v
       bind r source-file ~/.tmux.conf \; display "Config reloaded!"
+
+      # 탭(window) 관리 키 바인딩
+      bind t new-window
+      bind Tab last-window
+
+      # Alt 키로 prefix 없이 window 이동
+      bind -n M-h previous-window
+      bind -n M-l next-window
 
       # 세션 저장/복원 설정
       set -g @resurrect-capture-pane-contents 'on'
