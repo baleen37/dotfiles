@@ -37,6 +37,14 @@ config.keys = {
   -- Home/End 키 매핑
   { key = 'Home', mods = 'CTRL', action = wezterm.action.SendString '\x1b[1;5H' },
   { key = 'End', mods = 'CTRL', action = wezterm.action.SendString '\x1b[1;5F' },
+
+  -- 탭 이동 (Navigation)
+  { key = '{', mods = 'CMD|SHIFT', action = wezterm.action.ActivateTabRelative(-1) },
+  { key = '}', mods = 'CMD|SHIFT', action = wezterm.action.ActivateTabRelative(1) },
+
+  -- 탭 위치 변경 (Swap)
+  { key = '{', mods = 'CMD|OPT', action = wezterm.action.MoveTabRelative(-1) },
+  { key = '}', mods = 'CMD|OPT', action = wezterm.action.MoveTabRelative(1) },
 }
 
 -- 마우스 설정
