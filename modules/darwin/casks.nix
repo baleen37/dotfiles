@@ -5,7 +5,7 @@ _:
   "datagrip"  # Database IDE from JetBrains
   "docker-desktop"
   "intellij-idea"
-  "wezterm"  # Terminal emulator (replaced iterm2)
+  "wezterm"  # Terminal emulator (restored from iterm2)
 
   # Communication Tools
   "discord"

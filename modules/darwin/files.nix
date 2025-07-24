@@ -28,7 +28,7 @@ in
     source = ./config/alfred/com.runningwithcrayons.Alfred.plist;
   };
 
-  # WezTerm configuration (replaced iTerm2)
+  # WezTerm configuration (restored from iTerm2)
   "${xdg_configHome}/wezterm/wezterm.lua" = {
     source = ./config/wezterm/wezterm.lua;
   };

@@ -48,10 +48,38 @@ config.mouse_bindings = {
   },
 }
 
--- 윈도우 설정 (둥근 모서리 제거)
-config.window_decorations = 'MACOS_FORCE_SQUARE_CORNERS|RESIZE'
+-- 윈도우 설정
+config.window_decorations = 'RESIZE'
 config.hide_tab_bar_if_only_one_tab = true
 config.tab_bar_at_bottom = false
+
+-- 탭 바 색상 설정 (Tokyo Night 테마와 일치)
+config.colors = {
+  tab_bar = {
+    background = '#1a1b26',
+    active_tab = {
+      bg_color = '#7aa2f7',
+      fg_color = '#1a1b26',
+      intensity = 'Bold',
+    },
+    inactive_tab = {
+      bg_color = '#3b4261',
+      fg_color = '#9da5b4',
+    },
+    inactive_tab_hover = {
+      bg_color = '#565f89',
+      fg_color = '#c0caf5',
+    },
+    new_tab = {
+      bg_color = '#1a1b26',
+      fg_color = '#9da5b4',
+    },
+    new_tab_hover = {
+      bg_color = '#3b4261',
+      fg_color = '#c0caf5',
+    },
+  },
+}
 
 -- 기타 설정
 config.audible_bell = 'Disabled'
