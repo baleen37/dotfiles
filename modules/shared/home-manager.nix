@@ -488,7 +488,6 @@ in
 
       # 키보드 설정
       set-window-option -g xterm-keys on
-      set-window-option -g modify-keys on
       set-option -g extended-keys on
       set -as terminal-features 'xterm*:extkeys'
 
