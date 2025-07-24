@@ -141,6 +141,46 @@ in
 
         echo "IntelliJ IDEA started in background with: $idea_cmd"
       }
+
+      # Claude CLI shortcuts
+      # Note: 'cc' alias may conflict with system C compiler. Use '\cc' to access system cc if needed.
+      alias cc="claude --dangerously-skip-permissions"
+
+      # Claude CLI with Git Worktree workflow
+      ccw() {
+        local branch_name="$1"
+
+        if [[ -z "$branch_name" ]]; then
+          echo "Usage: ccw <branch-name>"
+          echo "Creates/switches to git worktree at ../<branch-name> and starts Claude"
+          return 1
+        fi
+
+        if ! git rev-parse --git-dir >/dev/null 2>&1; then
+          echo "Error: Not in a git repository"
+          return 1
+        fi
+
+        local worktree_path="../$branch_name"
+
+        if [[ -d "$worktree_path" ]]; then
+          echo "Switching to existing worktree: $worktree_path"
+          cd "$worktree_path"
+        else
+          echo "Creating new git worktree for branch '$branch_name'..."
+
+          if git show-ref --verify --quiet "refs/remotes/origin/$branch_name"; then
+            git worktree add "$worktree_path" "origin/$branch_name"
+          else
+            git worktree add -b "$branch_name" "$worktree_path"
+          fi
+
+          cd "$worktree_path"
+        fi
+
+        echo "Worktree: $(pwd) | Branch: $(git branch --show-current)"
+        claude --dangerously-skip-permissions
+      }
     '';
   };
 
