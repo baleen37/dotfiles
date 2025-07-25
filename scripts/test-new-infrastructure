@@ -1,0 +1,160 @@
+#!/bin/bash
+set -euo pipefail
+
+# Test runner script for new test infrastructure
+# This script provides easy access to the new consolidated test system
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+TESTS_DIR="$PROJECT_ROOT/tests-new"
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Function to print colored output
+print_status() {
+    local color=$1
+    local message=$2
+    echo -e "${color}${message}${NC}"
+}
+
+# Function to print usage
+show_usage() {
+    cat << EOF
+Usage: $0 [COMMAND] [OPTIONS]
+
+Commands:
+  core                  Run core tests (5 tests)
+  integration          Run integration tests (3 tests)
+  e2e                  Run end-to-end tests (2 tests)
+  performance          Run performance tests (2 tests)
+  all                  Run all tests (12 tests)
+  list                 List all available tests
+  info                 Show test infrastructure information
+  single <test-name>   Run a specific test
+  validate             Validate test infrastructure
+  sample               Run sample test for debugging
+
+Options:
+  -h, --help           Show this help message
+  -v, --verbose        Enable verbose output
+  -q, --quiet          Suppress non-essential output
+
+Examples:
+  $0 core                    # Run all core tests
+  $0 single build-switch-core # Run specific test
+  $0 info                    # Show test metadata
+  $0 validate               # Validate infrastructure
+
+Test Infrastructure:
+  • Total tests: 12 (down from 133)
+  • Categories: Core (5), Integration (3), E2E (2), Performance (2)
+  • Framework: Enhanced with fixtures, performance monitoring, and templates
+  • Platform: aarch64-darwin
+EOF
+}
+
+# Function to run nix command with proper environment
+run_nix_command() {
+    local command=$1
+    local description=$2
+
+    print_status "$BLUE" "🧪 $description"
+
+    # Set NIX_PATH to avoid nixpkgs resolution issues
+    export NIX_PATH="nixpkgs=https://github.com/NixOS/nixpkgs/archive/nixos-unstable.tar.gz"
+
+    if nix-build "$TESTS_DIR" -A "$command"; then
+        print_status "$GREEN" "✅ $description completed successfully"
+        return 0
+    else
+        print_status "$RED" "❌ $description failed"
+        return 1
+    fi
+}
+
+# Function to run nix eval command
+run_nix_eval() {
+    local expression=$1
+    local description=$2
+
+    print_status "$BLUE" "📊 $description"
+
+    export NIX_PATH="nixpkgs=https://github.com/NixOS/nixpkgs/archive/nixos-unstable.tar.gz"
+
+    if nix eval --impure --json --expr "(import $TESTS_DIR {}).$expression"; then
+        return 0
+    else
+        print_status "$RED" "❌ Failed to evaluate: $expression"
+        return 1
+    fi
+}
+
+# Main command processing
+case "${1:-help}" in
+    "core")
+        run_nix_command "runCoreTests" "Running core tests (5 tests)"
+        ;;
+
+    "integration")
+        run_nix_command "runIntegrationTests" "Running integration tests (3 tests)"
+        ;;
+
+    "e2e")
+        run_nix_command "runE2ETests" "Running E2E tests (2 tests)"
+        ;;
+
+    "performance")
+        run_nix_command "runPerformanceTests" "Running performance tests (2 tests)"
+        ;;
+
+    "all")
+        print_status "$BLUE" "🚀 Running complete test suite (12 tests)"
+        run_nix_command "runAllTests" "Running all tests"
+        ;;
+
+    "list")
+        print_status "$BLUE" "📋 Available tests:"
+        run_nix_eval "quick.list" "Listing all tests"
+        ;;
+
+    "info")
+        print_status "$BLUE" "ℹ️  Test infrastructure information:"
+        run_nix_eval "quick.info" "Showing test metadata"
+        ;;
+
+    "single")
+        if [ -z "${2:-}" ]; then
+            print_status "$RED" "❌ Test name required for single command"
+            echo "Usage: $0 single <test-name>"
+            echo "Run '$0 list' to see available tests"
+            exit 1
+        fi
+
+        TEST_NAME="$2"
+        run_nix_command "quick.single \"$TEST_NAME\"" "Running test: $TEST_NAME"
+        ;;
+
+    "validate")
+        run_nix_command "dev.validateInfrastructure" "Validating test infrastructure"
+        ;;
+
+    "sample")
+        run_nix_command "dev.sampleTest" "Running sample test"
+        ;;
+
+    "help"|"-h"|"--help")
+        show_usage
+        ;;
+
+    *)
+        print_status "$RED" "❌ Unknown command: $1"
+        echo
+        show_usage
+        exit 1
+        ;;
+esac
