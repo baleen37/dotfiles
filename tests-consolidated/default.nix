@@ -22,17 +22,17 @@ in
 
 pkgs.stdenv.mkDerivation {
   name = "all-consolidated-tests";
-  
+
   nativeBuildInputs = [ pkgs.nix ];
-  
+
   buildCommand = ''
     echo "Running all 35 consolidated test categories..."
     echo "Original: 133 test files → Consolidated: 35 test categories"
     echo "Reduction: 73.7% fewer files"
-    
+
     # Test execution would happen here
     echo "✅ All consolidated tests template completed successfully!"
-    
+
     touch $out
   '';
 }

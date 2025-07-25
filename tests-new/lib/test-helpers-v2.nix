@@ -2,7 +2,7 @@
 let
   # Import original test helpers for compatibility
   originalHelpers = import ../../tests/lib/test-helpers.nix { inherit pkgs lib; };
-  
+
   # Import portable path utilities
   portablePaths = import ../../tests/lib/portable-paths.nix { inherit pkgs; };
 
@@ -27,15 +27,15 @@ let
     export HOME=$PWD/test-home
     ${portablePaths.getTestHome}
     export PATH=${pkgs.nix}/bin:${pkgs.coreutils}/bin:${pkgs.bash}/bin:${pkgs.findutils}/bin:${pkgs.gnugrep}/bin:$PATH
-    
+
     # Create isolated test directories
     mkdir -p test-home/{.config,.cache,.local/share}
     mkdir -p test-temp test-artifacts test-logs
-    
+
     # Set up test logging
     export TEST_LOG_DIR="$PWD/test-logs"
     export TEST_ARTIFACTS_DIR="$PWD/test-artifacts"
-    
+
     # Initialize test session metadata
     echo "Test session started: $(date)" > "$TEST_LOG_DIR/session.log"
     echo "Platform: ${platform.systemId}" >> "$TEST_LOG_DIR/session.log"
@@ -73,7 +73,7 @@ let
   assertCommandWithOutput = cmd: expectedPattern: message: ''
     OUTPUT=$(${cmd} 2>&1 || true)
     EXIT_CODE=$?
-    
+
     if [ $EXIT_CODE -eq 0 ] && echo "$OUTPUT" | grep -q "${expectedPattern}"; then
       echo "${colors.green}✓${colors.reset} ${message}"
       echo "  ${colors.dim}Command: ${cmd}${colors.reset}"
@@ -123,29 +123,29 @@ let
     echo "${colors.bold}${colors.blue}╭─ Test Suite: ${name} ─╮${colors.reset}"
     echo "${colors.blue}│ ${description}${colors.reset}"
     echo "${colors.blue}╰─────────────────────────────────╯${colors.reset}"
-    
+
     # Initialize suite metadata
     SUITE_START_TIME=$(date +%s)
     SUITE_TESTS_TOTAL=0
     SUITE_TESTS_PASSED=0
-    
+
     # Store suite info for reporting
     echo "suite_start: $SUITE_START_TIME" >> "$TEST_LOG_DIR/${name}.log"
     echo "suite_name: ${name}" >> "$TEST_LOG_DIR/${name}.log"
     echo "suite_description: ${description}" >> "$TEST_LOG_DIR/${name}.log"
-    
+
     ${tests}
-    
+
     # Suite completion reporting
     SUITE_END_TIME=$(date +%s)
     SUITE_DURATION=$((SUITE_END_TIME - SUITE_START_TIME))
-    
+
     echo ""
     echo "${colors.bold}${colors.blue}╭─ Suite Results: ${name} ─╮${colors.reset}"
     echo "${colors.blue}│ Tests: $SUITE_TESTS_PASSED/$SUITE_TESTS_TOTAL${colors.reset}"
     echo "${colors.blue}│ Duration: ''${SUITE_DURATION}s${colors.reset}"
     echo "${colors.blue}╰─────────────────────────────────╯${colors.reset}"
-    
+
     if [ $SUITE_TESTS_PASSED -ne $SUITE_TESTS_TOTAL ]; then
       echo "${colors.red}Suite ${name} failed${colors.reset}"
       exit 1
@@ -155,22 +155,22 @@ let
   testGroup = name: tests: ''
     echo ""
     echo "${colors.cyan}┌─ ${name} ─┐${colors.reset}"
-    
+
     GROUP_START_TIME=$(date +%s)
     ${tests}
     GROUP_END_TIME=$(date +%s)
     GROUP_DURATION=$((GROUP_END_TIME - GROUP_START_TIME))
-    
+
     echo "${colors.cyan}└─ ${name} completed (''${GROUP_DURATION}s) ─┘${colors.reset}"
   '';
 
   testCase = name: test: ''
     echo ""
     echo "${colors.yellow}── ${name}${colors.reset}"
-    
+
     CASE_START_TIME=$(date +%s)
     SUITE_TESTS_TOTAL=$((SUITE_TESTS_TOTAL + 1))
-    
+
     # Run the test in a subshell to isolate failures
     if (
       ${test}
@@ -190,7 +190,7 @@ let
   # Enhanced performance measurement with statistics
   performanceBenchmark = { name, command, iterations ? 1, warmupRuns ? 0 }: ''
     echo "${colors.magenta}🏃 Performance Benchmark: ${name}${colors.reset}"
-    
+
     # Warmup runs
     if [ ${toString warmupRuns} -gt 0 ]; then
       echo "  ${colors.dim}Running ${toString warmupRuns} warmup iterations...${colors.reset}"
@@ -198,12 +198,12 @@ let
         ${command} >/dev/null 2>&1 || true
       done
     fi
-    
+
     # Benchmark runs
     echo "  ${colors.dim}Running ${toString iterations} benchmark iterations...${colors.reset}"
     TIMES=""
     TOTAL_TIME=0
-    
+
     for i in $(seq 1 ${toString iterations}); do
       START_TIME=$(date +%s%N)
       ${command} >/dev/null 2>&1 || true
@@ -212,10 +212,10 @@ let
       TIMES="$TIMES $DURATION"
       TOTAL_TIME=$((TOTAL_TIME + DURATION))
     done
-    
+
     # Calculate statistics
     AVG_TIME=$((TOTAL_TIME / ${toString iterations}))
-    
+
     # Find min and max
     MIN_TIME=999999999
     MAX_TIME=0
@@ -223,13 +223,13 @@ let
       if [ $time -lt $MIN_TIME ]; then MIN_TIME=$time; fi
       if [ $time -gt $MAX_TIME ]; then MAX_TIME=$time; fi
     done
-    
+
     echo "  ${colors.green}Results:${colors.reset}"
     echo "    ${colors.dim}Iterations: ${toString iterations}${colors.reset}"
     echo "    ${colors.dim}Average: ''${AVG_TIME}ms${colors.reset}"
     echo "    ${colors.dim}Min: ''${MIN_TIME}ms${colors.reset}"
     echo "    ${colors.dim}Max: ''${MAX_TIME}ms${colors.reset}"
-    
+
     # Save benchmark results
     echo "benchmark_name: ${name}" >> "$TEST_ARTIFACTS_DIR/benchmarks.log"
     echo "benchmark_avg: $AVG_TIME" >> "$TEST_ARTIFACTS_DIR/benchmarks.log"
@@ -282,8 +282,8 @@ EOF
       if builtins.isString value then
         createMockFile { path = "${path}/${name}"; content = value; }
       else if builtins.isAttrs value && value ? content then
-        createMockFile { 
-          path = "${path}/${name}"; 
+        createMockFile {
+          path = "${path}/${name}";
           content = value.content;
           permissions = value.permissions or "644";
         }
@@ -296,7 +296,7 @@ EOF
   # Resource monitoring utilities
   monitorResources = command: ''
     echo "${colors.cyan}📊 Monitoring resources for: ${command}${colors.reset}"
-    
+
     # Start resource monitoring in background
     {
       while true; do
@@ -307,21 +307,21 @@ EOF
       done
     } > "$TEST_ARTIFACTS_DIR/resource_monitor.log" 2>&1 &
     MONITOR_PID=$!
-    
+
     # Run the command
     START_MEM=$(ps -o rss= -p $$ 2>/dev/null || echo 0)
     START_TIME=$(date +%s%N)
-    
+
     ${command}
-    
+
     END_TIME=$(date +%s%N)
     END_MEM=$(ps -o rss= -p $$ 2>/dev/null || echo 0)
     DURATION=$(( (END_TIME - START_TIME) / 1000000 ))
     MEM_DIFF=$((END_MEM - START_MEM))
-    
+
     # Stop monitoring
     kill $MONITOR_PID 2>/dev/null || true
-    
+
     echo "  ${colors.dim}Duration: ''${DURATION}ms${colors.reset}"
     echo "  ${colors.dim}Memory change: ''${MEM_DIFF}KB${colors.reset}"
   '';
@@ -329,13 +329,13 @@ EOF
   # Test data validation helpers
   validateTestData = { name, data, schema }: ''
     echo "${colors.cyan}🔍 Validating test data: ${name}${colors.reset}"
-    
+
     # Basic validation - check if data exists and is not empty
     if [ -z "${toString data}" ]; then
       echo "${colors.red}✗ Test data '${name}' is empty${colors.reset}"
       exit 1
     fi
-    
+
     # Schema validation would go here if we had a schema validator
     echo "${colors.green}✓ Test data '${name}' is valid${colors.reset}"
   '';
@@ -343,44 +343,44 @@ EOF
   # Test artifacts collection
   collectArtifacts = testName: ''
     echo "${colors.cyan}📦 Collecting test artifacts for: ${testName}${colors.reset}"
-    
+
     ARTIFACT_DIR="$TEST_ARTIFACTS_DIR/${testName}"
     mkdir -p "$ARTIFACT_DIR"
-    
+
     # Collect logs if they exist
     if [ -d "$TEST_LOG_DIR" ]; then
       cp -r "$TEST_LOG_DIR" "$ARTIFACT_DIR/" 2>/dev/null || true
     fi
-    
+
     # Collect any temporary files that might be useful
     find . -name "*.tmp" -o -name "*.log" -o -name "core.*" 2>/dev/null | while read file; do
       if [ -f "$file" ]; then
         cp "$file" "$ARTIFACT_DIR/" 2>/dev/null || true
       fi
     done
-    
+
     echo "  ${colors.dim}Artifacts saved to: $ARTIFACT_DIR${colors.reset}"
   '';
 
   # Enhanced cleanup with comprehensive cleanup
   enhancedCleanup = ''
     echo "${colors.cyan}🧹 Performing enhanced cleanup...${colors.reset}"
-    
+
     # Clean up temporary files and directories
     ${originalHelpers.cleanup}
-    
+
     # Clean up test-specific directories
     if [ -d "test-home" ]; then rm -rf test-home; fi
     if [ -d "test-temp" ]; then rm -rf test-temp; fi
-    
+
     # Clean up any leftover processes
     jobs -p | while read pid; do
       kill "$pid" 2>/dev/null || true
     done
-    
+
     # Clean up any test locks
     find . -name "*.lock" -type f -delete 2>/dev/null || true
-    
+
     echo "  ${colors.green}✓ Cleanup completed${colors.reset}"
   '';
 
@@ -400,13 +400,13 @@ EOF
 in
 {
   # Export all original helpers for compatibility, with fallbacks
-  inherit (originalHelpers) 
+  inherit (originalHelpers)
     setupTestEnv assertTrue assertExists assertCommand assertContains
     testSection testSubsection skipOn onlyOn benchmark measureExecutionTime
     assertPerformance mockFlake mockConfig createTempFile createTempDir
     evalFlake reportResults cleanup assertSetContains assertListIncludes
     assertListContains assertAllDerivations;
-    
+
   # Export functions with fallbacks
   createTestScript = originalHelpers.createTestScript or createTestScriptInternal;
   runShellTest = originalHelpers.runShellTest or createTestScriptInternal;
@@ -426,11 +426,11 @@ in
   assertFileExists = path: message: assertExistsWithType path "f" message;
   assertDirExists = path: message: assertExistsWithType path "d" message;
   assertSymlinkExists = path: message: assertExistsWithType path "L" message;
-  
+
   # Quick test creation helpers
   quickTest = name: script: createTestScriptInternal { inherit name script; };
   quickBenchmark = name: command: performanceBenchmark { inherit name command; };
-  
+
   # Test metadata helpers
   getTestMetadata = {
     platform = platform.systemId;

@@ -29,7 +29,7 @@ Usage: $0 [COMMAND] [OPTIONS]
 
 Commands:
   core                  Run core tests (5 tests)
-  integration          Run integration tests (3 tests)  
+  integration          Run integration tests (3 tests)
   e2e                  Run end-to-end tests (2 tests)
   performance          Run performance tests (2 tests)
   all                  Run all tests (12 tests)
@@ -62,12 +62,12 @@ EOF
 run_nix_command() {
     local command=$1
     local description=$2
-    
+
     print_status "$BLUE" "🧪 $description"
-    
+
     # Set NIX_PATH to avoid nixpkgs resolution issues
     export NIX_PATH="nixpkgs=https://github.com/NixOS/nixpkgs/archive/nixos-unstable.tar.gz"
-    
+
     if nix-build "$TESTS_DIR" -A "$command"; then
         print_status "$GREEN" "✅ $description completed successfully"
         return 0
@@ -81,11 +81,11 @@ run_nix_command() {
 run_nix_eval() {
     local expression=$1
     local description=$2
-    
+
     print_status "$BLUE" "📊 $description"
-    
+
     export NIX_PATH="nixpkgs=https://github.com/NixOS/nixpkgs/archive/nixos-unstable.tar.gz"
-    
+
     if nix eval --impure --json --expr "(import $TESTS_DIR {}).$expression"; then
         return 0
     else
@@ -99,34 +99,34 @@ case "${1:-help}" in
     "core")
         run_nix_command "runCoreTests" "Running core tests (5 tests)"
         ;;
-    
+
     "integration")
         run_nix_command "runIntegrationTests" "Running integration tests (3 tests)"
         ;;
-    
+
     "e2e")
         run_nix_command "runE2ETests" "Running E2E tests (2 tests)"
         ;;
-    
+
     "performance")
         run_nix_command "runPerformanceTests" "Running performance tests (2 tests)"
         ;;
-    
+
     "all")
         print_status "$BLUE" "🚀 Running complete test suite (12 tests)"
         run_nix_command "runAllTests" "Running all tests"
         ;;
-    
+
     "list")
         print_status "$BLUE" "📋 Available tests:"
         run_nix_eval "quick.list" "Listing all tests"
         ;;
-    
+
     "info")
         print_status "$BLUE" "ℹ️  Test infrastructure information:"
         run_nix_eval "quick.info" "Showing test metadata"
         ;;
-    
+
     "single")
         if [ -z "${2:-}" ]; then
             print_status "$RED" "❌ Test name required for single command"
@@ -134,23 +134,23 @@ case "${1:-help}" in
             echo "Run '$0 list' to see available tests"
             exit 1
         fi
-        
+
         TEST_NAME="$2"
         run_nix_command "quick.single \"$TEST_NAME\"" "Running test: $TEST_NAME"
         ;;
-    
+
     "validate")
         run_nix_command "dev.validateInfrastructure" "Validating test infrastructure"
         ;;
-    
+
     "sample")
         run_nix_command "dev.sampleTest" "Running sample test"
         ;;
-    
+
     "help"|"-h"|"--help")
         show_usage
         ;;
-    
+
     *)
         print_status "$RED" "❌ Unknown command: $1"
         echo

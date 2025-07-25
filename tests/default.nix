@@ -58,13 +58,13 @@ testCategories.unit // testCategories.integration // testCategories.e2e // perfo
   # Aggregate summary as derivation
   all = pkgs.writeText "all-tests-summary" ''
     Comprehensive Test Suite Summary
-    
+
     Unit Tests (6):
     ${builtins.concatStringsSep "\n" (builtins.attrNames testCategories.unit)}
-    
+
     Integration Tests (6):
     ${builtins.concatStringsSep "\n" (builtins.attrNames testCategories.integration)}
-    
+
     End-to-End Tests (5):
     ${builtins.concatStringsSep "\n" (builtins.attrNames testCategories.e2e)}
   '';
@@ -72,7 +72,7 @@ testCategories.unit // testCategories.integration // testCategories.e2e // perfo
   # Test metadata as derivation
   meta = pkgs.writeText "test-metadata" ''
     Comprehensive test suite for dotfiles project
-    
+
     Statistics:
     - Total files: 17 (6 unit + 6 integration + 5 e2e)
     - Original files: 133

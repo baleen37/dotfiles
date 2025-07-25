@@ -66,7 +66,7 @@ categories=(
 
 for category in "${categories[@]}"; do
   IFS=':' read -r name description <<< "$category"
-  
+
   echo "Creating $name.nix..."
   cat > "tests-consolidated/$name.nix" << EOF
 # $description
@@ -76,20 +76,20 @@ for category in "${categories[@]}"; do
 
 pkgs.stdenv.mkDerivation {
   name = "$name-consolidated-test";
-  
+
   nativeBuildInputs = [ pkgs.nix ];
-  
+
   buildCommand = ''
     echo "Running consolidated tests for: $description"
     echo "This is a template consolidation - individual test logic would be integrated here"
-    
+
     # Template for running actual consolidated tests
     echo "✓ $name consolidated test template created"
-    
+
     touch \$out
     echo "Consolidated test $name completed successfully" > \$out
   '';
-  
+
   meta = {
     description = "$description";
     category = "$name";
@@ -125,17 +125,17 @@ in
 
 pkgs.stdenv.mkDerivation {
   name = "all-consolidated-tests";
-  
+
   nativeBuildInputs = [ pkgs.nix ];
-  
+
   buildCommand = ''
     echo "Running all 35 consolidated test categories..."
     echo "Original: 133 test files → Consolidated: 35 test categories"
     echo "Reduction: 73.7% fewer files"
-    
+
     # Test execution would happen here
     echo "✅ All consolidated tests template completed successfully!"
-    
+
     touch $out
   '';
 }
@@ -160,7 +160,7 @@ better organization and faster execution.
 
 ### Core System Tests (01-05)
 - **01-core-system**: Core system and flake configuration tests
-- **02-build-switch**: Build and switch functionality tests  
+- **02-build-switch**: Build and switch functionality tests
 - **03-platform-detection**: Platform detection and cross-platform tests
 - **04-user-resolution**: User resolution and path consistency tests
 - **05-error-handling**: Error handling and messaging tests

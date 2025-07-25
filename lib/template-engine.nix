@@ -20,7 +20,7 @@ rec {
       ];
       description = "Core system and flake configuration tests";
     };
-    
+
     "02-build-switch" = {
       pattern = ["*build-switch*" "*build*switch*"];
       files = [
@@ -42,7 +42,7 @@ rec {
       ];
       description = "Build and switch functionality tests";
     };
-    
+
     "03-platform-detection" = {
       pattern = ["*platform*" "*darwin*" "*linux*"];
       files = [
@@ -52,7 +52,7 @@ rec {
       ];
       description = "Platform detection and cross-platform tests";
     };
-    
+
     "04-user-resolution" = {
       pattern = ["*user*" "*resolution*"];
       files = [
@@ -64,7 +64,7 @@ rec {
       ];
       description = "User resolution and path consistency tests";
     };
-    
+
     "05-error-handling" = {
       pattern = ["*error*" "*handling*"];
       files = [
@@ -74,8 +74,8 @@ rec {
       ];
       description = "Error handling and messaging tests";
     };
-    
-    # Configuration Tests (Group 6-10)  
+
+    # Configuration Tests (Group 6-10)
     "06-configuration" = {
       pattern = ["*config*" "*configuration*"];
       files = [
@@ -84,7 +84,7 @@ rec {
       ];
       description = "Configuration validation and externalization tests";
     };
-    
+
     "07-claude-config" = {
       pattern = ["*claude*config*"];
       files = [
@@ -95,7 +95,7 @@ rec {
       ];
       description = "Claude configuration management tests";
     };
-    
+
     "08-keyboard-input" = {
       pattern = ["*keyboard*" "*input*"];
       files = [
@@ -104,7 +104,7 @@ rec {
       ];
       description = "Keyboard input configuration tests";
     };
-    
+
     "09-zsh-configuration" = {
       pattern = ["*zsh*"];
       files = [
@@ -115,7 +115,7 @@ rec {
       ];
       description = "ZSH shell configuration tests";
     };
-    
+
     "10-app-links" = {
       pattern = ["*app*link*"];
       files = [
@@ -125,7 +125,7 @@ rec {
       ];
       description = "Application links management tests";
     };
-    
+
     # Build and Performance Tests (Group 11-15)
     "11-build-logic" = {
       pattern = ["*build*logic*"];
@@ -136,7 +136,7 @@ rec {
       ];
       description = "Build logic and decomposition tests";
     };
-    
+
     "12-build-parallelization" = {
       pattern = ["*parallel*" "*build*"];
       files = [
@@ -147,7 +147,7 @@ rec {
       ];
       description = "Build parallelization and performance tests";
     };
-    
+
     "13-performance-monitoring" = {
       pattern = ["*performance*" "*perf*"];
       files = [
@@ -163,7 +163,7 @@ rec {
       ];
       description = "Performance monitoring and optimization tests";
     };
-    
+
     "14-cache-management" = {
       pattern = ["*cache*"];
       files = [
@@ -176,7 +176,7 @@ rec {
       ];
       description = "Cache management and optimization tests";
     };
-    
+
     "15-network-handling" = {
       pattern = ["*network*"];
       files = [
@@ -184,7 +184,7 @@ rec {
       ];
       description = "Network failure recovery tests";
     };
-    
+
     # Package and Module Tests (Group 16-20)
     "16-package-management" = {
       pattern = ["*package*"];
@@ -195,7 +195,7 @@ rec {
       ];
       description = "Package management and utilities tests";
     };
-    
+
     "17-module-dependencies" = {
       pattern = ["*module*"];
       files = [
@@ -205,7 +205,7 @@ rec {
       ];
       description = "Module dependency and import tests";
     };
-    
+
     "18-homebrew-integration" = {
       pattern = ["*homebrew*" "*brew*"];
       files = [
@@ -227,7 +227,7 @@ rec {
       ];
       description = "macOS cask management tests";
     };
-    
+
     "20-iterm2-config" = {
       pattern = ["*iterm*"];
       files = [
@@ -235,7 +235,7 @@ rec {
       ];
       description = "iTerm2 configuration tests";
     };
-    
+
     # Security and Permissions (Group 21-25)
     "21-security-ssh" = {
       pattern = ["*ssh*" "*security*"];
@@ -244,7 +244,7 @@ rec {
       ];
       description = "SSH key security tests";
     };
-    
+
     "22-sudo-management" = {
       pattern = ["*sudo*"];
       files = [
@@ -256,7 +256,7 @@ rec {
       ];
       description = "Sudo management and security tests";
     };
-    
+
     "23-precommit-ci" = {
       pattern = ["*precommit*" "*ci*"];
       files = [
@@ -264,7 +264,7 @@ rec {
       ];
       description = "Pre-commit and CI consistency tests";
     };
-    
+
     # Utils and Libraries (Group 24-28)
     "24-common-utils" = {
       pattern = ["*utils*" "*common*"];
@@ -273,7 +273,7 @@ rec {
       ];
       description = "Common utilities tests";
     };
-    
+
     "25-lib-consolidation" = {
       pattern = ["*lib*"];
       files = [
@@ -282,7 +282,7 @@ rec {
       ];
       description = "Library consolidation tests";
     };
-    
+
     "26-file-operations" = {
       pattern = ["*file*"];
       files = [
@@ -291,7 +291,7 @@ rec {
       ];
       description = "File operations and generation tests";
     };
-    
+
     "27-portable-paths" = {
       pattern = ["*portable*" "*path*"];
       files = [
@@ -299,7 +299,7 @@ rec {
       ];
       description = "Portable path handling tests";
     };
-    
+
     "28-directory-structure" = {
       pattern = ["*directory*"];
       files = [
@@ -307,7 +307,7 @@ rec {
       ];
       description = "Directory structure optimization tests";
     };
-    
+
     # Advanced Features (Group 29-33)
     "29-auto-update" = {
       pattern = ["*auto*update*"];
@@ -319,7 +319,7 @@ rec {
       ];
       description = "Auto-update functionality tests";
     };
-    
+
     "30-claude-cli" = {
       pattern = ["*claude*cli*"];
       files = [
@@ -333,7 +333,7 @@ rec {
       ];
       description = "Claude CLI functionality tests";
     };
-    
+
     "31-intellij-idea" = {
       pattern = ["*intellij*" "*idea*"];
       files = [
@@ -342,7 +342,7 @@ rec {
       ];
       description = "IntelliJ IDEA integration tests";
     };
-    
+
     "32-alternative-execution" = {
       pattern = ["*alternative*" "*execution*"];
       files = [
@@ -350,7 +350,7 @@ rec {
       ];
       description = "Alternative execution path tests";
     };
-    
+
     "33-parallel-testing" = {
       pattern = ["*parallel*test*"];
       files = [
@@ -359,7 +359,7 @@ rec {
       ];
       description = "Parallel test execution tests";
     };
-    
+
     # System Integration and E2E (Group 34-35)
     "34-system-deployment" = {
       pattern = ["*system*deploy*" "*deploy*"];
@@ -370,7 +370,7 @@ rec {
       ];
       description = "System deployment and build tests";
     };
-    
+
     "35-comprehensive-workflow" = {
       pattern = ["*complete*" "*comprehensive*" "*workflow*"];
       files = [
@@ -393,30 +393,30 @@ rec {
   generateConsolidatedTest = categoryName: categoryData: ''
     # ${categoryData.description}
     # Consolidated test file for category: ${categoryName}
-    
+
     { pkgs, lib, ... }:
-    
+
     let
       testHelpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
-      
+
       # Import all original test modules for this category
       originalTests = {
-        ${lib.concatStringsSep "\n        " (map (file: 
+        ${lib.concatStringsSep "\n        " (map (file:
           let fileName = lib.last (lib.splitString "/" file);
               testName = lib.removeSuffix ".nix" fileName;
           in "${testName} = import ../../${file} { inherit pkgs lib; };"
         ) categoryData.files)}
       };
     in
-    
+
     pkgs.stdenv.mkDerivation {
       name = "${categoryName}-consolidated-test";
-      
+
       buildCommand = '''
         echo "Running consolidated tests for: ${categoryData.description}"
-        
+
         # Execute all original tests in this category
-        ${lib.concatStringsSep "\n        " (map (file: 
+        ${lib.concatStringsSep "\n        " (map (file:
           let fileName = lib.last (lib.splitString "/" file);
               testName = lib.removeSuffix ".nix" fileName;
           in ''
@@ -427,7 +427,7 @@ rec {
             fi
           ''
         ) categoryData.files)}
-        
+
         echo "All tests in ${categoryName} completed successfully"
         touch $out
       ''';
@@ -435,21 +435,21 @@ rec {
   '';
 
   # Main function to generate all consolidated test files
-  generateAllConsolidatedTests = 
+  generateAllConsolidatedTests =
     lib.mapAttrs generateConsolidatedTest testCategories;
-    
+
   # Utility function to get category for a test file
   getCategoryForTest = testFile:
     let
-      matchingCategories = lib.filterAttrs (name: data: 
+      matchingCategories = lib.filterAttrs (name: data:
         lib.any (file: file == testFile) data.files
       ) testCategories;
     in
     if matchingCategories == {} then null
     else lib.head (lib.attrNames matchingCategories);
-    
+
   # Function to validate all 133 tests are categorized
-  validateAllTestsCategorized = 
+  validateAllTestsCategorized =
     let
       allCategorizedFiles = lib.concatLists (lib.mapAttrsToList (name: data: data.files) testCategories);
       allExistingTests = import ./existing-tests.nix;

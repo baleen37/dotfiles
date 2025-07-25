@@ -61,12 +61,12 @@ let
     mockClaudeConfig = {
       content = ''
         # Claude Configuration
-        
+
         ## Instructions
         - Follow TDD principles
         - Write comprehensive tests
         - Maintain code quality
-        
+
         ## Commands
         Available commands in modules/shared/config/claude/commands/:
         - plan.md: Project planning
@@ -95,21 +95,21 @@ let
       content = ''
         #!/bin/bash
         set -euo pipefail
-        
+
         # Mock build-switch script for testing
         echo "Mock build-switch starting..."
-        
+
         PLATFORM="$(uname -m)-$(uname -s | tr '[:upper:]' '[:lower:]')"
         echo "Platform detected: $PLATFORM"
-        
+
         # Simulate build process
         echo "Building system configuration..."
         sleep 1
-        
+
         # Simulate switch process
         echo "Switching to new configuration..."
         sleep 1
-        
+
         echo "Build-switch completed successfully"
         exit 0
       '';
@@ -144,16 +144,16 @@ let
         # Mock .zshrc for testing
         export ZSH="$HOME/.oh-my-zsh"
         ZSH_THEME="powerlevel10k/powerlevel10k"
-        
+
         plugins=(
           git
           docker
           kubectl
           z
         )
-        
+
         source $ZSH/oh-my-zsh.sh
-        
+
         # Custom aliases
         alias ll='ls -alF'
         alias la='ls -A'
@@ -349,7 +349,7 @@ let
   # System state simulation
   simulateSystemState = state: ''
     echo "Setting up system state: ${state.platform or "unknown"}"
-    
+
     # Create mock git repository if needed
     ${lib.optionalString (state.hasGitRepo or false) ''
       if command -v git >/dev/null 2>&1; then
@@ -360,7 +360,7 @@ let
         mkdir -p .git
         echo "ref: refs/heads/main" > .git/HEAD
       fi
-      
+
       # Set git status
       ${if state.gitStatus or "" == "dirty" then ''
         echo "test content" > test-file.txt
@@ -375,7 +375,7 @@ let
         fi
       '' else ""}
     ''}
-    
+
     # Create result symlink if system has been built
     ${lib.optionalString (state.hasResult or false) ''
       mkdir -p mock-result/sw/bin
@@ -384,12 +384,12 @@ let
       chmod +x mock-result/sw/bin/darwin-rebuild
       ln -sf mock-result result
     ''}
-    
+
     # Set up error conditions if specified
     ${lib.optionalString (state ? lastError) ''
       echo "${state.lastError}" > last-error.log
     ''}
-    
+
     # Set platform environment
     export SYSTEM_PLATFORM="${state.platform or testHelpers.platform.systemId}"
     export NIX_VERSION="${state.nixVersion or "2.18.1"}"
@@ -399,54 +399,54 @@ let
   setupTestEnvironmentWithFixtures = { fixtures ? {}, systemState ? systemFixtures.cleanSystem, environment ? environmentFixtures.development }:
     ''
       ${testHelpers.setupEnhancedTestEnv}
-      
+
       # Apply system state
       ${simulateSystemState systemState}
-      
+
       # Set up environment variables
-      ${lib.concatStringsSep "\n" (lib.mapAttrsToList (name: value: 
+      ${lib.concatStringsSep "\n" (lib.mapAttrsToList (name: value:
         "export ${name}='${value}'"
       ) environment.env)}
-      
+
       # Update PATH
       export PATH="${lib.concatStringsSep ":" environment.paths}:$PATH"
-      
+
       # Create fixture files
       ${lib.concatStringsSep "\n" (lib.mapAttrsToList (name: fixture:
         createFixtureFile { inherit fixture; targetPath = name; }
       ) fixtures)}
-      
+
       echo "Test environment with fixtures ready"
     '';
 
   # Fixture validation
   validateFixtures = fixtures: ''
     echo "${testHelpers.colors.cyan}🔍 Validating fixtures...${testHelpers.colors.reset}"
-    
+
     ${lib.concatStringsSep "\n" (lib.mapAttrsToList (name: fixture: ''
       # Validate fixture: ${name}
       if [ ! -e "${fixture.filename or name}" ]; then
         echo "${testHelpers.colors.red}✗ Fixture file missing: ${name}${testHelpers.colors.reset}"
         exit 1
       fi
-      
+
       ${lib.optionalString (fixture ? content) ''
         if [ ! -s "${fixture.filename or name}" ]; then
           echo "${testHelpers.colors.red}✗ Fixture file empty: ${name}${testHelpers.colors.reset}"
           exit 1
         fi
       ''}
-      
+
       ${lib.optionalString (fixture ? permissions) ''
         ACTUAL_PERMS=$(stat -c %a "${fixture.filename or name}" 2>/dev/null || stat -f %A "${fixture.filename or name}" 2>/dev/null || echo "unknown")
         if [ "$ACTUAL_PERMS" != "${fixture.permissions}" ]; then
           echo "${testHelpers.colors.yellow}⚠ Fixture permissions mismatch: ${name} (expected ${fixture.permissions}, got $ACTUAL_PERMS)${testHelpers.colors.reset}"
         fi
       ''}
-      
+
       echo "${testHelpers.colors.green}✓ Fixture validated: ${name}${testHelpers.colors.reset}"
     '') fixtures)}
-    
+
     echo "${testHelpers.colors.green}✓ All fixtures validated${testHelpers.colors.reset}"
   '';
 

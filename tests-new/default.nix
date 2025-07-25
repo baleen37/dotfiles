@@ -38,7 +38,7 @@ let
       };
     };
 
-    # Claude configuration core (replaces 14 old tests) 
+    # Claude configuration core (replaces 14 old tests)
     claude-configuration = testTemplate.coreTestTemplate {
       name = "claude-configuration";
       description = "Claude CLI configuration validation including CLAUDE.md and settings.json";
@@ -335,7 +335,7 @@ let
       };
     };
 
-    # Resource usage testing 
+    # Resource usage testing
     resource-usage = testTemplate.performanceTestTemplate {
       name = "resource-usage";
       description = "Resource consumption monitoring for system operations";
@@ -401,7 +401,7 @@ let
     echo "Platform: ${testHelpers.platform.systemId}"
     echo "Total tests: ${toString (lib.length (lib.attrNames allTests))}"
     echo ""
-    
+
     # Run core tests first
     echo "📋 Phase 1: Core Tests (${toString (lib.length (lib.attrNames coreTests))} tests)"
     ${lib.concatStringsSep "\n" (lib.mapAttrsToList (name: test: ''
@@ -412,9 +412,9 @@ let
         echo "  ❌ ${name} failed (continuing...)"
       fi
     '') coreTests)}
-    
+
     echo ""
-    echo "🔗 Phase 2: Integration Tests (${toString (lib.length (lib.attrNames integrationTests))} tests)" 
+    echo "🔗 Phase 2: Integration Tests (${toString (lib.length (lib.attrNames integrationTests))} tests)"
     ${lib.concatStringsSep "\n" (lib.mapAttrsToList (name: test: ''
       echo "  Running ${name}..."
       if ${test}/bin/${test.name}; then
@@ -423,7 +423,7 @@ let
         echo "  ❌ ${name} failed (continuing...)"
       fi
     '') integrationTests)}
-    
+
     echo ""
     echo "🎭 Phase 3: E2E Tests (${toString (lib.length (lib.attrNames e2eTests))} tests)"
     ${lib.concatStringsSep "\n" (lib.mapAttrsToList (name: test: ''
@@ -434,7 +434,7 @@ let
         echo "  ❌ ${name} failed (continuing...)"
       fi
     '') e2eTests)}
-    
+
     echo ""
     echo "⚡ Phase 4: Performance Tests (${toString (lib.length (lib.attrNames performanceTests))} tests)"
     ${lib.concatStringsSep "\n" (lib.mapAttrsToList (name: test: ''
@@ -445,7 +445,7 @@ let
         echo "  ❌ ${name} failed (continuing...)"
       fi
     '') performanceTests)}
-    
+
     echo ""
     echo "🎉 Test suite completed!"
     echo "📊 Summary:"
@@ -454,7 +454,7 @@ let
     echo "  E2E: ${toString (lib.length (lib.attrNames e2eTests))} tests"
     echo "  Performance: ${toString (lib.length (lib.attrNames performanceTests))} tests"
     echo "  Total: ${toString (lib.length (lib.attrNames allTests))} tests"
-    
+
     touch $out
   '';
 
@@ -482,44 +482,44 @@ in
 {
   # Export individual test categories
   inherit coreTests integrationTests e2eTests performanceTests;
-  
+
   # Export individual test derivations
   inherit testDerivations;
-  
+
   # Export test runners
   inherit runCoreTests runIntegrationTests runE2ETests runPerformanceTests runAllTests;
-  
+
   # Export all tests as a single attribute set
   tests = allTests;
-  
+
   # Export test infrastructure
   inherit testHelpers testFixtures performanceUtils testTemplate;
-  
+
   # Export metadata
   inherit testMetadata;
-  
+
   # Default export - run all tests
   default = runAllTests;
-  
+
   # Quick access to common operations
   quick = {
     # Run just core tests for rapid feedback
     core = runCoreTests;
-    
+
     # Run a single test by name
-    single = testName: 
+    single = testName:
       if allTests ? ${testName} then
         allTests.${testName}
       else
         throw "Test '${testName}' not found. Available tests: ${toString (lib.attrNames allTests)}";
-    
+
     # List all available tests
     list = lib.attrNames allTests;
-    
+
     # Show test metadata
     info = testMetadata;
   };
-  
+
   # Development utilities
   dev = {
     # Validate test infrastructure
@@ -527,25 +527,25 @@ in
       name = "validate-test-infrastructure";
       script = ''
         ${testHelpers.setupEnhancedTestEnv}
-        
+
         echo "🔧 Validating test infrastructure..."
-        
+
         # Test helpers validation
         echo "  Checking test helpers..."
         ${testHelpers.assertTrue "true" "Test helpers loaded successfully"}
-        
+
         # Test fixtures validation
         echo "  Checking test fixtures..."
         ${testFixtures.validateFixtures { "test" = { filename = "test"; content = "test"; }; }}
-        
+
         # Performance utils validation
         echo "  Checking performance utils..."
         ${performanceUtils.measureCommand "echo 'Performance utils test'"}
-        
+
         echo "✅ Test infrastructure validation completed!"
       '';
     };
-    
+
     # Create a sample test for development
     sampleTest = testTemplate.simpleTest {
       name = "sample";
