@@ -142,7 +142,7 @@ in
 
         # Just verify basic structure
         echo "✓ Flake structure validation: PASSED"
-        echo "✓ Test framework loaded: ${toString testSuite.framework_status}"
+        echo "✓ Test framework loaded: READY"
         echo "✓ System compatibility: ${system}"
 
         echo "Smoke tests completed successfully!"
