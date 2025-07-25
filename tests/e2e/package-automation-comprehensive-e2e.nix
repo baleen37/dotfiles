@@ -110,14 +110,14 @@ let
           # Test for essential Darwin applications
           essential_casks=("chrome" "firefox" "docker" "iterm" "intellij")
           found_casks=0
-          for cask in "\${essential_casks[@]}"; do
+          for cask in "''${essential_casks[@]}"; do
             if grep -qi "\$cask" "modules/darwin/casks.nix" 2>/dev/null; then
               found_casks=\$((found_casks + 1))
             fi
           done
 
           if [[ \$found_casks -ge 3 ]]; then
-            echo "✅ PASS: Essential Darwin casks configured (\$found_casks/\${#essential_casks[@]})"
+            echo "✅ PASS: Essential Darwin casks configured (\$found_casks/''${#essential_casks[@]})"
             PASSED_TESTS+=("essential-darwin-casks")
           fi
         else
@@ -182,7 +182,7 @@ let
       workflow_steps=("git pull" "flake update" "build" "switch")
       workflow_complete=true
 
-      for step in "\${workflow_steps[@]}"; do
+      for step in "''${workflow_steps[@]}"; do
         if ! grep -qi "\$step" "\$auto_update_script" 2>/dev/null; then
           workflow_complete=false
           echo "⚠️  INFO: Auto-update may be missing '\$step' step"
@@ -198,14 +198,14 @@ let
       safety_mechanisms=("backup" "rollback" "error.*handling" "set -e")
       safety_count=0
 
-      for mechanism in "\${safety_mechanisms[@]}"; do
+      for mechanism in "''${safety_mechanisms[@]}"; do
         if grep -q "\$mechanism" "\$auto_update_script" 2>/dev/null; then
           safety_count=\$((safety_count + 1))
         fi
       done
 
       if [[ \$safety_count -ge 2 ]]; then
-        echo "✅ PASS: Auto-update includes safety mechanisms (\$safety_count/\${#safety_mechanisms[@]})"
+        echo "✅ PASS: Auto-update includes safety mechanisms (\$safety_count/''${#safety_mechanisms[@]})"
         PASSED_TESTS+=("auto-update-safety-mechanisms")
       else
         echo "⚠️  WARN: Auto-update may lack sufficient safety mechanisms"
@@ -240,7 +240,7 @@ let
       essential_deps=("nixpkgs" "home-manager")
       deps_found=0
 
-      for dep in "\${essential_deps[@]}"; do
+      for dep in "''${essential_deps[@]}"; do
         if grep -q "\$dep" "flake.nix" 2>/dev/null; then
           deps_found=\$((deps_found + 1))
           echo "✅ PASS: Essential dependency '\$dep' configured"
@@ -249,7 +249,7 @@ let
       done
 
       if [[ \$deps_found -ge 2 ]]; then
-        echo "✅ PASS: Essential dependencies configured (\$deps_found/\${#essential_deps[@]})"
+        echo "✅ PASS: Essential dependencies configured (\$deps_found/''${#essential_deps[@]})"
         PASSED_TESTS+=("essential-deps-configured")
       fi
     else
@@ -266,7 +266,7 @@ let
     if command -v nix >/dev/null 2>&1; then
       platforms=("aarch64-darwin" "x86_64-darwin" "aarch64-linux" "x86_64-linux")
 
-      for platform in "\${platforms[@]}"; do
+      for platform in "''${platforms[@]}"; do
         case "\$platform" in
           *darwin*)
             if nix eval ".#darwinConfigurations" 2>/dev/null | grep -q "\$platform"; then
@@ -286,7 +286,7 @@ let
       done
     fi
 
-    platform_count=\${#supported_platforms[@]}
+    platform_count=''${#supported_platforms[@]}
     if [[ \$platform_count -ge 2 ]]; then
       echo "✅ PASS: Multi-platform deployment supported (\$platform_count platforms)"
       PASSED_TESTS+=("multi-platform-deployment")
@@ -326,7 +326,7 @@ let
     config_deployment_score=0
     config_dirs=("modules/shared/config" "modules/darwin/config" "modules/nixos/config")
 
-    for config_dir in "\${config_dirs[@]}"; do
+    for config_dir in "''${config_dirs[@]}"; do
       if [[ -d "\$config_dir" ]]; then
         config_deployment_score=\$((config_deployment_score + 1))
         platform=\$(basename \$(dirname "\$config_dir"))
@@ -344,7 +344,7 @@ let
     hm_configs=("modules/shared/home-manager.nix" "modules/darwin/home-manager.nix" "modules/nixos/home-manager.nix")
     hm_integration=false
 
-    for hm_config in "\${hm_configs[@]}"; do
+    for hm_config in "''${hm_configs[@]}"; do
       if [[ -f "\$hm_config" ]]; then
         echo "✅ PASS: Home Manager configuration found: \$hm_config"
         PASSED_TESTS+=("hm-config-found")
@@ -387,7 +387,7 @@ let
       security_measures=("signature" "verify" "checksum" "hash")
       security_count=0
 
-      for measure in "\${security_measures[@]}"; do
+      for measure in "''${security_measures[@]}"; do
         if grep -qi "\$measure" "\$auto_update_script" 2>/dev/null; then
           security_count=\$((security_count + 1))
         fi
@@ -429,7 +429,7 @@ let
       production_components+=("automation")
     fi
 
-    production_score=\${#production_components[@]}
+    production_score=''${#production_components[@]}
     if [[ \$production_score -ge 4 ]]; then
       echo "✅ PASS: Package automation system production-ready (\$production_score/5 components)"
       PASSED_TESTS+=("production-ready")
@@ -494,22 +494,22 @@ let
     # Results Summary
     echo ""
     echo "=== Comprehensive E2E Test Results ==="
-    echo "✅ Passed tests: \${#PASSED_TESTS[@]}"
-    echo "❌ Failed tests: \${#FAILED_TESTS[@]}"
+    echo "✅ Passed tests: ''${#PASSED_TESTS[@]}"
+    echo "❌ Failed tests: ''${#FAILED_TESTS[@]}"
 
-    if [[ \${#FAILED_TESTS[@]} -gt 0 ]]; then
+    if [[ ''${#FAILED_TESTS[@]} -gt 0 ]]; then
       echo ""
       echo "❌ FAILED TESTS:"
-      for test in "\${FAILED_TESTS[@]}"; do
+      for test in "''${FAILED_TESTS[@]}"; do
         echo "   - \$test"
       done
       echo ""
-      echo "🚨 E2E test identified \${#FAILED_TESTS[@]} critical package/automation issues"
+      echo "🚨 E2E test identified ''${#FAILED_TESTS[@]} critical package/automation issues"
       echo "These issues must be resolved before production deployment"
       exit 1
     else
       echo ""
-      echo "🎉 All \${#PASSED_TESTS[@]} E2E tests passed!"
+      echo "🎉 All ''${#PASSED_TESTS[@]} E2E tests passed!"
       echo "✅ Package & Automation system is ready for real-world deployment"
       echo ""
       echo "🚀 E2E Test Coverage Summary:"
