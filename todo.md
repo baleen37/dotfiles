@@ -7,6 +7,7 @@
 ## 📋 작업 목록
 
 ### Phase 1: 안전한 Dead Code 제거 ⏳
+- ✨ **Auto merge 테스트**: PR 생성하여 자동 병합 확인
 - [ ] Legacy Error Handling Wrapper 파일 제거
   - [ ] `lib/error-handler.nix`
   - [ ] `lib/error-handling.nix`
