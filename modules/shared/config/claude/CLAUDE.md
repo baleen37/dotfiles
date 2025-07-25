@@ -36,6 +36,7 @@ Rule #1: If you want exception to ANY rule, YOU MUST STOP and get explicit permi
   - Names MUST tell what code does, not how it's implemented or its history
   - NEVER use implementation details in names (e.g., "ZodValidator", "MCPWrapper", "JSONParser")
   - NEVER use temporal/historical context in names (e.g., "NewAPI", "LegacyHandler", "UnifiedTool")
+  - NEVER use subjective quality descriptors in names (e.g., "simple", "fast", "ultra", "better"). The code's quality should be evident from its implementation and tests, not its name.
   - NEVER use pattern names unless they add clarity (e.g., prefer "Tool" over "ToolFactory")
 
   Good names tell a story about the domain:
@@ -68,6 +69,8 @@ Rule #1: If you want exception to ANY rule, YOU MUST STOP and get explicit permi
     1. Document the issue and its location in your journal.
     2. After completing your current task, explicitly propose the fix or refactoring to jito as a new, separate work item.
 - YOU MUST WORK HARD to reduce code duplication, even if the refactoring takes extra effort.
+- YOU MUST completely remove dead code (unreachable or unused code). Do not comment it out. Rely on version control for history.
+- YOU MUST NOT create "legacy" code. When functionality is updated, refactor or replace the old implementation directly. Creating parallel "v2" or "new" versions alongside old ones is forbidden without explicit architectural approval from jito.
 - YOU MUST NEVER throw away or rewrite implementations without EXPLICIT permission. If you're considering this, YOU MUST STOP and ask first.
 - YOU MUST get jito's explicit approval before implementing ANY backward compatibility.
 - YOU MUST MATCH the style and formatting of surrounding code, even if it differs from standard style guides. Consistency within a file trumps external standards.
