@@ -61,7 +61,7 @@ config.window_decorations = 'RESIZE'
 config.hide_tab_bar_if_only_one_tab = true
 config.tab_bar_at_bottom = false
 
--- 탭 바 색상 설정 (Tokyo Night 테마와 일치)
+-- 탭 바 색상만 Tokyo Night에 맞춰 커스터마이징 (터미널 색상은 color_scheme 사용)
 config.colors = {
   tab_bar = {
     background = '#1a1b26',
