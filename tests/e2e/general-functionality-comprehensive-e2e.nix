@@ -34,7 +34,7 @@ let
       essential_topics=("installation" "usage" "configuration" "troubleshooting")
       topics_covered=0
 
-      for topic in "\${essential_topics[@]}"; do
+      for topic in "''${essential_topics[@]}"; do
         if grep -qi "\$topic" README.md 2>/dev/null; then
           topics_covered=\$((topics_covered + 1))
           echo "✅ PASS: README covers '\$topic'"
@@ -43,7 +43,7 @@ let
       done
 
       if [[ \$topics_covered -ge 3 ]]; then
-        echo "✅ PASS: README comprehensively covers essential topics (\$topics_covered/\${#essential_topics[@]})"
+        echo "✅ PASS: README comprehensively covers essential topics (\$topics_covered/''${#essential_topics[@]})"
         PASSED_TESTS+=("readme-comprehensive")
       fi
     else
@@ -72,7 +72,7 @@ let
       essential_dev_tools=("git" "curl" "wget" "tree")
       dev_tools_found=0
 
-      for tool in "\${essential_dev_tools[@]}"; do
+      for tool in "''${essential_dev_tools[@]}"; do
         if grep -q "\$tool" "modules/shared/packages.nix" 2>/dev/null; then
           dev_tools_found=\$((dev_tools_found + 1))
           echo "✅ PASS: Development tool '\$tool' configured"
@@ -81,7 +81,7 @@ let
       done
 
       if [[ \$dev_tools_found -ge 3 ]]; then
-        echo "✅ PASS: Essential development tools configured (\$dev_tools_found/\${#essential_dev_tools[@]})"
+        echo "✅ PASS: Essential development tools configured (\$dev_tools_found/''${#essential_dev_tools[@]})"
         PASSED_TESTS+=("essential-dev-tools-configured")
       else
         dev_env_ready=false
@@ -119,7 +119,7 @@ let
     editor_configs=("config/nvim" "config/vim" ".vimrc" ".nvimrc")
     editors_configured=0
 
-    for config in "\${editor_configs[@]}"; do
+    for config in "''${editor_configs[@]}"; do
       if [[ -e "\$config" ]]; then
         editors_configured=\$((editors_configured + 1))
         echo "✅ PASS: Editor configuration '\$config' deployed"
@@ -131,7 +131,7 @@ let
     # Test editor package integration
     if [[ -f "modules/shared/packages.nix" ]]; then
       editor_packages=("vim" "neovim" "emacs")
-      for editor in "\${editor_packages[@]}"; do
+      for editor in "''${editor_packages[@]}"; do
         if grep -q "\$editor" "modules/shared/packages.nix" 2>/dev/null; then
           echo "✅ PASS: Editor '\$editor' available in packages"
           PASSED_TESTS+=("editor-\$editor-packaged")
@@ -156,7 +156,7 @@ let
 
     # Check shell configuration files
     shell_configs=("modules/shared/config/zsh" ".zshrc" ".bashrc")
-    for config in "\${shell_configs[@]}"; do
+    for config in "''${shell_configs[@]}"; do
       if [[ -e "\$config" ]]; then
         echo "✅ PASS: Shell configuration '\$config' available"
         PASSED_TESTS+=("shell-config-\$config-available")
@@ -176,7 +176,7 @@ let
 
     # Test shell integration with system
     shell_packages=("zsh" "bash" "fish")
-    for shell in "\${shell_packages[@]}"; do
+    for shell in "''${shell_packages[@]}"; do
       if [[ -f "modules/shared/packages.nix" ]] && grep -q "\$shell" "modules/shared/packages.nix" 2>/dev/null; then
         echo "✅ PASS: Shell '\$shell' integrated with package management"
         PASSED_TESTS+=("shell-\$shell-integrated")
@@ -202,7 +202,7 @@ let
     ssh_configs=("config/ssh" ".ssh/config" "modules/shared/config/ssh")
     ssh_configured=false
 
-    for ssh_config in "\${ssh_configs[@]}"; do
+    for ssh_config in "''${ssh_configs[@]}"; do
       if [[ -e "\$ssh_config" ]]; then
         echo "✅ PASS: SSH configuration '\$ssh_config' deployed"
         PASSED_TESTS+=("ssh-config-deployed")
@@ -214,7 +214,7 @@ let
 
     # Test GPG configuration
     gpg_configs=("config/gpg" ".gnupg" "modules/shared/config/gpg")
-    for gpg_config in "\${gpg_configs[@]}"; do
+    for gpg_config in "''${gpg_configs[@]}"; do
       if [[ -e "\$gpg_config" ]]; then
         echo "✅ PASS: GPG configuration '\$gpg_config' deployed"
         PASSED_TESTS+=("gpg-config-deployed")
@@ -228,7 +228,7 @@ let
       security_patterns=("*.key" "*.pem" "secrets" ".env")
       patterns_found=0
 
-      for pattern in "\${security_patterns[@]}"; do
+      for pattern in "''${security_patterns[@]}"; do
         if grep -q "\$pattern" ".gitignore" 2>/dev/null; then
           patterns_found=\$((patterns_found + 1))
         fi
@@ -259,7 +259,7 @@ let
     backup_scripts=("scripts/backup-system.sh" "scripts/backup-dotfiles.sh")
     backup_scripts_ready=0
 
-    for script in "\${backup_scripts[@]}"; do
+    for script in "''${backup_scripts[@]}"; do
       if [[ -f "\$script" ]]; then
         echo "✅ PASS: Backup script '\$script' exists"
         PASSED_TESTS+=("backup-script-\$script-exists")
@@ -308,7 +308,7 @@ let
       media_packages=("mpv" "vlc" "ffmpeg" "imagemagick")
       media_packages_found=0
 
-      for package in "\${media_packages[@]}"; do
+      for package in "''${media_packages[@]}"; do
         if grep -q "\$package" "modules/shared/packages.nix" 2>/dev/null; then
           echo "✅ PASS: Media package '\$package' configured"
           PASSED_TESTS+=("media-package-\$package-configured")
@@ -325,7 +325,7 @@ let
 
     # Test media configuration
     media_configs=("config/mpv" "config/vlc" "modules/shared/config/media")
-    for config in "\${media_configs[@]}"; do
+    for config in "''${media_configs[@]}"; do
       if [[ -d "\$config" ]]; then
         echo "✅ PASS: Media configuration '\$config' deployed"
         PASSED_TESTS+=("media-config-\$config-deployed")
@@ -353,7 +353,7 @@ let
       network_tools=("curl" "wget" "openssh" "rsync")
       network_tools_found=0
 
-      for tool in "\${network_tools[@]}"; do
+      for tool in "''${network_tools[@]}"; do
         if grep -q "\$tool" "modules/shared/packages.nix" 2>/dev/null; then
           echo "✅ PASS: Network tool '\$tool' deployed"
           PASSED_TESTS+=("network-tool-\$tool-deployed")
@@ -362,7 +362,7 @@ let
       done
 
       if [[ \$network_tools_found -ge 3 ]]; then
-        echo "✅ PASS: Essential network tools deployed (\$network_tools_found/\${#network_tools[@]})"
+        echo "✅ PASS: Essential network tools deployed (\$network_tools_found/''${#network_tools[@]})"
         PASSED_TESTS+=("essential-network-tools-deployed")
         network_deployment_score=\$((network_deployment_score + 1))
       fi
@@ -370,7 +370,7 @@ let
 
     # Test communication tool configuration
     comm_configs=("config/irc" "config/slack" "modules/shared/config/communication")
-    for config in "\${comm_configs[@]}"; do
+    for config in "''${comm_configs[@]}"; do
       if [[ -d "\$config" ]]; then
         echo "✅ PASS: Communication configuration '\$config' deployed"
         PASSED_TESTS+=("comm-config-\$config-deployed")
@@ -398,7 +398,7 @@ let
       monitoring_tools=("htop" "btop" "iotop" "nethogs")
       monitoring_tools_found=0
 
-      for tool in "\${monitoring_tools[@]}"; do
+      for tool in "''${monitoring_tools[@]}"; do
         if grep -q "\$tool" "modules/shared/packages.nix" 2>/dev/null; then
           echo "✅ PASS: Monitoring tool '\$tool' ready for production"
           PASSED_TESTS+=("monitoring-tool-\$tool-production")
@@ -415,7 +415,7 @@ let
 
     # Test monitoring configuration
     monitoring_configs=("config/htop" "config/btop" "modules/shared/config/monitoring")
-    for config in "\${monitoring_configs[@]}"; do
+    for config in "''${monitoring_configs[@]}"; do
       if [[ -e "\$config" ]]; then
         echo "✅ PASS: Monitoring configuration '\$config' production-ready"
         PASSED_TESTS+=("monitoring-config-\$config-production")
@@ -449,7 +449,7 @@ let
 
     # Test theme configuration deployment
     theme_configs=("config/themes" "config/gtk" "modules/shared/config/themes")
-    for config in "\${theme_configs[@]}"; do
+    for config in "''${theme_configs[@]}"; do
       if [[ -d "\$config" ]]; then
         echo "✅ PASS: Theme configuration '\$config' deployed"
         PASSED_TESTS+=("theme-config-\$config-deployed")
@@ -461,7 +461,7 @@ let
     # Test cursor and icon deployment
     if [[ -f "modules/shared/packages.nix" ]]; then
       appearance_packages=("cursor" "icon" "theme")
-      for package in "\${appearance_packages[@]}"; do
+      for package in "''${appearance_packages[@]}"; do
         if grep -qi "\$package" "modules/shared/packages.nix" 2>/dev/null; then
           echo "✅ PASS: Appearance package '\$package' deployed"
           PASSED_TESTS+=("appearance-package-\$package-deployed")
@@ -552,14 +552,14 @@ let
       production_components+=("security-practices")
     fi
 
-    production_score=\${#production_components[@]}
+    production_score=''${#production_components[@]}
     if [[ \$production_score -ge 4 ]]; then
       echo "✅ PASS: General functionality system production-ready (\$production_score/5 components)"
       PASSED_TESTS+=("general-functionality-production-ready")
 
       # List production components
       echo "Production components available:"
-      for component in "\${production_components[@]}"; do
+      for component in "''${production_components[@]}"; do
         echo "   ✓ \$component"
       done
     else
@@ -629,22 +629,22 @@ let
     # Results Summary
     echo ""
     echo "=== Comprehensive E2E Test Results ==="
-    echo "✅ Passed tests: \${#PASSED_TESTS[@]}"
-    echo "❌ Failed tests: \${#FAILED_TESTS[@]}"
+    echo "✅ Passed tests: ''${#PASSED_TESTS[@]}"
+    echo "❌ Failed tests: ''${#FAILED_TESTS[@]}"
 
-    if [[ \${#FAILED_TESTS[@]} -gt 0 ]]; then
+    if [[ ''${#FAILED_TESTS[@]} -gt 0 ]]; then
       echo ""
       echo "❌ FAILED TESTS:"
-      for test in "\${FAILED_TESTS[@]}"; do
+      for test in "''${FAILED_TESTS[@]}"; do
         echo "   - \$test"
       done
       echo ""
-      echo "🚨 E2E test identified \${#FAILED_TESTS[@]} critical general functionality issues"
+      echo "🚨 E2E test identified ''${#FAILED_TESTS[@]} critical general functionality issues"
       echo "These issues must be resolved before production deployment"
       exit 1
     else
       echo ""
-      echo "🎉 All \${#PASSED_TESTS[@]} E2E tests passed!"
+      echo "🎉 All ''${#PASSED_TESTS[@]} E2E tests passed!"
       echo "✅ General functionality system is ready for real-world deployment"
       echo ""
       echo "🚀 E2E Test Coverage Summary:"
