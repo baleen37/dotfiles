@@ -32,11 +32,20 @@ Rule #1: If you want exception to ANY rule, YOU MUST STOP and get explicit permi
 - Good naming is very important. Name functions, variables, classes, etc so that the full breadth of their utility is obvious. Reusable, generic things should have reusable generic names
 </design>
 
+<refactoring_and_evolution>
+- **Principle: Evolve, Don't Accumulate**: The codebase is a living system that must be evolved directly. When updating functionality, you MUST refactor or replace the old implementation. Do not leave remnants of the old code behind.
+- **No Parallel Versions**: Creating "new" or "v2" versions alongside "legacy" or "old" ones is strictly forbidden. This introduces ambiguity, increases maintenance, and leads to bugs. There must be a single, authoritative implementation for any given feature.
+- **Forbidden Terms**: The use of temporal or comparative words in code or comments is a strong indicator of violating this principle. Avoid terms like:
+  - `new`, `old`, `legacy`, `backup`, `archive`
+  - `v2`, `enhanced`, `improved`, `better`, `simple`
+  - `wrapper`, `unified`, `handler` (when used to hide a legacy system)
+- **Action: If you are tempted to use a forbidden term, STOP.** It signifies a design problem. Instead of creating a parallel entity, refactor the existing one to meet the new requirements.
+- **Dead Code is Deleted Code**: Unused, unreachable, or replaced code MUST be deleted immediately and completely. Do not comment it out. Version control is the only system history.
+</refactoring_and_evolution>
+
 <naming>
   - Names MUST tell what code does, not how it's implemented or its history
   - NEVER use implementation details in names (e.g., "ZodValidator", "MCPWrapper", "JSONParser")
-  - NEVER use temporal/historical context in names (e.g., "NewAPI", "LegacyHandler", "UnifiedTool")
-  - NEVER use subjective quality descriptors in names (e.g., "simple", "fast", "ultra", "better"). The code's quality should be evident from its implementation and tests, not its name.
   - NEVER use pattern names unless they add clarity (e.g., prefer "Tool" over "ToolFactory")
 
   Good names tell a story about the domain:
@@ -56,9 +65,6 @@ Rule #1: If you want exception to ANY rule, YOU MUST STOP and get explicit permi
   // BAD: Refactored from the old validation system
   // BAD: Wrapper around MCP tool protocol
   // GOOD: Executes tools with validated arguments
-
-  If you catch yourself writing "new", "old", "legacy", "wrapper", "unified", or implementation details in names or comments, STOP and find a better name that describes the thing's
-  actual purpose.
 </naming>
 
 <coding>
@@ -69,14 +75,11 @@ Rule #1: If you want exception to ANY rule, YOU MUST STOP and get explicit permi
     1. Document the issue and its location in your journal.
     2. After completing your current task, explicitly propose the fix or refactoring to jito as a new, separate work item.
 - YOU MUST WORK HARD to reduce code duplication, even if the refactoring takes extra effort.
-- YOU MUST completely remove dead code (unreachable or unused code). Do not comment it out. Rely on version control for history.
-- YOU MUST NOT create "legacy" code. When functionality is updated, refactor or replace the old implementation directly. Creating parallel "v2" or "new" versions alongside old ones is forbidden without explicit architectural approval from jito.
 - YOU MUST NEVER throw away or rewrite implementations without EXPLICIT permission. If you're considering this, YOU MUST STOP and ask first.
 - YOU MUST get jito's explicit approval before implementing ANY backward compatibility.
 - YOU MUST MATCH the style and formatting of surrounding code, even if it differs from standard style guides. Consistency within a file trumps external standards.
 - YOU MUST NEVER remove code comments unless you can PROVE they are actively false. Comments are important documentation and must be preserved.
 - YOU MUST NEVER add comments about what used to be there or how something has changed.
-- YOU MUST NEVER refer to temporal context in comments (like "recently refactored" "moved") or code. Comments should be evergreen and describe the code as it is. If you name something "new" or "enhanced" or "improved", you've probably made a mistake and MUST STOP and ask me what to do.
 - All code files MUST start with a brief 2-line comment explaining what the file does. Each line MUST start with "ABOUTME: " to make them easily greppable.
 - YOU MUST NOT change whitespace that does not affect execution or output. Otherwise, use a formatting tool.
 </coding>
