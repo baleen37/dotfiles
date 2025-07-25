@@ -1,112 +1,163 @@
-# iTerm2 to WezTerm Migration TODO
+# 테스트 리팩토링 작업 상태 관리
 
-## 📋 현재 진행 상황
+## 🎯 전체 진행 상황
+**프로젝트**: 테스트 코드 리팩토링 (133개 → 35개 파일 통합)  
+**시작일**: 2025-01-25  
+**예상 완료**: 2025-02-25 (5주)  
+**현재 상태**: Phase 0 - 계획 수립 완료 ✅
+
+---
+
+## 📊 Phase별 진행 상황
+
+### Phase 1: 기반 정리 (Week 1)
+- [ ] **Day 1**: 테스트 분류 및 매핑
+- [ ] **Day 2**: 공통 유틸리티 설계
+- [ ] **Day 3**: 테스트 템플릿 설계
+- [ ] **Day 4-5**: 기반 구조 구현
+
+### Phase 2: 핵심 테스트 통합 (Week 2-3)
+- [ ] **Day 6-7**: Build-Switch 테스트 통합 (22개 → 3개)
+- [ ] **Day 8-9**: Claude CLI 테스트 통합 (14개 → 3개)
+- [ ] **Day 10**: Zsh & Shell 테스트 통합 (5개 → 2개)
+- [ ] **Day 11-12**: 시스템 관련 테스트 통합
+- [ ] **Day 13-14**: 패키지 및 자동화 테스트 통합
+- [ ] **Day 15**: 기타 기능 테스트 통합
+
+### Phase 3: 구조 최적화 (Week 4)
+- [ ] **Day 16-17**: 테스트 실행 최적화
+- [ ] **Day 18-19**: 성능 테스트 재구성
+- [ ] **Day 20**: 새로운 default.nix 구현
+
+### Phase 4: 품질 및 성능 향상 (Week 5)
+- [ ] **Day 21-22**: 성능 최적화
+- [ ] **Day 23-24**: 문서화 및 가이드라인
+- [ ] **Day 25**: 검증 및 마무리
+
+---
+
+## 🎯 현재 작업 목록
 
 ### ✅ 완료된 작업
-- [x] 현재 dotfiles 구조 분석
-- [x] iTerm2 설정 파일 위치 확인 (`modules/darwin/config/iterm2/DynamicProfiles.json`)  
-- [x] WezTerm 설정 구조 연구 (Lua 기반, ~/.config/wezterm/wezterm.lua)
-- [x] 마이그레이션 계획 수립 및 plan.md 작성
+- [x] 현재 테스트 구조 분석 (133개 파일 확인)
+- [x] 중복 테스트 패턴 식별 (build-switch 22개, claude 14개 등)
+- [x] 테스트 품질 문제점 도출
+- [x] 리팩토링 아키텍처 설계
+- [x] Phase별 상세 계획 수립
+- [x] plan.md 작성 완료
+- [x] todo.md 초기 생성
 
 ### 🔄 진행 중인 작업
-#### Phase 2: WezTerm Setup and Configuration
-- [ ] **Task 2.1**: Create WezTerm configuration directory and base files
-- [ ] **Task 2.2**: Convert iTerm2 color scheme to WezTerm format
-- [ ] **Task 2.3**: Configure fonts to match iTerm2 settings  
-- [ ] **Task 2.4**: Convert iTerm2 key mappings to WezTerm format
-- [ ] **Task 2.5**: Migrate terminal behavior settings
+- [x] Phase 1 Day 1: 테스트 분류 및 매핑 - **완료** ✅
+- [ ] Phase 1 Day 2: 공통 유틸리티 설계 - **다음 단계**
 
-### ⏳ 대기 중인 작업
-#### Phase 3: Nix Integration  
-- [ ] **Task 3.1**: Update package installations (casks.nix)
-- [ ] **Task 3.2**: Update Nix file deployment (files.nix)
-- [ ] **Task 3.3**: Test and validate build process
+### 📋 다음 작업 (Phase 1 시작 준비)
+- [x] 133개 테스트 파일 상세 매핑 작업
+- [x] 중복 그룹별 통합 우선순위 결정
+- [x] 삭제 대상 테스트 최종 확정
+- [x] 새로운 디렉토리 구조 생성
 
-#### Phase 4: Testing and Validation
-- [ ] **Task 4.1**: Verify core WezTerm functionality
-- [ ] **Task 4.2**: Test all keyboard shortcuts
-- [ ] **Task 4.3**: Test with existing workflow
+---
 
-#### Phase 5: Documentation and Cleanup
-- [ ] **Task 5.1**: Update project documentation
-- [ ] **Task 5.2**: Clean up old references
+## 📈 성능 지표 추적
 
-## 📊 세부 Task 진행률
+### 목표 지표
+| 지표 | 현재 | 목표 | 진행률 |
+|------|------|------|--------|
+| 테스트 파일 수 | 133개 | 35개 | 0% |
+| 중복 테스트 비율 | 40% | 10% | 0% |
+| 실행 시간 | ~10분 | ~5분 | 0% |
+| 코드 중복률 | ~40% | ~10% | 0% |
 
-### Phase 2 진행률: 0% (0/5)
-- **Task 2.1**: WezTerm 설정 디렉토리 생성 및 기본 파일 작성
-  - modules/darwin/config/wezterm/ 디렉토리 생성
-  - wezterm.lua 기본 설정 파일 생성
-  - wezterm.config_builder() 구조 설정
+### 주요 통합 그룹 진행률
+- **Build-Switch 그룹** (22개 → 3개): 0%
+- **Claude CLI 그룹** (14개 → 3개): 0%
+- **Zsh 그룹** (5개 → 2개): 0%
+- **User Resolution 그룹** (3개 → 1개): 0%
+- **Homebrew 그룹** (8개 → 2개): 0%
 
-- **Task 2.2**: iTerm2 색상 스키마를 WezTerm 형식으로 변환
-  - ANSI 색상을 iTerm2 JSON에서 WezTerm Lua 색상 스키마로 매핑
-  - 배경 (#000000), 전경 (#ffffff), 커서 색상 변환
-  - 선택 색상 및 투명도 설정 보존
-  - 'iTerm2-Dark'라는 사용자 정의 색상 스키마 생성
+---
 
-- **Task 2.3**: iTerm2 설정과 일치하도록 폰트 구성
-  - 기본 폰트 설정: MesloLGS-NF-Regular
-  - 볼드 폰트 설정: MesloLGS-NF-Bold  
-  - 폰트 크기: 14pt
-  - 폰트 렌더링 옵션 구성 (안티앨리어싱 등)
+## 🚨 이슈 및 주의사항
 
-- **Task 2.4**: iTerm2 키 매핑을 WezTerm 형식으로 변환
-  - Ctrl+Shift+Arrow 키 매핑 (0xf700-0x260000 → [1;6A 형식)
-  - Home/End 키 매핑 변환 (0xf729-0x40000, 0xf72b-0x40000)
-  - 적절한 터미널 시퀀스 출력 보장
+### 높은 우선순위 이슈
+- **없음** (현재 계획 단계)
 
-- **Task 2.5**: 터미널 동작 설정 마이그레이션
-  - scrollback_lines = 10000 설정
-  - 창 투명도 구성 (0.1 알파)
-  - 터미널 타입을 xterm-256color로 설정
-  - 초기 창 크기 구성 (80x25)
-  - 마우스 보고 기능 활성화
+### 중간 우선순위 이슈
+- **기존 테스트 검증 로직 보존**: 통합 과정에서 모든 검증 로직이 누락 없이 새로운 테스트에 포함되어야 함
+- **TDD 원칙 준수**: Red-Green-Refactor 사이클을 유지하면서 리팩토링 진행
+- **성능 회귀 방지**: 통합 후 테스트 실행 시간이 목표를 초과하지 않도록 모니터링
 
-### Phase 3 진행률: 0% (0/3)
-### Phase 4 진행률: 0% (0/3)  
-### Phase 5 진행률: 0% (0/2)
+### 낮은 우선순위 이슈
+- **문서 업데이트**: 기존 TESTING.md와의 호환성 고려
+- **CI/CD 통합**: 새로운 테스트 구조에 맞는 파이프라인 조정
 
-## 🎯 현재 다음 액션
-**다음에 수행할 작업**: Task 2.1 - WezTerm 설정 디렉토리 및 기본 파일 생성
+---
 
-## 📝 주요 메모
+## 📝 일일 작업 로그
 
-### 기술적 세부사항
-- **iTerm2 현재 설정**:
-  - 폰트: MesloLGS-NF-Regular/Bold 14pt
-  - 색상: 어두운 테마, 사용자 정의 ANSI 색상
-  - 키바인딩: Ctrl+Shift+Arrow 키 네비게이션
-  - 터미널: 10000줄 스크롤백, 투명도 0.1
+### 2025-01-25 (금)
+- ✅ 프로젝트 분석 및 계획 수립
+- ✅ 133개 테스트 파일 구조 파악
+- ✅ 중복 패턴 및 문제점 식별
+- ✅ 리팩토링 아키텍처 설계
+- ✅ 상세 구현 계획 작성
+- ✅ plan.md 및 todo.md 문서 생성
 
-- **WezTerm 목표 설정**:
-  - 위치: ~/.config/wezterm/wezterm.lua
-  - 언어: Lua 기반 설정
-  - 색상 스키마: 'iTerm2-Dark' 사용자 정의 스키마
-  - 동일한 키바인딩 및 터미널 동작 유지
+**다음 작업**: Phase 1 시작 (테스트 분류 및 매핑)
 
-### 위험 요소
-1. 폰트 렌더링 차이점
-2. 키바인딩 동작 차이
-3. 성능 특성 변화
-4. 기존 워크플로우와의 통합 문제
+---
 
-### 완료 기준
-- [ ] WezTerm이 올바르게 시작하고 표시됨
-- [ ] 모든 색상이 iTerm2 모양과 일치하거나 개선됨
-- [ ] 키바인딩이 iTerm2와 동일하게 작동
-- [ ] 폰트 렌더링이 허용 가능함
-- [ ] 성능이 동등하거나 더 좋음
-- [ ] 기존 도구와의 통합이 유지됨
-- [ ] 빌드/배포 프로세스가 올바르게 작동함
+## 🎯 다음 마일스톤
 
-## 🕒 예상 소요 시간
-- **Phase 2**: 60분 (설정 생성 및 테스트)
-- **Phase 3**: 30분 (Nix 통합)
-- **Phase 4**: 45분 (종합 테스트)
-- **Phase 5**: 15분 (정리 및 문서화)
-- **총계**: ~2.5시간 (예상치 못한 문제에 대한 버퍼 포함)
+### Phase 1 완료 목표 (Week 1 종료)
+- [ ] 133개 테스트 파일 완전 매핑
+- [ ] 통합 그룹별 상세 계획 확정
+- [ ] 공통 유틸리티 라이브러리 완성
+- [ ] 테스트 템플릿 시스템 구축
+- [ ] 새로운 디렉토리 구조 준비
 
-## 🔄 업데이트 로그
-- **2025-07-23**: 초기 계획 수립 및 TODO 생성
-- **Phase 1 완료**: 분석 및 기초 작업 완료 (30분)
+### Phase 2 완료 목표 (Week 3 종료)
+- [ ] Build-Switch 테스트 완전 통합
+- [ ] Claude CLI 테스트 완전 통합
+- [ ] 기타 주요 기능 테스트들 통합
+- [ ] 통합된 테스트들의 기능 검증 완료
+
+---
+
+## 🔍 검증 체크리스트
+
+### 통합 완료 후 필수 검증 항목
+- [ ] 모든 기존 검증 로직이 새로운 테스트에 포함됨
+- [ ] 새로운 테스트가 정상적으로 실행됨
+- [ ] 테스트 실행 시간이 목표치 이내임
+- [ ] 코드 중복이 목표 수준으로 감소함
+- [ ] 테스트 커버리지가 유지됨
+- [ ] CI/CD 파이프라인이 정상 동작함
+
+### 품질 보증 체크리스트
+- [ ] 일관된 명명 규칙 적용
+- [ ] 템플릿 기반 구조 준수
+- [ ] 적절한 테스트 분류 (core/integration/e2e)
+- [ ] 성능 지표 달성
+- [ ] 문서화 완료
+
+---
+
+## 📚 참고 자료
+
+### 관련 문서
+- [현재 TESTING.md](./docs/TESTING.md) - 기존 테스트 프레임워크 문서
+- [TDD Workflow](./docs/examples/tdd-workflow.md) - TDD 가이드라인
+- [Test Helpers](./tests/lib/test-helpers.nix) - 현재 공통 유틸리티
+
+### 주요 테스트 파일들
+- [default.nix](./tests/default.nix) - 현재 테스트 진입점
+- [claude-config-test.nix](./tests/unit/claude-config-test.nix) - Claude 설정 테스트 예시
+- [build-switch-unit.nix](./tests/unit/build-switch-unit.nix) - Build-Switch 테스트 예시
+
+---
+
+**최종 업데이트**: 2025-01-25  
+**상태**: 계획 수립 완료, Phase 1 시작 대기 중  
+**담당자**: jito (Claude Code 지원)
