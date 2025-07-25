@@ -355,7 +355,7 @@ let
 in
 pkgs.runCommand "build-switch-comprehensive-e2e-test"
 {
-  buildInputs = with pkgs; [ bash coreutils nix git findutils gnugrep timeout ];
+  buildInputs = with pkgs; [ bash coreutils nix git findutils gnugrep ];
 } ''
   echo "=== Starting Comprehensive Build-Switch E2E Tests ==="
   echo "Testing real-world deployment scenarios..."
