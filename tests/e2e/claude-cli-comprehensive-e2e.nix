@@ -484,7 +484,7 @@ class Application {
   }
 
   start() {
-    console.log(`Starting application v${this.version}`);
+    console.log('Starting application v' + this.version);
   }
 }
 
