@@ -1,10 +1,5 @@
 {
-  "dependency_cycles": [
-    [
-      ".dead-code-backup/phase1_20250728_105904/lib/auto-update-prompt.nix",
-      ".dead-code-backup/phase1_20250728_105904/lib/auto-update-prompt.nix"
-    ]
-  ],
+  "dependency_cycles": [],
   "depth_analysis": {
     "depth_distribution": {
       "0": 3,
@@ -15,20 +10,20 @@
     "max_depth": 3
   },
   "recommendations": [
-    "\ud83d\uddd1\ufe0f Review 52 unused files for potential removal",
-    "\ud83d\udd04 Fix 1 dependency cycles detected"
+    "\ud83d\uddd1\ufe0f Review 1 unused files for potential removal",
+    "\ud83d\udd17 High dependency ratio (1.57) - review coupling"
   ],
   "statistics": {
     "entry_points_count": 3,
     "host_files": 2,
-    "lib_files": 14,
+    "lib_files": 13,
     "max_dependency_depth": 3,
-    "module_files": 16,
+    "module_files": 14,
     "script_files": 0,
-    "test_files": 2,
-    "total_dependencies": 55,
-    "total_files": 81,
-    "unused_files_count": 52,
+    "test_files": 0,
+    "total_dependencies": 47,
+    "total_files": 30,
+    "unused_files_count": 1,
     "used_files_count": 29
   },
   "timestamp": "/Users/jito/dev/dotfiles",
@@ -39,58 +34,7 @@
       "hosts/nixos/default.nix"
     ],
     "unused": [
-      ".dead-code-backup/phase1_20250728_105904/lib/auto-update-notifications.nix",
-      ".dead-code-backup/phase1_20250728_105904/lib/auto-update-prompt.nix",
-      ".dead-code-backup/phase1_20250728_105904/lib/auto-update-state.nix",
-      ".dead-code-backup/phase1_20250728_105904/lib/consolidation-engine.nix",
-      ".dead-code-backup/phase1_20250728_105904/lib/existing-tests.nix",
-      ".dead-code-backup/phase1_20250728_105904/lib/template-engine.nix",
-      ".dead-code-backup/phase1_20250728_105904/lib/template-system.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/01-core-system.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/02-build-switch.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/03-platform-detection.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/04-user-resolution.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/05-error-handling.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/06-configuration.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/07-claude-config.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/08-keyboard-input.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/09-zsh-configuration.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/10-app-links.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/11-build-logic.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/12-build-parallelization.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/13-performance-monitoring.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/14-cache-management.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/15-network-handling.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/16-package-management.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/17-module-dependencies.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/18-homebrew-integration.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/19-cask-management.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/20-iterm2-config.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/21-security-ssh.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/22-sudo-management.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/23-precommit-ci.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/24-common-utils.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/25-lib-consolidation.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/26-file-operations.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/27-portable-paths.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/28-directory-structure.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/29-auto-update.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/30-claude-cli.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/31-intellij-idea.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/32-alternative-execution.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/33-parallel-testing.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/34-system-deployment.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/35-comprehensive-workflow.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/default.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests/performance/test-suite-structure-optimization.nix",
-      "lib/performance-config.nix",
-      "modules/darwin/dock/default.nix",
-      "modules/shared/default.nix",
-      "modules/shared/lib/claude-config-policy.nix",
-      "overlays/10-feather-font.nix",
-      "overlays/20-hammerspoon.nix",
-      "tests/config/test-suite.nix",
-      "tests/default.nix"
+      "modules/shared/default.nix"
     ],
     "used": [
       "flake.nix",
@@ -126,68 +70,13 @@
   },
   "unused_by_category": {
     "hosts": [],
-    "lib": [
-      "lib/performance-config.nix"
-    ],
+    "lib": [],
     "modules": [
-      "modules/darwin/dock/default.nix",
-      "modules/shared/default.nix",
-      "modules/shared/lib/claude-config-policy.nix"
+      "modules/shared/default.nix"
     ],
-    "other": [
-      ".dead-code-backup/phase1_20250728_105904/lib/auto-update-notifications.nix",
-      ".dead-code-backup/phase1_20250728_105904/lib/auto-update-prompt.nix",
-      ".dead-code-backup/phase1_20250728_105904/lib/auto-update-state.nix",
-      ".dead-code-backup/phase1_20250728_105904/lib/consolidation-engine.nix",
-      ".dead-code-backup/phase1_20250728_105904/lib/existing-tests.nix",
-      ".dead-code-backup/phase1_20250728_105904/lib/template-engine.nix",
-      ".dead-code-backup/phase1_20250728_105904/lib/template-system.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/01-core-system.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/02-build-switch.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/03-platform-detection.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/04-user-resolution.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/05-error-handling.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/06-configuration.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/07-claude-config.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/08-keyboard-input.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/09-zsh-configuration.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/10-app-links.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/11-build-logic.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/12-build-parallelization.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/13-performance-monitoring.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/14-cache-management.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/15-network-handling.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/16-package-management.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/17-module-dependencies.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/18-homebrew-integration.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/19-cask-management.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/20-iterm2-config.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/21-security-ssh.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/22-sudo-management.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/23-precommit-ci.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/24-common-utils.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/25-lib-consolidation.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/26-file-operations.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/27-portable-paths.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/28-directory-structure.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/29-auto-update.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/30-claude-cli.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/31-intellij-idea.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/32-alternative-execution.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/33-parallel-testing.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/34-system-deployment.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/35-comprehensive-workflow.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/default.nix",
-      ".dead-code-backup/phase1_20250728_105904/tests/performance/test-suite-structure-optimization.nix"
-    ],
-    "overlays": [
-      "overlays/10-feather-font.nix",
-      "overlays/20-hammerspoon.nix"
-    ],
+    "other": [],
+    "overlays": [],
     "scripts": [],
-    "tests": [
-      "tests/config/test-suite.nix",
-      "tests/default.nix"
-    ]
+    "tests": []
   }
 }
