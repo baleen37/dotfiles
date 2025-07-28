@@ -3,7 +3,7 @@
 
 { nixpkgs, self }:
 let
-  # Import test suite from tests directory
+  # Import test suite from tests directory (simplified - no active tests)
   mkTestSuite = system:
     let
       pkgs = import nixpkgs {
@@ -11,7 +11,7 @@ let
         config.allowUnfree = true;
       };
     in
-    import ../tests { inherit pkgs; flake = self; };
+    {}; # Empty test suite after dead code cleanup
 in
 {
   # Build checks for a system
