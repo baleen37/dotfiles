@@ -6,11 +6,11 @@ ARCH := $(shell uname -m)
 OS := $(shell uname -s | tr A-Z a-z)
 NIX := nix --extra-experimental-features 'nix-command flakes'
 
-# Platform detection using our platform-detector
-PLATFORM_DETECTOR_BASE := $(NIX) eval --impure --expr 'import ./lib/platform-detector.nix { system = builtins.currentSystem; }'
-CURRENT_PLATFORM := $(shell $(NIX) eval --impure --expr '(import ./lib/platform-detector.nix { system = builtins.currentSystem; }).getCurrentPlatform' | tr -d '"')
-CURRENT_ARCH := $(shell $(NIX) eval --impure --expr '(import ./lib/platform-detector.nix { system = builtins.currentSystem; }).getCurrentArch' | tr -d '"')
-CURRENT_SYSTEM := $(shell $(NIX) eval --impure --expr '(import ./lib/platform-detector.nix { system = builtins.currentSystem; }).getCurrentSystem' | tr -d '"')
+# Platform detection using our platform-system
+PLATFORM_SYSTEM_BASE := $(NIX) eval --impure --expr 'import ./lib/platform-system.nix { system = builtins.currentSystem; }'
+CURRENT_PLATFORM := $(shell $(NIX) eval --impure --expr '(import ./lib/platform-system.nix { system = builtins.currentSystem; }).platform' | tr -d '"')
+CURRENT_ARCH := $(shell $(NIX) eval --impure --expr '(import ./lib/platform-system.nix { system = builtins.currentSystem; }).arch' | tr -d '"')
+CURRENT_SYSTEM := $(shell $(NIX) eval --impure --expr '(import ./lib/platform-system.nix { system = builtins.currentSystem; }).system' | tr -d '"')
 
 # Check if USER is properly set
 check-user:
@@ -105,7 +105,7 @@ platform-info:
 	@echo "  Nix System: $$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"')"
 	@echo ""
 	@echo "🎯 Supported Systems:"
-	@$(NIX) eval --impure --expr '(import ./lib/platform-detector.nix { system = builtins.currentSystem; }).getSupportedSystems' | tr -d '[]"' | tr ' ' '\n' | sed 's/^/  /'
+	@$(NIX) eval --impure --expr '(import ./lib/platform-system.nix { system = builtins.currentSystem; }).supportedSystems' | tr -d '[]"' | tr ' ' '\n' | sed 's/^/  /'
 
 build-current: check-user
 	@echo "⚡ Building current platform only: $(CURRENT_SYSTEM) with USER=$(USER)..."
@@ -118,7 +118,7 @@ build-current: check-user
 build-fast: check-user
 	@echo "⚡⚡ Fast build with optimizations for $(CURRENT_SYSTEM)..."
 	@start_time=$$(date +%s); \
-	OPTS=$$($(NIX) eval --impure --expr '(import ./lib/platform-detector.nix { system = builtins.currentSystem; }).getOptimizations.extraArgs' | tr -d '[]"' | tr ',' ' '); \
+	OPTS=$$($(NIX) eval --impure --expr '(import ./lib/platform-system.nix { system = builtins.currentSystem; }).utils.getOptimizedBuildConfig (import ./lib/platform-system.nix { system = builtins.currentSystem; }).platform).nixBuildOptions' | tr -d '[]"' | tr ',' ' '); \
 	$(call build-systems,optimized current platform,$(CURRENT_PLATFORM),$(CURRENT_SYSTEM),$$OPTS); \
 	end_time=$$(date +%s); \
 	duration=$$((end_time - start_time)); \

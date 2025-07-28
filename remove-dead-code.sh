@@ -19,65 +19,65 @@ echo ""
 echo "📋 Phase 1: Safe removals (Low risk)"
 echo "------------------------------------"
 
-if [ -f "lib/auto-update-notifications.nix" ]; then
-    echo "  🗑️ Removing: lib/auto-update-notifications.nix"
-    rm "lib/auto-update-notifications.nix"
+if [ -f ".dead-code-backup/phase1_20250728_105904/lib/auto-update-notifications.nix" ]; then
+    echo "  🗑️ Removing: .dead-code-backup/phase1_20250728_105904/lib/auto-update-notifications.nix"
+    rm ".dead-code-backup/phase1_20250728_105904/lib/auto-update-notifications.nix"
 else
-    echo "  ⚠️ Not found: lib/auto-update-notifications.nix"
+    echo "  ⚠️ Not found: .dead-code-backup/phase1_20250728_105904/lib/auto-update-notifications.nix"
 fi
-if [ -f "lib/auto-update-prompt.nix" ]; then
-    echo "  🗑️ Removing: lib/auto-update-prompt.nix"
-    rm "lib/auto-update-prompt.nix"
+if [ -f ".dead-code-backup/phase1_20250728_105904/lib/auto-update-prompt.nix" ]; then
+    echo "  🗑️ Removing: .dead-code-backup/phase1_20250728_105904/lib/auto-update-prompt.nix"
+    rm ".dead-code-backup/phase1_20250728_105904/lib/auto-update-prompt.nix"
 else
-    echo "  ⚠️ Not found: lib/auto-update-prompt.nix"
+    echo "  ⚠️ Not found: .dead-code-backup/phase1_20250728_105904/lib/auto-update-prompt.nix"
 fi
-if [ -f "lib/auto-update-state.nix" ]; then
-    echo "  🗑️ Removing: lib/auto-update-state.nix"
-    rm "lib/auto-update-state.nix"
+if [ -f ".dead-code-backup/phase1_20250728_105904/lib/auto-update-state.nix" ]; then
+    echo "  🗑️ Removing: .dead-code-backup/phase1_20250728_105904/lib/auto-update-state.nix"
+    rm ".dead-code-backup/phase1_20250728_105904/lib/auto-update-state.nix"
 else
-    echo "  ⚠️ Not found: lib/auto-update-state.nix"
+    echo "  ⚠️ Not found: .dead-code-backup/phase1_20250728_105904/lib/auto-update-state.nix"
 fi
-if [ -f "lib/existing-tests.nix" ]; then
-    echo "  🗑️ Removing: lib/existing-tests.nix"
-    rm "lib/existing-tests.nix"
+if [ -f ".dead-code-backup/phase1_20250728_105904/lib/consolidation-engine.nix" ]; then
+    echo "  🗑️ Removing: .dead-code-backup/phase1_20250728_105904/lib/consolidation-engine.nix"
+    rm ".dead-code-backup/phase1_20250728_105904/lib/consolidation-engine.nix"
 else
-    echo "  ⚠️ Not found: lib/existing-tests.nix"
+    echo "  ⚠️ Not found: .dead-code-backup/phase1_20250728_105904/lib/consolidation-engine.nix"
 fi
-if [ -f "lib/template-engine.nix" ]; then
-    echo "  🗑️ Removing: lib/template-engine.nix"
-    rm "lib/template-engine.nix"
+if [ -f ".dead-code-backup/phase1_20250728_105904/lib/existing-tests.nix" ]; then
+    echo "  🗑️ Removing: .dead-code-backup/phase1_20250728_105904/lib/existing-tests.nix"
+    rm ".dead-code-backup/phase1_20250728_105904/lib/existing-tests.nix"
 else
-    echo "  ⚠️ Not found: lib/template-engine.nix"
+    echo "  ⚠️ Not found: .dead-code-backup/phase1_20250728_105904/lib/existing-tests.nix"
 fi
-if [ -f "lib/template-system.nix" ]; then
-    echo "  🗑️ Removing: lib/template-system.nix"
-    rm "lib/template-system.nix"
+if [ -f ".dead-code-backup/phase1_20250728_105904/lib/template-engine.nix" ]; then
+    echo "  🗑️ Removing: .dead-code-backup/phase1_20250728_105904/lib/template-engine.nix"
+    rm ".dead-code-backup/phase1_20250728_105904/lib/template-engine.nix"
 else
-    echo "  ⚠️ Not found: lib/template-system.nix"
+    echo "  ⚠️ Not found: .dead-code-backup/phase1_20250728_105904/lib/template-engine.nix"
 fi
-if [ -f "tests-consolidated/01-core-system.nix" ]; then
-    echo "  🗑️ Removing: tests-consolidated/01-core-system.nix"
-    rm "tests-consolidated/01-core-system.nix"
+if [ -f ".dead-code-backup/phase1_20250728_105904/lib/template-system.nix" ]; then
+    echo "  🗑️ Removing: .dead-code-backup/phase1_20250728_105904/lib/template-system.nix"
+    rm ".dead-code-backup/phase1_20250728_105904/lib/template-system.nix"
 else
-    echo "  ⚠️ Not found: tests-consolidated/01-core-system.nix"
+    echo "  ⚠️ Not found: .dead-code-backup/phase1_20250728_105904/lib/template-system.nix"
 fi
-if [ -f "tests-consolidated/02-build-switch.nix" ]; then
-    echo "  🗑️ Removing: tests-consolidated/02-build-switch.nix"
-    rm "tests-consolidated/02-build-switch.nix"
+if [ -f ".dead-code-backup/phase1_20250728_105904/tests-consolidated/01-core-system.nix" ]; then
+    echo "  🗑️ Removing: .dead-code-backup/phase1_20250728_105904/tests-consolidated/01-core-system.nix"
+    rm ".dead-code-backup/phase1_20250728_105904/tests-consolidated/01-core-system.nix"
 else
-    echo "  ⚠️ Not found: tests-consolidated/02-build-switch.nix"
+    echo "  ⚠️ Not found: .dead-code-backup/phase1_20250728_105904/tests-consolidated/01-core-system.nix"
 fi
-if [ -f "tests-consolidated/03-platform-detection.nix" ]; then
-    echo "  🗑️ Removing: tests-consolidated/03-platform-detection.nix"
-    rm "tests-consolidated/03-platform-detection.nix"
+if [ -f ".dead-code-backup/phase1_20250728_105904/tests-consolidated/02-build-switch.nix" ]; then
+    echo "  🗑️ Removing: .dead-code-backup/phase1_20250728_105904/tests-consolidated/02-build-switch.nix"
+    rm ".dead-code-backup/phase1_20250728_105904/tests-consolidated/02-build-switch.nix"
 else
-    echo "  ⚠️ Not found: tests-consolidated/03-platform-detection.nix"
+    echo "  ⚠️ Not found: .dead-code-backup/phase1_20250728_105904/tests-consolidated/02-build-switch.nix"
 fi
-if [ -f "tests-consolidated/04-user-resolution.nix" ]; then
-    echo "  🗑️ Removing: tests-consolidated/04-user-resolution.nix"
-    rm "tests-consolidated/04-user-resolution.nix"
+if [ -f ".dead-code-backup/phase1_20250728_105904/tests-consolidated/03-platform-detection.nix" ]; then
+    echo "  🗑️ Removing: .dead-code-backup/phase1_20250728_105904/tests-consolidated/03-platform-detection.nix"
+    rm ".dead-code-backup/phase1_20250728_105904/tests-consolidated/03-platform-detection.nix"
 else
-    echo "  ⚠️ Not found: tests-consolidated/04-user-resolution.nix"
+    echo "  ⚠️ Not found: .dead-code-backup/phase1_20250728_105904/tests-consolidated/03-platform-detection.nix"
 fi
 
 echo ""
