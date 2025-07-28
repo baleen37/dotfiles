@@ -109,11 +109,11 @@ platform-info:
 
 build-current: check-user
 	@echo "⚡ Building current platform only: $(CURRENT_SYSTEM) with USER=$(USER)..."
-	@start_time=$$(date +%s); \
-	$(call build-systems,current platform,$(CURRENT_PLATFORM),$(CURRENT_SYSTEM),); \
-	end_time=$$(date +%s); \
-	duration=$$((end_time - start_time)); \
-	echo "✅ Current platform build completed in $${duration}s with USER=$(USER)"
+	@start_time=$$(date +%s)
+	$(call build-systems,current platform,$(CURRENT_PLATFORM),$(CURRENT_SYSTEM),)
+	@end_time=$$(date +%s)
+	@duration=$$((end_time - start_time))
+	@echo "✅ Current platform build completed in $${duration}s with USER=$(USER)"
 
 build-fast: check-user
 	@echo "⚡⚡ Fast build with optimizations for $(CURRENT_SYSTEM)..."
@@ -122,7 +122,7 @@ build-fast: check-user
 	$(call build-systems,optimized current platform,$(CURRENT_PLATFORM),$(CURRENT_SYSTEM),$$OPTS); \
 	end_time=$$(date +%s); \
 	duration=$$((end_time - start_time)); \
-	echo "✅ Fast build completed in $${duration}s with optimizations"
+	@echo "✅ Fast build completed in $${duration}s with optimizations"
 
 switch: check-user
 	@echo "🔄 Switching system configuration with USER=$(USER)..."
