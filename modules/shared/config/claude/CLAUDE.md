@@ -33,15 +33,13 @@ Rule #1: If you want exception to ANY rule, YOU MUST STOP and get explicit permi
 </design>
 
 <refactoring_and_evolution>
-- **Principle: Evolve, Don't Accumulate**: The codebase is a living system that must be evolved directly. When updating functionality, you MUST refactor or replace the old implementation. Do not leave remnants of the old code behind.
-- **No Parallel Versions**: Creating "new" or "v2" versions alongside "legacy" or "old" ones is strictly forbidden. This introduces ambiguity, increases maintenance, and leads to bugs. There must be a single, authoritative implementation for any given feature.
-- **No Manual Backups**: Creating backup files or directories (e.g., `file.js.bak`, `old_config/`) before modification is strictly forbidden. This practice clutters the project and undermines the authority of version control. The project relies exclusively on Git for history and recovery. Before any significant or destructive change, ensure the current state is committed. Trust Git to be your safety net, not manual file copies.
-- **Forbidden Terms**: The use of temporal or comparative words in code or comments is a strong indicator of violating this principle. Avoid terms like:
-  - `new`, `old`, `legacy`, `backup`, `archive`
-  - `v2`, `enhanced`, `improved`, `better`, `simple`
-  - `wrapper`, `unified`, `handler` (when used to hide a legacy system)
-- **Action: If you are tempted to use a forbidden term, STOP.** It signifies a design problem. Instead of creating a parallel entity, refactor the existing one to meet the new requirements.
-- **Dead Code is Deleted Code**: Unused, unreachable, or replaced code MUST be deleted immediately and completely. Do not comment it out. Version control is the only system history.
+- **Core Principle: Evolve Directly, Trust Version Control**: The codebase is a living system. Modifications MUST be made by directly refactoring or replacing old implementations. Do not create parallel versions or manual backups. Git is the *only* authoritative history and safety net. **Before any significant change, you MUST commit.**
+
+- **Indicators of Anti-Patterns (Forbidden Terms)**: Using the following words in code, comments, or filenames is a strong signal of a design problem. If you find yourself reaching for them, **STOP** and re-evaluate your approach. Instead of creating a parallel entity, refactor the existing one.
+  - **Temporal/Qualitative**: `new`, `old`, `legacy`, `backup`, `archive`, `v2`, `enhanced`, `improved`, `better`, `simple`
+  - **Structural Wrappers**: `wrapper`, `unified`, `handler` (when used to hide a legacy system)
+
+- **Dead Code is Deleted Code**: Unused, unreachable, or replaced code MUST be deleted immediately and completely. Do not comment it out. Trust the Git history.
 </refactoring_and_evolution>
 
 <naming>

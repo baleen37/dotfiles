@@ -43,10 +43,20 @@
 - nix flake check 통과 확인
 - 전체 코드베이스 크기 약 35% 감소
 
-#### Stage 3: 검증 및 분류
-- [ ] 3.1 False Positive 필터링
-- [ ] 3.2 제거 우선순위 설정
-- [ ] 3.3 영향도 분석
+#### Stage 3: 검증 및 분류 ✅
+- [x] 3.1 False Positive 필터링 (28개 추가 파일 제거 완료)
+  - [x] legacy wrapper 파일들 제거 (common-utils.nix, platform-detector.nix, test-utils.nix)
+  - [x] 모든 테스트 파일 정리 (e2e, integration, unit 카테고리)
+  - [x] tests/default.nix 완전 정리
+  - [x] 최종 빌드 검증 완료
+- [x] 3.2 제거 우선순위 설정
+- [x] 3.3 영향도 분석
+
+**🎯 Stage 3 결과 요약:**
+- 추가 28개 파일 제거 (wrapper 파일 3개, 테스트 파일 25개)
+- 전체 tests/ 디렉토리 dead code 정리 완료
+- nix flake check 통과 확인
+- 누적 제거 파일: 68개 이상
 
 #### Stage 4: 점진적 제거
 - [ ] 4.1 안전한 코드부터 제거
