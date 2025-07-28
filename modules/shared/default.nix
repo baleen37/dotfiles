@@ -1,22 +1,13 @@
-{ config, pkgs, ... }:
+# Shared modules entry point
+# This file serves as the main entry point for shared modules used across different platforms
+
+{ config, pkgs, lib, ... }:
 
 {
+  imports = [
+    ./files.nix
+  ];
 
-  nixpkgs = {
-    config = {
-      allowUnfree = true;
-      allowBroken = true;
-      allowInsecure = false;
-      allowUnsupportedSystem = true;
-    };
-
-    overlays =
-      # Apply each overlay found in the /overlays directory
-      let path = ../../overlays; in with builtins;
-      map (n: import (path + ("/" + n)))
-        (filter
-          (n: match ".*\\.nix" n != null ||
-            pathExists (path + ("/" + n + "/default.nix")))
-          (attrNames (readDir path)));
-  };
+  # Include packages directly in environment.systemPackages
+  environment.systemPackages = (import ./packages.nix { inherit pkgs; });
 }

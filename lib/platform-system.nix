@@ -5,12 +5,30 @@
 { pkgs ? null, lib ? null, nixpkgs ? null, self ? null, system ? null }:
 
 let
-  # Determine pkgs and lib
-  actualPkgs = if pkgs != null then pkgs else (import <nixpkgs> {});
-  actualLib = if lib != null then lib else actualPkgs.lib;
+  # Determine pkgs and lib with fallbacks
+  actualPkgs = if pkgs != null then pkgs else null;
+  actualLib = if lib != null then lib else
+    (if actualPkgs != null then actualPkgs.lib else
+      # Basic lib functions fallback
+      {
+        splitString = sep: str:
+          let parts = builtins.split sep str;
+          in builtins.filter (x: builtins.isString x && x != "") parts;
+        concatStringsSep = sep: list: builtins.concatStringsSep sep list;
+        filter = f: list: builtins.filter f list;
+        replaceStrings = from: to: str: builtins.replaceStrings from to str;
+        hasPrefix = prefix: str: builtins.substring 0 (builtins.stringLength prefix) str == prefix;
+        genAttrs = names: f: builtins.listToAttrs (map (name: { inherit name; value = f name; }) names);
+        elemAt = list: pos: builtins.elemAt list pos;
+      });
 
-  # Import error system for error handling
-  errorSystem = import ./error-system.nix { pkgs = actualPkgs; lib = actualLib; };
+  # Import error system for error handling (only if actualPkgs is available)
+  errorSystem = if actualPkgs != null then
+    import ./error-system.nix { pkgs = actualPkgs; lib = actualLib; }
+  else {
+    throwConfigError = msg: throw "Config Error: ${msg}";
+    throwUserError = msg: throw "User Error: ${msg}";
+  };
 
   # Platform detection core
   detection = let
@@ -19,10 +37,13 @@ let
     # Get current system from parameter (required in flake context)
     nixSystem = currentSystem;
 
-    # Extract platform and architecture from Nix system
-    systemParts = actualLib.splitString "-" currentSystem;
-    detectedArch = if builtins.length detection.systemParts >= 1 then builtins.head detection.systemParts else "unknown";
-    detectedPlatform = if builtins.length detection.systemParts >= 2 then builtins.elemAt detection.systemParts 1 else "unknown";
+    # Extract platform and architecture from Nix system using manual parsing
+    detectedArch = if builtins.match "x86_64-.*" currentSystem != null then "x86_64"
+                   else if builtins.match "aarch64-.*" currentSystem != null then "aarch64"
+                   else "unknown";
+    detectedPlatform = if builtins.match ".*-darwin" currentSystem != null then "darwin"
+                      else if builtins.match ".*-linux" currentSystem != null then "linux"
+                      else "unknown";
 
     # Supported configurations
     supportedPlatforms = [ "darwin" "linux" ];

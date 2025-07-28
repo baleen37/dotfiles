@@ -2,11 +2,14 @@
 # This module provides cross-platform Claude configuration file management
 # with intelligent preservation of user modifications and automatic backups.
 
-{ config, lib, self, platform ? "unknown" }:
+{ config, lib, self ? null, platform ? "unknown" }:
 
 let
   claudeDir = "${config.home.homeDirectory}/.claude";
-  sourceDir = "${self}/modules/shared/config/claude";
+  # Fallback to relative path if self is not available
+  sourceDir = if self != null
+    then "${self}/modules/shared/config/claude"
+    else "./modules/shared/config/claude";
 
   # Platform-specific hash command selection
   hashCommand = if platform == "darwin" then ''

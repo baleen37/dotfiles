@@ -1,0 +1,306 @@
+{
+  "categories": {
+    "keep_for_reference": [],
+    "potential_false_positive": [
+      "lib/performance-config.nix",
+      "modules/darwin/dock/default.nix",
+      "modules/shared/default.nix",
+      "modules/shared/lib/claude-config-policy.nix",
+      "overlays/10-feather-font.nix",
+      "overlays/20-hammerspoon.nix",
+      "tests/config/test-suite.nix",
+      "tests/default.nix"
+    ],
+    "review_required": [],
+    "safe_to_remove": [
+      ".dead-code-backup/phase1_20250728_105904/lib/auto-update-notifications.nix",
+      ".dead-code-backup/phase1_20250728_105904/lib/auto-update-prompt.nix",
+      ".dead-code-backup/phase1_20250728_105904/lib/auto-update-state.nix",
+      ".dead-code-backup/phase1_20250728_105904/lib/consolidation-engine.nix",
+      ".dead-code-backup/phase1_20250728_105904/lib/existing-tests.nix",
+      ".dead-code-backup/phase1_20250728_105904/lib/template-engine.nix",
+      ".dead-code-backup/phase1_20250728_105904/lib/template-system.nix",
+      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/01-core-system.nix",
+      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/02-build-switch.nix",
+      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/03-platform-detection.nix",
+      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/04-user-resolution.nix",
+      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/05-error-handling.nix",
+      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/06-configuration.nix",
+      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/07-claude-config.nix",
+      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/08-keyboard-input.nix",
+      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/09-zsh-configuration.nix",
+      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/10-app-links.nix",
+      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/11-build-logic.nix",
+      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/12-build-parallelization.nix",
+      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/13-performance-monitoring.nix",
+      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/14-cache-management.nix",
+      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/15-network-handling.nix",
+      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/16-package-management.nix",
+      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/17-module-dependencies.nix",
+      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/18-homebrew-integration.nix",
+      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/19-cask-management.nix",
+      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/20-iterm2-config.nix",
+      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/21-security-ssh.nix",
+      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/22-sudo-management.nix",
+      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/23-precommit-ci.nix",
+      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/24-common-utils.nix",
+      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/25-lib-consolidation.nix",
+      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/26-file-operations.nix",
+      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/27-portable-paths.nix",
+      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/28-directory-structure.nix",
+      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/29-auto-update.nix",
+      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/30-claude-cli.nix",
+      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/31-intellij-idea.nix",
+      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/32-alternative-execution.nix",
+      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/33-parallel-testing.nix",
+      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/34-system-deployment.nix",
+      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/35-comprehensive-workflow.nix",
+      ".dead-code-backup/phase1_20250728_105904/tests-consolidated/default.nix",
+      ".dead-code-backup/phase1_20250728_105904/tests/performance/test-suite-structure-optimization.nix"
+    ]
+  },
+  "removal_phases": [
+    {
+      "description": "Safe removals - Test files and obvious dead code",
+      "files": [
+        ".dead-code-backup/phase1_20250728_105904/lib/auto-update-notifications.nix",
+        ".dead-code-backup/phase1_20250728_105904/lib/auto-update-prompt.nix",
+        ".dead-code-backup/phase1_20250728_105904/lib/auto-update-state.nix",
+        ".dead-code-backup/phase1_20250728_105904/lib/consolidation-engine.nix",
+        ".dead-code-backup/phase1_20250728_105904/lib/existing-tests.nix",
+        ".dead-code-backup/phase1_20250728_105904/lib/template-engine.nix",
+        ".dead-code-backup/phase1_20250728_105904/lib/template-system.nix",
+        ".dead-code-backup/phase1_20250728_105904/tests-consolidated/01-core-system.nix",
+        ".dead-code-backup/phase1_20250728_105904/tests-consolidated/02-build-switch.nix",
+        ".dead-code-backup/phase1_20250728_105904/tests-consolidated/03-platform-detection.nix"
+      ],
+      "phase": 1,
+      "risk_level": "low"
+    },
+    {
+      "description": "Review required - Potentially unused modules",
+      "files": [],
+      "phase": 2,
+      "risk_level": "medium"
+    },
+    {
+      "description": "Manual verification - Possible false positives",
+      "files": [
+        "lib/performance-config.nix",
+        "modules/darwin/dock/default.nix",
+        "modules/shared/default.nix",
+        "modules/shared/lib/claude-config-policy.nix",
+        "overlays/10-feather-font.nix",
+        "overlays/20-hammerspoon.nix",
+        "tests/config/test-suite.nix",
+        "tests/default.nix"
+      ],
+      "phase": 3,
+      "risk_level": "high"
+    }
+  ],
+  "safety_analysis": {
+    ".dead-code-backup/phase1_20250728_105904/lib/auto-update-notifications.nix": {
+      "exists": false,
+      "file": ".dead-code-backup/phase1_20250728_105904/lib/auto-update-notifications.nix",
+      "git_tracked": true,
+      "has_complex_logic": false,
+      "has_exports": false,
+      "line_count": 0,
+      "recent_modifications": false,
+      "size_bytes": 0
+    },
+    ".dead-code-backup/phase1_20250728_105904/lib/auto-update-prompt.nix": {
+      "exists": false,
+      "file": ".dead-code-backup/phase1_20250728_105904/lib/auto-update-prompt.nix",
+      "git_tracked": true,
+      "has_complex_logic": false,
+      "has_exports": false,
+      "line_count": 0,
+      "recent_modifications": false,
+      "size_bytes": 0
+    },
+    ".dead-code-backup/phase1_20250728_105904/lib/auto-update-state.nix": {
+      "exists": false,
+      "file": ".dead-code-backup/phase1_20250728_105904/lib/auto-update-state.nix",
+      "git_tracked": true,
+      "has_complex_logic": false,
+      "has_exports": false,
+      "line_count": 0,
+      "recent_modifications": false,
+      "size_bytes": 0
+    },
+    ".dead-code-backup/phase1_20250728_105904/lib/consolidation-engine.nix": {
+      "exists": false,
+      "file": ".dead-code-backup/phase1_20250728_105904/lib/consolidation-engine.nix",
+      "git_tracked": true,
+      "has_complex_logic": false,
+      "has_exports": false,
+      "line_count": 0,
+      "recent_modifications": false,
+      "size_bytes": 0
+    },
+    ".dead-code-backup/phase1_20250728_105904/lib/existing-tests.nix": {
+      "exists": false,
+      "file": ".dead-code-backup/phase1_20250728_105904/lib/existing-tests.nix",
+      "git_tracked": true,
+      "has_complex_logic": false,
+      "has_exports": false,
+      "line_count": 0,
+      "recent_modifications": false,
+      "size_bytes": 0
+    },
+    ".dead-code-backup/phase1_20250728_105904/lib/template-engine.nix": {
+      "exists": false,
+      "file": ".dead-code-backup/phase1_20250728_105904/lib/template-engine.nix",
+      "git_tracked": true,
+      "has_complex_logic": false,
+      "has_exports": false,
+      "line_count": 0,
+      "recent_modifications": false,
+      "size_bytes": 0
+    },
+    ".dead-code-backup/phase1_20250728_105904/lib/template-system.nix": {
+      "exists": false,
+      "file": ".dead-code-backup/phase1_20250728_105904/lib/template-system.nix",
+      "git_tracked": true,
+      "has_complex_logic": false,
+      "has_exports": false,
+      "line_count": 0,
+      "recent_modifications": false,
+      "size_bytes": 0
+    },
+    ".dead-code-backup/phase1_20250728_105904/tests-consolidated/01-core-system.nix": {
+      "exists": false,
+      "file": ".dead-code-backup/phase1_20250728_105904/tests-consolidated/01-core-system.nix",
+      "git_tracked": true,
+      "has_complex_logic": false,
+      "has_exports": false,
+      "line_count": 0,
+      "recent_modifications": false,
+      "size_bytes": 0
+    },
+    ".dead-code-backup/phase1_20250728_105904/tests-consolidated/02-build-switch.nix": {
+      "exists": false,
+      "file": ".dead-code-backup/phase1_20250728_105904/tests-consolidated/02-build-switch.nix",
+      "git_tracked": true,
+      "has_complex_logic": false,
+      "has_exports": false,
+      "line_count": 0,
+      "recent_modifications": false,
+      "size_bytes": 0
+    },
+    ".dead-code-backup/phase1_20250728_105904/tests-consolidated/03-platform-detection.nix": {
+      "exists": false,
+      "file": ".dead-code-backup/phase1_20250728_105904/tests-consolidated/03-platform-detection.nix",
+      "git_tracked": true,
+      "has_complex_logic": false,
+      "has_exports": false,
+      "line_count": 0,
+      "recent_modifications": false,
+      "size_bytes": 0
+    },
+    ".dead-code-backup/phase1_20250728_105904/tests-consolidated/04-user-resolution.nix": {
+      "exists": false,
+      "file": ".dead-code-backup/phase1_20250728_105904/tests-consolidated/04-user-resolution.nix",
+      "git_tracked": true,
+      "has_complex_logic": false,
+      "has_exports": false,
+      "line_count": 0,
+      "recent_modifications": false,
+      "size_bytes": 0
+    },
+    ".dead-code-backup/phase1_20250728_105904/tests-consolidated/05-error-handling.nix": {
+      "exists": false,
+      "file": ".dead-code-backup/phase1_20250728_105904/tests-consolidated/05-error-handling.nix",
+      "git_tracked": true,
+      "has_complex_logic": false,
+      "has_exports": false,
+      "line_count": 0,
+      "recent_modifications": false,
+      "size_bytes": 0
+    },
+    ".dead-code-backup/phase1_20250728_105904/tests-consolidated/06-configuration.nix": {
+      "exists": false,
+      "file": ".dead-code-backup/phase1_20250728_105904/tests-consolidated/06-configuration.nix",
+      "git_tracked": true,
+      "has_complex_logic": false,
+      "has_exports": false,
+      "line_count": 0,
+      "recent_modifications": false,
+      "size_bytes": 0
+    },
+    ".dead-code-backup/phase1_20250728_105904/tests-consolidated/07-claude-config.nix": {
+      "exists": false,
+      "file": ".dead-code-backup/phase1_20250728_105904/tests-consolidated/07-claude-config.nix",
+      "git_tracked": true,
+      "has_complex_logic": false,
+      "has_exports": false,
+      "line_count": 0,
+      "recent_modifications": false,
+      "size_bytes": 0
+    },
+    ".dead-code-backup/phase1_20250728_105904/tests-consolidated/08-keyboard-input.nix": {
+      "exists": false,
+      "file": ".dead-code-backup/phase1_20250728_105904/tests-consolidated/08-keyboard-input.nix",
+      "git_tracked": true,
+      "has_complex_logic": false,
+      "has_exports": false,
+      "line_count": 0,
+      "recent_modifications": false,
+      "size_bytes": 0
+    },
+    ".dead-code-backup/phase1_20250728_105904/tests-consolidated/09-zsh-configuration.nix": {
+      "exists": false,
+      "file": ".dead-code-backup/phase1_20250728_105904/tests-consolidated/09-zsh-configuration.nix",
+      "git_tracked": true,
+      "has_complex_logic": false,
+      "has_exports": false,
+      "line_count": 0,
+      "recent_modifications": false,
+      "size_bytes": 0
+    },
+    ".dead-code-backup/phase1_20250728_105904/tests-consolidated/10-app-links.nix": {
+      "exists": false,
+      "file": ".dead-code-backup/phase1_20250728_105904/tests-consolidated/10-app-links.nix",
+      "git_tracked": true,
+      "has_complex_logic": false,
+      "has_exports": false,
+      "line_count": 0,
+      "recent_modifications": false,
+      "size_bytes": 0
+    },
+    ".dead-code-backup/phase1_20250728_105904/tests-consolidated/11-build-logic.nix": {
+      "exists": false,
+      "file": ".dead-code-backup/phase1_20250728_105904/tests-consolidated/11-build-logic.nix",
+      "git_tracked": true,
+      "has_complex_logic": false,
+      "has_exports": false,
+      "line_count": 0,
+      "recent_modifications": false,
+      "size_bytes": 0
+    },
+    ".dead-code-backup/phase1_20250728_105904/tests-consolidated/12-build-parallelization.nix": {
+      "exists": false,
+      "file": ".dead-code-backup/phase1_20250728_105904/tests-consolidated/12-build-parallelization.nix",
+      "git_tracked": true,
+      "has_complex_logic": false,
+      "has_exports": false,
+      "line_count": 0,
+      "recent_modifications": false,
+      "size_bytes": 0
+    },
+    ".dead-code-backup/phase1_20250728_105904/tests-consolidated/13-performance-monitoring.nix": {
+      "exists": false,
+      "file": ".dead-code-backup/phase1_20250728_105904/tests-consolidated/13-performance-monitoring.nix",
+      "git_tracked": true,
+      "has_complex_logic": false,
+      "has_exports": false,
+      "line_count": 0,
+      "recent_modifications": false,
+      "size_bytes": 0
+    }
+  },
+  "timestamp": "2025-07-28T16:29:45.752241",
+  "total_unused": 52
+}

@@ -6,7 +6,6 @@ with pkgs; let
     wget          # HTTP/FTP download utility
     zip           # Archive creation utility
     unzip         # Archive extraction utility
-    unrar         # RAR archive extraction
     tree          # Directory structure visualization
   ];
 
@@ -29,12 +28,10 @@ with pkgs; let
     uv            # Fast Python package installer
     direnv        # Environment variable management per directory
     pre-commit    # Pre-commit hooks framework
-    claude-code   # Claude AI development assistant
     gemini-cli    # Command-line interface for Gemini
     gnumake       # GNU make build automation tool
     cmake         # Cross-platform build system generator
     home-manager  # Nix-based user environment management
-    vscode        # Visual Studio Code editor
   ];
 
   # Cloud and containerization tools
@@ -44,13 +41,12 @@ with pkgs; let
     docker        # Container platform
   ];
 
-  # Infrastructure as Code (IaC) toolchain
+  # Infrastructure as Code (IaC) toolchain - temporarily disabled due to unfree licenses
   infrastructureTools = [
-    # tfenv              # Terraform version manager (from tfenv-nix flake) - temporarily disabled due to API rate limit
-    terraform     # Infrastructure as Code tool
-    terraform-ls  # Terraform Language Server for IDE support
-    terragrunt    # Terraform wrapper for DRY configurations
-    tflint        # Terraform linter for best practices
+    # terraform     # Infrastructure as Code tool - unfree license
+    # terraform-ls  # Terraform Language Server for IDE support
+    # terragrunt    # Terraform wrapper for DRY configurations
+    # tflint        # Terraform linter for best practices
   ];
 
   # Media processing tools
@@ -86,8 +82,8 @@ with pkgs; let
   # Productivity and utility applications
   productivityTools = [
     bc            # Command-line calculator
-    google-chrome # Google Chrome web browser
-    spotify       # Music streaming application
+    # google-chrome # Google Chrome web browser - unfree license
+    # spotify       # Music streaming application - unfree license
     syncthing     # Continuous file synchronization
   ];
 
