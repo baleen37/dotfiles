@@ -44,6 +44,7 @@ in ''
   fi
 
   $DRY_RUN_CMD mkdir -p "${claudeDir}/commands"
+  $DRY_RUN_CMD mkdir -p "${claudeDir}/agents"
 
   CLAUDE_DIR="${claudeDir}"
   SOURCE_DIR="${sourceDir}"
@@ -183,6 +184,12 @@ EOF
     fi
   done
 
+  for agent_file in "$CLAUDE_DIR/agents"/*.md; do
+    if [[ -L "$agent_file" ]]; then
+      convert_symlink "$agent_file"
+    fi
+  done
+
   # 스마트 복사 실행
   echo ""
   echo "=== Claude 설정 파일 업데이트 ==="
@@ -198,6 +205,16 @@ EOF
       if [[ -f "$cmd_file" ]]; then
         base_name=$(basename "$cmd_file")
         smart_copy "$cmd_file" "$CLAUDE_DIR/commands/$base_name"
+      fi
+    done
+  fi
+
+  # agents 디렉토리 처리
+  if [[ -d "$SOURCE_DIR/agents" ]]; then
+    for agent_file in "$SOURCE_DIR/agents"/*.md; do
+      if [[ -f "$agent_file" ]]; then
+        base_name=$(basename "$agent_file")
+        smart_copy "$agent_file" "$CLAUDE_DIR/agents/$base_name"
       fi
     done
   fi
@@ -220,8 +237,13 @@ EOF
       [[ -f "$f" ]] && echo "commands/$(basename "$f")" >> "$source_list_file"
     done
 
+    # agents 디렉토리 파일들
+    for f in "$SOURCE_DIR/agents"/*.md; do
+      [[ -f "$f" ]] && echo "agents/$(basename "$f")" >> "$source_list_file"
+    done
+
     # 타겟의 파일들 확인
-    for target_file in "$CLAUDE_DIR"/*.md "$CLAUDE_DIR"/*.json "$CLAUDE_DIR/commands"/*.md; do
+    for target_file in "$CLAUDE_DIR"/*.md "$CLAUDE_DIR"/*.json "$CLAUDE_DIR/commands"/*.md "$CLAUDE_DIR/agents"/*.md; do
       [[ -f "$target_file" ]] || continue
 
       # 상대 경로 계산
@@ -254,11 +276,9 @@ EOF
   fi
 
   # 사용자 알림 요약
-  NOTICE_COUNT=$(find "$CLAUDE_DIR" -name "*.update-notice" 2>/dev/null | wc -l || echo "0")
-  NOTICE_COUNT=$${NOTICE_COUNT:-0}
-  if [[ $NOTICE_COUNT -gt 0 ]]; then
+  if find "$CLAUDE_DIR" -name "*.update-notice" 2>/dev/null | grep -q .; then
     echo ""
-    echo "주의: $NOTICE_COUNT개의 업데이트 알림이 생성되었습니다."
+    echo "주의: 업데이트 알림이 생성되었습니다."
     echo "다음 명령어로 확인하세요: find $CLAUDE_DIR -name '*.update-notice'"
     echo ""
   fi
