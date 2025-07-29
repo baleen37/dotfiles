@@ -23,6 +23,7 @@ in
         inherit system;
         specialArgs = inputs;
         modules = [
+          ../modules/shared/config/nixpkgs.nix
           home-manager.darwinModules.home-manager
           nix-homebrew.darwinModules.nix-homebrew
           {
@@ -50,6 +51,7 @@ in
         inherit system;
         specialArgs = inputs;
         modules = [
+          ../modules/shared/config/nixpkgs.nix
           disko.nixosModules.disko
           home-manager.nixosModules.home-manager
           {
