@@ -5,8 +5,9 @@ echo "🧪 Karabiner-Elements 연동 테스트"
 
 # 테스트 1: 필수 경로 존재
 echo "1. 필수 경로 확인..."
-if [ -d "/nix/store/vfdwh7882bnr8jnfq66f4fk5cksnigy1-karabiner-elements-14.13.0" ]; then
-    echo "  ✓ Karabiner nix store 경로 존재"
+KARABINER_STORE_PATH=$(find /nix/store -maxdepth 1 -name "*karabiner-elements*" -type d 2>/dev/null | head -1)
+if [ -n "$KARABINER_STORE_PATH" ] && [ -d "$KARABINER_STORE_PATH" ]; then
+    echo "  ✓ Karabiner nix store 경로 존재: $KARABINER_STORE_PATH"
 else
     echo "  ❌ Karabiner nix store 경로 없음"
     exit 1

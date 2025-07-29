@@ -12,8 +12,8 @@ let
   user = "${userInfo}"; # Use as string for backward compatibility
 
   # Import modularized app and test builders (functions that take system)
-  platformApps = system: import ./platform-apps.nix { inherit nixpkgs system; self = inputs.self; };
-  testApps = system: import ./test-apps.nix { inherit nixpkgs system; self = inputs.self; };
+  platformSystem = system: import ./platform-system.nix { pkgs = nixpkgs.legacyPackages.${system}; lib = nixpkgs.lib; inherit nixpkgs system; self = inputs.self; };
+  testSystem = system: import ./test-system.nix { pkgs = nixpkgs.legacyPackages.${system}; inherit nixpkgs; self = inputs.self; };
 in
 {
   # Darwin system configuration builder
@@ -72,13 +72,13 @@ in
   mkAppConfigurations = {
     # Linux apps builder
     mkLinuxApps = system:
-      (platformApps system).mkLinuxCoreApps system //
-      (testApps system).mkLinuxTestApps system;
+      (let ps = platformSystem system; in if ps.apps.platformApps ? linux then ps.apps.platformApps.linux else {}) //
+      (testSystem system).mkLinuxTestApps system;
 
     # Darwin apps builder
     mkDarwinApps = system:
-      (platformApps system).mkDarwinCoreApps system //
-      (testApps system).mkDarwinTestApps system;
+      (let ps = platformSystem system; in if ps.apps.platformApps ? darwin then ps.apps.platformApps.darwin else {}) //
+      (testSystem system).mkDarwinTestApps system;
   };
 
   # Development shell builder
