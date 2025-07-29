@@ -1,0 +1,15 @@
+{
+  "efficiency_metrics": {
+    "average_path_size_mb": 0,
+    "dead_path_ratio": 38.68
+  },
+  "store_statistics": {
+    "dead_paths": 12657,
+    "gc_roots": 320,
+    "live_paths": 20057,
+    "total_paths": 2100,
+    "total_size_bytes": 0,
+    "total_size_gb": 0
+  },
+  "timestamp": "20250729_204011"
+}

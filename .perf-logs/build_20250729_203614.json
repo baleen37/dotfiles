@@ -1,0 +1,24 @@
+{
+  "build_result": {
+    "duration_human": "00:00:01",
+    "duration_seconds": 1,
+    "exit_code": 0
+  },
+  "cache_statistics": {
+    "cache_hit_ratio": 0.0,
+    "cache_hits": 0,
+    "local_builds": 0,
+    "total_derivations": 0
+  },
+  "resource_usage": {
+    "max_memory_kb": 1168,
+    "max_memory_mb": 1
+  },
+  "system_info": {
+    "cpu_cores": 8,
+    "hostname": "Mac.local.wooto.in",
+    "memory_gb": 16
+  },
+  "target": ".#checks.aarch64-darwin.smoke-test",
+  "timestamp": "20250729_203614"
+}
