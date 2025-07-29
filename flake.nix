@@ -40,6 +40,13 @@
       # Import modular check builders
       checkBuilders = import ./lib/check-builders.nix { inherit nixpkgs self; };
 
+      # Import performance optimization integration
+      performanceIntegration = system: import ./lib/performance-integration.nix {
+        inherit (nixpkgs) lib;
+        pkgs = nixpkgs.legacyPackages.${system};
+        inherit system inputs self;
+      };
+
       # Use architecture definitions from flake config
       inherit (flakeConfig.systemArchitectures) linux darwin all;
       linuxSystems = linux;
@@ -49,39 +56,50 @@
       utils = flakeConfig.utils nixpkgs;
       forAllSystems = utils.forAllSystems;
 
-      # Development shell using flake config utils
-      devShell = system: utils.mkDevShell system;
+      # Development shell using flake config utils with performance optimization
+      devShell = system:
+        let
+          baseShell = utils.mkDevShell system;
+          perfIntegration = performanceIntegration system;
+        in
+        perfIntegration.performanceOptimizations.mkOptimizedDevShell baseShell;
+
     in
-    {
-      # Shared library functions - using unified systems
-      lib = {
-        # Unified systems (functions that take system as parameter)
-        utilsSystem = system: import ./lib/utils-system.nix { pkgs = nixpkgs.legacyPackages.${system}; lib = nixpkgs.lib; };
-        platformSystem = system: import ./lib/platform-system.nix { pkgs = nixpkgs.legacyPackages.${system}; lib = nixpkgs.lib; inherit nixpkgs self system; };
-        errorSystem = system: import ./lib/error-system.nix { pkgs = nixpkgs.legacyPackages.${system}; lib = nixpkgs.lib; };
-        testSystem = system: import ./lib/test-system.nix { pkgs = nixpkgs.legacyPackages.${system}; inherit nixpkgs self; };
+    let
+      # Generate base outputs
+      baseOutputs = {
+        # Shared library functions - using unified systems
+        lib = {
+          # Unified systems (functions that take system as parameter)
+          utilsSystem = system: import ./lib/utils-system.nix { pkgs = nixpkgs.legacyPackages.${system}; lib = nixpkgs.lib; };
+          platformSystem = system: import ./lib/platform-system.nix { pkgs = nixpkgs.legacyPackages.${system}; lib = nixpkgs.lib; inherit nixpkgs self system; };
+          errorSystem = system: import ./lib/error-system.nix { pkgs = nixpkgs.legacyPackages.${system}; lib = nixpkgs.lib; };
+          testSystem = system: import ./lib/test-system.nix { pkgs = nixpkgs.legacyPackages.${system}; inherit nixpkgs self; };
 
-        # Legacy compatibility - redirect to unified systems
-        packageUtils = import ./lib/package-utils.nix { lib = nixpkgs.lib; };
-        userResolution = import ./lib/user-resolution.nix;
-        platformUtils = import ./lib/platform-utils.nix { inherit nixpkgs; };
+          # Performance optimization libraries
+          performanceIntegration = performanceIntegration;
+
+          # Legacy compatibility - redirect to unified systems
+          userResolution = import ./lib/user-resolution.nix;
+        };
+
+        # Development shells using modular config with performance optimization
+        devShells = forAllSystems devShell;
+
+        # Apps using modular app configurations
+        apps =
+          (nixpkgs.lib.genAttrs linuxSystems systemConfigs.mkAppConfigurations.mkLinuxApps) //
+          (nixpkgs.lib.genAttrs darwinSystems systemConfigs.mkAppConfigurations.mkDarwinApps);
+
+        # Checks using modular check builders
+        checks = forAllSystems checkBuilders.mkChecks;
+
+        # Darwin configurations using modular system configs
+        darwinConfigurations = systemConfigs.mkDarwinConfigurations darwinSystems;
+
+        # NixOS configurations using modular system configs
+        nixosConfigurations = systemConfigs.mkNixosConfigurations linuxSystems;
       };
-
-      # Development shells using modular config
-      devShells = forAllSystems devShell;
-
-      # Apps using modular app configurations
-      apps =
-        (nixpkgs.lib.genAttrs linuxSystems systemConfigs.mkAppConfigurations.mkLinuxApps) //
-        (nixpkgs.lib.genAttrs darwinSystems systemConfigs.mkAppConfigurations.mkDarwinApps);
-
-      # Checks using modular check builders
-      checks = forAllSystems checkBuilders.mkChecks;
-
-      # Darwin configurations using modular system configs
-      darwinConfigurations = systemConfigs.mkDarwinConfigurations darwinSystems;
-
-      # NixOS configurations using modular system configs
-      nixosConfigurations = systemConfigs.mkNixosConfigurations linuxSystems;
-    };
+    in
+    baseOutputs;
 }
