@@ -1,3 +1,5 @@
+--- modules/shared/config/claude/agents/api-documentor.md ---
+
 ---
 name: api-documenter
 description: Create OpenAPI/Swagger specs, generate SDKs, and write developer documentation. Handles versioning, examples, and interactive docs. Use PROACTIVELY for API documentation or client library generation.

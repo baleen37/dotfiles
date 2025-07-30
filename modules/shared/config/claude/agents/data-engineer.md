@@ -1,3 +1,5 @@
+--- modules/shared/config/claude/agents/data-engineer.md ---
+
 ---
 name: data-engineer
 description: Build ETL pipelines, data warehouses, and streaming architectures. Implements Spark jobs, Airflow DAGs, and Kafka streams. Use PROACTIVELY for data pipeline design or analytics infrastructure.
