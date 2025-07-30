@@ -56,6 +56,14 @@ repos:
         pass_filenames: false
         always_run: true
 
+      # Validate Claude agents
+      - id: validate-claude-agents
+        name: Validate Claude Agents
+        entry: bash -c 'if command -v node >/dev/null 2>&1; then echo "🤖 Validating Claude agents..." && node scripts/validate-claude-agents.js; else echo "Node.js not available, skipping Claude agent validation"; fi'
+        language: system
+        files: 'modules/shared/config/claude/agents/.*\.md$'
+        pass_filenames: false
+
   # Documentation quality checks
   - repo: https://github.com/igorshubovych/markdownlint-cli
     rev: v0.39.0

@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "additionalProperties": false,
+  "properties": {
+    "description": {
+      "description": "Brief description of what the agent does and when to use it",
+      "maxLength": 500,
+      "minLength": 10,
+      "type": "string"
+    },
+    "name": {
+      "description": "Agent name in lowercase kebab-case format",
+      "pattern": "^[a-z0-9-]+$",
+      "type": "string"
+    }
+  },
+  "required": [
+    "name",
+    "description"
+  ],
+  "type": "object"
+}
