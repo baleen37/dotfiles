@@ -1,5 +1,3 @@
---- modules/shared/config/claude/agents/nix-expert.md ---
-
 ---
 name: nix-expert
 description: Manage Nix configurations, flakes, NixOS, nix-darwin, and Home Manager. Debug build failures, optimize Nix expressions, and solve reproducibility issues. Use PROACTIVELY for Nix build errors, flake problems, or system configuration issues.

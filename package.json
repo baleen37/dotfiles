@@ -3,6 +3,6 @@
     "task-master-ai": "^0.16.1"
   },
   "scripts": {
-    "validate-agents": "node scripts/validate-claude-agents.js"
+    "lint-agents": "node scripts/validate-claude-agents.js"
   }
 }

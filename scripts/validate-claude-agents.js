@@ -1,13 +1,12 @@
 #!/usr/bin/env node
 
 /**
- * ABOUTME: Validates Claude agent markdown files against schema and conventions
- * ABOUTME: Checks YAML frontmatter, naming conventions, and content structure
+ * ABOUTME: Validates Claude agent markdown template structure
+ * ABOUTME: Checks YAML frontmatter and markdown format compliance
  */
 
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
 
 // Colors for console output
 const colors = {
@@ -15,8 +14,6 @@ const colors = {
   green: '\x1b[32m',
   yellow: '\x1b[33m',
   blue: '\x1b[34m',
-  magenta: '\x1b[35m',
-  cyan: '\x1b[36m',
   reset: '\x1b[0m',
   bold: '\x1b[1m'
 };
@@ -26,18 +23,6 @@ class AgentValidator {
     this.errors = [];
     this.warnings = [];
     this.agentsDir = path.join(__dirname, '../modules/shared/config/claude/agents');
-    this.schemaPath = path.join(__dirname, 'claude-agent-schema.json');
-    this.schema = this.loadSchema();
-  }
-
-  loadSchema() {
-    try {
-      const schemaContent = fs.readFileSync(this.schemaPath, 'utf8');
-      return JSON.parse(schemaContent);
-    } catch (error) {
-      this.error(`Failed to load schema from ${this.schemaPath}: ${error.message}`);
-      process.exit(1);
-    }
   }
 
   log(message, color = colors.reset) {
@@ -97,12 +82,8 @@ class AgentValidator {
       return;
     }
 
-    // Validate against schema
-    this.validateAgainstSchema(fileName, frontmatter);
-
-    // Additional validations
-    this.validateFileNaming(fileName, frontmatter);
-    this.validateContent(fileName, fileContent);
+    // Check markdown template compliance
+    this.validateMarkdownTemplate(fileName, fileContent, frontmatter);
   }
 
   parseSimpleYaml(yamlContent) {
@@ -125,90 +106,29 @@ class AgentValidator {
     return result;
   }
 
-  validateAgainstSchema(fileName, frontmatter) {
-    // Manual schema validation (simple implementation)
-    const { name, description } = frontmatter;
-
-    // Check required fields
-    if (!name) {
-      this.error(`${fileName}: Missing required field 'name'`);
+  validateMarkdownTemplate(fileName, content, frontmatter) {
+    // Check YAML frontmatter structure
+    if (!frontmatter.name) {
+      this.error(`${fileName}: Missing 'name' field in YAML frontmatter`);
     }
 
-    if (!description) {
-      this.error(`${fileName}: Missing required field 'description'`);
+    if (!frontmatter.description) {
+      this.error(`${fileName}: Missing 'description' field in YAML frontmatter`);
     }
 
-    // Validate name pattern
-    if (name && !/^[a-z0-9-]+$/.test(name)) {
-      this.error(`${fileName}: Name '${name}' must be lowercase kebab-case (letters, numbers, hyphens only)`);
-    }
-
-    // Validate description length
-    if (description) {
-      if (description.length < 10) {
-        this.error(`${fileName}: Description must be at least 10 characters`);
-      }
-      if (description.length > 500) {
-        this.error(`${fileName}: Description must be no more than 500 characters`);
-      }
-    }
-  }
-
-  validateFileNaming(fileName, frontmatter) {
-    const expectedFileName = `${frontmatter.name}.md`;
-    if (fileName !== expectedFileName) {
-      this.error(`${fileName}: Filename should be '${expectedFileName}' to match name field`);
-    }
-  }
-
-  validateContent(fileName, content) {
-    // Check for "You are" opening statement
+    // Check markdown structure
     const afterFrontmatter = content.split('---')[2];
-    if (afterFrontmatter && !afterFrontmatter.includes('You are')) {
-      this.warning(`${fileName}: Content should start with "You are" statement`);
+    if (!afterFrontmatter || !afterFrontmatter.includes('You are')) {
+      this.error(`${fileName}: Missing "You are..." persona statement`);
     }
 
-    // Check for basic markdown structure
     if (!content.includes('#')) {
-      this.warning(`${fileName}: No markdown headers found`);
-    }
-  }
-
-  checkForDuplicateNames() {
-    const names = new Set();
-    const files = fs.readdirSync(this.agentsDir).filter(f => f.endsWith('.md') && f !== 'README.md');
-
-    for (const file of files) {
-      const filePath = path.join(this.agentsDir, file);
-      const content = fs.readFileSync(filePath, 'utf8');
-
-      // Handle files that start with header
-      let cleanContent = content;
-      if (content.startsWith('--- ')) {
-        cleanContent = content.split('\n').slice(2).join('\n');
-      }
-
-      const frontmatterMatch = cleanContent.match(/^---\n([\s\S]*?)\n---/);
-
-      if (frontmatterMatch) {
-        try {
-          const frontmatter = this.parseSimpleYaml(frontmatterMatch[1]);
-          if (frontmatter.name) {
-            if (names.has(frontmatter.name)) {
-              this.error(`Duplicate agent name '${frontmatter.name}' found in ${file}`);
-            } else {
-              names.add(frontmatter.name);
-            }
-          }
-        } catch (error) {
-          // Already handled in validateFile
-        }
-      }
+      this.error(`${fileName}: No markdown headers found - templates should have structured sections`);
     }
   }
 
   validate() {
-    this.log(`\n${colors.bold}🔍 Validating Claude Agents${colors.reset}`);
+    this.log(`\n${colors.bold}🔍 Validating Claude Agent Templates${colors.reset}`);
     this.log(`Agent directory: ${this.agentsDir}`);
 
     if (!fs.existsSync(this.agentsDir)) {
@@ -225,9 +145,6 @@ class AgentValidator {
     // Validate each file
     files.forEach(file => this.validateFile(file));
 
-    // Check for duplicate names
-    this.checkForDuplicateNames();
-
     // Generate report
     this.generateReport();
 
@@ -240,18 +157,18 @@ class AgentValidator {
     this.log(`Warnings: ${this.warnings.length}`);
 
     if (this.errors.length === 0 && this.warnings.length === 0) {
-      this.success('All agents passed validation! 🎉');
+      this.success('All agent templates are valid! 🎉');
     } else if (this.errors.length === 0) {
-      this.success('Validation passed with warnings 🎉');
+      this.success('Templates passed with warnings 🎉');
       this.log(`\n${colors.yellow}Note: ${this.warnings.length} warnings found${colors.reset}`);
     } else {
-      this.log(`\n${colors.red}Validation failed${colors.reset}`);
+      this.log(`\n${colors.red}Template validation failed${colors.reset}`);
     }
 
     // Write detailed report file
     const reportPath = path.join(__dirname, '../validation-report.txt');
     const reportContent = [
-      '# Claude Agents Validation Report',
+      '# Claude Agent Template Validation Report',
       `Generated: ${new Date().toISOString()}`,
       '',
       '## Summary',

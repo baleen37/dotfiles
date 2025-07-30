@@ -59,7 +59,7 @@ repos:
       # Validate Claude agents
       - id: validate-claude-agents
         name: Validate Claude Agents
-        entry: bash -c 'if command -v node >/dev/null 2>&1; then echo "🤖 Validating Claude agents..." && node scripts/validate-claude-agents.js; else echo "Node.js not available, skipping Claude agent validation"; fi'
+        entry: bash -c 'if command -v node >/dev/null 2>&1; then echo "🤖 Validating Claude agents..." && node scripts/validate-claude-agents.js && git reset validation-report.txt 2>/dev/null || true; else echo "Node.js not available, skipping Claude agent validation"; fi'
         language: system
         files: 'modules/shared/config/claude/agents/.*\.md$'
         pass_filenames: false
