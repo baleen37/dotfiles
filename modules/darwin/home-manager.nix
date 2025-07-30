@@ -20,7 +20,6 @@ let
 in
 {
   imports = [
-    # ./dock - deprecated, dock config moved to hosts/darwin/default.nix
   ];
 
   # It me
@@ -71,8 +70,6 @@ in
         (import ../shared/home-manager.nix { inherit config pkgs lib; })
       ];
 
-      # Marked broken Oct 20, 2022 check later to remove this
-      # https://github.com/nix-community/home-manager/issues/3344
       manual.manpages.enable = false;
 
       # Smart Claude config files management with user modification preservation
