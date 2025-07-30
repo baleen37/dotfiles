@@ -165,25 +165,8 @@ class AgentValidator {
       this.log(`\n${colors.red}Template validation failed${colors.reset}`);
     }
 
-    // Write detailed report file
-    const reportPath = path.join(__dirname, '../validation-report.txt');
-    const reportContent = [
-      '# Claude Agent Template Validation Report',
-      `Generated: ${new Date().toISOString()}`,
-      '',
-      '## Summary',
-      `Errors: ${this.errors.length}`,
-      `Warnings: ${this.warnings.length}`,
-      '',
-      '## Errors',
-      ...this.errors.map(e => `- ${e}`),
-      '',
-      '## Warnings',
-      ...this.warnings.map(w => `- ${w}`)
-    ].join('\n');
-
-    fs.writeFileSync(reportPath, reportContent);
-    this.info(`Detailed report written to: ${reportPath}`);
+    // All validation output is shown in console
+    // No file generation needed for pre-commit hooks
   }
 }
 
