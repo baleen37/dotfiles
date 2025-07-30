@@ -4,11 +4,10 @@ Dead Code 검출 및 제거 도구
 코드베이스에서 실제로 사용되지 않는 파일들을 안전하게 식별하고 제거를 제안하는 도구
 """
 
-import os
 import json
 import shutil
 from pathlib import Path
-from typing import Dict, List, Set
+from typing import Dict, List
 from datetime import datetime
 
 class DeadCodeDetector:

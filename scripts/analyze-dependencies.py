@@ -15,8 +15,8 @@ import re
 import json
 import sys
 from pathlib import Path
-from typing import Dict, List, Set, Tuple
-from collections import defaultdict, deque
+from typing import Dict, List
+from collections import defaultdict
 
 class NixDependencyAnalyzer:
     def __init__(self, repo_path: str):

@@ -8,7 +8,6 @@ import plistlib
 import os
 import shutil
 import sys
-from pathlib import Path
 from datetime import datetime
 
 

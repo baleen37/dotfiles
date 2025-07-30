@@ -7,7 +7,6 @@ macOS 키보드 입력 설정 검증 스크립트
 import plistlib
 import os
 import sys
-from pathlib import Path
 
 
 def load_plist(plist_path):
