@@ -42,12 +42,8 @@ with pkgs; let
     docker        # Container platform
   ];
 
-  # Infrastructure as Code (IaC) toolchain - temporarily disabled due to unfree licenses
+  # Infrastructure as Code (IaC) toolchain
   infrastructureTools = [
-    # terraform     # Infrastructure as Code tool - unfree license
-    # terraform-ls  # Terraform Language Server for IDE support
-    # terragrunt    # Terraform wrapper for DRY configurations
-    # tflint        # Terraform linter for best practices
   ];
 
   # Media processing tools
@@ -65,7 +61,6 @@ with pkgs; let
   # Terminal applications
   terminalApps = [
     wezterm       # Modern GPU-accelerated terminal emulator
-    # iTerm2 via Darwin casks for additional macOS-specific features
   ];
 
   # Security and authentication tools
@@ -83,8 +78,6 @@ with pkgs; let
   # Productivity and utility applications
   productivityTools = [
     bc            # Command-line calculator
-    # google-chrome # Google Chrome web browser - unfree license
-    # spotify       # Music streaming application - unfree license
     syncthing     # Continuous file synchronization
   ];
 
