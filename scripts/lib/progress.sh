@@ -57,7 +57,14 @@ progress_start() {
 # Stop progress indicator
 progress_stop() {
     if [ -n "$PROGRESS_PID" ]; then
-        kill "$PROGRESS_PID" 2>/dev/null
+        # Graceful shutdown with proper signal handling
+        if kill -0 "$PROGRESS_PID" 2>/dev/null; then
+            kill -TERM "$PROGRESS_PID" 2>/dev/null || true
+            sleep 0.1
+            if kill -0 "$PROGRESS_PID" 2>/dev/null; then
+                kill -KILL "$PROGRESS_PID" 2>/dev/null || true
+            fi
+        fi
         PROGRESS_PID=""
     fi
 
@@ -97,6 +104,9 @@ progress_show_bar() {
 progress_spinner() {
     local i=0
     local spinner_len=${#PROGRESS_SPINNER_CHARS}
+
+    # Set up signal handlers for graceful shutdown
+    trap 'exit 0' TERM INT
 
     while true; do
         # Get current spinner character

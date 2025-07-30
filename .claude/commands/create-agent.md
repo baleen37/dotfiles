@@ -9,7 +9,7 @@ To guide the user through the process of creating a new Claude Code agent, ensur
 <workflow>
   <step name="Analyze Existing Agents" number="1">
     - **List Existing Agents**: First, I will list all existing agents in `modules/shared/config/claude/agents/` to understand our project's agent landscape.
-    - **Identify Patterns**: I will then analyze a few of the existing agents to identify common patterns, such as the use of personas, objectives, workflows, constraints, and validation steps.
+    - **Identify Patterns**: I will then analyze a few of the existing agents to identify common patterns following @.claude/docs/agent-patterns.md.
   </step>
 
   <step name="Gather Information" number="2">
@@ -23,12 +23,7 @@ To guide the user through the process of creating a new Claude Code agent, ensur
   <step name="Generate Agent File" number="3">
     - **File Name**: Based on the agent name, generate a file name (e.g., `code-reviewer.md`).
     - **File Path**: The file will be created in `modules/shared/config/claude/agents/`.
-    - **File Content**: Generate the content for the agent file using the information gathered in the previous step. The file will be pre-populated with a template that includes:
-      - A persona optimized for the specific domain
-      - An objective with clear delegation triggers
-      - A description field optimized for automatic delegation (including PROACTIVE keywords if specified)
-      - Placeholders for workflow, constraints, and validation steps
-      - Examples of task contexts that should trigger this agent
+    - **File Content**: Generate the content for the agent file using the information gathered in the previous step. The file will be pre-populated with a template following the patterns defined in @.claude/docs/agent-patterns.md.
     - **Delegation Optimization**: Ensure the description field uses action-oriented language and includes specific keywords to improve Claude Code's automatic selection accuracy.
     - **Reference Agent**: Include a reference to a similar, existing agent to guide the user.
   </step>
@@ -46,13 +41,16 @@ To guide the user through the process of creating a new Claude Code agent, ensur
 </workflow>
 
 <constraints>
-  - The agent name must be in `kebab-case`.
-  - The generated file must be a markdown file with the `.md` extension.
-  - The file must be created in the `modules/shared/config/claude/agents/` directory.
-  - I will always reference an existing agent to ensure consistency.
+@.claude/docs/agent-patterns.md
+
+Additional constraints for agent creation:
+- The file must be created in the `modules/shared/config/claude/agents/` directory.
+- I will always reference an existing agent to ensure consistency.
 </constraints>
 
 <validation>
-  - A new agent file is successfully created in the `modules/shared/config/claude/agents/` directory.
-  - The user is satisfied with the generated agent template.
+@.claude/docs/agent-patterns.md
+
+Additional validation for agent creation:
+- A new agent file is successfully created in the `modules/shared/config/claude/agents/` directory.
 </validation>

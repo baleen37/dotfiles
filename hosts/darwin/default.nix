@@ -24,21 +24,38 @@ in
     #   options = "--delete-older-than 30d";
     # };
 
-    # nix-community.cachix.org 활용을 위한 trusted-users 설정
+    # 캐시 최적화를 위한 다중 substituters 설정
     settings = {
       trusted-users = [ "root" "@admin" user ];
       substituters = [
         "https://cache.nixos.org"
         "https://nix-community.cachix.org"
+        "https://cuda-maintainers.cachix.org"
+        "https://devenv.cachix.org"
+        "https://pre-commit-hooks.cachix.org"
+        "https://numtide.cachix.org"
       ];
       trusted-public-keys = [
         "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
         "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+        "cuda-maintainers.cachix.org-1:0dq3bujKpuEPiCgKpvNhFE8gvXv6bZg6RzjWUYqZFFI="
+        "devenv.cachix.org-1:w1cLUi8dv3hnoSPGAuibQv+f9TZLr6cv/Hm9XgU50cw="
+        "pre-commit-hooks.cachix.org-1:Pkk3Panw5AW24TOv6kz3PvLhlH8puAsJTBbOPmBo7Rc="
+        "numtide.cachix.org-1:2ps1kLBUWjxIneOy2Oa9+LG8+NJf2XRAYsGGHghiZZ0="
       ];
+      # 캐시 효율성 최적화 설정
+      max-jobs = "auto";
+      cores = 0; # 모든 CPU 코어 사용
+      system-features = [ "nixos-test" "benchmark" "big-parallel" "kvm" ];
+      keep-outputs = true;
+      keep-derivations = true;
     };
 
     extraOptions = ''
       experimental-features = nix-command flakes
+      warn-dirty = false
+      auto-optimise-store = true
+      builders-use-substitutes = true
     '';
   };
 
