@@ -57,19 +57,10 @@ progress_start() {
 # Stop progress indicator
 progress_stop() {
     if [ -n "$PROGRESS_PID" ]; then
-        # Check if process is still running
+        # Graceful shutdown with proper signal handling
         if kill -0 "$PROGRESS_PID" 2>/dev/null; then
-            # Send TERM signal first for graceful shutdown
             kill -TERM "$PROGRESS_PID" 2>/dev/null || true
-
-            # Wait a short time for graceful shutdown
-            local wait_count=0
-            while [ $wait_count -lt 3 ] && kill -0 "$PROGRESS_PID" 2>/dev/null; do
-                sleep 0.1
-                wait_count=$((wait_count + 1))
-            done
-
-            # If still running, force kill
+            sleep 0.1
             if kill -0 "$PROGRESS_PID" 2>/dev/null; then
                 kill -KILL "$PROGRESS_PID" 2>/dev/null || true
             fi
