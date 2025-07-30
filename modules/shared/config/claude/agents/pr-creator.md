@@ -13,11 +13,14 @@ To create a high-quality, review-ready Pull Request for the current feature bran
 
 <workflow>
   <step name="Pre-PR Validation" number="1">
-    - **Branch Sync**: Ensure the current branch is up-to-date with the target branch (usually `main`) by merging or rebasing to prevent conflicts.
+    - **Parallel Validation**: Execute the following checks in parallel for faster validation:
+      - **Branch Sync**: Ensure the current branch is up-to-date with the target branch (usually `main`) by merging or rebasing to prevent conflicts.
+      - **Quality Checks**: Check if pre-commit hooks are configured (`.pre-commit-config.yaml` exists).
+      - **Working Directory Status**: Use `git status` to confirm there are no uncommitted or untracked files.
+    - **Error Handling**: For any validation that fails:
       - **IF SYNC FAILS**: Report the specific Git error (e.g., "Merge/rebase failed due to conflicts.") and **STOP**.
-    - **Quality Checks**: Identify and run all relevant local quality checks (e.g., linting, testing, type checking) based on project configuration (e.g., `package.json` scripts, `Makefile` targets).
-      - **IF VALIDATION FAILS**: Report the specific failure (e.g., "Linting failed. Please fix the issues before proceeding.") and **STOP**.
-    - **Working Directory Status**: Use `git status` to confirm there are no uncommitted or untracked files.
+      - **IF PRE-COMMIT EXISTS**: Trust that pre-commit hooks will handle quality validation automatically during commits. No manual checks needed.
+      - **IF NO PRE-COMMIT**: Remind user to run quality checks manually (e.g., linting, testing, type checking) before creating PR, but do not execute them automatically.
       - **IF UNCLEAN**: Report "Working directory is not clean. Please commit or stash changes." and **STOP**.
   </step>
 
@@ -34,17 +37,16 @@ To create a high-quality, review-ready Pull Request for the current feature bran
       - Nature of the changes
       - Affected files and directories
       - Project ownership patterns
-      - Confirm with user before applying
   </step>
 
   <step name="Post-Creation Setup" number="3">
-    - **Assign Reviewers**: Assign at least one relevant reviewer to the PR. Confirm with user first.
-      - **IF ASSIGNMENT FAILS**: Report the error but **CONTINUE** if PR was created.
-    - **Apply Labels**: Add appropriate labels (e.g., `bug`, `feature`, `needs-review`). Confirm with user first.
-      - **IF LABELING FAILS**: Report the error but **CONTINUE** if PR was created.
-    - **Auto-Merge Setup**: If project guidelines or user explicitly allow, enable auto-merge with appropriate strategy.
-      - **IF AUTO-MERGE FAILS**: Report the error but **CONTINUE** if PR was created.
-    - **CI Monitoring**: Monitor the initial CI run to catch any immediate failures.
+    - **Parallel Operations**: Execute the following operations in parallel for faster setup:
+      - **Assign Reviewers**: Assign at least one relevant reviewer to the PR.
+      - **Apply Labels**: Add appropriate labels (e.g., `bug`, `feature`, `needs-review`).
+      - **Auto-Merge Setup**: If project guidelines or user explicitly allow, enable auto-merge with appropriate strategy.
+      - **CI Monitoring**: Monitor the initial CI run to catch any immediate failures.
+    - **Error Handling**: For any parallel operation that fails:
+      - **IF ASSIGNMENT/LABELING/AUTO-MERGE FAILS**: Report the error but **CONTINUE** if PR was created.
       - **IF CI FAILS IMMEDIATELY**: Report "CI checks failed immediately. Please review and fix the issues." but **CONTINUE**.
   </step>
 </workflow>
