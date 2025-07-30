@@ -9,7 +9,7 @@ To guide the user through the process of creating a new Claude Code command, ens
 <workflow>
   <step name="Analyze Existing Commands" number="1">
     - **List Existing Commands**: First, I will list all existing commands in `modules/shared/config/claude/commands/` to understand our project's command landscape.
-    - **Identify Patterns**: I will then analyze a few of the existing commands to identify common patterns, such as the use of personas, objectives, workflows, constraints, and validation steps.
+    - **Identify Patterns**: I will then analyze a few of the existing commands to identify common patterns following @.claude/docs/command-patterns.md.
   </step>
 
   <step name="Gather Information" number="2">
@@ -22,7 +22,7 @@ To guide the user through the process of creating a new Claude Code command, ens
   <step name="Generate Command File" number="3">
     - **File Name**: Based on the command name, generate a file name (e.g., `run-tests.md`).
     - **File Path**: The file will be created in `modules/shared/config/claude/commands/`.
-    - **File Content**: Generate the content for the command file using the information gathered in the previous step. The file will be pre-populated with a template that includes a persona, objective, and placeholders for the workflow, constraints, and validation steps. I will also include a reference to a similar, existing command to guide the user.
+    - **File Content**: Generate the content for the command file using the information gathered in the previous step. The file will be pre-populated with a template following the patterns defined in @.claude/docs/command-patterns.md. I will also include a reference to a similar, existing command to guide the user.
   </step>
 
   <step name="Finalize" number="4">
@@ -32,13 +32,16 @@ To guide the user through the process of creating a new Claude Code command, ens
 </workflow>
 
 <constraints>
-  - The command name must be in `kebab-case`.
-  - The generated file must be a markdown file with the `.md` extension.
-  - The file must be created in the `modules/shared/config/claude/commands/` directory.
-  - I will always reference an existing command to ensure consistency.
+@.claude/docs/command-patterns.md
+
+Additional constraints for command creation:
+- The file must be created in the `modules/shared/config/claude/commands/` directory.
+- I will always reference an existing command to ensure consistency.
 </constraints>
 
 <validation>
-  - A new command file is successfully created in the `modules/shared/config/claude/commands/` directory.
-  - The user is satisfied with the generated command template.
+@.claude/docs/command-patterns.md
+
+Additional validation for command creation:
+- A new command file is successfully created in the `modules/shared/config/claude/commands/` directory.
 </validation>

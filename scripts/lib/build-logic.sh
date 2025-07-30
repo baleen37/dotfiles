@@ -12,9 +12,32 @@
 # - Consistent build steps across all platforms
 # - Enhanced failure recovery mechanisms
 
+# Enhanced cleanup function with progress cleanup
+cleanup_build_environment() {
+    log_debug "Starting enhanced cleanup process"
+
+    # Stop progress system first
+    if command -v progress_cleanup >/dev/null 2>&1; then
+        progress_cleanup 2>/dev/null || true
+    fi
+
+    # Call original cleanup
+    cleanup_on_failure
+}
+
+# Set up signal handlers for graceful shutdown
+setup_signal_handlers() {
+    trap 'cleanup_build_environment; exit 130' INT
+    trap 'cleanup_build_environment; exit 143' TERM
+    trap 'cleanup_build_environment' EXIT
+}
+
 # Setup build environment and monitoring
 setup_build_monitoring() {
     log_debug "Initializing build monitoring and progress systems"
+
+    # Set up signal handlers for graceful shutdown
+    setup_signal_handlers
 
     # Start performance monitoring
     perf_start_total || {
