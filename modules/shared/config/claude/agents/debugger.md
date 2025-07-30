@@ -1,5 +1,3 @@
---- modules/shared/config/claude/agents/debugger.md ---
-
 ---
 name: debugger
 description: Debugging specialist for errors, test failures, and unexpected behavior. Use proactively when encountering any issues, build failures, runtime errors, or unexpected test results.
