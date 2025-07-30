@@ -21,28 +21,39 @@ To orchestrate a comprehensive research → planning → execution workflow usin
       - Implementation tasks (frontend, backend, infrastructure, testing)
       - Review tasks (code review, security audit, performance optimization)
 
-    - **Dynamic Agent Discovery & Assignment Matrix**:
-      - **Agent Ecosystem Survey**: Analyze all currently available agents and their capabilities
-      - **Intelligent Matching**: Match discovered agent specializations to project tasks
-      - **Create Assignment Matrix**: Generate explicit task-to-agent mappings:
-        ```
-        TASK: [specific task description] → AGENT: [dynamically selected optimal agent]
-        ```
-      - **Adaptive Selection**: Prioritize specialists, adapt to general-purpose when needed
-      - **Future-Proof Design**: System adapts automatically to agent ecosystem changes
+    - **Real-Time Subagent Ecosystem Discovery**:
+      - **Live Subagent Survey**: Query and analyze the current subagent ecosystem dynamically
+      - **Capability Profiling**: Extract each subagent's specialized skills, tools, and domain expertise
+      - **Contextual Intelligence**: Analyze project requirements against discovered subagent capabilities
+      - **Smart Matching Algorithm**: Use reasoning to match optimal subagents to specific tasks:
+        - Prioritize exact specialty matches (e.g., `frontend-developer` for UI tasks)
+        - Consider cross-domain capabilities (e.g., `security-auditor` for auth components)
+        - Evaluate complexity appropriateness (specialist vs general-purpose)
+        - Account for workload distribution and parallel execution opportunities
 
-    - **Execution Order Planning**: Define task dependencies and parallel execution opportunities
-    - **Quality Gates**: Establish verification points and success criteria for each task
+    - **Dynamic Assignment Matrix Generation**:
+      - **Intelligent Task-Subagent Pairing**: Create optimized assignments based on real-time analysis:
+        ```
+        RESEARCH DOMAIN → Best Available Specialist → Fallback Strategy
+        PLANNING AREA → Optimal Subagent Match → Alternative Options  
+        IMPLEMENTATION COMPONENT → Perfect Fit Subagent → Backup Plan
+        ```
+      - **Adaptive Selection Logic**: Continuously optimize assignments as new subagents become available
+      - **Gap Analysis**: Identify areas where no specialist exists and enhance general-purpose prompts
+      - **Load Balancing**: Distribute tasks efficiently across available subagent capabilities
+
+    - **Execution Strategy Planning**: Define task dependencies, parallel execution opportunities, and coordination points
+    - **Quality Gates**: Establish verification points and success criteria tailored to selected subagents
   </step>
 
   <step name="Research Phase Orchestration" number="1">
-    - **Execute Agent Assignments**: Deploy agents based on the assignment matrix from Step 0:
+    - **Execute Subagent Assignments**: Deploy subagents based on the assignment matrix from Step 0:
       ```
       For each research task:
-      Task(description="[specific research task]", prompt="[detailed task-specific prompt based on context analysis]", subagent_type="[agent from assignment matrix]")
+      Task(description="[specific research task]", prompt="[detailed task-specific prompt based on context analysis]", subagent_type="[subagent from assignment matrix]")
       ```
 
-    - **Parallel Research Execution**: Launch multiple research agents concurrently when tasks are independent
+    - **Parallel Research Execution**: Launch multiple research subagents concurrently when tasks are independent
 
     - **Research Coordination**: Monitor progress and ensure comprehensive coverage of all research areas
 
@@ -52,16 +63,17 @@ To orchestrate a comprehensive research → planning → execution workflow usin
   </step>
 
   <step name="Planning Phase Orchestration" number="2">
-    - **Execute Planning Assignments**: Deploy planning agents based on the assignment matrix:
+    - **Execute Planning Assignments**: Deploy planning subagents based on the assignment matrix:
       ```
       For each planning task:
-      Task(description="[specific planning task]", prompt="Based on research findings: [research summary], [detailed planning instructions]", subagent_type="[agent from assignment matrix]")
+      Task(description="[specific planning task]", prompt="Based on research findings: [research summary], [detailed planning instructions]", subagent_type="[subagent from assignment matrix]")
       ```
 
-    - **Dynamic Planning Agent Selection**: Analyze available agents and match to planning needs:
-      - Evaluate current agent capabilities against planning requirements
-      - Select most appropriate specialist or fallback to general-purpose
-      - Document selection rationale for each planning area
+    - **Contextual Planning Subagent Selection**: Apply smart matching from initial discovery phase:
+      - Leverage pre-analyzed subagent capabilities from Step 0
+      - Apply contextual intelligence to select optimal planners for each domain
+      - Use established fallback strategies when specialists unavailable
+      - Document selection rationale and capability alignment
 
     - **Planning Coordination**: Ensure all planning outputs are compatible and well-integrated
 
@@ -71,19 +83,19 @@ To orchestrate a comprehensive research → planning → execution workflow usin
   </step>
 
   <step name="Execution Phase Orchestration" number="3">
-    - **Execute Implementation Assignments**: Deploy execution agents based on the assignment matrix:
+    - **Execute Implementation Assignments**: Deploy execution subagents based on the assignment matrix:
       ```
       For each implementation task:
-      Task(description="[specific implementation task]", prompt="Implement [feature/component] following the project plan. [detailed implementation instructions]", subagent_type="[agent from assignment matrix]")
+      Task(description="[specific implementation task]", prompt="Implement [feature/component] following the project plan. [detailed implementation instructions]", subagent_type="[subagent from assignment matrix]")
       ```
 
-    - **Dynamic Implementation Agent Selection**: Analyze available agents and match to implementation needs:
-      - Survey current agent ecosystem for relevant specializations
-      - Match agent capabilities to specific implementation requirements
-      - Prioritize specialists, fallback to general-purpose with enhanced domain prompts
-      - Document agent selection decisions and capability gaps
+    - **Optimized Implementation Subagent Deployment**: Execute pre-computed assignments from initial analysis:
+      - Deploy subagents based on smart matching algorithm results from Step 0
+      - Apply load balancing strategy for parallel execution opportunities
+      - Use enhanced domain prompts for general-purpose agents when specialists unavailable
+      - Monitor subagent performance and adapt assignments if needed
 
-    - **Parallel Execution Management**: Coordinate multiple agents working concurrently on independent tasks
+    - **Parallel Execution Management**: Coordinate multiple subagents working concurrently on independent tasks
 
     - **Progress Monitoring**: Track implementation progress against quality gates and milestones
 
@@ -91,15 +103,15 @@ To orchestrate a comprehensive research → planning → execution workflow usin
   </step>
 
   <step name="Integration and Review Orchestration" number="4">
-    - **Execute Review Assignments**: Deploy review agents based on the assignment matrix:
+    - **Execute Review Assignments**: Deploy review subagents based on the assignment matrix:
       ```
       For each review task:
-      Task(description="[specific review task]", prompt="Review [component/area] for [quality criteria]. Provide detailed feedback and improvement suggestions.", subagent_type="[agent from assignment matrix]")
+      Task(description="[specific review task]", prompt="Review [component/area] for [quality criteria]. Provide detailed feedback and improvement suggestions.", subagent_type="[subagent from assignment matrix]")
       ```
 
-    - **Dynamic Review Agent Selection**: Analyze available agents and match to review needs:
-      - Identify current review and validation specialists in agent ecosystem
-      - Match agent expertise to specific review requirements (quality, security, performance, etc.)
+    - **Dynamic Review Subagent Selection**: Analyze available subagents and match to review needs:
+      - Identify current review and validation specialists in subagent ecosystem
+      - Match subagent expertise to specific review requirements (quality, security, performance, etc.)
       - Select optimal reviewer for each component/domain
       - Use general-purpose with specialized review prompts when no specialist available
 
@@ -109,21 +121,21 @@ To orchestrate a comprehensive research → planning → execution workflow usin
 
     - **Final Quality Assessment**: Comprehensive evaluation against original project objectives
 
-    - **Orchestration Post-mortem**: Analyze agent selection effectiveness and coordination efficiency
+    - **Orchestration Post-mortem**: Analyze subagent selection effectiveness and coordination efficiency
   </step>
 </workflow>
 
 <constraints>
 - The command name must be in `kebab-case`
-- **CRITICAL RULE**: NEVER perform work directly - ALL work MUST be delegated to specialized agents via Task tool
+- **CRITICAL RULE**: NEVER perform work directly - ALL work MUST be delegated to specialized subagents via Task tool
 - MUST start with Context Analysis & Task Decomposition to create explicit agent assignment matrix
 - Each phase MUST be completed before proceeding to the next phase
-- MUST create explicit "TASK: [description] → AGENT: [dynamically discovered optimal agent]" mappings
-- Agent selection MUST be completely dynamic based on current agent ecosystem analysis
+- MUST create explicit "TASK: [description] → SUBAGENT: [dynamically discovered optimal subagent]" mappings
+- Subagent selection MUST be completely dynamic based on current subagent ecosystem analysis
 - MUST prioritize discovered specialists, fallback to `general-purpose` only when no specialist exists
 - All Task tool calls MUST include specific subagent_type parameter based on assignment matrix
-- MUST document all agent assignments, fallback decisions, and rationale
-- Multiple agents MUST be deployed concurrently for independent tasks to maximize efficiency
+- MUST document all subagent assignments, fallback decisions, and rationale
+- Multiple subagents MUST be deployed concurrently for independent tasks to maximize efficiency
 - All task dependencies and execution order MUST be clearly defined
 - Quality gates and success criteria MUST be established for each task
 - All findings, plans, and implementations must be thoroughly documented
@@ -133,18 +145,18 @@ To orchestrate a comprehensive research → planning → execution workflow usin
 </constraints>
 
 <validation>
-- Context Analysis phase produces explicit task decomposition and agent assignment matrix with clear rationale
-- All phases successfully orchestrate specialized agents with NO direct work performed by main agent
-- Research orchestration deploys appropriate agents and produces comprehensive findings document
-- Planning orchestration coordinates multiple specialized agents and delivers unified project roadmap
-- Execution orchestration manages parallel agent deployment and cross-agent coordination effectively
+- Context Analysis phase produces explicit task decomposition and subagent assignment matrix with clear rationale
+- All phases successfully orchestrate specialized subagents with NO direct work performed by main orchestrator
+- Research orchestration deploys appropriate subagents and produces comprehensive findings document
+- Planning orchestration coordinates multiple specialized subagents and delivers unified project roadmap
+- Execution orchestration manages parallel subagent deployment and cross-subagent coordination effectively
 - Integration orchestration validates all outputs meet established quality gates and objectives
 - All Task tool calls include proper subagent_type parameters based on assignment matrix
 - Task dependencies and execution order are clearly documented and followed
 - Quality gates are established and validated at each phase
-- Agent selection dynamically adapts to current agent ecosystem, prioritizing discovered specialists with documented fallback to general-purpose when needed
+- Subagent selection dynamically adapts to current subagent ecosystem, prioritizing discovered specialists with documented fallback to general-purpose when needed
 - User confirms satisfaction with orchestrated approach and deliverable quality
-- Orchestration post-mortem analyzes agent effectiveness and coordination efficiency
+- Orchestration post-mortem analyzes subagent effectiveness and coordination efficiency
 </validation>
 
 ## Usage
@@ -158,19 +170,19 @@ To orchestrate a comprehensive research → planning → execution workflow usin
 
     /research-plan-execute "Build a real-time chat application with user authentication and file sharing capabilities"
 
-*Dynamically surveys agent ecosystem and intelligently matches to web development needs*
+*Dynamically surveys subagent ecosystem and intelligently matches to web development needs*
 
 **Infrastructure Project**:
 
     /research-plan-execute "Set up scalable Kubernetes deployment with monitoring and CI/CD pipeline"
 
-*Analyzes available agents for infrastructure/DevOps specializations and creates optimal assignments*
+*Analyzes available subagents for infrastructure/DevOps specializations and creates optimal assignments*
 
 **Data Processing System**:
 
     /research-plan-execute "Build ETL pipeline for processing user analytics data"
 
-*Discovers data processing specialists in current agent ecosystem and builds assignment matrix*
+*Discovers data processing specialists in current subagent ecosystem and builds assignment matrix*
 
 **Legacy System Migration**:
 
@@ -178,4 +190,4 @@ To orchestrate a comprehensive research → planning → execution workflow usin
 
 *Identifies modernization and backend specialists available and creates dynamic task mappings*
 
-This triggers the systematic research → planning → execution workflow with dynamic agent discovery, intelligent task-to-agent matching, and orchestrated execution - automatically adapting to any changes in the agent ecosystem while ensuring optimal expertise coordination at each phase.
+This triggers the systematic research → planning → execution workflow with dynamic subagent discovery, intelligent task-to-subagent matching, and orchestrated execution - automatically adapting to any changes in the subagent ecosystem while ensuring optimal expertise coordination at each phase.
