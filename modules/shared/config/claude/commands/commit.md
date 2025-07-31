@@ -1,1 +1,1 @@
-Delegates to `git-master` agent for Korean conventional commits with pre-commit validation.
+Execute Korean conventional commits via git-master agent.

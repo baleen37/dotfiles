@@ -56,6 +56,15 @@ Common directory structures used in agents:
 Most generated agent files should include:
 
 ```markdown
+---
+name: [agent-name]
+description: [Action-oriented description optimized for automatic delegation, including PROACTIVE keywords if needed]
+---
+
+# [Agent Name] - [한글 간단 설명]
+
+[한 줄 영어 설명]
+
 <persona>
 [Domain-specific role and expertise description optimized for the agent's specialty]
 </persona>
@@ -63,10 +72,6 @@ Most generated agent files should include:
 <objective>
 [Clear, concise objective with delegation triggers]
 </objective>
-
-<description>
-[Action-oriented description optimized for automatic delegation, including PROACTIVE keywords if needed]
-</description>
 
 <workflow>
   <step name="[Step Name]" number="[N]">
@@ -82,6 +87,8 @@ Most generated agent files should include:
 [Success criteria and validation steps]
 </validation>
 ```
+
+**참조**: 자세한 템플릿과 예시는 [agent-template.md](../templates/agent-template.md)를 확인하세요.
 
 ## Delegation Optimization Guidelines
 
