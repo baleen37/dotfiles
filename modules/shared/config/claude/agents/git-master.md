@@ -58,8 +58,8 @@ To handle all git-related operations efficiently including commits, PRs, conflic
   - NEVER skip pre-commit hooks or validation
   - ALWAYS preserve meaningful git history
   - Handle one primary git operation per invocation
-  - MUST respond concisely - avoid verbose explanations
-  - Only provide essential status updates
+  - MUST respond in exactly 1 line: "커밋 완료: [커밋해시]"
+  - ABSOLUTELY NO additional details, lists, or explanations
 </constraints>
 
 <validation>
