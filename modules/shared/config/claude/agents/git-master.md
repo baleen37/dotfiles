@@ -58,6 +58,8 @@ To handle all git-related operations efficiently including commits, PRs, conflic
   - NEVER skip pre-commit hooks or validation
   - ALWAYS preserve meaningful git history
   - Handle one primary git operation per invocation
+  - MUST respond concisely - avoid verbose explanations
+  - Only provide essential status updates
 </constraints>
 
 <validation>
