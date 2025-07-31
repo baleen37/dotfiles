@@ -1,20 +1,22 @@
-# /analyze - Multi-Dimensional Analysis & Intelligence
+# /analyze - Intelligent Code & System Analysis
 
-Evidence-based systematic analysis across quality, security, performance, and architecture dimensions with intelligent Wave orchestration.
+Comprehensive multi-dimensional analysis with smart automatic detection and AI-driven insights across quality, security, performance, and architecture.
 
 ## Purpose
-- **Multi-Dimensional Analysis**: Comprehensive analysis across quality, security, performance, and architecture
-- **Evidence-Based Insights**: Data-driven findings with quantifiable metrics and actionable intelligence
-- **Wave-Enabled Intelligence**: Auto-activate Wave mode for complex system-wide analysis
-- **Root Cause Investigation**: Deep investigation beyond surface-level symptoms with systematic methodology
-- **Actionable Recommendations**: Prioritized improvement strategies with clear implementation guidance
+- **AI-Driven Intelligence**: Automatic analysis depth and focus detection based on code patterns and issues
+- **Multi-Dimensional Analysis**: Simultaneous quality, security, performance, and architecture assessment
+- **Auto-Orchestration**: Seamless Wave mode and persona activation based on analysis complexity
+- **Evidence-Based Insights**: Data-driven findings with quantifiable metrics and actionable recommendations
+- **Effortless Experience**: Maximum analytical depth with minimal configuration - just specify thinking level
 
 ## Usage
 ```bash
-/analyze [target] [--focus domain] [--depth level] [--strategy approach]
+/analyze [target]                    # Smart automatic analysis
+/analyze [target] --think            # Deep multi-dimensional analysis  
+/analyze [target] --ultrathink       # Maximum depth comprehensive analysis
 ```
 
-## Arguments & Flags
+## Arguments & Thinking Levels
 
 ### Target Specification
 - `[target]` - File, directory, or system component to analyze (default: current project)
@@ -24,346 +26,238 @@ Evidence-based systematic analysis across quality, security, performance, and ar
 - `@component/Button` - Deep component analysis with usage patterns
 - `@api/auth` - API module analysis with security and performance focus
 
-### Analysis Focus
-- `--focus quality` - Code quality, maintainability, technical debt
-- `--focus security` - Vulnerabilities, compliance, threat modeling
-- `--focus performance` - Bottlenecks, optimization, scalability
-- `--focus architecture` - Design patterns, structure, modularity
-- `--focus dependencies` - Dependency analysis, version management, security
-- `--focus testing` - Test coverage, quality, strategy effectiveness
-- `--focus accessibility` - UI/UX accessibility compliance and usability
+### 🧠 Thinking Levels (Auto-Adjusting Intelligence)
 
-### Analysis Depth
-- `--depth surface` - Quick scan for obvious issues and patterns
-- `--depth standard` - Comprehensive analysis with detailed findings (default)
-- `--depth deep` - Architectural analysis with system-wide implications
-- `--depth root-cause` - Deep investigation with root cause analysis
-- `--depth comprehensive` - Full system analysis with Wave activation
-- `--depth quick` - Fast analysis for immediate feedback
-- `--depth systematic` - Methodical analysis with structured reporting
+#### Default Mode - Smart Automatic Analysis
+```bash
+/analyze [target]
+```
+**Auto-Detects & Applies**:
+- 📊 Code complexity patterns → optimal analysis depth and focus areas
+- 🎯 Framework and technology detection → relevant analysis dimensions  
+- ⚡ Issue severity assessment → appropriate investigation depth
+- 🤖 MCP server selection → Sequential, Context7, Playwright as needed
+- 🌊 Wave activation → for system-wide or complex architectural analysis
+- 🎭 Persona activation → analyzer, security, performance, architect as needed
 
-### Analysis Strategy
-- `--strategy systematic` - Methodical analysis with comprehensive coverage
-- `--strategy targeted` - Focus on specific issues or components
-- `--strategy comparative` - Compare against benchmarks and best practices
-- `--strategy historical` - Include historical trends and technical debt evolution
-- `--strategy predictive` - Analyze trends and predict future issues
+#### `--think` - Deep Analysis Mode
+```bash
+/analyze [target] --think
+```
+**Enhanced Intelligence** (~10K tokens):
+- 🏗️ Cross-module architectural pattern analysis
+- 🔍 Deep dependency and coupling investigation
+- 📈 Performance bottleneck root cause analysis
+- 🛡️ Comprehensive security vulnerability assessment
+- 📚 Best practices alignment and deviation detection
+- 🔄 Technical debt quantification and prioritization
 
-### Output Configuration
-- `--output summary` - Executive summary with key findings
-- `--output detailed` - Comprehensive analysis report (default)
-- `--output actionable` - Action-focused recommendations with priorities
-- `--output metrics` - Quantitative metrics and benchmarks
-- `--output roadmap` - Strategic improvement roadmap
-- `--format text` - Plain text format (default)
-- `--format json` - JSON format for programmatic use
-- `--format report` - Structured report format
+#### `--ultrathink` - Maximum Depth Mode  
+```bash
+/analyze [target] --ultrathink
+```
+**Maximum Intelligence** (~32K tokens):
+- 🌐 System-wide impact and risk analysis
+- 🔄 Legacy modernization opportunity assessment
+- ⚖️ Enterprise-grade compliance and governance review
+- 🎯 Strategic technical debt prioritization matrix
+- 📋 Comprehensive transformation roadmap with timeline
+- 🏢 Scalability and reliability engineering assessment
 
-### Integration Features
-- `--create-tasks` - Generate `/task` hierarchy for identified improvements
-- `--trigger-improve` - Automatically trigger `/improve` for high-priority issues
-- `--update-workflow` - Update project workflows based on findings
-- `--benchmark` - Compare against industry standards and best practices
+### 🛡️ Optional Control Modes
 
-## Auto-Activation Patterns
+#### `--safe` - Conservative Analysis Mode
+```bash
+/analyze [target] --safe
+```
+- ✅ Focus on confirmed issues with high confidence
+- 🔒 Conservative recommendations with proven solutions
+- 🧪 Thorough validation of all findings
+- 🔄 Risk-averse analysis with safety margins
+- 📋 Detailed evidence supporting all conclusions
 
-### Wave Mode Triggers
-- **System-Wide Analysis**: >100 files or complex architectural analysis
-- **Multi-Dimensional**: Analysis across 3+ focus areas simultaneously
-- **Root Cause Investigation**: Deep analysis requiring systematic investigation
-- **Enterprise Scale**: Large codebases with >50k lines of code
+#### `--preview` - Preview Mode  
+```bash
+/analyze [target] --preview
+```
+- 👀 Show analysis plan and scope without executing
+- 📊 Estimated analysis time and resource requirements
+- 📝 Analysis dimensions and methodologies to be used
+- ⏱️ Complexity assessment and thinking level recommendation
+- 🎯 Expected deliverables and insight categories
 
-### Persona Auto-Activation
-- **Quality Focus**: → analyzer persona + refactorer persona
-- **Security Focus**: → security persona + analyzer persona
-- **Performance Focus**: → performance persona + analyzer persona
-- **Architecture Focus**: → architect persona + analyzer persona
-- **Multi-Focus**: → intelligent persona coordination
+#### `--interactive` - Guided Analysis Mode
+```bash
+/analyze [target] --interactive  
+```
+- 🤝 Pause for focus area confirmation and prioritization
+- 🔍 Explain analysis methodology and reasoning
+- ⚖️ Let user choose between alternative analysis approaches
+- 📋 Step-by-step progress with insight sharing
+- 🎓 Educational explanations of findings and patterns
 
-### MCP Server Integration
-- **Sequential**: Primary for systematic analysis and root cause investigation
-- **Context7**: Documentation and best practices lookup for validation
-- **Playwright**: Performance measurement and user experience analysis
-- **Magic**: UI component analysis and accessibility evaluation
+## 🤖 Intelligent Auto-Analysis System
 
-## Analysis Framework
+### Smart Detection & Activation
 
-### Phase 1: Discovery & Inventory
-1. **Structural Analysis**: Codebase organization, module relationships
-2. **Technology Assessment**: Framework versions, dependency analysis
-3. **Quality Baseline**: Current metrics and technical debt assessment
-4. **Security Posture**: Initial vulnerability and compliance scan
-5. **Performance Profile**: Baseline performance characteristics
+**Code Pattern Analysis**:
+- 📁 Project structure & complexity → Analysis scope and methodology
+- 🔄 Code interdependencies → Architectural analysis activation
+- 📊 Quality metrics baseline → Focus area prioritization
+- ⚡ Performance characteristics → Bottleneck investigation
+- 🛡️ Security posture indicators → Vulnerability assessment depth
 
-### Phase 2: Multi-Dimensional Analysis
+**Framework & Technology Detection**:
+- ⚛️ React/Vue/Angular → Frontend analysis + Magic MCP for UI patterns
+- 🚀 Node.js/Python/Go → Backend analysis + Context7 MCP for best practices  
+- 🏗️ Complex architecture → Architect persona + Sequential MCP for system analysis
+- 🔒 Security frameworks → Security persona + comprehensive vulnerability scanning
+- 📱 Mobile/responsive → Frontend persona + accessibility compliance analysis
 
-#### Quality Analysis
-```yaml
-code_quality:
-  complexity: [cyclomatic, cognitive, nesting_depth]
-  maintainability: [readability, documentation, consistency]
-  technical_debt: [code_smells, duplication, deprecated_patterns]
-  test_quality: [coverage, quality, strategy_effectiveness]
+**Automatic MCP Server Selection**:
+- 🧠 **Sequential**: Primary for systematic analysis and structured investigation
+- 📚 **Context7**: Framework patterns, best practices validation, compliance standards
+- ✨ **Magic**: UI component analysis, design system evaluation, accessibility assessment
+- 🎭 **Playwright**: Performance measurement, user experience validation, E2E analysis
 
-metrics:
-  maintainability_index: '>70 target'
-  cyclomatic_complexity: '<10 per function'
-  code_duplication: '<5% overall'
-  test_coverage: '>80% unit, >70% integration'
+**Smart Persona Activation**:
+- 🔍 **Analyzer**: Primary for root cause investigation and evidence-based findings
+- 🏗️ **Architect**: System-wide analysis, architectural patterns, design evaluation
+- 🛡️ **Security**: Vulnerability assessment, threat modeling, compliance review
+- ⚡ **Performance**: Bottleneck identification, optimization opportunities, scalability
+- 🎨 **Frontend**: UI/UX analysis, accessibility compliance, responsive design
+- 🔧 **Backend**: API analysis, database optimization, service architecture
+
+### 🎯 Zero-Configuration Intelligence
+
+**You Don't Need to Specify**:
+- ❌ ~~`--focus security`~~ → Auto-detects from vulnerability patterns
+- ❌ ~~`--depth comprehensive`~~ → Auto-adjusts to codebase complexity  
+- ❌ ~~`--strategy systematic`~~ → Auto-selects optimal analysis methodology
+- ❌ ~~`--output actionable`~~ → Auto-formats for maximum usability
+- ❌ ~~`--persona architect`~~ → Auto-assigns based on analysis needs
+- ❌ ~~`--seq --c7 --magic`~~ → Auto-routes to needed MCP servers
+- ❌ ~~`--create-tasks --trigger-improve`~~ → Auto-enables based on findings
+
+**The System Automatically**:
+- 🔍 Analyzes your codebase structure and identifies key focus areas
+- 🎯 Detects the most critical issues and prioritizes investigation  
+- ⚖️ Assesses complexity and selects appropriate analysis depth
+- 🤖 Chooses optimal personas and MCP servers for comprehensive coverage
+- 📋 Creates structured analysis plan with evidence requirements
+- ✅ Executes multi-dimensional analysis with intelligent coordination
+- 📊 Synthesizes findings into actionable insights with priority ranking
+
+## ✨ Usage Examples - Now Beautifully Simple!
+
+### 🎯 Basic Smart Analysis
+```bash
+/analyze                           # ✨ Auto-detects everything, comprehensive analysis
+/analyze src/components           # 🎨 Smart component quality and pattern analysis  
+/analyze api/                     # 🚀 Intelligent API security and performance analysis
+/analyze @security                # 🛡️ Auto-focuses on security across entire codebase
+/analyze @performance             # ⚡ Smart performance bottleneck identification
 ```
 
-#### Security Analysis
-```yaml
-security_assessment:
-  vulnerabilities: [known_cve, custom_analysis, dependency_audit]
-  compliance: [owasp_top_10, industry_standards, regulatory]
-  threat_modeling: [attack_surface, data_flow, access_control]
-  best_practices: [secure_coding, configuration, deployment]
-
-metrics:
-  vulnerability_score: 'CVSS scoring'
-  compliance_percentage: '>95% target'
-  security_debt: 'high/medium/low categorization'
-  risk_level: 'critical/high/medium/low'
+### 🧠 Enhanced Intelligence Levels
+```bash
+/analyze src/ --think             # 🔍 Deep analysis with architectural insights
+/analyze . --ultrathink           # 🌟 Maximum intelligence for complex systems
+/analyze legacy/ --ultrathink     # 🏗️ Comprehensive legacy modernization analysis
 ```
 
-#### Performance Analysis
-```yaml
-performance_assessment:
-  bottlenecks: [cpu_intensive, memory_leaks, io_blocking]
-  scalability: [horizontal, vertical, resource_utilization]
-  optimization: [algorithmic, caching, database_queries]
-  monitoring: [metrics_coverage, alerting, observability]
-
-metrics:
-  response_time: '<200ms API, <3s page_load'
-  memory_usage: '<100MB baseline'
-  cpu_utilization: '<30% average'
-  database_performance: '<50ms query_time'
+### 🛡️ Controlled Analysis Modes
+```bash
+/analyze --safe                   # 🔒 Conservative analysis with proven findings
+/analyze --preview                # 👀 See what analysis would be performed
+/analyze --interactive            # 🤝 Guided analysis with explanations
+/analyze --think --safe           # 🧠 Deep analysis with conservative recommendations
+/analyze --ultrathink --preview   # 🌟 Max analysis scope preview
 ```
 
-#### Architecture Analysis
-```yaml
-architecture_assessment:
-  patterns: [design_patterns, architectural_style, modularity]
-  coupling: [component_dependencies, interface_design]
-  cohesion: [module_focus, responsibility_clarity]
-  evolution: [adaptability, extensibility, maintainability]
+### 🎉 Real-World Scenarios
+```bash
+# Legacy system assessment
+/analyze legacy-app/ --ultrathink --safe
 
-metrics:
-  coupling_score: 'loose coupling target'
-  cohesion_score: 'high cohesion target'
-  pattern_consistency: '>90% adherence'
-  architectural_debt: 'quantified technical debt'
+# Quick health check
+/analyze src/ --think
+
+# Comprehensive security review  
+/analyze @security --ultrathink --interactive
+
+# Performance troubleshooting
+/analyze @performance --think
 ```
 
-### Phase 3: Root Cause Investigation
-1. **Problem Correlation**: Link symptoms to underlying causes
-2. **Impact Analysis**: Assess business and technical impact
-3. **Dependency Mapping**: Identify interdependencies and cascading effects
-4. **Historical Analysis**: Track issue evolution and patterns
-5. **Predictive Assessment**: Forecast future issues and risks
+## 🎯 Intelligent Analysis Framework
 
-### Phase 4: Actionable Intelligence
-1. **Priority Matrix**: Risk vs. effort prioritization framework
-2. **Implementation Planning**: Detailed improvement strategies
-3. **Resource Estimation**: Time, complexity, and skill requirements
-4. **Risk Assessment**: Implementation risks and mitigation strategies
-5. **Success Metrics**: Measurable outcomes and validation criteria
+### Auto-Intelligence Engine
+1. **Smart Context Analysis**: Automatic codebase understanding and issue pattern detection
+2. **Priority Matrix**: AI-driven impact vs effort prioritization for findings
+3. **Evidence Requirements**: Intelligent validation depth based on finding severity
+4. **Resource Orchestration**: Optimal persona and MCP server coordination
+5. **Insight Synthesis**: Automatic correlation and actionable recommendation generation
 
-## Focus-Specific Analysis Patterns
+### Multi-Dimensional Analysis Domains
 
-### Quality-Focused Analysis
-```yaml
-analysis_dimensions:
-  - code_complexity: 'Identify overly complex functions and classes'
-  - duplication: 'Find and quantify code duplication patterns'
-  - maintainability: 'Assess readability and modification ease'
-  - testing: 'Evaluate test coverage and quality'
-  - documentation: 'Assess documentation completeness and accuracy'
-  - conventions: 'Validate coding standards adherence'
+#### 📊 Quality Analysis (Auto-Activated)
+- **Code Complexity**: Cyclomatic complexity, cognitive complexity, nesting analysis
+- **Maintainability**: Readability, documentation coverage, consistency assessment
+- **Technical Debt**: Code smells, duplication, deprecated pattern identification
+- **Test Quality**: Coverage analysis, test effectiveness, strategy evaluation
 
-deliverables:
-  - quality_scorecard: 'Quantified quality metrics'
-  - improvement_roadmap: 'Prioritized quality improvements'
-  - refactoring_candidates: 'Specific components needing attention'
-  - best_practices_guide: 'Project-specific quality guidelines'
-```
+#### 🛡️ Security Analysis (Auto-Activated)
+- **Vulnerability Assessment**: CVE scanning, custom vulnerability detection
+- **Threat Modeling**: Attack surface analysis, threat vector identification
+- **Compliance Review**: OWASP, industry standards, regulatory requirement checks
+- **Security Best Practices**: Secure coding pattern adherence validation
 
-### Security-Focused Analysis
-```yaml
-analysis_dimensions:
-  - vulnerability_scan: 'Known CVE and custom vulnerability detection'
-  - threat_modeling: 'Attack surface and threat vector analysis'
-  - compliance_audit: 'Industry standard and regulatory compliance'
-  - secure_coding: 'Security best practices adherence'
-  - dependency_audit: 'Third-party dependency security assessment'
-  - configuration_review: 'Security configuration validation'
+#### ⚡ Performance Analysis (Auto-Activated)
+- **Bottleneck Identification**: CPU, memory, I/O, network performance analysis
+- **Scalability Assessment**: Horizontal and vertical scaling readiness
+- **Resource Optimization**: Memory usage, CPU utilization, storage efficiency
+- **Algorithm Analysis**: Computational complexity and optimization opportunities
 
-deliverables:
-  - security_scorecard: 'Risk assessment and vulnerability inventory'
-  - remediation_plan: 'Prioritized security improvements'
-  - compliance_report: 'Standards adherence and gap analysis'
-  - threat_model: 'Comprehensive threat landscape assessment'
-```
+#### 🏗️ Architecture Analysis (Auto-Activated)
+- **Design Pattern Evaluation**: Pattern consistency and appropriateness assessment
+- **Coupling Analysis**: Component dependency and interface design evaluation
+- **Cohesion Assessment**: Module focus and responsibility clarity
+- **Evolution Readiness**: Adaptability, extensibility, maintainability analysis
 
-### Performance-Focused Analysis
-```yaml
-analysis_dimensions:
-  - bottleneck_identification: 'CPU, memory, I/O, and network bottlenecks'
-  - algorithmic_analysis: 'Algorithm efficiency and optimization opportunities'
-  - resource_utilization: 'Memory, CPU, and storage usage patterns'
-  - scalability_assessment: 'Horizontal and vertical scaling readiness'
-  - caching_strategy: 'Caching implementation and effectiveness'
-  - database_performance: 'Query optimization and indexing analysis'
+## 🚀 Analysis Output & Integration
 
-deliverables:
-  - performance_baseline: 'Current performance metrics and benchmarks'
-  - optimization_roadmap: 'Prioritized performance improvements'
-  - monitoring_strategy: 'Performance monitoring and alerting setup'
-  - scalability_plan: 'Growth-ready architecture recommendations'
-```
+### Smart Output Generation
+- **Executive Summary**: High-level findings with business impact assessment
+- **Detailed Analysis**: Comprehensive technical findings with evidence
+- **Actionable Roadmap**: Prioritized improvement plan with implementation guidance
+- **Metrics Dashboard**: Quantifiable measurements and benchmark comparisons
 
-## Integration with SuperClaude Ecosystem
-
-### Command Coordination
-- **→ /improve**: Direct handoff of analysis findings for systematic improvement
+### Automatic Integration Capabilities
+- **→ /improve**: Direct handoff of findings for systematic improvement
 - **→ /task**: Generate hierarchical task structure for addressing findings
-- **← /load**: Import project context for informed analysis
-- **↔️ /workflow**: Coordinate with development workflows and requirements
-- **→ /spawn**: Trigger complex multi-domain operations based on findings
+- **→ /implement**: Trigger implementation of recommended solutions
+- **↔️ /workflow**: Coordinate with development workflows and processes
 
-### Wave System Integration
-- **Progressive Analysis**: Multi-phase analysis with increasing depth
-- **Systematic Waves**: Methodical analysis across all dimensions
-- **Adaptive Waves**: Dynamic analysis strategy based on initial findings
-- **Enterprise Waves**: Large-scale analysis with comprehensive coordination
+### Built-in Quality Assurance
+- **🔒 Evidence-Based**: All findings supported by quantifiable evidence
+- **🧪 Validated Results**: Comprehensive validation of analysis accuracy
+- **🔄 Reproducible**: Consistent results across analysis runs
+- **📊 Measurable Impact**: Clear metrics for improvement validation
+- **🎯 Actionable Insights**: Specific, implementable recommendations
 
-### Quality Gates Integration
-- **Analysis Validation**: Verify completeness and accuracy of findings
-- **Evidence Requirements**: Quantifiable metrics and reproducible results
-- **Recommendation Quality**: Actionable, prioritized, and measurable recommendations
-- **Integration Testing**: Validate analysis accuracy through implementation results
+## 🚀 Performance & Quality Goals
 
-## Output Formats
+### Analysis Effectiveness
+- **🎯 Accuracy**: >95% of findings provide actionable improvement opportunities
+- **⚡ Speed**: Smart analysis completes in <60 seconds for most projects
+- **🧠 Comprehensiveness**: >90% coverage of critical analysis dimensions
+- **🔄 Consistency**: Reliable results across multiple analysis runs
 
-### Executive Summary
-```markdown
-# Analysis Executive Summary
+### Intelligence & Automation
+- **🤖 Auto-Detection**: >85% of analysis parameters determined automatically
+- **🎭 Persona Activation**: >90% accuracy in optimal persona selection
+- **📊 Insight Quality**: >95% of recommendations deemed valuable by users
+- **✅ Integration Success**: Seamless handoff to improvement and implementation commands
 
-## 🎯 Overall Health Score: 78/100
-- **Quality**: 82/100 (Good - minor technical debt)
-- **Security**: 68/100 (Moderate - 8 medium-risk vulnerabilities)
-- **Performance**: 85/100 (Good - minor optimization opportunities)
-- **Architecture**: 76/100 (Good - some coupling issues)
-
-## 🔴 Critical Issues (Immediate Action Required)
-1. **SQL Injection Vulnerability** - User input validation in auth module
-2. **Memory Leak** - React component cleanup in dashboard
-3. **N+1 Query Problem** - Database queries in user listing
-
-## 🟡 High Priority Improvements (Next 30 Days)
-- Implement comprehensive input validation
-- Add React cleanup hooks for component unmounting
-- Optimize database queries with proper indexing
-- Upgrade 12 dependencies with security patches
-```
-
-### Detailed Analysis Report
-```markdown
-# Comprehensive Analysis Report
-
-## Quality Analysis
-### Code Complexity Assessment
-- **Average Cyclomatic Complexity**: 6.2 (Target: <10) ✅
-- **High Complexity Functions**: 8 functions >15 complexity
-- **Technical Debt Ratio**: 12% (Industry average: 15%) ✅
-
-#### Complex Functions Requiring Attention
-| Function | File | Complexity | Priority |
-|----------|------|------------|----------|
-| `processUserData` | `src/auth/validator.js` | 23 | High |
-| `generateReport` | `src/reports/generator.js` | 18 | Medium |
-
-### Code Duplication Analysis
-- **Overall Duplication**: 4.2% (Target: <5%) ✅
-- **Largest Duplicated Block**: 45 lines in utility functions
-- **Duplication Hotspots**: Form validation, API error handling
-
-## Security Analysis
-### Vulnerability Assessment
-- **Critical**: 0 vulnerabilities ✅
-- **High**: 3 vulnerabilities ⚠️
-- **Medium**: 5 vulnerabilities ⚠️
-- **Low**: 12 vulnerabilities ℹ️
-
-#### High-Priority Security Issues
-1. **SQL Injection** (CVSS: 8.1)
-   - **Location**: `src/auth/login.js:42`
-   - **Impact**: Database compromise
-   - **Fix**: Parameterized queries implementation
-
-2. **XSS Vulnerability** (CVSS: 7.8)
-   - **Location**: `src/components/UserProfile.jsx:28`
-   - **Impact**: Session hijacking
-   - **Fix**: Input sanitization and CSP headers
-```
-
-### Actionable Roadmap
-```markdown
-# Analysis-Driven Improvement Roadmap
-
-## Phase 1: Critical Security Fixes (Week 1)
-- [ ] **Priority 1**: Fix SQL injection in authentication module
-- [ ] **Priority 1**: Implement XSS protection in user profile component
-- [ ] **Priority 2**: Upgrade vulnerable dependencies (express, lodash, axios)
-- [ ] **Priority 2**: Add security headers and CSP configuration
-
-**Estimated Effort**: 16 hours | **Risk Reduction**: 85%
-
-## Phase 2: Performance Optimization (Week 2-3)
-- [ ] **Priority 1**: Resolve N+1 query issues in user listing
-- [ ] **Priority 1**: Fix memory leaks in React dashboard components
-- [ ] **Priority 2**: Implement Redis caching for frequently accessed data
-- [ ] **Priority 2**: Optimize database queries and add missing indexes
-
-**Estimated Effort**: 32 hours | **Performance Gain**: 40-60%
-
-## Phase 3: Quality Improvements (Week 4-5)
-- [ ] **Priority 1**: Refactor high-complexity functions (8 functions)
-- [ ] **Priority 2**: Eliminate code duplication in form validation
-- [ ] **Priority 2**: Improve test coverage from 72% to 85%
-- [ ] **Priority 3**: Update documentation and code comments
-
-**Estimated Effort**: 28 hours | **Maintainability Improvement**: 30%
-```
-
-## Tool Integration & Execution Framework
-
-### Allowed Tools & Purpose
-- **Read**: Deep code inspection and comprehensive file analysis
-- **Grep**: Pattern-based analysis and code searching across codebase
-- **Glob**: Systematic file discovery and categorization by type
-- **Bash**: Execute analysis tools, run performance measurements, and validation
-- **TodoWrite**: Track analysis progress, findings, and recommendation implementation
-
-### Analysis Execution Pattern
-1. **Discovery Phase**: Use Glob to identify and categorize target files
-2. **Pattern Analysis**: Apply Grep for systematic code pattern detection
-3. **Deep Inspection**: Read files for detailed quality, security, and architecture analysis
-4. **Validation**: Execute Bash commands for performance testing and validation
-5. **Progress Tracking**: Use TodoWrite to manage analysis workflow and findings
-
-### Advanced Integration Features
-- **Wave-Enabled**: Auto-activates Wave mode for complex system-wide analysis
-- **Complexity Threshold**: 0.7+ complexity triggers enhanced analysis modes
-- **Persona Coordination**: Automatically activates analyzer, security, performance, or architect personas
-- **MCP Server Integration**: Leverages Sequential for systematic analysis, Context7 for best practices
-
-## Quality Gates & Performance
-- **Analysis Completeness**: 100% coverage of specified dimensions
-- **Evidence Quality**: All findings supported by quantifiable metrics
-- **Actionability**: 95%+ of recommendations include specific implementation guidance
-- **Accuracy**: 90%+ of identified issues confirmed through validation
-- **Performance Target**: Complete standard analysis within 15 minutes
-- **Tool Efficiency**: Sub-5 second file discovery, sub-30 second pattern analysis
+**The Future of Code Analysis**: Just specify what to analyze and how deep to think - the system handles everything else automatically! 🌟
