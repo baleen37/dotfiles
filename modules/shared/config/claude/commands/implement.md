@@ -5,7 +5,7 @@ Context-aware implementation with automatic pattern recognition, framework adapt
 ## Purpose
 - **AI-Driven Intelligence**: Automatic implementation approach and complexity detection based on feature requirements
 - **Context-Aware Generation**: Analyze existing codebase patterns and adapt implementation style automatically
-- **Auto-Orchestration**: Seamless framework detection, persona activation, and MCP server coordination
+- **Auto-Orchestration**: Seamless framework detection, agent activation, and MCP server coordination
 - **Quality-First Approach**: Built-in type safety, error handling, testing, and security considerations
 - **Effortless Experience**: Maximum implementation quality with minimal configuration - just specify thinking depth
 
@@ -108,11 +108,11 @@ Context-aware implementation with automatic pattern recognition, framework adapt
 - 🛡️ Security considerations → Security implementation and compliance
 
 **Framework & Technology Detection**:
-- ⚛️ React/Vue/Angular → Frontend persona + Magic MCP for modern components
-- 🚀 Node.js/Python/Go → Backend persona + Context7 MCP for API patterns  
-- 🏗️ Complex architecture → Architect persona + Sequential MCP for system design
-- 🔒 Security requirements → Security persona + comprehensive vulnerability prevention
-- 📱 Mobile/responsive → Frontend persona + accessibility and responsive implementation
+- ⚛️ React/Vue/Angular → frontend specialist agents + Magic MCP for modern components
+- 🚀 Node.js/Python/Go → backend specialist agents + Context7 MCP for API patterns  
+- 🏗️ Complex architecture → architecture specialist agents + Sequential MCP for system design
+- 🔒 Security requirements → security specialist agents + comprehensive vulnerability prevention
+- 📱 Mobile/responsive → frontend specialist agents + accessibility and responsive implementation
 
 **Automatic MCP Server Selection**:
 - ✨ **Magic**: Primary for UI components, design systems, modern frontend patterns
@@ -120,13 +120,10 @@ Context-aware implementation with automatic pattern recognition, framework adapt
 - 🧠 **Sequential**: Complex implementation logic, multi-step feature coordination
 - 🎭 **Playwright**: Testing implementation, user workflow validation, E2E coverage
 
-**Smart Persona Activation**:
-- 🎨 **Frontend**: UI components, responsive design, accessibility implementation
-- 🔧 **Backend**: APIs, services, database integration, business logic
-- 🏗️ **Architect**: System design, integration patterns, scalability implementation
-- 🛡️ **Security**: Secure implementation, vulnerability prevention, compliance
-- ⚡ **Performance**: Optimization implementation, monitoring, benchmarking
-- 🧪 **QA**: Testing implementation, quality assurance, validation strategies
+**Smart Agent Activation**:
+- Automatically selects optimal specialized agents based on implementation requirements
+- Coordinates multiple agents for complex multi-domain features
+- Adapts agent selection based on detected frameworks and patterns
 
 ### 🎯 Zero-Configuration Intelligence
 
@@ -135,7 +132,7 @@ Context-aware implementation with automatic pattern recognition, framework adapt
 - ❌ ~~`--framework react`~~ → Auto-detects from existing codebase  
 - ❌ ~~`--with-tests`~~ → Auto-includes based on complexity and quality needs
 - ❌ ~~`--safe --secure`~~ → Auto-enables based on feature requirements
-- ❌ ~~`--persona frontend`~~ → Auto-assigns based on implementation needs
+- ❌ ~~`--agent specialist`~~ → Auto-assigns based on implementation needs
 - ❌ ~~`--magic --c7 --sequential`~~ → Auto-routes to needed MCP servers
 - ❌ ~~`--tdd --production`~~ → Auto-selects development approach
 
@@ -143,7 +140,7 @@ Context-aware implementation with automatic pattern recognition, framework adapt
 - 🔍 Analyzes your feature requirements and existing codebase patterns
 - 🎯 Identifies optimal implementation approach and architecture  
 - ⚖️ Assesses complexity and selects appropriate implementation depth
-- 🤖 Chooses optimal personas and MCP servers for comprehensive implementation
+- 🤖 Chooses optimal agents and MCP servers for comprehensive implementation
 - 📋 Creates implementation plan with quality gates and validation
 - ✅ Implements features with built-in testing and documentation
 - 📊 Validates implementation quality and provides improvement insights
@@ -196,7 +193,7 @@ Context-aware implementation with automatic pattern recognition, framework adapt
 1. **Smart Requirements Analysis**: Automatic feature decomposition and architecture planning
 2. **Pattern Recognition**: AI-driven identification of optimal implementation patterns
 3. **Quality Planning**: Intelligent testing strategy and validation approach selection
-4. **Resource Orchestration**: Optimal persona and MCP server coordination
+4. **Resource Orchestration**: Optimal agent and MCP server coordination
 5. **Progressive Implementation**: Automatic milestone planning and incremental delivery
 
 ### Implementation Domains & Auto-Detection
@@ -261,7 +258,7 @@ Context-aware implementation with automatic pattern recognition, framework adapt
 
 ### Intelligence & Automation
 - **🤖 Auto-Detection**: >85% of implementation parameters determined automatically
-- **🎭 Persona Selection**: >90% accuracy in optimal persona and tool selection
+- **🤖 Agent Selection**: >90% accuracy in optimal agent and tool selection
 - **📊 Quality Integration**: >95% of implementations include comprehensive testing
 - **✅ Framework Alignment**: >98% compliance with existing codebase patterns
 

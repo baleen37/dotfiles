@@ -38,7 +38,7 @@ Comprehensive multi-dimensional analysis with smart automatic detection and AI-d
 - ⚡ Issue severity assessment → appropriate investigation depth
 - 🤖 MCP server selection → Sequential, Context7, Playwright as needed
 - 🌊 Wave activation → for system-wide or complex architectural analysis
-- 🎭 Persona activation → analyzer, security, performance, architect as needed
+- 🤖 Agent activation → specialized agents selected automatically based on analysis needs
 
 #### `--think` - Deep Analysis Mode
 ```bash
@@ -110,9 +110,9 @@ Comprehensive multi-dimensional analysis with smart automatic detection and AI-d
 **Framework & Technology Detection**:
 - ⚛️ React/Vue/Angular → Frontend analysis + Magic MCP for UI patterns
 - 🚀 Node.js/Python/Go → Backend analysis + Context7 MCP for best practices  
-- 🏗️ Complex architecture → Architect persona + Sequential MCP for system analysis
-- 🔒 Security frameworks → Security persona + comprehensive vulnerability scanning
-- 📱 Mobile/responsive → Frontend persona + accessibility compliance analysis
+- 🏗️ Complex architecture → specialized architecture agents + Sequential MCP for system analysis
+- 🔒 Security frameworks → security specialist agents + comprehensive vulnerability scanning
+- 📱 Mobile/responsive → frontend specialist agents + accessibility compliance analysis
 
 **Automatic MCP Server Selection**:
 - 🧠 **Sequential**: Primary for systematic analysis and structured investigation
@@ -120,13 +120,10 @@ Comprehensive multi-dimensional analysis with smart automatic detection and AI-d
 - ✨ **Magic**: UI component analysis, design system evaluation, accessibility assessment
 - 🎭 **Playwright**: Performance measurement, user experience validation, E2E analysis
 
-**Smart Persona Activation**:
-- 🔍 **Analyzer**: Primary for root cause investigation and evidence-based findings
-- 🏗️ **Architect**: System-wide analysis, architectural patterns, design evaluation
-- 🛡️ **Security**: Vulnerability assessment, threat modeling, compliance review
-- ⚡ **Performance**: Bottleneck identification, optimization opportunities, scalability
-- 🎨 **Frontend**: UI/UX analysis, accessibility compliance, responsive design
-- 🔧 **Backend**: API analysis, database optimization, service architecture
+**Smart Agent Activation**:
+- Automatically selects optimal specialized agents based on analysis context and requirements
+- Coordinates multiple agents for comprehensive coverage when needed
+- Adapts agent selection based on detected patterns and complexity
 
 ### 🎯 Zero-Configuration Intelligence
 
@@ -135,7 +132,7 @@ Comprehensive multi-dimensional analysis with smart automatic detection and AI-d
 - ❌ ~~`--depth comprehensive`~~ → Auto-adjusts to codebase complexity  
 - ❌ ~~`--strategy systematic`~~ → Auto-selects optimal analysis methodology
 - ❌ ~~`--output actionable`~~ → Auto-formats for maximum usability
-- ❌ ~~`--persona architect`~~ → Auto-assigns based on analysis needs
+- ❌ ~~`--agent specialist`~~ → Auto-assigns based on analysis needs
 - ❌ ~~`--seq --c7 --magic`~~ → Auto-routes to needed MCP servers
 - ❌ ~~`--create-tasks --trigger-improve`~~ → Auto-enables based on findings
 
@@ -143,7 +140,7 @@ Comprehensive multi-dimensional analysis with smart automatic detection and AI-d
 - 🔍 Analyzes your codebase structure and identifies key focus areas
 - 🎯 Detects the most critical issues and prioritizes investigation  
 - ⚖️ Assesses complexity and selects appropriate analysis depth
-- 🤖 Chooses optimal personas and MCP servers for comprehensive coverage
+- 🤖 Chooses optimal agents and MCP servers for comprehensive coverage
 - 📋 Creates structured analysis plan with evidence requirements
 - ✅ Executes multi-dimensional analysis with intelligent coordination
 - 📊 Synthesizes findings into actionable insights with priority ranking
@@ -256,7 +253,7 @@ Comprehensive multi-dimensional analysis with smart automatic detection and AI-d
 
 ### Intelligence & Automation
 - **🤖 Auto-Detection**: >85% of analysis parameters determined automatically
-- **🎭 Persona Activation**: >90% accuracy in optimal persona selection
+- **🤖 Agent Activation**: >90% accuracy in optimal agent selection
 - **📊 Insight Quality**: >95% of recommendations deemed valuable by users
 - **✅ Integration Success**: Seamless handoff to improvement and implementation commands
 
