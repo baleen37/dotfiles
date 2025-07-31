@@ -1,16 +1,17 @@
-# /workflow - Implementation Workflow Generator
+# /workflow - Development Workflow & Project Planning
 
-Analyze PRDs and feature specifications to generate systematic implementation workflows.
+Analyze PRDs and feature specifications to generate systematic implementation workflows with expert guidance and task orchestration.
 
 ## Purpose
-- **PRD-based Analysis**: Automatically analyze requirement documents to establish implementation plans
-- **Strategy-based Workflows**: Customized workflows based on systematic, agile, or mvp strategies
-- **Wave System Integration**: Automatic Wave mode activation based on complexity
-- **Task Hierarchy**: Systematic management with Epic → Story → Task structure
+- **PRD-Based Analysis**: Automatically analyze requirement documents and establish comprehensive implementation plans
+- **Strategy-Driven Workflows**: Generate customized workflows based on systematic, agile, or MVP development strategies
+- **Wave System Integration**: Auto-activate Wave mode for complex multi-domain project coordination
+- **Hierarchical Task Management**: Structure work using Epic → Story → Task hierarchy with dependency mapping
+- **Expert Persona Integration**: Auto-activate domain specialists based on project requirements and complexity
 
 ## Usage
 ```bash
-/workflow [prd-file|feature-description] [--strategy systematic|agile|mvp] [--output roadmap|tasks|detailed]
+/workflow [target] [--strategy approach] [--output format] [--persona expert] [--estimate]
 ```
 
 ## Arguments & Flags
@@ -22,10 +23,19 @@ Analyze PRDs and feature specifications to generate systematic implementation wo
 - `--risks` - Risk assessment and mitigation strategies
 - `--parallel` - Identify parallelizable work areas
 - `--milestones` - Milestone-based project phases
+- `--persona` - Force specific expert persona (architect, frontend, backend, security, devops)
 
 ## Auto-Activation Patterns
 - **Wave Mode**: Complexity ≥0.7, files >20, domains >2
 - **MCP Servers**: Context7 (patterns), Sequential (analysis), Magic (UI-related)
+- **Persona Auto-Activation**: Based on PRD content and feature requirements
+
+### Expert Persona Auto-Detection
+- **Frontend Persona**: UI/UX requirements, component specs, responsive design
+- **Backend Persona**: API design, database schema, server architecture
+- **Security Persona**: Authentication, authorization, compliance requirements
+- **DevOps Persona**: Infrastructure, deployment, monitoring requirements
+- **Architect Persona**: System design, technology stack, scalability planning
 
 ## Workflow Strategies
 
@@ -98,22 +108,45 @@ Core feature-first rapid validation approach
 4. **Testing** (2 hours)
 ```
 
-## Integration with SuperClaude Ecosystem
+## Tool Integration & Advanced Features
 
-### TodoWrite Integration
+### Allowed Tools & Execution Pattern
+- **Read**: Analyze PRD files and project documentation
+- **Write**: Generate workflow documentation and task specifications
+- **Edit**: Update existing workflow plans and task hierarchies
+- **Glob**: Discover project structure and related documentation
+- **Grep**: Search for patterns and requirements in documentation
+- **TodoWrite**: Track workflow generation progress and immediate tasks
+- **Task**: Create hierarchical project tasks for complex workflows
+
+### Integration with Command Ecosystem
+
+#### TodoWrite Integration
 - Automatically create session tasks for immediate next steps
 - Track progress throughout workflow execution
 - Link workflow phases to actionable development tasks
 
-### Task Command Integration
+#### Task Command Integration
 - Convert workflows into hierarchical project tasks (`/task`)
 - Enable cross-session persistence and progress tracking
 - Support complex orchestration through `/spawn`
 
-### Wave System Integration
+#### Wave System Integration
 - Auto-activate Wave mode when complexity ≥0.7
 - Split multi-phase workflows into Wave execution
 - Validation and quality gates at each Wave phase
+
+### MCP Server Coordination
+- **Sequential**: Complex multi-step analysis and systematic workflow planning
+- **Context7**: Framework patterns, best practices, and implementation guidance
+- **Magic**: UI component workflow planning and design system integration
+
+### Advanced Workflow Features
+- **Dependency Analysis**: Identify and map all internal and external dependencies
+- **Risk Assessment**: Comprehensive risk analysis with mitigation strategies
+- **Parallel Work Streams**: Identify parallelizable work areas for team coordination
+- **Milestone Planning**: Create milestone-based project phases with clear deliverables
+- **Expert Guidance**: Auto-activate domain-specific personas based on requirements
 
 ## Quality Gates & Performance
 - **Workflow Completeness**: Ensure all PRD requirements are addressed
