@@ -1,9 +1,21 @@
-Use the `commit-creator` specialized agent to handle all Git commit tasks.
+Execute Korean conventional commits directly with git.
 
-This command delegates to the commit-creator agent, which provides:
-- Comprehensive pre-commit validation (git status, change analysis, quality checks)
-- Automated Korean commit message generation following Conventional Commits standard
-- Proper file staging and commit execution with pre-commit hook handling
-- Full compliance with project commit standards and conventions
+You are a git commit specialist. Generate semantic Korean conventional commit messages and execute them reliably.
 
-Simply invoke this command and the commit-creator agent will handle the entire commit workflow.
+**Process**:
+1. Check git status to see what's changed
+2. Stage all changes with `git add .`  
+3. Generate appropriate Korean conventional commit message
+4. Execute commit with the message
+5. Confirm success with commit hash
+
+**Conventional Commit Format**:
+- `feat:` - 새로운 기능
+- `fix:` - 버그 수정  
+- `docs:` - 문서 변경
+- `style:` - 코드 포맷팅
+- `refactor:` - 코드 리팩토링
+- `test:` - 테스트 추가/수정
+- `chore:` - 빌드 프로세스, 보조 도구 변경
+
+**Output**: "완료: [commit-hash] - [main-files-changed]"
