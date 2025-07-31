@@ -1,17 +1,17 @@
-# /implement - Intelligent Feature & Code Implementation
+# /implement - Feature Implementation & Code Generation
 
 Context-aware implementation with pattern recognition, framework adaptation, and automated quality assurance.
 
 ## Purpose
-- **Context-Aware Generation**: Analyze existing codebase patterns and adapt implementation style
-- **Framework Intelligence**: Auto-detect and optimize for React, Vue, Node.js, Python, etc.
-- **Quality-First Approach**: Built-in type safety, error handling, and testing
-- **Pattern Consistency**: Maintain consistency with existing architectural patterns
-- **Documentation Integration**: Auto-generate documentation and usage examples
+- **Context-Aware Generation**: Analyze existing codebase patterns and adapt implementation style automatically
+- **Framework Intelligence**: Auto-detect and optimize for React, Vue, Node.js, Python, and other frameworks
+- **Quality-First Approach**: Built-in type safety, comprehensive error handling, and automated testing
+- **Pattern Consistency**: Maintain consistency with existing architectural patterns and code conventions
+- **Documentation Integration**: Auto-generate comprehensive documentation and practical usage examples
 
 ## Usage
 ```bash
-/implement [feature-description] [--type component|api|service|feature] [--framework auto|react|vue|node|python] [--with-tests] [--safe]
+/implement [target] [--type category] [--framework tech] [--with-tests] [--safe]
 ```
 
 ## Arguments & Flags
@@ -23,6 +23,7 @@ Context-aware implementation with pattern recognition, framework adaptation, and
 - `--type feature` - Complete features spanning multiple layers
 - `--type integration` - Third-party service integrations and connectors
 - `--type migration` - Database migrations and data transformations
+- `--type module` - Standalone modules and libraries
 
 ### Framework & Technology
 - `--framework auto` - Auto-detect framework from project structure (default)
@@ -44,6 +45,7 @@ Context-aware implementation with pattern recognition, framework adaptation, and
 - `--prototype` - Rapid prototyping mode with basic functionality
 - `--production` - Production-ready implementation with full error handling
 - `--refactor` - Refactor existing implementation while preserving functionality
+- `--documentation` - Generate documentation alongside implementation
 
 ## Implementation Strategies
 
@@ -169,3 +171,44 @@ Context-aware implementation with pattern recognition, framework adaptation, and
 /implement "Stripe payment integration" --type integration --framework node --production
 /implement "OAuth Google login" --type integration --secure --with-tests
 ```
+
+## Tool Integration & SuperClaude Framework
+
+### Allowed Tools & Execution Pattern
+- **Read**: Analyze existing codebase patterns and context understanding
+- **Write**: Create new files and initial implementations
+- **Edit**: Modify existing code with precise changes
+- **MultiEdit**: Batch modifications across multiple files
+- **Bash**: Execute build tools, run tests, and validation commands
+- **Glob**: Project structure analysis and file discovery
+- **TodoWrite**: Track implementation progress and task management
+- **Task**: Coordinate complex multi-step implementations
+
+### Auto-Activation Patterns
+- **Frontend Development**: UI components, React/Vue/Angular → frontend persona
+- **Backend Services**: APIs, services, database integration → backend persona  
+- **Security Features**: Authentication, authorization, data protection → security persona
+- **System Architecture**: Module design, system structure → architect persona
+- **Performance Critical**: Optimization, scalability requirements → performance persona
+
+### MCP Server Coordination
+- **Magic**: UI component generation and design system integration
+- **Context7**: Framework patterns and best practices lookup
+- **Sequential**: Complex logic implementation and multi-step reasoning
+- **Playwright**: End-to-end testing and user workflow validation
+
+### Implementation Execution Framework
+1. **Context Analysis**: Analyze existing codebase patterns and detect technology stack
+2. **Persona Activation**: Auto-activate relevant domain experts based on implementation type
+3. **Pattern Recognition**: Extract and apply established architectural patterns
+4. **Code Generation**: Generate implementation following project conventions
+5. **Quality Validation**: Apply security, performance, and maintainability checks
+6. **Integration Testing**: Validate implementation against existing system
+7. **Documentation**: Generate usage examples and integration guides
+
+### Quality Assurance Integration
+- **Wave-Enabled**: Auto-activates Wave mode for complex feature implementations
+- **Type Safety**: Comprehensive TypeScript/type hints enforcement
+- **Security Validation**: Automatic vulnerability scanning and best practices
+- **Performance Monitoring**: Resource usage analysis and optimization recommendations
+- **Test Integration**: Automatic test generation and coverage validation

@@ -1,18 +1,17 @@
-# /analyze - Multi-Dimensional Code & System Analysis
+# /analyze - Multi-Dimensional Analysis & Intelligence
 
 Evidence-based systematic analysis across quality, security, performance, and architecture dimensions with intelligent Wave orchestration.
 
 ## Purpose
-- **Multi-Dimensional Analysis**: Comprehensive analysis across all critical dimensions
-- **Evidence-Based Insights**: Data-driven findings with quantifiable metrics
-- **Wave-Enabled Intelligence**: Auto-activate Wave mode for complex analysis
-- **Actionable Intelligence**: Prioritized recommendations with implementation guidance
-- **Root Cause Focus**: Deep investigation beyond surface-level symptoms
-- **Systematic Methodology**: Structured analysis with comprehensive coverage
+- **Multi-Dimensional Analysis**: Comprehensive analysis across quality, security, performance, and architecture
+- **Evidence-Based Insights**: Data-driven findings with quantifiable metrics and actionable intelligence
+- **Wave-Enabled Intelligence**: Auto-activate Wave mode for complex system-wide analysis
+- **Root Cause Investigation**: Deep investigation beyond surface-level symptoms with systematic methodology
+- **Actionable Recommendations**: Prioritized improvement strategies with clear implementation guidance
 
 ## Usage
 ```bash
-/analyze [target] [--focus dimension] [--depth level] [--strategy approach]
+/analyze [target] [--focus domain] [--depth level] [--strategy approach]
 ```
 
 ## Arguments & Flags
@@ -40,6 +39,8 @@ Evidence-based systematic analysis across quality, security, performance, and ar
 - `--depth deep` - Architectural analysis with system-wide implications
 - `--depth root-cause` - Deep investigation with root cause analysis
 - `--depth comprehensive` - Full system analysis with Wave activation
+- `--depth quick` - Fast analysis for immediate feedback
+- `--depth systematic` - Methodical analysis with structured reporting
 
 ### Analysis Strategy
 - `--strategy systematic` - Methodical analysis with comprehensive coverage
@@ -54,6 +55,9 @@ Evidence-based systematic analysis across quality, security, performance, and ar
 - `--output actionable` - Action-focused recommendations with priorities
 - `--output metrics` - Quantitative metrics and benchmarks
 - `--output roadmap` - Strategic improvement roadmap
+- `--format text` - Plain text format (default)
+- `--format json` - JSON format for programmatic use
+- `--format report` - Structured report format
 
 ### Integration Features
 - `--create-tasks` - Generate `/task` hierarchy for identified improvements
@@ -334,9 +338,32 @@ deliverables:
 **Estimated Effort**: 28 hours | **Maintainability Improvement**: 30%
 ```
 
+## Tool Integration & Execution Framework
+
+### Allowed Tools & Purpose
+- **Read**: Deep code inspection and comprehensive file analysis
+- **Grep**: Pattern-based analysis and code searching across codebase
+- **Glob**: Systematic file discovery and categorization by type
+- **Bash**: Execute analysis tools, run performance measurements, and validation
+- **TodoWrite**: Track analysis progress, findings, and recommendation implementation
+
+### Analysis Execution Pattern
+1. **Discovery Phase**: Use Glob to identify and categorize target files
+2. **Pattern Analysis**: Apply Grep for systematic code pattern detection
+3. **Deep Inspection**: Read files for detailed quality, security, and architecture analysis
+4. **Validation**: Execute Bash commands for performance testing and validation
+5. **Progress Tracking**: Use TodoWrite to manage analysis workflow and findings
+
+### Advanced Integration Features
+- **Wave-Enabled**: Auto-activates Wave mode for complex system-wide analysis
+- **Complexity Threshold**: 0.7+ complexity triggers enhanced analysis modes
+- **Persona Coordination**: Automatically activates analyzer, security, performance, or architect personas
+- **MCP Server Integration**: Leverages Sequential for systematic analysis, Context7 for best practices
+
 ## Quality Gates & Performance
 - **Analysis Completeness**: 100% coverage of specified dimensions
 - **Evidence Quality**: All findings supported by quantifiable metrics
 - **Actionability**: 95%+ of recommendations include specific implementation guidance
 - **Accuracy**: 90%+ of identified issues confirmed through validation
 - **Performance Target**: Complete standard analysis within 15 minutes
+- **Tool Efficiency**: Sub-5 second file discovery, sub-30 second pattern analysis

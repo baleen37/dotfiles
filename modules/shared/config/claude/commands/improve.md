@@ -1,13 +1,13 @@
-# /improve - Evidence-Based Code Enhancement
+# /improve - Code Enhancement & Quality Optimization
 
 Systematically improve code quality, performance, and maintainability through evidence-based analysis and iterative enhancement.
 
 ## Purpose
-- **Evidence-Based Improvements**: Measure before and after for quantifiable results
-- **Systematic Enhancement**: Multi-dimensional improvement across quality, performance, security
-- **Wave-Enabled Orchestration**: Auto-activate Wave mode for complex improvements
-- **Iterative Refinement**: Built-in loop capability for progressive enhancement
-- **Safety-First Approach**: Preserve functionality while enhancing structure
+- **Evidence-Based Improvements**: Measure before and after changes for quantifiable results
+- **Systematic Enhancement**: Multi-dimensional improvement across quality, performance, and security
+- **Wave-Enabled Orchestration**: Auto-activate Wave mode for complex system-wide improvements
+- **Iterative Refinement**: Built-in loop capability for progressive enhancement and optimization
+- **Safety-First Approach**: Preserve functionality while enhancing code structure and maintainability
 
 ## Usage
 ```bash
@@ -39,6 +39,7 @@ Systematically improve code quality, performance, and maintainability through ev
 - `--strategy aggressive` - Comprehensive improvements including refactoring
 - `--strategy modern` - Upgrade to latest patterns and technologies
 - `--strategy minimal` - Smallest changes for maximum impact
+- `--strategy systematic` - Methodical improvements with comprehensive validation
 
 ### Analysis Depth
 - `--depth surface` - Quick wins and obvious improvements
@@ -58,6 +59,7 @@ Systematically improve code quality, performance, and maintainability through ev
 - `--dry-run` - Show planned improvements without making changes
 - `--validate-tests` - Run tests before and after improvements
 - `--rollback-ready` - Prepare automatic rollback capability
+- `--preview` - Show improvement plan with risk assessment (enhanced option)
 
 ### Wave Integration
 - `--wave-mode auto|force|off` - Control Wave orchestration activation
