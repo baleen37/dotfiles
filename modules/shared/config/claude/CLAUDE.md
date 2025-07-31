@@ -115,9 +115,18 @@ Rule #1: If you want exception to ANY rule, YOU MUST STOP and get explicit permi
 </testing>
 
 <issues>
-- You MUST use your TodoWrite tool to keep track of what you're doing
-- You MUST NEVER discard tasks from your TodoWrite todo list without jito's explicit approval
-</issues>
+## Task Management (SuperClaude inspired)
+- **TodoWrite Required**: Use TodoWrite tool for all non-trivial tasks
+- **Minimum 3-Task Rule**: Break complex work into at least 3 subtasks
+- **Single Progress Principle**: Only one task in_progress at any time
+- **Immediate Completion**: Update task status immediately upon completion, no batch processing
+- **No Discarding**: Never remove tasks from TodoWrite list without jito's explicit approval
+
+## Quality Gates (SuperClaude inspired)
+- **Read-First Principle**: Always use Read tool before Write/Edit operations
+- **Absolute Paths Only**: No relative paths, prevent path traversal attacks
+- **Pre-Change Validation**: Run lint/typecheck commands before code changes
+- **Post-Work Verification**: Verify results and check for errors after completion</issues>
 
 <debugging>
   YOU MUST ALWAYS find the root cause of any issue you are debugging. YOU MUST NEVER fix a symptom or add a workaround.
