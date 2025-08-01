@@ -199,13 +199,19 @@ EOF
     smart_copy "$SOURCE_DIR/$config_file" "$CLAUDE_DIR/$config_file"
   done
 
-  # commands 디렉토리 처리
+  # commands 디렉토리 처리 (서브디렉토리 지원)
   if [[ -d "$SOURCE_DIR/commands" ]]; then
-    for cmd_file in "$SOURCE_DIR/commands"/*.md; do
-      if [[ -f "$cmd_file" ]]; then
-        base_name=$(basename "$cmd_file")
-        smart_copy "$cmd_file" "$CLAUDE_DIR/commands/$base_name"
-      fi
+    # find를 사용하여 모든 서브디렉토리의 .md 파일 처리
+    find "$SOURCE_DIR/commands" -name "*.md" -type f | while read -r source_cmd_file; do
+      # 소스에서 commands 디렉토리를 기준으로 한 상대 경로 계산
+      relative_cmd_path="''${source_cmd_file#$SOURCE_DIR/commands/}"
+      target_cmd_file="$CLAUDE_DIR/commands/$relative_cmd_path"
+
+      # 타겟 디렉토리가 없으면 생성
+      target_cmd_dir=$(dirname "$target_cmd_file")
+      $DRY_RUN_CMD mkdir -p "$target_cmd_dir"
+
+      smart_copy "$source_cmd_file" "$target_cmd_file"
     done
   fi
 
@@ -232,34 +238,52 @@ EOF
       [[ -f "$f" ]] && echo "$(basename "$f")" >> "$source_list_file"
     done
 
-    # commands 디렉토리 파일들
-    for f in "$SOURCE_DIR/commands"/*.md; do
-      [[ -f "$f" ]] && echo "commands/$(basename "$f")" >> "$source_list_file"
-    done
+    # commands 디렉토리 파일들 (서브디렉토리 포함)
+    if [[ -d "$SOURCE_DIR/commands" ]]; then
+      find "$SOURCE_DIR/commands" -name "*.md" -type f | while read -r f; do
+        rel_path="''${f#$SOURCE_DIR/}"
+        echo "$rel_path" >> "$source_list_file"
+      done
+    fi
 
     # agents 디렉토리 파일들
     for f in "$SOURCE_DIR/agents"/*.md; do
       [[ -f "$f" ]] && echo "agents/$(basename "$f")" >> "$source_list_file"
     done
 
-    # 타겟의 파일들 확인
-    for target_file in "$CLAUDE_DIR"/*.md "$CLAUDE_DIR"/*.json "$CLAUDE_DIR/commands"/*.md "$CLAUDE_DIR/agents"/*.md; do
-      [[ -f "$target_file" ]] || continue
-
-      # 상대 경로 계산
+    # 공통 파일 정리 함수
+    cleanup_obsolete_file() {
+      local target_file="$1"
       local rel_path="''${target_file#$CLAUDE_DIR/}"
 
-      # .new, .bak, .update-notice 파일은 건너뛰기
       case "$rel_path" in
-        *.new|*.bak|*.update-notice) continue ;;
+        *.new|*.bak|*.update-notice) return 0 ;;
       esac
 
-      # 소스에 해당 파일이 있는지 확인
       if ! grep -Fxq "$rel_path" "$source_list_file"; then
         echo "  더 이상 사용하지 않는 파일 삭제: $rel_path"
         $DRY_RUN_CMD rm -f "$target_file"
       fi
+    }
+
+    # 타겟의 파일들 확인 (서브디렉토리 포함)
+    # 루트 레벨 파일들
+    for target_file in "$CLAUDE_DIR"/*.md "$CLAUDE_DIR"/*.json; do
+      [[ -f "$target_file" ]] && cleanup_obsolete_file "$target_file"
     done
+
+    # commands 디렉토리 파일들 (서브디렉토리 포함)
+    if [[ -d "$CLAUDE_DIR/commands" ]]; then
+      find "$CLAUDE_DIR/commands" -name "*.md" -type f | while read -r target_file; do
+        cleanup_obsolete_file "$target_file"
+      done
+    fi
+
+    # agents 디렉토리 파일들
+    for target_file in "$CLAUDE_DIR/agents"/*.md; do
+      [[ -f "$target_file" ]] && cleanup_obsolete_file "$target_file"
+    done
+
 
     # 임시 파일 정리
     rm -f "$source_list_file"
