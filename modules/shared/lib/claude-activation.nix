@@ -6,10 +6,9 @@
 
 let
   claudeDir = "${config.home.homeDirectory}/.claude";
-  # Fallback to relative path if self is not available
-  sourceDir = if self != null
-    then "${self}/modules/shared/config/claude"
-    else "./modules/shared/config/claude";
+  # Always use local relative path to enable editing
+  # Previous logic used Nix store path (read-only) when self was available
+  sourceDir = "./modules/shared/config/claude";
 
 in ''
   set -euo pipefail  # Enable strict error handling

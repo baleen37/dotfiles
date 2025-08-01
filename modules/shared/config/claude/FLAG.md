@@ -1,148 +1,148 @@
-# Claude Code 사고 모드 플래그
+# Claude Code Thinking Mode Flags
 
-Claude Code에서 사용할 수 있는 사고 모드 플래그 활용 가이드.
+A guide for utilizing thinking mode flags available in Claude Code.
 
-## 사고 모드 플래그
+## Thinking Mode Flags
 
 ### --think
 ```
-사용법: "이 문제를 해결해줘 --think"
+Usage: "Solve this problem --think"
 ```
-**특징:**
-- 단계별 논리적 사고 과정 표시
-- 문제 분석 → 해결책 도출 → 구현 단계로 진행
-- 중간 과정을 명시적으로 보여줌
-- 복잡한 문제에 체계적 접근
+**Features:**
+- Displays step-by-step logical thinking process
+- Progresses through problem analysis → solution derivation → implementation stages
+- Explicitly shows intermediate processes
+- Systematic approach to complex problems
 
-**언제 사용:**
-- 복잡한 로직 설계가 필요할 때
-- 디버깅과 문제 원인 분석 시
-- 아키텍처 결정이 필요한 상황
-- 여러 옵션 중 최적해를 찾을 때
+**When to use:**
+- When complex logic design is needed
+- During debugging and problem root cause analysis
+- When architectural decisions are required
+- When finding optimal solutions among multiple options
 
 ### --ultrathink
 ```
-사용법: "이 아키텍처를 설계해줘 --ultrathink"
+Usage: "Design this architecture --ultrathink"
 ```
-**특징:**
-- --think보다 더 깊이 있는 분석
-- 다각도 검토와 대안 비교
-- 장단점 분석과 트레이드오프 고려
-- 미래 확장성과 유지보수성까지 고려
+**Features:**
+- Deeper analysis than --think
+- Multi-angle review and alternative comparison
+- Considers pros/cons analysis and trade-offs
+- Takes into account future scalability and maintainability
 
-**언제 사용:**
-- 중요한 아키텍처 결정 시
-- 복잡한 리팩토링 계획 수립
-- 성능 최적화 전략 설계
-- 보안 취약점 종합 분석
+**When to use:**
+- For important architectural decisions
+- When establishing complex refactoring plans
+- For performance optimization strategy design
+- For comprehensive security vulnerability analysis
 
-## 새로운 특화 사고 모드
+## New Specialized Thinking Modes
 
 ### --analyze
 ```
-사용법: "이 코드베이스를 분석해줘 --analyze"
+Usage: "Analyze this codebase --analyze"
 ```
-**특징:**
-- 체계적 분석에 특화된 사고 모드
-- 데이터 수집 → 패턴 인식 → 결론 도출 순서
-- 증거 기반 분석과 객관적 평가
-- 구조적 문제점과 개선점 명확히 구분
+**Features:**
+- Thinking mode specialized for systematic analysis
+- Follows data collection → pattern recognition → conclusion derivation sequence
+- Evidence-based analysis and objective evaluation
+- Clearly distinguishes structural problems from improvement points
 
-**언제 사용:**
-- 코드베이스 전반적 분석
-- 기술 부채 평가
-- 시스템 상태 진단
-- 데이터 패턴 분석
+**When to use:**
+- For comprehensive codebase analysis
+- Technical debt assessment
+- System health diagnosis
+- Data pattern analysis
 
 ### --debug  
 ```
-사용법: "이 에러를 해결해줘 --debug"
+Usage: "Fix this error --debug"
 ```
-**특징:**
-- 문제해결에 집중하는 사고 모드
-- 근본 원인 분석 (Root Cause Analysis) 중심
-- 가설 수립 → 검증 → 해결책 제시
-- 재발 방지 전략까지 포함
+**Features:**
+- Thinking mode focused on problem-solving
+- Centers on Root Cause Analysis
+- Follows hypothesis formation → verification → solution presentation
+- Includes recurrence prevention strategies
 
-**언제 사용:**
-- 복잡한 버그 디버깅
-- 시스템 장애 분석
-- 성능 문제 해결
-- 예외 상황 대응
+**When to use:**
+- Complex bug debugging
+- System failure analysis
+- Performance problem resolution
+- Exception handling situations
 
 ### --architect
 ```
-사용법: "마이크로서비스 아키텍처 설계해줘 --architect"
+Usage: "Design microservice architecture --architect"
 ```
-**특징:**
-- 시스템 설계 중심의 사고 모드
-- 확장성, 유지보수성, 성능을 종합 고려
-- 기술 선택의 근거와 트레이드오프 명시
-- 장기적 진화 경로 고려
+**Features:**
+- System design-centered thinking mode
+- Comprehensively considers scalability, maintainability, and performance
+- Specifies rationale for technology choices and trade-offs
+- Considers long-term evolution paths
 
-**언제 사용:**
-- 새로운 시스템 아키텍처 설계
-- 기존 시스템 구조 개선
-- 기술 스택 선택
-- 확장성 계획 수립
+**When to use:**
+- Designing new system architecture
+- Improving existing system structure
+- Technology stack selection
+- Scalability planning
 
 ### --optimize
 ```  
-사용법: "이 쿼리를 최적화해줘 --optimize"
+Usage: "Optimize this query --optimize"
 ```
-**특징:**
-- 성능과 효율성 최적화에 특화
-- 측정 → 분석 → 개선 → 검증 사이클
-- 리소스 사용량과 실행 시간 중점
-- 최적화 전후 비교 분석
+**Features:**
+- Specialized for performance and efficiency optimization
+- Follows measure → analyze → improve → verify cycle
+- Focuses on resource usage and execution time
+- Provides before/after optimization comparison analysis
 
-**언제 사용:**
-- 성능 병목점 개선
-- 리소스 사용량 최적화
-- 알고리즘 효율성 개선
-- 비용 최적화
+**When to use:**
+- Performance bottleneck improvement
+- Resource usage optimization
+- Algorithm efficiency improvement
+- Cost optimization
 
-## 사용 가이드라인
+## Usage Guidelines
 
-### 효과적인 플래그 선택
-1. **작업 복잡도에 따라**: 단순 작업은 기본, 복잡한 작업은 --think 이상
-2. **시간과 품질의 균형**: 급한 작업은 기본 모드, 중요한 결정은 --ultrathink
-3. **학습과 이해**: 복잡한 로직을 이해하고 싶을 때는 --think 활용
+### Effective Flag Selection
+1. **Based on task complexity**: Basic mode for simple tasks, --think or higher for complex tasks
+2. **Balance of time and quality**: Basic mode for urgent tasks, --ultrathink for important decisions
+3. **Learning and understanding**: Use --think when you want to understand complex logic
 
-### 실무 적용 예시
+### Practical Application Examples
 
-#### 일반적인 개발 작업 (--think)
+#### General Development Tasks (--think)
 ```
-"사용자 로그인 기능 구현해줘 --think"
-"이 함수의 에러 처리 로직 추가해줘 --think"
-"데이터베이스 쿼리 최적화해줘 --think"
-```
-
-#### 특화된 분석 작업
-```
-"이 코드베이스의 기술 부채 평가해줘 --analyze"
-"로그인 실패 원인을 찾아줘 --debug"
-"확장 가능한 API 아키텍처 설계해줘 --architect"
-"이 쿼리 성능을 개선해줘 --optimize"
+"Implement user login functionality --think"
+"Add error handling logic to this function --think"
+"Optimize database query --think"
 ```
 
-#### 대규모 전략적 작업 (--ultrathink)
+#### Specialized Analysis Tasks
 ```
-"레거시 시스템을 현대화 전략 수립해줘 --ultrathink"
-"전체 시스템 보안 아키텍처 재설계해줘 --ultrathink"
-"마이크로서비스 아키텍처로 전환 계획해줘 --ultrathink"
-```
-
-### 플래그 조합 사용
-여러 플래그를 조합하여 더 정밀한 사고 모드 활성화:
-```
-"시스템 성능 문제를 종합 분석해줘 --analyze --debug --optimize"
-"새로운 마이크로서비스 설계하고 최적화해줘 --architect --optimize"
-"보안 취약점을 찾고 해결 방안 제시해줘 --analyze --debug --ultrathink"
+"Assess technical debt in this codebase --analyze"
+"Find the root cause of login failures --debug"
+"Design scalable API architecture --architect"
+"Improve query performance --optimize"
 ```
 
-## 성능 고려사항
+#### Large-scale Strategic Tasks (--ultrathink)
+```
+"Establish legacy system modernization strategy --ultrathink"
+"Design security architecture for entire system --ultrathink"
+"Plan microservice architecture transition --ultrathink"
+```
 
-- **기본 모드**: 빠른 응답, 단순 작업에 최적
-- **--think**: 일반적인 응답 시간, 대부분의 복잡한 작업에 적합
-- **--ultrathink**: 응답 시간이 길어질 수 있음, 중요한 결정에만 사용
+### Flag Combination Usage
+Multiple flags can be combined for more precise thinking modes:
+```
+"Comprehensively analyze system performance issues --analyze --debug --optimize"
+"Design and optimize new microservice --architect --optimize"
+"Find and solve security vulnerabilities with comprehensive analysis --analyze --debug --ultrathink"
+```
+
+## Performance Considerations
+
+- **Basic mode**: Fast response, optimal for simple tasks
+- **--think**: Standard response time, suitable for most complex tasks
+- **--ultrathink**: May take longer to respond, use only for critical decisions
