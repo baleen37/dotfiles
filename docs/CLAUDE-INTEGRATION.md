@@ -9,7 +9,8 @@ This guide covers everything from Claude Code setup to using the 20+ specialized
 After following this guide, you'll have:
 - **Fully configured Claude Code** with dotfiles-aware commands
 - **20+ specialized prompts** for common development tasks
-- **Smart configuration preservation** that survives system updates
+- **Smart symlink-based configuration** that's always up-to-date
+- **Zero-maintenance updates** - changes are instantly active
 - **Context-aware AI assistance** for Nix, Git, and development workflows
 
 ## 📋 Prerequisites
@@ -192,36 +193,76 @@ claude /session-summary --detailed  # Detailed summary with changes
 ## ⚙️ Configuration Details
 
 ### Configuration Files Location
-- **Main config**: `~/.claude/settings.json`
-- **Commands**: `~/.claude/commands/`
-- **Project config**: `modules/shared/config/claude/`
+- **Main config**: `~/.claude/settings.json` (symlinked)
+- **Commands**: `~/.claude/commands/` (folder symlink)
+- **Agents**: `~/.claude/agents/` (folder symlink)
+- **Source config**: `modules/shared/config/claude/`
 
-### Smart Preservation System
-The dotfiles include a smart Claude settings preservation system:
+### Smart Symlink System
+The dotfiles now use an **intelligent symlink-based configuration system** for maximum simplicity and reliability:
 
-- **Automatic backup**: Settings are backed up before updates
-- **Selective preservation**: User modifications are detected and preserved
-- **Safe updates**: New dotfiles settings are saved as `.new` files when conflicts exist
-- **Interactive merge**: Use `./scripts/merge-claude-config` to integrate updates
+- **🔗 Folder symlinks**: `commands/` and `agents/` folders are directly linked to dotfiles source
+- **📄 File symlinks**: Root-level configuration files (`.md`, `.json`) are individually linked
+- **⚡ Always up-to-date**: Changes to dotfiles are immediately reflected in Claude
+- **🧹 Zero maintenance**: No complex backup/merge logic required
+- **🚫 No conflicts**: Eliminates `.new` and `.update-notice` files completely
+
+#### How It Works
+```bash
+# Folder symlinks (entire directories)
+~/.claude/commands/ → modules/shared/config/claude/commands/
+~/.claude/agents/ → modules/shared/config/claude/agents/
+
+# File symlinks (individual files)
+~/.claude/CLAUDE.md → modules/shared/config/claude/CLAUDE.md
+~/.claude/settings.json → modules/shared/config/claude/settings.json
+# ... and other root-level .md/.json files
+```
+
+#### Automatic Updates
+```bash
+# Simply run build-switch to update all links
+nix run .#build-switch
+
+# All changes are immediately active - no merge needed!
+```
 
 ### Customization
 
 #### Adding Custom Commands
+**Option 1: Add to dotfiles (recommended)**
 ```bash
-# Create custom command
-echo "Your custom prompt here" > ~/.claude/commands/my-command.md
+# Add to source (will be automatically linked)
+echo "Your custom prompt here" > modules/shared/config/claude/commands/my-command.md
+
+# Run build-switch to activate
+nix run .#build-switch
 
 # Use custom command
 claude /my-command
 ```
 
+**Option 2: Local-only commands**
+```bash
+# Create in a non-linked location (won't be overwritten)
+mkdir -p ~/.claude/local-commands/
+echo "Local-only prompt" > ~/.claude/local-commands/my-local-command.md
+
+# Reference with full path
+claude ~/.claude/local-commands/my-local-command.md
+```
+
 #### Modifying Existing Commands
 ```bash
-# Edit command (will be preserved across dotfiles updates)
-editor ~/.claude/commands/do-plan.md
+# Edit source files directly (recommended)
+editor modules/shared/config/claude/commands/do-plan.md
 
-# Merge updates when dotfiles change
-./scripts/merge-claude-config
+# Changes are immediately active (symlinked!)
+claude /do-plan
+
+# Commit changes to preserve across systems
+git add modules/shared/config/claude/
+git commit -m "feat: customize do-plan command"
 ```
 
 ## 🔧 Advanced Usage
@@ -258,24 +299,35 @@ npm install -g @anthropic/mcp-server-github
 
 ### Regular Updates
 ```bash
-# Update dotfiles (preserves Claude configuration)
+# Update dotfiles (automatically updates Claude configuration via symlinks)
 git pull origin main
-make build && make switch HOST=your-hostname
+nix run .#build-switch
 
-# Check for Claude configuration updates
-./scripts/merge-claude-config --list
+# Configuration is instantly updated - no additional steps needed!
 ```
 
 ### Backup and Recovery
+Since configuration uses symlinks to the dotfiles repository:
+
 ```bash
-# Manual backup
-cp -r ~/.claude ~/.claude.backup
+# Backup: Just ensure dotfiles repository is backed up
+git push origin main  # Configuration is in version control
 
-# Restore from backup
-cp -r ~/.claude.backup ~/.claude
+# Recovery: Restore symlinks
+nix run .#build-switch  # Recreates all symlinks
 
-# Check preserved settings
-ls ~/.claude/.backups/
+# Check current symlinks
+ls -la ~/.claude/commands ~/.claude/agents
+ls -la ~/.claude/*.md ~/.claude/*.json
+```
+
+### Verification
+```bash
+# Verify symlinks are working correctly
+find ~/.claude -type l  # Should show symlinked files/folders
+
+# Count symlinks vs total files  
+find ~/.claude -type l | wc -l && find ~/.claude -name "*.md" -o -name "*.json" | wc -l
 ```
 
 ## 🆘 Troubleshooting
@@ -284,14 +336,30 @@ ls ~/.claude/.backups/
 
 **Issue: Commands not found**
 ```bash
-# Solution: Rebuild dotfiles configuration
-make build && make switch HOST=your-hostname
+# Solution: Recreate symlinks
+nix run .#build-switch
+
+# Verify commands are linked
+ls ~/.claude/commands/
 ```
 
-**Issue: Configuration conflicts after update**
+**Issue: Changes to dotfiles not reflected in Claude**
 ```bash
-# Solution: Use merge tool
-./scripts/merge-claude-config
+# Solution: Ensure you're editing source files
+echo "Edit these files for changes to take effect:"
+find modules/shared/config/claude -name "*.md" -o -name "*.json"
+
+# Then run build-switch to update links
+nix run .#build-switch
+```
+
+**Issue: Broken symlinks**
+```bash
+# Find broken symlinks
+find ~/.claude -type l ! -exec test -e {} \; -print
+
+# Solution: Recreate all symlinks
+nix run .#build-switch
 ```
 
 **Issue: MCP servers not working**
@@ -303,14 +371,20 @@ npm install -g @anthropic/mcp-server-*
 
 ### Debug Commands
 ```bash
-# Check Claude configuration
-cat ~/.claude/settings.json
+# Check if files are symlinked correctly
+ls -la ~/.claude/settings.json
+ls -la ~/.claude/commands
+ls -la ~/.claude/agents
 
-# List available commands
-ls ~/.claude/commands/
+# Verify symlink targets exist
+readlink ~/.claude/settings.json
+readlink ~/.claude/commands
 
 # Test specific command
 claude /help
+
+# Check which files are managed by dotfiles
+find modules/shared/config/claude -name "*.md" -o -name "*.json"
 ```
 
 ## 📚 Command Quick Reference
