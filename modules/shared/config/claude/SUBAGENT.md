@@ -19,12 +19,92 @@ Claude Code는 작업 컨텍스트에 따라 적절한 전문 subagent를 자동
 "performance-engineer로 이 쿼리를 최적화해줘"
 ```
 
+### 컨텍스트 기반 지능형 자동 선택
+키워드와 상황을 분석하여 최적의 subagent 자동 선택:
+
+#### 키워드 매칭 자동화
+**보안 관련 키워드**:
+- "보안", "취약점", "인증", "권한", "암호화" → security-auditor 자동 호출
+- "SQL 인젝션", "XSS", "CSRF" → security-auditor 우선 활성화
+
+**성능 관련 키워드**:
+- "성능", "느림", "최적화", "병목", "속도" → performance-engineer 자동 호출
+- "메모리", "CPU", "쿼리 최적화" → performance-engineer 우선 활성화
+
+**에러/디버깅 키워드**:
+- "에러", "버그", "실패", "오류", "문제" → debugger 자동 호출
+- "예외", "크래시", "타임아웃" → debugger 우선 활성화
+
+**코드 품질 키워드**:
+- "리뷰", "개선", "리팩토링", "클린업" → code-reviewer 자동 호출
+- "가독성", "유지보수", "구조" → code-reviewer 우선 활성화
+
+#### 상황별 자동 활성화
+**코드 작성 완료 감지**:
+- 새로운 함수/컴포넌트 구현 완료 → code-reviewer 자동 실행
+- 복잡한 로직 구현 후 → performance-engineer 자동 검토 제안
+
+**테스트 관련 작업**:
+- "테스트", "E2E", "단위테스트" → test-automator 자동 호출
+- 테스트 실패 감지 → debugger + test-automator 체인 실행
+
 ## 작업 분해와 병렬 처리
 
 ### 복잡한 작업의 단계별 분해
 1. **TodoWrite 도구 우선 사용**: 작업을 체계적으로 추적
 2. **단일 작업 in_progress**: 한 번에 하나의 작업만 진행 상태로 유지
 3. **즉시 완료 표시**: 작업 완료 즉시 상태 업데이트
+
+### 지능형 작업 복잡도 감지
+작업 요청을 분석하여 자동으로 복잡도 판단하고 적절한 분해 전략 적용:
+
+#### 복잡도 자동 감지 기준
+**단순 작업 (1-2단계)**:
+- 단일 파일 수정, 명확한 단일 목적
+- 예: "이 함수에 주석 추가해줘"
+- → 직접 처리, TodoWrite 불필요
+
+**중복잡 작업 (3-5단계)**:
+- 여러 파일 관련, 다단계 논리 필요
+- 예: "사용자 로그인 기능 구현해줘"
+- → TodoWrite 자동 생성, 3-5개 하위 작업으로 분해
+
+**고복잡 작업 (6단계+)**:
+- 시스템 전반, 아키텍처 변경, 다양한 기술 스택
+- 예: "전체 인증 시스템 재설계해줘"
+- → TodoWrite + Task 도구 조합, 다중 subagent 병렬 활용
+
+#### 자동 분해 알고리즘
+```python
+# 의사코드
+def auto_task_breakdown(user_request):
+    complexity_score = analyze_complexity(user_request)
+
+    if complexity_score >= 6:
+        # 고복잡: TodoWrite + Task 도구 + 다중 subagent
+        return {
+            'strategy': 'multi_agent_parallel',
+            'tools': ['TodoWrite', 'Task'],
+            'estimated_subtasks': 6-10,
+            'subagents': ['backend-architect', 'security-auditor', 'test-automator']
+        }
+    elif complexity_score >= 3:
+        # 중복잡: TodoWrite + 순차 subagent
+        return {
+            'strategy': 'sequential_breakdown',
+            'tools': ['TodoWrite'],
+            'estimated_subtasks': 3-5,
+            'subagents': ['code-reviewer']
+        }
+    else:
+        # 단순: 직접 처리
+        return {
+            'strategy': 'direct_execution',
+            'tools': [],
+            'estimated_subtasks': 1-2,
+            'subagents': []
+        }
+```
 
 ### 병렬 작업 전략
 - **독립적 분석**: 여러 파일을 동시에 다른 subagent에게 위임

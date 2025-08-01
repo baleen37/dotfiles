@@ -1,6 +1,4 @@
 #!/bin/bash
-# ABOUTME: Claude 설정 파일 수동 병합 도구
-# ABOUTME: 사용자가 dotfiles 업데이트와 개인 설정을 안전하게 병합할 수 있도록 지원
 
 set -euo pipefail
 

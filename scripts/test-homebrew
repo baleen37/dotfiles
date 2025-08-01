@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-# ABOUTME: Homebrew 관련 테스트만 실행하는 전용 스크립트
-# ABOUTME: Homebrew 통합 기능의 정상 작동을 검증
-
 set -euo pipefail
 
 # Colors for output
