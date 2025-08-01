@@ -281,30 +281,83 @@ Rule #1을 절대 준수하여 모든 중요 변경사항은 사전 승인을 �
 /update-claude --rollback 2025-01-15-14-30-00
 ```
 
-## 고급 사용법
+## 계층적 업데이트 전략
 
-### 🎛️ 세밀한 제어
-```bash
-# 특정 파일만 업데이트
-/update-claude CLAUDE.md --safe
+### 🔄 Self-Update → Shared First → Local Override 순서
+jito의 실용주의 철학에 따라 다음 순서로 업데이트를 진행하여 최대 효율과 안전성을 보장:
 
-# 특정 유형만 검사
-/update-claude --check --focus=references
-
-# 드라이런 모드 (실제 변경 없이 시뮬레이션)
-/update-claude --dry-run --ultrathink
+```python
+# 의사코드 - 계층적 업데이트 전략
+def hierarchical_update_strategy():
+    return [
+        {
+            'stage': 'self_update',
+            'target': 'update-claude.md 명령어 자체',
+            'purpose': '명령어 로직 최신화로 다음 단계 품질 보장',
+            'safety': 'Rule #1 적용 - 명령어 변경은 항상 승인 필요'
+        },
+        {
+            'stage': 'shared_first',
+            'target': '~/.claude/ 글로벌 설정',
+            'purpose': '모든 프로젝트 공통 기준 설정',
+            'files': ['CLAUDE.md', 'MCP.md', 'SUBAGENT.md', 'FLAG.md', 'ORCHESTRATION.md']
+        },
+        {
+            'stage': 'local_override',
+            'target': './.claude/ 프로젝트별 설정',
+            'purpose': '프로젝트 특화 최적화 및 글로벌 설정 재정의',
+            'inherit': 'shared 설정을 기반으로 확장'
+        }
+    ]
 ```
 
-### 📈 분석 및 최적화
+## 고급 사용법
+
+### 🎛️ 타겟별 세밀한 제어
 ```bash
-# 성능 분석 포함
-/update-claude --analyze --optimize
+# 특정 파일만 업데이트 (타겟 자동 감지)
+/update-claude CLAUDE.md --safe
 
-# 토큰 사용량 최적화 집중
-/update-claude --optimize-tokens
+# 타겟별 특정 유형만 검사
+/update-claude --shared --check --focus=references
+/update-claude --local --check --focus=agents
 
-# 전체 아키텍처 재검토
-/update-claude --architect --ultrathink --safe
+# 계층적 드라이런 모드
+/update-claude --all --dry-run --ultrathink
+```
+
+### 📈 타겟별 분석 및 최적화
+```bash
+# 타겟별 성능 분석
+/update-claude --shared --analyze --optimize
+/update-claude --local --analyze --optimize
+
+# 통합 토큰 사용량 최적화
+/update-claude --all --optimize-tokens
+
+# 계층적 아키텍처 재검토
+/update-claude --all --architect --ultrathink --safe
+```
+
+### 🔗 실전 사용 시나리오
+```bash
+# 시나리오 1: 새 프로젝트에서 처음 실행
+cd /path/to/new-project
+/update-claude                        # shared만 점검 (로컬 .claude/ 없음)
+
+# 시나리오 2: dotfiles 프로젝트에서 실행  
+cd ~/dev/dotfiles
+/update-claude                        # shared 우선 (dotfiles 특별 처리)
+
+# 시나리오 3: 로컬 .claude/ 있는 프로젝트
+cd /path/to/project-with-claude
+/update-claude                        # local 우선 (프로젝트 특화)
+
+# 시나리오 4: 명령어 자체 업데이트
+/update-claude --self --safe          # 다른 프로젝트와 동기화
+
+# 시나리오 5: 전체 시스템 통합 점검
+/update-claude --all --check          # 모든 타겟 상태 통합 리포트
 ```
 
 ## 📋 실전 체크리스트
