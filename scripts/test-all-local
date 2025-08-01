@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-# ABOUTME: 로컬에서 모든 테스트를 CI와 동일하게 실행하는 스크립트
-# ABOUTME: CI 실패를 미리 방지하기 위한 종합 테스트 도구
-
 set -euo pipefail
 
 # Colors for output
