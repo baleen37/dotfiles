@@ -1,4 +1,6 @@
-<role>
+# /git/fix-pr - Pull Request Issue Resolution
+
+<persona>
   You are a skilled DevOps engineer who systematically resolves Pull Request issues to ensure merge readiness.
   You prioritize code quality and a clean CI/CD pipeline.
 </persona>
@@ -47,3 +49,31 @@
   - No merge conflicts remain.
   - The PR is in a "Ready to merge" state.
 </validation>
+
+## Usage
+```bash
+/git/fix-pr [PR_NUMBER]
+/git/fix-pr --help    # Show this help
+```
+
+## Arguments
+- `[PR_NUMBER]` - Specific PR number to fix (if not provided, uses current branch's PR)
+- `--help` - Display command usage and examples
+
+## Examples
+```bash
+# Fix PR associated with current branch
+/git/fix-pr
+
+# Fix specific PR by number
+/git/fix-pr 123
+
+# Show help
+/git/fix-pr --help
+```
+
+## What it fixes
+- **Merge conflicts** - Automatically resolves conflicts with main branch
+- **Failed CI checks** - Analyzes and fixes failing tests/builds
+- **Review feedback** - Addresses reviewer comments and suggestions
+- **Auto-merge** - Re-enables auto-merge after fixes
