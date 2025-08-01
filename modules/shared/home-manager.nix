@@ -206,6 +206,7 @@ in
       "node_modules/"
       ".env.local"
       ".env.*.local"
+      ".serena/"
 
       # Temporary files
       "*.tmp"
