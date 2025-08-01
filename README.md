@@ -1,275 +1,86 @@
-# Professional Nix Dotfiles System
+# jito's Dotfiles
 
-> **Enterprise-grade, declarative development environments for macOS and NixOS**
+> **Pragmatic and simple development environment**
 
-A comprehensive Nix flakes-based dotfiles system that provides reproducible, version-controlled development environments across multiple platforms. Features advanced module architecture, comprehensive testing framework, and integrated AI development assistance.
+Nix-based dotfiles for macOS and NixOS. Works out of the box without complex configuration.
 
-## System Overview
+## Why These Dotfiles?
 
-This repository implements a sophisticated dotfiles management system using Nix flakes with the following core capabilities:
-
-- **Cross-platform compatibility**: Native support for macOS (Intel + Apple Silicon) and NixOS (x86_64 + ARM64)
-- **Modular architecture**: Clean separation between platform-specific and shared configurations
-- **Comprehensive testing**: Unit, integration, end-to-end, and performance test suites
-- **Claude Code integration**: AI-powered development assistance with 20+ specialized commands
-- **Advanced automation**: Auto-update system, configuration preservation, and intelligent build optimization
+- **Just Works**: Install and use immediately, no complex setup required
+- **Multi-Platform**: Supports macOS (Intel + Apple Silicon) and NixOS
+- **Claude Code Integration**: Built-in AI development assistance
+- **Auto-Updates**: Minimal maintenance hassle
 
 ## Quick Start
 
-### System Requirements
-
-- **Nix** with flakes support ([installation guide](https://nixos.org/download))
-- **Git** for version control
-- **Administrative privileges** for system-level configuration
-- **Supported platforms**: macOS 11+, NixOS 21.11+
+### Requirements
+- Nix with flakes ([install guide](https://nixos.org/download))
+- macOS 11+ or NixOS 21.11+
 
 ### Installation
-
 ```bash
-# 1. Clone and enter repository
 git clone https://github.com/baleen37/dotfiles.git
 cd dotfiles
-
-# 2. Set user context (required)
 export USER=$(whoami)
-
-# 3. Validate system compatibility
-make smoke
-
-# 4. Build all platform configurations
 make build
-
-# 5. Apply to current system
 nix run --impure .#build-switch
 ```
 
-**Result**: A complete, reproducible development environment with 50+ tools, optimized configurations, and AI integration.
+Done! You now have 50+ development tools and AI assistance ready.
 
-## System Capabilities
+## What You Get
 
-### Package Management
+- **50+ tools**: git, vim, docker, nodejs, python, and more
+- **GUI apps**: 34+ macOS applications via Homebrew
+- **Global commands**: `bl` for project setup and utilities
+- **Auto-updates**: Keeps everything current automatically
+- **Testing**: Built-in quality assurance
 
-- **50+ development tools**: Comprehensive toolchain including git, vim, docker, terraform, nodejs, python
-- **Platform-optimized**: Automatic package selection based on macOS/NixOS platform
-- **Homebrew integration**: 34+ GUI applications managed declaratively on macOS
-- **Version consistency**: Reproducible package versions across all environments
-
-### Development Infrastructure
-
-- **Global command system**: `bl` dispatcher for cross-project development tasks
-- **Project initialization**: `setup-dev` creates instant Nix development environments
-- **Configuration preservation**: Intelligent preservation of user customizations during updates
-- **Auto-update mechanism**: TTL-based update system with safety validation
-
-### Quality Assurance Framework
-
-- **Multi-tier testing**: Unit (component), integration (module), end-to-end (workflow), performance
-- **CI/CD pipeline**: Comprehensive GitHub Actions workflow with multi-platform validation
-- **Development lifecycle**: Pre-commit hooks, automated testing, build validation
-- **Local testing capability**: Full CI pipeline replication via `./scripts/test-all-local`
-
-## Core Operations
-
-### Development Workflow
+## Daily Usage
 
 ```bash
-# Set user context (required)
-export USER=$(whoami)
+# Essential commands
+export USER=$(whoami)   # Always run this first
+make build             # Build everything
+make switch            # Apply changes
+make test              # Run tests
 
-# Quality assurance
-make lint           # Run pre-commit hooks and code quality checks
-make smoke          # Fast flake validation without building
-make test           # Execute comprehensive test suite
-
-# Build and deployment
-make build          # Build all platform configurations
-make build-current  # Build current platform only (faster)
-make switch         # Apply configuration to current system
+# Quick operations  
+make smoke             # Fast validation
+nix run .#build-switch # Build and apply together
 ```
 
-### Platform-Specific Operations
-
-```bash
-# Targeted builds
-make build-darwin   # macOS configurations (x86_64, aarch64)
-make build-linux    # NixOS configurations (x86_64, aarch64)
-
-# Direct operations
-nix run .#build         # Build current platform
-nix run .#build-switch  # Build and apply with sudo handling
-nix run .#test          # Run platform-appropriate test suite
-```
-
-### Platform Capability Matrix
-
-| Operation | macOS (Intel) | macOS (ARM) | NixOS (x86_64) | NixOS (ARM64) |
-|-----------|:-------------:|:-----------:|:--------------:|:-------------:|
-| **Core Operations** | | | | |
-| build | ✅ | ✅ | ✅ | ✅ |
-| build-switch | ✅ | ✅ | ✅ | ✅ |
-| apply | ✅ | ✅ | ✅ | ✅ |
-| rollback | ✅ | ✅ | ❌ | ❌ |
-| **Testing Framework** | | | | |
-| test | ✅ | ✅ | ✅ | ✅ |
-| test-unit | ✅ | ✅ | ❌¹ | ❌¹ |
-| test-integration | ✅ | ✅ | ❌¹ | ❌¹ |
-| test-e2e | ✅ | ✅ | ❌¹ | ❌¹ |
-| **Development Tools** | | | | |
-| setup-dev | ✅ | ✅ | ✅ | ✅ |
-| SSH key management | ✅ | ✅ | ✅ | ✅ |
-
-¹ Linux systems use consolidated testing approach due to platform limitations
-
-## Configuration
-
-This system uses an **externalized configuration approach** that allows flexible customization across different environments.
-
-### Configuration Files
-
-```bash
-config/
-├── platforms.yaml     # Platform-specific settings
-├── cache.yaml         # Cache management configuration  
-├── network.yaml       # Network and download settings
-├── performance.yaml   # Build and system performance
-└── security.yaml      # Security policies and SSH settings
-```
-
-### Environment Variables
-
-Override any configuration using environment variables:
-
-```bash
-# Cache settings
-export CACHE_MAX_SIZE_GB=10
-export CACHE_CLEANUP_DAYS=14
-
-# Network settings  
-export HTTP_CONNECTIONS=100
-export CONNECT_TIMEOUT=10
-
-# Platform overrides
-export PLATFORM_TYPE="darwin"
-export ARCH="aarch64"
-```
-
-### Configuration Validation
-
-```bash
-# Validate all configuration files
-./scripts/validate-config
-
-# Load configuration in scripts
-source scripts/lib/config-loader.sh
-cache_size=$(load_cache_config "max_size_gb" "5")
-```
-
-For detailed configuration options, see [Configuration Guide](docs/CONFIGURATION.md).
-
-## Architecture
-
-### Repository Structure
-
-```
-├── flake.nix              # Flake entry point and output definitions
-├── Makefile               # Development workflow automation
-├── CLAUDE.md              # Claude Code project instructions
-├── CONTRIBUTING.md        # Development guidelines and standards
-│
-├── modules/               # Modular configuration system
-│   ├── shared/            #   Cross-platform configurations
-│   ├── darwin/            #   macOS-specific modules
-│   └── nixos/             #   NixOS-specific modules
-│
-├── hosts/                 # Host-specific configurations
-│   ├── darwin/            #   macOS system definitions
-│   └── nixos/             #   NixOS system definitions
-│
-├── lib/                   # Nix utility functions and builders
-├── scripts/               # Automation and management tools
-├── tests/                 # Multi-tier testing framework
-├── docs/                  # Comprehensive documentation
-└── overlays/              # Custom package definitions and patches
-```
-
-### Module Hierarchy
-
-The system follows a strict modular architecture:
-
-1. **Platform modules** (`modules/{darwin,nixos}/`) contain OS-specific configurations
-2. **Shared modules** (`modules/shared/`) provide cross-platform functionality
-3. **Host configurations** (`hosts/`) define individual machine setups
-4. **Library functions** (`lib/`) provide reusable Nix utilities
+**Supported Platforms**: macOS (Intel/ARM) and NixOS (x86_64/ARM64)
 
 ## Customization
 
-### Package Management
+Add packages by editing `modules/shared/packages.nix` or platform-specific files in `modules/darwin/` and `modules/nixos/`.
 
-**Cross-platform packages** (`modules/shared/packages.nix`):
-```nix
-{ pkgs }: with pkgs; [
-  # Development tools
-  your-development-tool
+## Structure
 
-  # System utilities
-  your-utility-package
-]
-```
+- `modules/shared/` - Cross-platform packages and configs
+- `modules/darwin/` - macOS-specific settings
+- `modules/nixos/` - NixOS-specific settings
+- `hosts/` - Individual machine configurations
+- `scripts/` - Automation tools
 
-**Platform-specific packages**:
-- macOS packages: `modules/darwin/packages.nix`
-- macOS GUI apps: `modules/darwin/casks.nix`
-- NixOS packages: `modules/nixos/packages.nix`
-
-### Validation Workflow
+## Testing
 
 ```bash
-# Comprehensive validation
-make lint           # Code quality and formatting
-make smoke          # Fast flake structure validation
-make build          # Multi-platform build verification
-make test           # Full test suite execution
-
-# Local application
-make switch         # Apply to current system
+make test    # Run all tests
+make smoke   # Quick validation
+make lint    # Code quality check
 ```
 
-### Testing Strategy
-
-1. **Unit tests**: Individual component validation
-2. **Integration tests**: Module interaction verification
-3. **End-to-end tests**: Complete workflow validation
-4. **Performance tests**: Build time and resource monitoring
-
-## Advanced Features
-
-### Configuration Preservation System
-
-Intelligent preservation of user customizations during system updates:
-
-- **Change detection**: SHA256-based modification tracking
-- **Safe update mechanism**: New versions preserved as `.new` files with user notification
-- **Interactive conflict resolution**: `./scripts/merge-claude-config` for manual merging
-- **Automatic backup**: Timestamped backups with 30-day retention policy
-
-### Automated Update Framework
-
-TTL-based update system with safety validation:
+## Updates
 
 ```bash
-# Automatic updates (respects 1-hour TTL)
-./scripts/auto-update-dotfiles
-
-# Force immediate update
-./scripts/auto-update-dotfiles --force
-
-# Silent background updates
-./scripts/auto-update-dotfiles --silent
+./scripts/auto-update-dotfiles        # Automatic updates
+./scripts/auto-update-dotfiles --force # Force update
 ```
 
-### Global Development Tools
+Configuration changes are automatically backed up with conflict resolution.
 
-Cross-project development assistance:
 
 ```bash
 # Install global command system
@@ -290,158 +101,58 @@ bl --help                 # Usage information
 
 ## 🤖 Claude Code Integration
 
-Transform your development workflow with AI-powered assistance. This dotfiles repository includes comprehensive Claude Code integration with specialized commands, smart configuration management, and context-aware guidance.
+Built-in AI development assistance with 20+ specialized commands.
 
-### ⚡ Quick Claude Setup
+### Setup
 
 ```bash
-# 1. Apply Claude configuration (included in dotfiles)
-make switch
-
-# 2. Restart Claude Code to load new configuration
-# (Quit and reopen Claude Code application)
-
-# 3. Verify integration
-# In Claude Code, try: /help
+make switch  # Apply configuration
+# Restart Claude Code
+# Try: /help
 ```
 
-### 🎯 Key Features
+### Key Commands
 
-**20+ Specialized Commands**
-- `/do-plan` - Create detailed implementation plans
-- `/build` - Build and test dotfiles with comprehensive validation
-- `/commit` - Generate semantic commit messages
-- `/create-pr` - Create comprehensive pull requests
-- `/do-issue` - Systematically work on GitHub issues
+- `/build` - Build and test with validation
+- `/commit` - Generate semantic commits  
+- `/create-pr` - Create pull requests
+- `/update-claude` - Update Claude configuration
 
-**Smart Configuration Management**
-- **Automatic preservation** of your Claude customizations
-- **Safe updates** during dotfiles system updates
-- **Interactive merging** for configuration conflicts
-- **Automatic backups** of all configuration changes
+### Features
 
-**Development Workflow Integration**
-- **Context-aware assistance** for Nix, Git, and system operations
-- **Pre-configured permissions** for development tools
+- **Smart config management** with automatic backups
+- **Context-aware assistance** for Nix and Git
 - **MCP server integration** for enhanced capabilities
 - **Dotfiles-specific guidance** and best practices
 
-### 🚀 Common Workflows
+## Documentation
 
-**Starting a New Feature**
-```
-User: I want to add dark mode support
+- **[CLAUDE.md](./CLAUDE.md)** - Claude Code project instructions
+- **[CONTRIBUTING.md](./CONTRIBUTING.md)** - Development guidelines
+- **[docs/](./docs/)** - Detailed guides and references
 
-Claude: I'll help you plan and implement dark mode support.
-/do-plan
-
-## Implementation Plan: Dark Mode Support
-[Detailed plan with phases, tasks, and timeline]
-```
-
-**Working on GitHub Issues**
-```
-User: Work on issue #180
-
-Claude: I'll systematically address issue #180.
-/do-issue 180
-
-[Analyzes issue, creates implementation plan, tracks progress]
-```
-
-**Building and Testing Changes**
-```
-User: Test my configuration changes
-
-Claude: I'll run comprehensive build and test validation.
-/build
-
-[Validates all platforms, runs tests, provides detailed results]
-```
-
-### Documentation
-
-1. **[Complete Setup Guide](./docs/CLAUDE-SETUP.md)** - Installation, configuration, and troubleshooting
-2. **[Command Reference](./docs/CLAUDE-COMMANDS.md)** - All 20+ commands with examples and usage patterns
-3. **[Development Scenarios](./docs/DEVELOPMENT-SCENARIOS.md)** - Real-world workflow examples
-
-### Advanced Configuration
-
-**Custom Commands**: Add your own specialized prompts
-**Permission Management**: Fine-tune tool access and security
-**MCP Integration**: Connect additional context servers
-**Workflow Automation**: Chain commands for complex processes
-
-[Learn more →](./docs/CLAUDE-SETUP.md)
-
-## 📚 Documentation
-
-### 🤖 Claude Code Integration
-- **[Claude Setup Guide](./docs/CLAUDE-SETUP.md)** - Complete installation and configuration
-- **[Claude Commands Reference](./docs/CLAUDE-COMMANDS.md)** - All 20+ available commands with examples
-- **[CLAUDE.md](./CLAUDE.md)** - Project-specific instructions for Claude
-
-### 🛠️ Development
-- **[CONTRIBUTING.md](./CONTRIBUTING.md)** - Development workflows and standards
-- **[docs/ARCHITECTURE.md](./docs/architecture.md)** - System design and architecture
-- **[docs/TESTING.md](./docs/testing-framework.md)** - Testing framework and strategies
-- **[docs/DEVELOPMENT-SCENARIOS.md](./docs/DEVELOPMENT-SCENARIOS.md)** - Step-by-step development guides
-
-## 🚨 Troubleshooting
-
-### Common Issues
+## Troubleshooting
 
 **Build failures:**
 ```bash
-# Ensure USER is set
-export USER=$(whoami)
-
-# Clear cache and retry
-nix store gc
-make build
+export USER=$(whoami)  # Ensure USER is set
+nix store gc            # Clear cache
+make build             # Retry
 ```
 
 **Permission issues:**
 ```bash
-# build-switch requires sudo from start
 sudo nix run --impure .#build-switch
 ```
 
-**Environment variable issues:**
-```bash
-# Add to your shell profile for persistence
-echo "export USER=\$(whoami)" >> ~/.bashrc  # or ~/.zshrc
-```
+See [docs/TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md) for more solutions.
 
-### CI/CD and Pre-commit Issues
+## Next Steps
 
-**Nix warnings and noise:**
-- Recent improvements filter out trusted user warnings and git dirty tree warnings
-- Set `CI_MODE=local` for consistent behavior between local and CI environments
-- Use `nix run --impure .#test-smoke` for quick validation
-
-**Pre-commit vs CI inconsistencies:**
-- Pre-push hooks now run the same tests as CI (unit, integration, perf)
-- Warning filtering ensures clean output while preserving actual errors
-- Tests are executed with environment variables matching CI configuration
-
-**Performance optimization:**
-- Consider setting up as a trusted user for better build performance
-- Use `nix.settings.trusted-users = ["your-username"]` in system configuration
-- cachix substituter will be utilized when trusted user is configured
-
-### Getting Help
-- Check [troubleshooting guide](./docs/TROUBLESHOOTING.md) for detailed solutions
-- Review [CLAUDE.md](./CLAUDE.md) for development-specific guidance
-- Open GitHub issues for bugs or feature requests
-
-## 🎯 Next Steps
-
-1. **Explore the system**: Run `make help` to see all available commands
-2. **Customize your setup**: Add packages in `modules/shared/packages.nix`
-3. **Learn the testing**: Run `./scripts/test-all-local` to understand quality assurance
-4. **Contribute**: See [CONTRIBUTING.md](./CONTRIBUTING.md) for development guidelines
+1. Run `make help` to see all commands
+2. Add packages in `modules/shared/packages.nix`
+3. Check [CONTRIBUTING.md](./CONTRIBUTING.md) for development
 
 ---
 
-> **Architecture**: This system uses Nix flakes with Home Manager and nix-darwin/NixOS for declarative, reproducible environments across all major platforms.
+*Nix flakes + Home Manager + nix-darwin/NixOS for declarative, reproducible environments.*

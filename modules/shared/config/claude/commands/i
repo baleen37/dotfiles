@@ -12,9 +12,6 @@ Claude Code 환경의 모든 관리 작업을 지능적으로 통합 처리하�
 ## Usage
 ```bash
 /claude [작업 설명]                      # 지능형 자동 분석 → 최적 워크플로우 실행
-/claude --preview [작업 설명]            # 실행 계획 미리보기 (실제 실행 안함)
-/claude --validate                       # 전체 Claude 시스템 검증
-/claude --optimize                       # Claude 워크플로우 최적화
 ```
 
 ## 동적 워크플로우 시스템
@@ -234,7 +231,7 @@ def ensure_rule_1_compliance():
 /claude "새로운 blockchain-developer agent 만들어줘"
 /claude "code-reviewer agent 개선해줘"
 
-# Command 관리  
+# Command 관리
 /claude "implement command에 새 기능 추가해줘"
 /claude "deprecated command 제거해줘"
 
@@ -255,7 +252,7 @@ def ensure_rule_1_compliance():
 # 검증 전용
 /claude --validate
 
-# 최적화 전용  
+# 최적화 전용
 /claude --optimize
 ```
 
