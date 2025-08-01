@@ -1,260 +1,76 @@
-# /analyze - Intelligent Code & System Analysis
+# /analyze - 지능형 코드 분석
 
-Comprehensive multi-dimensional analysis with smart automatic detection and AI-driven insights across quality, security, performance, and architecture.
+자동 감지 기반의 포괄적 분석 시스템
 
-## Purpose
-- **AI-Driven Intelligence**: Automatic analysis depth and focus detection based on code patterns and issues
-- **Multi-Dimensional Analysis**: Simultaneous quality, security, performance, and architecture assessment
-- **Auto-Orchestration**: Seamless Wave mode and persona activation based on analysis complexity
-- **Evidence-Based Insights**: Data-driven findings with quantifiable metrics and actionable recommendations
-- **Effortless Experience**: Maximum analytical depth with minimal configuration - just specify thinking level
-
-## Usage
+## 사용법
 ```bash
-/analyze [target]                    # Smart automatic analysis
-/analyze [target] --think            # Deep multi-dimensional analysis  
-/analyze [target] --ultrathink       # Maximum depth comprehensive analysis
+/analyze [target]              # 스마트 자동 분석
+/analyze [target] --think      # 깊은 분석  
+/analyze [target] --deep       # 최대 깊이 분석
 ```
 
-## Arguments & Thinking Levels
+## 분석 대상
+- `[target]` - 파일, 디렉토리, 또는 시스템 컴포넌트 (기본: 현재 프로젝트)
+- `@security` - 보안 중심 분석
+- `@performance` - 성능 중심 분석
+- `src/components` - 특정 디렉토리 분석
 
-### Target Specification
-- `[target]` - File, directory, or system component to analyze (default: current project)
-- `@codebase/` - Full codebase analysis with architectural assessment
-- `@security/` - Security-focused analysis across all components
-- `@performance/` - Performance analysis with bottleneck identification
-- `@component/Button` - Deep component analysis with usage patterns
-- `@api/auth` - API module analysis with security and performance focus
+## 🤖 자동 지능화 시스템
 
-### 🧠 Thinking Levels (Auto-Adjusting Intelligence)
+### 시스템이 자동으로 수행
+- 🔍 코드베이스 구조 분석 및 핵심 영역 식별
+- 🎯 가장 중요한 이슈 감지 및 조사 우선순위 결정  
+- ⚖️ 복잡도 평가 및 적절한 분석 깊이 선택
+- 🤖 최적의 MCP 서버 선택 (Sequential, Context7, Magic 등)
+- 📋 구조화된 분석 계획 수립
+- ✅ 다차원 분석 실행 (품질+보안+성능+아키텍처)
+- 📊 실행 가능한 인사이트로 종합
 
-#### Default Mode - Smart Automatic Analysis
+### 자동 활성화 조건
+**프론트엔드 감지**: React/Vue 컴포넌트 → Magic MCP + UI 패턴 분석
+**백엔드 감지**: API/데이터베이스 → Context7 MCP + 모범 사례 검증
+**복잡한 아키텍처**: → Sequential MCP + 시스템 분석
+**보안 프레임워크**: → 전문 보안 분석 + 취약점 스캔
+
+## 분석 영역 (자동 활성화)
+
+### 📊 품질 분석
+- 코드 복잡도, 유지보수성, 기술 부채, 테스트 품질
+
+### 🛡️ 보안 분석  
+- 취약점 평가, 위협 모델링, 규정 준수, 보안 모범 사례
+
+### ⚡ 성능 분석
+- 병목점 식별, 확장성 평가, 리소스 최적화, 알고리즘 분석
+
+### 🏗️ 아키텍처 분석
+- 디자인 패턴 평가, 결합도 분석, 응집도 평가, 진화 준비도
+
+## 출력 및 통합
+
+### 스마트 출력
+- **요약 보고서**: 비즈니스 영향 평가가 포함된 상위 수준 결과
+- **상세 분석**: 증거가 포함된 포괄적 기술 결과
+- **실행 로드맵**: 구현 지침이 포함된 우선순위 개선 계획
+
+### 자동 연계
+- **→ /improve**: 분석 결과를 체계적 개선으로 직접 전달
+- **→ /implement**: 권장 솔루션 구현 트리거
+- **↔️ /workflow**: 개발 워크플로우와 연계
+
+## 예시
+
+### 기본 스마트 분석
 ```bash
-/analyze [target]
-```
-**Auto-Detects & Applies**:
-- 📊 Code complexity patterns → optimal analysis depth and focus areas
-- 🎯 Framework and technology detection → relevant analysis dimensions  
-- ⚡ Issue severity assessment → appropriate investigation depth
-- 🤖 MCP server selection → Sequential, Context7, Playwright as needed
-- 🌊 Wave activation → for system-wide or complex architectural analysis
-- 🤖 Agent activation → specialized agents selected automatically based on analysis needs
-
-#### `--think` - Deep Analysis Mode
-```bash
-/analyze [target] --think
-```
-**Enhanced Intelligence** (~10K tokens):
-- 🏗️ Cross-module architectural pattern analysis
-- 🔍 Deep dependency and coupling investigation
-- 📈 Performance bottleneck root cause analysis
-- 🛡️ Comprehensive security vulnerability assessment
-- 📚 Best practices alignment and deviation detection
-- 🔄 Technical debt quantification and prioritization
-
-#### `--ultrathink` - Maximum Depth Mode  
-```bash
-/analyze [target] --ultrathink
-```
-**Maximum Intelligence** (~32K tokens):
-- 🌐 System-wide impact and risk analysis
-- 🔄 Legacy modernization opportunity assessment
-- ⚖️ Enterprise-grade compliance and governance review
-- 🎯 Strategic technical debt prioritization matrix
-- 📋 Comprehensive transformation roadmap with timeline
-- 🏢 Scalability and reliability engineering assessment
-
-### 🛡️ Optional Control Modes
-
-#### `--safe` - Conservative Analysis Mode
-```bash
-/analyze [target] --safe
-```
-- ✅ Focus on confirmed issues with high confidence
-- 🔒 Conservative recommendations with proven solutions
-- 🧪 Thorough validation of all findings
-- 🔄 Risk-averse analysis with safety margins
-- 📋 Detailed evidence supporting all conclusions
-
-#### `--preview` - Preview Mode  
-```bash
-/analyze [target] --preview
-```
-- 👀 Show analysis plan and scope without executing
-- 📊 Estimated analysis time and resource requirements
-- 📝 Analysis dimensions and methodologies to be used
-- ⏱️ Complexity assessment and thinking level recommendation
-- 🎯 Expected deliverables and insight categories
-
-#### `--interactive` - Guided Analysis Mode
-```bash
-/analyze [target] --interactive  
-```
-- 🤝 Pause for focus area confirmation and prioritization
-- 🔍 Explain analysis methodology and reasoning
-- ⚖️ Let user choose between alternative analysis approaches
-- 📋 Step-by-step progress with insight sharing
-- 🎓 Educational explanations of findings and patterns
-
-## 🤖 Intelligent Auto-Analysis System
-
-### Smart Detection & Activation
-
-**Code Pattern Analysis**:
-- 📁 Project structure & complexity → Analysis scope and methodology
-- 🔄 Code interdependencies → Architectural analysis activation
-- 📊 Quality metrics baseline → Focus area prioritization
-- ⚡ Performance characteristics → Bottleneck investigation
-- 🛡️ Security posture indicators → Vulnerability assessment depth
-
-**Framework & Technology Detection**:
-- ⚛️ React/Vue/Angular → Frontend analysis + Magic MCP for UI patterns
-- 🚀 Node.js/Python/Go → Backend analysis + Context7 MCP for best practices  
-- 🏗️ Complex architecture → specialized architecture agents + Sequential MCP for system analysis
-- 🔒 Security frameworks → security specialist agents + comprehensive vulnerability scanning
-- 📱 Mobile/responsive → frontend specialist agents + accessibility compliance analysis
-
-**Automatic MCP Server Selection**:
-- 🧠 **Sequential**: Primary for systematic analysis and structured investigation
-- 📚 **Context7**: Framework patterns, best practices validation, compliance standards
-- ✨ **Magic**: UI component analysis, design system evaluation, accessibility assessment
-- 🎭 **Playwright**: Performance measurement, user experience validation, E2E analysis
-
-**Smart Agent Activation**:
-- Automatically selects optimal specialized agents based on analysis context and requirements
-- Coordinates multiple agents for comprehensive coverage when needed
-- Adapts agent selection based on detected patterns and complexity
-
-### 🎯 Zero-Configuration Intelligence
-
-**You Don't Need to Specify**:
-- ❌ ~~`--focus security`~~ → Auto-detects from vulnerability patterns
-- ❌ ~~`--depth comprehensive`~~ → Auto-adjusts to codebase complexity  
-- ❌ ~~`--strategy systematic`~~ → Auto-selects optimal analysis methodology
-- ❌ ~~`--output actionable`~~ → Auto-formats for maximum usability
-- ❌ ~~`--agent specialist`~~ → Auto-assigns based on analysis needs
-- ❌ ~~`--seq --c7 --magic`~~ → Auto-routes to needed MCP servers
-- ❌ ~~`--create-tasks --trigger-improve`~~ → Auto-enables based on findings
-
-**The System Automatically**:
-- 🔍 Analyzes your codebase structure and identifies key focus areas
-- 🎯 Detects the most critical issues and prioritizes investigation  
-- ⚖️ Assesses complexity and selects appropriate analysis depth
-- 🤖 Chooses optimal agents and MCP servers for comprehensive coverage
-- 📋 Creates structured analysis plan with evidence requirements
-- ✅ Executes multi-dimensional analysis with intelligent coordination
-- 📊 Synthesizes findings into actionable insights with priority ranking
-
-## ✨ Usage Examples - Now Beautifully Simple!
-
-### 🎯 Basic Smart Analysis
-```bash
-/analyze                           # ✨ Auto-detects everything, comprehensive analysis
-/analyze src/components           # 🎨 Smart component quality and pattern analysis  
-/analyze api/                     # 🚀 Intelligent API security and performance analysis
-/analyze @security                # 🛡️ Auto-focuses on security across entire codebase
-/analyze @performance             # ⚡ Smart performance bottleneck identification
+/analyze                           # 전체 자동 감지 및 포괄적 분석
+/analyze src/components           # 컴포넌트 품질 및 패턴 분석  
+/analyze api/                     # API 보안 및 성능 분석
 ```
 
-### 🧠 Enhanced Intelligence Levels
+### 깊이 있는 분석
 ```bash
-/analyze src/ --think             # 🔍 Deep analysis with architectural insights
-/analyze . --ultrathink           # 🌟 Maximum intelligence for complex systems
-/analyze legacy/ --ultrathink     # 🏗️ Comprehensive legacy modernization analysis
+/analyze src/ --think             # 아키텍처 인사이트를 포함한 깊은 분석
+/analyze . --deep                 # 복잡한 시스템을 위한 최대 지능 분석
 ```
 
-### 🛡️ Controlled Analysis Modes
-```bash
-/analyze --safe                   # 🔒 Conservative analysis with proven findings
-/analyze --preview                # 👀 See what analysis would be performed
-/analyze --interactive            # 🤝 Guided analysis with explanations
-/analyze --think --safe           # 🧠 Deep analysis with conservative recommendations
-/analyze --ultrathink --preview   # 🌟 Max analysis scope preview
-```
-
-### 🎉 Real-World Scenarios
-```bash
-# Legacy system assessment
-/analyze legacy-app/ --ultrathink --safe
-
-# Quick health check
-/analyze src/ --think
-
-# Comprehensive security review  
-/analyze @security --ultrathink --interactive
-
-# Performance troubleshooting
-/analyze @performance --think
-```
-
-## 🎯 Intelligent Analysis Framework
-
-### Auto-Intelligence Engine
-1. **Smart Context Analysis**: Automatic codebase understanding and issue pattern detection
-2. **Priority Matrix**: AI-driven impact vs effort prioritization for findings
-3. **Evidence Requirements**: Intelligent validation depth based on finding severity
-4. **Resource Orchestration**: Optimal persona and MCP server coordination
-5. **Insight Synthesis**: Automatic correlation and actionable recommendation generation
-
-### Multi-Dimensional Analysis Domains
-
-#### 📊 Quality Analysis (Auto-Activated)
-- **Code Complexity**: Cyclomatic complexity, cognitive complexity, nesting analysis
-- **Maintainability**: Readability, documentation coverage, consistency assessment
-- **Technical Debt**: Code smells, duplication, deprecated pattern identification
-- **Test Quality**: Coverage analysis, test effectiveness, strategy evaluation
-
-#### 🛡️ Security Analysis (Auto-Activated)
-- **Vulnerability Assessment**: CVE scanning, custom vulnerability detection
-- **Threat Modeling**: Attack surface analysis, threat vector identification
-- **Compliance Review**: OWASP, industry standards, regulatory requirement checks
-- **Security Best Practices**: Secure coding pattern adherence validation
-
-#### ⚡ Performance Analysis (Auto-Activated)
-- **Bottleneck Identification**: CPU, memory, I/O, network performance analysis
-- **Scalability Assessment**: Horizontal and vertical scaling readiness
-- **Resource Optimization**: Memory usage, CPU utilization, storage efficiency
-- **Algorithm Analysis**: Computational complexity and optimization opportunities
-
-#### 🏗️ Architecture Analysis (Auto-Activated)
-- **Design Pattern Evaluation**: Pattern consistency and appropriateness assessment
-- **Coupling Analysis**: Component dependency and interface design evaluation
-- **Cohesion Assessment**: Module focus and responsibility clarity
-- **Evolution Readiness**: Adaptability, extensibility, maintainability analysis
-
-## 🚀 Analysis Output & Integration
-
-### Smart Output Generation
-- **Executive Summary**: High-level findings with business impact assessment
-- **Detailed Analysis**: Comprehensive technical findings with evidence
-- **Actionable Roadmap**: Prioritized improvement plan with implementation guidance
-- **Metrics Dashboard**: Quantifiable measurements and benchmark comparisons
-
-### Automatic Integration Capabilities
-- **→ /improve**: Direct handoff of findings for systematic improvement
-- **→ /task**: Generate hierarchical task structure for addressing findings
-- **→ /implement**: Trigger implementation of recommended solutions
-- **↔️ /workflow**: Coordinate with development workflows and processes
-
-### Built-in Quality Assurance
-- **🔒 Evidence-Based**: All findings supported by quantifiable evidence
-- **🧪 Validated Results**: Comprehensive validation of analysis accuracy
-- **🔄 Reproducible**: Consistent results across analysis runs
-- **📊 Measurable Impact**: Clear metrics for improvement validation
-- **🎯 Actionable Insights**: Specific, implementable recommendations
-
-## 🚀 Performance & Quality Goals
-
-### Analysis Effectiveness
-- **🎯 Accuracy**: >95% of findings provide actionable improvement opportunities
-- **⚡ Speed**: Smart analysis completes in <60 seconds for most projects
-- **🧠 Comprehensiveness**: >90% coverage of critical analysis dimensions
-- **🔄 Consistency**: Reliable results across multiple analysis runs
-
-### Intelligence & Automation
-- **🤖 Auto-Detection**: >85% of analysis parameters determined automatically
-- **🤖 Agent Activation**: >90% accuracy in optimal agent selection
-- **📊 Insight Quality**: >95% of recommendations deemed valuable by users
-- **✅ Integration Success**: Seamless handoff to improvement and implementation commands
-
-**The Future of Code Analysis**: Just specify what to analyze and how deep to think - the system handles everything else automatically! 🌟
+**미래의 코드 분석**: 무엇을 분석할지와 얼마나 깊게 생각할지만 지정하면, 시스템이 나머지를 자동으로 처리합니다! 🌟

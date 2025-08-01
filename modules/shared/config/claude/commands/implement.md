@@ -1,265 +1,91 @@
-# /implement - Intelligent Feature & Code Implementation
+# /implement - Intelligent Feature Implementation
 
-Context-aware implementation with automatic pattern recognition, framework adaptation, and smart quality assurance integration.
-
-## Purpose
-- **AI-Driven Intelligence**: Automatic implementation approach and complexity detection based on feature requirements
-- **Context-Aware Generation**: Analyze existing codebase patterns and adapt implementation style automatically
-- **Auto-Orchestration**: Seamless framework detection, agent activation, and MCP server coordination
-- **Quality-First Approach**: Built-in type safety, error handling, testing, and security considerations
-- **Effortless Experience**: Maximum implementation quality with minimal configuration - just specify thinking depth
+Context-aware implementation with automatic pattern recognition and smart quality assurance.
 
 ## Usage
 ```bash
-/implement [feature-description]                    # Smart automatic implementation
-/implement [feature-description] --think            # Deep analysis-driven implementation  
-/implement [feature-description] --ultrathink       # Maximum depth comprehensive implementation
+/implement "feature description"              # Smart automatic implementation
+/implement "feature description" --think      # Deep analysis-driven implementation  
+/implement "feature description" --deep       # Maximum depth comprehensive implementation
 ```
 
-## Arguments & Thinking Levels
-
-### Feature Description Specification
-- `[feature-description]` - Natural language description of what to implement
-- `"user authentication system"` - Complete feature implementation with all components
-- `"responsive navigation component"` - UI component with framework-specific patterns
+## Feature Description
+- `"user login form"` - UI component with framework-specific patterns
 - `"payment processing API"` - Backend service with security and error handling
-- `"real-time chat feature"` - Complex feature spanning multiple layers
-- `"database migration for user profiles"` - Data transformation and schema updates
+- `"real-time notifications"` - Complex feature spanning multiple layers
+- `"responsive navigation menu"` - Modern UI component with accessibility
+- `"database migration for users"` - Data transformation and schema updates
 
-### 🧠 Thinking Levels (Auto-Adjusting Intelligence)
+## 🤖 Auto-Intelligence System
 
-#### Default Mode - Smart Automatic Implementation
-```bash
-/implement [feature-description]
-```
-**Auto-Detects & Applies**:
-- 📊 Feature complexity analysis → optimal implementation approach and architecture
-- 🎯 Framework and technology detection → relevant patterns and conventions  
-- ⚡ Quality requirements assessment → appropriate testing and validation depth
-- 🤖 MCP server selection → Magic, Context7, Sequential as needed
-- 🌊 Wave activation → for complex multi-component features
-- 🎭 Persona activation → frontend, backend, architect, security as needed
-
-#### `--think` - Deep Implementation Mode
-```bash
-/implement [feature-description] --think
-```
-**Enhanced Intelligence** (~10K tokens):
-- 🏗️ Architectural pattern analysis and optimal design selection
-- 🔍 Cross-component integration and dependency management
-- 📈 Performance optimization and scalability considerations
-- 🛡️ Comprehensive security implementation and vulnerability prevention
-- 📚 Best practices alignment and framework-specific optimizations
-- 🧪 Advanced testing strategy with comprehensive coverage
-
-#### `--ultrathink` - Maximum Depth Mode  
-```bash
-/implement [feature-description] --ultrathink
-```
-**Maximum Intelligence** (~32K tokens):
-- 🌐 System-wide integration and impact analysis
-- 🔄 Enterprise-grade implementation with monitoring and observability
-- ⚖️ Production-ready implementation with full error handling and recovery
-- 🎯 Advanced optimization with performance benchmarking
-- 📋 Comprehensive documentation and maintenance guides
-- 🏢 Scalability and reliability engineering implementation
-
-### 🛡️ Optional Control Modes
-
-#### `--safe` - Conservative Implementation Mode
-```bash
-/implement [feature-description] --safe
-```
-- ✅ Conservative implementation with proven patterns only
-- 🔒 Extensive validation and error handling
-- 🧪 Comprehensive testing with edge case coverage
-- 🔄 Built-in rollback capability and monitoring
-- 📋 Detailed implementation documentation and review checklists
-
-#### `--preview` - Preview Mode  
-```bash
-/implement [feature-description] --preview
-```
-- 👀 Show implementation plan and architecture without coding
-- 📊 Estimated implementation time and complexity assessment
-- 📝 Implementation approach and technology choices
-- ⏱️ Component breakdown and dependency analysis
-- 🎯 Expected deliverables and quality metrics
-
-#### `--interactive` - Guided Implementation Mode
-```bash
-/implement [feature-description] --interactive  
-```
-- 🤝 Pause for architecture and approach confirmation
-- 🔍 Explain implementation decisions and trade-offs
-- ⚖️ Let user choose between alternative implementation approaches
-- 📋 Step-by-step progress with milestone validation
-- 🎓 Educational explanations of patterns and best practices
-
-## 🤖 Intelligent Auto-Implementation System
-
-### Smart Detection & Activation
-
-**Feature Analysis**:
-- 📁 Feature complexity and scope → Implementation strategy and architecture
-- 🔄 Component interdependencies → Integration approach and coordination
-- 📊 Quality requirements → Testing strategy and validation depth
-- ⚡ Performance needs → Optimization approach and monitoring
-- 🛡️ Security considerations → Security implementation and compliance
-
-**Framework & Technology Detection**:
-- ⚛️ React/Vue/Angular → frontend specialist agents + Magic MCP for modern components
-- 🚀 Node.js/Python/Go → backend specialist agents + Context7 MCP for API patterns  
-- 🏗️ Complex architecture → architecture specialist agents + Sequential MCP for system design
-- 🔒 Security requirements → security specialist agents + comprehensive vulnerability prevention
-- 📱 Mobile/responsive → frontend specialist agents + accessibility and responsive implementation
-
-**Automatic MCP Server Selection**:
-- ✨ **Magic**: Primary for UI components, design systems, modern frontend patterns
-- 📚 **Context7**: Framework patterns, implementation best practices, documentation
-- 🧠 **Sequential**: Complex implementation logic, multi-step feature coordination
-- 🎭 **Playwright**: Testing implementation, user workflow validation, E2E coverage
-
-**Smart Agent Activation**:
-- Automatically selects optimal specialized agents based on implementation requirements
-- Coordinates multiple agents for complex multi-domain features
-- Adapts agent selection based on detected frameworks and patterns
-
-### 🎯 Zero-Configuration Intelligence
-
-**You Don't Need to Specify**:
-- ❌ ~~`--type component`~~ → Auto-detects from feature description
-- ❌ ~~`--framework react`~~ → Auto-detects from existing codebase  
-- ❌ ~~`--with-tests`~~ → Auto-includes based on complexity and quality needs
-- ❌ ~~`--safe --secure`~~ → Auto-enables based on feature requirements
-- ❌ ~~`--agent specialist`~~ → Auto-assigns based on implementation needs
-- ❌ ~~`--magic --c7 --sequential`~~ → Auto-routes to needed MCP servers
-- ❌ ~~`--tdd --production`~~ → Auto-selects development approach
-
-**The System Automatically**:
-- 🔍 Analyzes your feature requirements and existing codebase patterns
+### System Automatically Handles
+- 🔍 Analyzes feature requirements and existing codebase patterns
 - 🎯 Identifies optimal implementation approach and architecture  
 - ⚖️ Assesses complexity and selects appropriate implementation depth
-- 🤖 Chooses optimal agents and MCP servers for comprehensive implementation
-- 📋 Creates implementation plan with quality gates and validation
-- ✅ Implements features with built-in testing and documentation
-- 📊 Validates implementation quality and provides improvement insights
+- 🤖 Chooses optimal MCP servers (Magic, Context7, Sequential)
+- 📋 Creates implementation plan with quality gates
+- ✅ Implements with built-in testing and documentation
+- 📊 Validates implementation quality
 
-## ✨ Usage Examples - Now Beautifully Simple!
+### Auto-Activation Conditions
+**Frontend Detection**: React/Vue components → Magic MCP + modern UI patterns
+**Backend Detection**: APIs/databases → Context7 MCP + best practices
+**Complex Architecture**: → Sequential MCP + system design
+**Security Requirements**: → comprehensive security implementation
 
-### 🎯 Basic Smart Implementation
-```bash
-/implement "user login form"                           # ✨ Auto-detects everything, implements optimally
-/implement "responsive navigation menu"                # 🎨 Smart UI component with modern patterns  
-/implement "file upload API endpoint"                  # 🚀 Intelligent backend service with validation
-/implement "real-time notifications"                   # 🔄 Complex feature with WebSocket integration
-/implement "payment processing workflow"               # 💳 Secure implementation with error handling
-```
+## Implementation Domains (Auto-Activated)
 
-### 🧠 Enhanced Intelligence Levels
-```bash
-/implement "e-commerce checkout" --think               # 🔍 Deep implementation with optimization
-/implement "user authentication system" --ultrathink  # 🌟 Maximum depth with security and monitoring
-/implement "data visualization dashboard" --ultrathink # 📊 Comprehensive implementation with performance
-```
+### 🎨 Frontend Implementation
+- Modern components with hooks/composition patterns
+- Responsive design with accessibility compliance
+- State management and performance optimization
+- Component testing and visual regression
 
-### 🛡️ Controlled Implementation Modes
-```bash
-/implement "payment gateway" --safe                    # 🔒 Conservative implementation with extensive validation
-/implement "chat system" --preview                     # 👀 See implementation plan before coding
-/implement "admin dashboard" --interactive             # 🤝 Guided implementation with explanations
-/implement "API rate limiting" --think --safe          # 🧠 Deep analysis with conservative approach
-/implement "microservice architecture" --ultrathink --preview # 🌟 Max analysis scope preview
-```
+### 🔧 Backend Implementation  
+- RESTful/GraphQL API development
+- Database integration and query optimization
+- Authentication, security, and error handling
+- Unit tests, integration tests, API testing
 
-### 🎉 Real-World Scenarios
-```bash
-# Complex feature development
-/implement "multi-tenant SaaS dashboard" --ultrathink --safe
+### 🏗️ System Implementation
+- Architecture patterns (microservices, serverless)
+- Third-party integrations and event systems
+- Monitoring, logging, and health checks
+- Documentation and deployment guides
 
-# Quick component creation
-/implement "loading spinner component" --think
+### 🛡️ Security Implementation
+- Input validation and sanitization
+- Authentication and authorization systems
+- Data protection and encryption
+- OWASP compliance and vulnerability prevention
 
-# Secure feature implementation  
-/implement "OAuth2 integration" --ultrathink --interactive
+## Quality Assurance
 
-# Performance-critical feature
-/implement "image optimization service" --think
-```
+### Built-in Quality Features
+- **Type Safety**: Comprehensive TypeScript and static analysis
+- **Error Handling**: Graceful error management with user feedback
+- **Performance**: Optimized algorithms and resource usage
+- **Security**: Vulnerability prevention and secure coding practices
+- **Testing**: Comprehensive test suites with coverage reporting
 
-## 🎯 Intelligent Implementation Framework
-
-### Auto-Intelligence Engine
-1. **Smart Requirements Analysis**: Automatic feature decomposition and architecture planning
-2. **Pattern Recognition**: AI-driven identification of optimal implementation patterns
-3. **Quality Planning**: Intelligent testing strategy and validation approach selection
-4. **Resource Orchestration**: Optimal agent and MCP server coordination
-5. **Progressive Implementation**: Automatic milestone planning and incremental delivery
-
-### Implementation Domains & Auto-Detection
-
-#### 🎨 Frontend Implementation (Auto-Activated)
-- **Modern Components**: React hooks, Vue Composition API, Angular latest patterns
-- **Responsive Design**: Mobile-first approach with accessibility compliance
-- **State Management**: Context, Redux, Pinia, or framework-appropriate solutions
-- **Performance Optimization**: Lazy loading, memoization, bundle optimization
-- **Testing Integration**: Component testing, accessibility testing, visual regression
-
-#### 🔧 Backend Implementation (Auto-Activated)
-- **API Development**: RESTful services, GraphQL, or modern API patterns
-- **Database Integration**: ORM setup, query optimization, migration management
-- **Authentication & Security**: JWT, OAuth, session management, security headers
-- **Error Handling**: Comprehensive error management and monitoring integration
-- **Testing Coverage**: Unit tests, integration tests, API testing
-
-#### 🏗️ System Implementation (Auto-Activated)
-- **Architecture Patterns**: Microservices, serverless, monolithic as appropriate
-- **Integration Management**: Third-party services, webhook handling, event systems
-- **Monitoring & Observability**: Logging, metrics, health checks, alerting
-- **Scalability Planning**: Caching, load balancing, horizontal scaling
-- **Documentation**: API documentation, system architecture, deployment guides
-
-#### 🛡️ Security Implementation (Auto-Activated)
-- **Input Validation**: Comprehensive sanitization and validation
-- **Authentication Systems**: Secure login, password management, session handling
-- **Authorization**: Role-based access control, permission systems
-- **Data Protection**: Encryption, secure storage, privacy compliance
-- **Vulnerability Prevention**: OWASP compliance, security scanning, penetration testing
-
-## 🚀 Implementation Quality & Integration
-
-### Smart Quality Assurance
-- **Type Safety**: Comprehensive TypeScript, type hints, and static analysis
-- **Error Handling**: Graceful error management with user-friendly feedback
-- **Performance**: Optimized algorithms, efficient resource usage, monitoring
-- **Security**: Vulnerability prevention, secure coding practices, compliance
-- **Maintainability**: Clean code, comprehensive documentation, testing coverage
-
-### Automatic Integration Capabilities
-- **→ /analyze**: Analyze existing codebase before implementation
+### Auto Integration
+- **→ /analyze**: Analyze codebase before implementation
 - **→ /improve**: Optimize implementation after completion
-- **← /task**: Integrate with project task management and milestones
-- **↔️ /workflow**: Coordinate with development workflows and CI/CD
+- **↔️ /workflow**: Coordinate with development workflows
 
-### Built-in Development Experience
-- **🔧 Modern Tooling**: Automatic setup of linters, formatters, and development tools
-- **📚 Documentation**: Auto-generated API docs, usage examples, integration guides
-- **🧪 Testing**: Comprehensive test suites with coverage reporting
-- **📊 Monitoring**: Performance metrics, error tracking, usage analytics
-- **🔄 Continuous Integration**: CI/CD pipeline integration and deployment automation
+## Examples
 
-## 🚀 Performance & Quality Goals
+### Basic Smart Implementation
+```bash
+/implement "user authentication"           # Auto-detects security needs, implements JWT/OAuth
+/implement "data visualization chart"     # Auto-detects frontend, uses appropriate charting library
+/implement "file upload API"             # Auto-detects backend, adds validation and security
+```
 
-### Implementation Effectiveness
-- **🎯 Quality**: >95% of implementations meet production-ready standards
-- **⚡ Speed**: Smart implementation completes in <15 minutes for typical features
-- **🧠 Accuracy**: >90% of auto-detected requirements match user expectations
-- **🔄 Reliability**: >98% implementation success rate without manual intervention
+### Deep Implementation
+```bash
+/implement "e-commerce checkout" --think  # Deep analysis with payment security
+/implement "real-time chat system" --deep # Maximum depth with WebSocket, scaling
+```
 
-### Intelligence & Automation
-- **🤖 Auto-Detection**: >85% of implementation parameters determined automatically
-- **🤖 Agent Selection**: >90% accuracy in optimal agent and tool selection
-- **📊 Quality Integration**: >95% of implementations include comprehensive testing
-- **✅ Framework Alignment**: >98% compliance with existing codebase patterns
-
-**The Future of Feature Implementation**: Just describe what you want to implement and how deep to think - the system handles all the technical complexity automatically! 🌟
+**The Future of Implementation**: Just describe what you want to build and how deep to think - the system handles all technical complexity automatically! 🌟

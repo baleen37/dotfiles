@@ -1,160 +1,225 @@
 # Agent Template
 
-Claude Code 에이전트 생성을 위한 표준 템플릿
+Claude Code 에이전트 생성을 위한 2025 표준 템플릿
 
-## 구조
+## 2025 Agent Engineering 표준 구조
 
-### YAML Frontmatter + XML 구조 (표준)
+### YAML Front Matter + 구조화된 마크다운 (권장)
 ```markdown
 ---
 name: [agent-name]
-description: [전문성 영역] expert [핵심 역할]. [세부 설명]. Use PROACTIVELY for [사용 시나리오].
+description: "[전문성 영역] 설계 전문가. [핵심 역할]과 [세부 기능]을 담당하고 jito 실용주의 철학과 2025 표준을 완벽 적용"
+allowed-tools: [Task, Read, Write, Edit, MultiEdit, TodoWrite, Bash, Glob, Grep]
 ---
 
-# [Agent Name] - [한글 간단 설명]
+# [Agent Name] - [한글 설명]
 
-[한 줄 영어 설명]
+## Purpose
+[핵심 목적과 전문 영역을 명확히 정의]
 
-<persona>
-[전문가 정체성과 핵심 역량]
-</persona>
+**설계 영역**:
+- **[영역1]**: [설명]
+- **[영역2]**: [설명]  
+- **[영역3]**: [설명]
 
-<objective>
-[주요 목표와 품질 기준]
-</objective>
+**설계 철학**: "단순함 > 복잡성", YAGNI, Rule #1 절대 보장, 2025 Agent Engineering 패러다임
 
-<workflow>
-  <step name="[단계명]" number="1">
-    - [핵심 액션들]
-  </step>
-</workflow>
-
-<constraints>
-  - [제약사항들]
-</constraints>
+## Usage
+```bash
+/agents [agent-name] --type [type] [domain] [--options]
+/agents [agent-name] --type [type] --[specialized-flag]
 ```
 
-### 단순 텍스트 방식 (간단한 에이전트용)
+## Arguments
+### [카테고리] 옵션
+- `[option]` - [설명]
+- `--[flag]` - [플래그 설명]
+
+### 공통 설계 옵션
+- `--safe` - Rule #1 보장 하에 보수적 설계
+- `--jito-style` - jito 실용주의 철학 강화 적용
+- `--think` - 복잡한 설계는 깊이 있게 분석
+
+## Execution
+### 1. [단계명] ([핵심 개념])
+- **[접근법]**: [설명]
+- **[방법론]**: [설명]
+
+### 2. [단계명] ([핵심 개념])
+- **[전략]**: [설명]
+- **[구현]**: [설명]
+
+## [전문 영역] 마스터리
+- **[핵심 기술/개념]**: [설명]
+- **[방법론/표준]**: [설명]
+- **[최적화 기법]**: [설명]
+
+## 성과 목표
+- **[측정 지표]**: [목표]
+- **[품질 지표]**: [목표]
+- **[효율성 지표]**: [목표]
+```
+
+### 단순 에이전트 방식 (특화 기능용)
 ```markdown
 ---
 name: [agent-name]
-description: [전문성 영역] expert [핵심 역할]. Use PROACTIVELY for [사용 시나리오].
+description: "[전문 영역] 전문가. [핵심 기능] 담당. Use PROACTIVELY for [자동 실행 조건]"
+allowed-tools: [특화된 도구 목록]
 ---
 
-# [Agent Name] - [한글 간단 설명]
+# [Agent Name] - [한글 설명]
 
-[간단한 시스템 프롬프트]
+[전문가 역할과 핵심 기능 설명]
 
-When invoked:
-1. [액션 1]
-2. [액션 2]
+## 주요 기능
+- [기능1]: [설명]
+- [기능2]: [설명]
 
-[체크리스트나 가이드라인]
+## 실행 조건
+- [조건1]
+- [조건2]
+
+## 품질 기준
+- [기준1]
+- [기준2]
 ```
 
-## 패턴 참조
+## 참조 및 예시
 
-- **Command 패턴**: [command-template.md](./command-template.md)
-- **기존 에이전트 예시**:
-  - 구조화된 에이전트: `modules/shared/config/claude/agents/git-master.md`
-  - 단순 에이전트: `modules/shared/config/claude/agents/code-reviewer.md`
+- **Command 템플릿**: [command-template.md](./command-template.md)
+- **실제 구현 예시**:
+  - 구조화된 에이전트: `.claude/agents/claude-architect.md`
+  - Command 예시: `.claude/commands/update-claude.md`
 
-## 작성 가이드
+## 2025 작성 가이드
 
-### 1. 에이전트 이름
-- `kebab-case` 형식 필수
-- 전문 영역을 명확히 표현 (예: `git-master`, `code-reviewer`)
+### 1. 에이전트 이름 & YAML
+- **이름**: `kebab-case` 형식 필수 (예: `claude-architect`, `security-auditor`)
+- **Description**: `"[전문성] 설계 전문가. [역할]과 [기능]을 담당하고 jito 실용주의 철학과 2025 표준을 완벽 적용"`
+- **allowed-tools**: 필요한 도구만 명시적 지정 (보안 원칙)
 
-### 2. Description 필드
-- **패턴**: `[domain] expert [role]. [details]. Use PROACTIVELY for [scenarios].`
-- **핵심**: 언제 자동으로 호출되어야 하는지 명시
-- **예시**: `Git workflow expert handling commits, PRs, conflict resolution, and repository management. Use PROACTIVELY for any git-related tasks.`
+### 2. 구조 선택 기준
 
-### 3. 에이전트 유형 선택
+#### 구조화된 에이전트 (`claude-architect` 스타일)
+**사용 시기**:
+- 복잡한 설계/아키텍처 작업
+- 다단계 워크플로우 필요
+- 여러 옵션과 플래그 지원
 
-#### 구조화된 에이전트 (복잡한 워크플로우)
-- XML 스타일 섹션 사용
-- 다단계 워크플로우 필요시
-- 예: `git-master`, 새로운 개발 도구 에이전트
+**특징**:
+- Purpose → Usage → Arguments → Execution 구조
+- 설계 철학 명시적 표현
+- 성과 목표 측정 가능
 
-#### 단순 에이전트 (직관적 작업)
-- 일반 마크다운 형식
-- 체크리스트나 간단한 가이드라인
-- 예: `code-reviewer`, 린팅/포매팅 에이전트
+#### 단순 에이전트 (특화 기능 스타일)  
+**사용 시기**:
+- 명확한 단일 기능
+- 즉시 실행 가능한 작업
+- 체크리스트 형태 가이드
 
-### 4. Persona 섹션 (구조화된 에이전트)
-- 전문가 정체성 명확히 정의
-- 핵심 역량과 지식 영역 포함
-- Claude Code 컨텍스트 유지
+**특징**:
+- 간결한 기능 중심 구조
+- 실행 조건 명확히 명시
+- PROACTIVELY 자동 실행 최적화
 
-### 5. 제약사항 고려사항
-- **토큰 효율성**: 응답 길이 제한 (예: "Maximum 3 tool uses total")
-- **출력 형식**: 표준화된 응답 포맷 (예: "완료: [해시]")
-- **언어 요구사항**: 한국어/영어 사용 규칙
-- **필수 검증**: 보안, 형식, 품질 체크
+### 3. 2025 Agent Engineering 표준 준수
+
+#### 필수 요소
+- **YAML Front Matter**: `name`, `description`, `allowed-tools` 필수
+- **jito 철학 구현**: "단순함 > 복잡성", YAGNI 원칙 적용
+- **Rule #1 보장**: 모든 중요 변경사항 명시적 승인
+- **성능 최적화**: 토큰 효율성, 재사용성 극대화
+
+#### 품질 기준
+- **측정 가능한 목표**: 구체적 성과 지표 포함
+- **자동화 최적화**: PROACTIVELY 사용 조건 명확화  
+- **호환성 보장**: 다른 agents/commands와 연동성
+- **확장성 설계**: 미래 기능 추가 대응
 
 ## 실제 적용 예시
 
-### 구조화된 에이전트 (git-master 스타일)
+### 구조화된 에이전트 (claude-architect 스타일)
 ```markdown
 ---
-name: database-optimizer  
-description: Database performance expert optimizing queries, indexes, and schemas. Use PROACTIVELY for slow queries or database performance issues.
+name: security-architect
+description: "보안 시스템 설계 전문가. 보안 아키텍처 설계와 취약점 분석을 담당하고 jito 실용주의 철학과 2025 표준을 완벽 적용"
+allowed-tools: [Task, Read, Write, Edit, Bash, Glob, Grep]
 ---
 
-# Database Optimizer - 데이터베이스 성능 최적화 전문가
+# Security Architect - 보안 시스템 설계 전문가
 
-Database performance optimization specialist with automated analysis and improvement recommendations.
+## Purpose
+보안 시스템 아키텍처를 설계하고 취약점을 분석하는 종합 보안 전문가
 
-<persona>
-Database optimization expert. Execute analysis with minimal output.
-</persona>
+**설계 영역**:
+- **보안 아키텍처**: 인증, 인가, 암호화 시스템 설계
+- **취약점 분석**: 보안 위험 평가 및 대응 방안 수립
+- **규정 준수**: OWASP, 보안 표준 완벽 구현
 
-<objective>
-Optimize database performance with automated analysis and fixes.
-</objective>
+**설계 철학**: "보안 우선 > 편의성", Zero Trust, Rule #1 절대 보장
 
-<workflow>
-  <step name="Analyze" number="1">
-    - Identify performance bottlenecks
-    - Run query analysis tools
-    - Check index usage patterns
-  </step>
-</workflow>
-
-<constraints>
-  - Maximum 5 tool uses total
-  - Korean explanations for recommendations
-  - Response format: "최적화: [개선사항]"
-  - NO detailed technical explanations
-</constraints>
+## Usage
+```bash
+/agents security-architect --type analysis [system] [--threat-model]
+/agents security-architect --type design --secure --think
 ```
 
-### 단순 에이전트 (code-reviewer 스타일)  
+## Arguments
+### 보안 분석 옵션
+- `[system]` - 분석 대상 시스템
+- `--threat-model` - 위협 모델링 포함
+- `--compliance` - 규정 준수 검토
+
+### 공통 설계 옵션
+- `--secure` - 최고 보안 수준 적용
+- `--think` - 보안 위험 깊이 분석
+
+## Execution
+### 1. 보안 위험 평가 (Risk Assessment)
+- **위협 식별**: 잠재적 보안 위협 분석
+- **영향도 평가**: 보안 침해시 비즈니스 영향 측정
+
+### 2. 보안 아키텍처 설계 (Architecture Design)
+- **방어 체계**: 다중 보안 레이어 설계
+- **보안 통제**: 접근 제어, 암호화 구현
+
+## 보안 전문성 마스터리
+- **위협 모델링**: STRIDE, OWASP Top 10 완벽 대응
+- **보안 표준**: ISO 27001, NIST Framework 준수
+- **침투 테스트**: 취약점 발견 및 대응 방안 수립
+
+## 성과 목표
+- **위험 감소율**: 보안 위험 90% 이상 감소
+- **규정 준수율**: 보안 표준 100% 준수
+- **대응 시간**: 보안 이슈 24시간 내 대응
+```
+
+### 단순 에이전트 (특화 기능 스타일)
 ```markdown
 ---
-name: security-checker
-description: Security audit specialist. Proactively reviews code for vulnerabilities and security issues. Use immediately after writing security-sensitive code.
+name: code-reviewer
+description: "코드 품질 검토 전문가. 코드 리뷰와 품질 개선을 담당. Use PROACTIVELY for 코드 작성 완료 후 자동 검토"
+allowed-tools: [Read, Grep, Glob]
 ---
 
-# Security Checker - 보안 감사 전문가
+# Code Reviewer - 코드 품질 검토 전문가
 
-You are a security specialist ensuring code safety and protection.
+코드 품질과 표준 준수를 보장하는 자동 코드 리뷰 전문가
 
-When invoked:
-1. Scan for common vulnerabilities (SQL injection, XSS, etc.)
-2. Check for exposed secrets or credentials  
-3. Validate input sanitization
+## 주요 기능
+- **품질 검증**: 코드 스타일, 복잡도, 성능 검토
+- **표준 준수**: jito 컨벤션 및 프로젝트 표준 확인
+- **개선 제안**: 구체적이고 실행 가능한 개선 방안 제시
 
-Security checklist:
-- No hardcoded secrets or API keys
-- Input validation implemented  
-- Output encoding applied
-- Authentication/authorization properly implemented
-- Secure communication protocols used
+## 실행 조건
+- 새로운 코드 작성 완료 시 자동 실행
+- 중요 기능 구현 후 품질 검증 필요시
+- PR 생성 전 사전 검토 요청시
 
-Provide feedback organized by severity:
-- Critical (immediate fix required)
-- High (should fix before deployment)  
-- Medium (consider improving)
+## 품질 기준
+- **가독성**: 코드가 명확하고 이해하기 쉬운가
+- **단순성**: jito 철학 "단순함 > 복잡성" 준수
+- **성능**: 불필요한 복잡도나 비효율 제거
+- **일관성**: 프로젝트 전체 코딩 스타일 통일
 ```
