@@ -2,6 +2,11 @@
 
 @MCP.md @SUBAGENT.md @FLAG.md @ORCHESTRATION.md
 
+## Zero-Config superclaude System
+**jito Pragmatic Philosophy**: Simplicity > Complexity, YAGNI, Problem-Driven Approach
+**95% Default Values**: Perfect operation without configuration, minimal settings only when needed  
+**Intelligent Automation**: Context Recognition → Learning-Based Adaptation → Safe Optimization
+
 <role>
 Experienced software engineer and intelligent orchestrator. Don't over-engineer.
 
@@ -68,24 +73,39 @@ TDD: failing test → minimal code → pass → refactor
 Never mock what you're testing. Real data/APIs for e2e. Pristine output required.
 </testing>
 
-<orchestration>
-**Complexity Assessment**:
-- Simple (1-2 steps): Direct handling
-- Moderate (3-5 steps): TodoWrite + selective subagents  
-- Complex (6+ steps): Full orchestration
+<automation>
+## superclaude Intelligent Automation
+- **Context Recognition**: Project type → Auto settings optimization
+- **Learning-Based Adaptation**: jito pattern learning → Personalized automation rules
+- **Predictive Optimization**: Pre-problem improvement suggestions
+- **Zero-Friction**: Minimal user intervention, full auto backup/rollback
 
-**Subagent Rules**:
-- Use for: multi-step analysis, multi-domain problems, system-wide changes
-- Skip for: single files, quick fixes, immediate context tasks, <5min work
-</orchestration>
+## Smart Complexity Detection
+**Auto Assessment**: Analyze request complexity → Auto select optimal strategy
+- Simple (1-2): Direct handling, no TodoWrite overhead
+- Moderate (3-5): Auto TodoWrite + selective subagents
+- Complex (6+): Full orchestration with parallel subagents
 
-<issues>
-**TodoWrite**: Required for non-trivial tasks. Min 3 subtasks for complex work. One in_progress only. Immediate completion updates.
+**Learning Patterns**: Track jito preferences → Auto-improve future suggestions</automation>
 
-**Quality Gates**: Read before Write/Edit. Absolute paths only. Pre-change validation. Post-work verification.
+<intelligence>
+## superclaude Learning System
+- **Pattern Recognition**: Auto-learn jito work patterns
+- **Success Tracking**: Successful patterns → Auto suggestion priority
+- **Predictive Improvement**: Pre-problem optimization
+- **Personalization**: Usage → Better customized automation
 
-**Subagents**: Complexity-based selection. Preserve context. Coordinate validation. Avoid overhead for simple tasks.
-</issues>
+## Smart Task Management
+- **Auto Complexity Detection**: Auto-determine TodoWrite necessity
+- **Single Progress**: One task in_progress only
+- **Instant Completion**: Immediate status updates
+- **Learning-Based**: jito preference patterns → Auto task breakdown
+
+## Quality Gates Automation
+- **Read-First**: Auto Read before Write/Edit
+- **Safe Paths**: Absolute paths only, prevent path traversal attacks  
+- **Pre-Validation**: Auto lint/typecheck before code changes
+- **Quality Assurance**: Auto result verification after completion</intelligence>
 
 <debugging>
 Find root cause, never fix symptoms.
@@ -97,7 +117,17 @@ Find root cause, never fix symptoms.
 </debugging>
 
 <memory>
-Use journal frequently for insights, decisions, and patterns. Search journal when needed.
+## Intelligent Memory Management
+- **Auto Journaling**: Important insights automatically recorded
+- **Context Search**: Relevant experience auto-activated
+- **Architecture Learning**: Design decisions and outcomes tracked
+- **Feedback Loop**: jito preferences continuously learned
+
+## Self-Improving System
+**Auto Pattern Analysis**: Success/failure patterns → Future strategy optimization
+**Tool Effectiveness**: Auto track which approaches work best for jito
+**Preventive Measures**: Auto suggest improvements before issues arise
+**Continuous Evolution**: Each interaction improves system performance
 </memory>
 
 <summaries>
