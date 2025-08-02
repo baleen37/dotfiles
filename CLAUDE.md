@@ -49,10 +49,13 @@ YAGNI above all. Simplicity over sophistication. When in doubt, ask jito.
 **Required Testing**: Unit + integration + e2e unless explicitly exempted
 
 **Test Commands**:
-- `make test` - Full test suite
-- `make smoke` - Quick validation  
-- `make build` - Multi-platform build test
+- `make test` - Full test suite (via nix run .#test)
+- `make test-core` - Essential tests only (fast)
+- `make smoke` - Quick validation (nix flake check)
+- `make test-perf` - Performance and build optimization tests
 - `./scripts/test-all-local` - Complete CI simulation
+
+**Test Categories**: Core (structure/config), Workflow (end-to-end), Performance (build optimization)
 </testing-standards>
 
 <nix-best-practices>
@@ -79,20 +82,25 @@ YAGNI above all. Simplicity over sophistication. When in doubt, ask jito.
 </debugging-workflow>
 
 <architecture-overview>
-**Flake Structure**: Modular outputs with lib/ containing shared functions
-**Build System**: Makefile with platform detection via lib/platform-system.nix
-**Module Organization**:
-- `modules/shared/` - Cross-platform packages and configs
-- `modules/darwin/` - macOS-specific (Homebrew, GUI apps)
-- `modules/nixos/` - NixOS-specific (system services, desktop)
-- `lib/` - Utility functions for platform detection and build optimization
-- `scripts/` - Shell scripts for automation and testing
+**Flake Structure**: Modular outputs with centralized lib/ utilities
+**Build System**: Makefile with intelligent platform detection via lib/platform-system.nix
+**Core Architecture Pattern**: Function-based modularity where lib modules export system-aware functions
 
-**Key Files**:
-- `flake.nix` - Main flake configuration with modular imports
-- `Makefile` - Build orchestration with USER variable requirement
-- `lib/platform-system.nix` - Platform detection and optimization
-- `modules/shared/packages.nix` - Core development tools
+**Module Organization**:
+- `modules/shared/` - Cross-platform packages and configs (50+ tools)
+- `modules/darwin/` - macOS-specific (Homebrew, 34+ GUI apps, nix-darwin)
+- `modules/nixos/` - NixOS-specific (system services, desktop environment)
+- `lib/` - System-aware utility functions and performance optimization
+- `scripts/` - Shell automation tools and the global `bl` command system
+
+**Key Files & Dependencies**:
+- `flake.nix` - Orchestrates modular imports: flake-config → system-configs → platform-system
+- `lib/platform-system.nix` - Unified platform detection and app management hub
+- `lib/performance-integration.nix` - Build optimization and caching
+- `lib/user-resolution.nix` - Multi-context user detection (CI, sudo, local)
+- `Makefile` - Build orchestration with USER variable auto-detection
+
+**Data Flow**: flake.nix → imports lib/flake-config.nix → defines systems → lib/system-configs.nix → builds Darwin/NixOS configs → lib/platform-system.nix → detects capabilities → modules execute
 </architecture-overview>
 
 <critical-requirements>
@@ -118,6 +126,16 @@ make smoke                  # Quick validation
 ```bash
 ./scripts/test-all-local    # Complete CI simulation
 ./scripts/auto-update-dotfiles  # Automatic updates
-bl setup-dev <project>      # Initialize dev environment
+
+# Global bl command system (after make switch)
+bl setup-dev <project>      # Initialize Nix dev environment
+bl list                     # Show available commands
+bl --help                   # Usage information
+```
+
+**Quick Build & Deploy**:
+```bash
+nix run --impure .#build-switch  # Build and apply in one command
+make deploy                      # Cross-platform build+switch
 ```
 </development-commands>

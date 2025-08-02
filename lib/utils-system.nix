@@ -198,17 +198,6 @@ let
       in
       builtins.foldl' addToGroup {} list;
 
-    # Take first n elements from list
-    take = n: list:
-      if n <= 0 then []
-      else if n >= builtins.length list then list
-      else builtins.genList (i: builtins.elemAt list i) n;
-
-    # Drop first n elements from list
-    drop = n: list:
-      if n <= 0 then list
-      else if n >= builtins.length list then []
-      else listUtils.take (builtins.length list - n) (builtins.genList (i: builtins.elemAt list (i + n)) (builtins.length list - n));
   };
 
   # String utilities
@@ -253,22 +242,6 @@ let
     splitString = delimiter: string:
       actualLib.splitString delimiter string;
 
-    # Trim whitespace from string
-    trim = string:
-      let
-        # Simple trim implementation - remove leading/trailing spaces
-        removeLeading = str:
-          if str == "" then str
-          else if builtins.substring 0 1 str == " "
-          then removeLeading (builtins.substring 1 (builtins.stringLength str) str)
-          else str;
-        removeTrailing = str:
-          if str == "" then str
-          else if builtins.substring (builtins.stringLength str - 1) 1 str == " "
-          then removeTrailing (builtins.substring 0 (builtins.stringLength str - 1) str)
-          else str;
-      in
-      removeTrailing (removeLeading string);
   };
 
   # Path utilities
@@ -281,7 +254,7 @@ let
     dirname = path:
       let
         parts = stringUtils.splitString "/" path;
-        dirParts = listUtils.take (builtins.length parts - 1) parts;
+        dirParts = builtins.genList (i: builtins.elemAt parts i) (builtins.length parts - 1);
       in
       if builtins.length dirParts == 0 then "."
       else stringUtils.joinStrings "/" dirParts;
@@ -297,16 +270,10 @@ let
     # Check if path is absolute
     isAbsolute = path: stringUtils.hasPrefix "/" path;
 
-    # Normalize path (remove redundant separators, etc.)
-    normalize = path:
-      stringUtils.joinStrings "/" (builtins.filter (x: x != "") (stringUtils.splitString "/" path));
   };
 
   # Attribute set utilities
   attrUtils = {
-    # Deep merge multiple attribute sets
-    deepMerge = attrs:
-      builtins.foldl' configUtils.mergeConfigs {} attrs;
 
     # Check if attribute path exists
     hasAttrPath = path: attrs:
@@ -316,7 +283,7 @@ let
           if builtins.length pathParts == 0 then true
           else if !builtins.isAttrs currentAttrs then false
           else if !builtins.hasAttr (builtins.head pathParts) currentAttrs then false
-          else checkPath (listUtils.drop 1 pathParts) currentAttrs.${builtins.head pathParts};
+          else checkPath (builtins.tail pathParts) currentAttrs.${builtins.head pathParts};
       in
       checkPath parts attrs;
 
@@ -328,7 +295,7 @@ let
           if builtins.length pathParts == 0 then currentAttrs
           else if !builtins.isAttrs currentAttrs then default
           else if !builtins.hasAttr (builtins.head pathParts) currentAttrs then default
-          else getValue (listUtils.drop 1 pathParts) currentAttrs.${builtins.head pathParts};
+          else getValue (builtins.tail pathParts) currentAttrs.${builtins.head pathParts};
       in
       getValue parts attrs;
 
@@ -342,7 +309,7 @@ let
           else
             let
               key = builtins.head pathParts;
-              rest = listUtils.drop 1 pathParts;
+              rest = builtins.tail pathParts;
               existing = if builtins.hasAttr key currentAttrs then currentAttrs.${key} else {};
             in
             currentAttrs // { ${key} = setValue rest existing; };

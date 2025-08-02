@@ -1,233 +1,114 @@
-# /update-claude - Claude Code 설정 업데이트
+# /update-claude - Claude Code Configuration Update
 
-Claude Code 설정을 jito의 실용주의 철학에 맞게 자동으로 업데이트하고 최적화.
+Update Claude Code configuration simply and safely according to jito's pragmatic philosophy.
 
 ## Purpose
-- **Zero-Config**: 설정 없이 자동으로 최신 베스트 프랙티스 적용
-- **지능형 감지**: 변경된 부분만 스마트하게 업데이트  
-- **안전 우선**: Rule #1 준수하면서 점진적 개선
-- **jito 철학**: YAGNI, 단순함, 실용주의 완벽 유지
+- **Simplicity First**: Only essential updates without complex options
+- **Safety Guarantee**: Gradual improvements while adhering to Rule #1
+- **Pragmatic Approach**: Eliminate unnecessary features following YAGNI
 
 ## Usage
 ```bash
-/update-claude                        # 지능형 자동 업데이트 (4단계 검증 포함)
-/update-claude --check                # 업데이트 필요 사항 확인만
-/update-claude --safe                 # 안전 모드 (단계별 승인)
-/update-claude --verify-only          # 검증만 수행 (변경 없음)
-/update-claude --repair-links         # @참조 링크 자동 복구
+/update-claude                   # Basic update (safe improvements only)
+/update-claude --check           # Check what needs updating
+/update-claude --safe            # Step-by-step approval mode
+/update-claude --links           # Repair @reference links
 ```
 
-## 자동 감지 범위
+## Automatic Check Scope
 
-### 지능형 자동 감지 시스템
-**SuperClaude 방식 도입**:
-- **복잡도 자동 스코어링**: 설정 변경 범위에 따라 0.0-1.0 점수 자동 계산
-- **리소스 임계값 모니터링**: Green→Yellow→Red 단계별 최적화 모드 적용  
-- **상황별 자동 추천**: 성능 이슈 감지시 --optimize, 안전성 우려시 --safe 자동 제안
+### Configuration File Validation
+- **CLAUDE.md**: @reference integrity, Rule #1 compliance
+- **MCP.md**: Server auto-execution logic verification  
+- **SUBAGENT.md**: Task tool collaboration patterns
+- **agents/*.md**: Required fields and structure verification
+- **commands/*.md**: Usage consistency review
 
-### 설정 파일 스마트 분석
-**자동 점검 항목**:
-- **CLAUDE.md**: @참조 무결성, Rule #1 준수, 철학 일관성
-- **MCP.md**: 서버 자동 실행 로직, 키워드 매칭 최적화  
-- **SUBAGENT.md**: Task 도구 협업 패턴, 복잡도 감지
-- **FLAG.md**: 사고 모드 플래그 활용법
-- **ORCHESTRATION.md**: 지능형 자동화 시스템
-- **agents/*.md**: Subagent 전문성, 도구, 워크플로우
-- **commands/*.md**: 명령어 일관성, 사용법, 철학 적합성
+### Basic Validation Steps
+1. **Structure Validation**: YAML headers, required sections check
+2. **Reference Validation**: @link validity, circular reference prevention  
+3. **Consistency Validation**: jito philosophy and convention compliance
 
-### 필수 검증 단계
+## Automation Levels
 
-#### 1단계: 템플릿 호환성 검증 📋
-**YAML Front Matter 일관성**:
-- [ ] `name`, `description`, `allowed-tools` 필수 필드 존재
-- [ ] agents/*.md 템플릿 구조 통일성 (Purpose → Usage → Arguments → Execution)
-- [ ] commands/*.md 템플릿 구조 통일성 (Purpose → Usage → Arguments → Implementation)
-- [ ] 마크다운 헤더 계층 구조 일관성
+### 🤖 Auto Execute (No approval needed)
+- Typos and grammar fixes
+- Broken @reference link repairs
+- Duplicate content cleanup
 
-**템플릿 표준 준수**:
-- [ ] 2025 Agent Engineering 표준 YAML 구조 준수
-- [ ] jito 컨벤션 템플릿 (한국어 우선, 실용적 영어 혼용) 일관성
-- [ ] 코드 블록, 사용 예시 포맷 통일성
-- [ ] 문서 구성 요소 배치 표준 준수
+### 🤝 Execute After Approval (jito confirmation required)  
+- Configuration structure changes
+- Workflow improvements
+- New convention applications
 
-#### 2단계: 참조 호환성 검증 🔗
-**@참조 시스템 호환성**:
-- [ ] 모든 @참조 링크 유효성 동적 확인
-- [ ] 순환 참조 감지 및 방지
-- [ ] 참조 체인 깊이 제한 준수
-- [ ] 끊어진 참조 자동 감지
+### 🛑 Never Automate
+- Rule #1 related changes
+- Core philosophy modifications
+- Security-related settings
 
-**상호 참조 일관성**:
-- [ ] Rule #1, jito 철학 등 공통 개념 참조 일관성
-- [ ] MCP↔SUBAGENT, FLAG↔ORCHESTRATION 상호참조 유효성
-- [ ] agents 전문성 ↔ commands 활용법 참조 정확성
-- [ ] 설정 파일 간 교차 참조 무결성
+## Complexity-Based Processing
 
-#### 3단계: 기능성 호환성 검증 ⚙️
-**자동화 체인 호환성**:
-- [ ] MCP 서버 자동 실행 로직 검증
-- [ ] Task 도구 협업 패턴 동작 확인
-- [ ] 복잡도 자동 감지 임계값 일관성
-- [ ] 사고 모드 플래그 연동 검증
-
-**성능 호환성**:
-- [ ] 토큰 사용량 최적화 수준 측정
-- [ ] 동적 참조 로딩 성능 영향 평가
-- [ ] 자동화 체인 응답 시간 검증
-- [ ] 전체 시스템 통합 성능 확인
-
-#### 4단계: 품질 보증 검증 ✅
-**Rule #1 준수 확인**:
-- [ ] 모든 변경사항 명시적 승인 체계 구현
-- [ ] 안전 장치와 롤백 메커니즘 작동 확인
-- [ ] 점진적 변경 원칙 적용 검증
-
-**jito 철학 구현도**:
-- [ ] "단순함 > 복잡성" 실제 구현 수준 평가
-- [ ] YAGNI 원칙 실제 적용도 측정
-- [ ] 한국어 우선, 실용적 영어 혼용 일관성
-
-**기술적 완성도**:  
-- [ ] 마크다운 문법 및 구조 표준 준수
-- [ ] YAML Front Matter 일관성 확인
-- [ ] 경량화 및 토큰 효율성 최적화 수준
-
-## Task 복잡도에 따른 전략
-
-### 단순 업데이트 (기본 모드)
+### Simple (Direct handling)
 ```bash
 /update-claude
 ```
-- 오타 수정, 링크 복구
-- 성능 최적화 (안전한 수준)
-- 직접 처리로 빠른 결과
+Typos, link repairs - 1-2 step tasks
 
-### 중간 복잡도 (--think)
+### Medium (TodoWrite utilization)  
+```bash
+/update-claude --safe
+```
+Structure changes, consistency reviews - 3-4 step tasks
+
+### Complex (Task tool utilization)
 ```bash  
 /update-claude --think
 ```
-- 설정 구조 분석
-- 철학 일관성 검토
-- TodoWrite로 체계적 관리
+Full configuration ecosystem review, architecture improvements
 
-### 복잡한 업데이트 (--ultrathink)
+## Practical Usage
+
+### Daily Maintenance
 ```bash
-/update-claude --ultrathink
-```
-- 전체 시스템 아키텍처 검토
-- 심층 분석으로 종합적 개선
-- 품질과 철학 일관성 보장
-
-## 실전 사용법
-
-### 일상적 유지보수
-```bash
-/update-claude --check              # 상태 점검
-/update-claude --verify-only        # 검증만 수행 (링크, 일관성 체크)
-/update-claude --safe               # 안전 모드 업데이트
+/update-claude --check        # Quick status check
+/update-claude               # Execute basic updates
 ```
 
-### 정기적 최적화  
+### Regular Review
 ```bash
-/update-claude --think              # 심층 분석 (4단계 검증 포함)
-/update-claude --ultrathink --safe  # 종합 검토 (전체 생태계 검증)
+/update-claude --safe        # Comprehensive review in safe mode
+/update-claude --links       # @reference system maintenance
 ```
 
-### 문제 해결
+### Problem Solving
 ```bash
-/update-claude --repair-links       # @참조 링크 복구
-/update-claude --safe               # 문제 발견시 안전 수정
+/update-claude --check       # Diagnose issues
+/update-claude --safe        # Fix safely
 ```
 
-### 검증 중심 워크플로우
+## Implementation
+
+### Basic Validation Script
 ```bash
-/update-claude --verify-only --think    # 상세 검증 리포트
-/update-claude --check && /update-claude --safe  # 검증 후 안전 업데이트
+# Structure validation
+grep -r "^---" .claude/ && echo "✅ YAML header check"
+grep -r "## Purpose" .claude/commands/ && echo "✅ Purpose section check"
+
+# @reference validation  
+grep -r "@.*\.md" .claude/ | while read line; do
+  # Link validity check and repair
+done
+
+# jito philosophy compliance check
+grep -r "Rule #1\|YAGNI\|simplicity" .claude/ && echo "✅ Philosophy consistency check"
 ```
 
-## 자동화 수준
-
-### 🤖 완전 자동 (승인 불필요)
-- 오타 수정과 문법 교정
-- 링크 유효성 복구  
-- 성능 최적화 (안전한 수준)
-- 중복 제거 및 정리
-
-### 🤝 승인 후 자동 (jito 확인 필요)
-- 설정 구조 변경
-- 새로운 기능 추가
-- 워크플로우 개선
-- 철학이나 컨벤션 업데이트
-
-### 🛑 수동 전용 (절대 자동화 금지)  
-- Rule #1 관련 변경
-- 핵심 철학 수정
-- 보안 관련 설정
-- 실험적 기능 도입
-
-## 구현
-
-### 4단계 검증 워크플로우
-
-#### 📋 1단계: 템플릿 호환성 검증 실행
-```bash
-# YAML Front Matter 검증
-Grep "^---" --recursive → YAML 블록 존재 확인
-Grep "name:" --recursive → 필수 name 필드 존재 확인
-Grep "description:" --recursive → 필수 description 필드 존재 확인
-Grep "allowed-tools:" --recursive → 필수 allowed-tools 필드 존재 확인
-# 템플릿 구조 검증
-Grep "## Purpose" agents/*.md → agents 템플릿 구조 일관성 확인
-Grep "## Usage" commands/*.md → commands 템플릿 구조 일관성 확인
-```
-
-#### 🔗 2단계: 참조 호환성 검증 실행
-```bash
-# @참조 링크 동적 검증
-Grep "@.*\.md" --recursive → 모든 @참조 추출
-각 @참조 파일 존재 확인 → 끊어진 링크 감지
-참조 체인 분석 → 순환 참조 방지 확인
-# 상호 참조 일관성 검증
-Rule #1, jito 철학 등 공통 개념 → 모든 파일에서 동일 정의 확인
-교차 참조 무결성 → 파일 간 참조 정확성 검증
-```
-
-#### ⚙️ 3단계: 기능성 호환성 검증 실행
-```bash
-# 자동화 체인 동적 검증
-MCP 서버 실행 트리거 → Task 도구 협업 → 예상 결과 매칭
-사고 모드 플래그 → 자동화 시스템 연동 테스트
-# 성능 호환성 측정
-현재 토큰 사용량 측정 → 최적화 후 사용량 비교
-동적 참조 로딩 시간 측정 → 성능 임계값 준수 확인
-전체 시스템 통합 성능 → 사용자 경험 영향 평가
-```
-
-#### ✅ 4단계: 품질 보증 검증 실행
-```bash
-# Rule #1 구현 검증
-모든 변경사항 → 명시적 승인 체계 존재 확인
-안전 장치 → 롤백 메커니즘 작동 테스트
-# jito 철학 구현도 측정
-복잡성 vs 단순성 비율 측정 → 단순함 우선 확인
-YAGNI 원칙 적용도 → 불필요한 기능 제거 확인
-토큰 효율성 → 경량화 및 최적화 수준 평가
-```
-
-### 직접 분석 및 업데이트 (검증 통과 후)
-4단계 검증을 모두 통과한 후에만 업데이트 실행:
-
-- **1-2단계 통과**: 템플릿·참조 호환성 보장 하에 구조적 개선 허용
-- **3단계 통과**: 기능성 호환성 보장 하에 시스템 최적화 허용  
-- **4단계 통과**: 품질 보증 하에 종합적 업데이트 허용
-
-### 강화된 안전 장치
-- **동적 검증 우선**: 고정된 구조 대신 동적 패턴 분석
-- **사전 검증 필수**: 4단계 검증 완료 전까지 변경 금지
-- **단계별 백업**: 각 검증 단계마다 상태 스냅샷 생성
-- **자동 롤백**: 검증 실패시 이전 안전 상태로 즉시 복원
-- **검증 리포트**: 각 단계별 상세 검증 결과 제공
+### Safe Update Process
+1. Backup current state
+2. Execute validation steps sequentially  
+3. Stop immediately if issues found
+4. Apply changes after jito approval
 
 ---
 
-*jito의 실용주의 철학에 맞는 안전하고 효율적인 Claude Code 설정 관리*
+*Simple and safe Claude Code configuration management • Rule #1 absolute guarantee • YAGNI principle compliance*
