@@ -47,7 +47,6 @@
     forAllSystems = f: nixpkgs.lib.genAttrs
       ([ "x86_64-linux" "aarch64-linux" "aarch64-darwin" "x86_64-darwin" ]) f;
 
-
     # Get user from environment with proper fallback
     getUserFn = import ./user-resolution.nix;
     getUser = (import ./user-resolution.nix) { returnFormat = "string"; };

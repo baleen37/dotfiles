@@ -73,7 +73,6 @@ in
         done
       fi
 
-
       # nix shortcuts
       shell() {
           nix-shell '<nixpkgs>' -A "$1"

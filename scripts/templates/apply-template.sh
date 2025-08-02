@@ -29,9 +29,6 @@ main() {
     ask_for_star
   fi
 
-  # TODO: Add remaining apply logic here
-  # This will be expanded based on the original apply script functionality
-
   _print "${GREEN}Apply completed successfully${NC}"
 }
 
