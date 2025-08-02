@@ -1,3 +1,7 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 # jito's Dotfiles Development Assistant
 
 @.claude/commands/* @.claude/agents/*
@@ -73,3 +77,47 @@ YAGNI above all. Simplicity over sophistication. When in doubt, ask jito.
 4. **Incremental Fix**: Smallest possible change
 5. **Validate**: Full test suite before marking complete
 </debugging-workflow>
+
+<architecture-overview>
+**Flake Structure**: Modular outputs with lib/ containing shared functions
+**Build System**: Makefile with platform detection via lib/platform-system.nix
+**Module Organization**:
+- `modules/shared/` - Cross-platform packages and configs
+- `modules/darwin/` - macOS-specific (Homebrew, GUI apps)
+- `modules/nixos/` - NixOS-specific (system services, desktop)
+- `lib/` - Utility functions for platform detection and build optimization
+- `scripts/` - Shell scripts for automation and testing
+
+**Key Files**:
+- `flake.nix` - Main flake configuration with modular imports
+- `Makefile` - Build orchestration with USER variable requirement
+- `lib/platform-system.nix` - Platform detection and optimization
+- `modules/shared/packages.nix` - Core development tools
+</architecture-overview>
+
+<critical-requirements>
+**USER Variable**: Always set `export USER=$(whoami)` before any operations
+**Platform Detection**: System uses lib/platform-system.nix for architecture detection
+**Build Dependencies**: Requires Nix with flakes enabled
+**Performance**: Uses parallel builds and caching optimizations
+</critical-requirements>
+
+<development-commands>
+**Essential Commands**:
+```bash
+export USER=$(whoami)        # Required for all operations
+make help                    # Show all available targets
+make build-current          # Build current platform only (faster)
+make build-fast             # Build with optimizations
+make switch                 # Build and apply (requires sudo)
+make test                   # Run all tests
+make smoke                  # Quick validation
+```
+
+**Development Scripts**:
+```bash
+./scripts/test-all-local    # Complete CI simulation
+./scripts/auto-update-dotfiles  # Automatic updates
+bl setup-dev <project>      # Initialize dev environment
+```
+</development-commands>

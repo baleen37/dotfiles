@@ -43,6 +43,23 @@ let
 
 in
 {
+  imports = [
+    ../shared/mcp/default.nix
+    ../shared/mcp/claude-desktop.nix
+    ../shared/mcp/project-config.nix
+    ../shared/mcp/claude-code.nix
+    ../shared/mcp/servers/default.nix
+    ../shared/mcp/management.nix
+  ];
+
+  # MCP 설정 기본 활성화
+  mcp = {
+    enable = true;
+    claudeDesktop.enable = true;
+    projectConfig.enable = true;
+    management.enable = true;
+  };
+
   home = {
     enableNixpkgsReleaseCheck = false;
     username = "${user}";
