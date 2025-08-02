@@ -46,3 +46,5 @@ CLAUDE.local.md
 
 # Issues (local project management)
 issues/
+*.venv/
+.venv/
