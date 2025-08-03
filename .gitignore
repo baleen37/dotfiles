@@ -48,3 +48,4 @@ CLAUDE.local.md
 issues/
 *.venv/
 .venv/
+scripts/__pycache__/

@@ -37,6 +37,9 @@ help:
 	@echo "  test-perf   - Run performance tests"
 	@echo "  test-list   - List available test categories"
 	@echo ""
+	@echo "🤖 Claude Code MCP:"
+	@echo "  setup-mcp   - Install MCP servers for Claude Code"
+	@echo ""
 	@echo "🔨 Building & Deployment:"
 	@echo "  build       - Build all Darwin and NixOS configurations"
 	@echo "  build-current - Build only current platform (faster)"
@@ -163,4 +166,9 @@ deploy:
 	@echo "🚀 Deploying configuration..."
 	@./deploy.sh
 
-.PHONY: help check-user lint smoke test test-quick test-core test-workflow test-perf test-list build build-linux build-darwin build-current build-fast switch apply deploy platform-info
+# Claude Code MCP setup
+setup-mcp: check-user
+	@echo "🤖 Setting up Claude Code MCP servers..."
+	@./scripts/setup-claude-mcp --main
+
+.PHONY: help check-user lint smoke test test-quick test-core test-workflow test-perf test-list build build-linux build-darwin build-current build-fast switch apply deploy platform-info setup-mcp
