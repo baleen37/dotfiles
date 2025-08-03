@@ -10,7 +10,6 @@ import shutil
 import sys
 from datetime import datetime
 
-
 def create_backup(plist_path):
     """plist 파일의 백업을 생성합니다."""
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")

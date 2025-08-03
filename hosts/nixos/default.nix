@@ -11,8 +11,10 @@ in
 {
   imports = [
     ../../modules/nixos/disk-config.nix
-    ../../modules/shared
+    ../../modules/shared/files.nix
+    ../../modules/shared/home-manager.nix
   ];
+
 
   # Use the systemd-boot EFI boot loader.
   boot = {
@@ -285,7 +287,7 @@ in
   environment.systemPackages = with pkgs; [
     git
     inetutils
-  ];
+  ] ++ (import ../../modules/shared/packages.nix { inherit pkgs; });
 
   system.stateVersion = "21.05"; # Don't change this
 
