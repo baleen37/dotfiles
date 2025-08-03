@@ -123,11 +123,10 @@ build-current: check-user
 
 build-fast: check-user
 	@echo "⚡⚡ Fast build with optimizations for $(CURRENT_SYSTEM)..."
-	@start_time=$$(date +%s); \
-	OPTS=$$($(NIX) eval --impure --expr '(import ./lib/platform-system.nix { system = builtins.currentSystem; }).utils.getOptimizedBuildConfig (import ./lib/platform-system.nix { system = builtins.currentSystem; }).platform).nixBuildOptions' | tr -d '[]"' | tr ',' ' '); \
-	$(call build-systems,optimized current platform,$(CURRENT_PLATFORM),$(CURRENT_SYSTEM),$$OPTS); \
-	end_time=$$(date +%s); \
-	duration=$$((end_time - start_time)); \
+	@start_time=$$(date +%s)
+	$(call build-systems,optimized current platform,$(CURRENT_PLATFORM),$(CURRENT_SYSTEM),--max-jobs auto)
+	@end_time=$$(date +%s)
+	@duration=$$((end_time - start_time))
 	@echo "✅ Fast build completed in $${duration}s with optimizations"
 
 switch: check-user
