@@ -31,6 +31,7 @@ help:
 	@echo ""
 	@echo "🧪 Testing (Simplified):"
 	@echo "  test        - Run all tests"
+	@echo "  test-quick  - ⚡ Parallel quick tests (2-3 sec, recommended)"
 	@echo "  test-core   - Run core tests (fast, essential)"
 	@echo "  test-workflow - Run workflow tests (end-to-end)"
 	@echo "  test-perf   - Run performance tests"
@@ -75,6 +76,11 @@ test-perf:
 
 test-list:
 	@$(NIX) run --impure .#test-list $(ARGS)
+
+# Fast parallel testing (2-3 seconds total)
+test-quick:
+	@echo "🚀 Running parallel quick tests..."
+	@./scripts/quick-test.sh
 
 # Build function
 define build-systems
@@ -158,4 +164,4 @@ deploy:
 	@echo "🚀 Deploying configuration..."
 	@./deploy.sh
 
-.PHONY: help check-user lint smoke test test-core test-workflow test-perf test-list build build-linux build-darwin build-current build-fast switch apply deploy platform-info
+.PHONY: help check-user lint smoke test test-quick test-core test-workflow test-perf test-list build build-linux build-darwin build-current build-fast switch apply deploy platform-info
