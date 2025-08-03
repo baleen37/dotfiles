@@ -32,6 +32,10 @@ help:
 	@echo "🧪 Testing (Simplified):"
 	@echo "  test        - Run all tests"
 	@echo "  test-quick  - ⚡ Parallel quick tests (2-3 sec, recommended)"
+	@echo "  test-enhanced - 🎯 Enhanced tests with detailed reporting"
+	@echo "  test-enhanced-verbose - 📊 Enhanced tests with verbose output"
+	@echo "  test-monitor - 📈 Performance monitoring (quick)"
+	@echo "  test-monitor-full - 📈 Full performance monitoring"
 	@echo "  test-core   - Run core tests (fast, essential)"
 	@echo "  test-workflow - Run workflow tests (end-to-end)"
 	@echo "  test-perf   - Run performance tests"
@@ -84,6 +88,24 @@ test-list:
 test-quick:
 	@echo "🚀 Running parallel quick tests..."
 	@./scripts/quick-test.sh
+
+# Enhanced testing with detailed reporting
+test-enhanced:
+	@echo "🚀 Running enhanced tests with detailed reporting..."
+	@./scripts/enhanced-test.sh --quiet --parallel
+
+test-enhanced-verbose:
+	@echo "🚀 Running enhanced tests with verbose output..."
+	@./scripts/enhanced-test.sh --verbose
+
+# Performance monitoring and regression detection
+test-monitor:
+	@echo "📊 Running performance monitoring..."
+	@./tests/performance/test-performance-monitor.sh
+
+test-monitor-full:
+	@echo "📊 Running full performance monitoring (including heavy tests)..."
+	@./tests/performance/test-performance-monitor.sh --full
 
 # Build function
 define build-systems

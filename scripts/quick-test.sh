@@ -32,10 +32,10 @@ trap cleanup EXIT
 
 echo -e "${YELLOW}⚡ 병렬 테스트 실행 중...${NC}"
 
-# Smoke 테스트 (백그라운드)
+# Smoke 테스트 (백그라운드) - 경고 메시지 필터링
 {
     echo -e "  ${BLUE}▶${NC} Smoke 테스트 실행 중..."
-    if nix run --impure "$PROJECT_ROOT"#test-smoke >/dev/null 2>&1; then
+    if nix run --impure "$PROJECT_ROOT"#test-smoke 2>&1 | grep -v "warning:" >/dev/null; then
         echo "PASS" > "$smoke_result"
     else
         echo "FAIL" > "$smoke_result"
@@ -43,10 +43,10 @@ echo -e "${YELLOW}⚡ 병렬 테스트 실행 중...${NC}"
 } &
 smoke_pid=$!
 
-# Core 테스트 (백그라운드)
+# Core 테스트 (백그라운드) - 경고 메시지 필터링
 {
     echo -e "  ${BLUE}▶${NC} Core 테스트 실행 중..."
-    if nix run --impure "$PROJECT_ROOT"#test-core >/dev/null 2>&1; then
+    if nix run --impure "$PROJECT_ROOT"#test-core 2>&1 | grep -v "warning:" >/dev/null; then
         echo "PASS" > "$core_result"
     else
         echo "FAIL" > "$core_result"
