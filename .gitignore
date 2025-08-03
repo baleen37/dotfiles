@@ -9,6 +9,9 @@ result-*
 shell.nix.drv
 .nix-build
 
+# Test performance logs
+.test-performance/
+
 # Worktree directories
 tree/
 .local/tree/
