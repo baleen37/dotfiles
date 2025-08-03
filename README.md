@@ -45,6 +45,9 @@ make build             # Build everything
 make switch            # Apply changes
 make test              # Run tests
 
+# Claude Code setup
+make setup-mcp         # Install MCP servers for AI assistance
+
 # Quick operations  
 make smoke             # Fast validation
 nix run .#build-switch # Build and apply together
@@ -101,15 +104,35 @@ bl --help                 # Usage information
 
 ## 🤖 Claude Code Integration
 
-Built-in AI development assistance with 20+ specialized commands.
+Built-in AI development assistance with 20+ specialized commands and MCP server integration.
 
 ### Setup
 
 ```bash
-make switch  # Apply configuration
+make switch     # Apply configuration
+make setup-mcp  # Install MCP servers for Claude Code
 # Restart Claude Code
 # Try: /help
 ```
+
+### MCP Servers
+
+Install Model Context Protocol servers for enhanced Claude Code functionality:
+
+```bash
+# Install essential MCP servers (recommended)
+make setup-mcp
+
+# Or use the script directly
+./scripts/setup-claude-mcp --main
+
+# List installed servers
+./scripts/setup-claude-mcp --list
+```
+
+**Available MCP Servers:**
+- **Filesystem** - File system access and manipulation (default)
+- Additional servers can be installed manually as needed
 
 ### Key Commands
 
@@ -122,8 +145,9 @@ make switch  # Apply configuration
 
 - **Smart config management** with automatic backups
 - **Context-aware assistance** for Nix and Git
-- **MCP server integration** for enhanced capabilities
+- **MCP server integration** for enhanced file system access
 - **Dotfiles-specific guidance** and best practices
+- **File references** using `@filesystem:path://filename`
 
 ## Documentation
 
