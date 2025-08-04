@@ -146,3 +146,7 @@ nix run --impure .#build-switch  # Build and apply in one command
 make deploy                      # Cross-platform build+switch
 ```
 </development-commands>
+
+<machine-setup-policies>
+- 개인 컴퓨터에 까는 건 nix으로 code로 관리되어야 한다. 별도로 임시 생성은 허용하지 안흔다.
+</machine-setup-policies>
