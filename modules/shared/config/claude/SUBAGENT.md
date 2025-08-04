@@ -156,6 +156,75 @@ interface JitoPreferences {
 - **Efficiency Tracking**: Measure and optimize expert selection accuracy
 - **User Satisfaction Monitoring**: Adjust strategies based on jito's feedback
 
+## 정확한 Task 위임 기준
+
+### 즉시 Task 도구 사용 (토큰 최적화)
+
+#### 필수 Task 위임 조건
+- **전문 영역 작업**: Nix, 보안, 성능, 디버깅 관련
+- **3+ 파일 수정**: 다중 파일 동시 변경 필요
+- **복잡한 분석**: 코드베이스 전체 또는 아키텍처 분석
+- **품질 검증 체인**: 리뷰 → 테스트 → 보안 검토 필요
+- **시간 예상 20분+**: 중간 복잡도 이상 작업
+
+#### 구체적 Task 위임 예시
+```
+즉시 Task 위임:
+"nix flake 업데이트하고 테스트해줘" → nix-system-expert
+"이 보안 취약점들 수정해줘" → security-auditor  
+"성능 최적화하고 벤치마크 해줘" → performance-engineer
+"전체 코드베이스 분석해줘" → general-purpose
+"API 구현하고 테스트 작성해줘" → backend-architect + test-automator
+```
+
+### Main에서 직접 처리 (효율성 우선)
+
+#### 직접 처리 조건
+- **단순 질문**: 1-2문장 답변 가능
+- **단일 파일 수정**: 한 파일 내 간단한 변경
+- **개념 설명**: 사용법이나 개념 설명
+- **빠른 확인**: 파일 읽기, 상태 확인
+- **시간 예상 5분 이하**: 간단한 작업
+
+#### 직접 처리 예시  
+```
+Main에서 직접:
+"이 함수 뭐 하는거야?" → 즉시 설명
+"여기에 주석 추가해줘" → 바로 수정
+"현재 git 상태 확인해줘" → 즉시 확인
+"이 설정의 의미는?" → 바로 설명
+```
+
+### 하이브리드 접근 (최적 효율성)
+
+#### 분석 → 위임 패턴
+1. **Main에서 빠른 분석**: 복잡도와 전문성 판단 (30초)
+2. **적절한 Agent 위임**: 구체적 작업 실행 (효율적)
+3. **결과 통합**: Main에서 품질 검증과 정리
+
+#### 복합 작업 분할 예시
+```
+"사용자 인증 시스템 개선":
+1. Main: 요구사항 분석 + 복잡도 판단
+2. security-auditor: 현재 보안 검토
+3. backend-architect: 개선 방안 설계  
+4. code-reviewer: 최종 품질 검증
+```
+
+### 토큰 효율성 가이드라인
+
+#### 토큰 절약 우선순위
+1. **전문 Agent 활용**: 전문 컨텍스트로 더 정확한 결과
+2. **병렬 처리**: 여러 Agent 동시 작업 가능
+3. **컨텍스트 최적화**: Main은 조율, Agent는 실행
+4. **재사용성**: Agent 결과를 다른 작업에 활용
+
+#### 성능 지표 목표
+- **토큰 사용량**: 평균 40% 절약
+- **작업 품질**: 전문 Agent로 더 높은 품질
+- **완료 시간**: 병렬 처리로 더 빠른 완료
+- **정확도**: 전문성 기반 더 정확한 결과
+
 ## Practical Application Workflows
 
 ### New Feature Development (Auto-Orchestrated)
