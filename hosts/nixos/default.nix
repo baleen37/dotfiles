@@ -41,12 +41,6 @@ in
     hostName = "nixos"; # Define your hostname.
     useDHCP = false;
     interfaces."eth0".useDHCP = true;
-
-    # Tailscale VPN configuration
-    firewall = {
-      trustedInterfaces = [ "tailscale0" ];
-      allowedUDPPorts = [ config.services.tailscale.port ];
-    };
   };
 
   # Turn on flag for proprietary software
@@ -77,9 +71,6 @@ in
   };
 
   services = {
-    # Tailscale VPN service
-    tailscale.enable = true;
-
     displayManager.defaultSession = "none+bspwm";
     xserver = {
       enable = true;

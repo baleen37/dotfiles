@@ -67,7 +67,6 @@ with pkgs; let
   securityTools = [
     yubikey-agent # YubiKey support for SSH and other applications
     keepassxc     # Cross-platform password manager
-    tailscale     # VPN mesh network client
   ];
 
   # Database tools

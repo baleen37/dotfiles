@@ -63,11 +63,6 @@ in
   environment.shells = [ pkgs.zsh ];
   programs.zsh.enable = true;
 
-  # Tailscale VPN service
-  services.tailscale = {
-    enable = true;
-    overrideLocalDns = true;  # MagicDNS support for macOS
-  };
 
   # Nix 앱들을 /Applications에 자동으로 심볼릭 링크 생성
   system.nixAppLinks = {
