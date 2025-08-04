@@ -63,6 +63,13 @@ YAGNI above all. Simplicity over sophistication. When in doubt, ask jito.
 **Performance**: Minimize evaluation time, efficient builds, smart caching
 **Reproducibility**: Lock versions, avoid impure dependencies
 **Modularity**: Separate concerns, reusable components, clear interfaces
+
+**Home Manager Architecture**:
+- `modules/shared/home-manager.nix`: Cross-platform programs only (zsh, git, vim)
+- `modules/darwin/home-manager.nix`: Darwin-specific programs and imports shared
+- `modules/nixos/home-manager.nix`: NixOS-specific programs and imports shared
+- **NEVER** import `modules/shared/home-manager.nix` directly at system level
+- Platform-specific configurations use `lib.optionalString isDarwin/isLinux`
 </nix-best-practices>
 
 <common-tasks>

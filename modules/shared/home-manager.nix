@@ -1,4 +1,21 @@
+# Shared Home Manager Programs Configuration
+#
+# IMPORTANT: This file contains ONLY truly cross-platform configurations.
+# Platform-specific settings should be added in:
+# - modules/darwin/home-manager.nix (macOS-specific)
+# - modules/nixos/home-manager.nix (NixOS-specific)
+#
+# DO NOT import this file directly at system level - it should only be
+# imported within Home Manager context via platform-specific modules.
+#
+# GUARD: This file should only be imported within Home Manager context
+# If you see evaluation errors, check that this file is not being imported
+# directly in system configuration (hosts/*/default.nix)
+
 { config, pkgs, lib, ... }:
+
+# Runtime check to ensure we're in Home Manager context
+assert lib.hasAttr "programs" config || lib.hasAttr "home" config;  # Home Manager provides these
 
 let
   name = "Jiho Lee";
@@ -8,6 +25,10 @@ let
   };
   user = getUserInfo.user;
   email = "baleen37@gmail.com";
+
+  # Platform detection for conditional configurations
+  isDarwin = pkgs.stdenv.isDarwin;
+  isLinux = pkgs.stdenv.isLinux;
 in
 {
   # Shared shell configuration
@@ -49,16 +70,18 @@ in
       export EDITOR="vim"
       export VISUAL="vim"
 
-      # 1Password SSH agent (데스크톱 앱)
-      # Group Container 디렉토리를 동적으로 찾기
+      # 1Password SSH agent setup (platform-specific)
+      ${lib.optionalString isDarwin ''
+      # Darwin: Group Container 디렉토리를 동적으로 찾기
       for container_dir in ~/Library/Group\ Containers/*.com.1password/t/agent.sock; do
         if [[ -S "$container_dir" ]]; then
           export SSH_AUTH_SOCK="$container_dir"
           break
         fi
       done 2>/dev/null || true
+      ''}
 
-      # 기본 위치들도 확인
+      # 기본 위치들도 확인 (cross-platform)
       if [[ -z "$${SSH_AUTH_SOCK:-}" ]]; then
         _1password_sockets=(
           ~/.1password/agent.sock
@@ -100,7 +123,7 @@ in
         fi
       fi
 
-      # IntelliJ IDEA 백그라운드 실행 함수
+      # IntelliJ IDEA 백그라운드 실행 함수 (platform-aware)
       idea() {
         local idea_cmd=""
 
@@ -109,13 +132,17 @@ in
           idea_cmd="intellij-idea-ultimate"
         elif command -v intellij-idea-community >/dev/null 2>&1; then
           idea_cmd="intellij-idea-community"
-        # 2. Homebrew 경로 확인 (대체)
+        ${lib.optionalString isDarwin ''
+        # 2. Darwin Homebrew 경로 확인
         elif [[ -x "/opt/homebrew/bin/idea" ]]; then
           idea_cmd="/opt/homebrew/bin/idea"
-        # 3. Linux Homebrew 경로 확인
+        ''}
+        ${lib.optionalString isLinux ''
+        # 2. Linux Homebrew 경로 확인
         elif [[ -x "/home/linuxbrew/.linuxbrew/bin/idea" ]]; then
           idea_cmd="/home/linuxbrew/.linuxbrew/bin/idea"
-        # 4. 일반 PATH에서 확인 (최후 수단)
+        ''}
+        # 3. 일반 PATH에서 확인 (최후 수단)
         elif command -v idea >/dev/null 2>&1; then
           # 무한 재귀 방지: 현재 함수가 아닌 실제 바이너리인지 확인
           local idea_path=$(command -v idea)
@@ -128,7 +155,8 @@ in
         else
           echo "Error: IntelliJ IDEA not found. Please install via:"
           echo "  - Nix: nix-env -iA nixpkgs.jetbrains.idea-ultimate"
-          echo "  - Homebrew: brew install --cask intellij-idea"
+          ${lib.optionalString isDarwin ''echo "  - Homebrew (macOS): brew install --cask intellij-idea"''}
+          ${lib.optionalString isLinux ''echo "  - Homebrew (Linux): brew install --cask intellij-idea"''}
           return 1
         fi
 
@@ -431,8 +459,8 @@ in
       Host *
         IdentitiesOnly yes
         AddKeysToAgent yes
-    '' + lib.optionalString pkgs.stdenv.hostPlatform.isDarwin ''
-      UseKeychain yes
+    '' + lib.optionalString isDarwin ''
+        UseKeychain yes
     '';
   };
 

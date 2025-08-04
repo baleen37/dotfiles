@@ -12,7 +12,6 @@ in
   imports = [
     ../../modules/nixos/disk-config.nix
     ../../modules/shared/files.nix
-    ../../modules/shared/home-manager.nix
   ];
 
 
