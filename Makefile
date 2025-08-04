@@ -157,20 +157,14 @@ build-fast: check-user
 switch: check-user
 	@echo "🔄 Switching system configuration with USER=$(USER)..."
 	@OS=$$(uname -s); \
-	ARCH=$$(uname -m); \
-	if [ "$${OS}" = "Darwin" ]; then \
-	DEFAULT_SYSTEM="$${ARCH}-darwin"; \
-	else \
-	DEFAULT_SYSTEM="$${ARCH}-linux"; \
-	fi; \
-	TARGET=${HOST-$${DEFAULT_SYSTEM}}; \
+	TARGET=$${HOST:-$(CURRENT_SYSTEM)}; \
 	echo "🎯 Target system: $${TARGET}"; \
 	if [ "$${OS}" = "Darwin" ]; then \
-	export USER=$(USER); nix --extra-experimental-features 'nix-command flakes' build --impure .#darwinConfigurations.$${TARGET}.system $(ARGS); \
-	sudo -E USER=$(USER) ./result/sw/bin/darwin-rebuild switch --flake .#$${TARGET} $(ARGS); \
-	unlink ./result; \
+		export USER=$(USER); nix --extra-experimental-features 'nix-command flakes' build --impure .#darwinConfigurations.$${TARGET}.system $(ARGS); \
+		sudo -E USER=$(USER) ./result/sw/bin/darwin-rebuild switch --flake .#$${TARGET} $(ARGS); \
+		unlink ./result; \
 	else \
-	sudo -E USER=$(USER) SSH_AUTH_SOCK=$$SSH_AUTH_SOCK /run/current-system/sw/bin/nixos-rebuild switch --impure --flake .#$${TARGET} $(ARGS); \
+		sudo -E USER=$(USER) SSH_AUTH_SOCK=$$SSH_AUTH_SOCK /run/current-system/sw/bin/nixos-rebuild switch --impure --flake .#$${TARGET} $(ARGS); \
 	fi; \
 	echo "✅ System switch completed successfully!"
 
