@@ -146,3 +146,11 @@ nix run --impure .#build-switch  # Build and apply in one command
 make deploy                      # Cross-platform build+switch
 ```
 </development-commands>
+
+<machine-setup-policies>
+- 개인 컴퓨터에 까는 건 nix으로 code로 관리되어야 한다. 별도로 임시 생성은 허용하지 안흔다.
+</machine-setup-policies>
+
+<memory>
+- 만약 claude.md, command, agents를 바꿔야 한다면 컨벤션이나, 참조 등 흐트러지는 게 없는지 확인해야해
+</memory>

@@ -163,6 +163,125 @@ Auto-generated Workflow:
 6. Final quality verification
 ```
 
+## 자동 Agent 라우팅 시스템
+
+**Smart Agent Selection**: 작업 유형에 따른 최적 전문가 자동 선택
+**토큰 효율성**: Main context 최소화, 전문 Agent에 구체적 작업 위임
+**병렬 처리**: 여러 Agent 동시 활용으로 성능 극대화
+
+### 도메인별 Agent 라우팅 규칙
+
+#### Nix/Dotfiles 전문 영역
+```
+키워드: "nix", "flake", "home-manager", "darwin", "dotfiles"
+→ nix-system-expert (전문 Agent)
+
+예시:
+"nix flake 업데이트해줘" → nix-system-expert
+"home-manager 설정 수정" → nix-system-expert  
+"darwin 모듈 추가" → nix-system-expert
+```
+
+#### 코드 품질 및 리뷰
+```  
+키워드: "리뷰", "품질", "개선", "리팩토링", "클린업"
+→ code-reviewer (사후 자동 실행)
+
+예시:
+코드 작성 완료 → code-reviewer (자동 큐잉)
+"코드 리뷰해줘" → code-reviewer (즉시 실행)
+```
+
+#### 디버깅 및 문제 해결
+```
+키워드: "버그", "에러", "문제", "실패", "오류", "디버깅"
+→ debugger (우선 Agent)
+
+예시:
+"빌드가 실패해" → debugger
+"이 에러 원인을 찾아줘" → debugger
+"왜 동작하지 않을까?" → debugger
+```
+
+#### 보안 관련 작업
+```
+키워드: "보안", "취약점", "인증", "권한", "암호화", "공격"
+→ security-auditor (우선 Agent)
+
+예시:
+"보안 검토해줘" → security-auditor
+"취약점 있나 확인해줘" → security-auditor
+```
+
+#### 성능 최적화
+```
+키워드: "성능", "느림", "최적화", "병목", "속도", "메모리"
+→ performance-engineer (전문 Agent)
+
+예시:
+"성능 개선해줘" → performance-engineer
+"왜 이렇게 느리지?" → performance-engineer
+```
+
+#### 테스트 관련 작업
+```
+키워드: "테스트", "test", "검증", "확인"
+→ test-automator (전문 Agent)
+
+예시:
+"테스트 작성해줘" → test-automator
+"테스트 실행해서 확인해줘" → test-automator
+```
+
+#### 프롬프트 최적화
+```
+키워드: "프롬프트", "명령어", "claude", "최적화"
+→ claude-prompt-expert (전문 Agent)
+
+예시:
+"이 프롬프트 개선해줘" → claude-prompt-expert
+"새 명령어 만들어줘" → claude-prompt-expert
+```
+
+### Task 위임 자동 판단 기준
+
+#### 즉시 Task 위임 (토큰 절약)
+- **전문 영역 작업**: Nix, 보안, 성능, 디버깅 등
+- **다중 파일 수정**: 3개 이상 파일 관련
+- **복잡한 분석**: 코드베이스 전체 분석 필요
+- **품질 검증**: 리뷰, 테스트, 검증 작업
+
+#### Main에서 직접 처리
+- **단순 질문**: 1-2문 답변 가능
+- **단일 파일 수정**: 간단한 변경
+- **기본 설명**: 개념이나 사용법 설명
+
+### 자동 Agent 체인 실행
+
+#### 코드 구현 후 자동 체인
+```
+코드 작성 완료 시 자동 실행:
+1. code-reviewer → 품질 검토
+2. security-auditor → 보안 검토 (보안 관련 코드 시)
+3. test-automator → 테스트 실행/작성
+```
+
+#### 문제 해결 체인
+```
+에러/버그 발생 시:
+1. debugger → 근본 원인 분석
+2. 관련 전문 Agent → 해결책 구현
+3. test-automator → 회귀 테스트 추가
+```
+
+#### 시스템 변경 체인
+```
+아키텍처/시스템 변경 시:
+1. backend-architect → 설계 검토
+2. security-auditor → 보안 영향 분석
+3. performance-engineer → 성능 영향 평가
+```
+
 ## Learning-Based Automatic Suggestions
 
 ### superclaude Context Intelligence
