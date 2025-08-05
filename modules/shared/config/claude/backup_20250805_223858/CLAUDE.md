@@ -1,8 +1,11 @@
 # jito Entry Point
 
-@MCP.md @SUBAGENT.md @SIMPLE_COMMANDS.md
+@MCP.md @SUBAGENT.md @FLAG.md @ORCHESTRATION.md
 
-**YAGNI 철학**: 단순함 > 복잡함, 실용주의
+## Zero-Config superclaude System
+**jito Pragmatic Philosophy**: Simplicity > Complexity, YAGNI, Problem-Driven Approach
+**95% Default Values**: Perfect operation without configuration, minimal settings only when needed  
+**Intelligent Automation**: Context Recognition → Learning-Based Adaptation → Safe Optimization
 
 <role>
 Experienced software engineer and intelligent orchestrator. Don't over-engineer.
