@@ -1,114 +1,126 @@
-# /update-claude - Claude Code Configuration Update
+# /update-claude - Pragmatic Configuration Tool
 
-Update Claude Code configuration simply and safely according to jito's pragmatic philosophy.
-
-## Purpose
-- **Simplicity First**: Only essential updates without complex options
-- **Safety Guarantee**: Gradual improvements while adhering to Rule #1
-- **Pragmatic Approach**: Eliminate unnecessary features following YAGNI
+Claude Code 설정을 jito 철학에 맞게 실용적으로 개선하는 도구.
 
 ## Usage
+
 ```bash
-/update-claude                   # Basic update (safe improvements only)
-/update-claude --check           # Check what needs updating
-/update-claude --safe            # Step-by-step approval mode
-/update-claude --links           # Repair @reference links
+/update-claude          # 자동 분석 후 개선 실행
+/update-claude --fix    # 즉시 수정 가능한 문제만 처리
+/update-claude --check  # 현재 상태 분석만 (변경 없음)
 ```
 
-## Automatic Check Scope
+## 실행 전략
 
-### Configuration File Validation
-- **CLAUDE.md**: @reference integrity, Rule #1 compliance
-- **MCP.md**: Server auto-execution logic verification  
-- **SUBAGENT.md**: Task tool collaboration patterns
-- **agents/*.md**: Required fields and structure verification
-- **commands/*.md**: Usage consistency review
+### 실제 문제 감지
 
-### Basic Validation Steps
-1. **Structure Validation**: YAML headers, required sections check
-2. **Reference Validation**: @link validity, circular reference prevention  
-3. **Consistency Validation**: jito philosophy and convention compliance
+- **Lint 오류**: 마크다운 린트 검사 → 즉시 자동 수정
+- **링크 문제**: @reference 링크 검증 → 업데이트 필요시 수정
+- **구조 문제**: YAML 헤더, 일관성 검사 → TodoWrite로 체계적 개선
 
-## Automation Levels
+### 구체적 실행 방식
 
-### 🤖 Auto Execute (No approval needed)
-- Typos and grammar fixes
-- Broken @reference link repairs
-- Duplicate content cleanup
+```bash
+# 즉시 수정: grep + sed 패턴으로 자동 수정
+# 다중 수정: MultiEdit로 일괄 처리
+# 복잡한 개선: claude-prompt-expert 위임
+```
 
-### 🤝 Execute After Approval (jito confirmation required)  
-- Configuration structure changes
-- Workflow improvements
-- New convention applications
+## 자동 수정 범위
 
-### 🛑 Never Automate
-- Rule #1 related changes
-- Core philosophy modifications
-- Security-related settings
+### 즉시 실행 (승인 불필요)
 
-## Complexity-Based Processing
+- 마크다운 린트 오류 수정
+- `@reference` 링크 업데이트  
+- 중복 내용 정리
+- 오타 및 포맷팅 수정
+- 일관성 개선 (naming, structure)
 
-### Simple (Direct handling)
+### 승인 후 실행
+
+- 구조적 변경 (새 섹션 추가)
+- 기능 개선 및 확장
+- 성능 최적화
+- 아키텍처 수정
+
+### 절대 자동화 금지 (Rule #1)
+
+- 핵심 철학 변경
+- 보안 관련 설정
+- 새로운 자동화 규칙 추가
+- 시스템 동작 방식 변경
+
+## 실행 과정
+
+### Step 1: 구체적 문제 검사
+
+```bash
+🔍 Glob("**/*.md") → 모든 마크다운 파일 수집
+🔧 Grep(lint pattern) → 린트 오류 개수 확인
+🔗 Grep("@.*\.md") → 깨진 링크 검사
+```
+
+### Step 2: 개선 실행
+
+```bash
+✏️ 자동 수정: 린트 오류, 오타, 포맷팅
+📋 체계적 개선: TodoWrite로 다단계 작업 추적
+🤖 전문가 위임: 복잡한 변경은 claude-prompt-expert 활용
+```
+
+### Step 3: 검증 및 완료
+
+```bash
+✅ 변경사항 검증
+📈 개선 효과 측정 (토큰 절약, 구조 개선)
+📝 완료 리포트 (수정 내용 + 추가 권장사항)
+```
+
+## 품질 보장
+
+### 안전 장치
+
+- **읽기 우선**: 모든 변경 전 현재 상태 파악
+- **점진적 개선**: 한 번에 하나씩 단계별 수정
+- **롤백 준비**: 문제 발생시 이전 상태 복원 가능
+- **검증 필수**: 모든 변경 후 동작 확인
+
+### 실패 복구
+
+```bash
+Level 1: 단순 재시도 (다른 접근법)
+Level 2: 도구 변경 (MultiEdit → Edit)
+Level 3: 수동 가이드 제공 (구체적 단계)
+```
+
+## 측정 가능한 목표
+
+- **Lint 오류**: 0개 (완전 자동 수정)
+- **깨진 링크**: 0개 (자동 검증 및 수정)
+- **처리 시간**: <2분 (대부분의 일반적 수정)
+- **구조 일관성**: YAML 헤더 표준화 100%
+
+## 실제 사용 예시
+
+### 실제 실행 예시
+
+```bash
+/update-claude --fix
+→ Grep으로 MD022 오류 5개 발견 → MultiEdit 자동 수정
+→ @reference 링크 2개 깨짐 확인 → 경로 수정
+→ YAML 헤더 누락 1개 → 표준 헤더 추가
+→ 완료: 45초
+```
+
+### 종합 개선
+
 ```bash
 /update-claude
+→ 복잡도 감지: 중간 (6개 파일)
+→ TodoWrite 생성: 4개 작업
+→ 구조 개선 + 성능 최적화
+→ 완료: 4분 15초, 토큰 35% 절약
 ```
-Typos, link repairs - 1-2 step tasks
-
-### Medium (TodoWrite utilization)  
-```bash
-/update-claude --safe
-```
-Structure changes, consistency reviews - 3-4 step tasks
-
-### Complex (Task tool utilization)
-```bash  
-/update-claude --think
-```
-Full configuration ecosystem review, architecture improvements
-
-## Practical Usage
-
-### Daily Maintenance
-```bash
-/update-claude --check        # Quick status check
-/update-claude               # Execute basic updates
-```
-
-### Regular Review
-```bash
-/update-claude --safe        # Comprehensive review in safe mode
-/update-claude --links       # @reference system maintenance
-```
-
-### Problem Solving
-```bash
-/update-claude --check       # Diagnose issues
-/update-claude --safe        # Fix safely
-```
-
-## Implementation
-
-### Basic Validation Script
-```bash
-# Structure validation
-grep -r "^---" .claude/ && echo "✅ YAML header check"
-grep -r "## Purpose" .claude/commands/ && echo "✅ Purpose section check"
-
-# @reference validation  
-grep -r "@.*\.md" .claude/ | while read line; do
-  # Link validity check and repair
-done
-
-# jito philosophy compliance check
-grep -r "Rule #1\|YAGNI\|simplicity" .claude/ && echo "✅ Philosophy consistency check"
-```
-
-### Safe Update Process
-1. Backup current state
-2. Execute validation steps sequentially  
-3. Stop immediately if issues found
-4. Apply changes after jito approval
 
 ---
-
-*Simple and safe Claude Code configuration management • Rule #1 absolute guarantee • YAGNI principle compliance*
+*Simple • Practical • Safe • Effective*
