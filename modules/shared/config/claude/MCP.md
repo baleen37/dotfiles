@@ -12,7 +12,7 @@ superclaude intelligent system: 100% automatic MCP server activation with zero c
 - **Predictive**: Context clues → Optimal server combination
 - **95% Accuracy**: Auto-selection success rate in real usage
 
-**Resource-Based Intelligent Control** (@RESOURCE_MANAGEMENT.md):
+**Resource-Based Intelligent Control**:
 - 🟢 **Green Zone**: All MCP servers simultaneously
 - 🟡 **Yellow Zone**: Core servers (Context7, Sequential) + selective usage
 - 🟠 **Orange Zone**: Essential servers (Context7, Sequential) only
