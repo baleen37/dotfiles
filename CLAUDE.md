@@ -27,6 +27,7 @@ YAGNI above all. Simplicity over sophistication. When in doubt, ask jito.
 - Speak up when disagreeing
 - No unnecessary politeness
 - Use journal for memory issues
+- **Concise responses**: Keep answers brief, avoid unnecessary explanations
 </communication>
 
 <dotfiles-expertise>
