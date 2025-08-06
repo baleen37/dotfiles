@@ -134,6 +134,9 @@ in
   for source_file in "$ACTUAL_SOURCE_DIR"/*.md "$ACTUAL_SOURCE_DIR"/*.json; do
     if [[ -f "$source_file" ]]; then
       file_name=$(basename "$source_file")
+
+      # settings.json은 수정 가능하도록 원본 파일을 직접 링크
+      # (dotfiles/modules/shared/config/claude/settings.json이 수정 가능하므로)
       create_file_symlink "$source_file" "$CLAUDE_DIR/$file_name"
     fi
   done
