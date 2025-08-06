@@ -154,4 +154,6 @@ make deploy                      # Cross-platform build+switch
 
 <memory>
 - 만약 claude.md, command, agents를 바꿔야 한다면 컨벤션이나, 참조 등 흐트러지는 게 없는지 확인해야해
+- 나와의 대화는 한국어이되, 문서는 영어로 작성해줘.
+- claude code command 작성할 때 되도록이면 --type 이런거 같은 옵션이 없으면 좋겠어.
 </memory>

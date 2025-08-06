@@ -27,6 +27,13 @@ in
           home-manager.darwinModules.home-manager
           nix-homebrew.darwinModules.nix-homebrew
           {
+            home-manager = {
+              useGlobalPkgs = true;
+              useUserPackages = true;
+              users.${user} = import ../modules/shared/home-manager.nix;
+              backupFileExtension = "bak";
+              extraSpecialArgs = inputs;
+            };
             nix-homebrew = {
               inherit user;
               enable = true;

@@ -67,13 +67,11 @@ in
         ];
         stateVersion = "23.11";
       };
-      programs = lib.mkMerge [
-        # Shared cross-platform programs (zsh, git, vim, etc.)
-        (import ../shared/home-manager.nix { inherit config pkgs lib; })
+      # Import shared cross-platform programs (zsh, git, vim, etc.)
+      programs = (import ../shared/home-manager.nix { inherit config pkgs lib; }).programs;
 
-        # Darwin-specific programs should be added here
-        # Example: programs.darwin-specific-tool = { enable = true; };
-      ];
+      # Darwin-specific programs should be added here in a separate programs attribute merge
+      # Example: programs.darwin-specific-tool = { enable = true; };
 
       manual.manpages.enable = false;
 

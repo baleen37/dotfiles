@@ -130,10 +130,7 @@ in
     };
   };
 
-  programs = shared-programs // {
-    # NixOS-specific programs should be added here
-    # Example: programs.nixos-specific-tool = { enable = true; };
-  };
+  programs = shared-programs.programs;
 
   # Smart Claude config files management with user modification preservation
   # Same as Darwin implementation for platform consistency
