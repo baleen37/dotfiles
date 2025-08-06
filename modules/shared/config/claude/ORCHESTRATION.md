@@ -169,6 +169,18 @@ Auto-generated Workflow:
 **토큰 효율성**: Main context 최소화, 전문 Agent에 구체적 작업 위임
 **병렬 처리**: 여러 Agent 동시 활용으로 성능 극대화
 
+### MCP-Aware Routing Integration
+
+**통합 라우팅 순서**:
+1. **MCP Server Suitability Check** (키워드 기반)
+2. **Task Delegation Assessment** (복잡도 기반)
+3. **Optimal Tool Combination Selection** (효율성 기반)
+
+#### MCP Server Priority Review
+- **Context7**: "docs", "API", "library", "framework", "examples" 키워드
+- **Sequential**: "analyze", "step-by-step", "plan", "strategy", "architecture" 키워드  
+- **Playwright**: "test", "E2E", "browser", "screenshot", "automation" 키워드
+
 ### 도메인별 Agent 라우팅 규칙
 
 #### Nix/Dotfiles 전문 영역

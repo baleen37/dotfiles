@@ -14,14 +14,11 @@
 
 { config, pkgs, lib, ... }:
 
-# Runtime check to ensure we're in Home Manager context
-assert lib.hasAttr "programs" config || lib.hasAttr "home" config;  # Home Manager provides these
-
 let
   name = "Jiho Lee";
   getUserInfo = import ../../lib/user-resolution.nix {
-    platform = if pkgs.stdenv.isDarwin then "darwin" else "linux";
-    returnFormat = "extended";
+  platform = if pkgs.stdenv.isDarwin then "darwin" else "linux";
+  returnFormat = "extended";
   };
   user = getUserInfo.user;
   email = "baleen37@gmail.com";
@@ -31,479 +28,479 @@ let
   isLinux = pkgs.stdenv.isLinux;
 in
 {
-  # Shared shell configuration
-  zsh = {
-    enable = true;
-    autocd = false;
-    plugins = [
-      {
-        name = "powerlevel10k";
-        src = pkgs.zsh-powerlevel10k;
-        file = "share/zsh-powerlevel10k/powerlevel10k.zsh-theme";
-      }
-      {
-        name = "powerlevel10k-config";
-        src = lib.cleanSource ./config;
-        file = "p10k.zsh";
-      }
-    ];
+  programs = {
+    # Shared shell configuration
+    zsh = {
+      enable = true;
+      autocd = false;
+      plugins = [
+        {
+          name = "powerlevel10k";
+          src = pkgs.zsh-powerlevel10k;
+          file = "share/zsh-powerlevel10k/powerlevel10k.zsh-theme";
+        }
+        {
+          name = "powerlevel10k-config";
+          src = lib.cleanSource ./config;
+          file = "p10k.zsh";
+        }
+      ];
 
-    initContent = lib.mkAfter ''
-      if [[ -f /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]]; then
-        . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
-        . /nix/var/nix/profiles/default/etc/profile.d/nix.sh
-      fi
-
-      # Define variables for directories
-      export PATH=$HOME/.pnpm-packages/bin:$HOME/.pnpm-packages:$PATH
-      export PATH=$HOME/.npm-global/bin:$HOME/.npm-packages/bin:$HOME/bin:$PATH
-      export PATH=$HOME/.local/share/bin:$PATH
-      export PATH=$HOME/.local/bin:$PATH
-
-      # Remove history data we don't want to see
-      export HISTIGNORE="pwd:ls:cd"
-
-      # Set locale for proper UTF-8 support
-      export LANG="en_US.UTF-8"
-      export LC_ALL="en_US.UTF-8"
-
-      export EDITOR="vim"
-      export VISUAL="vim"
-
-      # 1Password SSH agent setup (platform-specific)
-      ${lib.optionalString isDarwin ''
-      # Darwin: Group Container 디렉토리를 동적으로 찾기
-      for container_dir in ~/Library/Group\ Containers/*.com.1password/t/agent.sock; do
-        if [[ -S "$container_dir" ]]; then
-          export SSH_AUTH_SOCK="$container_dir"
-          break
+      initContent = lib.mkAfter ''
+        if [[ -f /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]]; then
+          . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+          . /nix/var/nix/profiles/default/etc/profile.d/nix.sh
         fi
-      done 2>/dev/null || true
-      ''}
 
-      # 기본 위치들도 확인 (cross-platform)
-      if [[ -z "$${SSH_AUTH_SOCK:-}" ]]; then
-        _1password_sockets=(
-          ~/.1password/agent.sock
-          /tmp/1password-ssh-agent.sock
-        )
+        # Define variables for directories
+        export PATH=$HOME/.pnpm-packages/bin:$HOME/.pnpm-packages:$PATH
+        export PATH=$HOME/.npm-global/bin:$HOME/.npm-packages/bin:$HOME/bin:$PATH
+        export PATH=$HOME/.local/share/bin:$PATH
+        export PATH=$HOME/.local/bin:$PATH
 
-        for sock in "$${_1password_sockets[@]}"; do
-          if [[ -S "$sock" ]]; then
-            export SSH_AUTH_SOCK="$sock"
+        # Remove history data we don't want to see
+        export HISTIGNORE="pwd:ls:cd"
+
+        # Set locale for proper UTF-8 support
+        export LANG="en_US.UTF-8"
+        export LC_ALL="en_US.UTF-8"
+
+        export EDITOR="vim"
+        export VISUAL="vim"
+
+        # 1Password SSH agent setup (platform-specific)
+        ${lib.optionalString isDarwin ''
+        # Darwin: Group Container 디렉토리를 동적으로 찾기
+        for container_dir in ~/Library/Group\ Containers/*.com.1password/t/agent.sock; do
+          if [[ -S "$container_dir" ]]; then
+            export SSH_AUTH_SOCK="$container_dir"
             break
           fi
-        done
-      fi
+        done 2>/dev/null || true
+        ''}
 
-      # nix shortcuts
-      shell() {
-          nix-shell '<nixpkgs>' -A "$1"
-      }
+        # 기본 위치들도 확인 (cross-platform)
+        if [[ -z "$${SSH_AUTH_SOCK:-}" ]]; then
+          _1password_sockets=(
+            ~/.1password/agent.sock
+            /tmp/1password-ssh-agent.sock
+          )
 
-      # Use difftastic, syntax-aware diffing
-      alias diff=difft
-
-      # Always color ls and group directories
-      alias ls='ls --color=auto'
-
-      # Initialize direnv
-      eval "$(direnv hook zsh)"
-
-      # Auto-update dotfiles on shell startup (with TTL)
-      if [[ -x "$HOME/dotfiles/scripts/auto-update-dotfiles" ]]; then
-        (nohup "$HOME/dotfiles/scripts/auto-update-dotfiles" --silent &>/dev/null &)
-      fi
-
-      # Auto-install claude-monitor via uv if not already installed
-      if command -v uv >/dev/null 2>&1; then
-        if ! uv tool list | grep -q "claude-monitor"; then
-          echo "Installing claude-monitor via uv..."
-          uv tool install claude-monitor
+          for sock in "$${_1password_sockets[@]}"; do
+            if [[ -S "$sock" ]]; then
+              export SSH_AUTH_SOCK="$sock"
+              break
+            fi
+          done
         fi
-      fi
 
-      # IntelliJ IDEA 백그라운드 실행 함수 (platform-aware)
-      idea() {
-        local idea_cmd=""
+        # nix shortcuts
+        shell() {
+            nix-shell '<nixpkgs>' -A "$1"
+        }
 
-        # 1. Nix 환경에서 IDEA 확인 (우선순위)
-        if command -v intellij-idea-ultimate >/dev/null 2>&1; then
-          idea_cmd="intellij-idea-ultimate"
-        elif command -v intellij-idea-community >/dev/null 2>&1; then
-          idea_cmd="intellij-idea-community"
-        ${lib.optionalString isDarwin ''
-        # 2. Darwin Homebrew 경로 확인
-        elif [[ -x "/opt/homebrew/bin/idea" ]]; then
-          idea_cmd="/opt/homebrew/bin/idea"
-        ''}
-        ${lib.optionalString isLinux ''
-        # 2. Linux Homebrew 경로 확인
-        elif [[ -x "/home/linuxbrew/.linuxbrew/bin/idea" ]]; then
-          idea_cmd="/home/linuxbrew/.linuxbrew/bin/idea"
-        ''}
-        # 3. 일반 PATH에서 확인 (최후 수단)
-        elif command -v idea >/dev/null 2>&1; then
-          # 무한 재귀 방지: 현재 함수가 아닌 실제 바이너리인지 확인
-          local idea_path=$(command -v idea)
-          if ! [[ "$idea_path" =~ function ]] && [[ -x "$idea_path" ]]; then
-            idea_cmd="$idea_path"
+        # Use difftastic, syntax-aware diffing
+        alias diff=difft
+
+        # Always color ls and group directories
+        alias ls='ls --color=auto'
+
+        # Initialize direnv
+        eval "$(direnv hook zsh)"
+
+        # Auto-update dotfiles on shell startup (with TTL)
+        if [[ -x "$HOME/dotfiles/scripts/auto-update-dotfiles" ]]; then
+          (nohup "$HOME/dotfiles/scripts/auto-update-dotfiles" --silent &>/dev/null &)
+        fi
+
+        # Auto-install claude-monitor via uv if not already installed
+        if command -v uv >/dev/null 2>&1; then
+          if ! uv tool list | grep -q "claude-monitor"; then
+            echo "Installing claude-monitor via uv..."
+            uv tool install claude-monitor
+          fi
+        fi
+
+        # IntelliJ IDEA 백그라운드 실행 함수 (platform-aware)
+        idea() {
+          local idea_cmd=""
+
+          # 1. Nix 환경에서 IDEA 확인 (우선순위)
+          if command -v intellij-idea-ultimate >/dev/null 2>&1; then
+            idea_cmd="intellij-idea-ultimate"
+          elif command -v intellij-idea-community >/dev/null 2>&1; then
+            idea_cmd="intellij-idea-community"
+          ${lib.optionalString isDarwin ''
+          # 2. Darwin Homebrew 경로 확인
+          elif [[ -x "/opt/homebrew/bin/idea" ]]; then
+            idea_cmd="/opt/homebrew/bin/idea"
+          ''}
+          ${lib.optionalString isLinux ''
+          # 2. Linux Homebrew 경로 확인
+          elif [[ -x "/home/linuxbrew/.linuxbrew/bin/idea" ]]; then
+            idea_cmd="/home/linuxbrew/.linuxbrew/bin/idea"
+          ''}
+          # 3. 일반 PATH에서 확인 (최후 수단)
+          elif command -v idea >/dev/null 2>&1; then
+            # 무한 재귀 방지: 현재 함수가 아닌 실제 바이너리인지 확인
+            local idea_path=$(command -v idea)
+            if ! [[ "$idea_path" =~ function ]] && [[ -x "$idea_path" ]]; then
+              idea_cmd="$idea_path"
+            else
+              echo "Error: IntelliJ IDEA executable not found."
+              return 1
+            fi
           else
-            echo "Error: IntelliJ IDEA executable not found."
+            echo "Error: IntelliJ IDEA not found. Please install via:"
+            echo "  - Nix: nix-env -iA nixpkgs.jetbrains.idea-ultimate"
+            ${lib.optionalString isDarwin ''echo "  - Homebrew (macOS): brew install --cask intellij-idea"''}
+            ${lib.optionalString isLinux ''echo "  - Homebrew (Linux): brew install --cask intellij-idea"''}
             return 1
           fi
-        else
-          echo "Error: IntelliJ IDEA not found. Please install via:"
-          echo "  - Nix: nix-env -iA nixpkgs.jetbrains.idea-ultimate"
-          ${lib.optionalString isDarwin ''echo "  - Homebrew (macOS): brew install --cask intellij-idea"''}
-          ${lib.optionalString isLinux ''echo "  - Homebrew (Linux): brew install --cask intellij-idea"''}
-          return 1
-        fi
 
-        # 백그라운드에서 IDEA 실행
-        if ! nohup "$idea_cmd" "$@" >/dev/null 2>&1 &; then
-          echo "Error: Failed to start IntelliJ IDEA with command: $idea_cmd"
-          return 1
-        fi
-
-        echo "IntelliJ IDEA started in background with: $idea_cmd"
-      }
-
-      # Claude CLI shortcuts
-      # Note: 'cc' alias may conflict with system C compiler. Use '\cc' to access system cc if needed.
-      alias cc="claude --dangerously-skip-permissions"
-
-      # Claude CLI with Git Worktree workflow
-      ccw() {
-        local branch_name="$1"
-
-        if [[ -z "$branch_name" ]]; then
-          echo "Usage: ccw <branch-name>"
-          echo "Creates/switches to git worktree at ../<branch-name> and starts Claude"
-          return 1
-        fi
-
-        if ! git rev-parse --git-dir >/dev/null 2>&1; then
-          echo "Error: Not in a git repository"
-          return 1
-        fi
-
-        local worktree_path="../$branch_name"
-
-        if [[ -d "$worktree_path" ]]; then
-          echo "Switching to existing worktree: $worktree_path"
-          cd "$worktree_path"
-        else
-          echo "Creating new git worktree for branch '$branch_name'..."
-
-          if git show-ref --verify --quiet "refs/remotes/origin/$branch_name"; then
-            git worktree add "$worktree_path" "origin/$branch_name"
-          else
-            git worktree add -b "$branch_name" "$worktree_path"
+          # 백그라운드에서 IDEA 실행
+          if ! nohup "$idea_cmd" "$@" >/dev/null 2>&1 &; then
+            echo "Error: Failed to start IntelliJ IDEA with command: $idea_cmd"
+            return 1
           fi
 
-          cd "$worktree_path"
-        fi
+          echo "IntelliJ IDEA started in background with: $idea_cmd"
+        }
 
-        echo "Worktree: $(pwd) | Branch: $(git branch --show-current)"
-        claude --dangerously-skip-permissions
-      }
-    '';
-  };
+        # Claude CLI shortcuts
+        # Note: 'cc' alias may conflict with system C compiler. Use '\cc' to access system cc if needed.
+        alias cc="claude --dangerously-skip-permissions"
 
-  git = {
-    enable = true;
-    ignores = [
-      # Editor files
-      "*.swp"
-      "*.swo"
-      "*~"
-      ".vscode/"
-      ".idea/"
+        # Claude CLI with Git Worktree workflow
+        ccw() {
+          local branch_name="$1"
 
-      # OS files
-      ".DS_Store"
-      "Thumbs.db"
-      "desktop.ini"
+          if [[ -z "$branch_name" ]]; then
+            echo "Usage: ccw <branch-name>"
+            echo "Creates/switches to git worktree at ../<branch-name> and starts Claude"
+            return 1
+          fi
 
-      # Development files
-      ".direnv/"
-      "result"
-      "result-*"
-      "node_modules/"
-      ".env.local"
-      ".env.*.local"
-      ".serena/"
+          if ! git rev-parse --git-dir >/dev/null 2>&1; then
+            echo "Error: Not in a git repository"
+            return 1
+          fi
 
-      # Temporary files
-      "*.tmp"
-      "*.log"
-      ".cache/"
+          local worktree_path="../$branch_name"
 
-      # Build artifacts
-      "dist/"
-      "build/"
-      "target/"
+          if [[ -d "$worktree_path" ]]; then
+            echo "Switching to existing worktree: $worktree_path"
+            cd "$worktree_path"
+          else
+            echo "Creating new git worktree for branch '$branch_name'..."
 
-      # Issues (local project management)
-      "issues/"
+            if git show-ref --verify --quiet "refs/remotes/origin/$branch_name"; then
+              git worktree add "$worktree_path" "origin/$branch_name"
+            else
+              git worktree add -b "$branch_name" "$worktree_path"
+            fi
 
-    ];
-    userName = name;
-    userEmail = email;
-    lfs = {
+            cd "$worktree_path"
+          fi
+
+          echo "Worktree: $(pwd) | Branch: $(git branch --show-current)"
+          claude --dangerously-skip-permissions
+        }
+      '';
+    };
+
+    git = {
       enable = true;
-    };
-    extraConfig = {
-      init.defaultBranch = "main";
-      core = {
-        editor = "vim";
-        autocrlf = "input";
-        excludesFile = "~/.gitignore_global";
+      ignores = [
+        # Editor files
+        "*.swp"
+        "*.swo"
+        "*~"
+        ".vscode/"
+        ".idea/"
+
+        # OS files
+        ".DS_Store"
+        "Thumbs.db"
+        "desktop.ini"
+
+        # Development files
+        ".direnv/"
+        "result"
+        "result-*"
+        "node_modules/"
+        ".env.local"
+        ".env.*.local"
+        ".serena/"
+
+        # Temporary files
+        "*.tmp"
+        "*.log"
+        ".cache/"
+
+        # Build artifacts
+        "dist/"
+        "build/"
+        "target/"
+
+        # Issues (local project management)
+        "issues/"
+
+      ];
+      userName = name;
+      userEmail = email;
+      lfs = {
+        enable = true;
       };
-      pull.rebase = true;
-      rebase.autoStash = true;
-      alias = {
-        st = "status";
-        co = "checkout";
-        br = "branch";
-        ci = "commit";
-        df = "diff";
-        lg = "log --graph --oneline --decorate --all";
-      };
-    };
-  };
-
-  vim = {
-    enable = true;
-    plugins = with pkgs.vimPlugins; [ vim-airline vim-airline-themes vim-startify vim-tmux-navigator ];
-    settings = { ignorecase = true; };
-    extraConfig = ''
-      "" General
-      set number
-      set history=1000
-      set nocompatible
-      set modelines=0
-      set encoding=utf-8
-      set scrolloff=3
-      set showmode
-      set showcmd
-      set hidden
-      set wildmenu
-      set wildmode=list:longest
-      set cursorline
-      set ttyfast
-      set nowrap
-      set ruler
-      set backspace=indent,eol,start
-      set laststatus=2
-      set clipboard=autoselect
-
-      " Dir stuff
-      set nobackup
-      set nowritebackup
-      set noswapfile
-      set backupdir=~/.config/vim/backups
-      set directory=~/.config/vim/swap
-
-      " Relative line numbers for easy movement
-      set relativenumber
-      set rnu
-
-      "" Whitespace rules
-      set tabstop=8
-      set shiftwidth=2
-      set softtabstop=2
-      set expandtab
-
-      "" Searching
-      set incsearch
-      set gdefault
-
-      "" Statusbar
-      set nocompatible " Disable vi-compatibility
-      set laststatus=2 " Always show the statusline
-      let g:airline_theme='bubblegum'
-      let g:airline_powerline_fonts = 1
-
-      "" Local keys and such
-      let mapleader=","
-      let maplocalleader=" "
-
-      "" Change cursor on mode
-      :autocmd InsertEnter * set cul
-      :autocmd InsertLeave * set nocul
-
-      "" File-type highlighting and configuration
-      syntax on
-      filetype on
-      filetype plugin on
-      filetype indent on
-
-      "" Paste from clipboard
-      nnoremap <Leader>, "+gP
-
-      "" Copy from clipboard
-      xnoremap <Leader>. "+y
-
-      "" Move cursor by display lines when wrapping
-      nnoremap j gj
-      nnoremap k gk
-
-      "" Map leader-q to quit out of window
-      nnoremap <leader>q :q<cr>
-
-      "" Move around split
-      nnoremap <C-h> <C-w>h
-      nnoremap <C-j> <C-w>j
-      nnoremap <C-k> <C-w>k
-      nnoremap <C-l> <C-w>l
-
-      "" Easier to yank entire line
-      nnoremap Y y$
-
-      "" Move buffers
-      nnoremap <tab> :bnext<cr>
-      nnoremap <S-tab> :bprev<cr>
-
-      "" Like a boss, sudo AFTER opening the file to write
-      cmap w!! w !sudo tee % >/dev/null
-
-      let g:startify_lists = [
-        \ { 'type': 'dir',       'header': ['   Current Directory '. getcwd()] },
-        \ { 'type': 'sessions',  'header': ['   Sessions']       },
-        \ { 'type': 'bookmarks', 'header': ['   Bookmarks']      }
-        \ ]
-
-      let g:startify_bookmarks = [
-        \ '~/.local/share/src',
-        \ ]
-
-      let g:airline_theme='bubblegum'
-      let g:airline_powerline_fonts = 1
-    '';
-  };
-
-
-  alacritty = {
-    enable = true;
-    settings = {
-      cursor = {
-        style = "Block";
-      };
-
-      window = {
-        opacity = 1.0;
-        padding = {
-          x = 24;
-          y = 24;
+      extraConfig = {
+        init.defaultBranch = "main";
+        core = {
+          editor = "vim";
+          autocrlf = "input";
+          excludesFile = "~/.gitignore_global";
         };
-      };
-
-      font = {
-        normal = {
-          family = "MesloLGS NF";
-          style = "Regular";
-        };
-        size = lib.mkMerge [
-          (lib.mkIf pkgs.stdenv.hostPlatform.isLinux 10)
-          (lib.mkIf pkgs.stdenv.hostPlatform.isDarwin 14)
-        ];
-      };
-
-      dynamic_padding = true;
-      decorations = "full";
-      title = "Terminal";
-      class = {
-        instance = "Alacritty";
-        general = "Alacritty";
-      };
-
-      colors = {
-        primary = {
-          background = "0x1f2528";
-          foreground = "0xc0c5ce";
-        };
-
-        normal = {
-          black = "0x1f2528";
-          red = "0xec5f67";
-          green = "0x99c794";
-          yellow = "0xfac863";
-          blue = "0x6699cc";
-          magenta = "0xc594c5";
-          cyan = "0x5fb3b3";
-          white = "0xc0c5ce";
-        };
-
-        bright = {
-          black = "0x65737e";
-          red = "0xec5f67";
-          green = "0x99c794";
-          yellow = "0xfac863";
-          blue = "0x6699cc";
-          magenta = "0xc594c5";
-          cyan = "0x5fb3b3";
-          white = "0xd8dee9";
+        pull.rebase = true;
+        rebase.autoStash = true;
+        alias = {
+          st = "status";
+          co = "checkout";
+          br = "branch";
+          ci = "commit";
+          df = "diff";
+          lg = "log --graph --oneline --decorate --all";
         };
       };
     };
-  };
 
-  ssh = {
-    enable = true;
-    includes = [
-      "${getUserInfo.homePath}/.ssh/config_external"
-    ];
-    extraConfig = ''
-      Host *
-        IdentitiesOnly yes
-        AddKeysToAgent yes
-    '' + lib.optionalString isDarwin ''
-        UseKeychain yes
-    '';
-  };
+    vim = {
+      enable = true;
+      plugins = with pkgs.vimPlugins; [ vim-airline vim-airline-themes vim-tmux-navigator ];
+      settings = { ignorecase = true; };
+      extraConfig = ''
+        "" General
+        set number
+        set history=1000
+        set nocompatible
+        set modelines=0
+        set encoding=utf-8
+        set scrolloff=3
+        set showmode
+        set showcmd
+        set hidden
+        set wildmenu
+        set wildmode=list:longest
+        set cursorline
+        set ttyfast
+        set nowrap
+        set ruler
+        set backspace=indent,eol,start
+        set laststatus=2
+        set clipboard=autoselect
 
-  direnv = {
-    enable = true;
-    enableZshIntegration = true;
-    nix-direnv.enable = true;
-    config = {
-      global = {
-        load_dotenv = true;
+        " Dir stuff
+        set nobackup
+        set nowritebackup
+        set noswapfile
+        set backupdir=~/.config/vim/backups
+        set directory=~/.config/vim/swap
+
+        " Relative line numbers for easy movement
+        set relativenumber
+        set rnu
+
+        "" Whitespace rules
+        set tabstop=8
+        set shiftwidth=2
+        set softtabstop=2
+        set expandtab
+
+        "" Searching
+        set incsearch
+        set gdefault
+
+        "" Statusbar
+        set nocompatible " Disable vi-compatibility
+        set laststatus=2 " Always show the statusline
+        let g:airline_theme='bubblegum'
+        let g:airline_powerline_fonts = 1
+
+        "" Local keys and such
+        let mapleader=","
+        let maplocalleader=" "
+
+        "" Change cursor on mode
+        :autocmd InsertEnter * set cul
+        :autocmd InsertLeave * set nocul
+
+        "" File-type highlighting and configuration
+        syntax on
+        filetype on
+        filetype plugin on
+        filetype indent on
+
+        "" Paste from clipboard
+        nnoremap <Leader>, "+gP
+
+        "" Copy from clipboard
+        xnoremap <Leader>. "+y
+
+        "" Move cursor by display lines when wrapping
+        nnoremap j gj
+        nnoremap k gk
+
+        "" Map leader-q to quit out of window
+        nnoremap <leader>q :q<cr>
+
+        "" Move around split
+        nnoremap <C-h> <C-w>h
+        nnoremap <C-j> <C-w>j
+        nnoremap <C-k> <C-w>k
+        nnoremap <C-l> <C-w>l
+
+        "" Easier to yank entire line
+        nnoremap Y y$
+
+        "" Move buffers
+        nnoremap <tab> :bnext<cr>
+        nnoremap <S-tab> :bprev<cr>
+
+        "" Like a boss, sudo AFTER opening the file to write
+        cmap w!! w !sudo tee % >/dev/null
+
+        let g:startify_lists = [
+          \ { 'type': 'dir',       'header': ['   Current Directory '. getcwd()] },
+          \ { 'type': 'sessions',  'header': ['   Sessions']       },
+          \ { 'type': 'bookmarks', 'header': ['   Bookmarks']      }
+          \ ]
+
+        let g:startify_bookmarks = [
+          \ '~/.local/share/src',
+          \ ]
+
+        let g:airline_theme='bubblegum'
+        let g:airline_powerline_fonts = 1
+      '';
+    };
+
+    alacritty = {
+      enable = true;
+      settings = {
+        cursor = {
+          style = "Block";
+        };
+
+        window = {
+          opacity = 1.0;
+          padding = {
+            x = 24;
+            y = 24;
+          };
+        };
+
+        font = {
+          normal = {
+            family = "MesloLGS NF";
+            style = "Regular";
+          };
+          size = lib.mkMerge [
+            (lib.mkIf pkgs.stdenv.hostPlatform.isLinux 10)
+            (lib.mkIf pkgs.stdenv.hostPlatform.isDarwin 14)
+          ];
+        };
+
+        dynamic_padding = true;
+        decorations = "full";
+        title = "Terminal";
+        class = {
+          instance = "Alacritty";
+          general = "Alacritty";
+        };
+
+        colors = {
+          primary = {
+            background = "0x1f2528";
+            foreground = "0xc0c5ce";
+          };
+
+          normal = {
+            black = "0x1f2528";
+            red = "0xec5f67";
+            green = "0x99c794";
+            yellow = "0xfac863";
+            blue = "0x6699cc";
+            magenta = "0xc594c5";
+            cyan = "0x5fb3b3";
+            white = "0xc0c5ce";
+          };
+
+          bright = {
+            black = "0x65737e";
+            red = "0xec5f67";
+            green = "0x99c794";
+            yellow = "0xfac863";
+            blue = "0x6699cc";
+            magenta = "0xc594c5";
+            cyan = "0x5fb3b3";
+            white = "0xd8dee9";
+          };
+        };
       };
     };
-  };
 
-  fzf = {
-    enable = true;
-    enableZshIntegration = true;
-    defaultCommand = "rg --files --hidden --follow --glob '!.git/*'";
-    defaultOptions = [
-      "--height 40%"
-      "--layout=reverse"
-      "--border"
-    ];
-    historyWidgetOptions = [
-      "--sort"
-      "--exact"
-    ];
-  };
+    ssh = {
+      enable = true;
+      includes = [
+        "${getUserInfo.homePath}/.ssh/config_external"
+      ];
+      extraConfig = ''
+        Host *
+          IdentitiesOnly yes
+          AddKeysToAgent yes
+      '' + lib.optionalString isDarwin ''
+          UseKeychain yes
+      '';
+    };
 
-  tmux = {
-    enable = true;
-    plugins = with pkgs.tmuxPlugins; [
-      sensible
-      vim-tmux-navigator
-      yank
-      resurrect
-      continuum
-    ];
-    terminal = "screen-256color";
-    prefix = "C-a";
-    escapeTime = 0;
-    historyLimit = 50000;
-    extraConfig = ''
+    direnv = {
+      enable = true;
+      enableZshIntegration = true;
+      nix-direnv.enable = true;
+      config = {
+        global = {
+          load_dotenv = true;
+        };
+      };
+    };
+
+    fzf = {
+      enable = true;
+      enableZshIntegration = true;
+      defaultCommand = "rg --files --hidden --follow --glob '!.git/*'";
+      defaultOptions = [
+        "--height 40%"
+        "--layout=reverse"
+        "--border"
+      ];
+      historyWidgetOptions = [
+        "--sort"
+        "--exact"
+      ];
+    };
+
+    tmux = {
+      enable = true;
+      plugins = with pkgs.tmuxPlugins; [
+        sensible
+        vim-tmux-navigator
+        yank
+        resurrect
+        continuum
+      ];
+      terminal = "screen-256color";
+      prefix = "C-a";
+      escapeTime = 0;
+      historyLimit = 50000;
+      extraConfig = ''
       # 기본 설정
       set -g default-terminal "screen-256color"
       set -g default-shell ${config.programs.zsh.package}/bin/zsh
@@ -553,7 +550,6 @@ in
       set -g @continuum-restore 'on'
       set -g @continuum-save-interval '15'
     '';
+    };
   };
-
-
 }
