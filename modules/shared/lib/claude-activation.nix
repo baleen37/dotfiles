@@ -122,6 +122,40 @@ in ''
     echo "  파일 심볼릭 링크 생성: $target_file -> $source_file"
   }
 
+  # 파일 복사 함수 (사용자가 수정해야 하는 파일용)
+  copy_user_file() {
+    local source_file="$1"
+    local target_file="$2"
+    local file_name=$(basename "$source_file")
+
+    echo "처리 중: $file_name (복사)"
+
+    if [[ ! -f "$source_file" ]]; then
+      echo "  소스 파일 없음, 건너뜸"
+      return 0
+    fi
+
+    # 대상 파일이 이미 존재하는 경우 업데이트 여부 확인
+    if [[ -f "$target_file" && ! -L "$target_file" ]]; then
+      # 파일 내용이 동일한지 확인
+      if cmp -s "$source_file" "$target_file"; then
+        echo "  파일이 이미 최신 상태임"
+        return 0
+      else
+        echo "  기존 파일과 다름, 백업 후 업데이트"
+        cp "$target_file" "$target_file.bak.$(date +%Y%m%d_%H%M%S)"
+      fi
+    elif [[ -L "$target_file" ]]; then
+      echo "  기존 심볼릭 링크 제거"
+      rm -f "$target_file"
+    fi
+
+    # 파일 복사 (쓰기 가능하게)
+    cp "$source_file" "$target_file"
+    chmod 644 "$target_file"
+    echo "  파일 복사 완료 (쓰기 가능): $target_file"
+  }
+
   echo ""
   echo "=== Claude 설정 심볼릭 링크 생성 ==="
 
@@ -133,7 +167,13 @@ in ''
   for source_file in "$ACTUAL_SOURCE_DIR"/*.md "$ACTUAL_SOURCE_DIR"/*.json; do
     if [[ -f "$source_file" ]]; then
       file_name=$(basename "$source_file")
-      create_file_symlink "$source_file" "$CLAUDE_DIR/$file_name"
+
+      # settings.json은 사용자가 수정할 수 있어야 하므로 복사
+      if [[ "$file_name" == "settings.json" ]]; then
+        copy_user_file "$source_file" "$CLAUDE_DIR/$file_name"
+      else
+        create_file_symlink "$source_file" "$CLAUDE_DIR/$file_name"
+      fi
     fi
   done
 
@@ -149,35 +189,47 @@ in ''
     fi
   done
 
-  # 최종 검증: 생성된 심볼릭 링크들이 유효한지 확인
+  # 최종 검증: 생성된 심볼릭 링크와 복사된 파일들이 유효한지 확인
   echo ""
-  echo "=== 생성된 심볼릭 링크 검증 ==="
+  echo "=== 생성된 파일들 검증 ==="
 
   link_count=0
   valid_links=0
   broken_links=0
+  copied_files=0
 
-  for link_file in "$CLAUDE_DIR"/*.md "$CLAUDE_DIR"/*.json "$CLAUDE_DIR/commands" "$CLAUDE_DIR/agents"; do
-    if [[ -L "$link_file" ]]; then
-      ((link_count++))
-      if [[ -e "$link_file" ]]; then
-        ((valid_links++))
-        echo "  ✓ $(basename "$link_file") -> $(readlink "$link_file")"
-      else
-        ((broken_links++))
-        echo "  ❌ $(basename "$link_file") -> $(readlink "$link_file") (끊어진 링크)"
+  for file_path in "$CLAUDE_DIR"/*.md "$CLAUDE_DIR"/*.json "$CLAUDE_DIR/commands" "$CLAUDE_DIR/agents"; do
+    if [[ -e "$file_path" ]]; then
+      file_name=$(basename "$file_path")
+
+      if [[ -L "$file_path" ]]; then
+        # 심볼릭 링크인 경우
+        ((link_count++))
+        if [[ -e "$file_path" ]]; then
+          ((valid_links++))
+          echo "  ✓ $file_name -> $(readlink "$file_path") (링크)"
+        else
+          ((broken_links++))
+          echo "  ❌ $file_name -> $(readlink "$file_path") (끊어진 링크)"
+        fi
+      elif [[ -f "$file_path" && "$file_name" == "settings.json" ]]; then
+        # 복사된 파일인 경우
+        ((copied_files++))
+        echo "  ✓ $file_name (복사본, 쓰기 가능)"
       fi
     fi
   done
 
   echo ""
-  echo "검증 결과: 총 $link_count개 링크 중 $valid_links개 유효, $broken_links개 끊어짐"
+  echo "검증 결과: 총 $link_count개 링크 중 $valid_links개 유효, $broken_links개 끊어짐, $copied_files개 복사됨"
 
   if [[ $broken_links -gt 0 ]]; then
     echo "⚠ 경고: 일부 심볼릭 링크가 끊어져 있습니다."
     echo "문제 해결을 위해 'make build-switch' 또는 'nix run .#build-switch' 실행을 권장합니다."
   else
-    echo "✅ 모든 Claude 설정 심볼릭 링크가 정상적으로 생성되었습니다!"
+    echo "✅ 모든 Claude 설정이 정상적으로 구성되었습니다!"
+    echo "  - 심볼릭 링크: $valid_links개 (문서 및 폴더)"
+    echo "  - 복사된 파일: $copied_files개 (settings.json - 수정 가능)"
   fi
 
   echo "=== Claude 설정 심볼릭 링크 업데이트 완료 ==="

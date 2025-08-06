@@ -31,8 +31,12 @@ in
   };
 
   homebrew = {
-    enable = true;
+    enable = false;  # Temporarily disabled to avoid tap conflicts
     casks = pkgs.callPackage ./casks.nix { };
+    onActivation = {
+      autoUpdate = false;
+      upgrade = false;
+    };
     # onActivation.cleanup = "uninstall";
 
     # These app IDs are from using the mas CLI app

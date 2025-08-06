@@ -25,7 +25,7 @@ in
         modules = [
           ../modules/shared/config/nixpkgs.nix
           home-manager.darwinModules.home-manager
-          nix-homebrew.darwinModules.nix-homebrew
+          # nix-homebrew.darwinModules.nix-homebrew  # Temporarily disabled to resolve tap conflicts
           {
             home-manager = {
               useGlobalPkgs = true;
@@ -34,17 +34,17 @@ in
               backupFileExtension = "bak";
               extraSpecialArgs = inputs;
             };
-            nix-homebrew = {
-              inherit user;
-              enable = true;
-              taps = {
-                "homebrew/homebrew-core" = homebrew-core;
-                "homebrew/homebrew-cask" = homebrew-cask;
-                "homebrew/homebrew-bundle" = homebrew-bundle;
-              };
-              mutableTaps = true;
-              autoMigrate = true;
-            };
+            # nix-homebrew = {
+            #   inherit user;
+            #   enable = true;
+            #   taps = {
+            #     "homebrew/homebrew-core" = homebrew-core;
+            #     "homebrew/homebrew-cask" = homebrew-cask;
+            #     "homebrew/homebrew-bundle" = homebrew-bundle;
+            #   };
+            #   mutableTaps = true;
+            #   autoMigrate = true;
+            # };
           }
           ../hosts/darwin
         ];
