@@ -2,7 +2,7 @@
 # This module provides cross-platform Claude configuration file management
 # with simple "dotfiles -> ~/.claude" symlink approach.
 
-{ config, lib, self ? null, platform ? "unknown" }:
+{ config, lib, self ? null }:
 
 let
   claudeDir = "${config.home.homeDirectory}/.claude";
@@ -70,9 +70,9 @@ in ''
   # Claude 디렉토리 생성 (Claude Code가 관리하는 다른 폴더들 보존)
   mkdir -p "$CLAUDE_DIR"
 
-  # 기존 개별 파일 심볼릭 링크들과 .new, .update-notice 파일들 정리
-  echo "기존 설정 파일들 정리..."
-  rm -f "$CLAUDE_DIR"/*.new "$CLAUDE_DIR"/*.update-notice "$CLAUDE_DIR"/*.bak
+  # 기존 임시 파일들 정리
+  echo "기존 임시 파일들 정리..."
+  rm -f "$CLAUDE_DIR"/*.new "$CLAUDE_DIR"/*.update-notice
 
   # 폴더 심볼릭 링크 생성 함수
   create_folder_symlink() {
@@ -134,15 +134,11 @@ in ''
       return 0
     fi
 
-    # 대상 파일이 이미 존재하는 경우 업데이트 여부 확인
+    # 대상 파일이 이미 존재하는 경우 내용 확인
     if [[ -f "$target_file" && ! -L "$target_file" ]]; then
-      # 파일 내용이 동일한지 확인
       if cmp -s "$source_file" "$target_file"; then
         echo "  파일이 이미 최신 상태임"
         return 0
-      else
-        echo "  기존 파일과 다름, 백업 후 업데이트"
-        cp "$target_file" "$target_file.bak.$(date +%Y%m%d_%H%M%S)"
       fi
     elif [[ -L "$target_file" ]]; then
       echo "  기존 심볼릭 링크 제거"

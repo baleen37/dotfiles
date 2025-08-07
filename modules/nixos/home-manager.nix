@@ -135,7 +135,7 @@ in
   # Smart Claude config files management with user modification preservation
   # Same as Darwin implementation for platform consistency
   home.activation.copyClaudeFiles = lib.hm.dag.entryAfter [ "linkGeneration" ] (
-    import ../shared/lib/claude-activation.nix { inherit config lib self; platform = "nixos"; }
+    import ../shared/lib/claude-activation.nix { inherit config lib self; }
   );
 
 }
