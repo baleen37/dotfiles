@@ -26,74 +26,74 @@ in ''
   SOURCE_DIR="${sourceDir}"
   FALLBACK_SOURCES=(${lib.concatStringsSep " " (map (s: "\"${s}\"") fallbackSources)})
 
-  echo "=== Claude 설정 폴더 심볼릭 링크 업데이트 시작 ==="
-  echo "Claude 디렉토리: $CLAUDE_DIR"
-  echo "기본 소스 디렉토리: $SOURCE_DIR"
+  echo "=== Starting Claude config folder symlink update ==="
+  echo "Claude directory: $CLAUDE_DIR"
+  echo "Default source directory: $SOURCE_DIR"
 
-  # 소스 디렉토리 유효성 검사 및 fallback
+  # Source directory validation and fallback
   ACTUAL_SOURCE_DIR=""
 
   if [[ -d "$SOURCE_DIR" ]]; then
     ACTUAL_SOURCE_DIR="$SOURCE_DIR"
-    echo "✓ 기본 소스 디렉토리 확인됨: $SOURCE_DIR"
+    echo "✓ Default source directory confirmed: $SOURCE_DIR"
   else
-    echo "⚠ 기본 소스 디렉토리 없음: $SOURCE_DIR"
-    echo "Fallback 디렉토리들 확인 중..."
+    echo "⚠ Default source directory not found: $SOURCE_DIR"
+    echo "Checking fallback directories..."
 
     for fallback_dir in "''${FALLBACK_SOURCES[@]}"; do
-      echo "  시도 중: $fallback_dir"
+      echo "  Trying: $fallback_dir"
       if [[ -d "$fallback_dir" ]]; then
         ACTUAL_SOURCE_DIR="$fallback_dir"
-        echo "  ✓ Fallback 소스 발견: $fallback_dir"
+        echo "  ✓ Fallback source found: $fallback_dir"
         break
       fi
     done
 
     if [[ -z "$ACTUAL_SOURCE_DIR" ]]; then
-      echo "❌ 오류: Claude 설정 소스 디렉토리를 찾을 수 없습니다!"
-      echo "확인한 경로들:"
+      echo "❌ Error: Cannot find Claude config source directory!"
+      echo "Checked paths:"
       echo "  - $SOURCE_DIR"
       for fallback_dir in "''${FALLBACK_SOURCES[@]}"; do
         echo "  - $fallback_dir"
       done
       echo ""
-      echo "해결 방법:"
-      echo "1. dotfiles를 올바른 위치에 clone했는지 확인"
-      echo "2. 'make build' 또는 'make switch' 실행"
-      echo "3. Nix flake가 올바르게 설정되었는지 확인"
+      echo "Solutions:"
+      echo "1. Verify dotfiles are cloned to correct location"
+      echo "2. Run 'make build' or 'make switch'"
+      echo "3. Verify Nix flake is properly configured"
       exit 1
     fi
   fi
 
-  echo "사용할 소스 디렉토리: $ACTUAL_SOURCE_DIR"
+  echo "Using source directory: $ACTUAL_SOURCE_DIR"
 
-  # Claude 디렉토리 생성 (Claude Code가 관리하는 다른 폴더들 보존)
+  # Create Claude directory (preserve other folders managed by Claude Code)
   mkdir -p "$CLAUDE_DIR"
 
-  # 기존 임시 파일들 정리
-  echo "기존 임시 파일들 정리..."
+  # Clean up existing temporary files
+  echo "Cleaning existing temporary files..."
   rm -f "$CLAUDE_DIR"/*.new "$CLAUDE_DIR"/*.update-notice
 
-  # 폴더 심볼릭 링크 생성 함수
+  # Folder symlink creation function
   create_folder_symlink() {
     local source_folder="$1"
     local target_folder="$2"
     local folder_name=$(basename "$source_folder")
 
-    echo "처리 중: $folder_name/"
+    echo "Processing: $folder_name/"
 
     if [[ ! -d "$source_folder" ]]; then
-      echo "  소스 폴더 없음, 건너뜀"
+      echo "  Source folder not found, skipping"
       return 0
     fi
 
-    # 기존 폴더나 링크가 있으면 제거
+    # Remove existing folder or link if present
     if [[ -e "$target_folder" || -L "$target_folder" ]]; then
-      echo "  기존 $folder_name 폴더/링크 제거"
+      echo "  Removing existing $folder_name folder/link"
       rm -rf "$target_folder"
     fi
 
-    # 폴더 심볼릭 링크 생성
+    # Create folder symlink
     ln -sf "$source_folder" "$target_folder"
     echo "  폴더 심볼릭 링크 생성: $target_folder -> $source_folder"
   }
@@ -134,14 +134,9 @@ in ''
       return 0
     fi
 
-    # 대상 파일이 이미 존재하는 경우 내용 확인
-    if [[ -f "$target_file" && ! -L "$target_file" ]]; then
-      if cmp -s "$source_file" "$target_file"; then
-        echo "  파일이 이미 최신 상태임"
-        return 0
-      fi
-    elif [[ -L "$target_file" ]]; then
-      echo "  기존 심볼릭 링크 제거"
+    # 기존 파일/링크 제거 (항상 실제 파일로 교체)
+    if [[ -e "$target_file" || -L "$target_file" ]]; then
+      echo "  기존 파일/링크 제거하여 실제 파일로 교체"
       rm -f "$target_file"
     fi
 

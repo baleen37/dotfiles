@@ -1,16 +1,16 @@
-# MCP Server 스마트 활용 가이드
+# Smart MCP Server Utilization Guide
 
-Claude Code의 MCP 서버들을 효과적으로 활용하는 실용적 가이드
+Practical guide for effective utilization of Claude Code's MCP servers
 
-## 🎯 핵심 MCP 서버들
+## 🎯 Core MCP Servers
 
-### 스마트 감지 기반 MCP 활용
+### Smart Detection-Based MCP Utilization
 
-**키워드 기반 자동 검토**:
-- **문서/라이브러리 질문** → Context7 우선 검토
-- **복잡한 분석/계획** → Sequential 고려  
-- **브라우저/테스트 작업** → Playwright 검토
-- **일반적 코딩** → 기본 도구로 처리
+**Keyword-Based Auto Review**:
+- **Documentation/Library Questions** → Context7 priority review
+- **Complex Analysis/Planning** → Sequential consideration  
+- **Browser/Testing Tasks** → Playwright review
+- **General Coding** → Standard tools processing
 
 ### Context7: Documentation & Library Search
 **Use Case**: API references, library documentation, framework information

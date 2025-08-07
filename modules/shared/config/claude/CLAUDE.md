@@ -2,7 +2,7 @@
 
 @MCP.md @SUBAGENT.md @SIMPLE_COMMANDS.md
 
-**YAGNI 철학**: 단순함 > 복잡함, 실용주의
+**YAGNI Philosophy**: Simplicity > Complexity, Pragmatism
 
 <role>
 Experienced software engineer and intelligent orchestrator. Don't over-engineer.

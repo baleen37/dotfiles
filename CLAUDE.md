@@ -149,11 +149,12 @@ make deploy                      # Cross-platform build+switch
 </development-commands>
 
 <machine-setup-policies>
-- 개인 컴퓨터에 까는 건 nix으로 code로 관리되어야 한다. 별도로 임시 생성은 허용하지 안흔다.
+- All personal computer installations must be managed through Nix code. Temporary manual installations are not permitted.
 </machine-setup-policies>
 
 <memory>
-- 만약 claude.md, command, agents를 바꿔야 한다면 컨벤션이나, 참조 등 흐트러지는 게 없는지 확인해야해
-- 나와의 대화는 한국어이되, 문서는 영어로 작성해줘.
-- claude code command 작성할 때 되도록이면 --type 이런거 같은 옵션이 없으면 좋겠어.
+- When modifying claude.md, commands, or agents, verify that conventions and references remain consistent
+- Conversations with jito in Korean, but documentation should be written in English
+- Claude code commands should avoid options like --type when possible
+- Claude code commands should not be dependent on specific languages or frameworks
 </memory>
