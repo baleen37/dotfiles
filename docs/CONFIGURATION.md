@@ -1,7 +1,7 @@
 # Configuration Guide
 
-> **Version**: 1.0  
-> **Last Updated**: 2025-07-08  
+> **Version**: 1.0
+> **Last Updated**: 2025-07-08
 > **Target**: Phase 4 Sprint 4.2 설정 외부화 완료
 
 ## Overview
@@ -203,7 +203,7 @@ export SUDO_REFRESH_INTERVAL=600
 
 ```bash
 # 설정 로더 로드
-source scripts/lib/config-loader.sh
+source scripts/utils/config-loader.sh
 
 # 캐시 설정 로드
 cache_size=$(load_cache_config "max_size_gb" "5")
@@ -325,7 +325,7 @@ cache_size=$(load_cache_config "max_size_gb" "5")
    env | grep CACHE
 
    # 설정 로더 디버깅
-   bash -x scripts/lib/config-loader.sh
+   bash -x scripts/utils/config-loader.sh
    ```
 
 3. **YAML 구문 오류**

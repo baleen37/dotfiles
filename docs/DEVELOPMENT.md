@@ -1,7 +1,7 @@
 # Development Guide
 
-> **Version**: 2.0  
-> **Last Updated**: 2025-07-08  
+> **Version**: 2.0
+> **Last Updated**: 2025-07-08
 > **For**: dotfiles 리팩토링 프로젝트
 
 ## Getting Started
@@ -83,7 +83,7 @@ nix build .#checks.aarch64-darwin.new_feature_unit
 
 # Phase 2: Green - 최소 구현
 # 코드 작성 후...
-nix build .#checks.aarch64-darwin.new_feature_unit  
+nix build .#checks.aarch64-darwin.new_feature_unit
 # Expected: Build succeeds
 
 # Phase 3: Refactor - 품질 개선
@@ -127,7 +127,7 @@ dotfiles/
 VARIABLE_NAME="${VARIABLE_NAME:-default_value}"
 
 # 설정 파일에서 로드 가능
-source scripts/lib/config-loader.sh
+source scripts/utils/config-loader.sh
 VALUE=$(load_config "config.yaml" ".path.to.value" "default")
 ```
 
@@ -136,7 +136,7 @@ VALUE=$(load_config "config.yaml" ".path.to.value" "default")
 ### Test Categories
 
 1. **Unit Tests**: 개별 함수/모듈 테스트
-2. **Integration Tests**: 모듈 간 상호작용 테스트  
+2. **Integration Tests**: 모듈 간 상호작용 테스트
 3. **E2E Tests**: 전체 워크플로우 테스트
 4. **Performance Tests**: 성능 측정 테스트
 
@@ -242,7 +242,7 @@ nix build --show-trace
 nix-store -l /nix/store/...-test.drv
 
 # 설정 값 확인
-source scripts/lib/config-loader.sh
+source scripts/utils/config-loader.sh
 load_config "cache.yaml" ".cache.max_size_gb" "5"
 ```
 
@@ -252,7 +252,7 @@ load_config "cache.yaml" ".cache.max_size_gb" "5"
 
 - [x] **Phase 1**: 중복 코드 제거 및 통합
 - [x] **Phase 2**: 대형 모듈 분해
-- [x] **Phase 3**: 테스트 및 품질 향상  
+- [x] **Phase 3**: 테스트 및 품질 향상
 - [🔄] **Phase 4**: 구조 최적화 (현재)
 - [ ] **Phase 5**: 성능 최적화
 

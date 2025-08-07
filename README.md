@@ -129,7 +129,7 @@ This system uses an **externalized configuration approach** that allows flexible
 ```bash
 config/
 ├── platforms.yaml     # Platform-specific settings
-├── cache.yaml         # Cache management configuration  
+├── cache.yaml         # Cache management configuration
 ├── network.yaml       # Network and download settings
 ├── performance.yaml   # Build and system performance
 └── security.yaml      # Security policies and SSH settings
@@ -144,7 +144,7 @@ Override any configuration using environment variables:
 export CACHE_MAX_SIZE_GB=10
 export CACHE_CLEANUP_DAYS=14
 
-# Network settings  
+# Network settings
 export HTTP_CONNECTIONS=100
 export CONNECT_TIMEOUT=10
 
@@ -160,7 +160,7 @@ export ARCH="aarch64"
 ./scripts/validate-config
 
 # Load configuration in scripts
-source scripts/lib/config-loader.sh
+source scripts/utils/config-loader.sh
 cache_size=$(load_cache_config "max_size_gb" "5")
 ```
 
