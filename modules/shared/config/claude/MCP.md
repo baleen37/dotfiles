@@ -9,7 +9,6 @@ Claude Code의 MCP 서버들을 효과적으로 활용하는 실용적 가이드
 **키워드 기반 자동 검토**:
 - **문서/라이브러리 질문** → Context7 우선 검토
 - **복잡한 분석/계획** → Sequential 고려
-- **복잡한 분석/계획** → Sequential 고려  
 - **브라우저/테스트 작업** → Playwright 검토
 - **일반적 코딩** → 기본 도구로 처리
 
@@ -44,7 +43,6 @@ Question/Request → Keyword Analysis → MCP Server Review → Optimal Tool Sel
 ### Practical Decision Criteria
 - **Documentation/Library Questions** → Context7 priority review
 - **Complex Analysis/Planning** → Sequential consideration
-- **Complex Analysis/Planning** → Sequential consideration  
 - **Browser/Testing Tasks** → Playwright review
 - **General Coding** → Standard tools processing
 
@@ -60,7 +58,6 @@ When complex tasks require multiple capabilities:
 ```bash
 "Find React documentation using Context7"
 "Analyze this problem with Sequential server"
-"Analyze this problem with Sequential server"  
 "Create E2E test using Playwright"
 ```
 
@@ -78,7 +75,6 @@ When complex tasks require multiple capabilities:
 → Task delegation decision based on complexity
 
 "Nix flake configuration issue"
-"Nix flake configuration issue"  
 → nix-system-expert priority (specialized domain)
 → Sequential for complex troubleshooting if needed
 
@@ -115,7 +111,6 @@ When complex tasks require multiple capabilities:
 "Find Next.js 14 routing examples" → Context7 utilization
 
 # Complex Problem Solving
-# Complex Problem Solving  
 "Analyze authentication flow bottleneck" → Sequential consideration
 
 # Testing Strategy
@@ -129,5 +124,4 @@ When complex tasks require multiple capabilities:
 - **MCP Server Unavailable**: Graceful fallback to standard tools
 - **Context7 Alternative**: WebSearch for documentation needs
 - **Sequential Alternative**: Basic step-by-step manual analysis
-- **Sequential Alternative**: Basic step-by-step manual analysis  
 - **Playwright Alternative**: Manual test strategy guidance
