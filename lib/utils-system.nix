@@ -6,7 +6,7 @@
 
 let
   # Determine pkgs and lib
-  actualPkgs = if pkgs != null then pkgs else (import <nixpkgs> {});
+  actualPkgs = if pkgs != null then pkgs else (import <nixpkgs> { });
   actualLib = if lib != null then lib else actualPkgs.lib;
 
   # Import error system for error handling
@@ -62,26 +62,30 @@ let
   packageUtils = {
     # Filter out packages that don't exist in nixpkgs
     filterValidPackages = packageList: nixpkgs:
-      builtins.filter (pkg:
-        if builtins.isString pkg
-        then builtins.hasAttr pkg nixpkgs
-        else true  # Allow package derivations to pass through
-      ) packageList;
+      builtins.filter
+        (pkg:
+          if builtins.isString pkg
+          then builtins.hasAttr pkg nixpkgs
+          else true  # Allow package derivations to pass through
+        )
+        packageList;
 
     # Merge shared packages with platform-specific packages
     # This function standardizes the pattern used across platform modules
-    mergePackageLists = { pkgs, sharedPackagesPath, platformPackages ? [] }:
+    mergePackageLists = { pkgs, sharedPackagesPath, platformPackages ? [ ] }:
       let
         # Import shared packages
         sharedPackages = import sharedPackagesPath { inherit pkgs; };
 
         # Validate that shared packages is a list
-        validSharedPackages = if builtins.isList sharedPackages
+        validSharedPackages =
+          if builtins.isList sharedPackages
           then sharedPackages
           else errorSystem.throwValidationError "Shared packages must be a list, got: ${builtins.typeOf sharedPackages}";
 
         # Validate that platform packages is a list
-        validPlatformPackages = if builtins.isList platformPackages
+        validPlatformPackages =
+          if builtins.isList platformPackages
           then platformPackages
           else errorSystem.throwValidationError "Platform packages must be a list, got: ${builtins.typeOf platformPackages}";
       in
@@ -127,13 +131,13 @@ let
             if builtins.isAttrs existing && builtins.isAttrs value
             then configUtils.mergeConfigs existing value  # Recursive merge
             else value              # Override with new value
-          else value;              # Add new attribute
+          else value; # Add new attribute
       in
       config1 // (builtins.mapAttrs mergeAttr config2);
 
     # Merge multiple configs in sequence
     mergeMultipleConfigs = configs:
-      builtins.foldl' configUtils.mergeConfigs {} configs;
+      builtins.foldl' configUtils.mergeConfigs { } configs;
 
     # Override specific keys in config
     overrideKeys = config: overrides:
@@ -165,9 +169,9 @@ let
         addUnique = acc: item:
           if builtins.elem item acc
           then acc
-          else acc ++ [item];
+          else acc ++ [ item ];
       in
-      builtins.foldl' addUnique [] list;
+      builtins.foldl' addUnique [ ] list;
 
     # Flatten nested lists into a single list
     flatten = nestedList:
@@ -175,7 +179,7 @@ let
         flattenItem = item:
           if builtins.isList item
           then builtins.concatLists (map flattenItem item)
-          else [item];
+          else [ item ];
       in
       builtins.concatLists (map flattenItem nestedList);
 
@@ -184,30 +188,30 @@ let
       let
         addToPartition = acc: item:
           if predicate item
-          then { true = acc.true ++ [item]; false = acc.false; }
-          else { true = acc.true; false = acc.false ++ [item]; };
+          then { true = acc.true ++ [ item ]; false = acc.false; }
+          else { true = acc.true; false = acc.false ++ [ item ]; };
       in
-      builtins.foldl' addToPartition { true = []; false = []; } list;
+      builtins.foldl' addToPartition { true = [ ]; false = [ ]; } list;
 
     # Group list elements by key function
     groupBy = keyFn: list:
       let
         addToGroup = acc: item:
           let key = keyFn item;
-          in acc // { ${key} = (acc.${key} or []) ++ [item]; };
+          in acc // { ${key} = (acc.${key} or [ ]) ++ [ item ]; };
       in
-      builtins.foldl' addToGroup {} list;
+      builtins.foldl' addToGroup { } list;
 
     # Take first n elements from list
     take = n: list:
-      if n <= 0 then []
+      if n <= 0 then [ ]
       else if n >= builtins.length list then list
       else builtins.genList (i: builtins.elemAt list i) n;
 
     # Drop first n elements from list
     drop = n: list:
       if n <= 0 then list
-      else if n >= builtins.length list then []
+      else if n >= builtins.length list then [ ]
       else listUtils.take (builtins.length list - n) (builtins.genList (i: builtins.elemAt list (i + n)) (builtins.length list - n));
   };
 
@@ -306,7 +310,7 @@ let
   attrUtils = {
     # Deep merge multiple attribute sets
     deepMerge = attrs:
-      builtins.foldl' configUtils.mergeConfigs {} attrs;
+      builtins.foldl' configUtils.mergeConfigs { } attrs;
 
     # Check if attribute path exists
     hasAttrPath = path: attrs:
@@ -343,7 +347,7 @@ let
             let
               key = builtins.head pathParts;
               rest = listUtils.drop 1 pathParts;
-              existing = if builtins.hasAttr key currentAttrs then currentAttrs.${key} else {};
+              existing = if builtins.hasAttr key currentAttrs then currentAttrs.${key} else { };
             in
             currentAttrs // { ${key} = setValue rest existing; };
       in

@@ -15,7 +15,7 @@ in
   ];
 
   nix = {
-    enable = false;  # Determinate Nix와 충돌 방지를 위해 비활성화
+    enable = false; # Determinate Nix와 충돌 방지를 위해 비활성화
     # package = pkgs.nix;  # Determinate가 관리하므로 비활성화
 
     # gc = {

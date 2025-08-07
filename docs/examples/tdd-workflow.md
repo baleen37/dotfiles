@@ -56,6 +56,7 @@ pkgs.runCommand "config-loader-test"
 ```
 
 **Run the test (should fail):**
+
 ```bash
 nix build .#checks.aarch64-darwin.config_loader_unit
 # Expected: Build fails - functions not implemented yet
@@ -95,6 +96,7 @@ get_unified_config() {
 ```
 
 **Run the test (should pass):**
+
 ```bash
 nix build .#checks.aarch64-darwin.config_loader_unit
 # Expected: Build succeeds - minimal implementation works
@@ -187,6 +189,7 @@ get_dotfiles_root() {
 ```
 
 **Verify tests still pass:**
+
 ```bash
 nix build .#checks.aarch64-darwin.config_loader_unit
 # Expected: Build succeeds - refactored implementation still works
@@ -378,11 +381,13 @@ pkgs.runCommand "config-performance"
 ## TDD Best Practices
 
 ### 1. Test First, Always
+
 - Write the test before any implementation
 - Make sure the test fails initially
 - Only write enough code to make the test pass
 
 ### 2. Incremental Development
+
 ```bash
 # Small, focused commits for each TDD cycle
 git commit -m "Red: Add failing test for config loader"
@@ -391,12 +396,14 @@ git commit -m "Refactor: Improve config loader with caching"
 ```
 
 ### 3. Test Categories
+
 - **Unit**: Test individual functions
 - **Integration**: Test module interactions  
 - **E2E**: Test complete workflows
 - **Performance**: Test speed and resource usage
 
 ### 4. Continuous Validation
+
 ```bash
 # Run tests frequently during development
 nix build .#checks.aarch64-darwin.test-all

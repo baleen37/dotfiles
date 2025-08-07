@@ -8,8 +8,8 @@ rec {
   buildOptimization = {
     # Parallel build settings optimized for Apple M2
     parallelSettings = {
-      cores = 8;            # Use all available cores
-      maxJobs = 4;          # Optimal for M2 memory constraints
+      cores = 8; # Use all available cores
+      maxJobs = 4; # Optimal for M2 memory constraints
       enableParallelBuilding = true;
     };
 
@@ -43,12 +43,12 @@ rec {
     NIX_BUILD_CORES = toString buildOptimization.parallelSettings.cores;
 
     # Optimize build phases
-    configureFlags = (attrs.configureFlags or []) ++ [
+    configureFlags = (attrs.configureFlags or [ ]) ++ [
       "--enable-parallel-build"
     ];
 
     # Add build metadata for performance tracking
-    meta = (attrs.meta or {}) // {
+    meta = (attrs.meta or { }) // {
       platforms = lib.platforms.all;
       broken = false;
       # Mark as performance optimized
@@ -77,12 +77,14 @@ rec {
     buildInputFilter = path: type:
       let
         baseName = baseNameOf path;
-        isUnnecessary = lib.any (pattern:
-          lib.hasPrefix pattern baseName ||
-          lib.hasSuffix pattern baseName
-        ) unnecessaryRebuildFiles;
+        isUnnecessary = lib.any
+          (pattern:
+            lib.hasPrefix pattern baseName ||
+            lib.hasSuffix pattern baseName
+          )
+          unnecessaryRebuildFiles;
       in
-      !isUnnecessary;
+        !isUnnecessary;
   };
 
   # Cache strategy optimization
@@ -120,10 +122,11 @@ rec {
   performanceUtils = {
     # Wrapper to measure build time
     measureBuildTime = name: drv:
-      pkgs.runCommand "measure-${name}" {
-        inherit drv;
-        buildInputs = [ pkgs.time ];
-      } ''
+      pkgs.runCommand "measure-${name}"
+        {
+          inherit drv;
+          buildInputs = [ pkgs.time ];
+        } ''
         echo "=== Build Performance Measurement for ${name} ==="
         start_time=$(date +%s)
 
@@ -140,10 +143,11 @@ rec {
 
     # Memory usage profiler for builds
     profileMemoryUsage = name: drv:
-      pkgs.runCommand "profile-memory-${name}" {
-        inherit drv;
-        buildInputs = [ pkgs.time pkgs.procps ];
-      } ''
+      pkgs.runCommand "profile-memory-${name}"
+        {
+          inherit drv;
+          buildInputs = [ pkgs.time pkgs.procps ];
+        } ''
         echo "=== Memory Profile for ${name} ==="
 
         # Monitor memory usage during build
@@ -161,10 +165,11 @@ rec {
   dependencyOptimization = {
     # Minimize dependency closure size
     minimizeClosure = drv:
-      pkgs.runCommand "minimize-closure" {
-        inherit drv;
-        buildInputs = [ pkgs.nix ];
-      } ''
+      pkgs.runCommand "minimize-closure"
+        {
+          inherit drv;
+          buildInputs = [ pkgs.nix ];
+        } ''
         # Analyze dependency closure
         nix-store -q --requisites ${drv} > $out/full-closure
         nix-store -q --references ${drv} > $out/direct-deps
@@ -178,9 +183,10 @@ rec {
 
     # Remove unnecessary runtime dependencies
     optimizeRuntimeDeps = drv:
-      pkgs.runCommand "optimize-runtime-deps" {
-        inherit drv;
-      } ''
+      pkgs.runCommand "optimize-runtime-deps"
+        {
+          inherit drv;
+        } ''
         # Copy derivation and strip unnecessary references
         cp -r ${drv} $out
         chmod -R +w $out
@@ -205,7 +211,7 @@ rec {
         NIX_CFLAGS_COMPILE = "-O3 -mcpu=apple-m1";
 
         # Use all performance cores
-        NIX_BUILD_CORES = "4";  # P-cores only for compute-intensive tasks
+        NIX_BUILD_CORES = "4"; # P-cores only for compute-intensive tasks
       };
     } else if lib.hasPrefix "x86_64" system then {
       # x86_64 specific optimizations
@@ -216,6 +222,6 @@ rec {
         # Optimize for x86_64
         NIX_BUILD_CORES = toString buildOptimization.parallelSettings.cores;
       };
-    } else {}
+    } else { }
   );
 }

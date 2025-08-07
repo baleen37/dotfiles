@@ -9,13 +9,13 @@ rec {
     if lib.hasPrefix "aarch64-darwin" system then {
       # Apple M2 optimization
       totalCores = 8;
-      performanceCores = 4;  # P-cores for compute-intensive tasks
-      efficiencyCores = 4;   # E-cores for background tasks
+      performanceCores = 4; # P-cores for compute-intensive tasks
+      efficiencyCores = 4; # E-cores for background tasks
       memoryGB = 16;
 
       # Optimal settings for Apple Silicon
-      optimalJobs = 4;       # Conservative for memory constraints
-      optimalCores = 8;      # Use all cores for compilation
+      optimalJobs = 4; # Conservative for memory constraints
+      optimalCores = 8; # Use all cores for compilation
 
       # Build environment
       buildEnv = {
@@ -30,10 +30,10 @@ rec {
       };
     } else if lib.hasPrefix "x86_64" system then {
       # x86_64 optimization
-      totalCores = 8;        # Assume typical 8-core system
+      totalCores = 8; # Assume typical 8-core system
       memoryGB = 16;
 
-      optimalJobs = 6;       # More aggressive parallelization
+      optimalJobs = 6; # More aggressive parallelization
       optimalCores = 8;
 
       buildEnv = {
@@ -66,8 +66,8 @@ rec {
     enableParallelBuilding = true;
 
     # Build resource limits
-    buildTimeoutSeconds = 3600;  # 1 hour max per build
-    memoryLimitMB = hardwareOptimization.memoryGB * 1024 * 0.8;  # 80% of RAM
+    buildTimeoutSeconds = 3600; # 1 hour max per build
+    memoryLimitMB = hardwareOptimization.memoryGB * 1024 * 0.8; # 80% of RAM
 
     # Parallel-specific environment
     environment = hardwareOptimization.buildEnv // {
@@ -77,7 +77,7 @@ rec {
       PYTHON_BUILD_JOBS = toString hardwareOptimization.optimalCores;
 
       # Memory optimization for parallel builds
-      LINK_POOL_DEPTH = "4";  # Limit parallel linking to avoid OOM
+      LINK_POOL_DEPTH = "4"; # Limit parallel linking to avoid OOM
 
       # Temporary directory optimization
       TMPDIR = "/tmp";
@@ -104,8 +104,8 @@ rec {
         MAX_JOBS = toString parallelBuildConfig.maxJobs;
 
         # Apply environment optimizations
-        buildInputs = (attrs.buildInputs or []) ++ [
-          pkgs.ccache  # For faster C/C++ compilation
+        buildInputs = (attrs.buildInputs or [ ]) ++ [
+          pkgs.ccache # For faster C/C++ compilation
         ];
 
         # Optimized build phases
@@ -147,7 +147,7 @@ rec {
         '';
 
         # Add metadata for performance tracking
-        meta = (attrs.meta or {}) // {
+        meta = (attrs.meta or { }) // {
           optimizedForParallel = true;
           buildCores = parallelBuildConfig.cores;
           maxJobs = parallelBuildConfig.maxJobs;
@@ -165,9 +165,10 @@ rec {
         MAKEFLAGS = "-j${toString parallelBuildConfig.cores}";
 
         # Add ccache support for C/C++ packages
-        buildInputs = (oldAttrs.buildInputs or []) ++
-          lib.optionals (lib.any (input: lib.hasPrefix "gcc" input.name || lib.hasPrefix "clang" input.name)
-                         (oldAttrs.buildInputs or [])) [ pkgs.ccache ];
+        buildInputs = (oldAttrs.buildInputs or [ ]) ++
+          lib.optionals
+            (lib.any (input: lib.hasPrefix "gcc" input.name || lib.hasPrefix "clang" input.name)
+              (oldAttrs.buildInputs or [ ])) [ pkgs.ccache ];
       });
   };
 
@@ -236,24 +237,31 @@ rec {
     # Analyze build dependencies to optimize parallel execution
     analyzeBuildDeps = buildInputs: {
       # Categorize dependencies by build complexity
-      lightDeps = lib.filter (dep:
-        lib.elem (dep.pname or "") [ "bash" "coreutils" "findutils" "grep" ]
-      ) buildInputs;
+      lightDeps = lib.filter
+        (dep:
+          lib.elem (dep.pname or "") [ "bash" "coreutils" "findutils" "grep" ]
+        )
+        buildInputs;
 
-      mediumDeps = lib.filter (dep:
-        lib.elem (dep.pname or "") [ "git" "curl" "wget" "cmake" "pkg-config" ]
-      ) buildInputs;
+      mediumDeps = lib.filter
+        (dep:
+          lib.elem (dep.pname or "") [ "git" "curl" "wget" "cmake" "pkg-config" ]
+        )
+        buildInputs;
 
-      heavyDeps = lib.filter (dep:
-        lib.elem (dep.pname or "") [ "llvm" "gcc" "rust" "go" "nodejs" "python3" ]
-      ) buildInputs;
+      heavyDeps = lib.filter
+        (dep:
+          lib.elem (dep.pname or "") [ "llvm" "gcc" "rust" "go" "nodejs" "python3" ]
+        )
+        buildInputs;
     };
 
     # Create dependency-aware build plan
     mkParallelBuildPlan = buildInputs:
       let
         depAnalysis = dependencyOptimization.analyzeBuildDeps buildInputs;
-      in {
+      in
+      {
         # Build light dependencies first (fast, parallel)
         phase1 = {
           dependencies = depAnalysis.lightDeps;
@@ -281,82 +289,84 @@ rec {
   buildMonitoring = {
     # Wrap build with performance monitoring
     withBuildProfiling = name: drv:
-      pkgs.runCommand "profiled-${name}" {
-        inherit drv;
-        buildInputs = [ pkgs.time pkgs.htop ];
-      } ''
-        echo "=== Parallel Build Profile: ${name} ==="
+      pkgs.runCommand "profiled-${name}"
+        {
+          inherit drv;
+          buildInputs = [ pkgs.time pkgs.htop ];
+        } ''
+                echo "=== Parallel Build Profile: ${name} ==="
 
-        # Start system monitoring
-        top -l 1 -n 0 > $out/system-before.txt &
+                # Start system monitoring
+                top -l 1 -n 0 > $out/system-before.txt &
 
-        # Profile the build
-        start_time=$(date +%s.%N)
-        ${pkgs.time}/bin/time -v ${drv} 2>&1 | tee $out/build-profile.log
-        build_result=$?
-        end_time=$(date +%s.%N)
+                # Profile the build
+                start_time=$(date +%s.%N)
+                ${pkgs.time}/bin/time -v ${drv} 2>&1 | tee $out/build-profile.log
+                build_result=$?
+                end_time=$(date +%s.%N)
 
-        # Calculate metrics
-        duration=$(echo "$end_time - $start_time" | ${pkgs.bc}/bin/bc)
-        echo "Build duration: $duration seconds" >> $out/build-profile.log
+                # Calculate metrics
+                duration=$(echo "$end_time - $start_time" | ${pkgs.bc}/bin/bc)
+                echo "Build duration: $duration seconds" >> $out/build-profile.log
 
-        # Extract parallel build metrics
-        cpu_usage=$(grep "Percent of CPU" $out/build-profile.log | sed 's/.*: //' || echo "Unknown")
-        max_memory=$(grep "Maximum resident set size" $out/build-profile.log | sed 's/.*: //' || echo "Unknown")
+                # Extract parallel build metrics
+                cpu_usage=$(grep "Percent of CPU" $out/build-profile.log | sed 's/.*: //' || echo "Unknown")
+                max_memory=$(grep "Maximum resident set size" $out/build-profile.log | sed 's/.*: //' || echo "Unknown")
 
-        # Generate summary
-        cat > $out/summary.json << EOF
-{
-  "name": "${name}",
-  "duration_seconds": $duration,
-  "cpu_usage_percent": "$cpu_usage",
-  "max_memory_kb": "$max_memory",
-  "parallel_cores": ${toString parallelBuildConfig.cores},
-  "max_jobs": ${toString parallelBuildConfig.maxJobs},
-  "build_result": $build_result
-}
-EOF
+                # Generate summary
+                cat > $out/summary.json << EOF
+        {
+          "name": "${name}",
+          "duration_seconds": $duration,
+          "cpu_usage_percent": "$cpu_usage",
+          "max_memory_kb": "$max_memory",
+          "parallel_cores": ${toString parallelBuildConfig.cores},
+          "max_jobs": ${toString parallelBuildConfig.maxJobs},
+          "build_result": $build_result
+        }
+        EOF
 
-        exit $build_result
+                exit $build_result
       '';
 
     # Generate parallel build efficiency report
     analyzeBuildEfficiency = buildLogs:
-      pkgs.runCommand "build-efficiency-analysis" {
-        inherit buildLogs;
-      } ''
-        echo "=== Parallel Build Efficiency Analysis ==="
+      pkgs.runCommand "build-efficiency-analysis"
+        {
+          inherit buildLogs;
+        } ''
+                echo "=== Parallel Build Efficiency Analysis ==="
 
-        # Analyze CPU utilization patterns
-        total_builds=0
-        efficient_builds=0
+                # Analyze CPU utilization patterns
+                total_builds=0
+                efficient_builds=0
 
-        for log in ${lib.concatStringsSep " " buildLogs}; do
-          if [ -f "$log/summary.json" ]; then
-            total_builds=$((total_builds + 1))
+                for log in ${lib.concatStringsSep " " buildLogs}; do
+                  if [ -f "$log/summary.json" ]; then
+                    total_builds=$((total_builds + 1))
 
-            cpu_usage=$(jq -r '.cpu_usage_percent' "$log/summary.json" | sed 's/%//')
-            if [ "$cpu_usage" -gt 300 ]; then  # Good parallel utilization
-              efficient_builds=$((efficient_builds + 1))
-            fi
-          fi
-        done
+                    cpu_usage=$(jq -r '.cpu_usage_percent' "$log/summary.json" | sed 's/%//')
+                    if [ "$cpu_usage" -gt 300 ]; then  # Good parallel utilization
+                      efficient_builds=$((efficient_builds + 1))
+                    fi
+                  fi
+                done
 
-        efficiency_ratio=$(echo "scale=2; $efficient_builds * 100 / $total_builds" | ${pkgs.bc}/bin/bc)
+                efficiency_ratio=$(echo "scale=2; $efficient_builds * 100 / $total_builds" | ${pkgs.bc}/bin/bc)
 
-        cat > $out << EOF
-Parallel Build Efficiency Report
-================================
+                cat > $out << EOF
+        Parallel Build Efficiency Report
+        ================================
 
-Total builds analyzed: $total_builds
-Efficiently parallelized: $efficient_builds
-Efficiency ratio: $efficiency_ratio%
+        Total builds analyzed: $total_builds
+        Efficiently parallelized: $efficient_builds
+        Efficiency ratio: $efficiency_ratio%
 
-Recommendations:
-- Target CPU utilization: >300% (indicates good parallelization)
-- Monitor memory usage to avoid OOM with high parallelism
-- Adjust max-jobs based on build complexity
-EOF
+        Recommendations:
+        - Target CPU utilization: >300% (indicates good parallelization)
+        - Monitor memory usage to avoid OOM with high parallelism
+        - Adjust max-jobs based on build complexity
+        EOF
       '';
   };
 
@@ -366,22 +376,26 @@ EOF
     optimizeFlakeOutputs = outputs: system:
       outputs // {
         # Optimize packages for parallel building
-        packages = lib.mapAttrs (name: pkg:
-          buildOptimizations.optimizePackageForParallel pkg
-        ) (outputs.packages.${system} or {});
+        packages = lib.mapAttrs
+          (name: pkg:
+            buildOptimizations.optimizePackageForParallel pkg
+          )
+          (outputs.packages.${system} or { });
 
         # Optimize development shell for parallel builds
-        devShells = lib.mapAttrs (name: shell:
-          shell.overrideAttrs (oldAttrs: {
-            inherit (parallelBuildConfig.environment) NIX_BUILD_CORES MAKEFLAGS;
-            shellHook = (oldAttrs.shellHook or "") + ''
-              echo "Parallel build environment configured:"
-              echo "  Cores: ${toString parallelBuildConfig.cores}"
-              echo "  Max jobs: ${toString parallelBuildConfig.maxJobs}"
-              echo "  Build flags: $MAKEFLAGS"
-            '';
-          })
-        ) (outputs.devShells.${system} or {});
+        devShells = lib.mapAttrs
+          (name: shell:
+            shell.overrideAttrs (oldAttrs: {
+              inherit (parallelBuildConfig.environment) NIX_BUILD_CORES MAKEFLAGS;
+              shellHook = (oldAttrs.shellHook or "") + ''
+                echo "Parallel build environment configured:"
+                echo "  Cores: ${toString parallelBuildConfig.cores}"
+                echo "  Max jobs: ${toString parallelBuildConfig.maxJobs}"
+                echo "  Build flags: $MAKEFLAGS"
+              '';
+            })
+          )
+          (outputs.devShells.${system} or { });
       };
   };
 }

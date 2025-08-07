@@ -72,12 +72,12 @@ in
   mkAppConfigurations = {
     # Linux apps builder
     mkLinuxApps = system:
-      (let ps = platformSystem system; in if ps.apps.platformApps ? linux then ps.apps.platformApps.linux else {}) //
+      (let ps = platformSystem system; in if ps.apps.platformApps ? linux then ps.apps.platformApps.linux else { }) //
       (testSystem system).mkLinuxTestApps system;
 
     # Darwin apps builder
     mkDarwinApps = system:
-      (let ps = platformSystem system; in if ps.apps.platformApps ? darwin then ps.apps.platformApps.darwin else {}) //
+      (let ps = platformSystem system; in if ps.apps.platformApps ? darwin then ps.apps.platformApps.darwin else { }) //
       (testSystem system).mkDarwinTestApps system;
   };
 

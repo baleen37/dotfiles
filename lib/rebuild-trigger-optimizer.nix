@@ -9,47 +9,72 @@ rec {
     # Standard exclusions that should not trigger rebuilds
     excludePatterns = [
       # Documentation and metadata
-      "README.md" "*.md" "docs/" "LICENSE" "CHANGELOG.*"
+      "README.md"
+      "*.md"
+      "docs/"
+      "LICENSE"
+      "CHANGELOG.*"
 
       # Version control and CI/CD
-      ".git/" ".github/" ".gitignore" ".gitlab-ci.yml"
+      ".git/"
+      ".github/"
+      ".gitignore"
+      ".gitlab-ci.yml"
 
       # IDE and editor files
-      ".vscode/" ".idea/" "*.swp" "*.swo" "*~" ".DS_Store"
+      ".vscode/"
+      ".idea/"
+      "*.swp"
+      "*.swo"
+      "*~"
+      ".DS_Store"
 
       # Performance and monitoring logs
-      ".perf-logs/" "*.log" "build-*.json"
+      ".perf-logs/"
+      "*.log"
+      "build-*.json"
 
       # Temporary and cache files
-      ".tmp/" "tmp/" "cache/" ".cache/" "result*"
+      ".tmp/"
+      "tmp/"
+      "cache/"
+      ".cache/"
+      "result*"
 
       # Test artifacts that don't affect production builds
-      "test-results/" "coverage/" ".nyc_output/"
+      "test-results/"
+      "coverage/"
+      ".nyc_output/"
 
       # Language-specific temporary files
-      "node_modules/" "__pycache__/" ".pytest_cache/" "target/"
+      "node_modules/"
+      "__pycache__/"
+      ".pytest_cache/"
+      "target/"
     ];
 
     # Create a path filter function
     mkPathFilter = additionalExcludes: path: type:
       let
-        allExcludes = excludePatterns ++ (additionalExcludes or []);
+        allExcludes = excludePatterns ++ (additionalExcludes or [ ]);
         pathStr = toString path;
         baseName = baseNameOf path;
 
         # Check if path matches any exclude pattern
-        matchesExclude = lib.any (pattern:
-          # Direct match
-          baseName == pattern ||
-          # Suffix match (for extensions)
-          lib.hasSuffix pattern baseName ||
-          # Prefix match (for directories)
-          lib.hasPrefix pattern baseName ||
-          # Contains match (for paths)
-          lib.hasInfix pattern pathStr
-        ) allExcludes;
+        matchesExclude = lib.any
+          (pattern:
+            # Direct match
+            baseName == pattern ||
+            # Suffix match (for extensions)
+            lib.hasSuffix pattern baseName ||
+            # Prefix match (for directories)
+            lib.hasPrefix pattern baseName ||
+            # Contains match (for paths)
+            lib.hasInfix pattern pathStr
+          )
+          allExcludes;
       in
-      !matchesExclude;
+        !matchesExclude;
 
     # Optimized source filtering
     filterSource = src: additionalExcludes:
@@ -63,48 +88,67 @@ rec {
     # Split dependencies by stability to enable better caching
     categorizeDeps = deps: {
       # Stable dependencies (rarely change)
-      stable = lib.filter (dep:
-        lib.hasPrefix "nixpkgs" (dep.name or "") ||
-        lib.elem (dep.pname or "") [
-          "glibc" "gcc" "bash" "coreutils" "gnumake"
-        ]
-      ) deps;
+      stable = lib.filter
+        (dep:
+          lib.hasPrefix "nixpkgs" (dep.name or "") ||
+          lib.elem (dep.pname or "") [
+            "glibc"
+            "gcc"
+            "bash"
+            "coreutils"
+            "gnumake"
+          ]
+        )
+        deps;
 
       # Configuration dependencies (change occasionally)
-      config = lib.filter (dep:
-        lib.hasInfix "config" (dep.name or "") ||
-        lib.hasInfix "settings" (dep.name or "")
-      ) deps;
+      config = lib.filter
+        (dep:
+          lib.hasInfix "config" (dep.name or "") ||
+          lib.hasInfix "settings" (dep.name or "")
+        )
+        deps;
 
       # Development dependencies (change frequently)
-      development = lib.filter (dep:
-        lib.hasInfix "dev" (dep.name or "") ||
-        lib.elem (dep.pname or "") [
-          "nodejs" "python3" "rust" "go"
-        ]
-      ) deps;
+      development = lib.filter
+        (dep:
+          lib.hasInfix "dev" (dep.name or "") ||
+          lib.elem (dep.pname or "") [
+            "nodejs"
+            "python3"
+            "rust"
+            "go"
+          ]
+        )
+        deps;
     };
 
     # Create layered build inputs to optimize caching
     mkLayeredInputs = buildInputs: nativeBuildInputs: {
       # System layer (most stable)
-      systemInputs = lib.filter (pkg:
-        lib.hasPrefix "glibc" pkg.name ||
-        lib.hasPrefix "gcc" pkg.name ||
-        lib.elem pkg.pname [ "bash" "coreutils" "findutils" ]
-      ) (buildInputs ++ nativeBuildInputs);
+      systemInputs = lib.filter
+        (pkg:
+          lib.hasPrefix "glibc" pkg.name ||
+          lib.hasPrefix "gcc" pkg.name ||
+          lib.elem pkg.pname [ "bash" "coreutils" "findutils" ]
+        )
+        (buildInputs ++ nativeBuildInputs);
 
       # Tools layer (moderately stable)
-      toolInputs = lib.filter (pkg:
-        lib.elem pkg.pname [ "git" "curl" "wget" "gnumake" "cmake" ]
-      ) (buildInputs ++ nativeBuildInputs);
+      toolInputs = lib.filter
+        (pkg:
+          lib.elem pkg.pname [ "git" "curl" "wget" "gnumake" "cmake" ]
+        )
+        (buildInputs ++ nativeBuildInputs);
 
       # Runtime layer (less stable)
-      runtimeInputs = lib.filter (pkg:
-        !(lib.elem pkg.pname [ "bash" "coreutils" "findutils" "git" "curl" "wget" "gnumake" "cmake" ]) &&
-        !lib.hasPrefix "glibc" pkg.name &&
-        !lib.hasPrefix "gcc" pkg.name
-      ) buildInputs;
+      runtimeInputs = lib.filter
+        (pkg:
+          !(lib.elem pkg.pname [ "bash" "coreutils" "findutils" "git" "curl" "wget" "gnumake" "cmake" ]) &&
+          !lib.hasPrefix "glibc" pkg.name &&
+          !lib.hasPrefix "gcc" pkg.name
+        )
+        buildInputs;
     };
   };
 
@@ -131,19 +175,44 @@ rec {
     selectBuildSources = src: {
       # Core build files that should trigger rebuilds
       buildSources = lib.sourceFilesBySuffices src [
-        ".nix" ".json" ".yaml" ".yml" ".toml"
-        ".c" ".cpp" ".h" ".hpp" ".rs" ".go" ".py" ".js" ".ts"
-        ".sh" ".bash" ".zsh" ".makefile" "Makefile" "CMakeLists.txt"
+        ".nix"
+        ".json"
+        ".yaml"
+        ".yml"
+        ".toml"
+        ".c"
+        ".cpp"
+        ".h"
+        ".hpp"
+        ".rs"
+        ".go"
+        ".py"
+        ".js"
+        ".ts"
+        ".sh"
+        ".bash"
+        ".zsh"
+        ".makefile"
+        "Makefile"
+        "CMakeLists.txt"
       ];
 
       # Configuration files
       configSources = lib.sourceFilesBySuffices src [
-        ".conf" ".config" ".ini" ".env" ".properties"
+        ".conf"
+        ".config"
+        ".ini"
+        ".env"
+        ".properties"
       ];
 
       # Documentation (typically doesn't affect builds)
       docSources = lib.sourceFilesBySuffices src [
-        ".md" ".txt" ".rst" ".adoc" ".tex"
+        ".md"
+        ".txt"
+        ".rst"
+        ".adoc"
+        ".tex"
       ];
     };
   };
@@ -213,20 +282,24 @@ rec {
     # Optimize flake inputs to reduce evaluation time
     optimizeInputs = inputs: {
       # Pin stable inputs to reduce update frequency
-      stableInputs = lib.filterAttrs (name: input:
-        lib.elem name [ "nixpkgs" "home-manager" "darwin" ]
-      ) inputs;
+      stableInputs = lib.filterAttrs
+        (name: input:
+          lib.elem name [ "nixpkgs" "home-manager" "darwin" ]
+        )
+        inputs;
 
       # Allow flexible updates for development inputs
-      flexibleInputs = lib.filterAttrs (name: input:
-        !lib.elem name [ "nixpkgs" "home-manager" "darwin" ]
-      ) inputs;
+      flexibleInputs = lib.filterAttrs
+        (name: input:
+          !lib.elem name [ "nixpkgs" "home-manager" "darwin" ]
+        )
+        inputs;
     };
 
     # Create optimized flake outputs
     mkOptimizedOutputs = baseOutputs: system: {
       # Cache expensive computations
-      lib = baseOutputs.lib or {} // {
+      lib = baseOutputs.lib or { } // {
         # Memoize expensive library functions
         utilsSystemCached = lib.mkMemoized (system:
           import ../lib/utils-system.nix {
@@ -237,22 +310,25 @@ rec {
       };
 
       # Optimize package builds
-      packages = lib.mapAttrs (name: pkg:
-        pkg.overrideAttrs (oldAttrs: {
-          # Apply rebuild optimizations
-          src = if oldAttrs ? src then
-            fileFilters.filterSource oldAttrs.src []
-          else oldAttrs.src;
+      packages = lib.mapAttrs
+        (name: pkg:
+          pkg.overrideAttrs (oldAttrs: {
+            # Apply rebuild optimizations
+            src =
+              if oldAttrs ? src then
+                fileFilters.filterSource oldAttrs.src [ ]
+              else oldAttrs.src;
 
-          # Optimize build phases
-          configurePhase = buildPhaseOptimization.optimizedConfigurePhase
-            (oldAttrs.configurePhase or "");
-          buildPhase = buildPhaseOptimization.optimizedBuildPhase
-            (oldAttrs.buildPhase or "");
-          installPhase = buildPhaseOptimization.optimizedInstallPhase
-            (oldAttrs.installPhase or "");
-        })
-      ) (baseOutputs.packages.${system} or {});
+            # Optimize build phases
+            configurePhase = buildPhaseOptimization.optimizedConfigurePhase
+              (oldAttrs.configurePhase or "");
+            buildPhase = buildPhaseOptimization.optimizedBuildPhase
+              (oldAttrs.buildPhase or "");
+            installPhase = buildPhaseOptimization.optimizedInstallPhase
+              (oldAttrs.installPhase or "");
+          })
+        )
+        (baseOutputs.packages.${system} or { });
     };
   };
 
@@ -260,10 +336,11 @@ rec {
   monitoringIntegration = {
     # Wrap derivation with performance monitoring
     withPerformanceMonitoring = name: drv:
-      pkgs.runCommand "monitored-${name}" {
-        inherit drv;
-        buildInputs = [ pkgs.time ];
-      } ''
+      pkgs.runCommand "monitored-${name}"
+        {
+          inherit drv;
+          buildInputs = [ pkgs.time ];
+        } ''
         echo "=== Performance Monitor: ${name} ==="
         start_time=$(date +%s.%N)
 
@@ -283,9 +360,10 @@ rec {
 
     # Generate rebuild analysis report
     analyzeRebuildTriggers = name: buildLog:
-      pkgs.runCommand "rebuild-analysis-${name}" {
-        inherit buildLog;
-      } ''
+      pkgs.runCommand "rebuild-analysis-${name}"
+        {
+          inherit buildLog;
+        } ''
         echo "=== Rebuild Trigger Analysis: ${name} ==="
 
         # Analyze what caused the rebuild

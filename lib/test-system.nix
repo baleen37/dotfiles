@@ -6,7 +6,7 @@
 
 let
   # Determine pkgs
-  actualPkgs = if pkgs != null then pkgs else (import <nixpkgs> {});
+  actualPkgs = if pkgs != null then pkgs else (import <nixpkgs> { });
 
   # Import error system for error handling
   errorSystem = import ./error-system.nix { pkgs = actualPkgs; lib = actualPkgs.lib; };

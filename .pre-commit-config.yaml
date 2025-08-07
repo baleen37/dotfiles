@@ -1,8 +1,78 @@
+# Pre-commit configuration for dotfiles project
+# Comprehensive code quality, security, and formatting checks
+
 repos:
+  # Core file and content checks
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:
+      # Content formatting
       - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
       - id: end-of-file-fixer
+      - id: mixed-line-ending
+        args: [--fix=lf]
+
+      # File permissions and security
+      - id: check-executables-have-shebangs
+      - id: check-shebang-scripts-are-executable
+      - id: fix-byte-order-marker
+
+      # Syntax validation
       - id: check-yaml
+        args: [--allow-multiple-documents]
       - id: check-json
+        exclude: ^\.vscode/
+      - id: check-toml
+      - id: check-xml
+
+      # Git and merge checks
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: [--maxkb=1000]
+      - id: forbid-new-submodules
+
+      # Security checks
+      - id: detect-private-key
+      - id: detect-aws-credentials
+
+  # Shell script linting
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.10.0.1
+    hooks:
+      - id: shellcheck
+        args: [--severity=warning]
+        exclude: ^scripts/lib/.*\.sh$  # Skip library files temporarily
+
+  # Nix formatting and validation
+  - repo: https://github.com/nix-community/nixpkgs-fmt
+    rev: v1.3.0
+    hooks:
+      - id: nixpkgs-fmt
+
+  # YAML formatting and linting
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.35.1
+    hooks:
+      - id: yamllint
+        args: [-c=.yamllint.yaml]
+
+  # Markdown formatting and linting
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.41.0
+    hooks:
+      - id: markdownlint
+        args: [--fix]
+        exclude: ^(CHANGELOG\.md|modules/shared/config/claude/.*\.md)$
+
+  # Security scanning
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args: [--baseline, .secrets.baseline]
+
+# Global configuration
+default_install_hook_types: [pre-commit, pre-push, prepare-commit-msg]
+default_stages: [pre-commit]
+minimum_pre_commit_version: '3.0.0'
