@@ -1,87 +1,95 @@
+---
+title: "/analyze - 지능형 코드 분석"
+description: "자동 감지 기반의 포괄적 분석 시스템"
+keywords: ["analyze", "code analysis", "mcp", "sequential", "thinkhard"]
+---
+
 # /analyze - 지능형 코드 분석
 
 자동 감지 기반의 포괄적 분석 시스템
 
 ## 사용법
+
 ```bash
-/analyze [target]              # 스마트 자동 분석
-/analyze [target] --think      # 깊은 분석  
-/analyze [target] --deep       # 최대 깊이 분석
+/analyze [target]              # 기본 분석
+/analyze [target] --think      # Sequential MCP로 깊은 분석
+/analyze [target] --deep       # 최대 깊이 종합 분석
+/analyze [target] thinkhard    # 복잡한 문제 해결용 deep thinking
 ```
 
 ## 분석 대상
+
 - `[target]` - 파일, 디렉토리, 또는 시스템 컴포넌트 (기본: 현재 프로젝트)
 - `@security` - 보안 중심 분석
 - `@performance` - 성능 중심 분석
 - `src/components` - 특정 디렉토리 분석
 
-## 🤖 자동 지능화 시스템
+## 🧠 Deep Thinking & Sequential Analysis
 
-### 시스템이 자동으로 수행
-- 🔍 코드베이스 구조 분석 및 핵심 영역 식별
-- 🎯 가장 중요한 이슈 감지 및 조사 우선순위 결정  
-- ⚖️ 복잡도 평가 및 적절한 분석 깊이 선택
-- 🤖 최적의 MCP 서버 선택 (Sequential, Context7, Magic 등)
-- 📋 구조화된 분석 계획 수립
-- ✅ 다차원 분석 실행 (품질+보안+성능+아키텍처)
-- 📊 실행 가능한 인사이트로 종합
+### thinkhard 모드
+**복잡한 문제 해결용 Sequential thinking 활성화**
+- 다단계 추론으로 문제의 근본 원인 분석
+- 시스템 전체 맥락에서 문제 파악
+- 단계별 검증을 통한 정확한 진단
+- 실행 가능한 해결책 도출
 
-### Smart Routing Conditions
+### 자동 MCP 서버 선택
+- **Sequential**: 복잡한 논리 분석, 다단계 추론 필요시
+- **Context7**: 라이브러리/프레임워크 패턴 분석 필요시
+- **Task**: 전문 도메인 분석 필요시 (보안, 성능, Nix 등)
 
-**Frontend Detection**: React/Vue components → Context7 (best practices) + Sequential (analysis) review
-**Backend Detection**: APIs/databases → Context7 (patterns) + security-auditor consideration  
-**Complex Architecture**: → Sequential MCP priority + Task delegation for system analysis
-**Security Focus**: → security-auditor priority + Context7 (security patterns) support
-**Nix/System Config**: → nix-system-expert priority delegation
-**Performance Issues**: → performance-engineer + Sequential combination review
+### 자동 라우팅 조건
 
-## 분석 영역 (자동 활성화)
+- **복잡한 버그**: Sequential MCP로 단계별 분석
+- **아키텍처 문제**: Sequential + Task(general-purpose) 조합
+- **보안 이슈**: Task(security-auditor) 우선 위임
+- **성능 문제**: Task(performance-engineer) + Sequential 조합
+- **Nix 설정**: Task(nix-system-expert) 즉시 위임
+
+## 분석 영역
 
 ### 📊 품질 분석
-
-- 코드 복잡도, 유지보수성, 기술 부채, 테스트 품질
+- 코드 복잡도, 유지보수성, 기술 부채
 
 ### 🛡️ 보안 분석
-
-- 취약점 평가, 위협 모델링, 규정 준수, 보안 모범 사례
+- 취약점 평가, 보안 모범 사례
 
 ### ⚡ 성능 분석
-
-- 병목점 식별, 확장성 평가, 리소스 최적화, 알고리즘 분석
+- 병목점 식별, 리소스 최적화
 
 ### 🏗️ 아키텍처 분석
+- 디자인 패턴, 결합도/응집도 평가
 
-- 디자인 패턴 평가, 결합도 분석, 응집도 평가, 진화 준비도
+## 출력 형식
 
-## 출력 및 통합
+### 분석 결과
+- **핵심 이슈**: 가장 중요한 문제점 요약
+- **상세 분석**: 근거와 함께 제시
+- **개선 방안**: 구체적이고 실행 가능한 해결책
 
-### 스마트 출력
-
-- **요약 보고서**: 비즈니스 영향 평가가 포함된 상위 수준 결과
-- **상세 분석**: 증거가 포함된 포괄적 기술 결과
-- **실행 로드맵**: 구현 지침이 포함된 우선순위 개선 계획
-
-### 자동 연계
-
-- **→ /improve**: 분석 결과를 체계적 개선으로 직접 전달
-- **→ /implement**: 권장 솔루션 구현 트리거
-- **↔️ /workflow**: 개발 워크플로우와 연계
+### 명령어 연계
+- **→ /improve**: 분석 결과 기반 개선 실행
+- **→ /implement**: 권장 솔루션 구현
+- **→ /debug**: 발견된 문제 디버깅
 
 ## 예시
 
-### 기본 스마트 분석
-
+### 기본 사용
 ```bash
-/analyze                           # 전체 자동 감지 및 포괄적 분석
-/analyze src/components           # 컴포넌트 품질 및 패턴 분석  
-/analyze api/                     # API 보안 및 성능 분석
+/analyze                          # 전체 프로젝트 분석
+/analyze src/auth.js             # 특정 파일 분석
+/analyze api/                    # 디렉토리 분석
 ```
 
-### 깊이 있는 분석
-
+### 심화 분석
 ```bash
-/analyze src/ --think             # 아키텍처 인사이트를 포함한 깊은 분석
-/analyze . --deep                 # 복잡한 시스템을 위한 최대 지능 분석
+/analyze --think                 # Sequential MCP로 논리적 분석
+/analyze auth.js thinkhard       # 복잡한 인증 로직 deep thinking
+/analyze . --deep                # 전체 시스템 종합 분석
 ```
 
-**Future of Code Analysis**: Just specify what to analyze and how deep to think - the system handles the rest automatically! 🌟
+### 도메인 특화
+```bash
+/analyze @security               # 보안 중심 분석
+/analyze @performance            # 성능 중심 분석
+```

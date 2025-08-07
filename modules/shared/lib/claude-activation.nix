@@ -1,6 +1,6 @@
 # Shared Claude configuration management system
 # This module provides cross-platform Claude configuration file management
-# with simple folder-level symlink approach for maximum simplicity.
+# with simple "dotfiles -> ~/.claude" symlink approach.
 
 { config, lib, self ? null, platform ? "unknown" }:
 
@@ -29,7 +29,6 @@ in ''
   echo "=== Claude 설정 폴더 심볼릭 링크 업데이트 시작 ==="
   echo "Claude 디렉토리: $CLAUDE_DIR"
   echo "기본 소스 디렉토리: $SOURCE_DIR"
-  echo "Self 매개변수: ${if self != null then "사용 중 (Nix store)" else "없음 (상대 경로)"}"
 
   # 소스 디렉토리 유효성 검사 및 fallback
   ACTUAL_SOURCE_DIR=""
@@ -177,60 +176,11 @@ in ''
     fi
   done
 
-  # 끊어진 심볼릭 링크 정리
   echo ""
-  echo "끊어진 심볼릭 링크 정리 중..."
-
-  # 루트 레벨에서 끊어진 링크 찾아 제거
-  find "$CLAUDE_DIR" -maxdepth 1 -type l | while read -r link_file; do
-    if [[ ! -e "$link_file" ]]; then
-      echo "  끊어진 링크 삭제: $(basename "$link_file")"
-      rm -f "$link_file"
-    fi
-  done
-
-  # 최종 검증: 생성된 심볼릭 링크와 복사된 파일들이 유효한지 확인
+  echo "✅ Claude 설정이 성공적으로 업데이트되었습니다!"
   echo ""
-  echo "=== 생성된 파일들 검증 ==="
-
-  link_count=0
-  valid_links=0
-  broken_links=0
-  copied_files=0
-
-  for file_path in "$CLAUDE_DIR"/*.md "$CLAUDE_DIR"/*.json "$CLAUDE_DIR/commands" "$CLAUDE_DIR/agents"; do
-    if [[ -e "$file_path" ]]; then
-      file_name=$(basename "$file_path")
-
-      if [[ -L "$file_path" ]]; then
-        # 심볼릭 링크인 경우
-        ((link_count++))
-        if [[ -e "$file_path" ]]; then
-          ((valid_links++))
-          echo "  ✓ $file_name -> $(readlink "$file_path") (링크)"
-        else
-          ((broken_links++))
-          echo "  ❌ $file_name -> $(readlink "$file_path") (끊어진 링크)"
-        fi
-      elif [[ -f "$file_path" && "$file_name" == "settings.json" ]]; then
-        # 복사된 파일인 경우
-        ((copied_files++))
-        echo "  ✓ $file_name (복사본, 쓰기 가능)"
-      fi
-    fi
-  done
-
+  echo "확인해보세요:"
+  ls -la "$CLAUDE_DIR"/settings.json
   echo ""
-  echo "검증 결과: 총 $link_count개 링크 중 $valid_links개 유효, $broken_links개 끊어짐, $copied_files개 복사됨"
-
-  if [[ $broken_links -gt 0 ]]; then
-    echo "⚠ 경고: 일부 심볼릭 링크가 끊어져 있습니다."
-    echo "문제 해결을 위해 'make build-switch' 또는 'nix run .#build-switch' 실행을 권장합니다."
-  else
-    echo "✅ 모든 Claude 설정이 정상적으로 구성되었습니다!"
-    echo "  - 심볼릭 링크: $valid_links개 (문서 및 폴더)"
-    echo "  - 복사된 파일: $copied_files개 (settings.json - 수정 가능)"
-  fi
-
-  echo "=== Claude 설정 심볼릭 링크 업데이트 완료 ==="
+  echo "settings.json이 일반 파일로 복사되어 Claude Code가 수정할 수 있습니다."
 ''
