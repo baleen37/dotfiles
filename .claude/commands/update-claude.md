@@ -18,7 +18,7 @@ Claude Code 설정의 체계적 개선을 위한 실용적 5단계 Wave 시스�
 **시간**: 2-3분, **토큰**: 3-5K
 
 **실행 단계**:
-1. **전체 스캔**: `Grep "\.md$|\.yaml$" modules/shared/config/claude` 
+1. **전체 스캔**: `Grep "\.md$|\.yaml$" modules/shared/config/claude`
 2. **구조 검증**: 파일 존재성, @참조 링크 무결성
 3. **문법 체크**: Markdown lint, YAML 구조 검증
 4. **카테고리 분류**: Syntax/Structure/Performance/Quality 이슈
@@ -106,11 +106,11 @@ agent_selection:
   config-auditor:        # 구조 검증, 일관성 체크
     - 파일 구조 분석
     - 참조 무결성 검증
-    
+
   prompt-engineer:       # 토큰 최적화, 프롬프트 개선  
     - 불필요한 설명 제거
     - 명령어 효율성 개선
-    
+
   code-reviewer:         # Wave 4 품질 검증
     - 전체 변경사항 리뷰
     - 안전성 최종 확인
