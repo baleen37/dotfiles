@@ -9,7 +9,7 @@ import re
 import json
 import sys
 from pathlib import Path
-from typing import Dict, List, Set, Tuple
+from typing import Dict, List, Set
 from collections import defaultdict, deque
 
 class ImprovedNixDependencyAnalyzer:

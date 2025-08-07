@@ -9,6 +9,9 @@ result-*
 shell.nix.drv
 .nix-build
 
+# Test performance logs
+.test-performance/
+
 # Worktree directories
 tree/
 .local/tree/
@@ -46,3 +49,6 @@ CLAUDE.local.md
 
 # Issues (local project management)
 issues/
+*.venv/
+.venv/
+scripts/__pycache__/

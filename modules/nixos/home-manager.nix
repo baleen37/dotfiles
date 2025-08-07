@@ -130,7 +130,7 @@ in
     };
   };
 
-  programs = shared-programs // { };
+  programs = shared-programs.programs;
 
   # Smart Claude config files management with user modification preservation
   # Same as Darwin implementation for platform consistency

@@ -8,9 +8,7 @@ import plistlib
 import os
 import shutil
 import sys
-from pathlib import Path
 from datetime import datetime
-
 
 def create_backup(plist_path):
     """plist 파일의 백업을 생성합니다."""

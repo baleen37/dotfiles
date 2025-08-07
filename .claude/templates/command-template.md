@@ -1,92 +1,221 @@
 # Command Template
 
-Claude Code 명령어 생성을 위한 표준 템플릿
+Claude Code 명령어 생성을 위한 2025 표준 템플릿
 
 ## 구조
 
+### YAML Front Matter + 구조화된 마크다운 (권장)
 ```markdown
-# [COMMAND-NAME] - [한글 간단 설명]
+---
+allowed-tools: [Read, Write, Edit, MultiEdit, Bash, Glob, Grep, TodoWrite]
+description: "[기능 설명]을 jito의 실용주의 철학에 맞게 자동으로 [핵심 작업]하고 최적화"
+---
 
-[한 줄 영어 설명]
+# /[command-name] - [한글 설명]
 
-<persona>
-You are a [DOMAIN] specialist for the Claude Code assistant. You are an expert at [CORE-EXPERTISE]. You understand [KEY-KNOWLEDGE-AREAS].
-</persona>
+[핵심 기능과 목적을 한 줄로 설명]
 
-<objective>
-[PRIMARY-GOAL] with [KEY-CAPABILITIES], ensuring [QUALITY-STANDARDS].
-</objective>
+## Purpose
+- **Zero-Config**: 설정 없이 자동으로 최신 베스트 프랙티스 적용
+- **지능형 감지**: 변경된 부분만 스마트하게 업데이트  
+- **안전 우선**: Rule #1 준수하면서 점진적 개선
+- **jito 철학**: YAGNI, 단순함, 실용주의 완벽 유지
 
-<workflow>
-  <step name="[STEP-NAME]" number="1">
-    - **[Action]**: [Description]
-    - **[Action]**: [Description]
-  </step>
-
-  <step name="[STEP-NAME]" number="2">
-    - **[Action]**: [Description]
-    - **[Action]**: [Description]
-  </step>
-
-  <step name="[STEP-NAME]" number="3">
-    - **[Action]**: [Description]
-    - **[Action]**: [Description]
-  </step>
-
-  <step name="[STEP-NAME]" number="4">
-    - **[Action]**: [Description]
-    - **[Action]**: [Description]
-  </step>
-</workflow>
-
-<constraints>
-- [Item] MUST [Requirement]
-- [Item] MUST NOT [Prohibition]
-- ALL [Scope] MUST [Validation]
-</constraints>
-
-<validation>
-- [Criteria] successfully [completed/validated]
-- User confirms [acceptance criteria]
-- [Integration] integrates properly
-</validation>
+## Usage
+```bash
+/[command-name]                        # 지능형 자동 실행
+/[command-name] --check                # 확인만 수행 (변경 없음)
+/[command-name] --safe                 # 안전 모드 (단계별 승인)
 ```
 
-## 작성 가이드
+## 자동 감지 범위
 
-### 1. 명령어 이름
-- `kebab-case` 형식 필수
-- 동사-명사 구조 권장 (예: `create-agent`, `update-claude`)
+### 지능형 자동 감지 시스템
+**SuperClaude 방식 도입**:
+- **복잡도 자동 스코어링**: 작업 범위에 따라 0.0-1.0 점수 자동 계산
+- **리소스 임계값 모니터링**: Green→Yellow→Red 단계별 최적화 모드 적용  
+- **상황별 자동 추천**: 성능 이슈 감지시 --optimize, 안전성 우려시 --safe 자동 제안
 
-### 2. Persona 섹션
-- "You are a [domain] specialist" 패턴
-- 핵심 전문성과 지식 영역 명시
-- Claude Code 컨텍스트 유지
+### [핵심 기능] 스마트 분석
+**자동 점검 항목**:
+- **[항목1]**: [검증 내용]
+- **[항목2]**: [검증 내용]
+- **[항목3]**: [검증 내용]
 
-### 3. Objective 섹션
-- 주요 목표를 명확하게 정의
-- 품질 기준과 요구사항 포함
-- 한 문장으로 간결하게
+### 필수 검증 단계
 
-### 4. Workflow 섹션
-- 4단계 구조 권장
-- 각 단계는 4개 정도의 액션으로 구성
-- 액션은 **굵은 글씨**로 시작
+#### 1단계: 템플릿 호환성 검증 📋
+**[관련 표준] 일관성**:
+- [ ] [필수 요소] 존재 확인
+- [ ] [구조 표준] 통일성 확인
+- [ ] [포맷 일관성] 준수 확인
 
-### 5. Constraints 섹션
-- MUST/MUST NOT 형식
-- 구체적이고 검증 가능한 제약사항
-- 파일명, 구조, 검증 규칙 포함
+#### 2단계: 참조 호환성 검증 🔗
+**참조 시스템 호환성**:
+- [ ] 모든 참조 링크 유효성 동적 확인
+- [ ] 순환 참조 감지 및 방지
+- [ ] 상호 참조 일관성 검증
 
-### 6. Validation 섹션
-- 성공 기준을 명확히 정의
-- 사용자 승인 단계 포함
-- 통합 테스트 관점 포함
+#### 3단계: 기능성 호환성 검증 ⚙️
+**[핵심 기능] 통합성**:
+- [ ] [기능1] 동작 확인
+- [ ] [기능2] 연동 테스트
+- [ ] 성능 호환성 측정
 
-## 참조 문서
+#### 4단계: 품질 보증 검증 ✅
+**Rule #1 준수 확인**:
+- [ ] 모든 변경사항 명시적 승인 체계 구현
+- [ ] 안전 장치와 롤백 메커니즘 작동 확인
 
-- **패턴 가이드**: [command-patterns.md](../docs/command-patterns.md)
+**jito 철학 구현도**:
+- [ ] "단순함 > 복잡성" 실제 구현 수준 평가
+- [ ] YAGNI 원칙 실제 적용도 측정
+
+## Task 복잡도에 따른 전략
+
+### 단순 작업 (기본 모드)
+```bash
+/[command-name]
+```
+- [간단한 작업들]
+- 직접 처리로 빠른 결과
+
+### 중간 복잡도 (--think)
+```bash  
+/[command-name] --think
+```
+- [중간 복잡도 작업들]
+- TodoWrite로 체계적 관리
+
+### 복잡한 작업 (--ultrathink)
+```bash
+/[command-name] --ultrathink
+```
+- [복잡한 작업들]
+- 심층 분석으로 종합적 개선
+
+## 실전 사용법
+
+### 일상적 유지보수
+```bash
+/[command-name] --check              # 상태 점검
+/[command-name] --safe               # 안전 모드
+```
+
+### 정기적 최적화  
+```bash
+/[command-name] --think              # 심층 분석
+/[command-name] --ultrathink --safe  # 종합 검토
+```
+
+## 자동화 수준
+
+### 🤖 완전 자동 (승인 불필요)
+- [자동 실행되는 안전한 작업들]
+
+### 🤝 승인 후 자동 (jito 확인 필요)
+- [승인이 필요한 중요 작업들]
+
+### 🛑 수동 전용 (절대 자동화 금지)  
+- Rule #1 관련 변경
+- 핵심 철학 수정
+- 보안 관련 설정
+
+## 구현
+
+### 4단계 검증 워크플로우
+
+#### 📋 1단계: 템플릿 호환성 검증 실행
+```bash
+# [구체적 검증 명령어들]
+```
+
+#### 🔗 2단계: 참조 호환성 검증 실행
+```bash
+# [참조 검증 명령어들]
+```
+
+#### ⚙️ 3단계: 기능성 호환성 검증 실행
+```bash
+# [기능성 검증 명령어들]
+```
+
+#### ✅ 4단계: 품질 보증 검증 실행
+```bash
+# [품질 검증 명령어들]
+```
+
+### 직접 분석 및 업데이트 (검증 통과 후)
+4단계 검증을 모두 통과한 후에만 실행:
+
+- **1-2단계 통과**: 템플릿·참조 호환성 보장 하에 구조적 개선 허용
+- **3단계 통과**: 기능성 호환성 보장 하에 시스템 최적화 허용  
+- **4단계 통과**: 품질 보증 하에 종합적 업데이트 허용
+
+### 강화된 안전 장치
+- **동적 검증 우선**: 고정된 구조 대신 동적 패턴 분석
+- **사전 검증 필수**: 4단계 검증 완료 전까지 변경 금지
+- **단계별 백업**: 각 검증 단계마다 상태 스냅샷 생성
+- **자동 롤백**: 검증 실패시 이전 안전 상태로 즉시 복원
+
+---
+
+*jito의 실용주의 철학에 맞는 안전하고 효율적인 [기능 설명]*
+```
+
+## 2025 작성 가이드
+
+### 1. 명령어 이름 & YAML
+- **이름**: `kebab-case` 형식 필수 (예: `update-claude`, `analyze-code`)
+- **Description**: `"[기능]을 jito의 실용주의 철학에 맞게 자동으로 [작업]하고 최적화"`
+- **allowed-tools**: 필요한 도구만 명시적 지정
+
+### 2. Purpose 섹션 (4가지 핵심 원칙)
+- **Zero-Config**: 설정 없이 자동 작동
+- **지능형 감지**: 스마트한 변경사항 감지
+- **안전 우선**: Rule #1 준수하면서 점진적 개선
+- **jito 철학**: YAGNI, 단순함, 실용주의
+
+### 3. 4단계 검증 시스템 필수
+모든 명령어는 다음 4단계 검증을 포함해야 함:
+1. **📋 템플릿 호환성**: YAML, 구조 표준 검증
+2. **🔗 참조 호환성**: 링크 유효성, 상호 참조 일관성
+3. **⚙️ 기능성 호환성**: 시스템 통합성, 성능 호환성
+4. **✅ 품질 보증**: Rule #1 준수, jito 철학 구현
+
+### 4. 복잡도별 전략 (3단계)
+- **단순**: 기본 모드, 직접 처리
+- **중간**: `--think`, TodoWrite 활용
+- **복잡**: `--ultrathink`, 종합적 분석
+
+### 5. 자동화 수준 분류 (3단계)
+- **🤖 완전 자동**: 승인 불필요한 안전한 작업
+- **🤝 승인 후 자동**: jito 확인 필요한 중요 작업
+- **🛑 수동 전용**: Rule #1, 핵심 철학, 보안 관련
+
+### 6. 실전 사용법 템플릿
+- **일상적 유지보수**: `--check`, `--safe`
+- **정기적 최적화**: `--think`, `--ultrathink --safe`
+
+## 참조 및 예시
+
 - **Agent 템플릿**: [agent-template.md](./agent-template.md)
-- **실제 예시**:
-  - XML 구조: `commands/claude/agent.md`, `commands/claude/command.md`
-  - 표준화된 예시: `commands/claude/update.md`
+- **실제 구현 예시**:
+  - 완전한 구현: `.claude/commands/update-claude.md`
+  - Agent 생성: `.claude/agents/claude-architect.md`
+
+## 핵심 차별점
+
+### 기존 XML 방식 vs 2025 표준
+```diff
+- <persona>XML 스타일 섹션</persona>
+- <workflow>복잡한 XML 구조</workflow>
++ ## Purpose: 4가지 핵심 원칙 명시
++ ### 4단계 검증 워크플로우: 체크리스트 기반
+```
+
+### 2025 표준의 장점
+- **실용성**: `/update-claude` 스타일로 실제 사용 가능
+- **검증성**: 4단계 검증으로 품질 보장
+- **확장성**: 복잡도별 전략으로 유연한 대응
+- **안전성**: Rule #1 완벽 구현

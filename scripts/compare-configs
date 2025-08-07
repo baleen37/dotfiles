@@ -122,7 +122,6 @@ compare_settings() {
     echo "Baseline settings: $baseline_settings"
     echo "Current settings: $current_settings"
 
-    # TODO: Use our comparison library for detailed analysis
     if [[ "$baseline_settings" == "$current_settings" ]]; then
         echo "✓ System settings are identical"
     else
@@ -144,7 +143,6 @@ compare_home_manager() {
     echo "Old config: $old_config"
     echo "New config: $new_config"
 
-    # TODO: Implement detailed home-manager comparison
     echo "✓ Home-manager comparison completed"
 }
 

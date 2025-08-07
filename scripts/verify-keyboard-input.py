@@ -7,8 +7,6 @@ macOS 키보드 입력 설정 검증 스크립트
 import plistlib
 import os
 import sys
-from pathlib import Path
-
 
 def load_plist(plist_path):
     """plist 파일을 로드합니다."""
@@ -20,7 +18,6 @@ def load_plist(plist_path):
     except Exception as e:
         print(f"❌ 설정 파일 로드 실패: {e}")
         return None
-
 
 def verify_keyboard_settings(plist_path):
     """키보드 설정을 검증합니다."""

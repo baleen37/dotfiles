@@ -31,10 +31,18 @@ help:
 	@echo ""
 	@echo "🧪 Testing (Simplified):"
 	@echo "  test        - Run all tests"
+	@echo "  test-quick  - ⚡ Parallel quick tests (2-3 sec, recommended)"
+	@echo "  test-enhanced - 🎯 Enhanced tests with detailed reporting"
+	@echo "  test-enhanced-verbose - 📊 Enhanced tests with verbose output"
+	@echo "  test-monitor - 📈 Performance monitoring (quick)"
+	@echo "  test-monitor-full - 📈 Full performance monitoring"
 	@echo "  test-core   - Run core tests (fast, essential)"
 	@echo "  test-workflow - Run workflow tests (end-to-end)"
 	@echo "  test-perf   - Run performance tests"
 	@echo "  test-list   - List available test categories"
+	@echo ""
+	@echo "🤖 Claude Code MCP:"
+	@echo "  setup-mcp   - Install MCP servers for Claude Code"
 	@echo ""
 	@echo "🔨 Building & Deployment:"
 	@echo "  build       - Build all Darwin and NixOS configurations"
@@ -75,6 +83,29 @@ test-perf:
 
 test-list:
 	@$(NIX) run --impure .#test-list $(ARGS)
+
+# Fast parallel testing (2-3 seconds total)
+test-quick:
+	@echo "🚀 Running parallel quick tests..."
+	@./scripts/quick-test.sh
+
+# Enhanced testing with detailed reporting
+test-enhanced:
+	@echo "🚀 Running enhanced tests with detailed reporting..."
+	@./scripts/enhanced-test.sh --quiet --parallel
+
+test-enhanced-verbose:
+	@echo "🚀 Running enhanced tests with verbose output..."
+	@./scripts/enhanced-test.sh --verbose
+
+# Performance monitoring and regression detection
+test-monitor:
+	@echo "📊 Running performance monitoring..."
+	@./tests/performance/test-performance-monitor.sh
+
+test-monitor-full:
+	@echo "📊 Running full performance monitoring (including heavy tests)..."
+	@./tests/performance/test-performance-monitor.sh --full
 
 # Build function
 define build-systems
@@ -117,30 +148,23 @@ build-current: check-user
 
 build-fast: check-user
 	@echo "⚡⚡ Fast build with optimizations for $(CURRENT_SYSTEM)..."
-	@start_time=$$(date +%s); \
-	OPTS=$$($(NIX) eval --impure --expr '(import ./lib/platform-system.nix { system = builtins.currentSystem; }).utils.getOptimizedBuildConfig (import ./lib/platform-system.nix { system = builtins.currentSystem; }).platform).nixBuildOptions' | tr -d '[]"' | tr ',' ' '); \
-	$(call build-systems,optimized current platform,$(CURRENT_PLATFORM),$(CURRENT_SYSTEM),$$OPTS); \
-	end_time=$$(date +%s); \
-	duration=$$((end_time - start_time)); \
+	@start_time=$$(date +%s)
+	$(call build-systems,optimized current platform,$(CURRENT_PLATFORM),$(CURRENT_SYSTEM),--max-jobs auto)
+	@end_time=$$(date +%s)
+	@duration=$$((end_time - start_time))
 	@echo "✅ Fast build completed in $${duration}s with optimizations"
 
 switch: check-user
 	@echo "🔄 Switching system configuration with USER=$(USER)..."
 	@OS=$$(uname -s); \
-	ARCH=$$(uname -m); \
-	if [ "$${OS}" = "Darwin" ]; then \
-	DEFAULT_SYSTEM="$${ARCH}-darwin"; \
-	else \
-	DEFAULT_SYSTEM="$${ARCH}-linux"; \
-	fi; \
-	TARGET=${HOST-$${DEFAULT_SYSTEM}}; \
+	TARGET=$${HOST:-$(CURRENT_SYSTEM)}; \
 	echo "🎯 Target system: $${TARGET}"; \
 	if [ "$${OS}" = "Darwin" ]; then \
-	export USER=$(USER); nix --extra-experimental-features 'nix-command flakes' build --impure .#darwinConfigurations.$${TARGET}.system $(ARGS); \
-	sudo -E USER=$(USER) ./result/sw/bin/darwin-rebuild switch --flake .#$${TARGET} $(ARGS); \
-	unlink ./result; \
+		export USER=$(USER); nix --extra-experimental-features 'nix-command flakes' build --impure .#darwinConfigurations.$${TARGET}.system $(ARGS); \
+		sudo -E USER=$(USER) ./result/sw/bin/darwin-rebuild switch --flake .#$${TARGET} $(ARGS); \
+		unlink ./result; \
 	else \
-	sudo -E USER=$(USER) SSH_AUTH_SOCK=$$SSH_AUTH_SOCK /run/current-system/sw/bin/nixos-rebuild switch --impure --flake .#$${TARGET} $(ARGS); \
+		sudo -E USER=$(USER) SSH_AUTH_SOCK=$$SSH_AUTH_SOCK /run/current-system/sw/bin/nixos-rebuild switch --impure --flake .#$${TARGET} $(ARGS); \
 	fi; \
 	echo "✅ System switch completed successfully!"
 
@@ -158,4 +182,9 @@ deploy:
 	@echo "🚀 Deploying configuration..."
 	@./deploy.sh
 
-.PHONY: help check-user lint smoke test test-core test-workflow test-perf test-list build build-linux build-darwin build-current build-fast switch apply deploy platform-info
+# Claude Code MCP setup
+setup-mcp: check-user
+	@echo "🤖 Setting up Claude Code MCP servers..."
+	@./scripts/setup-claude-mcp --main
+
+.PHONY: help check-user lint smoke test test-quick test-core test-workflow test-perf test-list build build-linux build-darwin build-current build-fast switch apply deploy platform-info setup-mcp

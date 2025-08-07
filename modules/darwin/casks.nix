@@ -18,6 +18,7 @@ _:
   # Utility Tools
   "alt-tab"
   "claude"
+  "tailscale-app" # VPN mesh network with GUI
 
   # Entertainment Tools
   "vlc"

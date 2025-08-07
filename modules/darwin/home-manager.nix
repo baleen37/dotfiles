@@ -57,6 +57,7 @@ in
     useGlobalPkgs = true;
     backupFileExtension = "bak";
     users.${user} = { pkgs, config, lib, ... }: {
+
       home = {
         enableNixpkgsReleaseCheck = false;
         packages = (pkgs.callPackage ./packages.nix { }) ++ [ karabiner-elements-v14 ];
@@ -66,9 +67,11 @@ in
         ];
         stateVersion = "23.11";
       };
-      programs = lib.mkMerge [
-        (import ../shared/home-manager.nix { inherit config pkgs lib; })
-      ];
+      # Import shared cross-platform programs (zsh, git, vim, etc.)
+      programs = (import ../shared/home-manager.nix { inherit config pkgs lib; }).programs;
+
+      # Darwin-specific programs should be added here in a separate programs attribute merge
+      # Example: programs.darwin-specific-tool = { enable = true; };
 
       manual.manpages.enable = false;
 

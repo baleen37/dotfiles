@@ -66,6 +66,7 @@ superclaude evolutionary system: 100% automatic jito pattern learning with zero 
 - [ ] Estimated time calculation
 
 #### Stage 2: In-Progress Verification
+#### Stage 2: In-Progress Verification  
 **Automatic Monitoring**:
 - Quality check upon completion of each subtask
 - Automatic debugger invocation on error occurrence
@@ -142,6 +143,7 @@ Auto-generated Workflow:
 ```
 Detection: "bug", "error", "issue" keywords
 ↓
+↓  
 Auto-generated Workflow:
 1. debugger: Root cause analysis --debug
 2. Issue reproduction and test case creation
@@ -179,6 +181,7 @@ Auto-generated Workflow:
 #### MCP Server Priority Review
 - **Context7**: "docs", "API", "library", "framework", "examples" 키워드
 - **Sequential**: "analyze", "step-by-step", "plan", "strategy", "architecture" 키워드
+- **Sequential**: "analyze", "step-by-step", "plan", "strategy", "architecture" 키워드  
 - **Playwright**: "test", "E2E", "browser", "screenshot", "automation" 키워드
 
 ### 도메인별 Agent 라우팅 규칙
@@ -191,11 +194,13 @@ Auto-generated Workflow:
 예시:
 "nix flake 업데이트해줘" → nix-system-expert
 "home-manager 설정 수정" → nix-system-expert
+"home-manager 설정 수정" → nix-system-expert  
 "darwin 모듈 추가" → nix-system-expert
 ```
 
 #### 코드 품질 및 리뷰
 ```
+```  
 키워드: "리뷰", "품질", "개선", "리팩토링", "클린업"
 → code-reviewer (사후 자동 실행)
 
@@ -314,6 +319,7 @@ A system that detects and prevents issues before they occur:
 
 - **Technical Debt Detection**: Monitor code complexity increase trends
 - **Early Security Risk Warning**: Assess security risk levels of new dependencies or patterns
+- **Early Security Risk Warning**: Assess security risk levels of new dependencies or patterns  
 - **Performance Degradation Prediction**: Pre-analyze the impact of code changes on performance
 - **Test Coverage Monitoring**: Automatic alerts when coverage decreases
 
