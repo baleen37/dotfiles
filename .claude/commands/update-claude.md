@@ -1,126 +1,194 @@
-# /update-claude - Pragmatic Configuration Tool
+# /update-claude - Practical 5-Stage Wave System
 
-Claude Code 설정을 jito 철학에 맞게 실용적으로 개선하는 도구.
+Claude Code 설정의 체계적 개선을 위한 실용적 5단계 Wave 시스템.
 
-## Usage
-
-```bash
-/update-claude          # 자동 분석 후 개선 실행
-/update-claude --fix    # 즉시 수정 가능한 문제만 처리
-/update-claude --check  # 현재 상태 분석만 (변경 없음)
-```
-
-## 실행 전략
-
-### 실제 문제 감지
-
-- **Lint 오류**: 마크다운 린트 검사 → 즉시 자동 수정
-- **링크 문제**: @reference 링크 검증 → 업데이트 필요시 수정
-- **구조 문제**: YAML 헤더, 일관성 검사 → TodoWrite로 체계적 개선
-
-### 구체적 실행 방식
+## Command Usage
 
 ```bash
-# 즉시 수정: grep + sed 패턴으로 자동 수정
-# 다중 수정: MultiEdit로 일괄 처리
-# 복잡한 개선: claude-prompt-expert 위임
+/update-claude                    # 자동 Wave 시스템 실행
+/update-claude --analyze-only     # 현황 분석만 (변경 없음)
+/update-claude --safe-mode        # Rule #1 준수 강화
+/update-claude --quick-fix        # 안전한 자동 수정만
 ```
 
-## 자동 수정 범위
+## 🌊 5-Stage Wave System
 
-### 즉시 실행 (승인 불필요)
+### Wave 1 - Configuration Scan (현황 분석)
+**목표**: Claude 설정 전체 상태 파악 및 문제점 분류
+**시간**: 2-3분, **토큰**: 3-5K
 
-- 마크다운 린트 오류 수정
-- `@reference` 링크 업데이트  
-- 중복 내용 정리
-- 오타 및 포맷팅 수정
-- 일관성 개선 (naming, structure)
+**실행 단계**:
+1. **전체 스캔**: `Grep "\.md$|\.yaml$" modules/shared/config/claude` 
+2. **구조 검증**: 파일 존재성, @참조 링크 무결성
+3. **문법 체크**: Markdown lint, YAML 구조 검증
+4. **카테고리 분류**: Syntax/Structure/Performance/Quality 이슈
 
-### 승인 후 실행
+**출력**: 문제점 우선순위 매트릭스, Wave 2-5 작업 계획
 
-- 구조적 변경 (새 섹션 추가)
-- 기능 개선 및 확장
-- 성능 최적화
-- 아키텍처 수정
+### Wave 2 - Strategy & Expert Selection (전략 수립)
+**목표**: 안전한 자동화 vs 승인 필요 작업 분류
+**시간**: 1-2분, **토큰**: 1-2K
 
-### 절대 자동화 금지 (Rule #1)
+**실행 단계**:
+1. **위험도 평가**: Rule #1 관련 변경 감지
+2. **자동화 범위**: 안전한 수정 (MD lint, 포맷팅) vs 구조적 변경
+3. **Task 도구 선택**: 필요한 전문 영역별 agent 결정
+4. **병렬 처리**: 독립적 파일별 동시 작업 계획
 
-- 핵심 철학 변경
-- 보안 관련 설정
-- 새로운 자동화 규칙 추가
-- 시스템 동작 방식 변경
+**출력**: 자동 실행 목록, 승인 필요 목록, Task 위임 계획
 
-## 실행 과정
+### Wave 3 - Core Implementation (핵심 변경)
+**목표**: 구조적 개선사항 안전하게 실행
+**시간**: 5-10분, **토큰**: 8-15K
 
-### Step 1: 구체적 문제 검사
+**실행 도구**:
+- **MultiEdit**: 다중 파일 동시 수정 (참조 링크 정합성)
+- **Task**: 복잡한 구조 변경은 전문 agent에 위임
+- **Grep + Read**: 변경 전 정확한 현재 상태 파악
+
+**핵심 작업**:
+1. **참조 링크 수정**: @CLAUDE.md, @commands/* 등 일관성 확보
+2. **구조 표준화**: YAML frontmatter, 헤더 레벨 통일
+3. **중복 제거**: 동일 내용 통합, 토큰 효율성 개선
+
+### Wave 4 - Quality Assurance (품질 검증)
+**목표**: 전체 설정 시스템 통합성 확인
+**시간**: 2-3분, **토큰**: 2-4K
+
+**검증 체크리스트**:
+- [ ] **Markdown Syntax**: CommonMark 호환성
+- [ ] **YAML Structure**: 헤더 스키마 검증
+- [ ] **Link Integrity**: 모든 @참조 해결 가능
+- [ ] **Rule #1 Compliance**: 핵심 철학 보존
+
+**도구 활용**:
+- **Grep**: 깨진 링크, 구문 오류 스캔
+- **Read**: 수정된 파일 재검증
+- **Task**: 복잡한 품질 검증은 code-reviewer에게 위임
+
+### Wave 5 - Optimization & Cleanup (최적화)
+**목표**: 토큰 효율성과 사용성 최적화
+**시간**: 2-4분, **토큰**: 3-5K
+
+**최적화 작업**:
+1. **토큰 압축**: 불필요한 설명 제거, 핵심만 유지
+2. **구조 정리**: 파일 순서, 섹션 배치 최적화
+3. **사용성 개선**: 명령어 예시, 참조 가이드 개선
+4. **최종 검증**: 전체 시스템 일관성 확인
+
+## 🎯 Practical Implementation Strategy
+
+### 간단한 복잡도 판단
+```bash
+# 자동 수정 가능 (Wave 3에서 즉시 실행)
+- MD lint 오류 (MD001, MD022, MD032 등)
+- @참조 링크 수정
+- YAML frontmatter 표준화
+- 오타, 포맷팅 일관성
+
+# Task 위임 필요 (전문 agent 활용)
+- 구조적 재설계 (3+ 파일 영향)
+- 새로운 명령어/agent 추가
+- 복잡한 로직 변경
+- Rule #1 관련 수정
+
+# 승인 필요 (절대 자동화 금지)
+- YAGNI 철학 변경
+- 핵심 제약사항 수정
+- 새로운 자동화 규칙
+- 보안 정책 변경
+```
+
+### Task Tool Integration
+```yaml
+# Wave 3에서 전문 agent 활용
+agent_selection:
+  config-auditor:        # 구조 검증, 일관성 체크
+    - 파일 구조 분석
+    - 참조 무결성 검증
+    
+  prompt-engineer:       # 토큰 최적화, 프롬프트 개선  
+    - 불필요한 설명 제거
+    - 명령어 효율성 개선
+    
+  code-reviewer:         # Wave 4 품질 검증
+    - 전체 변경사항 리뷰
+    - 안전성 최종 확인
+```
+
+### Resource Management
+```bash
+# 실제 성능 목표
+총 실행 시간: 10-20분 (이론적 30분 아님)
+토큰 사용량: 15-25K (실용적 범위)
+병렬 처리: 독립적 파일별 동시 작업
+메모리 효율: 필요한 파일만 Read, 선택적 Grep 사용
+```
+
+## 🛡️ Safety & Quality Gates
+
+### Automatic Safety Checks
+1. **Rule #1 Guardian**: 핵심 철학 변경 감지시 즉시 중단
+2. **Reference Integrity**: @링크 수정 후 실제 파일 존재 확인
+3. **Syntax Validation**: 모든 MD/YAML 구문 오류 사전 방지
+4. **Backup Strategy**: 중요 변경 전 현재 상태 기록
+
+### Quality Metrics
+- **Link Resolution**: 100% @참조 해결 가능
+- **Syntax Clean**: 모든 MD lint 오류 제거
+- **Token Efficiency**: 평균 20-30% 토큰 절약
+- **Structural Consistency**: 95% 이상 표준 패턴 준수
+
+## 🚀 Real Execution Example
 
 ```bash
-🔍 Glob("**/*.md") → 모든 마크다운 파일 수집
-🔧 Grep(lint pattern) → 린트 오류 개수 확인
-🔗 Grep("@.*\.md") → 깨진 링크 검사
+$ /update-claude
+🌊 Wave 1 - Configuration Scan
+   📁 Found: 13 Claude config files
+   🔍 Issues: 5 MD lint, 2 broken @links, 3 format inconsistencies
+   📊 Complexity: Medium (auto-fixable + 1 Task delegation)
+
+🌊 Wave 2 - Strategy Selection  
+   ✅ Auto-fix: MD022, MD032, @SIMPLE_COMMANDS.md link
+   📋 Task delegate: Structural reorganization → config-auditor
+   ⚠️  Manual approval: None required
+
+🌊 Wave 3 - Core Implementation
+   🔧 MultiEdit: Fixed 5 MD lint issues across 4 files
+   🤖 Task → config-auditor: Reorganized command references
+   🔗 Updated @links: 2 broken references resolved
+
+🌊 Wave 4 - Quality Assurance
+   ✅ Markdown syntax: All files valid
+   ✅ YAML structure: Headers standardized  
+   ✅ Link integrity: 100% @references resolved
+   ✅ Rule #1 check: No philosophy changes
+
+🌊 Wave 5 - Optimization
+   📉 Token reduction: 1,247 tokens saved (22% improvement)
+   📋 Structure cleanup: Command index reorganized
+   🎯 Consistency: 96% standard pattern compliance
+
+🎉 Complete: 14m 32s, 18.7K tokens, 0 manual approvals needed
 ```
 
-### Step 2: 개선 실행
+## Key Improvements from Original
 
-```bash
-✏️ 자동 수정: 린트 오류, 오타, 포맷팅
-📋 체계적 개선: TodoWrite로 다단계 작업 추적
-🤖 전문가 위임: 복잡한 변경은 claude-prompt-expert 활용
-```
+**제거된 복잡성**:
+- 복잡한 수학적 복잡도 계산
+- 가상의 "SuperClaude Framework" 참조  
+- 과도한 이론적 설명과 알고리즘
 
-### Step 3: 검증 및 완료
+**강화된 실용성**:
+- 명확한 Wave별 목표와 실행 도구
+- 실제 실행 시간과 토큰 사용량
+- 구체적인 안전장치와 품질 기준
+- jito의 실제 사용 패턴 반영
 
-```bash
-✅ 변경사항 검증
-📈 개선 효과 측정 (토큰 절약, 구조 개선)
-📝 완료 리포트 (수정 내용 + 추가 권장사항)
-```
+**핵심 가치 유지**:
+- 체계적인 5-Stage 처리
+- Rule #1 절대 보호
+- 안전한 자동화 vs 승인 필요 구분
+- Task 도구를 통한 전문가 활용
 
-## 품질 보장
-
-### 안전 장치
-
-- **읽기 우선**: 모든 변경 전 현재 상태 파악
-- **점진적 개선**: 한 번에 하나씩 단계별 수정
-- **롤백 준비**: 문제 발생시 이전 상태 복원 가능
-- **검증 필수**: 모든 변경 후 동작 확인
-
-### 실패 복구
-
-```bash
-Level 1: 단순 재시도 (다른 접근법)
-Level 2: 도구 변경 (MultiEdit → Edit)
-Level 3: 수동 가이드 제공 (구체적 단계)
-```
-
-## 측정 가능한 목표
-
-- **Lint 오류**: 0개 (완전 자동 수정)
-- **깨진 링크**: 0개 (자동 검증 및 수정)
-- **처리 시간**: <2분 (대부분의 일반적 수정)
-- **구조 일관성**: YAML 헤더 표준화 100%
-
-## 실제 사용 예시
-
-### 실제 실행 예시
-
-```bash
-/update-claude --fix
-→ Grep으로 MD022 오류 5개 발견 → MultiEdit 자동 수정
-→ @reference 링크 2개 깨짐 확인 → 경로 수정
-→ YAML 헤더 누락 1개 → 표준 헤더 추가
-→ 완료: 45초
-```
-
-### 종합 개선
-
-```bash
-/update-claude
-→ 복잡도 감지: 중간 (6개 파일)
-→ TodoWrite 생성: 4개 작업
-→ 구조 개선 + 성능 최적화
-→ 완료: 4분 15초, 토큰 35% 절약
-```
-
----
-*Simple • Practical • Safe • Effective*
+**Philosophy**: "Systematic • Practical • Safe • Token-Efficient"
