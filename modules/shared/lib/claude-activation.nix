@@ -16,7 +16,7 @@ let
   # Backup source directories to try if primary fails
   fallbackSources = [
     "${config.home.homeDirectory}/dev/dotfiles/modules/shared/config/claude"
-    "/Users/jito/dev/dotfiles/modules/shared/config/claude" # jito's typical path
+    "${config.home.homeDirectory}/dotfiles/modules/shared/config/claude" # user's dotfiles path
   ];
 
 in

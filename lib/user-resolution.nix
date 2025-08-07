@@ -97,7 +97,11 @@ let
       debugLog "Using CI fallback: runner" "runner"
     # 5. Additional fallback for environments where USER is not set
     else if (envValue == "" || envValue == null) && enableAutoDetect then
-      debugLog "Using generic fallback: jito" "jito"
+      let currentUser = builtins.getEnv "LOGNAME"; in
+      if currentUser != "" && validateUser currentUser then
+        debugLog "Using LOGNAME fallback: ${currentUser}" currentUser
+      else
+        throw "Unable to detect user automatically. Please set USER environment variable: export USER=$(whoami)"
     # 6. Default value if provided
     else if default != null && validateUser default then
       debugLog "Using default: ${default}" default
