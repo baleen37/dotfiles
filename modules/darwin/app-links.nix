@@ -62,7 +62,7 @@ in
 
     apps = mkOption {
       type = types.listOf types.str;
-      default = [];
+      default = [ ];
       example = [ "Karabiner-Elements.app" "Rectangle.app" "Alacritty.app" ];
       description = ''
         List of nix-installed app names to create symbolic links for in /Applications.

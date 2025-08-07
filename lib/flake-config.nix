@@ -45,7 +45,8 @@
   utils = nixpkgs: {
     # Generate attributes for all systems
     forAllSystems = f: nixpkgs.lib.genAttrs
-      ([ "x86_64-linux" "aarch64-linux" "aarch64-darwin" "x86_64-darwin" ]) f;
+      ([ "x86_64-linux" "aarch64-linux" "aarch64-darwin" "x86_64-darwin" ])
+      f;
 
     # Get user from environment with proper fallback
     getUserFn = import ./user-resolution.nix;

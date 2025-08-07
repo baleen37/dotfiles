@@ -16,10 +16,11 @@ let
   # Backup source directories to try if primary fails
   fallbackSources = [
     "${config.home.homeDirectory}/dev/dotfiles/modules/shared/config/claude"
-    "/Users/jito/dev/dotfiles/modules/shared/config/claude"  # jito's typical path
+    "/Users/jito/dev/dotfiles/modules/shared/config/claude" # jito's typical path
   ];
 
-in ''
+in
+''
   set -euo pipefail  # Enable strict error handling
 
   CLAUDE_DIR="${claudeDir}"

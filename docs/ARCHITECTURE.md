@@ -85,7 +85,7 @@ cache:
   local: { max_size_gb: 5, cleanup_days: 7 }
   binary_caches: ["https://cache.nixos.org", "https://nix-community.cachix.org"]
 
-# config/network.yaml - Network settings  
+# config/network.yaml - Network settings
 network:
   http: { connections: 50, connect_timeout: 5, download_attempts: 3 }
 
@@ -119,8 +119,8 @@ export ARCH="aarch64"
 ### 3. Configuration Loading API
 
 ```bash
-# scripts/lib/config-loader.sh
-source scripts/lib/config-loader.sh
+# scripts/utils/config-loader.sh
+source scripts/utils/config-loader.sh
 
 # Load with defaults
 cache_size=$(load_cache_config "max_size_gb" "5")
@@ -139,7 +139,7 @@ The build system follows a **multi-stage, platform-aware approach**:
 source apps/$PLATFORM_SYSTEM/config.sh
 
 # Load common configuration
-source scripts/lib/config-loader.sh
+source scripts/utils/config-loader.sh
 ```
 
 ### 2. Environment Preparation
@@ -242,14 +242,14 @@ pkgs.runCommand "cache-management-test" { } ''
 nix build .#checks.aarch64-darwin.new_feature_unit
 # Expected: Build fails
 
-# 2. Green Phase - Minimal implementation  
+# 2. Green Phase - Minimal implementation
 # Write code to make test pass
 nix build .#checks.aarch64-darwin.new_feature_unit
 # Expected: Build succeeds
 
 # 3. Refactor Phase - Improve code quality
 # Refactor while keeping tests green
-nix build .#checks.aarch64-darwin.new_feature_unit  
+nix build .#checks.aarch64-darwin.new_feature_unit
 # Expected: Still succeeds
 ```
 ```

@@ -14,10 +14,12 @@ Nix-based dotfiles for macOS and NixOS. Works out of the box without complex con
 ## Quick Start
 
 ### Requirements
+
 - Nix with flakes ([install guide](https://nixos.org/download))
 - macOS 11+ or NixOS 21.11+
 
 ### Installation
+
 ```bash
 git clone https://github.com/baleen37/dotfiles.git
 cd dotfiles
@@ -53,7 +55,121 @@ make smoke             # Fast validation
 nix run .#build-switch # Build and apply together
 ```
 
+### Platform-Specific Operations
+
+```bash
+# Targeted builds
+make build-darwin   # macOS configurations (x86_64, aarch64)
+make build-linux    # NixOS configurations (x86_64, aarch64)
+
+# Direct operations
+nix run .#build         # Build current platform
+nix run .#build-switch  # Build and apply with sudo handling
+nix run .#test          # Run platform-appropriate test suite
+```
+
 **Supported Platforms**: macOS (Intel/ARM) and NixOS (x86_64/ARM64)
+
+### Platform Capability Matrix
+
+| Operation | macOS (Intel) | macOS (ARM) | NixOS (x86_64) | NixOS (ARM64) |
+|-----------|:-------------:|:-----------:|:--------------:|:-------------:|
+| **Core Operations** | | | | |
+| build | ✅ | ✅ | ✅ | ✅ |
+| build-switch | ✅ | ✅ | ✅ | ✅ |
+| apply | ✅ | ✅ | ✅ | ✅ |
+| rollback | ✅ | ✅ | ❌ | ❌ |
+| **Testing Framework** | | | | |
+| test | ✅ | ✅ | ✅ | ✅ |
+| test-unit | ✅ | ✅ | ❌¹ | ❌¹ |
+| test-integration | ✅ | ✅ | ❌¹ | ❌¹ |
+| test-e2e | ✅ | ✅ | ❌¹ | ❌¹ |
+| **Development Tools** | | | | |
+| setup-dev | ✅ | ✅ | ✅ | ✅ |
+| SSH key management | ✅ | ✅ | ✅ | ✅ |
+
+¹ Linux systems use consolidated testing approach due to platform limitations
+
+## Configuration
+
+This system uses an **externalized configuration approach** that allows flexible customization across different environments.
+
+### Configuration Files
+
+```bash
+config/
+├── platforms.yaml     # Platform-specific settings
+├── cache.yaml         # Cache management configuration
+├── network.yaml       # Network and download settings
+├── performance.yaml   # Build and system performance
+└── security.yaml      # Security policies and SSH settings
+```
+
+### Environment Variables
+
+Override any configuration using environment variables:
+
+```bash
+# Cache settings
+export CACHE_MAX_SIZE_GB=10
+export CACHE_CLEANUP_DAYS=14
+
+# Network settings
+export HTTP_CONNECTIONS=100
+export CONNECT_TIMEOUT=10
+
+# Platform overrides
+export PLATFORM_TYPE="darwin"
+export ARCH="aarch64"
+```
+
+### Configuration Validation
+
+```bash
+# Validate all configuration files
+./scripts/validate-config
+
+# Load configuration in scripts
+source scripts/utils/config-loader.sh
+cache_size=$(load_cache_config "max_size_gb" "5")
+```
+
+For detailed configuration options, see [Configuration Guide](docs/CONFIGURATION.md).
+
+## Architecture
+
+### Repository Structure
+
+```text
+├── flake.nix              # Flake entry point and output definitions
+├── Makefile               # Development workflow automation
+├── CLAUDE.md              # Claude Code project instructions
+├── CONTRIBUTING.md        # Development guidelines and standards
+│
+├── modules/               # Modular configuration system
+│   ├── shared/            #   Cross-platform configurations
+│   ├── darwin/            #   macOS-specific modules
+│   └── nixos/             #   NixOS-specific modules
+│
+├── hosts/                 # Host-specific configurations
+│   ├── darwin/            #   macOS system definitions
+│   └── nixos/             #   NixOS system definitions
+│
+├── lib/                   # Nix utility functions and builders
+├── scripts/               # Automation and management tools
+├── tests/                 # Multi-tier testing framework
+├── docs/                  # Comprehensive documentation
+└── overlays/              # Custom package definitions and patches
+```
+
+### Module Hierarchy
+
+The system follows a strict modular architecture:
+
+1. **Platform modules** (`modules/{darwin,nixos}/`) contain OS-specific configurations
+2. **Shared modules** (`modules/shared/`) provide cross-platform functionality
+3. **Host configurations** (`hosts/`) define individual machine setups
+4. **Library functions** (`lib/`) provide reusable Nix utilities
 
 ## Customization
 
@@ -131,6 +247,7 @@ make setup-mcp
 ```
 
 **Available MCP Servers:**
+
 - **Filesystem** - File system access and manipulation (default)
 - Additional servers can be installed manually as needed
 
@@ -158,6 +275,7 @@ make setup-mcp
 ## Troubleshooting
 
 **Build failures:**
+
 ```bash
 export USER=$(whoami)  # Ensure USER is set
 nix store gc            # Clear cache
@@ -165,6 +283,7 @@ make build             # Retry
 ```
 
 **Permission issues:**
+
 ```bash
 sudo nix run --impure .#build-switch
 ```

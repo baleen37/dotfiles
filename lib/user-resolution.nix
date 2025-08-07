@@ -4,22 +4,22 @@
 
 {
   # Environment variable to check (default: "USER")
-  envVar ? "USER",
-  # Default value if all methods fail
-  default ? null,
-  # Whether to allow SUDO_USER as a valid source
-  allowSudoUser ? true,
-  # Enable debug output
-  debugMode ? false,
-  # Mock environment for testing (optional)
-  mockEnv ? { },
-  # Target platform for platform-specific behavior
-  platform ? null,
-  # Enable automatic user detection fallbacks
-  enableAutoDetect ? true,
-  # Enable various fallback mechanisms
-  enableFallbacks ? true,
-  # Return format: "string" for backward compatibility, "extended" for full feature set
+  envVar ? "USER"
+, # Default value if all methods fail
+  default ? null
+, # Whether to allow SUDO_USER as a valid source
+  allowSudoUser ? true
+, # Enable debug output
+  debugMode ? false
+, # Mock environment for testing (optional)
+  mockEnv ? { }
+, # Target platform for platform-specific behavior
+  platform ? null
+, # Enable automatic user detection fallbacks
+  enableAutoDetect ? true
+, # Enable various fallback mechanisms
+  enableFallbacks ? true
+, # Return format: "string" for backward compatibility, "extended" for full feature set
   returnFormat ? "string"
 }:
 
@@ -55,7 +55,7 @@ let
     else if mockEnv != { } then "auto-detected-user"  # For testing
     else if builtins.getEnv "CI" != "" then "runner"  # CI environment fallback
     else if builtins.getEnv "GITHUB_ACTIONS" != "" then "runner"  # GitHub Actions environment
-    else null;  # In real environment, fall back to existing env vars
+    else null; # In real environment, fall back to existing env vars
 
   # Generate detailed error message with actionable steps
   generateErrorMsg = currentContext: ''

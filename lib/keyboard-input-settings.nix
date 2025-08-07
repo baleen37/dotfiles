@@ -6,94 +6,94 @@
 let
   # 키보드 설정 스크립트 생성
   configureKeyboardScript = pkgs.writeShellScript "configure-keyboard-nix" ''
-    set -euo pipefail
+        set -euo pipefail
 
-    echo "🚀 Nix 기반 키보드 입력 설정 시작"
-    echo "=================================="
-    echo ""
+        echo "🚀 Nix 기반 키보드 입력 설정 시작"
+        echo "=================================="
+        echo ""
 
-    # HIToolbox plist 파일 경로
-    PLIST_PATH="$HOME/Library/Preferences/com.apple.HIToolbox.plist"
-    BACKUP_PATH="$PLIST_PATH.backup.$(date +%Y%m%d_%H%M%S)"
+        # HIToolbox plist 파일 경로
+        PLIST_PATH="$HOME/Library/Preferences/com.apple.HIToolbox.plist"
+        BACKUP_PATH="$PLIST_PATH.backup.$(date +%Y%m%d_%H%M%S)"
 
-    # 백업 생성
-    if [ -f "$PLIST_PATH" ]; then
-      echo "📦 기존 설정 백업 중..."
-      cp "$PLIST_PATH" "$BACKUP_PATH"
-      echo "✅ 백업 완료: $BACKUP_PATH"
-    else
-      echo "ℹ️  기존 설정 파일이 없습니다. 새로 생성합니다."
-    fi
+        # 백업 생성
+        if [ -f "$PLIST_PATH" ]; then
+          echo "📦 기존 설정 백업 중..."
+          cp "$PLIST_PATH" "$BACKUP_PATH"
+          echo "✅ 백업 완료: $BACKUP_PATH"
+        else
+          echo "ℹ️  기존 설정 파일이 없습니다. 새로 생성합니다."
+        fi
 
-    echo ""
-    echo "⚙️  키보드 단축키 설정 중..."
+        echo ""
+        echo "⚙️  키보드 단축키 설정 중..."
 
-    # AppleSymbolicHotKeys 설정
-    # 키 ID 60: 이전 입력 소스 선택
-    # 키 ID 61: 다음 입력 소스 선택
-    # 파라미터: [49, 49, 1179648] = Space (49) + Shift+Cmd (1179648)
+        # AppleSymbolicHotKeys 설정
+        # 키 ID 60: 이전 입력 소스 선택
+        # 키 ID 61: 다음 입력 소스 선택
+        # 파라미터: [49, 49, 1179648] = Space (49) + Shift+Cmd (1179648)
 
-    # 기본 구조 생성 (plist가 없는 경우)
-    if [ ! -f "$PLIST_PATH" ]; then
-      cat > "$PLIST_PATH" << 'EOF'
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-  <key>AppleSymbolicHotKeys</key>
-  <dict>
-  </dict>
-</dict>
-</plist>
-EOF
-    else
-      # 기존 파일을 XML로 변환
-      /usr/bin/plutil -convert xml1 "$PLIST_PATH" 2>/dev/null || true
+        # 기본 구조 생성 (plist가 없는 경우)
+        if [ ! -f "$PLIST_PATH" ]; then
+          cat > "$PLIST_PATH" << 'EOF'
+    <?xml version="1.0" encoding="UTF-8"?>
+    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+    <plist version="1.0">
+    <dict>
+      <key>AppleSymbolicHotKeys</key>
+      <dict>
+      </dict>
+    </dict>
+    </plist>
+    EOF
+        else
+          # 기존 파일을 XML로 변환
+          /usr/bin/plutil -convert xml1 "$PLIST_PATH" 2>/dev/null || true
 
-      # AppleSymbolicHotKeys 섹션이 없으면 추가
-      if ! /usr/bin/plutil -extract "AppleSymbolicHotKeys" xml1 "$PLIST_PATH" >/dev/null 2>&1; then
-        /usr/bin/plutil -insert "AppleSymbolicHotKeys" -dictionary "$PLIST_PATH"
-      fi
-    fi
+          # AppleSymbolicHotKeys 섹션이 없으면 추가
+          if ! /usr/bin/plutil -extract "AppleSymbolicHotKeys" xml1 "$PLIST_PATH" >/dev/null 2>&1; then
+            /usr/bin/plutil -insert "AppleSymbolicHotKeys" -dictionary "$PLIST_PATH"
+          fi
+        fi
 
-    # 키 ID 60, 61 설정
-    for key_id in 60 61; do
-      echo "  키 ID $key_id 설정 중..."
+        # 키 ID 60, 61 설정
+        for key_id in 60 61; do
+          echo "  키 ID $key_id 설정 중..."
 
-      # 기존 키 설정 제거 (있다면)
-      /usr/bin/plutil -remove "AppleSymbolicHotKeys.$key_id" "$PLIST_PATH" 2>/dev/null || true
+          # 기존 키 설정 제거 (있다면)
+          /usr/bin/plutil -remove "AppleSymbolicHotKeys.$key_id" "$PLIST_PATH" 2>/dev/null || true
 
-      # 새 키 설정 단계별 추가
-      if /usr/bin/plutil -insert "AppleSymbolicHotKeys.$key_id" -dictionary "$PLIST_PATH" 2>/dev/null; then
-        /usr/bin/plutil -insert "AppleSymbolicHotKeys.$key_id.enabled" -bool true "$PLIST_PATH" 2>/dev/null
-        /usr/bin/plutil -insert "AppleSymbolicHotKeys.$key_id.value" -dictionary "$PLIST_PATH" 2>/dev/null
-        /usr/bin/plutil -insert "AppleSymbolicHotKeys.$key_id.value.type" -string "standard" "$PLIST_PATH" 2>/dev/null
-        /usr/bin/plutil -insert "AppleSymbolicHotKeys.$key_id.value.parameters" -array "$PLIST_PATH" 2>/dev/null
-        /usr/bin/plutil -insert "AppleSymbolicHotKeys.$key_id.value.parameters" -integer 49 -append "$PLIST_PATH" 2>/dev/null
-        /usr/bin/plutil -insert "AppleSymbolicHotKeys.$key_id.value.parameters" -integer 49 -append "$PLIST_PATH" 2>/dev/null
-        /usr/bin/plutil -insert "AppleSymbolicHotKeys.$key_id.value.parameters" -integer 1179648 -append "$PLIST_PATH" 2>/dev/null
-        echo "    ✅ 키 ID $key_id 설정 완료"
-      else
-        echo "    ❌ 키 ID $key_id 설정 실패"
-      fi
-    done
+          # 새 키 설정 단계별 추가
+          if /usr/bin/plutil -insert "AppleSymbolicHotKeys.$key_id" -dictionary "$PLIST_PATH" 2>/dev/null; then
+            /usr/bin/plutil -insert "AppleSymbolicHotKeys.$key_id.enabled" -bool true "$PLIST_PATH" 2>/dev/null
+            /usr/bin/plutil -insert "AppleSymbolicHotKeys.$key_id.value" -dictionary "$PLIST_PATH" 2>/dev/null
+            /usr/bin/plutil -insert "AppleSymbolicHotKeys.$key_id.value.type" -string "standard" "$PLIST_PATH" 2>/dev/null
+            /usr/bin/plutil -insert "AppleSymbolicHotKeys.$key_id.value.parameters" -array "$PLIST_PATH" 2>/dev/null
+            /usr/bin/plutil -insert "AppleSymbolicHotKeys.$key_id.value.parameters" -integer 49 -append "$PLIST_PATH" 2>/dev/null
+            /usr/bin/plutil -insert "AppleSymbolicHotKeys.$key_id.value.parameters" -integer 49 -append "$PLIST_PATH" 2>/dev/null
+            /usr/bin/plutil -insert "AppleSymbolicHotKeys.$key_id.value.parameters" -integer 1179648 -append "$PLIST_PATH" 2>/dev/null
+            echo "    ✅ 키 ID $key_id 설정 완료"
+          else
+            echo "    ❌ 키 ID $key_id 설정 실패"
+          fi
+        done
 
-    # plist를 바이너리 형식으로 변환
-    /usr/bin/plutil -convert binary1 "$PLIST_PATH"
+        # plist를 바이너리 형식으로 변환
+        /usr/bin/plutil -convert binary1 "$PLIST_PATH"
 
-    echo ""
-    echo "🎉 키보드 설정이 완료되었습니다!"
-    echo "   👉 Shift+Cmd+Space로 한영 전환이 가능합니다"
-    echo ""
-    echo "📝 추가 안내:"
-    echo "• 시스템 환경설정 > 키보드 > 입력 소스에서 한국어 입력기 추가 필요"
-    echo "• 변경사항은 로그아웃 후 재로그인 또는 시스템 재시작 후 적용"
-    echo "• 다른 앱의 단축키와 충돌할 수 있음"
+        echo ""
+        echo "🎉 키보드 설정이 완료되었습니다!"
+        echo "   👉 Shift+Cmd+Space로 한영 전환이 가능합니다"
+        echo ""
+        echo "📝 추가 안내:"
+        echo "• 시스템 환경설정 > 키보드 > 입력 소스에서 한국어 입력기 추가 필요"
+        echo "• 변경사항은 로그아웃 후 재로그인 또는 시스템 재시작 후 적용"
+        echo "• 다른 앱의 단축키와 충돌할 수 있음"
 
-    if [ -f "$BACKUP_PATH" ]; then
-      echo "• 문제 발생 시 백업에서 복원: cp '$BACKUP_PATH' '$PLIST_PATH'"
-    fi
-    echo ""
+        if [ -f "$BACKUP_PATH" ]; then
+          echo "• 문제 발생 시 백업에서 복원: cp '$BACKUP_PATH' '$PLIST_PATH'"
+        fi
+        echo ""
   '';
 
   # 키보드 설정 검증 스크립트
@@ -256,12 +256,13 @@ in
   '';
 
   # 테스트용 derivation
-  testDerivation = pkgs.runCommand "keyboard-input-settings-nix-test" {
-    buildInputs = [ pkgs.libplist ];
-    meta = {
-      description = "Keyboard input settings test (Nix implementation)";
-    };
-  } ''
+  testDerivation = pkgs.runCommand "keyboard-input-settings-nix-test"
+    {
+      buildInputs = [ pkgs.libplist ];
+      meta = {
+        description = "Keyboard input settings test (Nix implementation)";
+      };
+    } ''
     echo "🧪 Nix 기반 키보드 설정 테스트"
     echo "==============================="
     echo ""

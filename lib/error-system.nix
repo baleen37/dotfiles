@@ -6,7 +6,7 @@
 
 let
   # Determine pkgs and lib based on what's available
-  actualPkgs = if pkgs != null then pkgs else (import <nixpkgs> {});
+  actualPkgs = if pkgs != null then pkgs else (import <nixpkgs> { });
   actualLib = if lib != null then lib else actualPkgs.lib;
 
   # Color codes for terminal output
@@ -295,7 +295,7 @@ let
     else translations.en.${key};
 
   # Enhanced message processing with pattern matching
-  enhanceMessage = { message, locale ? "en", suggestions ? [] }:
+  enhanceMessage = { message, locale ? "en", suggestions ? [ ] }:
     let
       matchingPattern = actualLib.findFirst
         (pattern: builtins.match ".*${pattern}.*" message != null)
@@ -314,8 +314,8 @@ let
           then patternInfo.ko
           else message;
         suggestions =
-          if suggestions == [] then
-            patternInfo.${suggestionsKey} or patternInfo.${fallbackSuggestionsKey} or []
+          if suggestions == [ ] then
+            patternInfo.${suggestionsKey} or patternInfo.${fallbackSuggestionsKey} or [ ]
           else suggestions;
         type = patternInfo.type or "user";
         severity = patternInfo.severity or "error";
@@ -329,17 +329,17 @@ in
   inherit colors errorTypes severityLevels translations commonErrorPatterns predefinedErrors;
 
   # Core error creation function
-  createError = {
-    message,
-    component ? "unknown",
-    errorType ? "user",
-    severity ? "error",
-    locale ? "en",
-    debugMode ? false,
-    context ? {},
-    suggestions ? [],
-    timestamp ? getTimestamp
-  }:
+  createError =
+    { message
+    , component ? "unknown"
+    , errorType ? "user"
+    , severity ? "error"
+    , locale ? "en"
+    , debugMode ? false
+    , context ? { }
+    , suggestions ? [ ]
+    , timestamp ? getTimestamp
+    }:
     let
       # Enhance message with pattern matching
       enhanced = enhanceMessage {
@@ -393,36 +393,39 @@ in
       messageLine = "${colors.red}${error.enhancedMessage}${colors.reset}";
 
       # Context section
-      contextSection = if error.context != {} then
-        let
-          contextLines = builtins.attrNames error.context;
-          formatContextLine = key: "  ${key}: ${builtins.toString error.context.${key}}";
-        in
-        "\n\n${colors.cyan}${t "context"}:${colors.reset}\n" +
-        actualLib.concatMapStringsSep "\n" formatContextLine contextLines
-      else "";
+      contextSection =
+        if error.context != { } then
+          let
+            contextLines = builtins.attrNames error.context;
+            formatContextLine = key: "  ${key}: ${builtins.toString error.context.${key}}";
+          in
+          "\n\n${colors.cyan}${t "context"}:${colors.reset}\n" +
+          actualLib.concatMapStringsSep "\n" formatContextLine contextLines
+        else "";
 
       # Suggestions section
-      suggestionsSection = if error.suggestions != [] then
-        let
-          formatSuggestion = i: "  ${toString (i + 1)}. ${builtins.elemAt error.suggestions i}";
-          indices = builtins.genList (x: x) (builtins.length error.suggestions);
-        in
-        "\n\n${colors.green}${colors.bold}${t "suggestions"}:${colors.reset}\n" +
-        actualLib.concatMapStringsSep "\n" formatSuggestion indices
-      else "";
+      suggestionsSection =
+        if error.suggestions != [ ] then
+          let
+            formatSuggestion = i: "  ${toString (i + 1)}. ${builtins.elemAt error.suggestions i}";
+            indices = builtins.genList (x: x) (builtins.length error.suggestions);
+          in
+          "\n\n${colors.green}${colors.bold}${t "suggestions"}:${colors.reset}\n" +
+          actualLib.concatMapStringsSep "\n" formatSuggestion indices
+        else "";
 
       # Debug section
-      debugSection = if error.debugMode then
-        "\n\n${colors.yellow}${t "debug_info"}:${colors.reset}\n" +
-        "  Severity: ${error.severity}\n" +
-        "  Error Type: ${error.errorType}\n" +
-        "  Component: ${error.component}\n" +
-        "  Locale: ${error.locale}\n" +
-        "  Priority: ${error.priority}\n" +
-        "  Exit Code: ${toString error.exitCode}\n" +
-        "  Original Message: ${error.message}"
-      else "";
+      debugSection =
+        if error.debugMode then
+          "\n\n${colors.yellow}${t "debug_info"}:${colors.reset}\n" +
+          "  Severity: ${error.severity}\n" +
+          "  Error Type: ${error.errorType}\n" +
+          "  Component: ${error.component}\n" +
+          "  Locale: ${error.locale}\n" +
+          "  Priority: ${error.priority}\n" +
+          "  Exit Code: ${toString error.exitCode}\n" +
+          "  Original Message: ${error.message}"
+        else "";
 
       # Help text
       helpText = "\n\n${colors.yellow}${t "help_text"}${colors.reset}";
@@ -466,14 +469,15 @@ in
         severity = severityCounts;
         type = typeCounts;
       };
-      mostSevere = if totalCount > 0 then
-        let
-          priorities = map (error: error.severityPriority) errors;
-          maxPriority = builtins.foldl' actualLib.max 0 priorities;
-          mostSevereErrors = builtins.filter (error: error.severityPriority == maxPriority) errors;
-        in
-        builtins.head mostSevereErrors
-      else null;
+      mostSevere =
+        if totalCount > 0 then
+          let
+            priorities = map (error: error.severityPriority) errors;
+            maxPriority = builtins.foldl' actualLib.max 0 priorities;
+            mostSevereErrors = builtins.filter (error: error.severityPriority == maxPriority) errors;
+          in
+          builtins.head mostSevereErrors
+        else null;
     };
 
   # Predefined error factories
@@ -499,12 +503,14 @@ in
     requireEnv = var: default:
       let value = builtins.getEnv var;
       in if value == "" && default == null
-      then throwError (createError {
-        message = "Environment variable ${var} is required but not set";
-        component = "environment";
-        errorType = "user";
-        suggestions = [ "Set the environment variable: export ${var}=<value>" ];
-      })
+      then
+        throwError
+          (createError {
+            message = "Environment variable ${var} is required but not set";
+            component = "environment";
+            errorType = "user";
+            suggestions = [ "Set the environment variable: export ${var}=<value>" ];
+          })
       else if value == "" then default else value;
 
     # Try operation with fallback
@@ -521,7 +527,7 @@ in
         hasField = field: builtins.hasAttr field error;
         missingFields = builtins.filter (field: !(hasField field)) requiredFields;
       in
-      if missingFields == [] then
+      if missingFields == [ ] then
         { valid = true; error = null; }
       else
         {

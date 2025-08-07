@@ -6,6 +6,7 @@ superclaude intelligent subagent system: automatic expert selection and seamless
 
 ### 100% Automatic Subagent Selection
 **AI-Powered Context Recognition**: Instant expert matching without any configuration
+- **Code completion** → `code-reviewer` auto-activated
 - **Code completion** → `code-reviewer` auto-activated  
 - **Error detection** → `debugger` auto-engaged
 - **Performance issues** → `performance-engineer` auto-delegated
@@ -18,12 +19,14 @@ superclaude intelligent subagent system: automatic expert selection and seamless
 - SQL injection, XSS, CSRF → `security-auditor` priority activation
 - **Zero-Delay**: Security concerns get immediate expert attention
 
+#### Performance Expert Auto-Optimization
 #### Performance Expert Auto-Optimization  
 **Auto-Triggers**: "성능", "느림", "최적화", "병목", "속도"
 - Memory, CPU, database queries → `performance-engineer` auto-activated
 - **Predictive**: Detects performance issues before they become critical
 
 #### Debug Expert Auto-Response
+**Auto-Triggers**: "에러", "버그", "실패", "오류", "문제"
 **Auto-Triggers**: "에러", "버그", "실패", "오류", "문제"  
 - Exceptions, crashes, timeouts → `debugger` immediate deployment
 - **Root Cause**: Always finds underlying issues, never just symptoms
@@ -43,12 +46,14 @@ superclaude intelligent subagent system: automatic expert selection and seamless
 - **Example**: "Add comment to this function" → Direct execution
 - **Efficiency**: No TodoWrite overhead, immediate completion
 
+#### Moderate Tasks (Smart TodoWrite)
 #### Moderate Tasks (Smart TodoWrite)  
 - **Auto-Detection**: Multi-file, multi-step logic, 10-30min work
 - **Example**: "Implement user login" → Auto TodoWrite + selective subagents
 - **Strategy**: 3-5 subtasks, sequential expert engagement
 
 #### Complex Tasks (Full Orchestration)
+- **Auto-Detection**: System-wide, architecture changes, 1hr+ work
 - **Auto-Detection**: System-wide, architecture changes, 1hr+ work  
 - **Example**: "Redesign authentication system" → TodoWrite + Task + parallel subagents
 - **Strategy**: 6+ subtasks, multi-expert parallel collaboration
@@ -90,6 +95,7 @@ function autoSelectStrategy(request: string): Strategy {
 ```
 Auto-workflow for complex implementations:
 1. backend-architect: API design
+2. database-optimizer: Schema optimization
 2. database-optimizer: Schema optimization  
 3. security-auditor: Security validation
 4. test-automator: Test creation
@@ -101,6 +107,7 @@ Auto-workflow for complex implementations:
 Auto-workflow for system-wide changes:
 Simultaneous execution:
 - frontend-expert: UI component implementation
+- backend-architect: API endpoint design
 - backend-architect: API endpoint design  
 - database-optimizer: Data modeling
 - test-automator: Comprehensive test suite
@@ -119,6 +126,7 @@ debugger → performance-engineer → code-reviewer
 **Zero-Config Quality Gates**: Every code change triggers automatic expert review
 1. **code-reviewer**: Code quality verification
 2. **security-auditor**: Vulnerability scanning
+3. **test-automator**: Test coverage validation
 3. **test-automator**: Test coverage validation  
 4. **performance-engineer**: Performance impact analysis
 
@@ -139,6 +147,7 @@ interface JitoPreferences {
   preferredExperts: {
     'code-reviewer': 0.95;      // Almost always used
     'security-auditor': 0.85;   // Frequently used
+    'debugger': 0.90;          // Very frequently used
     'debugger': 0.90;          // Very frequently used  
     'performance-engineer': 0.60; // Moderately used
   };
@@ -171,6 +180,7 @@ interface JitoPreferences {
 ```
 즉시 Task 위임:
 "nix flake 업데이트하고 테스트해줘" → nix-system-expert
+"이 보안 취약점들 수정해줘" → security-auditor
 "이 보안 취약점들 수정해줘" → security-auditor  
 "성능 최적화하고 벤치마크 해줘" → performance-engineer
 "전체 코드베이스 분석해줘" → general-purpose
@@ -186,6 +196,7 @@ interface JitoPreferences {
 - **빠른 확인**: 파일 읽기, 상태 확인
 - **시간 예상 5분 이하**: 간단한 작업
 
+#### 직접 처리 예시
 #### 직접 처리 예시  
 ```
 Main에서 직접:
@@ -207,6 +218,7 @@ Main에서 직접:
 "사용자 인증 시스템 개선":
 1. Main: 요구사항 분석 + 복잡도 판단
 2. security-auditor: 현재 보안 검토
+3. backend-architect: 개선 방안 설계
 3. backend-architect: 개선 방안 설계  
 4. code-reviewer: 최종 품질 검증
 ```
@@ -234,6 +246,7 @@ Main에서 직접:
 3. Validation: Quality assurance chain auto-execution
 ```
 
+### Bug Resolution (Auto-Coordinated)
 ### Bug Resolution (Auto-Coordinated)  
 ```
 1. debugger: Root cause analysis

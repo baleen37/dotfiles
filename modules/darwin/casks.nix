@@ -2,10 +2,10 @@ _:
 
 [
   # Development Tools
-  "datagrip"  # Database IDE from JetBrains
+  "datagrip" # Database IDE from JetBrains
   "docker-desktop"
   "intellij-idea"
-  "wezterm"  # Terminal emulator (restored from iterm2)
+  "wezterm" # Terminal emulator (restored from iterm2)
 
   # Communication Tools
   "discord"
@@ -18,7 +18,7 @@ _:
   # Utility Tools
   "alt-tab"
   "claude"
-  "tailscale-app"  # VPN mesh network with GUI
+  "tailscale-app" # VPN mesh network with GUI
 
   # Entertainment Tools
   "vlc"

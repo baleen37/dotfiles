@@ -13,7 +13,7 @@ let
     in
     {
       # Core functionality tests
-      flake-structure-test = pkgs.runCommand "flake-structure-test" {} ''
+      flake-structure-test = pkgs.runCommand "flake-structure-test" { } ''
         echo "Testing flake structure..."
         # Test that essential flake files exist
         if [ -f "${self}/flake.nix" ]; then
@@ -42,7 +42,7 @@ let
       '';
 
       # Configuration validation test
-      config-validation-test = pkgs.runCommand "config-validation-test" {} ''
+      config-validation-test = pkgs.runCommand "config-validation-test" { } ''
         echo "Testing configuration validation..."
 
         # Test that key nix files can be evaluated
@@ -59,7 +59,7 @@ let
       '';
 
       # Build test - verify that key derivations can be built
-      build-test = pkgs.runCommand "build-test" {} ''
+      build-test = pkgs.runCommand "build-test" { } ''
         echo "Testing basic build capabilities..."
 
         # Test that we can build a simple derivation
@@ -83,16 +83,22 @@ in
       testSuite = mkTestSuite system;
 
       # Extract test categories based on naming patterns (updated for current tests)
-      coreTests = nixpkgs.lib.filterAttrs (name: _:
-        builtins.elem name [
-          "flake-structure-test" "config-validation-test" "build-test"
-        ]
-      ) testSuite;
+      coreTests = nixpkgs.lib.filterAttrs
+        (name: _:
+          builtins.elem name [
+            "flake-structure-test"
+            "config-validation-test"
+            "build-test"
+          ]
+        )
+        testSuite;
 
-      workflowTests = nixpkgs.lib.filterAttrs (name: _:
-        # Currently no workflow tests defined
-        false
-      ) testSuite;
+      workflowTests = nixpkgs.lib.filterAttrs
+        (name: _:
+          # Currently no workflow tests defined
+          false
+        )
+        testSuite;
 
       performanceTests = {
         # Performance monitoring test using dedicated script
@@ -117,22 +123,22 @@ in
           testsCount = builtins.length (builtins.attrNames categoryTests);
         in
         pkgs.runCommand "test-${category}"
-        {
-          meta = {
-            description = "${category} tests for ${system} (simplified)";
-          };
-        } ''
-        echo "Test Framework Simplification - ${category} tests"
-        echo "================================================"
-        echo ""
-        echo "✓ ${category} test category contains ${toString testsCount} tests"
-        echo "✓ All tests in category are properly defined"
-        echo "✓ Test framework successfully simplified from 84+ to ~12 tests"
-        echo ""
-        echo "Simplified ${category} tests: PASSED"
-        echo "================================================"
-        touch $out
-      '';
+          {
+            meta = {
+              description = "${category} tests for ${system} (simplified)";
+            };
+          } ''
+          echo "Test Framework Simplification - ${category} tests"
+          echo "================================================"
+          echo ""
+          echo "✓ ${category} test category contains ${toString testsCount} tests"
+          echo "✓ All tests in category are properly defined"
+          echo "✓ Test framework successfully simplified from 84+ to ~12 tests"
+          echo ""
+          echo "Simplified ${category} tests: PASSED"
+          echo "================================================"
+          touch $out
+        '';
     in
     testSuite // {
       # Category-specific test runners

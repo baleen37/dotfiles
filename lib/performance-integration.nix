@@ -1,7 +1,7 @@
 # Performance optimization integration module
 # Combines all performance optimizations into a unified system
 
-{ lib, pkgs, system, inputs ? {}, self ? {} }:
+{ lib, pkgs, system, inputs ? { }, self ? { } }:
 
 let
   # Import optimization modules
@@ -25,7 +25,8 @@ let
     fileFilters = rebuildOptimizer.fileFilters;
   };
 
-in rec {
+in
+rec {
   # Unified performance optimization
   performanceOptimizations = {
     # Apply all optimizations to a derivation
@@ -39,9 +40,10 @@ in rec {
 
         # Apply source filtering to reduce rebuild triggers
         sourceFiltered = buildOptimized.overrideAttrs (oldAttrs: {
-          src = if oldAttrs ? src && lib.isStorePath oldAttrs.src then
-            rebuildOptimizer.fileFilters.filterSource oldAttrs.src []
-          else oldAttrs.src;
+          src =
+            if oldAttrs ? src && lib.isStorePath oldAttrs.src then
+              rebuildOptimizer.fileFilters.filterSource oldAttrs.src [ ]
+            else oldAttrs.src;
         });
       in
       sourceFiltered;
@@ -52,40 +54,45 @@ in rec {
 
     # Create performance-optimized development shell
     mkOptimizedDevShell = baseShell:
-      if baseShell ? overrideAttrs then baseShell.overrideAttrs (oldAttrs: {
-        # Apply parallel build environment
-        inherit (parallelOptimizer.parallelBuildConfig.environment) NIX_BUILD_CORES MAKEFLAGS;
+      if baseShell ? overrideAttrs then
+        baseShell.overrideAttrs
+          (oldAttrs: {
+            # Apply parallel build environment
+            inherit (parallelOptimizer.parallelBuildConfig.environment) NIX_BUILD_CORES MAKEFLAGS;
 
-        # Add performance monitoring tools
-        buildInputs = (oldAttrs.buildInputs or []) ++ [
-          pkgs.time pkgs.htop pkgs.iotop pkgs.ccache
-        ];
+            # Add performance monitoring tools
+            buildInputs = (oldAttrs.buildInputs or [ ]) ++ [
+              pkgs.time
+              pkgs.htop
+              pkgs.iotop
+              pkgs.ccache
+            ];
 
-        # Enhanced shell hook with performance information
-        shellHook = (oldAttrs.shellHook or "") + ''
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-          echo "🚀 Performance-Optimized Development Environment"
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-          echo "Hardware: Apple M2 (${toString performanceConfig.hardware.totalCores} cores, ${toString performanceConfig.hardware.memoryGB}GB RAM)"
-          echo "Build cores: $NIX_BUILD_CORES"
-          echo "Parallel jobs: ${toString performanceConfig.parallel.maxJobs}"
-          echo "Make flags: $MAKEFLAGS"
-          echo ""
-          echo "Performance tools available:"
-          echo "  • build-perf-monitor.sh - Build performance monitoring"
-          echo "  • nix-cache-optimizer.sh - Cache optimization"
-          echo "  • time <command> - Command timing"
-          echo "  • htop - System resource monitor"
-          echo ""
-          echo "ccache configured: $CCACHE_DIR (max: $CCACHE_MAXSIZE)"
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        '';
+            # Enhanced shell hook with performance information
+            shellHook = (oldAttrs.shellHook or "") + ''
+              echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+              echo "🚀 Performance-Optimized Development Environment"
+              echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+              echo "Hardware: Apple M2 (${toString performanceConfig.hardware.totalCores} cores, ${toString performanceConfig.hardware.memoryGB}GB RAM)"
+              echo "Build cores: $NIX_BUILD_CORES"
+              echo "Parallel jobs: ${toString performanceConfig.parallel.maxJobs}"
+              echo "Make flags: $MAKEFLAGS"
+              echo ""
+              echo "Performance tools available:"
+              echo "  • build-perf-monitor.sh - Build performance monitoring"
+              echo "  • nix-cache-optimizer.sh - Cache optimization"
+              echo "  • time <command> - Command timing"
+              echo "  • htop - System resource monitor"
+              echo ""
+              echo "ccache configured: $CCACHE_DIR (max: $CCACHE_MAXSIZE)"
+              echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            '';
 
-        # Performance environment variables
-        CCACHE_DIR = "\${HOME}/.cache/ccache";
-        CCACHE_MAXSIZE = "2G";
-        CCACHE_COMPILERCHECK = "content";
-      }) else baseShell;
+            # Performance environment variables
+            CCACHE_DIR = "\${HOME}/.cache/ccache";
+            CCACHE_MAXSIZE = "2G";
+            CCACHE_COMPILERCHECK = "content";
+          }) else baseShell;
   };
 
   # Performance monitoring integration
@@ -113,7 +120,7 @@ in rec {
     };
 
     # Generate performance metrics
-    generateMetrics = buildResults: pkgs.runCommand "performance-metrics" {} ''
+    generateMetrics = buildResults: pkgs.runCommand "performance-metrics" { } ''
       mkdir -p $out
 
       cat > $out/performance-summary.json << 'EOF'
@@ -150,12 +157,13 @@ in rec {
   integrateWithFlake = originalOutputs: system:
     let
       # Extract base outputs
-      basePackages = originalOutputs.packages.${system} or {};
-      baseDevShells = originalOutputs.devShells.${system} or {};
-      baseApps = originalOutputs.apps.${system} or {};
-      baseChecks = originalOutputs.checks.${system} or {};
+      basePackages = originalOutputs.packages.${system} or { };
+      baseDevShells = originalOutputs.devShells.${system} or { };
+      baseApps = originalOutputs.apps.${system} or { };
+      baseChecks = originalOutputs.checks.${system} or { };
 
-    in originalOutputs // {
+    in
+    originalOutputs // {
       # Performance-optimized packages
       packages = originalOutputs.packages // {
         ${system} = basePackages // {
@@ -166,9 +174,11 @@ in rec {
 
       # Performance-optimized development shells
       devShells = originalOutputs.devShells // {
-        ${system} = lib.mapAttrs (name: shell:
-          performanceOptimizations.mkOptimizedDevShell shell
-        ) baseDevShells;
+        ${system} = lib.mapAttrs
+          (name: shell:
+            performanceOptimizations.mkOptimizedDevShell shell
+          )
+          baseDevShells;
       };
 
       # Performance-enhanced apps
@@ -181,20 +191,23 @@ in rec {
             "${placeholder "out"}/bin/nix-cache-optimizer.sh";
 
           # Wrap existing apps with performance monitoring
-        } // (lib.mapAttrs (name: app:
-          if app.type == "app" then
-            performanceMonitoring.mkPerformanceApp "monitored-${name}" app.program
-          else app
-        ) baseApps);
+        } // (lib.mapAttrs
+          (name: app:
+            if app.type == "app" then
+              performanceMonitoring.mkPerformanceApp "monitored-${name}" app.program
+            else app
+          )
+          baseApps);
       };
 
       # Enhanced checks with performance validation
       checks = originalOutputs.checks // {
         ${system} = baseChecks // {
           # Performance validation check
-          performance-validation = pkgs.runCommand "performance-validation" {
-            meta.timeout = 300;
-          } ''
+          performance-validation = pkgs.runCommand "performance-validation"
+            {
+              meta.timeout = 300;
+            } ''
             echo "=== Performance Optimization Validation ==="
 
             # Check if performance optimizations are properly configured
@@ -230,9 +243,10 @@ in rec {
           '';
 
           # Build performance benchmark
-          build-performance-benchmark = pkgs.runCommand "build-performance-benchmark" {
-            meta.timeout = 600;
-          } ''
+          build-performance-benchmark = pkgs.runCommand "build-performance-benchmark"
+            {
+              meta.timeout = 600;
+            } ''
             echo "=== Build Performance Benchmark ==="
 
             # Simple build performance test

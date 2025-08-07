@@ -18,13 +18,13 @@ Usage: "Solve this problem --think"
 
 **Auto-Activation Triggers**:
 - Multi-step logic design requirements
-- Debugging and root cause analysis  
+- Debugging and root cause analysis
 - Architecture decision points
 - Optimization choice evaluation
 
 #### --ultrathink (Deep Intelligence)
 ```
-Usage: "Design this architecture --ultrathink"  
+Usage: "Design this architecture --ultrathink"
 ```
 **superclaude Advanced Features**:
 - **Comprehensive multi-angle analysis** with alternative comparison
@@ -53,7 +53,7 @@ Usage: "Analyze this codebase --analyze"
 **Auto-Activation Scenarios**:
 - Comprehensive codebase analysis
 - Technical debt assessment
-- System health diagnostics  
+- System health diagnostics
 - Data pattern investigation
 
 ### --debug (Problem-Solving AI)
@@ -62,7 +62,7 @@ Usage: "Fix this error --debug"
 ```
 **superclaude Debug Intelligence**:
 - **Root Cause Analysis focused**: Never fixes symptoms
-- **Hypothesis formation → Verification → Solution** methodology  
+- **Hypothesis formation → Verification → Solution** methodology
 - **Prevention strategy inclusion**: Stops recurrence
 - **Auto-escalation**: Calls specialized subagents when needed
 
@@ -89,7 +89,7 @@ Usage: "Design microservice architecture --architect"
 - Scalability planning initiatives
 
 ### --optimize (Performance AI)
-```  
+```
 Usage: "Optimize this query --optimize"
 ```
 **superclaude Optimization Engine**:
@@ -126,7 +126,7 @@ function autoSelectThinkingMode(request: string): ThinkingMode {
 
   // Domain-specific auto-selection
   if (analysis.domain === 'debug') return '--debug';
-  if (analysis.domain === 'architecture') return '--architect';  
+  if (analysis.domain === 'architecture') return '--architect';
   if (analysis.domain === 'optimization') return '--optimize';
   if (analysis.domain === 'analysis') return '--analyze';
 
@@ -152,7 +152,7 @@ function autoSelectThinkingMode(request: string): ThinkingMode {
 ```
 Context-aware recommendations:
 "This looks like a performance issue. Consider --optimize for detailed analysis."
-"Architecture decision detected. --architect mode recommended for comprehensive design."  
+"Architecture decision detected. --architect mode recommended for comprehensive design."
 "Complex debugging scenario. --debug mode will provide systematic root cause analysis."
 ```
 
@@ -193,7 +193,7 @@ interface JitoThinkingPreferences {
 ```
 # General Development Tasks (Auto --think)
 "Implement user login functionality --think"
-"Add error handling to this API --think"  
+"Add error handling to this API --think"
 "Refactor this complex function --think"
 
 # Specialized Analysis Tasks (Auto-selected)
@@ -212,7 +212,7 @@ interface JitoThinkingPreferences {
 **Multi-Mode Intelligence**: Automatic combination for complex scenarios
 ```
 "Analyze system performance issues comprehensively --analyze --debug --optimize"
-"Design and optimize new microservice --architect --optimize"  
+"Design and optimize new microservice --architect --optimize"
 "Find security vulnerabilities and solutions --analyze --debug --ultrathink"
 ```
 
