@@ -14,49 +14,16 @@ in
     ../../modules/shared
   ];
 
+  # Nix 설정은 완전히 Determinate Nix가 관리
+  # /etc/nix/nix.conf 및 /etc/nix/nix.custom.conf에서 설정됨
   nix = {
-    enable = false; # Determinate Nix와 충돌 방지를 위해 비활성화
-    # package = pkgs.nix;  # Determinate가 관리하므로 비활성화
+    enable = false; # Determinate Nix와 충돌 방지를 위해 완전 비활성화
 
-    # gc = {
-    #   automatic = false;  # nix.enable = false일 때 자동 GC 비활성화
-    #   interval = { Weekday = 0; Hour = 2; Minute = 0; };
-    #   options = "--delete-older-than 30d";
-    # };
-
-    # 캐시 최적화를 위한 다중 substituters 설정
-    settings = {
-      trusted-users = [ "root" "@admin" user ];
-      substituters = [
-        "https://cache.nixos.org"
-        "https://nix-community.cachix.org"
-        "https://cuda-maintainers.cachix.org"
-        "https://devenv.cachix.org"
-        "https://pre-commit-hooks.cachix.org"
-        "https://numtide.cachix.org"
-      ];
-      trusted-public-keys = [
-        "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
-        "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
-        "cuda-maintainers.cachix.org-1:0dq3bujKpuEPiCgKpvNhFE8gvXv6bZg6RzjWUYqZFFI="
-        "devenv.cachix.org-1:w1cLUi8dv3hnoSPGAuibQv+f9TZLr6cv/Hm9XgU50cw="
-        "pre-commit-hooks.cachix.org-1:Pkk3Panw5AW24TOv6kz3PvLhlH8puAsJTBbOPmBo7Rc="
-        "numtide.cachix.org-1:2ps1kLBUWjxIneOy2Oa9+LG8+NJf2XRAYsGGHghiZZ0="
-      ];
-      # 캐시 효율성 최적화 설정
-      max-jobs = "auto";
-      cores = 0; # 모든 CPU 코어 사용
-      system-features = [ "nixos-test" "benchmark" "big-parallel" "kvm" ];
-      keep-outputs = true;
-      keep-derivations = true;
-    };
-
-    extraOptions = ''
-      experimental-features = nix-command flakes
-      warn-dirty = false
-      auto-optimise-store = true
-      builders-use-substitutes = true
-    '';
+    # 모든 nix 설정을 Determinate가 관리하도록 함
+    # - trusted-users: /etc/nix/nix.custom.conf에서 수동 설정 필요
+    # - substituters: Determinate가 FlakeHub와 기본 캐시 제공
+    # - 수동 설정 방법: sudo vi /etc/nix/nix.custom.conf
+    #   trusted-users = root @admin baleen
   };
 
   # zsh를 시스템에서 사용 가능한 쉘로 등록 (사용자 shell은 modules/darwin/home-manager.nix에서 설정됨)
@@ -89,11 +56,15 @@ in
         echo "⚠️  nix-community.cachix.org substituter가 비활성화되어 있습니다."
       fi
 
-      # trusted-users 설정 확인
+      # trusted-users 설정 확인 및 수정 안내
       if nix show-config | grep -q "trusted-users.*${user}"; then
-        echo "✅ trusted-users 설정이 완료되어 substituter 경고가 제거됩니다."
+        echo "✅ trusted-users 설정이 완료되어 있습니다."
       else
-        echo "⚠️  trusted-users 설정이 누락되었습니다."
+        echo "⚠️  trusted-users 설정이 누락되어 있습니다."
+        echo "   📝 수동 설정 필요:"
+        echo "   sudo vi /etc/nix/nix.custom.conf"
+        echo "   다음 줄 추가: trusted-users = root @admin ${user}"
+        echo "   설정 후 터미널 재시작 필요"
       fi
 
       echo ""

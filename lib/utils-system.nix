@@ -202,6 +202,17 @@ let
       in
       builtins.foldl' addToGroup { } list;
 
+    # Take first n elements from list
+    take = n: list:
+      if n <= 0 then [ ]
+      else if n >= builtins.length list then list
+      else builtins.genList (i: builtins.elemAt list i) n;
+
+    # Drop first n elements from list
+    drop = n: list:
+      if n <= 0 then list
+      else if n >= builtins.length list then [ ]
+      else listUtils.take (builtins.length list - n) (builtins.genList (i: builtins.elemAt list (i + n)) (builtins.length list - n));
   };
 
   # String utilities
@@ -278,6 +289,9 @@ let
 
   # Attribute set utilities
   attrUtils = {
+    # Deep merge multiple attribute sets
+    deepMerge = attrs:
+      builtins.foldl' configUtils.mergeConfigs { } attrs;
 
     # Check if attribute path exists
     hasAttrPath = path: attrs:
@@ -313,7 +327,7 @@ let
           else
             let
               key = builtins.head pathParts;
-              rest = builtins.tail pathParts;
+              rest = listUtils.drop 1 pathParts;
               existing = if builtins.hasAttr key currentAttrs then currentAttrs.${key} else { };
             in
             currentAttrs // { ${key} = setValue rest existing; };
