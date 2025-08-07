@@ -28,6 +28,20 @@ make build
 nix run --impure .#build-switch
 ```
 
+### Post-Installation Setup (macOS)
+
+If you're using **Determinate Nix Installer** (recommended), you need to configure trusted users to avoid cache warnings:
+
+```bash
+# Add your user as a trusted user
+sudo vi /etc/nix/nix.custom.conf
+
+# Add this line (replace 'baleen' with your username):
+trusted-users = root @admin baleen
+
+# Restart terminal to apply changes
+```
+
 Done! You now have 50+ development tools and AI assistance ready.
 
 ## What You Get
