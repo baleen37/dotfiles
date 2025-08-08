@@ -2,16 +2,16 @@
 
 ABOUTME: Claude Code 설정 파일들의 lint, 구조, 링크 검증 및 자동 수정
 
-## 핵심 원칙
+## 개요 및 원칙
 
-**YAGNI 우선**: 실용적 자동화만, 복잡성 제거
-**안전한 수정**: 읽기 → 분석 → 수정 → 검증
-**직접 편집**: Edit/MultiEdit로 즉시 수정, 백업 파일 생성 안함
-**전문가 위임**: 복잡한 최적화는 claude-prompt-expert 활용
+**YAGNI 우선**: 실용적 자동화만, 복잡성 제거  
+**안전한 수정**: 읽기 → 분석 → 수정 → 검증  
+**직접 편집**: Edit/MultiEdit로 즉시 수정, 백업 파일 생성 안함  
+**전문가 위임**: 복잡한 최적화는 prompt-engineer 활용
 
-## 기본 동작
+## 실행 로직 (단계별)
 
-### 자동 감지 및 수정
+### 자동 수정 대상
 
 **즉시 수정 대상**:
 
@@ -23,37 +23,41 @@ ABOUTME: Claude Code 설정 파일들의 lint, 구조, 링크 검증 및 자동 
 
 **승인 필요**:
 
-- 새 섹션 추가
-- 구조적 변경
+- 새 섹션 추가  
+- 구조적 변경  
 - 기능 확장
 
-### 처리 과정
+### 단계별 처리 과정
 
 ```bash
-# 1. 구조 탐색 (병렬)
-Glob(".claude/**/*.md", "modules/**/claude/**/*.md")
-+ LS(디렉토리 계층) + Bash(메타데이터 수집)
+# 1. 구조 탐색
+find .claude -name "*.md" -type f
+find modules -path "*/claude/*.md" -type f
+ls -la .claude/ modules/*/config/claude/
 
-# 2. 컨텐츠 분석 (병렬)
-Read(CLAUDE.md, RULES.md, PRINCIPLES.md, commands/*.md)
-→ ABOUTME, 섹션 구조, 스타일 패턴 추출
+# 2. 컨텐츠 분석 대상 파일 수집
+for file in $(find .claude modules -name "*.md" -type f); do
+  echo "Processing: $file"
+  # ABOUTME, 섹션 구조, 스타일 패턴 추출
+done
 
-# 3. 의존성 맵핑 (병렬)  
-Grep("@[a-zA-Z].*\.md", output="content") + 링크 유효성 검증
-→ 참조 관계 그래프 생성, 깨진 링크 감지
+# 3. 링크 유효성 검증
+grep -r "@[a-zA-Z].*\.md" .claude/ modules/*/config/claude/
+# 참조된 파일들이 실제로 존재하는지 확인
 
-# 4. 품질 기준선 수립
-Grep(markdownlint 패턴) + ABOUTME 누락 감지
-→ 현재 상태 vs 목표 품질 매트릭스
+# 4. Markdown lint 문제 감지
+# MD022: 제목 주변 공백 문제
+# MD025: 여러 H1 제목 문제
+grep -n "^##[^ ]" *.md  # MD022 감지 예시
 
-# 5. 분석 및 분류
-자동 수정 vs 승인 필요 vs 금지 사항 구분
+# 5. ABOUTME 누락 감지
+grep -L "ABOUTME:" .claude/commands/*.md
 
-# 6. 실행
-Edit/MultiEdit로 직접 수정 → 검증
+# 6. 실행 (예시)
+# Claude Code의 Edit/MultiEdit 도구 활용
 ```
 
-## 도구 활용
+## 도구별 사용법
 
 ### Claude Code 도구
 
@@ -61,34 +65,37 @@ Edit/MultiEdit로 직접 수정 → 검증
 - **Grep**: lint 패턴, 링크 검증
 - **Read**: 현재 상태 파악
 - **Edit/MultiEdit**: 직접 수정
-- **claude-prompt-expert**: 복잡한 프롬프트 최적화
+- **prompt-engineer**: 복잡한 프롬프트 최적화
 
-### 안전장치
+### 안전장치 및 검증
 
-- Read-first 원칙 (상태 파악 후 수정)
-- 단계별 검증 (수정 후 즉시 확인)
-- 실패 시 대안 전략 (MultiEdit → Edit)
+- **Read-first 원칙**: 상태 파악 후 수정  
+- **단계별 검증**: 수정 후 즉시 확인  
+- **대안 전략**: MultiEdit 실패 시 Edit 사용  
+- **백업 없음**: 직접 수정 방식, Git으로 버전 관리
 
-## 사용 예시
+## 사용 예시 및 시나리오
 
 ### 기본 사용
 
 ```bash
 /update-claude
-# 결과: 5개 MD022 오류 수정, 2개 링크 수정, 45초 완료
+# 예상 결과: MD022 오류 수정, 깨진 링크 수정, 완료 메시지 표시
 ```
 
-### 전문가 모드
+### 전문가 모드 (구현 예정)
 
 ```bash
-/update-claude --expert
-# 결과: claude-prompt-expert 활용, 토큰 효율성 30% 개선
+# TODO: 향후 구현 예정
+# /update-claude --expert
+# 결과: prompt-engineer 에이전트 활용, 토큰 효율성 개선
 ```
 
-### 검사만
+### 검사 모드 (구현 예정)
 
 ```bash
-/update-claude --check  
+# TODO: 향후 구현 예정
+# /update-claude --check  
 # 결과: 문제 보고서만 생성, 수정 안함
 ```
 
@@ -126,24 +133,25 @@ Edit/MultiEdit로 직접 수정 → 검증
 ABOUTME: Brief description of command purpose
 ```
 
-## 성능 목표
+## 성능 및 제한사항
 
-**속도**: 일반적 수정 <2분, 복잡한 최적화 <5분
-**정확도**: 95% 이상 자동 수정 성공률
-**안전성**: 0 실패, 복원 가능한 수정만
+**속도**: 일반적 수정 예상 시간 (벤치마크 예정)
+**정확도**: 자동 수정 성공률 (측정 후 업데이트)
+**안전성**: Read-first 원칙, 단계별 검증 적용
 
 ## 제한사항
 
 **수정하지 않음**:
 
-- SuperClaude 핵심 철학 변경
+- SuperClaude 핵심 철학 변경  
 - 보안 설정 수정  
 - 새로운 자동화 규칙 생성
 
-**실패 처리**:
+**오류 처리 전략**:
 
-- 다른 도구로 재시도 (MultiEdit → Edit)
-- 실패 시 전문가에게 위임
+- 다른 도구로 재시도 (MultiEdit → Edit)  
+- 실패 시 prompt-engineer 에이전트에게 위임  
+- Read-first 원칙으로 상태 파악 후 수정
 
 ---
 *실용적 • 안전한 • 효과적*

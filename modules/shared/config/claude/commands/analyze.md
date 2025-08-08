@@ -1,46 +1,104 @@
 ---
 name: analyze
-description: "Code quality, security, and performance analysis with intelligent MCP and agent routing"
+description: "Systematic code analysis: Scan → Analyze → Report with actionable plan"
 mcp-servers: [sequential, context7]
 agents: [security-auditor, performance-optimizer]
 tools: [Read, Bash, Grep, Glob, Write, Task]
 ---
 
-# /analyze - Code Analysis
+# /analyze - Systematic Code Analysis
 
-**Purpose**: Analyze code quality, security vulnerabilities, and performance issues with intelligent specialist routing
+**Purpose**: Systematic code review with actionable improvement plan
 
 ## Usage
 
 ```bash
-/analyze [path]               # General code quality analysis
-/analyze security [path]      # -> security-auditor agent
-/analyze performance [path]   # -> performance-optimizer agent
+/analyze [path]           # Full systematic analysis
+/analyze security [path]  # Security focus → security-auditor
+/analyze performance [path] # Performance focus → performance-optimizer
 ```
 
-## Execution Strategy
+## 3-Phase Analysis Process
 
-- **Basic**: Code quality checks (linting, structure, duplication)
-- **Security**: Delegates to security-auditor agent for vulnerability assessment
-- **Performance**: Delegates to performance-optimizer agent for bottleneck analysis
-- **Complex Analysis**: Automatically routes to appropriate specialist agents
+### Phase 1: Scan
+**Goal**: Understand codebase and identify issues
+```bash
+□ Map file structure and dependencies
+□ Identify code smells and potential bugs
+□ Check for security vulnerabilities
+□ Measure performance bottlenecks
+```
 
-## MCP Integration
+### Phase 2: Analyze
+**Goal**: Assess severity and business impact
+- **P0 Critical**: Security holes, production bugs
+- **P1 High**: Performance issues, maintainability problems  
+- **P2 Medium**: Code quality, minor optimizations
 
-- **Sequential**: Multi-step analysis workflows
-- **Context7**: Framework-specific best practices and patterns
+### Phase 3: Report
+**Goal**: Actionable plan with specific next steps
+
+## Report Structure
+
+### Executive Summary
+- **Overall Score**: 🔴 Needs Work / 🟡 Good / 🟢 Excellent
+- **Critical Issues**: Must fix immediately (P0)
+- **Recommended Focus**: What to tackle first
+
+### Detailed Findings
+```
+🔴 [P0] SQL Injection in user authentication
+   File: api/auth.js:23
+   Impact: Full database compromise possible
+   Fix: Use parameterized queries with validation
+
+🟡 [P1] N+1 query problem in data fetching  
+   File: services/UserService.js:45
+   Impact: 300ms+ page load times
+   Fix: Add eager loading or batch queries
+
+🟢 [P2] Unused dependencies detected
+   Files: package.json, 12 components
+   Impact: 2MB bundle size increase
+   Fix: Remove unused imports via cleanup script
+```
+
+### Action Plan Checklist
+- [ ] **This Week**: Fix all P0 security issues
+- [ ] **Next Sprint**: Address P1 performance bottlenecks
+- [ ] **Ongoing**: Gradually improve P2 code quality
+
+## Analysis Checklist
+
+**Security**:
+- [ ] Input validation and sanitization
+- [ ] Authentication and authorization flows
+- [ ] Dependency vulnerability scan
+- [ ] Secrets and sensitive data handling
+
+**Performance**:
+- [ ] Algorithm complexity analysis
+- [ ] Database query optimization
+- [ ] Memory usage patterns
+- [ ] Bundle size and loading performance
+
+**Code Quality**:
+- [ ] Code duplication and reusability
+- [ ] Naming conventions and readability
+- [ ] Test coverage and reliability
+- [ ] Documentation and maintainability
 
 ## Examples
 
 ```bash
-/analyze                     # Full project analysis
-/analyze src/auth           # Directory-specific analysis
-/analyze security           # Security-focused analysis
-/analyze performance api/   # Performance-focused analysis
+/analyze                    # Complete systematic review
+/analyze src/auth          # Focus on authentication module
+/analyze security          # Security-only deep scan
+/analyze performance api/  # Performance review of API layer
 ```
 
-## Agent Routing
+## Smart Agent Routing
 
-- **security-auditor**: Triggered by "security", vulnerability patterns, auth code
-- **performance-optimizer**: Triggered by "performance", bottleneck patterns, optimization needs
-- **Auto-detection**: Intelligent routing based on code patterns and analysis scope
+- **security-auditor**: Auto-triggered for auth, API, data handling
+- **performance-optimizer**: Auto-triggered for algorithms, queries, bottlenecks
+- **sequential**: For complex multi-step analysis workflows
