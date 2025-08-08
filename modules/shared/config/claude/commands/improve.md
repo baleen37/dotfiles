@@ -1,99 +1,235 @@
-# /improve - Intelligent Code Enhancement
+---
+name: improve
+description: "Apply systematic improvements to code quality, performance, and maintainability with intelligent analysis and refactoring patterns"
+allowed-tools: [Read, Grep, Glob, Edit, MultiEdit, TodoWrite, Task]
 
-Automatically improve code quality, performance, and maintainability through smart analysis.
+# Command Classification
+category: workflow
+complexity: standard
+scope: cross-file
+
+# Integration Configuration
+mcp-integration:
+  servers: [sequential, context7]  # Sequential for analysis, Context7 for best practices
+  personas: [architect, performance, quality, security]  # Auto-activated based on improvement type
+  wave-enabled: false
+  complexity-threshold: 0.6
+
+# Performance Profile
+performance-profile: standard
+---
+
+# /sc:improve - Code Improvement
+
+## Purpose
+Apply systematic improvements to code quality, performance, maintainability, and best practices through intelligent analysis and targeted refactoring. This command serves as the primary quality enhancement engine, providing automated assessment workflows, quality metrics analysis, and systematic improvement application with safety validation.
 
 ## Usage
-```bash
-/improve [target]              # Smart automatic improvement
-/improve [target] --think      # Deep analysis-based improvement  
-/improve [target] --deep       # Comprehensive analysis and improvement
+```
+/sc:improve [target] [--type quality|performance|maintainability|style] [--safe] [--interactive]
 ```
 
-## Target Specification
-- `[target]` - Files, directories, or project components (default: current project)
-- `src/components` - Specific directory improvement
-- `api/auth.py` - Single file enhancement
-- `@security` - Security-focused improvements
-- `@performance` - Performance optimization focus
+## Arguments
+- `target` - Files, directories, or project scope to improve
+- `--type` - Improvement focus: quality, performance, maintainability, style, security
+- `--safe` - Apply only safe, low-risk improvements with minimal impact
+- `--interactive` - Enable user interaction for complex improvement decisions
+- `--preview` - Show improvements without applying them for review
+- `--validate` - Enable additional validation steps and quality verification
+- `--metrics` - Generate detailed quality metrics and improvement tracking
+- `--iterative` - Apply improvements in multiple passes with validation
 
-## 🤖 Auto-Intelligence System
+## Execution Flow
 
-### System Automatically Handles
-- 🔍 Analyzes code quality issues and improvement opportunities
-- 🎯 Identifies optimal enhancement strategies and priorities
-- ⚖️ Assesses complexity and selects appropriate improvement depth
-- 🤖 Chooses optimal MCP servers and analysis tools
-- 📋 Creates improvement plan with validation checkpoints
-- ✅ Implements improvements with quality verification
-- 📊 Validates enhancement effectiveness
+### 1. Context Analysis
+- Analyze codebase for improvement opportunities and quality issues
+- Identify project patterns and existing quality standards
+- Assess complexity and potential impact of proposed improvements
+- Detect framework-specific optimization opportunities
 
-### Auto-Activation Conditions
-**Quality Issues**: Code smells, duplication → refactoring and cleanup
-**Performance Problems**: Slow queries, inefficient algorithms → optimization
-**Security Vulnerabilities**: Input validation, auth issues → security hardening
-**Technical Debt**: Legacy patterns, outdated dependencies → modernization
+### 2. Strategy Selection
+- Choose appropriate improvement approach based on --type and context
+- Auto-activate relevant personas for domain expertise (performance, security, quality)
+- Configure MCP servers for enhanced analysis capabilities
+- Plan improvement sequence with risk assessment and validation
 
-## Improvement Domains (Auto-Activated)
+### 3. Core Operation
+- Execute systematic improvement workflows with appropriate validation
+- Apply domain-specific best practices and optimization patterns
+- Monitor progress and handle complex refactoring scenarios
+- Coordinate multi-file improvements with dependency awareness
 
-### 📊 Code Quality Enhancement
-- Refactoring complex functions and reducing cyclomatic complexity
-- Eliminating code duplication and improving maintainability
-- Enhancing readability and adding meaningful documentation
-- Updating deprecated patterns and modernizing syntax
+### 4. Quality Assurance
+- Validate improvements against quality standards and requirements
+- Run automated checks and testing to ensure functionality preservation
+- Generate comprehensive metrics and improvement documentation
+- Verify integration with existing codebase patterns and conventions
 
-### ⚡ Performance Optimization
-- Database query optimization and indexing improvements
-- Algorithm efficiency enhancements and caching strategies
-- Memory usage optimization and resource management
-- Bundle size reduction and lazy loading implementation
+### 5. Integration & Handoff
+- Update related documentation and configuration to reflect improvements
+- Prepare improvement summary and recommendations for future work
+- Persist improvement context and quality metrics for tracking
+- Enable follow-up optimization and maintenance workflows
 
-### 🛡️ Security Hardening
-- Input validation and sanitization improvements
-- Authentication and authorization enhancements
-- Vulnerability patching and security best practices
-- Data protection and encryption implementation
+## MCP Server Integration
 
-### 🏗️ Architecture Modernization
-- Legacy code migration to modern patterns
-- Dependency updates and compatibility improvements
-- Modular architecture and separation of concerns
-- Testing coverage enhancement and quality assurance
+### Sequential Thinking Integration
+- **Complex Analysis**: Systematic analysis of code quality issues and improvement opportunities
+- **Multi-Step Planning**: Breaks down complex refactoring into manageable improvement steps
+- **Validation Logic**: Uses structured reasoning for quality verification and impact assessment
 
-## Quality Assurance
+### Context7 Integration
+- **Automatic Activation**: When framework-specific improvements and best practices are applicable
+- **Library Patterns**: Leverages official documentation for framework optimization patterns
+- **Best Practices**: Integrates established quality standards and coding conventions
 
-### Built-in Validation
-- **Before/After Comparison**: Quantifiable improvement metrics
-- **Regression Testing**: Comprehensive test suite execution
-- **Performance Benchmarking**: Before/after performance measurements
-- **Security Scanning**: Vulnerability assessment post-improvement
-- **Code Quality Metrics**: Complexity, maintainability, coverage analysis
+## Persona Auto-Activation
 
-### Auto Integration
-- **→ /analyze**: Analyze before improvement to understand issues
-- **→ /implement**: Implement new features based on improvements
-- **↔️ /workflow**: Integrate with development and testing workflows
+### Context-Based Activation
+The command automatically activates relevant personas based on improvement type:
+
+- **Architect Persona**: System design improvements, architectural refactoring, and structural optimization
+- **Performance Persona**: Performance optimization, bottleneck analysis, and scalability improvements
+- **Quality Persona**: Code quality assessment, maintainability improvements, and technical debt reduction
+- **Security Persona**: Security vulnerability fixes, secure coding practices, and data protection improvements
+
+### Multi-Persona Coordination
+- **Collaborative Analysis**: Multiple personas work together for comprehensive quality improvements
+- **Expertise Integration**: Combining domain-specific knowledge for holistic optimization
+- **Conflict Resolution**: Handling different persona recommendations through systematic evaluation
+
+## Advanced Features
+
+### Task Integration
+- **Complex Operations**: Use Task tool for multi-step improvement workflows
+- **Parallel Processing**: Coordinate independent improvement work streams
+- **Progress Tracking**: TodoWrite integration for improvement status management
+
+### Workflow Orchestration
+- **Dependency Management**: Handle improvement prerequisites and sequencing
+- **Error Recovery**: Graceful handling of improvement failures and rollbacks
+- **State Management**: Maintain improvement state across interruptions
+
+### Quality Gates
+- **Pre-validation**: Check code quality baseline before improvement execution
+- **Progress Validation**: Intermediate quality checks during improvement process
+- **Post-validation**: Comprehensive verification of improvement effectiveness
+
+## Performance Optimization
+
+### Efficiency Features
+- **Intelligent Batching**: Group related improvement operations for efficiency
+- **Context Caching**: Reuse analysis results within session for related improvements
+- **Parallel Execution**: Independent improvement operations run concurrently
+- **Resource Management**: Optimal tool and MCP server utilization
+
+### Performance Targets
+- **Analysis Phase**: <15s for comprehensive code quality assessment
+- **Improvement Phase**: <45s for standard quality and performance improvements
+- **Validation Phase**: <10s for quality verification and testing
+- **Overall Command**: <90s for complex multi-file improvement workflows
 
 ## Examples
 
-### Basic Smart Improvement
-```bash
-/improve                          # Auto-detects issues, applies optimal improvements
-/improve src/components          # Smart component quality enhancement  
-/improve api/                    # Intelligent API optimization and security
-/improve legacy/utils.js         # Legacy code modernization
+### Quality Improvement
+```
+/sc:improve src/ --type quality --safe --metrics
+# Safe quality improvements with detailed metrics tracking
 ```
 
-### Deep Enhancement
-```bash
-/improve src/ --think            # Deep architectural analysis and refactoring
-/improve . --deep                # System-wide comprehensive enhancement
-/improve database/ --think       # Deep database optimization and schema improvement
+### Performance Optimization
+```
+/sc:improve backend/api --type performance --iterative --validate
+# Performance improvements with iterative validation
 ```
 
-### Focused Improvements
-```bash
-/improve @security               # Security-focused enhancements across codebase
-/improve @performance            # Performance optimization throughout system
+### Style and Maintainability
+```
+/sc:improve entire-project --type maintainability --preview
+# Project-wide maintainability improvements with preview
 ```
 
-**The Future of Code Enhancement**: Just specify what to improve and how deep to analyze - the system handles all optimization complexity automatically! 🌟
+### Security Hardening
+```
+/sc:improve auth-module --type security --interactive --validate
+# Security improvements with interactive validation
+```
+
+## Error Handling & Recovery
+
+### Graceful Degradation
+- **MCP Server Unavailable**: Falls back to native analysis capabilities with basic improvement patterns
+- **Persona Activation Failure**: Continues with general improvement guidance and standard practices
+- **Tool Access Issues**: Uses alternative analysis methods and provides manual guidance
+
+### Error Categories
+- **Input Validation Errors**: Clear feedback for invalid targets or conflicting improvement parameters
+- **Process Execution Errors**: Handling of improvement failures with rollback capabilities
+- **Integration Errors**: MCP server or persona coordination issues with fallback strategies
+- **Resource Constraint Errors**: Behavior under resource limitations with optimization suggestions
+
+### Recovery Strategies
+- **Automatic Retry**: Retry failed improvements with adjusted parameters and reduced scope
+- **User Intervention**: Request clarification when improvement requirements are ambiguous
+- **Partial Success Handling**: Complete partial improvements and document remaining work
+- **State Cleanup**: Ensure clean codebase state after improvement failures
+
+## Integration Patterns
+
+### Command Coordination
+- **Preparation Commands**: Often follows /sc:analyze or /sc:estimate for improvement planning
+- **Follow-up Commands**: Commonly followed by /sc:test, /sc:validate, or /sc:document
+- **Parallel Commands**: Can run alongside /sc:cleanup for comprehensive codebase enhancement
+
+### Framework Integration
+- **SuperClaude Ecosystem**: Integrates with quality gates and validation cycles
+- **Quality Gates**: Participates in the 8-step validation process for improvement verification
+- **Session Management**: Maintains improvement context across session boundaries
+
+### Tool Coordination
+- **Multi-Tool Operations**: Coordinates Read/Edit/MultiEdit for complex improvements
+- **Tool Selection Logic**: Dynamic tool selection based on improvement scope and complexity
+- **Resource Sharing**: Efficient use of shared MCP servers and persona expertise
+
+## Customization & Configuration
+
+### Configuration Options
+- **Default Behavior**: Conservative improvements with comprehensive validation
+- **User Preferences**: Quality standards and improvement priorities
+- **Project-Specific Settings**: Project conventions and architectural guidelines
+
+### Extension Points
+- **Custom Workflows**: Integration with project-specific quality standards
+- **Plugin Integration**: Support for additional linting and quality tools
+
+## Quality Standards
+
+### Validation Criteria
+- **Functional Correctness**: Improvements preserve existing functionality and behavior
+- **Performance Standards**: Meeting quality improvement targets and metrics
+- **Integration Compliance**: Proper integration with existing codebase and patterns
+- **Error Handling Quality**: Comprehensive validation and rollback capabilities
+
+### Success Metrics
+- **Completion Rate**: >95% for well-defined improvement targets and parameters
+- **Performance Targets**: Meeting specified timing requirements for improvement phases
+- **User Satisfaction**: Clear improvement results with measurable quality gains
+- **Integration Success**: Proper coordination with MCP servers and persona activation
+
+## Boundaries
+
+**This command will:**
+- Apply systematic improvements to code quality, performance, and maintainability
+- Auto-activate relevant personas and coordinate MCP servers for enhanced analysis
+- Provide comprehensive quality assessment with metrics and improvement tracking
+- Ensure safe improvement application with validation and rollback capabilities
+
+**This command will not:**
+- Make breaking changes without explicit user approval and validation
+- Override project-specific quality standards or architectural constraints
+- Apply improvements that compromise security or introduce technical debt
+- Bypass established quality gates or validation requirements
+
+---
+
+*This improvement command provides comprehensive code quality enhancement capabilities with intelligent analysis and systematic improvement workflows while maintaining safety and validation standards.*

@@ -1,6 +1,7 @@
 # jito Entry Point
 
 @MCP.md @SUBAGENT.md @SIMPLE_COMMANDS.md
+@FLAGS.md @PRINCIPLES.md @RULES.md @ORCHESTRATOR.md @SESSION_LIFECYCLE.md
 
 **YAGNI 철학**: 단순함 > 복잡함, 실용주의
 

@@ -1,245 +1,355 @@
-# /load - Intelligent Project Context Loader
+---
+name: load
+description: "Session lifecycle management with Serena MCP integration and performance requirements for project context loading"
+allowed-tools: [Read, Grep, Glob, Write, activate_project, list_memories, read_memory, write_memory, check_onboarding_performed, onboarding]
 
-Comprehensively analyze and internalize project context with intelligent pattern recognition and framework detection.
+# Command Classification
+category: session
+complexity: standard
+scope: cross-session
+
+# Integration Configuration
+mcp-integration:
+  servers: [serena]  # Mandatory Serena MCP integration
+  personas: []  # No persona activation required
+  wave-enabled: false
+  complexity-threshold: 0.3
+  auto-flags: []  # No automatic flags
+
+# Performance Profile
+performance-profile: session-critical
+performance-targets:
+  initialization: <500ms
+  core-operations: <200ms
+  checkpoint-creation: <1s
+  memory-operations: <200ms
+---
+
+# /sc:load - Project Context Loading with Serena
 
 ## Purpose
-- **Intelligent Analysis**: Deep project structure analysis with framework detection
-- **Context Internalization**: Build comprehensive understanding of codebase patterns
-- **Development Environment**: Verify toolchain and environment configuration
-- **Pattern Recognition**: Identify architectural patterns and conventions
-- **Documentation Generation**: Create project context maps and development guides
+Load and analyze project context using Serena MCP for project activation, memory retrieval, and context management with session lifecycle integration and cross-session persistence capabilities.
 
 ## Usage
-```bash
-/load [target] [--scope project|module|component] [--focus domain] [--output format]
+```
+/sc:load [target] [--type project|config|deps|env|checkpoint] [--refresh] [--analyze] [--checkpoint ID] [--resume] [--validate] [--performance] [--metadata] [--cleanup] [--uc]
 ```
 
-## Arguments & Flags
+## Arguments
+- `target` - Project directory or name (defaults to current directory)
+- `--type` - Specific loading type (project, config, deps, env, checkpoint)
+- `--refresh` - Force reload of project memories and context
+- `--analyze` - Run deep analysis after loading
+- `--onboard` - Run onboarding if not performed
+- `--checkpoint` - Restore from specific checkpoint ID
+- `--resume` - Resume from latest checkpoint automatically
+- `--validate` - Validate session integrity and data consistency
+- `--performance` - Enable performance monitoring and optimization
+- `--metadata` - Include comprehensive session metadata
+- `--cleanup` - Perform session cleanup and optimization
+- `--uc` - Enable Token Efficiency mode for all memory operations (optional)
 
-### Target Specification
-- `[target]` - Project path, module, or component (default: current directory)
-- `@monorepo/` - Load entire monorepo with workspace analysis
-- `@backend/` - Focus on backend services and APIs
-- `@frontend/` - Focus on UI components and client-side code
-- `@docs/` - Load documentation and knowledge base
+## Token Efficiency Integration
 
-### Scope Control
-- `--scope project` - Full project analysis (default)
-- `--scope module` - Single module/package analysis
-- `--scope component` - Individual component deep-dive
-- `--scope dependencies` - Dependency tree and external libraries
+### Optional Token Efficiency Mode
+The `/sc:load` command supports optional Token Efficiency mode via the `--uc` flag:
 
-### Focus Areas
-- `--focus architecture` - System design and structure patterns
-- `--focus security` - Security implementation and vulnerabilities
-- `--focus performance` - Performance patterns and bottlenecks
-- `--focus testing` - Test coverage and quality patterns
-- `--focus deployment` - CI/CD and deployment configuration
-- `--focus documentation` - Documentation quality and coverage
+- **User Choice**: `--uc` flag can be explicitly specified for compression
+- **Compression Strategy**: When enabled: 30-50% reduction with ≥95% information preservation
+- **Content Classification**:
+  - **SuperClaude Framework** (0% compression): Complete exclusion
+  - **User Project Content** (0% compression): Full fidelity preservation
+  - **Session Data** (30-50% compression): Optimized storage when --uc used
+- **Quality Preservation**: Framework compliance with MODE_Token_Efficiency.md patterns
 
-### Output Formats
-- `--output summary` - Executive summary with key insights (default)
-- `--output detailed` - Comprehensive analysis report
-- `--output patterns` - Code patterns and conventions guide
-- `--output roadmap` - Development roadmap and improvement areas
-- `--output wiki` - Knowledge base format for team sharing
+### Performance Benefits (when --uc used)
+- Token Efficiency applies to all session memory operations
+- Compression inherited by memory operations within session context
+- Performance benefits: Faster session operations and reduced context usage
 
-### Analysis Depth
-- `--quick` - Essential patterns and configuration (5-10 min)
-- `--standard` - Comprehensive analysis (15-30 min, default)
-- `--deep` - Full architectural analysis (45+ min)
-- `--continuous` - Ongoing analysis with change detection
+## Session Lifecycle Integration
 
-### Integration Features
-- `--create-tasks` - Generate task hierarchy for identified improvements
-- `--update-wiki` - Update project documentation automatically
-- `--benchmark` - Compare against industry standards and best practices
-- `--dependencies` - Analyze and audit dependency security/updates
+### 1. Session State Management
+- Analyze current session state and context requirements
+- Use `activate_project` tool to activate the project
+- Pass `{"project": target}` as parameters
+- Automatically handles project registration if needed
+- Validates project path and language detection
+- Identify critical information for persistence or restoration
+- Assess session integrity and continuity needs
 
-## Auto-Activation Patterns
-- **New Project**: Automatically suggest when entering unfamiliar codebase
-- **Framework Changes**: Trigger when major dependencies change
-- **Team Onboarding**: Activate for new team member context building
-- **Architecture Review**: Enable for system-wide analysis requests
+### 2. Serena MCP Coordination with Token Efficiency
+- Execute appropriate Serena MCP operations for session management
+- Call `list_memories` tool to discover existing memories
+- Load relevant memories based on --type parameter:
+  - **project**: Load project_purpose, tech_stack memories (framework excluded from compression)
+  - **config**: Load code_style_conventions, completion_tasks (framework excluded from compression)
+  - **deps**: Analyze package.json/pyproject.toml (preserve user content)
+  - **env**: Load environment-specific memories (framework excluded from compression)
+- **Content Classification Strategy**:
+  - **SuperClaude Framework** (Complete exclusion): All framework directories and components
+  - **Session Data** (Apply compression): Session metadata, checkpoints, cache content only
+  - **User Project Content** (Preserve fidelity): Project files, user documentation, configurations
+- Handle memory organization, checkpoint creation, or state restoration with selective compression
+- Manage cross-session context preservation and enhancement with optimized storage
 
-## Analysis Framework
+### 3. Performance Validation
+- Monitor operation performance against strict session targets
+- Read memories using `read_memory` tool with `{"memory_file_name": name}`
+- Build comprehensive project context from memories
+- Supplement with file analysis if memories incomplete
+- Validate memory efficiency and response time requirements
+- Ensure session operations meet <200ms core operation targets
 
-### Phase 1: Discovery & Inventory
-1. **Project Structure Analysis**: Directory layout, module organization
-2. **Framework Detection**: Technology stack identification and versions
-3. **Configuration Mapping**: Build tools, environment variables, secrets
-4. **Dependency Analysis**: Package dependencies, version compatibility
-5. **Documentation Inventory**: README, wikis, code comments, API docs
+### 4. Context Continuity
+- Maintain session context across operations and interruptions
+- Call `check_onboarding_performed` tool
+- If not onboarded and --onboard flag, call `onboarding` tool
+- Create initial memories if project is new
+- Preserve decision history, task progress, and accumulated insights
+- Enable seamless continuation of complex multi-session workflows
 
-### Phase 2: Pattern Recognition
-1. **Architectural Patterns**: MVC, microservices, monolith, event-driven
-2. **Code Conventions**: Naming, formatting, organization standards
-3. **Security Patterns**: Authentication, authorization, data protection
-4. **Testing Patterns**: Unit, integration, E2E test strategies
-5. **Error Handling**: Logging, monitoring, recovery patterns
+### 5. Quality Assurance
+- Validate session data integrity and completeness
+- If --checkpoint flag: Load specific checkpoint via `read_memory`
+- If --resume flag: Load latest checkpoint from `checkpoints/latest`
+- If --type checkpoint: Restore session state from checkpoint metadata
+- Display resumption summary showing:
+  - Work completed in previous session
+  - Open tasks and questions
+  - Context changes since checkpoint
+  - Estimated time to full restoration
+- Verify cross-session compatibility and version consistency
+- Generate session analytics and performance reports
 
-### Phase 3: Quality Assessment
-1. **Code Quality**: Complexity, maintainability, technical debt
-2. **Security Posture**: Vulnerability assessment, compliance gaps
-3. **Performance Analysis**: Bottlenecks, optimization opportunities
-4. **Documentation Quality**: Coverage, accuracy, usefulness
-5. **Development Experience**: Tooling, automation, developer productivity
+## Mandatory Serena MCP Integration
 
-### Phase 4: Intelligent Recommendations
-1. **Improvement Priorities**: Risk-based improvement roadmap
-2. **Best Practice Alignment**: Framework-specific recommendations
-3. **Tooling Optimization**: Development workflow enhancements
-4. **Architecture Evolution**: Scalability and maintainability improvements
-5. **Team Enablement**: Knowledge transfer and documentation needs
+### Core Serena Operations
+- **Memory Management**: `read_memory`, `write_memory`, `list_memories`
+- **Project Management**: `activate_project`, `check_onboarding_performed`, `onboarding`
+- **Context Enhancement**: Build and enhance project understanding across sessions
+- **State Management**: Session state persistence and restoration capabilities
 
-## Framework-Specific Intelligence
+### Session Data Organization
+- **Memory Hierarchy**: Structured memory organization for efficient retrieval
+- **Context Accumulation**: Building understanding across session boundaries
+- **Performance Metrics**: Session operation timing and efficiency tracking
+- **Project Activation**: Seamless project initialization and context loading
 
-### Frontend Frameworks
-```yaml
-React:
-  patterns: [components, hooks, context, routing]
-  conventions: [file_structure, naming, state_management]
-  tools: [bundler, testing, linting, deployment]
-  performance: [bundle_size, rendering, caching]
+### Advanced Session Features
+- **Checkpoint Restoration**: Resume from specific checkpoints with full context
+- **Cross-Session Learning**: Accumulating knowledge and patterns across sessions
+- **Performance Optimization**: Session-level caching and efficiency improvements
+- **Onboarding Integration**: Automatic onboarding for new projects
 
-Vue:
-  patterns: [components, composition_api, stores, routing]
-  conventions: [sfc_structure, naming, organization]
-  tools: [vite, testing, devtools, deployment]
-  performance: [tree_shaking, lazy_loading, optimization]
+## Session Management Patterns
 
-Angular:
-  patterns: [modules, components, services, routing]
-  conventions: [file_structure, naming, dependency_injection]
-  tools: [cli, testing, linting, deployment]
-  performance: [change_detection, lazy_loading, optimization]
+### Memory Operations
+- **Memory Categories**: Project, session, checkpoint, and insight memory organization
+- **Intelligent Retrieval**: Context-aware memory loading and optimization
+- **Memory Lifecycle**: Creation, update, archival, and cleanup operations
+- **Cross-Reference Management**: Maintaining relationships between memory entries
+
+### Context Enhancement Operations with Selective Compression
+- Analyze project structure if --analyze flag
+- Create/update memories with new discoveries using selective compression
+- Save enhanced context using `write_memory` tool with compression awareness
+- Initialize session metadata with start time and optimized context loading
+- Build comprehensive project understanding from compressed and preserved memories
+- Enhance context through accumulated experience and insights with efficient storage
+- **Compression Application**:
+  - SuperClaude framework components: 0% compression (complete exclusion)
+  - User project files and custom configurations: 0% compression (full preservation)
+  - Session operational data only: 40-70% compression for storage optimization
+
+### Memory Categories Used
+- `project_purpose` - Overall project goals and architecture
+- `tech_stack` - Technologies, frameworks, dependencies
+- `code_style_conventions` - Coding standards and patterns
+- `completion_tasks` - Build/test/deploy commands
+- `suggested_commands` - Common development workflows
+- `session/*` - Session records and continuity data
+- `checkpoints/*` - Checkpoint data for restoration
+
+### Context Operations
+- **Context Preservation**: Maintaining critical context across session boundaries
+- **Context Enhancement**: Building richer context through accumulated experience
+- **Context Optimization**: Efficient context management and storage
+- **Context Validation**: Ensuring context consistency and accuracy
+
+## Performance Requirements
+
+### Critical Performance Targets (Enhanced with Compression)
+- **Session Initialization**: <500ms for complete session setup (improved with compression: <400ms)
+- **Core Operations**: <200ms for memory reads, writes, and basic operations (improved: <150ms)
+- **Memory Operations**: <200ms per individual memory operation (optimized: <150ms)
+- **Context Loading**: <300ms for full context restoration (enhanced: <250ms)
+- **Project Activation**: <100ms for project activation (maintained: <100ms)
+- **Deep Analysis**: <3s for large projects (optimized: <2.5s)
+- **Compression Overhead**: <50ms additional processing time for selective compression
+- **Storage Efficiency**: 30-50% reduction in internal content storage requirements
+
+### Performance Monitoring
+- **Real-Time Metrics**: Continuous monitoring of operation performance
+- **Performance Analytics**: Detailed analysis of session operation efficiency
+- **Optimization Recommendations**: Automated suggestions for performance improvement
+- **Resource Management**: Efficient memory and processing resource utilization
+
+### Performance Validation
+- **Automated Testing**: Continuous validation of performance targets
+- **Performance Regression Detection**: Monitoring for performance degradation
+- **Benchmark Comparison**: Comparing against established performance baselines
+- **Performance Reporting**: Detailed performance analytics and recommendations
+
+## Error Handling & Recovery
+
+### Session-Critical Error Handling
+- **Data Integrity Errors**: Comprehensive validation and recovery procedures
+- **Memory Access Failures**: Robust fallback and retry mechanisms
+- **Context Corruption**: Recovery strategies for corrupted session context
+- **Performance Degradation**: Automatic optimization and resource management
+- **Serena Unavailable**: Use traditional file analysis with local caching
+- **Onboarding Failures**: Graceful degradation with manual onboarding options
+
+### Recovery Strategies
+- **Graceful Degradation**: Maintaining core functionality under adverse conditions
+- **Automatic Recovery**: Intelligent recovery from common failure scenarios
+- **Manual Recovery**: Clear escalation paths for complex recovery situations
+- **State Reconstruction**: Rebuilding session state from available information
+- **Fallback Mechanisms**: Backward compatibility with existing workflow patterns
+
+### Error Categories
+- **Serena MCP Errors**: Specific handling for Serena server communication issues
+- **Memory System Errors**: Memory corruption, access, and consistency issues
+- **Performance Errors**: Operation timeout and resource constraint handling
+- **Integration Errors**: Cross-system integration and coordination failures
+
+## Session Analytics & Reporting
+
+### Performance Analytics
+- **Operation Timing**: Detailed timing analysis for all session operations
+- **Resource Utilization**: Memory, processing, and network resource tracking
+- **Efficiency Metrics**: Session operation efficiency and optimization opportunities
+- **Trend Analysis**: Performance trends and improvement recommendations
+
+### Session Intelligence
+- **Usage Patterns**: Analysis of session usage and optimization opportunities
+- **Context Evolution**: Tracking context development and enhancement over time
+- **Success Metrics**: Session effectiveness and user satisfaction tracking
+- **Predictive Analytics**: Intelligent prediction of session needs and optimization
+
+### Quality Metrics
+- **Data Integrity**: Comprehensive validation of session data quality
+- **Context Accuracy**: Ensuring session context remains accurate and relevant
+- **Performance Compliance**: Validation against performance targets and requirements
+- **User Experience**: Session impact on overall user experience and productivity
+
+## Integration Ecosystem
+
+### SuperClaude Framework Integration
+- **Command Coordination**: Integration with other SuperClaude commands for session support
+- **Quality Gates**: Integration with validation cycles and quality assurance
+- **Mode Coordination**: Support for different operational modes and contexts
+- **Workflow Integration**: Seamless integration with complex workflow operations
+
+### Cross-Session Coordination
+- **Multi-Session Projects**: Managing complex projects spanning multiple sessions
+- **Context Handoff**: Smooth transition of context between sessions and users
+- **Session Hierarchies**: Managing parent-child session relationships
+- **Continuous Learning**: Each session builds on previous knowledge and insights
+
+### Integration with /sc:save
+- Context loaded by /sc:load is enhanced during session
+- Use /sc:save to persist session changes back to Serena
+- Maintains session lifecycle: load → work → save
+- Session continuity through checkpoint and restoration mechanisms
+
+## Examples
+
+### Basic Project Load
+```
+/sc:load
+# Activates current directory project and loads all memories
 ```
 
-### Backend Frameworks
-```yaml
-Node.js:
-  patterns: [express, fastify, nest, microservices]
-  conventions: [routing, middleware, error_handling]
-  tools: [package_manager, testing, monitoring]
-  performance: [async_patterns, clustering, caching]
-
-Python:
-  patterns: [django, flask, fastapi, async]
-  conventions: [project_structure, naming, imports]
-  tools: [dependency_management, testing, deployment]
-  performance: [async_patterns, database_optimization]
-
-Go:
-  patterns: [modules, interfaces, concurrency]
-  conventions: [package_structure, naming, error_handling]
-  tools: [modules, testing, build, deployment]
-  performance: [goroutines, memory_management, profiling]
+### Specific Project with Analysis
+```
+/sc:load ~/projects/webapp --analyze
+# Activates webapp project and runs deep analysis
 ```
 
-## Integration with SuperClaude Ecosystem
-
-### Persona Auto-Activation
-- **Architect**: Complex system analysis, architecture review
-- **Security**: Security-focused analysis, vulnerability assessment
-- **Performance**: Performance analysis, optimization opportunities
-- **Frontend**: UI/UX patterns, component architecture
-- **Backend**: API design, data architecture, scalability
-- **QA**: Testing patterns, quality assessment
-- **Scribe**: Documentation analysis, knowledge base creation
-
-### MCP Server Integration
-- **Context7**: Framework documentation, best practices lookup
-- **Sequential**: Complex architectural analysis, pattern recognition
-- **Magic**: UI component analysis, design system evaluation
-- **Playwright**: E2E testing analysis, user workflow mapping
-
-### Command Integration
-- **→ /workflow**: Generate implementation workflows from analysis
-- **→ /task**: Create task hierarchy for identified improvements
-- **→ /improve**: Target specific improvement areas discovered
-- **→ /analyze**: Deep-dive into specific components or patterns
-- **→ /document**: Generate comprehensive project documentation
-
-### Wave System Integration
-- **Auto-Activation**: Complex projects (>100 files, multiple frameworks)
-- **Progressive Analysis**: Systematic analysis across multiple domains
-- **Quality Gates**: Validation and verification at each analysis phase
-
-## Output Examples
-
-### Summary Format (`--output summary`)
-```markdown
-# Project Context Summary
-
-## 🏢 Architecture Overview
-- **Type**: Monorepo with React frontend + Node.js backend
-- **Scale**: ~2.5K files, 15 services, 3 databases
-- **Maturity**: Production-ready with moderate technical debt
-
-## 🛠️ Technology Stack
-- **Frontend**: React 18, TypeScript, Vite, Tailwind CSS
-- **Backend**: Node.js, Express, PostgreSQL, Redis
-- **Infrastructure**: Docker, AWS, GitHub Actions
-
-## 📈 Key Insights
-- Strong component architecture with 85% TypeScript coverage
-- Well-structured API with OpenAPI documentation
-- Comprehensive testing (78% coverage) but limited E2E tests
-- Modern CI/CD pipeline with automated deployments
+### Refresh Configuration
+```
+/sc:load --type config --refresh
+# Reloads configuration memories and updates context
 ```
 
-### Patterns Format (`--output patterns`)
-```markdown
-# Development Patterns Guide
-
-## Component Patterns
-```typescript
-// Standard component structure
-interface ComponentProps {
-  // Props definition
-}
-
-export const Component: React.FC<ComponentProps> = ({ }) => {
-  // Implementation
-};
+### New Project Onboarding
+```
+/sc:load ./new-project --onboard
+# Activates and onboards new project, creating initial memories
 ```
 
-## API Patterns
-```javascript
-// Standard API endpoint structure
-router.get('/api/resource/:id',
-  authenticate,
-  validate(schema),
-  async (req, res) => {
-    // Implementation
-  }
-);
+### Session Checkpoint
 ```
+/sc:load --type checkpoint --metadata
+# Create comprehensive checkpoint with metadata
 ```
 
-### Roadmap Format (`--output roadmap`)
-```markdown
-# Development Roadmap
-
-## 🔴 High Priority (Next 30 days)
-- [ ] Upgrade React to v18 for concurrent features
-- [ ] Implement comprehensive error boundaries
-- [ ] Add E2E testing with Playwright
-
-## 🟡 Medium Priority (Next 90 days)
-- [ ] Migrate to React Server Components
-- [ ] Implement advanced caching strategies
-- [ ] Enhance monitoring and observability
-
-## 🟢 Low Priority (Future)
-- [ ] Evaluate micro-frontend architecture
-- [ ] Consider GraphQL migration
-- [ ] Implement advanced performance optimizations
+### Session Recovery
+```
+/sc:load --resume --validate
+# Resume from previous session with validation
 ```
 
-## Performance & Quality Gates
-- **Analysis Speed**: <30s for standard projects, <2min for complex monorepos
-- **Accuracy**: 95%+ framework detection, 90%+ pattern recognition
-- **Coverage**: 100% file type recognition, 95%+ configuration detection
-- **Usefulness**: Actionable insights in 90%+ of recommendations
-- **Integration**: Seamless handoff to other SuperClaude commands
+### Performance Monitoring with Compression
+```
+/sc:load --performance --validate
+# Session operation with performance monitoring
+
+/sc:load --optimize-internal --performance
+# Enable selective compression with performance tracking
+```
+
+### Checkpoint Restoration
+```
+/sc:load --resume
+# Automatically resume from latest checkpoint
+
+/sc:load --checkpoint checkpoint-2025-01-31-16:00:00  
+# Restore from specific checkpoint ID
+
+/sc:load --type checkpoint MyProject
+# Load project and restore from latest checkpoint
+```
+
+### Session Continuity Examples
+```
+# Previous session workflow:
+/sc:load MyProject              # Initialize session
+# ... work on project ...
+/sc:save --checkpoint          # Create checkpoint
+
+# Next session workflow:
+/sc:load MyProject --resume    # Resume from checkpoint
+# ... continue work ...
+/sc:save --summarize          # Save with summary
+```
+
+## Boundaries
+
+**This session command will:**
+- Provide robust session lifecycle management with strict performance requirements
+- Integrate seamlessly with Serena MCP for comprehensive session capabilities
+- Maintain context continuity and cross-session persistence effectively
+- Support complex multi-session workflows with intelligent state management
+- Deliver session operations within strict performance targets consistently
+- Enable seamless project activation and context loading across sessions
+
+**This session command will not:**
+- Operate without proper Serena MCP integration and connectivity
+- Compromise performance targets for additional functionality
+- Proceed without proper session state validation and integrity checks
+- Function without adequate error handling and recovery mechanisms
+- Ignore onboarding requirements for new projects
+- Skip context validation and enhancement procedures
