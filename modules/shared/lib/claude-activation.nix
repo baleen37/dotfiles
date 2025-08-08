@@ -8,16 +8,14 @@ let
   claudeDir = "${config.home.homeDirectory}/.claude";
 
   # Intelligent source directory resolution with fallback system
-  # Priority: 1. self (Nix store path) 2. relative path 3. absolute fallback
-  sourceDir =
-    if self != null then "${self}/modules/shared/config/claude"
-    else "./modules/shared/config/claude";
+  # Priority: 1. Local dotfiles path 2. relative path 3. self (Nix store) as last resort
+  sourceDir = "${config.home.homeDirectory}/dev/dotfiles/modules/shared/config/claude";
 
   # Backup source directories to try if primary fails
   fallbackSources = [
-    "${config.home.homeDirectory}/dev/dotfiles/modules/shared/config/claude"
-    "/Users/jito/dev/dotfiles/modules/shared/config/claude" # jito's typical path
-  ];
+    "./modules/shared/config/claude" # relative path fallback
+    "/Users/jito/dev/dotfiles/modules/shared/config/claude" # absolute path fallback
+  ] ++ (if self != null then [ "${self}/modules/shared/config/claude" ] else [ ]);
 
 in
 ''
@@ -134,6 +132,9 @@ in
   for source_file in "$ACTUAL_SOURCE_DIR"/*.md "$ACTUAL_SOURCE_DIR"/*.json; do
     if [[ -f "$source_file" ]]; then
       file_name=$(basename "$source_file")
+
+      # settings.json은 수정 가능하도록 원본 파일을 직접 링크
+      # (dotfiles/modules/shared/config/claude/settings.json이 수정 가능하므로)
       create_file_symlink "$source_file" "$CLAUDE_DIR/$file_name"
     fi
   done

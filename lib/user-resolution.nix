@@ -95,9 +95,9 @@ let
     # 4. CI environment fallback when USER is empty
     else if (envValue == "" || envValue == null) && (builtins.getEnv "CI" != "" || builtins.getEnv "GITHUB_ACTIONS" != "") then
       debugLog "Using CI fallback: runner" "runner"
-    # 5. Additional fallback for environments where USER is not set
-    else if (envValue == "" || envValue == null) && enableAutoDetect then
-      debugLog "Using generic fallback: baleen" "baleen"
+    # 5. Additional fallback for environments where USER is not set (disabled to prevent host-specific hardcoding)
+    # else if (envValue == "" || envValue == null) && enableAutoDetect then
+    #   debugLog "Using generic fallback: user" "user"
     # 6. Default value if provided
     else if default != null && validateUser default then
       debugLog "Using default: ${default}" default

@@ -35,6 +35,7 @@ repos:
       # Security checks
       - id: detect-private-key
       - id: detect-aws-credentials
+        args: [--allow-missing-credentials]
 
   # Shell script linting
   - repo: https://github.com/shellcheck-py/shellcheck-py

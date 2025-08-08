@@ -1,89 +1,104 @@
 ---
 name: analyze
-description: "Analyze code quality, security, performance, and architecture with comprehensive reporting"
-allowed-tools: [Read, Bash, Grep, Glob, Write]
-
-# Command Classification
-category: utility
-complexity: basic
-scope: project
-
-# Integration Configuration
-mcp-integration:
-  servers: []  # No MCP servers required for basic commands
-  personas: []  # No persona activation required
-  wave-enabled: false
+description: "Systematic code analysis: Scan → Analyze → Report with actionable plan"
+mcp-servers: [sequential, context7]
+agents: [security-auditor, performance-optimizer]
+tools: [Read, Bash, Grep, Glob, Write, Task]
 ---
 
-# /sc:analyze - Code Analysis and Quality Assessment
+# /analyze - Systematic Code Analysis
 
-## Purpose
-Execute systematic code analysis across quality, security, performance, and architecture domains to identify issues, technical debt, and improvement opportunities with detailed reporting and actionable recommendations.
+**Purpose**: Systematic code review with actionable improvement plan
 
 ## Usage
+
+```bash
+/analyze [path]           # Full systematic analysis
+/analyze security [path]  # Security focus → security-auditor
+/analyze performance [path] # Performance focus → performance-optimizer
 ```
-/sc:analyze [target] [--focus quality|security|performance|architecture] [--depth quick|deep] [--format text|json|report]
+
+## 3-Phase Analysis Process
+
+### Phase 1: Scan
+**Goal**: Understand codebase and identify issues
+```bash
+□ Map file structure and dependencies
+□ Identify code smells and potential bugs
+□ Check for security vulnerabilities
+□ Measure performance bottlenecks
 ```
 
-## Arguments
-- `target` - Files, directories, modules, or entire project to analyze
-- `--focus` - Primary analysis domain (quality, security, performance, architecture)
-- `--depth` - Analysis thoroughness level (quick scan, deep inspection)
-- `--format` - Output format specification (text summary, json data, html report)
+### Phase 2: Analyze
+**Goal**: Assess severity and business impact
+- **P0 Critical**: Security holes, production bugs
+- **P1 High**: Performance issues, maintainability problems  
+- **P2 Medium**: Code quality, minor optimizations
 
-## Execution
-1. Discover and categorize source files using language detection and project structure analysis
-2. Apply domain-specific analysis techniques including static analysis and pattern matching
-3. Generate prioritized findings with severity ratings and impact assessment
-4. Create actionable recommendations with implementation guidance and effort estimates
-5. Present comprehensive analysis report with metrics, trends, and improvement roadmap
+### Phase 3: Report
+**Goal**: Actionable plan with specific next steps
 
-## Claude Code Integration
-- **Tool Usage**: Glob for file discovery, Grep for pattern analysis, Read for code inspection, Bash for tool execution
-- **File Operations**: Reads source files and configurations, writes analysis reports and metrics summaries
-- **Analysis Approach**: Multi-domain analysis combining static analysis, pattern matching, and heuristic evaluation
-- **Output Format**: Structured reports with severity classifications, metrics, and prioritized recommendations
+## Report Structure
 
-## Performance Targets
-- **Execution Time**: <5s for analysis setup and file discovery, scales with project size
-- **Success Rate**: >95% for file analysis and pattern detection across supported languages
-- **Error Handling**: Graceful handling of unsupported files and malformed code structures
+### Executive Summary
+- **Overall Score**: 🔴 Needs Work / 🟡 Good / 🟢 Excellent
+- **Critical Issues**: Must fix immediately (P0)
+- **Recommended Focus**: What to tackle first
+
+### Detailed Findings
+```
+🔴 [P0] SQL Injection in user authentication
+   File: api/auth.js:23
+   Impact: Full database compromise possible
+   Fix: Use parameterized queries with validation
+
+🟡 [P1] N+1 query problem in data fetching  
+   File: services/UserService.js:45
+   Impact: 300ms+ page load times
+   Fix: Add eager loading or batch queries
+
+🟢 [P2] Unused dependencies detected
+   Files: package.json, 12 components
+   Impact: 2MB bundle size increase
+   Fix: Remove unused imports via cleanup script
+```
+
+### Action Plan Checklist
+- [ ] **This Week**: Fix all P0 security issues
+- [ ] **Next Sprint**: Address P1 performance bottlenecks
+- [ ] **Ongoing**: Gradually improve P2 code quality
+
+## Analysis Checklist
+
+**Security**:
+- [ ] Input validation and sanitization
+- [ ] Authentication and authorization flows
+- [ ] Dependency vulnerability scan
+- [ ] Secrets and sensitive data handling
+
+**Performance**:
+- [ ] Algorithm complexity analysis
+- [ ] Database query optimization
+- [ ] Memory usage patterns
+- [ ] Bundle size and loading performance
+
+**Code Quality**:
+- [ ] Code duplication and reusability
+- [ ] Naming conventions and readability
+- [ ] Test coverage and reliability
+- [ ] Documentation and maintainability
 
 ## Examples
 
-### Basic Usage
-```
-/sc:analyze
-# Performs comprehensive analysis of entire project
-# Generates multi-domain report with key findings and recommendations
-```
-
-### Advanced Usage
-```
-/sc:analyze src/security --focus security --depth deep --format report
-# Deep security analysis of specific directory
-# Generates detailed HTML report with vulnerability assessment
+```bash
+/analyze                    # Complete systematic review
+/analyze src/auth          # Focus on authentication module
+/analyze security          # Security-only deep scan
+/analyze performance api/  # Performance review of API layer
 ```
 
-## Error Handling
-- **Invalid Input**: Validates analysis targets exist and contain analyzable source code
-- **Missing Dependencies**: Checks for analysis tools availability and handles unsupported file types
-- **File Access Issues**: Manages permission restrictions and handles binary or encrypted files
-- **Resource Constraints**: Optimizes memory usage for large codebases and provides progress feedback
+## Smart Agent Routing
 
-## Integration Points
-- **SuperClaude Framework**: Integrates with build command for pre-build analysis and test for quality gates
-- **Other Commands**: Commonly precedes refactoring operations and follows development workflows
-- **File System**: Reads project source code, writes analysis reports to designated output directories
-
-## Boundaries
-
-**This command will:**
-- Perform static code analysis using pattern matching and heuristic evaluation
-- Generate comprehensive quality, security, performance, and architecture assessments
-- Provide actionable recommendations with severity ratings and implementation guidance
-
-**This command will not:**
-- Execute dynamic analysis requiring code compilation or runtime environments
-- Modify source code or automatically apply fixes without explicit user consent
-- Analyze external dependencies or third-party libraries beyond import analysis
+- **security-auditor**: Auto-triggered for auth, API, data handling
+- **performance-optimizer**: Auto-triggered for algorithms, queries, bottlenecks
+- **sequential**: For complex multi-step analysis workflows

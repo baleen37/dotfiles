@@ -52,3 +52,7 @@ issues/
 *.venv/
 .venv/
 scripts/__pycache__/
+modules/shared/config/claude/projects/
+modules/shared/config/claude/shell-snapshots/
+modules/shared/config/claude/statsig/
+modules/shared/config/claude/todos/

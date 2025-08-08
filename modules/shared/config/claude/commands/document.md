@@ -1,89 +1,45 @@
 ---
 name: document
-description: "Generate focused documentation for specific components, functions, or features"
-allowed-tools: [Read, Bash, Grep, Glob, Write]
-
-# Command Classification
-category: utility
-complexity: basic
-scope: file
-
-# Integration Configuration
-mcp-integration:
-  servers: []  # No MCP servers required for basic commands
-  personas: []  # No persona activation required
-  wave-enabled: false
+description: "Generate focused documentation for components, APIs, and features"
+mcp-servers: [context7]
+agents: [technical-writer]
+tools: [Read, Bash, Grep, Glob, Write]
 ---
 
-# /sc:document - Focused Documentation Generation
+# /document - Documentation Generation
 
-## Purpose
-Generate precise, well-structured documentation for specific components, functions, APIs, or features with appropriate formatting, comprehensive coverage, and integration with existing documentation ecosystems.
+**Purpose**: Generate comprehensive documentation for code components, APIs, and features with proper formatting and integration
 
 ## Usage
+
+```bash
+/document <target>           # Generate general documentation
+/document api <path>         # API documentation with examples
+/document inline <file>      # Add inline code comments
+/document guide <feature>    # User guide documentation
 ```
-/sc:document [target] [--type inline|external|api|guide] [--style brief|detailed] [--template standard|custom]
-```
 
-## Arguments
-- `target` - Specific file, function, class, module, or component to document
-- `--type` - Documentation format (inline code comments, external files, api reference, user guide)
-- `--style` - Documentation depth and verbosity (brief summary, detailed comprehensive)
-- `--template` - Template specification (standard format, custom organization)
+## Execution Strategy
 
-## Execution
-1. Analyze target component structure, interfaces, and functionality through comprehensive code inspection
-2. Identify documentation requirements, target audience, and integration context within project
-3. Generate appropriate documentation content based on type specifications and style preferences
-4. Apply consistent formatting, structure, and organizational patterns following documentation standards
-5. Integrate generated documentation with existing project documentation and ensure cross-reference consistency
+- **Basic**: Code analysis and documentation generation from source
+- **API**: RESTful API documentation with request/response examples
+- **Inline**: JSDoc/DocString comments for functions and classes
+- **Guide**: User-facing documentation with usage examples
+- **Integration**: Cross-reference linking and project standards
 
-## Claude Code Integration
-- **Tool Usage**: Read for component analysis, Write for documentation creation, Grep for reference extraction
-- **File Operations**: Reads source code and existing docs, writes documentation files with proper formatting
-- **Analysis Approach**: Code structure analysis with API extraction and usage pattern identification
-- **Output Format**: Structured documentation with consistent formatting, cross-references, and examples
+## MCP Integration
 
-## Performance Targets
-- **Execution Time**: <5s for component analysis and documentation generation
-- **Success Rate**: >95% for documentation extraction and formatting across supported languages
-- **Error Handling**: Graceful handling of complex code structures and incomplete information
+- **Context7**: Framework-specific documentation patterns and best practices
 
 ## Examples
 
-### Basic Usage
-```
-/sc:document src/auth/login.js --type inline
-# Generates inline code comments for login function
-# Adds JSDoc comments with parameter and return descriptions
-```
-
-### Advanced Usage
-```
-/sc:document src/api --type api --style detailed --template standard
-# Creates comprehensive API documentation for entire API module
-# Generates detailed external documentation with examples and usage guidelines
+```bash
+/document auth/login.js      # Function documentation
+/document api endpoints/     # API reference documentation
+/document inline UserClass  # Add JSDoc comments
+/document guide authentication # User guide creation
 ```
 
-## Error Handling
-- **Invalid Input**: Validates documentation targets exist and contain documentable code structures
-- **Missing Dependencies**: Handles cases where code analysis is incomplete or context is insufficient
-- **File Access Issues**: Manages read access to source files and write permissions for documentation output
-- **Resource Constraints**: Optimizes documentation generation for large codebases with progress feedback
+## Agent Routing
 
-## Integration Points
-- **SuperClaude Framework**: Coordinates with analyze for code understanding and design for specification documentation
-- **Other Commands**: Follows development workflows and integrates with build for documentation publishing
-- **File System**: Reads project source code and existing documentation, writes formatted docs to appropriate locations
-
-## Boundaries
-
-**This command will:**
-- Generate comprehensive documentation based on code analysis and existing patterns
-- Create properly formatted documentation following project conventions and standards
-- Extract API information, usage examples, and integration guidance from source code
-
-**This command will not:**
-- Modify source code structure or add functionality beyond documentation
-- Generate documentation for external dependencies or third-party libraries
-- Create documentation requiring runtime analysis or dynamic code execution
+- **technical-writer**: Complex documentation projects, style consistency, comprehensive guides
