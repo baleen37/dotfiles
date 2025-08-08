@@ -127,8 +127,16 @@ build-linux: check-user
 build-darwin: check-user
 	$(call build-systems,Darwin configurations,darwin,x86_64-darwin aarch64-darwin,)
 
-build: check-user build-linux build-darwin
-	@echo "✅ All builds completed successfully with USER=$(USER)"
+build: check-user
+	@if [ "$(CURRENT_PLATFORM)" = "darwin" ]; then \
+		$(MAKE) build-darwin; \
+	elif [ "$(CURRENT_PLATFORM)" = "nixos" ]; then \
+		$(MAKE) build-linux; \
+	else \
+		echo "❌ Unsupported platform: $(CURRENT_PLATFORM)"; \
+		exit 1; \
+	fi
+	@echo "✅ Platform-specific build completed successfully with USER=$(USER)"
 
 platform-info:
 	@echo "🖥️  Platform Information:"
