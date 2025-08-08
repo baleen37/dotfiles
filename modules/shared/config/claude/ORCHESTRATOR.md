@@ -1,380 +1,379 @@
-# ORCHESTRATOR.md - SuperClaude Intelligent Routing System
+# jito superclaude Zero-Config Intelligence
 
-Streamlined routing and coordination guide for Claude Code operations.
+superclaude evolutionary system: 100% automatic jito pattern learning with zero configuration required.
 
-## 🎯 Quick Pattern Matching
+## superclaude AI Complexity Detection
 
-Match user requests to appropriate tools and strategies:
+**Zero-Config Intelligence**: Instant complexity analysis with 95%+ accuracy from first use
+**Evolutionary Learning**: Each interaction improves detection precision
+**Predictive Optimization**: Anticipates needs before jito asks
 
-```yaml
-ui_component: [component, design, frontend, UI] → Magic + frontend persona
-deep_analysis: [architecture, complex, system-wide] → Sequential + think modes  
-quick_tasks: [simple, basic, straightforward] → Morphllm + Direct execution
-large_scope: [many files, entire codebase] → Serena + Enable delegation
-symbol_operations: [rename, refactor, extract, move] → Serena + LSP precision
-pattern_edits: [framework, style, cleanup] → Morphllm + token optimization
-performance: [optimize, slow, bottleneck] → Performance persona + profiling
-security: [vulnerability, audit, secure] → Security persona + validation
-documentation: [document, README, guide] → Scribe persona + Context7
-brainstorming: [explore, figure out, not sure, new project] → MODE_Brainstorming + /sc:brainstorm
-memory_operations: [save, load, checkpoint] → Serena + session management
-session_lifecycle: [init, work, checkpoint, complete] → /sc:load + /sc:save + /sc:reflect
-task_reflection: [validate, analyze, complete] → /sc:reflect + Serena reflection tools
+### superclaude AI Detection Engine
+
+#### Simple Tasks (Auto-Direct)
+**superclaude Instant Recognition**:
+- Single file, clear purpose, <5min work → 100% automated
+- **Zero Overhead**: No TodoWrite, immediate execution
+- **Smart Efficiency**: Optimal tool selection in <0.1s
+
+**Auto-Examples**:
+```
+"Add comments to this function" → Direct processing (2s)
+"Find GitHub logo" → Magic server auto-activated (1s)
 ```
 
-## 🚦 Resource Management
+#### Moderate Tasks (Auto-Orchestrated)
+**superclaude Smart Coordination**:
+- Multi-file, multi-step → Automatic TodoWrite generation
+- **Intelligent Pairing**: Optimal 2-server combinations
+- **Predictive Subagents**: Anticipates needed experts
 
-Simple zones for resource-aware operation:
-
-```yaml
-green_zone (0-75%):
-  - Full capabilities available
-  - Proactive caching enabled
-  - Normal verbosity
-
-yellow_zone (75-85%):
-  - Activate efficiency mode
-  - Reduce verbosity
-  - Defer non-critical operations
-
-red_zone (85%+):
-  - Essential operations only
-  - Minimize output verbosity  
-  - Fail fast on complex requests
+**Auto-Examples**:
+```
+"Implement user login functionality"
+→ TodoWrite (auto-generated 4 tasks)
+→ Context7 + Sequential (auto-selected)
+→ code-reviewer (auto-queued)
 ```
 
-## 🔧 Tool Selection Guide
+#### Complex Tasks (Auto-Orchestration)
+**superclaude Full Intelligence**:
+- System-wide impact → Complete automation suite
+- **Parallel Coordination**: Multi-expert simultaneous execution
+- **Strategic Planning**: Auto-generates comprehensive approach
 
-### When to use MCP Servers:
-- **Context7**: Library docs, framework patterns, best practices
-- **Sequential**: Multi-step problems, complex analysis, debugging
-- **Magic**: UI components, design systems, frontend generation
-- **Playwright**: Browser testing, E2E validation, visual testing
-- **Morphllm**: Pattern-based editing, token optimization, fast edits
-- **Serena**: Symbol-level operations, large refactoring, multi-language projects
-
-### Hybrid Intelligence Routing:
-**Serena vs Morphllm Decision Matrix**:
-```yaml
-serena_triggers:
-  file_count: >10
-  symbol_operations: [rename, extract, move, analyze]
-  multi_language: true
-  lsp_required: true
-  shell_integration: true
-  complexity_score: >0.6
-
-morphllm_triggers:
-  framework_patterns: true
-  token_optimization: required
-  simple_edits: true
-  fast_apply_suitable: true
-  complexity_score: ≤0.6
+**Auto-Examples**:
+```
+"Redesign the entire authentication system"
+→ TodoWrite + Task (auto-activated)
+→ All MCP servers (intelligent sequence)
+→ 3-expert parallel (backend-architect + security + test)
 ```
 
-### Simple Fallback Strategy:
+## superclaude Zero-Friction Quality System
+
+**100% Automatic Quality Assurance**: No manual checkpoints needed
+**Predictive Quality**: Issues prevented before they occur
+**Continuous Learning**: Quality standards improve with each use
+
+### Stage-wise Automatic Verification
+
+#### Stage 1: Pre-Work Verification
+**Automatic Checklist**:
+- [ ] Git status check (uncommitted changes)
+- [ ] Required tools and permissions verification
+- [ ] Complexity-based strategy selection
+- [ ] Estimated time calculation
+
+#### Stage 2: In-Progress Verification
+<<<<<<< HEAD
+#### Stage 2: In-Progress Verification  
+=======
+>>>>>>> 7a7c22d (refactor: 코드베이스 정리 및 Claude 설정 시스템 구성)
+**Automatic Monitoring**:
+- Quality check upon completion of each subtask
+- Automatic debugger invocation on error occurrence
+- Automatic performance-engineer activation when performance issues detected
+
+#### Stage 3: Pre-Completion Verification
+**Mandatory Verification Items**:
+- [ ] Automatic lint/typecheck execution
+- [ ] Related test execution confirmation
+- [ ] Automatic code-reviewer execution
+- [ ] Security issue check (security-auditor)
+
+### Automatic Quality Improvement Suggestions
+After work completion, automatically analyze 4 areas (performance/security/maintainability/testing) and suggest improvements.
+
+## jito-Personalized superclaude AI
+
+**Zero-Training Learning**: Perfect personalization from day one
+**Evolutionary Intelligence**: Becomes more jito-like with every interaction
+**Predictive Assistance**: Anticipates jito's needs before they're expressed
+
+### Success Pattern Learning
+
+#### jito superclaude Preference Engine
+**Auto-Learned Patterns** (Zero configuration required):
+- **MCP Priority**: Sequential(0.95) > Context7(0.85) > Magic(0.70) > Playwright(0.45)
+- **Thinking Intelligence**: --ultrathink(0.90), --analyze(0.85), --think(0.75)
+- **Expert Preferences**: code-reviewer(0.95), debugger(0.90), security-auditor(0.80)
+- **Workflow Style**: Security-first, thorough analysis, practical solutions
+
+#### Success Rate Based Auto-Adjustment
+- **High Success Rate Patterns**: Increase automatic suggestion priority
+- **Low Success Rate Patterns**: Suggest alternative patterns
+- **New Patterns**: Classify as experimental suggestions
+
+### superclaude Efficiency Intelligence
+
+#### Auto-Optimized jito Workflow
+**Zero-Config Optimization**: Perfect order learned automatically
+
 ```
-Serena unavailable → Morphllm → Native Claude Code tools → Explain limitations if needed
-```
-
-## ⚡ Auto-Activation Rules
-
-Clear triggers for automatic enhancements:
-
-```yaml
-enable_sequential:
-  - Complexity appears high (multi-file, architectural)
-  - User explicitly requests thinking/analysis
-  - Debugging complex issues
-
-enable_serena:
-  - File count >5 or symbol operations detected
-  - Multi-language projects or LSP integration required
-  - Shell command integration needed
-  - Complex refactoring or project-wide analysis
-  - Memory operations (save/load/checkpoint)
-
-enable_morphllm:
-  - Framework patterns or token optimization critical
-  - Simple edits or fast apply suitable
-  - Pattern-based modifications needed
-
-enable_delegation:
-  - More than 3 files in scope
-  - More than 2 directories to analyze
-  - Explicit parallel processing request
-  - Multi-file edit operations detected
-
-enable_efficiency:
-  - Resource usage above 75%
-  - Very long conversation context
-  - User requests concise mode
-
-enable_validation:
-  - Production code changes
-  - Security-sensitive operations
-  - User requests verification
-
-enable_brainstorming:
-  - Ambiguous project requests ("I want to build...")
-  - Exploration keywords (brainstorm, explore, figure out)
-  - Uncertainty indicators (not sure, maybe, possibly)
-  - Planning needs (new project, startup idea, feature concept)
-
-enable_session_lifecycle:
-  - Project work without active session → /sc:load automatic activation
-  - 30 minutes elapsed → /sc:reflect --type session + checkpoint evaluation
-  - High priority task completion → /sc:reflect --type completion
-  - Session end detection → /sc:save with metadata
-  - Error recovery situations → /sc:reflect --analyze + checkpoint
-
-enable_task_reflection:
-  - Complex task initiation → /sc:reflect --type task for validation
-  - Task completion requests → /sc:reflect --type completion mandatory
-  - Progress check requests → /sc:reflect --type task or session
-  - Quality validation needs → /sc:reflect --analyze
-```
-
-## 🧠 MODE-Command Architecture
-
-### Brainstorming Pattern: MODE_Brainstorming + /sc:brainstorm
-
-**Core Philosophy**: Behavioral Mode provides lightweight detection triggers, Command provides full execution engine
-
-#### Activation Flow Architecture
-
-```yaml
-automatic_activation:
-  trigger_detection: MODE_Brainstorming evaluates user request
-  pattern_matching: Keywords → ambiguous, explore, uncertain, planning
-  command_invocation: /sc:brainstorm with inherited parameters
-  behavioral_enforcement: MODE communication patterns applied
-
-manual_activation:
-  direct_command: /sc:brainstorm bypasses mode detection
-  explicit_flags: --brainstorm forces mode + command coordination
-  parameter_override: Command flags override mode defaults
+jito's superclaude Workflow (Auto-learned):
+1. Security Analysis (jito priority) → 2. Strategic Implementation
+3. Comprehensive Testing → 4. Performance Validation
+**95% Success Rate**: Learned from 500+ successful interactions
 ```
 
-#### Configuration Parameter Mapping
+#### Resource Efficiency Monitoring
+- **Token Usage Tracking**: Analyze token efficiency by strategy
+- **Time Efficiency**: Compare work completion time vs quality
+- **User Satisfaction**: Improve based on jito's feedback
 
-```yaml
-mode_to_command_inheritance:
-  # MODE_Brainstorming.md → /sc:brainstorm parameters
-  brainstorming:
-    dialogue:
-      max_rounds: 15           → --max-rounds parameter
-      convergence_threshold: 0.85 → internal quality gate
-    brief_generation:
-      min_requirements: 3      → completion validation
-      include_context: true    → metadata enrichment
-    integration:
-      auto_handoff: true       → --prd flag behavior
-      prd_agent: brainstorm-PRD → agent selection
+## Automatic Workflow Generation
+
+Automatically generate workflows from frequently repeated work patterns.
+
+### Smart Workflow Patterns
+
+#### Feature Development Workflow
+```
+Detection: "Develop new [feature name]"
+↓
+Auto-generated Workflow:
+1. Context7: Research related library patterns
+2. Sequential: Establish implementation strategy
+3. Implementation phase (detailed based on complexity)
+4. code-reviewer: Code quality review
+5. security-auditor: Security review
+6. test-automator: Test writing
+7. Final integration testing
 ```
 
-#### Behavioral Pattern Coordination
-
-```yaml
-communication_patterns:
-  discovery_markers: 🔍 Exploring, ❓ Questioning, 🎯 Focusing
-  synthesis_markers: 💡 Insight, 🔗 Connection, ✨ Possibility
-  progress_markers: ✅ Agreement, 🔄 Iteration, 📊 Summary
-
-dialogue_states:
-  discovery: "Let me understand..." → Open exploration
-  exploration: "What if we..." → Possibility analysis
-  convergence: "Based on our discussion..." → Decision synthesis
-  handoff: "Here's what we've discovered..." → Brief generation
-
-quality_enforcement:
-  behavioral_compliance: MODE patterns enforced during execution
-  communication_style: Collaborative, non-presumptive maintained
-  framework_integration: SuperClaude principles preserved
+#### Bug Fix Workflow
+```
+Detection: "bug", "error", "issue" keywords
+↓
+<<<<<<< HEAD
+↓  
+=======
+>>>>>>> 7a7c22d (refactor: 코드베이스 정리 및 Claude 설정 시스템 구성)
+Auto-generated Workflow:
+1. debugger: Root cause analysis --debug
+2. Issue reproduction and test case creation
+3. Fix with minimal changes
+4. Add regression tests
+5. code-reviewer: Review changes
 ```
 
-#### Integration Handoff Protocol
-
-```yaml
-mode_command_handoff:
-  1. detection: MODE_Brainstorming evaluates request context
-  2. parameter_mapping: YAML settings → command parameters
-  3. invocation: /sc:brainstorm executed with behavioral patterns
-  4. enforcement: MODE communication markers applied
-  5. brief_generation: Structured brief with mode metadata
-  6. agent_handoff: brainstorm-PRD receives enhanced brief
-  7. completion: Mode + Command coordination documented
-
-agent_coordination:
-  brief_enhancement: MODE metadata enriches brief structure
-  handoff_preparation: brainstorm-PRD receives validated brief
-  context_preservation: Session history and mode patterns maintained
-  quality_validation: Framework compliance enforced throughout
+#### Refactoring Workflow
+```
+Detection: "refactoring", "improve", "cleanup" keywords
+↓
+Auto-generated Workflow:
+1. Current code analysis --analyze
+2. Improvement plan establishment --architect
+3. Step-by-step refactoring execution
+4. Run tests at each step
+5. Performance comparison analysis --optimize
+6. Final quality verification
 ```
 
-## 🛡️ Error Recovery
+## 자동 Agent 라우팅 시스템
 
-Simple, effective error handling:
+**Smart Agent Selection**: 작업 유형에 따른 최적 전문가 자동 선택
+**토큰 효율성**: Main context 최소화, 전문 Agent에 구체적 작업 위임
+**병렬 처리**: 여러 Agent 동시 활용으로 성능 극대화
 
-```yaml
-error_response:
-  1. Try operation once
-  2. If fails → Try simpler approach
-  3. If still fails → Explain limitation clearly
-  4. Always preserve user context
+### MCP-Aware Routing Integration
 
-recovery_principles:
-  - Fail fast and transparently
-  - Explain what went wrong
-  - Suggest alternatives
-  - Never hide errors
+**통합 라우팅 순서**:
+1. **MCP Server Suitability Check** (키워드 기반)
+2. **Task Delegation Assessment** (복잡도 기반)
+3. **Optimal Tool Combination Selection** (효율성 기반)
 
-mode_command_recovery:
-  mode_failure: Continue with command-only execution
-  command_failure: Provide mode-based dialogue patterns
-  coordination_failure: Fallback to manual parameter setting
-  agent_handoff_failure: Generate brief without PRD automation
+#### MCP Server Priority Review
+- **Context7**: "docs", "API", "library", "framework", "examples" 키워드
+- **Sequential**: "analyze", "step-by-step", "plan", "strategy", "architecture" 키워드
+<<<<<<< HEAD
+- **Sequential**: "analyze", "step-by-step", "plan", "strategy", "architecture" 키워드  
+=======
+>>>>>>> 7a7c22d (refactor: 코드베이스 정리 및 Claude 설정 시스템 구성)
+- **Playwright**: "test", "E2E", "browser", "screenshot", "automation" 키워드
+
+### 도메인별 Agent 라우팅 규칙
+
+#### Nix/Dotfiles 전문 영역
+```
+키워드: "nix", "flake", "home-manager", "darwin", "dotfiles"
+→ nix-system-expert (전문 Agent)
+
+예시:
+"nix flake 업데이트해줘" → nix-system-expert
+"home-manager 설정 수정" → nix-system-expert
+<<<<<<< HEAD
+"home-manager 설정 수정" → nix-system-expert  
+=======
+>>>>>>> 7a7c22d (refactor: 코드베이스 정리 및 Claude 설정 시스템 구성)
+"darwin 모듈 추가" → nix-system-expert
 ```
 
-## 🧠 Trust Claude's Judgment
-
-**When to override rules and use adaptive intelligence:**
-
-- User request doesn't fit clear patterns
-- Context suggests different approach than rules
-- Multiple valid approaches exist
-- Rules would create unnecessary complexity
-
-**Core Philosophy**: These patterns guide but don't constrain. Claude Code's natural language understanding and adaptive reasoning should take precedence when it leads to better outcomes.
-
-## 🔍 Common Routing Patterns
-
-### Simple Examples:
+#### 코드 품질 및 리뷰
 ```
-"Build a login form" → Magic + frontend persona
-"Why is this slow?" → Sequential + performance analysis
-"Document this API" → Scribe + Context7 patterns
-"Fix this bug" → Read code → Sequential analysis → Morphllm targeted fix
-"Refactor this mess" → Serena symbol analysis → plan changes → execute systematically
-"Rename function across project" → Serena LSP precision + dependency tracking
-"Apply code style patterns" → Morphllm pattern matching + token optimization
-"Save my work" → Serena memory operations → /sc:save
-"Load project context" → Serena project activation → /sc:load
-"Check my progress" → Task reflection → /sc:reflect --type task
-"Am I done with this?" → Completion validation → /sc:reflect --type completion
-"Save checkpoint" → Session persistence → /sc:save --checkpoint
-"Resume last session" → Session restoration → /sc:load --resume
-"I want to build something for task management" → MODE_Brainstorming → /sc:brainstorm
-"Not sure what to build" → MODE_Brainstorming → /sc:brainstorm --depth deep
+<<<<<<< HEAD
+```  
+=======
+>>>>>>> 7a7c22d (refactor: 코드베이스 정리 및 Claude 설정 시스템 구성)
+키워드: "리뷰", "품질", "개선", "리팩토링", "클린업"
+→ code-reviewer (사후 자동 실행)
+
+예시:
+코드 작성 완료 → code-reviewer (자동 큐잉)
+"코드 리뷰해줘" → code-reviewer (즉시 실행)
 ```
 
-### Parallel Execution Examples:
+#### 디버깅 및 문제 해결
 ```
-"Edit these 4 components" → Auto-suggest --delegate files (est. 1.2s savings)
-"Update imports in src/ files" → Parallel processing detected (3+ files)  
-"Analyze auth system" → Multiple files detected → Wave coordination suggested
-"Format the codebase" → Batch parallel operations (60% faster execution)
-"Read package.json and requirements.txt" → Parallel file reading suggested
-```
+키워드: "버그", "에러", "문제", "실패", "오류", "디버깅"
+→ debugger (우선 Agent)
 
-### Brainstorming-Specific Patterns:
-```yaml
-ambiguous_requests:
-  "I have an idea for an app" → MODE detection → /sc:brainstorm "app idea"
-  "Thinking about a startup" → MODE detection → /sc:brainstorm --focus business
-  "Need help figuring this out" → MODE detection → /sc:brainstorm --depth normal
-
-explicit_brainstorming:
-  /sc:brainstorm "specific idea" → Direct execution with MODE patterns
-  --brainstorm → MODE activation → Command coordination
-  --no-brainstorm → Disable MODE detection
+예시:
+"빌드가 실패해" → debugger
+"이 에러 원인을 찾아줘" → debugger
+"왜 동작하지 않을까?" → debugger
 ```
 
-### Complexity Indicators:
-- **Simple**: Single file, clear goal, standard pattern → **Morphllm + Direct execution**
-- **Moderate**: Multiple files, some analysis needed, standard tools work → **Context-dependent routing**
-- **Complex**: System-wide, architectural, needs coordination, custom approach → **Serena + Sequential coordination**
-- **Exploratory**: Ambiguous requirements, need discovery, brainstorming beneficial → **MODE_Brainstorming + /sc:brainstorm**
+#### 보안 관련 작업
+```
+키워드: "보안", "취약점", "인증", "권한", "암호화", "공격"
+→ security-auditor (우선 Agent)
 
-### Hybrid Intelligence Examples:
-- **Simple text replacement**: Morphllm (30-50% token savings, <100ms)
-- **Function rename across 15 files**: Serena (LSP precision, dependency tracking)
-- **Framework pattern application**: Morphllm (pattern recognition, efficiency)
-- **Architecture refactoring**: Serena + Sequential (comprehensive analysis + systematic planning)
-- **Style guide enforcement**: Morphllm (pattern matching, batch operations)
-- **Multi-language project migration**: Serena (native language support, project indexing)
-
-### Performance Benchmarks & Fallbacks:
-- **3-5 files**: 40-60% faster with parallel execution (2.1s → 0.8s typical)
-- **6-10 files**: 50-70% faster with delegation (4.5s → 1.4s typical)
-- **Issues detected**: Auto-suggest `--sequential` flag for debugging
-- **Resource constraints**: Automatic throttling with clear user feedback
-- **Error recovery**: Graceful fallback to sequential with preserved context
-
-## 📊 Quality Checkpoints
-
-Minimal validation at key points:
-
-1. **Before changes**: Understand existing code
-2. **During changes**: Maintain consistency
-3. **After changes**: Verify functionality preserved
-4. **Before completion**: Run relevant lints/tests if available
-
-### Brainstorming Quality Gates:
-1. **Mode Detection**: Validate trigger patterns and context
-2. **Parameter Mapping**: Ensure configuration inheritance
-3. **Behavioral Enforcement**: Apply communication patterns
-4. **Brief Validation**: Check completeness criteria
-5. **Agent Handoff**: Verify PRD readiness
-6. **Framework Compliance**: Validate SuperClaude integration
-
-## ⚙️ Configuration Philosophy
-
-**Defaults work for 90% of cases**. Only adjust when:
-- Specific performance requirements exist
-- Custom project patterns need recognition
-- Organization has unique conventions
-- MODE-Command coordination needs tuning
-
-### MODE-Command Configuration Hierarchy:
-1. **Explicit Command Parameters** (highest precedence)
-2. **Mode Configuration Settings** (YAML from MODE files)
-3. **Framework Defaults** (SuperClaude standards)
-4. **System Defaults** (fallback values)
-
-## 🎯 Architectural Integration Points
-
-### SuperClaude Framework Compliance
-
-```yaml
-framework_integration:
-  quality_gates: 8-step validation cycle applied
-  mcp_coordination: Server selection based on task requirements
-  agent_orchestration: Proper handoff protocols maintained
-  document_persistence: All artifacts saved with metadata
-
-mode_command_patterns:
-  behavioral_modes: Provide detection and framework patterns
-  command_implementations: Execute with behavioral enforcement
-  shared_configuration: YAML settings coordinated across components
-  quality_validation: Framework standards maintained throughout
+예시:
+"보안 검토해줘" → security-auditor
+"취약점 있나 확인해줘" → security-auditor
 ```
 
-### Cross-Mode Coordination
+#### 성능 최적화
+```
+키워드: "성능", "느림", "최적화", "병목", "속도", "메모리"
+→ performance-engineer (전문 Agent)
 
-```yaml
-mode_interactions:
-  task_management: Multi-session brainstorming project tracking
-  token_efficiency: Compressed dialogue for extended sessions
-  introspection: Self-analysis of brainstorming effectiveness
-
-orchestration_principles:
-  behavioral_consistency: MODE patterns preserved across commands
-  configuration_harmony: YAML settings shared and coordinated
-  quality_enforcement: SuperClaude standards maintained
-  agent_coordination: Proper handoff protocols for all modes
+예시:
+"성능 개선해줘" → performance-engineer
+"왜 이렇게 느리지?" → performance-engineer
 ```
 
----
+#### 테스트 관련 작업
+```
+키워드: "테스트", "test", "검증", "확인"
+→ test-automator (전문 Agent)
 
-*Remember: This orchestrator guides coordination. It shouldn't create more complexity than it solves. When in doubt, use natural judgment over rigid rules. The MODE-Command pattern ensures behavioral consistency while maintaining execution flexibility.*
+예시:
+"테스트 작성해줘" → test-automator
+"테스트 실행해서 확인해줘" → test-automator
+```
+
+#### 프롬프트 최적화
+```
+키워드: "프롬프트", "명령어", "claude", "최적화"
+→ claude-prompt-expert (전문 Agent)
+
+예시:
+"이 프롬프트 개선해줘" → claude-prompt-expert
+"새 명령어 만들어줘" → claude-prompt-expert
+```
+
+### Task 위임 자동 판단 기준
+
+#### 즉시 Task 위임 (토큰 절약)
+- **전문 영역 작업**: Nix, 보안, 성능, 디버깅 등
+- **다중 파일 수정**: 3개 이상 파일 관련
+- **복잡한 분석**: 코드베이스 전체 분석 필요
+- **품질 검증**: 리뷰, 테스트, 검증 작업
+
+#### Main에서 직접 처리
+- **단순 질문**: 1-2문 답변 가능
+- **단일 파일 수정**: 간단한 변경
+- **기본 설명**: 개념이나 사용법 설명
+
+### 자동 Agent 체인 실행
+
+#### 코드 구현 후 자동 체인
+```
+코드 작성 완료 시 자동 실행:
+1. code-reviewer → 품질 검토
+2. security-auditor → 보안 검토 (보안 관련 코드 시)
+3. test-automator → 테스트 실행/작성
+```
+
+#### 문제 해결 체인
+```
+에러/버그 발생 시:
+1. debugger → 근본 원인 분석
+2. 관련 전문 Agent → 해결책 구현
+3. test-automator → 회귀 테스트 추가
+```
+
+#### 시스템 변경 체인
+```
+아키텍처/시스템 변경 시:
+1. backend-architect → 설계 검토
+2. security-auditor → 보안 영향 분석
+3. performance-engineer → 성능 영향 평가
+```
+
+## Learning-Based Automatic Suggestions
+
+### superclaude Context Intelligence
+
+**Predictive Flag Engine** (Zero-config activation):
+- **Performance Issues** → `--optimize + performance-engineer` (auto-triggered)
+- **Security Concerns** → `--ultrathink + security-auditor` (priority activation)
+- **Complex Debugging** → `--debug + debugger` (immediate deployment)
+- **Large Codebase** → `--uc` token efficiency mode (smart detection)
+
+**Proactive Mode Intelligence**:
+- **Code Complete**: Auto-queue code-reviewer + test-automator + security-auditor
+- **Performance Risk**: Pre-activate performance-engineer + --optimize mode
+- **Architecture Change**: Auto-suggest --architect + security review
+
+### Preventive Quality Management
+A system that detects and prevents issues before they occur:
+
+- **Technical Debt Detection**: Monitor code complexity increase trends
+- **Early Security Risk Warning**: Assess security risk levels of new dependencies or patterns
+<<<<<<< HEAD
+- **Early Security Risk Warning**: Assess security risk levels of new dependencies or patterns  
+=======
+>>>>>>> 7a7c22d (refactor: 코드베이스 정리 및 Claude 설정 시스템 구성)
+- **Performance Degradation Prediction**: Pre-analyze the impact of code changes on performance
+- **Test Coverage Monitoring**: Automatic alerts when coverage decreases
+
+## Rule #1 superclaude Guardian System
+
+**Absolute Rule #1 Protection**: 100% compliance with zero-config intelligence
+
+### superclaude Safety Intelligence
+- **Auto-Safe Zone**: Analysis, metrics, documentation → Immediate execution
+- **Smart Suggestions**: Code changes, architecture → Always request approval
+- **Learning Boundaries**: New patterns → Explicit permission + learning integration
+- **Predictive Safety**: Risk assessment → Auto-escalation to jito approval
+
+### superclaude Safety Net
+- **Intelligent Risk Assessment**: Auto-categorize safety levels + appropriate action
+- **Complete Rollback System**: Every change → Perfect restoration capability
+- **Evolutionary Safety**: New features → Gradual integration with safety monitoring
+- **Predictive Prevention**: Issue prediction → Pre-emptive safety measures
+
+## Performance Monitoring
+
+### System Efficiency Tracking
+- **Response Time**: Monitor average processing time for each task
+- **Accuracy**: Accuracy of automatic selections and user satisfaction
+- **Resource Usage**: Track token usage and efficiency
+
+### Continuous Improvement
+- **A/B Testing**: Verify effectiveness of new strategies
+- **Feedback Loop**: Continuous learning through jito's feedback
+- **Performance Benchmarks**: Regular performance evaluation and improvement
+
+## superclaude Evolution Target: 2025+ Standard
+
+**Zero-Config Achievement**: 95% tasks completed without any configuration
+**jito Intelligence**: Indistinguishable from jito's own thinking patterns
+**Predictive Excellence**: Problems solved before jito realizes they exist
+**Evolutionary Performance**: Each day brings measurably better assistance
+
+This superclaude system represents the future of AI assistance: completely personalized, infinitely learning, absolutely safe, and requiring zero configuration to deliver maximum productivity.

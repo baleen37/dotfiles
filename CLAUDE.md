@@ -164,4 +164,6 @@ make deploy                      # Cross-platform build+switch
 - 나와의 대화는 한국어이되, 문서는 영어로 작성해줘.
 - claude code command 작성할 때 되도록이면 --type 이런거 같은 옵션이 없으면 좋겠어.
 - user 이름은 호스트마다 다르기 때문에 하드코딩 하지 않아야 한다
+- @modules/shared/config/claude/ 하위에 있는 파일은 ~/.claude 와 매칭되는 파일이야. 유저 설정을 다룰거야.
+- claude code 세팅은 https://github.com/SuperClaude-Org/SuperClaude_Framework/tree/SuperClaude_V4_Beta 를 따르긴 한다. 다만 몇가지를 커스텀 해서 쓴다.
 </memory>

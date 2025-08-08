@@ -14,8 +14,8 @@ readonly EXPECTED_CONFIG_FILES=(
     "settings.json"
     "MCP.md"
     "SUBAGENT.md"
-    "FLAG.md"
-    "ORCHESTRATION.md"
+    "FLAGS.md"
+    "ORCHESTRATOR.md"
 )
 
 # 테스트 환경 설정
