@@ -1,4 +1,11 @@
-# /sc:reflect - 작업 성찰 및 개선점 도출
+---
+name: reflect
+description: "Work reflection and improvement analysis"
+mcp-servers: [sequential-thinking, serena]
+agents: [system-architect]
+---
+
+# /reflect - 작업 성찰 및 개선점 도출
 
 ## 목적
 현재 작업 패턴을 분석하고 효율성 개선점을 제안하는 실용적 성찰 도구

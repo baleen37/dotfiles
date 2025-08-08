@@ -1,9 +1,8 @@
 ---
 name: cleanup
 description: "Clean up code, remove dead code, and optimize project structure with safety validation"
-mcp-servers: [sequential, context7]
+mcp-servers: [sequential-thinking, context7, serena]
 agents: [system-architect]
-tools: [Read, Grep, Glob, Bash, Edit, MultiEdit, TodoWrite, Task]
 ---
 
 # /cleanup - Code and Project Cleanup

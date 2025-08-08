@@ -1,9 +1,8 @@
 ---
 name: debug
 description: "Diagnose and resolve issues with systematic debugging and root cause analysis"
-mcp-servers: [sequential, datadog]
+mcp-servers: [sequential-thinking, datadog, serena]
 agents: [debugger]
-tools: [Read, Bash, Grep, Glob, Write]
 ---
 
 # /debug - Issue Diagnosis and Resolution

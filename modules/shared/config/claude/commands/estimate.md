@@ -1,9 +1,8 @@
 ---
 name: estimate
 description: "Generate development estimates with intelligent complexity analysis"
-mcp-servers: [sequential, context7]
+mcp-servers: [sequential-thinking, context7, serena]
 agents: [system-architect]
-tools: [Read, Grep, Glob, Bash, TodoWrite, Task]
 ---
 
 # /estimate - Development Estimation
