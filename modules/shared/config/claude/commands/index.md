@@ -182,7 +182,7 @@ The command automatically activates relevant personas based on documentation sco
 - **Parallel Commands**: Can run alongside /sc:explain for comprehensive knowledge transfer
 
 ### Framework Integration
-- **SuperClaude Ecosystem**: Integrates with quality gates and validation cycles
+- **Framework Ecosystem**: Integrates with quality gates and validation cycles
 - **Quality Gates**: Participates in documentation completeness and quality verification
 - **Session Management**: Maintains documentation context across session boundaries
 

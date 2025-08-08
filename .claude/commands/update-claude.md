@@ -30,13 +30,26 @@ ABOUTME: Claude Code 설정 파일들의 lint, 구조, 링크 검증 및 자동 
 ### 처리 과정
 
 ```bash
-# 1. 발견 (병렬)
-Glob(".claude/**/*.md") + Grep(lint_patterns) + Grep("@.*\.md")
+# 1. 구조 탐색 (병렬)
+Glob(".claude/**/*.md", "modules/**/claude/**/*.md")
++ LS(디렉토리 계층) + Bash(메타데이터 수집)
 
-# 2. 분석 및 분류
+# 2. 컨텐츠 분석 (병렬)
+Read(CLAUDE.md, RULES.md, PRINCIPLES.md, commands/*.md)
+→ ABOUTME, 섹션 구조, 스타일 패턴 추출
+
+# 3. 의존성 맵핑 (병렬)  
+Grep("@[a-zA-Z].*\.md", output="content") + 링크 유효성 검증
+→ 참조 관계 그래프 생성, 깨진 링크 감지
+
+# 4. 품질 기준선 수립
+Grep(markdownlint 패턴) + ABOUTME 누락 감지
+→ 현재 상태 vs 목표 품질 매트릭스
+
+# 5. 분석 및 분류
 자동 수정 vs 승인 필요 vs 금지 사항 구분
 
-# 3. 실행
+# 6. 실행
 Edit/MultiEdit로 직접 수정 → 검증
 ```
 

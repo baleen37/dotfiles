@@ -52,7 +52,7 @@ Advanced meta-system command for decomposing complex multi-domain operations int
 - **Execution Strategy Selection**: Adaptive coordination pattern selection based on task characteristics
 
 ### 3. Custom Integration
-- **Meta-System Coordination**: Advanced integration with SuperClaude framework orchestration layers
+- **Meta-System Coordination**: Advanced integration with Claude Code framework orchestration layers
 - **Wave System Integration**: Coordination with wave-based execution for complex operations
 - **Cross-Domain Orchestration**: Management of operations spanning multiple technical domains
 
@@ -139,7 +139,7 @@ Advanced meta-system command for decomposing complex multi-domain operations int
 
 ## Integration Patterns
 
-### SuperClaude Framework Integration
+### Framework Integration
 - **Wave System Coordination**: Integration with wave-based execution for progressive enhancement
 - **Quality Gate Integration**: Comprehensive validation throughout orchestration phases
 - **Framework Orchestration**: Meta-level coordination with other SuperClaude components
@@ -210,7 +210,7 @@ Advanced meta-system command for decomposing complex multi-domain operations int
 - **Meta-System Integration**: Successful integration with SuperClaude framework orchestration layers
 
 ### Specialized Compliance Requirements
-- **Framework Integration**: Full compliance with SuperClaude meta-system orchestration patterns
+- **Framework Integration**: Full compliance with Claude Code meta-system orchestration patterns
 - **Quality Assurance**: Integration with comprehensive quality gates and validation cycles
 - **Performance Standards**: Meet or exceed orchestration efficiency and coordination effectiveness targets
 
@@ -220,7 +220,7 @@ Advanced meta-system command for decomposing complex multi-domain operations int
 - Decompose complex multi-domain operations into coordinated task hierarchies
 - Provide sophisticated orchestration patterns for parallel and sequential execution
 - Manage advanced argument processing and meta-system coordination
-- Integrate with SuperClaude framework orchestration and wave systems
+- Integrate with Claude Code framework orchestration and wave systems
 
 **This specialized command will not:**
 - Replace specialized domain commands that have specific technical focuses
