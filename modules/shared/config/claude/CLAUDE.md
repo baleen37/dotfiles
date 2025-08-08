@@ -30,13 +30,12 @@
 
 ### Naming & Comments
 
-- Names MUST tell what code does, not how it's implemented or its history
-- NEVER use implementation details in names (e.g., "ZodValidator", "MCPWrapper", "JSONParser")
-- NEVER use temporal/historical context in names (e.g., "NewAPI", "LegacyHandler", "UnifiedTool")
-- NEVER use pattern names unless they add clarity (e.g., prefer "Tool" over "ToolFactory")
-- Good Examples: `Tool` not `AbstractToolInterface`, `execute()` not `executeToolWithValidation()`
-- Comments MUST describe what the code does NOW, never past changes or implementation details
-- If you catch yourself writing "new", "old", "legacy", "wrapper", "unified" in names or comments, STOP and find a better name
+- Names MUST tell what code does, not how it's implemented
+- NEVER use implementation details (e.g., "ZodValidator", "MCPWrapper")
+- NEVER use temporal context (e.g., "NewAPI", "LegacyHandler", "UnifiedTool")  
+- Good: `Tool` not `AbstractToolInterface`, `execute()` not `executeToolWithValidation()`
+- Comments describe what code does NOW, not past changes
+- Avoid "new", "old", "legacy", "wrapper", "unified" in names/comments
 
 ### Code Writing
 
@@ -54,12 +53,12 @@
 
 - Tests MUST comprehensively cover ALL functionality
 - NO EXCEPTIONS POLICY: ALL projects MUST have unit tests, integration tests, AND end-to-end tests
-- FOR EVERY NEW FEATURE OR BUGFIX, YOU MUST follow TDD:
-  1. Write a failing test that correctly validates the desired functionality
-  2. Run the test to confirm it fails as expected  
-  3. Write ONLY enough code to make the failing test pass
-  4. Run the test to confirm success
-  5. Refactor if needed while keeping tests green
+- FOR EVERY NEW FEATURE OR BUGFIX, follow TDD:
+  1. Write failing test for desired functionality
+  2. Confirm test fails as expected
+  3. Write minimal code to pass test  
+  4. Confirm test success
+  5. Refactor while keeping tests green
 - YOU MUST NEVER write tests that "test" mocked behavior
 - YOU MUST NEVER ignore system or test output - logs contain CRITICAL information
 - YOU MUST NEVER ASSUME THAT TEST FAILURES ARE NOT YOUR FAULT
@@ -76,8 +75,10 @@ YOU MUST follow this debugging framework for ANY technical issue:
 3. **Form Single Hypothesis**: What do you think is the root cause? State it clearly
 4. **Test Minimally**: Make the smallest possible change to test your hypothesis
 5. **When You Don't Know**: Say "I don't understand X" rather than pretending to know
-- NEVER add multiple fixes at once
-- IF your first fix doesn't work, STOP and re-analyze rather than adding more fixes
+
+Additional rules:
+- NEVER add multiple fixes at once  
+- IF first fix doesn't work, STOP and re-analyze
 
 ### Memory & Learning
 
@@ -173,18 +174,16 @@ Level 3: Complex/Specialized Tasks (1hr+)
 **Level 2 Protocol**:
 
 1. Create TodoWrite with 3-6 detailed tasks
-3. Break down complex steps into subtasks
-4. Use Task tool when possible, otherwise execute directly
-5. Consider `--loop` for quality-critical deliverables
-6. Track progress with in_progress/completed updates
+2. Break down complex steps into subtasks
+3. Use Task tool when possible, otherwise execute directly
+4. Track progress with in_progress/completed updates
 
 **Level 3 Protocol**:
 
 1. Create comprehensive TodoWrite breakdown
-3. Use Task tool with appropriate domain specialist
-4. Use `--loop` for complex deliverables requiring high quality
-5. Coordinate multiple agents if needed
-6. Maintain detailed progress tracking
+2. Use Task tool with appropriate domain specialist
+3. Coordinate multiple agents if needed
+4. Maintain detailed progress tracking
 
 ## MCP Integration
 
@@ -203,54 +202,37 @@ Current Active Servers:
 
 **Context7** - Auto-trigger when:
 
-- "library", "framework", "documentation", "API reference" mentioned
-- Need to understand how to use external tools/libraries
-- Looking for best practices or usage patterns
-- Combines with: Sequential-thinking (for analysis), Playwright (for testing patterns)
+- Keywords: "library", "framework", "documentation", "API reference"
+- External tool/library usage and best practices
+- Combines with: Sequential-thinking, Playwright
 
 *Example*: "How do I use React Query for data fetching?"
-→ Context7 fetches official docs → Sequential analyzes patterns → Provides implementation guide
+→ Context7 fetches official docs → Sequential-thinking analyzes patterns → Provides implementation guide
 
 **Sequential-thinking** - Auto-trigger when:
 
-- Complex analysis requiring multiple thinking steps
-- Debugging multi-step problems or root cause analysis
-- Breaking down complex features into components
-- Combines with: Context7 (for docs), Playwright (for validation)
+- Complex analysis, debugging, feature breakdown
+- Multi-step problem solving
+- Combines with: Context7, Playwright
 
 *Example*: "Debug why authentication fails randomly"
 → Sequential-thinking breaks down problem → Context7 gets auth docs → Playwright validates fix
 
 **Playwright** - Auto-trigger when:
 
-- "test", "browser", "automation", "E2E", "UI" mentioned  
-- Need to validate web functionality
-- Testing user interactions or workflows
-- Combines with: Sequential-thinking (for test planning), Context7 (for patterns)
+- Keywords: "test", "browser", "automation", "E2E", "UI"
+- Web functionality validation and user interaction testing
+- Combines with: Sequential-thinking, Context7
 
 *Example*: "Create login flow tests"
 → Sequential-thinking plans test strategy → Context7 gets testing patterns → Playwright implements E2E tests
 
-**Multi-Server Coordination Examples**:
+**Multi-Server Coordination Example**:
 
 ```
 User: "Implement secure file upload with tests"
 
-Auto-routing flow:
-1. Sequential-thinking: Break down requirements (auth, validation, storage, testing)
-2. Context7: Fetch security best practices for file uploads
-3. Playwright: Create E2E tests for upload workflow
-4. Sequential-thinking: Coordinate implementation across security layers
-```
-
-```
-User: "Performance issue with large dataset rendering"
-
-Auto-routing flow:
-1. Sequential-thinking: Analyze performance bottlenecks systematically
-2. Context7: Research React virtualization libraries
-3. Playwright: Create performance test scenarios
-4. Sequential-thinking: Validate optimization results
+Flow: Sequential-thinking breaks down requirements → Context7 fetches security docs → Playwright creates E2E tests → Sequential-thinking coordinates implementation
 ```
 
 ### Integration Strategy
@@ -258,20 +240,3 @@ Auto-routing flow:
 - Automatic server activation based on keyword detection
 - Multi-server coordination for complex workflows
 - Context-aware routing with intelligent fallbacks
-
-## Execution Modes
-
-### Loop Mode (`--loop`)
-
-**Purpose**: Iterative refinement for quality-critical tasks
-
-**How it Works**:
-
-- Repeat same goal multiple times with progressive improvement
-- Each iteration: analyze → implement → validate → refine
-- Continue until quality threshold met
-
-**When to Use**:
-
-- Complex documentation that needs multiple passes
-- High-stakes deliverables requiring refinement
