@@ -88,31 +88,6 @@ YOU MUST follow this debugging framework for ANY technical issue:
 
 ## Task Automation System
 
-### Planning Mode Integration
-
-**Plan Mode (`--plan`)**:
-
-The `--plan` flag shows detailed execution plan before running any command. It provides:
-
-- Step-by-step breakdown of what will be done
-- File modifications and their impact
-- Potential risks and dependencies
-- Estimated time and complexity
-- Alternative approaches if applicable
-
-**When to Use `--plan`**:
-
-- Before complex modifications (Level 2+ tasks)
-- When uncertain about approach or scope
-- Before touching critical files or configurations
-- When multiple files need coordination
-- To preview changes before execution
-
-**Integration with TodoWrite**:
-
-- Use `--plan` to generate detailed TodoWrite structure
-- Review plan output before marking tasks in_progress
-- Adjust TodoWrite based on plan recommendations
 
 ### System Architecture
 
@@ -190,16 +165,14 @@ Level 3: Complex/Specialized Tasks (1hr+)
 
 **Level 1 Protocol**:
 
-1. Consider `--plan` for execution preview (optional)
-2. Create TodoWrite with 1-3 specific tasks
+1. Create TodoWrite with 1-3 specific tasks
 3. Mark in_progress as working
 4. Complete tasks directly
 5. Mark completed immediately after each task
 
 **Level 2 Protocol**:
 
-1. Consider `--plan` to visualize approach and generate TodoWrite structure
-2. Create TodoWrite with 3-6 detailed tasks based on plan output
+1. Create TodoWrite with 3-6 detailed tasks
 3. Break down complex steps into subtasks
 4. Use Task tool when possible, otherwise execute directly
 5. Consider `--loop` for quality-critical deliverables
@@ -207,8 +180,7 @@ Level 3: Complex/Specialized Tasks (1hr+)
 
 **Level 3 Protocol**:
 
-1. **REQUIRED**: Use `--plan` for comprehensive project planning
-2. Create comprehensive TodoWrite breakdown based on plan
+1. Create comprehensive TodoWrite breakdown
 3. Use Task tool with appropriate domain specialist
 4. Use `--loop` for complex deliverables requiring high quality
 5. Coordinate multiple agents if needed
@@ -221,7 +193,7 @@ Level 3: Complex/Specialized Tasks (1hr+)
 Current Active Servers:
 
 - Context7: Documentation and API research for libraries/frameworks
-- Sequential: Systematic analysis and multi-step debugging workflows
+- Sequential-thinking: Systematic analysis and multi-step debugging workflows
 - Playwright: Browser automation, testing, and web interaction
 - Notion: Page/database management, content creation and queries
 - Jira/Atlassian: Issue tracking, project management, sprint planning
@@ -229,26 +201,57 @@ Current Active Servers:
 
 ### Auto-Routing Rules
 
-Context7 - Auto-trigger when:
+**Context7** - Auto-trigger when:
 
 - "library", "framework", "documentation", "API reference" mentioned
 - Need to understand how to use external tools/libraries
 - Looking for best practices or usage patterns
-- Combines with: Sequential (for analysis), Playwright (for testing patterns)
+- Combines with: Sequential-thinking (for analysis), Playwright (for testing patterns)
 
-Sequential - Auto-trigger when:
+*Example*: "How do I use React Query for data fetching?"
+→ Context7 fetches official docs → Sequential analyzes patterns → Provides implementation guide
+
+**Sequential-thinking** - Auto-trigger when:
 
 - Complex analysis requiring multiple thinking steps
 - Debugging multi-step problems or root cause analysis
 - Breaking down complex features into components
 - Combines with: Context7 (for docs), Playwright (for validation)
 
-Playwright - Auto-trigger when:
+*Example*: "Debug why authentication fails randomly"
+→ Sequential-thinking breaks down problem → Context7 gets auth docs → Playwright validates fix
+
+**Playwright** - Auto-trigger when:
 
 - "test", "browser", "automation", "E2E", "UI" mentioned  
 - Need to validate web functionality
 - Testing user interactions or workflows
-- Combines with: Sequential (for test planning), Context7 (for patterns)
+- Combines with: Sequential-thinking (for test planning), Context7 (for patterns)
+
+*Example*: "Create login flow tests"
+→ Sequential-thinking plans test strategy → Context7 gets testing patterns → Playwright implements E2E tests
+
+**Multi-Server Coordination Examples**:
+
+```
+User: "Implement secure file upload with tests"
+
+Auto-routing flow:
+1. Sequential-thinking: Break down requirements (auth, validation, storage, testing)
+2. Context7: Fetch security best practices for file uploads
+3. Playwright: Create E2E tests for upload workflow
+4. Sequential-thinking: Coordinate implementation across security layers
+```
+
+```
+User: "Performance issue with large dataset rendering"
+
+Auto-routing flow:
+1. Sequential-thinking: Analyze performance bottlenecks systematically
+2. Context7: Research React virtualization libraries
+3. Playwright: Create performance test scenarios
+4. Sequential-thinking: Validate optimization results
+```
 
 ### Integration Strategy
 
