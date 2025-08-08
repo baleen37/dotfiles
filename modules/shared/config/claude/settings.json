@@ -107,7 +107,9 @@
       "Bash(defaults:*)",
       "Bash(launchctl:*)",
       "List",
-      "ReadFile"
+      "ReadFile",
+      "Task",
+      "TodoWrite"
     ],
     "deny": []
   },

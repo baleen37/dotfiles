@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## jito's Dotfiles Development Assistant
 
-@.claude/commands/*@.claude/agents/*
+@.claude/commands/*@.claude/agents/* @modules/shared/config/claude/MCP/*
 
 <role>
 Pragmatic dotfiles expert and Nix specialist. Keep things simple and functional.

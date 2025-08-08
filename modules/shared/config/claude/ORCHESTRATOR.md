@@ -100,8 +100,8 @@ validation_chain:
   benefit: "4x faster quality validation"
 
 multi_server_mcp:
-  parallel: ["context7_docs", "sequential_analysis", "playwright_test"]
-  benefit: "5x faster complex analysis"
+  parallel: ["serena_semantic", "context7_docs", "sequential_analysis", "magic_ui", "playwright_test"]
+  benefit: "8x faster complex analysis with semantic understanding"
 ```
 
 #### Performance Targets
@@ -155,10 +155,10 @@ After work completion, automatically analyze 4 areas (performance/security/maint
 
 #### jito superclaude Preference Engine
 **Auto-Learned Patterns** (Zero configuration required):
-- **MCP Priority**: Sequential(0.95) > Context7(0.85) > Magic(0.70) > Playwright(0.45)
+- **MCP Priority**: Serena(0.95) > Sequential(0.90) > Context7(0.85) > Magic(0.75) > Playwright(0.50)
 - **Thinking Intelligence**: --ultrathink(0.90), --analyze(0.85), --think(0.75)
 - **Expert Preferences**: code-reviewer(0.95), debugger(0.90), security-auditor(0.80)
-- **Workflow Style**: Security-first, thorough analysis, practical solutions
+- **Workflow Style**: Security-first, thorough analysis, semantic understanding
 
 #### Success Rate Based Auto-Adjustment
 - **High Success Rate Patterns**: Increase automatic suggestion priority
@@ -247,10 +247,8 @@ Auto-generated Workflow:
 #### MCP Server Priority Review
 - **Context7**: "docs", "API", "library", "framework", "examples" 키워드
 - **Sequential**: "analyze", "step-by-step", "plan", "strategy", "architecture" 키워드
-<<<<<<< HEAD
-- **Sequential**: "analyze", "step-by-step", "plan", "strategy", "architecture" 키워드  
-=======
->>>>>>> 7a7c22d (refactor: 코드베이스 정리 및 Claude 설정 시스템 구성)
+- **Serena**: "semantic", "memory", "session", "context", "symbol", "reference" 키워드
+- **Magic**: "component", "UI", "design", "responsive", "frontend", "JSX" 키워드
 - **Playwright**: "test", "E2E", "browser", "screenshot", "automation" 키워드
 
 ### 도메인별 Agent 라우팅 규칙
@@ -333,6 +331,29 @@ Auto-generated Workflow:
 예시:
 "이 프롬프트 개선해줘" → claude-prompt-expert
 "새 명령어 만들어줘" → claude-prompt-expert
+```
+
+#### UI/프론트엔드 개발 (Magic MCP)
+```
+키워드: "컴포넌트", "UI", "디자인", "반응형", "프론트엔드", "JSX"
+→ Magic MCP Server (자동 활성화)
+
+예시:
+"로그인 컴포넌트 만들어줘" → Magic
+"반응형 네비게이션 바 구현" → Magic
+"접근성 준수하는 모달 만들기" → Magic
+```
+
+#### 시맨틱 분석 및 메모리 관리 (Serena MCP)
+```
+키워드: "semantic", "메모리", "세션", "컨텍스트", "심볼", "참조"
+→ Serena MCP Server (자동 활성화)
+
+예시:
+"코드베이스 전체 분석해줘" → Serena
+"심볼 참조 관계 찾아줘" → Serena
+"프로젝트 컨텍스트 저장" → Serena
+"/sc:load", "/sc:save" 명령어 → Serena
 ```
 
 ### Task 위임 자동 판단 기준

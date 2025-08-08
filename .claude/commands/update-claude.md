@@ -1,130 +1,136 @@
-# /update-claude - Pragmatic Configuration Tool
+# /update-claude: Claude 설정 최적화 도구
 
-Claude Code 설정을 jito 철학에 맞게 실용적으로 개선하는 도구.
+ABOUTME: Claude Code 설정 파일들의 lint, 구조, 링크 검증 및 자동 수정
 
-## Usage
+## 핵심 원칙
 
-```bash
-/update-claude          # 자동 분석 후 개선 실행
-/update-claude --fix    # 즉시 수정 가능한 문제만 처리
-/update-claude --check  # 현재 상태 분석만 (변경 없음)
-```
+**YAGNI 우선**: 실용적 자동화만, 복잡성 제거
+**안전한 수정**: 읽기 → 분석 → 수정 → 검증
+**직접 편집**: Edit/MultiEdit로 즉시 수정, 백업 파일 생성 안함
+**전문가 위임**: 복잡한 최적화는 claude-prompt-expert 활용
 
-## 실행 전략
+## 기본 동작
 
-### 실제 문제 감지
+### 자동 감지 및 수정
 
-- **Lint 오류**: 마크다운 린트 검사 → 즉시 자동 수정
-- **링크 문제**: @reference 링크 검증 → 업데이트 필요시 수정
-- **구조 문제**: YAML 헤더, 일관성 검사 → TodoWrite로 체계적 개선
+**즉시 수정 대상**:
 
-### 구체적 실행 방식
+- 마크다운 lint 오류 (MD022, MD025 등)
+- 깨진 @reference 링크
+- 누락된 ABOUTME 헤더
+- 중복 콘텐츠 및 dead code
+- 오타 및 포맷 불일치
 
-```bash
-# 즉시 수정: Edit/MultiEdit 직접 수정 (백업 파일 없음)
-# 다중 수정: MultiEdit로 일괄 처리
-# 복잡한 개선: claude-prompt-expert 위임
-# 정리 규칙: 사용하지 않는 콘텐츠 즉시 제거
-```
+**승인 필요**:
 
-## 자동 수정 범위
+- 새 섹션 추가
+- 구조적 변경
+- 기능 확장
 
-### 즉시 실행 (승인 불필요)
-
-- 마크다운 린트 오류 수정
-- `@reference` 링크 업데이트  
-- 중복 내용 정리 및 데드코드 제거
-- 오타 및 포맷팅 수정
-- 일관성 개선 (naming, structure)
-- **사용하지 않는 섹션/파일 즉시 삭제**
-
-### 승인 후 실행
-
-- 구조적 변경 (새 섹션 추가)
-- 기능 개선 및 확장
-- 성능 최적화
-- 아키텍처 수정
-
-### 절대 자동화 금지 (Rule #1)
-
-- 핵심 철학 변경
-- 보안 관련 설정
-- 새로운 자동화 규칙 추가
-- 시스템 동작 방식 변경
-
-## 실행 과정
-
-### Step 1: 구체적 문제 검사
+### 처리 과정
 
 ```bash
-🔍 Glob("**/*.md") → 모든 마크다운 파일 수집
-🔧 Grep(lint pattern) → 린트 오류 개수 확인
-🔗 Grep("@.*\.md") → 깨진 링크 검사
+# 1. 발견 (병렬)
+Glob(".claude/**/*.md") + Grep(lint_patterns) + Grep("@.*\.md")
+
+# 2. 분석 및 분류
+자동 수정 vs 승인 필요 vs 금지 사항 구분
+
+# 3. 실행
+Edit/MultiEdit로 직접 수정 → 검증
 ```
 
-### Step 2: 개선 실행
+## 도구 활용
 
-```bash
-✏️ 직접 수정: Edit/MultiEdit로 즉시 수정 (백업 없음)
-🗑️ 데드코드 제거: 사용하지 않는 콘텐츠 즉시 삭제
-📋 체계적 개선: TodoWrite로 다단계 작업 추적
-🤖 전문가 위임: 복잡한 변경은 claude-prompt-expert 활용
-```
+### Claude Code 도구
 
-### Step 3: 검증 및 완료
+- **Glob**: 설정 파일 패턴 발견
+- **Grep**: lint 패턴, 링크 검증
+- **Read**: 현재 상태 파악
+- **Edit/MultiEdit**: 직접 수정
+- **claude-prompt-expert**: 복잡한 프롬프트 최적화
 
-```bash
-✅ 변경사항 검증
-📈 개선 효과 측정 (토큰 절약, 구조 개선)
-📝 완료 리포트 (수정 내용 + 추가 권장사항)
-```
+### 안전장치
 
-## 품질 보장
+- Read-first 원칙 (상태 파악 후 수정)
+- 단계별 검증 (수정 후 즉시 확인)
+- 실패 시 대안 전략 (MultiEdit → Edit)
 
-### 안전 장치
+## 사용 예시
 
-- **읽기 우선**: 모든 변경 전 현재 상태 파악
-- **점진적 개선**: 한 번에 하나씩 단계별 수정  
-- **직접 수정**: 백업 파일 생성 금지, Edit/MultiEdit만 사용
-- **검증 필수**: 모든 변경 후 동작 확인
-- **데드코드 방지**: 사용하지 않는 내용 즉시 제거
-
-### 실패 복구
-
-```bash
-Level 1: 단순 재시도 (다른 접근법)
-Level 2: 도구 변경 (MultiEdit → Edit)
-Level 3: 수동 가이드 제공 (구체적 단계)
-```
-
-## 측정 가능한 목표
-
-- **Lint 오류**: 0개 (완전 자동 수정)
-- **깨진 링크**: 0개 (자동 검증 및 수정)
-- **처리 시간**: <2분 (대부분의 일반적 수정)
-- **구조 일관성**: YAML 헤더 표준화 100%
-
-## 실제 사용 예시
-
-### 실제 실행 예시
-
-```bash
-/update-claude --fix
-→ Grep으로 MD022 오류 5개 발견 → MultiEdit 자동 수정
-→ @reference 링크 2개 깨짐 확인 → 경로 수정
-→ YAML 헤더 누락 1개 → 표준 헤더 추가
-→ 완료: 45초
-```
-
-### 종합 개선
+### 기본 사용
 
 ```bash
 /update-claude
-→ 복잡도 감지: 중간 (6개 파일)
-→ TodoWrite 생성: 4개 작업
-→ 구조 개선 + 성능 최적화
-→ 완료: 4분 15초, 토큰 35% 절약
+# 결과: 5개 MD022 오류 수정, 2개 링크 수정, 45초 완료
 ```
 
+### 전문가 모드
+
+```bash
+/update-claude --expert
+# 결과: claude-prompt-expert 활용, 토큰 효율성 30% 개선
+```
+
+### 검사만
+
+```bash
+/update-claude --check  
+# 결과: 문제 보고서만 생성, 수정 안함
+```
+
+## 실제 수정 사례
+
+### Lint 오류 수정
+
+```markdown
+# 수정 전
+##Title without space
+
+# 수정 후  
+## Title with space
+```
+
+### 링크 수정
+
+```markdown
+# 수정 전
+@nonexistent.md
+
+# 수정 후
+@RULES.md
+```
+
+### ABOUTME 추가
+
+```markdown
+# 수정 전
+# /command: Some command
+
+# 수정 후
+# /command: Some command
+
+ABOUTME: Brief description of command purpose
+```
+
+## 성능 목표
+
+**속도**: 일반적 수정 <2분, 복잡한 최적화 <5분
+**정확도**: 95% 이상 자동 수정 성공률
+**안전성**: 0 실패, 복원 가능한 수정만
+
+## 제한사항
+
+**수정하지 않음**:
+
+- SuperClaude 핵심 철학 변경
+- 보안 설정 수정  
+- 새로운 자동화 규칙 생성
+
+**실패 처리**:
+
+- 다른 도구로 재시도 (MultiEdit → Edit)
+- 실패 시 전문가에게 위임
+
 ---
-*Simple • Practical • Safe • Effective*
+*실용적 • 안전한 • 효과적*
