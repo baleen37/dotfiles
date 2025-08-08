@@ -1,505 +1,234 @@
-# /explain - Educational Code & Concept Explanation System
+---
+name: explain
+description: "Provide clear explanations of code, concepts, or system behavior with educational clarity and interactive learning patterns"
+allowed-tools: [Read, Grep, Glob, Bash, TodoWrite, Task]
 
-Comprehensive educational explanations with adaptive learning pathways, skill-level adaptation, and mentorship-focused knowledge transfer.
+# Command Classification
+category: workflow
+complexity: standard
+scope: cross-file
+
+# Integration Configuration
+mcp-integration:
+  servers: [sequential, context7]  # Sequential for analysis, Context7 for framework documentation
+  personas: [educator, architect, security]  # Auto-activated based on explanation context
+  wave-enabled: false
+  complexity-threshold: 0.4
+
+# Performance Profile
+performance-profile: standard
+---
+
+# /sc:explain - Code and Concept Explanation
 
 ## Purpose
-- **Educational Excellence**: Transform complex concepts into clear, understandable knowledge
-- **Adaptive Learning**: Customize explanations based on user skill level and context
-- **Knowledge Transfer**: Enable deep understanding through structured learning pathways
-- **Interactive Learning**: Engage users with examples, exercises, and progressive complexity
-- **Contextual Intelligence**: Provide codebase-aware explanations with real-world relevance
-- **Mentorship Integration**: Professional guidance with best practices and industry insights
+Deliver clear, comprehensive explanations of code functionality, concepts, or system behavior with educational clarity and interactive learning support. This command serves as the primary knowledge transfer engine, providing adaptive explanation frameworks, clarity assessment, and progressive learning patterns with comprehensive context understanding.
 
 ## Usage
-```bash
-/explain [target] [--level skill] [--format style] [--depth scope] [--with features]
+```
+/sc:explain [target] [--level basic|intermediate|advanced] [--format text|diagram|examples] [--interactive]
 ```
 
-## Arguments & Flags
+## Arguments
+- `target` - Code file, function, concept, or system to explain
+- `--level` - Explanation complexity: basic, intermediate, advanced, expert
+- `--format` - Output format: text, diagram, examples, interactive
+- `--interactive` - Enable user interaction for clarification and deep-dive exploration
+- `--preview` - Show explanation outline without full detailed content
+- `--validate` - Enable additional validation steps for explanation accuracy
+- `--context` - Additional context scope for comprehensive understanding
+- `--examples` - Include practical examples and use cases
+- `--diagrams` - Generate visual representations and system diagrams
 
-### Target Specification
-- `[target]` - Code, concept, or system component to explain (default: context-aware detection)
-- `@concept/algorithms` - Explain algorithmic concepts with implementations
-- `@architecture/patterns` - Architectural patterns and design decisions
-- `@component/Button` - Deep component explanation with usage patterns
-- `@api/authentication` - API design and implementation explanation
-- `@system/dataflow` - System-wide data flow and architecture
-- `@tech/react-hooks` - Technology-specific concept explanation
-- `@file/utils.js` - File-specific code explanation and walkthrough
+## Execution Flow
 
-### Skill Level Adaptation
-- `--level beginner` - Foundational concepts with extensive context
-- `--level intermediate` - Balanced technical depth with practical focus
-- `--level advanced` - Expert-level insights with architectural considerations
-- `--level expert` - Domain specialist perspective with cutting-edge practices
-- `--level auto` - Intelligent skill detection based on user context (default)
+### 1. Context Analysis
+- Analyze target code or concept thoroughly for comprehensive understanding
+- Identify key components, relationships, and complexity factors
+- Assess audience level and appropriate explanation depth
+- Detect framework-specific patterns and documentation requirements
 
-### Explanation Formats
-- `--format conceptual` - High-level concept explanation with analogies
-- `--format technical` - Detailed technical implementation explanation
-- `--format visual` - Diagram-supported explanation with visual aids
-- `--format tutorial` - Step-by-step learning tutorial with examples
-- `--format reference` - Comprehensive reference documentation
-- `--format comparative` - Compare approaches, patterns, and alternatives
-- `--format historical` - Evolution of concepts and design decisions
+### 2. Strategy Selection
+- Choose appropriate explanation approach based on --level and --format
+- Auto-activate relevant personas for domain expertise (educator, architect)
+- Configure MCP servers for enhanced analysis and documentation access
+- Plan explanation sequence with progressive complexity and clarity
 
-### Explanation Depth
-- `--depth overview` - High-level summary with key concepts
-- `--depth standard` - Comprehensive explanation with examples (default)
-- `--depth deep` - In-depth analysis with architectural implications
-- `--depth mastery` - Expert-level understanding with advanced patterns
-- `--depth comprehensive` - Full learning pathway with progressive complexity
+### 3. Core Operation
+- Execute systematic explanation workflows with appropriate clarity frameworks
+- Apply educational best practices and structured learning patterns
+- Coordinate multi-component explanations with logical flow
+- Generate relevant examples, diagrams, and interactive elements
 
-### Enhancement Features
-- `--with examples` - Include practical code examples and use cases
-- `--with exercises` - Generate learning exercises and practice problems
-- `--with diagrams` - Create ASCII diagrams and visual representations
-- `--with context` - Include codebase context and real-world applications
-- `--with patterns` - Connect to design patterns and architectural principles
-- `--with bestpractices` - Include industry best practices and conventions
-- `--with alternatives` - Explain alternative approaches and trade-offs
-- `--with timeline` - Include historical context and evolution
+### 4. Quality Assurance
+- Validate explanation accuracy against source code and documentation
+- Run clarity checks and comprehension validation
+- Generate comprehensive explanation with proper structure and flow
+- Verify explanation completeness with context understanding
 
-### Learning Pathways
-- `--pathway fundamentals` - Start from basic concepts and build up
-- `--pathway practical` - Focus on practical implementation and usage
-- `--pathway theoretical` - Deep dive into theoretical foundations
-- `--pathway architecture` - System design and architectural perspective
-- `--pathway debugging` - Problem-solving and troubleshooting focus
-- `--pathway optimization` - Performance and optimization considerations
+### 5. Integration & Handoff
+- Update explanation database with reusable patterns and insights
+- Prepare explanation summary with recommendations for further learning
+- Persist explanation context and educational insights for future use
+- Enable follow-up learning and documentation workflows
 
-### Output Configuration
-- `--output structured` - Organized sections with clear progression
-- `--output interactive` - Q&A style with user engagement
-- `--output narrative` - Story-telling approach with context building
-- `--output checklist` - Action-oriented explanation with verification steps
-- `--output workshop` - Hands-on learning experience format
+## MCP Server Integration
 
-## Auto-Activation Patterns
+### Sequential Thinking Integration
+- **Complex Analysis**: Systematic analysis of code structure and concept relationships
+- **Multi-Step Planning**: Breaks down complex explanations into manageable learning components
+- **Validation Logic**: Uses structured reasoning for accuracy verification and clarity assessment
 
-### Persona Auto-Activation
-- **Educational Focus**: → mentor persona + scribe persona
-- **Technical Deep-Dive**: → analyzer persona + architect persona
-- **Beginner Learning**: → mentor persona + frontend/backend (domain-specific)
-- **Advanced Concepts**: → architect persona + performance/security (domain-specific)
-- **Documentation Focus**: → scribe persona + mentor persona
+### Context7 Integration
+- **Automatic Activation**: When framework-specific explanations and official documentation are relevant
+- **Library Patterns**: Leverages official documentation for accurate framework understanding
+- **Best Practices**: Integrates established explanation standards and educational patterns
 
-### MCP Server Integration
-- **Context7**: Primary for official documentation, patterns, and best practices
-- **Sequential**: Complex concept breakdown and structured explanations
-- **Magic**: UI component explanations and interactive examples
-- **Playwright**: Demonstration of user interactions and testing concepts
+## Persona Auto-Activation
 
-### Skill Level Detection
-- **Auto-Detection Triggers**:
-  - Code complexity in user's project
-  - Previous interaction patterns
-  - Question sophistication level
-  - Technology stack familiarity
-  - Documentation style preferences
+### Context-Based Activation
+The command automatically activates relevant personas based on explanation scope:
 
-## Educational Framework
+- **Educator Persona**: Learning optimization, clarity assessment, and progressive explanation design
+- **Architect Persona**: System design explanations, architectural pattern descriptions, and complexity breakdown
+- **Security Persona**: Security concept explanations, vulnerability analysis, and secure coding practice descriptions
 
-### Phase 1: Understanding Assessment
-1. **Context Analysis**: Analyze target complexity and user background
-2. **Skill Detection**: Assess user's current knowledge level
-3. **Learning Goals**: Identify specific learning objectives
-4. **Prerequisites**: Determine required foundational knowledge
-5. **Adaptation Strategy**: Select optimal explanation approach
+### Multi-Persona Coordination
+- **Collaborative Analysis**: Multiple personas work together for comprehensive explanation coverage
+- **Expertise Integration**: Combining domain-specific knowledge for accurate and clear explanations
+- **Conflict Resolution**: Handling different persona approaches through systematic educational evaluation
 
-### Phase 2: Structured Explanation
+## Advanced Features
 
-#### Beginner-Level Explanation
-```yaml
-beginner_approach:
-  foundation_building:
-    - concept_introduction: 'What is this and why does it matter?'
-    - real_world_analogies: 'Compare to familiar concepts'
-    - basic_terminology: 'Define key terms with examples'
-    - step_by_step_breakdown: 'Simple, sequential explanation'
+### Task Integration
+- **Complex Operations**: Use Task tool for multi-step explanation workflows
+- **Parallel Processing**: Coordinate independent explanation work streams
+- **Progress Tracking**: TodoWrite integration for explanation completeness management
 
-  learning_support:
-    - visual_aids: 'ASCII diagrams and flowcharts'
-    - code_examples: 'Simple, well-commented examples'
-    - common_patterns: 'Typical usage scenarios'
-    - troubleshooting: 'Common mistakes and solutions'
+### Workflow Orchestration
+- **Dependency Management**: Handle explanation prerequisites and logical sequencing
+- **Error Recovery**: Graceful handling of explanation failures with alternative approaches
+- **State Management**: Maintain explanation state across interruptions and refinements
 
-  progression_path:
-    - verification_questions: 'Check understanding'
-    - practice_exercises: 'Hands-on learning activities'
-    - next_steps: 'Natural progression to intermediate concepts'
+### Quality Gates
+- **Pre-validation**: Check explanation requirements and target clarity before analysis
+- **Progress Validation**: Intermediate clarity and accuracy checks during explanation process
+- **Post-validation**: Comprehensive verification of explanation completeness and educational value
+
+## Performance Optimization
+
+### Efficiency Features
+- **Intelligent Batching**: Group related explanation operations for coherent learning flow
+- **Context Caching**: Reuse analysis results within session for related explanations
+- **Parallel Execution**: Independent explanation operations run concurrently with coordination
+- **Resource Management**: Optimal tool and MCP server utilization for analysis and documentation
+
+### Performance Targets
+- **Analysis Phase**: <15s for comprehensive code or concept analysis
+- **Explanation Phase**: <30s for standard explanation generation with examples
+- **Validation Phase**: <8s for accuracy verification and clarity assessment
+- **Overall Command**: <60s for complex multi-component explanation workflows
+
+## Examples
+
+### Basic Code Explanation
+```
+/sc:explain authentication.js --level basic --examples
+# Clear explanation with practical examples for beginners
 ```
 
-#### Intermediate-Level Explanation
-```yaml
-intermediate_approach:
-  technical_depth:
-    - implementation_details: 'How it works under the hood'
-    - design_rationale: 'Why this approach was chosen'
-    - trade_offs: 'Benefits and limitations'
-    - best_practices: 'Industry-standard approaches'
-
-  practical_application:
-    - real_world_examples: 'Production code scenarios'
-    - integration_patterns: 'How it fits with other components'
-    - optimization_techniques: 'Performance considerations'
-    - testing_strategies: 'How to validate correctness'
-
-  skill_advancement:
-    - edge_cases: 'Advanced scenarios and gotchas'
-    - alternative_approaches: 'Different ways to solve the problem'
-    - architectural_impact: 'System-wide implications'
+### Advanced System Architecture
+```
+/sc:explain microservices-system --level advanced --diagrams --interactive
+# Advanced explanation with visual diagrams and interactive exploration
 ```
 
-#### Advanced-Level Explanation
-```yaml
-advanced_approach:
-  expert_insights:
-    - architectural_patterns: 'Design patterns and principles'
-    - performance_implications: 'Scalability and optimization'
-    - security_considerations: 'Threat model and mitigations'
-    - maintainability_factors: 'Long-term code health'
-
-  cutting_edge_practices:
-    - emerging_patterns: 'Latest industry developments'
-    - research_connections: 'Academic and theoretical foundations'
-    - ecosystem_evolution: 'Technology roadmap and trends'
-    - innovation_opportunities: 'Areas for improvement and research'
-
-  leadership_perspective:
-    - team_education: 'How to teach others effectively'
-    - decision_frameworks: 'Evaluation criteria for choices'
-    - technical_debt: 'Long-term impact assessment'
+### Framework Concept Explanation
+```
+# Framework-specific explanation with Context7 documentation integration
 ```
 
-### Phase 3: Interactive Learning
-
-#### Example Generation
-```yaml
-example_strategy:
-  progressive_complexity:
-    - simple_demo: 'Minimal working example'
-    - realistic_usage: 'Production-like scenario'
-    - edge_cases: 'Boundary conditions and errors'
-    - optimization: 'Performance-enhanced version'
-
-  multiple_contexts:
-    - different_frameworks: 'React, Vue, Angular examples'
-    - various_languages: 'JavaScript, TypeScript, Python'
-    - deployment_scenarios: 'Local, staging, production'
-    - team_sizes: 'Solo, small team, enterprise'
+### Security Concept Breakdown
+```
+/sc:explain jwt-authentication --context security --level basic --validate
+# Security-focused explanation with validation and clear context
 ```
 
-#### Exercise Generation
-```yaml
-exercise_design:
-  hands_on_practice:
-    - guided_implementation: 'Step-by-step building exercise'
-    - debugging_challenge: 'Find and fix the bug'
-    - optimization_task: 'Improve performance or maintainability'
-    - integration_project: 'Combine multiple concepts'
+## Error Handling & Recovery
 
-  assessment_verification:
-    - comprehension_check: 'Multiple choice questions'
-    - application_test: 'Practical implementation task'
-    - explanation_exercise: 'Teach back the concept'
-    - creative_challenge: 'Apply concept to new problem'
-```
+### Graceful Degradation
+- **MCP Server Unavailable**: Falls back to native analysis capabilities with basic explanation patterns
+- **Persona Activation Failure**: Continues with general explanation guidance and standard educational patterns
+- **Tool Access Issues**: Uses alternative analysis methods and provides manual explanation guidance
 
-### Phase 4: Knowledge Integration
+### Error Categories
+- **Input Validation Errors**: Clear feedback for invalid targets or conflicting explanation parameters
+- **Process Execution Errors**: Handling of explanation failures with alternative educational approaches
+- **Integration Errors**: MCP server or persona coordination issues with fallback strategies
+- **Resource Constraint Errors**: Behavior under resource limitations with optimization suggestions
 
-#### Pattern Recognition
-```yaml
-pattern_connection:
-  design_patterns:
-    - identify_usage: 'Where this pattern applies'
-    - compare_alternatives: 'Other patterns for similar problems'
-    - combination_strategies: 'Using multiple patterns together'
+### Recovery Strategies
+- **Automatic Retry**: Retry failed explanations with adjusted parameters and alternative methods
+- **User Intervention**: Request clarification when explanation requirements are ambiguous
+- **Partial Success Handling**: Complete partial explanations and document remaining analysis
+- **State Cleanup**: Ensure clean explanation state after failures with educational content preservation
 
-  architectural_principles:
-    - solid_principles: 'How it relates to SOLID'
-    - clean_architecture: 'Layered architecture implications'
-    - domain_driven_design: 'Domain modeling considerations'
-```
-
-#### Best Practices Integration
-```yaml
-industry_standards:
-  coding_conventions:
-    - style_guides: 'Industry-standard formatting'
-    - naming_conventions: 'Clear, descriptive naming'
-    - documentation_standards: 'Self-documenting code'
-
-  quality_practices:
-    - testing_strategies: 'Unit, integration, E2E testing'
-    - code_review: 'Peer review best practices'
-    - continuous_integration: 'Automated quality gates'
-```
-
-## Format-Specific Explanation Patterns
-
-### Conceptual Format
-```yaml
-conceptual_explanation:
-  structure:
-    - big_picture: 'Overall concept and importance'
-    - key_components: 'Essential elements and relationships'
-    - mental_models: 'Thinking frameworks and analogies'
-    - practical_impact: 'Why it matters in real projects'
-
-  techniques:
-    - analogies: 'Real-world comparisons'
-    - metaphors: 'Conceptual bridges'
-    - visual_thinking: 'Diagrams and flowcharts'
-    - storytelling: 'Narrative context building'
-```
-
-### Technical Format
-```yaml
-technical_explanation:
-  structure:
-    - implementation_details: 'How it works internally'
-    - api_reference: 'Interface and method documentation'
-    - configuration_options: 'Customization and tuning'
-    - integration_guide: 'Connection with other systems'
-
-  depth_levels:
-    - surface_level: 'What and how to use'
-    - mechanism_level: 'How it works internally'
-    - principle_level: 'Why it works this way'
-    - meta_level: 'Design philosophy and evolution'
-```
-
-### Tutorial Format
-```yaml
-tutorial_explanation:
-  progressive_structure:
-    - prerequisites: 'Required knowledge and setup'
-    - learning_objectives: 'What you will learn'
-    - step_by_step_guide: 'Sequential implementation'
-    - validation_checkpoints: 'Verify progress at each step'
-    - troubleshooting: 'Common issues and solutions'
-    - next_steps: 'Advanced topics and further learning'
-
-  engagement_techniques:
-    - hands_on_exercises: 'Practice what you learn'
-    - immediate_feedback: 'Validate understanding quickly'
-    - real_world_context: 'Why this matters in practice'
-    - challenge_progression: 'Gradually increase difficulty'
-```
-
-## Learning Pathway Specializations
-
-### Fundamentals Pathway
-```yaml
-fundamentals_focus:
-  foundation_building:
-    - core_concepts: 'Essential understanding required'
-    - terminology: 'Key terms and definitions'
-    - basic_patterns: 'Fundamental usage patterns'
-    - simple_examples: 'Clear, minimal demonstrations'
-
-  skill_development:
-    - guided_practice: 'Structured learning exercises'
-    - concept_reinforcement: 'Multiple angles of understanding'
-    - confidence_building: 'Success-oriented progression'
-    - prerequisite_mapping: 'Clear learning dependencies'
-```
-
-### Practical Pathway
-```yaml
-practical_focus:
-  implementation_oriented:
-    - use_case_scenarios: 'Real-world application contexts'
-    - working_examples: 'Production-ready code samples'
-    - integration_patterns: 'How it fits with existing code'
-    - deployment_considerations: 'Runtime and environment factors'
-
-  problem_solving:
-    - common_challenges: 'Typical implementation issues'
-    - debugging_techniques: 'Problem identification and resolution'
-    - optimization_strategies: 'Performance and maintainability'
-    - testing_approaches: 'Validation and quality assurance'
-```
-
-### Architecture Pathway
-```yaml
-architecture_focus:
-  system_design:
-    - design_principles: 'Architectural patterns and principles'
-    - scalability_considerations: 'Growth and performance planning'
-    - maintainability_factors: 'Long-term code health'
-    - integration_architecture: 'System-wide design implications'
-
-  decision_frameworks:
-    - trade_off_analysis: 'Evaluating different approaches'
-    - risk_assessment: 'Identifying and mitigating risks'
-    - technology_selection: 'Choosing appropriate tools'
-    - team_considerations: 'Skill requirements and training needs'
-```
-
-## Integration with SuperClaude Ecosystem
+## Integration Patterns
 
 ### Command Coordination
-- **→ /document**: Generate documentation based on explanations
-- **→ /implement**: Apply explained concepts in practical implementation
-- **← /analyze**: Deep analysis to inform comprehensive explanations
-- **↔️ /improve**: Use explanations to guide code improvements
-- **→ /task**: Create learning tasks based on explanation content
+- **Preparation Commands**: Often follows /sc:analyze or /sc:document for explanation preparation
+- **Follow-up Commands**: Commonly followed by /sc:implement, /sc:improve, or /sc:test
+- **Parallel Commands**: Can run alongside /sc:document for comprehensive knowledge transfer
 
-### Quality Gates Integration
-- **Comprehension Validation**: Verify explanation clarity and completeness
-- **Example Quality**: Ensure examples are accurate and educational
-- **Progressive Complexity**: Validate appropriate skill-level progression
-- **Learning Effectiveness**: Measure educational impact and engagement
+### Framework Integration
+- **SuperClaude Ecosystem**: Integrates with quality gates and validation cycles
+- **Quality Gates**: Participates in explanation accuracy and clarity verification
+- **Session Management**: Maintains explanation context across session boundaries
 
-### Context7 Integration Patterns
-```yaml
-documentation_lookup:
-  official_patterns: 'Framework and library documentation'
-  best_practices: 'Industry-standard approaches'
-  example_code: 'Canonical implementation examples'
-  migration_guides: 'Version upgrade and modernization'
+### Tool Coordination
+- **Multi-Tool Operations**: Coordinates Read/Grep/Glob for comprehensive analysis
+- **Tool Selection Logic**: Dynamic tool selection based on explanation scope and complexity
+- **Resource Sharing**: Efficient use of shared MCP servers and persona expertise
 
-learning_resources:
-  tutorial_content: 'Official learning materials'
-  reference_docs: 'Comprehensive API documentation'
-  community_patterns: 'Community-driven best practices'
-  troubleshooting_guides: 'Common issues and solutions'
-```
+## Customization & Configuration
 
-## Output Formats & Examples
+### Configuration Options
+- **Default Behavior**: Adaptive explanation with comprehensive examples and context
+- **User Preferences**: Explanation depth preferences and learning style adaptations
+- **Project-Specific Settings**: Framework conventions and domain-specific explanation patterns
 
-### Structured Explanation
-```markdown
-# Understanding React Hooks: useState
+### Extension Points
+- **Custom Workflows**: Integration with project-specific explanation standards
+- **Plugin Integration**: Support for additional documentation and educational tools
 
-## 🎯 What You'll Learn
-- How useState manages component state
-- When and why to use useState vs class state
-- Common patterns and best practices
-- Performance implications and optimization
+## Quality Standards
 
-## 🔍 The Big Picture
-React Hooks revolutionized how we manage state in functional components...
+### Validation Criteria
+- **Functional Correctness**: Explanations accurately reflect code behavior and system functionality
+- **Performance Standards**: Meeting explanation clarity targets and educational effectiveness
+- **Integration Compliance**: Proper integration with existing documentation and educational resources
+- **Error Handling Quality**: Comprehensive validation and alternative explanation approaches
 
-## 🏗️ How It Works
-### Basic Syntax
-```javascript
-const [state, setState] = useState(initialValue);
-```
+### Success Metrics
+- **Completion Rate**: >95% for well-defined explanation targets and requirements
+- **Performance Targets**: Meeting specified timing requirements for explanation phases
+- **User Satisfaction**: Clear explanation results with effective knowledge transfer
+- **Integration Success**: Proper coordination with MCP servers and persona activation
 
-### Step-by-Step Breakdown
-1. **Hook Declaration**: `useState` returns an array with two elements
-2. **State Variable**: First element holds the current state value
-3. **Setter Function**: Second element updates the state
-4. **Array Destructuring**: Clean syntax for accessing both elements
+## Boundaries
 
-## 💡 Real-World Example
-```javascript
-function Counter() {
-  const [count, setCount] = useState(0);
+**This command will:**
+- Provide clear, comprehensive explanations with educational clarity and progressive learning
+- Auto-activate relevant personas and coordinate MCP servers for enhanced analysis
+- Generate accurate explanations with practical examples and interactive learning support
+- Apply systematic explanation methodologies with framework-specific documentation integration
 
-  return (
-    <div>
-      <p>You clicked {count} times</p>
-      <button onClick={() => setCount(count + 1)}>
-        Click me
-      </button>
-    </div>
-  );
-}
-```
+**This command will not:**
+- Generate explanations without thorough analysis and accuracy verification
+- Override project-specific documentation standards or educational requirements
+- Provide explanations that compromise security or expose sensitive implementation details
+- Bypass established explanation validation or educational quality requirements
 
-## 🧠 Key Insights
-- State updates are asynchronous and may be batched
-- Always use the setter function, never mutate state directly
-- Initial state is only used on the first render
-- Functional updates prevent stale closure issues
+---
 
-## 🎯 Practice Exercise
-Create a toggle button that switches between "ON" and "OFF" states.
-
-## 🚀 Next Steps
-- Learn useEffect for side effects
-- Explore useReducer for complex state
-- Study custom hooks for reusable logic
-```
-
-### Interactive Learning Format
-```markdown
-# Interactive Learning: Array Methods
-
-## 🤔 Quick Check: What do you already know?
-Before we dive in, let's assess your current understanding:
-
-**Question 1**: What's the difference between `map()` and `forEach()`?
-- A) No difference, they're identical
-- B) `map()` returns a new array, `forEach()` doesn't
-- C) `forEach()` is faster
-- D) `map()` only works with numbers
-
-*Think about your answer, then continue...*
-
-## ✅ Answer & Explanation
-**Correct: B** - `map()` returns a new array with transformed elements, while `forEach()` executes a function for each element but returns `undefined`.
-
-## 🎯 Let's Explore This Concept
-
-### The Mental Model
-Think of `map()` as a factory assembly line:
-- Input: Raw materials (original array)
-- Process: Transformation function
-- Output: Finished products (new array)
-
-### Hands-On Example
-```javascript
-// Raw data
-const temperatures = [32, 68, 104];
-
-// Transform Fahrenheit to Celsius
-const celsius = temperatures.map(f => (f - 32) * 5/9);
-// Result: [0, 20, 40]
-```
-
-## 🧪 Try It Yourself
-Transform this array of names to uppercase:
-```javascript
-const names = ['alice', 'bob', 'charlie'];
-// Your code here:
-const upperNames = names.map(/* your function */);
-```
-
-*Pause here and try it before looking at the solution...*
-
-## 💡 Solution & Analysis
-```javascript
-const upperNames = names.map(name => name.toUpperCase());
-// Result: ['ALICE', 'BOB', 'CHARLIE']
-```
-
-**Why this works**:
-1. `map()` iterates through each element
-2. Applies the transformation function
-3. Collects results in a new array
-4. Returns the transformed array
-
-## 🎓 Level Up Challenge
-Now that you understand the basics, try this advanced scenario:
-- Convert an array of user objects to display names
-- Handle missing data gracefully
-- Format names consistently
-
-## 🔄 Reflection Questions
-1. When would you choose `map()` over `forEach()`?
-2. What happens if your map function doesn't return a value?
-3. How does this connect to functional programming principles?
-```
-
-## Quality Gates & Performance
-- **Educational Effectiveness**: >90% comprehension rate for target skill level
-- **Example Accuracy**: 100% working code examples and demonstrations
-- **Progressive Difficulty**: Smooth learning curve with appropriate challenges
-- **Context Relevance**: >95% relevance to user's current project and goals
-- **Engagement Quality**: Interactive elements and hands-on practice opportunities
-- **Performance Target**: Generate comprehensive explanations within 20 seconds
+*This explanation command provides comprehensive knowledge transfer capabilities with intelligent analysis and systematic educational workflows while maintaining accuracy and clarity standards.*

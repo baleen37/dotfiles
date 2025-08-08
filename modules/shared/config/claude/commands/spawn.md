@@ -1,290 +1,229 @@
-# /spawn - Meta-Orchestration & Complex Operation Execution
+---
+name: spawn
+description: "Meta-system task orchestration with advanced breakdown algorithms and coordination patterns"
+allowed-tools: [Read, Grep, Glob, Bash, TodoWrite, Edit, MultiEdit, Write]
 
-Intelligent decomposition and execution of complex multi-domain operations using specialized agents and advanced coordination.
+# Command Classification
+category: special
+complexity: high
+scope: meta
+
+# Integration Configuration
+mcp-integration:
+  servers: []  # Meta-system command uses native orchestration
+  personas: []
+  wave-enabled: true
+  complexity-threshold: 0.7
+
+# Performance Profile
+performance-profile: specialized
+---
+
+# /sc:spawn - Meta-System Task Orchestration
 
 ## Purpose
-- **Intelligent Decomposition**: Break complex operations into coordinated subtasks
-- **Specialized Agent Coordination**: Deploy domain-specific agents for optimal execution
-- **Real-Time Integration**: Live coordination and result synthesis within session
-- **Resource Optimization**: Intelligent resource allocation and execution ordering
-- **Immediate Completion**: End-to-end execution from analysis to delivery
-- **Meta-Orchestration**: Coordinate multiple SuperClaude commands and systems
+Advanced meta-system command for decomposing complex multi-domain operations into coordinated subtask hierarchies with sophisticated execution strategies. Provides intelligent task breakdown algorithms, parallel/sequential coordination patterns, and advanced argument processing for complex system-wide operations that require meta-level orchestration beyond standard command capabilities.
 
 ## Usage
-```bash
-/spawn [operation] [--strategy approach] [--coordination method] [--agents list]
+```
+/sc:spawn [complex-task] [--strategy sequential|parallel|adaptive] [--depth shallow|normal|deep] [--orchestration wave|direct|hybrid]
 ```
 
-## Arguments & Flags
+## Arguments
+- `complex-task` - Multi-domain operation requiring sophisticated task decomposition
+- `--strategy sequential|parallel|adaptive` - Execution coordination strategy selection
+- `--depth shallow|normal|deep` - Task breakdown depth and granularity control
+- `--orchestration wave|direct|hybrid` - Meta-system orchestration pattern selection
+- `--validate` - Enable comprehensive quality checkpoints between task phases
+- `--dry-run` - Preview task breakdown and execution plan without execution
+- `--priority high|normal|low` - Task priority and resource allocation level
+- `--dependency-map` - Generate detailed dependency visualization and analysis
 
-### Operation Types
-- `[operation]` - Complex multi-domain task description
-- `@enterprise-audit` - Full system audit across all domains
-- `@feature-complete` - End-to-end feature implementation
-- `@security-hardening` - Comprehensive security improvement
-- `@performance-optimization` - System-wide performance enhancement
-- `@modernization` - Technology stack upgrade and modernization
+## Specialized Execution Flow
 
-### Coordination Strategies
-- `--strategy parallel` - Maximum parallelization for speed
-- `--strategy sequential` - Careful step-by-step execution
-- `--strategy hybrid` - Mixed parallel/sequential optimization (default)
-- `--strategy fail-safe` - Conservative with extensive validation
-- `--strategy aggressive` - Fast execution with calculated risks
+### 1. Unique Analysis Phase
+- **Complex Task Parsing**: Multi-domain operation analysis with context extraction
+- **Scope Assessment**: Comprehensive scope analysis across multiple system domains
+- **Orchestration Planning**: Meta-level coordination strategy selection and optimization
 
-### Agent Coordination
-- `--agents auto` - Automatic agent selection based on operation (default)
-- `--agents [list]` - Specific agent specializations (architect,security,performance)
-- `--coordination centralized` - Single coordinator with specialized agents
-- `--coordination distributed` - Peer-to-peer agent coordination
-- `--coordination hierarchical` - Tiered coordination with lead agents
+### 2. Specialized Processing
+- **Hierarchical Breakdown Algorithm**: Advanced task decomposition with Epic → Story → Task → Subtask hierarchies
+- **Dependency Mapping Engine**: Sophisticated dependency analysis and coordination path optimization
+- **Execution Strategy Selection**: Adaptive coordination pattern selection based on task characteristics
 
-### Execution Control
-- `--timeout [duration]` - Maximum execution time (default: 2h)
-- `--checkpoints [n]` - Number of validation checkpoints
-- `--rollback-ready` - Enable automatic rollback on failure
-- `--dry-run` - Plan and validate without execution
-- `--interactive` - Pause for approval at key decision points
+### 3. Custom Integration
+- **Meta-System Coordination**: Advanced integration with SuperClaude framework orchestration layers
+- **Wave System Integration**: Coordination with wave-based execution for complex operations
+- **Cross-Domain Orchestration**: Management of operations spanning multiple technical domains
 
-### Integration Features
-- `--create-tasks` - Generate `/task` hierarchy for ongoing work
-- `--update-workflow` - Update project `/workflow` based on results
-- `--document-process` - Create comprehensive execution documentation
-- `--benchmark` - Measure and compare against baseline metrics
+### 4. Specialized Validation
+- **Multi-Phase Quality Gates**: Comprehensive validation checkpoints across task hierarchy levels
+- **Orchestration Verification**: Validation of coordination patterns and execution strategies
+- **Meta-System Compliance**: Verification of framework integration and system stability
 
-## Auto-Activation Patterns
-- **Complex Multi-Domain**: Operations requiring 3+ specialized domains
-- **Enterprise Scale**: Large-scale operations affecting >100 files
-- **Critical Deadlines**: Time-sensitive operations requiring coordination
-- **Integration Challenges**: Operations spanning multiple systems/technologies
-- **Quality Requirements**: Operations requiring comprehensive validation
+### 5. Custom Output Generation
+- **Execution Coordination**: Advanced task execution with progress monitoring and adaptive adjustments
+- **Result Integration**: Sophisticated result aggregation and synthesis across task hierarchies
+- **Meta-System Reporting**: Comprehensive orchestration analytics and performance metrics
 
-## Orchestration Framework
+## Custom Architecture Features
 
-### Phase 1: Intelligent Decomposition
-1. **Operation Analysis**: Parse complex requirements and success criteria
-2. **Domain Identification**: Identify required specializations and expertise
-3. **Dependency Mapping**: Map interdependencies and execution constraints
-4. **Agent Assignment**: Select optimal agents for each subdomain
-5. **Coordination Planning**: Design execution strategy and communication patterns
+### Specialized System Integration
+- **Multi-Domain Orchestration**: Coordination across frontend, backend, infrastructure, and quality domains
+- **Wave System Coordination**: Integration with wave-based execution for progressive enhancement
+- **Meta-Level Task Management**: Advanced task hierarchy management with cross-session persistence
 
-### Phase 2: Agent Deployment & Coordination
-1. **Agent Initialization**: Deploy specialized agents with clear mandates
-2. **Communication Setup**: Establish inter-agent communication and data sharing
-3. **Resource Allocation**: Distribute computational and tool resources
-4. **Synchronization Points**: Define coordination checkpoints and validation gates
-5. **Conflict Resolution**: Establish protocols for conflicting recommendations
+### Unique Processing Capabilities
+- **Advanced Breakdown Algorithms**: Sophisticated task decomposition with intelligent dependency analysis
+- **Adaptive Execution Strategies**: Dynamic coordination pattern selection based on operation characteristics
+- **Cross-Domain Intelligence**: Multi-domain operation coordination with specialized domain awareness
 
-### Phase 3: Coordinated Execution
-1. **Parallel Execution**: Execute independent operations simultaneously
-2. **Real-Time Coordination**: Continuous communication and progress synchronization
-3. **Dynamic Adaptation**: Adjust strategy based on intermediate results
-4. **Quality Monitoring**: Continuous validation and quality assessment
-5. **Progress Integration**: Synthesize results from all agents
+### Custom Performance Characteristics
+- **Orchestration Efficiency**: Optimized coordination patterns for maximum parallel execution benefits
+- **Resource Management**: Intelligent resource allocation and management across task hierarchies
+- **Scalability Optimization**: Advanced scaling patterns for complex multi-domain operations
 
-### Phase 4: Integration & Validation
-1. **Result Synthesis**: Integrate findings and deliverables from all agents
-2. **Conflict Resolution**: Resolve any conflicting recommendations or implementations
-3. **Comprehensive Validation**: End-to-end testing and quality verification
-4. **Documentation Generation**: Create comprehensive execution report
-5. **Handoff Preparation**: Prepare results for ongoing development or maintenance
+## Advanced Specialized Features
 
-## Specialized Agent Types
+### Hierarchical Task Breakdown System
+- **Epic-Level Operations**: Large-scale system operations spanning multiple domains and sessions
+- **Story-Level Coordination**: Feature-level task coordination with dependency management
+- **Task-Level Execution**: Individual operation execution with progress monitoring and validation
+- **Subtask Granularity**: Fine-grained operation breakdown for optimal parallel execution
 
-### Domain Specialists
-```yaml
-architect_agent:
-  focus: [system_design, patterns, scalability]
-  tools: [Sequential, Context7, Task]
-  deliverables: [architecture_docs, design_decisions, scaling_plans]
+### Intelligent Orchestration Patterns
+- **Sequential Coordination**: Dependency-ordered execution with optimal task chaining
+- **Parallel Coordination**: Independent task execution with resource optimization and synchronization
+- **Adaptive Coordination**: Dynamic strategy selection based on operation characteristics and system state
+- **Hybrid Coordination**: Mixed execution patterns optimized for specific operation requirements
 
-security_agent:
-  focus: [vulnerabilities, compliance, hardening]
-  tools: [Sequential, Context7, security_scanning]
-  deliverables: [security_assessment, remediation_plan, compliance_report]
+### Meta-System Capabilities
+- **Cross-Session Orchestration**: Multi-session task coordination with state persistence
+- **System-Wide Coordination**: Operations spanning multiple SuperClaude framework components
+- **Advanced Argument Processing**: Sophisticated parameter parsing and context extraction
+- **Meta-Level Analytics**: Orchestration performance analysis and optimization recommendations
 
-performance_agent:
-  focus: [optimization, bottlenecks, monitoring]
-  tools: [Playwright, Sequential, profiling]
-  deliverables: [performance_report, optimization_plan, monitoring_setup]
+## Specialized Tool Coordination
 
-frontend_agent:
-  focus: [ui_components, accessibility, user_experience]
-  tools: [Magic, Playwright, Context7]
-  deliverables: [component_library, accessibility_audit, user_testing]
+### Custom Tool Integration
+- **Native Tool Orchestration**: Advanced coordination of Read, Write, Edit, Grep, Glob, Bash operations
+- **TodoWrite Integration**: Sophisticated task breakdown and progress tracking with hierarchical management
+- **File Operation Batching**: Intelligent batching and optimization of file operations across tasks
 
-backend_agent:
-  focus: [apis, databases, infrastructure]
-  tools: [Context7, Sequential, deployment]
-  deliverables: [api_documentation, database_optimization, deployment_pipeline]
+### Unique Tool Patterns
+- **Parallel Tool Execution**: Concurrent tool usage with resource management and synchronization
+- **Sequential Tool Chaining**: Optimized tool execution sequences with dependency management
+- **Adaptive Tool Selection**: Dynamic tool selection based on task characteristics and performance requirements
+
+### Tool Performance Optimization
+- **Resource Allocation**: Intelligent resource management for optimal tool performance
+- **Execution Batching**: Advanced batching strategies for efficient tool coordination
+- **Performance Monitoring**: Real-time tool performance tracking and optimization
+
+## Custom Error Handling
+
+### Specialized Error Categories
+- **Orchestration Failures**: Complex coordination failures requiring sophisticated recovery strategies
+- **Task Breakdown Errors**: Issues with task decomposition requiring alternative breakdown approaches
+- **Execution Coordination Errors**: Problems with parallel/sequential execution requiring strategy adaptation
+
+### Custom Recovery Strategies
+- **Graceful Degradation**: Adaptive strategy selection when preferred orchestration patterns fail
+- **Progressive Recovery**: Step-by-step recovery with partial result preservation
+- **Alternative Orchestration**: Fallback to alternative coordination patterns when primary strategies fail
+
+### Error Prevention
+- **Proactive Validation**: Comprehensive pre-execution validation of orchestration plans
+- **Dependency Verification**: Advanced dependency analysis to prevent coordination failures
+- **Resource Checking**: Pre-execution resource availability and allocation verification
+
+## Integration Patterns
+
+### SuperClaude Framework Integration
+- **Wave System Coordination**: Integration with wave-based execution for progressive enhancement
+- **Quality Gate Integration**: Comprehensive validation throughout orchestration phases
+- **Framework Orchestration**: Meta-level coordination with other SuperClaude components
+
+### Custom MCP Integration (when applicable)
+- **Server Coordination**: Advanced coordination with MCP servers when required for specific tasks
+- **Performance Optimization**: Orchestration-aware MCP server usage for optimal performance
+- **Resource Management**: Intelligent MCP server resource allocation across task hierarchies
+
+### Specialized System Coordination
+- **Cross-Domain Operations**: Coordination of operations spanning multiple technical domains
+- **System-Wide Orchestration**: Meta-level coordination across entire system architecture
+- **Advanced State Management**: Sophisticated state tracking and management across complex operations
+
+## Performance & Scalability
+
+### Specialized Performance Requirements
+- **Orchestration Overhead**: Minimal coordination overhead while maximizing parallel execution benefits
+- **Task Breakdown Efficiency**: Fast task decomposition with comprehensive dependency analysis
+- **Execution Coordination**: Optimal resource utilization across parallel and sequential execution patterns
+
+### Custom Resource Management
+- **Intelligent Allocation**: Advanced resource allocation strategies for complex task hierarchies
+- **Performance Optimization**: Dynamic resource management based on task characteristics and system state
+- **Scalability Management**: Adaptive scaling patterns for operations of varying complexity
+
+### Scalability Characteristics
+- **Task Hierarchy Scaling**: Efficient handling of complex task hierarchies from simple to enterprise-scale
+- **Coordination Scaling**: Advanced coordination patterns that scale with operation complexity
+- **Resource Scaling**: Intelligent resource management that adapts to operation scale and requirements
+
+## Examples
+
+### Basic Specialized Operation
+```
+/sc:spawn "implement user authentication system"
+# Creates hierarchical breakdown: Database → Backend → Frontend → Testing
 ```
 
-### Process Specialists
-```yaml
-qa_agent:
-  focus: [testing, validation, quality_assurance]
-  tools: [Playwright, testing_frameworks, validation]
-  deliverables: [test_suite, quality_report, validation_results]
-
-devops_agent:
-  focus: [deployment, monitoring, infrastructure]
-  tools: [infrastructure_tools, monitoring, deployment]
-  deliverables: [deployment_pipeline, monitoring_setup, infrastructure_code]
-
-scribe_agent:
-  focus: [documentation, communication, knowledge_transfer]
-  tools: [Context7, documentation_tools, wiki]
-  deliverables: [comprehensive_docs, user_guides, knowledge_base]
+### Advanced Specialized Usage
+```
+/sc:spawn "migrate legacy monolith to microservices" --strategy adaptive --depth deep --orchestration wave
+# Complex multi-domain operation with sophisticated orchestration
 ```
 
-## Operation Categories
-
-### Enterprise Audit (`@enterprise-audit`)
-```yaml
-scope: comprehensive_system_assessment
-agents: [architect, security, performance, qa, scribe]
-deliverables:
-  - system_architecture_assessment
-  - security_vulnerability_report
-  - performance_benchmark_analysis
-  - quality_assessment_report
-  - comprehensive_improvement_roadmap
-timeline: 4-8 hours
+### System-Level Operation
+```
+/sc:spawn "establish CI/CD pipeline with security scanning" --validate --dependency-map
+# System-wide infrastructure operation with comprehensive validation
 ```
 
-### Feature Complete (`@feature-complete`)
-```yaml
-scope: end_to_end_feature_implementation
-agents: [architect, frontend, backend, qa, scribe]
-deliverables:
-  - feature_specification
-  - frontend_implementation
-  - backend_implementation
-  - comprehensive_test_suite
-  - user_documentation
-timeline: 6-12 hours
+### Meta-Operation Example
+```
+/sc:spawn "refactor entire codebase for performance optimization" --orchestration hybrid --priority high
+# Enterprise-scale operation requiring meta-system coordination
 ```
 
-### Security Hardening (`@security-hardening`)
-```yaml
-scope: comprehensive_security_improvement
-agents: [security, backend, devops, qa]
-deliverables:
-  - vulnerability_assessment
-  - security_patches_implementation
-  - compliance_documentation
-  - security_monitoring_setup
-timeline: 3-6 hours
-```
+## Quality Standards
 
-### Performance Optimization (`@performance-optimization`)
-```yaml
-scope: system_wide_performance_improvement
-agents: [performance, architect, frontend, backend]
-deliverables:
-  - performance_baseline_analysis
-  - optimization_implementation
-  - monitoring_and_alerting_setup
-  - performance_documentation
-timeline: 4-8 hours
-```
+### Specialized Validation Criteria
+- **Orchestration Effectiveness**: Successful coordination of complex multi-domain operations
+- **Task Breakdown Quality**: Comprehensive and accurate task decomposition with proper dependency mapping
+- **Execution Efficiency**: Optimal performance through intelligent coordination strategies
 
-## Integration with SuperClaude Ecosystem
+### Custom Success Metrics
+- **Coordination Success Rate**: Percentage of successful orchestration operations across task hierarchies
+- **Parallel Execution Efficiency**: Performance gains achieved through parallel coordination patterns
+- **Meta-System Integration**: Successful integration with SuperClaude framework orchestration layers
 
-### Command Orchestration
-- **↔️ /workflow**: Import workflow requirements, export execution results
-- **→ /task**: Generate persistent task hierarchy for ongoing maintenance
-- **↔️ /analyze**: Import analysis findings, contribute comprehensive insights
-- **↔️ /improve**: Coordinate with improvement initiatives
-- **→ /load**: Update project context based on execution results
+### Specialized Compliance Requirements
+- **Framework Integration**: Full compliance with SuperClaude meta-system orchestration patterns
+- **Quality Assurance**: Integration with comprehensive quality gates and validation cycles
+- **Performance Standards**: Meet or exceed orchestration efficiency and coordination effectiveness targets
 
-### Wave System Integration
-- **Wave Coordination**: Spawn can trigger Wave mode for systematic execution
-- **Multi-Wave Operations**: Complex spawns may execute across multiple Wave phases
-- **Wave-Agent Hybrid**: Combine Wave orchestration with specialized agents
+## Boundaries
 
-### Persona Integration
-- **Dynamic Persona Activation**: Activate personas based on agent requirements
-- **Cross-Persona Coordination**: Coordinate multiple personas within single session
-- **Persona Specialization**: Deploy specific personas as specialized agents
+**This specialized command will:**
+- Decompose complex multi-domain operations into coordinated task hierarchies
+- Provide sophisticated orchestration patterns for parallel and sequential execution
+- Manage advanced argument processing and meta-system coordination
+- Integrate with SuperClaude framework orchestration and wave systems
 
-### MCP Server Coordination
-- **Server Load Balancing**: Distribute MCP server usage across agents
-- **Shared Context**: Maintain shared context across multiple MCP operations
-- **Resource Optimization**: Coordinate MCP server usage for optimal performance
-
-## Output Formats
-
-### Execution Summary
-```markdown
-# Spawn Execution Summary
-
-## 🎯 Operation: Enterprise Security Audit
-**Duration**: 3h 45m | **Agents**: 4 specialized | **Success Rate**: 98%
-
-## 📈 Key Results
-- **Security**: 15 vulnerabilities identified, 12 resolved immediately
-- **Compliance**: OWASP Top 10 compliance achieved (was 60%, now 95%)
-- **Infrastructure**: Monitoring and alerting deployed
-- **Documentation**: Comprehensive security guide created
-
-## 🚀 Next Steps
-- [ ] Schedule monthly security review cycles
-- [ ] Implement remaining 3 medium-priority fixes
-- [ ] Train team on new security procedures
-```
-
-### Detailed Execution Report
-```markdown
-# Detailed Spawn Execution Report
-
-## Agent Coordination Summary
-### Security Agent (Lead)
-- **Execution Time**: 2h 15m
-- **Deliverables**: Vulnerability scan, remediation plan, compliance report
-- **Key Findings**: 15 vulnerabilities (3 critical, 7 high, 5 medium)
-- **Actions Taken**: Immediate patches for critical and high-priority issues
-
-### DevOps Agent (Supporting)
-- **Execution Time**: 1h 30m
-- **Deliverables**: Security monitoring setup, alerting configuration
-- **Key Contributions**: Automated security scanning, deployment pipeline hardening
-- **Integration**: Seamless integration with existing CI/CD pipeline
-
-### Documentation Agent (Supporting)
-- **Execution Time**: 1h 00m
-- **Deliverables**: Security procedures guide, incident response plan
-- **Knowledge Transfer**: Team training materials, security checklist
-```
-
-### Task Hierarchy Export
-```markdown
-# Generated Task Hierarchy from Spawn Execution
-
-📋 Epic: Security Hardening Implementation
-├── 📖 Story: Critical Vulnerability Remediation
-│   ├── ✅ Task: SQL injection vulnerability fixes
-│   ├── ✅ Task: XSS protection implementation
-│   └── ✅ Task: Authentication bypass patches
-├── 📖 Story: Security Monitoring Setup
-│   ├── ✅ Task: Security event logging
-│   ├── ✅ Task: Automated vulnerability scanning
-│   └── ✅ Task: Alert configuration and testing
-└── 📖 Story: Team Security Training
-    ├── ⏳ Task: Security awareness training schedule
-    └── ⏳ Task: Incident response drill planning
-```
-
-## Quality Gates & Performance
-- **Coordination Efficiency**: 95%+ successful agent coordination
-- **Resource Utilization**: Optimal resource allocation across agents
-- **Execution Speed**: 40-60% faster than sequential execution
-- **Quality Assurance**: Comprehensive validation at each coordination checkpoint
-- **Success Rate**: 90%+ operation completion within expected timeline
-
-## Key Differences from Other Commands
-- **vs /task**: Immediate execution vs long-term persistence
-- **vs /workflow**: Execution focus vs planning and analysis
-- **vs /improve**: Multi-domain coordination vs focused improvement
-- **vs /analyze**: Action-oriented vs analysis-focused
-- **vs Wave System**: Agent specialization vs orchestrated compound intelligence
+**This specialized command will not:**
+- Replace specialized domain commands that have specific technical focuses
+- Execute simple operations that don't require sophisticated orchestration
+- Override explicit user coordination preferences or execution strategies
+- Compromise system stability through experimental orchestration patterns

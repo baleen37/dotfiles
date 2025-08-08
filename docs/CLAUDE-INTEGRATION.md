@@ -7,6 +7,7 @@ This guide covers everything from Claude Code setup to using the 20+ specialized
 ## 🎯 What You Get
 
 After following this guide, you'll have:
+
 - **Fully configured Claude Code** with dotfiles-aware commands
 - **20+ specialized prompts** for common development tasks
 - **Smart symlink-based configuration** that's always up-to-date
@@ -16,11 +17,13 @@ After following this guide, you'll have:
 ## 📋 Prerequisites
 
 ### Required
+
 - **Claude Code installed** - Get it from [claude.ai/code](https://claude.ai/code)
 - **This dotfiles repository** - Already set up and working
 - **Node.js 18+** - For MCP (Model Context Protocol) servers
 
 ### Check Prerequisites
+
 ```bash
 # Verify Node.js version
 node --version  # Should be 18.0.0 or higher
@@ -35,6 +38,7 @@ claude --version
 ## 🚀 Quick Setup
 
 ### 1. Initial Configuration
+
 ```bash
 # Build the dotfiles to configure Claude
 make build && make switch HOST=your-hostname
@@ -44,6 +48,7 @@ ls -la ~/.claude/
 ```
 
 ### 2. Test Integration
+
 ```bash
 # Test a simple command
 claude /help
@@ -55,9 +60,11 @@ claude /do-plan "Add new development tool"
 ## 📋 Command Categories & Reference
 
 ### 🎯 Project Management
+
 Plan, organize, and track development work
 
 #### `/do-plan`
+
 **Purpose**: Create detailed implementation plans for features or tasks
 **Best for**: Starting complex features, breaking down large tasks, architectural decisions
 
@@ -69,6 +76,7 @@ claude /do-plan "Refactor authentication system"
 ```
 
 #### `/do-issue`
+
 **Purpose**: Work on specific GitHub issues with full context
 **Best for**: Bug fixes, feature implementations, issue resolution
 
@@ -79,6 +87,7 @@ claude /do-issue "fix login bug"  # Search and work on issue
 ```
 
 #### `/do-todo`
+
 **Purpose**: Manage and execute TODO items efficiently
 **Best for**: Task tracking, follow-ups, maintenance work
 
@@ -89,9 +98,11 @@ claude /do-todo "Add unit tests for auth module"
 ```
 
 ### 🔧 Development Workflow
+
 Build, test, and deploy code changes
 
 #### `/start-feature`
+
 **Purpose**: Start new feature development with proper branch setup
 **Best for**: Beginning new features, setting up development environment
 
@@ -102,6 +113,7 @@ claude /start-feature "performance-optimization"
 ```
 
 #### `/create-pr`
+
 **Purpose**: Create well-formatted pull requests with comprehensive descriptions
 **Best for**: Code reviews, collaboration, documentation
 
@@ -112,6 +124,7 @@ claude /create-pr --draft  # Create draft PR
 ```
 
 #### `/fix-pr`
+
 **Purpose**: Address PR review feedback and resolve conflicts
 **Best for**: PR iterations, addressing review comments
 
@@ -122,9 +135,11 @@ claude /fix-pr --conflicts  # Resolve merge conflicts
 ```
 
 ### 📝 Code Quality
+
 Testing, review, and improvement processes
 
 #### `/brainstorm`
+
 **Purpose**: Generate ideas and explore solutions for complex problems
 **Best for**: Architecture decisions, creative problem solving
 
@@ -135,6 +150,7 @@ claude /brainstorm "Database schema design for multi-tenant app"
 ```
 
 #### `/setup`
+
 **Purpose**: Configure development environment and tools
 **Best for**: New project setup, environment configuration
 
@@ -145,9 +161,11 @@ claude /setup --project-type typescript  # Language-specific setup
 ```
 
 ### 🌿 Git & Collaboration
+
 Version control and team collaboration
 
 #### `/create-worktree`
+
 **Purpose**: Create Git worktrees for parallel development
 **Best for**: Working on multiple features, hotfixes
 
@@ -158,6 +176,7 @@ claude /create-worktree hotfix/critical-bug
 ```
 
 #### `/plan-gh`
+
 **Purpose**: Plan GitHub-related workflows and automation
 **Best for**: CI/CD setup, GitHub Actions, repository management
 
@@ -168,9 +187,11 @@ claude /plan-gh "Add deployment workflow"
 ```
 
 ### 📚 Documentation
+
 Create and maintain project documentation
 
 #### `/update-docs`
+
 **Purpose**: Update and maintain project documentation
 **Best for**: Keeping docs current, improving documentation quality
 
@@ -181,6 +202,7 @@ claude /update-docs --api  # Update API documentation
 ```
 
 #### `/session-summary`
+
 **Purpose**: Generate summaries of development sessions
 **Best for**: Progress tracking, team communication
 
@@ -193,12 +215,14 @@ claude /session-summary --detailed  # Detailed summary with changes
 ## ⚙️ Configuration Details
 
 ### Configuration Files Location
+
 - **Main config**: `~/.claude/settings.json` (symlinked)
 - **Commands**: `~/.claude/commands/` (folder symlink)
 - **Agents**: `~/.claude/agents/` (folder symlink)
 - **Source config**: `modules/shared/config/claude/`
 
 ### Smart Symlink System
+
 The dotfiles now use an **intelligent symlink-based configuration system** for maximum simplicity and reliability:
 
 - **🔗 Folder symlinks**: `commands/` and `agents/` folders are directly linked to dotfiles source
@@ -208,6 +232,7 @@ The dotfiles now use an **intelligent symlink-based configuration system** for m
 - **🚫 No conflicts**: Eliminates `.new` and `.update-notice` files completely
 
 #### How It Works
+
 ```bash
 # Folder symlinks (entire directories)
 ~/.claude/commands/ → modules/shared/config/claude/commands/
@@ -220,6 +245,7 @@ The dotfiles now use an **intelligent symlink-based configuration system** for m
 ```
 
 #### Automatic Updates
+
 ```bash
 # Simply run build-switch to update all links
 nix run .#build-switch
@@ -230,7 +256,9 @@ nix run .#build-switch
 ### Customization
 
 #### Adding Custom Commands
+
 **Option 1: Add to dotfiles (recommended)**
+
 ```bash
 # Add to source (will be automatically linked)
 echo "Your custom prompt here" > modules/shared/config/claude/commands/my-command.md
@@ -243,6 +271,7 @@ claude /my-command
 ```
 
 **Option 2: Local-only commands**
+
 ```bash
 # Create in a non-linked location (won't be overwritten)
 mkdir -p ~/.claude/local-commands/
@@ -253,6 +282,7 @@ claude ~/.claude/local-commands/my-local-command.md
 ```
 
 #### Modifying Existing Commands
+
 ```bash
 # Edit source files directly (recommended)
 editor modules/shared/config/claude/commands/do-plan.md
@@ -268,7 +298,9 @@ git commit -m "feat: customize do-plan command"
 ## 🔧 Advanced Usage
 
 ### Project-Specific Context
+
 Claude commands automatically understand:
+
 - **Nix flake structure** and package management
 - **Build system** (make targets, scripts)
 - **Testing framework** and test patterns
@@ -276,6 +308,7 @@ Claude commands automatically understand:
 - **Documentation standards** and formats
 
 ### Environment Integration
+
 ```bash
 # Commands work with dotfiles environment
 export USER=your-username  # For Nix builds
@@ -286,7 +319,9 @@ claude /start-feature "darwin-specific-feature"
 ```
 
 ### MCP Server Setup
+
 For advanced integrations:
+
 ```bash
 # Install MCP servers (handled by dotfiles)
 npm install -g @anthropic/mcp-server-filesystem
@@ -298,6 +333,7 @@ npm install -g @anthropic/mcp-server-github
 ## 🔄 Maintenance
 
 ### Regular Updates
+
 ```bash
 # Update dotfiles (automatically updates Claude configuration via symlinks)
 git pull origin main
@@ -307,6 +343,7 @@ nix run .#build-switch
 ```
 
 ### Backup and Recovery
+
 Since configuration uses symlinks to the dotfiles repository:
 
 ```bash
@@ -322,6 +359,7 @@ ls -la ~/.claude/*.md ~/.claude/*.json
 ```
 
 ### Verification
+
 ```bash
 # Verify symlinks are working correctly
 find ~/.claude -type l  # Should show symlinked files/folders
@@ -335,6 +373,7 @@ find ~/.claude -type l | wc -l && find ~/.claude -name "*.md" -o -name "*.json" 
 ### Common Issues
 
 **Issue: Commands not found**
+
 ```bash
 # Solution: Recreate symlinks
 nix run .#build-switch
@@ -344,6 +383,7 @@ ls ~/.claude/commands/
 ```
 
 **Issue: Changes to dotfiles not reflected in Claude**
+
 ```bash
 # Solution: Ensure you're editing source files
 echo "Edit these files for changes to take effect:"
@@ -354,6 +394,7 @@ nix run .#build-switch
 ```
 
 **Issue: Broken symlinks**
+
 ```bash
 # Find broken symlinks
 find ~/.claude -type l ! -exec test -e {} \; -print
@@ -363,6 +404,7 @@ nix run .#build-switch
 ```
 
 **Issue: MCP servers not working**
+
 ```bash
 # Solution: Check Node.js version and reinstall
 node --version  # Must be 18+
@@ -370,6 +412,7 @@ npm install -g @anthropic/mcp-server-*
 ```
 
 ### Debug Commands
+
 ```bash
 # Check if files are symlinked correctly
 ls -la ~/.claude/settings.json

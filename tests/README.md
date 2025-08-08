@@ -7,6 +7,7 @@ This comprehensive test suite was developed as part of a 25-day optimization pro
 ## Performance Achievements
 
 ### Baseline vs. Current Performance
+
 - **File Count Reduction**: 133 → 17 files (87% reduction)
 - **Test Execution Time**: Target 50% reduction achieved
 - **Memory Usage**: Target 30% reduction achieved  
@@ -14,7 +15,7 @@ This comprehensive test suite was developed as part of a 25-day optimization pro
 
 ## Project Structure
 
-```
+```text
 tests/
 ├── unit/                     # Unit tests (6 files)
 │   ├── build-switch-comprehensive-unit.nix
@@ -67,6 +68,7 @@ tests/
 ## Key Features
 
 ### 1. Comprehensive Test Coverage
+
 - **Unit Tests**: Individual component testing
 - **Integration Tests**: Component interaction testing  
 - **End-to-End Tests**: Full system workflow testing
@@ -75,12 +77,14 @@ tests/
 - **Regression Tests**: Prevention of previous bugs
 
 ### 2. Performance Optimization
+
 - **Parallel Execution**: Multi-threaded test execution using thread pools
 - **Memory Management**: Efficient memory allocation and cleanup
 - **Smart Caching**: Reduced redundant operations
 - **Modular Architecture**: Optimized loading and execution
 
 ### 3. Advanced Architecture
+
 - **Modular Design**: Reusable components and shared utilities
 - **Configuration Management**: Environment-specific test configurations
 - **Performance Monitoring**: Real-time performance tracking
@@ -91,6 +95,7 @@ tests/
 ### Running Individual Test Categories
 
 #### Unit Tests
+
 ```bash
 # Run specific unit test
 nix-build tests/unit/claude-cli-comprehensive-unit.nix --arg pkgs 'import <nixpkgs> {}' --arg src .
@@ -100,6 +105,7 @@ nix-build tests/modules/unit/modular-unit-runner.nix --arg pkgs 'import <nixpkgs
 ```
 
 #### Integration Tests
+
 ```bash
 # Run specific integration test
 nix-build tests/integration/system-comprehensive-integration.nix --arg pkgs 'import <nixpkgs> {}' --arg src .
@@ -109,6 +115,7 @@ nix-build tests/modules/integration/modular-integration-runner.nix --arg pkgs 'i
 ```
 
 #### End-to-End Tests
+
 ```bash
 # Run E2E test
 nix-build tests/e2e/general-functionality-comprehensive-e2e.nix --arg pkgs 'import <nixpkgs> {}' --arg src .
@@ -117,18 +124,21 @@ nix-build tests/e2e/general-functionality-comprehensive-e2e.nix --arg pkgs 'impo
 ### Performance Monitoring
 
 #### Memory Optimization Test
+
 ```bash
 chmod +x tests/performance/memory-optimization-test.sh
 tests/performance/memory-optimization-test.sh
 ```
 
 #### Parallel Execution Test
+
 ```bash
 chmod +x tests/performance/parallel-execution-test.sh  
 tests/performance/parallel-execution-test.sh
 ```
 
 #### Performance Profiling
+
 ```bash
 chmod +x tests/performance/run-performance-profiling.sh
 tests/performance/run-performance-profiling.sh
@@ -137,6 +147,7 @@ tests/performance/run-performance-profiling.sh
 ## Test File Naming Convention
 
 All test files follow a consistent naming pattern:
+
 - `{component}-comprehensive-{type}.nix`
 - Where `component` is the system component being tested
 - And `type` is one of: `unit`, `integration`, `e2e`
@@ -144,21 +155,25 @@ All test files follow a consistent naming pattern:
 ## Performance Optimizations Implemented
 
 ### 1. Thread Pool Architecture
+
 - Configurable worker threads based on system capabilities
 - Efficient task distribution and load balancing
 - Automatic cleanup and resource management
 
 ### 2. Memory Pool Management
+
 - Pre-allocated memory pools for frequent operations
 - Garbage collection optimization
 - Memory leak detection and prevention
 
 ### 3. Smart Test Execution
+
 - Dependency-aware test ordering
 - Parallel execution where safe
 - Early termination on critical failures
 
 ### 4. Configuration Management
+
 - Environment-specific test parameters
 - Dynamic resource allocation
 - Flexible test suite composition
@@ -186,17 +201,20 @@ The test suite is designed to work seamlessly with the broader dotfiles ecosyste
 ## Maintenance Guidelines
 
 ### Adding New Tests
+
 1. Follow the established naming convention
 2. Use the shared test helpers from `lib/test-helpers.nix`
 3. Include appropriate performance monitoring
 4. Add documentation for new test categories
 
 ### Performance Monitoring
+
 - Regular benchmarking using performance scripts
 - Memory usage monitoring during development
 - Parallel execution validation for new tests
 
 ### Code Quality
+
 - Consistent error handling patterns
 - Comprehensive logging for debugging
 - Modular design for maintainability
@@ -204,12 +222,14 @@ The test suite is designed to work seamlessly with the broader dotfiles ecosyste
 ## Future Enhancements
 
 ### Planned Improvements
+
 - Automated performance regression detection
 - Enhanced parallel execution algorithms
 - Additional stress testing scenarios
 - Integration with CI/CD pipelines
 
 ### Extensibility Points
+
 - Plugin system for custom test types
 - Configurable performance thresholds
 - Dynamic test discovery and execution
@@ -218,13 +238,16 @@ The test suite is designed to work seamlessly with the broader dotfiles ecosyste
 ## Troubleshooting
 
 ### Common Issues
+
 1. **Nix Path Issues**: Ensure NIX_PATH is properly configured
 2. **Permission Issues**: Verify script execution permissions
 3. **Memory Issues**: Check available system memory for parallel tests
 4. **Performance Issues**: Monitor system resources during test execution
 
 ### Debug Mode
+
 Most tests support debug mode via environment variables:
+
 ```bash
 export DEBUG_TESTS=1
 export VERBOSE_OUTPUT=1

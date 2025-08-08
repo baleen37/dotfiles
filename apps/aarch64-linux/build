@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/bash -e
 
 GREEN='\033[1;32m'
 YELLOW='\033[1;33m'
@@ -15,17 +15,17 @@ case "$SYSTEM" in
     FLAKE_TARGET="aarch64-linux"
     ;;
   *)
-    echo -e "${RED}Unsupported architecture: $SYSTEM${NC}"
+    printf "%b%s%b\n" "$RED" "Unsupported architecture: $SYSTEM" "$NC"
     exit 1
     ;;
 esac
 
 export NIXPKGS_ALLOW_UNFREE=1
 
-echo -e "${YELLOW}Starting build...${NC}"
+printf "%b%s%b\n" "$YELLOW" "Starting build..." "$NC"
 nix --extra-experimental-features 'nix-command flakes' build .#nixosConfigurations.${FLAKE_TARGET}.config.system.build.toplevel "$@"
 
-echo -e "${YELLOW}Cleaning up...${NC}"
+printf "%b%s%b\n" "$YELLOW" "Cleaning up..." "$NC"
 unlink ./result
 
-echo -e "${GREEN}Build complete!${NC}"
+printf "%b%s%b\n" "$GREEN" "Build complete!" "$NC"

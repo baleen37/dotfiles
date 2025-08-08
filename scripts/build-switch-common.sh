@@ -31,30 +31,30 @@ else
     LIB_DIR="$SCRIPT_DIR/lib"
 fi
 
-# Load all modules
-. "$LIB_DIR/logging.sh"
-. "$LIB_DIR/performance.sh"
-. "$LIB_DIR/progress.sh"
-. "$LIB_DIR/optimization.sh"
-. "$LIB_DIR/sudo-management.sh"
-. "$LIB_DIR/cache-management.sh"
-. "$LIB_DIR/flake-evaluation.sh"
-. "$LIB_DIR/network-detection.sh"
-. "$LIB_DIR/state-persistence.sh"
-. "$LIB_DIR/build-logic.sh"
-. "$LIB_DIR/scenario-orchestrator.sh"
-. "$LIB_DIR/performance-monitor.sh"
-. "$LIB_DIR/audit-logger.sh"
+# Load all modules (suppress warnings for missing files)
+[ -f "$LIB_DIR/logging.sh" ] && . "$LIB_DIR/logging.sh"
+[ -f "$LIB_DIR/performance.sh" ] && . "$LIB_DIR/performance.sh"
+[ -f "$LIB_DIR/progress.sh" ] && . "$LIB_DIR/progress.sh"
+[ -f "$LIB_DIR/optimization.sh" ] && . "$LIB_DIR/optimization.sh"
+[ -f "$LIB_DIR/sudo-management.sh" ] && . "$LIB_DIR/sudo-management.sh"
+[ -f "$LIB_DIR/cache-management.sh" ] && . "$LIB_DIR/cache-management.sh"
+[ -f "$LIB_DIR/flake-evaluation.sh" ] && . "$LIB_DIR/flake-evaluation.sh"
+[ -f "$LIB_DIR/network-detection.sh" ] && . "$LIB_DIR/network-detection.sh"
+[ -f "$LIB_DIR/state-persistence.sh" ] && . "$LIB_DIR/state-persistence.sh"
+[ -f "$LIB_DIR/build-logic.sh" ] && . "$LIB_DIR/build-logic.sh"
+[ -f "$LIB_DIR/scenario-orchestrator.sh" ] && . "$LIB_DIR/scenario-orchestrator.sh"
+[ -f "$LIB_DIR/performance-monitor.sh" ] && . "$LIB_DIR/performance-monitor.sh"
+[ -f "$LIB_DIR/audit-logger.sh" ] && . "$LIB_DIR/audit-logger.sh"
 
 # Load Phase 3 modules - Enhanced validation and error handling
-. "$LIB_DIR/pre-validation.sh"
-. "$LIB_DIR/alternative-execution.sh"
-. "$LIB_DIR/error-messaging.sh"
+[ -f "$LIB_DIR/pre-validation.sh" ] && . "$LIB_DIR/pre-validation.sh"
+[ -f "$LIB_DIR/alternative-execution.sh" ] && . "$LIB_DIR/alternative-execution.sh"
+[ -f "$LIB_DIR/error-messaging.sh" ] && . "$LIB_DIR/error-messaging.sh"
 
 # Load Phase 4 modules - Performance optimization and monitoring
-. "$LIB_DIR/cache-optimization.sh"
-. "$LIB_DIR/performance-dashboard.sh"
-. "$LIB_DIR/notification-auto-recovery.sh"
+[ -f "$LIB_DIR/cache-optimization.sh" ] && . "$LIB_DIR/cache-optimization.sh"
+[ -f "$LIB_DIR/performance-dashboard.sh" ] && . "$LIB_DIR/performance-dashboard.sh"
+[ -f "$LIB_DIR/notification-auto-recovery.sh" ] && . "$LIB_DIR/notification-auto-recovery.sh"
 
 # Validate cross-platform behavior consistency
 validate_cross_platform_behavior() {
@@ -213,7 +213,7 @@ validate_environment_consistency() {
     local inconsistent_vars=""
 
     for var in $essential_vars; do
-        eval "local var_value=\${$var:-}"
+        eval "var_value=\${$var:-}"
         if [ -z "$var_value" ]; then
             missing_vars="$missing_vars $var"
         fi
@@ -1089,7 +1089,8 @@ sanitize_environment() {
 
     # Clear dangerous variables
     for var in $dangerous_vars; do
-        if [ -n "${!var:-}" ]; then
+        # Use eval to safely check if variable is set
+        if eval "[ -n \"\${${var}:-}\" ]"; then
             log_warning "Clearing potentially dangerous environment variable: $var"
             unset "$var"
         fi
@@ -1110,7 +1111,8 @@ sanitize_environment() {
     fi
 
     if [ -z "${HOME:-}" ]; then
-        export HOME=$(eval echo ~$USER 2>/dev/null || echo "/tmp")
+        HOME=$(eval echo ~$USER 2>/dev/null || echo "/tmp")
+        export HOME
     fi
 
     log_debug "Environment sanitization completed"

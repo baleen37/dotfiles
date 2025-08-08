@@ -1,202 +1,215 @@
-# /task - Hierarchical Project Task Management
+---
+name: task
+description: "Execute complex tasks with intelligent workflow management, cross-session persistence, hierarchical task organization, and advanced wave system orchestration"
+allowed-tools: [Read, Write, Edit, MultiEdit, Bash, Grep, Glob, TodoWrite, Task, WebSearch, sequentialthinking]
 
-Persistent task management system with Epic→Story→Task hierarchy and cross-session persistence.
+# Command Classification
+category: orchestration
+complexity: advanced
+scope: cross-session
+
+# Integration Configuration
+mcp-integration:
+  servers: [sequential, context7, magic, playwright, morphllm, serena]
+  personas: [architect, analyzer, frontend, backend, security, devops, project-manager]
+  wave-enabled: true
+  complexity-threshold: 0.7
+
+# Performance Profile
+performance-profile: complex
+personas: [architect, analyzer, project-manager]
+---
+
+# /sc:task - Enhanced Task Management
 
 ## Purpose
-- **Hierarchical Structure**: Epic → Story → Task with dependency management
-- **Cross-Session Persistence**: Tasks survive session restarts and maintain state
-- **Workflow Integration**: Bridge between `/workflow` PRD analysis and `/spawn` execution
-- **Progress Tracking**: Comprehensive status tracking and completion metrics
-- **Dependency Management**: Intelligent dependency resolution and blocking prevention
+Execute complex tasks with intelligent workflow management, cross-session persistence, hierarchical task organization, and advanced orchestration capabilities.
 
-## Usage
-```bash
-/task [operation] [target] [--flags]
+## Usage  
+```
+/sc:task [action] [target] [--strategy systematic|agile|enterprise] [--depth shallow|normal|deep] [--parallel] [--validate] [--mcp-routing]
 ```
 
-## Operations
+## Arguments
+- `action` - Task management action (create, execute, status, analytics, optimize, delegate, validate)
+- `target` - Task description, project scope, or existing task ID for comprehensive management
+- `--strategy` - Task execution strategy selection with specialized orchestration approaches
+- `--depth` - Task analysis depth and thoroughness level
+- `--parallel` - Enable parallel task processing with multi-agent coordination
+- `--validate` - Comprehensive validation and task completion quality gates
+- `--mcp-routing` - Intelligent MCP server routing for specialized task analysis
+- `--wave-mode` - Enable wave-based execution with progressive task enhancement
+- `--cross-session` - Enable cross-session persistence and task continuity
+- `--persist` - Enable cross-session task persistence
+- `--hierarchy` - Create hierarchical task breakdown
+- `--delegate` - Enable multi-agent task delegation
 
-### Task Creation
-```bash
-/task create "Epic: User Authentication System" --type epic --priority high
-/task create "Story: User Registration" --parent "Epic: User Authentication System" --type story
-/task create "Implement registration API" --parent "Story: User Registration" --estimate 8h
-```
+## Actions
+- `create` - Create new project-level task hierarchy with advanced orchestration
+- `execute` - Execute task with intelligent orchestration and wave system integration
+- `status` - View task status across sessions with comprehensive analytics
+- `analytics` - Task performance and analytics dashboard with optimization insights
+- `optimize` - Optimize task execution strategies with wave system coordination
+- `delegate` - Delegate tasks across multiple agents with intelligent coordination
+- `validate` - Validate task completion with evidence and quality assurance
 
-### Task Management
-```bash
-/task list [--filter active|completed|blocked] [--parent epic-id]
-/task show [task-id] [--detail]
-/task update [task-id] --status in_progress|completed|blocked
-/task dependency [task-id] --requires [dependency-id] --blocks [dependent-id]
-```
+## Execution Modes
 
-### Workflow Integration
-```bash
-/task import @workflow-output.md --strategy systematic|agile|mvp
-/task export [epic-id] --format roadmap|tasks|detailed
-/task sync --todoist|github|linear
-```
+### Systematic Strategy
+1. **Discovery Phase**: Comprehensive project analysis and scope definition
+2. **Planning Phase**: Hierarchical task breakdown with dependency mapping
+3. **Execution Phase**: Sequential execution with validation gates
+4. **Validation Phase**: Evidence collection and quality assurance
+5. **Optimization Phase**: Performance analysis and improvement recommendations
 
-## Task Hierarchy
+### Agile Strategy
+1. **Sprint Planning**: Priority-based task organization
+2. **Iterative Execution**: Short cycles with continuous feedback
+3. **Adaptive Planning**: Dynamic task adjustment based on outcomes
+4. **Continuous Integration**: Real-time validation and testing
+5. **Retrospective Analysis**: Learning and process improvement
 
-### Epic Level (Project Features)
-- **Scope**: Large feature sets or major project components
-- **Duration**: Weeks to months
-- **Examples**: "User Authentication System", "Payment Processing", "Admin Dashboard"
-- **Properties**: Business value, acceptance criteria, success metrics
+### Enterprise Strategy
+1. **Stakeholder Analysis**: Multi-domain impact assessment
+2. **Resource Allocation**: Optimal resource distribution across tasks
+3. **Risk Management**: Comprehensive risk assessment and mitigation
+4. **Compliance Validation**: Regulatory and policy compliance checks
+5. **Governance Reporting**: Detailed progress and compliance reporting
 
-### Story Level (User Stories)
-- **Scope**: Specific user functionality within an Epic
-- **Duration**: Days to weeks  
-- **Examples**: "User Registration", "Password Reset", "Social Login"
-- **Properties**: User personas, acceptance criteria, UI/UX requirements
+## Advanced Features
 
-### Task Level (Implementation Units)
-- **Scope**: Specific development work items
-- **Duration**: Hours to days
-- **Examples**: "Create registration form", "Implement API endpoint", "Write unit tests"
-- **Properties**: Technical specifications, time estimates, dependencies
+### Task Hierarchy Management
+- **Epic Level**: Large-scale project objectives (weeks to months)
+- **Story Level**: Feature-specific implementations (days to weeks)
+- **Task Level**: Specific actionable items (hours to days)
+- **Subtask Level**: Granular implementation steps (minutes to hours)
 
-## Arguments & Flags
+### Intelligent Task Orchestration
+- **Dependency Resolution**: Automatic dependency detection and sequencing
+- **Parallel Execution**: Independent task parallelization
+- **Resource Optimization**: Intelligent resource allocation and scheduling
+- **Context Sharing**: Cross-task context and knowledge sharing
 
-### Task Properties
-- `--type epic|story|task` - Task hierarchy level
-- `--priority critical|high|medium|low` - Task priority level
-- `--status planned|active|in_progress|blocked|completed|cancelled` - Current status
-- `--estimate [time]` - Time estimate (e.g., "8h", "3d", "2w")
-- `--parent [parent-id]` - Parent task in hierarchy
-- `--assignee [name]` - Task assignee
-- `--labels [tag1,tag2]` - Categorization labels
+### Cross-Session Persistence
+- **Task State Management**: Persistent task states across sessions
+- **Context Continuity**: Preserved context and progress tracking
+- **Historical Analytics**: Task execution history and learning
+- **Recovery Mechanisms**: Automatic recovery from interruptions
 
-### Dependency Management
-- `--requires [task-ids]` - Dependencies that must complete first
-- `--blocks [task-ids]` - Tasks that depend on this completion
-- `--related [task-ids]` - Related tasks for reference
-- `--milestone [name]` - Project milestone association
+### Quality Gates and Validation
+- **Evidence Collection**: Systematic evidence gathering during execution
+- **Validation Criteria**: Customizable completion criteria
+- **Quality Metrics**: Comprehensive quality assessment
+- **Compliance Checks**: Automated compliance validation
 
-### Filtering & Display
-- `--filter [status|priority|assignee|label]` - Filter criteria
-- `--sort [created|updated|priority|estimate]` - Sort order
-- `--detail` - Show comprehensive task information
-- `--tree` - Display hierarchical tree view
-- `--timeline` - Show tasks in chronological order
-
-### Integration Features
-- `--link-pr [pr-url]` - Link task to pull request
-- `--link-issue [issue-url]` - Link task to GitHub/Linear issue
-- `--auto-close` - Auto-complete when linked PR/issue closes
-- `--notification [slack|email]` - Progress notifications
-
-## Auto-Activation Patterns
-- **Workflow Import**: Automatically triggered by `/workflow` completion
-- **Complex Projects**: Multi-session work requiring task breakdown
-- **Team Collaboration**: Multiple assignees or external integrations
-- **Wave Integration**: Large-scale operations with systematic execution
-
-## Task States & Transitions
-
-### State Definitions
-```yaml
-planned: "Defined but not yet started"
-active: "Ready to begin work, dependencies satisfied"
-in_progress: "Currently being worked on"
-blocked: "Cannot proceed due to dependencies or issues"
-completed: "Successfully finished with validation"
-cancelled: "No longer needed or deprioritized"
-```
-
-### Valid Transitions
-```
-planned → active → in_progress → completed
-planned → cancelled
-active → blocked → active
-in_progress → blocked → active
-any_state → cancelled
-```
-
-## Integration with SuperClaude Ecosystem
-
-### TodoWrite Bridge
-- Convert session TodoWrite tasks into persistent task hierarchy
-- Automatically promote recurring todos to Stories or Epics
-- Sync session progress with long-term task status
-
-### Workflow Command Integration
-- Import `/workflow` PRD analysis as Epic/Story structure
-- Maintain traceability from requirements to implementation
-- Export task hierarchy back to workflow documentation
-
-### Spawn Command Coordination
-- Break down complex `/spawn` operations into trackable tasks
-- Maintain execution context across multi-session workflows
-- Coordinate parallel task execution with dependency awareness
+## Integration Points
 
 ### Wave System Integration
-- Automatic Wave activation for Epic-level complexity
-- Progressive task execution across Wave phases
-- Quality gates and validation at Story completion
+- **Wave Coordination**: Multi-wave task execution strategies
+- **Context Accumulation**: Progressive context building across waves
+- **Performance Monitoring**: Real-time performance tracking and optimization
+- **Error Recovery**: Graceful error handling and recovery mechanisms
+
+### MCP Server Coordination
+- **Context7**: Framework patterns and library documentation
+- **Sequential**: Complex analysis and multi-step reasoning
+- **Magic**: UI component generation and design systems
+- **Playwright**: End-to-end testing and performance validation
 
 ### Persona Integration
-- **Architect**: Epic-level planning and dependency analysis
-- **Analyzer**: Task breakdown and complexity assessment
-- **QA**: Acceptance criteria and validation planning
-- **Scribe**: Documentation and progress reporting
+- **Architect**: System design and architectural decisions
+- **Analyzer**: Code analysis and quality assessment
+- **Project Manager**: Resource allocation and progress tracking
+- **Domain Experts**: Specialized expertise for specific task types
 
-### MCP Server Integration
-- **Sequential**: Complex task breakdown and dependency analysis
-- **Context7**: Best practices for task estimation and planning
-- **Magic**: UI task templates and component planning
+## Performance Optimization
 
-## Output Formats
+### Execution Efficiency
+- **Batch Operations**: Grouped execution for related tasks
+- **Parallel Processing**: Independent task parallelization
+- **Context Caching**: Reusable context and analysis results
+- **Resource Pooling**: Shared resource utilization
 
-### Tree View (`--tree`)
+### Intelligence Features
+- **Predictive Planning**: AI-driven task estimation and planning
+- **Adaptive Execution**: Dynamic strategy adjustment based on progress
+- **Learning Systems**: Continuous improvement from execution patterns
+- **Optimization Recommendations**: Data-driven improvement suggestions
+
+## Examples
+
+### Comprehensive Project Analysis
 ```
-📋 Epic: User Authentication System (active)
-├── 📖 Story: User Registration (in_progress)
-│   ├── ✅ Task: Design registration form UI
-│   ├── 🔄 Task: Implement registration API
-│   └── ⏳ Task: Add email verification
-├── 📖 Story: User Login (planned)
-│   ├── ⏳ Task: Create login form
-│   └── ⏳ Task: Implement authentication middleware
-└── 📖 Story: Password Reset (planned)
-    └── ⏳ Task: Design password reset flow
-```
-
-### Timeline View (`--timeline`)
-```
-🗓️ Week 1-2: Foundation Phase
-  🔄 Epic: Project Setup (in_progress)
-  ⏳ Story: Development Environment (active)
-
-🗓️ Week 3-4: Core Development  
-  ⏳ Epic: User Authentication System (planned)
-  ⏳ Story: User Registration (planned)
+/sc:task create "enterprise authentication system" --strategy systematic --depth deep --validate --mcp-routing
+# Comprehensive analysis with full orchestration capabilities
 ```
 
-### Detailed View (`--detail`)
+### Agile Multi-Sprint Coordination
 ```
-📋 Epic: User Authentication System
-┌─ Status: active | Priority: high | Progress: 2/7 tasks
-├─ Estimate: 3 weeks | Assignee: team-auth
-├─ Dependencies: Database schema, Security review
-├─ Acceptance Criteria:
-│  • Users can register with email/password
-│  • Secure password requirements enforced
-│  • Email verification workflow functional
-└─ Progress: 28% complete (2 of 7 tasks done)
+/sc:task execute "feature backlog" --strategy agile --parallel --cross-session
+# Agile coordination with cross-session persistence
 ```
 
-## Quality Gates & Performance
-- **Data Persistence**: Tasks survive system restarts and maintain full context
-- **Dependency Validation**: Automatic cycle detection and resolution suggestions
-- **Progress Accuracy**: Real-time status updates with validation
-- **Performance Target**: <2s response time for complex hierarchy operations
-- **Integration Reliability**: 99%+ sync accuracy with external systems
+### Enterprise-Scale Operation
+```
+/sc:task create "digital transformation" --strategy enterprise --wave-mode --all-personas
+# Enterprise-scale coordination with full persona orchestration
+```
 
-## Key Differences from Other Commands
-- **vs /spawn**: Long-term persistence vs immediate execution
-- **vs TodoWrite**: Cross-session vs session-specific
-- **vs /workflow**: Task execution vs planning and analysis
-- **vs /build**: Project management vs code compilation
+### Complex Integration Project
+```  
+/sc:task execute "microservices platform" --depth deep --parallel --validate --sequential
+# Complex integration with sequential thinking and validation
+```
+
+### Create Project-Level Task Hierarchy
+```
+/sc:task create "Implement user authentication system" --hierarchy --persist --strategy systematic
+```
+
+### Execute with Multi-Agent Delegation
+```
+/sc:task execute AUTH-001 --delegate --wave-mode --validate
+```
+
+### Analytics and Optimization
+```
+/sc:task analytics --project AUTH --optimization-recommendations
+```
+
+### Cross-Session Task Management
+```
+/sc:task status --all-sessions --detailed-breakdown
+```
+
+## Boundaries
+
+**This advanced command will:**
+- Orchestrate complex multi-domain task operations with expert coordination
+- Provide sophisticated analysis and strategic task planning capabilities
+- Coordinate multiple MCP servers and personas for optimal task outcomes
+- Maintain cross-session persistence and progressive enhancement for task continuity
+- Apply comprehensive quality gates and validation throughout task execution
+- Execute complex tasks with intelligent workflow management and wave system integration
+- Create hierarchical task breakdown with advanced orchestration capabilities
+- Track task performance and analytics with optimization recommendations
+
+**This advanced command will not:**
+- Execute without proper analysis and planning phases for task management
+- Operate without appropriate error handling and recovery mechanisms for tasks
+- Proceed without stakeholder alignment and clear success criteria for task completion
+- Compromise quality standards for speed or convenience in task execution
+
+---
+
+## Claude Code Integration
+- **TodoWrite Integration**: Seamless session-level task coordination
+- **Wave System**: Advanced multi-stage execution orchestration
+- **MCP Coordination**: Intelligent server routing and resource utilization
+- **Performance Monitoring**: Sub-100ms execution targets with comprehensive metrics
+
+## Success Criteria
+- **Task Completion Rate**: >95% successful task completion
+- **Quality Metrics**: >90% validation success rate
+- **Cross-Session Continuity**: 100% task state preservation
+- **Intelligence Effectiveness**: >80% accurate predictive planning

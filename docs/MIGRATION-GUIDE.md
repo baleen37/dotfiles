@@ -13,7 +13,8 @@
 ### 1. 디렉토리 구조 개선
 
 **Before (Phase 3)**:
-```
+
+```text
 apps/
 ├── aarch64-darwin/
 ├── x86_64-darwin/
@@ -23,7 +24,8 @@ apps/
 ```
 
 **After (Phase 4)**:
-```
+
+```text
 apps/
 ├── common/              # 공통 로직
 │   ├── apply-core.sh
@@ -39,6 +41,7 @@ apps/
 ### 2. 설정 외부화 시스템
 
 **Before**: 하드코딩된 설정값
+
 ```bash
 # 이전 방식
 CACHE_SIZE=5
@@ -47,6 +50,7 @@ TIMEOUT=3600
 ```
 
 **After**: YAML 기반 외부 설정
+
 ```yaml
 # config/build-settings.yaml
 build:
@@ -62,12 +66,14 @@ ssh_directories:
 ### 3. 통합 설정 인터페이스
 
 **Before**: 개별 환경변수 관리
+
 ```bash
 export CACHE_SIZE=5
 export SSH_DIR="/Users/$USER/.ssh"
 ```
 
 **After**: 통합 설정 API
+
 ```bash
 source scripts/utils/config-loader.sh
 cache_size=$(get_unified_config "cache_max_size" "5")
@@ -235,6 +241,7 @@ platform_configs:
 **증상**: 설정이 예상과 다르게 로드됨
 
 **해결방법**:
+
 ```bash
 # 환경변수 우선순위 확인
 echo $CACHE_MAX_SIZE_GB
@@ -249,6 +256,7 @@ is_config_loaded && echo "Config loaded" || echo "Config not loaded"
 **증상**: 이전 캐시 디렉토리 사용
 
 **해결방법**:
+
 ```bash
 # 캐시 설정 확인
 source scripts/utils/config-loader.sh
@@ -261,6 +269,7 @@ echo "Cache directory: $cache_dir"
 **증상**: sudo 관련 오류
 
 **해결방법**:
+
 ```bash
 # sudo 설정 확인
 source scripts/utils/config-loader.sh

@@ -3,9 +3,11 @@
 
 # Load configuration from external files
 load_platform_configuration() {
-  local config_loader="$(dirname "$0")/../../scripts/utils/config-loader.sh"
+  local config_loader
+  config_loader="$(dirname "$0")/../../scripts/utils/config-loader.sh"
 
   if [[ -f "$config_loader" ]]; then
+    # shellcheck source=/dev/null
     source "$config_loader"
     # Use unified config loader for better performance
     load_all_configs
@@ -16,12 +18,17 @@ load_platform_configuration() {
 load_platform_configuration
 
 # Darwin-specific paths and settings (optimized with unified config)
-export SSH_DIR="$(get_unified_config ssh_dir_darwin "/Users/${USER}/.ssh")"
+SSH_DIR="$(get_unified_config ssh_dir_darwin "/Users/${USER}/.ssh")"
+export SSH_DIR
 export PLATFORM_TYPE="darwin"
-export PLATFORM_NAME="$(get_unified_config platform_name "Nix Darwin")"
-export REBUILD_COMMAND="$(get_unified_config rebuild_command "darwin-rebuild")"
-export REBUILD_COMMAND_PATH="$(get_unified_config rebuild_command_path "./result/sw/bin/darwin-rebuild")"
-export NIXPKGS_ALLOW_UNFREE="$(get_unified_config allow_unfree "${NIXPKGS_ALLOW_UNFREE:-1}")"
+PLATFORM_NAME="$(get_unified_config platform_name "Nix Darwin")"
+export PLATFORM_NAME
+REBUILD_COMMAND="$(get_unified_config rebuild_command "darwin-rebuild")"
+export REBUILD_COMMAND
+REBUILD_COMMAND_PATH="$(get_unified_config rebuild_command_path "./result/sw/bin/darwin-rebuild")"
+export REBUILD_COMMAND_PATH
+NIXPKGS_ALLOW_UNFREE="$(get_unified_config allow_unfree "${NIXPKGS_ALLOW_UNFREE:-1}")"
+export NIXPKGS_ALLOW_UNFREE
 
 # Darwin-specific USB mount detection
 mount_usb() {

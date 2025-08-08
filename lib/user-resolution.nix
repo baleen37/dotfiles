@@ -97,7 +97,7 @@ let
       debugLog "Using CI fallback: runner" "runner"
     # 5. Additional fallback for environments where USER is not set
     else if (envValue == "" || envValue == null) && enableAutoDetect then
-      debugLog "Using generic fallback: jito" "jito"
+      debugLog "Using generic fallback: baleen" "baleen"
     # 6. Default value if provided
     else if default != null && validateUser default then
       debugLog "Using default: ${default}" default

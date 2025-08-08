@@ -129,7 +129,7 @@ run_test() {
     duration=$(echo "$end_time - $start_time" | bc)
     test_times["$test_name"]="$duration"
 
-    if [[ "$VERBOSE" == "true" && "$test_results[$test_name]" == "FAIL" ]]; then
+    if [[ "$VERBOSE" == "true" && "${test_results[$test_name]}" == "FAIL" ]]; then
         echo -e "${RED}테스트 실패 출력:${NC}"
         echo "$output" | tail -20
     fi

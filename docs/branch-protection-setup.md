@@ -22,6 +22,7 @@ The branch protection settings require specific CI workflows to pass before allo
 ### 2. Maintain Code Review Settings
 
 To allow merge without code review while requiring CI:
+
 - `required_approving_review_count: 0` (allows merge without review)
 - `required_status_checks.strict: true` (requires CI to pass)
 
@@ -36,6 +37,7 @@ Run the branch protection setup script:
 ```
 
 This script will:
+
 1. ✅ Configure required status checks for main branch
 2. ✅ Enable strict CI enforcement  
 3. ✅ Maintain ability to merge without code review
@@ -77,11 +79,13 @@ curl -X PUT \
 The auto-update workflow (`/.github/workflows/auto-update-flake.yml`) has been enhanced:
 
 ### Before (Problem)
+
 - Only waited for CI checks to be "created"
 - Enabled auto-merge immediately without waiting for completion
 - No verification of CI success before merge
 
 ### After (Solution)  
+
 - ✅ Waits for all required CI checks to complete successfully
 - ✅ Monitors check status in real-time with detailed reporting
 - ✅ Aborts auto-merge if any required check fails
@@ -109,6 +113,7 @@ gh api repos/$(gh repo view --json owner,name --jq '.owner.login + "/" + .name')
 ```
 
 Expected output should show:
+
 - `"strict": true`
 - Required contexts: `["Fast Tests", "Build Core", "CI", "Security"]`
 - `required_approving_review_count: 0`
