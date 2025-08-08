@@ -1,46 +1,74 @@
 ---
 name: brainstorm
-description: "Interactive requirements discovery through Socratic dialogue and systematic exploration"
+description: "Transform vague ideas into concrete requirements through codebase analysis"
 mcp-servers: [sequential, context7]
-agents: [brainstorm-prd]
-tools: [Read, Write, Edit, MultiEdit, Bash, Grep, Glob, TodoWrite, Task, WebSearch]
+agents: [system-architect, frontend-developer, backend-engineer]
+tools: [Read, Grep, Glob, TodoWrite, Task]
 ---
 
-# /brainstorm - Interactive Requirements Discovery
+# /brainstorm - Smart Requirements Discovery
 
-**Purpose**: Transform ambiguous ideas into concrete specifications through interactive Socratic dialogue and structured requirement discovery
+**Purpose**: Convert fuzzy ideas into actionable specifications using codebase intelligence
 
 ## Usage
 
 ```bash
-/brainstorm <idea>           # Interactive requirements discovery
-/brainstorm brief <topic>    # Generate brief only
-/brainstorm prd <topic>      # -> brainstorm-prd agent for full PRD
-/brainstorm technical <idea> # Technical focus exploration
+/brainstorm <idea>           # Smart discovery with codebase analysis
+/brainstorm --brief <idea>   # Quick requirements without interaction
+/brainstorm --tech <idea>    # Technical architecture focus
 ```
 
 ## Execution Strategy
 
-- **Basic**: Socratic dialogue with progressive requirement crystallization
-- **Discovery**: Open-ended exploration and stakeholder identification
-- **Exploration**: Deep-dive scenarios and constraint identification  
-- **Convergence**: Priority crystallization and requirement finalization
-- **Documentation**: Comprehensive brief and optional PRD generation
+- **Smart**: Codebase scan → intelligent questions → structured output
+- **Brief**: Direct conversion to user stories and acceptance criteria
+- **Technical**: Architecture decisions and implementation roadmap focus
+
+## 2-Phase Process
+
+### Phase 1: Codebase Intelligence
+
+- Scan project files for tech stack, patterns, and architecture
+- Detect existing tools, frameworks, and conventions
+- Identify integration points and constraints
+- Present findings: "Based on your codebase using [X, Y, Z], I see [patterns]"
+
+### Phase 2: Smart Discovery
+
+Generate structured deliverables based on complexity:
+
+**Simple Ideas**: Direct conversion to:
+
+- User stories with acceptance criteria
+- Priority queue (P0/P1/P2)
+- Next steps
+
+**Complex Ideas**: Add strategic questions:
+
+- Platform choice (Web/Mobile/CLI)
+- Scale consideration (Personal/Department/Public)
+- Priority focus (Speed/Stability/Features)
 
 ## MCP Integration
 
-- **Sequential**: Multi-step problem decomposition and reasoning
-- **Context7**: Framework expertise and pattern validation
+- **Sequential**: Systematic thinking through requirement analysis
+- **Context7**: Tech stack validation and framework best practices
 
 ## Examples
 
 ```bash
-/brainstorm "task management app"          # Basic exploration
-/brainstorm technical "distributed cache" # Technical deep-dive
-/brainstorm prd "SaaS pricing tool"       # Full PRD generation
-/brainstorm brief "mobile app concept"    # Brief documentation only
+/brainstorm "team task tracker"     # Full discovery with codebase scan
+/brainstorm --tech "user auth"      # Technical implementation focus  
+/brainstorm --brief "mobile idea"   # Quick spec without questions
 ```
 
 ## Agent Routing
 
-- **brainstorm-prd**: Complex project requirements, comprehensive PRD generation, business analysis
+- **system-architect**: Complex systems requiring architectural decisions
+- **frontend-developer**: UI/UX focused ideas and component planning
+- **backend-engineer**: API design, data modeling, service architecture
+
+## Workflow
+
+1. **Codebase Scan**: Analyze existing code → present tech stack findings
+2. **Smart Discovery**: Generate appropriate output based on idea complexity

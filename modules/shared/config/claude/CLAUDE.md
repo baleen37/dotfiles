@@ -88,6 +88,32 @@ YOU MUST follow this debugging framework for ANY technical issue:
 
 ## Task Automation System
 
+### Planning Mode Integration
+
+**Plan Mode (`--plan`)**:
+
+The `--plan` flag shows detailed execution plan before running any command. It provides:
+
+- Step-by-step breakdown of what will be done
+- File modifications and their impact
+- Potential risks and dependencies
+- Estimated time and complexity
+- Alternative approaches if applicable
+
+**When to Use `--plan`**:
+
+- Before complex modifications (Level 2+ tasks)
+- When uncertain about approach or scope
+- Before touching critical files or configurations
+- When multiple files need coordination
+- To preview changes before execution
+
+**Integration with TodoWrite**:
+
+- Use `--plan` to generate detailed TodoWrite structure
+- Review plan output before marking tasks in_progress
+- Adjust TodoWrite based on plan recommendations
+
 ### System Architecture
 
 **MAIN Role**: Orchestrator and coordinator
@@ -162,26 +188,31 @@ Level 3: Complex/Specialized Tasks (1hr+)
 
 ### Execution Protocols
 
-Level 1 Protocol:
+**Level 1 Protocol**:
 
-1. Create TodoWrite with 1-3 specific tasks
-2. Mark in_progress as working
-3. Complete tasks directly
-4. Mark completed immediately after each task
+1. Consider `--plan` for execution preview (optional)
+2. Create TodoWrite with 1-3 specific tasks
+3. Mark in_progress as working
+4. Complete tasks directly
+5. Mark completed immediately after each task
 
-Level 2 Protocol:
+**Level 2 Protocol**:
 
-1. Create TodoWrite with 3-6 detailed tasks
-2. Break down complex steps into subtasks
-3. Use Task tool when possible, otherwise execute directly
-4. Track progress with in_progress/completed updates
+1. Consider `--plan` to visualize approach and generate TodoWrite structure
+2. Create TodoWrite with 3-6 detailed tasks based on plan output
+3. Break down complex steps into subtasks
+4. Use Task tool when possible, otherwise execute directly
+5. Consider `--loop` for quality-critical deliverables
+6. Track progress with in_progress/completed updates
 
-Level 3 Protocol:
+**Level 3 Protocol**:
 
-1. Create comprehensive TodoWrite breakdown
-2. Use Task tool with appropriate domain specialist
-3. Coordinate multiple agents if needed
-4. Maintain detailed progress tracking
+1. **REQUIRED**: Use `--plan` for comprehensive project planning
+2. Create comprehensive TodoWrite breakdown based on plan
+3. Use Task tool with appropriate domain specialist
+4. Use `--loop` for complex deliverables requiring high quality
+5. Coordinate multiple agents if needed
+6. Maintain detailed progress tracking
 
 ## MCP Integration
 
@@ -224,3 +255,46 @@ Playwright - Auto-trigger when:
 - Automatic server activation based on keyword detection
 - Multi-server coordination for complex workflows
 - Context-aware routing with intelligent fallbacks
+
+## Execution Modes
+
+### Plan Mode (`--plan`)
+
+**Purpose**: Preview detailed execution plan before running any command
+
+**Capabilities**:
+
+- Step-by-step breakdown of what will be done
+- File modifications and their impact
+- Potential risks and dependencies
+- Estimated time and complexity
+- Alternative approaches if applicable
+
+**When to Use**:
+
+- Before complex modifications (Level 2+ tasks)
+- When uncertain about approach or scope
+- Before touching critical files or configurations
+- When multiple files need coordination
+- To preview changes before execution
+
+**TodoWrite Integration**:
+
+- Use `--plan` to generate detailed TodoWrite structure
+- Review plan output before marking tasks in_progress
+- Adjust TodoWrite based on plan recommendations
+
+### Loop Mode (`--loop`)
+
+**Purpose**: Iterative refinement for quality-critical tasks
+
+**How it Works**:
+
+- Repeat same goal multiple times with progressive improvement
+- Each iteration: analyze → implement → validate → refine
+- Continue until quality threshold met
+
+**When to Use**:
+
+- Complex documentation that needs multiple passes
+- High-stakes deliverables requiring refinement
