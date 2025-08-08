@@ -21,6 +21,10 @@ NC='\033[0m'
 TESTS_PASSED=0
 TESTS_FAILED=0
 
+# 실제 build-switch 실행 관련 변수
+BUILD_SWITCH_TIMEOUT=300  # 5분 타임아웃
+ACTUAL_TEST_ENABLED=${ACTUAL_BUILD_TEST:-0}  # 환경변수로 활성화
+
 # 로그 함수
 log_info() {
     echo -e "${GREEN}[INFO]${NC} $1"
@@ -54,9 +58,44 @@ setup_integration_test() {
     log_debug "테스트 Claude 디렉토리: $TEST_CLAUDE_DIR"
 }
 
+# 실제 build-switch 테스트를 위한 환경 설정
+setup_actual_build_test() {
+    log_info "실제 build-switch 테스트 환경 설정 중..."
+
+    # 원래 홈 디렉토리 백업
+    export ORIGINAL_HOME_BACKUP="$HOME"
+
+    # USER 변수 설정 확인
+    if [[ -z "${USER:-}" ]]; then
+        export USER=$(whoami)
+        log_debug "USER 변수 설정: $USER"
+    fi
+
+    # Nix가 설치되어 있는지 확인
+    if ! command -v nix >/dev/null 2>&1; then
+        log_error "Nix가 설치되지 않음. 실제 build-switch 테스트 건너뜀"
+        return 1
+    fi
+
+    # 프로젝트 루트에서 flake.nix 확인
+    if [[ ! -f "$PROJECT_ROOT/flake.nix" ]]; then
+        log_error "flake.nix 파일을 찾을 수 없음. 실제 build-switch 테스트 건너뜀"
+        return 1
+    fi
+
+    log_info "실제 build-switch 테스트 환경 준비 완료"
+    return 0
+}
+
 cleanup_integration_test() {
     log_info "통합 테스트 환경 정리 중..."
     rm -rf "$TEST_USER_HOME"
+
+    # 실제 테스트에서 백업한 홈 디렉토리 복원
+    if [[ -n "${ORIGINAL_HOME_BACKUP:-}" && -d "$ORIGINAL_HOME_BACKUP" ]]; then
+        log_info "원래 홈 디렉토리 복원 중..."
+        export HOME="$ORIGINAL_HOME_BACKUP"
+    fi
 }
 
 # Claude activation 시뮬레이션 (실제 Nix 없이)
@@ -360,6 +399,252 @@ test_integration_completeness() {
     ((TESTS_PASSED++))
 }
 
+# 심볼릭 링크 상태 수집
+capture_symlink_state() {
+    local output_file="$1"
+    local description="$2"
+
+    log_debug "심볼릭 링크 상태 수집: $description"
+
+    {
+        echo "=== $description ==="
+        echo "시간: $(date)"
+        echo
+
+        # 홈 디렉토리의 주요 설정 파일들 확인
+        for file in ".zshrc" ".gitconfig" ".vimrc" ".tmux.conf"; do
+            local full_path="$HOME/$file"
+            if [[ -L "$full_path" ]]; then
+                echo "$file -> $(readlink "$full_path")"
+            elif [[ -f "$full_path" ]]; then
+                echo "$file (일반 파일)"
+            else
+                echo "$file (없음)"
+            fi
+        done
+
+        echo
+        # Claude 디렉토리 상태
+        if [[ -d "$HOME/.claude" ]]; then
+            echo "Claude 디렉토리: 존재"
+            echo "Claude 파일 수: $(find "$HOME/.claude" -type f 2>/dev/null | wc -l)"
+        else
+            echo "Claude 디렉토리: 없음"
+        fi
+
+        echo
+    } > "$output_file"
+}
+
+# 심볼릭 링크 상태 비교
+compare_symlink_states() {
+    local before_file="$1"
+    local after_file="$2"
+
+    log_info "build-switch 전후 상태 비교"
+
+    if [[ ! -f "$before_file" || ! -f "$after_file" ]]; then
+        log_error "상태 파일을 찾을 수 없음"
+        ((TESTS_FAILED++))
+        return 1
+    fi
+
+    local diff_output=$(diff "$before_file" "$after_file" || true)
+
+    if [[ -n "$diff_output" ]]; then
+        log_info "build-switch로 인한 변경사항 감지:"
+        echo "$diff_output" | while read -r line; do
+            log_debug "  $line"
+        done
+
+        # Claude 디렉토리 생성/업데이트 확인
+        if grep -q "Claude 디렉토리: 존재" "$after_file" &&
+           ! grep -q "Claude 디렉토리: 존재" "$before_file"; then
+            log_info "✅ Claude 디렉토리가 새로 생성됨"
+            ((TESTS_PASSED++))
+        elif grep -q "Claude 파일 수:" "$after_file"; then
+            local before_count=$(grep "Claude 파일 수:" "$before_file" 2>/dev/null | awk '{print $NF}' || echo "0")
+            local after_count=$(grep "Claude 파일 수:" "$after_file" | awk '{print $NF}')
+
+            if [[ "$after_count" -gt "$before_count" ]]; then
+                log_info "✅ Claude 파일이 업데이트됨 ($before_count -> $after_count)"
+                ((TESTS_PASSED++))
+            fi
+        fi
+    else
+        log_warning "⚠️ build-switch 전후 상태 변화 없음"
+    fi
+}
+
+# 실제 build-switch 실행 테스트
+test_actual_build_switch() {
+    if [[ "$ACTUAL_TEST_ENABLED" != "1" ]]; then
+        log_warning "실제 build-switch 테스트 비활성화 (ACTUAL_BUILD_TEST=1로 활성화 가능)"
+        return 0
+    fi
+
+    log_info "테스트: 실제 build-switch 실행"
+
+    if ! setup_actual_build_test; then
+        log_warning "실제 build-switch 테스트 환경 설정 실패, 건너뜀"
+        return 0
+    fi
+
+    cd "$PROJECT_ROOT" || {
+        log_error "프로젝트 루트 디렉토리로 이동 실패"
+        ((TESTS_FAILED++))
+        return 1
+    }
+
+    local before_state="$TEST_USER_HOME/state_before.txt"
+    local after_state="$TEST_USER_HOME/state_after.txt"
+    local build_log="$TEST_USER_HOME/build_output.txt"
+
+    # build-switch 실행 전 상태 캡처
+    capture_symlink_state "$before_state" "build-switch 실행 전"
+
+    log_info "nix run .#build-switch 실행 중... (타임아웃: ${BUILD_SWITCH_TIMEOUT}초)"
+
+    # build-switch 실행 (타임아웃과 함께)
+    local build_success=0
+    if timeout "$BUILD_SWITCH_TIMEOUT" nix run --impure .#build-switch > "$build_log" 2>&1; then
+        log_info "✅ build-switch 실행 성공"
+        build_success=1
+        ((TESTS_PASSED++))
+    else
+        local exit_code=$?
+        if [[ $exit_code == 124 ]]; then
+            log_error "❌ build-switch 실행 타임아웃 (${BUILD_SWITCH_TIMEOUT}초)"
+        else
+            log_error "❌ build-switch 실행 실패 (종료 코드: $exit_code)"
+        fi
+        ((TESTS_FAILED++))
+
+        # 실패 로그 출력
+        if [[ -f "$build_log" ]]; then
+            log_debug "build-switch 오류 로그 (마지막 20줄):"
+            tail -20 "$build_log" | while read -r line; do
+                log_debug "  $line"
+            done
+        fi
+    fi
+
+    # build-switch 실행 후 상태 캡처
+    capture_symlink_state "$after_state" "build-switch 실행 후"
+
+    # 상태 비교
+    compare_symlink_states "$before_state" "$after_state"
+
+    # 빌드 로그 분석
+    if [[ -f "$build_log" && $build_success == 1 ]]; then
+        log_info "build-switch 로그 분석"
+
+        # Claude 설정 관련 메시지 확인
+        if grep -q "Claude 설정 업데이트" "$build_log"; then
+            log_info "✅ Claude 설정 업데이트 메시지 발견"
+            ((TESTS_PASSED++))
+        else
+            log_warning "⚠️ Claude 설정 업데이트 메시지 없음"
+        fi
+
+        # 오류 메시지 확인
+        local error_count=$(grep -c "error\|Error\|ERROR" "$build_log" || echo "0")
+        if [[ "$error_count" == "0" ]]; then
+            log_info "✅ 빌드 로그에 오류 없음"
+            ((TESTS_PASSED++))
+        else
+            log_warning "⚠️ 빌드 로그에서 $error_count 개의 오류 발견"
+        fi
+    fi
+}
+
+# 부분 실행 중단 테스트
+test_build_switch_interruption() {
+    if [[ "$ACTUAL_TEST_ENABLED" != "1" ]]; then
+        log_warning "실제 build-switch 중단 테스트 비활성화"
+        return 0
+    fi
+
+    log_info "테스트: build-switch 실행 중단 시나리오"
+
+    if ! setup_actual_build_test; then
+        log_warning "실제 build-switch 테스트 환경 설정 실패, 건너뜀"
+        return 0
+    fi
+
+    cd "$PROJECT_ROOT" || return 1
+
+    local interrupt_log="$TEST_USER_HOME/interrupt_test.txt"
+
+    # 짧은 시간 후 중단하는 테스트
+    log_info "5초 후 build-switch 중단 테스트"
+
+    {
+        # 백그라운드에서 build-switch 실행
+        timeout 5 nix run --impure .#build-switch &
+        local build_pid=$!
+
+        # 5초 대기 후 강제 종료
+        sleep 5
+        if kill -0 "$build_pid" 2>/dev/null; then
+            kill -TERM "$build_pid" 2>/dev/null || true
+            sleep 2
+            if kill -0 "$build_pid" 2>/dev/null; then
+                kill -KILL "$build_pid" 2>/dev/null || true
+            fi
+        fi
+
+        wait "$build_pid" 2>/dev/null || true
+
+    } > "$interrupt_log" 2>&1
+
+    # 중단 후 시스템 상태 확인
+    if [[ -d "$HOME/.claude" ]]; then
+        local claude_files=$(find "$HOME/.claude" -type f 2>/dev/null | wc -l)
+        if [[ "$claude_files" -gt "0" ]]; then
+            log_info "✅ 중단 후에도 Claude 설정 파일 일부 존재 ($claude_files 개)"
+            ((TESTS_PASSED++))
+        else
+            log_warning "⚠️ 중단 후 Claude 설정 파일 없음"
+        fi
+    fi
+
+    log_info "중단 테스트 완료"
+}
+
+# 오류 시나리오 테스트
+test_build_switch_error_scenarios() {
+    if [[ "$ACTUAL_TEST_ENABLED" != "1" ]]; then
+        log_warning "실제 build-switch 오류 시나리오 테스트 비활성화"
+        return 0
+    fi
+
+    log_info "테스트: build-switch 오류 시나리오"
+
+    # 잘못된 디렉토리에서 실행 테스트
+    local temp_dir=$(mktemp -d)
+    cd "$temp_dir" || return 1
+
+    local error_log="$TEST_USER_HOME/error_test.txt"
+
+    if nix run --impure .#build-switch > "$error_log" 2>&1; then
+        log_warning "⚠️ 잘못된 디렉토리에서도 build-switch가 성공함"
+    else
+        log_info "✅ 잘못된 디렉토리에서 build-switch 실패 (예상된 동작)"
+        ((TESTS_PASSED++))
+
+        # 오류 메시지가 명확한지 확인
+        if grep -q "flake.nix\|No such file" "$error_log"; then
+            log_info "✅ 명확한 오류 메시지 제공"
+            ((TESTS_PASSED++))
+        fi
+    fi
+
+    # 원래 디렉토리로 복귀
+    cd "$PROJECT_ROOT" || return 1
+    rm -rf "$temp_dir"
+}
+
 # 메인 테스트 실행
 main() {
     log_info "Build-Switch와 Claude Commands 통합 테스트 시작"
@@ -371,7 +656,7 @@ main() {
     # 테스트 환경 설정
     setup_integration_test
 
-    # 테스트 실행
+    # 시뮬레이션 테스트 실행
     test_claude_directory_creation
     test_git_commands_integration
     test_main_config_files
@@ -379,6 +664,13 @@ main() {
     test_root_level_commands
     test_file_permissions
     test_integration_completeness
+
+    # 실제 build-switch 테스트 실행 (조건부)
+    echo
+    log_info "=================== 실제 build-switch 테스트 ==================="
+    test_actual_build_switch
+    test_build_switch_interruption
+    test_build_switch_error_scenarios
 
     # 결과 출력
     echo
@@ -398,10 +690,26 @@ main() {
             log_debug "Claude 디렉토리가 생성되지 않음"
         fi
 
+        # 실제 테스트 활성화 안내
+        if [[ "$ACTUAL_TEST_ENABLED" != "1" ]]; then
+            echo
+            log_info "💡 실제 build-switch 테스트를 실행하려면:"
+            log_info "   ACTUAL_BUILD_TEST=1 $0"
+        fi
+
         exit 1
     else
         log_info "모든 통합 테스트가 통과했습니다! 🎉"
         log_info "Claude commands git 파일들이 올바르게 통합되었습니다."
+
+        if [[ "$ACTUAL_TEST_ENABLED" == "1" ]]; then
+            log_info "실제 build-switch 실행 테스트도 포함되었습니다."
+        else
+            echo
+            log_info "💡 실제 build-switch 테스트를 실행하려면:"
+            log_info "   ACTUAL_BUILD_TEST=1 $0"
+        fi
+
         exit 0
     fi
 }

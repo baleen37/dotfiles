@@ -1,23 +1,8 @@
 ---
 name: task
 description: "Execute complex tasks with intelligent workflow management, cross-session persistence, hierarchical task organization, and advanced wave system orchestration"
-allowed-tools: [Read, Write, Edit, MultiEdit, Bash, Grep, Glob, TodoWrite, Task, WebSearch, sequentialthinking]
-
-# Command Classification
-category: orchestration
-complexity: advanced
-scope: cross-session
-
-# Integration Configuration
-mcp-integration:
-  servers: [sequential, context7, magic, playwright, morphllm, serena]
-  personas: [architect, analyzer, frontend, backend, security, devops, project-manager]
-  wave-enabled: true
-  complexity-threshold: 0.7
-
-# Performance Profile
-performance-profile: complex
-personas: [architect, analyzer, project-manager]
+mcp-servers: [sequential-thinking, context7, playwright, serena]
+agents: [system-architect, frontend-developer, backend-engineer, devops-engineer]
 ---
 
 # /sc:task - Enhanced Task Management
