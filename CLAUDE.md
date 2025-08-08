@@ -22,13 +22,29 @@ YAGNI above all. Simplicity over sophistication. When in doubt, ask jito.
 </constraints>
 
 <communication>
-- Korean with jito always
-- Direct, honest technical feedback
-- Speak up when disagreeing
-- No unnecessary politeness
+- Always communicate with jito in Korean
+- Provide direct, honest technical feedback
+- Speak up when disagreeing with decisions
+- Avoid unnecessary politeness
 - Use journal for memory issues
 - **Concise responses**: Keep answers brief, avoid unnecessary explanations
 </communication>
+
+## Repository Architecture
+
+**Core Structure**:
+
+- `flake.nix` - Main entry point using modular lib/flake-config.nix
+- `lib/` - System-aware utility functions and platform detection
+- `modules/` - Modular configuration (shared/darwin/nixos)
+- `hosts/` - Machine-specific configurations
+- `scripts/` - Automation tools including global `bl` command system
+
+**Key Dependencies**:
+
+- `lib/platform-system.nix` - Unified platform detection hub
+- `lib/user-resolution.nix` - Multi-context user detection
+- `Makefile` - Build orchestration with auto USER detection
 
 <dotfiles-expertise>
 **Nix/NixOS**: Flakes, Home Manager, nix-darwin, package management
@@ -153,17 +169,47 @@ nix run --impure .#build-switch  # Build and apply in one command
 make deploy                      # Cross-platform build+switch
 ```
 
+**Test System**:
+
+- Consolidated test suite: 133 → 17 files (87% reduction)
+- `make test` - All tests via nix run .#test
+- `make test-quick` - Parallel quick tests (2-3 sec)
+- `make test-core` - Essential tests only (fast)
+- `./scripts/test-all-local` - Complete CI simulation
+
 </development-commands>
 
 <machine-setup-policies>
-- 개인 컴퓨터에 까는 건 nix으로 code로 관리되어야 한다. 별도로 임시 생성은 허용하지 안흔다.
+- All personal computer installations must be managed via Nix code. Ad-hoc installations are not permitted.
 </machine-setup-policies>
 
 <memory>
-- 만약 claude.md, command, agents를 바꿔야 한다면 컨벤션이나, 참조 등 흐트러지는 게 없는지 확인해야해
-- 나와의 대화는 한국어이되, 문서는 영어로 작성해줘.
-- claude code command 작성할 때 되도록이면 --type 이런거 같은 옵션이 없으면 좋겠어.
-- user 이름은 호스트마다 다르기 때문에 하드코딩 하지 않아야 한다
-- @modules/shared/config/claude/ 하위에 있는 파일은 ~/.claude 와 매칭되는 파일이야. 유저 설정을 다룰거야.
-- claude code 세팅은 https://github.com/SuperClaude-Org/SuperClaude_Framework/tree/SuperClaude_V4_Beta 를 따르긴 한다. 다만 몇가지를 커스텀 해서 쓴다.
+- When modifying claude.md, commands, or agents, verify conventions and references remain consistent
+- Communicate with jito in Korean, but write documentation in English
+- Prefer Claude Code commands without options like --type when possible
+- Never hardcode usernames as they vary per host
+- Files under @modules/shared/config/claude/ map to ~/.claude for user configuration
+- Claude Code settings follow https://github.com/SuperClaude-Org/SuperClaude_Framework/tree/SuperClaude_V4_Beta with custom modifications
 </memory>
+
+## Claude Code Integration
+
+**MCP Server Support**: Built-in with `make setup-mcp`
+
+- Context7: Documentation and API research
+- Sequential: Systematic analysis and debugging  
+- Playwright: Browser testing and automation
+- Smart auto-routing based on keywords
+
+**Specialized Agents Available**:
+
+- `nix-system-expert` - Nix, flakes, Home Manager, nix-darwin
+- `config-auditor` - Claude configuration validation
+- `claude-optimizer` - Token efficiency and prompt compression
+- Automatic agent routing based on task complexity and domain
+
+**Configuration Management**:
+
+- `modules/shared/config/claude/` syncs to `~/.claude`
+- Custom SuperClaude framework with jito personalization
+- Zero-config intelligence with learning patterns

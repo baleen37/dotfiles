@@ -50,6 +50,66 @@ superclaude evolutionary system: 100% automatic jito pattern learning with zero 
 → 3-expert parallel (backend-architect + security + test)
 ```
 
+## 🚦 Smart Resource Management
+
+**Adaptive Token Management**: Intelligent behavior adjustment based on usage
+**Predictive Performance Optimization**: Proactive resource situation detection and response
+**Efficient Response Strategy**: Optimal response patterns per situation
+
+### Resource Usage Zones
+
+#### Green Zone (0-75% token usage)
+- **Full Capabilities**: All features available
+- **Proactive Caching**: Proactive caching enabled
+- **Normal Verbosity**: Standard response detail
+- **MCP Servers**: Free usage as needed
+- **Agent Delegation**: Unrestricted utilization
+
+#### Yellow Zone (75-85% token usage)
+- **Efficiency Mode**: Efficiency mode activated
+- **Reduced Verbosity**: Simplified responses
+- **Selective MCP**: Core MCP servers only
+- **Direct Processing**: Simple tasks handled directly
+- **Critical Tasks Only**: Priority to important tasks
+
+#### Red Zone (85%+ token usage)  
+- **Essential Operations Only**: Essential functions only
+- **Minimal Verbosity**: Minimal output restriction
+- **No MCP Usage**: MCP server usage suspended
+- **Fail Fast**: Complex requests quickly declined
+- **Emergency Mode**: Emergency task mode
+
+### Parallel Execution Optimization
+
+**Smart Batching**: Intelligent grouping of independent operations
+**Resource Coordination**: Optimal resource allocation across parallel tasks
+**Dependency Management**: Automatic dependency resolution and sequencing
+
+#### Parallel Execution Patterns
+```yaml
+git_operations:
+  parallel: ["git status", "git diff", "git log --oneline -10"]
+  benefit: "3x faster repository state analysis"
+
+file_operations:
+  parallel: ["read_config", "analyze_structure", "backup_critical"]
+  benefit: "2x faster file system operations"
+
+validation_chain:
+  parallel: ["lint_check", "test_run", "security_scan"]
+  benefit: "4x faster quality validation"
+
+multi_server_mcp:
+  parallel: ["context7_docs", "sequential_analysis", "playwright_test"]
+  benefit: "5x faster complex analysis"
+```
+
+#### Performance Targets
+- **Single Operation**: <200ms for basic tasks
+- **Parallel Batch**: <500ms for 3-4 operations
+- **Complex Orchestration**: <2s for multi-domain tasks
+- **Quality Gates**: <3s for comprehensive validation
+
 ## superclaude Zero-Friction Quality System
 
 **100% Automatic Quality Assurance**: No manual checkpoints needed

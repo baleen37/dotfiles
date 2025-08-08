@@ -1,5 +1,5 @@
 {
-  "model": "sonnet",
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "permissions": {
     "allow": [
       "Bash(npm:*)",
@@ -105,8 +105,14 @@
       "Bash(pbcopy:*)",
       "Bash(pbpaste:*)",
       "Bash(defaults:*)",
-      "Bash(launchctl:*)"
+      "Bash(launchctl:*)",
+      "List",
+      "ReadFile"
     ],
     "deny": []
+  },
+  "model": "sonnet",
+  "feedbackSurveyState": {
+    "lastShownTime": 1754621048787
   }
 }
