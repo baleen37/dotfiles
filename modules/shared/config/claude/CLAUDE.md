@@ -258,32 +258,6 @@ Playwright - Auto-trigger when:
 
 ## Execution Modes
 
-### Plan Mode (`--plan`)
-
-**Purpose**: Preview detailed execution plan before running any command
-
-**Capabilities**:
-
-- Step-by-step breakdown of what will be done
-- File modifications and their impact
-- Potential risks and dependencies
-- Estimated time and complexity
-- Alternative approaches if applicable
-
-**When to Use**:
-
-- Before complex modifications (Level 2+ tasks)
-- When uncertain about approach or scope
-- Before touching critical files or configurations
-- When multiple files need coordination
-- To preview changes before execution
-
-**TodoWrite Integration**:
-
-- Use `--plan` to generate detailed TodoWrite structure
-- Review plan output before marking tasks in_progress
-- Adjust TodoWrite based on plan recommendations
-
 ### Loop Mode (`--loop`)
 
 **Purpose**: Iterative refinement for quality-critical tasks
