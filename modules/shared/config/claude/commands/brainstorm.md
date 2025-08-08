@@ -1,7 +1,8 @@
 ---
 name: brainstorm
-description: "Transform vague ideas into concrete requirements through codebase analysis and targeted questions"
+description: "Transform vague ideas into concrete requirements through codebase analysis"
 mcp-servers: [sequential, context7]
+agents: [system-architect, frontend-developer, backend-engineer]
 tools: [Read, Grep, Glob, TodoWrite, Task]
 ---
 
@@ -12,12 +13,18 @@ tools: [Read, Grep, Glob, TodoWrite, Task]
 ## Usage
 
 ```bash
-/brainstorm <idea>           # Full discovery with codebase analysis
+/brainstorm <idea>           # Smart discovery with codebase analysis
 /brainstorm --brief <idea>   # Quick requirements without interaction
 /brainstorm --tech <idea>    # Technical architecture focus
 ```
 
-## 3-Phase Process
+## Execution Strategy
+
+- **Smart**: Codebase scan → intelligent questions → structured output
+- **Brief**: Direct conversion to user stories and acceptance criteria
+- **Technical**: Architecture decisions and implementation roadmap focus
+
+## 2-Phase Process
 
 ### Phase 1: Codebase Intelligence
 
@@ -26,25 +33,25 @@ tools: [Read, Grep, Glob, TodoWrite, Task]
 - Identify integration points and constraints
 - Present findings: "Based on your codebase using [X, Y, Z], I see [patterns]"
 
-### Phase 2: Essential Decisions
+### Phase 2: Smart Discovery
 
-Ask 3 core questions with simple A/B/C choices:
+Generate structured deliverables based on complexity:
 
-**Platform**: Web app (A) | Mobile app (B) | CLI tool (C)
-**Scale**: Personal/team (A) | Department (B) | Public (C)  
-**Priority**: Speed (A) | Stability (B) | Features (C)
+**Simple Ideas**: Direct conversion to:
 
-### Phase 3: Actionable Output
+- User stories with acceptance criteria
+- Priority queue (P0/P1/P2)
+- Next steps
 
-Generate structured deliverables:
-- **User Stories**: "As [user], I want [goal] so that [benefit]"
-- **Acceptance Criteria**: Specific, testable requirements
-- **Priority Queue**: P0 (must have) → P1 (should have) → P2 (nice to have)
-- **Next Steps**: Concrete tasks to start implementation
+**Complex Ideas**: Add strategic questions:
+
+- Platform choice (Web/Mobile/CLI)
+- Scale consideration (Personal/Department/Public)
+- Priority focus (Speed/Stability/Features)
 
 ## MCP Integration
 
-- **Sequential**: Systematic thinking through requirement analysis phases
+- **Sequential**: Systematic thinking through requirement analysis
 - **Context7**: Tech stack validation and framework best practices
 
 ## Examples
@@ -55,8 +62,13 @@ Generate structured deliverables:
 /brainstorm --brief "mobile idea"   # Quick spec without questions
 ```
 
+## Agent Routing
+
+- **system-architect**: Complex systems requiring architectural decisions
+- **frontend-developer**: UI/UX focused ideas and component planning
+- **backend-engineer**: API design, data modeling, service architecture
+
 ## Workflow
 
 1. **Codebase Scan**: Analyze existing code → present tech stack findings
-2. **Quick Choices**: 3 A/B/C questions → capture core requirements  
-3. **Structured Output**: Generate user stories + priorities + next steps
+2. **Smart Discovery**: Generate appropriate output based on idea complexity
