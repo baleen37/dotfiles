@@ -1,46 +1,62 @@
 ---
 name: brainstorm
-description: "Interactive requirements discovery through Socratic dialogue and systematic exploration"
+description: "Transform vague ideas into concrete requirements through codebase analysis and targeted questions"
 mcp-servers: [sequential, context7]
-agents: [brainstorm-prd]
-tools: [Read, Write, Edit, MultiEdit, Bash, Grep, Glob, TodoWrite, Task, WebSearch]
+tools: [Read, Grep, Glob, TodoWrite, Task]
 ---
 
-# /brainstorm - Interactive Requirements Discovery
+# /brainstorm - Smart Requirements Discovery
 
-**Purpose**: Transform ambiguous ideas into concrete specifications through interactive Socratic dialogue and structured requirement discovery
+**Purpose**: Convert fuzzy ideas into actionable specifications using codebase intelligence
 
 ## Usage
 
 ```bash
-/brainstorm <idea>           # Interactive requirements discovery
-/brainstorm brief <topic>    # Generate brief only
-/brainstorm prd <topic>      # -> brainstorm-prd agent for full PRD
-/brainstorm technical <idea> # Technical focus exploration
+/brainstorm <idea>           # Full discovery with codebase analysis
+/brainstorm --brief <idea>   # Quick requirements without interaction
+/brainstorm --tech <idea>    # Technical architecture focus
 ```
 
-## Execution Strategy
+## 3-Phase Process
 
-- **Basic**: Socratic dialogue with progressive requirement crystallization
-- **Discovery**: Open-ended exploration and stakeholder identification
-- **Exploration**: Deep-dive scenarios and constraint identification  
-- **Convergence**: Priority crystallization and requirement finalization
-- **Documentation**: Comprehensive brief and optional PRD generation
+### Phase 1: Codebase Intelligence
+
+- Scan project files for tech stack, patterns, and architecture
+- Detect existing tools, frameworks, and conventions
+- Identify integration points and constraints
+- Present findings: "Based on your codebase using [X, Y, Z], I see [patterns]"
+
+### Phase 2: Essential Decisions
+
+Ask 3 core questions with simple A/B/C choices:
+
+**Platform**: Web app (A) | Mobile app (B) | CLI tool (C)
+**Scale**: Personal/team (A) | Department (B) | Public (C)  
+**Priority**: Speed (A) | Stability (B) | Features (C)
+
+### Phase 3: Actionable Output
+
+Generate structured deliverables:
+- **User Stories**: "As [user], I want [goal] so that [benefit]"
+- **Acceptance Criteria**: Specific, testable requirements
+- **Priority Queue**: P0 (must have) → P1 (should have) → P2 (nice to have)
+- **Next Steps**: Concrete tasks to start implementation
 
 ## MCP Integration
 
-- **Sequential**: Multi-step problem decomposition and reasoning
-- **Context7**: Framework expertise and pattern validation
+- **Sequential**: Systematic thinking through requirement analysis phases
+- **Context7**: Tech stack validation and framework best practices
 
 ## Examples
 
 ```bash
-/brainstorm "task management app"          # Basic exploration
-/brainstorm technical "distributed cache" # Technical deep-dive
-/brainstorm prd "SaaS pricing tool"       # Full PRD generation
-/brainstorm brief "mobile app concept"    # Brief documentation only
+/brainstorm "team task tracker"     # Full discovery with codebase scan
+/brainstorm --tech "user auth"      # Technical implementation focus  
+/brainstorm --brief "mobile idea"   # Quick spec without questions
 ```
 
-## Agent Routing
+## Workflow
 
-- **brainstorm-prd**: Complex project requirements, comprehensive PRD generation, business analysis
+1. **Codebase Scan**: Analyze existing code → present tech stack findings
+2. **Quick Choices**: 3 A/B/C questions → capture core requirements  
+3. **Structured Output**: Generate user stories + priorities + next steps
