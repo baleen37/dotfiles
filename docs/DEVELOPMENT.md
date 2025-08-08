@@ -96,7 +96,7 @@ nix build .#checks.aarch64-darwin.new_feature_unit
 
 ### File Organization
 
-```
+```text
 dotfiles/
 ├── apps/           # 플랫폼별 실행 파일
 ├── config/         # 외부화된 설정 파일
@@ -263,6 +263,7 @@ load_config "cache.yaml" ".cache.max_size_gb" "5"
 ### Phase 4 Development Workflow
 
 #### Configuration-Driven Development
+
 ```bash
 # 1. Define configuration requirements first
 # config/feature-settings.yaml
@@ -280,6 +281,7 @@ feature_enabled=$(get_unified_config "feature_enabled" "false")
 ```
 
 #### Modular Component Development
+
 ```bash
 # 1. Create component in appropriate directory
 # apps/common/feature-core.sh      # Shared logic
@@ -295,6 +297,7 @@ feature_enabled=$(get_unified_config "feature_enabled" "false")
 ### Performance-Oriented Development
 
 #### Configuration Optimization Patterns
+
 ```bash
 # Cache configuration at component level
 if [[ -z "$COMPONENT_CONFIG_LOADED" ]]; then
@@ -307,6 +310,7 @@ shared_timeout=$(get_unified_config "timeout" "30")
 ```
 
 #### Build Performance Testing
+
 ```bash
 # Include performance validation in TDD cycle
 # tests/performance/feature-performance.nix
@@ -325,11 +329,13 @@ fi
 ### Code Quality Standards
 
 #### Documentation-Driven Development
+
 1. **API Documentation First**: Write API docs before implementation
 2. **Example-Driven**: Include working examples in all documentation
 3. **Test Documentation**: Document test strategy and coverage
 
 #### Configuration Best Practices
+
 ```bash
 # ✅ Good: Use unified config with fallbacks
 timeout=$(get_unified_config "build_timeout" "3600")
@@ -349,6 +355,7 @@ load_all_configs  # Loads development-specific settings
 ### Refactoring Guidelines
 
 #### Configuration Externalization Pattern
+
 ```bash
 # Before (Phase 3): Hardcoded values
 CACHE_SIZE=5
@@ -361,6 +368,7 @@ ssh_dir=$(get_unified_config "ssh_dir_darwin" "/Users/$USER/.ssh")
 ```
 
 #### Module Extraction Pattern
+
 ```bash
 # Before: Monolithic script
 # apps/aarch64-darwin/apply (200+ lines)

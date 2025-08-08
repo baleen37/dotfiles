@@ -18,6 +18,7 @@ Currently, Anki configuration is managed manually. For future automation, consid
 ### Basic Configuration Structure
 
 Anki stores its configuration in:
+
 - `~/Library/Application Support/Anki2/` - Main data directory
 - `~/Library/Application Support/Anki2/User 1/` - User profile
 - `~/Library/Application Support/Anki2/addons21/` - Add-ons
@@ -51,6 +52,7 @@ Basic study settings for optimal learning:
 ### Sync Configuration
 
 To enable AnkiWeb sync:
+
 1. Create account at https://ankiweb.net
 2. In Anki: Tools → Preferences → Sync
 3. Sign in with AnkiWeb credentials
@@ -68,6 +70,7 @@ To automate Anki configuration in dotfiles:
 ## Usage
 
 After installation via dotfiles:
+
 1. Launch Anki from Applications or Spotlight
 2. Complete initial setup wizard
 3. Import any existing decks or create new ones

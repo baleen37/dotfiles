@@ -7,12 +7,14 @@ macOS 15 Sequoia는 강화된 보안 정책과 시스템 변경으로 인해 기
 ## 🚨 macOS 15 주요 변경사항
 
 ### 보안 강화
+
 - **Gatekeeper 정책 강화**: 서명되지 않은 앱 실행 제한
 - **SIP 확장**: 시스템 무결성 보호 범위 확대
 - **App Transport Security**: 네트워크 보안 요구사항 강화
 - **Private Network Access**: 로컬 네트워크 접근 제한
 
 ### 시스템 변경사항
+
 - **Homebrew 경로 변경**: `/opt/homebrew` 고정화
 - **Python 버전 업데이트**: 기본 Python 3.12
 - **Node.js 호환성**: 일부 네이티브 모듈 재컴파일 필요
@@ -23,6 +25,7 @@ macOS 15 Sequoia는 강화된 보안 정책과 시스템 변경으로 인해 기
 ### 1. Command Line Tools 설치 실패
 
 **증상:**
+
 ```bash
 $ xcode-select --install
 xcode-select: error: command line tools are already installed
@@ -30,6 +33,7 @@ xcode-select: error: command line tools are already installed
 ```
 
 **해결방법:**
+
 ```bash
 # 기존 설치 제거
 sudo rm -rf /Library/Developer/CommandLineTools
@@ -48,12 +52,14 @@ gcc --version
 ### 2. Homebrew 설치 권한 문제
 
 **증상:**
+
 ```bash
 $ /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 Error: Permission denied - /opt/homebrew
 ```
 
 **해결방법:**
+
 ```bash
 # 권한 확인
 ls -la /opt/
@@ -73,12 +79,14 @@ source ~/.zshrc
 ### 3. Nix 설치 실패 (T2/M-series 칩 관련)
 
 **증상:**
+
 ```bash
 $ curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install
 error: Nix daemon failed to start
 ```
 
 **해결방법:**
+
 ```bash
 # 기존 설치 완전 제거
 sudo /nix/uninstall
@@ -104,11 +112,13 @@ nix --version
 ### 1. 앱 서명 문제 (개발 도구)
 
 **증상:**
+
 ```bash
 "MyApp.app" cannot be opened because the developer cannot be verified.
 ```
 
 **해결방법:**
+
 ```bash
 # 개별 앱 허용
 sudo xattr -rd com.apple.quarantine /Applications/MyApp.app
@@ -126,12 +136,14 @@ spctl -a -t exec -vv /Applications/MyApp.app
 ### 2. 로컬 네트워크 접근 제한
 
 **증상:**
+
 ```bash
 # Docker 컨테이너 접근 불가
 curl: (7) Failed to connect to localhost port 3000: Connection refused
 ```
 
 **해결방법:**
+
 ```bash
 # 시스템 환경설정에서 허용
 # System Preferences → Security & Privacy → Privacy → Local Network
@@ -145,12 +157,14 @@ sudo /usr/libexec/ApplicationFirewall/socketfilterfw --unblock /Applications/Doc
 ### 3. 터미널 앱 권한 문제
 
 **증상:**
+
 ```bash
 # 파일 접근 거부
 Operation not permitted: ~/Documents/my-file.txt
 ```
 
 **해결방법:**
+
 ```bash
 # 시스템 환경설정에서 권한 부여
 # System Preferences → Security & Privacy → Privacy → Full Disk Access
@@ -165,12 +179,14 @@ tccutil reset All com.apple.Terminal
 ### 1. Python 호환성 문제
 
 **증상:**
+
 ```bash
 $ python3 -m pip install numpy
 error: Microsoft Visual C++ 14.0 is required
 ```
 
 **해결방법:**
+
 ```bash
 # Python 3.12 호환성 확인
 python3 --version  # 3.12.x
@@ -190,6 +206,7 @@ nix-shell -p python312 python312Packages.numpy
 ### 2. Node.js 네이티브 모듈 문제
 
 **증상:**
+
 ```bash
 $ npm install
 node-pre-gyp ERR! build error
@@ -197,6 +214,7 @@ node-pre-gyp ERR! stack Error: Failed to execute 'node-gyp build'
 ```
 
 **해결방법:**
+
 ```bash
 # Node.js 버전 확인
 node --version
@@ -215,12 +233,14 @@ xcode-select -p
 ### 3. Docker Desktop 호환성
 
 **증상:**
+
 ```bash
 $ docker run hello-world
 docker: Cannot connect to the Docker daemon at unix:///var/run/docker.sock
 ```
 
 **해결방법:**
+
 ```bash
 # Docker Desktop 최신 버전 확인
 docker --version
@@ -244,12 +264,14 @@ brew install --cask docker
 ### 1. Xcode 16 빌드 도구 문제
 
 **증상:**
+
 ```bash
 $ make build
 error: SDK does not contain 'libarclite' at the path '/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/arc/libarclite_macosx.a'
 ```
 
 **해결방법:**
+
 ```bash
 # Xcode 16 호환성 확인
 xcodebuild -version
@@ -268,12 +290,14 @@ make build
 ### 2. 아키텍처 불일치 문제
 
 **증상:**
+
 ```bash
 $ make build
 ld: symbol(s) not found for architecture arm64
 ```
 
 **해결방법:**
+
 ```bash
 # 아키텍처 확인
 uname -m  # arm64 또는 x86_64
@@ -294,12 +318,14 @@ export ARCHFLAGS="-arch arm64 -arch x86_64"
 ### 1. GitHub 인증 문제
 
 **증상:**
+
 ```bash
 $ git push origin main
 remote: Support for password authentication was removed on August 13, 2021.
 ```
 
 **해결방법:**
+
 ```bash
 # GitHub CLI 설치 및 로그인
 brew install gh
@@ -321,12 +347,14 @@ gh ssh-key add ~/.ssh/id_ed25519.pub
 ### 2. 프록시 환경 문제
 
 **증상:**
+
 ```bash
 $ nix build
 error: unable to download 'https://cache.nixos.org/...'
 ```
 
 **해결방법:**
+
 ```bash
 # 프록시 설정 확인
 echo $http_proxy
@@ -347,12 +375,14 @@ echo "https-proxy = http://proxy.company.com:8080" >> ~/.config/nix/nix.conf
 ### 1. Homebrew Cask 설치 실패
 
 **증상:**
+
 ```bash
 $ brew install --cask google-chrome
 Error: It seems there is already an App at '/Applications/Google Chrome.app'
 ```
 
 **해결방법:**
+
 ```bash
 # 기존 앱 제거
 rm -rf "/Applications/Google Chrome.app"
@@ -370,12 +400,14 @@ brew install --cask google-chrome --force
 ### 2. 앱 실행 시 권한 요청 반복
 
 **증상:**
-```
+
+```text
 "MyApp" would like to access files in your Documents folder.
 # 매번 권한 요청이 나타남
 ```
 
 **해결방법:**
+
 ```bash
 # 권한 데이터베이스 초기화
 sudo tccutil reset All
@@ -393,12 +425,14 @@ sudo tccutil reset All com.company.myapp
 ### 1. 메모리 사용량 급증
 
 **증상:**
+
 ```bash
 $ top
 # 메모리 사용량이 90% 이상
 ```
 
 **해결방법:**
+
 ```bash
 # 메모리 사용량 확인
 memory_pressure
@@ -418,12 +452,14 @@ sudo reboot
 ### 2. 디스크 공간 부족
 
 **증상:**
+
 ```bash
 $ df -h
 /dev/disk1 98% full
 ```
 
 **해결방법:**
+
 ```bash
 # 큰 파일 찾기
 du -h -d 1 ~ | sort -hr | head -20
@@ -510,11 +546,13 @@ echo "setopt HIST_EXPIRE_DUPS_FIRST" >> ~/.zshrc
 ## 📞 추가 지원
 
 ### Apple 지원 연락처
+
 - **Apple Support**: 1-800-APL-CARE
 - **Developer Support**: https://developer.apple.com/support/
 - **온라인 지원**: https://support.apple.com/
 
 ### 커뮤니티 리소스
+
 - **Stack Overflow**: macOS 15 태그
 - **Reddit**: r/macOSBigSur, r/MacOS
 - **Discord**: macOS 개발자 커뮤니티

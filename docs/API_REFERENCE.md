@@ -21,6 +21,7 @@
 **Performance:** 캐싱을 통해 중복 로딩 방지
 
 **Example:**
+
 ```bash
 source scripts/utils/config-loader.sh
 load_all_configs
@@ -31,6 +32,7 @@ load_all_configs
 특정 설정 타입에서 값을 가져옵니다.
 
 **Parameters:**
+
 - `config_type` (string): 설정 타입 ("build", "platform", "path")
 - `key` (string): 설정 키 (예: "timeout", "parallel_jobs")
 - `default_value` (string): 기본값
@@ -38,6 +40,7 @@ load_all_configs
 **Returns:** 설정값 또는 기본값
 
 **Example:**
+
 ```bash
 timeout=$(get_config build timeout "3600")
 ssh_dir=$(get_config path ssh_dir_darwin "/Users/${USER}/.ssh")
@@ -48,12 +51,14 @@ ssh_dir=$(get_config path ssh_dir_darwin "/Users/${USER}/.ssh")
 지능적 통합 설정 접근 - 모든 설정 타입에서 자동 검색합니다.
 
 **Parameters:**
+
 - `key` (string): 설정 키
 - `default_value` (string): 기본값
 
 **Search Order:** build → platform → path
 
 **Example:**
+
 ```bash
 # 모든 설정 타입에서 자동 검색
 timeout=$(get_unified_config timeout "3600")
@@ -67,6 +72,7 @@ platform_name=$(get_unified_config platform_name "Unknown")
 **Returns:** true/false
 
 **Example:**
+
 ```bash
 if is_config_loaded; then
   echo "Configuration already loaded"
@@ -81,12 +87,14 @@ cache_size=$(load_config "cache.yaml" ".cache.local.max_size_gb" "5")
 캐시 관련 설정을 로드합니다.
 
 **Parameters:**
+
 - `key` (string): 설정 키 ("max_size_gb", "cleanup_days", "cache_dir", "binary_caches")
 - `default` (string): 기본값
 
 **Returns:** 캐시 설정값
 
 **Example:**
+
 ```bash
 max_size=$(load_cache_config "max_size_gb" "5")
 cleanup_days=$(load_cache_config "cleanup_days" "7")
@@ -97,12 +105,14 @@ cleanup_days=$(load_cache_config "cleanup_days" "7")
 네트워크 관련 설정을 로드합니다.
 
 **Parameters:**
+
 - `key` (string): 설정 키 ("http_connections", "connect_timeout", "download_attempts")
 - `default` (string): 기본값
 
 **Returns:** 네트워크 설정값
 
 **Example:**
+
 ```bash
 connections=$(load_network_config "http_connections" "50")
 timeout=$(load_network_config "connect_timeout" "5")
@@ -113,6 +123,7 @@ timeout=$(load_network_config "connect_timeout" "5")
 플랫폼별 설정을 로드합니다.
 
 **Parameters:**
+
 - `platform` (string): 플랫폼명 ("darwin", "linux")
 - `key` (string): 설정 키 ("rebuild_command", "platform_name")
 - `default` (string): 기본값
@@ -120,6 +131,7 @@ timeout=$(load_network_config "connect_timeout" "5")
 **Returns:** 플랫폼 설정값
 
 **Example:**
+
 ```bash
 rebuild_cmd=$(load_platform_config "darwin" "rebuild_command" "darwin-rebuild")
 platform_name=$(load_platform_config "darwin" "platform_name" "Nix Darwin")
@@ -130,12 +142,14 @@ platform_name=$(load_platform_config "darwin" "platform_name" "Nix Darwin")
 보안 관련 설정을 로드합니다.
 
 **Parameters:**
+
 - `key` (string): 설정 키 ("ssh_key_type", "sudo_refresh_interval")
 - `default` (string): 기본값
 
 **Returns:** 보안 설정값
 
 **Example:**
+
 ```bash
 key_type=$(load_security_config "ssh_key_type" "ed25519")
 refresh_interval=$(load_security_config "sudo_refresh_interval" "240")
@@ -148,6 +162,7 @@ dotfiles 프로젝트의 루트 디렉토리를 찾습니다.
 **Returns:** 프로젝트 루트 경로
 
 **Example:**
+
 ```bash
 root_dir=$(get_dotfiles_root)
 echo "Project root: $root_dir"
@@ -218,6 +233,7 @@ esac
 조건부 파일 복사를 위한 Nix 모듈입니다.
 
 **Functions:**
+
 - `conditionalFileCopy`: 메인 복사 함수
 - `advanced.batchCopy`: 배치 복사 함수
 - `modules.copyEngine`: 복사 엔진 모듈
@@ -225,6 +241,7 @@ esac
 - `modules.changeDetector`: 변경 감지 모듈
 
 **Example:**
+
 ```nix
 { lib, ... }:
 let
@@ -254,11 +271,13 @@ in {
 플랫폼 감지 및 시스템 정보를 제공합니다.
 
 **Functions:**
+
 - `detectPlatform`: 현재 플랫폼 감지
 - `getSupportedSystems`: 지원되는 시스템 목록
 - `getPlatformConfig`: 플랫폼별 설정
 
 **Example:**
+
 ```nix
 { lib, ... }:
 let
@@ -279,6 +298,7 @@ in {
 Flake 설정을 위한 유틸리티입니다.
 
 **Functions:**
+
 - `mkFlakeConfig`: Flake 설정 생성
 - `getPlatformSystems`: 플랫폼별 시스템 구성
 - `getFlakeInputs`: Flake 입력 관리
@@ -288,6 +308,7 @@ Flake 설정을 위한 유틸리티입니다.
 시스템별 설정 빌더입니다.
 
 **Functions:**
+
 - `mkDarwinConfigurations`: macOS 설정 생성
 - `mkNixosConfigurations`: Linux 설정 생성
 - `mkAppConfigurations`: 애플리케이션 설정 생성
@@ -354,6 +375,7 @@ coreTests = nixpkgs.lib.filterAttrs (name: _:
 설정 파일 검증 스크립트입니다.
 
 **Usage:**
+
 ```bash
 # 모든 설정 검증
 ./scripts/validate-config
@@ -366,10 +388,12 @@ coreTests = nixpkgs.lib.filterAttrs (name: _:
 ```
 
 **Exit Codes:**
+
 - `0`: 검증 성공
 - `1`: 검증 실패
 
 **Functions:**
+
 - `validate_yaml_syntax()`: YAML 구문 검증
 - `validate_config_completeness()`: 설정 완전성 검증
 - `validate_platform_configs()`: 플랫폼 설정 검증
@@ -385,11 +409,13 @@ coreTests = nixpkgs.lib.filterAttrs (name: _:
 Nix 레벨 오류 처리를 제공합니다.
 
 **Functions:**
+
 - `throwIf`: 조건부 오류 발생
 - `warnIf`: 조건부 경고 출력
 - `tryDefault`: 기본값과 함께 안전한 실행
 
 **Example:**
+
 ```nix
 { lib, ... }:
 let
@@ -416,6 +442,7 @@ in {
 성능 관련 설정을 제공합니다.
 
 **Configuration Sections:**
+
 - `buildConfig`: 빌드 성능 설정
 - `cacheConfig`: 캐시 성능 설정  
 - `networkConfig`: 네트워크 성능 설정
@@ -475,6 +502,7 @@ with lib;
 #### Best Practices for Performance
 
 1. **Use Configuration Caching**
+
 ```bash
 # Check if config is already loaded before loading again
 if ! is_config_loaded; then
@@ -486,6 +514,7 @@ value=$(get_unified_config "key" "default")
 ```
 
 2. **Prefer Unified Interface**
+
 ```bash
 # Efficient: Single function call with intelligent search
 timeout=$(get_unified_config "timeout" "3600")
@@ -497,6 +526,7 @@ path_timeout=$(get_config "path" "timeout" "3600")
 ```
 
 3. **Environment Variable Override Strategy**
+
 ```bash
 # Leverage environment variables for frequently used values
 export CACHE_MAX_SIZE_GB=10
@@ -510,6 +540,7 @@ timeout=$(get_unified_config "timeout" "3600")     # Returns 7200
 ### Configuration State Management
 
 #### Cache Invalidation
+
 ```bash
 # Force reload if configuration files change
 unset CONFIG_CACHE_LOADED
@@ -517,6 +548,7 @@ load_all_configs
 ```
 
 #### Profile Switching
+
 ```bash
 # Switch profiles efficiently
 export CONFIG_PROFILE="production"

@@ -1,14 +1,8 @@
-#!/bin/sh -e
-
-VERSION=1.0
+#!/bin/bash -e
 
 # Platform-specific configuration for x86_64-linux
 SYSTEM_TYPE="x86_64-linux"
-FLAKE_SYSTEM="nixosConfigurations.${SYSTEM_TYPE}.config.system.build.toplevel"
 PLATFORM_TYPE="linux"
-PLATFORM_NAME="NixOS"
-REBUILD_COMMAND="nixos-rebuild"
-REBUILD_COMMAND_PATH="/run/current-system/sw/bin/nixos-rebuild"
 
 # Get the directory of this script
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)

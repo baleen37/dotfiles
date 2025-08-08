@@ -15,7 +15,7 @@ This document describes the simplified testing framework, organized into three f
 
 ### Test Categories
 
-```
+```text
 tests/
 ├── default.nix     # Simplified test entry point
 ├── unit/          # Core functionality tests (organized strategy below)
@@ -28,12 +28,14 @@ tests/
 ### Unit Test Organization Strategy
 
 **Consolidation Principles** (47+ files → ~24 files):
+
 - **One Test File Per Feature/Module**: Each major feature has a single comprehensive test file
 - **Numbered Test Categories**: 1-10 covering basic functionality to full workflow
 - **Reduced Redundancy**: Eliminated TDD setup tests and overlapping validations
 - **Maintained Coverage**: Preserved all real-world test scenarios
 
 **Test File Structure**:
+
 ```nix
 pkgs.runCommand "feature-test" {
   buildInputs = with pkgs; [ bash jq ... ];
@@ -52,6 +54,7 @@ pkgs.runCommand "feature-test" {
 ```
 
 **Key Consolidated Files**:
+
 - `claude-commands-test.nix` - All Claude command functionality
 - `claude-config-test.nix` - Configuration management
 - `auto-update-test.nix` - Core auto-update features
@@ -81,6 +84,7 @@ make test-core
 ```
 
 **Includes:**
+
 - Flake structure validation
 - Module imports and dependencies
 - User resolution and platform detection
@@ -98,6 +102,7 @@ make test-workflow
 ```
 
 **Includes:**
+
 - System build and deployment
 - Complete configuration workflows
 - Feature-specific workflows (Claude config, build-switch)
@@ -112,6 +117,7 @@ make test-perf
 ```
 
 **Includes:**
+
 - Build time measurements
 - Resource usage profiling
 
@@ -196,6 +202,7 @@ The CI pipeline runs tests in this simplified order:
 ### Removing a Test
 
 Tests should only be removed if they:
+
 - No longer test relevant functionality
 - Are redundant with other tests
 - Have never caught a real bug
@@ -213,6 +220,7 @@ nix log .#checks.$(nix eval --impure --expr 'builtins.currentSystem').test-name
 ## 📊 Benefits of Simplification
 
 ### Before
+
 - 84 test files across 6 categories
 - Complex auto-discovery system
 - Parallel execution framework
@@ -220,6 +228,7 @@ nix log .#checks.$(nix eval --impure --expr 'builtins.currentSystem').test-name
 - High maintenance burden
 
 ### After
+
 - ~20 test files across 3 categories
 - Explicit test registration
 - Simple sequential execution

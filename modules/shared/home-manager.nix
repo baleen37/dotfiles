@@ -17,8 +17,8 @@
 let
   name = "Jiho Lee";
   getUserInfo = import ../../lib/user-resolution.nix {
-  platform = if pkgs.stdenv.isDarwin then "darwin" else "linux";
-  returnFormat = "extended";
+    platform = if pkgs.stdenv.isDarwin then "darwin" else "linux";
+    returnFormat = "extended";
   };
   user = getUserInfo.user;
   email = "baleen37@gmail.com";
@@ -457,7 +457,7 @@ in
           IdentitiesOnly yes
           AddKeysToAgent yes
       '' + lib.optionalString isDarwin ''
-          UseKeychain yes
+        UseKeychain yes
       '';
     };
 
@@ -501,55 +501,55 @@ in
       escapeTime = 0;
       historyLimit = 50000;
       extraConfig = ''
-      # 기본 설정
-      set -g default-terminal "screen-256color"
-      set -g default-shell ${config.programs.zsh.package}/bin/zsh
-      set -g default-command "${config.programs.zsh.package}/bin/zsh -l"
-      set -g focus-events on
-      set -g mouse on
-      set -g base-index 1
-      set -g pane-base-index 1
-      set -g renumber-windows on
+        # 기본 설정
+        set -g default-terminal "screen-256color"
+        set -g default-shell ${config.programs.zsh.package}/bin/zsh
+        set -g default-command "${config.programs.zsh.package}/bin/zsh -l"
+        set -g focus-events on
+        set -g mouse on
+        set -g base-index 1
+        set -g pane-base-index 1
+        set -g renumber-windows on
 
-      # 키보드 설정
-      set-window-option -g xterm-keys on
-      set-option -g extended-keys on
-      set -as terminal-features 'xterm*:extkeys'
+        # 키보드 설정
+        set-window-option -g xterm-keys on
+        set-option -g extended-keys on
+        set -as terminal-features 'xterm*:extkeys'
 
-      # Alacritty와 같은 최신 터미널의 확장된 키 입력을 처리하기 위한 설정
-      set -as terminal-overrides ',*:keys=\E[u'
+        # Alacritty와 같은 최신 터미널의 확장된 키 입력을 처리하기 위한 설정
+        set -as terminal-overrides ',*:keys=\E[u'
 
-      # 상태바 설정
-      set -g status-position bottom
-      set -g status-bg colour234
-      set -g status-fg colour137
-      set -g status-left-length 20
-      set -g status-right-length 50
-      set -g status-left '#[fg=colour233,bg=colour241,bold] #S '
-      set -g status-right '#[fg=colour233,bg=colour241,bold] %d/%m #[fg=colour233,bg=colour245,bold] %H:%M:%S '
+        # 상태바 설정
+        set -g status-position bottom
+        set -g status-bg colour234
+        set -g status-fg colour137
+        set -g status-left-length 20
+        set -g status-right-length 50
+        set -g status-left '#[fg=colour233,bg=colour241,bold] #S '
+        set -g status-right '#[fg=colour233,bg=colour241,bold] %d/%m #[fg=colour233,bg=colour245,bold] %H:%M:%S '
 
-      # 윈도우 상태 표시
-      setw -g window-status-current-format ' #I#[fg=colour250]:#[fg=colour255]#W#[fg=colour50]#F '
-      setw -g window-status-format ' #I#[fg=colour237]:#[fg=colour250]#W#[fg=colour244]#F '
+        # 윈도우 상태 표시
+        setw -g window-status-current-format ' #I#[fg=colour250]:#[fg=colour255]#W#[fg=colour50]#F '
+        setw -g window-status-format ' #I#[fg=colour237]:#[fg=colour250]#W#[fg=colour244]#F '
 
-      # 키 바인딩
-      bind | split-window -h
-      bind - split-window -v
-      bind r source-file ~/.tmux.conf \; display "Config reloaded!"
+        # 키 바인딩
+        bind | split-window -h
+        bind - split-window -v
+        bind r source-file ~/.tmux.conf \; display "Config reloaded!"
 
-      # 탭(window) 관리 키 바인딩
-      bind t new-window
-      bind Tab last-window
+        # 탭(window) 관리 키 바인딩
+        bind t new-window
+        bind Tab last-window
 
-      # Alt 키로 prefix 없이 window 이동
-      bind -n M-h previous-window
-      bind -n M-l next-window
+        # Alt 키로 prefix 없이 window 이동
+        bind -n M-h previous-window
+        bind -n M-l next-window
 
-      # 세션 저장/복원 설정
-      set -g @resurrect-capture-pane-contents 'on'
-      set -g @continuum-restore 'on'
-      set -g @continuum-save-interval '15'
-    '';
+        # 세션 저장/복원 설정
+        set -g @resurrect-capture-pane-contents 'on'
+        set -g @continuum-restore 'on'
+        set -g @continuum-save-interval '15'
+      '';
     };
   };
 }

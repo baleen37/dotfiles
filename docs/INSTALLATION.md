@@ -7,12 +7,14 @@ This guide walks you through installing and configuring the Nix dotfiles system 
 ## 📋 Prerequisites
 
 ### System Requirements
+
 - **macOS 10.15+** or **NixOS 22.05+** or **Linux with Nix installed**
 - **Administrator/sudo access** for system-level configuration
 - **Internet connection** for downloading packages
 - **Git** for version control
 
 ### Supported Platforms
+
 - ✅ **macOS Apple Silicon** (aarch64-darwin)
 - ✅ **macOS Intel** (x86_64-darwin)
 - ✅ **Linux x86_64** (x86_64-linux)
@@ -25,6 +27,7 @@ This guide walks you through installing and configuring the Nix dotfiles system 
 This installer provides the best experience with flakes enabled by default.
 
 **For macOS:**
+
 ```bash
 # Install Command Line Tools first
 xcode-select --install
@@ -34,6 +37,7 @@ curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix 
 ```
 
 **For Linux:**
+
 ```bash
 # Install Nix with Determinate Systems installer
 curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install
@@ -74,6 +78,7 @@ git checkout main
 ## ⚙️ Step 3: Initial Configuration
 
 ### Set Your Username
+
 ```bash
 # Set your username environment variable
 export USER=$(whoami)
@@ -85,12 +90,14 @@ export USER=your-username
 ### Choose Your Configuration Method
 
 #### Method A: Quick Apply (Recommended for First Time)
+
 ```bash
 # Run the apply script for your platform
 ./apps/$(nix eval --impure --raw --expr 'builtins.currentSystem')/apply
 ```
 
 #### Method B: Build and Switch Separately
+
 ```bash
 # Build the configuration first
 make build
@@ -102,11 +109,13 @@ make switch HOST=your-hostname
 ### Platform-Specific Notes
 
 **macOS:**
+
 - The system will prompt for administrator password
 - Homebrew packages will be installed automatically
 - System preferences will be configured
 
 **NixOS:**
+
 - Requires sudo privileges for system rebuild
 - Network configuration may be updated
 - System will reboot if kernel changes are made
@@ -114,11 +123,13 @@ make switch HOST=your-hostname
 ## 🔧 Step 4: Customization
 
 ### Basic Customization
+
 1. **Edit packages**: Modify `modules/shared/packages.nix`
 2. **Configure shell**: Update shell settings in `modules/shared/`
 3. **Add dotfiles**: Place configuration files in `modules/shared/config/`
 
 ### Advanced Configuration
+
 - **Platform-specific packages**: Edit `modules/darwin/packages.nix` or `modules/nixos/packages.nix`
 - **System settings**: Modify platform-specific configurations
 - **Custom overlays**: Add packages to `overlays/`
@@ -126,6 +137,7 @@ make switch HOST=your-hostname
 ## ✅ Step 5: Verification
 
 ### Test Your Installation
+
 ```bash
 # Verify core tools are available
 which git zsh vim
@@ -140,18 +152,21 @@ nix flake check --impure
 ### Common Issues
 
 **Issue: Flakes not enabled**
+
 ```bash
 # Solution: Enable flakes in Nix configuration
 echo "experimental-features = nix-command flakes" >> ~/.config/nix/nix.conf
 ```
 
 **Issue: Permission denied during build**
+
 ```bash
 # Solution: Ensure USER environment variable is set
 export USER=$(whoami)
 ```
 
 **Issue: Build fails on macOS**
+
 ```bash
 # Solution: Install Command Line Tools
 xcode-select --install
@@ -160,6 +175,7 @@ xcode-select --install
 ## 🔄 Regular Updates
 
 ### Update System
+
 ```bash
 # Update flake inputs
 nix flake update
@@ -169,6 +185,7 @@ make build && make switch HOST=your-hostname
 ```
 
 ### Backup and Recovery
+
 ```bash
 # Create backup before major changes
 git checkout -b backup/$(date +%Y-%m-%d)

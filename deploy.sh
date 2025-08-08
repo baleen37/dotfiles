@@ -11,10 +11,10 @@ NC='\033[0m'
 # Auto-detect system
 if [ "$(uname)" = "Darwin" ]; then
     SYSTEM_TYPE="$(uname -m)-darwin"
-    REBUILD_CMD="darwin-rebuild"
+    # Darwin deployment uses darwin-rebuild
 else
     SYSTEM_TYPE="$(uname -m)-linux"
-    REBUILD_CMD="nixos-rebuild"
+    # Linux deployment uses nixos-rebuild
 fi
 
 # Set USER if not set

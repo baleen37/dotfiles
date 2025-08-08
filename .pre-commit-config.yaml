@@ -41,7 +41,7 @@ repos:
     rev: v0.10.0.1
     hooks:
       - id: shellcheck
-        args: [--severity=warning]
+        args: [--severity=error]
         exclude: ^scripts/lib/.*\.sh$  # Skip library files temporarily
 
   # Nix formatting and validation

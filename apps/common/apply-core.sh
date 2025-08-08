@@ -10,9 +10,11 @@ NC='\033[0m'
 # Common apply functions
 load_platform_config() {
   local target_name="$1"
-  local target_config="$(dirname "$0")/targets/${target_name}.sh"
+  local target_config
+  target_config="$(dirname "$0")/targets/${target_name}.sh"
 
   if [ -f "$target_config" ]; then
+    # shellcheck source=/dev/null
     source "$target_config"
     echo -e "${GREEN}Loaded configuration for ${target_name}${NC}"
   else
@@ -37,8 +39,10 @@ execute_apply_template() {
 
 # Main apply orchestrator
 run_apply() {
-  local script_dir="$(cd "$(dirname "$0")" && pwd)"
-  local target_name="$(basename "$(dirname "$script_dir")")"
+  local script_dir
+  script_dir="$(cd "$(dirname "$0")" && pwd)"
+  local target_name
+  target_name="$(basename "$(dirname "$script_dir")")"
 
   echo -e "${YELLOW}Starting apply process for ${target_name}...${NC}"
 

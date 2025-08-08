@@ -14,18 +14,21 @@
 ## 📋 사전 준비사항
 
 ### 1. 시스템 요구사항
+
 - **macOS 10.15 Catalina** 이상 (권장: macOS 13+)
 - **관리자 권한** 필요
 - **안정적인 인터넷 연결**
 - **최소 5GB 여유 공간**
 
 ### 2. Apple 계정 설정
+
 ```bash
 # App Store 로그인 확인
 mas account
 ```
 
 ### 3. 기본 도구 설치
+
 ```bash
 # Command Line Tools 설치 (최우선)
 xcode-select --install
@@ -90,6 +93,7 @@ nix flake check --impure
 ## 🛠️ 설치되는 도구들
 
 ### 개발 도구
+
 - **터미널**: iTerm2, Warp
 - **에디터**: Vim, VS Code
 - **버전 관리**: Git, GitHub CLI
@@ -97,6 +101,7 @@ nix flake check --impure
 - **개발 환경**: Node.js, Python, Go, Rust
 
 ### 생산성 도구
+
 - **런처**: Alfred
 - **창 관리**: Hammerspoon, Rectangle
 - **패스워드**: 1Password + CLI
@@ -104,10 +109,12 @@ nix flake check --impure
 - **통신**: Slack, Discord, Telegram
 
 ### 브라우저
+
 - **주요 브라우저**: Chrome, Firefox, Brave
 - **개발 도구**: 각 브라우저의 DevTools
 
 ### 시스템 최적화
+
 - **Alt-Tab**: 향상된 앱 스위칭
 - **Karabiner-Elements**: 키보드 커스터마이징
 - **Syncthing**: 파일 동기화
@@ -115,6 +122,7 @@ nix flake check --impure
 ## ⚙️ 시스템 환경 설정
 
 ### 키보드 최적화
+
 ```bash
 # 키 반복 속도 최적화 (이미 자동 설정됨)
 defaults read NSGlobalDomain KeyRepeat        # 결과: 2
@@ -122,6 +130,7 @@ defaults read NSGlobalDomain InitialKeyRepeat # 결과: 15
 ```
 
 ### Dock 설정
+
 ```bash
 # Dock 자동 숨김 및 크기 조정 (이미 자동 설정됨)
 defaults read com.apple.dock autohide   # 결과: 1
@@ -129,6 +138,7 @@ defaults read com.apple.dock tilesize   # 결과: 48
 ```
 
 ### 트랙패드 설정
+
 ```bash
 # 트랙패드 탭 클릭 활성화 (이미 자동 설정됨)
 defaults read com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking # 결과: 1
@@ -137,6 +147,7 @@ defaults read com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking # 결�
 ## 🔧 개발 환경 커스터마이징
 
 ### 1. 패키지 추가
+
 ```bash
 # 공통 패키지 추가
 vim modules/shared/packages.nix
@@ -149,6 +160,7 @@ vim modules/darwin/casks.nix
 ```
 
 ### 2. 셸 환경 설정
+
 ```bash
 # Zsh 설정 커스터마이징
 vim modules/shared/config/zsh/zshrc
@@ -158,6 +170,7 @@ vim modules/shared/config/zsh/aliases.zsh
 ```
 
 ### 3. Hammerspoon 창 관리
+
 ```bash
 # 창 관리 단축키 (이미 설정됨)
 # Cmd+Shift+← : 왼쪽 절반으로 창 이동
@@ -167,6 +180,7 @@ vim modules/shared/config/zsh/aliases.zsh
 ```
 
 ### 4. 개발 프로젝트 생성
+
 ```bash
 # 새 프로젝트 환경 생성
 nix run .#setup-dev my-project
@@ -179,11 +193,13 @@ bl setup-dev my-project
 ## 🎨 테마 및 외관
 
 ### 터미널 테마
+
 - **iTerm2**: 자동으로 Dark 테마 설정
 - **색상 스키마**: One Dark Pro
 - **폰트**: FiraCode Nerd Font
 
 ### 시스템 테마
+
 ```bash
 # 다크 모드 활성화
 osascript -e 'tell application "System Events" to tell appearance preferences to set dark mode to true'
@@ -195,6 +211,7 @@ defaults write NSGlobalDomain AppleAccentColor -int 1  # 그래파이트
 ## 🔐 보안 설정
 
 ### 1Password 설정
+
 ```bash
 # 1Password 설치 확인
 which op
@@ -205,6 +222,7 @@ op signin
 ```
 
 ### 시스템 보안
+
 ```bash
 # 자동 잠금 설정 (15분)
 sudo pmset -a displaysleep 15
@@ -216,6 +234,7 @@ sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate on
 ## 🚨 일반적인 문제 해결
 
 ### Xcode Command Line Tools 이슈
+
 ```bash
 # 재설치가 필요한 경우
 sudo xcode-select --reset
@@ -223,12 +242,14 @@ xcode-select --install
 ```
 
 ### Homebrew 권한 문제
+
 ```bash
 # Homebrew 권한 수정
 sudo chown -R $(whoami) /opt/homebrew
 ```
 
 ### 환경 변수 문제
+
 ```bash
 # USER 변수 확인
 echo $USER
@@ -241,6 +262,7 @@ echo "export USER=\$(whoami)" >> ~/.zshrc
 ## 📱 추가 권장 앱
 
 ### App Store 앱
+
 ```bash
 # mas-cli로 자동 설치 (선택사항)
 mas install 1333542190  # 1Password 7
@@ -248,6 +270,7 @@ mas install 497799835   # Xcode (필요한 경우)
 ```
 
 ### 수동 설치 권장 앱
+
 - **Finder 대체**: Path Finder
 - **텍스트 에디터**: Sublime Text, BBEdit
 - **디자인**: Figma, Sketch
@@ -256,6 +279,7 @@ mas install 497799835   # Xcode (필요한 경우)
 ## 🔄 정기 유지보수
 
 ### 매주 업데이트
+
 ```bash
 # 시스템 업데이트
 cd ~/dotfiles
@@ -267,6 +291,7 @@ brew update && brew upgrade
 ```
 
 ### 매월 정리
+
 ```bash
 # 캐시 정리
 nix store gc
@@ -279,6 +304,7 @@ sudo pmset -g assertions  # 절전 모드 확인
 ## 🎯 성능 최적화
 
 ### 시스템 성능
+
 ```bash
 # 메모리 압축 활성화
 sudo sysctl vm.compressor_mode=4
@@ -288,6 +314,7 @@ sudo nvram SystemAudioVolume=" "
 ```
 
 ### 개발 성능
+
 ```bash
 # Git 성능 향상
 git config --global core.preloadindex true

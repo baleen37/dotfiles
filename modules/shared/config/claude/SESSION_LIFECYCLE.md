@@ -251,7 +251,7 @@ memories/
 ## Integration Points
 
 ### With Python Hooks (Future)
-```python
+```text
 # Planned hook integration points
 class SessionLifecycleHooks:
     def on_session_start(self, context):

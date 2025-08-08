@@ -22,10 +22,12 @@ All agents should include this validation structure:
 Most agents follow this 4-step workflow pattern:
 
 ### Step 1: Analyze Existing
+
 - **List Existing Agents**: List all existing agents in the target directory to understand the project agent landscape.
 - **Identify Patterns**: Analyze existing agents to identify common patterns, structures, and conventions.
 
 ### Step 2: Gather Information
+
 - **Agent Name**: Ask for the name (in `kebab-case`).
 - **Agent Description**: Ask for a brief, one-sentence description. **IMPORTANT**: Emphasize that this description is critical for Claude Code's automatic delegation system.
 - **Proactive Usage**: Ask if this agent should be used proactively by including keywords like "use PROACTIVELY" or "MUST BE USED".
@@ -33,12 +35,14 @@ Most agents follow this 4-step workflow pattern:
 - **Task Context**: Ask what types of tasks or contexts should trigger automatic delegation to this agent.
 
 ### Step 3: Generate Agent File
+
 - **File Name**: Generate filename based on the provided name.
 - **File Path**: Determine the appropriate directory path.
 - **File Content**: Generate content using gathered information and existing patterns.
 - **Delegation Optimization**: Ensure the description field uses action-oriented language and includes specific keywords to improve Claude Code's automatic selection accuracy.
 
 ### Step 4: Finalize
+
 - **Show User**: Display the path and content of the newly created agent file.
 - **Delegation Testing**: Explain how to test if the agent will be automatically delegated by Claude Code.
 - **Next Steps**: Provide clear instructions including delegation testing and refinement.
@@ -93,18 +97,22 @@ description: [Action-oriented description optimized for automatic delegation, in
 ## Delegation Optimization Guidelines
 
 ### Description Field Best Practices
+
 - Use action-oriented language that clearly indicates when the agent should be used
 - Include specific keywords that match common task descriptions
 - Add "use PROACTIVELY" or "MUST BE USED" for agents that should be automatically selected
 - Be specific about the agent's domain and capabilities
 
 ### Task Context Examples
+
 Include examples of task contexts that should trigger automatic delegation:
+
 - Specific types of requests that match the agent's expertise
 - Keywords that users might use when requesting this type of work
 - Scenarios where the agent provides unique value
 
 ### Testing Delegation
+
 - Test the agent's automatic delegation by using task descriptions that match the intended context
 - Refine the description field if the agent isn't being selected automatically
 - Use specific, action-oriented language in task requests to trigger proper delegation
@@ -126,10 +134,10 @@ description: [Detailed description of the agent]
 
 - `name`: A unique, concise, and clear name for the agent, reflecting its core function (e.g., `security-auditor`, `nix-expert`, `frontend-developer`).
 - `description`: A detailed explanation of the agent's responsibilities, skills, and areas of expertise.
-    - What tasks does it perform?
-    - What technology stack is it familiar with (e.g., JWT, OAuth2, Nix, React)?
-    - What standards does it adhere to (e.g., OWASP, POSIX)?
-    - Clear guidelines on when to use this agent (e.g., `Use PROACTIVELY for...`).
+  - What tasks does it perform?
+  - What technology stack is it familiar with (e.g., JWT, OAuth2, Nix, React)?
+  - What standards does it adhere to (e.g., OWASP, POSIX)?
+  - Clear guidelines on when to use this agent (e.g., `Use PROACTIVELY for...`).
 
 ### Documentation Examples
 
@@ -165,6 +173,7 @@ description: Writes code.
 ```
 
 **Why it's bad:**
+
 - **Vague**: It's unclear what kind of code the agent writes (frontend, backend, infrastructure, etc.).
 - **Lacks Detail**: No mention of programming languages, frameworks, or libraries.
 - **No Context**: It's impossible to know when to call this agent.

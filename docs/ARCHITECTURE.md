@@ -25,6 +25,7 @@ This dotfiles system is built on a **modular, test-driven architecture** that pr
 ### Phase 4 Architectural Improvements (2025-07-08)
 
 #### 📁 Optimized Directory Structure
+
 - **apps/common/**: Shared logic across all platforms
 - **apps/platforms/**: Platform-specific implementations (Darwin/Linux)
 - **apps/targets/**: Architecture-specific configurations
@@ -34,6 +35,7 @@ This dotfiles system is built on a **modular, test-driven architecture** that pr
 - **modules/platform/**: Platform-specific Nix modules organization
 
 #### ⚙️ Configuration Externalization System
+
 - **Unified Config Interface**: `get_unified_config()` for intelligent config access
 - **Performance Caching**: Configuration loading optimization with state tracking
 - **Profile System**: Environment-specific configuration profiles (dev/prod)
@@ -43,7 +45,8 @@ This dotfiles system is built on a **modular, test-driven architecture** that pr
 ## 🏗️ System Architecture
 
 ### High-Level Structure
-```
+
+```text
 ┌─────────────────────────────────────────────────────────────────┐
 │                          flake.nix                              │
 │  ┌──────────────┐  ┌──────────────┐  ┌────────────────────┐   │
@@ -72,7 +75,7 @@ The system uses a **three-tier configuration approach**:
 
 ### 1. YAML Configuration Files
 
-```yaml
+```textyaml
 # config/platforms.yaml - Platform definitions
 platforms:
   supported_systems: ["x86_64-darwin", "aarch64-darwin", "x86_64-linux", "aarch64-linux"]
@@ -98,7 +101,7 @@ performance:
 security:
   ssh: { key_type: "ed25519", default_dir: "$HOME/.ssh" }
   sudo: { refresh_interval: 240, session_timeout: 900 }
-```
+```text
 
 ### 2. Environment Variable Overrides
 
@@ -114,7 +117,7 @@ export CONNECT_TIMEOUT=10
 # Platform overrides
 export PLATFORM_TYPE="darwin"
 export ARCH="aarch64"
-```
+```text
 
 ### 3. Configuration Loading API
 
@@ -126,7 +129,7 @@ source scripts/utils/config-loader.sh
 cache_size=$(load_cache_config "max_size_gb" "5")
 connections=$(load_network_config "http_connections" "50")
 rebuild_cmd=$(load_platform_config "darwin" "rebuild_command" "darwin-rebuild")
-```
+```text
 
 ## Build Process
 
@@ -140,7 +143,7 @@ source apps/$PLATFORM_SYSTEM/config.sh
 
 # Load common configuration
 source scripts/utils/config-loader.sh
-```
+```text
 
 ### 2. Environment Preparation
 
@@ -152,7 +155,7 @@ optimize_cache_usage
 # Sudo session management (for system builds)
 setup_sudo_session
 refresh_sudo_if_needed
-```
+```text
 
 ### 3. Platform-Specific Build
 
@@ -168,7 +171,7 @@ case "$PLATFORM_TYPE" in
     FLAKE_TARGET="nixosConfigurations.$SYSTEM_TYPE.config.system.build.toplevel"
     ;;
 esac
-```
+```text
 
 ### 4. Build Execution
 
@@ -178,7 +181,7 @@ nix build ".#$FLAKE_TARGET" \
   --max-jobs "$MAX_JOBS" \
   --cores "$BUILD_CORES" \
   --substitute-on-destination
-```
+```text
 
 ### 5. System Activation
 
@@ -189,7 +192,7 @@ if [[ "$REQUIRES_SUDO" == "true" ]]; then
 else
   "$REBUILD_COMMAND" switch --flake .
 fi
-```
+```text
 
 ## Testing Framework
 
@@ -199,7 +202,7 @@ The testing framework implements a **four-tier testing strategy**:
 
 **Purpose**: Test individual functions and modules in isolation
 
-```nix
+```textnix
 # Example: tests/unit/cache-management-unit.nix
 { pkgs, src ? ../. }:
 pkgs.runCommand "cache-management-test" { } ''
@@ -221,7 +224,7 @@ pkgs.runCommand "cache-management-test" { } ''
 
   touch $out
 ''
-```
+```text
 
 ### 2. Integration Tests (`tests/integration/`)
 
@@ -251,8 +254,7 @@ nix build .#checks.aarch64-darwin.new_feature_unit
 # Refactor while keeping tests green
 nix build .#checks.aarch64-darwin.new_feature_unit
 # Expected: Still succeeds
-```
-```
+```text
 
 ### Core Principles
 
@@ -264,7 +266,8 @@ nix build .#checks.aarch64-darwin.new_feature_unit
 
 ## 📁 Directory Structure
 
-```
+```text
+
 .
 ├── flake.nix                    # Main flake definition
 ├── flake.lock                  # Locked dependency versions
@@ -298,7 +301,7 @@ nix build .#checks.aarch64-darwin.new_feature_unit
 ├── overlays/                   # Nix package overlays
 ├── tests/                      # Comprehensive test suite
 └── docs/                       # Documentation
-```
+```text
 
 ## 🔧 Module System
 
@@ -320,17 +323,21 @@ nix build .#checks.aarch64-darwin.new_feature_unit
 ## 📚 Core Library Functions
 
 ### User Resolution System (`lib/get-user.nix`)
+
 Dynamic username detection for cross-platform compatibility.
 
 ### Platform Applications (`lib/platform-apps.nix`)
+
 Generate platform-specific applications and build tools.
 
 ### Test Applications (`lib/test-apps.nix`)
+
 Test framework integration with multiple test categories.
 
 ## 🔄 Flake Output Structure
 
 ### Application Availability by Platform
+
 | Application | Darwin | Linux | Description |
 |-------------|--------|-------|-------------|
 | `build` | ✅ | ✅ | Build system configuration |
@@ -343,15 +350,18 @@ Test framework integration with multiple test categories.
 ## 🧪 Testing Architecture
 
 ### Test Framework Structure
-```
+
+```text
+
 tests/
 ├── unit/                    # Unit tests (fast, isolated)
 ├── integration/             # Integration tests (system-level)
 ├── e2e/                     # End-to-end tests (full workflows)
 └── performance/             # Performance tests
-```
+```text
 
 ### Test Categories
+
 - **Core Tests**: Essential functionality (7 tests)
 - **Workflow Tests**: End-to-end scenarios (5 tests)
 - **Performance Tests**: Build time and resource usage (3 tests)
@@ -359,6 +369,7 @@ tests/
 ## 🚀 Build System Architecture
 
 ### Modular Build Scripts
+
 The build system is modularized into focused components:
 
 - **`scripts/lib/logging.sh`**: Color-coded logging and output formatting
@@ -367,6 +378,7 @@ The build system is modularized into focused components:
 - **`scripts/lib/build-logic.sh`**: Core build and switch orchestration
 
 ### Apply Script Template System
+
 Apply scripts are deduplicated using a template system:
 
 - **Template**: `scripts/templates/apply-template.sh` (common logic)
@@ -378,6 +390,7 @@ This achieves **90% code deduplication** (656 lines → 65 lines).
 ## 🔒 Security Model
 
 ### Configuration Management
+
 - **Immutable Files**: Static configurations are read-only
 - **Secret Management**: Sensitive data handled via `age` encryption
 - **Privilege Separation**: Build vs. runtime privilege separation
@@ -385,18 +398,22 @@ This achieves **90% code deduplication** (656 lines → 65 lines).
 ## 📊 Performance Characteristics
 
 ### Build Optimization
+
 - **Parallel Jobs**: Auto-detection of optimal core count
 - **CI Limits**: Conservative resource usage in CI environments
 - **Caching**: Aggressive use of Nix binary caches
 
 ### CI Performance Optimization
+
 **Performance Improvements** (67% faster execution):
+
 - **Parallel Platform Builds**: All 4 platforms tested simultaneously
 - **Smart Test Selection**: Draft PRs use quick smoke tests (5 min)
 - **Efficient Caching**: Nix store caching across builds
 - **Resource Management**: Optimal job parallelization
 
 **CI Workflow Strategy**:
+
 - Draft PRs: `make smoke` only (fast validation)
 - Ready PRs: Full build matrix (comprehensive testing)
 - Main branch: Complete test suite with performance monitoring
@@ -404,23 +421,28 @@ This achieves **90% code deduplication** (656 lines → 65 lines).
 ## 🔧 Extension Points
 
 ### Adding New Platforms
+
 1. Create platform directory: `modules/newplatform/`
 2. Add platform apps: `apps/arch-newplatform/`
 3. Update flake outputs: Add to `allSystems`
 4. Create host configurations: `hosts/newplatform/`
 
 ### Custom Modules
+
 Create new modules in appropriate directories following the established patterns.
 
 ## 🔗 Integration Points
 
 ### Home Manager Integration
+
 User-specific configurations managed through Home Manager.
 
 ### Overlay System
+
 Custom package definitions and patches in `overlays/`.
 
 ### Claude Code Integration
+
 - **Smart Preservation**: User settings preserved across updates
 - **Command System**: 20+ specialized development commands
 - **Context Awareness**: Nix and flake-aware AI assistance
@@ -428,11 +450,13 @@ Custom package definitions and patches in `overlays/`.
 ## 📈 Metrics and Monitoring
 
 ### Build Metrics
+
 - **Build Time**: Per-phase timing (build, switch, cleanup)
 - **Resource Usage**: CPU, memory, disk utilization
 - **Parallelization**: Job count and efficiency
 
 ### Test Metrics
+
 - **Coverage**: Test coverage across modules and platforms
 - **Performance**: Test execution time and resource usage
 - **Success Rate**: Test reliability and flake detection

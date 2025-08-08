@@ -50,11 +50,13 @@ git merge feature/add-new-package
 ### Development Process
 
 #### 1. Pre-Development Checklist
+
 - [ ] Create a descriptive branch name
 - [ ] Ensure `USER` environment variable is set
 - [ ] Run `make smoke` to verify baseline functionality
 
 #### 2. Development Loop
+
 ```bash
 # Make your changes
 # ...
@@ -70,7 +72,9 @@ nix run --impure .#build-switch  # Test system integration
 ```
 
 #### 3. Pre-Commit Workflow
+
 **Always run these commands in order before committing:**
+
 ```bash
 make lint     # pre-commit run --all-files
 make smoke    # nix flake check --all-systems --no-build
@@ -81,6 +85,7 @@ make smoke    # final flake check after build
 ### Testing Strategy
 
 #### Local Testing
+
 ```bash
 # Comprehensive local testing (matches CI)
 ./scripts/test-all-local
@@ -93,7 +98,9 @@ make test-perf                    # Performance tests only
 ```
 
 #### Testing on Multiple Platforms
+
 If your changes affect multiple platforms, test on:
+
 - **macOS**: x86_64-darwin, aarch64-darwin
 - **NixOS**: x86_64-linux, aarch64-linux
 
@@ -102,6 +109,7 @@ If your changes affect multiple platforms, test on:
 ### Code Style and Standards
 
 #### Nix Code
+
 - **Consistent formatting**: Use `nixpkgs-fmt` (automatically applied via pre-commit)
 - **Clear attribute names**: Use descriptive, semantic naming
 - **Documentation**: Add comments for complex logic
@@ -127,6 +135,7 @@ in
 ```
 
 #### Shell Scripts
+
 - **Proper error handling**: Use `set -euo pipefail`
 - **Clear functions**: Break complex logic into functions
 - **Colored output**: Use consistent color schemes
@@ -161,6 +170,7 @@ print_error() {
    - `modules/darwin/casks.nix`: Homebrew casks
 
 2. **Follow the existing pattern:**
+
    ```nix
    # modules/shared/packages.nix
    { pkgs }:
@@ -176,6 +186,7 @@ print_error() {
 #### Creating New Modules
 
 1. **Create the module file:**
+
    ```nix
    # modules/shared/my-new-module.nix
    { config, pkgs, lib, ... }:
@@ -190,6 +201,7 @@ print_error() {
    ```
 
 2. **Import in appropriate locations:**
+
    ```nix
    # In host configuration or parent module
    imports = [
@@ -198,6 +210,7 @@ print_error() {
    ```
 
 3. **Test across platforms:**
+
    ```bash
    # Test on current platform
    make build
@@ -222,6 +235,7 @@ tests/
 ```
 
 **Example unit test:**
+
 ```nix
 # tests/unit/my-feature-unit.nix
 { pkgs }:
@@ -272,6 +286,7 @@ When modifying the Claude configuration system:
    - Provides interactive merge tools for conflicts
 
 2. **Test configuration changes:**
+
    ```bash
    # Test the merge tool
    ./scripts/merge-claude-config --help
@@ -287,6 +302,7 @@ When modifying the Claude configuration system:
 When modifying the auto-update functionality:
 
 1. **Test the TTL behavior:**
+
    ```bash
    # Test with different flags
    ./scripts/auto-update-dotfiles --force
@@ -303,11 +319,13 @@ When modifying the auto-update functionality:
 When adding new global commands:
 
 1. **Install the system:**
+
    ```bash
    ./scripts/install-setup-dev
    ```
 
 2. **Test command integration:**
+
    ```bash
    bl list
    bl setup-dev test-project
@@ -323,6 +341,7 @@ When adding new global commands:
 ### Build Failures
 
 **Environment variable issues:**
+
 ```bash
 # Always ensure USER is set
 export USER=$(whoami)
@@ -330,6 +349,7 @@ nix run --impure .#build
 ```
 
 **Flake lock conflicts:**
+
 ```bash
 # Update flake inputs
 nix flake update
@@ -337,6 +357,7 @@ nix flake lock --update-input nixpkgs
 ```
 
 **Platform-specific issues:**
+
 ```bash
 # Clear nix store cache
 nix store gc
@@ -348,6 +369,7 @@ nix build --impure --show-trace .#darwinConfigurations.aarch64-darwin.system
 ### Testing Failures
 
 **Test discovery issues:**
+
 ```bash
 # Check test framework status
 make test-status
@@ -355,6 +377,7 @@ nix build --impure .#checks.$(nix eval --impure --expr 'builtins.currentSystem')
 ```
 
 **Claude configuration tests:**
+
 ```bash
 # Test Claude config preservation
 nix build --impure .#checks.$(nix eval --impure --expr 'builtins.currentSystem').claude_config_copy_unit
@@ -365,11 +388,13 @@ nix build --impure .#checks.$(nix eval --impure --expr 'builtins.currentSystem')
 ### Before Submitting
 
 1. **Complete the pre-commit workflow:**
+
    ```bash
    make lint && make smoke && make build && make smoke
    ```
 
 2. **Run comprehensive local tests:**
+
    ```bash
    ./scripts/test-all-local
    ```

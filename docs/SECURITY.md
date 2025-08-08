@@ -17,12 +17,14 @@ This guide outlines security considerations, best practices, and threat mitigati
 ### Threat Model
 
 **Assets Protected**:
+
 - System configuration integrity
 - User credentials and SSH keys
 - Development environment consistency
 - Build and deployment pipeline
 
 **Threat Vectors**:
+
 - Malicious package injection
 - Configuration tampering
 - Privilege escalation
@@ -34,6 +36,7 @@ This guide outlines security considerations, best practices, and threat mitigati
 ### Nix Package Verification
 
 **Package Source Validation**:
+
 ```bash
 # Verify package integrity
 nix store verify --all
@@ -46,12 +49,14 @@ nix show-derivation nixpkgs#package-name
 ```
 
 **Trusted Sources Policy**:
+
 - Primary: Official nixpkgs repository
 - Secondary: Trusted overlays with explicit review
 
 ### Overlay Security Guidelines
 
 **Use Commit Hashes Instead of Tags**:
+
 ```nix
 # ❌ Insecure: Uses tag reference
 src = fetchFromGitHub {
@@ -71,6 +76,7 @@ src = fetchFromGitHub {
 ```
 
 **Finding Commit Hashes**:
+
 ```bash
 # Using GitHub API
 curl -s https://api.github.com/repos/OWNER/REPO/git/refs/tags/TAG_NAME | jq -r '.object.sha'
@@ -80,6 +86,7 @@ git ls-remote https://github.com/OWNER/REPO refs/tags/TAG_NAME
 ```
 
 **Overlay Best Practices**:
+
 - Document commit hash origins with version comments
 - Use versioned release artifacts for pre-built packages
 - Regular security audits for tag usage
@@ -89,6 +96,7 @@ git ls-remote https://github.com/OWNER/REPO refs/tags/TAG_NAME
 ### Overlay Security
 
 **Overlay Review Process**:
+
 1. **Source Verification**: All overlays must be from trusted repositories
 2. **Code Review**: Custom overlays require security review
 3. **Minimal Scope**: Overlays limited to specific, necessary modifications
@@ -121,6 +129,7 @@ self: super: {
 ### Sudo and Privilege Management
 
 **build-switch Security**:
+
 - Early permission acquisition minimizes privilege window
 - Automatic permission cleanup after operations
 - Session isolation prevents privilege persistence
@@ -136,6 +145,7 @@ nix run --impure .#build-switch
 ```
 
 **Manual Sudo Guidelines**:
+
 ```bash
 # Correct: Preserve environment variables
 sudo -E USER=$USER command
@@ -150,6 +160,7 @@ nix run --impure .#build-switch
 ### SSH Key Management
 
 **Key Generation Security**:
+
 ```bash
 # Generate secure SSH keys
 nix run .#create-keys
@@ -161,6 +172,7 @@ nix run .#create-keys
 ```
 
 **Key Storage and Access**:
+
 - Keys stored in `~/.ssh/` with proper permissions (600)
 - Public keys copyable via `nix run .#copy-keys`
 - Private keys never committed or transmitted
@@ -169,6 +181,7 @@ nix run .#create-keys
 ### File Permissions
 
 **Configuration File Security**:
+
 - System files: Read-only via Nix store
 - User configurations: Managed by Home Manager
 - Secrets: Excluded via `.gitignore` and careful handling
@@ -179,12 +192,14 @@ nix run .#create-keys
 ### Credential Handling
 
 **Never Commit**:
+
 - API keys, tokens, passwords
 - SSH private keys
 - Service account credentials
 - Personal identifiable information
 
 **Best Practices**:
+
 ```bash
 # Use environment variables
 export API_KEY="$(cat ~/.secrets/api-key)"
@@ -201,6 +216,7 @@ git log --all --grep="password\|key\|secret" --oneline
 ### Age Encryption Integration
 
 **For Sensitive Configuration**:
+
 ```nix
 # Use age for encrypted secrets
 age.secrets.example = {
@@ -211,6 +227,7 @@ age.secrets.example = {
 ```
 
 **Encryption Workflow**:
+
 ```bash
 # Encrypt sensitive files
 age -r public-key -o secret.age secret.txt
@@ -225,12 +242,14 @@ git add -N secret.txt  # Never add the plaintext
 ### Build Environment
 
 **Isolation Measures**:
+
 - Builds run in isolated Nix sandboxes
 - Network access restricted during builds
 - Temporary directories cleaned automatically
 - No persistent state between builds
 
 **Verification Steps**:
+
 ```bash
 # Pre-commit security checks
 make lint                    # Code quality and security linting
@@ -244,12 +263,14 @@ make build                   # Full build verification
 ### CI/CD Pipeline Security
 
 **GitHub Actions Security**:
+
 - Minimal required permissions for workflows
 - No secrets in logs or outputs
 - Dependency pinning for action versions
 - Regular security updates for actions
 
 **Build Verification**:
+
 - All builds reproducible and deterministic
 - No arbitrary code execution
 - Package integrity verification
@@ -260,12 +281,14 @@ make build                   # Full build verification
 ### macOS Security
 
 **System Integrity Protection**:
+
 - Maintain SIP enabled
 - Use approved modification methods only
 - Document all system-level changes
 - Regular security update application
 
 **Application Security**:
+
 ```nix
 # Homebrew casks from trusted sources only
 homebrew.casks = [
@@ -278,6 +301,7 @@ homebrew.casks = [
 ### NixOS Security
 
 **System Configuration**:
+
 ```nix
 {
   # Enable firewall
@@ -299,6 +323,7 @@ homebrew.casks = [
 ### Security Monitoring
 
 **Regular Checks**:
+
 ```bash
 # Package vulnerability scanning
 nix-env --query --available --attr-path nixos.vulnix
@@ -311,6 +336,7 @@ make build && make test
 ```
 
 **Audit Procedures**:
+
 1. **Monthly**: Review access logs and system changes
 2. **Quarterly**: Full security configuration review
 3. **Annually**: Threat model update and key rotation
@@ -319,12 +345,14 @@ make build && make test
 ### Logging and Alerting
 
 **Security Events**:
+
 - Failed sudo attempts
 - SSH authentication failures
 - Unauthorized configuration changes
 - Build failures or anomalies
 
 **Log Management**:
+
 - Centralized logging for security events
 - Log retention policies
 - Automated alerting for critical events
@@ -335,12 +363,14 @@ make build && make test
 ### Security Incident Procedures
 
 **Detection and Assessment**:
+
 1. Identify the nature and scope of the incident
 2. Determine affected systems and data
 3. Assess potential impact and damage
 4. Document all findings and actions
 
 **Containment and Recovery**:
+
 ```bash
 # Immediate isolation
 sudo systemctl stop networking  # NixOS
@@ -356,6 +386,7 @@ make build && make test
 ```
 
 **Communication and Documentation**:
+
 - Internal incident notification
 - External disclosure if required
 - Lessons learned documentation
@@ -364,6 +395,7 @@ make build && make test
 ### Recovery Procedures
 
 **System Recovery**:
+
 ```bash
 # Clean rebuild from trusted sources
 nix store gc
@@ -377,6 +409,7 @@ git log --oneline -10
 ```
 
 **Credential Rotation**:
+
 ```bash
 # Rotate SSH keys
 nix run .#create-keys
@@ -392,12 +425,14 @@ nix run .#create-keys
 ### Security Policies
 
 **Access Control Policy**:
+
 - Regular access review (quarterly)
 - Principle of least privilege
 - Multi-factor authentication where possible
 - Account lifecycle management
 
 **Change Management**:
+
 - All changes via pull requests
 - Required security review for sensitive changes
 - Automated testing and validation
@@ -406,12 +441,14 @@ nix run .#create-keys
 ### Regulatory Considerations
 
 **Data Protection**:
+
 - No personal data in configurations
 - Secure handling of development credentials
 - Regular data retention policy review
 - Privacy by design principles
 
 **Audit Requirements**:
+
 - Comprehensive logging of system changes
 - Access trail maintenance
 - Regular compliance verification
@@ -420,24 +457,28 @@ nix run .#create-keys
 ## Security Checklist
 
 ### Daily Operations
+
 - [ ] Use `build-switch` for system changes
 - [ ] Verify USER environment variable set
 - [ ] Check for security updates
 - [ ] Review uncommitted changes
 
 ### Weekly Reviews
+
 - [ ] Run comprehensive test suite
 - [ ] Review access logs
 - [ ] Check for dependency updates
 - [ ] Verify backup integrity
 
 ### Monthly Tasks
+
 - [ ] Security configuration review
 - [ ] Vulnerability scanning
 - [ ] Access control audit
 - [ ] Incident response plan review
 
 ### Annual Activities
+
 - [ ] Threat model update
 - [ ] Security training refresh
 - [ ] Penetration testing

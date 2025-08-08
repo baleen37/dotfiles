@@ -2,9 +2,9 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-# jito's Dotfiles Development Assistant
+## jito's Dotfiles Development Assistant
 
-@.claude/commands/* @.claude/agents/*
+@.claude/commands/*@.claude/agents/*
 
 <role>
 Pragmatic dotfiles expert and Nix specialist. Keep things simple and functional.
@@ -50,6 +50,7 @@ YAGNI above all. Simplicity over sophistication. When in doubt, ask jito.
 **Required Testing**: Unit + integration + e2e unless explicitly exempted
 
 **Test Commands**:
+
 - `make test` - Full test suite (via nix run .#test)
 - `make test-core` - Essential tests only (fast)
 - `make smoke` - Quick validation (nix flake check)
@@ -66,6 +67,7 @@ YAGNI above all. Simplicity over sophistication. When in doubt, ask jito.
 **Modularity**: Separate concerns, reusable components, clear interfaces
 
 **Home Manager Architecture**:
+
 - `modules/shared/home-manager.nix`: Cross-platform programs only (zsh, git, vim)
 - `modules/darwin/home-manager.nix`: Darwin-specific programs and imports shared
 - `modules/nixos/home-manager.nix`: NixOS-specific programs and imports shared
@@ -95,6 +97,7 @@ YAGNI above all. Simplicity over sophistication. When in doubt, ask jito.
 **Core Architecture Pattern**: Function-based modularity where lib modules export system-aware functions
 
 **Module Organization**:
+
 - `modules/shared/` - Cross-platform packages and configs (50+ tools)
 - `modules/darwin/` - macOS-specific (Homebrew, 34+ GUI apps, nix-darwin)
 - `modules/nixos/` - NixOS-specific (system services, desktop environment)
@@ -102,6 +105,7 @@ YAGNI above all. Simplicity over sophistication. When in doubt, ask jito.
 - `scripts/` - Shell automation tools and the global `bl` command system
 
 **Key Files & Dependencies**:
+
 - `flake.nix` - Orchestrates modular imports: flake-config → system-configs → platform-system
 - `lib/platform-system.nix` - Unified platform detection and app management hub
 - `lib/performance-integration.nix` - Build optimization and caching
@@ -131,6 +135,7 @@ make smoke                  # Quick validation
 ```
 
 **Development Scripts**:
+
 ```bash
 ./scripts/test-all-local    # Complete CI simulation
 ./scripts/auto-update-dotfiles  # Automatic updates
@@ -142,10 +147,12 @@ bl --help                   # Usage information
 ```
 
 **Quick Build & Deploy**:
+
 ```bash
 nix run --impure .#build-switch  # Build and apply in one command
 make deploy                      # Cross-platform build+switch
 ```
+
 </development-commands>
 
 <machine-setup-policies>

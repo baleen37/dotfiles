@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/bash -e
 
 # Check for help flag
 if [ "$1" = "--help" ] || [ "$1" = "-h" ] || [ "$1" = "help" ]; then
@@ -25,39 +25,35 @@ fi
 
 # Platform-specific configuration for aarch64-darwin
 SYSTEM_TYPE="aarch64-darwin"
-FLAKE_SYSTEM="darwinConfigurations.${SYSTEM_TYPE}.system"
 PLATFORM_TYPE="darwin"
-PLATFORM_NAME="Nix Darwin"
-REBUILD_COMMAND="darwin-rebuild"
 # Path resolution with fallback function
 pathResolutionWithFallback() {
     local target_command="${1:-darwin-rebuild}"
 
     # Priority 1: Check if result symlink exists and is executable
     if [ -f "./result/sw/bin/${target_command}" ] && [ -x "./result/sw/bin/${target_command}" ]; then
-        echo "./result/sw/bin/${target_command}"
+        printf "%s\n" "./result/sw/bin/${target_command}"
         return 0
     fi
 
     # Priority 2: Check if command is available in PATH
     if command -v "$target_command" >/dev/null 2>&1; then
-        echo "$target_command"
+        printf "%s\n" "$target_command"
         return 0
     fi
 
     # Priority 3: Try system fallback path
     if [ -f "/run/current-system/sw/bin/${target_command}" ] && [ -x "/run/current-system/sw/bin/${target_command}" ]; then
-        echo "/run/current-system/sw/bin/${target_command}"
+        printf "%s\n" "/run/current-system/sw/bin/${target_command}"
         return 0
     fi
 
     # Priority 4: Default fallback (may not exist)
-    echo "/run/current-system/sw/bin/${target_command}"
+    printf "%s\n" "/run/current-system/sw/bin/${target_command}"
     return 1
 }
 
-# Implement fallback path resolution for REBUILD_COMMAND_PATH
-REBUILD_COMMAND_PATH=$(pathResolutionWithFallback "darwin-rebuild")
+# Note: pathResolutionWithFallback function is available for use in common build script
 
 # Darwin-specific environment
 export NIXPKGS_ALLOW_UNFREE=1

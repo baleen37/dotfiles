@@ -16,7 +16,7 @@ The dotfiles system uses a sophisticated external configuration system that allo
 
 ## 📁 Configuration File Structure
 
-```
+```text
 config/
 ├── build-settings.yaml      # Build system configuration
 ├── platforms.yaml          # Platform-specific settings
@@ -30,6 +30,7 @@ config/
 ## 🔧 Core Configuration Files
 
 ### build-settings.yaml
+
 Controls build system behavior and performance settings.
 
 ```yaml
@@ -51,6 +52,7 @@ build:
 ```
 
 ### platforms.yaml
+
 Defines platform-specific configurations and supported architectures.
 
 ```yaml
@@ -73,6 +75,7 @@ platforms:
 ```
 
 ### paths.yaml
+
 Manages directory paths and system-specific locations.
 
 ```yaml
@@ -156,6 +159,7 @@ security:
 ### Profile System
 
 #### Development Profile (config/profiles/development.yaml)
+
 ```yaml
 build:
   timeout: 7200  # Longer timeout for dev builds
@@ -169,6 +173,7 @@ development:
 ```
 
 #### Production Profile (config/profiles/production.yaml)
+
 ```yaml
 build:
   timeout: 3600  # Standard timeout
@@ -198,6 +203,7 @@ security:
 ## 🔧 Customization Examples
 
 ### Custom Build Settings
+
 ```yaml
 # Override default build behavior
 build:
@@ -211,6 +217,7 @@ darwin:
 ```
 
 ### Custom Path Mappings
+
 ```yaml
 # Override default SSH directory
 ssh_directories:
@@ -234,16 +241,19 @@ Configuration values are automatically exported as environment variables:
 ## 🐛 Troubleshooting
 
 ### Configuration Not Loading
+
 1. Check file syntax: `yamllint config/*.yaml`
 2. Verify file permissions
 3. Check config loader output: `bash scripts/utils/config-loader.sh`
 
 ### Missing Configuration Values
+
 1. Use unified config with fallbacks: `get_unified_config key default`
 2. Check profile loading: `echo $CONFIG_PROFILE`
 3. Verify default configuration loading
 
 ### Performance Issues
+
 1. Configuration caching enabled: Check `CONFIG_CACHE_LOADED`
 2. Avoid redundant loading calls
 3. Use `is_config_loaded()` before loading
