@@ -48,6 +48,7 @@ help:
 	@echo "  build       - Build all Darwin and NixOS configurations"
 	@echo "  build-current - Build only current platform (faster)"
 	@echo "  build-fast  - Fast build with optimizations"
+	@echo "  build-switch - Build current platform and switch in one step"
 	@echo "  apply       - Apply already built configuration"
 	@echo "  switch      - Build + apply in one step (requires sudo)"
 	@echo "  deploy      - Build+switch (works on any computer)"
@@ -154,6 +155,26 @@ build-fast: check-user
 	@duration=$$((end_time - start_time))
 	@echo "✅ Fast build completed in $${duration}s with optimizations"
 
+build-switch: check-user
+	@echo "🚀 Building and switching current platform: $(CURRENT_SYSTEM) with USER=$(USER)..."
+	@start_time=$$(date +%s); \
+	OS=$$(uname -s); \
+	TARGET=$${HOST:-$(CURRENT_SYSTEM)}; \
+	echo "🎯 Target system: $${TARGET}"; \
+	if [ "$${OS}" = "Darwin" ]; then \
+		echo "🔨 Building Darwin configuration..."; \
+		export USER=$(USER); $(NIX) build --impure .#darwinConfigurations.$${TARGET}.system $(ARGS); \
+		echo "🔄 Switching to new configuration..."; \
+		sudo -E USER=$(USER) ./result/sw/bin/darwin-rebuild switch --impure --flake .#$${TARGET} $(ARGS); \
+		unlink ./result; \
+	else \
+		echo "🔨 Building and switching NixOS configuration..."; \
+		sudo -E USER=$(USER) SSH_AUTH_SOCK=$$SSH_AUTH_SOCK /run/current-system/sw/bin/nixos-rebuild switch --impure --flake .#$${TARGET} $(ARGS); \
+	fi; \
+	end_time=$$(date +%s); \
+	duration=$$((end_time - start_time)); \
+	echo "✅ Build and switch completed in $${duration}s with USER=$(USER)"
+
 switch: check-user
 	@echo "🔄 Switching system configuration with USER=$(USER)..."
 	@OS=$$(uname -s); \
@@ -161,7 +182,7 @@ switch: check-user
 	echo "🎯 Target system: $${TARGET}"; \
 	if [ "$${OS}" = "Darwin" ]; then \
 		export USER=$(USER); nix --extra-experimental-features 'nix-command flakes' build --impure .#darwinConfigurations.$${TARGET}.system $(ARGS); \
-		sudo -E USER=$(USER) ./result/sw/bin/darwin-rebuild switch --flake .#$${TARGET} $(ARGS); \
+		sudo -E USER=$(USER) ./result/sw/bin/darwin-rebuild switch --impure --flake .#$${TARGET} $(ARGS); \
 		unlink ./result; \
 	else \
 		sudo -E USER=$(USER) SSH_AUTH_SOCK=$$SSH_AUTH_SOCK /run/current-system/sw/bin/nixos-rebuild switch --impure --flake .#$${TARGET} $(ARGS); \
@@ -187,4 +208,4 @@ setup-mcp: check-user
 	@echo "🤖 Setting up Claude Code MCP servers..."
 	@./scripts/setup-claude-mcp --main
 
-.PHONY: help check-user lint smoke test test-quick test-core test-workflow test-perf test-list build build-linux build-darwin build-current build-fast switch apply deploy platform-info setup-mcp
+.PHONY: help check-user lint smoke test test-quick test-core test-workflow test-perf test-list build build-linux build-darwin build-current build-fast build-switch switch apply deploy platform-info setup-mcp
