@@ -1,7 +1,9 @@
 ---
 name: create-pr
 description: "Automated pull request creation with intelligent descriptions and metadata"
-mcp-servers: [sequential-thinking, serena]
+mcp-servers: []
+agents: []
+tools: [Read, Bash, Grep, Glob, Write]
 ---
 
 # /create-pr - Automated Pull Request Creation

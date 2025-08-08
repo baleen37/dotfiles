@@ -1,8 +1,9 @@
 ---
 name: design
 description: "Design system architecture, APIs, and component interfaces"
-mcp-servers: [sequential-thinking, context7, serena]
+mcp-servers: [sequential, context7]
 agents: [system-architect]
+tools: [Read, Bash, Grep, Glob, Write]
 ---
 
 # /design - System and Component Design

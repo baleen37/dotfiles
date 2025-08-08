@@ -1,8 +1,9 @@
 ---
 name: index
 description: "Generate comprehensive project documentation and knowledge base"
-mcp-servers: [sequential-thinking, context7, serena]
+mcp-servers: [sequential, context7]
 agents: [technical-writer]
+tools: [Read, Grep, Glob, Bash, Write, TodoWrite, Task]
 ---
 
 # /index - Project Documentation

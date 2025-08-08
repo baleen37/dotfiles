@@ -1,7 +1,9 @@
 ---
 name: save
 description: "Session context persistence and memory management"
-mcp-servers: [sequential-thinking, serena]
+mcp-servers: []
+agents: []
+tools: [Read, Grep, Glob, Write, TodoWrite]
 ---
 
 # /save - Session Persistence

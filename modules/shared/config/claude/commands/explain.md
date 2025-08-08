@@ -1,8 +1,9 @@
 ---
 name: explain
 description: "Provide clear explanations of code, concepts, or system behavior"
-mcp-servers: [sequential-thinking, context7, serena]
+mcp-servers: [sequential, context7]
 agents: [code-educator]
+tools: [Read, Grep, Glob, Bash, TodoWrite, Task]
 ---
 
 # /explain - Code and Concept Explanation

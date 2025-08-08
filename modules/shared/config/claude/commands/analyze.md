@@ -1,8 +1,9 @@
 ---
 name: analyze
 description: "Systematic code analysis: Scan → Analyze → Report with actionable plan"
-mcp-servers: [sequential-thinking, context7, serena]
+mcp-servers: [sequential, context7]
 agents: [security-auditor, performance-optimizer]
+tools: [Read, Bash, Grep, Glob, Write, Task]
 ---
 
 # /analyze - Systematic Code Analysis
@@ -100,4 +101,4 @@ agents: [security-auditor, performance-optimizer]
 
 - **security-auditor**: Auto-triggered for auth, API, data handling
 - **performance-optimizer**: Auto-triggered for algorithms, queries, bottlenecks
-- **sequential-thinking**: For complex multi-step analysis workflows
+- **sequential**: For complex multi-step analysis workflows

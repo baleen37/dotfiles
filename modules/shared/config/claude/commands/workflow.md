@@ -1,8 +1,9 @@
 ---
 name: workflow
 description: "Generate structured implementation workflows from PRDs and feature requirements"
-mcp-servers: [sequential-thinking, context7, playwright, serena]
+mcp-servers: [sequential, context7, playwright]
 agents: [system-architect, frontend-developer, backend-engineer]
+tools: [Read, Write, Edit, MultiEdit, Bash, Grep, Glob, TodoWrite, Task, WebSearch]
 ---
 
 # /workflow - Implementation Workflow Generator

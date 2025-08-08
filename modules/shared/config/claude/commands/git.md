@@ -1,7 +1,9 @@
 ---
 name: git
 description: "Basic Git operations with status, branch management, and workflow guidance"
-mcp-servers: [sequential-thinking, serena]
+mcp-servers: []
+agents: []
+tools: [Read, Bash, Grep, Glob, Write]
 ---
 
 # /git - Basic Git Operations

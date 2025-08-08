@@ -1,7 +1,9 @@
 ---
 name: commit
 description: "Intelligent commit message generation with change analysis and conventional commits"
-mcp-servers: [sequential-thinking, serena]
+mcp-servers: []
+agents: []
+tools: [Read, Bash, Grep, Glob, Write]
 ---
 
 # /commit - Smart Git Commit

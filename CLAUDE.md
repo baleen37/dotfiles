@@ -192,7 +192,6 @@ make deploy                      # Cross-platform build+switch
 - Claude Code settings follow https://github.com/SuperClaude-Org/SuperClaude_Framework/tree/SuperClaude_V4_Beta with custom modifications
 - claude code 설정 관련해서는 최대한 간결하게 유지 보수 가능하게, 동적으로 파악가능하게, 다만 너무 많이 우회하면 명시적으로 표기 등등  해야함.
 - To encourage more proactive subagent use, include phrases like "use PROACTIVELY" or "MUST BE USED" in your description field. 이런식으로 쓰면 agent 가 알아서 할당되기 때문에 명시적으로 쓸필요가 없긴하다
-- makefile 생성 남발하지마
 </memory>
 
 ## Claude Code Integration

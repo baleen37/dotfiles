@@ -1,7 +1,9 @@
 ---
 name: load
 description: "Project context loading and session lifecycle management"
-mcp-servers: [sequential-thinking, serena]
+mcp-servers: []
+agents: []
+tools: [Read, Grep, Glob, Write, TodoWrite]
 ---
 
 # /load - Project Context Loading

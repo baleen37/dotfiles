@@ -1,8 +1,9 @@
 ---
 name: document
 description: "Generate focused documentation for components, APIs, and features"
-mcp-servers: [sequential-thinking, context7, serena]
+mcp-servers: [context7]
 agents: [technical-writer]
+tools: [Read, Bash, Grep, Glob, Write]
 ---
 
 # /document - Documentation Generation

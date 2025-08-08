@@ -1,8 +1,9 @@
 ---
 name: brainstorm
 description: "Interactive requirements discovery through Socratic dialogue and systematic exploration"
-mcp-servers: [sequential-thinking, context7, serena]
+mcp-servers: [sequential, context7]
 agents: [brainstorm-prd]
+tools: [Read, Write, Edit, MultiEdit, Bash, Grep, Glob, TodoWrite, Task, WebSearch]
 ---
 
 # /brainstorm - Interactive Requirements Discovery

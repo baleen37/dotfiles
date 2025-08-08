@@ -1,8 +1,9 @@
 ---
 name: implement
 description: "Feature and code implementation with intelligent agent routing and framework expertise"
-mcp-servers: [sequential-thinking, context7, playwright, serena]
+mcp-servers: [context7, sequential, playwright]
 agents: [frontend-developer, backend-engineer, security-auditor, system-architect]
+tools: [Read, Write, Edit, MultiEdit, Bash, Grep, Glob, TodoWrite, Task]
 ---
 
 # /implement - Feature Implementation
