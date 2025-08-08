@@ -204,7 +204,7 @@ in
           fi
 
           echo "Worktree: $(pwd) | Branch: $(git branch --show-current)"
-          claude --dangerously-skip-permissions
+          cc
         }
       '';
     };
