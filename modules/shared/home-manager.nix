@@ -80,7 +80,7 @@ in
       echo "Setting up keyboard input configuration..."
 
       # 한영키 전환을 Shift+Cmd+Space로 설정
-      $DRY_RUN_CMD defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 60 "
+      $DRY_RUN_CMD /usr/bin/defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 60 "
         <dict>
           <key>enabled</key><true/>
           <key>value</key><dict>
