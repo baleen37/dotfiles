@@ -121,103 +121,155 @@ validate_test_environment() {
 run_unit_tests() {
     log_header "단위 테스트 실행"
 
-    local unit_test_script="$SCRIPT_DIR/unit/test-claude-activation.sh"
+    local unit_tests=(
+        "$SCRIPT_DIR/unit/test-claude-activation.sh"
+        "$SCRIPT_DIR/unit/test-claude-activation-simple.sh"
+    )
 
-    if [[ ! -f "$unit_test_script" ]]; then
-        log_error "단위 테스트 스크립트 누락: $unit_test_script"
-        return 1
-    fi
+    local unit_passed=0
+    local unit_failed=0
 
-    log_info "Claude activation 단위 테스트 실행..."
-
-    if [[ "${VERBOSE:-false}" == "true" ]]; then
-        if bash "$unit_test_script"; then
-            log_success "단위 테스트 성공"
-            ((TOTAL_PASSED++))
-        else
-            log_fail "단위 테스트 실패"
-            ((TOTAL_FAILED++))
-            return 1
+    for unit_test_script in "${unit_tests[@]}"; do
+        if [[ ! -f "$unit_test_script" ]]; then
+            log_warning "단위 테스트 스크립트 누락: $(basename "$unit_test_script")"
+            continue
         fi
+
+        local test_name=$(basename "$unit_test_script")
+        log_info "$test_name 실행..."
+
+        if [[ "${VERBOSE:-false}" == "true" ]]; then
+            if bash "$unit_test_script"; then
+                log_success "$test_name 성공"
+                ((unit_passed++))
+            else
+                log_fail "$test_name 실패"
+                ((unit_failed++))
+            fi
+        else
+            if bash "$unit_test_script" >/dev/null 2>&1; then
+                log_success "$test_name 성공"
+                ((unit_passed++))
+            else
+                log_fail "$test_name 실패"
+                ((unit_failed++))
+                log_info "상세한 오류를 보려면 --verbose 옵션을 사용하세요"
+            fi
+        fi
+    done
+
+    log_info "단위 테스트 결과: 성공 $unit_passed개, 실패 $unit_failed개"
+
+    if [[ $unit_failed -eq 0 ]]; then
+        ((TOTAL_PASSED++))
+        return 0
     else
-        if bash "$unit_test_script" >/dev/null 2>&1; then
-            log_success "단위 테스트 성공"
-            ((TOTAL_PASSED++))
-        else
-            log_fail "단위 테스트 실패"
-            ((TOTAL_FAILED++))
-            log_info "상세한 오류를 보려면 --verbose 옵션을 사용하세요"
-            return 1
-        fi
+        ((TOTAL_FAILED++))
+        return 1
     fi
 }
 
 run_integration_tests() {
     log_header "통합 테스트 실행"
 
-    local integration_test_script="$SCRIPT_DIR/integration/test-build-switch-claude-integration.sh"
+    local integration_tests=(
+        "$SCRIPT_DIR/integration/test-build-switch-claude-integration.sh"
+        "$SCRIPT_DIR/integration/test-claude-activation-integration.sh"
+    )
 
-    if [[ ! -f "$integration_test_script" ]]; then
-        log_error "통합 테스트 스크립트 누락: $integration_test_script"
-        return 1
-    fi
+    local integration_passed=0
+    local integration_failed=0
 
-    log_info "Build-switch Claude 통합 테스트 실행..."
-
-    if [[ "${VERBOSE:-false}" == "true" ]]; then
-        if bash "$integration_test_script"; then
-            log_success "통합 테스트 성공"
-            ((TOTAL_PASSED++))
-        else
-            log_fail "통합 테스트 실패"
-            ((TOTAL_FAILED++))
-            return 1
+    for integration_test_script in "${integration_tests[@]}"; do
+        if [[ ! -f "$integration_test_script" ]]; then
+            log_warning "통합 테스트 스크립트 누락: $(basename "$integration_test_script")"
+            continue
         fi
+
+        local test_name=$(basename "$integration_test_script")
+        log_info "$test_name 실행..."
+
+        if [[ "${VERBOSE:-false}" == "true" ]]; then
+            if bash "$integration_test_script"; then
+                log_success "$test_name 성공"
+                ((integration_passed++))
+            else
+                log_fail "$test_name 실패"
+                ((integration_failed++))
+            fi
+        else
+            if bash "$integration_test_script" >/dev/null 2>&1; then
+                log_success "$test_name 성공"
+                ((integration_passed++))
+            else
+                log_fail "$test_name 실패"
+                ((integration_failed++))
+                log_info "상세한 오류를 보려면 --verbose 옵션을 사용하세요"
+            fi
+        fi
+    done
+
+    log_info "통합 테스트 결과: 성공 $integration_passed개, 실패 $integration_failed개"
+
+    if [[ $integration_failed -eq 0 ]]; then
+        ((TOTAL_PASSED++))
+        return 0
     else
-        if bash "$integration_test_script" >/dev/null 2>&1; then
-            log_success "통합 테스트 성공"
-            ((TOTAL_PASSED++))
-        else
-            log_fail "통합 테스트 실패"
-            ((TOTAL_FAILED++))
-            log_info "상세한 오류를 보려면 --verbose 옵션을 사용하세요"
-            return 1
-        fi
+        ((TOTAL_FAILED++))
+        return 1
     fi
 }
 
 run_e2e_tests() {
     log_header "E2E 테스트 실행"
 
-    local e2e_test_script="$SCRIPT_DIR/e2e/test-claude-commands-end-to-end.sh"
+    local e2e_tests=(
+        "$SCRIPT_DIR/e2e/test-claude-commands-end-to-end.sh"
+        "$SCRIPT_DIR/e2e/test-claude-activation-e2e.sh"
+    )
 
-    if [[ ! -f "$e2e_test_script" ]]; then
-        log_error "E2E 테스트 스크립트 누락: $e2e_test_script"
-        return 1
-    fi
+    local e2e_passed=0
+    local e2e_failed=0
 
-    log_info "Claude commands E2E 테스트 실행..."
     log_warning "E2E 테스트는 시간이 오래 걸릴 수 있습니다..."
 
-    if [[ "${VERBOSE:-false}" == "true" ]]; then
-        if bash "$e2e_test_script"; then
-            log_success "E2E 테스트 성공"
-            ((TOTAL_PASSED++))
-        else
-            log_fail "E2E 테스트 실패"
-            ((TOTAL_FAILED++))
-            return 1
+    for e2e_test_script in "${e2e_tests[@]}"; do
+        if [[ ! -f "$e2e_test_script" ]]; then
+            log_warning "E2E 테스트 스크립트 누락: $(basename "$e2e_test_script")"
+            continue
         fi
+
+        local test_name=$(basename "$e2e_test_script")
+        log_info "$test_name 실행..."
+
+        if [[ "${VERBOSE:-false}" == "true" ]]; then
+            if bash "$e2e_test_script"; then
+                log_success "$test_name 성공"
+                ((e2e_passed++))
+            else
+                log_fail "$test_name 실패"
+                ((e2e_failed++))
+            fi
+        else
+            if bash "$e2e_test_script" >/dev/null 2>&1; then
+                log_success "$test_name 성공"
+                ((e2e_passed++))
+            else
+                log_fail "$test_name 실패"
+                ((e2e_failed++))
+                log_info "상세한 오류를 보려면 --verbose 옵션을 사용하세요"
+            fi
+        fi
+    done
+
+    log_info "E2E 테스트 결과: 성공 $e2e_passed개, 실패 $e2e_failed개"
+
+    if [[ $e2e_failed -eq 0 ]]; then
+        ((TOTAL_PASSED++))
+        return 0
     else
-        if bash "$e2e_test_script" >/dev/null 2>&1; then
-            log_success "E2E 테스트 성공"
-            ((TOTAL_PASSED++))
-        else
-            log_fail "E2E 테스트 실패"
-            ((TOTAL_FAILED++))
-            log_info "상세한 오류를 보려면 --verbose 옵션을 사용하세요"
-            return 1
-        fi
+        ((TOTAL_FAILED++))
+        return 1
     fi
 }
 

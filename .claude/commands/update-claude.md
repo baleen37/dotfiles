@@ -1,6 +1,12 @@
-# /update-claude: Claude Configuration Auto-Optimizer
+---
+name: update-claude
+description: "Auto-optimize Claude configuration files with lint fixes and link validation"
+mcp-servers: [sequential]
+agents: [config-auditor, claude-optimizer]
+tools: [Read, Edit, MultiEdit, Glob, Grep, Task]
+---
 
-ABOUTME: Automated lint fixes, link validation, and structural optimization for Claude configuration files
+# /update-claude - Claude Configuration Auto-Optimizer
 
 ## Overview
 

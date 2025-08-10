@@ -58,6 +58,57 @@ let
         touch $out
       '';
 
+      # Claude activation test
+      claude-activation-test = pkgs.runCommand "claude-activation-test"
+        {
+          buildInputs = [ pkgs.bash pkgs.jq ];
+        } ''
+        echo "Testing Claude activation logic..."
+
+        # Create test environment
+        TEST_DIR=$(mktemp -d)
+        CLAUDE_DIR="$TEST_DIR/.claude"
+        SOURCE_DIR="${self}/modules/shared/config/claude"
+
+        mkdir -p "$CLAUDE_DIR"
+
+        # Test settings.json copy function
+        create_settings_copy() {
+          local source_file="$1"
+          local target_file="$2"
+
+          if [[ ! -f "$source_file" ]]; then
+            echo "Source file missing: $source_file"
+            return 1
+          fi
+
+          # Copy and set permissions
+          cp "$source_file" "$target_file"
+          chmod 644 "$target_file"
+
+          # Verify permissions
+          if [[ $(stat -c %a "$target_file" 2>/dev/null || stat -f %Mp%Lp "$target_file") != "644" ]]; then
+            echo "Wrong permissions on $target_file"
+            return 1
+          fi
+
+          echo "✓ settings.json copied with correct permissions"
+        }
+
+        # Run test
+        if create_settings_copy "$SOURCE_DIR/settings.json" "$CLAUDE_DIR/settings.json"; then
+          echo "✓ Claude activation test: PASSED"
+        else
+          echo "❌ Claude activation test: FAILED"
+          exit 1
+        fi
+
+        # Cleanup
+        rm -rf "$TEST_DIR"
+
+        touch $out
+      '';
+
       # Build test - verify that key derivations can be built
       build-test = pkgs.runCommand "build-test" { } ''
         echo "Testing basic build capabilities..."
@@ -88,6 +139,7 @@ in
           builtins.elem name [
             "flake-structure-test"
             "config-validation-test"
+            "claude-activation-test"
             "build-test"
           ]
         )
