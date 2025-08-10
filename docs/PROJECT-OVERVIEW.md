@@ -18,15 +18,15 @@ This dotfiles system represents a **production-grade, multi-platform configurati
 
 | Feature | Implementation | Platform Support |
 |---------|----------------|------------------|
-| **Core Management** |
+| **Core Management** | | |
 | Package Management | Nix + Home Manager + Homebrew | macOS ✅, NixOS ✅ |
 | Configuration Sync | Git-based with atomic updates | All platforms ✅ |
 | Secret Management | age encryption with SSH keys | All platforms ✅ |
-| **Development Tools** |
+| **Development Tools** | | |
 | Global Commands | `bl` command system (20+ utilities) | All platforms ✅ |
 | Development Shells | Nix devShells for 10+ languages | All platforms ✅ |
 | AI Integration | Claude Code with MCP servers | All platforms ✅ |
-| **Automation** |
+| **Automation** | | |
 | Auto-Updates | Intelligent update system with rollback | All platforms ✅ |
 | CI/CD Pipeline | GitHub Actions with 4-platform matrix | Cloud ✅ |
 | Performance Monitoring | Build metrics and optimization | All platforms ✅ |
@@ -124,10 +124,10 @@ User Command (make build)
 
 | Platform | Architecture | Status | Test Coverage | Performance |
 |----------|-------------|--------|---------------|-------------|
-| **macOS (Darwin)** |
+| **macOS (Darwin)** | | | | |
 | Intel Macs | x86_64-darwin | ✅ Production | 100% (17 tests) | Optimized |
 | Apple Silicon | aarch64-darwin | ✅ Production | 100% (17 tests) | Optimized |
-| **Linux (NixOS)** |
+| **Linux (NixOS)** | | | | |
 | Intel/AMD | x86_64-linux | ✅ Production | 85% (15 tests) | Standard |
 | ARM64 | aarch64-linux | 🧪 Beta | 85% (15 tests) | Standard |
 
