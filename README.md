@@ -8,7 +8,8 @@ Nix-based dotfiles for macOS and NixOS. Works out of the box without complex con
 
 - **Just Works**: Install and use immediately, no complex setup required
 - **Multi-Platform**: Supports macOS (Intel + Apple Silicon) and NixOS
-- **Claude Code Integration**: Built-in AI development assistance
+- **Claude Code Integration**: Complete AI development assistance with 20+ specialized commands
+- **Production-Ready Testing**: Unit, integration, and E2E tests with CI/CD integration
 - **Auto-Updates**: Minimal maintenance hassle
 
 ## Quick Start
@@ -42,7 +43,25 @@ trusted-users = root @admin baleen
 # Restart terminal to apply changes
 ```
 
-Done! You now have 50+ development tools and AI assistance ready.
+Done! You now have 50+ development tools and complete AI assistance ready.
+
+### Claude Code Setup (Optional but Recommended)
+
+Get AI development assistance with 20+ specialized commands:
+
+```bash
+# Install Claude Code (if not already installed)
+# Visit: https://claude.ai/code
+
+# Quick setup (takes ~30 seconds)
+claude /help  # Should show specialized commands like /analyze, /spawn, /task
+
+# Test advanced features
+claude /analyze "current project structure"
+claude /spawn "implement user authentication system"
+```
+
+**📚 Learn More**: [Quick Start Guide](docs/CLAUDE-QUICK-START.md) | [Complete Integration Guide](docs/CLAUDE-INTEGRATION.md)
 
 ## What You Get
 
