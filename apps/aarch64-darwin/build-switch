@@ -65,5 +65,9 @@ PROJECT_ROOT=$(cd "$SCRIPT_DIR/../.." && pwd)
 # Source the common build-switch logic
 . "$PROJECT_ROOT/scripts/build-switch-common.sh"
 
+# Set REBUILD_COMMAND_PATH using the fallback function
+REBUILD_COMMAND_PATH=$(pathResolutionWithFallback "darwin-rebuild")
+export REBUILD_COMMAND_PATH
+
 # Execute the common build-switch workflow
 execute_build_switch "$@"
