@@ -184,7 +184,7 @@ Common development commands and workflows.
 
 - **Smart Detection**: Automatically detect existing configurations
 - **Non-Destructive**: Enhance rather than replace existing files
-- **Safe Enhancement**: Preserve existing configurations when possible
+- **Backup Creation**: Automatic backup of modified files
 
 ### Language-Specific Optimizations
 
@@ -213,7 +213,7 @@ Common development commands and workflows.
 ### Pre-Setup Checks
 
 - **Git Status**: Ensure clean working directory
-- **File Conflicts**: Check for existing configuration files
+- **Existing Files**: Backup before modification
 - **Nix Installation**: Verify Nix with flakes support
 
 ### Post-Setup Validation
@@ -224,7 +224,7 @@ Common development commands and workflows.
 
 ### Error Recovery
 
-- **Clean Rollback**: Remove incomplete configurations on failure
+- **Backup Restoration**: Automatic rollback on failure
 - **Partial Success**: Handle incomplete setups gracefully
 - **Manual Cleanup**: Clear instructions for manual fixes
 
