@@ -1,8 +1,7 @@
 ---
 name: analyze
 description: "Analyzes code for security, performance, and quality issues, and generates a prioritized improvement plan."
-mcp-servers: [sequential, context7]
-agents: [security-auditor, performance-optimizer]
+mcp-servers: [sequential-thinking, context7]
 tools: [Read, Bash, Grep, Glob, Write, Task, TodoWrite, WebSearch]
 ---
 
@@ -33,7 +32,7 @@ The analysis report categorizes issues to help you focus on what matters most:
 
 ## Usage & Examples
 
-*Note: `/analyze` is a command run within the Gemini CLI environment.*
+*Note: `/analyze` is a command run within the Claude Code environment.*
 
 ### Analysis Scopes
 ```bash

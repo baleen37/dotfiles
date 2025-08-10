@@ -132,7 +132,8 @@ YAGNI above all. Simplicity over sophistication. When in doubt, ask jito.
 </architecture-overview>
 
 <critical-requirements>
-**USER Variable**: Always set `export USER=$(whoami)` before any operations
+**Claude Code Compatible**: Use direct script execution to avoid root privileges
+**USER Variable**: Set internally by scripts - minimal `export` usage
 **Platform Detection**: System uses lib/platform-system.nix for architecture detection
 **Build Dependencies**: Requires Nix with flakes enabled
 **Performance**: Uses parallel builds and caching optimizations
@@ -141,7 +142,11 @@ YAGNI above all. Simplicity over sophistication. When in doubt, ask jito.
 <development-commands>
 **Essential Commands**:
 ```bash
-export USER=$(whoami)        # Required for all operations
+# Claude Code friendly (no export required)
+./apps/aarch64-darwin/build-switch      # TDD: Simplified Home Manager only
+
+## Traditional commands
+
 make help                    # Show all available targets
 make build-current          # Build current platform only (faster)
 make build-fast             # Build with optimizations
@@ -165,8 +170,12 @@ bl --help                   # Usage information
 **Quick Build & Deploy**:
 
 ```bash
-nix run --impure .#build-switch  # Build and apply in one command
-make deploy                      # Cross-platform build+switch
+# Claude Code compatible (no root privileges required)
+./apps/aarch64-darwin/build-switch      # Direct script execution
+
+# Traditional methods (may require root)
+make switch                 # Build and apply (requires sudo)
+make deploy                 # Cross-platform build+switch
 ```
 
 **Test System**:
@@ -192,6 +201,8 @@ make deploy                      # Cross-platform build+switch
 - Claude Code settings follow https://github.com/SuperClaude-Org/SuperClaude_Framework/tree/SuperClaude_V4_Beta with custom modifications
 - claude code 설정 관련해서는 최대한 간결하게 유지 보수 가능하게, 동적으로 파악가능하게, 다만 너무 많이 우회하면 명시적으로 표기 등등  해야함.
 - To encourage more proactive subagent use, include phrases like "use PROACTIVELY" or "MUST BE USED" in your description field. 이런식으로 쓰면 agent 가 알아서 할당되기 때문에 명시적으로 쓸필요가 없긴하다
+- `export` 와 같이 env를 쓰면 권한을 요구하기 때문에 최대한 안쓰는게 좋아. 코드로 한다던지 그렇게 하는게 조아.
+- 환경 변수 인라인 설정 또는 일회성 환경 변수 설정 금지 해줘.
 </memory>
 
 ## Claude Code Integration

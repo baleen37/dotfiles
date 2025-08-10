@@ -9,12 +9,10 @@ if [ "$1" = "--help" ] || [ "$1" = "-h" ] || [ "$1" = "help" ]; then
     echo "Options:"
     echo "  --help, -h    Show this help message"
     echo "  --verbose     Enable verbose logging"
-    echo "  --dry-run     Show what would be done without executing"
     echo ""
     echo "Description:"
-    echo "  Builds and applies the Darwin system configuration using nix-darwin."
-    echo "  This tool handles the complete workflow of building the system"
-    echo "  configuration and switching to it."
+    echo "  Builds and applies user-level configuration using Home Manager."
+    echo "  No root privileges required - safe for Claude Code execution."
     echo ""
     echo "Examples:"
     echo "  nix run .#build-switch"
@@ -23,51 +21,18 @@ if [ "$1" = "--help" ] || [ "$1" = "-h" ] || [ "$1" = "help" ]; then
     exit 0
 fi
 
-# Platform-specific configuration for aarch64-darwin
-SYSTEM_TYPE="aarch64-darwin"
-PLATFORM_TYPE="darwin"
-# Path resolution with fallback function
-pathResolutionWithFallback() {
-    local target_command="${1:-darwin-rebuild}"
+# Environment setup - minimize export usage
+USER=${USER:-$(whoami)}
 
-    # Priority 1: Check if result symlink exists and is executable
-    if [ -f "./result/sw/bin/${target_command}" ] && [ -x "./result/sw/bin/${target_command}" ]; then
-        printf "%s\n" "./result/sw/bin/${target_command}"
-        return 0
-    fi
-
-    # Priority 2: Check if command is available in PATH
-    if command -v "$target_command" >/dev/null 2>&1; then
-        printf "%s\n" "$target_command"
-        return 0
-    fi
-
-    # Priority 3: Try system fallback path
-    if [ -f "/run/current-system/sw/bin/${target_command}" ] && [ -x "/run/current-system/sw/bin/${target_command}" ]; then
-        printf "%s\n" "/run/current-system/sw/bin/${target_command}"
-        return 0
-    fi
-
-    # Priority 4: Default fallback (may not exist)
-    printf "%s\n" "/run/current-system/sw/bin/${target_command}"
-    return 1
+# Simple logging
+log_info() {
+    echo "ℹ️  $1"
 }
 
-# Note: pathResolutionWithFallback function is available for use in common build script
+# TDD: Minimal implementation for Green phase
+log_info "Running user-level configuration (no root privileges required)"
+log_info "Using Home Manager for all configurations"
+log_info "Running: nix run github:nix-community/home-manager/release-24.05 -- switch --flake .#${USER} --impure"
 
-# Darwin-specific environment
-export NIXPKGS_ALLOW_UNFREE=1
-
-# Get the directory of this script
-SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
-PROJECT_ROOT=$(cd "$SCRIPT_DIR/../.." && pwd)
-
-# Source the common build-switch logic
-. "$PROJECT_ROOT/scripts/build-switch-common.sh"
-
-# Set REBUILD_COMMAND_PATH using the fallback function
-REBUILD_COMMAND_PATH=$(pathResolutionWithFallback "darwin-rebuild")
-export REBUILD_COMMAND_PATH
-
-# Execute the common build-switch workflow
-execute_build_switch "$@"
+# Home Manager 직접 실행 - 환경변수 설정 완전 제거
+exec nix run github:nix-community/home-manager/release-24.05 -- switch --flake .#${USER} --impure "$@"

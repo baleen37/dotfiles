@@ -99,6 +99,43 @@
 
         # NixOS configurations using modular system configs
         nixosConfigurations = systemConfigs.mkNixosConfigurations linuxSystems;
+
+        # Home Manager configuration builder function (lazy evaluation)
+        lib.mkHomeConfigurations = { user ? null, impure ? false }:
+          let
+            # Only resolve user when actually needed and in impure context
+            actualUser =
+              if user != null then user
+              else if impure then
+                let
+                  getUserFn = import ./lib/user-resolution.nix;
+                  userInfo = getUserFn { returnFormat = "string"; };
+                in
+                "${userInfo}"
+              else throw "User must be provided explicitly or use impure evaluation";
+          in
+          {
+            # Direct user configuration
+            ${actualUser} = home-manager.lib.homeManagerConfiguration {
+              pkgs = nixpkgs.legacyPackages.${builtins.currentSystem or "aarch64-darwin"};
+              modules = [
+                ./modules/shared/home-manager.nix
+                {
+                  home = {
+                    username = actualUser;
+                    homeDirectory =
+                      if (builtins.match ".*-darwin" (builtins.currentSystem or "aarch64-darwin") != null)
+                      then "/Users/${actualUser}"
+                      else "/home/${actualUser}";
+                    stateVersion = "24.05";
+                  };
+                }
+              ];
+              extraSpecialArgs = inputs;
+            };
+          };
+
+
       };
     in
     baseOutputs;

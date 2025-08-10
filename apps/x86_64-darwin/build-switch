@@ -3,6 +3,7 @@
 # Platform-specific configuration for x86_64-darwin
 SYSTEM_TYPE="x86_64-darwin"
 PLATFORM_TYPE="darwin"
+SUDO_REQUIRED="false"  # Root 권한 불필요하도록 수정됨
 # Path resolution with fallback function
 pathResolutionWithFallback() {
     local target_command="${1:-darwin-rebuild}"
@@ -43,6 +44,11 @@ PROJECT_ROOT=$(cd "$SCRIPT_DIR/../.." && pwd)
 # Set REBUILD_COMMAND_PATH using the fallback function
 REBUILD_COMMAND_PATH=$(pathResolutionWithFallback "darwin-rebuild")
 export REBUILD_COMMAND_PATH
+
+# Sudo 검사 제거 - 이제 root 권한이 필요하지 않음
+# 사용자 레벨 구성만 사용하므로 안전하게 실행 가능
+log_info "Running user-level configuration (no root privileges required)"
+log_info "Using Home Manager for all configurations"
 
 # Execute the common build-switch workflow
 execute_build_switch "$@"

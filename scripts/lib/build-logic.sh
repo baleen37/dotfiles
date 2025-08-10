@@ -82,9 +82,26 @@ prepare_build_environment() {
 
     # Check if sudo will be needed and acquire it
     if ! check_sudo_requirement; then
-        log_error "Cannot proceed without administrator privileges"
-        log_error "Please ensure you have the necessary permissions to perform system changes"
-        return 1
+        # For Darwin, try to provide helpful guidance
+        if [ "${PLATFORM_TYPE:-}" = "darwin" ]; then
+            log_info "Administrator privileges are required for system configuration changes."
+            log_info "This is normal for nix-darwin system activation."
+
+            # Try to acquire sudo with user-friendly prompts
+            if command -v setup_sudo_session >/dev/null 2>&1; then
+                if ! setup_sudo_session; then
+                    log_error "Unable to acquire administrator privileges"
+                    return 1
+                fi
+            else
+                log_error "Please ensure you have administrator access"
+                return 1
+            fi
+        else
+            log_error "Cannot proceed without administrator privileges"
+            log_error "Please ensure you have the necessary permissions to perform system changes"
+            return 1
+        fi
     fi
 
     # Validate essential build components
