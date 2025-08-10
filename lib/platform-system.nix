@@ -267,13 +267,12 @@ let
                   log_info "Using Home Manager for all configurations"
                   log_info "Running: nix run github:nix-community/home-manager/release-24.05 -- switch --flake .#''${USER} --impure"
 
-                  # 기존 방식으로 복귀 - make 명령어 사용 권장
-                  echo "❌ nix run .#build-switch는 사용자명 하드코딩 이슈로 현재 제한됨"
-                  echo "✅ 대신 다음 명령어 사용을 권장:"
-                  echo "   • ./apps/aarch64-darwin/build-switch"
-                  echo "   • make switch"
-                  echo ""
-                  exit 1
+                  # Home Manager 직접 실행 - 무한 루프 해결
+                  USER=''${USER:-$(whoami)}
+                  log_info "Running Home Manager directly for user: $USER"
+
+                  # Home Manager 직접 실행 (스크립트 재호출 없이)
+                  exec nix run github:nix-community/home-manager/release-24.05 -- switch --flake ".#$USER" --impure "$@"
                 '' else ''
                   #!/bin/bash
                   echo "Script ${scriptName} not implemented in flake apps"
