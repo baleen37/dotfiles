@@ -17,6 +17,7 @@ let
 in
 {
   # Darwin system configuration builder
+  # Creates architecture-based configurations only (hostname-based disabled for pure evaluation)
   mkDarwinConfigurations = systems:
     nixpkgs.lib.genAttrs systems (system:
       darwin.lib.darwinSystem {

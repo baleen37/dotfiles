@@ -99,36 +99,25 @@ let
         editor = "vim";
         fileManager = "finder";
       };
-      systemServices = [
-        "launchd"
-        "brew"
-        "xcode-select"
-      ];
     };
-
     linux = {
       hasHomebrew = false;
       packageManager = "nix";
-      shellPath = "/bin/bash";
-      systemPaths = [ "/usr/bin" "/usr/local/bin" "/nix/var/nix/profiles/default/bin" ];
+      shellPath = "/run/current-system/sw/bin/zsh";
+      systemPaths = [ "/run/current-system/sw/bin" "/usr/bin" "/bin" ];
       buildOptimizations = {
-        parallelJobs = 4;
+        parallelJobs = 8;
         useCache = true;
-        extraFlags = [ "--option" "sandbox" "true" ];
+        extraFlags = [ "--option" "system-features" "nixos-test" ];
         optimizationLevel = "-O2";
-        targetFlags = if currentSystem.isAarch64 then [ "-mcpu=cortex-a72" ] else [ "-march=native" ];
+        targetFlags = if currentSystem.isAarch64 then [ "-mcpu=native" ] else [ "-march=native" ];
       };
       preferredApps = {
-        terminal = "gnome-terminal";
+        terminal = "alacritty";
         browser = "firefox";
         editor = "vim";
         fileManager = "nautilus";
       };
-      systemServices = [
-        "systemd"
-        "dbus"
-        "NetworkManager"
-      ];
     };
   };
 
@@ -137,251 +126,263 @@ let
     if builtins.hasAttr currentSystem.platform platformConfigs then
       platformConfigs.${currentSystem.platform}
     else
-      errorSystem.throwConfigError "Unsupported platform: ${currentSystem.platform}";
+      errorSystem.throwConfigError "No configuration for platform: ${currentSystem.platform}";
 
-  # Utility functions
+  # Platform utilities
   utils = {
-    # Extract architecture from system string
-    getArchFromSystem = system:
-      let parts = actualLib.splitString "-" system;
-      in if builtins.length parts >= 1 then builtins.head parts else "unknown";
-
-    # Extract platform from system string
-    getPlatformFromSystem = system:
-      let parts = actualLib.splitString "-" system;
-      in if builtins.length parts >= 2 then builtins.elemAt parts 1 else "unknown";
-
-    # Get platform defaults
-    getPlatformDefaults = platform:
-      if builtins.hasAttr platform platformConfigs then
-        platformConfigs.${platform}
-      else
-        errorSystem.throwConfigError "Unknown platform: ${platform}";
-
-    # Check if platform supports feature
-    platformSupports = platform: feature:
-      let
-        config = utils.getPlatformDefaults platform;
-        featureMap = {
-          homebrew = config.hasHomebrew or false;
-          systemd = platform == "linux";
-          launchd = platform == "darwin";
-          containers = true; # Most platforms support containers
-          virtualization = platform == "linux"; # Primarily Linux
-        };
-      in
-        featureMap.${feature} or false;
-
-    # Get optimized build configuration
-    getOptimizedBuildConfig = platform:
-      let
-        config = utils.getPlatformDefaults platform;
-        baseConfig = config.buildOptimizations;
-      in
-      baseConfig // {
-        makeFlags = [
-          "-j${toString baseConfig.parallelJobs}"
-        ] ++ (if baseConfig.useCache then [ "--with-cache" ] else [ ]);
-
-        cFlags = [ baseConfig.optimizationLevel ] ++ baseConfig.targetFlags;
-        cxxFlags = [ baseConfig.optimizationLevel ] ++ baseConfig.targetFlags;
-
-        nixBuildOptions = [
-          "--cores"
-          (toString baseConfig.parallelJobs)
-        ] ++ baseConfig.extraFlags;
-      };
-
-    # Cross-platform path utilities
+    # Path utilities
     pathUtils = {
-      # Join paths using platform-appropriate separator
-      joinPath = parts: actualLib.concatStringsSep "/" (actualLib.filter (x: x != "" && x != null) parts);
+      # Get shell path for platform
+      getShellPath = getCurrentPlatformConfig.shellPath;
 
-      # Normalize path separators
-      normalizePath = path: actualLib.replaceStrings [ "\\" ] [ "/" ] path;
-
-      # Check if path is absolute
-      isAbsolute = path: actualLib.hasPrefix "/" path || actualLib.hasPrefix "~" path;
-
-      # Get user home directory
-      getUserHome =
-        let
-          home = builtins.getEnv "HOME";
-          user = let userEnv = builtins.getEnv "USER"; in if userEnv != "" then userEnv else "unknown";
-        in
-        if home != "" then home else
-        (
-          if currentSystem.isDarwin then "/Users/${user}"
-          else "/home/${user}"
-        );
-
-      # Get system paths for current platform
+      # Get system paths
       getSystemPaths = getCurrentPlatformConfig.systemPaths;
+
+      # Join paths
+      joinPath = segments: actualLib.concatStringsSep "/" (actualLib.filter (x: x != "") segments);
+
+      # Normalize path
+      normalizePath = path: actualLib.replaceStrings [ "//" ] [ "/" ] path;
+
+      # Check if path exists
+      pathExists = path: builtins.pathExists path;
     };
 
-    # Package management utilities
+    # Package utilities
     packageUtils = {
-      # Get package manager command for platform
-      getPackageManager = platform:
-        (utils.getPlatformDefaults platform).packageManager;
+      # Check if package manager is available
+      hasPackageManager = getCurrentPlatformConfig.packageManager != null;
 
-      # Install package using platform package manager
-      installPackage = package: platform:
-        let
-          pm = utils.packageUtils.getPackageManager platform;
-          commands = {
-            brew = "brew install ${package}";
-            nix = "nix-env -iA nixpkgs.${package}";
-            apt = "sudo apt install ${package}";
-            pacman = "sudo pacman -S ${package}";
-          };
-        in
-          commands.${pm} or (errorSystem.throwConfigError "Unknown package manager: ${pm}");
+      # Get package manager name
+      getPackageManager = getCurrentPlatformConfig.packageManager;
 
-      # Check if package is available
-      isPackageAvailable = package:
-        builtins.hasAttr package actualPkgs;
+      # Check if homebrew is supported
+      hasHomebrew = getCurrentPlatformConfig.hasHomebrew;
+
+      # Platform-specific package installation
+      installPackage = packageName:
+        if currentSystem.isDarwin && getCurrentPlatformConfig.hasHomebrew then
+          "brew install ${packageName}"
+        else
+          "nix-env -iA nixpkgs.${packageName}";
     };
 
-    # System information gathering
+    # System information utilities
     systemInfo = {
-      # Get all system information
-      getSystemInfo = {
-        inherit (currentSystem) arch platform system isDarwin isLinux isX86_64 isAarch64;
-        config = getCurrentPlatformConfig;
-        paths = utils.pathUtils.getSystemPaths;
-        home = utils.pathUtils.getUserHome;
-        packageManager = utils.packageUtils.getPackageManager currentSystem.platform;
-        supported = {
-          inherit (currentSystem) isValidPlatform isValidArch isValidSystem;
-        };
-        capabilities = {
-          homebrew = utils.platformSupports currentSystem.platform "homebrew";
-          systemd = utils.platformSupports currentSystem.platform "systemd";
-          launchd = utils.platformSupports currentSystem.platform "launchd";
-          containers = utils.platformSupports currentSystem.platform "containers";
-          virtualization = utils.platformSupports currentSystem.platform "virtualization";
-        };
-      };
+      # Get current architecture
+      arch = currentSystem.arch;
 
-      # Get build environment info
-      getBuildInfo = {
-        inherit (currentSystem) system;
-        config = utils.getOptimizedBuildConfig currentSystem.platform;
-        parallelJobs = getCurrentPlatformConfig.buildOptimizations.parallelJobs;
-        useCache = getCurrentPlatformConfig.buildOptimizations.useCache;
-      };
+      # Get current platform
+      platform = currentSystem.platform;
+
+      # Get full system string
+      systemString = currentSystem.system;
+
+      # Platform checks
+      isDarwin = currentSystem.isDarwin;
+      isLinux = currentSystem.isLinux;
+      isX86_64 = currentSystem.isX86_64;
+      isAarch64 = currentSystem.isAarch64;
+
+      # Build optimizations
+      buildOptimizations = getCurrentPlatformConfig.buildOptimizations;
+
+      # Get preferred applications
+      preferredApps = getCurrentPlatformConfig.preferredApps;
+    };
+
+    # Configuration utilities
+    configUtils = {
+      # Get platform-specific config value
+      getPlatformConfig = key: default:
+        if builtins.hasAttr key getCurrentPlatformConfig then
+          getCurrentPlatformConfig.${key}
+        else
+          default;
+
+      # Check if feature is supported
+      isFeatureSupported = feature:
+        builtins.hasAttr feature getCurrentPlatformConfig &&
+        getCurrentPlatformConfig.${feature} == true;
     };
   };
 
-  # App management system
+  # App management functions (only when nixpkgs and self are available)
   apps =
-    if nixpkgs != null && self != null then {
-      # Generic app builder
-      mkApp = scriptName: system: {
-        type = "app";
-        program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin scriptName ''
-        #!/usr/bin/env bash
-        PATH=${nixpkgs.legacyPackages.${system}.git}/bin:$PATH
-        echo "Running ${scriptName} for ${system}"
-        exec ${self}/apps/${system}/${scriptName} "$@"
-      '')}/bin/${scriptName}";
-      };
+    if nixpkgs != null && self != null then
+      let
+        # Simplified path resolution without flake source dependencies
+        pathResolutionWithFallback = target_command:
+          let
+            # Get PWD or fall back to a reasonable default
+            basePath =
+              if (builtins.getEnv "PWD") != ""
+              then builtins.getEnv "PWD"
+              else "/Users/baleen/dev/dotfiles";
+            appPath = "${basePath}/apps/${currentSystem.system}/${target_command}";
+          in
+          builtins.toString appPath;
 
-      # Setup-dev app builder with fallback
-      mkSetupDevApp = system:
-        if builtins.pathExists (self + "/scripts/setup-dev")
-        then {
+        # Standard app builder using writeScript to avoid source dependencies
+        mkApp = scriptName: system: {
           type = "app";
-          program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "setup-dev"
-          (builtins.readFile (self + "/scripts/setup-dev"))
+          program =
+            let
+              pkg = nixpkgs.legacyPackages.${system};
+              scriptContent =
+                if scriptName == "build-switch" then ''
+                  #!/bin/bash -e
+
+                  # Check for help flag
+                  if [ "$1" = "--help" ] || [ "$1" = "-h" ] || [ "$1" = "help" ]; then
+                      echo "build-switch - Build and switch Darwin system configuration"
+                      echo ""
+                      echo "Usage: nix run .#build-switch [OPTIONS]"
+                      echo ""
+                      echo "Options:"
+                      echo "  --help, -h    Show this help message"
+                      echo "  --verbose     Enable verbose logging"
+                      echo ""
+                      echo "Description:"
+                      echo "  Builds and applies user-level configuration using Home Manager."
+                      echo "  No root privileges required - safe for Claude Code execution."
+                      echo ""
+                      echo "Examples:"
+                      echo "  nix run .#build-switch"
+                      echo "  nix run .#build-switch -- --verbose"
+                      echo ""
+                      exit 0
+                  fi
+
+                  # Environment setup - minimize export usage
+                  USER=''${USER:-$(whoami)}
+
+                  # Simple logging
+                  log_info() {
+                      echo "ℹ️  $1"
+                  }
+
+                  # TDD: Minimal implementation for Green phase
+                  log_info "Running user-level configuration (no root privileges required)"
+                  log_info "Using Home Manager for all configurations"
+                  log_info "Running: nix run github:nix-community/home-manager/release-24.05 -- switch --flake .#''${USER} --impure"
+
+                  # Home Manager 직접 실행 - 무한 루프 해결
+                  USER=''${USER:-$(whoami)}
+                  log_info "Running Home Manager directly for user: $USER"
+
+                  # Home Manager 직접 실행 (스크립트 재호출 없이)
+                  exec nix run github:nix-community/home-manager/release-24.05 -- switch --flake ".#$USER" --impure "$@"
+                '' else ''
+                  #!/bin/bash
+                  echo "Script ${scriptName} not implemented in flake apps"
+                  exit 1
+                '';
+            in
+            "${pkg.writeScriptBin scriptName scriptContent}/bin/${scriptName}";
+        };
+
+        # Setup dev app builder
+        mkSetupDevApp = system:
+          let
+            setupDevPath = self + "/scripts/setup-dev";
+          in
+          if builtins.pathExists setupDevPath
+          then {
+            type = "app";
+            program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "setup-dev"
+          (builtins.readFile setupDevPath)
         )}/bin/setup-dev";
-        }
-        else {
-          type = "app";
-          program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "setup-dev" ''
+          }
+          else {
+            type = "app";
+            program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "setup-dev" ''
           #!/usr/bin/env bash
           echo "setup-dev script not found. Please run: ./scripts/install-setup-dev"
           exit 1
         '')}/bin/setup-dev";
-        };
+          };
 
-      # Auto-update app builders
-      mkBlAutoUpdateApp = { system, commandName }:
-        let
-          scriptPath = self + "/scripts/bl-auto-update-${commandName}";
-        in
-        if builtins.pathExists scriptPath
-        then {
-          type = "app";
-          program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "bl-auto-update-${commandName}"
+        # Auto-update app builders
+        mkBlAutoUpdateApp = { system, commandName }:
+          let
+            scriptPath = self + "/scripts/bl-auto-update-${commandName}";
+          in
+          if builtins.pathExists scriptPath
+          then {
+            type = "app";
+            program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "bl-auto-update-${commandName}"
           (builtins.readFile scriptPath)
         )}/bin/bl-auto-update-${commandName}";
-        }
-        else {
-          type = "app";
-          program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "bl-auto-update-${commandName}" ''
+          }
+          else {
+            type = "app";
+            program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "bl-auto-update-${commandName}" ''
           #!/usr/bin/env bash
           echo "bl-auto-update-${commandName} script not found"
           exit 1
         '')}/bin/bl-auto-update-${commandName}";
+          };
+
+        # Platform-specific app definitions
+        platformApps = {
+          darwin = {
+            # Standard Darwin apps
+            "build" = mkApp "build" currentSystem.system;
+            "build-switch" = mkApp "build-switch" currentSystem.system;
+            "apply" = mkApp "apply" currentSystem.system;
+            "setup-dev" = mkSetupDevApp currentSystem.system;
+
+            # Auto-update commands
+            "bl-auto-update-check" = mkBlAutoUpdateApp {
+              system = currentSystem.system;
+              commandName = "check";
+            };
+            "bl-auto-update-apply" = mkBlAutoUpdateApp {
+              system = currentSystem.system;
+              commandName = "apply";
+            };
+            "bl-auto-update-status" = mkBlAutoUpdateApp {
+              system = currentSystem.system;
+              commandName = "status";
+            };
+          };
+
+          linux = {
+            # Standard Linux apps
+            "build" = mkApp "build" currentSystem.system;
+            "build-switch" = mkApp "build-switch" currentSystem.system;
+            "apply" = mkApp "apply" currentSystem.system;
+            "setup-dev" = mkSetupDevApp currentSystem.system;
+
+            # Auto-update commands
+            "bl-auto-update-check" = mkBlAutoUpdateApp {
+              system = currentSystem.system;
+              commandName = "check";
+            };
+            "bl-auto-update-apply" = mkBlAutoUpdateApp {
+              system = currentSystem.system;
+              commandName = "apply";
+            };
+            "bl-auto-update-status" = mkBlAutoUpdateApp {
+              system = currentSystem.system;
+              commandName = "status";
+            };
+          };
         };
 
-      # Platform-specific app definitions
-      platformApps = {
-        darwin = {
-          # Standard Darwin apps
-          "build" = apps.mkApp "build" currentSystem.system;
-          "build-switch" = apps.mkApp "build-switch" currentSystem.system;
-          "apply" = apps.mkApp "apply" currentSystem.system;
-          "setup-dev" = apps.mkSetupDevApp currentSystem.system;
+        # Get current platform apps
+        getCurrentPlatformApps =
+          if builtins.hasAttr currentSystem.platform platformApps then
+            platformApps.${currentSystem.platform}
+          else
+            errorSystem.throwConfigError "No apps defined for platform: ${currentSystem.platform}";
 
-          # Auto-update commands
-          "bl-auto-update-check" = apps.mkBlAutoUpdateApp {
-            system = currentSystem.system;
-            commandName = "check";
-          };
-          "bl-auto-update-apply" = apps.mkBlAutoUpdateApp {
-            system = currentSystem.system;
-            commandName = "apply";
-          };
-          "bl-auto-update-status" = apps.mkBlAutoUpdateApp {
-            system = currentSystem.system;
-            commandName = "status";
-          };
-        };
-
-        linux = {
-          # Standard Linux apps
-          "build" = apps.mkApp "build" currentSystem.system;
-          "build-switch" = apps.mkApp "build-switch" currentSystem.system;
-          "apply" = apps.mkApp "apply" currentSystem.system;
-          "setup-dev" = apps.mkSetupDevApp currentSystem.system;
-
-          # Auto-update commands
-          "bl-auto-update-check" = apps.mkBlAutoUpdateApp {
-            system = currentSystem.system;
-            commandName = "check";
-          };
-          "bl-auto-update-apply" = apps.mkBlAutoUpdateApp {
-            system = currentSystem.system;
-            commandName = "apply";
-          };
-          "bl-auto-update-status" = apps.mkBlAutoUpdateApp {
-            system = currentSystem.system;
-            commandName = "status";
-          };
-        };
-      };
-
-      # Get current platform apps
-      getCurrentPlatformApps =
-        if builtins.hasAttr currentSystem.platform apps.platformApps then
-          apps.platformApps.${currentSystem.platform}
-        else
-          errorSystem.throwConfigError "No apps defined for platform: ${currentSystem.platform}";
-
-    } else {
+      in
+      {
+        inherit mkApp mkSetupDevApp mkBlAutoUpdateApp platformApps getCurrentPlatformApps;
+      }
+    else {
       # Minimal apps when nixpkgs/self not provided
       mkApp = scriptName: system:
         errorSystem.throwUserError "App building requires nixpkgs and self parameters";

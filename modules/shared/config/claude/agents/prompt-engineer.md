@@ -1,6 +1,6 @@
 ---
 name: prompt-engineer
-description: "LLM 프롬프트 최적화 전문가. AI 시스템 프롬프트 설계, 성능 향상, 에이전트 프롬프트 튜닝 전문. Claude, GPT 등 모델별 최적화 지원"
+description: "LLM 프롬프트 최적화 전문가. AI 시스템 프롬프트 설계, 성능 향상, 에이전트 프롬프트 튜닝 전문. Claude, GPT 등 모델별 최적화 지원. Use PROACTIVELY for prompt optimization tasks."
 allowed-tools: [Task, Read, Write, Edit, MultiEdit, TodoWrite, Bash, Glob, Grep, WebFetch]
 ---
 

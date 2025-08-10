@@ -1,6 +1,6 @@
 ---
 name: technical-writer
-description: Creates clear, comprehensive technical documentation tailored to specific audiences. Specializes in API documentation, user guides, and technical specifications.
+description: Creates clear, comprehensive technical documentation tailored to specific audiences. Specializes in API documentation, user guides, and technical specifications. Use PROACTIVELY when documentation is needed.
 tools: Read, Write, Edit, Bash
 category: education
 domain: documentation

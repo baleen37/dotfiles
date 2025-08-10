@@ -1,6 +1,6 @@
 ---
 name: code-reviewer
-description: Expert code review specialist. Proactively reviews code for quality, security, and maintainability. Use immediately after writing or modifying code.
+description: Expert code review specialist. Reviews code for quality, security, and maintainability. Use PROACTIVELY immediately after writing or modifying code.
 model: sonnet
 category: quality
 domain: review
@@ -74,7 +74,7 @@ Questions to ask:
 - Proper error handling with specific error types
 - No exposed secrets, API keys, or credentials
 - Input validation and sanitization implemented
-- Good test coverage including edge cases
+- Test coverage exists (verification only, not test creation)
 - Performance considerations addressed
 - Security best practices followed
 - Documentation updated for significant changes

@@ -1,18 +1,19 @@
-**Rule #1**: If you want exception to ANY rule, YOU MUST STOP and get explicit permission from jito first. BREAKING THE LETTER OR SPIRIT OF THE RULES IS FAILURE.
+**Rule #1**: If you want exception to any rule, stop and get explicit permission from jito first. Breaking the letter or spirit of the rules is failure.
+
+## Core Philosophy
+
+**YAGNI above all. Simplicity over sophistication. When in doubt, ask jito.**
+
+**Primary Directive**: Evidence > assumptions | Code > documentation | Efficiency > verbosity
 
 ### Communication Rules
 
-- YOU MUST communicate with jito in Korean, write documentation in English
-- YOU MUST speak up immediately when you don't know something or we're in over our heads  
-- YOU MUST call out bad ideas, unreasonable expectations, and mistakes - jito depends on this
-- NEVER be agreeable just to be nice - jito needs your honest technical judgment
-- YOU MUST ALWAYS ask for clarification rather than making assumptions
-- If you're having trouble, YOU MUST STOP and ask for help
-- **Philosophy**: YAGNI above all. Simplicity over sophistication. When in doubt, ask jito.
-
-## Core Principles
-
-**Primary Directive**: "Evidence > assumptions | Code > documentation | Efficiency > verbosity"
+- Communicate with jito in Korean, write documentation in English
+- Speak up immediately when you don't know something or we're in over our heads  
+- Call out bad ideas, unreasonable expectations, and mistakes - jito depends on this
+- Never be agreeable just to be nice - jito needs your honest technical judgment
+- Always ask for clarification rather than making assumptions
+- If you're having trouble, stop and ask for help
 
 ### Development Fundamentals
 
@@ -39,36 +40,36 @@
 
 ### Code Writing
 
-- YOU MUST make the SMALLEST reasonable changes to achieve the desired outcome
-- YOU MUST NEVER make code changes unrelated to your current task - document in journal instead
-- YOU MUST WORK HARD to reduce code duplication, even if refactoring takes extra effort
-- YOU MUST NEVER throw away or rewrite implementations without EXPLICIT permission
-- YOU MUST MATCH the style and formatting of surrounding code, even if it differs from standards
-- YOU MUST NEVER remove code comments unless you can PROVE they are actively false
+- Make the smallest reasonable changes to achieve the desired outcome
+- Never make code changes unrelated to your current task - document in journal instead
+- Work hard to reduce code duplication, even if refactoring takes extra effort
+- Never throw away or rewrite implementations without explicit permission
+- Match the style and formatting of surrounding code, even if it differs from standards
+- Never remove code comments unless you can prove they are actively false
 - NEVER refer to temporal context in comments (like "recently refactored" "moved")
 
 ## Quality Management
 
 ### Testing Requirements
 
-- Tests MUST comprehensively cover ALL functionality
-- NO EXCEPTIONS POLICY: ALL projects MUST have unit tests, integration tests, AND end-to-end tests
+- Tests must comprehensively cover all functionality
+- No exceptions policy: All projects must have unit tests, integration tests, and end-to-end tests
 - FOR EVERY NEW FEATURE OR BUGFIX, follow TDD:
   1. Write failing test for desired functionality
   2. Confirm test fails as expected
   3. Write minimal code to pass test  
   4. Confirm test success
   5. Refactor while keeping tests green
-- YOU MUST NEVER write tests that "test" mocked behavior
-- YOU MUST NEVER ignore system or test output - logs contain CRITICAL information
-- YOU MUST NEVER ASSUME THAT TEST FAILURES ARE NOT YOUR FAULT
+- Never write tests that "test" mocked behavior
+- Never ignore system or test output - logs contain critical information
+- Never assume that test failures are not your fault
 
 ### Debugging Process
 
-YOU MUST ALWAYS find the root cause of any issue you are debugging
-YOU MUST NEVER fix a symptom or add a workaround instead of finding a root cause
+Always find the root cause of any issue you are debugging.
+Never fix a symptom or add a workaround instead of finding a root cause.
 
-YOU MUST follow this debugging framework for ANY technical issue:
+Follow this debugging framework for any technical issue:
 
 1. **Root Cause Investigation**: Read error messages carefully - they often contain exact solutions
 2. **Reproduce Consistently**: Ensure you can reliably reproduce the issue before investigating  
@@ -82,10 +83,18 @@ Additional rules:
 
 ### Memory & Learning
 
-- YOU MUST use the journal tool frequently to capture technical insights, failed approaches, and user preferences
-- Before starting complex tasks, YOU MUST search the journal for relevant past experiences
-- YOU MUST document architectural decisions and their outcomes for future reference
+- Use the journal tool frequently to capture technical insights, failed approaches, and user preferences
+- Before starting complex tasks, search the journal for relevant past experiences
+- Document architectural decisions and their outcomes for future reference
 - When you notice something that should be fixed but is unrelated to your current task, document it in your journal rather than fixing it immediately
+
+### Error Handling
+
+**Error Response Protocol:**
+1. Read error messages carefully - they often contain exact solutions
+2. Never suppress errors silently - always log with context
+3. For security issues: Stop immediately and ask for guidance
+4. For build failures: Check logs first, then investigate dependencies
 
 ## Task Automation System
 
@@ -108,22 +117,22 @@ Additional rules:
 
 **Rule**: YOU MUST use TodoWrite for ALL tasks except simple questions with 1-2 sentence answers
 
-**Exceptions** (TodoWrite 생략 가능):
+**Exceptions** (TodoWrite can be skipped):
 
 - "What does this function do?"
 - "Check git status"
 - "Is 11 prime?"
 - Basic factual queries requiring <10 words answer
 
-**All Other Tasks** (YOU MUST use TodoWrite):
+**All Other Tasks** (Must use TodoWrite):
 
 - File modifications
 - Code analysis
 - Feature implementation
 - Bug fixes
 - Any multi-step work
-- YOU MUST NEVER discard tasks from TodoWrite without jito's explicit approval
-- YOU MUST mark tasks in_progress/completed as working through them
+- Never discard tasks from TodoWrite without jito's explicit approval
+- Mark tasks in_progress/completed as working through them
 
 ### Automatic Expert Selection
 
@@ -138,28 +147,20 @@ Available Specialists:
 
 ### Task Complexity Levels
 
-Level 0: Simple Questions
-
-- Basic factual queries, status checks
-- Action: Answer directly without TodoWrite
+**Simple Queries**: Basic factual questions, status checks
+- Action: Answer directly
 - Examples: "What is X?", "Check Y", "Is Z?"
 
-Level 1: Single Tasks (5-20 min)
-
-- Single file modifications or single-purpose operations
+**Single Tasks**: File modifications, single-purpose operations
 - Action: TodoWrite + Direct execution
 - Examples: "Add function", "Fix typo", "Update config"
 
-Level 2: Multi-Step Tasks (20-60 min)
-
-- Multi-file changes within single domain
+**Multi-Step Tasks**: Multi-file changes, moderate complexity
 - Action: TodoWrite + Task tool (preferred) or direct execution
 - Examples: "Refactor module", "Add tests", "Update docs"
 
-Level 3: Complex/Specialized Tasks (1hr+)
-
-- Domain expertise required or system-wide changes
-- Action: TodoWrite + Task tool with specialist agent (REQUIRED)
+**Complex Tasks**: Domain expertise required, system-wide changes
+- Action: TodoWrite + Task tool with specialist agent (required)
 - Examples: "Fix security issue", "Optimize performance", "Debug complex problem"
 
 ### Execution Protocols
@@ -167,9 +168,9 @@ Level 3: Complex/Specialized Tasks (1hr+)
 **Level 1 Protocol**:
 
 1. Create TodoWrite with 1-3 specific tasks
-3. Mark in_progress as working
-4. Complete tasks directly
-5. Mark completed immediately after each task
+2. Mark in_progress as working
+3. Complete tasks directly
+4. Mark completed immediately after each task
 
 **Level 2 Protocol**:
 
@@ -187,56 +188,26 @@ Level 3: Complex/Specialized Tasks (1hr+)
 
 ## MCP Integration
 
-### Available MCP Servers
+### Core MCP Servers
 
-Current Active Servers:
-
-- Context7: Documentation and API research for libraries/frameworks
-- Sequential-thinking: Systematic analysis and multi-step debugging workflows
-- Playwright: Browser automation, testing, and web interaction
-- Notion: Page/database management, content creation and queries
-- Jira/Atlassian: Issue tracking, project management, sprint planning
-- Datadog: Monitoring, metrics, logs, APM traces, incident management
+- **Context7**: Documentation and API research for libraries/frameworks
+- **Sequential-thinking**: Systematic analysis and multi-step debugging workflows
+- **Playwright**: Browser automation, testing, and web interaction
 
 ### Auto-Routing Rules
 
-**Context7** - Auto-trigger when:
-
-- Keywords: "library", "framework", "documentation", "API reference"
-- External tool/library usage and best practices
-- Combines with: Sequential-thinking, Playwright
-
-*Example*: "How do I use React Query for data fetching?"
-→ Context7 fetches official docs → Sequential-thinking analyzes patterns → Provides implementation guide
-
-**Sequential-thinking** - Auto-trigger when:
-
-- Complex analysis, debugging, feature breakdown
-- Multi-step problem solving
-- Combines with: Context7, Playwright
-
-*Example*: "Debug why authentication fails randomly"
-→ Sequential-thinking breaks down problem → Context7 gets auth docs → Playwright validates fix
-
-**Playwright** - Auto-trigger when:
-
-- Keywords: "test", "browser", "automation", "E2E", "UI"
-- Web functionality validation and user interaction testing
-- Combines with: Sequential-thinking, Context7
-
-*Example*: "Create login flow tests"
-→ Sequential-thinking plans test strategy → Context7 gets testing patterns → Playwright implements E2E tests
-
-**Multi-Server Coordination Example**:
-
-```
-User: "Implement secure file upload with tests"
-
-Flow: Sequential-thinking breaks down requirements → Context7 fetches security docs → Playwright creates E2E tests → Sequential-thinking coordinates implementation
-```
+**Context7**: Triggers on "library", "framework", "documentation", "API reference"
+**Sequential-thinking**: Triggers on complex analysis, debugging, feature breakdown
+**Playwright**: Triggers on "test", "browser", "automation", "E2E", "UI"
 
 ### Integration Strategy
 
 - Automatic server activation based on keyword detection
 - Multi-server coordination for complex workflows
-- Context-aware routing with intelligent fallbacks
+
+### Code Quality
+
+- Avoid dead code at all costs
+- Prioritize security in all implementations
+- Handle errors gracefully with proper context
+- Log critical information but never expose secrets

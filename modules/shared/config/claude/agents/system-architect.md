@@ -1,6 +1,6 @@
 ---
 name: system-architect
-description: Designs and analyzes system architecture for scalability and maintainability. Specializes in dependency management, architectural patterns, and long-term technical decisions.
+description: Designs and analyzes system architecture for scalability and maintainability. Specializes in dependency management, architectural patterns, and long-term technical decisions. Use PROACTIVELY for architecture design and system analysis.
 tools: Read, Grep, Glob, Write, Bash
 category: design
 domain: architecture
