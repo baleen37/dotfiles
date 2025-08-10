@@ -1,104 +1,129 @@
 ---
 name: analyze
-description: "Systematic code analysis: Scan → Analyze → Report with actionable plan"
+description: "Analyzes code for security, performance, and quality issues, and generates a prioritized improvement plan."
 mcp-servers: [sequential, context7]
 agents: [security-auditor, performance-optimizer]
-tools: [Read, Bash, Grep, Glob, Write, Task]
+tools: [Read, Bash, Grep, Glob, Write, Task, TodoWrite, WebSearch]
 ---
 
-# /analyze - Systematic Code Analysis
+# /analyze - Code Analysis & Improvement Planning
 
-**Purpose**: Systematic code review with actionable improvement plan
+**Core Principle**: This command is for **analysis and planning**, not execution. Its goal is to thoroughly assess a codebase and produce a clear, prioritized plan for improvement.
 
-## Usage
-
-```bash
-/analyze [path]           # Full systematic analysis
-/analyze security [path]  # Security focus → security-auditor
-/analyze performance [path] # Performance focus → performance-optimizer
-```
-
-## 3-Phase Analysis Process
-
-### Phase 1: Scan
-**Goal**: Understand codebase and identify issues
-```bash
-□ Map file structure and dependencies
-□ Identify code smells and potential bugs
-□ Check for security vulnerabilities
-□ Measure performance bottlenecks
-```
-
-### Phase 2: Analyze
-**Goal**: Assess severity and business impact
-- **P0 Critical**: Security holes, production bugs
-- **P1 High**: Performance issues, maintainability problems  
-- **P2 Medium**: Code quality, minor optimizations
-
-### Phase 3: Report
-**Goal**: Actionable plan with specific next steps
-
-## Report Structure
-
-### Executive Summary
-- **Overall Score**: 🔴 Needs Work / 🟡 Good / 🟢 Excellent
-- **Critical Issues**: Must fix immediately (P0)
-- **Recommended Focus**: What to tackle first
-
-### Detailed Findings
-```
-🔴 [P0] SQL Injection in user authentication
-   File: api/auth.js:23
-   Impact: Full database compromise possible
-   Fix: Use parameterized queries with validation
-
-🟡 [P1] N+1 query problem in data fetching  
-   File: services/UserService.js:45
-   Impact: 300ms+ page load times
-   Fix: Add eager loading or batch queries
-
-🟢 [P2] Unused dependencies detected
-   Files: package.json, 12 components
-   Impact: 2MB bundle size increase
-   Fix: Remove unused imports via cleanup script
-```
-
-### Action Plan Checklist
-- [ ] **This Week**: Fix all P0 security issues
-- [ ] **Next Sprint**: Address P1 performance bottlenecks
-- [ ] **Ongoing**: Gradually improve P2 code quality
-
-## Analysis Checklist
-
-**Security**:
-- [ ] Input validation and sanitization
-- [ ] Authentication and authorization flows
-- [ ] Dependency vulnerability scan
-- [ ] Secrets and sensitive data handling
-
-**Performance**:
-- [ ] Algorithm complexity analysis
-- [ ] Database query optimization
-- [ ] Memory usage patterns
-- [ ] Bundle size and loading performance
-
-**Code Quality**:
-- [ ] Code duplication and reusability
-- [ ] Naming conventions and readability
-- [ ] Test coverage and reliability
-- [ ] Documentation and maintainability
-
-## Examples
+## Quick Start
 
 ```bash
-/analyze                    # Complete systematic review
-/analyze src/auth          # Focus on authentication module
-/analyze security          # Security-only deep scan
-/analyze performance api/  # Performance review of API layer
+# Analyze the current directory and view the report.
+/analyze
+
+# Run a security-focused analysis.
+/analyze security
+
+# Generate a prioritized to-do list in Markdown.
+/analyze --todo > IMPROVEMENT_PLAN.md
 ```
 
-## Smart Agent Routing
+## Core Concepts: Issue Prioritization
 
-- **security-auditor**: Auto-triggered for auth, API, data handling
-- **performance-optimizer**: Auto-triggered for algorithms, queries, bottlenecks
-- **sequential**: For complex multi-step analysis workflows
+The analysis report categorizes issues to help you focus on what matters most:
+
+- **P0 (Critical)**: Urgent issues posing a direct risk to security, stability, or data integrity. (e.g., SQL injection, data leaks).
+- **P1 (High)**: Significant problems degrading performance or maintainability. (e.g., N+1 queries, high complexity).
+- **P2 (Medium)**: Minor issues related to code quality, style, or small optimizations.
+
+## Usage & Examples
+
+*Note: `/analyze` is a command run within the Gemini CLI environment.*
+
+### Analysis Scopes
+```bash
+# Analyze the entire current directory.
+/analyze
+
+# Analyze a specific subdirectory.
+/analyze src/api/v1/
+
+# Narrow the focus to security, performance, or quality.
+/analyze security services/auth/
+/analyze performance data/processing/
+/analyze quality frontend/components/
+```
+
+### Reporting & Tracking
+
+```bash
+# Generate the standard, non-interactive report.
+/analyze --report-only
+
+# Compare to the last analysis to see the trend.
+/analyze --history
+
+# Export all findings to a Markdown to-do list for planning.
+/analyze --todo
+```
+
+## The Analysis Report Explained
+
+### 1. Executive Summary
+- **Overall Score**: 🟡 72/100 (`🔴 <60` / `🟡 60-85` / `🟢 >85`)
+- **Trend**: 📈 Improving (+5 pts since last week)
+- **Critical Issues**: 🔴 2 found
+- **Recommended Focus**: Security. Address the 2 P0 vulnerabilities first.
+
+### 2. Detailed Findings
+This section provides clear, actionable guidance for your plan.
+
+```
+🔴 [P0] SQL Injection in User Authentication
+   - File:          api/auth.js:23
+   - Impact:        Allows attackers to bypass authentication.
+   - Recommendation: Refactor the database query to use parameterized statements, preventing SQL injection.
+   - Verification:  Ensure the existing security test suite for authentication passes after the change.
+
+🟡 [P1] N+1 Query Problem in Data Fetching
+   - File:          services/UserService.js:45
+   - Impact:        Causes slow page loads (e.g., 300ms+).
+   - Recommendation: Modify the data access logic to use eager-loading (e.g., `include` in an ORM) to fetch related data in a single query.
+   - Verification:  Run the relevant benchmark test to confirm a performance gain of at least 50% for this operation.
+
+🟢 [P2] Unused Dependency Detected
+   - File:          package.json
+   - Impact:        Increases final bundle size by 2MB.
+   - Recommendation: Remove the unused dependency from your `package.json` and run your package manager's install command to clean up `node_modules`.
+   - Verification:  Confirm the dependency is removed from the final production bundle.
+```
+
+## Workflow Integration & Best Practices
+
+To get the most out of `/analyze`, integrate it into your regular workflow:
+
+-   **Pre-Commit Check**: Run `/analyze security` on your staged files before committing to catch issues early.
+-   **CI/CD Pipeline**: Add `/analyze --report-only` to your CI pipeline to fail builds on new P0 or P1 issues, preventing regressions.
+-   **Sprint Planning**: Use the output of `/analyze --todo` to create stories or tasks in your project management tool (e.g., Jira, Asana).
+-   **Quarterly Reviews**: Use `/analyze --history` to track and report on code quality improvements over time.
+
+---
+
+## Appendix: Advanced Details
+
+<details>
+<summary><strong>Context-Aware Analysis Engine</strong></summary>
+
+The analyzer automatically detects your project's framework and language to provide more accurate and relevant recommendations.
+
+-   **Frameworks**: Next.js, React, Vue, Django, Express, Fastify, and more.
+-   **Languages**: TypeScript, Python, Go, Rust, etc.
+-   **Integration**: It respects `.gitignore` and leverages `Context7` to fetch the latest best practices, security advisories, and migration guides relevant to your specific stack.
+
+</details>
+
+<details>
+<summary><strong>Smart Agent Routing & Parallelism</strong></summary>
+
+To deliver results quickly, the tool uses an intelligent, multi-agent approach.
+
+-   **Agents**: A `security-auditor` and a `performance-optimizer` agent work in parallel.
+-   **Efficiency**: This parallel process is up to 50% faster than a sequential analysis by sharing file reads and context.
+-   **Resource Management**: The tool monitors system resources and falls back to a sequential process on memory-constrained environments to ensure stability.
+
+</details>

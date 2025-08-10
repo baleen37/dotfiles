@@ -195,8 +195,6 @@ in
   done
 
   # 끊어진 심볼릭 링크 정리
-  echo ""
-  echo "끊어진 심볼릭 링크 정리 중..."
 
   # 루트 레벨에서 끊어진 링크 찾아 제거
   find "$CLAUDE_DIR" -maxdepth 1 -type l | while read -r link_file; do
@@ -207,8 +205,6 @@ in
   done
 
   # 최종 검증: 생성된 심볼릭 링크들이 유효한지 확인
-  echo ""
-  echo "=== 생성된 심볼릭 링크 검증 ==="
 
   link_count=0
   valid_links=0
