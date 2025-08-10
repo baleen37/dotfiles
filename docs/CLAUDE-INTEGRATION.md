@@ -40,10 +40,14 @@ claude --version
 ### 1. Initial Configuration
 
 ```bash
-# Build the dotfiles to configure Claude
-make build && make switch HOST=your-hostname
+# Build and switch dotfiles to configure Claude (uses intelligent activation system)
+export USER=$(whoami)
+make build-switch
 
-# Verify Claude configuration
+# Or use the optimized build command
+nix run .#build-switch
+
+# Verify Claude configuration (should show symlinked folders/files)
 ls -la ~/.claude/
 ```
 
@@ -53,8 +57,10 @@ ls -la ~/.claude/
 # Test a simple command
 claude /help
 
-# Test dotfiles-specific command
-claude /do-plan "Add new development tool"
+# Test specialized commands
+claude /analyze "current codebase structure"
+claude /spawn "implement user authentication system"
+claude /task "review and optimize build performance"
 ```
 
 ## 📋 Command Categories & Reference
@@ -221,15 +227,24 @@ claude /session-summary --detailed  # Detailed summary with changes
 - **Agents**: `~/.claude/agents/` (folder symlink)
 - **Source config**: `modules/shared/config/claude/`
 
-### Smart Symlink System
+### Smart Symlink System with Intelligent Activation
 
-The dotfiles now use an **intelligent symlink-based configuration system** for maximum simplicity and reliability:
+The dotfiles use an **intelligent symlink-based configuration system** with advanced features:
 
-- **🔗 Folder symlinks**: `commands/` and `agents/` folders are directly linked to dotfiles source
-- **📄 File symlinks**: Root-level configuration files (`.md`, `.json`) are individually linked
+**🧠 Intelligent Activation**:
+
+- **Multi-path fallback**: Automatically finds dotfiles location across different environments
+- **JSON state merging**: Preserves dynamic Claude settings (like `feedbackSurveyState`) during updates  
+- **Cross-platform compatibility**: Works seamlessly on macOS and Linux
+- **Self-healing**: Detects and repairs broken symlinks automatically
+
+**🔗 Symlink Architecture**:
+
+- **Folder symlinks**: `commands/` and `agents/` folders are directly linked to dotfiles source
+- **File copy for `settings.json`**: Allows Claude to modify settings while preserving dotfiles template
+- **File symlinks**: Root-level configuration files (`.md`) are individually linked
 - **⚡ Always up-to-date**: Changes to dotfiles are immediately reflected in Claude
 - **🧹 Zero maintenance**: No complex backup/merge logic required
-- **🚫 No conflicts**: Eliminates `.new` and `.update-notice` files completely
 
 #### How It Works
 
@@ -238,10 +253,25 @@ The dotfiles now use an **intelligent symlink-based configuration system** for m
 ~/.claude/commands/ → modules/shared/config/claude/commands/
 ~/.claude/agents/ → modules/shared/config/claude/agents/
 
-# File symlinks (individual files)
+# File copy with state preservation
+~/.claude/settings.json ← modules/shared/config/claude/settings.json (copied + dynamic state merged)
+
+# File symlinks (documentation files)
 ~/.claude/CLAUDE.md → modules/shared/config/claude/CLAUDE.md
-~/.claude/settings.json → modules/shared/config/claude/settings.json
-# ... and other root-level .md/.json files
+# ... and other .md files
+```
+
+#### Intelligent Activation Process
+
+```bash
+# Activation script performs these steps automatically:
+1. Multi-path source detection with fallback system
+2. Create folder symlinks for commands/ and agents/
+3. Copy settings.json with permission validation (644)
+4. Merge existing dynamic state (feedbackSurveyState, etc.)
+5. Symlink documentation files (.md)
+6. Cleanup broken symlinks
+7. Verify all links are working correctly
 ```
 
 #### Automatic Updates
@@ -358,14 +388,23 @@ ls -la ~/.claude/commands ~/.claude/agents
 ls -la ~/.claude/*.md ~/.claude/*.json
 ```
 
-### Verification
+### Verification & Testing
 
 ```bash
 # Verify symlinks are working correctly
 find ~/.claude -type l  # Should show symlinked files/folders
 
-# Count symlinks vs total files  
-find ~/.claude -type l | wc -l && find ~/.claude -name "*.md" -o -name "*.json" | wc -l
+# Test the complete integration system
+./tests/run-claude-tests.sh
+
+# Run specific test categories
+nix run .#test-unit      # Unit tests for Claude activation
+nix run .#test-integration # Integration tests
+nix run .#test-core      # All core tests including Claude
+
+# Verify activation system health
+ls -la ~/.claude/commands ~/.claude/agents
+readlink ~/.claude/commands ~/.claude/agents
 ```
 
 ## 🆘 Troubleshooting

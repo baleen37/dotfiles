@@ -172,9 +172,10 @@ build-switch: check-user
 	echo "🎯 Target system: $${TARGET}"; \
 	if [ "$${OS}" = "Darwin" ]; then \
 		echo "🔨 Building Darwin configuration..."; \
-		export USER=$(USER); $(NIX) build --impure .#darwinConfigurations.$${TARGET}.system $(ARGS); \
+		export USER=$(USER); $(NIX) build --impure .#darwinConfigurations.$${TARGET}.system $(ARGS) || { echo "❌ Build failed!"; exit 1; }; \
+		if [ ! -L "./result" ]; then echo "❌ Build result not found!"; exit 1; fi; \
 		echo "🔄 Switching to new configuration..."; \
-		sudo -E USER=$(USER) ./result/sw/bin/darwin-rebuild switch --impure --flake .#$${TARGET} $(ARGS); \
+		sudo -E env USER=$(USER) ./result/sw/bin/darwin-rebuild switch --impure --flake .#$${TARGET} $(ARGS) || { echo "❌ Switch failed!"; exit 1; }; \
 		unlink ./result; \
 	else \
 		echo "🔨 Building and switching NixOS configuration..."; \
@@ -190,8 +191,9 @@ switch: check-user
 	TARGET=$${HOST:-$(CURRENT_SYSTEM)}; \
 	echo "🎯 Target system: $${TARGET}"; \
 	if [ "$${OS}" = "Darwin" ]; then \
-		export USER=$(USER); nix --extra-experimental-features 'nix-command flakes' build --impure .#darwinConfigurations.$${TARGET}.system $(ARGS); \
-		sudo -E USER=$(USER) ./result/sw/bin/darwin-rebuild switch --impure --flake .#$${TARGET} $(ARGS); \
+		export USER=$(USER); nix --extra-experimental-features 'nix-command flakes' build --impure .#darwinConfigurations.$${TARGET}.system $(ARGS) || { echo "❌ Build failed!"; exit 1; }; \
+		if [ ! -L "./result" ]; then echo "❌ Build result not found!"; exit 1; fi; \
+		sudo -E env USER=$(USER) ./result/sw/bin/darwin-rebuild switch --impure --flake .#$${TARGET} $(ARGS) || { echo "❌ Switch failed!"; exit 1; }; \
 		unlink ./result; \
 	else \
 		sudo -E USER=$(USER) SSH_AUTH_SOCK=$$SSH_AUTH_SOCK /run/current-system/sw/bin/nixos-rebuild switch --impure --flake .#$${TARGET} $(ARGS); \
