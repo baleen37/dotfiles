@@ -139,7 +139,7 @@
         homeConfigurations =
           let
             # 일반적인 사용자명들을 정적으로 정의
-            commonUsers = [ "baleen" "jito" "user" "runner" ];
+            commonUsers = [ "baleen" "jito" "user" "runner" "ubuntu" ];
 
             # 사용자별 구성 생성 함수
             mkUserConfig = username: home-manager.lib.homeManagerConfiguration {
