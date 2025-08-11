@@ -216,12 +216,7 @@ make deploy                 # Cross-platform build+switch
 - Playwright: Browser testing and automation
 - Smart auto-routing based on keywords
 
-**Specialized Agents Available**:
-
-- `nix-system-expert` - Nix, flakes, Home Manager, nix-darwin
-- `config-auditor` - Claude configuration validation
-- `claude-optimizer` - Token efficiency and prompt compression
-- Automatic agent routing based on task complexity and domain
+**Agent System**: Automatic agent routing based on task complexity and domain
 
 **Configuration Management**:
 

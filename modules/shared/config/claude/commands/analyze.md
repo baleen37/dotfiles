@@ -1,128 +1,90 @@
 ---
 name: analyze
-description: "Analyzes code for security, performance, and quality issues, and generates a prioritized improvement plan."
-mcp-servers: [sequential-thinking, context7]
-tools: [Read, Bash, Grep, Glob, Write, Task, TodoWrite, WebSearch]
+description: "Comprehensive codebase analysis with automated quality reports and improvement suggestions"
+mcp-servers: [sequential, context7]
+agents: [performance-optimizer, root-cause-analyzer]
+tools: [Read, Grep, Glob, TodoWrite, Task]
 ---
 
-# /analyze - Code Analysis & Improvement Planning
+# /analyze - Comprehensive Codebase Analysis
 
-**Core Principle**: This command is for **analysis and planning**, not execution. Its goal is to thoroughly assess a codebase and produce a clear, prioritized plan for improvement.
+**Purpose**: Deliver a thorough analysis of your codebase with actionable insights for improvement. This goes beyond simple code review to provide strategic recommendations for architecture, performance, security, and maintainability.
 
-## Quick Start
-
-```bash
-# Analyze the current directory and view the report.
-/analyze
-
-# Run a security-focused analysis.
-/analyze security
-
-# Generate a prioritized to-do list in Markdown.
-/analyze --todo > IMPROVEMENT_PLAN.md
-```
-
-## Core Concepts: Issue Prioritization
-
-The analysis report categorizes issues to help you focus on what matters most:
-
-- **P0 (Critical)**: Urgent issues posing a direct risk to security, stability, or data integrity. (e.g., SQL injection, data leaks).
-- **P1 (High)**: Significant problems degrading performance or maintainability. (e.g., N+1 queries, high complexity).
-- **P2 (Medium)**: Minor issues related to code quality, style, or small optimizations.
-
-## Usage & Examples
-
-*Note: `/analyze` is a command run within the Claude Code environment.*
-
-### Analysis Scopes
-```bash
-# Analyze the entire current directory.
-/analyze
-
-# Analyze a specific subdirectory.
-/analyze src/api/v1/
-
-# Narrow the focus to security, performance, or quality.
-/analyze security services/auth/
-/analyze performance data/processing/
-/analyze quality frontend/components/
-```
-
-### Reporting & Tracking
+## Usage
 
 ```bash
-# Generate the standard, non-interactive report.
-/analyze --report-only
-
-# Compare to the last analysis to see the trend.
-/analyze --history
-
-# Export all findings to a Markdown to-do list for planning.
-/analyze --todo
+/analyze                    # Full codebase analysis
+/analyze [path]             # Targeted analysis
+/analyze --performance      # Focus on performance issues
+/analyze --architecture     # Focus on architectural concerns
 ```
 
-## The Analysis Report Explained
-
-### 1. Executive Summary
-- **Overall Score**: 🟡 72/100 (`🔴 <60` / `🟡 60-85` / `🟢 >85`)
-- **Trend**: 📈 Improving (+5 pts since last week)
-- **Critical Issues**: 🔴 2 found
-- **Recommended Focus**: Security. Address the 2 P0 vulnerabilities first.
-
-### 2. Detailed Findings
-This section provides clear, actionable guidance for your plan.
-
-```
-🔴 [P0] SQL Injection in User Authentication
-   - File:          api/auth.js:23
-   - Impact:        Allows attackers to bypass authentication.
-   - Recommendation: Refactor the database query to use parameterized statements, preventing SQL injection.
-   - Verification:  Ensure the existing security test suite for authentication passes after the change.
-
-🟡 [P1] N+1 Query Problem in Data Fetching
-   - File:          services/UserService.js:45
-   - Impact:        Causes slow page loads (e.g., 300ms+).
-   - Recommendation: Modify the data access logic to use eager-loading (e.g., `include` in an ORM) to fetch related data in a single query.
-   - Verification:  Run the relevant benchmark test to confirm a performance gain of at least 50% for this operation.
-
-🟢 [P2] Unused Dependency Detected
-   - File:          package.json
-   - Impact:        Increases final bundle size by 2MB.
-   - Recommendation: Remove the unused dependency from your `package.json` and run your package manager's install command to clean up `node_modules`.
-   - Verification:  Confirm the dependency is removed from the final production bundle.
-```
-
-## Workflow Integration & Best Practices
-
-To get the most out of `/analyze`, integrate it into your regular workflow:
-
--   **Pre-Commit Check**: Run `/analyze security` on your staged files before committing to catch issues early.
--   **CI/CD Pipeline**: Add `/analyze --report-only` to your CI pipeline to fail builds on new P0 or P1 issues, preventing regressions.
--   **Sprint Planning**: Use the output of `/analyze --todo` to create stories or tasks in your project management tool (e.g., Jira, Asana).
--   **Quarterly Reviews**: Use `/analyze --history` to track and report on code quality improvements over time.
-
----
-
-## Appendix: Advanced Details
+## What It Does
 
 <details>
-<summary><strong>Context-Aware Analysis Engine</strong></summary>
+<summary><strong>Multi-Dimensional Analysis</strong></summary>
 
-The analyzer automatically detects your project's framework and language to provide more accurate and relevant recommendations.
+The analysis covers multiple aspects of your codebase:
 
--   **Frameworks**: Next.js, React, Vue, Django, Express, Fastify, and more.
--   **Languages**: TypeScript, Python, Go, Rust, etc.
--   **Integration**: It respects `.gitignore` and leverages `Context7` to fetch the latest best practices, security advisories, and migration guides relevant to your specific stack.
+-   **Architecture**: Module dependencies, coupling analysis, design patterns usage
+-   **Performance**: Bottlenecks, resource usage patterns, optimization opportunities  
+-   **Quality**: Code complexity, maintainability metrics, technical debt assessment
+-   **Best Practices**: Framework conventions, industry standards compliance
+-   **Documentation**: Code coverage, inline documentation quality
+
+</details>
+
+<details>
+<summary><strong>Contextual Intelligence</strong></summary>
+
+Unlike generic analysis tools, this command understands your specific technology stack:
+
+-   **Framework-Aware**: Recognizes React, Vue, Node.js, Python, Go, etc. patterns and applies relevant best practices
+-   **Project-Specific**: Analyzes your actual dependencies, build configuration, and project structure
+-   **Integration**: It respects `.gitignore` and leverages `Context7` to fetch the latest best practices and migration guides relevant to your specific stack
 
 </details>
 
 <details>
 <summary><strong>Smart Agent Routing & Parallelism</strong></summary>
 
-To deliver results quickly, the tool uses an intelligent, multi-agent approach.
+To deliver results quickly, the tool uses an intelligent, multi-agent approach:
 
--   **Agents**: A `security-auditor` and a `performance-optimizer` agent work in parallel.
--   **Efficiency**: This parallel process is up to 50% faster than a sequential analysis by sharing file reads and context.
--   **Resource Management**: The tool monitors system resources and falls back to a sequential process on memory-constrained environments to ensure stability.
+-   **Agents**: Performance-optimizer and root-cause-analyzer agents work in parallel
+-   **Efficiency**: This parallel process is up to 50% faster than sequential analysis by sharing file reads and context
+-   **Resource Management**: The tool monitors system resources and falls back to sequential process on memory-constrained environments to ensure stability
 
 </details>
+
+<details>
+<summary><strong>Actionable Output</strong></summary>
+
+The analysis produces concrete, prioritized recommendations:
+
+-   **Priority Scoring**: Issues ranked by impact and effort required
+-   **Code Examples**: Before/after snippets showing specific improvements
+-   **Implementation Guidance**: Step-by-step instructions for applying recommendations
+-   **Resource Links**: Documentation and tutorials relevant to your stack
+
+</details>
+
+## MCP Integration
+
+- **Sequential**: Multi-step analysis planning and systematic evaluation
+- **Context7**: Framework-specific best practices and current industry standards
+
+## Agent Routing
+
+- **performance-optimizer**: Performance bottlenecks, memory usage, optimization opportunities
+- **root-cause-analyzer**: Complex issue investigation, dependency analysis, architectural concerns
+
+## Examples
+
+```bash
+/analyze                    # Complete codebase analysis
+/analyze src/components     # Focus on specific directory
+/analyze --performance      # Performance-focused analysis
+/analyze package.json       # Dependency and configuration analysis
+```
+
+The analysis will produce a comprehensive report with prioritized recommendations and specific implementation guidance.

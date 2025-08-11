@@ -1,179 +1,67 @@
 # Claude Code Quick Start Guide
 
-> **Get up and running with Claude Code + Nix dotfiles in 5 minutes**
+This guide helps you get started with Claude Code in the dotfiles environment.
 
-## ⚡ Super Quick Setup
+## Prerequisites
 
-### Prerequisites Check (30 seconds)
+- Nix installed with flakes enabled
+- Claude Code setup completed via `make setup-mcp`
 
-```bash
-# Verify you have the essentials
-claude --version    # Should show Claude Code version
-node --version      # Should be 18.0.0+
-whoami             # Note your username
-```
+## Basic Usage
 
-### One-Command Setup (60 seconds)
+### Code Analysis
 
 ```bash
-# Set user and build/switch in one go
-export USER=$(whoami) && make build-switch
+# Comprehensive codebase analysis
+claude /analyze
+
+# Performance-focused analysis
+claude /analyze --performance
 ```
 
-**That's it!** 🎉 Claude is now configured with 20+ specialized commands.
-
-## 🧪 Test Your Setup (30 seconds)
+### Code Implementation
 
 ```bash
-# Test basic functionality
-claude /help
+# Implement new features
+claude /implement user authentication
 
-# Test advanced features  
-claude /analyze "our testing system"
-claude /spawn "quick documentation update"
-
-# Verify configuration
-ls -la ~/.claude/commands/ | head -5
+# API development
+claude /implement api user management
 ```
 
-## 🎯 Essential Commands to Try First
-
-### For Development Work
+### Code Improvements
 
 ```bash
-claude /task "review our build performance"
-claude /analyze "current test coverage"  
-claude /debug "why is the build slow?"
-```
+# General improvements
+claude /improve src/
 
-### For Planning & Organization
-
-```bash
-claude /spawn "implement new feature X"
-claude /brainstorm "how to improve our CI pipeline"
-claude /estimate "time to add authentication"
-```
-
-### For Code Quality
-
-```bash
-claude /improve "refactor this component"
-claude /test "add comprehensive test coverage"
-claude /document "update API documentation"
-```
-
-## 🔧 Common First-Time Issues & Solutions
-
-### Issue: "Commands not found"
-
-```bash
-# Solution: Rebuild symlinks
-make build-switch
-ls ~/.claude/commands/  # Should show 20+ .md files
-```
-
-### Issue: "Permission denied"
-
-```bash
-# Solution: Set USER variable
-export USER=$(whoami)
-make build-switch
-```
-
-### Issue: "Symlinks broken"
-
-```bash  
-# Solution: Check dotfiles path
-pwd  # Should be in your dotfiles directory
-nix run .#build-switch
-```
-
-## 📚 Next Steps
-
-### Explore Available Commands
-
-```bash
-# See all available commands
-ls ~/.claude/commands/
-
-# Read a specific command
-cat ~/.claude/commands/analyze.md
-```
-
-### Customize for Your Workflow
-
-```bash
-# Edit commands directly (changes are instant via symlinks!)
-editor modules/shared/config/claude/commands/task.md
-
-# Add your own commands
-echo "Your custom prompt here" > modules/shared/config/claude/commands/my-command.md
-claude /my-command  # Available immediately
-```
-
-### Learn the Advanced Features
-
-- Read: `docs/CLAUDE-INTEGRATION.md` for complete guide
-- Read: `docs/CLAUDE-SYSTEM-ARCHITECTURE.md` for technical details
-- Explore: `~/.claude/agents/` for specialized AI agents
-
-## 🆘 Quick Troubleshooting
-
-### Problem: Claude feels slow
-
-**Solution**: Enable MCP servers for better performance
-
-```bash
-# Check if MCP servers are running
-claude /help  # Should show enhanced capabilities
-```
-
-### Problem: Commands seem outdated
-
-**Solution**: Your symlinks might be stale
-
-```bash
-# Refresh everything
-make build-switch
-# Commands are now current with your dotfiles
-```
-
-### Problem: Settings keep resetting
-
-**Solution**: This is normal! settings.json is copied (not symlinked) so Claude can modify it
-
-```bash
-# Your personal settings are preserved
-# Template updates come from: modules/shared/config/claude/settings.json
-```
-
-## 🚀 Power User Tips
-
-### Combine Commands
-
-```bash
-# Chain multiple AI operations
-claude /analyze "performance issues" && claude /task "implement the top 3 optimizations"
-```
-
-### Use with Dotfiles Context
-
-```bash
-# Claude understands your dotfiles structure
-claude /spawn "add a new package to shared modules"
-claude /debug "why isn't my nix build working?"
+# Performance optimizations
+claude /improve performance api/
 ```
 
 ### Leverage Specialized Agents
 
 ```bash
 # Use domain-specific agents via /task command
-claude /task "security review the authentication flow"  # Uses security-auditor
 claude /task "optimize database queries"                # Uses performance-optimizer
+claude /task "debug complex system issue"               # Uses root-cause-analyzer
 ```
 
----
+## Command Reference
 
-**🎯 You're all set!** Claude Code is now supercharged with your dotfiles. Start with `/help` and explore the 20+ specialized commands at your disposal.
+| Command | Purpose | Agent Routing |
+|---------|---------|---------------|
+| `/analyze` | Comprehensive analysis | performance-optimizer, root-cause-analyzer |
+| `/implement` | Feature development | frontend-developer, backend-engineer, system-architect |
+| `/improve` | Code quality improvements | performance-engineer, system-architect |
 
-**Need help?** Check the [complete integration guide](CLAUDE-INTEGRATION.md) or [system architecture](CLAUDE-SYSTEM-ARCHITECTURE.md).
+## Best Practices
+
+1. **Start with analysis**: Use `/analyze` to understand your codebase before making changes
+2. **Be specific**: Target specific paths or components for focused improvements
+3. **Use agents**: Leverage specialized agents for domain-specific tasks
+4. **Test changes**: Always validate improvements with your test suite
+
+## Integration with dotfiles
+
+The Claude Code configuration automatically syncs from `modules/shared/config/claude/` to `~/.claude` when you run system builds, providing seamless integration with your development workflow.
