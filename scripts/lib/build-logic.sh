@@ -369,8 +369,18 @@ execute_linux_build_switch() {
     log_step "Building and switching system configuration"
     log_info "Target: ${SYSTEM_TYPE}"
 
+    # Check if we're on NixOS or regular Linux (Ubuntu, etc.)
+    local is_nixos=false
+    if [ -f /etc/NIXOS ]; then
+        is_nixos=true
+        log_info "Detected NixOS system"
+    else
+        log_info "Detected non-NixOS Linux system (Ubuntu, etc.)"
+        log_info "Using Home Manager for user configuration"
+    fi
+
     # Log privilege and SSH information
-    if [ "$SUDO_REQUIRED" = "true" ]; then
+    if [ "$is_nixos" = "true" ] && [ "$SUDO_REQUIRED" = "true" ]; then
         log_info "Administrator privileges will be requested for system changes"
         if [ -n "${SSH_AUTH_SOCK:-}" ]; then
             log_info "SSH forwarding enabled for private repositories"
@@ -383,7 +393,10 @@ execute_linux_build_switch() {
     optimize_cache "$SYSTEM_TYPE"
 
     # Get build parameters
-    local sudo_prefix=$(get_sudo_prefix)
+    local sudo_prefix=""
+    if [ "$is_nixos" = "true" ]; then
+        sudo_prefix=$(get_sudo_prefix)
+    fi
     local jobs=$(detect_optimal_jobs)
     log_info "Using ${jobs} parallel jobs for build and switch"
 
@@ -394,10 +407,19 @@ execute_linux_build_switch() {
     BUILD_START_TIME=$(date +%s)
 
     # Execute the build and switch
-    execute_linux_rebuild_command "$sudo_prefix" "$jobs" "$@" || {
-        handle_linux_build_failure
-        return 1
-    }
+    if [ "$is_nixos" = "true" ]; then
+        # NixOS - use nixos-rebuild
+        execute_linux_rebuild_command "$sudo_prefix" "$jobs" "$@" || {
+            handle_linux_build_failure
+            return 1
+        }
+    else
+        # Regular Linux (Ubuntu, etc.) - use Home Manager
+        execute_home_manager_switch "$jobs" "$@" || {
+            handle_linux_build_failure
+            return 1
+        }
+    fi
 
     # Record completion and update stats
     BUILD_END_TIME=$(date +%s)
@@ -433,6 +455,29 @@ execute_linux_rebuild_command() {
         execute_with_verbose_output "$sudo_prefix" "$optimized_rebuild_cmd" "$@"
     else
         execute_with_quiet_output "$sudo_prefix" "$optimized_rebuild_cmd" "$@"
+    fi
+}
+
+# Execute Home Manager switch for non-NixOS Linux systems
+execute_home_manager_switch() {
+    local jobs="$1"
+    shift  # Remove first argument, keep the rest
+
+    # Get current user
+    local user="${USER:-$(whoami)}"
+    
+    # Get optimized Home Manager command
+    local base_hm_cmd="nix run github:nix-community/home-manager/release-24.05 -- switch --flake .#${user} --impure"
+    local optimized_hm_cmd=$(get_optimized_nix_command "$base_hm_cmd" 2>/dev/null || echo "$base_hm_cmd")
+
+    # Execute with appropriate verbosity
+    if [ "$VERBOSE" = "true" ]; then
+        eval "${optimized_hm_cmd} \"\$@\"" || return 1
+    else
+        eval "${optimized_hm_cmd} \"\$@\"" >/dev/null 2>&1 || {
+            log_error "Home Manager switch failed. Run with --verbose for details"
+            return 1
+        }
     fi
 }
 
