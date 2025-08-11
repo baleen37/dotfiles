@@ -75,7 +75,16 @@ in
   };
 
   # 사용자 레벨 activation (root 권한 불필요)
-  home.activation = lib.mkIf isDarwin {
+  home.activation = {
+    # Claude Code 설정 활성화 (모든 플랫폼)
+    setupClaudeConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] (
+      import ../shared/lib/claude-activation.nix { 
+        inherit config lib; 
+        self = null; 
+        platform = if isDarwin then "darwin" else "linux"; 
+      }
+    );
+  } // lib.optionalAttrs isDarwin {
     setupKeyboardInput = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       echo "Setting up keyboard input configuration..."
 
