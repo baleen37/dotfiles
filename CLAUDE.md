@@ -144,9 +144,11 @@ YAGNI above all. Simplicity over sophistication. When in doubt, ask jito.
 ```bash
 # Claude Code friendly (no export required)
 ./apps/aarch64-darwin/build-switch      # TDD: Simplified Home Manager only
+```
 
 ## Traditional commands
 
+```bash
 make help                    # Show all available targets
 make build-current          # Build current platform only (faster)
 make build-fast             # Build with optimizations
