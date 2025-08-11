@@ -2,7 +2,7 @@
 name: implement
 description: "Feature and code implementation with intelligent agent routing and framework expertise"
 mcp-servers: [context7, sequential, playwright]
-agents: [frontend-developer, backend-engineer, security-auditor, system-architect]
+agents: [frontend-developer, backend-engineer, system-architect]
 tools: [Read, Write, Edit, MultiEdit, Bash, Grep, Glob, TodoWrite, Task]
 ---
 
@@ -16,7 +16,6 @@ tools: [Read, Write, Edit, MultiEdit, Bash, Grep, Glob, TodoWrite, Task]
 /implement <description>         # Basic feature implementation
 /implement api <description>     # -> backend-engineer agent
 /implement component <description> # -> frontend-developer agent
-/implement secure <description>  # -> security-auditor agent
 ```
 
 ## Execution Strategy
@@ -38,12 +37,10 @@ tools: [Read, Write, Edit, MultiEdit, Bash, Grep, Glob, TodoWrite, Task]
 /implement user authentication    # Basic auth implementation
 /implement api user management   # Backend API with validation
 /implement component UserProfile # Frontend component
-/implement secure payment flow  # Security-focused implementation
 ```
 
 ## Agent Routing
 
 - **frontend-developer**: UI components, client-side logic, React/Vue patterns
 - **backend-engineer**: APIs, services, database integration, Node.js/Python
-- **security-auditor**: Authentication, authorization, input validation
 - **system-architect**: Complex features requiring architectural decisions
