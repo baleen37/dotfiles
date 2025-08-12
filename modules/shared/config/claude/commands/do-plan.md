@@ -80,9 +80,7 @@ Overall: 33% complete (2/6 tasks)
 
 ## Options
 
-- `--continue`: Resume from last incomplete task
-- `--phase <n>`: Start from specific phase
-- `--dry-run`: Show what would be executed without doing it
+- None - simple sequential execution of the plan
 
 ## Notes
 

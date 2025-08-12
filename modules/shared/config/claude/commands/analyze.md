@@ -15,8 +15,6 @@ tools: [Read, Grep, Glob, TodoWrite, Task]
 ```bash
 /analyze                    # Full codebase analysis
 /analyze [path]             # Targeted analysis
-/analyze --performance      # Focus on performance issues
-/analyze --architecture     # Focus on architectural concerns
 ```
 
 ## What It Does
@@ -83,7 +81,6 @@ The analysis produces concrete, prioritized recommendations:
 ```bash
 /analyze                    # Complete codebase analysis
 /analyze src/components     # Focus on specific directory
-/analyze --performance      # Performance-focused analysis
 /analyze package.json       # Dependency and configuration analysis
 ```
 

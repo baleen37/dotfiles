@@ -14,8 +14,7 @@ tools: [Read, Bash, Grep, Glob, Write]
 
 ```bash
 /commit                      # Smart commit with auto-generated message
-/commit -m "message"         # Commit with custom message
-/commit --amend              # Amend previous commit with updated message
+/commit "custom message"     # Commit with custom message
 ```
 
 ## Execution Strategy
@@ -34,8 +33,7 @@ tools: [Read, Bash, Grep, Glob, Write]
 
 ```bash
 /commit                      # Auto: "feat(auth): add JWT token validation"
-/commit -m "fix: resolve login bug"  # Custom message with validation
-/commit --amend              # Update previous commit message
+/commit "fix: resolve login bug"  # Custom message with validation
 ```
 
 ## Message Generation Logic
