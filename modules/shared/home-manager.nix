@@ -576,7 +576,7 @@ in
         continuum
       ];
       terminal = "screen-256color";
-      prefix = "C-a";
+      prefix = "C-b";
       escapeTime = 0;
       historyLimit = 50000;
       extraConfig = ''
