@@ -12,31 +12,19 @@ Execute complex tasks with intelligent workflow management, cross-session persis
 
 ## Usage  
 ```
-/sc:task [action] [target] [--strategy systematic|agile|enterprise] [--depth shallow|normal|deep] [--parallel] [--validate] [--mcp-routing]
+/sc:task [action] [target]
 ```
 
 ## Arguments
-- `action` - Task management action (create, execute, status, analytics, optimize, delegate, validate)
-- `target` - Task description, project scope, or existing task ID for comprehensive management
-- `--strategy` - Task execution strategy selection with specialized orchestration approaches
-- `--depth` - Task analysis depth and thoroughness level
-- `--parallel` - Enable parallel task processing with multi-agent coordination
-- `--validate` - Comprehensive validation and task completion quality gates
-- `--mcp-routing` - Intelligent MCP server routing for specialized task analysis
-- `--wave-mode` - Enable wave-based execution with progressive task enhancement
-- `--cross-session` - Enable cross-session persistence and task continuity
-- `--persist` - Enable cross-session task persistence
-- `--hierarchy` - Create hierarchical task breakdown
-- `--delegate` - Enable multi-agent task delegation
+- `action` - Task management action (create, execute, status, analytics, optimize)
+- `target` - Task description, project scope, or existing task ID
 
 ## Actions
-- `create` - Create new project-level task hierarchy with advanced orchestration
-- `execute` - Execute task with intelligent orchestration and wave system integration
-- `status` - View task status across sessions with comprehensive analytics
-- `analytics` - Task performance and analytics dashboard with optimization insights
-- `optimize` - Optimize task execution strategies with wave system coordination
-- `delegate` - Delegate tasks across multiple agents with intelligent coordination
-- `validate` - Validate task completion with evidence and quality assurance
+- `create` - Create new project-level task hierarchy
+- `execute` - Execute task with intelligent orchestration
+- `status` - View task status and progress
+- `analytics` - Task performance and analytics dashboard
+- `optimize` - Optimize task execution strategies
 
 ## Execution Modes
 
@@ -125,46 +113,32 @@ Execute complex tasks with intelligent workflow management, cross-session persis
 
 ### Comprehensive Project Analysis
 ```
-/sc:task create "enterprise authentication system" --strategy systematic --depth deep --validate --mcp-routing
+/sc:task create "enterprise authentication system"
 # Comprehensive analysis with full orchestration capabilities
 ```
 
-### Agile Multi-Sprint Coordination
+### Task Execution
 ```
-/sc:task execute "feature backlog" --strategy agile --parallel --cross-session
-# Agile coordination with cross-session persistence
-```
-
-### Enterprise-Scale Operation
-```
-/sc:task create "digital transformation" --strategy enterprise --wave-mode --all-personas
-# Enterprise-scale coordination with full persona orchestration
+/sc:task execute "feature backlog"
+# Execute task with intelligent coordination
 ```
 
-### Complex Integration Project
-```  
-/sc:task execute "microservices platform" --depth deep --parallel --validate --sequential
-# Complex integration with sequential thinking and validation
+### Project Management
+```
+/sc:task create "user authentication system"
+# Create project-level task hierarchy
 ```
 
-### Create Project-Level Task Hierarchy
+### Task Status
 ```
-/sc:task create "Implement user authentication system" --hierarchy --persist --strategy systematic
-```
-
-### Execute with Multi-Agent Delegation
-```
-/sc:task execute AUTH-001 --delegate --wave-mode --validate
+/sc:task status AUTH-001
+# View task progress and details
 ```
 
 ### Analytics and Optimization
 ```
-/sc:task analytics --project AUTH --optimization-recommendations
-```
-
-### Cross-Session Task Management
-```
-/sc:task status --all-sessions --detailed-breakdown
+/sc:task analytics AUTH
+# Task performance dashboard
 ```
 
 ## Boundaries

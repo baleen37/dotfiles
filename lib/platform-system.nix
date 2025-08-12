@@ -275,7 +275,7 @@ let
                   exec nix run github:nix-community/home-manager/release-24.05 -- switch --flake ".#$USER" --impure "$@"
                 '' else if scriptName == "build-switch" && currentSystem.platform == "linux" then ''
                   #!/bin/bash -e
-                  
+
                   # Check for help flag
                   if [ "$1" = "--help" ] || [ "$1" = "-h" ] || [ "$1" = "help" ]; then
                       echo "build-switch - Build and switch system configuration (Linux)"
@@ -291,15 +291,15 @@ let
                       echo ""
                       exit 0
                   fi
-                  
+
                   # Environment setup
                   USER=''${USER:-$(whoami)}
-                  
+
                   # Simple logging
                   log_info() {
                       echo "ℹ️  $1"
                   }
-                  
+
                   # Check if we're on NixOS or regular Linux
                   if [ -f /etc/NIXOS ]; then
                       # NixOS - use nixos-rebuild

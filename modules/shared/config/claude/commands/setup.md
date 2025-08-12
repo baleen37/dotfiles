@@ -281,8 +281,8 @@ eval "$(direnv hook bash)"  # or zsh
 
 **Pre-commit Hooks Failing**:
 ```bash
-pre-commit install --install-hooks
-pre-commit run --all-files
+pre-commit install
+pre-commit run
 ```
 
 ---

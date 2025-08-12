@@ -14,9 +14,7 @@ tools: [Read, Bash, Grep, Glob, Write]
 
 ```bash
 /create-pr                   # Create PR with auto-generated description
-/create-pr --draft           # Create draft PR
-/create-pr --base main       # Specify base branch
-/create-pr --title "Title"   # Custom PR title
+/create-pr [title]           # Create PR with custom title
 ```
 
 ## Execution Strategy
@@ -35,8 +33,7 @@ tools: [Read, Bash, Grep, Glob, Write]
 
 ```bash
 /create-pr                   # Auto-generate PR with smart description
-/create-pr --draft --base develop  # Draft PR against develop branch
-/create-pr --title "Add auth system"  # Custom title with auto description
+/create-pr "Add auth system" # Custom title with auto description
 ```
 
 ## PR Generation Logic

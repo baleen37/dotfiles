@@ -1,38 +1,84 @@
 ---
 name: save
-description: "Save session work summary"
+description: "Save current todos and plans to file"
 mcp-servers: []
 agents: []
-tools: [Write]
+tools: [Write, TodoRead]
 ---
 
-# /save - Save Session Summary
+# /save - Save Todos & Plans
 
-**Purpose**: Save what you accomplished this session
+**Purpose**: Capture current todos and work plans for later restoration
 
 ## Usage
 
 ```bash
-/save                       # Save current session (auto-generates memo from work)
-/save <memo>                # Save with specific memo (rare use)
+/save <name>                # Save todos with specific name
+/save                       # Auto-name from main task/context
 ```
 
-## Execution
+## What Gets Saved
 
-1. Review TodoWrite completed tasks
-2. Auto-generate memo from main task (e.g. "claude-config", "build-fix")
-3. Write 2-3 line summary to `~/.claude/sessions/{project}/session-{date}.md`
+Create `plan_{name}_{timestamp}.md` containing:
 
-## Summary Format
+- **Current TodoWrite state**: All pending/in-progress/completed todos
+- **Work context**: What we're working on and why
+- **Next steps**: Planned actions and priorities
+- **Key insights**: Important discoveries or decisions
+- **Blockers**: Any issues or dependencies
 
+## File Format
+
+```markdown
+# Plan: {name}
+**Saved**: 2024-08-12 15:30
+**Context**: Improving Claude commands for session management
+
+## Current Todos
+### Pending
+- [ ] Fix build errors in lib/platform-system.nix
+- [ ] Add tests for new functionality
+- [ ] Update documentation
+
+### In Progress  
+- [x] Redesign save/restore commands
+
+### Completed
+- [x] Analyze current command structure
+- [x] Gather user requirements
+
+## Work Context
+Working on simplifying session management workflow. User wants to save/restore todo states rather than session summaries. Focus on practical utility over complex features.
+
+## Next Steps
+1. Implement todo restoration logic
+2. Test with real workflow scenarios  
+3. Add fuzzy search for saved plans
+
+## Key Insights
+- User prefers simple, direct approaches
+- Todo state preservation is more valuable than session logging
+- Korean communication + English docs works well
+
+## Blockers
+- Need to understand TodoWrite internal state format
+- File naming convention should be consistent
 ```
-Date: 2024-08-08 14:30
-Memo: config-fix
 
-Completed:
-- Fixed Claude settings
-- Updated commands
+## Implementation
+1. Use TodoRead to get current todo state
+2. Generate meaningful name from main todo or ask user
+3. Store as simple JSON format for easy parsing
 
-What's next:
-- Test MCP servers
+## File Structure
+```json
+{
+  "name": "config-improvements",
+  "saved": "2024-08-12T15:30:00Z",
+  "context": "Improving Claude commands",
+  "todos": [
+    {"id": "1", "content": "Fix build errors", "status": "pending"},
+    {"id": "2", "content": "Add tests", "status": "completed"}
+  ]
+}
 ```

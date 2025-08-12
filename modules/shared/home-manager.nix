@@ -78,10 +78,10 @@ in
   home.activation = {
     # Claude Code 설정 활성화 (모든 플랫폼)
     setupClaudeConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] (
-      import ../shared/lib/claude-activation.nix { 
-        inherit config lib; 
-        self = null; 
-        platform = if isDarwin then "darwin" else "linux"; 
+      import ../shared/lib/claude-activation.nix {
+        inherit config lib;
+        self = null;
+        platform = if isDarwin then "darwin" else "linux";
       }
     );
   } // lib.optionalAttrs isDarwin {

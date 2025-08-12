@@ -14,15 +14,11 @@ tools: [Read, Grep, Glob, TodoWrite, Task]
 
 ```bash
 /brainstorm <idea>           # Smart discovery with codebase analysis
-/brainstorm --brief <idea>   # Quick requirements without interaction
-/brainstorm --tech <idea>    # Technical architecture focus
 ```
 
 ## Execution Strategy
 
 - **Smart**: Codebase scan → intelligent questions → structured output
-- **Brief**: Direct conversion to user stories and acceptance criteria
-- **Technical**: Architecture decisions and implementation roadmap focus
 
 ## 2-Phase Process
 
@@ -58,8 +54,8 @@ Generate structured deliverables based on complexity:
 
 ```bash
 /brainstorm "team task tracker"     # Full discovery with codebase scan
-/brainstorm --tech "user auth"      # Technical implementation focus  
-/brainstorm --brief "mobile idea"   # Quick spec without questions
+/brainstorm "user auth system"      # Authentication system planning  
+/brainstorm "mobile app idea"       # Mobile application brainstorming
 ```
 
 ## Agent Routing
