@@ -1,9 +1,7 @@
 ---
 name: create-pr
 description: "Automated pull request creation with intelligent descriptions and metadata"
-mcp-servers: []
-agents: []
-tools: [Read, Bash, Grep, Glob, Write]
+agents: [general-purpose]
 ---
 
 # /create-pr - Automated Pull Request Creation
@@ -15,6 +13,7 @@ tools: [Read, Bash, Grep, Glob, Write]
 ```bash
 /create-pr                   # Create PR with auto-generated description
 /create-pr [title]           # Create PR with custom title
+/create-pr --draft           # Create draft PR
 ```
 
 ## Execution Strategy
@@ -25,33 +24,37 @@ tools: [Read, Bash, Grep, Glob, Write]
 - **Template Application**: Apply repository PR templates if available
 - **Validation**: Ensure PR meets repository requirements
 
-## MCP Integration
+## PR Generation Logic
 
-- None required for PR creation
+1. **Branch Validation**: `git branch --show-current` - ensure not on main
+2. **Commit Analysis**: `git log --oneline main..HEAD` - extract commit messages
+3. **File Analysis**: `git diff --name-status main..HEAD` - identify changed files
+4. **Smart Title**: Generate title from branch name or first commit if not provided
+5. **Description Build**: Create comprehensive description from file changes
+6. **Template Check**: Look for `.github/pull_request_template.md` and apply
+7. **PR Creation**: `gh pr create --title "..." --body "..." [--draft]`
+
+## Implementation Steps
+
+- **Prerequisites Check**: Verify branch differs from main and has commits
+- **Content Analysis**: Parse commits for feature descriptions and issue references
+- **Template Integration**: Merge repository PR templates with generated content
+- **Metadata Detection**: Extract issue numbers, breaking changes, test coverage
+- **Quality Validation**: Ensure description meets minimum standards
+- **Interactive Options**: Prompt for draft status or additional details
+
+## Content Structure
+
+- **Summary**: Brief overview of changes based on commit analysis
+- **Changes**: Detailed list of modifications organized by file type
+- **Test Plan**: Generated test approach based on changed files
+- **Breaking Changes**: Detected from commit messages and file analysis
+- **Related Issues**: Auto-linked from commit messages (fixes #123, closes #456)
 
 ## Examples
 
 ```bash
 /create-pr                   # Auto-generate PR with smart description
 /create-pr "Add auth system" # Custom title with auto description
+/create-pr --draft           # Create draft PR for work-in-progress
 ```
-
-## PR Generation Logic
-
-1. **Commit Analysis**: Extract commit messages and changed files
-2. **Summary Generation**: Create high-level summary of changes
-3. **Detail Extraction**: List specific changes, additions, and modifications
-4. **Test Plan**: Generate test plan based on changed files
-5. **Issue Linking**: Detect and link related issues from commit messages
-
-## Content Structure
-
-- **Summary**: Brief overview of changes
-- **Changes**: Detailed list of modifications
-- **Test Plan**: How to verify the changes
-- **Breaking Changes**: Any breaking changes introduced
-- **Related Issues**: Links to related issues/tickets
-
-## Agent Routing
-
-- No specialized agents required for PR creation

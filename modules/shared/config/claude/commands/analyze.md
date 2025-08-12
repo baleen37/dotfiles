@@ -1,9 +1,7 @@
 ---
 name: analyze
 description: "Comprehensive codebase analysis with automated quality reports and improvement suggestions"
-mcp-servers: [sequential, context7]
 agents: [performance-optimizer, root-cause-analyzer]
-tools: [Read, Grep, Glob, TodoWrite, Task]
 ---
 
 # /analyze - Comprehensive Codebase Analysis

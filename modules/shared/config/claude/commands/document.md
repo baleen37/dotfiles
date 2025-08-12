@@ -1,9 +1,7 @@
 ---
 name: document
 description: "Generate focused documentation for components, APIs, and features"
-mcp-servers: [context7]
 agents: [technical-writer]
-tools: [Read, Bash, Grep, Glob, Write]
 ---
 
 # /document - Documentation Generation

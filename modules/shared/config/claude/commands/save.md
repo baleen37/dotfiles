@@ -1,9 +1,7 @@
 ---
 name: save
 description: "Save current todos and plans to file"
-mcp-servers: []
 agents: []
-tools: [Write, TodoRead]
 ---
 
 # /save - Save Todos & Plans

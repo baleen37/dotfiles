@@ -1,9 +1,7 @@
 ---
 name: restore
 description: "Restore saved todos and plans from file"
-mcp-servers: []
 agents: []
-tools: [Read, Glob, TodoWrite]
 ---
 
 # /restore - Restore Todos & Plans
