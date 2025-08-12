@@ -465,7 +465,7 @@ execute_home_manager_switch() {
 
     # Get current user
     local user="${USER:-$(whoami)}"
-    
+
     # Get optimized Home Manager command
     local base_hm_cmd="nix run github:nix-community/home-manager/release-24.05 -- switch --flake .#${user} --impure"
     local optimized_hm_cmd=$(get_optimized_nix_command "$base_hm_cmd" 2>/dev/null || echo "$base_hm_cmd")
