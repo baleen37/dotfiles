@@ -6,7 +6,7 @@ agents: [devops-engineer]
 
 # /build - Project Building
 
-**Purpose**: Build and compile projects with comprehensive error handling and deployment preparation
+Execute project builds with comprehensive error analysis and optimization support.
 
 ## Usage
 
@@ -16,26 +16,25 @@ agents: [devops-engineer]
 /build prod                  # Production build with optimizations
 ```
 
-## Execution Strategy
+## Process
 
-- **Basic**: Execute build system using existing configuration
-- **Clean**: Remove artifacts and caches before building
-- **Production**: Apply optimizations and generate deployment packages
-- **Error Handling**: Analyze build failures with actionable solutions
+1. **Detection**: Identify build system (Nix, npm, make, etc.)
+2. **Execution**: Run build commands with proper error handling
+3. **Analysis**: Parse build errors and suggest solutions
+4. **Optimization**: Apply performance and size optimizations
 
-## MCP Integration
+## Features
 
-- **Playwright**: Build validation and automated testing of build artifacts
+- **Multi-Platform**: Supports Nix, Node.js, Make, and custom build systems
+- **Error Analysis**: Intelligent parsing of build failures with actionable fixes
+- **Clean Builds**: Automated artifact cleanup and cache management
+- **Production Mode**: Optimizations for deployment and distribution
 
 ## Examples
 
 ```bash
 /build                       # Full project build
-/build frontend              # Build specific module
+/build frontend              # Build specific module  
 /build clean prod           # Clean production build
 /build test                 # Build for testing
 ```
-
-## Agent Routing
-
-- **devops-engineer**: Complex build configurations, deployment preparation, CI/CD integration
