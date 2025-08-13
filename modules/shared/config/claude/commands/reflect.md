@@ -19,18 +19,17 @@ You are an expert in prompt engineering, specializing in optimizing AI code assi
    - MCP permission gaps
 
 **Settings Scope Guidelines:**
-- **Global settings** (`~/.claude/CLAUDE.md`, `~/.claude/settings.json`): Universal improvements only
-  - ❌ User-specific preferences (names, languages, personal workflows)
-  - ❌ Project-specific configurations or requirements
-  - ✅ General AI assistant behavior patterns
-  - ✅ Universal development best practices
-  - ✅ Cross-project tool permissions
+- **Global settings** (`~/.claude/CLAUDE.md`, `~/.claude/settings.json`): User personal preferences
+  - ✅ Personal workflow preferences and communication style
+  - ✅ Cross-project tool permissions and development patterns
+  - ✅ Language preferences and response formatting
+  - ❌ Project domain-specific technical requirements
 
 - **Project settings** (`/CLAUDE.md`, `/.claude/settings.local.json`): Project-specific customizations
-  - ✅ Domain-specific instructions
-  - ✅ Project workflow requirements  
-  - ✅ Personal preferences and language settings
-  - ✅ Project-specific tool permissions
+  - ✅ Domain-specific technical instructions (Nix, React, etc.)
+  - ✅ Project workflow requirements and architecture patterns
+  - ✅ Project-specific tool permissions and build commands
+  - ❌ Personal communication preferences (belongs in global)
 
 ## Proposal Phase
 
