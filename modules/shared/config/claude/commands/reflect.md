@@ -1,9 +1,9 @@
 ---
-name: reflection  
+name: reflect  
 description: "Claude Code instruction optimization through systematic analysis"
 ---
 
-# /reflection - Claude Code Instruction Optimization
+# /reflect - Claude Code Instruction Optimization
 
 You are an expert in prompt engineering, specializing in optimizing AI code assistant instructions. Your task is to analyze and improve the instructions for Claude Code. Follow these steps carefully:
 
@@ -17,6 +17,9 @@ You are an expert in prompt engineering, specializing in optimizing AI code assi
    - Missing functionality for common tasks
    - Inefficient command structures
    - MCP permission gaps
+
+**Global settings**: `~/.claude/CLAUDE.md` `~/.claude/commands/*` `~/.claude/agents/*` `~/.claude/settings.json`
+**Project settings**: `/CLAUDE.md` `/.claude/settings.json` `/.claude/settings.local.json` `/.claude/commands/*`
 
 ## Proposal Phase
 

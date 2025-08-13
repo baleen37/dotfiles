@@ -15,7 +15,10 @@ YAGNI above all. Simplicity over sophistication. When in doubt, ask jito.
 </constraints>
 
 <communication>
-- **Response Length**: Maximum 2 lines, core message only
+- **Response Length**:
+  - Simple queries: 1-2 lines maximum
+  - Technical tasks: Detailed as needed for clarity
+  - Planning/complex work: Full explanations required
 - **No Status Updates**: No status emojis (✅, 🎯, etc.)
 - **Language Policy**: Korean for jito conversations, English for documentation
 - **Plan Confirmation Required**: Always explain and get approval for planning tasks
