@@ -223,3 +223,9 @@ make deploy                 # Cross-platform build+switch
 - `modules/shared/config/claude/` syncs to `~/.claude`
 - Custom SuperClaude framework with jito personalization
 - Zero-config intelligence with learning patterns
+
+- @modules/shared/config/claude/commands/ 는 nix run .#build-switch로 통해 심볼릭 링크로 ~/.claude/commands/ 위치하게 돼.
+- /fix-pr, #update-pr, #create-pr 서로 연관된 commands 이니깐 변경이 있다면 서로 연관도를 확인해야해
+- claude command 변경 시 연관된 commands나 agent를 확인해야해.
+- /save, /restore 은 둘 다 연관되어야 하는 커맨드야
+- commands 를 작성할 때 이 프로젝트에 종속되게 하지마. 다른 프로젝트나 레포에서 쓸거야. 범용적이였으면 해

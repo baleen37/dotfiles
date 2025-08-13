@@ -1,9 +1,7 @@
 ---
 name: build
 description: "Build, compile, and package projects with intelligent error handling and optimization"
-mcp-servers: [playwright]
 agents: [devops-engineer]
-tools: [Read, Bash, Grep, Glob, Write]
 ---
 
 # /build - Project Building

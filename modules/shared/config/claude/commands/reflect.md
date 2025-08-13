@@ -1,3 +1,7 @@
+---
+name: reflect
+description: "Work pattern analysis and efficiency improvement suggestions"
+---
 # /sc:reflect - 작업 성찰 및 개선점 도출
 
 ## 목적

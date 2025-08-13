@@ -1,9 +1,7 @@
 ---
 name: brainstorm
 description: "Transform vague ideas into concrete requirements through codebase analysis"
-mcp-servers: [sequential, context7]
 agents: [system-architect, frontend-developer, backend-engineer]
-tools: [Read, Grep, Glob, TodoWrite, Task]
 ---
 
 # /brainstorm - Smart Requirements Discovery

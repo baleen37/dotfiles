@@ -1,9 +1,7 @@
 ---
 name: spawn
 description: "Task orchestration and breakdown for complex multi-step operations"
-mcp-servers: [sequential]
 agents: []
-tools: [Read, Grep, Glob, Bash, TodoWrite, Edit, MultiEdit, Write, Task]
 ---
 
 # /spawn - Task Orchestration

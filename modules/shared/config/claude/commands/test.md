@@ -1,9 +1,7 @@
 ---
 name: test
 description: "Execute tests, generate coverage reports, and automated test creation"
-mcp-servers: [playwright, sequential]
 agents: [test-automator]
-tools: [Read, Bash, Grep, Glob, Write]
 ---
 
 # /test - Testing and Quality Assurance

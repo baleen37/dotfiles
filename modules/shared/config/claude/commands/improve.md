@@ -1,9 +1,7 @@
 ---
 name: improve
 description: "Apply systematic improvements to code quality, performance, and maintainability"
-mcp-servers: [sequential, context7]
 agents: [performance-engineer, system-architect]
-tools: [Read, Grep, Glob, Edit, MultiEdit, TodoWrite, Task]
 ---
 
 # /improve - Code Improvement

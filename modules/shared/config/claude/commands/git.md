@@ -1,9 +1,7 @@
 ---
 name: git
 description: "Basic Git operations with status, branch management, and workflow guidance"
-mcp-servers: []
 agents: []
-tools: [Read, Bash, Grep, Glob, Write]
 ---
 
 # /git - Basic Git Operations

@@ -1,84 +1,149 @@
 ---
 name: save
-description: "Save current todos and plans to file"
-mcp-servers: []
+description: "Save current TodoWrite state and work context to restore later"
 agents: []
-tools: [Write, TodoRead]
 ---
 
-# /save - Save Todos & Plans
+# /save - Save Current Work State
 
-**Purpose**: Capture current todos and work plans for later restoration
+**Purpose**: 현재 TodoWrite 상태와 작업 컨텍스트를 저장하여 나중에 복원
 
 ## Usage
 
 ```bash
-/save <name>                # Save todos with specific name
-/save                       # Auto-name from main task/context
+/save <name>                # Save with specific identifier
+/save                       # Auto-generate name from main todo
 ```
 
-## What Gets Saved
+## Saved Data
 
-Create `plan_{name}_{timestamp}.md` containing:
+저장 파일: `.claude/plans/plan_{name}_{timestamp}.md` (프로젝트 루트)
 
-- **Current TodoWrite state**: All pending/in-progress/completed todos
-- **Work context**: What we're working on and why
-- **Next steps**: Planned actions and priorities
-- **Key insights**: Important discoveries or decisions
-- **Blockers**: Any issues or dependencies
+**포함 내용**:
+- TodoWrite 전체 상태 (상세 메타데이터 포함)
+- 문제 분석 및 기술적 세부사항
+- 실행 명령어와 예상 시간
+- 결정 사항과 학습 포인트
+- 블로커/리스크 평가
 
-## File Format
+## Markdown Structure
 
 ```markdown
-# Plan: {name}
+# Plan: api-integration-feature
 **Saved**: 2024-08-12 15:30
-**Context**: Improving Claude commands for session management
+**Context**: REST API 통합 기능 개발 중
+**Project**: web-dashboard
+**Files**: src/api/client.js, tests/api.test.js, components/DataTable.jsx
+
+## Original Goal & Motivation
+**What we're trying to build**: Real-time data dashboard with API integration
+- **Purpose**: Display live metrics from external API endpoints
+- **User Story**: "Users need to see real-time performance data without manual refresh"
+- **Success Criteria**:
+  - Auto-refresh every 30 seconds
+  - Error handling for API failures
+  - Responsive data visualization
+  - Zero data loss during network issues
+
+## Implementation Plan
+**Current Phase**: API client development
+- **Phase 1**: ✅ Basic API client setup (완료)
+- **Phase 2**: 🔄 Error handling & retry logic (현재)
+- **Phase 3**: 📋 Real-time updates integration
+- **Phase 4**: 📋 Performance optimization & caching
+
+**Architecture Decision**: Polling vs WebSocket for real-time updates
+- **Chosen**: Polling with exponential backoff
+- **Rationale**: Simpler implementation, better error handling
+- **Trade-off**: Slightly higher latency but more reliable
+
+## Problem Analysis
+- **Root Cause**: async/await syntax error in error handler
+- **Impact**: API requests failing silently
+- **Discovery Method**: unit test failure + browser console
 
 ## Current Todos
-### Pending
-- [ ] Fix build errors in lib/platform-system.nix
-- [ ] Add tests for new functionality
-- [ ] Update documentation
 
-### In Progress  
-- [x] Redesign save/restore commands
+### In Progress
+- [•] Fix async error handling in API client
+  - **Details**: Add proper try/catch wrapper in retry logic
+  - **Expected Time**: 15분
+  - **Dependencies**: 없음
+
+### Pending  
+- [ ] Add unit tests for error scenarios
+  - **Command**: `npm test -- api.test.js`
+  - **Expected**: 모든 error cases 커버
+  - **Time**: 30분
+- [ ] Integration testing with mock API
+  - **Command**: `npm run test:integration`
+  - **Focus**: Network failure simulation
 
 ### Completed
-- [x] Analyze current command structure
-- [x] Gather user requirements
+- [x] Basic API client structure (14:45 완료)
+  - **Method**: fetch API with custom headers
+  - **Result**: GET/POST 기본 동작 확인
 
-## Work Context
-Working on simplifying session management workflow. User wants to save/restore todo states rather than session summaries. Focus on practical utility over complex features.
+## Technical Details
+- **Error Message**: `SyntaxError: Unexpected token 'catch'`
+- **File Location**: src/api/client.js:23:5
+- **Fix Strategy**: Wrap async function properly in try/catch
+- **Testing Plan**: unit tests → integration tests → manual verification
 
-## Next Steps
-1. Implement todo restoration logic
-2. Test with real workflow scenarios  
-3. Add fuzzy search for saved plans
+## Next Steps (Priority Order)
+1. Fix syntax error in error handler (즉시)
+2. Add comprehensive error test cases (수정 후)
+3. Integration testing with timeout scenarios (테스트 통과 후)
+4. Code review and documentation update (검증 완료 후)
 
-## Key Insights
-- User prefers simple, direct approaches
-- Todo state preservation is more valuable than session logging
-- Korean communication + English docs works well
+## Key Decisions Made
+- Use native fetch API over axios (reduce bundle size)
+- Implement exponential backoff for retries
+- Store request state in React context
 
-## Blockers
-- Need to understand TodoWrite internal state format
-- File naming convention should be consistent
+## Blockers & Risks
+- **Blockers**: 없음 (syntax fix is straightforward)
+- **Risks**: 낮음 (isolated to API client module)
+- **Rollback Plan**: git revert to working version
+
+## Learning Points
+- async/await error handling requires careful syntax
+- Unit testing async functions needs special setup
+- API resilience more important than performance
+
+## Session History & Context
+**How we got here**:
+1. User requested real-time dashboard feature
+2. Started with basic API client implementation
+3. Added retry logic for network resilience
+4. Hit syntax error during error handling implementation
+5. Decided to fix and add comprehensive tests
+
+**Previous Attempts**:
+- Tried WebSocket approach (too complex for current needs)
+- Considered using axios (rejected due to bundle size)
+- Settled on fetch with custom retry logic
+
+**Why this matters**:
+- Enables real-time monitoring capabilities
+- Foundation for future dashboard features
+- Critical for user experience during network issues
+
+## Related Work & Dependencies
+**Connected Issues**:
+- Component state management refactoring
+- Performance monitoring setup
+- CI/CD pipeline for API testing
+
+**Future Integration Points**:
+- Authentication token refresh
+- WebSocket upgrade path
+- Offline mode support
 ```
 
-## Implementation
-1. Use TodoRead to get current todo state
-2. Generate meaningful name from main todo or ask user
-3. Store as simple JSON format for easy parsing
+## Implementation Notes
 
-## File Structure
-```json
-{
-  "name": "config-improvements",
-  "saved": "2024-08-12T15:30:00Z",
-  "context": "Improving Claude commands",
-  "todos": [
-    {"id": "1", "content": "Fix build errors", "status": "pending"},
-    {"id": "2", "content": "Add tests", "status": "completed"}
-  ]
-}
-```
+1. **Auto-naming**: 첫 번째 in-progress todo에서 키워드 추출
+2. **File location**: `.claude/plans/` 디렉토리 사용 (프로젝트별)
+3. **Timestamp format**: YYYY-MM-DD HH:MM (읽기 용이)
+4. **Coordination**: `/restore` 명령어와 같은 markdown 형식 사용

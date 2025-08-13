@@ -1,9 +1,6 @@
 ---
 name: do-plan
 description: "Execute the tasks from a plan sequentially, phase by phase"
-mcp-servers: []
-agents: []
-tools: [TodoWrite]
 ---
 
 # /do-plan - Sequential Plan Execution
