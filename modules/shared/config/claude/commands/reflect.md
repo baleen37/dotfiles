@@ -1,9 +1,9 @@
 ---
-name: reflection  
+name: reflect  
 description: "Claude Code instruction optimization through systematic analysis"
 ---
 
-# /reflection - Claude Code Instruction Optimization
+# /reflect - Claude Code Instruction Optimization
 
 You are an expert in prompt engineering, specializing in optimizing AI code assistant instructions. Your task is to analyze and improve the instructions for Claude Code. Follow these steps carefully:
 
