@@ -9,10 +9,11 @@ let
 
   # Intelligent source directory resolution with fallback system
   # Priority: 1. Local dotfiles path 2. relative path 3. self (Nix store) as last resort
-  sourceDir = "${config.home.homeDirectory}/dev/dotfiles/modules/shared/config/claude";
+  sourceDir = "${config.home.homeDirectory}/dotfiles/modules/shared/config/claude";
 
   # Backup source directories to try if primary fails
   fallbackSources = [
+    "${config.home.homeDirectory}/dev/dotfiles/modules/shared/config/claude" # dev dotfiles location
     "./modules/shared/config/claude" # relative path fallback
     "/Users/jito/dev/dotfiles/modules/shared/config/claude" # absolute path fallback
   ] ++ (if self != null then [ "${self}/modules/shared/config/claude" ] else [ ]);
@@ -121,56 +122,6 @@ in
     echo "  파일 심볼릭 링크 생성: $target_file -> $source_file"
   }
 
-  # settings.json 복사 함수 (Claude Code가 수정할 수 있도록)
-  create_settings_copy() {
-    local source_file="$1"
-    local target_file="$2"
-    local file_name=$(basename "$source_file")
-
-    echo "처리 중: $file_name (복사 모드)"
-
-    if [[ ! -f "$source_file" ]]; then
-      echo "  소스 파일 없음, 건너뜀"
-      return 0
-    fi
-
-    # 기존 파일 백업 (동적 상태 보존용)
-    if [[ -f "$target_file" && ! -L "$target_file" ]]; then
-      echo "  기존 settings.json 백업 중..."
-      cp "$target_file" "$target_file.backup"
-    fi
-
-    # 기존 심볼릭 링크 제거
-    if [[ -L "$target_file" ]]; then
-      echo "  기존 심볼릭 링크 제거"
-      rm -f "$target_file"
-    fi
-
-    # 새로운 설정을 복사
-    cp "$source_file" "$target_file"
-    chmod 644 "$target_file"
-    echo "  파일 복사 완료: $target_file (644 권한)"
-
-    # 백업에서 동적 상태 병합
-    if [[ -f "$target_file.backup" ]]; then
-      echo "  동적 상태 병합 시도 중..."
-
-      # jq가 있으면 JSON 병합, 없으면 백업만 유지
-      if command -v jq >/dev/null 2>&1; then
-        # 백업에서 feedbackSurveyState 추출해서 병합
-        if jq -e '.feedbackSurveyState' "$target_file.backup" >/dev/null 2>&1; then
-          local feedback_state=$(jq -c '.feedbackSurveyState' "$target_file.backup")
-          jq --argjson feedback_state "$feedback_state" '.feedbackSurveyState = $feedback_state' "$target_file" > "$target_file.tmp"
-          mv "$target_file.tmp" "$target_file"
-          echo "  ✓ feedbackSurveyState 병합 완료"
-        fi
-      else
-        echo "  ⚠ jq 없음: 동적 상태 병합 건너뜀"
-      fi
-
-      rm -f "$target_file.backup"
-    fi
-  }
 
   echo ""
   echo "=== Claude 설정 심볼릭 링크 생성 ==="
@@ -178,19 +129,15 @@ in
   # 1. 폴더 단위 심볼릭 링크 생성
   create_folder_symlink "$ACTUAL_SOURCE_DIR/commands" "$CLAUDE_DIR/commands"
   create_folder_symlink "$ACTUAL_SOURCE_DIR/agents" "$CLAUDE_DIR/agents"
+  create_folder_symlink "$ACTUAL_SOURCE_DIR/hooks" "$CLAUDE_DIR/hooks"
 
   # 2. 루트 레벨 설정 파일들 (.md, .json)
   for source_file in "$ACTUAL_SOURCE_DIR"/*.md "$ACTUAL_SOURCE_DIR"/*.json; do
     if [[ -f "$source_file" ]]; then
       file_name=$(basename "$source_file")
 
-      # settings.json은 Claude Code가 수정할 수 있도록 복사본으로 생성
-      if [[ "$file_name" == "settings.json" ]]; then
-        create_settings_copy "$source_file" "$CLAUDE_DIR/$file_name"
-      else
-        # 다른 설정 파일들은 심볼릭 링크로 유지 (CLAUDE.md 등)
-        create_file_symlink "$source_file" "$CLAUDE_DIR/$file_name"
-      fi
+      # 모든 설정 파일들을 심볼릭 링크로 유지
+      create_file_symlink "$source_file" "$CLAUDE_DIR/$file_name"
     fi
   done
 
@@ -210,7 +157,7 @@ in
   valid_links=0
   broken_links=0
 
-  for link_file in "$CLAUDE_DIR"/*.md "$CLAUDE_DIR"/*.json "$CLAUDE_DIR/commands" "$CLAUDE_DIR/agents"; do
+  for link_file in "$CLAUDE_DIR"/*.md "$CLAUDE_DIR"/*.json "$CLAUDE_DIR/commands" "$CLAUDE_DIR/agents" "$CLAUDE_DIR/hooks"; do
     if [[ -L "$link_file" ]]; then
       ((link_count++))
       if [[ -e "$link_file" ]]; then

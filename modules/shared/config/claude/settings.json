@@ -113,6 +113,14 @@
     ],
     "deny": []
   },
+  "hooks": {
+    "user-prompt-submit": [
+      {
+        "command": "python3",
+        "args": ["hooks/utilities/UserPromptSubmit/append_ultrathink.py"]
+      }
+    ]
+  },
   "model": "sonnet",
   "feedbackSurveyState": {
     "lastShownTime": 1754745111954
