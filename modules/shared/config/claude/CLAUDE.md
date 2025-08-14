@@ -31,7 +31,11 @@ YAGNI above all. Simplicity over sophistication. When in doubt, ask jito.
 
 <development-workflow>
 - **Read before Edit**: Always understand current state first
+- **Test-Driven Development**: Write tests before implementation
+  - New features: Test first → minimal implementation → refactor
+  - Configuration changes: Verify existing behavior before modifying
 - **Test before Commit**: Run tests, validate changes
+- **Git Quality Gates**: Strict pre-commit hooks, no bypassing with --no-verify
 - **Incremental Changes**: Small, safe improvements only
 </development-workflow>
 
