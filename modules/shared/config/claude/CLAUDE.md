@@ -41,6 +41,7 @@ YAGNI above all. Simplicity over sophistication. When in doubt, ask jito.
 - **Never leave legacy code** - Delete unused code immediately
 - Always follow security best practices
 - Never commit secrets or keys to repository
+- **Serena MCP Integration**: Use Serena for semantic code analysis, symbol-level editing, and code understanding tasks when available
 </memory>
 
 <task-management>
