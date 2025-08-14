@@ -26,6 +26,9 @@ with pkgs; let
     python3Packages.pipx # Install Python applications in isolated environments
     virtualenv # Python virtual environment tool
     uv # Fast Python package installer
+    (pkgs.writeShellScriptBin "claude-monitor" ''
+      ${uv}/bin/uv tool run claude-monitor "$@"
+    '') # Claude monitor tool wrapper
     direnv # Environment variable management per directory
     pre-commit # Pre-commit hooks framework
     gemini-cli # Command-line interface for Gemini

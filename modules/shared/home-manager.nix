@@ -192,13 +192,7 @@ in
           (nohup "$HOME/dotfiles/scripts/auto-update-dotfiles" --silent &>/dev/null &)
         fi
 
-        # Auto-install claude-monitor via uv if not already installed
-        if command -v uv >/dev/null 2>&1; then
-          if ! uv tool list | grep -q "claude-monitor"; then
-            echo "Installing claude-monitor via uv..."
-            uv tool install claude-monitor
-          fi
-        fi
+        # Claude-monitor is now managed via Nix packages
 
         # IntelliJ IDEA 백그라운드 실행 함수 (platform-aware)
         idea() {
