@@ -585,6 +585,9 @@ in
         set -g default-shell ${config.programs.zsh.package}/bin/zsh
         set -g default-command "${config.programs.zsh.package}/bin/zsh -l"
         set -g focus-events on
+
+        # TERM 환경변수 설정 (색상 코드 표시 문제 해결)
+        set-environment -g TERM xterm-256color
         set -g mouse on
         set -g base-index 1
         set -g pane-base-index 1
