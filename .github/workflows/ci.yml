@@ -97,6 +97,11 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           echo "🧹 Cleaning existing Nix installation..."
+
+          # Stop Nix daemon if running
+          sudo launchctl stop org.nixos.nix-daemon || true
+          sudo launchctl unload /Library/LaunchDaemons/org.nixos.nix-daemon.plist || true
+
           # Remove existing nixbld users if they exist
           for i in {1..32}; do
             if dscl . -read /Users/_nixbld$i &>/dev/null; then
@@ -111,20 +116,35 @@ jobs:
             sudo dscl . -delete /Groups/nixbld || true
           fi
 
-          # Remove any existing Nix volume
+          # Force unmount and remove any existing Nix volume
           if diskutil list | grep -q "Nix Store"; then
-            echo "Unmounting and removing Nix Store volume"
-            sudo diskutil unmount "/nix" || true
-            sudo diskutil apfs deleteVolume "Nix Store" || true
+            echo "Force unmounting and removing Nix Store volume"
+            sudo diskutil unmount force "/nix" || true
+            # Get the volume identifier and remove it
+            VOLUME_ID=$(diskutil list | grep "Nix Store" | awk '{print $6}')
+            if [ -n "$VOLUME_ID" ]; then
+              sudo diskutil apfs deleteVolume "$VOLUME_ID" || true
+            fi
           fi
 
-          # Clean up Nix-related files
+          # Clean up Nix-related files and directories
+          sudo umount /nix || true
           sudo rm -rf /nix || true
           sudo rm -f /etc/synthetic.conf || true
           sudo rm -f /Library/LaunchDaemons/org.nixos.nix-daemon.plist || true
           sudo rm -f /Library/LaunchDaemons/org.nixos.darwin-store.plist || true
+          sudo rm -rf /etc/nix || true
+          sudo rm -f /etc/fstab.backup || true
 
-          echo "✅ Cleanup completed"
+          # Remove any remaining Nix entries from fstab
+          if [ -f /etc/fstab ]; then
+            sudo sed -i.bak '/nix/d' /etc/fstab || true
+          fi
+
+          # Reset synthetic.conf if it exists
+          echo "nix" | sudo tee /etc/synthetic.conf > /dev/null || true
+
+          echo "✅ Comprehensive cleanup completed"
 
       - uses: cachix/install-nix-action@v25
         with:
@@ -177,6 +197,29 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+
+      # Clean up any existing Nix installation on macOS
+      - name: Clean existing Nix installation (macOS)
+        run: |
+          echo "🧹 Cleaning existing Nix installation for tests..."
+
+          # Stop Nix daemon if running
+          sudo launchctl stop org.nixos.nix-daemon || true
+          sudo launchctl unload /Library/LaunchDaemons/org.nixos.nix-daemon.plist || true
+
+          # Quick cleanup for test environment
+          for i in {1..32}; do
+            sudo dscl . -delete /Users/_nixbld$i 2>/dev/null || true
+          done
+          sudo dscl . -delete /Groups/nixbld 2>/dev/null || true
+
+          # Force cleanup of volume and files
+          sudo diskutil unmount force "/nix" 2>/dev/null || true
+          sudo rm -rf /nix 2>/dev/null || true
+          sudo rm -f /etc/synthetic.conf /Library/LaunchDaemons/org.nixos.* 2>/dev/null || true
+          echo "nix" | sudo tee /etc/synthetic.conf > /dev/null || true
+
+          echo "✅ Test cleanup completed"
 
       - uses: cachix/install-nix-action@v25
         with:
