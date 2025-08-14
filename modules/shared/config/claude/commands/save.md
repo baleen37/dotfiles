@@ -5,7 +5,7 @@ description: "Save current TodoWrite state and work context to restore later"
 
 # /save - Save Work State
 
-현재 TodoWrite 상태와 작업 컨텍스트를 저장하여 나중에 복원
+Save current TodoWrite state and work context for later restoration
 
 ## Usage
 
@@ -14,26 +14,35 @@ description: "Save current TodoWrite state and work context to restore later"
 /save           # Auto-generate name from main todo
 ```
 
-## Saved Data
+## Storage Location & Contents
 
-**Location**: `.claude/plans/plan_{name}_{timestamp}.md`
+**Storage Path**: `./session_{slug}_{yyyymmddHHMM}.md`
 
-**Contents**:
-- TodoWrite 전체 상태 (메타데이터 포함)
-- 문제 분석 및 기술적 세부사항  
-- 실행 명령어와 예상 시간
-- 결정 사항과 학습 포인트
-- 블로커/리스크 평가
+**Saved Data**:
+- Complete TodoWrite state (including metadata)
+- Problem analysis and technical details
+- Execution commands and estimated timeframes
+- Decision points and learning insights
+- Blockers and risk assessments
 
-## Features
+## Core Features
 
-- **Context Preservation**: Current work state and decisions
-- **Progress Tracking**: Completed vs pending tasks
-- **Technical Details**: Commands, timeframes, and reasoning
-- **Auto-naming**: Intelligent naming from current tasks
+- **Context Preservation**: Maintains current work state and decisions
+- **Progress Tracking**: Tracks completed vs pending tasks
+- **Technical Details**: Commands, timeframes, and reasoning process
+- **Auto-naming**: Intelligent naming from current TodoWrite tasks
+- **Safety Checks**: Warns before overwriting existing plans
+- **Auto-cleanup**: Removes backup files older than 30 days
+
+## Safety Features
+
+- **Overwrite Protection**: Confirmation prompt when plan name exists
+- **Backup Validation**: Pre-save plan file integrity checks
+- **Automatic Cleanup**: Manages old backup files automatically
 
 ## Integration
 
 - Works with `/restore` command for session recovery
-- Stores in project-local `.claude/plans/` directory
-- Markdown format for human readability
+- Stores in current working directory (`./`)
+- Human-readable Markdown format with chronological naming
+- Compatible with TodoWrite/TodoRead tool ecosystem

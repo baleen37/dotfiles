@@ -92,6 +92,40 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Clean up any existing Nix installation on macOS
+      - name: Clean existing Nix installation (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          echo "🧹 Cleaning existing Nix installation..."
+          # Remove existing nixbld users if they exist
+          for i in {1..32}; do
+            if dscl . -read /Users/_nixbld$i &>/dev/null; then
+              echo "Removing user _nixbld$i"
+              sudo dscl . -delete /Users/_nixbld$i || true
+            fi
+          done
+
+          # Remove existing nixbld group if it exists
+          if dscl . -read /Groups/nixbld &>/dev/null; then
+            echo "Removing group nixbld"
+            sudo dscl . -delete /Groups/nixbld || true
+          fi
+
+          # Remove any existing Nix volume
+          if diskutil list | grep -q "Nix Store"; then
+            echo "Unmounting and removing Nix Store volume"
+            sudo diskutil unmount "/nix" || true
+            sudo diskutil apfs deleteVolume "Nix Store" || true
+          fi
+
+          # Clean up Nix-related files
+          sudo rm -rf /nix || true
+          sudo rm -f /etc/synthetic.conf || true
+          sudo rm -f /Library/LaunchDaemons/org.nixos.nix-daemon.plist || true
+          sudo rm -f /Library/LaunchDaemons/org.nixos.darwin-store.plist || true
+
+          echo "✅ Cleanup completed"
+
       - uses: cachix/install-nix-action@v25
         with:
           nix_path: nixpkgs=channel:nixos-unstable

@@ -29,18 +29,57 @@ agents: [general-purpose]
 1. **Current State**: `gh pr view [number] --json` - fetch existing PR details
 2. **Change Analysis**: `git log --oneline origin/main..HEAD` - compare commits
 3. **File Analysis**: `git diff --name-status origin/main..HEAD` - changed files
-4. **Description Generation**: Create comprehensive summary from commit analysis
-5. **Metadata Update**: `gh pr edit [number] --title "..." --body "..."` - apply changes
-6. **Status Check**: `gh pr checks` - verify CI and review status
+4. **Template Discovery**: Find GitHub PR templates using intelligent detection
+5. **Description Generation**: Create comprehensive summary with template structure
+6. **Template Apply**: Parse and populate template with refreshed content
+7. **Metadata Update**: `gh pr edit [number] --title "..." --body "..."` - apply changes
+8. **Status Check**: `gh pr checks` - verify CI and review status
 
 ## Implementation Steps
 
 - **Branch Detection**: Identify current branch or PR number
 - **Commit Analysis**: Extract meaningful changes from git history
+- **Template Discovery**: Use intelligent detection to find repository PR templates
 - **Smart Description**: Generate description based on file changes and commits
-- **Template Application**: Use repository PR templates if available
+- **Template Integration**: Parse template structure and populate with refreshed content
 - **Conflict Detection**: Check for merge conflicts with base branch
 - **Automated Updates**: Update PR title, body, and relevant metadata
+
+## Template Discovery Logic
+
+```bash
+find_pr_template() {
+  local template_paths=(
+    ".github/pull_request_template.md"
+    ".github/PULL_REQUEST_TEMPLATE.md"
+    ".github/PULL_REQUEST_TEMPLATE/default.md"
+  )
+
+  for template in "${template_paths[@]}"; do
+    [[ -f "$template" ]] && echo "$template" && return 0
+  done
+
+  # Check for multiple template directory
+  if [[ -d ".github/PULL_REQUEST_TEMPLATE" ]]; then
+    find .github/PULL_REQUEST_TEMPLATE -name "*.md" | head -1
+  fi
+}
+```
+
+## Template Update Strategy
+
+### Existing PR with Template
+- **Preserve Structure**: Maintain original template sections and formatting
+- **Update Content**: Refresh only the content within template sections
+- **Korean Template Support**: Special handling for Korean language templates
+  - Update "요약" section with latest commit analysis
+  - Refresh "변경사항" checkboxes based on new file changes
+  - Preserve "테스트 계획" and "체크리스트" sections as-is
+
+### Existing PR without Template
+- **Template Detection**: Check if repository now has PR templates
+- **Migration Option**: Offer to migrate existing PR to template format
+- **Content Preservation**: Maintain existing content while adding template structure
 
 ## Examples
 
