@@ -6,60 +6,74 @@ agents: []
 
 # /restore - Restore Work State
 
-**Purpose**: 저장된 TodoWrite 상태와 작업 컨텍스트를 복원
+Restore previously saved TodoWrite state and work context
 
 ## Usage
 
 ```bash
-/restore                     # 저장된 플랜 목록 보기
-/restore <name>              # 특정 플랜 복원 (이름/부분 검색)
-/restore <number>            # 리스트에서 번호로 선택
+/restore                     # List available saved sessions
+/restore <slug>              # Restore specific session (slug/partial search)
+/restore <number>            # Select from list by number
 ```
 
 ## List Mode
 
-`.claude/plans/` 디렉토리에서 `plan_*.md` 파일 스캔:
+Scans current directory (`./`) for `session_*.md` files:
 
 ```
-📋 저장된 플랜 3개 발견:
+📋 Found 3 saved sessions:
 
-1. fix-build-errors (2024-08-12 15:30)
-   상태: pending(2), in-progress(1), completed(0)
-   컨텍스트: lib/platform-system.nix 빌드 오류 수정 중
+1. fix-build-errors (202408121530)
+   Status: pending(2), in-progress(1), completed(0)
+   Context: Fixing lib/platform-system.nix build errors
 
-2. config-improvements (2024-08-11 09:15)
-   상태: pending(1), in-progress(0), completed(3)
-   컨텍스트: Claude 명령어 세션 관리 개선
+2. config-improvements (202408110915)
+   Status: pending(1), in-progress(0), completed(3)
+   Context: Claude command session management improvements
 
-3. nix-update (2024-08-10 14:00)
-   상태: pending(0), in-progress(1), completed(4)
-   컨텍스트: flake inputs 업데이트 및 크로스 플랫폼 테스트
+3. nix-update (202408101400)
+   Status: pending(0), in-progress(1), completed(4)
+   Context: flake inputs update and cross-platform testing
 ```
 
 ## Restore Process
 
-복원 전 확인 메시지:
+Pre-restore confirmation message:
 
 ```
-🔄 플랜 복원: fix-build-errors
+🔄 Restoring session: fix-build-errors
 
-현재 할 일 목록이 다음으로 교체됩니다:
+Current todo list will be replaced with:
 
-🔄 진행 중 (1):
-  - platform-system.nix syntax 오류 수정
+🔄 In Progress (1):
+  - Fix platform-system.nix syntax errors
 
-📋 대기 중 (2):
-  - 테스트 실행 및 검증
-  - 문서 업데이트
+📋 Pending (2):
+  - Run tests and validation
+  - Update documentation
 
-계속하시겠습니까? [Y/n]
+Continue? [Y/n]
 ```
 
-## Implementation Details
+## Core Features
 
-1. **File Discovery**: `.claude/plans/plan_*.md` 검색
-2. **Markdown Parsing**: ## Current Todos 섹션에서 상태 추출
-3. **Fuzzy Matching**: 단어 부분 매칭 (예: "build" → "fix-build-errors")
-4. **State Restoration**: TodoWrite로 정확한 상태 재생성
-5. **Coordination**: `/save`와 동일한 markdown 형식 사용
-6. **Safety**: 복원 전 현재 상태 보여주고 확인 요청
+- **File Discovery**: Searches `./session_*.md` pattern in current directory
+- **Markdown Parsing**: Extracts state from ## Current Todos section
+- **Fuzzy Matching**: Partial slug matching (e.g., "build" → "fix-build-errors")
+- **State Restoration**: Accurate state regeneration via TodoWrite
+- **Safety Confirmation**: Shows current state before restore and requests confirmation
+- **Chronological Sorting**: Automatic time-based ordering with yyyymmddHHMM format
+
+## Safety Features
+
+- **Session Validation**: Automatic detection of corrupted session files
+- **Backup State Verification**: Pre-validation of restorable state
+- **Current Work Protection**: Warns against loss of in-progress work
+- **Error Recovery**: Rollback to previous state on restore failure
+
+## Integration
+
+- Works with `/save` command for session management
+- Uses current working directory (`./`) for easy access
+- Same Markdown format as `/save` command with chronological naming
+- Compatible with TodoWrite/TodoRead tool ecosystem
