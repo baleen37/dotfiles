@@ -33,9 +33,9 @@ if re.search(r"--no-verify", command):
     print("1. pre-commit 오류를 수정하여 정상적으로 커밋", file=sys.stderr)
     print("2. 특정 hook만 건너뛰기: SKIP=ruff git commit -m '...'", file=sys.stderr)
     print("3. 정말 필요한 경우 수동으로 터미널에서 실행", file=sys.stderr)
-    
+
     # Exit code 2 blocks the command and shows stderr to Claude
     sys.exit(2)
 
 # Allow the command to proceed
-sys.exit(0)
+sys.exit(0)# Test comment
