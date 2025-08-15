@@ -21,12 +21,16 @@ command = tool_input.get("command", "")
 if tool_name != "Bash":
     sys.exit(0)
 
-# Check if this is a git commit command
-if not re.search(r"\bgit\s+commit\b", command):
+# Check if this starts with a git commit command (not just contains it)
+if not re.match(r"\s*git\s+commit\b", command):
     sys.exit(0)
 
-# Check for --no-verify flag
-if re.search(r"--no-verify", command):
+# For git commit commands, check for --no-verify flag outside of quoted strings
+# Remove quoted content to avoid false positives
+command_clean = re.sub(r'"[^"]*"', '', command)  # Remove double quotes
+command_clean = re.sub(r"'[^']*'", '', command_clean)  # Remove single quotes
+
+if re.search(r"--no-verify\b", command_clean):
     print("⚠️  --no-verify flag detected.", file=sys.stderr)
     print("Pre-commit hooks are important for code quality.", file=sys.stderr)
     print("Try these alternatives instead:", file=sys.stderr)
