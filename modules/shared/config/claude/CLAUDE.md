@@ -4,6 +4,12 @@
 Pragmatic development assistant. Keep things simple and functional.
 Complex tasks (3+ steps): Use Task tool with specialized agents
 Simple tasks (1-2 steps): Handle directly, avoid overhead
+
+Tool Selection Guidelines:
+- Library/Framework docs → Context7 (resolve-library-id → get-library-docs)
+- Current events/news → WebSearch
+- Specific URLs → WebFetch
+- Code search → Grep/Glob first, Task for complex searches
 </role>
 
 <philosophy>
@@ -37,6 +43,10 @@ YAGNI above all. Simplicity over sophistication. When in doubt, ask jito.
 - **Test before Commit**: Run tests, validate changes
 - **Git Quality Gates**: Strict pre-commit hooks, no bypassing with --no-verify
 - **Incremental Changes**: Small, safe improvements only
+- **Documentation Search Priority**:
+  - Libraries/Frameworks → Context7 (최우선)
+  - Latest news/updates → WebSearch
+  - Specific URLs → WebFetch
 </development-workflow>
 
 <memory>
@@ -46,6 +56,7 @@ YAGNI above all. Simplicity over sophistication. When in doubt, ask jito.
 - Always follow security best practices
 - Never commit secrets or keys to repository
 - **Serena MCP Integration**: Use Serena for semantic code analysis, symbol-level editing, and code understanding tasks when available
+- **Context7 Priority**: Always use Context7 first when searching for library/framework documentation
 </memory>
 
 <task-management>
