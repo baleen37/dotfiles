@@ -424,6 +424,17 @@
           "hooks/utilities/UserPromptSubmit/append_ultrathink.py"
         ]
       }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",  
+            "command": "hooks/git-commit-validator.py"
+          }
+        ]
+      }
     ]
   },
   "model": "sonnet",

@@ -32,13 +32,11 @@ Save current TodoWrite state and work context for later restoration
 - **Technical Details**: Commands, timeframes, and reasoning process
 - **Auto-naming**: Intelligent naming from current TodoWrite tasks
 - **Safety Checks**: Warns before overwriting existing plans
-- **Auto-cleanup**: Removes backup files older than 30 days
 
 ## Safety Features
 
 - **Overwrite Protection**: Confirmation prompt when plan name exists
-- **Backup Validation**: Pre-save plan file integrity checks
-- **Automatic Cleanup**: Manages old backup files automatically
+- **File Validation**: Pre-save plan file integrity checks
 
 ## Integration
 

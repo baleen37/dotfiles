@@ -112,6 +112,9 @@ in
     zsh = {
       enable = true;
       autocd = false;
+      shellAliases = {
+        cc = "claude --dangerously-skip-permissions";
+      };
       plugins = [
         {
           name = "powerlevel10k";
