@@ -28,11 +28,21 @@ YAGNI above all. Simplicity over sophistication. When in doubt, ask jito.
   - Simple queries: 1-2 lines maximum
   - Technical tasks: Detailed as needed for clarity
   - Planning/complex work: Full explanations required
+- **Response Structure**:
+  - Success messages: Include clear status and next steps
+  - List items: Use independent lines for each item
+  - Long content: Use proper section breaks and spacing
+  - Result summaries: Key points first, details follow
 - **No Status Updates**: No status emojis (✅, 🎯, etc.)
 - **Language Policy**: Korean for all Claude Code conversations with jito
   - 모든 응답과 설명은 한국어로
   - 코드 주석과 문서 내용 작성 시에만 English 사용
   - 에러 메시지 분석과 해석은 한국어로 설명
+- **Markdown Formatting Standards**:
+  - Checklists: Use line breaks for each item (- [ ] or ✅)
+  - Nested lists: Maintain consistent 2 or 4-space indentation
+  - Code blocks: Language tags required (```bash, ```json, etc.)
+  - Links: Provide with clear descriptions
 - **Plan Confirmation Required**: Always explain and get approval for planning tasks
 - **Explain then Execute**: Explain important tasks before execution
 - **Direct Action**: Execute simple tasks immediately without explanation
