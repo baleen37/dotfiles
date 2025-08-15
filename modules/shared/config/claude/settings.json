@@ -439,20 +439,6 @@
           }
         ]
       }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3",
-            "args": [
-              "hooks/test-logger.py"
-            ]
-          }
-        ]
-      }
     ]
   },
   "model": "sonnet",
