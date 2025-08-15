@@ -27,15 +27,15 @@ if not re.search(r"\bgit\s+commit\b", command):
 
 # Check for --no-verify flag
 if re.search(r"--no-verify", command):
-    print("⚠️  --no-verify 플래그 사용이 감지되었습니다.", file=sys.stderr)
-    print("pre-commit hooks는 코드 품질을 보장하기 위해 중요합니다.", file=sys.stderr)
-    print("대신 다음을 시도해보세요:", file=sys.stderr)
-    print("1. pre-commit 오류를 수정하여 정상적으로 커밋", file=sys.stderr)
-    print("2. 특정 hook만 건너뛰기: SKIP=ruff git commit -m '...'", file=sys.stderr)
-    print("3. 정말 필요한 경우 수동으로 터미널에서 실행", file=sys.stderr)
+    print("⚠️  --no-verify flag detected.", file=sys.stderr)
+    print("Pre-commit hooks are important for code quality.", file=sys.stderr)
+    print("Try these alternatives instead:", file=sys.stderr)
+    print("1. Fix pre-commit errors and commit normally", file=sys.stderr)
+    print("2. Skip specific hooks: SKIP=ruff git commit -m '...'", file=sys.stderr)
+    print("3. Run manually in terminal if absolutely necessary", file=sys.stderr)
 
     # Exit code 2 blocks the command and shows stderr to Claude
     sys.exit(2)
 
 # Allow the command to proceed
-sys.exit(0)# Test comment
+sys.exit(0)

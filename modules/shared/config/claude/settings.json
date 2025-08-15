@@ -415,33 +415,21 @@
     ],
     "deny": []
   },
+  "model": "sonnet",
   "enableAllProjectMcpServers": true,
   "hooks": {
-    "user-prompt-submit": [
-      {
-        "type": "command",
-        "command": "python3",
-        "args": [
-          "hooks/append_ultrathink.py"
-        ]
-      }
-    ],
     "PreToolUse": [
       {
-        "matcher": "Bash",
+        "matcher": ".*",
         "hooks": [
           {
             "type": "command",
-            "command": "python3",
-            "args": [
-              "hooks/git-commit-validator.py"
-            ]
+            "command": "hooks/git-commit-validator.py"
           }
         ]
       }
     ]
   },
-  "model": "sonnet",
   "feedbackSurveyState": {
     "lastShownTime": 1755225425616
   }
