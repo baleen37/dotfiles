@@ -40,6 +40,10 @@ agents: [general-purpose]
    - `git log --oneline main..HEAD` - extract commit messages
    - `git diff --name-status main..HEAD` - identify changed files
    - `git status --porcelain` - check for uncommitted changes
+   - **Git Command Validation**: Never mix `--cached` with range syntax (`main..HEAD`)
+     - ✅ Correct: `git diff --cached --stat` (staging vs HEAD)
+     - ✅ Correct: `git diff main..HEAD --stat` (range comparison)
+     - ❌ Wrong: `git diff --cached main..HEAD --stat` (syntax error)
 3. **Smart Title**: Generate title from branch name or first commit if not provided
 4. **Template Discovery**: Find GitHub PR templates using intelligent detection
 5. **Template Apply**: Parse and populate template structure with generated content
@@ -48,11 +52,13 @@ agents: [general-purpose]
 ## Implementation Steps
 
 - **Prerequisites Check**: Verify branch differs from main and has commits
+- **Git Command Validation**: Validate git syntax before execution
 - **Content Analysis**: Parse commits for feature descriptions and issue references
 - **Template Discovery**: Use intelligent detection to find repository PR templates
 - **Template Integration**: Parse template structure and populate with generated content
 - **Metadata Detection**: Extract issue numbers, breaking changes, test coverage
 - **Quality Validation**: Ensure description meets minimum standards
+- **Error Recovery**: Execute fallback commands if primary git operations fail
 - **Interactive Options**: Prompt for draft status or additional details
 
 ## Branch Name Generation Logic
@@ -130,4 +136,26 @@ find_pr_template() {
 /create-pr                   # Auto-generate PR with smart description
 /create-pr "Add auth system" # Custom title with auto description
 /create-pr --draft           # Create draft PR for work-in-progress
+```
+
+## Error Handling
+
+### Git Command Failures
+- **Syntax Validation**: Check git command syntax before execution
+- **Fallback Commands**: Use alternative commands if primary ones fail
+- **Error Recovery**: Continue PR creation process despite non-critical failures
+
+### Common Git Command Patterns
+```bash
+# Staging area analysis
+git diff --cached --stat              # Staged vs HEAD
+git diff --cached --name-status       # Staged files list
+
+# Branch comparison
+git diff main..HEAD --stat            # Branch vs main
+git log --oneline main..HEAD          # Commit history
+
+# Status checks
+git status --porcelain                # Working directory status
+git branch --show-current             # Current branch name
 ```

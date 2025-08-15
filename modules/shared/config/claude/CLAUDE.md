@@ -86,6 +86,11 @@ YAGNI above all. Simplicity over sophistication. When in doubt, ask jito.
 - Never commit secrets or keys to repository
 - **Serena MCP Integration**: Use Serena for semantic code analysis, symbol-level editing, and code understanding tasks when available
 - **Context7 Priority**: Always use Context7 first when searching for library/framework documentation
+- **Git Syntax Validation**: Never mix `--cached` with range syntax (e.g., `main..HEAD`)
+- **Token Optimization**: Larger context leads to increased costs, response times, and performance degradation
+  - Minimize Input/Output tokens: Write concise prompts, remove unnecessary explanations
+  - Prevent Context Bloat: Long outputs rapidly consume context window causing cost increases
+  - Request concise responses when using tools, include only essential information
 </memory>
 
 <task-management>
