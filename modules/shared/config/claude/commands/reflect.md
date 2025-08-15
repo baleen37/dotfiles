@@ -55,9 +55,11 @@ Ask user to select improvements by number:
 
 For approved changes:
 1. **Validate scope**: Confirm global changes are universally applicable
-2. Show exact file/section being modified with scope justification
-3. Present before/after diff
-4. Implement the change immediately
+2. **Show target file**: Clearly indicate which configuration file will be modified
+   - Global: `~/.claude/CLAUDE.md` or `~/.claude/settings.json`
+   - Project: `CLAUDE.md` or `.claude/settings.local.json`
+3. **Present before/after diff**: Show exact changes with scope justification
+4. **Implement immediately**: Apply the change to the specified file
 
 **Implementation Rules:**
 - **Global changes**: Must benefit all users across different projects
