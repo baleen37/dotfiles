@@ -428,6 +428,16 @@
           }
         ]
       }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "hooks/utilities/UserPromptSubmit/append_ultrathink.py"
+          }
+        ]
+      }
     ]
   },
   "feedbackSurveyState": {
