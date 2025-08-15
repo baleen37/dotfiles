@@ -420,11 +420,11 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": ".*",
+        "matcher": "Bash",
         "hooks": [
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/modules/shared/config/claude/hooks/git-commit-validator.py"
+            "command": "~/.claude/hooks/git-commit-validator.py"
           }
         ]
       }
@@ -434,7 +434,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/modules/shared/config/claude/hooks/utilities/UserPromptSubmit/append_ultrathink.py"
+            "command": "~/.claude/hooks/append_ultrathink.py"
           }
         ]
       }
