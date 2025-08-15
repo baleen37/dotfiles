@@ -23,7 +23,7 @@ agents: [system-architect]
 - **Dead Code**: Intelligent unused code identification and removal
 - **Imports**: Organize and optimize import statements
 - **Structure**: Architectural cleanup and dependency optimization
-- **Safety**: Comprehensive validation with backup capabilities
+- **Safety**: Comprehensive validation
 
 ## MCP Integration
 

@@ -332,3 +332,5 @@ See [docs/TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md) for more solutions.
 ---
 
 *Nix flakes + Home Manager + nix-darwin/NixOS for declarative, reproducible environments.*
+# Test for hook
+Test --no-verify flag
