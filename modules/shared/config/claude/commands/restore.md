@@ -4,19 +4,22 @@ description: "Restore previously saved TodoWrite state and work context"
 agents: []
 ---
 
-# /restore - Restore Work State
+<command>
+/restore - Restore Work State
 
+<purpose>
 Restore previously saved TodoWrite state and work context
+</purpose>
 
-## Usage
-
+<usage>
 ```bash
 /restore                     # List available saved sessions
 /restore <slug>              # Restore specific session (slug/partial search)
 /restore <number>            # Select from list by number
 ```
+</usage>
 
-## List Mode
+<list-mode>
 
 Scans current directory (`./`) for `session_*.md` files:
 
@@ -36,7 +39,9 @@ Scans current directory (`./`) for `session_*.md` files:
    Context: flake inputs update and cross-platform testing
 ```
 
-## Restore Process
+</list-mode>
+
+<restore-process>
 
 Pre-restore confirmation message:
 
@@ -55,25 +60,28 @@ Current todo list will be replaced with:
 Continue? [Y/n]
 ```
 
-## Core Features
+</restore-process>
 
+<core-features>
 - **File Discovery**: Searches `./session_*.md` pattern in current directory
 - **Markdown Parsing**: Extracts state from ## Current Todos section
 - **Fuzzy Matching**: Partial slug matching (e.g., "build" → "fix-build-errors")
 - **State Restoration**: Accurate state regeneration via TodoWrite
 - **Safety Confirmation**: Shows current state before restore and requests confirmation
 - **Chronological Sorting**: Automatic time-based ordering with yyyymmddHHMM format
+</core-features>
 
-## Safety Features
-
+<safety-features>
 - **Session Validation**: Automatic detection of corrupted session files
 - **Backup State Verification**: Pre-validation of restorable state
 - **Current Work Protection**: Warns against loss of in-progress work
 - **Error Recovery**: Rollback to previous state on restore failure
+</safety-features>
 
-## Integration
-
+<integration>
 - Works with `/save` command for session management
 - Uses current working directory (`./`) for easy access
 - Same Markdown format as `/save` command with chronological naming
 - Compatible with TodoWrite/TodoRead tool ecosystem
+</integration>
+</command>

@@ -415,7 +415,7 @@
     ],
     "deny": []
   },
-  "model": "sonnet",
+  "model": "opusplan",
   "enableAllProjectMcpServers": true,
   "hooks": {
     "PreToolUse": [

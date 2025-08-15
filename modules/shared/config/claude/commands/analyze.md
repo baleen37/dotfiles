@@ -1,21 +1,24 @@
 ---
 name: analyze
 description: "Comprehensive codebase analysis with automated quality reports and improvement suggestions"
-agents: [performance-optimizer, root-cause-analyzer]
+agents: [system-architect, code-reviewer, debugger]
 ---
 
-# /analyze - Comprehensive Codebase Analysis
+<command>
+/analyze - Comprehensive Codebase Analysis
 
-**Purpose**: Deliver a thorough analysis of your codebase with actionable insights for improvement. This goes beyond simple code review to provide strategic recommendations for architecture, performance, security, and maintainability.
+<purpose>
+Deliver a thorough analysis of your codebase with actionable insights for improvement. This goes beyond simple code review to provide strategic recommendations for architecture, performance, security, and maintainability.
+</purpose>
 
-## Usage
-
+<usage>
 ```bash
-/analyze                    # Full codebase analysis
-/analyze [path]             # Targeted analysis
+/analyze                    # Full codebase analysis with parallel processing
+/analyze [path]             # Targeted analysis of specific directory or file
 ```
+</usage>
 
-## What It Does
+<what-it-does>
 
 <details>
 <summary><strong>Multi-Dimensional Analysis</strong></summary>
@@ -42,13 +45,13 @@ Unlike generic analysis tools, this command understands your specific technology
 </details>
 
 <details>
-<summary><strong>Smart Agent Routing & Parallelism</strong></summary>
+<summary><strong>Intelligent Processing</strong></summary>
 
-To deliver results quickly, the tool uses an intelligent, multi-agent approach:
+Optimized analysis approach:
 
--   **Agents**: Performance-optimizer and root-cause-analyzer agents work in parallel
--   **Efficiency**: This parallel process is up to 50% faster than sequential analysis by sharing file reads and context
--   **Resource Management**: The tool monitors system resources and falls back to sequential process on memory-constrained environments to ensure stability
+-   **Parallel Processing**: Multiple analysis dimensions run simultaneously  
+-   **Adaptive Complexity**: Simple analysis for small changes, comprehensive for major refactors
+-   **Smart Context**: Minimize redundant operations and focus on relevant code areas
 
 </details>
 
@@ -64,22 +67,62 @@ The analysis produces concrete, prioritized recommendations:
 
 </details>
 
-## MCP Integration
+</what-it-does>
 
+<token-optimization>
+- **Brief Mode**: Essential issues only (top 3 priorities)
+- **Standard Mode**: Comprehensive analysis with moderate detail
+- **Detailed Mode**: Full analysis for complex codebases
+- **Progressive Output**: Incremental results for large repositories
+</token-optimization>
+
+<dynamic-research-process>
+Analysis adapts to task complexity:
+
+- **Simple**: Direct code analysis with existing patterns
+- **Complex**: Task agent coordination for parallel research
+- **Framework-Specific**: Context7 integration for best practices
+- **Legacy/Migration**: WebSearch for latest patterns and migration guides
+</dynamic-research-process>
+
+<mcp-integration>
 - **Sequential**: Multi-step analysis planning and systematic evaluation
 - **Context7**: Framework-specific best practices and current industry standards
+- **Task**: Parallel research for complex analysis scenarios
+</mcp-integration>
 
-## Agent Routing
+<process>
+1. **Discovery**: File structure, tech stack, patterns (parallel)
+2. **Research**: Framework best practices and current standards (Context7/WebSearch)
+3. **Analysis**: Architecture, quality, performance analysis run simultaneously
+4. **Report**: Prioritized issues with actionable recommendations
+</process>
 
-- **performance-optimizer**: Performance bottlenecks, memory usage, optimization opportunities
-- **root-cause-analyzer**: Complex issue investigation, dependency analysis, architectural concerns
+<output-example>
 
-## Examples
+```
+## Code Analysis Report
 
-```bash
-/analyze                    # Complete codebase analysis
-/analyze src/components     # Focus on specific directory
-/analyze package.json       # Dependency and configuration analysis
+### Priority 1: Critical Issues
+- **Performance**: Database N+1 queries in UserService.ts:45
+  - Impact: 300ms+ response time
+  - Fix: Implement eager loading with joins
+
+- **Security**: Exposed API keys in config/app.js:12
+  - Impact: Production credentials leak
+  - Fix: Move to environment variables
+
+### Priority 2: Architecture Improvements  
+- **Coupling**: Tight dependency between auth and user modules
+  - Impact: Hard to test and maintain
+  - Fix: Implement dependency injection pattern
+
+### Priority 3: Code Quality
+- **Complexity**: UserController.validateInput() has 15+ conditions
+  - Impact: Hard to understand and debug
+  - Fix: Extract validation rules to separate functions
 ```
 
-The analysis will produce a comprehensive report with prioritized recommendations and specific implementation guidance.
+The analysis produces a comprehensive report with prioritized recommendations and implementation guidance.
+</output-example>
+</command>

@@ -99,8 +99,9 @@ YAGNI above all. Simplicity over sophistication. When in doubt, ask jito.
 - Only one task in_progress at any time
 </task-management>
 
-# important-instruction-reminders
+<important-reminders>
 Do what has been asked; nothing more, nothing less.
 NEVER create files unless absolutely necessary.
 ALWAYS prefer editing existing files to creating new ones.
 NEVER proactively create documentation files unless explicitly requested.
+</important-reminders>

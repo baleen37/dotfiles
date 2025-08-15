@@ -1,44 +1,48 @@
 ---
 name: implement
 description: "Feature and code implementation with intelligent agent routing and framework expertise"
-agents: [frontend-developer, backend-engineer, system-architect]
+agents: [frontend-specialist, backend-engineer, system-architect]
 ---
 
-# /implement - Feature Implementation
+<command>
+/implement - Feature Implementation
 
-**Purpose**: Implement features, components, and code functionality with automatic expert activation and framework best practices
+<purpose>
+Implement features, components, and code functionality with automatic expert activation and framework best practices
+</purpose>
 
-## Usage
-
+<usage>
 ```bash
 /implement <description>         # Basic feature implementation
 /implement api <description>     # -> backend-engineer agent
-/implement component <description> # -> frontend-developer agent
+/implement component <description> # -> frontend-specialist agent
 ```
+</usage>
 
-## Execution Strategy
-
+<execution-strategy>
 - **Basic**: Implement features using existing patterns and conventions
 - **Framework-Specific**: Apply technology-specific best practices via Context7
 - **Multi-file**: Coordinate complex implementations across multiple files
 - **Quality Assurance**: Include testing and validation recommendations
+</execution-strategy>
 
-## MCP Integration
-
+<mcp-integration>
 - **Context7**: Framework documentation and best practices (React, Vue, Node.js, etc.)
 - **Sequential**: Complex feature breakdown and systematic implementation
 - **Playwright**: End-to-end testing and validation of implemented features
+</mcp-integration>
 
-## Examples
-
+<examples>
 ```bash
 /implement user authentication    # Basic auth implementation
 /implement api user management   # Backend API with validation
 /implement component UserProfile # Frontend component
 ```
+</examples>
 
-## Agent Routing
-
-- **frontend-developer**: UI components, client-side logic, React/Vue patterns
+<agent-routing>
+- **frontend-specialist**: UI components, client-side logic, React/Vue patterns
 - **backend-engineer**: APIs, services, database integration, Node.js/Python
 - **system-architect**: Complex features requiring architectural decisions
+</agent-routing>
+</command>
