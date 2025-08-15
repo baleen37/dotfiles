@@ -7,6 +7,9 @@ Simple tasks (1-2 steps): Handle directly, avoid overhead
 
 Tool Selection Guidelines:
 - Library/Framework docs → Context7 (resolve-library-id → get-library-docs)
+  * Always use resolve-library-id first to get exact library ID
+  * Use topic parameter to focus search (e.g., 'hooks', 'configuration')
+  * If no match found, fall back to WebSearch with library name + "documentation"
 - Current events/news → WebSearch
 - Specific URLs → WebFetch
 - Code search → Grep/Glob first, Task for complex searches
@@ -26,7 +29,10 @@ YAGNI above all. Simplicity over sophistication. When in doubt, ask jito.
   - Technical tasks: Detailed as needed for clarity
   - Planning/complex work: Full explanations required
 - **No Status Updates**: No status emojis (✅, 🎯, etc.)
-- **Language Policy**: Korean for jito conversations, English for documentation
+- **Language Policy**: Korean for all Claude Code conversations with jito
+  - 모든 응답과 설명은 한국어로
+  - 코드 주석과 문서 내용 작성 시에만 English 사용
+  - 에러 메시지 분석과 해석은 한국어로 설명
 - **Plan Confirmation Required**: Always explain and get approval for planning tasks
 - **Explain then Execute**: Explain important tasks before execution
 - **Direct Action**: Execute simple tasks immediately without explanation
@@ -43,10 +49,23 @@ YAGNI above all. Simplicity over sophistication. When in doubt, ask jito.
 - **Test before Commit**: Run tests, validate changes
 - **Git Quality Gates**: Strict pre-commit hooks, no bypassing with --no-verify
 - **Incremental Changes**: Small, safe improvements only
-- **Documentation Search Priority**:
+- **Systematic Debugging**:
+  1. Identify: Read error messages carefully, note exact symptoms
+  2. Research: Use Context7 for documentation, check official sources
+  3. Isolate: Test minimal reproduction case
+  4. Validate: Confirm fix works as expected
+  5. Document: Update relevant configuration/documentation
+- **Documentation Search Decision Tree**:
   - Libraries/Frameworks → Context7 (최우선)
+    * Known library/framework names → resolve-library-id first
+    * Version-specific needs → specify version in library ID
+    * No Context7 match → WebSearch with "[library] official documentation"
   - Latest news/updates → WebSearch
-  - Specific URLs → WebFetch
+    * Current events, recent changes, announcements
+    * "latest" in search query for recency
+  - Specific URLs → WebFetch  
+    * User provides exact URL
+    * Follow redirects if indicated in response
 </development-workflow>
 
 <memory>
