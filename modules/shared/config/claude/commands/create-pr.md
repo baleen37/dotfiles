@@ -18,21 +18,32 @@ agents: [general-purpose]
 
 ## Execution Strategy
 
+- **Parallel Git Operations**: ALWAYS run git status, git diff, and git log commands in parallel for optimal performance
 - **Branch Analysis**: Analyze commits between feature branch and base branch
 - **Description Generation**: Create comprehensive PR description from commit history
 - **Metadata Extraction**: Detect related issues, breaking changes, and test coverage
 - **Template Application**: Apply repository PR templates if available
 - **Validation**: Ensure PR meets repository requirements
 
+**Performance Note**: Use Claude's capability to call multiple tools in a single response. Batch git operations together for 20-30% speed improvement.
+
 ## PR Generation Logic
 
-1. **Branch Validation**: `git branch --show-current` - ensure not on main
-2. **Commit Analysis**: `git log --oneline main..HEAD` - extract commit messages
-3. **File Analysis**: `git diff --name-status main..HEAD` - identify changed files
-4. **Smart Title**: Generate title from branch name or first commit if not provided
-5. **Template Discovery**: Find GitHub PR templates using intelligent detection
-6. **Template Apply**: Parse and populate template structure with generated content
-7. **PR Creation**: `gh pr create --title "..." --body "..." [--draft]`
+1. **Branch Validation & Auto-Creation**:
+   - Check current branch: `git branch --show-current`
+   - If on main/master, automatically create feature branch:
+     - Analyze first commit message for branch name generation
+     - Use pattern: `feat/[extracted-keywords]` or `fix/[issue-number]`
+     - Example: "feat(auth): add login" → `feat/auth-login`
+   - Switch to new branch: `git checkout -b [branch-name]`
+2. **Parallel Git Analysis** (ALWAYS run these commands in parallel):
+   - `git log --oneline main..HEAD` - extract commit messages
+   - `git diff --name-status main..HEAD` - identify changed files
+   - `git status --porcelain` - check for uncommitted changes
+3. **Smart Title**: Generate title from branch name or first commit if not provided
+4. **Template Discovery**: Find GitHub PR templates using intelligent detection
+5. **Template Apply**: Parse and populate template structure with generated content
+6. **PR Creation**: `gh pr create --title "..." --body "..." [--draft]`
 
 ## Implementation Steps
 
@@ -43,6 +54,35 @@ agents: [general-purpose]
 - **Metadata Detection**: Extract issue numbers, breaking changes, test coverage
 - **Quality Validation**: Ensure description meets minimum standards
 - **Interactive Options**: Prompt for draft status or additional details
+
+## Branch Name Generation Logic
+
+```bash
+generate_branch_name() {
+  # Get the first commit message
+  local commit_msg=$(git log -1 --pretty=%s)
+
+  # Extract conventional commit type and scope
+  if [[ $commit_msg =~ ^(feat|fix|docs|style|refactor|test|chore)(\(([^)]+)\))?:\ (.+) ]]; then
+    local type="${BASH_REMATCH[1]}"
+    local scope="${BASH_REMATCH[3]}"
+    local description="${BASH_REMATCH[4]}"
+
+    # Clean description for branch name
+    local clean_desc=$(echo "$description" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g' | sed 's/-\+/-/g' | sed 's/^-\|-$//g' | cut -c1-50)
+
+    # Generate branch name
+    if [[ -n "$scope" ]]; then
+      echo "${type}/${scope}-${clean_desc}"
+    else
+      echo "${type}/${clean_desc}"
+    fi
+  else
+    # Fallback: use timestamp
+    echo "feat/update-$(date +%Y%m%d-%H%M%S)"
+  fi
+}
+```
 
 ## Template Discovery Logic
 
