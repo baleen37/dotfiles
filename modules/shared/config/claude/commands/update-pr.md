@@ -14,26 +14,40 @@ agents: [general-purpose]
 /update-pr                   # Update current PR with latest changes
 /update-pr [pr-number]       # Update specific PR by number
 /update-pr [title]           # Update PR title and description
+/update-pr --add-label bug,enhancement  # Add labels to PR
+/update-pr --add-reviewer @username     # Request review from user
+/update-pr --ready-for-review           # Mark draft PR as ready
+/update-pr --add-assignee @username     # Add assignee to PR
 ```
 
 ## Execution Strategy
 
+- **Parallel Git Operations**: ALWAYS run git status, git diff, and git log commands in parallel for optimal performance
 - **Change Detection**: Analyze new commits since last PR update
 - **Description Refresh**: Update PR description with latest commit analysis
 - **Metadata Sync**: Update labels, assignees, and milestone information
 - **Conflict Resolution**: Detect and highlight merge conflicts
 - **Status Validation**: Ensure PR still meets repository requirements
 
+**Performance Note**: Use Claude's capability to call multiple tools in a single response. Batch git operations together for 20-30% speed improvement.
+
 ## Update Logic
 
 1. **Current State**: `gh pr view [number] --json` - fetch existing PR details
-2. **Change Analysis**: `git log --oneline origin/main..HEAD` - compare commits
-3. **File Analysis**: `git diff --name-status origin/main..HEAD` - changed files
-4. **Template Discovery**: Find GitHub PR templates using intelligent detection
-5. **Description Generation**: Create comprehensive summary with template structure
-6. **Template Apply**: Parse and populate template with refreshed content
-7. **Metadata Update**: `gh pr edit [number] --title "..." --body "..."` - apply changes
-8. **Status Check**: `gh pr checks` - verify CI and review status
+2. **Parallel Analysis** (run in parallel):
+   - `git log --oneline origin/main..HEAD` - compare commits
+   - `git diff --name-status origin/main..HEAD` - changed files
+   - `gh pr status --json` - current PR metadata
+3. **Template Discovery**: Find GitHub PR templates using intelligent detection
+4. **Description Generation**: Create comprehensive summary with template structure
+5. **Template Apply**: Parse and populate template with refreshed content
+6. **Metadata Update**: Apply changes based on options:
+   - Basic: `gh pr edit [number] --title "..." --body "..."`
+   - Labels: `gh pr edit [number] --add-label "bug,enhancement"`
+   - Reviewers: `gh pr edit [number] --add-reviewer "@username"`
+   - Ready: `gh pr ready [number]`
+   - Assignees: `gh pr edit [number] --add-assignee "@username"`
+7. **Status Check**: `gh pr checks` - verify CI and review status
 
 ## Implementation Steps
 
@@ -87,4 +101,13 @@ find_pr_template() {
 /update-pr                   # Refresh current PR with latest commits
 /update-pr 123               # Update specific PR #123
 /update-pr "Fix auth system" # Update title and regenerate description
+
+# Advanced usage
+/update-pr --add-label bug,security         # Add multiple labels
+/update-pr --add-reviewer @lead-dev         # Request review
+/update-pr --ready-for-review               # Convert draft to ready
+/update-pr 123 --add-assignee @developer    # Assign PR to developer
+
+# Combined operations
+/update-pr "Update auth" --add-label enhancement --add-reviewer @team-lead
 ```
