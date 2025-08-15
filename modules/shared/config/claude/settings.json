@@ -419,9 +419,10 @@
   "hooks": {
     "user-prompt-submit": [
       {
+        "type": "command",
         "command": "python3",
         "args": [
-          "hooks/utilities/UserPromptSubmit/append_ultrathink.py"
+          "hooks/append_ultrathink.py"
         ]
       }
     ],
@@ -430,8 +431,25 @@
         "matcher": "Bash",
         "hooks": [
           {
-            "type": "command",  
-            "command": "hooks/git-commit-validator.py"
+            "type": "command",
+            "command": "python3",
+            "args": [
+              "hooks/git-commit-validator.py"
+            ]
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3",
+            "args": [
+              "hooks/test-logger.py"
+            ]
           }
         ]
       }
