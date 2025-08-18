@@ -74,11 +74,6 @@ in
       # Example: programs.darwin-specific-tool = { enable = true; };
 
       manual.manpages.enable = false;
-
-      # Smart Claude config files management with user modification preservation
-      home.activation.copyClaudeFiles = lib.hm.dag.entryAfter [ "linkGeneration" ] (
-        import ../shared/lib/claude-activation.nix { inherit config lib self; platform = "darwin"; }
-      );
     };
   };
 
