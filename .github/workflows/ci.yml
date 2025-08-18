@@ -203,6 +203,9 @@ jobs:
 
       - name: Run tests
         timeout-minutes: 15
+        env:
+          GITHUB_ACTIONS: true
+          CI: true
         run: |
           export USER=${USER:-ci}
           echo "🧪 Running ${{ matrix.category }} tests"

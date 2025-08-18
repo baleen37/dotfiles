@@ -513,23 +513,30 @@ main() {
         exit 1
     fi
 
-    # nix-instantiate가 사용 가능한지 확인 (선택적)
-    if ! command -v nix-instantiate >/dev/null 2>&1; then
-        log_warning "nix-instantiate를 찾을 수 없습니다. 단순화된 테스트를 실행합니다."
+    # CI 환경 감지 및 단순화된 테스트 설정
+    if [[ "${CI:-false}" == "true" || "${GITHUB_ACTIONS:-false}" == "true" ]]; then
+        log_info "CI 환경 감지됨 - 단순화된 테스트 실행"
         export NIX_INSTANTIATE_AVAILABLE=false
     else
-        export NIX_INSTANTIATE_AVAILABLE=true
-    fi
+        # nix-instantiate가 사용 가능한지 확인 (선택적)
+        if ! command -v nix-instantiate >/dev/null 2>&1; then
+            log_warning "nix-instantiate를 찾을 수 없습니다. 단순화된 테스트를 실행합니다."
+            export NIX_INSTANTIATE_AVAILABLE=false
+        else
+            export NIX_INSTANTIATE_AVAILABLE=true
+        fi
 
-    # NIX_PATH가 설정되어 있는지 확인
-    if [[ -z "${NIX_PATH:-}" ]]; then
-        log_warning "NIX_PATH가 설정되지 않았습니다. 기본 nixpkgs를 사용합니다."
-        export NIX_PATH="nixpkgs=channel:nixpkgs-unstable"
+        # NIX_PATH가 설정되어 있는지 확인
+        if [[ -z "${NIX_PATH:-}" ]]; then
+            log_warning "NIX_PATH가 설정되지 않았습니다. 기본 nixpkgs를 사용합니다."
+            export NIX_PATH="nixpkgs=channel:nixpkgs-unstable"
+        fi
     fi
 
     # 통합 테스트 실행 (CI 환경에서는 기본 테스트만)
     if [[ "${NIX_INSTANTIATE_AVAILABLE:-false}" == "true" ]]; then
         # 전체 통합 테스트 (nix-instantiate 사용 가능)
+        log_info "Nix 환경 사용 가능 - 전체 통합 테스트 실행"
         test_full_activation_clean_environment
         test_symlink_conversion_with_state_preservation
         test_fallback_source_resolution
@@ -538,7 +545,7 @@ main() {
         test_error_recovery
     else
         # 기본 통합 테스트만 (CI 환경 호환성)
-        log_info "CI 환경 감지됨 - 기본 통합 테스트만 실행"
+        log_info "단순화된 환경 - 핵심 통합 테스트만 실행"
         test_full_activation_clean_environment
         test_fallback_source_resolution
     fi
