@@ -187,9 +187,6 @@ in
         # Always color ls and group directories
         alias ls='ls --color=auto'
 
-        # Initialize direnv
-        eval "$(direnv hook zsh)"
-
         # Auto-update dotfiles on shell startup (with TTL)
         if [[ -x "$HOME/dotfiles/scripts/auto-update-dotfiles" ]]; then
           (nohup "$HOME/dotfiles/scripts/auto-update-dotfiles" --silent &>/dev/null &)
