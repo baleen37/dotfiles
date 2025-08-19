@@ -203,11 +203,25 @@ jobs:
 
       - name: Run tests
         timeout-minutes: 15
-        env:
-          GITHUB_ACTIONS: true
-          CI: true
         run: |
           export USER=${USER:-ci}
+
+          # Nix 환경 초기화 (CI에서 PATH 설정)
+          if [[ -e /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]]; then
+            source /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+          fi
+
+          # Nix 도구들이 PATH에 있는지 확인
+          if ! command -v nix-instantiate >/dev/null 2>&1; then
+            echo "⚠️ nix-instantiate not found in PATH"
+            echo "PATH: $PATH"
+            echo "Available nix commands:"
+            which nix || echo "nix not found"
+            find /nix -name "nix-instantiate" 2>/dev/null || echo "nix-instantiate not found in /nix"
+          else
+            echo "✅ nix-instantiate available"
+          fi
+
           echo "🧪 Running ${{ matrix.category }} tests"
           nix run --impure .#test-${{ matrix.category }}
 
