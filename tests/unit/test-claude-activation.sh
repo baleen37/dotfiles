@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# ABOUTME: Claude activation 스크립트의 서브디렉토리 지원 기능 단위 테스트
-# ABOUTME: 파일 복사, 디렉토리 처리, 해시 비교 로직을 검증합니다.
+# ABOUTME: Claude activation 스크립트 포괄적 테스트 - settings.json 복사 로직, 동적 상태 병합, 권한 처리
+# ABOUTME: create_settings_copy() 함수의 모든 기능을 단위 테스트로 검증
 
 set -euo pipefail
 
@@ -10,342 +10,403 @@ SOURCE_BASE="$TEST_DIR/source"
 TARGET_BASE="$TEST_DIR/target"
 CLAUDE_DIR="$TARGET_BASE/.claude"
 
-# 색상 코드
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+# 공통 라이브러리 로드
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/../lib/common.sh"
 
 # 테스트 결과 추적
 TESTS_PASSED=0
 TESTS_FAILED=0
 
-# 로그 함수
-log_info() {
-    echo -e "${GREEN}[INFO]${NC} $1"
-}
-
-log_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
-}
-
-log_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $1"
-}
-
 # 테스트 헬퍼 함수
-setup_test_environment() {
-    log_info "테스트 환경 설정 중..."
-
-    # 소스 디렉토리 구조 생성
-    mkdir -p "$SOURCE_BASE/commands/git"
-    mkdir -p "$SOURCE_BASE/commands/workflow"
-    mkdir -p "$SOURCE_BASE/agents"
-
-    # 타겟 디렉토리 구조 생성
-    mkdir -p "$CLAUDE_DIR/commands"
-    mkdir -p "$CLAUDE_DIR/agents"
-
-    # 테스트 파일 생성
-    cat > "$SOURCE_BASE/CLAUDE.md" << 'EOF'
-# Claude Configuration
-Test configuration file
-EOF
-
-    cat > "$SOURCE_BASE/settings.json" << 'EOF'
-{
-  "test": "configuration"
-}
-EOF
-
-    cat > "$SOURCE_BASE/commands/task.md" << 'EOF'
-# Task Command
-Root level command
-EOF
-
-    cat > "$SOURCE_BASE/commands/git/commit.md" << 'EOF'
-# Git Commit Command
-Git subdirectory command
-EOF
-
-    cat > "$SOURCE_BASE/commands/git/upsert-pr.md" << 'EOF'
-# Git Upsert PR Command
-Another git subdirectory command
-EOF
-
-    cat > "$SOURCE_BASE/commands/workflow/deploy.md" << 'EOF'
-# Workflow Deploy Command
-Workflow subdirectory command
-EOF
-
-    cat > "$SOURCE_BASE/agents/code-reviewer.md" << 'EOF'
-# Code Reviewer Agent
-Test agent file
-EOF
-}
-
-cleanup_test_environment() {
-    log_info "테스트 환경 정리 중..."
-    rm -rf "$TEST_DIR"
-}
-
-# Claude activation 스크립트 실행 함수
-run_claude_activation() {
-    local dry_run="${1:-0}"
-
-    # Claude activation 스크립트 내용을 함수로 실행
-    export CLAUDE_DIR="$CLAUDE_DIR"
-    export SOURCE_DIR="$SOURCE_BASE"
-    export DRY_RUN="$dry_run"
-
-    # DRY_RUN_CMD 설정
-    local DRY_RUN_CMD=""
-    if [[ "$DRY_RUN" == "1" ]]; then
-        DRY_RUN_CMD="echo '[DRY RUN]'"
-    fi
-
-    # 디렉토리 생성
-    eval "$DRY_RUN_CMD mkdir -p \"$CLAUDE_DIR/commands\""
-    eval "$DRY_RUN_CMD mkdir -p \"$CLAUDE_DIR/agents\""
-
-    # 파일 해시 비교 함수 (macOS 호환)
-    files_differ() {
-        local source="$1"
-        local target="$2"
-
-        if [[ ! -f "$source" ]] || [[ ! -f "$target" ]]; then
-            return 0  # 파일이 없으면 다른 것으로 간주
-        fi
-
-        local source_hash=""
-        local target_hash=""
-
-        if command -v shasum >/dev/null 2>&1; then
-            source_hash=$(shasum -a 256 "$source" | cut -d' ' -f1)
-            target_hash=$(shasum -a 256 "$target" | cut -d' ' -f1)
-        elif command -v sha256sum >/dev/null 2>&1; then
-            source_hash=$(sha256sum "$source" | cut -d' ' -f1)
-            target_hash=$(sha256sum "$target" | cut -d' ' -f1)
-        else
-            # Fallback: 파일 크기 비교
-            local source_size=$(wc -c < "$source")
-            local target_size=$(wc -c < "$target")
-            [[ "$source_size" != "$target_size" ]]
-            return $?
-        fi
-
-        [[ "$source_hash" != "$target_hash" ]]
-    }
-
-    # 조건부 복사 함수
-    smart_copy() {
-        local source_file="$1"
-        local target_file="$2"
-
-        if [[ ! -f "$source_file" ]]; then
-            echo "소스 파일 없음: $source_file"
-            return 0
-        fi
-
-        if [[ ! -f "$target_file" ]]; then
-            echo "새 파일 복사: $(basename "$source_file")"
-            eval "$DRY_RUN_CMD cp \"$source_file\" \"$target_file\""
-            eval "$DRY_RUN_CMD chmod 644 \"$target_file\""
-            return 0
-        fi
-
-        if files_differ "$source_file" "$target_file"; then
-            echo "파일 업데이트: $(basename "$source_file")"
-            eval "$DRY_RUN_CMD cp \"$source_file\" \"$target_file\""
-            eval "$DRY_RUN_CMD chmod 644 \"$target_file\""
-        else
-            echo "파일 동일: $(basename "$source_file")"
-        fi
-    }
-
-    # 메인 설정 파일들 처리
-    for config_file in "settings.json" "CLAUDE.md"; do
-        smart_copy "$SOURCE_DIR/$config_file" "$CLAUDE_DIR/$config_file"
-    done
-
-    # commands 디렉토리 처리 (서브디렉토리 지원)
-    if [[ -d "$SOURCE_DIR/commands" ]]; then
-        find "$SOURCE_DIR/commands" -name "*.md" -type f | while read -r cmd_file; do
-            # 소스에서 commands 디렉토리를 기준으로 한 상대 경로 계산
-            rel_path="${cmd_file#$SOURCE_DIR/commands/}"
-            target_file="$CLAUDE_DIR/commands/$rel_path"
-
-            # 타겟 디렉토리가 없으면 생성
-            target_dir=$(dirname "$target_file")
-            eval "$DRY_RUN_CMD mkdir -p \"$target_dir\""
-
-            smart_copy "$cmd_file" "$target_file"
-        done
-    fi
-
-    # agents 디렉토리 처리
-    if [[ -d "$SOURCE_DIR/agents" ]]; then
-        for agent_file in "$SOURCE_DIR/agents"/*.md; do
-            if [[ -f "$agent_file" ]]; then
-                base_name=$(basename "$agent_file")
-                smart_copy "$agent_file" "$CLAUDE_DIR/agents/$base_name"
-            fi
-        done
-    fi
-}
-
-# 테스트 헬퍼 함수
-assert_file_exists() {
-    local file_path="$1"
+assert_test() {
+    local condition="$1"
     local test_name="$2"
+    local expected="${3:-}"
+    local actual="${4:-}"
 
-    if [[ -f "$file_path" ]]; then
-        log_info "✅ $test_name 성공"
+    # 조건부 평가 실행
+    if eval "$condition"; then
+        log_success "$test_name"
         ((TESTS_PASSED++))
         return 0
     else
-        log_error "❌ $test_name 실패: $file_path 파일 없음"
+        if [[ -n "$expected" && -n "$actual" ]]; then
+            log_fail "$test_name"
+            log_error "  예상: $expected"
+            log_error "  실제: $actual"
+        else
+            log_fail "$test_name"
+            log_debug "  실패한 조건: $condition"
+        fi
         ((TESTS_FAILED++))
         return 1
     fi
 }
 
-# 테스트 함수들
-test_subdirectory_support() {
-    log_info "테스트: 서브디렉토리 지원 확인"
+# 테스트 환경 설정 함수
+setup_test_environment() {
+    log_info "테스트 환경 설정 중..."
 
-    run_claude_activation 0
+    # 디렉토리 구조 생성
+    mkdir -p "$SOURCE_BASE/commands" "$SOURCE_BASE/agents"
+    mkdir -p "$CLAUDE_DIR/commands" "$CLAUDE_DIR/agents"
 
-    # 테스트할 파일들 배열
-    local files_to_test=(
-        "$CLAUDE_DIR/commands/git/commit.md:Git commit 파일 복사"
-        "$CLAUDE_DIR/commands/git/upsert-pr.md:Git upsert-pr 파일 복사"
-        "$CLAUDE_DIR/commands/workflow/deploy.md:Workflow deploy 파일 복사"
-        "$CLAUDE_DIR/commands/task.md:루트 레벨 명령어 파일 복사"
-    )
+    # 테스트용 settings.json 파일들 생성
+    cat > "$SOURCE_BASE/settings.json" << 'EOF'
+{
+  "version": "1.0.0",
+  "theme": "dark",
+  "autoSave": true,
+  "debugMode": false
+}
+EOF
 
-    for file_test in "${files_to_test[@]}"; do
-        IFS=':' read -r file_path test_name <<< "$file_test"
-        assert_file_exists "$file_path" "$test_name"
+    # 동적 상태가 있는 기존 settings.json (백업용)
+    cat > "$TEST_DIR/existing_settings.json" << 'EOF'
+{
+  "version": "0.9.0",
+  "theme": "light",
+  "autoSave": false,
+  "debugMode": true,
+  "feedbackSurveyState": {
+    "lastShown": "2024-01-15",
+    "dismissed": ["survey1", "survey2"],
+    "completedSurveys": ["initial"],
+    "userPreferences": {
+      "showSurveys": true,
+      "frequency": "weekly"
+    }
+  }
+}
+EOF
+
+    # 잘못된 JSON 형식 테스트용
+    cat > "$TEST_DIR/invalid_settings.json" << 'EOF'
+{
+  "version": "1.0.0",
+  "theme": "dark"
+  // 잘못된 JSON 형식 (주석)
+EOF
+
+    # 테스트용 CLAUDE.md
+    cat > "$SOURCE_BASE/CLAUDE.md" << 'EOF'
+# Test Claude Configuration
+Test configuration markdown file
+EOF
+}
+
+# claude-activation 로직을 함수로 추출 (테스트용)
+create_settings_copy() {
+    local source_file="$1"
+    local target_file="$2"
+    local file_name=$(basename "$source_file")
+
+    echo "처리 중: $file_name (복사 모드)"
+
+    if [[ ! -f "$source_file" ]]; then
+        echo "  소스 파일 없음, 건너뜀"
+        return 0
+    fi
+
+    # 기존 파일 백업 (동적 상태 보존용)
+    if [[ -f "$target_file" && ! -L "$target_file" ]]; then
+        echo "  기존 settings.json 백업 중..."
+        cp "$target_file" "$target_file.backup"
+    fi
+
+    # 기존 심볼릭 링크 제거
+    if [[ -L "$target_file" ]]; then
+        echo "  기존 심볼릭 링크 제거"
+        rm -f "$target_file"
+    fi
+
+    # 새로운 설정을 복사
+    cp "$source_file" "$target_file"
+    chmod 644 "$target_file"
+    echo "  파일 복사 완료: $target_file (644 권한)"
+
+    # 백업에서 동적 상태 병합
+    if [[ -f "$target_file.backup" ]]; then
+        echo "  동적 상태 병합 시도 중..."
+
+        # jq가 있으면 JSON 병합, 없으면 백업만 유지
+        if command -v jq >/dev/null 2>&1; then
+            # 백업에서 feedbackSurveyState 추출해서 병합
+            if jq -e '.feedbackSurveyState' "$target_file.backup" >/dev/null 2>&1; then
+                local feedback_state=$(jq -c '.feedbackSurveyState' "$target_file.backup")
+                jq --argjson feedback_state "$feedback_state" '.feedbackSurveyState = $feedback_state' "$target_file" > "$target_file.tmp"
+                mv "$target_file.tmp" "$target_file"
+                echo "  ✓ feedbackSurveyState 병합 완료"
+            fi
+        else
+            echo "  ⚠ jq 없음: 동적 상태 병합 건너뜀"
+        fi
+
+        rm -f "$target_file.backup"
+    fi
+}
+
+# 단위 테스트 함수들
+
+test_basic_settings_copy() {
+    log_header "기본 settings.json 복사 테스트"
+
+    # 디버그 정보 출력
+    log_debug "소스 파일 확인: $SOURCE_BASE/settings.json"
+    log_debug "타겟 디렉토리: $CLAUDE_DIR"
+
+    # 소스 파일 존재 여부 확인
+    if [[ ! -f "$SOURCE_BASE/settings.json" ]]; then
+        log_error "소스 파일이 존재하지 않습니다: $SOURCE_BASE/settings.json"
+        ((TESTS_FAILED++))
+        return 1
+    fi
+
+    create_settings_copy "$SOURCE_BASE/settings.json" "$CLAUDE_DIR/settings.json"
+
+    # 파일이 복사되었는지 확인
+    assert_test "[[ -f '$CLAUDE_DIR/settings.json' ]]" "settings.json 파일 복사"
+
+    # 심볼릭 링크가 아닌 실제 파일인지 확인
+    assert_test "[[ ! -L '$CLAUDE_DIR/settings.json' ]]" "복사본은 심볼릭 링크가 아님"
+
+    # 파일 권한 확인 (644)
+    local permissions=$(stat -f "%OLp" "$CLAUDE_DIR/settings.json" 2>/dev/null || stat -c "%a" "$CLAUDE_DIR/settings.json" 2>/dev/null)
+    assert_test "[[ '$permissions' == '644' ]]" "파일 권한이 644로 설정됨" "644" "$permissions"
+
+    # JSON 내용 확인
+    if command -v jq >/dev/null 2>&1; then
+        local version=$(jq -r '.version' "$CLAUDE_DIR/settings.json")
+        assert_test "[[ '$version' == '1.0.0' ]]" "JSON 내용이 올바르게 복사됨" "1.0.0" "$version"
+    fi
+}
+
+test_symlink_to_copy_conversion() {
+    log_header "심볼릭 링크에서 복사본으로 변환 테스트"
+
+    # 먼저 심볼릭 링크 생성
+    ln -sf "$SOURCE_BASE/settings.json" "$CLAUDE_DIR/settings.json"
+
+    # 심볼릭 링크 확인
+    assert_test "[[ -L '$CLAUDE_DIR/settings.json' ]]" "심볼릭 링크가 생성됨"
+
+    # create_settings_copy 실행
+    create_settings_copy "$SOURCE_BASE/settings.json" "$CLAUDE_DIR/settings.json" >/dev/null 2>&1
+
+    # 심볼릭 링크가 제거되고 복사본이 생성되었는지 확인
+    assert_test "[[ ! -L '$CLAUDE_DIR/settings.json' ]]" "심볼릭 링크가 제거됨"
+    assert_test "[[ -f '$CLAUDE_DIR/settings.json' ]]" "복사본이 생성됨"
+}
+
+test_dynamic_state_preservation() {
+    log_header "동적 상태 보존 테스트 (feedbackSurveyState)"
+
+    # jq가 없으면 테스트 건너뜀
+    if ! command -v jq >/dev/null 2>&1; then
+        log_warning "jq가 없어서 동적 상태 병합 테스트를 건너뜁니다"
+        return 0
+    fi
+
+    # 기존 동적 상태가 있는 파일 준비
+    cp "$TEST_DIR/existing_settings.json" "$CLAUDE_DIR/settings.json"
+
+    # create_settings_copy 실행
+    create_settings_copy "$SOURCE_BASE/settings.json" "$CLAUDE_DIR/settings.json" >/dev/null 2>&1
+
+    # 새 설정이 적용되었는지 확인
+    local new_version=$(jq -r '.version' "$CLAUDE_DIR/settings.json")
+    assert_test "[[ '$new_version' == '1.0.0' ]]" "새 설정의 version이 적용됨" "1.0.0" "$new_version"
+
+    local new_theme=$(jq -r '.theme' "$CLAUDE_DIR/settings.json")
+    assert_test "[[ '$new_theme' == 'dark' ]]" "새 설정의 theme이 적용됨" "dark" "$new_theme"
+
+    # 동적 상태가 보존되었는지 확인
+    local preserved_last_shown=$(jq -r '.feedbackSurveyState.lastShown' "$CLAUDE_DIR/settings.json")
+    assert_test "[[ '$preserved_last_shown' == '2024-01-15' ]]" "feedbackSurveyState.lastShown 보존" "2024-01-15" "$preserved_last_shown"
+
+    local dismissed_count=$(jq -r '.feedbackSurveyState.dismissed | length' "$CLAUDE_DIR/settings.json")
+    assert_test "[[ '$dismissed_count' == '2' ]]" "feedbackSurveyState.dismissed 배열 보존" "2" "$dismissed_count"
+
+    local user_prefs_frequency=$(jq -r '.feedbackSurveyState.userPreferences.frequency' "$CLAUDE_DIR/settings.json")
+    assert_test "[[ '$user_prefs_frequency' == 'weekly' ]]" "중첩된 사용자 설정 보존" "weekly" "$user_prefs_frequency"
+}
+
+test_backup_cleanup() {
+    log_header "백업 파일 정리 테스트"
+
+    # 기존 파일 준비
+    cp "$TEST_DIR/existing_settings.json" "$CLAUDE_DIR/settings.json"
+
+    # create_settings_copy 실행
+    create_settings_copy "$SOURCE_BASE/settings.json" "$CLAUDE_DIR/settings.json" >/dev/null 2>&1
+
+    # 백업 파일이 정리되었는지 확인
+    assert_test "[[ ! -f '$CLAUDE_DIR/settings.json.backup' ]]" "백업 파일이 정리됨"
+}
+
+test_missing_source_file() {
+    log_header "존재하지 않는 소스 파일 처리 테스트"
+
+    # 존재하지 않는 파일로 테스트
+    create_settings_copy "$SOURCE_BASE/nonexistent.json" "$CLAUDE_DIR/nonexistent.json" >/dev/null 2>&1
+
+    # 타겟 파일이 생성되지 않았는지 확인
+    assert_test "[[ ! -f '$CLAUDE_DIR/nonexistent.json' ]]" "존재하지 않는 소스 파일 처리"
+}
+
+test_jq_fallback_behavior() {
+    log_header "jq 없을 때 fallback 동작 테스트"
+
+    # jq가 있는지 확인
+    if ! command -v jq >/dev/null 2>&1; then
+        log_warning "jq가 없어서 fallback 테스트를 건너뜁니다"
+        return 0
+    fi
+
+    # 임시로 jq를 숨김 (PATH 조작)
+    local original_path="$PATH"
+    export PATH="/usr/bin:/bin:/sbin"  # jq가 없는 제한된 PATH
+
+    # 기존 파일 준비
+    cp "$TEST_DIR/existing_settings.json" "$CLAUDE_DIR/settings.json"
+
+    # create_settings_copy 실행
+    create_settings_copy "$SOURCE_BASE/settings.json" "$CLAUDE_DIR/settings.json" >/dev/null 2>&1
+
+    # PATH 복원
+    export PATH="$original_path"
+
+    # 새 설정이 적용되었는지 확인
+    local version=$(jq -r '.version' "$CLAUDE_DIR/settings.json" 2>/dev/null || echo "unknown")
+    assert_test "[[ '$version' == '1.0.0' ]]" "jq 없을 때도 새 설정 적용됨" "1.0.0" "$version"
+
+    # 동적 상태는 병합되지 않아야 함 (jq 없을 때)
+    local feedback_state="null"
+    if jq -e '.feedbackSurveyState' "$CLAUDE_DIR/settings.json" >/dev/null 2>&1; then
+        feedback_state="present"
+    fi
+    assert_test "[[ '$feedback_state' == 'null' ]]" "jq 없을 때 동적 상태 병합 건너뜀"
+}
+
+test_invalid_json_handling() {
+    log_header "잘못된 JSON 처리 테스트"
+
+    # 잘못된 JSON이 있는 기존 파일 준비
+    cp "$TEST_DIR/invalid_settings.json" "$CLAUDE_DIR/settings.json"
+
+    # create_settings_copy 실행 (에러 발생해도 계속)
+    create_settings_copy "$SOURCE_BASE/settings.json" "$CLAUDE_DIR/settings.json" >/dev/null 2>&1 || true
+
+    # 새 설정이 적용되었는지 확인
+    assert_test "[[ -f '$CLAUDE_DIR/settings.json' ]]" "잘못된 JSON에도 새 파일 생성됨"
+
+    if command -v jq >/dev/null 2>&1; then
+        # 유효한 JSON인지 확인
+        local is_valid_json="false"
+        if jq empty "$CLAUDE_DIR/settings.json" >/dev/null 2>&1; then
+            is_valid_json="true"
+        fi
+        assert_test "[[ '$is_valid_json' == 'true' ]]" "새 설정 파일이 유효한 JSON임"
+    fi
+}
+
+test_file_permissions_consistency() {
+    log_header "파일 권한 일관성 테스트"
+
+    # 다양한 초기 권한으로 테스트
+    for initial_perm in 600 755 777; do
+        # 테스트 파일 생성
+        touch "$CLAUDE_DIR/settings.json"
+        chmod "$initial_perm" "$CLAUDE_DIR/settings.json"
+
+        # create_settings_copy 실행
+        create_settings_copy "$SOURCE_BASE/settings.json" "$CLAUDE_DIR/settings.json" >/dev/null 2>&1
+
+        # 최종 권한이 644인지 확인
+        local final_perm=$(stat -f "%OLp" "$CLAUDE_DIR/settings.json" 2>/dev/null || stat -c "%a" "$CLAUDE_DIR/settings.json" 2>/dev/null)
+        assert_test "[[ '$final_perm' == '644' ]]" "초기 권한 $initial_perm에서 644로 변경됨" "644" "$final_perm"
+
+        # 다음 테스트를 위한 정리
+        rm -f "$CLAUDE_DIR/settings.json"
     done
 }
 
-test_directory_structure_preservation() {
-    log_info "테스트: 디렉토리 구조 보존 확인"
+# 통합 테스트 함수
+test_complete_workflow() {
+    log_header "완전한 워크플로우 통합 테스트"
 
-    # 서브디렉토리 구조가 제대로 생성되었는지 확인
-    if [[ -d "$CLAUDE_DIR/commands/git" ]] && [[ -d "$CLAUDE_DIR/commands/workflow" ]]; then
-        log_info "✅ 서브디렉토리 구조 보존 성공"
-        ((TESTS_PASSED++))
-    else
-        log_error "❌ 서브디렉토리 구조 보존 실패"
-        ((TESTS_FAILED++))
+    # 1단계: 심볼릭 링크로 시작
+    ln -sf "$SOURCE_BASE/settings.json" "$CLAUDE_DIR/settings.json"
+
+    # 2단계: 사용자가 동적 상태 추가
+    if command -v jq >/dev/null 2>&1; then
+        echo '{"version":"1.0.0","theme":"dark","autoSave":true,"debugMode":false,"feedbackSurveyState":{"userAdded":"true"}}' > "$CLAUDE_DIR/settings.json"
+    fi
+
+    # 3단계: create_settings_copy 실행
+    create_settings_copy "$SOURCE_BASE/settings.json" "$CLAUDE_DIR/settings.json" >/dev/null 2>&1
+
+    # 4단계: 결과 검증
+    assert_test "[[ ! -L '$CLAUDE_DIR/settings.json' ]]" "최종적으로 심볼릭 링크가 아님"
+    assert_test "[[ -f '$CLAUDE_DIR/settings.json' ]]" "최종적으로 파일이 존재함"
+
+    local final_perm=$(stat -f "%OLp" "$CLAUDE_DIR/settings.json" 2>/dev/null || stat -c "%a" "$CLAUDE_DIR/settings.json" 2>/dev/null)
+    assert_test "[[ '$final_perm' == '644' ]]" "최종 권한이 644임" "644" "$final_perm"
+
+    if command -v jq >/dev/null 2>&1; then
+        local user_added=$(jq -r '.feedbackSurveyState.userAdded // "null"' "$CLAUDE_DIR/settings.json")
+        assert_test "[[ '$user_added' == 'true' ]]" "사용자 추가 동적 상태 보존됨" "true" "$user_added"
     fi
 }
 
-test_file_content_integrity() {
-    log_info "테스트: 파일 내용 무결성 확인"
-
-    # Git commit 파일 내용 확인
-    if grep -q "Git Commit Command" "$CLAUDE_DIR/commands/git/commit.md"; then
-        log_info "✅ Git commit 파일 내용 무결성 유지"
-        ((TESTS_PASSED++))
-    else
-        log_error "❌ Git commit 파일 내용 손상"
-        ((TESTS_FAILED++))
-        return 1
-    fi
-
-    # Workflow deploy 파일 내용 확인
-    if grep -q "Workflow Deploy Command" "$CLAUDE_DIR/commands/workflow/deploy.md"; then
-        log_info "✅ Workflow deploy 파일 내용 무결성 유지"
-        ((TESTS_PASSED++))
-    else
-        log_error "❌ Workflow deploy 파일 내용 손상"
-        ((TESTS_FAILED++))
-        return 1
-    fi
-}
-
-test_dry_run_mode() {
-    log_info "테스트: Dry run 모드 확인"
-
-    # 새로운 테스트 환경 생성
-    local dry_test_dir=$(mktemp -d)
-    local dry_claude_dir="$dry_test_dir/.claude"
-
-    # 원본 환경 변수 백업
-    local orig_claude_dir="$CLAUDE_DIR"
-    export CLAUDE_DIR="$dry_claude_dir"
-
-    # Dry run 실행
-    run_claude_activation 1 > /dev/null 2>&1
-
-    # Dry run에서는 실제 파일이 생성되지 않아야 함
-    if [[ ! -d "$dry_claude_dir" ]]; then
-        log_info "✅ Dry run 모드에서 파일 생성 안됨"
-        ((TESTS_PASSED++))
-    else
-        log_error "❌ Dry run 모드에서 파일이 생성됨"
-        ((TESTS_FAILED++))
-    fi
-
-    # 환경 복원
-    export CLAUDE_DIR="$orig_claude_dir"
-    rm -rf "$dry_test_dir"
-}
-
-test_missing_source_handling() {
-    log_info "테스트: 존재하지 않는 소스 파일 처리"
-
-    # smart_copy 함수를 환경에 로드
-    export -f files_differ smart_copy
-    export DRY_RUN_CMD CLAUDE_DIR
-
-    # 존재하지 않는 파일 테스트
-    if smart_copy "$SOURCE_BASE/nonexistent.md" "$CLAUDE_DIR/nonexistent.md" 2>/dev/null; then
-        # smart_copy는 항상 성공하지만 파일은 복사되지 않아야 함
-        if [[ ! -f "$CLAUDE_DIR/nonexistent.md" ]]; then
-            log_info "✅ 존재하지 않는 소스 파일 올바르게 처리"
-            ((TESTS_PASSED++))
-        else
-            log_error "❌ 존재하지 않는 소스 파일이 복사됨"
-            ((TESTS_FAILED++))
-        fi
-    else
-        log_info "✅ 존재하지 않는 소스 파일 올바르게 처리 (함수 실패)"
-        ((TESTS_PASSED++))
-    fi
+# 정리 함수
+cleanup_test_environment() {
+    log_debug "테스트 환경 정리: $TEST_DIR"
+    rm -rf "$TEST_DIR"
 }
 
 # 메인 테스트 실행
 main() {
-    log_info "Claude Activation 서브디렉토리 지원 테스트 시작"
+    log_header "Claude Activation 포괄적 테스트 시작"
     log_info "테스트 디렉토리: $TEST_DIR"
 
     # 신호 핸들러 설정
-    trap cleanup_test_environment EXIT
+    setup_signal_handlers
+
+    # 필수 도구 확인 (jq는 선택사항)
+    local required_tools=("cp" "chmod" "stat" "ln")
+    if ! check_required_tools "${required_tools[@]}"; then
+        exit 1
+    fi
 
     # 테스트 환경 설정
     setup_test_environment
 
-    # 테스트 실행
-    test_subdirectory_support
-    test_directory_structure_preservation
-    test_file_content_integrity
-    test_dry_run_mode
-    test_missing_source_handling
+    # 단위 테스트 실행
+    test_basic_settings_copy
+    test_symlink_to_copy_conversion
+    test_dynamic_state_preservation
+    test_backup_cleanup
+    test_missing_source_file
+    test_jq_fallback_behavior
+    test_invalid_json_handling
+    test_file_permissions_consistency
+
+    # 통합 테스트 실행
+    test_complete_workflow
 
     # 결과 출력
-    echo
-    log_info "=================== 테스트 결과 ==================="
+    log_separator
+    log_header "테스트 결과"
     log_info "통과: $TESTS_PASSED"
+
     if [[ $TESTS_FAILED -gt 0 ]]; then
         log_error "실패: $TESTS_FAILED"
         log_error "일부 테스트가 실패했습니다."
         exit 1
     else
-        log_info "모든 테스트가 통과했습니다! 🎉"
+        log_success "모든 테스트가 통과했습니다! 🎉"
         exit 0
     fi
 }

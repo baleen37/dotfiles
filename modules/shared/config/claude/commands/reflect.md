@@ -1,114 +1,82 @@
 ---
-name: reflect
-description: "Work pattern analysis and efficiency improvement suggestions"
+name: reflect  
+description: "Claude Code instruction optimization through systematic analysis"
 ---
-# /sc:reflect - 작업 성찰 및 개선점 도출
 
-## 목적
-현재 작업 패턴을 분석하고 효율성 개선점을 제안하는 실용적 성찰 도구
+# /reflect - Claude Code Instruction Optimization
 
-## 사용법
-```
-/sc:reflect [target]
-```
+You are an expert in prompt engineering, specializing in optimizing AI code assistant instructions. Your task is to analyze and improve the instructions for Claude Code. Follow these steps carefully:
 
-## 인수
-- `target` - 성찰할 대상 (현재 작업, 세션, 프로젝트). 생략시 현재 세션
+## Analysis Phase
 
-## 실행 과정
+1. **Context Review**: Analyze recent chat history for patterns in Claude's behavior
+2. **Focused Scope**: Only examine instructions/commands directly relevant to identified issues
+3. **Issue Categories**:
+   - Response inconsistencies or errors
+   - Misaligned behavior vs user expectations
+   - Missing functionality for common tasks
+   - Inefficient command structures
+   - MCP permission gaps
+   - Command execution failures and syntax errors
 
-### 1. 현재 상태 분석
-- 진행 중인 작업과 완료된 작업 검토
-- 시간 소비 패턴 분석
-- 사용된 도구와 방법 평가
+**Settings Scope Guidelines:**
 
-### 2. 효율성 평가  
-- **작업 속도**: 예상 시간 대비 실제 소요 시간
-- **도구 선택**: 최적 도구 사용 여부
-- **Agent 활용**: 전문가 위임의 효과성
-- **문제 해결**: 막혔던 부분과 해결 방법
+- **User Global settings** (`~/.claude/CLAUDE.md`, `~/.claude/settings.json`): Cross-project personal preferences
+  - ✅ Personal workflow preferences and communication style
+  - ✅ Language preferences and response formatting
+  - ✅ Universal development patterns and tool permissions
+  - ❌ Project-specific technical requirements
 
-### 3. 개선점 도출
-- **시간 절약**: 더 빠른 방법 제안
-- **품질 향상**: 더 나은 결과를 위한 접근법
-- **도구 최적화**: 더 적절한 도구나 명령어
-- **패턴 학습**: 성공한 패턴의 재사용 방법
+- **Project settings** (`/CLAUDE.md`): Repository-wide configurations
+  - ✅ Domain-specific technical instructions (Nix, React, etc.)
+  - ✅ Project workflow requirements and architecture patterns
+  - ✅ Team coding standards and conventions
+  - ✅ Project-specific tool permissions and build commands
+  - ❌ Personal communication preferences (belongs in user global)
 
-### 4. 다음 작업 가이드
-- 학습된 패턴 적용 제안
-- 예상 문제점 사전 대비
-- 효율적 접근 방법 추천
+- **Project Local settings** (`/.claude/settings.local.json`): Environment-specific overrides
+  - ✅ Local development environment configurations
+  - ✅ Machine-specific tool paths and settings
+  - ✅ Temporary experimental configurations
+  - ✅ Personal overrides for team project settings
+  - ❌ Team-wide configurations (belongs in project)
 
-## 출력 형식
+## Proposal Phase
 
-```yaml
-## 📊 작업 성찰 결과
+Present 3-5 prioritized improvement suggestions in this numbered format:
 
-### 현재 세션 요약
-- 진행 시간: 45분
-- 완료 작업: MCP 설정 분리, 구조 개선
-- 주요 성과: 토큰 효율성 30% 개선
+## [1] Priority [High/Medium/Low]: [Issue Title]
+- Current problem: [Brief description]
+- Proposed solution: [Specific change]  
+- Expected benefit: [How it improves performance]
 
-### 🎯 효율성 분석
-- **좋았던 점**:
-  - 체계적 계획 수립
-  - 단계별 검증
-- **개선 필요**:
-  - 초기 분석 시간 단축 가능
-  - 더 빠른 파일 구조 파악
+## [2] Priority [High/Medium/Low]: [Issue Title]
+- Current problem: [Brief description]
+- Proposed solution: [Specific change]
+- Expected benefit: [How it improves performance]
 
-### 💡 개선 제안
-- **다음 작업시**: Sequential MCP로 복잡한 분석 위임
-- **도구 활용**: Glob + Read 조합으로 구조 파악 가속화  
-- **시간 절약**: 유사 패턴은 이전 경험 재활용
+**Selection Instructions:**
+Ask user to select improvements by number:
+- Single: "1" or "3"  
+- Multiple: "1,3,5" or "1, 3, 5"
+- All: "all" or "1,2,3,4,5"
 
-### 🚀 다음 단계
-- ORCHESTRATOR.md 리소스 관리 최적화
-- 실제 사용해보며 효과 측정
-- 필요시 추가 미세 조정
-```
+## Implementation Phase
 
-## 자동 실행 조건
+For approved changes:
+1. **Validate scope**: Confirm global changes are universally applicable
+2. **Show target file**: Clearly indicate which configuration file will be modified
+   - User Global: `~/.claude/CLAUDE.md` or `~/.claude/settings.json`
+   - Project: `CLAUDE.md`
+   - Project Local: `.claude/settings.local.json`
+3. **Present before/after diff**: Show exact changes with scope justification
+4. **Implement immediately**: Apply the change to the specified file
 
-### 30분 경과시 자동 성찰
-- 작업 패턴 점검
-- 막힌 부분 있는지 확인  
-- 더 나은 접근법 제안
+**Implementation Rules:**
+- **User Global changes**: Must benefit user across all projects and environments
+- **Project changes**: Repository-wide, affects all team members and environments
+- **Project Local changes**: Environment-specific, personal machine configurations
+- **Scope Priority**: Project Local → Project → User Global (least invasive first)
+- **When in doubt**: Propose as Project Local change first
 
-### 복잡한 작업 완료 후
-- 사용된 방법의 효과성 평가
-- 비슷한 작업시 참고할 패턴 추출
-- 시간 단축 가능성 검토
-
-### 에러 해결 후
-- 문제 원인과 해결 과정 분석
-- 예방 방법 도출
-- 유사 상황 대비책 정리
-
-## YAGNI 준수
-
-### ✅ 실용적 기능만
-- 실제 도움되는 분석만 수행
-- 과도한 메트릭 수집 배제
-- 행동 가능한 제안에 집중
-
-### ❌ 과도한 복잡성 배제
-- 복잡한 성과 측정 시스템 없음
-- 불필요한 메타데이터 수집 없음
-- 사용하지 않을 고급 분석 없음
-
-## 통합점
-
-### TodoWrite와 연계
-- 완료된 작업들의 효율성 분석
-- 다음 작업 계획시 개선점 반영
-
-### Agent 시스템과 연계  
-- 어떤 Agent가 효과적이었는지 분석
-- 더 적절한 Agent 선택 가이드 제공
-
-### MCP 서버와 연계
-- MCP 서버 사용 패턴 분석
-- 더 효과적인 MCP 활용법 제안
-
-이 성찰 시스템은 jito의 실제 생산성 향상에만 집중한다.
+Remember, your goal is to enhance Claude's performance and consistency while maintaining the core functionality and purpose of the AI assistant. Be thorough in your analysis, clear in your explanations, and precise in your implementations.

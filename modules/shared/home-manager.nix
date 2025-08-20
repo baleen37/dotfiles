@@ -112,6 +112,9 @@ in
     zsh = {
       enable = true;
       autocd = false;
+      shellAliases = {
+        cc = "claude --dangerously-skip-permissions";
+      };
       plugins = [
         {
           name = "powerlevel10k";
@@ -184,21 +187,12 @@ in
         # Always color ls and group directories
         alias ls='ls --color=auto'
 
-        # Initialize direnv
-        eval "$(direnv hook zsh)"
-
         # Auto-update dotfiles on shell startup (with TTL)
         if [[ -x "$HOME/dotfiles/scripts/auto-update-dotfiles" ]]; then
           (nohup "$HOME/dotfiles/scripts/auto-update-dotfiles" --silent &>/dev/null &)
         fi
 
-        # Auto-install claude-monitor via uv if not already installed
-        if command -v uv >/dev/null 2>&1; then
-          if ! uv tool list | grep -q "claude-monitor"; then
-            echo "Installing claude-monitor via uv..."
-            uv tool install claude-monitor
-          fi
-        fi
+        # Claude-monitor is now managed via Nix packages
 
         # IntelliJ IDEA 백그라운드 실행 함수 (platform-aware)
         idea() {
@@ -585,6 +579,9 @@ in
         set -g default-shell ${config.programs.zsh.package}/bin/zsh
         set -g default-command "${config.programs.zsh.package}/bin/zsh -l"
         set -g focus-events on
+
+        # TERM 환경변수 설정 (색상 코드 표시 문제 해결)
+        set-environment -g TERM xterm-256color
         set -g mouse on
         set -g base-index 1
         set -g pane-base-index 1
