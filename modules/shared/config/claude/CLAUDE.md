@@ -62,6 +62,20 @@ YAGNI above all. Simplicity over sophistication. When in doubt, ask jito.
 - **Performance First**: Build time and resource efficiency matter
 </development-workflow>
 
+<tdd-principles>
+**TDD Cycle**: Red → Green → Refactor
+
+1. **Red**: Write failing test first
+2. **Green**: Minimal implementation to pass
+3. **Refactor**: Clean up while keeping tests green
+
+**Key Rules**:
+- Test before implementation
+- One failing test at a time
+- Minimum code to pass
+- Always run tests before committing
+</tdd-principles>
+
 <testing-standards>
 **Required Testing**: Unit + integration + e2e unless explicitly exempted
 
