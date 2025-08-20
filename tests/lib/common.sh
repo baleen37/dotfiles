@@ -81,4 +81,114 @@ setup_signal_handlers() {
     trap cleanup_test_environment EXIT INT TERM
 }
 
+# Claude activation 관련 공통 함수
+create_settings_copy() {
+    local source_file="$1"
+    local target_file="$2"
+
+    if [[ ! -f "$source_file" ]]; then
+        log_debug "소스 파일 없음: $source_file"
+        return 0
+    fi
+
+    # 기존 파일 백업 (동적 상태 보존용)
+    if [[ -f "$target_file" && ! -L "$target_file" ]]; then
+        log_debug "기존 settings.json 백업 중..."
+        cp "$target_file" "$target_file.backup"
+    fi
+
+    # 기존 심볼릭 링크 제거
+    if [[ -L "$target_file" ]]; then
+        log_debug "기존 심볼릭 링크 제거"
+        rm -f "$target_file"
+    fi
+
+    # 새로운 설정을 복사
+    cp "$source_file" "$target_file"
+    chmod 644 "$target_file"
+    log_debug "파일 복사 완료: $target_file (644 권한)"
+
+    # 백업에서 동적 상태 병합
+    if [[ -f "$target_file.backup" ]]; then
+        log_debug "동적 상태 병합 시도 중..."
+
+        # jq가 있으면 JSON 병합
+        if command -v jq >/dev/null 2>&1; then
+            if jq -e '.feedbackSurveyState' "$target_file.backup" >/dev/null 2>&1; then
+                local feedback_state=$(jq -c '.feedbackSurveyState' "$target_file.backup")
+                jq --argjson feedback_state "$feedback_state" '.feedbackSurveyState = $feedback_state' "$target_file" > "$target_file.tmp"
+                mv "$target_file.tmp" "$target_file"
+                log_debug "✓ feedbackSurveyState 병합 완료"
+            fi
+        else
+            log_debug "⚠ jq 없음: 동적 상태 병합 건너뜀"
+        fi
+
+        rm -f "$target_file.backup"
+    fi
+}
+
+# 테스트 결과 추적 변수들
+TESTS_PASSED=${TESTS_PASSED:-0}
+TESTS_FAILED=${TESTS_FAILED:-0}
+
+# 테스트 헬퍼 함수
+assert_test() {
+    local condition="$1"
+    local test_name="$2"
+    local expected="${3:-}"
+    local actual="${4:-}"
+
+    if eval "$condition"; then
+        log_success "$test_name"
+        ((TESTS_PASSED++))
+        return 0
+    else
+        if [[ -n "$expected" && -n "$actual" ]]; then
+            log_fail "$test_name"
+            log_error "  예상: $expected"
+            log_error "  실제: $actual"
+        else
+            log_fail "$test_name"
+        fi
+        ((TESTS_FAILED++))
+        return 1
+    fi
+}
+
+# 표준화된 모의 환경 설정
+setup_mock_claude_environment() {
+    local test_claude_dir="$1"
+    local test_source_dir="$2"
+
+    log_debug "모의 Claude 환경 생성: $test_claude_dir -> $test_source_dir"
+
+    # 소스 디렉토리 생성
+    mkdir -p "$test_source_dir/commands" "$test_source_dir/agents"
+
+    # 기본 설정 파일들 생성
+    cat > "$test_source_dir/settings.json" << 'EOF'
+{
+  "version": "1.0.0",
+  "theme": "dark",
+  "autoSave": true,
+  "debugMode": false
+}
+EOF
+
+    cat > "$test_source_dir/CLAUDE.md" << 'EOF'
+# Test Claude Configuration
+This is a test configuration file.
+EOF
+
+    # 테스트용 명령어 및 에이전트 파일들
+    echo "# Test command" > "$test_source_dir/commands/test-cmd.md"
+    echo "# Test agent" > "$test_source_dir/agents/test-agent.md"
+
+    # Claude 디렉토리 생성
+    mkdir -p "$test_claude_dir"
+
+    log_success "모의 Claude 환경 생성 완료"
+}
+
 log_debug "테스트 공통 라이브러리 로드 완료"
