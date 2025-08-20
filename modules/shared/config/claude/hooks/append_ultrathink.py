@@ -34,8 +34,20 @@ def main():
             # Update the input data
             input_data["prompt"] = prompt
 
-        # Output the modified (or original) data
-        print(json.dumps(input_data))
+        # For UserPromptSubmit, we can only add context, not modify the prompt
+        # Check if -u flag was used and add ultrathink context
+        if stripped_prompt.endswith(" -u") or stripped_prompt == "-u":
+            # Remove -u flag from original prompt and add ultrathink context
+            if stripped_prompt == "-u":
+                clean_prompt = ""
+            else:
+                clean_prompt = stripped_prompt[:-3].rstrip()
+
+            # Output the clean prompt and ultrathink message as context
+            print(f"{clean_prompt}\n\n{ULTRATHINK_MESSAGE}")
+        else:
+            # No modification needed, just pass through
+            print(json.dumps(input_data))
 
     except json.JSONDecodeError as e:
         print(f"Error parsing JSON input: {e}", file=sys.stderr)

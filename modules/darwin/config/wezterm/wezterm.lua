@@ -4,24 +4,17 @@ local config = wezterm.config_builder()
 -- 다크 테마 고정 설정 (더 어두운 테마 사용)
 config.color_scheme = 'Tokyo Night'
 
--- 폰트 설정 (JetBrains Mono 우선, CJK 지원)
+-- 폰트 설정 (성능 최적화를 위해 간소화)
 config.font = wezterm.font_with_fallback({
   'JetBrains Mono',
   'Apple Color Emoji',
-  'Hiragino Sans',
-  'Hiragino Kaku Gothic ProN',
-  'Noto Sans CJK JP',
-  'Noto Sans CJK KR',
-  'Noto Sans CJK SC',
-  'Noto Sans CJK TC',
-  'Menlo',
-  'Monaco',
+  'Menlo',  -- macOS 기본 fallback
 })
 config.font_size = 14
 config.use_fancy_tab_bar = false
 
--- 터미널 설정
-config.scrollback_lines = 10000
+-- 터미널 설정 (성능 최적화)
+config.scrollback_lines = 3500  -- 메모리 사용량 최적화
 config.window_background_opacity = 1.0  -- 완전 불투명
 config.initial_cols = 80
 config.initial_rows = 25
@@ -89,9 +82,19 @@ config.colors = {
   },
 }
 
--- 기타 설정
+-- 성능 최적화 설정
 config.audible_bell = 'Disabled'
 config.check_for_updates = false
 config.automatically_reload_config = true
+
+-- 애니메이션 최적화 (CPU 렌더링용)
+config.animation_fps = 1
+config.cursor_blink_ease_in = 'Constant'
+config.cursor_blink_ease_out = 'Constant'
+config.cursor_blink_rate = 0  -- 커서 깜빡임 비활성화로 성능 향상
+
+-- 렌더링 최적화
+config.front_end = 'WebGpu'  -- GPU 가속 사용
+config.max_fps = 60  -- FPS 제한으로 배터리 절약
 
 return config
