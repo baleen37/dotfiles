@@ -53,7 +53,10 @@ YAGNI above all. Simplicity over sophistication. When in doubt, ask jito.
 
 <development-workflow>
 - **Read before Edit**: Always understand current state first
-- **Test-Driven Development**: Write tests before implementation
+- **Test-Driven Development**: Red → Green → Refactor cycle
+  - **Red**: Write failing test first
+  - **Green**: Minimal implementation to pass  
+  - **Refactor**: Clean up while keeping tests green
   - New features: Test first → minimal implementation → refactor
   - Configuration changes: Verify existing behavior before modifying
 - **Test before Commit**: Run tests, validate changes
@@ -78,6 +81,19 @@ YAGNI above all. Simplicity over sophistication. When in doubt, ask jito.
     * Follow redirects if indicated in response
 </development-workflow>
 
+<testing-standards>
+**Required Testing**: Unit + integration + e2e unless explicitly exempted
+
+**Test Commands**:
+
+- `make test` - Full test suite (via nix run .#test)
+- `make test-core` - Essential tests only (fast)
+- `make smoke` - Quick validation (nix flake check)
+- `make test-perf` - Performance and build optimization tests
+- `./scripts/test-all-local` - Complete CI simulation
+
+**Test Categories**: Core (structure/config), Workflow (end-to-end), Performance (build optimization)
+</testing-standards>
 <memory>
 - Never hardcode usernames as they vary per host
 - Avoid using `export` and similar env commands as they require elevated privileges
