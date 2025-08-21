@@ -575,17 +575,29 @@ in
       historyLimit = 50000;
       extraConfig = ''
         # 기본 설정
-        set -g default-terminal "screen-256color"
+        set -g default-terminal "tmux-256color"
         set -g default-shell ${config.programs.zsh.package}/bin/zsh
         set -g default-command "${config.programs.zsh.package}/bin/zsh -l"
         set -g focus-events on
 
         # TERM 환경변수 설정 (색상 코드 표시 문제 해결)
-        set-environment -g TERM xterm-256color
+        set-environment -g TERM screen-256color
         set -g mouse on
         set -g base-index 1
         set -g pane-base-index 1
         set -g renumber-windows on
+
+        # 세션 안정성 향상을 위한 설정
+        set -g set-clipboard external
+        set -g remain-on-exit off
+        set -g allow-rename off
+        set -g destroy-unattached off
+        set -g status-interval 1
+
+        # 터미널 특성 오버라이드 - 색상 코드 깨짐 방지
+        set -ga terminal-overrides ",*256col*:Tc"
+        set -ga terminal-overrides ",screen-256color:Tc"
+        set -ga terminal-overrides ",xterm-256color:Tc"
 
         # 키보드 설정
         set-window-option -g xterm-keys on
