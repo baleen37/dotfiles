@@ -15,45 +15,35 @@ def main():
 
         # Get the prompt
         prompt = input_data.get("prompt", "")
-
-        # Check if prompt ends with -u flag (as a separate word)
         stripped_prompt = prompt.strip()
-        if stripped_prompt.endswith(" -u"):
-            # Remove the -u flag
-            clean_prompt = stripped_prompt[:-3].rstrip()
 
-            # Append ultrathink message
-            prompt = f"{clean_prompt}\n\n{ULTRATHINK_MESSAGE}"
+        # Check if -u flag is present
+        has_u_flag = stripped_prompt.endswith(" -u") or stripped_prompt == "-u"
 
-            # Update the input data
-            input_data["prompt"] = prompt
-        elif stripped_prompt == "-u":
-            # Handle case where prompt is just "-u"
-            prompt = f"\n\n{ULTRATHINK_MESSAGE}"
-
-            # Update the input data
-            input_data["prompt"] = prompt
-
-        # For UserPromptSubmit, we can only add context, not modify the prompt
-        # Check if -u flag was used and add ultrathink context
-        if stripped_prompt.endswith(" -u") or stripped_prompt == "-u":
-            # Remove -u flag from original prompt and add ultrathink context
+        if has_u_flag:
+            # Remove -u flag from prompt
             if stripped_prompt == "-u":
                 clean_prompt = ""
             else:
                 clean_prompt = stripped_prompt[:-3].rstrip()
 
-            # Output the clean prompt and ultrathink message as context
-            print(f"{clean_prompt}\n\n{ULTRATHINK_MESSAGE}")
-        else:
-            # No modification needed, just pass through
+            # Update the prompt in input_data
+            input_data["prompt"] = clean_prompt
+
+            # Add ultrathink context to stdout (Claude will see this as context)
+            print(ULTRATHINK_MESSAGE)
+            print("---")  # Separator for clarity
+
+            # Output the modified input data as JSON
             print(json.dumps(input_data))
+        else:
+            # No -u flag, pass through unchanged
+            print(json.dumps(input_data))
+
+        sys.exit(0)
 
     except json.JSONDecodeError as e:
         print(f"Error parsing JSON input: {e}", file=sys.stderr)
-        sys.exit(1)
-    except KeyError as e:
-        print(f"Missing required key in input: {e}", file=sys.stderr)
         sys.exit(1)
     except Exception as e:
         print(f"Unexpected error: {e}", file=sys.stderr)
