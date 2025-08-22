@@ -529,6 +529,9 @@ in
         Host *
           IdentitiesOnly yes
           AddKeysToAgent yes
+          ServerAliveInterval 60
+          ServerAliveCountMax 3
+          TCPKeepAlive yes
       '' + lib.optionalString isDarwin ''
         UseKeychain yes
       '';
