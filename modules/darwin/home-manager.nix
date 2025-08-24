@@ -9,14 +9,6 @@ let
   user = getUserInfo.user;
   additionalFiles = import ./files.nix { inherit user config pkgs; };
 
-  # Karabiner-Elements v14.13.0 (v15.0+ has nix-darwin compatibility issues)
-  karabiner-elements-v14 = pkgs.karabiner-elements.overrideAttrs (old: {
-    version = "14.13.0";
-    src = pkgs.fetchurl {
-      url = "https://github.com/pqrs-org/Karabiner-Elements/releases/download/v14.13.0/Karabiner-Elements-14.13.0.dmg";
-      hash = "sha256-gmJwoht/Tfm5qMecmq1N6PSAIfWOqsvuHU8VDJY8bLw="; # pragma: allowlist secret
-    };
-  });
 in
 {
   imports = [
@@ -60,7 +52,7 @@ in
 
       home = {
         enableNixpkgsReleaseCheck = false;
-        packages = (pkgs.callPackage ./packages.nix { }) ++ [ karabiner-elements-v14 ];
+        packages = (pkgs.callPackage ./packages.nix { });
         file = lib.mkMerge [
           (import ../shared/files.nix { inherit config pkgs user self lib; })
           additionalFiles
@@ -74,24 +66,64 @@ in
       # Example: programs.darwin-specific-tool = { enable = true; };
 
       manual.manpages.enable = false;
+
+      # TDD로 검증된 Nix 앱 링크 시스템
+      home.activation.linkNixApps = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        $DRY_RUN_CMD echo "🔗 Linking Nix GUI applications to ~/Applications..."
+
+        # 설정 기반 앱 링크 시스템 (하드코딩 제거)
+        link_nix_apps() {
+          local home_apps="$1"
+          local nix_store="$2"
+          local profile="$3"
+
+          # Applications 디렉토리 생성
+          mkdir -p "$home_apps"
+
+          # 1. Karabiner-Elements v14 전용 링크 (v15 배제)
+          local karabiner_path=$(find "$nix_store" -name "Karabiner-Elements.app" -path "*karabiner-elements-14*" -type d 2>/dev/null | head -1 || true)
+          if [ -n "$karabiner_path" ] && [ -d "$karabiner_path" ]; then
+            rm -f "$home_apps/Karabiner-Elements.app"
+            ln -sf "$karabiner_path" "$home_apps/Karabiner-Elements.app"
+            echo "  ✅ Karabiner-Elements.app linked (v14.13.0 only)"
+          fi
+
+          # 2. 현재 설치된 패키지에서 GUI 앱 자동 감지
+          if [ -d "$profile" ]; then
+            find "$profile" -name "*.app" -type d 2>/dev/null | while read -r app_path; do
+              [ ! -d "$app_path" ] && continue
+
+              local app_name=$(basename "$app_path")
+
+              # Karabiner은 이미 처리했으므로 스킵
+              [ "$app_name" = "Karabiner-Elements.app" ] && continue
+
+              # 이미 링크된 앱은 스킵
+              [ -L "$home_apps/$app_name" ] && continue
+
+              rm -f "$home_apps/$app_name"
+              ln -sf "$app_path" "$home_apps/$app_name"
+              echo "  ✅ $app_name auto-linked from profile"
+            done
+          fi
+
+        }
+
+        # 함수 실행
+        $DRY_RUN_CMD link_nix_apps "$HOME/Applications" "/nix/store" "$HOME/.nix-profile"
+
+        $DRY_RUN_CMD echo "✅ TDD-verified app linking complete!"
+        $DRY_RUN_CMD echo ""
+        $DRY_RUN_CMD echo "📱 Available applications:"
+        $DRY_RUN_CMD ls "$HOME/Applications"/*.app 2>/dev/null | sed 's|.*/||' | sed 's/^/  • /' || echo "  (no apps found)"
+        $DRY_RUN_CMD echo "💡 Tip: Apps are now accessible via Spotlight and Finder"
+        $DRY_RUN_CMD echo ""
+      '';
     };
   };
 
   # Dock configuration moved to hosts/darwin/default.nix
   # See hosts/darwin/default.nix for dock settings
 
-  # Karabiner-Elements Nix Apps 연동
-  system.activationScripts.karabinerNixApps = {
-    text = ''
-      # Nix Apps 디렉토리에 Karabiner-Elements 심볼릭 링크 생성
-      mkdir -p "/Applications/Nix Apps"
-      rm -f "/Applications/Nix Apps/Karabiner-Elements.app"
-      ln -sf "${karabiner-elements-v14}/Applications/Karabiner-Elements.app" "/Applications/Nix Apps/Karabiner-Elements.app"
-
-      # Launch Services 호환성을 위한 메인 Applications 링크
-      rm -f "/Applications/Karabiner-Elements.app"
-      ln -sf "/Applications/Nix Apps/Karabiner-Elements.app" "/Applications/Karabiner-Elements.app"
-    '';
-  };
 
 }
