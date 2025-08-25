@@ -46,6 +46,7 @@ YAGNI above all. Simplicity over sophistication. When in doubt, ask jito.
 - **Plan Confirmation Required**: Always explain and get approval for planning tasks
 - **Explain then Execute**: Explain important tasks before execution
 - **Direct Action**: Execute simple tasks immediately without explanation
+- **Question Formatting**: Use numbered lists when asking multiple questions expecting answers
 - Provide direct, honest technical feedback
 - Speak up when disagreeing with decisions
 - Avoid unnecessary politeness
