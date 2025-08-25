@@ -324,7 +324,8 @@ let
       { inherit message suggestions; type = "user"; severity = "error"; };
 
 in
-{
+rec {
+  # Use rec to allow self-references
   # Export constants for external use
   inherit colors errorTypes severityLevels translations commonErrorPatterns predefinedErrors;
 

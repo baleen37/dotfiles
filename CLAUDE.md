@@ -190,3 +190,5 @@ Token limits help maintain focused, cost-effective conversations by truncating v
 - **`bl`**: Custom command dispatcher system
 - Commands stored in `~/.bl/commands/`
 - Extensible through Nix configuration
+
+- claude code command 를 사용할 때 flag 기반ㄴ으로 하기 싫어.
