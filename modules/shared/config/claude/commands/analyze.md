@@ -13,6 +13,8 @@ agents: [performance-optimizer, root-cause-analyzer]
 ```bash
 /analyze                    # Full codebase analysis
 /analyze [path]             # Targeted analysis
+/analyze troubleshoot       # Deep-dive problem diagnosis
+/analyze [error/issue]      # Root cause analysis
 ```
 
 ## What It Does
@@ -53,6 +55,19 @@ To deliver results quickly, the tool uses an intelligent, multi-agent approach:
 </details>
 
 <details>
+<summary><strong>Advanced Troubleshooting</strong></summary>
+
+Deep-dive problem diagnosis for complex issues:
+
+-   **Root Cause Analysis**: Systematic investigation from symptoms to underlying causes
+-   **Dependency Mapping**: Trace issues through interconnected systems and modules
+-   **Pattern Recognition**: Identify recurring problems and systemic issues
+-   **Multi-Layer Investigation**: Analyze problems across code, configuration, environment, and architecture
+-   **Historical Context**: Connect current issues to past changes and technical decisions
+
+</details>
+
+<details>
 <summary><strong>Actionable Output</strong></summary>
 
 The analysis produces concrete, prioritized recommendations:
@@ -73,6 +88,8 @@ The analysis produces concrete, prioritized recommendations:
 
 - **performance-optimizer**: Performance bottlenecks, memory usage, optimization opportunities
 - **root-cause-analyzer**: Complex issue investigation, dependency analysis, architectural concerns
+- **debugger**: Troubleshooting specialist for errors, test failures, and unexpected behavior
+- **system-architect**: System-level issues, architecture problems, integration failures
 
 ## Examples
 
@@ -80,6 +97,12 @@ The analysis produces concrete, prioritized recommendations:
 /analyze                    # Complete codebase analysis
 /analyze src/components     # Focus on specific directory
 /analyze package.json       # Dependency and configuration analysis
+
+# Troubleshooting Examples
+/analyze troubleshoot       # Deep-dive system diagnosis
+/analyze "TypeError: Cannot read property 'id' of undefined"  # Error investigation
+/analyze "slow database queries"  # Performance issue analysis
+/analyze "tests failing intermittently"  # Flaky test root cause analysis
 ```
 
 The analysis will produce a comprehensive report with prioritized recommendations and specific implementation guidance.
