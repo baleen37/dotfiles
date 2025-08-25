@@ -75,29 +75,77 @@ let
     echo "📝 Changes will take effect after logout/login"
   '';
 
-  # User-level app installation helper
+  # User-level app installation helper - 확장된 GUI 앱 링크 시스템
   appInstallHelper = pkgs.writeShellScriptBin "install-user-apps" ''
     #!/usr/bin/env bash
+
+    echo "🔗 Installing Nix GUI applications to ~/Applications..."
 
     # Create user Applications directory if it doesn't exist
     mkdir -p "$HOME/Applications"
 
-    # Link Karabiner-Elements to user Applications
-    if [ -d "${karabiner-elements-v14}/Applications/Karabiner-Elements.app" ]; then
-      rm -f "$HOME/Applications/Karabiner-Elements.app"
-      ln -sf "${karabiner-elements-v14}/Applications/Karabiner-Elements.app" "$HOME/Applications/Karabiner-Elements.app"
-      echo "✅ Karabiner-Elements installed to ~/Applications"
+    # Helper function to link an app
+    link_nix_app() {
+      local app_name="$1"
+      local nix_path="$2"
+
+      if [ -d "$nix_path" ]; then
+        echo "  🔗 Linking $app_name..."
+        rm -f "$HOME/Applications/$app_name"
+        ln -sf "$nix_path" "$HOME/Applications/$app_name"
+
+        # Try to create alias in main /Applications if possible (non-root)
+        if [ -w "/Applications" ]; then
+          rm -f "/Applications/$app_name"
+          ln -sf "$HOME/Applications/$app_name" "/Applications/$app_name"
+          echo "     ✅ $app_name → ~/Applications + /Applications"
+        else
+          echo "     ✅ $app_name → ~/Applications"
+        fi
+      else
+        echo "     ⚠️  $app_name not found at $nix_path"
+      fi
+    }
+
+    # Link available GUI applications from Nix packages
+    # 키보드 및 입력 도구
+    link_nix_app "Karabiner-Elements.app" "${karabiner-elements-v14}/Applications/Karabiner-Elements.app"
+
+    # 터미널 앱
+    link_nix_app "WezTerm.app" "${pkgs.wezterm}/Applications/WezTerm.app"
+
+    # 보안 및 패스워드 관리
+    link_nix_app "KeePassXC.app" "${pkgs.keepassxc}/Applications/KeePassXC.app"
+
+    # 파일 동기화 (GUI가 있는 경우에만)
+    if [ -d "${pkgs.syncthing}/Applications" ]; then
+      for app in "${pkgs.syncthing}/Applications"/*.app; do
+        if [ -d "$app" ]; then
+          link_nix_app "$(basename "$app")" "$app"
+        fi
+      done
     fi
 
-    # Try to create alias in main /Applications if possible (non-root)
-    if [ -w "/Applications" ]; then
-      rm -f "/Applications/Karabiner-Elements.app"
-      ln -sf "$HOME/Applications/Karabiner-Elements.app" "/Applications/Karabiner-Elements.app"
-      echo "✅ Karabiner-Elements alias created in /Applications"
+    # 개발 도구 (GUI가 있는 경우)
+    link_nix_app "Docker Desktop.app" "${pkgs.docker-desktop}/Applications/Docker Desktop.app" 2>/dev/null || echo "     ⚠️  Docker Desktop은 Homebrew Cask에서 설치됨"
+
+    echo ""
+    echo "✅ Nix app linking complete!"
+    echo ""
+    echo "📱 앱 실행 방법:"
+    echo "   • Spotlight 검색: 앱 이름으로 직접 검색"
+    echo "   • Finder: ~/Applications 폴더"
+    echo "   • 터미널: open ~/Applications"
+    echo ""
+    echo "📝 참고사항:"
+    if [ ! -w "/Applications" ]; then
+      echo "   • /Applications 쓰기 권한 없음 (정상)"
+      echo "   • 앱들은 ~/Applications에서 정상 작동"
+      echo "   • Spotlight에서 검색 가능"
     else
-      echo "📝 /Applications not writable, app available in ~/Applications only"
-      echo "   You can manually create an alias or use ~/Applications"
+      echo "   • /Applications에도 링크 생성됨"
     fi
+    echo ""
   '';
 in
 

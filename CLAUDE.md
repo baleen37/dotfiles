@@ -192,3 +192,6 @@ Token limits help maintain focused, cost-effective conversations by truncating v
 - Extensible through Nix configuration
 
 - claude code command 를 사용할 때 flag 기반ㄴ으로 하기 싫어.
+
+- claude code command 에서 flag 개념은 안쓸거야.
+- 보안은 딱히 신경 안쓰고 있어.

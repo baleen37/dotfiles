@@ -9,6 +9,64 @@ let
   user = getUserInfo.user;
   additionalFiles = import ./files.nix { inherit user config pkgs; };
 
+  # User-level app installation helper - Nix GUI 앱 링크 시스템
+  nixAppLinker = pkgs.writeShellScriptBin "link-nix-apps" ''
+    #!/usr/bin/env bash
+
+    echo "🔗 Linking Nix GUI applications to ~/Applications..."
+
+    # Create user Applications directory if it doesn't exist
+    mkdir -p "$HOME/Applications"
+
+    # Helper function to link an app
+    link_nix_app() {
+      local app_name="$1"
+      local nix_path="$2"
+
+      if [ -d "$nix_path" ]; then
+        echo "  🔗 Linking $app_name..."
+        rm -f "$HOME/Applications/$app_name"
+        ln -sf "$nix_path" "$HOME/Applications/$app_name"
+
+        # Try to create alias in main /Applications if possible (non-root)
+        if [ -w "/Applications" ]; then
+          rm -f "/Applications/$app_name"
+          ln -sf "$HOME/Applications/$app_name" "/Applications/$app_name"
+          echo "     ✅ $app_name → ~/Applications + /Applications"
+        else
+          echo "     ✅ $app_name → ~/Applications"
+        fi
+      else
+        echo "     ⚠️  $app_name not found at $nix_path"
+      fi
+    }
+
+    # Link available GUI applications from Nix packages
+    # 터미널 앱
+    link_nix_app "WezTerm.app" "${pkgs.wezterm}/Applications/WezTerm.app"
+
+    # 보안 및 패스워드 관리
+    link_nix_app "KeePassXC.app" "${pkgs.keepassxc}/Applications/KeePassXC.app"
+
+    echo ""
+    echo "✅ Nix app linking complete!"
+    echo ""
+    echo "📱 앱 실행 방법:"
+    echo "   • Spotlight 검색: 앱 이름으로 직접 검색"
+    echo "   • Finder: ~/Applications 폴더"
+    echo "   • 터미널: open ~/Applications"
+    echo ""
+    echo "📝 참고사항:"
+    if [ ! -w "/Applications" ]; then
+      echo "   • /Applications 쓰기 권한 없음 (정상)"
+      echo "   • 앱들은 ~/Applications에서 정상 작동"
+      echo "   • Spotlight에서 검색 가능"
+    else
+      echo "   • /Applications에도 링크 생성됨"
+    fi
+    echo ""
+  '';
+
 in
 {
   imports = [
@@ -52,12 +110,20 @@ in
 
       home = {
         enableNixpkgsReleaseCheck = false;
-        packages = (pkgs.callPackage ./packages.nix { });
+        packages = (pkgs.callPackage ./packages.nix { }) ++ [
+          nixAppLinker # 앱 링크 도구 추가
+        ];
         file = lib.mkMerge [
-          (import ../shared/files.nix { inherit config pkgs user self lib; })
+          (import ../shared/files.nix { inherit config pkgs lib; })
           additionalFiles
         ];
         stateVersion = "23.11";
+
+        # User-level activation script for linking Nix GUI apps
+        activation.linkNixApps = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+          echo "🔗 Running Nix app linking activation..."
+          ${nixAppLinker}/bin/link-nix-apps
+        '';
       };
       # Import shared cross-platform programs (zsh, git, vim, etc.)
       programs = (import ../shared/home-manager.nix { inherit config pkgs lib; }).programs;
@@ -67,58 +133,6 @@ in
 
       manual.manpages.enable = false;
 
-      # TDD로 검증된 Nix 앱 링크 시스템
-      home.activation.linkNixApps = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        $DRY_RUN_CMD echo "🔗 Linking Nix GUI applications to ~/Applications..."
-
-        # 설정 기반 앱 링크 시스템 (하드코딩 제거)
-        link_nix_apps() {
-          local home_apps="$1"
-          local nix_store="$2"
-          local profile="$3"
-
-          # Applications 디렉토리 생성
-          mkdir -p "$home_apps"
-
-          # 1. Karabiner-Elements v14 전용 링크 (v15 배제)
-          local karabiner_path=$(find "$nix_store" -name "Karabiner-Elements.app" -path "*karabiner-elements-14*" -type d 2>/dev/null | head -1 || true)
-          if [ -n "$karabiner_path" ] && [ -d "$karabiner_path" ]; then
-            rm -f "$home_apps/Karabiner-Elements.app"
-            ln -sf "$karabiner_path" "$home_apps/Karabiner-Elements.app"
-            echo "  ✅ Karabiner-Elements.app linked (v14.13.0 only)"
-          fi
-
-          # 2. 현재 설치된 패키지에서 GUI 앱 자동 감지
-          if [ -d "$profile" ]; then
-            find "$profile" -name "*.app" -type d 2>/dev/null | while read -r app_path; do
-              [ ! -d "$app_path" ] && continue
-
-              local app_name=$(basename "$app_path")
-
-              # Karabiner은 이미 처리했으므로 스킵
-              [ "$app_name" = "Karabiner-Elements.app" ] && continue
-
-              # 이미 링크된 앱은 스킵
-              [ -L "$home_apps/$app_name" ] && continue
-
-              rm -f "$home_apps/$app_name"
-              ln -sf "$app_path" "$home_apps/$app_name"
-              echo "  ✅ $app_name auto-linked from profile"
-            done
-          fi
-
-        }
-
-        # 함수 실행
-        $DRY_RUN_CMD link_nix_apps "$HOME/Applications" "/nix/store" "$HOME/.nix-profile"
-
-        $DRY_RUN_CMD echo "✅ TDD-verified app linking complete!"
-        $DRY_RUN_CMD echo ""
-        $DRY_RUN_CMD echo "📱 Available applications:"
-        $DRY_RUN_CMD ls "$HOME/Applications"/*.app 2>/dev/null | sed 's|.*/||' | sed 's/^/  • /' || echo "  (no apps found)"
-        $DRY_RUN_CMD echo "💡 Tip: Apps are now accessible via Spotlight and Finder"
-        $DRY_RUN_CMD echo ""
-      '';
     };
   };
 

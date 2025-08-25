@@ -643,4 +643,24 @@ in
       '';
     };
   };
+
+  # Platform-specific file configurations
+  home.file = lib.mkMerge [
+    # Darwin-specific files
+    (lib.mkIf isDarwin {
+      # Karabiner-Elements v14 App Link
+      "Applications/Karabiner-Elements.app".source =
+        let
+          karabiner-elements-14 = pkgs.karabiner-elements.overrideAttrs (oldAttrs: {
+            version = "14.13.0";
+            src = pkgs.fetchurl {
+              url = "https://github.com/pqrs-org/Karabiner-Elements/releases/download/v14.13.0/Karabiner-Elements-14.13.0.dmg";
+              sha256 = "sha256-gmJwoht/Tfm5qMecmq1N6PSAIfWOqsvuHU8VDJY8bLw="; # pragma: allowlist secret
+            };
+          });
+        in
+        "${karabiner-elements-14}/Applications/Karabiner-Elements.app";
+    })
+    # Additional platform-specific file imports can be added here
+  ];
 }
