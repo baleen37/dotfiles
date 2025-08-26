@@ -128,11 +128,11 @@ log_tree() {
     local level="$1"
     local message="$2"
     local indent=""
-    
+
     for ((i=0; i<level; i++)); do
         indent+="  "
     done
-    
+
     echo -e "$indent${GRAY}├─${NC} $message" >&2
 }
 
@@ -140,11 +140,11 @@ log_tree_last() {
     local level="$1"
     local message="$2"
     local indent=""
-    
+
     for ((i=0; i<level; i++)); do
         indent+="  "
     done
-    
+
     echo -e "$indent${GRAY}└─${NC} $message" >&2
 }
 
@@ -211,7 +211,7 @@ check_required_tools() {
 
     if [[ ${#missing_tools[@]} -gt 0 ]]; then
         log_error "필수 도구들이 누락되었습니다: ${missing_tools[*]}"
-        
+
         # 설치 가이드 제공
         for tool in "${missing_tools[@]}"; do
             case "$tool" in
@@ -223,7 +223,7 @@ check_required_tools() {
                     ;;
             esac
         done
-        
+
         return 1
     fi
 
@@ -234,11 +234,11 @@ check_required_tools() {
 check_tool_version() {
     local tool="$1"
     local min_version="${2:-}"
-    
+
     if ! command -v "$tool" >/dev/null 2>&1; then
         return 1
     fi
-    
+
     local version_output
     case "$tool" in
         "bash")
@@ -254,7 +254,7 @@ check_tool_version() {
             version_output=$($tool --version 2>/dev/null | head -n1 || echo "$tool version unknown")
             ;;
     esac
-    
+
     log_debug "$tool 버전: $version_output"
     return 0
 }
@@ -265,7 +265,7 @@ check_tool_version() {
 cleanup_test_environment() {
     local cleanup_dirs=("${TEST_CLEANUP_DIRS[@]:-}")
     local cleanup_files=("${TEST_CLEANUP_FILES[@]:-}")
-    
+
     # 디렉토리 정리
     for dir in "${cleanup_dirs[@]}"; do
         if [[ -n "$dir" && -d "$dir" ]]; then
@@ -274,7 +274,7 @@ cleanup_test_environment() {
             rm -rf "$dir"
         fi
     done
-    
+
     # 파일 정리
     for file in "${cleanup_files[@]}"; do
         if [[ -n "$file" && -f "$file" ]]; then
@@ -282,10 +282,10 @@ cleanup_test_environment() {
             rm -f "$file"
         fi
     done
-    
+
     # 전역 변수 정리
     unset TEST_CLEANUP_DIRS TEST_CLEANUP_FILES
-    
+
     # 기존 TEST_DIR 정리 (백워드 호환성)
     if [[ -n "${TEST_DIR:-}" ]] && [[ -d "$TEST_DIR" ]]; then
         log_debug "레거시 테스트 환경 정리: $TEST_DIR"
@@ -321,17 +321,17 @@ show_progress() {
     local total="$2"
     local description="${3:-진행 중}"
     local width=50
-    
+
     local percentage=$((current * 100 / total))
     local filled=$((width * current / total))
     local empty=$((width - filled))
-    
+
     local bar=""
     for ((i=0; i<filled; i++)); do bar+="█"; done
     for ((i=0; i<empty; i++)); do bar+="░"; done
-    
+
     printf "\r${BLUE}[%s]${NC} %d%% %s" "$bar" "$percentage" "$description" >&2
-    
+
     if [[ $current -eq $total ]]; then
         echo >&2  # 완료시 새 줄
     fi
@@ -343,7 +343,7 @@ show_spinner() {
     local message="${2:-처리 중...}"
     local spinner="⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
     local i=0
-    
+
     echo -n "$message " >&2
     while kill -0 "$pid" 2>/dev/null; do
         printf "\r%s ${spinner:$i:1}" "$message" >&2
@@ -360,7 +360,7 @@ measure_time() {
     local exit_code=$?
     local end_time=$(date +%s%N)
     local duration=$(( (end_time - start_time) / 1000000 ))
-    
+
     log_debug "실행 시간: ${duration}ms"
     return $exit_code
 }
@@ -407,14 +407,14 @@ merge_dynamic_state() {
     local target_file="$1"
     local backup_file="$2"
     local preserve_keys=("feedbackSurveyState" "sessionState" "userModifications" "runtimeState")
-    
+
     if ! command -v jq >/dev/null 2>&1; then
         log_debug "jq 없음: 동적 상태 병합 건너뜀"
         return 0
     fi
-    
+
     log_debug "동적 상태 병합 시작..."
-    
+
     for key in "${preserve_keys[@]}"; do
         if jq -e ".$key" "$backup_file" >/dev/null 2>&1; then
             local value=$(jq -c ".$key" "$backup_file")
@@ -423,7 +423,7 @@ merge_dynamic_state() {
             log_debug "✓ $key 병합 완료"
         fi
     done
-    
+
     log_debug "동적 상태 병합 완료"
 }
 

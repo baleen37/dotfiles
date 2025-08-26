@@ -57,10 +57,10 @@ assert() {
     local test_name="$2"
     local expected="${3:-}"
     local actual="${4:-}"
-    
+
     local context=$(get_current_context)
     local full_test_name="[$context] $test_name"
-    
+
     # 직접 조건을 평가
     if eval "$condition" 2>/dev/null; then
         log_success "$full_test_name"
@@ -87,7 +87,7 @@ assert_equals() {
     local expected="$1"
     local actual="$2"
     local test_name="$3"
-    
+
     assert "[[ '$actual' == '$expected' ]]" "$test_name" "$expected" "$actual"
 }
 
@@ -96,7 +96,7 @@ assert_not_equals() {
     local expected="$1"
     local actual="$2"
     local test_name="$3"
-    
+
     assert "[[ '$actual' != '$expected' ]]" "$test_name" "!= $expected" "$actual"
 }
 
@@ -105,7 +105,7 @@ assert_contains() {
     local haystack="$1"
     local needle="$2"
     local test_name="$3"
-    
+
     assert "[[ '$haystack' =~ '$needle' ]]" "$test_name" "contains '$needle'" "$haystack"
 }
 
@@ -113,7 +113,7 @@ assert_contains() {
 assert_file_exists() {
     local file_path="$1"
     local test_name="${2:-파일 존재: $file_path}"
-    
+
     assert "[[ -f '$file_path' ]]" "$test_name"
 }
 
@@ -121,7 +121,7 @@ assert_file_exists() {
 assert_dir_exists() {
     local dir_path="$1"
     local test_name="${2:-디렉토리 존재: $dir_path}"
-    
+
     assert "[[ -d '$dir_path' ]]" "$test_name"
 }
 
@@ -129,7 +129,7 @@ assert_dir_exists() {
 assert_file_not_exists() {
     local file_path="$1"
     local test_name="${2:-파일 부재: $file_path}"
-    
+
     assert "[[ ! -f '$file_path' ]]" "$test_name"
 }
 
@@ -137,7 +137,7 @@ assert_file_not_exists() {
 assert_symlink() {
     local link_path="$1"
     local test_name="${2:-심볼릭 링크: $link_path}"
-    
+
     assert "[[ -L '$link_path' ]]" "$test_name"
 }
 
@@ -145,7 +145,7 @@ assert_symlink() {
 assert_not_symlink() {
     local path="$1"
     local test_name="${2:-심볼릭 링크가 아님: $path}"
-    
+
     assert "[[ ! -L '$path' ]]" "$test_name"
 }
 
@@ -153,7 +153,7 @@ assert_not_symlink() {
 assert_command_success() {
     local command="$1"
     local test_name="${2:-명령 성공: $command}"
-    
+
     if eval "$command" >/dev/null 2>&1; then
         log_success "[$TEST_SUITE_NAME] $test_name"
         TESTS_PASSED=$((TESTS_PASSED + 1))
@@ -172,7 +172,7 @@ assert_command_success() {
 assert_command_fails() {
     local command="$1"
     local test_name="${2:-명령 실패: $command}"
-    
+
     if eval "$command" >/dev/null 2>&1; then
         log_fail "[$TEST_SUITE_NAME] $test_name"
         log_error "  명령어가 성공했지만 실패가 예상됨: $command"
@@ -190,14 +190,14 @@ assert_file_permissions() {
     local file_path="$1"
     local expected_perms="$2"
     local test_name="${3:-파일 권한: $file_path}"
-    
+
     if [[ ! -f "$file_path" ]]; then
         log_fail "[$TEST_SUITE_NAME] $test_name"
         log_error "  파일이 존재하지 않음: $file_path"
         TESTS_FAILED=$((TESTS_FAILED + 1))
         return 1
     fi
-    
+
     local actual_perms=$(stat -f "%OLp" "$file_path" 2>/dev/null || stat -c "%a" "$file_path" 2>/dev/null)
     assert_equals "$expected_perms" "$actual_perms" "$test_name"
 }
@@ -208,19 +208,19 @@ assert_json_value() {
     local json_path="$2"
     local expected_value="$3"
     local test_name="${4:-JSON 값: $json_path}"
-    
+
     if ! command -v jq >/dev/null 2>&1; then
         log_warning "[$TEST_SUITE_NAME] jq 없음: JSON 테스트 건너뜀 - $test_name"
         return 0
     fi
-    
+
     if [[ ! -f "$file_path" ]]; then
         log_fail "[$TEST_SUITE_NAME] $test_name"
         log_error "  JSON 파일 없음: $file_path"
         TESTS_FAILED=$((TESTS_FAILED + 1))
         return 1
     fi
-    
+
     local actual_value=$(jq -r "$json_path // \"null\"" "$file_path" 2>/dev/null)
     assert_equals "$expected_value" "$actual_value" "$test_name"
 }
@@ -230,7 +230,7 @@ assert_greater_or_equal() {
     local actual="$1"
     local threshold="$2"
     local test_name="$3"
-    
+
     assert "[[ '$actual' -ge '$threshold' ]]" "$test_name" ">= $threshold" "$actual"
 }
 
@@ -239,7 +239,7 @@ assert_less_or_equal() {
     local actual="$1"
     local threshold="$2"
     local test_name="$3"
-    
+
     assert "[[ '$actual' -le '$threshold' ]]" "$test_name" "<= $threshold" "$actual"
 }
 
@@ -248,12 +248,12 @@ measure_execution_time() {
     local command="$1"
     local test_name="${2:-성능 측정}"
     local max_duration_ms="${3:-1000}"
-    
+
     local start_time=$(date +%s%N)
     eval "$command" >/dev/null 2>&1
     local end_time=$(date +%s%N)
     local duration_ms=$(( (end_time - start_time) / 1000000 ))
-    
+
     assert_less_or_equal "$duration_ms" "$max_duration_ms" "$test_name (${duration_ms}ms)"
 }
 
@@ -277,11 +277,11 @@ end_test_group() {
 report_test_results() {
     local total_tests=$((TESTS_PASSED + TESTS_FAILED))
     local success_rate=0
-    
+
     if [[ $total_tests -gt 0 ]]; then
         success_rate=$(( (TESTS_PASSED * 100) / total_tests ))
     fi
-    
+
     # 실행 시간 계산
     local end_time=$(date +%s%N)
     local duration_ms=$(( (end_time - TEST_START_TIME) / 1000000 ))
@@ -289,14 +289,14 @@ report_test_results() {
     if [[ $duration_ms -gt 1000 ]]; then
         duration_str="$(( duration_ms / 1000 ))s"
     fi
-    
+
     log_separator
     log_header "테스트 결과 - $TEST_SUITE_NAME"
     log_info "전체 테스트: $total_tests"
     log_info "통과: $TESTS_PASSED"
     log_info "실행 시간: $duration_str"
     log_info "성공률: ${success_rate}%"
-    
+
     if [[ $TESTS_FAILED -gt 0 ]]; then
         log_error "실패: $TESTS_FAILED"
         log_error "일부 테스트가 실패했습니다."
@@ -312,7 +312,7 @@ report_test_results_simple() {
     local total_tests=$((TESTS_PASSED + TESTS_FAILED))
     local end_time=$(date +%s%N)
     local duration_ms=$(( (end_time - TEST_START_TIME) / 1000000 ))
-    
+
     if [[ $TESTS_FAILED -gt 0 ]]; then
         echo "❌ $TEST_SUITE_NAME: $TESTS_PASSED/$total_tests passed (${duration_ms}ms)"
         return 1

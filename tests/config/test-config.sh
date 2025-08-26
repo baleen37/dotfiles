@@ -345,7 +345,7 @@ get_platform_value() {
 # 타임아웃 값 결정
 get_timeout_for_test() {
     local test_type="$1"
-    
+
     case "$test_type" in
         "unit") echo "$TEST_TIMEOUT_SHORT" ;;
         "integration") echo "$TEST_TIMEOUT_MEDIUM" ;;
@@ -367,18 +367,18 @@ get_parallel_jobs() {
 # 설정 유효성 검증
 validate_test_config() {
     local errors=0
-    
+
     # 필수 디렉토리 존재 확인
     if [[ ! -d "$TEST_DIR_BASE" ]]; then
         echo "ERROR: TEST_DIR_BASE directory not found: $TEST_DIR_BASE" >&2
         ((errors++))
     fi
-    
+
     # 플랫폼 검증
     if [[ "$PLATFORM" == "unknown" ]]; then
         echo "WARNING: Unknown platform detected: $OSTYPE" >&2
     fi
-    
+
     # 버전 호환성 검증
     if [[ -n "${BASH_VERSION:-}" ]]; then
         local bash_major=${BASH_VERSION%%.*}
@@ -386,7 +386,7 @@ validate_test_config() {
             echo "WARNING: Old Bash version detected: $BASH_VERSION" >&2
         fi
     fi
-    
+
     return $errors
 }
 
@@ -398,12 +398,12 @@ init_test_config() {
     if [[ "$PROFILE_ENABLED" == "true" ]]; then
         mkdir -p "$PROFILE_OUTPUT_DIR"
     fi
-    
+
     # 환경 변수 설정
     export TEST_CONFIG_LOADED=true
     export TEST_CONFIG_VERSION
     export PLATFORM
-    
+
     # 설정 검증
     validate_test_config
 }

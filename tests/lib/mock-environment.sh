@@ -27,16 +27,16 @@ create_test_directory() {
 setup_basic_test_structure() {
     local test_dir="$1"
     local project_name="${2:-test-project}"
-    
+
     mkdir -p "$test_dir"/{src,tests,config,tmp}
     touch "$test_dir/README.md"
-    
+
     cat > "$test_dir/README.md" << EOF
 # $project_name
 Test environment for: $project_name
 Created: $(date)
 EOF
-    
+
     log_debug "기본 테스트 구조 생성: $test_dir"
 }
 
@@ -47,29 +47,29 @@ setup_mock_claude_environment() {
     local test_claude_dir="$1"
     local test_source_dir="$2"
     local include_dynamics="${3:-false}"
-    
+
     log_debug "모의 Claude 환경 생성: $test_claude_dir -> $test_source_dir"
-    
+
     # 소스 디렉토리 구조 생성
     mkdir -p "$test_source_dir"/{commands,agents,hooks}
     mkdir -p "$test_source_dir/commands"/{git,workflow,system,debug}
-    
+
     # 기본 설정 파일들 생성
     create_mock_settings_json "$test_source_dir/settings.json" "$include_dynamics"
     create_mock_claude_md "$test_source_dir/CLAUDE.md"
-    
+
     # 다양한 명령어 파일들 생성
     create_mock_commands "$test_source_dir/commands"
-    
+
     # 에이전트 파일들 생성
     create_mock_agents "$test_source_dir/agents"
-    
+
     # 훅 파일들 생성
     create_mock_hooks "$test_source_dir/hooks"
-    
+
     # Claude 타겟 디렉토리 생성
     mkdir -p "$test_claude_dir"
-    
+
     log_success "모의 Claude 환경 생성 완료"
 }
 
@@ -77,7 +77,7 @@ setup_mock_claude_environment() {
 create_mock_settings_json() {
     local settings_file="$1"
     local include_dynamics="${2:-false}"
-    
+
     local settings_content='{
   "version": "1.0.0",
   "theme": "dark",
@@ -93,7 +93,7 @@ create_mock_settings_json() {
     "betaIntegration": false
   }
 }'
-    
+
     if [[ "$include_dynamics" == "true" ]]; then
         settings_content=$(echo "$settings_content" | jq '. + {
           "feedbackSurveyState": {
@@ -110,7 +110,7 @@ create_mock_settings_json() {
           }
         }')
     fi
-    
+
     echo "$settings_content" > "$settings_file"
     log_debug "Mock settings.json 생성: $settings_file"
 }
@@ -118,7 +118,7 @@ create_mock_settings_json() {
 # Mock CLAUDE.md 생성
 create_mock_claude_md() {
     local claude_md_file="$1"
-    
+
     cat > "$claude_md_file" << 'EOF'
 # Mock Claude Configuration
 
@@ -144,73 +144,73 @@ This is a test configuration file for Claude integration testing.
 - `mock-reviewer` - Code review simulation
 - `mock-tester` - Test generation simulation
 EOF
-    
+
     log_debug "Mock CLAUDE.md 생성: $claude_md_file"
 }
 
 # Mock 명령어들 생성
 create_mock_commands() {
     local commands_dir="$1"
-    
+
     # 루트 레벨 명령어들
     cat > "$commands_dir/mock-test.md" << 'EOF'
 # Mock Test Command
 Root level mock test command for testing framework validation.
 Usage: `/mock-test [options]`
 EOF
-    
+
     cat > "$commands_dir/analyze.md" << 'EOF'
 # Analyze Command
 System analysis and diagnostic command.
 Usage: `/analyze [component]`
 EOF
-    
+
     # Git 관련 명령어들
     cat > "$commands_dir/git/commit.md" << 'EOF'
 # Git Commit Command
 Automated commit with standardized messages.
 Usage: `/commit [message]`
 EOF
-    
+
     cat > "$commands_dir/git/status.md" << 'EOF'
 # Git Status Command
 Enhanced git status with additional context.
 Usage: `/status [--detailed]`
 EOF
-    
+
     # 워크플로우 명령어들
     cat > "$commands_dir/workflow/deploy.md" << 'EOF'
 # Deployment Workflow
 Automated deployment pipeline management.
 Usage: `/deploy [environment]`
 EOF
-    
+
     cat > "$commands_dir/workflow/test.md" << 'EOF'
 # Test Workflow
 Comprehensive testing pipeline execution.
 Usage: `/test [suite] [--parallel]`
 EOF
-    
+
     # 시스템 명령어들
     cat > "$commands_dir/system/monitor.md" << 'EOF'
 # System Monitor Command
 Real-time system monitoring and alerts.
 Usage: `/monitor [--duration=60]`
 EOF
-    
+
     cat > "$commands_dir/debug/trace.md" << 'EOF'
 # Debug Trace Command
 Execution tracing and profiling utilities.
 Usage: `/trace [process]`
 EOF
-    
+
     log_debug "Mock 명령어들 생성: $commands_dir"
 }
 
 # Mock 에이전트들 생성
 create_mock_agents() {
     local agents_dir="$1"
-    
+
     cat > "$agents_dir/mock-reviewer.md" << 'EOF'
 # Mock Code Reviewer Agent
 Simulated automated code review agent for testing.
@@ -225,7 +225,7 @@ Simulated automated code review agent for testing.
 - Code quality gate validation
 - Review comment generation
 EOF
-    
+
     cat > "$agents_dir/mock-tester.md" << 'EOF'
 # Mock Test Generator Agent
 Simulated automated test generation agent.
@@ -240,7 +240,7 @@ Simulated automated test generation agent.
 - Test coverage improvement
 - Edge case identification
 EOF
-    
+
     cat > "$agents_dir/backend-engineer.md" << 'EOF'
 # Backend Engineer Agent
 Specialized backend development assistance.
@@ -256,28 +256,28 @@ Specialized backend development assistance.
 - Database schema design
 - Performance bottleneck identification
 EOF
-    
+
     log_debug "Mock 에이전트들 생성: $agents_dir"
 }
 
 # Mock 훅들 생성
 create_mock_hooks() {
     local hooks_dir="$1"
-    
+
     cat > "$hooks_dir/pre-command.sh" << 'EOF'
 #!/usr/bin/env bash
 # Mock pre-command hook
 echo "Mock: Pre-command hook executed"
 exit 0
 EOF
-    
+
     cat > "$hooks_dir/post-command.sh" << 'EOF'
 #!/usr/bin/env bash
 # Mock post-command hook
 echo "Mock: Post-command hook executed"
 exit 0
 EOF
-    
+
     chmod +x "$hooks_dir"/*.sh
     log_debug "Mock 훅들 생성: $hooks_dir"
 }
@@ -288,25 +288,25 @@ EOF
 setup_mock_nix_environment() {
     local test_dir="$1"
     local project_name="${2:-mock-nix-project}"
-    
+
     mkdir -p "$test_dir"/{lib,modules,tests}
-    
+
     # 기본 flake.nix 생성
     cat > "$test_dir/flake.nix" << EOF
 {
   description = "Mock Nix flake for testing";
-  
+
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
   };
-  
+
   outputs = { self, nixpkgs }: {
     # Mock outputs for testing
     packages.x86_64-linux.default = nixpkgs.legacyPackages.x86_64-linux.hello;
   };
 }
 EOF
-    
+
     # 기본 default.nix 생성
     cat > "$test_dir/default.nix" << 'EOF'
 { pkgs ? import <nixpkgs> {} }:
@@ -317,7 +317,7 @@ pkgs.stdenv.mkDerivation {
   installPhase = "mkdir -p $out; echo 'mock' > $out/mock.txt";
 }
 EOF
-    
+
     log_debug "Mock Nix 환경 생성: $test_dir"
 }
 
@@ -327,9 +327,9 @@ EOF
 setup_existing_configuration() {
     local target_dir="$1"
     local config_type="${2:-claude}"
-    
+
     mkdir -p "$target_dir"
-    
+
     case "$config_type" in
         "claude")
             # 기존 Claude 설정 시뮬레이션
@@ -346,7 +346,7 @@ setup_existing_configuration() {
             ln -sf "$source_dir/settings.json" "$target_dir/settings.json"
             ;;
     esac
-    
+
     log_debug "기존 설정 상태 시뮬레이션: $target_dir ($config_type)"
 }
 
@@ -354,9 +354,9 @@ setup_existing_configuration() {
 simulate_permission_issues() {
     local target_file="$1"
     local issue_type="${2:-readonly}"
-    
+
     touch "$target_file"
-    
+
     case "$issue_type" in
         "readonly")
             chmod 444 "$target_file"
@@ -368,7 +368,7 @@ simulate_permission_issues() {
             chmod 555 "$target_file"
             ;;
     esac
-    
+
     log_debug "권한 문제 시뮬레이션: $target_file ($issue_type)"
 }
 
@@ -378,12 +378,12 @@ simulate_permission_issues() {
 add_dynamic_user_state() {
     local settings_file="$1"
     local state_type="${2:-feedback}"
-    
+
     if ! command -v jq >/dev/null 2>&1; then
         log_warning "jq 없음: 동적 상태 시뮬레이션 건너뜀"
         return 0
     fi
-    
+
     case "$state_type" in
         "feedback")
             jq '. + {
@@ -413,7 +413,7 @@ add_dynamic_user_state() {
             }' "$settings_file" > "$settings_file.tmp"
             ;;
     esac
-    
+
     mv "$settings_file.tmp" "$settings_file"
     log_debug "동적 상태 추가: $settings_file ($state_type)"
 }
@@ -424,10 +424,10 @@ add_dynamic_user_state() {
 setup_isolated_test_environment() {
     local test_id="$1"
     local base_dir="${2:-/tmp}"
-    
+
     local isolated_dir="$base_dir/test_env_${test_id}_$$"
     mkdir -p "$isolated_dir"
-    
+
     # 환경 변수 격리
     cat > "$isolated_dir/env.sh" << EOF
 export TEST_ID="$test_id"
@@ -437,7 +437,7 @@ export XDG_CONFIG_HOME="$isolated_dir/config"
 export PATH="$isolated_dir/bin:\$PATH"
 mkdir -p "\$HOME" "\$XDG_CONFIG_HOME" "$isolated_dir/bin"
 EOF
-    
+
     echo "$isolated_dir"
     log_debug "격리된 테스트 환경 생성: $isolated_dir (ID: $test_id)"
 }
@@ -447,7 +447,7 @@ EOF
 # 테스트 환경 정리
 cleanup_mock_environment() {
     local test_dirs=("$@")
-    
+
     for dir in "${test_dirs[@]}"; do
         if [[ -d "$dir" ]]; then
             # 권한 문제 해결 후 삭제
@@ -462,7 +462,7 @@ cleanup_mock_environment() {
 cleanup_test_environments_by_pattern() {
     local pattern="${1:-test_*}"
     local base_dir="${2:-/tmp}"
-    
+
     local cleanup_count=0
     for dir in "$base_dir"/$pattern; do
         if [[ -d "$dir" ]]; then
@@ -471,7 +471,7 @@ cleanup_test_environments_by_pattern() {
             ((cleanup_count++))
         fi
     done
-    
+
     if [[ $cleanup_count -gt 0 ]]; then
         log_debug "패턴 기반 정리 완료: $cleanup_count개 디렉토리"
     fi
@@ -483,7 +483,7 @@ cleanup_test_environments_by_pattern() {
 validate_mock_environment() {
     local test_dir="$1"
     local env_type="${2:-basic}"
-    
+
     case "$env_type" in
         "claude")
             [[ -f "$test_dir/settings.json" ]] || return 1
@@ -500,7 +500,7 @@ validate_mock_environment() {
             [[ -f "$test_dir/README.md" ]] || return 1
             ;;
     esac
-    
+
     log_debug "환경 검증 통과: $test_dir ($env_type)"
     return 0
 }
@@ -508,7 +508,7 @@ validate_mock_environment() {
 # 환경 정보 출력
 describe_mock_environment() {
     local test_dir="$1"
-    
+
     log_info "Mock 환경 정보: $test_dir"
     log_info "  디렉토리 크기: $(du -sh "$test_dir" 2>/dev/null | cut -f1)"
     log_info "  파일 개수: $(find "$test_dir" -type f | wc -l)"

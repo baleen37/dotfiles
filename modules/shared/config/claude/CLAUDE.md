@@ -31,7 +31,7 @@ YAGNI above all. Simplicity over sophistication. When in doubt, consult project 
 <naming-conventions>
 **Prohibited Terms**: Avoid "new", "enhanced", "improved", "updated", "v2", "unified", "modern" and other version/improvement indicators
 **Preferred Naming**: Direct, clear names that describe functionality itself
-**Examples**: 
+**Examples**:
 - ❌ test-enhanced → ✅ test-all
 - ❌ build-improved → ✅ build  
 - ❌ config-v2 → ✅ config

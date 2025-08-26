@@ -10,7 +10,7 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 # 테스트 라이브러리들 로드
 source "$SCRIPT_DIR/lib/common.sh"
-source "$SCRIPT_DIR/lib/test-framework.sh" 
+source "$SCRIPT_DIR/lib/test-framework.sh"
 
 # 러너 설정
 TEST_RUNNER_VERSION="2.0.0"
@@ -100,7 +100,7 @@ EOF
 # 테스트 파일 목록 표시
 list_tests() {
     log_header "사용 가능한 테스트 파일들"
-    
+
     find "$SCRIPT_DIR" -name "test-*.sh" -type f | sort | while read -r test_file; do
         local rel_path=${test_file#$SCRIPT_DIR/}
         local size=$(wc -l < "$test_file")
@@ -111,7 +111,7 @@ list_tests() {
 # 테스트 카테고리 목록 표시
 list_categories() {
     log_header "테스트 카테고리"
-    
+
     for category in "${!TEST_CATEGORIES[@]}"; do
         local test_files=(${TEST_CATEGORIES[$category]})
         log_info "$category (${#test_files[@]}개 테스트)"
@@ -124,13 +124,13 @@ list_categories() {
 # 테스트 계획 표시
 show_test_plan() {
     local test_files=("$@")
-    
+
     log_header "테스트 실행 계획"
     log_info "총 ${#test_files[@]}개 테스트 파일"
     log_info "병렬 모드: $([ "$PARALLEL_MODE" = "true" ] && echo "활성화 (${PARALLEL_JOBS}개 작업)" || echo "비활성화")"
     log_info "타임아웃: ${TEST_TIMEOUT}초"
     log_info "출력 형식: $OUTPUT_FORMAT"
-    
+
     if [[ "${#test_files[@]}" -gt 0 ]]; then
         log_separator
         for ((i=0; i<${#test_files[@]}; i++)); do
@@ -143,23 +143,23 @@ show_test_plan() {
 run_single_test() {
     local test_file="$1"
     local test_path="$SCRIPT_DIR/$test_file"
-    
+
     log_debug "run_single_test 시작: $test_file"
     log_debug "테스트 경로: $test_path"
-    
+
     if [[ ! -f "$test_path" ]]; then
         log_error "테스트 파일 없음: $test_file"
         return 2
     fi
-    
+
     if [[ ! -x "$test_path" ]]; then
         chmod +x "$test_path"
     fi
-    
+
     local start_time=$(date +%s%N)
     local exit_code=0
     local output=""
-    
+
     log_debug "테스트 실행 시작: $test_file"
     if [[ "$VERBOSE_MODE" = "true" ]]; then
         log_info "실행 중: $test_file"
@@ -173,10 +173,10 @@ run_single_test() {
         output=$(timeout "${TEST_TIMEOUT}s" bash "$test_path" 2>&1) || exit_code=$?
     fi
     log_debug "테스트 실행 완료: $test_file, exit_code=$exit_code"
-    
+
     local end_time=$(date +%s%N)
     local duration=$(( (end_time - start_time) / 1000000 ))
-    
+
     case $exit_code in
         0)
             if [[ "$OUTPUT_FORMAT" = "standard" ]]; then
@@ -200,7 +200,7 @@ run_single_test() {
             FAILED_TEST_FILES+=("$test_file (exit:$exit_code)")
             ;;
     esac
-    
+
     return $exit_code
 }
 
@@ -209,12 +209,12 @@ run_tests_parallel() {
     local test_files=("$@")
     local pids=()
     local temp_dir=$(mktemp -d)
-    
+
     log_info "병렬 테스트 시작 (${PARALLEL_JOBS}개 작업)"
-    
+
     # 작업 큐 생성
     printf '%s\n' "${test_files[@]}" > "$temp_dir/test_queue"
-    
+
     # 워커 프로세스들 시작
     for ((i=0; i<PARALLEL_JOBS; i++)); do
         (
@@ -225,7 +225,7 @@ run_tests_parallel() {
         ) &
         pids+=($!)
     done
-    
+
     # 진행률 표시
     if [[ "$OUTPUT_FORMAT" = "standard" ]]; then
         local completed=0
@@ -236,12 +236,12 @@ run_tests_parallel() {
         done
         echo  # 새 줄
     fi
-    
+
     # 모든 워커 대기
     for pid in "${pids[@]}"; do
         wait "$pid"
     done
-    
+
     # 결과 수집
     for test_file in "${test_files[@]}"; do
         local result_file="$temp_dir/result_${test_file//\//_}"
@@ -253,7 +253,7 @@ run_tests_parallel() {
             ((SKIPPED_TESTS++))
         fi
     done
-    
+
     rm -rf "$temp_dir"
 }
 
@@ -261,12 +261,12 @@ run_tests_parallel() {
 run_tests_sequential() {
     local test_files=("$@")
     log_debug "순차 테스트 실행 시작, 총 ${#test_files[@]}개 파일"
-    
+
     for test_file in "${test_files[@]}"; do
         log_debug "테스트 파일 처리 중: $test_file"
         TOTAL_TESTS=$((TOTAL_TESTS + 1))
         log_debug "TOTAL_TESTS 증가됨: $TOTAL_TESTS"
-        
+
         log_debug "run_single_test 호출 전: $test_file"
         if ! run_single_test "$test_file"; then
             log_debug "테스트 실패: $test_file"
@@ -285,7 +285,7 @@ run_tests_sequential() {
 resolve_test_files() {
     local inputs=("$@")
     local resolved_files=()
-    
+
     if [[ ${#inputs[@]} -eq 0 ]] || [[ "${inputs[0]}" = "all" ]]; then
         # 모든 테스트 파일 추가
         for category in "${!TEST_CATEGORIES[@]}"; do
@@ -310,7 +310,7 @@ resolve_test_files() {
             fi
         done
     fi
-    
+
     # 중복 제거 및 정렬
     printf '%s\n' "${resolved_files[@]}" | sort -u
 }
@@ -318,7 +318,7 @@ resolve_test_files() {
 # JSON 형식 출력
 output_json_results() {
     local duration=$(( ($(date +%s%N) - START_TIME) / 1000000 ))
-    
+
     cat << EOF
 {
   "runner": "$RUNNER_NAME",
@@ -352,13 +352,13 @@ output_standard_results() {
     if [[ $duration -gt 1000 ]]; then
         duration_str="$((duration / 1000))s"
     fi
-    
+
     log_separator
     log_header "테스트 결과 요약"
     log_info "실행 시간: $duration_str"
     log_info "전체 테스트: $TOTAL_TESTS"
     log_info "통과: $PASSED_TESTS"
-    
+
     if [[ $FAILED_TESTS -gt 0 ]]; then
         log_error "실패: $FAILED_TESTS"
         log_thin_separator
@@ -382,7 +382,7 @@ output_standard_results() {
 # 메인 실행 함수
 main() {
     local args=()
-    
+
     # 인자 파싱
     while [[ $# -gt 0 ]]; do
         case $1 in
@@ -440,29 +440,29 @@ main() {
                 ;;
         esac
     done
-    
+
     # 시작 시간 기록
     START_TIME=$(date +%s%N)
-    
+
     # 테스트 파일 해상도
     local test_files_array
     readarray -t test_files_array < <(resolve_test_files "${args[@]}")
-    
+
     if [[ ${#test_files_array[@]} -eq 0 ]]; then
         log_error "실행할 테스트가 없습니다"
         exit 1
     fi
-    
+
     # 계획 표시
     if [[ "$DRY_RUN" = "true" ]]; then
         show_test_plan "${test_files_array[@]}"
         exit 0
     fi
-    
+
     # 실행 모드에 따른 테스트 실행
     log_header "$RUNNER_NAME 시작"
     show_test_plan "${test_files_array[@]}"
-    
+
     log_debug "계획 표시 완료, 테스트 실행 시작"
     if [[ "$PARALLEL_MODE" = "true" ]] && [[ ${#test_files_array[@]} -gt 1 ]]; then
         log_debug "병렬 모드로 테스트 실행"
@@ -472,7 +472,7 @@ main() {
         run_tests_sequential "${test_files_array[@]}"
     fi
     log_debug "테스트 실행 완료"
-    
+
     # 결과 출력
     case "$OUTPUT_FORMAT" in
         "json")
