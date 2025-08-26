@@ -29,6 +29,17 @@ LLM prompt optimization expert specializing in AI system prompt design, performa
 - ✅ Universal development patterns and tool permissions
 - ❌ Project-specific technical requirements
 
+**Command File Locations** (CRITICAL - Always verify before making changes):
+- ✅ **Global Commands**: `~/.claude/commands/` - Personal workflow commands for ALL projects
+- ✅ **Project Commands**: `.claude/commands/` - Project-specific commands only
+- ❌ **Common Mistake**: Creating project files when global commands already exist
+
+**MANDATORY PRE-CHECK**: Before proposing command improvements, ALWAYS:
+1. Check if command already exists in `~/.claude/commands/`
+2. Read existing command content to understand current capabilities  
+3. Only propose improvements to EXISTING functionality, not recreation
+4. Verify command scope (global vs project-specific) before changes
+
 **Project Settings** (`/CLAUDE.md`):
 - ✅ Domain-specific technical guidelines (Nix, React, etc.)
 - ✅ Project workflows and architecture patterns
@@ -64,9 +75,9 @@ Present 3-5 priority-based improvement suggestions in the following format:
 
 ## [1] Priority [High/Medium/Low]: [Issue Title]
 - **Current Problem**: [Brief description]
-- **Proposed Solution**: [Specific changes]
-- **Expected Impact**: [Performance improvement method]
-- **Files to Change**: [Specify files to modify]
+- **Proposed Solution**: [Specific changes with key implementation steps]
+- **Files to Change**: [File paths]
+- **Expected Impact**: [Performance improvement description]
 
 ### Command Improvement Proposals
 
@@ -79,7 +90,7 @@ Improvement suggestions for commands used in conversations:
 
 #### Command-Specific Improvement Proposal Format
 
-## Command: /[command-name]
+## [6] Command: /[command-name]
 - **Usage Frequency**: [Number of uses in this conversation]
 - **Current Issues**: [Observed problems]
 - **Proposed Improvements**: [Specific changes]
@@ -87,9 +98,14 @@ Improvement suggestions for commands used in conversations:
 - **Expected Impact**: [Expected results after improvement]
 
 **Selection Method**:
-- Single selection: "1" or "3"
-- Multiple selection: "1,3,5" or "1, 3, 5"
-- All selection: "all" or "1,2,3,4,5"
+- Single selection: "1" or "3" (Configuration proposals 1-5)
+- Single command: "6" or "7" (Command proposals start from 6)
+- Multiple selection: "1,3,6" or "1, 3, 6" (Mix configurations and commands)
+- All selection: "all" or "1,2,3,4,5,6,7,8" (All proposals including commands)
+
+**Numbering System**:
+- **Proposals 1-5**: Configuration optimization suggestions
+- **Proposals 6+**: Command improvement suggestions (increment for each command analyzed)
 
 ## Implementation Phase
 
@@ -104,18 +120,15 @@ For approved changes:
 - **User Global Changes**: Confirm benefits for all projects
 - **Project Changes**: Repository-wide impact, applies to all team members
 - **Project Local Changes**: Environment-specific, personal machine settings
-- **Command Improvements**: Target only commands used in conversations
+- **Command Improvements**: Target only commands used in conversations (numbered 6+)
 - **Priority**: Project Local → Project → User Global (least invasive order)
+- **Numbering Convention**: Configuration (1-5), Commands (6+) to avoid overlap
 
 ### 3. Apply Changes
 - **Before/After Comparison**: Show exact changes and scope justification
-- **Immediate Implementation**: Apply changes to specified files
+- **Implementation**: Apply changes to specified files with backup
 - **Git Parallel Processing**: Execute related git commands in parallel for performance optimization
 
-### 4. Performance Measurement and Validation
-- **A/B Testing**: Compare performance before and after improvements
-- **Response Quality Assessment**: Measure consistency, accuracy, efficiency
-- **Token Optimization**: Verify input/output token usage optimization
 
 ## Advanced Features
 

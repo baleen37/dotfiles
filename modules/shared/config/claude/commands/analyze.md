@@ -86,10 +86,14 @@ The analysis produces concrete, prioritized recommendations:
 
 ## Agent Routing
 
+**MANDATORY**: For complex analysis (3+ components or multi-step investigation), ALWAYS delegate to specialized agents:
+
 - **performance-optimizer**: Performance bottlenecks, memory usage, optimization opportunities
-- **root-cause-analyzer**: Complex issue investigation, dependency analysis, architectural concerns
+- **root-cause-analyzer**: Complex issue investigation, dependency analysis, architectural concerns  
 - **debugger**: Troubleshooting specialist for errors, test failures, and unexpected behavior
 - **system-architect**: System-level issues, architecture problems, integration failures
+
+**Task Tool Priority**: Use Task tool for any analysis involving multiple files, complex relationships, or systematic investigation. Apply C2 systematic analysis pattern: identify processing targets FIRST before deep analysis.
 
 ## Examples
 
