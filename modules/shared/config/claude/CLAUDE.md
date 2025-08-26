@@ -91,6 +91,12 @@ YAGNI above all. Simplicity over sophistication. When in doubt, consult project 
   4. Validate: Confirm fix works as expected
   5. Document: Update relevant configuration/documentation
   **Debugging Tool Priority**: debugger agent → direct debugging → manual investigation
+- **Systematic Code Analysis** (핵심 차이점 우선 확인):
+  1. **What Does It Process**: Identify target (indexes, services, data flow) FIRST
+  2. **Key Differences**: Compare processing targets before assuming conflicts  
+  3. **Flow Analysis**: Trace data flow and transformation patterns
+  4. **Dependencies**: Check service dependencies and shared resources
+  5. **Validation**: Verify assumptions with actual code inspection
 </development-workflow>
 
 <testing-standards>
