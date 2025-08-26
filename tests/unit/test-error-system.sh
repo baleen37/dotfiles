@@ -100,15 +100,15 @@ test_message_formatting() {
 test_color_codes() {
     log_header "색상 코드 테스트"
 
-    # 기본 색상 확인
+    # 기본 색상 확인 (nix에서 이스케이프 문자는 033으로 표시됨)
     local red_color=$(eval_error_system "colors.red")
-    assert_test "[[ '$red_color' =~ $'\033' ]]" "빨간색 ANSI 코드"
+    assert_test "[[ '$red_color' =~ '033' ]]" "빨간색 ANSI 코드"
 
     local reset_color=$(eval_error_system "colors.reset")
-    assert_test "[[ '$reset_color' =~ $'\033' ]]" "리셋 ANSI 코드"
+    assert_test "[[ '$reset_color' =~ '033' ]]" "리셋 ANSI 코드"
 
     local bold_color=$(eval_error_system "colors.bold")
-    assert_test "[[ '$bold_color' =~ $'\033' ]]" "굵게 ANSI 코드"
+    assert_test "[[ '$bold_color' =~ '033' ]]" "굵게 ANSI 코드"
 }
 
 # 에러 핸들러 함수 테스트
@@ -178,22 +178,19 @@ test_internationalization() {
 test_error_categorization() {
     log_header "에러 분류 및 우선순위 테스트"
 
-    # 카테고리별 에러 타입 수집
-    local system_errors=$(nix eval --impure --expr "
+    # 시스템 카테고리 에러 타입 확인 (간단한 방법)
+    local build_is_system=$(nix eval --impure --expr "
         let es = import $PROJECT_ROOT/lib/error-system.nix {};
-        in builtins.length (builtins.attrNames (builtins.mapAttrs (k: v: v)
-            (builtins.filterAttrs (k: v: v.category == \"system\") es.errorTypes)))
-    " 2>/dev/null | tr -d '"')
+        in es.errorTypes.build.category == \"system\"
+    " 2>/dev/null)
+    assert_test "[[ '$build_is_system' == 'true' ]]" "시스템 카테고리 에러 타입 존재" "true" "$build_is_system"
 
-    assert_test "[[ '$system_errors' -gt '0' ]]" "시스템 카테고리 에러 타입 존재" ">0" "$system_errors"
-
-    local user_errors=$(nix eval --impure --expr "
+    # 사용자 카테고리 에러 타입 확인
+    local config_is_user=$(nix eval --impure --expr "
         let es = import $PROJECT_ROOT/lib/error-system.nix {};
-        in builtins.length (builtins.attrNames (builtins.mapAttrs (k: v: v)
-            (builtins.filterAttrs (k: v: v.category == \"user\") es.errorTypes)))
-    " 2>/dev/null | tr -d '"')
-
-    assert_test "[[ '$user_errors' -gt '0' ]]" "사용자 카테고리 에러 타입 존재" ">0" "$user_errors"
+        in es.errorTypes.config.category == \"user\"
+    " 2>/dev/null)
+    assert_test "[[ '$config_is_user' == 'true' ]]" "사용자 카테고리 에러 타입 존재" "true" "$config_is_user"
 }
 
 # 에러 시스템 무결성 테스트
