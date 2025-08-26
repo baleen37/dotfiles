@@ -92,6 +92,32 @@ nix run --impure .#test-core     # Run core tests directly
 - **Commands & Agents**: Reference Context7 for Claude Code command patterns and agent configurations
 - **Best Practices**: Context7 provides comprehensive examples for MCP integration, hooks, and workflow patterns
 
+### Claude Code Philosophy
+
+**Core Principles**:
+
+- **Simplicity First**: Commands should be intuitive and self-explanatory
+- **Flag Minimalism**: Avoid flag-based interfaces - only `-u` and `-tdd` flags are permitted
+- **Natural Language**: Prefer descriptive commands over cryptic abbreviations
+- **Context Awareness**: Commands should understand project context without explicit configuration
+
+**Flag Policy**:
+
+- **Prohibited**: All flags except explicitly allowed ones
+- **Allowed Flags**:
+  - `-u`: Update/upgrade operations
+  - `-tdd`: Test-driven development mode
+- **Alternative Approach**: Use separate commands instead of flags (e.g., `/create-pr draft` instead of `/create-pr --draft`)
+
+**Design Guidelines**:
+
+- Commands should read like natural language
+- Avoid complex option combinations
+- Prefer explicit commands over implicit behaviors
+- Maintain consistent naming patterns across all commands
+
+**Best Practices**: Refer to Context7 documentation for comprehensive Claude Code best practices, patterns, and implementation examples
+
 ### Custom Commands
 
 Located in `modules/shared/config/claude/commands/`:
@@ -190,5 +216,3 @@ Token limits help maintain focused, cost-effective conversations by truncating v
 - **`bl`**: Custom command dispatcher system
 - Commands stored in `~/.bl/commands/`
 - Extensible through Nix configuration
-
-- claude code command 를 사용할 때 flag 기반ㄴ으로 하기 싫어.
