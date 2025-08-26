@@ -75,6 +75,14 @@ YAGNI above all. Simplicity over sophistication. When in doubt, consult project 
 - **Test before Commit**: Run tests, validate changes
 - **Git Quality Gates**: Strict pre-commit hooks, no bypassing with --no-verify
 - **Incremental Changes**: Small, safe improvements only
+- **Systematic Code Analysis**:
+  **Priority**: Identify "what is being processed" first to avoid misanalysis
+  1. Core Data Flow: What indexes/services/data are being processed?
+  2. Key Differentiators: What makes this component unique vs similar ones?
+  3. Processing Pattern: Is it real-time, batch, event-driven, API-based?
+  4. Dependencies: What external systems/services does it interact with?
+  5. Business Context: What business problem does it solve?
+  **Analysis Tool Priority**: Focus on core functionality → understand differences → deep dive details
 - **Systematic Debugging**:
   **Priority**: Use debugger agent for all system errors and failures
   1. Identify: Read error messages carefully, note exact symptoms
