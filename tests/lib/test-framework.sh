@@ -15,7 +15,7 @@ declare -g TEST_START_TIME=""
 declare -g TEST_VERBOSE=${TEST_VERBOSE:-false}
 
 # 테스트 컨텍스트 스택
-declare -ga TEST_CONTEXT_STACK=()
+declare -ga TEST_CONTEXT_STACK
 
 # 테스트 시작 시간 기록
 test_framework_init() {
@@ -41,10 +41,11 @@ pop_test_context() {
 }
 
 get_current_context() {
-    if [[ ${#TEST_CONTEXT_STACK[@]} -gt 0 ]]; then
+    # 배열이 설정되어 있고 비어있지 않은 경우에만 접근
+    if [[ -n "${TEST_CONTEXT_STACK:-}" ]] && [[ ${#TEST_CONTEXT_STACK[@]} -gt 0 ]]; then
         echo "${TEST_CONTEXT_STACK[${#TEST_CONTEXT_STACK[@]}-1]}"
     else
-        echo "$TEST_SUITE_NAME"
+        echo "${TEST_SUITE_NAME:-Unknown}"
     fi
 }
 
@@ -60,9 +61,10 @@ assert() {
     local context=$(get_current_context)
     local full_test_name="[$context] $test_name"
     
-    if eval "$condition"; then
+    # 직접 조건을 평가
+    if eval "$condition" 2>/dev/null; then
         log_success "$full_test_name"
-        ((TESTS_PASSED++))
+        TESTS_PASSED=$((TESTS_PASSED + 1))
         return 0
     else
         if [[ -n "$expected" && -n "$actual" ]]; then
@@ -75,7 +77,7 @@ assert() {
                 log_debug "  실패한 조건: $condition"
             fi
         fi
-        ((TESTS_FAILED++))
+        TESTS_FAILED=$((TESTS_FAILED + 1))
         return 1
     fi
 }
@@ -154,14 +156,14 @@ assert_command_success() {
     
     if eval "$command" >/dev/null 2>&1; then
         log_success "[$TEST_SUITE_NAME] $test_name"
-        ((TESTS_PASSED++))
+        TESTS_PASSED=$((TESTS_PASSED + 1))
         return 0
     else
         local exit_code=$?
         log_fail "[$TEST_SUITE_NAME] $test_name"
         log_error "  명령어: $command"
         log_error "  종료 코드: $exit_code"
-        ((TESTS_FAILED++))
+        TESTS_FAILED=$((TESTS_FAILED + 1))
         return 1
     fi
 }
@@ -174,11 +176,11 @@ assert_command_fails() {
     if eval "$command" >/dev/null 2>&1; then
         log_fail "[$TEST_SUITE_NAME] $test_name"
         log_error "  명령어가 성공했지만 실패가 예상됨: $command"
-        ((TESTS_FAILED++))
+        TESTS_FAILED=$((TESTS_FAILED + 1))
         return 1
     else
         log_success "[$TEST_SUITE_NAME] $test_name"
-        ((TESTS_PASSED++))
+        TESTS_PASSED=$((TESTS_PASSED + 1))
         return 0
     fi
 }
@@ -192,7 +194,7 @@ assert_file_permissions() {
     if [[ ! -f "$file_path" ]]; then
         log_fail "[$TEST_SUITE_NAME] $test_name"
         log_error "  파일이 존재하지 않음: $file_path"
-        ((TESTS_FAILED++))
+        TESTS_FAILED=$((TESTS_FAILED + 1))
         return 1
     fi
     
@@ -215,7 +217,7 @@ assert_json_value() {
     if [[ ! -f "$file_path" ]]; then
         log_fail "[$TEST_SUITE_NAME] $test_name"
         log_error "  JSON 파일 없음: $file_path"
-        ((TESTS_FAILED++))
+        TESTS_FAILED=$((TESTS_FAILED + 1))
         return 1
     fi
     

@@ -33,11 +33,17 @@ test_platform_detection() {
     start_test_group "플랫폼 감지 테스트"
 
     # Darwin 플랫폼 감지 테스트
+    log_debug "첫 번째 테스트 시작: Darwin 플랫폼"
     local darwin_platform=$(eval_platform_system "aarch64-darwin" "platform")
+    log_debug "Darwin 플랫폼 결과: $darwin_platform"
     assert_equals "darwin" "$darwin_platform" "aarch64-darwin에서 Darwin 감지"
+    log_debug "첫 번째 테스트 완료"
 
+    log_debug "두 번째 테스트 시작: Darwin 아키텍처"
     local darwin_arch=$(eval_platform_system "aarch64-darwin" "arch")
+    log_debug "Darwin 아키텍처 결과: $darwin_arch"
     assert_equals "aarch64" "$darwin_arch" "aarch64-darwin에서 아키텍처 감지"
+    log_debug "두 번째 테스트 완료"
 
     # Linux 플랫폼 감지 테스트
     local linux_platform=$(eval_platform_system "x86_64-linux" "platform")

@@ -144,6 +144,9 @@ run_single_test() {
     local test_file="$1"
     local test_path="$SCRIPT_DIR/$test_file"
     
+    log_debug "run_single_test 시작: $test_file"
+    log_debug "테스트 경로: $test_path"
+    
     if [[ ! -f "$test_path" ]]; then
         log_error "테스트 파일 없음: $test_file"
         return 2
@@ -157,6 +160,7 @@ run_single_test() {
     local exit_code=0
     local output=""
     
+    log_debug "테스트 실행 시작: $test_file"
     if [[ "$VERBOSE_MODE" = "true" ]]; then
         log_info "실행 중: $test_file"
         if timeout "${TEST_TIMEOUT}s" bash "$test_path"; then
@@ -165,8 +169,10 @@ run_single_test() {
             exit_code=$?
         fi
     else
+        log_debug "비 VERBOSE 모드로 테스트 실행: $test_file"
         output=$(timeout "${TEST_TIMEOUT}s" bash "$test_path" 2>&1) || exit_code=$?
     fi
+    log_debug "테스트 실행 완료: $test_file, exit_code=$exit_code"
     
     local end_time=$(date +%s%N)
     local duration=$(( (end_time - start_time) / 1000000 ))
@@ -254,17 +260,25 @@ run_tests_parallel() {
 # 순차 테스트 실행
 run_tests_sequential() {
     local test_files=("$@")
+    log_debug "순차 테스트 실행 시작, 총 ${#test_files[@]}개 파일"
     
     for test_file in "${test_files[@]}"; do
-        ((TOTAL_TESTS++))
+        log_debug "테스트 파일 처리 중: $test_file"
+        TOTAL_TESTS=$((TOTAL_TESTS + 1))
+        log_debug "TOTAL_TESTS 증가됨: $TOTAL_TESTS"
         
+        log_debug "run_single_test 호출 전: $test_file"
         if ! run_single_test "$test_file"; then
+            log_debug "테스트 실패: $test_file"
             if [[ "$FAIL_FAST" = "true" ]]; then
                 log_error "첫 번째 실패로 인해 테스트 중단됨"
                 break
             fi
+        else
+            log_debug "테스트 성공: $test_file"
         fi
     done
+    log_debug "순차 테스트 실행 완료"
 }
 
 # 테스트 파일 해상도
@@ -449,11 +463,15 @@ main() {
     log_header "$RUNNER_NAME 시작"
     show_test_plan "${test_files_array[@]}"
     
+    log_debug "계획 표시 완료, 테스트 실행 시작"
     if [[ "$PARALLEL_MODE" = "true" ]] && [[ ${#test_files_array[@]} -gt 1 ]]; then
+        log_debug "병렬 모드로 테스트 실행"
         run_tests_parallel "${test_files_array[@]}"
     else
+        log_debug "순차 모드로 테스트 실행"
         run_tests_sequential "${test_files_array[@]}"
     fi
+    log_debug "테스트 실행 완료"
     
     # 결과 출력
     case "$OUTPUT_FORMAT" in
