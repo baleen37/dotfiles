@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 """
 Claude Code commit message cleaner
 Removes Claude Code attribution from git commit messages after successful commits

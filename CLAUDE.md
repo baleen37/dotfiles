@@ -216,3 +216,5 @@ Token limits help maintain focused, cost-effective conversations by truncating v
 - **`bl`**: Custom command dispatcher system
 - Commands stored in `~/.bl/commands/`
 - Extensible through Nix configuration
+
+- 명시적인 경로를 기입하지마. 상대경로나 ~/ 이러한 표현을 써줘
