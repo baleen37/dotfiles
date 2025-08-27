@@ -424,7 +424,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/hooks/git-commit-validator.py"
+            "command": "/home/ubuntu/.claude/hooks/git-commit-validator.py"
           }
         ]
       }
@@ -435,7 +435,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/hooks/claude_code_message_cleaner.py"
+            "command": "/home/ubuntu/.claude/hooks/claude_code_message_cleaner.py"
           }
         ]
       }
@@ -445,7 +445,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/hooks/append_ultrathink.py"
+            "command": "/home/ubuntu/.claude/hooks/append_ultrathink.py"
           }
         ]
       }
