@@ -14,13 +14,13 @@ def should_process_command(tool_name: str, command: str, tool_response: Dict[str
     """Check if the command should be processed by this hook."""
     if tool_name != "Bash":
         return False
-    
+
     if not re.match(r"\s*git\s+commit\b", command):
         return False
-    
+
     if not tool_response.get("success", True):
         return False
-    
+
     return True
 
 
@@ -42,7 +42,7 @@ def get_current_commit_message() -> Optional[str]:
 
 def clean_claude_attribution(message: str) -> tuple[str, bool]:
     """Remove Claude Code attribution from commit message.
-    
+
     Returns:
         tuple: (cleaned_message, was_changed)
     """
@@ -51,27 +51,27 @@ def clean_claude_attribution(message: str) -> tuple[str, bool]:
         r'\n*Co-authored-by: Claude <noreply@anthropic\.com>\n*',
         r'\n*🤖 Generated with \[Claude Code\]\([^)]*\)\n*'  # Handle other Claude Code URLs
     ]
-    
+
     cleaned_message = message
     changed = False
-    
+
     # Remove each Claude Code pattern
     for pattern in claude_patterns:
         new_message = re.sub(pattern, '', cleaned_message, flags=re.MULTILINE)
         if new_message != cleaned_message:
             changed = True
             cleaned_message = new_message
-    
+
     # Clean up extra whitespace
     cleaned_message = re.sub(r'\n{3,}', '\n\n', cleaned_message)
     cleaned_message = cleaned_message.rstrip('\n')
-    
+
     return cleaned_message, changed
 
 
 def amend_commit_message(message: str) -> bool:
     """Amend the current commit with a new message.
-    
+
     Returns:
         bool: True if successful, False otherwise
     """
@@ -108,10 +108,10 @@ def main():
     current_message = get_current_commit_message()
     if current_message is None:
         sys.exit(0)
-    
+
     # Clean the message
     cleaned_message, was_changed = clean_claude_attribution(current_message)
-    
+
     # Only amend if the message actually changed
     if was_changed and cleaned_message != current_message:
         if amend_commit_message(cleaned_message):
