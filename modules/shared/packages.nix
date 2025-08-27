@@ -72,6 +72,11 @@ with pkgs; let
     keepassxc # Cross-platform password manager
   ];
 
+  # SSH connection tools
+  sshTools = [
+    autossh # Automatically restart SSH sessions and tunnels
+  ];
+
   # Database tools
   databaseTools = [
     postgresql # Object-relational database system
@@ -95,5 +100,6 @@ coreSystemTools
 ++ fontTools
 ++ terminalApps
 ++ securityTools
+++ sshTools
 ++ databaseTools
 ++ productivityTools
