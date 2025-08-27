@@ -103,6 +103,13 @@ in
       # 추가 macOS 설정들
       echo "Applying additional macOS user-level settings..."
 
+      # macOS Services 설정 (Shift+Cmd+A 충돌 방지)
+      echo "🔧 Disabling 'Search man Page Index in Terminal' service..."
+      $DRY_RUN_CMD /usr/bin/defaults write pbs NSServicesStatus -dict-add \
+        "com.apple.Terminal - Search man Page Index in Terminal - searchManPages" \
+        -dict enabled_context_menu -bool false enabled_services_menu -bool false
+      echo "✅ Shift+Cmd+A shortcut conflict resolved"
+
       # Dock 설정 적용
       $DRY_RUN_CMD killall Dock 2>/dev/null || true
     '';

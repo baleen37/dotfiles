@@ -37,6 +37,7 @@ help:
 	@echo "  test-monitor - 📈 Performance monitoring (quick)"
 	@echo "  test-monitor-full - 📈 Full performance monitoring"
 	@echo "  test-core   - Run core tests (fast, essential)"
+	@echo "  test-macos-services - 🧪 TDD-verified macOS Services tests (Darwin only)"
 	@echo "  test-workflow - Run workflow tests (end-to-end)"
 	@echo "  test-perf   - Run performance tests"
 	@echo "  test-list   - List available test categories"
@@ -75,6 +76,19 @@ test:
 
 test-core:
 	@$(NIX) run --impure .#test-core $(ARGS)
+
+# macOS Services 관리 및 테스트 (Darwin 전용)
+test-macos-services:
+ifeq ($(PLATFORM),aarch64-darwin)
+	@echo "🧪 Running TDD-verified macOS Services tests..."
+	@./tests/integration/test-macos-services-disabled.sh
+else ifeq ($(PLATFORM),x86_64-darwin)
+	@echo "🧪 Running TDD-verified macOS Services tests..."
+	@./tests/integration/test-macos-services-disabled.sh
+else
+	@echo "⏭️ Skipping macOS Services tests (not on Darwin platform)"
+endif
+
 
 test-workflow:
 	@$(NIX) run --impure .#test-workflow $(ARGS)
