@@ -30,12 +30,12 @@ in
   # environment.shells = [ pkgs.zsh ];  # Root 권한 필요 - 제거
   programs.zsh.enable = true;
 
-  # Nix 앱들을 /Applications에 자동으로 심볼릭 링크 생성 - Root 권한 필요하므로 비활성화
+  # Nix 앱들을 /Applications에 자동으로 심볼릭 링크 생성
   system.nixAppLinks = {
-    enable = false; # Root 권한 필요 - 비활성화
-    # apps = [
-    #   "Karabiner-Elements.app"
-    # ];
+    enable = true;
+    apps = [
+      "Karabiner-Elements.app"
+    ];
   };
 
   system = {
