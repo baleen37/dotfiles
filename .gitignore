@@ -56,3 +56,9 @@ modules/shared/config/claude/projects/
 modules/shared/config/claude/shell-snapshots/
 modules/shared/config/claude/statsig/
 modules/shared/config/claude/todos/
+
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
