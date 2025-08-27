@@ -4,115 +4,61 @@ description: "Transform vague ideas into concrete requirements through codebase 
 agents: [system-architect, frontend-developer, backend-engineer]
 ---
 
-# /brainstorm - Smart Requirements Discovery
+# /brainstorm - Interactive Specification Development
 
-**Purpose**: Convert fuzzy ideas into actionable specifications using codebase intelligence
+**Purpose**: Ask me one question at a time so we can develop a thorough, step-by-step spec for this idea. Each question builds on my previous answers, and our end goal is to have a detailed specification I can hand off to a developer.
 
 ## Usage
 
 ```bash
-/brainstorm <idea>           # Smart discovery with codebase analysis
-/brainstorm deep <idea>      # Extended strategic questioning
-/brainstorm rapid <idea>     # Quick ideation mode
-/brainstorm validate <idea>  # Feasibility-focused analysis
+/brainstorm <idea>    # Interactive Q&A to develop detailed specification
 ```
 
-## Execution Strategy
+## How It Works
 
-- **Smart**: Codebase scan → intelligent questions → structured output
-- **Deep**: Extended strategic analysis with multi-perspective evaluation
-- **Rapid**: Quick validation and immediate actionability focus
-- **Validate**: Feasibility assessment with risk analysis
+1. You give me an idea
+2. I ask **one question at a time in Korean**
+3. Each question includes **numbered options** for easy selection
+4. Each question builds on your previous answers
+5. We continue until we have a complete spec
+6. I ask if you want me to save everything as `spec.md`
 
-## Enhanced 3-Phase Process
+## Question Format
 
-### Phase 1: Codebase Intelligence
+Questions will be asked in Korean with numbered options:
 
-- Scan project files for tech stack, patterns, and architecture
-- Detect existing tools, frameworks, and conventions
-- Identify integration points and constraints
-- Present findings: "Based on your codebase using [X, Y, Z], I see [patterns]"
+```
+질문: 이 앱을 주로 사용할 대상은 누구인가요?
 
-### Phase 2: Strategic Discovery
+1. 일반 소비자
+2. 기업 직원
+3. 개발자/기술자
+4. 학생
+5. 기타 (직접 입력)
 
-Generate intelligent questions and structured analysis based on complexity:
-
-**Simple Ideas**: Direct conversion with validation:
-- User stories with acceptance criteria
-- Priority matrix (P0/P1/P2) with impact/effort scoring
-- Technical feasibility check against current stack
-- Immediate next steps with time estimates
-
-**Complex Ideas**: Extended strategic questioning:
-- **Context**: Platform choice, target audience, scale requirements
-- **Constraints**: Technical limitations, resource availability, timeline
-- **Trade-offs**: Speed vs. Stability vs. Features vs. Security
-- **Integration**: How does this fit with existing systems?
-- **Evolution**: Future extensibility and maintenance considerations
-
-**Innovation Ideas**: Creative exploration:
-- **Vision**: Long-term potential and transformative impact
-- **Experimentation**: MVP definition and validation approach
-- **Risk Assessment**: Technical, business, and operational risks
-- **Alternative Approaches**: Multiple solution pathways
-
-### Phase 3: Validation & Action Planning
-
-Convert discoveries into executable roadmap:
-
-**Feasibility Analysis**:
-- Technical viability within current architecture
-- Resource requirements (time, skills, infrastructure)
-- Dependencies and potential blockers
-- Risk mitigation strategies
-
-**Implementation Strategy**:
-- Phased delivery approach (MVP → iterations)
-- Success metrics and validation checkpoints
-- Resource allocation and timeline estimates
-- Integration points and testing strategy
-
-**Strategic Alignment**:
-- Business value proposition and ROI estimation
-- Stakeholder impact analysis
-- Change management requirements
-- Long-term maintenance considerations
-
-## MCP Integration
-
-- **Sequential**: Systematic thinking through requirement analysis
-- **Context7**: Tech stack validation and framework best practices
+번호를 선택하거나 직접 답변해주세요.
+```
 
 ## Examples
 
 ```bash
-# Standard Mode
-/brainstorm "team task tracker"     # Full 3-phase discovery with codebase scan
-/brainstorm "user auth system"      # Authentication system planning  
-/brainstorm "mobile app idea"       # Mobile application brainstorming
+/brainstorm "team task tracker"
+# → "팀 업무 추적 시스템을 사용할 팀 규모는 어느 정도인가요?
+#    1. 소규모 팀 (3-10명)
+#    2. 중간 규모 팀 (10-50명)
+#    3. 대규모 팀 (50명 이상)"
 
-# Enhanced Modes
-/brainstorm deep "AI-powered code review"       # Extended strategic analysis
-/brainstorm rapid "quick feature toggle"       # Fast validation and planning
-/brainstorm validate "microservices migration" # Feasibility-focused assessment
+/brainstorm "user login system"  
+# → "로그인 시스템이 필요한 애플리케이션 유형은 무엇인가요?
+#    1. 웹 애플리케이션
+#    2. 모바일 앱
+#    3. 데스크톱 애플리케이션
+#    4. API 서비스"
 
-# Complex System Ideas
-/brainstorm deep "real-time collaboration platform"
-# → Multi-phase analysis covering technical architecture, scalability,
-#   user experience, security, and business model considerations
-
-/brainstorm validate "automated deployment pipeline"
-# → Focus on technical feasibility, integration points, risk assessment,
-#   and implementation timeline within current infrastructure
+/brainstorm "mobile shopping app"
+# → "모바일 쇼핑 앱의 주요 목표는 무엇인가요?
+#    1. B2C 일반 소매
+#    2. B2B 기업간 거래
+#    3. C2C 중고거래
+#    4. 특정 카테고리 전문"
 ```
-
-## Agent Routing
-
-- **system-architect**: Complex systems requiring architectural decisions
-- **frontend-developer**: UI/UX focused ideas and component planning
-- **backend-engineer**: API design, data modeling, service architecture
-
-## Workflow
-
-1. **Codebase Scan**: Analyze existing code → present tech stack findings
-2. **Smart Discovery**: Generate appropriate output based on idea complexity
