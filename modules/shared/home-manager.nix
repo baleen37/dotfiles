@@ -279,6 +279,19 @@ in
           echo "Worktree: $(pwd) | Branch: $(git branch --show-current)"
           cc
         }
+
+        # SSH wrapper using autossh for automatic reconnection
+        ssh() {
+          # Check if autossh is available
+          if command -v autossh >/dev/null 2>&1; then
+            # Use autossh for automatic reconnection
+            # -M 0 disables autossh monitoring port (relies on SSH's ServerAliveInterval)
+            autossh -M 0 "$@"
+          else
+            # Fallback to regular ssh
+            command ssh "$@"
+          fi
+        }
       '';
     };
 
