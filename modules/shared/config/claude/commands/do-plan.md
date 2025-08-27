@@ -76,13 +76,7 @@ Progress: 2/8 tasks complete (25%) | Current task ETA: 30 minutes
 ### Automatic Task Tool Integration
 - **Complexity Detection**: Auto-detect tasks requiring 3+ implementation steps
 - **Immediate Task Usage**: Use Task tool automatically for complex tasks, no manual approach
-- **Agent Auto-Selection**: Smart selection based on task type:
-  - Database/Entity/Repository → backend-engineer
-  - Business Logic/Services → backend-engineer  
-  - GraphQL Schema/Resolvers → frontend-specialist
-  - React Components/UI → frontend-specialist
-  - System Architecture → system-architect
-  - Testing Strategy → test-automator
+- **Smart Agent Selection**: Follows global agent auto-mapping rules from CLAUDE.md
 
 ### Pre-Implementation Analysis
 - **Pattern Analysis**: Analyze existing codebase patterns before implementation

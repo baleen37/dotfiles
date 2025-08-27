@@ -1,6 +1,6 @@
 ---
 name: code-reviewer
-description: Expert code review specialist. Reviews code for quality, security, and maintainability. Use PROACTIVELY immediately after writing or modifying code.
+description: Conduct thorough code reviews with advanced security analysis, performance assessment, and quality validation. Specializes in configuration security, production reliability, and maintainability standards. Optimizes for code quality, security compliance, and operational safety. Use PROACTIVELY immediately after writing code, making configuration changes, or before committing code.
 model: sonnet
 category: quality
 domain: review

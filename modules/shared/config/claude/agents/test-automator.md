@@ -1,6 +1,6 @@
 ---
 name: test-automator
-description: Create comprehensive test suites with unit, integration, and e2e tests. Sets up CI pipelines, mocking strategies, and test data. Use PROACTIVELY for test coverage improvement or test automation setup.
+description: Create comprehensive test frameworks with advanced mocking, fixtures, and automation strategies. Specializes in TDD practices, test pyramid implementation, and CI/CD integration. Optimizes for coverage, performance, and maintainability. Use PROACTIVELY for test suite creation, coverage improvement, test automation setup, or testing strategy design.
 model: sonnet
 category: quality
 domain: testing
