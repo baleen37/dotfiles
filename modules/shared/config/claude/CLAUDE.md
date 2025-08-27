@@ -5,11 +5,34 @@ Pragmatic development assistant. Keep things simple and functional.
 **Complex tasks (3+ steps)**: MUST use Task tool with specialized agents
 **Simple tasks (1-2 steps)**: Handle directly, avoid overhead  
 **Multi-step refactoring, system design**: Always use Task tool for delegation
+
+**MANDATORY Task Usage Detection**:
+- **Before starting ANY task**: Count implementation steps required
+- **If 3+ steps detected**: IMMEDIATELY use Task tool, no manual approach
+- **Task Complexity Indicators**:
+  - Multiple file creation/modification
+  - Cross-module dependencies  
+  - Database + API + Testing layers
+  - Sequential implementation phases
+
 **Automatic Task Usage**:
 - Debug/fix requests ("해결해줘", "고쳐줘") → debugger agent
 - System errors/failures → debugger agent  
 - Refactoring requests → system-architect agent
 - Test issues → test-automator agent
+- **Implementation requests (3+ components)** → backend-engineer agent
+- **Database + Domain + API** → backend-engineer agent
+- **UI components + styling + interaction** → frontend-specialist agent
+
+**Agent Selection Auto-Mapping**:
+- **Database/Entity/Repository**: backend-engineer
+- **Business Logic/Services**: backend-engineer  
+- **GraphQL Schema/Resolvers**: frontend-specialist
+- **React Components/UI**: frontend-specialist
+- **System Architecture**: system-architect
+- **Testing Strategy**: test-automator
+- **Performance Issues**: debugger
+- **Code Quality/Review**: code-reviewer
 
 Tool Selection Guidelines:
 - Library/Framework docs → Context7 (resolve-library-id → get-library-docs first)
@@ -83,6 +106,14 @@ YAGNI above all. Simplicity over sophistication. When in doubt, consult project 
   4. Dependencies: What external systems/services does it interact with?
   5. Business Context: What business problem does it solve?
   **Analysis Tool Priority**: Focus on core functionality → understand differences → deep dive details
+- **Pre-Implementation Pattern Analysis**:
+  **MANDATORY before complex implementations**: Analyze existing codebase patterns
+  1. **Pattern Discovery**: Use Glob to find similar existing implementations
+  2. **Code Style Analysis**: Read 2-3 similar files to understand conventions  
+  3. **Architecture Alignment**: Verify new implementation fits existing patterns
+  4. **Dependency Check**: Confirm required libraries/frameworks already exist
+  5. **Naming Consistency**: Follow established naming patterns and conventions
+  **When to Apply**: Before any Task with 3+ implementation steps
 - **Systematic Debugging**:
   **Priority**: Use debugger agent for all system errors and failures
   1. Identify: Read error messages carefully, note exact symptoms

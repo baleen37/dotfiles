@@ -68,10 +68,26 @@ Progress: 2/8 tasks complete (25%) | Current task ETA: 30 minutes
 - **Checkpoint confirmations**: Verify completion before advancing
 - **Rollback capability**: Return to previous task if needed
 
-### Smart Assistance
+### Smart Assistance & Automation
 - **Task-specific help**: Provide relevant guidance for current task
 - **Context retention**: Remember what was done in previous tasks
 - **Dependency validation**: Ensure prerequisites are met before proceeding
+
+### Automatic Task Tool Integration
+- **Complexity Detection**: Auto-detect tasks requiring 3+ implementation steps
+- **Immediate Task Usage**: Use Task tool automatically for complex tasks, no manual approach
+- **Agent Auto-Selection**: Smart selection based on task type:
+  - Database/Entity/Repository → backend-engineer
+  - Business Logic/Services → backend-engineer  
+  - GraphQL Schema/Resolvers → frontend-specialist
+  - React Components/UI → frontend-specialist
+  - System Architecture → system-architect
+  - Testing Strategy → test-automator
+
+### Pre-Implementation Analysis
+- **Pattern Analysis**: Analyze existing codebase patterns before implementation
+- **Style Consistency**: Read similar files to understand conventions
+- **Architecture Alignment**: Verify new implementation fits existing patterns
 
 ## Control Options
 
