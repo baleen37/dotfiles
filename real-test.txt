@@ -1,0 +1,2 @@
+Real hook test file - updated for second attempt
+Testing Claude Code hook automation again
