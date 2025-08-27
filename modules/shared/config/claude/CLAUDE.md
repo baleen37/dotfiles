@@ -22,10 +22,6 @@ YAGNI above all. Simplicity over sophistication. When in doubt, ask project main
 
 ## Communication Style
 
-- **Response Length**:
-  - Simple queries: 1-2 lines maximum
-  - Technical tasks: Detailed as needed for clarity
-  - Planning/complex work: Full explanations required
 - **Language Policy**: Korean for jito conversations, English for documentation
 - **Feedback**: Provide direct, honest technical feedback
 - **Clarity**: Always ask for clarification rather than making assumptions
