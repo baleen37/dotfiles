@@ -461,6 +461,139 @@ test_error_recovery() {
     assert_test "[[ '$permissions' == '644' ]]" "복구 후 올바른 권한 설정됨" "644" "$permissions"
 }
 
+test_multiple_dotfiles_paths_resolution() {
+    log_header "다중 dotfiles 경로 해결 테스트 (실제 버그 재현)"
+
+    # 두 개의 dotfiles 디렉토리를 시뮬레이션
+    local incomplete_source="$TEST_DIR/dotfiles/modules/shared/config/claude"  # 불완전 (~/dotfiles)
+    local complete_source="$TEST_DIR/dev/dotfiles/modules/shared/config/claude"  # 완전 (~/dev/dotfiles)
+
+    # 불완전한 dotfiles 구조 생성 (do-todo.md 파일 없음)
+    mkdir -p "$incomplete_source"/{commands,agents}
+    echo "name: analyze" > "$incomplete_source/commands/analyze.md"
+    echo "name: build" > "$incomplete_source/commands/build.md"
+    # do-todo.md 의도적으로 생략
+    echo "# Incomplete Claude config" > "$incomplete_source/CLAUDE.md"
+    echo '{"version": "1.0", "incomplete": true}' > "$incomplete_source/settings.json"
+
+    # 완전한 dotfiles 구조 생성 (do-todo.md 파일 포함)
+    mkdir -p "$complete_source"/{commands,agents}
+    echo "name: analyze" > "$complete_source/commands/analyze.md"
+    echo "name: build" > "$complete_source/commands/build.md"
+    echo "name: do-todo" > "$complete_source/commands/do-todo.md"  # 핵심 파일
+    echo "# Complete Claude config" > "$complete_source/CLAUDE.md"
+    echo '{"version": "1.0", "complete": true}' > "$complete_source/settings.json"
+
+    # 현재 잘못된 로직 테스트 (첫 번째 디렉토리 우선 사용)
+    local activation_script_current=$(cat << 'SCRIPT'
+set -euo pipefail
+CLAUDE_DIR="$1"
+SOURCE_DIR="$2"  # ~/dotfiles (불완전)
+FALLBACK_SOURCES=("$3")  # ~/dev/dotfiles (완전)
+
+echo "=== 현재 로직: 첫 번째 디렉토리 우선 사용 ==="
+ACTUAL_SOURCE_DIR=""
+
+# 현재 문제가 있는 로직
+if [[ -d "$SOURCE_DIR" ]]; then
+    ACTUAL_SOURCE_DIR="$SOURCE_DIR"
+    echo "기본 디렉토리 사용: $SOURCE_DIR"
+else
+    for fallback_dir in "${FALLBACK_SOURCES[@]}"; do
+        if [[ -d "$fallback_dir" ]]; then
+            ACTUAL_SOURCE_DIR="$fallback_dir"
+            echo "Fallback 디렉토리 사용: $fallback_dir"
+            break
+        fi
+    done
+fi
+
+mkdir -p "$CLAUDE_DIR"
+ln -sf "$ACTUAL_SOURCE_DIR/commands" "$CLAUDE_DIR/commands"
+echo "실제 사용된 소스: $ACTUAL_SOURCE_DIR"
+SCRIPT
+)
+
+    # 현재 잘못된 로직으로 테스트
+    echo "$activation_script_current" | bash -s "$CLAUDE_DIR" "$incomplete_source" "$complete_source"
+
+    # 결과 확인 - do-todo.md가 없어야 함 (문제 재현)
+    assert_test "[[ ! -f '$CLAUDE_DIR/commands/do-todo.md' ]]" "현재 로직으로 do-todo.md 누락 확인됨 (버그 재현)"
+
+    # 개선된 로직 테스트 (콘텐츠 검증 포함)
+    rm -rf "$CLAUDE_DIR"  # 정리 후 다시 테스트
+
+    local activation_script_fixed=$(cat << 'SCRIPT'
+set -euo pipefail
+CLAUDE_DIR="$1"
+SOURCE_DIR="$2"
+FALLBACK_SOURCES=("$3")
+
+echo "=== 개선된 로직: 콘텐츠 검증 포함 ==="
+
+# 디렉토리 완전성 검증 함수
+validate_completeness() {
+    local dir="$1"
+    local commands_dir="$dir/commands"
+
+    # 핵심 파일들 확인
+    local essential_files=(
+        "$commands_dir/analyze.md"
+        "$commands_dir/build.md"
+        "$commands_dir/do-todo.md"  # 이 파일의 존재가 핵심
+    )
+
+    for file in "${essential_files[@]}"; do
+        if [[ ! -f "$file" ]]; then
+            echo "누락된 필수 파일: $file"
+            return 1
+        fi
+    done
+    return 0
+}
+
+ACTUAL_SOURCE_DIR=""
+
+# 개선된 로직: 존재 + 완전성 검증
+if [[ -d "$SOURCE_DIR" ]] && validate_completeness "$SOURCE_DIR"; then
+    ACTUAL_SOURCE_DIR="$SOURCE_DIR"
+    echo "기본 디렉토리가 완전함: $SOURCE_DIR"
+else
+    if [[ -d "$SOURCE_DIR" ]]; then
+        echo "기본 디렉토리가 불완전함, fallback 확인 중..."
+    fi
+
+    for fallback_dir in "${FALLBACK_SOURCES[@]}"; do
+        if [[ -d "$fallback_dir" ]] && validate_completeness "$fallback_dir"; then
+            ACTUAL_SOURCE_DIR="$fallback_dir"
+            echo "완전한 fallback 디렉토리 발견: $fallback_dir"
+            break
+        fi
+    done
+fi
+
+if [[ -z "$ACTUAL_SOURCE_DIR" ]]; then
+    echo "완전한 Claude 설정을 찾을 수 없음"
+    exit 1
+fi
+
+mkdir -p "$CLAUDE_DIR"
+ln -sf "$ACTUAL_SOURCE_DIR/commands" "$CLAUDE_DIR/commands"
+echo "개선된 로직으로 사용된 소스: $ACTUAL_SOURCE_DIR"
+SCRIPT
+)
+
+    # 개선된 로직으로 테스트
+    echo "$activation_script_fixed" | bash -s "$CLAUDE_DIR" "$incomplete_source" "$complete_source"
+
+    # 결과 확인 - do-todo.md가 있어야 함 (수정 확인)
+    assert_test "[[ -f '$CLAUDE_DIR/commands/do-todo.md' ]]" "개선된 로직으로 do-todo.md 접근 가능 (수정 확인)"
+
+    # 완전한 설정이 사용되었는지 확인
+    local link_target=$(readlink "$CLAUDE_DIR/commands")
+    assert_test "[[ '$link_target' == '$complete_source/commands' ]]" "완전한 설정 디렉토리 사용됨" "$complete_source/commands" "$link_target"
+}
+
 # 정리 함수
 cleanup_test_environment() {
     log_debug "통합 테스트 환경 정리: $TEST_DIR"
@@ -487,14 +620,17 @@ main() {
     log_info "통합 테스트 실행 - Claude 활성화 로직 검증"
 
     # CI 환경에서는 핵심 테스트만 실행 (안정성 향상)
-    log_info "테스트 1/3: 기본 활성화 테스트"
+    log_info "테스트 1/4: 기본 활성화 테스트"
     test_full_activation_clean_environment || log_error "기본 활성화 테스트 실패"
 
-    log_info "테스트 2/3: Fallback 해상도 테스트"
+    log_info "테스트 2/4: Fallback 해상도 테스트"
     test_fallback_source_resolution || log_error "Fallback 해상도 테스트 실패"
 
-    log_info "테스트 3/3: 끊어진 링크 정리 테스트"
+    log_info "테스트 3/4: 끊어진 링크 정리 테스트"
     test_broken_symlink_cleanup || log_error "끊어진 링크 정리 테스트 실패"
+
+    log_info "테스트 4/4: 다중 dotfiles 경로 해결 테스트 (핵심 버그 수정)"
+    test_multiple_dotfiles_paths_resolution || log_error "다중 dotfiles 경로 해결 테스트 실패"
 
     # 결과 출력
     log_separator

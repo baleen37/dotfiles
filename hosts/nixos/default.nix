@@ -25,8 +25,6 @@ in
       efi.canTouchEfiVariables = true;
     };
     initrd.availableKernelModules = [ "xhci_pci" "ahci" "nvme" "usbhid" "usb_storage" "sd_mod" ];
-    # Uncomment for AMD GPU
-    # initrd.kernelModules = [ "amdgpu" ];
     kernelPackages = pkgs.linuxPackages;
     kernelModules = [ "uinput" ];
   };
@@ -34,12 +32,8 @@ in
   # Set your time zone.
   time.timeZone = "America/New_York";
 
-  # The global useDHCP flag is deprecated, therefore explicitly set to false here.
-  # Per-interface useDHCP will be mandatory in the future, so this generated config
-  # replicates the default behaviour.
   networking = {
     hostName = "nixos"; # Define your hostname.
-    useDHCP = false;
     interfaces."eth0".useDHCP = true;
   };
 
@@ -74,19 +68,6 @@ in
     displayManager.defaultSession = "none+bspwm";
     xserver = {
       enable = true;
-
-      # Uncomment these for AMD or Nvidia GPU
-      # boot.initrd.kernelModules = [ "amdgpu" ];
-      # videoDrivers = [ "amdgpu" ];
-      # videoDrivers = [ "nvidia" ];
-
-      # Uncomment for Nvidia GPU
-      # This helps fix tearing of windows for Nvidia cards
-      # screenSection = ''
-      #   Option       "metamodes" "nvidia-auto-select +0+0 {ForceFullCompositionPipeline=On}"
-      #   Option       "AllowIndirectGLXProtocol" "off"
-      #   Option       "TripleBuffer" "on"
-      # '';
 
       displayManager = {
         lightdm = {
@@ -132,9 +113,6 @@ in
       };
     };
 
-    # Enable CUPS to print documents
-    # printing.enable = true;
-    # printing.drivers = [ pkgs.brlaser ]; # Brother printer driver
 
     # Picom, my window compositor with fancy effects
     #
@@ -232,20 +210,10 @@ in
 
   };
 
-  # Enable sound
-  # sound.enable = true;
-
   # Video support
   hardware = {
     graphics.enable = true;
-    # pulseaudio.enable = true;
-    # hardware.nvidia.modesetting.enable = true;
-
-    # Enable Xbox support
-    # hardware.xone.enable = true;
-
-    # Crypto wallet support
-    ledger.enable = true;
+    ledger.enable = true; # Crypto wallet support
   };
 
 
