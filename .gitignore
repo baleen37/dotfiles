@@ -46,6 +46,7 @@ tasks/
 CLAUDE.local.md
 .claude/settings.local.json
 .gemini_temp/
+plan.md
 
 # Issues (local project management)
 issues/

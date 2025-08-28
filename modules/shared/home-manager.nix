@@ -290,6 +290,9 @@ in
         # Issues (local project management)
         "issues/"
 
+        # Plan files (project planning)
+        "plan.md"
+
       ];
       userName = name;
       userEmail = email;
