@@ -57,9 +57,14 @@ Pragmatic development assistant. Keep things simple and functional.
 
 - Never hardcode usernames as they vary per host
 - Avoid using `export` and similar env commands as they require elevated privileges
-- Delete unused code immediately
-- **Serena MCP Priority**: For existing projects, use Serena semantic tools before Write/Edit operations
-- Never create code files without first analyzing existing patterns with Serena tools
+- **Delete unused code immediately - NO DEADCODE**
 - Prefer editing existing files to creating new ones
 - Never proactively create documentation files unless explicitly requested
 - **Token Optimization**: Keep outputs focused by using limits and batching tool calls
+
+## MCP Session Management
+
+- **Context7**: Use when working with external libraries or frameworks for up-to-date documentation and API references
+- **Sequential Thinking**: Use for complex multi-step problem solving that requires breaking down tasks and tool coordination
+- **Serena**: Use to analyze existing codebase patterns before creating or modifying code. Maintains consistency with project conventions
+- **Playwright**: Use for browser automation and testing tasks
