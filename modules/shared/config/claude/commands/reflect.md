@@ -3,149 +3,99 @@ name: reflect
 description: "Claude Code prompt optimization and command improvement specialist"
 ---
 
-# /reflect - Claude Code Command Optimization
+# /reflect - Claude Code Instruction Optimization
 
-LLM prompt optimization expert specializing in AI system prompt design, performance enhancement, and agent prompt tuning. Supports Claude, GPT and other model-specific optimization. Use PROACTIVELY for prompt optimization tasks.
+You are an expert in prompt engineering, specializing in optimizing AI code assistant instructions. Your task is to analyze and improve the instructions for Claude Code. Follow these steps carefully:
 
 ## Analysis Phase
 
-### 1. Context Analysis
-- **Conversation Pattern Analysis**: Identify Claude behavior patterns from recent interactions
-- **Performance Issue Identification**: Response inconsistencies, command execution failures, inefficient workflows
-- **User Expectation Matching**: Compare jito's workflow preferences with actual behavior
+Review the chat history in your context window.
 
-### 2. Problem Categorization
-- **Response Quality**: Lack of consistency, error occurrence
-- **Workflow Efficiency**: Insufficient Task tool utilization, missing Git parallel processing
-- **Language Policy**: Korean response consistency issues
-- **Command Structure**: Inefficient structure, MCP permission issues
-- **Performance Optimization**: Token optimization, execution speed improvements
+Then, examine the current Claude instructions, commands and config:
 
-### 3. Configuration Scope Guidelines
+<claude_instructions>
+# Settings Priority (Highest to Lowest):
+1. Project local: .claude/settings.local.json, .claude/CLAUDE.local.md
+2. Project shared: /CLAUDE.md, .claude/settings.json, .claude/commands/, .claude/agents/
+3. Global user: ~/.claude/CLAUDE.md, ~/.claude/settings.json, ~/.claude/commands/, ~/.claude/agents/
 
-**User Global Settings** (`~/.claude/CLAUDE.md`, `~/.claude/settings.json`):
-- ✅ Personal workflow and communication style
-- ✅ Language preferences and response format
-- ✅ Universal development patterns and tool permissions
-- ❌ Project-specific technical requirements
+# Configuration Scope:
+- **Project local**: Individual developer's environment-specific overrides (git-ignored)
+- **Project shared**: Team-wide settings shared via version control  
+- **Global user**: Personal settings applied across all projects (must be generic/universal, never project-specific)
+</claude_instructions>
 
-**Command File Locations** (CRITICAL - Always verify before making changes):
-- ✅ **Global Commands**: `~/.claude/commands/` - Personal workflow commands for ALL projects
-- ✅ **Project Commands**: `.claude/commands/` - Project-specific commands only
-- ❌ **Common Mistake**: Creating project files when global commands already exist
+Analyze the chat history, instructions, commands and config to identify areas that could be improved. Look for:
 
-**MANDATORY PRE-CHECK**: Before proposing command improvements, ALWAYS:
-1. Check if command already exists in `~/.claude/commands/`
-2. Read existing command content to understand current capabilities  
-3. Only propose improvements to EXISTING functionality, not recreation
-4. Verify command scope (global vs project-specific) before changes
+- Inconsistencies in Claude's responses
+- Misunderstandings of user requests
+- Areas where Claude could provide more detailed or accurate information
+- Opportunities to enhance Claude's ability to handle specific types of queries or tasks
+- New commands or improvements to a commands name, function or response
+- Permissions and MCPs we've approved locally that we should add to the config, especially if we've added new tools or require them for the command to work
 
-**Project Settings** (`/CLAUDE.md`):
-- ✅ Domain-specific technical guidelines (Nix, React, etc.)
-- ✅ Project workflows and architecture patterns
-- ✅ Team coding standards and rules
-- ✅ Project-specific tool permissions and build commands
-- ❌ Personal communication preferences
+## Interaction Phase
 
-**Project Local Settings** (`.claude/settings.local.json`):
-- ✅ Local development environment configuration
-- ✅ Machine-specific tool paths and settings
-- ✅ Temporary experimental settings
-- ✅ Individual project setting overrides
-- ❌ Team-wide settings
+Present your findings and improvement ideas to the human. For each suggestion:
 
-### 4. Conversation-Based Command Analysis
+a) Explain the current issue you've identified
+b) Propose a specific change or addition to the instructions
+c) Describe how this change would improve Claude's performance
 
-**Command Scope Classification**:
-- **User Global**: `~/.claude/commands/` - Personal workflow commands
-- **Project Local**: `.claude/commands/` - Project-specific commands
+**Present numbered proposals:**
 
-**Analysis Target**: Only commands actually used in recent conversations
-- ✅ Track command patterns used during conversations
-- ✅ Measure command execution success rate and efficiency
-- ✅ Analyze command behavior based on user feedback
-- ✅ Analyze command argument patterns and usage
-- ❌ General improvement suggestions for unused commands
+### [1] Priority [High/Medium/Low]: [Issue Title]
 
-## Proposal Phase
+- **Current Issue**: [What you've identified from analysis]
+- **Proposed Change**: [Specific change or addition to instructions]
+- **Performance Impact**: [How this improves Claude's performance]
+- **Files to Change**: [File paths needing modification]
 
-### Claude Code Configuration Optimization Proposals
+### [2] Command: /[command-name]
 
-Present 3-5 priority-based improvement suggestions in the following format:
+(Only for commands used in conversation)
 
-## [1] Priority [High/Medium/Low]: [Issue Title]
-- **Current Problem**: [Brief description]
-- **Proposed Solution**: [Specific changes with key implementation steps]
-- **Files to Change**: [File paths]
-- **Expected Impact**: [Performance improvement description]
-
-### Command Improvement Proposals
-
-Improvement suggestions for commands used in conversations:
-
-#### Used Command Analysis
-- **Command Identification**: Extract `/command` patterns executed during conversation
-- **Execution Pattern Analysis**: Success/failure ratio, argument usage patterns
-- **User Feedback Analysis**: Command satisfaction and improvement requests
-
-#### Command-Specific Improvement Proposal Format
-
-## [6] Command: /[command-name]
-- **Usage Frequency**: [Number of uses in this conversation]
-- **Current Issues**: [Observed problems]
-- **Proposed Improvements**: [Specific changes]
+- **Current Issue**: [Problems identified from usage]
+- **Proposed Change**: [Specific improvements]
+- **Performance Impact**: [Expected improvements]
 - **Files to Change**: [Command file path]
-- **Expected Impact**: [Expected results after improvement]
 
-**Selection Method**:
-- Single selection: "1" or "3" (Configuration proposals 1-5)
-- Single command: "6" or "7" (Command proposals start from 6)
-- Multiple selection: "1,3,6" or "1, 3, 6" (Mix configurations and commands)
-- All selection: "all" or "1,2,3,4,5,6,7,8" (All proposals including commands)
+### [3] Agent: [agent-name]
 
-**Numbering System**:
-- **Proposals 1-5**: Configuration optimization suggestions
-- **Proposals 6+**: Command improvement suggestions (increment for each command analyzed)
+(Only for agents used in conversation)
+
+- **Current Issue**: [Performance problems observed]
+- **Proposed Change**: [Optimization improvements]
+- **Performance Impact**: [Expected improvements]
+- **Files to Change**: [Agent file path]
+
+Wait for feedback from the human on each suggestion before proceeding. If the human approves a change, move it to the implementation phase. If not, refine your suggestion or move on to the next idea.
+
+**Selection Method**: "1", "1,2,3", or "all"
 
 ## Implementation Phase
 
-For approved changes:
+For each approved change:
 
-### 1. Automatic Task Tool Utilization
-- **Complex Optimization**: Use prompt-engineer agent
-- **System Improvements**: Utilize system-architect agent
-- **Performance Issues**: Delegate to appropriate specialized agents
+a) Clearly state the section of the instructions you're modifying
+b) Present the new or modified text for that section
+c) Explain how this change addresses the issue identified in the analysis phase
 
-### 2. Scope Verification and File Specification
-- **User Global Changes**: Confirm benefits for all projects
-- **Project Changes**: Repository-wide impact, applies to all team members
-- **Project Local Changes**: Environment-specific, personal machine settings
-- **Command Improvements**: Target only commands used in conversations (numbered 6+)
-- **Priority**: Project Local → Project → User Global (least invasive order)
-- **Numbering Convention**: Configuration (1-5), Commands (6+) to avoid overlap
+## Output Format
 
-### 3. Apply Changes
-- **Before/After Comparison**: Show exact changes and scope justification
-- **Implementation**: Apply changes to specified files with backup
-- **Git Parallel Processing**: Execute related git commands in parallel for performance optimization
+Present your final output in the following structure:
 
+[List the issues identified and potential improvements]
 
-## Advanced Features
+[For each approved improvement:
+1. Section being modified
+2. New or modified instruction text
+3. Explanation of how this addresses the identified issue]
 
-### Prompt Engineering Techniques
-- **Chain of Thought**: Enhance step-by-step reasoning
-- **Few-shot Learning**: Apply effective example patterns
-- **Temperature Adjustment**: Balance response consistency vs creativity
-- **Token Optimization**: Prevent context bloat, efficient prompt design
+```text
+<final_instructions>
+[Present the complete, updated set of instructions for Claude, incorporating all approved changes]
+</final_instructions>
+```
 
-### Performance Optimization Patterns
-- **Parallel Processing**: Optimize Git commands and tool calls
-- **Caching Strategies**: Optimize repetitive tasks
-- **Memory Management**: Efficient context window utilization
-
-### Korean Language Support Enhancement
-- **Language Policy Compliance**: All conversational responses in Korean
-- **Technical Term Explanation**: Provide clear explanations in Korean
-- **Code/Log Preservation**: Maintain original language as-is
-
-The goal is to improve Claude's performance and consistency while maintaining the core functionality and purpose of the AI assistant. Optimization proceeds through thorough analysis, clear explanations, and precise implementation.
+Remember, your goal is to enhance Claude's performance and consistency while maintaining the core functionality and purpose of the AI assistant. Be thorough in your analysis, clear in your explanations, and precise in your implementations.

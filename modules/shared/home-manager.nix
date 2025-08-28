@@ -545,16 +545,17 @@ in
       includes = [
         "${getUserInfo.homePath}/.ssh/config_external"
       ];
-      extraConfig = ''
-        Host *
-          IdentitiesOnly yes
-          AddKeysToAgent yes
-          ServerAliveInterval 60
-          ServerAliveCountMax 3
-          TCPKeepAlive yes
-      '' + lib.optionalString isDarwin ''
-        UseKeychain yes
-      '';
+      matchBlocks = {
+        "*" = {
+          identitiesOnly = true;
+          addKeysToAgent = "yes";
+          serverAliveInterval = 60;
+          serverAliveCountMax = 3;
+          extraOptions = {
+            TCPKeepAlive = "yes";
+          };
+        };
+      };
     };
 
     direnv = {

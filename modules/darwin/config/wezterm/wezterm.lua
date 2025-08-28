@@ -38,6 +38,9 @@ config.keys = {
   -- 탭 위치 변경 (Swap)
   { key = '{', mods = 'CMD|OPT', action = wezterm.action.MoveTabRelative(-1) },
   { key = '}', mods = 'CMD|OPT', action = wezterm.action.MoveTabRelative(1) },
+
+  -- Claude Code interactive shell 지원 - Shift+Enter를 \ + Enter 시퀀스로 매핑
+  { key = 'Enter', mods = 'SHIFT', action = wezterm.action.SendString '\\\r' },
 }
 
 -- 마우스 설정
