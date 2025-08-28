@@ -1,91 +1,77 @@
 ---
 name: plan
-description: "Smart task planning with structured breakdown and execution preparation"
-agents: [system-architect, project-manager]
-tools: [TodoWrite, Task, ExitPlanMode]
+description: "Create implementation blueprints with LLM-ready code generation prompts"
+tools: [TodoWrite, Task, Write]
 ---
 
-# /plan - Smart Task Planning
+# /plan - Code Generation Blueprint
 
-**Purpose**: Analyze requirements and create actionable step-by-step plans
+**Purpose**: Draft a detailed, step-by-step blueprint for building this project. Break the plan into small, iterative chunks that build on each other, with specific prompts for code generation.
 
-## Planning Process
+## Methodology
 
-### 1. Requirements Analysis
-- Understand current situation and goals
-- Identify technical constraints
-- Assess required resources
+1. **Draft** detailed project blueprint
+2. **Break down** into small, iterative chunks
+3. **Review and refine** steps:
+   - Small enough to implement safely
+   - Big enough to move project forward
+4. **Create prompts** for LLM to implement each step
+5. **Prioritize** best practices and incremental progress
+6. **Integrate** code without orphaned segments
 
-### 2. Task Breakdown
-- Break large tasks into smaller units
-- Define dependencies for each step
-- Estimate time requirements
+## Output
 
-### 3. Execution Sequencing
-- Order tasks considering dependencies
-- Identify tasks that can run in parallel
-- Risk assessment and contingency planning
+Creates `plan.md` with implementation blueprint:
 
-## Usage Examples
+```markdown
+# Project Implementation Plan
 
-### Basic Usage
-```bash
-/plan "Implement new login system"
+## Phase 1: Foundation
+### Step 1.1: Project Setup
+```code
+Create basic project structure with package.json, .gitignore, and README.md
+Initialize with essential dependencies for React and Node.js
 ```
 
-**Example Output**:
-```
-## Login System Implementation Plan
-
-### Phase 1: Analysis & Design (2-3 hours)
-- [ ] Analyze current authentication system
-- [ ] Define security requirements
-- [ ] Design database schema
-
-### Phase 2: Backend Implementation (1-2 days)
-- [ ] Develop authentication API
-- [ ] Implement password hashing
-- [ ] JWT token management
-
-### Phase 3: Frontend Integration (1 day)
-- [ ] Implement login form
-- [ ] Token storage and management
-- [ ] Error handling and validation
-
-### Phase 4: Testing & Deployment (half day)
-- [ ] Write unit tests
-- [ ] Run integration tests
-- [ ] Deploy and monitor
+### Step 1.2: Database Schema  
+```code
+Design and implement user table schema in PostgreSQL
+Include fields: id, email, password_hash, created_at, updated_at
+Create migration file and run initial setup
 ```
 
-### API Development Planning
-```bash
-/plan "Build RESTful API server"
+## Phase 2: Authentication
+### Step 2.1: User Model
+```code
+Create User model with password hashing using bcrypt
+Implement validation for email format and password strength
+Add methods for password comparison and JWT token generation
+```
 ```
 
-### Refactoring Planning
-```bash
-/plan "Migrate existing codebase to TypeScript"
-```
+## Key Requirements
 
-## Useful Features
+### Code Generation Focus
+- Each step includes specific prompts for LLM implementation
+- Use ```code``` tags to mark prompt sections
+- Include context about what's been built so far
+- Ensure each prompt builds on previous work
 
-### Risk Identification
-Includes potential issues and solutions for each phase
+### Integration Continuity  
+- No orphaned code segments
+- Clear interfaces between components
+- Build each step on previous foundations
+- Test integration at each step
 
-### Dependency Management
-Clearly shows task order and bottlenecks
+### Step Sizing
+- Small enough: implement safely without breaking things
+- Big enough: meaningful progress toward project goals
+- Review and iterate until steps feel right-sized
 
-### Time Estimation
-Realistic work time predictions for schedule management
-
-## do-plan Integration
-
-Generated plans can be executed directly with `/do-plan`:
+## Usage
 
 ```bash
-# After plan generation
-/do-plan
+/plan "Build a task management API with authentication"
 ```
 
-Each phase is executed as a checklist with real-time progress tracking.
+The plan creates ready-to-use prompts that an LLM can implement step-by-step, with each phase building systematically on the previous work.
