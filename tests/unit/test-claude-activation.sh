@@ -4,49 +4,24 @@
 
 set -euo pipefail
 
-# 테스트 환경 설정
-TEST_DIR=$(mktemp -d)
+# 새로운 테스트 코어 로드 (단일 진입점)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/../lib/test-core.sh"
+
+# 테스트 스위트 초기화
+test_suite_init "Claude Activation Tests"
+
+# 표준 테스트 환경 설정
+setup_standard_test_environment "claude-activation"
+
+# 테스트별 환경 설정
 SOURCE_BASE="$TEST_DIR/source"
 TARGET_BASE="$TEST_DIR/target"
 CLAUDE_DIR="$TARGET_BASE/.claude"
 
-# 공통 라이브러리 로드
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../lib/common.sh"
-
-# 테스트 결과 추적
-TESTS_PASSED=0
-TESTS_FAILED=0
-
-# 테스트 헬퍼 함수
-assert_test() {
-    local condition="$1"
-    local test_name="$2"
-    local expected="${3:-}"
-    local actual="${4:-}"
-
-    # 조건부 평가 실행
-    if eval "$condition"; then
-        log_success "$test_name"
-        ((TESTS_PASSED++))
-        return 0
-    else
-        if [[ -n "$expected" && -n "$actual" ]]; then
-            log_fail "$test_name"
-            log_error "  예상: $expected"
-            log_error "  실제: $actual"
-        else
-            log_fail "$test_name"
-            log_debug "  실패한 조건: $condition"
-        fi
-        ((TESTS_FAILED++))
-        return 1
-    fi
-}
-
 # 테스트 환경 설정 함수
 setup_test_environment() {
-    log_info "테스트 환경 설정 중..."
+    log_info "Claude activation 테스트 환경 설정 중..."
 
     # 디렉토리 구조 생성
     mkdir -p "$SOURCE_BASE/commands" "$SOURCE_BASE/agents"
@@ -166,19 +141,18 @@ test_basic_settings_copy() {
     create_settings_copy "$SOURCE_BASE/settings.json" "$CLAUDE_DIR/settings.json"
 
     # 파일이 복사되었는지 확인
-    assert_test "[[ -f '$CLAUDE_DIR/settings.json' ]]" "settings.json 파일 복사"
+    assert_file_exists "$CLAUDE_DIR/settings.json" "settings.json 파일 복사"
 
     # 심볼릭 링크가 아닌 실제 파일인지 확인
-    assert_test "[[ ! -L '$CLAUDE_DIR/settings.json' ]]" "복사본은 심볼릭 링크가 아님"
+    assert_not "[[ -L '$CLAUDE_DIR/settings.json' ]]" "복사본은 심볼릭 링크가 아님"
 
     # 파일 권한 확인 (644)
-    local permissions=$(stat -f "%OLp" "$CLAUDE_DIR/settings.json" 2>/dev/null || stat -c "%a" "$CLAUDE_DIR/settings.json" 2>/dev/null)
-    assert_test "[[ '$permissions' == '644' ]]" "파일 권한이 644로 설정됨" "644" "$permissions"
+    assert_file_permissions "$CLAUDE_DIR/settings.json" "644" "파일 권한이 644로 설정됨"
 
     # JSON 내용 확인
     if command -v jq >/dev/null 2>&1; then
         local version=$(jq -r '.version' "$CLAUDE_DIR/settings.json")
-        assert_test "[[ '$version' == '1.0.0' ]]" "JSON 내용이 올바르게 복사됨" "1.0.0" "$version"
+        assert_equals "1.0.0" "$version" "JSON 내용이 올바르게 복사됨"
     fi
 }
 
@@ -189,14 +163,14 @@ test_symlink_to_copy_conversion() {
     ln -sf "$SOURCE_BASE/settings.json" "$CLAUDE_DIR/settings.json"
 
     # 심볼릭 링크 확인
-    assert_test "[[ -L '$CLAUDE_DIR/settings.json' ]]" "심볼릭 링크가 생성됨"
+    assert_file_is_symlink "$CLAUDE_DIR/settings.json" "심볼릭 링크가 생성됨"
 
     # create_settings_copy 실행
     create_settings_copy "$SOURCE_BASE/settings.json" "$CLAUDE_DIR/settings.json" >/dev/null 2>&1
 
     # 심볼릭 링크가 제거되고 복사본이 생성되었는지 확인
-    assert_test "[[ ! -L '$CLAUDE_DIR/settings.json' ]]" "심볼릭 링크가 제거됨"
-    assert_test "[[ -f '$CLAUDE_DIR/settings.json' ]]" "복사본이 생성됨"
+    assert_not "[[ -L '$CLAUDE_DIR/settings.json' ]]" "심볼릭 링크가 제거됨"
+    assert_file_exists "$CLAUDE_DIR/settings.json" "복사본이 생성됨"
 }
 
 test_dynamic_state_preservation() {
@@ -216,20 +190,20 @@ test_dynamic_state_preservation() {
 
     # 새 설정이 적용되었는지 확인
     local new_version=$(jq -r '.version' "$CLAUDE_DIR/settings.json")
-    assert_test "[[ '$new_version' == '1.0.0' ]]" "새 설정의 version이 적용됨" "1.0.0" "$new_version"
+    assert_equals "1.0.0" "$new_version" "새 설정의 version이 적용됨"
 
     local new_theme=$(jq -r '.theme' "$CLAUDE_DIR/settings.json")
-    assert_test "[[ '$new_theme' == 'dark' ]]" "새 설정의 theme이 적용됨" "dark" "$new_theme"
+    assert_equals "dark" "$new_theme" "새 설정의 theme이 적용됨"
 
     # 동적 상태가 보존되었는지 확인
     local preserved_last_shown=$(jq -r '.feedbackSurveyState.lastShown' "$CLAUDE_DIR/settings.json")
-    assert_test "[[ '$preserved_last_shown' == '2024-01-15' ]]" "feedbackSurveyState.lastShown 보존" "2024-01-15" "$preserved_last_shown"
+    assert_equals "2024-01-15" "$preserved_last_shown" "feedbackSurveyState.lastShown 보존"
 
     local dismissed_count=$(jq -r '.feedbackSurveyState.dismissed | length' "$CLAUDE_DIR/settings.json")
-    assert_test "[[ '$dismissed_count' == '2' ]]" "feedbackSurveyState.dismissed 배열 보존" "2" "$dismissed_count"
+    assert_equals "2" "$dismissed_count" "feedbackSurveyState.dismissed 배열 보존"
 
     local user_prefs_frequency=$(jq -r '.feedbackSurveyState.userPreferences.frequency' "$CLAUDE_DIR/settings.json")
-    assert_test "[[ '$user_prefs_frequency' == 'weekly' ]]" "중첩된 사용자 설정 보존" "weekly" "$user_prefs_frequency"
+    assert_equals "weekly" "$user_prefs_frequency" "중첩된 사용자 설정 보존"
 }
 
 test_backup_cleanup() {
@@ -242,7 +216,7 @@ test_backup_cleanup() {
     create_settings_copy "$SOURCE_BASE/settings.json" "$CLAUDE_DIR/settings.json" >/dev/null 2>&1
 
     # 백업 파일이 정리되었는지 확인
-    assert_test "[[ ! -f '$CLAUDE_DIR/settings.json.backup' ]]" "백업 파일이 정리됨"
+    assert_not "[[ -f '$CLAUDE_DIR/settings.json.backup' ]]" "백업 파일이 정리됨"
 }
 
 test_missing_source_file() {
@@ -252,7 +226,7 @@ test_missing_source_file() {
     create_settings_copy "$SOURCE_BASE/nonexistent.json" "$CLAUDE_DIR/nonexistent.json" >/dev/null 2>&1
 
     # 타겟 파일이 생성되지 않았는지 확인
-    assert_test "[[ ! -f '$CLAUDE_DIR/nonexistent.json' ]]" "존재하지 않는 소스 파일 처리"
+    assert_not "[[ -f '$CLAUDE_DIR/nonexistent.json' ]]" "존재하지 않는 소스 파일 처리"
 }
 
 test_jq_fallback_behavior() {
@@ -279,14 +253,14 @@ test_jq_fallback_behavior() {
 
     # 새 설정이 적용되었는지 확인
     local version=$(jq -r '.version' "$CLAUDE_DIR/settings.json" 2>/dev/null || echo "unknown")
-    assert_test "[[ '$version' == '1.0.0' ]]" "jq 없을 때도 새 설정 적용됨" "1.0.0" "$version"
+    assert_equals "1.0.0" "$version" "jq 없을 때도 새 설정 적용됨"
 
     # 동적 상태는 병합되지 않아야 함 (jq 없을 때)
     local feedback_state="null"
     if jq -e '.feedbackSurveyState' "$CLAUDE_DIR/settings.json" >/dev/null 2>&1; then
         feedback_state="present"
     fi
-    assert_test "[[ '$feedback_state' == 'null' ]]" "jq 없을 때 동적 상태 병합 건너뜀"
+    assert_equals "null" "$feedback_state" "jq 없을 때 동적 상태 병합 건너뜀"
 }
 
 test_invalid_json_handling() {
@@ -299,7 +273,7 @@ test_invalid_json_handling() {
     create_settings_copy "$SOURCE_BASE/settings.json" "$CLAUDE_DIR/settings.json" >/dev/null 2>&1 || true
 
     # 새 설정이 적용되었는지 확인
-    assert_test "[[ -f '$CLAUDE_DIR/settings.json' ]]" "잘못된 JSON에도 새 파일 생성됨"
+    assert_file_exists "$CLAUDE_DIR/settings.json" "잘못된 JSON에도 새 파일 생성됨"
 
     if command -v jq >/dev/null 2>&1; then
         # 유효한 JSON인지 확인
@@ -307,7 +281,7 @@ test_invalid_json_handling() {
         if jq empty "$CLAUDE_DIR/settings.json" >/dev/null 2>&1; then
             is_valid_json="true"
         fi
-        assert_test "[[ '$is_valid_json' == 'true' ]]" "새 설정 파일이 유효한 JSON임"
+        assert_equals "true" "$is_valid_json" "새 설정 파일이 유효한 JSON임"
     fi
 }
 
@@ -325,7 +299,7 @@ test_file_permissions_consistency() {
 
         # 최종 권한이 644인지 확인
         local final_perm=$(stat -f "%OLp" "$CLAUDE_DIR/settings.json" 2>/dev/null || stat -c "%a" "$CLAUDE_DIR/settings.json" 2>/dev/null)
-        assert_test "[[ '$final_perm' == '644' ]]" "초기 권한 $initial_perm에서 644로 변경됨" "644" "$final_perm"
+        assert_equals "644" "$final_perm" "초기 권한 $initial_perm에서 644로 변경됨"
 
         # 다음 테스트를 위한 정리
         rm -f "$CLAUDE_DIR/settings.json"
@@ -348,15 +322,15 @@ test_complete_workflow() {
     create_settings_copy "$SOURCE_BASE/settings.json" "$CLAUDE_DIR/settings.json" >/dev/null 2>&1
 
     # 4단계: 결과 검증
-    assert_test "[[ ! -L '$CLAUDE_DIR/settings.json' ]]" "최종적으로 심볼릭 링크가 아님"
-    assert_test "[[ -f '$CLAUDE_DIR/settings.json' ]]" "최종적으로 파일이 존재함"
+    assert_not "[[ -L '$CLAUDE_DIR/settings.json' ]]" "최종적으로 심볼릭 링크가 아님"
+    assert_file_exists "$CLAUDE_DIR/settings.json" "최종적으로 파일이 존재함"
 
     local final_perm=$(stat -f "%OLp" "$CLAUDE_DIR/settings.json" 2>/dev/null || stat -c "%a" "$CLAUDE_DIR/settings.json" 2>/dev/null)
-    assert_test "[[ '$final_perm' == '644' ]]" "최종 권한이 644임" "644" "$final_perm"
+    assert_equals "644" "$final_perm" "최종 권한이 644임"
 
     if command -v jq >/dev/null 2>&1; then
         local user_added=$(jq -r '.feedbackSurveyState.userAdded // "null"' "$CLAUDE_DIR/settings.json")
-        assert_test "[[ '$user_added' == 'true' ]]" "사용자 추가 동적 상태 보존됨" "true" "$user_added"
+        assert_equals "true" "$user_added" "사용자 추가 동적 상태 보존됨"
     fi
 }
 
@@ -392,26 +366,67 @@ main() {
     test_jq_fallback_behavior
     test_invalid_json_handling
     test_file_permissions_consistency
-
-    # 통합 테스트 실행
-    test_complete_workflow
-
-    # 결과 출력
-    log_separator
-    log_header "테스트 결과"
-    log_info "통과: $TESTS_PASSED"
-
-    if [[ $TESTS_FAILED -gt 0 ]]; then
-        log_error "실패: $TESTS_FAILED"
-        log_error "일부 테스트가 실패했습니다."
-        exit 1
-    else
-        log_success "모든 테스트가 통과했습니다! 🎉"
-        exit 0
-    fi
 }
 
-# 스크립트가 직접 실행될 때만 main 함수 호출
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    main "$@"
+# === 테스트 그룹 설정 및 실행 ===
+
+# 기본 기능 테스트 그룹
+test_basic_functionality() {
+    start_test_group "기본 기능 테스트"
+    setup_test_environment
+    test_basic_settings_copy
+    test_symlink_to_copy_conversion
+    test_backup_cleanup
+    end_test_group
+}
+
+# 고급 기능 테스트 그룹
+test_advanced_features() {
+    start_test_group "고급 기능 테스트"
+    setup_test_environment
+    test_dynamic_state_preservation
+    test_jq_fallback_behavior
+    test_invalid_json_handling
+    end_test_group
+}
+
+# 엣지 케이스 테스트 그룹
+test_edge_cases() {
+    start_test_group "엣지 케이스 테스트"
+    setup_test_environment
+    test_missing_source_file
+    test_file_permissions_consistency
+    end_test_group
+}
+
+# 통합 테스트 그룹
+test_integration() {
+    start_test_group "통합 테스트"
+    setup_test_environment
+    test_complete_workflow
+    end_test_group
+}
+
+# === 필수 함수 import 확인 ===
+if ! declare -f create_settings_copy >/dev/null; then
+    log_error "create_settings_copy 함수를 찾을 수 없습니다"
+    log_info "claude-activation.nix에서 함수를 import하세요"
+    exit 1
 fi
+
+# === 모든 테스트 실행 ===
+
+# 기본 기능 테스트
+test_basic_functionality
+
+# 고급 기능 테스트
+test_advanced_features
+
+# 엣지 케이스 테스트
+test_edge_cases
+
+# 통합 테스트
+test_integration
+
+# 테스트 스위트 완료
+test_suite_finish
