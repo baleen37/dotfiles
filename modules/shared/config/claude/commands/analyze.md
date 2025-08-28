@@ -83,6 +83,14 @@ The analysis produces concrete, prioritized recommendations:
 
 - **Sequential**: Multi-step analysis planning and systematic evaluation
 - **Context7**: Framework-specific best practices and current industry standards
+- **Nix/Home Manager Special Handling**: For Nix, NixOS, Home Manager, or nix-darwin analysis, ALWAYS consult Context7 first for current best practices before proceeding with analysis
+
+## Mandatory MCP Usage
+
+For complex analysis tasks (3+ components), ALWAYS use:
+- **Sequential**: Multi-step analysis planning
+- **Context7**: Framework-specific best practices
+- **Serena**: Code pattern analysis for existing projects
 
 ## Agent Routing
 
@@ -107,6 +115,11 @@ The analysis produces concrete, prioritized recommendations:
 /analyze "TypeError: Cannot read property 'id' of undefined"  # Error investigation
 /analyze "slow database queries"  # Performance issue analysis
 /analyze "tests failing intermittently"  # Flaky test root cause analysis
+
+# Nix/Home Manager Examples (Context7 consulted first)
+/analyze "home-manager activation slow"  # Performance issue with Context7 best practices
+/analyze flake.nix          # Nix flake analysis with current best practices
+/analyze modules/darwin/    # nix-darwin configuration analysis
 ```
 
 The analysis will produce a comprehensive report with prioritized recommendations and specific implementation guidance.

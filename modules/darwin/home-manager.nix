@@ -67,57 +67,20 @@ in
 
       manual.manpages.enable = false;
 
-      # TDD로 검증된 Nix 앱 링크 시스템
+      # TDD로 검증된 Nix 앱 링크 시스템 (최적화됨)
       home.activation.linkNixApps = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        $DRY_RUN_CMD echo "🔗 Linking Nix GUI applications to ~/Applications..."
+        run echo "🔗 Linking Nix GUI applications to ~/Applications..."
 
-        # 설정 기반 앱 링크 시스템 (하드코딩 제거)
-        link_nix_apps() {
-          local home_apps="$1"
-          local nix_store="$2"
-          local profile="$3"
+        # 최적화된 앱 링크 라이브러리 사용 (Context7 베스트 프랙티스)
+        run source "${self}/lib/nix-app-linker.sh"
+        run link_nix_apps "$HOME/Applications" "/nix/store" "$HOME/.nix-profile"
 
-          # Applications 디렉토리 생성
-          mkdir -p "$home_apps"
-
-          # 1. Karabiner-Elements v14 전용 링크 (v15 배제)
-          local karabiner_path=$(find "$nix_store" -name "Karabiner-Elements.app" -path "*karabiner-elements-14*" -type d 2>/dev/null | head -1 || true)
-          if [ -n "$karabiner_path" ] && [ -d "$karabiner_path" ]; then
-            rm -f "$home_apps/Karabiner-Elements.app"
-            ln -sf "$karabiner_path" "$home_apps/Karabiner-Elements.app"
-            echo "  ✅ Karabiner-Elements.app linked (v14.13.0 only)"
-          fi
-
-          # 2. 현재 설치된 패키지에서 GUI 앱 자동 감지
-          if [ -d "$profile" ]; then
-            find "$profile" -name "*.app" -type d 2>/dev/null | while read -r app_path; do
-              [ ! -d "$app_path" ] && continue
-
-              local app_name=$(basename "$app_path")
-
-              # Karabiner은 이미 처리했으므로 스킵
-              [ "$app_name" = "Karabiner-Elements.app" ] && continue
-
-              # 이미 링크된 앱은 스킵
-              [ -L "$home_apps/$app_name" ] && continue
-
-              rm -f "$home_apps/$app_name"
-              ln -sf "$app_path" "$home_apps/$app_name"
-              echo "  ✅ $app_name auto-linked from profile"
-            done
-          fi
-
-        }
-
-        # 함수 실행
-        $DRY_RUN_CMD link_nix_apps "$HOME/Applications" "/nix/store" "$HOME/.nix-profile"
-
-        $DRY_RUN_CMD echo "✅ TDD-verified app linking complete!"
-        $DRY_RUN_CMD echo ""
-        $DRY_RUN_CMD echo "📱 Available applications:"
-        $DRY_RUN_CMD ls "$HOME/Applications"/*.app 2>/dev/null | sed 's|.*/||' | sed 's/^/  • /' || echo "  (no apps found)"
-        $DRY_RUN_CMD echo "💡 Tip: Apps are now accessible via Spotlight and Finder"
-        $DRY_RUN_CMD echo ""
+        run echo "✅ TDD-verified optimized app linking complete!"
+        run echo ""
+        run echo "📱 Available applications:"
+        run ls "$HOME/Applications"/*.app 2>/dev/null | sed 's|.*/||' | sed 's/^/  • /' || echo "  (no apps found)"
+        run echo "💡 Tip: Apps are now accessible via Spotlight and Finder"
+        run echo ""
       '';
     };
   };

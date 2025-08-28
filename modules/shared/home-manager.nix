@@ -542,6 +542,7 @@ in
 
     ssh = {
       enable = true;
+      enableDefaultConfig = false;
       includes = [
         "${getUserInfo.homePath}/.ssh/config_external"
       ];
