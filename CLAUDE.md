@@ -181,22 +181,6 @@ Claude configurations are automatically deployed via symbolic links during syste
 
 **Activation Trigger**: Home Manager activation script in `modules/shared/home-manager.nix`
 
-### Token Optimization
-
-Claude Code provides settings for optimizing token usage and preventing context bloat:
-
-**Context Bloat Prevention**:
-Long outputs from bash commands, MCP tools, or file reads can quickly consume context windows, leading to:
-
-- Increased costs per conversation
-- Slower response times
-- Loss of important context due to truncation
-- Poor conversation quality
-
-Token limits help maintain focused, cost-effective conversations by truncating verbose outputs while preserving essential information.
-
-**Reference**: Use Context7 for additional Claude Code optimization patterns
-
 ## Testing Standards
 
 - **Required**: Unit + integration + E2E tests for all changes
@@ -210,6 +194,11 @@ Token limits help maintain focused, cost-effective conversations by truncating v
 - **Platform-specific code** goes in respective modules (darwin/nixos)
 - **Cross-platform code** in shared modules with proper conditionals
 - **Test before commit** - use `make test-core` at minimum
+
+## Nix Best Practices
+
+- **Context7 First**: Nix/Home Manager 작업 시 Context7로 최신 API 확인 필수
+- **Modern API**: `run` 사용, `$DRY_RUN_CMD` 금지 (deprecated since 22.05)
 
 ## Global Commands
 

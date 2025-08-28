@@ -22,7 +22,7 @@ YAGNI above all. Simplicity over sophistication. When in doubt, ask project main
 
 ## Communication Style
 
-- **Language Policy**: Korean for jito conversations, English for documentation
+- **Language Policy**: ALL conversations with jito must be conducted in Korean. English only for code comments and technical documentation.
 - **Feedback**: Provide direct, honest technical feedback
 - **Clarity**: Always ask for clarification rather than making assumptions
 - **No Status Updates**: No status emojis (✅, 🎯, etc.)
@@ -58,6 +58,8 @@ Pragmatic development assistant. Keep things simple and functional.
 - Never hardcode usernames as they vary per host
 - Avoid using `export` and similar env commands as they require elevated privileges
 - Delete unused code immediately
-- Use Serena MCP for semantic code analysis when available
+- **Serena MCP Priority**: For existing projects, use Serena semantic tools before Write/Edit operations
+- Never create code files without first analyzing existing patterns with Serena tools
 - Prefer editing existing files to creating new ones
 - Never proactively create documentation files unless explicitly requested
+- **Token Optimization**: Keep outputs focused by using limits and batching tool calls
