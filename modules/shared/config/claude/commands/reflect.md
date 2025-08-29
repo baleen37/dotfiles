@@ -23,6 +23,17 @@ Then, examine the current Claude instructions, commands and config:
 - **Project local**: Individual developer's environment-specific overrides (git-ignored)
 - **Project shared**: Team-wide settings shared via version control  
 - **Global user**: Personal settings applied across all projects (must be generic/universal, never project-specific)
+
+# Actual File Locations:
+- **Global User**: `~/.claude/CLAUDE.md`, `~/.claude/settings.json`, `~/.claude/commands/`, `~/.claude/agents/`
+- **Project Shared**: `$PROJECT_ROOT/CLAUDE.md`, `$PROJECT_ROOT/.claude/settings.json`, `$PROJECT_ROOT/.claude/commands/`, `$PROJECT_ROOT/.claude/agents/`
+- **Project Local**: `$PROJECT_ROOT/.claude/settings.local.json`, `$PROJECT_ROOT/.claude/CLAUDE.local.md`
+
+# File Modification Guidelines:
+- **Commands**: Individual `.md` files in `commands/` directory (e.g., `~/.claude/commands/reflect.md`)
+- **Agents**: Individual `.md` files in `agents/` directory (e.g., `~/.claude/agents/backend-engineer.md`)
+- **Settings**: JSON format in `settings.json` or `settings.local.json`
+- **Instructions**: Markdown format in `CLAUDE.md` or `CLAUDE.local.md`
 </claude_instructions>
 
 Analyze the chat history, instructions, commands and config to identify areas that could be improved. Look for:
@@ -49,7 +60,7 @@ c) Describe how this change would improve Claude's performance
 - **Current Issue**: [What you've identified from analysis]
 - **Proposed Change**: [Specific change or addition to instructions]
 - **Performance Impact**: [How this improves Claude's performance]
-- **Files to Change**: [File paths needing modification]
+- **Files to Change**: [Specific file paths with full directory structure, e.g., `~/.claude/CLAUDE.md`, `$PROJECT_ROOT/.claude/settings.json`]
 
 ### [2] Command: /[command-name]
 
@@ -58,7 +69,7 @@ c) Describe how this change would improve Claude's performance
 - **Current Issue**: [Problems identified from usage]
 - **Proposed Change**: [Specific improvements]
 - **Performance Impact**: [Expected improvements]
-- **Files to Change**: [Command file path]
+- **Files to Change**: [Full command file path, e.g., `~/.claude/commands/command-name.md`]
 
 ### [3] Agent: [agent-name]
 
@@ -67,7 +78,7 @@ c) Describe how this change would improve Claude's performance
 - **Current Issue**: [Performance problems observed]
 - **Proposed Change**: [Optimization improvements]
 - **Performance Impact**: [Expected improvements]
-- **Files to Change**: [Agent file path]
+- **Files to Change**: [Full agent file path, e.g., `~/.claude/agents/agent-name.md`]
 
 Wait for feedback from the human on each suggestion before proceeding. If the human approves a change, move it to the implementation phase. If not, refine your suggestion or move on to the next idea.
 
@@ -77,9 +88,17 @@ Wait for feedback from the human on each suggestion before proceeding. If the hu
 
 For each approved change:
 
-a) Clearly state the section of the instructions you're modifying
-b) Present the new or modified text for that section
-c) Explain how this change addresses the issue identified in the analysis phase
+a) **Target File Identification**: Specify the exact file path being modified
+b) **Section Location**: Clearly state the section or line numbers being modified
+c) **Change Content**: Present the new or modified text for that section
+d) **Validation**: Explain how to verify the change was applied correctly
+e) **Impact Explanation**: Explain how this change addresses the issue identified in the analysis phase
+
+### File Modification Process:
+1. **Read** the target file first to understand current state
+2. **Edit** the specific sections identified
+3. **Verify** changes by reading the modified sections
+4. **Test** the command/agent/setting if applicable
 
 ## Output Format
 

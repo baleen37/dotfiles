@@ -72,3 +72,32 @@ Pragmatic development assistant. Keep things simple and functional.
 - **Sequential Thinking**: Use for complex multi-step problem solving that requires breaking down tasks and tool coordination
 - **Serena MCP**: Use when available AND existing codebase exists for understanding, modifying, analyzing code structure and patterns, or managing project knowledge
 - **Playwright**: Use for browser automation and testing tasks
+
+## Task Tool Usage Guidelines
+
+### RFC Style Prompts for Analysis-Only Requests
+
+When using Task tool for analysis-only requests, use RFC-style emphasis to ensure agents strictly adhere to scope:
+
+```
+"**CRITICAL: This task MUST ONLY perform analysis and MUST NOT modify any code**"
+"**MANDATORY: You MUST provide solution recommendations but MUST NOT implement them**"
+"**FORBIDDEN: Any code modification or file editing is STRICTLY PROHIBITED**"
+```
+
+### RFC Emphasis Standards
+
+- **MUST**: Requirements that agents must follow
+- **MUST NOT**: Actions that are absolutely forbidden  
+- **CRITICAL**: Critically important constraints
+- **MANDATORY**: Obligatory requirements
+- **FORBIDDEN**: Prohibited actions
+- **STRICTLY PROHIBITED**: Absolutely forbidden actions
+
+### Example Usage
+
+```
+"**CRITICAL: You MUST analyze the Spring Boot startup issue and provide solutions but MUST NOT modify any code files**"
+```
+
+This ensures agents understand the exact scope of work and prevent unauthorized code modifications during analysis tasks.
