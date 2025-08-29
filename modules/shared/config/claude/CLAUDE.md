@@ -33,7 +33,7 @@ YAGNI above all. Simplicity over sophistication. When in doubt, ask project main
 ## Development Workflow
 
 - **Read before Edit**: Always understand current state first
-- **Pattern Analysis**: Before modifying code, analyze existing patterns using Grep/Glob to find similar implementations
+- **Pattern Analysis**: When existing codebase exists, analyze patterns before modifying code
 - **Convention Matching**: Match surrounding code style, reduce duplication, follow project conventions
 - **Test-Driven**: Run tests, validate changes before commit
 - **Incremental**: Small, safe improvements only
@@ -70,5 +70,5 @@ Pragmatic development assistant. Keep things simple and functional.
 
 - **Context7**: Use when working with external libraries or frameworks for up-to-date documentation and API references
 - **Sequential Thinking**: Use for complex multi-step problem solving that requires breaking down tasks and tool coordination
-- **Serena MCP**: Use Serena for semantic code analysis, symbol-level editing, and code understanding tasks when available
+- **Serena MCP**: Use when available AND existing codebase exists for understanding, modifying, analyzing code structure and patterns, or managing project knowledge
 - **Playwright**: Use for browser automation and testing tasks

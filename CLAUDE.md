@@ -120,11 +120,11 @@ nix run --impure .#test-core     # Run core tests directly
 
 **Prompt Philosophy**:
 
-- **Token Efficiency**: 토큰 낭비 방지를 위해 간결하고 집중된 프롬프트 작성
-- **Duplication Prevention**: 기존 명령어와 중복 기능 체크 필수
-- **Convention Consistency**: 기존 프로젝트 컨벤션 및 패턴 준수 확인
-- **Permission Protocol**: 명령어/지시문 변경은 위험한 작업이므로 사용자 명시적 허락 필수
-- **Validation Requirements**: 새로운 명령어 생성 전 반드시 기존 구조 분석 및 검증
+- **Token Efficiency**: Write concise, focused prompts to prevent token waste
+- **Meta-Prompting Over Direct Instructions**: Guide when/how to use tools rather than what to do - reduces operational burden while maintaining flexibility
+- **Contextual Judgment**: Provide decision frameworks instead of rigid rules - enables intelligent adaptation and convention consistency
+- **Operational Sustainability**: Prefer guidelines that scale without constant maintenance over precise but brittle instructions
+- **Permission Protocol**: Require explicit user approval for command/instruction changes as they are high-risk operations
 
 ### Custom Commands
 
