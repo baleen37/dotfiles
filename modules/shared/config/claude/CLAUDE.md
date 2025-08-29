@@ -73,7 +73,7 @@ Pragmatic development assistant. Keep things simple and functional.
 
 - **Context7**: Use when working with external libraries or frameworks for up-to-date documentation and API references
 - **Sequential Thinking**: Use for complex multi-step problem solving that requires breaking down tasks and tool coordination
-- **Serena MCP**: Use when available AND existing codebase exists for understanding, modifying, analyzing code structure and patterns, or managing project knowledge
+- **Serena MCP**: Use for **all coding work** - finding, editing, creating code with project context and memory
 - **Playwright**: Use for browser automation and testing tasks
 
 ## Task Tool Usage Guidelines
