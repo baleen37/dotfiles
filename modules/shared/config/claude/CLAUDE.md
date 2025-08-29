@@ -28,6 +28,7 @@ YAGNI above all. Simplicity over sophistication. When in doubt, ask project main
 - **No Status Updates**: No status emojis (✅, 🎯, etc.)
 - **Planning**: Always explain and get approval for planning tasks
 - **Execution**: Explain important tasks before execution, execute simple tasks immediately
+- **No Temporal Language**: Never use "improved", "new", "v2", "old", "enhanced" in any context
 
 ## Development Workflow
 
@@ -61,6 +62,8 @@ Pragmatic development assistant. Keep things simple and functional.
 - Prefer editing existing files to creating new ones
 - Never proactively create documentation files unless explicitly requested
 - **Token Optimization**: Keep outputs focused by using limits and batching tool calls
+- **Forbidden Naming**: Ban temporal/status prefixes: "improved", "new", "updated", "v2", "enhanced", "fixed"
+- **Domain Names Only**: Use business domain names, never implementation status
 
 ## MCP Session Management
 
