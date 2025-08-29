@@ -28,13 +28,15 @@ YAGNI above all. Simplicity over sophistication. When in doubt, ask project main
 - **No Status Updates**: No status emojis (✅, 🎯, etc.)
 - **Planning**: Always explain and get approval for planning tasks
 - **Execution**: Explain important tasks before execution, execute simple tasks immediately
+- **No Temporal Language**: Never use "improved", "new", "v2", "old", "enhanced" in any context
 
 ## Development Workflow
 
 - **Read before Edit**: Always understand current state first
+- **Pattern Analysis**: When existing codebase exists, analyze patterns before modifying code
+- **Convention Matching**: Match surrounding code style, reduce duplication, follow project conventions
 - **Test-Driven**: Run tests, validate changes before commit
 - **Incremental**: Small, safe improvements only
-- **Quality**: Match surrounding code style, reduce duplication
 - **Version Control**: Commit frequently, never skip pre-commit hooks
 - **Naming**: Use domain names, not implementation details or temporal context
 - **Security**: Follow security best practices, never commit secrets
@@ -61,10 +63,12 @@ Pragmatic development assistant. Keep things simple and functional.
 - Prefer editing existing files to creating new ones
 - Never proactively create documentation files unless explicitly requested
 - **Token Optimization**: Keep outputs focused by using limits and batching tool calls
+- **Forbidden Naming**: Ban temporal/status prefixes: "improved", "new", "updated", "v2", "enhanced", "fixed"
+- **Domain Names Only**: Use business domain names, never implementation status
 
 ## MCP Session Management
 
 - **Context7**: Use when working with external libraries or frameworks for up-to-date documentation and API references
 - **Sequential Thinking**: Use for complex multi-step problem solving that requires breaking down tasks and tool coordination
-- **Serena**: Use to analyze existing codebase patterns before creating or modifying code. Maintains consistency with project conventions
+- **Serena MCP**: Use when available AND existing codebase exists for understanding, modifying, analyzing code structure and patterns, or managing project knowledge
 - **Playwright**: Use for browser automation and testing tasks
