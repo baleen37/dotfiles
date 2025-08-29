@@ -125,6 +125,7 @@ nix run --impure .#test-core     # Run core tests directly
 - **Contextual Judgment**: Provide decision frameworks instead of rigid rules - enables intelligent adaptation and convention consistency
 - **Operational Sustainability**: Prefer guidelines that scale without constant maintenance over precise but brittle instructions
 - **Permission Protocol**: Require explicit user approval for command/instruction changes as they are high-risk operations
+- **Claude Code Modification Rule**: When modifying Claude Code configurations, commands, or instructions - always prioritize token efficiency and conciseness
 
 ### Custom Commands
 
@@ -175,6 +176,12 @@ Claude configurations are automatically deployed via symbolic links during syste
 1. **Source**: `~/dotfiles/modules/shared/config/claude/`
 2. **Target**: `~/.claude/` (Claude Code user directory)
 3. **Method**: Folder-level symbolic links via `claude-activation.nix`
+
+**Configuration Guidelines**:
+
+- All Claude Code modifications must use English for technical content
+- Prioritize token efficiency in all prompts and instructions
+- Keep commands and agents concise and focused
 
 **Symbolic Link Structure**:
 
