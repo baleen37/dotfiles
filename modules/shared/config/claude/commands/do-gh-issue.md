@@ -1,4 +1,4 @@
-# GitHub Issue Workflow
+# Do GitHub Issue
 
 Handle a specific GitHub issue with a systematic approach:
 
