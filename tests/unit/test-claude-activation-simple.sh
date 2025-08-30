@@ -4,39 +4,21 @@
 
 set -euo pipefail
 
-# 테스트 환경 설정
-TEST_DIR=$(mktemp -d)
-SOURCE_BASE="$TEST_DIR/source"
-TARGET_BASE="$TEST_DIR/target"
-CLAUDE_DIR="$TARGET_BASE/.claude"
-
 # 공통 라이브러리 로드
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../lib/common.sh"
 
-# 테스트 결과 추적
-TESTS_PASSED=0
-TESTS_FAILED=0
+# 테스트별 커스텀 setup/teardown 함수
+setup_custom() {
+    log_debug "Claude activation 테스트 커스텀 setup 실행"
 
-# 테스트 헬퍼 함수
-run_test() {
-    local test_name="$1"
-    local condition="$2"
+    # 테스트 전용 디렉토리 생성
+    SOURCE_BASE="$TEST_CASE_TEMP_DIR/source"
+    TARGET_BASE="$TEST_CASE_TEMP_DIR/target"
+    CLAUDE_DIR="$TARGET_BASE/.claude"
 
-    if eval "$condition"; then
-        log_success "$test_name"
-        ((TESTS_PASSED++))
-        return 0
-    else
-        log_fail "$test_name"
-        ((TESTS_FAILED++))
-        return 1
-    fi
-}
-
-# 테스트 환경 설정
-setup_environment() {
-    log_info "테스트 환경 설정..."
+    # 전역으로 내보내기
+    export SOURCE_BASE TARGET_BASE CLAUDE_DIR
 
     mkdir -p "$SOURCE_BASE" "$CLAUDE_DIR"
 
@@ -49,7 +31,13 @@ setup_environment() {
 }
 EOF
 
-    log_success "테스트 환경 준비 완료"
+    log_debug "Claude activation 테스트 환경 준비 완료"
+}
+
+teardown_custom() {
+    log_debug "Claude activation 테스트 커스텀 teardown 실행"
+    # 특별히 정리할 리소스가 있다면 여기에 추가
+    # 기본 teardown_test_case에서 임시 디렉토리는 자동으로 정리됨
 }
 
 # claude-activation의 create_settings_copy 함수
@@ -86,47 +74,55 @@ create_settings_copy() {
     fi
 }
 
+# 개별 테스트 함수들
+test_basic_file_copy() {
+    create_settings_copy "$SOURCE_BASE/settings.json" "$CLAUDE_DIR/settings.json"
+    assert_file_exists "$CLAUDE_DIR/settings.json" "파일이 복사됨"
+    if [[ -L "$CLAUDE_DIR/settings.json" ]]; then
+        return 1  # 심볼릭 링크이면 실패
+    fi
+    assert_not_empty "regular_file_test" "심볼릭 링크가 아닌 일반 파일임"
+}
+
+test_file_permissions() {
+    create_settings_copy "$SOURCE_BASE/settings.json" "$CLAUDE_DIR/settings.json"
+    local permissions=$(stat -f "%OLp" "$CLAUDE_DIR/settings.json" 2>/dev/null || stat -c "%a" "$CLAUDE_DIR/settings.json" 2>/dev/null)
+    assert_equals "644" "$permissions" "644 권한 설정됨"
+}
+
+test_symlink_to_copy_conversion() {
+    # 먼저 심볼릭 링크 생성
+    ln -sf "$SOURCE_BASE/settings.json" "$CLAUDE_DIR/settings.json"
+    assert_symlink "$CLAUDE_DIR/settings.json" "초기에 심볼릭 링크임"
+
+    # 복사본으로 변환
+    create_settings_copy "$SOURCE_BASE/settings.json" "$CLAUDE_DIR/settings.json"
+    assert_file_exists "$CLAUDE_DIR/settings.json" "복사본으로 변환됨"
+
+    # 심볼릭 링크가 아님을 확인
+    if [[ -L "$CLAUDE_DIR/settings.json" ]]; then
+        return 1  # 여전히 심볼릭 링크이면 실패
+    fi
+    return 0
+}
+
 # 테스트 실행
 main() {
-    log_header "Claude Activation 간단한 테스트"
+    begin_test_suite "Claude Activation 간단한 테스트"
 
-    setup_signal_handlers
-    setup_environment
-
-    # 테스트 1: 기본 복사
-    log_info "테스트 1: 기본 파일 복사"
-    create_settings_copy "$SOURCE_BASE/settings.json" "$CLAUDE_DIR/settings.json"
-    run_test "파일이 복사됨" "[[ -f '$CLAUDE_DIR/settings.json' ]]"
-    run_test "심볼릭 링크가 아님" "[[ ! -L '$CLAUDE_DIR/settings.json' ]]"
-
-    # 테스트 2: 권한 확인
-    log_info "테스트 2: 파일 권한 확인"
-    local permissions=$(stat -f "%OLp" "$CLAUDE_DIR/settings.json" 2>/dev/null || stat -c "%a" "$CLAUDE_DIR/settings.json" 2>/dev/null)
-    run_test "644 권한 설정됨" "[[ '$permissions' == '644' ]]"
-
-    # 테스트 3: 심볼릭 링크에서 복사본으로 변환
-    log_info "테스트 3: 심볼릭 링크 변환"
-    rm -f "$CLAUDE_DIR/settings.json"
-    ln -sf "$SOURCE_BASE/settings.json" "$CLAUDE_DIR/settings.json"
-    run_test "초기에 심볼릭 링크임" "[[ -L '$CLAUDE_DIR/settings.json' ]]"
-
-    create_settings_copy "$SOURCE_BASE/settings.json" "$CLAUDE_DIR/settings.json"
-    run_test "복사본으로 변환됨" "[[ ! -L '$CLAUDE_DIR/settings.json' && -f '$CLAUDE_DIR/settings.json' ]]"
-
-    # 결과 출력
-    echo
-    log_separator
-    log_header "테스트 결과"
-    log_info "통과: $TESTS_PASSED"
-    log_info "실패: $TESTS_FAILED"
-
-    if [[ $TESTS_FAILED -eq 0 ]]; then
-        log_success "모든 테스트가 통과했습니다! 🎉"
-        exit 0
-    else
-        log_error "일부 테스트가 실패했습니다."
+    # 환경 검증
+    validate_test_environment || {
+        log_error "테스트 환경 검증 실패"
         exit 1
-    fi
+    }
+
+    # 개별 테스트 실행
+    run_test "기본 파일 복사" test_basic_file_copy
+    run_test "파일 권한 확인" test_file_permissions
+    run_test "심볼릭 링크 변환" test_symlink_to_copy_conversion
+
+    # 테스트 결과 반환
+    end_test_suite "Claude Activation 간단한 테스트"
 }
 
 # 스크립트가 직접 실행될 때만 main 함수 호출

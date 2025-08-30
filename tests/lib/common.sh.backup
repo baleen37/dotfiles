@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+# ABOUTME: 테스트 공통 라이브러리 - 기본적인 공통 함수들만 제공
+# ABOUTME: 코드 중복 제거를 위한 최소한의 공통 기능
+
+set -euo pipefail
+
+# 색상 코드
+readonly RED='\033[0;31m'
+readonly GREEN='\033[0;32m'
+readonly YELLOW='\033[1;33m'
+readonly BLUE='\033[0;34m'
+readonly PURPLE='\033[0;35m'
+readonly CYAN='\033[0;36m'
+readonly NC='\033[0m'
+
+# 로깅 함수들
+log_info() {
+    echo -e "${GREEN}[INFO]${NC} $1" >&2
+}
+
+log_error() {
+    echo -e "${RED}[ERROR]${NC} $1" >&2
+}
+
+log_warning() {
+    echo -e "${YELLOW}[WARNING]${NC} $1" >&2
+}
+
+log_debug() {
+    if [[ "${DEBUG:-false}" == "true" ]]; then
+        echo -e "${BLUE}[DEBUG]${NC} $1" >&2
+    fi
+}
+
+log_header() {
+    echo -e "${PURPLE}[TEST SUITE]${NC} $1" >&2
+}
+
+log_separator() {
+    echo -e "${CYAN}============================================${NC}" >&2
+}
+
+log_success() {
+    echo -e "${GREEN}✅${NC} $1" >&2
+}
+
+log_fail() {
+    echo -e "${RED}❌${NC} $1" >&2
+}
+
+# 필수 도구 확인
+check_required_tools() {
+    local tools=("$@")
+    local missing_tools=()
+
+    for tool in "${tools[@]}"; do
+        if ! command -v "$tool" >/dev/null 2>&1; then
+            missing_tools+=("$tool")
+        fi
+    done
+
+    if [[ ${#missing_tools[@]} -gt 0 ]]; then
+        log_error "필수 도구들이 누락되었습니다: ${missing_tools[*]}"
+        return 1
+    fi
+
+    return 0
+}
+
+# 테스트 환경 정리
+cleanup_test_environment() {
+    if [[ -n "${TEST_DIR:-}" ]] && [[ -d "$TEST_DIR" ]]; then
+        log_debug "테스트 환경 정리: $TEST_DIR"
+        rm -rf "$TEST_DIR"
+        unset TEST_DIR
+    fi
+}
+
+# 신호 핸들러 설정
+setup_signal_handlers() {
+    trap cleanup_test_environment EXIT INT TERM
+}
+
+log_debug "테스트 공통 라이브러리 로드 완료"

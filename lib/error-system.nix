@@ -323,56 +323,6 @@ let
     else
       { inherit message suggestions; type = "user"; severity = "error"; };
 
-in
-{
-  # Export constants for external use
-  inherit colors errorTypes severityLevels translations commonErrorPatterns predefinedErrors;
-
-  # Core error creation function
-  createError =
-    { message
-    , component ? "unknown"
-    , errorType ? "user"
-    , severity ? "error"
-    , locale ? "en"
-    , debugMode ? false
-    , context ? { }
-    , suggestions ? [ ]
-    , timestamp ? getTimestamp
-    }:
-    let
-      # Enhance message with pattern matching
-      enhanced = enhanceMessage {
-        inherit message locale suggestions;
-      };
-
-      # Use enhanced values or fallback to provided values
-      finalType = enhanced.type or errorType;
-      finalSeverity = enhanced.severity or severity;
-      finalMessage = enhanced.message;
-      finalSuggestions = enhanced.suggestions;
-
-      typeInfo = errorTypes.${finalType} or errorTypes.user;
-      severityInfo = severityLevels.${finalSeverity} or severityLevels.error;
-      t = getTranslation locale;
-    in
-    {
-      inherit message component locale debugMode context timestamp;
-      errorType = finalType;
-      severity = finalSeverity;
-      enhancedMessage = finalMessage;
-      suggestions = finalSuggestions;
-      icon = typeInfo.icon;
-      color = typeInfo.color;
-      category = typeInfo.category;
-      priority = typeInfo.priority;
-      severityIcon = severityInfo.icon;
-      severityColor = severityInfo.color;
-      severityPriority = severityInfo.priority;
-      exitCode = severityInfo.exitCode;
-      id = builtins.hashString "sha256" "${component}-${finalType}-${finalMessage}";
-    };
-
   # Format error for display
   formatError = error:
     let
@@ -432,6 +382,59 @@ in
 
     in
     "${header}\n\n${componentLine}\n${typeLine}\n\n${messageLine}${contextSection}${suggestionsSection}${debugSection}${helpText}";
+
+  # Core error creation function
+  createError =
+    { message
+    , component ? "unknown"
+    , errorType ? "user"
+    , severity ? "error"
+    , locale ? "en"
+    , debugMode ? false
+    , context ? { }
+    , suggestions ? [ ]
+    , timestamp ? getTimestamp
+    }:
+    let
+      # Enhance message with pattern matching
+      enhanced = enhanceMessage {
+        inherit message locale suggestions;
+      };
+
+      # Use enhanced values or fallback to provided values
+      finalType = enhanced.type or errorType;
+      finalSeverity = enhanced.severity or severity;
+      finalMessage = enhanced.message;
+      finalSuggestions = enhanced.suggestions;
+
+      typeInfo = errorTypes.${finalType} or errorTypes.user;
+      severityInfo = severityLevels.${finalSeverity} or severityLevels.error;
+      t = getTranslation locale;
+    in
+    {
+      inherit message component locale debugMode context timestamp;
+      errorType = finalType;
+      severity = finalSeverity;
+      enhancedMessage = finalMessage;
+      suggestions = finalSuggestions;
+      icon = typeInfo.icon;
+      color = typeInfo.color;
+      category = typeInfo.category;
+      priority = typeInfo.priority;
+      severityIcon = severityInfo.icon;
+      severityColor = severityInfo.color;
+      severityPriority = severityInfo.priority;
+      exitCode = severityInfo.exitCode;
+      id = builtins.hashString "sha256" "${component}-${finalType}-${finalMessage}";
+    };
+
+in
+rec {
+  # Export constants for external use
+  inherit colors errorTypes severityLevels translations commonErrorPatterns predefinedErrors;
+
+  # Export the createError and formatError functions
+  inherit createError formatError;
 
   # Convenience functions for creating specific error types
   userError = message: createError { inherit message; errorType = "user"; };

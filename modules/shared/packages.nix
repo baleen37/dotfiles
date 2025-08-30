@@ -36,6 +36,7 @@ with pkgs; let
     gnumake # GNU make build automation tool
     cmake # Cross-platform build system generator
     home-manager # Nix-based user environment management
+    bats # Bash Automated Testing System for shell script testing
   ];
 
   # Cloud and containerization tools

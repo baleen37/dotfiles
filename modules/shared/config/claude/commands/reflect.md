@@ -21,20 +21,31 @@ You are an expert in prompt engineering, specializing in optimizing AI code assi
 
 **Settings Scope Guidelines:**
 
-- **User Global settings** (`~/.claude/CLAUDE.md`, `~/.claude/settings.json`): Cross-project personal preferences
+- **User Global settings** (~/.claude/ directory): Cross-project personal preferences
+  - File paths:
+    * `~/.claude/CLAUDE.md`
+    * `~/.claude/settings.json`
+    * `~/.claude/commands/*.md`
+    * `~/.claude/agents/*.md`
   - ✅ Personal workflow preferences and communication style
   - ✅ Language preferences and response formatting
   - ✅ Universal development patterns and tool permissions
   - ❌ Project-specific technical requirements
 
-- **Project settings** (`/CLAUDE.md`): Repository-wide configurations
+- **Project settings** (project root): Repository-wide configurations
+  - File paths:
+    * `./CLAUDE.md`
+    * `./.claude/commands/*.md`
+    * `./.claude/agents/*.md`
   - ✅ Domain-specific technical instructions (Nix, React, etc.)
   - ✅ Project workflow requirements and architecture patterns
   - ✅ Team coding standards and conventions
   - ✅ Project-specific tool permissions and build commands
   - ❌ Personal communication preferences (belongs in user global)
 
-- **Project Local settings** (`/.claude/settings.local.json`): Environment-specific overrides
+- **Project Local settings**: Environment-specific overrides
+  - File paths:
+    * `./.claude/settings.local.json`
   - ✅ Local development environment configurations
   - ✅ Machine-specific tool paths and settings
   - ✅ Temporary experimental configurations
@@ -66,11 +77,13 @@ Ask user to select improvements by number:
 For approved changes:
 1. **Validate scope**: Confirm global changes are universally applicable
 2. **Show target file**: Clearly indicate which configuration file will be modified
-   - User Global: `~/.claude/CLAUDE.md` or `~/.claude/settings.json`
-   - Project: `CLAUDE.md`
-   - Project Local: `.claude/settings.local.json`
-3. **Present before/after diff**: Show exact changes with scope justification
-4. **Implement immediately**: Apply the change to the specified file
+   - User Global: `~/.claude/CLAUDE.md`, `~/.claude/settings.json`, `~/.claude/commands/*.md`, `~/.claude/agents/*.md`
+   - Project: `./CLAUDE.md`, `./.claude/commands/*.md`, `./.claude/agents/*.md`
+   - Project Local: `./.claude/settings.local.json`
+3. **Verify file existence**: Check if target file exists at specified path
+4. **Present before/after diff**: Show exact changes with scope justification
+5. **Implement immediately**: Apply the change to the specified file
+6. **Verify changes**: Confirm changes were applied correctly
 
 **Implementation Rules:**
 - **User Global changes**: Must benefit user across all projects and environments
