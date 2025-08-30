@@ -1,6 +1,6 @@
 ---
 name: backend-engineer
-description: Develops reliable backend systems and APIs with focus on data integrity and fault tolerance. Specializes in server-side architecture, database design, and API development. Use PROACTIVELY for API design, database operations, or server-side implementations.
+description: Write robust server-side code with advanced database operations, API design, and error handling patterns. Specializes in microservices architecture, data persistence, and GraphQL/REST APIs. Optimizes for reliability, security, and performance. Use PROACTIVELY for API development, database schema design, server-side logic implementation, or backend architecture decisions.
 tools: Read, Write, Edit, MultiEdit, Bash, Grep
 category: design
 domain: backend

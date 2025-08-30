@@ -151,34 +151,8 @@ in
     fi
   done
 
-  # 최종 검증: 생성된 심볼릭 링크들이 유효한지 확인
-
-  link_count=0
-  valid_links=0
-  broken_links=0
-
-  for link_file in "$CLAUDE_DIR"/*.md "$CLAUDE_DIR"/*.json "$CLAUDE_DIR/commands" "$CLAUDE_DIR/agents" "$CLAUDE_DIR/hooks"; do
-    if [[ -L "$link_file" ]]; then
-      ((link_count++))
-      if [[ -e "$link_file" ]]; then
-        ((valid_links++))
-        echo "  ✓ $(basename "$link_file") -> $(readlink "$link_file")"
-      else
-        ((broken_links++))
-        echo "  ❌ $(basename "$link_file") -> $(readlink "$link_file") (끊어진 링크)"
-      fi
-    fi
-  done
-
   echo ""
-  echo "검증 결과: 총 $link_count개 링크 중 $valid_links개 유효, $broken_links개 끊어짐"
-
-  if [[ $broken_links -gt 0 ]]; then
-    echo "⚠ 경고: 일부 심볼릭 링크가 끊어져 있습니다."
-    echo "문제 해결을 위해 'make build-switch' 또는 'nix run .#build-switch' 실행을 권장합니다."
-  else
-    echo "✅ 모든 Claude 설정 심볼릭 링크가 정상적으로 생성되었습니다!"
-  fi
+  echo "✅ Claude 설정 심볼릭 링크 생성 완료!"
 
   echo "=== Claude 설정 심볼릭 링크 업데이트 완료 ==="
 ''

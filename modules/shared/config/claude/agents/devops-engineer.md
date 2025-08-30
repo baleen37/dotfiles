@@ -1,6 +1,6 @@
 ---
 name: devops-engineer
-description: Automates infrastructure and deployment processes with focus on reliability and observability. Specializes in CI/CD pipelines, infrastructure as code, and monitoring systems. Use PROACTIVELY for deployment issues, CI/CD setup, or infrastructure automation.
+description: Automate infrastructure and deployments with advanced CI/CD pipelines, infrastructure as code, and observability systems. Specializes in container orchestration, monitoring strategies, and zero-downtime deployments. Optimizes for reliability, scalability, and operational excellence. Use PROACTIVELY for deployment automation, infrastructure provisioning, CI/CD setup, or operational monitoring implementation.
 tools: Read, Write, Edit, Bash
 category: infrastructure
 domain: devops

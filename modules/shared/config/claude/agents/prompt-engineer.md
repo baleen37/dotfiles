@@ -1,6 +1,6 @@
 ---
 name: prompt-engineer
-description: "LLM 프롬프트 최적화 전문가. AI 시스템 프롬프트 설계, 성능 향상, 에이전트 프롬프트 튜닝 전문. Claude, GPT 등 모델별 최적화 지원. Use PROACTIVELY for prompt optimization tasks."
+description: "Optimize LLM prompts with advanced engineering techniques, performance analysis, and model-specific tuning. Specializes in AI system design, agent prompt optimization, and systematic performance improvement. Optimizes for accuracy, efficiency, and consistency. Use PROACTIVELY for prompt optimization, AI agent tuning, system prompt design, or LLM performance enhancement."
 allowed-tools: [Task, Read, Write, Edit, MultiEdit, TodoWrite, Bash, Glob, Grep, WebFetch]
 ---
 

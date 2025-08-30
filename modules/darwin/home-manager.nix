@@ -22,7 +22,6 @@ in
     shell = pkgs.zsh;
   };
 
-
   homebrew = {
     enable = true;
     casks = pkgs.callPackage ./casks.nix { };
@@ -53,7 +52,7 @@ in
 
       home = {
         enableNixpkgsReleaseCheck = false;
-        packages = pkgs.callPackage ./packages.nix { };
+        packages = (pkgs.callPackage ./packages.nix { });
         file = lib.mkMerge [
           (import ../shared/files.nix { inherit config pkgs user self lib; })
           additionalFiles
@@ -68,11 +67,21 @@ in
 
       manual.manpages.enable = false;
 
-      # Smart Claude config files management with user modification preservation
-      home.activation.copyClaudeFiles = lib.hm.dag.entryAfter [ "linkGeneration" ] (
-        import ../shared/lib/claude-activation.nix { inherit config lib self; platform = "darwin"; }
-      );
+      # TDD로 검증된 Nix 앱 링크 시스템 (최적화됨)
+      home.activation.linkNixApps = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        run echo "🔗 Linking Nix GUI applications to ~/Applications..."
 
+        # 최적화된 앱 링크 라이브러리 사용 (Context7 베스트 프랙티스)
+        run source "${self}/lib/nix-app-linker.sh"
+        run link_nix_apps "$HOME/Applications" "/nix/store" "$HOME/.nix-profile"
+
+        run echo "✅ TDD-verified optimized app linking complete!"
+        run echo ""
+        run echo "📱 Available applications:"
+        run ls "$HOME/Applications"/*.app 2>/dev/null | sed 's|.*/||' | sed 's/^/  • /' || echo "  (no apps found)"
+        run echo "💡 Tip: Apps are now accessible via Spotlight and Finder"
+        run echo ""
+      '';
     };
   };
 

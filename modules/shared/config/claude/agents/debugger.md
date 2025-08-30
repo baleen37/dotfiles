@@ -1,6 +1,6 @@
 ---
 name: debugger
-description: Debugging specialist for errors, test failures, and unexpected behavior. Use PROACTIVELY when encountering any issues.
+description: Debug complex issues with advanced root cause analysis, error tracing, and systematic problem resolution. Specializes in reproducing bugs, analyzing stack traces, and implementing targeted fixes. Optimizes for quick diagnosis and comprehensive testing. Use PROACTIVELY for system errors, test failures, performance issues, or any unexpected behavior.
 model: sonnet
 category: analysis
 domain: debugging

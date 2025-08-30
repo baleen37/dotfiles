@@ -46,6 +46,7 @@ tasks/
 CLAUDE.local.md
 .claude/settings.local.json
 .gemini_temp/
+plan.md
 
 # Issues (local project management)
 issues/
@@ -56,3 +57,9 @@ modules/shared/config/claude/projects/
 modules/shared/config/claude/shell-snapshots/
 modules/shared/config/claude/statsig/
 modules/shared/config/claude/todos/
+
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd

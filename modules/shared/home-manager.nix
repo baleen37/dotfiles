@@ -29,50 +29,8 @@ let
 in
 {
   # macOS 사용자 레벨 기본값 설정 (root 권한 불필요)
-  targets.darwin = lib.mkIf isDarwin {
-    defaults = {
-      NSGlobalDomain = {
-        AppleShowAllExtensions = true;
-        ApplePressAndHoldEnabled = false;
-
-        KeyRepeat = 2; # Values: 120, 90, 60, 30, 12, 6, 2
-        InitialKeyRepeat = 15; # Values: 120, 94, 68, 35, 25, 15
-
-        "com.apple.mouse.tapBehavior" = 1;
-        "com.apple.sound.beep.volume" = 0.0;
-        "com.apple.sound.beep.feedback" = 0;
-
-        # Trackpad tracking speed 설정 (0.0 ~ 3.0, 기본값: 1.0, 최대: 3.0)
-        "com.apple.trackpad.scaling" = 3.0;
-
-        # 추가 trackpad 설정 (더 빠른 동작을 위함)
-        "com.apple.trackpad.enableSecondaryClick" = true;
-        "com.apple.trackpad.forceClick" = true;
-      };
-
-      "com.apple.dock" = {
-        autohide = true;
-        "show-recents" = false;
-        launchanim = true;
-        orientation = "bottom";
-        tilesize = 48;
-      };
-
-      "com.apple.finder" = {
-        _FXShowPosixPathInTitle = false;
-      };
-
-      "com.apple.AppleMultitouchTrackpad" = {
-        Clicking = true;
-        TrackpadThreeFingerDrag = true;
-        TrackpadSpeed = 5;
-      };
-
-      "com.apple.driver.AppleBluetoothMultitouch.trackpad" = {
-        TrackpadSpeed = 5;
-      };
-    };
-  };
+  # Note: targets.darwin 비활성화 - "Cannot nest composite types" 에러 방지
+  # 대신 home.activation에서 직접 defaults 명령 실행
 
   # 사용자 레벨 activation (root 권한 불필요)
   home.activation = {
@@ -89,19 +47,19 @@ in
       echo "Setting up keyboard input configuration..."
 
       # 한영키 전환을 Shift+Cmd+Space로 설정
-      $DRY_RUN_CMD /usr/bin/defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 60 "
-        <dict>
-          <key>enabled</key><true/>
-          <key>value</key><dict>
-            <key>parameters</key>
-            <array><integer>32</integer><integer>49</integer><integer>1179648</integer></array>
-            <key>type</key><string>standard</string>
-          </dict>
-        </dict>
-      "
+      # Note: 복잡한 nested dictionary는 macOS에서 지원되지 않아 비활성화
+      echo "⚠️  Keyboard shortcut configuration skipped (requires manual setup)"
+      echo "   To set Korean/English toggle to Shift+Cmd+Space:"
+      echo "   System Preferences > Keyboard > Shortcuts > Input Sources"
 
       # 추가 macOS 설정들
       echo "Applying additional macOS user-level settings..."
+
+      # macOS Services 설정 (Shift+Cmd+A 충돌 방지)
+      echo "🔧 Disabling 'Search man Page Index in Terminal' service..."
+      # Note: 복잡한 -dict-add 명령도 문제가 될 수 있어 비활성화
+      echo "   Manual setup required: System Preferences > Keyboard > Shortcuts > Services"
+      echo "✅ Service configuration noted for manual setup"
 
       # Dock 설정 적용
       $DRY_RUN_CMD killall Dock 2>/dev/null || true
@@ -186,9 +144,6 @@ in
 
         # Always color ls and group directories
         alias ls='ls --color=auto'
-
-        # Initialize direnv
-        eval "$(direnv hook zsh)"
 
         # Auto-update dotfiles on shell startup (with TTL)
         if [[ -x "$HOME/dotfiles/scripts/auto-update-dotfiles" ]]; then
@@ -282,6 +237,19 @@ in
           echo "Worktree: $(pwd) | Branch: $(git branch --show-current)"
           cc
         }
+
+        # SSH wrapper using autossh for automatic reconnection
+        ssh() {
+          # Check if autossh is available
+          if command -v autossh >/dev/null 2>&1; then
+            # Use autossh for automatic reconnection
+            # -M 0 disables autossh monitoring port (relies on SSH's ServerAliveInterval)
+            autossh -M 0 "$@"
+          else
+            # Fallback to regular ssh
+            command ssh "$@"
+          fi
+        }
       '';
     };
 
@@ -321,6 +289,9 @@ in
 
         # Issues (local project management)
         "issues/"
+
+        # Plan files (project planning)
+        "plan.md"
 
       ];
       userName = name;
@@ -525,16 +496,21 @@ in
 
     ssh = {
       enable = true;
+      enableDefaultConfig = false;
       includes = [
         "${getUserInfo.homePath}/.ssh/config_external"
       ];
-      extraConfig = ''
-        Host *
-          IdentitiesOnly yes
-          AddKeysToAgent yes
-      '' + lib.optionalString isDarwin ''
-        UseKeychain yes
-      '';
+      matchBlocks = {
+        "*" = {
+          identitiesOnly = true;
+          addKeysToAgent = "yes";
+          serverAliveInterval = 60;
+          serverAliveCountMax = 3;
+          extraOptions = {
+            TCPKeepAlive = "yes";
+          };
+        };
+      };
     };
 
     direnv = {
@@ -578,17 +554,29 @@ in
       historyLimit = 50000;
       extraConfig = ''
         # 기본 설정
-        set -g default-terminal "screen-256color"
+        set -g default-terminal "tmux-256color"
         set -g default-shell ${config.programs.zsh.package}/bin/zsh
         set -g default-command "${config.programs.zsh.package}/bin/zsh -l"
         set -g focus-events on
 
         # TERM 환경변수 설정 (색상 코드 표시 문제 해결)
-        set-environment -g TERM xterm-256color
+        set-environment -g TERM screen-256color
         set -g mouse on
         set -g base-index 1
         set -g pane-base-index 1
         set -g renumber-windows on
+
+        # 세션 안정성 향상을 위한 설정
+        set -g set-clipboard external
+        set -g remain-on-exit off
+        set -g allow-rename off
+        set -g destroy-unattached off
+        set -g status-interval 1
+
+        # 터미널 특성 오버라이드 - 색상 코드 깨짐 방지
+        set -ga terminal-overrides ",*256col*:Tc"
+        set -ga terminal-overrides ",screen-256color:Tc"
+        set -ga terminal-overrides ",xterm-256color:Tc"
 
         # 키보드 설정
         set-window-option -g xterm-keys on

@@ -92,6 +92,41 @@ nix run --impure .#test-core     # Run core tests directly
 - **Commands & Agents**: Reference Context7 for Claude Code command patterns and agent configurations
 - **Best Practices**: Context7 provides comprehensive examples for MCP integration, hooks, and workflow patterns
 
+### Claude Code Philosophy
+
+**Core Principles**:
+
+- **Simplicity First**: Commands should be intuitive and self-explanatory
+- **Flag Minimalism**: Avoid flag-based interfaces - only `-u` and `-tdd` flags are permitted
+- **Natural Language**: Prefer descriptive commands over cryptic abbreviations
+- **Context Awareness**: Commands should understand project context without explicit configuration
+
+**Flag Policy**:
+
+- **Prohibited**: All flags except explicitly allowed ones
+- **Allowed Flags**:
+  - `-u`: Update/upgrade operations
+  - `-tdd`: Test-driven development mode
+- **Alternative Approach**: Use separate commands instead of flags (e.g., `/create-pr draft` instead of `/create-pr --draft`)
+
+**Design Guidelines**:
+
+- Commands should read like natural language
+- Avoid complex option combinations
+- Prefer explicit commands over implicit behaviors
+- Maintain consistent naming patterns across all commands
+
+**Best Practices**: Refer to Context7 documentation for comprehensive Claude Code best practices, patterns, and implementation examples
+
+**Prompt Philosophy**:
+
+- **Token Efficiency**: Write concise, focused prompts to prevent token waste
+- **Meta-Prompting Over Direct Instructions**: Guide when/how to use tools rather than what to do - reduces operational burden while maintaining flexibility
+- **Contextual Judgment**: Provide decision frameworks instead of rigid rules - enables intelligent adaptation and convention consistency
+- **Operational Sustainability**: Prefer guidelines that scale without constant maintenance over precise but brittle instructions
+- **Permission Protocol**: Require explicit user approval for command/instruction changes as they are high-risk operations
+- **Claude Code Modification Rule**: When modifying Claude Code configurations, commands, or instructions - always prioritize token efficiency and conciseness
+
 ### Custom Commands
 
 Located in `modules/shared/config/claude/commands/`:
@@ -142,6 +177,12 @@ Claude configurations are automatically deployed via symbolic links during syste
 2. **Target**: `~/.claude/` (Claude Code user directory)
 3. **Method**: Folder-level symbolic links via `claude-activation.nix`
 
+**Configuration Guidelines**:
+
+- All Claude Code modifications must use English for technical content
+- Prioritize token efficiency in all prompts and instructions
+- Keep commands and agents concise and focused
+
 **Symbolic Link Structure**:
 
 ```bash
@@ -154,22 +195,6 @@ Claude configurations are automatically deployed via symbolic links during syste
 ```
 
 **Activation Trigger**: Home Manager activation script in `modules/shared/home-manager.nix`
-
-### Token Optimization
-
-Claude Code provides settings for optimizing token usage and preventing context bloat:
-
-**Context Bloat Prevention**:
-Long outputs from bash commands, MCP tools, or file reads can quickly consume context windows, leading to:
-
-- Increased costs per conversation
-- Slower response times
-- Loss of important context due to truncation
-- Poor conversation quality
-
-Token limits help maintain focused, cost-effective conversations by truncating verbose outputs while preserving essential information.
-
-**Reference**: Use Context7 for additional Claude Code optimization patterns
 
 ## Testing Standards
 
@@ -185,8 +210,15 @@ Token limits help maintain focused, cost-effective conversations by truncating v
 - **Cross-platform code** in shared modules with proper conditionals
 - **Test before commit** - use `make test-core` at minimum
 
+## Nix Best Practices
+
+- **Context7 First**: Nix/Home Manager 작업 시 Context7로 최신 API 확인 필수
+- **Modern API**: `run` 사용, `$DRY_RUN_CMD` 금지 (deprecated since 22.05)
+
 ## Global Commands
 
 - **`bl`**: Custom command dispatcher system
 - Commands stored in `~/.bl/commands/`
 - Extensible through Nix configuration
+
+- 명시적인 경로를 기입하지마. 상대경로나 ~/ 이러한 표현을 써줘

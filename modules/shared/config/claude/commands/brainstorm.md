@@ -1,68 +1,58 @@
 ---
 name: brainstorm
-description: "Transform vague ideas into concrete requirements through codebase analysis"
-agents: [system-architect, frontend-developer, backend-engineer]
+description: "Transform ideas into detailed specifications through systematic questioning"
+tools: [Write]
 ---
 
-# /brainstorm - Smart Requirements Discovery
+# /brainstorm - Iterative Specification Development
 
-**Purpose**: Convert fuzzy ideas into actionable specifications using codebase intelligence
+**Purpose**: Ask me one question at a time so we can develop a thorough, step-by-step spec for this idea. Each question builds on my previous answers, and our end goal is to have a detailed specification I can hand off to a developer.
 
-## Usage
+## How It Works
 
-```bash
-/brainstorm <idea>           # Smart discovery with codebase analysis
-```
+1. You give me an idea
+2. I ask **one question at a time**
+3. Each question builds on your previous answers
+4. We continue until we have a complete spec
+5. I save the spec as `spec.md`
+6. Optionally, I can create a GitHub repository
 
-## Execution Strategy
-
-- **Smart**: Codebase scan → intelligent questions → structured output
-
-## 2-Phase Process
-
-### Phase 1: Codebase Intelligence
-
-- Scan project files for tech stack, patterns, and architecture
-- Detect existing tools, frameworks, and conventions
-- Identify integration points and constraints
-- Present findings: "Based on your codebase using [X, Y, Z], I see [patterns]"
-
-### Phase 2: Smart Discovery
-
-Generate structured deliverables based on complexity:
-
-**Simple Ideas**: Direct conversion to:
-
-- User stories with acceptance criteria
-- Priority queue (P0/P1/P2)
-- Next steps
-
-**Complex Ideas**: Add strategic questions:
-
-- Platform choice (Web/Mobile/CLI)
-- Scale consideration (Personal/Department/Public)
-- Priority focus (Speed/Stability/Features)
-
-## MCP Integration
-
-- **Sequential**: Systematic thinking through requirement analysis
-- **Context7**: Tech stack validation and framework best practices
-
-## Examples
+## Question Flow Example
 
 ```bash
-/brainstorm "team task tracker"     # Full discovery with codebase scan
-/brainstorm "user auth system"      # Authentication system planning  
-/brainstorm "mobile app idea"       # Mobile application brainstorming
+/brainstorm "team collaboration app"
 ```
 
-## Agent Routing
+```
+Q1: What's the main problem this app solves for teams?
+A1: Teams struggle to track who's working on what
 
-- **system-architect**: Complex systems requiring architectural decisions
-- **frontend-developer**: UI/UX focused ideas and component planning
-- **backend-engineer**: API design, data modeling, service architecture
+Q2: What size teams are you targeting?
+A2: Small teams, 5-15 people
 
-## Workflow
+Q3: Do they need real-time updates or is periodic sync enough?
+A3: Real-time is important for coordination
 
-1. **Codebase Scan**: Analyze existing code → present tech stack findings
-2. **Smart Discovery**: Generate appropriate output based on idea complexity
+Q4: What platforms do they need - web, mobile, desktop?
+A4: Web-first, mobile nice to have
+```
+
+## Final Output
+
+After our conversation, I will:
+
+1. **Summarize** everything we've discussed
+2. **Create `spec.md`** with:
+   - Project overview and objectives
+   - User requirements and workflows
+   - Technical requirements
+   - Success criteria
+3. **Ask if you want** a GitHub repository created
+
+## Next Step
+
+The `spec.md` becomes input for `/plan` to create implementation blueprint.
+
+```bash
+/brainstorm "idea" → spec.md → /plan → plan.md
+```

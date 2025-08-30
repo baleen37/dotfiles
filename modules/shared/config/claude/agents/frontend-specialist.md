@@ -1,6 +1,6 @@
 ---
 name: frontend-specialist
-description: Build React components, implement responsive layouts, and handle client-side state management. Optimizes frontend performance and ensures accessibility. Use PROACTIVELY when creating UI components or fixing frontend issues.
+description: Build modern React applications with advanced hooks, state management, and responsive design patterns. Specializes in component architecture, performance optimization, and accessibility standards. Optimizes for user experience, bundle size, and code maintainability. Use PROACTIVELY for UI component development, frontend performance optimization, or client-side architecture decisions.
 model: sonnet
 category: design
 domain: frontend

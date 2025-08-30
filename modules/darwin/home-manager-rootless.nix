@@ -68,8 +68,10 @@ let
 
     # 한영키 전환을 Shift+Cmd+Space로 설정 (사용자 레벨)
     # This is a simplified version that doesn't require system-level access
-    defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 60 '<dict><key>enabled</key><true/><key>value</key><dict><key>parameters</key><array><integer>32</integer><integer>49</integer><integer>1179648</integer></array><key>type</key><string>standard</string></dict></dict>'
-    defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 61 '<dict><key>enabled</key><false/></dict>'
+    # Note: Complex nested dictionary operations are disabled due to macOS limitations
+    echo "⚠️  Keyboard shortcut configuration skipped (requires manual setup)"
+    echo "   To set Korean/English toggle to Shift+Cmd+Space:"
+    echo "   System Preferences > Keyboard > Shortcuts > Input Sources"
 
     echo "✅ Keyboard input settings configured"
     echo "📝 Changes will take effect after logout/login"
@@ -164,11 +166,6 @@ in
       ];
 
       manual.manpages.enable = false;
-
-      # Smart Claude config files management with user modification preservation
-      home.activation.copyClaudeFiles = lib.hm.dag.entryAfter [ "linkGeneration" ] (
-        import ../shared/lib/claude-activation.nix { inherit config lib self; platform = "darwin"; }
-      );
 
       # User-level activation scripts for macOS settings
       home.activation.applyMacosDefaults = lib.hm.dag.entryAfter [ "linkGeneration" ] ''

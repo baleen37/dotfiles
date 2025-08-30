@@ -16,26 +16,20 @@ def main():
         # Get the prompt
         prompt = input_data.get("prompt", "")
 
-        # Check if prompt ends with -u flag (as a separate word)
+        # Check if -u flag is present
         stripped_prompt = prompt.strip()
-        if stripped_prompt.endswith(" -u"):
-            # Remove the -u flag
-            clean_prompt = stripped_prompt[:-3].rstrip()
+        if stripped_prompt.endswith(" -u") or stripped_prompt == "-u":
+            # Remove -u flag from original prompt and add ultrathink context
+            if stripped_prompt == "-u":
+                clean_prompt = ""
+            else:
+                clean_prompt = stripped_prompt[:-3].rstrip()
 
-            # Append ultrathink message
-            prompt = f"{clean_prompt}\n\n{ULTRATHINK_MESSAGE}"
-
-            # Update the input data
-            input_data["prompt"] = prompt
-        elif stripped_prompt == "-u":
-            # Handle case where prompt is just "-u"
-            prompt = f"\n\n{ULTRATHINK_MESSAGE}"
-
-            # Update the input data
-            input_data["prompt"] = prompt
-
-        # Output the modified (or original) data
-        print(json.dumps(input_data))
+            # Output the clean prompt and ultrathink message as context
+            print(f"{clean_prompt}\n\n{ULTRATHINK_MESSAGE}")
+        else:
+            # No -u flag, just pass through
+            print(json.dumps(input_data))
 
     except json.JSONDecodeError as e:
         print(f"Error parsing JSON input: {e}", file=sys.stderr)

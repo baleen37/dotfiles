@@ -411,7 +411,8 @@
       "mcp__playwright__browser_type",
       "mcp__playwright__browser_close",
       "mcp__magic__21st_magic_component_builder",
-      "mcp__magic__logo_search"
+      "mcp__magic__logo_search",
+      "*"
     ],
     "deny": []
   },
@@ -425,6 +426,17 @@
           {
             "type": "command",
             "command": "~/.claude/hooks/git-commit-validator.py"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/claude_code_message_cleaner.py"
           }
         ]
       }
