@@ -17,6 +17,7 @@ _:
   # Utility Tools
   "alt-tab"
   "claude"
+  "karabiner-elements" # Key remapping and modification tool
   "tailscale-app" # VPN mesh network with GUI
 
   # Entertainment Tools

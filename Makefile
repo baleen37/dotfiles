@@ -42,6 +42,23 @@ help:
 	@echo "  test-perf   - Run performance tests"
 	@echo "  test-list   - List available test categories"
 	@echo ""
+	@echo "🔬 Unit Testing (NEW):"
+	@echo "  test-unit-extended - Run comprehensive lib unit tests"
+	@echo "  test-lib-user-resolution - Test user resolution library"
+	@echo "  test-lib-platform-system - Test platform detection library"
+	@echo "  test-lib-error-system - Test error handling system"
+	@echo ""
+	@echo "🧪 BATS Testing Framework:"
+	@echo "  test-bats - Run all BATS shell script tests"
+	@echo "  test-bats-lib - Run BATS library tests"
+	@echo "  test-bats-system - Run BATS system tests"
+	@echo "  test-bats-integration - Run BATS integration tests"
+	@echo "  test-bats-claude - Test Claude activation"
+	@echo "  test-bats-user-resolution - BATS user resolution tests"
+	@echo "  test-bats-error-system - BATS error system tests"
+	@echo "  test-bats-report - Generate TAP report for BATS tests"
+	@echo "  test-bats-report-ci - Generate CI-compatible TAP report"
+	@echo ""
 	@echo "🤖 Claude Code MCP:"
 	@echo "  setup-mcp   - Install MCP servers for Claude Code"
 	@echo ""
@@ -98,6 +115,108 @@ test-perf:
 
 test-list:
 	@$(NIX) run --impure .#test-list $(ARGS)
+
+# New comprehensive unit tests
+test-unit-extended:
+	@echo "🧪 Running extended unit tests for lib modules..."
+	@$(NIX) build --impure .#checks.$(shell $(NIX) eval --impure --expr 'builtins.currentSystem' | tr -d '"').lib-user-resolution-test -L
+	@$(NIX) build --impure .#checks.$(shell $(NIX) eval --impure --expr 'builtins.currentSystem' | tr -d '"').lib-platform-system-test -L
+	@$(NIX) build --impure .#checks.$(shell $(NIX) eval --impure --expr 'builtins.currentSystem' | tr -d '"').lib-error-system-test -L
+	@echo "✅ All extended unit tests completed successfully!"
+
+# Individual lib tests
+test-lib-user-resolution:
+	@echo "🧪 Testing lib/user-resolution.nix..."
+	@$(NIX) build --impure .#checks.$(shell $(NIX) eval --impure --expr 'builtins.currentSystem' | tr -d '"').lib-user-resolution-test -L
+
+test-lib-platform-system:
+	@echo "🧪 Testing lib/platform-system.nix..."
+	@$(NIX) build --impure .#checks.$(shell $(NIX) eval --impure --expr 'builtins.currentSystem' | tr -d '"').lib-platform-system-test -L
+
+test-lib-error-system:
+	@echo "🧪 Testing lib/error-system.nix..."
+	@$(NIX) build --impure .#checks.$(shell $(NIX) eval --impure --expr 'builtins.currentSystem' | tr -d '"').lib-error-system-test -L
+
+# BATS testing framework integration
+test-bats:
+	@echo "🧪 Running all BATS shell script tests..."
+	@if command -v bats >/dev/null 2>&1; then \
+		bats tests/bats/; \
+	else \
+		echo "❌ BATS not found. Installing via Nix..."; \
+		$(NIX) shell nixpkgs#bats -c bats tests/bats/; \
+	fi
+
+test-bats-platform:
+	@echo "🧪 Running BATS platform detection tests..."
+	@if command -v bats >/dev/null 2>&1; then \
+		bats tests/bats/test_platform_detection.bats; \
+	else \
+		$(NIX) shell nixpkgs#bats -c bats tests/bats/test_platform_detection.bats; \
+	fi
+
+test-bats-build:
+	@echo "🧪 Running BATS build system tests..."
+	@if command -v bats >/dev/null 2>&1; then \
+		bats tests/bats/test_build_system.bats; \
+	else \
+		$(NIX) shell nixpkgs#bats -c bats tests/bats/test_build_system.bats; \
+	fi
+
+test-bats-claude:
+	@echo "🧪 Running BATS Claude activation tests..."
+	@if command -v bats >/dev/null 2>&1; then \
+		bats tests/bats/test_claude_activation.bats; \
+	else \
+		$(NIX) shell nixpkgs#bats -c bats tests/bats/test_claude_activation.bats; \
+	fi
+
+test-bats-user-resolution:
+	@echo "🧪 Running BATS user resolution tests..."
+	@if command -v bats >/dev/null 2>&1; then \
+		bats tests/bats/test_lib_user_resolution.bats; \
+	else \
+		$(NIX) shell nixpkgs#bats -c bats tests/bats/test_lib_user_resolution.bats; \
+	fi
+
+test-bats-error-system:
+	@echo "🧪 Running BATS error system tests..."
+	@if command -v bats >/dev/null 2>&1; then \
+		bats tests/bats/test_lib_error_system.bats; \
+	else \
+		$(NIX) shell nixpkgs#bats -c bats tests/bats/test_lib_error_system.bats; \
+	fi
+
+# BATS test categories
+test-bats-lib:
+	@echo "🧪 Running all BATS library tests..."
+	@$(MAKE) test-bats-user-resolution
+	@$(MAKE) test-bats-error-system
+
+test-bats-system:
+	@echo "🧪 Running all BATS system tests..."
+	@$(MAKE) test-bats-platform
+	@$(MAKE) test-bats-build
+
+test-bats-integration:
+	@echo "🧪 Running BATS integration tests..."
+	@$(MAKE) test-bats-claude
+
+# BATS with TAP reporting
+test-bats-report:
+	@echo "📊 Running BATS tests with TAP reporting..."
+	@./scripts/bats-tap-reporter.sh ./test-reports
+
+test-bats-report-ci:
+	@echo "🤖 Running BATS tests for CI with TAP output..."
+	@./scripts/bats-tap-reporter.sh ./test-reports/ci
+
+# Comprehensive test suite
+test-comprehensive:
+	@echo "🔬 Running comprehensive test suite..."
+	@$(MAKE) test-core
+	@$(MAKE) test-bats-all
+	@echo "✅ All tests completed successfully"
 
 # Fast parallel testing (2-3 seconds total)
 test-quick:
@@ -233,4 +352,4 @@ setup-mcp: check-user
 	@echo "🤖 Setting up Claude Code MCP servers..."
 	@./scripts/setup-claude-mcp --main
 
-.PHONY: help check-user lint smoke test test-quick test-core test-workflow test-perf test-list build build-linux build-darwin build-current build-fast build-switch switch apply deploy platform-info setup-mcp
+.PHONY: help check-user lint smoke test test-quick test-core test-workflow test-perf test-list test-unit-extended test-lib-user-resolution test-lib-platform-system test-lib-error-system test-bats test-bats-lib test-bats-system test-bats-integration test-bats-platform test-bats-build test-bats-claude test-bats-user-resolution test-bats-error-system test-bats-report test-bats-report-ci build build-linux build-darwin build-current build-fast build-switch switch apply deploy platform-info setup-mcp

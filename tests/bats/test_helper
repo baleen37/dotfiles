@@ -1,0 +1,127 @@
+# BATS Test Helper Functions
+# Common utilities and assertions for all BATS tests
+
+# Color codes for output
+export RED='\033[0;31m'
+export GREEN='\033[0;32m'
+export YELLOW='\033[1;33m'
+export BLUE='\033[0;34m'
+export NC='\033[0m' # No Color
+
+# Test environment detection
+export IS_CI="${CI:-false}"
+export IS_GITHUB_ACTIONS="${GITHUB_ACTIONS:-false}"
+
+# Project paths
+export PROJECT_ROOT="${PROJECT_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
+export LIB_DIR="$PROJECT_ROOT/lib"
+export MODULES_DIR="$PROJECT_ROOT/modules"
+export TESTS_DIR="$PROJECT_ROOT/tests"
+
+# Common assertions
+assert_file_exists() {
+    local file="$1"
+    [ -f "$file" ] || {
+        echo "Expected file to exist: $file" >&2
+        return 1
+    }
+}
+
+assert_directory_exists() {
+    local dir="$1"
+    [ -d "$dir" ] || {
+        echo "Expected directory to exist: $dir" >&2
+        return 1
+    }
+}
+
+assert_command_exists() {
+    local cmd="$1"
+    command -v "$cmd" >/dev/null 2>&1 || {
+        echo "Expected command to exist: $cmd" >&2
+        return 1
+    }
+}
+
+assert_nix_eval() {
+    local expr="$1"
+    local expected="$2"
+
+    local result
+    result=$(nix eval --impure --expr "$expr" 2>/dev/null | tr -d '"')
+
+    [ "$result" = "$expected" ] || {
+        echo "Expected: $expected" >&2
+        echo "Got: $result" >&2
+        echo "Expression: $expr" >&2
+        return 1
+    }
+}
+
+assert_contains() {
+    local haystack="$1"
+    local needle="$2"
+
+    [[ "$haystack" == *"$needle"* ]] || {
+        echo "Expected '$haystack' to contain '$needle'" >&2
+        return 1
+    }
+}
+
+# Skip helpers
+skip_if_ci() {
+    [ "$IS_CI" = "true" ] && skip "${1:-Skipping in CI environment}"
+}
+
+skip_if_not_darwin() {
+    [[ "$(uname -s)" != "Darwin" ]] && skip "${1:-Skipping on non-Darwin systems}"
+}
+
+skip_if_not_linux() {
+    [[ "$(uname -s)" != "Linux" ]] && skip "${1:-Skipping on non-Linux systems}"
+}
+
+# Test data helpers
+create_temp_config() {
+    local config_file="$1"
+    local content="$2"
+
+    mkdir -p "$(dirname "$config_file")"
+    echo "$content" > "$config_file"
+}
+
+# Output helpers
+log_info() {
+    echo -e "${BLUE}[INFO]${NC} $*" >&2
+}
+
+log_warning() {
+    echo -e "${YELLOW}[WARN]${NC} $*" >&2
+}
+
+log_error() {
+    echo -e "${RED}[ERROR]${NC} $*" >&2
+}
+
+log_success() {
+    echo -e "${GREEN}[SUCCESS]${NC} $*" >&2
+}
+
+# Performance measurement
+start_timer() {
+    export TEST_START_TIME=$(date +%s)
+}
+
+end_timer() {
+    local end_time=$(date +%s)
+    local duration=$((end_time - TEST_START_TIME))
+    log_info "Test duration: ${duration}s"
+}
+
+# Cleanup helpers
+cleanup_nix_store() {
+    # Only run in CI to avoid interfering with development
+    if [ "$IS_CI" = "true" ]; then
+        nix store gc --option keep-going true >/dev/null 2>&1 || true
+    fi
+}
