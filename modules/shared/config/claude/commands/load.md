@@ -1,86 +1,79 @@
-# /load - Intelligent Context Loading
+---
+name: load
+description: "Load previously saved TodoWrite state and work context"
+agents: []
+---
 
-**Purpose**: Load project files and context into AI for comprehensive understanding and analysis.
+# /load - Load Work State
+
+Load previously saved TodoWrite state and work context
 
 ## Usage
 
 ```bash
-/load                    # Load current project
-/load [path]             # Load specific path  
-/load [pattern]          # Load files matching pattern
+/load                        # List available saved sessions
+/load <slug>                 # Load specific session (slug/partial search)
+/load <number>               # Select from list by number
 ```
 
-## What It Does
+## List Mode
 
-<details>
-<summary><strong>Smart Context Analysis</strong></summary>
+Scans current directory (`./`) for `session_*.md` files:
 
-Intelligently analyzes and loads project context:
+```
+📋 Found 3 saved sessions:
 
-- **File Dependencies**: Understands import/require relationships
-- **Recent Changes**: Prioritizes recently modified files
-- **Project Structure**: Maps directory hierarchy and key files
-- **Semantic Understanding**: Groups related functionality together
+1. fix-build-errors (202408121530)
+   Status: pending(2), in-progress(1), completed(0)
+   Context: Fixing lib/platform-system.nix build errors
 
-</details>
+2. config-improvements (202408110915)
+   Status: pending(1), in-progress(0), completed(3)
+   Context: Claude command session management improvements
 
-<details>
-<summary><strong>Adaptive Loading</strong></summary>
-
-Optimizes loading based on project characteristics:
-
-- **Size Management**: Handles large projects through selective loading
-- **Type Recognition**: Identifies and prioritizes source code over generated files  
-- **Context Relevance**: Focuses on files most relevant to current work
-- **Memory Efficiency**: Balances comprehensive context with performance
-
-</details>
-
-## Common Scenarios
-
-### New Project Analysis
-```bash
-/load                    # Full project overview
+3. nix-update (202408101400)
+   Status: pending(0), in-progress(1), completed(4)
+   Context: flake inputs update and cross-platform testing
 ```
 
-### Feature Development  
-```bash
-/load src/components     # Focus on specific module
-/load *.config.*         # Configuration files only
+## Load Process
+
+Pre-load confirmation message:
+
+```
+🔄 Loading session: fix-build-errors
+
+Current todo list will be replaced with:
+
+🔄 In Progress (1):
+  - Fix platform-system.nix syntax errors
+
+📋 Pending (2):
+  - Run tests and validation
+  - Update documentation
+
+Continue? [Y/n]
 ```
 
-### Bug Investigation
-```bash
-/load src/utils/helper.js    # Specific problematic file
-/load tests/ src/utils/      # Tests and related code
-```
+## Core Features
 
-## Best Practices
+- **File Discovery**: Searches `./session_*.md` pattern in current directory
+- **Markdown Parsing**: Extracts state from ## Current Todos section
+- **Fuzzy Matching**: Partial slug matching (e.g., "build" → "fix-build-errors")
+- **State Loading**: Accurate state regeneration via TodoWrite
+- **Safety Confirmation**: Shows current state before load and requests confirmation
+- **Chronological Sorting**: Automatic time-based ordering with yyyymmddHHMM format
 
-- **Progressive Loading**: Start broad, then narrow to specific areas
-- **Context Management**: Load only what's needed for current task  
-- **Performance Consideration**: Exclude build outputs and large binaries
-- **Workflow Integration**: Use with other commands for comprehensive analysis
+## Safety Features
 
-## Troubleshooting
-
-### Loading Takes Too Long
-- **Cause**: Large project with many files
-- **Solution**: Use specific paths or patterns to limit scope
-
-### Memory Issues
-- **Cause**: Too many files loaded at once  
-- **Solution**: Load incrementally by directory or file type
-
-### Missing Expected Files
-- **Cause**: Files excluded by ignore patterns
-- **Solution**: Check .gitignore and specify explicit paths if needed
+- **Session Validation**: Automatic detection of corrupted session files
+- **Backup State Verification**: Pre-validation of restorable state
+- **Current Work Protection**: Warns against loss of in-progress work
+- **Error Recovery**: Rollback to previous state on load failure
 
 ## Integration
 
-Works seamlessly with other commands:
-- `/analyze` for loaded context analysis
-- `/implement` using loaded project understanding
-- `/debug` with full context awareness
-
-The command provides foundation for all AI-assisted development tasks by ensuring comprehensive project understanding.
+- Works with `/save` command for session management
+- Uses current working directory (`./`) for easy access
+- Same Markdown format as `/save` command with chronological naming
+- Compatible with TodoWrite/TodoRead tool ecosystem
