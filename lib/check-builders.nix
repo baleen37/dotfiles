@@ -236,6 +236,17 @@ in
 
         # Minimal lib/error-system.nix test (due to complexity issues)
         lib-error-system-test = import "${self}/tests/unit/test-lib-error-system-minimal.nix" { inherit pkgs; lib = nixpkgs.lib; };
+
+        # New enhanced unit tests
+        build-optimization-test = import "${self}/tests/unit/test-build-optimization.nix" { inherit pkgs; lib = nixpkgs.lib; };
+        performance-integration-test = import "${self}/tests/unit/test-performance-integration.nix" { inherit pkgs; lib = nixpkgs.lib; inherit system; };
+        claude-config-validation-test = import "${self}/tests/unit/test-claude-config-validation.nix" { inherit pkgs; lib = nixpkgs.lib; };
+      };
+
+      # New integration tests
+      integrationTests = {
+        package-installation-verification = import "${self}/tests/integration/test-package-installation-verification.nix" { inherit pkgs; lib = nixpkgs.lib; inherit system; };
+        cross-platform-compatibility = import "${self}/tests/integration/test-cross-platform-compatibility.nix" { inherit pkgs; lib = nixpkgs.lib; inherit system; };
       };
 
       # Extract test categories based on naming patterns (updated for current tests)
@@ -411,7 +422,7 @@ in
           touch $out
         '';
     in
-    testSuite // unitTests // shellIntegrationTests // {
+    testSuite // unitTests // integrationTests // shellIntegrationTests // {
       # Category-specific test runners
       test-core = pkgs.runCommand "test-core"
         {

@@ -82,7 +82,7 @@ rec {
             lib.hasPrefix pattern baseName ||
             lib.hasSuffix pattern baseName
           )
-          unnecessaryRebuildFiles;
+          rebuildTriggerAnalysis.unnecessaryRebuildFiles;
       in
         !isUnnecessary;
   };
