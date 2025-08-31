@@ -420,7 +420,8 @@
   "enableAllProjectMcpServers": false,
   "rejectedMcpServers": [
     "playwright",
-    "magic"
+    "magic",
+    "serena"
   ],
   "hooks": {
     "PreToolUse": [
