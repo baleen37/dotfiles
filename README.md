@@ -1,6 +1,8 @@
 # jito's Dotfiles
 
 > **Pragmatic and simple development environment**
+>
+> *Test change for PR template validation*
 
 Nix-based dotfiles for macOS and NixOS. Works out of the box without complex configuration.
 
