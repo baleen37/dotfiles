@@ -1,224 +1,67 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Nix-based dotfiles for macOS/NixOS using flakes, Home Manager, nix-darwin.
 
-## Dotfiles Repository Context
-
-This is a Nix-based dotfiles repository for macOS and NixOS systems, using Nix flakes, Home Manager, and nix-darwin.
-
-## Essential Commands
-
-### Building and Applying Configurations
+## Commands
 
 ```bash
-# Always set USER first
+# Build & Apply (set USER first)
 export USER=$(whoami)
+./apps/[platform]/build-switch    # Direct platform build
+make build-switch                 # Alternative approach
 
-# Build and apply in one step (recommended)
-./apps/x86_64-linux/build-switch   # For NixOS
-./apps/aarch64-darwin/build-switch # For macOS ARM
-./apps/x86_64-darwin/build-switch  # For macOS Intel
+# Testing
+make test-core                    # Essential tests  
+make test                         # Full test suite
+make smoke                        # Quick validation
 
-# Alternative: Use make commands
-make build          # Build all configurations
-make switch         # Build and apply current platform
-make build-switch   # One-step build and apply
-```
-
-### Testing
-
-```bash
-make test           # Run all tests
-make test-core      # Fast essential tests
-make test-workflow  # End-to-end workflow tests  
-make smoke          # Quick validation check
-```
-
-### Platform-Specific Operations
-
-```bash
-# Direct Nix operations
-nix run --impure .#build         # Build current platform
-nix run --impure .#build-switch  # Build and apply with sudo handling
-nix run --impure .#test-core     # Run core tests directly
+# Direct Nix
+nix run --impure .#build-switch   # Build with sudo handling
 ```
 
 ## Architecture
 
-### Core Structure
+**Structure:** `flake.nix` → `lib/` (platform detection) → `modules/` (shared/darwin/nixos) → `hosts/`
 
-- **`flake.nix`**: Main entry point using `lib/flake-config.nix`
-- **`lib/`**: System utilities, platform detection (`platform-system.nix`, `user-resolution.nix`)
-- **`modules/`**: Modular configurations
-  - `shared/`: Cross-platform configurations
-  - `darwin/`: macOS-specific settings
-  - `nixos/`: NixOS-specific settings
-- **`hosts/`**: System configurations (`darwin/default.nix`, `nixos/default.nix`)
-- **`scripts/`**: Build automation and utilities
+**Home Manager Rules:**
 
-### Home Manager Architecture Rules
+- `shared/home-manager.nix`: Cross-platform only
+- Platform modules: Import shared, add platform-specific
+- Never import shared directly at system level
+- Use `lib.optionalString isDarwin/isLinux` for conditionals
 
-- **`modules/shared/home-manager.nix`**: Contains ONLY cross-platform configurations
-- **`modules/darwin/home-manager.nix`**: Darwin-specific, imports shared
-- **`modules/nixos/home-manager.nix`**: NixOS-specific, imports shared
-- **NEVER import shared directly at system level** - always through platform modules
-- Use `lib.optionalString isDarwin/isLinux` for conditional configurations
+**Packages:** All via Nix (`modules/shared/packages.nix`), macOS apps via `modules/darwin/casks.nix`, Python via `uv`
 
-### Package Management
+## Claude Code
 
-- **`modules/shared/packages.nix`**: Core packages installed via Nix
-- **`modules/darwin/casks.nix`**: macOS GUI applications via Homebrew
-- **Python tools**: Managed via `uv` (fast Python package installer)
-- **All installations must be managed via Nix** - no ad-hoc installations
+**MCP:** Context7, Sequential, Playwright (`make setup-mcp`)
 
-### Build System
+**Configuration:** Located `modules/shared/config/claude/` → symlinked to `~/.claude/`
 
-- **Platform detection**: Automatic via `lib/platform-system.nix`
-- **User resolution**: Dynamic via `lib/user-resolution.nix`
-- **Build scripts**: Located in `apps/[platform]/build-switch`
-- **Common logic**: `scripts/build-switch-common.sh`
+- Commands: `/analyze`, `/build`, `/commit`, `/create-pr`, `/debug`, `/implement`, etc.
+- Agents: `backend-engineer`, `frontend-specialist`, `system-architect`, `test-automator`, etc.
+- Settings: Permission, environment, MCP configuration
 
-## Claude Code Integration
+**Design Principles:**
 
-### MCP Servers
+- Use Context7 for documentation/settings changes
+- Flag minimalism: Only `-u` (update) and `-tdd` flags allowed
+- Natural language commands, avoid cryptic abbreviations
+- Token efficiency: Concise prompts, meta-prompting over direct instructions
+- Require approval for command/instruction changes
 
-- Context7, Sequential, Playwright configured
-- Setup: `make setup-mcp`
+## Development
 
-### Context7 Integration
+**Testing:** Unit + integration + E2E required. `make smoke` before commits, `make test` before PRs.
 
-- **Claude Code Documentation**: Use Context7 when modifying Claude Code settings, commands, agents, or configurations
-- **Settings Updates**: Always consult Context7 documentation before changing Claude settings
-- **Commands & Agents**: Reference Context7 for Claude Code command patterns and agent configurations
-- **Best Practices**: Context7 provides comprehensive examples for MCP integration, hooks, and workflow patterns
+**Policies:**
 
-### Claude Code Philosophy
+- All installations via Nix (declarative configuration)
+- Platform-specific → respective modules (darwin/nixos)  
+- Cross-platform → shared modules with conditionals
+- Context7 first for Nix/Home Manager API updates
+- Use modern `run`, avoid deprecated `$DRY_RUN_CMD`
 
-**Core Principles**:
+**Global Commands:** `bl` dispatcher system (`~/.bl/commands/`), extensible via Nix.
 
-- **Simplicity First**: Commands should be intuitive and self-explanatory
-- **Flag Minimalism**: Avoid flag-based interfaces - only `-u` and `-tdd` flags are permitted
-- **Natural Language**: Prefer descriptive commands over cryptic abbreviations
-- **Context Awareness**: Commands should understand project context without explicit configuration
-
-**Flag Policy**:
-
-- **Prohibited**: All flags except explicitly allowed ones
-- **Allowed Flags**:
-  - `-u`: Update/upgrade operations
-  - `-tdd`: Test-driven development mode
-- **Alternative Approach**: Use separate commands instead of flags (e.g., `/create-pr draft` instead of `/create-pr --draft`)
-
-**Design Guidelines**:
-
-- Commands should read like natural language
-- Avoid complex option combinations
-- Prefer explicit commands over implicit behaviors
-- Maintain consistent naming patterns across all commands
-
-**Best Practices**: Refer to Context7 documentation for comprehensive Claude Code best practices, patterns, and implementation examples
-
-**Prompt Philosophy**:
-
-- **Token Efficiency**: Write concise, focused prompts to prevent token waste
-- **Meta-Prompting Over Direct Instructions**: Guide when/how to use tools rather than what to do - reduces operational burden while maintaining flexibility
-- **Contextual Judgment**: Provide decision frameworks instead of rigid rules - enables intelligent adaptation and convention consistency
-- **Operational Sustainability**: Prefer guidelines that scale without constant maintenance over precise but brittle instructions
-- **Permission Protocol**: Require explicit user approval for command/instruction changes as they are high-risk operations
-- **Claude Code Modification Rule**: When modifying Claude Code configurations, commands, or instructions - always prioritize token efficiency and conciseness
-
-### Custom Commands
-
-Located in `modules/shared/config/claude/commands/`:
-
-- `/analyze`, `/build`, `/commit`, `/create-pr`, `/debug`, `/implement`, `/spawn`, `/task`, `/test`
-- PR workflow: `/fix-pr`, `/update-pr`  
-- State management: `/save`, `/restore`
-
-### Specialized Agents
-
-Located in `modules/shared/config/claude/agents/`:
-
-- `backend-engineer`, `frontend-specialist`, `system-architect`, `test-automator`
-- `python-ultimate-expert`, `typescript-pro`, `golang-pro`
-- `debugger`, `code-reviewer`, `devops-engineer`
-
-### Configuration Structure
-
-Claude Code settings are organized in `modules/shared/config/claude/`:
-
-```text
-modules/shared/config/claude/
-├── CLAUDE.md                    # Global user instructions
-├── settings.json                # Permission, environment, MCP settings
-├── agents/                      # Specialized AI agents (13 agents)
-│   ├── backend-engineer.md
-│   ├── frontend-specialist.md
-│   ├── python-ultimate-expert.md
-│   └── ...
-├── commands/                    # Custom slash commands (24 commands)
-│   ├── /create-pr.md
-│   ├── /analyze.md
-│   ├── /implement.md
-│   └── ...
-└── hooks/                       # Event-based automation hooks
-    ├── user-prompt-submit-hook.sh
-    ├── tool-before-use-hook.sh
-    └── ...
-```
-
-### Configuration Activation
-
-Claude configurations are automatically deployed via symbolic links during system build:
-
-**Deployment Process**:
-
-1. **Source**: `~/dotfiles/modules/shared/config/claude/`
-2. **Target**: `~/.claude/` (Claude Code user directory)
-3. **Method**: Folder-level symbolic links via `claude-activation.nix`
-
-**Configuration Guidelines**:
-
-- All Claude Code modifications must use English for technical content
-- Prioritize token efficiency in all prompts and instructions
-- Keep commands and agents concise and focused
-
-**Symbolic Link Structure**:
-
-```bash
-~/.claude/
-├── CLAUDE.md -> ~/dotfiles/modules/shared/config/claude/CLAUDE.md
-├── settings.json -> ~/dotfiles/modules/shared/config/claude/settings.json
-├── agents/ -> ~/dotfiles/modules/shared/config/claude/agents/
-├── commands/ -> ~/dotfiles/modules/shared/config/claude/commands/
-└── hooks/ -> ~/dotfiles/modules/shared/config/claude/hooks/
-```
-
-**Activation Trigger**: Home Manager activation script in `modules/shared/home-manager.nix`
-
-## Testing Standards
-
-- **Required**: Unit + integration + E2E tests for all changes
-- **Test categories**: core, workflow, performance
-- **Quick validation**: `make smoke` before commits
-- **Full suite**: `make test` before PRs
-
-## Development Policies
-
-- **All installations via Nix** - maintain declarative configuration
-- **Platform-specific code** goes in respective modules (darwin/nixos)
-- **Cross-platform code** in shared modules with proper conditionals
-- **Test before commit** - use `make test-core` at minimum
-
-## Nix Best Practices
-
-- **Context7 First**: Nix/Home Manager 작업 시 Context7로 최신 API 확인 필수
-- **Modern API**: `run` 사용, `$DRY_RUN_CMD` 금지 (deprecated since 22.05)
-
-## Global Commands
-
-- **`bl`**: Custom command dispatcher system
-- Commands stored in `~/.bl/commands/`
-- Extensible through Nix configuration
-
-- 명시적인 경로를 기입하지마. 상대경로나 ~/ 이러한 표현을 써줘
+**Path Convention:** Use relative paths (`~/`, `./`) not absolute paths.

@@ -6,16 +6,32 @@ agents: [performance-optimizer, root-cause-analyzer]
 
 # /analyze - Comprehensive Codebase Analysis
 
-**Purpose**: Deliver thorough analysis of your codebase with actionable insights for improvement. Goes beyond simple code review to provide strategic recommendations for architecture, performance, and maintainability.
+**Purpose**: Deliver intelligent codebase analysis with actionable improvement insights. Goes beyond simple code review to provide strategic recommendations for architecture, performance, and maintainability.
 
 ## Usage
 
 ```bash
-/analyze                    # Full codebase analysis
-/analyze [path]             # Targeted analysis
+/analyze                    # Smart full codebase analysis
+/analyze [path]             # Targeted path analysis
 /analyze troubleshoot       # Deep-dive problem diagnosis
+/analyze security           # Security-focused analysis
+/analyze performance        # Performance bottleneck analysis
+/analyze architecture       # Architecture and design analysis
 /analyze [error/issue]      # Root cause analysis
 ```
+
+## Analysis Triggers
+
+**Automatic Detection**:
+- Error patterns in output → Root cause analysis mode
+- Performance keywords → Performance bottleneck analysis  
+- Security terms → Security-focused analysis
+- Architecture discussions → Design pattern analysis
+- Technology stack → Framework-specific best practices
+
+**Context-Aware Behavior**:
+- Automatically adjusts analysis scope and depth based on input
+- Auto-switches analysis mode based on detected patterns
 
 ## Analysis Coverage
 
@@ -37,10 +53,14 @@ agents: [performance-optimizer, root-cause-analyzer]
 - **Pattern Recognition**: Identify recurring problems and systemic issues
 - **Multi-Layer Investigation**: Analyze problems across code, configuration, environment, and architecture
 
-**Actionable Output**:
-- **Priority Scoring**: Issues ranked by impact and effort required
-- **Code Examples**: Before/after snippets showing specific improvements
-- **Implementation Guidance**: Step-by-step instructions for applying recommendations
+## Analysis Output
+
+**Structured Results**:
+- **Executive Summary**: High-level findings and priority issues
+- **Detailed Analysis**: Domain-specific findings with evidence
+- **Action Items**: Prioritized recommendations by impact and effort
+- **Implementation Guide**: Step-by-step improvement instructions
+- **Code Examples**: Before/after snippets for specific improvements
 
 ## MCP Integration
 

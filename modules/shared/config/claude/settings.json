@@ -417,7 +417,11 @@
     "deny": []
   },
   "model": "sonnet",
-  "enableAllProjectMcpServers": true,
+  "enableAllProjectMcpServers": false,
+  "rejectedMcpServers": [
+    "playwright",
+    "magic"
+  ],
   "hooks": {
     "PreToolUse": [
       {

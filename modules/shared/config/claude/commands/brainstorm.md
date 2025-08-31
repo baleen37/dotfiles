@@ -1,21 +1,30 @@
 ---
 name: brainstorm
-description: "Transform ideas into detailed specifications through systematic questioning"
+description: "Transform ideas into detailed specifications through systematic questioning and structured exploration"
 tools: [Write]
+mcp: [Sequential]
 ---
 
 # /brainstorm - Iterative Specification Development
 
-**Purpose**: Ask me one question at a time so we can develop a thorough, step-by-step spec for this idea. Each question builds on my previous answers, and our end goal is to have a detailed specification I can hand off to a developer.
+**Purpose**: Transform vague ideas into comprehensive, actionable specifications through intelligent, systematic questioning. Uses structured exploration to uncover all requirement dimensions and create developer-ready documentation.
 
 ## How It Works
 
-1. You give me an idea
-2. I ask **one question at a time**
-3. Each question builds on your previous answers
-4. We continue until we have a complete spec
-5. I save the spec as `spec.md`
-6. Optionally, I can create a GitHub repository
+**Systematic Exploration Process**:
+1. Initial idea analysis and domain classification
+2. Sequential MCP-guided questioning for comprehensive discovery
+3. Multi-dimensional exploration (technical, user, business perspectives)
+4. Iterative refinement through structured dialogue
+5. Specification synthesis and validation
+6. Final deliverable creation (`spec.md`)
+7. Optional GitHub repository setup
+
+**Intelligence Features**:
+- Context-aware question generation based on domain and complexity
+- Automatic identification of missing requirements areas
+- Progressive deepening from high-level concepts to implementation details
+- Cross-domain validation (technical feasibility vs user needs)
 
 ## Question Flow Example
 
@@ -51,8 +60,13 @@ After our conversation, I will:
 
 ## Next Step
 
-The `spec.md` becomes input for `/plan` to create implementation blueprint.
+The `spec.md` becomes input for `/workflow` to create implementation blueprint.
 
 ```bash
-/brainstorm "idea" → spec.md → /plan → plan.md
+/brainstorm "idea" → spec.md → /workflow → implementation plan
 ```
+
+## MCP Integration
+
+- **Sequential**: Structured questioning flow and requirement discovery process
+- **Context7**: Domain-specific best practices and requirement templates
