@@ -1,46 +1,65 @@
 ---
 name: save
-description: "Save current TodoWrite state and work context to restore later"
+description: "Save current work context, session state, and learnings for cross-session continuity"
+mcp: [Serena]
 ---
 
-# /save - Save Work State
+# /save - Comprehensive Session Preservation
 
-Save current TodoWrite state and work context for later restoration
+Save current work context, TodoWrite state, and accumulated learnings with intelligent context preservation and cross-session memory management.
 
 ## Usage
 
 ```bash
-/save <name>    # Save with specific identifier
-/save           # Auto-generate name from main todo
+/save                    # Smart auto-save (session + context)
+/save <name>             # Named save with specific identifier  
+/save session            # TodoWrite state only
+/save context            # Project context and discoveries
+/save learnings          # Accumulated insights and patterns
 ```
 
 ## Storage Location & Contents
 
 **Storage Path**: `./session_{slug}_{yyyymmddHHMM}.md`
 
-**Saved Data**:
-- Complete TodoWrite state (including metadata)
-- Problem analysis and technical details
-- Execution commands and estimated timeframes
-- Decision points and learning insights
-- Blockers and risk assessments
+**Smart Context Preservation**:
+- Complete TodoWrite state with execution history
+- Project context and architectural decisions
+- Code patterns and implementation insights
+- Problem-solution mappings and learnings
+- Cross-session knowledge accumulation
+- Dependency relationships and technical constraints
 
 ## Core Features
 
-- **Context Preservation**: Maintains current work state and decisions
-- **Progress Tracking**: Tracks completed vs pending tasks
-- **Technical Details**: Commands, timeframes, and reasoning process
-- **Auto-naming**: Intelligent naming from current TodoWrite tasks
-- **Safety Checks**: Warns before overwriting existing plans
+**Intelligent Preservation**:
+- Automatic context classification and prioritization
+- Cross-session learning accumulation via Serena MCP
+- Smart deduplication of similar contexts
+- Progressive knowledge building over multiple sessions
+
+**Session Management**:
+- TodoWrite state with complete execution history
+- Technical decisions and reasoning preservation
+- Auto-naming based on current work context
+- Incremental saves without data loss
 
 ## Safety Features
 
 - **Overwrite Protection**: Confirmation prompt when plan name exists
 - **File Validation**: Pre-save plan file integrity checks
 
+## MCP Integration
+
+- **Serena**: Cross-session memory management and learning accumulation
+- Intelligent context indexing and retrieval
+- Pattern recognition across save sessions
+- Automatic knowledge graph building
+
 ## Integration
 
-- Works with `/restore` command for session recovery
-- Stores in current working directory (`./`)
-- Human-readable Markdown format with chronological naming
-- Compatible with TodoWrite/TodoRead tool ecosystem
+- Seamless `/restore` compatibility for session recovery  
+- Local storage in current working directory (`./`)
+- Human-readable Markdown with intelligent naming
+- Full TodoWrite ecosystem compatibility
+- Progressive context building across multiple sessions
