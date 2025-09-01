@@ -24,7 +24,6 @@ YAGNI above all. Simplicity over sophistication. When in doubt, ask project main
 - Discard tasks from TodoWrite list without explicit approval
 - Remove code comments unless you can prove they are actively false
 - Add comments about what used to be there or how something has changed
-- Use temporal context in comments or code ("recently refactored", "moved", "new", "enhanced")
 - Change whitespace that does not affect execution or output
 - Use `git add -A` without first doing `git status`
 - Assume test failures are not your fault or responsibility
@@ -45,7 +44,6 @@ YAGNI above all. Simplicity over sophistication. When in doubt, ask project main
 - **No Status Updates**: No status emojis (✅, 🎯, etc.)
 - **Planning**: Always explain and get approval for planning tasks
 - **Execution**: Explain important tasks before execution, execute simple tasks immediately
-- **No Temporal Language**: Never use "improved", "new", "v2", "old", "enhanced" in any context
 
 ## Development Workflow
 
@@ -55,7 +53,6 @@ YAGNI above all. Simplicity over sophistication. When in doubt, ask project main
 - **Test-Driven**: Run tests, validate changes before commit
 - **Incremental**: Small, safe improvements only
 - **Version Control**: Commit frequently, never skip pre-commit hooks
-- **Naming**: Use domain names, not implementation details or temporal context
 - **Security**: Follow security best practices, never commit secrets
 
 ## Role
@@ -101,8 +98,37 @@ FOR EVERY NEW FEATURE OR BUGFIX, YOU MUST follow TDD:
 - Prefer editing existing files to creating new ones
 - Never proactively create documentation files unless explicitly requested
 - **Token Optimization**: Keep outputs focused by using limits and batching tool calls
-- **Forbidden Naming**: Ban temporal/status prefixes: "improved", "new", "updated", "v2", "enhanced", "fixed"
-- **Domain Names Only**: Use business domain names, never implementation status
+
+## Naming and Comments
+
+### Naming Requirements:
+- Names MUST tell what code does, not how it's implemented or its history
+- NEVER use implementation details in names (e.g., "ZodValidator", "MCPWrapper", "JSONParser")
+- NEVER use temporal/historical context in names (e.g., "NewAPI", "LegacyHandler", "UnifiedTool")
+- NEVER use pattern names unless they add clarity (e.g., prefer "Tool" over "ToolFactory")
+
+Good names tell a story about the domain:
+- `Tool` not `AbstractToolInterface`
+- `RemoteTool` not `MCPToolWrapper`
+- `Registry` not `ToolRegistryManager`
+- `execute()` not `executeToolWithValidation()`
+
+### Comment Requirements:
+Comments must describe what the code does NOW, not:
+- What it used to do
+- How it was refactored
+- What framework/library it uses internally
+- Why it's better than some previous version
+
+Examples:
+```
+// BAD: This uses Zod for validation instead of manual checking
+// BAD: Refactored from the old validation system
+// BAD: Wrapper around MCP tool protocol
+// GOOD: Executes tools with validated arguments
+```
+
+**WARNING**: If you catch yourself writing "new", "old", "legacy", "wrapper", "unified", or implementation details in names or comments, STOP and find a better name that describes the thing's actual purpose.
 
 ## MCP Session Management
 
