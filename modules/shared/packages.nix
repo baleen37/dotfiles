@@ -84,6 +84,7 @@ with pkgs; let
   databaseTools = [
     postgresql # Object-relational database system
     sqlite # Lightweight SQL database engine
+    redis # Redis command-line client and tools
   ];
 
   # Productivity and utility applications
