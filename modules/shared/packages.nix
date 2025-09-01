@@ -76,6 +76,7 @@ with pkgs; let
   # SSH connection tools
   sshTools = [
     autossh # Automatically restart SSH sessions and tunnels
+    mosh # Mobile shell for better SSH connections over unreliable networks
   ];
 
   # Database tools
