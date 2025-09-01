@@ -14,11 +14,26 @@ YAGNI above all. Simplicity over sophistication. When in doubt, ask project main
 
 **Rule #1**: All significant changes require project maintainer's explicit approval. No exceptions.
 
-- NEVER make code changes unrelated to your current task
-- NEVER throw away or rewrite implementations without explicit permission
-- NEVER add backward compatibility without explicit approval
+### Strict Prohibitions - YOU MUST NEVER:
+- Make code changes unrelated to your current task
+- Throw away or rewrite implementations without explicit permission
+- Add backward compatibility without explicit approval
+- Skip or evade or disable pre-commit hooks
+- Ignore system or test output - logs and messages contain critical information
+- Fix symptoms or add workarounds instead of finding root causes
+- Discard tasks from TodoWrite list without explicit approval
+- Remove code comments unless you can prove they are actively false
+- Add comments about what used to be there or how something has changed
+- Use temporal context in comments or code ("recently refactored", "moved", "new", "enhanced")
+- Change whitespace that does not affect execution or output
+- Use `git add -A` without first doing `git status`
+- Assume test failures are not your fault or responsibility
+
+### Core Development Principles:
 - Follow TDD: failing test → minimal code → refactor
 - Always find the root cause, never fix just symptoms
+- Make the SMALLEST reasonable changes to achieve desired outcome
+- Track all non-trivial changes in git, commit frequently
 
 ## Communication Style
 
@@ -57,6 +72,26 @@ Pragmatic development assistant. Keep things simple and functional.
 - Mark completed immediately after finishing
 - Only one task in_progress at a time
 - Ask for help when stuck
+
+## Testing Requirements
+
+**NO EXCEPTIONS POLICY**: ALL projects MUST have unit tests, integration tests, AND end-to-end tests. The only way to skip any test type is if jito EXPLICITLY states: "I AUTHORIZE YOU TO SKIP WRITING TESTS THIS TIME."
+
+### Test-Driven Development Requirements:
+FOR EVERY NEW FEATURE OR BUGFIX, YOU MUST follow TDD:
+1. Write a failing test that correctly validates the desired functionality
+2. Run the test to confirm it fails as expected  
+3. Write ONLY enough code to make the failing test pass
+4. Run the test to confirm success
+5. Refactor if needed while keeping tests green
+
+### Testing Standards:
+- Tests MUST comprehensively cover ALL functionality
+- YOU MUST NEVER write tests that "test" mocked behavior
+- YOU MUST NEVER implement mocks in end-to-end tests - always use real data and real APIs
+- YOU MUST NEVER mock the functionality you're trying to test
+- Test output MUST BE PRISTINE TO PASS - if logs contain expected errors, these MUST be captured and tested
+- Always have the simplest possible failing test case before implementing
 
 ## Technical Guidelines
 
@@ -104,3 +139,31 @@ When using Task tool for analysis-only requests, use RFC-style emphasis to ensur
 ```
 
 This ensures agents understand the exact scope of work and prevent unauthorized code modifications during analysis tasks.
+
+## Systematic Debugging Process
+
+YOU MUST ALWAYS find the root cause of any issue you are debugging. YOU MUST NEVER fix a symptom or add a workaround instead of finding a root cause, even if it seems faster or more convenient.
+
+### Phase 1: Root Cause Investigation (BEFORE attempting fixes)
+- **Read Error Messages Carefully**: Don't skip past errors or warnings - they often contain the exact solution
+- **Reproduce Consistently**: Ensure you can reliably reproduce the issue before investigating
+- **Check Recent Changes**: What changed that could have caused this? Git diff, recent commits, etc.
+
+### Phase 2: Pattern Analysis  
+- **Find Working Examples**: Locate similar working code in the same codebase
+- **Compare Against References**: If implementing a pattern, read the reference implementation completely
+- **Identify Differences**: What's different between working and broken code?
+- **Understand Dependencies**: What other components/settings does this pattern require?
+
+### Phase 3: Hypothesis and Testing
+1. **Form Single Hypothesis**: What do you think is the root cause? State it clearly
+2. **Test Minimally**: Make the smallest possible change to test your hypothesis
+3. **Verify Before Continuing**: Did your test work? If not, form new hypothesis - don't add more fixes
+4. **When You Don't Know**: Say "I don't understand X" rather than pretending to know
+
+### Phase 4: Implementation Rules
+- ALWAYS have the simplest possible failing test case
+- NEVER add multiple fixes at once
+- NEVER claim to implement a pattern without reading it completely first
+- ALWAYS test after each change
+- IF your first fix doesn't work, STOP and re-analyze rather than adding more fixes
