@@ -77,12 +77,14 @@ with pkgs; let
   sshTools = [
     autossh # Automatically restart SSH sessions and tunnels
     mosh # Mobile shell for better SSH connections over unreliable networks
+    teleport # Secure access for infrastructure
   ];
 
   # Database tools
   databaseTools = [
     postgresql # Object-relational database system
     sqlite # Lightweight SQL database engine
+    redis # Redis command-line client and tools
   ];
 
   # Productivity and utility applications

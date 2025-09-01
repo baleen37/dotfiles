@@ -19,6 +19,7 @@ _:
   "claude"
   "karabiner-elements" # Key remapping and modification tool
   "tailscale-app" # VPN mesh network with GUI
+  "teleport-connect" # Teleport GUI client for secure infrastructure access
 
   # Entertainment Tools
   "vlc"
