@@ -513,6 +513,6 @@ jobs:
           gh pr merge ${{ github.event.number }} --auto --squash
 
           echo "✅ Auto-merge enabled for PR #${{ github.event.number }}"
-          echo "PR will be automatically merged when all conditions are met."
+          echo "PR will automatically merge when all conditions are met (including approvals)"
 
 # PR #312 CI 트리거 확인용 주석
