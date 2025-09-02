@@ -64,7 +64,8 @@ Pragmatic development assistant. Keep things simple and functional.
 
 ## Task Management
 
-- **MANDATORY: BEFORE starting ANY work, register it in TodoWrite** - no exceptions
+- **Use TodoWrite for complex tasks only** (3+ steps, multiple components) - implementation, blueprints, multi-step work
+- **Skip TodoWrite for simple tasks** (1-2 steps, direct execution) - queries, file reads, basic research
 - Each todo needs: content (what to do), status (pending/in_progress/completed), activeForm (doing what)
 - Mark completed immediately after finishing
 - Only one task in_progress at a time
