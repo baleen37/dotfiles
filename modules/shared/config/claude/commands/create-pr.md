@@ -1,7 +1,6 @@
 ---
 name: create-pr
 description: "Automated pull request creation with intelligent descriptions and metadata"
-agents: [git-specialist]
 ---
 
 # /create-pr - Automated Pull Request Creation

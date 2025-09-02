@@ -1,83 +1,12 @@
 ---
 name: analyze
-description: "Comprehensive codebase analysis with automated quality reports and improvement suggestions"
-agents: [performance-optimizer, root-cause-analyzer]
+description: "Analyze codebase for issues and improvements"
 ---
 
-# /analyze - Comprehensive Codebase Analysis
+Analyze the codebase, error, or specific component. Identify problems, suggest improvements, and provide actionable recommendations.
 
-**Purpose**: Deliver intelligent codebase analysis with actionable improvement insights. Goes beyond simple code review to provide strategic recommendations for architecture, performance, and maintainability.
+For errors: Find root cause and suggest fixes.
+For code: Review quality, performance, and best practices.
+For architecture: Assess design patterns and structure.
 
-## Usage
-
-```bash
-/analyze                    # Smart full codebase analysis
-/analyze [path]             # Targeted path analysis
-/analyze troubleshoot       # Deep-dive problem diagnosis
-/analyze security           # Security-focused analysis
-/analyze performance        # Performance bottleneck analysis
-/analyze architecture       # Architecture and design analysis
-/analyze [error/issue]      # Root cause analysis
-```
-
-## Analysis Triggers
-
-**Automatic Detection**:
-- Error patterns in output → Root cause analysis mode
-- Performance keywords → Performance bottleneck analysis  
-- Security terms → Security-focused analysis
-- Architecture discussions → Design pattern analysis
-- Technology stack → Framework-specific best practices
-
-**Context-Aware Behavior**:
-- Automatically adjusts analysis scope and depth based on input
-- Auto-switches analysis mode based on detected patterns
-
-## Analysis Coverage
-
-**Multi-Dimensional Analysis**:
-- **Architecture**: Module dependencies, coupling analysis, design patterns usage
-- **Performance**: Bottlenecks, resource usage patterns, optimization opportunities  
-- **Quality**: Code complexity, maintainability metrics, technical debt assessment
-- **Best Practices**: Framework conventions, industry standards compliance
-- **Documentation**: Code coverage, inline documentation quality
-
-**Contextual Intelligence**:
-- **Framework-Aware**: Recognizes React, Vue, Node.js, Python, Go patterns and applies relevant best practices
-- **Project-Specific**: Analyzes actual dependencies, build configuration, and project structure
-- **Integration-Ready**: Respects `.gitignore` and leverages latest best practices relevant to your stack
-
-**Advanced Troubleshooting**:
-- **Root Cause Analysis**: Systematic investigation from symptoms to underlying causes
-- **Dependency Mapping**: Trace issues through interconnected systems and modules
-- **Pattern Recognition**: Identify recurring problems and systemic issues
-- **Multi-Layer Investigation**: Analyze problems across code, configuration, environment, and architecture
-
-## Analysis Output
-
-**Structured Results**:
-- **Executive Summary**: High-level findings and priority issues
-- **Detailed Analysis**: Domain-specific findings with evidence
-- **Action Items**: Prioritized recommendations by impact and effort
-- **Implementation Guide**: Step-by-step improvement instructions
-- **Code Examples**: Before/after snippets for specific improvements
-
-## MCP Integration
-
-- **Sequential**: Multi-step analysis planning and systematic evaluation
-- **Context7**: Framework-specific best practices and current industry standards
-- **Serena**: Code pattern analysis for existing projects
-
-## Examples
-
-```bash
-/analyze                    # Complete codebase analysis
-/analyze src/components     # Focus on specific directory
-/analyze package.json       # Dependency and configuration analysis
-/analyze troubleshoot       # Deep-dive system diagnosis
-/analyze "TypeError: Cannot read property 'id' of undefined"  # Error investigation
-/analyze "slow database queries"  # Performance issue analysis
-/analyze "tests failing intermittently"  # Flaky test root cause analysis
-```
-
-The analysis produces a comprehensive report with prioritized recommendations and specific implementation guidance.
+What would you like me to analyze?

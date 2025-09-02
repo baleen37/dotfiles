@@ -1,40 +1,13 @@
 ---
 name: build
-description: "Build, compile, and package projects with intelligent error handling and optimization"
-agents: [devops-engineer]
+description: "Build and compile the project"
 ---
 
-# /build - Project Building
+Build the project using the appropriate build system (Nix, npm, make, etc.). Handle errors and provide fixes if the build fails.
 
-Execute project builds with comprehensive error analysis and optimization support.
+1. Identify the build system
+2. Run build commands
+3. Fix any errors that occur
+4. Verify the build completed successfully
 
-## Usage
-
-```bash
-/build [target]              # Build entire project or specific target
-/build clean                 # Clean build artifacts first
-/build prod                  # Production build with optimizations
-```
-
-## Process
-
-1. **Detection**: Identify build system (Nix, npm, make, etc.)
-2. **Execution**: Run build commands with proper error handling
-3. **Analysis**: Parse build errors and suggest solutions
-4. **Optimization**: Apply performance and size optimizations
-
-## Features
-
-- **Multi-Platform**: Supports Nix, Node.js, Make, and custom build systems
-- **Error Analysis**: Intelligent parsing of build failures with actionable fixes
-- **Clean Builds**: Automated artifact cleanup and cache management
-- **Production Mode**: Optimizations for deployment and distribution
-
-## Examples
-
-```bash
-/build                       # Full project build
-/build frontend              # Build specific module  
-/build clean prod           # Clean production build
-/build test                 # Build for testing
-```
+Target to build (optional):

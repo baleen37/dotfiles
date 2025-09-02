@@ -1,7 +1,6 @@
 ---
 name: spawn
 description: "Task orchestration and breakdown for complex multi-step operations"
-agents: []
 ---
 
 # /spawn - Task Orchestration
