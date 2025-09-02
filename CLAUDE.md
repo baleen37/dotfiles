@@ -49,6 +49,7 @@ nix run --impure .#build-switch   # Build with sudo handling
 - Natural language commands, avoid cryptic abbreviations
 - Token efficiency: Concise prompts, meta-prompting over direct instructions
 - Require approval for command/instruction changes
+- **Reference Direction**: Commands may reference agents, agents must not reference commands
 
 ## Development
 
