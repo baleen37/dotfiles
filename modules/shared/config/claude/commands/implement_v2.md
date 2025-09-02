@@ -5,26 +5,14 @@ description: "Intelligent code implementation with multi-domain coordination and
 
 Implement features through coordinated analysis, design, coding, and validation with comprehensive quality assurance.
 
-**Usage**: `/implement_v2 [feature-description] [--type component|api|service|feature] [--framework react|vue|express|nextjs] [--safe] [--with-tests]`
+**Usage**: `/implement_v2 [feature-description]`
 
-## Implementation Types
+## Auto-Detection
 
-- `component`: UI component implementation
-- `api`: REST/GraphQL API endpoint development  
-- `service`: Business logic service implementation
-- `feature`: Complete end-to-end feature implementation
-
-## Framework Support
-
-- `react`: React.js components and hooks
-- `vue`: Vue.js components and composition API
-- `express`: Express.js server and middleware
-- `nextjs`: Next.js full-stack implementation
-
-## Flags
-
-- `--safe`: Enhanced security validation and review
-- `--with-tests`: Automatic test generation (unit, integration, e2e)
+- **Implementation Type**: Automatically determined from description (component, API, service, feature)
+- **Framework**: Detected from existing codebase patterns
+- **Security**: Built-in security best practices
+- **Testing**: Generate tests when explicitly requested in description
 
 ## Implementation Flow
 
@@ -54,7 +42,7 @@ Implement features through coordinated analysis, design, coding, and validation 
 ## Example Usage
 
 ```
-/implement_v2 "User authentication with OAuth" --type feature --framework nextjs --safe --with-tests
+/implement_v2 "User authentication with OAuth and comprehensive tests"
 ```
 
-This will implement a complete OAuth authentication system with security validation, comprehensive tests, and proper integration with your Next.js application.
+This will automatically detect it's a feature implementation, identify the Next.js framework from your codebase, apply security best practices, and generate comprehensive tests as requested.

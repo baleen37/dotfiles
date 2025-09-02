@@ -5,22 +5,13 @@ description: "Generate structured implementation workflows from requirements and
 
 Generate comprehensive, structured workflows from product requirements and feature specifications for systematic implementation.
 
-**Usage**: `/workflow_v2 [prd-file|feature-description] [--strategy systematic|agile] [--depth shallow|normal|deep] [--parallel]`
+**Usage**: `/workflow_v2 [prd-file|feature-description]`
 
-## Strategy Types
+## Auto-Planning
 
-- `systematic`: Sequential, comprehensive workflow with detailed validation at each step
-- `agile`: Iterative workflow with parallel tasks and rapid feedback cycles
-
-## Workflow Depth
-
-- `shallow`: High-level implementation phases
-- `normal`: Detailed task breakdown with dependencies (default)
-- `deep`: Comprehensive workflow including testing, validation, and deployment steps
-
-## Flags
-
-- `--parallel`: Enable parallel task execution where possible
+- **Strategy Detection**: Automatically chooses systematic or agile approach based on project complexity
+- **Smart Depth**: Adjusts workflow detail level based on feature scope
+- **Parallel Optimization**: Identifies tasks that can run in parallel automatically
 
 ## Workflow Generation Process
 
@@ -100,10 +91,10 @@ Sprint 3: Polish & Deploy (1-2 weeks)
 ## Example Usage
 
 ```
-/workflow_v2 "E-commerce checkout system" --strategy agile --depth normal --parallel
+/workflow_v2 "E-commerce checkout system"
 ```
 
-This will generate an agile workflow for implementing an e-commerce checkout system with parallel task execution and detailed task breakdown.
+This will automatically determine the optimal workflow strategy (likely agile for this complex feature), identify parallel execution opportunities, and provide detailed task breakdown.
 
 ## Workflow Boundaries
 

@@ -5,19 +5,13 @@ description: "Comprehensive multi-domain code analysis with severity-based findi
 
 Perform comprehensive code analysis across quality, security, performance, and architecture domains with prioritized, actionable recommendations.
 
-**Usage**: `/analyze_v2 [target] [--focus quality|security|performance|architecture] [--depth quick|deep]`
+**Usage**: `/analyze_v2 [target]`
 
-## Analysis Domains
+## Auto-Analysis
 
-- `quality`: Code complexity, duplication, maintainability, coding standards
-- `security`: OWASP vulnerabilities, authentication, authorization, data validation
-- `performance`: Memory usage, algorithm complexity, bottlenecks, optimization opportunities
-- `architecture`: Dependencies, coupling, cohesion, design patterns, structural issues
-
-## Analysis Depth
-
-- `quick`: Fast surface-level analysis for immediate issues
-- `deep`: Comprehensive analysis including cross-file relationships and complex patterns
+- **Comprehensive Coverage**: Automatically analyzes quality, security, performance, and architecture
+- **Smart Depth**: Adjusts analysis depth based on codebase size and complexity
+- **Prioritized Results**: Focus on highest-impact issues first
 
 
 ## Severity Classification
@@ -47,10 +41,10 @@ Perform comprehensive code analysis across quality, security, performance, and a
 ## Example Usage
 
 ```
-/analyze_v2 src/ --focus security --depth deep
+/analyze_v2 src/
 ```
 
-This will perform deep security analysis on the src directory with vulnerability assessments and remediation guidance.
+This will perform comprehensive analysis on the src directory, automatically determining the appropriate depth and focus areas based on the codebase characteristics.
 
 ## Analysis Scope
 

@@ -5,18 +5,7 @@ description: "Systematic idea exploration with Socratic questioning to transform
 
 Transform ambiguous ideas into actionable specifications through systematic exploration and Socratic dialogue.
 
-**Usage**: `/brainstorm_v2 [idea/topic] [--strategy systematic|agile] [--depth shallow|normal|deep]`
-
-## Strategy Options
-
-- `systematic`: Comprehensive step-by-step analysis with complete requirement coverage
-- `agile`: Rapid MVP-focused exploration for quick iteration
-
-## Depth Levels
-
-- `shallow`: Basic concept validation and core requirements
-- `normal`: Standard specification with key details (default)
-- `deep`: Comprehensive analysis including edge cases and technical constraints
+**Usage**: `/brainstorm_v2 [idea/topic]`
 
 ## Process Flow
 
@@ -43,7 +32,7 @@ Transform ambiguous ideas into actionable specifications through systematic expl
 ## Example Usage
 
 ```
-/brainstorm_v2 "AI-powered code review tool" --strategy systematic --depth normal
+/brainstorm_v2 "AI-powered code review tool"
 ```
 
 The command will guide you through systematic exploration to transform this idea into a complete specification ready for implementation.
