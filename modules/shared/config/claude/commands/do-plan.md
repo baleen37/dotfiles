@@ -1,77 +1,85 @@
 ---
 name: do-plan
-description: "Project manager approach: specification → technology selection → detailed planning"
-tools: [TodoWrite, Task, Write]
+description: "Execute existing plan.md file with TodoWrite tracking and implementation"
+tools: [TodoWrite, Task, Read]
 ---
 
-# /do-plan - Project Manager Blueprint
+# /do-plan - Plan Execution
 
-**Purpose**: You are an experienced, pragmatic software project manager who previously worked as an engineer. Your job is to craft a clear, detailed project plan, which will be passed to the engineering lead to turn into a set of work tickets to assign to engineers.
+**Purpose**: Execute an existing plan.md file with systematic TodoWrite tracking and implementation.
 
 ## Process
 
-### 1. Specification Gathering
-If the user hasn't provided a specification yet, ask them for one.
+### 1. Plan File Detection
+**Requires existing plan.md file in current directory**
+- Read and parse plan.md contents
+- Extract actionable steps and success criteria
+- If no plan.md found: suggest using `/save-plan` first
 
-### 2. Technology Selection & Approval
-Read through the spec, think about it, and propose a set of technology choices for the project to the user.
-**Stop and get feedback** from the user on those choices.
-**Iterate until the user approves.**
+### 2. TodoWrite Setup
+Convert plan steps into TodoWrite tasks:
+- Break down each step into trackable todos
+- Set appropriate task priorities and dependencies  
+- Begin execution with systematic progress tracking
 
-### 3. Detailed Blueprint Creation
-Draft a detailed, step-by-step blueprint for building this project.
+### 3. Step-by-Step Execution
+Execute plan with full implementation:
+- Mark tasks in_progress before starting
+- Complete actual coding, configuration, testing
+- Mark tasks completed immediately after finishing
+- Use appropriate tools and agents for each step
 
-### 4. Phase Breakdown
-Once you have a solid plan, break it down into small, iterative phases that build on each other.
-**Look at these phases and then go another round** to break them into small steps.
-Review the results and make sure that the steps are small enough to be implemented safely, but big enough to move the project forward.
-**Iterate until you feel that the steps are right sized** for this project.
+### 4. Progress Tracking
+Maintain visibility throughout execution:
+- Real-time TodoWrite status updates
+- Implementation notes and discoveries
+- Blockers and resolution strategies
 
-### 5. Plan Integration
-Integrate the whole plan into one list, organized by phase.
-Store the final iteration in `plan.md`.
+## Usage Examples
 
-### 6. Final Handoff
-**STOP. ASK THE USER WHAT TO DO NEXT. DO NOT IMPLEMENT ANYTHING.**
-
-## Technology Selection Example
-
-```markdown
-## Technology Recommendations
-
-### Frontend
-**Recommendation: React with TypeScript**
-- Pros: Strong typing, large ecosystem, team familiarity
-- Cons: Learning curve, build complexity
-- Alternative: Vue.js (simpler, smaller learning curve)
-
-### Backend  
-**Recommendation: Node.js with Express**
-- Pros: JavaScript consistency, rapid development
-- Cons: Single-threaded limitations
-- Alternative: Python with FastAPI (better for data processing)
-
-Do you approve these technology choices?
+### Basic Execution
+```bash
+/do-plan
+# Reads plan.md and executes all steps with TodoWrite tracking
 ```
 
-## Deliverables
+### Expected plan.md Format
+```markdown
+# Project Title
 
-- **Approved technology stack** with rationale
-- **`plan.md`** with detailed implementation phases
-- **Ready-to-assign work tickets** for engineering team
+## Overview
+Brief description and scope
 
-## Key Principles
+## Steps
+1. Setup project structure
+2. Implement core functionality  
+3. Add tests and validation
+4. Deploy and configure
 
-- **Pragmatic approach**: Focus on implementable solutions
-- **Engineering background**: Realistic complexity assessment  
-- **Iterative delivery**: Break work into safe, meaningful phases
-- **Clear communication**: Plans readable by both managers and engineers
+## Success Criteria
+- All tests pass
+- Feature works as expected
+- Documentation updated
+```
 
-## Planning vs Implementation
+## Key Features
 
-**This command is for PLANNING ONLY.**
-- Planning: technology selection, phase breakdown, work tickets
-- Implementation: handled by `/plan` or engineering teams
-- **Never cross into actual coding or implementation**
+- **Full Implementation**: Actually executes code changes, not just planning
+- **TodoWrite Integration**: Systematic progress tracking
+- **Agent Coordination**: Uses appropriate specialized agents
+- **Tool Utilization**: Leverages all available development tools
+- **Error Handling**: Manages blockers and implementation challenges
 
-**STOP. ASK THE USER WHAT TO DO NEXT. DO NOT IMPLEMENT ANYTHING.**
+## Integration
+
+- **Prerequisites**: Existing plan.md file (use `/save-plan` to generate)
+- **Output**: Fully implemented solution with tracked progress
+- **Workflow**: `/save-plan` → `/do-plan` execution pipeline
+- **Flexibility**: Can pause/resume execution as needed
+
+## Execution Principles
+
+- **Implementation First**: Focus on actual coding and changes
+- **Systematic Progress**: TodoWrite tracking throughout
+- **Quality Assurance**: Testing and validation at each step  
+- **Documentation**: Update relevant docs during implementation

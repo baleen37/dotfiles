@@ -1,45 +1,75 @@
 ---
 name: workflow
-description: "Generate comprehensive implementation workflows from requirements with task dependency mapping"
-agents: [system-architect]
+description: "Generate implementation workflows from PRDs with task decomposition, dependency mapping, and strategic execution planning"
 ---
 
-# /workflow - Implementation Workflow Generator
+# /workflow - PRD-Based Workflow Generation
 
-**Purpose**: 요구사항을 받아서 종합적인 구현 워크플로우를 생성합니다. 단순한 Phase별 계획을 넘어 태스크 의존성, 리스크 분석, 다중 도메인 조정을 포함합니다.
+**Purpose**: Transform Product Requirements Documents and feature descriptions into structured implementation workflows with dependency mapping and strategic execution planning.
 
 ## Usage
 
 ```bash
-/workflow "user authentication system"
-/workflow "database performance optimization"  
-/workflow "deploy microservices to k8s"
+/workflow [prd-file]                       # Generate from PRD document
+/workflow "feature-description"            # Generate from feature text
+/workflow systematic [project]             # Detailed comprehensive approach
+/workflow agile [feature]                  # Flexible parallel approach
+/workflow enterprise [system]              # Validation-focused approach
 ```
 
-## Core Features
+## Strategic Workflow Generation
 
-**종합적 분석**:
-- 요구사항 분해 및 도메인별 분류
-- 태스크 간 의존성 매핑
-- 리스크 식별 및 완화 전략
-- 리소스 요구사항 추정
+**Systematic Strategy:**
+- Deep analysis of feature specifications
+- Comprehensive dependency mapping
+- Detailed risk assessment and mitigation
+- Ideal for: Complex features, architectural changes
 
-**다중 페르소나 조정**:
-- system-architect가 전체 설계 주도
-- 필요시 다른 전문가 에이전트들과 협업
-- 도메인별 최적 접근법 적용
+**Agile Strategy:**
+- Parallel task coordination
+- Flexible milestone planning
+- Rapid iteration cycles
+- Ideal for: Feature development, MVP creation
 
-**구조화된 출력**:
-- 명확한 단계별 실행 계획
-- 각 단계별 완료 조건과 검증 방법
-- 병렬 실행 가능한 태스크 식별
-- 예상 소요 시간과 복잡도 평가
+**Enterprise Strategy:**
+- Comprehensive validation focus
+- Compliance requirement integration
+- Risk management emphasis
+- Ideal for: Enterprise systems, regulated environments
+
+## Core Workflow Features
+
+**PRD Analysis:**
+- Requirements decomposition into implementable tasks
+- Cross-domain coordination planning
+- Technical specification extraction
+- Feasibility validation
+
+**Task Decomposition:**
+- Task breakdown → dependency mapping → structured implementation planning
+- Progressive enhancement support
+- Cross-session workflow management
+- Implementation priority optimization
+
+**Structured Output:**
+- Clear step-by-step execution plan
+- Completion criteria and validation methods for each phase
+- Parallel execution opportunities identification
+- Time estimation and complexity assessment
+
+## Multi-Domain Coordination
+
+**Cross-Domain Planning:**
+- Architecture, frontend, backend, security, DevOps integration
+- Intelligent routing and requirement analysis
+- Progressive workflow enhancement
+- Cross-session context preservation
 
 ## MCP Integration
 
-- **Sequential**: 체계적 워크플로우 계획 수립
-- **Context7**: 기술 스택별 best practices 적용
-- **Serena**: 프로젝트 컨텍스트와 과거 경험 활용
+- **Sequential**: Multi-step workflow planning and systematic evaluation
+- **Context7**: Framework-specific best practices and implementation patterns
+- **Serena**: Project context analysis and historical decision tracking
 
 ## Example Output
 
@@ -84,11 +114,24 @@ agents: [system-architect]
 - Performance within acceptable limits
 ```
 
-## Key Differences from /plan
+## Examples
 
-- **Scope**: 전체 구현 여정 vs 단계별 태스크 생성
-- **Depth**: 의존성, 리스크, 검증 포함 vs 기본 태스크만
-- **Coordination**: 다중 에이전트 활용 vs 단일 관점
-- **Context**: 프로젝트 전체 맥락 고려 vs 개별 요구사항만
+```bash
+/workflow auth-feature-prd.md systematic    # Comprehensive PRD analysis
+/workflow "real-time chat feature" agile    # Flexible feature development
+/workflow enterprise-dashboard.md           # Enterprise validation workflow
+```
 
-**Next Steps**: 생성된 워크플로우를 `/implement` 또는 `/do-plan`으로 실행
+## Workflow Boundaries
+
+**Generation Focus:**
+- Will generate comprehensive workflow plans and strategies
+- Will analyze PRDs and transform into actionable roadmaps
+- Will coordinate multi-domain implementation planning
+
+**Implementation Boundaries:**
+- Will NOT execute actual implementation tasks
+- Requires comprehensive requirement analysis before generation
+- Focuses on planning rather than code execution
+
+**Next Steps**: Generated workflows can be executed via `/implement` or `/task` commands
