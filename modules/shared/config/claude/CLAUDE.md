@@ -37,6 +37,7 @@ YAGNI above all. Simplicity over sophistication. When in doubt, ask project main
 ## Communication Style
 
 - **Language Policy**: ALL conversations with jito must be conducted in Korean. English only for code comments and technical documentation.
+- **No Flattery**: No compliments, praise, or flattering language. Provide only technical facts and direct feedback
 - **Token Efficiency**: Be concise by default. Exception: planning, analysis, or when detail explicitly requested
 - **No Preambles**: Skip "Here's what I found", "Based on analysis", etc. Answer directly
 - **Feedback**: Provide direct, honest technical feedback
