@@ -1,93 +1,12 @@
 ---
 name: do-todo
-description: "Execute todos systematically with proper planning, implementation, and tracking"
-tools: [TodoWrite, Task, Read, Write, Bash, Edit]
+description: "Execute tasks from todo.md systematically"
 ---
 
-# /do-todo - Systematic Todo Execution
-
-**Purpose**: Open plan.md and methodically work through unchecked tasks with proper planning, implementation, testing, and documentation.
-
-## Process
-
-### 1. Task Selection
-- Open `plan.md` and find the first unchecked task
-- Select one task to focus on completely
-
-### 2. Planning Phase
-- Carefully plan how to implement the selected task
-- Document the plan as a detailed comment (like a GitHub issue)
-- Break down complex tasks into smaller steps if needed
-
-### 3. Implementation Phase
-- Create a new branch for the work
-- Write robust, well-documented code
-- Include comprehensive tests and debug logging
-- Verify all tests pass before proceeding
-
-### 4. Completion Phase
-- Commit changes with clear, descriptive messages
-- Open pull request referencing the planning documentation
-- Mark the completed item as checked in `plan.md`
-
-### 5. Move to Next Task
-- Return to step 1 and select the next unchecked task
-- Repeat the cycle systematically
-
-## Implementation Standards
-
-### Code Quality
-- **Robust implementation**: Handle edge cases and error conditions
-- **Clear documentation**: Code comments and README updates
-- **Consistent style**: Follow project conventions and patterns
-
-### Testing Requirements
-- **Comprehensive tests**: Unit tests for all new functionality
-- **Debug logging**: Proper logging for troubleshooting
-- **Test verification**: Ensure all tests pass before committing
-
-### Documentation
-- **Planning documentation**: Clear task breakdown and approach
-- **Commit messages**: Descriptive and linked to planning docs
-- **Progress tracking**: Keep `todo.md` updated with completion status
-
-## Example Workflow
-
-```bash
-/do-todo
-```
-
-**Process Example**:
-1. Opens `plan.md`, finds: "- [ ] Add user authentication system"
-2. Plans: "Implement JWT-based auth with login/logout endpoints"
-3. Creates branch: `feature/user-authentication`
-4. Implements: User model, auth middleware, login routes, tests
-5. Commits: "Add JWT authentication system - refs #planning-doc"
-6. Updates: `plan.md` marks "- [x] Add user authentication system"
-7. Moves to next unchecked item
-
-## Key Principles
-
-### Systematic Progression
-- One task at a time, completed fully before moving on
-- Proper planning prevents rushed implementations
-- Each task gets appropriate attention and quality
-
-### Quality Assurance
-- Tests must pass before marking tasks complete
-- Code review standards applied to all implementations
-- Documentation maintained throughout the process
-
-### Progress Tracking
-- `plan.md` serves as single source of truth for project status
-- Clear completion markers show what's done vs remaining
-- Planning documentation provides context for future reference
-
-## Integration with Other Commands
-
-```bash
-/do-plan → plan.md (with checkboxes)
-/do-todo → systematic execution of plan items
-```
-
-The command works best when `plan.md` contains well-defined, actionable tasks with checkboxes from the planning phase.
+1. Open `todo.md` and select the first unchecked items to work on.
+2. Carefully plan each item.
+3. Implement your plan:
+    - Write robust, well-documented code.
+    - Include comprehensive tests and debug logging.
+    - Verify that all tests pass.
+4. Check off the items on todo.md
