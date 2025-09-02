@@ -133,10 +133,10 @@ Examples:
 
 ## MCP Session Management
 
-- **Context7**: Use when working with external libraries or frameworks for up-to-date documentation and API references
-- **Sequential Thinking**: Use for complex multi-step problem solving that requires breaking down tasks and tool coordination
-- **Serena MCP**: Use for **all coding work** - analyzing, modifying, creating, deleting code with project context and memory. **Prefer Serena over direct file tools for all code operations**
-- **Playwright**: Use for browser automation and testing tasks
+- **Context7**: External library/framework documentation and API references
+- **Sequential Thinking**: Complex multi-step problem solving requiring task breakdown
+- **Serena MCP**: Code analysis, modification, refactoring with semantic understanding and token efficiency
+- **Playwright**: Browser automation and testing
 
 ## Task Tool Usage Guidelines
 
