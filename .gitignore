@@ -65,3 +65,6 @@ __pycache__/
 *.pyd
 
 .serena
+
+# Planning documents
+plan.md
