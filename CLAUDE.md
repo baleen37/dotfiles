@@ -50,6 +50,7 @@ nix run --impure .#build-switch   # Build with sudo handling
 - Token efficiency: Concise prompts, meta-prompting over direct instructions
 - Require approval for command/instruction changes
 - **Reference Direction**: Commands may reference agents, agents must not reference commands
+- **Command Isolation**: Commands must not reference other commands to maintain modularity and avoid circular dependencies
 
 ## Development
 
