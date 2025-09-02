@@ -1,7 +1,6 @@
 ---
 name: fix-pr
 description: "Fix PR conflicts and CI failures with automated resolution"
-agents: [general-purpose]
 ---
 
 # /fix-pr - PR Conflict & CI Failure Resolution

@@ -1,7 +1,6 @@
 ---
 name: update-pr
 description: "Update existing pull request with intelligent description and metadata synchronization"
-agents: [general-purpose]
 ---
 
 # /update-pr - Pull Request Update & Synchronization
