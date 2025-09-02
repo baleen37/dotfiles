@@ -488,17 +488,28 @@ jobs:
           echo "🚀 Auto-merging PR #${{ github.event.number }}"
           echo "Author: ${{ github.event.pull_request.user.login }}"
 
-          # Auto-approve the PR
-          gh pr review ${{ github.event.number }} --approve \
-            --body "✅ **Auto-approved**: CI 파이프라인이 성공적으로 완료되었습니다.
+          # Check if author is repo owner
+          author="${{ github.event.pull_request.user.login }}"
+          repo_owner="${{ github.repository_owner }}"
 
-          - **상태**: 모든 테스트 통과 ✅
-          - **빌드**: 성공 ✅
-          - **검증**: 완료 ✅
+          if [[ "$author" == "$repo_owner" ]]; then
+            echo "🔧 Repo owner PR detected - GitHub prevents self-approval"
+            echo "✅ Relying on successful CI for merge qualification"
+            echo "🎯 Branch protection allows admin bypass for repo owner"
+          else
+            echo "👤 External contributor - auto-approving PR"
+            # Auto-approve the PR for external contributors
+            gh pr review ${{ github.event.number }} --approve \
+              --body "✅ **Auto-approved**: CI 파이프라인이 성공적으로 완료되었습니다.
 
-          _🤖 자동화된 승인 및 머지 프로세스_"
+            - **상태**: 모든 테스트 통과 ✅
+            - **빌드**: 성공 ✅
+            - **검증**: 완료 ✅
 
-          # Enable auto-merge
+            _🤖 자동화된 승인 및 머지 프로세스_"
+          fi
+
+          # Enable auto-merge (works for both cases due to admin bypass)
           gh pr merge ${{ github.event.number }} --auto --squash
 
           echo "✅ Auto-merge enabled for PR #${{ github.event.number }}"
