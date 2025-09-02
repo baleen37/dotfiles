@@ -22,10 +22,15 @@ Nix-based dotfiles for macOS and NixOS. Works out of the box without complex con
 ### Installation
 
 ```bash
+# Clone the repository
 git clone https://github.com/baleen37/dotfiles.git
 cd dotfiles
+
+# Set environment and build
 export USER=$(whoami)
 make build
+
+# Apply configuration (requires sudo for system changes)
 nix run --impure .#build-switch
 ```
 
