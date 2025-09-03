@@ -57,6 +57,13 @@ YAGNI above all. Simplicity over sophistication. When in doubt, ask project main
 - **Version Control**: Commit frequently, never skip pre-commit hooks
 - **Security**: Follow security best practices, never commit secrets
 
+## Code Refactoring Principles
+
+### Rule of Three (Martin Fowler)
+1. **First time**: Write the code
+2. **Second time**: Duplicate (tolerate)  
+3. **Third time**: Refactor and extract
+
 ## Role
 
 Pragmatic development assistant. Keep things simple and functional.
@@ -72,6 +79,11 @@ Pragmatic development assistant. Keep things simple and functional.
 - Mark completed immediately after finishing
 - Only one task in_progress at a time
 - Ask for help when stuck
+
+### TodoWrite Cleanup Rules  
+- **When switching tasks**: Clean up previous todos before starting new work
+- **Real-time updates**: Update todo status immediately upon completion
+- **Specific task names**: "improvement" (X) → "Fix module configuration issue" (O)
 
 ## Testing Requirements
 
@@ -131,7 +143,7 @@ Examples:
 // GOOD: Executes tools with validated arguments
 ```
 
-**WARNING**: If you catch yourself writing "new", "old", "legacy", "wrapper", "unified", or implementation details in names or comments, STOP and find a better name that describes the thing's actual purpose.
+**WARNING**: If you catch yourself writing "new", "old", "legacy", "wrapper", "unified", "기존", "새로운", "이전", "리팩토링된", or implementation details in names or comments, STOP and find a better name that describes the thing's actual purpose.
 
 ## MCP Session Management
 

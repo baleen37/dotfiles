@@ -85,6 +85,7 @@ with pkgs; let
     postgresql # Object-relational database system
     sqlite # Lightweight SQL database engine
     redis # Redis command-line client and tools
+    mysql80 # MySQL client and command-line utilities
   ];
 
   # Productivity and utility applications

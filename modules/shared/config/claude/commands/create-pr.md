@@ -13,6 +13,7 @@ description: "Automated pull request creation with intelligent descriptions and 
 /create-pr                   # Create PR with auto-generated description
 /create-pr [title]           # Create PR with custom title  
 /create-pr --draft           # Create draft PR
+/create-pr --merge           # Create PR and attempt immediate merge
 ```
 
 ## Agent Integration
@@ -32,6 +33,7 @@ This command leverages the **git-specialist** agent for:
 4. **Content Generation**: Extract commit messages, file changes, and metadata for PR description
 5. **Template Integration**: Discover and populate repository PR templates automatically
 6. **PR Creation**: Execute `gh pr create` with optimized title and description
+7. **Auto-Merge** (when --merge flag used): Enable auto-merge after PR creation
 
 ## Branch Management
 
@@ -97,6 +99,7 @@ When on main/master branch:
 /create-pr                           # Full automation with safety checks
 /create-pr "Implement user auth"     # Custom title with branch validation
 /create-pr --draft                   # Create draft PR from feature branch
+/create-pr --merge                   # Create PR and merge when checks pass
 ```
 
 ### Workflow Examples
