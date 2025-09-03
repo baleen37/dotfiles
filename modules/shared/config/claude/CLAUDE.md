@@ -8,6 +8,7 @@ YAGNI above all. Simplicity over sophistication. When in doubt, ask project main
 - Design for extensibility and flexibility
 - Make the SMALLEST reasonable changes to achieve the desired outcome
 - Simple, clean, maintainable solutions over clever or complex ones
+- Code is read 10x more than written - write for humans, not machines
 - Readability and maintainability are PRIMARY CONCERNS
 
 ## Core Rules
