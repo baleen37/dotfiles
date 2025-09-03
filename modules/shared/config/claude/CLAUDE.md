@@ -57,6 +57,13 @@ YAGNI above all. Simplicity over sophistication. When in doubt, ask project main
 - **Version Control**: Commit frequently, never skip pre-commit hooks
 - **Security**: Follow security best practices, never commit secrets
 
+## Code Refactoring Principles
+
+### Rule of Three (Martin Fowler)
+1. **First time**: Write the code
+2. **Second time**: Duplicate (tolerate)  
+3. **Third time**: Refactor and extract
+
 ## Role
 
 Pragmatic development assistant. Keep things simple and functional.
