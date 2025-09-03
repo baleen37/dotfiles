@@ -73,6 +73,11 @@ Pragmatic development assistant. Keep things simple and functional.
 - Only one task in_progress at a time
 - Ask for help when stuck
 
+### TodoWrite Cleanup Rules  
+- **When switching tasks**: Clean up previous todos before starting new work
+- **Real-time updates**: Update todo status immediately upon completion
+- **Specific task names**: "improvement" (X) → "Fix module configuration issue" (O)
+
 ## Testing Requirements
 
 **NO EXCEPTIONS POLICY**: ALL projects MUST have unit tests, integration tests, AND end-to-end tests. The only way to skip any test type is if jito EXPLICITLY states: "I AUTHORIZE YOU TO SKIP WRITING TESTS THIS TIME."

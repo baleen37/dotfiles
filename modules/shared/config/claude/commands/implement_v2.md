@@ -46,3 +46,18 @@ Implement features through coordinated analysis, design, coding, and validation 
 ```
 
 This will automatically detect it's a feature implementation, identify the Next.js framework from your codebase, apply security best practices, and generate comprehensive tests as requested.
+
+## TDD Integration Mode
+
+When implementing with TDD approach:
+
+### TDD Implementation Flow
+1. **Red Phase**: Write failing tests that define desired behavior
+2. **Green Phase**: Write minimal code to make tests pass  
+3. **Refactor Phase**: Improve code quality while keeping tests green
+4. **Phase Transitions**: Explicitly announce phase changes
+
+### TDD Quality Gates
+✅ **Red**: Tests fail for correct reasons
+✅ **Green**: Tests pass with minimal code
+✅ **Refactor**: No test failures during cleanup
