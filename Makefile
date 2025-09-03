@@ -310,9 +310,14 @@ build-switch: check-user
 		echo "🔄 Switching to new configuration..."; \
 		sudo -E env USER=$(USER) ./result/sw/bin/darwin-rebuild switch --impure --flake .#$${TARGET} $(ARGS) || { echo "❌ Switch failed!"; exit 1; }; \
 		unlink ./result; \
-	else \
+	elif [ -f /etc/NIXOS ]; then \
 		echo "🔨 Building and switching NixOS configuration..."; \
 		sudo -E USER=$(USER) SSH_AUTH_SOCK=$$SSH_AUTH_SOCK /run/current-system/sw/bin/nixos-rebuild switch --impure --flake .#$${TARGET} $(ARGS); \
+	else \
+		echo "ℹ️  Detected non-NixOS Linux system (Ubuntu, etc.)"; \
+		echo "🏠 Using Home Manager for user configuration instead"; \
+		echo "🚀 Running: nix run .#build-switch"; \
+		$(NIX) run --impure .#build-switch $(ARGS); \
 	fi; \
 	end_time=$$(date +%s); \
 	duration=$$((end_time - start_time)); \
