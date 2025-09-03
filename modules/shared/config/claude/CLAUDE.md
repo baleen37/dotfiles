@@ -136,7 +136,7 @@ Examples:
 // GOOD: Executes tools with validated arguments
 ```
 
-**WARNING**: If you catch yourself writing "new", "old", "legacy", "wrapper", "unified", or implementation details in names or comments, STOP and find a better name that describes the thing's actual purpose.
+**WARNING**: If you catch yourself writing "new", "old", "legacy", "wrapper", "unified", "기존", "새로운", "이전", "리팩토링된", or implementation details in names or comments, STOP and find a better name that describes the thing's actual purpose.
 
 ## MCP Session Management
 
