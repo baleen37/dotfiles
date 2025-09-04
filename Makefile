@@ -30,13 +30,13 @@ help:
 	@echo "  platform-info - Show detailed platform information"
 	@echo ""
 	@echo "🧪 Testing (Simplified):"
-	@echo "  test        - Run all tests"
-	@echo "  test-quick  - ⚡ Parallel quick tests (2-3 sec, recommended)"
-	@echo "  test-enhanced - 🎯 Enhanced tests with detailed reporting"
-	@echo "  test-enhanced-verbose - 📊 Enhanced tests with verbose output"
-	@echo "  test-monitor - 📈 Performance monitoring (quick)"
-	@echo "  test-monitor-full - 📈 Full performance monitoring"
-	@echo "  test-core   - Run core tests (fast, essential)"
+	@echo "  test        - Run essential tests (uses test-core)"
+	@echo "  test-core   - Run core unit tests"
+	@echo "  test-quick  - Fast parallel validation tests"
+	@echo "  test-enhanced - Integration tests with reporting"
+	@echo "  test-enhanced-verbose - Integration tests with verbose output"
+	@echo "  test-monitor - Performance monitoring tests"
+	@echo "  test-monitor-full - Full performance monitoring"
 	@echo "  test-macos-services - 🧪 TDD-verified macOS Services tests (Darwin only)"
 	@echo "  test-workflow - Run workflow tests (end-to-end)"
 	@echo "  test-perf   - Run performance tests"
@@ -87,9 +87,10 @@ smoke:
 	$(NIX) flake check --impure --all-systems --no-build $(ARGS)
 endif
 
-# Simplified test targets
+# Simplified test targets - use existing test-core implementation
 test:
-	@$(NIX) run --impure .#test $(ARGS)
+	@echo "🧪 Running essential test suite..."
+	@$(MAKE) test-core
 
 test-core:
 	@$(NIX) run --impure .#test-core $(ARGS)
