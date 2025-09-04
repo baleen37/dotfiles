@@ -29,35 +29,44 @@ help:
 	@echo "  smoke       - Run nix flake checks for all systems"
 	@echo "  platform-info - Show detailed platform information"
 	@echo ""
-	@echo "🧪 Testing (Simplified):"
-	@echo "  test        - Run all tests"
-	@echo "  test-quick  - ⚡ Parallel quick tests (2-3 sec, recommended)"
-	@echo "  test-enhanced - 🎯 Enhanced tests with detailed reporting"
-	@echo "  test-enhanced-verbose - 📊 Enhanced tests with verbose output"
-	@echo "  test-monitor - 📈 Performance monitoring (quick)"
-	@echo "  test-monitor-full - 📈 Full performance monitoring"
-	@echo "  test-core   - Run core tests (fast, essential)"
+	@echo "🧪 Testing (Unified Interface):"
+	@echo "  test [CATEGORY] [OPTIONS] - 🚀 NEW: Unified test interface"
+	@echo "    Categories: all, quick, unit, integration, e2e, performance, smoke"
+	@echo "    Options: --format, --parallel, --verbose, --dry-run, etc."
+	@echo "    Examples:"
+	@echo "      make test                 # Default all tests"
+	@echo "      make test-with ARGS='quick --parallel'"
+	@echo "      make test-with ARGS='unit --verbose'"
+	@echo "      make test-with ARGS='--changed --format json'"
+	@echo ""
+	@echo "🧪 Testing (Legacy - Deprecated):"
+	@echo "  test-quick  - ⚠️  DEPRECATED: Use 'make test-with ARGS=\"quick --parallel\"'"
+	@echo "  test-enhanced - ⚠️  DEPRECATED: Use 'make test-with ARGS=\"integration --verbose\"'"
+	@echo "  test-enhanced-verbose - ⚠️  DEPRECATED: Use 'make test-with ARGS=\"integration --verbose\"'"
+	@echo "  test-monitor - ⚠️  DEPRECATED: Use 'make test-with ARGS=\"performance\"'"
+	@echo "  test-monitor-full - ⚠️  DEPRECATED: Use 'make test-with ARGS=\"performance --timeout 600\"'"
+	@echo "  test-core   - ⚠️  DEPRECATED: Use 'make test-with ARGS=\"unit\"'"
 	@echo "  test-macos-services - 🧪 TDD-verified macOS Services tests (Darwin only)"
-	@echo "  test-workflow - Run workflow tests (end-to-end)"
-	@echo "  test-perf   - Run performance tests"
-	@echo "  test-list   - List available test categories"
+	@echo "  test-workflow - ⚠️  DEPRECATED: Use 'make test-with ARGS=\"e2e\"'"
+	@echo "  test-perf   - ⚠️  DEPRECATED: Use 'make test-with ARGS=\"performance\"'"
+	@echo "  test-list   - ⚠️  DEPRECATED: Use 'make test-with ARGS=\"--help\"'"
 	@echo ""
-	@echo "🔬 Unit Testing (NEW):"
-	@echo "  test-unit-extended - Run comprehensive lib unit tests"
-	@echo "  test-lib-user-resolution - Test user resolution library"
-	@echo "  test-lib-platform-system - Test platform detection library"
-	@echo "  test-lib-error-system - Test error handling system"
+	@echo "🔬 Unit Testing (Legacy - Deprecated):"
+	@echo "  test-unit-extended - ⚠️  DEPRECATED: Use 'make test-with ARGS=\"unit --tag extended\"'"
+	@echo "  test-lib-user-resolution - ⚠️  DEPRECATED: Use 'make test-with ARGS=\"unit --tag user-resolution\"'"
+	@echo "  test-lib-platform-system - ⚠️  DEPRECATED: Use 'make test-with ARGS=\"unit --tag platform-system\"'"
+	@echo "  test-lib-error-system - ⚠️  DEPRECATED: Use 'make test-with ARGS=\"unit --tag error-system\"'"
 	@echo ""
-	@echo "🧪 BATS Testing Framework:"
-	@echo "  test-bats - Run all BATS shell script tests"
-	@echo "  test-bats-lib - Run BATS library tests"
-	@echo "  test-bats-system - Run BATS system tests"
-	@echo "  test-bats-integration - Run BATS integration tests"
-	@echo "  test-bats-claude - Test Claude activation"
-	@echo "  test-bats-user-resolution - BATS user resolution tests"
-	@echo "  test-bats-error-system - BATS error system tests"
-	@echo "  test-bats-report - Generate TAP report for BATS tests"
-	@echo "  test-bats-report-ci - Generate CI-compatible TAP report"
+	@echo "🧪 BATS Testing Framework (Legacy - Deprecated):"
+	@echo "  test-bats - ⚠️  DEPRECATED: Use 'make test-with ARGS=\"integration --tag bats\"'"
+	@echo "  test-bats-lib - ⚠️  DEPRECATED: Use 'make test-with ARGS=\"integration --tag bats-lib\"'"
+	@echo "  test-bats-system - ⚠️  DEPRECATED: Use 'make test-with ARGS=\"integration --tag bats-system\"'"
+	@echo "  test-bats-integration - ⚠️  DEPRECATED: Use 'make test-with ARGS=\"integration --tag bats-integration\"'"
+	@echo "  test-bats-claude - ⚠️  DEPRECATED: Use 'make test-with ARGS=\"integration --tag claude\"'"
+	@echo "  test-bats-user-resolution - ⚠️  DEPRECATED: Use 'make test-with ARGS=\"integration --tag user-resolution\"'"
+	@echo "  test-bats-error-system - ⚠️  DEPRECATED: Use 'make test-with ARGS=\"integration --tag error-system\"'"
+	@echo "  test-bats-report - ⚠️  DEPRECATED: Use 'make test-with ARGS=\"integration --format tap\"'"
+	@echo "  test-bats-report-ci - ⚠️  DEPRECATED: Use 'make test-with ARGS=\"integration --format junit\"'"
 	@echo ""
 	@echo "🤖 Claude Code MCP:"
 	@echo "  setup-mcp   - Install MCP servers for Claude Code"
@@ -75,6 +84,7 @@ help:
 	@echo "  - USER is automatically detected, but you can override: USER=myuser make build"
 	@echo "  - Use ARGS for additional nix flags: make build ARGS='--verbose'"
 	@echo "  - Specify target system: make switch HOST=aarch64-darwin"
+	@echo "  - ⚠️  Legacy test commands show deprecation warnings and redirect to new interface"
 
 lint:
 	pre-commit run --all-files
@@ -87,14 +97,23 @@ smoke:
 	$(NIX) flake check --impure --all-systems --no-build $(ARGS)
 endif
 
-# Simplified test targets
+# === NEW UNIFIED TEST INTERFACE ===
+# Primary test target using unified CLI (default: all tests)
 test:
-	@$(NIX) run --impure .#test $(ARGS)
+	@./tests/lib/unified/test-cli.sh all
+
+# Test with arguments - use ARGS variable
+test-with:
+	@./tests/lib/unified/test-cli.sh $(ARGS)
+
+# === LEGACY TEST COMMANDS WITH DEPRECATION WARNINGS ===
 
 test-core:
-	@$(NIX) run --impure .#test-core $(ARGS)
+	@echo "⚠️  DEPRECATED: 'test-core' is deprecated. Use 'make test-with ARGS=\"unit\"' instead."
+	@echo "ℹ️  Running equivalent command: test unit"
+	@./tests/lib/unified/test-cli.sh unit
 
-# macOS Services 관리 및 테스트 (Darwin 전용)
+# macOS Services 관리 및 테스트 (Darwin 전용) - 특별한 케이스로 유지
 test-macos-services:
 ifeq ($(PLATFORM),aarch64-darwin)
 	@echo "🧪 Running TDD-verified macOS Services tests..."
@@ -106,18 +125,25 @@ else
 	@echo "⏭️ Skipping macOS Services tests (not on Darwin platform)"
 endif
 
-
 test-workflow:
-	@$(NIX) run --impure .#test-workflow $(ARGS)
+	@echo "⚠️  DEPRECATED: 'test-workflow' is deprecated. Use 'make test-with ARGS=\"e2e\"' instead."
+	@echo "ℹ️  Running equivalent command: test e2e"
+	@./tests/lib/unified/test-cli.sh e2e
 
 test-perf:
-	@$(NIX) run --impure .#test-perf $(ARGS)
+	@echo "⚠️  DEPRECATED: 'test-perf' is deprecated. Use 'make test-with ARGS=\"performance\"' instead."
+	@echo "ℹ️  Running equivalent command: test performance"
+	@./tests/lib/unified/test-cli.sh performance
 
 test-list:
-	@$(NIX) run --impure .#test-list $(ARGS)
+	@echo "⚠️  DEPRECATED: 'test-list' is deprecated. Use 'make test-with ARGS=\"--help\"' instead."
+	@echo "ℹ️  Running equivalent command: test --help"
+	@./tests/lib/unified/test-cli.sh --help
 
 # New comprehensive unit tests
 test-unit-extended:
+	@echo "⚠️  DEPRECATED: 'test-unit-extended' is deprecated. Use 'make test-with ARGS=\"unit --tag extended\"' instead."
+	@echo "ℹ️  For now, running legacy implementation..."
 	@echo "🧪 Running extended unit tests for lib modules..."
 	@$(NIX) build --impure .#checks.$(shell $(NIX) eval --impure --expr 'builtins.currentSystem' | tr -d '"').lib-user-resolution-test -L
 	@$(NIX) build --impure .#checks.$(shell $(NIX) eval --impure --expr 'builtins.currentSystem' | tr -d '"').lib-platform-system-test -L
@@ -126,19 +152,27 @@ test-unit-extended:
 
 # Individual lib tests
 test-lib-user-resolution:
+	@echo "⚠️  DEPRECATED: 'test-lib-user-resolution' is deprecated. Use 'make test-with ARGS=\"unit --tag user-resolution\"' instead."
+	@echo "ℹ️  For now, running legacy implementation..."
 	@echo "🧪 Testing lib/user-resolution.nix..."
 	@$(NIX) build --impure .#checks.$(shell $(NIX) eval --impure --expr 'builtins.currentSystem' | tr -d '"').lib-user-resolution-test -L
 
 test-lib-platform-system:
+	@echo "⚠️  DEPRECATED: 'test-lib-platform-system' is deprecated. Use 'make test-with ARGS=\"unit --tag platform-system\"' instead."
+	@echo "ℹ️  For now, running legacy implementation..."
 	@echo "🧪 Testing lib/platform-system.nix..."
 	@$(NIX) build --impure .#checks.$(shell $(NIX) eval --impure --expr 'builtins.currentSystem' | tr -d '"').lib-platform-system-test -L
 
 test-lib-error-system:
+	@echo "⚠️  DEPRECATED: 'test-lib-error-system' is deprecated. Use 'make test-with ARGS=\"unit --tag error-system\"' instead."
+	@echo "ℹ️  For now, running legacy implementation..."
 	@echo "🧪 Testing lib/error-system.nix..."
 	@$(NIX) build --impure .#checks.$(shell $(NIX) eval --impure --expr 'builtins.currentSystem' | tr -d '"').lib-error-system-test -L
 
 # BATS testing framework integration
 test-bats:
+	@echo "⚠️  DEPRECATED: 'test-bats' is deprecated. Use 'make test-with ARGS=\"integration --tag bats\"' instead."
+	@echo "ℹ️  For now, running legacy implementation..."
 	@echo "🧪 Running all BATS shell script tests..."
 	@if command -v bats >/dev/null 2>&1; then \
 		bats tests/bats/; \
@@ -148,6 +182,8 @@ test-bats:
 	fi
 
 test-bats-platform:
+	@echo "⚠️  DEPRECATED: 'test-bats-platform' is deprecated. Use 'make test-with ARGS=\"integration --tag bats-platform\"' instead."
+	@echo "ℹ️  For now, running legacy implementation..."
 	@echo "🧪 Running BATS platform detection tests..."
 	@if command -v bats >/dev/null 2>&1; then \
 		bats tests/bats/test_platform_detection.bats; \
@@ -156,6 +192,8 @@ test-bats-platform:
 	fi
 
 test-bats-build:
+	@echo "⚠️  DEPRECATED: 'test-bats-build' is deprecated. Use 'make test-with ARGS=\"integration --tag bats-build\"' instead."
+	@echo "ℹ️  For now, running legacy implementation..."
 	@echo "🧪 Running BATS build system tests..."
 	@if command -v bats >/dev/null 2>&1; then \
 		bats tests/bats/test_build_system.bats; \
@@ -164,6 +202,8 @@ test-bats-build:
 	fi
 
 test-bats-claude:
+	@echo "⚠️  DEPRECATED: 'test-bats-claude' is deprecated. Use 'make test-with ARGS=\"integration --tag claude\"' instead."
+	@echo "ℹ️  For now, running legacy implementation..."
 	@echo "🧪 Running BATS Claude activation tests..."
 	@if command -v bats >/dev/null 2>&1; then \
 		bats tests/bats/test_claude_activation.bats; \
@@ -172,6 +212,8 @@ test-bats-claude:
 	fi
 
 test-bats-user-resolution:
+	@echo "⚠️  DEPRECATED: 'test-bats-user-resolution' is deprecated. Use 'make test-with ARGS=\"integration --tag user-resolution\"' instead."
+	@echo "ℹ️  For now, running legacy implementation..."
 	@echo "🧪 Running BATS user resolution tests..."
 	@if command -v bats >/dev/null 2>&1; then \
 		bats tests/bats/test_lib_user_resolution.bats; \
@@ -180,6 +222,8 @@ test-bats-user-resolution:
 	fi
 
 test-bats-error-system:
+	@echo "⚠️  DEPRECATED: 'test-bats-error-system' is deprecated. Use 'make test-with ARGS=\"integration --tag error-system\"' instead."
+	@echo "ℹ️  For now, running legacy implementation..."
 	@echo "🧪 Running BATS error system tests..."
 	@if command -v bats >/dev/null 2>&1; then \
 		bats tests/bats/test_lib_error_system.bats; \
@@ -189,55 +233,74 @@ test-bats-error-system:
 
 # BATS test categories
 test-bats-lib:
+	@echo "⚠️  DEPRECATED: 'test-bats-lib' is deprecated. Use 'make test-with ARGS=\"integration --tag bats-lib\"' instead."
+	@echo "ℹ️  For now, running legacy implementation..."
 	@echo "🧪 Running all BATS library tests..."
 	@$(MAKE) test-bats-user-resolution
 	@$(MAKE) test-bats-error-system
 
 test-bats-system:
+	@echo "⚠️  DEPRECATED: 'test-bats-system' is deprecated. Use 'make test-with ARGS=\"integration --tag bats-system\"' instead."
+	@echo "ℹ️  For now, running legacy implementation..."
 	@echo "🧪 Running all BATS system tests..."
 	@$(MAKE) test-bats-platform
 	@$(MAKE) test-bats-build
 
 test-bats-integration:
+	@echo "⚠️  DEPRECATED: 'test-bats-integration' is deprecated. Use 'make test-with ARGS=\"integration --tag bats-integration\"' instead."
+	@echo "ℹ️  For now, running legacy implementation..."
 	@echo "🧪 Running BATS integration tests..."
 	@$(MAKE) test-bats-claude
 
 # BATS with TAP reporting
 test-bats-report:
+	@echo "⚠️  DEPRECATED: 'test-bats-report' is deprecated. Use 'make test-with ARGS=\"integration --format tap\"' instead."
+	@echo "ℹ️  For now, running legacy implementation..."
 	@echo "📊 Running BATS tests with TAP reporting..."
 	@./scripts/bats-tap-reporter.sh ./test-reports
 
 test-bats-report-ci:
+	@echo "⚠️  DEPRECATED: 'test-bats-report-ci' is deprecated. Use 'make test-with ARGS=\"integration --format junit\"' instead."
+	@echo "ℹ️  For now, running legacy implementation..."
 	@echo "🤖 Running BATS tests for CI with TAP output..."
 	@./scripts/bats-tap-reporter.sh ./test-reports/ci
 
 # Comprehensive test suite
 test-comprehensive:
-	@echo "🔬 Running comprehensive test suite..."
-	@$(MAKE) test-core
-	@$(MAKE) test-bats-all
-	@echo "✅ All tests completed successfully"
+	@echo "⚠️  DEPRECATED: 'test-comprehensive' is deprecated. Use 'make test' instead."
+	@echo "ℹ️  Running equivalent command: test all"
+	@./tests/lib/unified/test-cli.sh all
 
 # Fast parallel testing (2-3 seconds total)
 test-quick:
+	@echo "⚠️  DEPRECATED: 'test-quick' is deprecated. Use 'make test-with ARGS=\"quick --parallel\"' instead."
+	@echo "ℹ️  For now, running legacy implementation..."
 	@echo "🚀 Running parallel quick tests..."
 	@./scripts/quick-test.sh
 
 # Enhanced testing with detailed reporting
 test-enhanced:
+	@echo "⚠️  DEPRECATED: 'test-enhanced' is deprecated. Use 'make test-with ARGS=\"integration --verbose\"' instead."
+	@echo "ℹ️  For now, running legacy implementation..."
 	@echo "🚀 Running enhanced tests with detailed reporting..."
 	@./scripts/enhanced-test.sh --quiet --parallel
 
 test-enhanced-verbose:
+	@echo "⚠️  DEPRECATED: 'test-enhanced-verbose' is deprecated. Use 'make test-with ARGS=\"integration --verbose\"' instead."
+	@echo "ℹ️  For now, running legacy implementation..."
 	@echo "🚀 Running enhanced tests with verbose output..."
 	@./scripts/enhanced-test.sh --verbose
 
 # Performance monitoring and regression detection
 test-monitor:
+	@echo "⚠️  DEPRECATED: 'test-monitor' is deprecated. Use 'make test-with ARGS=\"performance\"' instead."
+	@echo "ℹ️  For now, running legacy implementation..."
 	@echo "📊 Running performance monitoring..."
 	@./tests/performance/test-performance-monitor.sh
 
 test-monitor-full:
+	@echo "⚠️  DEPRECATED: 'test-monitor-full' is deprecated. Use 'make test-with ARGS=\"performance --timeout 600\"' instead."
+	@echo "ℹ️  For now, running legacy implementation..."
 	@echo "📊 Running full performance monitoring (including heavy tests)..."
 	@./tests/performance/test-performance-monitor.sh --full
 
@@ -352,4 +415,4 @@ setup-mcp: check-user
 	@echo "🤖 Setting up Claude Code MCP servers..."
 	@./scripts/setup-claude-mcp --main
 
-.PHONY: help check-user lint smoke test test-quick test-core test-workflow test-perf test-list test-unit-extended test-lib-user-resolution test-lib-platform-system test-lib-error-system test-bats test-bats-lib test-bats-system test-bats-integration test-bats-platform test-bats-build test-bats-claude test-bats-user-resolution test-bats-error-system test-bats-report test-bats-report-ci build build-linux build-darwin build-current build-fast build-switch switch apply deploy platform-info setup-mcp
+.PHONY: help check-user lint smoke test test-with test-quick test-core test-workflow test-perf test-list test-unit-extended test-lib-user-resolution test-lib-platform-system test-lib-error-system test-bats test-bats-lib test-bats-system test-bats-integration test-bats-platform test-bats-build test-bats-claude test-bats-user-resolution test-bats-error-system test-bats-report test-bats-report-ci build build-linux build-darwin build-current build-fast build-switch switch apply deploy platform-info setup-mcp
