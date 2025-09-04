@@ -1,9 +1,11 @@
 ---
 name: analyze
-description: "Analyze codebase for issues and improvements"
+description: "Analyze codebase for issues and improvements - PLANNING ONLY"
 ---
 
 Analyze the codebase, error, or specific component. Identify problems, suggest improvements, and provide actionable recommendations.
+
+**CRITICAL: This command MUST ONLY perform analysis and MUST NOT modify any code.**
 
 **Use Serena MCP for all code analysis.**
 
@@ -11,12 +13,10 @@ Analyze the codebase, error, or specific component. Identify problems, suggest i
 
 **Auto-detects**: Code quality, security risks, performance bottlenecks
 
-**Output**: Prioritized findings with actionable recommendations
-
 ## Analysis Flow
 
 1. **Discover**: Map files and identify analysis targets
-2. **Scan**: Apply quality, security, performance checks
+2. **Scan**: Apply quality, security, performance checks  
 3. **Prioritize**: Rank issues by severity and impact
 4. **Recommend**: Provide specific, actionable fixes
 
