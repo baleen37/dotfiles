@@ -256,6 +256,9 @@ in
     git = {
       enable = true;
       ignores = [
+        # Local files
+        ".local/"
+
         # Editor files
         "*.swp"
         "*.swo"
@@ -293,6 +296,7 @@ in
         # Plan files (project planning)
         "plan.md"
         "todo.md"
+        "specs/"
 
       ];
       userName = name;
