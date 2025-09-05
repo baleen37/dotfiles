@@ -296,6 +296,7 @@ in
         # Plan files (project planning)
         "plan.md"
         "todo.md"
+        "specs/"
 
       ];
       userName = name;
