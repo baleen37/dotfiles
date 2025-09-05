@@ -367,7 +367,7 @@ in
         # End-to-end tests
         e2e-shell = pkgs.runCommand "e2e-shell-test"
           {
-            buildInputs = [ pkgs.bash pkgs.coreutils ];
+            buildInputs = [ pkgs.bash pkgs.coreutils pkgs.rsync pkgs.jq ];
             meta = { description = "End-to-end shell script tests"; };
           } ''
           echo "Running E2E shell tests..."
