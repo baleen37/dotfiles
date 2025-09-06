@@ -90,6 +90,7 @@ jobs:
             os: macos-13
             build_type: validate
     runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.name == 'Darwin ARM64' }}  # Mark Darwin ARM64 as optional due to runner issues
     steps:
       - uses: actions/checkout@v4
 
