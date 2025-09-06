@@ -110,6 +110,10 @@ FOR EVERY NEW FEATURE OR BUGFIX, YOU MUST follow TDD:
 - Never hardcode usernames as they vary per host
 - Avoid using `export` and similar env commands as they require elevated privileges
 - **Delete unused code immediately - NO DEADCODE**
+- **Duplicate Code Handling**: Follow the Rule of Three for logic duplication, but remove identical implementations immediately:
+  - **Identical implementations**: If two functions/classes do EXACTLY the same thing (e.g., StandardTimeProvider and RealTimeProvider), remove one immediately
+  - **Similar logic**: Apply Rule of Three - tolerate 2 occurrences, refactor on the 3rd
+  - **Test code**: Some duplication in tests is acceptable for clarity and independence
 - Prefer editing existing files to creating new ones
 - Never proactively create documentation files unless explicitly requested
 - **Token Optimization**: Keep outputs focused by using limits and batching tool calls
@@ -149,7 +153,7 @@ Examples:
 
 - **Context7**: Use when working with external libraries or frameworks for up-to-date documentation and API references
 - **Sequential Thinking**: Use for complex multi-step problem solving that requires breaking down tasks and tool coordination
-- **Serena MCP**: Use for **all coding work** - analyzing, modifying, creating, deleting code with project context and memory. **Prefer Serena over direct file tools for all code operations**
+- **Serena MCP**: Code analysis and context-aware editing. Best for: multi-file searches, symbol tracking, API changes. Skip for: single file reads, new files, simple edits
 - **Playwright**: Use for browser automation and testing tasks
 
 ## Task Tool Usage Guidelines

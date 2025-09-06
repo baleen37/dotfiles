@@ -38,6 +38,13 @@ Then, examine the current Claude instructions, commands and config:
 
 Analyze the chat history, instructions, commands and config to identify areas that could be improved. Look for:
 
+## Rule Compliance Check (Priority)
+- Check if existing instructions/rules were violated in the conversation
+- Identify patterns where documented behaviors weren't followed
+- Focus on: "What rules existed but weren't applied?"
+- Prioritize fixing compliance over adding new rules
+
+## General Improvements
 - Inconsistencies in Claude's responses
 - Misunderstandings of user requests
 - Areas where Claude could provide more detailed or accurate information
