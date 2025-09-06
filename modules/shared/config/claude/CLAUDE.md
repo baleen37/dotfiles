@@ -149,7 +149,7 @@ Examples:
 
 - **Context7**: Use when working with external libraries or frameworks for up-to-date documentation and API references
 - **Sequential Thinking**: Use for complex multi-step problem solving that requires breaking down tasks and tool coordination
-- **Serena MCP**: Use for **all coding work** - analyzing, modifying, creating, deleting code with project context and memory. **Prefer Serena over direct file tools for all code operations**
+- **Serena MCP**: Code analysis and context-aware editing. Best for: multi-file searches, symbol tracking, API changes. Skip for: single file reads, new files, simple edits
 - **Playwright**: Use for browser automation and testing tasks
 
 ## Task Tool Usage Guidelines
