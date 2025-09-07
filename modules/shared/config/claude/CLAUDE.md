@@ -11,6 +11,60 @@ YAGNI above all. Simplicity over sophistication. When in doubt, ask project main
 - Code is read 10x more than written - write for humans, not machines
 - Readability and maintainability are PRIMARY CONCERNS
 
+## Code Hygiene Philosophy
+
+### Zero Tolerance for Code Waste
+
+We maintain absolute intolerance for:
+- **Dead Code**: Unused functions, variables, imports, or entire files
+- **Legacy Code**: Outdated patterns that exist only because "it works"  
+- **Code Duplication**: Identical logic scattered across multiple locations
+- **Temporary Artifacts**: Debug prints, commented code, experimental files
+- **Speculative Code**: Features built "just in case" we might need them
+
+### The Boy Scout Rule
+
+**"Always leave code cleaner than you found it"** - Robert C. Martin
+
+Every interaction with code is an opportunity for improvement:
+- Fix small issues immediately when encountered
+- Rename unclear variables during feature work
+- Extract duplicated logic when adding similar functionality
+- Remove dead imports when touching a file
+- Delete commented code blocks on sight
+
+### The Trinity: YAGNI • DRY • KISS
+
+**YAGNI (You Aren't Gonna Need It)**
+- Implement only current requirements, never future possibilities
+- Remove features the moment they become unused
+- Resist building "flexible" solutions without concrete need
+
+**DRY (Don't Repeat Yourself)**  
+- Every piece of logic has exactly one authoritative location
+- Extract shared functionality on the third occurrence (Rule of Three)
+- Eliminate identical implementations immediately
+
+**KISS (Keep It Simple, Stupid)**
+- Choose the simplest solution that works
+- Prefer explicit over clever code
+- Remove complexity that doesn't add value
+
+### Opportunistic Refactoring
+
+Following Martin Fowler's principle of continuous improvement:
+- Refactor during feature development, not as separate tasks
+- Make small, incremental improvements consistently  
+- Clean up code patterns while they're fresh in memory
+- Never leave code in worse state than you found it
+
+### Enforcement Mechanisms
+
+- **Pre-commit hooks**: Automated detection of dead code and style violations
+- **Code reviews**: Explicit hygiene checklist for every PR
+- **Periodic audits**: Regular cleanup sprints to eliminate accumulated waste
+- **Documentation**: Update or delete docs that reference removed code
+
 ## Core Rules
 
 **Rule #1**: All significant changes require project maintainer's explicit approval. No exceptions.
