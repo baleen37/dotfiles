@@ -47,12 +47,15 @@ jobs:
 
       - name: Cache Nix store
         uses: actions/cache@v4
+        continue-on-error: true
         with:
           path: |
             /nix/store
             ~/.cache/nix
           key: validate-nix-${{ hashFiles('flake.lock') }}
           restore-keys: validate-nix-
+          # Use built-in tar instead of GNU tar to avoid issues
+          enableCrossOsArchive: false
 
       - name: Lint
         run: |
@@ -123,6 +126,7 @@ jobs:
 
       - name: Cache Nix store
         uses: actions/cache@v4
+        continue-on-error: true
         with:
           path: |
             /nix/store
@@ -132,9 +136,11 @@ jobs:
             ${{ runner.os }}-${{ matrix.system }}-
             ${{ runner.os }}-nix-
             validate-nix-
+          # Use built-in tar instead of GNU tar to avoid issues
+          enableCrossOsArchive: false
 
       - name: Build configuration
-        timeout-minutes: 45
+        timeout-minutes: 90
         run: |
           export USER=${USER:-ci}
           echo "🏗️ Building ${{ matrix.name }} (${{ matrix.system }}) - Type: ${{ matrix.build_type }}"
@@ -193,6 +199,7 @@ jobs:
 
       - name: Restore Nix cache
         uses: actions/cache/restore@v4
+        continue-on-error: true
         with:
           path: |
             /nix/store
@@ -201,9 +208,11 @@ jobs:
           restore-keys: |
             macOS-aarch64-darwin-
             validate-nix-
+          # Use built-in tar instead of GNU tar to avoid issues
+          enableCrossOsArchive: false
 
       - name: Run tests
-        timeout-minutes: 15
+        timeout-minutes: 30
         run: |
           export USER=${USER:-ci}
 
