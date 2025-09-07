@@ -1,104 +1,117 @@
-# /improve - Systematic Code Improvement
+# /improve - Interactive Code Improvement
 
-**Purpose**: Apply systematic improvements to code quality, performance, maintainability, and security with intelligent analysis and safe execution.
+**Purpose**: Apply systematic improvements through intelligent conversation, adaptive planning, and collaborative decision-making.
 
 ## Usage
 
 ```bash
-/improve                              # Full codebase improvement
-/improve [target]                     # Targeted improvement
-/improve [target] --type quality      # Quality-focused improvements
-/improve [target] --type performance  # Performance optimizations
-/improve [target] --type maintainability # Maintainability enhancements
-/improve [target] --type style        # Style and formatting fixes
-/improve [target] --type security     # Security vulnerability fixes
-/improve [target] --safe              # Apply only safe, validated changes
-/improve [target] --interactive       # Interactive guidance for complex improvements
-/improve [target] --thinkhard         # Deep analysis with comprehensive recommendations
+/improve                    # Interactive full codebase improvement
+/improve [target]           # Interactive targeted improvement
+/improve src/auth          # Improve specific module with guided conversation
 ```
 
 ## What It Does
 
 <details>
-<summary><strong>Systematic 5-Stage Improvement Process</strong></summary>
+<summary><strong>Conversational Improvement Process</strong></summary>
 
-1. **Analyze**: Deep codebase analysis identifying improvement opportunities
-2. **Plan**: Strategic improvement approach with risk assessment
-3. **Execute**: Safe implementation of improvements with validation
-4. **Validate**: Comprehensive testing and verification of changes
-5. **Document**: Clear documentation of improvements and recommendations
-
-</details>
-
-<details>
-<summary><strong>Multi-Type Improvements</strong></summary>
-
-- **Quality**: Reduce technical debt, enhance readability, improve code structure
-- **Performance**: Identify bottlenecks, optimize algorithms, reduce resource usage
-- **Maintainability**: Simplify complexity, improve modularity, enhance testability
-- **Style**: Apply consistent formatting, naming conventions, code organization
-- **Security**: Identify vulnerabilities, apply security best practices, sanitize inputs
+1. **Discover**: Analyze target and identify improvement opportunities
+2. **Discuss**: Ask clarifying questions about priorities and constraints  
+3. **Plan**: Collaboratively design improvement strategy
+4. **Execute**: Implement improvements with ongoing validation
+5. **Review**: Evaluate results and gather feedback for future improvements
 
 </details>
 
 <details>
-<summary><strong>Intelligent Safety Features</strong></summary>
+<summary><strong>Intelligent Question Framework</strong></summary>
 
-- **Safe Mode**: Only applies changes with high confidence and low risk
-- **Interactive Mode**: Provides guided improvements for complex scenarios
-- **Rollback Capability**: Maintains change history for easy rollback
-- **Validation Pipeline**: Runs tests and checks before finalizing changes
-- **Risk Assessment**: Evaluates potential impact of each improvement
+The tool automatically asks relevant questions based on context:
+
+- **New Project**: "What's your main concern - performance, maintainability, or security?"
+- **Legacy Code**: "Are you planning a gradual refactor or major overhaul?"
+- **Performance Issues**: "Are you seeing specific bottlenecks or general slowness?"
+- **Security Code**: "What's your security compliance requirements?"
+- **Team Project**: "What's the team's experience level with these patterns?"
 
 </details>
 
 <details>
-<summary><strong>Deep Analysis with ThinkHard</strong></summary>
+<summary><strong>Adaptive Planning</strong></summary>
 
-When using `--thinkhard`, the tool performs:
+- **Risk Assessment**: Evaluates complexity and suggests appropriate approaches
+- **Resource Consideration**: Factors in time constraints and team capacity
+- **Incremental Strategy**: Breaks large improvements into manageable steps
+- **Validation Points**: Identifies key checkpoints for testing and review
+- **Rollback Planning**: Ensures safe execution with clear recovery paths
 
-- **Architectural Analysis**: System design patterns, coupling analysis, dependency evaluation  
-- **Performance Profiling**: Memory usage patterns, execution bottlenecks, optimization opportunities
-- **Security Audit**: Vulnerability scanning, attack surface analysis, security best practices
-- **Technical Debt Assessment**: Code complexity metrics, maintainability scoring, refactoring priorities
-- **Best Practices Compliance**: Framework conventions, industry standards, modern patterns
+</details>
+
+<details>
+<summary><strong>Context-Aware Analysis</strong></summary>
+
+- **Framework Detection**: Identifies technologies and suggests best practices
+- **Pattern Recognition**: Detects common anti-patterns and improvement opportunities  
+- **Dependency Analysis**: Understands impact of changes across the codebase
+- **Performance Profiling**: Identifies real bottlenecks vs perceived issues
+- **Security Assessment**: Evaluates vulnerabilities based on actual usage patterns
 
 </details>
 
 ## MCP Integration
 
-- **Sequential**: Multi-step improvement planning and systematic execution
+- **Sequential**: Multi-step improvement planning with conversational checkpoints
 - **Context7**: Framework-specific best practices and migration guidance
 
 ## Agent Routing
 
-- **system-architect**: Architectural improvements, design pattern optimization
-- **backend-engineer**: Performance optimization, database improvements, API enhancements  
-- **code-reviewer**: Quality improvements, security enhancements, best practices
-- **test-automator**: Test coverage improvements, testing strategy enhancement
+- **system-architect**: For architectural decisions and design discussions
+- **backend-engineer**: For performance and infrastructure improvements
+- **code-reviewer**: For quality and security enhancement conversations
+- **test-automator**: For testing strategy and coverage discussions
 
-## Examples
+## Conversation Examples
 
 ```bash
-/improve src/api --type performance --safe
-# Safely optimize API performance with validated changes
-
-/improve components/ --type quality --interactive  
-# Interactive quality improvements with guidance
-
-/improve --type security --thinkhard
-# Comprehensive security analysis and improvements
-
-/improve legacy-module.js --safe
-# Safe refactoring of legacy code with rollback capability
+/improve auth-service/
 ```
 
-## Safety Guarantees
+**Assistant**: "I've analyzed your auth service and found several improvement opportunities. Before we start, I need to understand your priorities:
 
-- **Non-Destructive**: All changes are validated and can be rolled back
-- **Test Integration**: Runs existing tests before and after improvements
-- **Incremental**: Applies changes step-by-step with validation checkpoints
-- **Documentation**: Maintains clear record of all improvements made
-- **Risk-Aware**: Assesses and communicates potential impact of changes
+1. Are you experiencing specific performance issues, or is this preventive optimization?
+2. What's your timeline - is this urgent or can we take a methodical approach?
+3. Are there any parts of the auth flow that are especially critical not to break?
 
-The improve command transforms code systematically while maintaining stability and providing clear visibility into all changes made.
+Based on your answers, I'll create a tailored improvement plan."
+
+```bash
+/improve legacy-dashboard.js  
+```
+
+**Assistant**: "This dashboard has significant complexity (cyclomatic complexity: 23). I can see several refactoring approaches:
+
+- **Conservative**: Extract utility functions, improve readability (2-3 hours)
+- **Moderate**: Break into components, add proper state management (1-2 days)  
+- **Comprehensive**: Full rewrite with modern patterns (1 week)
+
+What's driving this improvement? Performance complaints, maintenance difficulty, or preparing for new features?"
+
+## Collaborative Decision Making
+
+The tool engages in natural conversation to:
+
+- **Understand Context**: Why is improvement needed now?
+- **Assess Constraints**: Time, resources, risk tolerance
+- **Explore Options**: Multiple approaches with trade-offs
+- **Build Consensus**: Ensure alignment on approach and priorities
+- **Plan Execution**: Step-by-step roadmap with validation points
+
+## Safety Through Conversation
+
+- **Explicit Consent**: Every significant change requires confirmation
+- **Impact Explanation**: Clear communication of what will change and why
+- **Incremental Progress**: Small steps with frequent check-ins
+- **Continuous Validation**: Regular testing and feedback loops
+- **Adaptive Planning**: Adjusts approach based on results and feedback
+
+The improve command transforms code through intelligent conversation, ensuring improvements align with your specific needs, constraints, and goals.
