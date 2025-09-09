@@ -80,10 +80,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: "Darwin ARM64"
-            system: aarch64-darwin
-            os: macos-14
-            build_type: full
+          # Temporarily disabled due to GitHub Actions macOS ARM64 runner issues
+          # - name: "Darwin ARM64"
+          #   system: aarch64-darwin
+          #   os: macos-14
+          #   build_type: full
           - name: "Linux x64"
             system: x86_64-linux
             os: ubuntu-latest
