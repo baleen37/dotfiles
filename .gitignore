@@ -67,4 +67,5 @@ __pycache__/
 .serena
 
 # Planning documents
-plan.md
+specs/
+plans/

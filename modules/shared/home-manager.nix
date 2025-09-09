@@ -294,9 +294,8 @@ in
         "issues/"
 
         # Plan files (project planning)
-        "plan.md"
-        "todo.md"
         "specs/"
+        "plans/"
 
       ];
       userName = name;
