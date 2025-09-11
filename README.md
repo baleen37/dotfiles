@@ -258,7 +258,7 @@ bl --help                 # Usage information
 
 ## 🤖 Claude Code Integration
 
-Built-in AI development assistance with 20+ specialized commands and MCP server integration.
+Built-in AI development assistance with 20+ specialized commands and MCP server integration. Features automated workflow improvements and smart commit message generation.
 
 ### Setup
 
