@@ -41,13 +41,29 @@ config.keys = {
 
   -- Claude Code interactive shell 지원 - Shift+Enter를 \ + Enter 시퀀스로 매핑
   { key = 'Enter', mods = 'SHIFT', action = wezterm.action.SendString '\\\r' },
+
+  -- SSH/tmux 환경 복사-붙여넣기 키 바인딩
+  { key = 'c', mods = 'CMD', action = wezterm.action.CopyTo 'Clipboard' },
+  { key = 'v', mods = 'CMD', action = wezterm.action.PasteFrom 'Clipboard' },
 }
 
--- 마우스 설정
+-- 마우스 설정 (SSH/tmux 복사-붙여넣기 지원)
 config.mouse_bindings = {
   {
     event = { Up = { streak = 1, button = 'Left' } },
     mods = 'NONE',
+    action = wezterm.action.CompleteSelection 'ClipboardAndPrimarySelection',
+  },
+  -- Middle click으로 붙여넣기 (SSH/tmux 환경)
+  {
+    event = { Up = { streak = 1, button = 'Middle' } },
+    mods = 'NONE',
+    action = wezterm.action.PasteFrom 'Clipboard',
+  },
+  -- Option+Click으로 강제 선택 (tmux에서 마우스 모드가 켜져있을 때)
+  {
+    event = { Up = { streak = 1, button = 'Left' } },
+    mods = 'ALT',
     action = wezterm.action.CompleteSelection 'ClipboardAndPrimarySelection',
   },
 }
@@ -89,6 +105,10 @@ config.colors = {
 config.audible_bell = 'Disabled'
 config.check_for_updates = false
 config.automatically_reload_config = true
+
+-- SSH/tmux 복사-붙여넣기 최적화
+config.selection_word_boundary = " \t\n{}[]()\"'`,;:@"
+config.bypass_mouse_reporting_modifiers = 'ALT'  -- Alt+마우스로 터미널 마우스 모드 우회
 
 -- 애니메이션 최적화 (CPU 렌더링용)
 config.animation_fps = 1

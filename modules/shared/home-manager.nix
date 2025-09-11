@@ -577,6 +577,13 @@ in
         set -g destroy-unattached off
         set -g status-interval 1
 
+        # SSH/복사-붙여넣기 최적화
+        setw -g mode-keys vi
+        bind-key -T copy-mode-vi v send-keys -X begin-selection
+        bind-key -T copy-mode-vi y send-keys -X copy-pipe-and-cancel "pbcopy"
+        bind-key -T copy-mode-vi Enter send-keys -X copy-pipe-and-cancel "pbcopy"
+        bind-key -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe-and-cancel "pbcopy"
+
         # 터미널 특성 오버라이드 - 색상 코드 깨짐 방지
         set -ga terminal-overrides ",*256col*:Tc"
         set -ga terminal-overrides ",screen-256color:Tc"
