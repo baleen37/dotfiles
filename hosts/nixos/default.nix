@@ -232,6 +232,96 @@ in
 
   };
 
+  # VSCode Remote Tunnel Service
+  systemd.user.services.vscode-tunnel = {
+    description = "VSCode Remote Tunnel Service";
+    after = [ "network-online.target" ];
+    wants = [ "network-online.target" ];
+    wantedBy = [ "default.target" ];
+
+    serviceConfig = {
+      Type = "simple";
+      Restart = "on-failure";
+      RestartSec = "5";
+      StartLimitBurst = 3;
+      StartLimitIntervalSec = 300;
+
+      # Security settings
+      NoNewPrivileges = true;
+      PrivateTmp = true;
+      ProtectSystem = "strict";
+      ProtectHome = false; # VSCode needs access to home directory
+
+      # Working directory and environment
+      WorkingDirectory = "/home/${user}";
+      Environment = [
+        "PATH=/run/current-system/sw/bin:/home/${user}/.nix-profile/bin"
+        "XDG_CONFIG_HOME=/home/${user}/.config"
+        "XDG_DATA_HOME=/home/${user}/.local/share"
+      ];
+
+      # Service executable - will download and run VSCode CLI
+      ExecStartPre = "${pkgs.writeShellScript "vscode-tunnel-download" ''
+        set -euo pipefail
+
+        CLI_DIR="$HOME/.vscode-server/cli"
+        CLI_PATH="$CLI_DIR/code"
+        ARCH="linux-x64"
+
+        # Create CLI directory
+        mkdir -p "$CLI_DIR"
+
+        # Download VSCode CLI if not present or outdated
+        if [[ ! -f "$CLI_PATH" ]] || [[ ! -x "$CLI_PATH" ]]; then
+          echo "[INFO] Downloading VSCode CLI..."
+
+          # Download from official Microsoft CDN
+          DOWNLOAD_URL="https://update.code.visualstudio.com/commit/stable/cli-alpine-$ARCH/stable"
+
+          # Download with retry logic
+          for attempt in {1..3}; do
+            if curl -fsSL "$DOWNLOAD_URL" -o "$CLI_PATH.tmp"; then
+              mv "$CLI_PATH.tmp" "$CLI_PATH"
+              chmod +x "$CLI_PATH"
+              echo "[INFO] VSCode CLI downloaded successfully"
+              break
+            else
+              echo "[WARN] Download attempt $attempt failed"
+              [[ $attempt -eq 3 ]] && exit 1
+              sleep 2
+            fi
+          done
+        fi
+
+        # Verify CLI works
+        if ! "$CLI_PATH" --version >/dev/null 2>&1; then
+          echo "[ERROR] VSCode CLI verification failed"
+          rm -f "$CLI_PATH"
+          exit 1
+        fi
+
+        echo "[INFO] VSCode CLI ready: $("$CLI_PATH" --version)"
+      ''}";
+
+      ExecStart = "${pkgs.writeShellScript "vscode-tunnel-start" ''
+        set -euo pipefail
+
+        CLI_PATH="$HOME/.vscode-server/cli/code"
+
+        echo "[INFO] Starting VSCode Remote Tunnel..."
+        echo "[INFO] VSCode CLI version: $("$CLI_PATH" --version)"
+
+        # Start tunnel with structured logging
+        exec "$CLI_PATH" tunnel --accept-server-license-terms --log trace
+      ''}";
+
+      # Logging
+      StandardOutput = "journal";
+      StandardError = "journal";
+      SyslogIdentifier = "vscode-tunnel";
+    };
+  };
+
   # Enable sound
   # sound.enable = true;
 
@@ -286,6 +376,22 @@ in
   environment.systemPackages = with pkgs; [
     git
     inetutils
+    # VSCode tunnel client command
+    (writeShellScriptBin "code" ''
+      # VSCode Remote Tunnel client command
+      # Routes to local VSCode tunnel when available
+
+      CLI_PATH="$HOME/.vscode-server/cli/code"
+
+      if [[ -x "$CLI_PATH" ]]; then
+        # Use tunnel CLI if available
+        exec "$CLI_PATH" "$@"
+      else
+        echo "VSCode Remote Tunnel not available. Ensure vscode-tunnel service is running."
+        echo "Start with: systemctl --user start vscode-tunnel"
+        exit 1
+      fi
+    '')
   ] ++ (import ../../modules/shared/packages.nix { inherit pkgs; });
 
 
