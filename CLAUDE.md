@@ -1,69 +1,62 @@
-# CLAUDE.md
+# CLAUDE.md - NixOS VSCode Remote Tunnel Integration
 
-Nix-based dotfiles for macOS/NixOS using flakes, Home Manager, nix-darwin.
+## Project Context
 
-## Commands
+Nix-based dotfiles for macOS/NixOS using flakes, Home Manager, nix-darwin. Adding VSCode Remote Tunnel integration to NixOS configuration.
 
-```bash
-# Build & Apply (set USER first)
-export USER=$(whoami)
-./apps/[platform]/build-switch    # Direct platform build
-make build-switch                 # Alternative approach
+## Current Feature: VSCode Remote Tunnel Integration
 
-# Testing
-make test-core                    # Essential tests  
-make test                         # Full test suite
-make smoke                        # Quick validation
+**Status**: Implementation phase  
+**Branch**: `002-`  
+**Goal**: Enable `code` command from SSH sessions to open local VSCode
 
-# Direct Nix
-nix run --impure .#build-switch   # Build with sudo handling
-```
+### Technical Stack
 
-## Architecture
+- **Configuration**: Nix/NixOS declarative configuration
+- **Service**: systemd user service  
+- **Authentication**: GitHub OAuth via Microsoft tunnel service
+- **CLI Tool**: VSCode CLI (dynamically downloaded)
 
-**Structure:** `flake.nix` → `lib/` (platform detection) → `modules/` (shared/darwin/nixos) → `hosts/`
+### Key Files
 
-**Home Manager Rules:**
+- `hosts/nixos/default.nix`: Main NixOS configuration
+- `specs/002-/`: Complete feature specification and plan
+- `tests/integration/`: Service integration tests (TDD approach)
 
-- `shared/home-manager.nix`: Cross-platform only
-- Platform modules: Import shared, add platform-specific
-- Never import shared directly at system level
-- Use `lib.optionalString isDarwin/isLinux` for conditionals
+### Architecture Decisions
 
-**Packages:** All via Nix (`modules/shared/packages.nix`), macOS apps via `modules/darwin/casks.nix`, Python via `uv`
+- Systemd user service (not root) for security
+- Direct VSCode CLI download (not Nix package) for updates
+- GitHub OAuth for authentication (Microsoft's standard)
+- Integration with existing NixOS configuration
 
-## Claude Code
+### Current Implementation Status
 
-**MCP:** Context7, Sequential, Playwright (`make setup-mcp`)
+- [x] Specification complete (`specs/002-/spec.md`)
+- [x] Implementation plan complete (`specs/002-/plan.md`)
+- [x] Research and design complete
+- [ ] Tasks generated (`/tasks` command next)
+- [ ] Integration tests written (TDD)
+- [ ] NixOS configuration updated
+- [ ] Service validation complete
 
-**Configuration:** Located `modules/shared/config/claude/` → symlinked to `~/.claude/`
+### Testing Strategy
 
-- Commands: `/analyze`, `/build`, `/commit`, `/create-pr`, `/debug`, `/implement`, etc.
-- Agents: `backend-engineer`, `frontend-specialist`, `system-architect`, `test-automator`, etc.
-- Settings: Permission, environment, MCP configuration
+- RED-GREEN-Refactor cycle enforced
+- Integration tests with real systemd service
+- Network connectivity validation
+- End-to-end `code` command testing
 
-**Design Principles:**
+### Development Workflow
 
-- Use Context7 for documentation/settings changes
-- Flag minimalism: Only `-u` (update) and `-tdd` flags allowed
-- Natural language commands, avoid cryptic abbreviations
-- Token efficiency: Concise prompts, meta-prompting over direct instructions
-- Require approval for command/instruction changes
-- **Reference Direction**: Commands may reference agents, agents must not reference commands
-- **Command Isolation**: Commands must not reference other commands to maintain modularity and avoid circular dependencies
+1. Write failing integration tests first
+2. Update NixOS configuration  
+3. Test service deployment
+4. Validate tunnel connection
+5. Test `code` command functionality
 
-## Development
+## Recent Changes
 
-**Testing:** Unit + integration + E2E required. `make smoke` before commits, `make test` before PRs.
-
-**Policies:**
-
-- All installations via Nix (declarative configuration)
-- Platform-specific → respective modules (darwin/nixos)  
-- Cross-platform → shared modules with conditionals
-- Context7 first for Nix/Home Manager API updates
-- Use modern `run`, avoid deprecated `$DRY_RUN_CMD`
-
-**Global Commands:** `bl` dispatcher system (`~/.bl/commands/`), extensible via Nix.
-
-**Path Convention:** Use relative paths (`~/`, `./`) not absolute paths.
+- Added VSCode tunnel systemd service specification
+- Created service contracts and data models
+- Established testing framework for NixOS services
