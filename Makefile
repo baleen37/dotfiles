@@ -67,6 +67,7 @@ help:
 	@echo "  build-current - Build only current platform (faster)"
 	@echo "  build-fast  - Fast build with optimizations"
 	@echo "  build-switch - Build current platform and switch in one step"
+	@echo "  dev-server  - Install dev-server with VSCode Tunnels"
 	@echo "  apply       - Apply already built configuration"
 	@echo "  switch      - Build + apply in one step (requires sudo)"
 	@echo "  deploy      - Build+switch (works on any computer)"
