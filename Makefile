@@ -44,9 +44,7 @@ help:
 	@echo ""
 	@echo "🔬 Unit Testing (NEW):"
 	@echo "  test-unit-extended - Run comprehensive lib unit tests"
-	@echo "  test-lib-user-resolution - Test user resolution library"
-	@echo "  test-lib-platform-system - Test platform detection library"
-	@echo "  test-lib-error-system - Test error handling system"
+	@echo "  (Note: Individual lib tests consolidated into test-core)"
 	@echo ""
 	@echo "🧪 BATS Testing Framework:"
 	@echo "  test-bats - Run all BATS shell script tests"
@@ -121,23 +119,9 @@ test-list:
 # New comprehensive unit tests
 test-unit-extended:
 	@echo "🧪 Running extended unit tests for lib modules..."
-	@$(NIX) build --impure .#checks.$(shell $(NIX) eval --impure --expr 'builtins.currentSystem' | tr -d '"').lib-user-resolution-test -L
-	@$(NIX) build --impure .#checks.$(shell $(NIX) eval --impure --expr 'builtins.currentSystem' | tr -d '"').lib-platform-system-test -L
-	@$(NIX) build --impure .#checks.$(shell $(NIX) eval --impure --expr 'builtins.currentSystem' | tr -d '"').lib-error-system-test -L
+	@echo "📝 Note: Individual lib tests have been consolidated into core testing"
+	@$(MAKE) test-core
 	@echo "✅ All extended unit tests completed successfully!"
-
-# Individual lib tests
-test-lib-user-resolution:
-	@echo "🧪 Testing lib/user-resolution.nix..."
-	@$(NIX) build --impure .#checks.$(shell $(NIX) eval --impure --expr 'builtins.currentSystem' | tr -d '"').lib-user-resolution-test -L
-
-test-lib-platform-system:
-	@echo "🧪 Testing lib/platform-system.nix..."
-	@$(NIX) build --impure .#checks.$(shell $(NIX) eval --impure --expr 'builtins.currentSystem' | tr -d '"').lib-platform-system-test -L
-
-test-lib-error-system:
-	@echo "🧪 Testing lib/error-system.nix..."
-	@$(NIX) build --impure .#checks.$(shell $(NIX) eval --impure --expr 'builtins.currentSystem' | tr -d '"').lib-error-system-test -L
 
 # BATS testing framework integration
 test-bats:
@@ -354,4 +338,4 @@ setup-mcp: check-user
 	@echo "🤖 Setting up Claude Code MCP servers..."
 	@./scripts/setup-claude-mcp --main
 
-.PHONY: help check-user lint smoke test test-quick test-core test-workflow test-perf test-list test-unit-extended test-lib-user-resolution test-lib-platform-system test-lib-error-system test-bats test-bats-lib test-bats-system test-bats-integration test-bats-platform test-bats-build test-bats-claude test-bats-user-resolution test-bats-error-system test-bats-report test-bats-report-ci build build-linux build-darwin build-current build-fast build-switch switch apply deploy platform-info setup-mcp
+.PHONY: help check-user lint smoke test test-quick test-core test-workflow test-perf test-list test-unit-extended test-bats test-bats-lib test-bats-system test-bats-integration test-bats-platform test-bats-build test-bats-claude test-bats-user-resolution test-bats-error-system test-bats-report test-bats-report-ci build build-linux build-darwin build-current build-fast build-switch switch apply deploy platform-info setup-mcp

@@ -1,44 +1,17 @@
-# CLAUDE.md - Global Settings
+# CLAUDE.md - Core Principles
 
-## Philosophy
+## Rule #1: All significant changes require project maintainer's explicit approval. No exceptions.
 
-YAGNI above all. Simplicity over sophistication. When in doubt, ask project maintainer.
+## Core Principles
 
-- The best code is no code. Don't add features we don't need right now
-- Design for extensibility and flexibility
-- Make the SMALLEST reasonable changes to achieve the desired outcome
-- Simple, clean, maintainable solutions over clever or complex ones
-- Code is read 10x more than written - write for humans, not machines
-- Readability and maintainability are PRIMARY CONCERNS
-
-## Code Hygiene Philosophy
-
-### Zero Tolerance for Code Waste
-
-We maintain absolute intolerance for:
-- **Dead Code**: Unused functions, variables, imports, or entire files
-- **Legacy Code**: Outdated patterns that exist only because "it works"  
-- **Code Duplication**: Identical logic scattered across multiple locations
-- **Temporary Artifacts**: Debug prints, commented code, experimental files
-- **Speculative Code**: Features built "just in case" we might need them
-
-### The Boy Scout Rule
-
-**"Always leave code cleaner than you found it"** - Robert C. Martin
-
-Every interaction with code is an opportunity for improvement:
-- Fix small issues immediately when encountered
-- Rename unclear variables during feature work
-- Extract duplicated logic when adding similar functionality
-- Remove dead imports when touching a file
-- Delete commented code blocks on sight
+**YAGNI above all.** Simplicity over sophistication. When in doubt, ask project maintainer.
 
 ### The Trinity: YAGNI • DRY • KISS
 
 **YAGNI (You Aren't Gonna Need It)**
 - Implement only current requirements, never future possibilities
 - Remove features the moment they become unused
-- Resist building "flexible" solutions without concrete need
+- The best code is no code
 
 **DRY (Don't Repeat Yourself)**  
 - Every piece of logic has exactly one authoritative location
@@ -48,45 +21,31 @@ Every interaction with code is an opportunity for improvement:
 **KISS (Keep It Simple, Stupid)**
 - Choose the simplest solution that works
 - Prefer explicit over clever code
-- Remove complexity that doesn't add value
+- Make the SMALLEST reasonable changes to achieve desired outcome
 
-### Opportunistic Refactoring
+### Code Hygiene: Zero Tolerance
 
-Following Martin Fowler's principle of continuous improvement:
-- Refactor during feature development, not as separate tasks
-- Make small, incremental improvements consistently  
-- Clean up code patterns while they're fresh in memory
-- Never leave code in worse state than you found it
+- **Dead Code**: Delete unused functions, variables, imports, files immediately
+- **Code Duplication**: Eliminate identical implementations on sight
+- **Temporary Artifacts**: Remove debug prints, commented code, experimental files
+- **Boy Scout Rule**: Always leave code cleaner than you found it
 
-### Enforcement Mechanisms
+## Strict Prohibitions - YOU MUST NEVER:
 
-- **Pre-commit hooks**: Automated detection of dead code and style violations
-- **Code reviews**: Explicit hygiene checklist for every PR
-- **Periodic audits**: Regular cleanup sprints to eliminate accumulated waste
-- **Documentation**: Update or delete docs that reference removed code
-
-## Core Rules
-
-**Rule #1**: All significant changes require project maintainer's explicit approval. No exceptions.
-
-### Strict Prohibitions - YOU MUST NEVER:
 - Make code changes unrelated to your current task
 - Throw away or rewrite implementations without explicit permission
-- Add backward compatibility without explicit approval
 - Skip or evade or disable pre-commit hooks
 - Ignore system or test output - logs and messages contain critical information
 - Fix symptoms or add workarounds instead of finding root causes
 - Discard tasks from TodoWrite list without explicit approval
 - Remove code comments unless you can prove they are actively false
-- Add comments about what used to be there or how something has changed
-- Change whitespace that does not affect execution or output
 - Use `git add -A` without first doing `git status`
 - Assume test failures are not your fault or responsibility
 
-### Core Development Principles:
+## Core Development Principles
+
 - Follow TDD: failing test → minimal code → refactor
 - Always find the root cause, never fix just symptoms
-- Make the SMALLEST reasonable changes to achieve desired outcome
 - Track all non-trivial changes in git, commit frequently
 
 ## Communication Style
@@ -163,11 +122,6 @@ FOR EVERY NEW FEATURE OR BUGFIX, YOU MUST follow TDD:
 
 - Never hardcode usernames as they vary per host
 - Avoid using `export` and similar env commands as they require elevated privileges
-- **Delete unused code immediately - NO DEADCODE**
-- **Duplicate Code Handling**: Follow the Rule of Three for logic duplication, but remove identical implementations immediately:
-  - **Identical implementations**: If two functions/classes do EXACTLY the same thing (e.g., StandardTimeProvider and RealTimeProvider), remove one immediately
-  - **Similar logic**: Apply Rule of Three - tolerate 2 occurrences, refactor on the 3rd
-  - **Test code**: Some duplication in tests is acceptable for clarity and independence
 - Prefer editing existing files to creating new ones
 - Never proactively create documentation files unless explicitly requested
 - **Token Optimization**: Keep outputs focused by using limits and batching tool calls
@@ -260,9 +214,8 @@ YOU MUST ALWAYS find the root cause of any issue you are debugging. YOU MUST NEV
 3. **Verify Before Continuing**: Did your test work? If not, form new hypothesis - don't add more fixes
 4. **When You Don't Know**: Say "I don't understand X" rather than pretending to know
 
-### Phase 4: Implementation Rules
+### Implementation Rules
 - ALWAYS have the simplest possible failing test case
 - NEVER add multiple fixes at once
-- NEVER claim to implement a pattern without reading it completely first
 - ALWAYS test after each change
 - IF your first fix doesn't work, STOP and re-analyze rather than adding more fixes
