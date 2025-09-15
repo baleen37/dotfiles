@@ -477,6 +477,290 @@ cleanup_test_environments_by_pattern() {
     fi
 }
 
+# === Homebrew 테스트 환경 ===
+
+# Homebrew 테스트 환경 설정
+setup_mock_homebrew_environment() {
+    local test_dir="$1"
+    local mock_mode="${2:-safe}"  # safe, full, offline
+
+    mkdir -p "$test_dir"/{brew,casks,logs}
+
+    # Mock Homebrew 실행 파일 생성
+    cat > "$test_dir/brew/brew" << 'EOF'
+#!/usr/bin/env bash
+# Mock Homebrew for testing
+
+case "$1" in
+    "--version")
+        echo "Homebrew 4.0.0"
+        echo "Homebrew/homebrew-core (git revision abc123; last commit 2024-02-20)"
+        ;;
+    "--prefix")
+        if [[ "$(uname -m)" == "arm64" ]]; then
+            echo "/opt/homebrew"
+        else
+            echo "/usr/local"
+        fi
+        ;;
+    "--cellar")
+        echo "$(brew --prefix)/Cellar"
+        ;;
+    "help")
+        if [[ "$2" == "cask" ]]; then
+            echo "Homebrew Cask provides a friendly macOS CLI workflow"
+            echo "Usage: brew cask <command>"
+        else
+            echo "Example usage:"
+            echo "  brew search TEXT|/REGEX/"
+            echo "  brew info [FORMULA|CASK...]"
+        fi
+        ;;
+    "info")
+        if [[ "$2" == "--cask" ]]; then
+            local cask_name="$3"
+            echo "$cask_name: Mock application (cask)"
+            echo "https://mock-app.example.com"
+            echo "Not installed"
+        fi
+        ;;
+    "list")
+        if [[ "$2" == "--cask" ]]; then
+            # Mock installed casks
+            echo "alfred"
+            echo "vlc"
+            echo "discord"
+        fi
+        ;;
+    "outdated")
+        if [[ "$2" == "--cask" ]]; then
+            # Mock outdated casks
+            echo "discord (0.0.1) != 0.0.2"
+        fi
+        ;;
+    "search")
+        if [[ "$2" == "--cask" ]]; then
+            echo "==> Casks"
+            echo "$3 $3-pro $3-beta"
+        fi
+        ;;
+    *)
+        echo "Mock brew: Unknown command '$1'" >&2
+        exit 1
+        ;;
+esac
+EOF
+
+    chmod +x "$test_dir/brew/brew"
+
+    # Mock Cask 정보 파일들 생성
+    create_mock_cask_info "$test_dir/casks"
+
+    # Mock Homebrew 환경 변수 설정
+    cat > "$test_dir/homebrew-env.sh" << EOF
+export PATH="$test_dir/brew:\$PATH"
+export HOMEBREW_NO_AUTO_UPDATE=1
+export HOMEBREW_NO_ANALYTICS=1
+export HOMEBREW_CI_MODE=true
+export HOMEBREW_MOCK_MODE="$mock_mode"
+EOF
+
+    log_debug "Mock Homebrew 환경 생성: $test_dir (모드: $mock_mode)"
+}
+
+# Mock Cask 정보 생성
+create_mock_cask_info() {
+    local casks_dir="$1"
+
+    local cask_apps=(
+        "alfred:생산성:Alfred App Ltd."
+        "vlc:멀티미디어:VideoLAN"
+        "discord:커뮤니케이션:Discord Inc."
+        "docker-desktop:개발:Docker Inc."
+        "google-chrome:브라우저:Google LLC"
+        "firefox:브라우저:Mozilla"
+        "1password:보안:AgileBits Inc."
+        "karabiner-elements:시스템:Fumihiko Takayama"
+        "tailscale-app:네트워크:Tailscale Inc."
+        "hammerspoon:자동화:Hammerspoon"
+    )
+
+    for app_info in "${cask_apps[@]}"; do
+        local app="${app_info%%:*}"
+        local category="${app_info#*:}"
+        category="${category%%:*}"
+        local vendor="${app_info##*:}"
+
+        cat > "$casks_dir/${app}.info" << EOF
+{
+  "name": "$app",
+  "category": "$category",
+  "vendor": "$vendor",
+  "version": "1.0.0",
+  "installed": false,
+  "homepage": "https://$app.example.com",
+  "description": "Mock $category application for testing",
+  "requires_license": $(if [[ "$app" =~ (datagrip|intellij|1password) ]]; then echo "true"; else echo "false"; fi),
+  "system_permissions": $(if [[ "$app" =~ (karabiner|tailscale|docker) ]]; then echo "true"; else echo "false"; fi)
+}
+EOF
+    done
+
+    log_debug "Mock Cask 정보 파일들 생성: $casks_dir"
+}
+
+# Homebrew 테스트 상태 시뮬레이션
+simulate_homebrew_state() {
+    local test_dir="$1"
+    local state_type="$2"  # clean, partially_installed, problematic
+
+    case "$state_type" in
+        "clean")
+            # 깨끗한 상태 - 아무것도 설치되지 않음
+            rm -f "$test_dir/casks"/*.installed
+            ;;
+        "partially_installed")
+            # 일부 앱만 설치된 상태
+            touch "$test_dir/casks/alfred.installed"
+            touch "$test_dir/casks/vlc.installed"
+            touch "$test_dir/casks/discord.installed"
+            ;;
+        "problematic")
+            # 문제가 있는 상태 - 일부 앱에 문제
+            touch "$test_dir/casks/broken-app.problematic"
+            echo "Error: Application damaged" > "$test_dir/logs/error.log"
+            ;;
+    esac
+
+    log_debug "Homebrew 상태 시뮬레이션: $state_type"
+}
+
+# Homebrew 네트워크 상태 시뮬레이션
+simulate_network_conditions() {
+    local test_dir="$1"
+    local condition="$2"  # online, offline, slow, timeout
+
+    cat > "$test_dir/network-env.sh" << EOF
+# Network simulation for Homebrew testing
+export HOMEBREW_NETWORK_CONDITION="$condition"
+
+case "$condition" in
+    "offline")
+        export HOMEBREW_CURL_TIMEOUT=1
+        alias curl='curl --max-time 1'
+        ;;
+    "slow")
+        export HOMEBREW_CURL_TIMEOUT=30
+        alias curl='curl --limit-rate 1k'
+        ;;
+    "timeout")
+        export HOMEBREW_CURL_TIMEOUT=5
+        alias curl='timeout 5s curl'
+        ;;
+    "online")
+        # Normal network conditions
+        ;;
+esac
+EOF
+
+    log_debug "네트워크 상태 시뮬레이션: $condition"
+}
+
+# macOS 시스템 정보 시뮬레이션
+simulate_macos_environment() {
+    local test_dir="$1"
+    local macos_version="${2:-14.0}"  # Sonoma by default
+    local architecture="${3:-arm64}"  # Apple Silicon by default
+
+    cat > "$test_dir/macos-env.sh" << EOF
+# macOS environment simulation
+export MOCK_MACOS_VERSION="$macos_version"
+export MOCK_ARCHITECTURE="$architecture"
+
+# Override system commands for testing
+uname() {
+    case "\$1" in
+        "-s") echo "Darwin" ;;
+        "-m") echo "$architecture" ;;
+        "-r") echo "23.0.0" ;;  # Kernel version for macOS 14
+        *) command uname "\$@" ;;
+    esac
+}
+
+sw_vers() {
+    case "\$1" in
+        "-productVersion") echo "$macos_version" ;;
+        "-buildVersion") echo "23A344" ;;
+        "-productName") echo "macOS" ;;
+        *) echo "ProductName: macOS\\nProductVersion: $macos_version\\nBuildVersion: 23A344" ;;
+    esac
+}
+
+csrutil() {
+    if [[ "\$1" == "status" ]]; then
+        echo "System Integrity Protection status: enabled."
+    fi
+}
+
+spctl() {
+    if [[ "\$1" == "--status" ]]; then
+        echo "assessments enabled"
+    fi
+}
+
+# Export functions for subshells
+export -f uname sw_vers csrutil spctl
+EOF
+
+    log_debug "macOS 환경 시뮬레이션: $macos_version ($architecture)"
+}
+
+# Homebrew 테스트 시나리오 생성
+create_homebrew_test_scenario() {
+    local test_dir="$1"
+    local scenario_name="$2"
+    local scenario_config="$3"
+
+    mkdir -p "$test_dir/scenarios/$scenario_name"
+
+    case "$scenario_name" in
+        "fresh_install")
+            setup_mock_homebrew_environment "$test_dir/scenarios/$scenario_name" "safe"
+            simulate_homebrew_state "$test_dir/scenarios/$scenario_name" "clean"
+            simulate_network_conditions "$test_dir/scenarios/$scenario_name" "online"
+            ;;
+        "upgrade_scenario")
+            setup_mock_homebrew_environment "$test_dir/scenarios/$scenario_name" "full"
+            simulate_homebrew_state "$test_dir/scenarios/$scenario_name" "partially_installed"
+            simulate_network_conditions "$test_dir/scenarios/$scenario_name" "online"
+            ;;
+        "offline_scenario")
+            setup_mock_homebrew_environment "$test_dir/scenarios/$scenario_name" "offline"
+            simulate_homebrew_state "$test_dir/scenarios/$scenario_name" "clean"
+            simulate_network_conditions "$test_dir/scenarios/$scenario_name" "offline"
+            ;;
+        "problematic_scenario")
+            setup_mock_homebrew_environment "$test_dir/scenarios/$scenario_name" "safe"
+            simulate_homebrew_state "$test_dir/scenarios/$scenario_name" "problematic"
+            simulate_network_conditions "$test_dir/scenarios/$scenario_name" "timeout"
+            ;;
+    esac
+
+    # 시나리오 설정 파일 생성
+    cat > "$test_dir/scenarios/$scenario_name/scenario.json" << EOF
+{
+    "name": "$scenario_name",
+    "description": "Test scenario for $scenario_name",
+    "config": $scenario_config,
+    "created": "$(date -Iseconds)",
+    "platform": "darwin",
+    "homebrew_mock": true
+}
+EOF
+
+    log_debug "Homebrew 테스트 시나리오 생성: $scenario_name"
+}
+
 # === 유틸리티 함수들 ===
 
 # 환경 검증
@@ -494,6 +778,12 @@ validate_mock_environment() {
         "nix")
             [[ -f "$test_dir/flake.nix" ]] || return 1
             [[ -f "$test_dir/default.nix" ]] || return 1
+            ;;
+        "homebrew")
+            [[ -f "$test_dir/brew/brew" ]] || return 1
+            [[ -x "$test_dir/brew/brew" ]] || return 1
+            [[ -d "$test_dir/casks" ]] || return 1
+            [[ -f "$test_dir/homebrew-env.sh" ]] || return 1
             ;;
         "basic")
             [[ -d "$test_dir" ]] || return 1

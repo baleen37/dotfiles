@@ -126,6 +126,11 @@ run_unit_tests() {
         "$SCRIPT_DIR/unit/test-claude-activation-simple.sh"
     )
 
+    # BATS 테스트도 포함
+    local bats_tests=(
+        "$SCRIPT_DIR/bats/test_claude_agents.bats"
+    )
+
     local unit_passed=0
     local unit_failed=0
 
@@ -158,6 +163,40 @@ run_unit_tests() {
         fi
     done
 
+    # BATS 테스트 실행
+    for bats_test in "${bats_tests[@]}"; do
+        if [[ ! -f "$bats_test" ]]; then
+            log_warning "BATS 테스트 파일 누락: $(basename "$bats_test")"
+            continue
+        fi
+
+        local test_name=$(basename "$bats_test")
+        log_info "$test_name 실행..."
+
+        if command -v bats >/dev/null 2>&1; then
+            if [[ "${VERBOSE:-false}" == "true" ]]; then
+                if bats "$bats_test"; then
+                    log_success "$test_name 성공"
+                    ((unit_passed++))
+                else
+                    log_fail "$test_name 실패"
+                    ((unit_failed++))
+                fi
+            else
+                if bats "$bats_test" >/dev/null 2>&1; then
+                    log_success "$test_name 성공"
+                    ((unit_passed++))
+                else
+                    log_fail "$test_name 실패"
+                    ((unit_failed++))
+                    log_info "상세한 오류를 보려면 --verbose 옵션을 사용하세요"
+                fi
+            fi
+        else
+            log_warning "BATS가 설치되지 않음, $test_name 스킵"
+        fi
+    done
+
     log_info "단위 테스트 결과: 성공 $unit_passed개, 실패 $unit_failed개"
 
     if [[ $unit_failed -eq 0 ]]; then
@@ -175,6 +214,7 @@ run_integration_tests() {
     local integration_tests=(
         "$SCRIPT_DIR/integration/test-build-switch-claude-integration.sh"
         "$SCRIPT_DIR/integration/test-claude-activation-integration.sh"
+        "$SCRIPT_DIR/integration/test-claude-agents-integration.sh"
     )
 
     local integration_passed=0
