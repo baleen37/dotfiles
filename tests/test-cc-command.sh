@@ -17,13 +17,13 @@ run_test() {
     local test_name="$1"
     local test_command="$2"
     local expected_pattern="$3"
-    
+
     echo -n "Testing: $test_name ... "
-    
+
     # Run command and capture output
     output=$(eval "$test_command" 2>&1)
     exit_code=$?
-    
+
     if [ $exit_code -eq 0 ]; then
         if echo "$output" | grep -qE "$expected_pattern"; then
             echo -e "${GREEN}✓ PASSED${NC}"
@@ -70,7 +70,7 @@ run_test "cc script contains claude command" "grep 'claude' \$HOME/.local/bin/cc
 # Test 6: Verify it's not the C compiler
 run_test "cc is not C compiler" "cc --version | grep -v gcc | grep -v GNU" "Claude"
 
-# Test 7: Check if original cc is still accessible  
+# Test 7: Check if original cc is still accessible
 run_test "original cc still accessible" "/usr/bin/cc --version" "(gcc|GNU|Ubuntu)"
 
 # Test 8: Test cc with help flag
