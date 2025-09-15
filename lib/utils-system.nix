@@ -12,50 +12,20 @@ let
   # Import error system for error handling
   errorSystem = import ./error-system.nix { pkgs = actualPkgs; lib = actualLib; };
 
-  # System detection utilities
+  # Import optimized platform detection utilities
+  platformDetection = import ./platform-detection.nix {
+    pkgs = actualPkgs;
+    lib = actualLib;
+  };
+
+  # System detection utilities (now using optimized platform detection)
   systemUtils = {
     # Check if current system matches target system
     isSystem = currentSystem: targetSystem: currentSystem == targetSystem;
 
-    # Check if system is Darwin (macOS)
-    isDarwin = system: builtins.match ".*-darwin" system != null;
-
-    # Check if system is Linux
-    isLinux = system: builtins.match ".*-linux" system != null;
-
-    # Check if system is x86_64
-    isX86_64 = system: builtins.match "x86_64-.*" system != null;
-
-    # Check if system is aarch64
-    isAarch64 = system: builtins.match "aarch64-.*" system != null;
-
-    # Get architecture from system string
-    getArch = system:
-      if systemUtils.isX86_64 system then "x86_64"
-      else if systemUtils.isAarch64 system then "aarch64"
-      else errorSystem.throwUserError "Unknown architecture in system: ${system}";
-
-    # Get platform from system string
-    getPlatform = system:
-      if systemUtils.isDarwin system then "darwin"
-      else if systemUtils.isLinux system then "linux"
-      else errorSystem.throwUserError "Unknown platform in system: ${system}";
-
-    # Validate system string format
-    validateSystem = system:
-      let
-        parts = actualLib.splitString "-" system;
-        hasValidParts = builtins.length parts >= 2;
-        validArch = builtins.elem (builtins.head parts) [ "x86_64" "aarch64" ];
-        validPlatform = builtins.elem (builtins.elemAt parts 1) [ "darwin" "linux" ];
-      in
-      if !hasValidParts then
-        errorSystem.throwValidationError "Invalid system format: ${system}"
-      else if !validArch then
-        errorSystem.throwValidationError "Invalid architecture in system: ${system}"
-      else if !validPlatform then
-        errorSystem.throwValidationError "Invalid platform in system: ${system}"
-      else system;
+    # Use optimized platform detection functions (cached results)
+    inherit (platformDetection) isDarwin isLinux isX86_64 isAarch64;
+    inherit (platformDetection) getPlatform getArch validateSystem;
   };
 
   # Package utilities

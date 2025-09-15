@@ -16,16 +16,20 @@
 
 let
   name = "Jiho Lee";
+
+  # Import optimized platform detection utilities
+  platformDetection = import ../../lib/platform-detection.nix { inherit pkgs; };
+
   getUserInfo = import ../../lib/user-resolution.nix {
-    platform = if pkgs.stdenv.isDarwin then "darwin" else "linux";
+    platform = platformDetection.platform;
     returnFormat = "extended";
   };
   user = getUserInfo.user;
   email = "baleen37@gmail.com";
 
-  # Platform detection for conditional configurations
-  isDarwin = pkgs.stdenv.isDarwin;
-  isLinux = pkgs.stdenv.isLinux;
+  # Platform detection for conditional configurations (now using optimized detection)
+  isDarwin = platformDetection.isDarwin pkgs.system;
+  isLinux = platformDetection.isLinux pkgs.system;
 in
 {
   # macOS 사용자 레벨 기본값 설정 (root 권한 불필요)
