@@ -43,6 +43,9 @@ let
 
 in
 {
+  imports = [
+  ];
+
   home = {
     enableNixpkgsReleaseCheck = false;
     username = "${user}";
@@ -131,5 +134,14 @@ in
   };
 
   programs = shared-programs.programs;
+
+  # Claude 설정 활성화 (공통 라이브러리 사용)
+  home.activation.setupClaudeConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] (
+    import ../shared/claude.nix {
+      inherit config lib;
+      self = null;
+      platform = "linux";
+    }
+  );
 
 }

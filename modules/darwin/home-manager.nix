@@ -67,6 +67,14 @@ in
 
       manual.manpages.enable = false;
 
+      # Claude 설정 활성화 (공통 라이브러리 사용)
+      home.activation.setupClaudeConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] (
+        import ../shared/claude.nix {
+          inherit config lib self;
+          platform = "darwin";
+        }
+      );
+
       # TDD로 검증된 Nix 앱 링크 시스템 (최적화됨)
       home.activation.linkNixApps = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         run echo "🔗 Linking Nix GUI applications to ~/Applications..."
