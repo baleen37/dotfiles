@@ -4,7 +4,7 @@
 
 # Network connectivity check
 check_network_connectivity() {
-    log_debug "Checking network connectivity"
+    unified_log_debug "Checking network connectivity"
 
     # Multiple methods to detect network connectivity
     local connectivity_methods=(
@@ -24,10 +24,10 @@ check_network_connectivity() {
 
     # Consider online if majority of methods succeed
     if [ $online_methods -gt $((total_methods / 2)) ]; then
-        log_debug "Network connectivity detected ($online_methods/$total_methods methods succeeded)"
+        unified_log_debug "Network connectivity detected ($online_methods/$total_methods methods succeeded)"
         return 0
     else
-        log_debug "Network connectivity limited or unavailable ($online_methods/$total_methods methods succeeded)"
+        unified_log_debug "Network connectivity limited or unavailable ($online_methods/$total_methods methods succeeded)"
         return 1
     fi
 }
@@ -84,7 +84,7 @@ enable_offline_mode() {
         max-jobs = auto
     "
 
-    log_debug "Offline mode environment configured"
+    unified_log_debug "Offline mode environment configured"
 
     # Create offline mode indicator
     touch "${HOME}/.nix-build-offline-mode" 2>/dev/null || true
@@ -97,7 +97,7 @@ disable_offline_mode() {
     unset NIX_OFFLINE_MODE
     unset NIX_CONFIG
 
-    log_debug "Online mode environment restored"
+    unified_log_debug "Online mode environment restored"
 
     # Remove offline mode indicator
     rm -f "${HOME}/.nix-build-offline-mode" 2>/dev/null || true
@@ -110,7 +110,7 @@ is_offline_mode() {
 
 # Smart network mode detection and configuration
 configure_network_mode() {
-    log_debug "Configuring network mode based on connectivity"
+    unified_log_debug "Configuring network mode based on connectivity"
 
     if check_network_connectivity; then
         if is_offline_mode; then
@@ -127,26 +127,18 @@ configure_network_mode() {
     fi
 }
 
+# Import unified error handling for retry functionality
+. "${SCRIPTS_DIR:-$(dirname "$(dirname "$0")")}/lib/unified-error-handling.sh"
+
+# DEPRECATED: Use unified_retry_operation instead
 # Network retry with exponential backoff
 retry_with_backoff() {
     local command="$1"
     local max_attempts="${2:-3}"
     local base_delay="${3:-2}"
 
-    local attempt=1
-    local delay=$base_delay
-
-    while [ $attempt -le $max_attempts ]; do
-        log_debug "Network retry attempt $attempt/$max_attempts"
-
-        if eval "$command"; then
-            log_debug "Network operation succeeded on attempt $attempt"
-            return 0
-        fi
-
-        if [ $attempt -lt $max_attempts ]; then
-            log_debug "Network operation failed, retrying in ${delay}s"
-            sleep $delay
+    # Use unified retry operation
+    unified_retry_operation "$command" "$max_attempts" "$base_delay" "NETWORK"
             delay=$((delay * 2))
         fi
 

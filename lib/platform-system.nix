@@ -31,35 +31,25 @@ let
       throwUserError = msg: throw "User Error: ${msg}";
     };
 
-  # Platform detection core
-  detection =
-    let
-      currentSystem = if system != null then system else "x86_64-linux";
-    in
-    {
-      # Get current system from parameter (required in flake context)
-      nixSystem = currentSystem;
+  # Import optimized platform detection utilities
+  platformDetection = import ./platform-detection.nix {
+    system = if system != null then system else "x86_64-linux";
+    inherit pkgs lib;
+  };
 
-      # Extract platform and architecture from Nix system using manual parsing
-      detectedArch =
-        if builtins.match "x86_64-.*" currentSystem != null then "x86_64"
-        else if builtins.match "aarch64-.*" currentSystem != null then "aarch64"
-        else "unknown";
-      detectedPlatform =
-        if builtins.match ".*-darwin" currentSystem != null then "darwin"
-        else if builtins.match ".*-linux" currentSystem != null then "linux"
-        else "unknown";
+  # Platform detection core (now using optimized detection)
+  detection = {
+    # Get current system from parameter (required in flake context)
+    nixSystem = platformDetection.system;
 
-      # Supported configurations
-      supportedPlatforms = [ "darwin" "linux" ];
-      supportedArchs = [ "x86_64" "aarch64" ];
-      supportedSystems = [
-        "x86_64-darwin"
-        "aarch64-darwin"
-        "x86_64-linux"
-        "aarch64-linux"
-      ];
-    };
+    # Use optimized platform and architecture detection (cached results)
+    detectedArch = platformDetection.arch;
+    detectedPlatform = platformDetection.platform;
+
+    # Supported configurations
+    inherit (platformDetection) supportedPlatforms supportedArchitectures supportedSystems;
+    supportedArchs = platformDetection.supportedArchitectures; # Legacy compatibility
+  };
 
   # Current system information
   currentSystem = {

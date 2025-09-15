@@ -14,6 +14,11 @@ let
   # Import modularized app and test builders (functions that take system)
   platformSystem = system: import ./platform-system.nix { pkgs = nixpkgs.legacyPackages.${system}; lib = nixpkgs.lib; inherit nixpkgs system; self = inputs.self; };
   testSystem = system: import ./test-system.nix { pkgs = nixpkgs.legacyPackages.${system}; inherit nixpkgs; self = inputs.self; };
+
+  # Import optimized platform detection utilities
+  platformDetection = import ./platform-detection.nix {
+    lib = nixpkgs.lib;
+  };
 in
 {
   # Darwin system configuration builder
@@ -92,24 +97,9 @@ in
   # Development shell builder
   mkDevShells = forAllSystems: devShellFn: forAllSystems devShellFn;
 
-  # Utility functions for system configuration
+  # Utility functions for system configuration (now using optimized detection)
   utils = {
-    # Check if system is Darwin
-    isDarwin = system: builtins.match ".*-darwin" system != null;
-
-    # Check if system is Linux
-    isLinux = system: builtins.match ".*-linux" system != null;
-
-    # Get architecture from system string
-    getArch = system:
-      if builtins.match "x86_64-.*" system != null then "x86_64"
-      else if builtins.match "aarch64-.*" system != null then "aarch64"
-      else throw "Unknown architecture in system: ${system}";
-
-    # Get platform from system string
-    getPlatform = system:
-      if builtins.match ".*-darwin" system != null then "darwin"
-      else if builtins.match ".*-linux" system != null then "linux"
-      else throw "Unknown platform in system: ${system}";
+    # Use optimized platform detection functions (cached results)
+    inherit (platformDetection) isDarwin isLinux getArch getPlatform;
   };
 }

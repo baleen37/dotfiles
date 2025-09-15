@@ -13,6 +13,7 @@ CLAUDE_DIR="$TARGET_BASE/.claude"
 # 공통 라이브러리 로드
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../lib/common.sh"
+source "$SCRIPT_DIR/../lib/claude-activation-utils.sh"
 
 # 테스트 결과 추적
 TESTS_PASSED=0
@@ -21,184 +22,51 @@ TESTS_FAILED=0
 # 실제 dotfiles 루트 디렉토리 찾기
 DOTFILES_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
-# 테스트 헬퍼 함수
+# 공통 유틸리티의 어설션 함수 사용
 assert_test() {
     local condition="$1"
     local test_name="$2"
     local expected="${3:-}"
     local actual="${4:-}"
 
-    # 조건을 실제로 평가
-    if eval "$condition"; then
-        log_success "$test_name"
+    if assert_claude_test "$condition" "$test_name" "$expected" "$actual"; then
         ((TESTS_PASSED++))
         return 0
     else
-        if [[ -n "$expected" && -n "$actual" ]]; then
-            log_fail "$test_name"
-            log_error "  예상: $expected"
-            log_error "  실제: $actual"
-        else
-            log_fail "$test_name"
-        fi
         ((TESTS_FAILED++))
         return 1
     fi
 }
 
-# 모의 dotfiles 환경 설정
+# 공통 유틸리티를 사용한 모의 dotfiles 환경 설정
 setup_mock_dotfiles() {
-    log_info "모의 dotfiles 환경 설정 중..."
+    log_info "모의 dotfiles 환경 설정 중 (공통 유틸리티 사용)..."
 
-    # 디렉토리 구조 생성
-    mkdir -p "$SOURCE_BASE"/{commands,agents}
-    mkdir -p "$SOURCE_BASE/commands"/{git,workflow,system}
-    mkdir -p "$TARGET_BASE"
+    # 공통 유틸리티를 사용하여 모의 구조 생성
+    local mock_dotfiles_root=$(create_mock_dotfiles_structure "$TEST_DIR")
 
-    # 실제 설정 파일들을 참조하여 테스트 파일 생성
-    if [[ -f "$DOTFILES_ROOT/modules/shared/config/claude/settings.json" ]]; then
-        cp "$DOTFILES_ROOT/modules/shared/config/claude/settings.json" "$SOURCE_BASE/settings.json"
-    else
-        # 기본 settings.json 생성
-        cat > "$SOURCE_BASE/settings.json" << 'EOF'
-{
-  "version": "1.0.0",
-  "theme": "dark",
-  "autoSave": true,
-  "debugMode": false,
-  "workspaceSettings": {
-    "defaultDirectory": "~/dev",
-    "preferredShell": "zsh"
-  }
-}
-EOF
-    fi
+    # SOURCE_BASE 업데이트
+    SOURCE_BASE="$mock_dotfiles_root/modules/shared/config/claude"
 
-    # CLAUDE.md 파일
-    cat > "$SOURCE_BASE/CLAUDE.md" << 'EOF'
-# Claude Integration Test Configuration
-
-This is a test configuration for Claude activation integration tests.
-
-## Test Features
-- Settings copy functionality
-- Dynamic state preservation
-- Symlink to copy conversion
-EOF
-
-    # 명령어 파일들
-    cat > "$SOURCE_BASE/commands/task.md" << 'EOF'
-# Task Command
-Root level task command for testing
-EOF
-
-    cat > "$SOURCE_BASE/commands/git/commit.md" << 'EOF'
-# Git Commit Command
-Git workflow command in subdirectory
-EOF
-
-    cat > "$SOURCE_BASE/commands/workflow/deploy.md" << 'EOF'
-# Deployment Workflow
-Workflow automation command
-EOF
-
-    cat > "$SOURCE_BASE/commands/system/monitor.md" << 'EOF'
-# System Monitor Command
-System monitoring utilities
-EOF
-
-    # 에이전트 파일들
-    cat > "$SOURCE_BASE/agents/code-reviewer.md" << 'EOF'
-# Code Reviewer Agent
-Automated code review agent
-EOF
-
-    cat > "$SOURCE_BASE/agents/test-generator.md" << 'EOF'
-# Test Generator Agent
-Automated test generation agent
-EOF
+    log_info "모의 dotfiles 생성 완료: $mock_dotfiles_root"
+    log_info "Claude 설정 디렉토리: $SOURCE_BASE"
 }
 
-# 실제 claude-activation.nix 스크립트 실행
+# 공통 유틸리티를 사용한 Claude 활성화 스크립트 실행
 run_activation_script() {
-    local config_home_dir="$1"
-    local source_dir="$2"
-
-    # 항상 단순화된 활성화 로직 사용 (테스트 속도 및 안정성 향상)
-    run_fallback_activation_script "$config_home_dir" "$source_dir"
-}
-
-# nix-instantiate가 없을 때 사용하는 대체 활성화 스크립트
-run_fallback_activation_script() {
     local config_home_dir="$1"
     local source_dir="$2"
     local claude_dir="$config_home_dir/.claude"
 
-    # 단순화된 활성화 로직
-    local activation_script=$(cat << 'SCRIPT'
-set -euo pipefail
-
-CONFIG_HOME_DIR="$1"
-SOURCE_DIR="$2"
-CLAUDE_DIR="$CONFIG_HOME_DIR/.claude"
-
-echo "=== Claude 설정 폴더 심볼릭 링크 업데이트 시작 (Fallback 모드) ==="
-
-# Claude 디렉토리 생성
-mkdir -p "$CLAUDE_DIR"
-
-# 설정 파일들 복사
-if [[ -f "$SOURCE_DIR/settings.json" ]]; then
-    # 기존 파일이 심볼릭 링크인 경우 제거
-    if [[ -L "$CLAUDE_DIR/settings.json" ]]; then
-        rm "$CLAUDE_DIR/settings.json"
-    fi
-
-    # 복사본 생성
-    cp "$SOURCE_DIR/settings.json" "$CLAUDE_DIR/settings.json"
-    chmod 644 "$CLAUDE_DIR/settings.json"
-    echo "✓ settings.json 복사 완료"
-fi
-
-if [[ -f "$SOURCE_DIR/CLAUDE.md" ]]; then
-    # 기존 파일이 심볼릭 링크인 경우 제거
-    if [[ -L "$CLAUDE_DIR/CLAUDE.md" ]]; then
-        rm "$CLAUDE_DIR/CLAUDE.md"
-    fi
-
-    # 복사본 생성
-    cp "$SOURCE_DIR/CLAUDE.md" "$CLAUDE_DIR/CLAUDE.md"
-    chmod 644 "$CLAUDE_DIR/CLAUDE.md"
-    echo "✓ CLAUDE.md 복사 완료"
-fi
-
-# 끊어진 심볼릭 링크 정리
-echo "끊어진 심볼릭 링크 정리 중..."
-find "$CLAUDE_DIR" -type l ! -exec test -e {} \; -delete 2>/dev/null || true
-
-# 폴더들 심볼릭 링크
-for folder in "commands" "agents"; do
-    if [[ -d "$SOURCE_DIR/$folder" ]]; then
-        # 기존 링크 제거
-        if [[ -L "$CLAUDE_DIR/$folder" ]]; then
-            rm "$CLAUDE_DIR/$folder"
-        elif [[ -d "$CLAUDE_DIR/$folder" ]]; then
-            rm -rf "$CLAUDE_DIR/$folder"
-        fi
-
-        # 새 심볼릭 링크 생성
-        ln -sf "$SOURCE_DIR/$folder" "$CLAUDE_DIR/$folder"
-        echo "✓ $folder 심볼릭 링크 생성 완료"
-    fi
-done
-
-echo "=== Claude 설정 폴더 업데이트 완료 ==="
-SCRIPT
-)
+    # 공통 유틸리티의 활성화 스크립트 생성기 사용
+    local fallback_sources=("$source_dir")
+    local activation_script=$(generate_claude_activation_script "$source_dir" "$claude_dir" "${fallback_sources[@]}")
 
     # 스크립트 실행
-    echo "$activation_script" | bash -s "$config_home_dir" "$source_dir"
+    echo "$activation_script" | bash
 }
+
+# run_fallback_activation_script 함수는 제거됨 - 공통 유틸리티 사용
 
 # 통합 테스트 함수들
 

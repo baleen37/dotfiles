@@ -4,12 +4,9 @@
 
 set -euo pipefail
 
-# 색상 코드
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
+# Import unified systems
+SCRIPTS_DIR="${SCRIPT_DIR:-$(dirname "$0")}"
+. "${SCRIPTS_DIR}/lib/unified-error-handling.sh"
 
 # 전역 변수
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -27,26 +24,7 @@ PASSED_CHECKS=0
 FAILED_CHECKS=0
 FIXED_ISSUES=0
 
-# 로그 함수들
-log_info() {
-    echo -e "${GREEN}[INFO]${NC} $1" | tee -a "$VALIDATION_LOG"
-}
-
-log_error() {
-    echo -e "${RED}[ERROR]${NC} $1" | tee -a "$VALIDATION_LOG"
-}
-
-log_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $1" | tee -a "$VALIDATION_LOG"
-}
-
-log_debug() {
-    if [[ "$VERBOSE" == "true" ]]; then
-        echo -e "${BLUE}[DEBUG]${NC} $1" | tee -a "$VALIDATION_LOG"
-    else
-        echo -e "${BLUE}[DEBUG]${NC} $1" >> "$VALIDATION_LOG"
-    fi
-}
+# Use unified logging functions - they're imported from unified-error-handling.sh
 
 log_success() {
     echo -e "${GREEN}[SUCCESS]${NC} $1" | tee -a "$VALIDATION_LOG"
@@ -58,21 +36,21 @@ execute_cmd() {
     local description="${2:-명령어 실행}"
 
     if [[ "$DRY_RUN" == "true" ]]; then
-        log_debug "[DRY RUN] $description: $cmd"
+        unified_log_debug "[DRY RUN] $description: $cmd"
         return 0
     else
-        log_debug "$description: $cmd"
+        unified_log_debug "$description: $cmd"
         eval "$cmd"
     fi
 }
 
 # 초기화
 initialize_validation() {
-    log_info "=== Claude Code 심볼릭 링크 검증 시작 ==="
-    log_info "프로젝트 루트: $PROJECT_ROOT"
-    log_info "Claude 디렉토리: $CLAUDE_DIR"
-    log_info "소스 디렉토리: $SOURCE_DIR"
-    log_info "검증 로그: $VALIDATION_LOG"
+    unified_log_info "=== Claude Code 심볼릭 링크 검증 시작 ==="
+    unified_log_info "프로젝트 루트: $PROJECT_ROOT"
+    unified_log_info "Claude 디렉토리: $CLAUDE_DIR"
+    unified_log_info "소스 디렉토리: $SOURCE_DIR"
+    unified_log_info "검증 로그: $VALIDATION_LOG"
 
     # 검증 로그 디렉토리 생성
     mkdir -p "$(dirname "$VALIDATION_LOG")"
@@ -97,7 +75,7 @@ EOF
 
 # 기본 디렉토리 구조 검증
 validate_directory_structure() {
-    log_info "디렉토리 구조 검증 중..."
+    unified_log_info "디렉토리 구조 검증 중..."
     local issues_found=false
 
     # 소스 디렉토리 존재 확인
@@ -106,7 +84,7 @@ validate_directory_structure() {
         log_success "✅ 소스 디렉토리 존재: $SOURCE_DIR"
         ((PASSED_CHECKS++))
     else
-        log_error "❌ 소스 디렉토리 없음: $SOURCE_DIR"
+        unified_log_error "❌ 소스 디렉토리 없음: $SOURCE_DIR" "VALIDATION" "high"
         ((FAILED_CHECKS++))
         issues_found=true
     fi
@@ -117,7 +95,7 @@ validate_directory_structure() {
         log_success "✅ Claude 디렉토리 존재: $CLAUDE_DIR"
         ((PASSED_CHECKS++))
     else
-        log_warning "⚠️ Claude 디렉토리 없음: $CLAUDE_DIR"
+        unified_log_warning "⚠️ Claude 디렉토리 없음: $CLAUDE_DIR"
         if [[ "$AUTO_FIX" == "true" ]]; then
             execute_cmd "mkdir -p '$CLAUDE_DIR'" "Claude 디렉토리 생성"
             log_success "🔧 Claude 디렉토리 생성됨"
@@ -137,10 +115,10 @@ validate_directory_structure() {
         local target_subdir="$CLAUDE_DIR/$subdir"
 
         if [[ -d "$source_subdir" ]]; then
-            log_debug "소스 서브디렉토리 확인: $source_subdir"
+            unified_log_debug "소스 서브디렉토리 확인: $source_subdir"
             ((PASSED_CHECKS++))
         else
-            log_error "❌ 소스 서브디렉토리 없음: $source_subdir"
+            unified_log_error "❌ 소스 서브디렉토리 없음: $source_subdir" "VALIDATION" "medium"
             ((FAILED_CHECKS++))
             issues_found=true
         fi
@@ -155,7 +133,7 @@ validate_directory_structure() {
 
 # 심볼릭 링크 무결성 검증
 validate_symlink_integrity() {
-    log_info "심볼릭 링크 무결성 검증 중..."
+    unified_log_info "심볼릭 링크 무결성 검증 중..."
     local issues_found=false
 
     # 폴더 심볼릭 링크들 검증
@@ -171,18 +149,18 @@ validate_symlink_integrity() {
             local resolved_target=$(realpath "$target_path" 2>/dev/null || echo "")
             local expected_resolved=$(realpath "$expected_source" 2>/dev/null || echo "")
 
-            log_debug "폴더 링크 검증: $folder"
-            log_debug "  실제 타겟: $actual_target"
-            log_debug "  해석된 타겟: $resolved_target"
-            log_debug "  기대하는 해석된 경로: $expected_resolved"
+            unified_log_debug "폴더 링크 검증: $folder"
+            unified_log_debug "  실제 타겟: $actual_target"
+            unified_log_debug "  해석된 타겟: $resolved_target"
+            unified_log_debug "  기대하는 해석된 경로: $expected_resolved"
 
             if [[ -d "$resolved_target" && "$resolved_target" == "$expected_resolved" ]]; then
                 log_success "✅ 폴더 심볼릭 링크 올바름: $folder -> $actual_target"
                 ((PASSED_CHECKS++))
             else
-                log_error "❌ 폴더 심볼릭 링크 문제: $folder"
-                log_error "   현재 타겟: $actual_target"
-                log_error "   기대 타겟: $expected_source"
+                unified_log_error "❌ 폴더 심볼릭 링크 문제: $folder" "VALIDATION" "medium"
+                unified_log_error "   현재 타겟: $actual_target" "VALIDATION" "medium" false
+                unified_log_error "   기대 타겟: $expected_source" "VALIDATION" "medium" false
                 ((FAILED_CHECKS++))
                 issues_found=true
 
@@ -197,7 +175,7 @@ validate_symlink_integrity() {
         else
             # 심볼릭 링크 없음
             if [[ -d "$target_path" ]]; then
-                log_warning "⚠️ 일반 디렉토리가 존재함 (심볼릭 링크 아님): $folder"
+                unified_log_warning "⚠️ 일반 디렉토리가 존재함 (심볼릭 링크 아님): $folder"
                 ((FAILED_CHECKS++))
                 issues_found=true
 
@@ -208,7 +186,7 @@ validate_symlink_integrity() {
                     ((FIXED_ISSUES++))
                 fi
             else
-                log_warning "⚠️ 폴더 심볼릭 링크 없음: $folder"
+                unified_log_warning "⚠️ 폴더 심볼릭 링크 없음: $folder"
                 ((FAILED_CHECKS++))
                 issues_found=true
 
@@ -230,7 +208,7 @@ validate_symlink_integrity() {
 
 # 파일 심볼릭 링크 검증
 validate_file_symlinks() {
-    log_info "파일 심볼릭 링크 검증 중..."
+    unified_log_info "파일 심볼릭 링크 검증 중..."
     local issues_found=false
 
     # 루트 레벨 설정 파일들 검증
@@ -246,18 +224,18 @@ validate_file_symlinks() {
                 local resolved_target=$(realpath "$target_file" 2>/dev/null || echo "")
                 local expected_resolved=$(realpath "$source_file" 2>/dev/null || echo "")
 
-                log_debug "파일 링크 검증: $file_name"
-                log_debug "  실제 타겟: $actual_target"
-                log_debug "  해석된 타겟: $resolved_target"
-                log_debug "  기대하는 해석된 경로: $expected_resolved"
+                unified_log_debug "파일 링크 검증: $file_name"
+                unified_log_debug "  실제 타겟: $actual_target"
+                unified_log_debug "  해석된 타겟: $resolved_target"
+                unified_log_debug "  기대하는 해석된 경로: $expected_resolved"
 
                 if [[ -f "$resolved_target" && "$resolved_target" == "$expected_resolved" ]]; then
                     log_success "✅ 파일 심볼릭 링크 올바름: $file_name"
                     ((PASSED_CHECKS++))
                 else
-                    log_error "❌ 파일 심볼릭 링크 문제: $file_name"
-                    log_error "   현재 타겟: $actual_target"
-                    log_error "   기대 타겟: $source_file"
+                    unified_log_error "❌ 파일 심볼릭 링크 문제: $file_name" "VALIDATION" "medium"
+                    unified_log_error "   현재 타겟: $actual_target" "VALIDATION" "medium" false
+                    unified_log_error "   기대 타겟: $source_file" "VALIDATION" "medium" false
                     ((FAILED_CHECKS++))
                     issues_found=true
 
@@ -273,23 +251,23 @@ validate_file_symlinks() {
                 # 심볼릭 링크 없음
                 if [[ -f "$target_file" ]]; then
                     # 일반 파일 존재
-                    log_debug "일반 파일 존재: $file_name (심볼릭 링크 아님)"
+                    unified_log_debug "일반 파일 존재: $file_name (심볼릭 링크 아님)"
 
                     # settings.json과 CLAUDE.md는 사용자가 수정할 수 있으므로 경고만
                     case "$file_name" in
                         "settings.json"|"CLAUDE.md")
-                            log_info "ℹ️ 사용자 설정 파일 존재: $file_name (수정 가능)"
+                            unified_log_info "ℹ️ 사용자 설정 파일 존재: $file_name (수정 가능)"
                             ((PASSED_CHECKS++))
                             ;;
                         *)
-                            log_warning "⚠️ 일반 파일이 존재함 (심볼릭 링크 아님): $file_name"
+                            unified_log_warning "⚠️ 일반 파일이 존재함 (심볼릭 링크 아님): $file_name"
                             ((FAILED_CHECKS++))
                             issues_found=true
                             ;;
                     esac
                 else
                     # 파일 없음
-                    log_warning "⚠️ 파일 심볼릭 링크 없음: $file_name"
+                    unified_log_warning "⚠️ 파일 심볼릭 링크 없음: $file_name"
                     ((FAILED_CHECKS++))
                     issues_found=true
 
@@ -312,7 +290,7 @@ validate_file_symlinks() {
 
 # 끊어진 심볼릭 링크 탐지
 detect_broken_symlinks() {
-    log_info "끊어진 심볼릭 링크 탐지 중..."
+    unified_log_info "끊어진 심볼릭 링크 탐지 중..."
     local broken_links=()
 
     # Claude 디렉토리에서 모든 심볼릭 링크 검사
@@ -321,7 +299,7 @@ detect_broken_symlinks() {
         local link_name=$(basename "$link_file")
 
         if [[ ! -e "$link_file" ]]; then
-            log_error "❌ 끊어진 심볼릭 링크 발견: $link_name -> $(readlink "$link_file")"
+            unified_log_error "❌ 끊어진 심볼릭 링크 발견: $link_name -> $(readlink "$link_file")" "VALIDATION" "medium"
             broken_links+=("$link_file")
             ((FAILED_CHECKS++))
 
@@ -332,13 +310,13 @@ detect_broken_symlinks() {
                 ((FIXED_ISSUES++))
             fi
         else
-            log_debug "심볼릭 링크 정상: $link_name"
+            unified_log_debug "심볼릭 링크 정상: $link_name"
             ((PASSED_CHECKS++))
         fi
     done < <(find "$CLAUDE_DIR" -type l -print0 2>/dev/null)
 
     if [[ ${#broken_links[@]} -gt 0 ]]; then
-        log_warning "총 ${#broken_links[@]}개의 끊어진 심볼릭 링크 발견됨"
+        unified_log_warning "총 ${#broken_links[@]}개의 끊어진 심볼릭 링크 발견됨"
         return 1
     else
         log_success "끊어진 심볼릭 링크 없음"
@@ -348,13 +326,13 @@ detect_broken_symlinks() {
 
 # 플랫폼별 호환성 검증
 validate_platform_compatibility() {
-    log_info "플랫폼별 호환성 검증 중..."
+    unified_log_info "플랫폼별 호환성 검증 중..."
     local platform=$(uname)
 
     ((TOTAL_CHECKS++))
     case "$platform" in
         "Darwin")
-            log_info "macOS 환경 감지됨"
+            unified_log_info "macOS 환경 감지됨"
 
             # macOS의 readlink 동작 확인
             if command -v readlink >/dev/null 2>&1; then
@@ -368,18 +346,18 @@ validate_platform_compatibility() {
                     log_success "✅ macOS readlink 동작 정상"
                     ((PASSED_CHECKS++))
                 else
-                    log_error "❌ macOS readlink 동작 문제"
+                    unified_log_error "❌ macOS readlink 동작 문제" "VALIDATION" "high"
                     ((FAILED_CHECKS++))
                     return 1
                 fi
             else
-                log_error "❌ readlink 명령어 없음 (macOS에서 필수)"
+                unified_log_error "❌ readlink 명령어 없음 (macOS에서 필수)" "VALIDATION" "high"
                 ((FAILED_CHECKS++))
                 return 1
             fi
             ;;
         "Linux")
-            log_info "Linux 환경 감지됨"
+            unified_log_info "Linux 환경 감지됨"
 
             # Linux의 readlink 동작 확인 (GNU coreutils)
             if command -v readlink >/dev/null 2>&1; then
@@ -387,17 +365,17 @@ validate_platform_compatibility() {
                     log_success "✅ GNU readlink 사용 가능"
                     ((PASSED_CHECKS++))
                 else
-                    log_warning "⚠️ GNU가 아닌 readlink 감지됨 (동작은 정상일 수 있음)"
+                    unified_log_warning "⚠️ GNU가 아닌 readlink 감지됨 (동작은 정상일 수 있음)"
                     ((PASSED_CHECKS++))
                 fi
             else
-                log_error "❌ readlink 명령어 없음 (Linux에서 필수)"
+                unified_log_error "❌ readlink 명령어 없음 (Linux에서 필수)" "VALIDATION" "high"
                 ((FAILED_CHECKS++))
                 return 1
             fi
             ;;
         *)
-            log_warning "⚠️ 알 수 없는 플랫폼: $platform (테스트는 계속)"
+            unified_log_warning "⚠️ 알 수 없는 플랫폼: $platform (테스트는 계속)"
             ((PASSED_CHECKS++))
             ;;
     esac
@@ -407,7 +385,7 @@ validate_platform_compatibility() {
 
 # 권한 검증
 validate_permissions() {
-    log_info "파일 권한 검증 중..."
+    unified_log_info "파일 권한 검증 중..."
     local permission_issues=0
 
     # Claude 디렉토리의 모든 파일 권한 확인
@@ -419,10 +397,10 @@ validate_permissions() {
         # .md와 .json 파일은 644 권한이어야 함
         if [[ "$file_name" =~ \.(md|json)$ ]]; then
             if [[ "$perms" == "644" ]]; then
-                log_debug "권한 정상: $file_name ($perms)"
+                unified_log_debug "권한 정상: $file_name ($perms)"
                 ((PASSED_CHECKS++))
             else
-                log_warning "⚠️ 권한 문제: $file_name ($perms, 기대값: 644)"
+                unified_log_warning "⚠️ 권한 문제: $file_name ($perms, 기대값: 644)"
                 ((FAILED_CHECKS++))
                 ((permission_issues++))
 
@@ -433,7 +411,7 @@ validate_permissions() {
                 fi
             fi
         else
-            log_debug "권한 확인: $file_name ($perms)"
+            unified_log_debug "권한 확인: $file_name ($perms)"
             ((PASSED_CHECKS++))
         fi
     done < <(find "$CLAUDE_DIR" -type f -print0 2>/dev/null)
@@ -447,7 +425,7 @@ validate_permissions() {
 
 # 종합 보고서 생성
 generate_validation_report() {
-    log_info "=== 검증 결과 종합 보고서 ==="
+    unified_log_info "=== 검증 결과 종합 보고서 ==="
 
     local success_rate=0
     if [[ $TOTAL_CHECKS -gt 0 ]]; then
@@ -496,19 +474,19 @@ EOF
         if [[ "$AUTO_FIX" == "true" && $FIXED_ISSUES -gt 0 ]]; then
             log_success "🔧 총 $FIXED_ISSUES개 문제가 자동으로 수정되었습니다."
             if [[ $FAILED_CHECKS -gt $FIXED_ISSUES ]]; then
-                log_warning "⚠️ 여전히 $((FAILED_CHECKS - FIXED_ISSUES))개 문제가 남아있습니다."
-                log_warning "상세한 정보는 로그 파일을 확인하세요: $VALIDATION_LOG"
+                unified_log_warning "⚠️ 여전히 $((FAILED_CHECKS - FIXED_ISSUES))개 문제가 남아있습니다."
+                unified_log_warning "상세한 정보는 로그 파일을 확인하세요: $VALIDATION_LOG"
             fi
         else
-            log_error "❌ $FAILED_CHECKS개 문제가 발견되었습니다."
-            log_info "자동 수정을 원한다면: AUTO_FIX=true $0"
-            log_info "상세한 정보는 로그 파일을 확인하세요: $VALIDATION_LOG"
+            unified_log_error "❌ $FAILED_CHECKS개 문제가 발견되었습니다." "VALIDATION" "high"
+            unified_log_info "자동 수정을 원한다면: AUTO_FIX=true $0"
+            unified_log_info "상세한 정보는 로그 파일을 확인하세요: $VALIDATION_LOG"
         fi
     else
         log_success "🎉 모든 검증이 통과했습니다! Claude Code 심볼릭 링크가 정상적으로 설정되었습니다."
     fi
 
-    log_info "검증 로그 파일: $VALIDATION_LOG"
+    unified_log_info "검증 로그 파일: $VALIDATION_LOG"
 }
 
 # 사용법 출력
@@ -561,7 +539,7 @@ parse_arguments() {
                 exit 0
                 ;;
             *)
-                log_error "알 수 없는 옵션: $1"
+                unified_log_error "알 수 없는 옵션: $1" "VALIDATION" "medium"
                 show_usage
                 exit 1
                 ;;

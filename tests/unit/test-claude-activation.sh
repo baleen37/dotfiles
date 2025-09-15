@@ -13,32 +13,23 @@ CLAUDE_DIR="$TARGET_BASE/.claude"
 # 공통 라이브러리 로드
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../lib/common.sh"
+source "$SCRIPT_DIR/../lib/claude-activation-utils.sh"
 
 # 테스트 결과 추적
 TESTS_PASSED=0
 TESTS_FAILED=0
 
-# 테스트 헬퍼 함수
+# 공통 유틸리티의 어설션 함수 사용
 assert_test() {
     local condition="$1"
     local test_name="$2"
     local expected="${3:-}"
     local actual="${4:-}"
 
-    # 조건부 평가 실행
-    if eval "$condition"; then
-        log_success "$test_name"
+    if assert_claude_test "$condition" "$test_name" "$expected" "$actual"; then
         ((TESTS_PASSED++))
         return 0
     else
-        if [[ -n "$expected" && -n "$actual" ]]; then
-            log_fail "$test_name"
-            log_error "  예상: $expected"
-            log_error "  실제: $actual"
-        else
-            log_fail "$test_name"
-            log_debug "  실패한 조건: $condition"
-        fi
         ((TESTS_FAILED++))
         return 1
     fi
@@ -96,56 +87,7 @@ Test configuration markdown file
 EOF
 }
 
-# claude-activation 로직을 함수로 추출 (테스트용)
-create_settings_copy() {
-    local source_file="$1"
-    local target_file="$2"
-    local file_name=$(basename "$source_file")
-
-    echo "처리 중: $file_name (복사 모드)"
-
-    if [[ ! -f "$source_file" ]]; then
-        echo "  소스 파일 없음, 건너뜀"
-        return 0
-    fi
-
-    # 기존 파일 백업 (동적 상태 보존용)
-    if [[ -f "$target_file" && ! -L "$target_file" ]]; then
-        echo "  기존 settings.json 백업 중..."
-        cp "$target_file" "$target_file.backup"
-    fi
-
-    # 기존 심볼릭 링크 제거
-    if [[ -L "$target_file" ]]; then
-        echo "  기존 심볼릭 링크 제거"
-        rm -f "$target_file"
-    fi
-
-    # 새로운 설정을 복사
-    cp "$source_file" "$target_file"
-    chmod 644 "$target_file"
-    echo "  파일 복사 완료: $target_file (644 권한)"
-
-    # 백업에서 동적 상태 병합
-    if [[ -f "$target_file.backup" ]]; then
-        echo "  동적 상태 병합 시도 중..."
-
-        # jq가 있으면 JSON 병합, 없으면 백업만 유지
-        if command -v jq >/dev/null 2>&1; then
-            # 백업에서 feedbackSurveyState 추출해서 병합
-            if jq -e '.feedbackSurveyState' "$target_file.backup" >/dev/null 2>&1; then
-                local feedback_state=$(jq -c '.feedbackSurveyState' "$target_file.backup")
-                jq --argjson feedback_state "$feedback_state" '.feedbackSurveyState = $feedback_state' "$target_file" > "$target_file.tmp"
-                mv "$target_file.tmp" "$target_file"
-                echo "  ✓ feedbackSurveyState 병합 완료"
-            fi
-        else
-            echo "  ⚠ jq 없음: 동적 상태 병합 건너뜀"
-        fi
-
-        rm -f "$target_file.backup"
-    fi
-}
+# create_settings_copy 함수는 이제 claude-activation-utils.sh에서 제공됩니다.
 
 # 단위 테스트 함수들
 

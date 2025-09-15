@@ -1,6 +1,10 @@
 #!/bin/sh
+# DEPRECATED: This logging module is deprecated. Use unified-error-handling.sh instead.
 # Logging Module for Build Scripts
 # Contains all logging functions and color constants
+#
+# WARNING: This file is deprecated. New scripts should use:
+# . "${SCRIPTS_DIR}/lib/unified-error-handling.sh"
 
 # Color constants
 GREEN='\033[1;32m'

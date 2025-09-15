@@ -1,20 +1,17 @@
-# Shared modules default import
+# Shared Modules Default Import
 #
-# This file provides a default import for the shared modules directory.
-# It's referenced by hosts/darwin/default.nix and other system configurations.
-#
-# The shared modules are imported via platform-specific home-manager configurations,
-# not directly through this file.
+# 이 파일은 모든 플랫폼에서 공통으로 사용되는 모듈들을 통합 제공합니다.
+# hosts/*/default.nix에서 ../../modules/shared로 import할 때 자동으로 로드됩니다.
 
 { config, pkgs, lib, ... }:
 
 {
-  # This module serves as a placeholder for the shared directory import.
-  # The actual shared configurations are applied through:
-  # - modules/shared/home-manager.nix (via Darwin/NixOS home-manager modules)
-  # - modules/shared/packages.nix (via platform-specific package imports)
-  # - modules/shared/files.nix (via platform-specific file imports)
+  # 공통 모듈들을 여기에 import
+  imports = [
+    # Claude 관련 설정은 각 플랫폼의 home-manager에서 직접 import
+    # ./claude.nix는 Home Manager 컨텍스트에서만 사용되므로 여기서는 제외
+  ];
 
-  # No direct configuration is needed here, as all shared functionality
-  # is handled through the platform-specific home-manager integrations.
+  # 시스템 레벨 공통 설정들을 여기에 추가할 수 있습니다
+  # 예: 네트워킹, 보안, 공통 패키지 등
 }

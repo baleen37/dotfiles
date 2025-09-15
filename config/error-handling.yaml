@@ -1,0 +1,326 @@
+# error-handling.yaml - Configuration-based error handling policies
+# Centralizes error handling behavior across the entire build system
+
+# Global error handling settings
+global:
+  # Error reporting configuration
+  reporting:
+    enabled: true
+    report_directory: "${XDG_STATE_HOME:-$HOME/.local/state}/build-switch/error-reports"
+    max_reports: 100
+    cleanup_days: 30
+
+  # Error message formatting
+  formatting:
+    default_format: "console"  # console, json, minimal
+    interactive_guidance: false
+    show_recovery_hints: true
+    color_enabled: auto  # auto, true, false
+
+  # Retry configuration
+  retry:
+    default_max_attempts: 3
+    default_delay: 2
+    exponential_backoff: true
+    max_delay: 30
+
+# Context-specific error handling policies
+contexts:
+  # Build-related errors
+  BUILD:
+    retry:
+      max_attempts: 5
+      delay: 3
+      exponential_backoff: true
+    recovery:
+      auto_cleanup: true
+      suggest_alternatives: true
+      escalation_threshold: 3
+    severity_mapping:
+      "permission denied": high
+      "no space left": high
+      "build failed": medium
+      "dependency": medium
+      "network": low
+
+  DARWIN_BUILD:
+    inherits: BUILD
+    retry:
+      max_attempts: 3  # darwin-rebuild can be slower
+      delay: 5
+    recovery:
+      prefer_user_mode: true
+
+  NIXOS_BUILD:
+    inherits: BUILD
+    retry:
+      max_attempts: 4
+      delay: 4
+    recovery:
+      check_sudo_access: true
+
+  # Test-related errors
+  TEST:
+    retry:
+      max_attempts: 2
+      delay: 1
+    recovery:
+      isolate_failing_tests: true
+      enable_debug_mode: true
+    severity_mapping:
+      "test failed": medium
+      "timeout": medium
+      "setup": high
+
+  UNIT_TEST:
+    inherits: TEST
+    retry:
+      max_attempts: 1  # Unit tests should be deterministic
+
+  INTEGRATION_TEST:
+    inherits: TEST
+    retry:
+      max_attempts: 3  # May have external dependencies
+      delay: 2
+
+  E2E_TEST:
+    inherits: TEST
+    retry:
+      max_attempts: 3
+      delay: 5  # Longer delay for system stabilization
+
+  # Network-related errors
+  NETWORK:
+    retry:
+      max_attempts: 5
+      delay: 2
+      exponential_backoff: true
+      max_delay: 16
+    recovery:
+      suggest_offline_mode: true
+      check_connectivity: true
+      try_alternatives: true
+    severity_mapping:
+      "connection refused": medium
+      "timeout": medium
+      "dns": high
+      "certificate": high
+
+  CACHE:
+    inherits: NETWORK
+    recovery:
+      clear_cache: true
+      use_alternative_sources: true
+
+  SUBSTITUTER:
+    inherits: NETWORK
+    recovery:
+      disable_substituters: true
+      build_from_source: true
+
+  # Update-related errors
+  AUTO_UPDATE:
+    retry:
+      max_attempts: 3
+      delay: 10  # Allow time for flake updates
+    recovery:
+      backup_before_update: true
+      rollback_on_failure: true
+      check_flake_integrity: true
+    severity_mapping:
+      "flake.lock": medium
+      "input": medium
+      "hash mismatch": high
+
+# Error categorization patterns
+patterns:
+  permission:
+    - "permission denied"
+    - "operation not permitted"
+    - "access denied"
+    - "sudo"
+    - "privilege"
+
+  network:
+    - "connection"
+    - "timeout"
+    - "unreachable"
+    - "name resolution"
+    - "dns"
+    - "certificate"
+    - "ssl"
+    - "tls"
+
+  disk_space:
+    - "no space left"
+    - "disk full"
+    - "quota exceeded"
+    - "filesystem full"
+
+  build:
+    - "build failed"
+    - "compilation error"
+    - "link error"
+    - "make.*error"
+    - "undefined reference"
+    - "syntax error"
+
+  dependency:
+    - "package.*not found"
+    - "missing"
+    - "unresolved"
+    - "dependency"
+    - "flake.*input"
+    - "hash mismatch"
+
+  resource_exhaustion:
+    - "out of memory"
+    - "killed"
+    - "resource.*exhausted"
+    - "too many"
+
+  configuration:
+    - "parse error"
+    - "invalid"
+    - "malformed"
+    - "syntax error"
+    - "unexpected"
+
+# Recovery recommendations by error category
+recovery_recommendations:
+  permission:
+    immediate:
+      - "Try user-only mode: export USER_MODE_ONLY=true"
+      - "Check sudo access: sudo -v"
+      - "Use home-manager: home-manager switch --flake ."
+    systematic:
+      - "Verify file permissions: ls -la ~/.config"
+      - "Fix ownership: sudo chown -R $USER ~/.config/nix"
+      - "Add user to required groups"
+    fallback:
+      - "Run without system modifications"
+      - "Use alternative installation method"
+
+  network:
+    immediate:
+      - "Enable offline mode: export OFFLINE_MODE=true"
+      - "Test connectivity: ping google.com"
+      - "Check DNS: nslookup cache.nixos.org"
+    systematic:
+      - "Configure proxy settings if behind firewall"
+      - "Try alternative substituters"
+      - "Use cached packages only"
+    fallback:
+      - "Build from source: nix build --option substitute false"
+      - "Use mobile hotspot as alternative connection"
+
+  build:
+    immediate:
+      - "Clean build cache: nix-collect-garbage -d"
+      - "Retry with verbose output: nix build --show-trace"
+      - "Check available disk space: df -h"
+    systematic:
+      - "Update dependencies: nix flake update"
+      - "Verify flake integrity: nix flake check"
+      - "Try minimal build configuration"
+    fallback:
+      - "Build components separately"
+      - "Use alternative build method"
+
+  dependency:
+    immediate:
+      - "Update flake inputs: nix flake update"
+      - "Check flake status: nix flake show"
+      - "Verify input hashes: nix flake check"
+    systematic:
+      - "Reset flake lock: rm flake.lock && nix flake lock"
+      - "Try pinned versions: git checkout HEAD~1 flake.lock"
+      - "Use alternative input sources"
+    fallback:
+      - "Manual dependency resolution"
+      - "Temporary input overrides"
+
+# Escalation policies
+escalation:
+  # When to escalate to higher severity
+  triggers:
+    repeated_failures: 3
+    high_severity_errors: 1
+    system_critical_errors: 1
+
+  # What to do on escalation
+  actions:
+    - generate_detailed_report
+    - enable_debug_mode
+    - suggest_manual_intervention
+    - create_github_issue_template
+
+  # Escalation levels
+  levels:
+    1:
+      name: "Standard Recovery"
+      actions: ["show_quick_fixes", "retry_operation"]
+    2:
+      name: "Enhanced Diagnostics"
+      actions: ["generate_report", "show_systematic_steps"]
+    3:
+      name: "Manual Intervention"
+      actions: ["detailed_analysis", "suggest_workarounds"]
+    4:
+      name: "Expert Support"
+      actions: ["create_support_request", "gather_full_diagnostics"]
+
+# Logging configuration
+logging:
+  # Log levels for different contexts
+  levels:
+    BUILD: "info"
+    TEST: "debug"
+    NETWORK: "info"
+    AUTO_UPDATE: "info"
+
+  # Log file locations
+  files:
+    error_log: "${XDG_STATE_HOME:-$HOME/.local/state}/build-switch/error.log"
+    success_log: "${XDG_STATE_HOME:-$HOME/.local/state}/build-switch/success.log"
+    debug_log: "${XDG_STATE_HOME:-$HOME/.local/state}/build-switch/debug.log"
+
+  # Log rotation
+  rotation:
+    max_size: "10M"
+    max_files: 5
+    compress: true
+
+# Environment-specific overrides
+environments:
+  development:
+    global:
+      formatting:
+        interactive_guidance: true
+        default_format: "console"
+    logging:
+      levels:
+        BUILD: "debug"
+        TEST: "debug"
+
+  production:
+    global:
+      formatting:
+        interactive_guidance: false
+        default_format: "minimal"
+    logging:
+      levels:
+        BUILD: "info"
+        TEST: "info"
+
+  ci:
+    global:
+      formatting:
+        color_enabled: false
+        default_format: "json"
+      retry:
+        default_max_attempts: 2  # Fail fast in CI
+    logging:
+      levels:
+        BUILD: "info"
+        TEST: "info"

@@ -12,6 +12,10 @@
 # - Consistent build steps across all platforms
 # - Enhanced failure recovery mechanisms
 
+# Import unified error handling system
+SCRIPTS_DIR="${SCRIPTS_DIR:-$(dirname "$(dirname "$0")")}"
+. "${SCRIPTS_DIR}/lib/unified-error-handling.sh"
+
 # Enhanced cleanup function with progress cleanup
 cleanup_build_environment() {
     log_debug "Starting enhanced cleanup process"
@@ -41,13 +45,13 @@ setup_build_monitoring() {
 
     # Start performance monitoring
     perf_start_total || {
-        log_error "Failed to initialize performance monitoring"
+        unified_unified_log_error "Failed to initialize performance monitoring" "BUILD" "medium"
         return 1
     }
 
     # Initialize progress system
     progress_init || {
-        log_error "Failed to initialize progress system"
+        unified_unified_log_error "Failed to initialize progress system" "BUILD" "medium"
         return 1
     }
 
@@ -90,23 +94,23 @@ prepare_build_environment() {
             # Try to acquire sudo with user-friendly prompts
             if command -v setup_sudo_session >/dev/null 2>&1; then
                 if ! setup_sudo_session; then
-                    log_error "Unable to acquire administrator privileges"
+                    unified_unified_log_error "Unable to acquire administrator privileges" "BUILD" "high"
                     return 1
                 fi
             else
-                log_error "Please ensure you have administrator access"
+                unified_unified_log_error "Please ensure you have administrator access" "BUILD" "high"
                 return 1
             fi
         else
-            log_error "Cannot proceed without administrator privileges"
-            log_error "Please ensure you have the necessary permissions to perform system changes"
+            unified_unified_log_error "Cannot proceed without administrator privileges" "BUILD" "high"
+            unified_unified_log_error "Please ensure you have the necessary permissions to perform system changes" "BUILD" "high"
             return 1
         fi
     fi
 
     # Validate essential build components
     if ! validate_build_environment; then
-        log_error "Build environment validation failed"
+        unified_unified_log_error "Build environment validation failed" "BUILD" "high"
         return 1
     fi
 
@@ -120,18 +124,18 @@ validate_build_environment() {
 
     # Check if required variables are set
     if [ -z "$SYSTEM_TYPE" ]; then
-        log_error "SYSTEM_TYPE is not set"
+        unified_unified_log_error "SYSTEM_TYPE is not set" "BUILD" "high"
         return 1
     fi
 
     if [ -z "$PLATFORM_TYPE" ]; then
-        log_error "PLATFORM_TYPE is not set"
+        unified_unified_log_error "PLATFORM_TYPE is not set" "BUILD" "high"
         return 1
     fi
 
     # Check if rebuild command exists for Linux
     if [ "$PLATFORM_TYPE" != "darwin" ] && [ -z "$REBUILD_COMMAND_PATH" ]; then
-        log_error "REBUILD_COMMAND_PATH is not set for Linux build"
+        unified_unified_log_error "REBUILD_COMMAND_PATH is not set for Linux build" "NIXOS_BUILD" "high"
         return 1
     fi
 
@@ -147,14 +151,14 @@ execute_platform_build() {
         "darwin")
             log_info "Executing Darwin build and switch phases"
             execute_darwin_build_switch "$@" || {
-                log_error "Darwin build and switch failed"
+                unified_unified_log_error "Darwin build and switch failed" "DARWIN_BUILD" "high"
                 return 1
             }
             ;;
         *)
             log_info "Executing Linux build and switch phase"
             execute_linux_build_switch "$@" || {
-                log_error "Linux build and switch failed"
+                unified_unified_log_error "Linux build and switch failed" "NIXOS_BUILD" "high"
                 return 1
             }
             ;;
@@ -174,12 +178,12 @@ execute_darwin_build_switch() {
 
         # Legacy: separate build and switch phases for better error isolation
         if ! run_build "$@"; then
-            log_error "Darwin build phase failed"
+            unified_unified_log_error "Darwin build phase failed" "DARWIN_BUILD" "high"
             return 1
         fi
 
         if ! run_switch "$@"; then
-            log_error "Darwin switch phase failed"
+            unified_unified_log_error "Darwin switch phase failed" "DARWIN_BUILD" "high"
             return 1
         fi
     else
@@ -187,7 +191,7 @@ execute_darwin_build_switch() {
 
         # Optimized: combined build and switch similar to Linux
         if ! run_darwin_combined_build_switch "$@"; then
-            log_error "Darwin combined build and switch failed"
+            unified_unified_log_error "Darwin combined build and switch failed" "DARWIN_BUILD" "high"
             return 1
         fi
     fi
@@ -245,7 +249,7 @@ run_darwin_combined_build_switch() {
 # Handle Darwin build failure
 handle_darwin_build_failure() {
     progress_stop
-    log_error "Combined build and switch failed"
+    unified_unified_log_error "Combined build and switch failed" "BUILD" "high"
     log_footer "failed"
 }
 
@@ -324,7 +328,7 @@ execute_darwin_with_quiet_output() {
         log_info "Executing in offline mode with local cache only"
         if [ -n "$sudo_prefix" ]; then
             ${sudo_prefix} ${command} >/dev/null || {
-                log_error "Combined build and switch failed. Run with --verbose for details"
+                unified_log_error "Combined build and switch failed. Run with --verbose for details" "BUILD" "high"
                 return 1
             }
         else
@@ -344,7 +348,7 @@ execute_darwin_with_quiet_output() {
         # Use retry mechanism for online builds with quiet output
         if [ -n "$sudo_prefix" ]; then
             ${sudo_prefix} ${command} >/dev/null || {
-                log_error "Combined build and switch failed. Run with --verbose for details"
+                unified_log_error "Combined build and switch failed. Run with --verbose for details" "BUILD" "high"
                 return 1
             }
         else
@@ -436,7 +440,7 @@ execute_linux_build_switch() {
 # Handle Linux build failure
 handle_linux_build_failure() {
     progress_stop
-    log_error "Build and switch failed"
+    unified_unified_log_error "Build and switch failed" "BUILD" "high"
     log_footer "failed"
 }
 
@@ -475,7 +479,7 @@ execute_home_manager_switch() {
         eval "${optimized_hm_cmd} \"\$@\"" || return 1
     else
         eval "${optimized_hm_cmd} \"\$@\"" >/dev/null 2>&1 || {
-            log_error "Home Manager switch failed. Run with --verbose for details"
+            unified_unified_log_error "Home Manager switch failed. Run with --verbose for details" "BUILD" "medium"
             return 1
         }
     fi
@@ -502,12 +506,12 @@ execute_with_quiet_output() {
 
     if [ -n "$sudo_prefix" ]; then
         eval "${sudo_prefix} ${command} \"\$@\"" >/dev/null || {
-            log_error "Build and switch failed. Run with --verbose for details"
+            unified_log_error "Build and switch failed. Run with --verbose for details" "BUILD" "high"
             return 1
         }
     else
         eval "${command} \"\$@\"" >/dev/null 2>&1 || {
-            log_error "Build and switch failed. Run with --verbose for details"
+            unified_log_error "Build and switch failed. Run with --verbose for details" "BUILD" "high"
             return 1
         }
     fi
@@ -659,7 +663,7 @@ run_switch() {
         if [ -n "${SUDO_PREFIX}" ]; then
             eval "${SUDO_PREFIX} ${OPTIMIZED_SWITCH_CMD} \"\$@\"" || {
                 progress_stop
-                log_error "Switch failed (exit code: $?)"
+                unified_log_error "Switch failed (exit code: $?)" "BUILD" "medium"
                 log_footer "failed"
                 exit 1
             }
@@ -667,14 +671,14 @@ run_switch() {
             if [ "$PLATFORM_TYPE" = "darwin" ]; then
                 USER="$USER" eval "${OPTIMIZED_SWITCH_CMD} \"\$@\"" 2>&1 || {
                     progress_stop
-                    log_error "Switch failed (exit code: $?)"
+                    unified_log_error "Switch failed (exit code: $?)" "BUILD" "medium" "BUILD" "medium"
                     log_footer "failed"
                     exit 1
                 }
             else
                 eval "${OPTIMIZED_SWITCH_CMD} \"\$@\"" 2>&1 || {
                     progress_stop
-                    log_error "Switch failed (exit code: $?)"
+                    unified_log_error "Switch failed (exit code: $?)" "BUILD" "medium" "BUILD" "medium"
                     log_footer "failed"
                     exit 1
                 }
@@ -684,7 +688,7 @@ run_switch() {
         if [ -n "${SUDO_PREFIX}" ]; then
             eval "${SUDO_PREFIX} ${OPTIMIZED_SWITCH_CMD} \"\$@\"" >/dev/null || {
                 progress_stop
-                log_error "Switch failed. Run with --verbose for details"
+                unified_log_error "Switch failed. Run with --verbose for details" "BUILD" "medium"
                 log_footer "failed"
                 exit 1
             }
@@ -704,7 +708,7 @@ run_switch() {
             else
                 eval "${OPTIMIZED_SWITCH_CMD} \"\$@\"" >/dev/null 2>&1 || {
                     progress_stop
-                    log_error "Switch failed. Run with --verbose for details"
+                    unified_log_error "Switch failed. Run with --verbose for details" "BUILD" "medium" "BUILD" "medium"
                     log_footer "failed"
                     exit 1
                 }
@@ -737,12 +741,12 @@ execute_build_switch() {
     log_debug "Starting build and switch orchestration"
 
     # Setup and prepare
-    setup_build_monitoring || { log_error "Failed to setup build monitoring"; exit 1; }
-    prepare_build_environment || { log_error "Failed to prepare build environment"; handle_build_failure; exit 1; }
+    setup_build_monitoring || { unified_unified_log_error "Failed to setup build monitoring" "BUILD" "high"; exit 1; }
+    prepare_build_environment || { unified_unified_log_error "Failed to prepare build environment" "BUILD" "high"; handle_build_failure; exit 1; }
 
     # Execute and complete
-    execute_platform_build "$@" || { log_error "Platform-specific build operations failed"; handle_build_failure; exit 1; }
-    handle_build_completion || { log_error "Failed to handle build completion"; exit 1; }
+    execute_platform_build "$@" || { unified_unified_log_error "Platform-specific build operations failed" "BUILD" "high"; handle_build_failure; exit 1; }
+    handle_build_completion || { unified_unified_log_error "Failed to handle build completion" "BUILD" "medium"; exit 1; }
 
     log_debug "Build and switch orchestration completed successfully"
 }
@@ -771,8 +775,8 @@ handle_build_error() {
 
     progress_stop 2>/dev/null || true
 
-    if command -v log_error >/dev/null 2>&1; then
-        log_error "$operation failed (exit code: $exit_code)"
+    if command -v unified_unified_log_error >/dev/null 2>&1; then
+        unified_unified_log_error "$operation failed (exit code: $exit_code)" "BUILD" "medium"
 
         # Provide helpful debugging information based on exit code
         case "$exit_code" in

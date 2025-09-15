@@ -57,7 +57,7 @@ execute_network_interruption_scenario() {
     # Phase 2: Execute build with simulated network issues
     log_step "Phase 2: Build execution with network simulation"
     if ! execute_build_with_network_simulation "$scenario_id"; then
-        log_warning "Build with network simulation encountered issues"
+        unified_log_warning "Build with network simulation encountered issues"
         # Don't fail here - this might be expected
     fi
 
@@ -71,7 +71,7 @@ execute_network_interruption_scenario() {
 
     # Register scenario completion
     register_scenario_completion "$scenario_id" "success"
-    log_success "Network interruption scenario completed: $scenario_id"
+    unified_log_success "Network interruption scenario completed: $scenario_id"
     return 0
 }
 
@@ -159,10 +159,10 @@ execute_build_with_network_simulation() {
 
         # Attempt build (may fail due to simulated network issues)
         if execute_platform_build --test-mode 2>>"$scenario_log"; then
-            log_success "Build completed despite network simulation"
+            unified_log_success "Build completed despite network simulation"
             build_result=0
         else
-            log_warning "Build failed during network simulation (expected behavior)"
+            unified_log_warning "Build failed during network simulation (expected behavior)"
             build_result=1
         fi
 
@@ -173,7 +173,7 @@ execute_build_with_network_simulation() {
             unset NIX_OFFLINE_MODE
         fi
     else
-        log_warning "Build simulation skipped - test environment"
+        unified_log_warning "Build simulation skipped - test environment"
         echo "Build simulation skipped - test environment" >> "$scenario_log"
     fi
 
@@ -234,7 +234,7 @@ recover_from_network_interruption() {
 
     while [ $recovery_attempts -lt $max_recovery_attempts ]; do
         if check_network_connectivity; then
-            log_success "Network connectivity restored"
+            unified_log_success "Network connectivity restored"
             break
         fi
 
@@ -244,7 +244,7 @@ recover_from_network_interruption() {
     done
 
     if [ $recovery_attempts -ge $max_recovery_attempts ]; then
-        log_warning "Network recovery verification failed - continuing with offline mode"
+        unified_log_warning "Network recovery verification failed - continuing with offline mode"
         enable_offline_mode
     else
         # Re-enable online mode if we were in offline mode
@@ -313,7 +313,7 @@ register_scenario_failure() {
     local scenario_id="$1"
     local failure_reason="$2"
 
-    log_warning "Registering scenario failure: $scenario_id ($failure_reason)"
+    unified_log_warning "Registering scenario failure: $scenario_id ($failure_reason)"
 
     local scenario_file="$SCENARIO_STATE_DIR/${scenario_id}.json"
     if [ -f "$scenario_file" ]; then
@@ -383,7 +383,7 @@ orchestrate_scenario_chain() {
                 fi
                 ;;
             *)
-                log_warning "Unknown scenario: $scenario"
+                unified_log_warning "Unknown scenario: $scenario"
                 echo "⚠ Unknown scenario: $scenario" >> "$chain_log"
                 ;;
         esac
@@ -398,10 +398,10 @@ orchestrate_scenario_chain() {
     } >> "$chain_log"
 
     if [ -n "$failed_scenarios" ]; then
-        log_warning "Scenario chain completed with failures: $failed_scenarios"
+        unified_log_warning "Scenario chain completed with failures: $failed_scenarios"
         return 1
     else
-        log_success "Scenario chain completed successfully"
+        unified_log_success "Scenario chain completed successfully"
         return 0
     fi
 }

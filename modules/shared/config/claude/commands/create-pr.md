@@ -93,6 +93,25 @@ When on main/master branch:
 - Template fallback to basic format if custom templates fail
 - Draft PR creation if validation concerns exist
 
+## Implementation
+
+Use Task tool with subagent_type="git-specialist" to execute PR creation workflow:
+
+Prompt: "Analyze Git repository state and create pull request with arguments: $ARGUMENTS. Execute these operations in parallel:
+
+1. Run `git status` to check working directory state
+2. Run `git log --oneline -10` to see recent commits  
+3. Run `git diff --name-only HEAD~5..HEAD` to see changed files
+4. Run `git branch -v` to check current branch status
+
+After analysis, create a pull request with:
+- Intelligent title based on commit messages
+- Comprehensive description from file changes and commits
+- Proper Korean language formatting if templates exist
+- Auto-generated summary of changes
+
+Use proper Git workflow expertise for branch management and PR creation. If on main branch, create appropriate feature branch first."
+
 ## Examples
 
 ```bash

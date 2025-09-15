@@ -16,16 +16,20 @@
 
 let
   name = "Jiho Lee";
+
+  # Import optimized platform detection utilities
+  platformDetection = import ../../lib/platform-detection.nix { inherit pkgs; };
+
   getUserInfo = import ../../lib/user-resolution.nix {
-    platform = if pkgs.stdenv.isDarwin then "darwin" else "linux";
+    platform = platformDetection.platform;
     returnFormat = "extended";
   };
   user = getUserInfo.user;
   email = "baleen37@gmail.com";
 
-  # Platform detection for conditional configurations
-  isDarwin = pkgs.stdenv.isDarwin;
-  isLinux = pkgs.stdenv.isLinux;
+  # Platform detection for conditional configurations (now using optimized detection)
+  isDarwin = platformDetection.isDarwin pkgs.system;
+  isLinux = platformDetection.isLinux pkgs.system;
 in
 {
   # macOS 사용자 레벨 기본값 설정 (root 권한 불필요)
@@ -33,16 +37,7 @@ in
   # 대신 home.activation에서 직접 defaults 명령 실행
 
   # 사용자 레벨 activation (root 권한 불필요)
-  home.activation = {
-    # Claude Code 설정 활성화 (모든 플랫폼)
-    setupClaudeConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] (
-      import ../shared/lib/claude-activation.nix {
-        inherit config lib;
-        self = null;
-        platform = if isDarwin then "darwin" else "linux";
-      }
-    );
-  } // lib.optionalAttrs isDarwin {
+  home.activation = lib.optionalAttrs isDarwin {
     setupKeyboardInput = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       echo "Setting up keyboard input configuration..."
 

@@ -36,13 +36,15 @@ let
     then mockEnv.${var}
     else builtins.getEnv var;
 
-  # Platform detection
+  # Import optimized platform detection utilities
+  platformDetection = import ./platform-detection.nix {
+    system = if builtins ? currentSystem then builtins.currentSystem else null;
+  };
+
+  # Platform detection (now using optimized detection)
   currentPlatform =
     if platform != null then platform
-    else if builtins.currentSystem or "" != "" then
-      if builtins.match ".*-darwin" (builtins.currentSystem or "") != null then "darwin"
-      else if builtins.match ".*-linux" (builtins.currentSystem or "") != null then "linux"
-      else "unknown"
+    else if platformDetection.isValidPlatform then platformDetection.platform
     else "unknown";
 
   # Read environment variables
