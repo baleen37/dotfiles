@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# ABOUTME: Claude activation 스크립트 포괄적 테스트 - settings.json 복사 로직, 동적 상태 병합, 권한 처리
-# ABOUTME: create_settings_copy() 함수의 모든 기능을 단위 테스트로 검증
+# ABOUTME: Claude activation 통합 테스트 - settings.json 복사 로직, 동적 상태 병합, 권한 처리
+# ABOUTME: create_settings_copy() 함수의 모든 기능을 실제 환경에서 통합 테스트로 검증
 
 set -euo pipefail
 

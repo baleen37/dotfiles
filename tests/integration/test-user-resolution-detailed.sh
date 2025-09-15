@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# ABOUTME: user-resolution.nix 핵심 기능 포괄적 테스트
-# ABOUTME: 사용자 해석, 환경 변수 처리, 플랫폼별 경로 생성 검증
+# ABOUTME: user-resolution.nix 통합 테스트
+# ABOUTME: 사용자 해석, 환경 변수 처리, 플랫폼별 경로 생성 실제 환경 통합 검증
 
 set -euo pipefail
 
