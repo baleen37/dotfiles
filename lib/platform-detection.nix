@@ -56,6 +56,10 @@ let
     # System string
     system = currentSystem;
 
+    # Platform boolean flags (for detection functions)
+    isDarwin = patterns.isDarwinSystem;
+    isLinux = patterns.isLinuxSystem;
+
     # Validation flags
     isValidPlatform = platform != "unknown";
     isValidArch = arch != "unknown";
