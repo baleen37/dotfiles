@@ -4,14 +4,12 @@
 
 set -euo pipefail
 
-# Color codes for terminal output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
+# Import unified color system
+SCRIPTS_DIR="$(dirname "$0")"
+. "${SCRIPTS_DIR}/lib/unified-colors.sh"
+# Additional colors for this script
 CYAN='\033[0;36m'
 BOLD='\033[1m'
-NC='\033[0m' # No Color
 
 # Configuration
 REPORT_DIR="${1:-./test-reports}"
