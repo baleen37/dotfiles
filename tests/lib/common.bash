@@ -28,6 +28,44 @@ declare -g TEST_START_TIME=""
 # Test configuration
 declare -g TEST_VERBOSE=${TEST_VERBOSE:-false}
 declare -g TEST_PARALLEL=${TEST_PARALLEL:-true}
+
+# Common test setup function to reduce duplication
+common_test_setup() {
+    local test_name="${1:-${BATS_TEST_NAME:-unknown}}"
+    local test_dirname="${2:-${BATS_TEST_DIRNAME:-/tmp}}"
+    
+    # Create unique temporary test directory
+    export TEST_TEMP_DIR="${BATS_TMPDIR}/$(basename "$test_name")_$$"
+    mkdir -p "$TEST_TEMP_DIR"
+    
+    # Set up standard test environment variables
+    export BATS_TEST_NAME="${test_name}"
+    export BATS_TEST_DIRNAME="${test_dirname}"
+    
+    # Initialize test start time for performance tracking
+    export TEST_START_TIME=$(date +%s.%N)
+    
+    test_debug "Common setup completed for test: $test_name"
+}
+
+# Common test teardown function to reduce duplication
+common_test_teardown() {
+    # Calculate test duration
+    if [[ -n "${TEST_START_TIME:-}" ]]; then
+        local end_time=$(date +%s.%N)
+        local duration=$(echo "$end_time - $TEST_START_TIME" | bc -l 2>/dev/null || echo "0")
+        test_debug "Test duration: ${duration}s"
+    fi
+    
+    # Clean up temporary test directory
+    if [[ -d "${TEST_TEMP_DIR:-}" ]]; then
+        rm -rf "$TEST_TEMP_DIR"
+        test_debug "Cleaned up test directory: $TEST_TEMP_DIR"
+    fi
+    
+    # Clean up any test-specific environment variables
+    unset TEST_TEMP_DIR TEST_START_TIME
+}
 declare -g TEST_TIMEOUT=${TEST_TIMEOUT:-30}
 
 # Logging functions

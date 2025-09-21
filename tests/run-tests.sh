@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
-# ABOUTME: 통합 테스트 러너 - 일관된 CLI와 병렬 처리 지원
-# ABOUTME: 모든 테스트를 체계적으로 실행하고 결과를 종합하는 중앙 집중식 러너
+# Enhanced test runner with parallel execution support
+# Supports parallel execution, coverage reporting, and category filtering
 
 set -euo pipefail
+
+# Source configuration
+[[ -f "$(dirname "$0")/.bats" ]] && source "$(dirname "$0")/.bats"
 
 # 스크립트 경로 설정
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

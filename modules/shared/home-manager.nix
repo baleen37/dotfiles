@@ -32,6 +32,19 @@ let
   isLinux = platformDetection.isLinux pkgs.system;
 in
 {
+  # Import Claude Code configuration module
+  imports = [
+    ./claude-code.nix
+  ];
+
+  # Enable Claude Code configuration with no backup files
+  programs.claude-code = {
+    enable = true;
+    forceOverwrite = true;  # Force symlink overwrite, no backup files
+    enableBackups = false;  # Never create backup files
+    configDirectory = ".claude";
+  };
+
   # macOS 사용자 레벨 기본값 설정 (root 권한 불필요)
   # Note: targets.darwin 비활성화 - "Cannot nest composite types" 에러 방지
   # 대신 home.activation에서 직접 defaults 명령 실행
