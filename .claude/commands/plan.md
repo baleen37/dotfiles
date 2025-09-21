@@ -2,6 +2,12 @@
 description: Execute the implementation planning workflow using the plan template to generate design artifacts.
 ---
 
+The user input to you can be provided directly by the agent or in `$ARGUMENTS` - you **MUST** consider it before proceeding with the prompt (if not empty).
+
+User input:
+
+$ARGUMENTS
+
 Given the implementation details provided as an argument, do this:
 
 1. Run `.specify/scripts/bash/setup-plan.sh --json` from the repo root and parse JSON for FEATURE_SPEC, IMPL_PLAN, SPECS_DIR, BRANCH. All future file paths must be absolute.
@@ -16,13 +22,13 @@ Given the implementation details provided as an argument, do this:
 4. Execute the implementation plan template:
    - Load `.specify/templates/plan-template.md` (already copied to IMPL_PLAN path)
    - Set Input path to FEATURE_SPEC
-   - Run the Execution Flow (main) function steps 1-10
+   - Run the Execution Flow (main) function steps 1-9
    - The template is self-contained and executable
    - Follow error handling and gate checks as specified
    - Let the template guide artifact generation in $SPECS_DIR:
-     - Phase 0 generates research.md
-     - Phase 1 generates data-model.md, contracts/, quickstart.md
-     - Phase 2 generates tasks.md
+     * Phase 0 generates research.md
+     * Phase 1 generates data-model.md, contracts/, quickstart.md
+     * Phase 2 generates tasks.md
    - Incorporate user-provided details from arguments into Technical Context: $ARGUMENTS
    - Update Progress Tracking as you complete each phase
 

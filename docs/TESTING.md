@@ -10,19 +10,26 @@ This document describes the simplified testing framework, organized into three f
 
 1. **Simplicity First**: Focus on tests that catch real issues
 2. **Clear Categories**: Three distinct test categories with clear purposes
-3. **Fast Feedback**: Quick test execution for rapid development
+3. **Fast Feedback**: Quick test execution for rapid development (target: <5 minutes)
 4. **Maintainability**: Easy to understand and modify tests
+5. **Performance Optimization**: Intelligent parallel execution with adaptive scaling
+6. **Comprehensive Coverage**: 80% coverage threshold with automated tracking
 
 ### Test Categories
 
 ```text
 tests/
-├── default.nix     # Simplified test entry point
-├── unit/          # Core functionality tests (organized strategy below)
-├── integration/   # Integration tests (part of core)
-├── e2e/          # Workflow tests
-├── performance/  # Performance benchmarks
-└── lib/          # Test helpers
+├── default.nix        # Simplified test entry point
+├── unit/             # Core functionality tests (87% optimized)
+├── integration/      # Module interaction tests
+├── e2e/             # End-to-end workflow tests
+├── performance/     # Performance benchmarks (<5 min target)
+└── lib/             # Test framework and utilities
+    ├── common.bash      # Common test utilities and assertions
+    ├── coverage.bash    # Coverage tracking and reporting
+    ├── parallel.bash    # Parallel execution manager
+    ├── performance.bash # Performance optimization engine
+    └── models/         # Test data models and fixtures
 ```
 
 ### Unit Test Organization Strategy
@@ -121,13 +128,49 @@ make test-perf
 - Build time measurements
 - Resource usage profiling
 
+## ⚡ Performance Optimization Framework
+
+### Intelligent Parallel Execution
+
+The test framework includes sophisticated performance optimization:
+
+- **Adaptive Scaling**: Automatically adjusts parallelism based on system resources
+- **Smart Scheduling**: Tests are weighted and scheduled optimally
+- **Resource Monitoring**: Real-time CPU and memory usage monitoring
+- **5-minute Target**: All tests complete within 5 minutes
+
+### Performance Features
+
+```bash
+# Performance-optimized test execution
+./tests/run-tests.sh --fast --parallel auto
+
+# Monitor test performance
+./tests/run-tests.sh --monitor --report performance.json
+
+# Coverage tracking with 80% threshold
+./tests/run-tests.sh --coverage --threshold 80
+```
+
+### Claude Code Integration
+
+The framework integrates seamlessly with Claude Code configuration:
+
+- **No Backup Files**: Force symlink overwrite prevents backup file creation
+- **Platform-Specific Paths**: Darwin and NixOS path handling
+- **Pre-Switch Cleanup**: Automatic cleanup before Home Manager activation
+- **Symlink Validation**: Comprehensive symlink integrity checking
+
 ## 🚀 Running Tests
 
 ### Quick Start
 
 ```bash
-# Run all tests
+# Run all tests (performance optimized)
 make test
+
+# Run with performance monitoring
+make test-perf-monitor
 
 # Run specific categories
 make test-core      # Fast, essential tests
@@ -136,6 +179,9 @@ make test-perf     # Performance benchmarks
 
 # List available tests
 make test-list
+
+# Coverage report
+make test-coverage
 ```
 
 ### Using Nix Commands
