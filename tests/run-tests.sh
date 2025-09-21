@@ -30,12 +30,12 @@ DRY_RUN=${DRY_RUN:-false}
 FAIL_FAST=${FAIL_FAST:-false}
 OUTPUT_FORMAT=${OUTPUT_FORMAT:-"standard"}
 
-# 테스트 카테고리 정의
+# 테스트 카테고리 정의 (중복 제거 완료)
 declare -A TEST_CATEGORIES=(
-    ["core"]="unit/test-platform-system.sh unit/test-user-resolution.sh unit/test-error-system.sh"
-    ["claude"]="unit/test-claude-activation.sh integration/test-claude-activation-integration.sh unit/test-claude-symlink-priority.sh"
+    ["core"]="unit/test-error-system.sh unit/test-claude-symlink-priority.sh unit/test-framework-validation.sh"
+    ["bats-unit"]="bats/test_claude_activation.bats bats/test_platform_detection.bats bats/test_lib_user_resolution.bats"
+    ["integration"]="integration/test-claude-activation-detailed.sh integration/test-platform-system-detailed.sh integration/test-user-resolution-detailed.sh integration/test-claude-activation-integration.sh integration/test-build-switch-claude-integration.sh integration/test-claude-platform-compatibility.sh integration/test-claude-error-recovery.sh integration/test-home-manager-app-links.sh"
     ["workflow"]="e2e/test-claude-activation-e2e.sh e2e/test-claude-commands-end-to-end.sh"
-    ["integration"]="integration/test-build-switch-claude-integration.sh integration/test-claude-platform-compatibility.sh integration/test-claude-error-recovery.sh integration/test-home-manager-app-links.sh"
     ["performance"]="performance/test-performance-monitor.sh"
     ["nix-apps"]="unit/test-nix-app-links.sh"
     ["logging"]="unit/test-logging-availability.sh"
@@ -56,11 +56,11 @@ $RUNNER_NAME v$TEST_RUNNER_VERSION
 
 사용법: $0 [옵션] [카테고리|파일...]
 
-테스트 카테고리:
-  core        - 핵심 시스템 테스트 (platform-system, user-resolution 등)
-  claude      - Claude 관련 테스트들
+테스트 카테고리 (중복 제거 완료):
+  core        - 핵심 단위 테스트 (error-system, framework-validation 등)
+  bats-unit   - BATS 단위 테스트 (claude, platform, user-resolution)
+  integration - 통합 테스트 (상세한 환경 테스트 포함)
   workflow    - 엔드투엔드 워크플로 테스트
-  integration - 통합 테스트
   performance - 성능 테스트
   nix-apps    - Nix 앱 링크 테스트
   logging     - 로깅 시스템 테스트
@@ -81,11 +81,12 @@ $RUNNER_NAME v$TEST_RUNNER_VERSION
 
 예제:
   $0                          # 모든 테스트 실행
-  $0 core                     # 핵심 테스트만 실행
-  $0 --parallel core claude   # 핵심 및 Claude 테스트를 병렬로 실행
+  $0 core                     # 핵심 단위 테스트만 실행
+  $0 bats-unit                # BATS 단위 테스트만 실행
+  $0 --parallel core bats-unit # 핵심 및 BATS 테스트를 병렬로 실행
   $0 -v -f workflow          # 워크플로 테스트를 자세한 출력으로 실행, 실패시 중단
   $0 --dry-run all           # 모든 테스트 계획만 표시
-  $0 unit/test-platform-system.sh  # 특정 테스트 파일 실행
+  $0 integration/test-platform-system-detailed.sh  # 특정 통합 테스트 파일 실행
 
 환경 변수:
   PARALLEL_MODE=true    - 병렬 모드 활성화

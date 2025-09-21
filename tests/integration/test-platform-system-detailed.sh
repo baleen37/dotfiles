@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# ABOUTME: platform-system.nix 핵심 기능 포괄적 테스트 (리팩토링됨)
-# ABOUTME: 플랫폼 감지, 유틸리티 함수, 크로스 플랫폼 기능 검증 - 새로운 테스트 프레임워크 사용
+# ABOUTME: platform-system.nix 통합 테스트 (리팩토링됨)
+# ABOUTME: 플랫폼 감지, 유틸리티 함수, 크로스 플랫폼 기능 실제 환경 통합 검증
 
 set -euo pipefail
 
