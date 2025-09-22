@@ -12,11 +12,11 @@ declare -A TEST_FILE_INSTANCES=()
 test_file_new() {
     local file_id="$1"
     local file_path="$2"
-    
+
     [[ -n "$file_id" ]] || { echo "Error: file_id is required"; return 1; }
     [[ -n "$file_path" ]] || { echo "Error: file_path is required"; return 1; }
     [[ -f "$file_path" ]] || { echo "Error: file_path '$file_path' does not exist"; return 1; }
-    
+
     # Initialize file instance
     TEST_FILE_INSTANCES["${file_id}:id"]="$file_id"
     TEST_FILE_INSTANCES["${file_id}:path"]="$file_path"
@@ -35,7 +35,7 @@ test_file_new() {
     TEST_FILE_INSTANCES["${file_id}:timeout"]="60"
     TEST_FILE_INSTANCES["${file_id}:retry_count"]="0"
     TEST_FILE_INSTANCES["${file_id}:max_retries"]="0"
-    
+
     echo "$file_id"
 }
 
@@ -44,10 +44,10 @@ test_file_new() {
 test_file_get() {
     local file_id="$1"
     local property="$2"
-    
+
     [[ -n "$file_id" ]] || { echo "Error: file_id is required"; return 1; }
     [[ -n "$property" ]] || { echo "Error: property is required"; return 1; }
-    
+
     local key="${file_id}:${property}"
     echo "${TEST_FILE_INSTANCES[$key]:-}"
 }
@@ -58,10 +58,10 @@ test_file_set() {
     local file_id="$1"
     local property="$2"
     local value="$3"
-    
+
     [[ -n "$file_id" ]] || { echo "Error: file_id is required"; return 1; }
     [[ -n "$property" ]] || { echo "Error: property is required"; return 1; }
-    
+
     local key="${file_id}:${property}"
     TEST_FILE_INSTANCES["$key"]="$value"
 }
@@ -70,12 +70,12 @@ test_file_set() {
 # Usage: test_file_count_tests <file_id>
 test_file_count_tests() {
     local file_id="$1"
-    
+
     [[ -n "$file_id" ]] || { echo "Error: file_id is required"; return 1; }
-    
+
     local file_path
     file_path=$(test_file_get "$file_id" "path")
-    
+
     # Count @test annotations in bats files
     local count=0
     if [[ "$file_path" == *.bats ]]; then
@@ -84,7 +84,7 @@ test_file_count_tests() {
         # For shell scripts, count function definitions starting with test_
         count=$(grep -c "^test_[a-zA-Z_][a-zA-Z0-9_]*(" "$file_path" 2>/dev/null || echo "0")
     fi
-    
+
     test_file_set "$file_id" "test_count" "$count"
     echo "$count"
 }
@@ -98,19 +98,19 @@ test_file_update_results() {
     local skipped="$4"
     local execution_time="$5"
     local error_message="${6:-}"
-    
+
     [[ -n "$file_id" ]] || { echo "Error: file_id is required"; return 1; }
     [[ "$passed" =~ ^[0-9]+$ ]] || { echo "Error: passed must be a number"; return 1; }
     [[ "$failed" =~ ^[0-9]+$ ]] || { echo "Error: failed must be a number"; return 1; }
     [[ "$skipped" =~ ^[0-9]+$ ]] || { echo "Error: skipped must be a number"; return 1; }
     [[ "$execution_time" =~ ^[0-9]+$ ]] || { echo "Error: execution_time must be a number"; return 1; }
-    
+
     test_file_set "$file_id" "passed_count" "$passed"
     test_file_set "$file_id" "failed_count" "$failed"
     test_file_set "$file_id" "skipped_count" "$skipped"
     test_file_set "$file_id" "execution_time" "$execution_time"
     test_file_set "$file_id" "error_message" "$error_message"
-    
+
     # Update status based on results
     if [[ -n "$error_message" ]]; then
         test_file_set "$file_id" "status" "error"
@@ -127,12 +127,12 @@ test_file_update_results() {
 # Usage: test_file_is_executable <file_id>
 test_file_is_executable() {
     local file_id="$1"
-    
+
     [[ -n "$file_id" ]] || { echo "Error: file_id is required"; return 1; }
-    
+
     local file_path
     file_path=$(test_file_get "$file_id" "path")
-    
+
     if [[ -x "$file_path" ]]; then
         echo "true"
         return 0
@@ -146,12 +146,12 @@ test_file_is_executable() {
 # Usage: test_file_get_type <file_id>
 test_file_get_type() {
     local file_id="$1"
-    
+
     [[ -n "$file_id" ]] || { echo "Error: file_id is required"; return 1; }
-    
+
     local file_path
     file_path=$(test_file_get "$file_id" "path")
-    
+
     case "$file_path" in
         *.bats)
             echo "bats"
@@ -169,12 +169,12 @@ test_file_get_type() {
 # Usage: test_file_can_parallel <file_id>
 test_file_can_parallel() {
     local file_id="$1"
-    
+
     [[ -n "$file_id" ]] || { echo "Error: file_id is required"; return 1; }
-    
+
     local parallel_enabled
     parallel_enabled=$(test_file_get "$file_id" "parallel_enabled")
-    
+
     if [[ "$parallel_enabled" == "true" ]]; then
         echo "true"
         return 0
@@ -188,13 +188,13 @@ test_file_can_parallel() {
 # Usage: test_file_mark_retry <file_id>
 test_file_mark_retry() {
     local file_id="$1"
-    
+
     [[ -n "$file_id" ]] || { echo "Error: file_id is required"; return 1; }
-    
+
     local retry_count max_retries
     retry_count=$(test_file_get "$file_id" "retry_count")
     max_retries=$(test_file_get "$file_id" "max_retries")
-    
+
     if [[ "$retry_count" -lt "$max_retries" ]]; then
         test_file_set "$file_id" "retry_count" "$((retry_count + 1))"
         test_file_set "$file_id" "status" "retry"
@@ -210,9 +210,9 @@ test_file_mark_retry() {
 # Usage: test_file_summary <file_id>
 test_file_summary() {
     local file_id="$1"
-    
+
     [[ -n "$file_id" ]] || { echo "Error: file_id is required"; return 1; }
-    
+
     local name status test_count passed failed skipped execution_time coverage
     name=$(test_file_get "$file_id" "name")
     status=$(test_file_get "$file_id" "status")
@@ -222,7 +222,7 @@ test_file_summary() {
     skipped=$(test_file_get "$file_id" "skipped_count")
     execution_time=$(test_file_get "$file_id" "execution_time")
     coverage=$(test_file_get "$file_id" "coverage_percentage")
-    
+
     cat <<EOF
 Test File: $name
 Status: $status
@@ -240,11 +240,11 @@ EOF
 test_file_update_coverage() {
     local file_id="$1"
     local coverage_percentage="$2"
-    
+
     [[ -n "$file_id" ]] || { echo "Error: file_id is required"; return 1; }
     [[ "$coverage_percentage" =~ ^[0-9]+$ ]] || { echo "Error: coverage_percentage must be a number"; return 1; }
     [[ "$coverage_percentage" -le 100 ]] || { echo "Error: coverage_percentage cannot exceed 100"; return 1; }
-    
+
     test_file_set "$file_id" "coverage_percentage" "$coverage_percentage"
 }
 
@@ -252,9 +252,9 @@ test_file_update_coverage() {
 # Usage: test_file_destroy <file_id>
 test_file_destroy() {
     local file_id="$1"
-    
+
     [[ -n "$file_id" ]] || { echo "Error: file_id is required"; return 1; }
-    
+
     # Remove all file data
     for key in "${!TEST_FILE_INSTANCES[@]}"; do
         if [[ "$key" == "${file_id}:"* ]]; then

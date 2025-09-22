@@ -78,12 +78,12 @@ repos:
     hooks:
       - id: run-unit-tests
         name: Run unit tests
-        entry: tests/run-tests.sh --category unit --timeout 60
+        entry: tests/run-tests.sh unit --timeout 60
         language: system
         pass_filenames: false
         files: ^tests/unit/.*\.bats$
         stages: [pre-commit]
-      
+
       - id: check-test-coverage
         name: Check test coverage
         entry: bash -c 'source tests/lib/coverage.bash && generate_coverage_report'

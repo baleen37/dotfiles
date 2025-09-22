@@ -30,7 +30,7 @@ assert_equals() {
     local expected="$1"
     local actual="$2"
     local message="${3:-}"
-    
+
     if [[ "$expected" == "$actual" ]]; then
         test_pass "${message:-Values match: '$actual'}"
     else
@@ -42,7 +42,7 @@ assert_not_equals() {
     local expected="$1"
     local actual="$2"
     local message="${3:-}"
-    
+
     if [[ "$expected" != "$actual" ]]; then
         test_pass "${message:-Values differ: '$actual'}"
     else
@@ -54,7 +54,7 @@ assert_not_equals() {
 assert_empty() {
     local value="$1"
     local message="${2:-}"
-    
+
     if [[ -z "$value" ]]; then
         test_pass "${message:-String is empty}"
     else
@@ -65,7 +65,7 @@ assert_empty() {
 assert_not_empty() {
     local value="$1"
     local message="${2:-}"
-    
+
     if [[ -n "$value" ]]; then
         test_pass "${message:-String is not empty}"
     else
@@ -77,7 +77,7 @@ assert_contains() {
     local haystack="$1"
     local needle="$2"
     local message="${3:-}"
-    
+
     if [[ "$haystack" == *"$needle"* ]]; then
         test_pass "${message:-String contains: '$needle'}"
     else
@@ -89,7 +89,7 @@ assert_contains() {
 assert_file_exists() {
     local file="$1"
     local message="${2:-}"
-    
+
     if [[ -f "$file" ]]; then
         test_pass "${message:-File exists: '$file'}"
     else
@@ -100,7 +100,7 @@ assert_file_exists() {
 assert_dir_exists() {
     local dir="$1"
     local message="${2:-}"
-    
+
     if [[ -d "$dir" ]]; then
         test_pass "${message:-Directory exists: '$dir'}"
     else
@@ -111,7 +111,7 @@ assert_dir_exists() {
 assert_executable() {
     local file="$1"
     local message="${2:-}"
-    
+
     if [[ -x "$file" ]]; then
         test_pass "${message:-File is executable: '$file'}"
     else
@@ -123,22 +123,22 @@ assert_executable() {
 assert_command_succeeds() {
     local command="$1"
     local message="${2:-}"
-    
+
     if eval "$command" >/dev/null 2>&1; then
         test_pass "${message:-Command succeeded: '$command'}"
     else
-        test_fail "${message:-Command failed: '$command'}"
+        test_fail "${message:-Command failed: \"$command\"}"
     fi
 }
 
 assert_command_fails() {
     local command="$1"
     local message="${2:-}"
-    
+
     if ! eval "$command" >/dev/null 2>&1; then
-        test_pass "${message:-Command failed as expected: '$command'}"
+        test_pass "${message:-Command failed as expected: \"$command\"}"
     else
-        test_fail "${message:-Command succeeded: '$command'}"
+        test_fail "${message:-Command succeeded: \"$command\"}"
     fi
 }
 
@@ -147,12 +147,12 @@ assert_executes_in_time() {
     local max_time="$1"
     local command="$2"
     local message="${3:-}"
-    
+
     local start_time=$(date +%s%3N)
     eval "$command" >/dev/null 2>&1
     local end_time=$(date +%s%3N)
     local duration=$((end_time - start_time))
-    
+
     if [[ $duration -le $max_time ]]; then
         test_pass "${message:-Command executed in time: ${duration}ms <= ${max_time}ms}"
     else

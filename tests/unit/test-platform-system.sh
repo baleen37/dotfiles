@@ -43,7 +43,7 @@ assert_equals() {
     local expected="$1"
     local actual="$2"
     local description="$3"
-    
+
     if [[ "$expected" == "$actual" ]]; then
         assert_pass "$description"
     else
@@ -54,7 +54,7 @@ assert_equals() {
 assert_not_empty() {
     local value="$1"
     local description="$2"
-    
+
     if [[ -n "$value" ]]; then
         assert_pass "$description"
     else
@@ -65,7 +65,7 @@ assert_not_empty() {
 assert_file_exists() {
     local file="$1"
     local description="$2"
-    
+
     if [[ -f "$file" ]]; then
         assert_pass "$description"
     else
@@ -77,7 +77,7 @@ assert_file_exists() {
 setup_test_environment() {
     log_info "테스트 디렉토리: $TEST_HOME"
     log_info "프로젝트 루트: $PROJECT_ROOT"
-    
+
     # Ensure the platform-system.nix file exists
     assert_file_exists "$PROJECT_ROOT/lib/platform-system.nix" "platform-system.nix 파일 존재 확인"
 }
@@ -85,17 +85,17 @@ setup_test_environment() {
 # Main tests
 test_platform_detection() {
     log_test_suite "Platform Detection 테스트"
-    
+
     # Test current system detection
     local current_system
     current_system=$(nix eval --impure --expr '(import ./lib/platform-system.nix { system = builtins.currentSystem; }).system' --raw 2>/dev/null || echo "")
     assert_not_empty "$current_system" "현재 시스템 식별"
-    
+
     # Test platform detection
     local current_platform
     current_platform=$(nix eval --impure --expr '(import ./lib/platform-system.nix { system = builtins.currentSystem; }).platform' --raw 2>/dev/null || echo "")
     assert_not_empty "$current_platform" "현재 플랫폼 식별"
-    
+
     # Test architecture detection
     local current_arch
     current_arch=$(nix eval --impure --expr '(import ./lib/platform-system.nix { system = builtins.currentSystem; }).arch' --raw 2>/dev/null || echo "")
@@ -104,7 +104,7 @@ test_platform_detection() {
 
 test_supported_platforms() {
     log_test_suite "지원 플랫폼 테스트"
-    
+
     # Test known system mappings
     local test_systems=(
         "x86_64-linux:linux:x86_64"
@@ -112,14 +112,14 @@ test_supported_platforms() {
         "x86_64-darwin:darwin:x86_64"
         "aarch64-darwin:darwin:aarch64"
     )
-    
+
     for test_case in "${test_systems[@]}"; do
         IFS=':' read -r system expected_platform expected_arch <<< "$test_case"
-        
+
         local actual_platform
         actual_platform=$(nix eval --expr "(import ./lib/platform-system.nix { system = \"$system\"; }).platform" --raw 2>/dev/null || echo "")
         assert_equals "$expected_platform" "$actual_platform" "$system 플랫폼 매핑"
-        
+
         local actual_arch
         actual_arch=$(nix eval --expr "(import ./lib/platform-system.nix { system = \"$system\"; }).arch" --raw 2>/dev/null || echo "")
         assert_equals "$expected_arch" "$actual_arch" "$system 아키텍처 매핑"
@@ -128,21 +128,21 @@ test_supported_platforms() {
 
 test_platform_utilities() {
     log_test_suite "플랫폼 유틸리티 함수 테스트"
-    
+
     # Test isDarwin function
     local is_darwin_linux
     is_darwin_linux=$(nix eval --expr "(import ./lib/platform-system.nix { system = \"x86_64-linux\"; }).isDarwin" 2>/dev/null || echo "false")
     assert_equals "false" "$is_darwin_linux" "Linux에서 isDarwin false"
-    
+
     local is_darwin_macos
     is_darwin_macos=$(nix eval --expr "(import ./lib/platform-system.nix { system = \"x86_64-darwin\"; }).isDarwin" 2>/dev/null || echo "false")
     assert_equals "true" "$is_darwin_macos" "macOS에서 isDarwin true"
-    
-    # Test isLinux function  
+
+    # Test isLinux function
     local is_linux_linux
     is_linux_linux=$(nix eval --expr "(import ./lib/platform-system.nix { system = \"x86_64-linux\"; }).isLinux" 2>/dev/null || echo "false")
     assert_equals "true" "$is_linux_linux" "Linux에서 isLinux true"
-    
+
     local is_linux_macos
     is_linux_macos=$(nix eval --expr "(import ./lib/platform-system.nix { system = \"x86_64-darwin\"; }).isLinux" 2>/dev/null || echo "true")
     assert_equals "false" "$is_linux_macos" "macOS에서 isLinux false"
@@ -150,17 +150,17 @@ test_platform_utilities() {
 
 test_performance() {
     log_test_suite "성능 테스트"
-    
+
     # Test evaluation performance (should be fast since it's pure evaluation)
     local start_time=$(date +%s%3N)
-    
+
     for i in {1..5}; do
         nix eval --expr "(import ./lib/platform-system.nix { system = builtins.currentSystem; }).platform" --raw >/dev/null 2>&1
     done
-    
+
     local end_time=$(date +%s%3N)
     local duration=$((end_time - start_time))
-    
+
     if [[ $duration -lt 1000 ]]; then
         assert_pass "5회 평가가 1초 이내 완료 (${duration}ms)"
     else
@@ -171,19 +171,19 @@ test_performance() {
 # Main execution
 main() {
     log_test_suite "Platform System 포괄적 테스트 시작"
-    
+
     # Set up test environment
     setup_test_environment
-    
+
     # Change to project root for nix commands
     cd "$PROJECT_ROOT"
-    
+
     # Run test suites
     test_platform_detection
     test_supported_platforms
     test_platform_utilities
     test_performance
-    
+
     # Test summary
     echo ""
     log_test_suite "테스트 완료"

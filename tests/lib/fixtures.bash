@@ -18,24 +18,24 @@ fixture_register() {
     local name="$1"
     local setup_function="$2"
     local teardown_function="${3:-}"
-    
+
     FIXTURES["${name}:setup"]="$setup_function"
     FIXTURES["${name}:teardown"]="$teardown_function"
-    
+
     log_debug "Fixture registered: $name"
 }
 
 fixture_setup() {
     local name="$1"
     local setup_function="${FIXTURES["${name}:setup"]:-}"
-    
+
     if [[ -z "$setup_function" ]]; then
         log_error "Fixture not found: $name"
         return 1
     fi
-    
+
     log_debug "Setting up fixture: $name"
-    
+
     if "$setup_function"; then
         FIXTURE_CLEANUP_QUEUE+=("$name")
         log_debug "Fixture setup completed: $name"
@@ -49,7 +49,7 @@ fixture_setup() {
 fixture_teardown() {
     local name="$1"
     local teardown_function="${FIXTURES["${name}:teardown"]:-}"
-    
+
     if [[ -n "$teardown_function" ]]; then
         log_debug "Tearing down fixture: $name"
         if "$teardown_function"; then
@@ -62,13 +62,13 @@ fixture_teardown() {
 
 fixture_cleanup_all() {
     log_debug "Cleaning up all fixtures"
-    
+
     # Cleanup in reverse order
     for ((i=${#FIXTURE_CLEANUP_QUEUE[@]}-1; i>=0; i--)); do
         local fixture_name="${FIXTURE_CLEANUP_QUEUE[i]}"
         fixture_teardown "$fixture_name"
     done
-    
+
     FIXTURE_CLEANUP_QUEUE=()
 }
 
@@ -78,10 +78,10 @@ fixture_cleanup_all() {
 fixture_temp_dir_setup() {
     local temp_dir
     temp_dir=$(mktemp -d)
-    
+
     export FIXTURE_TEMP_DIR="$temp_dir"
     log_debug "Created temp directory: $temp_dir"
-    
+
     return 0
 }
 
@@ -96,15 +96,15 @@ fixture_temp_dir_teardown() {
 # Test files fixture
 fixture_test_files_setup() {
     local base_dir="${FIXTURE_TEMP_DIR:-$(mktemp -d)}"
-    
+
     export FIXTURE_TEST_FILES_DIR="$base_dir/test_files"
     mkdir -p "$FIXTURE_TEST_FILES_DIR"
-    
+
     # Create various test files
     echo "Hello, World!" > "$FIXTURE_TEST_FILES_DIR/hello.txt"
     echo "#!/bin/bash\necho 'test script'" > "$FIXTURE_TEST_FILES_DIR/script.sh"
     chmod +x "$FIXTURE_TEST_FILES_DIR/script.sh"
-    
+
     # Create a JSON file
     cat > "$FIXTURE_TEST_FILES_DIR/config.json" << 'EOF'
 {
@@ -113,7 +113,7 @@ fixture_test_files_setup() {
   "enabled": true
 }
 EOF
-    
+
     # Create a YAML file
     cat > "$FIXTURE_TEST_FILES_DIR/config.yaml" << 'EOF'
 name: test
@@ -123,11 +123,11 @@ items:
   - item1
   - item2
 EOF
-    
+
     # Create subdirectories
     mkdir -p "$FIXTURE_TEST_FILES_DIR/subdir"
     echo "nested content" > "$FIXTURE_TEST_FILES_DIR/subdir/nested.txt"
-    
+
     log_debug "Created test files in: $FIXTURE_TEST_FILES_DIR"
     return 0
 }
@@ -143,32 +143,32 @@ fixture_test_files_teardown() {
 # Git repository fixture
 fixture_git_repo_setup() {
     local base_dir="${FIXTURE_TEMP_DIR:-$(mktemp -d)}"
-    
+
     export FIXTURE_GIT_REPO_DIR="$base_dir/git_repo"
     mkdir -p "$FIXTURE_GIT_REPO_DIR"
-    
+
     cd "$FIXTURE_GIT_REPO_DIR"
-    
+
     # Initialize git repo
     git init >/dev/null 2>&1
     git config user.name "Test User" >/dev/null 2>&1
     git config user.email "test@example.com" >/dev/null 2>&1
-    
+
     # Create initial commit
     echo "# Test Repository" > README.md
     git add README.md >/dev/null 2>&1
     git commit -m "Initial commit" >/dev/null 2>&1
-    
+
     # Create some test content
     echo "console.log('Hello, World!');" > index.js
     echo "export default { test: true };" > config.js
-    
+
     mkdir -p src
     echo "export function greet() { return 'Hello'; }" > src/utils.js
-    
+
     git add . >/dev/null 2>&1
     git commit -m "Add test files" >/dev/null 2>&1
-    
+
     log_debug "Created git repository: $FIXTURE_GIT_REPO_DIR"
     return 0
 }
@@ -184,35 +184,35 @@ fixture_git_repo_teardown() {
 # Nix flake fixture
 fixture_nix_flake_setup() {
     local base_dir="${FIXTURE_TEMP_DIR:-$(mktemp -d)}"
-    
+
     export FIXTURE_NIX_FLAKE_DIR="$base_dir/nix_flake"
     mkdir -p "$FIXTURE_NIX_FLAKE_DIR"
-    
+
     cd "$FIXTURE_NIX_FLAKE_DIR"
-    
+
     # Create a minimal flake.nix
     cat > flake.nix << 'EOF'
 {
   description = "Test flake";
-  
+
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
   };
-  
+
   outputs = { self, nixpkgs }: {
     packages.x86_64-linux.hello = nixpkgs.legacyPackages.x86_64-linux.hello;
     defaultPackage.x86_64-linux = self.packages.x86_64-linux.hello;
   };
 }
 EOF
-    
+
     # Initialize git (required for flakes)
     git init >/dev/null 2>&1
     git config user.name "Test User" >/dev/null 2>&1
     git config user.email "test@example.com" >/dev/null 2>&1
     git add flake.nix >/dev/null 2>&1
     git commit -m "Initial flake" >/dev/null 2>&1
-    
+
     log_debug "Created Nix flake: $FIXTURE_NIX_FLAKE_DIR"
     return 0
 }
@@ -228,10 +228,10 @@ fixture_nix_flake_teardown() {
 # Mock services fixture
 fixture_mock_services_setup() {
     local base_dir="${FIXTURE_TEMP_DIR:-$(mktemp -d)}"
-    
+
     export FIXTURE_MOCK_SERVICES_DIR="$base_dir/mock_services"
     mkdir -p "$FIXTURE_MOCK_SERVICES_DIR"
-    
+
     # Create a simple HTTP server mock
     cat > "$FIXTURE_MOCK_SERVICES_DIR/http_server.py" << 'EOF'
 #!/usr/bin/env python3
@@ -251,7 +251,7 @@ class MockHandler(http.server.BaseHTTPRequestHandler):
         else:
             self.send_response(404)
             self.end_headers()
-    
+
     def log_message(self, format, *args):
         pass  # Suppress log messages
 
@@ -260,18 +260,18 @@ if __name__ == "__main__":
     with socketserver.TCPServer(("", PORT), MockHandler) as httpd:
         httpd.serve_forever()
 EOF
-    
+
     chmod +x "$FIXTURE_MOCK_SERVICES_DIR/http_server.py"
-    
+
     # Create a mock SSH server script
     cat > "$FIXTURE_MOCK_SERVICES_DIR/ssh_server.sh" << 'EOF'
 #!/bin/bash
 # Mock SSH server that just listens on a port
 socat TCP-LISTEN:2222,reuseaddr,fork EXEC:'/bin/cat'
 EOF
-    
+
     chmod +x "$FIXTURE_MOCK_SERVICES_DIR/ssh_server.sh"
-    
+
     log_debug "Created mock services: $FIXTURE_MOCK_SERVICES_DIR"
     return 0
 }
@@ -280,7 +280,7 @@ fixture_mock_services_teardown() {
     # Kill any mock services that might be running
     pkill -f "http_server.py" 2>/dev/null || true
     pkill -f "ssh_server.sh" 2>/dev/null || true
-    
+
     if [[ -n "${FIXTURE_MOCK_SERVICES_DIR:-}" && -d "$FIXTURE_MOCK_SERVICES_DIR" ]]; then
         rm -rf "$FIXTURE_MOCK_SERVICES_DIR"
         log_debug "Removed mock services: $FIXTURE_MOCK_SERVICES_DIR"
@@ -291,10 +291,10 @@ fixture_mock_services_teardown() {
 # Configuration fixtures
 fixture_test_config_setup() {
     local base_dir="${FIXTURE_TEMP_DIR:-$(mktemp -d)}"
-    
+
     export FIXTURE_TEST_CONFIG_DIR="$base_dir/config"
     mkdir -p "$FIXTURE_TEST_CONFIG_DIR"
-    
+
     # Create test configuration files
     cat > "$FIXTURE_TEST_CONFIG_DIR/app.conf" << 'EOF'
 [app]
@@ -307,7 +307,7 @@ host = localhost
 port = 5432
 name = test_db
 EOF
-    
+
     cat > "$FIXTURE_TEST_CONFIG_DIR/settings.json" << 'EOF'
 {
   "app": {
@@ -321,7 +321,7 @@ EOF
   "environment": "test"
 }
 EOF
-    
+
     # Create environment file
     cat > "$FIXTURE_TEST_CONFIG_DIR/.env" << 'EOF'
 NODE_ENV=test
@@ -329,7 +329,7 @@ DEBUG=true
 DATABASE_URL=postgresql://localhost:5432/test_db
 API_KEY=test_key_123
 EOF
-    
+
     log_debug "Created test config: $FIXTURE_TEST_CONFIG_DIR"
     return 0
 }
