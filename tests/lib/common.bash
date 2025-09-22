@@ -33,18 +33,18 @@ declare -g TEST_PARALLEL=${TEST_PARALLEL:-true}
 common_test_setup() {
     local test_name="${1:-${BATS_TEST_NAME:-unknown}}"
     local test_dirname="${2:-${BATS_TEST_DIRNAME:-/tmp}}"
-    
+
     # Create unique temporary test directory
     export TEST_TEMP_DIR="${BATS_TMPDIR}/$(basename "$test_name")_$$"
     mkdir -p "$TEST_TEMP_DIR"
-    
+
     # Set up standard test environment variables
     export BATS_TEST_NAME="${test_name}"
     export BATS_TEST_DIRNAME="${test_dirname}"
-    
+
     # Initialize test start time for performance tracking
     export TEST_START_TIME=$(date +%s.%N)
-    
+
     test_debug "Common setup completed for test: $test_name"
 }
 
@@ -56,13 +56,13 @@ common_test_teardown() {
         local duration=$(echo "$end_time - $TEST_START_TIME" | bc -l 2>/dev/null || echo "0")
         test_debug "Test duration: ${duration}s"
     fi
-    
+
     # Clean up temporary test directory
     if [[ -d "${TEST_TEMP_DIR:-}" ]]; then
         rm -rf "$TEST_TEMP_DIR"
         test_debug "Cleaned up test directory: $TEST_TEMP_DIR"
     fi
-    
+
     # Clean up any test-specific environment variables
     unset TEST_TEMP_DIR TEST_START_TIME
 }
@@ -156,15 +156,15 @@ test_summary() {
     log_test_suite "테스트 완료"
     log_info "총 테스트: $TESTS_TOTAL"
     log_info "통과: $TESTS_PASSED"
-    
+
     if [[ $TESTS_FAILED -gt 0 ]]; then
         log_error "실패: $TESTS_FAILED"
     fi
-    
+
     if [[ $TESTS_SKIPPED -gt 0 ]]; then
         log_warn "스킵: $TESTS_SKIPPED"
     fi
-    
+
     # Return appropriate exit code
     if [[ $TESTS_FAILED -gt 0 ]]; then
         return 1
@@ -184,7 +184,7 @@ get_project_root() {
         fi
         dir="$(dirname "$dir")"
     done
-    
+
     echo "Error: Could not find project root (no flake.nix found)" >&2
     return 1
 }
@@ -240,12 +240,12 @@ wait_for_process() {
     local process_name="$1"
     local timeout="${2:-10}"
     local count=0
-    
+
     while ! is_running "$process_name" && [[ $count -lt $timeout ]]; do
         sleep 1
         ((count++))
     done
-    
+
     [[ $count -lt $timeout ]]
 }
 
@@ -261,12 +261,12 @@ wait_for_port() {
     local port="$2"
     local timeout="${3:-10}"
     local count=0
-    
+
     while ! is_port_open "$host" "$port" && [[ $count -lt $timeout ]]; do
         sleep 1
         ((count++))
     done
-    
+
     [[ $count -lt $timeout ]]
 }
 
@@ -294,19 +294,19 @@ retry() {
     local times="$1"
     local delay="${2:-1}"
     shift 2
-    
+
     local count=0
     while [[ $count -lt $times ]]; do
         if "$@"; then
             return 0
         fi
-        
+
         ((count++))
         if [[ $count -lt $times ]]; then
             sleep "$delay"
         fi
     done
-    
+
     return 1
 }
 
@@ -325,18 +325,18 @@ measure_time() {
 validate_environment() {
     local required_commands=("bash" "nix" "git")
     local missing_commands=()
-    
+
     for cmd in "${required_commands[@]}"; do
         if ! command -v "$cmd" >/dev/null 2>&1; then
             missing_commands+=("$cmd")
         fi
     done
-    
+
     if [[ ${#missing_commands[@]} -gt 0 ]]; then
         log_error "Missing required commands: ${missing_commands[*]}"
         return 1
     fi
-    
+
     return 0
 }
 
@@ -344,7 +344,7 @@ validate_environment() {
 generate_test_data() {
     local type="$1"
     local size="${2:-small}"
-    
+
     case "$type" in
         "string")
             case "$size" in
@@ -379,13 +379,13 @@ handle_error() {
     local line_number="$1"
     local bash_lineno="$2"
     local last_command="$3"
-    
+
     log_error "Error occurred in test:"
     log_error "  Line: $line_number"
     log_error "  Bash line: $bash_lineno"
     log_error "  Command: $last_command"
     log_error "  Exit code: $exit_code"
-    
+
     exit $exit_code
 }
 

@@ -19,11 +19,11 @@ declare -A TEST_RUNNER_INSTANCES=()
 test_runner_new() {
     local runner_id="$1"
     local base_path="$2"
-    
+
     [[ -n "$runner_id" ]] || { echo "Error: runner_id is required"; return 1; }
     [[ -n "$base_path" ]] || { echo "Error: base_path is required"; return 1; }
     [[ -d "$base_path" ]] || { echo "Error: base_path '$base_path' does not exist"; return 1; }
-    
+
     # Initialize runner instance
     TEST_RUNNER_INSTANCES["${runner_id}:id"]="$runner_id"
     TEST_RUNNER_INSTANCES["${runner_id}:base_path"]="$base_path"
@@ -35,7 +35,7 @@ test_runner_new() {
     TEST_RUNNER_INSTANCES["${runner_id}:coverage_threshold"]="80"
     TEST_RUNNER_INSTANCES["${runner_id}:fail_fast"]="false"
     TEST_RUNNER_INSTANCES["${runner_id}:current_suite"]=""
-    
+
     echo "$runner_id"
 }
 
@@ -44,10 +44,10 @@ test_runner_new() {
 test_runner_get() {
     local runner_id="$1"
     local property="$2"
-    
+
     [[ -n "$runner_id" ]] || { echo "Error: runner_id is required"; return 1; }
     [[ -n "$property" ]] || { echo "Error: property is required"; return 1; }
-    
+
     local key="${runner_id}:${property}"
     echo "${TEST_RUNNER_INSTANCES[$key]:-}"
 }
@@ -58,10 +58,10 @@ test_runner_set() {
     local runner_id="$1"
     local property="$2"
     local value="$3"
-    
+
     [[ -n "$runner_id" ]] || { echo "Error: runner_id is required"; return 1; }
     [[ -n "$property" ]] || { echo "Error: property is required"; return 1; }
-    
+
     local key="${runner_id}:${property}"
     TEST_RUNNER_INSTANCES["$key"]="$value"
 }
@@ -75,12 +75,12 @@ test_runner_run() {
     local parallel="$3"
     local timeout="$4"
     local pattern="${5:-*.bats}"
-    
+
     [[ -n "$runner_id" ]] || { echo "Error: runner_id is required"; return 1; }
     [[ -n "$category" ]] || { echo "Error: category is required"; return 1; }
     [[ "$parallel" == "true" || "$parallel" == "false" ]] || { echo "Error: parallel must be true or false"; return 1; }
     [[ "$timeout" =~ ^[0-9]+$ ]] || { echo "Error: timeout must be a number"; return 1; }
-    
+
     # Validate category
     case "$category" in
         unit|integration|e2e|performance|all)
@@ -90,24 +90,24 @@ test_runner_run() {
             return 1
             ;;
     esac
-    
+
     # Set runner configuration
     test_runner_set "$runner_id" "parallel_enabled" "$parallel"
     test_runner_set "$runner_id" "timeout" "$timeout"
-    
+
     # Create test suite
     local base_path
     base_path=$(test_runner_get "$runner_id" "base_path")
     local suite_id
     suite_id=$(test_suite_new "${runner_id}_suite" "$base_path")
     test_runner_set "$runner_id" "current_suite" "$suite_id"
-    
+
     # Set coverage threshold for suite
     local coverage_threshold
     coverage_threshold=$(test_runner_get "$runner_id" "coverage_threshold")
     test_suite_set "$suite_id" "coverage_threshold" "$coverage_threshold"
     test_suite_set "$suite_id" "parallel_enabled" "$parallel"
-    
+
     # Discover test files based on category and pattern
     local test_files=()
     case "$category" in
@@ -127,25 +127,25 @@ test_runner_run() {
             readarray -t test_files < <(find "$base_path" -name "$pattern" -type f 2>/dev/null || true)
             ;;
     esac
-    
+
     # Add test files to suite
     for test_file in "${test_files[@]}"; do
         test_suite_add_file "$suite_id" "$test_file"
     done
-    
+
     # Execute tests
     local start_time end_time duration_ms
     start_time=$(date +%s%3N)
-    
+
     if [[ "$parallel" == "true" ]]; then
         _test_runner_execute_parallel "$runner_id" "$suite_id"
     else
         _test_runner_execute_sequential "$runner_id" "$suite_id"
     fi
-    
+
     end_time=$(date +%s%3N)
     duration_ms=$((end_time - start_time))
-    
+
     # Generate test run response (JSON format per contract)
     _test_runner_generate_response "$runner_id" "$suite_id" "$duration_ms"
 }
@@ -155,31 +155,31 @@ test_runner_run() {
 _test_runner_execute_parallel() {
     local runner_id="$1"
     local suite_id="$2"
-    
+
     local max_jobs
     max_jobs=$(test_runner_get "$runner_id" "max_parallel_jobs")
     local timeout
     timeout=$(test_runner_get "$runner_id" "timeout")
-    
+
     # Create job control
     local job_pids=()
     local completed_jobs=0
     local total_files=0
-    
+
     # Execute test files in parallel
     while IFS= read -r test_file; do
         [[ -z "$test_file" ]] && continue
         ((total_files++))
-        
+
         # Wait for available job slot
         while [[ ${#job_pids[@]} -ge $max_jobs ]]; do
             _test_runner_wait_for_job "$runner_id" job_pids completed_jobs
         done
-        
+
         # Start test execution in background
         _test_runner_execute_file "$runner_id" "$test_file" "$timeout" &
         job_pids+=($!)
-        
+
         # Check for fail-fast
         local fail_fast
         fail_fast=$(test_runner_get "$runner_id" "fail_fast")
@@ -191,7 +191,7 @@ _test_runner_execute_parallel() {
             fi
         fi
     done < <(test_suite_get_files "$suite_id")
-    
+
     # Wait for all remaining jobs
     while [[ ${#job_pids[@]} -gt 0 ]]; do
         _test_runner_wait_for_job "$runner_id" job_pids completed_jobs
@@ -203,15 +203,15 @@ _test_runner_execute_parallel() {
 _test_runner_execute_sequential() {
     local runner_id="$1"
     local suite_id="$2"
-    
+
     local timeout
     timeout=$(test_runner_get "$runner_id" "timeout")
-    
+
     while IFS= read -r test_file; do
         [[ -z "$test_file" ]] && continue
-        
+
         _test_runner_execute_file "$runner_id" "$test_file" "$timeout"
-        
+
         # Check for fail-fast
         local fail_fast
         fail_fast=$(test_runner_get "$runner_id" "fail_fast")
@@ -230,20 +230,20 @@ _test_runner_execute_file() {
     local runner_id="$1"
     local test_file="$2"
     local timeout="$3"
-    
+
     local file_id
     file_id=$(test_file_new "$(basename "$test_file" .bats)" "$test_file")
-    
+
     # Count tests in file
     test_file_count_tests "$file_id"
-    
+
     local start_time end_time duration_ms exit_code output error_output
     start_time=$(date +%s%3N)
-    
+
     # Execute test based on file type
     local file_type
     file_type=$(test_file_get_type "$file_id")
-    
+
     case "$file_type" in
         bats)
             # Execute bats test
@@ -275,13 +275,13 @@ _test_runner_execute_file() {
             exit_code=1
             ;;
     esac
-    
+
     end_time=$(date +%s%3N)
     duration_ms=$((end_time - start_time))
-    
+
     # Parse output to determine passed/failed/skipped counts
     local passed=0 failed=0 skipped=0
-    
+
     if [[ "$file_type" == "bats" ]]; then
         # Parse bats output
         passed=$(echo "$output" | grep -c "^ok " || echo "0")
@@ -295,10 +295,10 @@ _test_runner_execute_file() {
             failed=1
         fi
     fi
-    
+
     # Update test file results
     test_file_update_results "$file_id" "$passed" "$failed" "$skipped" "$duration_ms" "$output"
-    
+
     # Clean up
     test_file_destroy "$file_id"
 }
@@ -309,11 +309,11 @@ _test_runner_wait_for_job() {
     local runner_id="$1"
     local -n job_pids_ref=$2
     local -n completed_ref=$3
-    
+
     # Wait for any job to complete
     local completed_pid
     completed_pid=$(wait -n "${job_pids_ref[@]}" 2>/dev/null || echo "")
-    
+
     if [[ -n "$completed_pid" ]]; then
         # Remove completed PID from array
         local new_pids=()
@@ -331,10 +331,10 @@ _test_runner_has_failures() {
     local runner_id="$1"
     local suite_id
     suite_id=$(test_runner_get "$runner_id" "current_suite")
-    
+
     local failed_count
     failed_count=$(test_suite_get "$suite_id" "failed_tests")
-    
+
     [[ "$failed_count" -gt 0 ]]
 }
 
@@ -344,20 +344,20 @@ _test_runner_generate_response() {
     local runner_id="$1"
     local suite_id="$2"
     local duration_ms="$3"
-    
+
     local total passed failed skipped coverage
     total=$(test_suite_get "$suite_id" "total_tests")
     passed=$(test_suite_get "$suite_id" "passed_tests")
     failed=$(test_suite_get "$suite_id" "failed_tests")
     skipped=$(test_suite_get "$suite_id" "skipped_tests")
-    
+
     # Calculate coverage (simplified - would be enhanced with actual coverage tools)
     if [[ $total -gt 0 ]]; then
         coverage=$(( (passed * 100) / total ))
     else
         coverage=0
     fi
-    
+
     # Determine success
     local success
     if [[ $failed -eq 0 && $total -gt 0 ]]; then
@@ -365,7 +365,7 @@ _test_runner_generate_response() {
     else
         success="false"
     fi
-    
+
     # Generate JSON response per contract
     cat <<EOF
 {
@@ -374,7 +374,7 @@ _test_runner_generate_response() {
   "passed": $passed,
   "failed": $failed,
   "skipped": $skipped,
-  "duration": $((duration_ms / 1000.0)),
+  "duration": $(echo "scale=3; $duration_ms / 1000" | bc),
   "coverage": $coverage,
   "failures": []
 }
@@ -386,12 +386,12 @@ EOF
 test_runner_get_coverage() {
     local runner_id="$1"
     local category="${2:-all}"
-    
+
     [[ -n "$runner_id" ]] || { echo "Error: runner_id is required"; return 1; }
-    
+
     local coverage_threshold
     coverage_threshold=$(test_runner_get "$runner_id" "coverage_threshold")
-    
+
     # Calculate coverage for category (simplified implementation)
     local percentage=85  # Mock coverage percentage
     local meets_threshold
@@ -400,7 +400,7 @@ test_runner_get_coverage() {
     else
         meets_threshold="false"
     fi
-    
+
     # Generate coverage report JSON per contract
     cat <<EOF
 {
@@ -421,16 +421,16 @@ EOF
 # Usage: test_runner_destroy <runner_id>
 test_runner_destroy() {
     local runner_id="$1"
-    
+
     [[ -n "$runner_id" ]] || { echo "Error: runner_id is required"; return 1; }
-    
+
     # Clean up current suite if exists
     local suite_id
     suite_id=$(test_runner_get "$runner_id" "current_suite")
     if [[ -n "$suite_id" ]]; then
         test_suite_destroy "$suite_id"
     fi
-    
+
     # Remove all runner data
     for key in "${!TEST_RUNNER_INSTANCES[@]}"; do
         if [[ "$key" == "${runner_id}:"* ]]; then

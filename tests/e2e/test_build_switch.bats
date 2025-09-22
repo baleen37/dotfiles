@@ -10,11 +10,11 @@ setup() {
     export TEST_HOME=$(mktemp -d)
     export TEST_CLAUDE_DIR="$TEST_HOME/.claude"
     export NIXOS_CONFIG_PATH="$TEST_HOME/nixos-config"
-    
+
     # Create test directories
     mkdir -p "$TEST_CLAUDE_DIR/commands"
     mkdir -p "$NIXOS_CONFIG_PATH"
-    
+
     # Mock original locations
     export ORIGINAL_CLAUDE_DIR="/home/ubuntu/.claude"
     export ORIGINAL_NIXOS_CONFIG="/etc/nixos"
@@ -28,73 +28,73 @@ teardown() {
 @test "build-switch completes successfully with Claude Code configuration" {
     # Given: A clean system with Claude Code configuration
     setup_claude_code_config
-    
+
     # When: Running build-switch command
     run nixos-rebuild build-switch --flake /home/ubuntu/dev/dotfiles
-    
+
     # Then: Build succeeds
     [[ $status -eq 0 ]] || fail "Expected build-switch to succeed but got exit code $status"
     assert_contains "$output" "built successfully"
-    
+
     # And: Claude Code symlinks are created
     assert_file_exists "/home/ubuntu/.claude/commands"
     assert_symlink "/home/ubuntu/.claude/commands"
-    
+
     # And: No backup files are created
     assert_no_backup_files "/home/ubuntu/.claude"
-    
+
     # And: Configuration is properly deployed
     assert_claude_code_active
 }
 
 @test "build-switch handles existing Claude Code configuration gracefully" {
     skip "TDD: Test implementation pending - must fail first"
-    
+
     # Given: Existing Claude Code configuration
     setup_existing_claude_config
-    
+
     # When: Running build-switch command
     run nixos-rebuild build-switch --flake /home/ubuntu/dev/dotfiles
-    
+
     # Then: Build succeeds without conflicts
     assert_success
-    
+
     # And: Existing configuration is preserved where appropriate
     assert_claude_config_preserved
-    
+
     # And: New configuration is applied
     assert_claude_code_active
 }
 
 @test "build-switch fails gracefully on configuration errors" {
     skip "TDD: Test implementation pending - must fail first"
-    
+
     # Given: Invalid Claude Code configuration
     setup_invalid_claude_config
-    
+
     # When: Running build-switch command
     run nixos-rebuild build-switch --flake /home/ubuntu/dev/dotfiles
-    
+
     # Then: Build fails with clear error message
     assert_failure
     assert_output_contains "Claude Code configuration error"
-    
+
     # And: System remains in clean state
     assert_no_partial_configuration
 }
 
 @test "build-switch rollback works correctly" {
     skip "TDD: Test implementation pending - must fail first"
-    
+
     # Given: A working configuration
     setup_working_claude_config
     run nixos-rebuild build-switch --flake /home/ubuntu/dev/dotfiles
     assert_success
-    
+
     # When: Configuration breaks and rollback is needed
     setup_broken_claude_config
     run nixos-rebuild rollback
-    
+
     # Then: System returns to working state
     assert_success
     assert_claude_code_active
