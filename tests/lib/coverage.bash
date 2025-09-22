@@ -16,7 +16,7 @@ init_coverage() {
   TESTED_FILES=0
   TOTAL_FUNCTIONS=0
   TESTED_FUNCTIONS=0
-  
+
   # Create coverage directory if needed
   mkdir -p "${COVERAGE_OUTPUT_DIR:-./coverage}"
 }
@@ -25,7 +25,7 @@ init_coverage() {
 track_test_file() {
   local test_file="$1"
   local status="${2:-passed}"
-  
+
   COVERAGE_DATA["$test_file"]="$status"
   ((TESTED_FILES++))
 }
@@ -34,7 +34,7 @@ track_test_file() {
 count_test_files() {
   local category="${1:-all}"
   local count=0
-  
+
   if [[ "$category" == "all" ]]; then
     for cat in unit integration e2e performance; do
       if [[ -d "tests/$cat" ]]; then
@@ -46,7 +46,7 @@ count_test_files() {
       count=$(find "tests/$category" -name "*.bats" -type f 2>/dev/null | wc -l)
     fi
   fi
-  
+
   TOTAL_FILES=$count
   echo "$count"
 }
@@ -55,12 +55,12 @@ count_test_files() {
 count_tested_functions() {
   local test_file="$1"
   local count=0
-  
+
   if [[ -f "$test_file" ]]; then
     # Count @test declarations
     count=$(grep -c "^@test " "$test_file" 2>/dev/null || echo "0")
   fi
-  
+
   echo "$count"
 }
 
@@ -68,12 +68,12 @@ count_tested_functions() {
 calculate_coverage_percentage() {
   local tested="${1:-0}"
   local total="${2:-0}"
-  
+
   if [[ $total -eq 0 ]]; then
     echo "0.0"
     return
   fi
-  
+
   # Use bc for floating point calculation
   if command -v bc &>/dev/null; then
     echo "scale=1; ($tested * 100) / $total" | bc
@@ -87,10 +87,10 @@ calculate_coverage_percentage() {
 check_coverage_threshold() {
   local coverage="$1"
   local threshold="${COVERAGE_THRESHOLD:-80}"
-  
+
   # Remove decimal point for comparison
   local coverage_int="${coverage%.*}"
-  
+
   if [[ ${coverage_int:-0} -ge $threshold ]]; then
     return 0
   else
@@ -102,15 +102,15 @@ check_coverage_threshold() {
 generate_coverage_report() {
   local output_format="${1:-text}"
   local output_file="${COVERAGE_OUTPUT_DIR:-./coverage}/report.txt"
-  
+
   init_coverage
-  
+
   # Count files
   local total_files=$(count_test_files)
   local tested_files=0
   local total_tests=0
   local passed_tests=0
-  
+
   # Analyze test results
   for category in unit integration e2e performance; do
     if [[ -d "tests/$category" ]]; then
@@ -125,11 +125,11 @@ generate_coverage_report() {
       done < <(find "tests/$category" -name "*.bats" -type f 2>/dev/null)
     fi
   done
-  
+
   # Calculate coverage
   local file_coverage=$(calculate_coverage_percentage "$tested_files" "$total_files")
   local test_coverage=$(calculate_coverage_percentage "$passed_tests" "$total_tests")
-  
+
   # Generate report
   {
     echo "════════════════════════════════════════════════════"
@@ -140,7 +140,7 @@ generate_coverage_report() {
     echo "Test Coverage:    ${test_coverage}% (${passed_tests}/${total_tests} tests)"
     echo "Threshold:        ${COVERAGE_THRESHOLD:-80}%"
     echo ""
-    
+
     # Per-category breakdown
     echo "Category Breakdown:"
     echo "-------------------"
@@ -156,21 +156,21 @@ generate_coverage_report() {
         printf "  %-15s: %3d files, %4d tests\n" "$category" "$cat_files" "$cat_tests"
       fi
     done
-    
+
     echo ""
-    
+
     # Check threshold
     if check_coverage_threshold "$file_coverage"; then
       echo "✓ Coverage meets threshold (${COVERAGE_THRESHOLD:-80}%)"
     else
       echo "✗ Coverage below threshold (${COVERAGE_THRESHOLD:-80}%)"
     fi
-    
+
     echo ""
     echo "Report generated: $(date '+%Y-%m-%d %H:%M:%S')"
     echo "════════════════════════════════════════════════════"
   } | tee "$output_file"
-  
+
   # Return status based on threshold
   check_coverage_threshold "$file_coverage"
 }

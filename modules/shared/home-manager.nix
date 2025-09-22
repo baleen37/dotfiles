@@ -40,8 +40,8 @@ in
   # Enable Claude Code configuration with no backup files
   programs.claude-code = {
     enable = true;
-    forceOverwrite = true;  # Force symlink overwrite, no backup files
-    enableBackups = false;  # Never create backup files
+    forceOverwrite = true; # Force symlink overwrite, no backup files
+    enableBackups = false; # Never create backup files
     configDirectory = ".claude";
   };
 
