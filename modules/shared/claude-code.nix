@@ -217,7 +217,7 @@ in
     ./claude-code/symlink.nix
   ];
 
-  # Extension options for management and monitoring
+  # Extension options for management and monitoring (extending imported options)
   options.programs.claude-code.management = {
     enablePreCommitHook = mkOption {
       type = types.bool;
