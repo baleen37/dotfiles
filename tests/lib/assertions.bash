@@ -32,9 +32,9 @@ assert_equals() {
     local message="${3:-}"
 
     if [[ "$expected" == "$actual" ]]; then
-        test_pass "${message:-Values match: '$actual'}"
+        test_pass "${message:-Values match: \"$actual\"}"
     else
-        test_fail "${message:-Values don't match}" "Expected: '$expected', Actual: '$actual'"
+        test_fail "${message:-Values don't match}" "Expected: \"$expected\", Actual: \"$actual\""
     fi
 }
 
@@ -44,9 +44,9 @@ assert_not_equals() {
     local message="${3:-}"
 
     if [[ "$expected" != "$actual" ]]; then
-        test_pass "${message:-Values differ: '$actual'}"
+        test_pass "${message:-Values differ: \"$actual\"}"
     else
-        test_fail "${message:-Values are the same}" "Unexpected value: '$actual'"
+        test_fail "${message:-Values are the same}" "Unexpected value: \"$actual\""
     fi
 }
 
@@ -58,7 +58,7 @@ assert_empty() {
     if [[ -z "$value" ]]; then
         test_pass "${message:-String is empty}"
     else
-        test_fail "${message:-String is not empty}" "Actual value: '$value'"
+        test_fail "${message:-String is not empty}" "Actual value: \"$value\""
     fi
 }
 
@@ -79,9 +79,9 @@ assert_contains() {
     local message="${3:-}"
 
     if [[ "$haystack" == *"$needle"* ]]; then
-        test_pass "${message:-String contains: '$needle'}"
+        test_pass "${message:-String contains: \"$needle\"}"
     else
-        test_fail "${message:-String does not contain: '$needle'}" "Target string: '$haystack'"
+        test_fail "${message:-String does not contain: \"$needle\"}" "Target string: \"$haystack\""
     fi
 }
 
@@ -91,9 +91,9 @@ assert_file_exists() {
     local message="${2:-}"
 
     if [[ -f "$file" ]]; then
-        test_pass "${message:-File exists: '$file'}"
+        test_pass "${message:-File exists: \"$file\"}"
     else
-        test_fail "${message:-File does not exist: '$file'}"
+        test_fail "${message:-File does not exist: \"$file\"}"
     fi
 }
 
@@ -102,9 +102,9 @@ assert_dir_exists() {
     local message="${2:-}"
 
     if [[ -d "$dir" ]]; then
-        test_pass "${message:-Directory exists: '$dir'}"
+        test_pass "${message:-Directory exists: \"$dir\"}"
     else
-        test_fail "${message:-Directory does not exist: '$dir'}"
+        test_fail "${message:-Directory does not exist: \"$dir\"}"
     fi
 }
 
@@ -113,9 +113,9 @@ assert_executable() {
     local message="${2:-}"
 
     if [[ -x "$file" ]]; then
-        test_pass "${message:-File is executable: '$file'}"
+        test_pass "${message:-File is executable: \"$file\"}"
     else
-        test_fail "${message:-File is not executable: '$file'}"
+        test_fail "${message:-File is not executable: \"$file\"}"
     fi
 }
 
