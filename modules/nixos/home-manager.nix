@@ -44,6 +44,7 @@ let
 in
 {
   imports = [
+    ../shared/claude-code.nix
   ];
 
   home = {
