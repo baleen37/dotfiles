@@ -34,7 +34,7 @@ assert_equals() {
     if [[ "$expected" == "$actual" ]]; then
         test_pass "${message:-Values match: \"$actual\"}"
     else
-        test_fail "${message:-Values don't match}" "Expected: \"$expected\", Actual: \"$actual\""
+        test_fail "${message:-Values do not match}" "Expected: \"$expected\", Actual: \"$actual\""
     fi
 }
 
