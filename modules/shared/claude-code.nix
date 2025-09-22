@@ -217,10 +217,8 @@ in
     ./claude-code/symlink.nix
   ];
 
-  # Main module options
+  # Additional module options (extending imported modules)
   options.programs.claude-code = {
-    # Core enable option (inherited from config.nix)
-
     # Management options
     management = {
       enablePreCommitHook = mkOption {
