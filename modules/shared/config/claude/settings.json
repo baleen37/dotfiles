@@ -30,7 +30,6 @@
     ],
     "deny": []
   },
-  "model": "opusplan",
   "enableAllProjectMcpServers": true,
   "hooks": {
     "PreToolUse": [
@@ -73,5 +72,6 @@
   "rejectedMcpServers": [],
   "feedbackSurveyState": {
     "lastShownTime": 1755225425616
-  }
+  },
+  "model": "sonnet"
 }

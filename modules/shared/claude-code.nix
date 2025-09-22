@@ -217,48 +217,44 @@ in
     ./claude-code/symlink.nix
   ];
 
-  # Additional module options (extending imported modules)
-  options.programs.claude-code = {
-    # Management options
-    management = {
-      enablePreCommitHook = mkOption {
-        type = types.bool;
-        default = true;
-        description = "Enable pre-commit hook for validation";
-      };
-
-      enableShellIntegration = mkOption {
-        type = types.bool;
-        default = true;
-        description = "Enable shell aliases and functions";
-      };
-
-      enableSystemdService = mkOption {
-        type = types.bool;
-        default = false;
-        description = "Enable systemd user service for monitoring";
-      };
+  # Extension options for management and monitoring
+  options.programs.claude-code.management = {
+    enablePreCommitHook = mkOption {
+      type = types.bool;
+      default = true;
+      description = "Enable pre-commit hook for validation";
     };
 
-    # Monitoring options
-    monitoring = {
-      enableHealthChecks = mkOption {
-        type = types.bool;
-        default = true;
-        description = "Enable periodic health checks";
-      };
+    enableShellIntegration = mkOption {
+      type = types.bool;
+      default = true;
+      description = "Enable shell aliases and functions";
+    };
 
-      checkInterval = mkOption {
-        type = types.str;
-        default = "1h";
-        description = "Health check interval (systemd timer format)";
-      };
+    enableSystemdService = mkOption {
+      type = types.bool;
+      default = false;
+      description = "Enable systemd user service for monitoring";
+    };
+  };
 
-      notifyOnFailure = mkOption {
-        type = types.bool;
-        default = false;
-        description = "Send notifications on health check failures";
-      };
+  options.programs.claude-code.monitoring = {
+    enableHealthChecks = mkOption {
+      type = types.bool;
+      default = true;
+      description = "Enable periodic health checks";
+    };
+
+    checkInterval = mkOption {
+      type = types.str;
+      default = "1h";
+      description = "Health check interval (systemd timer format)";
+    };
+
+    notifyOnFailure = mkOption {
+      type = types.bool;
+      default = false;
+      description = "Send notifications on health check failures";
     };
   };
 
