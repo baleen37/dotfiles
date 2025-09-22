@@ -125,7 +125,7 @@ assert_command_succeeds() {
     local message="${2:-}"
 
     if eval "$command" >/dev/null 2>&1; then
-        test_pass "${message:-Command succeeded: '$command'}"
+        test_pass "${message:-Command succeeded: \"$command\"}"
     else
         test_fail "${message:-Command failed: \"$command\"}"
     fi
