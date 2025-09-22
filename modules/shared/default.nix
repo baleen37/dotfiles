@@ -10,6 +10,7 @@
   imports = [
     # Claude 관련 설정은 각 플랫폼의 home-manager에서 직접 import
     # ./claude.nix는 Home Manager 컨텍스트에서만 사용되므로 여기서는 제외
+    ./nix-gc.nix # Nix 자동 갈비지 컬렉션 설정
   ];
 
   # 시스템 레벨 공통 설정들을 여기에 추가할 수 있습니다
