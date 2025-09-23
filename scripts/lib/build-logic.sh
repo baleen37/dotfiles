@@ -748,6 +748,25 @@ execute_build_switch() {
     execute_platform_build "$@" || { unified_unified_log_error "Platform-specific build operations failed" "BUILD" "high"; handle_build_failure; exit 1; }
     handle_build_completion || { unified_unified_log_error "Failed to handle build completion" "BUILD" "medium"; exit 1; }
 
+    # Run garbage collection after successful build/switch (베스트 프랙티스)
+    log_info "Running Nix garbage collection..."
+    if command -v nix >/dev/null 2>&1; then
+        if nix-collect-garbage --delete-older-than 7d >/dev/null 2>&1; then
+            log_info "✅ Garbage collection completed (7+ days old items removed)"
+
+            # Store 최적화도 함께 실행
+            if nix store optimise >/dev/null 2>&1; then
+                log_info "✅ Store optimization completed"
+            else
+                log_debug "Store optimization skipped or failed"
+            fi
+        else
+            log_warning "⚠️ Garbage collection failed, continuing..."
+        fi
+    else
+        log_debug "Nix not available, skipping garbage collection"
+    fi
+
     log_debug "Build and switch orchestration completed successfully"
 }
 
