@@ -10,7 +10,6 @@
   nix.gc = {
     # 자동 갈비지 컬렉션 활성화
     automatic = true;
-    dates = "weekly"; # 매주 실행
 
     # 7일 이상된 항목 삭제
     options = "--delete-older-than 7d";
@@ -20,14 +19,10 @@
   nix.optimise = {
     # 자동 store 최적화 활성화
     automatic = true;
-    dates = [ "weekly" ]; # 갈비지 컬렉션과 함께 실행
   };
 
   # 고급 Nix 설정 (베스트 프랙티스)
   nix.settings = {
-    # 빌드 중 자동 store 최적화
-    auto-optimise-store = true;
-
     # 디스크 공간 부족 시 자동 갈비지 컬렉션
     min-free = 1024 * 1024 * 1024; # 1GB 여유공간 유지
     max-free = 3 * 1024 * 1024 * 1024; # 3GB까지 정리
