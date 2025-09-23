@@ -572,17 +572,29 @@ in
         set -g destroy-unattached off
         set -g status-interval 1
 
-        # SSH/복사-붙여넣기 최적화
+        # SSH/복사-붙여넣기 최적화 (tmux 3.5a)
         setw -g mode-keys vi
         bind-key -T copy-mode-vi v send-keys -X begin-selection
-        bind-key -T copy-mode-vi y send-keys -X copy-pipe-and-cancel "pbcopy"
-        bind-key -T copy-mode-vi Enter send-keys -X copy-pipe-and-cancel "pbcopy"
-        bind-key -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe-and-cancel "pbcopy"
+        
+        # tmux 내부 클립보드 설정 (모든 환경에서 동작)
+        set -g set-clipboard off  # tmux buffer만 사용
+        
+        # tmux buffer로 복사 (확실하고 간단함)
+        bind-key -T copy-mode-vi y send-keys -X copy-selection-and-cancel
+        bind-key -T copy-mode-vi Enter send-keys -X copy-selection-and-cancel
+        bind-key -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-selection-and-cancel
+        
+        # 추가 단축키
+        bind-key P paste-buffer  # Prefix + P로 붙여넣기
+        bind-key b list-buffers  # Prefix + b로 버퍼 목록 보기
+        bind-key B choose-buffer # Prefix + B로 버퍼 선택
 
-        # 터미널 특성 오버라이드 - 색상 코드 깨짐 방지
+        # 터미널 특성 오버라이드 - 색상 지원만
+        # True Color 지원
         set -ga terminal-overrides ",*256col*:Tc"
-        set -ga terminal-overrides ",screen-256color:Tc"
-        set -ga terminal-overrides ",xterm-256color:Tc"
+        set -ga terminal-overrides ",screen*:Tc" 
+        set -ga terminal-overrides ",xterm*:Tc"
+        set -ga terminal-overrides ",tmux*:Tc"
 
         # 키보드 설정
         set-window-option -g xterm-keys on
