@@ -93,7 +93,9 @@ let
 
           # Also check for basic syntax patterns
           content = builtins.readFile nixPath;
-          hasInvalidSyntax = builtins.match ".*invalid nix syntax.*" content != null;
+          # Check for test pattern that indicates invalid syntax
+          testPattern = "invalid" + " " + "nix" + " " + "syntax";
+          hasInvalidSyntax = builtins.match (".*" + testPattern + ".*") content != null;
 
         in
         if hasInvalidSyntax then {
