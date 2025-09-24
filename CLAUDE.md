@@ -105,6 +105,14 @@ Professional Nix dotfiles system supporting:
 4. **Validation**: Verify functionality and performance
 5. **Documentation**: Update relevant documentation
 
+### Code Quality Enforcement
+
+**Pre-commit Hook Compliance**: Ensure pre-commit hooks are installed and never bypassed:
+
+- NEVER use `git commit -n` or `--no-verify` flags
+- If pre-commit fails, fix the issues rather than bypassing
+- Pre-commit hooks handle all formatting, linting, and basic validation automatically
+
 ### Quality Assurance
 
 - **Multi-tier Testing**: Unit, integration, end-to-end, performance tests
