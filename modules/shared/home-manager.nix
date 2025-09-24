@@ -575,10 +575,8 @@ in
         # SSH/복사-붙여넣기 최적화 (tmux 3.5a)
         setw -g mode-keys vi
         bind-key -T copy-mode-vi v send-keys -X begin-selection
-
         # tmux 내부 클립보드 설정 (모든 환경에서 동작)
         set -g set-clipboard off  # tmux buffer만 사용
-
         # tmux buffer로 복사 (확실하고 간단함)
         bind-key -T copy-mode-vi y send-keys -X copy-selection-and-cancel
         bind-key -T copy-mode-vi Enter send-keys -X copy-selection-and-cancel
