@@ -73,6 +73,25 @@ repos:
       - id: detect-secrets
         args: [--baseline, .secrets.baseline]
 
+# Test execution hooks
+  - repo: local
+    hooks:
+      - id: run-unit-tests
+        name: Run unit tests
+        entry: tests/run-tests.sh unit --timeout 60
+        language: system
+        pass_filenames: false
+        files: ^tests/unit/.*\.bats$
+        stages: [pre-commit]
+
+      - id: check-test-coverage
+        name: Check test coverage
+        entry: bash -c 'source tests/lib/coverage.bash && generate_coverage_report'
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]
+
 # Global configuration
 default_install_hook_types: [pre-commit, pre-push, prepare-commit-msg]
 default_stages: [pre-commit]

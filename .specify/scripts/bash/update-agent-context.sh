@@ -66,9 +66,6 @@ CURSOR_FILE="$REPO_ROOT/.cursor/rules/specify-rules.mdc"
 QWEN_FILE="$REPO_ROOT/QWEN.md"
 AGENTS_FILE="$REPO_ROOT/AGENTS.md"
 WINDSURF_FILE="$REPO_ROOT/.windsurf/rules/specify-rules.md"
-KILOCODE_FILE="$REPO_ROOT/.kilocode/rules/specify-rules.md"
-AUGGIE_FILE="$REPO_ROOT/.augment/rules/specify-rules.md"
-ROO_FILE="$REPO_ROOT/.roo/rules/specify-rules.md"
 
 # Template file
 TEMPLATE_FILE="$REPO_ROOT/.specify/templates/agent-file-template.md"
@@ -571,18 +568,9 @@ update_specific_agent() {
         windsurf)
             update_agent_file "$WINDSURF_FILE" "Windsurf"
             ;;
-        kilocode)
-            update_agent_file "$KILOCODE_FILE" "Kilo Code"
-            ;;
-        auggie)
-            update_agent_file "$AUGGIE_FILE" "Auggie CLI"
-            ;;
-        roo)
-            update_agent_file "$ROO_FILE" "Roo Code"
-            ;;
         *)
             log_error "Unknown agent type '$agent_type'"
-            log_error "Expected: claude|gemini|copilot|cursor|qwen|opencode|codex|windsurf|kilocode|auggie|roo"
+            log_error "Expected: claude|gemini|copilot|cursor|qwen|opencode|codex|windsurf"
             exit 1
             ;;
     esac
@@ -627,21 +615,6 @@ update_all_existing_agents() {
         found_agent=true
     fi
 
-    if [[ -f "$KILOCODE_FILE" ]]; then
-        update_agent_file "$KILOCODE_FILE" "Kilo Code"
-        found_agent=true
-    fi
-
-    if [[ -f "$AUGGIE_FILE" ]]; then
-        update_agent_file "$AUGGIE_FILE" "Auggie CLI"
-        found_agent=true
-    fi
-
-    if [[ -f "$ROO_FILE" ]]; then
-        update_agent_file "$ROO_FILE" "Roo Code"
-        found_agent=true
-    fi
-
     # If no agent files exist, create a default Claude file
     if [[ "$found_agent" == false ]]; then
         log_info "No existing agent files found, creating default Claude file..."
@@ -665,7 +638,7 @@ print_summary() {
     fi
 
     echo
-    log_info "Usage: $0 [claude|gemini|copilot|cursor|qwen|opencode|codex|windsurf|kilocode|auggie|roo]"
+    log_info "Usage: $0 [claude|gemini|copilot|cursor|qwen|opencode|codex|windsurf]"
 }
 
 #==============================================================================

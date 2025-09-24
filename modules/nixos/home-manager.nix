@@ -43,8 +43,9 @@ let
 
 in
 {
-  imports = [
-  ];
+  # imports = [
+  #   ../shared/claude-code.nix  # Disabled due to NixOS CI conflicts
+  # ];
 
   home = {
     enableNixpkgsReleaseCheck = false;
