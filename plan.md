@@ -72,7 +72,7 @@ No constitution.md found - proceeding with standard implementation approach.
 
 ## Project Structure
 
-```
+```text
 ├── lib/
 │   └── validate-build-switch.nix    # 새로 생성: 핵심 검증 로직
 ├── flake.nix                        # 수정: validate-build-switch app 추가
