@@ -34,7 +34,7 @@ This command leverages the **git-specialist** agent for:
 5. **Content Generation**: Extract commit messages, file changes, and metadata for PR description
 6. **Template Integration**: Discover and populate repository PR templates automatically
 7. **PR Creation**: Execute `gh pr create` with optimized title and description
-8. **Auto-Merge** (when --merge flag used): Enable auto-merge after PR creation
+8. **Auto-Merge** (when --merge flag used): Enable `gh pr create --enable-auto-merge --merge-method squash`
 
 ## Branch Management
 
@@ -44,7 +44,7 @@ When on main/master branch:
 - Generate branch name: `feat/[scope]-[description]` or `fix/[issue-number]`
 - Pull latest changes from origin/main before creating branch
 - Set upstream tracking for new branch automatically
-- Validate branch doesn't already exist locally or remotely
+- Handle branch conflicts: generate descriptive alternative names (e.g., feat/validation-fix → feat/validation-self-reference-fix)
 
 ### Branch Validation
 - Ensure commits exist before PR creation
@@ -84,7 +84,7 @@ When on main/master branch:
 
 ### Common Issues Prevented
 - **No Commits**: "Error: No commits found for PR creation"
-- **Branch Conflicts**: "Error: Branch already exists remotely"
+- **Branch Conflicts**: Generate contextual branch names based on recent commits instead of generic suffixes
 - **Uncommitted Changes**: Auto-commit with intelligent commit message generation
 - **Missing Remote**: "Error: No upstream remote configured"
 - **Duplicate PR**: "Error: PR already exists for this branch"
@@ -117,7 +117,12 @@ After ensuring clean state, create a pull request with:
 - Proper Korean language formatting if templates exist
 - Auto-generated summary of changes
 
-Use proper Git workflow expertise for branch management and PR creation. If on main branch, create appropriate feature branch first."
+Use proper Git workflow expertise for branch management and PR creation. If on main branch, create appropriate feature branch first.
+
+Branch conflict handling:
+- If branch exists: analyze recent commit messages to generate descriptive alternative name
+- If --merge flag: add `--enable-auto-merge --merge-method squash` to gh pr create command
+- Fallback to timestamp suffix only if context analysis fails"
 
 ## Examples
 
