@@ -28,12 +28,13 @@ This command leverages the **git-specialist** agent for:
 ## Core Workflow
 
 1. **Repository Analysis**: Parallel execution of `git status`, `git log`, and `git diff` for complete branch state
-2. **Branch Management**: Auto-create feature branch if currently on main/master, sync with upstream
-3. **Commit Validation**: Ensure commits exist and are ready for PR before proceeding
-4. **Content Generation**: Extract commit messages, file changes, and metadata for PR description
-5. **Template Integration**: Discover and populate repository PR templates automatically
-6. **PR Creation**: Execute `gh pr create` with optimized title and description
-7. **Auto-Merge** (when --merge flag used): Enable auto-merge after PR creation
+2. **Auto-Commit**: Automatically commit any uncommitted changes before proceeding
+3. **Branch Management**: Auto-create feature branch if currently on main/master, sync with upstream
+4. **Commit Validation**: Ensure commits exist and are ready for PR before proceeding
+5. **Content Generation**: Extract commit messages, file changes, and metadata for PR description
+6. **Template Integration**: Discover and populate repository PR templates automatically
+7. **PR Creation**: Execute `gh pr create` with optimized title and description
+8. **Auto-Merge** (when --merge flag used): Enable auto-merge after PR creation
 
 ## Branch Management
 
@@ -67,8 +68,9 @@ When on main/master branch:
 ## Safety & Validation
 
 ### Pre-Flight Checks
+- **Auto-Commit**: Automatically commit staged and unstaged changes with generated commit message
 - **Commit Existence**: Ensure commits exist before attempting PR creation
-- **Working Directory**: Require clean state before branch operations
+- **Working Directory**: Achieve clean state through auto-commit before branch operations
 - **Remote Sync**: Verify remote access and sync status
 - **Duplicate Prevention**: Check existing PRs for current branch
 
@@ -83,12 +85,12 @@ When on main/master branch:
 ### Common Issues Prevented
 - **No Commits**: "Error: No commits found for PR creation"
 - **Branch Conflicts**: "Error: Branch already exists remotely"
-- **Dirty Working Directory**: "Error: Uncommitted changes detected"
+- **Uncommitted Changes**: Auto-commit with intelligent commit message generation
 - **Missing Remote**: "Error: No upstream remote configured"
 - **Duplicate PR**: "Error: PR already exists for this branch"
 
 ### Smart Fallback Behaviors
-- Auto-stash uncommitted changes when safe
+- Auto-commit uncommitted changes with generated commit messages
 - Interactive branch naming if conventional patterns fail
 - Template fallback to basic format if custom templates fail
 - Draft PR creation if validation concerns exist
@@ -100,11 +102,16 @@ Use Task tool with subagent_type="git-specialist" to execute PR creation workflo
 Prompt: "Analyze Git repository state and create pull request with arguments: $ARGUMENTS. Execute these operations in parallel:
 
 1. Run `git status` to check working directory state
-2. Run `git log --oneline -10` to see recent commits  
+2. Run `git log --oneline -10` to see recent commits
 3. Run `git diff --name-only HEAD~5..HEAD` to see changed files
 4. Run `git branch -v` to check current branch status
 
-After analysis, create a pull request with:
+Before creating PR:
+- If uncommitted changes exist, automatically commit them with intelligent commit message
+- Generate commit message based on file changes and conventional commit patterns
+- Use `git add -A && git commit -m "[generated message]"` for auto-commit
+
+After ensuring clean state, create a pull request with:
 - Intelligent title based on commit messages
 - Comprehensive description from file changes and commits
 - Proper Korean language formatting if templates exist
