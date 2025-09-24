@@ -354,6 +354,21 @@ let
         '')}/bin/bl-auto-update-${commandName}";
           };
 
+        # Validation app builder
+        mkValidateApp = system: {
+          type = "app";
+          program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "validate-build-switch" ''
+            #!/usr/bin/env bash
+            set -euo pipefail
+
+            # Run the Nix validation module
+            nix-instantiate --eval --expr "
+              let validate = import ./lib/validate-build-switch.nix {};
+              in validate.runValidation
+            "
+          '')}/bin/validate-build-switch";
+        };
+
         # Platform-specific app definitions
         platformApps = {
           darwin = {
@@ -362,6 +377,9 @@ let
             "build-switch" = mkApp "build-switch" currentSystem.system;
             "apply" = mkApp "apply" currentSystem.system;
             "setup-dev" = mkSetupDevApp currentSystem.system;
+
+            # Validation commands
+            "validate-build-switch" = mkValidateApp currentSystem.system;
 
             # Auto-update commands
             "bl-auto-update-check" = mkBlAutoUpdateApp {
@@ -384,6 +402,9 @@ let
             "build-switch" = mkApp "build-switch" currentSystem.system;
             "apply" = mkApp "apply" currentSystem.system;
             "setup-dev" = mkSetupDevApp currentSystem.system;
+
+            # Validation commands
+            "validate-build-switch" = mkValidateApp currentSystem.system;
 
             # Auto-update commands
             "bl-auto-update-check" = mkBlAutoUpdateApp {
@@ -410,7 +431,7 @@ let
 
       in
       {
-        inherit mkApp mkSetupDevApp mkBlAutoUpdateApp platformApps getCurrentPlatformApps;
+        inherit mkApp mkSetupDevApp mkBlAutoUpdateApp mkValidateApp platformApps getCurrentPlatformApps;
       }
     else {
       # Minimal apps when nixpkgs/self not provided
