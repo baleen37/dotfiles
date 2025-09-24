@@ -252,17 +252,6 @@ in
       "Claude Code backup files are enabled. This may create unwanted backup files.";
   };
 
-  # Export configuration for use by other modules
-  meta = {
-    maintainers = [ "dotfiles-claude-code" ];
-    description = "Claude Code configuration management module";
-
-    # Configuration accessors
-    getConfig = finalConfig;
-    getGenerator = claudeCodeConfigGenerator;
-    getDefaults = defaultClaudeConfig;
-
-    # Validation functions
-    inherit validateConfig mergeConfigs;
-  };
+  # Internal module utilities (not exported to Home Manager)
+  # Note: Removed meta export to prevent Home Manager configuration conflicts
 }

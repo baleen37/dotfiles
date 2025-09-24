@@ -6,9 +6,12 @@ let
   # Extract inputs for cleaner access
   inherit (inputs) darwin nix-homebrew homebrew-bundle homebrew-core homebrew-cask disko home-manager;
 
-  # Get user information
+  # Get user information with fallback for pure evaluation
   getUserFn = import ./user-resolution.nix;
-  userInfo = getUserFn { returnFormat = "string"; };
+  userInfo = getUserFn {
+    returnFormat = "string";
+    default = "baleen"; # Fallback for pure evaluation contexts like CI
+  };
   user = "${userInfo}"; # Use as string for backward compatibility
 
   # Import modularized app and test builders (functions that take system)

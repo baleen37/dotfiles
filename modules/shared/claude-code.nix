@@ -209,13 +209,48 @@ let
     echo "Claude Code configuration validation passed"
   '';
 
+  # Pre-switch cleanup hooks
+  preActivationCleanup = pkgs.writeShellScript "claude-code-pre-activation" ''
+    #!/usr/bin/env bash
+    # Pre-switch cleanup hooks for Claude Code configuration
+    set -euo pipefail
+
+    CLAUDE_CONFIG_DIR="${config.home.homeDirectory}/${cfg.configDirectory}"
+
+    echo "=== Claude Code Pre-Switch Cleanup ==="
+
+    # Remove backup files (critical: no backup files should exist)
+    if [[ -d "$CLAUDE_CONFIG_DIR" ]]; then
+      echo "Cleaning up backup files..."
+      find "$CLAUDE_CONFIG_DIR" -name "*.backup" -type f -delete 2>/dev/null || true
+      find "$CLAUDE_CONFIG_DIR" -name "*.bak" -type f -delete 2>/dev/null || true
+      find "$CLAUDE_CONFIG_DIR" -name "*.orig" -type f -delete 2>/dev/null || true
+      echo "Backup files removed"
+    fi
+
+    # Remove broken symlinks
+    if [[ -d "$CLAUDE_CONFIG_DIR" ]]; then
+      echo "Removing broken symlinks..."
+      find "$CLAUDE_CONFIG_DIR" -type l ! -exec test -e {} \; -delete 2>/dev/null || true
+      echo "Broken symlinks removed"
+    fi
+
+    # Create config directory if it doesn't exist
+    if [[ ! -d "$CLAUDE_CONFIG_DIR" ]]; then
+      echo "Creating Claude Code configuration directory..."
+      mkdir -p "$CLAUDE_CONFIG_DIR"
+    fi
+
+    echo "=== Pre-Switch Cleanup Complete ==="
+  '';
+
 in
 {
-  # Import configuration from sub-modules
-  imports = [
-    ./claude-code/config.nix
-    ./claude-code/symlink.nix
-  ];
+  # Note: Sub-module imports disabled due to option conflicts with Home Manager
+  # imports = [
+  #   ./claude-code/config.nix
+  #   ./claude-code/symlink.nix
+  # ];
 
   # Extension options for management and monitoring (extending imported options)
   options.programs.claude-code.management = {
@@ -258,75 +293,43 @@ in
     };
   };
 
-  # Pre-switch cleanup hooks
-  preActivationCleanup = pkgs.writeShellScript "claude-code-pre-activation" ''
-    #!/usr/bin/env bash
-    # Pre-switch cleanup hooks for Claude Code configuration
-    set -euo pipefail
-
-    CLAUDE_CONFIG_DIR="${config.home.homeDirectory}/${cfg.configDirectory}"
-
-    echo "=== Claude Code Pre-Switch Cleanup ==="
-
-    # Remove backup files (critical: no backup files should exist)
-    if [[ -d "$CLAUDE_CONFIG_DIR" ]]; then
-      echo "Cleaning up backup files..."
-      find "$CLAUDE_CONFIG_DIR" -name "*.backup" -type f -delete 2>/dev/null || true
-      find "$CLAUDE_CONFIG_DIR" -name "*.bak" -type f -delete 2>/dev/null || true
-      find "$CLAUDE_CONFIG_DIR" -name "*.orig" -type f -delete 2>/dev/null || true
-      echo "Backup files removed"
-    fi
-
-    # Remove broken symlinks
-    if [[ -d "$CLAUDE_CONFIG_DIR" ]]; then
-      echo "Removing broken symlinks..."
-      find "$CLAUDE_CONFIG_DIR" -type l ! -exec test -e {} \; -delete 2>/dev/null || true
-      echo "Broken symlinks removed"
-    fi
-
-    # Create config directory if it doesn't exist
-    if [[ ! -d "$CLAUDE_CONFIG_DIR" ]]; then
-      echo "Creating Claude Code configuration directory..."
-      mkdir -p "$CLAUDE_CONFIG_DIR"
-      mkdir -p "$CLAUDE_CONFIG_DIR/commands"
-      echo "Configuration directory created"
-    fi
-
-    echo "Pre-switch cleanup complete"
-  '';
-
   # Main module configuration
   config = mkIf cfg.enable {
     # Override default package with our management script
     programs.claude-code.package = claudeCodePackage;
 
-    # Pre-switch cleanup activation
-    home.activation.claudeCodePreCleanup = lib.hm.dag.entryBefore [ "writeBoundary" ] ''
-      ${preActivationCleanup}
-    '';
+    # Home Manager configurations
+    home = lib.mkMerge [
+      # Pre-switch cleanup activation
+      {
+        activation.claudeCodePreCleanup = lib.hm.dag.entryBefore [ "writeBoundary" ] ''
+          ${preActivationCleanup}
+        '';
+      }
 
-    # Shell integration
-    home = mkIf cfg.management.enableShellIntegration {
-      shellAliases = {
-        claude-status = "claude-code status";
-        claude-deploy = "claude-code deploy";
-        claude-validate = "claude-code validate";
-        claude-clean = "claude-code clean";
-      };
+      # Shell integration
+      (mkIf cfg.management.enableShellIntegration {
+        shellAliases = {
+          claude-status = "claude-code status";
+          claude-deploy = "claude-code deploy";
+          claude-validate = "claude-code validate";
+          claude-clean = "claude-code clean";
+        };
 
-      sessionVariables = {
-        CLAUDE_CODE_ENABLED = "true";
-        CLAUDE_CODE_VERSION = "1.0.0";
-      };
-    };
+        sessionVariables = {
+          CLAUDE_CODE_ENABLED = "true";
+          CLAUDE_CODE_VERSION = "1.0.0";
+        };
+      })
 
-    # Pre-commit hook integration
-    home.file = mkIf cfg.management.enablePreCommitHook {
-      ".git/hooks/pre-commit" = {
-        source = preCommitHook;
-        executable = true;
-      };
-    };
+      # Pre-commit hook integration
+      (mkIf cfg.management.enablePreCommitHook {
+        file.".git/hooks/pre-commit" = {
+          source = preCommitHook;
+          executable = true;
+        };
+      })
+    ];
 
     # Systemd user service for monitoring
     systemd.user = mkIf cfg.management.enableSystemdService {
@@ -402,18 +405,5 @@ in
     };
   };
 
-  # Module metadata and exports
-  meta = {
-    maintainers = [ "dotfiles-team" ];
-    description = "Claude Code configuration management for Home Manager";
-
-    # Export sub-module functionality
-    inherit (configModule.meta) getConfig getGenerator getDefaults validateConfig mergeConfigs;
-    inherit (symlinkModule.meta) symlinkUtils symlinkConfig;
-
-    # Management utilities
-    managementUtils = {
-      inherit claudeCodePackage preCommitHook;
-    };
-  };
+  # Note: Module metadata removed to prevent Home Manager configuration conflicts
 }

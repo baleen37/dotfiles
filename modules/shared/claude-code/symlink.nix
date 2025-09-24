@@ -361,9 +361,6 @@ in
     };
   };
 
-  # Export utilities for use by other modules
-  meta = {
-    inherit symlinkUtils symlinkConfig;
-    inherit (backupUtils) createBackup restoreBackup cleanupBackups;
-  };
+  # Internal module utilities (not exported to Home Manager)
+  # Note: Removed meta export to prevent Home Manager configuration conflicts
 }
