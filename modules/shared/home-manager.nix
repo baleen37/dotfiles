@@ -578,33 +578,40 @@ in
         set -g pane-base-index 1
         set -g renumber-windows on
 
-        # 세션 안정성 향상을 위한 설정
-        set -g set-clipboard external
+        # 세션 안정성 향상을 위한 설정  
         set -g remain-on-exit off
         set -g allow-rename off
         set -g destroy-unattached off
         set -g status-interval 1
+        
+        # OSC-52 클립보드 설정 (SSH + tmux 3.5+ 호환)
+        set -s set-clipboard on          # tmux 세션 레벨 클립보드 활성화
+        set -g allow-passthrough on     # OSC escape sequence 통과 허용
 
-        # SSH/복사-붙여넣기 최적화 (tmux 3.5a)
+        # SSH/복사-붙여넣기 최적화 (OSC-52 기반)
         setw -g mode-keys vi
         bind-key -T copy-mode-vi v send-keys -X begin-selection
-        # tmux 내부 클립보드 설정 (모든 환경에서 동작)
-        set -g set-clipboard off  # tmux buffer만 사용
-        # tmux buffer로 복사 (확실하고 간단함)
-        bind-key -T copy-mode-vi y send-keys -X copy-selection-and-cancel
-        bind-key -T copy-mode-vi Enter send-keys -X copy-selection-and-cancel
-        bind-key -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-selection-and-cancel
+        
+        # OSC-52 클립보드 바인딩 (SSH 환경에서 로컬 클립보드로 복사)
+        bind-key -T copy-mode-vi y send-keys -X copy-pipe-and-cancel
+        bind-key -T copy-mode-vi Enter send-keys -X copy-pipe-and-cancel  
+        bind-key -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe-and-cancel
         # 추가 단축키
         bind-key P paste-buffer  # Prefix + P로 붙여넣기
         bind-key b list-buffers  # Prefix + b로 버퍼 목록 보기
         bind-key B choose-buffer # Prefix + B로 버퍼 선택
 
-        # 터미널 특성 오버라이드 - 색상 지원만
+        # 터미널 특성 오버라이드 - 색상 및 OSC-52 지원
         # True Color 지원
         set -ga terminal-overrides ",*256col*:Tc"
         set -ga terminal-overrides ",screen*:Tc"
         set -ga terminal-overrides ",xterm*:Tc"
         set -ga terminal-overrides ",tmux*:Tc"
+        
+        # OSC-52 클립보드 escape sequence 지원 (SSH 원격 동기화)
+        set -ga terminal-overrides ",xterm*:Ms=\\E]52;c;%p2%s\\7"
+        set -ga terminal-overrides ",screen*:Ms=\\E]52;c;%p2%s\\7" 
+        set -ga terminal-overrides ",tmux*:Ms=\\E]52;c;%p2%s\\7"
 
         # 키보드 설정
         set-window-option -g xterm-keys on
