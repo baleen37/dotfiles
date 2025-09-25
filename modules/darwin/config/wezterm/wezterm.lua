@@ -108,7 +108,7 @@ config.automatically_reload_config = true
 
 -- SSH/tmux 복사-붙여넣기 최적화
 config.selection_word_boundary = " \t\n{}[]()\"'`,;:@"
-config.bypass_mouse_reporting_modifiers = 'ALT'  -- Alt+마우스로 터미널 마우스 모드 우회
+config.bypass_mouse_reporting_modifiers = 'SHIFT'  -- Shift+마우스로 터미널 마우스 모드 우회 (더 쉬운 접근)
 
 -- 애니메이션 최적화 (CPU 렌더링용)
 config.animation_fps = 1
