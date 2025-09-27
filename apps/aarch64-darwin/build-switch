@@ -32,7 +32,7 @@ log_info() {
 # TDD: Minimal implementation for Green phase
 log_info "Running user-level configuration (no root privileges required)"
 log_info "Using Home Manager for all configurations"
-log_info "Running: nix run github:nix-community/home-manager/release-24.05 -- switch --flake .#${USER} --impure"
+log_info "Running: nix run github:nix-community/home-manager -- switch --flake .#${USER} --impure"
 
 # Home Manager 직접 실행 - 환경변수 설정 완전 제거
-exec nix run github:nix-community/home-manager/release-24.05 -- switch --flake .#${USER} --impure "$@"
+exec nix run github:nix-community/home-manager -- switch --flake .#${USER} --impure "$@"
