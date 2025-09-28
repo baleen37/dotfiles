@@ -56,10 +56,10 @@ with pkgs; let
     fontconfig # Font configuration and customization library
   ];
 
-  # Font packages
+  # Font packages - temporarily disabled due to upstream Python package issues
   fontTools = [
-    noto-fonts-cjk-sans # Noto Sans CJK fonts for Korean, Japanese, Chinese
-    jetbrains-mono # JetBrains Mono programming font
+    # noto-fonts-cjk-sans # Noto Sans CJK fonts for Korean, Japanese, Chinese
+    # jetbrains-mono # JetBrains Mono programming font
   ];
 
   # Terminal applications
