@@ -6,29 +6,16 @@
 { config, pkgs, lib, ... }:
 
 {
-  # nix-darwin 갈비지 컬렉션 설정 (자동 실행)
+  # nix-darwin 갈비지 컬렉션 설정 (Determinate Nix와 호환을 위해 비활성화)
+  # Determinate Nix가 자체적으로 관리하므로 nix-darwin의 자동 기능 비활성화
   nix.gc = {
-    # 자동 갈비지 컬렉션 활성화
-    automatic = true;
-
-    # 매주 일요일 새벽 3시에 실행 (launchd 스케줄)
-    interval = {
-      Weekday = 0; # 일요일
-      Hour = 3;
-      Minute = 0;
-    };
-
-    # 7일 이상된 항목 삭제
-    options = "--delete-older-than 7d";
+    automatic = lib.mkForce false; # shared 모듈 설정을 강제로 덮어씀
+    # 수동 실행: nix-collect-garbage -d
   };
 
-  # Nix store 최적화 (자동 실행)
+  # Nix store 최적화 (Determinate Nix와 호환을 위해 비활성화)
   nix.optimise = {
-    automatic = true;
-    interval = {
-      Weekday = 0; # 일요일
-      Hour = 3;
-      Minute = 30; # 갈비지 컬렉션 후 30분 뒤
-    };
+    automatic = lib.mkForce false; # shared 모듈 설정을 강제로 덮어씀
+    # 수동 실행: nix-store --optimise
   };
 }

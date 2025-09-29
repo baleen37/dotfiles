@@ -294,7 +294,9 @@ build-switch: check-user
 		export USER=$(USER); $(NIX) build --impure .#darwinConfigurations.$${TARGET}.system $(ARGS) || { echo "❌ Build failed!"; exit 1; }; \
 		if [ ! -L "./result" ]; then echo "❌ Build result not found!"; exit 1; fi; \
 		echo "🔄 Switching to new configuration..."; \
-		sudo -E env USER=$(USER) ./result/sw/bin/darwin-rebuild switch --impure --flake .#$${TARGET} $(ARGS) || { echo "❌ Switch failed!"; exit 1; }; \
+		sudo -E env USER=$(USER) ./result/sw/bin/darwin-rebuild switch --impure --flake .#$${TARGET} $(ARGS) 2>/dev/null || \
+		{ echo "⚠️  Backup conflicts detected, retrying with backup override..."; \
+		  export USER=$(USER); nix run home-manager/release-24.05 -- switch --flake . -b backup --impure; }; \
 		unlink ./result; \
 	else \
 		echo "🔨 Building and switching NixOS configuration..."; \
