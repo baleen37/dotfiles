@@ -19,7 +19,7 @@ in
   # /etc/nix/nix.conf 및 /etc/nix/nix.custom.conf에서 설정됨
   # 갈비지 컬렉션만 활성화하고 나머지는 Determinate Nix가 관리
   nix = {
-    enable = true; # 갈비지 컬렉션을 위해 부분 활성화
+    enable = false; # Determinate Nix와 충돌 방지
 
     # Determinate Nix와 충돌하지 않는 최소 설정만 유지
     # 갈비지 컬렉션 설정은 modules/darwin/nix-gc.nix에서 관리
