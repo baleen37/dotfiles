@@ -125,6 +125,7 @@ generate_coverage_report() {
         if [[ -f "$test_file" ]]; then
           ((tested_files++))
           local test_count=$(count_tested_functions "$test_file")
+          test_count=${test_count:-0}
           total_tests=$((total_tests + test_count))
           # Assume all pass for now (would need actual test results)
           passed_tests=$((passed_tests + test_count))
@@ -158,6 +159,7 @@ generate_coverage_report() {
         while IFS= read -r test_file; do
           if [[ -f "$test_file" ]]; then
             local file_test_count=$(count_tested_functions "$test_file")
+            file_test_count=${file_test_count:-0}
             cat_tests=$((cat_tests + file_test_count))
           fi
         done < <(find "tests/$category" -name "*.bats" -type f 2>/dev/null)
