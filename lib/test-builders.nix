@@ -1,16 +1,17 @@
 # Test Builders for Comprehensive Testing Framework
 # Provides builder functions for all test layers: unit, contract, integration, e2e
 
-{ pkgs ? import <nixpkgs> {}, lib, ... }:
+{ pkgs ? import <nixpkgs> { }, lib, ... }:
 
 let
   # Import existing test system
   testSystem = import ./test-system.nix { inherit pkgs; };
-  
+
   # Import platform detection for cross-platform testing
   platformDetection = import ./platform-detection.nix { inherit lib; };
 
-in {
+in
+{
 
   # Unit Test Builders (using nix-unit integration)
   unit = {
@@ -63,7 +64,7 @@ in {
       testCase = {
         modulePath = modulePath;
         requiredExports = requiredExports;
-        validator = exports: 
+        validator = exports:
           builtins.all (required: builtins.hasAttr required exports) requiredExports;
       };
     };
@@ -87,8 +88,8 @@ in {
       testCase = {
         platforms = platforms;
         testFunction = testFunction;
-        validator = platform: 
-          if builtins.elem platform platforms 
+        validator = platform:
+          if builtins.elem platform platforms
           then testFunction platform
           else throw "Platform ${platform} not supported";
       };
@@ -207,7 +208,7 @@ in {
   # Test Suite Builders (combine multiple tests)
   suite = {
     # Build a comprehensive test suite
-    mkTestSuite = { name, tests, config ? {}, description ? "" }: {
+    mkTestSuite = { name, tests, config ? { }, description ? "" }: {
       inherit name description;
       type = "suite";
       testCases = tests;
@@ -228,8 +229,8 @@ in {
     };
 
     # Build a layer-specific test suite (all tests of one type)
-    mkLayerSuite = { name, layer, tests, description ? "" }: 
-      if !builtins.elem layer ["unit" "contract" "integration" "e2e"]
+    mkLayerSuite = { name, layer, tests, description ? "" }:
+      if !builtins.elem layer [ "unit" "contract" "integration" "e2e" ]
       then throw "Invalid test layer: ${layer}. Must be one of: unit, contract, integration, e2e"
       else {
         inherit name layer description;
@@ -241,31 +242,31 @@ in {
   # Test Validation and Utilities
   validators = {
     # Validate test case structure
-    validateTestCase = testCase: 
+    validateTestCase = testCase:
       let
-        hasRequiredFields = builtins.all (field: builtins.hasAttr field testCase) 
-          ["name" "type" "framework"];
+        hasRequiredFields = builtins.all (field: builtins.hasAttr field testCase)
+          [ "name" "type" "framework" ];
       in
-        if !hasRequiredFields 
-        then throw "Test case missing required fields: name, type, framework"
-        else testCase;
+      if !hasRequiredFields
+      then throw "Test case missing required fields: name, type, framework"
+      else testCase;
 
     # Validate test suite structure
     validateTestSuite = suite:
       let
         hasRequiredFields = builtins.all (field: builtins.hasAttr field suite)
-          ["name" "type" "testCases"];
+          [ "name" "type" "testCases" ];
         validTestCases = builtins.all validators.validateTestCase suite.testCases;
       in
-        if !hasRequiredFields
-        then throw "Test suite missing required fields: name, type, testCases"
-        else if !validTestCases
-        then throw "Test suite contains invalid test cases"
-        else suite;
+      if !hasRequiredFields
+      then throw "Test suite missing required fields: name, type, testCases"
+      else if !validTestCases
+      then throw "Test suite contains invalid test cases"
+      else suite;
 
     # Validate platform compatibility
-    validatePlatform = platform: 
-      if !builtins.elem platform ["darwin-x86_64" "darwin-aarch64" "nixos-x86_64" "nixos-aarch64"]
+    validatePlatform = platform:
+      if !builtins.elem platform [ "darwin-x86_64" "darwin-aarch64" "nixos-x86_64" "nixos-aarch64" ]
       then throw "Unsupported platform: ${platform}"
       else platform;
   };
@@ -273,30 +274,30 @@ in {
   # Test Runner Integration
   runners = {
     # Create a test runner for a specific framework
-    mkFrameworkRunner = framework: 
+    mkFrameworkRunner = framework:
       if framework == "nix-unit" then {
         command = "nix-unit";
-        args = ["--flake"];
+        args = [ "--flake" ];
         supported = true;
       }
       else if framework == "lib.runTests" then {
         command = "nix";
-        args = ["eval" "--json"];
+        args = [ "eval" "--json" ];
         supported = true;
       }
       else if framework == "bats" then {
         command = "bats";
-        args = [];
+        args = [ ];
         supported = true;
       }
       else if framework == "nixos-vm" then {
         command = "nix";
-        args = ["build"];
+        args = [ "build" ];
         supported = true;
       }
       else {
         command = null;
-        args = [];
+        args = [ ];
         supported = false;
       };
 
@@ -312,6 +313,6 @@ in {
   # Export version and metadata
   version = "1.0.0";
   description = "Comprehensive test builders for multi-layer testing framework";
-  supportedFrameworks = ["nix-unit" "lib.runTests" "bats" "nixos-vm" "interface" "api"];
-  supportedLayers = ["unit" "contract" "integration" "e2e"];
+  supportedFrameworks = [ "nix-unit" "lib.runTests" "bats" "nixos-vm" "interface" "api" ];
+  supportedLayers = [ "unit" "contract" "integration" "e2e" ];
 }

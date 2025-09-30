@@ -28,7 +28,7 @@ teardown() {
         let platformAdapter = import ./modules/shared/testing.nix {};
         in platformAdapter.detectPlatform {}
     ")
-    
+
     assert_json_field "$result" "platform" "string"
     assert_json_field "$result" "capabilities" "array"
 }
@@ -37,14 +37,14 @@ teardown() {
     # This will fail - function doesn't exist
     local current_system
     current_system=$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"')
-    
+
     if [[ "$current_system" == *"darwin"* ]]; then
         local result
         result=$(nix eval --json --impure --expr "
             let platformAdapter = import ./modules/shared/testing.nix {};
             in platformAdapter.detectPlatform {}
         ")
-        
+
         local platform
         platform=$(echo "$result" | jq -r '.platform')
         [[ "$platform" == *"darwin"* ]]
@@ -57,14 +57,14 @@ teardown() {
     # This will fail - function doesn't exist
     local current_system
     current_system=$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"')
-    
+
     if [[ "$current_system" == *"linux"* ]]; then
         local result
         result=$(nix eval --json --impure --expr "
             let platformAdapter = import ./modules/shared/testing.nix {};
             in platformAdapter.detectPlatform {}
         ")
-        
+
         local platform
         platform=$(echo "$result" | jq -r '.platform')
         [[ "$platform" == *"nixos"* ]] || [[ "$platform" == *"linux"* ]]
@@ -80,12 +80,12 @@ teardown() {
         let platformAdapter = import ./modules/shared/testing.nix {};
         in platformAdapter.detectPlatform {}
     ")
-    
+
     local capabilities
     capabilities=$(echo "$result" | jq -r '.capabilities[]')
-    
+
     # Should include basic capabilities
-    echo "$capabilities" | grep -q "nix-build" || 
+    echo "$capabilities" | grep -q "nix-build" ||
     echo "$capabilities" | grep -q "home-manager"
 }
 
@@ -103,7 +103,7 @@ teardown() {
         "timeout": 300,
         "coverage": true
     }'
-    
+
     run nix eval --impure --expr "
         let platformAdapter = import ./modules/shared/testing.nix {};
         in platformAdapter.setupEnvironment {
@@ -124,7 +124,7 @@ teardown() {
             config = {};
         }
     ")
-    
+
     assert_json_field "$result" "platform" "string"
     assert_json_field "$result" "paths" "object"
     assert_json_field "$result" "tools" "object"
@@ -141,10 +141,10 @@ teardown() {
             config = {};
         }
     ")
-    
+
     local paths
     paths=$(echo "$result" | jq -r '.paths')
-    
+
     # Should contain platform-specific paths
     echo "$paths" | jq -e '.nixStore' >/dev/null
     echo "$paths" | jq -e '.homeDirectory' >/dev/null
@@ -160,10 +160,10 @@ teardown() {
             config = {};
         }
     ")
-    
+
     local tools
     tools=$(echo "$result" | jq -r '.tools')
-    
+
     # Should contain required testing tools
     echo "$tools" | jq -e '.nix' >/dev/null
     echo "$tools" | jq -e '.git' >/dev/null
@@ -202,7 +202,7 @@ teardown() {
         "paths": {},
         "tools": {}
     }'
-    
+
     run nix eval --impure --expr "
         let platformAdapter = import ./modules/shared/testing.nix {};
         in platformAdapter.runPlatformTests {
@@ -231,10 +231,10 @@ teardown() {
             };
         }
     ")
-    
+
     # Should return array of test results
     [[ $(echo "$result" | jq 'type') == '"array"' ]]
-    
+
     if [[ $(echo "$result" | jq 'length') -gt 0 ]]; then
         assert_json_field "$(echo "$result" | jq '.[0]')" "status" "string"
         assert_json_field "$(echo "$result" | jq '.[0]')" "platform" "string"
@@ -252,7 +252,7 @@ teardown() {
     # This will fail - Homebrew support doesn't exist
     local current_system
     current_system=$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"')
-    
+
     if [[ "$current_system" == *"darwin"* ]]; then
         run nix eval --impure --expr "
             let darwinAdapter = import ./modules/darwin/testing.nix {};
@@ -270,7 +270,7 @@ teardown() {
     # This will fail - nix-darwin support doesn't exist
     local current_system
     current_system=$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"')
-    
+
     if [[ "$current_system" == *"darwin"* ]]; then
         run nix eval --impure --expr "
             let darwinAdapter = import ./modules/darwin/testing.nix {};
@@ -295,7 +295,7 @@ teardown() {
     # This will fail - VM support doesn't exist
     local current_system
     current_system=$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"')
-    
+
     if [[ "$current_system" == *"linux"* ]]; then
         run nix eval --impure --expr "
             let nixosAdapter = import ./modules/nixos/testing.nix {};
@@ -313,7 +313,7 @@ teardown() {
     # This will fail - systemd support doesn't exist
     local current_system
     current_system=$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"')
-    
+
     if [[ "$current_system" == *"linux"* ]]; then
         run nix eval --impure --expr "
             let nixosAdapter = import ./modules/nixos/testing.nix {};
@@ -336,7 +336,7 @@ teardown() {
         "type": "integration",
         "framework": "cross-platform"
     }'
-    
+
     run nix eval --impure --expr "
         let platformAdapter = import ./modules/shared/testing.nix {};
         in platformAdapter.runCrossPlatformTest {
@@ -355,7 +355,7 @@ teardown() {
             "platforms": ["darwin-x86_64", "darwin-aarch64"]
         },
         {
-            "name": "nixos-only-test", 
+            "name": "nixos-only-test",
             "platforms": ["nixos-x86_64", "nixos-aarch64"]
         },
         {
@@ -363,10 +363,10 @@ teardown() {
             "platforms": ["darwin-x86_64", "nixos-x86_64"]
         }
     ]'
-    
+
     local current_platform
     current_platform=$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"')
-    
+
     local result
     result=$(nix eval --json --impure --expr "
         let platformAdapter = import ./modules/shared/testing.nix {};
@@ -375,7 +375,7 @@ teardown() {
             platform = \"$current_platform\";
         }
     ")
-    
+
     # Should return filtered test list
     [[ $(echo "$result" | jq 'type') == '"array"' ]]
 }
@@ -412,7 +412,7 @@ teardown() {
         let platformAdapter = import ./modules/shared/testing.nix {};
         in platformAdapter.getPlatformCompatibilityMatrix {}
     ")
-    
+
     # Should return compatibility information
     assert_json_field "$result" "supportedPlatforms" "array"
     assert_json_field "$result" "featureMatrix" "object"
@@ -428,10 +428,10 @@ teardown() {
         },
         "nixos": {
             "vmTests": true,
-            "systemdTests": true  
+            "systemdTests": true
         }
     }'
-    
+
     run nix eval --impure --expr "
         let platformAdapter = import ./modules/shared/testing.nix {};
         in platformAdapter.applyPlatformConfig {

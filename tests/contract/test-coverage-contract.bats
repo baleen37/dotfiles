@@ -29,7 +29,7 @@ teardown() {
         "includePaths": ["lib"],
         "excludePaths": ["tests"]
     }'
-    
+
     run nix eval --impure --expr "
         let coverageSystem = import ./lib/coverage-system.nix {};
         in coverageSystem.measurement.initCoverage {
@@ -50,9 +50,9 @@ teardown() {
             config = {};
         }
     ")
-    
+
     assert_json_field "$result" "sessionId" "string"
-    assert_json_field "$result" "status" "string" 
+    assert_json_field "$result" "status" "string"
     assert_json_field "$result" "modules" "array"
 }
 
@@ -74,7 +74,7 @@ teardown() {
         "status": "passed",
         "duration": 100
     }'
-    
+
     run nix eval --impure --expr "
         let coverageSystem = import ./lib/coverage-system.nix {};
         in coverageSystem.measurement.collectCoverage {
@@ -95,7 +95,7 @@ teardown() {
             testResult = { status = \"passed\"; };
         }
     ")
-    
+
     assert_json_field "$result" "totalLines" "number"
     assert_json_field "$result" "coveredLines" "number"
     assert_json_field "$result" "percentage" "number"
@@ -108,14 +108,14 @@ teardown() {
     result=$(nix eval --json --impure --expr "
         let coverageSystem = import ./lib/coverage-system.nix {};
         in coverageSystem.measurement.collectCoverage {
-            session = { 
-                sessionId = \"line-test\"; 
-                modules = [\"./lib/test-system.nix\"]; 
+            session = {
+                sessionId = \"line-test\";
+                modules = [\"./lib/test-system.nix\"];
             };
             testResult = { status = \"passed\"; };
         }
     ")
-    
+
     # Should have detailed line information
     assert_json_field "$result" "totalLines" "number"
     [[ $(echo "$result" | jq '.totalLines') -gt 0 ]]
@@ -127,14 +127,14 @@ teardown() {
     result=$(nix eval --json --impure --expr "
         let coverageSystem = import ./lib/coverage-system.nix {};
         in coverageSystem.measurement.collectCoverage {
-            session = { 
-                sessionId = \"uncovered-test\"; 
-                modules = [\"./lib/test-system.nix\", \"./lib/utils.nix\"]; 
+            session = {
+                sessionId = \"uncovered-test\";
+                modules = [\"./lib/test-system.nix\", \"./lib/utils.nix\"];
             };
             testResult = { status = \"failed\"; };
         }
     ")
-    
+
     assert_json_field "$result" "uncoveredModules" "array"
 }
 
@@ -143,9 +143,9 @@ teardown() {
     local result
     result=$(nix eval --json --impure --expr "
         let coverageSystem = import ./lib/coverage-system.nix {};
-            session = { 
-                sessionId = \"percentage-test\"; 
-                modules = [\"./lib/test-system.nix\"]; 
+            session = {
+                sessionId = \"percentage-test\";
+                modules = [\"./lib/test-system.nix\"];
             };
             testResult = { status = \"passed\"; };
             metrics = coverageSystem.measurement.collectCoverage {
@@ -153,15 +153,15 @@ teardown() {
             };
         in {
             percentage = metrics.percentage;
-            calculated = if metrics.totalLines > 0 
+            calculated = if metrics.totalLines > 0
                          then (metrics.coveredLines / metrics.totalLines * 100)
                          else 100.0;
-            match = metrics.percentage == (if metrics.totalLines > 0 
+            match = metrics.percentage == (if metrics.totalLines > 0
                                           then (metrics.coveredLines / metrics.totalLines * 100)
                                           else 100.0);
         }
     ")
-    
+
     assert_json_field "$result" "match" "boolean"
     [[ $(echo "$result" | jq '.match') == "true" ]]
 }
@@ -180,7 +180,7 @@ teardown() {
         "percentage": 90.0,
         "thresholdMet": true
     }'
-    
+
     for format in "console" "json" "html" "lcov"; do
         run nix eval --impure --expr "
             let coverageSystem = import ./lib/coverage-system.nix {};
@@ -200,7 +200,7 @@ teardown() {
         "coveredLines": 90,
         "percentage": 90.0
     }'
-    
+
     local result
     result=$(nix eval --raw --impure --expr "
         let coverageSystem = import ./lib/coverage-system.nix {};
@@ -209,7 +209,7 @@ teardown() {
             format = \"console\";
         }
     ")
-    
+
     # Should return a non-empty string
     [[ -n "$result" ]]
 }
@@ -227,7 +227,7 @@ teardown() {
             };
         }
     ")
-    
+
     # Should contain coverage information
     [[ "$result" == *"Coverage"* ]]
     [[ "$result" == *"92.5"* ]]
@@ -244,7 +244,7 @@ teardown() {
             results = { overallCoverage = 88.0; };
         }
     ")
-    
+
     # Should be valid JSON
     echo "$result" | jq '.' >/dev/null
 }
@@ -260,7 +260,7 @@ teardown() {
             results = { overallCoverage = 95.0; };
         }
     ")
-    
+
     # Should contain HTML tags
     [[ "$result" == *"<html>"* ]]
     [[ "$result" == *"</html>"* ]]
@@ -280,7 +280,7 @@ teardown() {
             }];
         }
     ")
-    
+
     # Should contain LCOV format markers
     [[ "$result" == *"SF:"* ]]
     [[ "$result" == *"end_of_record"* ]]
@@ -322,7 +322,7 @@ teardown() {
             testResult = null;
         }
     ")
-    
+
     # Should handle empty results
     assert_json_field "$result" "percentage" "number"
 }
@@ -332,13 +332,13 @@ teardown() {
     # This will fail - efficiency optimizations don't exist
     local start_time
     start_time=$(date +%s)
-    
+
     # Generate a list of many modules (simulated)
     local modules='[]'
     for i in {1..100}; do
         modules=$(echo "$modules" | jq ". + [\"./lib/module${i}.nix\"]")
     done
-    
+
     run timeout 30 nix eval --impure --expr "
         let coverageSystem = import ./lib/coverage-system.nix {};
         in coverageSystem.measurement.collectCoverage {
@@ -346,11 +346,11 @@ teardown() {
             testResult = { status = \"passed\"; };
         }
     "
-    
+
     local end_time
     end_time=$(date +%s)
     local duration=$((end_time - start_time))
-    
+
     # Should complete within reasonable time
     [[ $duration -lt 30 ]]
 }
@@ -365,7 +365,7 @@ teardown() {
             config = {};
         }
     ")
-    
+
     local session2
     session2=$(nix eval --json --impure --expr "
         let coverageSystem = import ./lib/coverage-system.nix {};
@@ -374,7 +374,7 @@ teardown() {
             testResult = { status = \"passed\"; };
         }
     ")
-    
+
     # Should support incremental updates
     assert_json_field "$session2" "sessionId" "string"
 }
@@ -383,7 +383,7 @@ teardown() {
 @test "coverage provider works on current platform" {
     local platform
     platform=$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"')
-    
+
     assert_platform_compatible "coverage-provider" "$platform"
 }
 

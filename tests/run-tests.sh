@@ -150,7 +150,7 @@ show_test_plan() {
 # 테스트 파일 유형 감지
 detect_test_type() {
     local test_file="$1"
-    
+
     case "$test_file" in
         *.nix)
             echo "nix-unit"
@@ -171,9 +171,9 @@ detect_test_type() {
 run_nix_unit_test() {
     local test_file="$1"
     local test_path="$SCRIPT_DIR/$test_file"
-    
+
     log_debug "nix-unit 테스트 실행: $test_file"
-    
+
     # nix-unit이 사용 가능한지 확인
     if command -v nix-unit >/dev/null 2>&1; then
         timeout "${TEST_TIMEOUT}s" nix-unit "$test_path"
@@ -189,9 +189,9 @@ run_nix_unit_test() {
 run_bats_test() {
     local test_file="$1"
     local test_path="$SCRIPT_DIR/$test_file"
-    
+
     log_debug "BATS 테스트 실행: $test_file"
-    
+
     # BATS가 사용 가능한지 확인
     if command -v bats >/dev/null 2>&1; then
         timeout "${TEST_TIMEOUT}s" bats "$test_path"
@@ -222,7 +222,7 @@ run_single_test() {
     local output=""
 
     log_debug "테스트 실행 시작: $test_file"
-    
+
     case "$test_type" in
         "nix-unit")
             if [[ "$VERBOSE_MODE" = "true" ]]; then
@@ -249,7 +249,7 @@ run_single_test() {
             if [[ ! -x "$test_path" ]]; then
                 chmod +x "$test_path"
             fi
-            
+
             if [[ "$VERBOSE_MODE" = "true" ]]; then
                 log_info "실행 중 (bash): $test_file"
                 if timeout "${TEST_TIMEOUT}s" bash "$test_path"; then
@@ -263,7 +263,7 @@ run_single_test() {
             fi
             ;;
     esac
-    
+
     log_debug "테스트 실행 완료: $test_file, exit_code=$exit_code"
 
     local end_time=$(date +%s%N)

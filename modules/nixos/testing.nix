@@ -1,4 +1,4 @@
-# NixOS-Specific Testing Module  
+# NixOS-Specific Testing Module
 # Linux/NixOS-specific testing configuration and tools
 
 { config, lib, pkgs, ... }:
@@ -8,7 +8,8 @@ with lib;
 let
   cfg = config.testing;
 
-in {
+in
+{
   options.testing = {
     nixos = {
       enableVMTests = mkEnableOption "VM-based testing support";
@@ -16,18 +17,18 @@ in {
       enableContainerTests = mkEnableOption "container testing support";
     };
   };
-  
+
   config = mkIf cfg.enable {
     # NixOS-specific testing packages
     environment.systemPackages = with pkgs; [
       # Core testing tools
       bats
       jq
-      
+
       # System testing utilities
       systemd
       util-linux
-      
+
       # VM testing tools (if enabled)
     ] ++ optionals cfg.nixos.enableVMTests [
       qemu
@@ -37,7 +38,7 @@ in {
       podman
       buildah
     ];
-    
+
     # Enable systemd user services for testing
     systemd.user.services = mkIf cfg.nixos.enableSystemdTests {
       test-framework = {
@@ -50,7 +51,7 @@ in {
         wantedBy = [ "default.target" ];
       };
     };
-    
+
     # Add NixOS-specific testing functions
     _module.args.nixosTesting = {
       # NixOS test environment setup
@@ -61,7 +62,7 @@ in {
           systemdSupported = true;
           vmTestsSupported = enableVMTests;
           containerSupported = enableContainers;
-          
+
           paths = {
             systemd = "/run/systemd";
             nixStore = "/nix/store";
@@ -69,7 +70,7 @@ in {
             homeDir = "/home";
             etcDir = "/etc";
           };
-          
+
           tools = {
             "nixos-rebuild" = "${pkgs.nixos-rebuild}/bin/nixos-rebuild";
             systemctl = "${pkgs.systemd}/bin/systemctl";
@@ -82,7 +83,7 @@ in {
             docker = "${pkgs.docker}/bin/docker";
             podman = "${pkgs.podman}/bin/podman";
           };
-          
+
           capabilities = [
             "nixos-rebuild"
             "systemd-services"
@@ -96,32 +97,35 @@ in {
             "oci-containers"
           ];
         };
-      
+
       # Setup systemd service tests
       setupServiceTests = { services, ... }:
         let
-          testServices = map (service: {
-            name = "systemd-service-${service}";
-            service = service;
-            tests = [
-              {
-                name = "service-exists";
-                command = "systemctl cat ${service}";
-                validation = "service unit file exists";
-              }
-              {
-                name = "service-status";
-                command = "systemctl is-enabled ${service}";
-                validation = "enabled|disabled|static";
-              }
-              {
-                name = "service-active";
-                command = "systemctl is-active ${service}";
-                validation = "active|inactive|failed";
-              }
-            ];
-          }) services;
-        in {
+          testServices = map
+            (service: {
+              name = "systemd-service-${service}";
+              service = service;
+              tests = [
+                {
+                  name = "service-exists";
+                  command = "systemctl cat ${service}";
+                  validation = "service unit file exists";
+                }
+                {
+                  name = "service-status";
+                  command = "systemctl is-enabled ${service}";
+                  validation = "enabled|disabled|static";
+                }
+                {
+                  name = "service-active";
+                  command = "systemctl is-active ${service}";
+                  validation = "active|inactive|failed";
+                }
+              ];
+            })
+            services;
+        in
+        {
           tests = testServices;
           serviceManager = "systemd";
           commands = {
@@ -131,7 +135,7 @@ in {
             status = service: "systemctl status ${service}";
           };
         };
-      
+
       # Test NixOS configuration
       testNixOSConfiguration = { flakeRef ? ".", configuration ? "nixos", ... }:
         {
@@ -153,86 +157,92 @@ in {
               timeout = 120;
             }
           ];
-          
+
           validation = {
             systemGeneration = "ls -la /run/current-system";
             nixosVersion = "nixos-version";
             configurationExists = "test -L /run/current-system";
           };
         };
-      
+
       # VM-based integration testing
-      testWithVM = { name, nodes ? {}, testScript, ... }:
+      testWithVM = { name, nodes ? { }, testScript, ... }:
         let
           vmTest = pkgs.testers.runNixOSTest {
             inherit name testScript;
             nodes = nodes // {
               # Default test machine if no nodes specified
-              machine = mkIf (nodes == {}) { 
+              machine = mkIf (nodes == { }) {
                 imports = [ config ];
                 virtualisation.memorySize = 2048;
               };
             };
           };
-        in {
+        in
+        {
           inherit name;
           vmTest = vmTest;
           testPath = "${vmTest}";
-          
+
           run = {
             command = "nix build ${vmTest}";
             validation = "VM test passes without errors";
           };
         };
-      
+
       # Container testing
-      testWithContainers = { image, containerName, tests ? [], ... }:
+      testWithContainers = { image, containerName, tests ? [ ], ... }:
         {
           name = "container-test-${containerName}";
           image = image;
           container = containerName;
-          
+
           lifecycle = {
             setup = [
               "docker pull ${image}"
               "docker run -d --name ${containerName} ${image}"
             ];
-            
-            tests = map (test: {
-              inherit (test) name;
-              command = "docker exec ${containerName} ${test.command}";
-              validation = test.validation or "command succeeds";
-            }) tests;
-            
+
+            tests = map
+              (test: {
+                inherit (test) name;
+                command = "docker exec ${containerName} ${test.command}";
+                validation = test.validation or "command succeeds";
+              })
+              tests;
+
             cleanup = [
               "docker stop ${containerName}"
               "docker rm ${containerName}"
             ];
           };
         };
-      
+
       # Test system journals and logging
-      testSystemLogging = { services ? [], ... }:
+      testSystemLogging = { services ? [ ], ... }:
         let
-          logTests = map (service: {
-            name = "logging-${service}";
-            tests = [
-              {
-                name = "service-has-logs";
-                command = "journalctl -u ${service} --no-pager | head -10";
-                validation = "log entries exist";
-              }
-              {
-                name = "no-critical-errors";
-                command = "journalctl -u ${service} -p err --no-pager";
-                validation = "no critical errors in logs";
-              }
-            ];
-          }) services;
-        in {
+          logTests = map
+            (service: {
+              name = "logging-${service}";
+              tests = [
+                {
+                  name = "service-has-logs";
+                  command = "journalctl -u ${service} --no-pager | head -10";
+                  validation = "log entries exist";
+                }
+                {
+                  name = "no-critical-errors";
+                  command = "journalctl -u ${service} -p err --no-pager";
+                  validation = "no critical errors in logs";
+                }
+              ];
+            })
+            services;
+        in
+        {
           tests = logTests;
           logManager = "journald";
-          
+
           globalLogTests = [
             {
               name = "system-boot-logs";
@@ -246,28 +256,31 @@ in {
             }
           ];
         };
-      
-      # Test network configuration  
-      testNetworkConfiguration = { interfaces ? [], ... }:
+
+      # Test network configuration
+      testNetworkConfiguration = { interfaces ? [ ], ... }:
         let
-          interfaceTests = map (iface: {
-            name = "network-interface-${iface}";
-            tests = [
-              {
-                name = "interface-exists";
-                command = "ip link show ${iface}";
-                validation = "interface configured";
-              }
-              {
-                name = "interface-up";
-                command = "ip link show ${iface} | grep UP";
-                validation = "interface is up";
-              }
-            ];
-          }) interfaces;
-        in {
+          interfaceTests = map
+            (iface: {
+              name = "network-interface-${iface}";
+              tests = [
+                {
+                  name = "interface-exists";
+                  command = "ip link show ${iface}";
+                  validation = "interface configured";
+                }
+                {
+                  name = "interface-up";
+                  command = "ip link show ${iface} | grep UP";
+                  validation = "interface is up";
+                }
+              ];
+            })
+            interfaces;
+        in
+        {
           tests = interfaceTests;
-          
+
           generalNetworkTests = [
             {
               name = "dns-resolution";
@@ -281,34 +294,37 @@ in {
             }
           ];
         };
-      
+
       # Test file system and storage
-      testFileSystem = { mountPoints ? ["/"], ... }:
+      testFileSystem = { mountPoints ? [ "/" ], ... }:
         let
-          fsTests = map (mount: {
-            name = "filesystem-${builtins.replaceStrings ["/"] ["-"] mount}";
-            mountPoint = mount;
-            tests = [
-              {
-                name = "mount-exists";
-                command = "mount | grep '${mount}'";
-                validation = "mount point exists";
-              }
-              {
-                name = "disk-space";
-                command = "df -h ${mount}";
-                validation = "sufficient disk space";
-              }
-              {
-                name = "read-write-test";
-                command = "touch ${mount}/test-file && rm ${mount}/test-file";
-                validation = "read-write access";
-              }
-            ];
-          }) mountPoints;
-        in {
+          fsTests = map
+            (mount: {
+              name = "filesystem-${builtins.replaceStrings ["/"] ["-"] mount}";
+              mountPoint = mount;
+              tests = [
+                {
+                  name = "mount-exists";
+                  command = "mount | grep '${mount}'";
+                  validation = "mount point exists";
+                }
+                {
+                  name = "disk-space";
+                  command = "df -h ${mount}";
+                  validation = "sufficient disk space";
+                }
+                {
+                  name = "read-write-test";
+                  command = "touch ${mount}/test-file && rm ${mount}/test-file";
+                  validation = "read-write access";
+                }
+              ];
+            })
+            mountPoints;
+        in
+        {
           tests = fsTests;
-          
+
           storageTests = [
             {
               name = "nix-store-integrity";
@@ -322,7 +338,7 @@ in {
             }
           ];
         };
-      
+
       # Performance testing for NixOS
       testNixOSPerformance = { ... }:
         {
@@ -350,19 +366,21 @@ in {
             }
           ];
         };
-      
+
       # Cross-platform compatibility helpers
-      generateNixOSMatrix = { architectures ? ["x86_64" "aarch64"], ... }:
+      generateNixOSMatrix = { architectures ? [ "x86_64" "aarch64" ], ... }:
         {
-          os = ["ubuntu-latest" "ubuntu-20.04" "ubuntu-22.04"];
+          os = [ "ubuntu-latest" "ubuntu-20.04" "ubuntu-22.04" ];
           architecture = architectures;
-          include = map (arch: {
-            os = "ubuntu-latest";
-            platform = "${arch}-linux";
-            nixSystem = "${arch}-linux";
-          }) architectures;
+          include = map
+            (arch: {
+              os = "ubuntu-latest";
+              platform = "${arch}-linux";
+              nixSystem = "${arch}-linux";
+            })
+            architectures;
         };
-      
+
       # Security testing
       testNixOSSecurity = { ... }:
         {
@@ -391,7 +409,7 @@ in {
           ];
         };
     };
-    
+
     # NixOS-specific module validation
     assertions = [
       {

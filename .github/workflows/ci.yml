@@ -290,12 +290,12 @@ jobs:
         run: |
           echo "📊 Coverage Summary for ${{ matrix.category }}"
           echo "=================================="
-          
+
           # Check if coverage files exist
           if ls coverage-reports/*.json >/dev/null 2>&1; then
             echo "Coverage files found:"
             ls -la coverage-reports/
-            
+
             # Generate basic coverage summary
             echo "Coverage data collected for ${{ matrix.category }} tests"
             echo "Files analyzed: $(ls coverage-reports/*.json | wc -l)"

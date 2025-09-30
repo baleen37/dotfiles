@@ -11,7 +11,7 @@ setup_file() {
     export INTEGRATION_TEST_DIR=$(mktemp -d)
     export TEST_FLAKE_ROOT="${BATS_TEST_DIRNAME}/../.."
     export NIX_CONFIG="experimental-features = nix-command flakes"
-    
+
     # Pre-build common dependencies to speed up tests
     echo "Setting up integration test environment..."
     nix build "$TEST_FLAKE_ROOT#lib.testBuilders" --no-link --quiet || true
@@ -45,7 +45,7 @@ teardown() {
     expr = 2 + 2;
     expected = 4;
   };
-  
+
   testStringIntegration = {
     expr = "hello" + " " + "world";
     expected = "hello world";
@@ -89,11 +89,11 @@ EOF
     # Test that flake checks can be built and executed
     run nix eval --json "$TEST_FLAKE_ROOT#checks" --apply "builtins.attrNames"
     [ "$status" -eq 0 ]
-    
+
     # Verify that checks include test layers
     local platform
     platform=$(nix eval --raw --expr 'builtins.currentSystem')
-    
+
     run nix eval --json "$TEST_FLAKE_ROOT#checks.$platform" --apply "builtins.attrNames" 2>/dev/null || true
     # Should succeed or gracefully handle missing platform
 }
@@ -122,12 +122,12 @@ in
     expr = functions.add 2 3;
     expected = 5;
   };
-  
+
   testMultiply = {
     expr = functions.multiply 4 5;
     expected = 20;
   };
-  
+
   # This test covers the divide function
   testDivide = {
     expr = functions.divide 10 2;
@@ -173,7 +173,7 @@ EOF
     expr = builtins.typeOf builtins.currentSystem;
     expected = "string";
   };
-  
+
   testBasicArithmetic = {
     expr = 1 + 1;
     expected = 2;
@@ -184,7 +184,7 @@ EOF
     # Test on current platform
     local platform
     platform=$(nix eval --raw --expr 'builtins.currentSystem')
-    
+
     run nix eval --json "$TEST_FLAKE_ROOT#platformAdapter.runTestOnPlatform" --apply "f: f { platform = \"$platform\"; testFile = \"$TEST_TMPDIR/platform-test.nix\"; }"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "success\\|passed" ]]
@@ -194,11 +194,11 @@ EOF
     # Test that platform adapter provides appropriate configurations
     local platform
     platform=$(nix eval --raw --expr 'builtins.currentSystem')
-    
+
     run nix eval --json "$TEST_FLAKE_ROOT#platformAdapter.getConfig" --apply "f: f \"$platform\""
     [ "$status" -eq 0 ]
     [[ "$output" =~ "testCommand" ]]
-    
+
     # Verify configuration is platform-appropriate
     if [[ "$platform" =~ darwin ]]; then
         [[ "$output" =~ "darwin\\|macos" ]] || true
@@ -208,7 +208,7 @@ EOF
 }
 
 # ============================================================================
-# Module Interaction Tests  
+# Module Interaction Tests
 # ============================================================================
 
 @test "test builders interact with coverage system" {
@@ -226,7 +226,7 @@ EOF
     run nix build "$TEST_FLAKE_ROOT#testBuilders.buildUnitTest" --apply "f: f { name = \"integration-test\"; testFile = \"$TEST_TMPDIR/buildable-test.nix\"; }" --out-link "$TEST_TMPDIR/test-result"
     [ "$status" -eq 0 ]
     [ -e "$TEST_TMPDIR/test-result" ]
-    
+
     # Verify it's executable
     [ -x "$TEST_TMPDIR/test-result/bin/integration-test" ]
 }
@@ -234,16 +234,16 @@ EOF
 @test "test layers execute in dependency order" {
     # Test that unit tests run before integration tests
     local start_time end_time
-    
+
     start_time=$(date +%s.%N)
-    
+
     # Run unit tests (should be fast)
     run timeout 30s nix eval --json "$TEST_FLAKE_ROOT#testRunner.run" --apply 'f: f { testLayer = "unit"; testFile = "'$TEST_TMPDIR'/quick-test.nix"; }' || true
-    
+
     end_time=$(date +%s.%N)
     local unit_duration
     unit_duration=$(echo "$end_time - $start_time" | bc -l)
-    
+
     # Unit tests should complete quickly (under 30s)
     (( $(echo "$unit_duration < 30" | bc -l) ))
 }
@@ -260,21 +260,21 @@ EOF
 }
 EOF
     done
-    
+
     # Test parallel execution
     local start_time end_time
     start_time=$(date +%s.%N)
-    
+
     # Run tests in parallel (mock parallel execution)
     for i in {1..3}; do
         nix eval --json "$TEST_FLAKE_ROOT#testRunner.run" --apply "f: f { testLayer = \"unit\"; testFile = \"$TEST_TMPDIR/parallel-test-$i.nix\"; }" &
     done
     wait
-    
+
     end_time=$(date +%s.%N)
     local total_duration
     total_duration=$(echo "$end_time - $start_time" | bc -l)
-    
+
     # Parallel execution should be faster than sequential
     (( $(echo "$total_duration < 10" | bc -l) ))
 }
@@ -290,7 +290,7 @@ EOF
     [[ "$output" =~ "timeout" ]]
     [[ "$output" =~ "parallel" ]]
     [[ "$output" =~ "coverage" ]]
-    
+
     # Test that config values are propagated
     local timeout
     timeout=$(nix eval --raw "$TEST_FLAKE_ROOT#config.testing.timeout")
@@ -301,12 +301,12 @@ EOF
 @test "environment variables override configuration" {
     # Test environment variable override
     export TEST_TIMEOUT=42
-    
+
     run nix eval --raw "$TEST_FLAKE_ROOT#config.testing.getTimeout" --apply 'f: f {}'
     [ "$status" -eq 0 ]
     # Should respect environment override or use default
     [[ "$output" =~ ^[0-9]+$ ]]
-    
+
     unset TEST_TIMEOUT
 }
 
@@ -356,12 +356,12 @@ EOF
 @test "test framework overhead is minimal" {
     # Measure pure Nix evaluation
     local start_time end_time nix_duration framework_duration
-    
+
     start_time=$(date +%s.%N)
     run nix eval --raw --expr '1 + 1'
     end_time=$(date +%s.%N)
     nix_duration=$(echo "$end_time - $start_time" | bc -l)
-    
+
     # Measure framework overhead
     cat > "$TEST_TMPDIR/minimal-test.nix" << 'EOF'
 {
@@ -376,7 +376,7 @@ EOF
     run nix eval --json "$TEST_FLAKE_ROOT#testRunner.run" --apply "f: f { testLayer = \"unit\"; testFile = \"$TEST_TMPDIR/minimal-test.nix\"; }"
     end_time=$(date +%s.%N)
     framework_duration=$(echo "$end_time - $start_time" | bc -l)
-    
+
     # Framework overhead should be reasonable (less than 10x pure Nix)
     (( $(echo "$framework_duration < $nix_duration * 10" | bc -l) ))
 }
@@ -384,9 +384,9 @@ EOF
 @test "memory usage remains bounded during test execution" {
     # Monitor memory usage during test execution
     local start_mem peak_mem end_mem
-    
+
     start_mem=$(free -b | grep '^Mem:' | awk '{print $3}' || echo "0")
-    
+
     # Run several tests to stress memory
     for i in {1..5}; do
         cat > "$TEST_TMPDIR/memory-test-$i.nix" << EOF
@@ -400,11 +400,11 @@ EOF
         nix eval --json "$TEST_FLAKE_ROOT#testRunner.run" --apply "f: f { testLayer = \"unit\"; testFile = \"$TEST_TMPDIR/memory-test-$i.nix\"; }" >/dev/null &
     done
     wait
-    
+
     end_mem=$(free -b | grep '^Mem:' | awk '{print $3}' || echo "0")
     local mem_delta
     mem_delta=$(echo "$end_mem - $start_mem" | bc || echo "0")
-    
+
     # Memory delta should be reasonable (less than 1GB)
     (( mem_delta < 1073741824 )) || true  # 1GB in bytes
 }
@@ -416,17 +416,17 @@ EOF
 # Helper to verify test result structure
 verify_test_result() {
     local result="$1"
-    
+
     # Check that result has expected structure
     echo "$result" | jq -e '.passed' >/dev/null
-    echo "$result" | jq -e '.failed' >/dev/null  
+    echo "$result" | jq -e '.failed' >/dev/null
     echo "$result" | jq -e '.total' >/dev/null
 }
 
 # Helper to create mock test environment
 create_mock_environment() {
     local test_dir="$1"
-    
+
     mkdir -p "$test_dir"
     cat > "$test_dir/mock-config.nix" << 'EOF'
 {
@@ -447,7 +447,7 @@ wait_with_timeout() {
     local timeout="$1"
     local start_time
     start_time=$(date +%s)
-    
+
     while jobs %% >/dev/null 2>&1; do
         if (( $(date +%s) - start_time > timeout )); then
             jobs -p | xargs -r kill

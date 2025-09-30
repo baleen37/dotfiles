@@ -156,7 +156,7 @@ assert_service_inactive() {
 assert_port_open() {
     local port="$1"
     local host="${2:-localhost}"
-    
+
     if ! nc -z "$host" "$port" 2>/dev/null; then
         echo "Port $port is not open on $host" >&2
         return 1
@@ -168,24 +168,24 @@ wait_for() {
     local condition="$1"
     local timeout="${2:-30}"
     local interval="${3:-1}"
-    
+
     local start_time
     start_time=$(date +%s)
-    
+
     while true; do
         local current_time
         current_time=$(date +%s)
         local elapsed=$((current_time - start_time))
-        
+
         if [[ $elapsed -gt $timeout ]]; then
             echo "Timeout waiting for condition: $condition" >&2
             return 1
         fi
-        
+
         if eval "$condition" 2>/dev/null; then
             return 0
         fi
-        
+
         sleep "$interval"
     done
 }
@@ -237,7 +237,7 @@ run_with_timeout() {
     local timeout="$1"
     shift
     local command=("$@")
-    
+
     timeout "$timeout" "${command[@]}"
 }
 
@@ -252,14 +252,14 @@ get_system_info() {
 # Test setup helper
 test_setup() {
     log_debug "Setting up test: ${BATS_TEST_DESCRIPTION:-unknown}"
-    
+
     # Create temporary directory if needed
     if [[ "${USE_TEMP_DIR:-false}" == "true" ]]; then
         export TEMP_DIR
         TEMP_DIR=$(make_temp_dir)
         log_debug "Created temp directory: $TEMP_DIR"
     fi
-    
+
     # Set test timeout
     if command -v timeout >/dev/null 2>&1; then
         export BATS_TEST_TIMEOUT="$TEST_TIMEOUT"
@@ -269,10 +269,10 @@ test_setup() {
 # Test teardown helper
 test_teardown() {
     log_debug "Tearing down test: ${BATS_TEST_DESCRIPTION:-unknown}"
-    
+
     # Cleanup temporary resources
     cleanup_temp
-    
+
     # Log test result
     if [[ "${BATS_TEST_COMPLETED:-false}" == "true" ]]; then
         log_success "Test completed: ${BATS_TEST_DESCRIPTION:-unknown}"

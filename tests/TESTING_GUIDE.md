@@ -5,6 +5,7 @@ A production-ready, multi-tier testing framework for the Nix dotfiles system pro
 ## 🎯 Framework Purpose
 
 This comprehensive testing framework validates the entire dotfiles system through multiple test layers:
+
 - **Unit Tests**: Component-level validation using nix-unit
 - **Contract Tests**: Interface and API validation using BATS
 - **Integration Tests**: Module interaction verification
@@ -117,11 +118,13 @@ tests/
 **Purpose**: Fast, isolated component testing using nix-unit framework
 
 **Files**:
+
 - `tests/unit/nix/test-lib-functions.nix` - Core Nix function validation
 - `tests/unit/lib/test-builders.nix` - Test builder utility validation  
 - `tests/unit/lib/test-coverage.nix` - Coverage system validation
 
 **What's Tested**:
+
 - ✅ Pure Nix function behavior
 - ✅ Library utility functions
 - ✅ Test builder correctness
@@ -142,6 +145,7 @@ nix-unit --flake .# tests.unit.lib-functions
 ```
 
 **Characteristics**:
+
 - **Speed**: < 30 seconds total
 - **Isolation**: No external dependencies
 - **Scope**: Single functions/components
@@ -152,12 +156,14 @@ nix-unit --flake .# tests.unit.lib-functions
 **Purpose**: Interface and API validation using BATS framework
 
 **Files**:
+
 - `tests/contract/test-runner-contract.bats` - Test runner interface contracts
 - `tests/contract/test-coverage-contract.bats` - Coverage provider contracts
 - `tests/contract/test-platform-contract.bats` - Platform adapter contracts
 - `tests/contract/flake-contracts/test-flake-outputs.nix` - Flake output contracts
 
 **What's Tested**:
+
 - ✅ Test runner interface compliance
 - ✅ Coverage reporting contracts
 - ✅ Platform adapter behavior
@@ -178,6 +184,7 @@ bats tests/contract/ --timing
 ```
 
 **Characteristics**:
+
 - **Speed**: < 60 seconds total
 - **Scope**: Interface validation
 - **Framework**: BATS for shell, nix-unit for Nix
@@ -188,10 +195,12 @@ bats tests/contract/ --timing
 **Purpose**: Module interaction and build workflow validation
 
 **Files**:
+
 - `tests/integration/build-integration/test-build-workflow.bats` - Build system integration
 - `tests/integration/platform-integration/test-cross-platform.bats` - Cross-platform compatibility
 
 **What's Tested**:
+
 - ✅ Build system workflows
 - ✅ Module interdependencies
 - ✅ Cross-platform compatibility
@@ -212,6 +221,7 @@ bats tests/integration/build-integration/
 ```
 
 **Characteristics**:
+
 - **Speed**: < 90 seconds total
 - **Scope**: Module interactions
 - **Dependencies**: May require system services
@@ -222,10 +232,12 @@ bats tests/integration/build-integration/
 **Purpose**: Complete system workflow validation using NixOS tests
 
 **Files**:
+
 - `tests/e2e/full-system/test-complete-deployment.nix` - Full system deployment
 - `tests/e2e/cross-platform/test-darwin-nixos.nix` - Cross-platform workflows
 
 **Test Scenarios**:
+
 - 🆕 **Fresh Installation**: New user setting up dotfiles from scratch
 - 🔄 **System Updates**: Existing configuration updates and migrations
 - 🔧 **Cross-Platform**: macOS and NixOS compatibility validation
@@ -246,6 +258,7 @@ nix build .#checks.x86_64-linux.e2e-full-system
 ```
 
 **Characteristics**:
+
 - **Speed**: < 120 seconds total
 - **Scope**: Complete workflows
 - **Framework**: NixOS test framework
@@ -256,9 +269,11 @@ nix build .#checks.x86_64-linux.e2e-full-system
 **Purpose**: Execution time and resource usage monitoring
 
 **Files**:
+
 - `tests/performance/test-benchmark.nix` - Comprehensive performance benchmarks
 
 **What's Measured**:
+
 - ✅ Test execution time per layer
 - ✅ Memory usage patterns
 - ✅ Parallel execution efficiency
@@ -279,6 +294,7 @@ nix run .#performance-benchmark.unit
 ```
 
 **Performance Goals**:
+
 - **Total Execution**: < 3 minutes (parallel)
 - **Unit Tests**: < 30 seconds
 - **Contract Tests**: < 60 seconds
@@ -313,7 +329,7 @@ graph TD
     B --> C[Integration Tests]
     C --> D[E2E Tests]
     D --> E[Performance Tests]
-    
+
     A --> F[Component Level]
     B --> G[Interface Level]
     C --> H[Module Level]
@@ -348,6 +364,7 @@ Optimized for performance with intelligent parallelization:
 ### Required Tools
 
 #### Core Dependencies
+
 - `nix` (2.4+ with flakes enabled)
 - `bash` (4.0+)
 - `bats-core` (BATS testing framework)
@@ -355,6 +372,7 @@ Optimized for performance with intelligent parallelization:
 - Standard Unix tools (`find`, `grep`, `sed`, `awk`)
 
 #### Optional Tools
+
 - `parallel` (for advanced parallelization)
 - `bc` (for performance calculations)
 - `free` (for memory monitoring)
@@ -371,7 +389,7 @@ Ensure your `flake.nix` includes the testing framework:
     nix-unit.url = "github:nix-community/nix-unit";
     # ... other inputs
   };
-  
+
   outputs = { self, nixpkgs, nix-unit, ... }: {
     # Include test checks
     checks = {
@@ -396,7 +414,7 @@ Unit Tests:        PASSED (15/15)  Duration: 25s   Coverage: 95%
 Contract Tests:    PASSED (12/12)  Duration: 45s   Coverage: 92%
 Integration Tests: PASSED (8/8)    Duration: 75s   Coverage: 91%
 E2E Tests:         PASSED (6/6)    Duration: 110s  Coverage: 89%
-Performance Tests: PASSED (5/5)    Duration: 30s   
+Performance Tests: PASSED (5/5)    Duration: 30s  
 
 ✅ ALL TESTS PASSED!
 ✅ Coverage target achieved: 92% (>90% required)
@@ -416,11 +434,11 @@ FAILED: Unit Tests (2/15 failed)
 ❌ test-lib-functions.nix:25 - testStringManipulation
    Expected: "hello-world"
    Actual:   "hello_world"
-   
+
 ❌ test-coverage.nix:15 - testCoverageCalculation
    Expected coverage >= 90%
    Actual coverage: 87%
-   
+
 Debugging Information:
   - Test Environment: /tmp/test-framework-123
   - Log Files: /tmp/test-framework-123/logs/
@@ -502,7 +520,7 @@ bats tests/unit/test-specific.bats --verbose-run
 
 ```yaml
 name: Comprehensive Testing Framework
-on: 
+on:
   push:
     branches: [ main, develop ]
   pull_request:
@@ -599,7 +617,7 @@ When adding new features, follow the multi-layer approach:
        expr = component.basicFunction "input";
        expected = "expected-output";
      };
-     
+
      testNewComponentEdgeCase = {
        expr = component.basicFunction null;
        expected = null;
@@ -612,12 +630,12 @@ When adding new features, follow the multi-layer approach:
    ```bash
    # tests/contract/test-new-interface-contract.bats
    #!/usr/bin/env bats
-   
+
    @test "new interface provides required functions" {
      run nix eval .#lib.newInterface.requiredFunction
      [ "$status" -eq 0 ]
    }
-   
+
    @test "new interface follows naming convention" {
      run nix eval --json .#lib.newInterface --apply builtins.attrNames
      [[ "$output" =~ "Function$" ]]
@@ -673,6 +691,7 @@ For optimal test execution:
 ### Writing Effective Tests
 
 1. **Test Naming**: Use descriptive, hierarchical names
+
    ```nix
    testStringUtilsCapitalizationBasic = { /* ... */ };
    testStringUtilsCapitalizationEmptyString = { /* ... */ };
@@ -680,24 +699,26 @@ For optimal test execution:
    ```
 
 2. **Test Isolation**: Each test should be independent
+
    ```bash
    setup() {
      export TEST_TMPDIR=$(mktemp -d)
    }
-   
+
    teardown() {
      rm -rf "$TEST_TMPDIR"
    }
    ```
 
 3. **Meaningful Assertions**: Test behavior, not implementation
+
    ```nix
    # Good: tests behavior
    testConfigGeneration = {
      expr = generateConfig { enable = true; };
      expected = { services.myservice.enable = true; };
    };
-   
+
    # Avoid: tests implementation details
    testConfigImplementation = {
      expr = builtins.isFunction generateConfig;
@@ -723,17 +744,20 @@ trap cleanup EXIT
 ## 📚 Resources and References
 
 ### Framework Documentation
+
 - [nix-unit Documentation](https://github.com/nix-community/nix-unit)
 - [BATS Testing Framework](https://bats-core.readthedocs.io/)
 - [NixOS Test Framework](https://nixos.org/manual/nixos/stable/index.html#sec-nixos-tests)
 
 ### Related Files
+
 - [Test Runner Implementation](./run-tests.sh)
-- [Test Builders Library](./lib/test-builders.nix) 
+- [Test Builders Library](./lib/test-builders.nix)
 - [Coverage System](./lib/coverage-system.nix)
 - [Performance Benchmarks](./performance/test-benchmark.nix)
 
 ### Example Tests
+
 - [Unit Test Examples](./examples/unit-example.nix)
 - [Contract Test Examples](./examples/contract-example.bats)
 - [Integration Test Examples](./examples/integration-example.bats)

@@ -19,10 +19,10 @@ teardown() {
     # This will fail - cross-platform test execution not implemented
     local current_platform
     current_platform=$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"')
-    
+
     run nix run .#test-platform -- --platform "$current_platform"
     assert_success
-    
+
     assert_output_contains "Platform: $current_platform"
     assert_output_contains "Tests: PASSED"
 }
@@ -34,19 +34,19 @@ teardown() {
         in platformAdapter.detectPlatform {}
     "
     assert_success
-    
+
     local result
     result=$(nix eval --impure --json --expr "
         let platformAdapter = import ./modules/shared/testing.nix {};
         in platformAdapter.detectPlatform {}
     ")
-    
+
     # Should detect current platform correctly
     local detected_platform
     detected_platform=$(echo "$result" | jq -r '.platform')
     local actual_platform
     actual_platform=$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"')
-    
+
     [[ "$detected_platform" == "$actual_platform" ]]
 }
 
@@ -54,11 +54,11 @@ teardown() {
     # This will fail - Darwin-specific testing not implemented
     local current_platform
     current_platform=$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"')
-    
+
     if [[ "$current_platform" == *"darwin"* ]]; then
         run nix run .#test-darwin-specific
         assert_success
-        
+
         # Should test Darwin-specific features
         assert_output_contains "Testing Homebrew integration"
         assert_output_contains "Testing nix-darwin configuration"
@@ -72,11 +72,11 @@ teardown() {
     # This will fail - NixOS-specific testing not implemented
     local current_platform
     current_platform=$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"')
-    
+
     if [[ "$current_platform" == *"linux"* ]]; then
         run nix run .#test-nixos-specific
         assert_success
-        
+
         # Should test NixOS-specific features
         assert_output_contains "Testing systemd services"
         assert_output_contains "Testing NixOS configuration"
@@ -89,7 +89,7 @@ teardown() {
 @test "cross-platform compatibility validation works" {
     # This will fail - cross-platform validation not implemented
     local platforms=("x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin")
-    
+
     for platform in "${platforms[@]}"; do
         run nix eval --impure --expr "
             let platformAdapter = import ./modules/shared/testing.nix {};
@@ -103,11 +103,11 @@ teardown() {
     # This will fail - test filtering not implemented
     local current_platform
     current_platform=$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"')
-    
+
     # Should only run tests compatible with current platform
     run nix run .#test-filtered -- --platform "$current_platform"
     assert_success
-    
+
     # Should not attempt to run incompatible tests
     assert_output_contains "Filtered tests for $current_platform"
     if [[ "$current_platform" == *"darwin"* ]]; then
@@ -121,7 +121,7 @@ teardown() {
     # This will fail - environment setup not implemented
     local current_platform
     current_platform=$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"')
-    
+
     local environment
     environment=$(nix eval --impure --json --expr "
         let platformAdapter = import ./modules/shared/testing.nix {};
@@ -130,12 +130,12 @@ teardown() {
             config = {};
         }
     ")
-    
+
     # Should include platform-specific paths and tools
     echo "$environment" | jq -e '.platform'
     echo "$environment" | jq -e '.paths'
     echo "$environment" | jq -e '.tools'
-    
+
     local platform_field
     platform_field=$(echo "$environment" | jq -r '.platform')
     [[ "$platform_field" == "$current_platform" ]]
@@ -148,13 +148,13 @@ teardown() {
         in platformAdapter.generateBuildMatrix {}
     "
     assert_success
-    
+
     local matrix
     matrix=$(nix eval --impure --json --expr "
         let platformAdapter = import ./modules/shared/testing.nix {};
         in platformAdapter.generateBuildMatrix {}
     ")
-    
+
     # Should include all supported platforms
     echo "$matrix" | jq -e '.platforms[]' | grep -q "linux"
     echo "$matrix" | jq -e '.platforms[]' | grep -q "darwin"
@@ -164,19 +164,19 @@ teardown() {
     # This will fail - tool validation not implemented
     local current_platform
     current_platform=$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"')
-    
+
     run nix eval --impure --json --expr "
         let platformAdapter = import ./modules/shared/testing.nix {};
         in platformAdapter.validateToolAvailability \"$current_platform\"
     "
     assert_success
-    
+
     local tools
     tools=$(nix eval --impure --json --expr "
         let platformAdapter = import ./modules/shared/testing.nix {};
         in platformAdapter.validateToolAvailability \"$current_platform\"
     ")
-    
+
     # Should validate required tools are available
     echo "$tools" | jq -e '.nix'
     echo "$tools" | jq -e '.git'
@@ -187,17 +187,17 @@ teardown() {
     # This will fail - configuration loading not implemented
     local current_platform
     current_platform=$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"')
-    
+
     local config
     config=$(nix eval --impure --json --expr "
         let platformAdapter = import ./modules/shared/testing.nix {};
         in platformAdapter.loadPlatformConfig \"$current_platform\"
     ")
-    
+
     # Should load platform-specific configuration
     echo "$config" | jq -e '.platform'
     echo "$config" | jq -e '.settings'
-    
+
     local platform_field
     platform_field=$(echo "$config" | jq -r '.platform')
     [[ "$platform_field" == "$current_platform" ]]
@@ -211,13 +211,13 @@ teardown() {
         {"platform": "x86_64-darwin", "status": "passed", "tests": 8},
         {"platform": "aarch64-linux", "status": "failed", "tests": 9}
     ]'
-    
+
     local aggregated
     aggregated=$(nix eval --impure --json --expr "
         let platformAdapter = import ./modules/shared/testing.nix {};
         in platformAdapter.aggregateResults ($results)
     ")
-    
+
     # Should aggregate results correctly
     echo "$aggregated" | jq -e '.totalPlatforms'
     echo "$aggregated" | jq -e '.passedPlatforms'
@@ -232,12 +232,12 @@ teardown() {
         let platformAdapter = import ./modules/shared/testing.nix {};
         in platformAdapter.getCompatibilityMatrix {}
     ")
-    
+
     # Should include all supported platforms and features
     echo "$matrix" | jq -e '.platforms'
     echo "$matrix" | jq -e '.features'
     echo "$matrix" | jq -e '.compatibility'
-    
+
     # Should show correct compatibility for current platform
     local current_platform
     current_platform=$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"')
@@ -255,7 +255,7 @@ teardown() {
         }
     "
     assert_failure
-    
+
     # Should provide helpful error message
     assert_output_contains "Unsupported platform"
     assert_output_contains "supported platforms"
@@ -265,11 +265,11 @@ teardown() {
     # This will fail - test isolation not implemented
     local current_platform
     current_platform=$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"')
-    
+
     # Run tests in isolated environment
     run nix run .#test-isolated -- --platform "$current_platform"
     assert_success
-    
+
     # Should not interfere with other platform tests
     assert_output_contains "Isolated test environment"
     assert_output_contains "Platform: $current_platform"
@@ -280,13 +280,13 @@ teardown() {
     # This will fail - resource management not implemented
     local current_platform
     current_platform=$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"')
-    
+
     local resources
     resources=$(nix eval --impure --json --expr "
         let platformAdapter = import ./modules/shared/testing.nix {};
         in platformAdapter.allocateResources \"$current_platform\"
     ")
-    
+
     # Should allocate appropriate resources for platform
     echo "$resources" | jq -e '.memory'
     echo "$resources" | jq -e '.cpu'
@@ -297,11 +297,11 @@ teardown() {
     # This will fail - cross-platform reporting not implemented
     run nix run .#test-report-cross-platform
     assert_success
-    
+
     # Should generate comprehensive cross-platform report
     assert_file_exists "reports/cross-platform-summary.html"
     assert_file_exists "reports/platform-compatibility.json"
-    
+
     local report_content
     report_content=$(cat "reports/cross-platform-summary.html")
     [[ "$report_content" == *"Cross-Platform Test Results"* ]]
@@ -311,20 +311,20 @@ teardown() {
     # This will fail - performance testing not implemented
     local current_platform
     current_platform=$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"')
-    
+
     local start_time
     start_time=$(date +%s)
-    
+
     run nix run .#test-performance -- --platform "$current_platform"
     assert_success
-    
+
     local end_time
     end_time=$(date +%s)
     local duration=$((end_time - start_time))
-    
+
     # Should complete within reasonable time for platform
     [[ $duration -lt 180 ]] # 3 minutes max
-    
+
     # Should report platform-specific metrics
     assert_output_contains "Platform: $current_platform"
     assert_output_contains "Performance metrics"
@@ -335,14 +335,14 @@ teardown() {
     # Simulate CI environment
     export CI=true
     export GITHUB_ACTIONS=true
-    
+
     run nix run .#test-ci-cross-platform
     assert_success
-    
+
     # Should generate CI-compatible outputs
     assert_file_exists "test-results.xml"
     assert_file_exists "platform-matrix.json"
-    
+
     # Should support matrix builds
     local matrix
     matrix=$(cat "platform-matrix.json")

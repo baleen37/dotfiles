@@ -280,48 +280,52 @@ let
   # Test execution functions for different frameworks
   testExecutors = {
     # Execute nix-unit test
-    runNixUnitTest = { testCase, config ? {} }:
+    runNixUnitTest = { testCase, config ? { } }:
       let
-        testBuilders = import ./test-builders.nix { 
-          inherit (actualPkgs) lib; 
-          pkgs = actualPkgs; 
+        testBuilders = import ./test-builders.nix {
+          inherit (actualPkgs) lib;
+          pkgs = actualPkgs;
         };
         result = testBuilders.nixUnit.runTest testCase config;
-      in {
+      in
+      {
         success = result.passed or false;
         output = result.output or "";
         error = result.error or null;
       };
 
     # Execute lib.runTests test
-    runLibTest = { testCase, config ? {} }:
+    runLibTest = { testCase, config ? { } }:
       let
-        testResult = actualPkgs.lib.runTests testCase.tests or {};
-      in {
+        testResult = actualPkgs.lib.runTests testCase.tests or { };
+      in
+      {
         success = builtins.length testResult == 0;
         output = if builtins.length testResult == 0 then "All tests passed" else builtins.toJSON testResult;
         error = if builtins.length testResult > 0 then "Some tests failed" else null;
       };
 
     # Execute BATS test
-    runBatsTest = { testCase, config ? {} }:
+    runBatsTest = { testCase, config ? { } }:
       let
         batsScript = actualPkgs.writeScript "run-bats-test" ''
           #!${actualPkgs.bash}/bin/bash
           set -euo pipefail
           ${actualPkgs.bats}/bin/bats "${testCase.path or testCase.name}"
         '';
-      in {
+      in
+      {
         success = true; # Simplified for now
         output = "BATS test executed";
         error = null;
       };
 
     # Execute NixOS VM test
-    runVMTest = { testCase, config ? {} }:
+    runVMTest = { testCase, config ? { } }:
       let
         vmTest = actualPkgs.lib.nixos.runTest testCase;
-      in {
+      in
+      {
         success = true; # Simplified for now
         output = "VM test executed";
         error = null;
@@ -351,26 +355,27 @@ let
   # Enhanced test framework functions for comprehensive testing
   testFramework = {
     # Run a single test case
-    runTest = { testCase, config ? {}, fixtures ? [] }: 
+    runTest = { testCase, config ? { }, fixtures ? [ ] }:
       let
         # Import test builders for framework-specific execution
-        testBuilders = import ./test-builders.nix { 
-          inherit (actualPkgs) lib; 
-          pkgs = actualPkgs; 
+        testBuilders = import ./test-builders.nix {
+          inherit (actualPkgs) lib;
+          pkgs = actualPkgs;
         };
-        
+
         # Setup test environment
         startTime = builtins.currentTime;
-        
+
         # Validate test case structure
         validatedTestCase = testBuilders.validators.validateTestCase testCase;
-        
+
         # Execute the test based on framework
         testResult = testExecutors.runSingleTest validatedTestCase config;
-          
+
         endTime = builtins.currentTime;
-        
-      in {
+
+      in
+      {
         testCaseId = testCase.name;
         status = if testResult.success then "passed" else "failed";
         duration = endTime - startTime;
@@ -382,36 +387,43 @@ let
       };
 
     # Run a test suite
-    runSuite = { suite, config ? {} }:
+    runSuite = { suite, config ? { } }:
       let
         # Import coverage system if enabled
-        coverageSystem = import ./coverage-system.nix { 
-          inherit (actualPkgs) lib; 
-          pkgs = actualPkgs; 
+        coverageSystem = import ./coverage-system.nix {
+          inherit (actualPkgs) lib;
+          pkgs = actualPkgs;
         };
-        
+
         # Initialize coverage session if enabled
-        coverageSession = if config.coverage or false
-                         then coverageSystem.measurement.initSession {
-                           name = suite.name;
-                           config = config;
-                         }
-                         else null;
-        
+        coverageSession =
+          if config.coverage or false
+          then
+            coverageSystem.measurement.initSession
+              {
+                name = suite.name;
+                config = config;
+              }
+          else null;
+
         # Run tests (parallel or sequential based on config)
-        testResults = if config.parallel or true
-                     then testExecutors.runTestsParallel suite.tests config
-                     else testExecutors.runTestsSequential suite.tests config;
-        
+        testResults =
+          if config.parallel or true
+          then testExecutors.runTestsParallel suite.tests config
+          else testExecutors.runTestsSequential suite.tests config;
+
         # Collect coverage if enabled
-        coverage = if coverageSession != null
-                  then coverageSystem.measurement.collectCoverage {
-                    session = coverageSession;
-                    modules = suite.modules or [];
-                    testResults = testResults;
-                  }
-                  else null;
-        
+        coverage =
+          if coverageSession != null
+          then
+            coverageSystem.measurement.collectCoverage
+              {
+                session = coverageSession;
+                modules = suite.modules or [ ];
+                testResults = testResults;
+              }
+          else null;
+
         # Generate summary
         summary = {
           total = builtins.length testResults;
@@ -420,8 +432,9 @@ let
           skipped = builtins.length (builtins.filter (r: r.status == "skipped") testResults);
           duration = actualPkgs.lib.foldl' (acc: r: acc + r.duration) 0 testResults;
         };
-        
-      in {
+
+      in
+      {
         results = testResults;
         coverage = coverage.results or null;
         summary = summary;

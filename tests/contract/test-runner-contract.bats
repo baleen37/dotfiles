@@ -24,13 +24,13 @@ teardown() {
 @test "runTest accepts required inputs" {
     # This will fail - function doesn't exist
     local test_case='{
-        "name": "test-case", 
-        "type": "unit", 
+        "name": "test-case",
+        "type": "unit",
         "framework": "nix-unit"
     }'
     local config='{"timeout": 300, "parallel": false}'
     local fixtures='[]'
-    
+
     run nix eval --impure --expr "
         let testSystem = import ./lib/test-system.nix {};
         in testSystem.runTest {
@@ -43,7 +43,7 @@ teardown() {
 }
 
 @test "runTest returns TestResult structure" {
-    # This will fail - function doesn't exist  
+    # This will fail - function doesn't exist
     local result
     result=$(nix eval --json --impure --expr "
         let testSystem = import ./lib/test-system.nix {};
@@ -53,7 +53,7 @@ teardown() {
             fixtures = [];
         }
     ")
-    
+
     assert_json_field "$result" "status" "string"
     assert_json_field "$result" "duration" "number"
     assert_json_field "$result" "timestamp" "string"
@@ -63,7 +63,7 @@ teardown() {
     # This will fail - function doesn't exist
     local start_time
     start_time=$(date +%s)
-    
+
     run timeout 5 nix eval --impure --expr "
         let testSystem = import ./lib/test-system.nix {};
         in testSystem.runTest {
@@ -72,11 +72,11 @@ teardown() {
             fixtures = [];
         }
     "
-    
+
     local end_time
     end_time=$(date +%s)
     local duration=$((end_time - start_time))
-    
+
     # Should timeout within reasonable time
     [[ $duration -lt 10 ]]
 }
@@ -86,7 +86,7 @@ teardown() {
     local fixtures='[
         {"name": "test-fixture", "type": "data", "content": {"value": 42}}
     ]'
-    
+
     run nix eval --impure --expr "
         let testSystem = import ./lib/test-system.nix {};
         in testSystem.runTest {
@@ -109,11 +109,11 @@ teardown() {
             fixtures = [];
         }
     ")
-    
+
     assert_json_field "$result" "output" "string"
 }
 
-# Test runSuite function contract  
+# Test runSuite function contract
 @test "test runner implements runSuite function" {
     # This will fail - runSuite function doesn't exist yet
     assert_exports "lib/test-system.nix" "runSuite"
@@ -123,12 +123,12 @@ teardown() {
     # This will fail - function doesn't exist
     local suite='{
         "name": "test-suite",
-        "type": "unit", 
+        "type": "unit",
         "platform": "nixos",
         "tests": []
     }'
     local config='{"parallel": true, "coverage": true}'
-    
+
     run nix eval --impure --expr "
         let testSystem = import ./lib/test-system.nix {};
         in testSystem.runSuite {
@@ -155,7 +155,7 @@ teardown() {
             config = {};
         }
     ")
-    
+
     assert_json_field "$result" "results" "array"
     assert_json_field "$result" "coverage" "object"
     assert_json_field "$result" "summary" "object"
@@ -165,7 +165,7 @@ teardown() {
     # This will fail - function doesn't exist
     local start_time
     start_time=$(date +%s)
-    
+
     run nix eval --impure --expr "
         let testSystem = import ./lib/test-system.nix {};
         in testSystem.runSuite {
@@ -180,11 +180,11 @@ teardown() {
             config = { parallel = true; maxWorkers = 3; };
         }
     "
-    
+
     local end_time
     end_time=$(date +%s)
     local duration=$((end_time - start_time))
-    
+
     # Parallel execution should be faster than sequential
     assert_success
 }
@@ -205,7 +205,7 @@ teardown() {
             config = { coverage = true; };
         }
     ")
-    
+
     assert_json_field "$result" "coverage" "object"
     assert_json_field "$result.coverage" "percentage" "number"
     assert_json_field "$result.coverage" "totalLines" "number"
@@ -225,7 +225,7 @@ teardown() {
             config = { reporter = \"json\"; };
         }
     ")
-    
+
     # Should return JSON-formatted results
     assert_json_field "$result" "summary" "object"
 }
@@ -249,10 +249,10 @@ teardown() {
     run nix eval --impure --expr "
         let testSystem = import ./lib/test-system.nix {};
         in testSystem.runTest {
-            testCase = { 
-                name = \"missing-framework\"; 
-                type = \"unit\"; 
-                framework = \"nonexistent\"; 
+            testCase = {
+                name = \"missing-framework\";
+                type = \"unit\";
+                framework = \"nonexistent\";
             };
             config = {};
             fixtures = [];
@@ -277,7 +277,7 @@ teardown() {
 @test "test runner works on current platform" {
     local platform
     platform=$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"')
-    
+
     assert_platform_compatible "test-runner" "$platform"
 }
 
@@ -290,14 +290,14 @@ teardown() {
 @test "test runner integrates with existing BATS framework" {
     # This will fail - integration doesn't exist
     assert_command_available "bats"
-    
+
     run nix eval --impure --expr "
         let testSystem = import ./lib/test-system.nix {};
         in testSystem.runTest {
-            testCase = { 
-                name = \"bats-integration\"; 
-                type = \"integration\"; 
-                framework = \"bats\"; 
+            testCase = {
+                name = \"bats-integration\";
+                type = \"integration\";
+                framework = \"bats\";
             };
             config = {};
             fixtures = [];
@@ -311,10 +311,10 @@ teardown() {
     run nix eval --impure --expr "
         let testSystem = import ./lib/test-system.nix {};
         in testSystem.runTest {
-            testCase = { 
-                name = \"nix-unit-test\"; 
-                type = \"unit\"; 
-                framework = \"nix-unit\"; 
+            testCase = {
+                name = \"nix-unit-test\";
+                type = \"unit\";
+                framework = \"nix-unit\";
             };
             config = {};
             fixtures = [];

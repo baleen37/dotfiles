@@ -11,7 +11,7 @@ setup() {
     # Create temporary test environment
     TEST_TMPDIR=$(mktemp -d)
     export TEST_TMPDIR
-    
+
     # Set up test configuration
     export TEST_FLAKE_ROOT="${BATS_TEST_DIRNAME}/../.."
     export NIX_CONFIG="experimental-features = nix-command flakes"
@@ -54,7 +54,7 @@ teardown() {
   };
 }
 EOF
-    
+
     run nix eval --json "$TEST_FLAKE_ROOT#testRunner.run" --apply "f: f { testLayer = \"unit\"; testFile = \"$TEST_TMPDIR/mock-test.nix\"; }"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "passed" ]]
@@ -90,7 +90,7 @@ EOF
     run nix eval --json "$TEST_FLAKE_ROOT#coverageProvider.validateThreshold" --apply 'f: f { actual = 95; required = 90; }'
     [ "$status" -eq 0 ]
     [ "$output" = "true" ]
-    
+
     run nix eval --json "$TEST_FLAKE_ROOT#coverageProvider.validateThreshold" --apply 'f: f { actual = 85; required = 90; }'
     [ "$status" -eq 0 ]
     [ "$output" = "false" ]
@@ -109,7 +109,7 @@ EOF
 @test "platform adapter provides platform-specific configurations" {
     local platform
     platform=$(nix eval --raw "$TEST_FLAKE_ROOT#platformAdapter.currentPlatform")
-    
+
     run nix eval --json "$TEST_FLAKE_ROOT#platformAdapter.getConfig" --apply "f: f \"$platform\""
     [ "$status" -eq 0 ]
     [[ "$output" =~ "testCommand" ]]
@@ -157,7 +157,7 @@ EOF
 @test "flake checks include all test layers" {
     local platform
     platform=$(nix eval --raw "$TEST_FLAKE_ROOT#platformAdapter.currentPlatform")
-    
+
     run nix eval --json "$TEST_FLAKE_ROOT#checks.$platform" --apply "builtins.attrNames"
     [ "$status" -eq 0 ]
     [[ "$output" =~ "unit-tests" ]]
@@ -231,7 +231,7 @@ EOF
     [ "$status" -eq 0 ]
     [[ "$output" =~ "run" ]]
     [[ "$output" =~ "runSuite" ]]
-    
+
     # Ensure no breaking changes to function signatures
     run nix eval --json "$TEST_FLAKE_ROOT#testRunner.run" --apply 'f: builtins.functionArgs f'
     [ "$status" -eq 0 ]
@@ -253,13 +253,13 @@ EOF
 @test "test runner completes within timeout" {
     local start_time end_time duration
     start_time=$(date +%s)
-    
+
     # Run a simple test with timeout
     timeout 30s nix eval --json "$TEST_FLAKE_ROOT#testRunner.run" --apply 'f: f { testLayer = "unit"; testFile = "'$TEST_TMPDIR'/mock-test.nix"; }' || true
-    
+
     end_time=$(date +%s)
     duration=$((end_time - start_time))
-    
+
     # Should complete within 30 seconds
     [ "$duration" -lt 30 ]
 }
@@ -267,13 +267,13 @@ EOF
 @test "coverage collection is performant" {
     local start_time end_time duration
     start_time=$(date +%s)
-    
+
     # Test coverage collection performance
     timeout 15s nix eval --json "$TEST_FLAKE_ROOT#coverageProvider.collect" --apply 'f: f { sourceDir = "'$TEST_FLAKE_ROOT'"; }' || true
-    
+
     end_time=$(date +%s)
     duration=$((end_time - start_time))
-    
+
     # Should complete within 15 seconds
     [ "$duration" -lt 15 ]
 }
@@ -292,7 +292,7 @@ EOF
 @test "platform adapters integrate with test builders" {
     local platform
     platform=$(nix eval --raw "$TEST_FLAKE_ROOT#platformAdapter.currentPlatform")
-    
+
     run nix eval --json "$TEST_FLAKE_ROOT#testBuilders.buildForPlatform" --apply "f: f \"$platform\""
     [ "$status" -eq 0 ]
     [[ "$output" =~ "testCommand\\|executable" ]]
@@ -306,7 +306,7 @@ EOF
     # Check that critical functions have help text
     run nix eval --json "$TEST_FLAKE_ROOT#testRunner" --apply 'builtins.attrNames'
     [ "$status" -eq 0 ]
-    
+
     # Each function should have corresponding documentation
     for func in run runSuite runWithCoverage; do
         run nix eval --raw "$TEST_FLAKE_ROOT#docs.testRunner.$func" 2>/dev/null || true
@@ -322,7 +322,7 @@ EOF
 validate_json_schema() {
     local json="$1"
     local schema="$2"
-    
+
     # Basic schema validation (simplified)
     echo "$json" | jq -e "$schema" >/dev/null
 }
@@ -332,7 +332,7 @@ test_function_contract() {
     local func_path="$1"
     local test_input="$2"
     local expected_output="$3"
-    
+
     run nix eval --json "$TEST_FLAKE_ROOT#$func_path" --apply "f: f $test_input"
     [ "$status" -eq 0 ]
     [[ "$output" =~ $expected_output ]]

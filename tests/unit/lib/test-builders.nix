@@ -7,7 +7,8 @@ let
   # Import test builders (doesn't exist yet, will fail)
   testBuilders = import ../../../lib/test-builders.nix { inherit lib; };
 
-in runTests {
+in
+runTests {
   # Test unit test builder validation
   testMkNixUnitTestValidation = {
     expr = testBuilders.unit.mkNixUnitTest {
@@ -42,7 +43,7 @@ in runTests {
     expr = testBuilders.unit.mkFunctionTest {
       name = "function-test";
       func = lib.concatStrings;
-      inputs = ["hello" " " "world"];
+      inputs = [ "hello" " " "world" ];
       expected = "hello world";
     };
     expected = {
@@ -56,8 +57,8 @@ in runTests {
     expr = testBuilders.unit.mkModuleTest {
       name = "module-test";
       modulePath = "./test-module.nix";
-      config = {};
-      expected = {};
+      config = { };
+      expected = { };
     };
     expected = {
       name = "module-test";
@@ -71,7 +72,7 @@ in runTests {
     expr = testBuilders.contract.mkInterfaceTest {
       name = "interface-validation";
       modulePath = "./modules/shared/example.nix";
-      requiredExports = ["config" "options" "imports"];
+      requiredExports = [ "config" "options" "imports" ];
       description = "Test module interface";
     };
     expected = {
@@ -98,7 +99,7 @@ in runTests {
   testMkPlatformContractTestValidation = {
     expr = testBuilders.contract.mkPlatformContractTest {
       name = "platform-contract";
-      platforms = ["darwin-x86_64" "nixos-x86_64"];
+      platforms = [ "darwin-x86_64" "nixos-x86_64" ];
       testFunction = platform: platform != null;
     };
     expected = {
@@ -112,7 +113,7 @@ in runTests {
     expr = testBuilders.contract.mkAPIContractTest {
       name = "api-contract";
       command = "git";
-      expectedInterface = ["--version" "--help"];
+      expectedInterface = [ "--version" "--help" ];
     };
     expected = {
       name = "api-contract";
@@ -143,8 +144,8 @@ in runTests {
   testMkBuildIntegrationTestValidation = {
     expr = testBuilders.integration.mkBuildIntegrationTest {
       name = "build-integration";
-      buildTargets = [".#checks"];
-      validationSteps = ["test -f result"];
+      buildTargets = [ ".#checks" ];
+      validationSteps = [ "test -f result" ];
     };
     expected = {
       name = "build-integration";
@@ -156,7 +157,7 @@ in runTests {
   testMkCrossPlatformTestValidation = {
     expr = testBuilders.integration.mkCrossPlatformTest {
       name = "cross-platform-integration";
-      platforms = ["darwin-x86_64" "nixos-x86_64"];
+      platforms = [ "darwin-x86_64" "nixos-x86_64" ];
       testSteps = [
         (platform: "echo Testing on ${platform}")
         (platform: "nix eval .#checks.${platform}")
@@ -172,7 +173,7 @@ in runTests {
   testMkServiceIntegrationTestValidation = {
     expr = testBuilders.integration.mkServiceIntegrationTest {
       name = "service-integration";
-      services = ["example-service"];
+      services = [ "example-service" ];
       testScenarios = [
         { action = "start"; validate = "is-active"; }
         { action = "stop"; validate = "is-inactive"; }
@@ -243,8 +244,8 @@ in runTests {
     expr = testBuilders.e2e.mkDeploymentTest {
       name = "deployment-test";
       deploymentTarget = "nixos-vm";
-      deploymentSteps = ["build" "switch"];
-      validationSteps = ["systemctl status"];
+      deploymentSteps = [ "build" "switch" ];
+      validationSteps = [ "systemctl status" ];
     };
     expected = {
       name = "deployment-test";
@@ -257,7 +258,7 @@ in runTests {
   testMkTestSuiteValidation = {
     expr = testBuilders.suite.mkTestSuite {
       name = "comprehensive-suite";
-      tests = [];
+      tests = [ ];
       config = {
         parallel = true;
         timeout = 600;
@@ -277,7 +278,7 @@ in runTests {
     expr = testBuilders.suite.mkPlatformSuite {
       name = "darwin-suite";
       platform = "darwin-x86_64";
-      tests = [];
+      tests = [ ];
     };
     expected = {
       name = "darwin-suite";
@@ -290,7 +291,7 @@ in runTests {
     expr = testBuilders.suite.mkLayerSuite {
       name = "unit-suite";
       layer = "unit";
-      tests = [];
+      tests = [ ];
     };
     expected = {
       name = "unit-suite";
@@ -308,7 +309,7 @@ in runTests {
     };
     expected = {
       name = "valid-test";
-      type = "unit";  
+      type = "unit";
       framework = "nix-unit";
     };
   };
@@ -358,7 +359,7 @@ in runTests {
     expr = testBuilders.runners.mkFrameworkRunner "nix-unit";
     expected = {
       command = "nix-unit";
-      args = ["--flake"];
+      args = [ "--flake" ];
       supported = true;
     };
   };
@@ -367,7 +368,7 @@ in runTests {
     expr = testBuilders.runners.mkFrameworkRunner "bats";
     expected = {
       command = "bats";
-      args = [];
+      args = [ ];
       supported = true;
     };
   };
@@ -376,7 +377,7 @@ in runTests {
     expr = testBuilders.runners.mkFrameworkRunner "unsupported";
     expected = {
       command = null;
-      args = [];
+      args = [ ];
       supported = false;
     };
   };

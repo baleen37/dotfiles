@@ -19,10 +19,10 @@ teardown() {
     # This will fail - integrated build workflow doesn't exist yet
     run make clean
     assert_success
-    
+
     run make build
     assert_success
-    
+
     # Verify all components are built
     assert_file_exists "result/sw/bin/git"
     assert_file_exists "result/sw/bin/home-manager"
@@ -32,10 +32,10 @@ teardown() {
     # This will fail - testing infrastructure not integrated
     run nix build --impure .#checks.$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"').test-unit-all
     assert_success
-    
+
     run nix build --impure .#checks.$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"').test-contract-all
     assert_success
-    
+
     run nix build --impure .#checks.$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"').test-integration-all
     assert_success
 }
@@ -44,14 +44,14 @@ teardown() {
     # This will fail - coverage validation not integrated
     run nix build --impure .#checks.$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"').test-coverage-check
     assert_success
-    
+
     # Coverage should meet 90% threshold
     local coverage_result
     coverage_result=$(nix eval --impure --json .#lib.testing.getCoverageReport)
-    
+
     local coverage_percentage
     coverage_percentage=$(echo "$coverage_result" | jq -r '.percentage')
-    
+
     # Should meet 90% threshold
     [[ $(echo "$coverage_percentage >= 90" | bc -l) -eq 1 ]]
 }
@@ -60,18 +60,18 @@ teardown() {
     # This will fail - parallel build not optimized for testing
     local start_time
     start_time=$(date +%s)
-    
+
     # Run multiple build targets in parallel
     run nix build --impure \
         .#checks.$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"').test-unit-all \
         .#checks.$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"').test-contract-all \
         .#checks.$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"').test-integration-all
     assert_success
-    
+
     local end_time
     end_time=$(date +%s)
     local duration=$((end_time - start_time))
-    
+
     # Parallel execution should complete within reasonable time
     [[ $duration -lt 300 ]] # 5 minutes max
 }
@@ -80,7 +80,7 @@ teardown() {
     # This will fail - performance monitoring not integrated with testing
     run nix build --impure .#checks.$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"').test-perf
     assert_success
-    
+
     # Check performance metrics are generated
     assert_file_exists "performance-results.json"
 }
@@ -98,11 +98,11 @@ runTests {
   };
 }
 EOF
-    
+
     # Build should fail but handle gracefully
     run nix build --impure --file "$temp_test"
     assert_failure
-    
+
     # But overall build process should still be recoverable
     run make clean
     assert_success
@@ -118,7 +118,7 @@ EOF
     local end_time1
     end_time1=$(date +%s)
     local duration1=$((end_time1 - start_time1))
-    
+
     # Second build (should be faster due to caching)
     local start_time2
     start_time2=$(date +%s)
@@ -127,7 +127,7 @@ EOF
     local end_time2
     end_time2=$(date +%s)
     local duration2=$((end_time2 - start_time2))
-    
+
     # Second build should be significantly faster
     [[ $duration2 -lt $((duration1 / 2)) ]]
 }
@@ -135,13 +135,13 @@ EOF
 @test "build workflow validates all platforms" {
     # This will fail - cross-platform validation not implemented
     local platforms=("x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin")
-    
+
     for platform in "${platforms[@]}"; do
         # Skip if platform not supported by current system
         if ! nix eval --impure --expr "builtins.elem \"$platform\" (builtins.attrNames (import <nixpkgs> {}).lib.systems.examples)" >/dev/null 2>&1; then
             skip "Platform $platform not supported"
         fi
-        
+
         run nix build --impure ".#checks.$platform.test-unit-all" --dry-run
         assert_success
     done
@@ -152,10 +152,10 @@ EOF
     # Simulate GitHub Actions environment
     export GITHUB_ACTIONS=true
     export GITHUB_WORKSPACE="$TEMP_DIR"
-    
+
     run nix build --impure .#checks.$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"').test-all
     assert_success
-    
+
     # Should generate CI artifacts
     assert_file_exists "test-results.xml"
     assert_file_exists "coverage-report.xml"
@@ -164,14 +164,14 @@ EOF
 @test "build workflow supports test result caching" {
     # This will fail - test result caching not implemented
     local cache_key="test-results-$(date +%Y%m%d)"
-    
+
     # First run should populate cache
     run nix build --impure .#checks.$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"').test-unit-all
     assert_success
-    
+
     # Check if cache is populated
     assert_dir_exists ".cache/test-results"
-    
+
     # Second run should use cache
     run nix build --impure .#checks.$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"').test-unit-all
     assert_success
@@ -181,7 +181,7 @@ EOF
     # This will fail - dependency validation not implemented
     run nix flake check --impure
     assert_success
-    
+
     # Should validate all inputs and dependencies
     run nix eval --impure --expr "
         let flake = builtins.getFlake (toString ./.);
@@ -195,14 +195,14 @@ EOF
     # Create a backup of current state
     local backup_ref
     backup_ref=$(git rev-parse HEAD)
-    
+
     # Simulate test failure
     echo "invalid nix code" > "$TEMP_DIR/break-tests.nix"
-    
+
     # Build should detect failure and suggest rollback
     run make build-with-tests
     assert_failure
-    
+
     # Should provide rollback mechanism
     run make rollback-to "$backup_ref"
     assert_success
@@ -212,7 +212,7 @@ EOF
     # This will fail - comprehensive reporting not implemented
     run nix build --impure .#checks.$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"').test-all-with-reports
     assert_success
-    
+
     # Should generate multiple report formats
     assert_file_exists "reports/test-summary.html"
     assert_file_exists "reports/coverage-report.html"
@@ -234,7 +234,7 @@ EOF
   };
 }
 EOF
-    
+
     run nix build --impure --arg testConfig "import $custom_config" .#checks.$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"').test-all
     assert_success
 }
@@ -244,7 +244,7 @@ EOF
     # Should work with pre-commit hooks
     run pre-commit run --all-files
     assert_success
-    
+
     # Should integrate with IDE testing
     run nix develop --command code --list-extensions
     assert_success
@@ -265,14 +265,14 @@ EOF
     assert_success
     local hash1
     hash1=$(nix-store --query --hash "$(readlink result)")
-    
+
     # Clean and rebuild
     run nix store gc
     run nix build --impure .#checks.$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"').test-unit-all
     assert_success
     local hash2
     hash2=$(nix-store --query --hash "$(readlink result)")
-    
+
     # Hashes should be identical (reproducible build)
     [[ "$hash1" == "$hash2" ]]
 }

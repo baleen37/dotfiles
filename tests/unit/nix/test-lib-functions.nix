@@ -8,11 +8,12 @@ let
   # These don't exist yet, so tests will fail
   testBuilders = import ../../../lib/test-builders.nix { inherit lib; };
   coverageSystem = import ../../../lib/coverage-system.nix { inherit lib; };
-  
+
   # Test utilities that don't exist yet
   testUtils = import ../../../lib/test-system.nix { inherit lib; };
 
-in runTests {
+in
+runTests {
   # Test test-builders.nix functions (will fail - functions don't exist)
   testUnitTestBuilder = {
     expr = testBuilders.unit.mkNixUnitTest {
@@ -57,7 +58,7 @@ in runTests {
   testE2ETestBuilder = {
     expr = testBuilders.e2e.mkNixOSVMTest {
       name = "vm-test";
-      nodes = {};
+      nodes = { };
       testScript = "machine.succeed('true')";
     };
     expected = {
@@ -81,12 +82,14 @@ in runTests {
   };
 
   testCoverageCollectCoverage = {
-    expr = let
-      session = coverageSystem.measurement.initSession { name = "test"; };
-      modules = [ "./test-module.nix" ];
-    in coverageSystem.measurement.collectCoverage {
-      inherit session modules;
-    };
+    expr =
+      let
+        session = coverageSystem.measurement.initSession { name = "test"; };
+        modules = [ "./test-module.nix" ];
+      in
+      coverageSystem.measurement.collectCoverage {
+        inherit session modules;
+      };
     expected = {
       status = "completed";
       results.thresholdMet = true;
@@ -94,12 +97,14 @@ in runTests {
   };
 
   testCoverageValidation = {
-    expr = let
-      session = {
-        results.overallCoverage = 95.0;
-        config.threshold = 90.0;
-      };
-    in coverageSystem.validation.checkThreshold session;
+    expr =
+      let
+        session = {
+          results.overallCoverage = 95.0;
+          config.threshold = 90.0;
+        };
+      in
+      coverageSystem.validation.checkThreshold session;
     expected = true;
   };
 
@@ -107,7 +112,7 @@ in runTests {
   testTestSuiteBuilder = {
     expr = testBuilders.suite.mkTestSuite {
       name = "comprehensive-suite";
-      tests = [];
+      tests = [ ];
       config = { parallel = true; coverage = true; };
     };
     expected = {
@@ -140,19 +145,21 @@ in runTests {
   };
 
   testGenerateReport = {
-    expr = let
-      session = {
-        name = "test-session";
-        results = {
-          overallCoverage = 92.5;
-          thresholdMet = true;
+    expr =
+      let
+        session = {
+          name = "test-session";
+          results = {
+            overallCoverage = 92.5;
+            thresholdMet = true;
+          };
         };
-      };
-    in coverageSystem.reporting.generateConsoleReport session;
+      in
+      coverageSystem.reporting.generateConsoleReport session;
     expected = builtins.isString; # Should return a string
   };
 
-  # Test platform-specific functions (will fail - functions don't exist)  
+  # Test platform-specific functions (will fail - functions don't exist)
   testPlatformValidation = {
     expr = testBuilders.validators.validatePlatform "darwin-x86_64";
     expected = "darwin-x86_64";
@@ -176,7 +183,7 @@ in runTests {
     expr = builtins.tryEval (testBuilders.suite.mkLayerSuite {
       name = "invalid";
       layer = "invalid-layer";
-      tests = [];
+      tests = [ ];
     });
     expected = { success = false; };
   };
@@ -211,25 +218,29 @@ in runTests {
 
   # Test reporting formats (will fail - functions don't exist)
   testJSONReport = {
-    expr = let
-      session = {
-        sessionId = "test-123";
-        name = "test";
-        results = {};
-      };
-      jsonReport = coverageSystem.reporting.generateJSONReport session;
-    in builtins.typeOf (builtins.fromJSON jsonReport);
+    expr =
+      let
+        session = {
+          sessionId = "test-123";
+          name = "test";
+          results = { };
+        };
+        jsonReport = coverageSystem.reporting.generateJSONReport session;
+      in
+      builtins.typeOf (builtins.fromJSON jsonReport);
     expected = "set";
   };
 
   testHTMLReport = {
-    expr = let
-      session = {
-        name = "test";
-        modules = [];
-        results = { overallCoverage = 90.0; };
-      };
-    in builtins.isString (coverageSystem.reporting.generateHTMLReport session);
+    expr =
+      let
+        session = {
+          name = "test";
+          modules = [ ];
+          results = { overallCoverage = 90.0; };
+        };
+      in
+      builtins.isString (coverageSystem.reporting.generateHTMLReport session);
     expected = true;
   };
 }
