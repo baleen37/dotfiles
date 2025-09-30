@@ -1,0 +1,47 @@
+# Prettier configuration for auto-formatting
+# Ensures consistent formatting across YAML, JSON, and Markdown files
+
+# Basic formatting options
+tabWidth: 2
+useTabs: false
+semi: true
+singleQuote: true
+quoteProps: as-needed
+trailingComma: es5
+bracketSpacing: true
+bracketSameLine: false
+arrowParens: avoid
+
+# Line length
+printWidth: 120
+
+# File-specific overrides
+overrides:
+  # YAML files
+  - files: "*.{yml,yaml}"
+    options:
+      tabWidth: 2
+      printWidth: 120
+      singleQuote: false
+
+  # JSON files
+  - files: "*.json"
+    options:
+      tabWidth: 2
+      printWidth: 120
+
+  # Markdown files
+  - files: "*.md"
+    options:
+      tabWidth: 2
+      printWidth: 120
+      proseWrap: preserve
+      # Don't format code blocks
+      embeddedLanguageFormatting: off
+
+# Files to ignore
+ignore:
+  - "flake.lock"
+  - "**/.git/**"
+  - "**/node_modules/**"
+  - "**/.secrets.baseline"

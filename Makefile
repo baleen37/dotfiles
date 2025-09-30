@@ -26,11 +26,29 @@ help:
 	@echo ""
 	@echo "🔧 Development:"
 	@echo "  lint        - Run pre-commit lint checks"
+	@echo "  lint-format - Run format + lint workflow (recommended)"
 	@echo "  smoke       - Run nix flake checks for all systems"
 	@echo "  platform-info - Show detailed platform information"
 	@echo ""
+	@echo "🎨 Auto-formatting:"
+	@echo "  format      - Auto-format all files (Nix, shell, YAML, JSON, Markdown)"
+	@echo "  format-check - Check if files need formatting (CI mode)"
+	@echo "  format-dry-run - Show what would be formatted without changes"
+	@echo "  format-setup - Setup auto-formatting environment (install hooks + format)"
+	@echo "  format-quick - Quick format for common files (Nix + shell)"
+	@echo "  format-all  - Full workflow: format + lint + quick tests"
+	@echo "  format-nix  - Format only Nix files"
+	@echo "  format-shell - Format only shell scripts"
+	@echo "  format-yaml - Format only YAML files"
+	@echo "  format-json - Format only JSON files"
+	@echo "  format-markdown - Format only Markdown files"
+	@echo "  lint-format - Run format + lint workflow (recommended before commits)"
+	@echo "  lint-autofix - Run linting with auto-fix enabled"
+	@echo "  lint-install-autofix - Install pre-commit hooks with auto-fix"
+	@echo ""
 	@echo "🧪 Testing Framework (comprehensive):"
 	@echo "  test        - Run essential tests (uses test-core)"
+	@echo "  test-format - Run tests with format validation"
 	@echo "  test-core   - Run core unit tests (no duplicates)"
 	@echo "  test-unit   - Run Nix unit tests (nix-unit framework)"
 	@echo "  test-contract - Run contract tests (interface validation)"
@@ -74,12 +92,84 @@ help:
 	@echo "  deploy      - Build+switch (works on any computer)"
 	@echo ""
 	@echo "💡 Tips:"
+	@echo "  - Run 'make format' before committing to fix formatting issues"
+	@echo "  - Use 'make lint-format' for the recommended pre-commit workflow"
+	@echo "  - Use 'make format-setup' to initialize auto-formatting environment"
 	@echo "  - USER is automatically detected, but you can override: USER=myuser make build"
 	@echo "  - Use ARGS for additional nix flags: make build ARGS='--verbose'"
 	@echo "  - Specify target system: make switch HOST=aarch64-darwin"
 
 lint:
-	pre-commit run --all-files
+	@echo "🔍 Running pre-commit lint checks..."
+	@pre-commit run --all-files
+
+# Auto-formatting targets
+format:
+	@echo "🎨 Auto-formatting all files..."
+	@./scripts/auto-format.sh
+
+format-check:
+	@echo "🔍 Checking if files need formatting..."
+	@./scripts/auto-format.sh --check
+
+format-dry-run:
+	@echo "🔍 Showing what would be formatted (dry run)..."
+	@./scripts/auto-format.sh --dry-run
+
+format-nix:
+	@echo "🎨 Formatting Nix files..."
+	@./scripts/auto-format.sh nix
+
+format-shell:
+	@echo "🎨 Formatting shell scripts..."
+	@./scripts/auto-format.sh shell
+
+format-yaml:
+	@echo "🎨 Formatting YAML files..."
+	@./scripts/auto-format.sh yaml
+
+format-json:
+	@echo "🎨 Formatting JSON files..."
+	@./scripts/auto-format.sh json
+
+format-markdown:
+	@echo "🎨 Formatting Markdown files..."
+	@./scripts/auto-format.sh markdown
+
+# Format all files and install auto-fix hooks
+format-setup:
+	@echo "🚀 Setting up auto-formatting environment..."
+	@$(MAKE) lint-install-autofix
+	@$(MAKE) format
+	@echo "✅ Auto-formatting environment ready. Use 'make format' before commits."
+
+# Quick format for common file types (fastest option)
+format-quick:
+	@echo "⚡ Quick format for common files (Nix + shell)..."
+	@./scripts/auto-format.sh nix shell
+
+# Full format workflow (format + lint + basic tests)
+format-all:
+	@echo "🔄 Running comprehensive format workflow..."
+	@$(MAKE) format
+	@$(MAKE) lint
+	@$(MAKE) test-quick
+	@echo "✅ Format workflow completed successfully"
+
+# Enhanced linting with auto-fix
+lint-autofix:
+	@echo "🔧 Running linting with auto-fix enabled..."
+	@pre-commit run --config .pre-commit-config-autofix.yaml --all-files
+
+lint-install-autofix:
+	@echo "🔧 Installing pre-commit hooks with auto-fix configuration..."
+	@pre-commit install --config .pre-commit-config-autofix.yaml
+
+# Comprehensive lint with formatting
+lint-format:
+	@echo "🎨 Running format + lint workflow..."
+	@$(MAKE) format
+	@$(MAKE) lint
 
 ifdef SYSTEM
 smoke:
@@ -92,6 +182,12 @@ endif
 # Simplified test targets - use existing test-core implementation
 test:
 	@echo "🧪 Running essential test suite..."
+	@$(MAKE) test-core
+
+# Test with formatting check
+test-format:
+	@echo "🧪 Running tests with format validation..."
+	@$(MAKE) format-check
 	@$(MAKE) test-core
 
 test-core:
@@ -376,4 +472,4 @@ setup-mcp: check-user
 	@echo "🤖 Setting up Claude Code MCP servers..."
 	@./scripts/setup-claude-mcp --main
 
-.PHONY: help check-user lint smoke test test-quick test-core test-unit test-contract test-coverage test-unit-coverage test-contract-coverage test-workflow test-perf test-list test-unit-extended test-bats test-bats-lib test-bats-system test-bats-integration test-bats-platform test-bats-build test-bats-claude test-bats-user-resolution test-bats-error-system test-bats-report test-bats-report-ci build build-linux build-darwin build-current build-fast build-switch switch apply deploy platform-info setup-mcp
+.PHONY: help check-user lint lint-format lint-autofix lint-install-autofix smoke test test-format test-quick test-core test-unit test-contract test-coverage test-unit-coverage test-contract-coverage test-workflow test-perf test-list test-unit-extended test-bats test-bats-lib test-bats-system test-bats-integration test-bats-platform test-bats-build test-bats-claude test-bats-user-resolution test-bats-error-system test-bats-report test-bats-report-ci build build-linux build-darwin build-current build-fast build-switch switch apply deploy platform-info setup-mcp format format-check format-dry-run format-setup format-quick format-all format-nix format-shell format-yaml format-json format-markdown

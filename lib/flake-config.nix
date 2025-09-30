@@ -57,9 +57,29 @@
       let pkgs = nixpkgs.legacyPackages.${system};
       in {
         default = with pkgs; mkShell {
-          nativeBuildInputs = [ bashInteractive git ];
+          nativeBuildInputs = [
+            bashInteractive
+            git
+            # Auto-formatting tools
+            nixpkgs-fmt # Nix formatting
+            shfmt # Shell script formatting
+            nodePackages.prettier # YAML, JSON, Markdown formatting
+            jq # JSON formatting and manipulation
+            yq-go # YAML formatting and manipulation
+            # Development tools
+            pre-commit # Pre-commit hooks
+            shellcheck # Shell script linting
+          ];
           shellHook = ''
             export EDITOR=vim
+            echo "🔧 Auto-formatting tools available:"
+            echo "  - nixpkgs-fmt (Nix files)"
+            echo "  - shfmt (Shell scripts)"
+            echo "  - prettier (YAML, JSON, Markdown)"
+            echo "  - jq (JSON)"
+            echo "  - yq (YAML)"
+            echo ""
+            echo "💡 Run 'make format' to auto-format all files"
           '';
         };
       };

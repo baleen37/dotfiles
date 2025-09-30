@@ -1,0 +1,114 @@
+# Enhanced Pre-commit configuration with auto-formatting capabilities
+# This configuration automatically fixes formatting issues instead of just reporting them
+
+repos:
+  # Core file and content checks with auto-fixing
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      # Auto-fixing content formatting
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+        args: [--fix=lf]
+      - id: fix-byte-order-marker
+
+      # File permissions and security
+      - id: check-executables-have-shebangs
+      - id: check-shebang-scripts-are-executable
+
+      # Syntax validation (these don't auto-fix, but validate)
+      - id: check-yaml
+        args: [--allow-multiple-documents]
+      - id: check-json
+        exclude: ^\.vscode/
+      - id: check-toml
+      - id: check-xml
+
+      # Git and merge checks
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: [--maxkb=1000]
+      - id: forbid-new-submodules
+
+      # Security checks
+      - id: detect-private-key
+      - id: detect-aws-credentials
+        args: [--allow-missing-credentials]
+
+  # Shell script formatting (auto-fix enabled)
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.10.0.1
+    hooks:
+      - id: shellcheck
+        args: [--severity=error, --format=diff]
+        exclude: ^scripts/lib/.*\.sh$  # Skip library files temporarily
+
+  # Shell script auto-formatting with shfmt
+  - repo: https://github.com/scop/pre-commit-shfmt
+    rev: v3.8.0-1
+    hooks:
+      - id: shfmt
+        args: [-w, -s, -i, "2"]  # Write changes, simplify, indent with 2 spaces
+
+  # Nix formatting and validation (auto-fix enabled)
+  - repo: https://github.com/nix-community/nixpkgs-fmt
+    rev: v1.3.0
+    hooks:
+      - id: nixpkgs-fmt
+
+  # YAML auto-formatting with prettier
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v4.0.0-alpha.8
+    hooks:
+      - id: prettier
+        types_or: [yaml, json]
+        args: [--write, --tab-width=2, --print-width=120]
+
+  # Markdown formatting and linting (auto-fix enabled)
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.41.0
+    hooks:
+      - id: markdownlint
+        args: [--fix]
+        exclude: ^(CHANGELOG\.md|modules/shared/config/claude/.*\.md)$
+
+  # Security scanning (no auto-fix, but important validation)
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args: [--baseline, .secrets.baseline]
+
+# Test execution hooks (unchanged)
+  - repo: local
+    hooks:
+      - id: validate-build-switch
+        name: Validate build-switch scripts
+        entry: nix run .#validate-build-switch
+        language: system
+        pass_filenames: false
+        files: ^(lib/.*\.sh|lib/.*\.nix|.*build-switch.*)$
+        stages: [pre-commit]
+
+      - id: run-unit-tests
+        name: Run unit tests
+        entry: tests/run-tests.sh unit --timeout 60
+        language: system
+        pass_filenames: false
+        files: ^tests/unit/.*\.bats$
+        stages: [pre-commit]
+
+      - id: check-test-coverage
+        name: Check test coverage
+        entry: bash -c 'source tests/lib/coverage.bash && generate_coverage_report'
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]
+
+# Global configuration
+default_install_hook_types: [pre-commit, pre-push, prepare-commit-msg]
+default_stages: [pre-commit]
+minimum_pre_commit_version: '3.0.0'
