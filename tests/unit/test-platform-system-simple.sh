@@ -86,7 +86,7 @@ test_basic_platform_detection() {
     # Test basic system detection (minimal timeout)
     log_info "기본 시스템 탐지 시작..."
     local current_system
-    
+
     # First try a very simple evaluation
     if current_system=$(timeout 5s nix eval --impure --expr 'builtins.currentSystem' --raw 2>/dev/null); then
         assert_not_empty "$current_system" "기본 시스템 식별"
@@ -100,7 +100,7 @@ test_basic_platform_detection() {
     # Test if we can import our platform system (with very short timeout)
     log_info "플랫폼 시스템 가져오기 시도..."
     local platform_result
-    
+
     if platform_result=$(timeout 3s nix eval --impure --expr '(import ./lib/platform-system.nix { system = builtins.currentSystem; }) != null' 2>/dev/null); then
         if [[ "$platform_result" == "true" ]]; then
             assert_pass "플랫폼 시스템 가져오기 성공"
@@ -116,14 +116,14 @@ test_basic_platform_detection() {
 # File structure validation test
 test_file_structure() {
     log_test_suite "파일 구조 검증 테스트"
-    
+
     # Check that required files exist
     local required_files=(
         "lib/platform-system.nix"
         "lib/platform-detection.nix"
         "lib/error-system.nix"
     )
-    
+
     for file in "${required_files[@]}"; do
         assert_file_exists "$PROJECT_ROOT/$file" "$file 파일 존재"
     done
@@ -132,13 +132,13 @@ test_file_structure() {
 # Simple syntax validation
 test_syntax_validation() {
     log_test_suite "구문 검증 테스트"
-    
+
     if ! command -v nix >/dev/null 2>&1; then
         log_warn "nix 명령어 없음 - 구문 검증 건너뜀"
         assert_pass "구문 검증 건너뜀"
         return 0
     fi
-    
+
     # Test that the files can be parsed (not evaluated, just parsed)
     log_info "platform-system.nix 구문 검사..."
     if timeout 3s nix-instantiate --parse "$PROJECT_ROOT/lib/platform-system.nix" >/dev/null 2>&1; then
@@ -163,7 +163,7 @@ main() {
     echo "Starting test_file_structure..."
     test_file_structure
     echo "Starting test_syntax_validation..."
-    test_syntax_validation  
+    test_syntax_validation
     echo "Starting test_basic_platform_detection..."
     test_basic_platform_detection
 

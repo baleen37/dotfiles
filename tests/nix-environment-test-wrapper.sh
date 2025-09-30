@@ -33,7 +33,7 @@ log_header() { echo -e "${PURPLE}${BOLD}[TEST SUITE]${NC} $*"; }
 # Detect environment type
 detect_environment() {
     local env_type="unknown"
-    
+
     if [[ -n "${NIX_BUILD_TOP:-}" ]]; then
         env_type="nix-build"
     elif [[ "$(whoami)" == "nixbld"* ]]; then
@@ -45,7 +45,7 @@ detect_environment() {
     else
         env_type="local"
     fi
-    
+
     echo "$env_type"
 }
 
@@ -53,7 +53,7 @@ detect_environment() {
 check_tool() {
     local tool="$1"
     local required="${2:-false}"
-    
+
     if command -v "$tool" >/dev/null 2>&1; then
         log_info "$tool: available"
         return 0
@@ -71,11 +71,11 @@ check_tool() {
 # Environment-specific test configuration
 configure_test_environment() {
     local env_type="$1"
-    
+
     # Set environment variables for test adaptation
     export TEST_ENVIRONMENT="$env_type"
     export NIX_ENVIRONMENT_DETECTED="true"
-    
+
     case "$env_type" in
         "nix-build"|"nixbld")
             export TEST_MODE="nix-build"
@@ -120,28 +120,28 @@ run_test() {
     local test_script="$1"
     local test_path="$SCRIPT_DIR/$test_script"
     local test_name=$(basename "$test_script" .sh)
-    
+
     log_header "Running $test_name"
-    
+
     if [[ ! -f "$test_path" ]]; then
         log_error "Test script not found: $test_path"
         ((TESTS_FAILED++))
         return 1
     fi
-    
+
     if [[ ! -x "$test_path" ]]; then
         chmod +x "$test_path"
     fi
-    
+
     # Set up test-specific environment
     local test_home
     test_home=$(mktemp -d)
     export TEST_HOME="$test_home"
-    
+
     # Run the test with timeout
     local exit_code=0
     local timeout_duration="${NIX_EVAL_TIMEOUT:-30}s"
-    
+
     if timeout "$timeout_duration" bash "$test_path"; then
         log_success "$test_name passed"
         ((TESTS_PASSED++))
@@ -154,61 +154,61 @@ run_test() {
         fi
         ((TESTS_FAILED++))
     fi
-    
+
     # Cleanup
     if [[ -n "$test_home" && -d "$test_home" ]]; then
         rm -rf "$test_home"
     fi
-    
+
     return $exit_code
 }
 
 # Main test runner
 main() {
     log_header "Nix Environment Test Wrapper"
-    
+
     # Detect and configure environment
     local env_type
     env_type=$(detect_environment)
     log_info "Environment detected: $env_type"
-    
+
     configure_test_environment "$env_type"
-    
+
     # Check tool availability
     log_header "Tool Availability Check"
     local tools_available=true
-    
+
     if ! check_tool "bash" true; then
         tools_available=false
     fi
-    
+
     check_tool "nix" false
     check_tool "jq" false
     check_tool "make" false
-    
+
     if [[ "$tools_available" != "true" ]]; then
         log_error "Required tools not available, aborting tests"
         exit 1
     fi
-    
+
     # List of tests to run (relative to tests directory)
     local test_scripts=(
         "unit/test-platform-system.sh"
-        "unit/test-user-resolution.sh" 
+        "unit/test-user-resolution.sh"
         "unit/test-error-system.sh"
     )
-    
+
     log_header "Running Unit Tests"
     log_info "Total tests to run: ${#test_scripts[@]}"
-    
+
     # Change to project root for nix commands
     cd "$PROJECT_ROOT"
-    
+
     # Run each test
     for test_script in "${test_scripts[@]}"; do
         run_test "$test_script"
     done
-    
+
     # Summary
     echo ""
     log_header "Test Results Summary"
@@ -216,7 +216,7 @@ main() {
     log_info "Passed: $TESTS_PASSED"
     log_info "Failed: $TESTS_FAILED"
     log_info "Skipped: $TESTS_SKIPPED"
-    
+
     if [[ $TESTS_FAILED -gt 0 ]]; then
         log_error "Some tests failed"
         exit 1

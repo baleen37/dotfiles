@@ -28,10 +28,10 @@ FAILED_TESTS=0
 run_test() {
     local test_name="$1"
     local test_script="$2"
-    
+
     log_info "Running $test_name..."
     TOTAL_TESTS=$((TOTAL_TESTS + 1))
-    
+
     if timeout 30s "$test_script" >/dev/null 2>&1; then
         log_success "$test_name passed"
         PASSED_TESTS=$((PASSED_TESTS + 1))
@@ -44,10 +44,10 @@ run_test() {
 main() {
     log_header "Testing All Fixed Unit Tests"
     echo ""
-    
+
     # Change to project root
     cd "$(dirname "$0")/.."
-    
+
     # Test environment detection
     local env_type="local"
     if [[ -n "${NIX_BUILD_TOP:-}" ]] || [[ "$(whoami)" == "nixbld"* ]]; then
@@ -55,24 +55,24 @@ main() {
     elif [[ "${CI:-false}" == "true" ]]; then
         env_type="ci"
     fi
-    
+
     log_info "Environment: $env_type"
     log_info "User: $(whoami)"
     log_info "Home: $HOME"
     echo ""
-    
+
     # Run all fixed tests
     run_test "Platform System Test" "./tests/unit/test-platform-system.sh"
     run_test "User Resolution Test" "./tests/unit/test-user-resolution.sh"
     run_test "Error System Test" "./tests/unit/test-error-system.sh"
-    
+
     # Summary
     echo ""
     log_header "Test Results Summary"
     log_info "Environment: $env_type"
     log_info "Total tests: $TOTAL_TESTS"
     log_info "Passed: $PASSED_TESTS"
-    
+
     if [[ $FAILED_TESTS -gt 0 ]]; then
         log_error "Failed: $FAILED_TESTS"
         echo ""

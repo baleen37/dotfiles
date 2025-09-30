@@ -126,6 +126,10 @@ generate_coverage_report() {
           ((tested_files++))
           local test_count=$(count_tested_functions "$test_file")
           test_count=${test_count:-0}
+          # Ensure test_count is a valid number
+          if [[ ! "$test_count" =~ ^[0-9]+$ ]]; then
+            test_count=0
+          fi
           total_tests=$((total_tests + test_count))
           # Assume all pass for now (would need actual test results)
           passed_tests=$((passed_tests + test_count))
@@ -160,6 +164,10 @@ generate_coverage_report() {
           if [[ -f "$test_file" ]]; then
             local file_test_count=$(count_tested_functions "$test_file")
             file_test_count=${file_test_count:-0}
+            # Ensure file_test_count is a valid number
+            if [[ ! "$file_test_count" =~ ^[0-9]+$ ]]; then
+              file_test_count=0
+            fi
             cat_tests=$((cat_tests + file_test_count))
           fi
         done < <(find "tests/$category" -name "*.bats" -type f 2>/dev/null)

@@ -244,7 +244,7 @@ test_system_integrity() {
 
     for error_type in "${error_types[@]}"; do
         local icon category priority
-        
+
         # Try to evaluate each attribute, handling cases where nix might not be available
         if icon=$(eval_error_system "errorTypes.${error_type}.icon"); then
             assert_test "[[ -n '$icon' ]]" "$error_type 타입 아이콘 존재"
@@ -252,14 +252,14 @@ test_system_integrity() {
             log_warning "$error_type 아이콘 평가 실패 (Nix 환경 문제)"
             log_success "$error_type 타입 아이콘 테스트 건너뜀"
         fi
-        
+
         if category=$(eval_error_system "errorTypes.${error_type}.category"); then
             assert_test "[[ -n '$category' ]]" "$error_type 타입 카테고리 존재"
         else
             log_warning "$error_type 카테고리 평가 실패 (Nix 환경 문제)"
             log_success "$error_type 타입 카테고리 테스트 건너뜀"
         fi
-        
+
         if priority=$(eval_error_system "errorTypes.${error_type}.priority"); then
             assert_test "[[ -n '$priority' ]]" "$error_type 타입 우선순위 존재"
         else
@@ -282,13 +282,13 @@ test_performance() {
 
     local start_time=$(date +%s%N)
     local successful_calls=0
-    
+
     for i in {1..20}; do
         if eval_error_system "errorTypes.build.icon" >/dev/null 2>&1; then
             successful_calls=$((successful_calls + 1))
         fi
     done
-    
+
     local end_time=$(date +%s%N)
     local duration=$(( (end_time - start_time) / 1000000 )) # 밀리초 변환
 

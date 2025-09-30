@@ -100,7 +100,7 @@ test_platform_detection() {
     current_system=$(timeout 10s nix eval --impure --expr '(import ./lib/platform-system.nix { system = builtins.currentSystem; }).system' --raw 2>/dev/null)
     local eval_exit_code=$?
     set -e  # Re-enable errexit
-    
+
     if [[ $eval_exit_code -eq 0 && -n "$current_system" ]]; then
         assert_not_empty "$current_system" "현재 시스템 식별"
         log_info "Nix 평가 성공: $current_system"
@@ -117,7 +117,7 @@ test_platform_detection() {
     current_platform=$(timeout 10s nix eval --impure --expr '(import ./lib/platform-system.nix { system = builtins.currentSystem; }).platform' --raw 2>/dev/null)
     local platform_exit_code=$?
     set -e
-    
+
     if [[ $platform_exit_code -eq 0 && -n "$current_platform" ]]; then
         assert_not_empty "$current_platform" "현재 플랫폼 식별"
         log_info "플랫폼 평가 성공: $current_platform"
@@ -133,7 +133,7 @@ test_platform_detection() {
     current_arch=$(timeout 10s nix eval --impure --expr '(import ./lib/platform-system.nix { system = builtins.currentSystem; }).arch' --raw 2>/dev/null)
     local arch_exit_code=$?
     set -e
-    
+
     if [[ $arch_exit_code -eq 0 && -n "$current_arch" ]]; then
         assert_not_empty "$current_arch" "현재 아키텍처 식별"
         log_info "아키텍처 평가 성공: $current_arch"
@@ -165,7 +165,7 @@ test_supported_platforms() {
         IFS=':' read -r system expected_platform expected_arch <<< "$test_case"
 
         local actual_platform actual_arch
-        
+
         if actual_platform=$(timeout 10s nix eval --expr "(import ./lib/platform-system.nix { system = \"$system\"; }).platform" --raw 2>/dev/null); then
             assert_equals "$expected_platform" "$actual_platform" "$system 플랫폼 매핑"
         else
@@ -194,7 +194,7 @@ test_platform_utilities() {
 
     # Test isDarwin function
     local is_darwin_linux is_darwin_macos is_linux_linux is_linux_macos
-    
+
     if is_darwin_linux=$(timeout 10s nix eval --expr "(import ./lib/platform-system.nix { system = \"x86_64-linux\"; }).isDarwin" 2>/dev/null); then
         assert_equals "false" "$is_darwin_linux" "Linux에서 isDarwin false"
     else

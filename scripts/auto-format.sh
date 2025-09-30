@@ -83,7 +83,7 @@ EOF
 # Parse command line arguments
 parse_args() {
     local check_mode=false
-    
+
     while [[ $# -gt 0 ]]; do
         case $1 in
             -h|--help)
@@ -118,12 +118,12 @@ parse_args() {
                 ;;
         esac
     done
-    
+
     # If no tools specified, default to all
     if [[ ${#SPECIFIC_TOOLS[@]} -eq 0 ]]; then
         SPECIFIC_TOOLS=("all")
     fi
-    
+
     # Set environment variable for check mode
     if [[ "$check_mode" == "true" ]]; then
         export AUTO_FORMAT_CHECK_MODE=true
@@ -141,14 +141,14 @@ run_formatter() {
     local description="$2"
     shift 2
     local cmd=("$@")
-    
+
     log_verbose "Running $tool: ${cmd[*]}"
-    
+
     if [[ "$DRY_RUN" == "true" ]]; then
         log_info "[DRY RUN] Would run $description"
         return 0
     fi
-    
+
     if "${cmd[@]}"; then
         log_success "$description completed"
         return 0
@@ -161,104 +161,104 @@ run_formatter() {
 # Format Nix files
 format_nix() {
     log_info "Formatting Nix files..."
-    
+
     if ! command_exists nixpkgs-fmt; then
         log_warning "nixpkgs-fmt not found. Install with: nix shell nixpkgs#nixpkgs-fmt"
         return 1
     fi
-    
+
     local nix_files
     mapfile -t nix_files < <(find "$PROJECT_ROOT" -name "*.nix" -not -path "*/\.*" | head -100)
-    
+
     if [[ ${#nix_files[@]} -eq 0 ]]; then
         log_info "No Nix files found to format"
         return 0
     fi
-    
+
     log_verbose "Found ${#nix_files[@]} Nix files"
-    
+
     run_formatter "nixpkgs-fmt" "Nix formatting" nixpkgs-fmt "${nix_files[@]}"
 }
 
 # Format shell scripts
 format_shell() {
     log_info "Formatting shell scripts..."
-    
+
     if ! command_exists shfmt; then
         log_warning "shfmt not found. Install with: nix shell nixpkgs#shfmt"
         return 1
     fi
-    
+
     local shell_files
     mapfile -t shell_files < <(find "$PROJECT_ROOT" -name "*.sh" -o -name "*.bash" | grep -v ".git" | head -100)
-    
+
     if [[ ${#shell_files[@]} -eq 0 ]]; then
         log_info "No shell files found to format"
         return 0
     fi
-    
+
     log_verbose "Found ${#shell_files[@]} shell files"
-    
+
     local shfmt_args=(-w -s -i 2)
     if [[ "$DRY_RUN" == "true" ]]; then
         shfmt_args=(-d -s -i 2)  # Use diff mode for dry run
     fi
-    
+
     run_formatter "shfmt" "Shell formatting" shfmt "${shfmt_args[@]}" "${shell_files[@]}"
 }
 
 # Format YAML files
 format_yaml() {
     log_info "Formatting YAML files..."
-    
+
     if ! command_exists prettier; then
         log_warning "prettier not found. Install with: nix shell nixpkgs#nodePackages.prettier"
         return 1
     fi
-    
+
     local yaml_files
     mapfile -t yaml_files < <(find "$PROJECT_ROOT" -name "*.yaml" -o -name "*.yml" | grep -v ".git" | head -100)
-    
+
     if [[ ${#yaml_files[@]} -eq 0 ]]; then
         log_info "No YAML files found to format"
         return 0
     fi
-    
+
     log_verbose "Found ${#yaml_files[@]} YAML files"
-    
+
     local prettier_args=(--tab-width=2 --print-width=120)
     if [[ "$DRY_RUN" != "true" ]]; then
         prettier_args+=(--write)
     else
         prettier_args+=(--check)
     fi
-    
+
     run_formatter "prettier" "YAML formatting" prettier "${prettier_args[@]}" "${yaml_files[@]}"
 }
 
 # Format JSON files
 format_json() {
     log_info "Formatting JSON files..."
-    
+
     if ! command_exists jq; then
         log_warning "jq not found. Install with: nix shell nixpkgs#jq"
         return 1
     fi
-    
+
     local json_files
     mapfile -t json_files < <(find "$PROJECT_ROOT" -name "*.json" | grep -v -E "(\\.git|node_modules|flake\\.lock)" | head -100)
-    
+
     if [[ ${#json_files[@]} -eq 0 ]]; then
         log_info "No JSON files found to format"
         return 0
     fi
-    
+
     log_verbose "Found ${#json_files[@]} JSON files"
-    
+
     local formatted_count=0
     for file in "${json_files[@]}"; do
         log_verbose "Processing: $file"
-        
+
         if [[ "$DRY_RUN" == "true" ]]; then
             if ! jq empty "$file" >/dev/null 2>&1; then
                 log_warning "Invalid JSON in $file"
@@ -276,34 +276,34 @@ format_json() {
             fi
         fi
     done
-    
+
     log_success "JSON formatting: $formatted_count files processed"
 }
 
 # Format Markdown files
 format_markdown() {
     log_info "Formatting Markdown files..."
-    
+
     if ! command_exists markdownlint; then
         log_warning "markdownlint not found. Install with: nix shell nixpkgs#nodePackages.markdownlint-cli"
         return 1
     fi
-    
+
     local md_files
     mapfile -t md_files < <(find "$PROJECT_ROOT" -name "*.md" | grep -v ".git" | head -100)
-    
+
     if [[ ${#md_files[@]} -eq 0 ]]; then
         log_info "No Markdown files found to format"
         return 0
     fi
-    
+
     log_verbose "Found ${#md_files[@]} Markdown files"
-    
+
     local markdownlint_args=(--config "$PROJECT_ROOT/.markdownlint.yaml")
     if [[ "$DRY_RUN" != "true" ]]; then
         markdownlint_args+=(--fix)
     fi
-    
+
     # Exclude certain files as per original config
     local excluded_files=("CHANGELOG.md")
     local filtered_files=()
@@ -321,12 +321,12 @@ format_markdown() {
             filtered_files+=("$file")
         fi
     done
-    
+
     if [[ ${#filtered_files[@]} -eq 0 ]]; then
         log_info "No Markdown files to format (all excluded)"
         return 0
     fi
-    
+
     run_formatter "markdownlint" "Markdown formatting" markdownlint "${markdownlint_args[@]}" "${filtered_files[@]}"
 }
 
@@ -334,17 +334,17 @@ format_markdown() {
 run_formatters() {
     local exit_code=0
     local tools_to_run=()
-    
+
     # Determine which tools to run
     if [[ " ${SPECIFIC_TOOLS[*]} " =~ " all " ]]; then
         tools_to_run=("nix" "shell" "yaml" "json" "markdown")
     else
         tools_to_run=("${SPECIFIC_TOOLS[@]}")
     fi
-    
+
     log_info "Running formatters: ${tools_to_run[*]}"
     [[ "$DRY_RUN" == "true" ]] && log_info "DRY RUN MODE - no files will be modified"
-    
+
     # Run each formatter
     for tool in "${tools_to_run[@]}"; do
         case "$tool" in
@@ -369,23 +369,23 @@ run_formatters() {
                 ;;
         esac
     done
-    
+
     return $exit_code
 }
 
 # Main function
 main() {
     cd "$PROJECT_ROOT"
-    
+
     parse_args "$@"
-    
+
     if [[ "$DRY_RUN" == "true" && "${AUTO_FORMAT_CHECK_MODE:-}" == "true" ]]; then
         log_info "Running in check mode - will exit with non-zero if formatting is needed"
     fi
-    
+
     log_info "Auto-formatting dotfiles repository"
     log_verbose "Project root: $PROJECT_ROOT"
-    
+
     if run_formatters; then
         if [[ "$DRY_RUN" == "true" ]]; then
             log_success "All formatters completed (dry run)"

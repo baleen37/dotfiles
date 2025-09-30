@@ -1,0 +1,19 @@
+════════════════════════════════════════════════════
+                 Coverage Report
+════════════════════════════════════════════════════
+
+File Coverage:    100% (21/21 files)
+Test Coverage:    100% (199/199 tests)
+Threshold:        80%
+
+Category Breakdown:
+-------------------
+  unit           :   3 files,   54 tests
+  integration    :  16 files,  126 tests
+  e2e            :   2 files,   19 tests
+  performance    :   0 files,    0 tests
+
+✓ Coverage meets threshold (80%)
+
+Report generated: 2025-09-30 10:37:40
+════════════════════════════════════════════════════
