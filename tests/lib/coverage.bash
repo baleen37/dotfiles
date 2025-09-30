@@ -70,13 +70,19 @@ calculate_coverage_percentage() {
   local total="${2:-0}"
 
   if [[ $total -eq 0 ]]; then
-    echo "0.0"
+    echo "0"
     return
   fi
 
   # Use bc for floating point calculation
   if command -v bc &>/dev/null; then
-    echo "scale=1; ($tested * 100) / $total" | bc
+    local result=$(echo "scale=1; ($tested * 100) / $total" | bc)
+    # Convert to integer if it's a whole number
+    if [[ $result =~ ^[0-9]+\.0$ ]]; then
+      echo "${result%.*}"
+    else
+      echo "$result"
+    fi
   else
     # Fallback to integer math
     echo $(( (tested * 100) / total ))
