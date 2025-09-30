@@ -38,7 +38,8 @@ count_test_files() {
   if [[ "$category" == "all" ]]; then
     for cat in unit integration e2e performance; do
       if [[ -d "tests/$cat" ]]; then
-        count=$((count + $(find "tests/$cat" -name "*.bats" -type f 2>/dev/null | wc -l)))
+        local cat_count=$(find "tests/$cat" -name "*.bats" -type f 2>/dev/null | wc -l)
+        count=$((count + cat_count))
       fi
     done
   else
@@ -70,16 +71,22 @@ calculate_coverage_percentage() {
   local total="${2:-0}"
 
   if [[ $total -eq 0 ]]; then
-    echo "0.0"
+    echo "0"
     return
   fi
 
   # Use bc for floating point calculation
   if command -v bc &>/dev/null; then
-    echo "scale=1; ($tested * 100) / $total" | bc
+    local result=$(echo "scale=1; ($tested * 100) / $total" | bc)
+    # Convert to integer if it's a whole number
+    if [[ $result =~ ^[0-9]+\.0$ ]]; then
+      echo "${result%.*}"
+    else
+      echo "$result"
+    fi
   else
     # Fallback to integer math
-    echo $(( (tested * 100) / total ))
+    echo $(( ($tested * 100) / $total ))
   fi
 }
 
@@ -118,6 +125,11 @@ generate_coverage_report() {
         if [[ -f "$test_file" ]]; then
           ((tested_files++))
           local test_count=$(count_tested_functions "$test_file")
+          test_count=${test_count:-0}
+          # Ensure test_count is a valid number
+          if [[ ! "$test_count" =~ ^[0-9]+$ ]]; then
+            test_count=0
+          fi
           total_tests=$((total_tests + test_count))
           # Assume all pass for now (would need actual test results)
           passed_tests=$((passed_tests + test_count))
@@ -150,7 +162,13 @@ generate_coverage_report() {
         local cat_tests=0
         while IFS= read -r test_file; do
           if [[ -f "$test_file" ]]; then
-            cat_tests=$((cat_tests + $(count_tested_functions "$test_file")))
+            local file_test_count=$(count_tested_functions "$test_file")
+            file_test_count=${file_test_count:-0}
+            # Ensure file_test_count is a valid number
+            if [[ ! "$file_test_count" =~ ^[0-9]+$ ]]; then
+              file_test_count=0
+            fi
+            cat_tests=$((cat_tests + file_test_count))
           fi
         done < <(find "tests/$category" -name "*.bats" -type f 2>/dev/null)
         printf "  %-15s: %3d files, %4d tests\n" "$category" "$cat_files" "$cat_tests"

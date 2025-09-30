@@ -10,7 +10,7 @@
 1. Load feature spec from Input path
    → If not found: ERROR "No feature spec at {path}"
 2. Fill Technical Context (scan for NEEDS CLARIFICATION)
-   → Detect Project Type from context (web=frontend+backend, mobile=app+api)
+   → Detect Project Type from file system structure or context (web=frontend+backend, mobile=app+api)
    → Set Structure Decision based on project type
 3. Fill the Constitution Check section based on the content of the constitution document.
 4. Evaluate Constitution Check section below
@@ -52,7 +52,30 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+**지속가능성 검증**:
+
+- [ ] 변경사항이 장기적 유지보수성을 고려하는가?
+- [ ] 기존 설정 보존 및 롤백 메커니즘이 있는가?
+
+**모듈화 원칙 준수**:
+
+- [ ] 플랫폼별 모듈 분리가 명확한가? (darwin/nixos/shared)
+- [ ] 모듈 간 순환 의존성이 없는가?
+
+**Nix 베스트 프랙티스**:
+
+- [ ] 모든 설정이 선언적으로 정의되는가?
+- [ ] flake.lock이 적절히 관리되는가?
+
+**크로스플랫폼 호환성**:
+
+- [ ] macOS와 NixOS 모두에서 테스트되는가?
+- [ ] 플랫폼별 제한사항이 문서화되는가?
+
+**테스트 주도 품질**:
+
+- [ ] 90% 이상 테스트 커버리지가 유지되는가?
+- [ ] TDD 방식으로 개발되는가?
 
 ## Project Structure
 
@@ -69,9 +92,14 @@ specs/[###-feature]/
 ```
 
 ### Source Code (repository root)
-
+<!--
+  ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
+  for this feature. Delete unused options and expand the chosen structure with
+  real paths (e.g., apps/admin, packages/something). The delivered plan must
+  not include Option labels.
+-->
 ```text
-# Option 1: Single project (DEFAULT)
+# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
 src/
 ├── models/
 ├── services/
@@ -83,7 +111,7 @@ tests/
 ├── integration/
 └── unit/
 
-# Option 2: Web application (when "frontend" + "backend" detected)
+# [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
 backend/
 ├── src/
 │   ├── models/
@@ -98,15 +126,16 @@ frontend/
 │   └── services/
 └── tests/
 
-# Option 3: Mobile + API (when "iOS/Android" detected)
+# [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
 api/
 └── [same as backend above]
 
 ios/ or android/
-└── [platform-specific structure]
+└── [platform-specific structure: feature modules, UI flows, platform tests]
 ```
 
-**Structure Decision**: [DEFAULT to Option 1 unless Technical Context indicates web/mobile app]
+**Structure Decision**: [Document the selected structure and reference the real
+directories captured above]
 
 ## Phase 0: Outline & Research
 
@@ -227,4 +256,4 @@ ios/ or android/
 - [ ] Complexity deviations documented
 
 ---
-*Based on Constitution v2.1.1 - See `/memory/constitution.md`*
+*Based on Constitution v1.0.0 - See `.specify/memory/constitution.md`*

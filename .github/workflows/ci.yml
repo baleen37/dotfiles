@@ -163,7 +163,7 @@ jobs:
           esac
           echo "✅ Build completed successfully"
 
-  # Parallel test stage (2-3 minutes)
+  # Parallel test stage (2-3 minutes) with coverage support
   test-parallel:
     name: Test ${{ matrix.category }}
     needs: [validate, build-core]
@@ -172,6 +172,17 @@ jobs:
       fail-fast: false
       matrix:
         category: [unit, integration, perf]
+        include:
+          - category: unit
+            coverage: true
+          - category: nix-unit
+            coverage: true
+          - category: contract
+            coverage: false
+          - category: integration
+            coverage: false
+          - category: perf
+            coverage: false
     runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
@@ -238,8 +249,19 @@ jobs:
           echo "Debug: Available test files:"
           find tests -name "*${{ matrix.category }}*" || echo "No test files found"
 
-          # Run test with verbose output
-          nix run --impure .#test-${{ matrix.category }} 2>&1 | tee test-output.log
+          # Setup coverage collection directory
+          mkdir -p coverage-reports
+
+          # Run test with verbose output and optional coverage
+          if [[ "${{ matrix.coverage }}" == "true" ]]; then
+            echo "📊 Running tests with coverage measurement"
+            # Run tests with coverage
+            nix run --impure .#test-${{ matrix.category }}-coverage 2>&1 | tee test-output.log || \
+            nix run --impure .#test-${{ matrix.category }} 2>&1 | tee test-output.log
+          else
+            echo "🧪 Running tests without coverage"
+            nix run --impure .#test-${{ matrix.category }} 2>&1 | tee test-output.log
+          fi
 
           # Show exit code
           exit_code=$?
@@ -252,6 +274,34 @@ jobs:
           fi
 
           exit $exit_code
+
+      - name: Upload coverage reports
+        if: matrix.coverage == true && (success() || failure())
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.category }}-${{ github.run_number }}
+          path: |
+            coverage-reports/
+            test-reports/
+          retention-days: 30
+
+      - name: Generate coverage summary
+        if: matrix.coverage == true && (success() || failure())
+        run: |
+          echo "📊 Coverage Summary for ${{ matrix.category }}"
+          echo "=================================="
+
+          # Check if coverage files exist
+          if ls coverage-reports/*.json >/dev/null 2>&1; then
+            echo "Coverage files found:"
+            ls -la coverage-reports/
+
+            # Generate basic coverage summary
+            echo "Coverage data collected for ${{ matrix.category }} tests"
+            echo "Files analyzed: $(ls coverage-reports/*.json | wc -l)"
+          else
+            echo "No coverage files found for ${{ matrix.category }}"
+          fi
 
   # Smoke test for all PRs (30 seconds)
   smoke-test:

@@ -477,7 +477,7 @@ assert_test() {
 
     if eval "$condition"; then
         log_success "$test_name"
-        TESTS_PASSED=$((TESTS_PASSED + 1))
+        TESTS_PASSED=$((TESTS_PASSED + 1)) || true
         return 0
     else
         if [[ -n "$expected" && -n "$actual" ]]; then
@@ -487,7 +487,7 @@ assert_test() {
         else
             log_fail "$test_name"
         fi
-        TESTS_FAILED=$((TESTS_FAILED + 1))
+        TESTS_FAILED=$((TESTS_FAILED + 1)) || true
         return 1
     fi
 }

@@ -1,65 +1,60 @@
 <!--
 Sync Impact Report:
-Version change: Template → 1.0.0
-Modified principles: Template → All 5 principles defined
-Added sections: All sections filled from template
-Removed sections: None (all template sections preserved)
-Templates requiring updates: All referenced templates confirmed compatible (✅)
+Version change: N/A → 1.0.0 (Initial constitution creation)
+Added sections: All core principles and governance
+Templates requiring updates:
+✅ Updated: plan-template.md (constitution check references updated)
+✅ Updated: spec-template.md (compatibility maintained)
+✅ Updated: tasks-template.md (TDD alignment maintained)
 Follow-up TODOs: None
 -->
 
-# Nix Dotfiles Constitution
+# Professional Nix Dotfiles System Constitution
 
 ## Core Principles
 
-### I. Declarative Configuration
+### I. 지속가능성 우선 (Sustainability First)
 
-All system configurations must be declared through Nix expressions, with externalized YAML settings for environment-specific values. No imperative state changes or manual configuration files outside the Nix ecosystem. External dependencies require explicit package definitions with version pinning and integrity checks.
+모든 설계 결정은 장기적 유지보수성과 확장성을 고려해야 합니다. 임시방편이나 기술적 부채를 생성하는 솔루션을 금지하며, 변경사항은 기존 설정을 보존하고 롤백 가능해야 합니다. 자동화된 업데이트 메커니즘을 통해 수동 개입을 최소화하고, 설정 변경 시 충돌 해결 도구를 제공해야 합니다.
 
-**Rationale**: Ensures reproducible environments across platforms and prevents configuration drift that leads to "works on my machine" issues.
+### II. 모듈화 아키텍처 (Modular Architecture)
 
-### II. Platform Modularity
+시스템은 플랫폼별 모듈(`modules/darwin/`, `modules/nixos/`)과 공유 모듈(`modules/shared/`)로 명확히 분리되어야 합니다. 각 모듈은 단일 책임을 가지며 독립적으로 테스트 가능해야 합니다. 모듈 간 의존성은 명시적으로 선언되어야 하며, 순환 의존성을 금지합니다. 새로운 기능은 기존 모듈을 확장하거나 새 모듈을 생성하여 구현해야 합니다.
 
-Separate platform-specific code (`modules/{darwin,nixos}/`) from shared functionality (`modules/shared/`). Each module must be self-contained with clear interfaces and dependencies. Host configurations define only machine-specific overrides, not core functionality.
+### III. Nix 베스트 프랙티스 (Nix Best Practices)
 
-**Rationale**: Enables code reuse across macOS and NixOS while maintaining platform-specific optimizations and preventing configuration conflicts.
+Nix 플레이크와 Home Manager의 공식 가이드라인을 엄격히 준수해야 합니다. 모든 패키지와 설정은 선언적으로 정의되어야 하며, 명령형 설치나 수정을 금지합니다. 입력값은 고정되어야 하고(flake.lock), 빌드는 재현 가능해야 합니다. 사용자 정의 오버레이는 `overlays/` 디렉토리에서 관리되며, 업스트림 기여를 우선적으로 고려해야 합니다.
 
-### III. Test-First Development (NON-NEGOTIABLE)
+### IV. 크로스플랫폼 호환성 (Cross-Platform Compatibility)
 
-All configuration changes require tests before implementation. TDD cycle mandatory: Write failing test → Implement minimal change → Verify test passes → Refactor if needed. Multi-tier testing required: unit (module validation), integration (cross-module compatibility), end-to-end (full system validation).
+macOS(Intel + Apple Silicon)와 NixOS(x86_64 + ARM64)에서 핵심 기능이 완전히 동작해야 합니다. 플랫폼별 차이점은 조건부 설정으로 처리되어야 하며, 공통 기능은 `modules/shared/`에서 구현되어야 합니다. 새로운 기능 추가 시 모든 지원 플랫폼에서 테스트되어야 하며, 플랫폼별 제한사항은 명확히 문서화되어야 합니다.
 
-**Rationale**: Configuration errors can break entire development environments. Testing prevents catastrophic failures and ensures reliable rollbacks.
+### V. 테스트 주도 품질 (Test-Driven Quality)
 
-### IV. Performance Optimization
+시스템은 90% 이상의 테스트 커버리지를 유지해야 하며, 단위 테스트, 통합 테스트, E2E 테스트를 포함해야 합니다. 모든 새로운 기능은 TDD(Test-Driven Development) 방식으로 개발되어야 하며, 실패하는 테스트를 먼저 작성한 후 구현해야 합니다. 성능 테스트와 메모리 사용량 모니터링을 통해 시스템 성능을 지속적으로 검증해야 합니다.
 
-Build times must be minimized through parallel execution, intelligent caching, and platform-specific targeting. Memory usage during builds must be monitored and optimized. Cache management with automatic cleanup and size limits required. Performance regressions must be detected and addressed immediately.
+## 기술 표준 (Technical Standards)
 
-**Rationale**: Developer productivity depends on fast feedback loops. Slow builds reduce development velocity and system adoption.
+Nix 생태계의 안정성과 보안을 보장하기 위해 다음 기술 요구사항을 준수해야 합니다:
 
-### V. Security and Reproducibility
+- **Nix 버전**: 최신 stable 버전 사용, experimental features는 명시적 승인 후에만 사용
+- **보안**: 모든 패키지는 SHA256 해시로 검증되며, 신뢰할 수 없는 소스 금지
+- **성능**: 빌드 시간 최적화를 위한 병렬 처리와 캐싱 전략 적용
+- **문서화**: 모든 모듈과 설정은 목적과 사용법이 명확히 문서화되어야 함
+- **호환성**: nixpkgs unstable 브랜치 기반, 정기적인 flake.lock 업데이트
 
-Never commit secrets, API keys, or sensitive data to the repository. All dependencies must use SHA256 integrity checks and version pinning. Configuration changes must preserve security settings and maintain backwards compatibility. User-specific data must be externalized through environment variables or secure configuration files.
+## 개발 워크플로우 (Development Workflow)
 
-**Rationale**: Security breaches and unreproducible builds undermine the entire system's trustworthiness and violate enterprise requirements.
+품질 보증과 협업 효율성을 위해 다음 개발 프로세스를 따라야 합니다:
 
-## Development Workflow
-
-All changes follow strict TDD methodology with multi-tier testing validation. Configuration updates require comprehensive testing across supported platforms (macOS Intel/ARM, NixOS x86_64/ARM64). Performance impact must be measured and documented for any significant changes.
-
-Build optimization prioritizes developer experience with parallel execution and intelligent caching. Platform-specific builds target current platform for faster iteration cycles. Resource monitoring tracks build time and memory usage to prevent performance regressions.
-
-Quality gates include pre-commit hooks, automated CI/CD validation, and manual review for complex changes. Rollback capabilities must be preserved through Nix generations and configuration backups.
-
-## Security Requirements
-
-Secrets management through environment variables and secure external configuration files only. All package dependencies must include integrity checks and version constraints. Security-sensitive configurations require additional review and testing.
-
-User data externalization prevents accidental commits of personal information. SSH keys, API tokens, and credentials must never be hardcoded in configurations. Security updates take priority over feature development.
+- **TDD 원칙**: 모든 변경사항은 테스트 작성 → 실패 확인 → 구현 → 성공 확인 순서로 진행
+- **코드 리뷰**: 모든 PR은 헌법 준수 여부를 검증받아야 하며, 최소 1명의 승인 필요
+- **CI/CD**: GitHub Actions를 통한 자동화된 테스트, 빌드, 품질 검사 실행
+- **버전 관리**: 의미론적 버전 관리(Semantic Versioning) 사용, 호환성 변경 시 명확한 마이그레이션 가이드 제공
+- **문서 동기화**: 코드 변경 시 관련 문서 자동 업데이트 또는 수동 검토
 
 ## Governance
 
-Constitution supersedes all other development practices and guidelines. Changes to core principles require documentation of rationale, impact assessment, and migration plan. All configuration changes must verify compliance with constitutional requirements.
+이 헌법은 모든 개발 관행과 의사결정에 우선합니다. 헌법 수정은 영향도 분석, 커뮤니티 논의, 마이그레이션 계획을 포함해야 합니다. 모든 PR과 코드 리뷰는 헌법 준수를 확인해야 하며, 복잡성 증가는 명확한 비즈니스 가치로 정당화되어야 합니다. 런타임 개발 가이드는 `CLAUDE.md`와 `CONTRIBUTING.md`에서 제공됩니다.
 
-Complexity deviations require explicit justification and simpler alternatives analysis. Use CLAUDE.md for runtime development guidance and platform-specific best practices. Regular constitution reviews ensure continued alignment with project needs.
-
-**Version**: 1.0.0 | **Ratified**: 2025-01-22 | **Last Amended**: 2025-01-22
+**Version**: 1.0.0 | **Ratified**: 2025-09-30 | **Last Amended**: 2025-09-30
