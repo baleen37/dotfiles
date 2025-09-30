@@ -46,10 +46,13 @@ repos:
         exclude: ^scripts/lib/.*\.sh$  # Skip library files temporarily
 
   # Nix formatting and validation
-  - repo: https://github.com/nix-community/nixpkgs-fmt
-    rev: v1.3.0
+  - repo: local
     hooks:
       - id: nixpkgs-fmt
+        name: nixpkgs-fmt
+        entry: nixpkgs-fmt
+        language: system
+        files: \.nix$
 
   # YAML formatting and linting
   - repo: https://github.com/adrienverge/yamllint
@@ -57,6 +60,7 @@ repos:
     hooks:
       - id: yamllint
         args: [-c=.yamllint.yaml]
+        additional_dependencies: [pyyaml]
 
   # Markdown formatting and linting
   - repo: https://github.com/igorshubovych/markdownlint-cli
@@ -72,6 +76,7 @@ repos:
     hooks:
       - id: detect-secrets
         args: [--baseline, .secrets.baseline]
+        additional_dependencies: [pyyaml]
 
 # Test execution hooks
   - repo: local
