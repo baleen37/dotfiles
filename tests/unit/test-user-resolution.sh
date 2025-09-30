@@ -105,7 +105,14 @@ test_user_detection() {
 
     # Test home directory detection
     assert_not_empty "$HOME" "HOME 환경변수 설정"
-    assert_directory_exists "$HOME" "홈 디렉토리 존재"
+
+    # In Nix build environment, HOME points to /homeless-shelter which doesn't exist
+    if [[ "$(whoami)" == "nixbld"* ]] || [[ -n "${NIX_BUILD_TOP:-}" ]] || [[ "$HOME" == "/homeless-shelter" ]]; then
+        log_warn "Nix 빌드 환경에서 HOME은 /homeless-shelter (정상)"
+        assert_pass "Nix 빌드 환경 HOME 탐지 (정상)"
+    else
+        assert_directory_exists "$HOME" "홈 디렉토리 존재"
+    fi
 }
 
 test_home_manager_compatibility() {
