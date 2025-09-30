@@ -5,12 +5,11 @@
 **Input**: Feature specification from `/specs/[###-feature-name]/spec.md`
 
 ## Execution Flow (/plan command scope)
-
-```text
+```
 1. Load feature spec from Input path
    → If not found: ERROR "No feature spec at {path}"
 2. Fill Technical Context (scan for NEEDS CLARIFICATION)
-   → Detect Project Type from context (web=frontend+backend, mobile=app+api)
+   → Detect Project Type from file system structure or context (web=frontend+backend, mobile=app+api)
    → Set Structure Decision based on project type
 3. Fill the Constitution Check section based on the content of the constitution document.
 4. Evaluate Constitution Check section below
@@ -28,16 +27,13 @@
 ```
 
 **IMPORTANT**: The /plan command STOPS at step 7. Phases 2-4 are executed by other commands:
-
 - Phase 2: /tasks command creates tasks.md
 - Phase 3-4: Implementation execution (manual or via tools)
 
 ## Summary
-
 [Extract from feature spec: primary requirement + technical approach from research]
 
 ## Technical Context
-
 **Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]  
 **Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]  
 **Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]  
@@ -49,16 +45,32 @@
 **Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
 
 ## Constitution Check
-
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+**지속가능성 검증**:
+- [ ] 변경사항이 장기적 유지보수성을 고려하는가?
+- [ ] 기존 설정 보존 및 롤백 메커니즘이 있는가?
+
+**모듈화 원칙 준수**:
+- [ ] 플랫폼별 모듈 분리가 명확한가? (darwin/nixos/shared)
+- [ ] 모듈 간 순환 의존성이 없는가?
+
+**Nix 베스트 프랙티스**:
+- [ ] 모든 설정이 선언적으로 정의되는가?
+- [ ] flake.lock이 적절히 관리되는가?
+
+**크로스플랫폼 호환성**:
+- [ ] macOS와 NixOS 모두에서 테스트되는가?
+- [ ] 플랫폼별 제한사항이 문서화되는가?
+
+**테스트 주도 품질**:
+- [ ] 90% 이상 테스트 커버리지가 유지되는가?
+- [ ] TDD 방식으로 개발되는가?
 
 ## Project Structure
 
 ### Documentation (this feature)
-
-```text
+```
 specs/[###-feature]/
 ├── plan.md              # This file (/plan command output)
 ├── research.md          # Phase 0 output (/plan command)
@@ -69,9 +81,14 @@ specs/[###-feature]/
 ```
 
 ### Source Code (repository root)
-
-```text
-# Option 1: Single project (DEFAULT)
+<!--
+  ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
+  for this feature. Delete unused options and expand the chosen structure with
+  real paths (e.g., apps/admin, packages/something). The delivered plan must
+  not include Option labels.
+-->
+```
+# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
 src/
 ├── models/
 ├── services/
@@ -83,7 +100,7 @@ tests/
 ├── integration/
 └── unit/
 
-# Option 2: Web application (when "frontend" + "backend" detected)
+# [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
 backend/
 ├── src/
 │   ├── models/
@@ -98,26 +115,25 @@ frontend/
 │   └── services/
 └── tests/
 
-# Option 3: Mobile + API (when "iOS/Android" detected)
+# [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
 api/
 └── [same as backend above]
 
 ios/ or android/
-└── [platform-specific structure]
+└── [platform-specific structure: feature modules, UI flows, platform tests]
 ```
 
-**Structure Decision**: [DEFAULT to Option 1 unless Technical Context indicates web/mobile app]
+**Structure Decision**: [Document the selected structure and reference the real
+directories captured above]
 
 ## Phase 0: Outline & Research
-
 1. **Extract unknowns from Technical Context** above:
    - For each NEEDS CLARIFICATION → research task
    - For each dependency → best practices task
    - For each integration → patterns task
 
 2. **Generate and dispatch research agents**:
-
-   ```text
+   ```
    For each unknown in Technical Context:
      Task: "Research {unknown} for {feature context}"
    For each technology choice:
@@ -132,7 +148,6 @@ ios/ or android/
 **Output**: research.md with all NEEDS CLARIFICATION resolved
 
 ## Phase 1: Design & Contracts
-
 *Prerequisites: research.md complete*
 
 1. **Extract entities from feature spec** → `data-model.md`:
@@ -166,21 +181,18 @@ ios/ or android/
 **Output**: data-model.md, /contracts/*, failing tests, quickstart.md, agent-specific file
 
 ## Phase 2: Task Planning Approach
-
 *This section describes what the /tasks command will do - DO NOT execute during /plan*
 
 **Task Generation Strategy**:
-
 - Load `.specify/templates/tasks-template.md` as base
 - Generate tasks from Phase 1 design docs (contracts, data model, quickstart)
 - Each contract → contract test task [P]
-- Each entity → model creation task [P]
+- Each entity → model creation task [P] 
 - Each user story → integration test task
 - Implementation tasks to make tests pass
 
 **Ordering Strategy**:
-
-- TDD order: Tests before implementation
+- TDD order: Tests before implementation 
 - Dependency order: Models before services before UI
 - Mark [P] for parallel execution (independent files)
 
@@ -189,7 +201,6 @@ ios/ or android/
 **IMPORTANT**: This phase is executed by the /tasks command, NOT by /plan
 
 ## Phase 3+: Future Implementation
-
 *These phases are beyond the scope of the /plan command*
 
 **Phase 3**: Task execution (/tasks command creates tasks.md)  
@@ -197,7 +208,6 @@ ios/ or android/
 **Phase 5**: Validation (run tests, execute quickstart.md, performance validation)
 
 ## Complexity Tracking
-
 *Fill ONLY if Constitution Check has violations that must be justified*
 
 | Violation | Why Needed | Simpler Alternative Rejected Because |
@@ -207,11 +217,9 @@ ios/ or android/
 
 
 ## Progress Tracking
-
 *This checklist is updated during execution flow*
 
 **Phase Status**:
-
 - [ ] Phase 0: Research complete (/plan command)
 - [ ] Phase 1: Design complete (/plan command)
 - [ ] Phase 2: Task planning complete (/plan command - describe approach only)
@@ -220,11 +228,10 @@ ios/ or android/
 - [ ] Phase 5: Validation passed
 
 **Gate Status**:
-
 - [ ] Initial Constitution Check: PASS
 - [ ] Post-Design Constitution Check: PASS
 - [ ] All NEEDS CLARIFICATION resolved
 - [ ] Complexity deviations documented
 
 ---
-*Based on Constitution v2.1.1 - See `/memory/constitution.md`*
+*Based on Constitution v1.0.0 - See `.specify/memory/constitution.md`*

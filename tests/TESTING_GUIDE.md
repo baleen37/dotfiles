@@ -1,315 +1,754 @@
-# Claude Commands 테스트 가이드
+# Comprehensive Testing Framework Guide
 
-Claude commands git 파일 이동 문제 해결을 위한 포괄적인 테스트 스위트입니다.
+A production-ready, multi-tier testing framework for the Nix dotfiles system providing complete coverage across unit, contract, integration, and end-to-end test layers.
 
-## 🎯 테스트 목적
+## 🎯 Framework Purpose
 
-`nix run #build-switch` 실행 시 Claude commands의 git 관련 파일들이 서브디렉토리(`commands/git/`)에서 `~/.claude/commands/git/`로 올바르게 복사되는지 검증합니다.
+This comprehensive testing framework validates the entire dotfiles system through multiple test layers:
+- **Unit Tests**: Component-level validation using nix-unit
+- **Contract Tests**: Interface and API validation using BATS
+- **Integration Tests**: Module interaction verification
+- **E2E Tests**: Complete system workflow validation
+- **Performance Tests**: Execution time and resource monitoring
 
-## 📁 테스트 구조
+## 📁 Testing Framework Structure
 
 ```text
 tests/
-├── run-claude-tests.sh           # 통합 테스트 러너
-├── unit/
-│   └── test-claude-activation.sh # 단위 테스트
-├── integration/
-│   └── test-build-switch-claude-integration.sh # 통합 테스트
-├── e2e/
-│   └── test-claude-commands-end-to-end.sh # E2E 테스트
-└── TESTING_GUIDE.md              # 이 파일
+├── TESTING_GUIDE.md              # This comprehensive guide
+├── run-tests.sh                  # Main test runner with parallel execution
+├── examples/                     # Example tests for each layer
+│   ├── unit-example.nix         # Unit test examples
+│   ├── contract-example.bats    # Contract test examples
+│   ├── integration-example.bats # Integration test examples
+│   └── e2e-example.nix         # E2E test examples
+├── unit/                        # Component-level tests
+│   ├── nix/                     # Nix function tests
+│   │   └── test-lib-functions.nix
+│   └── lib/                     # Library tests
+│       ├── test-builders.nix
+│       └── test-coverage.nix
+├── contract/                    # Interface validation tests
+│   ├── test-runner-contract.bats
+│   ├── test-coverage-contract.bats
+│   ├── test-platform-contract.bats
+│   └── flake-contracts/
+│       └── test-flake-outputs.nix
+├── integration/                 # Module interaction tests
+│   ├── build-integration/
+│   │   └── test-build-workflow.bats
+│   └── platform-integration/
+│       └── test-cross-platform.bats
+├── e2e/                        # End-to-end workflow tests
+│   ├── full-system/
+│   │   └── test-complete-deployment.nix
+│   └── cross-platform/
+│       └── test-darwin-nixos.nix
+├── performance/                # Performance and benchmarking
+│   └── test-benchmark.nix     # Comprehensive performance benchmarks
+├── config/                     # Test configuration files
+│   ├── unit-test-config.nix
+│   ├── coverage-config.nix
+│   └── ci-test-matrix.nix
+└── lib/                       # Shared test utilities
+    ├── test-framework/        # Framework helpers
+    │   ├── helpers.sh
+    │   └── contract-helpers.sh
+    ├── coverage-tools/        # Coverage reporting
+    │   └── reporter.nix
+    └── reporting/             # Test result formatting
+        └── formatter.nix
 ```
 
-## 🚀 빠른 시작
+## 🚀 Quick Start
 
-### 모든 테스트 실행
+### Run All Tests
 
 ```bash
-# 프로젝트 루트에서 실행
-./tests/run-claude-tests.sh
+# Run complete test suite from project root
+./tests/run-tests.sh
+
+# Run with coverage reporting
+./tests/run-tests.sh --coverage
+
+# Run with parallel execution (default)
+./tests/run-tests.sh --parallel
+
+# Run with verbose output
+./tests/run-tests.sh --verbose
 ```
 
-### 개별 테스트 실행
+### Run Individual Test Layers
 
 ```bash
-# 단위 테스트만
-./tests/run-claude-tests.sh --unit-only
+# Unit tests only (fast, isolated)
+./tests/run-tests.sh --unit-only
 
-# 통합 테스트만  
-./tests/run-claude-tests.sh --integration-only
+# Contract tests only (interface validation)
+./tests/run-tests.sh --contract-only
 
-# E2E 테스트만
-./tests/run-claude-tests.sh --e2e-only
+# Integration tests only (module interactions)
+./tests/run-tests.sh --integration-only
 
-# 상세 출력으로 모든 테스트
-./tests/run-claude-tests.sh --verbose
+# E2E tests only (complete workflows)
+./tests/run-tests.sh --e2e-only
+
+# Performance benchmarks only
+./tests/run-tests.sh --performance-only
 ```
 
-## 📋 테스트 종류
-
-### 1. 단위 테스트 (Unit Tests)
-
-**파일**: `tests/unit/test-claude-activation.sh`
-
-**검증 내용**:
-
-- ✅ 서브디렉토리 지원 기능
-- ✅ 디렉토리 구조 보존
-- ✅ 파일 내용 무결성
-- ✅ Dry run 모드
-- ✅ 존재하지 않는 소스 파일 처리
-
-**직접 실행**:
+### Development Workflow
 
 ```bash
-./tests/unit/test-claude-activation.sh
+# Quick validation during development
+./tests/run-tests.sh --unit-only --fast
+
+# Pre-commit validation
+./tests/run-tests.sh --coverage --ci
+
+# Full validation before PR
+./tests/run-tests.sh --verbose --coverage --performance
 ```
 
-### 2. 통합 테스트 (Integration Tests)
+## 📋 Test Layer Types
 
-**파일**: `tests/integration/test-build-switch-claude-integration.sh`
+### 1. Unit Tests
 
-**검증 내용**:
+**Purpose**: Fast, isolated component testing using nix-unit framework
 
-- ✅ Claude 디렉토리 생성
-- ✅ Git commands 파일 통합
-- ✅ 메인 설정 파일 처리
-- ✅ Agent 파일 통합
-- ✅ 파일 권한 설정
-- ✅ 통합 완성도
+**Files**:
+- `tests/unit/nix/test-lib-functions.nix` - Core Nix function validation
+- `tests/unit/lib/test-builders.nix` - Test builder utility validation  
+- `tests/unit/lib/test-coverage.nix` - Coverage system validation
 
-**직접 실행**:
+**What's Tested**:
+- ✅ Pure Nix function behavior
+- ✅ Library utility functions
+- ✅ Test builder correctness
+- ✅ Coverage measurement accuracy
+- ✅ Error handling and edge cases
+
+**Execution**:
 
 ```bash
-./tests/integration/test-build-switch-claude-integration.sh
+# Run all unit tests
+./tests/run-tests.sh --unit-only
+
+# Run specific unit test
+nix-unit --flake .# tests.unit.lib-functions
+
+# Run with verbose output
+./tests/run-tests.sh --unit-only --verbose
 ```
 
-### 3. E2E 테스트 (End-to-End Tests)
+**Characteristics**:
+- **Speed**: < 30 seconds total
+- **Isolation**: No external dependencies
+- **Scope**: Single functions/components
+- **Framework**: nix-unit with custom test builders
 
-**파일**: `tests/e2e/test-claude-commands-end-to-end.sh`
+### 2. Contract Tests
 
-**검증 시나리오**:
+**Purpose**: Interface and API validation using BATS framework
 
-- 🆕 **첫 번째 설정**: 새로운 사용자가 dotfiles를 처음 설정
-- 🔄 **업데이트**: 기존 설정이 있는 상태에서 업데이트
-- 🔧 **Git 워크플로우**: git commands 실제 사용 가능성
-- 📁 **다중 서브디렉토리**: 여러 레벨의 서브디렉토리 처리
-- 🧹 **정리**: 소스에서 제거된 파일들의 정리
+**Files**:
+- `tests/contract/test-runner-contract.bats` - Test runner interface contracts
+- `tests/contract/test-coverage-contract.bats` - Coverage provider contracts
+- `tests/contract/test-platform-contract.bats` - Platform adapter contracts
+- `tests/contract/flake-contracts/test-flake-outputs.nix` - Flake output contracts
 
-**직접 실행**:
+**What's Tested**:
+- ✅ Test runner interface compliance
+- ✅ Coverage reporting contracts
+- ✅ Platform adapter behavior
+- ✅ Flake output structure validation
+- ✅ API stability and backward compatibility
+
+**Execution**:
 
 ```bash
-./tests/e2e/test-claude-commands-end-to-end.sh
+# Run all contract tests
+./tests/run-tests.sh --contract-only
+
+# Run specific contract test
+bats tests/contract/test-runner-contract.bats
+
+# Run with timing information
+bats tests/contract/ --timing
 ```
 
-## 🎯 테스트가 검증하는 핵심 기능
+**Characteristics**:
+- **Speed**: < 60 seconds total
+- **Scope**: Interface validation
+- **Framework**: BATS for shell, nix-unit for Nix
+- **Purpose**: Prevent breaking changes
 
-### 서브디렉토리 지원
+### 3. Integration Tests
 
-이전에는 `modules/shared/config/claude/commands/*.md` 패턴만 처리했지만, 이제는 `find`를 사용하여 모든 서브디렉토리의 `.md` 파일을 처리합니다:
+**Purpose**: Module interaction and build workflow validation
+
+**Files**:
+- `tests/integration/build-integration/test-build-workflow.bats` - Build system integration
+- `tests/integration/platform-integration/test-cross-platform.bats` - Cross-platform compatibility
+
+**What's Tested**:
+- ✅ Build system workflows
+- ✅ Module interdependencies
+- ✅ Cross-platform compatibility
+- ✅ Configuration loading and merging
+- ✅ Service integration
+
+**Execution**:
 
 ```bash
-# 기존 (서브디렉토리 미지원)
-for cmd_file in "$SOURCE_DIR/commands"/*.md; do
-    # git/ 서브디렉토리 파일들 무시됨
-done
+# Run all integration tests
+./tests/run-tests.sh --integration-only
 
-# 개선 (서브디렉토리 지원)
-find "$SOURCE_DIR/commands" -name "*.md" -type f | while read -r cmd_file; do
-    # 모든 서브디렉토리 파일들 처리됨
-done
+# Run specific integration test
+bats tests/integration/build-integration/
+
+# Run with detailed output
+./tests/run-tests.sh --integration-only --verbose
 ```
 
-### Git Commands 특별 검증
+**Characteristics**:
+- **Speed**: < 90 seconds total
+- **Scope**: Module interactions
+- **Dependencies**: May require system services
+- **Environment**: Isolated test environments
 
-다음 git command 파일들이 올바르게 복사되는지 확인합니다:
+### 4. End-to-End Tests
 
-- `commands/git/commit.md` → `~/.claude/commands/git/commit.md`
-- `commands/git/fix-pr.md` → `~/.claude/commands/git/fix-pr.md`
-- `commands/git/upsert-pr.md` → `~/.claude/commands/git/upsert-pr.md`
+**Purpose**: Complete system workflow validation using NixOS tests
 
-### 사용자 수정사항 보존
+**Files**:
+- `tests/e2e/full-system/test-complete-deployment.nix` - Full system deployment
+- `tests/e2e/cross-platform/test-darwin-nixos.nix` - Cross-platform workflows
 
-중요한 설정 파일들(`CLAUDE.md`, `settings.json`)의 사용자 수정사항은 보존하고, 새 버전은 `.new` 파일로 저장합니다.
+**Test Scenarios**:
+- 🆕 **Fresh Installation**: New user setting up dotfiles from scratch
+- 🔄 **System Updates**: Existing configuration updates and migrations
+- 🔧 **Cross-Platform**: macOS and NixOS compatibility validation
+- 📦 **Package Management**: Homebrew and Nix package integration
+- 🧹 **Cleanup**: Proper handling of removed configurations
 
-## 🔧 테스트 환경 요구사항
+**Execution**:
 
-### 필수 도구
+```bash
+# Run all E2E tests
+./tests/run-tests.sh --e2e-only
 
+# Run specific E2E test
+nix build .#checks.x86_64-linux.e2e-full-system
+
+# Run with full logging
+./tests/run-tests.sh --e2e-only --verbose
+```
+
+**Characteristics**:
+- **Speed**: < 120 seconds total
+- **Scope**: Complete workflows
+- **Framework**: NixOS test framework
+- **Environment**: Full system simulation
+
+### 5. Performance Tests
+
+**Purpose**: Execution time and resource usage monitoring
+
+**Files**:
+- `tests/performance/test-benchmark.nix` - Comprehensive performance benchmarks
+
+**What's Measured**:
+- ✅ Test execution time per layer
+- ✅ Memory usage patterns
+- ✅ Parallel execution efficiency
+- ✅ Resource utilization
+- ✅ Performance regression detection
+
+**Execution**:
+
+```bash
+# Run performance benchmarks
+./tests/run-tests.sh --performance-only
+
+# Run full benchmark suite
+nix run .#performance-benchmark
+
+# Monitor specific layer
+nix run .#performance-benchmark.unit
+```
+
+**Performance Goals**:
+- **Total Execution**: < 3 minutes (parallel)
+- **Unit Tests**: < 30 seconds
+- **Contract Tests**: < 60 seconds
+- **Integration Tests**: < 90 seconds
+- **E2E Tests**: < 120 seconds
+
+## 🎯 Core Framework Features
+
+### Test-Driven Development (TDD)
+
+The framework enforces TDD methodology with clear phases:
+
+1. **RED**: Write failing tests first
+2. **GREEN**: Implement minimal code to pass tests
+3. **REFACTOR**: Improve code while maintaining test passes
+
+```bash
+# TDD workflow example
+./tests/run-tests.sh --unit-only           # Should fail initially
+# Implement feature
+./tests/run-tests.sh --unit-only           # Should pass
+./tests/run-tests.sh --integration-only    # Integration validation
+```
+
+### Multi-Layer Validation
+
+Each feature is validated across all test layers:
+
+```mermaid
+graph TD
+    A[Unit Tests] --> B[Contract Tests]
+    B --> C[Integration Tests]
+    C --> D[E2E Tests]
+    D --> E[Performance Tests]
+    
+    A --> F[Component Level]
+    B --> G[Interface Level]
+    C --> H[Module Level]
+    D --> I[System Level]
+    E --> J[Performance Level]
+```
+
+### Coverage-Driven Quality
+
+- **Target**: 90% minimum coverage
+- **Measurement**: Line-level coverage for Nix and Bash
+- **Reporting**: HTML, JSON, and console formats
+- **CI Integration**: Automated coverage checks on PRs
+
+### Parallel Execution
+
+Optimized for performance with intelligent parallelization:
+
+```bash
+# Parallel test execution (default)
+./tests/run-tests.sh --parallel
+
+# Sequential execution (for debugging)
+./tests/run-tests.sh --sequential
+
+# Custom parallelism
+./tests/run-tests.sh --parallel --jobs=4
+```
+
+## 🔧 Environment Requirements
+
+### Required Tools
+
+#### Core Dependencies
+- `nix` (2.4+ with flakes enabled)
 - `bash` (4.0+)
-- `find`
-- `shasum` 또는 `sha256sum` (해시 검증용)
-- 기본적인 Unix 도구들 (`mkdir`, `cp`, `chmod`, etc.)
+- `bats-core` (BATS testing framework)
+- `nix-unit` (Nix unit testing)
+- Standard Unix tools (`find`, `grep`, `sed`, `awk`)
 
-### 필수 디렉토리 구조
+#### Optional Tools
+- `parallel` (for advanced parallelization)
+- `bc` (for performance calculations)
+- `free` (for memory monitoring)
+- `timeout` (for test timeouts)
 
-테스트가 성공하려면 다음 구조가 있어야 합니다:
+### Flake Configuration
 
-```text
-modules/shared/config/claude/
-├── CLAUDE.md
-├── settings.json
-├── commands/
-│   ├── *.md (루트 레벨 명령어들)
-│   └── git/
-│       ├── commit.md
-│       ├── fix-pr.md
-│       └── upsert-pr.md
-└── agents/
-    └── *.md (에이전트 파일들)
+Ensure your `flake.nix` includes the testing framework:
+
+```nix
+{
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nix-unit.url = "github:nix-community/nix-unit";
+    # ... other inputs
+  };
+  
+  outputs = { self, nixpkgs, nix-unit, ... }: {
+    # Include test checks
+    checks = {
+      x86_64-linux = {
+        unit-tests = import ./tests/unit;
+        contract-tests = import ./tests/contract;
+        integration-tests = import ./tests/integration;
+        e2e-tests = import ./tests/e2e;
+      };
+    };
+  };
+}
 ```
 
-## 📊 테스트 결과 해석
+## 📊 Test Result Interpretation
 
-### 성공 사례
-
-```text
-================= E2E 테스트 결과 =================
-통과: 25
-모든 E2E 테스트가 통과했습니다! 🎉
-Claude commands git 파일들이 완전히 작동합니다.
-
-검증된 기능:
-✅ 첫 번째 설정 시나리오
-✅ 업데이트 및 사용자 수정사항 보존
-✅ Git 워크플로우 완전 지원
-✅ 다중 서브디렉토리 처리
-✅ 전체 시스템 통합
-```
-
-### 실패 사례
-
-실패한 경우 상세한 디버그 정보가 출력됩니다:
+### Success Output
 
 ```text
-================= 디버그 정보 ==================
-테스트 Claude 디렉토리 내용:
-/tmp/test_123/.claude/commands/task.md
-/tmp/test_123/.claude/CLAUDE.md
-# git/ 디렉토리 파일들이 없음 - 서브디렉토리 처리 실패
+=================== COMPREHENSIVE TEST RESULTS ===================
+Unit Tests:        PASSED (15/15)  Duration: 25s   Coverage: 95%
+Contract Tests:    PASSED (12/12)  Duration: 45s   Coverage: 92%
+Integration Tests: PASSED (8/8)    Duration: 75s   Coverage: 91%
+E2E Tests:         PASSED (6/6)    Duration: 110s  Coverage: 89%
+Performance Tests: PASSED (5/5)    Duration: 30s   
+
+✅ ALL TESTS PASSED!
+✅ Coverage target achieved: 92% (>90% required)
+✅ Performance target met: 2m 45s (<3m goal)
+✅ All test layers validated
+==================================================================
 ```
 
-## 🐛 문제 해결
+### Failure Analysis
 
-### 공통 문제들
+When tests fail, detailed debugging information is provided:
 
-1. **권한 오류**
+```text
+=================== TEST FAILURE ANALYSIS ===================
+FAILED: Unit Tests (2/15 failed)
 
-   ```bash
-   chmod +x tests/**/*.sh
-   ```
+❌ test-lib-functions.nix:25 - testStringManipulation
+   Expected: "hello-world"
+   Actual:   "hello_world"
+   
+❌ test-coverage.nix:15 - testCoverageCalculation
+   Expected coverage >= 90%
+   Actual coverage: 87%
+   
+Debugging Information:
+  - Test Environment: /tmp/test-framework-123
+  - Log Files: /tmp/test-framework-123/logs/
+  - Coverage Report: /tmp/test-framework-123/coverage.html
+===============================================================
+```
 
-2. **Git commands 파일 누락**
-   - `modules/shared/config/claude/commands/git/` 디렉토리 확인
-   - 필요한 `.md` 파일들이 있는지 확인
+## 🐛 Troubleshooting
 
-3. **해시 도구 없음**
-   - macOS: `shasum` 사용
-   - Linux: `sha256sum` 설치
-   - Fallback: 파일 크기 비교 사용
+### Common Issues
 
-### 디버그 모드
-
-상세한 출력을 보려면 `--verbose` 옵션을 사용하세요:
+#### 1. Permission Errors
 
 ```bash
-./tests/run-claude-tests.sh --verbose
+# Fix executable permissions
+chmod +x tests/**/*.sh
+chmod +x tests/run-tests.sh
+
+# Fix Nix file permissions
+find tests/ -name "*.nix" -exec chmod 644 {} \;
 ```
 
-## 🔄 CI/CD 통합
+#### 2. Missing Dependencies
 
-### GitHub Actions 예시
+```bash
+# Install BATS
+nix profile install nixpkgs#bats
+
+# Install nix-unit
+nix profile install github:nix-community/nix-unit
+
+# Verify installation
+bats --version
+nix-unit --version
+```
+
+#### 3. Flake Issues
+
+```bash
+# Update flake inputs
+nix flake update
+
+# Rebuild flake
+nix build .#checks.x86_64-linux.unit-tests
+
+# Clear evaluation cache
+nix eval --json .#checks --apply builtins.attrNames
+```
+
+#### 4. Test Environment Issues
+
+```bash
+# Clean test artifacts
+rm -rf /tmp/test-framework-*
+rm -rf tests/**/*.log
+
+# Reset test state
+./tests/run-tests.sh --clean
+```
+
+### Debug Mode
+
+For detailed output and debugging:
+
+```bash
+# Enable verbose output
+./tests/run-tests.sh --verbose
+
+# Enable debug mode
+./tests/run-tests.sh --debug
+
+# Run specific test with debugging
+bats tests/unit/test-specific.bats --verbose-run
+```
+
+## 🔄 CI/CD Integration
+
+### GitHub Actions Configuration
 
 ```yaml
-name: Claude Commands Tests
-on: [push, pull_request]
+name: Comprehensive Testing Framework
+on: 
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        layer: [unit, contract, integration, e2e]
     steps:
-      - uses: actions/checkout@v3
-      - name: Run Claude Commands Tests
-        run: ./tests/run-claude-tests.sh --verbose
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v22
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+      - name: Run ${{ matrix.layer }} tests
+        run: ./tests/run-tests.sh --${{ matrix.layer }}-only --coverage
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        if: matrix.layer == 'unit'
+        with:
+          file: ./coverage.xml
+
+  performance:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v22
+      - name: Run performance benchmarks
+        run: ./tests/run-tests.sh --performance-only
+      - name: Store benchmark results
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          tool: 'customSmallerIsBetter'
+          output-file-path: benchmark-results.json
 ```
 
-### 로컬 개발 워크플로우
+### Pre-commit Hook Integration
 
 ```bash
-# 변경사항 테스트
-git add .
-./tests/run-claude-tests.sh
+# Install pre-commit hook
+cat > .git/hooks/pre-commit << 'EOF'
+#!/bin/bash
+set -e
 
-# 특정 기능만 테스트
-./tests/run-claude-tests.sh --unit-only
+echo "Running pre-commit tests..."
+./tests/run-tests.sh --unit-only --fast
 
-# 커밋 전 전체 검증
-./tests/run-claude-tests.sh --verbose
-git commit -m "feat: claude commands 서브디렉토리 지원 추가"
+echo "Checking test coverage..."
+./tests/run-tests.sh --coverage --unit-only
+
+echo "All pre-commit tests passed!"
+EOF
+
+chmod +x .git/hooks/pre-commit
 ```
 
-## 📈 테스트 확장
+### Local Development Workflow
 
-새로운 명령어나 서브디렉토리를 추가할 때:
+```bash
+# Quick validation during development
+./tests/run-tests.sh --unit-only --fast
 
-1. **단위 테스트에 추가**:
+# Pre-commit validation
+./tests/run-tests.sh --unit-only --contract-only
 
-   ```bash
-   # test-claude-activation.sh에 새 테스트 케이스 추가
-   test_new_subdirectory_support() {
-       # 새 서브디렉토리 테스트 로직
+# Pre-push validation
+./tests/run-tests.sh --coverage --ci
+
+# Full validation before PR
+./tests/run-tests.sh --verbose --coverage --performance
+git commit -m "feat: implement new testing framework layer"
+```
+
+## 📈 Framework Extension
+
+### Adding New Test Layers
+
+When adding new features, follow the multi-layer approach:
+
+1. **Unit Tests First (TDD)**:
+
+   ```nix
+   # tests/unit/new-feature/test-new-component.nix
+   { lib, ... }:
+   let
+     component = import ../../../lib/new-component.nix { inherit lib; };
+   in
+   {
+     testNewComponentBasic = {
+       expr = component.basicFunction "input";
+       expected = "expected-output";
+     };
+     
+     testNewComponentEdgeCase = {
+       expr = component.basicFunction null;
+       expected = null;
+     };
    }
    ```
 
-2. **E2E 테스트에 시나리오 추가**:
+2. **Contract Tests for Interfaces**:
 
    ```bash
-   # test-claude-commands-end-to-end.sh에 새 시나리오 추가
-   simulate_new_feature_scenario() {
-       # 새 기능 시나리오 테스트
+   # tests/contract/test-new-interface-contract.bats
+   #!/usr/bin/env bats
+   
+   @test "new interface provides required functions" {
+     run nix eval .#lib.newInterface.requiredFunction
+     [ "$status" -eq 0 ]
+   }
+   
+   @test "new interface follows naming convention" {
+     run nix eval --json .#lib.newInterface --apply builtins.attrNames
+     [[ "$output" =~ "Function$" ]]
    }
    ```
 
-3. **통합 테스트에 검증 추가**:
+3. **Integration Tests for Module Interactions**:
 
    ```bash
-   # 새 파일들이 올바르게 복사되는지 확인
-   test_new_commands_integration() {
-       # 새 명령어들 통합 테스트
+   # tests/integration/new-feature-integration/test-module-interaction.bats
+   @test "new feature integrates with existing modules" {
+     run nix build .#nixosConfigurations.test.config.services.newFeature
+     [ "$status" -eq 0 ]
    }
    ```
 
-## 💡 팁과 요령
+4. **E2E Tests for Complete Workflows**:
 
-### 효율적인 테스트 실행
+   ```nix
+   # tests/e2e/new-feature/test-complete-workflow.nix
+   { pkgs, ... }:
+   pkgs.testers.runNixOSTest {
+     name = "new-feature-e2e";
+     nodes.machine = { ... }: {
+       imports = [ ../../../modules/new-feature.nix ];
+       services.newFeature.enable = true;
+     };
+     testScript = ''
+       machine.start()
+       machine.wait_for_unit("new-feature.service")
+       machine.succeed("systemctl status new-feature")
+     '';
+   }
+   ```
+
+### Performance Optimization
+
+For optimal test execution:
 
 ```bash
-# 개발 중에는 단위 테스트만 빠르게 실행
-./tests/run-claude-tests.sh --unit-only
+# Profile test execution
+./tests/run-tests.sh --profile
 
-# 완전한 검증이 필요할 때는 E2E 테스트
-./tests/run-claude-tests.sh --e2e-only
+# Optimize parallel execution
+./tests/run-tests.sh --parallel --jobs=$(nproc)
 
-# PR 전에는 전체 테스트
-./tests/run-claude-tests.sh --verbose
+# Cache-friendly execution
+./tests/run-tests.sh --cache-build-deps
 ```
 
-### 테스트 데이터 정리
+## 💡 Best Practices
 
-테스트는 자동으로 임시 파일들을 정리하지만, 수동으로 정리하려면:
+### Writing Effective Tests
+
+1. **Test Naming**: Use descriptive, hierarchical names
+   ```nix
+   testStringUtilsCapitalizationBasic = { /* ... */ };
+   testStringUtilsCapitalizationEmptyString = { /* ... */ };
+   testStringUtilsCapitalizationUnicode = { /* ... */ };
+   ```
+
+2. **Test Isolation**: Each test should be independent
+   ```bash
+   setup() {
+     export TEST_TMPDIR=$(mktemp -d)
+   }
+   
+   teardown() {
+     rm -rf "$TEST_TMPDIR"
+   }
+   ```
+
+3. **Meaningful Assertions**: Test behavior, not implementation
+   ```nix
+   # Good: tests behavior
+   testConfigGeneration = {
+     expr = generateConfig { enable = true; };
+     expected = { services.myservice.enable = true; };
+   };
+   
+   # Avoid: tests implementation details
+   testConfigImplementation = {
+     expr = builtins.isFunction generateConfig;
+     expected = true;
+   };
+   ```
+
+### Test Data Management
 
 ```bash
-# 임시 디렉토리들 정리
-rm -rf /tmp/test_*
-rm -rf /tmp/claude_test_*
+# Automatic cleanup
+cleanup() {
+  rm -rf /tmp/test-framework-*
+  rm -rf tests/**/*.log
+  rm -rf tests/**/result*
+}
+trap cleanup EXIT
+
+# Preserve debugging data
+./tests/run-tests.sh --preserve-on-failure
 ```
 
-## 📚 참고 자료
+## 📚 Resources and References
 
-- [Claude-activation.nix 소스 코드](../modules/shared/lib/claude-activation.nix)
-- [Build-switch 통합](../modules/darwin/home-manager.nix#L76-78)
-- [Git Commands 파일들](../modules/shared/config/claude/commands/git/)
+### Framework Documentation
+- [nix-unit Documentation](https://github.com/nix-community/nix-unit)
+- [BATS Testing Framework](https://bats-core.readthedocs.io/)
+- [NixOS Test Framework](https://nixos.org/manual/nixos/stable/index.html#sec-nixos-tests)
+
+### Related Files
+- [Test Runner Implementation](./run-tests.sh)
+- [Test Builders Library](./lib/test-builders.nix) 
+- [Coverage System](./lib/coverage-system.nix)
+- [Performance Benchmarks](./performance/test-benchmark.nix)
+
+### Example Tests
+- [Unit Test Examples](./examples/unit-example.nix)
+- [Contract Test Examples](./examples/contract-example.bats)
+- [Integration Test Examples](./examples/integration-example.bats)
+- [E2E Test Examples](./examples/e2e-example.nix)
 
 ---
 
-**문제가 있거나 개선 제안이 있으시면 이슈를 생성해주세요!** 🚀
+## 🎉 Contributing
+
+The comprehensive testing framework is designed for extensibility and maintainability. When contributing:
+
+1. **Follow TDD**: Write failing tests first
+2. **Multi-layer validation**: Test at appropriate layers  
+3. **Performance conscious**: Keep tests fast and parallel-friendly
+4. **Documentation**: Update this guide for new features
+5. **Coverage**: Maintain 90%+ coverage threshold
+
+**Questions or suggestions? Create an issue or submit a PR!** 🚀

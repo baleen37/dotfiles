@@ -33,9 +33,11 @@ DRY_RUN=${DRY_RUN:-false}
 FAIL_FAST=${FAIL_FAST:-false}
 OUTPUT_FORMAT=${OUTPUT_FORMAT:-"standard"}
 
-# 테스트 카테고리 정의 (중복 제거 완료)
+# 테스트 카테고리 정의 (중복 제거 완료, nix-unit 추가)
 declare -A TEST_CATEGORIES=(
     ["core"]="unit/test-error-system.sh unit/test-claude-symlink-priority.sh unit/test-framework-validation.sh"
+    ["nix-unit"]="unit/nix/test-lib-functions.nix unit/lib/test-builders.nix unit/lib/test-coverage.nix"
+    ["contract"]="contract/test-runner-contract.bats contract/test-coverage-contract.bats contract/test-platform-contract.bats"
     ["bats-unit"]="bats/test_claude_activation.bats bats/test_platform_detection.bats bats/test_lib_user_resolution.bats"
     ["integration"]="integration/test-claude-activation-detailed.sh integration/test-platform-system-detailed.sh integration/test-user-resolution-detailed.sh integration/test-claude-activation-integration.sh integration/test-build-switch-claude-integration.sh integration/test-claude-platform-compatibility.sh integration/test-claude-error-recovery.sh integration/test-home-manager-app-links.sh"
     ["workflow"]="e2e/test-claude-activation-e2e.sh e2e/test-claude-commands-end-to-end.sh"
@@ -59,8 +61,10 @@ $RUNNER_NAME v$TEST_RUNNER_VERSION
 
 사용법: $0 [옵션] [카테고리|파일...]
 
-테스트 카테고리 (중복 제거 완료):
+테스트 카테고리 (중복 제거 완료, nix-unit 지원 추가):
   core        - 핵심 단위 테스트 (error-system, framework-validation 등)
+  nix-unit    - Nix 단위 테스트 (nix-unit 프레임워크 사용)
+  contract    - 계약 테스트 (인터페이스 및 프로토콜 검증)
   bats-unit   - BATS 단위 테스트 (claude, platform, user-resolution)
   integration - 통합 테스트 (상세한 환경 테스트 포함)
   workflow    - 엔드투엔드 워크플로 테스트
@@ -143,12 +147,69 @@ show_test_plan() {
     fi
 }
 
-# 단일 테스트 파일 실행
+# 테스트 파일 유형 감지
+detect_test_type() {
+    local test_file="$1"
+    
+    case "$test_file" in
+        *.nix)
+            echo "nix-unit"
+            ;;
+        *.bats)
+            echo "bats"
+            ;;
+        *.sh)
+            echo "bash"
+            ;;
+        *)
+            echo "bash"  # 기본값
+            ;;
+    esac
+}
+
+# nix-unit 테스트 실행
+run_nix_unit_test() {
+    local test_file="$1"
+    local test_path="$SCRIPT_DIR/$test_file"
+    
+    log_debug "nix-unit 테스트 실행: $test_file"
+    
+    # nix-unit이 사용 가능한지 확인
+    if command -v nix-unit >/dev/null 2>&1; then
+        timeout "${TEST_TIMEOUT}s" nix-unit "$test_path"
+    else
+        # nix-unit이 없으면 Nix를 통해 실행
+        log_debug "nix-unit이 없어서 Nix로 대체 실행: $test_file"
+        timeout "${TEST_TIMEOUT}s" nix --extra-experimental-features 'nix-command flakes' \
+            run nixpkgs#nix-unit -- "$test_path"
+    fi
+}
+
+# BATS 테스트 실행
+run_bats_test() {
+    local test_file="$1"
+    local test_path="$SCRIPT_DIR/$test_file"
+    
+    log_debug "BATS 테스트 실행: $test_file"
+    
+    # BATS가 사용 가능한지 확인
+    if command -v bats >/dev/null 2>&1; then
+        timeout "${TEST_TIMEOUT}s" bats "$test_path"
+    else
+        # BATS가 없으면 Nix를 통해 실행
+        log_debug "BATS가 없어서 Nix로 대체 실행: $test_file"
+        timeout "${TEST_TIMEOUT}s" nix --extra-experimental-features 'nix-command flakes' \
+            shell nixpkgs#bats -c "bats \"$test_path\""
+    fi
+}
+
+# 단일 테스트 파일 실행 (향상된 버전)
 run_single_test() {
     local test_file="$1"
     local test_path="$SCRIPT_DIR/$test_file"
+    local test_type=$(detect_test_type "$test_file")
 
-    log_debug "run_single_test 시작: $test_file"
+    log_debug "run_single_test 시작: $test_file (유형: $test_type)"
     log_debug "테스트 경로: $test_path"
 
     if [[ ! -f "$test_path" ]]; then
@@ -156,26 +217,53 @@ run_single_test() {
         return 2
     fi
 
-    if [[ ! -x "$test_path" ]]; then
-        chmod +x "$test_path"
-    fi
-
     local start_time=$(date +%s%N)
     local exit_code=0
     local output=""
 
     log_debug "테스트 실행 시작: $test_file"
-    if [[ "$VERBOSE_MODE" = "true" ]]; then
-        log_info "실행 중: $test_file"
-        if timeout "${TEST_TIMEOUT}s" bash "$test_path"; then
-            exit_code=0
-        else
-            exit_code=$?
-        fi
-    else
-        log_debug "비 VERBOSE 모드로 테스트 실행: $test_file"
-        output=$(timeout "${TEST_TIMEOUT}s" bash "$test_path" 2>&1) || exit_code=$?
-    fi
+    
+    case "$test_type" in
+        "nix-unit")
+            if [[ "$VERBOSE_MODE" = "true" ]]; then
+                log_info "실행 중 (nix-unit): $test_file"
+                run_nix_unit_test "$test_file"
+                exit_code=$?
+            else
+                log_debug "비 VERBOSE 모드로 nix-unit 테스트 실행: $test_file"
+                output=$(run_nix_unit_test "$test_file" 2>&1) || exit_code=$?
+            fi
+            ;;
+        "bats")
+            if [[ "$VERBOSE_MODE" = "true" ]]; then
+                log_info "실행 중 (BATS): $test_file"
+                run_bats_test "$test_file"
+                exit_code=$?
+            else
+                log_debug "비 VERBOSE 모드로 BATS 테스트 실행: $test_file"
+                output=$(run_bats_test "$test_file" 2>&1) || exit_code=$?
+            fi
+            ;;
+        "bash"|*)
+            # 기존 bash 실행 로직
+            if [[ ! -x "$test_path" ]]; then
+                chmod +x "$test_path"
+            fi
+            
+            if [[ "$VERBOSE_MODE" = "true" ]]; then
+                log_info "실행 중 (bash): $test_file"
+                if timeout "${TEST_TIMEOUT}s" bash "$test_path"; then
+                    exit_code=0
+                else
+                    exit_code=$?
+                fi
+            else
+                log_debug "비 VERBOSE 모드로 bash 테스트 실행: $test_file"
+                output=$(timeout "${TEST_TIMEOUT}s" bash "$test_path" 2>&1) || exit_code=$?
+            fi
+            ;;
+    esac
+    
     log_debug "테스트 실행 완료: $test_file, exit_code=$exit_code"
 
     local end_time=$(date +%s%N)

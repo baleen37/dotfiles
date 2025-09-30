@@ -57,13 +57,13 @@ OPTIONS:
 EXAMPLES:
   # Check task prerequisites (plan.md required)
   ./check-prerequisites.sh --json
-
+  
   # Check implementation prerequisites (plan.md + tasks.md required)
   ./check-prerequisites.sh --json --require-tasks --include-tasks
-
+  
   # Get feature paths only (no validation)
   ./check-prerequisites.sh --paths-only
-
+  
 EOF
             exit 0
             ;;
@@ -82,14 +82,20 @@ source "$SCRIPT_DIR/common.sh"
 eval $(get_feature_paths)
 check_feature_branch "$CURRENT_BRANCH" "$HAS_GIT" || exit 1
 
-# If paths-only mode, output paths and exit
+# If paths-only mode, output paths and exit (support JSON + paths-only combined)
 if $PATHS_ONLY; then
-    echo "REPO_ROOT: $REPO_ROOT"
-    echo "BRANCH: $CURRENT_BRANCH"
-    echo "FEATURE_DIR: $FEATURE_DIR"
-    echo "FEATURE_SPEC: $FEATURE_SPEC"
-    echo "IMPL_PLAN: $IMPL_PLAN"
-    echo "TASKS: $TASKS"
+    if $JSON_MODE; then
+        # Minimal JSON paths payload (no validation performed)
+        printf '{"REPO_ROOT":"%s","BRANCH":"%s","FEATURE_DIR":"%s","FEATURE_SPEC":"%s","IMPL_PLAN":"%s","TASKS":"%s"}\n' \
+            "$REPO_ROOT" "$CURRENT_BRANCH" "$FEATURE_DIR" "$FEATURE_SPEC" "$IMPL_PLAN" "$TASKS"
+    else
+        echo "REPO_ROOT: $REPO_ROOT"
+        echo "BRANCH: $CURRENT_BRANCH"
+        echo "FEATURE_DIR: $FEATURE_DIR"
+        echo "FEATURE_SPEC: $FEATURE_SPEC"
+        echo "IMPL_PLAN: $IMPL_PLAN"
+        echo "TASKS: $TASKS"
+    fi
     exit 0
 fi
 
@@ -141,19 +147,19 @@ if $JSON_MODE; then
         json_docs=$(printf '"%s",' "${docs[@]}")
         json_docs="[${json_docs%,}]"
     fi
-
+    
     printf '{"FEATURE_DIR":"%s","AVAILABLE_DOCS":%s}\n' "$FEATURE_DIR" "$json_docs"
 else
     # Text output
     echo "FEATURE_DIR:$FEATURE_DIR"
     echo "AVAILABLE_DOCS:"
-
+    
     # Show status of each potential document
     check_file "$RESEARCH" "research.md"
     check_file "$DATA_MODEL" "data-model.md"
     check_dir "$CONTRACTS_DIR" "contracts/"
     check_file "$QUICKSTART" "quickstart.md"
-
+    
     if $INCLUDE_TASKS; then
         check_file "$TASKS" "tasks.md"
     fi

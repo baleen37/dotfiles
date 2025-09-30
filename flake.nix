@@ -27,9 +27,22 @@
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # Testing framework dependencies
+    nix-unit = {
+      url = "github:nix-community/nix-unit";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    namaka = {
+      url = "github:nix-community/namaka";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    flake-checker = {
+      url = "github:DeterminateSystems/flake-checker";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, darwin, nix-homebrew, homebrew-bundle, homebrew-core, homebrew-cask, home-manager, nixpkgs, disko } @inputs:
+  outputs = { self, darwin, nix-homebrew, homebrew-bundle, homebrew-core, homebrew-cask, home-manager, nixpkgs, disko, nix-unit, namaka, flake-checker } @inputs:
     let
       # Import modular flake configuration
       flakeConfig = import ./lib/flake-config.nix;

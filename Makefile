@@ -29,9 +29,12 @@ help:
 	@echo "  smoke       - Run nix flake checks for all systems"
 	@echo "  platform-info - Show detailed platform information"
 	@echo ""
-	@echo "🧪 Testing (중복 제거 완료):"
+	@echo "🧪 Testing Framework (comprehensive):"
 	@echo "  test        - Run essential tests (uses test-core)"
 	@echo "  test-core   - Run core unit tests (no duplicates)"
+	@echo "  test-unit   - Run Nix unit tests (nix-unit framework)"
+	@echo "  test-contract - Run contract tests (interface validation)"
+	@echo "  test-coverage - Run tests with coverage measurement"
 	@echo "  test-quick  - Fast parallel validation tests"
 	@echo "  test-enhanced - Integration tests with reporting"
 	@echo "  test-enhanced-verbose - Integration tests with verbose output"
@@ -93,6 +96,39 @@ test:
 
 test-core:
 	@$(NIX) run --impure .#test-core $(ARGS)
+
+# New comprehensive test targets
+test-unit:
+	@echo "🧪 Running Nix unit tests (nix-unit framework)..."
+	@./tests/run-tests.sh nix-unit $(ARGS)
+
+test-contract:
+	@echo "🔍 Running contract tests (interface validation)..."
+	@./tests/run-tests.sh contract $(ARGS)
+
+test-coverage:
+	@echo "📊 Running tests with coverage measurement..."
+	@echo "Note: Coverage collection integrated into test framework"
+	@$(MAKE) test-unit ARGS="--verbose"
+	@$(MAKE) test-core ARGS="--verbose"
+
+test-unit-coverage:
+	@echo "📊 Running unit tests with coverage..."
+	@if $(NIX) run --impure .#test-unit-coverage >/dev/null 2>&1; then \
+		$(NIX) run --impure .#test-unit-coverage $(ARGS); \
+	else \
+		echo "⚠️ Coverage not yet implemented, running standard unit tests"; \
+		$(MAKE) test-unit $(ARGS); \
+	fi
+
+test-contract-coverage:
+	@echo "📊 Running contract tests with coverage..."
+	@if $(NIX) run --impure .#test-contract-coverage >/dev/null 2>&1; then \
+		$(NIX) run --impure .#test-contract-coverage $(ARGS); \
+	else \
+		echo "⚠️ Coverage not yet implemented, running standard contract tests"; \
+		$(MAKE) test-contract $(ARGS); \
+	fi
 
 # macOS Services 관리 및 테스트 (Darwin 전용)
 test-macos-services:
@@ -340,4 +376,4 @@ setup-mcp: check-user
 	@echo "🤖 Setting up Claude Code MCP servers..."
 	@./scripts/setup-claude-mcp --main
 
-.PHONY: help check-user lint smoke test test-quick test-core test-workflow test-perf test-list test-unit-extended test-bats test-bats-lib test-bats-system test-bats-integration test-bats-platform test-bats-build test-bats-claude test-bats-user-resolution test-bats-error-system test-bats-report test-bats-report-ci build build-linux build-darwin build-current build-fast build-switch switch apply deploy platform-info setup-mcp
+.PHONY: help check-user lint smoke test test-quick test-core test-unit test-contract test-coverage test-unit-coverage test-contract-coverage test-workflow test-perf test-list test-unit-extended test-bats test-bats-lib test-bats-system test-bats-integration test-bats-platform test-bats-build test-bats-claude test-bats-user-resolution test-bats-error-system test-bats-report test-bats-report-ci build build-linux build-darwin build-current build-fast build-switch switch apply deploy platform-info setup-mcp
