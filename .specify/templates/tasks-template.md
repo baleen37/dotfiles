@@ -5,7 +5,7 @@
 
 ## Execution Flow (main)
 
-```
+```text
 1. Load plan.md from feature directory
    → If not found: ERROR "No implementation plan found"
    → Extract: tech stack, libraries, structure
@@ -94,7 +94,7 @@
 
 ## Parallel Example
 
-```
+```text
 # Launch T004-T007 together:
 Task: "Contract test POST /api/users in tests/contract/test_users_post.py"
 Task: "Contract test GET /api/users/{id} in tests/contract/test_users_get.py"

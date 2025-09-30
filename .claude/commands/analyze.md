@@ -70,7 +70,7 @@ Execution steps:
    | ID | Category | Severity | Location(s) | Summary | Recommendation |
    |----|----------|----------|-------------|---------|----------------|
    | A1 | Duplication | HIGH | spec.md:L120-134 | Two similar requirements ... | Merge phrasing; keep clearer version |
-   (Add one row per finding; generate stable IDs prefixed by category initial.)
+   | | | | | (Add one row per finding; generate stable IDs prefixed by category initial.) | |
 
    Additional subsections:
 

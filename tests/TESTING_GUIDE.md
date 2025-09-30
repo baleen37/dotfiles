@@ -323,7 +323,7 @@ The framework enforces TDD methodology with clear phases:
 
 Each feature is validated across all test layers:
 
-```mermaid
+```text
 graph TD
     A[Unit Tests] --> B[Contract Tests]
     B --> C[Integration Tests]

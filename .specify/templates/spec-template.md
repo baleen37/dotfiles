@@ -7,7 +7,7 @@
 
 ## Execution Flow (main)
 
-```
+```text
 1. Parse user description from Input
    → If empty: ERROR "No feature description provided"
 2. Extract key concepts from description
