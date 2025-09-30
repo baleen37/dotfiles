@@ -85,7 +85,7 @@ calculate_coverage_percentage() {
     fi
   else
     # Fallback to integer math
-    echo $(( (tested * 100) / total ))
+    echo $(( ($tested * 100) / $total ))
   fi
 }
 
