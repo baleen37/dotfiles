@@ -130,24 +130,6 @@ configure_network_mode() {
 # Import unified error handling for retry functionality
 . "${SCRIPTS_DIR:-$(dirname "$(dirname "$0")")}/lib/unified-error-handling.sh"
 
-# DEPRECATED: Use unified_retry_operation instead
-# Network retry with exponential backoff
-retry_with_backoff() {
-    local command="$1"
-    local max_attempts="${2:-3}"
-    local base_delay="${3:-2}"
-
-    # Use unified retry operation
-    unified_retry_operation "$command" "$max_attempts" "$base_delay" "NETWORK"
-            delay=$((delay * 2))
-        fi
-
-        attempt=$((attempt + 1))
-    done
-
-    log_warning "Network operation failed after $max_attempts attempts"
-    return 1
-}
 
 # Get offline mode message for user
 get_offline_mode_message() {
