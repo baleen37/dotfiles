@@ -4,6 +4,12 @@
 
 set -euo pipefail
 
+# 공통 라이브러리 로드 (중복 방지)
+if [[ -z "${COMMON_LIB_VERSION:-}" ]]; then
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    source "$SCRIPT_DIR/common.sh"
+fi
+
 # 프레임워크 버전
 readonly TEST_FRAMEWORK_VERSION="1.0.0"
 
@@ -98,6 +104,124 @@ assert_not_equals() {
     local test_name="$3"
 
     assert "[[ '$actual' != '$expected' ]]" "$test_name" "!= $expected" "$actual"
+}
+
+# 정규식 매칭
+assert_regex() {
+    local string="$1"
+    local pattern="$2"
+    local test_name="$3"
+
+    assert "[[ '$string' =~ $pattern ]]" "$test_name" "matches $pattern" "$string"
+}
+
+# 명령어 성공 확인
+assert_command() {
+    local command="$1"
+    local test_name="$2"
+
+    if eval "$command" >/dev/null 2>&1; then
+        log_success "[$(get_current_context)] $test_name"
+        TESTS_PASSED=$((TESTS_PASSED + 1))
+        return 0
+    else
+        log_fail "[$(get_current_context)] $test_name"
+        log_error "  명령어 실패: $command"
+        TESTS_FAILED=$((TESTS_FAILED + 1))
+        return 1
+    fi
+}
+
+# 명령어 실패 확인
+assert_command_fails() {
+    local command="$1"
+    local test_name="$2"
+
+    if ! eval "$command" >/dev/null 2>&1; then
+        log_success "[$(get_current_context)] $test_name"
+        TESTS_PASSED=$((TESTS_PASSED + 1))
+        return 0
+    else
+        log_fail "[$(get_current_context)] $test_name"
+        log_error "  명령어가 성공했어야 실패: $command"
+        TESTS_FAILED=$((TESTS_FAILED + 1))
+        return 1
+    fi
+}
+
+# 빈 문자열/변수 확인
+assert_empty() {
+    local var="$1"
+    local test_name="$2"
+
+    assert "[[ -z '$var' ]]" "$test_name" "empty" "$var"
+}
+
+# 비어있지 않은 문자열/변수 확인
+assert_not_empty() {
+    local var="$1"
+    local test_name="$2"
+
+    assert "[[ -n '$var' ]]" "$test_name" "not empty" "$var"
+}
+
+# 배열에서 원소 포함 확인
+assert_array_contains() {
+    local element="$1"
+    shift
+    local array=("$@")
+    local last_arg="${array[-1]}"
+    unset 'array[-1]'
+    local test_name="$last_arg"
+
+    local found=false
+    for item in "${array[@]}"; do
+        if [[ "$item" == "$element" ]]; then
+            found=true
+            break
+        fi
+    done
+
+    if $found; then
+        log_success "[$(get_current_context)] $test_name"
+        TESTS_PASSED=$((TESTS_PASSED + 1))
+        return 0
+    else
+        log_fail "[$(get_current_context)] $test_name"
+        log_error "  배열에서 '$element'를 찾을 수 없음"
+        TESTS_FAILED=$((TESTS_FAILED + 1))
+        return 1
+    fi
+}
+
+# 테스트 건너뛰기
+skip_test() {
+    local reason="$1"
+    log_warning "[$(get_current_context)] 테스트 건너뜀: $reason"
+}
+
+# 파일 존재 확인
+assert_file_exists() {
+    local file_path="$1"
+    local test_name="$2"
+
+    assert "[[ -f '$file_path' ]]" "$test_name" "file exists" "$file_path"
+}
+
+# 디렉토리 존재 확인
+assert_directory_exists() {
+    local dir_path="$1"
+    local test_name="$2"
+
+    assert "[[ -d '$dir_path' ]]" "$test_name" "directory exists" "$dir_path"
+}
+
+# 심볼릭 링크 확인
+assert_symlink() {
+    local link_path="$1"
+    local test_name="$2"
+
+    assert "[[ -L '$link_path' ]]" "$test_name" "is symlink" "$link_path"
 }
 
 # 문자열 포함 확인
@@ -258,6 +382,38 @@ measure_execution_time() {
 }
 
 # === 테스트 그룹 관리 ===
+
+# 테스트 스위트 시작
+begin_test_suite() {
+    local suite_name="$1"
+    TEST_SUITE_NAME="$suite_name"
+    test_framework_init
+    log_header "테스트 스위트: $suite_name"
+    push_test_context "$suite_name"
+}
+
+# 테스트 스위트 종료
+end_test_suite() {
+    pop_test_context
+    report_test_results
+}
+
+# 테스트 실행 함수
+run_test() {
+    local test_name="$1"
+    local test_function="$2"
+
+    log_info "실행 중: $test_name"
+
+    # 테스트 함수 실행
+    if "$test_function"; then
+        log_success "$test_name 완료"
+        return 0
+    else
+        log_error "$test_name 실패"
+        return 1
+    fi
+}
 
 # 테스트 그룹 시작
 start_test_group() {

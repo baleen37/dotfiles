@@ -6,15 +6,23 @@ set -euo pipefail
 
 # 테스트 디렉토리 경로
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../lib/common.sh"
+source "$SCRIPT_DIR/../lib/test-framework.sh"
 
 # 테스트용 임시 디렉토리
 TEST_TEMP_DIR=""
+TEST_CASE_TEMP_DIR=""
+TEST_SUITE_TEMP_DIR=""
+TEST_CASE_START_TIME=""
 
 # 커스텀 Setup - 기본 setup_test_case에 추가로 실행됨
 setup_custom() {
-    # 기본 TEST_CASE_TEMP_DIR 외에 추가 테스트용 디렉토리 생성
+    # 임시 디렉토리들 설정
+    TEST_SUITE_TEMP_DIR=$(mktemp -d)
+    TEST_CASE_TEMP_DIR="$TEST_SUITE_TEMP_DIR/test-case"
     TEST_TEMP_DIR="$TEST_CASE_TEMP_DIR/framework-test"
+    TEST_CASE_START_TIME=$(date +%s%N)
+
+    mkdir -p "$TEST_CASE_TEMP_DIR"
     mkdir -p "$TEST_TEMP_DIR"
     log_debug "프레임워크 테스트용 디렉토리 생성: $TEST_TEMP_DIR"
 }
@@ -139,6 +147,7 @@ test_test_timing() {
 
 main() {
     begin_test_suite "테스트 프레임워크 검증"
+    setup_custom
 
     run_test "assert_equals 테스트" test_assert_equals
     run_test "assert_not_equals 테스트" test_assert_not_equals
