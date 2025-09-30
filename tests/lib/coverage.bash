@@ -38,7 +38,8 @@ count_test_files() {
   if [[ "$category" == "all" ]]; then
     for cat in unit integration e2e performance; do
       if [[ -d "tests/$cat" ]]; then
-        count=$((count + $(find "tests/$cat" -name "*.bats" -type f 2>/dev/null | wc -l)))
+        local cat_count=$(find "tests/$cat" -name "*.bats" -type f 2>/dev/null | wc -l)
+        count=$((count + cat_count))
       fi
     done
   else
@@ -156,7 +157,8 @@ generate_coverage_report() {
         local cat_tests=0
         while IFS= read -r test_file; do
           if [[ -f "$test_file" ]]; then
-            cat_tests=$((cat_tests + $(count_tested_functions "$test_file")))
+            local file_test_count=$(count_tested_functions "$test_file")
+            cat_tests=$((cat_tests + file_test_count))
           fi
         done < <(find "tests/$category" -name "*.bats" -type f 2>/dev/null)
         printf "  %-15s: %3d files, %4d tests\n" "$category" "$cat_files" "$cat_tests"
