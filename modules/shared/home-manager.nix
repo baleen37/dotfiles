@@ -32,44 +32,25 @@ let
   isLinux = platformDetection.isLinux pkgs.system;
 in
 {
-  # Import Claude Code configuration module
-  imports = [
-    ./claude-code.nix  # Re-enabled with CI compatibility
-  ];
+  # Home activation scripts
+  home.activation = {
+    # Simple Claude .claude directory symlink
+    setupClaudeConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      CLAUDE_DIR="$HOME/.claude"
+      SOURCE_DIR="$HOME/dotfiles/modules/shared/config/claude"
 
-  # Enable Claude Code configuration with CI-safe defaults
-  programs.claude-code = {
-    enable = true;  # Automatically disabled in CI environments
-    forceOverwrite = true; # Force symlink overwrite, no backup files
-    enableBackups = false; # Never create backup files
-    configDirectory = ".claude";
+      if [[ ! -d "$SOURCE_DIR" ]]; then
+        SOURCE_DIR="$HOME/dev/dotfiles/modules/shared/config/claude"
+      fi
 
-    # Shell integration configuration
-    shell = {
-      aliases = {
-        cc = "claude --dangerously-skip-permissions";
-      };
-      integration = true;
-    };
-
-    # Symlink management configuration
-    symlinks = {
-      enable = true;
-      sourceDir = "dotfiles/modules/shared/config/claude";
-      fallbackSources = [
-        "dev/dotfiles/modules/shared/config/claude"
-        "./modules/shared/config/claude"
-      ];
-      preserveBrokenLinks = false;
-    };
-  };
-
-  # macOS 사용자 레벨 기본값 설정 (root 권한 불필요)
-  # Note: targets.darwin 비활성화 - "Cannot nest composite types" 에러 방지
-  # 대신 home.activation에서 직접 defaults 명령 실행
-
-  # 사용자 레벨 activation (root 권한 불필요)
-  home.activation = lib.optionalAttrs isDarwin {
+      if [[ -d "$SOURCE_DIR" ]]; then
+        mkdir -p "$HOME"
+        rm -rf "$CLAUDE_DIR"
+        ln -sf "$SOURCE_DIR" "$CLAUDE_DIR"
+        echo "✓ Claude config linked: $CLAUDE_DIR -> $SOURCE_DIR"
+      fi
+    '';
+  } // lib.optionalAttrs isDarwin {
     setupKeyboardInput = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       echo "Setting up keyboard input configuration..."
 
@@ -98,7 +79,7 @@ in
       enable = true;
       autocd = false;
       shellAliases = {
-        # cc alias now managed by claude-code module
+        cc = "claude --dangerously-skip-permissions";
       };
       plugins = [
         {
@@ -225,7 +206,9 @@ in
           echo "IntelliJ IDEA started in background with: $idea_cmd"
         }
 
-        # Claude CLI shortcuts now managed by claude-code module
+        # Claude CLI shortcuts
+        # Note: 'cc' alias may conflict with system C compiler. Use '\cc' to access system cc if needed.
+        alias cc="claude --dangerously-skip-permissions"
 
         # Claude CLI with Git Worktree workflow
         ccw() {

@@ -8,8 +8,7 @@
 {
   # 공통 모듈들을 여기에 import
   imports = [
-    # Claude 관련 설정은 각 플랫폼의 home-manager에서 직접 import
-    # Claude configuration은 이제 claude-code.nix 모듈에서 통합 관리됨
+    # Claude 관련 설정은 각 플랫폼의 home-manager에서 간단한 symlink로 관리
     ./nix-gc.nix # Nix 자동 갈비지 컬렉션 설정
   ];
 

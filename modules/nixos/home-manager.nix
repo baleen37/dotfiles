@@ -136,6 +136,6 @@ in
 
   programs = shared-programs.programs;
 
-  # Claude 설정 활성화는 이제 claude-code 모듈에서 관리됨
+  # Claude 설정 활성화는 이제 shared home-manager에서 간단한 symlink로 관리됨
 
 }

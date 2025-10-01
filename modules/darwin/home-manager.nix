@@ -66,7 +66,7 @@ in
 
       manual.manpages.enable = false;
 
-      # Claude 설정 활성화는 이제 claude-code 모듈에서 관리됨
+      # Claude 설정 활성화는 이제 shared home-manager에서 간단한 symlink로 관리됨
 
       # TDD로 검증된 Nix 앱 링크 시스템 (최적화됨)
       home.activation.linkNixApps = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
