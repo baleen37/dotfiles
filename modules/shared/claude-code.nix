@@ -246,11 +246,11 @@ let
 
 in
 {
-  # Note: Sub-module imports disabled due to option conflicts with Home Manager
-  # imports = [
-  #   ./claude-code/config.nix
-  #   ./claude-code/symlink.nix
-  # ];
+  # Import sub-modules for comprehensive functionality
+  imports = [
+    ./claude-code/config.nix
+    # ./claude-code/symlink.nix  # Functionality integrated into config.nix
+  ];
 
   # Extension options for management and monitoring (extending imported options)
   options.programs.claude-code.management = {

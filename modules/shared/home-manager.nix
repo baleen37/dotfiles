@@ -33,17 +33,36 @@ let
 in
 {
   # Import Claude Code configuration module
-  # imports = [
-  #   ./claude-code.nix  # Disabled due to NixOS CI conflicts
-  # ];
+  imports = [
+    ./claude-code.nix  # Re-enabled with CI compatibility
+  ];
 
-  # Enable Claude Code configuration with no backup files
-  # programs.claude-code = {  # Disabled due to NixOS CI conflicts
-  #   enable = true;
-  #   forceOverwrite = true; # Force symlink overwrite, no backup files
-  #   enableBackups = false; # Never create backup files
-  #   configDirectory = ".claude";
-  # };
+  # Enable Claude Code configuration with CI-safe defaults
+  programs.claude-code = {
+    enable = true;  # Automatically disabled in CI environments
+    forceOverwrite = true; # Force symlink overwrite, no backup files
+    enableBackups = false; # Never create backup files
+    configDirectory = ".claude";
+
+    # Shell integration configuration
+    shell = {
+      aliases = {
+        cc = "claude --dangerously-skip-permissions";
+      };
+      integration = true;
+    };
+
+    # Symlink management configuration
+    symlinks = {
+      enable = true;
+      sourceDir = "dotfiles/modules/shared/config/claude";
+      fallbackSources = [
+        "dev/dotfiles/modules/shared/config/claude"
+        "./modules/shared/config/claude"
+      ];
+      preserveBrokenLinks = false;
+    };
+  };
 
   # macOS 사용자 레벨 기본값 설정 (root 권한 불필요)
   # Note: targets.darwin 비활성화 - "Cannot nest composite types" 에러 방지
@@ -79,7 +98,7 @@ in
       enable = true;
       autocd = false;
       shellAliases = {
-        cc = "claude --dangerously-skip-permissions";
+        # cc alias now managed by claude-code module
       };
       plugins = [
         {
@@ -206,9 +225,7 @@ in
           echo "IntelliJ IDEA started in background with: $idea_cmd"
         }
 
-        # Claude CLI shortcuts
-        # Note: 'cc' alias may conflict with system C compiler. Use '\cc' to access system cc if needed.
-        alias cc="claude --dangerously-skip-permissions"
+        # Claude CLI shortcuts now managed by claude-code module
 
         # Claude CLI with Git Worktree workflow
         ccw() {
