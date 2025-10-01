@@ -44,7 +44,6 @@ let
 in
 {
   # imports = [
-  #   ../shared/claude-code.nix  # Disabled due to NixOS CI conflicts
   # ];
 
   home = {

@@ -144,7 +144,6 @@ Development:
   - make: "^4.0"             # Build orchestration
   - bash: "^5.0"             # Shell scripting
   - git: "^2.40"             # Version control
-  - claude-code: "latest"    # AI development assistant
 
 Optional Enhancements:
   - cachix: "latest"         # Binary cache management
