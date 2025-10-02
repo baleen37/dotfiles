@@ -217,7 +217,12 @@ run_single_test() {
         return 2
     fi
 
-    local start_time=$(date +%s%N)
+    local start_time
+    if date +%s%N >/dev/null 2>&1; then
+        start_time=$(date +%s%N)
+    else
+        start_time=$(date +%s)
+    fi
     local exit_code=0
     local output=""
 
@@ -266,8 +271,14 @@ run_single_test() {
 
     log_debug "테스트 실행 완료: $test_file, exit_code=$exit_code"
 
-    local end_time=$(date +%s%N)
-    local duration=$(( (end_time - start_time) / 1000000 ))
+    local end_time
+    if date +%s%N >/dev/null 2>&1; then
+        end_time=$(date +%s%N)
+        local duration=$(( (end_time - start_time) / 1000000 ))
+    else
+        end_time=$(date +%s)
+        local duration=$(( (end_time - start_time) * 1000 ))
+    fi
 
     case $exit_code in
         0)
@@ -409,7 +420,15 @@ resolve_test_files() {
 
 # JSON 형식 출력
 output_json_results() {
-    local duration=$(( ($(date +%s%N) - START_TIME) / 1000000 ))
+    local current_time
+    if date +%s%N >/dev/null 2>&1; then
+        current_time=$(date +%s%N)
+        local duration=$(( (current_time - START_TIME) / 1000000 ))
+    else
+        # macOS fallback: use seconds only
+        current_time=$(date +%s)
+        local duration=$(( (current_time - START_TIME) * 1000 ))
+    fi
 
     cat << EOF
 {
@@ -439,7 +458,15 @@ EOF
 
 # 표준 형식 결과 출력
 output_standard_results() {
-    local duration=$(( ($(date +%s%N) - START_TIME) / 1000000 ))
+    local current_time
+    if date +%s%N >/dev/null 2>&1; then
+        current_time=$(date +%s%N)
+        local duration=$(( (current_time - START_TIME) / 1000000 ))
+    else
+        # macOS fallback: use seconds only
+        current_time=$(date +%s)
+        local duration=$(( (current_time - START_TIME) * 1000 ))
+    fi
     local duration_str="${duration}ms"
     if [[ $duration -gt 1000 ]]; then
         duration_str="$((duration / 1000))s"
@@ -534,7 +561,12 @@ main() {
     done
 
     # 시작 시간 기록
-    START_TIME=$(date +%s%N)
+    if date +%s%N >/dev/null 2>&1; then
+        START_TIME=$(date +%s%N)
+    else
+        # macOS fallback: use seconds only
+        START_TIME=$(date +%s)
+    fi
 
     # 테스트 파일 해상도
     local test_files_array

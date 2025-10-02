@@ -44,7 +44,6 @@ let
 in
 {
   # imports = [
-  #   ../shared/claude-code.nix  # Disabled due to NixOS CI conflicts
   # ];
 
   home = {
@@ -136,13 +135,6 @@ in
 
   programs = shared-programs.programs;
 
-  # Claude 설정 활성화 (공통 라이브러리 사용)
-  home.activation.setupClaudeConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] (
-    import ../shared/claude.nix {
-      inherit config lib;
-      self = null;
-      platform = "linux";
-    }
-  );
+  # Claude 설정 활성화는 이제 shared home-manager에서 간단한 symlink로 관리됨
 
 }

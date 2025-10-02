@@ -32,25 +32,25 @@ let
   isLinux = platformDetection.isLinux pkgs.system;
 in
 {
-  # Import Claude Code configuration module
-  # imports = [
-  #   ./claude-code.nix  # Disabled due to NixOS CI conflicts
-  # ];
+  # Home activation scripts
+  home.activation = {
+    # Simple Claude .claude directory symlink
+    setupClaudeConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      CLAUDE_DIR="$HOME/.claude"
+      SOURCE_DIR="$HOME/dotfiles/modules/shared/config/claude"
 
-  # Enable Claude Code configuration with no backup files
-  # programs.claude-code = {  # Disabled due to NixOS CI conflicts
-  #   enable = true;
-  #   forceOverwrite = true; # Force symlink overwrite, no backup files
-  #   enableBackups = false; # Never create backup files
-  #   configDirectory = ".claude";
-  # };
+      if [[ ! -d "$SOURCE_DIR" ]]; then
+        SOURCE_DIR="$HOME/dev/dotfiles/modules/shared/config/claude"
+      fi
 
-  # macOS 사용자 레벨 기본값 설정 (root 권한 불필요)
-  # Note: targets.darwin 비활성화 - "Cannot nest composite types" 에러 방지
-  # 대신 home.activation에서 직접 defaults 명령 실행
-
-  # 사용자 레벨 activation (root 권한 불필요)
-  home.activation = lib.optionalAttrs isDarwin {
+      if [[ -d "$SOURCE_DIR" ]]; then
+        mkdir -p "$HOME"
+        rm -rf "$CLAUDE_DIR"
+        ln -sf "$SOURCE_DIR" "$CLAUDE_DIR"
+        echo "✓ Claude config linked: $CLAUDE_DIR -> $SOURCE_DIR"
+      fi
+    '';
+  } // lib.optionalAttrs isDarwin {
     setupKeyboardInput = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       echo "Setting up keyboard input configuration..."
 
