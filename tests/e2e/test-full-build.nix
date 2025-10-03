@@ -2,7 +2,10 @@
 # CRITICAL: This test MUST FAIL initially (TDD RED phase requirement)
 # Tests for complete system build workflow including cross-platform builds, performance validation, and system integration
 
-{ lib }:
+{
+  lib,
+  pkgs, # Required by check-builders.nix interface consistency, not used in test logic
+}:
 
 let
   # Test helper functions
@@ -14,24 +17,27 @@ let
     timeout = test.timeout or 300;
   };
 
-  # Current platform detection
-  inherit (builtins) currentSystem;
-  currentPlatform =
-    if lib.hasInfix "darwin" currentSystem then
+  # Current platform detection function
+  getCurrentPlatform =
+    system:
+    if lib.hasInfix "darwin" system then
       {
         os = "darwin";
-        arch = if lib.hasInfix "aarch64" currentSystem then "aarch64" else "x86_64";
+        arch = if lib.hasInfix "aarch64" system then "aarch64" else "x86_64";
       }
-    else if lib.hasInfix "linux" currentSystem then
+    else if lib.hasInfix "linux" system then
       {
         os = "nixos";
-        arch = if lib.hasInfix "aarch64" currentSystem then "aarch64" else "x86_64";
+        arch = if lib.hasInfix "aarch64" system then "aarch64" else "x86_64";
       }
     else
       {
         os = "unknown";
         arch = "unknown";
       };
+
+  # Get current platform (will be evaluated at build time)
+  currentPlatform = getCurrentPlatform (builtins.currentSystem or "unknown");
 
   # Performance thresholds from constitutional requirements
   performanceThresholds = {
