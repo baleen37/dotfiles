@@ -12,7 +12,12 @@
 # If you see evaluation errors, check that this file is not being imported
 # directly in system configuration (hosts/*/default.nix)
 
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 let
   name = "Jiho Lee";
@@ -50,7 +55,8 @@ in
         echo "✓ Claude config linked: $CLAUDE_DIR -> $SOURCE_DIR"
       fi
     '';
-  } // lib.optionalAttrs isDarwin {
+  }
+  // lib.optionalAttrs isDarwin {
     setupKeyboardInput = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       echo "Setting up keyboard input configuration..."
 
@@ -118,13 +124,13 @@ in
 
         # 1Password SSH agent setup (platform-specific)
         ${lib.optionalString isDarwin ''
-        # Darwin: Group Container 디렉토리를 동적으로 찾기
-        for container_dir in ~/Library/Group\ Containers/*.com.1password/t/agent.sock; do
-          if [[ -S "$container_dir" ]]; then
-            export SSH_AUTH_SOCK="$container_dir"
-            break
-          fi
-        done 2>/dev/null || true
+          # Darwin: Group Container 디렉토리를 동적으로 찾기
+          for container_dir in ~/Library/Group\ Containers/*.com.1password/t/agent.sock; do
+            if [[ -S "$container_dir" ]]; then
+              export SSH_AUTH_SOCK="$container_dir"
+              break
+            fi
+          done 2>/dev/null || true
         ''}
 
         # 기본 위치들도 확인 (cross-platform)
@@ -170,14 +176,14 @@ in
           elif command -v intellij-idea-community >/dev/null 2>&1; then
             idea_cmd="intellij-idea-community"
           ${lib.optionalString isDarwin ''
-          # 2. Darwin Homebrew 경로 확인
-          elif [[ -x "/opt/homebrew/bin/idea" ]]; then
-            idea_cmd="/opt/homebrew/bin/idea"
+            # 2. Darwin Homebrew 경로 확인
+            elif [[ -x "/opt/homebrew/bin/idea" ]]; then
+              idea_cmd="/opt/homebrew/bin/idea"
           ''}
           ${lib.optionalString isLinux ''
-          # 2. Linux Homebrew 경로 확인
-          elif [[ -x "/home/linuxbrew/.linuxbrew/bin/idea" ]]; then
-            idea_cmd="/home/linuxbrew/.linuxbrew/bin/idea"
+            # 2. Linux Homebrew 경로 확인
+            elif [[ -x "/home/linuxbrew/.linuxbrew/bin/idea" ]]; then
+              idea_cmd="/home/linuxbrew/.linuxbrew/bin/idea"
           ''}
           # 3. 일반 PATH에서 확인 (최후 수단)
           elif command -v idea >/dev/null 2>&1; then
@@ -333,8 +339,14 @@ in
 
     vim = {
       enable = true;
-      plugins = with pkgs.vimPlugins; [ vim-airline vim-airline-themes vim-tmux-navigator ];
-      settings = { ignorecase = true; };
+      plugins = with pkgs.vimPlugins; [
+        vim-airline
+        vim-airline-themes
+        vim-tmux-navigator
+      ];
+      settings = {
+        ignorecase = true;
+      };
       extraConfig = ''
         "" General
         set number

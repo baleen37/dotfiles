@@ -2,7 +2,12 @@
 # This module provides cross-platform Claude configuration file management
 # with simple folder-level symlink approach for maximum simplicity.
 
-{ config, lib, self ? null, platform ? "unknown" }:
+{
+  config,
+  lib,
+  self ? null,
+  _platform ? "unknown",
+}:
 
 let
   claudeDir = "${config.home.homeDirectory}/.claude";
@@ -16,7 +21,8 @@ let
     "${config.home.homeDirectory}/dev/dotfiles/modules/shared/config/claude" # dev dotfiles location
     "./modules/shared/config/claude" # relative path fallback
     "/Users/jito/dev/dotfiles/modules/shared/config/claude" # absolute path fallback
-  ] ++ (if self != null then [ "${self}/modules/shared/config/claude" ] else [ ]);
+  ]
+  ++ (if self != null then [ "${self}/modules/shared/config/claude" ] else [ ]);
 
 in
 ''

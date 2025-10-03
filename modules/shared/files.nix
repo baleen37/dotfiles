@@ -1,4 +1,9 @@
-{ pkgs, config, lib, ... }:
+{
+  _pkgs,
+  _config,
+  _lib,
+  ...
+}:
 
 {
   # Shared files configuration

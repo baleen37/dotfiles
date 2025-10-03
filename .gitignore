@@ -70,3 +70,6 @@ __pycache__/
 specs/
 plans/
 coverage/
+
+# git-hooks.nix generated config (managed by Nix)
+.pre-commit-config.yaml

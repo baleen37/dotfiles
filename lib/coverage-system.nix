@@ -1,15 +1,31 @@
 # Coverage System for Comprehensive Testing Framework
 # Provides coverage measurement, reporting, and threshold validation
 
-{ pkgs ? import <nixpkgs> { }, lib, ... }:
+{
+  lib,
+  ...
+}:
 
 let
   # Coverage configuration defaults
   defaultConfig = {
     threshold = 90.0;
-    includePaths = [ "lib" "modules" "hosts" ];
-    excludePaths = [ "tests" "docs" "scripts" ".git" ];
-    outputFormats = [ "console" "json" "html" ];
+    includePaths = [
+      "lib"
+      "modules"
+      "hosts"
+    ];
+    excludePaths = [
+      "tests"
+      "docs"
+      "scripts"
+      ".git"
+    ];
+    outputFormats = [
+      "console"
+      "json"
+      "html"
+    ];
     reportDir = "coverage";
     lineLevel = true;
     functionLevel = true;
@@ -24,7 +40,10 @@ let
       supported = true;
     };
     bash = {
-      extensions = [ ".sh" ".bash" ];
+      extensions = [
+        ".sh"
+        ".bash"
+      ];
       parser = "bash-coverage";
       supported = true;
     };
@@ -40,7 +59,11 @@ in
   # Coverage measurement functions
   measurement = {
     # Initialize coverage session
-    initSession = { name, config ? { } }:
+    initSession =
+      {
+        name,
+        config ? { },
+      }:
       let
         finalConfig = defaultConfig // config;
       in
@@ -55,39 +78,43 @@ in
       };
 
     # Collect coverage for a set of modules
-    collectCoverage = { session, modules, testResults ? [ ] }:
+    collectCoverage =
+      {
+        session,
+        modules,
+        testResults ? [ ],
+      }:
       let
         # Analyze each module for coverage
-        moduleAnalysis = map
-          (module:
-            let
-              moduleInfo = analyzeModule module;
-            in
-            {
-              path = module;
-              totalLines = moduleInfo.totalLines;
-              executableLines = moduleInfo.executableLines;
-              coveredLines = calculateCoveredLines moduleInfo testResults;
-              coverage =
-                if moduleInfo.executableLines > 0
-                then (calculateCoveredLines moduleInfo testResults) / moduleInfo.executableLines * 100
-                else 100.0;
-              functions = moduleInfo.functions;
-              uncoveredLines = moduleInfo.executableLines - (calculateCoveredLines moduleInfo testResults);
-            }
-          )
-          modules;
+        moduleAnalysis = map (
+          module:
+          let
+            moduleInfo = analyzeModule module;
+          in
+          {
+            path = module;
+            totalLines = moduleInfo.totalLines;
+            executableLines = moduleInfo.executableLines;
+            coveredLines = calculateCoveredLines moduleInfo testResults;
+            coverage =
+              if moduleInfo.executableLines > 0 then
+                (calculateCoveredLines moduleInfo testResults) / moduleInfo.executableLines * 100
+              else
+                100.0;
+            functions = moduleInfo.functions;
+            uncoveredLines = moduleInfo.executableLines - (calculateCoveredLines moduleInfo testResults);
+          }
+        ) modules;
 
         # Calculate aggregate metrics
         totalExecutableLines = lib.foldl' (acc: mod: acc + mod.executableLines) 0 moduleAnalysis;
         totalCoveredLines = lib.foldl' (acc: mod: acc + mod.coveredLines) 0 moduleAnalysis;
         overallCoverage =
-          if totalExecutableLines > 0
-          then totalCoveredLines / totalExecutableLines * 100
-          else 100.0;
+          if totalExecutableLines > 0 then totalCoveredLines / totalExecutableLines * 100 else 100.0;
 
       in
-      session // {
+      session
+      // {
         status = "completed";
         endTime = builtins.currentTime;
         modules = moduleAnalysis;
@@ -103,7 +130,8 @@ in
       };
 
     # Analyze a single module for coverage potential
-    analyzeModule = modulePath:
+    analyzeModule =
+      modulePath:
       let
         # Read and parse the module file
         moduleContent = builtins.readFile modulePath;
@@ -113,16 +141,15 @@ in
         totalLines = builtins.length lines;
 
         # Identify executable lines (non-comments, non-empty)
-        executableLines = builtins.length (builtins.filter
-          (line:
+        executableLines = builtins.length (
+          builtins.filter (
+            line:
             let
               trimmed = lib.trim line;
             in
-            trimmed != "" &&
-            !lib.hasPrefix "#" trimmed &&
-            !lib.hasPrefix "/*" trimmed
-          )
-          lines);
+            trimmed != "" && !lib.hasPrefix "#" trimmed && !lib.hasPrefix "/*" trimmed
+          ) lines
+        );
 
         # Extract function definitions (simplified)
         functions = extractFunctions moduleContent;
@@ -137,56 +164,56 @@ in
       };
 
     # Calculate covered lines based on test results
-    calculateCoveredLines = moduleInfo: testResults:
+    calculateCoveredLines =
+      moduleInfo: testResults:
       # This is a simplified calculation
       # In a real implementation, this would analyze test execution traces
-      if builtins.length testResults > 0
-      then builtins.floor (moduleInfo.executableLines * 0.85) # 85% estimate
-      else 0;
+      if builtins.length testResults > 0 then
+        builtins.floor (moduleInfo.executableLines * 0.85) # 85% estimate
+      else
+        0;
 
     # Extract function definitions from module content
-    extractFunctions = content:
+    extractFunctions =
+      content:
       # Simplified function extraction for Nix
       let
         lines = lib.splitString "\n" content;
-        functionLines = builtins.filter
-          (line:
-            lib.hasInfix " = " line &&
-            (lib.hasInfix "{ " line || lib.hasInfix ": " line)
-          )
-          lines;
+        functionLines = builtins.filter (
+          line: lib.hasInfix " = " line && (lib.hasInfix "{ " line || lib.hasInfix ": " line)
+        ) lines;
       in
-      map
-        (line: {
-          name = lib.head (lib.splitString " = " line);
-          line = line;
-          covered = false; # Would be determined by actual execution
-        })
-        functionLines;
+      map (line: {
+        name = lib.head (lib.splitString " = " line);
+        line = line;
+        covered = false; # Would be determined by actual execution
+      }) functionLines;
 
     # Detect file type for appropriate coverage analysis
-    detectFileType = filePath:
+    detectFileType =
+      filePath:
       let
         extension = lib.last (lib.splitString "." filePath);
       in
-      if builtins.any (ext: ext == ".${extension}") fileTypes.nix.extensions
-      then "nix"
-      else if builtins.any (ext: ext == ".${extension}") fileTypes.bash.extensions
-      then "bash"
-      else if builtins.any (ext: ext == ".${extension}") fileTypes.lua.extensions
-      then "lua"
-      else "unknown";
+      if builtins.any (ext: ext == ".${extension}") fileTypes.nix.extensions then
+        "nix"
+      else if builtins.any (ext: ext == ".${extension}") fileTypes.bash.extensions then
+        "bash"
+      else if builtins.any (ext: ext == ".${extension}") fileTypes.lua.extensions then
+        "lua"
+      else
+        "unknown";
   };
 
   # Coverage reporting functions
   reporting = {
     # Generate console report
-    generateConsoleReport = session:
+    generateConsoleReport =
+      session:
       let
         results = session.results;
         threshold = session.config.threshold;
         statusIcon = if results.thresholdMet then "✓" else "✗";
-        statusColor = if results.thresholdMet then "green" else "red";
       in
       ''
         ========================================
@@ -201,18 +228,24 @@ in
         Executable Lines: ${toString results.totalExecutableLines}
         Covered Lines: ${toString results.totalCoveredLines}
 
-        ${if builtins.length results.uncoveredModules > 0 then ''
-        Modules below threshold:
-        ${lib.concatMapStringsSep "\n" (mod:
-          "  - ${mod.path}: ${toString (builtins.floor (mod.coverage * 100) / 100)}%"
-        ) results.uncoveredModules}
-        '' else "All modules meet coverage threshold!"}
+        ${
+          if builtins.length results.uncoveredModules > 0 then
+            ''
+              Modules below threshold:
+              ${lib.concatMapStringsSep "\n" (
+                mod: "  - ${mod.path}: ${toString (builtins.floor (mod.coverage * 100) / 100)}%"
+              ) results.uncoveredModules}
+            ''
+          else
+            "All modules meet coverage threshold!"
+        }
 
         ========================================
       '';
 
     # Generate JSON report
-    generateJSONReport = session:
+    generateJSONReport =
+      session:
       builtins.toJSON {
         sessionId = session.sessionId;
         name = session.name;
@@ -223,20 +256,19 @@ in
       };
 
     # Generate HTML report
-    generateHTMLReport = session:
+    generateHTMLReport =
+      session:
       let
         results = session.results;
-        moduleRows = lib.concatMapStringsSep "\n"
-          (mod: ''
-            <tr class="${if mod.coverage >= session.config.threshold then "pass" else "fail"}">
-              <td>${mod.path}</td>
-              <td>${toString mod.totalLines}</td>
-              <td>${toString mod.executableLines}</td>
-              <td>${toString mod.coveredLines}</td>
-              <td>${toString (builtins.floor (mod.coverage * 100) / 100)}%</td>
-            </tr>
-          '')
-          session.modules;
+        moduleRows = lib.concatMapStringsSep "\n" (mod: ''
+          <tr class="${if mod.coverage >= session.config.threshold then "pass" else "fail"}">
+            <td>${mod.path}</td>
+            <td>${toString mod.totalLines}</td>
+            <td>${toString mod.executableLines}</td>
+            <td>${toString mod.coveredLines}</td>
+            <td>${toString (builtins.floor (mod.coverage * 100) / 100)}%</td>
+          </tr>
+        '') session.modules;
       in
       ''
         <!DOCTYPE html>
@@ -260,8 +292,12 @@ in
 
           <div class="summary ${if results.thresholdMet then "pass" else "fail"}">
             <h2>Summary</h2>
-            <p><strong>Overall Coverage:</strong> ${toString (builtins.floor (results.overallCoverage * 100) / 100)}%</p>
-            <p><strong>Threshold:</strong> ${toString session.config.threshold}% ${if results.thresholdMet then "(MET)" else "(NOT MET)"}</p>
+            <p><strong>Overall Coverage:</strong> ${
+              toString (builtins.floor (results.overallCoverage * 100) / 100)
+            }%</p>
+            <p><strong>Threshold:</strong> ${toString session.config.threshold}% ${
+              if results.thresholdMet then "(MET)" else "(NOT MET)"
+            }</p>
             <p><strong>Modules:</strong> ${toString results.totalModules}</p>
             <p><strong>Total Lines:</strong> ${toString results.totalLines}</p>
             <p><strong>Covered Lines:</strong> ${toString results.totalCoveredLines}</p>
@@ -289,60 +325,57 @@ in
       '';
 
     # Generate LCOV report (for CI integration)
-    generateLCOVReport = session:
-      lib.concatMapStringsSep "\n"
-        (mod: ''
-          TN:
-          SF:${mod.path}
-          FNF:${toString (builtins.length mod.functions)}
-          FNH:${toString (builtins.length (builtins.filter (f: f.covered) mod.functions))}
-          LF:${toString mod.executableLines}
-          LH:${toString mod.coveredLines}
-          end_of_record
-        '')
-        session.modules;
+    generateLCOVReport =
+      session:
+      lib.concatMapStringsSep "\n" (mod: ''
+        TN:
+        SF:${mod.path}
+        FNF:${toString (builtins.length mod.functions)}
+        FNH:${toString (builtins.length (builtins.filter (f: f.covered) mod.functions))}
+        LF:${toString mod.executableLines}
+        LH:${toString mod.coveredLines}
+        end_of_record
+      '') session.modules;
   };
 
   # Coverage validation and thresholds
   validation = {
     # Check if coverage meets threshold
-    checkThreshold = session:
-      session.results.overallCoverage >= session.config.threshold;
+    checkThreshold = session: session.results.overallCoverage >= session.config.threshold;
 
     # Get coverage status
-    getCoverageStatus = session:
-      if validation.checkThreshold session
-      then "PASS"
-      else "FAIL";
+    getCoverageStatus = session: if validation.checkThreshold session then "PASS" else "FAIL";
 
     # Get uncovered modules
-    getUncoveredModules = session:
-      builtins.filter (mod: mod.coverage < session.config.threshold) session.modules;
+    getUncoveredModules =
+      session: builtins.filter (mod: mod.coverage < session.config.threshold) session.modules;
 
     # Calculate coverage delta between two sessions
-    calculateDelta = { previousSession, currentSession }:
+    calculateDelta =
+      { previousSession, currentSession }:
       {
         overallDelta = currentSession.results.overallCoverage - previousSession.results.overallCoverage;
-        moduleDeltas = lib.zipListsWith
-          (prev: curr: {
-            path = curr.path;
-            delta = curr.coverage - prev.coverage;
-          })
-          previousSession.modules
-          currentSession.modules;
+        moduleDeltas = lib.zipListsWith (prev: curr: {
+          path = curr.path;
+          delta = curr.coverage - prev.coverage;
+        }) previousSession.modules currentSession.modules;
       };
   };
 
   # CI/CD integration
   cicd = {
     # Generate coverage badge data
-    generateBadgeData = session:
+    generateBadgeData =
+      session:
       let
         coverage = builtins.floor (session.results.overallCoverage * 10) / 10;
         color =
-          if coverage >= session.config.threshold then "brightgreen"
-          else if coverage >= 80 then "yellow"
-          else "red";
+          if coverage >= session.config.threshold then
+            "brightgreen"
+          else if coverage >= 80 then
+            "yellow"
+          else
+            "red";
       in
       {
         schemaVersion = 1;
@@ -352,7 +385,8 @@ in
       };
 
     # Generate GitHub Actions output
-    generateGitHubActionsOutput = session:
+    generateGitHubActionsOutput =
+      session:
       let
         status = validation.getCoverageStatus session;
         coverage = toString (builtins.floor (session.results.overallCoverage * 100) / 100);
@@ -360,54 +394,58 @@ in
       ''
         echo "coverage=${coverage}" >> $GITHUB_OUTPUT
         echo "status=${status}" >> $GITHUB_OUTPUT
-        echo "threshold-met=${if validation.checkThreshold session then "true" else "false"}" >> $GITHUB_OUTPUT
+        echo "threshold-met=${
+          if validation.checkThreshold session then "true" else "false"
+        }" >> $GITHUB_OUTPUT
       '';
   };
 
   # Utility functions
   utils = {
     # Find all coverage-eligible files in a directory
-    findCoverageFiles = { path, config ? defaultConfig }:
+    findCoverageFiles =
+      {
+        path,
+        config ? defaultConfig,
+      }:
       let
         allFiles = lib.filesystem.listFilesRecursive path;
-        eligibleFiles = builtins.filter
-          (file:
-            let
-              extension = lib.last (lib.splitString "." file);
-              isIncluded = builtins.any (includePath: lib.hasInfix includePath file) config.includePaths;
-              isExcluded = builtins.any (excludePath: lib.hasInfix excludePath file) config.excludePaths;
-              isSupportedType = builtins.any
-                (type:
-                  builtins.any (ext: ext == ".${extension}") type.extensions
-                )
-                (builtins.attrValues fileTypes);
-            in
-            isIncluded && !isExcluded && isSupportedType
-          )
-          allFiles;
+        eligibleFiles = builtins.filter (
+          file:
+          let
+            extension = lib.last (lib.splitString "." file);
+            isIncluded = builtins.any (includePath: lib.hasInfix includePath file) config.includePaths;
+            isExcluded = builtins.any (excludePath: lib.hasInfix excludePath file) config.excludePaths;
+            isSupportedType = builtins.any (type: builtins.any (ext: ext == ".${extension}") type.extensions) (
+              builtins.attrValues fileTypes
+            );
+          in
+          isIncluded && !isExcluded && isSupportedType
+        ) allFiles;
       in
       eligibleFiles;
 
     # Merge coverage sessions
-    mergeSessions = sessions:
+    mergeSessions =
+      sessions:
       let
         allModules = lib.unique (lib.concatMap (s: map (m: m.path) s.modules) sessions);
-        mergedModules = map
-          (modulePath:
-            let
-              moduleData = lib.concatMap (s: builtins.filter (m: m.path == modulePath) s.modules) sessions;
-              avgCoverage =
-                if builtins.length moduleData > 0
-                then lib.foldl' (acc: m: acc + m.coverage) 0 moduleData / builtins.length moduleData
-                else 0;
-            in
-            {
-              path = modulePath;
-              coverage = avgCoverage;
-              sessions = builtins.length moduleData;
-            }
-          )
-          allModules;
+        mergedModules = map (
+          modulePath:
+          let
+            moduleData = lib.concatMap (s: builtins.filter (m: m.path == modulePath) s.modules) sessions;
+            avgCoverage =
+              if builtins.length moduleData > 0 then
+                lib.foldl' (acc: m: acc + m.coverage) 0 moduleData / builtins.length moduleData
+              else
+                0;
+          in
+          {
+            path = modulePath;
+            coverage = avgCoverage;
+            sessions = builtins.length moduleData;
+          }
+        ) allModules;
       in
       {
         sessionId = "merged-${toString (builtins.currentTime)}";
@@ -416,15 +454,22 @@ in
         results = {
           totalModules = builtins.length mergedModules;
           overallCoverage =
-            if builtins.length mergedModules > 0
-            then lib.foldl' (acc: m: acc + m.coverage) 0 mergedModules / builtins.length mergedModules
-            else 0;
+            if builtins.length mergedModules > 0 then
+              lib.foldl' (acc: m: acc + m.coverage) 0 mergedModules / builtins.length mergedModules
+            else
+              0;
         };
       };
   };
 
   # Export all functions and configuration
-  inherit measurement reporting validation cicd utils;
+  inherit
+    measurement
+    reporting
+    validation
+    cicd
+    utils
+    ;
   inherit defaultConfig fileTypes;
 
   # Version and metadata

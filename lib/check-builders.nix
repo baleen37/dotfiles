@@ -259,104 +259,145 @@ in
       # NOTE: Some tests temporarily disabled until test files are properly created
       unitTests = {
         # Module interface contract validation tests (TDD RED phase)
-        module-interface-contract-test = 
+        module-interface-contract-test =
           let
-            moduleInterfaceTest = import "${self}/tests/unit/test-module-interface.nix" { 
-              lib = nixpkgs.lib; 
-              inherit pkgs; 
+            moduleInterfaceTest = import "${self}/tests/unit/test-module-interface.nix" {
+              lib = nixpkgs.lib;
+              inherit pkgs;
             };
           in
-          pkgs.runCommand "module-interface-contract-test" {
-            meta = {
-              description = "Module interface contract validation tests (TDD)";
-            };
-          } ''
-            echo "Running Module Interface Contract Tests..."
-            echo "=========================================="
-            
-            # Test results are computed at build time
-            echo "Test Results:"
-            echo "  Total: ${toString moduleInterfaceTest.testSummary.total}"
-            echo "  Passed: ${toString moduleInterfaceTest.testSummary.passed}" 
-            echo "  Failed: ${toString moduleInterfaceTest.testSummary.failed}"
-            echo "  TDD Phase: ${moduleInterfaceTest.testSummary.tddPhase}"
-            
-            echo ""
-            echo "Testing individual test cases..."
-            echo "✓ Valid module interface test: ${if moduleInterfaceTest.testValidModuleInterface.passed then "PASSED" else "FAILED"}"
-            echo "✓ Module without meta test: ${if moduleInterfaceTest.testModuleWithoutMeta.passed then "PASSED" else "FAILED"}"
-            echo "✓ Module with invalid options test: ${if moduleInterfaceTest.testModuleWithInvalidOptions.passed then "PASSED" else "FAILED"}"
-            echo "✓ Module with too many extra packages test: ${if moduleInterfaceTest.testModuleWithTooManyExtraPackages.passed then "PASSED" else "FAILED"}"
-            
-            echo ""
-            echo "=========================================="
-            ${if moduleInterfaceTest.testSummary.tddPhase == "RED" then ''
-              echo "✓ TDD RED phase confirmed - test correctly fails for existing modules"
-              echo "✓ Module interface contract test ready for implementation"
-              echo "✓ Expected failures: ${nixpkgs.lib.concatStringsSep ", " moduleInterfaceTest.testSummary.expectedFailures}"
-            '' else ''
-              echo "❌ Test should be in RED phase but is not"
-              exit 1
-            ''}
-            
-            echo "Module Interface Contract Tests: COMPLETED"
-            touch $out
-          '';
-        
+          pkgs.runCommand "module-interface-contract-test"
+            {
+              meta = {
+                description = "Module interface contract validation tests (TDD)";
+              };
+            }
+            ''
+              echo "Running Module Interface Contract Tests..."
+              echo "=========================================="
+
+              # Test results are computed at build time
+              echo "Test Results:"
+              echo "  Total: ${toString moduleInterfaceTest.testSummary.total}"
+              echo "  Passed: ${toString moduleInterfaceTest.testSummary.passed}" 
+              echo "  Failed: ${toString moduleInterfaceTest.testSummary.failed}"
+              echo "  TDD Phase: ${moduleInterfaceTest.testSummary.tddPhase}"
+
+              echo ""
+              echo "Testing individual test cases..."
+              echo "✓ Valid module interface test: ${
+                if moduleInterfaceTest.testValidModuleInterface.passed then "PASSED" else "FAILED"
+              }"
+              echo "✓ Module without meta test: ${
+                if moduleInterfaceTest.testModuleWithoutMeta.passed then "PASSED" else "FAILED"
+              }"
+              echo "✓ Module with invalid options test: ${
+                if moduleInterfaceTest.testModuleWithInvalidOptions.passed then "PASSED" else "FAILED"
+              }"
+              echo "✓ Module with too many extra packages test: ${
+                if moduleInterfaceTest.testModuleWithTooManyExtraPackages.passed then "PASSED" else "FAILED"
+              }"
+
+              echo ""
+              echo "=========================================="
+              ${
+                if moduleInterfaceTest.testSummary.tddPhase == "RED" then
+                  ''
+                    echo "✓ TDD RED phase confirmed - test correctly fails for existing modules"
+                    echo "✓ Module interface contract test ready for implementation"
+                    echo "✓ Expected failures: ${nixpkgs.lib.concatStringsSep ", " moduleInterfaceTest.testSummary.expectedFailures}"
+                  ''
+                else
+                  ''
+                    echo "❌ Test should be in RED phase but is not"
+                    exit 1
+                  ''
+              }
+
+              echo "Module Interface Contract Tests: COMPLETED"
+              touch $out
+            '';
+
         # Build target interface contract validation tests (TDD RED phase)
-        build-target-interface-contract-test = 
+        build-target-interface-contract-test =
           let
-            buildTargetTest = import "${self}/tests/unit/test-build-target-interface.nix" { 
-              lib = nixpkgs.lib; 
-              inherit pkgs; 
+            buildTargetTest = import "${self}/tests/unit/test-build-target-interface.nix" {
+              lib = nixpkgs.lib;
             };
           in
-          pkgs.runCommand "build-target-interface-contract-test" {
-            meta = {
-              description = "Build target interface contract validation tests (TDD)";
-            };
-          } ''
-            echo "Running Build Target Interface Contract Tests..."
-            echo "==============================================="
-            
-            # Test results are computed at build time
-            echo "Test Results:"
-            echo "  Total: ${toString buildTargetTest.testSummary.total}"
-            echo "  Passed: ${toString buildTargetTest.testSummary.passed}" 
-            echo "  Failed: ${toString buildTargetTest.testSummary.failed}"
-            echo "  TDD Phase: ${buildTargetTest.testSummary.tdd_phase}"
-            
-            echo ""
-            echo "Testing individual test cases..."
-            echo "✓ Valid build target test: ${if buildTargetTest.testValidBuildTarget.passed then "PASSED" else "FAILED"}"
-            echo "✓ Missing required fields test: ${if buildTargetTest.testMissingRequiredFields.passed then "PASSED" else "FAILED"}"
-            echo "✓ Wrong types test: ${if buildTargetTest.testWrongTypes.passed then "PASSED" else "FAILED"}"
-            echo "✓ Name pattern test: ${if buildTargetTest.testNamePattern.passed then "PASSED" else "FAILED"}"
-            echo "✓ Constraint validation test: ${if buildTargetTest.testConstraintValidation.passed then "PASSED" else "FAILED"}"
-            echo "✓ Platform validation test: ${if buildTargetTest.testPlatformValidation.passed then "PASSED" else "FAILED"}"
-            echo "✓ Required attributes test: ${if buildTargetTest.testRequiredAttributesExist.passed then "PASSED" else "FAILED"}"
-            echo "✓ Operations structure test: ${if buildTargetTest.testOperationsStructure.passed then "PASSED" else "FAILED"}"
-            echo "✓ Success criteria structure test: ${if buildTargetTest.testSuccessCriteriaStructure.passed then "PASSED" else "FAILED"}"
-            echo "✓ Platform compatibility test: ${if buildTargetTest.testPlatformCompatibility.passed then "PASSED" else "FAILED"}"
-            echo "✓ Validator exists test: ${if buildTargetTest.testValidatorExists.passed then "PASSED" else "FAILED"}"
-            echo "✓ Validate all targets test: ${if buildTargetTest.testValidateAllTargets.passed then "PASSED" else "FAILED"}"
-            
-            echo ""
-            echo "==============================================="
-            ${if buildTargetTest.testSummary.tdd_phase == "RED" then ''
-              echo "✓ TDD RED phase confirmed - test correctly fails as build target validator doesn't exist"
-              echo "✓ Build target interface contract test ready for implementation"
-              echo "✓ Expected failures: ${nixpkgs.lib.concatStringsSep ", " buildTargetTest.testSummary.expected_failures}"
-              echo "✓ Note: ${buildTargetTest.testSummary.note}"
-            '' else ''
-              echo "❌ Test should be in RED phase but is not"
-              exit 1
-            ''}
-            
-            echo "Build Target Interface Contract Tests: COMPLETED"
-            touch $out
-          '';
-        
+          pkgs.runCommand "build-target-interface-contract-test"
+            {
+              meta = {
+                description = "Build target interface contract validation tests (TDD)";
+              };
+            }
+            ''
+              echo "Running Build Target Interface Contract Tests..."
+              echo "==============================================="
+
+              # Test results are computed at build time
+              echo "Test Results:"
+              echo "  Total: ${toString buildTargetTest.testSummary.total}"
+              echo "  Passed: ${toString buildTargetTest.testSummary.passed}" 
+              echo "  Failed: ${toString buildTargetTest.testSummary.failed}"
+              echo "  TDD Phase: ${buildTargetTest.testSummary.tdd_phase}"
+
+              echo ""
+              echo "Testing individual test cases..."
+              echo "✓ Valid build target test: ${
+                if buildTargetTest.testValidBuildTarget.passed then "PASSED" else "FAILED"
+              }"
+              echo "✓ Missing required fields test: ${
+                if buildTargetTest.testMissingRequiredFields.passed then "PASSED" else "FAILED"
+              }"
+              echo "✓ Wrong types test: ${if buildTargetTest.testWrongTypes.passed then "PASSED" else "FAILED"}"
+              echo "✓ Name pattern test: ${if buildTargetTest.testNamePattern.passed then "PASSED" else "FAILED"}"
+              echo "✓ Constraint validation test: ${
+                if buildTargetTest.testConstraintValidation.passed then "PASSED" else "FAILED"
+              }"
+              echo "✓ Platform validation test: ${
+                if buildTargetTest.testPlatformValidation.passed then "PASSED" else "FAILED"
+              }"
+              echo "✓ Required attributes test: ${
+                if buildTargetTest.testRequiredAttributesExist.passed then "PASSED" else "FAILED"
+              }"
+              echo "✓ Operations structure test: ${
+                if buildTargetTest.testOperationsStructure.passed then "PASSED" else "FAILED"
+              }"
+              echo "✓ Success criteria structure test: ${
+                if buildTargetTest.testSuccessCriteriaStructure.passed then "PASSED" else "FAILED"
+              }"
+              echo "✓ Platform compatibility test: ${
+                if buildTargetTest.testPlatformCompatibility.passed then "PASSED" else "FAILED"
+              }"
+              echo "✓ Validator exists test: ${
+                if buildTargetTest.testValidatorExists.passed then "PASSED" else "FAILED"
+              }"
+              echo "✓ Validate all targets test: ${
+                if buildTargetTest.testValidateAllTargets.passed then "PASSED" else "FAILED"
+              }"
+
+              echo ""
+              echo "==============================================="
+              ${
+                if buildTargetTest.testSummary.tdd_phase == "RED" then
+                  ''
+                    echo "✓ TDD RED phase confirmed - test correctly fails as build target validator doesn't exist"
+                    echo "✓ Build target interface contract test ready for implementation"
+                    echo "✓ Expected failures: ${nixpkgs.lib.concatStringsSep ", " buildTargetTest.testSummary.expected_failures}"
+                    echo "✓ Note: ${buildTargetTest.testSummary.note}"
+                  ''
+                else
+                  ''
+                    echo "❌ Test should be in RED phase but is not"
+                    exit 1
+                  ''
+              }
+
+              echo "Build Target Interface Contract Tests: COMPLETED"
+              touch $out
+            '';
+
         # TODO: Create proper .nix test files for lib modules
         # lib-user-resolution-test = import "${self}/tests/unit/test-lib-user-resolution-simple.nix" { inherit pkgs; lib = nixpkgs.lib; };
         # lib-platform-system-test = import "${self}/tests/unit/test-lib-platform-system-simple.nix" { inherit pkgs; lib = nixpkgs.lib; };

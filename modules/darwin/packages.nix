@@ -3,7 +3,7 @@
 with pkgs;
 let
   # Custom karabiner-elements version 14 (Darwin-only)
-  karabiner-elements-14 = karabiner-elements.overrideAttrs (oldAttrs: {
+  karabiner-elements-14 = karabiner-elements.overrideAttrs (_oldAttrs: {
     version = "14.13.0";
     src = fetchurl {
       url = "https://github.com/pqrs-org/Karabiner-Elements/releases/download/v14.13.0/Karabiner-Elements-14.13.0.dmg";

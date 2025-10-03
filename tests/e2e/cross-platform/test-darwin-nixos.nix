@@ -1,7 +1,12 @@
 # E2E Tests for Cross-Platform Darwin and NixOS
 # These tests MUST FAIL initially (TDD requirement)
 
-{ pkgs ? import <nixpkgs> { }, lib, testers ? pkgs.testers, ... }:
+{
+  pkgs ? import <nixpkgs> { },
+  lib,
+  testers ? pkgs.testers,
+  ...
+}:
 
 let
   # This will fail - cross-platform configurations don't exist
@@ -16,22 +21,27 @@ in
     name = "nixos-cross-platform-compatibility";
 
     # This will fail - NixOS configuration doesn't include cross-platform testing
-    nodes.nixos = { config, pkgs, ... }: {
-      imports = [
-        ../../../hosts/nixos/default.nix
-        ../../../modules/shared/testing.nix
-      ];
+    nodes.nixos =
+      { config, pkgs, ... }:
+      {
+        imports = [
+          ../../../hosts/nixos/default.nix
+          ../../../modules/shared/testing.nix
+        ];
 
-      # Enable cross-platform testing
-      testing = {
-        enable = true;
-        crossPlatform.enable = true;
-        targetPlatforms = [ "darwin-x86_64" "darwin-aarch64" ];
+        # Enable cross-platform testing
+        testing = {
+          enable = true;
+          crossPlatform.enable = true;
+          targetPlatforms = [
+            "darwin-x86_64"
+            "darwin-aarch64"
+          ];
+        };
+
+        virtualisation.memorySize = 2048;
+        virtualisation.cores = 2;
       };
-
-      virtualisation.memorySize = 2048;
-      virtualisation.cores = 2;
-    };
 
     # This will fail - cross-platform test commands don't exist
     testScript = ''
@@ -69,8 +79,7 @@ in
 
   # Test Darwin configuration (dry-run on non-Darwin)
   testDarwinCompatibility =
-    if pkgs.stdenv.isDarwin
-    then
+    if pkgs.stdenv.isDarwin then
       testers.runCommand "darwin-cross-platform-compatibility" { } ''
         # This will fail - Darwin cross-platform testing not implemented
         echo "Testing Darwin cross-platform compatibility..."
@@ -121,19 +130,21 @@ in
     name = "shared-module-compatibility";
 
     # This will fail - shared module testing not implemented
-    nodes.tester = { config, pkgs, ... }: {
-      imports = [
-        ../../../modules/shared/testing.nix
-      ];
+    nodes.tester =
+      { config, pkgs, ... }:
+      {
+        imports = [
+          ../../../modules/shared/testing.nix
+        ];
 
-      testing = {
-        enable = true;
-        crossPlatform.enable = true;
-        validateSharedModules = true;
+        testing = {
+          enable = true;
+          crossPlatform.enable = true;
+          validateSharedModules = true;
+        };
+
+        virtualisation.memorySize = 2048;
       };
-
-      virtualisation.memorySize = 2048;
-    };
 
     # This will fail - shared module validation doesn't exist
     testScript = ''
@@ -179,13 +190,15 @@ in
     name = "package-cross-platform-compatibility";
 
     # This will fail - package compatibility testing not implemented
-    nodes.tester = { config, pkgs, ... }: {
-      imports = [
-        ../../../modules/shared/testing.nix
-      ];
+    nodes.tester =
+      { config, pkgs, ... }:
+      {
+        imports = [
+          ../../../modules/shared/testing.nix
+        ];
 
-      virtualisation.memorySize = 2048;
-    };
+        virtualisation.memorySize = 2048;
+      };
 
     # This will fail - package compatibility checks don't exist
     testScript = ''
@@ -219,18 +232,20 @@ in
     name = "home-manager-cross-platform";
 
     # This will fail - Home Manager cross-platform testing not implemented
-    nodes.tester = { config, pkgs, ... }: {
-      imports = [
-        ../../../modules/shared/testing.nix
-      ];
+    nodes.tester =
+      { config, pkgs, ... }:
+      {
+        imports = [
+          ../../../modules/shared/testing.nix
+        ];
 
-      users.users.testuser = {
-        isNormalUser = true;
-        createHome = true;
+        users.users.testuser = {
+          isNormalUser = true;
+          createHome = true;
+        };
+
+        virtualisation.memorySize = 2048;
       };
-
-      virtualisation.memorySize = 2048;
-    };
 
     # This will fail - Home Manager cross-platform configs don't exist
     testScript = ''
@@ -266,14 +281,16 @@ in
     name = "flake-checks-cross-platform";
 
     # This will fail - cross-platform flake checks not implemented
-    nodes.tester = { config, pkgs, ... }: {
-      imports = [
-        ../../../modules/shared/testing.nix
-      ];
+    nodes.tester =
+      { config, pkgs, ... }:
+      {
+        imports = [
+          ../../../modules/shared/testing.nix
+        ];
 
-      virtualisation.memorySize = 4096;
-      virtualisation.cores = 4;
-    };
+        virtualisation.memorySize = 4096;
+        virtualisation.cores = 4;
+      };
 
     # This will fail - comprehensive flake checks don't exist
     testScript = ''
@@ -305,13 +322,15 @@ in
     name = "dev-environment-cross-platform";
 
     # This will fail - dev environment cross-platform testing not implemented
-    nodes.tester = { config, pkgs, ... }: {
-      imports = [
-        ../../../modules/shared/testing.nix
-      ];
+    nodes.tester =
+      { config, pkgs, ... }:
+      {
+        imports = [
+          ../../../modules/shared/testing.nix
+        ];
 
-      virtualisation.memorySize = 2048;
-    };
+        virtualisation.memorySize = 2048;
+      };
 
     # This will fail - dev environment configs don't exist
     testScript = ''

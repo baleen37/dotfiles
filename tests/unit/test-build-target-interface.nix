@@ -2,7 +2,7 @@
 # TDD RED Phase: Tests the build target contract validation
 # This test MUST FAIL initially until build target implementations are created
 
-{ lib, pkgs }:
+{ lib }: # Removed unused pkgs parameter
 
 let
   # Test helper functions
@@ -14,18 +14,18 @@ let
 
   # Build target validator - currently doesn't exist (RED phase)
   # This should reference a non-existent module to ensure test fails
-  buildTargetValidator = 
+  buildTargetValidator =
     if builtins.pathExists ../../lib/build-target-validator.nix then
       import ../../lib/build-target-validator.nix { inherit lib; }
     else
       {
-        validateBuildTarget = _: { 
-          valid = false; 
-          errors = [ "Build target validator not implemented" ]; 
+        validateBuildTarget = _: {
+          valid = false;
+          errors = [ "Build target validator not implemented" ];
         };
-        validateAllTargets = _: { 
-          valid = false; 
-          errors = [ "Build target validator not implemented" ]; 
+        validateAllTargets = _: {
+          valid = false;
+          errors = [ "Build target validator not implemented" ];
         };
       };
 
@@ -89,7 +89,19 @@ let
   invalidBuildTargetConstraints = {
     name = "test-invalid";
     description = "Invalid constraints";
-    dependencies = [ "dep1" "dep2" "dep3" "dep4" "dep5" "dep6" "dep7" "dep8" "dep9" "dep10" "dep11" ]; # More than 10 items
+    dependencies = [
+      "dep1"
+      "dep2"
+      "dep3"
+      "dep4"
+      "dep5"
+      "dep6"
+      "dep7"
+      "dep8"
+      "dep9"
+      "dep10"
+      "dep11"
+    ]; # More than 10 items
     operations = [
       {
         command = "sleep 1000";
@@ -111,10 +123,13 @@ let
         description = "Test command";
       }
     ];
-    platforms = [ "windows" "android" ]; # Invalid platform values
+    platforms = [
+      "windows"
+      "android"
+    ]; # Invalid platform values
   };
 
-  # Test functions  
+  # Test functions
   testValidBuildTarget = runTest "Valid build target should pass" (
     buildTargetValidator.validateBuildTarget validBuildTarget
   );
@@ -171,7 +186,12 @@ let
 
   testRequiredAttributesExist = runTest "Build target must have all required attributes" (
     let
-      requiredAttrs = [ "name" "description" "operations" "platforms" ];
+      requiredAttrs = [
+        "name"
+        "description"
+        "operations"
+        "platforms"
+      ];
       hasAllRequired = lib.all (attr: builtins.hasAttr attr validBuildTarget) requiredAttrs;
     in
     {
@@ -184,8 +204,8 @@ let
     let
       operations = validBuildTarget.operations;
       isArray = builtins.isList operations;
-      hasRequiredFields = lib.all (op: 
-        builtins.hasAttr "command" op && builtins.hasAttr "description" op
+      hasRequiredFields = lib.all (
+        op: builtins.hasAttr "command" op && builtins.hasAttr "description" op
       ) operations;
     in
     {
@@ -194,23 +214,29 @@ let
     }
   );
 
-  testSuccessCriteriaStructure = runTest "Success criteria must be array of objects with condition and description" (
-    let
-      criteria = validBuildTarget.success_criteria;
-      isArray = builtins.isList criteria;
-      hasRequiredFields = lib.all (criterion: 
-        builtins.hasAttr "condition" criterion && builtins.hasAttr "description" criterion
-      ) criteria;
-    in
-    {
-      valid = isArray && hasRequiredFields;
-      errors = if isArray && hasRequiredFields then [ ] else [ "Invalid success criteria structure" ];
-    }
-  );
+  testSuccessCriteriaStructure =
+    runTest "Success criteria must be array of objects with condition and description"
+      (
+        let
+          criteria = validBuildTarget.success_criteria;
+          isArray = builtins.isList criteria;
+          hasRequiredFields = lib.all (
+            criterion: builtins.hasAttr "condition" criterion && builtins.hasAttr "description" criterion
+          ) criteria;
+        in
+        {
+          valid = isArray && hasRequiredFields;
+          errors = if isArray && hasRequiredFields then [ ] else [ "Invalid success criteria structure" ];
+        }
+      );
 
   testPlatformCompatibility = runTest "Build target platforms must be valid enum values" (
     let
-      validPlatforms = [ "darwin" "nixos" "all" ];
+      validPlatforms = [
+        "darwin"
+        "nixos"
+        "all"
+      ];
       targetPlatforms = validBuildTarget.platforms;
       allValid = lib.all (platform: lib.elem platform validPlatforms) targetPlatforms;
     in
@@ -267,12 +293,12 @@ let
     passed = lib.length (lib.filter (test: test.passed) allTests);
     failed = lib.length (lib.filter (test: !test.passed) allTests);
     results = allTests;
-    
+
     # TDD status information
     tdd_phase = "RED";
     expected_failures = [
       "testValidBuildTarget"
-      "testMissingRequiredFields" 
+      "testMissingRequiredFields"
       "testWrongTypes"
       "testNamePattern"
       "testConstraintValidation"
@@ -286,9 +312,20 @@ let
 in
 {
   # Expose all test results and summary
-  inherit testValidBuildTarget testMissingRequiredFields testWrongTypes
-          testNamePattern testConstraintValidation testPlatformValidation
-          testRequiredAttributesExist testOperationsStructure
-          testSuccessCriteriaStructure testPlatformCompatibility
-          testValidatorExists testValidateAllTargets allTests testSummary;
+  inherit
+    testValidBuildTarget
+    testMissingRequiredFields
+    testWrongTypes
+    testNamePattern
+    testConstraintValidation
+    testPlatformValidation
+    testRequiredAttributesExist
+    testOperationsStructure
+    testSuccessCriteriaStructure
+    testPlatformCompatibility
+    testValidatorExists
+    testValidateAllTargets
+    allTests
+    testSummary
+    ;
 }
