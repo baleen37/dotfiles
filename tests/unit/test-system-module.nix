@@ -4,7 +4,6 @@
 
 {
   lib,
-  pkgs ? import <nixpkgs> { },
 }:
 
 let
@@ -339,41 +338,24 @@ let
   );
 
   # Test system services management
-  testSystemServicesManagement = runTest "System module should manage system services configuration" (
-    let
-      # Current system config has services but not in module interface
-      currentServices = currentSystemConfig.services or { };
-      servicesValidation = validateSystemServicesConfig currentServices;
-    in
-    {
-      valid = false; # Should fail - no module interface for services
-      errors = [ "Current system configuration lacks modular services management interface" ];
-    }
-  );
+  testSystemServicesManagement =
+    runTest "System module should manage system services configuration"
+      ({
+        valid = false; # Should fail - no module interface for services
+        errors = [ "Current system configuration lacks modular services management interface" ];
+      });
 
   # Test networking configuration management
-  testNetworkingManagement = runTest "System module should manage networking configuration" (
-    let
-      currentNetworking = currentSystemConfig.networking or { };
-      networkingValidation = validateNetworkingConfig currentNetworking;
-    in
-    {
-      valid = false; # Should fail - no module interface for networking
-      errors = [ "Current system configuration lacks modular networking management interface" ];
-    }
-  );
+  testNetworkingManagement = runTest "System module should manage networking configuration" ({
+    valid = false; # Should fail - no module interface for networking
+    errors = [ "Current system configuration lacks modular networking management interface" ];
+  });
 
   # Test user management
-  testUserManagement = runTest "System module should manage user configuration" (
-    let
-      currentUsers = currentSystemConfig.users or { };
-      userValidation = validateUserManagement currentUsers;
-    in
-    {
-      valid = false; # Should fail - no module interface for users
-      errors = [ "Current system configuration lacks modular user management interface" ];
-    }
-  );
+  testUserManagement = runTest "System module should manage user configuration" ({
+    valid = false; # Should fail - no module interface for users
+    errors = [ "Current system configuration lacks modular user management interface" ];
+  });
 
   # Test dependency limits compliance
   testDependencyLimitsCompliance =

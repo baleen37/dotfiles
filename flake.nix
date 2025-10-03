@@ -44,6 +44,10 @@
       url = "github:cachix/git-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    treefmt-nix = {
+      url = "github:numtide/treefmt-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -61,6 +65,7 @@
       namaka,
       flake-checker,
       git-hooks,
+      treefmt-nix,
     }@inputs:
     let
       # Import modular flake configuration
@@ -125,6 +130,18 @@
     let
       # Generate base outputs
       baseOutputs = {
+        # Modern formatter using treefmt-nix
+        formatter = forAllSystems (
+          system:
+          let
+            treefmtEval = treefmt-nix.lib.evalModule nixpkgs.legacyPackages.${system} {
+              projectRootFile = "flake.nix";
+              programs.nixfmt.enable = true;
+            };
+          in
+          treefmtEval.config.build.wrapper
+        );
+
         # Shared library functions - using unified systems
         lib = {
           # Unified systems (functions that take system as parameter)

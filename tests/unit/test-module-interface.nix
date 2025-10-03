@@ -2,7 +2,7 @@
 # Tests module interface compliance with the TDD Module Interface Contract
 # This test MUST FAIL initially as part of TDD RED-GREEN-REFACTOR cycle
 
-{ lib, _pkgs }:
+{ lib }:
 
 let
   # Test helper functions

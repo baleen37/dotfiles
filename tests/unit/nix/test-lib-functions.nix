@@ -4,7 +4,6 @@
 {
   lib,
   runTests,
-  nix-unit ? null,
   ...
 }:
 
@@ -13,9 +12,6 @@ let
   # These don't exist yet, so tests will fail
   testBuilders = import ../../../lib/test-builders.nix { inherit lib; };
   coverageSystem = import ../../../lib/coverage-system.nix { inherit lib; };
-
-  # Test utilities that don't exist yet
-  testUtils = import ../../../lib/test-system.nix { inherit lib; };
 
 in
 runTests {

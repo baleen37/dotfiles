@@ -1,8 +1,6 @@
 {
   config,
   pkgs,
-  lib,
-  home-manager,
   self,
   ...
 }:
@@ -14,7 +12,7 @@ let
     returnFormat = "extended";
   };
   user = getUserInfo.user;
-  additionalFiles = import ./files.nix { inherit user config pkgs; };
+  additionalFiles = import ./files.nix { inherit user config; };
 
 in
 {

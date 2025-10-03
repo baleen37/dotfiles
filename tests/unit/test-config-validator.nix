@@ -1,7 +1,7 @@
 # Unit Tests for Config Validator
 # Tests for YAML schema validation, type checking, and constraint validation
 
-{ lib, pkgs }:
+{ lib }:
 
 let
   validator = import ../../lib/config-validator.nix { inherit lib; };

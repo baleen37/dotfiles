@@ -18,7 +18,7 @@ CURRENT_SYSTEM := $(shell $(NIX) eval --impure --expr '(import ./lib/platform-sy
 # Quality Gates (Atomic operations)
 format:
 	@echo "🎨 Formatting all files..."
-	@$(NIX) develop --command nixfmt .
+	@$(NIX) fmt
 	@./scripts/auto-format.sh
 
 lint:
