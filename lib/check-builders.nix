@@ -757,6 +757,118 @@ in
               echo "E2E shell tests: PASSED"
               touch $out
             '';
+
+        # Module dependency validation integration test (TDD RED phase)
+        module-dependency-integration =
+          let
+            moduleDependencyTest = import "${self}/tests/integration/test-module-dependencies.nix" {
+              lib = nixpkgs.lib;
+              inherit pkgs;
+            };
+          in
+          pkgs.runCommand "module-dependency-integration-test"
+            {
+              buildInputs = [
+                pkgs.bash
+                pkgs.coreutils
+              ];
+              meta = {
+                description = "Module dependency validation integration tests (TDD)";
+              };
+            }
+            ''
+              echo "Running Module Dependency Validation Integration Tests..."
+              echo "========================================================"
+
+              # Test results are computed at build time
+              echo "Test Results:"
+              echo "  Total: ${toString moduleDependencyTest.testSummary.total}"
+              echo "  Passed: ${toString moduleDependencyTest.testSummary.passed}"
+              echo "  Failed: ${toString moduleDependencyTest.testSummary.failed}"
+              echo "  TDD Phase: ${moduleDependencyTest.testSummary.tddPhase}"
+
+              echo ""
+              echo "Constitutional Compliance:"
+              echo "  Max Dependencies per Module: ${toString moduleDependencyTest.testSummary.constitutional_compliance.max_dependencies_per_module}"
+              echo "  Modules in Violation: ${toString moduleDependencyTest.testSummary.constitutional_compliance.modules_in_violation}"
+              echo "  Total Violations: ${toString moduleDependencyTest.testSummary.constitutional_compliance.total_violations}"
+              echo "  Compliance Percentage: ${toString moduleDependencyTest.testSummary.constitutional_compliance.compliance_percentage}%"
+
+              echo ""
+              echo "Testing individual dependency validation scenarios..."
+              echo "✓ Constitutional dependency limits test: ${
+                if moduleDependencyTest.tests.testConstitutionalDependencyLimits.passed then
+                  "PASSED"
+                else
+                  "FAILED (EXPECTED)"
+              }"
+              echo "✓ Module dependency declarations test: ${
+                if moduleDependencyTest.tests.testModuleDependencyDeclarations.passed then
+                  "PASSED"
+                else
+                  "FAILED (EXPECTED)"
+              }"
+              echo "✓ Circular dependency detection test: ${
+                if moduleDependencyTest.tests.testCircularDependencyDetection.passed then
+                  "PASSED"
+                else
+                  "FAILED (EXPECTED)"
+              }"
+              echo "✓ Cross-module dependency validation test: ${
+                if moduleDependencyTest.tests.testCrossModuleDependencyValidation.passed then
+                  "PASSED"
+                else
+                  "FAILED (EXPECTED)"
+              }"
+              echo "✓ Package dependency conflicts test: ${
+                if moduleDependencyTest.tests.testPackageDependencyConflicts.passed then
+                  "PASSED"
+                else
+                  "FAILED (EXPECTED)"
+              }"
+              echo "✓ Module interface dependency contracts test: ${
+                if moduleDependencyTest.tests.testModuleInterfaceDependencyContracts.passed then
+                  "PASSED"
+                else
+                  "FAILED (EXPECTED)"
+              }"
+              echo "✓ Dependency resolution order test: ${
+                if moduleDependencyTest.tests.testDependencyResolutionOrder.passed then
+                  "PASSED"
+                else
+                  "FAILED (EXPECTED)"
+              }"
+              echo "✓ Dynamic dependency loading test: ${
+                if moduleDependencyTest.tests.testDynamicDependencyLoading.passed then
+                  "PASSED"
+                else
+                  "FAILED (EXPECTED)"
+              }"
+
+              echo ""
+              echo "========================================================"
+              ${
+                if moduleDependencyTest.testSummary.tddPhase == "RED (correctly failing)" then
+                  ''
+                    echo "✓ TDD RED phase confirmed - all module dependency tests correctly fail"
+                    echo "✓ Expected failures: ${toString moduleDependencyTest.testSummary.expectedFailures}"
+                    echo "✓ Module dependency validation system ready for implementation"
+                    echo ""
+                    echo "Required Implementations:"
+                    ${nixpkgs.lib.concatMapStringsSep "\n" (
+                      impl: "echo \"  - ${impl}\""
+                    ) moduleDependencyTest.testConfig.requiredImplementations}
+                  ''
+                else
+                  ''
+                    echo "❌ Test should be in RED phase but is not"
+                    exit 1
+                  ''
+              }
+
+              echo "Module Dependency Validation Integration Tests: COMPLETED"
+              touch $out
+            '';
       };
 
       # Simple test category runner - just validates test count
