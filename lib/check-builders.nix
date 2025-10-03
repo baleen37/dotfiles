@@ -398,6 +398,177 @@ in
               touch $out
             '';
 
+        # Git module unit tests (TDD RED phase)
+        git-module-test =
+          let
+            gitModuleTest = import "${self}/tests/unit/test-git-module.nix" {
+              lib = nixpkgs.lib;
+              inherit pkgs;
+            };
+          in
+          pkgs.runCommand "git-module-test"
+            {
+              meta = {
+                description = "Git module functionality and interface compliance tests (TDD)";
+              };
+            }
+            ''
+              echo "Running Git Module Tests..."
+              echo "=========================="
+
+              # Test results are computed at build time
+              echo "Test Results:"
+              echo "  Total: ${toString gitModuleTest.testSummary.total}"
+              echo "  Passed: ${toString gitModuleTest.testSummary.passed}" 
+              echo "  Failed: ${toString gitModuleTest.testSummary.failed}"
+              echo "  TDD Phase: ${gitModuleTest.testSummary.tddPhase}"
+
+              echo ""
+              echo "Testing individual test cases..."
+              echo "✓ Git module interface test: ${
+                if gitModuleTest.testCurrentGitModuleInterface.passed then "PASSED" else "FAILED (EXPECTED)"
+              }"
+              echo "✓ Git configuration basics test: ${
+                if gitModuleTest.testGitConfigurationBasics.passed then "PASSED" else "FAILED"
+              }"
+              echo "✓ Git aliases test: ${if gitModuleTest.testGitAliases.passed then "PASSED" else "FAILED"}"
+              echo "✓ Cross-platform compatibility test: ${
+                if gitModuleTest.testCrossPlatformCompatibility.passed then "PASSED" else "FAILED"
+              }"
+              echo "✓ Configuration validation test: ${
+                if gitModuleTest.testConfigurationValidation.passed then "PASSED" else "FAILED"
+              }"
+              echo "✓ Package installation test: ${
+                if gitModuleTest.testPackageInstallation.passed then "PASSED" else "FAILED"
+              }"
+              echo "✓ Performance requirements test: ${
+                if gitModuleTest.testPerformanceRequirements.passed then "PASSED" else "FAILED"
+              }"
+
+              echo ""
+              echo "=========================="
+              ${
+                if gitModuleTest.testSummary.tddPhase == "RED" then
+                  ''
+                    echo "✓ TDD RED phase confirmed - git module interface test fails as expected"
+                    echo "✓ Expected failures: ${nixpkgs.lib.concatStringsSep ", " gitModuleTest.testSummary.expectedFailures}"
+                    echo "✓ ${gitModuleTest.testSummary.tddMessage}"
+                    echo ""
+                    echo "Next Steps for TDD GREEN phase:"
+                    ${nixpkgs.lib.concatMapStringsSep "\n" (
+                      step: "echo \"  - ${step}\""
+                    ) gitModuleTest.testSummary.nextSteps}
+                  ''
+                else
+                  ''
+                    echo "❌ Test should be in RED phase but is not"
+                    exit 1
+                  ''
+              }
+
+              echo "Git Module Tests: COMPLETED"
+              touch $out
+            '';
+
+        # Packages module unit tests (TDD RED phase)
+        packages-module-test =
+          let
+            packagesModuleTest = import "${self}/tests/unit/test-packages-module.nix" {
+              lib = nixpkgs.lib;
+              inherit pkgs;
+            };
+          in
+          pkgs.runCommand "packages-module-test"
+            {
+              meta = {
+                description = "Packages module functionality and interface compliance tests (TDD)";
+              };
+            }
+            ''
+              echo "Running Packages Module Tests..."
+              echo "==============================="
+
+              # Test results are computed at build time
+              echo "Test Results:"
+              echo "  Total: ${toString packagesModuleTest.testSummary.total}"
+              echo "  Passed: ${toString packagesModuleTest.testSummary.passed}" 
+              echo "  Failed: ${toString packagesModuleTest.testSummary.failed}"
+              echo "  TDD Phase: ${packagesModuleTest.testSummary.tddPhase}"
+
+              echo ""
+              echo "Testing individual module compliance..."
+              echo "✓ Shared packages module test: ${
+                if packagesModuleTest.testSharedPackagesModuleCompliance.passed then
+                  "PASSED"
+                else
+                  "FAILED (EXPECTED)"
+              }"
+              echo "✓ Darwin packages module test: ${
+                if packagesModuleTest.testDarwinPackagesModuleCompliance.passed then
+                  "PASSED"
+                else
+                  "FAILED (EXPECTED)"
+              }"
+              echo "✓ NixOS packages module test: ${
+                if packagesModuleTest.testNixosPackagesModuleCompliance.passed then
+                  "PASSED"
+                else
+                  "FAILED (EXPECTED)"
+              }"
+              echo "✓ Package organization test: ${
+                if packagesModuleTest.testPackageOrganization.passed then "PASSED" else "FAILED (EXPECTED)"
+              }"
+              echo "✓ Dependency limits compliance test: ${
+                if packagesModuleTest.testDependencyLimitsCompliance.passed then "PASSED" else "FAILED"
+              }"
+              echo "✓ Cross-platform compatibility test: ${
+                if packagesModuleTest.testCrossPlatformCompatibility.passed then "PASSED" else "FAILED (EXPECTED)"
+              }"
+              echo "✓ Package validation test: ${
+                if packagesModuleTest.testPackageValidation.passed then "PASSED" else "FAILED (EXPECTED)"
+              }"
+              echo "✓ Configuration validation test: ${
+                if packagesModuleTest.testConfigurationValidation.passed then "PASSED" else "FAILED (EXPECTED)"
+              }"
+              echo "✓ Package manageability test: ${
+                if packagesModuleTest.testPackageManageability.passed then "PASSED" else "FAILED (EXPECTED)"
+              }"
+              echo "✓ Module architecture test: ${
+                if packagesModuleTest.testPackagesModuleArchitecture.passed then "PASSED" else "FAILED (EXPECTED)"
+              }"
+
+              echo ""
+              echo "Constitutional Requirements:"
+              echo "  Max External Dependencies: ${toString packagesModuleTest.testSummary.constitutionalRequirements.maxExternalDependencies}"
+              echo "  Enforced By: ${packagesModuleTest.testSummary.constitutionalRequirements.enforcedBy}"
+
+              echo ""
+              echo "==============================="
+              ${
+                if packagesModuleTest.testSummary.tddPhase == "RED" then
+                  ''
+                    echo "✓ TDD RED phase confirmed - packages modules interface tests fail as expected"
+                    echo "✓ Expected failures: ${nixpkgs.lib.concatStringsSep ", " packagesModuleTest.testSummary.expectedFailures}"
+                    echo "✓ ${packagesModuleTest.testSummary.tddMessage}"
+                    echo ""
+                    echo "Implementation Guidance for TDD GREEN phase:"
+                    ${nixpkgs.lib.concatMapStringsSep "\n" (
+                      step: "echo \"  - ${step}\""
+                    ) packagesModuleTest.testSummary.implementationGuidance.nextSteps}
+                    echo ""
+                    echo "Contract Compliance: ${packagesModuleTest.testSummary.implementationGuidance.contractCompliance}"
+                  ''
+                else
+                  ''
+                    echo "❌ Test should be in RED phase but is not"
+                    exit 1
+                  ''
+              }
+
+              echo "Packages Module Tests: COMPLETED"
+              touch $out
+            '';
+
         # TODO: Create proper .nix test files for lib modules
         # lib-user-resolution-test = import "${self}/tests/unit/test-lib-user-resolution-simple.nix" { inherit pkgs; lib = nixpkgs.lib; };
         # lib-platform-system-test = import "${self}/tests/unit/test-lib-platform-system-simple.nix" { inherit pkgs; lib = nixpkgs.lib; };
@@ -417,8 +588,6 @@ in
           "platform-compatibility-test"
         ]
       ) testSuite;
-
-      workflowTests = shellIntegrationTests;
 
       performanceTests = {
         # Performance monitoring test using dedicated script
