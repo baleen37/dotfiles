@@ -263,7 +263,6 @@ in
           let
             moduleInterfaceTest = import "${self}/tests/unit/test-module-interface.nix" {
               lib = nixpkgs.lib;
-              inherit pkgs;
             };
           in
           pkgs.runCommand "module-interface-contract-test"
@@ -867,6 +866,127 @@ in
               }
 
               echo "Module Dependency Validation Integration Tests: COMPLETED"
+              touch $out
+            '';
+
+        # T018: Full system build end-to-end test (TDD RED phase)
+        full-system-build-e2e =
+          let
+            fullSystemBuildTest = import "${self}/tests/e2e/test-full-build.nix" {
+              lib = nixpkgs.lib;
+              inherit pkgs;
+            };
+          in
+          pkgs.runCommand "full-system-build-e2e-test"
+            {
+              buildInputs = [
+                pkgs.bash
+                pkgs.coreutils
+                pkgs.nix
+              ];
+              meta = {
+                description = "T018: Full system build end-to-end validation tests (TDD)";
+                timeout = 300; # 5 minutes constitutional requirement
+              };
+            }
+            ''
+              echo "Running T018: Full System Build End-to-End Tests..."
+              echo "=================================================="
+
+              # Test results are computed at build time
+              echo "Test Results:"
+              echo "  Total: ${toString fullSystemBuildTest.testSummary.total}"
+              echo "  Passed: ${toString fullSystemBuildTest.testSummary.passed}"
+              echo "  Failed: ${toString fullSystemBuildTest.testSummary.failed}"
+              echo "  TDD Phase: ${fullSystemBuildTest.testSummary.tddPhase}"
+              echo "  Current Platform: ${fullSystemBuildTest.testSummary.currentPlatform.os}-${fullSystemBuildTest.testSummary.currentPlatform.arch}"
+
+              echo ""
+              echo "Constitutional Requirements:"
+              echo "  Max Build Time: ${fullSystemBuildTest.testConfig.constitutionalRequirements.maxBuildTime}"
+              echo "  Max Memory Usage: ${fullSystemBuildTest.testConfig.constitutionalRequirements.maxMemoryUsage}"
+              echo "  Required Test Pass Rate: ${fullSystemBuildTest.testConfig.constitutionalRequirements.testPassRate}"
+              echo "  Performance Monitoring: ${fullSystemBuildTest.testConfig.constitutionalRequirements.performanceMonitoring}"
+
+              echo ""
+              echo "Testing full system build scenarios..."
+              echo "✓ Cross-platform flake build test: ${
+                if fullSystemBuildTest.tests.testCrossPlatformFlakeBuild.passed then
+                  "PASSED"
+                else
+                  "FAILED (EXPECTED)"
+              }"
+              echo "✓ Home Manager activation test: ${
+                if fullSystemBuildTest.tests.testHomeManagerActivation.passed then "PASSED" else "FAILED (EXPECTED)"
+              }"
+              echo "✓ Cross-platform module loading test: ${
+                if fullSystemBuildTest.tests.testCrossPlatformModuleLoading.passed then
+                  "PASSED"
+                else
+                  "FAILED (EXPECTED)"
+              }"
+              echo "✓ Build performance validation test: ${
+                if fullSystemBuildTest.tests.testBuildPerformanceValidation.passed then
+                  "PASSED"
+                else
+                  "FAILED (EXPECTED)"
+              }"
+              echo "✓ Memory usage validation test: ${
+                if fullSystemBuildTest.tests.testMemoryUsageValidation.passed then "PASSED" else "FAILED (EXPECTED)"
+              }"
+              echo "✓ Dependency resolution test: ${
+                if fullSystemBuildTest.tests.testDependencyResolutionInstallation.passed then
+                  "PASSED"
+                else
+                  "FAILED (EXPECTED)"
+              }"
+              echo "✓ Configuration generation test: ${
+                if fullSystemBuildTest.tests.testConfigurationGeneration.passed then
+                  "PASSED"
+                else
+                  "FAILED (EXPECTED)"
+              }"
+              echo "✓ System integration verification test: ${
+                if fullSystemBuildTest.tests.testSystemIntegrationVerification.passed then
+                  "PASSED"
+                else
+                  "FAILED (EXPECTED)"
+              }"
+
+              echo ""
+              echo "Performance Thresholds:"
+              echo "  Max Build Time: ${toString fullSystemBuildTest.testSummary.performanceRequirements.maxBuildTimeSeconds}s"
+              echo "  Max Memory Usage: ${toString fullSystemBuildTest.testSummary.performanceRequirements.maxMemoryUsageMB}MB"
+              echo "  Max Concurrent Jobs: ${toString fullSystemBuildTest.testSummary.performanceRequirements.maxConcurrentJobs}"
+              echo "  Max Package Resolution Time: ${toString fullSystemBuildTest.testSummary.performanceRequirements.maxPackageResolutionTime}s"
+
+              echo ""
+              echo "=================================================="
+              ${
+                if fullSystemBuildTest.testSummary.tddPhase == "RED (correctly failing)" then
+                  ''
+                    echo "✓ TDD RED phase confirmed - all full system build tests correctly fail"
+                    echo "✓ Expected failures: ${toString fullSystemBuildTest.testSummary.expectedFailures}"
+                    echo "✓ Full system build validation ready for implementation"
+                    echo ""
+                    echo "Required Implementations (T021-T032):"
+                    ${nixpkgs.lib.concatMapStringsSep "\n" (
+                      impl: "echo \"  - ${impl}\""
+                    ) fullSystemBuildTest.testConfig.requiredImplementations}
+                    echo ""
+                    echo "Implementation Tasks:"
+                    ${nixpkgs.lib.concatMapStringsSep "\n" (
+                      task: "echo \"  - ${task}\""
+                    ) fullSystemBuildTest.testConfig.implementationTasks}
+                  ''
+                else
+                  ''
+                    echo "❌ Test should be in RED phase but is not"
+                    exit 1
+                  ''
+              }
+
+              echo "T018: Full System Build End-to-End Tests: COMPLETED"
               touch $out
             '';
       };
