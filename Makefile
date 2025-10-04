@@ -61,6 +61,10 @@ help:
 	@echo "  test-macos-services - 🧪 TDD-verified macOS Services tests (Darwin only)"
 	@echo "  test-workflow - Run workflow tests (end-to-end)"
 	@echo "  test-perf   - Run performance tests"
+	@echo "  test-benchmark - Run comprehensive performance benchmarks"
+	@echo "  test-memory-profile - Run memory usage analysis"
+	@echo "  test-optimize - Run performance optimization controller"
+	@echo "  test-report - Generate comprehensive performance report"
 	@echo "  test-list   - List available test categories"
 	@echo ""
 	@echo "🔬 Unit Testing (중복 제거됨):"
@@ -358,6 +362,23 @@ test-monitor:
 test-monitor-full:
 	@echo "📊 Running full performance monitoring (including heavy tests)..."
 	@./tests/performance/test-performance-monitor.sh --full
+
+# Advanced performance testing and optimization
+test-benchmark:
+	@echo "🏁 Running comprehensive performance benchmarks..."
+	@$(NIX) run .#test-benchmark
+
+test-memory-profile:
+	@echo "🔬 Running memory usage analysis..."
+	@$(NIX) run .#memory-profiler
+
+test-optimize:
+	@echo "⚡ Running performance optimization controller..."
+	@$(NIX) run .#optimization-controller
+
+test-report:
+	@echo "📊 Generating comprehensive performance report..."
+	@$(NIX) run .#performance-reporter
 
 
 # Build function

@@ -15,6 +15,14 @@ let
   rebuildOptimizer = import ./rebuild-trigger-optimizer.nix { inherit lib pkgs; };
   parallelOptimizer = import ./parallel-build-optimizer.nix { inherit lib pkgs system; };
 
+  # Import testing framework performance tools
+  testingPerformance = {
+    benchmark = import ../tests/performance/test-benchmark.nix { inherit lib pkgs; stdenv = pkgs.stdenv; writeShellScript = pkgs.writeShellScript; time = pkgs.time; gnugrep = pkgs.gnugrep; coreutils = pkgs.coreutils; };
+    memoryProfiler = import ../tests/performance/advanced-memory-profiler.nix { inherit lib pkgs; stdenv = pkgs.stdenv; writeShellScript = pkgs.writeShellScript; python3 = pkgs.python3; gawk = pkgs.gawk; procps = pkgs.procps; time = pkgs.time; bc = pkgs.bc; coreutils = pkgs.coreutils; };
+    optimizationConfig = import ../tests/performance/optimization-config.nix { inherit lib pkgs; stdenv = pkgs.stdenv; writeShellScript = pkgs.writeShellScript; writeText = pkgs.writeText; jq = pkgs.jq; coreutils = pkgs.coreutils; };
+    performanceReporter = import ../tests/performance/performance-reporter.nix { inherit lib pkgs; stdenv = pkgs.stdenv; writeShellScript = pkgs.writeShellScript; writeText = pkgs.writeText; python3 = pkgs.python3; gnuplot = pkgs.gnuplot; jq = pkgs.jq; bc = pkgs.bc; coreutils = pkgs.coreutils; };
+  };
+
   # Performance configuration
   performanceConfig = {
     # Apple M2 optimized settings
@@ -75,6 +83,10 @@ rec {
               pkgs.htop
               pkgs.iotop
               pkgs.ccache
+              pkgs.bc
+              pkgs.jq
+              pkgs.gnuplot
+              pkgs.python3
             ];
 
             # Enhanced shell hook with performance information
@@ -90,6 +102,10 @@ rec {
               echo "Performance tools available:"
               echo "  • build-perf-monitor.sh - Build performance monitoring"
               echo "  • nix-cache-optimizer.sh - Cache optimization"
+              echo "  • test-performance-monitor.sh - Test framework performance monitoring"
+              echo "  • advanced-memory-profiler - Memory usage analysis"
+              echo "  • optimization-controller - Performance optimization controller"
+              echo "  • performance-reporter - Comprehensive performance reporting"
               echo "  • time <command> - Command timing"
               echo "  • htop - System resource monitor"
               echo ""
@@ -186,6 +202,12 @@ rec {
         ${system} = basePackages // {
           # Performance tools available via nix commands
           # Scripts can be run directly from lib/ directory
+
+          # Testing framework performance tools
+          test-benchmark = testingPerformance.benchmark.benchmark;
+          memory-profiler = testingPerformance.memoryProfiler.performanceAnalysis;
+          optimization-controller = testingPerformance.optimizationConfig.optimizationController;
+          performance-reporter = testingPerformance.performanceReporter.reportingSuite;
         };
       };
 
@@ -206,6 +228,24 @@ rec {
             # Performance monitoring apps
             perf-monitor = performanceMonitoring.mkPerformanceApp "perf-monitor" "${placeholder "out"}/bin/build-perf-monitor.sh";
             cache-optimize = performanceMonitoring.mkPerformanceApp "cache-optimize" "${placeholder "out"}/bin/nix-cache-optimizer.sh";
+
+            # Testing framework performance apps
+            test-benchmark = {
+              type = "app";
+              program = toString testingPerformance.benchmark.benchmark;
+            };
+            memory-profiler = {
+              type = "app";
+              program = toString testingPerformance.memoryProfiler.performanceAnalysis;
+            };
+            optimization-controller = {
+              type = "app";
+              program = toString testingPerformance.optimizationConfig.optimizationController;
+            };
+            performance-reporter = {
+              type = "app";
+              program = toString testingPerformance.performanceReporter.reportingSuite;
+            };
 
             # Wrap existing apps with performance monitoring
           }
