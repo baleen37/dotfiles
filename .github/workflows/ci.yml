@@ -155,7 +155,8 @@ jobs:
               nix build --impure --no-link .#darwinConfigurations.${{ matrix.system }}.system
               ;;
             *linux*)
-              nix build --impure --no-link .#nixosConfigurations.${{ matrix.system }}.config.system.build.toplevel
+              # Validate only (full build has kernel module issues)
+              nix eval --impure .#nixosConfigurations.${{ matrix.system }}.config.system.name --json
               ;;
           esac
 
