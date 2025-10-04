@@ -1,6 +1,22 @@
 # Unified Test System
-# Combines test-apps.nix and test-utils.nix
-# Provides comprehensive test framework, app builders, and utilities
+#
+# This module provides a comprehensive testing framework combining test app builders,
+# test utilities, and test framework functions. It supports multiple testing strategies
+# including unit, integration, performance, and end-to-end testing.
+#
+# Key Components:
+# - Test App Builders: Creates Nix apps for running different test categories
+# - Test Framework: Multi-framework execution (nix-unit, lib.runTests, BATS, VM tests)
+# - Test Utilities: Test reporting, discovery, and enhanced execution with error handling
+# - Test Categories: Organized test groupings (core, integration, performance, smoke)
+# - Coverage System: Optional test coverage measurement and reporting
+#
+# Main Functions:
+# - mkTestApp: Creates individual test applications for specific test types
+# - mkTestApps: Builds complete test app set for a given system architecture
+# - testFramework.runTest: Execute single test case with framework detection
+# - testFramework.runSuite: Execute test suite with optional coverage collection
+# - testUtils: Reporting, discovery, and enhanced test execution utilities
 
 {
   pkgs ? null,
@@ -533,10 +549,6 @@ in
 
   # Export test categories and configuration
   inherit testCategories testConfig;
-
-  # Legacy compatibility functions
-  mkLinuxTestApps = testAppBuilders.mkTestApps;
-  mkDarwinTestApps = testAppBuilders.mkTestApps;
 
   # App builder functions for specific test types
   appBuilders = testAppBuilders;

@@ -1,5 +1,18 @@
 # System configuration builders for Darwin and NixOS
-# This module handles the construction of system configurations for different platforms
+#
+# This module provides unified system configuration builders for cross-platform
+# development environment setup. It handles:
+# - Darwin (macOS) system configurations with nix-darwin and Home Manager
+# - NixOS system configurations with disko and Home Manager
+# - Cross-platform app configurations with platform-specific optimization
+# - Development shell builders with consistent toolchain setup
+#
+# Key Functions:
+# - mkDarwinConfigurations: Creates macOS system configurations for all supported architectures
+# - mkNixosConfigurations: Creates NixOS system configurations for all supported architectures
+# - mkAppConfigurations: Provides platform-specific app builders (Linux/Darwin)
+# - mkDevShells: Creates development shells with consistent cross-platform tooling
+# - utils: Platform detection and architecture utilities for conditional logic
 
 { inputs, nixpkgs, ... }:
 let
@@ -120,7 +133,7 @@ in
         in
         if ps.apps.platformApps ? linux then ps.apps.platformApps.linux else { }
       )
-      // (testSystem system).mkLinuxTestApps system;
+      // (testSystem system).mkTestApps system;
 
     # Darwin apps builder
     mkDarwinApps =
@@ -131,7 +144,7 @@ in
         in
         if ps.apps.platformApps ? darwin then ps.apps.platformApps.darwin else { }
       )
-      // (testSystem system).mkDarwinTestApps system;
+      // (testSystem system).mkTestApps system;
   };
 
   # Development shell builder

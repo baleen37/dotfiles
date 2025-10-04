@@ -1,5 +1,25 @@
 # Core flake configuration and inputs
 # This module centralizes the basic flake setup and input definitions
+#
+# OVERVIEW:
+#   Provides centralized configuration for flake inputs, system architectures,
+#   and common utility functions used across the dotfiles project.
+#
+# EXPORTED FUNCTIONS:
+#   - inputs: Centralized flake input definitions with version pinning
+#   - systemArchitectures: Platform-specific architecture definitions
+#   - utils: Common utility functions for system configuration
+#
+# USAGE:
+#   let flakeConfig = import ./lib/flake-config.nix;
+#   in {
+#     inherit (flakeConfig) inputs systemArchitectures;
+#     utils = flakeConfig.utils nixpkgs;
+#   }
+#
+# VERSION: 2.0.0
+# COMPATIBILITY: Nix flakes, nixfmt RFC 166 compliant
+# LAST UPDATED: 2024-10-04
 
 {
   # Core flake metadata
@@ -53,8 +73,18 @@
   };
 
   # Common utility functions for flake configuration
+  #
+  # DESCRIPTION: Cross-platform utility functions for flake operations
+  # PARAMETERS: nixpkgs - The nixpkgs flake input for package access
+  # RETURNS: Attribute set containing utility functions
   utils = nixpkgs: {
-    # Generate attributes for all systems
+    # Generate attributes for all supported systems
+    #
+    # TYPE: (String -> a) -> AttrSet
+    # DESCRIPTION: Maps a function over all supported system architectures
+    # PARAMETERS: f - Function that takes a system string and returns a value
+    # RETURNS: Attribute set with system names as keys and function results as values
+    # EXAMPLE: forAllSystems (system: pkgs.hello) -> { x86_64-linux = <derivation>; ... }
     forAllSystems =
       f:
       nixpkgs.lib.genAttrs ([
@@ -64,11 +94,28 @@
         "x86_64-darwin"
       ]) f;
 
-    # Get user from environment with proper fallback
+    # User resolution utilities with environment fallback
+    #
+    # TYPE: Function
+    # DESCRIPTION: Import user resolution function for dynamic user detection
+    # RETURNS: User resolution function that can be called with different formats
     getUserFn = import ./user-resolution.nix;
+
+    # Get user string directly with fallback handling
+    #
+    # TYPE: String
+    # DESCRIPTION: Resolves current user from environment with proper fallbacks
+    # RETURNS: Username as string, defaults to "baleen" if detection fails
     getUser = (import ./user-resolution.nix) { returnFormat = "string"; };
 
     # Create development shell for a system
+    #
+    # TYPE: String -> AttrSet
+    # DESCRIPTION: Creates a development shell with essential tools for the given system
+    # PARAMETERS: system - Target system architecture (e.g., "x86_64-linux", "aarch64-darwin")
+    # RETURNS: Attribute set containing shell configuration with development tools
+    # TOOLS INCLUDED: git, formatters (nixfmt, shfmt, prettier), linters (shellcheck)
+    # EXAMPLE: mkDevShell "aarch64-darwin" -> { default = <shell-derivation>; }
     mkDevShell =
       system:
       let
@@ -82,7 +129,7 @@
               bashInteractive
               git
               # Auto-formatting tools
-              nixpkgs-fmt # Nix formatting
+              nixfmt-rfc-style # Nix formatting (RFC 166 standard)
               shfmt # Shell script formatting
               nodePackages.prettier # YAML, JSON, Markdown formatting
               jq # JSON formatting and manipulation
@@ -94,7 +141,7 @@
             shellHook = ''
               export EDITOR=vim
               echo "🔧 Auto-formatting tools available:"
-              echo "  - nixpkgs-fmt (Nix files)"
+              echo "  - nixfmt-rfc-style (Nix files, RFC 166 standard)"
               echo "  - shfmt (Shell scripts)"
               echo "  - prettier (YAML, JSON, Markdown)"
               echo "  - jq (JSON)"

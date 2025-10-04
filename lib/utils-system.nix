@@ -380,7 +380,7 @@ in
     attrUtils
     ;
 
-  # Legacy compatibility - export functions at top level
+  # Direct exports for convenience
   inherit (systemUtils)
     isSystem
     isDarwin

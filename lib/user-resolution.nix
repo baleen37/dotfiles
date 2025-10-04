@@ -1,6 +1,42 @@
 # Unified User Resolution System
 # Consolidates functionality from get-user.nix, enhanced-get-user.nix, and get-user-extended.nix
 # Provides comprehensive user resolution with backward compatibility
+#
+# OVERVIEW:
+#   Advanced user detection system that works across macOS, Linux, and NixOS with
+#   multiple fallback mechanisms and platform-specific optimizations.
+#
+# FEATURES:
+#   - Cross-platform user detection (macOS, Linux, NixOS)
+#   - Multiple fallback mechanisms with priority ordering
+#   - Debug mode for troubleshooting user detection issues
+#   - Mock environment support for testing scenarios
+#   - Return format flexibility (string or extended info)
+#   - Validation of username format and security
+#
+# PARAMETERS:
+#   - envVar: Environment variable to check (default: "USER")
+#   - default: Fallback username if all detection methods fail
+#   - allowSudoUser: Whether to consider SUDO_USER as valid source
+#   - debugMode: Enable detailed logging for troubleshooting
+#   - mockEnv: Mock environment variables for testing
+#   - platform: Target platform override (auto-detected if null)
+#   - enableAutoDetect: Enable automatic platform-specific detection
+#   - enableFallbacks: Enable fallback mechanisms
+#   - returnFormat: "string" for username only, "extended" for full metadata
+#
+# RETURN FORMATS:
+#   string: Just the username as a string (backward compatible)
+#   extended: Full attribute set with username, method, platform, validation status
+#
+# USAGE EXAMPLES:
+#   Simple: (import ./user-resolution.nix) {}
+#   With options: (import ./user-resolution.nix) { debugMode = true; default = "nixos"; }
+#   Extended: (import ./user-resolution.nix) { returnFormat = "extended"; }
+#
+# VERSION: 3.0.0
+# COMPATIBILITY: Cross-platform (macOS, Linux, NixOS), nixfmt RFC 166 compliant
+# LAST UPDATED: 2024-10-04
 
 {
   # Environment variable to check (default: "USER")
@@ -176,7 +212,7 @@ let
       isLinux = currentPlatform == "linux";
     };
 
-    # Legacy compatibility - return user string when used as string
+    # Return user string when used as string
     __toString = self: resolveUser;
   };
 

@@ -1,6 +1,20 @@
 # Unified Platform System
-# Combines platform-detector.nix, platform-utils.nix, and platform-apps.nix
-# Provides comprehensive platform detection, utilities, and app management
+#
+# This module provides comprehensive platform detection, utilities, and application
+# management for cross-platform Nix configurations. It combines platform detection,
+# architecture utilities, and app builders into a unified interface.
+#
+# Key Components:
+# - Platform Detection: OS and architecture detection with caching for performance
+# - App Management: Platform-specific app builders (Linux, Darwin, universal)
+# - Architecture Support: Multi-architecture builds with optimized detection
+# - Utilities: Cross-platform helper functions and compatibility layers
+#
+# Functions:
+# - platformDetection: Cached platform and architecture detection functions
+# - apps.platformApps: Platform-specific app configurations (linux/darwin/universal)
+# - apps.coreApps: Cross-platform core application definitions
+# - utils: Platform utilities for conditional logic and architecture handling
 
 {
   pkgs ? null,
@@ -77,7 +91,6 @@ let
 
     # Supported configurations
     inherit (platformDetection) supportedPlatforms supportedArchitectures supportedSystems;
-    supportedArchs = platformDetection.supportedArchitectures; # Legacy compatibility
   };
 
   # Current system information
@@ -94,7 +107,7 @@ let
 
     # Validation
     isValidPlatform = builtins.elem detection.detectedPlatform detection.supportedPlatforms;
-    isValidArch = builtins.elem detection.detectedArch detection.supportedArchs;
+    isValidArch = builtins.elem detection.detectedArch detection.supportedArchitectures;
     isValidSystem = builtins.elem detection.nixSystem detection.supportedSystems;
   };
 
@@ -543,7 +556,7 @@ in
     inherit (detection)
       nixSystem
       supportedPlatforms
-      supportedArchs
+      supportedArchitectures
       supportedSystems
       ;
     current = currentSystem;
@@ -574,7 +587,7 @@ in
   # Validation functions
   validate = {
     platform = platform: builtins.elem platform detection.supportedPlatforms;
-    arch = arch: builtins.elem arch detection.supportedArchs;
+    arch = arch: builtins.elem arch detection.supportedArchitectures;
     system = system: builtins.elem system detection.supportedSystems;
   };
 
@@ -582,6 +595,6 @@ in
   version = "2.0.0-unified";
   description = "Unified platform detection, utilities, and app management system";
   supportedPlatforms = detection.supportedPlatforms;
-  supportedArchitectures = detection.supportedArchs;
+  supportedArchitectures = detection.supportedArchitectures;
   supportedSystems = detection.supportedSystems;
 }
