@@ -56,20 +56,6 @@ in
       # Import shared files and packages
       file = sharedFiles;
       packages = sharedPackages;
-
-      # Simple activation scripts
-      activation.setupClaudeConfig = ''
-        CLAUDE_DIR="${homeDir}/.claude"
-        CLAUDE_SOURCE="${homeDir}/dev/dotfiles/modules/shared/config/claude"
-
-        if [[ -d "$CLAUDE_SOURCE" ]]; then
-          if [[ ! -L "$CLAUDE_DIR" ]] || [[ "$(readlink "$CLAUDE_DIR")" != "$CLAUDE_SOURCE" ]]; then
-            echo "Setting up Claude configuration..."
-            rm -rf "$CLAUDE_DIR"
-            ln -sf "$CLAUDE_SOURCE" "$CLAUDE_DIR"
-          fi
-        fi
-      '';
     }
 
     # Darwin-specific configuration

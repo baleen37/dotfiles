@@ -62,8 +62,25 @@
     ,
     }@inputs:
     let
-      # Dynamic user resolution
-      user = builtins.getEnv "USER";
+      # Dynamic user resolution with HOME-based fallback
+      user =
+        let
+          userEnv = builtins.getEnv "USER";
+          homeEnv = builtins.getEnv "HOME";
+          # Extract username from HOME path (/Users/username or /home/username)
+          extractUserFromHome = homePath:
+            if homePath == "" then
+              ""
+            else
+              let
+                # Split path and filter empty strings
+                parts = builtins.filter (x: x != "") (builtins.split "/" homePath);
+                # Get last part of path (username)
+                lastPart = builtins.elemAt parts ((builtins.length parts) - 1);
+              in
+              lastPart;
+        in
+        if userEnv != "" then userEnv else extractUserFromHome homeEnv;
 
       # Supported systems - direct specification
       linuxSystems = [ "x86_64-linux" "aarch64-linux" ];
@@ -107,7 +124,7 @@
 
               # Pre-commit tools
               pre-commit
-            ] ++ lib.optionals (nix-unit.packages ? ${system}) [
+            ] ++ pkgs.lib.optionals (nix-unit.packages ? ${system}) [
               nix-unit.packages.${system}.default
             ];
 
@@ -154,10 +171,11 @@
       );
 
       # Direct NixOS configurations following dustinlyons pattern
-      nixosConfigurations = nixpkgs.lib.genAttrs linuxSystems (system:
+      # Skip if user cannot be determined (pure evaluation mode)
+      nixosConfigurations = nixpkgs.lib.optionalAttrs (user != "") (nixpkgs.lib.genAttrs linuxSystems (system:
         nixpkgs.lib.nixosSystem {
           inherit system;
-          specialArgs = inputs;
+          specialArgs = inputs // { inherit user; };
           modules = [
             ./hosts/nixos # Host config first to ensure allowUnfree is set at system level
             disko.nixosModules.disko
@@ -173,10 +191,11 @@
             }
           ];
         }
-      );
+      ));
 
       # Simple direct Home Manager configurations
-      homeConfigurations = {
+      # Skip if user cannot be determined (pure evaluation mode)
+      homeConfigurations = nixpkgs.lib.optionalAttrs (user != "") {
         # Primary user configuration
         ${user} = home-manager.lib.homeManagerConfiguration {
           pkgs = nixpkgs.legacyPackages.${builtins.currentSystem or "aarch64-darwin"};
