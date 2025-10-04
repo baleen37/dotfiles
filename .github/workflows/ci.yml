@@ -83,7 +83,7 @@ jobs:
         run: |
           export USER=${USER:-ci}
           echo "🧪 Validating NixTest framework"
-          nix build --impure .#tests.framework-check --verbose
+          nix build --impure .#framework-check --verbose
           echo "✅ Test framework validation passed"
 
   # Core build stage (2-4 minutes) - Only essential platforms
@@ -243,29 +243,29 @@ jobs:
         include:
           # Unit tests - Cross-platform
           - category: unit
-            test_target: 'tests.lib-functions tests.platform-detection tests.framework-check'
+            test_target: 'lib-functions platform-detection framework-check'
             coverage: true
             os: macos-14
             os-name: 'macOS-ARM64'
           - category: unit
-            test_target: 'tests.lib-functions tests.platform-detection tests.framework-check'
+            test_target: 'lib-functions platform-detection framework-check'
             coverage: true
             os: ubuntu-latest
             os-name: 'Linux-x64'
           # Integration tests - Cross-platform
           - category: integration
-            test_target: 'tests.module-interaction tests.cross-platform tests.system-configuration'
+            test_target: 'module-interaction cross-platform system-configuration'
             coverage: true
             os: macos-14
             os-name: 'macOS-ARM64'
           - category: integration
-            test_target: 'tests.module-interaction tests.cross-platform tests.system-configuration'
+            test_target: 'module-interaction cross-platform system-configuration'
             coverage: false # Disable coverage on Linux to reduce CI time
             os: ubuntu-latest
             os-name: 'Linux-x64'
           # E2E tests - Primary platform only for speed
           - category: e2e
-            test_target: 'tests.all'
+            test_target: 'all'
             coverage: false
             os: macos-14
             os-name: 'macOS-ARM64'
@@ -542,7 +542,7 @@ jobs:
 
           # Test that the new testing framework can be built
           echo "🧪 Testing new NixTest framework"
-          nix build --impure .#tests.framework-check --verbose
+          nix build --impure .#framework-check --verbose
           echo "✅ Smoke test passed - Draft PR validation complete"
 
   # Summary and status reporting

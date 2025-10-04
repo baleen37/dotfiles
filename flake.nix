@@ -218,12 +218,26 @@
         let
           testingLib = import ./lib/testing.nix { inherit inputs forAllSystems self; };
           hasTests = builtins.hasAttr "tests" testingLib;
+          hasPerfBench = builtins.hasAttr "performance-benchmarks" testingLib;
           testsVal = if hasTests then testingLib.tests else { };
+          perfBenchVal = if hasPerfBench then testingLib.performance-benchmarks else { };
           testsHasSystem = hasTests && builtins.hasAttr system testsVal;
+          perfBenchHasSystem = hasPerfBench && builtins.hasAttr system perfBenchVal;
         in
-        if testsHasSystem then {
-          inherit (testsVal.${system}) framework-check lib-functions platform-detection;
-        } else { }
+        (if testsHasSystem then {
+          inherit (testsVal.${system})
+            framework-check
+            lib-functions
+            platform-detection
+            module-interaction
+            cross-platform
+            system-configuration
+            all
+            ;
+        } else { })
+        // (if perfBenchHasSystem then {
+          performance-benchmarks = perfBenchVal.${system};
+        } else { })
       );
 
     };
