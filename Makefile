@@ -63,9 +63,6 @@ help:
 	@echo "  test-report - Generate comprehensive performance report"
 	@echo "  test-list   - List available test categories"
 	@echo ""
-	@echo "🤖 Claude Code MCP:"
-	@echo "  setup-mcp   - Install MCP servers for Claude Code"
-	@echo ""
 	@echo "🔨 Building & Deployment:"
 	@echo "  build       - Build all Darwin and NixOS configurations"
 	@echo "  build-current - Build only current platform (faster)"
@@ -408,9 +405,4 @@ deploy:
 	@echo "🚀 Deploying configuration..."
 	@./deploy.sh
 
-# Claude Code MCP setup
-setup-mcp: check-user
-	@echo "🤖 Setting up Claude Code MCP servers..."
-	@./scripts/setup-claude-mcp --main
-
-.PHONY: help check-user lint lint-format lint-autofix lint-install-autofix smoke test test-format test-quick test-core test-unit test-contract test-coverage test-unit-coverage test-contract-coverage test-workflow test-perf test-list test-unit-extended build build-linux build-darwin build-current build-fast build-switch switch apply deploy platform-info setup-mcp format format-setup format-quick format-all format-nix format-shell format-yaml format-json format-markdown
+.PHONY: help check-user lint lint-format lint-autofix lint-install-autofix smoke test test-format test-quick test-core test-unit test-contract test-coverage test-unit-coverage test-contract-coverage test-workflow test-perf test-list test-unit-extended build build-linux build-darwin build-current build-fast build-switch switch apply deploy platform-info format format-setup format-quick format-all format-nix format-shell format-yaml format-json format-markdown
