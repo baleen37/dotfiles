@@ -34,7 +34,7 @@ validate_ssh_key() {
   local key_file="$1"
   local key_name="$2"
 
-  if [[ ! -f "$key_file" ]]; then
+  if [[ ! -f $key_file ]]; then
     printf "%b%s%b\n" "$RED" "Key file not found: $key_file" "$NC"
     return 1
   fi

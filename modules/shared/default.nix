@@ -3,7 +3,11 @@
 # 이 파일은 모든 플랫폼에서 공통으로 사용되는 모듈들을 통합 제공합니다.
 # hosts/*/default.nix에서 ../../modules/shared로 import할 때 자동으로 로드됩니다.
 
-{ config, pkgs, lib, ... }:
+{ config
+, pkgs
+, lib
+, ...
+}:
 
 {
   # 공통 모듈들을 여기에 import

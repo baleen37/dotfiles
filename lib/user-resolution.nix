@@ -1,6 +1,42 @@
 # Unified User Resolution System
 # Consolidates functionality from get-user.nix, enhanced-get-user.nix, and get-user-extended.nix
 # Provides comprehensive user resolution with backward compatibility
+#
+# OVERVIEW:
+#   Advanced user detection system that works across macOS, Linux, and NixOS with
+#   multiple fallback mechanisms and platform-specific optimizations.
+#
+# FEATURES:
+#   - Cross-platform user detection (macOS, Linux, NixOS)
+#   - Multiple fallback mechanisms with priority ordering
+#   - Debug mode for troubleshooting user detection issues
+#   - Mock environment support for testing scenarios
+#   - Return format flexibility (string or extended info)
+#   - Validation of username format and security
+#
+# PARAMETERS:
+#   - envVar: Environment variable to check (default: "USER")
+#   - default: Fallback username if all detection methods fail
+#   - allowSudoUser: Whether to consider SUDO_USER as valid source
+#   - debugMode: Enable detailed logging for troubleshooting
+#   - mockEnv: Mock environment variables for testing
+#   - platform: Target platform override (auto-detected if null)
+#   - enableAutoDetect: Enable automatic platform-specific detection
+#   - enableFallbacks: Enable fallback mechanisms
+#   - returnFormat: "string" for username only, "extended" for full metadata
+#
+# RETURN FORMATS:
+#   string: Just the username as a string (backward compatible)
+#   extended: Full attribute set with username, method, platform, validation status
+#
+# USAGE EXAMPLES:
+#   Simple: (import ./user-resolution.nix) {}
+#   With options: (import ./user-resolution.nix) { debugMode = true; default = "nixos"; }
+#   Extended: (import ./user-resolution.nix) { returnFormat = "extended"; }
+#
+# VERSION: 3.0.0
+# COMPATIBILITY: Cross-platform (macOS, Linux, NixOS), nixfmt RFC 166 compliant
+# LAST UPDATED: 2024-10-04
 
 {
   # Environment variable to check (default: "USER")
@@ -21,20 +57,24 @@
   enableFallbacks ? true
 , # Return format: "string" for backward compatibility, "extended" for full feature set
   returnFormat ? "string"
+,
 }:
 
 let
   # Helper function to validate username format
-  validateUser = username:
-    if username == "" || username == null then false
-    else if builtins.match "^[a-zA-Z0-9_][a-zA-Z0-9_.-]{0,30}[a-zA-Z0-9_]$|^[a-zA-Z0-9_]$" username == null then false
-    else true;
+  validateUser =
+    username:
+    if username == "" || username == null then
+      false
+    else if
+      builtins.match "^[a-zA-Z0-9_][a-zA-Z0-9_.-]{0,30}[a-zA-Z0-9_]$|^[a-zA-Z0-9_]$" username == null
+    then
+      false
+    else
+      true;
 
   # Environment variable reading function (supports mocking for tests)
-  getEnvVar = var:
-    if builtins.hasAttr var mockEnv
-    then mockEnv.${var}
-    else builtins.getEnv var;
+  getEnvVar = var: if builtins.hasAttr var mockEnv then mockEnv.${var} else builtins.getEnv var;
 
   # Import optimized platform detection utilities
   platformDetection = import ./platform-detection.nix {
@@ -43,9 +83,12 @@ let
 
   # Platform detection (now using optimized detection)
   currentPlatform =
-    if platform != null then platform
-    else if platformDetection.isValidPlatform then platformDetection.platform
-    else "unknown";
+    if platform != null then
+      platform
+    else if platformDetection.isValidPlatform then
+      platformDetection.platform
+    else
+      "unknown";
 
   # Read environment variables
   envValue = getEnvVar envVar;
@@ -53,11 +96,16 @@ let
 
   # Enhanced automatic detection (for enhanced compatibility)
   autoDetectedUser =
-    if !enableAutoDetect then null
-    else if mockEnv != { } then "auto-detected-user"  # For testing
-    else if builtins.getEnv "CI" != "" then "runner"  # CI environment fallback
-    else if builtins.getEnv "GITHUB_ACTIONS" != "" then "runner"  # GitHub Actions environment
-    else null; # In real environment, fall back to existing env vars
+    if !enableAutoDetect then
+      null
+    else if mockEnv != { } then
+      "auto-detected-user" # For testing
+    else if builtins.getEnv "CI" != "" then
+      "runner" # CI environment fallback
+    else if builtins.getEnv "GITHUB_ACTIONS" != "" then
+      "runner" # GitHub Actions environment
+    else
+      null; # In real environment, fall back to existing env vars
 
   # Generate detailed error message with actionable steps
   generateErrorMsg = currentContext: ''
@@ -80,8 +128,7 @@ let
   '';
 
   # Debug logging helper (returns the user for chaining)
-  debugLog = msg: user:
-    if debugMode then builtins.trace "[user-resolution] ${msg}" user else user;
+  debugLog = msg: user: if debugMode then builtins.trace "[user-resolution] ${msg}" user else user;
 
   # Main user resolution logic (consolidated from all systems)
   resolveUser =
@@ -95,7 +142,10 @@ let
     else if enableAutoDetect && autoDetectedUser != null && validateUser autoDetectedUser then
       debugLog "Using auto-detected user: ${autoDetectedUser}" autoDetectedUser
     # 4. CI environment fallback when USER is empty
-    else if (envValue == "" || envValue == null) && (builtins.getEnv "CI" != "" || builtins.getEnv "GITHUB_ACTIONS" != "") then
+    else if
+      (envValue == "" || envValue == null)
+      && (builtins.getEnv "CI" != "" || builtins.getEnv "GITHUB_ACTIONS" != "")
+    then
       debugLog "Using CI fallback: runner" "runner"
     # 5. Additional fallback for environments where USER is not set (disabled to prevent host-specific hardcoding)
     # else if (envValue == "" || envValue == null) && enableAutoDetect then
@@ -107,19 +157,28 @@ let
     else
       let
         reason =
-          if allowSudoUser && sudoUser != "" && !validateUser sudoUser then "SUDO_USER invalid: '${sudoUser}'"
-          else if envValue != "" && !validateUser envValue then "${envVar} invalid: '${envValue}'"
-          else if !enableAutoDetect then "auto-detection disabled"
-          else if autoDetectedUser != null && !validateUser autoDetectedUser then "auto-detected user invalid"
-          else "no valid user found";
+          if allowSudoUser && sudoUser != "" && !validateUser sudoUser then
+            "SUDO_USER invalid: '${sudoUser}'"
+          else if envValue != "" && !validateUser envValue then
+            "${envVar} invalid: '${envValue}'"
+          else if !enableAutoDetect then
+            "auto-detection disabled"
+          else if autoDetectedUser != null && !validateUser autoDetectedUser then
+            "auto-detected user invalid"
+          else
+            "no valid user found";
       in
       builtins.throw (generateErrorMsg reason);
 
   # Utility function to get user home directory path
-  getUserHomePath = user: platform:
-    if platform == "darwin" then "/Users/${user}"
-    else if platform == "linux" then "/home/${user}"
-    else throw "Unsupported platform: ${platform}";
+  getUserHomePath =
+    user: platform:
+    if platform == "darwin" then
+      "/Users/${user}"
+    else if platform == "linux" then
+      "/home/${user}"
+    else
+      throw "Unsupported platform: ${platform}";
 
   # Extended functionality (from get-user-extended.nix)
   extendedResult = {
@@ -154,11 +213,10 @@ let
       isLinux = currentPlatform == "linux";
     };
 
-    # Legacy compatibility - return user string when used as string
+    # Return user string when used as string
     __toString = self: resolveUser;
   };
 
 in
 # Return format based on returnFormat parameter
-if returnFormat == "extended" then extendedResult
-else resolveUser  # Default: return just the user string for backward compatibility
+if returnFormat == "extended" then extendedResult else resolveUser # Default: return just the user string for backward compatibility

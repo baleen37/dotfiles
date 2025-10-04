@@ -1,4 +1,8 @@
-{ config, pkgs, lib, ... }:
+{ config
+, pkgs
+, lib
+, ...
+}:
 
 let
   getUser = import ../../lib/user-resolution.nix {
@@ -65,7 +69,10 @@ in
   users.users.${user} = {
     isNormalUser = true;
     home = "/home/${user}";
-    extraGroups = [ "wheel" "networkmanager" ];
+    extraGroups = [
+      "wheel"
+      "networkmanager"
+    ];
     shell = pkgs.zsh;
     openssh.authorizedKeys.keys = [
       # SSH 키를 여기에 추가하거나 별도 파일에서 import

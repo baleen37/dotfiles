@@ -14,174 +14,174 @@ NC='\033[0m' # No Color
 
 # 로깅 함수들
 log_info() {
-    echo -e "${BLUE}[INFO]${NC} $1"
+  echo -e "${BLUE}[INFO]${NC} $1"
 }
 
 log_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
+  echo -e "${GREEN}[SUCCESS]${NC} $1"
 }
 
 log_warn() {
-    echo -e "${YELLOW}[WARN]${NC} $1"
+  echo -e "${YELLOW}[WARN]${NC} $1"
 }
 
 log_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
+  echo -e "${RED}[ERROR]${NC} $1"
 }
 
 # Claude Code 설치 확인
 check_claude_code() {
-    if ! command -v claude &> /dev/null; then
-        log_error "Claude Code CLI가 설치되어 있지 않습니다."
-        log_info "다음 명령어로 설치하세요: npm install -g @anthropic-ai/claude-code"
-        exit 1
-    fi
+  if ! command -v claude &>/dev/null; then
+    log_error "Claude Code CLI가 설치되어 있지 않습니다."
+    log_info "다음 명령어로 설치하세요: npm install -g @anthropic-ai/claude-code"
+    exit 1
+  fi
 
-    log_success "Claude Code CLI 확인됨"
+  log_success "Claude Code CLI 확인됨"
 }
 
 # Node.js 및 npx 확인
 check_nodejs() {
-    if ! command -v node &> /dev/null || ! command -v npx &> /dev/null; then
-        log_error "Node.js와 npx가 필요합니다."
-        log_info "Node.js 18+ 버전을 설치해주세요."
-        exit 1
-    fi
+  if ! command -v node &>/dev/null || ! command -v npx &>/dev/null; then
+    log_error "Node.js와 npx가 필요합니다."
+    log_info "Node.js 18+ 버전을 설치해주세요."
+    exit 1
+  fi
 
-    local node_version=$(node --version | cut -d'v' -f2 | cut -d'.' -f1)
-    if [[ $node_version -lt 18 ]]; then
-        log_error "Node.js 18+ 버전이 필요합니다. 현재 버전: $(node --version)"
-        exit 1
-    fi
+  local node_version=$(node --version | cut -d'v' -f2 | cut -d'.' -f1)
+  if [[ $node_version -lt 18 ]]; then
+    log_error "Node.js 18+ 버전이 필요합니다. 현재 버전: $(node --version)"
+    exit 1
+  fi
 
-    log_success "Node.js $(node --version) 확인됨"
+  log_success "Node.js $(node --version) 확인됨"
 }
 
 # MCP 서버가 이미 설치되어 있는지 확인
 is_mcp_server_installed() {
-    local server_name="$1"
-    claude mcp list 2>/dev/null | grep -q "$server_name" || return 1
+  local server_name="$1"
+  claude mcp list 2>/dev/null | grep -q "$server_name" || return 1
 }
 
 # Filesystem MCP 서버 설치
 install_filesystem_mcp() {
-    local server_name="filesystem"
+  local server_name="filesystem"
 
-    if is_mcp_server_installed "$server_name"; then
-        log_warn "Filesystem MCP 서버가 이미 설치되어 있습니다."
-        return 0
-    fi
+  if is_mcp_server_installed "$server_name"; then
+    log_warn "Filesystem MCP 서버가 이미 설치되어 있습니다."
+    return 0
+  fi
 
-    log_info "Filesystem MCP 서버 설치 중..."
+  log_info "Filesystem MCP 서버 설치 중..."
 
-    # 현재 프로젝트 루트를 허용된 디렉토리로 설정
-    local allowed_path="${PWD}"
+  # 현재 프로젝트 루트를 허용된 디렉토리로 설정
+  local allowed_path="${PWD}"
 
-    if claude mcp add "$server_name" -s user npx -- -y @modelcontextprotocol/server-filesystem "$allowed_path"; then
-        log_success "Filesystem MCP 서버 설치 완료"
-        log_info "허용된 경로: $allowed_path"
-    else
-        log_error "Filesystem MCP 서버 설치 실패"
-        return 1
-    fi
+  if claude mcp add "$server_name" -s user npx -- -y @modelcontextprotocol/server-filesystem "$allowed_path"; then
+    log_success "Filesystem MCP 서버 설치 완료"
+    log_info "허용된 경로: $allowed_path"
+  else
+    log_error "Filesystem MCP 서버 설치 실패"
+    return 1
+  fi
 }
 
 # GitHub MCP 서버 설치
 install_github_mcp() {
-    local server_name="github"
+  local server_name="github"
 
-    if is_mcp_server_installed "$server_name"; then
-        log_warn "GitHub MCP 서버가 이미 설치되어 있습니다."
-        return 0
-    fi
+  if is_mcp_server_installed "$server_name"; then
+    log_warn "GitHub MCP 서버가 이미 설치되어 있습니다."
+    return 0
+  fi
 
-    log_info "GitHub MCP 서버 설치 중..."
+  log_info "GitHub MCP 서버 설치 중..."
 
-    # GitHub 토큰 확인
-    if [[ -z "${GITHUB_TOKEN:-}" ]]; then
-        log_warn "GITHUB_TOKEN 환경변수가 설정되지 않았습니다."
-        log_info "GitHub MCP 서버의 모든 기능을 사용하려면 GITHUB_TOKEN을 설정해주세요."
-        log_info "예: export GITHUB_TOKEN=your_github_token"
+  # GitHub 토큰 확인
+  if [[ -z ${GITHUB_TOKEN:-} ]]; then
+    log_warn "GITHUB_TOKEN 환경변수가 설정되지 않았습니다."
+    log_info "GitHub MCP 서버의 모든 기능을 사용하려면 GITHUB_TOKEN을 설정해주세요."
+    log_info "예: export GITHUB_TOKEN=your_github_token"
 
-        # 토큰 없이도 설치 시도
-        if claude mcp add "$server_name" -s user npx -- -y @modelcontextprotocol/server-github; then
-            log_success "GitHub MCP 서버 설치 완료 (토큰 없음 - 제한된 기능)"
-        else
-            log_error "GitHub MCP 서버 설치 실패"
-            return 1
-        fi
+    # 토큰 없이도 설치 시도
+    if claude mcp add "$server_name" -s user npx -- -y @modelcontextprotocol/server-github; then
+      log_success "GitHub MCP 서버 설치 완료 (토큰 없음 - 제한된 기능)"
     else
-        # 토큰과 함께 설치
-        if claude mcp add "$server_name" -s user -e GITHUB_TOKEN="$GITHUB_TOKEN" npx -- -y @modelcontextprotocol/server-github; then
-            log_success "GitHub MCP 서버 설치 완료 (토큰 포함)"
-        else
-            log_error "GitHub MCP 서버 설치 실패"
-            return 1
-        fi
+      log_error "GitHub MCP 서버 설치 실패"
+      return 1
     fi
+  else
+    # 토큰과 함께 설치
+    if claude mcp add "$server_name" -s user -e GITHUB_TOKEN="$GITHUB_TOKEN" npx -- -y @modelcontextprotocol/server-github; then
+      log_success "GitHub MCP 서버 설치 완료 (토큰 포함)"
+    else
+      log_error "GitHub MCP 서버 설치 실패"
+      return 1
+    fi
+  fi
 }
 
 # Brave Search MCP 서버 설치
 install_brave_search_mcp() {
-    local server_name="brave-search"
+  local server_name="brave-search"
 
-    if is_mcp_server_installed "$server_name"; then
-        log_warn "Brave Search MCP 서버가 이미 설치되어 있습니다."
-        return 0
-    fi
+  if is_mcp_server_installed "$server_name"; then
+    log_warn "Brave Search MCP 서버가 이미 설치되어 있습니다."
+    return 0
+  fi
 
-    log_info "Brave Search MCP 서버 설치 중..."
+  log_info "Brave Search MCP 서버 설치 중..."
 
-    # Brave Search API 키 확인
-    if [[ -z "${BRAVE_API_KEY:-}" ]]; then
-        log_warn "BRAVE_API_KEY 환경변수가 설정되지 않았습니다."
-        log_info "Brave Search MCP 서버를 사용하려면 API 키가 필요합니다."
-        log_info "https://api.search.brave.com/ 에서 API 키를 발급받아주세요."
-        return 0
-    fi
+  # Brave Search API 키 확인
+  if [[ -z ${BRAVE_API_KEY:-} ]]; then
+    log_warn "BRAVE_API_KEY 환경변수가 설정되지 않았습니다."
+    log_info "Brave Search MCP 서버를 사용하려면 API 키가 필요합니다."
+    log_info "https://api.search.brave.com/ 에서 API 키를 발급받아주세요."
+    return 0
+  fi
 
-    if claude mcp add "$server_name" -s user -e BRAVE_API_KEY="$BRAVE_API_KEY" npx -- -y @modelcontextprotocol/server-brave-search; then
-        log_success "Brave Search MCP 서버 설치 완료"
-    else
-        log_error "Brave Search MCP 서버 설치 실패"
-        return 1
-    fi
+  if claude mcp add "$server_name" -s user -e BRAVE_API_KEY="$BRAVE_API_KEY" npx -- -y @modelcontextprotocol/server-brave-search; then
+    log_success "Brave Search MCP 서버 설치 완료"
+  else
+    log_error "Brave Search MCP 서버 설치 실패"
+    return 1
+  fi
 }
 
 # Filesystem MCP 서버만 설치 (jito가 주로 사용하는 서버)
 install_main_mcp_servers() {
-    local failed_installs=()
+  local failed_installs=()
 
-    # Filesystem MCP 서버 - 파일 시스템 접근
-    log_info "Filesystem MCP 서버 설치 중..."
-    local allowed_path="${PWD}"
+  # Filesystem MCP 서버 - 파일 시스템 접근
+  log_info "Filesystem MCP 서버 설치 중..."
+  local allowed_path="${PWD}"
 
-    if ! is_mcp_server_installed "filesystem"; then
-        if claude mcp add "filesystem" -s user npx -- -y @modelcontextprotocol/server-filesystem "$allowed_path"; then
-            log_success "Filesystem MCP 서버 설치 완료"
-            log_info "허용된 경로: $allowed_path"
-        else
-            log_error "Filesystem MCP 서버 설치 실패"
-            failed_installs+=("filesystem")
-        fi
+  if ! is_mcp_server_installed "filesystem"; then
+    if claude mcp add "filesystem" -s user npx -- -y @modelcontextprotocol/server-filesystem "$allowed_path"; then
+      log_success "Filesystem MCP 서버 설치 완료"
+      log_info "허용된 경로: $allowed_path"
     else
-        log_warn "Filesystem MCP 서버가 이미 설치되어 있습니다."
+      log_error "Filesystem MCP 서버 설치 실패"
+      failed_installs+=("filesystem")
     fi
+  else
+    log_warn "Filesystem MCP 서버가 이미 설치되어 있습니다."
+  fi
 
-    return ${#failed_installs[@]}
+  return ${#failed_installs[@]}
 }
 
 # 설치된 MCP 서버 목록 표시
 show_installed_servers() {
-    log_info "설치된 MCP 서버 목록:"
-    echo ""
-    claude mcp list 2>/dev/null || log_warn "MCP 서버 목록을 가져올 수 없습니다."
-    echo ""
+  log_info "설치된 MCP 서버 목록:"
+  echo ""
+  claude mcp list 2>/dev/null || log_warn "MCP 서버 목록을 가져올 수 없습니다."
+  echo ""
 }
 
 # 사용법 표시
 show_usage() {
-    cat << EOF
+  cat <<EOF
 사용법: $0 [옵션]
 
 옵션:
@@ -204,85 +204,85 @@ EOF
 
 # 메인 함수
 main() {
-    local install_main=false
-    local install_filesystem=false
-    local show_list=false
+  local install_main=false
+  local install_filesystem=false
+  local show_list=false
 
-    # 인자가 없으면 기본 설치 (--main)
-    if [[ $# -eq 0 ]]; then
-        install_main=true
-    fi
+  # 인자가 없으면 기본 설치 (--main)
+  if [[ $# -eq 0 ]]; then
+    install_main=true
+  fi
 
-    # 명령행 인자 처리
-    while [[ $# -gt 0 ]]; do
-        case $1 in
-            --main)
-                install_main=true
-                shift
-                ;;
-            --filesystem)
-                install_filesystem=true
-                shift
-                ;;
-            --list)
-                show_list=true
-                shift
-                ;;
-            --help|-h)
-                show_usage
-                exit 0
-                ;;
-            *)
-                log_error "알 수 없는 옵션: $1"
-                show_usage
-                exit 1
-                ;;
-        esac
-    done
+  # 명령행 인자 처리
+  while [[ $# -gt 0 ]]; do
+    case $1 in
+    --main)
+      install_main=true
+      shift
+      ;;
+    --filesystem)
+      install_filesystem=true
+      shift
+      ;;
+    --list)
+      show_list=true
+      shift
+      ;;
+    --help | -h)
+      show_usage
+      exit 0
+      ;;
+    *)
+      log_error "알 수 없는 옵션: $1"
+      show_usage
+      exit 1
+      ;;
+    esac
+  done
 
-    # 목록만 표시하고 종료
-    if [[ "$show_list" == true ]]; then
-        check_claude_code
-        show_installed_servers
-        exit 0
-    fi
-
-    # 사전 확인
-    log_info "Claude Code MCP 서버 설치 시작"
+  # 목록만 표시하고 종료
+  if [[ $show_list == true ]]; then
     check_claude_code
-    check_nodejs
-
-    # 설치 실행
-    local failed_count=0
-
-    if [[ "$install_main" == true ]]; then
-        install_main_mcp_servers
-        failed_count=$?
-    elif [[ "$install_filesystem" == true ]]; then
-        install_filesystem_mcp || failed_count=1
-    fi
-
-    # 결과 요약
-    echo ""
-    log_info "설치 완료 요약:"
-
-    if [[ $failed_count -eq 0 ]]; then
-        log_success "MCP 서버가 성공적으로 설치되었습니다!"
-    else
-        log_warn "일부 서버 설치가 실패했습니다."
-    fi
-
-    echo ""
     show_installed_servers
+    exit 0
+  fi
 
-    # 사용 팁
-    echo ""
-    log_info "사용 팁:"
-    echo "  • Claude Code에서 MCP 서버 관리: claude mcp list"
-    echo "  • MCP 서버 인증 관리: /mcp"
-    echo "  • 파일 참조 예제: @filesystem:path://README.md"
-    echo "  • 설정 확인: claude mcp get filesystem"
-    echo ""
+  # 사전 확인
+  log_info "Claude Code MCP 서버 설치 시작"
+  check_claude_code
+  check_nodejs
+
+  # 설치 실행
+  local failed_count=0
+
+  if [[ $install_main == true ]]; then
+    install_main_mcp_servers
+    failed_count=$?
+  elif [[ $install_filesystem == true ]]; then
+    install_filesystem_mcp || failed_count=1
+  fi
+
+  # 결과 요약
+  echo ""
+  log_info "설치 완료 요약:"
+
+  if [[ $failed_count -eq 0 ]]; then
+    log_success "MCP 서버가 성공적으로 설치되었습니다!"
+  else
+    log_warn "일부 서버 설치가 실패했습니다."
+  fi
+
+  echo ""
+  show_installed_servers
+
+  # 사용 팁
+  echo ""
+  log_info "사용 팁:"
+  echo "  • Claude Code에서 MCP 서버 관리: claude mcp list"
+  echo "  • MCP 서버 인증 관리: /mcp"
+  echo "  • 파일 참조 예제: @filesystem:path://README.md"
+  echo "  • 설정 확인: claude mcp get filesystem"
+  echo ""
 }
 
 # 스크립트 실행

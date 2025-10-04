@@ -42,7 +42,21 @@
     };
   };
 
-  outputs = { self, darwin, nix-homebrew, homebrew-bundle, homebrew-core, homebrew-cask, home-manager, nixpkgs, disko, nix-unit, namaka, flake-checker } @inputs:
+  outputs =
+    { self
+    , darwin
+    , nix-homebrew
+    , homebrew-bundle
+    , homebrew-core
+    , homebrew-cask
+    , home-manager
+    , nixpkgs
+    , disko
+    , nix-unit
+    , namaka
+    , flake-checker
+    ,
+    }@inputs:
     let
       # Import modular flake configuration
       flakeConfig = import ./lib/flake-config.nix;
@@ -54,11 +68,13 @@
       checkBuilders = import ./lib/check-builders.nix { inherit nixpkgs self; };
 
       # Import performance optimization integration
-      performanceIntegration = system: import ./lib/performance-integration.nix {
-        inherit (nixpkgs) lib;
-        pkgs = nixpkgs.legacyPackages.${system};
-        inherit system inputs self;
-      };
+      performanceIntegration =
+        system:
+        import ./lib/performance-integration.nix {
+          inherit (nixpkgs) lib;
+          pkgs = nixpkgs.legacyPackages.${system};
+          inherit system inputs self;
+        };
 
       # Use architecture definitions from flake config
       inherit (flakeConfig.systemArchitectures) linux darwin all;
@@ -70,7 +86,8 @@
       forAllSystems = utils.forAllSystems;
 
       # Development shell using flake config utils with performance optimization
-      devShell = system:
+      devShell =
+        system:
         let
           baseShell = utils.mkDevShell system;
           perfIntegration = performanceIntegration system;
@@ -84,10 +101,31 @@
         # Shared library functions - using unified systems
         lib = {
           # Unified systems (functions that take system as parameter)
-          utilsSystem = system: import ./lib/utils-system.nix { pkgs = nixpkgs.legacyPackages.${system}; lib = nixpkgs.lib; };
-          platformSystem = system: import ./lib/platform-system.nix { pkgs = nixpkgs.legacyPackages.${system}; lib = nixpkgs.lib; inherit nixpkgs self system; };
-          errorSystem = system: import ./lib/error-system.nix { pkgs = nixpkgs.legacyPackages.${system}; lib = nixpkgs.lib; };
-          testSystem = system: import ./lib/test-system.nix { pkgs = nixpkgs.legacyPackages.${system}; inherit nixpkgs self; };
+          utilsSystem =
+            system:
+            import ./lib/utils-system.nix {
+              pkgs = nixpkgs.legacyPackages.${system};
+              lib = nixpkgs.lib;
+            };
+          platformSystem =
+            system:
+            import ./lib/platform-system.nix {
+              pkgs = nixpkgs.legacyPackages.${system};
+              lib = nixpkgs.lib;
+              inherit nixpkgs self system;
+            };
+          errorSystem =
+            system:
+            import ./lib/error-system.nix {
+              pkgs = nixpkgs.legacyPackages.${system};
+              lib = nixpkgs.lib;
+            };
+          testSystem =
+            system:
+            import ./lib/test-system.nix {
+              pkgs = nixpkgs.legacyPackages.${system};
+              inherit nixpkgs self;
+            };
 
           # Performance optimization libraries
           performanceIntegration = performanceIntegration;
@@ -101,8 +139,8 @@
 
         # Apps using modular app configurations
         apps =
-          (nixpkgs.lib.genAttrs linuxSystems systemConfigs.mkAppConfigurations.mkLinuxApps) //
-          (nixpkgs.lib.genAttrs darwinSystems systemConfigs.mkAppConfigurations.mkDarwinApps);
+          (nixpkgs.lib.genAttrs linuxSystems systemConfigs.mkAppConfigurations.mkLinuxApps)
+          // (nixpkgs.lib.genAttrs darwinSystems systemConfigs.mkAppConfigurations.mkDarwinApps);
 
         # Checks using modular check builders
         checks = forAllSystems checkBuilders.mkChecks;
@@ -114,18 +152,24 @@
         nixosConfigurations = systemConfigs.mkNixosConfigurations linuxSystems;
 
         # Home Manager configuration builder function (lazy evaluation)
-        lib.mkHomeConfigurations = { user ? null, impure ? false }:
+        lib.mkHomeConfigurations =
+          { user ? null
+          , impure ? false
+          ,
+          }:
           let
             # Only resolve user when actually needed and in impure context
             actualUser =
-              if user != null then user
+              if user != null then
+                user
               else if impure then
                 let
                   getUserFn = import ./lib/user-resolution.nix;
                   userInfo = getUserFn { returnFormat = "string"; };
                 in
                 "${userInfo}"
-              else throw "User must be provided explicitly or use impure evaluation";
+              else
+                throw "User must be provided explicitly or use impure evaluation";
           in
           {
             # Direct user configuration
@@ -137,9 +181,10 @@
                   home = {
                     username = actualUser;
                     homeDirectory =
-                      if (builtins.match ".*-darwin" (builtins.currentSystem or "aarch64-darwin") != null)
-                      then "/Users/${actualUser}"
-                      else "/home/${actualUser}";
+                      if (builtins.match ".*-darwin" (builtins.currentSystem or "aarch64-darwin") != null) then
+                        "/Users/${actualUser}"
+                      else
+                        "/home/${actualUser}";
                     stateVersion = "24.05";
                   };
                 }
@@ -152,26 +197,35 @@
         homeConfigurations =
           let
             # 일반적인 사용자명들을 정적으로 정의
-            commonUsers = [ "baleen" "jito" "user" "runner" "ubuntu" ];
+            commonUsers = [
+              "baleen"
+              "jito"
+              "user"
+              "runner"
+              "ubuntu"
+            ];
 
             # 사용자별 구성 생성 함수
-            mkUserConfig = username: home-manager.lib.homeManagerConfiguration {
-              pkgs = nixpkgs.legacyPackages.${builtins.currentSystem or "aarch64-darwin"};
-              modules = [
-                ./modules/shared/home-manager.nix
-                {
-                  home = {
-                    username = username;
-                    homeDirectory =
-                      if (builtins.match ".*-darwin" (builtins.currentSystem or "aarch64-darwin") != null)
-                      then "/Users/${username}"
-                      else "/home/${username}";
-                    stateVersion = "24.05";
-                  };
-                }
-              ];
-              extraSpecialArgs = inputs;
-            };
+            mkUserConfig =
+              username:
+              home-manager.lib.homeManagerConfiguration {
+                pkgs = nixpkgs.legacyPackages.${builtins.currentSystem or "aarch64-darwin"};
+                modules = [
+                  ./modules/shared/home-manager.nix
+                  {
+                    home = {
+                      username = username;
+                      homeDirectory =
+                        if (builtins.match ".*-darwin" (builtins.currentSystem or "aarch64-darwin") != null) then
+                          "/Users/${username}"
+                        else
+                          "/home/${username}";
+                      stateVersion = "24.05";
+                    };
+                  }
+                ];
+                extraSpecialArgs = inputs;
+              };
           in
           # 모든 일반 사용자들을 위한 구성 생성
           nixpkgs.lib.genAttrs commonUsers mkUserConfig;

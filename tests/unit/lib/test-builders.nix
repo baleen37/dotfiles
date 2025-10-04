@@ -29,7 +29,10 @@ runTests {
     expr = testBuilders.unit.mkLibTestSuite {
       name = "lib-test-suite";
       tests = {
-        testSimple = { expr = 1; expected = 1; };
+        testSimple = {
+          expr = 1;
+          expected = 1;
+        };
       };
     };
     expected = {
@@ -43,7 +46,11 @@ runTests {
     expr = testBuilders.unit.mkFunctionTest {
       name = "function-test";
       func = lib.concatStrings;
-      inputs = [ "hello" " " "world" ];
+      inputs = [
+        "hello"
+        " "
+        "world"
+      ];
       expected = "hello world";
     };
     expected = {
@@ -72,7 +79,11 @@ runTests {
     expr = testBuilders.contract.mkInterfaceTest {
       name = "interface-validation";
       modulePath = "./modules/shared/example.nix";
-      requiredExports = [ "config" "options" "imports" ];
+      requiredExports = [
+        "config"
+        "options"
+        "imports"
+      ];
       description = "Test module interface";
     };
     expected = {
@@ -87,7 +98,9 @@ runTests {
     expr = testBuilders.contract.mkFlakeOutputTest {
       name = "flake-output-test";
       outputPath = ".#checks";
-      expectedSchema = { type = "object"; };
+      expectedSchema = {
+        type = "object";
+      };
     };
     expected = {
       name = "flake-output-test";
@@ -99,7 +112,10 @@ runTests {
   testMkPlatformContractTestValidation = {
     expr = testBuilders.contract.mkPlatformContractTest {
       name = "platform-contract";
-      platforms = [ "darwin-x86_64" "nixos-x86_64" ];
+      platforms = [
+        "darwin-x86_64"
+        "nixos-x86_64"
+      ];
       testFunction = platform: platform != null;
     };
     expected = {
@@ -113,7 +129,10 @@ runTests {
     expr = testBuilders.contract.mkAPIContractTest {
       name = "api-contract";
       command = "git";
-      expectedInterface = [ "--version" "--help" ];
+      expectedInterface = [
+        "--version"
+        "--help"
+      ];
     };
     expected = {
       name = "api-contract";
@@ -157,7 +176,10 @@ runTests {
   testMkCrossPlatformTestValidation = {
     expr = testBuilders.integration.mkCrossPlatformTest {
       name = "cross-platform-integration";
-      platforms = [ "darwin-x86_64" "nixos-x86_64" ];
+      platforms = [
+        "darwin-x86_64"
+        "nixos-x86_64"
+      ];
       testSteps = [
         (platform: "echo Testing on ${platform}")
         (platform: "nix eval .#checks.${platform}")
@@ -175,8 +197,14 @@ runTests {
       name = "service-integration";
       services = [ "example-service" ];
       testScenarios = [
-        { action = "start"; validate = "is-active"; }
-        { action = "stop"; validate = "is-inactive"; }
+        {
+          action = "start";
+          validate = "is-active";
+        }
+        {
+          action = "stop";
+          validate = "is-inactive";
+        }
       ];
     };
     expected = {
@@ -191,9 +219,11 @@ runTests {
     expr = testBuilders.e2e.mkNixOSVMTest {
       name = "nixos-vm-test";
       nodes = {
-        machine = { ... }: {
-          services.nginx.enable = true;
-        };
+        machine =
+          { ... }:
+          {
+            services.nginx.enable = true;
+          };
       };
       testScript = ''
         machine.wait_for_unit("nginx.service")
@@ -227,7 +257,9 @@ runTests {
   testMkFreshInstallTestValidation = {
     expr = testBuilders.e2e.mkFreshInstallTest {
       name = "fresh-install";
-      installConfig = { user = "testuser"; };
+      installConfig = {
+        user = "testuser";
+      };
       validationSteps = [
         "home-manager switch"
         "git --version"
@@ -244,7 +276,10 @@ runTests {
     expr = testBuilders.e2e.mkDeploymentTest {
       name = "deployment-test";
       deploymentTarget = "nixos-vm";
-      deploymentSteps = [ "build" "switch" ];
+      deploymentSteps = [
+        "build"
+        "switch"
+      ];
       validationSteps = [ "systemctl status" ];
     };
     expected = {
@@ -315,11 +350,15 @@ runTests {
   };
 
   testValidateTestCaseInvalid = {
-    expr = builtins.tryEval (testBuilders.validators.validateTestCase {
-      name = "invalid-test";
-      # missing type and framework
-    });
-    expected = { success = false; };
+    expr = builtins.tryEval (
+      testBuilders.validators.validateTestCase {
+        name = "invalid-test";
+        # missing type and framework
+      }
+    );
+    expected = {
+      success = false;
+    };
   };
 
   testValidateTestSuiteValid = {
@@ -327,7 +366,11 @@ runTests {
       name = "valid-suite";
       type = "suite";
       testCases = [
-        { name = "test1"; type = "unit"; framework = "nix-unit"; }
+        {
+          name = "test1";
+          type = "unit";
+          framework = "nix-unit";
+        }
       ];
     };
     expected = {
@@ -337,11 +380,15 @@ runTests {
   };
 
   testValidateTestSuiteInvalid = {
-    expr = builtins.tryEval (testBuilders.validators.validateTestSuite {
-      name = "invalid-suite";
-      # missing type and testCases
-    });
-    expected = { success = false; };
+    expr = builtins.tryEval (
+      testBuilders.validators.validateTestSuite {
+        name = "invalid-suite";
+        # missing type and testCases
+      }
+    );
+    expected = {
+      success = false;
+    };
   };
 
   testValidatePlatformValid = {
@@ -351,7 +398,9 @@ runTests {
 
   testValidatePlatformInvalid = {
     expr = builtins.tryEval (testBuilders.validators.validatePlatform "unsupported-platform");
-    expected = { success = false; };
+    expected = {
+      success = false;
+    };
   };
 
   # Test framework runner functions

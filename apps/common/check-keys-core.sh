@@ -32,12 +32,12 @@ prompt_for_key_generation() {
     echo -n "Do you want to overwrite it? (y/n): "
     read -r response
     case "$response" in
-      [yY][eE][sS]|[yY])
-        return 0
-        ;;
-      *)
-        return 1
-        ;;
+    [yY][eE][sS] | [yY])
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
     esac
   else
     return 0

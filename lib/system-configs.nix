@@ -1,10 +1,31 @@
 # System configuration builders for Darwin and NixOS
-# This module handles the construction of system configurations for different platforms
+#
+# This module provides unified system configuration builders for cross-platform
+# development environment setup. It handles:
+# - Darwin (macOS) system configurations with nix-darwin and Home Manager
+# - NixOS system configurations with disko and Home Manager
+# - Cross-platform app configurations with platform-specific optimization
+# - Development shell builders with consistent toolchain setup
+#
+# Key Functions:
+# - mkDarwinConfigurations: Creates macOS system configurations for all supported architectures
+# - mkNixosConfigurations: Creates NixOS system configurations for all supported architectures
+# - mkAppConfigurations: Provides platform-specific app builders (Linux/Darwin)
+# - mkDevShells: Creates development shells with consistent cross-platform tooling
+# - utils: Platform detection and architecture utilities for conditional logic
 
 { inputs, nixpkgs, ... }:
 let
   # Extract inputs for cleaner access
-  inherit (inputs) darwin nix-homebrew homebrew-bundle homebrew-core homebrew-cask disko home-manager;
+  inherit (inputs)
+    darwin
+    nix-homebrew
+    homebrew-bundle
+    homebrew-core
+    homebrew-cask
+    disko
+    home-manager
+    ;
 
   # Get user information with fallback for pure evaluation
   getUserFn = import ./user-resolution.nix;
@@ -15,8 +36,21 @@ let
   user = "${userInfo}"; # Use as string for backward compatibility
 
   # Import modularized app and test builders (functions that take system)
-  platformSystem = system: import ./platform-system.nix { pkgs = nixpkgs.legacyPackages.${system}; lib = nixpkgs.lib; inherit nixpkgs system; self = inputs.self; };
-  testSystem = system: import ./test-system.nix { pkgs = nixpkgs.legacyPackages.${system}; inherit nixpkgs; self = inputs.self; };
+  platformSystem =
+    system:
+    import ./platform-system.nix {
+      pkgs = nixpkgs.legacyPackages.${system};
+      lib = nixpkgs.lib;
+      inherit nixpkgs system;
+      self = inputs.self;
+    };
+  testSystem =
+    system:
+    import ./test-system.nix {
+      pkgs = nixpkgs.legacyPackages.${system};
+      inherit nixpkgs;
+      self = inputs.self;
+    };
 
   # Import optimized platform detection utilities
   platformDetection = import ./platform-detection.nix {
@@ -26,8 +60,10 @@ in
 {
   # Darwin system configuration builder
   # Creates architecture-based configurations only (hostname-based disabled for pure evaluation)
-  mkDarwinConfigurations = systems:
-    nixpkgs.lib.genAttrs systems (system:
+  mkDarwinConfigurations =
+    systems:
+    nixpkgs.lib.genAttrs systems (
+      system:
       darwin.lib.darwinSystem {
         inherit system;
         specialArgs = inputs;
@@ -61,8 +97,10 @@ in
     );
 
   # NixOS system configuration builder
-  mkNixosConfigurations = systems:
-    nixpkgs.lib.genAttrs systems (system:
+  mkNixosConfigurations =
+    systems:
+    nixpkgs.lib.genAttrs systems (
+      system:
       nixpkgs.lib.nixosSystem {
         inherit system;
         specialArgs = inputs;
@@ -87,14 +125,26 @@ in
   # App configuration builders
   mkAppConfigurations = {
     # Linux apps builder
-    mkLinuxApps = system:
-      (let ps = platformSystem system; in if ps.apps.platformApps ? linux then ps.apps.platformApps.linux else { }) //
-      (testSystem system).mkLinuxTestApps system;
+    mkLinuxApps =
+      system:
+      (
+        let
+          ps = platformSystem system;
+        in
+        if ps.apps.platformApps ? linux then ps.apps.platformApps.linux else { }
+      )
+      // (testSystem system).mkTestApps system;
 
     # Darwin apps builder
-    mkDarwinApps = system:
-      (let ps = platformSystem system; in if ps.apps.platformApps ? darwin then ps.apps.platformApps.darwin else { }) //
-      (testSystem system).mkDarwinTestApps system;
+    mkDarwinApps =
+      system:
+      (
+        let
+          ps = platformSystem system;
+        in
+        if ps.apps.platformApps ? darwin then ps.apps.platformApps.darwin else { }
+      )
+      // (testSystem system).mkTestApps system;
   };
 
   # Development shell builder
@@ -103,6 +153,11 @@ in
   # Utility functions for system configuration (now using optimized detection)
   utils = {
     # Use optimized platform detection functions (cached results)
-    inherit (platformDetection) isDarwin isLinux getArch getPlatform;
+    inherit (platformDetection)
+      isDarwin
+      isLinux
+      getArch
+      getPlatform
+      ;
   };
 }

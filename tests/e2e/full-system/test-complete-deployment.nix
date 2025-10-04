@@ -1,7 +1,11 @@
 # E2E Tests for Complete System Deployment
 # These tests MUST FAIL initially (TDD requirement)
 
-{ pkgs ? import <nixpkgs> { }, lib, testers ? pkgs.testers, ... }:
+{ pkgs ? import <nixpkgs> { }
+, lib
+, testers ? pkgs.testers
+, ...
+}:
 
 let
   # This will fail - system configurations don't exist with testing support
@@ -15,24 +19,31 @@ in
     name = "complete-nixos-deployment";
 
     # This will fail - nodes configuration doesn't include testing
-    nodes.machine = { config, pkgs, ... }: {
-      imports = [
-        ../../../hosts/nixos/default.nix
-        ../../../modules/shared/testing.nix
-      ];
+    nodes.machine =
+      { config, pkgs, ... }:
+      {
+        imports = [
+          ../../../hosts/nixos/default.nix
+          ../../../modules/shared/testing.nix
+        ];
 
-      # Enable testing framework
-      testing = {
-        enable = true;
-        coverage.enable = true;
-        coverage.threshold = 90.0;
-        testLayers = [ "unit" "contract" "integration" "e2e" ];
+        # Enable testing framework
+        testing = {
+          enable = true;
+          coverage.enable = true;
+          coverage.threshold = 90.0;
+          testLayers = [
+            "unit"
+            "contract"
+            "integration"
+            "e2e"
+          ];
+        };
+
+        # Required for VM testing
+        virtualisation.memorySize = 2048;
+        virtualisation.cores = 2;
       };
-
-      # Required for VM testing
-      virtualisation.memorySize = 2048;
-      virtualisation.cores = 2;
-    };
 
     # This will fail - test script uses non-existent testing commands
     testScript = ''
@@ -78,8 +89,7 @@ in
 
   # Test complete Darwin deployment (dry-run on non-Darwin)
   testCompleteDarwinDeployment =
-    if pkgs.stdenv.isDarwin
-    then
+    if pkgs.stdenv.isDarwin then
       testers.runCommand "complete-darwin-deployment" { } ''
         # This will fail - Darwin testing not implemented
         echo "Testing Darwin deployment..."
@@ -117,15 +127,17 @@ in
     name = "fresh-installation-workflow";
 
     # This will fail - fresh installation testing not implemented
-    nodes.installer = { config, pkgs, ... }: {
-      imports = [
-        ../../../hosts/nixos/installer.nix # Doesn't exist
-      ];
+    nodes.installer =
+      { config, pkgs, ... }:
+      {
+        imports = [
+          ../../../hosts/nixos/installer.nix # Doesn't exist
+        ];
 
-      virtualisation.memorySize = 4096;
-      virtualisation.cores = 4;
-      virtualisation.diskSize = 8192;
-    };
+        virtualisation.memorySize = 4096;
+        virtualisation.cores = 4;
+        virtualisation.diskSize = 8192;
+      };
 
     # This will fail - installation script doesn't exist
     testScript = ''
@@ -157,16 +169,18 @@ in
     name = "upgrade-workflow";
 
     # This will fail - upgrade testing not implemented
-    nodes.machine = { config, pkgs, ... }: {
-      imports = [
-        ../../../hosts/nixos/default.nix
-      ];
+    nodes.machine =
+      { config, pkgs, ... }:
+      {
+        imports = [
+          ../../../hosts/nixos/default.nix
+        ];
 
-      # Simulate older version
-      system.stateVersion = "23.05";
+        # Simulate older version
+        system.stateVersion = "23.05";
 
-      virtualisation.memorySize = 2048;
-    };
+        virtualisation.memorySize = 2048;
+      };
 
     # This will fail - upgrade script doesn't exist
     testScript = ''
@@ -197,25 +211,27 @@ in
     name = "multi-user-environment";
 
     # This will fail - multi-user testing not implemented
-    nodes.machine = { config, pkgs, ... }: {
-      imports = [
-        ../../../hosts/nixos/default.nix
-      ];
+    nodes.machine =
+      { config, pkgs, ... }:
+      {
+        imports = [
+          ../../../hosts/nixos/default.nix
+        ];
 
-      # Create test users
-      users.users.alice = {
-        isNormalUser = true;
-        createHome = true;
-        extraGroups = [ "wheel" ];
+        # Create test users
+        users.users.alice = {
+          isNormalUser = true;
+          createHome = true;
+          extraGroups = [ "wheel" ];
+        };
+
+        users.users.bob = {
+          isNormalUser = true;
+          createHome = true;
+        };
+
+        virtualisation.memorySize = 2048;
       };
-
-      users.users.bob = {
-        isNormalUser = true;
-        createHome = true;
-      };
-
-      virtualisation.memorySize = 2048;
-    };
 
     # This will fail - multi-user support not implemented
     testScript = ''
@@ -243,14 +259,16 @@ in
     name = "disaster-recovery";
 
     # This will fail - disaster recovery not implemented
-    nodes.machine = { config, pkgs, ... }: {
-      imports = [
-        ../../../hosts/nixos/default.nix
-      ];
+    nodes.machine =
+      { config, pkgs, ... }:
+      {
+        imports = [
+          ../../../hosts/nixos/default.nix
+        ];
 
-      virtualisation.memorySize = 2048;
-      virtualisation.useBootLoader = true;
-    };
+        virtualisation.memorySize = 2048;
+        virtualisation.useBootLoader = true;
+      };
 
     # This will fail - recovery procedures don't exist
     testScript = ''
@@ -284,14 +302,16 @@ in
     name = "performance-under-load";
 
     # This will fail - performance testing not implemented
-    nodes.machine = { config, pkgs, ... }: {
-      imports = [
-        ../../../hosts/nixos/default.nix
-      ];
+    nodes.machine =
+      { config, pkgs, ... }:
+      {
+        imports = [
+          ../../../hosts/nixos/default.nix
+        ];
 
-      virtualisation.memorySize = 4096;
-      virtualisation.cores = 4;
-    };
+        virtualisation.memorySize = 4096;
+        virtualisation.cores = 4;
+      };
 
     # This will fail - load testing doesn't exist
     testScript = ''
@@ -322,13 +342,15 @@ in
     name = "security-compliance";
 
     # This will fail - security testing not implemented
-    nodes.machine = { config, pkgs, ... }: {
-      imports = [
-        ../../../hosts/nixos/default.nix
-      ];
+    nodes.machine =
+      { config, pkgs, ... }:
+      {
+        imports = [
+          ../../../hosts/nixos/default.nix
+        ];
 
-      virtualisation.memorySize = 2048;
-    };
+        virtualisation.memorySize = 2048;
+      };
 
     # This will fail - security tests don't exist
     testScript = ''
@@ -357,21 +379,25 @@ in
 
     # This will fail - external service testing not implemented
     nodes = {
-      client = { config, pkgs, ... }: {
-        imports = [
-          ../../../hosts/nixos/default.nix
-        ];
-        virtualisation.memorySize = 2048;
-      };
-
-      server = { config, pkgs, ... }: {
-        services.nginx.enable = true;
-        services.nginx.virtualHosts."test.local" = {
-          root = pkgs.writeTextDir "index.html" "Hello World";
+      client =
+        { config, pkgs, ... }:
+        {
+          imports = [
+            ../../../hosts/nixos/default.nix
+          ];
+          virtualisation.memorySize = 2048;
         };
-        networking.firewall.allowedTCPPorts = [ 80 ];
-        virtualisation.memorySize = 1024;
-      };
+
+      server =
+        { config, pkgs, ... }:
+        {
+          services.nginx.enable = true;
+          services.nginx.virtualHosts."test.local" = {
+            root = pkgs.writeTextDir "index.html" "Hello World";
+          };
+          networking.firewall.allowedTCPPorts = [ 80 ];
+          virtualisation.memorySize = 1024;
+        };
     };
 
     # This will fail - service integration tests don't exist

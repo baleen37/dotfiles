@@ -1,35 +1,81 @@
 # Unified Platform System
-# Combines platform-detector.nix, platform-utils.nix, and platform-apps.nix
-# Provides comprehensive platform detection, utilities, and app management
+#
+# This module provides comprehensive platform detection, utilities, and application
+# management for cross-platform Nix configurations. It combines platform detection,
+# architecture utilities, and app builders into a unified interface.
+#
+# Key Components:
+# - Platform Detection: OS and architecture detection with caching for performance
+# - App Management: Platform-specific app builders (Linux, Darwin, universal)
+# - Architecture Support: Multi-architecture builds with optimized detection
+# - Utilities: Cross-platform helper functions and compatibility layers
+#
+# Functions:
+# - platformDetection: Cached platform and architecture detection functions
+# - apps.platformApps: Platform-specific app configurations (linux/darwin/universal)
+# - apps.coreApps: Cross-platform core application definitions
+# - utils: Platform utilities for conditional logic and architecture handling
 
-{ pkgs ? null, lib ? null, nixpkgs ? null, self ? null, system ? null }:
+{ pkgs ? null
+, lib ? null
+, nixpkgs ? null
+, self ? null
+, system ? null
+,
+}:
 
 let
   # Determine pkgs and lib with fallbacks
   actualPkgs = if pkgs != null then pkgs else null;
-  actualLib = if lib != null then lib else
-  (if actualPkgs != null then actualPkgs.lib else
-    # Basic lib functions fallback
-  {
-    splitString = sep: str:
-      let parts = builtins.split sep str;
-      in builtins.filter (x: builtins.isString x && x != "") parts;
-    concatStringsSep = sep: list: builtins.concatStringsSep sep list;
-    filter = f: list: builtins.filter f list;
-    replaceStrings = from: to: str: builtins.replaceStrings from to str;
-    hasPrefix = prefix: str: builtins.substring 0 (builtins.stringLength prefix) str == prefix;
-    genAttrs = names: f: builtins.listToAttrs (map (name: { inherit name; value = f name; }) names);
-    elemAt = list: pos: builtins.elemAt list pos;
-  });
+  actualLib =
+    if lib != null then
+      lib
+    else
+      (
+        if actualPkgs != null then
+          actualPkgs.lib
+        else
+        # Basic lib functions fallback
+          {
+            splitString =
+              sep: str:
+              let
+                parts = builtins.split sep str;
+              in
+              builtins.filter (x: builtins.isString x && x != "") parts;
+            concatStringsSep = sep: list: builtins.concatStringsSep sep list;
+            filter = f: list: builtins.filter f list;
+            replaceStrings =
+              from: to: str:
+              builtins.replaceStrings from to str;
+            hasPrefix = prefix: str: builtins.substring 0 (builtins.stringLength prefix) str == prefix;
+            genAttrs =
+              names: f:
+              builtins.listToAttrs (
+                map
+                  (name: {
+                    inherit name;
+                    value = f name;
+                  })
+                  names
+              );
+            elemAt = list: pos: builtins.elemAt list pos;
+          }
+      );
 
   # Import error system for error handling (only if actualPkgs is available)
   errorSystem =
     if actualPkgs != null then
-      import ./error-system.nix { pkgs = actualPkgs; lib = actualLib; }
-    else {
-      throwConfigError = msg: throw "Config Error: ${msg}";
-      throwUserError = msg: throw "User Error: ${msg}";
-    };
+      import ./error-system.nix
+        {
+          pkgs = actualPkgs;
+          lib = actualLib;
+        }
+    else
+      {
+        throwConfigError = msg: throw "Config Error: ${msg}";
+        throwUserError = msg: throw "User Error: ${msg}";
+      };
 
   # Import optimized platform detection utilities
   platformDetection = import ./platform-detection.nix {
@@ -48,7 +94,6 @@ let
 
     # Supported configurations
     inherit (platformDetection) supportedPlatforms supportedArchitectures supportedSystems;
-    supportedArchs = platformDetection.supportedArchitectures; # Legacy compatibility
   };
 
   # Current system information
@@ -65,7 +110,7 @@ let
 
     # Validation
     isValidPlatform = builtins.elem detection.detectedPlatform detection.supportedPlatforms;
-    isValidArch = builtins.elem detection.detectedArch detection.supportedArchs;
+    isValidArch = builtins.elem detection.detectedArch detection.supportedArchitectures;
     isValidSystem = builtins.elem detection.nixSystem detection.supportedSystems;
   };
 
@@ -75,11 +120,19 @@ let
       hasHomebrew = true;
       packageManager = "brew";
       shellPath = "/bin/zsh";
-      systemPaths = [ "/usr/bin" "/usr/local/bin" "/opt/homebrew/bin" ];
+      systemPaths = [
+        "/usr/bin"
+        "/usr/local/bin"
+        "/opt/homebrew/bin"
+      ];
       buildOptimizations = {
         parallelJobs = 8;
         useCache = true;
-        extraFlags = [ "--option" "system-features" "nixos-test" ];
+        extraFlags = [
+          "--option"
+          "system-features"
+          "nixos-test"
+        ];
         optimizationLevel = "-O2";
         targetFlags = if currentSystem.isAarch64 then [ "-mcpu=apple-m1" ] else [ "-march=native" ];
       };
@@ -94,11 +147,19 @@ let
       hasHomebrew = false;
       packageManager = "nix";
       shellPath = "/run/current-system/sw/bin/zsh";
-      systemPaths = [ "/run/current-system/sw/bin" "/usr/bin" "/bin" ];
+      systemPaths = [
+        "/run/current-system/sw/bin"
+        "/usr/bin"
+        "/bin"
+      ];
       buildOptimizations = {
         parallelJobs = 8;
         useCache = true;
-        extraFlags = [ "--option" "system-features" "nixos-test" ];
+        extraFlags = [
+          "--option"
+          "system-features"
+          "nixos-test"
+        ];
         optimizationLevel = "-O2";
         targetFlags = if currentSystem.isAarch64 then [ "-mcpu=native" ] else [ "-march=native" ];
       };
@@ -150,7 +211,8 @@ let
       hasHomebrew = getCurrentPlatformConfig.hasHomebrew;
 
       # Platform-specific package installation
-      installPackage = packageName:
+      installPackage =
+        packageName:
         if currentSystem.isDarwin && getCurrentPlatformConfig.hasHomebrew then
           "brew install ${packageName}"
         else
@@ -184,16 +246,14 @@ let
     # Configuration utilities
     configUtils = {
       # Get platform-specific config value
-      getPlatformConfig = key: default:
-        if builtins.hasAttr key getCurrentPlatformConfig then
-          getCurrentPlatformConfig.${key}
-        else
-          default;
+      getPlatformConfig =
+        key: default:
+        if builtins.hasAttr key getCurrentPlatformConfig then getCurrentPlatformConfig.${key} else default;
 
       # Check if feature is supported
-      isFeatureSupported = feature:
-        builtins.hasAttr feature getCurrentPlatformConfig &&
-        getCurrentPlatformConfig.${feature} == true;
+      isFeatureSupported =
+        feature:
+        builtins.hasAttr feature getCurrentPlatformConfig && getCurrentPlatformConfig.${feature} == true;
     };
   };
 
@@ -202,13 +262,12 @@ let
     if nixpkgs != null && self != null then
       let
         # Simplified path resolution without flake source dependencies
-        pathResolutionWithFallback = target_command:
+        pathResolutionWithFallback =
+          target_command:
           let
             # Get PWD or fall back to a reasonable default
             basePath =
-              if (builtins.getEnv "PWD") != ""
-              then builtins.getEnv "PWD"
-              else "/Users/baleen/dev/dotfiles";
+              if (builtins.getEnv "PWD") != "" then builtins.getEnv "PWD" else "/Users/baleen/dev/dotfiles";
             appPath = "${basePath}/apps/${currentSystem.system}/${target_command}";
           in
           builtins.toString appPath;
@@ -220,153 +279,170 @@ let
             let
               pkg = nixpkgs.legacyPackages.${system};
               scriptContent =
-                if scriptName == "build-switch" then ''
-                  #!/bin/bash -e
+                if scriptName == "build-switch" then
+                  ''
+                    #!/bin/bash -e
 
-                  # Check for help flag
-                  if [ "$1" = "--help" ] || [ "$1" = "-h" ] || [ "$1" = "help" ]; then
-                      echo "build-switch - Build and switch Darwin system configuration"
-                      echo ""
-                      echo "Usage: nix run .#build-switch [OPTIONS]"
-                      echo ""
-                      echo "Options:"
-                      echo "  --help, -h    Show this help message"
-                      echo "  --verbose     Enable verbose logging"
-                      echo ""
-                      echo "Description:"
-                      echo "  Builds and applies user-level configuration using Home Manager."
-                      echo "  No root privileges required - safe for Claude Code execution."
-                      echo ""
-                      echo "Examples:"
-                      echo "  nix run .#build-switch"
-                      echo "  nix run .#build-switch -- --verbose"
-                      echo ""
-                      exit 0
-                  fi
+                    # Check for help flag
+                    if [ "$1" = "--help" ] || [ "$1" = "-h" ] || [ "$1" = "help" ]; then
+                        echo "build-switch - Build and switch Darwin system configuration"
+                        echo ""
+                        echo "Usage: nix run .#build-switch [OPTIONS]"
+                        echo ""
+                        echo "Options:"
+                        echo "  --help, -h    Show this help message"
+                        echo "  --verbose     Enable verbose logging"
+                        echo ""
+                        echo "Description:"
+                        echo "  Builds and applies user-level configuration using Home Manager."
+                        echo "  No root privileges required - safe for Claude Code execution."
+                        echo ""
+                        echo "Examples:"
+                        echo "  nix run .#build-switch"
+                        echo "  nix run .#build-switch -- --verbose"
+                        echo ""
+                        exit 0
+                    fi
 
-                  # Environment setup - minimize export usage
-                  USER=''${USER:-$(whoami)}
+                    # Environment setup - minimize export usage
+                    USER=''${USER:-$(whoami)}
 
-                  # Simple logging
-                  log_info() {
-                      echo "ℹ️  $1"
-                  }
+                    # Simple logging
+                    log_info() {
+                        echo "ℹ️  $1"
+                    }
 
-                  # TDD: Minimal implementation for Green phase
-                  log_info "Running user-level configuration (no root privileges required)"
-                  log_info "Using Home Manager for all configurations"
-                  log_info "Running: nix run github:nix-community/home-manager/release-24.05 -- switch --flake .#''${USER} --impure"
+                    # TDD: Minimal implementation for Green phase
+                    log_info "Running user-level configuration (no root privileges required)"
+                    log_info "Using Home Manager for all configurations"
+                    log_info "Running: nix run github:nix-community/home-manager/release-24.05 -- switch --flake .#''${USER} --impure"
 
-                  # Home Manager 직접 실행 - 무한 루프 해결
-                  USER=''${USER:-$(whoami)}
-                  log_info "Running Home Manager directly for user: $USER"
+                    # Home Manager 직접 실행 - 무한 루프 해결
+                    USER=''${USER:-$(whoami)}
+                    log_info "Running Home Manager directly for user: $USER"
 
-                  # Home Manager 직접 실행 (스크립트 재호출 없이)
-                  exec nix run github:nix-community/home-manager/release-24.05 -- switch --flake ".#$USER" --impure "$@"
-                '' else if scriptName == "build-switch" && currentSystem.platform == "linux" then ''
-                  #!/bin/bash -e
+                    # Home Manager 직접 실행 (스크립트 재호출 없이)
+                    exec nix run github:nix-community/home-manager/release-24.05 -- switch --flake ".#$USER" --impure "$@"
+                  ''
+                else if scriptName == "build-switch" && currentSystem.platform == "linux" then
+                  ''
+                    #!/bin/bash -e
 
-                  # Check for help flag
-                  if [ "$1" = "--help" ] || [ "$1" = "-h" ] || [ "$1" = "help" ]; then
-                      echo "build-switch - Build and switch system configuration (Linux)"
-                      echo ""
-                      echo "Usage: nix run .#build-switch [OPTIONS]"
-                      echo ""
-                      echo "Options:"
-                      echo "  --help, -h    Show this help message"
-                      echo "  --verbose     Show detailed output"
-                      echo ""
-                      echo "For non-NixOS Linux (Ubuntu, etc.), this uses Home Manager for user configuration."
-                      echo "For NixOS, this uses nixos-rebuild for system configuration."
-                      echo ""
-                      exit 0
-                  fi
+                    # Check for help flag
+                    if [ "$1" = "--help" ] || [ "$1" = "-h" ] || [ "$1" = "help" ]; then
+                        echo "build-switch - Build and switch system configuration (Linux)"
+                        echo ""
+                        echo "Usage: nix run .#build-switch [OPTIONS]"
+                        echo ""
+                        echo "Options:"
+                        echo "  --help, -h    Show this help message"
+                        echo "  --verbose     Show detailed output"
+                        echo ""
+                        echo "For non-NixOS Linux (Ubuntu, etc.), this uses Home Manager for user configuration."
+                        echo "For NixOS, this uses nixos-rebuild for system configuration."
+                        echo ""
+                        exit 0
+                    fi
 
-                  # Environment setup
-                  USER=''${USER:-$(whoami)}
+                    # Environment setup
+                    USER=''${USER:-$(whoami)}
 
-                  # Simple logging
-                  log_info() {
-                      echo "ℹ️  $1"
-                  }
+                    # Simple logging
+                    log_info() {
+                        echo "ℹ️  $1"
+                    }
 
-                  # Check if we're on NixOS or regular Linux
-                  if [ -f /etc/NIXOS ]; then
-                      # NixOS - use nixos-rebuild
-                      log_info "Detected NixOS system"
-                      log_info "Running: sudo nixos-rebuild switch --flake .#''${SYSTEM_TYPE:-${currentSystem.system}} --impure"
-                      exec sudo nixos-rebuild switch --flake ".#''${SYSTEM_TYPE:-${currentSystem.system}}" --impure "$@"
-                  else
-                      # Regular Linux (Ubuntu, etc.) - use Home Manager
-                      log_info "Detected non-NixOS Linux system (Ubuntu, etc.)"
-                      log_info "Using Home Manager for user configuration"
-                      log_info "Running: nix run github:nix-community/home-manager/release-24.05 -- switch --flake .#''${USER} --impure"
-                      exec nix run github:nix-community/home-manager/release-24.05 -- switch --flake ".#$USER" --impure "$@"
-                  fi
-                '' else ''
-                  #!/bin/bash
-                  echo "Script ${scriptName} not implemented in flake apps"
-                  exit 1
-                '';
+                    # Check if we're on NixOS or regular Linux
+                    if [ -f /etc/NIXOS ]; then
+                        # NixOS - use nixos-rebuild
+                        log_info "Detected NixOS system"
+                        log_info "Running: sudo nixos-rebuild switch --flake .#''${SYSTEM_TYPE:-${currentSystem.system}} --impure"
+                        exec sudo nixos-rebuild switch --flake ".#''${SYSTEM_TYPE:-${currentSystem.system}}" --impure "$@"
+                    else
+                        # Regular Linux (Ubuntu, etc.) - use Home Manager
+                        log_info "Detected non-NixOS Linux system (Ubuntu, etc.)"
+                        log_info "Using Home Manager for user configuration"
+                        log_info "Running: nix run github:nix-community/home-manager/release-24.05 -- switch --flake .#''${USER} --impure"
+                        exec nix run github:nix-community/home-manager/release-24.05 -- switch --flake ".#$USER" --impure "$@"
+                    fi
+                  ''
+                else
+                  ''
+                    #!/bin/bash
+                    echo "Script ${scriptName} not implemented in flake apps"
+                    exit 1
+                  '';
             in
             "${pkg.writeScriptBin scriptName scriptContent}/bin/${scriptName}";
         };
 
         # Setup dev app builder
-        mkSetupDevApp = system:
+        mkSetupDevApp =
+          system:
           let
             setupDevPath = self + "/scripts/setup-dev";
           in
-          if builtins.pathExists setupDevPath
-          then {
-            type = "app";
-            program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "setup-dev"
-          (builtins.readFile setupDevPath)
-        )}/bin/setup-dev";
-          }
-          else {
-            type = "app";
-            program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "setup-dev" ''
-          #!/usr/bin/env bash
-          echo "setup-dev script not found. Please run: ./scripts/install-setup-dev"
-          exit 1
-        '')}/bin/setup-dev";
-          };
+          if builtins.pathExists setupDevPath then
+            {
+              type = "app";
+              program = "${
+                (nixpkgs.legacyPackages.${system}.writeScriptBin "setup-dev" (builtins.readFile setupDevPath))
+              }/bin/setup-dev";
+            }
+          else
+            {
+              type = "app";
+              program = "${
+                (nixpkgs.legacyPackages.${system}.writeScriptBin "setup-dev" ''
+                  #!/usr/bin/env bash
+                  echo "setup-dev script not found. Please run: ./scripts/install-setup-dev"
+                  exit 1
+                '')
+              }/bin/setup-dev";
+            };
 
         # Auto-update app builders
-        mkBlAutoUpdateApp = { system, commandName }:
+        mkBlAutoUpdateApp =
+          { system, commandName }:
           let
             scriptPath = self + "/scripts/bl-auto-update-${commandName}";
           in
-          if builtins.pathExists scriptPath
-          then {
-            type = "app";
-            program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "bl-auto-update-${commandName}"
-          (builtins.readFile scriptPath)
-        )}/bin/bl-auto-update-${commandName}";
-          }
-          else {
-            type = "app";
-            program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "bl-auto-update-${commandName}" ''
-          #!/usr/bin/env bash
-          echo "bl-auto-update-${commandName} script not found"
-          exit 1
-        '')}/bin/bl-auto-update-${commandName}";
-          };
+          if builtins.pathExists scriptPath then
+            {
+              type = "app";
+              program = "${
+                (nixpkgs.legacyPackages.${system}.writeScriptBin "bl-auto-update-${commandName}" (
+                  builtins.readFile scriptPath
+                ))
+              }/bin/bl-auto-update-${commandName}";
+            }
+          else
+            {
+              type = "app";
+              program = "${
+                (nixpkgs.legacyPackages.${system}.writeScriptBin "bl-auto-update-${commandName}" ''
+                  #!/usr/bin/env bash
+                  echo "bl-auto-update-${commandName} script not found"
+                  exit 1
+                '')
+              }/bin/bl-auto-update-${commandName}";
+            };
 
         # Validation app builder
         mkValidateApp = system: {
           type = "app";
-          program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin "validate-build-switch" ''
-            #!/usr/bin/env bash
-            set -euo pipefail
+          program = "${
+            (nixpkgs.legacyPackages.${system}.writeScriptBin "validate-build-switch" ''
+              #!/usr/bin/env bash
+              set -euo pipefail
 
-            # Run the Nix validation module
-            nix-instantiate --eval --expr "
-              let validate = import ./lib/validate-build-switch.nix {};
-              in validate.runValidation
-            "
-          '')}/bin/validate-build-switch";
+              # Run the Nix validation module
+              nix-instantiate --eval --expr "
+                let validate = import ./lib/validate-build-switch.nix {};
+                in validate.runValidation
+              "
+            '')
+          }/bin/validate-build-switch";
         };
 
         # Platform-specific app definitions
@@ -431,24 +507,40 @@ let
 
       in
       {
-        inherit mkApp mkSetupDevApp mkBlAutoUpdateApp mkValidateApp platformApps getCurrentPlatformApps;
+        inherit
+          mkApp
+          mkSetupDevApp
+          mkBlAutoUpdateApp
+          mkValidateApp
+          platformApps
+          getCurrentPlatformApps
+          ;
       }
-    else {
-      # Minimal apps when nixpkgs/self not provided
-      mkApp = scriptName: system:
-        errorSystem.throwUserError "App building requires nixpkgs and self parameters";
-      mkSetupDevApp = system:
-        errorSystem.throwUserError "App building requires nixpkgs and self parameters";
-      mkBlAutoUpdateApp = args:
-        errorSystem.throwUserError "App building requires nixpkgs and self parameters";
-      platformApps = { };
-      getCurrentPlatformApps = { };
-    };
+    else
+      {
+        # Minimal apps when nixpkgs/self not provided
+        mkApp =
+          scriptName: system: errorSystem.throwUserError "App building requires nixpkgs and self parameters";
+        mkSetupDevApp =
+          system: errorSystem.throwUserError "App building requires nixpkgs and self parameters";
+        mkBlAutoUpdateApp =
+          args: errorSystem.throwUserError "App building requires nixpkgs and self parameters";
+        platformApps = { };
+        getCurrentPlatformApps = { };
+      };
 
 in
 {
   # Export core detection information
-  inherit (currentSystem) arch platform system isDarwin isLinux isX86_64 isAarch64;
+  inherit (currentSystem)
+    arch
+    platform
+    system
+    isDarwin
+    isLinux
+    isX86_64
+    isAarch64
+    ;
   inherit (currentSystem) isValidPlatform isValidArch isValidSystem;
 
   # Export platform configurations
@@ -464,7 +556,12 @@ in
 
   # Convenience functions
   detect = {
-    inherit (detection) nixSystem supportedPlatforms supportedArchs supportedSystems;
+    inherit (detection)
+      nixSystem
+      supportedPlatforms
+      supportedArchitectures
+      supportedSystems
+      ;
     current = currentSystem;
   };
 
@@ -474,7 +571,8 @@ in
     forPlatforms = platforms: f: actualLib.genAttrs platforms f;
 
     # Platform-specific values
-    platformSpecific = values:
+    platformSpecific =
+      values:
       if builtins.hasAttr currentSystem.platform values then
         values.${currentSystem.platform}
       else if builtins.hasAttr "default" values then
@@ -483,18 +581,16 @@ in
         errorSystem.throwConfigError "No value for platform ${currentSystem.platform} and no default provided";
 
     # Conditional based on platform
-    whenPlatform = platform: value:
-      if currentSystem.platform == platform then value else null;
+    whenPlatform = platform: value: if currentSystem.platform == platform then value else null;
 
     # Conditional based on architecture
-    whenArch = arch: value:
-      if currentSystem.arch == arch then value else null;
+    whenArch = arch: value: if currentSystem.arch == arch then value else null;
   };
 
   # Validation functions
   validate = {
     platform = platform: builtins.elem platform detection.supportedPlatforms;
-    arch = arch: builtins.elem arch detection.supportedArchs;
+    arch = arch: builtins.elem arch detection.supportedArchitectures;
     system = system: builtins.elem system detection.supportedSystems;
   };
 
@@ -502,6 +598,6 @@ in
   version = "2.0.0-unified";
   description = "Unified platform detection, utilities, and app management system";
   supportedPlatforms = detection.supportedPlatforms;
-  supportedArchitectures = detection.supportedArchs;
+  supportedArchitectures = detection.supportedArchitectures;
   supportedSystems = detection.supportedSystems;
 }

@@ -12,8 +12,8 @@ development:
 build_optimization:
   enable_ccache: true
   parallel_builds: true
-  memory_limit: "8G"
-  disk_cache_size: "10G"
+  memory_limit: '8G'
+  disk_cache_size: '10G'
   network_timeout: 300
 
 # Security settings
@@ -26,9 +26,9 @@ security:
 # Network configuration
 network:
   proxy_enabled: false
-  proxy_host: ""
+  proxy_host: ''
   proxy_port: 8080
-  dns_servers: ["1.1.1.1", "8.8.8.8"]
+  dns_servers: ['1.1.1.1', '8.8.8.8']
   connection_timeout: 30
 
 # Experimental features

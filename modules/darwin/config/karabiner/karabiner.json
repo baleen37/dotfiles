@@ -10,9 +10,7 @@
                 "from": {
                   "key_code": "right_command",
                   "modifiers": {
-                    "optional": [
-                      "any"
-                    ]
+                    "optional": ["any"]
                   }
                 },
                 "to": [

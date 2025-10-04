@@ -16,67 +16,67 @@
 
 # Claude 활성화 로직에서 추출한 settings.json 복사 함수
 create_settings_copy() {
-    local source_file="$1"
-    local target_file="$2"
-    local file_name=$(basename "$source_file")
+  local source_file="$1"
+  local target_file="$2"
+  local file_name=$(basename "$source_file")
 
-    echo "처리 중: $file_name (복사 모드)"
+  echo "처리 중: $file_name (복사 모드)"
 
-    if [[ ! -f "$source_file" ]]; then
-        echo "  소스 파일 없음, 건너뜀"
-        return 0
+  if [[ ! -f $source_file ]]; then
+    echo "  소스 파일 없음, 건너뜀"
+    return 0
+  fi
+
+  # 기존 파일 백업 (동적 상태 보존용)
+  if [[ -f $target_file && ! -L $target_file ]]; then
+    echo "  기존 settings.json 백업 중..."
+    cp "$target_file" "$target_file.backup"
+  fi
+
+  # 기존 심볼릭 링크 제거
+  if [[ -L $target_file ]]; then
+    echo "  기존 심볼릭 링크 제거"
+    rm -f "$target_file"
+  fi
+
+  # 새로운 설정을 복사
+  cp "$source_file" "$target_file"
+  chmod 644 "$target_file"
+  echo "  파일 복사 완료: $target_file (644 권한)"
+
+  # 백업에서 동적 상태 병합
+  if [[ -f "$target_file.backup" ]]; then
+    echo "  동적 상태 병합 시도 중..."
+
+    # jq가 있으면 JSON 병합, 없으면 백업만 유지
+    if command -v jq >/dev/null 2>&1; then
+      # 백업에서 feedbackSurveyState 추출해서 병합
+      if jq -e '.feedbackSurveyState' "$target_file.backup" >/dev/null 2>&1; then
+        local feedback_state=$(jq -c '.feedbackSurveyState' "$target_file.backup")
+        jq --argjson feedback_state "$feedback_state" '.feedbackSurveyState = $feedback_state' "$target_file" >"$target_file.tmp"
+        mv "$target_file.tmp" "$target_file"
+        echo "  ✓ feedbackSurveyState 병합 완료"
+      fi
+    else
+      echo "  ⚠ jq 없음: 동적 상태 병합 건너뜀"
     fi
 
-    # 기존 파일 백업 (동적 상태 보존용)
-    if [[ -f "$target_file" && ! -L "$target_file" ]]; then
-        echo "  기존 settings.json 백업 중..."
-        cp "$target_file" "$target_file.backup"
-    fi
-
-    # 기존 심볼릭 링크 제거
-    if [[ -L "$target_file" ]]; then
-        echo "  기존 심볼릭 링크 제거"
-        rm -f "$target_file"
-    fi
-
-    # 새로운 설정을 복사
-    cp "$source_file" "$target_file"
-    chmod 644 "$target_file"
-    echo "  파일 복사 완료: $target_file (644 권한)"
-
-    # 백업에서 동적 상태 병합
-    if [[ -f "$target_file.backup" ]]; then
-        echo "  동적 상태 병합 시도 중..."
-
-        # jq가 있으면 JSON 병합, 없으면 백업만 유지
-        if command -v jq >/dev/null 2>&1; then
-            # 백업에서 feedbackSurveyState 추출해서 병합
-            if jq -e '.feedbackSurveyState' "$target_file.backup" >/dev/null 2>&1; then
-                local feedback_state=$(jq -c '.feedbackSurveyState' "$target_file.backup")
-                jq --argjson feedback_state "$feedback_state" '.feedbackSurveyState = $feedback_state' "$target_file" > "$target_file.tmp"
-                mv "$target_file.tmp" "$target_file"
-                echo "  ✓ feedbackSurveyState 병합 완료"
-            fi
-        else
-            echo "  ⚠ jq 없음: 동적 상태 병합 건너뜀"
-        fi
-
-        rm -f "$target_file.backup"
-    fi
+    rm -f "$target_file.backup"
+  fi
 }
 
 # Claude 테스트 환경 설정 (공통)
 setup_claude_test_environment() {
-    local test_dir="$1"
-    local source_base="$2"
-    local claude_dir="$3"
+  local test_dir="$1"
+  local source_base="$2"
+  local claude_dir="$3"
 
-    # 디렉토리 구조 생성
-    mkdir -p "$source_base/commands" "$source_base/agents" "$source_base/hooks"
-    mkdir -p "$claude_dir/commands" "$claude_dir/agents" "$claude_dir/hooks"
+  # 디렉토리 구조 생성
+  mkdir -p "$source_base/commands" "$source_base/agents" "$source_base/hooks"
+  mkdir -p "$claude_dir/commands" "$claude_dir/agents" "$claude_dir/hooks"
 
-    # 테스트용 Claude 설정 파일들 생성
-    cat > "$source_base/settings.json" << 'EOF'
+  # 테스트용 Claude 설정 파일들 생성
+  cat >"$source_base/settings.json" <<'EOF'
 {
   "version": "1.0.0",
   "theme": "dark",
@@ -85,27 +85,27 @@ setup_claude_test_environment() {
 }
 EOF
 
-    cat > "$source_base/CLAUDE.md" << 'EOF'
+  cat >"$source_base/CLAUDE.md" <<'EOF'
 # Test Claude Configuration
 Test configuration markdown file for unit testing
 EOF
 
-    # 테스트용 명령어 파일들 생성
-    mkdir -p "$source_base/commands"
-    cat > "$source_base/commands/test-command.md" << 'EOF'
+  # 테스트용 명령어 파일들 생성
+  mkdir -p "$source_base/commands"
+  cat >"$source_base/commands/test-command.md" <<'EOF'
 # Test Command
 This is a test command for integration testing
 EOF
 
-    # 테스트용 에이전트 파일들 생성
-    mkdir -p "$source_base/agents"
-    cat > "$source_base/agents/test-agent.md" << 'EOF'
+  # 테스트용 에이전트 파일들 생성
+  mkdir -p "$source_base/agents"
+  cat >"$source_base/agents/test-agent.md" <<'EOF'
 # Test Agent
 This is a test agent for integration testing
 EOF
 
-    # 동적 상태가 있는 기존 settings.json (백업 테스트용)
-    cat > "$test_dir/existing_settings.json" << 'EOF'
+  # 동적 상태가 있는 기존 settings.json (백업 테스트용)
+  cat >"$test_dir/existing_settings.json" <<'EOF'
 {
   "version": "0.9.0",
   "theme": "light",
@@ -123,51 +123,51 @@ EOF
 }
 EOF
 
-    # 잘못된 JSON 형식 테스트용
-    cat > "$test_dir/invalid_settings.json" << 'EOF'
+  # 잘못된 JSON 형식 테스트용
+  cat >"$test_dir/invalid_settings.json" <<'EOF'
 {
   "version": "1.0.0",
   "theme": "dark"
   // 잘못된 JSON 형식 (주석)
 EOF
 
-    echo "Claude 테스트 환경 설정 완료: $source_base"
+  echo "Claude 테스트 환경 설정 완료: $source_base"
 }
 
 # 모의 dotfiles 구조 생성 (통합 테스트용)
 create_mock_dotfiles_structure() {
-    local test_dir="$1"
-    local dotfiles_root="$test_dir/dotfiles_mock"
-    local config_dir="$dotfiles_root/modules/shared/config/claude"
+  local test_dir="$1"
+  local dotfiles_root="$test_dir/dotfiles_mock"
+  local config_dir="$dotfiles_root/modules/shared/config/claude"
 
-    # dotfiles 모의 구조 생성
-    mkdir -p "$config_dir/commands" "$config_dir/agents" "$config_dir/hooks"
+  # dotfiles 모의 구조 생성
+  mkdir -p "$config_dir/commands" "$config_dir/agents" "$config_dir/hooks"
 
-    # 실제 dotfiles에서 설정 파일들 복사 (if available)
-    local real_dotfiles_root
-    real_dotfiles_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+  # 실제 dotfiles에서 설정 파일들 복사 (if available)
+  local real_dotfiles_root
+  real_dotfiles_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
-    if [[ -d "$real_dotfiles_root/modules/shared/config/claude" ]]; then
-        # 실제 설정 파일들을 복사
-        cp -r "$real_dotfiles_root/modules/shared/config/claude"/* "$config_dir/" 2>/dev/null || {
-            # 복사 실패시 기본 설정 생성
-            setup_claude_test_environment "$test_dir" "$config_dir" "/dev/null"
-        }
-    else
-        # 기본 테스트 설정 생성
-        setup_claude_test_environment "$test_dir" "$config_dir" "/dev/null"
-    fi
+  if [[ -d "$real_dotfiles_root/modules/shared/config/claude" ]]; then
+    # 실제 설정 파일들을 복사
+    cp -r "$real_dotfiles_root/modules/shared/config/claude"/* "$config_dir/" 2>/dev/null || {
+      # 복사 실패시 기본 설정 생성
+      setup_claude_test_environment "$test_dir" "$config_dir" "/dev/null"
+    }
+  else
+    # 기본 테스트 설정 생성
+    setup_claude_test_environment "$test_dir" "$config_dir" "/dev/null"
+  fi
 
-    echo "$dotfiles_root"
+  echo "$dotfiles_root"
 }
 
 # Claude 활성화 스크립트 생성 (테스트용)
 generate_claude_activation_script() {
-    local source_dir="$1"
-    local claude_dir="$2"
-    local fallback_sources=("${@:3}")
+  local source_dir="$1"
+  local claude_dir="$2"
+  local fallback_sources=("${@:3}")
 
-    cat << EOF
+  cat <<EOF
 set -euo pipefail
 
 CLAUDE_DIR="$claude_dir"
@@ -291,70 +291,70 @@ EOF
 
 # Claude 테스트 환경 정리
 cleanup_claude_test_environment() {
-    local test_dir="$1"
+  local test_dir="$1"
 
-    if [[ -n "$test_dir" && -d "$test_dir" && "$test_dir" =~ /tmp/ ]]; then
-        rm -rf "$test_dir"
-        echo "Claude 테스트 환경 정리 완료: $test_dir"
-    else
-        echo "⚠️ 안전하지 않은 경로로 정리를 건너뜁니다: $test_dir"
-    fi
+  if [[ -n $test_dir && -d $test_dir && $test_dir =~ /tmp/ ]]; then
+    rm -rf "$test_dir"
+    echo "Claude 테스트 환경 정리 완료: $test_dir"
+  else
+    echo "⚠️ 안전하지 않은 경로로 정리를 건너뜁니다: $test_dir"
+  fi
 }
 
 # 공통 어설션 함수 (테스트에서 공통 사용)
 assert_claude_test() {
-    local condition="$1"
-    local test_name="$2"
-    local expected="${3:-}"
-    local actual="${4:-}"
+  local condition="$1"
+  local test_name="$2"
+  local expected="${3:-}"
+  local actual="${4:-}"
 
-    # 조건부 평가 실행
-    if eval "$condition"; then
-        if [[ -n "${log_success:-}" ]] && declare -F log_success >/dev/null; then
-            log_success "$test_name"
-        else
-            echo "✅ $test_name"
-        fi
-        return 0
+  # 조건부 평가 실행
+  if eval "$condition"; then
+    if [[ -n ${log_success:-} ]] && declare -F log_success >/dev/null; then
+      log_success "$test_name"
     else
-        if [[ -n "${log_fail:-}" ]] && declare -F log_fail >/dev/null; then
-            log_fail "$test_name"
-            if [[ -n "$expected" && -n "$actual" ]]; then
-                log_error "  예상: $expected"
-                log_error "  실제: $actual"
-            fi
-        else
-            echo "❌ $test_name"
-            if [[ -n "$expected" && -n "$actual" ]]; then
-                echo "  예상: $expected"
-                echo "  실제: $actual"
-            fi
-        fi
-        return 1
+      echo "✅ $test_name"
     fi
+    return 0
+  else
+    if [[ -n ${log_fail:-} ]] && declare -F log_fail >/dev/null; then
+      log_fail "$test_name"
+      if [[ -n $expected && -n $actual ]]; then
+        log_error "  예상: $expected"
+        log_error "  실제: $actual"
+      fi
+    else
+      echo "❌ $test_name"
+      if [[ -n $expected && -n $actual ]]; then
+        echo "  예상: $expected"
+        echo "  실제: $actual"
+      fi
+    fi
+    return 1
+  fi
 }
 
 # 공통 Claude 설정 검증 함수
 verify_claude_activation() {
-    local claude_dir="$1"
-    local test_name_prefix="${2:-Claude 활성화}"
+  local claude_dir="$1"
+  local test_name_prefix="${2:-Claude 활성화}"
 
-    # 기본 디렉토리 구조 확인
-    assert_claude_test "[[ -d '$claude_dir' ]]" "$test_name_prefix: Claude 디렉토리 존재"
-    assert_claude_test "[[ -d '$claude_dir/commands' || -L '$claude_dir/commands' ]]" "$test_name_prefix: commands 폴더/링크 존재"
-    assert_claude_test "[[ -d '$claude_dir/agents' || -L '$claude_dir/agents' ]]" "$test_name_prefix: agents 폴더/링크 존재"
+  # 기본 디렉토리 구조 확인
+  assert_claude_test "[[ -d '$claude_dir' ]]" "$test_name_prefix: Claude 디렉토리 존재"
+  assert_claude_test "[[ -d '$claude_dir/commands' || -L '$claude_dir/commands' ]]" "$test_name_prefix: commands 폴더/링크 존재"
+  assert_claude_test "[[ -d '$claude_dir/agents' || -L '$claude_dir/agents' ]]" "$test_name_prefix: agents 폴더/링크 존재"
 
-    # 설정 파일 확인
-    if [[ -f "$claude_dir/settings.json" || -L "$claude_dir/settings.json" ]]; then
-        assert_claude_test "[[ -f '$claude_dir/settings.json' || -L '$claude_dir/settings.json' ]]" "$test_name_prefix: settings.json 존재"
-    fi
+  # 설정 파일 확인
+  if [[ -f "$claude_dir/settings.json" || -L "$claude_dir/settings.json" ]]; then
+    assert_claude_test "[[ -f '$claude_dir/settings.json' || -L '$claude_dir/settings.json' ]]" "$test_name_prefix: settings.json 존재"
+  fi
 
-    if [[ -f "$claude_dir/CLAUDE.md" || -L "$claude_dir/CLAUDE.md" ]]; then
-        assert_claude_test "[[ -f '$claude_dir/CLAUDE.md' || -L '$claude_dir/CLAUDE.md' ]]" "$test_name_prefix: CLAUDE.md 존재"
-    fi
+  if [[ -f "$claude_dir/CLAUDE.md" || -L "$claude_dir/CLAUDE.md" ]]; then
+    assert_claude_test "[[ -f '$claude_dir/CLAUDE.md' || -L '$claude_dir/CLAUDE.md' ]]" "$test_name_prefix: CLAUDE.md 존재"
+  fi
 }
 
 # 스크립트가 source될 때 메시지 출력
-if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
-    echo "Claude 활성화 공통 유틸리티 로드됨: $(basename "${BASH_SOURCE[0]}")"
+if [[ ${BASH_SOURCE[0]} != "${0}" ]]; then
+  echo "Claude 활성화 공통 유틸리티 로드됨: $(basename "${BASH_SOURCE[0]}")"
 fi

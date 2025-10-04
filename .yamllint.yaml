@@ -20,12 +20,12 @@ rules:
     min-spaces-from-content: 1
 
   # Document formatting
-  document-start: disable  # Allow files without ---
-  document-end: disable    # Allow files without ...
+  document-start: disable # Allow files without ---
+  document-end: disable # Allow files without ...
 
   # Truthy values - allow yes/no, on/off for Nix compatibility
   truthy:
-    allowed-values: ['true', 'false', 'yes', 'no', 'on', 'off']
+    allowed-values: ["true", "false", "yes", "no", "on", "off"]
     check-keys: false
 
   # Brackets and braces - allow some flexibility

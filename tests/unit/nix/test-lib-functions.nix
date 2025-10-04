@@ -1,7 +1,11 @@
 # Unit Tests for Nix Library Functions
 # These tests MUST FAIL initially (TDD requirement)
 
-{ lib, runTests, nix-unit ? null, ... }:
+{ lib
+, runTests
+, nix-unit ? null
+, ...
+}:
 
 let
   # Import the functions we want to test
@@ -34,7 +38,10 @@ runTests {
     expr = testBuilders.contract.mkInterfaceTest {
       name = "interface-test";
       modulePath = "./test-module.nix";
-      requiredExports = [ "config" "options" ];
+      requiredExports = [
+        "config"
+        "options"
+      ];
     };
     expected = {
       name = "interface-test";
@@ -72,7 +79,9 @@ runTests {
   testCoverageInitSession = {
     expr = coverageSystem.measurement.initSession {
       name = "test-session";
-      config = { threshold = 90.0; };
+      config = {
+        threshold = 90.0;
+      };
     };
     expected = {
       name = "test-session";
@@ -113,7 +122,10 @@ runTests {
     expr = testBuilders.suite.mkTestSuite {
       name = "comprehensive-suite";
       tests = [ ];
-      config = { parallel = true; coverage = true; };
+      config = {
+        parallel = true;
+        coverage = true;
+      };
     };
     expected = {
       name = "comprehensive-suite";
@@ -139,7 +151,10 @@ runTests {
   testFindCoverageFiles = {
     expr = coverageSystem.utils.findCoverageFiles {
       path = "./tests";
-      config = { includePaths = [ "lib" ]; excludePaths = [ "docs" ]; };
+      config = {
+        includePaths = [ "lib" ];
+        excludePaths = [ "docs" ];
+      };
     };
     expected = [ "./tests/lib/example.nix" ];
   };
@@ -168,7 +183,10 @@ runTests {
   testCrossPlatformTest = {
     expr = testBuilders.integration.mkCrossPlatformTest {
       name = "cross-platform";
-      platforms = [ "darwin-x86_64" "nixos-x86_64" ];
+      platforms = [
+        "darwin-x86_64"
+        "nixos-x86_64"
+      ];
       testSteps = [ (platform: "echo ${platform}") ];
     };
     expected = {
@@ -180,17 +198,23 @@ runTests {
 
   # Test error conditions (will fail - functions don't exist)
   testInvalidTestLayer = {
-    expr = builtins.tryEval (testBuilders.suite.mkLayerSuite {
-      name = "invalid";
-      layer = "invalid-layer";
-      tests = [ ];
-    });
-    expected = { success = false; };
+    expr = builtins.tryEval (
+      testBuilders.suite.mkLayerSuite {
+        name = "invalid";
+        layer = "invalid-layer";
+        tests = [ ];
+      }
+    );
+    expected = {
+      success = false;
+    };
   };
 
   testInvalidPlatform = {
     expr = builtins.tryEval (testBuilders.validators.validatePlatform "invalid-platform");
-    expected = { success = false; };
+    expected = {
+      success = false;
+    };
   };
 
   # Test legacy compatibility (will fail - functions don't exist)
@@ -237,7 +261,9 @@ runTests {
         session = {
           name = "test";
           modules = [ ];
-          results = { overallCoverage = 90.0; };
+          results = {
+            overallCoverage = 90.0;
+          };
         };
       in
       builtins.isString (coverageSystem.reporting.generateHTMLReport session);

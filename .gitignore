@@ -9,8 +9,10 @@ result-*
 shell.nix.drv
 .nix-build
 
-# Test performance logs
+# Performance and logging directories
 .test-performance/
+.perf-logs/
+.logs/
 
 # Worktree directories
 tree/

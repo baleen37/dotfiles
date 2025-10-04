@@ -40,18 +40,18 @@ echo ""
 # Test 4: Retry operation functionality
 echo "📝 Test 4: Retry Operation - Success Case"
 if unified_retry_operation "echo 'Operation successful!'" 3 1 "TEST"; then
-    unified_log_success "Retry test passed!" "TEST"
+  unified_log_success "Retry test passed!" "TEST"
 else
-    unified_log_error "Retry test failed!" "TEST" "medium" "false"
+  unified_log_error "Retry test failed!" "TEST" "medium" "false"
 fi
 echo ""
 
 # Test 5: Retry operation with failure (simulated)
 echo "📝 Test 5: Retry Operation - Failure Case (limited retries to avoid delays)"
 if unified_retry_operation "false" 2 1 "TEST"; then
-    unified_log_error "Retry should have failed but succeeded!" "TEST" "medium" "false"
+  unified_log_error "Retry should have failed but succeeded!" "TEST" "medium" "false"
 else
-    unified_log_success "Retry correctly failed after attempts" "TEST"
+  unified_log_success "Retry correctly failed after attempts" "TEST"
 fi
 echo ""
 
@@ -73,9 +73,9 @@ echo ""
 # Test 8: Configuration loading
 echo "📝 Test 8: Configuration Loading"
 if [ -f "${CONFIG_DIR:-./config}/error-handling.yaml" ]; then
-    unified_log_success "Error handling configuration file found" "CONFIG"
+  unified_log_success "Error handling configuration file found" "CONFIG"
 else
-    unified_log_warning "Error handling configuration file not found - using defaults" "CONFIG"
+  unified_log_warning "Error handling configuration file not found - using defaults" "CONFIG"
 fi
 echo ""
 

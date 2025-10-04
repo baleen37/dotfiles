@@ -1,7 +1,10 @@
 ---
 name: research
 description: Deep web research with adaptive planning and intelligent search
-mcp-servers: [sequential, playwright, serena, context7]
+category: command
+complexity: advanced
+mcp-servers: [tavily, sequential, playwright, serena]
+personas: [deep-research-agent]
 ---
 
 # /sc:research - Deep Research Command
@@ -17,7 +20,7 @@ mcp-servers: [sequential, playwright, serena, context7]
 
 ## Context Trigger Pattern
 ```
-/sc:research "[query]"
+/sc:research "[query]" [--depth quick|standard|deep|exhaustive] [--strategy planning|intent|unified]
 ```
 
 ## Behavioral Flow
@@ -45,7 +48,6 @@ mcp-servers: [sequential, playwright, serena, context7]
 - **Smart extraction**: Route by content complexity
 - **Multi-hop exploration**: Follow entity and concept chains
 - **Evidence collection**: Track sources and confidence
-- **Best practices integration**: Use Context7 for authoritative documentation
 
 ### 5. Track (Continuous)
 - Monitor TodoWrite progress
@@ -72,16 +74,16 @@ mcp-servers: [sequential, playwright, serena, context7]
 - Note uncertainties explicitly
 
 ### Adaptive Depth
-- Automatically adjusts search depth based on query complexity
-- Simple queries: Basic search with summary output
-- Complex queries: Extended multi-hop analysis with detailed reports
-- Technical queries: Comprehensive investigation with authoritative sources
+- **Quick**: Basic search, 1 hop, summary output
+- **Standard**: Extended search, 2-3 hops, structured report
+- **Deep**: Comprehensive search, 3-4 hops, detailed analysis
+- **Exhaustive**: Maximum depth, 5 hops, complete investigation
 
 ## MCP Integration
+- **Tavily**: Primary search and extraction engine
 - **Sequential**: Complex reasoning and synthesis
 - **Playwright**: JavaScript-heavy content extraction
 - **Serena**: Research session persistence
-- **Context7**: Up-to-date library documentation and best practices
 
 ## Output Standards
 - Save reports to `claudedocs/research_[topic]_[timestamp].md`
@@ -92,10 +94,8 @@ mcp-servers: [sequential, playwright, serena, context7]
 ## Examples
 ```
 /sc:research "latest developments in quantum computing 2024"
-/sc:research "competitive analysis of AI coding assistants"
-/sc:research "best practices for distributed systems"
-/sc:research "React 19 best practices and patterns"
-/sc:research "Node.js performance optimization techniques"
+/sc:research "competitive analysis of AI coding assistants" --depth deep
+/sc:research "best practices for distributed systems" --strategy unified
 ```
 
 ## Boundaries

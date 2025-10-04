@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Debug platform test
 
-set -x  # Enable debug output
+set -x # Enable debug output
 set -euo pipefail
 
 echo "=== Starting debug test ==="

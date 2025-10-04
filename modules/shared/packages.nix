@@ -1,6 +1,7 @@
 { pkgs }:
 
-with pkgs; let
+with pkgs;
+let
   # Core system utilities - essential tools for basic system operations
   coreSystemTools = [
     wget # HTTP/FTP download utility

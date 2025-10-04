@@ -7,8 +7,8 @@ set -euo pipefail
 
 # Configuration
 readonly SCRIPT_NAME="$(basename "$0")"
-readonly DEFAULT_TIMEOUT=1800  # 30 minutes
-readonly CHECK_INTERVAL=60     # 1 minute
+readonly DEFAULT_TIMEOUT=1800 # 30 minutes
+readonly CHECK_INTERVAL=60    # 1 minute
 readonly REQUIRED_CHECKS=("CI Summary" "Validate & Lint")
 
 # Colors for output
@@ -20,23 +20,23 @@ readonly NC='\033[0m' # No Color
 
 # Logging functions
 log_info() {
-    echo -e "${BLUE}[INFO]${NC} $*" >&2
+  echo -e "${BLUE}[INFO]${NC} $*" >&2
 }
 
 log_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $*" >&2
+  echo -e "${GREEN}[SUCCESS]${NC} $*" >&2
 }
 
 log_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $*" >&2
+  echo -e "${YELLOW}[WARNING]${NC} $*" >&2
 }
 
 log_error() {
-    echo -e "${RED}[ERROR]${NC} $*" >&2
+  echo -e "${RED}[ERROR]${NC} $*" >&2
 }
 
 show_usage() {
-    cat << EOF
+  cat <<EOF
 Usage: $SCRIPT_NAME [OPTIONS] [PR_NUMBER]
 
 Enhanced auto-merge handler for pull requests with safety checks.
@@ -64,289 +64,289 @@ EOF
 
 # Parse command line arguments
 parse_args() {
-    TIMEOUT="$DEFAULT_TIMEOUT"
-    CHECK_INTERVAL="$CHECK_INTERVAL"
-    RETRY_COUNT=3
-    FORCE_MODE=false
-    DRY_RUN=false
-    PR_NUMBER=""
+  TIMEOUT="$DEFAULT_TIMEOUT"
+  CHECK_INTERVAL="$CHECK_INTERVAL"
+  RETRY_COUNT=3
+  FORCE_MODE=false
+  DRY_RUN=false
+  PR_NUMBER=""
 
-    while [[ $# -gt 0 ]]; do
-        case $1 in
-            -t|--timeout)
-                TIMEOUT="$2"
-                shift 2
-                ;;
-            -c|--check)
-                CHECK_INTERVAL="$2"
-                shift 2
-                ;;
-            -r|--retry)
-                RETRY_COUNT="$2"
-                shift 2
-                ;;
-            -f|--force)
-                FORCE_MODE=true
-                shift
-                ;;
-            -d|--dry-run)
-                DRY_RUN=true
-                shift
-                ;;
-            -h|--help)
-                show_usage
-                exit 0
-                ;;
-            -*)
-                log_error "Unknown option: $1"
-                show_usage
-                exit 1
-                ;;
-            *)
-                if [[ -z "$PR_NUMBER" ]]; then
-                    PR_NUMBER="$1"
-                else
-                    log_error "Multiple PR numbers provided: $PR_NUMBER and $1"
-                    exit 1
-                fi
-                shift
-                ;;
-        esac
-    done
-
-    # Validate numeric arguments
-    if ! [[ "$TIMEOUT" =~ ^[0-9]+$ ]] || [[ "$TIMEOUT" -lt 60 ]]; then
-        log_error "Invalid timeout: $TIMEOUT (must be >= 60 seconds)"
+  while [[ $# -gt 0 ]]; do
+    case $1 in
+    -t | --timeout)
+      TIMEOUT="$2"
+      shift 2
+      ;;
+    -c | --check)
+      CHECK_INTERVAL="$2"
+      shift 2
+      ;;
+    -r | --retry)
+      RETRY_COUNT="$2"
+      shift 2
+      ;;
+    -f | --force)
+      FORCE_MODE=true
+      shift
+      ;;
+    -d | --dry-run)
+      DRY_RUN=true
+      shift
+      ;;
+    -h | --help)
+      show_usage
+      exit 0
+      ;;
+    -*)
+      log_error "Unknown option: $1"
+      show_usage
+      exit 1
+      ;;
+    *)
+      if [[ -z $PR_NUMBER ]]; then
+        PR_NUMBER="$1"
+      else
+        log_error "Multiple PR numbers provided: $PR_NUMBER and $1"
         exit 1
-    fi
+      fi
+      shift
+      ;;
+    esac
+  done
 
-    if ! [[ "$CHECK_INTERVAL" =~ ^[0-9]+$ ]] || [[ "$CHECK_INTERVAL" -lt 30 ]]; then
-        log_error "Invalid check interval: $CHECK_INTERVAL (must be >= 30 seconds)"
-        exit 1
-    fi
+  # Validate numeric arguments
+  if ! [[ $TIMEOUT =~ ^[0-9]+$ ]] || [[ $TIMEOUT -lt 60 ]]; then
+    log_error "Invalid timeout: $TIMEOUT (must be >= 60 seconds)"
+    exit 1
+  fi
 
-    if ! [[ "$RETRY_COUNT" =~ ^[0-9]+$ ]] || [[ "$RETRY_COUNT" -lt 1 ]]; then
-        log_error "Invalid retry count: $RETRY_COUNT (must be >= 1)"
-        exit 1
-    fi
+  if ! [[ $CHECK_INTERVAL =~ ^[0-9]+$ ]] || [[ $CHECK_INTERVAL -lt 30 ]]; then
+    log_error "Invalid check interval: $CHECK_INTERVAL (must be >= 30 seconds)"
+    exit 1
+  fi
+
+  if ! [[ $RETRY_COUNT =~ ^[0-9]+$ ]] || [[ $RETRY_COUNT -lt 1 ]]; then
+    log_error "Invalid retry count: $RETRY_COUNT (must be >= 1)"
+    exit 1
+  fi
 }
 
 # Get PR number for current branch if not provided
 get_current_pr() {
-    local current_branch
-    current_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
+  local current_branch
+  current_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
 
-    if [[ -z "$current_branch" ]] || [[ "$current_branch" == "HEAD" ]]; then
-        log_error "Unable to determine current branch"
-        return 1
-    fi
+  if [[ -z $current_branch ]] || [[ $current_branch == "HEAD" ]]; then
+    log_error "Unable to determine current branch"
+    return 1
+  fi
 
-    if [[ "$current_branch" == "main" ]] || [[ "$current_branch" == "master" ]]; then
-        log_error "Cannot auto-merge from main/master branch"
-        return 1
-    fi
+  if [[ $current_branch == "main" ]] || [[ $current_branch == "master" ]]; then
+    log_error "Cannot auto-merge from main/master branch"
+    return 1
+  fi
 
-    local pr_number
-    pr_number=$(gh pr list --head "$current_branch" --json number --jq '.[0].number' 2>/dev/null || echo "")
+  local pr_number
+  pr_number=$(gh pr list --head "$current_branch" --json number --jq '.[0].number' 2>/dev/null || echo "")
 
-    if [[ -z "$pr_number" ]] || [[ "$pr_number" == "null" ]]; then
-        log_error "No PR found for branch: $current_branch"
-        return 1
-    fi
+  if [[ -z $pr_number ]] || [[ $pr_number == "null" ]]; then
+    log_error "No PR found for branch: $current_branch"
+    return 1
+  fi
 
-    echo "$pr_number"
+  echo "$pr_number"
 }
 
 # Validate PR exists and is ready for merge
 validate_pr() {
-    local pr_number="$1"
+  local pr_number="$1"
 
-    log_info "Validating PR #$pr_number..."
+  log_info "Validating PR #$pr_number..."
 
-    local pr_data
-    pr_data=$(gh pr view "$pr_number" --json state,mergeable,draft,title 2>/dev/null || echo "")
+  local pr_data
+  pr_data=$(gh pr view "$pr_number" --json state,mergeable,draft,title 2>/dev/null || echo "")
 
-    if [[ -z "$pr_data" ]]; then
-        log_error "PR #$pr_number not found"
-        return 1
-    fi
+  if [[ -z $pr_data ]]; then
+    log_error "PR #$pr_number not found"
+    return 1
+  fi
 
-    local state draft mergeable title
-    state=$(echo "$pr_data" | jq -r '.state')
-    draft=$(echo "$pr_data" | jq -r '.draft')
-    mergeable=$(echo "$pr_data" | jq -r '.mergeable')
-    title=$(echo "$pr_data" | jq -r '.title')
+  local state draft mergeable title
+  state=$(echo "$pr_data" | jq -r '.state')
+  draft=$(echo "$pr_data" | jq -r '.draft')
+  mergeable=$(echo "$pr_data" | jq -r '.mergeable')
+  title=$(echo "$pr_data" | jq -r '.title')
 
-    log_info "PR #$pr_number: \"$title\""
+  log_info "PR #$pr_number: \"$title\""
 
-    if [[ "$state" != "OPEN" ]]; then
-        log_error "PR #$pr_number is not open (state: $state)"
-        return 1
-    fi
+  if [[ $state != "OPEN" ]]; then
+    log_error "PR #$pr_number is not open (state: $state)"
+    return 1
+  fi
 
-    if [[ "$draft" == "true" ]]; then
-        log_error "PR #$pr_number is a draft PR"
-        return 1
-    fi
+  if [[ $draft == "true" ]]; then
+    log_error "PR #$pr_number is a draft PR"
+    return 1
+  fi
 
-    if [[ "$mergeable" == "CONFLICTED" ]]; then
-        log_error "PR #$pr_number has merge conflicts"
-        return 1
-    fi
+  if [[ $mergeable == "CONFLICTED" ]]; then
+    log_error "PR #$pr_number has merge conflicts"
+    return 1
+  fi
 
-    log_success "PR #$pr_number validated successfully"
-    return 0
+  log_success "PR #$pr_number validated successfully"
+  return 0
 }
 
 # Wait for CI checks to complete
 wait_for_ci() {
-    local pr_number="$1"
-    local timeout="$TIMEOUT"
-    local check_interval="$CHECK_INTERVAL"
+  local pr_number="$1"
+  local timeout="$TIMEOUT"
+  local check_interval="$CHECK_INTERVAL"
 
-    log_info "Waiting for CI checks to complete (timeout: ${timeout}s, interval: ${check_interval}s)..."
+  log_info "Waiting for CI checks to complete (timeout: ${timeout}s, interval: ${check_interval}s)..."
 
-    local wait_time=0
-    local commit_sha
-    commit_sha=$(gh api "repos/{owner}/{repo}/pulls/$pr_number" --jq '.head.sha')
+  local wait_time=0
+  local commit_sha
+  commit_sha=$(gh api "repos/{owner}/{repo}/pulls/$pr_number" --jq '.head.sha')
 
-    log_info "Monitoring commit: $commit_sha"
-    log_info "Required checks: $(printf '%s ' "${REQUIRED_CHECKS[@]}")"
+  log_info "Monitoring commit: $commit_sha"
+  log_info "Required checks: $(printf '%s ' "${REQUIRED_CHECKS[@]}")"
 
-    while [[ $wait_time -lt $timeout ]]; do
-        log_info "Checking CI status... (${wait_time}s elapsed)"
+  while [[ $wait_time -lt $timeout ]]; do
+    log_info "Checking CI status... (${wait_time}s elapsed)"
 
-        local all_passed=true
-        local checks_status=""
+    local all_passed=true
+    local checks_status=""
 
-        for required_check in "${REQUIRED_CHECKS[@]}"; do
-            local check_result
-            check_result=$(gh api "repos/{owner}/{repo}/commits/$commit_sha/check-runs" \
-                --jq ".check_runs[] | select(.name == \"$required_check\") | .conclusion" 2>/dev/null || echo "")
+    for required_check in "${REQUIRED_CHECKS[@]}"; do
+      local check_result
+      check_result=$(gh api "repos/{owner}/{repo}/commits/$commit_sha/check-runs" \
+        --jq ".check_runs[] | select(.name == \"$required_check\") | .conclusion" 2>/dev/null || echo "")
 
-            if [[ -z "$check_result" ]]; then
-                # Try status checks instead of check runs
-                check_result=$(gh api "repos/{owner}/{repo}/commits/$commit_sha/status" \
-                    --jq ".statuses[] | select(.context == \"$required_check\") | .state" 2>/dev/null || echo "")
-            fi
+      if [[ -z $check_result ]]; then
+        # Try status checks instead of check runs
+        check_result=$(gh api "repos/{owner}/{repo}/commits/$commit_sha/status" \
+          --jq ".statuses[] | select(.context == \"$required_check\") | .state" 2>/dev/null || echo "")
+      fi
 
-            if [[ -z "$check_result" ]]; then
-                check_result="pending"
-                all_passed=false
-            elif [[ "$check_result" != "success" ]]; then
-                all_passed=false
-            fi
+      if [[ -z $check_result ]]; then
+        check_result="pending"
+        all_passed=false
+      elif [[ $check_result != "success" ]]; then
+        all_passed=false
+      fi
 
-            checks_status="${checks_status}${required_check}: ${check_result}\n"
-        done
-
-        echo -e "Current check status:\n$checks_status"
-
-        if [[ "$all_passed" == "true" ]]; then
-            log_success "All required CI checks have passed!"
-            return 0
-        fi
-
-        # Check if any required check failed
-        if echo -e "$checks_status" | grep -E "(failure|error|cancelled)" >/dev/null; then
-            log_error "Some required CI checks have failed. Auto-merge will not proceed."
-            echo -e "$checks_status"
-            return 1
-        fi
-
-        sleep "$check_interval"
-        wait_time=$((wait_time + check_interval))
+      checks_status="${checks_status}${required_check}: ${check_result}\n"
     done
 
-    log_error "Timeout waiting for CI checks to complete"
-    return 1
+    echo -e "Current check status:\n$checks_status"
+
+    if [[ $all_passed == "true" ]]; then
+      log_success "All required CI checks have passed!"
+      return 0
+    fi
+
+    # Check if any required check failed
+    if echo -e "$checks_status" | grep -E "(failure|error|cancelled)" >/dev/null; then
+      log_error "Some required CI checks have failed. Auto-merge will not proceed."
+      echo -e "$checks_status"
+      return 1
+    fi
+
+    sleep "$check_interval"
+    wait_time=$((wait_time + check_interval))
+  done
+
+  log_error "Timeout waiting for CI checks to complete"
+  return 1
 }
 
 # Enable auto-merge for PR
 enable_auto_merge() {
-    local pr_number="$1"
+  local pr_number="$1"
 
-    log_info "Enabling auto-merge for PR #$pr_number..."
+  log_info "Enabling auto-merge for PR #$pr_number..."
 
-    if [[ "$DRY_RUN" == "true" ]]; then
-        log_info "[DRY RUN] Would enable auto-merge with squash for PR #$pr_number"
-        return 0
-    fi
+  if [[ $DRY_RUN == "true" ]]; then
+    log_info "[DRY RUN] Would enable auto-merge with squash for PR #$pr_number"
+    return 0
+  fi
 
-    if gh pr merge "$pr_number" --auto --squash; then
-        log_success "Auto-merge enabled for PR #$pr_number"
-        log_info "PR will be automatically merged when branch protection allows"
-        return 0
-    else
-        log_error "Failed to enable auto-merge for PR #$pr_number"
-        # Show current PR status for debugging
-        gh pr view "$pr_number" --json mergeable,mergeStateStatus,statusCheckRollup
-        return 1
-    fi
+  if gh pr merge "$pr_number" --auto --squash; then
+    log_success "Auto-merge enabled for PR #$pr_number"
+    log_info "PR will be automatically merged when branch protection allows"
+    return 0
+  else
+    log_error "Failed to enable auto-merge for PR #$pr_number"
+    # Show current PR status for debugging
+    gh pr view "$pr_number" --json mergeable,mergeStateStatus,statusCheckRollup
+    return 1
+  fi
 }
 
 # Main execution function
 main() {
-    # Ensure we're in a git repository
-    if ! git rev-parse --git-dir >/dev/null 2>&1; then
-        log_error "Not a git repository"
+  # Ensure we're in a git repository
+  if ! git rev-parse --git-dir >/dev/null 2>&1; then
+    log_error "Not a git repository"
+    exit 1
+  fi
+
+  # Ensure gh CLI is available
+  if ! command -v gh >/dev/null 2>&1; then
+    log_error "GitHub CLI (gh) is not installed"
+    exit 1
+  fi
+
+  # Get PR number if not provided
+  if [[ -z $PR_NUMBER ]]; then
+    if ! PR_NUMBER=$(get_current_pr); then
+      exit 1
+    fi
+    log_info "Using PR from current branch: #$PR_NUMBER"
+  fi
+
+  # Validate PR
+  if [[ $FORCE_MODE != "true" ]]; then
+    if ! validate_pr "$PR_NUMBER"; then
+      exit 1
+    fi
+  else
+    log_warning "Force mode enabled - skipping PR validation"
+  fi
+
+  # Wait for CI checks (unless in force mode)
+  if [[ $FORCE_MODE != "true" ]]; then
+    local attempt=1
+    while [[ $attempt -le $RETRY_COUNT ]]; do
+      log_info "Attempt $attempt/$RETRY_COUNT: Waiting for CI checks..."
+
+      if wait_for_ci "$PR_NUMBER"; then
+        break
+      elif [[ $attempt -eq $RETRY_COUNT ]]; then
+        log_error "All retry attempts failed"
         exit 1
-    fi
+      else
+        log_warning "Attempt $attempt failed, retrying in 30 seconds..."
+        sleep 30
+        ((attempt++))
+      fi
+    done
+  else
+    log_warning "Force mode enabled - skipping CI checks"
+  fi
 
-    # Ensure gh CLI is available
-    if ! command -v gh >/dev/null 2>&1; then
-        log_error "GitHub CLI (gh) is not installed"
-        exit 1
-    fi
+  # Enable auto-merge
+  if ! enable_auto_merge "$PR_NUMBER"; then
+    exit 1
+  fi
 
-    # Get PR number if not provided
-    if [[ -z "$PR_NUMBER" ]]; then
-        if ! PR_NUMBER=$(get_current_pr); then
-            exit 1
-        fi
-        log_info "Using PR from current branch: #$PR_NUMBER"
-    fi
+  log_success "Auto-merge process completed successfully!"
 
-    # Validate PR
-    if [[ "$FORCE_MODE" != "true" ]]; then
-        if ! validate_pr "$PR_NUMBER"; then
-            exit 1
-        fi
-    else
-        log_warning "Force mode enabled - skipping PR validation"
-    fi
-
-    # Wait for CI checks (unless in force mode)
-    if [[ "$FORCE_MODE" != "true" ]]; then
-        local attempt=1
-        while [[ $attempt -le $RETRY_COUNT ]]; do
-            log_info "Attempt $attempt/$RETRY_COUNT: Waiting for CI checks..."
-
-            if wait_for_ci "$PR_NUMBER"; then
-                break
-            elif [[ $attempt -eq $RETRY_COUNT ]]; then
-                log_error "All retry attempts failed"
-                exit 1
-            else
-                log_warning "Attempt $attempt failed, retrying in 30 seconds..."
-                sleep 30
-                ((attempt++))
-            fi
-        done
-    else
-        log_warning "Force mode enabled - skipping CI checks"
-    fi
-
-    # Enable auto-merge
-    if ! enable_auto_merge "$PR_NUMBER"; then
-        exit 1
-    fi
-
-    log_success "Auto-merge process completed successfully!"
-
-    if [[ "$DRY_RUN" != "true" ]]; then
-        log_info "Monitor merge status with: gh pr view $PR_NUMBER"
-    fi
+  if [[ $DRY_RUN != "true" ]]; then
+    log_info "Monitor merge status with: gh pr view $PR_NUMBER"
+  fi
 }
 
 # Parse arguments and run main function

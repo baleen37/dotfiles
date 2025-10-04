@@ -24,38 +24,38 @@ echo -e "\n${YELLOW}▶${NC} Checking nix configuration consistency..."
 
 DARWIN_CONFIG="$PROJECT_ROOT/hosts/darwin/default.nix"
 if [ -f "$DARWIN_CONFIG" ]; then
-    # Check for nix.enable vs nix.gc.automatic conflict
-    if grep -q "nix\.enable.*=.*false" "$DARWIN_CONFIG" 2>/dev/null; then
-        if grep -q "nix\.gc\.automatic.*=.*true" "$DARWIN_CONFIG" 2>/dev/null; then
-            echo -e "${RED}❌ Configuration conflict detected:${NC}"
-            echo "  nix.enable = false but nix.gc.automatic = true"
-            echo "  This will cause build failures"
-            echo -e "${YELLOW}  Fix: Set nix.gc.automatic = false when nix.enable = false${NC}"
-            exit 1
-        else
-            echo -e "${GREEN}✅ Nix configuration consistency check passed${NC}"
-        fi
+  # Check for nix.enable vs nix.gc.automatic conflict
+  if grep -q "nix\.enable.*=.*false" "$DARWIN_CONFIG" 2>/dev/null; then
+    if grep -q "nix\.gc\.automatic.*=.*true" "$DARWIN_CONFIG" 2>/dev/null; then
+      echo -e "${RED}❌ Configuration conflict detected:${NC}"
+      echo "  nix.enable = false but nix.gc.automatic = true"
+      echo "  This will cause build failures"
+      echo -e "${YELLOW}  Fix: Set nix.gc.automatic = false when nix.enable = false${NC}"
+      exit 1
     else
-        echo -e "${GREEN}✅ Nix configuration consistency check passed${NC}"
+      echo -e "${GREEN}✅ Nix configuration consistency check passed${NC}"
     fi
+  else
+    echo -e "${GREEN}✅ Nix configuration consistency check passed${NC}"
+  fi
 else
-    echo -e "${YELLOW}⚠️  Darwin configuration not found, skipping nix consistency check${NC}"
+  echo -e "${YELLOW}⚠️  Darwin configuration not found, skipping nix consistency check${NC}"
 fi
 
 # Check 2: Flake syntax validation
 echo -e "\n${YELLOW}▶${NC} Validating flake syntax..."
 
 if command -v nix >/dev/null 2>&1; then
-    cd "$PROJECT_ROOT"
-    if nix flake check --no-build 2>/dev/null; then
-        echo -e "${GREEN}✅ Flake syntax validation passed${NC}"
-    else
-        echo -e "${RED}❌ Flake syntax validation failed${NC}"
-        echo "Run 'nix flake check' for detailed error information"
-        exit 1
-    fi
+  cd "$PROJECT_ROOT"
+  if nix flake check --no-build 2>/dev/null; then
+    echo -e "${GREEN}✅ Flake syntax validation passed${NC}"
+  else
+    echo -e "${RED}❌ Flake syntax validation failed${NC}"
+    echo "Run 'nix flake check' for detailed error information"
+    exit 1
+  fi
 else
-    echo -e "${YELLOW}⚠️  Nix not available, skipping flake syntax validation${NC}"
+  echo -e "${YELLOW}⚠️  Nix not available, skipping flake syntax validation${NC}"
 fi
 
 # Check 3: System file conflicts
@@ -63,29 +63,29 @@ echo -e "\n${YELLOW}▶${NC} Checking for system file conflicts..."
 
 conflicts_found=false
 if [ -f "/etc/bashrc" ] && [ ! -f "/etc/bashrc.before-nix-darwin" ]; then
-    echo -e "${YELLOW}⚠️  /etc/bashrc exists (will be backed up during activation)${NC}"
-    conflicts_found=true
+  echo -e "${YELLOW}⚠️  /etc/bashrc exists (will be backed up during activation)${NC}"
+  conflicts_found=true
 fi
 
 if [ -f "/etc/zshrc" ] && [ ! -f "/etc/zshrc.before-nix-darwin" ]; then
-    echo -e "${YELLOW}⚠️  /etc/zshrc exists (will be backed up during activation)${NC}"
-    conflicts_found=true
+  echo -e "${YELLOW}⚠️  /etc/zshrc exists (will be backed up during activation)${NC}"
+  conflicts_found=true
 fi
 
 if [ "$conflicts_found" = "true" ]; then
-    echo -e "${BLUE}ℹ️  These files will be automatically backed up with .before-nix-darwin suffix${NC}"
+  echo -e "${BLUE}ℹ️  These files will be automatically backed up with .before-nix-darwin suffix${NC}"
 else
-    echo -e "${GREEN}✅ No system file conflicts detected${NC}"
+  echo -e "${GREEN}✅ No system file conflicts detected${NC}"
 fi
 
 # Check 4: Git status
 echo -e "\n${YELLOW}▶${NC} Checking git status..."
 
 if git -C "$PROJECT_ROOT" diff --quiet; then
-    echo -e "${GREEN}✅ Working tree is clean${NC}"
+  echo -e "${GREEN}✅ Working tree is clean${NC}"
 else
-    echo -e "${YELLOW}⚠️  Working tree has uncommitted changes${NC}"
-    echo "  Consider committing or stashing changes before applying"
+  echo -e "${YELLOW}⚠️  Working tree has uncommitted changes${NC}"
+  echo "  Consider committing or stashing changes before applying"
 fi
 
 # Summary

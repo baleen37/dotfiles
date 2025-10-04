@@ -1,4 +1,8 @@
-{ user, config, pkgs, ... }:
+{ user
+, config
+, pkgs
+, ...
+}:
 
 let
   userHome = "${config.users.users.${user}.home}";

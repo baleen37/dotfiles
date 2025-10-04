@@ -104,7 +104,6 @@ jobs:
             echo "::notice::Dependency updates found"
           fi
 
-
       - name: Create and push branch
         if: steps.check-changes.outputs.has-changes == 'true'
         id: create-branch

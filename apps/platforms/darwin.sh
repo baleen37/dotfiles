@@ -6,7 +6,7 @@ load_platform_configuration() {
   local config_loader
   config_loader="$(dirname "$0")/../../scripts/utils/config-loader.sh"
 
-  if [[ -f "$config_loader" ]]; then
+  if [[ -f $config_loader ]]; then
     # shellcheck source=/dev/null
     source "$config_loader"
     # Use unified config loader for better performance
@@ -56,16 +56,16 @@ change_ownership() {
 get_build_config() {
   local arch=$1
   case "$arch" in
-    aarch64)
-      echo "aarch64-darwin"
-      ;;
-    x86_64)
-      echo "x86_64-darwin"
-      ;;
-    *)
-      echo -e "${RED}Unsupported architecture: $arch${NC}"
-      return 1
-      ;;
+  aarch64)
+    echo "aarch64-darwin"
+    ;;
+  x86_64)
+    echo "x86_64-darwin"
+    ;;
+  *)
+    echo -e "${RED}Unsupported architecture: $arch${NC}"
+    return 1
+    ;;
   esac
 }
 

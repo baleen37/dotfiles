@@ -17,13 +17,13 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 AUTO_UPDATE_SCRIPT="$SCRIPT_DIR/auto-update-dotfiles"
 
 # Check if auto-update-dotfiles exists
-if [[ ! -f "$AUTO_UPDATE_SCRIPT" ]]; then
-    echo -e "${RED}Error:${NC} auto-update-dotfiles script not found at $AUTO_UPDATE_SCRIPT"
-    exit 1
+if [[ ! -f $AUTO_UPDATE_SCRIPT ]]; then
+  echo -e "${RED}Error:${NC} auto-update-dotfiles script not found at $AUTO_UPDATE_SCRIPT"
+  exit 1
 fi
 
 # Configuration (matching auto-update-dotfiles)
-TTL_SECONDS=3600  # 1 hour
+TTL_SECONDS=3600 # 1 hour
 CACHE_DIR="$HOME/.cache"
 CACHE_FILE="$CACHE_DIR/dotfiles-check"
 LOG_FILE="$CACHE_DIR/dotfiles-update.log"
@@ -31,144 +31,144 @@ DOTFILES_DIR="$HOME/dotfiles"
 
 # Print functions
 print_header() {
-    echo -e "${BLUE}[Auto-Update Status]${NC}"
+  echo -e "${BLUE}[Auto-Update Status]${NC}"
 }
 
 print_info() {
-    echo -e "${GREEN}✓${NC} $1"
+  echo -e "${GREEN}✓${NC} $1"
 }
 
 print_warning() {
-    echo -e "${YELLOW}!${NC} $1"
+  echo -e "${YELLOW}!${NC} $1"
 }
 
 print_error() {
-    echo -e "${RED}✗${NC} $1"
+  echo -e "${RED}✗${NC} $1"
 }
 
 # Check if TTL is expired
 is_ttl_expired() {
-    if [[ ! -f "$CACHE_FILE" ]]; then
-        return 0  # No cache file means TTL is expired
-    fi
+  if [[ ! -f $CACHE_FILE ]]; then
+    return 0 # No cache file means TTL is expired
+  fi
 
-    local last_check=$(cat "$CACHE_FILE" 2>/dev/null || echo "0")
-    local current_time=$(date +%s)
-    local time_diff=$((current_time - last_check))
+  local last_check=$(cat "$CACHE_FILE" 2>/dev/null || echo "0")
+  local current_time=$(date +%s)
+  local time_diff=$((current_time - last_check))
 
-    [[ $time_diff -gt $TTL_SECONDS ]]
+  [[ $time_diff -gt $TTL_SECONDS ]]
 }
 
 # Check for local changes
 has_local_changes() {
-    if [[ ! -d "$DOTFILES_DIR/.git" ]]; then
-        return 1
-    fi
+  if [[ ! -d "$DOTFILES_DIR/.git" ]]; then
+    return 1
+  fi
 
-    cd "$DOTFILES_DIR"
-    # Check for uncommitted changes or untracked files
-    if git diff --quiet && git diff --cached --quiet && \
-       [[ -z $(git ls-files --others --exclude-standard) ]]; then
-        return 1  # No changes
-    else
-        return 0  # Has changes
-    fi
+  cd "$DOTFILES_DIR"
+  # Check for uncommitted changes or untracked files
+  if git diff --quiet && git diff --cached --quiet &&
+    [[ -z $(git ls-files --others --exclude-standard) ]]; then
+    return 1 # No changes
+  else
+    return 0 # Has changes
+  fi
 }
 
 # Get time since last check
 get_time_since_check() {
-    if [[ ! -f "$CACHE_FILE" ]]; then
-        echo "Never"
-        return
-    fi
+  if [[ ! -f $CACHE_FILE ]]; then
+    echo "Never"
+    return
+  fi
 
-    local last_check=$(cat "$CACHE_FILE" 2>/dev/null || echo "0")
-    local current_time=$(date +%s)
-    local time_diff=$((current_time - last_check))
+  local last_check=$(cat "$CACHE_FILE" 2>/dev/null || echo "0")
+  local current_time=$(date +%s)
+  local time_diff=$((current_time - last_check))
 
-    if [[ $time_diff -lt 60 ]]; then
-        echo "${time_diff} seconds ago"
-    elif [[ $time_diff -lt 3600 ]]; then
-        echo "$((time_diff / 60)) minutes ago"
-    elif [[ $time_diff -lt 86400 ]]; then
-        echo "$((time_diff / 3600)) hours ago"
-    else
-        echo "$((time_diff / 86400)) days ago"
-    fi
+  if [[ $time_diff -lt 60 ]]; then
+    echo "${time_diff} seconds ago"
+  elif [[ $time_diff -lt 3600 ]]; then
+    echo "$((time_diff / 60)) minutes ago"
+  elif [[ $time_diff -lt 86400 ]]; then
+    echo "$((time_diff / 3600)) hours ago"
+  else
+    echo "$((time_diff / 86400)) days ago"
+  fi
 }
 
 # Main status display
 main() {
-    print_header
+  print_header
+  echo ""
+
+  # Last check time
+  echo "Last check: $(get_time_since_check)"
+
+  # TTL status
+  if is_ttl_expired; then
+    print_warning "TTL expired (checks every $((TTL_SECONDS / 3600)) hour)"
+  else
+    print_info "TTL valid (checks every $((TTL_SECONDS / 3600)) hour)"
+  fi
+
+  # Dotfiles directory
+  if [[ -d $DOTFILES_DIR ]]; then
+    print_info "Dotfiles directory: $DOTFILES_DIR"
+  else
+    print_error "Dotfiles directory not found: $DOTFILES_DIR"
+    exit 1
+  fi
+
+  # Git repository status
+  if [[ -d "$DOTFILES_DIR/.git" ]]; then
+    cd "$DOTFILES_DIR"
+
+    # Current branch
+    local current_branch=$(git branch --show-current 2>/dev/null || echo "unknown")
+    if [[ $current_branch == "main" ]]; then
+      print_info "Current branch: $current_branch"
+    else
+      print_warning "Current branch: $current_branch (not on main)"
+    fi
+
+    # Local changes
+    if has_local_changes; then
+      print_warning "Local changes detected (updates will be skipped)"
+
+      # Show brief summary of changes
+      local changed_files=$(git status --porcelain | wc -l | tr -d ' ')
+      echo "  → $changed_files file(s) with changes"
+    else
+      print_info "No local changes"
+    fi
+
+    # Remote status (without fetching)
+    local remote_url=$(git remote get-url origin 2>/dev/null || echo "No remote")
     echo ""
+    echo "Remote: $remote_url"
 
-    # Last check time
-    echo "Last check: $(get_time_since_check)"
+    # Last local commit
+    local last_commit=$(git log -1 --format="%h %s" 2>/dev/null || echo "No commits")
+    echo "Last commit: $last_commit"
 
-    # TTL status
-    if is_ttl_expired; then
-        print_warning "TTL expired (checks every $((TTL_SECONDS / 3600)) hour)"
-    else
-        print_info "TTL valid (checks every $((TTL_SECONDS / 3600)) hour)"
-    fi
+  else
+    print_error "Not a git repository"
+  fi
 
-    # Dotfiles directory
-    if [[ -d "$DOTFILES_DIR" ]]; then
-        print_info "Dotfiles directory: $DOTFILES_DIR"
-    else
-        print_error "Dotfiles directory not found: $DOTFILES_DIR"
-        exit 1
-    fi
-
-    # Git repository status
-    if [[ -d "$DOTFILES_DIR/.git" ]]; then
-        cd "$DOTFILES_DIR"
-
-        # Current branch
-        local current_branch=$(git branch --show-current 2>/dev/null || echo "unknown")
-        if [[ "$current_branch" == "main" ]]; then
-            print_info "Current branch: $current_branch"
-        else
-            print_warning "Current branch: $current_branch (not on main)"
-        fi
-
-        # Local changes
-        if has_local_changes; then
-            print_warning "Local changes detected (updates will be skipped)"
-
-            # Show brief summary of changes
-            local changed_files=$(git status --porcelain | wc -l | tr -d ' ')
-            echo "  → $changed_files file(s) with changes"
-        else
-            print_info "No local changes"
-        fi
-
-        # Remote status (without fetching)
-        local remote_url=$(git remote get-url origin 2>/dev/null || echo "No remote")
-        echo ""
-        echo "Remote: $remote_url"
-
-        # Last local commit
-        local last_commit=$(git log -1 --format="%h %s" 2>/dev/null || echo "No commits")
-        echo "Last commit: $last_commit"
-
-    else
-        print_error "Not a git repository"
-    fi
-
-    # Recent log entries
-    if [[ -f "$LOG_FILE" ]]; then
-        echo ""
-        echo "Recent activity (last 5 entries):"
-        tail -5 "$LOG_FILE" 2>/dev/null | while IFS= read -r line; do
-            echo "  $line"
-        done
-    fi
-
+  # Recent log entries
+  if [[ -f $LOG_FILE ]]; then
     echo ""
-    echo "Commands:"
-    echo "  bl auto-update-check   - Check for updates interactively"
-    echo "  bl auto-update-apply   - Force update without prompts"
+    echo "Recent activity (last 5 entries):"
+    tail -5 "$LOG_FILE" 2>/dev/null | while IFS= read -r line; do
+      echo "  $line"
+    done
+  fi
+
+  echo ""
+  echo "Commands:"
+  echo "  bl auto-update-check   - Check for updates interactively"
+  echo "  bl auto-update-apply   - Force update without prompts"
 }
 
 # Run main function

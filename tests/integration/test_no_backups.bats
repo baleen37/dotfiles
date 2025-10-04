@@ -14,8 +14,8 @@ load ../lib/assertions.bash 2>/dev/null || true
   export HOME="$test_home"
 
   # Create existing files
-  echo "existing config" > "$test_home/.claude/config.yaml"
-  echo "existing settings" > "$test_home/.claude/settings.json"
+  echo "existing config" >"$test_home/.claude/config.yaml"
+  echo "existing settings" >"$test_home/.claude/settings.json"
 
   # Deploy configuration
   run deploy_config --force-overwrite true
@@ -59,7 +59,7 @@ load ../lib/assertions.bash 2>/dev/null || true
 
   # Deploy multiple times
   for i in {1..3}; do
-    echo "config version $i" > "$test_home/.claude/config.yaml"
+    echo "config version $i" >"$test_home/.claude/config.yaml"
     run deploy_config --force-overwrite true
     assert_success
   done

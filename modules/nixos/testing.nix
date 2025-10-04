@@ -1,7 +1,11 @@
 # NixOS-Specific Testing Module
 # Linux/NixOS-specific testing configuration and tools
 
-{ config, lib, pkgs, ... }:
+{ config
+, lib
+, pkgs
+, ...
+}:
 
 with lib;
 
@@ -20,24 +24,28 @@ in
 
   config = mkIf cfg.enable {
     # NixOS-specific testing packages
-    environment.systemPackages = with pkgs; [
-      # Core testing tools
-      bats
-      jq
+    environment.systemPackages =
+      with pkgs;
+      [
+        # Core testing tools
+        bats
+        jq
 
-      # System testing utilities
-      systemd
-      util-linux
+        # System testing utilities
+        systemd
+        util-linux
 
-      # VM testing tools (if enabled)
-    ] ++ optionals cfg.nixos.enableVMTests [
-      qemu
-      OVMF
-    ] ++ optionals cfg.nixos.enableContainerTests [
-      docker
-      podman
-      buildah
-    ];
+        # VM testing tools (if enabled)
+      ]
+      ++ optionals cfg.nixos.enableVMTests [
+        qemu
+        OVMF
+      ]
+      ++ optionals cfg.nixos.enableContainerTests [
+        docker
+        podman
+        buildah
+      ];
 
     # Enable systemd user services for testing
     systemd.user.services = mkIf cfg.nixos.enableSystemdTests {
@@ -55,7 +63,11 @@ in
     # Add NixOS-specific testing functions
     _module.args.nixosTesting = {
       # NixOS test environment setup
-      nixosTestEnvironment = { enableVMTests ? false, enableContainers ? false, ... }:
+      nixosTestEnvironment =
+        { enableVMTests ? false
+        , enableContainers ? false
+        , ...
+        }:
         {
           platform = builtins.currentSystem;
           nixosVersion = config.system.nixos.version or "unknown";
@@ -76,10 +88,12 @@ in
             systemctl = "${pkgs.systemd}/bin/systemctl";
             journalctl = "${pkgs.systemd}/bin/journalctl";
             "nix-store" = "${pkgs.nix}/bin/nix-store";
-          } // optionalAttrs enableVMTests {
+          }
+          // optionalAttrs enableVMTests {
             qemu = "${pkgs.qemu}/bin/qemu-system-x86_64";
             "qemu-img" = "${pkgs.qemu}/bin/qemu-img";
-          } // optionalAttrs enableContainers {
+          }
+          // optionalAttrs enableContainers {
             docker = "${pkgs.docker}/bin/docker";
             podman = "${pkgs.podman}/bin/podman";
           };
@@ -89,17 +103,20 @@ in
             "systemd-services"
             "journal-logging"
             "nix-store-management"
-          ] ++ optionals enableVMTests [
+          ]
+          ++ optionals enableVMTests [
             "vm-testing"
             "qemu-virtualization"
-          ] ++ optionals enableContainers [
+          ]
+          ++ optionals enableContainers [
             "container-runtime"
             "oci-containers"
           ];
         };
 
       # Setup systemd service tests
-      setupServiceTests = { services, ... }:
+      setupServiceTests =
+        { services, ... }:
         let
           testServices = map
             (service: {
@@ -137,7 +154,11 @@ in
         };
 
       # Test NixOS configuration
-      testNixOSConfiguration = { flakeRef ? ".", configuration ? "nixos", ... }:
+      testNixOSConfiguration =
+        { flakeRef ? "."
+        , configuration ? "nixos"
+        , ...
+        }:
         {
           name = "nixos-config-test";
           steps = [
@@ -166,7 +187,12 @@ in
         };
 
       # VM-based integration testing
-      testWithVM = { name, nodes ? { }, testScript, ... }:
+      testWithVM =
+        { name
+        , nodes ? { }
+        , testScript
+        , ...
+        }:
         let
           vmTest = pkgs.testers.runNixOSTest {
             inherit name testScript;
@@ -191,7 +217,12 @@ in
         };
 
       # Container testing
-      testWithContainers = { image, containerName, tests ? [ ], ... }:
+      testWithContainers =
+        { image
+        , containerName
+        , tests ? [ ]
+        , ...
+        }:
         {
           name = "container-test-${containerName}";
           image = image;
@@ -219,7 +250,10 @@ in
         };
 
       # Test system journals and logging
-      testSystemLogging = { services ? [ ], ... }:
+      testSystemLogging =
+        { services ? [ ]
+        , ...
+        }:
         let
           logTests = map
             (service: {
@@ -258,7 +292,10 @@ in
         };
 
       # Test network configuration
-      testNetworkConfiguration = { interfaces ? [ ], ... }:
+      testNetworkConfiguration =
+        { interfaces ? [ ]
+        , ...
+        }:
         let
           interfaceTests = map
             (iface: {
@@ -296,11 +333,14 @@ in
         };
 
       # Test file system and storage
-      testFileSystem = { mountPoints ? [ "/" ], ... }:
+      testFileSystem =
+        { mountPoints ? [ "/" ]
+        , ...
+        }:
         let
           fsTests = map
             (mount: {
-              name = "filesystem-${builtins.replaceStrings ["/"] ["-"] mount}";
+              name = "filesystem-${builtins.replaceStrings [ "/" ] [ "-" ] mount}";
               mountPoint = mount;
               tests = [
                 {
@@ -340,7 +380,8 @@ in
         };
 
       # Performance testing for NixOS
-      testNixOSPerformance = { ... }:
+      testNixOSPerformance =
+        { ... }:
         {
           name = "nixos-performance-test";
           metrics = [
@@ -368,9 +409,19 @@ in
         };
 
       # Cross-platform compatibility helpers
-      generateNixOSMatrix = { architectures ? [ "x86_64" "aarch64" ], ... }:
+      generateNixOSMatrix =
+        { architectures ? [
+            "x86_64"
+            "aarch64"
+          ]
+        , ...
+        }:
         {
-          os = [ "ubuntu-latest" "ubuntu-20.04" "ubuntu-22.04" ];
+          os = [
+            "ubuntu-latest"
+            "ubuntu-20.04"
+            "ubuntu-22.04"
+          ];
           architecture = architectures;
           include = map
             (arch: {
@@ -382,7 +433,8 @@ in
         };
 
       # Security testing
-      testNixOSSecurity = { ... }:
+      testNixOSSecurity =
+        { ... }:
         {
           name = "nixos-security-test";
           tests = [

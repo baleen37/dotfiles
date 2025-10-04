@@ -11,8 +11,8 @@ export NIXPKGS_ALLOW_UNFREE=1
 
 # Set USER if not already set
 if [ -z "$USER" ]; then
-    USER=$(whoami)
-    export USER
+  USER=$(whoami)
+  export USER
 fi
 
 printf "%b%s%b\n" "$YELLOW" "Starting build..." "$NC"

@@ -3,7 +3,11 @@
 # 자동 갈비지 컬렉션 및 스토리지 최적화 설정
 # NixOS와 nix-darwin 모두 지원
 
-{ config, pkgs, lib, ... }:
+{ config
+, pkgs
+, lib
+, ...
+}:
 
 {
   # Nix 갈비지 컬렉션 설정 (자동 실행)

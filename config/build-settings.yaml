@@ -6,8 +6,8 @@ build:
     - nix-command
     - flakes
 
-  timeout: 3600  # Build timeout in seconds
-  parallel_jobs: 4  # Number of parallel build jobs
+  timeout: 3600 # Build timeout in seconds
+  parallel_jobs: 4 # Number of parallel build jobs
 
   darwin:
     allow_unfree: true
@@ -20,12 +20,12 @@ build:
 # Platform-specific settings
 platforms:
   darwin:
-    rebuild_command: "darwin-rebuild"
-    config_path: "darwinConfigurations"
+    rebuild_command: 'darwin-rebuild'
+    config_path: 'darwinConfigurations'
 
   linux:
-    rebuild_command: "nixos-rebuild"
-    config_path: "nixosConfigurations"
+    rebuild_command: 'nixos-rebuild'
+    config_path: 'nixosConfigurations'
 
 # Architecture mappings
 architectures:

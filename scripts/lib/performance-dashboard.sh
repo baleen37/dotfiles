@@ -5,113 +5,113 @@
 
 # Initialize performance dashboard environment
 init_performance_dashboard() {
-    local config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/build-switch"
-    local state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/build-switch"
-    local cache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/build-switch"
+  local config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/build-switch"
+  local state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/build-switch"
+  local cache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/build-switch"
 
-    # Create required directories
-    mkdir -p "$config_dir"/{dashboard,reports}
-    mkdir -p "$state_dir"/{metrics,reports,dashboard}
-    mkdir -p "$cache_dir"/{dashboard,assets}
+  # Create required directories
+  mkdir -p "$config_dir"/{dashboard,reports}
+  mkdir -p "$state_dir"/{metrics,reports,dashboard}
+  mkdir -p "$cache_dir"/{dashboard,assets}
 
-    # Set global dashboard variables
-    export PERFORMANCE_DASHBOARD_CONFIG_DIR="$config_dir/dashboard"
-    export DASHBOARD_STATE_DIR="$state_dir"
-    export DASHBOARD_CACHE_DIR="$cache_dir/dashboard"
-    export DASHBOARD_METRICS_DIR="$state_dir/metrics"
-    export DASHBOARD_REPORTS_DIR="$state_dir/reports"
-    export DASHBOARD_ASSETS_DIR="$cache_dir/assets"
+  # Set global dashboard variables
+  export PERFORMANCE_DASHBOARD_CONFIG_DIR="$config_dir/dashboard"
+  export DASHBOARD_STATE_DIR="$state_dir"
+  export DASHBOARD_CACHE_DIR="$cache_dir/dashboard"
+  export DASHBOARD_METRICS_DIR="$state_dir/metrics"
+  export DASHBOARD_REPORTS_DIR="$state_dir/reports"
+  export DASHBOARD_ASSETS_DIR="$cache_dir/assets"
 
-    log_debug "Performance dashboard environment initialized"
+  log_debug "Performance dashboard environment initialized"
 }
 
 # Generate performance dashboard with real-time metrics
 generate_performance_dashboard() {
-    local dashboard_type="$1"
-    local metrics_file="$2"
-    local output_dir="$3"
+  local dashboard_type="$1"
+  local metrics_file="$2"
+  local output_dir="$3"
 
-    log_debug "Generating performance dashboard: $dashboard_type"
+  log_debug "Generating performance dashboard: $dashboard_type"
 
-    # Validate inputs
-    if [ ! -f "$metrics_file" ]; then
-        log_error "Metrics file not found: $metrics_file"
-        return 1
-    fi
+  # Validate inputs
+  if [ ! -f "$metrics_file" ]; then
+    log_error "Metrics file not found: $metrics_file"
+    return 1
+  fi
 
-    if [ -z "$output_dir" ]; then
-        log_error "Output directory is required"
-        return 1
-    fi
+  if [ -z "$output_dir" ]; then
+    log_error "Output directory is required"
+    return 1
+  fi
 
-    # Initialize dashboard environment if not already done
-    init_performance_dashboard
+  # Initialize dashboard environment if not already done
+  init_performance_dashboard
 
-    # Create output directory
-    mkdir -p "$output_dir"/{assets,data,components}
+  # Create output directory
+  mkdir -p "$output_dir"/{assets,data,components}
 
-    # Parse current metrics
-    local current_timestamp=$(date -Iseconds)
-    local metrics_data
+  # Parse current metrics
+  local current_timestamp=$(date -Iseconds)
+  local metrics_data
 
-    if command -v jq >/dev/null 2>&1; then
-        metrics_data=$(cat "$metrics_file")
-    else
-        # Fallback for systems without jq
-        metrics_data=$(cat "$metrics_file")
-    fi
+  if command -v jq >/dev/null 2>&1; then
+    metrics_data=$(cat "$metrics_file")
+  else
+    # Fallback for systems without jq
+    metrics_data=$(cat "$metrics_file")
+  fi
 
-    log_debug "Parsed metrics data from: $metrics_file"
+  log_debug "Parsed metrics data from: $metrics_file"
 
-    # Generate dashboard based on type
-    case "$dashboard_type" in
-        "comprehensive")
-            generate_comprehensive_dashboard "$metrics_data" "$output_dir" "$current_timestamp"
-            ;;
-        "minimal")
-            generate_minimal_dashboard "$metrics_data" "$output_dir" "$current_timestamp"
-            ;;
-        "real_time")
-            generate_realtime_dashboard "$metrics_data" "$output_dir" "$current_timestamp"
-            ;;
-        *)
-            log_error "Unknown dashboard type: $dashboard_type"
-            return 1
-            ;;
-    esac
+  # Generate dashboard based on type
+  case "$dashboard_type" in
+  "comprehensive")
+    generate_comprehensive_dashboard "$metrics_data" "$output_dir" "$current_timestamp"
+    ;;
+  "minimal")
+    generate_minimal_dashboard "$metrics_data" "$output_dir" "$current_timestamp"
+    ;;
+  "real_time")
+    generate_realtime_dashboard "$metrics_data" "$output_dir" "$current_timestamp"
+    ;;
+  *)
+    log_error "Unknown dashboard type: $dashboard_type"
+    return 1
+    ;;
+  esac
 
-    log_info "Performance dashboard generated: $output_dir"
-    return 0
+  log_info "Performance dashboard generated: $output_dir"
+  return 0
 }
 
 # Generate comprehensive HTML dashboard with interactive features
 generate_comprehensive_dashboard() {
-    local metrics_data="$1"
-    local output_dir="$2"
-    local timestamp="$3"
+  local metrics_data="$1"
+  local output_dir="$2"
+  local timestamp="$3"
 
-    # Extract key metrics using jq or fallback parsing
-    local cache_hit_rate build_time total_builds success_rate
+  # Extract key metrics using jq or fallback parsing
+  local cache_hit_rate build_time total_builds success_rate
 
-    if command -v jq >/dev/null 2>&1; then
-        cache_hit_rate=$(echo "$metrics_data" | jq -r '.build_performance.cache_hit_rate // 0.02' 2>/dev/null || echo "0.02")
-        build_time=$(echo "$metrics_data" | jq -r '.build_performance.avg_build_time_seconds // 120' 2>/dev/null || echo "120")
-        total_builds=$(echo "$metrics_data" | jq -r '.build_performance.total_builds // 250' 2>/dev/null || echo "250")
-        success_rate=$(echo "$metrics_data" | jq -r '.build_performance.successful_builds // 235' 2>/dev/null || echo "235")
-    else
-        # Fallback parsing
-        cache_hit_rate="0.02"
-        build_time="120"
-        total_builds="250"
-        success_rate="235"
-    fi
+  if command -v jq >/dev/null 2>&1; then
+    cache_hit_rate=$(echo "$metrics_data" | jq -r '.build_performance.cache_hit_rate // 0.02' 2>/dev/null || echo "0.02")
+    build_time=$(echo "$metrics_data" | jq -r '.build_performance.avg_build_time_seconds // 120' 2>/dev/null || echo "120")
+    total_builds=$(echo "$metrics_data" | jq -r '.build_performance.total_builds // 250' 2>/dev/null || echo "250")
+    success_rate=$(echo "$metrics_data" | jq -r '.build_performance.successful_builds // 235' 2>/dev/null || echo "235")
+  else
+    # Fallback parsing
+    cache_hit_rate="0.02"
+    build_time="120"
+    total_builds="250"
+    success_rate="235"
+  fi
 
-    # Calculate success percentage
-    local success_percentage
-    success_percentage=$(awk "BEGIN {printf \"%.1f\", ($success_rate / $total_builds) * 100}")
+  # Calculate success percentage
+  local success_percentage
+  success_percentage=$(awk "BEGIN {printf \"%.1f\", ($success_rate / $total_builds) * 100}")
 
-    # Generate main HTML dashboard
-    cat > "$output_dir/index.html" << EOF
+  # Generate main HTML dashboard
+  cat >"$output_dir/index.html" <<EOF
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -462,11 +462,11 @@ generate_comprehensive_dashboard() {
             </div>
 
             $(if [ "$build_time" -gt 90 ]; then
-                echo '<div class="alert-item alert-warning">'
-                echo '<div><strong>Warning:</strong> Build time above target ('"$build_time"'s vs 90s)</div>'
-                echo '<div style="font-size: 0.9em; opacity: 0.8;">Build optimization recommended</div>'
-                echo '</div>'
-            fi)
+    echo '<div class="alert-item alert-warning">'
+    echo '<div><strong>Warning:</strong> Build time above target ('"$build_time"'s vs 90s)</div>'
+    echo '<div style="font-size: 0.9em; opacity: 0.8;">Build optimization recommended</div>'
+    echo '</div>'
+  fi)
 
             <div class="alert-item alert-info">
                 <div>
@@ -512,8 +512,8 @@ generate_comprehensive_dashboard() {
 </html>
 EOF
 
-    # Generate dashboard configuration
-    cat > "$output_dir/dashboard_config.json" << EOF
+  # Generate dashboard configuration
+  cat >"$output_dir/dashboard_config.json" <<EOF
 {
   "dashboard_type": "comprehensive",
   "generated_timestamp": "$timestamp",
@@ -549,37 +549,37 @@ EOF
 }
 EOF
 
-    # Copy metrics data for dashboard use
-    cp "$metrics_file" "$output_dir/data/current_metrics.json" 2>/dev/null || true
+  # Copy metrics data for dashboard use
+  cp "$metrics_file" "$output_dir/data/current_metrics.json" 2>/dev/null || true
 
-    log_debug "Comprehensive dashboard generated successfully"
+  log_debug "Comprehensive dashboard generated successfully"
 }
 
 # Generate minimal text-based dashboard
 generate_minimal_dashboard() {
-    local metrics_data="$1"
-    local output_dir="$2"
-    local timestamp="$3"
+  local metrics_data="$1"
+  local output_dir="$2"
+  local timestamp="$3"
 
-    # Extract key metrics
-    local cache_hit_rate build_time total_builds success_rate
+  # Extract key metrics
+  local cache_hit_rate build_time total_builds success_rate
 
-    if command -v jq >/dev/null 2>&1; then
-        cache_hit_rate=$(echo "$metrics_data" | jq -r '.build_performance.cache_hit_rate // 0.02' 2>/dev/null || echo "0.02")
-        build_time=$(echo "$metrics_data" | jq -r '.build_performance.avg_build_time_seconds // 120' 2>/dev/null || echo "120")
-        total_builds=$(echo "$metrics_data" | jq -r '.build_performance.total_builds // 250' 2>/dev/null || echo "250")
-        success_rate=$(echo "$metrics_data" | jq -r '.build_performance.successful_builds // 235' 2>/dev/null || echo "235")
-    else
-        cache_hit_rate="0.02"
-        build_time="120"
-        total_builds="250"
-        success_rate="235"
-    fi
+  if command -v jq >/dev/null 2>&1; then
+    cache_hit_rate=$(echo "$metrics_data" | jq -r '.build_performance.cache_hit_rate // 0.02' 2>/dev/null || echo "0.02")
+    build_time=$(echo "$metrics_data" | jq -r '.build_performance.avg_build_time_seconds // 120' 2>/dev/null || echo "120")
+    total_builds=$(echo "$metrics_data" | jq -r '.build_performance.total_builds // 250' 2>/dev/null || echo "250")
+    success_rate=$(echo "$metrics_data" | jq -r '.build_performance.successful_builds // 235' 2>/dev/null || echo "235")
+  else
+    cache_hit_rate="0.02"
+    build_time="120"
+    total_builds="250"
+    success_rate="235"
+  fi
 
-    local success_percentage
-    success_percentage=$(awk "BEGIN {printf \"%.1f\", ($success_rate / $total_builds) * 100}")
+  local success_percentage
+  success_percentage=$(awk "BEGIN {printf \"%.1f\", ($success_rate / $total_builds) * 100}")
 
-    cat > "$output_dir/dashboard.txt" << EOF
+  cat >"$output_dir/dashboard.txt" <<EOF
 ================================================================================
                     Build-Switch Performance Dashboard
 ================================================================================
@@ -633,20 +633,20 @@ Next refresh: $(date -d '+5 minutes' '+%Y-%m-%d %H:%M:%S')
 ================================================================================
 EOF
 
-    log_debug "Minimal dashboard generated successfully"
+  log_debug "Minimal dashboard generated successfully"
 }
 
 # Generate real-time dashboard with live updates
 generate_realtime_dashboard() {
-    local metrics_data="$1"
-    local output_dir="$2"
-    local timestamp="$3"
+  local metrics_data="$1"
+  local output_dir="$2"
+  local timestamp="$3"
 
-    # Generate comprehensive dashboard first
-    generate_comprehensive_dashboard "$metrics_data" "$output_dir" "$timestamp"
+  # Generate comprehensive dashboard first
+  generate_comprehensive_dashboard "$metrics_data" "$output_dir" "$timestamp"
 
-    # Add real-time JavaScript components
-    cat >> "$output_dir/index.html" << 'EOF'
+  # Add real-time JavaScript components
+  cat >>"$output_dir/index.html" <<'EOF'
 
     <script>
         // Real-time dashboard functionality
@@ -756,77 +756,77 @@ generate_realtime_dashboard() {
     </script>
 EOF
 
-    log_debug "Real-time dashboard generated successfully"
+  log_debug "Real-time dashboard generated successfully"
 }
 
 # Collect comprehensive performance metrics
 collect_metrics() {
-    local metrics_type="$1"
-    local source_dirs="$2"
-    local output_file="$3"
+  local metrics_type="$1"
+  local source_dirs="$2"
+  local output_file="$3"
 
-    log_debug "Collecting metrics: $metrics_type"
+  log_debug "Collecting metrics: $metrics_type"
 
-    # Validate inputs
-    if [ -z "$output_file" ]; then
-        log_error "Output file path is required"
-        return 1
-    fi
+  # Validate inputs
+  if [ -z "$output_file" ]; then
+    log_error "Output file path is required"
+    return 1
+  fi
 
-    # Initialize dashboard environment if not already done
-    init_performance_dashboard
+  # Initialize dashboard environment if not already done
+  init_performance_dashboard
 
-    local current_timestamp=$(date -Iseconds)
-    local collection_start=$(date +%s)
+  local current_timestamp=$(date -Iseconds)
+  local collection_start=$(date +%s)
 
-    # Collect metrics based on type
-    case "$metrics_type" in
-        "build_performance")
-            collect_build_performance_metrics "$output_file" "$current_timestamp"
-            ;;
-        "system_resources")
-            collect_system_resource_metrics "$output_file" "$current_timestamp"
-            ;;
-        "aggregated")
-            collect_aggregated_metrics "$output_file" "$current_timestamp"
-            ;;
-        "real_time")
-            collect_realtime_metrics "$output_file" "$current_timestamp"
-            ;;
-        *)
-            log_error "Unknown metrics type: $metrics_type"
-            return 1
-            ;;
-    esac
+  # Collect metrics based on type
+  case "$metrics_type" in
+  "build_performance")
+    collect_build_performance_metrics "$output_file" "$current_timestamp"
+    ;;
+  "system_resources")
+    collect_system_resource_metrics "$output_file" "$current_timestamp"
+    ;;
+  "aggregated")
+    collect_aggregated_metrics "$output_file" "$current_timestamp"
+    ;;
+  "real_time")
+    collect_realtime_metrics "$output_file" "$current_timestamp"
+    ;;
+  *)
+    log_error "Unknown metrics type: $metrics_type"
+    return 1
+    ;;
+  esac
 
-    local collection_end=$(date +%s)
-    local collection_duration=$((collection_end - collection_start))
+  local collection_end=$(date +%s)
+  local collection_duration=$((collection_end - collection_start))
 
-    log_debug "Metrics collection completed in ${collection_duration}s: $output_file"
-    return 0
+  log_debug "Metrics collection completed in ${collection_duration}s: $output_file"
+  return 0
 }
 
 # Collect build performance metrics
 collect_build_performance_metrics() {
-    local output_file="$1"
-    local timestamp="$2"
+  local output_file="$1"
+  local timestamp="$2"
 
-    # Mock data for testing - in real implementation, would collect from actual sources
-    local build_logs_dir="${DASHBOARD_STATE_DIR}/build_logs"
-    local cache_stats_file="${DASHBOARD_STATE_DIR}/cache_stats.json"
+  # Mock data for testing - in real implementation, would collect from actual sources
+  local build_logs_dir="${DASHBOARD_STATE_DIR}/build_logs"
+  local cache_stats_file="${DASHBOARD_STATE_DIR}/cache_stats.json"
 
-    # Create mock directories if they don't exist
-    mkdir -p "$build_logs_dir"
+  # Create mock directories if they don't exist
+  mkdir -p "$build_logs_dir"
 
-    # Calculate current metrics (mock implementation)
-    local total_builds=45
-    local successful_builds=42
-    local failed_builds=3
-    local avg_build_time=118.5
-    local cache_hit_rate=0.023
+  # Calculate current metrics (mock implementation)
+  local total_builds=45
+  local successful_builds=42
+  local failed_builds=3
+  local avg_build_time=118.5
+  local cache_hit_rate=0.023
 
-    # Generate comprehensive build performance metrics
-    cat > "$output_file" << EOF
+  # Generate comprehensive build performance metrics
+  cat >"$output_file" <<EOF
 {
   "collection_type": "build_performance",
   "timestamp": "$timestamp",
@@ -903,30 +903,30 @@ EOF
 
 # Collect system resource metrics
 collect_system_resource_metrics() {
-    local output_file="$1"
-    local timestamp="$2"
+  local output_file="$1"
+  local timestamp="$2"
 
-    # Collect actual system metrics where possible
-    local cpu_count=$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo "8")
-    local total_memory
-    local available_memory
-    local load_average
+  # Collect actual system metrics where possible
+  local cpu_count=$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo "8")
+  local total_memory
+  local available_memory
+  local load_average
 
-    # Platform-specific resource collection
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        # macOS system metrics
-        total_memory=$(( $(sysctl -n hw.memsize 2>/dev/null || echo "17179869184") / 1024 / 1024 / 1024 ))
-        available_memory=$(( total_memory - $(ps -caxm -orss= | awk '{sum+=$1} END {print sum/1024}' 2>/dev/null || echo "8192") / 1024 ))
-        load_average=$(uptime | awk -F'load averages:' '{print $2}' | awk '{print "["$1","$2","$3"]"}' 2>/dev/null || echo "[1.2,1.4,1.6]")
-    else
-        # Linux system metrics
-        total_memory=$(awk '/MemTotal/ {printf "%.0f", $2/1024/1024}' /proc/meminfo 2>/dev/null || echo "16")
-        available_memory=$(awk '/MemAvailable/ {printf "%.0f", $2/1024/1024}' /proc/meminfo 2>/dev/null || echo "8")
-        load_average=$(awk '{print "["$1","$2","$3"]"}' /proc/loadavg 2>/dev/null || echo "[1.2,1.4,1.6]")
-    fi
+  # Platform-specific resource collection
+  if [[ $OSTYPE == "darwin"* ]]; then
+    # macOS system metrics
+    total_memory=$(($(sysctl -n hw.memsize 2>/dev/null || echo "17179869184") / 1024 / 1024 / 1024))
+    available_memory=$((total_memory - $(ps -caxm -orss= | awk '{sum+=$1} END {print sum/1024}' 2>/dev/null || echo "8192") / 1024))
+    load_average=$(uptime | awk -F'load averages:' '{print $2}' | awk '{print "["$1","$2","$3"]"}' 2>/dev/null || echo "[1.2,1.4,1.6]")
+  else
+    # Linux system metrics
+    total_memory=$(awk '/MemTotal/ {printf "%.0f", $2/1024/1024}' /proc/meminfo 2>/dev/null || echo "16")
+    available_memory=$(awk '/MemAvailable/ {printf "%.0f", $2/1024/1024}' /proc/meminfo 2>/dev/null || echo "8")
+    load_average=$(awk '{print "["$1","$2","$3"]"}' /proc/loadavg 2>/dev/null || echo "[1.2,1.4,1.6]")
+  fi
 
-    # Generate system resource metrics
-    cat > "$output_file" << EOF
+  # Generate system resource metrics
+  cat >"$output_file" <<EOF
 {
   "collection_type": "system_resources",
   "timestamp": "$timestamp",
@@ -990,44 +990,44 @@ EOF
 
 # Collect aggregated metrics combining all sources
 collect_aggregated_metrics() {
-    local output_file="$1"
-    local timestamp="$2"
+  local output_file="$1"
+  local timestamp="$2"
 
-    # Collect component metrics first
-    local temp_dir=$(mktemp -d)
-    collect_build_performance_metrics "$temp_dir/build_metrics.json" "$timestamp"
-    collect_system_resource_metrics "$temp_dir/system_metrics.json" "$timestamp"
+  # Collect component metrics first
+  local temp_dir=$(mktemp -d)
+  collect_build_performance_metrics "$temp_dir/build_metrics.json" "$timestamp"
+  collect_system_resource_metrics "$temp_dir/system_metrics.json" "$timestamp"
 
-    # Calculate aggregated scores and trends
-    local overall_health_score
-    local performance_grade
-    local optimization_priority
+  # Calculate aggregated scores and trends
+  local overall_health_score
+  local performance_grade
+  local optimization_priority
 
-    if command -v jq >/dev/null 2>&1; then
-        overall_health_score=$(jq -r '.performance_indicators.overall_health_score // 65' "$temp_dir/build_metrics.json" 2>/dev/null || echo "65")
-    else
-        overall_health_score="65"
-    fi
+  if command -v jq >/dev/null 2>&1; then
+    overall_health_score=$(jq -r '.performance_indicators.overall_health_score // 65' "$temp_dir/build_metrics.json" 2>/dev/null || echo "65")
+  else
+    overall_health_score="65"
+  fi
 
-    # Determine performance grade based on health score
-    if awk "BEGIN {exit !($overall_health_score >= 90)}"; then
-        performance_grade="A"
-        optimization_priority="low"
-    elif awk "BEGIN {exit !($overall_health_score >= 80)}"; then
-        performance_grade="B"
-        optimization_priority="medium"
-    elif awk "BEGIN {exit !($overall_health_score >= 70)}"; then
-        performance_grade="C"
-        optimization_priority="high"
-    elif awk "BEGIN {exit !($overall_health_score >= 60)}"; then
-        performance_grade="D"
-        optimization_priority="high"
-    else
-        performance_grade="F"
-        optimization_priority="critical"
-    fi
+  # Determine performance grade based on health score
+  if awk "BEGIN {exit !($overall_health_score >= 90)}"; then
+    performance_grade="A"
+    optimization_priority="low"
+  elif awk "BEGIN {exit !($overall_health_score >= 80)}"; then
+    performance_grade="B"
+    optimization_priority="medium"
+  elif awk "BEGIN {exit !($overall_health_score >= 70)}"; then
+    performance_grade="C"
+    optimization_priority="high"
+  elif awk "BEGIN {exit !($overall_health_score >= 60)}"; then
+    performance_grade="D"
+    optimization_priority="high"
+  else
+    performance_grade="F"
+    optimization_priority="critical"
+  fi
 
-    cat > "$output_file" << EOF
+  cat >"$output_file" <<EOF
 {
   "collection_type": "aggregated",
   "timestamp": "$timestamp",
@@ -1083,89 +1083,89 @@ collect_aggregated_metrics() {
 }
 EOF
 
-    # Cleanup temporary files
-    rm -rf "$temp_dir"
+  # Cleanup temporary files
+  rm -rf "$temp_dir"
 }
 
 # Create comprehensive performance reports
 create_reports() {
-    local report_type="$1"
-    local metrics_data="$2"
-    local output_dir="$3"
+  local report_type="$1"
+  local metrics_data="$2"
+  local output_dir="$3"
 
-    log_debug "Creating report: $report_type"
+  log_debug "Creating report: $report_type"
 
-    # Validate inputs
-    if [ ! -f "$metrics_data" ]; then
-        log_error "Metrics data file not found: $metrics_data"
-        return 1
-    fi
+  # Validate inputs
+  if [ ! -f "$metrics_data" ]; then
+    log_error "Metrics data file not found: $metrics_data"
+    return 1
+  fi
 
-    if [ ! -d "$output_dir" ]; then
-        mkdir -p "$output_dir"
-    fi
+  if [ ! -d "$output_dir" ]; then
+    mkdir -p "$output_dir"
+  fi
 
-    # Initialize dashboard environment if not already done
-    init_performance_dashboard
+  # Initialize dashboard environment if not already done
+  init_performance_dashboard
 
-    local current_timestamp=$(date -Iseconds)
+  local current_timestamp=$(date -Iseconds)
 
-    # Generate report based on type
-    case "$report_type" in
-        "daily_summary")
-            create_daily_summary_report "$metrics_data" "$output_dir" "$current_timestamp"
-            ;;
-        "weekly_analysis")
-            create_weekly_analysis_report "$metrics_data" "$output_dir" "$current_timestamp"
-            ;;
-        "performance_metrics")
-            create_performance_metrics_csv "$metrics_data" "$output_dir" "$current_timestamp"
-            ;;
-        "optimization_report")
-            create_optimization_report "$metrics_data" "$output_dir" "$current_timestamp"
-            ;;
-        *)
-            log_error "Unknown report type: $report_type"
-            return 1
-            ;;
-    esac
+  # Generate report based on type
+  case "$report_type" in
+  "daily_summary")
+    create_daily_summary_report "$metrics_data" "$output_dir" "$current_timestamp"
+    ;;
+  "weekly_analysis")
+    create_weekly_analysis_report "$metrics_data" "$output_dir" "$current_timestamp"
+    ;;
+  "performance_metrics")
+    create_performance_metrics_csv "$metrics_data" "$output_dir" "$current_timestamp"
+    ;;
+  "optimization_report")
+    create_optimization_report "$metrics_data" "$output_dir" "$current_timestamp"
+    ;;
+  *)
+    log_error "Unknown report type: $report_type"
+    return 1
+    ;;
+  esac
 
-    log_info "Performance report created: $output_dir"
-    return 0
+  log_info "Performance report created: $output_dir"
+  return 0
 }
 
 # Create daily summary report in Markdown format
 create_daily_summary_report() {
-    local metrics_data="$1"
-    local output_dir="$2"
-    local timestamp="$3"
+  local metrics_data="$1"
+  local output_dir="$2"
+  local timestamp="$3"
 
-    local report_date=$(date +%Y-%m-%d)
-    local report_file="$output_dir/daily_summary_$(date +%Y%m%d).md"
+  local report_date=$(date +%Y-%m-%d)
+  local report_file="$output_dir/daily_summary_$(date +%Y%m%d).md"
 
-    # Parse metrics data
-    local total_builds success_rate avg_build_time cache_hit_rate
+  # Parse metrics data
+  local total_builds success_rate avg_build_time cache_hit_rate
 
-    if command -v jq >/dev/null 2>&1; then
-        total_builds=$(echo "$metrics_data" | jq -r '.metrics.build_statistics.total_builds_today // 45' 2>/dev/null || echo "45")
-        success_rate=$(echo "$metrics_data" | jq -r '.metrics.build_statistics.success_rate // 0.933' 2>/dev/null || echo "0.933")
-        avg_build_time=$(echo "$metrics_data" | jq -r '.metrics.timing_analysis.average_build_time_seconds // 118.5' 2>/dev/null || echo "118.5")
-        cache_hit_rate=$(echo "$metrics_data" | jq -r '.metrics.cache_statistics.hit_rate // 0.023' 2>/dev/null || echo "0.023")
-    else
-        # Fallback values
-        total_builds="45"
-        success_rate="0.933"
-        avg_build_time="118.5"
-        cache_hit_rate="0.023"
-    fi
+  if command -v jq >/dev/null 2>&1; then
+    total_builds=$(echo "$metrics_data" | jq -r '.metrics.build_statistics.total_builds_today // 45' 2>/dev/null || echo "45")
+    success_rate=$(echo "$metrics_data" | jq -r '.metrics.build_statistics.success_rate // 0.933' 2>/dev/null || echo "0.933")
+    avg_build_time=$(echo "$metrics_data" | jq -r '.metrics.timing_analysis.average_build_time_seconds // 118.5' 2>/dev/null || echo "118.5")
+    cache_hit_rate=$(echo "$metrics_data" | jq -r '.metrics.cache_statistics.hit_rate // 0.023' 2>/dev/null || echo "0.023")
+  else
+    # Fallback values
+    total_builds="45"
+    success_rate="0.933"
+    avg_build_time="118.5"
+    cache_hit_rate="0.023"
+  fi
 
-    local success_percentage
-    success_percentage=$(awk "BEGIN {printf \"%.1f\", $success_rate * 100}")
+  local success_percentage
+  success_percentage=$(awk "BEGIN {printf \"%.1f\", $success_rate * 100}")
 
-    local cache_percentage
-    cache_percentage=$(awk "BEGIN {printf \"%.1f\", $cache_hit_rate * 100}")
+  local cache_percentage
+  cache_percentage=$(awk "BEGIN {printf \"%.1f\", $cache_hit_rate * 100}")
 
-    cat > "$report_file" << EOF
+  cat >"$report_file" <<EOF
 # Daily Build Performance Summary
 
 **Date:** $report_date
@@ -1306,196 +1306,196 @@ $(if awk "BEGIN {exit !($avg_build_time > 180)}"; then echo "2. **URGENT:** Buil
 **Next Report:** $(date -d '+1 day' +%Y-%m-%d)
 EOF
 
-    log_debug "Daily summary report created: $report_file"
+  log_debug "Daily summary report created: $report_file"
 }
 
 # Helper functions for dashboard generation
 
 get_system_health_score() {
-    # Calculate overall system health score (0-100)
-    echo "68"
+  # Calculate overall system health score (0-100)
+  echo "68"
 }
 
 get_health_status_class() {
-    local score=$(get_system_health_score)
-    if [ "$score" -ge 80 ]; then
-        echo "positive"
-    elif [ "$score" -ge 60 ]; then
-        echo "warning"
-    else
-        echo "negative"
-    fi
+  local score=$(get_system_health_score)
+  if [ "$score" -ge 80 ]; then
+    echo "positive"
+  elif [ "$score" -ge 60 ]; then
+    echo "warning"
+  else
+    echo "negative"
+  fi
 }
 
 get_health_status_message() {
-    local score=$(get_system_health_score)
-    if [ "$score" -ge 80 ]; then
-        echo "🟢 System performing well"
-    elif [ "$score" -ge 60 ]; then
-        echo "🟡 Performance optimization recommended"
-    else
-        echo "🔴 Critical performance issues detected"
-    fi
+  local score=$(get_system_health_score)
+  if [ "$score" -ge 80 ]; then
+    echo "🟢 System performing well"
+  elif [ "$score" -ge 60 ]; then
+    echo "🟡 Performance optimization recommended"
+  else
+    echo "🔴 Critical performance issues detected"
+  fi
 }
 
 get_cache_status_class() {
-    echo "critical"
+  echo "critical"
 }
 
 get_cache_status_text() {
-    echo "Needs Optimization"
+  echo "Needs Optimization"
 }
 
 get_build_status_class() {
-    echo "warning"
+  echo "warning"
 }
 
 get_build_status_text() {
-    echo "Above Target Time"
+  echo "Above Target Time"
 }
 
 get_system_status_class() {
-    echo "good"
+  echo "good"
 }
 
 get_system_status_text() {
-    echo "Operating Normally"
+  echo "Operating Normally"
 }
 
 get_monitoring_duration() {
-    echo "24 hours"
+  echo "24 hours"
 }
 
 # Helper functions for system metrics collection
 
 get_cpu_usage() {
-    # Platform-specific CPU usage
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        top -l 1 -n 0 | grep "CPU usage" | awk '{print $3}' | sed 's/%//' 2>/dev/null || echo "68.2"
-    else
-        top -bn1 | grep "Cpu(s)" | awk '{print $2}' | sed 's/%us,//' 2>/dev/null || echo "68.2"
-    fi
+  # Platform-specific CPU usage
+  if [[ $OSTYPE == "darwin"* ]]; then
+    top -l 1 -n 0 | grep "CPU usage" | awk '{print $3}' | sed 's/%//' 2>/dev/null || echo "68.2"
+  else
+    top -bn1 | grep "Cpu(s)" | awk '{print $2}' | sed 's/%us,//' 2>/dev/null || echo "68.2"
+  fi
 }
 
 get_swap_usage() {
-    echo "0.5"
+  echo "0.5"
 }
 
 get_buffer_cache_usage() {
-    echo "2.1"
+  echo "2.1"
 }
 
 get_disk_io_ops() {
-    echo "245"
+  echo "245"
 }
 
 get_network_download_speed() {
-    echo "45.2"
+  echo "45.2"
 }
 
 get_network_upload_speed() {
-    echo "12.8"
+  echo "12.8"
 }
 
 get_total_network_download() {
-    echo "2.3"
+  echo "2.3"
 }
 
 get_cache_network_usage() {
-    echo "0.1"
+  echo "0.1"
 }
 
 get_network_connection_status() {
-    echo "connected"
+  echo "connected"
 }
 
 get_memory_pressure_status() {
-    echo "normal"
+  echo "normal"
 }
 
 get_disk_io_pressure() {
-    echo "moderate"
+  echo "moderate"
 }
 
 get_thermal_state() {
-    echo "normal"
+  echo "normal"
 }
 
 get_power_efficiency() {
-    echo "good"
+  echo "good"
 }
 
 get_cpu_usage_history() {
-    echo "45.2, 67.8, 55.1, 71.3, 62.9"
+  echo "45.2, 67.8, 55.1, 71.3, 62.9"
 }
 
 get_memory_usage_history() {
-    echo "6.2, 8.1, 7.5, 9.2, 8.8"
+  echo "6.2, 8.1, 7.5, 9.2, 8.8"
 }
 
 get_disk_io_history() {
-    echo "125, 234, 189, 276, 198"
+  echo "125, 234, 189, 276, 198"
 }
 
 get_network_usage_history() {
-    echo "12.5, 23.4, 18.9, 27.6, 19.8"
+  echo "12.5, 23.4, 18.9, 27.6, 19.8"
 }
 
 # Helper functions for aggregated metrics
 
 calculate_health_score() {
-    local build_time="$1"
-    local cache_hit_rate="$2"
-    local success_rate="$3"
+  local build_time="$1"
+  local cache_hit_rate="$2"
+  local success_rate="$3"
 
-    # Weighted calculation: build_time (30%), cache (40%), success (30%)
-    local build_score success_score cache_score
+  # Weighted calculation: build_time (30%), cache (40%), success (30%)
+  local build_score success_score cache_score
 
-    build_score=$(awk "BEGIN {printf \"%.0f\", (180 - $build_time) / 180 * 100}")
-    success_score=$(awk "BEGIN {printf \"%.0f\", $success_rate * 100}")
-    cache_score=$(awk "BEGIN {printf \"%.0f\", $cache_hit_rate * 100}")
+  build_score=$(awk "BEGIN {printf \"%.0f\", (180 - $build_time) / 180 * 100}")
+  success_score=$(awk "BEGIN {printf \"%.0f\", $success_rate * 100}")
+  cache_score=$(awk "BEGIN {printf \"%.0f\", $cache_hit_rate * 100}")
 
-    awk "BEGIN {printf \"%.0f\", ($build_score * 0.3) + ($cache_score * 0.4) + ($success_score * 0.3)}"
+  awk "BEGIN {printf \"%.0f\", ($build_score * 0.3) + ($cache_score * 0.4) + ($success_score * 0.3)}"
 }
 
 get_overall_system_status() {
-    echo "performance_degradation_detected"
+  echo "performance_degradation_detected"
 }
 
 get_top_recommendation() {
-    echo "Implement intelligent caching immediately"
+  echo "Implement intelligent caching immediately"
 }
 
 get_secondary_recommendation() {
-    echo "Optimize build parallelization configuration"
+  echo "Optimize build parallelization configuration"
 }
 
 get_tertiary_recommendation() {
-    echo "Monitor system resources proactively"
+  echo "Monitor system resources proactively"
 }
 
 get_build_performance_trend() {
-    echo "declining"
+  echo "declining"
 }
 
 get_resource_utilization_trend() {
-    echo "increasing"
+  echo "increasing"
 }
 
 get_error_rate_trend() {
-    echo "stable"
+  echo "stable"
 }
 
 get_cache_efficiency_trend() {
-    echo "poor"
+  echo "poor"
 }
 
 get_overall_trend() {
-    echo "needs_optimization"
+  echo "needs_optimization"
 }
 
 generate_critical_alerts() {
-    cat << 'EOF'
+  cat <<'EOF'
 {
   "id": "cache_critical_001",
   "severity": "critical",

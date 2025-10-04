@@ -8,25 +8,25 @@ set -euo pipefail
 
 # Lock file management
 LOCK_FILE="$HOME/.cache/dotfiles-update.lock"
-LOCK_TIMEOUT=300  # 5 minutes
+LOCK_TIMEOUT=300 # 5 minutes
 
 # Cleanup function for lock file and restore branch
 cleanup() {
-    local exit_code=$?
+  local exit_code=$?
 
-    # Remove lock file
-    rm -f "$LOCK_FILE" 2>/dev/null || true
+  # Remove lock file
+  rm -f "$LOCK_FILE" 2>/dev/null || true
 
-    # Restore original branch if it was set
-    if [[ -n "${ORIGINAL_BRANCH:-}" && "$ORIGINAL_BRANCH" != "main" ]]; then
-        cd "$DOTFILES_DIR" 2>/dev/null || true
-        if git rev-parse --verify "$ORIGINAL_BRANCH" >/dev/null 2>&1; then
-            git checkout "$ORIGINAL_BRANCH" --quiet 2>/dev/null || true
-            log_message "Restored original branch: $ORIGINAL_BRANCH"
-        fi
+  # Restore original branch if it was set
+  if [[ -n ${ORIGINAL_BRANCH:-} && $ORIGINAL_BRANCH != "main" ]]; then
+    cd "$DOTFILES_DIR" 2>/dev/null || true
+    if git rev-parse --verify "$ORIGINAL_BRANCH" >/dev/null 2>&1; then
+      git checkout "$ORIGINAL_BRANCH" --quiet 2>/dev/null || true
+      log_message "Restored original branch: $ORIGINAL_BRANCH"
     fi
+  fi
 
-    exit $exit_code
+  exit $exit_code
 }
 
 # Set up cleanup trap
@@ -40,7 +40,7 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 # Configuration
-TTL_SECONDS=3600  # 1 hour
+TTL_SECONDS=3600 # 1 hour
 CACHE_DIR="$HOME/.cache"
 CACHE_FILE="$CACHE_DIR/dotfiles-check"
 LOG_FILE="$CACHE_DIR/dotfiles-update.log"
@@ -51,545 +51,548 @@ NETWORK_TIMEOUT=30
 
 # Function to print colored output
 print_status() {
-    echo -e "${GREEN}[AUTO-UPDATE]${NC} $1" | tee -a "$LOG_FILE"
+  echo -e "${GREEN}[AUTO-UPDATE]${NC} $1" | tee -a "$LOG_FILE"
 }
 
 print_warning() {
-    echo -e "${YELLOW}[AUTO-UPDATE]${NC} $1" | tee -a "$LOG_FILE"
+  echo -e "${YELLOW}[AUTO-UPDATE]${NC} $1" | tee -a "$LOG_FILE"
 }
 
 print_error() {
-    echo -e "${RED}[AUTO-UPDATE]${NC} $1" | tee -a "$LOG_FILE"
+  echo -e "${RED}[AUTO-UPDATE]${NC} $1" | tee -a "$LOG_FILE"
 }
 
 print_info() {
-    echo -e "${BLUE}[AUTO-UPDATE]${NC} $1" | tee -a "$LOG_FILE"
+  echo -e "${BLUE}[AUTO-UPDATE]${NC} $1" | tee -a "$LOG_FILE"
 }
 
 # Function to log with timestamp
 log_message() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >> "$LOG_FILE"
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >>"$LOG_FILE"
 }
 
 # Function to create lock file and prevent concurrent execution
 acquire_lock() {
-    local lock_acquired=false
-    local attempts=0
-    local max_attempts=10
+  local lock_acquired=false
+  local attempts=0
+  local max_attempts=10
 
-    while [[ $attempts -lt $max_attempts ]]; do
-        if (set -C; echo $$ > "$LOCK_FILE") 2>/dev/null; then
-            lock_acquired=true
-            break
-        fi
-
-        # Check if existing lock is stale
-        if [[ -f "$LOCK_FILE" ]]; then
-            local lock_pid=$(cat "$LOCK_FILE" 2>/dev/null || echo "")
-            if [[ -n "$lock_pid" ]]; then
-                if ! kill -0 "$lock_pid" 2>/dev/null; then
-                    # Process is dead, remove stale lock
-                    rm -f "$LOCK_FILE" 2>/dev/null || true
-                    print_warning "Removed stale lock file (PID: $lock_pid)"
-                    continue
-                fi
-
-                # Check lock age
-                local lock_age=$(($(date +%s) - $(stat -f %m "$LOCK_FILE" 2>/dev/null || echo "0")))
-                if [[ $lock_age -gt $LOCK_TIMEOUT ]]; then
-                    rm -f "$LOCK_FILE" 2>/dev/null || true
-                    print_warning "Removed expired lock file (age: ${lock_age}s)"
-                    continue
-                fi
-            fi
-        fi
-
-        sleep 1
-        ((attempts++))
-    done
-
-    if [[ "$lock_acquired" != "true" ]]; then
-        print_error "Failed to acquire lock after $max_attempts attempts"
-        print_info "Another auto-update process may be running"
-        exit 1
+  while [[ $attempts -lt $max_attempts ]]; do
+    if (
+      set -C
+      echo $$ >"$LOCK_FILE"
+    ) 2>/dev/null; then
+      lock_acquired=true
+      break
     fi
 
-    log_message "Lock acquired (PID: $$)"
+    # Check if existing lock is stale
+    if [[ -f $LOCK_FILE ]]; then
+      local lock_pid=$(cat "$LOCK_FILE" 2>/dev/null || echo "")
+      if [[ -n $lock_pid ]]; then
+        if ! kill -0 "$lock_pid" 2>/dev/null; then
+          # Process is dead, remove stale lock
+          rm -f "$LOCK_FILE" 2>/dev/null || true
+          print_warning "Removed stale lock file (PID: $lock_pid)"
+          continue
+        fi
+
+        # Check lock age
+        local lock_age=$(($(date +%s) - $(stat -f %m "$LOCK_FILE" 2>/dev/null || echo "0")))
+        if [[ $lock_age -gt $LOCK_TIMEOUT ]]; then
+          rm -f "$LOCK_FILE" 2>/dev/null || true
+          print_warning "Removed expired lock file (age: ${lock_age}s)"
+          continue
+        fi
+      fi
+    fi
+
+    sleep 1
+    ((attempts++))
+  done
+
+  if [[ $lock_acquired != "true" ]]; then
+    print_error "Failed to acquire lock after $max_attempts attempts"
+    print_info "Another auto-update process may be running"
+    exit 1
+  fi
+
+  log_message "Lock acquired (PID: $$)"
 }
 
 # Function to create backup of current state
 create_backup() {
-    local backup_timestamp=$(date '+%Y%m%d_%H%M%S')
-    local backup_path="$BACKUP_DIR/$backup_timestamp"
+  local backup_timestamp=$(date '+%Y%m%d_%H%M%S')
+  local backup_path="$BACKUP_DIR/$backup_timestamp"
 
-    mkdir -p "$BACKUP_DIR"
+  mkdir -p "$BACKUP_DIR"
 
-    # Store current git state
-    cd "$DOTFILES_DIR"
-    local current_commit=$(git rev-parse HEAD 2>/dev/null || echo "unknown")
-    local current_branch=$(git branch --show-current 2>/dev/null || echo "unknown")
+  # Store current git state
+  cd "$DOTFILES_DIR"
+  local current_commit=$(git rev-parse HEAD 2>/dev/null || echo "unknown")
+  local current_branch=$(git branch --show-current 2>/dev/null || echo "unknown")
 
-    cat > "$backup_path.state" << EOF
+  cat >"$backup_path.state" <<EOF
 COMMIT=$current_commit
 BRANCH=$current_branch
 TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
 EOF
 
-    log_message "Backup created: $backup_path.state (commit: $current_commit, branch: $current_branch)"
-    print_info "Backup created for rollback if needed"
+  log_message "Backup created: $backup_path.state (commit: $current_commit, branch: $current_branch)"
+  print_info "Backup created for rollback if needed"
 }
 
 # Function to validate system state after update
 validate_system_state() {
-    local validation_failed=false
+  local validation_failed=false
 
-    # Check if we're in a git repository
-    if ! git rev-parse --git-dir >/dev/null 2>&1; then
-        print_error "Validation failed: Not in a git repository"
-        validation_failed=true
+  # Check if we're in a git repository
+  if ! git rev-parse --git-dir >/dev/null 2>&1; then
+    print_error "Validation failed: Not in a git repository"
+    validation_failed=true
+  fi
+
+  # Check if main branch exists and is checked out
+  local current_branch=$(git branch --show-current 2>/dev/null || echo "")
+  if [[ $current_branch != "main" ]]; then
+    print_warning "Validation warning: Not on main branch (currently on: $current_branch)"
+  fi
+
+  # Check if there are any uncommitted changes
+  if ! git diff --quiet HEAD 2>/dev/null; then
+    print_warning "Validation warning: Uncommitted changes detected"
+  fi
+
+  # Basic flake check (if nix is available)
+  if command -v nix >/dev/null 2>&1; then
+    if ! timeout 60 nix flake check --no-build 2>/dev/null; then
+      print_warning "Validation warning: Flake check failed"
+    else
+      print_info "System validation completed successfully"
     fi
+  fi
 
-    # Check if main branch exists and is checked out
-    local current_branch=$(git branch --show-current 2>/dev/null || echo "")
-    if [[ "$current_branch" != "main" ]]; then
-        print_warning "Validation warning: Not on main branch (currently on: $current_branch)"
-    fi
-
-    # Check if there are any uncommitted changes
-    if ! git diff --quiet HEAD 2>/dev/null; then
-        print_warning "Validation warning: Uncommitted changes detected"
-    fi
-
-    # Basic flake check (if nix is available)
-    if command -v nix >/dev/null 2>&1; then
-        if ! timeout 60 nix flake check --no-build 2>/dev/null; then
-            print_warning "Validation warning: Flake check failed"
-        else
-            print_info "System validation completed successfully"
-        fi
-    fi
-
-    return 0  # Don't fail on validation warnings, just log them
+  return 0 # Don't fail on validation warnings, just log them
 }
 
 # Function to check if TTL has expired
 is_ttl_expired() {
-    if [[ ! -f "$CACHE_FILE" ]]; then
-        return 0  # No cache file, consider expired
-    fi
+  if [[ ! -f $CACHE_FILE ]]; then
+    return 0 # No cache file, consider expired
+  fi
 
-    local last_check=$(cat "$CACHE_FILE" 2>/dev/null || echo "0")
-    local current_time=$(date +%s)
-    local elapsed=$((current_time - last_check))
+  local last_check=$(cat "$CACHE_FILE" 2>/dev/null || echo "0")
+  local current_time=$(date +%s)
+  local elapsed=$((current_time - last_check))
 
-    if [[ $elapsed -ge $TTL_SECONDS ]]; then
-        return 0  # TTL expired
-    else
-        return 1  # TTL not expired
-    fi
+  if [[ $elapsed -ge $TTL_SECONDS ]]; then
+    return 0 # TTL expired
+  else
+    return 1 # TTL not expired
+  fi
 }
 
 # Function to update TTL cache
 update_ttl_cache() {
-    mkdir -p "$CACHE_DIR"
-    date +%s > "$CACHE_FILE"
+  mkdir -p "$CACHE_DIR"
+  date +%s >"$CACHE_FILE"
 }
 
 # Function to check if we're in dotfiles directory
 ensure_dotfiles_dir() {
-    if [[ ! -d "$DOTFILES_DIR" ]]; then
-        print_error "Dotfiles directory not found: $DOTFILES_DIR"
-        exit 1
-    fi
-    cd "$DOTFILES_DIR"
+  if [[ ! -d $DOTFILES_DIR ]]; then
+    print_error "Dotfiles directory not found: $DOTFILES_DIR"
+    exit 1
+  fi
+  cd "$DOTFILES_DIR"
 }
 
 # Function to check for local changes
 has_local_changes() {
-    # Check for uncommitted changes
-    if ! git diff --quiet HEAD 2>/dev/null; then
-        return 0  # Has changes
-    fi
+  # Check for uncommitted changes
+  if ! git diff --quiet HEAD 2>/dev/null; then
+    return 0 # Has changes
+  fi
 
-    # Check for untracked files (excluding common patterns)
-    if [[ -n $(git ls-files --others --exclude-standard 2>/dev/null) ]]; then
-        return 0  # Has changes
-    fi
+  # Check for untracked files (excluding common patterns)
+  if [[ -n $(git ls-files --others --exclude-standard 2>/dev/null) ]]; then
+    return 0 # Has changes
+  fi
 
-    return 1  # No changes
+  return 1 # No changes
 }
 
 # Function to check if main branch has updates with retry logic
 has_remote_updates() {
-    local attempt=1
-    local fetch_success=false
+  local attempt=1
+  local fetch_success=false
 
-    # Retry fetch with exponential backoff
-    while [[ $attempt -le $MAX_RETRY_ATTEMPTS ]]; do
-        print_info "Fetching remote updates (attempt $attempt/$MAX_RETRY_ATTEMPTS)"
+  # Retry fetch with exponential backoff
+  while [[ $attempt -le $MAX_RETRY_ATTEMPTS ]]; do
+    print_info "Fetching remote updates (attempt $attempt/$MAX_RETRY_ATTEMPTS)"
 
-        if timeout $NETWORK_TIMEOUT git fetch origin main --quiet 2>/dev/null; then
-            fetch_success=true
-            break
-        else
-            local wait_time=$((attempt * 2))
-            if [[ $attempt -lt $MAX_RETRY_ATTEMPTS ]]; then
-                print_warning "Fetch failed, retrying in ${wait_time}s..."
-                sleep $wait_time
-            fi
-        fi
-
-        ((attempt++))
-    done
-
-    if [[ "$fetch_success" != "true" ]]; then
-        print_error "Failed to fetch remote updates after $MAX_RETRY_ATTEMPTS attempts"
-        return 1
+    if timeout $NETWORK_TIMEOUT git fetch origin main --quiet 2>/dev/null; then
+      fetch_success=true
+      break
+    else
+      local wait_time=$((attempt * 2))
+      if [[ $attempt -lt $MAX_RETRY_ATTEMPTS ]]; then
+        print_warning "Fetch failed, retrying in ${wait_time}s..."
+        sleep $wait_time
+      fi
     fi
 
-    # Compare local main with remote main
-    local local_commit=$(git rev-parse main 2>/dev/null || echo "")
-    local remote_commit=$(git rev-parse origin/main 2>/dev/null || echo "")
+    ((attempt++))
+  done
 
-    if [[ -n "$local_commit" && -n "$remote_commit" && "$local_commit" != "$remote_commit" ]]; then
-        print_info "Remote updates detected: $local_commit -> $remote_commit"
-        return 0  # Has updates
-    fi
+  if [[ $fetch_success != "true" ]]; then
+    print_error "Failed to fetch remote updates after $MAX_RETRY_ATTEMPTS attempts"
+    return 1
+  fi
 
-    return 1  # No updates
+  # Compare local main with remote main
+  local local_commit=$(git rev-parse main 2>/dev/null || echo "")
+  local remote_commit=$(git rev-parse origin/main 2>/dev/null || echo "")
+
+  if [[ -n $local_commit && -n $remote_commit && $local_commit != "$remote_commit" ]]; then
+    print_info "Remote updates detected: $local_commit -> $remote_commit"
+    return 0 # Has updates
+  fi
+
+  return 1 # No updates
 }
 
 # Function to prompt user for update confirmation
 prompt_for_update() {
-    local commit_count=$1
-    local latest_message=$2
-    local local_commit=$3
-    local remote_commit=$4
+  local commit_count=$1
+  local latest_message=$2
+  local local_commit=$3
+  local remote_commit=$4
 
-    # Display update information
+  # Display update information
+  echo ""
+  echo -e "${BLUE}========== Dotfiles Update Available ===========${NC}"
+  echo -e "${GREEN}Updates:${NC} ${commit_count} new commit(s)"
+  echo -e "${GREEN}Latest:${NC} ${latest_message}"
+  echo -e "${GREEN}Current:${NC} ${local_commit:0:8}"
+  echo -e "${GREEN}Remote:${NC} ${remote_commit:0:8}"
+  echo -e "${BLUE}==============================================${NC}"
+  echo ""
+
+  # Prompt for user confirmation
+  echo -n -e "${YELLOW}Apply updates now? [y/N]${NC} "
+
+  # Read user input with timeout
+  local response
+  read -r -t 30 response || response="N"
+
+  # Handle timeout
+  if [[ $? -eq 142 ]]; then
     echo ""
-    echo -e "${BLUE}========== Dotfiles Update Available ===========${NC}"
-    echo -e "${GREEN}Updates:${NC} ${commit_count} new commit(s)"
-    echo -e "${GREEN}Latest:${NC} ${latest_message}"
-    echo -e "${GREEN}Current:${NC} ${local_commit:0:8}"
-    echo -e "${GREEN}Remote:${NC} ${remote_commit:0:8}"
-    echo -e "${BLUE}==============================================${NC}"
-    echo ""
+    echo -e "${YELLOW}[Timeout - defaulting to No]${NC}"
+    response="N"
+  fi
 
-    # Prompt for user confirmation
-    echo -n -e "${YELLOW}Apply updates now? [y/N]${NC} "
-
-    # Read user input with timeout
-    local response
-    read -r -t 30 response || response="N"
-
-    # Handle timeout
-    if [[ $? -eq 142 ]]; then
-        echo ""
-        echo -e "${YELLOW}[Timeout - defaulting to No]${NC}"
-        response="N"
-    fi
-
-    # Process response
-    case "${response}" in
-        [yY]|[yY][eE][sS])
-            return 0
-            ;;
-        *)
-            return 1
-            ;;
-    esac
+  # Process response
+  case "${response}" in
+  [yY] | [yY][eE][sS])
+    return 0
+    ;;
+  *)
+    return 1
+    ;;
+  esac
 }
 
 # Function to get update information
 get_update_info() {
-    local local_commit=$(git rev-parse main 2>/dev/null || echo "")
-    local remote_commit=$(git rev-parse origin/main 2>/dev/null || echo "")
+  local local_commit=$(git rev-parse main 2>/dev/null || echo "")
+  local remote_commit=$(git rev-parse origin/main 2>/dev/null || echo "")
 
-    if [[ -n "$local_commit" && -n "$remote_commit" ]]; then
-        # Count commits between local and remote
-        local commit_count=$(git rev-list --count "$local_commit".."$remote_commit" 2>/dev/null || echo "0")
+  if [[ -n $local_commit && -n $remote_commit ]]; then
+    # Count commits between local and remote
+    local commit_count=$(git rev-list --count "$local_commit".."$remote_commit" 2>/dev/null || echo "0")
 
-        # Get latest commit message
-        local latest_message=$(git log --format="%s" -n 1 origin/main 2>/dev/null || echo "No message available")
+    # Get latest commit message
+    local latest_message=$(git log --format="%s" -n 1 origin/main 2>/dev/null || echo "No message available")
 
-        echo "$commit_count|$latest_message|$local_commit|$remote_commit"
-    else
-        echo "0|No updates available||"
-    fi
+    echo "$commit_count|$latest_message|$local_commit|$remote_commit"
+  else
+    echo "0|No updates available||"
+  fi
 }
 
 # Function to perform auto-update
 perform_auto_update() {
-    print_status "Preparing to apply updates..."
+  print_status "Preparing to apply updates..."
 
-    # Create backup before making changes
-    create_backup
+  # Create backup before making changes
+  create_backup
 
-    # Store original branch for restoration
-    export ORIGINAL_BRANCH=$(git branch --show-current)
-    log_message "Original branch stored: $ORIGINAL_BRANCH"
+  # Store original branch for restoration
+  export ORIGINAL_BRANCH=$(git branch --show-current)
+  log_message "Original branch stored: $ORIGINAL_BRANCH"
 
-    # Ensure we're on main branch
-    if [[ "$ORIGINAL_BRANCH" != "main" ]]; then
-        print_info "Switching from $ORIGINAL_BRANCH to main branch"
-        if ! git checkout main --quiet; then
-            print_error "Failed to switch to main branch"
-            return 1
-        fi
+  # Ensure we're on main branch
+  if [[ $ORIGINAL_BRANCH != "main" ]]; then
+    print_info "Switching from $ORIGINAL_BRANCH to main branch"
+    if ! git checkout main --quiet; then
+      print_error "Failed to switch to main branch"
+      return 1
     fi
+  fi
 
-    # Pull updates with retry logic
-    local pull_attempt=1
-    local pull_success=false
+  # Pull updates with retry logic
+  local pull_attempt=1
+  local pull_success=false
 
-    while [[ $pull_attempt -le $MAX_RETRY_ATTEMPTS ]]; do
-        print_info "Pulling latest changes (attempt $pull_attempt/$MAX_RETRY_ATTEMPTS)"
+  while [[ $pull_attempt -le $MAX_RETRY_ATTEMPTS ]]; do
+    print_info "Pulling latest changes (attempt $pull_attempt/$MAX_RETRY_ATTEMPTS)"
 
-        if timeout $NETWORK_TIMEOUT git pull origin main --quiet; then
-            pull_success=true
-            break
-        else
-            if [[ $pull_attempt -lt $MAX_RETRY_ATTEMPTS ]]; then
-                local wait_time=$((pull_attempt * 2))
-                print_warning "Pull failed, retrying in ${wait_time}s..."
-                sleep $wait_time
-            fi
-        fi
-
-        ((pull_attempt++))
-    done
-
-    if [[ "$pull_success" != "true" ]]; then
-        print_error "Failed to pull updates after $MAX_RETRY_ATTEMPTS attempts"
-        return 1
-    fi
-
-    # Check if sudo is available for build-switch
-    if ! command -v sudo >/dev/null 2>&1; then
-        print_warning "sudo not available, build-switch may require manual intervention"
-    fi
-
-    # Get the architecture for build-switch
-    local arch=$(uname -m)
-    local os=$(uname -s)
-
-    if [[ "$os" == "Darwin" ]]; then
-        local system_type="${arch}-darwin"
+    if timeout $NETWORK_TIMEOUT git pull origin main --quiet; then
+      pull_success=true
+      break
     else
-        local system_type="${arch}-linux"
+      if [[ $pull_attempt -lt $MAX_RETRY_ATTEMPTS ]]; then
+        local wait_time=$((pull_attempt * 2))
+        print_warning "Pull failed, retrying in ${wait_time}s..."
+        sleep $wait_time
+      fi
     fi
 
-    print_info "Running build-switch for $system_type..."
+    ((pull_attempt++))
+  done
 
-    # Run build-switch with proper error handling
-    if command -v nix >/dev/null 2>&1; then
-        export USER=${USER:-$(whoami)}
+  if [[ $pull_success != "true" ]]; then
+    print_error "Failed to pull updates after $MAX_RETRY_ATTEMPTS attempts"
+    return 1
+  fi
 
-        # Attempt to run build-switch
-        if timeout 600 nix run --impure ".#build-switch" 2>>"$LOG_FILE"; then
-            print_status "Build-switch completed successfully!"
+  # Check if sudo is available for build-switch
+  if ! command -v sudo >/dev/null 2>&1; then
+    print_warning "sudo not available, build-switch may require manual intervention"
+  fi
 
-            # Validate system state after update
-            validate_system_state
+  # Get the architecture for build-switch
+  local arch=$(uname -m)
+  local os=$(uname -s)
 
-            print_status "Auto-update completed successfully!"
-            log_message "Auto-update completed for commit: $(git rev-parse --short HEAD)"
-            return 0
-        else
-            print_error "Build-switch failed, check log: $LOG_FILE"
-            print_info "Attempting rollback to previous state..."
+  if [[ $os == "Darwin" ]]; then
+    local system_type="${arch}-darwin"
+  else
+    local system_type="${arch}-linux"
+  fi
 
-            # Attempt rollback on failure
-            if rollback_on_failure; then
-                print_warning "Rollback completed, system restored to previous state"
-            else
-                print_error "Rollback failed, manual intervention may be required"
-            fi
-            return 1
-        fi
+  print_info "Running build-switch for $system_type..."
+
+  # Run build-switch with proper error handling
+  if command -v nix >/dev/null 2>&1; then
+    export USER=${USER:-$(whoami)}
+
+    # Attempt to run build-switch
+    if timeout 600 nix run --impure ".#build-switch" 2>>"$LOG_FILE"; then
+      print_status "Build-switch completed successfully!"
+
+      # Validate system state after update
+      validate_system_state
+
+      print_status "Auto-update completed successfully!"
+      log_message "Auto-update completed for commit: $(git rev-parse --short HEAD)"
+      return 0
     else
-        print_error "Nix not found, cannot run build-switch"
-        return 1
+      print_error "Build-switch failed, check log: $LOG_FILE"
+      print_info "Attempting rollback to previous state..."
+
+      # Attempt rollback on failure
+      if rollback_on_failure; then
+        print_warning "Rollback completed, system restored to previous state"
+      else
+        print_error "Rollback failed, manual intervention may be required"
+      fi
+      return 1
     fi
+  else
+    print_error "Nix not found, cannot run build-switch"
+    return 1
+  fi
 }
 
 # Function to perform rollback on failure
 rollback_on_failure() {
-    print_warning "Performing rollback due to build-switch failure..."
+  print_warning "Performing rollback due to build-switch failure..."
 
-    # Find the most recent backup
-    local latest_backup=$(ls -t "$BACKUP_DIR"/*.state 2>/dev/null | head -1)
+  # Find the most recent backup
+  local latest_backup=$(ls -t "$BACKUP_DIR"/*.state 2>/dev/null | head -1)
 
-    if [[ -n "$latest_backup" && -f "$latest_backup" ]]; then
-        # Read backup state
-        local backup_commit=$(grep "COMMIT=" "$latest_backup" | cut -d'=' -f2)
-        local backup_branch=$(grep "BRANCH=" "$latest_backup" | cut -d'=' -f2)
+  if [[ -n $latest_backup && -f $latest_backup ]]; then
+    # Read backup state
+    local backup_commit=$(grep "COMMIT=" "$latest_backup" | cut -d'=' -f2)
+    local backup_branch=$(grep "BRANCH=" "$latest_backup" | cut -d'=' -f2)
 
-        if [[ -n "$backup_commit" && "$backup_commit" != "unknown" ]]; then
-            print_info "Rolling back to commit: $backup_commit"
+    if [[ -n $backup_commit && $backup_commit != "unknown" ]]; then
+      print_info "Rolling back to commit: $backup_commit"
 
-            # Reset to backup commit
-            if git reset --hard "$backup_commit" 2>/dev/null; then
-                print_info "Git rollback successful"
-                log_message "Rolled back to commit: $backup_commit"
-                return 0
-            else
-                print_error "Git rollback failed"
-                return 1
-            fi
-        else
-            print_error "Invalid backup commit, cannot rollback"
-            return 1
-        fi
-    else
-        print_error "No backup found for rollback"
+      # Reset to backup commit
+      if git reset --hard "$backup_commit" 2>/dev/null; then
+        print_info "Git rollback successful"
+        log_message "Rolled back to commit: $backup_commit"
+        return 0
+      else
+        print_error "Git rollback failed"
         return 1
+      fi
+    else
+      print_error "Invalid backup commit, cannot rollback"
+      return 1
     fi
+  else
+    print_error "No backup found for rollback"
+    return 1
+  fi
 }
 
 # Function to show usage
 usage() {
-    echo "Usage: $0 [OPTIONS]"
-    echo ""
-    echo "Auto-update dotfiles script with TTL-based checking"
-    echo ""
-    echo "Options:"
-    echo "  -f, --force           Force check even if TTL hasn't expired"
-    echo "  -s, --silent          Run silently (no output unless errors)"
-    echo "  -c, --check-on-start  Check for updates on shell startup (interactive mode)"
-    echo "      --scheduled       Run in scheduled mode (no prompts)"
-    echo "  -h, --help            Show this help message"
-    echo ""
-    echo "TTL: $TTL_SECONDS seconds ($(($TTL_SECONDS / 60)) minutes)"
+  echo "Usage: $0 [OPTIONS]"
+  echo ""
+  echo "Auto-update dotfiles script with TTL-based checking"
+  echo ""
+  echo "Options:"
+  echo "  -f, --force           Force check even if TTL hasn't expired"
+  echo "  -s, --silent          Run silently (no output unless errors)"
+  echo "  -c, --check-on-start  Check for updates on shell startup (interactive mode)"
+  echo "      --scheduled       Run in scheduled mode (no prompts)"
+  echo "  -h, --help            Show this help message"
+  echo ""
+  echo "TTL: $TTL_SECONDS seconds ($((TTL_SECONDS / 60)) minutes)"
 }
 
 # Main function
 main() {
-    local force_check=false
-    local silent_mode=false
-    local check_on_start=false
-    local scheduled_mode=false
+  local force_check=false
+  local silent_mode=false
+  local check_on_start=false
+  local scheduled_mode=false
 
-    # Parse command line arguments
-    while [[ $# -gt 0 ]]; do
-        case $1 in
-            -f|--force)
-                force_check=true
-                shift
-                ;;
-            -s|--silent)
-                silent_mode=true
-                shift
-                ;;
-            -c|--check-on-start)
-                check_on_start=true
-                shift
-                ;;
-            --scheduled)
-                scheduled_mode=true
-                silent_mode=true
-                shift
-                ;;
-            -h|--help)
-                usage
-                exit 0
-                ;;
-            *)
-                print_error "Unknown option: $1"
-                usage
-                exit 1
-                ;;
-        esac
-    done
+  # Parse command line arguments
+  while [[ $# -gt 0 ]]; do
+    case $1 in
+    -f | --force)
+      force_check=true
+      shift
+      ;;
+    -s | --silent)
+      silent_mode=true
+      shift
+      ;;
+    -c | --check-on-start)
+      check_on_start=true
+      shift
+      ;;
+    --scheduled)
+      scheduled_mode=true
+      silent_mode=true
+      shift
+      ;;
+    -h | --help)
+      usage
+      exit 0
+      ;;
+    *)
+      print_error "Unknown option: $1"
+      usage
+      exit 1
+      ;;
+    esac
+  done
 
-    # Initialize log and cache directories
-    mkdir -p "$CACHE_DIR" "$BACKUP_DIR"
-    log_message "Starting auto-update check (force: $force_check, silent: $silent_mode)"
+  # Initialize log and cache directories
+  mkdir -p "$CACHE_DIR" "$BACKUP_DIR"
+  log_message "Starting auto-update check (force: $force_check, silent: $silent_mode)"
 
-    # Acquire lock to prevent concurrent execution
-    acquire_lock
+  # Acquire lock to prevent concurrent execution
+  acquire_lock
 
-    # Check TTL unless forced
-    if [[ "$force_check" != "true" ]] && ! is_ttl_expired; then
-        if [[ "$silent_mode" != "true" ]]; then
-            local remaining=$((TTL_SECONDS - ($(date +%s) - $(cat "$CACHE_FILE" 2>/dev/null || echo "0"))))
-            local remaining_minutes=$((remaining / 60))
-            print_info "TTL not expired, next check in ~${remaining_minutes} minutes"
-        fi
-        log_message "TTL not expired, skipping check"
-        exit 0
+  # Check TTL unless forced
+  if [[ $force_check != "true" ]] && ! is_ttl_expired; then
+    if [[ $silent_mode != "true" ]]; then
+      local remaining=$((TTL_SECONDS - ($(date +%s) - $(cat "$CACHE_FILE" 2>/dev/null || echo "0"))))
+      local remaining_minutes=$((remaining / 60))
+      print_info "TTL not expired, next check in ~${remaining_minutes} minutes"
+    fi
+    log_message "TTL not expired, skipping check"
+    exit 0
+  fi
+
+  # Update TTL cache
+  update_ttl_cache
+
+  # Ensure we're in the right directory
+  ensure_dotfiles_dir
+
+  # Check for local changes
+  if has_local_changes; then
+    if [[ $silent_mode != "true" ]]; then
+      print_warning "Local changes detected, skipping auto-update"
+      print_info "Run 'git status' in $DOTFILES_DIR to see changes"
+    fi
+    log_message "Local changes detected, skipping auto-update"
+    exit 0
+  fi
+
+  # Check for remote updates
+  if has_remote_updates; then
+    # Get update information for prompt
+    local update_info=$(get_update_info)
+    IFS='|' read -r commit_count latest_message local_commit remote_commit <<<"$update_info"
+
+    # Determine whether to prompt user
+    local should_prompt=false
+    local user_approved=false
+
+    # In interactive mode (not silent, not scheduled), prompt the user
+    if [[ $silent_mode != "true" && $scheduled_mode != "true" ]]; then
+      should_prompt=true
     fi
 
-    # Update TTL cache
-    update_ttl_cache
-
-    # Ensure we're in the right directory
-    ensure_dotfiles_dir
-
-    # Check for local changes
-    if has_local_changes; then
-        if [[ "$silent_mode" != "true" ]]; then
-            print_warning "Local changes detected, skipping auto-update"
-            print_info "Run 'git status' in $DOTFILES_DIR to see changes"
-        fi
-        log_message "Local changes detected, skipping auto-update"
-        exit 0
+    # If running with --check-on-start, always prompt in foreground
+    if [[ $check_on_start == "true" ]]; then
+      should_prompt=true
+      silent_mode=false
     fi
 
-    # Check for remote updates
-    if has_remote_updates; then
-        # Get update information for prompt
-        local update_info=$(get_update_info)
-        IFS='|' read -r commit_count latest_message local_commit remote_commit <<< "$update_info"
+    # Prompt user if in interactive mode
+    if [[ $should_prompt == "true" ]]; then
+      if prompt_for_update "$commit_count" "$latest_message" "$local_commit" "$remote_commit"; then
+        user_approved=true
+        print_info "User approved update, proceeding..."
+      else
+        print_info "Update declined by user"
+        log_message "Update declined by user for commit: $remote_commit"
+        exit 0
+      fi
+    fi
 
-        # Determine whether to prompt user
-        local should_prompt=false
-        local user_approved=false
-
-        # In interactive mode (not silent, not scheduled), prompt the user
-        if [[ "$silent_mode" != "true" && "$scheduled_mode" != "true" ]]; then
-            should_prompt=true
-        fi
-
-        # If running with --check-on-start, always prompt in foreground
-        if [[ "$check_on_start" == "true" ]]; then
-            should_prompt=true
-            silent_mode=false
-        fi
-
-        # Prompt user if in interactive mode
-        if [[ "$should_prompt" == "true" ]]; then
-            if prompt_for_update "$commit_count" "$latest_message" "$local_commit" "$remote_commit"; then
-                user_approved=true
-                print_info "User approved update, proceeding..."
-            else
-                print_info "Update declined by user"
-                log_message "Update declined by user for commit: $remote_commit"
-                exit 0
-            fi
-        fi
-
-        # Perform update based on mode
-        if [[ "$scheduled_mode" == "true" || "$silent_mode" == "true" ]]; then
-            # In scheduled/silent mode, skip update (no auto-apply without user consent)
-            log_message "Updates available but running in scheduled/silent mode - skipping auto-apply"
-            if [[ "$scheduled_mode" != "true" ]]; then
-                print_info "Updates available - run with -f to check and apply"
-            fi
-        elif [[ "$user_approved" == "true" || "$force_check" == "true" ]]; then
-            # User approved or force mode - perform update
-            perform_auto_update
-        else
-            # Should not reach here, but just in case
-            print_info "Updates available but not applying"
-        fi
+    # Perform update based on mode
+    if [[ $scheduled_mode == "true" || $silent_mode == "true" ]]; then
+      # In scheduled/silent mode, skip update (no auto-apply without user consent)
+      log_message "Updates available but running in scheduled/silent mode - skipping auto-apply"
+      if [[ $scheduled_mode != "true" ]]; then
+        print_info "Updates available - run with -f to check and apply"
+      fi
+    elif [[ $user_approved == "true" || $force_check == "true" ]]; then
+      # User approved or force mode - perform update
+      perform_auto_update
     else
-        if [[ "$silent_mode" != "true" ]]; then
-            print_info "No remote updates available"
-        fi
-        log_message "No remote updates available"
+      # Should not reach here, but just in case
+      print_info "Updates available but not applying"
     fi
+  else
+    if [[ $silent_mode != "true" ]]; then
+      print_info "No remote updates available"
+    fi
+    log_message "No remote updates available"
+  fi
 }
 
 # Run main function with all arguments
