@@ -200,10 +200,31 @@
       );
 
       # Import testing infrastructure
-      tests = (import ./lib/testing.nix { inherit inputs forAllSystems self; }).tests;
+      tests =
+        let
+          testingLib = import ./lib/testing.nix { inherit inputs forAllSystems self; };
+        in
+        if builtins.hasAttr "tests" testingLib then testingLib.tests else { };
 
       # Import performance benchmarks
-      performance-benchmarks = (import ./lib/testing.nix { inherit inputs forAllSystems self; }).performance-benchmarks;
+      performance-benchmarks =
+        let
+          testingLib = import ./lib/testing.nix { inherit inputs forAllSystems self; };
+        in
+        if builtins.hasAttr "performance-benchmarks" testingLib then testingLib.performance-benchmarks else { };
+
+      # Expose tests as packages for easier CI access
+      packages = forAllSystems (system:
+        let
+          testingLib = import ./lib/testing.nix { inherit inputs forAllSystems self; };
+          hasTests = builtins.hasAttr "tests" testingLib;
+          testsVal = if hasTests then testingLib.tests else { };
+          testsHasSystem = hasTests && builtins.hasAttr system testsVal;
+        in
+        if testsHasSystem then {
+          inherit (testsVal.${system}) framework-check lib-functions platform-detection;
+        } else { }
+      );
 
     };
 }

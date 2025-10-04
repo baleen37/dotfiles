@@ -43,9 +43,12 @@ let
   configDir = "${homeDir}/.config";
 in
 {
-  # Import program configurations (separated for single responsibility)
+  # Allow unfree packages (required for claude-code)
+  nixpkgs.config.allowUnfree = true;
+
+  # Import program configurations (modular structure for single responsibility)
   imports = [
-    ./programs.nix
+    ./programs/index.nix
   ];
   # Use lib.mkMerge for combining configurations following dustinlyons pattern
   home = lib.mkMerge [

@@ -1,24 +1,24 @@
 # Shared Program Configurations Entry Point
 #
-# Modular program configurations following dustinlyons pattern with single responsibility.
-# This index file provides standardized interface for all program modules.
+# Modular program configurations with flat structure and directories for complex programs.
+# Following YAGNI principle - simple flat files, directories only when needed.
 #
 # ARCHITECTURE:
-#   - Modular structure: Each program category in separate file
-#   - Standardized interface: Consistent inputs/outputs across modules
-#   - Single responsibility: Each module handles specific program set
-#   - Cross-platform: Shared programs with platform-aware optimizations
+#   - Flat structure: Simple programs as individual files
+#   - Directory modules: Complex programs (zsh, tmux) in their own directories
+#   - Standardized interface: Consistent inputs/outputs across all modules
 #
-# MODULES:
-#   - shell.nix: zsh configuration and shell environment
-#   - development.nix: git, vim, ssh development tools
-#   - terminal.nix: alacritty, tmux terminal applications
-#   - productivity.nix: direnv, fzf productivity enhancements
+# PROGRAM MODULES:
+#   - zsh/: Complete shell environment configuration
+#   - tmux/: Terminal multiplexer with plugins
+#   - git.nix: Version control with aliases
+#   - vim.nix: Editor with plugins
+#   - alacritty.nix: Terminal emulator
+#   - ssh.nix: SSH client configuration
+#   - direnv.nix: Environment management
+#   - fzf.nix: Fuzzy finder
 #
-# USAGE:
-#   Imported by modules/shared/home-manager.nix
-#
-# VERSION: 3.0.0 (Modular refactoring)
+# VERSION: 3.1.0 (Flat structure with complex program directories)
 # LAST UPDATED: 2024-10-04
 
 { config
@@ -77,19 +77,32 @@ let
     };
   };
 
-  # Import all program modules with standardized interface
-  shellConfig = import ./shell.nix moduleInputs;
-  developmentConfig = import ./development.nix moduleInputs;
-  terminalConfig = import ./terminal.nix moduleInputs;
-  productivityConfig = import ./productivity.nix moduleInputs;
+  # Import complex program modules (directories)
+  zshConfig = import ./zsh/default.nix moduleInputs;
+  tmuxConfig = import ./tmux/default.nix moduleInputs;
+
+  # Import simple program modules (flat files)
+  gitConfig = import ./git.nix moduleInputs;
+  vimConfig = import ./vim.nix moduleInputs;
+  alacrittyConfig = import ./alacritty.nix moduleInputs;
+  sshConfig = import ./ssh.nix moduleInputs;
+  direnvConfig = import ./direnv.nix moduleInputs;
+  fzfConfig = import ./fzf.nix moduleInputs;
 
 in
 {
   # Merge all program configurations using lib.mkMerge for clean combination
   programs = lib.mkMerge [
-    shellConfig.programs
-    developmentConfig.programs
-    terminalConfig.programs
-    productivityConfig.programs
+    # Complex programs with their own directories
+    zshConfig.programs
+    tmuxConfig.programs
+
+    # Simple programs as flat files
+    gitConfig.programs
+    vimConfig.programs
+    alacrittyConfig.programs
+    sshConfig.programs
+    direnvConfig.programs
+    fzfConfig.programs
   ];
 }
