@@ -126,12 +126,12 @@ in
         };
 
         # Import optimized shared programs configuration
-        programs = sharedConfig.programs // {
+        programs = {
           # Darwin-specific program overrides and additions
 
           # Enhanced macOS terminal integration
-          zsh = sharedConfig.programs.zsh // {
-            shellAliases = sharedConfig.programs.zsh.shellAliases // {
+          zsh = {
+            shellAliases = {
               # macOS-specific aliases
               finder = "open -a Finder";
               preview = "open -a Preview";

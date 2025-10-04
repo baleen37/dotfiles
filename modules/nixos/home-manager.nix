@@ -267,12 +267,12 @@ in
   };
 
   # Enhanced programs configuration with NixOS-specific optimizations
-  programs = sharedConfig.programs // {
+  programs = {
     # NixOS-specific program overrides and additions
 
     # Enhanced shell configuration for Linux
-    zsh = sharedConfig.programs.zsh // {
-      shellAliases = sharedConfig.programs.zsh.shellAliases // {
+    zsh = {
+      shellAliases = {
         # Linux-specific aliases
         ll = "ls -alF";
         la = "ls -A";
@@ -291,8 +291,8 @@ in
     };
 
     # Enhanced development tools for NixOS
-    git = sharedConfig.programs.git // {
-      extraConfig = sharedConfig.programs.git.extraConfig // {
+    git = {
+      extraConfig = {
         # Linux-specific git configuration
         credential.helper = "store";
       };
