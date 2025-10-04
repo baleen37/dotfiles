@@ -1,5 +1,9 @@
 # lib/testing.nix - Extracted testing logic from flake.nix
-{ inputs, forAllSystems, self }:
+{ inputs
+, forAllSystems
+, self
+,
+}:
 
 let
   # Extract nixpkgs from inputs
@@ -20,21 +24,56 @@ in
 
       # Import unit test suites with nixtest and testHelpers provided
       libTests = import (self + /tests/unit/lib_test.nix) {
-        inherit lib pkgs system nixtest testHelpers self;
+        inherit
+          lib
+          pkgs
+          system
+          nixtest
+          testHelpers
+          self
+          ;
       };
       platformTests = import (self + /tests/unit/platform_test.nix) {
-        inherit lib pkgs system nixtest testHelpers self;
+        inherit
+          lib
+          pkgs
+          system
+          nixtest
+          testHelpers
+          self
+          ;
       };
 
       # Import integration test suites with nixtest and testHelpers provided
       moduleInteractionTests = import (self + /tests/integration/module-interaction-test.nix) {
-        inherit lib pkgs system nixtest testHelpers self;
+        inherit
+          lib
+          pkgs
+          system
+          nixtest
+          testHelpers
+          self
+          ;
       };
       crossPlatformTests = import (self + /tests/integration/cross-platform-test.nix) {
-        inherit lib pkgs system nixtest testHelpers self;
+        inherit
+          lib
+          pkgs
+          system
+          nixtest
+          testHelpers
+          self
+          ;
       };
       systemConfigurationTests = import (self + /tests/integration/system-configuration-test.nix) {
-        inherit lib pkgs system nixtest testHelpers self;
+        inherit
+          lib
+          pkgs
+          system
+          nixtest
+          testHelpers
+          self
+          ;
       };
 
       # Helper function to run test suites and format results

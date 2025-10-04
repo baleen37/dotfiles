@@ -12,14 +12,14 @@
 ### 시스템 레벨에서 사용자 레벨로 이동된 설정
 
 1. **macOS Defaults**: `system.defaults` → Home Manager activation scripts
-2. **App Installation**: `/Applications` → `~/Applications`  
+2. **App Installation**: `/Applications` → `~/Applications`
 3. **System Activation**: `system.activationScripts` → `home.activation`
 4. **Shell Configuration**: `environment.shells` → user-level zsh setup
 
 ### 새로운 구성 파일들
 
 - `hosts/darwin/default-rootless.nix` - 최소한의 시스템 설정
-- `modules/darwin/home-manager-rootless.nix` - 사용자 레벨 Home Manager 구성  
+- `modules/darwin/home-manager-rootless.nix` - 사용자 레벨 Home Manager 구성
 - `scripts/build-switch-rootless.sh` - Root 권한 없는 빌드/스위치 스크립트
 
 ## 사용법
@@ -72,7 +72,7 @@ install-user-apps
 Rootless 빌드는 다음 과정을 거칩니다:
 
 1. 임시 디렉토리에 프로젝트 복사
-2. `hosts/darwin/default.nix`를 `default-rootless.nix`로 교체  
+2. `hosts/darwin/default.nix`를 `default-rootless.nix`로 교체
 3. `modules/darwin/home-manager.nix`를 `home-manager-rootless.nix`로 교체
 4. 임시 구성으로 빌드 및 적용
 
@@ -117,7 +117,7 @@ Rootless 빌드는 다음 과정을 거칩니다:
 sudo vi /etc/nix/nix.custom.conf
 # 추가: trusted-users = root @admin yourusername
 
-# zsh를 시스템 쉘로 등록 (선택사항)  
+# zsh를 시스템 쉘로 등록 (선택사항)
 echo "$(which zsh)" | sudo tee -a /etc/shells
 ```
 
@@ -161,7 +161,7 @@ install-user-apps
 # 임시 빌드 디렉토리에서 직접 빌드 테스트
 nix build --impure .#darwinConfigurations.$(nix eval --impure --raw --expr 'builtins.currentSystem').system
 
-# Home Manager 구성 확인  
+# Home Manager 구성 확인
 nix eval --impure .#darwinConfigurations.$(nix eval --impure --raw --expr 'builtins.currentSystem').config.home-manager.users
 ```
 
@@ -204,7 +204,7 @@ nix run .#build-switch
 ### 장점
 
 - ✅ Root 권한 불필요
-- ✅ 빠른 빌드 및 적용  
+- ✅ 빠른 빌드 및 적용
 - ✅ 사용자별 격리
 - ✅ 안전한 테스트 환경
 

@@ -204,7 +204,7 @@ source apps/$PLATFORM_SYSTEM/config.sh
 
 # Available variables:
 # - PLATFORM_TYPE: "darwin" or "linux"
-# - ARCH: "aarch64" or "x86_64"  
+# - ARCH: "aarch64" or "x86_64"
 # - PLATFORM_SYSTEM: "aarch64-darwin", "x86_64-linux", etc.
 ```
 
@@ -444,7 +444,7 @@ in {
 **Configuration Sections:**
 
 - `buildConfig`: 빌드 성능 설정
-- `cacheConfig`: 캐시 성능 설정  
+- `cacheConfig`: 캐시 성능 설정
 - `networkConfig`: 네트워크 성능 설정
 - `systemConfig`: 시스템 성능 설정
 

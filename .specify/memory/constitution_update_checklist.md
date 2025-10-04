@@ -92,4 +92,4 @@ Last sync check: 2025-07-16
 
 ---
 
-*This checklist ensures the constitution's principles are consistently applied across all project documentation.*
+_This checklist ensures the constitution's principles are consistently applied across all project documentation._

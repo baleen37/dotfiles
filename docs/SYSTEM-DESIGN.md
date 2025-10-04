@@ -71,7 +71,7 @@ Uses **externalized configuration** with intelligent defaults:
 ```text
 Configuration Resolution Order:
 1. Environment Variables      (Runtime overrides)
-2. YAML Configuration Files   (Persistent settings)  
+2. YAML Configuration Files   (Persistent settings)
 3. Module Defaults           (Fallback values)
 4. System Detection          (Auto-configuration)
 ```
@@ -135,7 +135,7 @@ export USER=$(whoami)                    # User context
 source apps/$PLATFORM_SYSTEM/config.sh  # Platform config
 load_all_configs                        # External configuration
 
-# Stage 2: Dependency Resolution  
+# Stage 2: Dependency Resolution
 nix flake lock --update-input nixpkgs   # Lock dependencies
 nix flake show                          # Validate structure
 
@@ -200,7 +200,7 @@ The testing system uses a **pyramid testing strategy**:
                           ▲
                     ┌─────────────────┐
                     │   End-to-End    │  ←─ 12 tests (Full workflows)
-                    │     Tests       │     Execution: ~5min  
+                    │     Tests       │     Execution: ~5min
                     └─────────────────┘
                           ▲
                     ┌─────────────────┐
@@ -263,7 +263,7 @@ Claude Code
     │
     ├── MCP Server: Filesystem     ←─ File operations
     ├── MCP Server: Context7       ←─ Documentation search
-    ├── MCP Server: Sequential     ←─ Multi-step analysis  
+    ├── MCP Server: Sequential     ←─ Multi-step analysis
     └── MCP Server: Playwright     ←─ Browser automation
             │
             └── Dotfiles Context   ←─ .claude/ configuration
@@ -281,7 +281,7 @@ Commands follow a **plugin-based architecture**:
 # Command Structure
 .claude/commands/{command-name}.md
     ├── metadata:          # Command description
-    ├── parameters:        # Input validation  
+    ├── parameters:        # Input validation
     ├── implementation:    # Core logic
     └── integration:       # System hooks
 ```
@@ -316,7 +316,7 @@ Builds the current platform configuration with validation and testing.
 - **Scripts**: Each script handles one specific operation
 - **Functions**: Each Nix function has a single, well-defined purpose
 
-#### Open/Closed Principle  
+#### Open/Closed Principle
 
 - **Extension Points**: New platforms via module addition
 - **Plugin System**: Custom modules without core changes
@@ -367,7 +367,7 @@ detectPlatform = system:
 # Module composition pattern
 systemConfig = lib.mkMerge [
   baseConfig
-  platformConfig  
+  platformConfig
   hostConfig
   userOverrides
 ];
@@ -537,7 +537,7 @@ monitor_resources() {
 #### 2. **Defense in Depth**
 
 - **Input Validation**: All external inputs validated
-- **Sandboxing**: Nix builds run in isolated sandboxes  
+- **Sandboxing**: Nix builds run in isolated sandboxes
 - **Network Isolation**: Build processes have limited network access
 - **Filesystem Isolation**: Restricted filesystem access during builds
 

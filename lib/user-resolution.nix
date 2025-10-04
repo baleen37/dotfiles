@@ -17,7 +17,8 @@ let
   # Validate username format
   validateUser =
     username:
-    username != "" && username != null
+    username != ""
+    && username != null
     && builtins.match "^[a-zA-Z0-9_][a-zA-Z0-9_.-]{0,30}[a-zA-Z0-9_]$|^[a-zA-Z0-9_]$" username != null;
 
   # Detect platform if not provided
@@ -50,8 +51,7 @@ let
 
   # Get home directory path
   getUserHomePath =
-    user: platform:
-    if platform == "darwin" then "/Users/${user}" else "/home/${user}";
+    user: platform: if platform == "darwin" then "/Users/${user}" else "/home/${user}";
 
   # Extended result with additional metadata
   homePath = getUserHomePath resolveUser currentPlatform;
@@ -60,7 +60,9 @@ let
     inherit homePath;
     platform = currentPlatform;
     # Legacy compatibility: paths.home for old code
-    paths = { home = homePath; };
+    paths = {
+      home = homePath;
+    };
     __toString = self: resolveUser;
   };
 

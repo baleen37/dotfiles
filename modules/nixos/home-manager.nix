@@ -84,7 +84,10 @@ in
       packages = sharedPackages ++ (pkgs.callPackage ./packages.nix { });
 
       # Combine files using lib.mkMerge
-      file = lib.mkMerge [ sharedFiles nixosFiles ];
+      file = lib.mkMerge [
+        sharedFiles
+        nixosFiles
+      ];
 
       stateVersion = "21.05";
 

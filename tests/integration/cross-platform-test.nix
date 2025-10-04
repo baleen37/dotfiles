@@ -8,12 +8,18 @@
 , nixtest ? null
 , testHelpers ? null
 , self ? null
+,
 }:
 
 let
   # Use provided NixTest framework and helpers (or fallback to local imports)
-  nixtestFinal = if nixtest != null then nixtest else (import ../unit/nixtest-template.nix { inherit lib pkgs; }).nixtest;
-  testHelpersFinal = if testHelpers != null then testHelpers else import ../unit/test-helpers.nix { inherit lib pkgs; };
+  nixtestFinal =
+    if nixtest != null then
+      nixtest
+    else
+      (import ../unit/nixtest-template.nix { inherit lib pkgs; }).nixtest;
+  testHelpersFinal =
+    if testHelpers != null then testHelpers else import ../unit/test-helpers.nix { inherit lib pkgs; };
 
   # Import platform-specific libraries
   platformSystem = import ../../lib/platform-system.nix { inherit lib pkgs system; };

@@ -230,12 +230,12 @@ Documentation is extensively cross-linked:
 
 ### Quick Support Matrix
 
-| Need | Primary Resource | Secondary Resource |
-|------|------------------|-------------------|
-| **Basic Usage** | Configuration Guide | Examples Directory |
-| **Development** | Development Guide | TDD Workflow Examples |
-| **Integration** | API Reference | Architecture Guide |
-| **Troubleshooting** | Migration Guide | Configuration Guide |
-| **System Design** | Architecture Guide | API Reference |
+| Need                | Primary Resource    | Secondary Resource    |
+| ------------------- | ------------------- | --------------------- |
+| **Basic Usage**     | Configuration Guide | Examples Directory    |
+| **Development**     | Development Guide   | TDD Workflow Examples |
+| **Integration**     | API Reference       | Architecture Guide    |
+| **Troubleshooting** | Migration Guide     | Configuration Guide   |
+| **System Design**   | Architecture Guide  | API Reference         |
 
 This comprehensive documentation suite ensures that users at all levels can effectively understand, use, and contribute to the Phase 4 dotfiles architecture.

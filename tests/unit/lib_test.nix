@@ -8,26 +8,32 @@
 , nixtest ? null
 , testHelpers ? null
 , self ? null
+,
 }:
 
 let
   # Use provided NixTest framework and helpers (or fallback to local imports)
-  nixtestFinal = if nixtest != null then nixtest else (import ./nixtest-template.nix { inherit lib pkgs; }).nixtest;
-  testHelpersFinal = if testHelpers != null then testHelpers else import ./test-helpers.nix { inherit lib pkgs; };
+  nixtestFinal =
+    if nixtest != null then nixtest else (import ./nixtest-template.nix { inherit lib pkgs; }).nixtest;
+  testHelpersFinal =
+    if testHelpers != null then testHelpers else import ./test-helpers.nix { inherit lib pkgs; };
 
   # Import project libraries for testing (with fallback paths)
   platformDetection =
-    if self != null
-    then import (self + /lib/platform-detection.nix) { inherit lib pkgs system; }
-    else import ../../lib/platform-detection.nix { inherit lib pkgs system; };
+    if self != null then
+      import (self + /lib/platform-detection.nix) { inherit lib pkgs system; }
+    else
+      import ../../lib/platform-detection.nix { inherit lib pkgs system; };
   utilsSystem =
-    if self != null
-    then import (self + /lib/utils-system.nix) { inherit lib pkgs; }
-    else import ../../lib/utils-system.nix { inherit lib pkgs; };
+    if self != null then
+      import (self + /lib/utils-system.nix) { inherit lib pkgs; }
+    else
+      import ../../lib/utils-system.nix { inherit lib pkgs; };
   testBuilders =
-    if self != null
-    then import (self + /lib/test-builders.nix) { inherit lib pkgs; }
-    else import ../../lib/test-builders.nix { inherit lib pkgs; };
+    if self != null then
+      import (self + /lib/test-builders.nix) { inherit lib pkgs; }
+    else
+      import ../../lib/test-builders.nix { inherit lib pkgs; };
 
   # Test data for comprehensive testing
   testData = {
@@ -514,7 +520,9 @@ nixtestFinal.suite "Library Functions Tests" {
       );
 
       invalidPlatformValidation = nixtestFinal.test "Invalid platform validation throws" (
-        nixtestFinal.assertions.assertThrows (testBuilders.validators.validatePlatform "unsupported-platform")
+        nixtestFinal.assertions.assertThrows (
+          testBuilders.validators.validatePlatform "unsupported-platform"
+        )
       );
     };
 
@@ -553,7 +561,9 @@ nixtestFinal.suite "Library Functions Tests" {
 
     # Utils system errors
     invalidConfigKeysError = nixtestFinal.test "Missing config keys throws error" (
-      nixtestFinal.assertions.assertThrows (utilsSystem.configUtils.validateRequiredKeys { } [ "missing-key" ])
+      nixtestFinal.assertions.assertThrows (
+        utilsSystem.configUtils.validateRequiredKeys { } [ "missing-key" ]
+      )
     );
 
     # Package validation errors

@@ -17,7 +17,14 @@ let
 
   # Import testing framework performance tools
   testingPerformance = {
-    benchmark = import ../tests/performance/test-benchmark.nix { inherit lib pkgs self; stdenv = pkgs.stdenv; writeShellScript = pkgs.writeShellScript; time = pkgs.time; gnugrep = pkgs.gnugrep; coreutils = pkgs.coreutils; };
+    benchmark = import ../tests/performance/test-benchmark.nix {
+      inherit lib pkgs self;
+      stdenv = pkgs.stdenv;
+      writeShellScript = pkgs.writeShellScript;
+      time = pkgs.time;
+      gnugrep = pkgs.gnugrep;
+      coreutils = pkgs.coreutils;
+    };
     # TODO: Re-enable when performance tools are implemented
     # memoryProfiler = import ../tests/performance/advanced-memory-profiler.nix { inherit lib pkgs self; stdenv = pkgs.stdenv; writeShellScript = pkgs.writeShellScript; python3 = pkgs.python3; gawk = pkgs.gawk; procps = pkgs.procps; time = pkgs.time; bc = pkgs.bc; coreutils = pkgs.coreutils; };
     # optimizationConfig = import ../tests/performance/optimization-config.nix { inherit lib pkgs self; stdenv = pkgs.stdenv; writeShellScript = pkgs.writeShellScript; writeText = pkgs.writeText; jq = pkgs.jq; coreutils = pkgs.coreutils; };

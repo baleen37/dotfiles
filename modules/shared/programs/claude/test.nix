@@ -7,6 +7,7 @@
 
 { pkgs ? import <nixpkgs> { }
 , lib ? pkgs.lib
+,
 }:
 
 let
@@ -216,17 +217,19 @@ rec {
   '';
 
   # Run all tests
-  all-tests = pkgs.runCommand "test-claude-all"
-    {
-      buildInputs = [
-        test-module-eval
-        test-darwin-links
-        test-linux-links
-        test-config-path
-        test-no-packages
-      ];
-    } ''
-    echo "✅ All Claude module unit tests passed!"
-    touch $out
-  '';
+  all-tests =
+    pkgs.runCommand "test-claude-all"
+      {
+        buildInputs = [
+          test-module-eval
+          test-darwin-links
+          test-linux-links
+          test-config-path
+          test-no-packages
+        ];
+      }
+      ''
+        echo "✅ All Claude module unit tests passed!"
+        touch $out
+      '';
 }

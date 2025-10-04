@@ -234,7 +234,7 @@ The dotfiles use an **intelligent symlink-based configuration system** with adva
 **🧠 Intelligent Activation**:
 
 - **Multi-path fallback**: Automatically finds dotfiles location across different environments
-- **JSON state merging**: Preserves dynamic Claude settings (like `feedbackSurveyState`) during updates  
+- **JSON state merging**: Preserves dynamic Claude settings (like `feedbackSurveyState`) during updates
 - **Cross-platform compatibility**: Works seamlessly on macOS and Linux
 - **Self-healing**: Detects and repairs broken symlinks automatically
 
@@ -471,14 +471,14 @@ find modules/shared/config/claude -name "*.md" -o -name "*.json"
 
 ## 📚 Command Quick Reference
 
-| Command | Purpose | Example Usage |
-|---------|---------|---------------|
-| `/do-plan` | Create implementation plans | `claude /do-plan "Add API endpoint"` |
-| `/do-issue` | Work on GitHub issues | `claude /do-issue 123` |
-| `/start-feature` | Start new feature branch | `claude /start-feature "user-auth"` |
-| `/create-pr` | Create pull request | `claude /create-pr` |
-| `/brainstorm` | Generate ideas | `claude /brainstorm "Performance issues"` |
-| `/setup` | Environment setup | `claude /setup --typescript` |
-| `/update-docs` | Update documentation | `claude /update-docs` |
+| Command          | Purpose                     | Example Usage                             |
+| ---------------- | --------------------------- | ----------------------------------------- |
+| `/do-plan`       | Create implementation plans | `claude /do-plan "Add API endpoint"`      |
+| `/do-issue`      | Work on GitHub issues       | `claude /do-issue 123`                    |
+| `/start-feature` | Start new feature branch    | `claude /start-feature "user-auth"`       |
+| `/create-pr`     | Create pull request         | `claude /create-pr`                       |
+| `/brainstorm`    | Generate ideas              | `claude /brainstorm "Performance issues"` |
+| `/setup`         | Environment setup           | `claude /setup --typescript`              |
+| `/update-docs`   | Update documentation        | `claude /update-docs`                     |
 
 For the complete list of commands and detailed usage, see the individual command files in `~/.claude/commands/`.

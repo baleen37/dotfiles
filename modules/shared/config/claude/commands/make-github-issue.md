@@ -13,7 +13,7 @@ Review code and create GitHub issues collaboratively with the user.
    - Present numbered list of identified issues to the user:
      ```
      1. [CRITICAL] Authentication bypass vulnerability in login handler
-     2. [HIGH] Memory leak in data processing loop  
+     2. [HIGH] Memory leak in data processing loop
      3. [MEDIUM] Missing error handling for API calls
      4. [LOW] Code style inconsistencies in utility functions
      ```

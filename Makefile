@@ -248,8 +248,8 @@ test-comprehensive:
 
 # Fast parallel testing (2-3 seconds total)
 test-quick:
-	@echo "🚀 Running parallel quick tests..."
-	@./scripts/quick-test.sh
+	@echo "🚀 Running quick validation checks..."
+	@$(NIX) flake check --impure --all-systems --no-build
 
 # Performance monitoring and regression detection
 test-monitor:

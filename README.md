@@ -104,7 +104,7 @@ make test              # Run tests
 # Claude Code setup
 make setup-mcp         # Install MCP servers for AI assistance
 
-# Quick operations  
+# Quick operations
 make smoke             # Fast validation
 nix run .#build-switch # Build and apply together
 ```
@@ -126,21 +126,21 @@ nix run .#test          # Run platform-appropriate test suite
 
 ### Platform Capability Matrix
 
-| Operation | macOS (Intel) | macOS (ARM) | NixOS (x86_64) | NixOS (ARM64) |
-|-----------|:-------------:|:-----------:|:--------------:|:-------------:|
-| **Core Operations** | | | | |
-| build | ✅ | ✅ | ✅ | ✅ |
-| build-switch | ✅ | ✅ | ✅ | ✅ |
-| apply | ✅ | ✅ | ✅ | ✅ |
-| rollback | ✅ | ✅ | ❌ | ❌ |
-| **Testing Framework** | | | | |
-| test | ✅ | ✅ | ✅ | ✅ |
-| test-unit | ✅ | ✅ | ❌¹ | ❌¹ |
-| test-integration | ✅ | ✅ | ❌¹ | ❌¹ |
-| test-e2e | ✅ | ✅ | ❌¹ | ❌¹ |
-| **Development Tools** | | | | |
-| setup-dev | ✅ | ✅ | ✅ | ✅ |
-| SSH key management | ✅ | ✅ | ✅ | ✅ |
+| Operation             | macOS (Intel) | macOS (ARM) | NixOS (x86_64) | NixOS (ARM64) |
+| --------------------- | :-----------: | :---------: | :------------: | :-----------: |
+| **Core Operations**   |               |             |                |               |
+| build                 |      ✅       |     ✅      |       ✅       |      ✅       |
+| build-switch          |      ✅       |     ✅      |       ✅       |      ✅       |
+| apply                 |      ✅       |     ✅      |       ✅       |      ✅       |
+| rollback              |      ✅       |     ✅      |       ❌       |      ❌       |
+| **Testing Framework** |               |             |                |               |
+| test                  |      ✅       |     ✅      |       ✅       |      ✅       |
+| test-unit             |      ✅       |     ✅      |      ❌¹       |      ❌¹      |
+| test-integration      |      ✅       |     ✅      |      ❌¹       |      ❌¹      |
+| test-e2e              |      ✅       |     ✅      |      ❌¹       |      ❌¹      |
+| **Development Tools** |               |             |                |               |
+| setup-dev             |      ✅       |     ✅      |       ✅       |      ✅       |
+| SSH key management    |      ✅       |     ✅      |       ✅       |      ✅       |
 
 ¹ Linux systems use consolidated testing approach due to platform limitations
 
@@ -254,7 +254,6 @@ make lint    # Code quality check
 
 Configuration changes are automatically backed up with conflict resolution.
 
-
 ```bash
 # Install global command system
 ./scripts/install-setup-dev
@@ -308,7 +307,7 @@ make setup-mcp
 ### Key Commands
 
 - `/build` - Build and test with validation
-- `/commit` - Generate semantic commits  
+- `/commit` - Generate semantic commits
 - `/create-pr` - Create pull requests
 - `/update-claude` - Update Claude configuration
 
@@ -352,4 +351,4 @@ See [docs/TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md) for more solutions.
 
 ---
 
-*Nix flakes + Home Manager + nix-darwin/NixOS for declarative, reproducible environments.*
+_Nix flakes + Home Manager + nix-darwin/NixOS for declarative, reproducible environments._

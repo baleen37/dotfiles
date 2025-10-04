@@ -19,13 +19,14 @@ Create new Claude commands with proper structure, validation, and integration fo
 
 - **Planning**: Feature ideation, proposals, brainstorming
 - **Implementation**: Technical execution, coding tasks
-- **Analysis**: Review, audit, generate insights  
+- **Analysis**: Review, audit, generate insights
 - **Workflow**: Coordinate multiple steps, orchestration
 - **Utility**: Tools, helpers, convenience functions
 
 ## Required Sections
 
 ### Metadata
+
 ```yaml
 ---
 name: command-name
@@ -34,6 +35,7 @@ description: "Brief description of command purpose"
 ```
 
 ### Core Content
+
 - **Purpose Statement**: What the command does
 - **Usage**: Command syntax and examples
 - **Process Flow**: Step-by-step workflow

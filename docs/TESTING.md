@@ -73,11 +73,11 @@ pkgs.runCommand "feature-test" {
 
 ### Test Categories (20 tests total, down from 84)
 
-| Category | Test Count | Purpose | Execution Time |
-|----------|------------|---------|----------------|
-| **Core** | ~13 tests | Essential functionality | < 2 minutes |
-| **Workflow** | ~5 tests | End-to-end scenarios | < 5 minutes |
-| **Performance** | 2 tests | Build time & resources | < 3 minutes |
+| Category        | Test Count | Purpose                 | Execution Time |
+| --------------- | ---------- | ----------------------- | -------------- |
+| **Core**        | ~13 tests  | Essential functionality | < 2 minutes    |
+| **Workflow**    | ~5 tests   | End-to-end scenarios    | < 5 minutes    |
+| **Performance** | 2 tests    | Build time & resources  | < 3 minutes    |
 
 ## 🔬 Test Categories Detail
 

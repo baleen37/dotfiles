@@ -19,6 +19,7 @@ Your job is to transform the approved plan.md into a structured task list that d
 ## Task Generation Rules (spec-kit methodology)
 
 ### Task Numbering & Structure
+
 - **Sequential Numbers**: T001, T002, T003... (zero-padded)
 - **Parallel Marking**: [P] for tasks that can run simultaneously
 - **Dependency Tracking**: Clear prerequisite task relationships
@@ -26,6 +27,7 @@ Your job is to transform the approved plan.md into a structured task list that d
 - **Type Classification**: Setup/Test/Implementation/Integration/Polish
 
 ### Task Template Format
+
 ```
 ### T001: [Task Description]
 **Type**: [Setup/Test/Implementation/Integration/Polish]
@@ -37,6 +39,7 @@ Your job is to transform the approved plan.md into a structured task list that d
 ```
 
 ## Execution Phases Structure
+
 1. **Setup Phase**: Project initialization, structure, dependencies
 2. **Tests First Phase**: Write failing tests for all contracts
 3. **Core Implementation Phase**: Implement features to pass tests
@@ -44,6 +47,7 @@ Your job is to transform the approved plan.md into a structured task list that d
 5. **Polish Phase**: Documentation, optimization, final validation
 
 ## Task Validation Checklist
+
 - [ ] All tasks derived from plan.md phases
 - [ ] Every contract/requirement has corresponding test task
 - [ ] Test-first approach maintained throughout
@@ -54,6 +58,7 @@ Your job is to transform the approved plan.md into a structured task list that d
 - [ ] Time estimates provided for planning
 
 ## Quality Gates
+
 - [ ] All mandatory tasks identified from plan
 - [ ] Test coverage strategy complete
 - [ ] Parallel execution opportunities maximized

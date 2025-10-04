@@ -8,12 +8,18 @@
 , nixtest ? null
 , testHelpers ? null
 , self ? null
+,
 }:
 
 let
   # Use provided NixTest framework and helpers (or fallback to local imports)
-  nixtestFinal = if nixtest != null then nixtest else (import ../unit/nixtest-template.nix { inherit lib pkgs; }).nixtest;
-  testHelpersFinal = if testHelpers != null then testHelpers else import ../unit/test-helpers.nix { inherit lib pkgs; };
+  nixtestFinal =
+    if nixtest != null then
+      nixtest
+    else
+      (import ../unit/nixtest-template.nix { inherit lib pkgs; }).nixtest;
+  testHelpersFinal =
+    if testHelpers != null then testHelpers else import ../unit/test-helpers.nix { inherit lib pkgs; };
 
   # Import system builders and configuration
   systemConfigs = import ../../lib/system-configs.nix {
@@ -323,7 +329,9 @@ nixtestFinal.suite "System Configuration Integration Tests" {
         darwinResult = safeEvaluateSystemConfig darwinTesting;
         nixosResult = safeEvaluateSystemConfig nixosTesting;
       in
-      nixtestFinal.assertions.assertTrue (sharedResult != null && darwinResult != null && nixosResult != null)
+      nixtestFinal.assertions.assertTrue (
+        sharedResult != null && darwinResult != null && nixosResult != null
+      )
     );
 
     testBuildersLibrary = nixtestFinal.test "Test builders library loads" (

@@ -19,12 +19,14 @@ maintaining high code quality and systematic progress tracking.
 ## Task Selection Logic
 
 ### Dependency Resolution
+
 - **Prerequisites First**: Execute dependency tasks before dependent ones
 - **Parallel Opportunities**: Identify [P] tasks that can run concurrently
 - **Conflict Prevention**: Avoid simultaneous modification of same files
 - **Progress Optimization**: Maximize throughput while respecting dependencies
 
 ### Task Status Tracking
+
 - **TODO**: Task not yet started
 - **IN PROGRESS**: Currently executing
 - **COMPLETED**: Task finished and validated
@@ -33,16 +35,19 @@ maintaining high code quality and systematic progress tracking.
 ## TDD Execution Cycle per Task
 
 ### 1. RED Phase
+
 - Write failing test that validates the task requirement
 - Ensure test fails for the right reason
 - Verify test is minimal and focused
 
 ### 2. GREEN Phase
+
 - Write minimal code to make the test pass
 - Focus on making it work, not making it perfect
 - Ensure all existing tests still pass
 
 ### 3. REFACTOR Phase
+
 - Improve code structure while keeping tests green
 - Apply DRY, KISS, and YAGNI principles
 - Ensure code follows project conventions
@@ -50,6 +55,7 @@ maintaining high code quality and systematic progress tracking.
 ## Task Completion Validation
 
 ### Code Quality Checks
+
 - [ ] All tests pass (unit, integration, e2e)
 - [ ] Code follows project style and conventions
 - [ ] No code duplication introduced
@@ -57,12 +63,14 @@ maintaining high code quality and systematic progress tracking.
 - [ ] Performance considerations addressed
 
 ### Documentation Requirements
+
 - [ ] Code comments added where necessary
 - [ ] API documentation updated if applicable
 - [ ] README or relevant docs updated
 - [ ] Task marked complete in tasks.md
 
 ### Integration Validation
+
 - [ ] New code integrates cleanly with existing system
 - [ ] No breaking changes to existing functionality
 - [ ] All pre-commit hooks pass
@@ -80,6 +88,7 @@ maintaining high code quality and systematic progress tracking.
 ```
 
 ## Quality Gates (All Must Pass)
+
 - [ ] No failing tests across entire project
 - [ ] Code coverage maintains or improves standards
 - [ ] Performance benchmarks not regressed
@@ -88,6 +97,7 @@ maintaining high code quality and systematic progress tracking.
 - [ ] Pre-commit hooks pass without intervention
 
 ## Error Handling
+
 - **Test Failures**: Analyze root cause, don't just fix symptoms
 - **Integration Issues**: Identify conflicting changes, coordinate resolution
 - **Dependency Problems**: Update task dependencies, communicate blockers

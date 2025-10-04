@@ -15,7 +15,7 @@ This document explains how to configure GitHub branch protection settings to pre
 The branch protection settings require specific CI workflows to pass before allowing merge:
 
 - **Fast Tests** - Quick validation tests
-- **Build Core** - Core system build verification  
+- **Build Core** - Core system build verification
 - **CI** - Main continuous integration workflow
 - **Security** - Security scanning and validation
 
@@ -39,7 +39,7 @@ Run the branch protection setup script:
 This script will:
 
 1. ✅ Configure required status checks for main branch
-2. ✅ Enable strict CI enforcement  
+2. ✅ Enable strict CI enforcement
 3. ✅ Maintain ability to merge without code review
 4. ✅ Block force pushes and branch deletion
 5. ✅ Verify configuration is applied correctly
@@ -84,7 +84,7 @@ The auto-update workflow (`/.github/workflows/auto-update-flake.yml`) has been e
 - Enabled auto-merge immediately without waiting for completion
 - No verification of CI success before merge
 
-### After (Solution)  
+### After (Solution)
 
 - ✅ Waits for all required CI checks to complete successfully
 - ✅ Monitors check status in real-time with detailed reporting
@@ -124,7 +124,7 @@ To test the fix:
 
 1. Create a test PR that intentionally fails CI
 2. Verify auto-merge is NOT enabled
-3. Create a test PR that passes all CI checks  
+3. Create a test PR that passes all CI checks
 4. Verify auto-merge IS enabled and executes only after CI completion
 
 ## Requirements Satisfied

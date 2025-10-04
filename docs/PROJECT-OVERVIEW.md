@@ -16,20 +16,20 @@ This dotfiles system represents a **production-grade, multi-platform configurati
 
 ## System Capabilities Matrix
 
-| Feature | Implementation | Platform Support |
-|---------|----------------|------------------|
-| **Core Management** | | |
-| Package Management | Nix + Home Manager + Homebrew | macOS ✅, NixOS ✅ |
-| Configuration Sync | Git-based with atomic updates | All platforms ✅ |
-| Secret Management | age encryption with SSH keys | All platforms ✅ |
-| **Development Tools** | | |
-| Global Commands | `bl` command system (20+ utilities) | All platforms ✅ |
-| Development Shells | Nix devShells for 10+ languages | All platforms ✅ |
-| AI Integration | Claude Code with MCP servers | All platforms ✅ |
-| **Automation** | | |
-| Auto-Updates | Intelligent update system with rollback | All platforms ✅ |
-| CI/CD Pipeline | GitHub Actions with 4-platform matrix | Cloud ✅ |
-| Performance Monitoring | Build metrics and optimization | All platforms ✅ |
+| Feature                | Implementation                          | Platform Support   |
+| ---------------------- | --------------------------------------- | ------------------ |
+| **Core Management**    |                                         |                    |
+| Package Management     | Nix + Home Manager + Homebrew           | macOS ✅, NixOS ✅ |
+| Configuration Sync     | Git-based with atomic updates           | All platforms ✅   |
+| Secret Management      | age encryption with SSH keys            | All platforms ✅   |
+| **Development Tools**  |                                         |                    |
+| Global Commands        | `bl` command system (20+ utilities)     | All platforms ✅   |
+| Development Shells     | Nix devShells for 10+ languages         | All platforms ✅   |
+| AI Integration         | Claude Code with MCP servers            | All platforms ✅   |
+| **Automation**         |                                         |                    |
+| Auto-Updates           | Intelligent update system with rollback | All platforms ✅   |
+| CI/CD Pipeline         | GitHub Actions with 4-platform matrix   | Cloud ✅           |
+| Performance Monitoring | Build metrics and optimization          | All platforms ✅   |
 
 ## Architecture Components
 
@@ -90,7 +90,7 @@ User Command (make build)
        ▼
 ┌─────────────────────┐
 │   Makefile          │ ──── Platform Detection
-│                     │      User Resolution  
+│                     │      User Resolution
 └─────────────────────┘      Configuration Loading
        │
        ▼
@@ -122,14 +122,14 @@ User Command (make build)
 
 ### 🎯 Platform Support Matrix
 
-| Platform | Architecture | Status | Test Coverage | Performance |
-|----------|-------------|--------|---------------|-------------|
-| **macOS (Darwin)** | | | | |
-| Intel Macs | x86_64-darwin | ✅ Production | 100% (17 tests) | Optimized |
-| Apple Silicon | aarch64-darwin | ✅ Production | 100% (17 tests) | Optimized |
-| **Linux (NixOS)** | | | | |
-| Intel/AMD | x86_64-linux | ✅ Production | 85% (15 tests) | Standard |
-| ARM64 | aarch64-linux | 🧪 Beta | 85% (15 tests) | Standard |
+| Platform           | Architecture   | Status        | Test Coverage   | Performance |
+| ------------------ | -------------- | ------------- | --------------- | ----------- |
+| **macOS (Darwin)** |                |               |                 |             |
+| Intel Macs         | x86_64-darwin  | ✅ Production | 100% (17 tests) | Optimized   |
+| Apple Silicon      | aarch64-darwin | ✅ Production | 100% (17 tests) | Optimized   |
+| **Linux (NixOS)**  |                |               |                 |             |
+| Intel/AMD          | x86_64-linux   | ✅ Production | 85% (15 tests)  | Standard    |
+| ARM64              | aarch64-linux  | 🧪 Beta       | 85% (15 tests)  | Standard    |
 
 ### 🔧 Core Dependencies
 
@@ -188,7 +188,7 @@ Optional Enhancements:
 
 4. **Performance Engineering**
    - Build parallelization optimization
-   - Intelligent caching strategies  
+   - Intelligent caching strategies
    - Resource usage monitoring
 
 5. **Enterprise-Grade Security**

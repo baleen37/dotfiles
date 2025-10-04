@@ -111,7 +111,7 @@ Task: "Integration test auth in tests/integration/test_auth.py"
 
 ## Task Generation Rules
 
-*Applied during main() execution*
+_Applied during main() execution_
 
 1. **From Contracts**:
    - Each contract file → contract test task [P]
@@ -131,7 +131,7 @@ Task: "Integration test auth in tests/integration/test_auth.py"
 
 ## Validation Checklist
 
-*GATE: Checked by main() before returning*
+_GATE: Checked by main() before returning_
 
 - [ ] All contracts have corresponding tests
 - [ ] All entities have model tasks

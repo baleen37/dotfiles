@@ -4,6 +4,7 @@
 
 { lib ? import <nixpkgs/lib>
 , pkgs ? import <nixpkgs> { }
+,
 }:
 
 let
@@ -19,101 +20,134 @@ let
   };
 
   # Helper function to format error messages
-  formatError = assertion: expected: actual: context:
+  formatError =
+    assertion: expected: actual: context:
     let
       contextStr = if context != null then " (${context})" else "";
       expectedStr = builtins.toString expected;
       actualStr = builtins.toString actual;
     in
-    "${colors.red}${colors.bold}ASSERTION FAILED${colors.reset}: ${assertion}${contextStr}\n" +
-    "  ${colors.yellow}Expected:${colors.reset} ${expectedStr}\n" +
-    "  ${colors.cyan}Actual:${colors.reset}   ${actualStr}";
+    "${colors.red}${colors.bold}ASSERTION FAILED${colors.reset}: ${assertion}${contextStr}\n"
+    + "  ${colors.yellow}Expected:${colors.reset} ${expectedStr}\n"
+    + "  ${colors.cyan}Actual:${colors.reset}   ${actualStr}";
 
 in
 {
   # Core assertion functions
-  assertEqual = expected: actual: context:
-    if expected == actual
-    then true
-    else throw (formatError "assertEqual" expected actual context);
+  assertEqual =
+    expected: actual: context:
+    if expected == actual then true else throw (formatError "assertEqual" expected actual context);
 
-  assertType = expectedType: value: context:
-    let actualType = builtins.typeOf value;
-    in if expectedType == actualType
-    then true
-    else throw (formatError "assertType" expectedType actualType context);
+  assertType =
+    expectedType: value: context:
+    let
+      actualType = builtins.typeOf value;
+    in
+    if expectedType == actualType then
+      true
+    else
+      throw (formatError "assertType" expectedType actualType context);
 
-  assertTrue = value: context:
-    if value == true
-    then true
-    else throw (formatError "assertTrue" true value context);
+  assertTrue =
+    value: context: if value == true then true else throw (formatError "assertTrue" true value context);
 
-  assertFalse = value: context:
-    if value == false
-    then true
-    else throw (formatError "assertFalse" false value context);
+  assertFalse =
+    value: context:
+    if value == false then true else throw (formatError "assertFalse" false value context);
 
   # List assertions
-  assertLength = expectedLength: list: context:
-    let actualLength = builtins.length list;
-    in if expectedLength == actualLength
-    then true
-    else throw (formatError "assertLength" expectedLength actualLength context);
+  assertLength =
+    expectedLength: list: context:
+    let
+      actualLength = builtins.length list;
+    in
+    if expectedLength == actualLength then
+      true
+    else
+      throw (formatError "assertLength" expectedLength actualLength context);
 
-  assertContains = item: list: context:
-    if builtins.elem item list
-    then true
-    else throw (formatError "assertContains" "item in list" "item not found" context);
+  assertContains =
+    item: list: context:
+    if builtins.elem item list then
+      true
+    else
+      throw (formatError "assertContains" "item in list" "item not found" context);
 
   # Attribute assertions
-  assertHasAttr = attr: attrset: context:
-    if builtins.hasAttr attr attrset
-    then true
-    else throw (formatError "assertHasAttr" "attribute '${attr}'" "attribute not found" context);
-
-  assertAttrValue = attr: expectedValue: attrset: context:
-    if builtins.hasAttr attr attrset && attrset.${attr} == expectedValue
-    then true
+  assertHasAttr =
+    attr: attrset: context:
+    if builtins.hasAttr attr attrset then
+      true
     else
-      throw (formatError "assertAttrValue ('${attr}')" expectedValue
-        (if builtins.hasAttr attr attrset then attrset.${attr} else "MISSING")
-        context);
+      throw (formatError "assertHasAttr" "attribute '${attr}'" "attribute not found" context);
+
+  assertAttrValue =
+    attr: expectedValue: attrset: context:
+    if builtins.hasAttr attr attrset && attrset.${attr} == expectedValue then
+      true
+    else
+      throw (
+        formatError "assertAttrValue ('${attr}')" expectedValue
+          (
+            if builtins.hasAttr attr attrset then attrset.${attr} else "MISSING"
+          )
+          context
+      );
 
   # String assertions
-  assertStringContains = substring: string: context:
-    if builtins.match ".*${substring}.*" string != null
-    then true
-    else throw (formatError "assertStringContains" "'${substring}' in string" "not found in '${string}'" context);
+  assertStringContains =
+    substring: string: context:
+    if builtins.match ".*${substring}.*" string != null then
+      true
+    else
+      throw (
+        formatError "assertStringContains" "'${substring}' in string" "not found in '${string}'" context
+      );
 
   # Function assertions
-  assertThrows = func: context:
-    let result = builtins.tryEval func;
-    in if result.success == false
-    then true
-    else throw (formatError "assertThrows" "function to throw error" "function completed successfully" context);
+  assertThrows =
+    func: context:
+    let
+      result = builtins.tryEval func;
+    in
+    if result.success == false then
+      true
+    else
+      throw (
+        formatError "assertThrows" "function to throw error" "function completed successfully" context
+      );
 
-  assertNoThrow = func: context:
-    let result = builtins.tryEval func;
-    in if result.success == true
-    then true
-    else throw (formatError "assertNoThrow" "function to complete successfully" "function threw error" context);
+  assertNoThrow =
+    func: context:
+    let
+      result = builtins.tryEval func;
+    in
+    if result.success == true then
+      true
+    else
+      throw (
+        formatError "assertNoThrow" "function to complete successfully" "function threw error" context
+      );
 
   # Platform assertions
-  assertPlatform = expectedPlatform: system: context:
-    if builtins.match ".*${expectedPlatform}.*" system != null
-    then true
-    else throw (formatError "assertPlatform" expectedPlatform system context);
+  assertPlatform =
+    expectedPlatform: system: context:
+    if builtins.match ".*${expectedPlatform}.*" system != null then
+      true
+    else
+      throw (formatError "assertPlatform" expectedPlatform system context);
 
   # Utility functions
-  inspect = value:
+  inspect =
+    value:
     let
       valueType = builtins.typeOf value;
     in
-    if valueType == "string" then ''"${value}"''
-    else builtins.toString value;
+    if valueType == "string" then ''"${value}"'' else builtins.toString value;
 
   # Test execution helpers
-  runAssertion = name: assertion:
+  runAssertion =
+    name: assertion:
     let
       result = builtins.tryEval assertion;
     in
