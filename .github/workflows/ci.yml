@@ -170,6 +170,7 @@ jobs:
           retention-days: 1
 
   # Switch stage - reuses build cache (2 minutes, 50% faster)
+  # Only Darwin - Linux uses validation only without artifacts
   switch:
     name: Switch ${{ matrix.name }}
     needs: build
@@ -178,9 +179,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: Linux
-            system: x86_64-linux
-            os: ubuntu-latest
           - name: Darwin
             system: aarch64-darwin
             os: macos-15
