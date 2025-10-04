@@ -4,7 +4,7 @@
       "complex_modifications": {
         "rules": [
           {
-            "description": "Right Command \u2192 Hyper \u2192 F19",
+            "description": "Right Command → Hyper → F19",
             "manipulators": [
               {
                 "from": {

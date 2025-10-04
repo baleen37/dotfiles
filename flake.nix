@@ -93,13 +93,29 @@
               curl
               wget
               jq
+
               # Nix tools
               nixfmt
+              nixpkgs-fmt
               nix-tree
               nil
+
+              # Formatting tools for auto-format.sh
+              shfmt
+              nodePackages.prettier
+              nodePackages.markdownlint-cli
+
+              # Pre-commit tools
+              pre-commit
             ] ++ lib.optionals (nix-unit.packages ? ${system}) [
               nix-unit.packages.${system}.default
             ];
+
+            shellHook = ''
+              echo "🚀 Development environment loaded"
+              echo "Available formatters: nixpkgs-fmt, shfmt, prettier, markdownlint"
+              echo "Run 'make format' to auto-format all files"
+            '';
           };
         }
       );
@@ -110,7 +126,7 @@
           inherit system;
           specialArgs = inputs;
           modules = [
-            ./modules/shared/config/nixpkgs.nix
+            ./hosts/darwin # Host config first to ensure allowUnfree is set at system level
             home-manager.darwinModules.home-manager
             nix-homebrew.darwinModules.nix-homebrew
             {
@@ -133,7 +149,6 @@
                 autoMigrate = true;
               };
             }
-            ./hosts/darwin
           ];
         }
       );
@@ -144,7 +159,7 @@
           inherit system;
           specialArgs = inputs;
           modules = [
-            ./modules/shared/config/nixpkgs.nix
+            ./hosts/nixos # Host config first to ensure allowUnfree is set at system level
             disko.nixosModules.disko
             home-manager.nixosModules.home-manager
             {
@@ -156,7 +171,6 @@
                 extraSpecialArgs = inputs;
               };
             }
-            ./hosts/nixos
           ];
         }
       );
