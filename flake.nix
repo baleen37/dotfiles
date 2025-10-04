@@ -63,8 +63,8 @@
     ,
     }@inputs:
     let
-      # Simple direct imports following dustinlyons patterns
-      user = "baleen"; # Direct user specification instead of complex resolution
+      # Dynamic user resolution
+      user = builtins.getEnv "USER";
 
       # Supported systems - direct specification
       linuxSystems = [ "x86_64-linux" "aarch64-linux" ];
