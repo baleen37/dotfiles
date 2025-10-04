@@ -112,22 +112,61 @@ Professional Nix dotfiles system supporting:
 
 ### Code Quality Enforcement
 
-**Auto-Formatting Workflow**: Leverage automated formatting for consistent code quality:
+**Auto-Formatting Workflow**: Leverage Nix-based automated formatting for consistent code quality:
 
-- Use `make format` to automatically fix formatting and lint issues
+- Use `make format` (wraps `nix run .#format`) to automatically fix formatting and lint issues
 - NEVER manually fix formatting issues - let automation handle it
 - **Pre-commit Hook Compliance**: Ensure pre-commit hooks are installed and never bypassed:
   - NEVER use `git commit -n` or `--no-verify` flags
   - If pre-commit fails, run `make format` instead of manual fixes
   - Pre-commit hooks handle all formatting, linting, and basic validation automatically
 
-**Efficient Development**: The auto-formatting system eliminates manual formatting work:
+**Efficient Development**: The Nix-based auto-formatting system (lib/formatters.nix) eliminates manual formatting work:
 
 - `make format-nix`: Format all Nix files with nixfmt
 - `make format-yaml`: Format YAML files with yamlfmt
 - `make format-json`: Format JSON files with jq
 - `make format-markdown`: Format Markdown files with prettier
 - `make format`: Run all formatters in parallel for maximum efficiency
+
+### Code Documentation Standards
+
+**Comment Requirements**: All code must include comments explaining its purpose and role:
+
+- **Function/Module Comments**: Each function, module, or significant code block must have a comment describing what it does
+- **Complex Logic**: Non-obvious logic requires inline comments explaining the approach
+- **Configuration Files**: Nix modules and configurations need comments explaining their purpose
+- **Shell Scripts**: Each script and non-trivial command needs explanatory comments
+
+**Good Documentation Practices**:
+
+```nix
+# Configure Home Manager with user-specific settings
+programs.git = {
+  enable = true;
+  userName = "user";
+  # Use dynamic email based on host configuration
+  userEmail = config.user.email;
+};
+```
+
+```bash
+# Set user context for Nix builds (required for dynamic user resolution)
+export USER=$(whoami)
+```
+
+**What to Document**:
+
+- Purpose of each module/function
+- Non-obvious implementation choices
+- Platform-specific workarounds
+- Dependencies and requirements
+
+**What NOT to Document**:
+
+- Obvious operations (`x = x + 1` doesn't need a comment)
+- Implementation details that change frequently
+- Redundant descriptions of self-explanatory code
 
 ### Quality Assurance
 
@@ -175,6 +214,24 @@ Professional Nix dotfiles system supporting:
 
 Following dustinlyons principle: "Simple, direct solutions over sophisticated abstractions"
 
+### Shell → Nix Migration ✅
+
+**Status**: Successfully completed (January 2025)
+**Impact**: Declarative, reproducible tooling with 14,000+ lines removed
+
+#### Migration Results
+
+- **Formatting**: `scripts/auto-format.sh` → `nix run .#format` (via `lib/formatters.nix`)
+- **Testing**: `scripts/quick-test.sh` → `nix flake check` (native Nix checks)
+- **MCP Setup**: Shell scripts removed (use `claude mcp add` CLI directly)
+
+#### Key Benefits
+
+- **Reproducibility**: Pinned dependencies in flake.lock
+- **Integration**: Native Nix ecosystem integration
+- **Simplification**: 14,000+ lines of shell code eliminated
+- **Consistency**: Single source of truth for tooling
+
 ## Critical Development Notes
 
 ### USER Variable Requirement
@@ -188,10 +245,11 @@ export USER=$(whoami)    # MUST run this before any build operation
 ### Auto-Formatting Policy
 
 ```bash
-make format              # Use this, never manually format
+make format              # Nix-based formatting (uses nix run .#format)
+nix run .#format        # Direct Nix invocation (alternative)
 ```
 
-**Never manually fix formatting issues** - the auto-formatting system handles:
+**Never manually fix formatting issues** - the Nix-based auto-formatting system handles:
 
 - Nix files (nixfmt)
 - YAML files (yamlfmt)
@@ -250,7 +308,8 @@ make build-switch        # Build and apply together (production workflow)
 
 ```bash
 export USER=$(whoami)          # REQUIRED: Set before any build operations
-make format                    # Auto-format all files (never manually format)
+make format                    # Auto-format all files (uses nix run .#format)
+nix run .#format              # Direct Nix invocation (alternative)
 make lint-format              # Recommended pre-commit workflow
 make build-current            # Build only current platform (fastest)
 make build-switch             # Build and apply in one step
