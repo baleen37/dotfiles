@@ -1,4 +1,9 @@
-{ config, inputs, pkgs, ... }:
+{
+  config,
+  inputs,
+  pkgs,
+  ...
+}:
 
 let
   getUser = import ../../lib/user-resolution.nix {
@@ -14,7 +19,6 @@ in
     ../../modules/shared/files.nix
   ];
 
-
   # Use the systemd-boot EFI boot loader.
   boot = {
     loader = {
@@ -24,7 +28,14 @@ in
       };
       efi.canTouchEfiVariables = true;
     };
-    initrd.availableKernelModules = [ "xhci_pci" "ahci" "nvme" "usbhid" "usb_storage" "sd_mod" ];
+    initrd.availableKernelModules = [
+      "xhci_pci"
+      "ahci"
+      "nvme"
+      "usbhid"
+      "usb_storage"
+      "sd_mod"
+    ];
     # Uncomment for AMD GPU
     # initrd.kernelModules = [ "amdgpu" ];
     kernelPackages = pkgs.linuxPackages;
@@ -48,7 +59,10 @@ in
     nixPath = [ "nixos-config=/home/${user}/.local/share/src/nixos-config:/etc/nixos" ];
     settings = {
       allowed-users = [ "${user}" ];
-      trusted-users = [ "@admin" "${user}" ];
+      trusted-users = [
+        "@admin"
+        "${user}"
+      ];
       # substituters = [ "https://nix-community.cachix.org" "https://cache.nixos.org" ];
       # trusted-public-keys = [ "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=" ];
     };
@@ -217,12 +231,29 @@ in
         log-level = "info";
 
         wintypes = {
-          normal = { fade = true; shadow = false; };
-          tooltip = { fade = true; shadow = false; opacity = 0.75; focus = true; full-shadow = false; };
-          dock = { shadow = false; };
-          dnd = { shadow = false; };
-          popup_menu = { opacity = 1.0; };
-          dropdown_menu = { opacity = 1.0; };
+          normal = {
+            fade = true;
+            shadow = false;
+          };
+          tooltip = {
+            fade = true;
+            shadow = false;
+            opacity = 0.75;
+            focus = true;
+            full-shadow = false;
+          };
+          dock = {
+            shadow = false;
+          };
+          dnd = {
+            shadow = false;
+          };
+          popup_menu = {
+            opacity = 1.0;
+          };
+          dropdown_menu = {
+            opacity = 1.0;
+          };
         };
       };
     };
@@ -338,7 +369,6 @@ in
     ledger.enable = true;
   };
 
-
   # Add docker daemon
   virtualisation = {
     docker = {
@@ -364,7 +394,6 @@ in
     };
   };
 
-
   fonts.packages = with pkgs; [
     dejavu_fonts
     jetbrains-mono
@@ -373,27 +402,29 @@ in
     noto-fonts-emoji
   ];
 
-  environment.systemPackages = with pkgs; [
-    git
-    inetutils
-    # VSCode tunnel client command
-    (writeShellScriptBin "code" ''
-      # VSCode Remote Tunnel client command
-      # Routes to local VSCode tunnel when available
+  environment.systemPackages =
+    with pkgs;
+    [
+      git
+      inetutils
+      # VSCode tunnel client command
+      (writeShellScriptBin "code" ''
+        # VSCode Remote Tunnel client command
+        # Routes to local VSCode tunnel when available
 
-      CLI_PATH="$HOME/.vscode-server/cli/code"
+        CLI_PATH="$HOME/.vscode-server/cli/code"
 
-      if [[ -x "$CLI_PATH" ]]; then
-        # Use tunnel CLI if available
-        exec "$CLI_PATH" "$@"
-      else
-        echo "VSCode Remote Tunnel not available. Ensure vscode-tunnel service is running."
-        echo "Start with: systemctl --user start vscode-tunnel"
-        exit 1
-      fi
-    '')
-  ] ++ (import ../../modules/shared/packages.nix { inherit pkgs; });
-
+        if [[ -x "$CLI_PATH" ]]; then
+          # Use tunnel CLI if available
+          exec "$CLI_PATH" "$@"
+        else
+          echo "VSCode Remote Tunnel not available. Ensure vscode-tunnel service is running."
+          echo "Start with: systemctl --user start vscode-tunnel"
+          exit 1
+        fi
+      '')
+    ]
+    ++ (import ../../modules/shared/packages.nix { inherit pkgs; });
 
   system.stateVersion = "21.05"; # Don't change this
 

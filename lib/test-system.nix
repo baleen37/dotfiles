@@ -2,26 +2,41 @@
 # Combines test-apps.nix and test-utils.nix
 # Provides comprehensive test framework, app builders, and utilities
 
-{ pkgs ? null, nixpkgs ? null, self ? null }:
+{
+  pkgs ? null,
+  nixpkgs ? null,
+  self ? null,
+}:
 
 let
   # Determine pkgs
   actualPkgs = if pkgs != null then pkgs else (import <nixpkgs> { });
 
   # Import error system for error handling
-  errorSystem = import ./error-system.nix { pkgs = actualPkgs; lib = actualPkgs.lib; };
+  errorSystem = import ./error-system.nix {
+    pkgs = actualPkgs;
+    lib = actualPkgs.lib;
+  };
 
   # Test app builder core functionality
   testAppBuilders = {
     # Simple test app builder
-    mkTestApp = { name, system, command }: {
-      type = "app";
-      program = "${(nixpkgs.legacyPackages.${system}.writeScriptBin name ''
-        #!/usr/bin/env bash
-        echo "Running ${name} for ${system}..."
-        ${command}
-      '')}/bin/${name}";
-    };
+    mkTestApp =
+      {
+        name,
+        system,
+        command,
+      }:
+      {
+        type = "app";
+        program = "${
+          (nixpkgs.legacyPackages.${system}.writeScriptBin name ''
+            #!/usr/bin/env bash
+            echo "Running ${name} for ${system}..."
+            ${command}
+          '')
+        }/bin/${name}";
+      };
 
     # Build test apps for a system
     mkTestApps = system: {
@@ -128,91 +143,108 @@ let
   # Test utilities and reporting
   testUtils = {
     # Create a test reporter that generates formatted output
-    mkTestReporter = { name, tests, results }: actualPkgs.writeScriptBin "test-reporter" ''
-      #!${actualPkgs.bash}/bin/bash
+    mkTestReporter =
+      {
+        name,
+        tests,
+        results,
+      }:
+      actualPkgs.writeScriptBin "test-reporter" ''
+        #!${actualPkgs.bash}/bin/bash
 
-      echo "════════════════════════════════════════════════════════════════"
-      echo "  Test Report: ${name}"
-      echo "════════════════════════════════════════════════════════════════"
-      echo ""
-      echo "Total tests: ${toString (builtins.length tests)}"
-      echo "Passed: $(grep -c "PASS" <<< "${results}")"
-      echo "Failed: $(grep -c "FAIL" <<< "${results}")"
-      echo ""
-      echo "Details:"
-      echo "${results}"
-      echo ""
-      echo "════════════════════════════════════════════════════════════════"
-    '';
+        echo "════════════════════════════════════════════════════════════════"
+        echo "  Test Report: ${name}"
+        echo "════════════════════════════════════════════════════════════════"
+        echo ""
+        echo "Total tests: ${toString (builtins.length tests)}"
+        echo "Passed: $(grep -c "PASS" <<< "${results}")"
+        echo "Failed: $(grep -c "FAIL" <<< "${results}")"
+        echo ""
+        echo "Details:"
+        echo "${results}"
+        echo ""
+        echo "════════════════════════════════════════════════════════════════"
+      '';
 
     # Create a test discovery script that lists all available tests
-    mkTestDiscovery = { flake, system }: actualPkgs.writeScriptBin "discover-tests" ''
-      #!${actualPkgs.bash}/bin/bash
+    mkTestDiscovery =
+      { flake, system }:
+      actualPkgs.writeScriptBin "discover-tests" ''
+        #!${actualPkgs.bash}/bin/bash
 
-      echo "Discovering tests for ${system}..."
-      echo ""
+        echo "Discovering tests for ${system}..."
+        echo ""
 
-      # Get all test attributes from checks
-      nix eval --json --impure ${flake}#checks.${system} 2>/dev/null | \
-        ${actualPkgs.jq}/bin/jq -r 'to_entries | group_by(.key | split("_")[-1]) |
-          map({
-            category: .[0].key | split("_")[-1],
-            tests: map(.key)
-          }) |
-          .[] |
-          "Category: \(.category)\n" +
-          (.tests | map("  - " + .) | join("\n")) + "\n"'
-    '';
+        # Get all test attributes from checks
+        nix eval --json --impure ${flake}#checks.${system} 2>/dev/null | \
+          ${actualPkgs.jq}/bin/jq -r 'to_entries | group_by(.key | split("_")[-1]) |
+            map({
+              category: .[0].key | split("_")[-1],
+              tests: map(.key)
+            }) |
+            .[] |
+            "Category: \(.category)\n" +
+            (.tests | map("  - " + .) | join("\n")) + "\n"'
+      '';
 
     # Enhanced test runner with better error handling and reporting
-    mkEnhancedTestRunner = { name, tests }: actualPkgs.writeScriptBin "run-${name}-tests" ''
-      #!${actualPkgs.bash}/bin/bash
-      set -euo pipefail
+    mkEnhancedTestRunner =
+      { name, tests }:
+      actualPkgs.writeScriptBin "run-${name}-tests" ''
+        #!${actualPkgs.bash}/bin/bash
+        set -euo pipefail
 
-      FAILED=0
-      PASSED=0
-      RESULTS=""
+        FAILED=0
+        PASSED=0
+        RESULTS=""
 
-      echo "Running ${name} tests..."
-      echo ""
+        echo "Running ${name} tests..."
+        echo ""
 
-      for test in ${builtins.concatStringsSep " " tests}; do
-        echo -n "  Running $test... "
+        for test in ${builtins.concatStringsSep " " tests}; do
+          echo -n "  Running $test... "
 
-        if nix build --impure --no-link ".#checks.$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"').$test" 2>/dev/null; then
-          echo "✓ PASSED"
-          RESULTS="$RESULTS\n  ✓ $test: PASS"
-          ((PASSED++))
-        else
-          echo "✗ FAILED"
-          RESULTS="$RESULTS\n  ✗ $test: FAIL"
-          ((FAILED++))
+          if nix build --impure --no-link ".#checks.$(nix eval --impure --expr 'builtins.currentSystem' | tr -d '"').$test" 2>/dev/null; then
+            echo "✓ PASSED"
+            RESULTS="$RESULTS\n  ✓ $test: PASS"
+            ((PASSED++))
+          else
+            echo "✗ FAILED"
+            RESULTS="$RESULTS\n  ✗ $test: FAIL"
+            ((FAILED++))
+          fi
+        done
+
+        echo ""
+        echo "Summary: $PASSED passed, $FAILED failed out of $((PASSED + FAILED)) tests"
+
+        if [ $FAILED -gt 0 ]; then
+          exit 1
         fi
-      done
-
-      echo ""
-      echo "Summary: $PASSED passed, $FAILED failed out of $((PASSED + FAILED)) tests"
-
-      if [ $FAILED -gt 0 ]; then
-        exit 1
-      fi
-    '';
+      '';
 
     # Convenience function to create a comprehensive test suite
-    mkTestSuite = { name, categories, system, flake }: {
-      runner = testUtils.mkEnhancedTestRunner {
-        inherit name;
-        tests = builtins.concatLists (builtins.attrValues categories);
-      };
+    mkTestSuite =
+      {
+        name,
+        categories,
+        system,
+        flake,
+      }:
+      {
+        runner = testUtils.mkEnhancedTestRunner {
+          inherit name;
+          tests = builtins.concatLists (builtins.attrValues categories);
+        };
 
-      discovery = testUtils.mkTestDiscovery { inherit flake system; };
+        discovery = testUtils.mkTestDiscovery { inherit flake system; };
 
-      reporter = testUtils.mkTestReporter {
-        inherit name;
-        tests = builtins.concatLists (builtins.attrValues categories);
-        results = ""; # Placeholder, would be filled by runner
+        reporter = testUtils.mkTestReporter {
+          inherit name;
+          tests = builtins.concatLists (builtins.attrValues categories);
+          results = ""; # Placeholder, would be filled by runner
+        };
       };
-    };
   };
 
   # Test categories and organization
@@ -280,7 +312,11 @@ let
   # Test execution functions for different frameworks
   testExecutors = {
     # Execute nix-unit test
-    runNixUnitTest = { testCase, config ? { } }:
+    runNixUnitTest =
+      {
+        testCase,
+        config ? { },
+      }:
       let
         testBuilders = import ./test-builders.nix {
           inherit (actualPkgs) lib;
@@ -295,7 +331,11 @@ let
       };
 
     # Execute lib.runTests test
-    runLibTest = { testCase, config ? { } }:
+    runLibTest =
+      {
+        testCase,
+        config ? { },
+      }:
       let
         testResult = actualPkgs.lib.runTests testCase.tests or { };
       in
@@ -306,7 +346,11 @@ let
       };
 
     # Execute BATS test
-    runBatsTest = { testCase, config ? { } }:
+    runBatsTest =
+      {
+        testCase,
+        config ? { },
+      }:
       let
         batsScript = actualPkgs.writeScript "run-bats-test" ''
           #!${actualPkgs.bash}/bin/bash
@@ -321,7 +365,11 @@ let
       };
 
     # Execute NixOS VM test
-    runVMTest = { testCase, config ? { } }:
+    runVMTest =
+      {
+        testCase,
+        config ? { },
+      }:
       let
         vmTest = actualPkgs.lib.nixos.runTest testCase;
       in
@@ -332,30 +380,50 @@ let
       };
 
     # Parallel test execution
-    runTestsParallel = tests: config:
-      map (test: testExecutors.runSingleTest test config) tests;
+    runTestsParallel = tests: config: map (test: testExecutors.runSingleTest test config) tests;
 
     # Sequential test execution
-    runTestsSequential = tests: config:
-      map (test: testExecutors.runSingleTest test config) tests;
+    runTestsSequential = tests: config: map (test: testExecutors.runSingleTest test config) tests;
 
     # Single test execution wrapper
-    runSingleTest = test: config:
-      if test.framework or "lib.runTests" == "nix-unit"
-      then testExecutors.runNixUnitTest { testCase = test; inherit config; }
-      else if test.framework or "lib.runTests" == "lib.runTests"
-      then testExecutors.runLibTest { testCase = test; inherit config; }
-      else if test.framework or "lib.runTests" == "bats"
-      then testExecutors.runBatsTest { testCase = test; inherit config; }
-      else if test.framework or "lib.runTests" == "nixos-vm"
-      then testExecutors.runVMTest { testCase = test; inherit config; }
-      else testExecutors.runLibTest { testCase = test; inherit config; }; # Default fallback
+    runSingleTest =
+      test: config:
+      if test.framework or "lib.runTests" == "nix-unit" then
+        testExecutors.runNixUnitTest {
+          testCase = test;
+          inherit config;
+        }
+      else if test.framework or "lib.runTests" == "lib.runTests" then
+        testExecutors.runLibTest {
+          testCase = test;
+          inherit config;
+        }
+      else if test.framework or "lib.runTests" == "bats" then
+        testExecutors.runBatsTest {
+          testCase = test;
+          inherit config;
+        }
+      else if test.framework or "lib.runTests" == "nixos-vm" then
+        testExecutors.runVMTest {
+          testCase = test;
+          inherit config;
+        }
+      else
+        testExecutors.runLibTest {
+          testCase = test;
+          inherit config;
+        }; # Default fallback
   };
 
   # Enhanced test framework functions for comprehensive testing
   testFramework = {
     # Run a single test case
-    runTest = { testCase, config ? { }, fixtures ? [ ] }:
+    runTest =
+      {
+        testCase,
+        config ? { },
+        fixtures ? [ ],
+      }:
       let
         # Import test builders for framework-specific execution
         testBuilders = import ./test-builders.nix {
@@ -387,7 +455,11 @@ let
       };
 
     # Run a test suite
-    runSuite = { suite, config ? { } }:
+    runSuite =
+      {
+        suite,
+        config ? { },
+      }:
       let
         # Import coverage system if enabled
         coverageSystem = import ./coverage-system.nix {
@@ -397,32 +469,31 @@ let
 
         # Initialize coverage session if enabled
         coverageSession =
-          if config.coverage or false
-          then
-            coverageSystem.measurement.initSession
-              {
-                name = suite.name;
-                config = config;
-              }
-          else null;
+          if config.coverage or false then
+            coverageSystem.measurement.initSession {
+              name = suite.name;
+              config = config;
+            }
+          else
+            null;
 
         # Run tests (parallel or sequential based on config)
         testResults =
-          if config.parallel or true
-          then testExecutors.runTestsParallel suite.tests config
-          else testExecutors.runTestsSequential suite.tests config;
+          if config.parallel or true then
+            testExecutors.runTestsParallel suite.tests config
+          else
+            testExecutors.runTestsSequential suite.tests config;
 
         # Collect coverage if enabled
         coverage =
-          if coverageSession != null
-          then
-            coverageSystem.measurement.collectCoverage
-              {
-                session = coverageSession;
-                modules = suite.modules or [ ];
-                testResults = testResults;
-              }
-          else null;
+          if coverageSession != null then
+            coverageSystem.measurement.collectCoverage {
+              session = coverageSession;
+              modules = suite.modules or [ ];
+              testResults = testResults;
+            }
+          else
+            null;
 
         # Generate summary
         summary = {
@@ -450,7 +521,12 @@ in
 
   # Export test utilities
   inherit testUtils;
-  inherit (testUtils) mkTestReporter mkTestDiscovery mkEnhancedTestRunner mkTestSuite;
+  inherit (testUtils)
+    mkTestReporter
+    mkTestDiscovery
+    mkEnhancedTestRunner
+    mkTestSuite
+    ;
 
   # Export enhanced test framework functions
   inherit (testFramework) runTest runSuite;
@@ -475,7 +551,12 @@ in
   # Version and metadata
   version = "2.0.0-unified";
   description = "Unified test system with app builders and utilities";
-  supportedTestTypes = [ "core" "integration" "performance" "smoke" ];
+  supportedTestTypes = [
+    "core"
+    "integration"
+    "performance"
+    "smoke"
+  ];
 
   # Error handling integration
   errors = errorSystem;

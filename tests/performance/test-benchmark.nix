@@ -1,7 +1,14 @@
 # Performance Benchmarks for Comprehensive Testing Framework
 # Measures execution time and resource usage for each test layer
 
-{ lib, stdenv, writeShellScript, time, gnugrep, coreutils }:
+{
+  lib,
+  stdenv,
+  writeShellScript,
+  time,
+  gnugrep,
+  coreutils,
+}:
 
 let
   # Import test layers
@@ -9,42 +16,44 @@ let
   contractTests = import ../contract/flake-contracts/test-flake-outputs.nix;
 
   # Performance measurement utilities
-  measureTime = testName: testFn: writeShellScript "measure-${testName}" ''
-    set -euo pipefail
+  measureTime =
+    testName: testFn:
+    writeShellScript "measure-${testName}" ''
+      set -euo pipefail
 
-    echo "=== Benchmarking ${testName} ==="
+      echo "=== Benchmarking ${testName} ==="
 
-    # Record start time
-    START_TIME=$(date +%s.%N)
-    START_MEM=$(free -b | grep '^Mem:' | awk '{print $3}' || echo "0")
+      # Record start time
+      START_TIME=$(date +%s.%N)
+      START_MEM=$(free -b | grep '^Mem:' | awk '{print $3}' || echo "0")
 
-    # Run the test
-    echo "Running ${testName}..."
-    if ${testFn}; then
-      RESULT="PASS"
-    else
-      RESULT="FAIL"
-    fi
+      # Run the test
+      echo "Running ${testName}..."
+      if ${testFn}; then
+        RESULT="PASS"
+      else
+        RESULT="FAIL"
+      fi
 
-    # Record end time
-    END_TIME=$(date +%s.%N)
-    END_MEM=$(free -b | grep '^Mem:' | awk '{print $3}' || echo "0")
+      # Record end time
+      END_TIME=$(date +%s.%N)
+      END_MEM=$(free -b | grep '^Mem:' | awk '{print $3}' || echo "0")
 
-    # Calculate metrics
-    DURATION=$(echo "$END_TIME - $START_TIME" | bc -l)
-    MEM_DELTA=$(echo "$END_MEM - $START_MEM" | bc || echo "0")
+      # Calculate metrics
+      DURATION=$(echo "$END_TIME - $START_TIME" | bc -l)
+      MEM_DELTA=$(echo "$END_MEM - $START_MEM" | bc || echo "0")
 
-    # Output results in JSON format for aggregation
-    cat << EOF
-    {
-      "test": "${testName}",
-      "result": "$RESULT",
-      "duration_seconds": $DURATION,
-      "memory_delta_bytes": $MEM_DELTA,
-      "timestamp": "$(date -Iseconds)"
-    }
-    EOF
-  '';
+      # Output results in JSON format for aggregation
+      cat << EOF
+      {
+        "test": "${testName}",
+        "result": "$RESULT",
+        "duration_seconds": $DURATION,
+        "memory_delta_bytes": $MEM_DELTA,
+        "timestamp": "$(date -Iseconds)"
+      }
+      EOF
+    '';
 
   # Benchmark individual test layers
   benchmarkUnitTests = writeShellScript "benchmark-unit-tests" ''
@@ -319,9 +328,16 @@ let
 in
 {
   # Export benchmark functions
-  inherit measureTime benchmarkUnitTests benchmarkContractTests
-    benchmarkIntegrationTests benchmarkE2ETests
-    benchmarkParallelExecution benchmarkMemoryUsage fullBenchmark;
+  inherit
+    measureTime
+    benchmarkUnitTests
+    benchmarkContractTests
+    benchmarkIntegrationTests
+    benchmarkE2ETests
+    benchmarkParallelExecution
+    benchmarkMemoryUsage
+    fullBenchmark
+    ;
 
   # Main benchmark executable
   benchmark = fullBenchmark;

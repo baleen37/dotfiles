@@ -27,7 +27,10 @@ runTests {
       name = "configured-session";
       config = {
         threshold = 95.0;
-        includePaths = [ "lib" "modules" ];
+        includePaths = [
+          "lib"
+          "modules"
+        ];
         excludePaths = [ "tests" ];
       };
     };
@@ -58,7 +61,10 @@ runTests {
     expr =
       let
         session = coverageSystem.measurement.initSession { name = "modules"; };
-        modules = [ "./lib/test-system.nix" "./lib/utils.nix" ];
+        modules = [
+          "./lib/test-system.nix"
+          "./lib/utils.nix"
+        ];
       in
       coverageSystem.measurement.collectCoverage {
         inherit session modules;
@@ -96,7 +102,12 @@ runTests {
           executableLines = 100;
           functions = [ ];
         };
-        testResults = [{ name = "test1"; status = "passed"; }];
+        testResults = [
+          {
+            name = "test1";
+            status = "passed";
+          }
+        ];
       in
       coverageSystem.measurement.calculateCoveredLines moduleInfo testResults;
     expected = 85; # 85% of 100
@@ -113,8 +124,14 @@ runTests {
       anotherFunc = x: x * 2;
     '';
     expected = [
-      { name = "myFunction"; covered = false; }
-      { name = "anotherFunc"; covered = false; }
+      {
+        name = "myFunction";
+        covered = false;
+      }
+      {
+        name = "anotherFunc";
+        covered = false;
+      }
     ];
   };
 
@@ -169,7 +186,10 @@ runTests {
             totalExecutableLines = 800;
             totalCoveredLines = 680;
             uncoveredModules = [
-              { path = "./lib/uncovered.nix"; coverage = 70.0; }
+              {
+                path = "./lib/uncovered.nix";
+                coverage = 70.0;
+              }
             ];
           };
         };
@@ -186,8 +206,12 @@ runTests {
           sessionId = "test-123";
           name = "json-test";
           endTime = 1234567890;
-          config = { threshold = 90.0; };
-          results = { overallCoverage = 95.0; };
+          config = {
+            threshold = 90.0;
+          };
+          results = {
+            overallCoverage = 95.0;
+          };
           modules = [ ];
         };
         jsonReport = coverageSystem.reporting.generateJSONReport session;
@@ -233,8 +257,14 @@ runTests {
               executableLines = 50;
               coveredLines = 45;
               functions = [
-                { name = "func1"; covered = true; }
-                { name = "func2"; covered = false; }
+                {
+                  name = "func1";
+                  covered = true;
+                }
+                {
+                  name = "func2";
+                  covered = false;
+                }
               ];
             }
           ];
@@ -300,9 +330,18 @@ runTests {
         session = {
           config.threshold = 90.0;
           modules = [
-            { path = "./good.nix"; coverage = 95.0; }
-            { path = "./bad.nix"; coverage = 85.0; }
-            { path = "./ugly.nix"; coverage = 75.0; }
+            {
+              path = "./good.nix";
+              coverage = 95.0;
+            }
+            {
+              path = "./bad.nix";
+              coverage = 85.0;
+            }
+            {
+              path = "./ugly.nix";
+              coverage = 75.0;
+            }
           ];
         };
         uncovered = coverageSystem.validation.getUncoveredModules session;
@@ -317,13 +356,19 @@ runTests {
         previousSession = {
           results.overallCoverage = 88.0;
           modules = [
-            { path = "./test.nix"; coverage = 85.0; }
+            {
+              path = "./test.nix";
+              coverage = 85.0;
+            }
           ];
         };
         currentSession = {
           results.overallCoverage = 92.0;
           modules = [
-            { path = "./test.nix"; coverage = 90.0; }
+            {
+              path = "./test.nix";
+              coverage = 90.0;
+            }
           ];
         };
         delta = coverageSystem.validation.calculateDelta {
@@ -429,17 +474,32 @@ runTests {
       let
         session1 = {
           modules = [
-            { path = "./a.nix"; coverage = 90.0; }
-            { path = "./b.nix"; coverage = 80.0; }
+            {
+              path = "./a.nix";
+              coverage = 90.0;
+            }
+            {
+              path = "./b.nix";
+              coverage = 80.0;
+            }
           ];
         };
         session2 = {
           modules = [
-            { path = "./a.nix"; coverage = 95.0; }
-            { path = "./c.nix"; coverage = 85.0; }
+            {
+              path = "./a.nix";
+              coverage = 95.0;
+            }
+            {
+              path = "./c.nix";
+              coverage = 85.0;
+            }
           ];
         };
-        merged = coverageSystem.utils.mergeSessions [ session1 session2 ];
+        merged = coverageSystem.utils.mergeSessions [
+          session1
+          session2
+        ];
       in
       builtins.length merged.modules;
     expected = 3; # a.nix, b.nix, c.nix

@@ -1,7 +1,12 @@
 # Darwin-Specific Testing Module
 # macOS-specific testing configuration and tools
 
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 with lib;
 
@@ -47,7 +52,11 @@ in
     # Add Darwin-specific testing functions
     _module.args.darwinTesting = {
       # Darwin test environment setup
-      darwinTestEnvironment = { enableHomebrew ? false, ... }:
+      darwinTestEnvironment =
+        {
+          enableHomebrew ? false,
+          ...
+        }:
         {
           platform = builtins.currentSystem;
           darwinVersion = pkgs.darwin.apple_sdk.version or "unknown";
@@ -75,14 +84,16 @@ in
             "app-bundle-creation"
             "system-preferences"
             "spotlight-indexing"
-          ] ++ optionals enableHomebrew [
+          ]
+          ++ optionals enableHomebrew [
             "homebrew-package-management"
             "homebrew-services"
           ];
         };
 
       # Setup Darwin-specific tests
-      setupDarwinTests = { darwinConfiguration, ... }:
+      setupDarwinTests =
+        { darwinConfiguration, ... }:
         {
           configPath = darwinConfiguration;
           testTargets = [
@@ -99,23 +110,24 @@ in
         };
 
       # Test Homebrew integration
-      testHomebrewIntegration = { formula ? [ ], casks ? [ ], ... }:
+      testHomebrewIntegration =
+        {
+          formula ? [ ],
+          casks ? [ ],
+          ...
+        }:
         let
-          testFormula = map
-            (f: {
-              name = "homebrew-formula-${f}";
-              command = "brew list ${f}";
-              expected = "installed";
-            })
-            formula;
+          testFormula = map (f: {
+            name = "homebrew-formula-${f}";
+            command = "brew list ${f}";
+            expected = "installed";
+          }) formula;
 
-          testCasks = map
-            (c: {
-              name = "homebrew-cask-${c}";
-              command = "brew list --cask ${c}";
-              expected = "installed";
-            })
-            casks;
+          testCasks = map (c: {
+            name = "homebrew-cask-${c}";
+            command = "brew list --cask ${c}";
+            expected = "installed";
+          }) casks;
         in
         {
           tests = testFormula ++ testCasks;
@@ -124,28 +136,41 @@ in
         };
 
       # Test macOS application bundles
-      testApplicationBundles = { apps ? [ ], ... }:
+      testApplicationBundles =
+        {
+          apps ? [ ],
+          ...
+        }:
         let
-          testApps = map
-            (app: {
-              name = "app-bundle-${app}";
-              bundlePath = "/Applications/${app}.app";
-              infoPlistPath = "/Applications/${app}.app/Contents/Info.plist";
-              validation = [
-                "test -d /Applications/${app}.app"
-                "test -f /Applications/${app}.app/Contents/Info.plist"
-                "defaults read /Applications/${app}.app/Contents/Info.plist CFBundleIdentifier"
-              ];
-            })
-            apps;
+          testApps = map (app: {
+            name = "app-bundle-${app}";
+            bundlePath = "/Applications/${app}.app";
+            infoPlistPath = "/Applications/${app}.app/Contents/Info.plist";
+            validation = [
+              "test -d /Applications/${app}.app"
+              "test -f /Applications/${app}.app/Contents/Info.plist"
+              "defaults read /Applications/${app}.app/Contents/Info.plist CFBundleIdentifier"
+            ];
+          }) apps;
         in
         {
-          inherit (testApps) name bundlePath infoPlistPath validation;
+          inherit (testApps)
+            name
+            bundlePath
+            infoPlistPath
+            validation
+            ;
           tests = testApps;
         };
 
       # Test system preferences and defaults
-      testSystemPreferences = { domain, key, expectedValue, ... }:
+      testSystemPreferences =
+        {
+          domain,
+          key,
+          expectedValue,
+          ...
+        }:
         {
           name = "system-pref-${domain}-${key}";
           command = "defaults read ${domain} ${key}";
@@ -155,7 +180,11 @@ in
         };
 
       # Test Spotlight indexing
-      testSpotlightIndexing = { path ? "$HOME", ... }:
+      testSpotlightIndexing =
+        {
+          path ? "$HOME",
+          ...
+        }:
         {
           name = "spotlight-indexing";
           commands = [
@@ -167,15 +196,18 @@ in
         };
 
       # Test file associations with duti
-      testFileAssociations = { extensions ? [ ], bundleId, ... }:
+      testFileAssociations =
+        {
+          extensions ? [ ],
+          bundleId,
+          ...
+        }:
         let
-          testExtensions = map
-            (ext: {
-              name = "file-association-${ext}";
-              command = "duti -s ${bundleId} ${ext} all";
-              validation = "duti -x ${ext} | grep ${bundleId}";
-            })
-            extensions;
+          testExtensions = map (ext: {
+            name = "file-association-${ext}";
+            command = "duti -s ${bundleId} ${ext} all";
+            validation = "duti -x ${ext} | grep ${bundleId}";
+          }) extensions;
         in
         {
           tests = testExtensions;
@@ -183,18 +215,20 @@ in
         };
 
       # Test launchd services (Darwin services)
-      testLaunchdServices = { services ? [ ], ... }:
+      testLaunchdServices =
+        {
+          services ? [ ],
+          ...
+        }:
         let
-          testServices = map
-            (service: {
-              name = "launchd-service-${service}";
-              commands = [
-                "launchctl list | grep ${service}"
-                "launchctl print system/${service}"
-              ];
-              validation = "service loaded and running";
-            })
-            services;
+          testServices = map (service: {
+            name = "launchd-service-${service}";
+            commands = [
+              "launchctl list | grep ${service}"
+              "launchctl print system/${service}"
+            ];
+            validation = "service loaded and running";
+          }) services;
         in
         {
           tests = testServices;
@@ -202,7 +236,12 @@ in
         };
 
       # Test nix-darwin configuration application
-      testNixDarwinConfiguration = { flakeRef ? ".", configuration ? "darwin", ... }:
+      testNixDarwinConfiguration =
+        {
+          flakeRef ? ".",
+          configuration ? "darwin",
+          ...
+        }:
         {
           name = "nix-darwin-config-test";
           steps = [
@@ -231,7 +270,8 @@ in
         };
 
       # Test macOS security and permissions
-      testMacOSSecurity = { ... }:
+      testMacOSSecurity =
+        { ... }:
         {
           name = "macos-security-test";
           tests = [
@@ -254,21 +294,31 @@ in
         };
 
       # Cross-platform compatibility helpers
-      generateDarwinMatrix = { architectures ? [ "x86_64" "aarch64" ], ... }:
+      generateDarwinMatrix =
         {
-          os = [ "macos-latest" "macos-12" "macos-13" ];
+          architectures ? [
+            "x86_64"
+            "aarch64"
+          ],
+          ...
+        }:
+        {
+          os = [
+            "macos-latest"
+            "macos-12"
+            "macos-13"
+          ];
           architecture = architectures;
-          include = map
-            (arch: {
-              os = "macos-latest";
-              platform = "${arch}-darwin";
-              nixSystem = "${arch}-darwin";
-            })
-            architectures;
+          include = map (arch: {
+            os = "macos-latest";
+            platform = "${arch}-darwin";
+            nixSystem = "${arch}-darwin";
+          }) architectures;
         };
 
       # Performance testing for Darwin
-      testDarwinPerformance = { ... }:
+      testDarwinPerformance =
+        { ... }:
         {
           name = "darwin-performance-test";
           metrics = [

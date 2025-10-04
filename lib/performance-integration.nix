@@ -1,7 +1,13 @@
 # Performance optimization integration module
 # Combines all performance optimizations into a unified system
 
-{ lib, pkgs, system, inputs ? { }, self ? { } }:
+{
+  lib,
+  pkgs,
+  system,
+  inputs ? { },
+  self ? { },
+}:
 
 let
   # Import optimization modules
@@ -30,7 +36,8 @@ rec {
   # Unified performance optimization
   performanceOptimizations = {
     # Apply all optimizations to a derivation
-    optimizeDerivation = name: attrs:
+    optimizeDerivation =
+      name: attrs:
       let
         # Apply parallel build optimization
         parallelOptimized = parallelOptimizer.buildOptimizations.mkOptimizedDerivation name attrs;
@@ -43,56 +50,59 @@ rec {
           src =
             if oldAttrs ? src && lib.isStorePath oldAttrs.src then
               rebuildOptimizer.fileFilters.filterSource oldAttrs.src [ ]
-            else oldAttrs.src;
+            else
+              oldAttrs.src;
         });
       in
       sourceFiltered;
 
     # Optimize package set
-    optimizePackages = packages:
-      lib.mapAttrs (name: pkg: performanceOptimizations.optimizeDerivation name pkg) packages;
+    optimizePackages =
+      packages: lib.mapAttrs (name: pkg: performanceOptimizations.optimizeDerivation name pkg) packages;
 
     # Create performance-optimized development shell
-    mkOptimizedDevShell = baseShell:
+    mkOptimizedDevShell =
+      baseShell:
       if baseShell ? overrideAttrs then
-        baseShell.overrideAttrs
-          (oldAttrs: {
-            # Apply parallel build environment
-            inherit (parallelOptimizer.parallelBuildConfig.environment) NIX_BUILD_CORES MAKEFLAGS;
+        baseShell.overrideAttrs (oldAttrs: {
+          # Apply parallel build environment
+          inherit (parallelOptimizer.parallelBuildConfig.environment) NIX_BUILD_CORES MAKEFLAGS;
 
-            # Add performance monitoring tools
-            buildInputs = (oldAttrs.buildInputs or [ ]) ++ [
-              pkgs.time
-              pkgs.htop
-              pkgs.iotop
-              pkgs.ccache
-            ];
+          # Add performance monitoring tools
+          buildInputs = (oldAttrs.buildInputs or [ ]) ++ [
+            pkgs.time
+            pkgs.htop
+            pkgs.iotop
+            pkgs.ccache
+          ];
 
-            # Enhanced shell hook with performance information
-            shellHook = (oldAttrs.shellHook or "") + ''
-              echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-              echo "🚀 Performance-Optimized Development Environment"
-              echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-              echo "Hardware: Apple M2 (${toString performanceConfig.hardware.totalCores} cores, ${toString performanceConfig.hardware.memoryGB}GB RAM)"
-              echo "Build cores: $NIX_BUILD_CORES"
-              echo "Parallel jobs: ${toString performanceConfig.parallel.maxJobs}"
-              echo "Make flags: $MAKEFLAGS"
-              echo ""
-              echo "Performance tools available:"
-              echo "  • build-perf-monitor.sh - Build performance monitoring"
-              echo "  • nix-cache-optimizer.sh - Cache optimization"
-              echo "  • time <command> - Command timing"
-              echo "  • htop - System resource monitor"
-              echo ""
-              echo "ccache configured: $CCACHE_DIR (max: $CCACHE_MAXSIZE)"
-              echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-            '';
+          # Enhanced shell hook with performance information
+          shellHook = (oldAttrs.shellHook or "") + ''
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo "🚀 Performance-Optimized Development Environment"
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo "Hardware: Apple M2 (${toString performanceConfig.hardware.totalCores} cores, ${toString performanceConfig.hardware.memoryGB}GB RAM)"
+            echo "Build cores: $NIX_BUILD_CORES"
+            echo "Parallel jobs: ${toString performanceConfig.parallel.maxJobs}"
+            echo "Make flags: $MAKEFLAGS"
+            echo ""
+            echo "Performance tools available:"
+            echo "  • build-perf-monitor.sh - Build performance monitoring"
+            echo "  • nix-cache-optimizer.sh - Cache optimization"
+            echo "  • time <command> - Command timing"
+            echo "  • htop - System resource monitor"
+            echo ""
+            echo "ccache configured: $CCACHE_DIR (max: $CCACHE_MAXSIZE)"
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          '';
 
-            # Performance environment variables
-            CCACHE_DIR = "\${HOME}/.cache/ccache";
-            CCACHE_MAXSIZE = "2G";
-            CCACHE_COMPILERCHECK = "content";
-          }) else baseShell;
+          # Performance environment variables
+          CCACHE_DIR = "\${HOME}/.cache/ccache";
+          CCACHE_MAXSIZE = "2G";
+          CCACHE_COMPILERCHECK = "content";
+        })
+      else
+        baseShell;
   };
 
   # Performance monitoring integration
@@ -100,61 +110,66 @@ rec {
     # Create performance-aware app
     mkPerformanceApp = name: script: {
       type = "app";
-      program = toString (pkgs.writeShellScript name ''
-        set -euo pipefail
+      program = toString (
+        pkgs.writeShellScript name ''
+          set -euo pipefail
 
-        # Performance monitoring wrapper
-        echo "🔍 Performance monitoring enabled for: ${name}"
-        start_time=$(date +%s.%N)
+          # Performance monitoring wrapper
+          echo "🔍 Performance monitoring enabled for: ${name}"
+          start_time=$(date +%s.%N)
 
-        # Run the actual script with performance tracking
-        ${script} "$@"
-        result=$?
+          # Run the actual script with performance tracking
+          ${script} "$@"
+          result=$?
 
-        end_time=$(date +%s.%N)
-        duration=$(echo "$end_time - $start_time" | ${pkgs.bc}/bin/bc -l)
+          end_time=$(date +%s.%N)
+          duration=$(echo "$end_time - $start_time" | ${pkgs.bc}/bin/bc -l)
 
-        echo "⏱️  Execution time: $duration seconds"
-        return $result
-      '');
+          echo "⏱️  Execution time: $duration seconds"
+          return $result
+        ''
+      );
     };
 
     # Generate performance metrics
-    generateMetrics = buildResults: pkgs.runCommand "performance-metrics" { } ''
-      mkdir -p $out
+    generateMetrics =
+      buildResults:
+      pkgs.runCommand "performance-metrics" { } ''
+        mkdir -p $out
 
-      cat > $out/performance-summary.json << 'EOF'
-      {
-        "performance_optimization": {
-          "status": "active",
-          "optimizations_applied": [
-            "parallel_build_optimization",
-            "rebuild_trigger_minimization",
-            "nix_store_cache_optimization",
-            "hardware_specific_tuning"
-          ],
-          "hardware_profile": {
-            "system": "${system}",
-            "cores": ${toString performanceConfig.hardware.totalCores},
-            "memory_gb": ${toString performanceConfig.hardware.memoryGB},
-            "optimal_jobs": ${toString performanceConfig.parallel.maxJobs}
-          },
-          "cache_statistics": {
-            "store_size_gb": "~25GB",
-            "gc_roots": 320,
-            "dead_paths": 12657,
-            "cache_hit_optimization": "enabled"
+        cat > $out/performance-summary.json << 'EOF'
+        {
+          "performance_optimization": {
+            "status": "active",
+            "optimizations_applied": [
+              "parallel_build_optimization",
+              "rebuild_trigger_minimization",
+              "nix_store_cache_optimization",
+              "hardware_specific_tuning"
+            ],
+            "hardware_profile": {
+              "system": "${system}",
+              "cores": ${toString performanceConfig.hardware.totalCores},
+              "memory_gb": ${toString performanceConfig.hardware.memoryGB},
+              "optimal_jobs": ${toString performanceConfig.parallel.maxJobs}
+            },
+            "cache_statistics": {
+              "store_size_gb": "~25GB",
+              "gc_roots": 320,
+              "dead_paths": 12657,
+              "cache_hit_optimization": "enabled"
+            }
           }
         }
-      }
-      EOF
+        EOF
 
-      echo "Performance metrics generated successfully"
-    '';
+        echo "Performance metrics generated successfully"
+      '';
   };
 
   # Integration with flake outputs
-  integrateWithFlake = originalOutputs: system:
+  integrateWithFlake =
+    originalOutputs: system:
     let
       # Extract base outputs
       basePackages = originalOutputs.packages.${system} or { };
@@ -163,7 +178,8 @@ rec {
       baseChecks = originalOutputs.checks.${system} or { };
 
     in
-    originalOutputs // {
+    originalOutputs
+    // {
       # Performance-optimized packages
       packages = originalOutputs.packages // {
         ${system} = basePackages // {
@@ -174,102 +190,105 @@ rec {
 
       # Performance-optimized development shells
       devShells = originalOutputs.devShells // {
-        ${system} = lib.mapAttrs
-          (name: shell:
-            performanceOptimizations.mkOptimizedDevShell shell
-          )
-          baseDevShells;
+        ${system} = lib.mapAttrs (
+          name: shell: performanceOptimizations.mkOptimizedDevShell shell
+        ) baseDevShells;
       };
 
       # Performance-enhanced apps
       apps = originalOutputs.apps // {
-        ${system} = baseApps // {
-          # Performance monitoring apps
-          perf-monitor = performanceMonitoring.mkPerformanceApp "perf-monitor"
-            "${placeholder "out"}/bin/build-perf-monitor.sh";
-          cache-optimize = performanceMonitoring.mkPerformanceApp "cache-optimize"
-            "${placeholder "out"}/bin/nix-cache-optimizer.sh";
+        ${system} =
+          baseApps
+          // {
+            # Performance monitoring apps
+            perf-monitor = performanceMonitoring.mkPerformanceApp "perf-monitor" "${placeholder "out"}/bin/build-perf-monitor.sh";
+            cache-optimize = performanceMonitoring.mkPerformanceApp "cache-optimize" "${placeholder "out"}/bin/nix-cache-optimizer.sh";
 
-          # Wrap existing apps with performance monitoring
-        } // (lib.mapAttrs
-          (name: app:
+            # Wrap existing apps with performance monitoring
+          }
+          // (lib.mapAttrs (
+            name: app:
             if app.type == "app" then
               performanceMonitoring.mkPerformanceApp "monitored-${name}" app.program
-            else app
-          )
-          baseApps);
+            else
+              app
+          ) baseApps);
       };
 
       # Enhanced checks with performance validation
       checks = originalOutputs.checks // {
         ${system} = baseChecks // {
           # Performance validation check
-          performance-validation = pkgs.runCommand "performance-validation"
-            {
-              meta.timeout = 300;
-            } ''
-            echo "=== Performance Optimization Validation ==="
+          performance-validation =
+            pkgs.runCommand "performance-validation"
+              {
+                meta.timeout = 300;
+              }
+              ''
+                echo "=== Performance Optimization Validation ==="
 
-            # Check if performance optimizations are properly configured
-            expected_cores=${toString performanceConfig.hardware.totalCores}
-            expected_jobs=${toString performanceConfig.parallel.maxJobs}
+                # Check if performance optimizations are properly configured
+                expected_cores=${toString performanceConfig.hardware.totalCores}
+                expected_jobs=${toString performanceConfig.parallel.maxJobs}
 
-            echo "✅ Hardware detection: ${system}"
-            echo "✅ Cores configured: $expected_cores"
-            echo "✅ Parallel jobs: $expected_jobs"
-            echo "✅ Build optimization: enabled"
-            echo "✅ Cache optimization: enabled"
-            echo "✅ Rebuild trigger minimization: enabled"
+                echo "✅ Hardware detection: ${system}"
+                echo "✅ Cores configured: $expected_cores"
+                echo "✅ Parallel jobs: $expected_jobs"
+                echo "✅ Build optimization: enabled"
+                echo "✅ Cache optimization: enabled"
+                echo "✅ Rebuild trigger minimization: enabled"
 
-            # Validate configuration files exist
-            config_files=(
-              "${./build-optimization.nix}"
-              "${./rebuild-trigger-optimizer.nix}"
-              "${./parallel-build-optimizer.nix}"
-            )
+                # Validate configuration files exist
+                config_files=(
+                  "${./build-optimization.nix}"
+                  "${./rebuild-trigger-optimizer.nix}"
+                  "${./parallel-build-optimizer.nix}"
+                )
 
-            for config in "''${config_files[@]}"; do
-              if [ -f "$config" ]; then
-                echo "✅ Configuration exists: $(basename $config)"
-              else
-                echo "❌ Missing configuration: $(basename $config)"
-                exit 1
-              fi
-            done
+                for config in "''${config_files[@]}"; do
+                  if [ -f "$config" ]; then
+                    echo "✅ Configuration exists: $(basename $config)"
+                  else
+                    echo "❌ Missing configuration: $(basename $config)"
+                    exit 1
+                  fi
+                done
 
-            echo ""
-            echo "🚀 All performance optimizations validated successfully!"
-            touch $out
-          '';
+                echo ""
+                echo "🚀 All performance optimizations validated successfully!"
+                touch $out
+              '';
 
           # Build performance benchmark
-          build-performance-benchmark = pkgs.runCommand "build-performance-benchmark"
-            {
-              meta.timeout = 600;
-            } ''
-            echo "=== Build Performance Benchmark ==="
+          build-performance-benchmark =
+            pkgs.runCommand "build-performance-benchmark"
+              {
+                meta.timeout = 600;
+              }
+              ''
+                echo "=== Build Performance Benchmark ==="
 
-            # Simple build performance test
-            start_time=$(date +%s.%N)
+                # Simple build performance test
+                start_time=$(date +%s.%N)
 
-            # Test parallel compilation
-            echo "int main() { return 0; }" > test.c
-            ${pkgs.gcc}/bin/gcc -O3 -j${toString performanceConfig.parallel.maxJobs} test.c -o test
+                # Test parallel compilation
+                echo "int main() { return 0; }" > test.c
+                ${pkgs.gcc}/bin/gcc -O3 -j${toString performanceConfig.parallel.maxJobs} test.c -o test
 
-            end_time=$(date +%s.%N)
-            duration=$(echo "$end_time - $start_time" | ${pkgs.bc}/bin/bc -l)
+                end_time=$(date +%s.%N)
+                duration=$(echo "$end_time - $start_time" | ${pkgs.bc}/bin/bc -l)
 
-            echo "Build benchmark completed in $duration seconds"
+                echo "Build benchmark completed in $duration seconds"
 
-            # Validate performance is reasonable (< 5 seconds for simple build)
-            if (( $(echo "$duration < 5.0" | ${pkgs.bc}/bin/bc -l) )); then
-              echo "✅ Build performance is acceptable"
-            else
-              echo "⚠️  Build performance may need optimization"
-            fi
+                # Validate performance is reasonable (< 5 seconds for simple build)
+                if (( $(echo "$duration < 5.0" | ${pkgs.bc}/bin/bc -l) )); then
+                  echo "✅ Build performance is acceptable"
+                else
+                  echo "⚠️  Build performance may need optimization"
+                fi
 
-            touch $out
-          '';
+                touch $out
+              '';
         };
       };
     };

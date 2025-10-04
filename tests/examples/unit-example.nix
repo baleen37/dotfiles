@@ -6,29 +6,28 @@
 let
   # Example utility functions to test
   stringUtils = {
-    capitalize = str:
-      if str == null || str == ""
-      then str
-      else (lib.toUpper (lib.substring 0 1 str)) + (lib.substring 1 (-1) str);
+    capitalize =
+      str:
+      if str == null || str == "" then
+        str
+      else
+        (lib.toUpper (lib.substring 0 1 str)) + (lib.substring 1 (-1) str);
 
-    slugify = str:
-      lib.toLower (lib.replaceStrings [ " " "_" ] [ "-" "-" ] str);
+    slugify = str: lib.toLower (lib.replaceStrings [ " " "_" ] [ "-" "-" ] str);
 
-    truncate = maxLen: str:
-      if lib.stringLength str <= maxLen
-      then str
-      else (lib.substring 0 maxLen str) + "...";
+    truncate =
+      maxLen: str: if lib.stringLength str <= maxLen then str else (lib.substring 0 maxLen str) + "...";
   };
 
   listUtils = {
     unique = list: lib.unique (lib.sort lib.lessThan list);
 
-    partition = predicate: list:
-      lib.partition predicate list;
+    partition = predicate: list: lib.partition predicate list;
 
-    chunk = size: list:
-      if list == [ ] || size <= 0
-      then [ ]
+    chunk =
+      size: list:
+      if list == [ ] || size <= 0 then
+        [ ]
       else
         let
           head = lib.take size list;
@@ -38,14 +37,14 @@ let
   };
 
   configUtils = {
-    mergeConfigs = configs:
-      lib.foldl' lib.recursiveUpdate { } configs;
+    mergeConfigs = configs: lib.foldl' lib.recursiveUpdate { } configs;
 
-    validateConfig = config:
-      config ? name && config ? enable && lib.isString config.name;
+    validateConfig = config: config ? name && config ? enable && lib.isString config.name;
 
-    normalizeConfig = config:
-      config // {
+    normalizeConfig =
+      config:
+      config
+      // {
         enable = config.enable or false;
         priority = config.priority or 100;
       };
@@ -106,8 +105,19 @@ in
 
   # List utility tests
   testListUtilsUniqueBasic = {
-    expr = listUtils.unique [ 3 1 2 1 3 2 ];
-    expected = [ 1 2 3 ];
+    expr = listUtils.unique [
+      3
+      1
+      2
+      1
+      3
+      2
+    ];
+    expected = [
+      1
+      2
+      3
+    ];
   };
 
   testListUtilsUniqueEmpty = {
@@ -121,10 +131,25 @@ in
   };
 
   testListUtilsPartitionBasic = {
-    expr = listUtils.partition (x: x > 5) [ 1 6 3 8 2 9 ];
+    expr = listUtils.partition (x: x > 5) [
+      1
+      6
+      3
+      8
+      2
+      9
+    ];
     expected = {
-      right = [ 6 8 9 ];
-      wrong = [ 1 3 2 ];
+      right = [
+        6
+        8
+        9
+      ];
+      wrong = [
+        1
+        3
+        2
+      ];
     };
   };
 
@@ -137,16 +162,40 @@ in
   };
 
   testListUtilsPartitionAllTrue = {
-    expr = listUtils.partition (x: true) [ 1 2 3 ];
+    expr = listUtils.partition (x: true) [
+      1
+      2
+      3
+    ];
     expected = {
-      right = [ 1 2 3 ];
+      right = [
+        1
+        2
+        3
+      ];
       wrong = [ ];
     };
   };
 
   testListUtilsChunkBasic = {
-    expr = listUtils.chunk 2 [ 1 2 3 4 5 ];
-    expected = [ [ 1 2 ] [ 3 4 ] [ 5 ] ];
+    expr = listUtils.chunk 2 [
+      1
+      2
+      3
+      4
+      5
+    ];
+    expected = [
+      [
+        1
+        2
+      ]
+      [
+        3
+        4
+      ]
+      [ 5 ]
+    ];
   };
 
   testListUtilsChunkEmpty = {
@@ -155,19 +204,36 @@ in
   };
 
   testListUtilsChunkInvalidSize = {
-    expr = listUtils.chunk 0 [ 1 2 3 ];
+    expr = listUtils.chunk 0 [
+      1
+      2
+      3
+    ];
     expected = [ ];
   };
 
   # Configuration utility tests
   testConfigUtilsMergeBasic = {
     expr = configUtils.mergeConfigs [
-      { a = 1; b = { c = 2; }; }
-      { b = { d = 3; }; e = 4; }
+      {
+        a = 1;
+        b = {
+          c = 2;
+        };
+      }
+      {
+        b = {
+          d = 3;
+        };
+        e = 4;
+      }
     ];
     expected = {
       a = 1;
-      b = { c = 2; d = 3; };
+      b = {
+        c = 2;
+        d = 3;
+      };
       e = 4;
     };
   };
@@ -182,7 +248,9 @@ in
       { a = 1; }
       { a = 2; }
     ];
-    expected = { a = 2; };
+    expected = {
+      a = 2;
+    };
   };
 
   testConfigUtilsValidateValid = {
@@ -236,12 +304,18 @@ in
   # Error handling tests
   testErrorHandlingNullInput = {
     expr = builtins.tryEval (stringUtils.capitalize null);
-    expected = { success = true; value = null; };
+    expected = {
+      success = true;
+      value = null;
+    };
   };
 
   testErrorHandlingEmptyList = {
     expr = builtins.tryEval (listUtils.unique [ ]);
-    expected = { success = true; value = [ ]; };
+    expected = {
+      success = true;
+      value = [ ];
+    };
   };
 
   # Edge case tests
@@ -270,7 +344,14 @@ in
   testPropertyListUniqueIdempotent = {
     expr =
       let
-        testList = [ 1 2 2 3 3 3 ];
+        testList = [
+          1
+          2
+          2
+          3
+          3
+          3
+        ];
         unique1 = listUtils.unique testList;
         unique2 = listUtils.unique unique1;
       in
@@ -281,7 +362,10 @@ in
   testPropertyConfigNormalizationConsistent = {
     expr =
       let
-        config = { name = "test"; priority = 42; };
+        config = {
+          name = "test";
+          priority = 42;
+        };
         normalized1 = configUtils.normalizeConfig config;
         normalized2 = configUtils.normalizeConfig normalized1;
       in

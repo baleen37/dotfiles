@@ -48,12 +48,12 @@ repos:
   # Nix formatting and validation
   - repo: local
     hooks:
-      - id: nixpkgs-fmt
-        name: nixpkgs-fmt
-        entry: bash -c "echo 'Skipping nixpkgs-fmt - not available in CI environment'"
+      - id: nixfmt-rfc-style
+        name: nixfmt-rfc-style
+        entry: nix run nixpkgs#nixfmt-rfc-style --
         language: system
         files: \.nix$
-        pass_filenames: false
+        pass_filenames: true
 
   # YAML formatting and linting
   - repo: https://github.com/adrienverge/yamllint

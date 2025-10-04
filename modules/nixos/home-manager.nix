@@ -1,4 +1,10 @@
-{ config, pkgs, lib, self, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  self,
+  ...
+}:
 
 let
   # Resolve user with platform information using unified system
@@ -33,7 +39,9 @@ let
   polybar-config =
     let
       src = builtins.readFile ./config/polybar/config.ini;
-      text = builtins.replaceStrings [ "@font0@" "@font1@" ] [ "DejaVu Sans:size=12;3" "feather:size=12;3" ] src;
+      text =
+        builtins.replaceStrings [ "@font0@" "@font1@" ] [ "DejaVu Sans:size=12;3" "feather:size=12;3" ]
+          src;
     in
     builtins.toFile "polybar-config.ini" text;
 
@@ -51,7 +59,17 @@ in
     username = "${user}";
     homeDirectory = getUserInfo.homePath;
     packages = pkgs.callPackage ./packages.nix { };
-    file = (import ../shared/files.nix { inherit config pkgs user self lib; }) // import ./files.nix { inherit user; };
+    file =
+      (import ../shared/files.nix {
+        inherit
+          config
+          pkgs
+          user
+          self
+          lib
+          ;
+      })
+      // import ./files.nix { inherit user; };
     stateVersion = "21.05";
   };
 
