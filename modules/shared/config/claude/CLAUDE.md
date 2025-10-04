@@ -219,3 +219,33 @@ YOU MUST ALWAYS find the root cause of any issue you are debugging. YOU MUST NEV
 - NEVER add multiple fixes at once
 - ALWAYS test after each change
 - IF your first fix doesn't work, STOP and re-analyze rather than adding more fixes
+
+# ===================================================
+# SuperClaude Framework Components
+# ===================================================
+
+# Core Framework
+@BUSINESS_PANEL_EXAMPLES.md
+@BUSINESS_SYMBOLS.md
+@FLAGS.md
+@PRINCIPLES.md
+@RESEARCH_CONFIG.md
+@RULES.md
+
+# Behavioral Modes
+@MODE_Brainstorming.md
+@MODE_Business_Panel.md
+@MODE_DeepResearch.md
+@MODE_Introspection.md
+@MODE_Orchestration.md
+@MODE_Task_Management.md
+@MODE_Token_Efficiency.md
+
+# MCP Documentation
+@MCP_Context7.md
+@MCP_Magic.md
+@MCP_Morphllm.md
+@MCP_Playwright.md
+@MCP_Sequential.md
+@MCP_Serena.md
+@MCP_Tavily.md
