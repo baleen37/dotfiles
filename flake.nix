@@ -160,9 +160,14 @@
             nixtest = (import ./tests/unit/nixtest-template.nix { inherit lib pkgs; }).nixtest;
             testHelpers = import ./tests/unit/test-helpers.nix { inherit lib pkgs; };
 
-            # Import test suites
+            # Import unit test suites
             libTests = import ./tests/unit/lib_test.nix { inherit lib pkgs system; };
             platformTests = import ./tests/unit/platform_test.nix { inherit lib pkgs system; };
+
+            # Import integration test suites
+            moduleInteractionTests = import ./tests/integration/module-interaction-test.nix { inherit lib pkgs system; };
+            crossPlatformTests = import ./tests/integration/cross-platform-test.nix { inherit lib pkgs system; };
+            systemConfigurationTests = import ./tests/integration/system-configuration-test.nix { inherit lib pkgs system; };
 
             # Helper function to run test suites and format results
             runTestSuite = testSuite: pkgs.runCommand "test-${testSuite.name}" { } ''
@@ -188,6 +193,11 @@
             libTestSuite = runTestSuite libTests;
             platformTestSuite = runTestSuite platformTests;
 
+            # Integration test derivations
+            moduleInteractionTestSuite = runTestSuite moduleInteractionTests;
+            crossPlatformTestSuite = runTestSuite crossPlatformTests;
+            systemConfigurationTestSuite = runTestSuite systemConfigurationTests;
+
             # Combined test runner that executes all test suites
             allTestSuites = pkgs.runCommand "nixtest-all-suites"
               {
@@ -195,22 +205,45 @@
               } ''
               mkdir -p $out/results
 
-              # Copy individual test results
-              cp -r ${libTestSuite}/* $out/results/lib-tests/
-              cp -r ${platformTestSuite}/* $out/results/platform-tests/
+              # Copy unit test results
+              mkdir -p $out/results/unit-tests $out/results/integration-tests
+              cp -r ${libTestSuite}/* $out/results/unit-tests/lib-tests/
+              cp -r ${platformTestSuite}/* $out/results/unit-tests/platform-tests/
+
+              # Copy integration test results
+              cp -r ${moduleInteractionTestSuite}/* $out/results/integration-tests/module-interaction/
+              cp -r ${crossPlatformTestSuite}/* $out/results/integration-tests/cross-platform/
+              cp -r ${systemConfigurationTestSuite}/* $out/results/integration-tests/system-configuration/
 
               # Generate combined report
               echo "NixTest Framework Results" > $out/report.txt
               echo "=========================" >> $out/report.txt
               echo "" >> $out/report.txt
 
-              # Add individual suite summaries
+              # Add unit test suite summaries
+              echo "UNIT TESTS" >> $out/report.txt
+              echo "----------" >> $out/report.txt
               echo "Library Function Tests:" >> $out/report.txt
               cat ${libTestSuite}/summary.txt | sed 's/^/  /' >> $out/report.txt
               echo "" >> $out/report.txt
 
               echo "Platform Detection Tests:" >> $out/report.txt
               cat ${platformTestSuite}/summary.txt | sed 's/^/  /' >> $out/report.txt
+              echo "" >> $out/report.txt
+
+              # Add integration test suite summaries
+              echo "INTEGRATION TESTS" >> $out/report.txt
+              echo "-----------------" >> $out/report.txt
+              echo "Module Interaction Tests:" >> $out/report.txt
+              cat ${moduleInteractionTestSuite}/summary.txt | sed 's/^/  /' >> $out/report.txt
+              echo "" >> $out/report.txt
+
+              echo "Cross-Platform Tests:" >> $out/report.txt
+              cat ${crossPlatformTestSuite}/summary.txt | sed 's/^/  /' >> $out/report.txt
+              echo "" >> $out/report.txt
+
+              echo "System Configuration Tests:" >> $out/report.txt
+              cat ${systemConfigurationTestSuite}/summary.txt | sed 's/^/  /' >> $out/report.txt
               echo "" >> $out/report.txt
 
               echo "All test suites completed successfully." >> $out/report.txt
@@ -221,9 +254,14 @@
 
           in
           {
-            # Individual test suites
+            # Unit test suites
             lib-functions = libTestSuite;
             platform-detection = platformTestSuite;
+
+            # Integration test suites
+            module-interaction = moduleInteractionTestSuite;
+            cross-platform = crossPlatformTestSuite;
+            system-configuration = systemConfigurationTestSuite;
 
             # Combined test runner
             all = allTestSuites;
@@ -245,6 +283,28 @@
                 echo "Test helpers file exists: PASSED" >> $out
               else
                 echo "Test helpers file missing: FAILED" >> $out
+                exit 1
+              fi
+
+              # Test integration test files exist
+              if [ -f "${./tests/integration/module-interaction-test.nix}" ]; then
+                echo "Module interaction test file exists: PASSED" >> $out
+              else
+                echo "Module interaction test file missing: FAILED" >> $out
+                exit 1
+              fi
+
+              if [ -f "${./tests/integration/cross-platform-test.nix}" ]; then
+                echo "Cross-platform test file exists: PASSED" >> $out
+              else
+                echo "Cross-platform test file missing: FAILED" >> $out
+                exit 1
+              fi
+
+              if [ -f "${./tests/integration/system-configuration-test.nix}" ]; then
+                echo "System configuration test file exists: PASSED" >> $out
+              else
+                echo "System configuration test file missing: FAILED" >> $out
                 exit 1
               fi
 
