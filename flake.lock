@@ -323,6 +323,21 @@
         "type": "github"
       }
     },
+    "nixtest": {
+      "locked": {
+        "lastModified": 1712694952,
+        "narHash": "sha256-f8NufqWlnEbdHAUT34LcSCUBkQcGxJ8Cnn6UCPIBxuU=",
+        "owner": "jetify-com",
+        "repo": "nixtest",
+        "rev": "cdd1c7ed6cfb49e3c06702cd21f90924378f2083",
+        "type": "github"
+      },
+      "original": {
+        "owner": "jetify-com",
+        "repo": "nixtest",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "darwin": "darwin",
@@ -335,7 +350,8 @@
         "namaka": "namaka",
         "nix-homebrew": "nix-homebrew",
         "nix-unit": "nix-unit",
-        "nixpkgs": "nixpkgs_2"
+        "nixpkgs": "nixpkgs_2",
+        "nixtest": "nixtest"
       }
     },
     "rust-analyzer-src": {

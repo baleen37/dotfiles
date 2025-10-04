@@ -32,6 +32,10 @@
       url = "github:nix-community/nix-unit";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    nixtest = {
+      url = "github:jetify-com/nixtest";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     namaka = {
       url = "github:nix-community/namaka";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -53,6 +57,7 @@
     , nixpkgs
     , disko
     , nix-unit
+    , nixtest
     , namaka
     , flake-checker
     ,
