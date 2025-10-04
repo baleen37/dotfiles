@@ -273,26 +273,13 @@
           format = {
             type = "app";
             program = "${formatters.formatter}/bin/dotfiles-format";
+            meta = {
+              description = "Auto-format all dotfiles (Nix, YAML, JSON, Markdown, Shell)";
+              mainProgram = "dotfiles-format";
+            };
           };
         }
       );
-
-      # Import testing infrastructure
-      tests =
-        let
-          testingLib = import ./lib/testing.nix { inherit inputs forAllSystems self; };
-        in
-        if builtins.hasAttr "tests" testingLib then testingLib.tests else { };
-
-      # Import performance benchmarks
-      performance-benchmarks =
-        let
-          testingLib = import ./lib/testing.nix { inherit inputs forAllSystems self; };
-        in
-        if builtins.hasAttr "performance-benchmarks" testingLib then
-          testingLib.performance-benchmarks
-        else
-          { };
 
       # Expose tests as packages for easier CI access
       packages = forAllSystems (
