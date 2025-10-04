@@ -34,7 +34,6 @@
     };
     nixtest = {
       url = "github:jetify-com/nixtest";
-      inputs.nixpkgs.follows = "nixpkgs";
     };
     namaka = {
       url = "github:nix-community/namaka";

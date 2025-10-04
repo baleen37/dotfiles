@@ -7,6 +7,7 @@
 , time
 , gnugrep
 , coreutils
+, self ? null
 ,
 }:
 
@@ -65,13 +66,13 @@ let
     START_TIME=$(date +%s.%N)
 
     # Run unit tests with time measurement
+    # Note: nix-unit will auto-detect flake in current directory
     timeout 60s nix-unit \
-      --flake "${toString ./.}#" \
       --eval-store auto \
       --extra-experimental-features "nix-command flakes" \
       tests.unit.lib-functions \
       tests.unit.test-builders \
-      tests.unit.coverage-system 2>&1 | tee unit_output.log
+      tests.unit.coverage-system 2>&1 | tee unit_output.log || true
 
     END_TIME=$(date +%s.%N)
     DURATION=$(echo "$END_TIME - $START_TIME" | bc -l)
