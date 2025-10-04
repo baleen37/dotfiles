@@ -67,6 +67,8 @@ jobs:
 
       - name: Lint
         run: |
+          # Unset core.hooksPath if set (prevents pre-commit installation errors)
+          git config --unset-all core.hooksPath || true
           nix-shell -p pre-commit --run "pre-commit install"
           nix-shell -p pre-commit --run "pre-commit run --all-files"
 
