@@ -28,8 +28,8 @@ let
   inherit (userInfo) homePath name;
   inherit (platformInfo) isDarwin isLinux;
 
-  # Path to actual Claude config files
-  claudeConfigDir = "${homePath}/dev/dotfiles/modules/shared/config/claude";
+  # Path to actual Claude config files (relative to this module)
+  claudeConfigDir = ../../config/claude;
 
   # Claude Code uses ~/.claude for both platforms
   claudeHomeDir = ".claude";
