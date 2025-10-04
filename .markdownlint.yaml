@@ -16,7 +16,23 @@ MD027: false
 # Fenced code blocks - require language specification
 MD040:
   # Allow empty code blocks for templates and examples
-  allowed_languages: ["", "bash", "nix", "yaml", "json", "markdown", "text", "shell"]
+  allowed_languages:
+    [
+      "",
+      "bash",
+      "nix",
+      "yaml",
+      "json",
+      "markdown",
+      "text",
+      "shell",
+      "python",
+      "javascript",
+      "typescript",
+      "sh",
+      "zsh",
+      "makefile",
+    ]
 
 # Emphasis used instead of header - allow for metadata blocks
 MD036: false

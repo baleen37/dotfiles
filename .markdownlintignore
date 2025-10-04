@@ -1,0 +1,4 @@
+# Ignore generated and external documentation
+CHANGELOG.md
+modules/shared/config/claude/**/*.md
+specs/**/*.md

@@ -18,6 +18,7 @@ turn into a set of work tickets to assign to engineers.
 - [ ] Generate plan.md following spec-kit template
 
 ## Technical Analysis Required
+
 - [ ] Technology stack evaluation and approval
 - [ ] Architecture design decisions
 - [ ] Dependency analysis and risk assessment
@@ -25,12 +26,14 @@ turn into a set of work tickets to assign to engineers.
 - [ ] Testing strategy definition
 
 ## Phase Design Structure
+
 - [ ] **Phase 1**: Setup & Foundation
 - [ ] **Phase 2**: Core Implementation
 - [ ] **Phase 3**: Integration & Testing
 - [ ] **Phase 4**: Polish & Documentation
 
 ## Validation Gates
+
 - [ ] Technical decisions approved by user
 - [ ] All phases have clear success criteria
 - [ ] Dependencies mapped between phases
@@ -39,7 +42,9 @@ turn into a set of work tickets to assign to engineers.
 - [ ] Plan follows spec-kit template structure
 
 ## Plan Template Structure
+
 The generated plan.md will include:
+
 - Implementation plan header with branch/date/spec links
 - Technical context (language, dependencies, testing framework)
 - Constitution check results

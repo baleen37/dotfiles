@@ -19,11 +19,24 @@ in
     ../../modules/shared
   ];
 
+  # Allow unfree packages (system level for useGlobalPkgs)
+  nixpkgs.config.allowUnfree = true;
+
   # Nix 설정은 완전히 Determinate Nix가 관리
   # /etc/nix/nix.conf 및 /etc/nix/nix.custom.conf에서 설정됨
   # 갈비지 컬렉션만 활성화하고 나머지는 Determinate Nix가 관리
   nix = {
     enable = false; # Determinate Nix와 충돌 방지
+
+    # Linux builder for NixOS VM tests on macOS
+    linux-builder = {
+      enable = true;
+    };
+
+    # System features for NixOS testing
+    settings = {
+      system-features = [ "nixos-test" "apple-virt" ];
+    };
 
     # Determinate Nix와 충돌하지 않는 최소 설정만 유지
     # 갈비지 컬렉션 설정은 modules/darwin/nix-gc.nix에서 관리
