@@ -56,33 +56,6 @@ in
       # Import shared files and packages
       file = sharedFiles;
       packages = sharedPackages;
-
-      # Simple activation scripts
-      activation.setupClaudeConfig = ''
-        CLAUDE_CONFIG_DIR="${homeDir}/.config/Claude"
-        CLAUDE_SOURCE="${homeDir}/dev/dotfiles/modules/shared/config/claude"
-
-        if [[ -d "$CLAUDE_SOURCE" ]]; then
-          echo "Setting up Claude configuration..."
-          mkdir -p "$CLAUDE_CONFIG_DIR"
-
-          # Symlink individual files and directories (git-tracked only)
-          for item in CLAUDE.md agents commands hooks settings.json; do
-            if [[ -e "$CLAUDE_SOURCE/$item" ]]; then
-              if [[ ! -L "$CLAUDE_CONFIG_DIR/$item" ]] || [[ "$(readlink "$CLAUDE_CONFIG_DIR/$item")" != "$CLAUDE_SOURCE/$item" ]]; then
-                rm -rf "$CLAUDE_CONFIG_DIR/$item"
-                ln -sf "$CLAUDE_SOURCE/$item" "$CLAUDE_CONFIG_DIR/$item"
-                echo "Linked $item"
-              fi
-            fi
-          done
-
-          # Create local-only directories if they don't exist
-          for local_dir in file-history projects shell-snapshots statsig todos; do
-            mkdir -p "$CLAUDE_SOURCE/$local_dir"
-          done
-        fi
-      '';
     }
 
     # Darwin-specific configuration
