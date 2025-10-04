@@ -13,7 +13,7 @@ replace_tokens_in_file() {
   fi
 
   # Replace common tokens
-  sed "s/REPLACE_USERNAME/$USERNAME/g; s/REPLACE_GIT_EMAIL/$GIT_EMAIL/g; s/REPLACE_GIT_NAME/$GIT_NAME/g" "$file" > "$temp_file"
+  sed "s/REPLACE_USERNAME/$USERNAME/g; s/REPLACE_GIT_EMAIL/$GIT_EMAIL/g; s/REPLACE_GIT_NAME/$GIT_NAME/g" "$file" >"$temp_file"
 
   # Move temp file back to original
   mv "$temp_file" "$file"

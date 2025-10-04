@@ -2,10 +2,10 @@
 # Provides optimized, cached platform detection functions
 # Replaces duplicate platform detection patterns across the codebase
 
-{
-  system ? null,
-  pkgs ? null,
-  lib ? null,
+{ system ? null
+, pkgs ? null
+, lib ? null
+,
 }:
 
 let

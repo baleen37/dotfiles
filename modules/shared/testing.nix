@@ -1,11 +1,10 @@
 # Shared Testing Module
 # Platform adapter interface for cross-platform testing
 
-{
-  config,
-  lib,
-  pkgs,
-  ...
+{ config
+, lib
+, pkgs
+, ...
 }:
 
 with lib;
@@ -122,9 +121,9 @@ in
         };
 
       setupEnvironment =
-        {
-          platform,
-          config ? { },
+        { platform
+        , config ? { }
+        ,
         }:
         let
           isValidPlatform = builtins.elem platform [
@@ -163,40 +162,48 @@ in
       runPlatformTests =
         { tests, environment }:
         let
-          platformTests = builtins.filter (
-            test:
-            if builtins.hasAttr "platforms" test then
-              builtins.elem environment.platform test.platforms
-            else
-              true
-          ) tests;
+          platformTests = builtins.filter
+            (
+              test:
+              if builtins.hasAttr "platforms" test then
+                builtins.elem environment.platform test.platforms
+              else
+                true
+            )
+            tests;
         in
-        map (test: {
-          inherit (test) name type framework;
-          status = "passed"; # Placeholder - actual test execution would happen here
-          platform = environment.platform;
-          duration = 100; # milliseconds
-          output = "Platform test executed: ${test.name}";
-        }) platformTests;
+        map
+          (test: {
+            inherit (test) name type framework;
+            status = "passed"; # Placeholder - actual test execution would happen here
+            platform = environment.platform;
+            duration = 100; # milliseconds
+            output = "Platform test executed: ${test.name}";
+          })
+          platformTests;
 
       # Cross-platform compatibility functions
       validatePlatformCompatibility = platform: builtins.elem platform cfg.crossPlatform.targetPlatforms;
 
       filterTestsForPlatform =
         { tests, platform }:
-        builtins.filter (
-          test: if builtins.hasAttr "platforms" test then builtins.elem platform test.platforms else true
-        ) tests;
+        builtins.filter
+          (
+            test: if builtins.hasAttr "platforms" test then builtins.elem platform test.platforms else true
+          )
+          tests;
 
       generateBuildMatrix =
         { ... }:
         {
           platforms = cfg.crossPlatform.targetPlatforms;
           testLayers = cfg.testLayers;
-          include = map (platform: {
-            os = if hasInfix "darwin" platform then "macos-latest" else "ubuntu-latest";
-            inherit platform;
-          }) cfg.crossPlatform.targetPlatforms;
+          include = map
+            (platform: {
+              os = if hasInfix "darwin" platform then "macos-latest" else "ubuntu-latest";
+              inherit platform;
+            })
+            cfg.crossPlatform.targetPlatforms;
         };
 
       validateToolAvailability =
@@ -266,24 +273,26 @@ in
             "systemd" = builtins.filter (p: hasInfix "linux" p) cfg.crossPlatform.targetPlatforms;
           };
           compatibility = builtins.listToAttrs (
-            map (platform: {
-              name = platform;
-              value = {
-                supported = true;
-                features = [
-                  "nix-build"
-                  "home-manager"
-                ]
-                ++ optionals (hasInfix "darwin" platform) [
-                  "homebrew"
-                  "nix-darwin"
-                ]
-                ++ optionals (hasInfix "linux" platform) [
-                  "systemd"
-                  "nixos"
-                ];
-              };
-            }) cfg.crossPlatform.targetPlatforms
+            map
+              (platform: {
+                name = platform;
+                value = {
+                  supported = true;
+                  features = [
+                    "nix-build"
+                    "home-manager"
+                  ]
+                  ++ optionals (hasInfix "darwin" platform) [
+                    "homebrew"
+                    "nix-darwin"
+                  ]
+                  ++ optionals (hasInfix "linux" platform) [
+                    "systemd"
+                    "nixos"
+                  ];
+                };
+              })
+              cfg.crossPlatform.targetPlatforms
           );
         };
 
@@ -316,10 +325,12 @@ in
               threshold = cfg.coverage.threshold;
             };
           };
-          results = map (test: {
-            inherit (test) name;
-            status = "passed";
-          }) tests;
+          results = map
+            (test: {
+              inherit (test) name;
+              status = "passed";
+            })
+            tests;
         in
         coverageSystem.measurement.collectCoverage {
           inherit session modules;

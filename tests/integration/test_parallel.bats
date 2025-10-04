@@ -14,7 +14,7 @@ load ../lib/assertions.bash 2>/dev/null || true
 
   # Create multiple test files with sleep to simulate work
   for i in {1..5}; do
-    cat > "$test_dir/test_$i.bats" << 'EOF'
+    cat >"$test_dir/test_$i.bats" <<'EOF'
 #!/usr/bin/env bats
 @test "slow test" {
   sleep 1
@@ -47,7 +47,7 @@ EOF
 
   # Create tests that would conflict if not isolated
   local test_file="/tmp/isolation_test_$$.bats"
-  cat > "$test_file" << 'EOF'
+  cat >"$test_file" <<'EOF'
 #!/usr/bin/env bats
 
 @test "test 1: sets variable" {

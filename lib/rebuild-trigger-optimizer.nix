@@ -62,22 +62,24 @@ rec {
         baseName = baseNameOf path;
 
         # Check if path matches any exclude pattern
-        matchesExclude = lib.any (
-          pattern:
-          # Direct match
-          baseName == pattern
-          ||
+        matchesExclude = lib.any
+          (
+            pattern:
+            # Direct match
+            baseName == pattern
+            ||
             # Suffix match (for extensions)
             lib.hasSuffix pattern baseName
-          ||
+            ||
             # Prefix match (for directories)
             lib.hasPrefix pattern baseName
-          ||
+            ||
             # Contains match (for paths)
             lib.hasInfix pattern pathStr
-        ) allExcludes;
+          )
+          allExcludes;
       in
-      !matchesExclude;
+        !matchesExclude;
 
     # Optimized source filtering
     filterSource =
@@ -89,78 +91,90 @@ rec {
     # Split dependencies by stability to enable better caching
     categorizeDeps = deps: {
       # Stable dependencies (rarely change)
-      stable = lib.filter (
-        dep:
-        lib.hasPrefix "nixpkgs" (dep.name or "")
-        || lib.elem (dep.pname or "") [
-          "glibc"
-          "gcc"
-          "bash"
-          "coreutils"
-          "gnumake"
-        ]
-      ) deps;
+      stable = lib.filter
+        (
+          dep:
+          lib.hasPrefix "nixpkgs" (dep.name or "")
+          || lib.elem (dep.pname or "") [
+            "glibc"
+            "gcc"
+            "bash"
+            "coreutils"
+            "gnumake"
+          ]
+        )
+        deps;
 
       # Configuration dependencies (change occasionally)
-      config = lib.filter (
-        dep: lib.hasInfix "config" (dep.name or "") || lib.hasInfix "settings" (dep.name or "")
-      ) deps;
+      config = lib.filter
+        (
+          dep: lib.hasInfix "config" (dep.name or "") || lib.hasInfix "settings" (dep.name or "")
+        )
+        deps;
 
       # Development dependencies (change frequently)
-      development = lib.filter (
-        dep:
-        lib.hasInfix "dev" (dep.name or "")
-        || lib.elem (dep.pname or "") [
-          "nodejs"
-          "python3"
-          "rust"
-          "go"
-        ]
-      ) deps;
+      development = lib.filter
+        (
+          dep:
+          lib.hasInfix "dev" (dep.name or "")
+          || lib.elem (dep.pname or "") [
+            "nodejs"
+            "python3"
+            "rust"
+            "go"
+          ]
+        )
+        deps;
     };
 
     # Create layered build inputs to optimize caching
     mkLayeredInputs = buildInputs: nativeBuildInputs: {
       # System layer (most stable)
-      systemInputs = lib.filter (
-        pkg:
-        lib.hasPrefix "glibc" pkg.name
-        || lib.hasPrefix "gcc" pkg.name
-        || lib.elem pkg.pname [
-          "bash"
-          "coreutils"
-          "findutils"
-        ]
-      ) (buildInputs ++ nativeBuildInputs);
+      systemInputs = lib.filter
+        (
+          pkg:
+          lib.hasPrefix "glibc" pkg.name
+          || lib.hasPrefix "gcc" pkg.name
+          || lib.elem pkg.pname [
+            "bash"
+            "coreutils"
+            "findutils"
+          ]
+        )
+        (buildInputs ++ nativeBuildInputs);
 
       # Tools layer (moderately stable)
-      toolInputs = lib.filter (
-        pkg:
-        lib.elem pkg.pname [
-          "git"
-          "curl"
-          "wget"
-          "gnumake"
-          "cmake"
-        ]
-      ) (buildInputs ++ nativeBuildInputs);
+      toolInputs = lib.filter
+        (
+          pkg:
+          lib.elem pkg.pname [
+            "git"
+            "curl"
+            "wget"
+            "gnumake"
+            "cmake"
+          ]
+        )
+        (buildInputs ++ nativeBuildInputs);
 
       # Runtime layer (less stable)
-      runtimeInputs = lib.filter (
-        pkg:
-        !(lib.elem pkg.pname [
-          "bash"
-          "coreutils"
-          "findutils"
-          "git"
-          "curl"
-          "wget"
-          "gnumake"
-          "cmake"
-        ])
-        && !lib.hasPrefix "glibc" pkg.name
-        && !lib.hasPrefix "gcc" pkg.name
-      ) buildInputs;
+      runtimeInputs = lib.filter
+        (
+          pkg:
+          !(lib.elem pkg.pname [
+            "bash"
+            "coreutils"
+            "findutils"
+            "git"
+            "curl"
+            "wget"
+            "gnumake"
+            "cmake"
+          ])
+          && !lib.hasPrefix "glibc" pkg.name
+          && !lib.hasPrefix "gcc" pkg.name
+        )
+        buildInputs;
     };
   };
 
@@ -296,24 +310,28 @@ rec {
     # Optimize flake inputs to reduce evaluation time
     optimizeInputs = inputs: {
       # Pin stable inputs to reduce update frequency
-      stableInputs = lib.filterAttrs (
-        name: input:
-        lib.elem name [
-          "nixpkgs"
-          "home-manager"
-          "darwin"
-        ]
-      ) inputs;
+      stableInputs = lib.filterAttrs
+        (
+          name: input:
+            lib.elem name [
+              "nixpkgs"
+              "home-manager"
+              "darwin"
+            ]
+        )
+        inputs;
 
       # Allow flexible updates for development inputs
-      flexibleInputs = lib.filterAttrs (
-        name: input:
-        !lib.elem name [
-          "nixpkgs"
-          "home-manager"
-          "darwin"
-        ]
-      ) inputs;
+      flexibleInputs = lib.filterAttrs
+        (
+          name: input:
+            !lib.elem name [
+              "nixpkgs"
+              "home-manager"
+              "darwin"
+            ]
+        )
+        inputs;
     };
 
     # Create optimized flake outputs
@@ -331,18 +349,20 @@ rec {
       };
 
       # Optimize package builds
-      packages = lib.mapAttrs (
-        name: pkg:
-        pkg.overrideAttrs (oldAttrs: {
-          # Apply rebuild optimizations
-          src = if oldAttrs ? src then fileFilters.filterSource oldAttrs.src [ ] else oldAttrs.src;
+      packages = lib.mapAttrs
+        (
+          name: pkg:
+            pkg.overrideAttrs (oldAttrs: {
+              # Apply rebuild optimizations
+              src = if oldAttrs ? src then fileFilters.filterSource oldAttrs.src [ ] else oldAttrs.src;
 
-          # Optimize build phases
-          configurePhase = buildPhaseOptimization.optimizedConfigurePhase (oldAttrs.configurePhase or "");
-          buildPhase = buildPhaseOptimization.optimizedBuildPhase (oldAttrs.buildPhase or "");
-          installPhase = buildPhaseOptimization.optimizedInstallPhase (oldAttrs.installPhase or "");
-        })
-      ) (baseOutputs.packages.${system} or { });
+              # Optimize build phases
+              configurePhase = buildPhaseOptimization.optimizedConfigurePhase (oldAttrs.configurePhase or "");
+              buildPhase = buildPhaseOptimization.optimizedBuildPhase (oldAttrs.buildPhase or "");
+              installPhase = buildPhaseOptimization.optimizedInstallPhase (oldAttrs.installPhase or "");
+            })
+        )
+        (baseOutputs.packages.${system} or { });
     };
   };
 

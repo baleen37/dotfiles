@@ -1,10 +1,9 @@
 # Test Builders for Comprehensive Testing Framework
 # Provides builder functions for all test layers: unit, contract, integration, e2e
 
-{
-  pkgs ? import <nixpkgs> { },
-  lib,
-  ...
+{ pkgs ? import <nixpkgs> { }
+, lib
+, ...
 }:
 
 let
@@ -21,11 +20,11 @@ in
   unit = {
     # Build a nix-unit test case
     mkNixUnitTest =
-      {
-        name,
-        expr,
-        expected,
-        description ? "",
+      { name
+      , expr
+      , expected
+      , description ? ""
+      ,
       }:
       {
         inherit
@@ -51,12 +50,12 @@ in
 
     # Build a function test
     mkFunctionTest =
-      {
-        name,
-        func,
-        inputs,
-        expected,
-        description ? "",
+      { name
+      , func
+      , inputs
+      , expected
+      , description ? ""
+      ,
       }:
       {
         inherit name description;
@@ -70,12 +69,12 @@ in
 
     # Build module unit tests
     mkModuleTest =
-      {
-        name,
-        modulePath,
-        config,
-        expected,
-        description ? "",
+      { name
+      , modulePath
+      , config
+      , expected
+      , description ? ""
+      ,
       }:
       {
         inherit name description;
@@ -92,11 +91,11 @@ in
   contract = {
     # Build a module interface contract test
     mkInterfaceTest =
-      {
-        name,
-        modulePath,
-        requiredExports,
-        description ? "",
+      { name
+      , modulePath
+      , requiredExports
+      , description ? ""
+      ,
       }:
       {
         inherit name description;
@@ -111,11 +110,11 @@ in
 
     # Build a flake output contract test
     mkFlakeOutputTest =
-      {
-        name,
-        outputPath,
-        expectedSchema,
-        description ? "",
+      { name
+      , outputPath
+      , expectedSchema
+      , description ? ""
+      ,
       }:
       {
         inherit name description;
@@ -129,11 +128,11 @@ in
 
     # Build a platform compatibility contract test
     mkPlatformContractTest =
-      {
-        name,
-        platforms,
-        testFunction,
-        description ? "",
+      { name
+      , platforms
+      , testFunction
+      , description ? ""
+      ,
       }:
       {
         inherit name description;
@@ -153,11 +152,11 @@ in
 
     # Build an API contract test (for shell commands)
     mkAPIContractTest =
-      {
-        name,
-        command,
-        expectedInterface,
-        description ? "",
+      { name
+      , command
+      , expectedInterface
+      , description ? ""
+      ,
       }:
       {
         inherit name description;
@@ -174,12 +173,12 @@ in
   integration = {
     # Build a BATS integration test
     mkBatsTest =
-      {
-        name,
-        testScript,
-        setup ? "",
-        teardown ? "",
-        description ? "",
+      { name
+      , testScript
+      , setup ? ""
+      , teardown ? ""
+      , description ? ""
+      ,
       }:
       {
         inherit name description;
@@ -193,11 +192,11 @@ in
 
     # Build a build workflow integration test
     mkBuildIntegrationTest =
-      {
-        name,
-        buildTargets,
-        validationSteps,
-        description ? "",
+      { name
+      , buildTargets
+      , validationSteps
+      , description ? ""
+      ,
       }:
       {
         inherit name description;
@@ -211,11 +210,11 @@ in
 
     # Build a cross-platform integration test
     mkCrossPlatformTest =
-      {
-        name,
-        platforms,
-        testSteps,
-        description ? "",
+      { name
+      , platforms
+      , testSteps
+      , description ? ""
+      ,
       }:
       {
         inherit name description;
@@ -230,11 +229,11 @@ in
 
     # Build a service integration test
     mkServiceIntegrationTest =
-      {
-        name,
-        services,
-        testScenarios,
-        description ? "",
+      { name
+      , services
+      , testScenarios
+      , description ? ""
+      ,
       }:
       {
         inherit name description;
@@ -251,11 +250,11 @@ in
   e2e = {
     # Build a NixOS VM test using testers.runNixOSTest
     mkNixOSVMTest =
-      {
-        name,
-        nodes,
-        testScript,
-        description ? "",
+      { name
+      , nodes
+      , testScript
+      , description ? ""
+      ,
       }:
       {
         inherit name description;
@@ -271,11 +270,11 @@ in
 
     # Build a user workflow E2E test
     mkUserWorkflowTest =
-      {
-        name,
-        workflow,
-        expectedOutcome,
-        description ? "",
+      { name
+      , workflow
+      , expectedOutcome
+      , description ? ""
+      ,
       }:
       {
         inherit name description;
@@ -289,11 +288,11 @@ in
 
     # Build a fresh installation E2E test
     mkFreshInstallTest =
-      {
-        name,
-        installConfig,
-        validationSteps,
-        description ? "",
+      { name
+      , installConfig
+      , validationSteps
+      , description ? ""
+      ,
       }:
       {
         inherit name description;
@@ -307,12 +306,12 @@ in
 
     # Build a deployment E2E test
     mkDeploymentTest =
-      {
-        name,
-        deploymentTarget,
-        deploymentSteps,
-        validationSteps,
-        description ? "",
+      { name
+      , deploymentTarget
+      , deploymentSteps
+      , validationSteps
+      , description ? ""
+      ,
       }:
       {
         inherit name description;
@@ -330,11 +329,11 @@ in
   suite = {
     # Build a comprehensive test suite
     mkTestSuite =
-      {
-        name,
-        tests,
-        config ? { },
-        description ? "",
+      { name
+      , tests
+      , config ? { }
+      , description ? ""
+      ,
       }:
       {
         inherit name description;
@@ -351,11 +350,11 @@ in
 
     # Build a platform-specific test suite
     mkPlatformSuite =
-      {
-        name,
-        platform,
-        tests,
-        description ? "",
+      { name
+      , platform
+      , tests
+      , description ? ""
+      ,
       }:
       {
         inherit name platform description;
@@ -366,11 +365,11 @@ in
 
     # Build a layer-specific test suite (all tests of one type)
     mkLayerSuite =
-      {
-        name,
-        layer,
-        tests,
-        description ? "",
+      { name
+      , layer
+      , tests
+      , description ? ""
+      ,
       }:
       if
         !builtins.elem layer [

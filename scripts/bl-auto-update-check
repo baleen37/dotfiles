@@ -17,9 +17,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 AUTO_UPDATE_SCRIPT="$SCRIPT_DIR/auto-update-dotfiles"
 
 # Check if auto-update-dotfiles exists
-if [[ ! -f "$AUTO_UPDATE_SCRIPT" ]]; then
-    echo -e "${RED}Error:${NC} auto-update-dotfiles script not found at $AUTO_UPDATE_SCRIPT"
-    exit 1
+if [[ ! -f $AUTO_UPDATE_SCRIPT ]]; then
+  echo -e "${RED}Error:${NC} auto-update-dotfiles script not found at $AUTO_UPDATE_SCRIPT"
+  exit 1
 fi
 
 # Print header

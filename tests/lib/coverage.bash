@@ -35,7 +35,7 @@ count_test_files() {
   local category="${1:-all}"
   local count=0
 
-  if [[ "$category" == "all" ]]; then
+  if [[ $category == "all" ]]; then
     for cat in unit integration e2e performance; do
       if [[ -d "tests/$cat" ]]; then
         local cat_count=$(find "tests/$cat" -name "*.bats" -type f 2>/dev/null | wc -l)
@@ -57,7 +57,7 @@ count_tested_functions() {
   local test_file="$1"
   local count=0
 
-  if [[ -f "$test_file" ]]; then
+  if [[ -f $test_file ]]; then
     # Count @test declarations
     count=$(grep -c "^@test " "$test_file" 2>/dev/null || echo "0")
   fi
@@ -86,7 +86,7 @@ calculate_coverage_percentage() {
     fi
   else
     # Fallback to integer math
-    echo $(( ($tested * 100) / $total ))
+    echo $(((tested * 100) / total))
   fi
 }
 
@@ -122,12 +122,12 @@ generate_coverage_report() {
   for category in unit integration e2e performance; do
     if [[ -d "tests/$category" ]]; then
       while IFS= read -r test_file; do
-        if [[ -f "$test_file" ]]; then
+        if [[ -f $test_file ]]; then
           ((tested_files++))
           local test_count=$(count_tested_functions "$test_file")
           test_count=${test_count:-0}
           # Ensure test_count is a valid number
-          if [[ ! "$test_count" =~ ^[0-9]+$ ]]; then
+          if [[ ! $test_count =~ ^[0-9]+$ ]]; then
             test_count=0
           fi
           total_tests=$((total_tests + test_count))
@@ -161,11 +161,11 @@ generate_coverage_report() {
         local cat_files=$(find "tests/$category" -name "*.bats" -type f 2>/dev/null | wc -l)
         local cat_tests=0
         while IFS= read -r test_file; do
-          if [[ -f "$test_file" ]]; then
+          if [[ -f $test_file ]]; then
             local file_test_count=$(count_tested_functions "$test_file")
             file_test_count=${file_test_count:-0}
             # Ensure file_test_count is a valid number
-            if [[ ! "$file_test_count" =~ ^[0-9]+$ ]]; then
+            if [[ ! $file_test_count =~ ^[0-9]+$ ]]; then
               file_test_count=0
             fi
             cat_tests=$((cat_tests + file_test_count))

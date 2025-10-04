@@ -9,28 +9,28 @@ detect_platform() {
 
   # Convert architecture names to Nix format
   case "$arch" in
-    "arm64") arch="aarch64" ;;
-    "x86_64") arch="x86_64" ;;
-    *)
-      _print "${RED}Unsupported architecture: $arch${NC}"
-      exit 1
-      ;;
+  "arm64") arch="aarch64" ;;
+  "x86_64") arch="x86_64" ;;
+  *)
+    _print "${RED}Unsupported architecture: $arch${NC}"
+    exit 1
+    ;;
   esac
 
   # Convert OS names to Nix format
   case "$os" in
-    "Darwin")
-      export PLATFORM_TYPE="darwin"
-      export PLATFORM_SYSTEM="$arch-darwin"
-      ;;
-    "Linux")
-      export PLATFORM_TYPE="linux"
-      export PLATFORM_SYSTEM="$arch-linux"
-      ;;
-    *)
-      _print "${RED}Unsupported operating system: $os${NC}"
-      exit 1
-      ;;
+  "Darwin")
+    export PLATFORM_TYPE="darwin"
+    export PLATFORM_SYSTEM="$arch-darwin"
+    ;;
+  "Linux")
+    export PLATFORM_TYPE="linux"
+    export PLATFORM_SYSTEM="$arch-linux"
+    ;;
+  *)
+    _print "${RED}Unsupported operating system: $os${NC}"
+    exit 1
+    ;;
   esac
 
   export ARCH="$arch"

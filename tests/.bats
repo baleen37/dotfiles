@@ -26,21 +26,21 @@ export TEST_CATEGORIES="unit integration e2e performance"
 export BATS_LIB_PATH="${BATS_LIB_PATH:-./tests/lib}"
 
 # Load helpers automatically
-if [[ -d "$BATS_LIB_PATH" ]]; then
+if [[ -d $BATS_LIB_PATH ]]; then
   export PATH="$BATS_LIB_PATH:$PATH"
 fi
 
 # Platform detection
 case "$(uname -s)" in
-  Darwin*)
-    export TEST_PLATFORM="darwin"
-    ;;
-  Linux*)
-    export TEST_PLATFORM="nixos"
-    ;;
-  *)
-    export TEST_PLATFORM="unknown"
-    ;;
+Darwin*)
+  export TEST_PLATFORM="darwin"
+  ;;
+Linux*)
+  export TEST_PLATFORM="nixos"
+  ;;
+*)
+  export TEST_PLATFORM="unknown"
+  ;;
 esac
 
 # Color output settings

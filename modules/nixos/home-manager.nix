@@ -12,12 +12,11 @@
 # VERSION: 2.0.0 (Phase 2 optimized)
 # LAST UPDATED: 2024-10-04
 
-{
-  config,
-  pkgs,
-  lib,
-  self,
-  ...
+{ config
+, pkgs
+, lib
+, self
+, ...
 }:
 
 let
@@ -102,7 +101,7 @@ in
     stateVersion = "21.05";
 
     # Performance optimization: create essential directories
-    activation.createDirectories = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    activation.createDirectories = ''
       echo "💾 Setting up NixOS directory structure..."
       mkdir -p "${linuxPaths.config}"/{polybar/bin,rofi/bin,dunst}
       mkdir -p "${linuxPaths.cache}"

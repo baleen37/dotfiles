@@ -1,11 +1,10 @@
 # Unit Tests for Nix Library Functions
 # These tests MUST FAIL initially (TDD requirement)
 
-{
-  lib,
-  runTests,
-  nix-unit ? null,
-  ...
+{ lib
+, runTests
+, nix-unit ? null
+, ...
 }:
 
 let

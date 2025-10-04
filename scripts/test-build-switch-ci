@@ -17,11 +17,11 @@ echo ""
 
 # Detect CI environment
 if [ "${CI:-false}" = "true" ]; then
-    echo -e "${GREEN}✅ CI environment detected${NC}"
-    CI_ENV="true"
+  echo -e "${GREEN}✅ CI environment detected${NC}"
+  CI_ENV="true"
 else
-    echo -e "${YELLOW}⚠️  Running in non-CI environment${NC}"
-    CI_ENV="false"
+  echo -e "${YELLOW}⚠️  Running in non-CI environment${NC}"
+  CI_ENV="false"
 fi
 
 # Set CI-specific variables
@@ -39,17 +39,17 @@ echo ""
 echo -e "${YELLOW}🔍 Running quick smoke test...${NC}"
 
 if [ -f "flake.nix" ]; then
-    echo -e "${GREEN}✅ flake.nix found${NC}"
+  echo -e "${GREEN}✅ flake.nix found${NC}"
 else
-    echo -e "${RED}❌ flake.nix not found${NC}"
-    exit 1
+  echo -e "${RED}❌ flake.nix not found${NC}"
+  exit 1
 fi
 
 if [ -f "apps/aarch64-darwin/build-switch" ]; then
-    echo -e "${GREEN}✅ build-switch app found${NC}"
+  echo -e "${GREEN}✅ build-switch app found${NC}"
 else
-    echo -e "${RED}❌ build-switch app not found${NC}"
-    exit 1
+  echo -e "${RED}❌ build-switch app not found${NC}"
+  exit 1
 fi
 
 # Test 2: Nix flake check (if nix is available)
@@ -57,14 +57,14 @@ echo ""
 echo -e "${YELLOW}🔍 Running nix flake check...${NC}"
 
 if command -v nix >/dev/null 2>&1; then
-    if timeout 300 nix flake check --no-build 2>/dev/null; then
-        echo -e "${GREEN}✅ nix flake check passed${NC}"
-    else
-        echo -e "${RED}❌ nix flake check failed${NC}"
-        exit 1
-    fi
+  if timeout 300 nix flake check --no-build 2>/dev/null; then
+    echo -e "${GREEN}✅ nix flake check passed${NC}"
+  else
+    echo -e "${RED}❌ nix flake check failed${NC}"
+    exit 1
+  fi
 else
-    echo -e "${YELLOW}⚠️  nix not available, skipping flake check${NC}"
+  echo -e "${YELLOW}⚠️  nix not available, skipping flake check${NC}"
 fi
 
 # Test 3: Run comprehensive CI test
@@ -72,20 +72,20 @@ echo ""
 echo -e "${YELLOW}🔍 Running comprehensive CI test...${NC}"
 
 if command -v nix >/dev/null 2>&1; then
-    # Run the nix test if nix is available
-    if nix build ".#checks.aarch64-darwin.build-switch-ci-test" --no-link 2>/dev/null; then
-        echo -e "${GREEN}✅ Comprehensive CI test passed${NC}"
-    else
-        echo -e "${RED}❌ Comprehensive CI test failed${NC}"
-        echo "Falling back to manual test..."
+  # Run the nix test if nix is available
+  if nix build ".#checks.aarch64-darwin.build-switch-ci-test" --no-link 2>/dev/null; then
+    echo -e "${GREEN}✅ Comprehensive CI test passed${NC}"
+  else
+    echo -e "${RED}❌ Comprehensive CI test failed${NC}"
+    echo "Falling back to manual test..."
 
-        # Manual test fallback
-        ./scripts/test-build-switch-ci-manual
-    fi
-else
-    echo -e "${YELLOW}⚠️  nix not available, running manual test${NC}"
-    # Run manual test
+    # Manual test fallback
     ./scripts/test-build-switch-ci-manual
+  fi
+else
+  echo -e "${YELLOW}⚠️  nix not available, running manual test${NC}"
+  # Run manual test
+  ./scripts/test-build-switch-ci-manual
 fi
 
 # Test 4: Validate critical scripts
@@ -93,31 +93,31 @@ echo ""
 echo -e "${YELLOW}🔍 Validating critical scripts...${NC}"
 
 critical_scripts=(
-    "apps/aarch64-darwin/build-switch"
-    "scripts/build-switch-common.sh"
-    "scripts/lib/sudo-management.sh"
-    "scripts/lib/build-logic.sh"
-    "scripts/lib/logging.sh"
+  "apps/aarch64-darwin/build-switch"
+  "scripts/build-switch-common.sh"
+  "scripts/lib/sudo-management.sh"
+  "scripts/lib/build-logic.sh"
+  "scripts/lib/logging.sh"
 )
 
 SYNTAX_ERRORS=0
 for script in "${critical_scripts[@]}"; do
-    if [ -f "$script" ]; then
-        if bash -n "$script" 2>/dev/null; then
-            echo -e "${GREEN}✅ $script syntax OK${NC}"
-        else
-            echo -e "${RED}❌ $script has syntax errors${NC}"
-            SYNTAX_ERRORS=$((SYNTAX_ERRORS + 1))
-        fi
+  if [ -f "$script" ]; then
+    if bash -n "$script" 2>/dev/null; then
+      echo -e "${GREEN}✅ $script syntax OK${NC}"
     else
-        echo -e "${RED}❌ $script not found${NC}"
-        SYNTAX_ERRORS=$((SYNTAX_ERRORS + 1))
+      echo -e "${RED}❌ $script has syntax errors${NC}"
+      SYNTAX_ERRORS=$((SYNTAX_ERRORS + 1))
     fi
+  else
+    echo -e "${RED}❌ $script not found${NC}"
+    SYNTAX_ERRORS=$((SYNTAX_ERRORS + 1))
+  fi
 done
 
 if [ $SYNTAX_ERRORS -gt 0 ]; then
-    echo -e "${RED}❌ Found $SYNTAX_ERRORS syntax errors${NC}"
-    exit 1
+  echo -e "${RED}❌ Found $SYNTAX_ERRORS syntax errors${NC}"
+  exit 1
 fi
 
 # Test 5: CI-specific compatibility check
@@ -126,18 +126,18 @@ echo -e "${YELLOW}🔍 Checking CI compatibility...${NC}"
 
 # Check for interactive operations that won't work in CI
 if grep -r "sudo.*-i\|sudo.*-s\|read.*-p" scripts/lib/ 2>/dev/null; then
-    echo -e "${RED}❌ Interactive operations found in scripts${NC}"
-    exit 1
+  echo -e "${RED}❌ Interactive operations found in scripts${NC}"
+  exit 1
 else
-    echo -e "${GREEN}✅ No interactive operations found${NC}"
+  echo -e "${GREEN}✅ No interactive operations found${NC}"
 fi
 
 # Check for proper error handling
 if grep -q "set -e\|exit 1" scripts/lib/build-logic.sh 2>/dev/null; then
-    echo -e "${GREEN}✅ Error handling found${NC}"
+  echo -e "${GREEN}✅ Error handling found${NC}"
 else
-    echo -e "${RED}❌ Insufficient error handling${NC}"
-    exit 1
+  echo -e "${RED}❌ Insufficient error handling${NC}"
+  exit 1
 fi
 
 # Test 6: Mock build-switch execution
@@ -146,23 +146,23 @@ echo -e "${YELLOW}🔍 Testing build-switch execution (dry run)...${NC}"
 
 # Create a mock CI environment and test build-switch help
 if [ -f "apps/aarch64-darwin/build-switch" ]; then
-    # Test help command
-    if grep -q "help\|usage\|--help" "apps/aarch64-darwin/build-switch"; then
-        echo -e "${GREEN}✅ build-switch help available${NC}"
-    else
-        echo -e "${RED}❌ build-switch help not found${NC}"
-        exit 1
-    fi
-
-    # Test dry run (if supported)
-    if grep -q "dry-run\|--dry-run" "apps/aarch64-darwin/build-switch"; then
-        echo -e "${GREEN}✅ build-switch dry-run available${NC}"
-    else
-        echo -e "${YELLOW}⚠️  build-switch dry-run not found (optional)${NC}"
-    fi
-else
-    echo -e "${RED}❌ build-switch app not found${NC}"
+  # Test help command
+  if grep -q "help\|usage\|--help" "apps/aarch64-darwin/build-switch"; then
+    echo -e "${GREEN}✅ build-switch help available${NC}"
+  else
+    echo -e "${RED}❌ build-switch help not found${NC}"
     exit 1
+  fi
+
+  # Test dry run (if supported)
+  if grep -q "dry-run\|--dry-run" "apps/aarch64-darwin/build-switch"; then
+    echo -e "${GREEN}✅ build-switch dry-run available${NC}"
+  else
+    echo -e "${YELLOW}⚠️  build-switch dry-run not found (optional)${NC}"
+  fi
+else
+  echo -e "${RED}❌ build-switch app not found${NC}"
+  exit 1
 fi
 
 # Summary
@@ -181,9 +181,9 @@ echo "   ✓ Mock execution test"
 echo ""
 
 if [ "$CI_ENV" = "true" ]; then
-    echo -e "${GREEN}🎉 Ready for production CI/CD deployment!${NC}"
+  echo -e "${GREEN}🎉 Ready for production CI/CD deployment!${NC}"
 else
-    echo -e "${YELLOW}💡 Run in CI environment for full validation${NC}"
+  echo -e "${YELLOW}💡 Run in CI environment for full validation${NC}"
 fi
 
 exit 0

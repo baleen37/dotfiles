@@ -12,15 +12,15 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 print_status() {
-    echo -e "${GREEN}[BL-INSTALL]${NC} $1"
+  echo -e "${GREEN}[BL-INSTALL]${NC} $1"
 }
 
 print_warning() {
-    echo -e "${YELLOW}[BL-INSTALL]${NC} $1"
+  echo -e "${YELLOW}[BL-INSTALL]${NC} $1"
 }
 
 print_error() {
-    echo -e "${RED}[BL-INSTALL]${NC} $1"
+  echo -e "${RED}[BL-INSTALL]${NC} $1"
 }
 
 # Get the directory where this script is located
@@ -28,9 +28,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BL_SCRIPT="$SCRIPT_DIR/bl"
 
 # Check if bl script exists
-if [[ ! -f "$BL_SCRIPT" ]]; then
-    print_error "bl script not found at: $BL_SCRIPT"
-    exit 1
+if [[ ! -f $BL_SCRIPT ]]; then
+  print_error "bl script not found at: $BL_SCRIPT"
+  exit 1
 fi
 
 print_status "Installing bl command system..."
@@ -47,12 +47,12 @@ print_status "Installed bl dispatcher to: $LOCAL_BIN/bl"
 
 # Check if ~/.local/bin is in PATH
 if [[ ":$PATH:" != *":$LOCAL_BIN:"* ]]; then
-    print_warning "$LOCAL_BIN is not in your PATH."
-    print_warning "Add this to your shell profile (~/.bashrc, ~/.zshrc):"
-    echo "export PATH=\"\$HOME/.local/bin:\$PATH\""
-    print_warning "After updating PATH, restart your shell."
+  print_warning "$LOCAL_BIN is not in your PATH."
+  print_warning "Add this to your shell profile (~/.bashrc, ~/.zshrc):"
+  echo 'export PATH="$HOME/.local/bin:$PATH"'
+  print_warning "After updating PATH, restart your shell."
 else
-    print_status "bl command system is ready!"
+  print_status "bl command system is ready!"
 fi
 
 print_status "Installation complete!"

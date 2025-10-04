@@ -3,32 +3,32 @@
 # Platform-specific configuration for x86_64-darwin
 SYSTEM_TYPE="x86_64-darwin"
 PLATFORM_TYPE="darwin"
-SUDO_REQUIRED="false"  # Root 권한 불필요하도록 수정됨
+SUDO_REQUIRED="false" # Root 권한 불필요하도록 수정됨
 # Path resolution with fallback function
 pathResolutionWithFallback() {
-    local target_command="${1:-darwin-rebuild}"
+  local target_command="${1:-darwin-rebuild}"
 
-    # Priority 1: Check if result symlink exists and is executable
-    if [ -f "./result/sw/bin/${target_command}" ] && [ -x "./result/sw/bin/${target_command}" ]; then
-        printf "%s\n" "./result/sw/bin/${target_command}"
-        return 0
-    fi
+  # Priority 1: Check if result symlink exists and is executable
+  if [ -f "./result/sw/bin/${target_command}" ] && [ -x "./result/sw/bin/${target_command}" ]; then
+    printf "%s\n" "./result/sw/bin/${target_command}"
+    return 0
+  fi
 
-    # Priority 2: Check if command is available in PATH
-    if command -v "$target_command" >/dev/null 2>&1; then
-        printf "%s\n" "$target_command"
-        return 0
-    fi
+  # Priority 2: Check if command is available in PATH
+  if command -v "$target_command" >/dev/null 2>&1; then
+    printf "%s\n" "$target_command"
+    return 0
+  fi
 
-    # Priority 3: Try system fallback path
-    if [ -f "/run/current-system/sw/bin/${target_command}" ] && [ -x "/run/current-system/sw/bin/${target_command}" ]; then
-        printf "%s\n" "/run/current-system/sw/bin/${target_command}"
-        return 0
-    fi
-
-    # Priority 4: Default fallback (may not exist)
+  # Priority 3: Try system fallback path
+  if [ -f "/run/current-system/sw/bin/${target_command}" ] && [ -x "/run/current-system/sw/bin/${target_command}" ]; then
     printf "%s\n" "/run/current-system/sw/bin/${target_command}"
-    return 1
+    return 0
+  fi
+
+  # Priority 4: Default fallback (may not exist)
+  printf "%s\n" "/run/current-system/sw/bin/${target_command}"
+  return 1
 }
 
 # Darwin-specific environment

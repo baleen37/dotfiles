@@ -14,22 +14,22 @@ mkdir -p "$CACHE_REPORT_DIR"
 
 # Analyze current Nix store state
 analyze_store_state() {
-    echo "=== NIX STORE ANALYSIS ==="
+  echo "=== NIX STORE ANALYSIS ==="
 
-    local report_file="$CACHE_REPORT_DIR/store_analysis_${TIMESTAMP}.json"
+  local report_file="$CACHE_REPORT_DIR/store_analysis_${TIMESTAMP}.json"
 
-    # Get store statistics
-    local store_size=$(du -sb /nix/store 2>/dev/null | cut -f1 || echo "0")
-    local store_size_gb=$(echo "scale=2; $store_size / 1024 / 1024 / 1024" | bc -l)
-    local store_paths=$(find /nix/store -maxdepth 1 -type d | wc -l)
-    local gc_roots=$(nix-store --gc --print-roots 2>/dev/null | wc -l || echo "0")
+  # Get store statistics
+  local store_size=$(du -sb /nix/store 2>/dev/null | cut -f1 || echo "0")
+  local store_size_gb=$(echo "scale=2; $store_size / 1024 / 1024 / 1024" | bc -l)
+  local store_paths=$(find /nix/store -maxdepth 1 -type d | wc -l)
+  local gc_roots=$(nix-store --gc --print-roots 2>/dev/null | wc -l || echo "0")
 
-    # Check for dead paths
-    local dead_paths=$(nix-store --gc --print-dead 2>/dev/null | wc -l || echo "0")
-    local live_paths=$(nix-store --gc --print-live 2>/dev/null | wc -l || echo "0")
+  # Check for dead paths
+  local dead_paths=$(nix-store --gc --print-dead 2>/dev/null | wc -l || echo "0")
+  local live_paths=$(nix-store --gc --print-live 2>/dev/null | wc -l || echo "0")
 
-    # Generate report
-    cat > "$report_file" << EOF
+  # Generate report
+  cat >"$report_file" <<EOF
 {
   "timestamp": "$TIMESTAMP",
   "store_statistics": {
@@ -47,103 +47,103 @@ analyze_store_state() {
 }
 EOF
 
-    echo "Store Size: ${store_size_gb} GB"
-    echo "Total Paths: $store_paths"
-    echo "GC Roots: $gc_roots"
-    echo "Dead Paths: $dead_paths"
-    echo "Live Paths: $live_paths"
-    echo ""
-    echo "Report saved to: $report_file"
+  echo "Store Size: ${store_size_gb} GB"
+  echo "Total Paths: $store_paths"
+  echo "GC Roots: $gc_roots"
+  echo "Dead Paths: $dead_paths"
+  echo "Live Paths: $live_paths"
+  echo ""
+  echo "Report saved to: $report_file"
 }
 
 # Optimize store by removing unused paths
 optimize_store() {
-    echo "=== STORE OPTIMIZATION ==="
+  echo "=== STORE OPTIMIZATION ==="
 
-    local pre_gc_size=$(du -sb /nix/store 2>/dev/null | cut -f1 || echo "0")
-    local pre_gc_paths=$(find /nix/store -maxdepth 1 -type d | wc -l)
+  local pre_gc_size=$(du -sb /nix/store 2>/dev/null | cut -f1 || echo "0")
+  local pre_gc_paths=$(find /nix/store -maxdepth 1 -type d | wc -l)
 
-    echo "Pre-optimization:"
-    echo "  Store size: $(echo "scale=2; $pre_gc_size / 1024 / 1024 / 1024" | bc -l) GB"
-    echo "  Store paths: $pre_gc_paths"
+  echo "Pre-optimization:"
+  echo "  Store size: $(echo "scale=2; $pre_gc_size / 1024 / 1024 / 1024" | bc -l) GB"
+  echo "  Store paths: $pre_gc_paths"
 
-    # Run garbage collection
-    echo "Running garbage collection..."
-    nix-store --gc --print-dead | head -10
+  # Run garbage collection
+  echo "Running garbage collection..."
+  nix-store --gc --print-dead | head -10
 
-    if [[ ${1:-""} == "--delete" ]]; then
-        echo "Deleting dead paths..."
-        nix-store --gc
+  if [[ ${1:-""} == "--delete" ]]; then
+    echo "Deleting dead paths..."
+    nix-store --gc
 
-        # Optimize store (deduplicate identical files)
-        echo "Optimizing store (deduplicating)..."
-        nix-store --optimize
-    else
-        echo "Dry run mode. Use --delete to actually remove dead paths."
-    fi
+    # Optimize store (deduplicate identical files)
+    echo "Optimizing store (deduplicating)..."
+    nix-store --optimize
+  else
+    echo "Dry run mode. Use --delete to actually remove dead paths."
+  fi
 
-    local post_gc_size=$(du -sb /nix/store 2>/dev/null | cut -f1 || echo "0")
-    local post_gc_paths=$(find /nix/store -maxdepth 1 -type d | wc -l)
-    local saved_bytes=$((pre_gc_size - post_gc_size))
-    local saved_gb=$(echo "scale=2; $saved_bytes / 1024 / 1024 / 1024" | bc -l)
+  local post_gc_size=$(du -sb /nix/store 2>/dev/null | cut -f1 || echo "0")
+  local post_gc_paths=$(find /nix/store -maxdepth 1 -type d | wc -l)
+  local saved_bytes=$((pre_gc_size - post_gc_size))
+  local saved_gb=$(echo "scale=2; $saved_bytes / 1024 / 1024 / 1024" | bc -l)
 
-    echo ""
-    echo "Post-optimization:"
-    echo "  Store size: $(echo "scale=2; $post_gc_size / 1024 / 1024 / 1024" | bc -l) GB"
-    echo "  Store paths: $post_gc_paths"
-    echo "  Space saved: ${saved_gb} GB"
-    echo "  Paths removed: $((pre_gc_paths - post_gc_paths))"
+  echo ""
+  echo "Post-optimization:"
+  echo "  Store size: $(echo "scale=2; $post_gc_size / 1024 / 1024 / 1024" | bc -l) GB"
+  echo "  Store paths: $post_gc_paths"
+  echo "  Space saved: ${saved_gb} GB"
+  echo "  Paths removed: $((pre_gc_paths - post_gc_paths))"
 }
 
 # Analyze cache hit rates for recent builds
 analyze_cache_performance() {
-    echo "=== CACHE PERFORMANCE ANALYSIS ==="
+  echo "=== CACHE PERFORMANCE ANALYSIS ==="
 
-    if [[ ! -d "$PROJECT_ROOT/.perf-logs" ]]; then
-        echo "No performance logs found. Run some builds first."
-        return 0
+  if [[ ! -d "$PROJECT_ROOT/.perf-logs" ]]; then
+    echo "No performance logs found. Run some builds first."
+    return 0
+  fi
+
+  echo "Cache hit analysis from recent builds:"
+  echo "Date         | Target                    | Cache Hit % | Build Time"
+  echo "-------------|---------------------------|-------------|------------"
+
+  for json_file in "$PROJECT_ROOT/.perf-logs"/*.json; do
+    if [[ -f $json_file ]]; then
+      local target=$(jq -r '.target' "$json_file" 2>/dev/null || echo "unknown")
+      local cache_ratio=$(jq -r '.cache_statistics.cache_hit_ratio' "$json_file" 2>/dev/null || echo "0")
+      local duration=$(jq -r '.build_result.duration_human' "$json_file" 2>/dev/null || echo "unknown")
+      local timestamp=$(jq -r '.timestamp' "$json_file" 2>/dev/null | sed 's/_/ /')
+
+      # Convert cache ratio to percentage
+      local cache_percent=$(echo "scale=1; $cache_ratio * 100" | bc -l 2>/dev/null || echo "0")
+
+      printf "%-12s | %-25s | %8s%% | %s\n" \
+        "$(echo $timestamp | cut -d' ' -f1)" \
+        "$(basename "$target" | cut -c1-25)" \
+        "$cache_percent" \
+        "$duration"
     fi
-
-    echo "Cache hit analysis from recent builds:"
-    echo "Date         | Target                    | Cache Hit % | Build Time"
-    echo "-------------|---------------------------|-------------|------------"
-
-    for json_file in "$PROJECT_ROOT/.perf-logs"/*.json; do
-        if [[ -f "$json_file" ]]; then
-            local target=$(jq -r '.target' "$json_file" 2>/dev/null || echo "unknown")
-            local cache_ratio=$(jq -r '.cache_statistics.cache_hit_ratio' "$json_file" 2>/dev/null || echo "0")
-            local duration=$(jq -r '.build_result.duration_human' "$json_file" 2>/dev/null || echo "unknown")
-            local timestamp=$(jq -r '.timestamp' "$json_file" 2>/dev/null | sed 's/_/ /')
-
-            # Convert cache ratio to percentage
-            local cache_percent=$(echo "scale=1; $cache_ratio * 100" | bc -l 2>/dev/null || echo "0")
-
-            printf "%-12s | %-25s | %8s%% | %s\n" \
-                "$(echo $timestamp | cut -d' ' -f1)" \
-                "$(basename "$target" | cut -c1-25)" \
-                "$cache_percent" \
-                "$duration"
-        fi
-    done | sort -r | head -10
+  done | sort -r | head -10
 }
 
 # Setup intelligent caching configuration
 setup_intelligent_caching() {
-    echo "=== INTELLIGENT CACHING SETUP ==="
+  echo "=== INTELLIGENT CACHING SETUP ==="
 
-    local nix_conf_dir="$HOME/.config/nix"
-    local nix_conf="$nix_conf_dir/nix.conf"
+  local nix_conf_dir="$HOME/.config/nix"
+  local nix_conf="$nix_conf_dir/nix.conf"
 
-    # Create backup of existing config
-    if [[ -f "$nix_conf" ]]; then
-        cp "$nix_conf" "$nix_conf.backup.$(date +%s)"
-        echo "Backed up existing nix.conf"
-    fi
+  # Create backup of existing config
+  if [[ -f $nix_conf ]]; then
+    cp "$nix_conf" "$nix_conf.backup.$(date +%s)"
+    echo "Backed up existing nix.conf"
+  fi
 
-    # Create optimized configuration
-    mkdir -p "$nix_conf_dir"
+  # Create optimized configuration
+  mkdir -p "$nix_conf_dir"
 
-    cat > "$nix_conf" << 'EOF'
+  cat >"$nix_conf" <<'EOF'
 # Optimized Nix configuration for build performance
 # Generated by nix-cache-optimizer.sh
 
@@ -186,63 +186,63 @@ log-lines = 25
 verbosity = 0
 EOF
 
-    echo "Intelligent caching configuration applied to: $nix_conf"
-    echo "Restart your shell or run 'nix-daemon' restart for changes to take effect"
+  echo "Intelligent caching configuration applied to: $nix_conf"
+  echo "Restart your shell or run 'nix-daemon' restart for changes to take effect"
 }
 
 # Monitor cache efficiency over time
 monitor_cache_efficiency() {
-    local monitoring_duration=${1:-300}  # 5 minutes default
+  local monitoring_duration=${1:-300} # 5 minutes default
 
-    echo "=== CACHE EFFICIENCY MONITORING ==="
-    echo "Monitoring cache efficiency for $monitoring_duration seconds..."
+  echo "=== CACHE EFFICIENCY MONITORING ==="
+  echo "Monitoring cache efficiency for $monitoring_duration seconds..."
 
-    local monitor_log="$CACHE_REPORT_DIR/cache_monitor_${TIMESTAMP}.log"
-    local start_time=$(date +%s)
-    local end_time=$((start_time + monitoring_duration))
+  local monitor_log="$CACHE_REPORT_DIR/cache_monitor_${TIMESTAMP}.log"
+  local start_time=$(date +%s)
+  local end_time=$((start_time + monitoring_duration))
 
-    echo "Start time: $(date)" > "$monitor_log"
+  echo "Start time: $(date)" >"$monitor_log"
 
-    while [[ $(date +%s) -lt $end_time ]]; do
-        # Check for active builds
-        local active_builds=$(ps aux | grep -c '[n]ix.*build' || echo "0")
-        local store_size=$(du -sb /nix/store 2>/dev/null | cut -f1 || echo "0")
-        local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+  while [[ $(date +%s) -lt $end_time ]]; do
+    # Check for active builds
+    local active_builds=$(ps aux | grep -c '[n]ix.*build' || echo "0")
+    local store_size=$(du -sb /nix/store 2>/dev/null | cut -f1 || echo "0")
+    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
 
-        echo "$timestamp | Active builds: $active_builds | Store size: $store_size bytes" >> "$monitor_log"
+    echo "$timestamp | Active builds: $active_builds | Store size: $store_size bytes" >>"$monitor_log"
 
-        sleep 30
-    done
+    sleep 30
+  done
 
-    echo "End time: $(date)" >> "$monitor_log"
-    echo "Monitoring complete. Log saved to: $monitor_log"
+  echo "End time: $(date)" >>"$monitor_log"
+  echo "Monitoring complete. Log saved to: $monitor_log"
 }
 
 # Generate comprehensive cache report
 generate_cache_report() {
-    echo "=== COMPREHENSIVE CACHE REPORT ==="
+  echo "=== COMPREHENSIVE CACHE REPORT ==="
 
-    local report_file="$CACHE_REPORT_DIR/comprehensive_report_${TIMESTAMP}.md"
+  local report_file="$CACHE_REPORT_DIR/comprehensive_report_${TIMESTAMP}.md"
 
-    cat > "$report_file" << EOF
+  cat >"$report_file" <<EOF
 # Nix Cache Performance Report
 Generated: $(date)
 
 ## Store Statistics
 EOF
 
-    # Add store analysis
-    analyze_store_state >> "$report_file"
+  # Add store analysis
+  analyze_store_state >>"$report_file"
 
-    cat >> "$report_file" << 'EOF'
+  cat >>"$report_file" <<'EOF'
 
 ## Cache Performance
 EOF
 
-    # Add cache performance analysis
-    analyze_cache_performance >> "$report_file"
+  # Add cache performance analysis
+  analyze_cache_performance >>"$report_file"
 
-    cat >> "$report_file" << 'EOF'
+  cat >>"$report_file" <<'EOF'
 
 ## Recommendations
 
@@ -262,38 +262,38 @@ EOF
 - Configure appropriate cache retention policies
 EOF
 
-    echo "Comprehensive report generated: $report_file"
+  echo "Comprehensive report generated: $report_file"
 }
 
 # Main command dispatch
 case "${1:-help}" in
-    "analyze")
-        analyze_store_state
-        ;;
-    "optimize")
-        optimize_store "${2:-}"
-        ;;
-    "cache-perf")
-        analyze_cache_performance
-        ;;
-    "setup")
-        setup_intelligent_caching
-        ;;
-    "monitor")
-        monitor_cache_efficiency "${2:-300}"
-        ;;
-    "report")
-        generate_cache_report
-        ;;
-    "full-optimization")
-        echo "Running full cache optimization..."
-        analyze_store_state
-        analyze_cache_performance
-        optimize_store
-        setup_intelligent_caching
-        ;;
-    "help"|*)
-        cat << EOF
+"analyze")
+  analyze_store_state
+  ;;
+"optimize")
+  optimize_store "${2:-}"
+  ;;
+"cache-perf")
+  analyze_cache_performance
+  ;;
+"setup")
+  setup_intelligent_caching
+  ;;
+"monitor")
+  monitor_cache_efficiency "${2:-300}"
+  ;;
+"report")
+  generate_cache_report
+  ;;
+"full-optimization")
+  echo "Running full cache optimization..."
+  analyze_store_state
+  analyze_cache_performance
+  optimize_store
+  setup_intelligent_caching
+  ;;
+"help" | *)
+  cat <<EOF
 Nix Cache Optimizer
 
 Usage: $0 <command> [args]
@@ -314,5 +314,5 @@ Examples:
   $0 cache-perf
   $0 monitor 600
 EOF
-        ;;
+  ;;
 esac

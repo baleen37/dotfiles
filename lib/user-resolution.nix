@@ -40,23 +40,24 @@
 
 {
   # Environment variable to check (default: "USER")
-  envVar ? "USER",
-  # Default value if all methods fail
-  default ? null,
-  # Whether to allow SUDO_USER as a valid source
-  allowSudoUser ? true,
-  # Enable debug output
-  debugMode ? false,
-  # Mock environment for testing (optional)
-  mockEnv ? { },
-  # Target platform for platform-specific behavior
-  platform ? null,
-  # Enable automatic user detection fallbacks
-  enableAutoDetect ? true,
-  # Enable various fallback mechanisms
-  enableFallbacks ? true,
-  # Return format: "string" for backward compatibility, "extended" for full feature set
-  returnFormat ? "string",
+  envVar ? "USER"
+, # Default value if all methods fail
+  default ? null
+, # Whether to allow SUDO_USER as a valid source
+  allowSudoUser ? true
+, # Enable debug output
+  debugMode ? false
+, # Mock environment for testing (optional)
+  mockEnv ? { }
+, # Target platform for platform-specific behavior
+  platform ? null
+, # Enable automatic user detection fallbacks
+  enableAutoDetect ? true
+, # Enable various fallback mechanisms
+  enableFallbacks ? true
+, # Return format: "string" for backward compatibility, "extended" for full feature set
+  returnFormat ? "string"
+,
 }:
 
 let

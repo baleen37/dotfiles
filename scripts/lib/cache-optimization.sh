@@ -5,120 +5,120 @@
 
 # Initialize cache optimization environment
 init_cache_optimization() {
-    local config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/build-switch"
-    local state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/build-switch"
-    local cache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/nix"
+  local config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/build-switch"
+  local state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/build-switch"
+  local cache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/nix"
 
-    # Create required directories
-    mkdir -p "$config_dir"/{cache,optimization}
-    mkdir -p "$state_dir"/{metrics,strategy,analysis,reports}
-    mkdir -p "$cache_dir"/{optimization,statistics}
+  # Create required directories
+  mkdir -p "$config_dir"/{cache,optimization}
+  mkdir -p "$state_dir"/{metrics,strategy,analysis,reports}
+  mkdir -p "$cache_dir"/{optimization,statistics}
 
-    # Set global cache optimization variables
-    export CACHE_OPTIMIZATION_CONFIG_DIR="$config_dir/cache"
-    export CACHE_OPTIMIZATION_STATE_DIR="$state_dir"
-    export CACHE_OPTIMIZATION_CACHE_DIR="$cache_dir/optimization"
-    export CACHE_METRICS_DIR="$state_dir/metrics"
-    export CACHE_STRATEGY_DIR="$state_dir/strategy"
-    export CACHE_ANALYSIS_DIR="$state_dir/analysis"
+  # Set global cache optimization variables
+  export CACHE_OPTIMIZATION_CONFIG_DIR="$config_dir/cache"
+  export CACHE_OPTIMIZATION_STATE_DIR="$state_dir"
+  export CACHE_OPTIMIZATION_CACHE_DIR="$cache_dir/optimization"
+  export CACHE_METRICS_DIR="$state_dir/metrics"
+  export CACHE_STRATEGY_DIR="$state_dir/strategy"
+  export CACHE_ANALYSIS_DIR="$state_dir/analysis"
 
-    log_debug "Cache optimization environment initialized"
+  log_debug "Cache optimization environment initialized"
 }
 
 # Optimize cache strategy based on current performance and usage patterns
 optimize_cache_strategy() {
-    local strategy_type="$1"
-    local cache_stats_file="$2"
-    local output_file="$3"
+  local strategy_type="$1"
+  local cache_stats_file="$2"
+  local output_file="$3"
 
-    log_debug "Optimizing cache strategy: $strategy_type"
+  log_debug "Optimizing cache strategy: $strategy_type"
 
-    # Validate inputs
-    if [ ! -f "$cache_stats_file" ]; then
-        log_error "Cache stats file not found: $cache_stats_file"
-        return 1
-    fi
+  # Validate inputs
+  if [ ! -f "$cache_stats_file" ]; then
+    log_error "Cache stats file not found: $cache_stats_file"
+    return 1
+  fi
 
-    if [ -z "$output_file" ]; then
-        log_error "Output file path is required"
-        return 1
-    fi
+  if [ -z "$output_file" ]; then
+    log_error "Output file path is required"
+    return 1
+  fi
 
-    # Initialize cache optimization if not already done
-    init_cache_optimization
+  # Initialize cache optimization if not already done
+  init_cache_optimization
 
-    # Parse current cache statistics
-    local current_hit_rate
-    local current_miss_rate
-    local avg_build_time
-    local cache_size_mb
+  # Parse current cache statistics
+  local current_hit_rate
+  local current_miss_rate
+  local avg_build_time
+  local cache_size_mb
 
-    if command -v jq >/dev/null 2>&1; then
-        current_hit_rate=$(jq -r '.hit_rate // 0' "$cache_stats_file" 2>/dev/null || echo "0")
-        current_miss_rate=$(jq -r '.miss_rate // 1' "$cache_stats_file" 2>/dev/null || echo "1")
-        avg_build_time=$(jq -r '.avg_build_time // 120' "$cache_stats_file" 2>/dev/null || echo "120")
-        cache_size_mb=$(jq -r '.cache_size_mb // 2048' "$cache_stats_file" 2>/dev/null || echo "2048")
-    else
-        # Fallback parsing without jq
-        current_hit_rate=$(grep -o '"hit_rate":[0-9.]*' "$cache_stats_file" | cut -d: -f2 || echo "0")
-        current_miss_rate=$(grep -o '"miss_rate":[0-9.]*' "$cache_stats_file" | cut -d: -f2 || echo "1")
-        avg_build_time=$(grep -o '"avg_build_time":[0-9]*' "$cache_stats_file" | cut -d: -f2 || echo "120")
-        cache_size_mb=$(grep -o '"cache_size_mb":[0-9]*' "$cache_stats_file" | cut -d: -f2 || echo "2048")
-    fi
+  if command -v jq >/dev/null 2>&1; then
+    current_hit_rate=$(jq -r '.hit_rate // 0' "$cache_stats_file" 2>/dev/null || echo "0")
+    current_miss_rate=$(jq -r '.miss_rate // 1' "$cache_stats_file" 2>/dev/null || echo "1")
+    avg_build_time=$(jq -r '.avg_build_time // 120' "$cache_stats_file" 2>/dev/null || echo "120")
+    cache_size_mb=$(jq -r '.cache_size_mb // 2048' "$cache_stats_file" 2>/dev/null || echo "2048")
+  else
+    # Fallback parsing without jq
+    current_hit_rate=$(grep -o '"hit_rate":[0-9.]*' "$cache_stats_file" | cut -d: -f2 || echo "0")
+    current_miss_rate=$(grep -o '"miss_rate":[0-9.]*' "$cache_stats_file" | cut -d: -f2 || echo "1")
+    avg_build_time=$(grep -o '"avg_build_time":[0-9]*' "$cache_stats_file" | cut -d: -f2 || echo "120")
+    cache_size_mb=$(grep -o '"cache_size_mb":[0-9]*' "$cache_stats_file" | cut -d: -f2 || echo "2048")
+  fi
 
-    log_debug "Current cache stats - Hit rate: $current_hit_rate, Build time: ${avg_build_time}s, Size: ${cache_size_mb}MB"
+  log_debug "Current cache stats - Hit rate: $current_hit_rate, Build time: ${avg_build_time}s, Size: ${cache_size_mb}MB"
 
-    # Generate strategy based on type and current performance
-    case "$strategy_type" in
-        "intelligent")
-            generate_intelligent_strategy "$current_hit_rate" "$avg_build_time" "$cache_size_mb" "$output_file"
-            ;;
-        "conservative")
-            generate_conservative_strategy "$current_hit_rate" "$avg_build_time" "$cache_size_mb" "$output_file"
-            ;;
-        "aggressive")
-            generate_aggressive_strategy "$current_hit_rate" "$avg_build_time" "$cache_size_mb" "$output_file"
-            ;;
-        *)
-            log_error "Unknown strategy type: $strategy_type"
-            return 1
-            ;;
-    esac
+  # Generate strategy based on type and current performance
+  case "$strategy_type" in
+  "intelligent")
+    generate_intelligent_strategy "$current_hit_rate" "$avg_build_time" "$cache_size_mb" "$output_file"
+    ;;
+  "conservative")
+    generate_conservative_strategy "$current_hit_rate" "$avg_build_time" "$cache_size_mb" "$output_file"
+    ;;
+  "aggressive")
+    generate_aggressive_strategy "$current_hit_rate" "$avg_build_time" "$cache_size_mb" "$output_file"
+    ;;
+  *)
+    log_error "Unknown strategy type: $strategy_type"
+    return 1
+    ;;
+  esac
 
-    log_info "Cache optimization strategy generated: $output_file"
-    return 0
+  log_info "Cache optimization strategy generated: $output_file"
+  return 0
 }
 
 # Generate intelligent cache strategy based on performance analysis
 generate_intelligent_strategy() {
-    local hit_rate="$1"
-    local build_time="$2"
-    local cache_size="$3"
-    local output_file="$4"
+  local hit_rate="$1"
+  local build_time="$2"
+  local cache_size="$3"
+  local output_file="$4"
 
-    # Calculate recommended cache size based on current performance
-    local recommended_size
-    if awk "BEGIN {exit !($hit_rate < 0.1)}"; then
-        # Very low hit rate - dramatically increase cache size
-        recommended_size=$((cache_size * 4))
-    elif awk "BEGIN {exit !($hit_rate < 0.3)}"; then
-        # Low hit rate - double cache size
-        recommended_size=$((cache_size * 2))
-    elif awk "BEGIN {exit !($hit_rate < 0.5)}"; then
-        # Moderate hit rate - modest increase
-        recommended_size=$((cache_size * 3 / 2))
-    else
-        # Good hit rate - maintain or slight increase
-        recommended_size=$((cache_size + 1024))
-    fi
+  # Calculate recommended cache size based on current performance
+  local recommended_size
+  if awk "BEGIN {exit !($hit_rate < 0.1)}"; then
+    # Very low hit rate - dramatically increase cache size
+    recommended_size=$((cache_size * 4))
+  elif awk "BEGIN {exit !($hit_rate < 0.3)}"; then
+    # Low hit rate - double cache size
+    recommended_size=$((cache_size * 2))
+  elif awk "BEGIN {exit !($hit_rate < 0.5)}"; then
+    # Moderate hit rate - modest increase
+    recommended_size=$((cache_size * 3 / 2))
+  else
+    # Good hit rate - maintain or slight increase
+    recommended_size=$((cache_size + 1024))
+  fi
 
-    # Cap maximum cache size at 16GB
-    if [ "$recommended_size" -gt 16384 ]; then
-        recommended_size=16384
-    fi
+  # Cap maximum cache size at 16GB
+  if [ "$recommended_size" -gt 16384 ]; then
+    recommended_size=16384
+  fi
 
-    # Generate strategy configuration
-    cat > "$output_file" << EOF
+  # Generate strategy configuration
+  cat >"$output_file" <<EOF
 {
   "strategy": "intelligent",
   "timestamp": "$(date -Iseconds)",
@@ -164,15 +164,15 @@ EOF
 
 # Generate conservative cache strategy
 generate_conservative_strategy() {
-    local hit_rate="$1"
-    local build_time="$2"
-    local cache_size="$3"
-    local output_file="$4"
+  local hit_rate="$1"
+  local build_time="$2"
+  local cache_size="$3"
+  local output_file="$4"
 
-    # Conservative approach - minimal changes
-    local recommended_size=$((cache_size + 512))
+  # Conservative approach - minimal changes
+  local recommended_size=$((cache_size + 512))
 
-    cat > "$output_file" << EOF
+  cat >"$output_file" <<EOF
 {
   "strategy": "conservative",
   "timestamp": "$(date -Iseconds)",
@@ -211,20 +211,20 @@ EOF
 
 # Generate aggressive cache strategy
 generate_aggressive_strategy() {
-    local hit_rate="$1"
-    local build_time="$2"
-    local cache_size="$3"
-    local output_file="$4"
+  local hit_rate="$1"
+  local build_time="$2"
+  local cache_size="$3"
+  local output_file="$4"
 
-    # Aggressive approach - maximum optimization
-    local recommended_size=$((cache_size * 6))
+  # Aggressive approach - maximum optimization
+  local recommended_size=$((cache_size * 6))
 
-    # Cap at 32GB for aggressive strategy
-    if [ "$recommended_size" -gt 32768 ]; then
-        recommended_size=32768
-    fi
+  # Cap at 32GB for aggressive strategy
+  if [ "$recommended_size" -gt 32768 ]; then
+    recommended_size=32768
+  fi
 
-    cat > "$output_file" << EOF
+  cat >"$output_file" <<EOF
 {
   "strategy": "aggressive",
   "timestamp": "$(date -Iseconds)",
@@ -274,84 +274,84 @@ EOF
 
 # Implement intelligent cache management with adaptive strategies
 intelligent_cache_management() {
-    local management_mode="$1"
-    local usage_patterns_file="$2"
-    local config_file="$3"
+  local management_mode="$1"
+  local usage_patterns_file="$2"
+  local config_file="$3"
 
-    log_debug "Implementing intelligent cache management: $management_mode"
+  log_debug "Implementing intelligent cache management: $management_mode"
 
-    # Validate inputs
-    if [ ! -f "$usage_patterns_file" ]; then
-        log_error "Usage patterns file not found: $usage_patterns_file"
-        return 1
-    fi
+  # Validate inputs
+  if [ ! -f "$usage_patterns_file" ]; then
+    log_error "Usage patterns file not found: $usage_patterns_file"
+    return 1
+  fi
 
-    if [ -z "$config_file" ]; then
-        log_error "Config file path is required"
-        return 1
-    fi
+  if [ -z "$config_file" ]; then
+    log_error "Config file path is required"
+    return 1
+  fi
 
-    # Initialize cache optimization if not already done
-    init_cache_optimization
+  # Initialize cache optimization if not already done
+  init_cache_optimization
 
-    # Parse usage patterns
-    local hourly_usage
-    local daily_builds
-    local common_packages
+  # Parse usage patterns
+  local hourly_usage
+  local daily_builds
+  local common_packages
 
-    if command -v jq >/dev/null 2>&1; then
-        daily_builds=$(jq -r '.build_frequency.daily // 45' "$usage_patterns_file" 2>/dev/null || echo "45")
-        common_packages=$(jq -r '.common_packages[]?' "$usage_patterns_file" 2>/dev/null | tr '\n' ' ' || echo "nixpkgs.hello nixpkgs.git")
-    else
-        # Fallback parsing
-        daily_builds=$(grep -o '"daily":[0-9]*' "$usage_patterns_file" | cut -d: -f2 || echo "45")
-        common_packages="nixpkgs.hello nixpkgs.git nixpkgs.nodejs"
-    fi
+  if command -v jq >/dev/null 2>&1; then
+    daily_builds=$(jq -r '.build_frequency.daily // 45' "$usage_patterns_file" 2>/dev/null || echo "45")
+    common_packages=$(jq -r '.common_packages[]?' "$usage_patterns_file" 2>/dev/null | tr '\n' ' ' || echo "nixpkgs.hello nixpkgs.git")
+  else
+    # Fallback parsing
+    daily_builds=$(grep -o '"daily":[0-9]*' "$usage_patterns_file" | cut -d: -f2 || echo "45")
+    common_packages="nixpkgs.hello nixpkgs.git nixpkgs.nodejs"
+  fi
 
-    log_debug "Usage patterns - Daily builds: $daily_builds, Common packages: $common_packages"
+  log_debug "Usage patterns - Daily builds: $daily_builds, Common packages: $common_packages"
 
-    # Generate management configuration based on mode
-    case "$management_mode" in
-        "adaptive")
-            generate_adaptive_management_config "$daily_builds" "$common_packages" "$config_file"
-            ;;
-        "predictive")
-            generate_predictive_management_config "$daily_builds" "$common_packages" "$config_file"
-            ;;
-        "learning")
-            generate_learning_management_config "$daily_builds" "$common_packages" "$config_file"
-            ;;
-        *)
-            log_error "Unknown management mode: $management_mode"
-            return 1
-            ;;
-    esac
+  # Generate management configuration based on mode
+  case "$management_mode" in
+  "adaptive")
+    generate_adaptive_management_config "$daily_builds" "$common_packages" "$config_file"
+    ;;
+  "predictive")
+    generate_predictive_management_config "$daily_builds" "$common_packages" "$config_file"
+    ;;
+  "learning")
+    generate_learning_management_config "$daily_builds" "$common_packages" "$config_file"
+    ;;
+  *)
+    log_error "Unknown management mode: $management_mode"
+    return 1
+    ;;
+  esac
 
-    log_info "Intelligent cache management configuration generated: $config_file"
-    return 0
+  log_info "Intelligent cache management configuration generated: $config_file"
+  return 0
 }
 
 # Generate adaptive management configuration
 generate_adaptive_management_config() {
-    local daily_builds="$1"
-    local common_packages="$2"
-    local config_file="$3"
+  local daily_builds="$1"
+  local common_packages="$2"
+  local config_file="$3"
 
-    # Determine peak hours based on usage patterns
-    local peak_hours="[7, 8, 9, 17, 18, 19]"
-    local max_age_hours=168
-    local min_frequency=2
+  # Determine peak hours based on usage patterns
+  local peak_hours="[7, 8, 9, 17, 18, 19]"
+  local max_age_hours=168
+  local min_frequency=2
 
-    # Adjust parameters based on usage intensity
-    if [ "$daily_builds" -gt 100 ]; then
-        max_age_hours=72
-        min_frequency=5
-    elif [ "$daily_builds" -gt 50 ]; then
-        max_age_hours=120
-        min_frequency=3
-    fi
+  # Adjust parameters based on usage intensity
+  if [ "$daily_builds" -gt 100 ]; then
+    max_age_hours=72
+    min_frequency=5
+  elif [ "$daily_builds" -gt 50 ]; then
+    max_age_hours=120
+    min_frequency=3
+  fi
 
-    cat > "$config_file" << EOF
+  cat >"$config_file" <<EOF
 # Adaptive Cache Management Configuration
 # Generated on $(date -Iseconds)
 
@@ -416,11 +416,11 @@ EOF
 
 # Generate predictive management configuration
 generate_predictive_management_config() {
-    local daily_builds="$1"
-    local common_packages="$2"
-    local config_file="$3"
+  local daily_builds="$1"
+  local common_packages="$2"
+  local config_file="$3"
 
-    cat > "$config_file" << EOF
+  cat >"$config_file" <<EOF
 # Predictive Cache Management Configuration
 # Generated on $(date -Iseconds)
 
@@ -483,11 +483,11 @@ EOF
 
 # Generate learning management configuration
 generate_learning_management_config() {
-    local daily_builds="$1"
-    local common_packages="$2"
-    local config_file="$3"
+  local daily_builds="$1"
+  local common_packages="$2"
+  local config_file="$3"
 
-    cat > "$config_file" << EOF
+  cat >"$config_file" <<EOF
 # Learning Cache Management Configuration
 # Generated on $(date -Iseconds)
 
@@ -538,70 +538,70 @@ EOF
 
 # Perform comprehensive cache performance analysis
 cache_performance_analysis() {
-    local analysis_type="$1"
-    local metrics_dir="$2"
-    local report_file="$3"
+  local analysis_type="$1"
+  local metrics_dir="$2"
+  local report_file="$3"
 
-    log_debug "Performing cache performance analysis: $analysis_type"
+  log_debug "Performing cache performance analysis: $analysis_type"
 
-    # Validate inputs
-    if [ ! -d "$metrics_dir" ]; then
-        log_error "Metrics directory not found: $metrics_dir"
-        return 1
-    fi
+  # Validate inputs
+  if [ ! -d "$metrics_dir" ]; then
+    log_error "Metrics directory not found: $metrics_dir"
+    return 1
+  fi
 
-    if [ -z "$report_file" ]; then
-        log_error "Report file path is required"
-        return 1
-    fi
+  if [ -z "$report_file" ]; then
+    log_error "Report file path is required"
+    return 1
+  fi
 
-    # Initialize cache optimization if not already done
-    init_cache_optimization
+  # Initialize cache optimization if not already done
+  init_cache_optimization
 
-    # Collect current performance metrics
-    local current_timestamp=$(date -Iseconds)
+  # Collect current performance metrics
+  local current_timestamp=$(date -Iseconds)
 
-    # Generate analysis based on type
-    case "$analysis_type" in
-        "comprehensive")
-            generate_comprehensive_analysis "$metrics_dir" "$report_file" "$current_timestamp"
-            ;;
-        "trend")
-            generate_trend_analysis "$metrics_dir" "$report_file" "$current_timestamp"
-            ;;
-        "efficiency")
-            generate_efficiency_analysis "$metrics_dir" "$report_file" "$current_timestamp"
-            ;;
-        *)
-            log_error "Unknown analysis type: $analysis_type"
-            return 1
-            ;;
-    esac
+  # Generate analysis based on type
+  case "$analysis_type" in
+  "comprehensive")
+    generate_comprehensive_analysis "$metrics_dir" "$report_file" "$current_timestamp"
+    ;;
+  "trend")
+    generate_trend_analysis "$metrics_dir" "$report_file" "$current_timestamp"
+    ;;
+  "efficiency")
+    generate_efficiency_analysis "$metrics_dir" "$report_file" "$current_timestamp"
+    ;;
+  *)
+    log_error "Unknown analysis type: $analysis_type"
+    return 1
+    ;;
+  esac
 
-    log_info "Cache performance analysis completed: $report_file"
-    return 0
+  log_info "Cache performance analysis completed: $report_file"
+  return 0
 }
 
 # Generate comprehensive performance analysis
 generate_comprehensive_analysis() {
-    local metrics_dir="$1"
-    local report_file="$2"
-    local timestamp="$3"
+  local metrics_dir="$1"
+  local report_file="$2"
+  local timestamp="$3"
 
-    # Mock current performance metrics (in real implementation, would read from actual metrics)
-    local current_hit_rate="0.02"
-    local target_hit_rate="0.75"
-    local avg_build_time="120"
-    local target_build_time="60"
+  # Mock current performance metrics (in real implementation, would read from actual metrics)
+  local current_hit_rate="0.02"
+  local target_hit_rate="0.75"
+  local avg_build_time="120"
+  local target_build_time="60"
 
-    # Calculate improvement potential
-    local improvement_potential
-    improvement_potential=$(awk "BEGIN {printf \"%.0f\", (($target_hit_rate - $current_hit_rate) / $current_hit_rate) * 100}")
+  # Calculate improvement potential
+  local improvement_potential
+  improvement_potential=$(awk "BEGIN {printf \"%.0f\", (($target_hit_rate - $current_hit_rate) / $current_hit_rate) * 100}")
 
-    local time_savings
-    time_savings=$(awk "BEGIN {printf \"%.0f\", $avg_build_time - $target_build_time}")
+  local time_savings
+  time_savings=$(awk "BEGIN {printf \"%.0f\", $avg_build_time - $target_build_time}")
 
-    cat > "$report_file" << EOF
+  cat >"$report_file" <<EOF
 {
   "analysis_type": "comprehensive",
   "timestamp": "$timestamp",
@@ -723,11 +723,11 @@ EOF
 
 # Generate trend analysis
 generate_trend_analysis() {
-    local metrics_dir="$1"
-    local report_file="$2"
-    local timestamp="$3"
+  local metrics_dir="$1"
+  local report_file="$2"
+  local timestamp="$3"
 
-    cat > "$report_file" << EOF
+  cat >"$report_file" <<EOF
 {
   "analysis_type": "trend",
   "timestamp": "$timestamp",
@@ -769,11 +769,11 @@ EOF
 
 # Generate efficiency analysis
 generate_efficiency_analysis() {
-    local metrics_dir="$1"
-    local report_file="$2"
-    local timestamp="$3"
+  local metrics_dir="$1"
+  local report_file="$2"
+  local timestamp="$3"
 
-    cat > "$report_file" << EOF
+  cat >"$report_file" <<EOF
 {
   "analysis_type": "efficiency",
   "timestamp": "$timestamp",
@@ -831,76 +831,76 @@ EOF
 # Helper functions for strategy generation
 
 get_performance_rating() {
-    local hit_rate="$1"
-    local build_time="$2"
+  local hit_rate="$1"
+  local build_time="$2"
 
-    if awk "BEGIN {exit !($hit_rate < 0.1)}"; then
-        echo "poor"
-    elif awk "BEGIN {exit !($hit_rate < 0.3)}"; then
-        echo "below_average"
-    elif awk "BEGIN {exit !($hit_rate < 0.5)}"; then
-        echo "average"
-    elif awk "BEGIN {exit !($hit_rate < 0.7)}"; then
-        echo "good"
-    else
-        echo "excellent"
-    fi
+  if awk "BEGIN {exit !($hit_rate < 0.1)}"; then
+    echo "poor"
+  elif awk "BEGIN {exit !($hit_rate < 0.3)}"; then
+    echo "below_average"
+  elif awk "BEGIN {exit !($hit_rate < 0.5)}"; then
+    echo "average"
+  elif awk "BEGIN {exit !($hit_rate < 0.7)}"; then
+    echo "good"
+  else
+    echo "excellent"
+  fi
 }
 
 get_optimization_level() {
-    local hit_rate="$1"
+  local hit_rate="$1"
 
-    if awk "BEGIN {exit !($hit_rate < 0.1)}"; then
-        echo "aggressive"
-    elif awk "BEGIN {exit !($hit_rate < 0.3)}"; then
-        echo "high"
-    elif awk "BEGIN {exit !($hit_rate < 0.5)}"; then
-        echo "moderate"
-    else
-        echo "conservative"
-    fi
+  if awk "BEGIN {exit !($hit_rate < 0.1)}"; then
+    echo "aggressive"
+  elif awk "BEGIN {exit !($hit_rate < 0.3)}"; then
+    echo "high"
+  elif awk "BEGIN {exit !($hit_rate < 0.5)}"; then
+    echo "moderate"
+  else
+    echo "conservative"
+  fi
 }
 
 calculate_improvement_estimate() {
-    local current_hit_rate="$1"
-    local target_hit_rate="0.75"
+  local current_hit_rate="$1"
+  local target_hit_rate="0.75"
 
-    awk "BEGIN {printf \"%.0f\", (($target_hit_rate - $current_hit_rate) / $current_hit_rate) * 100}"
+  awk "BEGIN {printf \"%.0f\", (($target_hit_rate - $current_hit_rate) / $current_hit_rate) * 100}"
 }
 
 generate_recommendations() {
-    local hit_rate="$1"
-    local build_time="$2"
-    local current_size="$3"
-    local recommended_size="$4"
+  local hit_rate="$1"
+  local build_time="$2"
+  local current_size="$3"
+  local recommended_size="$4"
 
-    local recommendations=""
+  local recommendations=""
 
-    # Size recommendation
-    if [ "$recommended_size" -gt "$current_size" ]; then
-        recommendations="\"Increase cache size from ${current_size}MB to ${recommended_size}MB\""
+  # Size recommendation
+  if [ "$recommended_size" -gt "$current_size" ]; then
+    recommendations="\"Increase cache size from ${current_size}MB to ${recommended_size}MB\""
+  fi
+
+  # Hit rate recommendations
+  if awk "BEGIN {exit !($hit_rate < 0.1)}"; then
+    if [ -n "$recommendations" ]; then
+      recommendations="$recommendations,"
     fi
+    recommendations="$recommendations\"Enable intelligent preloading for common packages\""
+    recommendations="$recommendations,\"Implement frequency-based eviction policy\""
+    recommendations="$recommendations,\"Enable predictive caching algorithms\""
+  fi
 
-    # Hit rate recommendations
-    if awk "BEGIN {exit !($hit_rate < 0.1)}"; then
-        if [ -n "$recommendations" ]; then
-            recommendations="$recommendations,"
-        fi
-        recommendations="$recommendations\"Enable intelligent preloading for common packages\""
-        recommendations="$recommendations,\"Implement frequency-based eviction policy\""
-        recommendations="$recommendations,\"Enable predictive caching algorithms\""
+  # Build time recommendations
+  if [ "$build_time" -gt 90 ]; then
+    if [ -n "$recommendations" ]; then
+      recommendations="$recommendations,"
     fi
+    recommendations="$recommendations\"Optimize parallel build configuration\""
+    recommendations="$recommendations,\"Enable build result caching\""
+  fi
 
-    # Build time recommendations
-    if [ "$build_time" -gt 90 ]; then
-        if [ -n "$recommendations" ]; then
-            recommendations="$recommendations,"
-        fi
-        recommendations="$recommendations\"Optimize parallel build configuration\""
-        recommendations="$recommendations,\"Enable build result caching\""
-    fi
-
-    echo "$recommendations"
+  echo "$recommendations"
 }
 
 # Export functions for external use

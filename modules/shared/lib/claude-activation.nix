@@ -2,11 +2,11 @@
 # This module provides cross-platform Claude configuration file management
 # with simple folder-level symlink approach for maximum simplicity.
 
-{
-  config,
-  lib,
-  self ? null,
-  platform ? "unknown",
+{ config
+, lib
+, self ? null
+, platform ? "unknown"
+,
 }:
 
 let

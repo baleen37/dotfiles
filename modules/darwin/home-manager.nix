@@ -12,13 +12,12 @@
 # VERSION: 2.0.0 (Phase 2 optimized)
 # LAST UPDATED: 2024-10-04
 
-{
-  config,
-  pkgs,
-  lib,
-  home-manager,
-  self,
-  ...
+{ config
+, pkgs
+, lib
+, home-manager
+, self
+, ...
 }:
 
 let
@@ -97,11 +96,10 @@ in
     useUserPackages = true; # Performance: reduce evaluation overhead
 
     users.${user} =
-      {
-        pkgs,
-        config,
-        lib,
-        ...
+      { pkgs
+      , config
+      , lib
+      , ...
       }:
       {
         home = {
@@ -147,7 +145,7 @@ in
 
         # Enhanced Nix application linking with performance optimizations
         home.activation = sharedConfig.home.activation // {
-          linkNixApps = lib.hm.dag.entryAfter [ "setupClaudeConfig" ] ''
+          linkNixApps = ''
             echo "🔗 Optimizing Nix application integration..."
 
             # Performance: check if linking is needed
@@ -180,7 +178,7 @@ in
           '';
 
           # macOS-specific system optimizations
-          optimizeDarwinSystem = lib.hm.dag.entryAfter [ "linkNixApps" ] ''
+          optimizeDarwinSystem = ''
             echo "🍎 Applying macOS system optimizations..."
 
             # Optimize Finder performance
@@ -198,8 +196,7 @@ in
 
         # Enhanced services for macOS integration
         services = {
-          # Clipboard manager integration
-          clipy.enable = lib.mkDefault false; # User preference
+          # Add valid Darwin-specific Home Manager services here
         };
       };
   };
@@ -214,8 +211,4 @@ in
     echo "   • Homebrew integration: $(brew --version 2>/dev/null | head -1 || echo 'not available')"
     echo "   • User profile: ${user} (${getUserInfo.homePath})"
   '';
-  # Import shared modules for consistency
-  imports = [
-    # Additional Darwin-specific modules can be added here
-  ];
 }

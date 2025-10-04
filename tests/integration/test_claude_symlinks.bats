@@ -34,8 +34,8 @@ load ../lib/assertions.bash 2>/dev/null || true
   export HOME="$test_home"
 
   # Create existing regular files
-  echo "old config" > "$test_home/.claude/config.yaml"
-  echo "old settings" > "$test_home/.claude/settings.json"
+  echo "old config" >"$test_home/.claude/config.yaml"
+  echo "old settings" >"$test_home/.claude/settings.json"
 
   # Deploy with force
   run deploy_config --force-overwrite true --platform "$(uname -s | tr '[:upper:]' '[:lower:]')"

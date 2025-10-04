@@ -1,10 +1,10 @@
 # Parallel build optimization for Nix flake
 # Maximizes multi-core utilization and optimizes build parallelization
 
-{
-  lib,
-  pkgs,
-  system ? "aarch64-darwin",
+{ lib
+, pkgs
+, system ? "aarch64-darwin"
+,
 }:
 
 rec {
@@ -181,9 +181,12 @@ rec {
         # Add ccache support for C/C++ packages
         buildInputs =
           (oldAttrs.buildInputs or [ ])
-          ++ lib.optionals (lib.any (
-            input: lib.hasPrefix "gcc" input.name || lib.hasPrefix "clang" input.name
-          ) (oldAttrs.buildInputs or [ ])) [ pkgs.ccache ];
+          ++ lib.optionals
+            (lib.any
+              (
+                input: lib.hasPrefix "gcc" input.name || lib.hasPrefix "clang" input.name
+              )
+              (oldAttrs.buildInputs or [ ])) [ pkgs.ccache ];
       });
   };
 
@@ -252,38 +255,44 @@ rec {
     # Analyze build dependencies to optimize parallel execution
     analyzeBuildDeps = buildInputs: {
       # Categorize dependencies by build complexity
-      lightDeps = lib.filter (
-        dep:
-        lib.elem (dep.pname or "") [
-          "bash"
-          "coreutils"
-          "findutils"
-          "grep"
-        ]
-      ) buildInputs;
+      lightDeps = lib.filter
+        (
+          dep:
+          lib.elem (dep.pname or "") [
+            "bash"
+            "coreutils"
+            "findutils"
+            "grep"
+          ]
+        )
+        buildInputs;
 
-      mediumDeps = lib.filter (
-        dep:
-        lib.elem (dep.pname or "") [
-          "git"
-          "curl"
-          "wget"
-          "cmake"
-          "pkg-config"
-        ]
-      ) buildInputs;
+      mediumDeps = lib.filter
+        (
+          dep:
+          lib.elem (dep.pname or "") [
+            "git"
+            "curl"
+            "wget"
+            "cmake"
+            "pkg-config"
+          ]
+        )
+        buildInputs;
 
-      heavyDeps = lib.filter (
-        dep:
-        lib.elem (dep.pname or "") [
-          "llvm"
-          "gcc"
-          "rust"
-          "go"
-          "nodejs"
-          "python3"
-        ]
-      ) buildInputs;
+      heavyDeps = lib.filter
+        (
+          dep:
+          lib.elem (dep.pname or "") [
+            "llvm"
+            "gcc"
+            "rust"
+            "go"
+            "nodejs"
+            "python3"
+          ]
+        )
+        buildInputs;
     };
 
     # Create dependency-aware build plan
@@ -421,18 +430,20 @@ rec {
         );
 
         # Optimize development shell for parallel builds
-        devShells = lib.mapAttrs (
-          name: shell:
-          shell.overrideAttrs (oldAttrs: {
-            inherit (parallelBuildConfig.environment) NIX_BUILD_CORES MAKEFLAGS;
-            shellHook = (oldAttrs.shellHook or "") + ''
-              echo "Parallel build environment configured:"
-              echo "  Cores: ${toString parallelBuildConfig.cores}"
-              echo "  Max jobs: ${toString parallelBuildConfig.maxJobs}"
-              echo "  Build flags: $MAKEFLAGS"
-            '';
-          })
-        ) (outputs.devShells.${system} or { });
+        devShells = lib.mapAttrs
+          (
+            name: shell:
+              shell.overrideAttrs (oldAttrs: {
+                inherit (parallelBuildConfig.environment) NIX_BUILD_CORES MAKEFLAGS;
+                shellHook = (oldAttrs.shellHook or "") + ''
+                  echo "Parallel build environment configured:"
+                  echo "  Cores: ${toString parallelBuildConfig.cores}"
+                  echo "  Max jobs: ${toString parallelBuildConfig.maxJobs}"
+                  echo "  Build flags: $MAKEFLAGS"
+                '';
+              })
+          )
+          (outputs.devShells.${system} or { });
       };
   };
 }

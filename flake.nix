@@ -43,19 +43,19 @@
   };
 
   outputs =
-    {
-      self,
-      darwin,
-      nix-homebrew,
-      homebrew-bundle,
-      homebrew-core,
-      homebrew-cask,
-      home-manager,
-      nixpkgs,
-      disko,
-      nix-unit,
-      namaka,
-      flake-checker,
+    { self
+    , darwin
+    , nix-homebrew
+    , homebrew-bundle
+    , homebrew-core
+    , homebrew-cask
+    , home-manager
+    , nixpkgs
+    , disko
+    , nix-unit
+    , namaka
+    , flake-checker
+    ,
     }@inputs:
     let
       # Import modular flake configuration
@@ -153,9 +153,9 @@
 
         # Home Manager configuration builder function (lazy evaluation)
         lib.mkHomeConfigurations =
-          {
-            user ? null,
-            impure ? false,
+          { user ? null
+          , impure ? false
+          ,
           }:
           let
             # Only resolve user when actually needed and in impure context

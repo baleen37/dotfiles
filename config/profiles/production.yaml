@@ -3,10 +3,10 @@
 
 # Conservative settings for production
 build:
-  timeout: 3600  # Standard timeout
-  parallel_jobs: 4  # Conservative parallel jobs
-  allow_unfree: false  # Strict licensing
-  experimental_features: "nix-command flakes"
+  timeout: 3600 # Standard timeout
+  parallel_jobs: 4 # Conservative parallel jobs
+  allow_unfree: false # Strict licensing
+  experimental_features: 'nix-command flakes'
 
 development:
   debug_mode: false

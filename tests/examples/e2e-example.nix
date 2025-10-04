@@ -1,11 +1,10 @@
 # End-to-End Test Examples for Comprehensive Testing Framework
 # Demonstrates complete system workflow validation using NixOS tests
 
-{
-  lib,
-  pkgs,
-  modulesPath,
-  ...
+{ lib
+, pkgs
+, modulesPath
+, ...
 }:
 
 let
@@ -17,38 +16,40 @@ let
     inherit name;
     nodes.machine =
       { config, pkgs, ... }:
-      lib.recursiveUpdate {
-        # Base test configuration
-        system.stateVersion = "24.05";
+      lib.recursiveUpdate
+        {
+          # Base test configuration
+          system.stateVersion = "24.05";
 
-        # Enable essential services
-        services.openssh.enable = true;
-        users.users.testuser = {
-          isNormalUser = true;
-          extraGroups = [ "wheel" ];
-          password = "test"; # pragma: allowlist secret
-        };
-
-        # Install test dependencies
-        environment.systemPackages = with pkgs; [
-          nix
-          git
-          curl
-          jq
-        ];
-
-        # Configure Nix for testing
-        nix = {
-          settings = {
-            experimental-features = [
-              "nix-command"
-              "flakes"
-            ];
-            trusted-users = [ "testuser" ];
+          # Enable essential services
+          services.openssh.enable = true;
+          users.users.testuser = {
+            isNormalUser = true;
+            extraGroups = [ "wheel" ];
+            password = "test"; # pragma: allowlist secret
           };
-        };
 
-      } extraConfig;
+          # Install test dependencies
+          environment.systemPackages = with pkgs; [
+            nix
+            git
+            curl
+            jq
+          ];
+
+          # Configure Nix for testing
+          nix = {
+            settings = {
+              experimental-features = [
+                "nix-command"
+                "flakes"
+              ];
+              trusted-users = [ "testuser" ];
+            };
+          };
+
+        }
+        extraConfig;
 
     testScript = ''
       import time

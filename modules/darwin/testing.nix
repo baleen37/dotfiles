@@ -1,11 +1,10 @@
 # Darwin-Specific Testing Module
 # macOS-specific testing configuration and tools
 
-{
-  config,
-  lib,
-  pkgs,
-  ...
+{ config
+, lib
+, pkgs
+, ...
 }:
 
 with lib;
@@ -53,9 +52,8 @@ in
     _module.args.darwinTesting = {
       # Darwin test environment setup
       darwinTestEnvironment =
-        {
-          enableHomebrew ? false,
-          ...
+        { enableHomebrew ? false
+        , ...
         }:
         {
           platform = builtins.currentSystem;
@@ -111,23 +109,26 @@ in
 
       # Test Homebrew integration
       testHomebrewIntegration =
-        {
-          formula ? [ ],
-          casks ? [ ],
-          ...
+        { formula ? [ ]
+        , casks ? [ ]
+        , ...
         }:
         let
-          testFormula = map (f: {
-            name = "homebrew-formula-${f}";
-            command = "brew list ${f}";
-            expected = "installed";
-          }) formula;
+          testFormula = map
+            (f: {
+              name = "homebrew-formula-${f}";
+              command = "brew list ${f}";
+              expected = "installed";
+            })
+            formula;
 
-          testCasks = map (c: {
-            name = "homebrew-cask-${c}";
-            command = "brew list --cask ${c}";
-            expected = "installed";
-          }) casks;
+          testCasks = map
+            (c: {
+              name = "homebrew-cask-${c}";
+              command = "brew list --cask ${c}";
+              expected = "installed";
+            })
+            casks;
         in
         {
           tests = testFormula ++ testCasks;
@@ -137,21 +138,22 @@ in
 
       # Test macOS application bundles
       testApplicationBundles =
-        {
-          apps ? [ ],
-          ...
+        { apps ? [ ]
+        , ...
         }:
         let
-          testApps = map (app: {
-            name = "app-bundle-${app}";
-            bundlePath = "/Applications/${app}.app";
-            infoPlistPath = "/Applications/${app}.app/Contents/Info.plist";
-            validation = [
-              "test -d /Applications/${app}.app"
-              "test -f /Applications/${app}.app/Contents/Info.plist"
-              "defaults read /Applications/${app}.app/Contents/Info.plist CFBundleIdentifier"
-            ];
-          }) apps;
+          testApps = map
+            (app: {
+              name = "app-bundle-${app}";
+              bundlePath = "/Applications/${app}.app";
+              infoPlistPath = "/Applications/${app}.app/Contents/Info.plist";
+              validation = [
+                "test -d /Applications/${app}.app"
+                "test -f /Applications/${app}.app/Contents/Info.plist"
+                "defaults read /Applications/${app}.app/Contents/Info.plist CFBundleIdentifier"
+              ];
+            })
+            apps;
         in
         {
           inherit (testApps)
@@ -165,11 +167,10 @@ in
 
       # Test system preferences and defaults
       testSystemPreferences =
-        {
-          domain,
-          key,
-          expectedValue,
-          ...
+        { domain
+        , key
+        , expectedValue
+        , ...
         }:
         {
           name = "system-pref-${domain}-${key}";
@@ -181,9 +182,8 @@ in
 
       # Test Spotlight indexing
       testSpotlightIndexing =
-        {
-          path ? "$HOME",
-          ...
+        { path ? "$HOME"
+        , ...
         }:
         {
           name = "spotlight-indexing";
@@ -197,17 +197,18 @@ in
 
       # Test file associations with duti
       testFileAssociations =
-        {
-          extensions ? [ ],
-          bundleId,
-          ...
+        { extensions ? [ ]
+        , bundleId
+        , ...
         }:
         let
-          testExtensions = map (ext: {
-            name = "file-association-${ext}";
-            command = "duti -s ${bundleId} ${ext} all";
-            validation = "duti -x ${ext} | grep ${bundleId}";
-          }) extensions;
+          testExtensions = map
+            (ext: {
+              name = "file-association-${ext}";
+              command = "duti -s ${bundleId} ${ext} all";
+              validation = "duti -x ${ext} | grep ${bundleId}";
+            })
+            extensions;
         in
         {
           tests = testExtensions;
@@ -216,19 +217,20 @@ in
 
       # Test launchd services (Darwin services)
       testLaunchdServices =
-        {
-          services ? [ ],
-          ...
+        { services ? [ ]
+        , ...
         }:
         let
-          testServices = map (service: {
-            name = "launchd-service-${service}";
-            commands = [
-              "launchctl list | grep ${service}"
-              "launchctl print system/${service}"
-            ];
-            validation = "service loaded and running";
-          }) services;
+          testServices = map
+            (service: {
+              name = "launchd-service-${service}";
+              commands = [
+                "launchctl list | grep ${service}"
+                "launchctl print system/${service}"
+              ];
+              validation = "service loaded and running";
+            })
+            services;
         in
         {
           tests = testServices;
@@ -237,10 +239,9 @@ in
 
       # Test nix-darwin configuration application
       testNixDarwinConfiguration =
-        {
-          flakeRef ? ".",
-          configuration ? "darwin",
-          ...
+        { flakeRef ? "."
+        , configuration ? "darwin"
+        , ...
         }:
         {
           name = "nix-darwin-config-test";
@@ -295,12 +296,11 @@ in
 
       # Cross-platform compatibility helpers
       generateDarwinMatrix =
-        {
-          architectures ? [
+        { architectures ? [
             "x86_64"
             "aarch64"
-          ],
-          ...
+          ]
+        , ...
         }:
         {
           os = [
@@ -309,11 +309,13 @@ in
             "macos-13"
           ];
           architecture = architectures;
-          include = map (arch: {
-            os = "macos-latest";
-            platform = "${arch}-darwin";
-            nixSystem = "${arch}-darwin";
-          }) architectures;
+          include = map
+            (arch: {
+              os = "macos-latest";
+              platform = "${arch}-darwin";
+              nixSystem = "${arch}-darwin";
+            })
+            architectures;
         };
 
       # Performance testing for Darwin

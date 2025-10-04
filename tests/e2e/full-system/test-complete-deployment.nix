@@ -1,11 +1,10 @@
 # E2E Tests for Complete System Deployment
 # These tests MUST FAIL initially (TDD requirement)
 
-{
-  pkgs ? import <nixpkgs> { },
-  lib,
-  testers ? pkgs.testers,
-  ...
+{ pkgs ? import <nixpkgs> { }
+, lib
+, testers ? pkgs.testers
+, ...
 }:
 
 let

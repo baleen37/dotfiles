@@ -1,10 +1,9 @@
 # Coverage System for Comprehensive Testing Framework
 # Provides coverage measurement, reporting, and threshold validation
 
-{
-  pkgs ? import <nixpkgs> { },
-  lib,
-  ...
+{ pkgs ? import <nixpkgs> { }
+, lib
+, ...
 }:
 
 let
@@ -61,9 +60,9 @@ in
   measurement = {
     # Initialize coverage session
     initSession =
-      {
-        name,
-        config ? { },
+      { name
+      , config ? { }
+      ,
       }:
       let
         finalConfig = defaultConfig // config;
@@ -80,32 +79,34 @@ in
 
     # Collect coverage for a set of modules
     collectCoverage =
-      {
-        session,
-        modules,
-        testResults ? [ ],
+      { session
+      , modules
+      , testResults ? [ ]
+      ,
       }:
       let
         # Analyze each module for coverage
-        moduleAnalysis = map (
-          module:
-          let
-            moduleInfo = analyzeModule module;
-          in
-          {
-            path = module;
-            totalLines = moduleInfo.totalLines;
-            executableLines = moduleInfo.executableLines;
-            coveredLines = calculateCoveredLines moduleInfo testResults;
-            coverage =
-              if moduleInfo.executableLines > 0 then
-                (calculateCoveredLines moduleInfo testResults) / moduleInfo.executableLines * 100
-              else
-                100.0;
-            functions = moduleInfo.functions;
-            uncoveredLines = moduleInfo.executableLines - (calculateCoveredLines moduleInfo testResults);
-          }
-        ) modules;
+        moduleAnalysis = map
+          (
+            module:
+            let
+              moduleInfo = analyzeModule module;
+            in
+            {
+              path = module;
+              totalLines = moduleInfo.totalLines;
+              executableLines = moduleInfo.executableLines;
+              coveredLines = calculateCoveredLines moduleInfo testResults;
+              coverage =
+                if moduleInfo.executableLines > 0 then
+                  (calculateCoveredLines moduleInfo testResults) / moduleInfo.executableLines * 100
+                else
+                  100.0;
+              functions = moduleInfo.functions;
+              uncoveredLines = moduleInfo.executableLines - (calculateCoveredLines moduleInfo testResults);
+            }
+          )
+          modules;
 
         # Calculate aggregate metrics
         totalExecutableLines = lib.foldl' (acc: mod: acc + mod.executableLines) 0 moduleAnalysis;
@@ -143,13 +144,15 @@ in
 
         # Identify executable lines (non-comments, non-empty)
         executableLines = builtins.length (
-          builtins.filter (
-            line:
-            let
-              trimmed = lib.trim line;
-            in
-            trimmed != "" && !lib.hasPrefix "#" trimmed && !lib.hasPrefix "/*" trimmed
-          ) lines
+          builtins.filter
+            (
+              line:
+              let
+                trimmed = lib.trim line;
+              in
+              trimmed != "" && !lib.hasPrefix "#" trimmed && !lib.hasPrefix "/*" trimmed
+            )
+            lines
         );
 
         # Extract function definitions (simplified)
@@ -180,15 +183,19 @@ in
       # Simplified function extraction for Nix
       let
         lines = lib.splitString "\n" content;
-        functionLines = builtins.filter (
-          line: lib.hasInfix " = " line && (lib.hasInfix "{ " line || lib.hasInfix ": " line)
-        ) lines;
+        functionLines = builtins.filter
+          (
+            line: lib.hasInfix " = " line && (lib.hasInfix "{ " line || lib.hasInfix ": " line)
+          )
+          lines;
       in
-      map (line: {
-        name = lib.head (lib.splitString " = " line);
-        line = line;
-        covered = false; # Would be determined by actual execution
-      }) functionLines;
+      map
+        (line: {
+          name = lib.head (lib.splitString " = " line);
+          line = line;
+          covered = false; # Would be determined by actual execution
+        })
+        functionLines;
 
     # Detect file type for appropriate coverage analysis
     detectFileType =
@@ -262,15 +269,17 @@ in
       session:
       let
         results = session.results;
-        moduleRows = lib.concatMapStringsSep "\n" (mod: ''
-          <tr class="${if mod.coverage >= session.config.threshold then "pass" else "fail"}">
-            <td>${mod.path}</td>
-            <td>${toString mod.totalLines}</td>
-            <td>${toString mod.executableLines}</td>
-            <td>${toString mod.coveredLines}</td>
-            <td>${toString (builtins.floor (mod.coverage * 100) / 100)}%</td>
-          </tr>
-        '') session.modules;
+        moduleRows = lib.concatMapStringsSep "\n"
+          (mod: ''
+            <tr class="${if mod.coverage >= session.config.threshold then "pass" else "fail"}">
+              <td>${mod.path}</td>
+              <td>${toString mod.totalLines}</td>
+              <td>${toString mod.executableLines}</td>
+              <td>${toString mod.coveredLines}</td>
+              <td>${toString (builtins.floor (mod.coverage * 100) / 100)}%</td>
+            </tr>
+          '')
+          session.modules;
       in
       ''
         <!DOCTYPE html>
@@ -329,15 +338,17 @@ in
     # Generate LCOV report (for CI integration)
     generateLCOVReport =
       session:
-      lib.concatMapStringsSep "\n" (mod: ''
-        TN:
-        SF:${mod.path}
-        FNF:${toString (builtins.length mod.functions)}
-        FNH:${toString (builtins.length (builtins.filter (f: f.covered) mod.functions))}
-        LF:${toString mod.executableLines}
-        LH:${toString mod.coveredLines}
-        end_of_record
-      '') session.modules;
+      lib.concatMapStringsSep "\n"
+        (mod: ''
+          TN:
+          SF:${mod.path}
+          FNF:${toString (builtins.length mod.functions)}
+          FNH:${toString (builtins.length (builtins.filter (f: f.covered) mod.functions))}
+          LF:${toString mod.executableLines}
+          LH:${toString mod.coveredLines}
+          end_of_record
+        '')
+        session.modules;
   };
 
   # Coverage validation and thresholds
@@ -357,10 +368,13 @@ in
       { previousSession, currentSession }:
       {
         overallDelta = currentSession.results.overallCoverage - previousSession.results.overallCoverage;
-        moduleDeltas = lib.zipListsWith (prev: curr: {
-          path = curr.path;
-          delta = curr.coverage - prev.coverage;
-        }) previousSession.modules currentSession.modules;
+        moduleDeltas = lib.zipListsWith
+          (prev: curr: {
+            path = curr.path;
+            delta = curr.coverage - prev.coverage;
+          })
+          previousSession.modules
+          currentSession.modules;
       };
   };
 
@@ -406,24 +420,26 @@ in
   utils = {
     # Find all coverage-eligible files in a directory
     findCoverageFiles =
-      {
-        path,
-        config ? defaultConfig,
+      { path
+      , config ? defaultConfig
+      ,
       }:
       let
         allFiles = lib.filesystem.listFilesRecursive path;
-        eligibleFiles = builtins.filter (
-          file:
-          let
-            extension = lib.last (lib.splitString "." file);
-            isIncluded = builtins.any (includePath: lib.hasInfix includePath file) config.includePaths;
-            isExcluded = builtins.any (excludePath: lib.hasInfix excludePath file) config.excludePaths;
-            isSupportedType = builtins.any (type: builtins.any (ext: ext == ".${extension}") type.extensions) (
-              builtins.attrValues fileTypes
-            );
-          in
-          isIncluded && !isExcluded && isSupportedType
-        ) allFiles;
+        eligibleFiles = builtins.filter
+          (
+            file:
+            let
+              extension = lib.last (lib.splitString "." file);
+              isIncluded = builtins.any (includePath: lib.hasInfix includePath file) config.includePaths;
+              isExcluded = builtins.any (excludePath: lib.hasInfix excludePath file) config.excludePaths;
+              isSupportedType = builtins.any (type: builtins.any (ext: ext == ".${extension}") type.extensions) (
+                builtins.attrValues fileTypes
+              );
+            in
+            isIncluded && !isExcluded && isSupportedType
+          )
+          allFiles;
       in
       eligibleFiles;
 
@@ -432,22 +448,24 @@ in
       sessions:
       let
         allModules = lib.unique (lib.concatMap (s: map (m: m.path) s.modules) sessions);
-        mergedModules = map (
-          modulePath:
-          let
-            moduleData = lib.concatMap (s: builtins.filter (m: m.path == modulePath) s.modules) sessions;
-            avgCoverage =
-              if builtins.length moduleData > 0 then
-                lib.foldl' (acc: m: acc + m.coverage) 0 moduleData / builtins.length moduleData
-              else
-                0;
-          in
-          {
-            path = modulePath;
-            coverage = avgCoverage;
-            sessions = builtins.length moduleData;
-          }
-        ) allModules;
+        mergedModules = map
+          (
+            modulePath:
+            let
+              moduleData = lib.concatMap (s: builtins.filter (m: m.path == modulePath) s.modules) sessions;
+              avgCoverage =
+                if builtins.length moduleData > 0 then
+                  lib.foldl' (acc: m: acc + m.coverage) 0 moduleData / builtins.length moduleData
+                else
+                  0;
+            in
+            {
+              path = modulePath;
+              coverage = avgCoverage;
+              sessions = builtins.length moduleData;
+            }
+          )
+          allModules;
       in
       {
         sessionId = "merged-${toString (builtins.currentTime)}";

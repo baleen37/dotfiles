@@ -15,45 +15,45 @@ NC='\033[0m' # No Color
 
 # Function to print colored output
 print_status() {
-    echo -e "${GREEN}[INFO]${NC} $1"
+  echo -e "${GREEN}[INFO]${NC} $1"
 }
 
 print_warning() {
-    echo -e "${YELLOW}[WARN]${NC} $1"
+  echo -e "${YELLOW}[WARN]${NC} $1"
 }
 
 print_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
+  echo -e "${RED}[ERROR]${NC} $1"
 }
 
 print_header() {
-    echo -e "${BLUE}[SETUP]${NC} $1"
+  echo -e "${BLUE}[SETUP]${NC} $1"
 }
 
 # Function to display usage
 usage() {
-    echo "Usage: $0 [PROJECT_DIR]"
-    echo ""
-    echo "Initialize a new Nix project with flake.nix and direnv support"
-    echo ""
-    echo "Arguments:"
-    echo "  PROJECT_DIR    Directory to initialize (default: current directory)"
-    echo ""
-    echo "Options:"
-    echo "  -h, --help     Show this help message"
-    echo ""
-    echo "Examples:"
-    echo "  $0                    # Initialize in current directory"
-    echo "  $0 my-project         # Create and initialize my-project directory"
-    echo "  $0 /path/to/project   # Initialize at specific path"
+  echo "Usage: $0 [PROJECT_DIR]"
+  echo ""
+  echo "Initialize a new Nix project with flake.nix and direnv support"
+  echo ""
+  echo "Arguments:"
+  echo "  PROJECT_DIR    Directory to initialize (default: current directory)"
+  echo ""
+  echo "Options:"
+  echo "  -h, --help     Show this help message"
+  echo ""
+  echo "Examples:"
+  echo "  $0                    # Initialize in current directory"
+  echo "  $0 my-project         # Create and initialize my-project directory"
+  echo "  $0 /path/to/project   # Initialize at specific path"
 }
 
 # Parse command line arguments
 case "${1:-}" in
-    -h|--help)
-        usage
-        exit 0
-        ;;
+-h | --help)
+  usage
+  exit 0
+  ;;
 esac
 
 # Get project directory (default to current directory)
@@ -63,30 +63,30 @@ PROJECT_NAME=$(basename "$(realpath "$PROJECT_DIR")")
 print_header "Initializing Nix development environment for: $PROJECT_NAME"
 
 # Create project directory if it doesn't exist
-if [[ "$PROJECT_DIR" != "." && ! -d "$PROJECT_DIR" ]]; then
-    print_status "Creating project directory: $PROJECT_DIR"
-    mkdir -p "$PROJECT_DIR"
+if [[ $PROJECT_DIR != "." && ! -d $PROJECT_DIR ]]; then
+  print_status "Creating project directory: $PROJECT_DIR"
+  mkdir -p "$PROJECT_DIR"
 fi
 
 cd "$PROJECT_DIR"
 
 # Check if Nix is installed
-if ! command -v nix &> /dev/null; then
-    print_error "Nix is not installed. Please install Nix first."
-    exit 1
+if ! command -v nix &>/dev/null; then
+  print_error "Nix is not installed. Please install Nix first."
+  exit 1
 fi
 
 # Check if direnv is available
-if ! command -v direnv &> /dev/null; then
-    print_warning "direnv is not installed. Consider installing it for automatic shell activation."
-    print_warning "  macOS: brew install direnv"
-    print_warning "  NixOS: Add 'direnv' to your system packages"
+if ! command -v direnv &>/dev/null; then
+  print_warning "direnv is not installed. Consider installing it for automatic shell activation."
+  print_warning "  macOS: brew install direnv"
+  print_warning "  NixOS: Add 'direnv' to your system packages"
 fi
 
 # Create basic flake.nix if it doesn't exist
 if [[ ! -f "flake.nix" ]]; then
-    print_status "Creating basic flake.nix..."
-    cat > flake.nix << 'EOF'
+  print_status "Creating basic flake.nix..."
+  cat >flake.nix <<'EOF'
 {
   description = "Development environment";
 
@@ -117,29 +117,29 @@ if [[ ! -f "flake.nix" ]]; then
       });
 }
 EOF
-    print_status "Created basic flake.nix"
+  print_status "Created basic flake.nix"
 else
-    print_status "flake.nix already exists, skipping creation"
+  print_status "flake.nix already exists, skipping creation"
 fi
 
 # Create .envrc file for direnv
 if [[ ! -f ".envrc" ]]; then
-    print_status "Creating .envrc file for direnv integration..."
-    cat > .envrc << 'EOF'
+  print_status "Creating .envrc file for direnv integration..."
+  cat >.envrc <<'EOF'
 #!/usr/bin/env bash
 # Automatically enter nix develop shell when entering this directory
 use flake
 EOF
-    chmod +x .envrc
-    print_status "Created .envrc file"
+  chmod +x .envrc
+  print_status "Created .envrc file"
 else
-    print_status ".envrc already exists, skipping creation"
+  print_status ".envrc already exists, skipping creation"
 fi
 
 # Create .gitignore with common Nix patterns if it doesn't exist
 if [[ ! -f ".gitignore" ]]; then
-    print_status "Creating .gitignore with Nix patterns..."
-    cat > .gitignore << 'EOF'
+  print_status "Creating .gitignore with Nix patterns..."
+  cat >.gitignore <<'EOF'
 # Nix
 result
 result-*
@@ -156,58 +156,58 @@ Thumbs.db
 *.swo
 *~
 EOF
-    print_status "Created .gitignore file"
+  print_status "Created .gitignore file"
 else
-    print_status ".gitignore already exists, skipping creation"
+  print_status ".gitignore already exists, skipping creation"
 fi
 
 # Allow direnv to use the .envrc file
-if command -v direnv &> /dev/null; then
-    print_status "Allowing direnv to use .envrc file..."
-    direnv allow .
+if command -v direnv &>/dev/null; then
+  print_status "Allowing direnv to use .envrc file..."
+  direnv allow .
 else
-    print_warning "direnv not found. Please install direnv and run 'direnv allow .' manually"
+  print_warning "direnv not found. Please install direnv and run 'direnv allow .' manually"
 fi
 
 # Add direnv hook to shell profile if not already present and direnv is available
-if command -v direnv &> /dev/null; then
-    SHELL_NAME=$(basename "$SHELL")
-    case "$SHELL_NAME" in
-        "bash")
-            PROFILE_FILE="$HOME/.bashrc"
-            HOOK_LINE='eval "$(direnv hook bash)"'
-            ;;
-        "zsh")
-            PROFILE_FILE="$HOME/.zshrc"
-            HOOK_LINE='eval "$(direnv hook zsh)"'
-            ;;
-        *)
-            print_warning "Unsupported shell: $SHELL_NAME. Please add direnv hook manually."
-            PROFILE_FILE=""
-            HOOK_LINE=""
-            ;;
-    esac
+if command -v direnv &>/dev/null; then
+  SHELL_NAME=$(basename "$SHELL")
+  case "$SHELL_NAME" in
+  "bash")
+    PROFILE_FILE="$HOME/.bashrc"
+    HOOK_LINE='eval "$(direnv hook bash)"'
+    ;;
+  "zsh")
+    PROFILE_FILE="$HOME/.zshrc"
+    HOOK_LINE='eval "$(direnv hook zsh)"'
+    ;;
+  *)
+    print_warning "Unsupported shell: $SHELL_NAME. Please add direnv hook manually."
+    PROFILE_FILE=""
+    HOOK_LINE=""
+    ;;
+  esac
 
-    if [[ -n "$PROFILE_FILE" && -n "$HOOK_LINE" ]]; then
-        if [[ -f "$PROFILE_FILE" ]] && grep -q "direnv hook" "$PROFILE_FILE"; then
-            print_status "direnv hook already present in $PROFILE_FILE"
-        else
-            print_status "Adding direnv hook to $PROFILE_FILE..."
-            echo "" >> "$PROFILE_FILE"
-            echo "# direnv hook" >> "$PROFILE_FILE"
-            echo "$HOOK_LINE" >> "$PROFILE_FILE"
-            print_status "direnv hook added to $PROFILE_FILE"
-            print_warning "Please restart your shell or run: source $PROFILE_FILE"
-        fi
+  if [[ -n $PROFILE_FILE && -n $HOOK_LINE ]]; then
+    if [[ -f $PROFILE_FILE ]] && grep -q "direnv hook" "$PROFILE_FILE"; then
+      print_status "direnv hook already present in $PROFILE_FILE"
+    else
+      print_status "Adding direnv hook to $PROFILE_FILE..."
+      echo "" >>"$PROFILE_FILE"
+      echo "# direnv hook" >>"$PROFILE_FILE"
+      echo "$HOOK_LINE" >>"$PROFILE_FILE"
+      print_status "direnv hook added to $PROFILE_FILE"
+      print_warning "Please restart your shell or run: source $PROFILE_FILE"
     fi
+  fi
 fi
 
 # Test the development shell
 print_status "Testing development shell setup..."
 if nix develop --command echo "Development shell test successful" 2>/dev/null; then
-    print_status "Development shell is working correctly!"
+  print_status "Development shell is working correctly!"
 else
-    print_warning "Development shell test failed. This might be normal for a fresh project."
+  print_warning "Development shell test failed. This might be normal for a fresh project."
 fi
 
 print_status "Development environment setup complete!"

@@ -3,11 +3,10 @@
 # macOS용 nix-darwin에서 자동 갈비지 컬렉션 설정 (베스트 프랙티스)
 # launchd를 통한 스케줄링 지원
 
-{
-  config,
-  pkgs,
-  lib,
-  ...
+{ config
+, pkgs
+, lib
+, ...
 }:
 
 {

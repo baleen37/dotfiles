@@ -31,8 +31,8 @@ else
 
   # Set USER if not already set
   if [ -z "$USER" ]; then
-      USER=$(whoami)
-      export USER
+    USER=$(whoami)
+    export USER
   fi
 
   printf "%bStarting build...%b\n" "$YELLOW" "$NC"

@@ -1,13 +1,13 @@
 # Performance Benchmarks for Comprehensive Testing Framework
 # Measures execution time and resource usage for each test layer
 
-{
-  lib,
-  stdenv,
-  writeShellScript,
-  time,
-  gnugrep,
-  coreutils,
+{ lib
+, stdenv
+, writeShellScript
+, time
+, gnugrep
+, coreutils
+,
 }:
 
 let

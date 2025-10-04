@@ -19,10 +19,10 @@ load_all_configs
 
 # Check if configs are loaded
 if is_config_loaded; then
-    echo "✅ Configuration system loaded successfully"
+  echo "✅ Configuration system loaded successfully"
 else
-    echo "❌ Failed to load configuration"
-    exit 1
+  echo "❌ Failed to load configuration"
+  exit 1
 fi
 
 # Example 2: Get specific configuration values
@@ -65,12 +65,12 @@ echo "📋 Example 4: Platform-Specific Configuration"
 echo "--------------------------------------------"
 
 # Detect current platform
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    PLATFORM="darwin"
-elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    PLATFORM="linux"
+if [[ $OSTYPE == "darwin"* ]]; then
+  PLATFORM="darwin"
+elif [[ $OSTYPE == "linux-gnu"* ]]; then
+  PLATFORM="linux"
 else
-    PLATFORM="unknown"
+  PLATFORM="unknown"
 fi
 
 # Get platform-specific rebuild command
@@ -112,15 +112,15 @@ echo "Current profile: $current_profile"
 
 # Profile-specific settings
 case "$current_profile" in
-    "development")
-        echo "Development profile: verbose logging, longer timeouts"
-        ;;
-    "production")
-        echo "Production profile: optimized settings, minimal logging"
-        ;;
-    *)
-        echo "Default profile: balanced settings"
-        ;;
+"development")
+  echo "Development profile: verbose logging, longer timeouts"
+  ;;
+"production")
+  echo "Production profile: optimized settings, minimal logging"
+  ;;
+*)
+  echo "Default profile: balanced settings"
+  ;;
 esac
 
 # Example 7: Environment variable overrides

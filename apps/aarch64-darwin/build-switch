@@ -2,23 +2,23 @@
 
 # Check for help flag
 if [ "$1" = "--help" ] || [ "$1" = "-h" ] || [ "$1" = "help" ]; then
-    echo "build-switch - Build and switch Darwin system configuration"
-    echo ""
-    echo "Usage: nix run .#build-switch [OPTIONS]"
-    echo ""
-    echo "Options:"
-    echo "  --help, -h    Show this help message"
-    echo "  --verbose     Enable verbose logging"
-    echo ""
-    echo "Description:"
-    echo "  Builds and applies user-level configuration using Home Manager."
-    echo "  No root privileges required - safe for Claude Code execution."
-    echo ""
-    echo "Examples:"
-    echo "  nix run .#build-switch"
-    echo "  nix run .#build-switch -- --verbose"
-    echo ""
-    exit 0
+  echo "build-switch - Build and switch Darwin system configuration"
+  echo ""
+  echo "Usage: nix run .#build-switch [OPTIONS]"
+  echo ""
+  echo "Options:"
+  echo "  --help, -h    Show this help message"
+  echo "  --verbose     Enable verbose logging"
+  echo ""
+  echo "Description:"
+  echo "  Builds and applies user-level configuration using Home Manager."
+  echo "  No root privileges required - safe for Claude Code execution."
+  echo ""
+  echo "Examples:"
+  echo "  nix run .#build-switch"
+  echo "  nix run .#build-switch -- --verbose"
+  echo ""
+  exit 0
 fi
 
 # Environment setup - minimize export usage
@@ -26,7 +26,7 @@ USER=${USER:-$(whoami)}
 
 # Simple logging
 log_info() {
-    echo "ℹ️  $1"
+  echo "ℹ️  $1"
 }
 
 # TDD: Minimal implementation for Green phase

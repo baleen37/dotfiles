@@ -2,10 +2,10 @@
 # Validates build-switch script integrity, syntax, and structure
 # Provides fast, offline validation for pre-commit hooks
 
-{
-  pkgs ? null,
-  lib ? null,
-  system ? null,
+{ pkgs ? null
+, lib ? null
+, system ? null
+,
 }:
 
 let
@@ -164,17 +164,19 @@ let
 
       # Generate suggestions for common errors
       suggestions = builtins.concatLists (
-        builtins.map (
-          error:
-          if builtins.match ".*Missing closing bracket.*" error != null then
-            [ "Add closing ]] bracket to fix conditional statement" ]
-          else if builtins.match ".*Invalid Nix syntax.*" error != null then
-            [ "Check Nix syntax using 'nix-instantiate --parse'" ]
-          else if builtins.match ".*not found.*" error != null then
-            [ "Verify file path exists and has correct permissions" ]
-          else
-            [ ]
-        ) allErrors
+        builtins.map
+          (
+            error:
+            if builtins.match ".*Missing closing bracket.*" error != null then
+              [ "Add closing ]] bracket to fix conditional statement" ]
+            else if builtins.match ".*Invalid Nix syntax.*" error != null then
+              [ "Check Nix syntax using 'nix-instantiate --parse'" ]
+            else if builtins.match ".*not found.*" error != null then
+              [ "Verify file path exists and has correct permissions" ]
+            else
+              [ ]
+          )
+          allErrors
       );
 
     in

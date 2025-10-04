@@ -1,11 +1,10 @@
 # app-links.nix - Nix 앱들을 /Applications에 자동으로 심볼릭 링크 생성
 # macOS 보안 권한 문제 해결을 위한 확장 가능한 모듈
 
-{
-  config,
-  lib,
-  pkgs,
-  ...
+{ config
+, lib
+, pkgs
+, ...
 }:
 
 with lib;

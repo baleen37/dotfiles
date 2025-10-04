@@ -265,18 +265,20 @@ in
       };
 
       # Extract test categories based on naming patterns (updated for current tests)
-      coreTests = nixpkgs.lib.filterAttrs (
-        name: _:
-        builtins.elem name [
-          "flake-structure-test"
-          "config-validation-test"
-          "claude-activation-test"
-          "build-test"
-          "build-switch-test"
-          "module-dependency-test"
-          "platform-compatibility-test"
-        ]
-      ) testSuite;
+      coreTests = nixpkgs.lib.filterAttrs
+        (
+          name: _:
+            builtins.elem name [
+              "flake-structure-test"
+              "config-validation-test"
+              "claude-activation-test"
+              "build-test"
+              "build-switch-test"
+              "module-dependency-test"
+              "platform-compatibility-test"
+            ]
+        )
+        testSuite;
 
       workflowTests = shellIntegrationTests;
 

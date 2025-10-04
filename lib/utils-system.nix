@@ -2,9 +2,9 @@
 # Combines common-utils.nix and package-utils.nix
 # Provides comprehensive utility functions for system operations
 
-{
-  pkgs ? null,
-  lib ? null,
+{ pkgs ? null
+, lib ? null
+,
 }:
 
 let
@@ -44,17 +44,19 @@ let
     # Filter out packages that don't exist in nixpkgs
     filterValidPackages =
       packageList: nixpkgs:
-      builtins.filter (
-        pkg: if builtins.isString pkg then builtins.hasAttr pkg nixpkgs else true # Allow package derivations to pass through
-      ) packageList;
+      builtins.filter
+        (
+          pkg: if builtins.isString pkg then builtins.hasAttr pkg nixpkgs else true # Allow package derivations to pass through
+        )
+        packageList;
 
     # Merge shared packages with platform-specific packages
     # This function standardizes the pattern used across platform modules
     mergePackageLists =
-      {
-        pkgs,
-        sharedPackagesPath,
-        platformPackages ? [ ],
+      { pkgs
+      , sharedPackagesPath
+      , platformPackages ? [ ]
+      ,
       }:
       let
         # Import shared packages
@@ -190,10 +192,12 @@ let
               false = acc.false ++ [ item ];
             };
       in
-      builtins.foldl' addToPartition {
-        true = [ ];
-        false = [ ];
-      } list;
+      builtins.foldl' addToPartition
+        {
+          true = [ ];
+          false = [ ];
+        }
+        list;
 
     # Group list elements by key function
     groupBy =

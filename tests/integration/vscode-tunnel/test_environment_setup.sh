@@ -12,33 +12,33 @@ export ORIGINAL_PATH="$PATH"
 
 # Ensure test environment exists
 setup_mock_nixos_environment() {
-    echo "[INFO] Setting up mock NixOS test environment"
+  echo "[INFO] Setting up mock NixOS test environment"
 
-    # Create test directory structure
-    mkdir -p "${TEST_ENV_ROOT}/bin"
-    mkdir -p "${TEST_ENV_ROOT}/etc/systemd/user"
-    mkdir -p "${TEST_ENV_ROOT}/var/log/journal"
-    mkdir -p "${TEST_ENV_ROOT}/home/user/.config/systemd/user"
+  # Create test directory structure
+  mkdir -p "${TEST_ENV_ROOT}/bin"
+  mkdir -p "${TEST_ENV_ROOT}/etc/systemd/user"
+  mkdir -p "${TEST_ENV_ROOT}/var/log/journal"
+  mkdir -p "${TEST_ENV_ROOT}/home/user/.config/systemd/user"
 
-    # Create mock systemctl if on non-Linux system
-    if [[ "$(uname -s)" != "Linux" ]] || ! command -v systemctl >/dev/null 2>&1; then
-        create_mock_systemctl
-        create_mock_journalctl
-        # Prepend mock binaries to PATH
-        export PATH="${MOCK_SYSTEMCTL_PATH}:${PATH}"
-    fi
+  # Create mock systemctl if on non-Linux system
+  if [[ "$(uname -s)" != "Linux" ]] || ! command -v systemctl >/dev/null 2>&1; then
+    create_mock_systemctl
+    create_mock_journalctl
+    # Prepend mock binaries to PATH
+    export PATH="${MOCK_SYSTEMCTL_PATH}:${PATH}"
+  fi
 
-    # Set up test service files directory
-    export XDG_CONFIG_HOME="${TEST_ENV_ROOT}/home/user/.config"
-    mkdir -p "${XDG_CONFIG_HOME}/systemd/user"
+  # Set up test service files directory
+  export XDG_CONFIG_HOME="${TEST_ENV_ROOT}/home/user/.config"
+  mkdir -p "${XDG_CONFIG_HOME}/systemd/user"
 
-    echo "[INFO] Mock NixOS environment ready at ${TEST_ENV_ROOT}"
+  echo "[INFO] Mock NixOS environment ready at ${TEST_ENV_ROOT}"
 }
 
 create_mock_systemctl() {
-    local systemctl_script="${MOCK_SYSTEMCTL_PATH}/systemctl"
+  local systemctl_script="${MOCK_SYSTEMCTL_PATH}/systemctl"
 
-    cat > "${systemctl_script}" << 'EOF'
+  cat >"${systemctl_script}" <<'EOF'
 #!/usr/bin/env bash
 # Mock systemctl for VSCode tunnel testing
 
@@ -156,14 +156,14 @@ case "${COMMAND}" in
 esac
 EOF
 
-    chmod +x "${systemctl_script}"
-    echo "[INFO] Created mock systemctl at ${systemctl_script}"
+  chmod +x "${systemctl_script}"
+  echo "[INFO] Created mock systemctl at ${systemctl_script}"
 }
 
 create_mock_journalctl() {
-    local journalctl_script="${MOCK_JOURNALCTL_PATH}/journalctl"
+  local journalctl_script="${MOCK_JOURNALCTL_PATH}/journalctl"
 
-    cat > "${journalctl_script}" << 'EOF'
+  cat >"${journalctl_script}" <<'EOF'
 #!/usr/bin/env bash
 # Mock journalctl for VSCode tunnel testing
 
@@ -219,55 +219,55 @@ else
 fi
 EOF
 
-    chmod +x "${journalctl_script}"
-    echo "[INFO] Created mock journalctl at ${journalctl_script}"
+  chmod +x "${journalctl_script}"
+  echo "[INFO] Created mock journalctl at ${journalctl_script}"
 }
 
 # Clean up test environment
 cleanup_mock_nixos_environment() {
-    echo "[INFO] Cleaning up mock NixOS test environment"
+  echo "[INFO] Cleaning up mock NixOS test environment"
 
-    # Restore original PATH
-    export PATH="${ORIGINAL_PATH}"
+  # Restore original PATH
+  export PATH="${ORIGINAL_PATH}"
 
-    # Remove test directory
-    [[ -d "${TEST_ENV_ROOT}" ]] && rm -rf "${TEST_ENV_ROOT}"
+  # Remove test directory
+  [[ -d ${TEST_ENV_ROOT} ]] && rm -rf "${TEST_ENV_ROOT}"
 
-    # Clean up any running mock processes
-    pkill -f "mock.*vscode" 2>/dev/null || true
+  # Clean up any running mock processes
+  pkill -f "mock.*vscode" 2>/dev/null || true
 }
 
 # Validate test environment is ready
 validate_test_environment() {
-    local errors=0
+  local errors=0
 
-    echo "[INFO] Validating test environment..."
+  echo "[INFO] Validating test environment..."
 
-    # Check systemctl is available (real or mock)
-    if ! command -v systemctl >/dev/null 2>&1; then
-        echo "[ERROR] systemctl not available" >&2
-        ((errors++))
-    fi
+  # Check systemctl is available (real or mock)
+  if ! command -v systemctl >/dev/null 2>&1; then
+    echo "[ERROR] systemctl not available" >&2
+    ((errors++))
+  fi
 
-    # Check journalctl is available (real or mock)
-    if ! command -v journalctl >/dev/null 2>&1; then
-        echo "[ERROR] journalctl not available" >&2
-        ((errors++))
-    fi
+  # Check journalctl is available (real or mock)
+  if ! command -v journalctl >/dev/null 2>&1; then
+    echo "[ERROR] journalctl not available" >&2
+    ((errors++))
+  fi
 
-    # Check test directories exist
-    if [[ ! -d "${TEST_ENV_ROOT}" ]]; then
-        echo "[ERROR] Test environment root not found: ${TEST_ENV_ROOT}" >&2
-        ((errors++))
-    fi
+  # Check test directories exist
+  if [[ ! -d ${TEST_ENV_ROOT} ]]; then
+    echo "[ERROR] Test environment root not found: ${TEST_ENV_ROOT}" >&2
+    ((errors++))
+  fi
 
-    if [[ $errors -gt 0 ]]; then
-        echo "[ERROR] Test environment validation failed with ${errors} errors" >&2
-        return 1
-    fi
+  if [[ $errors -gt 0 ]]; then
+    echo "[ERROR] Test environment validation failed with ${errors} errors" >&2
+    return 1
+  fi
 
-    echo "[INFO] Test environment validation passed"
-    return 0
+  echo "[INFO] Test environment validation passed"
+  return 0
 }
 
 # Export functions for use in tests

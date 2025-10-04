@@ -51,14 +51,14 @@ echo "   docs/AUTO-FORMATTING.md"
 echo
 
 if command -v make >/dev/null 2>&1; then
-    echo "🔍 Testing format-check (safe operation):"
-    if make format-check >/dev/null 2>&1; then
-        echo "  ✅ All files are properly formatted"
-    else
-        echo "  📝 Some files need formatting - run 'make format' to fix"
-    fi
+  echo "🔍 Testing format-check (safe operation):"
+  if make format-check >/dev/null 2>&1; then
+    echo "  ✅ All files are properly formatted"
+  else
+    echo "  📝 Some files need formatting - run 'make format' to fix"
+  fi
 else
-    echo "⚠️  Make not available - run commands directly with scripts/auto-format.sh"
+  echo "⚠️  Make not available - run commands directly with scripts/auto-format.sh"
 fi
 
 echo

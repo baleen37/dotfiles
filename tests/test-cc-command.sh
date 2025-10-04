@@ -14,37 +14,37 @@ TESTS_FAILED=0
 
 # Test function
 run_test() {
-    local test_name="$1"
-    local test_command="$2"
-    local expected_pattern="$3"
+  local test_name="$1"
+  local test_command="$2"
+  local expected_pattern="$3"
 
-    echo -n "Testing: $test_name ... "
+  echo -n "Testing: $test_name ... "
 
-    # Run command and capture output
-    output=$(eval "$test_command" 2>&1)
-    exit_code=$?
+  # Run command and capture output
+  output=$(eval "$test_command" 2>&1)
+  exit_code=$?
 
-    if [ $exit_code -eq 0 ]; then
-        if echo "$output" | grep -qE "$expected_pattern"; then
-            echo -e "${GREEN}✓ PASSED${NC}"
-            TESTS_PASSED=$((TESTS_PASSED + 1))
-        else
-            echo -e "${RED}✗ FAILED${NC}"
-            echo "  Expected pattern: $expected_pattern"
-            echo "  Got: $output"
-            TESTS_FAILED=$((TESTS_FAILED + 1))
-        fi
+  if [ $exit_code -eq 0 ]; then
+    if echo "$output" | grep -qE "$expected_pattern"; then
+      echo -e "${GREEN}✓ PASSED${NC}"
+      TESTS_PASSED=$((TESTS_PASSED + 1))
     else
-        if [ "$expected_pattern" = "SHOULD_FAIL" ]; then
-            echo -e "${GREEN}✓ PASSED${NC} (Expected failure)"
-            TESTS_PASSED=$((TESTS_PASSED + 1))
-        else
-            echo -e "${RED}✗ FAILED${NC}"
-            echo "  Command failed with exit code $exit_code"
-            echo "  Output: $output"
-            TESTS_FAILED=$((TESTS_FAILED + 1))
-        fi
+      echo -e "${RED}✗ FAILED${NC}"
+      echo "  Expected pattern: $expected_pattern"
+      echo "  Got: $output"
+      TESTS_FAILED=$((TESTS_FAILED + 1))
     fi
+  else
+    if [ "$expected_pattern" = "SHOULD_FAIL" ]; then
+      echo -e "${GREEN}✓ PASSED${NC} (Expected failure)"
+      TESTS_PASSED=$((TESTS_PASSED + 1))
+    else
+      echo -e "${RED}✗ FAILED${NC}"
+      echo "  Command failed with exit code $exit_code"
+      echo "  Output: $output"
+      TESTS_FAILED=$((TESTS_FAILED + 1))
+    fi
+  fi
 }
 
 echo "================================"
@@ -83,7 +83,7 @@ run_test "PATH has .local/bin" "echo \$PATH | grep '.local/bin'" "\.local/bin"
 run_test "bashrc has PATH setup" "grep '.local/bin' ~/.bashrc" "\.local/bin"
 
 # Test 11: Test that cc script is a bash script
-run_test "cc is a bash script" "head -1 \$HOME/.local/bin/cc" "#!/bin/bash"
+run_test "cc is a bash script" 'head -1 $HOME/.local/bin/cc' "#!/bin/bash"
 
 # Test 12: Test cc can be executed from different directory
 run_test "cc works from different directory" "cd /tmp && cc --version" "Claude Code"
@@ -97,9 +97,9 @@ echo -e "${RED}Failed: $TESTS_FAILED${NC}"
 echo
 
 if [ $TESTS_FAILED -eq 0 ]; then
-    echo -e "${GREEN}All tests passed! ✓${NC}"
-    exit 0
+  echo -e "${GREEN}All tests passed! ✓${NC}"
+  exit 0
 else
-    echo -e "${RED}Some tests failed. Please review the output above.${NC}"
-    exit 1
+  echo -e "${RED}Some tests failed. Please review the output above.${NC}"
+  exit 1
 fi

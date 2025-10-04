@@ -3,47 +3,47 @@
 
 # SSH directory paths by platform
 ssh_directories:
-  darwin: "/Users/${USER}/.ssh"
-  linux: "/home/${USER}/.ssh"
+  darwin: '/Users/${USER}/.ssh'
+  linux: '/home/${USER}/.ssh'
 
 # Base directories
 base_directories:
-  config_dir: "config"
-  scripts_dir: "scripts"
-  modules_dir: "modules"
-  apps_dir: "apps"
-  lib_dir: "lib"
-  tests_dir: "tests"
+  config_dir: 'config'
+  scripts_dir: 'scripts'
+  modules_dir: 'modules'
+  apps_dir: 'apps'
+  lib_dir: 'lib'
+  tests_dir: 'tests'
 
 # Build directories
 build_directories:
-  build_scripts: "scripts/build"
-  utils_scripts: "scripts/utils"
-  platform_scripts: "scripts/platform"
-  lib_scripts: "scripts/lib"
+  build_scripts: 'scripts/build'
+  utils_scripts: 'scripts/utils'
+  platform_scripts: 'scripts/platform'
+  lib_scripts: 'scripts/lib'
 
 # USB mount paths by platform
 usb_mount_paths:
   darwin:
-    - "/Volumes"
+    - '/Volumes'
   linux:
-    - "/media"
-    - "/mnt"
-    - "/run/media/${USER}"
+    - '/media'
+    - '/mnt'
+    - '/run/media/${USER}'
 
 # Cache directories
 cache_directories:
-  nix_cache: "/nix/var/cache"
-  build_cache: ".cache/build"
-  test_cache: ".cache/tests"
+  nix_cache: '/nix/var/cache'
+  build_cache: '.cache/build'
+  test_cache: '.cache/tests'
 
 # Log directories
 log_directories:
-  build_logs: "logs/build"
-  error_logs: "logs/errors"
-  debug_logs: "logs/debug"
+  build_logs: 'logs/build'
+  error_logs: 'logs/errors'
+  debug_logs: 'logs/debug'
 
 # Temporary directories
 temp_directories:
-  build_temp: "/tmp/dotfiles-build"
-  backup_temp: "/tmp/dotfiles-backup"
+  build_temp: '/tmp/dotfiles-build'
+  backup_temp: '/tmp/dotfiles-backup'

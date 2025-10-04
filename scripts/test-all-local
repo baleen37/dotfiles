@@ -16,153 +16,153 @@ LOG_FILE="test-results-$(date +%Y%m%d-%H%M%S).log"
 # Detect current platform
 CURRENT_PLATFORM=$(nix eval --impure --raw --expr 'builtins.currentSystem' 2>/dev/null || echo "unknown")
 if [ "$CURRENT_PLATFORM" = "unknown" ]; then
-    print_error "Failed to detect platform"
-    exit 1
+  print_error "Failed to detect platform"
+  exit 1
 fi
 
 print_status() {
-    echo -e "${GREEN}[TEST-ALL]${NC} $1" | tee -a "$LOG_FILE"
+  echo -e "${GREEN}[TEST-ALL]${NC} $1" | tee -a "$LOG_FILE"
 }
 
 print_warning() {
-    echo -e "${YELLOW}[TEST-ALL]${NC} $1" | tee -a "$LOG_FILE"
+  echo -e "${YELLOW}[TEST-ALL]${NC} $1" | tee -a "$LOG_FILE"
 }
 
 print_error() {
-    echo -e "${RED}[TEST-ALL]${NC} $1" | tee -a "$LOG_FILE"
+  echo -e "${RED}[TEST-ALL]${NC} $1" | tee -a "$LOG_FILE"
 }
 
 print_info() {
-    echo -e "${BLUE}[TEST-ALL]${NC} $1" | tee -a "$LOG_FILE"
+  echo -e "${BLUE}[TEST-ALL]${NC} $1" | tee -a "$LOG_FILE"
 }
 
 # Function to run a test and capture result
 run_test() {
-    local test_name="$1"
-    local test_command="$2"
+  local test_name="$1"
+  local test_command="$2"
 
-    print_info "Running: $test_name"
-    echo "=== $test_name ===" >> "$LOG_FILE"
+  print_info "Running: $test_name"
+  echo "=== $test_name ===" >>"$LOG_FILE"
 
-    if eval "$test_command" >> "$LOG_FILE" 2>&1; then
-        print_status "✅ PASS: $test_name"
-        return 0
-    else
-        print_error "❌ FAIL: $test_name"
-        return 1
-    fi
+  if eval "$test_command" >>"$LOG_FILE" 2>&1; then
+    print_status "✅ PASS: $test_name"
+    return 0
+  else
+    print_error "❌ FAIL: $test_name"
+    return 1
+  fi
 }
 
 # Function to show test results summary
 show_summary() {
-    local passed=$1
-    local total=$2
-    local failed=$((total - passed))
+  local passed=$1
+  local total=$2
+  local failed=$((total - passed))
 
-    echo ""
-    echo "=========================="
-    echo "    TEST RESULTS SUMMARY"
-    echo "=========================="
-    echo "Total Tests: $total"
-    print_status "Passed: $passed"
-    if [ $failed -gt 0 ]; then
-        print_error "Failed: $failed"
-    fi
-    echo "Log File: $LOG_FILE"
-    echo "=========================="
+  echo ""
+  echo "=========================="
+  echo "    TEST RESULTS SUMMARY"
+  echo "=========================="
+  echo "Total Tests: $total"
+  print_status "Passed: $passed"
+  if [ $failed -gt 0 ]; then
+    print_error "Failed: $failed"
+  fi
+  echo "Log File: $LOG_FILE"
+  echo "=========================="
 }
 
 main() {
-    print_info "Starting comprehensive local test suite..."
-    print_info "Export USER=$EXPORT_USER"
-    print_info "Current Platform: $CURRENT_PLATFORM"
+  print_info "Starting comprehensive local test suite..."
+  print_info "Export USER=$EXPORT_USER"
+  print_info "Current Platform: $CURRENT_PLATFORM"
 
-    export USER="$EXPORT_USER"
+  export USER="$EXPORT_USER"
 
-    local passed=0
-    local total=0
+  local passed=0
+  local total=0
 
-    # Test 1: Lint checks (like CI)
+  # Test 1: Lint checks (like CI)
+  ((total++))
+  if run_test "Pre-commit Lint" "make lint"; then
+    ((passed++))
+  fi
+
+  # Test 2: Smoke test (like CI)
+  ((total++))
+  if run_test "Smoke Test" "make smoke"; then
+    ((passed++))
+  fi
+
+  # Test 3: Individual unit test (our enhanced test)
+  ((total++))
+  if run_test "Auto-Update Unit Test" "nix build --impure .#checks.${CURRENT_PLATFORM}.auto_update_dotfiles_unit -L"; then
+    ((passed++))
+  fi
+
+  # Test 4: All unit tests
+  ((total++))
+  if run_test "All Unit Tests" "nix run --impure .#test-unit"; then
+    ((passed++))
+  fi
+
+  # Test 5: Build test (like CI)
+  ((total++))
+  if run_test "Build All Configs" "make build"; then
+    ((passed++))
+  fi
+
+  # Test 6: Claude commands copy test (problematic one)
+  ((total++))
+  if run_test "Claude Commands Copy" "nix build --impure .#checks.${CURRENT_PLATFORM}.claude_commands_copy_unit -L"; then
+    ((passed++))
+  fi
+
+  # Test 7: Homebrew integration tests (Darwin only)
+  if [[ $CURRENT_PLATFORM == *"darwin"* ]]; then
     ((total++))
-    if run_test "Pre-commit Lint" "make lint"; then
-        ((passed++))
+    if run_test "Homebrew Integration Tests" "./scripts/test-homebrew"; then
+      ((passed++))
     fi
+  fi
 
-    # Test 2: Smoke test (like CI)
-    ((total++))
-    if run_test "Smoke Test" "make smoke"; then
-        ((passed++))
-    fi
+  # Test 8: Full test suite (like CI)
+  ((total++))
+  if run_test "Full Test Suite" "make test"; then
+    ((passed++))
+  fi
 
-    # Test 3: Individual unit test (our enhanced test)
-    ((total++))
-    if run_test "Auto-Update Unit Test" "nix build --impure .#checks.${CURRENT_PLATFORM}.auto_update_dotfiles_unit -L"; then
-        ((passed++))
-    fi
+  show_summary $passed $total
 
-    # Test 4: All unit tests
-    ((total++))
-    if run_test "All Unit Tests" "nix run --impure .#test-unit"; then
-        ((passed++))
-    fi
-
-    # Test 5: Build test (like CI)
-    ((total++))
-    if run_test "Build All Configs" "make build"; then
-        ((passed++))
-    fi
-
-    # Test 6: Claude commands copy test (problematic one)
-    ((total++))
-    if run_test "Claude Commands Copy" "nix build --impure .#checks.${CURRENT_PLATFORM}.claude_commands_copy_unit -L"; then
-        ((passed++))
-    fi
-
-    # Test 7: Homebrew integration tests (Darwin only)
-    if [[ "$CURRENT_PLATFORM" == *"darwin"* ]]; then
-        ((total++))
-        if run_test "Homebrew Integration Tests" "./scripts/test-homebrew"; then
-            ((passed++))
-        fi
-    fi
-
-    # Test 8: Full test suite (like CI)
-    ((total++))
-    if run_test "Full Test Suite" "make test"; then
-        ((passed++))
-    fi
-
-    show_summary $passed $total
-
-    if [ $passed -eq $total ]; then
-        print_status "🎉 All tests passed! Ready for CI."
-        exit 0
-    else
-        print_error "❌ Some tests failed. Check log: $LOG_FILE"
-        exit 1
-    fi
+  if [ $passed -eq $total ]; then
+    print_status "🎉 All tests passed! Ready for CI."
+    exit 0
+  else
+    print_error "❌ Some tests failed. Check log: $LOG_FILE"
+    exit 1
+  fi
 }
 
 # Show usage if requested
-if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
-    echo "Usage: $0"
-    echo ""
-    echo "Runs all tests locally to match CI behavior and prevent CI failures."
-    echo "Automatically detects the current platform (x86_64-darwin, aarch64-darwin, x86_64-linux)"
-    echo ""
-    echo "This script runs:"
-    echo "  1. Pre-commit lint checks"
-    echo "  2. Smoke tests"
-    echo "  3. Individual unit tests (platform-specific)"
-    echo "  4. All unit tests"
-    echo "  5. Build all configurations"
-    echo "  6. Problematic tests (like claude-commands-copy, platform-specific)"
-    echo "  7. Homebrew integration tests (Darwin only)"
-    echo "  8. Full test suite"
-    echo ""
-    echo "Options:"
-    echo "  -h, --help    Show this help message"
-    exit 0
+if [[ ${1:-} == "-h" || ${1:-} == "--help" ]]; then
+  echo "Usage: $0"
+  echo ""
+  echo "Runs all tests locally to match CI behavior and prevent CI failures."
+  echo "Automatically detects the current platform (x86_64-darwin, aarch64-darwin, x86_64-linux)"
+  echo ""
+  echo "This script runs:"
+  echo "  1. Pre-commit lint checks"
+  echo "  2. Smoke tests"
+  echo "  3. Individual unit tests (platform-specific)"
+  echo "  4. All unit tests"
+  echo "  5. Build all configurations"
+  echo "  6. Problematic tests (like claude-commands-copy, platform-specific)"
+  echo "  7. Homebrew integration tests (Darwin only)"
+  echo "  8. Full test suite"
+  echo ""
+  echo "Options:"
+  echo "  -h, --help    Show this help message"
+  exit 0
 fi
 
 # Run main function

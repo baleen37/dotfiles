@@ -18,11 +18,10 @@
 # VERSION: 2.0.0 (Phase 2 optimized)
 # LAST UPDATED: 2024-10-04
 
-{
-  config,
-  pkgs,
-  lib,
-  ...
+{ config
+, pkgs
+, lib
+, ...
 }:
 
 let
@@ -65,7 +64,7 @@ in
   # Optimized home activation scripts
   home.activation = {
     # Enhanced Claude configuration setup with better path resolution
-    setupClaudeConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    setupClaudeConfig = ''
       CLAUDE_DIR="${commonPaths.home}/.claude"
 
       # Optimized source directory detection
@@ -89,7 +88,7 @@ in
   }
   // lib.optionalAttrs isDarwin {
     # macOS-specific activation with performance improvements
-    setupDarwinOptimizations = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    setupDarwinOptimizations = ''
       echo "🍎 Applying macOS optimizations..."
 
       # Optimized keyboard configuration
@@ -108,7 +107,7 @@ in
   }
   // lib.optionalAttrs isLinux {
     # Linux-specific optimizations
-    setupLinuxOptimizations = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    setupLinuxOptimizations = ''
       echo "🐧 Applying Linux optimizations..."
 
       # Ensure XDG directories exist
@@ -627,8 +626,8 @@ in
       extraConfig = ''
         # Optimized base configuration
         set -g default-terminal "tmux-256color"
-        set -g default-shell ${config.programs.zsh.package}/bin/zsh
-        set -g default-command "${config.programs.zsh.package}/bin/zsh -l"
+        set -g default-shell ${pkgs.zsh}/bin/zsh
+        set -g default-command "${pkgs.zsh}/bin/zsh -l"
         set -g focus-events on
 
         # Enhanced terminal and display settings

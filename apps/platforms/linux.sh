@@ -39,16 +39,16 @@ change_ownership() {
 get_build_config() {
   local arch=$1
   case "$arch" in
-    aarch64)
-      echo "aarch64-linux"
-      ;;
-    x86_64)
-      echo "x86_64-linux"
-      ;;
-    *)
-      echo -e "${RED}Unsupported architecture: $arch${NC}"
-      return 1
-      ;;
+  aarch64)
+    echo "aarch64-linux"
+    ;;
+  x86_64)
+    echo "x86_64-linux"
+    ;;
+  *)
+    echo -e "${RED}Unsupported architecture: $arch${NC}"
+    return 1
+    ;;
   esac
 }
 
