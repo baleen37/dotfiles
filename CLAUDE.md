@@ -32,14 +32,27 @@ Professional Nix dotfiles system supporting:
 │
 ├── modules/               # Modular configuration system
 │   ├── shared/            #   Cross-platform settings
+│   │   ├── packages.nix   #   Package definitions only
+│   │   ├── programs.nix   #   Program configurations only
+│   │   └── home-manager.nix #  Home Manager settings only
 │   ├── darwin/            #   macOS-specific modules
+│   │   ├── packages.nix   #   macOS packages
+│   │   ├── casks.nix      #   Homebrew casks
+│   │   └── system.nix     #   System settings
 │   └── nixos/             #   NixOS-specific modules
+│       ├── packages.nix   #   NixOS packages
+│       ├── services.nix   #   Service configurations
+│       └── system.nix     #   System settings
 │
 ├── hosts/                 # Host-specific configurations
 │   ├── darwin/            #   macOS system definitions
 │   └── nixos/             #   NixOS system definitions
 │
 ├── lib/                   # Nix utility functions and builders
+│   ├── core/              #   Core utilities
+│   ├── testing/           #   Testing framework (MOVED)
+│   ├── performance/       #   Performance optimization (MOVED)
+│   └── automation/        #   CI/CD functionality (MOVED)
 ├── scripts/               # Automation and management tools
 ├── tests/                 # Multi-tier testing framework (87% optimized)
 │   ├── unit/              #   Component-level testing (6 files)
@@ -60,40 +73,33 @@ Professional Nix dotfiles system supporting:
 3. **Host Configurations** (`hosts/`): Individual machine definitions
 4. **Library Functions** (`lib/`): Reusable Nix utilities
 
-## Current Development: VSCode Remote Tunnel Integration
+## Current Development: Nix Best Practices Refactoring
 
-**Status**: Implementation phase  
-**Branch**: main  
-**Goal**: Enable `code` command from SSH sessions to open local VSCode
+**Status**: Architecture planning phase  
+**Branch**: feature/tests-modernization  
+**Goal**: Apply dustinlyons/nixos-config best practices while preserving advanced features
 
-### Implementation Details
+### Refactoring Objectives
 
-- **Service Type**: systemd user service (security-focused)
-- **Authentication**: GitHub OAuth via Microsoft tunnel service
-- **CLI Management**: Dynamic VSCode CLI download (not Nix package)
-- **Integration**: Native NixOS configuration integration
+- **Structural Clarity**: Adopt dustinlyons' clean organizational patterns
+- **Dynamic User Resolution**: Maintain flexible user configuration without hardcoding
+- **Module Simplification**: Reduce complexity while maintaining functionality
+- **Single Responsibility**: Each file focuses on one specific concern
 
-### Key Files
+### Best Practices Integration
 
-- `hosts/nixos/default.nix`: Main NixOS configuration
-- `specs/002-/spec.md`: Complete feature specification
-- `specs/002-/plan.md`: Implementation plan
-- `tests/integration/`: TDD service integration tests
+1. **Clean flake.nix Organization**: Move complex logic to dedicated lib files
+2. **Simple Module Imports**: Use direct import patterns like `import ../shared/files.nix`
+3. **Platform App Structure**: Organize apps by architecture with clear naming
+4. **Dynamic User Handling**: Keep existing user resolution system but simplify interface
+5. **File Purpose Clarity**: packages.nix for packages, programs.nix for programs
 
-### Development Status
+### Key Improvements
 
-- [x] Specification and planning complete
-- [x] Research and design finalized
-- [ ] Integration tests implementation (TDD approach)
-- [ ] NixOS configuration updates
-- [ ] Service validation and testing
-
-### Testing Strategy
-
-- **TDD Approach**: RED-GREEN-Refactor cycle enforcement
-- **Integration Testing**: Real systemd service validation
-- **Network Validation**: Connectivity and tunnel testing
-- **End-to-End**: Complete `code` command workflow testing
+- **Simplified Structure**: Maintain advanced features with cleaner organization
+- **Modular Design**: Single responsibility modules following dustinlyons patterns
+- **Preserved Features**: Keep 87% optimized testing framework and performance monitoring
+- **Better Maintainability**: Clear separation of concerns across all modules
 
 ## Development Workflow
 
