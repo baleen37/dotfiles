@@ -155,6 +155,47 @@ Professional Nix dotfiles system supporting:
 
 Following dustinlyons principle: "Simple, direct solutions over sophisticated abstractions"
 
+## Critical Development Notes
+
+### USER Variable Requirement
+
+```bash
+export USER=$(whoami)    # MUST run this before any build operation
+```
+
+**Why**: The system uses dynamic user resolution instead of hardcoded usernames. All builds will fail without this.
+
+### Auto-Formatting Policy
+
+```bash
+make format              # Use this, never manually format
+```
+
+**Never manually fix formatting issues** - the auto-formatting system handles:
+
+- Nix files (nixfmt)
+- YAML files (yamlfmt)
+- JSON files (jq)
+- Markdown files (prettier)
+- Shell scripts (shfmt)
+
+### Pre-commit Compliance
+
+```bash
+make lint-format         # Recommended workflow before commits
+```
+
+**Never use `git commit --no-verify`** - pre-commit hooks ensure code quality and are required.
+
+### Build Optimization
+
+```bash
+make build-current       # Build only current platform (faster development)
+make build-switch        # Build and apply together (production workflow)
+```
+
+**For development**: Use `build-current` to avoid building all platforms during iteration.
+
 ## Project Philosophy
 
 ### Design Principles
@@ -183,13 +224,52 @@ Following dustinlyons principle: "Simple, direct solutions over sophisticated ab
 
 **Safety**: Configuration preservation during updates and manual merge conflict resolution tools.
 
+## Essential Development Commands
+
+### Core Workflow (Always Required)
+
+```bash
+export USER=$(whoami)          # REQUIRED: Set before any build operations
+make format                    # Auto-format all files (never manually format)
+make lint-format              # Recommended pre-commit workflow
+make build-current            # Build only current platform (fastest)
+make build-switch             # Build and apply in one step
+```
+
+### Testing Workflow
+
+```bash
+make test-core                # Essential test suite
+make test-bats               # Shell script unit tests
+make test-enhanced           # Integration tests with reporting
+make smoke                   # Quick validation (flake checks)
+make test-monitor           # Performance monitoring
+```
+
+### Platform-Specific Operations
+
+```bash
+make build-darwin           # macOS configurations only
+make build-linux            # NixOS configurations only
+make platform-info          # Show current platform details
+```
+
+### Development Shortcuts
+
+```bash
+make format-setup           # Initialize auto-formatting environment
+make format-quick           # Fast format (Nix + shell only)
+make build-fast             # Optimized build with max jobs
+```
+
 ## Key Features
 
+- **Dynamic User Resolution**: Automatic user detection without hardcoding (`export USER=$(whoami)`)
+- **dustinlyons Architecture**: Direct import patterns, simplified from complex abstractions
 - **Global Command System**: `bl` dispatcher for cross-project development
 - **Auto-Formatting System**: Automated code quality with parallel formatting targets (`make format`)
 - **Homebrew Integration**: 34+ GUI applications declaratively managed on macOS
 - **Advanced Testing**: 87% optimized test suite with parallel execution and memory management
 - **Claude Code Integration**: AI-assisted development with 20+ specialized commands
 - **Performance Monitoring**: Real-time build time and resource usage tracking
-- **Comprehensive Toolchain**: Complete development environment with security best practices
-- **Make Automation**: Comprehensive targets including `make format`, `make test`, `make check`, and `make docs`
+- **Platform Detection**: Automatic system detection via `lib/platform-system.nix`

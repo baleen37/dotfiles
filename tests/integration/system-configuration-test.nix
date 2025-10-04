@@ -5,13 +5,15 @@
 { lib ? import <nixpkgs/lib>
 , pkgs ? import <nixpkgs> { }
 , system ? builtins.currentSystem
-,
+, nixtest ? null
+, testHelpers ? null
+, self ? null
 }:
 
 let
-  # Import NixTest framework and helpers
-  nixtest = (import ../unit/nixtest-template.nix { inherit lib pkgs; }).nixtest;
-  testHelpers = import ../unit/test-helpers.nix { inherit lib pkgs; };
+  # Use provided NixTest framework and helpers (or fallback to local imports)
+  nixtestFinal = if nixtest != null then nixtest else (import ../unit/nixtest-template.nix { inherit lib pkgs; }).nixtest;
+  testHelpersFinal = if testHelpers != null then testHelpers else import ../unit/test-helpers.nix { inherit lib pkgs; };
 
   # Import system builders and configuration
   systemConfigs = import ../../lib/system-configs.nix {
@@ -70,23 +72,23 @@ let
     config: requiredAttrs: builtins.all (attr: builtins.hasAttr attr config) requiredAttrs;
 
 in
-nixtest.suite "System Configuration Integration Tests" {
+nixtestFinal.suite "System Configuration Integration Tests" {
 
   # Darwin System Configuration Tests
-  darwinSystemTests = nixtest.suite "Darwin System Configuration Tests" {
+  darwinSystemTests = nixtestFinal.suite "Darwin System Configuration Tests" {
 
-    darwinHostConfigurationExists = nixtest.test "Darwin host configuration exists" (
-      nixtest.assertions.assertTrue (darwinHosts != null)
+    darwinHostConfigurationExists = nixtestFinal.test "Darwin host configuration exists" (
+      nixtestFinal.assertions.assertTrue (darwinHosts != null)
     );
 
-    darwinHostConfigurationValid = nixtest.test "Darwin host configuration is valid" (
+    darwinHostConfigurationValid = nixtestFinal.test "Darwin host configuration is valid" (
       let
         config = if darwinHosts != null then safeEvaluateSystemConfig darwinHosts else { valid = true; };
       in
-      nixtest.assertions.assertTrue (config != null)
+      nixtestFinal.assertions.assertTrue (config != null)
     );
 
-    darwinSystemBuilder = nixtest.test "Darwin system builder works" (
+    darwinSystemBuilder = nixtestFinal.test "Darwin system builder works" (
       let
         darwinSystems = testConfigurations.darwin.systems;
         testBuilder =
@@ -99,10 +101,10 @@ nixtest.suite "System Configuration Integration Tests" {
         allBuildersWork =
           if lib.strings.hasSuffix "darwin" system then builtins.all testBuilder darwinSystems else true; # Skip on non-Darwin
       in
-      nixtest.assertions.assertTrue allBuildersWork
+      nixtestFinal.assertions.assertTrue allBuildersWork
     );
 
-    darwinAppConfigurationBuilder = nixtest.test "Darwin app configuration builder works" (
+    darwinAppConfigurationBuilder = nixtestFinal.test "Darwin app configuration builder works" (
       let
         darwinSystems = testConfigurations.darwin.systems;
         testAppBuilder =
@@ -115,34 +117,34 @@ nixtest.suite "System Configuration Integration Tests" {
         allAppBuildersWork =
           if lib.strings.hasSuffix "darwin" system then builtins.all testAppBuilder darwinSystems else true;
       in
-      nixtest.assertions.assertTrue allAppBuildersWork
+      nixtestFinal.assertions.assertTrue allAppBuildersWork
     );
 
-    darwinRequiredModulesPresent = nixtest.test "Darwin required modules are present" (
+    darwinRequiredModulesPresent = nixtestFinal.test "Darwin required modules are present" (
       let
         requiredModules = testConfigurations.darwin.requiredModules;
         moduleFiles = builtins.map (mod: "../../modules/darwin/${mod}.nix") requiredModules;
         allModulesExist = builtins.all builtins.pathExists moduleFiles;
       in
-      nixtest.assertions.assertTrue allModulesExist
+      nixtestFinal.assertions.assertTrue allModulesExist
     );
   };
 
   # NixOS System Configuration Tests
-  nixosSystemTests = nixtest.suite "NixOS System Configuration Tests" {
+  nixosSystemTests = nixtestFinal.suite "NixOS System Configuration Tests" {
 
-    nixosHostConfigurationExists = nixtest.test "NixOS host configuration exists" (
-      nixtest.assertions.assertTrue (nixosHosts != null)
+    nixosHostConfigurationExists = nixtestFinal.test "NixOS host configuration exists" (
+      nixtestFinal.assertions.assertTrue (nixosHosts != null)
     );
 
-    nixosHostConfigurationValid = nixtest.test "NixOS host configuration is valid" (
+    nixosHostConfigurationValid = nixtestFinal.test "NixOS host configuration is valid" (
       let
         config = if nixosHosts != null then safeEvaluateSystemConfig nixosHosts else { valid = true; };
       in
-      nixtest.assertions.assertTrue (config != null)
+      nixtestFinal.assertions.assertTrue (config != null)
     );
 
-    nixosSystemBuilder = nixtest.test "NixOS system builder works" (
+    nixosSystemBuilder = nixtestFinal.test "NixOS system builder works" (
       let
         nixosSystems = testConfigurations.nixos.systems;
         testBuilder =
@@ -155,31 +157,31 @@ nixtest.suite "System Configuration Integration Tests" {
         allBuildersWork =
           if lib.strings.hasSuffix "linux" system then builtins.all testBuilder nixosSystems else true; # Skip on non-Linux
       in
-      nixtest.assertions.assertTrue allBuildersWork
+      nixtestFinal.assertions.assertTrue allBuildersWork
     );
 
-    nixosRequiredModulesPresent = nixtest.test "NixOS required modules are present" (
+    nixosRequiredModulesPresent = nixtestFinal.test "NixOS required modules are present" (
       let
         requiredModules = testConfigurations.nixos.requiredModules;
         moduleFiles = builtins.map (mod: "../../modules/nixos/${mod}.nix") requiredModules;
         allModulesExist = builtins.all builtins.pathExists moduleFiles;
       in
-      nixtest.assertions.assertTrue allModulesExist
+      nixtestFinal.assertions.assertTrue allModulesExist
     );
   };
 
   # Home Manager Configuration Tests
-  homeManagerTests = nixtest.suite "Home Manager Configuration Tests" {
+  homeManagerTests = nixtestFinal.suite "Home Manager Configuration Tests" {
 
-    homeManagerSharedConfiguration = nixtest.test "Home Manager shared configuration loads" (
+    homeManagerSharedConfiguration = nixtestFinal.test "Home Manager shared configuration loads" (
       let
         sharedHM = import ../../modules/shared/home-manager.nix;
         result = safeEvaluateSystemConfig sharedHM;
       in
-      nixtest.assertions.assertTrue (result != null)
+      nixtestFinal.assertions.assertTrue (result != null)
     );
 
-    homeManagerPlatformConfigurations = nixtest.test "Home Manager platform configurations load" (
+    homeManagerPlatformConfigurations = nixtestFinal.test "Home Manager platform configurations load" (
       let
         darwinHM = import ../../modules/darwin/home-manager.nix;
         nixosHM = import ../../modules/nixos/home-manager.nix;
@@ -187,10 +189,10 @@ nixtest.suite "System Configuration Integration Tests" {
         darwinResult = safeEvaluateSystemConfig darwinHM;
         nixosResult = safeEvaluateSystemConfig nixosHM;
       in
-      nixtest.assertions.assertTrue (darwinResult != null && nixosResult != null)
+      nixtestFinal.assertions.assertTrue (darwinResult != null && nixosResult != null)
     );
 
-    homeManagerBuilderFunction = nixtest.test "Home Manager builder function works" (
+    homeManagerBuilderFunction = nixtestFinal.test "Home Manager builder function works" (
       let
         # Test the mkHomeConfigurations function from flake
         testUser = "test-user";
@@ -200,10 +202,10 @@ nixtest.suite "System Configuration Integration Tests" {
           hasBuilder = builtins.isFunction (user: impure: { });
         };
       in
-      nixtest.assertions.assertTrue result.success
+      nixtestFinal.assertions.assertTrue result.success
     );
 
-    homeManagerCommonUsers = nixtest.test "Home Manager supports common users" (
+    homeManagerCommonUsers = nixtestFinal.test "Home Manager supports common users" (
       let
         commonUsers = [
           "baleen"
@@ -227,22 +229,22 @@ nixtest.suite "System Configuration Integration Tests" {
 
         allUsersWork = builtins.all testUserConfig commonUsers;
       in
-      nixtest.assertions.assertTrue allUsersWork
+      nixtestFinal.assertions.assertTrue allUsersWork
     );
   };
 
   # Package Configuration Tests
-  packageConfigurationTests = nixtest.suite "Package Configuration Tests" {
+  packageConfigurationTests = nixtestFinal.suite "Package Configuration Tests" {
 
-    sharedPackagesConfiguration = nixtest.test "Shared packages configuration loads" (
+    sharedPackagesConfiguration = nixtestFinal.test "Shared packages configuration loads" (
       let
         sharedPkgs = import ../../modules/shared/packages.nix;
         result = safeEvaluateSystemConfig sharedPkgs;
       in
-      nixtest.assertions.assertTrue (result != null)
+      nixtestFinal.assertions.assertTrue (result != null)
     );
 
-    platformPackagesConfiguration = nixtest.test "Platform packages configuration loads" (
+    platformPackagesConfiguration = nixtestFinal.test "Platform packages configuration loads" (
       let
         darwinPkgs = import ../../modules/darwin/packages.nix;
         nixosPkgs = import ../../modules/nixos/packages.nix;
@@ -250,38 +252,38 @@ nixtest.suite "System Configuration Integration Tests" {
         darwinResult = safeEvaluateSystemConfig darwinPkgs;
         nixosResult = safeEvaluateSystemConfig nixosPkgs;
       in
-      nixtest.assertions.assertTrue (darwinResult != null && nixosResult != null)
+      nixtestFinal.assertions.assertTrue (darwinResult != null && nixosResult != null)
     );
 
-    casksConfigurationDarwin = nixtest.test "Darwin casks configuration loads" (
+    casksConfigurationDarwin = nixtestFinal.test "Darwin casks configuration loads" (
       let
         casks = import ../../modules/darwin/casks.nix;
         result = safeEvaluateSystemConfig casks;
       in
-      nixtest.assertions.assertTrue (result != null)
+      nixtestFinal.assertions.assertTrue (result != null)
     );
 
-    appLinksConfigurationDarwin = nixtest.test "Darwin app-links configuration loads" (
+    appLinksConfigurationDarwin = nixtestFinal.test "Darwin app-links configuration loads" (
       let
         appLinks = import ../../modules/darwin/app-links.nix;
         result = safeEvaluateSystemConfig appLinks;
       in
-      nixtest.assertions.assertTrue (result != null)
+      nixtestFinal.assertions.assertTrue (result != null)
     );
   };
 
   # File Configuration Tests
-  fileConfigurationTests = nixtest.suite "File Configuration Tests" {
+  fileConfigurationTests = nixtestFinal.suite "File Configuration Tests" {
 
-    sharedFilesConfiguration = nixtest.test "Shared files configuration loads" (
+    sharedFilesConfiguration = nixtestFinal.test "Shared files configuration loads" (
       let
         sharedFiles = import ../../modules/shared/files.nix;
         result = safeEvaluateSystemConfig sharedFiles;
       in
-      nixtest.assertions.assertTrue (result != null)
+      nixtestFinal.assertions.assertTrue (result != null)
     );
 
-    platformFilesConfiguration = nixtest.test "Platform files configuration loads" (
+    platformFilesConfiguration = nixtestFinal.test "Platform files configuration loads" (
       let
         darwinFiles = import ../../modules/darwin/files.nix;
         nixosFiles = import ../../modules/nixos/files.nix;
@@ -289,10 +291,10 @@ nixtest.suite "System Configuration Integration Tests" {
         darwinResult = safeEvaluateSystemConfig darwinFiles;
         nixosResult = safeEvaluateSystemConfig nixosFiles;
       in
-      nixtest.assertions.assertTrue (darwinResult != null && nixosResult != null)
+      nixtestFinal.assertions.assertTrue (darwinResult != null && nixosResult != null)
     );
 
-    configurationFilesExist = nixtest.test "Configuration files exist" (
+    configurationFilesExist = nixtestFinal.test "Configuration files exist" (
       let
         configPaths = [
           "../../modules/shared/config/nixpkgs.nix"
@@ -304,14 +306,14 @@ nixtest.suite "System Configuration Integration Tests" {
         pathsExist = builtins.map builtins.pathExists configPaths;
         allExist = builtins.all (x: x) pathsExist;
       in
-      nixtest.assertions.assertTrue allExist
+      nixtestFinal.assertions.assertTrue allExist
     );
   };
 
   # Testing Framework Integration Tests
-  testingFrameworkTests = nixtest.suite "Testing Framework Integration" {
+  testingFrameworkTests = nixtestFinal.suite "Testing Framework Integration" {
 
-    testingModulesConfiguration = nixtest.test "Testing modules configuration loads" (
+    testingModulesConfiguration = nixtestFinal.test "Testing modules configuration loads" (
       let
         sharedTesting = import ../../modules/shared/testing.nix;
         darwinTesting = import ../../modules/darwin/testing.nix;
@@ -321,18 +323,18 @@ nixtest.suite "System Configuration Integration Tests" {
         darwinResult = safeEvaluateSystemConfig darwinTesting;
         nixosResult = safeEvaluateSystemConfig nixosTesting;
       in
-      nixtest.assertions.assertTrue (sharedResult != null && darwinResult != null && nixosResult != null)
+      nixtestFinal.assertions.assertTrue (sharedResult != null && darwinResult != null && nixosResult != null)
     );
 
-    testBuildersLibrary = nixtest.test "Test builders library loads" (
+    testBuildersLibrary = nixtestFinal.test "Test builders library loads" (
       let
         testBuilders = import ../../lib/test-builders.nix { inherit lib pkgs; };
         result = safeEvaluateSystemConfig testBuilders;
       in
-      nixtest.assertions.assertTrue (result != null)
+      nixtestFinal.assertions.assertTrue (result != null)
     );
 
-    testSystemLibrary = nixtest.test "Test system library loads" (
+    testSystemLibrary = nixtestFinal.test "Test system library loads" (
       let
         testSystem = import ../../lib/test-system.nix {
           inherit pkgs;
@@ -341,14 +343,14 @@ nixtest.suite "System Configuration Integration Tests" {
         };
         result = safeEvaluateSystemConfig testSystem;
       in
-      nixtest.assertions.assertTrue (result != null)
+      nixtestFinal.assertions.assertTrue (result != null)
     );
   };
 
   # Build and Deployment Tests
-  buildDeploymentTests = nixtest.suite "Build and Deployment Tests" {
+  buildDeploymentTests = nixtestFinal.suite "Build and Deployment Tests" {
 
-    flakeCheckStructure = nixtest.test "Flake check structure is valid" (
+    flakeCheckStructure = nixtestFinal.test "Flake check structure is valid" (
       let
         # Test that flake outputs have the expected structure
         expectedOutputs = [
@@ -365,10 +367,10 @@ nixtest.suite "System Configuration Integration Tests" {
         libExists = builtins.pathExists ../../lib;
         testsExist = builtins.pathExists ../../tests;
       in
-      nixtest.assertions.assertTrue (flakeExists && libExists && testsExist)
+      nixtestFinal.assertions.assertTrue (flakeExists && libExists && testsExist)
     );
 
-    systemConfigurationBuilders = nixtest.test "System configuration builders work" (
+    systemConfigurationBuilders = nixtestFinal.test "System configuration builders work" (
       let
         # Test that system configuration builders can be imported
         buildOptimization = import ../../lib/build-optimization.nix { inherit lib pkgs; };
@@ -377,10 +379,10 @@ nixtest.suite "System Configuration Integration Tests" {
         buildResult = safeEvaluateSystemConfig buildOptimization;
         parallelResult = safeEvaluateSystemConfig parallelBuildOptimizer;
       in
-      nixtest.assertions.assertTrue (buildResult != null && parallelResult != null)
+      nixtestFinal.assertions.assertTrue (buildResult != null && parallelResult != null)
     );
 
-    performanceIntegration = nixtest.test "Performance integration works" (
+    performanceIntegration = nixtestFinal.test "Performance integration works" (
       let
         performanceIntegration = import ../../lib/performance-integration.nix {
           inherit lib system;
@@ -390,22 +392,22 @@ nixtest.suite "System Configuration Integration Tests" {
         };
         result = safeEvaluateSystemConfig performanceIntegration;
       in
-      nixtest.assertions.assertTrue (result != null)
+      nixtestFinal.assertions.assertTrue (result != null)
     );
 
-    errorSystemIntegration = nixtest.test "Error system integration works" (
+    errorSystemIntegration = nixtestFinal.test "Error system integration works" (
       let
         errorSystem = import ../../lib/error-system.nix { inherit lib pkgs; };
         result = safeEvaluateSystemConfig errorSystem;
       in
-      nixtest.assertions.assertTrue (result != null)
+      nixtestFinal.assertions.assertTrue (result != null)
     );
   };
 
   # Configuration Validation Tests
-  configurationValidationTests = nixtest.suite "Configuration Validation Tests" {
+  configurationValidationTests = nixtestFinal.suite "Configuration Validation Tests" {
 
-    configurationFilesValid = nixtest.test "Configuration files are valid" (
+    configurationFilesValid = nixtestFinal.test "Configuration files are valid" (
       let
         # Test YAML configuration files
         yamlConfigs = [
@@ -417,10 +419,10 @@ nixtest.suite "System Configuration Integration Tests" {
         # For now, just check files exist (would need yaml parser for full validation)
         allExist = builtins.all builtins.pathExists yamlConfigs;
       in
-      nixtest.assertions.assertTrue allExist
+      nixtestFinal.assertions.assertTrue allExist
     );
 
-    nixConfigurationValid = nixtest.test "Nix configuration files are valid" (
+    nixConfigurationValid = nixtestFinal.test "Nix configuration files are valid" (
       let
         nixConfigs = [
           "../../nix/nix.conf"
@@ -429,10 +431,10 @@ nixtest.suite "System Configuration Integration Tests" {
 
         allExist = builtins.all builtins.pathExists nixConfigs;
       in
-      nixtest.assertions.assertTrue allExist
+      nixtestFinal.assertions.assertTrue allExist
     );
 
-    overlaysConfiguration = nixtest.test "Overlays configuration works" (
+    overlaysConfiguration = nixtestFinal.test "Overlays configuration works" (
       let
         overlaysPath = ../../overlays;
         overlaysExist = builtins.pathExists overlaysPath;
@@ -441,24 +443,24 @@ nixtest.suite "System Configuration Integration Tests" {
         result =
           if overlaysExist then builtins.tryEval (builtins.readDir overlaysPath) else { success = true; };
       in
-      nixtest.assertions.assertTrue result.success
+      nixtestFinal.assertions.assertTrue result.success
     );
   };
 
   # Integration Edge Cases and Error Handling
-  edgeCaseTests = nixtest.suite "Integration Edge Cases" {
+  edgeCaseTests = nixtestFinal.suite "Integration Edge Cases" {
 
-    missingModuleHandling = nixtest.test "Missing module handling works" (
+    missingModuleHandling = nixtestFinal.test "Missing module handling works" (
       let
         # Test with a module that might not exist
         nonexistentModule = "/nonexistent/module.nix";
         result = builtins.tryEval (import nonexistentModule);
       in
       # Should fail gracefully
-      nixtest.assertions.assertFalse result.success
+      nixtestFinal.assertions.assertFalse result.success
     );
 
-    invalidConfigurationHandling = nixtest.test "Invalid configuration handling works" (
+    invalidConfigurationHandling = nixtestFinal.test "Invalid configuration handling works" (
       let
         # Test with intentionally invalid configuration
         result = builtins.tryEval {
@@ -472,23 +474,23 @@ nixtest.suite "System Configuration Integration Tests" {
         };
       in
       # Should handle errors appropriately
-      nixtest.assertions.assertTrue (result.success || !result.success)
+      nixtestFinal.assertions.assertTrue (result.success || !result.success)
     );
 
-    emptySystemHandling = nixtest.test "Empty system configurations handled" (
+    emptySystemHandling = nixtestFinal.test "Empty system configurations handled" (
       let
         # Test with minimal system configuration
         minimalConfig = { };
         result = safeEvaluateSystemConfig minimalConfig;
       in
-      nixtest.assertions.assertTrue (result != null)
+      nixtestFinal.assertions.assertTrue (result != null)
     );
   };
 
   # Performance Integration Tests
-  performanceIntegrationTests = nixtest.suite "Performance Integration Tests" {
+  performanceIntegrationTests = nixtestFinal.suite "Performance Integration Tests" {
 
-    configurationLoadingPerformance = nixtest.test "Configuration loading is performant" (
+    configurationLoadingPerformance = nixtestFinal.test "Configuration loading is performant" (
       let
         # Simple performance test - if configurations load, they're fast enough
         configs = [
@@ -507,10 +509,10 @@ nixtest.suite "System Configuration Integration Tests" {
           )
           configs;
       in
-      nixtest.assertions.assertTrue allLoad
+      nixtestFinal.assertions.assertTrue allLoad
     );
 
-    systemBuildingPerformance = nixtest.test "System building is performant" (
+    systemBuildingPerformance = nixtestFinal.test "System building is performant" (
       let
         # Test that system building components load quickly
         buildComponents = [
@@ -528,7 +530,7 @@ nixtest.suite "System Configuration Integration Tests" {
           )
           buildComponents;
       in
-      nixtest.assertions.assertTrue allLoad
+      nixtestFinal.assertions.assertTrue allLoad
     );
   };
 }

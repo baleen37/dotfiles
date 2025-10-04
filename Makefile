@@ -195,7 +195,7 @@ test-format:
 	@$(MAKE) test-core
 
 test-core:
-	@$(NIX) run --impure .#test-core $(ARGS)
+	@$(NIX) build --impure .#tests.$(shell nix eval --impure --expr builtins.currentSystem).all $(ARGS)
 
 # New comprehensive test targets
 test-unit:

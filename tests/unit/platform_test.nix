@@ -5,14 +5,20 @@
 { lib ? import <nixpkgs/lib>
 , pkgs ? import <nixpkgs> { }
 , system ? builtins.currentSystem
+, nixtest ? null
+, testHelpers ? null
+, self ? null
 }:
 
 let
-  # Import NixTest framework
-  nixtest = (import ./nixtest-template.nix { inherit lib pkgs; }).nixtest;
+  # Use provided NixTest framework (or fallback to local import)
+  nixtestFinal = if nixtest != null then nixtest else (import ./nixtest-template.nix { inherit lib pkgs; }).nixtest;
 
-  # Import platform detection for testing
-  platformDetection = import ../../lib/platform-detection.nix { inherit lib pkgs system; };
+  # Import platform detection for testing (with fallback paths)
+  platformDetection =
+    if self != null
+    then import (self + /lib/platform-detection.nix) { inherit lib pkgs system; }
+    else import ../../lib/platform-detection.nix { inherit lib pkgs system; };
 
   # Platform-specific module imports with fallbacks
   darwinModules = {
@@ -70,357 +76,357 @@ let
   };
 
 in
-nixtest.suite "Platform-Specific Tests" {
+nixtestFinal.suite "Platform-Specific Tests" {
 
   # Core platform detection tests
-  platformDetectionTests = nixtest.suite "Platform Detection Core Tests" {
+  platformDetectionTests = nixtestFinal.suite "Platform Detection Core Tests" {
 
     # System string parsing
-    systemParsingTests = nixtest.suite "System String Parsing" {
-      darwinSystemParsing = nixtest.test "Parse Darwin system strings"
+    systemParsingTests = nixtestFinal.suite "System String Parsing" {
+      darwinSystemParsing = nixtestFinal.test "Parse Darwin system strings"
         (builtins.all
           (sys: platformDetection.isDarwin sys)
           testPlatforms.darwinSystems);
 
-      linuxSystemParsing = nixtest.test "Parse Linux system strings"
+      linuxSystemParsing = nixtestFinal.test "Parse Linux system strings"
         (builtins.all
           (sys: platformDetection.isLinux sys)
           testPlatforms.linuxSystems);
 
-      x86ArchParsing = nixtest.test "Parse x86_64 architecture strings"
+      x86ArchParsing = nixtestFinal.test "Parse x86_64 architecture strings"
         (builtins.all
           (sys: platformDetection.isX86_64 sys)
           testPlatforms.architectures.x86_64);
 
-      aarch64ArchParsing = nixtest.test "Parse aarch64 architecture strings"
+      aarch64ArchParsing = nixtestFinal.test "Parse aarch64 architecture strings"
         (builtins.all
           (sys: platformDetection.isAarch64 sys)
           testPlatforms.architectures.aarch64);
     };
 
     # Platform metadata extraction
-    platformMetadataTests = nixtest.suite "Platform Metadata Extraction" {
-      extractDarwinPlatform = nixtest.test "Extract Darwin platform name"
-        (nixtest.assertions.assertEqual "darwin"
+    platformMetadataTests = nixtestFinal.suite "Platform Metadata Extraction" {
+      extractDarwinPlatform = nixtestFinal.test "Extract Darwin platform name"
+        (nixtestFinal.assertions.assertEqual "darwin"
           (platformDetection.getPlatform "aarch64-darwin"));
 
-      extractLinuxPlatform = nixtest.test "Extract Linux platform name"
-        (nixtest.assertions.assertEqual "linux"
+      extractLinuxPlatform = nixtestFinal.test "Extract Linux platform name"
+        (nixtestFinal.assertions.assertEqual "linux"
           (platformDetection.getPlatform "x86_64-linux"));
 
-      extractX86Arch = nixtest.test "Extract x86_64 architecture"
-        (nixtest.assertions.assertEqual "x86_64"
+      extractX86Arch = nixtestFinal.test "Extract x86_64 architecture"
+        (nixtestFinal.assertions.assertEqual "x86_64"
           (platformDetection.getArch "x86_64-darwin"));
 
-      extractAarch64Arch = nixtest.test "Extract aarch64 architecture"
-        (nixtest.assertions.assertEqual "aarch64"
+      extractAarch64Arch = nixtestFinal.test "Extract aarch64 architecture"
+        (nixtestFinal.assertions.assertEqual "aarch64"
           (platformDetection.getArch "aarch64-linux"));
     };
 
     # Cross-platform utilities
-    crossPlatformTests = nixtest.suite "Cross-Platform Utilities" {
-      conditionalDarwinValue = nixtest.test "Conditional Darwin value selection"
+    crossPlatformTests = nixtestFinal.suite "Cross-Platform Utilities" {
+      conditionalDarwinValue = nixtestFinal.test "Conditional Darwin value selection"
         (
           let
             result = platformDetection.crossPlatform.whenDarwin "darwin-value";
             expected = if platformDetection.isDarwin system then "darwin-value" else null;
           in
-          nixtest.assertions.assertEqual expected result
+          nixtestFinal.assertions.assertEqual expected result
         );
 
-      conditionalLinuxValue = nixtest.test "Conditional Linux value selection"
+      conditionalLinuxValue = nixtestFinal.test "Conditional Linux value selection"
         (
           let
             result = platformDetection.crossPlatform.whenLinux "linux-value";
             expected = if platformDetection.isLinux system then "linux-value" else null;
           in
-          nixtest.assertions.assertEqual expected result
+          nixtestFinal.assertions.assertEqual expected result
         );
 
-      platformSpecificSelection = nixtest.test "Platform-specific value selection"
+      platformSpecificSelection = nixtestFinal.test "Platform-specific value selection"
         (
           let
             values = { darwin = "mac"; linux = "gnu"; default = "unknown"; };
             result = platformDetection.crossPlatform.platformSpecific values;
           in
-          nixtest.assertions.assertTrue (result != null)
+          nixtestFinal.assertions.assertTrue (result != null)
         );
 
-      archSpecificSelection = nixtest.test "Architecture-specific value selection"
+      archSpecificSelection = nixtestFinal.test "Architecture-specific value selection"
         (
           let
             values = { x86_64 = "intel"; aarch64 = "arm"; default = "unknown"; };
             result = platformDetection.crossPlatform.archSpecific values;
           in
-          nixtest.assertions.assertTrue (result != null)
+          nixtestFinal.assertions.assertTrue (result != null)
         );
     };
   };
 
   # Platform-specific module tests
-  platformModuleTests = nixtest.suite "Platform-Specific Module Tests" {
+  platformModuleTests = nixtestFinal.suite "Platform-Specific Module Tests" {
 
     # Darwin module tests
-    darwinModuleTests = nixtest.suite "Darwin Module Tests" {
-      darwinPackagesStructure = nixtest.test "Darwin packages module structure"
+    darwinModuleTests = nixtestFinal.suite "Darwin Module Tests" {
+      darwinPackagesStructure = nixtestFinal.test "Darwin packages module structure"
         (if platformDetection.isDarwin system
-        then nixtest.assertions.assertTrue (builtins.isAttrs darwinModules.packages)
-        else nixtest.assertions.assertTrue true); # Skip on non-Darwin
+        then nixtestFinal.assertions.assertTrue (builtins.isAttrs darwinModules.packages)
+        else nixtestFinal.assertions.assertTrue true); # Skip on non-Darwin
 
-      darwinHomeManagerStructure = nixtest.test "Darwin home-manager module structure"
+      darwinHomeManagerStructure = nixtestFinal.test "Darwin home-manager module structure"
         (if platformDetection.isDarwin system
-        then nixtest.assertions.assertTrue (builtins.isAttrs darwinModules.homeManager)
-        else nixtest.assertions.assertTrue true); # Skip on non-Darwin
+        then nixtestFinal.assertions.assertTrue (builtins.isAttrs darwinModules.homeManager)
+        else nixtestFinal.assertions.assertTrue true); # Skip on non-Darwin
 
-      darwinOnlyOnDarwin = nixtest.test "Darwin modules only loaded on Darwin"
+      darwinOnlyOnDarwin = nixtestFinal.test "Darwin modules only loaded on Darwin"
         (if platformDetection.isDarwin system
-        then nixtest.assertions.assertTrue (darwinModules.packages != null)
-        else nixtest.assertions.assertTrue true); # Should be mocked on non-Darwin
+        then nixtestFinal.assertions.assertTrue (darwinModules.packages != null)
+        else nixtestFinal.assertions.assertTrue true); # Should be mocked on non-Darwin
     };
 
     # NixOS module tests
-    nixosModuleTests = nixtest.suite "NixOS Module Tests" {
-      nixosPackagesStructure = nixtest.test "NixOS packages module structure"
+    nixosModuleTests = nixtestFinal.suite "NixOS Module Tests" {
+      nixosPackagesStructure = nixtestFinal.test "NixOS packages module structure"
         (if platformDetection.isLinux system
-        then nixtest.assertions.assertTrue (builtins.isAttrs nixosModules.packages)
-        else nixtest.assertions.assertTrue true); # Skip on non-Linux
+        then nixtestFinal.assertions.assertTrue (builtins.isAttrs nixosModules.packages)
+        else nixtestFinal.assertions.assertTrue true); # Skip on non-Linux
 
-      nixosHomeManagerStructure = nixtest.test "NixOS home-manager module structure"
+      nixosHomeManagerStructure = nixtestFinal.test "NixOS home-manager module structure"
         (if platformDetection.isLinux system
-        then nixtest.assertions.assertTrue (builtins.isAttrs nixosModules.homeManager)
-        else nixtest.assertions.assertTrue true); # Skip on non-Linux
+        then nixtestFinal.assertions.assertTrue (builtins.isAttrs nixosModules.homeManager)
+        else nixtestFinal.assertions.assertTrue true); # Skip on non-Linux
 
-      nixosOnlyOnLinux = nixtest.test "NixOS modules only loaded on Linux"
+      nixosOnlyOnLinux = nixtestFinal.test "NixOS modules only loaded on Linux"
         (if platformDetection.isLinux system
-        then nixtest.assertions.assertTrue (nixosModules.packages != null)
-        else nixtest.assertions.assertTrue true); # Should be mocked on non-Linux
+        then nixtestFinal.assertions.assertTrue (nixosModules.packages != null)
+        else nixtestFinal.assertions.assertTrue true); # Should be mocked on non-Linux
     };
 
     # Shared module tests
-    sharedModuleTests = nixtest.suite "Shared Module Tests" {
-      sharedPackagesStructure = nixtest.test "Shared packages module structure"
-        (nixtest.assertions.assertTrue (builtins.isAttrs sharedModules.packages));
+    sharedModuleTests = nixtestFinal.suite "Shared Module Tests" {
+      sharedPackagesStructure = nixtestFinal.test "Shared packages module structure"
+        (nixtestFinal.assertions.assertTrue (builtins.isAttrs sharedModules.packages));
 
-      sharedHomeManagerStructure = nixtest.test "Shared home-manager module structure"
-        (nixtest.assertions.assertTrue (builtins.isAttrs sharedModules.homeManager));
+      sharedHomeManagerStructure = nixtestFinal.test "Shared home-manager module structure"
+        (nixtestFinal.assertions.assertTrue (builtins.isAttrs sharedModules.homeManager));
 
-      sharedCrossPlatform = nixtest.test "Shared modules work cross-platform"
-        (nixtest.assertions.assertTrue
+      sharedCrossPlatform = nixtestFinal.test "Shared modules work cross-platform"
+        (nixtestFinal.assertions.assertTrue
           (sharedModules.packages != null && sharedModules.homeManager != null));
     };
   };
 
   # Cross-platform compatibility tests
-  compatibilityTests = nixtest.suite "Cross-Platform Compatibility Tests" {
+  compatibilityTests = nixtestFinal.suite "Cross-Platform Compatibility Tests" {
 
     # System validation across platforms
-    systemValidationTests = nixtest.suite "System Validation Tests" {
-      allSupportedSystemsValid = nixtest.test "All supported systems validate"
+    systemValidationTests = nixtestFinal.suite "System Validation Tests" {
+      allSupportedSystemsValid = nixtestFinal.test "All supported systems validate"
         (builtins.all
           (sys:
             let validated = platformDetection.validateSystem sys;
             in validated == sys)
           testPlatforms.supportedSystems);
 
-      darwinSystemsValidation = nixtest.test "Darwin systems validation"
+      darwinSystemsValidation = nixtestFinal.test "Darwin systems validation"
         (builtins.all
           (sys: platformDetection.validate.system sys)
           testPlatforms.darwinSystems);
 
-      linuxSystemsValidation = nixtest.test "Linux systems validation"
+      linuxSystemsValidation = nixtestFinal.test "Linux systems validation"
         (builtins.all
           (sys: platformDetection.validate.system sys)
           testPlatforms.linuxSystems);
     };
 
     # Platform isolation tests
-    platformIsolationTests = nixtest.suite "Platform Isolation Tests" {
-      darwinIsolation = nixtest.test "Darwin-specific code isolation"
+    platformIsolationTests = nixtestFinal.suite "Platform Isolation Tests" {
+      darwinIsolation = nixtestFinal.test "Darwin-specific code isolation"
         (if platformDetection.isDarwin system
-        then nixtest.assertions.assertTrue (darwinModules.packages != null)
-        else nixtest.assertions.assertTrue true); # Isolated on non-Darwin
+        then nixtestFinal.assertions.assertTrue (darwinModules.packages != null)
+        else nixtestFinal.assertions.assertTrue true); # Isolated on non-Darwin
 
-      linuxIsolation = nixtest.test "Linux-specific code isolation"
+      linuxIsolation = nixtestFinal.test "Linux-specific code isolation"
         (if platformDetection.isLinux system
-        then nixtest.assertions.assertTrue (nixosModules.packages != null)
-        else nixtest.assertions.assertTrue true); # Isolated on non-Linux
+        then nixtestFinal.assertions.assertTrue (nixosModules.packages != null)
+        else nixtestFinal.assertions.assertTrue true); # Isolated on non-Linux
 
-      sharedAccessibility = nixtest.test "Shared code accessible on all platforms"
-        (nixtest.assertions.assertTrue
+      sharedAccessibility = nixtestFinal.test "Shared code accessible on all platforms"
+        (nixtestFinal.assertions.assertTrue
           (sharedModules.packages != null && sharedModules.homeManager != null));
     };
 
     # Architecture compatibility
-    architectureCompatibilityTests = nixtest.suite "Architecture Compatibility Tests" {
-      x86CompatibilityDarwin = nixtest.test "x86_64 Darwin compatibility"
+    architectureCompatibilityTests = nixtestFinal.suite "Architecture Compatibility Tests" {
+      x86CompatibilityDarwin = nixtestFinal.test "x86_64 Darwin compatibility"
         (
           let
             sys = "x86_64-darwin";
             isValid = platformDetection.isDarwin sys && platformDetection.isX86_64 sys;
           in
-          nixtest.assertions.assertTrue isValid
+          nixtestFinal.assertions.assertTrue isValid
         );
 
-      aarch64CompatibilityDarwin = nixtest.test "aarch64 Darwin compatibility"
+      aarch64CompatibilityDarwin = nixtestFinal.test "aarch64 Darwin compatibility"
         (
           let
             sys = "aarch64-darwin";
             isValid = platformDetection.isDarwin sys && platformDetection.isAarch64 sys;
           in
-          nixtest.assertions.assertTrue isValid
+          nixtestFinal.assertions.assertTrue isValid
         );
 
-      x86CompatibilityLinux = nixtest.test "x86_64 Linux compatibility"
+      x86CompatibilityLinux = nixtestFinal.test "x86_64 Linux compatibility"
         (
           let
             sys = "x86_64-linux";
             isValid = platformDetection.isLinux sys && platformDetection.isX86_64 sys;
           in
-          nixtest.assertions.assertTrue isValid
+          nixtestFinal.assertions.assertTrue isValid
         );
 
-      aarch64CompatibilityLinux = nixtest.test "aarch64 Linux compatibility"
+      aarch64CompatibilityLinux = nixtestFinal.test "aarch64 Linux compatibility"
         (
           let
             sys = "aarch64-linux";
             isValid = platformDetection.isLinux sys && platformDetection.isAarch64 sys;
           in
-          nixtest.assertions.assertTrue isValid
+          nixtestFinal.assertions.assertTrue isValid
         );
     };
   };
 
   # Platform feature tests
-  platformFeatureTests = nixtest.suite "Platform Feature Tests" {
+  platformFeatureTests = nixtestFinal.suite "Platform Feature Tests" {
 
     # Darwin-specific features
-    darwinFeatureTests = nixtest.suite "Darwin Feature Tests" {
-      darwinSystemDetection = nixtest.test "Current system Darwin detection"
+    darwinFeatureTests = nixtestFinal.suite "Darwin Feature Tests" {
+      darwinSystemDetection = nixtestFinal.test "Current system Darwin detection"
         (if builtins.match ".*-darwin" system != null
-        then nixtest.assertions.assertTrue (platformDetection.info.isDarwin)
-        else nixtest.assertions.assertFalse (platformDetection.info.isDarwin));
+        then nixtestFinal.assertions.assertTrue (platformDetection.info.isDarwin)
+        else nixtestFinal.assertions.assertFalse (platformDetection.info.isDarwin));
 
-      darwinPlatformInfo = nixtest.test "Darwin platform info structure"
+      darwinPlatformInfo = nixtestFinal.test "Darwin platform info structure"
         (if platformDetection.info.isDarwin
-        then nixtest.assertions.assertEqual "darwin" platformDetection.info.platform
-        else nixtest.assertions.assertTrue true);
+        then nixtestFinal.assertions.assertEqual "darwin" platformDetection.info.platform
+        else nixtestFinal.assertions.assertTrue true);
     };
 
     # Linux-specific features
-    linuxFeatureTests = nixtest.suite "Linux Feature Tests" {
-      linuxSystemDetection = nixtest.test "Current system Linux detection"
+    linuxFeatureTests = nixtestFinal.suite "Linux Feature Tests" {
+      linuxSystemDetection = nixtestFinal.test "Current system Linux detection"
         (if builtins.match ".*-linux" system != null
-        then nixtest.assertions.assertTrue (platformDetection.info.isLinux)
-        else nixtest.assertions.assertFalse (platformDetection.info.isLinux));
+        then nixtestFinal.assertions.assertTrue (platformDetection.info.isLinux)
+        else nixtestFinal.assertions.assertFalse (platformDetection.info.isLinux));
 
-      linuxPlatformInfo = nixtest.test "Linux platform info structure"
+      linuxPlatformInfo = nixtestFinal.test "Linux platform info structure"
         (if platformDetection.info.isLinux
-        then nixtest.assertions.assertEqual "linux" platformDetection.info.platform
-        else nixtest.assertions.assertTrue true);
+        then nixtestFinal.assertions.assertEqual "linux" platformDetection.info.platform
+        else nixtestFinal.assertions.assertTrue true);
     };
 
     # Architecture features
-    architectureFeatureTests = nixtest.suite "Architecture Feature Tests" {
-      currentArchDetection = nixtest.test "Current architecture detection"
-        (nixtest.assertions.assertTrue
+    architectureFeatureTests = nixtestFinal.suite "Architecture Feature Tests" {
+      currentArchDetection = nixtestFinal.test "Current architecture detection"
+        (nixtestFinal.assertions.assertTrue
           (platformDetection.info.arch == "x86_64" || platformDetection.info.arch == "aarch64"));
 
-      supportedArchCheck = nixtest.test "Architecture in supported list"
-        (nixtest.assertions.assertContains
+      supportedArchCheck = nixtestFinal.test "Architecture in supported list"
+        (nixtestFinal.assertions.assertContains
           platformDetection.info.arch
           platformDetection.supportedArchitectures);
     };
   };
 
   # Error handling for platform edge cases
-  platformErrorHandlingTests = nixtest.suite "Platform Error Handling Tests" {
+  platformErrorHandlingTests = nixtestFinal.suite "Platform Error Handling Tests" {
 
     # Invalid system handling
-    invalidSystemTests = nixtest.suite "Invalid System Handling" {
-      invalidSystemError = nixtest.test "Invalid system string throws error"
-        (nixtest.assertions.assertThrows
+    invalidSystemTests = nixtestFinal.suite "Invalid System Handling" {
+      invalidSystemError = nixtestFinal.test "Invalid system string throws error"
+        (nixtestFinal.assertions.assertThrows
           (platformDetection.validateSystem "invalid-system"));
 
-      emptySystemError = nixtest.test "Empty system string throws error"
-        (nixtest.assertions.assertThrows
+      emptySystemError = nixtestFinal.test "Empty system string throws error"
+        (nixtestFinal.assertions.assertThrows
           (platformDetection.validateSystem ""));
 
-      nullSystemError = nixtest.test "Null system handling"
-        (nixtest.assertions.assertThrows
+      nullSystemError = nixtestFinal.test "Null system handling"
+        (nixtestFinal.assertions.assertThrows
           (platformDetection.getPlatform null));
     };
 
     # Unsupported platform handling
-    unsupportedPlatformTests = nixtest.suite "Unsupported Platform Handling" {
-      windowsSystemError = nixtest.test "Windows system not supported"
-        (nixtest.assertions.assertThrows
+    unsupportedPlatformTests = nixtestFinal.suite "Unsupported Platform Handling" {
+      windowsSystemError = nixtestFinal.test "Windows system not supported"
+        (nixtestFinal.assertions.assertThrows
           (platformDetection.getPlatform "x86_64-windows"));
 
-      unknownArchError = nixtest.test "Unknown architecture not supported"
-        (nixtest.assertions.assertThrows
+      unknownArchError = nixtestFinal.test "Unknown architecture not supported"
+        (nixtestFinal.assertions.assertThrows
           (platformDetection.getArch "unknown-arch-linux"));
     };
 
     # Cross-platform error handling
-    crossPlatformErrorTests = nixtest.suite "Cross-Platform Error Handling" {
-      missingDefaultError = nixtest.test "Missing default value throws error"
+    crossPlatformErrorTests = nixtestFinal.suite "Cross-Platform Error Handling" {
+      missingDefaultError = nixtestFinal.test "Missing default value throws error"
         (
           let
             values = { someOtherPlatform = "value"; };
           in
-          nixtest.assertions.assertThrows
+          nixtestFinal.assertions.assertThrows
             (platformDetection.crossPlatform.platformSpecific values)
         );
 
-      invalidValueStructureError = nixtest.test "Invalid value structure handling"
-        (nixtest.assertions.assertThrows
+      invalidValueStructureError = nixtestFinal.test "Invalid value structure handling"
+        (nixtestFinal.assertions.assertThrows
           (platformDetection.crossPlatform.platformSpecific "not-an-attrset"));
     };
   };
 
   # Performance tests for platform detection
-  platformPerformanceTests = nixtest.suite "Platform Performance Tests" {
+  platformPerformanceTests = nixtestFinal.suite "Platform Performance Tests" {
 
     # Caching efficiency
-    cachingTests = nixtest.suite "Platform Detection Caching" {
-      repeatedDetectionConsistency = nixtest.test "Repeated detection consistency"
+    cachingTests = nixtestFinal.suite "Platform Detection Caching" {
+      repeatedDetectionConsistency = nixtestFinal.test "Repeated detection consistency"
         (
           let
             result1 = platformDetection.isDarwin system;
             result2 = platformDetection.isDarwin system;
           in
-          nixtest.assertions.assertEqual result1 result2
+          nixtestFinal.assertions.assertEqual result1 result2
         );
 
-      platformInfoCaching = nixtest.test "Platform info caching works"
+      platformInfoCaching = nixtestFinal.test "Platform info caching works"
         (
           let
             info1 = platformDetection.info.platform;
             info2 = platformDetection.info.platform;
           in
-          nixtest.assertions.assertEqual info1 info2
+          nixtestFinal.assertions.assertEqual info1 info2
         );
     };
 
     # Bulk operations
-    bulkOperationTests = nixtest.suite "Bulk Platform Operations" {
-      bulkSystemValidation = nixtest.test "Bulk system validation performance"
+    bulkOperationTests = nixtestFinal.suite "Bulk Platform Operations" {
+      bulkSystemValidation = nixtestFinal.test "Bulk system validation performance"
         (
           let
             results = map platformDetection.validateSystem testPlatforms.supportedSystems;
           in
-          nixtest.assertions.assertEqual
+          nixtestFinal.assertions.assertEqual
             (builtins.length testPlatforms.supportedSystems)
             (builtins.length results)
         );
 
-      bulkPlatformExtraction = nixtest.test "Bulk platform extraction performance"
+      bulkPlatformExtraction = nixtestFinal.test "Bulk platform extraction performance"
         (
           let
             platforms = map platformDetection.getPlatform testPlatforms.supportedSystems;
             expectedCount = builtins.length testPlatforms.supportedSystems;
           in
-          nixtest.assertions.assertEqual expectedCount (builtins.length platforms)
+          nixtestFinal.assertions.assertEqual expectedCount (builtins.length platforms)
         );
     };
   };

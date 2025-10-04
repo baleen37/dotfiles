@@ -144,7 +144,7 @@ in
         manual.manpages.enable = false;
 
         # Enhanced Nix application linking with performance optimizations
-        home.activation = sharedConfig.home.activation // {
+        home.activation = {
           linkNixApps = ''
             echo "🔗 Optimizing Nix application integration..."
 

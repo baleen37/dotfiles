@@ -5,13 +5,15 @@
 { lib ? import <nixpkgs/lib>
 , pkgs ? import <nixpkgs> { }
 , system ? builtins.currentSystem
-,
+, nixtest ? null
+, testHelpers ? null
+, self ? null
 }:
 
 let
-  # Import NixTest framework and helpers
-  nixtest = (import ../unit/nixtest-template.nix { inherit lib pkgs; }).nixtest;
-  testHelpers = import ../unit/test-helpers.nix { inherit lib pkgs; };
+  # Use provided NixTest framework and helpers (or fallback to local imports)
+  nixtestFinal = if nixtest != null then nixtest else (import ../unit/nixtest-template.nix { inherit lib pkgs; }).nixtest;
+  testHelpersFinal = if testHelpers != null then testHelpers else import ../unit/test-helpers.nix { inherit lib pkgs; };
 
   # Import platform-specific libraries
   platformSystem = import ../../lib/platform-system.nix { inherit lib pkgs system; };
@@ -84,12 +86,12 @@ let
     if result.success then result.value else null;
 
 in
-nixtest.suite "Cross-Platform Integration Tests" {
+nixtestFinal.suite "Cross-Platform Integration Tests" {
 
   # Platform Detection Cross-Platform Tests
-  platformDetectionTests = nixtest.suite "Platform Detection Cross-Platform" {
+  platformDetectionTests = nixtestFinal.suite "Platform Detection Cross-Platform" {
 
-    allPlatformsSupported = nixtest.test "All target platforms are supported" (
+    allPlatformsSupported = nixtestFinal.test "All target platforms are supported" (
       let
         supportedPlatforms = platformDetection.supportedPlatforms;
         allSupported = builtins.all (platform: builtins.elem platform supportedPlatforms) [
@@ -97,26 +99,26 @@ nixtest.suite "Cross-Platform Integration Tests" {
           "linux"
         ];
       in
-      nixtest.assertions.assertTrue allSupported
+      nixtestFinal.assertions.assertTrue allSupported
     );
 
-    darwinSystemDetection = nixtest.test "Darwin systems detected correctly" (
+    darwinSystemDetection = nixtestFinal.test "Darwin systems detected correctly" (
       let
         darwinSystems = testPlatforms.darwin;
         allDarwinDetected = builtins.all platformDetection.isDarwin darwinSystems;
       in
-      nixtest.assertions.assertTrue allDarwinDetected
+      nixtestFinal.assertions.assertTrue allDarwinDetected
     );
 
-    linuxSystemDetection = nixtest.test "Linux systems detected correctly" (
+    linuxSystemDetection = nixtestFinal.test "Linux systems detected correctly" (
       let
         linuxSystems = testPlatforms.linux;
         allLinuxDetected = builtins.all platformDetection.isLinux linuxSystems;
       in
-      nixtest.assertions.assertTrue allLinuxDetected
+      nixtestFinal.assertions.assertTrue allLinuxDetected
     );
 
-    architectureDetection = nixtest.test "Architectures detected correctly" (
+    architectureDetection = nixtestFinal.test "Architectures detected correctly" (
       let
         x86Systems = [
           "x86_64-darwin"
@@ -129,10 +131,10 @@ nixtest.suite "Cross-Platform Integration Tests" {
         x86Detected = builtins.all platformDetection.isX86_64 x86Systems;
         armDetected = builtins.all platformDetection.isAarch64 armSystems;
       in
-      nixtest.assertions.assertTrue (x86Detected && armDetected)
+      nixtestFinal.assertions.assertTrue (x86Detected && armDetected)
     );
 
-    platformExtractionConsistency = nixtest.test "Platform extraction is consistent" (
+    platformExtractionConsistency = nixtestFinal.test "Platform extraction is consistent" (
       let
         testPlatform =
           platform:
@@ -144,10 +146,10 @@ nixtest.suite "Cross-Platform Integration Tests" {
 
         allConsistent = builtins.all testPlatform testPlatforms.all;
       in
-      nixtest.assertions.assertTrue allConsistent
+      nixtestFinal.assertions.assertTrue allConsistent
     );
 
-    architectureExtractionConsistency = nixtest.test "Architecture extraction is consistent" (
+    architectureExtractionConsistency = nixtestFinal.test "Architecture extraction is consistent" (
       let
         testArch =
           platform:
@@ -159,14 +161,14 @@ nixtest.suite "Cross-Platform Integration Tests" {
 
         allConsistent = builtins.all testArch testPlatforms.all;
       in
-      nixtest.assertions.assertTrue allConsistent
+      nixtestFinal.assertions.assertTrue allConsistent
     );
   };
 
   # Cross-Platform System Configuration Tests
-  systemConfigurationTests = nixtest.suite "Cross-Platform System Configuration" {
+  systemConfigurationTests = nixtestFinal.suite "Cross-Platform System Configuration" {
 
-    homeDirectoryPlatformSpecific = nixtest.test "Home directories are platform-specific" (
+    homeDirectoryPlatformSpecific = nixtestFinal.test "Home directories are platform-specific" (
       let
         testHomeDir =
           platform:
@@ -178,10 +180,10 @@ nixtest.suite "Cross-Platform Integration Tests" {
 
         allCorrect = builtins.all testHomeDir testPlatforms.all;
       in
-      nixtest.assertions.assertTrue allCorrect
+      nixtestFinal.assertions.assertTrue allCorrect
     );
 
-    packageManagerSelection = nixtest.test "Package managers are platform-appropriate" (
+    packageManagerSelection = nixtestFinal.test "Package managers are platform-appropriate" (
       let
         testPackageManager =
           platform:
@@ -193,10 +195,10 @@ nixtest.suite "Cross-Platform Integration Tests" {
 
         allCorrect = builtins.all testPackageManager testPlatforms.all;
       in
-      nixtest.assertions.assertTrue allCorrect
+      nixtestFinal.assertions.assertTrue allCorrect
     );
 
-    platformConfigurationValidity = nixtest.test "Platform configurations are valid" (
+    platformConfigurationValidity = nixtestFinal.test "Platform configurations are valid" (
       let
         testConfig =
           platform:
@@ -209,14 +211,14 @@ nixtest.suite "Cross-Platform Integration Tests" {
 
         allValid = builtins.all testConfig testPlatforms.all;
       in
-      nixtest.assertions.assertTrue allValid
+      nixtestFinal.assertions.assertTrue allValid
     );
   };
 
   # Cross-Platform Module Compatibility Tests
-  moduleCompatibilityTests = nixtest.suite "Cross-Platform Module Compatibility" {
+  moduleCompatibilityTests = nixtestFinal.suite "Cross-Platform Module Compatibility" {
 
-    sharedModulesLoadOnAllPlatforms = nixtest.test "Shared modules load on all platforms" (
+    sharedModulesLoadOnAllPlatforms = nixtestFinal.test "Shared modules load on all platforms" (
       let
         testSharedModule =
           platform:
@@ -232,10 +234,10 @@ nixtest.suite "Cross-Platform Integration Tests" {
 
         allPlatformsWork = builtins.all testSharedModule testPlatforms.all;
       in
-      nixtest.assertions.assertTrue allPlatformsWork
+      nixtestFinal.assertions.assertTrue allPlatformsWork
     );
 
-    platformSpecificModulesLoad = nixtest.test "Platform-specific modules load correctly" (
+    platformSpecificModulesLoad = nixtestFinal.test "Platform-specific modules load correctly" (
       let
         testPlatformModule =
           platform:
@@ -255,10 +257,10 @@ nixtest.suite "Cross-Platform Integration Tests" {
 
         allPlatformsWork = builtins.all testPlatformModule testPlatforms.all;
       in
-      nixtest.assertions.assertTrue allPlatformsWork
+      nixtestFinal.assertions.assertTrue allPlatformsWork
     );
 
-    homeManagerCompatibility = nixtest.test "Home Manager modules are cross-platform compatible" (
+    homeManagerCompatibility = nixtestFinal.test "Home Manager modules are cross-platform compatible" (
       let
         testHomeManagerModule =
           platform:
@@ -279,10 +281,10 @@ nixtest.suite "Cross-Platform Integration Tests" {
 
         allCompatible = builtins.all testHomeManagerModule testPlatforms.all;
       in
-      nixtest.assertions.assertTrue allCompatible
+      nixtestFinal.assertions.assertTrue allCompatible
     );
 
-    packageModuleCompatibility = nixtest.test "Package modules work across platforms" (
+    packageModuleCompatibility = nixtestFinal.test "Package modules work across platforms" (
       let
         testPackageModule =
           platform:
@@ -303,14 +305,14 @@ nixtest.suite "Cross-Platform Integration Tests" {
 
         allCompatible = builtins.all testPackageModule testPlatforms.all;
       in
-      nixtest.assertions.assertTrue allCompatible
+      nixtestFinal.assertions.assertTrue allCompatible
     );
   };
 
   # Cross-Platform Library Function Tests
-  libraryCompatibilityTests = nixtest.suite "Cross-Platform Library Compatibility" {
+  libraryCompatibilityTests = nixtestFinal.suite "Cross-Platform Library Compatibility" {
 
-    platformSystemLibrary = nixtest.test "Platform system library works on all platforms" (
+    platformSystemLibrary = nixtestFinal.test "Platform system library works on all platforms" (
       let
         testPlatformLib =
           platform:
@@ -326,10 +328,10 @@ nixtest.suite "Cross-Platform Integration Tests" {
 
         allWork = builtins.all testPlatformLib testPlatforms.all;
       in
-      nixtest.assertions.assertTrue allWork
+      nixtestFinal.assertions.assertTrue allWork
     );
 
-    utilsSystemLibrary = nixtest.test "Utils system library works across platforms" (
+    utilsSystemLibrary = nixtestFinal.test "Utils system library works across platforms" (
       let
         utilsSystem = import ../../lib/utils-system.nix { inherit lib pkgs; };
 
@@ -347,10 +349,10 @@ nixtest.suite "Cross-Platform Integration Tests" {
 
         allWork = builtins.all testUtilsLib testPlatforms.all;
       in
-      nixtest.assertions.assertTrue allWork
+      nixtestFinal.assertions.assertTrue allWork
     );
 
-    errorSystemLibrary = nixtest.test "Error system library works across platforms" (
+    errorSystemLibrary = nixtestFinal.test "Error system library works across platforms" (
       let
         testErrorLib =
           platform:
@@ -365,14 +367,14 @@ nixtest.suite "Cross-Platform Integration Tests" {
 
         allWork = builtins.all testErrorLib testPlatforms.all;
       in
-      nixtest.assertions.assertTrue allWork
+      nixtestFinal.assertions.assertTrue allWork
     );
   };
 
   # Cross-Platform Flake Configuration Tests
-  flakeConfigurationTests = nixtest.suite "Cross-Platform Flake Configuration" {
+  flakeConfigurationTests = nixtestFinal.suite "Cross-Platform Flake Configuration" {
 
-    flakeArchitecturesComplete = nixtest.test "Flake supports all target architectures" (
+    flakeArchitecturesComplete = nixtestFinal.test "Flake supports all target architectures" (
       let
         inherit (flakeConfig.systemArchitectures) linux darwin all;
         expectedPlatforms = testPlatforms.all;
@@ -380,10 +382,10 @@ nixtest.suite "Cross-Platform Integration Tests" {
 
         allSupported = builtins.all (platform: builtins.elem platform actualPlatforms) expectedPlatforms;
       in
-      nixtest.assertions.assertTrue allSupported
+      nixtestFinal.assertions.assertTrue allSupported
     );
 
-    platformUtilsWork = nixtest.test "Platform utilities work for all systems" (
+    platformUtilsWork = nixtestFinal.test "Platform utilities work for all systems" (
       let
         utils = flakeConfig.utils pkgs.lib;
 
@@ -399,10 +401,10 @@ nixtest.suite "Cross-Platform Integration Tests" {
 
         allWork = builtins.all testUtils testPlatforms.all;
       in
-      nixtest.assertions.assertTrue allWork
+      nixtestFinal.assertions.assertTrue allWork
     );
 
-    systemArchitectureConsistency = nixtest.test "System architectures are consistent" (
+    systemArchitectureConsistency = nixtestFinal.test "System architectures are consistent" (
       let
         inherit (flakeConfig.systemArchitectures) linux darwin;
 
@@ -410,14 +412,14 @@ nixtest.suite "Cross-Platform Integration Tests" {
         darwinCorrect = builtins.all (sys: lib.strings.hasSuffix "darwin" sys) darwin;
         linuxCorrect = builtins.all (sys: lib.strings.hasSuffix "linux" sys) linux;
       in
-      nixtest.assertions.assertTrue (darwinCorrect && linuxCorrect)
+      nixtestFinal.assertions.assertTrue (darwinCorrect && linuxCorrect)
     );
   };
 
   # Cross-Platform Integration Edge Cases
-  edgeCaseTests = nixtest.suite "Cross-Platform Edge Cases" {
+  edgeCaseTests = nixtestFinal.suite "Cross-Platform Edge Cases" {
 
-    mixedArchitectureSupport = nixtest.test "Mixed architecture environments handled" (
+    mixedArchitectureSupport = nixtestFinal.test "Mixed architecture environments handled" (
       let
         # Test scenarios where different architectures might interact
         testMixedArch =
@@ -439,10 +441,10 @@ nixtest.suite "Cross-Platform Integration Tests" {
 
         allHandled = builtins.all testMixedArch testPlatforms.all;
       in
-      nixtest.assertions.assertTrue allHandled
+      nixtestFinal.assertions.assertTrue allHandled
     );
 
-    unsupportedPlatformHandling = nixtest.test "Unsupported platforms handled gracefully" (
+    unsupportedPlatformHandling = nixtestFinal.test "Unsupported platforms handled gracefully" (
       let
         unsupportedSystems = [
           "invalid-system"
@@ -459,10 +461,10 @@ nixtest.suite "Cross-Platform Integration Tests" {
 
         allHandled = builtins.all testUnsupported unsupportedSystems;
       in
-      nixtest.assertions.assertTrue allHandled
+      nixtestFinal.assertions.assertTrue allHandled
     );
 
-    emptyConfigurationHandling = nixtest.test "Empty configurations handled properly" (
+    emptyConfigurationHandling = nixtestFinal.test "Empty configurations handled properly" (
       let
         testEmptyConfig =
           platform:
@@ -477,14 +479,14 @@ nixtest.suite "Cross-Platform Integration Tests" {
 
         allHandled = builtins.all testEmptyConfig testPlatforms.all;
       in
-      nixtest.assertions.assertTrue allHandled
+      nixtestFinal.assertions.assertTrue allHandled
     );
   };
 
   # Cross-Platform Performance Tests
-  performanceTests = nixtest.suite "Cross-Platform Performance" {
+  performanceTests = nixtestFinal.suite "Cross-Platform Performance" {
 
-    platformDetectionPerformance = nixtest.test "Platform detection is fast on all platforms" (
+    platformDetectionPerformance = nixtestFinal.test "Platform detection is fast on all platforms" (
       let
         testPerformance =
           platform:
@@ -503,10 +505,10 @@ nixtest.suite "Cross-Platform Integration Tests" {
 
         allFast = builtins.all testPerformance testPlatforms.all;
       in
-      nixtest.assertions.assertTrue allFast
+      nixtestFinal.assertions.assertTrue allFast
     );
 
-    moduleLoadingPerformance = nixtest.test "Module loading is fast across platforms" (
+    moduleLoadingPerformance = nixtestFinal.test "Module loading is fast across platforms" (
       let
         testModuleLoading =
           platform:
@@ -525,7 +527,7 @@ nixtest.suite "Cross-Platform Integration Tests" {
 
         allFast = builtins.all testModuleLoading testPlatforms.all;
       in
-      nixtest.assertions.assertTrue allFast
+      nixtestFinal.assertions.assertTrue allFast
     );
   };
 }

@@ -199,6 +199,11 @@
         }
       );
 
+      # Import testing infrastructure
+      tests = (import ./lib/testing.nix { inherit inputs forAllSystems self; }).tests;
+
+      # Import performance benchmarks
+      performance-benchmarks = (import ./lib/testing.nix { inherit inputs forAllSystems self; }).performance-benchmarks;
 
     };
 }
