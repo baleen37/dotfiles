@@ -110,6 +110,9 @@
             ] ++ lib.optionals (nix-unit.packages ? ${system}) [
               nix-unit.packages.${system}.default
             ];
+          };
+        }
+      );
 
             shellHook = ''
               echo "🚀 Development environment loaded"
