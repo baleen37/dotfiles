@@ -74,11 +74,11 @@ Professional Nix dotfiles system supporting:
 3. **Host Configurations** (`hosts/`): Individual machine definitions
 4. **Library Functions** (`lib/`): Reusable Nix utilities
 
-## Current Development: CI/CD Infrastructure Enhancement
+## Current Development: Build-Switch Testing Implementation
 
 **Status**: Active development
 **Branch**: feature/tests-modernization
-**Goal**: Comprehensive CI/CD improvements for robust deployment validation
+**Goal**: Platform-specific build validation and deployment safety
 
 ### Current Focus
 
@@ -95,7 +95,7 @@ Professional Nix dotfiles system supporting:
    - Linux ARM64 (Ubuntu)
    - Linux x64 (Ubuntu)
 
-2. **Makefile Enhancement**: New `build-switch-dry` target for safe CI testing
+2. **Makefile Addition**: New `build-switch-dry` target for safe CI testing
 3. **CI Integration**: Comprehensive status reporting with build-switch results
 4. **Conflict Resolution**: Fixed linux-builder configuration for Determinate Nix compatibility
 
