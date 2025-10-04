@@ -71,9 +71,9 @@ jobs:
           nix flake check --impure --no-build --all-systems
       - name: Quick test framework validation
         run: "export USER=${USER:-ci}\necho \"\U0001F9EA Validating NixTest framework\"\nnix build --impure .#framework-check --verbose\necho \"✅ Test framework validation passed\"\n"
-  # Build stage with cache creation (4 minutes)
-  build:
-    name: Build ${{ matrix.name }}
+  # Build and switch combined (faster, simpler)
+  build-switch:
+    name: Build+Switch ${{ matrix.name }}
     needs: validate
     if: (github.event.pull_request.draft != true) || (github.ref == 'refs/heads/main')
     strategy:
@@ -105,7 +105,6 @@ jobs:
             sudo rm -rf /nix 2>/dev/null || true
           fi
           sudo rm -f /etc/synthetic.conf /Library/LaunchDaemons/org.nixos.* 2>/dev/null || true
-          sudo rm -rf /etc/nix 2>/dev/null || true
           echo "nix" | sudo tee /etc/synthetic.conf > /dev/null 2>&1 || true
           sync
           sleep 2
@@ -117,7 +116,7 @@ jobs:
           nix_path: nixpkgs=channel:nixos-unstable
           install_url: https://releases.nixos.org/nix/nix-2.18.8/install
           enable_kvm: true
-      # Unified cache with save strategy
+      # Cache strategy
       - name: Cache Nix store
         uses: actions/cache@v4
         with:
@@ -125,18 +124,16 @@ jobs:
             /nix/store
             ~/.cache/nix
             ~/.local/state/nix
-          key: nix-build-${{ runner.os }}-${{ hashFiles('flake.lock', 'flake.nix') }}
+          key: nix-${{ runner.os }}-${{ hashFiles('flake.lock', 'flake.nix') }}
           restore-keys: |
-            nix-build-${{ runner.os }}-
-          save-always: true
-      - name: Build configuration
+            nix-${{ runner.os }}-
+      - name: Build and test switch
         timeout-minutes: 60
         run: |
           export USER=${USER:-ci}
           echo "🏗️ Building ${{ matrix.name }} (${{ matrix.system }})"
 
           # Wait for Nix daemon
-          echo "⏳ Waiting for Nix daemon..."
           max_attempts=30
           attempt=0
           while ! nix --version >/dev/null 2>&1; do
@@ -152,107 +149,20 @@ jobs:
           # Build configuration
           case "${{ matrix.system }}" in
             *darwin*)
+              echo "Building Darwin configuration..."
               nix build --impure --no-link .#darwinConfigurations.${{ matrix.system }}.system
+
+              echo "🧪 Testing build-switch..."
+              export HOST="${{ matrix.system }}"
+              make build-switch-dry HOST=$HOST
               ;;
             *linux*)
-              # Validate only (full build has kernel module issues)
+              echo "Validating Linux configuration..."
               nix eval --impure .#nixosConfigurations.${{ matrix.system }}.config.system.name --json
               ;;
           esac
 
-          echo "✅ Build completed for ${{ matrix.name }}"
-      # Upload build artifacts for switch job
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-${{ matrix.system }}
-          path: result
-          retention-days: 1
-
-  # Switch stage - reuses build cache (2 minutes, 50% faster)
-  # Only Darwin - Linux uses validation only without artifacts
-  switch:
-    name: Switch ${{ matrix.name }}
-    needs: build
-    if: (github.event.pull_request.draft != true) || (github.ref == 'refs/heads/main')
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: Darwin
-            system: aarch64-darwin
-            os: macos-15
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
-      - name: Clean existing Nix installation (macOS)
-        if: runner.os == 'macOS'
-        continue-on-error: true
-        run: |
-          echo "🧹 Cleaning existing Nix installation..."
-          set +e
-          sudo launchctl stop org.nixos.nix-daemon 2>/dev/null || true
-          sudo launchctl unload /Library/LaunchDaemons/org.nixos.nix-daemon.plist 2>/dev/null || true
-          if mount | grep -q "/nix"; then
-            sudo umount /nix 2>/dev/null || true
-          fi
-          if [[ -d "/nix" ]]; then
-            sudo rm -rf /nix 2>/dev/null || true
-          fi
-          sudo rm -f /etc/synthetic.conf /Library/LaunchDaemons/org.nixos.* 2>/dev/null || true
-          echo "nix" | sudo tee /etc/synthetic.conf > /dev/null 2>&1 || true
-          sync
-          sleep 2
-          echo "✅ macOS cleanup completed"
-          set -e
-      - name: Install Nix
-        uses: cachix/install-nix-action@v27
-        with:
-          nix_path: nixpkgs=channel:nixos-unstable
-          install_url: https://releases.nixos.org/nix/nix-2.18.8/install
-          enable_kvm: true
-      # Restore cache from build job (read-only)
-      - name: Restore Nix cache
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            /nix/store
-            ~/.cache/nix
-            ~/.local/state/nix
-          key: nix-build-${{ runner.os }}-${{ hashFiles('flake.lock', 'flake.nix') }}
-          restore-keys: |
-            nix-build-${{ runner.os }}-
-      # Download build artifacts
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build-${{ matrix.system }}
-      - name: Test build-switch (dry-run)
-        timeout-minutes: 30
-        run: |
-          export USER=${USER:-ci}
-          echo "🧪 Testing build-switch for ${{ matrix.name }} (${{ matrix.system }})"
-
-          # Wait for Nix daemon
-          echo "⏳ Waiting for Nix daemon..."
-          max_attempts=30
-          attempt=0
-          while ! nix --version >/dev/null 2>&1; do
-            attempt=$((attempt + 1))
-            if [[ $attempt -ge $max_attempts ]]; then
-              echo "❌ Nix daemon failed to start"
-              exit 1
-            fi
-            sleep 5
-          done
-          echo "✅ Nix daemon ready"
-
-          # Run build-switch dry-run
-          export HOST="${{ matrix.system }}"
-          echo "Running: make build-switch-dry HOST=$HOST"
-          make build-switch-dry HOST=$HOST
-
-          echo "✅ build-switch test completed for ${{ matrix.name }}"
+          echo "✅ Build and switch completed for ${{ matrix.name }}"
   # Test stage - Linux-first with minimal Darwin (3 minutes)
   test:
     name: Test ${{ matrix.category }}
@@ -316,7 +226,7 @@ jobs:
   # CI completion and status reporting
   ci-complete:
     name: CI Summary
-    needs: [validate, build, switch, test]
+    needs: [validate, build-switch, test]
     runs-on: ubuntu-latest
     if: always() && !cancelled()
     steps:
@@ -324,17 +234,16 @@ jobs:
         id: status
         run: |
           validate="${{ needs.validate.result }}"
-          build="${{ needs.build.result }}"
-          switch="${{ needs.switch.result }}"
+          build_switch="${{ needs.build-switch.result }}"
           test="${{ needs.test.result }}"
 
           # All jobs must succeed
-          if [[ "$validate" == "success" && "$build" == "success" && "$switch" == "success" && "$test" == "success" ]]; then
+          if [[ "$validate" == "success" && "$build_switch" == "success" && "$test" == "success" ]]; then
             echo "status=success" >> $GITHUB_OUTPUT
             echo "message=All CI checks passed" >> $GITHUB_OUTPUT
           else
             echo "status=failed" >> $GITHUB_OUTPUT
-            echo "message=CI failed - validate:$validate build:$build switch:$switch test:$test" >> $GITHUB_OUTPUT
+            echo "message=CI failed - validate:$validate build-switch:$build_switch test:$test" >> $GITHUB_OUTPUT
           fi
       - name: Report status
         uses: actions/github-script@v7
