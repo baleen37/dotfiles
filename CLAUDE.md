@@ -74,33 +74,30 @@ Professional Nix dotfiles system supporting:
 3. **Host Configurations** (`hosts/`): Individual machine definitions
 4. **Library Functions** (`lib/`): Reusable Nix utilities
 
-## Current Development: Nix Best Practices Refactoring
+## Current Development: CI/CD Infrastructure Enhancement
 
-**Status**: Architecture planning phase  
-**Branch**: feature/tests-modernization  
-**Goal**: Apply dustinlyons/nixos-config best practices while preserving advanced features
+**Status**: Active development
+**Branch**: feature/tests-modernization
+**Goal**: Comprehensive CI/CD improvements for robust deployment validation
 
-### Refactoring Objectives
+### Current Focus
 
-- **Structural Clarity**: Adopt dustinlyons' clean organizational patterns
-- **Dynamic User Resolution**: Maintain flexible user configuration without hardcoding
-- **Module Simplification**: Reduce complexity while maintaining functionality
-- **Single Responsibility**: Each file focuses on one specific concern
+- **Platform-Specific Build Testing**: Validate build-switch across all platforms
+- **Enhanced CI Pipeline**: Multi-platform matrix testing for Darwin and Linux
+- **Deployment Safety**: Dry-run validation before production deployments
+- **Cross-Platform Compatibility**: Ensure reproducible builds on all supported architectures
 
-### Best Practices Integration
+### Recent Improvements
 
-1. **Clean flake.nix Organization**: Move complex logic to dedicated lib files
-2. **Simple Module Imports**: Use direct import patterns like `import ../shared/files.nix`
-3. **Platform App Structure**: Organize apps by architecture with clear naming
-4. **Dynamic User Handling**: Keep existing user resolution system but simplify interface
-5. **File Purpose Clarity**: packages.nix for packages, programs.nix for programs
+1. **Build-Switch CI Testing**: Added platform-specific build-switch validation
+   - Darwin ARM64 (macOS 15)
+   - Darwin x64 (macOS 13)
+   - Linux ARM64 (Ubuntu)
+   - Linux x64 (Ubuntu)
 
-### Key Improvements
-
-- **Simplified Structure**: Maintain advanced features with cleaner organization
-- **Modular Design**: Single responsibility modules following dustinlyons patterns
-- **Preserved Features**: Keep 87% optimized testing framework and performance monitoring
-- **Better Maintainability**: Clear separation of concerns across all modules
+2. **Makefile Enhancement**: New `build-switch-dry` target for safe CI testing
+3. **CI Integration**: Comprehensive status reporting with build-switch results
+4. **Conflict Resolution**: Fixed linux-builder configuration for Determinate Nix compatibility
 
 ## Development Workflow
 
@@ -135,17 +132,40 @@ Professional Nix dotfiles system supporting:
 ### Quality Assurance
 
 - **Multi-tier Testing**: Unit, integration, end-to-end, performance tests
-- **CI/CD Pipeline**: Automated testing and validation
+- **CI/CD Pipeline**: Automated testing and validation with platform-specific build-switch verification
+- **Cross-Platform Validation**: 4-platform matrix testing (Darwin ARM64/x64, Linux ARM64/x64)
 - **Auto-Formatting**: Automated code quality with `make format` eliminating manual formatting work
 - **Code Quality**: Pre-commit hooks and standardized formatting
 - **Claude Code Integration**: AI-assisted development and review
+- **Deployment Safety**: Dry-run build-switch testing in CI environment
 
-## Recent Achievement: dustinlyons Refactoring Complete ✅
+## Recent Achievements
 
-**Status**: Successfully completed (October 2025)  
+### Platform-Specific Build-Switch Testing ✅
+
+**Status**: Successfully implemented (October 2025)
+**Impact**: Comprehensive deployment validation across all supported platforms
+
+#### Implementation Details
+
+- **4-Platform Matrix**: Darwin ARM64/x64, Linux ARM64/x64 validation
+- **Safe CI Testing**: Dry-run mode validates builds without system modifications
+- **Robust Integration**: CI status reporting includes build-switch results
+- **Enhanced Reliability**: Early detection of platform-specific build issues
+
+#### Key Benefits
+
+- **Deployment Safety**: Catch build failures before production
+- **Cross-Platform Validation**: Ensure reproducibility across architectures
+- **Continuous Integration**: Automated testing on every PR
+- **Zero-Risk Testing**: No system changes in CI environment
+
+### dustinlyons Refactoring Complete ✅
+
+**Status**: Successfully completed (October 2025)
 **Impact**: 91-line code reduction (-30%) while preserving all functionality
 
-### Refactoring Results
+#### Refactoring Results
 
 - **✅ Architecture Simplified**: Complex abstractions → direct import patterns
 - **✅ Code Reduced**: flake.nix (302→209 lines), total -300 lines across modules
@@ -234,6 +254,7 @@ make format                    # Auto-format all files (never manually format)
 make lint-format              # Recommended pre-commit workflow
 make build-current            # Build only current platform (fastest)
 make build-switch             # Build and apply in one step
+make build-switch-dry         # Test build-switch without applying (CI-safe)
 ```
 
 ### Testing Workflow
