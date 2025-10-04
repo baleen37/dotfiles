@@ -1,6 +1,26 @@
 # Modern test framework builders for flake validation and testing
 # This module handles the construction of test suites organized by category
 # Supports: nix-unit, nixtest, namaka, and flake-checker
+#
+# Test Framework Integration:
+# - nix-unit: Structured testing with assertion libraries
+# - nixtest: Pure Nix testing framework for function validation
+# - namaka: Snapshot testing for configuration validation
+# - flake-checker: Flake structure and metadata validation
+#
+# Test Categories:
+# - Modern Framework Tests: Integration with nix-unit, nixtest, namaka
+# - Core Tests: Flake structure, configuration validation, build tests
+# - Workflow Tests: Build-switch, deployment, shell integration
+# - Performance Tests: Build benchmarking and optimization validation
+# - Shell Integration Tests: Claude activation, lib functions, E2E workflows
+#
+# Key Features:
+# - Multi-framework test execution with unified interface
+# - Platform-specific test targets (Darwin, Linux)
+# - Coverage-enabled test runners
+# - Test category runners (core, unit, workflow, performance)
+# - Comprehensive test aggregation (test-all)
 
 { nixpkgs, self }:
 let

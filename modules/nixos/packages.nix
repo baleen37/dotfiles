@@ -1,3 +1,21 @@
+# NixOS Platform-Specific Packages
+#
+# Linux-specific application packages merged with cross-platform shared packages.
+# Focuses on desktop productivity, media, and Linux-native system utilities.
+#
+# ARCHITECTURE:
+#   - Imports shared cross-platform packages from ../shared/packages.nix
+#   - Adds Linux-specific desktop and system tools
+#   - Uses standardized list concatenation for package merging
+#
+# CATEGORIES:
+#   - Desktop: Window management (rofi, bspwm tools), file browsers
+#   - Media: VLC player, font manager
+#   - Audio: PulseAudio controls
+#   - Utilities: AppImage support, PDF viewer, notification daemon
+#
+# PATTERN: shared-packages ++ platform-packages (dustinlyons direct import style)
+
 { pkgs }:
 
 with pkgs;

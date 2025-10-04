@@ -1,3 +1,15 @@
+# Auto-formatting system for dotfiles project
+# Provides unified formatting for Nix, shell, YAML, JSON, and Markdown files
+# Supports selective formatting by file type or all-in-one formatting
+#
+# Available Modes:
+# - nix: Format Nix files with nixfmt-rfc-style
+# - shell: Format shell scripts with shfmt
+# - yaml: Format YAML files with yamlfmt
+# - json: Format JSON files with jq
+# - markdown: Format Markdown files with prettier
+# - all: Format all file types (default)
+
 { pkgs, lib }:
 
 {

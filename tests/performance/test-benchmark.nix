@@ -1,5 +1,16 @@
-# Performance Benchmarks for Comprehensive Testing Framework
-# Measures execution time and resource usage for each test layer
+# Performance Benchmarking Suite for Testing Framework
+#
+# 테스트 프레임워크의 성능 벤치마킹을 수행하는 모듈입니다.
+#
+# 주요 기능:
+# - Unit/Contract/Integration/E2E 테스트 레이어별 실행 시간 측정
+# - 병렬 실행 시나리오의 성능 벤치마킹
+# - 메모리 사용량 프로파일링 및 피크 메모리 추적
+# - JSON 형식의 벤치마크 결과 생성 및 리포트 자동화
+#
+# 사용법:
+#   nix build .#checks.x86_64-linux.performance-benchmark
+#   nix run .#benchmark -- full  # 전체 벤치마크 실행
 
 { lib
 , stdenv
@@ -17,6 +28,11 @@ let
   contractTests = import ../contract/flake-contracts/test-flake-outputs.nix;
 
   # Performance measurement utilities
+  # 개별 테스트의 실행 시간과 메모리 사용량을 측정하는 유틸리티 함수
+  # 인자:
+  #   testName: 테스트 이름 (측정 결과 식별용)
+  #   testFn: 실행할 테스트 함수
+  # 반환: JSON 형식의 벤치마크 결과 (실행 시간, 메모리 델타, 타임스탬프)
   measureTime =
     testName: testFn:
     writeShellScript "measure-${testName}" ''
@@ -170,6 +186,9 @@ let
   '';
 
   # Parallel execution benchmark
+  # 병렬 실행 성능 테스트: 독립적인 테스트 레이어를 동시에 실행하여 전체 실행 시간 측정
+  # 목표: 3분 이내 완료 (< 180초)
+  # 전략: Unit/Contract 테스트를 백그라운드 프로세스로 병렬 실행
   benchmarkParallelExecution = writeShellScript "benchmark-parallel-execution" ''
     set -euo pipefail
 
@@ -185,7 +204,7 @@ let
     ${benchmarkContractTests} &
     CONTRACT_PID=$!
 
-    # Wait for completion
+    # Wait for completion and capture exit codes
     wait $UNIT_PID
     UNIT_EXIT=$?
 
@@ -200,7 +219,7 @@ let
     echo "  Unit Tests Exit Code: $UNIT_EXIT"
     echo "  Contract Tests Exit Code: $CONTRACT_EXIT"
 
-    # Check if we achieved < 3 minute goal
+    # Check if we achieved < 3 minute goal (180 seconds)
     if (( $(echo "$DURATION < 180" | bc -l) )); then
       echo "✅ SUCCESS: Parallel execution under 3 minutes"
       exit 0
@@ -211,6 +230,11 @@ let
   '';
 
   # Memory usage profiling
+  # 메모리 사용량 프로파일링: 테스트 실행 중 메모리 증가량 및 피크 메모리 추적
+  # 측정 방식:
+  #   1. 테스트 시작 전 기준 메모리 측정
+  #   2. 1초 간격으로 현재 메모리 사용량 폴링
+  #   3. 피크 메모리 및 델타 계산 (MB 단위)
   benchmarkMemoryUsage = writeShellScript "benchmark-memory-usage" ''
     set -euo pipefail
 
@@ -223,7 +247,7 @@ let
     timeout 60s ${benchmarkUnitTests} &
     TEST_PID=$!
 
-    # Monitor memory every second
+    # Monitor memory every second and track peak usage
     PEAK_MEM=$START_MEM
     while kill -0 $TEST_PID 2>/dev/null; do
       CURRENT_MEM=$(free -b | grep '^Mem:' | awk '{print $3}')
@@ -235,6 +259,7 @@ let
 
     wait $TEST_PID
 
+    # Calculate memory delta and convert to MB for readability
     MEM_DELTA=$(echo "$PEAK_MEM - $START_MEM" | bc)
     MEM_DELTA_MB=$(echo "scale=2; $MEM_DELTA / 1024 / 1024" | bc)
 

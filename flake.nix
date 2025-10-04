@@ -1,3 +1,21 @@
+# Professional Nix Dotfiles System - Flake Entry Point
+#
+# 크로스 플랫폼 개발 환경 관리를 위한 Nix Flake 메인 진입점
+# - macOS (Intel/Apple Silicon) 및 NixOS (x86_64/ARM64) 지원
+# - Home Manager를 통한 사용자 환경 선언적 관리
+# - nix-darwin으로 macOS 시스템 설정 관리
+# - Homebrew 통합 (GUI 앱 관리)
+# - 멀티티어 테스트 프레임워크 (unit, integration, e2e)
+# - 자동 포매팅 및 개발 도구 제공
+#
+# 주요 출력:
+# - darwinConfigurations: macOS 시스템 구성
+# - nixosConfigurations: NixOS 시스템 구성
+# - homeConfigurations: 독립형 Home Manager 구성
+# - devShells: 개발 환경 셸
+# - checks: 검증 및 테스트
+# - apps: dotfiles 자동화 도구 (format 등)
+
 {
   description = "Starter Configuration for MacOS and NixOS";
 

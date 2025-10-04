@@ -1,3 +1,22 @@
+# NixOS Desktop Environment Configuration Files
+#
+# Declarative configuration files for bspwm tiling window manager and desktop utilities.
+# Manages window management, keybindings, application launcher, and polybar customizations.
+#
+# COMPONENTS:
+#   - bspwm: Window manager configuration with workspace and window rules
+#   - sxhkd: Hotkey daemon for keyboard shortcuts
+#   - rofi: Application launcher and menu system with custom themes
+#   - polybar: Status bar scripts for system monitoring and quick actions
+#
+# FEATURES:
+#   - 6 workspace tiling layout with floating window support
+#   - Custom keybindings for window management and application launching
+#   - NixOS package update checking integration
+#   - System power menu and calendar popup
+#
+# DEPENDENCIES: Requires bspwm, sxhkd, rofi, polybar, yad, notify-send
+
 { user, ... }:
 
 let

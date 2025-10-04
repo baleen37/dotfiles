@@ -1,3 +1,11 @@
+# NixOS Development Server Configuration
+#
+# VSCode Remote Tunnel 서버 설정을 위한 NixOS 호스트 구성
+# - VSCode CLI 자동 다운로드 및 tunnel 서비스 실행
+# - SSH 서버 활성화 (키 기반 인증만 허용)
+# - systemd 사용자 서비스로 VSCode Tunnel 관리
+# - 공유 패키지 및 개발 도구 통합
+
 { config
 , pkgs
 , lib
@@ -5,6 +13,7 @@
 }:
 
 let
+  # 동적 사용자 해석 (환경 변수로부터 사용자명 가져오기)
   getUser = import ../../lib/user-resolution.nix {
     returnFormat = "string";
   };

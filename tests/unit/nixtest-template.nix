@@ -1,6 +1,25 @@
 # NixTest Framework Template
-# Modern unit testing framework for pure Nix expressions
-# Provides structured test organization and assertion helpers
+#
+# 순수 Nix 표현식을 위한 현대적인 유닛 테스트 프레임워크
+# 구조화된 테스트 조직과 어설션 헬퍼를 제공
+#
+# 주요 기능:
+# - nixtest.suite: 테스트 스위트 그룹화 함수
+# - nixtest.test: 개별 테스트 케이스 함수
+# - nixtest.assertions: 어설션 헬퍼 (assertEqual, assertType, assertTrue, assertFalse, assertLength, assertContains, assertHasAttr, assertAttrValue, assertStringContains, assertThrows, assertNoThrow, assertPlatform)
+# - nixtest.run: 테스트 실행 함수
+# - nixtest.report: 테스트 결과 보고 함수
+#
+# 템플릿 제너레이터:
+# - mkPlatformTest: 플랫폼 호환성 테스트 생성
+# - mkFunctionTest: 함수 테스트 생성 (여러 입력값 지원)
+# - mkModuleInterfaceTest: 모듈 인터페이스 테스트 생성
+# - mkErrorTest: 에러 처리 테스트 생성
+#
+# 유틸리티:
+# - generateTestData: 테스트 데이터 생성
+# - createMock: 모의 함수 생성
+# - isolateTest: 테스트 격리 래퍼
 
 { lib ? import <nixpkgs/lib>
 , pkgs ? import <nixpkgs> { }

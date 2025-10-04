@@ -1,4 +1,23 @@
-# lib/testing.nix - Extracted testing logic from flake.nix
+# Multi-Framework Testing System
+# Comprehensive testing infrastructure extracted from flake.nix
+#
+# Supported Test Frameworks:
+# - NixTest: Pure Nix testing with custom test framework
+# - lib.runTests: Built-in Nix test runner for simple assertions
+# - Test Helpers: Shared utilities and test fixtures
+#
+# Test Categories:
+# - Unit Tests: Component-level validation (lib functions, platform detection)
+# - Integration Tests: Module interaction and cross-platform compatibility
+# - System Tests: Full system configuration validation
+# - Performance Tests: Build time and resource usage benchmarking
+#
+# Key Components:
+# - Test suite runners with automated result formatting
+# - Framework validation and helper checks
+# - Multi-tier test organization (unit, integration, e2e, performance)
+# - Test result aggregation and reporting
+
 { inputs
 , forAllSystems
 , self

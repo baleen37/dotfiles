@@ -1,6 +1,27 @@
 # Test Helper Functions
-# Comprehensive assertion and utility library for NixTest framework
-# Avoids Nix keyword conflicts and provides clean API
+#
+# NixTest 프레임워크용 종합 어설션 및 유틸리티 라이브러리
+# Nix 키워드 충돌을 피하고 깔끔한 API를 제공
+#
+# 주요 기능:
+# - 핵심 어설션: assertEqual, assertType, assertTrue, assertFalse
+# - 리스트 어설션: assertLength, assertContains
+# - 속성 어설션: assertHasAttr, assertAttrValue
+# - 문자열 어설션: assertStringContains
+# - 함수 어설션: assertThrows, assertNoThrow
+# - 플랫폼 어설션: assertPlatform
+# - 유틸리티: inspect (값 검사), runAssertion (어설션 실행)
+# - 컬러 터미널 출력: formatError를 통한 상세한 에러 메시지 (빨강, 노랑, 청록색)
+#
+# test-assertions.nix와의 차이점:
+# - 더 간단하고 가벼운 API (핵심 어설션만 제공)
+# - Nix 키워드 충돌 방지 최적화
+# - 기본적인 테스트 실행 및 에러 포매팅 제공
+#
+# 사용 예시:
+# assertEqual expected actual context
+# assertTrue value context
+# assertContains item list context
 
 { lib ? import <nixpkgs/lib>
 , pkgs ? import <nixpkgs> { }

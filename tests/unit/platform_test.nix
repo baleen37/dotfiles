@@ -1,6 +1,21 @@
 # Platform-Specific Unit Tests
-# Cross-platform compatibility and platform-specific functionality tests
-# Tests both darwin and nixos modules with platform isolation
+#
+# 플랫폼별 기능 및 크로스 플랫폼 호환성 테스트
+# darwin/nixos 모듈을 플랫폼 격리 환경에서 테스트
+#
+# 테스트 대상:
+# - platformDetectionTests: 플랫폼 감지 핵심 기능 (시스템 파싱, 메타데이터 추출, 크로스 플랫폼 유틸리티)
+# - platformModuleTests: 플랫폼별 모듈 구조 (darwin/nixos/shared 모듈)
+# - compatibilityTests: 크로스 플랫폼 호환성 (시스템 검증, 플랫폼 격리, 아키텍처 호환성)
+# - platformFeatureTests: 플랫폼 기능 (darwin/linux 감지, 아키텍처 감지)
+# - platformErrorHandlingTests: 플랫폼 에러 처리 (잘못된 시스템, 지원되지 않는 플랫폼, 크로스 플랫폼 에러)
+# - platformPerformanceTests: 플랫폼 성능 (캐싱, 대량 작업)
+#
+# 지원 플랫폼:
+# - Darwin: x86_64-darwin, aarch64-darwin
+# - Linux: x86_64-linux, aarch64-linux
+#
+# 테스트 전략: 현재 플랫폼에서만 플랫폼별 코드 실행, 다른 플랫폼에서는 모의 처리
 
 { lib ? import <nixpkgs/lib>
 , pkgs ? import <nixpkgs> { }

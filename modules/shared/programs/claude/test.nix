@@ -1,6 +1,13 @@
-# Claude Module Unit Test
+# Claude Code Module Unit Tests
 #
-# Tests symlink creation and module evaluation
+# Claude Code 모듈의 단위 테스트 - 심볼릭 링크 생성 및 모듈 평가 검증
+#
+# 테스트 항목:
+#   - 모듈 평가 (test-module-eval): 모듈이 올바른 구조를 가지는지 확인
+#   - Darwin 심볼릭 링크 (test-darwin-links): macOS에서 모든 설정 파일 링크 생성 검증
+#   - Linux 심볼릭 링크 (test-linux-links): Linux에서 모든 설정 파일 링크 생성 검증
+#   - 설정 경로 (test-config-path): 설정 디렉토리 경로가 올바른지 확인
+#   - 패키지 추가 없음 (test-no-packages): 모듈이 불필요한 패키지를 추가하지 않는지 확인
 #
 # VERSION: 1.0.0
 # LAST UPDATED: 2024-10-04

@@ -1,6 +1,27 @@
-# Vim Editor Configuration
+# Vim 에디터 설정
 #
-# Vim configuration with plugins and optimized settings.
+# Vim 에디터의 플러그인, 키 바인딩, 표시 옵션을 관리하는 모듈
+#
+# 플러그인:
+#   - vim-airline: 상태 표시줄 테마 (bubblegum 테마, Powerline 폰트)
+#   - vim-tmux-navigator: Tmux 패널 간 원활한 이동
+#   - yank: 클립보드 통합
+#
+# 주요 설정:
+#   - 줄 번호: 상대적 줄 번호 (relativenumber) + 현재 줄 번호
+#   - 검색: 증분 검색, 대소문자 무시
+#   - 탭/공백: 2칸 들여쓰기, 탭을 공백으로 변환
+#   - 백업: 백업 파일 생성 안 함, 스왑 파일 ~/.config/vim/swap
+#   - 클립보드: autoselect 모드
+#
+# 키 바인딩:
+#   - Leader: , (comma)
+#   - LocalLeader: Space
+#   - <Leader>,: 클립보드에서 붙여넣기
+#   - <Leader>.: 클립보드로 복사
+#   - <Leader>q: 창 닫기
+#   - Ctrl+h/j/k/l: 분할 창 이동
+#   - Tab/Shift+Tab: 버퍼 이동
 #
 # VERSION: 3.1.0 (Extracted from development.nix)
 # LAST UPDATED: 2024-10-04

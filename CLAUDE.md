@@ -131,42 +131,8 @@ Professional Nix dotfiles system supporting:
 
 ### Code Documentation Standards
 
-**Comment Requirements**: All code must include comments explaining its purpose and role:
-
-- **Function/Module Comments**: Each function, module, or significant code block must have a comment describing what it does
-- **Complex Logic**: Non-obvious logic requires inline comments explaining the approach
-- **Configuration Files**: Nix modules and configurations need comments explaining their purpose
-- **Shell Scripts**: Each script and non-trivial command needs explanatory comments
-
-**Good Documentation Practices**:
-
-```nix
-# Configure Home Manager with user-specific settings
-programs.git = {
-  enable = true;
-  userName = "user";
-  # Use dynamic email based on host configuration
-  userEmail = config.user.email;
-};
-```
-
-```bash
-# Set user context for Nix builds (required for dynamic user resolution)
-export USER=$(whoami)
-```
-
-**What to Document**:
-
-- Purpose of each module/function
-- Non-obvious implementation choices
-- Platform-specific workarounds
-- Dependencies and requirements
-
-**What NOT to Document**:
-
-- Obvious operations (`x = x + 1` doesn't need a comment)
-- Implementation details that change frequently
-- Redundant descriptions of self-explanatory code
+- **File header comments**: Every file must have a top comment explaining its role
+- **Complex logic**: Add inline comments for non-obvious or difficult-to-understand code
 
 ### Quality Assurance
 

@@ -1,5 +1,17 @@
 # Simplified User Resolution System
 # Provides cross-platform user detection with minimal complexity
+#
+# Key Features:
+# - Dynamic user detection from USER or SUDO_USER environment variables
+# - Username validation against POSIX standards
+# - Cross-platform home directory path resolution (macOS/Linux)
+# - Flexible return formats (string or extended with metadata)
+# - Mock environment support for testing
+#
+# Usage Examples:
+# - Basic: import ./user-resolution.nix { }  # Returns username string
+# - Extended: import ./user-resolution.nix { returnFormat = "extended"; }
+# - With default: import ./user-resolution.nix { default = "fallback-user"; }
 
 { envVar ? "USER"
 , default ? null

@@ -1,6 +1,21 @@
-# Cross-Platform Integration Tests
-# Tests cross-platform compatibility using nix-unit framework
-# Validates platform detection, system configurations, and cross-platform features
+# Cross-Platform Compatibility Integration Tests
+#
+# 크로스 플랫폼 호환성 검증을 위한 통합 테스트 모듈입니다.
+#
+# 지원 플랫폼:
+# - Darwin: x86_64-darwin, aarch64-darwin
+# - Linux: x86_64-linux, aarch64-linux
+#
+# 주요 검증 항목:
+# - 플랫폼/아키텍처 자동 감지 (platformDetection, platformSystem)
+# - 플랫폼별 Home Manager/패키지 모듈 호환성
+# - 크로스 컴파일 및 혼합 아키텍처 환경 지원
+# - 플랫폼별 시스템 설정 (홈 디렉토리, 패키지 매니저)
+#
+# 테스트 전략:
+# - 모든 플랫폼에서 공유 모듈 로딩 검증
+# - 플랫폼별 모듈의 조건부 로딩 테스트
+# - 엣지 케이스 (미지원 플랫폼, 빈 설정) 처리 확인
 
 { lib ? import <nixpkgs/lib>
 , pkgs ? import <nixpkgs> { }
@@ -75,6 +90,11 @@ let
   };
 
   # Helper to test platform-specific functionality
+  # 특정 플랫폼 그룹(darwin/linux)의 모든 아키텍처에서 테스트 함수 실행
+  # 인자:
+  #   platformName - "darwin" | "linux" | "all"
+  #   testFunc - 각 플랫폼 문자열을 받아 boolean 반환하는 함수
+  # 반환: 모든 플랫폼에서 테스트 통과 시 true
   testPlatformFunction =
     platformName: testFunc:
     let
@@ -84,6 +104,11 @@ let
     builtins.all (r: r == true) results;
 
   # Helper to safely evaluate cross-platform expressions
+  # 크로스 플랫폼 표현식을 안전하게 평가 (에러 시 null 반환)
+  # 인자:
+  #   platform - 대상 플랫폼 문자열 (예: "x86_64-linux")
+  #   expr - 평가할 Nix 표현식
+  # 반환: 성공 시 평가 결과, 실패 시 null
   safeEvaluatePlatform =
     platform: expr:
     let

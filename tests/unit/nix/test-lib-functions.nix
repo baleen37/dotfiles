@@ -1,5 +1,19 @@
-# Unit Tests for Nix Library Functions
-# These tests MUST FAIL initially (TDD requirement)
+# Nix Library Functions Unit Tests
+#
+# lib/ 디렉토리의 핵심 라이브러리 함수들에 대한 유닛 테스트
+# lib/test-builders.nix, lib/coverage-system.nix, lib/test-system.nix 함수들의 동작을 검증
+#
+# 테스트 대상:
+# - testBuilders: 테스트 빌더 함수 (unit, contract, integration, e2e 빌더)
+# - coverageSystem: 커버리지 시스템 (측정, 수집, 검증, 보고)
+# - testUtils: 테스트 유틸리티 (스위트 빌더, 검증기)
+# - validators: 플랫폼 및 테스트 케이스 검증
+# - runners: 프레임워크 실행기 (nix-unit, bats, nixos-vm)
+# - reporting: 보고서 생성 (JSON, HTML, LCOV)
+# - utils: 유틸리티 함수 (파일 탐색, 세션 병합)
+#
+# TDD 요구사항: 이 테스트들은 처음에는 실패해야 함 (구현 전)
+# 테스트 실패는 라이브러리가 아직 구현되지 않았음을 의미
 
 { lib
 , runTests

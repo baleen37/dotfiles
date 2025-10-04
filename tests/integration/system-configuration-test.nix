@@ -1,6 +1,17 @@
-# Real System Configuration Integration Tests
-# Tests actual system configurations using nix-unit framework
-# Validates host configurations, build processes, and deployment scenarios
+# System Configuration Integration Tests
+#
+# 실제 시스템 구성의 통합 테스트를 수행하는 모듈입니다.
+#
+# 주요 검증 항목:
+# - Darwin/NixOS 호스트 설정의 유효성 및 빌드 프로세스
+# - Home Manager 설정의 크로스 플랫폼 호환성
+# - 패키지/파일/서비스 모듈 간 상호작용
+# - 빌드 시스템 및 배포 시나리오 검증
+#
+# 테스트 범위:
+# - 플랫폼별 시스템 빌더 (mkDarwinConfigurations, mkNixosConfigurations)
+# - 설정 파일 로딩 및 머징 (YAML/JSON/Nix)
+# - 에러 처리 및 엣지 케이스 (누락된 모듈, 잘못된 설정)
 
 { lib ? import <nixpkgs/lib>
 , pkgs ? import <nixpkgs> { }
@@ -66,6 +77,9 @@ let
   };
 
   # Helper to safely evaluate system configurations
+  # 시스템 설정을 안전하게 평가하여 에러 발생 시 null 반환
+  # 인자: config - 평가할 Nix 설정 표현식
+  # 반환: 성공 시 평가된 값, 실패 시 null
   safeEvaluateSystemConfig =
     config:
     let
@@ -74,6 +88,11 @@ let
     if result.success then result.value else null;
 
   # Helper to check if configuration has required attributes
+  # 설정 객체가 필수 속성을 모두 가지고 있는지 검증
+  # 인자:
+  #   config - 검증할 설정 객체
+  #   requiredAttrs - 필수 속성 리스트
+  # 반환: 모든 속성 존재 시 true
   hasRequiredAttributes =
     config: requiredAttrs: builtins.all (attr: builtins.hasAttr attr config) requiredAttrs;
 

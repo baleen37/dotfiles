@@ -1,5 +1,18 @@
-# Unit Tests for Test Builders
-# These tests MUST FAIL initially (TDD requirement)
+# Test Builders Unit Tests
+#
+# 테스트 빌더 라이브러리의 유닛 테스트 모음
+# lib/test-builders.nix에 정의된 테스트 빌더 함수들의 동작을 검증
+#
+# 테스트 대상:
+# - unit: 단위 테스트 빌더 (mkNixUnitTest, mkLibTestSuite, mkFunctionTest, mkModuleTest)
+# - contract: 인터페이스 계약 테스트 빌더 (mkInterfaceTest, mkFlakeOutputTest, mkPlatformContractTest, mkAPIContractTest)
+# - integration: 통합 테스트 빌더 (mkBatsTest, mkBuildIntegrationTest, mkCrossPlatformTest, mkServiceIntegrationTest)
+# - e2e: 종단간 테스트 빌더 (mkNixOSVMTest, mkUserWorkflowTest, mkFreshInstallTest, mkDeploymentTest)
+# - suite: 테스트 스위트 빌더 (mkTestSuite, mkPlatformSuite, mkLayerSuite)
+# - validators: 테스트 검증 함수들
+# - runners: 테스트 프레임워크 실행기
+#
+# TDD 요구사항: 이 테스트들은 처음에는 실패해야 함 (구현 전)
 
 { lib, runTests, ... }:
 

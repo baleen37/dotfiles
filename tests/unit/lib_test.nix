@@ -1,6 +1,20 @@
-# Library Functions Unit Tests
-# Comprehensive tests for lib/ directory functions using NixTest framework
-# Tests: platform-detection.nix, utils-system.nix, test-builders.nix
+# Library Functions Comprehensive Unit Tests
+#
+# lib/ 디렉토리의 모든 유틸리티 함수에 대한 종합 유닛 테스트
+# NixTest 프레임워크를 사용하여 platform-detection.nix, utils-system.nix, test-builders.nix 테스트
+#
+# 테스트 대상:
+# - platformDetectionTests: 플랫폼 감지 (darwin/linux/x86_64/aarch64 감지, 플랫폼/아키텍처 추출, 시스템 검증, 크로스 플랫폼 유틸리티)
+# - utilsSystemTests: 시스템 유틸리티 (시스템 비교, 패키지 유틸리티, 설정 병합, 리스트 유틸리티, 문자열 유틸리티, 경로 유틸리티, 속성 유틸리티)
+# - testBuildersTests: 테스트 빌더 (버전/프레임워크/레이어 메타데이터, 단위/계약 테스트 빌더, 검증 함수, 테스트 실행기)
+# - errorHandlingTests: 에러 처리 (잘못된 플랫폼, 설정 키 누락, 패키지 검증)
+# - performanceTests: 성능 및 호환성 (대용량 리스트, 깊은 중첩, 크로스 플랫폼 경로)
+#
+# 테스트 전략:
+# - 각 함수의 기본 동작 검증
+# - 에러 조건 및 엣지 케이스 처리
+# - 대용량 데이터 및 성능 테스트
+# - 크로스 플랫폼 호환성 검증
 
 { lib ? import <nixpkgs/lib>
 , pkgs ? import <nixpkgs> { }
