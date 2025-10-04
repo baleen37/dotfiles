@@ -28,52 +28,33 @@
 }:
 
 let
+  # Import centralized user information
+  userInfo = import ../../../lib/user-info.nix;
+
   # User configuration constants
-  name = "Jiho Lee";
-  email = "baleen37@gmail.com";
+  name = userInfo.name;
+  email = userInfo.email;
 
-  # Optimized platform detection with caching
-  platformDetection = import ../../../lib/platform-detection.nix { inherit pkgs; };
-
-  # Enhanced user resolution with platform awareness
-  getUserInfo = import ../../../lib/user-resolution.nix {
-    platform = platformDetection.platform;
-    returnFormat = "extended";
-  };
-
-  # Cached platform detection flags for performance
-  platformFlags = {
-    isDarwin = platformDetection.isDarwin pkgs.system;
-    isLinux = platformDetection.isLinux pkgs.system;
-    isX86_64 = platformDetection.isX86_64 pkgs.system;
-    isAarch64 = platformDetection.isAarch64 pkgs.system;
-  };
-
-  # Performance optimized shortcuts
-  isDarwin = platformFlags.isDarwin;
-  isLinux = platformFlags.isLinux;
-
-  # Common configuration helpers
-  commonPaths = {
-    home = getUserInfo.homePath;
-    config = "${getUserInfo.homePath}/.config";
-    ssh = "${getUserInfo.homePath}/.ssh";
-    dotfiles = "${getUserInfo.homePath}/dotfiles";
-    devDotfiles = "${getUserInfo.homePath}/dev/dotfiles";
-  };
+  # Simple platform detection - direct system checking
+  isDarwin = pkgs.stdenv.isDarwin;
+  isLinux = pkgs.stdenv.isLinux;
 
   # Standardized module interface data
+  homePath = config.home.homeDirectory;
   moduleInputs = {
     inherit config pkgs lib;
     platformInfo = {
       inherit isDarwin isLinux;
-      inherit (platformFlags) isX86_64 isAarch64;
       system = pkgs.system;
     };
     userInfo = {
-      inherit name email;
-      inherit (getUserInfo) homePath;
-      paths = commonPaths;
+      inherit name email homePath;
+      # Legacy compatibility
+      paths = {
+        home = homePath;
+        config = "${homePath}/.config";
+        ssh = "${homePath}/.ssh";
+      };
     };
   };
 
