@@ -71,8 +71,8 @@ jobs:
           nix flake check --impure --no-build --all-systems
       - name: Quick test framework validation
         run: "export USER=${USER:-ci}\necho \"\U0001F9EA Validating NixTest framework\"\nnix build --impure .#framework-check --verbose\necho \"✅ Test framework validation passed\"\n"
-  # Core build stage (2-4 minutes) - Only essential platforms
-  build-core:
+  # Build stage with cache creation (4 minutes)
+  build:
     name: Build ${{ matrix.name }}
     needs: validate
     if: (github.event.pull_request.draft != true) || (github.ref == 'refs/heads/main')
@@ -80,334 +80,286 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: 'Darwin ARM64'
-            system: aarch64-darwin
-            os: macos-15
-            build_type: full
-          - name: 'Linux x64'
+          - name: Linux
             system: x86_64-linux
             os: ubuntu-latest
-            build_type: full
-    runs-on: ${{ matrix.os }}
-    continue-on-error: ${{ matrix.name == 'Darwin ARM64' }} # Mark Darwin ARM64 as optional due to runner issues
-    steps:
-      - uses: actions/checkout@v4
-      # Clean up any existing Nix installation on macOS with enhanced error handling
-      - name: Clean existing Nix installation (macOS)
-        if: runner.os == 'macOS'
-        continue-on-error: true
-        run: "echo \"\U0001F9F9 Cleaning existing Nix installation...\"\n\n# Enhanced cleanup with better error handling for GitHub Actions\nset +e  # Don't exit on error during cleanup\n\n# Stop services gracefully\nsudo launchctl stop org.nixos.nix-daemon 2>/dev/null || echo \"Nix daemon not running\"\nsudo launchctl unload /Library/LaunchDaemons/org.nixos.nix-daemon.plist 2>/dev/null || echo \"Nix daemon plist not loaded\"\n\n# Check if /nix exists and unmount if needed\nif mount | grep -q \"/nix\"; then\n  echo \"Unmounting /nix filesystem...\"\n  sudo umount /nix 2>/dev/null || echo \"Failed to unmount /nix\"\nfi\n\n# Remove Nix directories and configs with proper error handling\nif [[ -d \"/nix\" ]]; then\n  echo \"Removing /nix directory...\"\n  sudo rm -rf /nix 2>/dev/null || echo \"Warning: Could not fully remove /nix\"\nfi\n\n# Clean up configuration files\nsudo rm -f /etc/synthetic.conf 2>/dev/null || echo \"No synthetic.conf to remove\"\nsudo rm -f /Library/LaunchDaemons/org.nixos.* 2>/dev/null || echo \"No Nix launch daemons to remove\"\nsudo rm -rf /etc/nix 2>/dev/null || echo \"No /etc/nix to remove\"\n\n# Prepare synthetic.conf for fresh install\necho \"nix\" | sudo tee /etc/synthetic.conf > /dev/null 2>&1 || echo \"Warning: Could not create synthetic.conf\"\n\n# Force filesystem sync before proceeding\nsync\nsleep 2\n\necho \"✅ macOS cleanup completed (with error tolerance for CI)\"\nset -e  # Re-enable exit on error\n"
-      - name: Install Nix with enhanced retry logic
-        uses: cachix/install-nix-action@v27
-        with:
-          nix_path: nixpkgs=channel:nixos-unstable
-          install_url: https://releases.nixos.org/nix/nix-2.18.8/install
-          enable_kvm: true
-        env:
-          # Enhanced environment for better compatibility
-          ACTIONS_ALLOW_UNSECURE_COMMANDS: true
-      # Phase 3: Enhanced multi-layer caching strategy
-      - name: Cache Nix store (Phase 3 build optimization)
-        uses: actions/cache@v4
-        continue-on-error: true
-        with:
-          path: |
-            /nix/store
-            ~/.cache/nix
-            ~/.cache/nix-index
-            /tmp/nix-build-*
-            ~/.local/state/nix
-          key: phase3-build-${{ runner.os }}-${{ matrix.system }}-${{ hashFiles('flake.lock', 'flake.nix', 'hosts/**/*.nix') }}
-          restore-keys: |
-            phase3-build-${{ runner.os }}-${{ matrix.system }}-${{ hashFiles('flake.lock', 'flake.nix') }}-
-            phase3-build-${{ runner.os }}-${{ matrix.system }}-
-            phase3-validate-nix-${{ hashFiles('flake.lock') }}-${{ runner.os }}
-            ${{ runner.os }}-${{ matrix.system }}-
-            ${{ runner.os }}-nix-
-            validate-nix-
-          # Phase 3: Optimized cache settings
-          enableCrossOsArchive: false
-          save-always: true
-          upload-chunk-size: 32768
-      - name: Build configuration
-        timeout-minutes: 90
-        run: "export USER=${USER:-ci}\necho \"\U0001F3D7️ Building ${{ matrix.name }} (${{ matrix.system }}) - Type: ${{ matrix.build_type }}\"\n\n# Wait for Nix daemon to be fully ready\necho \"⏳ Waiting for Nix daemon to be ready...\"\nmax_attempts=30\nattempt=0\nwhile ! nix --version >/dev/null 2>&1; do\n  attempt=$((attempt + 1))\n  if [[ $attempt -ge $max_attempts ]]; then\n    echo \"❌ Nix daemon failed to start after $max_attempts attempts\"\n    exit 1\n  fi\n  echo \"Attempt $attempt/$max_attempts: Waiting for Nix...\"\n  sleep 5\ndone\necho \"✅ Nix daemon is ready\"\n\n# Show Nix configuration for debugging\necho \"\U0001F50D Nix configuration:\"\nnix --version\necho \"NIX_CONFIG: $NIX_CONFIG\"\n\ncase \"${{ matrix.system }}\" in\n  *darwin*)\n    if [[ \"${{ matrix.build_type }}\" == \"full\" ]]; then\n      echo \"Running full Darwin build...\"\n      nix build --impure --no-link .#darwinConfigurations.${{ matrix.system }}.system --verbose\n    else\n      echo \"Running Darwin validation...\"\n      # More robust validation with better error handling\n      nix eval --impure .#darwinConfigurations.${{ matrix.system }}.system --json --show-trace >/dev/null\n    fi\n    ;;\n  *linux*)\n    echo \"Running NixOS validation...\"\n    nix eval --impure .#nixosConfigurations.${{ matrix.system }}.config.system.name --json --show-trace >/dev/null\n    ;;\nesac\necho \"✅ Build completed successfully\"\n"
-  # Build-switch verification stage (2-4 minutes) - Platform-specific
-  test-build-switch:
-    name: Test build-switch ${{ matrix.name }}
-    needs: validate
-    if: (github.event.pull_request.draft != true) || (github.ref == 'refs/heads/main')
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: 'Darwin ARM64'
+          - name: Darwin
             system: aarch64-darwin
             os: macos-15
-          - name: 'Darwin x64'
-            system: x86_64-darwin
-            os: macos-13
-          - name: 'Linux ARM64'
-            system: aarch64-linux
-            os: ubuntu-latest
-          - name: 'Linux x64'
-            system: x86_64-linux
-            os: ubuntu-latest
     runs-on: ${{ matrix.os }}
-    continue-on-error: ${{ contains(matrix.name, 'ARM64') }} # ARM64 builds are optional
     steps:
       - uses: actions/checkout@v4
       # Clean up any existing Nix installation on macOS
       - name: Clean existing Nix installation (macOS)
         if: runner.os == 'macOS'
         continue-on-error: true
-        run: "echo \"\U0001F9F9 Cleaning existing Nix installation...\"\nset +e\nsudo launchctl stop org.nixos.nix-daemon 2>/dev/null || true\nsudo launchctl unload /Library/LaunchDaemons/org.nixos.nix-daemon.plist 2>/dev/null || true\nif mount | grep -q \"/nix\"; then\n  sudo umount /nix 2>/dev/null || true\nfi\nif [[ -d \"/nix\" ]]; then\n  sudo rm -rf /nix 2>/dev/null || true\nfi\nsudo rm -f /etc/synthetic.conf /Library/LaunchDaemons/org.nixos.* 2>/dev/null || true\nsudo rm -rf /etc/nix 2>/dev/null || true\necho \"nix\" | sudo tee /etc/synthetic.conf > /dev/null 2>&1 || true\nsync\nsleep 2\necho \"✅ macOS cleanup completed\"\nset -e\n"
+        run: |
+          echo "🧹 Cleaning existing Nix installation..."
+          set +e
+          sudo launchctl stop org.nixos.nix-daemon 2>/dev/null || true
+          sudo launchctl unload /Library/LaunchDaemons/org.nixos.nix-daemon.plist 2>/dev/null || true
+          if mount | grep -q "/nix"; then
+            sudo umount /nix 2>/dev/null || true
+          fi
+          if [[ -d "/nix" ]]; then
+            sudo rm -rf /nix 2>/dev/null || true
+          fi
+          sudo rm -f /etc/synthetic.conf /Library/LaunchDaemons/org.nixos.* 2>/dev/null || true
+          sudo rm -rf /etc/nix 2>/dev/null || true
+          echo "nix" | sudo tee /etc/synthetic.conf > /dev/null 2>&1 || true
+          sync
+          sleep 2
+          echo "✅ macOS cleanup completed"
+          set -e
       - name: Install Nix
         uses: cachix/install-nix-action@v27
         with:
           nix_path: nixpkgs=channel:nixos-unstable
           install_url: https://releases.nixos.org/nix/nix-2.18.8/install
           enable_kvm: true
+      # Unified cache with save strategy
       - name: Cache Nix store
         uses: actions/cache@v4
-        continue-on-error: true
         with:
           path: |
             /nix/store
             ~/.cache/nix
-            ~/.cache/nix-index
-            /tmp/nix-build-*
             ~/.local/state/nix
-          key: build-switch-${{ runner.os }}-${{ matrix.system }}-${{ hashFiles('flake.lock', 'flake.nix', 'hosts/**/*.nix', 'Makefile') }}
+          key: nix-build-${{ runner.os }}-${{ hashFiles('flake.lock', 'flake.nix') }}
           restore-keys: |
-            build-switch-${{ runner.os }}-${{ matrix.system }}-${{ hashFiles('flake.lock', 'flake.nix') }}-
-            build-switch-${{ runner.os }}-${{ matrix.system }}-
-            phase3-build-${{ runner.os }}-${{ matrix.system }}-
-            ${{ runner.os }}-${{ matrix.system }}-
-          enableCrossOsArchive: false
+            nix-build-${{ runner.os }}-
           save-always: true
-      - name: Test build-switch (dry-run)
+      - name: Build configuration
         timeout-minutes: 60
-        run: "export USER=${USER:-ci}\necho \"\U0001F9EA Testing build-switch for ${{ matrix.name }} (${{ matrix.system }})\"\n\n# Wait for Nix daemon\necho \"⏳ Waiting for Nix daemon...\"\nmax_attempts=30\nattempt=0\nwhile ! nix --version >/dev/null 2>&1; do\n  attempt=$((attempt + 1))\n  if [[ $attempt -ge $max_attempts ]]; then\n    echo \"❌ Nix daemon failed to start\"\n    exit 1\n  fi\n  sleep 5\ndone\necho \"✅ Nix daemon ready\"\n\n# Set platform-specific target\ncase \"${{ matrix.system }}\" in\n  *darwin*)\n    export HOST=\"${{ matrix.system }}\"\n    ;;\n  *linux*)\n    export HOST=\"${{ matrix.system }}\"\n    ;;\nesac\n\n# Run build-switch dry-run\necho \"Running: make build-switch-dry HOST=$HOST\"\nmake build-switch-dry HOST=$HOST ARGS=\"--show-trace\"\n\necho \"✅ build-switch test completed for ${{ matrix.name }}\"\n"
-  # Parallel test stage (2-3 minutes) with coverage support and cross-platform matrix
-  test-parallel:
-    name: Test ${{ matrix.category }} (${{ matrix.os-name }})
-    needs: [validate, build-core]
+        run: |
+          export USER=${USER:-ci}
+          echo "🏗️ Building ${{ matrix.name }} (${{ matrix.system }})"
+
+          # Wait for Nix daemon
+          echo "⏳ Waiting for Nix daemon..."
+          max_attempts=30
+          attempt=0
+          while ! nix --version >/dev/null 2>&1; do
+            attempt=$((attempt + 1))
+            if [[ $attempt -ge $max_attempts ]]; then
+              echo "❌ Nix daemon failed to start"
+              exit 1
+            fi
+            sleep 5
+          done
+          echo "✅ Nix daemon ready"
+
+          # Build configuration
+          case "${{ matrix.system }}" in
+            *darwin*)
+              nix build --impure --no-link .#darwinConfigurations.${{ matrix.system }}.system
+              ;;
+            *linux*)
+              nix build --impure --no-link .#nixosConfigurations.${{ matrix.system }}.config.system.build.toplevel
+              ;;
+          esac
+
+          echo "✅ Build completed for ${{ matrix.name }}"
+      # Upload build artifacts for switch job
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.system }}
+          path: result
+          retention-days: 1
+
+  # Switch stage - reuses build cache (2 minutes, 50% faster)
+  switch:
+    name: Switch ${{ matrix.name }}
+    needs: build
     if: (github.event.pull_request.draft != true) || (github.ref == 'refs/heads/main')
     strategy:
       fail-fast: false
       matrix:
         include:
-          # Unit tests - Cross-platform
-          - category: unit
-            test_target: 'lib-functions platform-detection framework-check'
-            coverage: true
-            os: macos-14
-            os-name: 'macOS-ARM64'
-          - category: unit
-            test_target: 'lib-functions platform-detection framework-check'
-            coverage: true
+          - name: Linux
+            system: x86_64-linux
             os: ubuntu-latest
-            os-name: 'Linux-x64'
-          # Integration tests - Cross-platform
-          - category: integration
-            test_target: 'module-interaction cross-platform system-configuration'
-            coverage: true
-            os: macos-14
-            os-name: 'macOS-ARM64'
-          - category: integration
-            test_target: 'module-interaction cross-platform system-configuration'
-            coverage: false # Disable coverage on Linux to reduce CI time
-            os: ubuntu-latest
-            os-name: 'Linux-x64'
-          # E2E tests - Primary platform only for speed
-          - category: e2e
-            test_target: 'all'
-            coverage: false
-            os: macos-14
-            os-name: 'macOS-ARM64'
-          # Performance benchmarks - Primary platform only
-          - category: performance
-            test_target: 'performance-benchmarks'
-            coverage: false
-            os: macos-14
-            os-name: 'macOS-ARM64'
+          - name: Darwin
+            system: aarch64-darwin
+            os: macos-15
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-      # Clean up any existing Nix installation (cross-platform)
-      - name: Clean existing Nix installation (${{ matrix.os-name }})
-        run: "echo \"\U0001F9F9 Cleaning existing Nix installation for tests on ${{ matrix.os-name }}...\"\n\nif [[ \"${{ runner.os }}\" == \"macOS\" ]]; then\n  # macOS cleanup\n  sudo launchctl stop org.nixos.nix-daemon 2>/dev/null || true\n  sudo launchctl unload /Library/LaunchDaemons/org.nixos.nix-daemon.plist 2>/dev/null || true\n  sudo umount /nix 2>/dev/null || true\n  sudo rm -rf /nix 2>/dev/null || true\n  sudo rm -f /etc/synthetic.conf /Library/LaunchDaemons/org.nixos.* 2>/dev/null || true\n  echo \"nix\" | sudo tee /etc/synthetic.conf > /dev/null 2>&1 || true\n  echo \"✅ macOS cleanup completed\"\nelse\n  # Linux cleanup\n  sudo systemctl stop nix-daemon.service 2>/dev/null || true\n  sudo rm -rf /nix 2>/dev/null || true\n  sudo rm -f /etc/systemd/system/nix-daemon.* 2>/dev/null || true\n  echo \"✅ Linux cleanup completed\"\nfi\n"
-      - uses: cachix/install-nix-action@v27
+      - name: Clean existing Nix installation (macOS)
+        if: runner.os == 'macOS'
+        continue-on-error: true
+        run: |
+          echo "🧹 Cleaning existing Nix installation..."
+          set +e
+          sudo launchctl stop org.nixos.nix-daemon 2>/dev/null || true
+          sudo launchctl unload /Library/LaunchDaemons/org.nixos.nix-daemon.plist 2>/dev/null || true
+          if mount | grep -q "/nix"; then
+            sudo umount /nix 2>/dev/null || true
+          fi
+          if [[ -d "/nix" ]]; then
+            sudo rm -rf /nix 2>/dev/null || true
+          fi
+          sudo rm -f /etc/synthetic.conf /Library/LaunchDaemons/org.nixos.* 2>/dev/null || true
+          echo "nix" | sudo tee /etc/synthetic.conf > /dev/null 2>&1 || true
+          sync
+          sleep 2
+          echo "✅ macOS cleanup completed"
+          set -e
+      - name: Install Nix
+        uses: cachix/install-nix-action@v27
         with:
           nix_path: nixpkgs=channel:nixos-unstable
           install_url: https://releases.nixos.org/nix/nix-2.18.8/install
-      # Phase 3: Advanced test cache with predictive restoration
-      - name: Restore Nix cache (Phase 3 test optimization)
+          enable_kvm: true
+      # Restore cache from build job (read-only)
+      - name: Restore Nix cache
         uses: actions/cache/restore@v4
-        continue-on-error: true
         with:
           path: |
             /nix/store
             ~/.cache/nix
-            ~/.cache/nix-index
-            /tmp/nix-build-*
             ~/.local/state/nix
-            tests/.test-cache
-            tests/performance/.perf-cache
-          key: phase3-test-${{ runner.os }}-${{ matrix.category }}-${{ hashFiles('flake.lock', 'tests/**/*.nix', 'lib/**/*.nix') }}
+          key: nix-build-${{ runner.os }}-${{ hashFiles('flake.lock', 'flake.nix') }}
           restore-keys: |
-            phase3-test-${{ runner.os }}-${{ matrix.category }}-${{ hashFiles('flake.lock') }}-
-            phase3-test-${{ runner.os }}-${{ matrix.category }}-
-            phase3-build-${{ runner.os }}-aarch64-darwin-
-            macOS-aarch64-darwin-
-            validate-nix-
-          # Phase 3: Performance-optimized settings
-          enableCrossOsArchive: false
-          fail-on-cache-miss: false
-      # Phase 3: Enhanced failure recovery and retry mechanism
-      - name: Run tests (Phase 3 with intelligent retry)
-        timeout-minutes: 25 # Reduced due to Phase 3 optimizations
-        run: "export USER=${USER:-ci}\n\n# Phase 3: Create cache directories\nmkdir -p tests/.test-cache tests/performance/.perf-cache\n\n# Phase 3: Test execution with failure recovery\ntest_category=\"${{ matrix.category }}\"\nmax_retries=2\nretry_count=0\n\nrun_test_with_recovery() {\n  local category=\"$1\"\n  local attempt=\"$2\"\n\n  echo \"\U0001F9EA Attempting $category tests (attempt $((attempt + 1))/$((max_retries + 1)))\"\n\n  # Phase 3: Memory optimization\n  if [[ \"$attempt\" -gt 0 ]]; then\n    echo \"\U0001F9F9 Clearing caches for retry...\"\n    rm -rf /tmp/nix-build-* ~/.cache/nix/eval-cache-v* 2>/dev/null || true\n    # Force garbage collection on retry\n    nix-collect-garbage -d || true\n  fi\n\n  # Phase 3: Set optimization level based on attempt\n  local opt_level=\"ultimate\"\n  if [[ \"$attempt\" -gt 0 ]]; then\n    opt_level=\"aggressive\"  # Fallback to safer mode on retry\n  fi\n\n  export PERFORMANCE_OPTIMIZATION_LEVEL=\"$opt_level\"\n  export PERFORMANCE_MEMORY_POOLING=true\n  export PERFORMANCE_CACHE_STRATEGY=\"intelligent\"\n\n  return 0  # Success placeholder - actual test execution follows\n}\n\n# Nix 환경 초기화 (CI에서 PATH 설정)\nif [[ -e /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]]; then\n  source /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh\nfi\n\n# Nix 도구들이 PATH에 있는지 확인\nif ! command -v nix-instantiate >/dev/null 2>&1; then\n  echo \"⚠️ nix-instantiate not found in PATH\"\n  echo \"PATH: $PATH\"\n  echo \"Available nix commands:\"\n  which nix || echo \"nix not found\"\n  find /nix -name \"nix-instantiate\" 2>/dev/null || echo \"nix-instantiate not found in /nix\"\nelse\n  echo \"✅ nix-instantiate available\"\nfi\n\necho \"\U0001F9EA Running ${{ matrix.category }} tests\"\necho \"Debug: Current working directory: $(pwd)\"\necho \"Debug: Available test files:\"\nfind tests -name \"*${{ matrix.category }}*\" || echo \"No test files found\"\n\n# Phase 3: Main test execution with intelligent retry\nwhile [[ $retry_count -le $max_retries ]]; do\n  echo \"\U0001F3AF Phase 3 Test Execution - Attempt $((retry_count + 1))\"\n\n  # Initialize recovery mechanism\n  run_test_with_recovery \"$test_category\" \"$retry_count\"\n\n  # Setup coverage collection directory\n  mkdir -p coverage-reports test-reports\n\n  # Phase 3: Execute tests with enhanced monitoring\n  test_start_time=$(date +%s)\n  exit_code=0\n\n  case \"${{ matrix.category }}\" in\n    \"unit\")\n      echo \"\U0001F9EA Running unit tests with NixTest framework\"\n      for target in ${{ matrix.test_target }}; do\n        echo \"Running test target: $target\"\n        nix build --impure .#$target 2>&1 | tee -a test-output.log || exit_code=$?\n        if [[ $exit_code -ne 0 ]]; then break; fi\n      done\n      ;;\n    \"integration\")\n      echo \"\U0001F517 Running integration tests\"\n      for target in ${{ matrix.test_target }}; do\n        echo \"Running integration target: $target\"\n        nix build --impure .#$target 2>&1 | tee -a test-output.log || exit_code=$?\n        if [[ $exit_code -ne 0 ]]; then break; fi\n      done\n      ;;\n    \"e2e\")\n      echo \"\U0001F3AF Running end-to-end tests\"\n      nix build --impure .#tests.all 2>&1 | tee test-output.log || exit_code=$?\n      ;;\n    \"performance\")\n      echo \"\U0001F4CA Running performance benchmarks\"\n      if nix build --impure .#performance-benchmarks 2>&1 | tee test-output.log; then\n        echo \"✅ Performance benchmarks completed\"\n      else\n        echo \"⚠️ Performance benchmarks not available, skipping...\"\n        exit_code=0  # Don't fail CI if performance tests are optional\n      fi\n      ;;\n  esac\n\n  test_end_time=$(date +%s)\n  test_duration=$((test_end_time - test_start_time))\n\n  echo \"⏱️ Test execution time: ${test_duration}s\"\n  echo \"\U0001F4CA Exit code: $exit_code\"\n\n  # Phase 3: Success condition check\n  if [[ $exit_code -eq 0 ]]; then\n    echo \"✅ Tests passed successfully on attempt $((retry_count + 1))\"\n\n    # Show performance summary\n    if [[ -f test-output.log ]]; then\n      echo \"=== Phase 3 Performance Summary ===\"\n      grep -E \"(Performance|efficiency|duration|memory)\" test-output.log | tail -10 || true\n    fi\n\n    break\n  fi\n\n  # Phase 3: Failure analysis and retry logic\n  retry_count=$((retry_count + 1))\n\n  if [[ $retry_count -le $max_retries ]]; then\n    echo \"❌ Test failed (exit code: $exit_code), retrying...\"\n    echo \"\U0001F50D Failure analysis:\"\n\n    # Show relevant error information\n    if [[ -f test-output.log ]]; then\n      echo \"=== Error Summary ===\"\n      tail -30 test-output.log | grep -E \"(ERROR|FAIL|error:|failed)\" || tail -15 test-output.log\n    fi\n\n    # Phase 3: Smart retry delay based on failure type\n    if grep -q \"memory\\|Memory\\|RAM\" test-output.log 2>/dev/null; then\n      echo \"\U0001F9E0 Memory-related failure detected, clearing caches...\"\n      sleep 30  # Longer delay for memory issues\n    elif grep -q \"timeout\\|Timeout\" test-output.log 2>/dev/null; then\n      echo \"⏰ Timeout detected, reducing parallelism...\"\n      export PERFORMANCE_MAX_PARALLEL_JOBS=8\n      sleep 15\n    else\n      echo \"\U0001F504 Generic failure, quick retry...\"\n      sleep 10\n    fi\n  else\n    echo \"❌ All retry attempts exhausted, failing...\"\n    if [[ -f test-output.log ]]; then\n      echo \"=== Final Error Output ===\"\n      tail -50 test-output.log\n    fi\n  fi\ndone\n\nexit $exit_code\n"
-      - name: Upload coverage reports
-        if: matrix.coverage == true && (success() || failure())
-        uses: actions/upload-artifact@v4
+            nix-build-${{ runner.os }}-
+      # Download build artifacts
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
         with:
-          name: coverage-${{ matrix.category }}-${{ github.run_number }}
-          path: |
-            coverage-reports/
-            test-reports/
-          retention-days: 30
-      - name: Generate coverage summary
-        if: matrix.coverage == true && (success() || failure())
-        run: "echo \"\U0001F4CA Coverage Summary for ${{ matrix.category }}\"\necho \"==================================\"\n\n# Check if coverage files exist\nif ls coverage-reports/*.json >/dev/null 2>&1; then\n  echo \"Coverage files found:\"\n  ls -la coverage-reports/\n\n  # Generate basic coverage summary\n  echo \"Coverage data collected for ${{ matrix.category }} tests\"\n  echo \"Files analyzed: $(ls coverage-reports/*.json | wc -l)\"\nelse\n  echo \"No coverage files found for ${{ matrix.category }}\"\nfi\n"
-  # Smoke test for all PRs (30 seconds)
-  smoke-test:
-    name: Smoke Test
+          name: build-${{ matrix.system }}
+      - name: Test build-switch (dry-run)
+        timeout-minutes: 30
+        run: |
+          export USER=${USER:-ci}
+          echo "🧪 Testing build-switch for ${{ matrix.name }} (${{ matrix.system }})"
+
+          # Wait for Nix daemon
+          echo "⏳ Waiting for Nix daemon..."
+          max_attempts=30
+          attempt=0
+          while ! nix --version >/dev/null 2>&1; do
+            attempt=$((attempt + 1))
+            if [[ $attempt -ge $max_attempts ]]; then
+              echo "❌ Nix daemon failed to start"
+              exit 1
+            fi
+            sleep 5
+          done
+          echo "✅ Nix daemon ready"
+
+          # Run build-switch dry-run
+          export HOST="${{ matrix.system }}"
+          echo "Running: make build-switch-dry HOST=$HOST"
+          make build-switch-dry HOST=$HOST
+
+          echo "✅ build-switch test completed for ${{ matrix.name }}"
+  # Test stage - Linux-first with minimal Darwin (3 minutes)
+  test:
+    name: Test ${{ matrix.category }}
     needs: validate
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
+    if: (github.event.pull_request.draft != true) || (github.ref == 'refs/heads/main')
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Unit tests - Linux
+          - category: unit
+            test_target: 'lib-functions platform-detection framework-check'
+            os: ubuntu-latest
+          # Integration tests - Linux
+          - category: integration
+            test_target: 'module-interaction cross-platform system-configuration'
+            os: ubuntu-latest
+          # Platform-specific - Darwin only
+          - category: platform
+            test_target: 'all'
+            os: macos-14
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+      - name: Clean existing Nix installation
+        if: runner.os == 'macOS'
+        continue-on-error: true
+        run: |
+          echo "🧹 Cleaning existing Nix installation..."
+          sudo launchctl stop org.nixos.nix-daemon 2>/dev/null || true
+          sudo rm -rf /nix 2>/dev/null || true
+          echo "✅ macOS cleanup completed"
       - uses: cachix/install-nix-action@v27
         with:
           nix_path: nixpkgs=channel:nixos-unstable
           install_url: https://releases.nixos.org/nix/nix-2.18.8/install
-      - name: Quick smoke test
-        run: "export USER=${USER:-ci}\nnix flake check --impure --no-build --all-systems\n\n# Test that the new testing framework can be built\necho \"\U0001F9EA Testing new NixTest framework\"\nnix build --impure .#framework-check --verbose\necho \"✅ Smoke test passed - Draft PR validation complete\"\n"
-  # Summary and status reporting
+      # Restore cache from build job
+      - name: Restore Nix cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            /nix/store
+            ~/.cache/nix
+            ~/.local/state/nix
+          key: nix-build-${{ runner.os }}-${{ hashFiles('flake.lock', 'flake.nix') }}
+          restore-keys: |
+            nix-build-${{ runner.os }}-
+      - name: Run tests
+        timeout-minutes: 20
+        run: |
+          export USER=${USER:-ci}
+          echo "🧪 Running ${{ matrix.category }} tests"
+
+          # Execute tests
+          for target in ${{ matrix.test_target }}; do
+            echo "Running test target: $target"
+            nix build --impure .#$target
+          done
+
+          echo "✅ Tests completed for ${{ matrix.category }}"
+  # CI completion and status reporting
   ci-complete:
     name: CI Summary
-    needs: [validate, build-core, test-build-switch, test-parallel, smoke-test]
+    needs: [validate, build, switch, test]
     runs-on: ubuntu-latest
     if: always() && !cancelled()
-    # Force this job to run even if previous jobs fail
-    continue-on-error: false
     steps:
       - name: Determine overall status
         id: status
         run: |
-          validation_result="${{ needs.validate.result }}"
-          build_result="${{ needs.build-core.result }}"
-          build_switch_result="${{ needs.test-build-switch.result }}"
-          test_result="${{ needs.test-parallel.result }}"
-          smoke_result="${{ needs.smoke-test.result }}"
+          validate="${{ needs.validate.result }}"
+          build="${{ needs.build.result }}"
+          switch="${{ needs.switch.result }}"
+          test="${{ needs.test.result }}"
 
-          echo "Debug: validation_result=$validation_result"
-          echo "Debug: build_result=$build_result"
-          echo "Debug: build_switch_result=$build_switch_result"
-          echo "Debug: test_result=$test_result"
-          echo "Debug: smoke_result=$smoke_result"
-          echo "Debug: CI_MODE=$CI_MODE"
-          echo "Debug: github.event_name=${{ github.event_name }}"
-
-          # Helper function to check if result is success or optional failure
-          is_success_or_optional() {
-            local result="$1"
-            [[ "$result" == "success" || "$result" == "skipped" ]]
-          }
-
-          # Simplified status determination logic
-          if [[ "$validation_result" != "success" ]]; then
-            echo "status=failed" >> $GITHUB_OUTPUT
-            echo "message=Validation failed" >> $GITHUB_OUTPUT
-          elif [[ "$CI_MODE" == "draft" ]]; then
-            if [[ "$smoke_result" == "success" ]]; then
-              echo "status=success" >> $GITHUB_OUTPUT
-              echo "message=Draft PR validation passed (smoke test only)" >> $GITHUB_OUTPUT
-            else
-              echo "status=failed" >> $GITHUB_OUTPUT
-              echo "message=Draft PR smoke test failed" >> $GITHUB_OUTPUT
-            fi
+          # All jobs must succeed
+          if [[ "$validate" == "success" && "$build" == "success" && "$switch" == "success" && "$test" == "success" ]]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "message=All CI checks passed" >> $GITHUB_OUTPUT
           else
-            # For main branch (push events), smoke test is skipped
-            if [[ "${{ github.event_name }}" == "push" ]]; then
-              if is_success_or_optional "$build_result" && is_success_or_optional "$build_switch_result" && is_success_or_optional "$test_result"; then
-                echo "status=success" >> $GITHUB_OUTPUT
-                echo "message=Full CI pipeline completed successfully" >> $GITHUB_OUTPUT
-              else
-                echo "status=failed" >> $GITHUB_OUTPUT
-                echo "message=Build or test stage failed (build: $build_result, build-switch: $build_switch_result, test: $test_result)" >> $GITHUB_OUTPUT
-              fi
-            else
-              # For PR events, include smoke test
-              if is_success_or_optional "$build_result" && is_success_or_optional "$build_switch_result" && is_success_or_optional "$test_result" && is_success_or_optional "$smoke_result"; then
-                echo "status=success" >> $GITHUB_OUTPUT
-                echo "message=Full CI pipeline completed successfully" >> $GITHUB_OUTPUT
-              else
-                echo "status=failed" >> $GITHUB_OUTPUT
-                echo "message=Build, test, or smoke test stage failed (build: $build_result, build-switch: $build_switch_result, test: $test_result, smoke: $smoke_result)" >> $GITHUB_OUTPUT
-              fi
-            fi
+            echo "status=failed" >> $GITHUB_OUTPUT
+            echo "message=CI failed - validate:$validate build:$build switch:$switch test:$test" >> $GITHUB_OUTPUT
           fi
-      - name: Comment on PR
-        if: github.event_name == 'pull_request'
+      - name: Report status
         uses: actions/github-script@v7
         with:
-          script: "try {\n  // Helper functions for cleaner code\n  function getStatusIcon(result) {\n    return result === 'success' ? '✅' : '❌';\n  }\n\n  function buildTemplate(isDraft, statusIcon, message, icons, footer) {\n    const efficiency = isDraft ? '⚡ **Ultra Fast** (smoke test only)' : '\U0001F680 **Streamlined** (parallel execution)';\n    const buildStatus = isDraft ? '⏭️ Skipped (draft)' : icons.build + ' Core platforms';\n    const testStatus = isDraft ? '⏭️ Skipped (draft)' : icons.test + ' Parallel execution';\n\n    return '## ' + statusIcon + ' Streamlined CI Results\\n\\n' +\n      efficiency + '\\n\\n' +\n      '**Status**: ' + message + '\\n\\n' +\n      '**Pipeline Summary**:\\n' +\n      '- **Validation**: ' + icons.validation + ' Lint & flake check\\n' +\n      '- **Build**: ' + buildStatus + '\\n' +\n      '- **Tests**: ' + testStatus + '\\n' +\n      '- **Smoke Test**: ' + icons.smoke + ' Quick validation\\n\\n' +\n      footer;\n  }\n\n  // Main logic\n  const status = '${{ steps.status.outputs.status }}';\n  const message = '${{ steps.status.outputs.message }}';\n  const isDraft = '${{ env.CI_MODE }}' === 'draft';\n\n  const statusIcon = getStatusIcon(status);\n  const icons = {\n    validation: getStatusIcon('${{ needs.validate.result }}'),\n    build: getStatusIcon('${{ needs.build-core.result }}'),\n    test: getStatusIcon('${{ needs.test-parallel.result }}'),\n    smoke: getStatusIcon('${{ needs.smoke-test.result }}')\n  };\n\n  const footer = isDraft ? '_\U0001F4A1 Mark as ready to run full CI pipeline_' : '_\U0001F3AF Optimized for speed: ~5-8 minutes total_';\n  const template = buildTemplate(isDraft, statusIcon, message, icons, footer);\n\n  // Find and update existing comment\n  const { data: comments } = await github.rest.issues.listComments({\n    owner: context.repo.owner,\n    repo: context.repo.repo,\n    issue_number: context.issue.number,\n  });\n\n  const existingComment = comments.find(comment =>\n    comment.user.type === 'Bot' && comment.body.includes('Streamlined CI Results')\n  );\n\n  if (existingComment) {\n    await github.rest.issues.updateComment({\n      owner: context.repo.owner,\n      repo: context.repo.repo,\n      comment_id: existingComment.id,\n      body: template\n    });\n    console.log('Updated existing CI comment');\n  } else {\n    await github.rest.issues.createComment({\n      owner: context.repo.owner,\n      repo: context.repo.repo,\n      issue_number: context.issue.number,\n      body: template\n    });\n    console.log('Created new CI comment');\n  }\n} catch (error) {\n  console.error('Failed to update PR comment:', error);\n  // Continue workflow even if comment fails\n}\n"
-      - name: Report CI status
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: "status=\"${{ steps.status.outputs.status }}\"\nmessage=\"${{ steps.status.outputs.message }}\"\nstate=$([ \"$status\" = \"success\" ] && echo \"success\" || echo \"failure\")\n\necho \"\U0001F50D Setting CI status: $state - $message\"\necho \"\U0001F4CD SHA: ${{ github.sha }}\"\necho \"\U0001F517 Run ID: ${{ github.run_id }}\"\n\n# Primary attempt: Use gh CLI\nif gh api repos/baleen37/dotfiles/statuses/${{ github.sha }} \\\n  -X POST \\\n  -f state=\"$state\" \\\n  -f description=\"$message\" \\\n  -f context=\"CI\" \\\n  -f target_url=\"https://github.com/baleen37/dotfiles/actions/runs/${{ github.run_id }}\" \\\n  --verbose; then\n  echo \"✅ CI status reported successfully via gh CLI\"\nelse\n  echo \"⚠️ gh CLI failed, trying curl fallback...\"\n\n  # Fallback: Use curl directly\n  curl -X POST \\\n    -H \"Authorization: token $GITHUB_TOKEN\" \\\n    -H \"Accept: application/vnd.github.v3+json\" \\\n    -d \"{\\\"state\\\":\\\"$state\\\",\\\"description\\\":\\\"$message\\\",\\\"context\\\":\\\"CI\\\",\\\"target_url\\\":\\\"https://github.com/baleen37/dotfiles/actions/runs/${{ github.run_id }}\\\"}\" \\\n    https://api.github.com/repos/baleen37/dotfiles/statuses/${{ github.sha }}\n\n  echo \"✅ CI status reported via curl fallback\"\nfi\n\n# Verify the status was set\necho \"\U0001F50D Verifying CI status was set...\"\ngh api repos/baleen37/dotfiles/commits/${{ github.sha }}/statuses --jq '.[] | select(.context == \"CI\") | {state: .state, description: .description}'\n"
-      - name: Final status check
+          script: |
+            const status = '${{ steps.status.outputs.status }}';
+            const message = '${{ steps.status.outputs.message }}';
+            const state = status === 'success' ? 'success' : 'failure';
+
+            // Set commit status
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: state,
+              description: message,
+              context: 'CI Summary'
+            });
+
+            console.log(`✅ CI status: ${state} - ${message}`);
+      - name: Final check
         run: |
-          status="${{ steps.status.outputs.status }}"
-          message="${{ steps.status.outputs.message }}"
-
-          if [[ "$status" != "success" ]]; then
-            echo "❌ CI pipeline failed: $message"
+          if [[ "${{ steps.status.outputs.status }}" != "success" ]]; then
+            echo "❌ CI failed: ${{ steps.status.outputs.message }}"
             exit 1
-          else
-            echo "✅ CI pipeline succeeded: $message"
           fi
-  # Fallback job in case ci-complete fails
-  ci-status-fallback:
-    name: CI Status Fallback
-    needs: [validate, build-core, test-build-switch, test-parallel, smoke-test]
-    runs-on: ubuntu-latest
-    if: always() && !cancelled() && (failure() || needs.ci-complete.result == 'failure')
-    steps:
-      - name: Emergency CI Status
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: "echo \"\U0001F6A8 CI Summary job failed, setting emergency status\"\n\n# Always report failure if we reach this point\ncurl -X POST \\\n  -H \"Authorization: token $GITHUB_TOKEN\" \\\n  -H \"Accept: application/vnd.github.v3+json\" \\\n  -d '{\"state\":\"failure\",\"description\":\"CI pipeline failed or incomplete\",\"context\":\"CI\",\"target_url\":\"https://github.com/baleen37/dotfiles/actions/runs/${{ github.run_id }}\"}' \\\n  https://api.github.com/repos/baleen37/dotfiles/statuses/${{ github.sha }}\n\necho \"✅ Emergency CI status set to failure\"\n"
-  # Auto-merge for all PRs after successful CI
-  auto-merge:
-    name: Auto-merge PR
-    needs: ci-complete
-    runs-on: ubuntu-latest
-    if: >
-      needs.ci-complete.result == 'success' && github.event_name == 'pull_request' && !github.event.pull_request.draft
-
-    permissions:
-      contents: write
-      pull-requests: write
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Auto-approve and enable auto-merge
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: "echo \"\U0001F680 Auto-merging PR #${{ github.event.number }}\"\necho \"Author: ${{ github.event.pull_request.user.login }}\"\n\n# Check if author is repo owner\nauthor=\"${{ github.event.pull_request.user.login }}\"\nrepo_owner=\"${{ github.repository_owner }}\"\n\nif [[ \"$author\" == \"$repo_owner\" ]]; then\n  echo \"\U0001F527 Repo owner PR detected - GitHub prevents self-approval\"\n  echo \"✅ Relying on successful CI for merge qualification\"\n  echo \"\U0001F3AF Branch protection allows admin bypass for repo owner\"\nelse\n  echo \"\U0001F464 External contributor - auto-approving PR\"\n  # Auto-approve the PR for external contributors\n  gh pr review ${{ github.event.number }} --approve \\\n    --body \"✅ **Auto-approved**: CI 파이프라인이 성공적으로 완료되었습니다.\n\n  - **상태**: 모든 테스트 통과 ✅\n  - **빌드**: 성공 ✅\n  - **검증**: 완료 ✅\n\n  _\U0001F916 자동화된 승인 및 머지 프로세스_\"\nfi\n\n# Enable auto-merge (works for both cases due to admin bypass)\ngh pr merge ${{ github.event.number }} --auto --squash\n\necho \"✅ Auto-merge enabled for PR #${{ github.event.number }}\"\necho \"PR will automatically merge when all conditions are met (including approvals)\"\n"
-# PR #312 CI 트리거 확인용 주석
+          echo "✅ CI passed"

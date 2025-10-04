@@ -31,10 +31,12 @@
 { config
 , inputs
 , pkgs
-, user ? (import ../../lib/user-resolution.nix {
-    default = "baleen";
-    returnFormat = "string";
-  })
+, user ? (
+    import ../../lib/user-resolution.nix {
+      default = "baleen";
+      returnFormat = "string";
+    }
+  )
 , ...
 }:
 
