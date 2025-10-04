@@ -212,9 +212,6 @@
             echo "Format check passed"
             touch $out
           '';
-        } // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
-          # VM-based end-to-end test (Linux only)
-          vm-test = import ./tests/e2e/vm-test.nix { inherit pkgs; };
         }
       );
 

@@ -28,6 +28,16 @@ in
   nix = {
     enable = false; # Determinate Nix와 충돌 방지
 
+    # Linux builder for NixOS VM tests on macOS
+    linux-builder = {
+      enable = true;
+    };
+
+    # System features for NixOS testing
+    settings = {
+      system-features = [ "nixos-test" "apple-virt" ];
+    };
+
     # Determinate Nix와 충돌하지 않는 최소 설정만 유지
     # 갈비지 컬렉션 설정은 modules/darwin/nix-gc.nix에서 관리
 

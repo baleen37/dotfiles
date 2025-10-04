@@ -354,16 +354,6 @@ test-enhanced-verbose:
 	@echo "🚀 Running enhanced tests with verbose output..."
 	@./scripts/enhanced-test.sh --verbose
 
-# VM-based end-to-end testing (Linux only)
-test-vm:
-	@echo "🖥️  Running VM-based end-to-end tests..."
-	@if [ "$$(uname)" = "Linux" ]; then \
-		nix build .#checks.$$(nix eval --impure --raw --expr 'builtins.currentSystem').vm-test; \
-	else \
-		echo "⚠️  VM tests are only supported on Linux systems"; \
-		exit 1; \
-	fi
-
 # Performance monitoring and regression detection
 test-monitor:
 	@echo "📊 Running performance monitoring..."
