@@ -80,8 +80,25 @@
     ,
     }@inputs:
     let
-      # Dynamic user resolution (requires --impure flag)
-      user = builtins.getEnv "USER";
+      # Dynamic user resolution with HOME-based fallback
+      user =
+        let
+          userEnv = builtins.getEnv "USER";
+          homeEnv = builtins.getEnv "HOME";
+          # Extract username from HOME path (/Users/username or /home/username)
+          extractUserFromHome = homePath:
+            if homePath == "" then
+              ""
+            else
+              let
+                # Split path and filter empty strings
+                parts = builtins.filter (x: x != "") (builtins.split "/" homePath);
+                # Get last part of path (username)
+                lastPart = builtins.elemAt parts ((builtins.length parts) - 1);
+              in
+              lastPart;
+        in
+        if userEnv != "" then userEnv else extractUserFromHome homeEnv;
 
       # Supported systems - direct specification
       linuxSystems = [
@@ -134,8 +151,7 @@
 
                 # Pre-commit tools
                 pre-commit
-              ]
-              ++ pkgs.lib.optionals (nix-unit.packages ? ${system}) [
+              ] ++ pkgs.lib.optionals (nix-unit.packages ? ${system}) [
                 nix-unit.packages.${system}.default
               ];
 
@@ -184,31 +200,26 @@
 
       # Direct NixOS configurations following dustinlyons pattern
       # Skip if user cannot be determined (pure evaluation mode)
-      nixosConfigurations = nixpkgs.lib.optionalAttrs (user != "") (
-        nixpkgs.lib.genAttrs linuxSystems (
-          system:
-          nixpkgs.lib.nixosSystem {
-            inherit system;
-            specialArgs = inputs // {
-              inherit user;
-            };
-            modules = [
-              ./hosts/nixos # Host config first to ensure allowUnfree is set at system level
-              disko.nixosModules.disko
-              home-manager.nixosModules.home-manager
-              {
-                home-manager = {
-                  useGlobalPkgs = true;
-                  useUserPackages = true;
-                  users.${user} = import ./modules/nixos/home-manager.nix;
-                  backupFileExtension = "bak";
-                  extraSpecialArgs = inputs;
-                };
-              }
-            ];
-          }
-        )
-      );
+      nixosConfigurations = nixpkgs.lib.optionalAttrs (user != "") (nixpkgs.lib.genAttrs linuxSystems (system:
+        nixpkgs.lib.nixosSystem {
+          inherit system;
+          specialArgs = inputs // { inherit user; };
+          modules = [
+            ./hosts/nixos # Host config first to ensure allowUnfree is set at system level
+            disko.nixosModules.disko
+            home-manager.nixosModules.home-manager
+            {
+              home-manager = {
+                useGlobalPkgs = true;
+                useUserPackages = true;
+                users.${user} = import ./modules/nixos/home-manager.nix;
+                backupFileExtension = "bak";
+                extraSpecialArgs = inputs;
+              };
+            }
+          ];
+        }
+      ));
 
       # Simple direct Home Manager configurations
       # Skip if user cannot be determined (pure evaluation mode)
