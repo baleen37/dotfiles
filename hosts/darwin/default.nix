@@ -22,28 +22,27 @@ in
   # Allow unfree packages (system level for useGlobalPkgs)
   nixpkgs.config.allowUnfree = true;
 
-  # Nix 설정은 완전히 Determinate Nix가 관리
-  # /etc/nix/nix.conf 및 /etc/nix/nix.custom.conf에서 설정됨
-  # 갈비지 컬렉션만 활성화하고 나머지는 Determinate Nix가 관리
+  # Nix 설정 - Determinate Nix와 호환되도록 최소 설정만 유지
+  # /etc/nix/nix.conf 및 /etc/nix/nix.custom.conf는 Determinate가 관리
+  # 갈비지 컬렉션은 modules/darwin/nix-gc.nix에서 관리
   nix = {
-    enable = false; # Determinate Nix와 충돌 방지
+    # linux-builder를 사용하려면 enable = true 필요
+    # Determinate Nix와 충돌하지 않도록 최소 설정만 활성화
+    # enable = true;
 
-    # Linux builder for NixOS VM tests on macOS
-    linux-builder = {
-      enable = true;
-    };
+    # Linux builder for NixOS VM tests on macOS - 주석 처리 (Determinate Nix 충돌 방지)
+    # linux-builder = {
+    #   enable = true;
+    # };
 
-    # System features for NixOS testing
-    settings = {
-      system-features = [ "nixos-test" "apple-virt" ];
-    };
+    # System features for NixOS testing - 주석 처리
+    # settings = {
+    #   system-features = [ "nixos-test" "apple-virt" ];
+    # };
 
-    # Determinate Nix와 충돌하지 않는 최소 설정만 유지
-    # 갈비지 컬렉션 설정은 modules/darwin/nix-gc.nix에서 관리
-
-    # 모든 nix 설정을 Determinate가 관리하도록 함
+    # Determinate Nix가 관리하는 설정:
     # - trusted-users: /etc/nix/nix.custom.conf에서 수동 설정 필요
-    # - substituters: Determinate가 FlakeHub와 기본 캐시 제공
+    # - substituters: FlakeHub와 기본 캐시 자동 제공
     # - 수동 설정 방법: sudo vi /etc/nix/nix.custom.conf
     #   trusted-users = root @admin baleen
   };

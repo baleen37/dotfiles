@@ -132,6 +132,63 @@ jobs:
       - name: Build configuration
         timeout-minutes: 90
         run: "export USER=${USER:-ci}\necho \"\U0001F3D7️ Building ${{ matrix.name }} (${{ matrix.system }}) - Type: ${{ matrix.build_type }}\"\n\n# Wait for Nix daemon to be fully ready\necho \"⏳ Waiting for Nix daemon to be ready...\"\nmax_attempts=30\nattempt=0\nwhile ! nix --version >/dev/null 2>&1; do\n  attempt=$((attempt + 1))\n  if [[ $attempt -ge $max_attempts ]]; then\n    echo \"❌ Nix daemon failed to start after $max_attempts attempts\"\n    exit 1\n  fi\n  echo \"Attempt $attempt/$max_attempts: Waiting for Nix...\"\n  sleep 5\ndone\necho \"✅ Nix daemon is ready\"\n\n# Show Nix configuration for debugging\necho \"\U0001F50D Nix configuration:\"\nnix --version\necho \"NIX_CONFIG: $NIX_CONFIG\"\n\ncase \"${{ matrix.system }}\" in\n  *darwin*)\n    if [[ \"${{ matrix.build_type }}\" == \"full\" ]]; then\n      echo \"Running full Darwin build...\"\n      nix build --impure --no-link .#darwinConfigurations.${{ matrix.system }}.system --verbose\n    else\n      echo \"Running Darwin validation...\"\n      # More robust validation with better error handling\n      nix eval --impure .#darwinConfigurations.${{ matrix.system }}.system --json --show-trace >/dev/null\n    fi\n    ;;\n  *linux*)\n    echo \"Running NixOS validation...\"\n    nix eval --impure .#nixosConfigurations.${{ matrix.system }}.config.system.name --json --show-trace >/dev/null\n    ;;\nesac\necho \"✅ Build completed successfully\"\n"
+  # Build-switch verification stage (2-4 minutes) - Platform-specific
+  test-build-switch:
+    name: Test build-switch ${{ matrix.name }}
+    needs: validate
+    if: (github.event.pull_request.draft != true) || (github.ref == 'refs/heads/main')
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: 'Darwin ARM64'
+            system: aarch64-darwin
+            os: macos-15
+          - name: 'Darwin x64'
+            system: x86_64-darwin
+            os: macos-13
+          - name: 'Linux ARM64'
+            system: aarch64-linux
+            os: ubuntu-latest
+          - name: 'Linux x64'
+            system: x86_64-linux
+            os: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ contains(matrix.name, 'ARM64') }} # ARM64 builds are optional
+    steps:
+      - uses: actions/checkout@v4
+      # Clean up any existing Nix installation on macOS
+      - name: Clean existing Nix installation (macOS)
+        if: runner.os == 'macOS'
+        continue-on-error: true
+        run: "echo \"\U0001F9F9 Cleaning existing Nix installation...\"\nset +e\nsudo launchctl stop org.nixos.nix-daemon 2>/dev/null || true\nsudo launchctl unload /Library/LaunchDaemons/org.nixos.nix-daemon.plist 2>/dev/null || true\nif mount | grep -q \"/nix\"; then\n  sudo umount /nix 2>/dev/null || true\nfi\nif [[ -d \"/nix\" ]]; then\n  sudo rm -rf /nix 2>/dev/null || true\nfi\nsudo rm -f /etc/synthetic.conf /Library/LaunchDaemons/org.nixos.* 2>/dev/null || true\nsudo rm -rf /etc/nix 2>/dev/null || true\necho \"nix\" | sudo tee /etc/synthetic.conf > /dev/null 2>&1 || true\nsync\nsleep 2\necho \"✅ macOS cleanup completed\"\nset -e\n"
+      - name: Install Nix
+        uses: cachix/install-nix-action@v27
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+          install_url: https://releases.nixos.org/nix/nix-2.18.8/install
+          enable_kvm: true
+      - name: Cache Nix store
+        uses: actions/cache@v4
+        continue-on-error: true
+        with:
+          path: |
+            /nix/store
+            ~/.cache/nix
+            ~/.cache/nix-index
+            /tmp/nix-build-*
+            ~/.local/state/nix
+          key: build-switch-${{ runner.os }}-${{ matrix.system }}-${{ hashFiles('flake.lock', 'flake.nix', 'hosts/**/*.nix', 'Makefile') }}
+          restore-keys: |
+            build-switch-${{ runner.os }}-${{ matrix.system }}-${{ hashFiles('flake.lock', 'flake.nix') }}-
+            build-switch-${{ runner.os }}-${{ matrix.system }}-
+            phase3-build-${{ runner.os }}-${{ matrix.system }}-
+            ${{ runner.os }}-${{ matrix.system }}-
+          enableCrossOsArchive: false
+          save-always: true
+      - name: Test build-switch (dry-run)
+        timeout-minutes: 60
+        run: "export USER=${USER:-ci}\necho \"\U0001F9EA Testing build-switch for ${{ matrix.name }} (${{ matrix.system }})\"\n\n# Wait for Nix daemon\necho \"⏳ Waiting for Nix daemon...\"\nmax_attempts=30\nattempt=0\nwhile ! nix --version >/dev/null 2>&1; do\n  attempt=$((attempt + 1))\n  if [[ $attempt -ge $max_attempts ]]; then\n    echo \"❌ Nix daemon failed to start\"\n    exit 1\n  fi\n  sleep 5\ndone\necho \"✅ Nix daemon ready\"\n\n# Set platform-specific target\ncase \"${{ matrix.system }}\" in\n  *darwin*)\n    export HOST=\"${{ matrix.system }}\"\n    ;;\n  *linux*)\n    export HOST=\"${{ matrix.system }}\"\n    ;;\nesac\n\n# Run build-switch dry-run\necho \"Running: make build-switch-dry HOST=$HOST\"\nmake build-switch-dry HOST=$HOST ARGS=\"--show-trace\"\n\necho \"✅ build-switch test completed for ${{ matrix.name }}\"\n"
   # Parallel test stage (2-3 minutes) with coverage support and cross-platform matrix
   test-parallel:
     name: Test ${{ matrix.category }} (${{ matrix.os-name }})
@@ -241,7 +298,7 @@ jobs:
   # Summary and status reporting
   ci-complete:
     name: CI Summary
-    needs: [validate, build-core, test-parallel, smoke-test]
+    needs: [validate, build-core, test-build-switch, test-parallel, smoke-test]
     runs-on: ubuntu-latest
     if: always() && !cancelled()
     # Force this job to run even if previous jobs fail
@@ -252,15 +309,23 @@ jobs:
         run: |
           validation_result="${{ needs.validate.result }}"
           build_result="${{ needs.build-core.result }}"
+          build_switch_result="${{ needs.test-build-switch.result }}"
           test_result="${{ needs.test-parallel.result }}"
           smoke_result="${{ needs.smoke-test.result }}"
 
           echo "Debug: validation_result=$validation_result"
           echo "Debug: build_result=$build_result"
+          echo "Debug: build_switch_result=$build_switch_result"
           echo "Debug: test_result=$test_result"
           echo "Debug: smoke_result=$smoke_result"
           echo "Debug: CI_MODE=$CI_MODE"
           echo "Debug: github.event_name=${{ github.event_name }}"
+
+          # Helper function to check if result is success or optional failure
+          is_success_or_optional() {
+            local result="$1"
+            [[ "$result" == "success" || "$result" == "skipped" ]]
+          }
 
           # Simplified status determination logic
           if [[ "$validation_result" != "success" ]]; then
@@ -277,21 +342,21 @@ jobs:
           else
             # For main branch (push events), smoke test is skipped
             if [[ "${{ github.event_name }}" == "push" ]]; then
-              if [[ "$build_result" == "success" && ("$test_result" == "success" || "$test_result" == "skipped") ]]; then
+              if is_success_or_optional "$build_result" && is_success_or_optional "$build_switch_result" && is_success_or_optional "$test_result"; then
                 echo "status=success" >> $GITHUB_OUTPUT
                 echo "message=Full CI pipeline completed successfully" >> $GITHUB_OUTPUT
               else
                 echo "status=failed" >> $GITHUB_OUTPUT
-                echo "message=Build or test stage failed (build: $build_result, test: $test_result)" >> $GITHUB_OUTPUT
+                echo "message=Build or test stage failed (build: $build_result, build-switch: $build_switch_result, test: $test_result)" >> $GITHUB_OUTPUT
               fi
             else
               # For PR events, include smoke test
-              if [[ "$build_result" == "success" && ("$test_result" == "success" || "$test_result" == "skipped") && "$smoke_result" == "success" ]]; then
+              if is_success_or_optional "$build_result" && is_success_or_optional "$build_switch_result" && is_success_or_optional "$test_result" && is_success_or_optional "$smoke_result"; then
                 echo "status=success" >> $GITHUB_OUTPUT
                 echo "message=Full CI pipeline completed successfully" >> $GITHUB_OUTPUT
               else
                 echo "status=failed" >> $GITHUB_OUTPUT
-                echo "message=Build, test, or smoke test stage failed (build: $build_result, test: $test_result, smoke: $smoke_result)" >> $GITHUB_OUTPUT
+                echo "message=Build, test, or smoke test stage failed (build: $build_result, build-switch: $build_switch_result, test: $test_result, smoke: $smoke_result)" >> $GITHUB_OUTPUT
               fi
             fi
           fi
@@ -318,7 +383,7 @@ jobs:
   # Fallback job in case ci-complete fails
   ci-status-fallback:
     name: CI Status Fallback
-    needs: [validate, build-core, test-parallel, smoke-test]
+    needs: [validate, build-core, test-build-switch, test-parallel, smoke-test]
     runs-on: ubuntu-latest
     if: always() && !cancelled() && (failure() || needs.ci-complete.result == 'failure')
     steps:

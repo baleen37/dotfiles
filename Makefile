@@ -466,6 +466,29 @@ build-switch: check-user
 	duration=$$((end_time - start_time)); \
 	echo "✅ Build and switch completed in $${duration}s with USER=$(USER)"
 
+# Build-switch dry-run for CI testing (no actual switch)
+build-switch-dry: check-user
+	@echo "🧪 Testing build-switch (dry-run for CI): $(CURRENT_SYSTEM) with USER=$(USER)..."
+	@start_time=$$(date +%s); \
+	OS=$$(uname -s); \
+	TARGET=$${HOST:-$(CURRENT_SYSTEM)}; \
+	echo "🎯 Target system: $${TARGET}"; \
+	if [ "$${OS}" = "Darwin" ]; then \
+		echo "🔨 Building Darwin configuration..."; \
+		export USER=$(USER); $(NIX) build --impure .#darwinConfigurations.$${TARGET}.system $(ARGS) || { echo "❌ Build failed!"; exit 1; }; \
+		if [ ! -L "./result" ]; then echo "❌ Build result not found!"; exit 1; fi; \
+		echo "✅ Build successful (skipping switch in dry-run mode)"; \
+		unlink ./result; \
+	else \
+		echo "🔨 Building NixOS configuration..."; \
+		export USER=$(USER); $(NIX) build --impure .#nixosConfigurations.$${TARGET}.config.system.build.toplevel $(ARGS) || { echo "❌ Build failed!"; exit 1; }; \
+		echo "✅ Build successful (skipping switch in dry-run mode)"; \
+		if [ -L "./result" ]; then unlink ./result; fi; \
+	fi; \
+	end_time=$$(date +%s); \
+	duration=$$((end_time - start_time)); \
+	echo "✅ Build-switch dry-run completed in $${duration}s with USER=$(USER)"
+
 switch: check-user
 	@echo "🔄 Switching system configuration with USER=$(USER)..."
 	@OS=$$(uname -s); \
