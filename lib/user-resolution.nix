@@ -19,10 +19,30 @@
 , returnFormat ? "string"
 , platform ? null
 , mockEnv ? { }
+, pkgs ? null
+, lib ? null
 ,
 }:
 
 let
+  # Determine lib with fallback for error handling
+  actualLib =
+    if lib != null then
+      lib
+    else if pkgs != null then
+      pkgs.lib
+    else
+      null;
+
+  # Import error system for consistent error handling
+  errorSystem =
+    if pkgs != null then
+      import ./error-system.nix { inherit pkgs lib; }
+    else
+      {
+        throwUserError = msg: builtins.throw "User Error: ${msg}";
+      };
+
   # Environment variable reading (supports mocking for tests)
   getEnvVar = var: if builtins.hasAttr var mockEnv then mockEnv.${var} else builtins.getEnv var;
 
@@ -55,7 +75,7 @@ let
     else if default != null && validateUser default then
       default
     else
-      builtins.throw ''
+      errorSystem.throwUserError ''
         Failed to detect valid user.
         Set USER environment variable: export USER=$(whoami)
         Or use --impure flag: nix build --impure

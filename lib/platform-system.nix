@@ -265,116 +265,49 @@ let
         pathResolutionWithFallback =
           target_command:
           let
-            # Get PWD or fall back to a reasonable default
-            basePath =
-              if (builtins.getEnv "PWD") != "" then builtins.getEnv "PWD" else "/Users/baleen/dev/dotfiles";
-            appPath = "${basePath}/apps/${currentSystem.system}/${target_command}";
+            # Get PWD from environment - fail explicitly if not available
+            basePath = builtins.getEnv "PWD";
+            appPath =
+              if basePath != "" then
+                "${basePath}/apps/${currentSystem.system}/${target_command}"
+              else
+                errorSystem.throwConfigError "PWD environment variable not set - required for app path resolution";
           in
           builtins.toString appPath;
 
-        # Standard app builder using writeScript to avoid source dependencies
-        mkApp = scriptName: system: {
-          type = "app";
-          program =
-            let
-              pkg = nixpkgs.legacyPackages.${system};
-              scriptContent =
-                if scriptName == "build-switch" then
-                  ''
-                    #!/bin/bash -e
-
-                    # Check for help flag
-                    if [ "$1" = "--help" ] || [ "$1" = "-h" ] || [ "$1" = "help" ]; then
-                        echo "build-switch - Build and switch Darwin system configuration"
-                        echo ""
-                        echo "Usage: nix run .#build-switch [OPTIONS]"
-                        echo ""
-                        echo "Options:"
-                        echo "  --help, -h    Show this help message"
-                        echo "  --verbose     Enable verbose logging"
-                        echo ""
-                        echo "Description:"
-                        echo "  Builds and applies user-level configuration using Home Manager."
-                        echo "  No root privileges required - safe for Claude Code execution."
-                        echo ""
-                        echo "Examples:"
-                        echo "  nix run .#build-switch"
-                        echo "  nix run .#build-switch -- --verbose"
-                        echo ""
-                        exit 0
-                    fi
-
-                    # Environment setup - minimize export usage
-                    USER=''${USER:-$(whoami)}
-
-                    # Simple logging
-                    log_info() {
-                        echo "ℹ️  $1"
-                    }
-
-                    # TDD: Minimal implementation for Green phase
-                    log_info "Running user-level configuration (no root privileges required)"
-                    log_info "Using Home Manager for all configurations"
-                    log_info "Running: nix run github:nix-community/home-manager/release-24.05 -- switch --flake .#''${USER} --impure"
-
-                    # Home Manager 직접 실행 - 무한 루프 해결
-                    USER=''${USER:-$(whoami)}
-                    log_info "Running Home Manager directly for user: $USER"
-
-                    # Home Manager 직접 실행 (스크립트 재호출 없이)
-                    exec nix run github:nix-community/home-manager/release-24.05 -- switch --flake ".#$USER" --impure "$@"
-                  ''
-                else if scriptName == "build-switch" && currentSystem.platform == "linux" then
-                  ''
-                    #!/bin/bash -e
-
-                    # Check for help flag
-                    if [ "$1" = "--help" ] || [ "$1" = "-h" ] || [ "$1" = "help" ]; then
-                        echo "build-switch - Build and switch system configuration (Linux)"
-                        echo ""
-                        echo "Usage: nix run .#build-switch [OPTIONS]"
-                        echo ""
-                        echo "Options:"
-                        echo "  --help, -h    Show this help message"
-                        echo "  --verbose     Show detailed output"
-                        echo ""
-                        echo "For non-NixOS Linux (Ubuntu, etc.), this uses Home Manager for user configuration."
-                        echo "For NixOS, this uses nixos-rebuild for system configuration."
-                        echo ""
-                        exit 0
-                    fi
-
-                    # Environment setup
-                    USER=''${USER:-$(whoami)}
-
-                    # Simple logging
-                    log_info() {
-                        echo "ℹ️  $1"
-                    }
-
-                    # Check if we're on NixOS or regular Linux
-                    if [ -f /etc/NIXOS ]; then
-                        # NixOS - use nixos-rebuild
-                        log_info "Detected NixOS system"
-                        log_info "Running: sudo nixos-rebuild switch --flake .#''${SYSTEM_TYPE:-${currentSystem.system}} --impure"
-                        exec sudo nixos-rebuild switch --flake ".#''${SYSTEM_TYPE:-${currentSystem.system}}" --impure "$@"
-                    else
-                        # Regular Linux (Ubuntu, etc.) - use Home Manager
-                        log_info "Detected non-NixOS Linux system (Ubuntu, etc.)"
-                        log_info "Using Home Manager for user configuration"
-                        log_info "Running: nix run github:nix-community/home-manager/release-24.05 -- switch --flake .#''${USER} --impure"
-                        exec nix run github:nix-community/home-manager/release-24.05 -- switch --flake ".#$USER" --impure "$@"
-                    fi
-                  ''
+        # Standard app builder using external script files
+        mkApp =
+          scriptName: system:
+          let
+            pkg = nixpkgs.legacyPackages.${system};
+            # Determine script file based on platform and script name
+            scriptFile =
+              if scriptName == "build-switch" then
+                if currentSystem.platform == "darwin" then
+                  self + "/scripts/build-switch-darwin.sh"
                 else
-                  ''
-                    #!/bin/bash
-                    echo "Script ${scriptName} not implemented in flake apps"
-                    exit 1
-                  '';
-            in
-            "${pkg.writeScriptBin scriptName scriptContent}/bin/${scriptName}";
-        };
+                  self + "/scripts/build-switch-linux.sh"
+              else
+                null;
+
+            # Load script content from file or provide fallback
+            scriptContent =
+              if scriptFile != null && builtins.pathExists scriptFile then
+                builtins.readFile scriptFile
+              else
+                ''
+                  #!/bin/bash
+                  echo "Script ${scriptName} not implemented"
+                  exit 1
+                '';
+
+            # Replace @SYSTEM@ placeholder with actual system
+            processedContent = builtins.replaceStrings [ "@SYSTEM@" ] [ currentSystem.system ] scriptContent;
+          in
+          {
+            type = "app";
+            program = "${pkg.writeScriptBin scriptName processedContent}/bin/${scriptName}";
+          };
 
         # Setup dev app builder
         mkSetupDevApp =
