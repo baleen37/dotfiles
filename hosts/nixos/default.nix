@@ -1,15 +1,14 @@
 { config
 , inputs
 , pkgs
+, user ? (import ../../lib/user-resolution.nix {
+    default = "baleen";
+    returnFormat = "string";
+  })
 , ...
 }:
 
 let
-  getUser = import ../../lib/user-resolution.nix {
-    default = "baleen";
-    returnFormat = "string";
-  };
-  user = getUser;
   keys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOk8iAnIaa1deoc7jw8YACPNVka1ZFJxhnU4G74TmS+p" ];
 in
 {

@@ -200,11 +200,16 @@ test-core:
 # New comprehensive test targets
 test-unit:
 	@echo "🧪 Running Nix unit tests (nix-unit framework)..."
-	@./tests/run-tests.sh nix-unit $(ARGS)
+	@$(NIX) build --impure .#packages.$(shell nix eval --impure --expr builtins.currentSystem).lib-functions $(ARGS)
+	@$(NIX) build --impure .#packages.$(shell nix eval --impure --expr builtins.currentSystem).platform-detection $(ARGS)
+	@echo "✅ Unit tests completed successfully!"
 
 test-contract:
 	@echo "🔍 Running contract tests (interface validation)..."
-	@./tests/run-tests.sh contract $(ARGS)
+	@$(NIX) build --impure .#packages.$(shell nix eval --impure --expr builtins.currentSystem).module-interaction $(ARGS)
+	@$(NIX) build --impure .#packages.$(shell nix eval --impure --expr builtins.currentSystem).cross-platform $(ARGS)
+	@$(NIX) build --impure .#packages.$(shell nix eval --impure --expr builtins.currentSystem).system-configuration $(ARGS)
+	@echo "✅ Contract tests completed successfully!"
 
 test-coverage:
 	@echo "📊 Running tests with coverage measurement..."
@@ -233,11 +238,13 @@ test-contract-coverage:
 # macOS Services 관리 및 테스트 (Darwin 전용)
 test-macos-services:
 ifeq ($(PLATFORM),aarch64-darwin)
-	@echo "🧪 Running TDD-verified macOS Services tests..."
-	@./tests/integration/test-macos-services-disabled.sh
+	@echo "🧪 Running macOS Services tests via system-configuration tests..."
+	@$(NIX) build --impure .#packages.$(PLATFORM).system-configuration $(ARGS)
+	@echo "✅ macOS Services tests completed successfully!"
 else ifeq ($(PLATFORM),x86_64-darwin)
-	@echo "🧪 Running TDD-verified macOS Services tests..."
-	@./tests/integration/test-macos-services-disabled.sh
+	@echo "🧪 Running macOS Services tests via system-configuration tests..."
+	@$(NIX) build --impure .#packages.$(PLATFORM).system-configuration $(ARGS)
+	@echo "✅ macOS Services tests completed successfully!"
 else
 	@echo "⏭️ Skipping macOS Services tests (not on Darwin platform)"
 endif

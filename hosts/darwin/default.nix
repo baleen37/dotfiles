@@ -24,8 +24,29 @@ in
 
   # Nix 설정은 완전히 Determinate Nix가 관리
   # /etc/nix/nix.conf 및 /etc/nix/nix.custom.conf에서 설정됨
-  # 갈비지 컬렉션은 modules/darwin/nix-gc.nix에서 관리
-  nix.enable = false; # Determinate Nix와 충돌 방지
+  # 갈비지 컬렉션만 활성화하고 나머지는 Determinate Nix가 관리
+  nix = {
+    enable = false; # Determinate Nix와 충돌 방지
+
+    # Linux builder for NixOS VM tests on macOS
+    linux-builder = {
+      enable = true;
+    };
+
+    # System features for NixOS testing
+    settings = {
+      system-features = [ "nixos-test" "apple-virt" ];
+    };
+
+    # Determinate Nix와 충돌하지 않는 최소 설정만 유지
+    # 갈비지 컬렉션 설정은 modules/darwin/nix-gc.nix에서 관리
+
+    # 모든 nix 설정을 Determinate가 관리하도록 함
+    # - trusted-users: /etc/nix/nix.custom.conf에서 수동 설정 필요
+    # - substituters: Determinate가 FlakeHub와 기본 캐시 제공
+    # - 수동 설정 방법: sudo vi /etc/nix/nix.custom.conf
+    #   trusted-users = root @admin baleen
+  };
 
   # zsh 프로그램 활성화 (시스템 레벨은 제거하고 사용자 레벨에서 처리)
   # environment.shells = [ pkgs.zsh ];  # Root 권한 필요 - 제거
