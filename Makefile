@@ -54,8 +54,6 @@ help:
 	@echo "  test-contract - Run contract tests (interface validation)"
 	@echo "  test-coverage - Run tests with coverage measurement"
 	@echo "  test-quick  - Fast parallel validation tests"
-	@echo "  test-enhanced - Integration tests with reporting"
-	@echo "  test-enhanced-verbose - Integration tests with verbose output"
 	@echo "  test-monitor - Performance monitoring tests"
 	@echo "  test-monitor-full - Full performance monitoring"
 	@echo "  test-macos-services - 🧪 TDD-verified macOS Services tests (Darwin only)"
@@ -351,15 +349,6 @@ test-comprehensive:
 test-quick:
 	@echo "🚀 Running parallel quick tests..."
 	@./scripts/quick-test.sh
-
-# Enhanced testing with detailed reporting
-test-enhanced:
-	@echo "🚀 Running enhanced tests with detailed reporting..."
-	@./scripts/enhanced-test.sh --quiet --parallel
-
-test-enhanced-verbose:
-	@echo "🚀 Running enhanced tests with verbose output..."
-	@./scripts/enhanced-test.sh --verbose
 
 # Performance monitoring and regression detection
 test-monitor:

@@ -7,7 +7,6 @@ LIB_DIR="${SCRIPTS_DIR}/lib"
 
 # Files to update (excluding those already processed)
 FILES_TO_UPDATE="
-${SCRIPTS_DIR}/enhanced-test.sh
 ${SCRIPTS_DIR}/build-switch-common.sh
 ${SCRIPTS_DIR}/platform/common-interface.sh
 ${LIB_DIR}/sudo-management.sh
