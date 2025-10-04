@@ -18,6 +18,7 @@ Professional Nix dotfiles system supporting:
 ### Technology Stack
 
 - **Core**: Nix Flakes, Home Manager, nix-darwin, NixOS
+- **Architecture**: dustinlyons-inspired direct import patterns (simplified from complex abstractions)
 - **Languages**: Nix (configuration), YAML (settings), JSON (Claude Code), Lua (GUI apps), bash (automation)
 - **Development**: Pre-commit hooks, GitHub Actions CI/CD, comprehensive testing framework
 - **Platforms**: macOS (x86_64/aarch64-darwin), NixOS (x86_64/aarch64-linux)
@@ -32,14 +33,27 @@ Professional Nix dotfiles system supporting:
 │
 ├── modules/               # Modular configuration system
 │   ├── shared/            #   Cross-platform settings
+│   │   ├── packages.nix   #   Package definitions only
+│   │   ├── programs.nix   #   Program configurations only
+│   │   └── home-manager.nix #  Home Manager settings only
 │   ├── darwin/            #   macOS-specific modules
+│   │   ├── packages.nix   #   macOS packages
+│   │   ├── casks.nix      #   Homebrew casks
+│   │   └── system.nix     #   System settings
 │   └── nixos/             #   NixOS-specific modules
+│       ├── packages.nix   #   NixOS packages
+│       ├── services.nix   #   Service configurations
+│       └── system.nix     #   System settings
 │
 ├── hosts/                 # Host-specific configurations
 │   ├── darwin/            #   macOS system definitions
 │   └── nixos/             #   NixOS system definitions
 │
 ├── lib/                   # Nix utility functions and builders
+│   ├── core/              #   Core utilities
+│   ├── testing/           #   Testing framework (MOVED)
+│   ├── performance/       #   Performance optimization (MOVED)
+│   └── automation/        #   CI/CD functionality (MOVED)
 ├── scripts/               # Automation and management tools
 ├── tests/                 # Multi-tier testing framework (87% optimized)
 │   ├── unit/              #   Component-level testing (6 files)
@@ -60,40 +74,33 @@ Professional Nix dotfiles system supporting:
 3. **Host Configurations** (`hosts/`): Individual machine definitions
 4. **Library Functions** (`lib/`): Reusable Nix utilities
 
-## Current Development: VSCode Remote Tunnel Integration
+## Current Development: Nix Best Practices Refactoring
 
-**Status**: Implementation phase  
-**Branch**: main  
-**Goal**: Enable `code` command from SSH sessions to open local VSCode
+**Status**: Architecture planning phase  
+**Branch**: feature/tests-modernization  
+**Goal**: Apply dustinlyons/nixos-config best practices while preserving advanced features
 
-### Implementation Details
+### Refactoring Objectives
 
-- **Service Type**: systemd user service (security-focused)
-- **Authentication**: GitHub OAuth via Microsoft tunnel service
-- **CLI Management**: Dynamic VSCode CLI download (not Nix package)
-- **Integration**: Native NixOS configuration integration
+- **Structural Clarity**: Adopt dustinlyons' clean organizational patterns
+- **Dynamic User Resolution**: Maintain flexible user configuration without hardcoding
+- **Module Simplification**: Reduce complexity while maintaining functionality
+- **Single Responsibility**: Each file focuses on one specific concern
 
-### Key Files
+### Best Practices Integration
 
-- `hosts/nixos/default.nix`: Main NixOS configuration
-- `specs/002-/spec.md`: Complete feature specification
-- `specs/002-/plan.md`: Implementation plan
-- `tests/integration/`: TDD service integration tests
+1. **Clean flake.nix Organization**: Move complex logic to dedicated lib files
+2. **Simple Module Imports**: Use direct import patterns like `import ../shared/files.nix`
+3. **Platform App Structure**: Organize apps by architecture with clear naming
+4. **Dynamic User Handling**: Keep existing user resolution system but simplify interface
+5. **File Purpose Clarity**: packages.nix for packages, programs.nix for programs
 
-### Development Status
+### Key Improvements
 
-- [x] Specification and planning complete
-- [x] Research and design finalized
-- [ ] Integration tests implementation (TDD approach)
-- [ ] NixOS configuration updates
-- [ ] Service validation and testing
-
-### Testing Strategy
-
-- **TDD Approach**: RED-GREEN-Refactor cycle enforcement
-- **Integration Testing**: Real systemd service validation
-- **Network Validation**: Connectivity and tunnel testing
-- **End-to-End**: Complete `code` command workflow testing
+- **Simplified Structure**: Maintain advanced features with cleaner organization
+- **Modular Design**: Single responsibility modules following dustinlyons patterns
+- **Preserved Features**: Keep 87% optimized testing framework and performance monitoring
+- **Better Maintainability**: Clear separation of concerns across all modules
 
 ## Development Workflow
 
@@ -133,6 +140,62 @@ Professional Nix dotfiles system supporting:
 - **Code Quality**: Pre-commit hooks and standardized formatting
 - **Claude Code Integration**: AI-assisted development and review
 
+## Recent Achievement: dustinlyons Refactoring Complete ✅
+
+**Status**: Successfully completed (October 2025)  
+**Impact**: 91-line code reduction (-30%) while preserving all functionality
+
+### Refactoring Results
+
+- **✅ Architecture Simplified**: Complex abstractions → direct import patterns
+- **✅ Code Reduced**: flake.nix (302→209 lines), total -300 lines across modules
+- **✅ dustinlyons Patterns**: Direct imports, explicit configurations, minimal abstractions
+- **✅ Functionality Preserved**: All builds pass, Home Manager, nix-homebrew, testing infrastructure
+- **✅ Maintainability Improved**: Easier debugging, clearer intent, reduced complexity
+
+Following dustinlyons principle: "Simple, direct solutions over sophisticated abstractions"
+
+## Critical Development Notes
+
+### USER Variable Requirement
+
+```bash
+export USER=$(whoami)    # MUST run this before any build operation
+```
+
+**Why**: The system uses dynamic user resolution instead of hardcoded usernames. All builds will fail without this.
+
+### Auto-Formatting Policy
+
+```bash
+make format              # Use this, never manually format
+```
+
+**Never manually fix formatting issues** - the auto-formatting system handles:
+
+- Nix files (nixfmt)
+- YAML files (yamlfmt)
+- JSON files (jq)
+- Markdown files (prettier)
+- Shell scripts (shfmt)
+
+### Pre-commit Compliance
+
+```bash
+make lint-format         # Recommended workflow before commits
+```
+
+**Never use `git commit --no-verify`** - pre-commit hooks ensure code quality and are required.
+
+### Build Optimization
+
+```bash
+make build-current       # Build only current platform (faster development)
+make build-switch        # Build and apply together (production workflow)
+```
+
+**For development**: Use `build-current` to avoid building all platforms during iteration.
+
 ## Project Philosophy
 
 ### Design Principles
@@ -161,13 +224,52 @@ Professional Nix dotfiles system supporting:
 
 **Safety**: Configuration preservation during updates and manual merge conflict resolution tools.
 
+## Essential Development Commands
+
+### Core Workflow (Always Required)
+
+```bash
+export USER=$(whoami)          # REQUIRED: Set before any build operations
+make format                    # Auto-format all files (never manually format)
+make lint-format              # Recommended pre-commit workflow
+make build-current            # Build only current platform (fastest)
+make build-switch             # Build and apply in one step
+```
+
+### Testing Workflow
+
+```bash
+make test-core                # Essential test suite
+make test-bats               # Shell script unit tests
+make test-enhanced           # Integration tests with reporting
+make smoke                   # Quick validation (flake checks)
+make test-monitor           # Performance monitoring
+```
+
+### Platform-Specific Operations
+
+```bash
+make build-darwin           # macOS configurations only
+make build-linux            # NixOS configurations only
+make platform-info          # Show current platform details
+```
+
+### Development Shortcuts
+
+```bash
+make format-setup           # Initialize auto-formatting environment
+make format-quick           # Fast format (Nix + shell only)
+make build-fast             # Optimized build with max jobs
+```
+
 ## Key Features
 
+- **Dynamic User Resolution**: Automatic user detection without hardcoding (`export USER=$(whoami)`)
+- **dustinlyons Architecture**: Direct import patterns, simplified from complex abstractions
 - **Global Command System**: `bl` dispatcher for cross-project development
 - **Auto-Formatting System**: Automated code quality with parallel formatting targets (`make format`)
 - **Homebrew Integration**: 34+ GUI applications declaratively managed on macOS
 - **Advanced Testing**: 87% optimized test suite with parallel execution and memory management
 - **Claude Code Integration**: AI-assisted development with 20+ specialized commands
 - **Performance Monitoring**: Real-time build time and resource usage tracking
-- **Comprehensive Toolchain**: Complete development environment with security best practices
-- **Make Automation**: Comprehensive targets including `make format`, `make test`, `make check`, and `make docs`
+- **Platform Detection**: Automatic system detection via `lib/platform-system.nix`

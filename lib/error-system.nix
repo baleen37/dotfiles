@@ -601,6 +601,7 @@ rec {
   throwBuildError = message: throwError (buildError message);
   throwConfigError = message: throwError (configError message);
   throwSystemError = message: throwError (systemError message);
+  throwValidationError = message: throwError (validationError message);
 
   # Error aggregation and reporting
   aggregateErrors =

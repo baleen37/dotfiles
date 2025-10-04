@@ -30,7 +30,6 @@
     ],
     "deny": []
   },
-  "model": "opusplan",
   "enableAllProjectMcpServers": true,
   "hooks": {
     "PreToolUse": [
@@ -70,6 +69,7 @@
     "type": "command",
     "command": "~/.claude/statusline.sh"
   },
+  "alwaysThinkingEnabled": false,
   "rejectedMcpServers": [],
   "feedbackSurveyState": {
     "lastShownTime": 1755225425616

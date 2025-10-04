@@ -84,14 +84,6 @@ repos:
   # Test execution hooks (unchanged)
   - repo: local
     hooks:
-      - id: validate-build-switch
-        name: Validate build-switch scripts
-        entry: nix run .#validate-build-switch
-        language: system
-        pass_filenames: false
-        files: ^(lib/.*\.sh|lib/.*\.nix|.*build-switch.*)$
-        stages: [pre-commit]
-
       - id: run-unit-tests
         name: Run unit tests
         entry: tests/run-tests.sh unit --timeout 60

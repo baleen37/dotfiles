@@ -20,23 +20,22 @@
 }:
 
 let
-  # Optimized user resolution with Linux platform awareness
-  getUserInfo = import ../../lib/user-resolution.nix {
-    platform = "linux";
-    returnFormat = "extended";
-  };
-  user = getUserInfo.user;
+  # Direct user configuration following dustinlyons pattern
+  user = config.home.username;
+  homeDir = config.home.homeDirectory;
 
-  # Performance optimization: cache frequently used paths
+  # Simple path helpers
   linuxPaths = {
-    home = getUserInfo.homePath;
-    config = "${getUserInfo.homePath}/.config";
-    cache = "${getUserInfo.homePath}/.cache";
-    local = "${getUserInfo.homePath}/.local";
+    home = homeDir;
+    config = "${homeDir}/.config";
+    cache = "${homeDir}/.cache";
+    local = "${homeDir}/.local";
   };
 
-  # Import shared configuration for consistency
-  sharedConfig = import ../shared/home-manager.nix { inherit config pkgs lib; };
+  # Direct imports for shared configurations
+  sharedFiles = import ../shared/files.nix { inherit config pkgs lib; };
+  sharedPackages = import ../shared/packages.nix { inherit pkgs; };
+  nixosFiles = import ./files.nix { inherit user; };
 
   # Optimized Polybar configuration with performance enhancements
   polybarConfig = {
@@ -75,40 +74,29 @@ let
 
 in
 {
-  # Optimized home configuration with performance enhancements
-  home = {
-    enableNixpkgsReleaseCheck = false;
-    username = "${user}";
-    homeDirectory = getUserInfo.homePath;
+  # Use lib.mkMerge for combining configurations following dustinlyons pattern
+  home = lib.mkMerge [
+    # Base configuration
+    {
+      enableNixpkgsReleaseCheck = false;
 
-    # Enhanced package management with NixOS-specific tools
-    packages = pkgs.callPackage ./packages.nix { };
+      # Combine packages using simple concatenation
+      packages = sharedPackages ++ (pkgs.callPackage ./packages.nix { });
 
-    # Optimized file management with better merging strategy
-    file = lib.mkMerge [
-      (import ../shared/files.nix {
-        inherit
-          config
-          pkgs
-          user
-          self
-          lib
-          ;
-      })
-      (import ./files.nix { inherit user; })
-    ];
+      # Combine files using lib.mkMerge
+      file = lib.mkMerge [ sharedFiles nixosFiles ];
 
-    stateVersion = "21.05";
+      stateVersion = "21.05";
 
-    # Performance optimization: create essential directories
-    activation.createDirectories = ''
-      echo "💾 Setting up NixOS directory structure..."
-      mkdir -p "${linuxPaths.config}"/{polybar/bin,rofi/bin,dunst}
-      mkdir -p "${linuxPaths.cache}"
-      mkdir -p "${linuxPaths.local}"/bin
-      echo "✅ Directory structure ready"
-    '';
-  };
+      # Simple activation scripts
+      activation.createDirectories = ''
+        echo "Setting up NixOS directory structure..."
+        mkdir -p "${linuxPaths.config}"/{polybar/bin,rofi/bin,dunst}
+        mkdir -p "${linuxPaths.cache}"
+        mkdir -p "${linuxPaths.local}"/bin
+      '';
+    }
+  ];
 
   # Enhanced GTK theming with performance optimizations
   gtk = {
@@ -267,12 +255,12 @@ in
   };
 
   # Enhanced programs configuration with NixOS-specific optimizations
-  programs = sharedConfig.programs // {
+  programs = {
     # NixOS-specific program overrides and additions
 
     # Enhanced shell configuration for Linux
-    zsh = sharedConfig.programs.zsh // {
-      shellAliases = sharedConfig.programs.zsh.shellAliases // {
+    zsh = {
+      shellAliases = {
         # Linux-specific aliases
         ll = "ls -alF";
         la = "ls -A";
@@ -291,8 +279,8 @@ in
     };
 
     # Enhanced development tools for NixOS
-    git = sharedConfig.programs.git // {
-      extraConfig = sharedConfig.programs.git.extraConfig // {
+    git = {
+      extraConfig = {
         # Linux-specific git configuration
         credential.helper = "store";
       };

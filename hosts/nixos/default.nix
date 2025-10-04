@@ -53,6 +53,9 @@ in
     interfaces."eth0".useDHCP = true;
   };
 
+  # Allow unfree packages
+  nixpkgs.config.allowUnfree = true;
+
   # Turn on flag for proprietary software
   nix = {
     nixPath = [ "nixos-config=/home/${user}/.local/share/src/nixos-config:/etc/nixos" ];
@@ -380,6 +383,7 @@ in
   users.users = {
     ${user} = {
       isNormalUser = true;
+      group = "users";
       extraGroups = [
         "wheel" # Enable 'sudo' for the user.
         "docker"
