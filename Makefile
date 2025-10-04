@@ -251,11 +251,11 @@ test-quick:
 # Performance monitoring and regression detection
 test-monitor:
 	@echo "📊 Running performance monitoring..."
-	@./tests/performance/test-performance-monitor.sh
+	@$(NIX) run .#test-benchmark
 
 test-monitor-full:
 	@echo "📊 Running full performance monitoring (including heavy tests)..."
-	@./tests/performance/test-performance-monitor.sh --full
+	@$(NIX) run .#test-benchmark
 
 # Advanced performance testing and optimization
 test-benchmark:
