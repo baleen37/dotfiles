@@ -32,8 +32,6 @@ help:
 	@echo ""
 	@echo "🎨 Auto-formatting:"
 	@echo "  format      - Auto-format all files (Nix, shell, YAML, JSON, Markdown)"
-	@echo "  format-check - Check if files need formatting (CI mode)"
-	@echo "  format-dry-run - Show what would be formatted without changes"
 	@echo "  format-setup - Setup auto-formatting environment (install hooks + format)"
 	@echo "  format-quick - Quick format for common files (Nix + shell)"
 	@echo "  format-all  - Full workflow: format + lint + quick tests"
@@ -93,35 +91,27 @@ lint:
 # Auto-formatting targets
 format:
 	@echo "🎨 Auto-formatting all files..."
-	@./scripts/auto-format.sh
-
-format-check:
-	@echo "🔍 Checking if files need formatting..."
-	@./scripts/auto-format.sh --check
-
-format-dry-run:
-	@echo "🔍 Showing what would be formatted (dry run)..."
-	@./scripts/auto-format.sh --dry-run
+	@$(NIX) run .#format
 
 format-nix:
 	@echo "🎨 Formatting Nix files..."
-	@./scripts/auto-format.sh nix
+	@$(NIX) run .#format nix
 
 format-shell:
 	@echo "🎨 Formatting shell scripts..."
-	@./scripts/auto-format.sh shell
+	@$(NIX) run .#format shell
 
 format-yaml:
 	@echo "🎨 Formatting YAML files..."
-	@./scripts/auto-format.sh yaml
+	@$(NIX) run .#format yaml
 
 format-json:
 	@echo "🎨 Formatting JSON files..."
-	@./scripts/auto-format.sh json
+	@$(NIX) run .#format json
 
 format-markdown:
 	@echo "🎨 Formatting Markdown files..."
-	@./scripts/auto-format.sh markdown
+	@$(NIX) run .#format markdown
 
 # Format all files and install auto-fix hooks
 format-setup:
@@ -133,7 +123,8 @@ format-setup:
 # Quick format for common file types (fastest option)
 format-quick:
 	@echo "⚡ Quick format for common files (Nix + shell)..."
-	@./scripts/auto-format.sh nix shell
+	@$(NIX) run .#format nix
+	@$(NIX) run .#format shell
 
 # Full format workflow (format + lint + basic tests)
 format-all:
@@ -422,4 +413,4 @@ setup-mcp: check-user
 	@echo "🤖 Setting up Claude Code MCP servers..."
 	@./scripts/setup-claude-mcp --main
 
-.PHONY: help check-user lint lint-format lint-autofix lint-install-autofix smoke test test-format test-quick test-core test-unit test-contract test-coverage test-unit-coverage test-contract-coverage test-workflow test-perf test-list test-unit-extended build build-linux build-darwin build-current build-fast build-switch switch apply deploy platform-info setup-mcp format format-check format-dry-run format-setup format-quick format-all format-nix format-shell format-yaml format-json format-markdown
+.PHONY: help check-user lint lint-format lint-autofix lint-install-autofix smoke test test-format test-quick test-core test-unit test-contract test-coverage test-unit-coverage test-contract-coverage test-workflow test-perf test-list test-unit-extended build build-linux build-darwin build-current build-fast build-switch switch apply deploy platform-info setup-mcp format format-setup format-quick format-all format-nix format-shell format-yaml format-json format-markdown

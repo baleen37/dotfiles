@@ -66,8 +66,14 @@
       user = builtins.getEnv "USER";
 
       # Supported systems - direct specification
-      linuxSystems = [ "x86_64-linux" "aarch64-linux" ];
-      darwinSystems = [ "x86_64-darwin" "aarch64-darwin" ];
+      linuxSystems = [
+        "x86_64-linux"
+        "aarch64-linux"
+      ];
+      darwinSystems = [
+        "x86_64-darwin"
+        "aarch64-darwin"
+      ];
       allSystems = linuxSystems ++ darwinSystems;
 
       # Simple forAllSystems helper
@@ -80,36 +86,40 @@
     in
     {
       # Simple development shells with direct package imports
-      devShells = forAllSystems (system:
+      devShells = forAllSystems (
+        system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
         in
         {
           default = pkgs.mkShell {
-            buildInputs = with pkgs; [
-              # Core development tools
-              git
-              vim
-              curl
-              wget
-              jq
+            buildInputs =
+              with pkgs;
+              [
+                # Core development tools
+                git
+                vim
+                curl
+                wget
+                jq
 
-              # Nix tools
-              nixfmt
-              nixpkgs-fmt
-              nix-tree
-              nil
+                # Nix tools
+                nixfmt
+                nixpkgs-fmt
+                nix-tree
+                nil
 
-              # Formatting tools for auto-format.sh
-              shfmt
-              nodePackages.prettier
-              nodePackages.markdownlint-cli
+                # Formatting tools for auto-format.sh
+                shfmt
+                nodePackages.prettier
+                nodePackages.markdownlint-cli
 
-              # Pre-commit tools
-              pre-commit
-            ] ++ pkgs.lib.optionals (nix-unit.packages ? ${system}) [
-              nix-unit.packages.${system}.default
-            ];
+                # Pre-commit tools
+                pre-commit
+              ]
+              ++ pkgs.lib.optionals (nix-unit.packages ? ${system}) [
+                nix-unit.packages.${system}.default
+              ];
 
             shellHook = ''
               echo "🚀 Development environment loaded"
@@ -121,7 +131,8 @@
       );
 
       # Direct Darwin configurations following dustinlyons pattern
-      darwinConfigurations = nixpkgs.lib.genAttrs darwinSystems (system:
+      darwinConfigurations = nixpkgs.lib.genAttrs darwinSystems (
+        system:
         darwin.lib.darwinSystem {
           inherit system;
           specialArgs = inputs;
@@ -155,26 +166,31 @@
 
       # Direct NixOS configurations following dustinlyons pattern
       # Skip if user cannot be determined (pure evaluation mode)
-      nixosConfigurations = nixpkgs.lib.optionalAttrs (user != "") (nixpkgs.lib.genAttrs linuxSystems (system:
-        nixpkgs.lib.nixosSystem {
-          inherit system;
-          specialArgs = inputs // { inherit user; };
-          modules = [
-            ./hosts/nixos # Host config first to ensure allowUnfree is set at system level
-            disko.nixosModules.disko
-            home-manager.nixosModules.home-manager
-            {
-              home-manager = {
-                useGlobalPkgs = true;
-                useUserPackages = true;
-                users.${user} = import ./modules/nixos/home-manager.nix;
-                backupFileExtension = "bak";
-                extraSpecialArgs = inputs;
-              };
-            }
-          ];
-        }
-      ));
+      nixosConfigurations = nixpkgs.lib.optionalAttrs (user != "") (
+        nixpkgs.lib.genAttrs linuxSystems (
+          system:
+          nixpkgs.lib.nixosSystem {
+            inherit system;
+            specialArgs = inputs // {
+              inherit user;
+            };
+            modules = [
+              ./hosts/nixos # Host config first to ensure allowUnfree is set at system level
+              disko.nixosModules.disko
+              home-manager.nixosModules.home-manager
+              {
+                home-manager = {
+                  useGlobalPkgs = true;
+                  useUserPackages = true;
+                  users.${user} = import ./modules/nixos/home-manager.nix;
+                  backupFileExtension = "bak";
+                  extraSpecialArgs = inputs;
+                };
+              }
+            ];
+          }
+        )
+      );
 
       # Simple direct Home Manager configurations
       # Skip if user cannot be determined (pure evaluation mode)
@@ -204,7 +220,8 @@
       };
 
       # Simple checks with direct imports
-      checks = forAllSystems (system:
+      checks = forAllSystems (
+        system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
         in
@@ -214,6 +231,24 @@
             echo "Format check passed"
             touch $out
           '';
+        }
+      );
+
+      # Apps for dotfiles automation
+      apps = forAllSystems (
+        system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+          formatters = import ./lib/formatters.nix {
+            inherit pkgs;
+            lib = nixpkgs.lib;
+          };
+        in
+        {
+          format = {
+            type = "app";
+            program = "${formatters.formatter}/bin/dotfiles-format";
+          };
         }
       );
 
@@ -229,10 +264,14 @@
         let
           testingLib = import ./lib/testing.nix { inherit inputs forAllSystems self; };
         in
-        if builtins.hasAttr "performance-benchmarks" testingLib then testingLib.performance-benchmarks else { };
+        if builtins.hasAttr "performance-benchmarks" testingLib then
+          testingLib.performance-benchmarks
+        else
+          { };
 
       # Expose tests as packages for easier CI access
-      packages = forAllSystems (system:
+      packages = forAllSystems (
+        system:
         let
           testingLib = import ./lib/testing.nix { inherit inputs forAllSystems self; };
           hasTests = builtins.hasAttr "tests" testingLib;
@@ -242,20 +281,30 @@
           testsHasSystem = hasTests && builtins.hasAttr system testsVal;
           perfBenchHasSystem = hasPerfBench && builtins.hasAttr system perfBenchVal;
         in
-        (if testsHasSystem then {
-          inherit (testsVal.${system})
-            framework-check
-            lib-functions
-            platform-detection
-            module-interaction
-            cross-platform
-            system-configuration
-            all
-            ;
-        } else { })
-        // (if perfBenchHasSystem then {
-          performance-benchmarks = perfBenchVal.${system};
-        } else { })
+        (
+          if testsHasSystem then
+            {
+              inherit (testsVal.${system})
+                framework-check
+                lib-functions
+                platform-detection
+                module-interaction
+                cross-platform
+                system-configuration
+                all
+                ;
+            }
+          else
+            { }
+        )
+        // (
+          if perfBenchHasSystem then
+            {
+              performance-benchmarks = perfBenchVal.${system};
+            }
+          else
+            { }
+        )
       );
 
     };
