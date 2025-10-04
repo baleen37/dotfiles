@@ -168,7 +168,7 @@ format_nix() {
   fi
 
   local nix_files
-  mapfile -t nix_files < <(find "$PROJECT_ROOT" -name "*.nix" -not -path "*/\.*" | head -100)
+  mapfile -t nix_files < <(find "$PROJECT_ROOT" -name "*.nix" -not -path "*/\.*" 2>/dev/null | head -100 || true)
 
   if [[ ${#nix_files[@]} -eq 0 ]]; then
     log_info "No Nix files found to format"
@@ -190,7 +190,7 @@ format_shell() {
   fi
 
   local shell_files
-  mapfile -t shell_files < <(find "$PROJECT_ROOT" -name "*.sh" -o -name "*.bash" | grep -v ".git" | head -100)
+  mapfile -t shell_files < <(find "$PROJECT_ROOT" -name "*.sh" -o -name "*.bash" 2>/dev/null | grep -v -E '(\.git|shell-snapshots)' | head -100 || true)
 
   if [[ ${#shell_files[@]} -eq 0 ]]; then
     log_info "No shell files found to format"
@@ -217,7 +217,7 @@ format_yaml() {
   fi
 
   local yaml_files
-  mapfile -t yaml_files < <(find "$PROJECT_ROOT" -name "*.yaml" -o -name "*.yml" | grep -v ".git" | head -100)
+  mapfile -t yaml_files < <(find "$PROJECT_ROOT" -name "*.yaml" -o -name "*.yml" 2>/dev/null | grep -v ".git" | head -100 || true)
 
   if [[ ${#yaml_files[@]} -eq 0 ]]; then
     log_info "No YAML files found to format"
@@ -246,7 +246,7 @@ format_json() {
   fi
 
   local json_files
-  mapfile -t json_files < <(find "$PROJECT_ROOT" -name "*.json" | grep -v -E '(\.git|node_modules|flake\.lock)' | head -100)
+  mapfile -t json_files < <(find "$PROJECT_ROOT" -name "*.json" 2>/dev/null | grep -v -E '(\.git|node_modules|flake\.lock)' | head -100 || true)
 
   if [[ ${#json_files[@]} -eq 0 ]]; then
     log_info "No JSON files found to format"
@@ -290,7 +290,7 @@ format_markdown() {
   fi
 
   local md_files
-  mapfile -t md_files < <(find "$PROJECT_ROOT" -name "*.md" | grep -v ".git" | head -100)
+  mapfile -t md_files < <(find "$PROJECT_ROOT" -name "*.md" 2>/dev/null | grep -v ".git" | head -100 || true)
 
   if [[ ${#md_files[@]} -eq 0 ]]; then
     log_info "No Markdown files found to format"
@@ -300,34 +300,14 @@ format_markdown() {
   log_verbose "Found ${#md_files[@]} Markdown files"
 
   local markdownlint_args=(--config "$PROJECT_ROOT/.markdownlint.yaml")
+  if [[ -f "$PROJECT_ROOT/.markdownlintignore" ]]; then
+    markdownlint_args+=(--ignore-path "$PROJECT_ROOT/.markdownlintignore")
+  fi
   if [[ $DRY_RUN != "true" ]]; then
     markdownlint_args+=(--fix)
   fi
 
-  # Exclude certain files as per original config
-  local excluded_files=("CHANGELOG.md")
-  local filtered_files=()
-  for file in "${md_files[@]}"; do
-    local basename_file
-    basename_file=$(basename "$file")
-    local exclude=false
-    for excluded in "${excluded_files[@]}"; do
-      if [[ $basename_file == "$excluded" ]]; then
-        exclude=true
-        break
-      fi
-    done
-    if [[ $exclude == "false" ]]; then
-      filtered_files+=("$file")
-    fi
-  done
-
-  if [[ ${#filtered_files[@]} -eq 0 ]]; then
-    log_info "No Markdown files to format (all excluded)"
-    return 0
-  fi
-
-  run_formatter "markdownlint" "Markdown formatting" markdownlint "${markdownlint_args[@]}" "${filtered_files[@]}"
+  run_formatter "markdownlint" "Markdown formatting" markdownlint "${markdownlint_args[@]}" "${md_files[@]}"
 }
 
 # Main formatting function

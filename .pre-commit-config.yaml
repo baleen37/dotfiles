@@ -42,8 +42,8 @@ repos:
     rev: v0.10.0.1
     hooks:
       - id: shellcheck
-        args: [--severity=error, --format=diff]
-        exclude: ^scripts/lib/.*\.sh$ # Skip library files temporarily
+        args: [--severity=error]
+        exclude: ^(scripts/lib/.*\.sh|\.envrc)$ # Skip library files and direnv config
 
   # Shell script auto-formatting with shfmt
   - repo: https://github.com/scop/pre-commit-shfmt

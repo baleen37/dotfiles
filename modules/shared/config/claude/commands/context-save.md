@@ -53,6 +53,7 @@ Save this context in a structured format that can be easily restored and used by
 ## Context Storage
 
 The context will be saved to `.claude/context/` with:
+
 - Timestamp-based versioning
 - Structured JSON/Markdown format
 - Easy restoration capabilities
@@ -61,6 +62,7 @@ The context will be saved to `.claude/context/` with:
 ## Usage Scenarios
 
 This saved context enables:
+
 - Resuming work after breaks
 - Onboarding new team members
 - Maintaining consistency across agent invocations

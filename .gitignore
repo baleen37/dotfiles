@@ -59,6 +59,8 @@ modules/shared/config/claude/projects/
 modules/shared/config/claude/shell-snapshots/
 modules/shared/config/claude/statsig/
 modules/shared/config/claude/todos/
+modules/shared/config/claude/file-history/
+modules/shared/config/claude/history.jsonl
 
 # Python cache files
 __pycache__/
