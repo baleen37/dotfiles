@@ -43,8 +43,7 @@ let
   configDir = "${homeDir}/.config";
 in
 {
-  # Allow unfree packages (required for claude-code)
-  nixpkgs.config.allowUnfree = true;
+  # Allow unfree packages is configured at system level when using useGlobalPkgs
 
   # Import program configurations (modular structure for single responsibility)
   imports = [

@@ -80,6 +80,7 @@ let
   # Import complex program modules (directories)
   zshConfig = import ./zsh/default.nix moduleInputs;
   tmuxConfig = import ./tmux/default.nix moduleInputs;
+  claudeConfig = import ./claude/default.nix moduleInputs;
 
   # Import simple program modules (flat files)
   gitConfig = import ./git.nix moduleInputs;
@@ -96,6 +97,7 @@ in
     # Complex programs with their own directories
     zshConfig.programs
     tmuxConfig.programs
+    (claudeConfig.programs or { })
 
     # Simple programs as flat files
     gitConfig.programs
@@ -104,5 +106,10 @@ in
     sshConfig.programs
     direnvConfig.programs
     fzfConfig.programs
+  ];
+
+  # Additional home configurations from complex modules
+  home = lib.mkMerge [
+    (claudeConfig.home or { })
   ];
 }

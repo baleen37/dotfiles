@@ -240,11 +240,13 @@ make build-switch             # Build and apply in one step
 
 ```bash
 make test-core                # Essential test suite
-make test-bats               # Shell script unit tests
+make test-nix                # Nix-based unit tests (NO bats)
 make test-enhanced           # Integration tests with reporting
 make smoke                   # Quick validation (flake checks)
 make test-monitor           # Performance monitoring
 ```
+
+**Important**: Do NOT use bats for testing. Use Nix's built-in test framework instead.
 
 ### Platform-Specific Operations
 

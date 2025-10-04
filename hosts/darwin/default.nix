@@ -19,6 +19,9 @@ in
     ../../modules/shared
   ];
 
+  # Allow unfree packages (system level for useGlobalPkgs)
+  nixpkgs.config.allowUnfree = true;
+
   # Nix 설정은 완전히 Determinate Nix가 관리
   # /etc/nix/nix.conf 및 /etc/nix/nix.custom.conf에서 설정됨
   # 갈비지 컬렉션만 활성화하고 나머지는 Determinate Nix가 관리
