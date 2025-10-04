@@ -46,7 +46,7 @@ This dotfiles system is built on a **modular, test-driven architecture** that pr
 
 ### High-Level Structure
 
-```text
+````text
 ┌─────────────────────────────────────────────────────────────────┐
 │                          flake.nix                              │
 │  ┌──────────────┐  ┌──────────────┐  ┌────────────────────┐   │
@@ -462,3 +462,4 @@ Custom package definitions and patches in `overlays/`.
 - **Success Rate**: Test reliability and flake detection
 
 This architecture provides a robust, scalable foundation for cross-platform dotfiles management with comprehensive testing, security, and extensibility.
+````

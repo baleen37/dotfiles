@@ -17,7 +17,14 @@ let
 
   # Import testing framework performance tools
   testingPerformance = {
-    benchmark = import ../tests/performance/test-benchmark.nix { inherit lib pkgs self; stdenv = pkgs.stdenv; writeShellScript = pkgs.writeShellScript; time = pkgs.time; gnugrep = pkgs.gnugrep; coreutils = pkgs.coreutils; };
+    benchmark = import ../tests/performance/test-benchmark.nix {
+      inherit lib pkgs self;
+      stdenv = pkgs.stdenv;
+      writeShellScript = pkgs.writeShellScript;
+      time = pkgs.time;
+      gnugrep = pkgs.gnugrep;
+      coreutils = pkgs.coreutils;
+    };
     # TODO: Re-enable when performance tools are implemented
     # memoryProfiler = import ../tests/performance/advanced-memory-profiler.nix { inherit lib pkgs self; stdenv = pkgs.stdenv; writeShellScript = pkgs.writeShellScript; python3 = pkgs.python3; gawk = pkgs.gawk; procps = pkgs.procps; time = pkgs.time; bc = pkgs.bc; coreutils = pkgs.coreutils; };
     # optimizationConfig = import ../tests/performance/optimization-config.nix { inherit lib pkgs self; stdenv = pkgs.stdenv; writeShellScript = pkgs.writeShellScript; writeText = pkgs.writeText; jq = pkgs.jq; coreutils = pkgs.coreutils; };
@@ -101,9 +108,7 @@ rec {
               echo "Make flags: $MAKEFLAGS"
               echo ""
               echo "Performance tools available:"
-              echo "  • build-perf-monitor.sh - Build performance monitoring"
-              echo "  • nix-cache-optimizer.sh - Cache optimization"
-              echo "  • test-performance-monitor.sh - Test framework performance monitoring"
+              echo "  • test-benchmark - Nix-based performance benchmarking"
               echo "  • advanced-memory-profiler - Memory usage analysis"
               echo "  • optimization-controller - Performance optimization controller"
               echo "  • performance-reporter - Comprehensive performance reporting"

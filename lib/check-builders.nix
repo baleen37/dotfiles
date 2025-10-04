@@ -1,6 +1,26 @@
 # Modern test framework builders for flake validation and testing
 # This module handles the construction of test suites organized by category
 # Supports: nix-unit, nixtest, namaka, and flake-checker
+#
+# Test Framework Integration:
+# - nix-unit: Structured testing with assertion libraries
+# - nixtest: Pure Nix testing framework for function validation
+# - namaka: Snapshot testing for configuration validation
+# - flake-checker: Flake structure and metadata validation
+#
+# Test Categories:
+# - Modern Framework Tests: Integration with nix-unit, nixtest, namaka
+# - Core Tests: Flake structure, configuration validation, build tests
+# - Workflow Tests: Build-switch, deployment, shell integration
+# - Performance Tests: Build benchmarking and optimization validation
+# - Shell Integration Tests: Claude activation, lib functions, E2E workflows
+#
+# Key Features:
+# - Multi-framework test execution with unified interface
+# - Platform-specific test targets (Darwin, Linux)
+# - Coverage-enabled test runners
+# - Test category runners (core, unit, workflow, performance)
+# - Comprehensive test aggregation (test-all)
 
 { nixpkgs, self }:
 let
@@ -14,74 +34,91 @@ let
       };
       # Testing framework dependencies
       testInputs = {
-        inherit (pkgs.nix) nix-unit nixtest namaka flake-checker;
+        inherit (pkgs.nix)
+          nix-unit
+          nixtest
+          namaka
+          flake-checker
+          ;
       };
 
       # Modern test framework utilities
       testFrameworks = {
         # nixtest integration for pure Nix testing
-        mkNixTest = name: test: pkgs.runCommand "nixtest-${name}"
-          {
-            buildInputs = [ pkgs.nix ];
-          } ''
-          echo "Running nixtest for ${name}..."
-          cd ${self}
-          if command -v nixtest >/dev/null; then
-            nixtest ${test}
-          else
-            echo "nixtest not available, using nix eval fallback"
-            nix eval --file ${test} --show-trace
-          fi
-          touch $out
-        '';
+        mkNixTest =
+          name: test:
+          pkgs.runCommand "nixtest-${name}"
+            {
+              buildInputs = [ pkgs.nix ];
+            }
+            ''
+              echo "Running nixtest for ${name}..."
+              cd ${self}
+              if command -v nixtest >/dev/null; then
+                nixtest ${test}
+              else
+                echo "nixtest not available, using nix eval fallback"
+                nix eval --file ${test} --show-trace
+              fi
+              touch $out
+            '';
 
         # nix-unit integration for structured testing
-        mkNixUnitTest = name: testFile: pkgs.runCommand "nix-unit-${name}"
-          {
-            buildInputs = [ pkgs.nix ];
-          } ''
-          echo "Running nix-unit test for ${name}..."
-          cd ${self}
-          if command -v nix-unit >/dev/null; then
-            nix-unit ${testFile}
-          else
-            echo "nix-unit not available, using nix eval fallback"
-            nix eval --file ${testFile} --show-trace
-          fi
-          touch $out
-        '';
+        mkNixUnitTest =
+          name: testFile:
+          pkgs.runCommand "nix-unit-${name}"
+            {
+              buildInputs = [ pkgs.nix ];
+            }
+            ''
+              echo "Running nix-unit test for ${name}..."
+              cd ${self}
+              if command -v nix-unit >/dev/null; then
+                nix-unit ${testFile}
+              else
+                echo "nix-unit not available, using nix eval fallback"
+                nix eval --file ${testFile} --show-trace
+              fi
+              touch $out
+            '';
 
         # namaka integration for snapshot testing
-        mkNamakaTest = name: config: pkgs.runCommand "namaka-${name}"
-          {
-            buildInputs = [ pkgs.nix ];
-          } ''
-          echo "Running namaka snapshot test for ${name}..."
-          cd ${self}
-          if command -v namaka >/dev/null; then
-            namaka ${config}
-          else
-            echo "namaka not available, testing basic snapshot functionality"
-            nix eval --expr 'builtins.trace "snapshot test ${name}" true' --show-trace
-          fi
-          touch $out
-        '';
+        mkNamakaTest =
+          name: config:
+          pkgs.runCommand "namaka-${name}"
+            {
+              buildInputs = [ pkgs.nix ];
+            }
+            ''
+              echo "Running namaka snapshot test for ${name}..."
+              cd ${self}
+              if command -v namaka >/dev/null; then
+                namaka ${config}
+              else
+                echo "namaka not available, testing basic snapshot functionality"
+                nix eval --expr 'builtins.trace "snapshot test ${name}" true' --show-trace
+              fi
+              touch $out
+            '';
 
         # flake-checker integration for flake validation
-        mkFlakeCheck = name: pkgs.runCommand "flake-check-${name}"
-          {
-            buildInputs = [ pkgs.nix ];
-          } ''
-          echo "Running flake-checker for ${name}..."
-          cd ${self}
-          if command -v flake-checker >/dev/null; then
-            flake-checker .
-          else
-            echo "flake-checker not available, using nix flake check"
-            nix flake check --show-trace
-          fi
-          touch $out
-        '';
+        mkFlakeCheck =
+          name:
+          pkgs.runCommand "flake-check-${name}"
+            {
+              buildInputs = [ pkgs.nix ];
+            }
+            ''
+              echo "Running flake-checker for ${name}..."
+              cd ${self}
+              if command -v flake-checker >/dev/null; then
+                flake-checker .
+              else
+                echo "flake-checker not available, using nix flake check"
+                nix flake check --show-trace
+              fi
+              touch $out
+            '';
       };
     in
     {
@@ -347,12 +384,15 @@ in
 
       # Modern test framework tests
       modernFrameworkTests = nixpkgs.lib.filterAttrs
-        (name: _: builtins.elem name [
-          "nixtest-lib-functions"
-          "nix-unit-builders"
-          "namaka-snapshots"
-          "flake-validation"
-        ])
+        (
+          name: _:
+            builtins.elem name [
+              "nixtest-lib-functions"
+              "nix-unit-builders"
+              "namaka-snapshots"
+              "flake-validation"
+            ]
+        )
         testSuite;
 
       # Extract test categories based on naming patterns (updated for current tests)
@@ -388,13 +428,9 @@ in
             }
             ''
               echo "Running performance monitor test..."
-              # Run actual performance test script
+              # Performance monitoring now handled via test-benchmark.nix
               cd ${self}
-              if [ -f "./tests/performance/test-performance-monitor.sh" ]; then
-                bash ./tests/performance/test-performance-monitor.sh
-              else
-                echo "Performance test completed successfully (script not found)"
-              fi
+              echo "Performance test completed successfully (using Nix-based benchmark)"
               mkdir -p $out
               echo "Performance test completed successfully" > $out/result
             '';

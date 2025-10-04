@@ -100,13 +100,12 @@ export USER=$(whoami)   # Always run this first
 make build             # Build everything
 make switch            # Apply changes
 make test              # Run tests
+make format            # Auto-format (uses nix run .#format)
 
-# Claude Code setup
-make setup-mcp         # Install MCP servers for AI assistance
-
-# Quick operations  
+# Quick operations
 make smoke             # Fast validation
 nix run .#build-switch # Build and apply together
+nix run .#format       # Direct Nix formatting (alternative)
 ```
 
 ### Platform-Specific Operations
@@ -126,21 +125,21 @@ nix run .#test          # Run platform-appropriate test suite
 
 ### Platform Capability Matrix
 
-| Operation | macOS (Intel) | macOS (ARM) | NixOS (x86_64) | NixOS (ARM64) |
-|-----------|:-------------:|:-----------:|:--------------:|:-------------:|
-| **Core Operations** | | | | |
-| build | ✅ | ✅ | ✅ | ✅ |
-| build-switch | ✅ | ✅ | ✅ | ✅ |
-| apply | ✅ | ✅ | ✅ | ✅ |
-| rollback | ✅ | ✅ | ❌ | ❌ |
-| **Testing Framework** | | | | |
-| test | ✅ | ✅ | ✅ | ✅ |
-| test-unit | ✅ | ✅ | ❌¹ | ❌¹ |
-| test-integration | ✅ | ✅ | ❌¹ | ❌¹ |
-| test-e2e | ✅ | ✅ | ❌¹ | ❌¹ |
-| **Development Tools** | | | | |
-| setup-dev | ✅ | ✅ | ✅ | ✅ |
-| SSH key management | ✅ | ✅ | ✅ | ✅ |
+| Operation             | macOS (Intel) | macOS (ARM) | NixOS (x86_64) | NixOS (ARM64) |
+| --------------------- | :-----------: | :---------: | :------------: | :-----------: |
+| **Core Operations**   |               |             |                |               |
+| build                 |      ✅       |     ✅      |       ✅       |      ✅       |
+| build-switch          |      ✅       |     ✅      |       ✅       |      ✅       |
+| apply                 |      ✅       |     ✅      |       ✅       |      ✅       |
+| rollback              |      ✅       |     ✅      |       ❌       |      ❌       |
+| **Testing Framework** |               |             |                |               |
+| test                  |      ✅       |     ✅      |       ✅       |      ✅       |
+| test-unit             |      ✅       |     ✅      |      ❌¹       |      ❌¹      |
+| test-integration      |      ✅       |     ✅      |      ❌¹       |      ❌¹      |
+| test-e2e              |      ✅       |     ✅      |      ❌¹       |      ❌¹      |
+| **Development Tools** |               |             |                |               |
+| setup-dev             |      ✅       |     ✅      |       ✅       |      ✅       |
+| SSH key management    |      ✅       |     ✅      |       ✅       |      ✅       |
 
 ¹ Linux systems use consolidated testing approach due to platform limitations
 
@@ -235,7 +234,16 @@ Add packages by editing `modules/shared/packages.nix` or platform-specific files
 - `modules/darwin/` - macOS-specific settings
 - `modules/nixos/` - NixOS-specific settings
 - `hosts/` - Individual machine configurations
-- `scripts/` - Automation tools
+- `lib/` - Nix utilities and formatters
+- `scripts/` - Legacy automation tools (being phased out)
+
+### Nix-Based Tooling
+
+The project uses declarative Nix solutions for development tooling:
+
+- **Formatting**: `lib/formatters.nix` provides `nix run .#format` (invoked via `make format`)
+- **Testing**: Native `nix flake check` for validation
+- **Building**: Flake apps for reproducible builds
 
 ## Testing
 
@@ -248,12 +256,11 @@ make lint    # Code quality check
 ## Updates
 
 ```bash
-./scripts/auto-update-dotfiles        # Automatic updates
-./scripts/auto-update-dotfiles --force # Force update
+make update            # Update all packages
+nix flake update       # Update flake inputs
 ```
 
 Configuration changes are automatically backed up with conflict resolution.
-
 
 ```bash
 # Install global command system
@@ -280,7 +287,6 @@ Built-in AI development assistance with 20+ specialized commands and MCP server 
 
 ```bash
 make switch     # Apply configuration
-make setup-mcp  # Install MCP servers for Claude Code
 # Restart Claude Code
 # Try: /help
 ```
@@ -290,25 +296,22 @@ make setup-mcp  # Install MCP servers for Claude Code
 Install Model Context Protocol servers for enhanced Claude Code functionality:
 
 ```bash
-# Install essential MCP servers (recommended)
-make setup-mcp
-
-# Or use the script directly
-./scripts/setup-claude-mcp --main
+# Install MCP servers using Claude CLI
+claude mcp add @modelcontextprotocol/server-filesystem
 
 # List installed servers
-./scripts/setup-claude-mcp --list
+claude mcp list
 ```
 
 **Available MCP Servers:**
 
-- **Filesystem** - File system access and manipulation (default)
-- Additional servers can be installed manually as needed
+- **Filesystem** - File system access and manipulation
+- Additional servers can be installed via `claude mcp add` as needed
 
 ### Key Commands
 
 - `/build` - Build and test with validation
-- `/commit` - Generate semantic commits  
+- `/commit` - Generate semantic commits
 - `/create-pr` - Create pull requests
 - `/update-claude` - Update Claude configuration
 
@@ -352,4 +355,4 @@ See [docs/TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md) for more solutions.
 
 ---
 
-*Nix flakes + Home Manager + nix-darwin/NixOS for declarative, reproducible environments.*
+_Nix flakes + Home Manager + nix-darwin/NixOS for declarative, reproducible environments._

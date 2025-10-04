@@ -1,16 +1,25 @@
-# Darwin-Specific Home Manager Configuration (Optimized)
+# macOS Home Manager Integration
 #
-# macOS-specific Home Manager configuration with performance optimizations,
-# Homebrew integration, and native app linking system.
+# nix-darwin 환경에서 Home Manager를 통합하여 macOS 사용자 환경을 선언적으로 관리합니다.
+# Homebrew, MAS(Mac App Store), Nix 패키지를 통합 관리하는 핵심 모듈입니다.
 #
-# FEATURES:
-#   - Optimized Homebrew cask management
-#   - TDD-verified Nix app linking system
-#   - Platform-specific user resolution
-#   - Performance-enhanced file management
+# 주요 기능:
+#   - Homebrew Cask 통합 (GUI 앱 관리)
+#   - Mac App Store 앱 자동 설치 (MAS)
+#   - Nix 앱 자동 링크 시스템 (/Applications)
+#   - 플랫폼별 사용자 환경 설정
+#   - macOS 시스템 최적화 (Finder, Dock 등)
 #
-# VERSION: 2.0.0 (Phase 2 optimized)
-# LAST UPDATED: 2024-10-04
+# 성능 최적화:
+#   - 캐시된 경로 사용으로 빌드 시간 단축
+#   - 병렬 파일 관리로 배포 속도 향상
+#   - 선택적 Verbose 모드로 로그 오버헤드 최소화
+#
+# 통합 대상:
+#   - shared/home-manager.nix: 공통 프로그램 설정
+#   - shared/files.nix: 공통 설정 파일
+#   - darwin/files.nix: macOS 전용 설정 파일
+#   - darwin/packages.nix: macOS 전용 패키지
 
 { config
 , pkgs
@@ -21,20 +30,23 @@
 }:
 
 let
-  # Optimized user resolution with Darwin platform awareness
+  # 사용자 정보 자동 해석 (동적으로 현재 사용자 감지)
+  # platform = "darwin"으로 macOS 환경 명시
+  # returnFormat = "extended"로 user, homePath, shell 등 모든 정보 반환
   getUserInfo = import ../../lib/user-resolution.nix {
     platform = "darwin";
     returnFormat = "extended";
   };
   user = getUserInfo.user;
 
-  # Import platform-specific files with optimized loading
+  # macOS 전용 설정 파일 import (Hammerspoon, Karabiner 등)
   additionalFiles = import ./files.nix { inherit user config pkgs; };
 
-  # Import shared configuration for consistency
+  # 공통 Home Manager 설정 import (git, vim, zsh 등)
   sharedConfig = import ../shared/home-manager.nix { inherit config pkgs lib; };
 
-  # Performance optimization: cache frequently used paths
+  # 자주 사용되는 경로를 캐시하여 빌드 시간 단축
+  # activation script에서 반복 사용되는 경로들을 미리 계산
   darwinPaths = {
     applications = "${getUserInfo.homePath}/Applications";
     library = "${getUserInfo.homePath}/Library";
@@ -143,25 +155,28 @@ in
         # Performance optimization: disable man pages for faster builds
         manual.manpages.enable = false;
 
-        # Enhanced Nix application linking with performance optimizations
+        # Nix 앱 자동 링크 시스템 (Home Manager activation script)
+        # /nix/store의 .app들을 ~/Applications로 심볼릭 링크하여
+        # Spotlight, Finder에서 접근 가능하게 만들고 macOS 보안 권한 허용
         home.activation = {
           linkNixApps = ''
             echo "🔗 Optimizing Nix application integration..."
 
-            # Performance: check if linking is needed
+            # ~/Applications 디렉토리가 없으면 생성
             if [[ ! -d "${darwinPaths.applications}" ]]; then
               mkdir -p "${darwinPaths.applications}"
             fi
 
-            # Use optimized app linking library
+            # lib/nix-app-linker.sh 라이브러리 사용 (TDD 검증된 링크 로직)
             if [[ -f "${self}/lib/nix-app-linker.sh" ]]; then
               source "${self}/lib/nix-app-linker.sh"
 
-              # Enhanced linking with error handling
+              # link_nix_apps 함수 실행: /nix/store → ~/Applications 링크 생성
+              # 에러 발생해도 non-fatal (다른 activation은 계속 진행)
               if link_nix_apps "${darwinPaths.applications}" "${darwinPaths.nixStore}" "${darwinPaths.nixProfile}"; then
                 echo "✅ Application linking completed successfully"
 
-                # Performance: only list if verbose mode
+                # VERBOSE=1 환경변수 설정 시에만 앱 목록 출력 (성능 최적화)
                 if [[ "$${VERBOSE:-}" == "1" ]]; then
                   echo "📱 Available Nix applications:"
                   find "${darwinPaths.applications}" -name "*.app" -maxdepth 1 2>/dev/null | \
@@ -177,16 +192,17 @@ in
             fi
           '';
 
-          # macOS-specific system optimizations
+          # macOS 시스템 최적화 설정 (Finder, Dock 등)
+          # defaults 명령어로 macOS plist 설정 직접 수정
           optimizeDarwinSystem = ''
             echo "🍎 Applying macOS system optimizations..."
 
-            # Optimize Finder performance
+            # Finder 최적화: 경로 표시줄, 상태 표시줄 활성화
             defaults write com.apple.finder AppleShowAllFiles -bool false
             defaults write com.apple.finder ShowPathbar -bool true
             defaults write com.apple.finder ShowStatusBar -bool true
 
-            # Optimize Dock performance
+            # Dock 최적화: 자동 숨김 딜레이 제거 (즉시 표시)
             defaults write com.apple.dock autohide-delay -float 0
             defaults write com.apple.dock autohide-time-modifier -float 0.5
 

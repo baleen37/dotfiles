@@ -82,6 +82,7 @@ find_pr_template() {
 ## Template Update Strategy
 
 ### Existing PR with Template
+
 - **Preserve Structure**: Maintain original template sections and formatting
 - **Update Content**: Refresh only the content within template sections
 - **Korean Template Support**: Special handling for Korean language templates
@@ -90,6 +91,7 @@ find_pr_template() {
   - Preserve "테스트 계획" and "체크리스트" sections as-is
 
 ### Existing PR without Template
+
 - **Template Detection**: Check if repository now has PR templates
 - **Migration Option**: Offer to migrate existing PR to template format
 - **Content Preservation**: Maintain existing content while adding template structure

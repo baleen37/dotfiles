@@ -1,3 +1,20 @@
+# Shared Package Definitions
+#
+# 모든 플랫폼(macOS, NixOS)에서 공통으로 설치되는 패키지 목록을 정의합니다.
+# 카테고리별로 분류된 패키지들을 조합하여 최종 패키지 리스트를 반환합니다.
+#
+# 구조:
+#   - 코어 시스템 도구: wget, zip, tree 등 기본 유틸리티
+#   - 터미널 도구: htop, jq, ripgrep, tmux 등 CLI 도구
+#   - 개발 도구: nodejs, python, direnv 등 개발 환경
+#   - 클라우드 도구: docker, gh, act 등 DevOps 도구
+#   - 미디어 도구: ffmpeg, 폰트 패키지
+#   - 보안 도구: yubikey-agent, keepassxc
+#   - 데이터베이스: postgresql, redis, mysql 등
+#
+# 사용:
+#   modules/shared/home-manager.nix에서 import하여 home.packages로 설치
+
 { pkgs }:
 
 with pkgs;

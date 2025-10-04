@@ -25,9 +25,12 @@
 }:
 
 let
+  # Import centralized user information
+  userInfo = import ../../lib/user-info.nix;
+
   # Direct configuration constants following dustinlyons pattern
-  name = "Jiho Lee";
-  email = "baleen37@gmail.com";
+  name = userInfo.name;
+  email = userInfo.email;
   user = config.home.username;
 
   # Simple platform detection - direct system checking
@@ -75,11 +78,5 @@ in
       '';
     })
   ];
-
-
-
-
-
-
 
 }

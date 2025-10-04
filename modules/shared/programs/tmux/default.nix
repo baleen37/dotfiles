@@ -1,14 +1,26 @@
-# Tmux Terminal Multiplexer Configuration
+# Tmux 터미널 멀티플렉서 설정
 #
-# Complete tmux configuration with plugins and optimizations.
-# Following YAGNI principle - all settings in one file.
+# 전체 Tmux 설정을 단일 파일로 관리하는 모듈 (YAGNI 원칙 준수)
 #
-# FEATURES:
-#   - Performance optimized settings
-#   - Platform-aware clipboard integration
-#   - Session persistence with resurrect/continuum
-#   - True color support
-#   - Vim integration
+# 주요 기능:
+#   - 성능 최적화: 0ms escape time, 50000 히스토리, 500ms repeat time
+#   - 플랫폼별 클립보드 통합:
+#       - macOS: pbcopy/pbpaste
+#       - Linux: xclip
+#       - 범용: tmux 내장 버퍼
+#   - 세션 영속성:
+#       - resurrect: 세션 자동 저장/복원
+#       - continuum: 15분 간격 자동 저장
+#   - True Color 지원: 256색 + RGB 컬러
+#   - Vim 통합: vim-tmux-navigator 플러그인
+#   - 마우스 지원: 스크롤, 패널 크기 조정
+#
+# 키 바인딩:
+#   - Prefix: Ctrl+b
+#   - 패널 분할: | (수평), - (수직)
+#   - 윈도우 생성: Prefix+t
+#   - 윈도우 이동: Alt+h/l (prefix 불필요)
+#   - 복사 모드: vi 키 바인딩
 #
 # VERSION: 3.1.0 (Single file configuration)
 # LAST UPDATED: 2024-10-04

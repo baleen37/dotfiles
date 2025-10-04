@@ -1,15 +1,22 @@
-# Zsh Shell Configuration
+# Zsh 셸 환경 설정
 #
-# Complete zsh configuration with all settings in one file.
-# Following YAGNI principle - no premature modularization.
+# 전체 Zsh 설정을 단일 파일로 관리하는 모듈 (YAGNI 원칙 준수)
 #
-# FEATURES:
-#   - Powerlevel10k theme with configuration
-#   - Optimized 1Password SSH agent detection
-#   - Platform-aware PATH and environment setup
-#   - IntelliJ IDEA launcher with intelligent detection
-#   - Claude CLI shortcuts and git worktree integration
-#   - Enhanced SSH wrapper with autossh fallback
+# 주요 기능:
+#   - Powerlevel10k 테마: 고급 프롬프트 테마 및 설정 적용
+#   - 1Password SSH 에이전트: 플랫폼별 소켓 자동 감지 및 연결
+#   - PATH 관리: npm, pnpm, 로컬 bin 디렉토리 자동 추가
+#   - IntelliJ IDEA 런처: 플랫폼별 설치 경로 자동 감지
+#   - Claude CLI 통합:
+#       - cc: Claude Code 빠른 실행 (권한 검사 생략)
+#       - ccw: Git worktree 생성/전환 + Claude 실행
+#   - SSH 래퍼: autossh를 통한 자동 재연결 지원
+#   - dotfiles 자동 업데이트: 셸 시작 시 백그라운드 업데이트
+#
+# 환경 변수:
+#   - EDITOR/VISUAL: vim
+#   - LANG/LC_ALL: en_US.UTF-8
+#   - SSH_AUTH_SOCK: 1Password 에이전트 소켓 자동 설정
 #
 # VERSION: 3.1.0 (Single file configuration)
 # LAST UPDATED: 2024-10-04

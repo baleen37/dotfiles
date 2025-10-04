@@ -1,7 +1,20 @@
 # Shared Modules Default Import
 #
-# 이 파일은 모든 플랫폼에서 공통으로 사용되는 모듈들을 통합 제공합니다.
+# 모든 플랫폼(macOS, NixOS)에서 공통으로 사용되는 모듈들을 통합 제공합니다.
 # hosts/*/default.nix에서 ../../modules/shared로 import할 때 자동으로 로드됩니다.
+#
+# 역할:
+#   - 플랫폼 공통 시스템 설정 통합
+#   - Nix garbage collection 및 store 최적화 설정
+#   - 공통 서비스 및 보안 설정 (필요시)
+#
+# 아키텍처:
+#   - 시스템 레벨 설정만 포함 (Home Manager 설정 제외)
+#   - 플랫폼별 차이가 없는 설정만 관리
+#   - 각 모듈은 단일 책임 원칙(SRP) 준수
+#
+# 사용:
+#   hosts/darwin/default.nix, hosts/nixos/default.nix에서 자동 import
 
 { config
 , pkgs

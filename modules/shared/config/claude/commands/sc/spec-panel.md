@@ -321,7 +321,7 @@ critical_issues:
     issue: "Authentication timeout not specified"
     recommendation: "Define session timeout with configurable values"
 
-  - category: "architecture"  
+  - category: "architecture"
     severity: "medium"
     expert: "fowler"
     issue: "Token refresh mechanism unclear"

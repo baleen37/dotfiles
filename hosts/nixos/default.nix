@@ -1,10 +1,42 @@
+# NixOS System Configuration
+#
+# Complete NixOS system definition for desktop environment with bspwm window manager.
+# Provides declarative configuration for boot, networking, services, and user management.
+#
+# FEATURES:
+#   - Systemd-boot EFI with 42 generation limit
+#   - BSPWM tiling window manager with LightDM greeter
+#   - Picom compositor with animations and rounded corners
+#   - Docker virtualization support
+#   - VSCode Remote Tunnel service (systemd user service)
+#   - Syncthing for file synchronization
+#   - Hardware support: Ledger, OpenGL graphics
+#
+# SERVICES:
+#   - X11 display server with BSPWM window manager
+#   - OpenSSH for remote access
+#   - GVFS for file system operations
+#   - VSCode Remote Tunnel daemon with auto-download
+#
+# SECURITY:
+#   - SSH key-based authentication
+#   - Trusted users configuration
+#   - Nix flakes and experimental features enabled
+#
+# CUSTOMIZATION:
+#   - Time zone: America/New_York
+#   - Default shell: zsh
+#   - Font packages: JetBrains Mono, DejaVu, Noto, Font Awesome
+
 { config
 , inputs
 , pkgs
-, user ? (import ../../lib/user-resolution.nix {
-    default = "baleen";
-    returnFormat = "string";
-  })
+, user ? (
+    import ../../lib/user-resolution.nix {
+      default = "baleen";
+      returnFormat = "string";
+    }
+  )
 , ...
 }:
 
@@ -265,18 +297,20 @@ in
   };
 
   # VSCode Remote Tunnel Service
+  # Systemd user service that auto-downloads and runs VSCode CLI tunnel daemon
+  # Enables remote development via VS Code's Remote-Tunnels extension
   systemd.user.services.vscode-tunnel = {
     description = "VSCode Remote Tunnel Service";
-    after = [ "network-online.target" ];
+    after = [ "network-online.target" ]; # Wait for network before starting
     wants = [ "network-online.target" ];
-    wantedBy = [ "default.target" ];
+    wantedBy = [ "default.target" ]; # Auto-start on user login
 
     serviceConfig = {
       Type = "simple";
-      Restart = "on-failure";
-      RestartSec = "5";
-      StartLimitBurst = 3;
-      StartLimitIntervalSec = 300;
+      Restart = "on-failure"; # Auto-restart if crashed
+      RestartSec = "5"; # Wait 5s before restart
+      StartLimitBurst = 3; # Max 3 restart attempts
+      StartLimitIntervalSec = 300; # Within 5 minutes
 
       # Security settings
       NoNewPrivileges = true;
@@ -292,7 +326,8 @@ in
         "XDG_DATA_HOME=/home/${user}/.local/share"
       ];
 
-      # Service executable - will download and run VSCode CLI
+      # Pre-start: Download VSCode CLI if missing or invalid
+      # Uses Microsoft's official CDN with retry logic for reliability
       ExecStartPre = "${pkgs.writeShellScript "vscode-tunnel-download" ''
         set -euo pipefail
 
@@ -300,17 +335,17 @@ in
         CLI_PATH="$CLI_DIR/code"
         ARCH="linux-x64"
 
-        # Create CLI directory
+        # Ensure CLI directory exists
         mkdir -p "$CLI_DIR"
 
-        # Download VSCode CLI if not present or outdated
+        # Download VSCode CLI if not present or not executable
         if [[ ! -f "$CLI_PATH" ]] || [[ ! -x "$CLI_PATH" ]]; then
           echo "[INFO] Downloading VSCode CLI..."
 
-          # Download from official Microsoft CDN
+          # Official Microsoft CDN URL for stable VSCode CLI
           DOWNLOAD_URL="https://update.code.visualstudio.com/commit/stable/cli-alpine-$ARCH/stable"
 
-          # Download with retry logic
+          # Retry download up to 3 times with 2s delay between attempts
           for attempt in {1..3}; do
             if curl -fsSL "$DOWNLOAD_URL" -o "$CLI_PATH.tmp"; then
               mv "$CLI_PATH.tmp" "$CLI_PATH"
@@ -319,16 +354,16 @@ in
               break
             else
               echo "[WARN] Download attempt $attempt failed"
-              [[ $attempt -eq 3 ]] && exit 1
+              [[ $attempt -eq 3 ]] && exit 1  # Fail on 3rd attempt
               sleep 2
             fi
           done
         fi
 
-        # Verify CLI works
+        # Verify CLI binary works before starting service
         if ! "$CLI_PATH" --version >/dev/null 2>&1; then
           echo "[ERROR] VSCode CLI verification failed"
-          rm -f "$CLI_PATH"
+          rm -f "$CLI_PATH"  # Remove corrupted binary
           exit 1
         fi
 

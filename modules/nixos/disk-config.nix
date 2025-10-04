@@ -1,6 +1,17 @@
+# NixOS Disk Configuration (Disko)
+#
+# GPT partition layout with systemd-boot EFI and ext4 root filesystem.
+# Configures disk partitioning scheme for automated NixOS installations.
+#
+# PARTITIONS:
+#   - ESP (EFI System Partition): 100MB vfat, mounted at /boot
+#   - Root: Remaining space, ext4, mounted at /
+#
+# NOTE: %DISK% placeholder replaced during installation (e.g., /dev/sda, /dev/nvme0n1)
+#
+# REFERENCE: https://github.com/nix-community/disko/tree/master/example
+
 _: {
-  # This formats the disk with the ext4 filesystem
-  # Other examples found here: https://github.com/nix-community/disko/tree/master/example
   disko.devices = {
     disk = {
       vdb = {

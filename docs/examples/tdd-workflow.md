@@ -369,7 +369,7 @@ pkgs.runCommand "config-performance"
   else
     echo "❌ Performance requirements not met"
     echo "  Cold load should be < 1000ms, got: ${cold_load_time}ms"
-    echo "  Cached load should be < 100ms, got: ${cached_load_time}ms"  
+    echo "  Cached load should be < 100ms, got: ${cached_load_time}ms"
     echo "  100 accesses should be < 500ms, got: ${access_time}ms"
     exit 1
   fi
@@ -398,7 +398,7 @@ git commit -m "Refactor: Improve config loader with caching"
 ### 3. Test Categories
 
 - **Unit**: Test individual functions
-- **Integration**: Test module interactions  
+- **Integration**: Test module interactions
 - **E2E**: Test complete workflows
 - **Performance**: Test speed and resource usage
 

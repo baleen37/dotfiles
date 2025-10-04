@@ -32,8 +32,6 @@ help:
 	@echo ""
 	@echo "🎨 Auto-formatting:"
 	@echo "  format      - Auto-format all files (Nix, shell, YAML, JSON, Markdown)"
-	@echo "  format-check - Check if files need formatting (CI mode)"
-	@echo "  format-dry-run - Show what would be formatted without changes"
 	@echo "  format-setup - Setup auto-formatting environment (install hooks + format)"
 	@echo "  format-quick - Quick format for common files (Nix + shell)"
 	@echo "  format-all  - Full workflow: format + lint + quick tests"
@@ -54,8 +52,6 @@ help:
 	@echo "  test-contract - Run contract tests (interface validation)"
 	@echo "  test-coverage - Run tests with coverage measurement"
 	@echo "  test-quick  - Fast parallel validation tests"
-	@echo "  test-enhanced - Integration tests with reporting"
-	@echo "  test-enhanced-verbose - Integration tests with verbose output"
 	@echo "  test-monitor - Performance monitoring tests"
 	@echo "  test-monitor-full - Full performance monitoring"
 	@echo "  test-macos-services - 🧪 TDD-verified macOS Services tests (Darwin only)"
@@ -66,24 +62,6 @@ help:
 	@echo "  test-optimize - Run performance optimization controller"
 	@echo "  test-report - Generate comprehensive performance report"
 	@echo "  test-list   - List available test categories"
-	@echo ""
-	@echo "🔬 Unit Testing (중복 제거됨):"
-	@echo "  test-unit-extended - Run remaining unit tests (no duplicates)"
-	@echo "  (Note: Claude, Platform, User tests moved to BATS and Integration)"
-	@echo ""
-	@echo "🧪 BATS Testing Framework (단위 테스트):"
-	@echo "  test-bats - Run all BATS shell script tests"
-	@echo "  test-bats-lib - Run BATS library tests"
-	@echo "  test-bats-system - Run BATS system tests"
-	@echo "  test-bats-integration - Run BATS integration tests"
-	@echo "  test-bats-claude - Test Claude activation (BATS 단위 테스트)"
-	@echo "  test-bats-user-resolution - BATS user resolution tests (단위 테스트)"
-	@echo "  test-bats-error-system - BATS error system tests"
-	@echo "  test-bats-report - Generate TAP report for BATS tests"
-	@echo "  test-bats-report-ci - Generate CI-compatible TAP report"
-	@echo ""
-	@echo "🤖 Claude Code MCP:"
-	@echo "  setup-mcp   - Install MCP servers for Claude Code"
 	@echo ""
 	@echo "🔨 Building & Deployment:"
 	@echo "  build       - Build all Darwin and NixOS configurations"
@@ -110,35 +88,27 @@ lint:
 # Auto-formatting targets
 format:
 	@echo "🎨 Auto-formatting all files..."
-	@./scripts/auto-format.sh
-
-format-check:
-	@echo "🔍 Checking if files need formatting..."
-	@./scripts/auto-format.sh --check
-
-format-dry-run:
-	@echo "🔍 Showing what would be formatted (dry run)..."
-	@./scripts/auto-format.sh --dry-run
+	@$(NIX) run .#format
 
 format-nix:
 	@echo "🎨 Formatting Nix files..."
-	@./scripts/auto-format.sh nix
+	@$(NIX) run .#format nix
 
 format-shell:
 	@echo "🎨 Formatting shell scripts..."
-	@./scripts/auto-format.sh shell
+	@$(NIX) run .#format shell
 
 format-yaml:
 	@echo "🎨 Formatting YAML files..."
-	@./scripts/auto-format.sh yaml
+	@$(NIX) run .#format yaml
 
 format-json:
 	@echo "🎨 Formatting JSON files..."
-	@./scripts/auto-format.sh json
+	@$(NIX) run .#format json
 
 format-markdown:
 	@echo "🎨 Formatting Markdown files..."
-	@./scripts/auto-format.sh markdown
+	@$(NIX) run .#format markdown
 
 # Format all files and install auto-fix hooks
 format-setup:
@@ -150,7 +120,8 @@ format-setup:
 # Quick format for common file types (fastest option)
 format-quick:
 	@echo "⚡ Quick format for common files (Nix + shell)..."
-	@./scripts/auto-format.sh nix shell
+	@$(NIX) run .#format nix
+	@$(NIX) run .#format shell
 
 # Full format workflow (format + lint + basic tests)
 format-all:
@@ -266,109 +237,25 @@ test-unit-extended:
 	@$(MAKE) test-core
 	@echo "✅ All extended unit tests completed successfully!"
 
-# BATS testing framework integration
-test-bats:
-	@echo "🧪 Running all BATS shell script tests..."
-	@if command -v bats >/dev/null 2>&1; then \
-		bats tests/bats/; \
-	else \
-		echo "❌ BATS not found. Installing via Nix..."; \
-		$(NIX) shell nixpkgs#bats -c bats tests/bats/; \
-	fi
-
-test-bats-platform:
-	@echo "🧪 Running BATS platform detection tests..."
-	@if command -v bats >/dev/null 2>&1; then \
-		bats tests/bats/test_platform_detection.bats; \
-	else \
-		$(NIX) shell nixpkgs#bats -c bats tests/bats/test_platform_detection.bats; \
-	fi
-
-test-bats-build:
-	@echo "🧪 Running BATS build system tests..."
-	@if command -v bats >/dev/null 2>&1; then \
-		bats tests/bats/test_build_system.bats; \
-	else \
-		$(NIX) shell nixpkgs#bats -c bats tests/bats/test_build_system.bats; \
-	fi
-
-test-bats-claude:
-	@echo "🧪 Running BATS Claude activation tests..."
-	@if command -v bats >/dev/null 2>&1; then \
-		bats tests/bats/test_claude_activation.bats; \
-	else \
-		$(NIX) shell nixpkgs#bats -c bats tests/bats/test_claude_activation.bats; \
-	fi
-
-test-bats-user-resolution:
-	@echo "🧪 Running BATS user resolution tests..."
-	@if command -v bats >/dev/null 2>&1; then \
-		bats tests/bats/test_lib_user_resolution.bats; \
-	else \
-		$(NIX) shell nixpkgs#bats -c bats tests/bats/test_lib_user_resolution.bats; \
-	fi
-
-test-bats-error-system:
-	@echo "🧪 Running BATS error system tests..."
-	@if command -v bats >/dev/null 2>&1; then \
-		bats tests/bats/test_lib_error_system.bats; \
-	else \
-		$(NIX) shell nixpkgs#bats -c bats tests/bats/test_lib_error_system.bats; \
-	fi
-
-# BATS test categories
-test-bats-lib:
-	@echo "🧪 Running all BATS library tests..."
-	@$(MAKE) test-bats-user-resolution
-	@$(MAKE) test-bats-error-system
-
-test-bats-system:
-	@echo "🧪 Running all BATS system tests..."
-	@$(MAKE) test-bats-platform
-	@$(MAKE) test-bats-build
-
-test-bats-integration:
-	@echo "🧪 Running BATS integration tests..."
-	@$(MAKE) test-bats-claude
-
-# BATS with TAP reporting
-test-bats-report:
-	@echo "📊 Running BATS tests with TAP reporting..."
-	@./scripts/bats-tap-reporter.sh ./test-reports
-
-test-bats-report-ci:
-	@echo "🤖 Running BATS tests for CI with TAP output..."
-	@./scripts/bats-tap-reporter.sh ./test-reports/ci
-
 # Comprehensive test suite
 test-comprehensive:
 	@echo "🔬 Running comprehensive test suite..."
 	@$(MAKE) test-core
-	@$(MAKE) test-bats-all
 	@echo "✅ All tests completed successfully"
 
 # Fast parallel testing (2-3 seconds total)
 test-quick:
-	@echo "🚀 Running parallel quick tests..."
-	@./scripts/quick-test.sh
-
-# Enhanced testing with detailed reporting
-test-enhanced:
-	@echo "🚀 Running enhanced tests with detailed reporting..."
-	@./scripts/enhanced-test.sh --quiet --parallel
-
-test-enhanced-verbose:
-	@echo "🚀 Running enhanced tests with verbose output..."
-	@./scripts/enhanced-test.sh --verbose
+	@echo "🚀 Running quick validation checks..."
+	@$(NIX) flake check --impure --all-systems --no-build
 
 # Performance monitoring and regression detection
 test-monitor:
 	@echo "📊 Running performance monitoring..."
-	@./tests/performance/test-performance-monitor.sh
+	@$(NIX) run .#test-benchmark
 
 test-monitor-full:
 	@echo "📊 Running full performance monitoring (including heavy tests)..."
-	@./tests/performance/test-performance-monitor.sh --full
+	@$(NIX) run .#test-benchmark
 
 # Advanced performance testing and optimization
 test-benchmark:
@@ -466,6 +353,29 @@ build-switch: check-user
 	duration=$$((end_time - start_time)); \
 	echo "✅ Build and switch completed in $${duration}s with USER=$(USER)"
 
+# Build-switch dry-run for CI testing (no actual switch)
+build-switch-dry: check-user
+	@echo "🧪 Testing build-switch (dry-run for CI): $(CURRENT_SYSTEM) with USER=$(USER)..."
+	@start_time=$$(date +%s); \
+	OS=$$(uname -s); \
+	TARGET=$${HOST:-$(CURRENT_SYSTEM)}; \
+	echo "🎯 Target system: $${TARGET}"; \
+	if [ "$${OS}" = "Darwin" ]; then \
+		echo "🔨 Building Darwin configuration..."; \
+		export USER=$(USER); $(NIX) build --impure .#darwinConfigurations.$${TARGET}.system $(ARGS) || { echo "❌ Build failed!"; exit 1; }; \
+		if [ ! -L "./result" ]; then echo "❌ Build result not found!"; exit 1; fi; \
+		echo "✅ Build successful (skipping switch in dry-run mode)"; \
+		unlink ./result; \
+	else \
+		echo "🔨 Building NixOS configuration..."; \
+		export USER=$(USER); $(NIX) build --impure .#nixosConfigurations.$${TARGET}.config.system.build.toplevel $(ARGS) || { echo "❌ Build failed!"; exit 1; }; \
+		echo "✅ Build successful (skipping switch in dry-run mode)"; \
+		if [ -L "./result" ]; then unlink ./result; fi; \
+	fi; \
+	end_time=$$(date +%s); \
+	duration=$$((end_time - start_time)); \
+	echo "✅ Build-switch dry-run completed in $${duration}s with USER=$(USER)"
+
 switch: check-user
 	@echo "🔄 Switching system configuration with USER=$(USER)..."
 	@OS=$$(uname -s); \
@@ -495,9 +405,4 @@ deploy:
 	@echo "🚀 Deploying configuration..."
 	@./deploy.sh
 
-# Claude Code MCP setup
-setup-mcp: check-user
-	@echo "🤖 Setting up Claude Code MCP servers..."
-	@./scripts/setup-claude-mcp --main
-
-.PHONY: help check-user lint lint-format lint-autofix lint-install-autofix smoke test test-format test-quick test-core test-unit test-contract test-coverage test-unit-coverage test-contract-coverage test-workflow test-perf test-list test-unit-extended test-bats test-bats-lib test-bats-system test-bats-integration test-bats-platform test-bats-build test-bats-claude test-bats-user-resolution test-bats-error-system test-bats-report test-bats-report-ci build build-linux build-darwin build-current build-fast build-switch switch apply deploy platform-info setup-mcp format format-check format-dry-run format-setup format-quick format-all format-nix format-shell format-yaml format-json format-markdown
+.PHONY: help check-user lint lint-format lint-autofix lint-install-autofix smoke test test-format test-quick test-core test-unit test-contract test-coverage test-unit-coverage test-contract-coverage test-workflow test-perf test-list test-unit-extended build build-linux build-darwin build-current build-fast build-switch switch apply deploy platform-info format format-setup format-quick format-all format-nix format-shell format-yaml format-json format-markdown

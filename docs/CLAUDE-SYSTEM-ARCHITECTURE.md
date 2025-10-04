@@ -76,7 +76,7 @@ graph TD
 # Structure:
 ~/.claude/
 ├── commands/          → [SYMLINK] modules/shared/config/claude/commands/
-├── agents/            → [SYMLINK] modules/shared/config/claude/agents/  
+├── agents/            → [SYMLINK] modules/shared/config/claude/agents/
 ├── settings.json      → [COPY] with dynamic state merge
 ├── CLAUDE.md          → [SYMLINK] modules/shared/config/claude/CLAUDE.md
 └── [other .md files]  → [SYMLINK] to source files
@@ -223,14 +223,14 @@ fallbackSources = [
 
 ### Test Coverage Matrix
 
-| Component | Unit | Integration | E2E | CI/CD |
-|-----------|------|-------------|-----|-------|
-| Activation System | ✅ | ✅ | ✅ | ✅ |
-| Symlink Management | ✅ | ✅ | ✅ | ✅ |
-| State Preservation | ✅ | ✅ | - | ✅ |
-| Cross-Platform | ✅ | ✅ | ✅ | ✅ |
-| Error Recovery | - | ✅ | ✅ | ✅ |
-| Build Integration | ✅ | ✅ | ✅ | ✅ |
+| Component          | Unit | Integration | E2E | CI/CD |
+| ------------------ | ---- | ----------- | --- | ----- |
+| Activation System  | ✅   | ✅          | ✅  | ✅    |
+| Symlink Management | ✅   | ✅          | ✅  | ✅    |
+| State Preservation | ✅   | ✅          | -   | ✅    |
+| Cross-Platform     | ✅   | ✅          | ✅  | ✅    |
+| Error Recovery     | -    | ✅          | ✅  | ✅    |
+| Build Integration  | ✅   | ✅          | ✅  | ✅    |
 
 ### Test Execution
 
@@ -238,9 +238,9 @@ fallbackSources = [
 # Run all Claude tests
 ./tests/run-claude-tests.sh
 
-# Run specific test categories  
+# Run specific test categories
 nix run .#test-unit
-nix run .#test-integration  
+nix run .#test-integration
 nix run .#test-core
 
 # Run in CI environment
@@ -271,7 +271,7 @@ nix run .#test-all
 # Verify system health
 nix run .#test-core
 
-# Update symlinks after dotfiles changes  
+# Update symlinks after dotfiles changes
 make build-switch
 
 # Clean up broken symlinks (automatic in activation)

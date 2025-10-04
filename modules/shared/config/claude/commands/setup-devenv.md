@@ -18,6 +18,7 @@ Automatically detect your project type and set up a perfect Nix development envi
 ## Supported Projects
 
 Automatically detects and configures:
+
 - **Node.js**: package.json → nodejs, npm, yarn, pnpm
 - **Python**: requirements.txt, pyproject.toml → python, pip, virtualenv
 - **Rust**: Cargo.toml → rust, cargo, clippy, rustfmt
@@ -30,14 +31,18 @@ Automatically detects and configures:
 ## Generated Setup
 
 ### flake.nix
+
 Complete development shell with:
+
 - Language runtime and package managers
 - Development tools and linters
 - Build dependencies
 - Project-specific environment variables
 
 ### .envrc
+
 High-performance direnv config with:
+
 - nix-direnv for instant loading
 - Automatic flake watching
 - Environment caching
@@ -46,6 +51,7 @@ High-performance direnv config with:
 ## No Configuration Needed
 
 Just run `/setup-devenv` and I'll:
+
 1. Detect what kind of project you have
 2. Create the perfect Nix environment
 3. Set everything up automatically

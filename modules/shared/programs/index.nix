@@ -1,22 +1,35 @@
-# Shared Program Configurations Entry Point
+# 공유 프로그램 설정 진입점
 #
-# Modular program configurations with flat structure and directories for complex programs.
-# Following YAGNI principle - simple flat files, directories only when needed.
+# modules/shared/programs/ 디렉토리의 모든 프로그램 설정 모듈을 통합하고
+# 표준화된 인터페이스로 내보내는 인덱스 파일
 #
-# ARCHITECTURE:
-#   - Flat structure: Simple programs as individual files
-#   - Directory modules: Complex programs (zsh, tmux) in their own directories
-#   - Standardized interface: Consistent inputs/outputs across all modules
+# 아키텍처 설계 (YAGNI 원칙):
+#   - 플랫 구조: 단순한 프로그램은 개별 .nix 파일로 관리
+#   - 디렉토리 모듈: 복잡한 프로그램(zsh, tmux)은 별도 디렉토리로 분리
+#   - 표준화된 입력: 모든 모듈에 동일한 moduleInputs 전달
+#       - config: Home Manager 설정
+#       - pkgs: Nixpkgs 패키지 집합
+#       - lib: Nix 라이브러리 함수
+#       - platformInfo: isDarwin, isLinux, system
+#       - userInfo: name, email, homePath, paths
 #
-# PROGRAM MODULES:
-#   - zsh/: Complete shell environment configuration
-#   - tmux/: Terminal multiplexer with plugins
-#   - git.nix: Version control with aliases
-#   - vim.nix: Editor with plugins
-#   - alacritty.nix: Terminal emulator
-#   - ssh.nix: SSH client configuration
-#   - direnv.nix: Environment management
-#   - fzf.nix: Fuzzy finder
+# 프로그램 모듈 목록:
+#   디렉토리 모듈 (복잡한 설정):
+#     - zsh/: 셸 환경 전체 설정 (테마, 별칭, 함수)
+#     - tmux/: 터미널 멀티플렉서 (플러그인, 키 바인딩)
+#     - claude/: Claude Code 설정 심볼릭 링크
+#
+#   플랫 파일 모듈 (단순한 설정):
+#     - git.nix: Git 전역 설정 및 별칭
+#     - vim.nix: Vim 에디터 플러그인 및 키맵
+#     - alacritty.nix: Alacritty 터미널 테마
+#     - ssh.nix: SSH 클라이언트 설정
+#     - direnv.nix: 환경 변수 자동 로드
+#     - fzf.nix: 퍼지 파인더 설정
+#
+# 출력 구조:
+#   - programs: 모든 프로그램 설정 병합 (lib.mkMerge)
+#   - home: 추가 홈 디렉토리 설정 (심볼릭 링크 등)
 #
 # VERSION: 3.1.0 (Flat structure with complex program directories)
 # LAST UPDATED: 2024-10-04
@@ -28,52 +41,33 @@
 }:
 
 let
+  # Import centralized user information
+  userInfo = import ../../../lib/user-info.nix;
+
   # User configuration constants
-  name = "Jiho Lee";
-  email = "baleen37@gmail.com";
+  name = userInfo.name;
+  email = userInfo.email;
 
-  # Optimized platform detection with caching
-  platformDetection = import ../../../lib/platform-detection.nix { inherit pkgs; };
-
-  # Enhanced user resolution with platform awareness
-  getUserInfo = import ../../../lib/user-resolution.nix {
-    platform = platformDetection.platform;
-    returnFormat = "extended";
-  };
-
-  # Cached platform detection flags for performance
-  platformFlags = {
-    isDarwin = platformDetection.isDarwin pkgs.system;
-    isLinux = platformDetection.isLinux pkgs.system;
-    isX86_64 = platformDetection.isX86_64 pkgs.system;
-    isAarch64 = platformDetection.isAarch64 pkgs.system;
-  };
-
-  # Performance optimized shortcuts
-  isDarwin = platformFlags.isDarwin;
-  isLinux = platformFlags.isLinux;
-
-  # Common configuration helpers
-  commonPaths = {
-    home = getUserInfo.homePath;
-    config = "${getUserInfo.homePath}/.config";
-    ssh = "${getUserInfo.homePath}/.ssh";
-    dotfiles = "${getUserInfo.homePath}/dotfiles";
-    devDotfiles = "${getUserInfo.homePath}/dev/dotfiles";
-  };
+  # Simple platform detection - direct system checking
+  isDarwin = pkgs.stdenv.isDarwin;
+  isLinux = pkgs.stdenv.isLinux;
 
   # Standardized module interface data
+  homePath = config.home.homeDirectory;
   moduleInputs = {
     inherit config pkgs lib;
     platformInfo = {
       inherit isDarwin isLinux;
-      inherit (platformFlags) isX86_64 isAarch64;
       system = pkgs.system;
     };
     userInfo = {
-      inherit name email;
-      inherit (getUserInfo) homePath;
-      paths = commonPaths;
+      inherit name email homePath;
+      # Legacy compatibility
+      paths = {
+        home = homePath;
+        config = "${homePath}/.config";
+        ssh = "${homePath}/.ssh";
+      };
     };
   };
 

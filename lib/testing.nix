@@ -1,5 +1,28 @@
-# lib/testing.nix - Extracted testing logic from flake.nix
-{ inputs, forAllSystems, self }:
+# Multi-Framework Testing System
+# Comprehensive testing infrastructure extracted from flake.nix
+#
+# Supported Test Frameworks:
+# - NixTest: Pure Nix testing with custom test framework
+# - lib.runTests: Built-in Nix test runner for simple assertions
+# - Test Helpers: Shared utilities and test fixtures
+#
+# Test Categories:
+# - Unit Tests: Component-level validation (lib functions, platform detection)
+# - Integration Tests: Module interaction and cross-platform compatibility
+# - System Tests: Full system configuration validation
+# - Performance Tests: Build time and resource usage benchmarking
+#
+# Key Components:
+# - Test suite runners with automated result formatting
+# - Framework validation and helper checks
+# - Multi-tier test organization (unit, integration, e2e, performance)
+# - Test result aggregation and reporting
+
+{ inputs
+, forAllSystems
+, self
+,
+}:
 
 let
   # Extract nixpkgs from inputs
@@ -20,21 +43,56 @@ in
 
       # Import unit test suites with nixtest and testHelpers provided
       libTests = import (self + /tests/unit/lib_test.nix) {
-        inherit lib pkgs system nixtest testHelpers self;
+        inherit
+          lib
+          pkgs
+          system
+          nixtest
+          testHelpers
+          self
+          ;
       };
       platformTests = import (self + /tests/unit/platform_test.nix) {
-        inherit lib pkgs system nixtest testHelpers self;
+        inherit
+          lib
+          pkgs
+          system
+          nixtest
+          testHelpers
+          self
+          ;
       };
 
       # Import integration test suites with nixtest and testHelpers provided
       moduleInteractionTests = import (self + /tests/integration/module-interaction-test.nix) {
-        inherit lib pkgs system nixtest testHelpers self;
+        inherit
+          lib
+          pkgs
+          system
+          nixtest
+          testHelpers
+          self
+          ;
       };
       crossPlatformTests = import (self + /tests/integration/cross-platform-test.nix) {
-        inherit lib pkgs system nixtest testHelpers self;
+        inherit
+          lib
+          pkgs
+          system
+          nixtest
+          testHelpers
+          self
+          ;
       };
       systemConfigurationTests = import (self + /tests/integration/system-configuration-test.nix) {
-        inherit lib pkgs system nixtest testHelpers self;
+        inherit
+          lib
+          pkgs
+          system
+          nixtest
+          testHelpers
+          self
+          ;
       };
 
       # Helper function to run test suites and format results

@@ -1,3 +1,13 @@
+# macOS-Specific Package Definitions
+#
+# macOS 플랫폼에 특화된 Nix 패키지 목록을 정의합니다.
+# shared/packages.nix의 공통 패키지에 macOS 전용 패키지를 추가합니다.
+#
+# 특징:
+#   - Karabiner-Elements v14 커스텀 빌드 포함
+#   - dockutil 등 macOS 시스템 도구 제공
+#   - shared 패키지와 병합되어 최종 패키지 목록 생성
+
 { pkgs }:
 
 with pkgs;

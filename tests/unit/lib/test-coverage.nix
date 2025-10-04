@@ -1,5 +1,18 @@
-# Unit Tests for Coverage System
-# These tests MUST FAIL initially (TDD requirement)
+# Coverage System Unit Tests
+#
+# 코드 커버리지 측정 시스템의 유닛 테스트 모음
+# lib/coverage-system.nix에 정의된 커버리지 수집/분석/보고 기능을 검증
+#
+# 테스트 대상:
+# - measurement: 커버리지 측정 (initSession, collectCoverage, analyzeModule, calculateCoveredLines, extractFunctions)
+# - reporting: 커버리지 보고서 생성 (generateConsoleReport, generateJSONReport, generateHTMLReport, generateLCOVReport)
+# - validation: 커버리지 검증 (checkThreshold, getCoverageStatus, getUncoveredModules, calculateDelta)
+# - cicd: CI/CD 통합 (generateBadgeData, generateGitHubActionsOutput)
+# - utils: 유틸리티 함수 (findCoverageFiles, mergeSessions)
+# - defaultConfig: 기본 설정값
+# - fileTypes: 파일 타입 정의
+#
+# TDD 요구사항: 이 테스트들은 처음에는 실패해야 함 (구현 전)
 
 { lib, runTests, ... }:
 

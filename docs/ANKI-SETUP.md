@@ -28,7 +28,7 @@ Anki stores its configuration in:
 Popular Anki add-ons that can be manually installed:
 
 1. **Review Heatmap** (1771074083) - Visual review calendar
-2. **AnkiConnect** (2055492159) - API for external applications  
+2. **AnkiConnect** (2055492159) - API for external applications
 3. **Load Balancer** (1046608507) - Distribute cards evenly
 4. **Progress Bar** (609537157) - Show progress during reviews
 5. **Image Occlusion Enhanced** (1374772155) - Create image-based cards
@@ -43,7 +43,7 @@ Popular Anki add-ons that can be manually installed:
 Basic study settings for optimal learning:
 
 - **New cards per day**: 20-30
-- **Maximum reviews per day**: 200-300  
+- **Maximum reviews per day**: 200-300
 - **Learning steps**: 1m 10m
 - **Graduating interval**: 1 day
 - **Easy interval**: 4 days

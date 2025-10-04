@@ -57,7 +57,7 @@ build:
   timeout: 3600
   parallel_jobs: 4
 
-# config/paths.yaml  
+# config/paths.yaml
 ssh_directories:
   darwin: "/Users/${USER}/.ssh"
   linux: "/home/${USER}/.ssh"
@@ -114,7 +114,7 @@ if [[ -z "$CACHE_SIZE" ]]; then
   CACHE_SIZE=5
 fi
 
-# After  
+# After
 source scripts/utils/config-loader.sh
 cache_size=$(get_unified_config "cache_max_size" "5")
 ```

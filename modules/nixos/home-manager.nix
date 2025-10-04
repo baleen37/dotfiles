@@ -1,16 +1,29 @@
-# NixOS-Specific Home Manager Configuration (Optimized)
+# NixOS Home Manager Configuration
 #
-# Linux/NixOS-specific Home Manager configuration with performance
-# optimizations, enhanced desktop integration, and streamlined services.
+# Linux/NixOS-specific Home Manager settings for desktop environment and user services.
+# Integrates shared cross-platform configurations with Linux-specific optimizations.
 #
-# FEATURES:
-#   - Optimized Polybar and desktop environment integration
-#   - Enhanced notification system with Dunst
-#   - Performance-optimized file and service management
-#   - Streamlined shared configuration integration
+# ARCHITECTURE:
+#   - Direct imports pattern (dustinlyons style): Shared + platform-specific files/packages
+#   - Modular service configuration: Polybar, Dunst, screen locker, device mounting
+#   - Performance optimizations: Cached configs, parallel execution, reduced overhead
 #
-# VERSION: 2.0.0 (Phase 2 optimized)
-# LAST UPDATED: 2024-10-04
+# KEY COMPONENTS:
+#   - Desktop Environment: GTK theming (Adwaita-dark), XDG user directories, MIME associations
+#   - Window Management: Polybar status bar with custom modules and scripts
+#   - Notifications: Dunst with urgency-based styling and performance tuning
+#   - System Services: Auto-mounting (udiskie), screen locking (i3lock-fancy-rapid)
+#   - Shell Environment: zsh with Linux-specific aliases and development shortcuts
+#
+# INTEGRATIONS:
+#   - Shared configurations from ../shared/{packages,files,home-manager}.nix
+#   - NixOS-specific files from ./files.nix (bspwm, rofi, polybar scripts)
+#   - Platform-specific packages from ./packages.nix
+#
+# OPTIMIZATIONS:
+#   - Polybar: Cached configuration files, optimized startup script
+#   - Dunst: Performance-tuned notification settings, reduced animation overhead
+#   - Services: Disabled unnecessary features (tray icons, redundant notifications)
 
 { config
 , pkgs
@@ -39,9 +52,12 @@ let
 
   # Optimized Polybar configuration with performance enhancements
   polybarConfig = {
+    # User modules: Replace template placeholders with actual script paths
+    # This enables click actions in Polybar modules (updates, launcher, power menu, calendar)
     userModules =
       let
         src = builtins.readFile ./config/polybar/user_modules.ini;
+        # Map template variables (@packages@, @launcher@, etc.) to actual script paths
         substitutions = {
           "@packages@" = "${linuxPaths.config}/polybar/bin/check-nixos-updates.sh";
           "@searchpkgs@" = "${linuxPaths.config}/polybar/bin/search-nixos-updates.sh";
@@ -50,16 +66,21 @@ let
           "@calendar@" = "${linuxPaths.config}/polybar/bin/popup-calendar.sh";
         };
       in
+      # Perform batch string replacement for all placeholders
       builtins.replaceStrings (builtins.attrNames substitutions) (builtins.attrValues substitutions) src;
 
+    # Main config: Replace font placeholders and create config file in Nix store
+    # Ensures fonts are declaratively managed and consistently applied
     mainConfig =
       let
         src = builtins.readFile ./config/polybar/config.ini;
+        # Define font substitutions for Polybar bar and icons
         fontSubstitutions = {
-          "@font0@" = "DejaVu Sans:size=12;3";
-          "@font1@" = "feather:size=12;3";
+          "@font0@" = "DejaVu Sans:size=12;3"; # Primary UI font
+          "@font1@" = "feather:size=12;3"; # Icon font
         };
       in
+      # Create immutable config file in /nix/store with font substitutions applied
       builtins.toFile "polybar-config.ini" (
         builtins.replaceStrings (builtins.attrNames fontSubstitutions)
           (builtins.attrValues fontSubstitutions)
@@ -84,7 +105,10 @@ in
       packages = sharedPackages ++ (pkgs.callPackage ./packages.nix { });
 
       # Combine files using lib.mkMerge
-      file = lib.mkMerge [ sharedFiles nixosFiles ];
+      file = lib.mkMerge [
+        sharedFiles
+        nixosFiles
+      ];
 
       stateVersion = "21.05";
 

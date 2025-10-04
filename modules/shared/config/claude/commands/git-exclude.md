@@ -38,24 +38,28 @@ Manage `.git/info/exclude` file to add or remove repository-specific ignore patt
 ## Key Behaviors
 
 ### Pattern Addition
+
 - Check for duplicate patterns before adding
 - Validate gitignore syntax (wildcards, negations, directories)
 - Preserve existing patterns and comments
 - Add patterns in logical order (specific before general)
 
 ### Pattern Removal
+
 - Support exact pattern matching
 - Support fuzzy matching with user confirmation
 - Preserve file structure and comments
 - Handle cases where pattern doesn't exist
 
 ### File Safety
+
 - Create `.git/info/exclude` if it doesn't exist
 - Preserve existing content and formatting
 - Add descriptive comments for context
 - Backup original content before major changes
 
 ### Pattern Testing
+
 - Test patterns against current working directory
 - Show which files would be affected by the pattern
 - Validate pattern syntax before applying
@@ -64,18 +68,21 @@ Manage `.git/info/exclude` file to add or remove repository-specific ignore patt
 ## Implementation Details
 
 ### Validation Checks
+
 - Verify we're in a git repository root
 - Check `.git/info/exclude` file permissions
 - Validate gitignore pattern syntax
 - Test patterns don't conflict with `.gitignore`
 
 ### Pattern Categories
+
 - **Personal Files**: Editor configs, OS files, personal notes
 - **Development Tools**: IDE settings, debug files, profiling data
 - **Temporary Patterns**: Short-term exclusions, experimental files
 - **Local Builds**: Personal build artifacts, cache files
 
 ### User Interaction
+
 - Interactive mode for ambiguous requests
 - Confirmation for destructive operations
 - Clear feedback on pattern effectiveness
@@ -91,6 +98,7 @@ Manage `.git/info/exclude` file to add or remove repository-specific ignore patt
 ## Example Workflows
 
 ### Add Personal Development Files
+
 ```
 /git-exclude "**/.vscode/settings.json" add
 /git-exclude "*.local" add
@@ -98,16 +106,19 @@ Manage `.git/info/exclude` file to add or remove repository-specific ignore patt
 ```
 
 ### Remove Temporary Pattern
+
 ```
 /git-exclude "debug-*.log" remove
 ```
 
 ### List Current Exclusions
+
 ```
 /git-exclude list
 ```
 
 ### Interactive Pattern Addition
+
 ```
 /git-exclude
 # Shows current patterns and prompts for new ones

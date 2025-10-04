@@ -9,16 +9,19 @@
 ### The Trinity: YAGNI • DRY • KISS
 
 **YAGNI (You Aren't Gonna Need It)**
+
 - Implement only current requirements, never future possibilities
 - Remove features the moment they become unused
 - The best code is no code
 
-**DRY (Don't Repeat Yourself)**  
+**DRY (Don't Repeat Yourself)**
+
 - Every piece of logic has exactly one authoritative location
 - Extract shared functionality on the third occurrence (Rule of Three)
 - Eliminate identical implementations immediately
 
 **KISS (Keep It Simple, Stupid)**
+
 - Choose the simplest solution that works
 - Prefer explicit over clever code
 - Make the SMALLEST reasonable changes to achieve desired outcome
@@ -73,8 +76,9 @@
 ## Code Refactoring Principles
 
 ### Rule of Three (Martin Fowler)
+
 1. **First time**: Write the code
-2. **Second time**: Duplicate (tolerate)  
+2. **Second time**: Duplicate (tolerate)
 3. **Third time**: Refactor and extract
 
 ## Role
@@ -93,7 +97,8 @@ Pragmatic development assistant. Keep things simple and functional.
 - Only one task in_progress at a time
 - Ask for help when stuck
 
-### TodoWrite Cleanup Rules  
+### TodoWrite Cleanup Rules
+
 - **When switching tasks**: Clean up previous todos before starting new work
 - **Real-time updates**: Update todo status immediately upon completion
 - **Specific task names**: "improvement" (X) → "Fix module configuration issue" (O)
@@ -103,14 +108,17 @@ Pragmatic development assistant. Keep things simple and functional.
 **NO EXCEPTIONS POLICY**: ALL projects MUST have unit tests, integration tests, AND end-to-end tests. The only way to skip any test type is if jito EXPLICITLY states: "I AUTHORIZE YOU TO SKIP WRITING TESTS THIS TIME."
 
 ### Test-Driven Development Requirements:
+
 FOR EVERY NEW FEATURE OR BUGFIX, YOU MUST follow TDD:
+
 1. Write a failing test that correctly validates the desired functionality
-2. Run the test to confirm it fails as expected  
+2. Run the test to confirm it fails as expected
 3. Write ONLY enough code to make the failing test pass
 4. Run the test to confirm success
 5. Refactor if needed while keeping tests green
 
 ### Testing Standards:
+
 - Tests MUST comprehensively cover ALL functionality
 - YOU MUST NEVER write tests that "test" mocked behavior
 - YOU MUST NEVER implement mocks in end-to-end tests - always use real data and real APIs
@@ -129,25 +137,30 @@ FOR EVERY NEW FEATURE OR BUGFIX, YOU MUST follow TDD:
 ## Naming and Comments
 
 ### Naming Requirements:
+
 - Names MUST tell what code does, not how it's implemented or its history
 - NEVER use implementation details in names (e.g., "ZodValidator", "MCPWrapper", "JSONParser")
 - NEVER use temporal/historical context in names (e.g., "NewAPI", "LegacyHandler", "UnifiedTool")
 - NEVER use pattern names unless they add clarity (e.g., prefer "Tool" over "ToolFactory")
 
 Good names tell a story about the domain:
+
 - `Tool` not `AbstractToolInterface`
 - `RemoteTool` not `MCPToolWrapper`
 - `Registry` not `ToolRegistryManager`
 - `execute()` not `executeToolWithValidation()`
 
 ### Comment Requirements:
+
 Comments must describe what the code does NOW, not:
+
 - What it used to do
 - How it was refactored
 - What framework/library it uses internally
 - Why it's better than some previous version
 
 Examples:
+
 ```
 // BAD: This uses Zod for validation instead of manual checking
 // BAD: Refactored from the old validation system
@@ -179,7 +192,7 @@ When using Task tool for analysis-only requests, use RFC-style emphasis to ensur
 ### RFC Emphasis Standards
 
 - **MUST**: Requirements that agents must follow
-- **MUST NOT**: Actions that are absolutely forbidden  
+- **MUST NOT**: Actions that are absolutely forbidden
 - **CRITICAL**: Critically important constraints
 - **MANDATORY**: Obligatory requirements
 - **FORBIDDEN**: Prohibited actions
@@ -198,23 +211,27 @@ This ensures agents understand the exact scope of work and prevent unauthorized 
 YOU MUST ALWAYS find the root cause of any issue you are debugging. YOU MUST NEVER fix a symptom or add a workaround instead of finding a root cause, even if it seems faster or more convenient.
 
 ### Phase 1: Root Cause Investigation (BEFORE attempting fixes)
+
 - **Read Error Messages Carefully**: Don't skip past errors or warnings - they often contain the exact solution
 - **Reproduce Consistently**: Ensure you can reliably reproduce the issue before investigating
 - **Check Recent Changes**: What changed that could have caused this? Git diff, recent commits, etc.
 
-### Phase 2: Pattern Analysis  
+### Phase 2: Pattern Analysis
+
 - **Find Working Examples**: Locate similar working code in the same codebase
 - **Compare Against References**: If implementing a pattern, read the reference implementation completely
 - **Identify Differences**: What's different between working and broken code?
 - **Understand Dependencies**: What other components/settings does this pattern require?
 
 ### Phase 3: Hypothesis and Testing
+
 1. **Form Single Hypothesis**: What do you think is the root cause? State it clearly
 2. **Test Minimally**: Make the smallest possible change to test your hypothesis
 3. **Verify Before Continuing**: Did your test work? If not, form new hypothesis - don't add more fixes
 4. **When You Don't Know**: Say "I don't understand X" rather than pretending to know
 
 ### Implementation Rules
+
 - ALWAYS have the simplest possible failing test case
 - NEVER add multiple fixes at once
 - ALWAYS test after each change

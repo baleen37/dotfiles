@@ -74,33 +74,30 @@ Professional Nix dotfiles system supporting:
 3. **Host Configurations** (`hosts/`): Individual machine definitions
 4. **Library Functions** (`lib/`): Reusable Nix utilities
 
-## Current Development: Nix Best Practices Refactoring
+## Current Development: Build-Switch Testing Implementation
 
-**Status**: Architecture planning phase  
-**Branch**: feature/tests-modernization  
-**Goal**: Apply dustinlyons/nixos-config best practices while preserving advanced features
+**Status**: Active development
+**Branch**: feature/tests-modernization
+**Goal**: Platform-specific build validation and deployment safety
 
-### Refactoring Objectives
+### Current Focus
 
-- **Structural Clarity**: Adopt dustinlyons' clean organizational patterns
-- **Dynamic User Resolution**: Maintain flexible user configuration without hardcoding
-- **Module Simplification**: Reduce complexity while maintaining functionality
-- **Single Responsibility**: Each file focuses on one specific concern
+- **Platform-Specific Build Testing**: Validate build-switch across all platforms
+- **Enhanced CI Pipeline**: Multi-platform matrix testing for Darwin and Linux
+- **Deployment Safety**: Dry-run validation before production deployments
+- **Cross-Platform Compatibility**: Ensure reproducible builds on all supported architectures
 
-### Best Practices Integration
+### Recent Improvements
 
-1. **Clean flake.nix Organization**: Move complex logic to dedicated lib files
-2. **Simple Module Imports**: Use direct import patterns like `import ../shared/files.nix`
-3. **Platform App Structure**: Organize apps by architecture with clear naming
-4. **Dynamic User Handling**: Keep existing user resolution system but simplify interface
-5. **File Purpose Clarity**: packages.nix for packages, programs.nix for programs
+1. **Build-Switch CI Testing**: Added platform-specific build-switch validation
+   - Darwin ARM64 (macOS 15)
+   - Darwin x64 (macOS 13)
+   - Linux ARM64 (Ubuntu)
+   - Linux x64 (Ubuntu)
 
-### Key Improvements
-
-- **Simplified Structure**: Maintain advanced features with cleaner organization
-- **Modular Design**: Single responsibility modules following dustinlyons patterns
-- **Preserved Features**: Keep 87% optimized testing framework and performance monitoring
-- **Better Maintainability**: Clear separation of concerns across all modules
+2. **Makefile Addition**: New `build-switch-dry` target for safe CI testing
+3. **CI Integration**: Comprehensive status reporting with build-switch results
+4. **Conflict Resolution**: Fixed linux-builder configuration for Determinate Nix compatibility
 
 ## Development Workflow
 
@@ -115,16 +112,16 @@ Professional Nix dotfiles system supporting:
 
 ### Code Quality Enforcement
 
-**Auto-Formatting Workflow**: Leverage automated formatting for consistent code quality:
+**Auto-Formatting Workflow**: Leverage Nix-based automated formatting for consistent code quality:
 
-- Use `make format` to automatically fix formatting and lint issues
+- Use `make format` (wraps `nix run .#format`) to automatically fix formatting and lint issues
 - NEVER manually fix formatting issues - let automation handle it
 - **Pre-commit Hook Compliance**: Ensure pre-commit hooks are installed and never bypassed:
   - NEVER use `git commit -n` or `--no-verify` flags
   - If pre-commit fails, run `make format` instead of manual fixes
   - Pre-commit hooks handle all formatting, linting, and basic validation automatically
 
-**Efficient Development**: The auto-formatting system eliminates manual formatting work:
+**Efficient Development**: The Nix-based auto-formatting system (lib/formatters.nix) eliminates manual formatting work:
 
 - `make format-nix`: Format all Nix files with nixfmt
 - `make format-yaml`: Format YAML files with yamlfmt
@@ -132,20 +129,48 @@ Professional Nix dotfiles system supporting:
 - `make format-markdown`: Format Markdown files with prettier
 - `make format`: Run all formatters in parallel for maximum efficiency
 
+### Code Documentation Standards
+
+- **File header comments**: Every file must have a top comment explaining its role
+- **Complex logic**: Add inline comments for non-obvious or difficult-to-understand code
+
 ### Quality Assurance
 
 - **Multi-tier Testing**: Unit, integration, end-to-end, performance tests
-- **CI/CD Pipeline**: Automated testing and validation
+- **CI/CD Pipeline**: Automated testing and validation with platform-specific build-switch verification
+- **Cross-Platform Validation**: 4-platform matrix testing (Darwin ARM64/x64, Linux ARM64/x64)
 - **Auto-Formatting**: Automated code quality with `make format` eliminating manual formatting work
 - **Code Quality**: Pre-commit hooks and standardized formatting
 - **Claude Code Integration**: AI-assisted development and review
+- **Deployment Safety**: Dry-run build-switch testing in CI environment
 
-## Recent Achievement: dustinlyons Refactoring Complete ✅
+## Recent Achievements
 
-**Status**: Successfully completed (October 2025)  
+### Platform-Specific Build-Switch Testing ✅
+
+**Status**: Successfully implemented (October 2025)
+**Impact**: Comprehensive deployment validation across all supported platforms
+
+#### Implementation Details
+
+- **4-Platform Matrix**: Darwin ARM64/x64, Linux ARM64/x64 validation
+- **Safe CI Testing**: Dry-run mode validates builds without system modifications
+- **Robust Integration**: CI status reporting includes build-switch results
+- **Enhanced Reliability**: Early detection of platform-specific build issues
+
+#### Key Benefits
+
+- **Deployment Safety**: Catch build failures before production
+- **Cross-Platform Validation**: Ensure reproducibility across architectures
+- **Continuous Integration**: Automated testing on every PR
+- **Zero-Risk Testing**: No system changes in CI environment
+
+### dustinlyons Refactoring Complete ✅
+
+**Status**: Successfully completed (October 2025)
 **Impact**: 91-line code reduction (-30%) while preserving all functionality
 
-### Refactoring Results
+#### Refactoring Results
 
 - **✅ Architecture Simplified**: Complex abstractions → direct import patterns
 - **✅ Code Reduced**: flake.nix (302→209 lines), total -300 lines across modules
@@ -154,6 +179,24 @@ Professional Nix dotfiles system supporting:
 - **✅ Maintainability Improved**: Easier debugging, clearer intent, reduced complexity
 
 Following dustinlyons principle: "Simple, direct solutions over sophisticated abstractions"
+
+### Shell → Nix Migration ✅
+
+**Status**: Successfully completed (January 2025)
+**Impact**: Declarative, reproducible tooling with 14,000+ lines removed
+
+#### Migration Results
+
+- **Formatting**: `scripts/auto-format.sh` → `nix run .#format` (via `lib/formatters.nix`)
+- **Testing**: `scripts/quick-test.sh` → `nix flake check` (native Nix checks)
+- **MCP Setup**: Shell scripts removed (use `claude mcp add` CLI directly)
+
+#### Key Benefits
+
+- **Reproducibility**: Pinned dependencies in flake.lock
+- **Integration**: Native Nix ecosystem integration
+- **Simplification**: 14,000+ lines of shell code eliminated
+- **Consistency**: Single source of truth for tooling
 
 ## Critical Development Notes
 
@@ -168,10 +211,11 @@ export USER=$(whoami)    # MUST run this before any build operation
 ### Auto-Formatting Policy
 
 ```bash
-make format              # Use this, never manually format
+make format              # Nix-based formatting (uses nix run .#format)
+nix run .#format        # Direct Nix invocation (alternative)
 ```
 
-**Never manually fix formatting issues** - the auto-formatting system handles:
+**Never manually fix formatting issues** - the Nix-based auto-formatting system handles:
 
 - Nix files (nixfmt)
 - YAML files (yamlfmt)
@@ -230,10 +274,12 @@ make build-switch        # Build and apply together (production workflow)
 
 ```bash
 export USER=$(whoami)          # REQUIRED: Set before any build operations
-make format                    # Auto-format all files (never manually format)
+make format                    # Auto-format all files (uses nix run .#format)
+nix run .#format              # Direct Nix invocation (alternative)
 make lint-format              # Recommended pre-commit workflow
 make build-current            # Build only current platform (fastest)
 make build-switch             # Build and apply in one step
+make build-switch-dry         # Test build-switch without applying (CI-safe)
 ```
 
 ### Testing Workflow

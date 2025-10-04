@@ -49,11 +49,11 @@ claude /task "debug complex system issue"               # Uses root-cause-analyz
 
 ## Command Reference
 
-| Command | Purpose | Agent Routing |
-|---------|---------|---------------|
-| `/analyze` | Comprehensive analysis | performance-optimizer, root-cause-analyzer |
-| `/implement` | Feature development | frontend-developer, backend-engineer, system-architect |
-| `/improve` | Code quality improvements | performance-engineer, system-architect |
+| Command      | Purpose                   | Agent Routing                                          |
+| ------------ | ------------------------- | ------------------------------------------------------ |
+| `/analyze`   | Comprehensive analysis    | performance-optimizer, root-cause-analyzer             |
+| `/implement` | Feature development       | frontend-developer, backend-engineer, system-architect |
+| `/improve`   | Code quality improvements | performance-engineer, system-architect                 |
 
 ## Best Practices
 
