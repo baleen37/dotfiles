@@ -64,20 +64,20 @@
   };
 
   outputs =
-    { self
-    , darwin
-    , nix-homebrew
-    , homebrew-bundle
-    , homebrew-core
-    , homebrew-cask
-    , home-manager
-    , nixpkgs
-    , disko
-    , nix-unit
-    , nixtest
-    , namaka
-    , flake-checker
-    ,
+    {
+      self,
+      darwin,
+      nix-homebrew,
+      homebrew-bundle,
+      homebrew-core,
+      homebrew-cask,
+      home-manager,
+      nixpkgs,
+      disko,
+      nix-unit,
+      nixtest,
+      namaka,
+      flake-checker,
     }@inputs:
     let
       # Dynamic user resolution using dedicated user-resolution library
@@ -121,9 +121,10 @@
                 wget
                 jq
 
-                # Nix tools
-                nixfmt
-                nixpkgs-fmt
+                # Nix tools (RFC 166 standard)
+                nixfmt # Official Nix formatter
+                statix # Anti-pattern linter
+                deadnix # Dead code detector
                 nix-tree
                 nil
 
@@ -141,7 +142,8 @@
 
             shellHook = ''
               echo "🚀 Development environment loaded"
-              echo "Available formatters: nixpkgs-fmt, shfmt, prettier, markdownlint"
+              echo "Formatters: nixfmt (RFC 166), shfmt, prettier, markdownlint"
+              echo "Linters: statix, deadnix"
               echo "Run 'make format' to auto-format all files"
             '';
           };

@@ -52,11 +52,30 @@ repos:
       - id: shfmt
         args: [-w, -s, -i, "2"] # Write changes, simplify, indent with 2 spaces
 
-  # Nix formatting and validation (auto-fix enabled)
-  - repo: https://github.com/nix-community/nixpkgs-fmt
-    rev: v1.3.0
+  # Nix formatting and linting (RFC 166 standard)
+  - repo: local
     hooks:
-      - id: nixpkgs-fmt
+      - id: nixfmt
+        name: nixfmt (RFC 166)
+        entry: nixfmt
+        language: system
+        files: \.nix$
+        description: Official Nix code formatter
+
+      - id: statix
+        name: statix
+        entry: statix check
+        language: system
+        files: \.nix$
+        pass_filenames: false
+        description: Nix anti-pattern linter
+
+      - id: deadnix
+        name: deadnix
+        entry: deadnix --edit
+        language: system
+        files: \.nix$
+        description: Dead code detector with auto-fix
 
   # YAML auto-formatting with prettier
   - repo: https://github.com/pre-commit/mirrors-prettier
