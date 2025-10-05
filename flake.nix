@@ -271,6 +271,7 @@
       packages = forAllSystems (
         system:
         let
+          pkgs = nixpkgs.legacyPackages.${system};
           testingLib = import ./lib/testing.nix { inherit inputs forAllSystems self; };
           hasTests = builtins.hasAttr "tests" testingLib;
           hasPerfBench = builtins.hasAttr "performance-benchmarks" testingLib;
@@ -279,7 +280,16 @@
           testsHasSystem = hasTests && builtins.hasAttr system testsVal;
           perfBenchHasSystem = hasPerfBench && builtins.hasAttr system perfBenchVal;
         in
-        (
+        {
+          # Claude Code hooks binary
+          claude-hooks = pkgs.buildGoModule {
+            pname = "claude-hooks";
+            version = "0.1.0";
+            src = ./modules/shared/config/claude/hooks-go;
+            vendorHash = null; # No external dependencies
+          };
+        }
+        // (
           if testsHasSystem then
             {
               inherit (testsVal.${system})

@@ -1,12 +1,11 @@
 # Library Functions Comprehensive Unit Tests
 #
 # lib/ 디렉토리의 모든 유틸리티 함수에 대한 종합 유닛 테스트
-# NixTest 프레임워크를 사용하여 platform-detection.nix, utils-system.nix, test-builders.nix 테스트
+# NixTest 프레임워크를 사용하여 platform-detection.nix, utils-system.nix 테스트
 #
 # 테스트 대상:
 # - platformDetectionTests: 플랫폼 감지 (darwin/linux/x86_64/aarch64 감지, 플랫폼/아키텍처 추출, 시스템 검증, 크로스 플랫폼 유틸리티)
 # - utilsSystemTests: 시스템 유틸리티 (시스템 비교, 패키지 유틸리티, 설정 병합, 리스트 유틸리티, 문자열 유틸리티, 경로 유틸리티, 속성 유틸리티)
-# - testBuildersTests: 테스트 빌더 (버전/프레임워크/레이어 메타데이터, 단위/계약 테스트 빌더, 검증 함수, 테스트 실행기)
 # - errorHandlingTests: 에러 처리 (잘못된 플랫폼, 설정 키 누락, 패키지 검증)
 # - performanceTests: 성능 및 호환성 (대용량 리스트, 깊은 중첩, 크로스 플랫폼 경로)
 #
@@ -40,11 +39,6 @@ let
       import (self + /lib/utils-system.nix) { inherit lib pkgs; }
     else
       import ../../lib/utils-system.nix { inherit lib pkgs; };
-  testBuilders =
-    if self != null then
-      import (self + /lib/test-builders.nix) { inherit lib pkgs; }
-    else
-      import ../../lib/test-builders.nix { inherit lib pkgs; };
 
   # Test data for comprehensive testing
   testData = {
@@ -428,135 +422,6 @@ nixtestFinal.suite "Library Functions Tests" {
           result = utilsSystem.attrUtils.setAttrPath [ "a" "b" "c" ] "new-value" attrs;
         in
         nixtestFinal.assertions.assertAttrValue "c" "new-value" result.a.b
-      );
-    };
-  };
-
-  # Test Builders Tests
-  testBuildersTests = nixtestFinal.suite "Test Builders Tests" {
-
-    # Test builder metadata
-    builderVersionCheck = nixtestFinal.test "Test builder version" (
-      nixtestFinal.assertions.assertEqual "1.0.0" testBuilders.version
-    );
-
-    supportedFrameworksCheck = nixtestFinal.test "Supported frameworks list" (
-      nixtestFinal.assertions.assertContains "nix-unit" testBuilders.supportedFrameworks
-    );
-
-    supportedLayersCheck = nixtestFinal.test "Supported test layers" (
-      nixtestFinal.assertions.assertContains "unit" testBuilders.supportedLayers
-    );
-
-    # Unit test builders
-    unitTestBuilderTests = nixtestFinal.suite "Unit Test Builders" {
-      nixUnitTestBuilder = nixtestFinal.test "Nix unit test builder" (
-        let
-          testCase = testBuilders.unit.mkNixUnitTest {
-            name = "sample-test";
-            expr = 2 + 2;
-            expected = 4;
-          };
-        in
-        nixtestFinal.assertions.assertAttrValue "framework" "nix-unit" testCase
-      );
-
-      libTestSuiteBuilder = nixtestFinal.test "Lib test suite builder" (
-        let
-          suite = testBuilders.unit.mkLibTestSuite {
-            name = "test-suite";
-            tests = {
-              testCase = {
-                expr = 1;
-                expected = 1;
-              };
-            };
-          };
-        in
-        nixtestFinal.assertions.assertAttrValue "framework" "lib.runTests" suite
-      );
-
-      functionTestBuilder = nixtestFinal.test "Function test builder" (
-        let
-          testCase = testBuilders.unit.mkFunctionTest {
-            name = "func-test";
-            func = lib.add;
-            inputs = [
-              2
-              3
-            ];
-            expected = 5;
-          };
-        in
-        nixtestFinal.assertions.assertAttrValue "framework" "function" testCase
-      );
-    };
-
-    # Contract test builders
-    contractTestBuilderTests = nixtestFinal.suite "Contract Test Builders" {
-      interfaceTestBuilder = nixtestFinal.test "Interface test builder" (
-        let
-          testCase = testBuilders.contract.mkInterfaceTest {
-            name = "interface-test";
-            modulePath = "./test-module.nix";
-            requiredExports = [
-              "config"
-              "options"
-            ];
-          };
-        in
-        nixtestFinal.assertions.assertAttrValue "framework" "interface" testCase
-      );
-
-      platformContractBuilder = nixtestFinal.test "Platform contract test builder" (
-        let
-          testCase = testBuilders.contract.mkPlatformContractTest {
-            name = "platform-test";
-            platforms = [ "darwin-x86_64" ];
-            testFunction = platform: platform != null;
-          };
-        in
-        nixtestFinal.assertions.assertAttrValue "framework" "platform" testCase
-      );
-    };
-
-    # Validation functions
-    validationTests = nixtestFinal.suite "Validation Functions" {
-      platformValidation = nixtestFinal.test "Platform validation" (
-        let
-          result = testBuilders.validators.validatePlatform "darwin-x86_64";
-        in
-        nixtestFinal.assertions.assertEqual "darwin-x86_64" result
-      );
-
-      invalidPlatformValidation = nixtestFinal.test "Invalid platform validation throws" (
-        nixtestFinal.assertions.assertThrows (
-          testBuilders.validators.validatePlatform "unsupported-platform"
-        )
-      );
-    };
-
-    # Test runners
-    runnerTests = nixtestFinal.suite "Test Runner Functions" {
-      nixUnitRunner = nixtestFinal.test "Nix unit test runner" (
-        let
-          runner = testBuilders.runners.mkFrameworkRunner "nix-unit";
-        in
-        nixtestFinal.assertions.assertAttrValue "command" "nix-unit" runner
-      );
-
-      batsRunner = nixtestFinal.test "BATS test runner" (
-        let
-          runner = testBuilders.runners.mkFrameworkRunner "bats";
-        in
-        nixtestFinal.assertions.assertAttrValue "command" "bats" runner
-      );
-
-      unsupportedRunner = nixtestFinal.test "Unsupported framework runner" (
-        let
-          runner = testBuilders.runners.mkFrameworkRunner "unsupported";
-        in
-        nixtestFinal.assertions.assertFalse runner.supported
       );
     };
   };

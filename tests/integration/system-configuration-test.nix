@@ -346,14 +346,6 @@ nixtestFinal.suite "System Configuration Integration Tests" {
       )
     );
 
-    testBuildersLibrary = nixtestFinal.test "Test builders library loads" (
-      let
-        testBuilders = import ../../lib/test-builders.nix { inherit lib pkgs; };
-        result = safeEvaluateSystemConfig testBuilders;
-      in
-      nixtestFinal.assertions.assertTrue (result != null)
-    );
-
     testSystemLibrary = nixtestFinal.test "Test system library loads" (
       let
         testSystem = import ../../lib/test-system.nix {

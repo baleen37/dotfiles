@@ -326,24 +326,6 @@ let
 
   # Test execution functions for different frameworks
   testExecutors = {
-    # Execute nix-unit test
-    runNixUnitTest =
-      {
-        testCase,
-        config ? { },
-      }:
-      let
-        testBuilders = import ./test-builders.nix {
-          inherit (actualPkgs) lib;
-          pkgs = actualPkgs;
-        };
-        result = testBuilders.nixUnit.runTest testCase config;
-      in
-      {
-        success = result.passed or false;
-        output = result.output or "";
-        error = result.error or null;
-      };
 
     # Execute lib.runTests test
     runLibTest =
@@ -411,42 +393,6 @@ let
 
   # Enhanced test framework functions for comprehensive testing
   testFramework = {
-    # Run a single test case
-    runTest =
-      {
-        testCase,
-        config ? { },
-      }:
-      let
-        # Import test builders for framework-specific execution
-        testBuilders = import ./test-builders.nix {
-          inherit (actualPkgs) lib;
-          pkgs = actualPkgs;
-        };
-
-        # Setup test environment
-        startTime = builtins.currentTime;
-
-        # Validate test case structure
-        validatedTestCase = testBuilders.validators.validateTestCase testCase;
-
-        # Execute the test based on framework
-        testResult = testExecutors.runSingleTest validatedTestCase config;
-
-        endTime = builtins.currentTime;
-
-      in
-      {
-        testCaseId = testCase.name;
-        status = if testResult.success then "passed" else "failed";
-        duration = endTime - startTime;
-        output = testResult.output or "";
-        error = if testResult.success then null else (testResult.error or "Test failed");
-        timestamp = builtins.toString endTime;
-        platform = builtins.currentSystem;
-        framework = testCase.framework or "lib.runTests";
-      };
-
     # Run a test suite
     runSuite =
       {
