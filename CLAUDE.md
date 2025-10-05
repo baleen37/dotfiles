@@ -267,6 +267,38 @@ make build-switch        # Build and apply together (production workflow)
 
 **For development**: Use `build-current` to avoid building all platforms during iteration.
 
+### Nix Path Configuration Rule
+
+**CRITICAL**: NEVER hardcode Nix store paths in any configuration files
+
+```bash
+# ❌ BAD - Hardcoded Nix store path
+/nix/store/abc123xyz-package-1.0.0/bin/command
+
+# ✅ GOOD - Use command name (PATH lookup)
+command
+
+# ✅ GOOD - Development: Add result to PATH
+export PATH="$PWD/result/bin:$PATH"
+
+# ✅ GOOD - Production: Install via Home Manager
+home-manager switch
+```
+
+**Why**: Nix store paths are content-addressed hashes that:
+
+- Change with every rebuild
+- Differ across platforms (darwin/linux)
+- Break after `nix-collect-garbage`
+- Are not portable between machines
+
+**Applies to**:
+
+- `.claude/settings.json` - Claude Code hooks configuration
+- Shell scripts - Use `command` not `/nix/store/.../bin/command`
+- System services - Reference by name, not absolute path
+- Environment variables - Let Nix/Home Manager handle PATH
+
 ## Project Philosophy
 
 ### Design Principles

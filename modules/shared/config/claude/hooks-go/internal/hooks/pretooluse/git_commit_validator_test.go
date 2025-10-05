@@ -11,12 +11,7 @@ import (
 func TestGitCommitValidator_BlocksNoVerifyFlag(t *testing.T) {
 	validator := pretooluse.NewGitCommitValidator()
 
-	input := &hook.Input{
-		ToolName: "Bash",
-		ToolInput: map[string]interface{}{
-			"command": "git commit --no-verify -m 'test'",
-		},
-	}
+	input := hook.NewBashInput("git commit --no-verify -m 'test'")
 
 	resp, err := validator.Validate(context.Background(), input)
 
@@ -40,12 +35,7 @@ func TestGitCommitValidator_BlocksNoVerifyFlag(t *testing.T) {
 func TestGitCommitValidator_AllowsNormalCommit(t *testing.T) {
 	validator := pretooluse.NewGitCommitValidator()
 
-	input := &hook.Input{
-		ToolName: "Bash",
-		ToolInput: map[string]interface{}{
-			"command": "git commit -m 'normal commit'",
-		},
-	}
+	input := hook.NewBashInput("git commit -m 'normal commit'")
 
 	resp, err := validator.Validate(context.Background(), input)
 
@@ -65,12 +55,7 @@ func TestGitCommitValidator_AllowsNormalCommit(t *testing.T) {
 func TestGitCommitValidator_IgnoresQuotedNoVerify(t *testing.T) {
 	validator := pretooluse.NewGitCommitValidator()
 
-	input := &hook.Input{
-		ToolName: "Bash",
-		ToolInput: map[string]interface{}{
-			"command": `git commit -m "message about --no-verify flag"`,
-		},
-	}
+	input := hook.NewBashInput(`git commit -m "message about --no-verify flag"`)
 
 	resp, err := validator.Validate(context.Background(), input)
 
@@ -116,12 +101,7 @@ func TestGitCommitValidator_PassesNonBashTools(t *testing.T) {
 func TestGitCommitValidator_PassesNonGitCommands(t *testing.T) {
 	validator := pretooluse.NewGitCommitValidator()
 
-	input := &hook.Input{
-		ToolName: "Bash",
-		ToolInput: map[string]interface{}{
-			"command": "ls -la",
-		},
-	}
+	input := hook.NewBashInput("ls -la")
 
 	resp, err := validator.Validate(context.Background(), input)
 
@@ -141,12 +121,7 @@ func TestGitCommitValidator_PassesNonGitCommands(t *testing.T) {
 func TestGitCommitValidator_BlocksNoVerifyWithMultipleFlags(t *testing.T) {
 	validator := pretooluse.NewGitCommitValidator()
 
-	input := &hook.Input{
-		ToolName: "Bash",
-		ToolInput: map[string]interface{}{
-			"command": "git commit -a --no-verify -m 'test'",
-		},
-	}
+	input := hook.NewBashInput("git commit -a --no-verify -m 'test'")
 
 	resp, err := validator.Validate(context.Background(), input)
 
@@ -166,15 +141,10 @@ func TestGitCommitValidator_BlocksNoVerifyWithMultipleFlags(t *testing.T) {
 func TestGitCommitValidator_HandlesGitCommitWithHeredoc(t *testing.T) {
 	validator := pretooluse.NewGitCommitValidator()
 
-	input := &hook.Input{
-		ToolName: "Bash",
-		ToolInput: map[string]interface{}{
-			"command": `git commit -m "$(cat <<EOF
+	input := hook.NewBashInput(`git commit -m "$(cat <<EOF
 Multiline message
 EOF
-)"`,
-		},
-	}
+)"`)
 
 	resp, err := validator.Validate(context.Background(), input)
 
@@ -194,12 +164,7 @@ EOF
 func TestGitCommitValidator_HandlesSingleQuotedNoVerify(t *testing.T) {
 	validator := pretooluse.NewGitCommitValidator()
 
-	input := &hook.Input{
-		ToolName: "Bash",
-		ToolInput: map[string]interface{}{
-			"command": `git commit -m 'message about --no-verify flag'`,
-		},
-	}
+	input := hook.NewBashInput(`git commit -m 'message about --no-verify flag'`)
 
 	resp, err := validator.Validate(context.Background(), input)
 

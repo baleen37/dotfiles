@@ -112,15 +112,7 @@ func TestMessageCleaner_PassesNonBashTools(t *testing.T) {
 func TestMessageCleaner_PassesNonGitCommands(t *testing.T) {
 	cleaner := posttooluse.NewMessageCleaner()
 
-	input := &hook.Input{
-		ToolName: "Bash",
-		ToolInput: map[string]interface{}{
-			"command": "ls -la",
-		},
-		ToolResponse: map[string]interface{}{
-			"success": true,
-		},
-	}
+	input := hook.NewBashInputWithResponse("ls -la", true)
 
 	resp, err := cleaner.Validate(context.Background(), input)
 
@@ -136,15 +128,7 @@ func TestMessageCleaner_PassesNonGitCommands(t *testing.T) {
 func TestMessageCleaner_PassesFailedCommits(t *testing.T) {
 	cleaner := posttooluse.NewMessageCleaner()
 
-	input := &hook.Input{
-		ToolName: "Bash",
-		ToolInput: map[string]interface{}{
-			"command": "git commit -m 'test'",
-		},
-		ToolResponse: map[string]interface{}{
-			"success": false,
-		},
-	}
+	input := hook.NewBashInputWithResponse("git commit -m 'test'", false)
 
 	resp, err := cleaner.Validate(context.Background(), input)
 
