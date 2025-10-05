@@ -6,10 +6,10 @@
 { lib, ... }:
 
 {
-  # Test that lib_test.nix evaluates without test-builders references
+  # Test that lib-test.nix evaluates without test-builders references
   testLibTestEvaluation = {
     expr = builtins.tryEval (
-      import ./lib_test.nix {
+      import ./lib-test.nix {
         inherit lib;
         pkgs = { };
         system = "x86_64-linux";

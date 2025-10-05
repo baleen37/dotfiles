@@ -41,7 +41,7 @@ in
       inherit ((import (self + /tests/unit/nixtest-template.nix) { inherit lib pkgs; })) nixtest;
 
       # Import unit test suites with nixtest provided
-      libTests = import (self + /tests/unit/lib_test.nix) {
+      libTests = import (self + /tests/unit/lib-test.nix) {
         inherit
           lib
           pkgs
@@ -50,7 +50,7 @@ in
           self
           ;
       };
-      platformTests = import (self + /tests/unit/platform_test.nix) {
+      platformTests = import (self + /tests/unit/platform-test.nix) {
         inherit
           lib
           pkgs
@@ -305,14 +305,14 @@ in
         echo "Testing helper functions availability..." > $out
 
         # Check test files exist
-        if [ -f "${self + /tests/unit/lib_test.nix}" ]; then
+        if [ -f "${self + /tests/unit/lib-test.nix}" ]; then
           echo "Library tests file exists: PASSED" >> $out
         else
           echo "Library tests file missing: FAILED" >> $out
           exit 1
         fi
 
-        if [ -f "${self + /tests/unit/platform_test.nix}" ]; then
+        if [ -f "${self + /tests/unit/platform-test.nix}" ]; then
           echo "Platform tests file exists: PASSED" >> $out
         else
           echo "Platform tests file missing: FAILED" >> $out
