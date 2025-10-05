@@ -51,9 +51,7 @@ help:
 	@echo "  test-unit   - Run Nix unit tests (nix-unit framework)"
 	@echo "  test-contract - Run contract tests (interface validation)"
 	@echo "  test-e2e    - Run E2E tests (end-to-end workflow validation)"
-	@echo "  test-e2e-vm-dry - Run build-switch dry-run test (fast, < 1min)"
-	@echo "  test-e2e-vm-full - Run build-switch VM test (full E2E, requires VM)"
-	@echo "  test-e2e-vm-all - Run all build-switch tests (dry-run + VM)"
+	@echo "  test-switch - 🚦 Test switch operation without applying (--dry-run)"
 	@echo "  test-coverage - Run tests with coverage measurement"
 	@echo "  test-quick  - Fast parallel validation tests"
 	@echo "  test-monitor - Performance monitoring tests"
@@ -378,6 +376,32 @@ build-switch: check-user
 	duration=$$((end_time - start_time)); \
 	echo "✅ Build and switch completed in $${duration}s with USER=$(USER)"
 
+# Test switch without applying changes (uses --dry-run)
+test-switch: check-user
+	@echo "🧪 Testing switch operation (dry-run): $(CURRENT_SYSTEM) with USER=$(USER)..."
+	@start_time=$$(date +%s); \
+	OS=$$(uname -s); \
+	TARGET=$${HOST:-$(CURRENT_SYSTEM)}; \
+	echo "🎯 Target system: $${TARGET}"; \
+	if [ "$${OS}" = "Darwin" ]; then \
+		echo "🔨 Building configuration..."; \
+		export USER=$(USER); $(NIX) build --impure --quiet .#darwinConfigurations.$${TARGET}.system $(ARGS) || { echo "❌ Build failed!"; exit 1; }; \
+		if [ ! -L "./result" ]; then echo "❌ Build result not found!"; exit 1; fi; \
+		echo "🔨 Testing darwin-rebuild switch --dry-run..."; \
+		sudo -E env USER=$(USER) ./result/sw/bin/darwin-rebuild switch --dry-run --impure --flake .#$${TARGET} $(ARGS) || { echo "❌ Switch test failed!"; exit 1; }; \
+		unlink ./result; \
+		echo "✅ Switch test passed (no changes applied)"; \
+	else \
+		echo "🔨 Building configuration..."; \
+		export USER=$(USER); $(NIX) build --impure --quiet .#nixosConfigurations.$${TARGET}.config.system.build.toplevel $(ARGS) || { echo "❌ Build failed!"; exit 1; }; \
+		echo "🔨 Testing nixos-rebuild switch --dry-run..."; \
+		sudo -E USER=$(USER) nixos-rebuild switch --dry-run --impure --flake .#$${TARGET} $(ARGS) || { echo "❌ Switch test failed!"; exit 1; }; \
+		echo "✅ Switch test passed (no changes applied)"; \
+	fi; \
+	end_time=$$(date +%s); \
+	duration=$$((end_time - start_time)); \
+	echo "⏱️  Test completed in $${duration}s"
+
 # Build-switch dry-run for CI testing (no actual switch)
 build-switch-dry: check-user
 	@echo "🧪 Testing build-switch (dry-run for CI): $(CURRENT_SYSTEM) with USER=$(USER)..."
@@ -430,4 +454,4 @@ deploy:
 	@echo "🚀 Deploying configuration..."
 	@./deploy.sh
 
-.PHONY: help check-user lint lint-format lint-autofix lint-install-autofix smoke test test-format test-quick test-core test-unit test-contract test-e2e test-e2e-vm-dry test-e2e-vm-full test-e2e-vm-all test-coverage test-unit-coverage test-contract-coverage test-workflow test-perf test-list test-unit-extended build build-linux build-darwin build-current build-fast build-switch switch apply deploy platform-info format format-setup format-quick format-all format-nix format-shell format-yaml format-json format-markdown
+.PHONY: help check-user lint lint-format lint-autofix lint-install-autofix smoke test test-format test-quick test-core test-unit test-contract test-e2e test-switch test-coverage test-unit-coverage test-contract-coverage test-workflow test-perf test-list test-unit-extended build build-linux build-darwin build-current build-fast build-switch build-switch-dry switch apply deploy platform-info format format-setup format-quick format-all format-nix format-shell format-yaml format-json format-markdown

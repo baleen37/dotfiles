@@ -38,7 +38,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/hooks/git-commit-validator.py"
+            "command": "~/.claude/hooks/git-commit-validator"
           }
         ]
       }
@@ -49,17 +49,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/hooks/claude_code_message_cleaner.py"
-          }
-        ]
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/append_ultrathink.py"
+            "command": "~/.claude/hooks/message-cleaner"
           }
         ]
       }

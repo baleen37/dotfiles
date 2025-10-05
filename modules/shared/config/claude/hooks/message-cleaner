@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Message cleaner hook wrapper
+HOOK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+exec "${HOOK_DIR}/claude-hooks" message-cleaner

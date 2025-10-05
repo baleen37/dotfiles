@@ -77,6 +77,13 @@ repos:
         files: \.nix$
         description: Dead code detector with auto-fix
 
+      - id: smoke-test
+        name: Quick Validation (Smoke Test)
+        entry: bash -c 'make smoke'
+        language: system
+        pass_filenames: false
+        description: Fast flake validation for all systems (cross-platform check)
+
       - id: coverage-check
         name: Test Coverage Check
         entry: bash -c 'SYSTEM=$(nix eval --raw --impure --expr "builtins.currentSystem") && nix build --impure ".#checks.$SYSTEM.coverage-check" -L'
