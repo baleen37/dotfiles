@@ -93,7 +93,6 @@ imports = [ ../../modules/shared/cachix ];  # Shared across darwin/nixos
 
 **Performance**: Enable binary caches, use `--impure` for user resolution, parallel builds
 
-
 ## Current Development: Build-Switch Testing Implementation
 
 **Status**: Active development
