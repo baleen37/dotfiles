@@ -120,15 +120,6 @@ in
         mkdir -p "${linuxPaths.local}"/bin
       '';
     }
-
-    # Performance optimization: disable documentation for faster builds
-    {
-      manual = {
-        manpages.enable = false;
-        html.enable = false;
-        json.enable = false;
-      };
-    }
   ];
 
   # Enhanced GTK theming with performance optimizations
