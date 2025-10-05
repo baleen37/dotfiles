@@ -102,27 +102,32 @@ func TestHasClaudeAttribution(t *testing.T) {
 		expected bool
 	}{
 		{
-			name:     "has Claude Code link with escaped newlines",
+			name:     "has Claude Code link with URL",
 			text:     "feat: add feature\\n\\n🤖 Generated with [Claude Code](https://claude.ai/code)",
 			expected: true,
 		},
 		{
-			name:     "has Co-authored-by lowercase with escaped newlines",
+			name:     "has Claude Code link without URL",
+			text:     "feat: add feature\\n\\n🤖 Generated with [Claude Code]",
+			expected: true,
+		},
+		{
+			name:     "has Co-authored-by lowercase",
 			text:     "feat: add feature\\n\\nCo-authored-by: Claude <noreply@anthropic.com>",
 			expected: true,
 		},
 		{
-			name:     "has Co-Authored-By uppercase with escaped newlines",
+			name:     "has Co-Authored-By uppercase",
 			text:     "feat: add feature\\n\\nCo-Authored-By: Claude <noreply@anthropic.com>",
 			expected: true,
 		},
 		{
-			name:     "has both patterns with escaped newlines",
+			name:     "has both patterns",
 			text:     "feat: add feature\\n\\n🤖 Generated with [Claude Code](https://claude.ai/code)\\n\\nCo-Authored-By: Claude <noreply@anthropic.com>",
 			expected: true,
 		},
 		{
-			name:     "clean text with escaped newlines",
+			name:     "clean text",
 			text:     "feat: add feature\\n\\nThis is a clean PR description.",
 			expected: false,
 		},

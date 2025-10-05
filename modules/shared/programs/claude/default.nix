@@ -13,13 +13,13 @@
 # 지원 플랫폼: macOS (Darwin), Linux
 # 패키지 추가: go (hooks 빌드용)
 #
-# VERSION: 5.0.0 (Go hooks auto-build)
+# VERSION: 5.1.0 (Direct claude-hooks binary usage, removed wrappers)
 # LAST UPDATED: 2025-10-05
 
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 
 let
-  # Path to actual Claude config files (relative to this module)
+  # Path to actual Claude config files
   claudeConfigDir = ../../config/claude;
 
   # Claude Code uses ~/.claude for both platforms
@@ -29,40 +29,36 @@ let
   claudeHooks = pkgs.buildGoModule {
     pname = "claude-hooks";
     version = "1.0.0";
-    src = ./../../config/claude/hooks-go;
+    src = ./hooks-go;
     vendorHash = null;
     subPackages = [ "cmd/claude-hooks" ];
   };
 
-  # Create hooks directory with built binary and wrapper scripts
+  # Create hooks directory with claude-hooks binary and wrappers
   hooksDir = pkgs.runCommand "claude-hooks-dir" { } ''
         mkdir -p $out
-
-        # Copy built Go binary
         cp ${claudeHooks}/bin/claude-hooks $out/claude-hooks
         chmod +x $out/claude-hooks
 
-        # Create git-commit-validator wrapper
+        # Create wrapper scripts that call claude-hooks with appropriate subcommand
         cat > $out/git-commit-validator <<'EOF'
     #!/usr/bin/env bash
-    # Git commit validation hook wrapper
-    HOOK_DIR="$(cd "$(dirname "''${BASH_SOURCE[0]}")" && pwd)"
-    exec "''${HOOK_DIR}/claude-hooks" git-commit-validator
+    exec "$(dirname "$0")/claude-hooks" git-commit-validator
     EOF
         chmod +x $out/git-commit-validator
 
-        # Create message-cleaner wrapper
+        cat > $out/gh-pr-validator <<'EOF'
+    #!/usr/bin/env bash
+    exec "$(dirname "$0")/claude-hooks" gh-pr-validator
+    EOF
+        chmod +x $out/gh-pr-validator
+
         cat > $out/message-cleaner <<'EOF'
     #!/usr/bin/env bash
-    # Message cleaner hook wrapper
-    HOOK_DIR="$(cd "$(dirname "''${BASH_SOURCE[0]}")" && pwd)"
-    exec "''${HOOK_DIR}/claude-hooks" message-cleaner
+    exec "$(dirname "$0")/claude-hooks" message-cleaner
     EOF
         chmod +x $out/message-cleaner
   '';
-
-  # Dotfiles repo path for direct symlinks (development mode)
-  dotfilesPath = builtins.toString claudeConfigDir;
 
 in
 {
@@ -95,10 +91,12 @@ in
 
     # Direct symlinks for commands/agents (bypass Nix store for instant updates)
     activation = {
-      claudeDirectSymlinks = pkgs.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      claudeDirectSymlinks = config.lib.dag.entryAfter [ "writeBoundary" ] ''
+        # Resolve dotfiles path from settings.json location at runtime
+        DOTFILES_CONFIG_DIR="$(dirname "$(readlink -f $HOME/${claudeHomeDir}/settings.json)")"
         $DRY_RUN_CMD rm -f $HOME/${claudeHomeDir}/commands $HOME/${claudeHomeDir}/agents
-        $DRY_RUN_CMD ln -sf ${dotfilesPath}/commands $HOME/${claudeHomeDir}/commands
-        $DRY_RUN_CMD ln -sf ${dotfilesPath}/agents $HOME/${claudeHomeDir}/agents
+        $DRY_RUN_CMD ln -sf "$DOTFILES_CONFIG_DIR/commands" $HOME/${claudeHomeDir}/commands
+        $DRY_RUN_CMD ln -sf "$DOTFILES_CONFIG_DIR/agents" $HOME/${claudeHomeDir}/agents
         echo "Created direct symlinks for Claude commands and agents"
       '';
     };

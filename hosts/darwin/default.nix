@@ -54,4 +54,7 @@ in
     primaryUser = user;
     stateVersion = 4;
   };
+
+  # Disable documentation generation to avoid builtins.toFile warnings
+  documentation.enable = false;
 }

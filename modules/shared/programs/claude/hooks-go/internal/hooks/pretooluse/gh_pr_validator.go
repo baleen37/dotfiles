@@ -93,9 +93,8 @@ func extractPrBody(command string) string {
 // hasClaudeAttribution checks if text contains Claude Code attribution patterns
 func hasClaudeAttribution(text string) bool {
 	claudePatterns := []*regexp.Regexp{
-		regexp.MustCompile(`🤖 Generated with \[Claude Code\]`),
-		regexp.MustCompile(`Co-authored-by: Claude <noreply@anthropic\.com>`),
-		regexp.MustCompile(`Co-Authored-By: Claude <noreply@anthropic\.com>`),
+		regexp.MustCompile(`🤖 Generated with \[Claude Code\](\([^\)]+\))?`),
+		regexp.MustCompile(`(?i)co-authored-by: Claude <noreply@anthropic\.com>`),
 	}
 
 	for _, pattern := range claudePatterns {

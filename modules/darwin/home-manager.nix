@@ -151,8 +151,12 @@ in
           };
         };
 
-        # Performance optimization: disable man pages for faster builds
-        manual.manpages.enable = false;
+        # Performance optimization: disable documentation for faster builds
+        manual = {
+          manpages.enable = false;
+          html.enable = false;
+          json.enable = false;
+        };
 
         # Nix 앱 자동 링크 시스템 (Home Manager activation script)
         # /nix/store의 .app들을 ~/Applications로 심볼릭 링크하여

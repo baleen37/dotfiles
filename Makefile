@@ -148,13 +148,10 @@ lint-format:
 	@$(MAKE) format
 	@$(MAKE) lint
 
-ifdef SYSTEM
+# Quick smoke test - build current platform to catch errors early
 smoke:
-	$(NIX) flake check --impure --system $(SYSTEM) --no-build --quiet $(ARGS)
-else
-smoke:
-	$(NIX) flake check --impure --all-systems --no-build --quiet $(ARGS)
-endif
+	@echo "🔥 Running smoke test (building current platform)..."
+	@$(MAKE) build-current
 
 # Simplified test targets - use existing test-core implementation
 test:
@@ -367,7 +364,7 @@ build-switch: check-user
 		sudo -E env USER=$(USER) ./result/sw/bin/darwin-rebuild switch --impure --flake .#$${TARGET} $(ARGS) 2>/dev/null || \
 		{ echo "⚠️  Backup conflicts detected, retrying with backup override..."; \
 		  export USER=$(USER); nix run home-manager/release-24.05 -- switch --flake . -b backup --impure; }; \
-		unlink ./result; \
+		rm -f ./result; \
 	else \
 		echo "🔨 Building and switching NixOS configuration..."; \
 		sudo -E USER=$(USER) SSH_AUTH_SOCK=$$SSH_AUTH_SOCK /run/current-system/sw/bin/nixos-rebuild switch --impure --flake .#$${TARGET} $(ARGS); \
@@ -389,7 +386,7 @@ test-switch: check-user
 		if [ ! -L "./result" ]; then echo "❌ Build result not found!"; exit 1; fi; \
 		echo "🔨 Testing darwin-rebuild switch --dry-run..."; \
 		sudo -E env USER=$(USER) ./result/sw/bin/darwin-rebuild switch --dry-run --impure --flake .#$${TARGET} $(ARGS) || { echo "❌ Switch test failed!"; exit 1; }; \
-		unlink ./result; \
+		rm -f ./result; \
 		echo "✅ Switch test passed (no changes applied)"; \
 	else \
 		echo "🔨 Building configuration..."; \
@@ -414,12 +411,12 @@ build-switch-dry: check-user
 		export USER=$(USER); $(NIX) build --impure --quiet .#darwinConfigurations.$${TARGET}.system $(ARGS) || { echo "❌ Build failed!"; exit 1; }; \
 		if [ ! -L "./result" ]; then echo "❌ Build result not found!"; exit 1; fi; \
 		echo "✅ Build successful (skipping switch in dry-run mode)"; \
-		unlink ./result; \
+		rm -f ./result; \
 	else \
 		echo "🔨 Building NixOS configuration..."; \
 		export USER=$(USER); $(NIX) build --impure --quiet .#nixosConfigurations.$${TARGET}.config.system.build.toplevel $(ARGS) || { echo "❌ Build failed!"; exit 1; }; \
 		echo "✅ Build successful (skipping switch in dry-run mode)"; \
-		if [ -L "./result" ]; then unlink ./result; fi; \
+		rm -f ./result; \
 	fi; \
 	end_time=$$(date +%s); \
 	duration=$$((end_time - start_time)); \
@@ -434,7 +431,7 @@ switch: check-user
 		export USER=$(USER); nix --extra-experimental-features 'nix-command flakes' build --impure --quiet .#darwinConfigurations.$${TARGET}.system $(ARGS) || { echo "❌ Build failed!"; exit 1; }; \
 		if [ ! -L "./result" ]; then echo "❌ Build result not found!"; exit 1; fi; \
 		sudo -E env USER=$(USER) ./result/sw/bin/darwin-rebuild switch --impure --flake .#$${TARGET} $(ARGS) || { echo "❌ Switch failed!"; exit 1; }; \
-		unlink ./result; \
+		rm -f ./result; \
 	else \
 		sudo -E USER=$(USER) SSH_AUTH_SOCK=$$SSH_AUTH_SOCK /run/current-system/sw/bin/nixos-rebuild switch --impure --flake .#$${TARGET} $(ARGS); \
 	fi; \

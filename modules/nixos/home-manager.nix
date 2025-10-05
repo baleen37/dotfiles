@@ -81,7 +81,7 @@ let
         };
       in
       # Create immutable config file in /nix/store with font substitutions applied
-      builtins.toFile "polybar-config.ini" (
+      pkgs.writeText "polybar-config.ini" (
         builtins.replaceStrings (builtins.attrNames fontSubstitutions)
           (builtins.attrValues fontSubstitutions)
           src
@@ -119,6 +119,15 @@ in
         mkdir -p "${linuxPaths.cache}"
         mkdir -p "${linuxPaths.local}"/bin
       '';
+    }
+
+    # Performance optimization: disable documentation for faster builds
+    {
+      manual = {
+        manpages.enable = false;
+        html.enable = false;
+        json.enable = false;
+      };
     }
   ];
 
