@@ -251,7 +251,7 @@
                 inherit (pkgs) lib;
               };
             in
-            validator.validateStructure ./.;
+            validator.validateAll ./.;
 
         }
       );

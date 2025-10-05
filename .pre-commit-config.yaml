@@ -86,7 +86,7 @@ repos:
 
       - id: structure-validation
         name: Folder Structure Validation
-        entry: ./lib/structure-validator.sh
+        entry: bash -c 'nix build --no-link ".#checks.$(nix eval --impure --expr builtins.currentSystem 2>/dev/null | tr -d \"\\\"\" || echo "x86_64-darwin").structure-validation"'
         language: system
         pass_filenames: false
         description: Validates project folder structure and architectural boundaries
