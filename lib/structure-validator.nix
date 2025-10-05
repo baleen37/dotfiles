@@ -118,30 +118,84 @@ let
       touch $out
     '';
 
-  # Run all validations (simplified for testing)
+  # Run all validations
   validateStructure =
     root:
-    pkgs.runCommand "validate-structure" { } ''
-      echo "📁 Validating project folder structure..." > $out
+    pkgs.runCommand "validate-structure"
+      {
+        buildInputs = [
+          pkgs.gnugrep
+          pkgs.findutils
+        ];
+      }
+      ''
+        echo "📁 Validating project folder structure..." > $out
+        ERRORS=0
 
-      # Simple directory check
-      if [[ ! -d "${root}/modules" ]]; then
-        echo "❌ modules directory missing" >> $out
-        exit 1
-      fi
+        # Check required directories
+        ${lib.concatMapStringsSep "\n" (dir: ''
+          if [[ ! -d "${root}/${dir}" ]]; then
+            echo "❌ Required directory missing: ${dir}" >> $out
+            ((ERRORS++))
+          fi
+        '') requiredDirs}
 
-      if [[ ! -d "${root}/hosts" ]]; then
-        echo "❌ hosts directory missing" >> $out
-        exit 1
-      fi
+        # Check platform separation - Darwin
+        darwin_violations=$(${pkgs.gnugrep}/bin/grep -r --include="*.nix" --max-count=1 \
+          -E "${darwinExcludedPatterns}" \
+          "${root}/modules/darwin" 2>/dev/null || true)
 
-      if [[ ! -d "${root}/lib" ]]; then
-        echo "❌ lib directory missing" >> $out
-        exit 1
-      fi
+        if [[ -n $darwin_violations ]]; then
+          echo "❌ Darwin modules contain NixOS-specific code:" >> $out
+          echo "$darwin_violations" >> $out
+          ((ERRORS++))
+        fi
 
-      echo "✅ All folder structure checks passed!" >> $out
-    '';
+        # Check platform separation - NixOS
+        nixos_violations=$(${pkgs.gnugrep}/bin/grep -r --include="*.nix" --max-count=1 \
+          -E "${nixosExcludedPatterns}" \
+          "${root}/modules/nixos" 2>/dev/null || true)
+
+        if [[ -n $nixos_violations ]]; then
+          echo "❌ NixOS modules contain Darwin-specific code:" >> $out
+          echo "$nixos_violations" >> $out
+          ((ERRORS++))
+        fi
+
+        # Check platform separation - Shared
+        shared_violations=$(${pkgs.gnugrep}/bin/grep -r --include="*.nix" --max-count=1 \
+          -E "${sharedExcludedPatterns}" \
+          "${root}/modules/shared" 2>/dev/null | \
+          ${pkgs.gnugrep}/bin/grep -v "config/" | \
+          ${pkgs.gnugrep}/bin/grep -v "optionalString" | \
+          ${pkgs.gnugrep}/bin/grep -v "^#" | \
+          ${pkgs.gnugrep}/bin/grep -v "모두" || true)
+
+        if [[ -n $shared_violations ]]; then
+          echo "❌ Shared modules contain unconditional platform-specific code:" >> $out
+          echo "$shared_violations" >> $out
+          ((ERRORS++))
+        fi
+
+        # Check naming conventions
+        invalid_files=$(${pkgs.findutils}/bin/find "${root}/lib" -type f \
+          ! -name "*.nix" ! -name "*.sh" ! -name "*.md" 2>/dev/null || true)
+
+        if [[ -n $invalid_files ]]; then
+          echo "❌ lib/ contains invalid file types (only .nix/.sh/.md allowed):" >> $out
+          echo "$invalid_files" >> $out
+          ((ERRORS++))
+        fi
+
+        # Report results
+        if [[ $ERRORS -gt 0 ]]; then
+          echo "" >> $out
+          echo "⚠️  Found $ERRORS violation(s)" >> $out
+          exit 1
+        fi
+
+        echo "✅ All folder structure checks passed!" >> $out
+      '';
 
 in
 {
