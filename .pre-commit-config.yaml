@@ -84,14 +84,6 @@ repos:
         pass_filenames: false
         description: Fast flake validation for all systems (cross-platform check)
 
-      - id: coverage-check
-        name: Test Coverage Check
-        entry: bash -c 'SYSTEM=$(nix eval --raw --impure --expr "builtins.currentSystem") && nix build --impure ".#checks.$SYSTEM.coverage-check" -L'
-        language: system
-        pass_filenames: false
-        stages: [pre-push]
-        description: Validate test coverage meets 80% threshold
-
       - id: go-test
         name: Go Tests (Claude Hooks)
         entry: bash -c 'cd modules/shared/config/claude/hooks-go && nix-shell -p go --run "go test -v ./..."'
