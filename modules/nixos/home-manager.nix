@@ -29,7 +29,6 @@
   config,
   pkgs,
   lib,
-  self,
   ...
 }:
 

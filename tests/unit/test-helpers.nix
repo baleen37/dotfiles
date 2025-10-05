@@ -23,10 +23,7 @@
 # assertTrue value context
 # assertContains item list context
 
-{
-  lib ? import <nixpkgs/lib>,
-  pkgs ? import <nixpkgs> { },
-}:
+_:
 
 let
   # Color codes for terminal output

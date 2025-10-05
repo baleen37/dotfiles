@@ -5,8 +5,6 @@
   lib,
   pkgs,
   system,
-  inputs ? { },
-  self ? { },
 }:
 
 let
@@ -18,12 +16,7 @@ let
   # Import testing framework performance tools
   testingPerformance = {
     benchmark = import ../tests/performance/test-benchmark.nix {
-      inherit lib pkgs self;
-      inherit (pkgs) stdenv;
       inherit (pkgs) writeShellScript;
-      inherit (pkgs) time;
-      inherit (pkgs) gnugrep;
-      inherit (pkgs) coreutils;
     };
     # TODO: Re-enable when performance tools are implemented
     # memoryProfiler = import ../tests/performance/advanced-memory-profiler.nix { inherit lib pkgs self; stdenv = pkgs.stdenv; writeShellScript = pkgs.writeShellScript; python3 = pkgs.python3; gawk = pkgs.gawk; procps = pkgs.procps; time = pkgs.time; bc = pkgs.bc; coreutils = pkgs.coreutils; };
@@ -155,7 +148,7 @@ rec {
 
     # Generate performance metrics
     generateMetrics =
-      buildResults:
+      _buildResults:
       pkgs.runCommand "performance-metrics" { } ''
         mkdir -p $out
 
@@ -220,7 +213,7 @@ rec {
       # Performance-optimized development shells
       devShells = originalOutputs.devShells // {
         ${system} = lib.mapAttrs (
-          name: shell: performanceOptimizations.mkOptimizedDevShell shell
+          _name: shell: performanceOptimizations.mkOptimizedDevShell shell
         ) baseDevShells;
       };
 

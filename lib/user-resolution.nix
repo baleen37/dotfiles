@@ -26,13 +26,6 @@
 
 let
   # Determine lib with fallback for error handling
-  actualLib =
-    if lib != null then
-      lib
-    else if pkgs != null then
-      pkgs.lib
-    else
-      null;
 
   # Import error system for consistent error handling
   errorSystem =
@@ -95,7 +88,7 @@ let
     paths = {
       home = homePath;
     };
-    __toString = self: resolveUser;
+    __toString = _self: resolveUser;
   };
 
 in

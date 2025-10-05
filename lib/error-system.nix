@@ -488,7 +488,6 @@ let
 
       typeInfo = errorTypes.${finalType} or errorTypes.user;
       severityInfo = severityLevels.${finalSeverity} or severityLevels.error;
-      t = getTranslation locale;
     in
     {
       inherit
@@ -606,9 +605,9 @@ rec {
     let
       totalCount = builtins.length errors;
       bySeverity = builtins.groupBy (error: error.severity) errors;
-      severityCounts = builtins.mapAttrs (sev: errs: builtins.length errs) bySeverity;
+      severityCounts = builtins.mapAttrs (_sev: errs: builtins.length errs) bySeverity;
       byType = builtins.groupBy (error: error.errorType) errors;
-      typeCounts = builtins.mapAttrs (type: errs: builtins.length errs) byType;
+      typeCounts = builtins.mapAttrs (_type: errs: builtins.length errs) byType;
     in
     {
       total = totalCount;

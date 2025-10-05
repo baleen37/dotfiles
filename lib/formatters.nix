@@ -11,7 +11,7 @@
 # - markdown: Format Markdown files with prettier
 # - all: Format all file types (default)
 
-{ pkgs, lib }:
+{ pkgs }:
 
 {
   formatter = pkgs.writeShellApplication {

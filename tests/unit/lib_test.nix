@@ -21,7 +21,6 @@
   pkgs ? import <nixpkgs> { },
   system ? builtins.currentSystem,
   nixtest ? null,
-  testHelpers ? null,
   self ? null,
 }:
 
@@ -29,8 +28,6 @@ let
   # Use provided NixTest framework and helpers (or fallback to local imports)
   nixtestFinal =
     if nixtest != null then nixtest else (import ./nixtest-template.nix { inherit lib pkgs; }).nixtest;
-  testHelpersFinal =
-    if testHelpers != null then testHelpers else import ./test-helpers.nix { inherit lib pkgs; };
 
   # Import project libraries for testing (with fallback paths)
   platformDetection =
@@ -161,7 +158,6 @@ nixtestFinal.suite "Library Functions Tests" {
           darwin = "mac-value";
           linux = "linux-value";
         };
-        currentPlatform = platformDetection.getPlatform system;
         result = platformDetection.crossPlatform.platformSpecific values;
       in
       nixtestFinal.assertions.assertTrue (result != null)

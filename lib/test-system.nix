@@ -21,7 +21,6 @@
 {
   pkgs ? null,
   nixpkgs ? null,
-  self ? null,
 }:
 
 let
@@ -350,7 +349,6 @@ let
     runLibTest =
       {
         testCase,
-        config ? { },
       }:
       let
         testResult = actualPkgs.lib.runTests testCase.tests or { };
@@ -362,38 +360,18 @@ let
       };
 
     # Execute BATS test
-    runBatsTest =
-      {
-        testCase,
-        config ? { },
-      }:
-      let
-        batsScript = actualPkgs.writeScript "run-bats-test" ''
-          #!${actualPkgs.bash}/bin/bash
-          set -euo pipefail
-          ${actualPkgs.bats}/bin/bats "${testCase.path or testCase.name}"
-        '';
-      in
-      {
-        success = true; # Simplified for now
-        output = "BATS test executed";
-        error = null;
-      };
+    runBatsTest = _args: {
+      success = true; # Simplified for now
+      output = "BATS test executed";
+      error = null;
+    };
 
     # Execute NixOS VM test
-    runVMTest =
-      {
-        testCase,
-        config ? { },
-      }:
-      let
-        vmTest = actualPkgs.lib.nixos.runTest testCase;
-      in
-      {
-        success = true; # Simplified for now
-        output = "VM test executed";
-        error = null;
-      };
+    runVMTest = _args: {
+      success = true; # Simplified for now
+      output = "VM test executed";
+      error = null;
+    };
 
     # Parallel test execution
     runTestsParallel = tests: config: map (test: testExecutors.runSingleTest test config) tests;
@@ -438,7 +416,6 @@ let
       {
         testCase,
         config ? { },
-        fixtures ? [ ],
       }:
       let
         # Import test builders for framework-specific execution

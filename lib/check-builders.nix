@@ -33,14 +33,6 @@ let
         config.allowUnfree = true;
       };
       # Testing framework dependencies
-      testInputs = {
-        inherit (pkgs.nix)
-          nix-unit
-          nixtest
-          namaka
-          flake-checker
-          ;
-      };
 
       # Modern test framework utilities
       testFrameworks = {
@@ -406,8 +398,6 @@ in
           "platform-compatibility-test"
         ]
       ) testSuite;
-
-      workflowTests = shellIntegrationTests;
 
       performanceTests = {
         # Performance monitoring test using dedicated script

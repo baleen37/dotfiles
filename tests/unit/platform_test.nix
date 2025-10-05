@@ -22,7 +22,6 @@
   pkgs ? import <nixpkgs> { },
   system ? builtins.currentSystem,
   nixtest ? null,
-  testHelpers ? null,
   self ? null,
 }:
 

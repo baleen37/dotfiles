@@ -13,7 +13,6 @@
   pkgs ? import <nixpkgs> { },
   system ? builtins.currentSystem,
   nixtest ? null,
-  self ? null,
 }:
 
 let

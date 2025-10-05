@@ -16,19 +16,9 @@
 # VERSION: 4.0.0 (Multi-platform symlink-based)
 # LAST UPDATED: 2024-10-04
 
-{
-  config,
-  pkgs,
-  lib,
-  platformInfo,
-  userInfo,
-  ...
-}:
+_:
 
 let
-  inherit (userInfo) homePath name;
-  inherit (platformInfo) isDarwin isLinux;
-
   # Path to actual Claude config files (relative to this module)
   claudeConfigDir = ../../config/claude;
 

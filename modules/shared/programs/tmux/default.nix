@@ -26,7 +26,6 @@
 # LAST UPDATED: 2024-10-04
 
 {
-  config,
   pkgs,
   lib,
   platformInfo,

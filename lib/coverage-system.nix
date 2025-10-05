@@ -2,7 +2,6 @@
 # Provides coverage measurement, reporting, and threshold validation
 
 {
-  pkgs ? import <nixpkgs> { },
   lib,
   ...
 }:
@@ -215,7 +214,6 @@ in
         inherit (session) results;
         inherit (session.config) threshold;
         statusIcon = if results.thresholdMet then "✓" else "✗";
-        statusColor = if results.thresholdMet then "green" else "red";
       in
       ''
         ========================================

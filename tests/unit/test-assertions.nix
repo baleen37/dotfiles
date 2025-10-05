@@ -18,7 +18,6 @@
 
 {
   lib ? import <nixpkgs/lib>,
-  pkgs ? import <nixpkgs> { },
 }:
 
 let
@@ -367,7 +366,7 @@ rec {
         );
 
     assertThrowsMessage =
-      expectedMessage: func: context:
+      _expectedMessage: func: context:
       let
         result = builtins.tryEval func;
       in
@@ -504,7 +503,7 @@ rec {
   testHelpers = {
 
     # Create test context with metadata
-    withContext = testName: assertion: builtins.tryEval assertion;
+    withContext = _testName: assertion: builtins.tryEval assertion;
 
     # Run assertion with detailed logging
     runAssertion =

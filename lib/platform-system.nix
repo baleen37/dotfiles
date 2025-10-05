@@ -258,18 +258,6 @@ let
     if nixpkgs != null && self != null then
       let
         # Simplified path resolution without flake source dependencies
-        pathResolutionWithFallback =
-          target_command:
-          let
-            # Get PWD from environment - fail explicitly if not available
-            basePath = builtins.getEnv "PWD";
-            appPath =
-              if basePath != "" then
-                "${basePath}/apps/${currentSystem.system}/${target_command}"
-              else
-                errorSystem.throwConfigError "PWD environment variable not set - required for app path resolution";
-          in
-          builtins.toString appPath;
 
         # Standard app builder using external script files
         mkApp =
@@ -449,11 +437,12 @@ let
       {
         # Minimal apps when nixpkgs/self not provided
         mkApp =
-          scriptName: system: errorSystem.throwUserError "App building requires nixpkgs and self parameters";
+          _scriptName: _system:
+          errorSystem.throwUserError "App building requires nixpkgs and self parameters";
         mkSetupDevApp =
-          system: errorSystem.throwUserError "App building requires nixpkgs and self parameters";
+          _system: errorSystem.throwUserError "App building requires nixpkgs and self parameters";
         mkBlAutoUpdateApp =
-          args: errorSystem.throwUserError "App building requires nixpkgs and self parameters";
+          _args: errorSystem.throwUserError "App building requires nixpkgs and self parameters";
         platformApps = { };
         getCurrentPlatformApps = { };
       };

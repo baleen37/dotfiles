@@ -18,7 +18,6 @@
 {
   lib,
   runTests,
-  nix-unit ? null,
   ...
 }:
 
@@ -29,7 +28,6 @@ let
   coverageSystem = import ../../../lib/coverage-system.nix { inherit lib; };
 
   # Test utilities that don't exist yet
-  testUtils = import ../../../lib/test-system.nix { inherit lib; };
 
 in
 runTests {

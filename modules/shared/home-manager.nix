@@ -27,12 +27,8 @@
 
 let
   # Import centralized user information
-  userInfo = import ../../lib/user-info.nix;
 
   # Direct configuration constants following dustinlyons pattern
-  inherit (userInfo) name;
-  inherit (userInfo) email;
-  user = config.home.username;
 
   # Simple platform detection - direct system checking
   inherit (pkgs.stdenv) isDarwin;

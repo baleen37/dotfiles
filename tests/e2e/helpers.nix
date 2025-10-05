@@ -3,7 +3,6 @@
 # 공통 헬퍼 함수 모음으로 중복 코드 제거 및 재사용성 향상
 
 {
-  lib,
   pkgs,
   platformSystem,
 }:

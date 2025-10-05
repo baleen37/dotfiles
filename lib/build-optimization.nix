@@ -83,7 +83,7 @@ rec {
 
     # Create gitignore-style filter for build inputs
     buildInputFilter =
-      path: type:
+      path: _type:
       let
         baseName = baseNameOf path;
         isUnnecessary = lib.any (

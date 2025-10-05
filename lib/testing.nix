@@ -39,16 +39,14 @@ in
 
       # Import NixTest framework and test files
       inherit ((import (self + /tests/unit/nixtest-template.nix) { inherit lib pkgs; })) nixtest;
-      testHelpers = import (self + /tests/unit/test-helpers.nix) { inherit lib pkgs; };
 
-      # Import unit test suites with nixtest and testHelpers provided
+      # Import unit test suites with nixtest provided
       libTests = import (self + /tests/unit/lib_test.nix) {
         inherit
           lib
           pkgs
           system
           nixtest
-          testHelpers
           self
           ;
       };
@@ -58,20 +56,17 @@ in
           pkgs
           system
           nixtest
-          testHelpers
           self
           ;
       };
 
-      # Import integration test suites with nixtest and testHelpers provided
+      # Import integration test suites with nixtest provided
       moduleInteractionTests = import (self + /tests/integration/module-interaction-test.nix) {
         inherit
           lib
           pkgs
           system
           nixtest
-          testHelpers
-          self
           ;
       };
       crossPlatformTests = import (self + /tests/integration/cross-platform-test.nix) {
@@ -80,8 +75,6 @@ in
           pkgs
           system
           nixtest
-          testHelpers
-          self
           ;
       };
       systemConfigurationTests = import (self + /tests/integration/system-configuration-test.nix) {
@@ -90,8 +83,6 @@ in
           pkgs
           system
           nixtest
-          testHelpers
-          self
           ;
       };
 
@@ -102,7 +93,6 @@ in
           pkgs
           system
           nixtest
-          self
           ;
       };
       userWorkflowTests = import (self + /tests/e2e/user-workflow-test.nix) {
@@ -111,7 +101,6 @@ in
           pkgs
           system
           nixtest
-          self
           ;
       };
 
@@ -341,14 +330,7 @@ in
     let
       pkgs = nixpkgs.legacyPackages.${system};
       benchmarks = import (self + /tests/performance/test-benchmark.nix) {
-        inherit (pkgs)
-          lib
-          stdenv
-          writeShellScript
-          time
-          gnugrep
-          coreutils
-          ;
+        inherit (pkgs) writeShellScript;
       };
     in
     pkgs.runCommand "performance-benchmarks"

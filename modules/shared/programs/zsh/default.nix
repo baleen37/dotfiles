@@ -22,17 +22,14 @@
 # LAST UPDATED: 2024-10-04
 
 {
-  config,
   pkgs,
   lib,
   platformInfo,
-  userInfo,
   ...
 }:
 
 let
   inherit (platformInfo) isDarwin isLinux;
-  inherit (userInfo) name email;
 in
 {
   programs.zsh = {

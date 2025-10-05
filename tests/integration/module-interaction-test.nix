@@ -23,8 +23,6 @@
   pkgs ? import <nixpkgs> { },
   system ? builtins.currentSystem,
   nixtest ? null,
-  testHelpers ? null,
-  self ? null,
 }:
 
 let
@@ -34,8 +32,6 @@ let
       nixtest
     else
       (import ../unit/nixtest-template.nix { inherit lib pkgs; }).nixtest;
-  testHelpersFinal =
-    if testHelpers != null then testHelpers else import ../unit/test-helpers.nix { inherit lib pkgs; };
 
   # Import modules for testing
   sharedModule = import ../../modules/shared/default.nix;
@@ -406,13 +402,6 @@ nixtestFinal.suite "Module Interaction Integration Tests" {
     );
 
     missingDependencyHandling = nixtestFinal.test "Missing dependencies are handled" (
-      let
-        # Test module evaluation when dependencies might be missing
-        result = safeEvaluateModule sharedModule {
-          programs.nonexistent-program.enable = true;
-        };
-      in
-      # Should either work with fallbacks or fail gracefully
       nixtestFinal.assertions.assertTrue true # Always pass - just testing no crash
     );
   };
@@ -423,9 +412,7 @@ nixtestFinal.suite "Module Interaction Integration Tests" {
     moduleEvaluationSpeed = nixtestFinal.test "Modules evaluate in reasonable time" (
       let
         # Simple performance test - if it completes, it's fast enough for CI
-        startTime = builtins.currentTime or 0;
         result = safeEvaluateModule sharedModule { };
-        endTime = builtins.currentTime or 0;
       in
       nixtestFinal.assertions.assertTrue (result != null || result == null)
     );

@@ -50,17 +50,6 @@
       url = "github:nix-community/nix-unit";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    nixtest = {
-      url = "github:jetify-com/nixtest";
-    };
-    namaka = {
-      url = "github:nix-community/namaka";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    flake-checker = {
-      url = "github:DeterminateSystems/flake-checker";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   outputs =
@@ -75,9 +64,6 @@
       nixpkgs,
       disko,
       nix-unit,
-      nixtest,
-      namaka,
-      flake-checker,
     }@inputs:
     let
       # Dynamic user resolution using dedicated user-resolution library
@@ -98,8 +84,6 @@
       forAllSystems = nixpkgs.lib.genAttrs allSystems;
 
       # Direct import shared packages and configurations
-      sharedPackages = import ./modules/shared/packages.nix;
-      sharedFiles = import ./modules/shared/files.nix;
 
     in
     {
@@ -268,7 +252,6 @@
           pkgs = nixpkgs.legacyPackages.${system};
           formatters = import ./lib/formatters.nix {
             inherit pkgs;
-            inherit (nixpkgs) lib;
           };
         in
         {

@@ -148,7 +148,7 @@ let
     run =
       test:
       if test.type == "suite" then
-        builtins.mapAttrs (name: test: nixtest.run test) test.tests
+        builtins.mapAttrs (_name: test: nixtest.run test) test.tests
       else if test.type == "test" then
         test.assertion
       else
@@ -303,7 +303,7 @@ in
 
     # Create mock functions for testing
     createMock =
-      name: returnValue: args:
+      _name: returnValue: _args:
       returnValue;
 
     # Test isolation wrapper

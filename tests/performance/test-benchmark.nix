@@ -13,19 +13,11 @@
 #   nix run .#benchmark -- full  # 전체 벤치마크 실행
 
 {
-  lib,
-  stdenv,
   writeShellScript,
-  time,
-  gnugrep,
-  coreutils,
-  self ? null,
 }:
 
 let
   # Import test layers
-  unitTests = import ../unit/nix/test-lib-functions.nix;
-  contractTests = import ../contract/flake-contracts/test-flake-outputs.nix;
 
   # Performance measurement utilities
   # 개별 테스트의 실행 시간과 메모리 사용량을 측정하는 유틸리티 함수

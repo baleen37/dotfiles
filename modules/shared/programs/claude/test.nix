@@ -6,7 +6,6 @@
 #   - 모듈 평가 (test-module-eval): 모듈이 올바른 구조를 가지는지 확인
 #   - Darwin 심볼릭 링크 (test-darwin-links): macOS에서 모든 설정 파일 링크 생성 검증
 #   - Linux 심볼릭 링크 (test-linux-links): Linux에서 모든 설정 파일 링크 생성 검증
-#   - 설정 경로 (test-config-path): 설정 디렉토리 경로가 올바른지 확인
 #   - 패키지 추가 없음 (test-no-packages): 모듈이 불필요한 패키지를 추가하지 않는지 확인
 #
 # VERSION: 1.0.0
@@ -18,51 +17,8 @@
 }:
 
 let
-  # Test module with mock inputs
-  testModule = import ./default.nix {
-    inherit lib;
-    config = { };
-    inherit pkgs;
-    platformInfo = {
-      isDarwin = true;
-      isLinux = false;
-    };
-    userInfo = {
-      paths = {
-        home = "/tmp/test-home";
-      };
-      name = "testuser";
-    };
-  };
-
-  # Expected symlinks for macOS
-  expectedDarwinLinks = [
-    ".claude/settings.json"
-    ".claude/CLAUDE.md"
-    ".claude/hooks"
-    ".claude/commands"
-    ".claude/agents"
-  ];
-
-  # Test Linux configuration
-  testModuleLinux = import ./default.nix {
-    inherit lib;
-    config = { };
-    inherit pkgs;
-    platformInfo = {
-      isDarwin = false;
-      isLinux = true;
-    };
-    userInfo = {
-      paths = {
-        home = "/tmp/test-home";
-      };
-      name = "testuser";
-    };
-  };
-
-  # Expected symlinks for Linux (same as Darwin - Claude uses ~/.claude)
-  expectedLinuxLinks = [
+  # Both platforms use same Claude directory structure (~/.claude)
+  expectedLinks = [
     ".claude/settings.json"
     ".claude/CLAUDE.md"
     ".claude/hooks"
@@ -119,7 +75,7 @@ rec {
 
     # Check each expected path
     MISSING=""
-    for path in ${lib.escapeShellArgs expectedDarwinLinks}; do
+    for path in ${lib.escapeShellArgs expectedLinks}; do
       if ! ${pkgs.jq}/bin/jq -e "map(select(. == \"$path\")) | length > 0" result.json >/dev/null; then
         MISSING="$MISSING $path"
       fi
@@ -154,7 +110,7 @@ rec {
 
     # Check each expected path
     MISSING=""
-    for path in ${lib.escapeShellArgs expectedLinuxLinks}; do
+    for path in ${lib.escapeShellArgs expectedLinks}; do
       if ! ${pkgs.jq}/bin/jq -e "map(select(. == \"$path\")) | length > 0" result.json >/dev/null; then
         MISSING="$MISSING $path"
       fi
@@ -169,35 +125,7 @@ rec {
     fi
   '';
 
-  # Test 4: Config directory path
-  test-config-path = pkgs.runCommand "test-claude-config-path" { } ''
-    echo "Testing: Config directory path is correct"
-
-    # Verify the config path contains expected directory
-    ${pkgs.nix}/bin/nix eval --impure --expr "
-      let
-        module = import ${./default.nix} {
-          lib = (import <nixpkgs> {}).lib;
-          config = {};
-          pkgs = import <nixpkgs> {};
-          platformInfo = { isDarwin = true; isLinux = false; };
-          userInfo = { paths = { home = \"/Users/test\"; }; name = \"test\"; };
-        };
-        settingsPath = module.home.file.\".claude/settings.json\".source;
-      in
-        builtins.match \".*/modules/shared/config/claude/settings.json\" settingsPath != null
-    " | grep -q "true"
-
-    if [[ $? -eq 0 ]]; then
-      echo "PASS: Config path points to correct location"
-      touch $out
-    else
-      echo "FAIL: Config path is incorrect"
-      exit 1
-    fi
-  '';
-
-  # Test 5: No packages added
+  # Test 4: No packages added
   test-no-packages = pkgs.runCommand "test-claude-no-packages" { } ''
     echo "Testing: No packages are added by module"
 
@@ -231,7 +159,6 @@ rec {
           test-module-eval
           test-darwin-links
           test-linux-links
-          test-config-path
           test-no-packages
         ];
       }

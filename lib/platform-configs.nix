@@ -15,13 +15,6 @@
 
 let
   # Determine lib with fallback
-  actualLib =
-    if lib != null then
-      lib
-    else if pkgs != null then
-      pkgs.lib
-    else
-      null;
 
   # Import error system for error handling
   errorSystem =

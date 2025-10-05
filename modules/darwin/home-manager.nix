@@ -24,8 +24,6 @@
 {
   config,
   pkgs,
-  lib,
-  home-manager,
   self,
   ...
 }:
@@ -44,7 +42,6 @@ let
   additionalFiles = import ./files.nix { inherit user config pkgs; };
 
   # 공통 Home Manager 설정 import (git, vim, zsh 등)
-  sharedConfig = import ../shared/home-manager.nix { inherit config pkgs lib; };
 
   # 자주 사용되는 경로를 캐시하여 빌드 시간 단축
   # activation script에서 반복 사용되는 경로들을 미리 계산

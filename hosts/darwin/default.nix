@@ -16,12 +16,7 @@
 #
 # 참고: Nix 고급 설정은 Determinate Nix가 /etc/nix/nix.conf에서 관리
 
-{
-  config,
-  pkgs,
-  lib,
-  ...
-}:
+_:
 
 let
   getUser = import ../../lib/user-resolution.nix {

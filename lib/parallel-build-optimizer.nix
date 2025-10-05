@@ -416,13 +416,13 @@ rec {
       outputs
       // {
         # Optimize packages for parallel building
-        packages = lib.mapAttrs (name: pkg: buildOptimizations.optimizePackageForParallel pkg) (
+        packages = lib.mapAttrs (_name: pkg: buildOptimizations.optimizePackageForParallel pkg) (
           outputs.packages.${system} or { }
         );
 
         # Optimize development shell for parallel builds
         devShells = lib.mapAttrs (
-          name: shell:
+          _name: shell:
           shell.overrideAttrs (oldAttrs: {
             inherit (parallelBuildConfig.environment) NIX_BUILD_CORES MAKEFLAGS;
             shellHook = (oldAttrs.shellHook or "") + ''

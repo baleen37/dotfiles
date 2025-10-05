@@ -13,7 +13,8 @@ from unittest.mock import patch, MagicMock
 from io import StringIO
 
 # Add the hooks directory to Python path
-hooks_dir = Path(__file__).parent
+repo_root = Path(__file__).parent.parent.parent.parent
+hooks_dir = repo_root / "modules" / "shared" / "config" / "claude" / "hooks"
 sys.path.insert(0, str(hooks_dir))
 
 class TestClaudeCodeCleaner(unittest.TestCase):
