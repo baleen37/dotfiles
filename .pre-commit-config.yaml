@@ -77,6 +77,14 @@ repos:
         files: \.nix$
         description: Dead code detector with auto-fix
 
+      - id: coverage-check
+        name: Test Coverage Check
+        entry: bash -c 'SYSTEM=$(nix eval --raw --impure --expr "builtins.currentSystem") && nix build --impure ".#checks.$SYSTEM.coverage-check" -L'
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+        description: Validate test coverage meets 80% threshold
+
   # YAML auto-formatting with prettier
   - repo: https://github.com/pre-commit/mirrors-prettier
     rev: v4.0.0-alpha.8

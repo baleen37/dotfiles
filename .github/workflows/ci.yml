@@ -223,6 +223,30 @@ jobs:
           done
 
           echo "✅ Tests completed for ${{ matrix.category }}"
+      - name: Generate coverage report
+        if: matrix.category == 'unit' || matrix.category == 'integration'
+        continue-on-error: true
+        run: |
+          export USER=${USER:-ci}
+          SYSTEM=$(nix eval --raw --impure --expr "builtins.currentSystem")
+          echo "📊 Generating coverage report for $SYSTEM..."
+
+          # Build coverage check
+          nix build --impure ".#checks.$SYSTEM.coverage-check" -L || true
+
+          # Display coverage report if available
+          if [[ -f result ]]; then
+            echo "=== Coverage Report ==="
+            cat result
+            echo "======================="
+          fi
+      - name: Upload coverage report
+        if: (matrix.category == 'unit' || matrix.category == 'integration') && hashFiles('result') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report-${{ matrix.category }}-${{ runner.os }}
+          path: result
+          retention-days: 30
   # CI completion and status reporting
   ci-complete:
     name: CI Summary

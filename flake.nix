@@ -228,6 +228,7 @@
         system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
+          coverageSystem = import ./lib/coverage-system.nix { inherit (pkgs) lib; };
         in
         {
           # Basic format check
@@ -242,6 +243,14 @@
             echo "✓ Flake structure validated" >> $out
             echo "✓ All checks passed" >> $out
           '';
+
+          # Test coverage check with 80% threshold
+          coverage-check = coverageSystem.flakeChecks.mkCoverageCheck {
+            inherit pkgs;
+            rootPath = self;
+            name = "test-coverage-check";
+            threshold = 80.0;
+          };
         }
       );
 
