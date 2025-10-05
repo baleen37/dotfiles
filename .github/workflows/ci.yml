@@ -64,8 +64,8 @@ jobs:
         run: |
           # Unset core.hooksPath if set (prevents pre-commit installation errors)
           git config --unset-all core.hooksPath || true
-          nix-shell -p pre-commit --run "pre-commit install"
-          nix-shell -p pre-commit --run "pre-commit run --all-files"
+          nix-shell -p pre-commit nixfmt statix deadnix --run "pre-commit install"
+          nix-shell -p pre-commit nixfmt statix deadnix --run "pre-commit run --all-files"
       - name: Validate flake
         run: |
           echo "Debug: USER before export: '$USER'"
