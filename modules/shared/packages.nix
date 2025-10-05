@@ -55,12 +55,6 @@ let
     gnumake # GNU make build automation tool
     cmake # Cross-platform build system generator
     home-manager # Nix-based user environment management
-    (pkgs.buildGoModule {
-      pname = "claude-hooks";
-      version = "0.1.0";
-      src = ./config/claude/hooks-go;
-      vendorHash = null; # No external dependencies
-    }) # Claude Code hooks for git commit validation and message cleaning
   ];
 
   # Cloud and containerization tools
