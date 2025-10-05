@@ -205,7 +205,7 @@ let
       getPackageManager = getCurrentPlatformConfig.packageManager;
 
       # Check if homebrew is supported
-      hasHomebrew = getCurrentPlatformConfig.hasHomebrew;
+      inherit (getCurrentPlatformConfig) hasHomebrew;
 
       # Platform-specific package installation
       installPackage =
@@ -219,25 +219,25 @@ let
     # System information utilities
     systemInfo = {
       # Get current architecture
-      arch = currentSystem.arch;
+      inherit (currentSystem) arch;
 
       # Get current platform
-      platform = currentSystem.platform;
+      inherit (currentSystem) platform;
 
       # Get full system string
       systemString = currentSystem.system;
 
       # Platform checks
-      isDarwin = currentSystem.isDarwin;
-      isLinux = currentSystem.isLinux;
-      isX86_64 = currentSystem.isX86_64;
-      isAarch64 = currentSystem.isAarch64;
+      inherit (currentSystem) isDarwin;
+      inherit (currentSystem) isLinux;
+      inherit (currentSystem) isX86_64;
+      inherit (currentSystem) isAarch64;
 
       # Build optimizations
-      buildOptimizations = getCurrentPlatformConfig.buildOptimizations;
+      inherit (getCurrentPlatformConfig) buildOptimizations;
 
       # Get preferred applications
-      preferredApps = getCurrentPlatformConfig.preferredApps;
+      inherit (getCurrentPlatformConfig) preferredApps;
     };
 
     # Configuration utilities
@@ -249,8 +249,7 @@ let
 
       # Check if feature is supported
       isFeatureSupported =
-        feature:
-        builtins.hasAttr feature getCurrentPlatformConfig && getCurrentPlatformConfig.${feature} == true;
+        feature: builtins.hasAttr feature getCurrentPlatformConfig && getCurrentPlatformConfig.${feature};
     };
   };
 
@@ -389,15 +388,15 @@ let
 
             # Auto-update commands
             "bl-auto-update-check" = mkBlAutoUpdateApp {
-              system = currentSystem.system;
+              inherit (currentSystem) system;
               commandName = "check";
             };
             "bl-auto-update-apply" = mkBlAutoUpdateApp {
-              system = currentSystem.system;
+              inherit (currentSystem) system;
               commandName = "apply";
             };
             "bl-auto-update-status" = mkBlAutoUpdateApp {
-              system = currentSystem.system;
+              inherit (currentSystem) system;
               commandName = "status";
             };
           };
@@ -414,15 +413,15 @@ let
 
             # Auto-update commands
             "bl-auto-update-check" = mkBlAutoUpdateApp {
-              system = currentSystem.system;
+              inherit (currentSystem) system;
               commandName = "check";
             };
             "bl-auto-update-apply" = mkBlAutoUpdateApp {
-              system = currentSystem.system;
+              inherit (currentSystem) system;
               commandName = "apply";
             };
             "bl-auto-update-status" = mkBlAutoUpdateApp {
-              system = currentSystem.system;
+              inherit (currentSystem) system;
               commandName = "status";
             };
           };
@@ -527,7 +526,7 @@ in
   # Version and metadata
   version = "2.0.0-unified";
   description = "Unified platform detection, utilities, and app management system";
-  supportedPlatforms = detection.supportedPlatforms;
-  supportedArchitectures = detection.supportedArchitectures;
-  supportedSystems = detection.supportedSystems;
+  inherit (detection) supportedPlatforms;
+  inherit (detection) supportedArchitectures;
+  inherit (detection) supportedSystems;
 }

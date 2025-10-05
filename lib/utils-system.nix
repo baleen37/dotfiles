@@ -190,11 +190,11 @@ let
           if predicate item then
             {
               true = acc.true ++ [ item ];
-              false = acc.false;
+              inherit (acc) false;
             }
           else
             {
-              true = acc.true;
+              inherit (acc) true;
               false = acc.false ++ [ item ];
             };
       in

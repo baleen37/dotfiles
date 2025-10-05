@@ -101,7 +101,7 @@ let
       platforms = testPlatforms.${platformName};
       results = builtins.map testFunc platforms;
     in
-    builtins.all (r: r == true) results;
+    builtins.all (r: r) results;
 
   # Helper to safely evaluate cross-platform expressions
   # 크로스 플랫폼 표현식을 안전하게 평가 (에러 시 null 반환)
@@ -124,7 +124,7 @@ nixtestFinal.suite "Cross-Platform Integration Tests" {
 
     allPlatformsSupported = nixtestFinal.test "All target platforms are supported" (
       let
-        supportedPlatforms = platformDetection.supportedPlatforms;
+        inherit (platformDetection) supportedPlatforms;
         allSupported = builtins.all (platform: builtins.elem platform supportedPlatforms) [
           "darwin"
           "linux"
@@ -488,7 +488,7 @@ nixtestFinal.suite "Cross-Platform Integration Tests" {
             result = builtins.tryEval (platformDetection.validateSystem unsupportedSystem);
           in
           # Should either throw error or handle gracefully
-          result.success == false || result.success == true;
+          !result.success || result.success;
 
         allHandled = builtins.all testUnsupported unsupportedSystems;
       in

@@ -503,14 +503,14 @@ let
       severity = finalSeverity;
       enhancedMessage = finalMessage;
       suggestions = finalSuggestions;
-      icon = typeInfo.icon;
-      color = typeInfo.color;
-      category = typeInfo.category;
-      priority = typeInfo.priority;
+      inherit (typeInfo) icon;
+      inherit (typeInfo) color;
+      inherit (typeInfo) category;
+      inherit (typeInfo) priority;
       severityIcon = severityInfo.icon;
       severityColor = severityInfo.color;
       severityPriority = severityInfo.priority;
-      exitCode = severityInfo.exitCode;
+      inherit (severityInfo) exitCode;
       id = builtins.hashString "sha256" "${component}-${finalType}-${finalMessage}";
     };
 

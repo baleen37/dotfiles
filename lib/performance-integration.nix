@@ -19,11 +19,11 @@ let
   testingPerformance = {
     benchmark = import ../tests/performance/test-benchmark.nix {
       inherit lib pkgs self;
-      stdenv = pkgs.stdenv;
-      writeShellScript = pkgs.writeShellScript;
-      time = pkgs.time;
-      gnugrep = pkgs.gnugrep;
-      coreutils = pkgs.coreutils;
+      inherit (pkgs) stdenv;
+      inherit (pkgs) writeShellScript;
+      inherit (pkgs) time;
+      inherit (pkgs) gnugrep;
+      inherit (pkgs) coreutils;
     };
     # TODO: Re-enable when performance tools are implemented
     # memoryProfiler = import ../tests/performance/advanced-memory-profiler.nix { inherit lib pkgs self; stdenv = pkgs.stdenv; writeShellScript = pkgs.writeShellScript; python3 = pkgs.python3; gawk = pkgs.gawk; procps = pkgs.procps; time = pkgs.time; bc = pkgs.bc; coreutils = pkgs.coreutils; };
@@ -44,7 +44,7 @@ let
     caching = buildOptimization.cacheStrategy;
 
     # File filtering
-    fileFilters = rebuildOptimizer.fileFilters;
+    inherit (rebuildOptimizer) fileFilters;
   };
 
 in

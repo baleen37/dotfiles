@@ -116,11 +116,10 @@ rec {
 
     # Boolean assertions
     assertTrue =
-      value: context: if value == true then true else throw (formatError "assertTrue" true value context);
+      value: context: if value then true else throw (formatError "assertTrue" true value context);
 
     assertFalse =
-      value: context:
-      if value == false then true else throw (formatError "assertFalse" false value context);
+      value: context: if !value then true else throw (formatError "assertFalse" false value context);
 
     # Null/undefined assertions
     assertNull =
@@ -348,7 +347,7 @@ rec {
       let
         result = builtins.tryEval func;
       in
-      if result.success == false then
+      if !result.success then
         true
       else
         throw (
@@ -360,7 +359,7 @@ rec {
       let
         result = builtins.tryEval func;
       in
-      if result.success == true then
+      if result.success then
         true
       else
         throw (
@@ -372,7 +371,7 @@ rec {
       let
         result = builtins.tryEval func;
       in
-      if result.success == false then
+      if !result.success then
         # Note: Can't access error message in pure Nix, so we just verify it throws
         true
       else
@@ -442,7 +441,7 @@ rec {
       let
         checks = map (attr: assertions.assertHasAttr attr module "${context}.${attr}") requiredAttrs;
       in
-      builtins.all (check: check == true) checks;
+      builtins.all (check: check) checks;
 
     # Validate list of items with predicate
     assertAllSatisfy =
@@ -498,7 +497,7 @@ rec {
           platform: assertions.assertHasAttr platform moduleStructure "${context}.${platform}"
         ) platforms;
       in
-      builtins.all (check: check == true) platformChecks;
+      builtins.all (check: check) platformChecks;
   };
 
   # Test helper utilities
@@ -514,8 +513,8 @@ rec {
         result = builtins.tryEval assertion;
       in
       {
-        name = name;
-        success = result.success;
+        inherit name;
+        inherit (result) success;
         error = if result.success then null else result.value;
         message = if result.success then formatSuccess name null else result.value;
       };

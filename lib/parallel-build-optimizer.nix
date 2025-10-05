@@ -162,7 +162,7 @@ rec {
           meta = (attrs.meta or { }) // {
             optimizedForParallel = true;
             buildCores = parallelBuildConfig.cores;
-            maxJobs = parallelBuildConfig.maxJobs;
+            inherit (parallelBuildConfig) maxJobs;
           };
         }
       );
@@ -297,21 +297,21 @@ rec {
         phase1 = {
           dependencies = depAnalysis.lightDeps;
           parallelism = parallelBuildConfig.maxJobs;
-          cores = parallelBuildConfig.cores;
+          inherit (parallelBuildConfig) cores;
         };
 
         # Build medium dependencies (moderate parallelism)
         phase2 = {
           dependencies = depAnalysis.mediumDeps;
           parallelism = parallelBuildConfig.maxJobs / 2;
-          cores = parallelBuildConfig.cores;
+          inherit (parallelBuildConfig) cores;
         };
 
         # Build heavy dependencies (limited parallelism to avoid OOM)
         phase3 = {
           dependencies = depAnalysis.heavyDeps;
           parallelism = 1;
-          cores = parallelBuildConfig.cores;
+          inherit (parallelBuildConfig) cores;
         };
       };
   };

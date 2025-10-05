@@ -38,7 +38,7 @@ let
     platform = "darwin";
     returnFormat = "extended";
   };
-  user = getUserInfo.user;
+  inherit (getUserInfo) user;
 
   # macOS 전용 설정 파일 import (Hammerspoon, Karabiner 등)
   additionalFiles = import ./files.nix { inherit user config pkgs; };
@@ -120,7 +120,7 @@ in
           enableNixpkgsReleaseCheck = false;
 
           # Optimized package management
-          packages = (pkgs.callPackage ./packages.nix { });
+          packages = pkgs.callPackage ./packages.nix { };
 
           # Enhanced file management with optimized merging
           file = lib.mkMerge [

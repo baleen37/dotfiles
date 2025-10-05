@@ -30,13 +30,13 @@ let
   userInfo = import ../../lib/user-info.nix;
 
   # Direct configuration constants following dustinlyons pattern
-  name = userInfo.name;
-  email = userInfo.email;
+  inherit (userInfo) name;
+  inherit (userInfo) email;
   user = config.home.username;
 
   # Simple platform detection - direct system checking
-  isDarwin = pkgs.stdenv.isDarwin;
-  isLinux = pkgs.stdenv.isLinux;
+  inherit (pkgs.stdenv) isDarwin;
+  inherit (pkgs.stdenv) isLinux;
 
   # Direct imports for shared configurations
   sharedFiles = import ./files.nix { inherit config pkgs lib; };

@@ -12,7 +12,7 @@
 
 let
   # Import NixTest framework
-  nixtest = (import ../unit/nixtest-template.nix { inherit lib pkgs; }).nixtest;
+  inherit ((import ../unit/nixtest-template.nix { inherit lib pkgs; })) nixtest;
 
   # Import individual e2e test suites
   buildSwitchTests = import ./build-switch-test.nix {

@@ -232,11 +232,9 @@ runTests {
     expr = testBuilders.e2e.mkNixOSVMTest {
       name = "nixos-vm-test";
       nodes = {
-        machine =
-          { ... }:
-          {
-            services.nginx.enable = true;
-          };
+        machine = _: {
+          services.nginx.enable = true;
+        };
       };
       testScript = ''
         machine.wait_for_unit("nginx.service")

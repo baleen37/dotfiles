@@ -134,7 +134,7 @@ in
 
   # Feature support checks
   isFeatureSupported =
-    feature: builtins.hasAttr feature getCurrentConfig && getCurrentConfig.${feature} == true;
+    feature: builtins.hasAttr feature getCurrentConfig && getCurrentConfig.${feature};
 
   # Version and metadata
   version = "1.0.0";

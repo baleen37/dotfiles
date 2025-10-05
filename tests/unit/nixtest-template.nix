@@ -70,17 +70,11 @@ let
       # Boolean assertion
       assertTrue =
         value:
-        if value == true then
-          true
-        else
-          throw "assertTrue failed: expected true, got ${builtins.toString value}";
+        if value then true else throw "assertTrue failed: expected true, got ${builtins.toString value}";
 
       assertFalse =
         value:
-        if value == false then
-          true
-        else
-          throw "assertFalse failed: expected false, got ${builtins.toString value}";
+        if !value then true else throw "assertFalse failed: expected false, got ${builtins.toString value}";
 
       # List assertions
       assertLength =
@@ -129,17 +123,14 @@ let
         let
           result = builtins.tryEval func;
         in
-        if result.success == false then
-          true
-        else
-          throw "assertThrows failed: function did not throw an error";
+        if !result.success then true else throw "assertThrows failed: function did not throw an error";
 
       assertNoThrow =
         func:
         let
           result = builtins.tryEval func;
         in
-        if result.success == true then
+        if result.success then
           true
         else
           throw "assertNoThrow failed: function threw an error: ${result.value or "unknown"}";
@@ -165,9 +156,9 @@ let
 
     # Test result reporting
     report = results: {
-      passed = builtins.length (builtins.filter (r: r == true) (builtins.attrValues results));
+      passed = builtins.length (builtins.filter (r: r) (builtins.attrValues results));
       total = builtins.length (builtins.attrValues results);
-      results = results;
+      inherit results;
     };
   };
 

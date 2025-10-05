@@ -268,7 +268,7 @@
           pkgs = nixpkgs.legacyPackages.${system};
           formatters = import ./lib/formatters.nix {
             inherit pkgs;
-            lib = nixpkgs.lib;
+            inherit (nixpkgs) lib;
           };
         in
         {

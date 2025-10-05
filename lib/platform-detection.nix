@@ -25,10 +25,8 @@ let
       system
     else if pkgs != null && pkgs ? system then
       pkgs.system
-    else if builtins ? currentSystem then
-      builtins.currentSystem
     else
-      "unknown";
+      builtins.currentSystem or "unknown";
 
   # Core pattern matching functions (cached results)
   patterns = rec {
@@ -204,10 +202,10 @@ in
   inherit crossPlatform;
 
   # Legacy compatibility (direct function exports)
-  isDarwin = detection.isDarwin;
-  isLinux = detection.isLinux;
-  isX86_64 = detection.isX86_64;
-  isAarch64 = detection.isAarch64;
+  inherit (detection) isDarwin;
+  inherit (detection) isLinux;
+  inherit (detection) isX86_64;
+  inherit (detection) isAarch64;
 
   # Performance and metadata
   inherit performance;

@@ -26,7 +26,7 @@
 
 let
   # Extract nixpkgs from inputs
-  nixpkgs = inputs.nixpkgs;
+  inherit (inputs) nixpkgs;
 in
 
 {
@@ -35,10 +35,10 @@ in
     system:
     let
       pkgs = nixpkgs.legacyPackages.${system};
-      lib = nixpkgs.lib;
+      inherit (nixpkgs) lib;
 
       # Import NixTest framework and test files
-      nixtest = (import (self + /tests/unit/nixtest-template.nix) { inherit lib pkgs; }).nixtest;
+      inherit ((import (self + /tests/unit/nixtest-template.nix) { inherit lib pkgs; })) nixtest;
       testHelpers = import (self + /tests/unit/test-helpers.nix) { inherit lib pkgs; };
 
       # Import unit test suites with nixtest and testHelpers provided

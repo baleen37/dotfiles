@@ -22,7 +22,7 @@ let
   testModule = import ./default.nix {
     inherit lib;
     config = { };
-    pkgs = pkgs;
+    inherit pkgs;
     platformInfo = {
       isDarwin = true;
       isLinux = false;
@@ -48,7 +48,7 @@ let
   testModuleLinux = import ./default.nix {
     inherit lib;
     config = { };
-    pkgs = pkgs;
+    inherit pkgs;
     platformInfo = {
       isDarwin = false;
       isLinux = true;

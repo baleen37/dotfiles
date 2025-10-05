@@ -69,8 +69,8 @@ in
         finalConfig = defaultConfig // config;
       in
       {
-        sessionId = "${name}-${toString (builtins.currentTime)}";
-        name = name;
+        sessionId = "${name}-${toString builtins.currentTime}";
+        inherit name;
         config = finalConfig;
         startTime = builtins.currentTime;
         status = "initialized";
@@ -94,15 +94,15 @@ in
           in
           {
             path = module;
-            totalLines = moduleInfo.totalLines;
-            executableLines = moduleInfo.executableLines;
+            inherit (moduleInfo) totalLines;
+            inherit (moduleInfo) executableLines;
             coveredLines = calculateCoveredLines moduleInfo testResults;
             coverage =
               if moduleInfo.executableLines > 0 then
                 (calculateCoveredLines moduleInfo testResults) / moduleInfo.executableLines * 100
               else
                 100.0;
-            functions = moduleInfo.functions;
+            inherit (moduleInfo) functions;
             uncoveredLines = moduleInfo.executableLines - (calculateCoveredLines moduleInfo testResults);
           }
         ) modules;
@@ -122,9 +122,9 @@ in
         results = {
           totalModules = builtins.length modules;
           totalLines = lib.foldl' (acc: mod: acc + mod.totalLines) 0 moduleAnalysis;
-          totalExecutableLines = totalExecutableLines;
-          totalCoveredLines = totalCoveredLines;
-          overallCoverage = overallCoverage;
+          inherit totalExecutableLines;
+          inherit totalCoveredLines;
+          inherit overallCoverage;
           thresholdMet = overallCoverage >= session.config.threshold;
           uncoveredModules = builtins.filter (mod: mod.coverage < session.config.threshold) moduleAnalysis;
         };
@@ -158,9 +158,9 @@ in
       in
       {
         path = modulePath;
-        totalLines = totalLines;
-        executableLines = executableLines;
-        functions = functions;
+        inherit totalLines;
+        inherit executableLines;
+        inherit functions;
         fileType = detectFileType modulePath;
       };
 
@@ -186,7 +186,7 @@ in
       in
       map (line: {
         name = lib.head (lib.splitString " = " line);
-        line = line;
+        inherit line;
         covered = false; # Would be determined by actual execution
       }) functionLines;
 
@@ -212,8 +212,8 @@ in
     generateConsoleReport =
       session:
       let
-        results = session.results;
-        threshold = session.config.threshold;
+        inherit (session) results;
+        inherit (session.config) threshold;
         statusIcon = if results.thresholdMet then "✓" else "✗";
         statusColor = if results.thresholdMet then "green" else "red";
       in
@@ -249,19 +249,19 @@ in
     generateJSONReport =
       session:
       builtins.toJSON {
-        sessionId = session.sessionId;
-        name = session.name;
+        inherit (session) sessionId;
+        inherit (session) name;
         timestamp = session.endTime;
-        config = session.config;
-        results = session.results;
-        modules = session.modules;
+        inherit (session) config;
+        inherit (session) results;
+        inherit (session) modules;
       };
 
     # Generate HTML report
     generateHTMLReport =
       session:
       let
-        results = session.results;
+        inherit (session) results;
         moduleRows = lib.concatMapStringsSep "\n" (mod: ''
           <tr class="${if mod.coverage >= session.config.threshold then "pass" else "fail"}">
             <td>${mod.path}</td>
@@ -358,7 +358,7 @@ in
       {
         overallDelta = currentSession.results.overallCoverage - previousSession.results.overallCoverage;
         moduleDeltas = lib.zipListsWith (prev: curr: {
-          path = curr.path;
+          inherit (curr) path;
           delta = curr.coverage - prev.coverage;
         }) previousSession.modules currentSession.modules;
       };
@@ -383,7 +383,7 @@ in
         schemaVersion = 1;
         label = "coverage";
         message = "${toString coverage}%";
-        color = color;
+        inherit color;
       };
 
     # Generate GitHub Actions output
@@ -450,7 +450,7 @@ in
         ) allModules;
       in
       {
-        sessionId = "merged-${toString (builtins.currentTime)}";
+        sessionId = "merged-${toString builtins.currentTime}";
         name = "Merged Coverage";
         modules = mergedModules;
         results = {

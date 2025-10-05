@@ -70,11 +70,10 @@ in
       throw (formatError "assertType" expectedType actualType context);
 
   assertTrue =
-    value: context: if value == true then true else throw (formatError "assertTrue" true value context);
+    value: context: if value then true else throw (formatError "assertTrue" true value context);
 
   assertFalse =
-    value: context:
-    if value == false then true else throw (formatError "assertFalse" false value context);
+    value: context: if !value then true else throw (formatError "assertFalse" false value context);
 
   # List assertions
   assertLength =
@@ -129,7 +128,7 @@ in
     let
       result = builtins.tryEval func;
     in
-    if result.success == false then
+    if !result.success then
       true
     else
       throw (
@@ -141,7 +140,7 @@ in
     let
       result = builtins.tryEval func;
     in
-    if result.success == true then
+    if result.success then
       true
     else
       throw (
@@ -172,12 +171,12 @@ in
     in
     {
       inherit name;
-      success = result.success;
+      inherit (result) success;
       error = if result.success then null else result.value;
     };
 
   # Version and metadata
   version = "1.0.0";
   description = "Test helper functions for NixTest framework";
-  colors = colors;
+  inherit colors;
 }

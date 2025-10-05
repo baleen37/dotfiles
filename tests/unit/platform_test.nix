@@ -358,9 +358,9 @@ nixtestFinal.suite "Platform-Specific Tests" {
     darwinFeatureTests = nixtestFinal.suite "Darwin Feature Tests" {
       darwinSystemDetection = nixtestFinal.test "Current system Darwin detection" (
         if builtins.match ".*-darwin" system != null then
-          nixtestFinal.assertions.assertTrue (platformDetection.info.isDarwin)
+          nixtestFinal.assertions.assertTrue platformDetection.info.isDarwin
         else
-          nixtestFinal.assertions.assertFalse (platformDetection.info.isDarwin)
+          nixtestFinal.assertions.assertFalse platformDetection.info.isDarwin
       );
 
       darwinPlatformInfo = nixtestFinal.test "Darwin platform info structure" (
@@ -375,9 +375,9 @@ nixtestFinal.suite "Platform-Specific Tests" {
     linuxFeatureTests = nixtestFinal.suite "Linux Feature Tests" {
       linuxSystemDetection = nixtestFinal.test "Current system Linux detection" (
         if builtins.match ".*-linux" system != null then
-          nixtestFinal.assertions.assertTrue (platformDetection.info.isLinux)
+          nixtestFinal.assertions.assertTrue platformDetection.info.isLinux
         else
-          nixtestFinal.assertions.assertFalse (platformDetection.info.isLinux)
+          nixtestFinal.assertions.assertFalse platformDetection.info.isLinux
       );
 
       linuxPlatformInfo = nixtestFinal.test "Linux platform info structure" (

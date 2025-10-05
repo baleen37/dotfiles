@@ -147,7 +147,7 @@ nixtestFinal.suite "System Configuration Integration Tests" {
 
     darwinRequiredModulesPresent = nixtestFinal.test "Darwin required modules are present" (
       let
-        requiredModules = testConfigurations.darwin.requiredModules;
+        inherit (testConfigurations.darwin) requiredModules;
         moduleFiles = builtins.map (mod: "../../modules/darwin/${mod}.nix") requiredModules;
         allModulesExist = builtins.all builtins.pathExists moduleFiles;
       in
@@ -187,7 +187,7 @@ nixtestFinal.suite "System Configuration Integration Tests" {
 
     nixosRequiredModulesPresent = nixtestFinal.test "NixOS required modules are present" (
       let
-        requiredModules = testConfigurations.nixos.requiredModules;
+        inherit (testConfigurations.nixos) requiredModules;
         moduleFiles = builtins.map (mod: "../../modules/nixos/${mod}.nix") requiredModules;
         allModulesExist = builtins.all builtins.pathExists moduleFiles;
       in
@@ -413,7 +413,7 @@ nixtestFinal.suite "System Configuration Integration Tests" {
       let
         performanceIntegration = import ../../lib/performance-integration.nix {
           inherit lib system;
-          pkgs = pkgs;
+          inherit pkgs;
           inputs = { };
           self = { };
         };

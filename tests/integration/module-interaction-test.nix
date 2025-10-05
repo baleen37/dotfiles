@@ -402,7 +402,7 @@ nixtestFinal.suite "Module Interaction Integration Tests" {
         );
       in
       # Should either handle gracefully or fail predictably
-      nixtestFinal.assertions.assertTrue (result.success == false || result.success == true)
+      nixtestFinal.assertions.assertTrue (!result.success || result.success)
     );
 
     missingDependencyHandling = nixtestFinal.test "Missing dependencies are handled" (

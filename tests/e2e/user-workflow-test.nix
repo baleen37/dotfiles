@@ -76,7 +76,7 @@ nixtestFinal.suite "User Workflow E2E Tests" {
           result = builtins.tryEval {
             username = user;
             homeDirectory = helpers.getUserHomeDir user;
-            stateVersion = helpers.constants.stateVersion;
+            inherit (helpers.constants) stateVersion;
           };
         in
         result.success;

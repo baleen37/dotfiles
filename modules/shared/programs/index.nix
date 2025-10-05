@@ -46,12 +46,12 @@ let
   userInfo = import ../../../lib/user-info.nix;
 
   # User configuration constants
-  name = userInfo.name;
-  email = userInfo.email;
+  inherit (userInfo) name;
+  inherit (userInfo) email;
 
   # Simple platform detection - direct system checking
-  isDarwin = pkgs.stdenv.isDarwin;
-  isLinux = pkgs.stdenv.isLinux;
+  inherit (pkgs.stdenv) isDarwin;
+  inherit (pkgs.stdenv) isLinux;
 
   # Standardized module interface data
   homePath = config.home.homeDirectory;
@@ -59,7 +59,7 @@ let
     inherit config pkgs lib;
     platformInfo = {
       inherit isDarwin isLinux;
-      system = pkgs.system;
+      inherit (pkgs) system;
     };
     userInfo = {
       inherit name email homePath;

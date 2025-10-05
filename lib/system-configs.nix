@@ -40,21 +40,21 @@ let
     system:
     import ./platform-system.nix {
       pkgs = nixpkgs.legacyPackages.${system};
-      lib = nixpkgs.lib;
+      inherit (nixpkgs) lib;
       inherit nixpkgs system;
-      self = inputs.self;
+      inherit (inputs) self;
     };
   testSystem =
     system:
     import ./test-system.nix {
       pkgs = nixpkgs.legacyPackages.${system};
       inherit nixpkgs;
-      self = inputs.self;
+      inherit (inputs) self;
     };
 
   # Import optimized platform detection utilities
   platformDetection = import ./platform-detection.nix {
-    lib = nixpkgs.lib;
+    inherit (nixpkgs) lib;
   };
 in
 {
@@ -131,7 +131,7 @@ in
         let
           ps = platformSystem system;
         in
-        if ps.apps.platformApps ? linux then ps.apps.platformApps.linux else { }
+        ps.apps.platformApps.linux or { }
       )
       // (testSystem system).mkTestApps system;
 
@@ -142,13 +142,13 @@ in
         let
           ps = platformSystem system;
         in
-        if ps.apps.platformApps ? darwin then ps.apps.platformApps.darwin else { }
+        ps.apps.platformApps.darwin or { }
       )
       // (testSystem system).mkTestApps system;
   };
 
   # Development shell builder
-  mkDevShells = forAllSystems: devShellFn: forAllSystems devShellFn;
+  mkDevShells = forAllSystems: forAllSystems;
 
   # Utility functions for system configuration (now using optimized detection)
   utils = {

@@ -31,7 +31,7 @@ let
   # Import error system for error handling
   errorSystem = import ./error-system.nix {
     pkgs = actualPkgs;
-    lib = actualPkgs.lib;
+    inherit (actualPkgs) lib;
   };
 
   # Test app builder core functionality
@@ -487,8 +487,8 @@ let
         coverageSession =
           if config.coverage or false then
             coverageSystem.measurement.initSession {
-              name = suite.name;
-              config = config;
+              inherit (suite) name;
+              inherit config;
             }
           else
             null;
@@ -506,7 +506,7 @@ let
             coverageSystem.measurement.collectCoverage {
               session = coverageSession;
               modules = suite.modules or [ ];
-              testResults = testResults;
+              inherit testResults;
             }
           else
             null;
@@ -524,7 +524,7 @@ let
       {
         results = testResults;
         coverage = coverage.results or null;
-        summary = summary;
+        inherit summary;
         status = if summary.failed > 0 then "failed" else "passed";
         timestamp = builtins.toString builtins.currentTime;
       };
