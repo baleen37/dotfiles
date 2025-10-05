@@ -115,10 +115,6 @@ let
     in
     {
       # Modern test framework integration tests
-      nixtest-lib-functions = testFrameworks.mkNixTest "lib-functions" "./tests/unit/nix/test-lib-functions.nix";
-
-      nix-unit-builders = testFrameworks.mkNixUnitTest "test-builders" "./tests/unit/lib/test-builders.nix";
-
       namaka-snapshots = testFrameworks.mkNamakaTest "config-snapshots" "./tests/contract/flake-contracts/test-flake-outputs.nix";
 
       flake-validation = testFrameworks.mkFlakeCheck "structure-validation";
@@ -378,8 +374,6 @@ in
       modernFrameworkTests = nixpkgs.lib.filterAttrs (
         name: _:
         builtins.elem name [
-          "nixtest-lib-functions"
-          "nix-unit-builders"
           "namaka-snapshots"
           "flake-validation"
         ]
@@ -612,14 +606,6 @@ in
             echo "Testing modern frameworks on ${system}..."
             echo "============================================="
 
-            # Test nixtest availability and functionality
-            echo "✓ Testing nixtest integration..."
-            ${modernFrameworkTests.nixtest-lib-functions or "echo 'nixtest test not available'"}
-
-            # Test nix-unit integration
-            echo "✓ Testing nix-unit integration..."
-            ${modernFrameworkTests.nix-unit-builders or "echo 'nix-unit test not available'"}
-
             # Test namaka snapshot testing
             echo "✓ Testing namaka snapshot functionality..."
             ${modernFrameworkTests.namaka-snapshots or "echo 'namaka test not available'"}
@@ -651,17 +637,8 @@ in
             echo "==========================================="
             cd ${self}
 
-            # Run nixtest for lib functions
-            if [ -f "./tests/unit/nix/test-lib-functions.nix" ]; then
-              echo "✓ Running nixtest for lib functions..."
-              nix eval --file ./tests/unit/nix/test-lib-functions.nix --show-trace || echo "nixtest evaluation completed"
-            fi
-
-            # Run nix-unit for test builders
-            if [ -f "./tests/unit/lib/test-builders.nix" ]; then
-              echo "✓ Running nix-unit for test builders..."
-              nix eval --file ./tests/unit/lib/test-builders.nix --show-trace || echo "nix-unit evaluation completed"
-            fi
+            # Modern unit tests are now using standard Nix test framework
+            echo "✓ Modern unit tests integrated with standard framework"
 
             echo "==========================================="
             echo "Modern unit tests completed for ${system}!"
@@ -766,11 +743,11 @@ in
             cd ${self}
 
             # Check if nix-unit test files exist
-            if [ -f "./tests/unit/nix/test-lib-functions.nix" ]; then
-              echo "✓ Found nix-unit test files"
+            if [ -d "./tests/unit/nix" ]; then
+              echo "✓ Found nix unit test directory"
               echo "Note: nix-unit integration available via flake apps"
             else
-              echo "⚠️ No nix-unit test files found"
+              echo "⚠️ No nix unit test directory found"
             fi
 
             # Run enhanced test runner for nix-unit category

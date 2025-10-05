@@ -20,26 +20,16 @@
     expected.success = true;
   };
 
-  # Test that placeholder tests pass
-  testPlaceholderTests = {
-    expr =
-      let
-        libFunctionsTest = import ./nix/test-lib-functions.nix {
-          inherit lib;
-          runTests = tests: tests;
-        };
-        testBuildersTest = import ./lib/test-builders.nix {
-          inherit lib;
-          runTests = tests: tests;
-        };
-      in
-      {
-        libFunctions = libFunctionsTest.testPlaceholder.expr == libFunctionsTest.testPlaceholder.expected;
-        testBuilders = testBuildersTest.testPlaceholder.expr == testBuildersTest.testPlaceholder.expected;
-      };
+  # Test that files removed as dead code do not break imports
+  testDeadCodeRemoved = {
+    expr = {
+      # Placeholder test files have been properly removed as dead code
+      testBuildersRemoved = !builtins.pathExists ./lib/test-builders.nix;
+      libFunctionsRemoved = !builtins.pathExists ./nix/test-lib-functions.nix;
+    };
     expected = {
-      libFunctions = true;
-      testBuilders = true;
+      testBuildersRemoved = true;
+      libFunctionsRemoved = true;
     };
   };
 

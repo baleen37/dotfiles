@@ -85,6 +85,22 @@ repos:
         stages: [pre-push]
         description: Validate test coverage meets 80% threshold
 
+      - id: go-test
+        name: Go Tests (Claude Hooks)
+        entry: bash -c 'cd modules/shared/config/claude/hooks-go && nix-shell -p go --run "go test -v ./..."'
+        language: system
+        pass_filenames: false
+        files: '\.go$'
+        description: Run Go tests for Claude Code hooks
+
+      - id: flake-outputs-check
+        name: Flake Outputs Naming Conflict Check
+        entry: ./scripts/check-flake-outputs.sh
+        language: system
+        pass_filenames: false
+        files: 'flake\.nix$|lib/testing\.nix$'
+        description: Prevent naming conflicts between apps, packages, and checks
+
   # YAML auto-formatting with prettier
   - repo: https://github.com/pre-commit/mirrors-prettier
     rev: v4.0.0-alpha.8

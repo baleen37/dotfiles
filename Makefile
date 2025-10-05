@@ -185,8 +185,8 @@ test-contract:
 
 test-e2e:
 	@echo "🚀 Running E2E tests (end-to-end workflow validation)..."
-	@$(NIX) build --impure .#packages.$(shell nix eval --impure --expr builtins.currentSystem).build-switch $(ARGS)
-	@$(NIX) build --impure .#packages.$(shell nix eval --impure --expr builtins.currentSystem).user-workflow $(ARGS)
+	@$(NIX) build --impure .#packages.$(shell nix eval --impure --expr builtins.currentSystem).build-switch-e2e $(ARGS)
+	@$(NIX) build --impure .#packages.$(shell nix eval --impure --expr builtins.currentSystem).user-workflow-e2e $(ARGS)
 	@echo "✅ E2E tests completed successfully!"
 
 test-coverage:

@@ -299,8 +299,8 @@
                 module-interaction
                 cross-platform
                 system-configuration
-                build-switch
-                user-workflow
+                build-switch-e2e
+                user-workflow-e2e
                 all
                 ;
             }

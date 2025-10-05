@@ -233,8 +233,8 @@ in
       system-configuration = systemConfigurationTestSuite;
 
       # E2E test suites
-      build-switch = buildSwitchTestSuite;
-      user-workflow = userWorkflowTestSuite;
+      build-switch-e2e = buildSwitchTestSuite;
+      user-workflow-e2e = userWorkflowTestSuite;
 
       # Combined test runner
       all = allTestSuites;

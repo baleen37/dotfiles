@@ -71,6 +71,12 @@ jobs:
           nix flake check --impure --no-build --all-systems
       - name: Quick test framework validation
         run: "export USER=${USER:-ci}\necho \"\U0001F9EA Validating NixTest framework\"\nnix build --impure .#framework-check --verbose\necho \"✅ Test framework validation passed\"\n"
+      - name: Run Go tests
+        run: |
+          echo "🧪 Running Go tests for Claude Code hooks"
+          cd modules/shared/config/claude/hooks-go
+          nix-shell -p go --run "go test -v ./..."
+          echo "✅ Go tests passed"
   # Build and switch combined (faster, simpler)
   build-switch:
     name: Build+Switch ${{ matrix.name }}
