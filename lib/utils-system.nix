@@ -1,6 +1,14 @@
 # Unified Utilities System
 # Combines common-utils.nix and package-utils.nix
 # Provides comprehensive utility functions for system operations
+#
+# NOTE: Many string/list/path utilities duplicate nixpkgs.lib functionality.
+# These are maintained for backwards compatibility with existing tests.
+# For new code, prefer using nixpkgs.lib directly:
+#   - actualLib.hasPrefix instead of stringUtils.hasPrefix
+#   - actualLib.splitString instead of stringUtils.splitString
+#   - actualLib.unique instead of listUtils.unique
+#   - actualLib.flatten instead of listUtils.flatten
 
 { pkgs ? null
 , lib ? null
