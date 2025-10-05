@@ -83,6 +83,16 @@ Professional Nix dotfiles system supporting:
 imports = [ ../../modules/shared/cachix ];  # Shared across darwin/nixos
 ```
 
+### Nix Best Practices
+
+**Flakes**: Use as entry point only, manage dependencies via flake.lock, keep build logic in traditional Nix
+
+**Integration**: nix-darwin (system) → home-manager (user), set `useGlobalPkgs = true`
+
+**Modularity**: Split by traits (common/desktop/laptop), use `lib.mkDefault/mkForce` for priority
+
+**Performance**: Enable binary caches, use `--impure` for user resolution, parallel builds
+
 ## Current Development: Build-Switch Testing Implementation
 
 **Status**: Active development
