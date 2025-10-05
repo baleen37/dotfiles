@@ -2,9 +2,9 @@
 # Combines error-handler.nix, error-handling.nix, and error-messages.nix
 # Provides comprehensive error processing, localization, and recovery mechanisms
 
-{ pkgs ? null
-, lib ? null
-,
+{
+  pkgs ? null,
+  lib ? null,
 }:
 
 let
@@ -363,18 +363,15 @@ let
 
   # Enhanced message processing with pattern matching
   enhanceMessage =
-    { message
-    , locale ? "en"
-    , suggestions ? [ ]
-    ,
+    {
+      message,
+      locale ? "en",
+      suggestions ? [ ],
     }:
     let
-      matchingPattern = actualLib.findFirst
-        (
-          pattern: builtins.match ".*${pattern}.*" message != null
-        )
-        null
-        (builtins.attrNames commonErrorPatterns);
+      matchingPattern = actualLib.findFirst (
+        pattern: builtins.match ".*${pattern}.*" message != null
+      ) null (builtins.attrNames commonErrorPatterns);
     in
     if matchingPattern != null then
       let
@@ -466,16 +463,16 @@ let
 
   # Core error creation function
   createError =
-    { message
-    , component ? "unknown"
-    , errorType ? "user"
-    , severity ? "error"
-    , locale ? "en"
-    , debugMode ? false
-    , context ? { }
-    , suggestions ? [ ]
-    , timestamp ? getTimestamp
-    ,
+    {
+      message,
+      component ? "unknown",
+      errorType ? "user",
+      severity ? "error",
+      locale ? "en",
+      debugMode ? false,
+      context ? { },
+      suggestions ? [ ],
+      timestamp ? getTimestamp,
     }:
     let
       # Enhance message with pattern matching
@@ -647,27 +644,27 @@ rec {
   # Progress indicators with localization
   progress = {
     starting =
-      { phase
-      , locale ? "en"
-      ,
+      {
+        phase,
+        locale ? "en",
       }:
       if locale == "ko" then "${phase} 시작 중..." else "Starting ${phase}...";
     completed =
-      { phase
-      , locale ? "en"
-      ,
+      {
+        phase,
+        locale ? "en",
       }:
       if locale == "ko" then "✓ ${phase} 성공적으로 완료됨" else "✓ ${phase} completed successfully";
     failed =
-      { phase
-      , locale ? "en"
-      ,
+      {
+        phase,
+        locale ? "en",
       }:
       if locale == "ko" then "✗ ${phase} 실패" else "✗ ${phase} failed";
     skipped =
-      { phase
-      , locale ? "en"
-      ,
+      {
+        phase,
+        locale ? "en",
       }:
       if locale == "ko" then "- ${phase} 건너뜀" else "- ${phase} skipped";
   };
@@ -681,13 +678,12 @@ rec {
         value = builtins.getEnv var;
       in
       if value == "" && default == null then
-        throwError
-          (createError {
-            message = "Environment variable ${var} is required but not set";
-            component = "environment";
-            errorType = "user";
-            suggestions = [ "Set the environment variable: export ${var}=<value>" ];
-          })
+        throwError (createError {
+          message = "Environment variable ${var} is required but not set";
+          component = "environment";
+          errorType = "user";
+          suggestions = [ "Set the environment variable: export ${var}=<value>" ];
+        })
       else if value == "" then
         default
       else

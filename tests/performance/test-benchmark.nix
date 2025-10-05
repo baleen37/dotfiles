@@ -12,14 +12,14 @@
 #   nix build .#checks.x86_64-linux.performance-benchmark
 #   nix run .#benchmark -- full  # 전체 벤치마크 실행
 
-{ lib
-, stdenv
-, writeShellScript
-, time
-, gnugrep
-, coreutils
-, self ? null
-,
+{
+  lib,
+  stdenv,
+  writeShellScript,
+  time,
+  gnugrep,
+  coreutils,
+  self ? null,
 }:
 
 let

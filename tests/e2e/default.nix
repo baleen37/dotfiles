@@ -3,11 +3,11 @@
 # End-to-end 테스트 스위트의 진입점
 # 모든 e2e 테스트를 통합하고 실행
 
-{ lib ? import <nixpkgs/lib>
-, pkgs ? import <nixpkgs> { }
-, system ? builtins.currentSystem
-, self ? null
-,
+{
+  lib ? import <nixpkgs/lib>,
+  pkgs ? import <nixpkgs> { },
+  system ? builtins.currentSystem,
+  self ? null,
 }:
 
 let

@@ -8,12 +8,12 @@
 # - 핵심 설정 파일 생성 확인
 # - 패키지 가용성 검증
 
-{ lib ? import <nixpkgs/lib>
-, pkgs ? import <nixpkgs> { }
-, system ? builtins.currentSystem
-, nixtest ? null
-, self ? null
-,
+{
+  lib ? import <nixpkgs/lib>,
+  pkgs ? import <nixpkgs> { },
+  system ? builtins.currentSystem,
+  nixtest ? null,
+  self ? null,
 }:
 
 let

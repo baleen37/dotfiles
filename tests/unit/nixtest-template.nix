@@ -21,9 +21,9 @@
 # - createMock: 모의 함수 생성
 # - isolateTest: 테스트 격리 래퍼
 
-{ lib ? import <nixpkgs/lib>
-, pkgs ? import <nixpkgs> { }
-,
+{
+  lib ? import <nixpkgs/lib>,
+  pkgs ? import <nixpkgs> { },
 }:
 
 let
@@ -250,12 +250,10 @@ in
       moduleName: requiredAttrs: moduleAttrs:
       nixtest.suite "${moduleName} interface tests" (
         builtins.listToAttrs (
-          map
-            (attr: {
-              name = "has_${attr}";
-              value = nixtest.test "module has ${attr}" (nixtest.assertions.assertHasAttr attr moduleAttrs);
-            })
-            requiredAttrs
+          map (attr: {
+            name = "has_${attr}";
+            value = nixtest.test "module has ${attr}" (nixtest.assertions.assertHasAttr attr moduleAttrs);
+          }) requiredAttrs
         )
       );
 

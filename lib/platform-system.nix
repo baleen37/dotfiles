@@ -16,12 +16,12 @@
 # - apps.coreApps: Cross-platform core application definitions
 # - utils: Platform utilities for conditional logic and architecture handling
 
-{ pkgs ? null
-, lib ? null
-, nixpkgs ? null
-, self ? null
-, system ? null
-,
+{
+  pkgs ? null,
+  lib ? null,
+  nixpkgs ? null,
+  self ? null,
+  system ? null,
 }:
 
 let
@@ -35,7 +35,7 @@ let
         if actualPkgs != null then
           actualPkgs.lib
         else
-        # Basic lib functions fallback
+          # Basic lib functions fallback
           {
             splitString =
               sep: str:
@@ -52,12 +52,10 @@ let
             genAttrs =
               names: f:
               builtins.listToAttrs (
-                map
-                  (name: {
-                    inherit name;
-                    value = f name;
-                  })
-                  names
+                map (name: {
+                  inherit name;
+                  value = f name;
+                }) names
               );
             elemAt = list: pos: builtins.elemAt list pos;
           }
@@ -66,11 +64,10 @@ let
   # Import error system for error handling (only if actualPkgs is available)
   errorSystem =
     if actualPkgs != null then
-      import ./error-system.nix
-        {
-          pkgs = actualPkgs;
-          lib = actualLib;
-        }
+      import ./error-system.nix {
+        pkgs = actualPkgs;
+        lib = actualLib;
+      }
     else
       {
         throwConfigError = msg: throw "Config Error: ${msg}";

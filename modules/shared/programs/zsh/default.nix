@@ -21,12 +21,13 @@
 # VERSION: 3.1.0 (Single file configuration)
 # LAST UPDATED: 2024-10-04
 
-{ config
-, pkgs
-, lib
-, platformInfo
-, userInfo
-, ...
+{
+  config,
+  pkgs,
+  lib,
+  platformInfo,
+  userInfo,
+  ...
 }:
 
 let

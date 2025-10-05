@@ -16,13 +16,13 @@
 # - 대용량 데이터 및 성능 테스트
 # - 크로스 플랫폼 호환성 검증
 
-{ lib ? import <nixpkgs/lib>
-, pkgs ? import <nixpkgs> { }
-, system ? builtins.currentSystem
-, nixtest ? null
-, testHelpers ? null
-, self ? null
-,
+{
+  lib ? import <nixpkgs/lib>,
+  pkgs ? import <nixpkgs> { },
+  system ? builtins.currentSystem,
+  nixtest ? null,
+  testHelpers ? null,
+  self ? null,
 }:
 
 let
@@ -197,7 +197,7 @@ nixtestFinal.suite "Library Functions Tests" {
 
       packageValidation = nixtestFinal.test "Package validation" (
         let
-          validPackages = [{ name = "test-pkg"; }];
+          validPackages = [ { name = "test-pkg"; } ];
           result = utilsSystem.packageUtils.validatePackages validPackages;
         in
         nixtestFinal.assertions.assertEqual validPackages result
@@ -582,7 +582,7 @@ nixtestFinal.suite "Library Functions Tests" {
 
     # Package validation errors
     invalidPackageError = nixtestFinal.test "Invalid package validation throws error" (
-      nixtestFinal.assertions.assertThrows (utilsSystem.packageUtils.validatePackages [{ }])
+      nixtestFinal.assertions.assertThrows (utilsSystem.packageUtils.validatePackages [ { } ])
     );
   };
 
@@ -592,14 +592,13 @@ nixtestFinal.suite "Library Functions Tests" {
     # Large data handling
     largeListProcessing = nixtestFinal.test "Large list unique processing" (
       let
-        largeList = builtins.genList
-          (
-            i:
-            let
-              r = builtins.div i 100;
-            in
-            i - (r * 100)
-          ) 1000;
+        largeList = builtins.genList (
+          i:
+          let
+            r = builtins.div i 100;
+          in
+          i - (r * 100)
+        ) 1000;
         result = utilsSystem.listUtils.unique largeList;
       in
       nixtestFinal.assertions.assertTrue (builtins.length result <= 100)

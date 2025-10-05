@@ -25,11 +25,12 @@
 #   - Dunst: Performance-tuned notification settings, reduced animation overhead
 #   - Services: Disabled unnecessary features (tray icons, redundant notifications)
 
-{ config
-, pkgs
-, lib
-, self
-, ...
+{
+  config,
+  pkgs,
+  lib,
+  self,
+  ...
 }:
 
 let

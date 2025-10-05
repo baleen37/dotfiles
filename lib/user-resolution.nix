@@ -13,15 +13,15 @@
 # - Extended: import ./user-resolution.nix { returnFormat = "extended"; }
 # - With default: import ./user-resolution.nix { default = "fallback-user"; }
 
-{ envVar ? "USER"
-, default ? null
-, allowSudoUser ? true
-, returnFormat ? "string"
-, platform ? null
-, mockEnv ? { }
-, pkgs ? null
-, lib ? null
-,
+{
+  envVar ? "USER",
+  default ? null,
+  allowSudoUser ? true,
+  returnFormat ? "string",
+  platform ? null,
+  mockEnv ? { },
+  pkgs ? null,
+  lib ? null,
 }:
 
 let

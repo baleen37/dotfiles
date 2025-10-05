@@ -16,10 +16,11 @@
 #
 # 참고: 현재는 비활성화 상태 (root 권한 필요), home-manager.nix에서 대체 구현 사용
 
-{ config
-, lib
-, pkgs
-, ...
+{
+  config,
+  lib,
+  pkgs,
+  ...
 }:
 
 with lib;

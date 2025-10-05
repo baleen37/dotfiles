@@ -13,13 +13,13 @@
 # - 설정 파일 로딩 및 머징 (YAML/JSON/Nix)
 # - 에러 처리 및 엣지 케이스 (누락된 모듈, 잘못된 설정)
 
-{ lib ? import <nixpkgs/lib>
-, pkgs ? import <nixpkgs> { }
-, system ? builtins.currentSystem
-, nixtest ? null
-, testHelpers ? null
-, self ? null
-,
+{
+  lib ? import <nixpkgs/lib>,
+  pkgs ? import <nixpkgs> { },
+  system ? builtins.currentSystem,
+  nixtest ? null,
+  testHelpers ? null,
+  self ? null,
 }:
 
 let
@@ -526,15 +526,13 @@ nixtestFinal.suite "System Configuration Integration Tests" {
           (import ../../modules/nixos/packages.nix)
         ];
 
-        allLoad = builtins.all
-          (
-            config:
-            let
-              result = safeEvaluateSystemConfig config;
-            in
-            result != null
-          )
-          configs;
+        allLoad = builtins.all (
+          config:
+          let
+            result = safeEvaluateSystemConfig config;
+          in
+          result != null
+        ) configs;
       in
       nixtestFinal.assertions.assertTrue allLoad
     );
@@ -547,15 +545,13 @@ nixtestFinal.suite "System Configuration Integration Tests" {
           (import ../../lib/parallel-build-optimizer.nix { inherit lib pkgs; })
         ];
 
-        allLoad = builtins.all
-          (
-            component:
-            let
-              result = safeEvaluateSystemConfig component;
-            in
-            result != null
-          )
-          buildComponents;
+        allLoad = builtins.all (
+          component:
+          let
+            result = safeEvaluateSystemConfig component;
+          in
+          result != null
+        ) buildComponents;
       in
       nixtestFinal.assertions.assertTrue allLoad
     );

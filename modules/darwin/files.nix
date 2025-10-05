@@ -15,10 +15,11 @@
 #   - xdg_dataHome: ~/.local/share
 #   - xdg_stateHome: ~/.local/state
 
-{ user
-, config
-, pkgs
-, ...
+{
+  user,
+  config,
+  pkgs,
+  ...
 }:
 
 let

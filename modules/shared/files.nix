@@ -13,10 +13,11 @@
 # 참고:
 #   Claude Code 설정 등 플랫폼별 파일은 각 플랫폼 모듈에서 symlink로 관리
 
-{ pkgs
-, config
-, lib
-, ...
+{
+  pkgs,
+  config,
+  lib,
+  ...
 }:
 
 {

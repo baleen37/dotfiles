@@ -16,9 +16,9 @@
 # - 복합 어설션: assertModuleStructure, assertAllSatisfy, assertPackageList, assertConfigStructure
 # - 컬러 터미널 출력 지원 및 디버깅 도구 제공
 
-{ lib ? import <nixpkgs/lib>
-, pkgs ? import <nixpkgs> { }
-,
+{
+  lib ? import <nixpkgs/lib>,
+  pkgs ? import <nixpkgs> { },
 }:
 
 let
@@ -274,11 +274,9 @@ rec {
         actualKeys = builtins.attrNames actualAttrs;
         missingKeys = builtins.filter (key: !builtins.hasAttr key actualAttrs) expectedKeys;
         extraKeys = builtins.filter (key: !builtins.hasAttr key expectedAttrs) actualKeys;
-        differentValues = builtins.filter
-          (
-            key: builtins.hasAttr key actualAttrs && expectedAttrs.${key} != actualAttrs.${key}
-          )
-          expectedKeys;
+        differentValues = builtins.filter (
+          key: builtins.hasAttr key actualAttrs && expectedAttrs.${key} != actualAttrs.${key}
+        ) expectedKeys;
       in
       if
         builtins.length missingKeys == 0
@@ -375,7 +373,7 @@ rec {
         result = builtins.tryEval func;
       in
       if result.success == false then
-      # Note: Can't access error message in pure Nix, so we just verify it throws
+        # Note: Can't access error message in pure Nix, so we just verify it throws
         true
       else
         throw (
@@ -496,11 +494,9 @@ rec {
     assertCrossPlatformStructure =
       platforms: moduleStructure: context:
       let
-        platformChecks = map
-          (
-            platform: assertions.assertHasAttr platform moduleStructure "${context}.${platform}"
-          )
-          platforms;
+        platformChecks = map (
+          platform: assertions.assertHasAttr platform moduleStructure "${context}.${platform}"
+        ) platforms;
       in
       builtins.all (check: check == true) platformChecks;
   };

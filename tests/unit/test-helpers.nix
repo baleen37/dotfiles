@@ -23,9 +23,9 @@
 # assertTrue value context
 # assertContains item list context
 
-{ lib ? import <nixpkgs/lib>
-, pkgs ? import <nixpkgs> { }
-,
+{
+  lib ? import <nixpkgs/lib>,
+  pkgs ? import <nixpkgs> { },
 }:
 
 let
@@ -108,11 +108,9 @@ in
       true
     else
       throw (
-        formatError "assertAttrValue ('${attr}')" expectedValue
-          (
-            if builtins.hasAttr attr attrset then attrset.${attr} else "MISSING"
-          )
-          context
+        formatError "assertAttrValue ('${attr}')" expectedValue (
+          if builtins.hasAttr attr attrset then attrset.${attr} else "MISSING"
+        ) context
       );
 
   # String assertions

@@ -18,10 +18,11 @@
 # VERSION: 2.0.0 (Phase 2 optimized)
 # LAST UPDATED: 2024-10-04
 
-{ config
-, pkgs
-, lib
-, ...
+{
+  config,
+  pkgs,
+  lib,
+  ...
 }:
 
 let

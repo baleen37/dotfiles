@@ -28,16 +28,17 @@
 #   - Default shell: zsh
 #   - Font packages: JetBrains Mono, DejaVu, Noto, Font Awesome
 
-{ config
-, inputs
-, pkgs
-, user ? (
+{
+  config,
+  inputs,
+  pkgs,
+  user ? (
     import ../../lib/user-resolution.nix {
       default = "baleen";
       returnFormat = "string";
     }
-  )
-, ...
+  ),
+  ...
 }:
 
 let

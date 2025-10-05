@@ -18,10 +18,10 @@
 # - testFramework.runSuite: Execute test suite with optional coverage collection
 # - testUtils: Reporting, discovery, and enhanced test execution utilities
 
-{ pkgs ? null
-, nixpkgs ? null
-, self ? null
-,
+{
+  pkgs ? null,
+  nixpkgs ? null,
+  self ? null,
 }:
 
 let
@@ -38,10 +38,10 @@ let
   testAppBuilders = {
     # Simple test app builder
     mkTestApp =
-      { name
-      , system
-      , command
-      ,
+      {
+        name,
+        system,
+        command,
       }:
       {
         type = "app";
@@ -160,10 +160,10 @@ let
   testUtils = {
     # Create a test reporter that generates formatted output
     mkTestReporter =
-      { name
-      , tests
-      , results
-      ,
+      {
+        name,
+        tests,
+        results,
       }:
       actualPkgs.writeScriptBin "test-reporter" ''
         #!${actualPkgs.bash}/bin/bash
@@ -241,11 +241,11 @@ let
 
     # Convenience function to create a comprehensive test suite
     mkTestSuite =
-      { name
-      , categories
-      , system
-      , flake
-      ,
+      {
+        name,
+        categories,
+        system,
+        flake,
       }:
       {
         runner = testUtils.mkEnhancedTestRunner {
@@ -329,9 +329,9 @@ let
   testExecutors = {
     # Execute nix-unit test
     runNixUnitTest =
-      { testCase
-      , config ? { }
-      ,
+      {
+        testCase,
+        config ? { },
       }:
       let
         testBuilders = import ./test-builders.nix {
@@ -348,9 +348,9 @@ let
 
     # Execute lib.runTests test
     runLibTest =
-      { testCase
-      , config ? { }
-      ,
+      {
+        testCase,
+        config ? { },
       }:
       let
         testResult = actualPkgs.lib.runTests testCase.tests or { };
@@ -363,9 +363,9 @@ let
 
     # Execute BATS test
     runBatsTest =
-      { testCase
-      , config ? { }
-      ,
+      {
+        testCase,
+        config ? { },
       }:
       let
         batsScript = actualPkgs.writeScript "run-bats-test" ''
@@ -382,9 +382,9 @@ let
 
     # Execute NixOS VM test
     runVMTest =
-      { testCase
-      , config ? { }
-      ,
+      {
+        testCase,
+        config ? { },
       }:
       let
         vmTest = actualPkgs.lib.nixos.runTest testCase;
@@ -405,29 +405,25 @@ let
     runSingleTest =
       test: config:
       if test.framework or "lib.runTests" == "nix-unit" then
-        testExecutors.runNixUnitTest
-          {
-            testCase = test;
-            inherit config;
-          }
+        testExecutors.runNixUnitTest {
+          testCase = test;
+          inherit config;
+        }
       else if test.framework or "lib.runTests" == "lib.runTests" then
-        testExecutors.runLibTest
-          {
-            testCase = test;
-            inherit config;
-          }
+        testExecutors.runLibTest {
+          testCase = test;
+          inherit config;
+        }
       else if test.framework or "lib.runTests" == "bats" then
-        testExecutors.runBatsTest
-          {
-            testCase = test;
-            inherit config;
-          }
+        testExecutors.runBatsTest {
+          testCase = test;
+          inherit config;
+        }
       else if test.framework or "lib.runTests" == "nixos-vm" then
-        testExecutors.runVMTest
-          {
-            testCase = test;
-            inherit config;
-          }
+        testExecutors.runVMTest {
+          testCase = test;
+          inherit config;
+        }
       else
         testExecutors.runLibTest {
           testCase = test;
@@ -439,10 +435,10 @@ let
   testFramework = {
     # Run a single test case
     runTest =
-      { testCase
-      , config ? { }
-      , fixtures ? [ ]
-      ,
+      {
+        testCase,
+        config ? { },
+        fixtures ? [ ],
       }:
       let
         # Import test builders for framework-specific execution
@@ -476,9 +472,9 @@ let
 
     # Run a test suite
     runSuite =
-      { suite
-      , config ? { }
-      ,
+      {
+        suite,
+        config ? { },
       }:
       let
         # Import coverage system if enabled
@@ -490,11 +486,10 @@ let
         # Initialize coverage session if enabled
         coverageSession =
           if config.coverage or false then
-            coverageSystem.measurement.initSession
-              {
-                name = suite.name;
-                config = config;
-              }
+            coverageSystem.measurement.initSession {
+              name = suite.name;
+              config = config;
+            }
           else
             null;
 
@@ -508,12 +503,11 @@ let
         # Collect coverage if enabled
         coverage =
           if coverageSession != null then
-            coverageSystem.measurement.collectCoverage
-              {
-                session = coverageSession;
-                modules = suite.modules or [ ];
-                testResults = testResults;
-              }
+            coverageSystem.measurement.collectCoverage {
+              session = coverageSession;
+              modules = suite.modules or [ ];
+              testResults = testResults;
+            }
           else
             null;
 

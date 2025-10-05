@@ -21,12 +21,13 @@
 #   - darwin/files.nix: macOS 전용 설정 파일
 #   - darwin/packages.nix: macOS 전용 패키지
 
-{ config
-, pkgs
-, lib
-, home-manager
-, self
-, ...
+{
+  config,
+  pkgs,
+  lib,
+  home-manager,
+  self,
+  ...
 }:
 
 let
@@ -108,10 +109,11 @@ in
     useUserPackages = true; # Performance: reduce evaluation overhead
 
     users.${user} =
-      { pkgs
-      , config
-      , lib
-      , ...
+      {
+        pkgs,
+        config,
+        lib,
+        ...
       }:
       {
         home = {

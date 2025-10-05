@@ -87,14 +87,12 @@
     # EXAMPLE: forAllSystems (system: pkgs.hello) -> { x86_64-linux = <derivation>; ... }
     forAllSystems =
       f:
-      nixpkgs.lib.genAttrs
-        ([
-          "x86_64-linux"
-          "aarch64-linux"
-          "aarch64-darwin"
-          "x86_64-darwin"
-        ])
-        f;
+      nixpkgs.lib.genAttrs ([
+        "x86_64-linux"
+        "aarch64-linux"
+        "aarch64-darwin"
+        "x86_64-darwin"
+      ]) f;
 
     # User resolution utilities with environment fallback
     #

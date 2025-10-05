@@ -34,10 +34,11 @@
 # VERSION: 3.1.0 (Flat structure with complex program directories)
 # LAST UPDATED: 2024-10-04
 
-{ config
-, pkgs
-, lib
-, ...
+{
+  config,
+  pkgs,
+  lib,
+  ...
 }:
 
 let

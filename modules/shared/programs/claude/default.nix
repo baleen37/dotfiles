@@ -16,12 +16,13 @@
 # VERSION: 4.0.0 (Multi-platform symlink-based)
 # LAST UPDATED: 2024-10-04
 
-{ config
-, pkgs
-, lib
-, platformInfo
-, userInfo
-, ...
+{
+  config,
+  pkgs,
+  lib,
+  platformInfo,
+  userInfo,
+  ...
 }:
 
 let

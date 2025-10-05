@@ -8,12 +8,12 @@
 # - 빌드 출력 구조 검증
 # - 에러 핸들링 및 복구
 
-{ lib ? import <nixpkgs/lib>
-, pkgs ? import <nixpkgs> { }
-, system ? builtins.currentSystem
-, nixtest ? null
-, self ? null
-,
+{
+  lib ? import <nixpkgs/lib>,
+  pkgs ? import <nixpkgs> { },
+  system ? builtins.currentSystem,
+  nixtest ? null,
+  self ? null,
 }:
 
 let
@@ -71,7 +71,9 @@ nixtestFinal.suite "Build-Switch E2E Tests" {
 
   # Test 6: Required packages for build-switch available
   requiredPackagesAvailable = nixtestFinal.test "Required packages for build-switch are available" (
-    nixtestFinal.assertions.assertTrue (helpers.allPackagesExist helpers.constants.requiredBuildPackages)
+    nixtestFinal.assertions.assertTrue (
+      helpers.allPackagesExist helpers.constants.requiredBuildPackages
+    )
   );
 
   # Test 7: Build optimization configuration valid

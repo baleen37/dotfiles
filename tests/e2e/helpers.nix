@@ -2,10 +2,10 @@
 #
 # 공통 헬퍼 함수 모음으로 중복 코드 제거 및 재사용성 향상
 
-{ lib
-, pkgs
-, platformSystem
-,
+{
+  lib,
+  pkgs,
+  platformSystem,
 }:
 
 {
@@ -83,9 +83,7 @@
     builtins.all builtins.pathExists fullPaths;
 
   # 사용자 설정 검증용 홈 디렉토리 생성
-  getUserHomeDir =
-    user:
-    if platformSystem.isDarwin then "/Users/${user}" else "/home/${user}";
+  getUserHomeDir = user: if platformSystem.isDarwin then "/Users/${user}" else "/home/${user}";
 
   # 공통 테스트 상수
   constants = {

@@ -15,10 +15,11 @@
 # TDD 요구사항: 이 테스트들은 처음에는 실패해야 함 (구현 전)
 # 테스트 실패는 라이브러리가 아직 구현되지 않았음을 의미
 
-{ lib
-, runTests
-, nix-unit ? null
-, ...
+{
+  lib,
+  runTests,
+  nix-unit ? null,
+  ...
 }:
 
 let

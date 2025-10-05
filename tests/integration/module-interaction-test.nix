@@ -18,13 +18,13 @@
 # - 누락된 의존성 처리
 # - 메모리 사용량 최적화 검증
 
-{ lib ? import <nixpkgs/lib>
-, pkgs ? import <nixpkgs> { }
-, system ? builtins.currentSystem
-, nixtest ? null
-, testHelpers ? null
-, self ? null
-,
+{
+  lib ? import <nixpkgs/lib>,
+  pkgs ? import <nixpkgs> { },
+  system ? builtins.currentSystem,
+  nixtest ? null,
+  testHelpers ? null,
+  self ? null,
 }:
 
 let
@@ -252,10 +252,9 @@ nixtestFinal.suite "Module Interaction Integration Tests" {
       let
         combined =
           if lib.strings.hasSuffix "darwin" system then
-            safeEvaluateModule sharedModule
-              {
-                imports = [ darwinModule ];
-              }
+            safeEvaluateModule sharedModule {
+              imports = [ darwinModule ];
+            }
           else
             { success = true; };
       in
@@ -266,10 +265,9 @@ nixtestFinal.suite "Module Interaction Integration Tests" {
       let
         combined =
           if lib.strings.hasSuffix "linux" system then
-            safeEvaluateModule sharedModule
-              {
-                imports = [ nixosModule ];
-              }
+            safeEvaluateModule sharedModule {
+              imports = [ nixosModule ];
+            }
           else
             { success = true; };
       in

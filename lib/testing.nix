@@ -18,10 +18,10 @@
 # - Multi-tier test organization (unit, integration, e2e, performance)
 # - Test result aggregation and reporting
 
-{ inputs
-, forAllSystems
-, self
-,
+{
+  inputs,
+  forAllSystems,
+  self,
 }:
 
 let

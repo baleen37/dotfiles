@@ -12,9 +12,9 @@
 # VERSION: 1.0.0
 # LAST UPDATED: 2024-10-04
 
-{ pkgs ? import <nixpkgs> { }
-, lib ? pkgs.lib
-,
+{
+  pkgs ? import <nixpkgs> { },
+  lib ? pkgs.lib,
 }:
 
 let

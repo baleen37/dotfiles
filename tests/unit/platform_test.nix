@@ -17,13 +17,13 @@
 #
 # 테스트 전략: 현재 플랫폼에서만 플랫폼별 코드 실행, 다른 플랫폼에서는 모의 처리
 
-{ lib ? import <nixpkgs/lib>
-, pkgs ? import <nixpkgs> { }
-, system ? builtins.currentSystem
-, nixtest ? null
-, testHelpers ? null
-, self ? null
-,
+{
+  lib ? import <nixpkgs/lib>,
+  pkgs ? import <nixpkgs> { },
+  system ? builtins.currentSystem,
+  nixtest ? null,
+  testHelpers ? null,
+  self ? null,
 }:
 
 let
@@ -274,15 +274,13 @@ nixtestFinal.suite "Platform-Specific Tests" {
     # System validation across platforms
     systemValidationTests = nixtestFinal.suite "System Validation Tests" {
       allSupportedSystemsValid = nixtestFinal.test "All supported systems validate" (
-        builtins.all
-          (
-            sys:
-            let
-              validated = platformDetection.validateSystem sys;
-            in
-            validated == sys
-          )
-          testPlatforms.supportedSystems
+        builtins.all (
+          sys:
+          let
+            validated = platformDetection.validateSystem sys;
+          in
+          validated == sys
+        ) testPlatforms.supportedSystems
       );
 
       darwinSystemsValidation = nixtestFinal.test "Darwin systems validation" (

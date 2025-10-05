@@ -12,12 +12,13 @@
 # VERSION: 3.1.0 (Extracted from development.nix)
 # LAST UPDATED: 2024-10-04
 
-{ config
-, pkgs
-, lib
-, platformInfo
-, userInfo
-, ...
+{
+  config,
+  pkgs,
+  lib,
+  platformInfo,
+  userInfo,
+  ...
 }:
 
 let

@@ -17,13 +17,13 @@
 # - 플랫폼별 모듈의 조건부 로딩 테스트
 # - 엣지 케이스 (미지원 플랫폼, 빈 설정) 처리 확인
 
-{ lib ? import <nixpkgs/lib>
-, pkgs ? import <nixpkgs> { }
-, system ? builtins.currentSystem
-, nixtest ? null
-, testHelpers ? null
-, self ? null
-,
+{
+  lib ? import <nixpkgs/lib>,
+  pkgs ? import <nixpkgs> { },
+  system ? builtins.currentSystem,
+  nixtest ? null,
+  testHelpers ? null,
+  self ? null,
 }:
 
 let
