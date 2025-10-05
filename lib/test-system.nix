@@ -6,16 +6,14 @@
 #
 # Key Components:
 # - Test App Builders: Creates Nix apps for running different test categories
-# - Test Framework: Multi-framework execution (nix-unit, lib.runTests, BATS, VM tests)
+# - Test Framework: Native Nix test execution (lib.runTests)
 # - Test Utilities: Test reporting, discovery, and enhanced execution with error handling
 # - Test Categories: Organized test groupings (core, integration, performance, smoke)
-# - Coverage System: Optional test coverage measurement and reporting
 #
 # Main Functions:
 # - mkTestApp: Creates individual test applications for specific test types
 # - mkTestApps: Builds complete test app set for a given system architecture
-# - testFramework.runTest: Execute single test case with framework detection
-# - testFramework.runSuite: Execute test suite with optional coverage collection
+# - testFramework.runSuite: Execute test suite with optional parallel execution
 # - testUtils: Reporting, discovery, and enhanced test execution utilities
 
 {
@@ -324,10 +322,10 @@ let
     ];
   };
 
-  # Test execution functions for different frameworks
+  # Test execution functions using native Nix testing
   testExecutors = {
 
-    # Execute lib.runTests test
+    # Execute lib.runTests test (the primary Nix test framework)
     runLibTest =
       {
         testCase,
@@ -341,54 +339,19 @@ let
         error = if builtins.length testResult > 0 then "Some tests failed" else null;
       };
 
-    # Execute BATS test
-    runBatsTest = _args: {
-      success = true; # Simplified for now
-      output = "BATS test executed";
-      error = null;
-    };
-
-    # Execute NixOS VM test
-    runVMTest = _args: {
-      success = true; # Simplified for now
-      output = "VM test executed";
-      error = null;
-    };
-
     # Parallel test execution
     runTestsParallel = tests: config: map (test: testExecutors.runSingleTest test config) tests;
 
     # Sequential test execution
     runTestsSequential = tests: config: map (test: testExecutors.runSingleTest test config) tests;
 
-    # Single test execution wrapper
+    # Single test execution wrapper - simplified to only use lib.runTests
     runSingleTest =
       test: config:
-      if test.framework or "lib.runTests" == "nix-unit" then
-        testExecutors.runNixUnitTest {
-          testCase = test;
-          inherit config;
-        }
-      else if test.framework or "lib.runTests" == "lib.runTests" then
-        testExecutors.runLibTest {
-          testCase = test;
-          inherit config;
-        }
-      else if test.framework or "lib.runTests" == "bats" then
-        testExecutors.runBatsTest {
-          testCase = test;
-          inherit config;
-        }
-      else if test.framework or "lib.runTests" == "nixos-vm" then
-        testExecutors.runVMTest {
-          testCase = test;
-          inherit config;
-        }
-      else
-        testExecutors.runLibTest {
-          testCase = test;
-          inherit config;
-        }; # Default fallback
+      testExecutors.runLibTest {
+        testCase = test;
+        inherit config;
+      };
   };
 
   # Enhanced test framework functions for comprehensive testing
@@ -440,7 +403,7 @@ in
     ;
 
   # Export enhanced test framework functions
-  inherit (testFramework) runTest runSuite;
+  inherit (testFramework) runSuite;
 
   # Export test categories and configuration
   inherit testCategories testConfig;

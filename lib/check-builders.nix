@@ -790,7 +790,6 @@ in
           {
             buildInputs = [
               pkgs.bash
-              pkgs.bats
               pkgs.coreutils
             ];
             meta = {
@@ -806,7 +805,7 @@ in
             if [ -d "./tests/contract" ]; then
               echo "✓ Found contract test directory"
               echo "Available contract tests:"
-              find ./tests/contract -name "*.bats" || echo "No BATS contract tests found"
+              find ./tests/contract -name "*.nix" || echo "No contract tests found"
             fi
 
             # Run enhanced test runner for contract category
@@ -860,7 +859,6 @@ in
           {
             buildInputs = [
               pkgs.bash
-              pkgs.bats
               pkgs.coreutils
             ];
             meta = {
