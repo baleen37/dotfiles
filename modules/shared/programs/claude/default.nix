@@ -6,17 +6,17 @@
 # 관리하는 설정 파일:
 #   - settings.json: Claude Code 기본 설정 (변경 감지 및 자동 알림)
 #   - CLAUDE.md: 프로젝트별 AI 지침 문서
-#   - hooks/: Git 훅 스크립트 디렉토리
+#   - hooks/: Git 훅 스크립트 디렉토리 (Go 바이너리 자동 빌드)
 #   - commands/: 커스텀 Claude 명령어 디렉토리
 #   - agents/: AI 에이전트 설정 디렉토리
 #
 # 지원 플랫폼: macOS (Darwin), Linux
-# 패키지 추가: 없음 (Claude Code는 별도 설치 필요)
+# 패키지 추가: go (hooks 빌드용)
 #
-# VERSION: 4.0.0 (Multi-platform symlink-based)
-# LAST UPDATED: 2024-10-04
+# VERSION: 5.0.0 (Go hooks auto-build)
+# LAST UPDATED: 2025-10-05
 
-_:
+{ pkgs, ... }:
 
 let
   # Path to actual Claude config files (relative to this module)
@@ -24,6 +24,42 @@ let
 
   # Claude Code uses ~/.claude for both platforms
   claudeHomeDir = ".claude";
+
+  # Build Go hooks binary
+  claudeHooks = pkgs.buildGoModule {
+    pname = "claude-hooks";
+    version = "1.0.0";
+    src = ./../../config/claude/hooks-go;
+    vendorHash = null;
+    subPackages = [ "cmd/claude-hooks" ];
+  };
+
+  # Create hooks directory with built binary and wrapper scripts
+  hooksDir = pkgs.runCommand "claude-hooks-dir" { } ''
+        mkdir -p $out
+
+        # Copy built Go binary
+        cp ${claudeHooks}/bin/claude-hooks $out/claude-hooks
+        chmod +x $out/claude-hooks
+
+        # Create git-commit-validator wrapper
+        cat > $out/git-commit-validator <<'EOF'
+    #!/usr/bin/env bash
+    # Git commit validation hook wrapper
+    HOOK_DIR="$(cd "$(dirname "''${BASH_SOURCE[0]}")" && pwd)"
+    exec "''${HOOK_DIR}/claude-hooks" git-commit-validator
+    EOF
+        chmod +x $out/git-commit-validator
+
+        # Create message-cleaner wrapper
+        cat > $out/message-cleaner <<'EOF'
+    #!/usr/bin/env bash
+    # Message cleaner hook wrapper
+    HOOK_DIR="$(cd "$(dirname "''${BASH_SOURCE[0]}")" && pwd)"
+    exec "''${HOOK_DIR}/claude-hooks" message-cleaner
+    EOF
+        chmod +x $out/message-cleaner
+  '';
 
 in
 {
@@ -45,9 +81,9 @@ in
       source = "${claudeConfigDir}/CLAUDE.md";
     };
 
-    # Hooks directory
+    # Hooks directory (with built Go binary)
     "${claudeHomeDir}/hooks" = {
-      source = "${claudeConfigDir}/hooks";
+      source = hooksDir;
       recursive = true;
     };
 
