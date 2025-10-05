@@ -61,40 +61,46 @@ let
         chmod +x $out/message-cleaner
   '';
 
+  # Dotfiles repo path for direct symlinks (development mode)
+  dotfilesPath = builtins.toString claudeConfigDir;
+
 in
 {
-  # No packages needed - Claude Code installed separately
-  home.packages = [ ];
+  # Home Manager configuration
+  home = {
+    # No packages needed - Claude Code installed separately
+    packages = [ ];
 
-  # Symlink all Claude configuration files
-  home.file = {
-    # Main settings file
-    "${claudeHomeDir}/settings.json" = {
-      source = "${claudeConfigDir}/settings.json";
-      onChange = ''
-        echo "Claude settings.json updated"
+    # Symlink configuration files via Nix store
+    file = {
+      # Main settings file
+      "${claudeHomeDir}/settings.json" = {
+        source = "${claudeConfigDir}/settings.json";
+        onChange = ''
+          echo "Claude settings.json updated"
+        '';
+      };
+
+      # CLAUDE.md documentation
+      "${claudeHomeDir}/CLAUDE.md" = {
+        source = "${claudeConfigDir}/CLAUDE.md";
+      };
+
+      # Hooks directory (with built Go binary)
+      "${claudeHomeDir}/hooks" = {
+        source = hooksDir;
+        recursive = true;
+      };
+    };
+
+    # Direct symlinks for commands/agents (bypass Nix store for instant updates)
+    activation = {
+      claudeDirectSymlinks = pkgs.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        $DRY_RUN_CMD rm -f $HOME/${claudeHomeDir}/commands $HOME/${claudeHomeDir}/agents
+        $DRY_RUN_CMD ln -sf ${dotfilesPath}/commands $HOME/${claudeHomeDir}/commands
+        $DRY_RUN_CMD ln -sf ${dotfilesPath}/agents $HOME/${claudeHomeDir}/agents
+        echo "Created direct symlinks for Claude commands and agents"
       '';
-    };
-
-    # CLAUDE.md documentation
-    "${claudeHomeDir}/CLAUDE.md" = {
-      source = "${claudeConfigDir}/CLAUDE.md";
-    };
-
-    # Hooks directory (with built Go binary)
-    "${claudeHomeDir}/hooks" = {
-      source = hooksDir;
-      recursive = true;
-    };
-
-    # Commands directory (symlink for instant changes)
-    "${claudeHomeDir}/commands" = {
-      source = "${claudeConfigDir}/commands";
-    };
-
-    # Agents directory (symlink for instant changes)
-    "${claudeHomeDir}/agents" = {
-      source = "${claudeConfigDir}/agents";
     };
   };
 

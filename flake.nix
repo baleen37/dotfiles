@@ -243,6 +243,16 @@
             echo "✓ All checks passed" >> $out
           '';
 
+          # Folder structure validation (enforces architectural boundaries)
+          structure-validation =
+            let
+              validator = import ./lib/structure-validator.nix {
+                inherit pkgs;
+                inherit (pkgs) lib;
+              };
+            in
+            validator.validateStructure ./.;
+
         }
       );
 

@@ -84,6 +84,13 @@ repos:
         pass_filenames: false
         description: Fast flake validation for all systems (cross-platform check)
 
+      - id: structure-validation
+        name: Folder Structure Validation
+        entry: ./lib/structure-validator.sh
+        language: system
+        pass_filenames: false
+        description: Validates project folder structure and architectural boundaries
+
       - id: go-test
         name: Go Tests (Claude Hooks)
         entry: bash -c 'cd modules/shared/config/claude/hooks-go && nix-shell -p go --run "go test -v ./..."'

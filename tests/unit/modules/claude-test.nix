@@ -7,9 +7,10 @@
 #   - Darwin 심볼릭 링크 (test-darwin-links): macOS에서 모든 설정 파일 링크 생성 검증
 #   - Linux 심볼릭 링크 (test-linux-links): Linux에서 모든 설정 파일 링크 생성 검증
 #   - 패키지 추가 없음 (test-no-packages): 모듈이 불필요한 패키지를 추가하지 않는지 확인
+#   - 심볼릭 링크 무결성 (test-symlink-integrity): commands/agents가 symlink로 설정되었는지 확인
 #
-# VERSION: 1.0.0
-# LAST UPDATED: 2024-10-04
+# VERSION: 2.0.0
+# LAST UPDATED: 2025-10-05
 
 {
   pkgs ? import <nixpkgs> { },
@@ -17,13 +18,14 @@
 }:
 
 let
-  # Both platforms use same Claude directory structure (~/.claude)
-  expectedLinks = [
+  # Path to claude module (relative to this test file)
+  claudeModule = ../../../modules/shared/programs/claude/default.nix;
+
+  # Files managed via home.file (through Nix store)
+  expectedHomeFiles = [
     ".claude/settings.json"
     ".claude/CLAUDE.md"
     ".claude/hooks"
-    ".claude/commands"
-    ".claude/agents"
   ];
 
 in
@@ -35,7 +37,7 @@ rec {
     # Test that module has expected structure
     ${pkgs.nix}/bin/nix eval --json --impure --expr "
       let
-        module = import ${./default.nix} {
+        module = import ${claudeModule} {
           lib = (import <nixpkgs> {}).lib;
           config = {};
           pkgs = import <nixpkgs> {};
@@ -62,7 +64,7 @@ rec {
     # Check that all expected Darwin paths exist in home.file
     ${pkgs.nix}/bin/nix eval --json --impure --expr "
       let
-        module = import ${./default.nix} {
+        module = import ${claudeModule} {
           lib = (import <nixpkgs> {}).lib;
           config = {};
           pkgs = import <nixpkgs> {};
@@ -73,9 +75,9 @@ rec {
         builtins.attrNames module.home.file
     " > result.json
 
-    # Check each expected path
+    # Check each expected path (home.file managed files only)
     MISSING=""
-    for path in ${lib.escapeShellArgs expectedLinks}; do
+    for path in ${lib.escapeShellArgs expectedHomeFiles}; do
       if ! ${pkgs.jq}/bin/jq -e "map(select(. == \"$path\")) | length > 0" result.json >/dev/null; then
         MISSING="$MISSING $path"
       fi
@@ -97,7 +99,7 @@ rec {
     # Check that all expected Linux paths exist in home.file
     ${pkgs.nix}/bin/nix eval --json --impure --expr "
       let
-        module = import ${./default.nix} {
+        module = import ${claudeModule} {
           lib = (import <nixpkgs> {}).lib;
           config = {};
           pkgs = import <nixpkgs> {};
@@ -108,9 +110,9 @@ rec {
         builtins.attrNames module.home.file
     " > result.json
 
-    # Check each expected path
+    # Check each expected path (home.file managed files only)
     MISSING=""
-    for path in ${lib.escapeShellArgs expectedLinks}; do
+    for path in ${lib.escapeShellArgs expectedHomeFiles}; do
       if ! ${pkgs.jq}/bin/jq -e "map(select(. == \"$path\")) | length > 0" result.json >/dev/null; then
         MISSING="$MISSING $path"
       fi
@@ -131,7 +133,7 @@ rec {
 
     ${pkgs.nix}/bin/nix eval --json --impure --expr "
       let
-        module = import ${./default.nix} {
+        module = import ${claudeModule} {
           lib = (import <nixpkgs> {}).lib;
           config = {};
           pkgs = import <nixpkgs> {};
@@ -151,6 +153,53 @@ rec {
     fi
   '';
 
+  # Test 5: Symlinks are actual symlinks, not copies
+  test-symlink-integrity = pkgs.runCommand "test-claude-symlink-integrity" { } ''
+    echo "Testing: Configuration files are symlinks, not copies"
+
+    ${pkgs.nix}/bin/nix eval --json --impure --expr "
+      let
+        module = import ${claudeModule} {
+          lib = (import <nixpkgs> {}).lib;
+          config = {};
+          pkgs = import <nixpkgs> {};
+          platformInfo = { isDarwin = true; isLinux = false; };
+          userInfo = { paths = { home = \"/tmp\"; }; name = \"test\"; };
+        };
+      in
+        {
+          commands_recursive = module.home.file.\".claude/commands\".recursive or false;
+          agents_recursive = module.home.file.\".claude/agents\".recursive or false;
+          hooks_recursive = module.home.file.\".claude/hooks\".recursive or false;
+        }
+    " > result.json
+
+    # Commands and agents should NOT have recursive=true (should be symlinks)
+    if ${pkgs.jq}/bin/jq -e '.commands_recursive == false' result.json >/dev/null; then
+      echo "PASS: commands is configured as symlink (recursive=false)"
+    else
+      echo "FAIL: commands has recursive=true (will be copied, not symlinked)"
+      exit 1
+    fi
+
+    if ${pkgs.jq}/bin/jq -e '.agents_recursive == false' result.json >/dev/null; then
+      echo "PASS: agents is configured as symlink (recursive=false)"
+    else
+      echo "FAIL: agents has recursive=true (will be copied, not symlinked)"
+      exit 1
+    fi
+
+    # Hooks should have recursive=true (contains built Go binaries)
+    if ${pkgs.jq}/bin/jq -e '.hooks_recursive == true' result.json >/dev/null; then
+      echo "PASS: hooks is configured as directory copy (recursive=true)"
+    else
+      echo "FAIL: hooks should have recursive=true for Go binaries"
+      exit 1
+    fi
+
+    touch $out
+  '';
+
   # Run all tests
   all-tests =
     pkgs.runCommand "test-claude-all"
@@ -160,6 +209,7 @@ rec {
           test-darwin-links
           test-linux-links
           test-no-packages
+          test-symlink-integrity
         ];
       }
       ''
