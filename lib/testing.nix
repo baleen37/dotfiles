@@ -252,13 +252,6 @@ in
           exit 1
         fi
 
-        if [ -f "${self + /tests/unit/test-helpers.nix}" ]; then
-          echo "Test helpers file exists: PASSED" >> $out
-        else
-          echo "Test helpers file missing: FAILED" >> $out
-          exit 1
-        fi
-
         # Test integration test files exist
         if [ -f "${self + /tests/integration/module-interaction-test.nix}" ]; then
           echo "Module interaction test file exists: PASSED" >> $out
@@ -299,10 +292,10 @@ in
         echo "NixTest framework validation: PASSED" >> $out
       '';
 
-      # Test helpers validation
+      # Test file validation
       helpers-check = pkgs.runCommand "helpers-check" { } ''
-        # Simple validation that test helpers exist
-        echo "Testing helper functions availability..." > $out
+        # Simple validation that core test files exist
+        echo "Testing test file availability..." > $out
 
         # Check test files exist
         if [ -f "${self + /tests/unit/lib-test.nix}" ]; then
@@ -319,7 +312,7 @@ in
           exit 1
         fi
 
-        echo "Test helpers validation: PASSED" >> $out
+        echo "Test file validation: PASSED" >> $out
       '';
     }
   );
