@@ -47,6 +47,7 @@ in
   imports = [
     ../../modules/nixos/disk-config.nix
     ../../modules/shared/files.nix
+    ../../modules/shared/cachix
   ];
 
   # Use the systemd-boot EFI boot loader.
@@ -96,8 +97,6 @@ in
         "@admin"
         "${user}"
       ];
-      # substituters = [ "https://nix-community.cachix.org" "https://cache.nixos.org" ];
-      # trusted-public-keys = [ "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=" ];
     };
 
     package = pkgs.nix;

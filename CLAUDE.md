@@ -74,6 +74,15 @@ Professional Nix dotfiles system supporting:
 3. **Host Configurations** (`hosts/`): Individual machine definitions
 4. **Library Functions** (`lib/`): Reusable Nix utilities
 
+### Modularization Principle
+
+**Benefits**: Single Responsibility, DRY principle, easy enable/disable, independent testing
+
+```nix
+# ✅ Best practice: Module separation and reuse
+imports = [ ../../modules/shared/cachix ];  # Shared across darwin/nixos
+```
+
 ## Current Development: Build-Switch Testing Implementation
 
 **Status**: Active development

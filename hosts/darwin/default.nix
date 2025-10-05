@@ -34,6 +34,7 @@ in
     ../../modules/darwin/home-manager.nix
     ../../modules/darwin/app-links.nix
     ../../modules/darwin/nix-gc.nix # macOS 전용 갈비지 컬렉션 설정
+    ../../modules/shared/cachix # Binary cache configuration
     ../../modules/shared
   ];
 
