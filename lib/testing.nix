@@ -95,6 +95,26 @@ in
           ;
       };
 
+      # Import e2e test suites directly (not using default.nix wrapper)
+      buildSwitchTests = import (self + /tests/e2e/build-switch-test.nix) {
+        inherit
+          lib
+          pkgs
+          system
+          nixtest
+          self
+          ;
+      };
+      userWorkflowTests = import (self + /tests/e2e/user-workflow-test.nix) {
+        inherit
+          lib
+          pkgs
+          system
+          nixtest
+          self
+          ;
+      };
+
       # Helper function to run test suites and format results
       runTestSuite =
         testSuite:
@@ -132,6 +152,10 @@ in
       crossPlatformTestSuite = runTestSuite crossPlatformTests;
       systemConfigurationTestSuite = runTestSuite systemConfigurationTests;
 
+      # E2E test derivations
+      buildSwitchTestSuite = runTestSuite buildSwitchTests;
+      userWorkflowTestSuite = runTestSuite userWorkflowTests;
+
       # Combined test runner that executes all test suites
       allTestSuites =
         pkgs.runCommand "nixtest-all-suites"
@@ -154,6 +178,11 @@ in
             cp -r ${moduleInteractionTestSuite}/* $out/results/integration-tests/module-interaction/
             cp -r ${crossPlatformTestSuite}/* $out/results/integration-tests/cross-platform/
             cp -r ${systemConfigurationTestSuite}/* $out/results/integration-tests/system-configuration/
+
+            # Copy e2e test results
+            mkdir -p $out/results/e2e-tests/build-switch $out/results/e2e-tests/user-workflow
+            cp -r ${buildSwitchTestSuite}/* $out/results/e2e-tests/build-switch/
+            cp -r ${userWorkflowTestSuite}/* $out/results/e2e-tests/user-workflow/
 
             # Generate combined report
             echo "NixTest Framework Results" > $out/report.txt
@@ -186,6 +215,17 @@ in
             cat ${systemConfigurationTestSuite}/summary.txt | sed 's/^/  /' >> $out/report.txt
             echo "" >> $out/report.txt
 
+            # Add e2e test suite summaries
+            echo "E2E TESTS" >> $out/report.txt
+            echo "---------" >> $out/report.txt
+            echo "Build-Switch Tests:" >> $out/report.txt
+            cat ${buildSwitchTestSuite}/summary.txt | sed 's/^/  /' >> $out/report.txt
+            echo "" >> $out/report.txt
+
+            echo "User Workflow Tests:" >> $out/report.txt
+            cat ${userWorkflowTestSuite}/summary.txt | sed 's/^/  /' >> $out/report.txt
+            echo "" >> $out/report.txt
+
             echo "All test suites completed successfully." >> $out/report.txt
 
             # Create success marker
@@ -202,6 +242,10 @@ in
       module-interaction = moduleInteractionTestSuite;
       cross-platform = crossPlatformTestSuite;
       system-configuration = systemConfigurationTestSuite;
+
+      # E2E test suites
+      build-switch = buildSwitchTestSuite;
+      user-workflow = userWorkflowTestSuite;
 
       # Combined test runner
       all = allTestSuites;
@@ -238,6 +282,21 @@ in
           echo "Cross-platform test file exists: PASSED" >> $out
         else
           echo "Cross-platform test file missing: FAILED" >> $out
+          exit 1
+        fi
+
+        # Test e2e test files exist
+        if [ -f "${self + /tests/e2e/build-switch-test.nix}" ]; then
+          echo "Build-switch test file exists: PASSED" >> $out
+        else
+          echo "Build-switch test file missing: FAILED" >> $out
+          exit 1
+        fi
+
+        if [ -f "${self + /tests/e2e/user-workflow-test.nix}" ]; then
+          echo "User workflow test file exists: PASSED" >> $out
+        else
+          echo "User workflow test file missing: FAILED" >> $out
           exit 1
         fi
 

@@ -303,6 +303,8 @@
                 module-interaction
                 cross-platform
                 system-configuration
+                build-switch
+                user-workflow
                 all
                 ;
             }

@@ -150,8 +150,16 @@ imports = [ ../../modules/shared/cachix ];  # Shared across darwin/nixos
 
 ### Code Documentation Standards
 
-- **File header comments**: Every file must have a top comment explaining its role
-- **Complex logic**: Add inline comments for non-obvious or difficult-to-understand code
+**File Headers**: Every file must explain its role
+
+**Inline Comments**: Use sparingly for complex logic only (nix.dev guideline: prefer self-documenting code)
+
+**Avoid**: Implementation details (frameworks/libraries), temporal context (new/old/legacy), refactoring history
+
+```nix
+# ❌ BAD: Refactored Zod validation wrapper
+# ✅ GOOD: Validates user input against schema
+```
 
 ### Quality Assurance
 

@@ -50,6 +50,7 @@ help:
 	@echo "  test-core   - Run core unit tests (no duplicates)"
 	@echo "  test-unit   - Run Nix unit tests (nix-unit framework)"
 	@echo "  test-contract - Run contract tests (interface validation)"
+	@echo "  test-e2e    - Run E2E tests (end-to-end workflow validation)"
 	@echo "  test-coverage - Run tests with coverage measurement"
 	@echo "  test-quick  - Fast parallel validation tests"
 	@echo "  test-monitor - Performance monitoring tests"
@@ -181,6 +182,12 @@ test-contract:
 	@$(NIX) build --impure .#packages.$(shell nix eval --impure --expr builtins.currentSystem).cross-platform $(ARGS)
 	@$(NIX) build --impure .#packages.$(shell nix eval --impure --expr builtins.currentSystem).system-configuration $(ARGS)
 	@echo "✅ Contract tests completed successfully!"
+
+test-e2e:
+	@echo "🚀 Running E2E tests (end-to-end workflow validation)..."
+	@$(NIX) build --impure .#packages.$(shell nix eval --impure --expr builtins.currentSystem).build-switch $(ARGS)
+	@$(NIX) build --impure .#packages.$(shell nix eval --impure --expr builtins.currentSystem).user-workflow $(ARGS)
+	@echo "✅ E2E tests completed successfully!"
 
 test-coverage:
 	@echo "📊 Running tests with coverage measurement..."
