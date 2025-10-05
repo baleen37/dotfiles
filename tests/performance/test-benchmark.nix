@@ -79,8 +79,7 @@ let
       --eval-store auto \
       --extra-experimental-features "nix-command flakes" \
       tests.unit.lib-functions \
-      tests.unit.test-builders \
-      tests.unit.coverage-system 2>&1 | tee unit_output.log || true
+      tests.unit.test-builders 2>&1 | tee unit_output.log || true
 
     END_TIME=$(date +%s.%N)
     DURATION=$(echo "$END_TIME - $START_TIME" | bc -l)

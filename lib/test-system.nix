@@ -454,39 +454,12 @@ let
         config ? { },
       }:
       let
-        # Import coverage system if enabled
-        coverageSystem = import ./coverage-system.nix {
-          inherit (actualPkgs) lib;
-          pkgs = actualPkgs;
-        };
-
-        # Initialize coverage session if enabled
-        coverageSession =
-          if config.coverage or false then
-            coverageSystem.measurement.initSession {
-              inherit (suite) name;
-              inherit config;
-            }
-          else
-            null;
-
         # Run tests (parallel or sequential based on config)
         testResults =
           if config.parallel or true then
             testExecutors.runTestsParallel suite.tests config
           else
             testExecutors.runTestsSequential suite.tests config;
-
-        # Collect coverage if enabled
-        coverage =
-          if coverageSession != null then
-            coverageSystem.measurement.collectCoverage {
-              session = coverageSession;
-              modules = suite.modules or [ ];
-              inherit testResults;
-            }
-          else
-            null;
 
         # Generate summary
         summary = {
@@ -500,7 +473,6 @@ let
       in
       {
         results = testResults;
-        coverage = coverage.results or null;
         inherit summary;
         status = if summary.failed > 0 then "failed" else "passed";
         timestamp = builtins.toString builtins.currentTime;
