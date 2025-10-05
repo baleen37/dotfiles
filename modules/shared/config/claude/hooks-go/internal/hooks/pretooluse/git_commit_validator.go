@@ -26,24 +26,18 @@ func (h *GitCommitValidator) Validate(ctx context.Context, input *hook.Input) (*
 	resp := hook.NewResponse()
 
 	// Only process Bash tool
-	if input.ToolName != "Bash" {
+	if !hook.IsBashTool(input) {
 		return resp, nil
 	}
 
 	// Get command from tool input
-	commandInterface, ok := input.ToolInput["command"]
-	if !ok {
-		return resp, nil
-	}
-
-	command, ok := commandInterface.(string)
+	command, ok := hook.GetBashCommand(input)
 	if !ok {
 		return resp, nil
 	}
 
 	// Check if this is a git commit command
-	gitCommitPattern := regexp.MustCompile(`^\s*git\s+commit\b`)
-	if !gitCommitPattern.MatchString(command) {
+	if !hook.IsGitCommitCommand(command) {
 		return resp, nil
 	}
 

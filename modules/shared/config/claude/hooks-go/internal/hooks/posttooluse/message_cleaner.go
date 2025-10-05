@@ -87,24 +87,18 @@ func (h *MessageCleaner) CleanClaudeAttribution(message string) (string, bool) {
 // shouldProcess checks if this command should be processed
 func (h *MessageCleaner) shouldProcess(input *hook.Input) bool {
 	// Only process Bash tool
-	if input.ToolName != "Bash" {
+	if !hook.IsBashTool(input) {
 		return false
 	}
 
 	// Get command
-	commandInterface, ok := input.ToolInput["command"]
-	if !ok {
-		return false
-	}
-
-	command, ok := commandInterface.(string)
+	command, ok := hook.GetBashCommand(input)
 	if !ok {
 		return false
 	}
 
 	// Check if this is a git commit command
-	gitCommitPattern := regexp.MustCompile(`^\s*git\s+commit\b`)
-	if !gitCommitPattern.MatchString(command) {
+	if !hook.IsGitCommitCommand(command) {
 		return false
 	}
 
