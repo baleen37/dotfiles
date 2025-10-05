@@ -64,8 +64,9 @@ jobs:
         run: |
           # Unset core.hooksPath if set (prevents pre-commit installation errors)
           git config --unset-all core.hooksPath || true
-          nix-shell -p pre-commit nixfmt statix deadnix --run "pre-commit install"
-          nix-shell -p pre-commit nixfmt statix deadnix --run "pre-commit run --all-files"
+          # Use nix develop to load all dev tools (nixfmt, statix, deadnix, pre-commit)
+          nix develop --command bash -c "pre-commit install"
+          nix develop --command bash -c "pre-commit run --all-files"
       - name: Validate flake
         run: |
           echo "Debug: USER before export: '$USER'"
@@ -79,8 +80,8 @@ jobs:
       - name: Run Go tests
         run: |
           echo "🧪 Running Go tests for Claude Code hooks"
-          cd modules/shared/config/claude/hooks-go
-          nix-shell -p go --run "go test -v ./..."
+          cd modules/shared/programs/claude/hooks-go
+          nix develop --command bash -c "go test -v ./..."
           echo "✅ Go tests passed"
   # Build and switch combined (faster, simpler)
   build-switch:

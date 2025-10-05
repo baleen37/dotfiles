@@ -105,6 +105,9 @@
                 wget
                 jq
 
+                # Programming languages
+                go # Go language for Claude hooks
+
                 # Nix tools (RFC 166 standard)
                 nixfmt # Official Nix formatter
                 statix # Anti-pattern linter
