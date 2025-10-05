@@ -105,3 +105,4 @@ in
   # No programs configuration needed
   programs = { };
 }
+# Trigger rebuild
