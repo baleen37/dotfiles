@@ -6,12 +6,14 @@
 #
 # Key Components:
 # - Platform Detection: OS and architecture detection with caching for performance
+# - Platform Configurations: Imported from platform-configs.nix (single source of truth)
 # - App Management: Platform-specific app builders (Linux, Darwin, universal)
 # - Architecture Support: Multi-architecture builds with optimized detection
 # - Utilities: Cross-platform helper functions and compatibility layers
 #
 # Functions:
 # - platformDetection: Cached platform and architecture detection functions
+# - platformConfigs: Platform-specific settings imported from platform-configs.nix
 # - apps.platformApps: Platform-specific app configurations (linux/darwin/universal)
 # - apps.coreApps: Cross-platform core application definitions
 # - utils: Platform utilities for conditional logic and architecture handling
@@ -111,63 +113,12 @@ let
     isValidSystem = builtins.elem detection.nixSystem detection.supportedSystems;
   };
 
-  # Platform-specific configurations
-  platformConfigs = {
-    darwin = {
-      hasHomebrew = true;
-      packageManager = "brew";
-      shellPath = "/bin/zsh";
-      systemPaths = [
-        "/usr/bin"
-        "/usr/local/bin"
-        "/opt/homebrew/bin"
-      ];
-      buildOptimizations = {
-        parallelJobs = 8;
-        useCache = true;
-        extraFlags = [
-          "--option"
-          "system-features"
-          "nixos-test"
-        ];
-        optimizationLevel = "-O2";
-        targetFlags = if currentSystem.isAarch64 then [ "-mcpu=apple-m1" ] else [ "-march=native" ];
-      };
-      preferredApps = {
-        terminal = "iterm2";
-        browser = "safari";
-        editor = "vim";
-        fileManager = "finder";
-      };
-    };
-    linux = {
-      hasHomebrew = false;
-      packageManager = "nix";
-      shellPath = "/run/current-system/sw/bin/zsh";
-      systemPaths = [
-        "/run/current-system/sw/bin"
-        "/usr/bin"
-        "/bin"
-      ];
-      buildOptimizations = {
-        parallelJobs = 8;
-        useCache = true;
-        extraFlags = [
-          "--option"
-          "system-features"
-          "nixos-test"
-        ];
-        optimizationLevel = "-O2";
-        targetFlags = if currentSystem.isAarch64 then [ "-mcpu=native" ] else [ "-march=native" ];
-      };
-      preferredApps = {
-        terminal = "alacritty";
-        browser = "firefox";
-        editor = "vim";
-        fileManager = "nautilus";
-      };
-    };
+  # Import platform-specific configurations (eliminates duplication)
+  platformConfigsModule = import ./platform-configs.nix {
+    inherit pkgs lib;
+    inherit (currentSystem) system;
   };
+  inherit (platformConfigsModule) platformConfigs;
 
   # Get current platform configuration
   getCurrentPlatformConfig =

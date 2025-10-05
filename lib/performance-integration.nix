@@ -18,10 +18,6 @@ let
     benchmark = import ../tests/performance/test-benchmark.nix {
       inherit (pkgs) writeShellScript;
     };
-    # TODO: Re-enable when performance tools are implemented
-    # memoryProfiler = import ../tests/performance/advanced-memory-profiler.nix { inherit lib pkgs self; stdenv = pkgs.stdenv; writeShellScript = pkgs.writeShellScript; python3 = pkgs.python3; gawk = pkgs.gawk; procps = pkgs.procps; time = pkgs.time; bc = pkgs.bc; coreutils = pkgs.coreutils; };
-    # optimizationConfig = import ../tests/performance/optimization-config.nix { inherit lib pkgs self; stdenv = pkgs.stdenv; writeShellScript = pkgs.writeShellScript; writeText = pkgs.writeText; jq = pkgs.jq; coreutils = pkgs.coreutils; };
-    # performanceReporter = import ../tests/performance/performance-reporter.nix { inherit lib pkgs self; stdenv = pkgs.stdenv; writeShellScript = pkgs.writeShellScript; writeText = pkgs.writeText; python3 = pkgs.python3; gnuplot = pkgs.gnuplot; jq = pkgs.jq; bc = pkgs.bc; coreutils = pkgs.coreutils; };
   };
 
   # Performance configuration
@@ -198,15 +194,8 @@ rec {
       # Performance-optimized packages
       packages = originalOutputs.packages // {
         ${system} = basePackages // {
-          # Performance tools available via nix commands
-          # Scripts can be run directly from lib/ directory
-
           # Testing framework performance tools
           test-benchmark = testingPerformance.benchmark.benchmark;
-          # TODO: Re-enable when performance tools are implemented
-          # memory-profiler = testingPerformance.memoryProfiler.performanceAnalysis;
-          # optimization-controller = testingPerformance.optimizationConfig.optimizationController;
-          # performance-reporter = testingPerformance.performanceReporter.reportingSuite;
         };
       };
 
@@ -231,19 +220,6 @@ rec {
               type = "app";
               program = toString testingPerformance.benchmark.benchmark;
             };
-            # TODO: Re-enable when performance tools are implemented
-            # memory-profiler = {
-            #   type = "app";
-            #   program = toString testingPerformance.memoryProfiler.performanceAnalysis;
-            # };
-            # optimization-controller = {
-            #   type = "app";
-            #   program = toString testingPerformance.optimizationConfig.optimizationController;
-            # };
-            # performance-reporter = {
-            #   type = "app";
-            #   program = toString testingPerformance.performanceReporter.reportingSuite;
-            # };
 
             # Wrap existing apps with performance monitoring
           }

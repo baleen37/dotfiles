@@ -1,382 +1,178 @@
-# CLAUDE.md - Professional Nix Dotfiles System
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
 
-**Enterprise-grade dotfiles management system** providing reproducible development environments across macOS and NixOS using Nix flakes, Home Manager, and nix-darwin.
+Enterprise-grade dotfiles management system providing reproducible development environments across macOS and NixOS using Nix flakes, Home Manager, and nix-darwin.
 
-### Core Purpose
+**Platforms**: macOS (Intel/ARM), NixOS (x86_64/ARM64)
+**Architecture**: dustinlyons-inspired direct import patterns (simplified from complex abstractions)
+**Tools**: 50+ development packages, 34+ macOS GUI apps via Homebrew
 
-Professional Nix dotfiles system supporting:
+## ⚠️ Critical Rules
 
-- **Cross-platform compatibility**: macOS (Intel + Apple Silicon) and NixOS (x86_64 + ARM64)
-- **50+ development tools**: git, vim, docker, terraform, nodejs, python, and comprehensive toolchains
-- **AI-powered development support**: 20+ specialized Claude Code commands
-- **Enterprise automation**: auto-updates, configuration preservation, intelligent build optimization
+**NEVER:**
 
-## Technical Architecture
+- Hardcode Nix store paths (they change with every rebuild)
+- Skip pre-commit hooks with `--no-verify`
+- Manually fix formatting - always use `make format`
+- Use bats for testing - use Nix's built-in test framework
 
-### Technology Stack
+**ALWAYS:**
 
-- **Core**: Nix Flakes, Home Manager, nix-darwin, NixOS
-- **Architecture**: dustinlyons-inspired direct import patterns (simplified from complex abstractions)
-- **Languages**: Nix (configuration), YAML (settings), JSON (Claude Code), Lua (GUI apps), bash (automation)
-- **Development**: Pre-commit hooks, GitHub Actions CI/CD, comprehensive testing framework
-- **Platforms**: macOS (x86_64/aarch64-darwin), NixOS (x86_64/aarch64-linux)
+- Set `export USER=$(whoami)` before any build operations
+- Use `make build-current` during development (not `make build`)
+- Run `make format` before committing
+- Follow TDD: write failing test → minimal code → refactor
 
-### Codebase Structure
+## Essential Commands
+
+### Daily Development
+
+```bash
+# Setup (once per session)
+export USER=$(whoami)          # REQUIRED: Set before builds
+
+# Development cycle
+make format                    # Auto-format all files (nix run .#format)
+make build-current            # Build current platform only (fastest)
+make test-core                # Run essential tests
+make smoke                    # Quick validation (~30 seconds)
+
+# Production deployment
+make build-switch             # Build and apply changes
+```
+
+### Testing
+
+```bash
+make test-nix                # Nix-based unit tests
+make test-enhanced           # Integration tests
+make test-monitor           # Performance monitoring
+```
+
+### Platform-Specific
+
+```bash
+make build-darwin           # macOS only
+make build-linux            # NixOS only
+make platform-info          # Show platform details
+make build-switch-dry       # CI-safe dry-run
+```
+
+## Architecture
+
+### Module Structure
 
 ```text
-├── flake.nix              # Flake entry point and outputs
-├── Makefile               # Development workflow automation
-├── CLAUDE.md              # Claude Code project guidelines
-├── CONTRIBUTING.md        # Development standards
-│
-├── modules/               # Modular configuration system
-│   ├── shared/            #   Cross-platform settings
-│   │   ├── packages.nix   #   Package definitions only
-│   │   ├── programs.nix   #   Program configurations only
-│   │   └── home-manager.nix #  Home Manager settings only
-│   ├── darwin/            #   macOS-specific modules
-│   │   ├── packages.nix   #   macOS packages
-│   │   ├── casks.nix      #   Homebrew casks
-│   │   └── system.nix     #   System settings
-│   └── nixos/             #   NixOS-specific modules
-│       ├── packages.nix   #   NixOS packages
-│       ├── services.nix   #   Service configurations
-│       └── system.nix     #   System settings
-│
-├── hosts/                 # Host-specific configurations
-│   ├── darwin/            #   macOS system definitions
-│   └── nixos/             #   NixOS system definitions
-│
-├── lib/                   # Nix utility functions and builders
-│   ├── core/              #   Core utilities
-│   ├── testing/           #   Testing framework (MOVED)
-│   ├── performance/       #   Performance optimization (MOVED)
-│   └── automation/        #   CI/CD functionality (MOVED)
-├── scripts/               # Automation and management tools
-├── tests/                 # Multi-tier testing framework (87% optimized)
-│   ├── unit/              #   Component-level testing (6 files)
-│   ├── integration/       #   Module interaction testing (6 files)
-│   ├── e2e/               #   End-to-end workflow testing (5 files)
-│   ├── performance/       #   Performance and memory monitoring
-│   ├── lib/               #   Shared test utilities and frameworks
-│   └── config/            #   Test environment configurations
-├── docs/                  # Comprehensive documentation
-├── config/                # Externalized configuration files
-└── overlays/              # Custom package definitions and patches
+modules/
+├── shared/        # Cross-platform configs (most dev tools go here)
+├── darwin/        # macOS-specific (system settings, Homebrew casks)
+└── nixos/         # NixOS-specific (systemd services, Linux packages)
+
+hosts/             # Machine-specific configs (hostname, hardware, user)
+lib/               # Pure Nix utilities (formatters, testing, automation)
+tests/             # Multi-tier testing (unit, integration, e2e, performance)
 ```
 
-### Module Architecture
+### Module Philosophy
 
-1. **Platform Modules** (`modules/{darwin,nixos}/`): OS-specific configurations
-2. **Shared Modules** (`modules/shared/`): Cross-platform functionality
-3. **Host Configurations** (`hosts/`): Individual machine definitions
-4. **Library Functions** (`lib/`): Reusable Nix utilities
+**Platform Separation**: `modules/{darwin,nixos}/` contain OS-specific code to prevent cross-contamination. Darwin handles macOS system settings and Homebrew; NixOS handles systemd and Linux packages.
 
-### Modularization Principle
+**Shared Abstractions**: `modules/shared/` provides cross-platform functionality (DRY principle). Write once, use everywhere.
 
-**Benefits**: Single Responsibility, DRY principle, easy enable/disable, independent testing
+**Host Specialization**: `hosts/` define machine-specific overrides while inheriting from platform modules.
 
-```nix
-# ✅ Best practice: Module separation and reuse
-imports = [ ../../modules/shared/cachix ];  # Shared across darwin/nixos
+**Library Functions**: `lib/` contains platform-agnostic utilities testable in isolation.
+
+### Design Principles
+
+**dustinlyons Patterns**: Direct imports, explicit configurations, minimal abstractions. Result: 300+ lines removed while preserving all functionality.
+
+**Nix-Based Tooling**:
+
+- Formatting: `lib/formatters.nix` → `nix run .#format`
+- Testing: Native `nix flake check` (no bats)
+- Building: Flake apps for reproducibility
+
+## Code Quality
+
+### Auto-Formatting
+
+```bash
+make format              # Format all files (Nix, YAML, JSON, Markdown, shell)
+make lint-format         # Pre-commit workflow
 ```
 
-### Nix Best Practices
+**Supported formats**: nixfmt (Nix), yamlfmt (YAML), jq (JSON), prettier (Markdown), shfmt (shell)
 
-**Flakes**: Use as entry point only, manage dependencies via flake.lock, keep build logic in traditional Nix
+### Pre-commit Hooks
 
-**Integration**: nix-darwin (system) → home-manager (user), set `useGlobalPkgs = true`
+**Never bypass** with `--no-verify`. If pre-commit fails, run `make format` instead of manual fixes.
 
-**Modularity**: Split by traits (common/desktop/laptop), use `lib.mkDefault/mkForce` for priority
+### Testing
 
-**Performance**: Enable binary caches, use `--impure` for user resolution, parallel builds
+**Multi-tier strategy**:
 
-## Current Development: Build-Switch Testing Implementation
+- Unit tests: Component-level validation
+- Integration tests: Module interaction verification
+- E2E tests: Complete workflow validation
+- Performance tests: Build time and resource monitoring
 
-**Status**: Active development
-**Branch**: feature/tests-modernization
-**Goal**: Platform-specific build validation and deployment safety
+**NO bats** - use Nix's built-in test framework (`pkgs.runCommand`, etc.)
 
-### Current Focus
+## Important Notes
 
-- **Platform-Specific Build Testing**: Validate build-switch across all platforms
-- **Enhanced CI Pipeline**: Multi-platform matrix testing for Darwin and Linux
-- **Deployment Safety**: Dry-run validation before production deployments
-- **Cross-Platform Compatibility**: Ensure reproducible builds on all supported architectures
+### USER Variable
 
-### Recent Improvements
+All builds require `export USER=$(whoami)` due to dynamic user resolution. Builds fail without this.
 
-1. **Build-Switch CI Testing**: Added platform-specific build-switch validation
-   - Darwin ARM64 (macOS 15)
-   - Darwin x64 (macOS 13)
-   - Linux ARM64 (Ubuntu)
-   - Linux x64 (Ubuntu)
+### Nix Store Paths
 
-2. **Makefile Addition**: New `build-switch-dry` target for safe CI testing
-3. **CI Integration**: Comprehensive status reporting with build-switch results
-4. **Conflict Resolution**: Fixed linux-builder configuration for Determinate Nix compatibility
+**NEVER** hardcode paths like `/nix/store/abc123xyz-package/bin/command`:
 
-## Development Workflow
+- Change with every rebuild
+- Differ across platforms
+- Break after `nix-collect-garbage`
 
-### Standard Process
+**Use command names instead** (PATH lookup) or install via Home Manager.
 
-1. **Test-Driven Development**: Write failing tests first
-2. **Configuration Updates**: Implement NixOS/darwin changes
-3. **Auto-Formatting**: Use `make format` to ensure code quality and consistency
-4. **Service Deployment**: Test system integration
-5. **Validation**: Verify functionality and performance
-6. **Documentation**: Update relevant documentation
+### Build Optimization
 
-### Code Quality Enforcement
+Development: `make build-current` (builds only current platform)
+Production: `make build-switch` (builds and applies)
 
-**Auto-Formatting Workflow**: Leverage Nix-based automated formatting for consistent code quality:
+### Platform Detection
 
-- Use `make format` (wraps `nix run .#format`) to automatically fix formatting and lint issues
-- NEVER manually fix formatting issues - let automation handle it
-- **Pre-commit Hook Compliance**: Ensure pre-commit hooks are installed and never bypassed:
-  - NEVER use `git commit -n` or `--no-verify` flags
-  - If pre-commit fails, run `make format` instead of manual fixes
-  - Pre-commit hooks handle all formatting, linting, and basic validation automatically
+System automatically detects platform via `lib/platform-system.nix`. Cross-platform validation runs on 4 platforms: Darwin ARM64/x64, Linux ARM64/x64.
 
-**Efficient Development**: The Nix-based auto-formatting system (lib/formatters.nix) eliminates manual formatting work:
+## Code Documentation
 
-- `make format-nix`: Format all Nix files with nixfmt
-- `make format-yaml`: Format YAML files with yamlfmt
-- `make format-json`: Format JSON files with jq
-- `make format-markdown`: Format Markdown files with prettier
-- `make format`: Run all formatters in parallel for maximum efficiency
-
-### Code Documentation Standards
-
-**File Headers**: Every file must explain its role
-
-**Inline Comments**: Use sparingly for complex logic only (nix.dev guideline: prefer self-documenting code)
-
-**Avoid**: Implementation details (frameworks/libraries), temporal context (new/old/legacy), refactoring history
+**File headers**: Every file must explain its role
+**Inline comments**: Sparingly, for complex logic only
+**Avoid**: Implementation details, temporal context (new/old/legacy), refactoring history
 
 ```nix
 # ❌ BAD: Refactored Zod validation wrapper
 # ✅ GOOD: Validates user input against schema
 ```
 
-### Quality Assurance
-
-- **Multi-tier Testing**: Unit, integration, end-to-end, performance tests
-- **CI/CD Pipeline**: Automated testing and validation with platform-specific build-switch verification
-- **Cross-Platform Validation**: 4-platform matrix testing (Darwin ARM64/x64, Linux ARM64/x64)
-- **Auto-Formatting**: Automated code quality with `make format` eliminating manual formatting work
-- **Code Quality**: Pre-commit hooks and standardized formatting
-- **Claude Code Integration**: AI-assisted development and review
-- **Deployment Safety**: Dry-run build-switch testing in CI environment
-
-## Recent Achievements
-
-### Platform-Specific Build-Switch Testing ✅
-
-**Status**: Successfully implemented (October 2025)
-**Impact**: Comprehensive deployment validation across all supported platforms
-
-#### Implementation Details
-
-- **4-Platform Matrix**: Darwin ARM64/x64, Linux ARM64/x64 validation
-- **Safe CI Testing**: Dry-run mode validates builds without system modifications
-- **Robust Integration**: CI status reporting includes build-switch results
-- **Enhanced Reliability**: Early detection of platform-specific build issues
-
-#### Key Benefits
-
-- **Deployment Safety**: Catch build failures before production
-- **Cross-Platform Validation**: Ensure reproducibility across architectures
-- **Continuous Integration**: Automated testing on every PR
-- **Zero-Risk Testing**: No system changes in CI environment
-
-### dustinlyons Refactoring Complete ✅
-
-**Status**: Successfully completed (October 2025)
-**Impact**: 91-line code reduction (-30%) while preserving all functionality
-
-#### Refactoring Results
-
-- **✅ Architecture Simplified**: Complex abstractions → direct import patterns
-- **✅ Code Reduced**: flake.nix (302→209 lines), total -300 lines across modules
-- **✅ dustinlyons Patterns**: Direct imports, explicit configurations, minimal abstractions
-- **✅ Functionality Preserved**: All builds pass, Home Manager, nix-homebrew, testing infrastructure
-- **✅ Maintainability Improved**: Easier debugging, clearer intent, reduced complexity
-
-Following dustinlyons principle: "Simple, direct solutions over sophisticated abstractions"
-
-### Shell → Nix Migration ✅
-
-**Status**: Successfully completed (January 2025)
-**Impact**: Declarative, reproducible tooling with 14,000+ lines removed
-
-#### Migration Results
-
-- **Formatting**: `scripts/auto-format.sh` → `nix run .#format` (via `lib/formatters.nix`)
-- **Testing**: `scripts/quick-test.sh` → `nix flake check` (native Nix checks)
-- **MCP Setup**: Shell scripts removed (use `claude mcp add` CLI directly)
-
-#### Key Benefits
-
-- **Reproducibility**: Pinned dependencies in flake.lock
-- **Integration**: Native Nix ecosystem integration
-- **Simplification**: 14,000+ lines of shell code eliminated
-- **Consistency**: Single source of truth for tooling
-
-## Critical Development Notes
-
-### USER Variable Requirement
-
-```bash
-export USER=$(whoami)    # MUST run this before any build operation
-```
-
-**Why**: The system uses dynamic user resolution instead of hardcoded usernames. All builds will fail without this.
-
-### Auto-Formatting Policy
-
-```bash
-make format              # Nix-based formatting (uses nix run .#format)
-nix run .#format        # Direct Nix invocation (alternative)
-```
-
-**Never manually fix formatting issues** - the Nix-based auto-formatting system handles:
-
-- Nix files (nixfmt)
-- YAML files (yamlfmt)
-- JSON files (jq)
-- Markdown files (prettier)
-- Shell scripts (shfmt)
-
-### Pre-commit Compliance
-
-```bash
-make lint-format         # Recommended workflow before commits
-```
-
-**Never use `git commit --no-verify`** - pre-commit hooks ensure code quality and are required.
-
-### Build Optimization
-
-```bash
-make build-current       # Build only current platform (faster development)
-make build-switch        # Build and apply together (production workflow)
-```
-
-**For development**: Use `build-current` to avoid building all platforms during iteration.
-
-### Nix Path Configuration Rule
-
-**CRITICAL**: NEVER hardcode Nix store paths in any configuration files
-
-```bash
-# ❌ BAD - Hardcoded Nix store path
-/nix/store/abc123xyz-package-1.0.0/bin/command
-
-# ✅ GOOD - Use command name (PATH lookup)
-command
-
-# ✅ GOOD - Development: Add result to PATH
-export PATH="$PWD/result/bin:$PATH"
-
-# ✅ GOOD - Production: Install via Home Manager
-home-manager switch
-```
-
-**Why**: Nix store paths are content-addressed hashes that:
-
-- Change with every rebuild
-- Differ across platforms (darwin/linux)
-- Break after `nix-collect-garbage`
-- Are not portable between machines
-
-**Applies to**:
-
-- `.claude/settings.json` - Claude Code hooks configuration
-- Shell scripts - Use `command` not `/nix/store/.../bin/command`
-- System services - Reference by name, not absolute path
-- Environment variables - Let Nix/Home Manager handle PATH
-
-## Project Philosophy
-
-### Design Principles
-
-**Modular Architecture**: Single responsibility modules with clear platform separation and cross-platform reusability through shared utilities.
-
-**Declarative Configuration**: External YAML-based settings with environment variable overrides and comprehensive validation.
-
-**Performance-First Development**: Optimized testing framework achieving 87% file reduction (133→17), 50% faster execution, and 30% memory reduction.
-
-**Quality Assurance**: Multi-tier testing strategy (unit, integration, e2e, performance) with TDD methodology, automated formatting workflow, and automated CI/CD pipelines.
-
-### Testing Philosophy
-
-**Comprehensive Coverage**: Component-level validation through unit tests, module interaction verification via integration tests, and complete workflow validation with end-to-end testing.
-
-**Performance Optimization**: Parallel execution with thread pools, memory management through efficient allocation, and smart caching to reduce redundant operations.
-
-**Development Workflow**: Test-driven development with RED-GREEN-Refactor cycles, automated formatting integration, early failure detection, and dependency-aware test ordering.
-
-### Configuration Management
-
-**Separation of Concerns**: Platform-specific modules (`darwin/`, `nixos/`) with shared cross-platform functionality and externalized configuration files.
-
-**Reproducibility**: Flake-based dependency management and SHA256-based change detection.
-
-**Safety**: Configuration preservation during updates and manual merge conflict resolution tools.
-
-## Essential Development Commands
-
-### Core Workflow (Always Required)
-
-```bash
-export USER=$(whoami)          # REQUIRED: Set before any build operations
-make format                    # Auto-format all files (uses nix run .#format)
-nix run .#format              # Direct Nix invocation (alternative)
-make lint-format              # Recommended pre-commit workflow
-make build-current            # Build only current platform (fastest)
-make build-switch             # Build and apply in one step
-make build-switch-dry         # Test build-switch without applying (CI-safe)
-```
-
-### Testing Workflow
-
-```bash
-make test-core                # Essential test suite
-make test-nix                # Nix-based unit tests (NO bats)
-make test-enhanced           # Integration tests with reporting
-make smoke                   # Quick validation (flake checks)
-make test-monitor           # Performance monitoring
-```
-
-**Important**: Do NOT use bats for testing. Use Nix's built-in test framework instead.
-
-### Platform-Specific Operations
-
-```bash
-make build-darwin           # macOS configurations only
-make build-linux            # NixOS configurations only
-make platform-info          # Show current platform details
-```
-
-### Development Shortcuts
-
-```bash
-make format-setup           # Initialize auto-formatting environment
-make format-quick           # Fast format (Nix + shell only)
-make build-fast             # Optimized build with max jobs
-```
+## Development Workflow
+
+1. Write failing tests first (TDD)
+2. Implement minimal code to pass tests
+3. Run `make format` for auto-formatting
+4. Run `make smoke` for quick validation
+5. Run `make build-current` to test current platform
+6. Refactor while keeping tests green
+7. Commit (pre-commit hooks run automatically)
 
 ## Key Features
 
-- **Dynamic User Resolution**: Automatic user detection without hardcoding (`export USER=$(whoami)`)
-- **dustinlyons Architecture**: Direct import patterns, simplified from complex abstractions
-- **Global Command System**: `bl` dispatcher for cross-project development
-- **Auto-Formatting System**: Automated code quality with parallel formatting targets (`make format`)
-- **Homebrew Integration**: 34+ GUI applications declaratively managed on macOS
-- **Advanced Testing**: 87% optimized test suite with parallel execution and memory management
-- **Claude Code Integration**: AI-assisted development with 20+ specialized commands
-- **Performance Monitoring**: Real-time build time and resource usage tracking
-- **Platform Detection**: Automatic system detection via `lib/platform-system.nix`
+- **Dynamic User Resolution**: No hardcoded usernames
+- **Auto-Formatting**: Parallel formatting via `make format`
+- **Homebrew Integration**: Declarative GUI app management
+- **Advanced Testing**: 87% optimized suite with parallel execution
+- **Claude Code Integration**: 20+ specialized commands
+- **Performance Monitoring**: Real-time build metrics
