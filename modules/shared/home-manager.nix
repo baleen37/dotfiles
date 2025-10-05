@@ -18,24 +18,21 @@
 # VERSION: 2.0.0 (Phase 2 optimized)
 # LAST UPDATED: 2024-10-04
 
-{ config
-, pkgs
-, lib
-, ...
+{
+  config,
+  pkgs,
+  lib,
+  ...
 }:
 
 let
   # Import centralized user information
-  userInfo = import ../../lib/user-info.nix;
 
   # Direct configuration constants following dustinlyons pattern
-  name = userInfo.name;
-  email = userInfo.email;
-  user = config.home.username;
 
   # Simple platform detection - direct system checking
-  isDarwin = pkgs.stdenv.isDarwin;
-  isLinux = pkgs.stdenv.isLinux;
+  inherit (pkgs.stdenv) isDarwin;
+  inherit (pkgs.stdenv) isLinux;
 
   # Direct imports for shared configurations
   sharedFiles = import ./files.nix { inherit config pkgs lib; };

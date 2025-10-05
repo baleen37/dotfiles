@@ -1,12 +1,10 @@
 # Performance optimization integration module
 # Combines all performance optimizations into a unified system
 
-{ lib
-, pkgs
-, system
-, inputs ? { }
-, self ? { }
-,
+{
+  lib,
+  pkgs,
+  system,
 }:
 
 let
@@ -18,17 +16,8 @@ let
   # Import testing framework performance tools
   testingPerformance = {
     benchmark = import ../tests/performance/test-benchmark.nix {
-      inherit lib pkgs self;
-      stdenv = pkgs.stdenv;
-      writeShellScript = pkgs.writeShellScript;
-      time = pkgs.time;
-      gnugrep = pkgs.gnugrep;
-      coreutils = pkgs.coreutils;
+      inherit (pkgs) writeShellScript;
     };
-    # TODO: Re-enable when performance tools are implemented
-    # memoryProfiler = import ../tests/performance/advanced-memory-profiler.nix { inherit lib pkgs self; stdenv = pkgs.stdenv; writeShellScript = pkgs.writeShellScript; python3 = pkgs.python3; gawk = pkgs.gawk; procps = pkgs.procps; time = pkgs.time; bc = pkgs.bc; coreutils = pkgs.coreutils; };
-    # optimizationConfig = import ../tests/performance/optimization-config.nix { inherit lib pkgs self; stdenv = pkgs.stdenv; writeShellScript = pkgs.writeShellScript; writeText = pkgs.writeText; jq = pkgs.jq; coreutils = pkgs.coreutils; };
-    # performanceReporter = import ../tests/performance/performance-reporter.nix { inherit lib pkgs self; stdenv = pkgs.stdenv; writeShellScript = pkgs.writeShellScript; writeText = pkgs.writeText; python3 = pkgs.python3; gnuplot = pkgs.gnuplot; jq = pkgs.jq; bc = pkgs.bc; coreutils = pkgs.coreutils; };
   };
 
   # Performance configuration
@@ -44,7 +33,7 @@ let
     caching = buildOptimization.cacheStrategy;
 
     # File filtering
-    fileFilters = rebuildOptimizer.fileFilters;
+    inherit (rebuildOptimizer) fileFilters;
   };
 
 in
@@ -80,50 +69,49 @@ rec {
     mkOptimizedDevShell =
       baseShell:
       if baseShell ? overrideAttrs then
-        baseShell.overrideAttrs
-          (oldAttrs: {
-            # Apply parallel build environment
-            inherit (parallelOptimizer.parallelBuildConfig.environment) NIX_BUILD_CORES MAKEFLAGS;
+        baseShell.overrideAttrs (oldAttrs: {
+          # Apply parallel build environment
+          inherit (parallelOptimizer.parallelBuildConfig.environment) NIX_BUILD_CORES MAKEFLAGS;
 
-            # Add performance monitoring tools
-            buildInputs = (oldAttrs.buildInputs or [ ]) ++ [
-              pkgs.time
-              pkgs.htop
-              pkgs.iotop
-              pkgs.ccache
-              pkgs.bc
-              pkgs.jq
-              pkgs.gnuplot
-              pkgs.python3
-            ];
+          # Add performance monitoring tools
+          buildInputs = (oldAttrs.buildInputs or [ ]) ++ [
+            pkgs.time
+            pkgs.htop
+            pkgs.iotop
+            pkgs.ccache
+            pkgs.bc
+            pkgs.jq
+            pkgs.gnuplot
+            pkgs.python3
+          ];
 
-            # Enhanced shell hook with performance information
-            shellHook = (oldAttrs.shellHook or "") + ''
-              echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-              echo "🚀 Performance-Optimized Development Environment"
-              echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-              echo "Hardware: Apple M2 (${toString performanceConfig.hardware.totalCores} cores, ${toString performanceConfig.hardware.memoryGB}GB RAM)"
-              echo "Build cores: $NIX_BUILD_CORES"
-              echo "Parallel jobs: ${toString performanceConfig.parallel.maxJobs}"
-              echo "Make flags: $MAKEFLAGS"
-              echo ""
-              echo "Performance tools available:"
-              echo "  • test-benchmark - Nix-based performance benchmarking"
-              echo "  • advanced-memory-profiler - Memory usage analysis"
-              echo "  • optimization-controller - Performance optimization controller"
-              echo "  • performance-reporter - Comprehensive performance reporting"
-              echo "  • time <command> - Command timing"
-              echo "  • htop - System resource monitor"
-              echo ""
-              echo "ccache configured: $CCACHE_DIR (max: $CCACHE_MAXSIZE)"
-              echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-            '';
+          # Enhanced shell hook with performance information
+          shellHook = (oldAttrs.shellHook or "") + ''
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo "🚀 Performance-Optimized Development Environment"
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo "Hardware: Apple M2 (${toString performanceConfig.hardware.totalCores} cores, ${toString performanceConfig.hardware.memoryGB}GB RAM)"
+            echo "Build cores: $NIX_BUILD_CORES"
+            echo "Parallel jobs: ${toString performanceConfig.parallel.maxJobs}"
+            echo "Make flags: $MAKEFLAGS"
+            echo ""
+            echo "Performance tools available:"
+            echo "  • test-benchmark - Nix-based performance benchmarking"
+            echo "  • advanced-memory-profiler - Memory usage analysis"
+            echo "  • optimization-controller - Performance optimization controller"
+            echo "  • performance-reporter - Comprehensive performance reporting"
+            echo "  • time <command> - Command timing"
+            echo "  • htop - System resource monitor"
+            echo ""
+            echo "ccache configured: $CCACHE_DIR (max: $CCACHE_MAXSIZE)"
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          '';
 
-            # Performance environment variables
-            CCACHE_DIR = "\${HOME}/.cache/ccache";
-            CCACHE_MAXSIZE = "2G";
-            CCACHE_COMPILERCHECK = "content";
-          })
+          # Performance environment variables
+          CCACHE_DIR = "\${HOME}/.cache/ccache";
+          CCACHE_MAXSIZE = "2G";
+          CCACHE_COMPILERCHECK = "content";
+        })
       else
         baseShell;
   };
@@ -156,7 +144,7 @@ rec {
 
     # Generate performance metrics
     generateMetrics =
-      buildResults:
+      _buildResults:
       pkgs.runCommand "performance-metrics" { } ''
         mkdir -p $out
 
@@ -206,25 +194,16 @@ rec {
       # Performance-optimized packages
       packages = originalOutputs.packages // {
         ${system} = basePackages // {
-          # Performance tools available via nix commands
-          # Scripts can be run directly from lib/ directory
-
           # Testing framework performance tools
           test-benchmark = testingPerformance.benchmark.benchmark;
-          # TODO: Re-enable when performance tools are implemented
-          # memory-profiler = testingPerformance.memoryProfiler.performanceAnalysis;
-          # optimization-controller = testingPerformance.optimizationConfig.optimizationController;
-          # performance-reporter = testingPerformance.performanceReporter.reportingSuite;
         };
       };
 
       # Performance-optimized development shells
       devShells = originalOutputs.devShells // {
-        ${system} = lib.mapAttrs
-          (
-            name: shell: performanceOptimizations.mkOptimizedDevShell shell
-          )
-          baseDevShells;
+        ${system} = lib.mapAttrs (
+          _name: shell: performanceOptimizations.mkOptimizedDevShell shell
+        ) baseDevShells;
       };
 
       # Performance-enhanced apps
@@ -241,31 +220,16 @@ rec {
               type = "app";
               program = toString testingPerformance.benchmark.benchmark;
             };
-            # TODO: Re-enable when performance tools are implemented
-            # memory-profiler = {
-            #   type = "app";
-            #   program = toString testingPerformance.memoryProfiler.performanceAnalysis;
-            # };
-            # optimization-controller = {
-            #   type = "app";
-            #   program = toString testingPerformance.optimizationConfig.optimizationController;
-            # };
-            # performance-reporter = {
-            #   type = "app";
-            #   program = toString testingPerformance.performanceReporter.reportingSuite;
-            # };
 
             # Wrap existing apps with performance monitoring
           }
-          // (lib.mapAttrs
-            (
-              name: app:
-                if app.type == "app" then
-                  performanceMonitoring.mkPerformanceApp "monitored-${name}" app.program
-                else
-                  app
-            )
-            baseApps);
+          // (lib.mapAttrs (
+            name: app:
+            if app.type == "app" then
+              performanceMonitoring.mkPerformanceApp "monitored-${name}" app.program
+            else
+              app
+          ) baseApps);
       };
 
       # Enhanced checks with performance validation

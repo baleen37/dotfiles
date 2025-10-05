@@ -21,9 +21,9 @@
 # - createMock: 모의 함수 생성
 # - isolateTest: 테스트 격리 래퍼
 
-{ lib ? import <nixpkgs/lib>
-, pkgs ? import <nixpkgs> { }
-,
+{
+  lib ? import <nixpkgs/lib>,
+  pkgs ? import <nixpkgs> { },
 }:
 
 let
@@ -70,17 +70,11 @@ let
       # Boolean assertion
       assertTrue =
         value:
-        if value == true then
-          true
-        else
-          throw "assertTrue failed: expected true, got ${builtins.toString value}";
+        if value then true else throw "assertTrue failed: expected true, got ${builtins.toString value}";
 
       assertFalse =
         value:
-        if value == false then
-          true
-        else
-          throw "assertFalse failed: expected false, got ${builtins.toString value}";
+        if !value then true else throw "assertFalse failed: expected false, got ${builtins.toString value}";
 
       # List assertions
       assertLength =
@@ -129,17 +123,14 @@ let
         let
           result = builtins.tryEval func;
         in
-        if result.success == false then
-          true
-        else
-          throw "assertThrows failed: function did not throw an error";
+        if !result.success then true else throw "assertThrows failed: function did not throw an error";
 
       assertNoThrow =
         func:
         let
           result = builtins.tryEval func;
         in
-        if result.success == true then
+        if result.success then
           true
         else
           throw "assertNoThrow failed: function threw an error: ${result.value or "unknown"}";
@@ -157,7 +148,7 @@ let
     run =
       test:
       if test.type == "suite" then
-        builtins.mapAttrs (name: test: nixtest.run test) test.tests
+        builtins.mapAttrs (_name: test: nixtest.run test) test.tests
       else if test.type == "test" then
         test.assertion
       else
@@ -165,9 +156,9 @@ let
 
     # Test result reporting
     report = results: {
-      passed = builtins.length (builtins.filter (r: r == true) (builtins.attrValues results));
+      passed = builtins.length (builtins.filter (r: r) (builtins.attrValues results));
       total = builtins.length (builtins.attrValues results);
-      results = results;
+      inherit results;
     };
   };
 
@@ -250,12 +241,10 @@ in
       moduleName: requiredAttrs: moduleAttrs:
       nixtest.suite "${moduleName} interface tests" (
         builtins.listToAttrs (
-          map
-            (attr: {
-              name = "has_${attr}";
-              value = nixtest.test "module has ${attr}" (nixtest.assertions.assertHasAttr attr moduleAttrs);
-            })
-            requiredAttrs
+          map (attr: {
+            name = "has_${attr}";
+            value = nixtest.test "module has ${attr}" (nixtest.assertions.assertHasAttr attr moduleAttrs);
+          }) requiredAttrs
         )
       );
 
@@ -314,7 +303,7 @@ in
 
     # Create mock functions for testing
     createMock =
-      name: returnValue: args:
+      _name: returnValue: _args:
       returnValue;
 
     # Test isolation wrapper

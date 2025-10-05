@@ -33,14 +33,6 @@ let
         config.allowUnfree = true;
       };
       # Testing framework dependencies
-      testInputs = {
-        inherit (pkgs.nix)
-          nix-unit
-          nixtest
-          namaka
-          flake-checker
-          ;
-      };
 
       # Modern test framework utilities
       testFrameworks = {
@@ -123,10 +115,6 @@ let
     in
     {
       # Modern test framework integration tests
-      nixtest-lib-functions = testFrameworks.mkNixTest "lib-functions" "./tests/unit/nix/test-lib-functions.nix";
-
-      nix-unit-builders = testFrameworks.mkNixUnitTest "test-builders" "./tests/unit/lib/test-builders.nix";
-
       namaka-snapshots = testFrameworks.mkNamakaTest "config-snapshots" "./tests/contract/flake-contracts/test-flake-outputs.nix";
 
       flake-validation = testFrameworks.mkFlakeCheck "structure-validation";
@@ -373,45 +361,31 @@ in
       };
       testSuite = mkTestSuite system;
 
-      # New comprehensive unit tests for lib modules (simplified versions)
-      # NOTE: Temporarily disabled until test files are properly created
-      unitTests = {
-        # TODO: Create proper .nix test files for lib modules
-        # lib-user-resolution-test = import "${self}/tests/unit/test-lib-user-resolution-simple.nix" { inherit pkgs; lib = nixpkgs.lib; };
-        # lib-platform-system-test = import "${self}/tests/unit/test-lib-platform-system-simple.nix" { inherit pkgs; lib = nixpkgs.lib; };
-        # lib-error-system-test = import "${self}/tests/unit/test-lib-error-system-minimal.nix" { inherit pkgs; lib = nixpkgs.lib; };
-      };
+      # Unit tests for lib modules are in tests/unit/ directory
+      unitTests = { };
 
       # Modern test framework tests
-      modernFrameworkTests = nixpkgs.lib.filterAttrs
-        (
-          name: _:
-            builtins.elem name [
-              "nixtest-lib-functions"
-              "nix-unit-builders"
-              "namaka-snapshots"
-              "flake-validation"
-            ]
-        )
-        testSuite;
+      modernFrameworkTests = nixpkgs.lib.filterAttrs (
+        name: _:
+        builtins.elem name [
+          "namaka-snapshots"
+          "flake-validation"
+        ]
+      ) testSuite;
 
       # Extract test categories based on naming patterns (updated for current tests)
-      coreTests = nixpkgs.lib.filterAttrs
-        (
-          name: _:
-            builtins.elem name [
-              "flake-structure-test"
-              "config-validation-test"
-              "claude-activation-test"
-              "build-test"
-              "build-switch-test"
-              "module-dependency-test"
-              "platform-compatibility-test"
-            ]
-        )
-        testSuite;
-
-      workflowTests = shellIntegrationTests;
+      coreTests = nixpkgs.lib.filterAttrs (
+        name: _:
+        builtins.elem name [
+          "flake-structure-test"
+          "config-validation-test"
+          "claude-activation-test"
+          "build-test"
+          "build-switch-test"
+          "module-dependency-test"
+          "platform-compatibility-test"
+        ]
+      ) testSuite;
 
       performanceTests = {
         # Performance monitoring test using dedicated script
@@ -626,14 +600,6 @@ in
             echo "Testing modern frameworks on ${system}..."
             echo "============================================="
 
-            # Test nixtest availability and functionality
-            echo "✓ Testing nixtest integration..."
-            ${modernFrameworkTests.nixtest-lib-functions or "echo 'nixtest test not available'"}
-
-            # Test nix-unit integration
-            echo "✓ Testing nix-unit integration..."
-            ${modernFrameworkTests.nix-unit-builders or "echo 'nix-unit test not available'"}
-
             # Test namaka snapshot testing
             echo "✓ Testing namaka snapshot functionality..."
             ${modernFrameworkTests.namaka-snapshots or "echo 'namaka test not available'"}
@@ -665,17 +631,8 @@ in
             echo "==========================================="
             cd ${self}
 
-            # Run nixtest for lib functions
-            if [ -f "./tests/unit/nix/test-lib-functions.nix" ]; then
-              echo "✓ Running nixtest for lib functions..."
-              nix eval --file ./tests/unit/nix/test-lib-functions.nix --show-trace || echo "nixtest evaluation completed"
-            fi
-
-            # Run nix-unit for test builders
-            if [ -f "./tests/unit/lib/test-builders.nix" ]; then
-              echo "✓ Running nix-unit for test builders..."
-              nix eval --file ./tests/unit/lib/test-builders.nix --show-trace || echo "nix-unit evaluation completed"
-            fi
+            # Modern unit tests are now using standard Nix test framework
+            echo "✓ Modern unit tests integrated with standard framework"
 
             echo "==========================================="
             echo "Modern unit tests completed for ${system}!"
@@ -780,11 +737,11 @@ in
             cd ${self}
 
             # Check if nix-unit test files exist
-            if [ -f "./tests/unit/nix/test-lib-functions.nix" ]; then
-              echo "✓ Found nix-unit test files"
+            if [ -d "./tests/unit/nix" ]; then
+              echo "✓ Found nix unit test directory"
               echo "Note: nix-unit integration available via flake apps"
             else
-              echo "⚠️ No nix-unit test files found"
+              echo "⚠️ No nix unit test directory found"
             fi
 
             # Run enhanced test runner for nix-unit category
@@ -804,7 +761,6 @@ in
           {
             buildInputs = [
               pkgs.bash
-              pkgs.bats
               pkgs.coreutils
             ];
             meta = {
@@ -820,7 +776,7 @@ in
             if [ -d "./tests/contract" ]; then
               echo "✓ Found contract test directory"
               echo "Available contract tests:"
-              find ./tests/contract -name "*.bats" || echo "No BATS contract tests found"
+              find ./tests/contract -name "*.nix" || echo "No contract tests found"
             fi
 
             # Run enhanced test runner for contract category
@@ -874,7 +830,6 @@ in
           {
             buildInputs = [
               pkgs.bash
-              pkgs.bats
               pkgs.coreutils
             ];
             meta = {

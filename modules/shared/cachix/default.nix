@@ -16,7 +16,7 @@
 #   Import this module in darwin or nixos host configurations:
 #   imports = [ ../../modules/shared/cachix ];
 
-{ pkgs, lib, ... }:
+_:
 
 {
   nix.settings = {

@@ -12,10 +12,9 @@
 #   - lib.mkForce를 사용하여 shared 모듈의 설정을 강제로 덮어씀
 #   - Determinate Nix와의 호환성을 위해 자동 GC 비활성화 필수
 
-{ config
-, pkgs
-, lib
-, ...
+{
+  lib,
+  ...
 }:
 
 {

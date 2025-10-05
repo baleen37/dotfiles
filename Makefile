@@ -50,6 +50,8 @@ help:
 	@echo "  test-core   - Run core unit tests (no duplicates)"
 	@echo "  test-unit   - Run Nix unit tests (nix-unit framework)"
 	@echo "  test-contract - Run contract tests (interface validation)"
+	@echo "  test-e2e    - Run E2E tests (end-to-end workflow validation)"
+	@echo "  test-switch - 🚦 Test switch operation without applying (--dry-run)"
 	@echo "  test-coverage - Run tests with coverage measurement"
 	@echo "  test-quick  - Fast parallel validation tests"
 	@echo "  test-monitor - Performance monitoring tests"
@@ -146,13 +148,10 @@ lint-format:
 	@$(MAKE) format
 	@$(MAKE) lint
 
-ifdef SYSTEM
+# Quick smoke test - build current platform to catch errors early
 smoke:
-	$(NIX) flake check --impure --system $(SYSTEM) --no-build $(ARGS)
-else
-smoke:
-	$(NIX) flake check --impure --all-systems --no-build $(ARGS)
-endif
+	@echo "🔥 Running smoke test (building current platform)..."
+	@$(MAKE) build-current
 
 # Simplified test targets - use existing test-core implementation
 test:
@@ -166,21 +165,42 @@ test-format:
 	@$(MAKE) test-core
 
 test-core:
-	@$(NIX) build --impure .#tests.$(shell nix eval --impure --expr builtins.currentSystem).all $(ARGS)
+	@$(NIX) build --impure --quiet .#packages.$(shell nix eval --impure --expr builtins.currentSystem).all $(ARGS)
 
 # New comprehensive test targets
 test-unit:
 	@echo "🧪 Running Nix unit tests (nix-unit framework)..."
-	@$(NIX) build --impure .#packages.$(shell nix eval --impure --expr builtins.currentSystem).lib-functions $(ARGS)
-	@$(NIX) build --impure .#packages.$(shell nix eval --impure --expr builtins.currentSystem).platform-detection $(ARGS)
+	@$(NIX) build --impure --quiet .#packages.$(shell nix eval --impure --expr builtins.currentSystem).lib-functions $(ARGS)
+	@$(NIX) build --impure --quiet .#packages.$(shell nix eval --impure --expr builtins.currentSystem).platform-detection $(ARGS)
 	@echo "✅ Unit tests completed successfully!"
 
 test-contract:
 	@echo "🔍 Running contract tests (interface validation)..."
-	@$(NIX) build --impure .#packages.$(shell nix eval --impure --expr builtins.currentSystem).module-interaction $(ARGS)
-	@$(NIX) build --impure .#packages.$(shell nix eval --impure --expr builtins.currentSystem).cross-platform $(ARGS)
-	@$(NIX) build --impure .#packages.$(shell nix eval --impure --expr builtins.currentSystem).system-configuration $(ARGS)
+	@$(NIX) build --impure --quiet .#packages.$(shell nix eval --impure --expr builtins.currentSystem).module-interaction $(ARGS)
+	@$(NIX) build --impure --quiet .#packages.$(shell nix eval --impure --expr builtins.currentSystem).cross-platform $(ARGS)
+	@$(NIX) build --impure --quiet .#packages.$(shell nix eval --impure --expr builtins.currentSystem).system-configuration $(ARGS)
 	@echo "✅ Contract tests completed successfully!"
+
+test-e2e:
+	@echo "🚀 Running E2E tests (end-to-end workflow validation)..."
+	@$(NIX) build --impure --quiet .#packages.$(shell nix eval --impure --expr builtins.currentSystem).build-switch-e2e $(ARGS)
+	@$(NIX) build --impure --quiet .#packages.$(shell nix eval --impure --expr builtins.currentSystem).user-workflow-e2e $(ARGS)
+	@echo "✅ E2E tests completed successfully!"
+
+test-e2e-vm-dry:
+	@echo "🔬 Running build-switch dry-run test (fast, no VM)..."
+	@$(NIX) build --impure --quiet .#packages.$(shell nix eval --impure --expr builtins.currentSystem).build-switch-vm-dry $(ARGS)
+	@echo "✅ Build-switch dry-run test passed!"
+
+test-e2e-vm-full:
+	@echo "🚀 Running build-switch VM test (full E2E, requires VM support)..."
+	@$(NIX) build --impure --quiet .#packages.$(shell nix eval --impure --expr builtins.currentSystem).build-switch-vm-full $(ARGS)
+	@echo "✅ Build-switch VM test passed!"
+
+test-e2e-vm-all:
+	@echo "🔬 Running all build-switch tests (dry-run + VM)..."
+	@$(NIX) build --impure --quiet .#packages.$(shell nix eval --impure --expr builtins.currentSystem).build-switch-vm-all $(ARGS)
+	@echo "✅ All build-switch tests passed!"
 
 test-coverage:
 	@echo "📊 Running tests with coverage measurement..."
@@ -210,11 +230,11 @@ test-contract-coverage:
 test-macos-services:
 ifeq ($(PLATFORM),aarch64-darwin)
 	@echo "🧪 Running macOS Services tests via system-configuration tests..."
-	@$(NIX) build --impure .#packages.$(PLATFORM).system-configuration $(ARGS)
+	@$(NIX) build --impure --quiet .#packages.$(PLATFORM).system-configuration $(ARGS)
 	@echo "✅ macOS Services tests completed successfully!"
 else ifeq ($(PLATFORM),x86_64-darwin)
 	@echo "🧪 Running macOS Services tests via system-configuration tests..."
-	@$(NIX) build --impure .#packages.$(PLATFORM).system-configuration $(ARGS)
+	@$(NIX) build --impure --quiet .#packages.$(PLATFORM).system-configuration $(ARGS)
 	@echo "✅ macOS Services tests completed successfully!"
 else
 	@echo "⏭️ Skipping macOS Services tests (not on Darwin platform)"
@@ -246,7 +266,7 @@ test-comprehensive:
 # Fast parallel testing (2-3 seconds total)
 test-quick:
 	@echo "🚀 Running quick validation checks..."
-	@$(NIX) flake check --impure --all-systems --no-build
+	@$(NIX) flake check --impure --all-systems --no-build --quiet
 
 # Performance monitoring and regression detection
 test-monitor:
@@ -280,9 +300,9 @@ define build-systems
 	@echo "🔨 Building $(1) with USER=$(USER)..."
 	@for system in $(3); do \
 		if [ "$(2)" = "darwin" ]; then \
-			export USER=$(USER); $(NIX) build --impure --no-link $(4) ".#darwinConfigurations.$$system.system" $(ARGS) || exit 1; \
+			export USER=$(USER); $(NIX) build --impure --no-link --quiet $(4) ".#darwinConfigurations.$$system.system" $(ARGS) || exit 1; \
 		elif [ "$(2)" = "nixos" ]; then \
-			export USER=$(USER); $(NIX) build --impure --no-link $(4) ".#nixosConfigurations.$$system.config.system.build.toplevel" $(ARGS) || exit 1; \
+			export USER=$(USER); $(NIX) build --impure --no-link --quiet $(4) ".#nixosConfigurations.$$system.config.system.build.toplevel" $(ARGS) || exit 1; \
 		fi; \
 	done
 endef
@@ -338,13 +358,13 @@ build-switch: check-user
 	echo "🎯 Target system: $${TARGET}"; \
 	if [ "$${OS}" = "Darwin" ]; then \
 		echo "🔨 Building Darwin configuration..."; \
-		export USER=$(USER); $(NIX) build --impure .#darwinConfigurations.$${TARGET}.system $(ARGS) || { echo "❌ Build failed!"; exit 1; }; \
+		export USER=$(USER); $(NIX) build --impure --quiet .#darwinConfigurations.$${TARGET}.system $(ARGS) || { echo "❌ Build failed!"; exit 1; }; \
 		if [ ! -L "./result" ]; then echo "❌ Build result not found!"; exit 1; fi; \
 		echo "🔄 Switching to new configuration..."; \
 		sudo -E env USER=$(USER) ./result/sw/bin/darwin-rebuild switch --impure --flake .#$${TARGET} $(ARGS) 2>/dev/null || \
 		{ echo "⚠️  Backup conflicts detected, retrying with backup override..."; \
 		  export USER=$(USER); nix run home-manager/release-24.05 -- switch --flake . -b backup --impure; }; \
-		unlink ./result; \
+		rm -f ./result; \
 	else \
 		echo "🔨 Building and switching NixOS configuration..."; \
 		sudo -E USER=$(USER) SSH_AUTH_SOCK=$$SSH_AUTH_SOCK /run/current-system/sw/bin/nixos-rebuild switch --impure --flake .#$${TARGET} $(ARGS); \
@@ -352,6 +372,32 @@ build-switch: check-user
 	end_time=$$(date +%s); \
 	duration=$$((end_time - start_time)); \
 	echo "✅ Build and switch completed in $${duration}s with USER=$(USER)"
+
+# Test switch without applying changes (uses --dry-run)
+test-switch: check-user
+	@echo "🧪 Testing switch operation (dry-run): $(CURRENT_SYSTEM) with USER=$(USER)..."
+	@start_time=$$(date +%s); \
+	OS=$$(uname -s); \
+	TARGET=$${HOST:-$(CURRENT_SYSTEM)}; \
+	echo "🎯 Target system: $${TARGET}"; \
+	if [ "$${OS}" = "Darwin" ]; then \
+		echo "🔨 Building configuration..."; \
+		export USER=$(USER); $(NIX) build --impure --quiet .#darwinConfigurations.$${TARGET}.system $(ARGS) || { echo "❌ Build failed!"; exit 1; }; \
+		if [ ! -L "./result" ]; then echo "❌ Build result not found!"; exit 1; fi; \
+		echo "🔨 Testing darwin-rebuild switch --dry-run..."; \
+		sudo -E env USER=$(USER) ./result/sw/bin/darwin-rebuild switch --dry-run --impure --flake .#$${TARGET} $(ARGS) || { echo "❌ Switch test failed!"; exit 1; }; \
+		rm -f ./result; \
+		echo "✅ Switch test passed (no changes applied)"; \
+	else \
+		echo "🔨 Building configuration..."; \
+		export USER=$(USER); $(NIX) build --impure --quiet .#nixosConfigurations.$${TARGET}.config.system.build.toplevel $(ARGS) || { echo "❌ Build failed!"; exit 1; }; \
+		echo "🔨 Testing nixos-rebuild switch --dry-run..."; \
+		sudo -E USER=$(USER) nixos-rebuild switch --dry-run --impure --flake .#$${TARGET} $(ARGS) || { echo "❌ Switch test failed!"; exit 1; }; \
+		echo "✅ Switch test passed (no changes applied)"; \
+	fi; \
+	end_time=$$(date +%s); \
+	duration=$$((end_time - start_time)); \
+	echo "⏱️  Test completed in $${duration}s"
 
 # Build-switch dry-run for CI testing (no actual switch)
 build-switch-dry: check-user
@@ -362,15 +408,15 @@ build-switch-dry: check-user
 	echo "🎯 Target system: $${TARGET}"; \
 	if [ "$${OS}" = "Darwin" ]; then \
 		echo "🔨 Building Darwin configuration..."; \
-		export USER=$(USER); $(NIX) build --impure .#darwinConfigurations.$${TARGET}.system $(ARGS) || { echo "❌ Build failed!"; exit 1; }; \
+		export USER=$(USER); $(NIX) build --impure --quiet .#darwinConfigurations.$${TARGET}.system $(ARGS) || { echo "❌ Build failed!"; exit 1; }; \
 		if [ ! -L "./result" ]; then echo "❌ Build result not found!"; exit 1; fi; \
 		echo "✅ Build successful (skipping switch in dry-run mode)"; \
-		unlink ./result; \
+		rm -f ./result; \
 	else \
 		echo "🔨 Building NixOS configuration..."; \
-		export USER=$(USER); $(NIX) build --impure .#nixosConfigurations.$${TARGET}.config.system.build.toplevel $(ARGS) || { echo "❌ Build failed!"; exit 1; }; \
+		export USER=$(USER); $(NIX) build --impure --quiet .#nixosConfigurations.$${TARGET}.config.system.build.toplevel $(ARGS) || { echo "❌ Build failed!"; exit 1; }; \
 		echo "✅ Build successful (skipping switch in dry-run mode)"; \
-		if [ -L "./result" ]; then unlink ./result; fi; \
+		rm -f ./result; \
 	fi; \
 	end_time=$$(date +%s); \
 	duration=$$((end_time - start_time)); \
@@ -382,10 +428,10 @@ switch: check-user
 	TARGET=$${HOST:-$(CURRENT_SYSTEM)}; \
 	echo "🎯 Target system: $${TARGET}"; \
 	if [ "$${OS}" = "Darwin" ]; then \
-		export USER=$(USER); nix --extra-experimental-features 'nix-command flakes' build --impure .#darwinConfigurations.$${TARGET}.system $(ARGS) || { echo "❌ Build failed!"; exit 1; }; \
+		export USER=$(USER); nix --extra-experimental-features 'nix-command flakes' build --impure --quiet .#darwinConfigurations.$${TARGET}.system $(ARGS) || { echo "❌ Build failed!"; exit 1; }; \
 		if [ ! -L "./result" ]; then echo "❌ Build result not found!"; exit 1; fi; \
 		sudo -E env USER=$(USER) ./result/sw/bin/darwin-rebuild switch --impure --flake .#$${TARGET} $(ARGS) || { echo "❌ Switch failed!"; exit 1; }; \
-		unlink ./result; \
+		rm -f ./result; \
 	else \
 		sudo -E USER=$(USER) SSH_AUTH_SOCK=$$SSH_AUTH_SOCK /run/current-system/sw/bin/nixos-rebuild switch --impure --flake .#$${TARGET} $(ARGS); \
 	fi; \
@@ -405,4 +451,4 @@ deploy:
 	@echo "🚀 Deploying configuration..."
 	@./deploy.sh
 
-.PHONY: help check-user lint lint-format lint-autofix lint-install-autofix smoke test test-format test-quick test-core test-unit test-contract test-coverage test-unit-coverage test-contract-coverage test-workflow test-perf test-list test-unit-extended build build-linux build-darwin build-current build-fast build-switch switch apply deploy platform-info format format-setup format-quick format-all format-nix format-shell format-yaml format-json format-markdown
+.PHONY: help check-user lint lint-format lint-autofix lint-install-autofix smoke test test-format test-quick test-core test-unit test-contract test-e2e test-switch test-coverage test-unit-coverage test-contract-coverage test-workflow test-perf test-list test-unit-extended build build-linux build-darwin build-current build-fast build-switch build-switch-dry switch apply deploy platform-info format format-setup format-quick format-all format-nix format-shell format-yaml format-json format-markdown

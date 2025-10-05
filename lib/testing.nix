@@ -18,15 +18,15 @@
 # - Multi-tier test organization (unit, integration, e2e, performance)
 # - Test result aggregation and reporting
 
-{ inputs
-, forAllSystems
-, self
-,
+{
+  inputs,
+  forAllSystems,
+  self,
 }:
 
 let
   # Extract nixpkgs from inputs
-  nixpkgs = inputs.nixpkgs;
+  inherit (inputs) nixpkgs;
 in
 
 {
@@ -35,43 +35,38 @@ in
     system:
     let
       pkgs = nixpkgs.legacyPackages.${system};
-      lib = nixpkgs.lib;
+      inherit (nixpkgs) lib;
 
       # Import NixTest framework and test files
-      nixtest = (import (self + /tests/unit/nixtest-template.nix) { inherit lib pkgs; }).nixtest;
-      testHelpers = import (self + /tests/unit/test-helpers.nix) { inherit lib pkgs; };
+      inherit ((import (self + /tests/unit/nixtest-template.nix) { inherit lib pkgs; })) nixtest;
 
-      # Import unit test suites with nixtest and testHelpers provided
-      libTests = import (self + /tests/unit/lib_test.nix) {
+      # Import unit test suites with nixtest provided
+      libTests = import (self + /tests/unit/lib-test.nix) {
         inherit
           lib
           pkgs
           system
           nixtest
-          testHelpers
           self
           ;
       };
-      platformTests = import (self + /tests/unit/platform_test.nix) {
+      platformTests = import (self + /tests/unit/platform-test.nix) {
         inherit
           lib
           pkgs
           system
           nixtest
-          testHelpers
           self
           ;
       };
 
-      # Import integration test suites with nixtest and testHelpers provided
+      # Import integration test suites with nixtest provided
       moduleInteractionTests = import (self + /tests/integration/module-interaction-test.nix) {
         inherit
           lib
           pkgs
           system
           nixtest
-          testHelpers
-          self
           ;
       };
       crossPlatformTests = import (self + /tests/integration/cross-platform-test.nix) {
@@ -80,8 +75,6 @@ in
           pkgs
           system
           nixtest
-          testHelpers
-          self
           ;
       };
       systemConfigurationTests = import (self + /tests/integration/system-configuration-test.nix) {
@@ -90,8 +83,24 @@ in
           pkgs
           system
           nixtest
-          testHelpers
-          self
+          ;
+      };
+
+      # Import e2e test suites directly (not using default.nix wrapper)
+      buildSwitchTests = import (self + /tests/e2e/build-switch-test.nix) {
+        inherit
+          lib
+          pkgs
+          system
+          nixtest
+          ;
+      };
+      userWorkflowTests = import (self + /tests/e2e/user-workflow-test.nix) {
+        inherit
+          lib
+          pkgs
+          system
+          nixtest
           ;
       };
 
@@ -132,6 +141,10 @@ in
       crossPlatformTestSuite = runTestSuite crossPlatformTests;
       systemConfigurationTestSuite = runTestSuite systemConfigurationTests;
 
+      # E2E test derivations
+      buildSwitchTestSuite = runTestSuite buildSwitchTests;
+      userWorkflowTestSuite = runTestSuite userWorkflowTests;
+
       # Combined test runner that executes all test suites
       allTestSuites =
         pkgs.runCommand "nixtest-all-suites"
@@ -154,6 +167,11 @@ in
             cp -r ${moduleInteractionTestSuite}/* $out/results/integration-tests/module-interaction/
             cp -r ${crossPlatformTestSuite}/* $out/results/integration-tests/cross-platform/
             cp -r ${systemConfigurationTestSuite}/* $out/results/integration-tests/system-configuration/
+
+            # Copy e2e test results
+            mkdir -p $out/results/e2e-tests/build-switch $out/results/e2e-tests/user-workflow
+            cp -r ${buildSwitchTestSuite}/* $out/results/e2e-tests/build-switch/
+            cp -r ${userWorkflowTestSuite}/* $out/results/e2e-tests/user-workflow/
 
             # Generate combined report
             echo "NixTest Framework Results" > $out/report.txt
@@ -186,6 +204,17 @@ in
             cat ${systemConfigurationTestSuite}/summary.txt | sed 's/^/  /' >> $out/report.txt
             echo "" >> $out/report.txt
 
+            # Add e2e test suite summaries
+            echo "E2E TESTS" >> $out/report.txt
+            echo "---------" >> $out/report.txt
+            echo "Build-Switch Tests:" >> $out/report.txt
+            cat ${buildSwitchTestSuite}/summary.txt | sed 's/^/  /' >> $out/report.txt
+            echo "" >> $out/report.txt
+
+            echo "User Workflow Tests:" >> $out/report.txt
+            cat ${userWorkflowTestSuite}/summary.txt | sed 's/^/  /' >> $out/report.txt
+            echo "" >> $out/report.txt
+
             echo "All test suites completed successfully." >> $out/report.txt
 
             # Create success marker
@@ -203,6 +232,10 @@ in
       cross-platform = crossPlatformTestSuite;
       system-configuration = systemConfigurationTestSuite;
 
+      # E2E test suites
+      build-switch-e2e = buildSwitchTestSuite;
+      user-workflow-e2e = userWorkflowTestSuite;
+
       # Combined test runner
       all = allTestSuites;
 
@@ -216,13 +249,6 @@ in
           echo "NixTest template file exists: PASSED" >> $out
         else
           echo "NixTest template file missing: FAILED" >> $out
-          exit 1
-        fi
-
-        if [ -f "${self + /tests/unit/test-helpers.nix}" ]; then
-          echo "Test helpers file exists: PASSED" >> $out
-        else
-          echo "Test helpers file missing: FAILED" >> $out
           exit 1
         fi
 
@@ -241,6 +267,21 @@ in
           exit 1
         fi
 
+        # Test e2e test files exist
+        if [ -f "${self + /tests/e2e/build-switch-test.nix}" ]; then
+          echo "Build-switch test file exists: PASSED" >> $out
+        else
+          echo "Build-switch test file missing: FAILED" >> $out
+          exit 1
+        fi
+
+        if [ -f "${self + /tests/e2e/user-workflow-test.nix}" ]; then
+          echo "User workflow test file exists: PASSED" >> $out
+        else
+          echo "User workflow test file missing: FAILED" >> $out
+          exit 1
+        fi
+
         if [ -f "${self + /tests/integration/system-configuration-test.nix}" ]; then
           echo "System configuration test file exists: PASSED" >> $out
         else
@@ -251,27 +292,27 @@ in
         echo "NixTest framework validation: PASSED" >> $out
       '';
 
-      # Test helpers validation
+      # Test file validation
       helpers-check = pkgs.runCommand "helpers-check" { } ''
-        # Simple validation that test helpers exist
-        echo "Testing helper functions availability..." > $out
+        # Simple validation that core test files exist
+        echo "Testing test file availability..." > $out
 
         # Check test files exist
-        if [ -f "${self + /tests/unit/lib_test.nix}" ]; then
+        if [ -f "${self + /tests/unit/lib-test.nix}" ]; then
           echo "Library tests file exists: PASSED" >> $out
         else
           echo "Library tests file missing: FAILED" >> $out
           exit 1
         fi
 
-        if [ -f "${self + /tests/unit/platform_test.nix}" ]; then
+        if [ -f "${self + /tests/unit/platform-test.nix}" ]; then
           echo "Platform tests file exists: PASSED" >> $out
         else
           echo "Platform tests file missing: FAILED" >> $out
           exit 1
         fi
 
-        echo "Test helpers validation: PASSED" >> $out
+        echo "Test file validation: PASSED" >> $out
       '';
     }
   );
@@ -282,14 +323,7 @@ in
     let
       pkgs = nixpkgs.legacyPackages.${system};
       benchmarks = import (self + /tests/performance/test-benchmark.nix) {
-        inherit (pkgs)
-          lib
-          stdenv
-          writeShellScript
-          time
-          gnugrep
-          coreutils
-          ;
+        inherit (pkgs) writeShellScript;
       };
     in
     pkgs.runCommand "performance-benchmarks"

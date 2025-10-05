@@ -16,10 +16,8 @@
 # 사용:
 #   hosts/darwin/default.nix, hosts/nixos/default.nix에서 자동 import
 
-{ config
-, pkgs
-, lib
-, ...
+{
+  ...
 }:
 
 {

@@ -50,34 +50,20 @@
       url = "github:nix-community/nix-unit";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    nixtest = {
-      url = "github:jetify-com/nixtest";
-    };
-    namaka = {
-      url = "github:nix-community/namaka";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    flake-checker = {
-      url = "github:DeterminateSystems/flake-checker";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   outputs =
-    { self
-    , darwin
-    , nix-homebrew
-    , homebrew-bundle
-    , homebrew-core
-    , homebrew-cask
-    , home-manager
-    , nixpkgs
-    , disko
-    , nix-unit
-    , nixtest
-    , namaka
-    , flake-checker
-    ,
+    {
+      self,
+      darwin,
+      nix-homebrew,
+      homebrew-bundle,
+      homebrew-core,
+      homebrew-cask,
+      home-manager,
+      nixpkgs,
+      disko,
+      nix-unit,
     }@inputs:
     let
       # Dynamic user resolution using dedicated user-resolution library
@@ -98,8 +84,6 @@
       forAllSystems = nixpkgs.lib.genAttrs allSystems;
 
       # Direct import shared packages and configurations
-      sharedPackages = import ./modules/shared/packages.nix;
-      sharedFiles = import ./modules/shared/files.nix;
 
     in
     {
@@ -121,9 +105,13 @@
                 wget
                 jq
 
-                # Nix tools
-                nixfmt
-                nixpkgs-fmt
+                # Programming languages
+                go # Go language for Claude hooks
+
+                # Nix tools (RFC 166 standard)
+                nixfmt # Official Nix formatter
+                statix # Anti-pattern linter
+                deadnix # Dead code detector
                 nix-tree
                 nil
 
@@ -141,7 +129,8 @@
 
             shellHook = ''
               echo "🚀 Development environment loaded"
-              echo "Available formatters: nixpkgs-fmt, shfmt, prettier, markdownlint"
+              echo "Formatters: nixfmt (RFC 166), shfmt, prettier, markdownlint"
+              echo "Linters: statix, deadnix"
               echo "Run 'make format' to auto-format all files"
             '';
           };
@@ -256,6 +245,17 @@
             echo "✓ Flake structure validated" >> $out
             echo "✓ All checks passed" >> $out
           '';
+
+          # Folder structure validation (enforces architectural boundaries)
+          structure-validation =
+            let
+              validator = import ./lib/structure-validator.nix {
+                inherit pkgs;
+                inherit (pkgs) lib;
+              };
+            in
+            validator.validateAll ./.;
+
         }
       );
 
@@ -266,7 +266,6 @@
           pkgs = nixpkgs.legacyPackages.${system};
           formatters = import ./lib/formatters.nix {
             inherit pkgs;
-            lib = nixpkgs.lib;
           };
         in
         {
@@ -285,6 +284,7 @@
       packages = forAllSystems (
         system:
         let
+          pkgs = nixpkgs.legacyPackages.${system};
           testingLib = import ./lib/testing.nix { inherit inputs forAllSystems self; };
           hasTests = builtins.hasAttr "tests" testingLib;
           hasPerfBench = builtins.hasAttr "performance-benchmarks" testingLib;
@@ -293,7 +293,16 @@
           testsHasSystem = hasTests && builtins.hasAttr system testsVal;
           perfBenchHasSystem = hasPerfBench && builtins.hasAttr system perfBenchVal;
         in
-        (
+        {
+          # Claude Code hooks binary
+          claude-hooks = pkgs.buildGoModule {
+            pname = "claude-hooks";
+            version = "0.1.0";
+            src = ./modules/shared/programs/claude/hooks-go;
+            vendorHash = null; # No external dependencies
+          };
+        }
+        // (
           if testsHasSystem then
             {
               inherit (testsVal.${system})
@@ -303,6 +312,8 @@
                 module-interaction
                 cross-platform
                 system-configuration
+                build-switch-e2e
+                user-workflow-e2e
                 all
                 ;
             }

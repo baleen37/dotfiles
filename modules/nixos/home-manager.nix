@@ -25,11 +25,11 @@
 #   - Dunst: Performance-tuned notification settings, reduced animation overhead
 #   - Services: Disabled unnecessary features (tray icons, redundant notifications)
 
-{ config
-, pkgs
-, lib
-, self
-, ...
+{
+  config,
+  pkgs,
+  lib,
+  ...
 }:
 
 let
@@ -81,7 +81,7 @@ let
         };
       in
       # Create immutable config file in /nix/store with font substitutions applied
-      builtins.toFile "polybar-config.ini" (
+      pkgs.writeText "polybar-config.ini" (
         builtins.replaceStrings (builtins.attrNames fontSubstitutions)
           (builtins.attrValues fontSubstitutions)
           src

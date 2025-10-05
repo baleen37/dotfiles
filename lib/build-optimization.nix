@@ -1,10 +1,10 @@
 # Build optimization utilities for Nix flake
 # Provides functions to optimize build performance and reduce rebuild triggers
 
-{ lib
-, pkgs
-, system ? null
-,
+{
+  lib,
+  pkgs,
+  system ? null,
 }:
 
 rec {
@@ -83,16 +83,14 @@ rec {
 
     # Create gitignore-style filter for build inputs
     buildInputFilter =
-      path: type:
+      path: _type:
       let
         baseName = baseNameOf path;
-        isUnnecessary = lib.any
-          (
-            pattern: lib.hasPrefix pattern baseName || lib.hasSuffix pattern baseName
-          )
-          unnecessaryRebuildFiles;
+        isUnnecessary = lib.any (
+          pattern: lib.hasPrefix pattern baseName || lib.hasSuffix pattern baseName
+        ) unnecessaryRebuildFiles;
       in
-        !isUnnecessary;
+      !isUnnecessary;
   };
 
   # Cache strategy optimization

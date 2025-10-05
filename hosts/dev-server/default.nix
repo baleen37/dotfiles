@@ -6,10 +6,9 @@
 # - systemd 사용자 서비스로 VSCode Tunnel 관리
 # - 공유 패키지 및 개발 도구 통합
 
-{ config
-, pkgs
-, lib
-, ...
+{
+  pkgs,
+  ...
 }:
 
 let

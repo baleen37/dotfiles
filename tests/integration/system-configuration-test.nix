@@ -13,13 +13,11 @@
 # - 설정 파일 로딩 및 머징 (YAML/JSON/Nix)
 # - 에러 처리 및 엣지 케이스 (누락된 모듈, 잘못된 설정)
 
-{ lib ? import <nixpkgs/lib>
-, pkgs ? import <nixpkgs> { }
-, system ? builtins.currentSystem
-, nixtest ? null
-, testHelpers ? null
-, self ? null
-,
+{
+  lib ? import <nixpkgs/lib>,
+  pkgs ? import <nixpkgs> { },
+  system ? builtins.currentSystem,
+  nixtest ? null,
 }:
 
 let
@@ -29,8 +27,6 @@ let
       nixtest
     else
       (import ../unit/nixtest-template.nix { inherit lib pkgs; }).nixtest;
-  testHelpersFinal =
-    if testHelpers != null then testHelpers else import ../unit/test-helpers.nix { inherit lib pkgs; };
 
   # Import system builders and configuration
   systemConfigs = import ../../lib/system-configs.nix {
@@ -93,8 +89,6 @@ let
   #   config - 검증할 설정 객체
   #   requiredAttrs - 필수 속성 리스트
   # 반환: 모든 속성 존재 시 true
-  hasRequiredAttributes =
-    config: requiredAttrs: builtins.all (attr: builtins.hasAttr attr config) requiredAttrs;
 
 in
 nixtestFinal.suite "System Configuration Integration Tests" {
@@ -147,7 +141,7 @@ nixtestFinal.suite "System Configuration Integration Tests" {
 
     darwinRequiredModulesPresent = nixtestFinal.test "Darwin required modules are present" (
       let
-        requiredModules = testConfigurations.darwin.requiredModules;
+        inherit (testConfigurations.darwin) requiredModules;
         moduleFiles = builtins.map (mod: "../../modules/darwin/${mod}.nix") requiredModules;
         allModulesExist = builtins.all builtins.pathExists moduleFiles;
       in
@@ -187,7 +181,7 @@ nixtestFinal.suite "System Configuration Integration Tests" {
 
     nixosRequiredModulesPresent = nixtestFinal.test "NixOS required modules are present" (
       let
-        requiredModules = testConfigurations.nixos.requiredModules;
+        inherit (testConfigurations.nixos) requiredModules;
         moduleFiles = builtins.map (mod: "../../modules/nixos/${mod}.nix") requiredModules;
         allModulesExist = builtins.all builtins.pathExists moduleFiles;
       in
@@ -220,11 +214,10 @@ nixtestFinal.suite "System Configuration Integration Tests" {
     homeManagerBuilderFunction = nixtestFinal.test "Home Manager builder function works" (
       let
         # Test the mkHomeConfigurations function from flake
-        testUser = "test-user";
         result = builtins.tryEval {
           # This would normally be called with impure evaluation
           # For testing, we just check that the function structure exists
-          hasBuilder = builtins.isFunction (user: impure: { });
+          hasBuilder = builtins.isFunction (_user: _impure: { });
         };
       in
       nixtestFinal.assertions.assertTrue result.success
@@ -353,14 +346,6 @@ nixtestFinal.suite "System Configuration Integration Tests" {
       )
     );
 
-    testBuildersLibrary = nixtestFinal.test "Test builders library loads" (
-      let
-        testBuilders = import ../../lib/test-builders.nix { inherit lib pkgs; };
-        result = safeEvaluateSystemConfig testBuilders;
-      in
-      nixtestFinal.assertions.assertTrue (result != null)
-    );
-
     testSystemLibrary = nixtestFinal.test "Test system library loads" (
       let
         testSystem = import ../../lib/test-system.nix {
@@ -380,13 +365,6 @@ nixtestFinal.suite "System Configuration Integration Tests" {
     flakeCheckStructure = nixtestFinal.test "Flake check structure is valid" (
       let
         # Test that flake outputs have the expected structure
-        expectedOutputs = [
-          "apps"
-          "checks"
-          "devShells"
-          "lib"
-          "tests"
-        ];
 
         # This would normally require the actual flake evaluation
         # For now, test that the structure files exist
@@ -413,7 +391,7 @@ nixtestFinal.suite "System Configuration Integration Tests" {
       let
         performanceIntegration = import ../../lib/performance-integration.nix {
           inherit lib system;
-          pkgs = pkgs;
+          inherit pkgs;
           inputs = { };
           self = { };
         };
@@ -526,15 +504,13 @@ nixtestFinal.suite "System Configuration Integration Tests" {
           (import ../../modules/nixos/packages.nix)
         ];
 
-        allLoad = builtins.all
-          (
-            config:
-            let
-              result = safeEvaluateSystemConfig config;
-            in
-            result != null
-          )
-          configs;
+        allLoad = builtins.all (
+          config:
+          let
+            result = safeEvaluateSystemConfig config;
+          in
+          result != null
+        ) configs;
       in
       nixtestFinal.assertions.assertTrue allLoad
     );
@@ -547,15 +523,13 @@ nixtestFinal.suite "System Configuration Integration Tests" {
           (import ../../lib/parallel-build-optimizer.nix { inherit lib pkgs; })
         ];
 
-        allLoad = builtins.all
-          (
-            component:
-            let
-              result = safeEvaluateSystemConfig component;
-            in
-            result != null
-          )
-          buildComponents;
+        allLoad = builtins.all (
+          component:
+          let
+            result = safeEvaluateSystemConfig component;
+          in
+          result != null
+        ) buildComponents;
       in
       nixtestFinal.assertions.assertTrue allLoad
     );

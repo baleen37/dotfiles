@@ -52,11 +52,60 @@ repos:
       - id: shfmt
         args: [-w, -s, -i, "2"] # Write changes, simplify, indent with 2 spaces
 
-  # Nix formatting and validation (auto-fix enabled)
-  - repo: https://github.com/nix-community/nixpkgs-fmt
-    rev: v1.3.0
+  # Nix formatting and linting (RFC 166 standard)
+  - repo: local
     hooks:
-      - id: nixpkgs-fmt
+      - id: nixfmt
+        name: nixfmt (RFC 166)
+        entry: nixfmt
+        language: system
+        files: \.nix$
+        description: Official Nix code formatter
+
+      - id: statix
+        name: statix
+        entry: statix check
+        language: system
+        files: \.nix$
+        pass_filenames: false
+        description: Nix anti-pattern linter
+
+      - id: deadnix
+        name: deadnix
+        entry: deadnix --edit
+        language: system
+        files: \.nix$
+        description: Dead code detector with auto-fix
+
+      - id: smoke-test
+        name: Quick Validation (Smoke Test)
+        entry: bash -c 'make smoke'
+        language: system
+        pass_filenames: false
+        description: Fast flake validation for all systems (cross-platform check)
+
+      - id: structure-validation
+        name: Folder Structure Validation
+        entry: bash -c 'nix build --no-link ".#checks.$(nix eval --impure --expr builtins.currentSystem 2>/dev/null | tr -d \"\\\"\" || echo "x86_64-darwin").structure-validation"'
+        language: system
+        pass_filenames: false
+        description: Validates project folder structure and architectural boundaries
+
+      - id: go-test
+        name: Go Tests (Claude Hooks)
+        entry: bash -c 'cd modules/shared/programs/claude/hooks-go && nix-shell -p go --run "go test -v ./..."'
+        language: system
+        pass_filenames: false
+        files: '\.go$'
+        description: Run Go tests for Claude Code hooks
+
+      - id: flake-outputs-check
+        name: Flake Outputs Naming Conflict Check
+        entry: ./scripts/check-flake-outputs.sh
+        language: system
+        pass_filenames: false
+        files: 'flake\.nix$|lib/testing\.nix$'
+        description: Prevent naming conflicts between apps, packages, and checks
 
   # YAML auto-formatting with prettier
   - repo: https://github.com/pre-commit/mirrors-prettier

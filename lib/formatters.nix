@@ -1,22 +1,25 @@
-# Auto-formatting system for dotfiles project
+# Auto-formatting and linting system for dotfiles project
 # Provides unified formatting for Nix, shell, YAML, JSON, and Markdown files
 # Supports selective formatting by file type or all-in-one formatting
 #
 # Available Modes:
-# - nix: Format Nix files with nixfmt-rfc-style
+# - nix: Format Nix files with nixfmt (RFC 166 standard)
+# - lint-nix: Lint Nix files with statix and deadnix
 # - shell: Format shell scripts with shfmt
 # - yaml: Format YAML files with yamlfmt
 # - json: Format JSON files with jq
 # - markdown: Format Markdown files with prettier
 # - all: Format all file types (default)
 
-{ pkgs, lib }:
+{ pkgs }:
 
 {
   formatter = pkgs.writeShellApplication {
     name = "dotfiles-format";
     runtimeInputs = with pkgs; [
       nixfmt-rfc-style
+      statix
+      deadnix
       shfmt
       nodePackages.prettier
       jq
@@ -30,8 +33,14 @@
       MODE="''${1:-all}"
 
       format_nix() {
-        echo "🎨 Formatting Nix files..."
+        echo "🎨 Formatting Nix files (RFC 166 standard)..."
         find . -name "*.nix" -not -path "*/.*" -not -path "*/result/*" -exec nixfmt {} +
+      }
+
+      lint_nix() {
+        echo "🔍 Linting Nix files..."
+        statix check .
+        deadnix --fail .
       }
 
       format_shell() {
@@ -60,6 +69,7 @@
         yaml) format_yaml ;;
         json) format_json ;;
         markdown) format_markdown ;;
+        lint-nix) lint_nix ;;
         all)
           format_nix
           format_shell
@@ -68,7 +78,7 @@
           format_markdown
           ;;
         *)
-          echo "Usage: dotfiles-format [nix|shell|yaml|json|markdown|all]"
+          echo "Usage: dotfiles-format [nix|shell|yaml|json|markdown|lint-nix|all]"
           exit 1
           ;;
       esac

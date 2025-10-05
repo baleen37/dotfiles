@@ -21,12 +21,11 @@
 #   - darwin/files.nix: macOS 전용 설정 파일
 #   - darwin/packages.nix: macOS 전용 패키지
 
-{ config
-, pkgs
-, lib
-, home-manager
-, self
-, ...
+{
+  config,
+  pkgs,
+  self,
+  ...
 }:
 
 let
@@ -37,13 +36,12 @@ let
     platform = "darwin";
     returnFormat = "extended";
   };
-  user = getUserInfo.user;
+  inherit (getUserInfo) user;
 
   # macOS 전용 설정 파일 import (Hammerspoon, Karabiner 등)
   additionalFiles = import ./files.nix { inherit user config pkgs; };
 
   # 공통 Home Manager 설정 import (git, vim, zsh 등)
-  sharedConfig = import ../shared/home-manager.nix { inherit config pkgs lib; };
 
   # 자주 사용되는 경로를 캐시하여 빌드 시간 단축
   # activation script에서 반복 사용되는 경로들을 미리 계산
@@ -108,17 +106,18 @@ in
     useUserPackages = true; # Performance: reduce evaluation overhead
 
     users.${user} =
-      { pkgs
-      , config
-      , lib
-      , ...
+      {
+        pkgs,
+        config,
+        lib,
+        ...
       }:
       {
         home = {
           enableNixpkgsReleaseCheck = false;
 
           # Optimized package management
-          packages = (pkgs.callPackage ./packages.nix { });
+          packages = pkgs.callPackage ./packages.nix { };
 
           # Enhanced file management with optimized merging
           file = lib.mkMerge [
@@ -152,8 +151,12 @@ in
           };
         };
 
-        # Performance optimization: disable man pages for faster builds
-        manual.manpages.enable = false;
+        # Performance optimization: disable documentation for faster builds
+        manual = {
+          manpages.enable = false;
+          html.enable = false;
+          json.enable = false;
+        };
 
         # Nix 앱 자동 링크 시스템 (Home Manager activation script)
         # /nix/store의 .app들을 ~/Applications로 심볼릭 링크하여

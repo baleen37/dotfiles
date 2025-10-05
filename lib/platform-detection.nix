@@ -2,10 +2,10 @@
 # Provides optimized, cached platform detection functions
 # Replaces duplicate platform detection patterns across the codebase
 
-{ system ? null
-, pkgs ? null
-, lib ? null
-,
+{
+  system ? null,
+  pkgs ? null,
+  lib ? null,
 }:
 
 let
@@ -25,27 +25,20 @@ let
       system
     else if pkgs != null && pkgs ? system then
       pkgs.system
-    else if builtins ? currentSystem then
-      builtins.currentSystem
     else
-      "unknown";
+      builtins.currentSystem or "unknown";
 
   # Core pattern matching functions (cached results)
   patterns = rec {
     # Darwin platform detection
-    darwinMatch = builtins.match ".*-darwin" currentSystem;
-    isDarwinSystem = darwinMatch != null;
+    isDarwinSystem = builtins.match ".*-darwin" currentSystem != null;
 
     # Linux platform detection
-    linuxMatch = builtins.match ".*-linux" currentSystem;
-    isLinuxSystem = linuxMatch != null;
+    isLinuxSystem = builtins.match ".*-linux" currentSystem != null;
 
     # Architecture detection
-    x86_64Match = builtins.match "x86_64-.*" currentSystem;
-    isX86_64System = x86_64Match != null;
-
-    aarch64Match = builtins.match "aarch64-.*" currentSystem;
-    isAarch64System = aarch64Match != null;
+    isX86_64System = builtins.match "x86_64-.*" currentSystem != null;
+    isAarch64System = builtins.match "aarch64-.*" currentSystem != null;
   };
 
   # Derived platform information (cached)
@@ -204,10 +197,10 @@ in
   inherit crossPlatform;
 
   # Legacy compatibility (direct function exports)
-  isDarwin = detection.isDarwin;
-  isLinux = detection.isLinux;
-  isX86_64 = detection.isX86_64;
-  isAarch64 = detection.isAarch64;
+  inherit (detection) isDarwin;
+  inherit (detection) isLinux;
+  inherit (detection) isX86_64;
+  inherit (detection) isAarch64;
 
   # Performance and metadata
   inherit performance;

@@ -1,18 +1,44 @@
-# Unified Utilities System
-# Combines common-utils.nix and package-utils.nix
+# Unified Utilities System - Backwards Compatibility Layer
+#
+# Purpose: Consolidates common-utils.nix and package-utils.nix into a single unified system
 # Provides comprehensive utility functions for system operations
 #
-# NOTE: Many string/list/path utilities duplicate nixpkgs.lib functionality.
-# These are maintained for backwards compatibility with existing tests.
-# For new code, prefer using nixpkgs.lib directly:
-#   - actualLib.hasPrefix instead of stringUtils.hasPrefix
-#   - actualLib.splitString instead of stringUtils.splitString
-#   - actualLib.unique instead of listUtils.unique
-#   - actualLib.flatten instead of listUtils.flatten
+# Why This File Exists:
+# - Backwards compatibility: Existing tests reference these specific utility functions
+# - Test stability: Changing test dependencies would require extensive test rewrites
+# - Migration path: New code should use nixpkgs.lib or platform-system.nix instead
+#
+# Duplicate Utilities Explanation:
+# String/list/path utilities duplicate nixpkgs.lib functionality (e.g., hasPrefix, splitString).
+#
+# Rationale for Maintaining Duplication:
+# 1. Test Dependency: 20+ test files in tests/{unit,integration,e2e}/ import these functions
+# 2. API Compatibility: Test assertions verify specific function signatures (3-parameter formatError, etc.)
+# 3. Migration Cost: Refactoring all tests to use nixpkgs.lib would require rewriting ~5,000 LOC
+# 4. Risk/Reward: Tests are stable and passing; refactor provides no functional benefit
+#
+# For New Code (IMPORTANT):
+# - String operations: Use nixpkgs.lib.strings (lib.hasPrefix, lib.splitString, lib.concatStrings)
+# - List operations: Use nixpkgs.lib.lists (lib.unique, lib.flatten, lib.filter)
+# - Platform detection: Use ./platform-system.nix (standardized isDarwin/isLinux interface)
+#
+# Example Migration:
+# OLD: utils.formatError "test" expected actual context
+# NEW: Use nixpkgs.lib.trivial.warn or custom formatter with lib.concatStringsSep
+# - For EXISTING tests: Continue using this file until test refactoring
+# - Future: Consolidate all utilities into platform-system.nix after test migration
+#
+# Specific Duplicates to Avoid in New Code:
+#   - stringUtils.hasPrefix     → Use actualLib.hasPrefix
+#   - stringUtils.splitString   → Use actualLib.splitString
+#   - listUtils.unique          → Use actualLib.unique
+#   - listUtils.flatten         → Use actualLib.flatten
+#   - systemUtils.isDarwin      → Use (import ./platform-system.nix).isDarwin
+#   - systemUtils.isLinux       → Use (import ./platform-system.nix).isLinux
 
-{ pkgs ? null
-, lib ? null
-,
+{
+  pkgs ? null,
+  lib ? null,
 }:
 
 let
@@ -52,19 +78,17 @@ let
     # Filter out packages that don't exist in nixpkgs
     filterValidPackages =
       packageList: nixpkgs:
-      builtins.filter
-        (
-          pkg: if builtins.isString pkg then builtins.hasAttr pkg nixpkgs else true # Allow package derivations to pass through
-        )
-        packageList;
+      builtins.filter (
+        pkg: if builtins.isString pkg then builtins.hasAttr pkg nixpkgs else true # Allow package derivations to pass through
+      ) packageList;
 
     # Merge shared packages with platform-specific packages
     # This function standardizes the pattern used across platform modules
     mergePackageLists =
-      { pkgs
-      , sharedPackagesPath
-      , platformPackages ? [ ]
-      ,
+      {
+        pkgs,
+        sharedPackagesPath,
+        platformPackages ? [ ],
       }:
       let
         # Import shared packages
@@ -192,20 +216,18 @@ let
           if predicate item then
             {
               true = acc.true ++ [ item ];
-              false = acc.false;
+              inherit (acc) false;
             }
           else
             {
-              true = acc.true;
+              inherit (acc) true;
               false = acc.false ++ [ item ];
             };
       in
-      builtins.foldl' addToPartition
-        {
-          true = [ ];
-          false = [ ];
-        }
-        list;
+      builtins.foldl' addToPartition {
+        true = [ ];
+        false = [ ];
+      } list;
 
     # Group list elements by key function
     groupBy =

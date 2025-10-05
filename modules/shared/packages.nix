@@ -52,10 +52,11 @@ let
     gemini-cli # Command-line interface for Gemini
     claude-code # AI code generation tool
     nixfmt # Official formatter for Nix code
+    statix # Nix anti-pattern linter
+    deadnix # Dead code detector for Nix
     gnumake # GNU make build automation tool
     cmake # Cross-platform build system generator
     home-manager # Nix-based user environment management
-    bats # Bash Automated Testing System for shell script testing
   ];
 
   # Cloud and containerization tools

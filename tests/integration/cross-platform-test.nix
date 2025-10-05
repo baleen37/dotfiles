@@ -17,13 +17,11 @@
 # - 플랫폼별 모듈의 조건부 로딩 테스트
 # - 엣지 케이스 (미지원 플랫폼, 빈 설정) 처리 확인
 
-{ lib ? import <nixpkgs/lib>
-, pkgs ? import <nixpkgs> { }
-, system ? builtins.currentSystem
-, nixtest ? null
-, testHelpers ? null
-, self ? null
-,
+{
+  lib ? import <nixpkgs/lib>,
+  pkgs ? import <nixpkgs> { },
+  system ? builtins.currentSystem,
+  nixtest ? null,
 }:
 
 let
@@ -33,8 +31,6 @@ let
       nixtest
     else
       (import ../unit/nixtest-template.nix { inherit lib pkgs; }).nixtest;
-  testHelpersFinal =
-    if testHelpers != null then testHelpers else import ../unit/test-helpers.nix { inherit lib pkgs; };
 
   # Import platform-specific libraries
   platformSystem = import ../../lib/platform-system.nix { inherit lib pkgs system; };
@@ -95,13 +91,6 @@ let
   #   platformName - "darwin" | "linux" | "all"
   #   testFunc - 각 플랫폼 문자열을 받아 boolean 반환하는 함수
   # 반환: 모든 플랫폼에서 테스트 통과 시 true
-  testPlatformFunction =
-    platformName: testFunc:
-    let
-      platforms = testPlatforms.${platformName};
-      results = builtins.map testFunc platforms;
-    in
-    builtins.all (r: r == true) results;
 
   # Helper to safely evaluate cross-platform expressions
   # 크로스 플랫폼 표현식을 안전하게 평가 (에러 시 null 반환)
@@ -109,12 +98,6 @@ let
   #   platform - 대상 플랫폼 문자열 (예: "x86_64-linux")
   #   expr - 평가할 Nix 표현식
   # 반환: 성공 시 평가 결과, 실패 시 null
-  safeEvaluatePlatform =
-    platform: expr:
-    let
-      result = builtins.tryEval expr;
-    in
-    if result.success then result.value else null;
 
 in
 nixtestFinal.suite "Cross-Platform Integration Tests" {
@@ -124,7 +107,7 @@ nixtestFinal.suite "Cross-Platform Integration Tests" {
 
     allPlatformsSupported = nixtestFinal.test "All target platforms are supported" (
       let
-        supportedPlatforms = platformDetection.supportedPlatforms;
+        inherit (platformDetection) supportedPlatforms;
         allSupported = builtins.all (platform: builtins.elem platform supportedPlatforms) [
           "darwin"
           "linux"
@@ -252,10 +235,9 @@ nixtestFinal.suite "Cross-Platform Integration Tests" {
     sharedModulesLoadOnAllPlatforms = nixtestFinal.test "Shared modules load on all platforms" (
       let
         testSharedModule =
-          platform:
+          _platform:
           let
             # Mock system for testing
-            mockSystem = platform;
             sharedModule = import ../../modules/shared/default.nix;
 
             # Test that module can be imported without errors
@@ -367,7 +349,7 @@ nixtestFinal.suite "Cross-Platform Integration Tests" {
         utilsSystem = import ../../lib/utils-system.nix { inherit lib pkgs; };
 
         testUtilsLib =
-          platform:
+          _platform:
           let
             # Test that utils can be imported and have expected structure
             result = builtins.tryEval {
@@ -386,7 +368,7 @@ nixtestFinal.suite "Cross-Platform Integration Tests" {
     errorSystemLibrary = nixtestFinal.test "Error system library works across platforms" (
       let
         testErrorLib =
-          platform:
+          _platform:
           let
             errorSystem = import ../../lib/error-system.nix { inherit lib pkgs; };
             result = builtins.tryEval {
@@ -407,7 +389,7 @@ nixtestFinal.suite "Cross-Platform Integration Tests" {
 
     flakeArchitecturesComplete = nixtestFinal.test "Flake supports all target architectures" (
       let
-        inherit (flakeConfig.systemArchitectures) linux darwin all;
+        inherit (flakeConfig.systemArchitectures) all;
         expectedPlatforms = testPlatforms.all;
         actualPlatforms = all;
 
@@ -488,7 +470,7 @@ nixtestFinal.suite "Cross-Platform Integration Tests" {
             result = builtins.tryEval (platformDetection.validateSystem unsupportedSystem);
           in
           # Should either throw error or handle gracefully
-          result.success == false || result.success == true;
+          !result.success || result.success;
 
         allHandled = builtins.all testUnsupported unsupportedSystems;
       in
@@ -519,20 +501,7 @@ nixtestFinal.suite "Cross-Platform Integration Tests" {
 
     platformDetectionPerformance = nixtestFinal.test "Platform detection is fast on all platforms" (
       let
-        testPerformance =
-          platform:
-          let
-            # Simple performance test - if it completes quickly, it passes
-            startTime = builtins.currentTime or 0;
-            result = {
-              platform = platformDetection.getPlatform platform;
-              arch = platformDetection.getArch platform;
-              isDarwin = platformDetection.isDarwin platform;
-              isLinux = platformDetection.isLinux platform;
-            };
-            endTime = builtins.currentTime or 0;
-          in
-          true; # If we get here, performance is acceptable
+        testPerformance = _platform: true; # If we get here, performance is acceptable
 
         allFast = builtins.all testPerformance testPlatforms.all;
       in

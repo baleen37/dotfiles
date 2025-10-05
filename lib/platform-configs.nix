@@ -7,21 +7,14 @@
 #   platformConfigs = import ./platform-configs.nix { system = "aarch64-darwin"; };
 #   darwinConfig = platformConfigs.darwin;
 
-{ system ? "x86_64-linux"
-, pkgs ? null
-, lib ? null
-,
+{
+  system ? "x86_64-linux",
+  pkgs ? null,
+  lib ? null,
 }:
 
 let
   # Determine lib with fallback
-  actualLib =
-    if lib != null then
-      lib
-    else if pkgs != null then
-      pkgs.lib
-    else
-      null;
 
   # Import error system for error handling
   errorSystem =
@@ -134,8 +127,7 @@ in
 
   # Feature support checks
   isFeatureSupported =
-    feature:
-    builtins.hasAttr feature getCurrentConfig && getCurrentConfig.${feature} == true;
+    feature: builtins.hasAttr feature getCurrentConfig && getCurrentConfig.${feature};
 
   # Version and metadata
   version = "1.0.0";

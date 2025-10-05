@@ -36,6 +36,10 @@ jobs:
         with:
           nix_path: nixpkgs=channel:nixos-unstable
           install_url: https://releases.nixos.org/nix/nix-2.18.8/install
+      # Get week number for cache rotation
+      - name: Get week number for cache rotation
+        id: date
+        run: echo "week=$(date +%Y-W%U)" >> $GITHUB_OUTPUT
       # Phase 3: Enhanced caching with intelligent layering
       - name: Cache Nix store (Phase 3 optimization)
         uses: actions/cache@v4
@@ -46,8 +50,9 @@ jobs:
             ~/.cache/nix
             ~/.cache/nix-index
             /tmp/nix-build-*
-          key: phase3-validate-nix-${{ hashFiles('flake.lock', 'flake.nix') }}-${{ runner.os }}
+          key: phase3-validate-nix-${{ hashFiles('flake.lock', 'flake.nix') }}-${{ runner.os }}-${{ steps.date.outputs.week }}
           restore-keys: |
+            phase3-validate-nix-${{ hashFiles('flake.lock', 'flake.nix') }}-${{ runner.os }}-
             phase3-validate-nix-${{ hashFiles('flake.lock', 'flake.nix') }}-
             phase3-validate-nix-${{ hashFiles('flake.lock') }}-
             validate-nix-${{ hashFiles('flake.lock') }}
@@ -59,8 +64,9 @@ jobs:
         run: |
           # Unset core.hooksPath if set (prevents pre-commit installation errors)
           git config --unset-all core.hooksPath || true
-          nix-shell -p pre-commit --run "pre-commit install"
-          nix-shell -p pre-commit --run "pre-commit run --all-files"
+          # Use nix develop to load all dev tools (nixfmt, statix, deadnix, pre-commit)
+          nix develop --command bash -c "pre-commit install"
+          nix develop --command bash -c "pre-commit run --all-files"
       - name: Validate flake
         run: |
           echo "Debug: USER before export: '$USER'"
@@ -71,6 +77,12 @@ jobs:
           nix flake check --impure --no-build --all-systems
       - name: Quick test framework validation
         run: "export USER=${USER:-ci}\necho \"\U0001F9EA Validating NixTest framework\"\nnix build --impure .#framework-check --verbose\necho \"✅ Test framework validation passed\"\n"
+      - name: Run Go tests
+        run: |
+          echo "🧪 Running Go tests for Claude Code hooks"
+          cd modules/shared/programs/claude/hooks-go
+          nix develop --command bash -c "go test -v ./..."
+          echo "✅ Go tests passed"
   # Build and switch combined (faster, simpler)
   build-switch:
     name: Build+Switch ${{ matrix.name }}
@@ -117,6 +129,9 @@ jobs:
           install_url: https://releases.nixos.org/nix/nix-2.18.8/install
           enable_kvm: true
       # Cache strategy
+      - name: Get week number for cache rotation
+        id: date
+        run: echo "week=$(date +%Y-W%U)" >> $GITHUB_OUTPUT
       - name: Cache Nix store
         uses: actions/cache@v4
         with:
@@ -124,8 +139,9 @@ jobs:
             /nix/store
             ~/.cache/nix
             ~/.local/state/nix
-          key: nix-${{ runner.os }}-${{ hashFiles('flake.lock', 'flake.nix') }}
+          key: nix-${{ runner.os }}-${{ hashFiles('flake.lock', 'flake.nix') }}-${{ steps.date.outputs.week }}
           restore-keys: |
+            nix-${{ runner.os }}-${{ hashFiles('flake.lock', 'flake.nix') }}-
             nix-${{ runner.os }}-
       - name: Build and test switch
         timeout-minutes: 60
@@ -223,6 +239,30 @@ jobs:
           done
 
           echo "✅ Tests completed for ${{ matrix.category }}"
+      - name: Generate coverage report
+        if: matrix.category == 'unit' || matrix.category == 'integration'
+        continue-on-error: true
+        run: |
+          export USER=${USER:-ci}
+          SYSTEM=$(nix eval --raw --impure --expr "builtins.currentSystem")
+          echo "📊 Generating coverage report for $SYSTEM..."
+
+          # Build coverage check
+          nix build --impure ".#checks.$SYSTEM.coverage-check" -L || true
+
+          # Display coverage report if available
+          if [[ -f result ]]; then
+            echo "=== Coverage Report ==="
+            cat result
+            echo "======================="
+          fi
+      - name: Upload coverage report
+        if: (matrix.category == 'unit' || matrix.category == 'integration') && hashFiles('result') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report-${{ matrix.category }}-${{ runner.os }}
+          path: result
+          retention-days: 30
   # CI completion and status reporting
   ci-complete:
     name: CI Summary

@@ -21,17 +21,15 @@
 # VERSION: 3.1.0 (Single file configuration)
 # LAST UPDATED: 2024-10-04
 
-{ config
-, pkgs
-, lib
-, platformInfo
-, userInfo
-, ...
+{
+  pkgs,
+  lib,
+  platformInfo,
+  ...
 }:
 
 let
   inherit (platformInfo) isDarwin isLinux;
-  inherit (userInfo) name email;
 in
 {
   programs.zsh = {
