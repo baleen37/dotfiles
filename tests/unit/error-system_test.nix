@@ -1,19 +1,19 @@
 # Error System Unit Tests
 #
-# lib/error-system.nix 테스트
+# lib/error-system.nix 테스트 (simplified version)
 # - 에러 타입 스키마 검증
 # - 심각도 우선순위 정렬
-# - 로컬라이제이션 완전성
 # - 에러 포매팅 함수
 #
 # 테스트 대상:
-# - errorTypes: 에러 타입 정의 및 메타데이터
-# - severityLevels: 심각도 레벨 정의 및 우선순위
-# - translations: 다국어 지원 (ko/en)
+# - errorTypes: 에러 타입 정의 (user, build, config, validation only)
+# - severityLevels: 심각도 레벨 정의 (critical, error, warning)
 # - createError: 에러 생성 함수
 # - formatError: 에러 포매팅 함수
 # - commonErrorPatterns: 일반 에러 패턴 매칭
 # - predefinedErrors: 사전 정의된 에러 팩토리
+#
+# Note: Korean localization removed (YAGNI - not used)
 
 {
   lib ? import <nixpkgs/lib>,
