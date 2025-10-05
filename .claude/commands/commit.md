@@ -2,6 +2,8 @@
 description: Create well-structured git commits with conventional commit format and automated staging
 ---
 
+**Agent**: Use `git-specialist` agent for this task (token-efficient Git workflow management).
+
 The user input can be provided directly by the agent or as a command argument - you **MUST** consider it before proceeding with the prompt (if not empty).
 
 User input:
