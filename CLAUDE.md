@@ -74,6 +74,25 @@ Professional Nix dotfiles system supporting:
 3. **Host Configurations** (`hosts/`): Individual machine definitions
 4. **Library Functions** (`lib/`): Reusable Nix utilities
 
+### Modularization Principle
+
+**Benefits**: Single Responsibility, DRY principle, easy enable/disable, independent testing
+
+```nix
+# ✅ Best practice: Module separation and reuse
+imports = [ ../../modules/shared/cachix ];  # Shared across darwin/nixos
+```
+
+### Nix Best Practices
+
+**Flakes**: Use as entry point only, manage dependencies via flake.lock, keep build logic in traditional Nix
+
+**Integration**: nix-darwin (system) → home-manager (user), set `useGlobalPkgs = true`
+
+**Modularity**: Split by traits (common/desktop/laptop), use `lib.mkDefault/mkForce` for priority
+
+**Performance**: Enable binary caches, use `--impure` for user resolution, parallel builds
+
 ## Current Development: Build-Switch Testing Implementation
 
 **Status**: Active development
