@@ -170,7 +170,7 @@ test-format:
 	@$(MAKE) test-core
 
 test-core:
-	@$(NIX) build --impure --quiet .#tests.$(shell nix eval --impure --expr builtins.currentSystem).all $(ARGS)
+	@$(NIX) build --impure --quiet .#packages.$(shell nix eval --impure --expr builtins.currentSystem).all $(ARGS)
 
 # New comprehensive test targets
 test-unit:

@@ -1,14 +1,33 @@
-# Unified Utilities System
-# Combines common-utils.nix and package-utils.nix
+# Unified Utilities System - Backwards Compatibility Layer
+#
+# Purpose: Consolidates common-utils.nix and package-utils.nix into a single unified system
 # Provides comprehensive utility functions for system operations
 #
-# NOTE: Many string/list/path utilities duplicate nixpkgs.lib functionality.
-# These are maintained for backwards compatibility with existing tests.
-# For new code, prefer using nixpkgs.lib directly:
-#   - actualLib.hasPrefix instead of stringUtils.hasPrefix
-#   - actualLib.splitString instead of stringUtils.splitString
-#   - actualLib.unique instead of listUtils.unique
-#   - actualLib.flatten instead of listUtils.flatten
+# Why This File Exists:
+# - Backwards compatibility: Existing tests reference these specific utility functions
+# - Test stability: Changing test dependencies would require extensive test rewrites
+# - Migration path: New code should use nixpkgs.lib or platform-system.nix instead
+#
+# Duplicate Utilities Explanation:
+# Many string/list/path utilities in this file duplicate nixpkgs.lib functionality.
+# This duplication exists because:
+# 1. Existing tests (lib/testing.nix) explicitly import and test these utilities
+# 2. Removing duplicates would break test assertions that verify these functions
+# 3. Historical: These were written before standardizing on nixpkgs.lib patterns
+#
+# Recommended Migration Path:
+# - For NEW code: Use nixpkgs.lib directly (lib.hasPrefix, lib.splitString, etc.)
+# - For NEW platform detection: Use ./platform-system.nix (standardized interface)
+# - For EXISTING tests: Continue using this file until test refactoring
+# - Future: Consolidate all utilities into platform-system.nix after test migration
+#
+# Specific Duplicates to Avoid in New Code:
+#   - stringUtils.hasPrefix     → Use actualLib.hasPrefix
+#   - stringUtils.splitString   → Use actualLib.splitString
+#   - listUtils.unique          → Use actualLib.unique
+#   - listUtils.flatten         → Use actualLib.flatten
+#   - systemUtils.isDarwin      → Use (import ./platform-system.nix).isDarwin
+#   - systemUtils.isLinux       → Use (import ./platform-system.nix).isLinux
 
 {
   pkgs ? null,

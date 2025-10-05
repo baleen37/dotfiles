@@ -123,6 +123,9 @@ jobs:
           install_url: https://releases.nixos.org/nix/nix-2.18.8/install
           enable_kvm: true
       # Cache strategy
+      - name: Get week number for cache rotation
+        id: date
+        run: echo "week=$(date +%Y-W%U)" >> $GITHUB_OUTPUT
       - name: Cache Nix store
         uses: actions/cache@v4
         with:
@@ -130,8 +133,9 @@ jobs:
             /nix/store
             ~/.cache/nix
             ~/.local/state/nix
-          key: nix-${{ runner.os }}-${{ hashFiles('flake.lock', 'flake.nix') }}
+          key: nix-${{ runner.os }}-${{ hashFiles('flake.lock', 'flake.nix') }}-${{ steps.date.outputs.week }}
           restore-keys: |
+            nix-${{ runner.os }}-${{ hashFiles('flake.lock', 'flake.nix') }}-
             nix-${{ runner.os }}-
       - name: Build and test switch
         timeout-minutes: 60
