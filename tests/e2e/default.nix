@@ -35,10 +35,20 @@ let
       ;
   };
 
+  # Import VM-based build-switch tests
+  buildSwitchVMTests = import ./build-switch-vm-test.nix {
+    inherit lib pkgs system;
+  };
+
 in
 {
   # Individual test suites
   inherit buildSwitchTests userWorkflowTests;
+
+  # VM-based build-switch tests (실제 동작 검증)
+  build-switch-vm-dry = buildSwitchVMTests.dryRunTest;
+  build-switch-vm-full = buildSwitchVMTests.vmTest;
+  build-switch-vm-all = buildSwitchVMTests.all;
 
   # Combined e2e test suite
   all = nixtest.suite "All E2E Tests" {

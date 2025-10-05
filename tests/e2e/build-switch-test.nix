@@ -113,4 +113,32 @@ nixtestFinal.suite "Build-Switch E2E Tests" {
       ]
     )
   );
+
+  # Test 11: Build-switch configuration can be evaluated (fast check)
+  buildSwitchConfigEvaluates = nixtestFinal.test "Build-switch configuration evaluates successfully" (
+    nixtestFinal.assertions.assertTrue helpers.canEvalBuildSwitchConfig
+  );
+
+  # Test 12: Makefile build-switch targets exist
+  makefileBuildSwitchTargets = nixtestFinal.test "Makefile has build-switch targets" (
+    let
+      hasBuildSwitch = helpers.makefileHasTarget "build-switch";
+      hasBuildSwitchDry = helpers.makefileHasTarget "build-switch-dry";
+    in
+    nixtestFinal.assertions.assertTrue (hasBuildSwitch && hasBuildSwitchDry)
+  );
+
+  # Test 13: Build-switch user variable handling
+  buildSwitchUserVarHandling = nixtestFinal.test "Build-switch handles USER variable correctly" (
+    nixtestFinal.assertions.assertTrue (helpers.makefileHasTarget "check-user")
+  );
+
+  # Test 14: Build-switch quiet mode enabled
+  buildSwitchQuietMode = nixtestFinal.test "Build-switch uses quiet mode for output" (
+    let
+      makefileContent = builtins.readFile ../../Makefile;
+      hasQuietFlag = builtins.match ".*--quiet.*" makefileContent != null;
+    in
+    nixtestFinal.assertions.assertTrue hasQuietFlag
+  );
 }

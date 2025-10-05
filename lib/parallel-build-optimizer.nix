@@ -8,24 +8,143 @@
 }:
 
 rec {
+  # Constants for build calculation rationale
+  constants = {
+    # Memory allocation
+    memoryUsageRatio = 0.8; # Use 80% of available RAM for builds
+    memoryPerJobMB = 2048; # Assume ~2GB per parallel job
+    minMemoryMB = 4096; # Minimum 4GB for any build
+
+    # Core allocation
+    coreEfficiencyRatio = 0.75; # Use 75% of cores for jobs (leave room for system)
+    minCores = 2; # Minimum cores to use
+    maxJobsPerCore = 1.0; # Maximum 1 job per core
+
+    # Build timeouts
+    defaultTimeoutSeconds = 3600; # 1 hour default
+    heavyBuildTimeoutSeconds = 7200; # 2 hours for heavy builds
+
+    # Linking limits
+    maxLinkPoolDepth = 4; # Limit parallel linking to avoid OOM
+
+    # Ccache configuration
+    ccacheSizeGB = 2; # Default ccache size
+  };
+
+  # Dynamic system detection
+  # Note: Nix evaluation happens at build time, so we use heuristics based on system type
+  # For more accurate detection, set NIX_BUILD_CORES environment variable
+  systemDetection =
+    let
+      # Platform-based reasonable defaults (can be overridden by environment)
+      platformDefaults =
+        if lib.hasPrefix "aarch64-darwin" system then
+          {
+            # Apple Silicon: Most M1/M2 have 8 cores, M3 has 8-12
+            # Conservative estimate for wide compatibility
+            cores = 8;
+            memory = 16;
+          }
+        else if lib.hasPrefix "x86_64-darwin" system then
+          {
+            # Intel Mac: Typically 4-8 cores
+            cores = 8;
+            memory = 16;
+          }
+        else if lib.hasPrefix "x86_64-linux" system then
+          {
+            # x86_64 Linux: Wide range, conservative estimate
+            cores = 8;
+            memory = 16;
+          }
+        else if lib.hasPrefix "aarch64-linux" system then
+          {
+            # ARM64 Linux: Server/workstation range
+            cores = 8;
+            memory = 16;
+          }
+        else
+          {
+            # Unknown platform fallback
+            cores = 4;
+            memory = 8;
+          };
+
+      # Try to get cores from environment variable (set by user or Nix daemon)
+      envCores =
+        let
+          nixBuildCores = builtins.getEnv "NIX_BUILD_CORES";
+        in
+        if nixBuildCores != "" && nixBuildCores != "0" then
+          lib.toInt nixBuildCores
+        else
+          platformDefaults.cores;
+
+      # Try to get memory hint from environment (not standard, but useful)
+      envMemory =
+        let
+          nixBuildMemory = builtins.getEnv "NIX_BUILD_MEMORY_GB";
+        in
+        if nixBuildMemory != "" then lib.toInt nixBuildMemory else platformDefaults.memory;
+    in
+    {
+      # Detected/estimated hardware values
+      totalCores = envCores;
+      memoryGB = envMemory;
+    };
+
+  # Build calculation functions with documented rationale
+  buildCalculations = {
+    # Calculate optimal number of parallel jobs
+    # Rationale: Balance parallelism with memory constraints
+    # - Use 75% of cores to leave room for system processes
+    # - Ensure we don't exceed 1 job per core
+    # - Ensure we have enough memory (2GB per job)
+    calculateMaxJobs =
+      cores: memoryGB:
+      let
+        # Jobs based on cores (75% of available cores)
+        coreBasedJobs = builtins.ceil (cores * constants.coreEfficiencyRatio);
+        # Jobs based on memory (assume 2GB per job)
+        memoryBasedJobs = builtins.floor (memoryGB * 1024 / constants.memoryPerJobMB);
+        # Use the minimum to avoid overload
+        maxJobs = lib.min coreBasedJobs memoryBasedJobs;
+      in
+      lib.max 1 maxJobs; # At least 1 job
+
+    # Calculate cores to use for compilation
+    # Rationale: Use all available cores for compilation (not the same as jobs)
+    calculateBuildCores = cores: lib.max constants.minCores cores;
+
+    # Calculate memory limit for builds
+    # Rationale: Use 80% of available RAM to leave room for system
+    calculateMemoryLimitMB = memoryGB: builtins.floor (memoryGB * 1024 * constants.memoryUsageRatio);
+
+    # Calculate link pool depth
+    # Rationale: Limit parallel linking to avoid OOM (linking is memory-intensive)
+    calculateLinkPoolDepth = cores: lib.min constants.maxLinkPoolDepth (builtins.ceil (cores / 2));
+  };
+
   # Hardware-specific optimizations based on system
   hardwareOptimization =
+    let
+      inherit (systemDetection) totalCores memoryGB;
+      cores = totalCores;
+    in
     if lib.hasPrefix "aarch64-darwin" system then
       {
-        # Apple M2 optimization
-        totalCores = 8;
-        performanceCores = 4; # P-cores for compute-intensive tasks
-        efficiencyCores = 4; # E-cores for background tasks
-        memoryGB = 16;
+        # Apple Silicon (M1/M2/M3) - dynamically detected
+        totalCores = cores;
+        inherit memoryGB;
 
-        # Optimal settings for Apple Silicon
-        optimalJobs = 4; # Conservative for memory constraints
-        optimalCores = 8; # Use all cores for compilation
+        # Calculate optimal settings
+        optimalJobs = buildCalculations.calculateMaxJobs cores memoryGB;
+        optimalCores = buildCalculations.calculateBuildCores cores;
 
         # Build environment
         buildEnv = {
-          NIX_BUILD_CORES = "8";
-          MAKEFLAGS = "-j8";
+          NIX_BUILD_CORES = toString cores;
+          MAKEFLAGS = "-j${toString cores}";
           # Apple-specific optimizations
           CC = "clang";
           CXX = "clang++";
@@ -34,18 +153,35 @@ rec {
           NIX_LDFLAGS = "-L${pkgs.darwin.apple_sdk.frameworks.Accelerate}/lib";
         };
       }
-    else if lib.hasPrefix "x86_64" system then
+    else if lib.hasPrefix "x86_64-darwin" system then
       {
-        # x86_64 optimization
-        totalCores = 8; # Assume typical 8-core system
-        memoryGB = 16;
+        # Intel Mac - dynamically detected
+        totalCores = cores;
+        inherit memoryGB;
 
-        optimalJobs = 6; # More aggressive parallelization
-        optimalCores = 8;
+        optimalJobs = buildCalculations.calculateMaxJobs cores memoryGB;
+        optimalCores = buildCalculations.calculateBuildCores cores;
 
         buildEnv = {
-          NIX_BUILD_CORES = "8";
-          MAKEFLAGS = "-j8";
+          NIX_BUILD_CORES = toString cores;
+          MAKEFLAGS = "-j${toString cores}";
+          CC = "clang";
+          CXX = "clang++";
+          NIX_CFLAGS_COMPILE = "-O3 -march=native -mtune=native";
+        };
+      }
+    else if lib.hasPrefix "x86_64-linux" system || lib.hasPrefix "aarch64-linux" system then
+      {
+        # Linux (x86_64 or ARM64) - dynamically detected
+        totalCores = cores;
+        inherit memoryGB;
+
+        optimalJobs = buildCalculations.calculateMaxJobs cores memoryGB;
+        optimalCores = buildCalculations.calculateBuildCores cores;
+
+        buildEnv = {
+          NIX_BUILD_CORES = toString cores;
+          MAKEFLAGS = "-j${toString cores}";
           CC = "gcc";
           CXX = "g++";
           NIX_CFLAGS_COMPILE = "-O3 -march=native -mtune=native";
@@ -53,14 +189,16 @@ rec {
       }
     else
       {
-        # Generic fallback
-        totalCores = 4;
-        memoryGB = 8;
-        optimalJobs = 2;
-        optimalCores = 4;
+        # Generic fallback - use detected values or minimums
+        totalCores = lib.max constants.minCores cores;
+        memoryGB = lib.max 8 memoryGB;
+        optimalJobs = buildCalculations.calculateMaxJobs (lib.max constants.minCores cores) (
+          lib.max 8 memoryGB
+        );
+        optimalCores = buildCalculations.calculateBuildCores (lib.max constants.minCores cores);
         buildEnv = {
-          NIX_BUILD_CORES = "4";
-          MAKEFLAGS = "-j4";
+          NIX_BUILD_CORES = toString (lib.max constants.minCores cores);
+          MAKEFLAGS = "-j${toString (lib.max constants.minCores cores)}";
         };
       };
 
@@ -74,9 +212,9 @@ rec {
     parallelInstalling = true;
     enableParallelBuilding = true;
 
-    # Build resource limits
-    buildTimeoutSeconds = 3600; # 1 hour max per build
-    memoryLimitMB = hardwareOptimization.memoryGB * 1024 * 0.8; # 80% of RAM
+    # Build resource limits (using calculated values)
+    buildTimeoutSeconds = constants.defaultTimeoutSeconds;
+    memoryLimitMB = buildCalculations.calculateMemoryLimitMB hardwareOptimization.memoryGB;
 
     # Parallel-specific environment
     environment = hardwareOptimization.buildEnv // {
@@ -85,15 +223,17 @@ rec {
       GOMAXPROCS = toString hardwareOptimization.optimalCores;
       PYTHON_BUILD_JOBS = toString hardwareOptimization.optimalCores;
 
-      # Memory optimization for parallel builds
-      LINK_POOL_DEPTH = "4"; # Limit parallel linking to avoid OOM
+      # Memory optimization for parallel builds (using calculated value)
+      LINK_POOL_DEPTH = toString (
+        buildCalculations.calculateLinkPoolDepth hardwareOptimization.totalCores
+      );
 
       # Temporary directory optimization
       TMPDIR = "/tmp";
 
-      # ccache configuration for faster rebuilds
+      # ccache configuration for faster rebuilds (using constant)
       CCACHE_DIR = "\${HOME}/.cache/ccache";
-      CCACHE_MAXSIZE = "2G";
+      CCACHE_MAXSIZE = "${toString constants.ccacheSizeGB}G";
       CCACHE_COMPILERCHECK = "content";
     };
   };
