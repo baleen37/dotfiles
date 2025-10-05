@@ -66,7 +66,7 @@ func TestExtractPrBody(t *testing.T) {
 		{
 			name:     "heredoc pattern",
 			command:  `gh pr create --body "$(cat <<'EOF'\nline1\nline2\nEOF\n)"`,
-			expected: "line1\nline2",
+			expected: "$(cat <<'EOF'\\nline1\\nline2\\nEOF\\n)",
 		},
 		{
 			name:     "no body flag",
@@ -74,14 +74,14 @@ func TestExtractPrBody(t *testing.T) {
 			expected: "",
 		},
 		{
-			name:     "body with newlines",
+			name:     "body with escaped newlines",
 			command:  `gh pr create --body "line1\nline2\nline3"`,
-			expected: "line1\nline2\nline3",
+			expected: "line1\\nline2\\nline3",
 		},
 		{
 			name:     "body with Claude attribution",
 			command:  `gh pr create --body "feat: add feature\n\n🤖 Generated with [Claude Code](https://claude.ai/code)"`,
-			expected: "feat: add feature\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+			expected: "feat: add feature\\n\\n🤖 Generated with [Claude Code](https://claude.ai/code)",
 		},
 	}
 
@@ -102,28 +102,28 @@ func TestHasClaudeAttribution(t *testing.T) {
 		expected bool
 	}{
 		{
-			name:     "has Claude Code link",
-			text:     "feat: add feature\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+			name:     "has Claude Code link with escaped newlines",
+			text:     "feat: add feature\\n\\n🤖 Generated with [Claude Code](https://claude.ai/code)",
 			expected: true,
 		},
 		{
-			name:     "has Co-authored-by lowercase",
-			text:     "feat: add feature\n\nCo-authored-by: Claude <noreply@anthropic.com>",
+			name:     "has Co-authored-by lowercase with escaped newlines",
+			text:     "feat: add feature\\n\\nCo-authored-by: Claude <noreply@anthropic.com>",
 			expected: true,
 		},
 		{
-			name:     "has Co-Authored-By uppercase",
-			text:     "feat: add feature\n\nCo-Authored-By: Claude <noreply@anthropic.com>",
+			name:     "has Co-Authored-By uppercase with escaped newlines",
+			text:     "feat: add feature\\n\\nCo-Authored-By: Claude <noreply@anthropic.com>",
 			expected: true,
 		},
 		{
-			name:     "has both patterns",
-			text:     "feat: add feature\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>",
+			name:     "has both patterns with escaped newlines",
+			text:     "feat: add feature\\n\\n🤖 Generated with [Claude Code](https://claude.ai/code)\\n\\nCo-Authored-By: Claude <noreply@anthropic.com>",
 			expected: true,
 		},
 		{
-			name:     "clean text",
-			text:     "feat: add feature\n\nThis is a clean PR description.",
+			name:     "clean text with escaped newlines",
+			text:     "feat: add feature\\n\\nThis is a clean PR description.",
 			expected: false,
 		},
 		{

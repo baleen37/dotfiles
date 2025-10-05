@@ -17,6 +17,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Usage: %s <hook-name>\n", os.Args[0])
 		fmt.Fprintf(os.Stderr, "Available hooks:\n")
 		fmt.Fprintf(os.Stderr, "  - git-commit-validator (PreToolUse)\n")
+		fmt.Fprintf(os.Stderr, "  - gh-pr-validator (PreToolUse)\n")
 		fmt.Fprintf(os.Stderr, "  - message-cleaner (PostToolUse)\n")
 		os.Exit(1)
 	}
@@ -36,6 +37,8 @@ func main() {
 	switch hookName {
 	case "git-commit-validator":
 		h = pretooluse.NewGitCommitValidator()
+	case "gh-pr-validator":
+		h = pretooluse.NewGhPrValidator()
 	case "message-cleaner":
 		h = posttooluse.NewMessageCleaner()
 	default:

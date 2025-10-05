@@ -87,16 +87,14 @@ in
       recursive = true;
     };
 
-    # Commands directory
+    # Commands directory (symlink for instant changes)
     "${claudeHomeDir}/commands" = {
       source = "${claudeConfigDir}/commands";
-      recursive = true;
     };
 
-    # Agents directory
+    # Agents directory (symlink for instant changes)
     "${claudeHomeDir}/agents" = {
       source = "${claudeConfigDir}/agents";
-      recursive = true;
     };
   };
 

@@ -64,7 +64,7 @@ func (h *GhPrValidator) Validate(ctx context.Context, input *hook.Input) (*hook.
 // IsGhPrCreateCommand checks if command is a gh pr create command
 func IsGhPrCreateCommand(command string) bool {
 	// Remove quoted content to avoid false positives
-	cleanCommand := removeQuotedContent(command)
+	cleanCommand := hook.RemoveQuotedContent(command)
 	return strings.Contains(cleanCommand, "gh pr create")
 }
 
@@ -105,17 +105,4 @@ func hasClaudeAttribution(text string) bool {
 	}
 
 	return false
-}
-
-// removeQuotedContent removes content within quotes to avoid false positives
-func removeQuotedContent(s string) string {
-	// Remove double-quoted strings
-	doubleQuotePattern := regexp.MustCompile(`"[^"]*"`)
-	s = doubleQuotePattern.ReplaceAllString(s, "")
-
-	// Remove single-quoted strings
-	singleQuotePattern := regexp.MustCompile(`'[^']*'`)
-	s = singleQuotePattern.ReplaceAllString(s, "")
-
-	return s
 }

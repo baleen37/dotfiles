@@ -24,3 +24,16 @@ func GetBashCommand(input *Input) (string, bool) {
 	command, ok := commandInterface.(string)
 	return command, ok
 }
+
+// RemoveQuotedContent removes content within quotes to avoid false positives
+func RemoveQuotedContent(s string) string {
+	// Remove double-quoted strings
+	doubleQuotePattern := regexp.MustCompile(`"[^"]*"`)
+	s = doubleQuotePattern.ReplaceAllString(s, "")
+
+	// Remove single-quoted strings
+	singleQuotePattern := regexp.MustCompile(`'[^']*'`)
+	s = singleQuotePattern.ReplaceAllString(s, "")
+
+	return s
+}

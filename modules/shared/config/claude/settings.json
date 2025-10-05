@@ -39,6 +39,10 @@
           {
             "type": "command",
             "command": "~/.claude/hooks/git-commit-validator"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/gh-pr-validator"
           }
         ]
       }

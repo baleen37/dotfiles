@@ -42,7 +42,7 @@ func (h *GitCommitValidator) Validate(ctx context.Context, input *hook.Input) (*
 	}
 
 	// Remove quoted content to avoid false positives
-	cleanCommand := removeQuotedContent(command)
+	cleanCommand := hook.RemoveQuotedContent(command)
 
 	// Check for --no-verify flag
 	noVerifyPattern := regexp.MustCompile(`--no-verify\b`)
@@ -57,17 +57,4 @@ func (h *GitCommitValidator) Validate(ctx context.Context, input *hook.Input) (*
 	}
 
 	return resp, nil
-}
-
-// removeQuotedContent removes content within quotes to avoid false positives
-func removeQuotedContent(s string) string {
-	// Remove double-quoted strings
-	doubleQuotePattern := regexp.MustCompile(`"[^"]*"`)
-	s = doubleQuotePattern.ReplaceAllString(s, "")
-
-	// Remove single-quoted strings
-	singleQuotePattern := regexp.MustCompile(`'[^']*'`)
-	s = singleQuotePattern.ReplaceAllString(s, "")
-
-	return s
 }
