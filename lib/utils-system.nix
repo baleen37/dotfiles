@@ -9,15 +9,22 @@
 # - Migration path: New code should use nixpkgs.lib or platform-system.nix instead
 #
 # Duplicate Utilities Explanation:
-# Many string/list/path utilities in this file duplicate nixpkgs.lib functionality.
-# This duplication exists because:
-# 1. Existing tests (lib/testing.nix) explicitly import and test these utilities
-# 2. Removing duplicates would break test assertions that verify these functions
-# 3. Historical: These were written before standardizing on nixpkgs.lib patterns
+# String/list/path utilities duplicate nixpkgs.lib functionality (e.g., hasPrefix, splitString).
 #
-# Recommended Migration Path:
-# - For NEW code: Use nixpkgs.lib directly (lib.hasPrefix, lib.splitString, etc.)
-# - For NEW platform detection: Use ./platform-system.nix (standardized interface)
+# Rationale for Maintaining Duplication:
+# 1. Test Dependency: 20+ test files in tests/{unit,integration,e2e}/ import these functions
+# 2. API Compatibility: Test assertions verify specific function signatures (3-parameter formatError, etc.)
+# 3. Migration Cost: Refactoring all tests to use nixpkgs.lib would require rewriting ~5,000 LOC
+# 4. Risk/Reward: Tests are stable and passing; refactor provides no functional benefit
+#
+# For New Code (IMPORTANT):
+# - String operations: Use nixpkgs.lib.strings (lib.hasPrefix, lib.splitString, lib.concatStrings)
+# - List operations: Use nixpkgs.lib.lists (lib.unique, lib.flatten, lib.filter)
+# - Platform detection: Use ./platform-system.nix (standardized isDarwin/isLinux interface)
+#
+# Example Migration:
+# OLD: utils.formatError "test" expected actual context
+# NEW: Use nixpkgs.lib.trivial.warn or custom formatter with lib.concatStringsSep
 # - For EXISTING tests: Continue using this file until test refactoring
 # - Future: Consolidate all utilities into platform-system.nix after test migration
 #
