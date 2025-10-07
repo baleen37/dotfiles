@@ -185,6 +185,7 @@ test-e2e:
 	@echo "🚀 Running E2E tests (end-to-end workflow validation)..."
 	@$(NIX) build --impure --quiet .#packages.$(shell nix eval --impure --expr builtins.currentSystem).build-switch-e2e $(ARGS)
 	@$(NIX) build --impure --quiet .#packages.$(shell nix eval --impure --expr builtins.currentSystem).user-workflow-e2e $(ARGS)
+	@$(NIX) build --impure --quiet .#packages.$(shell nix eval --impure --expr builtins.currentSystem).claude-hooks-e2e $(ARGS)
 	@echo "✅ E2E tests completed successfully!"
 
 test-e2e-vm-dry:
@@ -357,14 +358,8 @@ build-switch: check-user
 	TARGET=$${HOST:-$(CURRENT_SYSTEM)}; \
 	echo "🎯 Target system: $${TARGET}"; \
 	if [ "$${OS}" = "Darwin" ]; then \
-		echo "🔨 Building Darwin configuration..."; \
-		export USER=$(USER); $(NIX) build --impure --quiet .#darwinConfigurations.$${TARGET}.system $(ARGS) || { echo "❌ Build failed!"; exit 1; }; \
-		if [ ! -L "./result" ]; then echo "❌ Build result not found!"; exit 1; fi; \
-		echo "🔄 Switching to new configuration..."; \
-		sudo -E env USER=$(USER) ./result/sw/bin/darwin-rebuild switch --impure --flake .#$${TARGET} $(ARGS) 2>/dev/null || \
-		{ echo "⚠️  Backup conflicts detected, retrying with backup override..."; \
-		  export USER=$(USER); nix run home-manager/release-24.05 -- switch --flake . -b backup --impure; }; \
-		rm -f ./result; \
+		echo "🔨 Applying user-level configuration with Home Manager..."; \
+		nix run home-manager/release-24.05 -- switch --flake ".#$(USER)" -b backup --impure $(ARGS) || { echo "❌ Switch failed!"; exit 1; }; \
 	else \
 		echo "🔨 Building and switching NixOS configuration..."; \
 		sudo -E USER=$(USER) SSH_AUTH_SOCK=$$SSH_AUTH_SOCK /run/current-system/sw/bin/nixos-rebuild switch --impure --flake .#$${TARGET} $(ARGS); \

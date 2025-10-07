@@ -80,7 +80,7 @@ jobs:
       - name: Run Go tests
         run: |
           echo "🧪 Running Go tests for Claude Code hooks"
-          cd modules/shared/programs/claude/hooks-go
+          cd modules/shared/programs/claude-hook
           nix develop --command bash -c "go test -v ./..."
           echo "✅ Go tests passed"
   # Build and switch combined (faster, simpler)

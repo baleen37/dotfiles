@@ -13,8 +13,8 @@
 # 지원 플랫폼: macOS (Darwin), Linux
 # 패키지 추가: go (hooks 빌드용)
 #
-# VERSION: 5.1.0 (Direct claude-hooks binary usage, removed wrappers)
-# LAST UPDATED: 2025-10-05
+# VERSION: 5.2.0 (Separated claude-hook module)
+# LAST UPDATED: 2025-10-07
 
 { config, pkgs, ... }:
 
@@ -25,14 +25,8 @@ let
   # Claude Code uses ~/.claude for both platforms
   claudeHomeDir = ".claude";
 
-  # Build Go hooks binary
-  claudeHooks = pkgs.buildGoModule {
-    pname = "claude-hooks";
-    version = "1.0.0";
-    src = ./hooks-go;
-    vendorHash = null;
-    subPackages = [ "cmd/claude-hooks" ];
-  };
+  # Import claude-hooks binary from separate module
+  claudeHooks = pkgs.callPackage ../claude-hook { };
 
   # Create hooks directory with claude-hooks binary and wrappers
   hooksDir = pkgs.runCommand "claude-hooks-dir" { } ''
@@ -43,19 +37,22 @@ let
         # Create wrapper scripts that call claude-hooks with appropriate subcommand
         cat > $out/git-commit-validator <<'EOF'
     #!/usr/bin/env bash
-    exec "$(dirname "$0")/claude-hooks" git-commit-validator
+    SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
+    exec "$SCRIPT_DIR/claude-hooks" git-commit-validator
     EOF
         chmod +x $out/git-commit-validator
 
         cat > $out/gh-pr-validator <<'EOF'
     #!/usr/bin/env bash
-    exec "$(dirname "$0")/claude-hooks" gh-pr-validator
+    SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
+    exec "$SCRIPT_DIR/claude-hooks" gh-pr-validator
     EOF
         chmod +x $out/gh-pr-validator
 
         cat > $out/message-cleaner <<'EOF'
     #!/usr/bin/env bash
-    exec "$(dirname "$0")/claude-hooks" message-cleaner
+    SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
+    exec "$SCRIPT_DIR/claude-hooks" message-cleaner
     EOF
         chmod +x $out/message-cleaner
   '';
@@ -64,8 +61,8 @@ in
 {
   # Home Manager configuration
   home = {
-    # No packages needed - Claude Code installed separately
-    packages = [ ];
+    # Global claude-hooks binary for terminal use
+    packages = [ claudeHooks ];
 
     # Symlink configuration files via Nix store
     file = {

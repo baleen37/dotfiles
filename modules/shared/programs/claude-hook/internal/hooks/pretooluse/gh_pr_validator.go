@@ -42,22 +42,7 @@ func (h *GhPrValidator) Validate(ctx context.Context, input *hook.Input) (*hook.
 		return resp, nil
 	}
 
-	// Extract PR body
-	body := extractPrBody(command)
-	if body == "" {
-		return resp, nil
-	}
-
-	// Check for Claude attribution
-	if hasClaudeAttribution(body) {
-		resp.Block("⚠️  Claude Code attribution detected in PR description.\n" +
-			"Please remove the following before creating PR:\n" +
-			"1. 🤖 Generated with [Claude Code](...)\n" +
-			"2. Co-Authored-By: Claude <noreply@anthropic.com>\n\n" +
-			"Tip: Use /create-pr command which auto-removes these patterns.")
-		return resp, nil
-	}
-
+	// Allow PR creation - PostToolUse hook will clean attribution automatically
 	return resp, nil
 }
 
