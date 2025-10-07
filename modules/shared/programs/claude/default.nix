@@ -67,8 +67,8 @@ in
 {
   # Home Manager configuration
   home = {
-    # No packages needed - Claude Code installed separately
-    packages = [ ];
+    # Global claude-hooks binary for terminal use
+    packages = [ claudeHooks ];
 
     # Symlink configuration files via Nix store
     file = {
