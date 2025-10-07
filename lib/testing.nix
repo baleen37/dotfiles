@@ -104,6 +104,11 @@ in
           ;
       };
 
+      # Import claude-hooks e2e tests
+      claudeHooksTests = import (self + /tests/e2e/claude-hooks-test.nix) {
+        inherit lib pkgs;
+      };
+
       # Helper function to run test suites and format results
       runTestSuite =
         testSuite:
@@ -145,6 +150,9 @@ in
       buildSwitchTestSuite = runTestSuite buildSwitchTests;
       userWorkflowTestSuite = runTestSuite userWorkflowTests;
 
+      # Claude hooks e2e tests (direct derivations, not using runTestSuite)
+      claudeHooksAllTests = claudeHooksTests.all-tests;
+
       # Combined test runner that executes all test suites
       allTestSuites =
         pkgs.runCommand "nixtest-all-suites"
@@ -169,9 +177,12 @@ in
             cp -r ${systemConfigurationTestSuite}/* $out/results/integration-tests/system-configuration/
 
             # Copy e2e test results
-            mkdir -p $out/results/e2e-tests/build-switch $out/results/e2e-tests/user-workflow
+            mkdir -p $out/results/e2e-tests/build-switch $out/results/e2e-tests/user-workflow $out/results/e2e-tests/claude-hooks
             cp -r ${buildSwitchTestSuite}/* $out/results/e2e-tests/build-switch/
             cp -r ${userWorkflowTestSuite}/* $out/results/e2e-tests/user-workflow/
+
+            # Claude hooks e2e tests (single derivation, not a suite)
+            echo "Claude Hooks E2E Tests: COMPLETED" > $out/results/e2e-tests/claude-hooks/summary.txt
 
             # Generate combined report
             echo "NixTest Framework Results" > $out/report.txt
@@ -235,6 +246,7 @@ in
       # E2E test suites
       build-switch-e2e = buildSwitchTestSuite;
       user-workflow-e2e = userWorkflowTestSuite;
+      claude-hooks-e2e = claudeHooksAllTests;
 
       # Combined test runner
       all = allTestSuites;

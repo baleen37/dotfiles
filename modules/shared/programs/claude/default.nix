@@ -43,19 +43,22 @@ let
         # Create wrapper scripts that call claude-hooks with appropriate subcommand
         cat > $out/git-commit-validator <<'EOF'
     #!/usr/bin/env bash
-    exec "$(dirname "$0")/claude-hooks" git-commit-validator
+    SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
+    exec "$SCRIPT_DIR/claude-hooks" git-commit-validator
     EOF
         chmod +x $out/git-commit-validator
 
         cat > $out/gh-pr-validator <<'EOF'
     #!/usr/bin/env bash
-    exec "$(dirname "$0")/claude-hooks" gh-pr-validator
+    SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
+    exec "$SCRIPT_DIR/claude-hooks" gh-pr-validator
     EOF
         chmod +x $out/gh-pr-validator
 
         cat > $out/message-cleaner <<'EOF'
     #!/usr/bin/env bash
-    exec "$(dirname "$0")/claude-hooks" message-cleaner
+    SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
+    exec "$SCRIPT_DIR/claude-hooks" message-cleaner
     EOF
         chmod +x $out/message-cleaner
   '';

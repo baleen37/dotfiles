@@ -314,6 +314,7 @@
                 system-configuration
                 build-switch-e2e
                 user-workflow-e2e
+                claude-hooks-e2e
                 all
                 ;
             }

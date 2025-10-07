@@ -40,10 +40,15 @@ let
     inherit lib pkgs system;
   };
 
+  # Import Claude hooks tests
+  claudeHooksTests = import ./claude-hooks-test.nix {
+    inherit lib pkgs;
+  };
+
 in
 {
   # Individual test suites
-  inherit buildSwitchTests userWorkflowTests;
+  inherit buildSwitchTests userWorkflowTests claudeHooksTests;
 
   # VM-based build-switch tests (실제 동작 검증)
   build-switch-vm-dry = buildSwitchVMTests.dryRunTest;
