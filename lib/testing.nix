@@ -106,7 +106,7 @@ in
 
       # Import claude-hooks e2e tests
       claudeHooksTests = import (self + /tests/e2e/claude-hooks-test.nix) {
-        inherit lib pkgs;
+        inherit pkgs;
       };
 
       # Helper function to run test suites and format results

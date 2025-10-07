@@ -93,7 +93,7 @@ repos:
 
       - id: go-test
         name: Go Tests (Claude Hooks)
-        entry: bash -c 'cd modules/shared/programs/claude/hooks-go && nix-shell -p go --run "go test -v ./..."'
+        entry: bash -c 'cd modules/shared/programs/claude-hook && nix-shell -p go --run "go test -v ./..."'
         language: system
         pass_filenames: false
         files: '\.go$'

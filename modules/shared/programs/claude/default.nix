@@ -13,8 +13,8 @@
 # 지원 플랫폼: macOS (Darwin), Linux
 # 패키지 추가: go (hooks 빌드용)
 #
-# VERSION: 5.1.0 (Direct claude-hooks binary usage, removed wrappers)
-# LAST UPDATED: 2025-10-05
+# VERSION: 5.2.0 (Separated claude-hook module)
+# LAST UPDATED: 2025-10-07
 
 { config, pkgs, ... }:
 
@@ -25,14 +25,8 @@ let
   # Claude Code uses ~/.claude for both platforms
   claudeHomeDir = ".claude";
 
-  # Build Go hooks binary
-  claudeHooks = pkgs.buildGoModule {
-    pname = "claude-hooks";
-    version = "1.0.0";
-    src = ./hooks-go;
-    vendorHash = null;
-    subPackages = [ "cmd/claude-hooks" ];
-  };
+  # Import claude-hooks binary from separate module
+  claudeHooks = pkgs.callPackage ../claude-hook { };
 
   # Create hooks directory with claude-hooks binary and wrappers
   hooksDir = pkgs.runCommand "claude-hooks-dir" { } ''

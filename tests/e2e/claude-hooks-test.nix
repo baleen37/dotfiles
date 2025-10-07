@@ -17,13 +17,7 @@
 
 let
   # Build hooks from the actual module
-  claudeHooks = pkgs.buildGoModule {
-    pname = "claude-hooks";
-    version = "1.0.0";
-    src = ../../modules/shared/programs/claude/hooks-go;
-    vendorHash = null;
-    subPackages = [ "cmd/claude-hooks" ];
-  };
+  claudeHooks = pkgs.callPackage ../../modules/shared/programs/claude-hook { };
 
   # Create hooks directory with wrappers (same as module)
   hooksDir = pkgs.runCommand "claude-hooks-dir" { } ''

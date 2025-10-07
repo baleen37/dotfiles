@@ -295,12 +295,7 @@
         in
         {
           # Claude Code hooks binary
-          claude-hooks = pkgs.buildGoModule {
-            pname = "claude-hooks";
-            version = "0.1.0";
-            src = ./modules/shared/programs/claude/hooks-go;
-            vendorHash = null; # No external dependencies
-          };
+          claude-hooks = pkgs.callPackage ./modules/shared/programs/claude-hook { };
         }
         // (
           if testsHasSystem then
