@@ -19,6 +19,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "  - git-commit-validator (PreToolUse)\n")
 		fmt.Fprintf(os.Stderr, "  - gh-pr-validator (PreToolUse)\n")
 		fmt.Fprintf(os.Stderr, "  - message-cleaner (PostToolUse)\n")
+		fmt.Fprintf(os.Stderr, "  - gh-pr-cleaner (PostToolUse)\n")
 		os.Exit(1)
 	}
 
@@ -41,6 +42,8 @@ func main() {
 		h = pretooluse.NewGhPrValidator()
 	case "message-cleaner":
 		h = posttooluse.NewMessageCleaner()
+	case "gh-pr-cleaner":
+		h = posttooluse.NewGhPrCleaner()
 	default:
 		fmt.Fprintf(os.Stderr, "Error: Unknown hook: %s\n", hookName)
 		os.Exit(1)

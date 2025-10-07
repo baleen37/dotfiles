@@ -54,6 +54,10 @@
           {
             "type": "command",
             "command": "claude-hooks message-cleaner"
+          },
+          {
+            "type": "command",
+            "command": "claude-hooks gh-pr-cleaner"
           }
         ]
       }
