@@ -27,6 +27,7 @@ Goal: 사용자의 Claude Code 설정을 진단하고, 공식 문서와 최신 �
 | All | **전체 진단** - 모든 영역 종합 검토 |
 
 **질문 형식**:
+
 - "어떤 영역을 개선하고 싶으신가요? (A-H 또는 All 입력)"
 - 사용자가 선택한 영역에 대해 현재 불편한 점이나 목표 추가 질문 (선택적)
 
@@ -35,17 +36,20 @@ Goal: 사용자의 Claude Code 설정을 진단하고, 공식 문서와 최신 �
 선택된 영역에 따라 다음 설정 파일들을 읽고 분석합니다:
 
 **공통**:
+
 - `.claude/settings.json` (프로젝트 설정)
 - `.claude/CLAUDE.md` (프로젝트 지침)
 - `~/.claude/settings.json` (전역 설정, 가능한 경우)
 
 **영역별 추가 분석**:
+
 - **A (MCP)**: MCP 서버 목록 확인
 - **D (Commands)**: `.claude/commands/*.md` 파일 목록 및 패턴
 - **C (Hooks)**: Hook 설정 존재 여부 및 구조
 - **E/F (설정)**: settings.json 구조 및 값 검토
 
 현재 설정을 내부 모델로 정리:
+
 - 사용 중인 기능 목록
 - 미사용/누락된 설정
 - 잠재적 문제점 (예: 하드코딩된 값, 비효율적 패턴)
@@ -55,14 +59,17 @@ Goal: 사용자의 Claude Code 설정을 진단하고, 공식 문서와 최신 �
 선택된 영역에 대해 최신 정보를 수집합니다:
 
 **공식 문서 조회** (WebFetch를 사용하여 병렬 조회):
+
 - https://docs.claude.com/en/docs/claude-code/claude_code_docs_map.md (전체 맵)
 - 영역별 관련 문서 URL (예: MCP 설정, 모델 선택, hooks 가이드)
 
 **릴리즈 노트 조회** (WebSearch 사용):
+
 - "Claude Code release notes 2025" 검색
 - "Claude Code [선택된 영역] best practices 2025" 검색
 
 **패턴 수집**:
+
 - 권장 설정 값
 - 새로 추가된 기능
 - Deprecated된 설정
@@ -72,7 +79,7 @@ Goal: 사용자의 Claude Code 설정을 진단하고, 공식 문서와 최신 �
 
 분석 결과를 바탕으로 구조화된 개선 제안서를 작성합니다:
 
-```markdown
+```text
 ## Claude Code 설정 개선 제안서
 
 ### 현재 상태 요약
@@ -89,15 +96,15 @@ Goal: 사용자의 Claude Code 설정을 진단하고, 공식 문서와 최신 �
 | [현재값/상태] | [무엇이 문제인가] | [어떻게 바꿀 것인가] | High/Medium/Low | [어떤 개선이 예상되는가] |
 
 **적용 방법**:
-```json
-// .claude/settings.json
-{
-  "기존설정": "old_value",  // [X] 제거 또는 변경
-  "새설정": "new_value"     // [+] 추가
-}
-```
+
+  // .claude/settings.json
+  {
+    "기존설정": "old_value",  // [X] 제거 또는 변경
+    "새설정": "new_value"     // [+] 추가
+  }
 
 **근거**:
+
 - 공식 문서: [URL]
 - 릴리즈 노트: [버전 및 내용]
 - 베스트 프랙티스: [설명]
@@ -105,6 +112,7 @@ Goal: 사용자의 Claude Code 설정을 진단하고, 공식 문서와 최신 �
 ---
 
 #### [영역명 2]
+
 [동일한 구조 반복]
 
 ---
@@ -112,19 +120,24 @@ Goal: 사용자의 Claude Code 설정을 진단하고, 공식 문서와 최신 �
 ### 종합 개선 계획
 
 **Phase 1 - 즉시 적용 권장 (High Priority)**:
+
 1. [개선 항목]
 2. [개선 항목]
 
 **Phase 2 - 점진적 개선 (Medium Priority)**:
+
 1. [개선 항목]
 
 **Phase 3 - 선택적 최적화 (Low Priority)**:
+
 1. [개선 항목]
 
 ### 예상 결과
+
 - 성능: [예상 개선 사항]
 - 개발 경험: [예상 개선 사항]
 - 유지보수: [예상 개선 사항]
+
 ```
 
 ### 5. 사용자 승인 및 적용
@@ -145,7 +158,7 @@ Goal: 사용자의 Claude Code 설정을 진단하고, 공식 문서와 최신 �
 
 ### 6. 완료 리포트
 
-```markdown
+```text
 ## 개선 완료 보고
 
 ### 적용된 변경사항
