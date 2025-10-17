@@ -18,7 +18,7 @@
 
 ### 3계층 설정 시스템
 
-```
+```text
 로컬 (.claude/settings.local.json)  ← 최고 우선순위 (개인 환경)
     ↓
 프로젝트 (.claude/settings.json)   ← 중간 (팀 공유, Git 추적)
@@ -37,6 +37,7 @@
 ### 현재 프로젝트 설정
 
 **전역** (`~/.claude/settings.json` - Nix store, 읽기 전용):
+
 ```json
 {
   "permissions": {
@@ -49,6 +50,7 @@
 ```
 
 **프로젝트** (`.claude/settings.json` - Git 추적):
+
 ```json
 {
   "hooks": {
@@ -59,6 +61,7 @@
 ```
 
 **로컬** (`.claude/settings.local.json` - .gitignore):
+
 ```json
 {
   "permissions": {
@@ -81,12 +84,14 @@
 **용도**: Claude Code 설정 진단 및 개선 제안
 
 **기능**:
+
 - 9개 영역 선택형 진단 (MCP, 모델, Hooks, Commands, 보안 등)
 - 공식 문서 기반 베스트 프랙티스 조사
 - 구조화된 개선 제안서 생성
 - 승인 후 자동 적용
 
 **사용법**:
+
 ```bash
 /improve-claude-config              # 대화형 진단
 /improve-claude-config --quick      # 전체 자동 진단
@@ -95,6 +100,7 @@
 ```
 
 **워크플로우**:
+
 1. 개선하고 싶은 영역 선택 (A-H 또는 All)
 2. 현재 설정 자동 분석
 3. WebFetch/WebSearch로 최신 베스트 프랙티스 조사
@@ -128,6 +134,7 @@ $ claude mcp list
 **문제점**: `enableAllProjectMcpServers: true` → 모든 서버가 컨텍스트 소비
 
 **해결책**:
+
 ```json
 // ~/.claude/settings.json (또는 Home Manager)
 {
@@ -162,6 +169,7 @@ claude --mcp-debug
 **현재**: `alwaysThinkingEnabled: true` (모든 응답에서 사고 과정 표시)
 
 **개선**:
+
 ```json
 {
   "alwaysThinkingEnabled": false  // 필요시 수동 활성화
@@ -203,6 +211,7 @@ claude --mcp-debug
 | 복잡한 아키텍처 설계 | Opus | 높은 추론 능력 |
 
 **사용법**:
+
 ```bash
 claude --model claude-3-haiku-20240307  # 간단한 작업
 ```
@@ -216,6 +225,7 @@ claude --model claude-3-haiku-20240307  # 간단한 작업
 **현재**: `permissions.deny: []` (비어있음)
 
 **권장** (보안 강화 필요 시):
+
 ```json
 {
   "permissions": {
@@ -241,18 +251,21 @@ claude --model claude-3-haiku-20240307  # 간단한 작업
 ### Q: 설정이 적용되지 않아요
 
 **A**: 우선순위 확인
+
 - 로컬 > 프로젝트 > 전역 순서
 - 로컬 설정(`.local.json`)이 다른 설정을 덮어씀
 
 ### Q: 전역 설정이 읽기 전용이에요
 
 **A**: Nix/Home Manager 환경
+
 - Nix store 파일은 수정 불가
 - `modules/shared/claude.nix`에서 변경 필요
 
 ### Q: Hook이 실행되지 않아요
 
 **A**: 실행 권한 및 경로 확인
+
 ```bash
 chmod +x ~/.claude/hooks/*
 which claude-hooks
@@ -261,6 +274,7 @@ which claude-hooks
 ### Q: MCP 서버가 연결 안 돼요
 
 **A**: 디버그 모드로 확인
+
 ```bash
 claude --mcp-debug
 claude mcp list
