@@ -155,7 +155,35 @@ rec {
     fi
   '';
 
-  # Test 5: Symlink configuration for directories
+  # Test 5: CLAUDE.md points to source directory (not Nix store)
+  test-claude-md-source-link = pkgs.runCommand "test-claude-md-source-link" { } ''
+    echo "Testing: CLAUDE.md symlink points to source directory, not Nix store"
+
+    ${pkgs.nix}/bin/nix eval --json --impure --expr "
+      let
+        module = import ${claudeModule} {
+          lib = (import <nixpkgs> {}).lib;
+          config = {};
+          pkgs = import <nixpkgs> {};
+          platformInfo = { isDarwin = true; isLinux = false; };
+          userInfo = { paths = { home = \"/tmp\"; }; name = \"test\"; };
+        };
+        source = module.home.file.\".claude/CLAUDE.md\".source;
+      in
+        # Source should be a string path (direct symlink), not a derivation
+        builtins.isString source
+    " | grep -q "true"
+
+    if [[ $? -eq 0 ]]; then
+      echo "PASS: CLAUDE.md is configured as direct symlink to source"
+      touch $out
+    else
+      echo "FAIL: CLAUDE.md should be a direct string path, not a Nix store derivation"
+      exit 1
+    fi
+  '';
+
+  # Test 6: Symlink configuration for directories
   test-symlink-integrity = pkgs.runCommand "test-claude-symlink-integrity" { } ''
     echo "Testing: Symlink configuration for directories"
 
@@ -211,6 +239,7 @@ rec {
           test-darwin-links
           test-linux-links
           test-packages
+          test-claude-md-source-link
           test-symlink-integrity
         ];
       }

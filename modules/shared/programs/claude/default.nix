@@ -5,7 +5,7 @@
 #
 # 관리하는 설정 파일:
 #   - settings.json: Claude Code 기본 설정 (변경 감지 및 자동 알림)
-#   - CLAUDE.md: 프로젝트별 AI 지침 문서
+#   - CLAUDE.md: 프로젝트별 AI 지침 문서 (소스 디렉토리 직접 링크)
 #   - hooks/: Git 훅 스크립트 디렉토리 (Go 바이너리 자동 빌드)
 #   - commands/: 커스텀 Claude 명령어 디렉토리
 #   - agents/: AI 에이전트 설정 디렉토리
@@ -13,14 +13,25 @@
 # 지원 플랫폼: macOS (Darwin), Linux
 # 패키지 추가: go (hooks 빌드용)
 #
-# VERSION: 5.2.0 (Separated claude-hook module)
-# LAST UPDATED: 2025-10-07
+# CLAUDE.md 직접 링크: Nix store를 거치지 않고 소스 디렉토리를 직접 가리킴
+# 이를 통해 재빌드 없이 즉시 변경사항 반영 가능
+#
+# VERSION: 5.3.0 (Direct source link for CLAUDE.md)
+# LAST UPDATED: 2025-10-17
 
-{ pkgs, ... }:
+{ pkgs, config, ... }:
 
 let
+  # Dotfiles root directory (where the user cloned the repository)
+  # This is dynamically resolved from the flake's self.outPath
+  dotfilesRoot =
+    config.home.sessionVariables.DOTFILES_ROOT or "${config.home.homeDirectory}/dev/dotfiles";
+
   # Path to actual Claude config files
-  claudeConfigDir = ../../config/claude;
+  # For files that need direct source linking (CLAUDE.md), use absolute path
+  # For files that need Nix store (settings.json, hooks), use relative path
+  claudeConfigDirNix = ../../config/claude;
+  claudeConfigDirSource = "${dotfilesRoot}/modules/shared/config/claude";
 
   # Claude Code uses ~/.claude for both platforms
   claudeHomeDir = ".claude";
@@ -66,27 +77,27 @@ in
 
     # Direct symlinks to dotfiles for all Claude configuration
     file = {
-      # Main settings file - direct symlink to dotfiles
+      # Main settings file - via Nix store for immutability
       "${claudeHomeDir}/settings.json" = {
-        source = "${claudeConfigDir}/settings.json";
+        source = "${claudeConfigDirNix}/settings.json";
         onChange = ''
           echo "Claude settings.json updated"
         '';
       };
 
-      # CLAUDE.md documentation - direct symlink to dotfiles
+      # CLAUDE.md documentation - direct link to source directory (editable without rebuild)
       "${claudeHomeDir}/CLAUDE.md" = {
-        source = "${claudeConfigDir}/CLAUDE.md";
+        source = config.lib.file.mkOutOfStoreSymlink "${claudeConfigDirSource}/CLAUDE.md";
       };
 
       # Commands directory - direct symlink to dotfiles
       "${claudeHomeDir}/commands" = {
-        source = "${claudeConfigDir}/commands";
+        source = "${claudeConfigDirNix}/commands";
       };
 
       # Agents directory - direct symlink to dotfiles
       "${claudeHomeDir}/agents" = {
-        source = "${claudeConfigDir}/agents";
+        source = "${claudeConfigDirNix}/agents";
       };
 
       # Hooks directory (with built Go binary)
