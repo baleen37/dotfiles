@@ -155,9 +155,9 @@ rec {
     fi
   '';
 
-  # Test 5: All directories use recursive symlinks
+  # Test 5: Symlink configuration for directories
   test-symlink-integrity = pkgs.runCommand "test-claude-symlink-integrity" { } ''
-    echo "Testing: All configuration directories use recursive symlinks"
+    echo "Testing: Symlink configuration for directories"
 
     ${pkgs.nix}/bin/nix eval --json --impure --expr "
       let
@@ -176,25 +176,26 @@ rec {
         }
     " > result.json
 
-    # All directories should have recursive=true for directory symlinks
-    if ${pkgs.jq}/bin/jq -e '.commands_recursive == true' result.json >/dev/null; then
-      echo "PASS: commands is configured as directory symlink (recursive=true)"
+    # commands and agents should NOT have recursive (direct directory symlink)
+    if ${pkgs.jq}/bin/jq -e '.commands_recursive == false' result.json >/dev/null; then
+      echo "PASS: commands is configured as direct directory symlink (no recursive)"
     else
-      echo "FAIL: commands should have recursive=true for directory symlink"
+      echo "FAIL: commands should not have recursive for direct directory symlink"
       exit 1
     fi
 
-    if ${pkgs.jq}/bin/jq -e '.agents_recursive == true' result.json >/dev/null; then
-      echo "PASS: agents is configured as directory symlink (recursive=true)"
+    if ${pkgs.jq}/bin/jq -e '.agents_recursive == false' result.json >/dev/null; then
+      echo "PASS: agents is configured as direct directory symlink (no recursive)"
     else
-      echo "FAIL: agents should have recursive=true for directory symlink"
+      echo "FAIL: agents should not have recursive for direct directory symlink"
       exit 1
     fi
 
+    # hooks should have recursive=true (managed files within directory)
     if ${pkgs.jq}/bin/jq -e '.hooks_recursive == true' result.json >/dev/null; then
-      echo "PASS: hooks is configured as directory symlink (recursive=true)"
+      echo "PASS: hooks is configured with recursive=true (managed files)"
     else
-      echo "FAIL: hooks should have recursive=true for directory symlink"
+      echo "FAIL: hooks should have recursive=true for managed files"
       exit 1
     fi
 
