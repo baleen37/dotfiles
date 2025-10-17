@@ -21,6 +21,7 @@ _:
 let
   getUser = import ../../lib/user-resolution.nix {
     returnFormat = "string";
+    default = ""; # Allow empty for pure eval
   };
   user = getUser;
 in

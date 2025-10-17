@@ -16,7 +16,7 @@
 # VERSION: 5.2.0 (Separated claude-hook module)
 # LAST UPDATED: 2025-10-07
 
-{ config, pkgs, ... }:
+{ pkgs, ... }:
 
 let
   # Path to actual Claude config files
@@ -64,9 +64,9 @@ in
     # Global claude-hooks binary for terminal use
     packages = [ claudeHooks ];
 
-    # Symlink configuration files via Nix store
+    # Direct symlinks to dotfiles for all Claude configuration
     file = {
-      # Main settings file
+      # Main settings file - direct symlink to dotfiles
       "${claudeHomeDir}/settings.json" = {
         source = "${claudeConfigDir}/settings.json";
         onChange = ''
@@ -74,9 +74,19 @@ in
         '';
       };
 
-      # CLAUDE.md documentation
+      # CLAUDE.md documentation - direct symlink to dotfiles
       "${claudeHomeDir}/CLAUDE.md" = {
         source = "${claudeConfigDir}/CLAUDE.md";
+      };
+
+      # Commands directory - direct symlink to dotfiles
+      "${claudeHomeDir}/commands" = {
+        source = "${claudeConfigDir}/commands";
+      };
+
+      # Agents directory - direct symlink to dotfiles
+      "${claudeHomeDir}/agents" = {
+        source = "${claudeConfigDir}/agents";
       };
 
       # Hooks directory (with built Go binary)
@@ -84,18 +94,6 @@ in
         source = hooksDir;
         recursive = true;
       };
-    };
-
-    # Direct symlinks for commands/agents (bypass Nix store for instant updates)
-    activation = {
-      claudeDirectSymlinks = config.lib.dag.entryAfter [ "writeBoundary" ] ''
-        # Resolve dotfiles path from settings.json location at runtime
-        DOTFILES_CONFIG_DIR="$(dirname "$(readlink -f $HOME/${claudeHomeDir}/settings.json)")"
-        $DRY_RUN_CMD rm -f $HOME/${claudeHomeDir}/commands $HOME/${claudeHomeDir}/agents
-        $DRY_RUN_CMD ln -sf "$DOTFILES_CONFIG_DIR/commands" $HOME/${claudeHomeDir}/commands
-        $DRY_RUN_CMD ln -sf "$DOTFILES_CONFIG_DIR/agents" $HOME/${claudeHomeDir}/agents
-        echo "Created direct symlinks for Claude commands and agents"
-      '';
     };
   };
 

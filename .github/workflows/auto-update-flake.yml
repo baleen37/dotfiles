@@ -150,6 +150,28 @@ jobs:
 
           echo "::endgroup::"
 
+      - name: Close existing dependency PRs
+        if: steps.check-changes.outputs.has-changes == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.REPO_PAT }}
+        run: |
+          echo "::group::Closing existing dependency update PRs"
+
+          # Find all open PRs with dependencies label
+          EXISTING_PRS=$(gh pr list --label "dependencies" --state open --json number --jq '.[].number')
+
+          if [ -n "$EXISTING_PRS" ]; then
+            echo "Found existing dependency PRs to close:"
+            for pr in $EXISTING_PRS; do
+              echo "  Closing PR #$pr"
+              gh pr close "$pr" --comment "Superseded by newer dependency update"
+            done
+          else
+            echo "No existing dependency PRs to close"
+          fi
+
+          echo "::endgroup::"
+
       - name: Create Pull Request
         if: steps.check-changes.outputs.has-changes == 'true'
         id: create-pr

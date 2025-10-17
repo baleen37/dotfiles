@@ -65,8 +65,8 @@ let
       sudoUser
     else if envValue != "" && validateUser envValue then
       envValue
-    else if default != null && validateUser default then
-      default
+    else if default != null then
+      default # Accept default without validation (allows empty string for pure eval)
     else
       errorSystem.throwUserError ''
         Failed to detect valid user.

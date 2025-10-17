@@ -67,7 +67,8 @@
     }@inputs:
     let
       # Dynamic user resolution using dedicated user-resolution library
-      user = import ./lib/user-resolution.nix { };
+      # Use empty default for pure evaluation (flake check)
+      user = import ./lib/user-resolution.nix { default = ""; };
 
       # Supported systems - direct specification
       linuxSystems = [
@@ -138,37 +139,40 @@
       );
 
       # Direct Darwin configurations following dustinlyons pattern
-      darwinConfigurations = nixpkgs.lib.genAttrs darwinSystems (
-        system:
-        darwin.lib.darwinSystem {
-          inherit system;
-          specialArgs = inputs;
-          modules = [
-            ./hosts/darwin # Host config first to ensure allowUnfree is set at system level
-            home-manager.darwinModules.home-manager
-            nix-homebrew.darwinModules.nix-homebrew
-            {
-              home-manager = {
-                useGlobalPkgs = true;
-                useUserPackages = true;
-                users.${user} = import ./modules/shared/home-manager.nix;
-                backupFileExtension = "bak";
-                extraSpecialArgs = inputs;
-              };
-              nix-homebrew = {
-                inherit user;
-                enable = true;
-                taps = {
-                  "homebrew/homebrew-core" = homebrew-core;
-                  "homebrew/homebrew-cask" = homebrew-cask;
-                  "homebrew/homebrew-bundle" = homebrew-bundle;
+      # Skip if user cannot be determined (pure evaluation mode)
+      darwinConfigurations = nixpkgs.lib.optionalAttrs (user != "") (
+        nixpkgs.lib.genAttrs darwinSystems (
+          system:
+          darwin.lib.darwinSystem {
+            inherit system;
+            specialArgs = inputs;
+            modules = [
+              ./hosts/darwin # Host config first to ensure allowUnfree is set at system level
+              home-manager.darwinModules.home-manager
+              nix-homebrew.darwinModules.nix-homebrew
+              {
+                home-manager = {
+                  useGlobalPkgs = true;
+                  useUserPackages = true;
+                  users.${user} = import ./modules/shared/home-manager.nix;
+                  backupFileExtension = "bak";
+                  extraSpecialArgs = inputs;
                 };
-                mutableTaps = true;
-                autoMigrate = true;
-              };
-            }
-          ];
-        }
+                nix-homebrew = {
+                  inherit user;
+                  enable = true;
+                  taps = {
+                    "homebrew/homebrew-core" = homebrew-core;
+                    "homebrew/homebrew-cask" = homebrew-cask;
+                    "homebrew/homebrew-bundle" = homebrew-bundle;
+                  };
+                  mutableTaps = true;
+                  autoMigrate = true;
+                };
+              }
+            ];
+          }
+        )
       );
 
       # Direct NixOS configurations following dustinlyons pattern
