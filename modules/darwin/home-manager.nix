@@ -22,7 +22,6 @@
 #   - darwin/packages.nix: macOS 전용 패키지
 
 {
-  config,
   pkgs,
   self,
   ...
@@ -39,7 +38,9 @@ let
   inherit (getUserInfo) user;
 
   # macOS 전용 설정 파일 import (Hammerspoon, Karabiner 등)
-  additionalFiles = import ./files.nix { inherit user config pkgs; };
+  additionalFiles = import ./files.nix {
+    userHome = getUserInfo.homePath;
+  };
 
   # 공통 Home Manager 설정 import (git, vim, zsh 등)
 
@@ -112,6 +113,10 @@ in
         ...
       }:
       {
+        imports = [
+          ../shared/programs/claude
+        ];
+
         home = {
           enableNixpkgsReleaseCheck = false;
 

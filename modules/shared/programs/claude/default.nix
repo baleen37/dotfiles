@@ -82,13 +82,11 @@ in
       # Commands directory - direct symlink to dotfiles
       "${claudeHomeDir}/commands" = {
         source = "${claudeConfigDir}/commands";
-        recursive = true;
       };
 
       # Agents directory - direct symlink to dotfiles
       "${claudeHomeDir}/agents" = {
         source = "${claudeConfigDir}/agents";
-        recursive = true;
       };
 
       # Hooks directory (with built Go binary)
