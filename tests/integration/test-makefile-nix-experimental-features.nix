@@ -17,6 +17,7 @@
 {
   lib ? import <nixpkgs/lib>,
   pkgs ? import <nixpkgs> { },
+  system ? builtins.currentSystem,
   nixtest ? null,
 }:
 
@@ -26,6 +27,9 @@ let
       nixtest
     else
       (import ../unit/nixtest-template.nix { inherit lib pkgs; }).nixtest;
+
+  # System information for test documentation
+  currentSystem = system;
 
   # Makefile 내용을 읽어옴
   makefileContent = builtins.readFile ../../Makefile;
@@ -109,7 +113,7 @@ let
   directNixCommandCount = builtins.length directNixCommands;
 
 in
-nixtestFinal.suite "Makefile Nix Experimental Features Tests" {
+nixtestFinal.suite "Makefile Nix Experimental Features Tests (${currentSystem})" {
 
   # NIX 변수 정의 검증
   nixVariableTests = nixtestFinal.suite "NIX Variable Definition Tests" {
