@@ -108,7 +108,6 @@ in
     users.${user} =
       {
         pkgs,
-        config,
         lib,
         ...
       }:
@@ -121,15 +120,7 @@ in
 
           # Enhanced file management with optimized merging
           file = lib.mkMerge [
-            (import ../shared/files.nix {
-              inherit
-                config
-                pkgs
-                user
-                self
-                lib
-                ;
-            })
+            (import ../shared/files.nix { })
             additionalFiles
           ];
 

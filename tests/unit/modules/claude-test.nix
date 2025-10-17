@@ -21,10 +21,12 @@ let
   # Path to claude module (relative to this test file)
   claudeModule = ../../../modules/shared/programs/claude/default.nix;
 
-  # Files managed via home.file (through Nix store)
+  # Files managed via home.file (all through direct symlinks to dotfiles)
   expectedHomeFiles = [
     ".claude/settings.json"
     ".claude/CLAUDE.md"
+    ".claude/commands"
+    ".claude/agents"
     ".claude/hooks"
   ];
 
@@ -127,9 +129,9 @@ rec {
     fi
   '';
 
-  # Test 4: No packages added
-  test-no-packages = pkgs.runCommand "test-claude-no-packages" { } ''
-    echo "Testing: No packages are added by module"
+  # Test 4: Claude hooks package is added
+  test-packages = pkgs.runCommand "test-claude-packages" { } ''
+    echo "Testing: claude-hooks package is added by module"
 
     ${pkgs.nix}/bin/nix eval --json --impure --expr "
       let
@@ -142,20 +144,20 @@ rec {
         };
       in
         builtins.length module.home.packages
-    " | grep -q "0"
+    " | grep -q "1"
 
     if [[ $? -eq 0 ]]; then
-      echo "PASS: No packages added"
+      echo "PASS: claude-hooks package added"
       touch $out
     else
-      echo "FAIL: Unexpected packages found"
+      echo "FAIL: Expected 1 package (claude-hooks), found different number"
       exit 1
     fi
   '';
 
-  # Test 5: Symlinks are actual symlinks, not copies
+  # Test 5: All directories use recursive symlinks
   test-symlink-integrity = pkgs.runCommand "test-claude-symlink-integrity" { } ''
-    echo "Testing: Configuration files are symlinks, not copies"
+    echo "Testing: All configuration directories use recursive symlinks"
 
     ${pkgs.nix}/bin/nix eval --json --impure --expr "
       let
@@ -174,26 +176,25 @@ rec {
         }
     " > result.json
 
-    # Commands and agents should NOT have recursive=true (should be symlinks)
-    if ${pkgs.jq}/bin/jq -e '.commands_recursive == false' result.json >/dev/null; then
-      echo "PASS: commands is configured as symlink (recursive=false)"
+    # All directories should have recursive=true for directory symlinks
+    if ${pkgs.jq}/bin/jq -e '.commands_recursive == true' result.json >/dev/null; then
+      echo "PASS: commands is configured as directory symlink (recursive=true)"
     else
-      echo "FAIL: commands has recursive=true (will be copied, not symlinked)"
+      echo "FAIL: commands should have recursive=true for directory symlink"
       exit 1
     fi
 
-    if ${pkgs.jq}/bin/jq -e '.agents_recursive == false' result.json >/dev/null; then
-      echo "PASS: agents is configured as symlink (recursive=false)"
+    if ${pkgs.jq}/bin/jq -e '.agents_recursive == true' result.json >/dev/null; then
+      echo "PASS: agents is configured as directory symlink (recursive=true)"
     else
-      echo "FAIL: agents has recursive=true (will be copied, not symlinked)"
+      echo "FAIL: agents should have recursive=true for directory symlink"
       exit 1
     fi
 
-    # Hooks should have recursive=true (contains built Go binaries)
     if ${pkgs.jq}/bin/jq -e '.hooks_recursive == true' result.json >/dev/null; then
-      echo "PASS: hooks is configured as directory copy (recursive=true)"
+      echo "PASS: hooks is configured as directory symlink (recursive=true)"
     else
-      echo "FAIL: hooks should have recursive=true for Go binaries"
+      echo "FAIL: hooks should have recursive=true for directory symlink"
       exit 1
     fi
 
@@ -208,7 +209,7 @@ rec {
           test-module-eval
           test-darwin-links
           test-linux-links
-          test-no-packages
+          test-packages
           test-symlink-integrity
         ];
       }
