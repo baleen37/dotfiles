@@ -86,6 +86,18 @@ in
           ;
       };
 
+      # Import Makefile experimental features regression test
+      makefileNixExperimentalFeaturesTests =
+        import (self + /tests/integration/test-makefile-nix-experimental-features.nix)
+          {
+            inherit
+              lib
+              pkgs
+              system
+              nixtest
+              ;
+          };
+
       # Import e2e test suites directly (not using default.nix wrapper)
       buildSwitchTests = import (self + /tests/e2e/build-switch-test.nix) {
         inherit
@@ -145,6 +157,7 @@ in
       moduleInteractionTestSuite = runTestSuite moduleInteractionTests;
       crossPlatformTestSuite = runTestSuite crossPlatformTests;
       systemConfigurationTestSuite = runTestSuite systemConfigurationTests;
+      makefileExperimentalFeaturesTestSuite = runTestSuite makefileNixExperimentalFeaturesTests;
 
       # E2E test derivations
       buildSwitchTestSuite = runTestSuite buildSwitchTests;
@@ -171,10 +184,11 @@ in
             cp -r ${platformTestSuite}/* $out/results/unit-tests/platform-tests/
 
             # Copy integration test results
-            mkdir -p $out/results/integration-tests/module-interaction $out/results/integration-tests/cross-platform $out/results/integration-tests/system-configuration
+            mkdir -p $out/results/integration-tests/module-interaction $out/results/integration-tests/cross-platform $out/results/integration-tests/system-configuration $out/results/integration-tests/makefile-experimental-features
             cp -r ${moduleInteractionTestSuite}/* $out/results/integration-tests/module-interaction/
             cp -r ${crossPlatformTestSuite}/* $out/results/integration-tests/cross-platform/
             cp -r ${systemConfigurationTestSuite}/* $out/results/integration-tests/system-configuration/
+            cp -r ${makefileExperimentalFeaturesTestSuite}/* $out/results/integration-tests/makefile-experimental-features/
 
             # Copy e2e test results
             mkdir -p $out/results/e2e-tests/build-switch $out/results/e2e-tests/user-workflow $out/results/e2e-tests/claude-hooks
@@ -215,6 +229,10 @@ in
             cat ${systemConfigurationTestSuite}/summary.txt | sed 's/^/  /' >> $out/report.txt
             echo "" >> $out/report.txt
 
+            echo "Makefile Experimental Features Tests:" >> $out/report.txt
+            cat ${makefileExperimentalFeaturesTestSuite}/summary.txt | sed 's/^/  /' >> $out/report.txt
+            echo "" >> $out/report.txt
+
             # Add e2e test suite summaries
             echo "E2E TESTS" >> $out/report.txt
             echo "---------" >> $out/report.txt
@@ -242,6 +260,7 @@ in
       module-interaction = moduleInteractionTestSuite;
       cross-platform = crossPlatformTestSuite;
       system-configuration = systemConfigurationTestSuite;
+      makefile-experimental-features = makefileExperimentalFeaturesTestSuite;
 
       # E2E test suites
       build-switch-e2e = buildSwitchTestSuite;
@@ -298,6 +317,13 @@ in
           echo "System configuration test file exists: PASSED" >> $out
         else
           echo "System configuration test file missing: FAILED" >> $out
+          exit 1
+        fi
+
+        if [ -f "${self + /tests/integration/test-makefile-nix-experimental-features.nix}" ]; then
+          echo "Makefile experimental features test file exists: PASSED" >> $out
+        else
+          echo "Makefile experimental features test file missing: FAILED" >> $out
           exit 1
         fi
 

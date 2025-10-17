@@ -311,6 +311,7 @@
                 module-interaction
                 cross-platform
                 system-configuration
+                makefile-experimental-features
                 build-switch-e2e
                 user-workflow-e2e
                 claude-hooks-e2e

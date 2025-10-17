@@ -359,7 +359,7 @@ build-switch: check-user
 	echo "🎯 Target system: $${TARGET}"; \
 	if [ "$${OS}" = "Darwin" ]; then \
 		echo "🔨 Applying user-level configuration with Home Manager..."; \
-		nix run home-manager/release-24.05 -- switch --flake ".#$(USER)" -b backup --impure $(ARGS) || { echo "❌ Switch failed!"; exit 1; }; \
+		$(NIX) run home-manager/release-24.05 -- switch --flake ".#$(USER)" -b backup --impure $(ARGS) || { echo "❌ Switch failed!"; exit 1; }; \
 	else \
 		echo "🔨 Building and switching NixOS configuration..."; \
 		sudo -E USER=$(USER) SSH_AUTH_SOCK=$$SSH_AUTH_SOCK /run/current-system/sw/bin/nixos-rebuild switch --impure --flake .#$${TARGET} $(ARGS); \
