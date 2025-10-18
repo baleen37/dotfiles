@@ -88,8 +88,8 @@ let
 
   # Expected CustomUserPreferences keys
   # Note: Safari preferences excluded - they're sandboxed and can't be set via defaults write
+  # Note: universalaccess excluded - requires accessibility permissions
   expectedCustomPrefs = [
-    "com.apple.universalaccess"
     "com.apple.dashboard"
     "NSGlobalDomain"
     "com.apple.dock"
@@ -247,32 +247,34 @@ nixtestFinal.suite "Aggressive Optimization Integration Tests" {
   };
 
   # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  # 3️⃣  Universal Access Tests (moved to CustomUserPreferences)
+  # 3️⃣  Universal Access Tests (commented out - requires accessibility permissions)
   # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # Note: com.apple.universalaccess cannot be set programmatically without
+  # accessibility permissions. These settings must be configured manually via
+  # System Settings > Accessibility > Display
 
-  universalAccessTests = nixtestFinal.suite "Universal Access Tests" {
-
-    universalAccessExists = nixtestFinal.test "Universal access exists in CustomUserPreferences" (
-      nixtestFinal.assertions.assertHasAttr "com.apple.universalaccess" aggressiveOptModule.system.defaults.CustomUserPreferences
-    );
-
-    transparencyDisabled = nixtestFinal.test "Transparency is disabled" (
-      nixtestFinal.assertions.assertTrue (
-        aggressiveOptModule.system.defaults.CustomUserPreferences."com.apple.universalaccess".reduceTransparency
-        == true
-      )
-    );
-
-    motionDisabled = nixtestFinal.test "Motion is disabled" (
-      nixtestFinal.assertions.assertTrue (
-        aggressiveOptModule.system.defaults.CustomUserPreferences."com.apple.universalaccess".reduceMotion
-        == true
-      )
-    );
-  };
+  # universalAccessTests = nixtestFinal.suite "Universal Access Tests" {
+  #   universalAccessExists = nixtestFinal.test "Universal access exists in CustomUserPreferences" (
+  #     nixtestFinal.assertions.assertHasAttr "com.apple.universalaccess" aggressiveOptModule.system.defaults.CustomUserPreferences
+  #   );
+  #
+  #   transparencyDisabled = nixtestFinal.test "Transparency is disabled" (
+  #     nixtestFinal.assertions.assertTrue (
+  #       aggressiveOptModule.system.defaults.CustomUserPreferences."com.apple.universalaccess".reduceTransparency
+  #       == true
+  #     )
+  #   );
+  #
+  #   motionDisabled = nixtestFinal.test "Motion is disabled" (
+  #     nixtestFinal.assertions.assertTrue (
+  #       aggressiveOptModule.system.defaults.CustomUserPreferences."com.apple.universalaccess".reduceMotion
+  #       == true
+  #     )
+  #   );
+  # };
 
   # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  # 3️⃣  CustomUserPreferences Tests
+  # 4️⃣  CustomUserPreferences Tests
   # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   customUserPreferencesTests = nixtestFinal.suite "CustomUserPreferences Tests" {
@@ -327,7 +329,7 @@ nixtestFinal.suite "Aggressive Optimization Integration Tests" {
   };
 
   # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  # 4️⃣  Activation Script Tests
+  # 5️⃣  Activation Script Tests
   # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   activationScriptTests = nixtestFinal.suite "Activation Script Tests" {
@@ -388,7 +390,7 @@ nixtestFinal.suite "Aggressive Optimization Integration Tests" {
   };
 
   # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  # 5️⃣  Module Build Tests (with nix-darwin validation)
+  # 6️⃣  Module Build Tests (with nix-darwin validation)
   # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   moduleBuildTests = nixtestFinal.suite "Module Build Tests" {
@@ -464,7 +466,7 @@ nixtestFinal.suite "Aggressive Optimization Integration Tests" {
   };
 
   # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  # 6️⃣  Integration with nix-darwin Tests
+  # 7️⃣  Integration with nix-darwin Tests
   # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   nixDarwinIntegrationTests = nixtestFinal.suite "nix-darwin Integration Tests" {
@@ -492,7 +494,7 @@ nixtestFinal.suite "Aggressive Optimization Integration Tests" {
   };
 
   # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  # 7️⃣  Documentation and Comments Tests
+  # 8️⃣  Documentation and Comments Tests
   # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   documentationTests = nixtestFinal.suite "Documentation Tests" {

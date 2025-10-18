@@ -125,12 +125,14 @@
 
     CustomUserPreferences = {
       # ─── 투명도 & 모션 효과 비활성화 ───
-      # Note: universalaccess 설정은 accessibility 권한이 필요하여
-      # system.defaults가 아닌 CustomUserPreferences로 관리
-      "com.apple.universalaccess" = {
-        reduceTransparency = true; # 투명 효과 끄기 (50mW 절약)
-        reduceMotion = true; # 모션 효과 끄기
-      };
+      # Note: universalaccess 설정은 accessibility 권한이 필요하므로
+      # 프로그래밍 방식으로 설정할 수 없습니다. 수동 설정 필요:
+      # System Settings > Accessibility > Display > Reduce motion/transparency
+      # "com.apple.universalaccess" = {
+      #   reduceTransparency = true; # 투명 효과 끄기 (50mW 절약)
+      #   reduceMotion = true; # 모션 효과 끄기
+      # };
+
       # ─── 시각 효과 최적화 ───
       "com.apple.dashboard".mcx-disabled = true;
       "NSGlobalDomain".QLPanelAnimationDuration = 0.0; # Quick Look 애니메이션 제거
