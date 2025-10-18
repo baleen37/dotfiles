@@ -146,6 +146,7 @@ All builds require `export USER=$(whoami)` due to dynamic user resolution. Build
 ### Build & Switch Commands (Option 3)
 
 **Clear Separation Philosophy:**
+
 - `switch` / `build-switch`: Full system (darwin-rebuild) - includes Homebrew, system settings, user config
 - `switch-user`: User-only (home-manager) - faster for git, vim, zsh changes
 
@@ -194,12 +195,14 @@ System automatically detects platform via `lib/platform-system.nix`. Cross-platf
 ### Performance Tuning (modules/darwin/performance-optimization.nix)
 
 **Level 1 - Safe Optimizations:**
+
 - Disable window/popover animations (30-50% UI speed boost)
 - Disable auto-capitalization, spelling correction, quote substitution
 - Fast Dock with minimal delays (autohide-delay: 0.0s)
 - Mission Control speed boost (expose-animation: 0.2s)
 
 **Level 2 - Performance Priority:**
+
 - Window resize speed: 0.1s (default: 0.2s)
 - Disable smooth scrolling for performance
 - Enable automatic app termination (memory management)
@@ -207,6 +210,7 @@ System automatically detects platform via `lib/platform-system.nix`. Cross-platf
 - Optimized trackpad settings (tap-to-click, three-finger drag)
 
 **Expected Impact:**
+
 - UI responsiveness: 30-50% faster
 - CPU usage: Reduced (auto-correction disabled)
 - Battery life: Extended (iCloud sync minimized)
@@ -215,6 +219,7 @@ System automatically detects platform via `lib/platform-system.nix`. Cross-platf
 ### App Cleanup (modules/darwin/macos-app-cleanup.nix)
 
 **Automatically removed apps (~6-8GB saved):**
+
 - GarageBand (2-3GB) - Music production
 - iMovie (3-4GB) - Video editing
 - TV (200MB) - Apple TV+
