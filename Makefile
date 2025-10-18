@@ -69,10 +69,16 @@ help:
 	@echo "  build       - Build all Darwin and NixOS configurations"
 	@echo "  build-current - Build only current platform (faster)"
 	@echo "  build-fast  - Fast build with optimizations"
-	@echo "  build-switch - Build current platform and switch in one step"
+	@echo ""
+	@echo "🚀 System Management (darwin-rebuild / nixos-rebuild):"
+	@echo "  switch      - Build + apply system config (includes Homebrew, system settings)"
+	@echo "  build-switch - Same as 'switch' (full system update)"
+	@echo "  switch-user - Apply user config only (home-manager, faster)"
+	@echo "  test-switch - Test switch without applying (dry-run)"
+	@echo ""
+	@echo "📦 Additional Commands:"
 	@echo "  dev-server  - Install dev-server with VSCode Tunnels"
 	@echo "  apply       - Apply already built configuration"
-	@echo "  switch      - Build + apply in one step (requires sudo)"
 	@echo "  deploy      - Build+switch (works on any computer)"
 	@echo ""
 	@echo "💡 Tips:"
@@ -358,8 +364,11 @@ build-switch: check-user
 	TARGET=$${HOST:-$(CURRENT_SYSTEM)}; \
 	echo "🎯 Target system: $${TARGET}"; \
 	if [ "$${OS}" = "Darwin" ]; then \
-		echo "🔨 Applying user-level configuration with Home Manager..."; \
-		home-manager switch --flake ".#$(USER)" -b backup --impure $(ARGS) || { echo "❌ Switch failed!"; exit 1; }; \
+		echo "🔨 Building and switching Darwin configuration (system + Homebrew + user)..."; \
+		export USER=$(USER); $(NIX) build --impure --quiet .#darwinConfigurations.$${TARGET}.system $(ARGS) || { echo "❌ Build failed!"; exit 1; }; \
+		if [ ! -L "./result" ]; then echo "❌ Build result not found!"; exit 1; fi; \
+		sudo -E env USER=$(USER) ./result/sw/bin/darwin-rebuild switch --impure --flake .#$${TARGET} $(ARGS) || { echo "❌ Switch failed!"; exit 1; }; \
+		rm -f ./result; \
 	else \
 		echo "🔨 Building and switching NixOS configuration..."; \
 		sudo -E USER=$(USER) SSH_AUTH_SOCK=$$SSH_AUTH_SOCK /run/current-system/sw/bin/nixos-rebuild switch --impure --flake .#$${TARGET} $(ARGS); \
@@ -432,6 +441,16 @@ switch: check-user
 	fi; \
 	echo "✅ System switch completed successfully!"
 
+# Switch user configuration only (Home Manager - faster for user-level changes)
+switch-user: check-user
+	@echo "🏠 Switching user configuration only (Home Manager): $(USER)..."
+	@start_time=$$(date +%s); \
+	echo "🔨 Applying user-level configuration (git, vim, zsh, etc.)..."; \
+	home-manager switch --flake ".#$(USER)" -b backup --impure $(ARGS) || { echo "❌ Switch failed!"; exit 1; }; \
+	end_time=$$(date +%s); \
+	duration=$$((end_time - start_time)); \
+	echo "✅ User configuration switch completed in $${duration}s"
+
 # Simple apply for built configuration
 apply:
 	@if [ ! -L "./result" ]; then \
@@ -446,4 +465,4 @@ deploy:
 	@echo "🚀 Deploying configuration..."
 	@./deploy.sh
 
-.PHONY: help check-user lint lint-format lint-autofix lint-install-autofix smoke test test-format test-quick test-core test-unit test-contract test-e2e test-switch test-coverage test-unit-coverage test-contract-coverage test-workflow test-perf test-list test-unit-extended build build-linux build-darwin build-current build-fast build-switch build-switch-dry switch apply deploy platform-info format format-setup format-quick format-all format-nix format-shell format-yaml format-json format-markdown
+.PHONY: help check-user lint lint-format lint-autofix lint-install-autofix smoke test test-format test-quick test-core test-unit test-contract test-e2e test-switch test-coverage test-unit-coverage test-contract-coverage test-workflow test-perf test-list test-unit-extended build build-linux build-darwin build-current build-fast build-switch build-switch-dry switch switch-user apply deploy platform-info format format-setup format-quick format-all format-nix format-shell format-yaml format-json format-markdown

@@ -308,6 +308,7 @@
                 framework-check
                 lib-functions
                 platform-detection
+                makefile-switch-commands
                 module-interaction
                 cross-platform
                 system-configuration

@@ -40,11 +40,16 @@ in
 
   # Minimal Nix configuration compatible with Determinate Nix
   # Advanced settings managed by Determinate Nix in /etc/nix/nix.conf
-  nix.settings = {
-    experimental-features = [
-      "nix-command"
-      "flakes"
-    ];
+  nix = {
+    # Disable nix-darwin's Nix management (Determinate Nix manages the installation)
+    enable = false;
+
+    settings = {
+      experimental-features = [
+        "nix-command"
+        "flakes"
+      ];
+    };
   };
 
   # zsh program activation

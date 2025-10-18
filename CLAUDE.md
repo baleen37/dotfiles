@@ -40,8 +40,10 @@ make build-current            # Build current platform only (fastest)
 make test-core                # Run essential tests
 make smoke                    # Quick validation (~30 seconds)
 
-# Production deployment
-make build-switch             # Build and apply changes
+# System Management (Option 3 - Clear separation)
+make switch                   # Full system update (darwin-rebuild: system + Homebrew + user)
+make build-switch             # Same as 'switch' (full system update)
+make switch-user              # User config only (home-manager: git, vim, zsh - faster)
 ```
 
 ### Testing
@@ -138,10 +140,15 @@ All builds require `export USER=$(whoami)` due to dynamic user resolution. Build
 
 **Use command names instead** (PATH lookup) or install via Home Manager.
 
-### Build Optimization
+### Build & Switch Commands (Option 3)
 
-Development: `make build-current` (builds only current platform)
-Production: `make build-switch` (builds and applies)
+**Clear Separation Philosophy:**
+- `switch` / `build-switch`: Full system (darwin-rebuild) - includes Homebrew, system settings, user config
+- `switch-user`: User-only (home-manager) - faster for git, vim, zsh changes
+
+**Development**: `make build-current` (builds only current platform)
+**Production**: `make switch` or `make build-switch` (full system update)
+**Quick User Updates**: `make switch-user` (skips system/Homebrew)
 
 ### Platform Detection
 
