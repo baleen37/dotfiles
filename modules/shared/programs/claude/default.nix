@@ -4,28 +4,40 @@
 # ~/.claude/로 심볼릭 링크하여 Claude Code IDE 설정을 관리
 #
 # 관리하는 설정 파일:
-#   - settings.json: Claude Code 기본 설정 (변경 감지 및 자동 알림)
-#   - CLAUDE.md: 프로젝트별 AI 지침 문서 (소스 디렉토리 직접 링크)
-#   - hooks/: Git 훅 스크립트 디렉토리 (Go 바이너리 자동 빌드)
-#   - commands/: 커스텀 Claude 명령어 디렉토리
-#   - agents/: AI 에이전트 설정 디렉토리
+#   - settings.json: Claude Code 기본 설정 (Nix store, 변경 감지 및 자동 알림)
+#   - CLAUDE.md: 프로젝트별 AI 지침 (직접 링크, 재빌드 불필요)
+#   - commands/: 커스텀 Claude 명령어 (직접 링크, 재빌드 불필요)
+#   - agents/: AI 에이전트 설정 (직접 링크, 재빌드 불필요)
+#   - hooks/: Git 훅 스크립트 (Nix store, Go 바이너리 자동 빌드)
 #
 # 지원 플랫폼: macOS (Darwin), Linux
 # 패키지 추가: go (hooks 빌드용)
 #
-# CLAUDE.md 직접 링크: Nix store를 거치지 않고 소스 디렉토리를 직접 가리킴
-# 이를 통해 재빌드 없이 즉시 변경사항 반영 가능
+# 직접 소스 링크 (mkOutOfStoreSymlink):
+#   - CLAUDE.md, commands/, agents/는 소스 디렉토리를 직접 가리킴
+#   - 재빌드 없이 즉시 변경사항 반영 가능
+#   - self.outPath 사용으로 자동 경로 해석
 #
-# VERSION: 5.3.0 (Direct source link for CLAUDE.md)
-# LAST UPDATED: 2025-10-17
+# Nix Store 링크:
+#   - settings.json: 설정 파일 무결성 보장
+#   - hooks/: 빌드된 Go 바이너리 (소스 직접 링크 불가)
+#
+# NOTE: skills/는 .claude/skills/에서 로컬로 관리 (Nix 관리 제외)
+#
+# VERSION: 6.1.0 (Removed skills from Nix management)
+# LAST UPDATED: 2025-10-18
 
-{ pkgs, config, ... }:
+{
+  pkgs,
+  config,
+  self,
+  ...
+}:
 
 let
-  # Dotfiles root directory (where the user cloned the repository)
-  # This is dynamically resolved from the flake's self.outPath
-  dotfilesRoot =
-    config.home.sessionVariables.DOTFILES_ROOT or "${config.home.homeDirectory}/dev/dotfiles";
+  # Dotfiles root directory dynamically resolved from flake's actual location
+  # self.outPath provides the absolute path to the flake repository
+  dotfilesRoot = self.outPath;
 
   # Path to actual Claude config files
   # For files that need direct source linking (CLAUDE.md), use absolute path
@@ -90,14 +102,14 @@ in
         source = config.lib.file.mkOutOfStoreSymlink "${claudeConfigDirSource}/CLAUDE.md";
       };
 
-      # Commands directory - direct symlink to dotfiles
+      # Commands directory - direct source link (editable without rebuild)
       "${claudeHomeDir}/commands" = {
-        source = "${claudeConfigDirNix}/commands";
+        source = config.lib.file.mkOutOfStoreSymlink "${claudeConfigDirSource}/commands";
       };
 
-      # Agents directory - direct symlink to dotfiles
+      # Agents directory - direct source link (editable without rebuild)
       "${claudeHomeDir}/agents" = {
-        source = "${claudeConfigDirNix}/agents";
+        source = config.lib.file.mkOutOfStoreSymlink "${claudeConfigDirSource}/agents";
       };
 
       # Hooks directory (with built Go binary)

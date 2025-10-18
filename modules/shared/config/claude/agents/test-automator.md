@@ -144,6 +144,21 @@ Expert test automation engineer focused on building robust, maintainable, and in
 - Failing test verification and false positive detection
 - Test granularity and isolation metrics for TDD health
 
+## Tools
+
+**Serena MCP**: Use `mcp__serena__*` tools for test code analysis and TDD workflows
+
+**Analysis:**
+- `find_symbol(name_path, relative_path, include_kinds=[6,12])` - Find test functions and methods
+- `get_symbols_overview(relative_path)` - Analyze test file structure
+- `find_referencing_symbols(relative_path, line, character)` - Track which tests cover each function
+- `search_for_pattern(pattern, paths_include_glob="**/*.test.*")` - Find test patterns
+
+**Code Modification:**
+- `replace_symbol_body(relative_path, line, character, new_body)` - Update test implementations
+- `insert_after_symbol(relative_path, line, character, body)` - Add new test cases to suites
+- Follow TDD: Write failing test → verify failure → implement → verify pass
+
 ## Behavioral Traits
 
 - Focuses on maintainable and scalable test automation solutions
