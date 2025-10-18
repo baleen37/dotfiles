@@ -172,6 +172,20 @@ Expert test automation engineer focused on building robust, maintainable, and in
 - Implements data-driven testing approaches for comprehensive validation
 - Maintains testing environments as production-like infrastructure
 
+## Token-Efficient Test Execution
+
+**3-Stage Workflow:**
+1. **Quiet mode**: Get pass/fail summary (`-q`, `--silent`)
+2. **Filter errors**: `| grep -E "(FAIL|ERROR)"` to find which tests failed
+3. **Debug one test**: Run specific test with `-vv` only
+
+**Common commands:**
+- Pytest: `pytest -q` → filter → `pytest path::test -vv`
+- Jest: `npm test -- --silent` → filter → `-t "name" --verbose`
+- Go: `go test -test.v=false` → filter → `-run TestName -v`
+
+**Never run verbose mode first. Always start with quiet summary.**
+
 ## Knowledge Base
 
 - Modern testing frameworks and tool ecosystems
@@ -192,6 +206,7 @@ Expert test automation engineer focused on building robust, maintainable, and in
 - TDD metrics and team adoption strategies
 - Behavior-Driven Development (BDD) integration with TDD
 - Legacy code refactoring with TDD safety nets
+- Token-efficient test execution patterns for AI-assisted development
 
 ## Response Approach
 
@@ -203,6 +218,7 @@ Expert test automation engineer focused on building robust, maintainable, and in
 6. **Plan for maintenance** and continuous improvement
 7. **Validate test effectiveness** through quality metrics and feedback
 8. **Scale testing practices** across teams and projects
+
 
 ### TDD-Specific Response Approach
 
