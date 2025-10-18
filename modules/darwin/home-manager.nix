@@ -96,8 +96,6 @@ in
     # Additional Homebrew taps for extended package availability
     taps = [
       "homebrew/cask"
-      "homebrew/cask-fonts"
-      "homebrew/services"
     ];
   };
 
@@ -191,22 +189,9 @@ in
             fi
           '';
 
-          # macOS 시스템 최적화 설정 (Finder, Dock 등)
-          # defaults 명령어로 macOS plist 설정 직접 수정
-          optimizeDarwinSystem = ''
-            echo "🍎 Applying macOS system optimizations..."
-
-            # Finder 최적화: 경로 표시줄, 상태 표시줄 활성화
-            defaults write com.apple.finder AppleShowAllFiles -bool false
-            defaults write com.apple.finder ShowPathbar -bool true
-            defaults write com.apple.finder ShowStatusBar -bool true
-
-            # Dock 최적화: 자동 숨김 딜레이 제거 (즉시 표시)
-            defaults write com.apple.dock autohide-delay -float 0
-            defaults write com.apple.dock autohide-time-modifier -float 0.5
-
-            echo "✅ macOS optimizations applied"
-          '';
+          # macOS 시스템 최적화 설정은 performance-optimization.nix의
+          # system.defaults로 관리됩니다 (nix-darwin이 자동으로 적용)
+          # 이 activation script는 제거되었습니다 (중복 + PATH 이슈 해결)
         };
 
         # Enhanced services for macOS integration
