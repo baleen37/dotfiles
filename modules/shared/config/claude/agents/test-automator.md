@@ -176,7 +176,7 @@ Expert test automation engineer focused on building robust, maintainable, and in
 
 **3-Stage Workflow:**
 1. **Quiet mode**: Get pass/fail summary (`-q`, `--silent`)
-2. **Filter errors**: `| grep -E "(FAIL|ERROR)"` to find which tests failed
+2. **Filter errors**: `| grep -iE "(fail|error)"` to find which tests failed
 3. **Debug one test**: Run specific test with `-vv` only
 
 **Common commands:**
