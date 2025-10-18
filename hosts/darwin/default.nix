@@ -7,6 +7,8 @@
 #   - Home Manager 통합 (사용자 환경 관리)
 #   - Nix 앱 링크 시스템 (app-links.nix)
 #   - Garbage Collection 설정 (nix-gc.nix)
+#   - macOS 성능 최적화 (performance-optimization.nix)
+#   - macOS 앱 클린업 (macos-app-cleanup.nix)
 #   - 공유 모듈 import (modules/shared)
 #
 # 시스템 설정:
@@ -31,6 +33,8 @@ in
     ../../modules/darwin/home-manager.nix
     ../../modules/darwin/app-links.nix
     ../../modules/darwin/nix-gc.nix # macOS 전용 갈비지 컬렉션 설정
+    ../../modules/darwin/performance-optimization.nix # macOS 성능 최적화
+    ../../modules/darwin/macos-app-cleanup.nix # macOS 기본 앱 클린업
     ../../modules/shared/cachix # Binary cache configuration
     ../../modules/shared
   ];
