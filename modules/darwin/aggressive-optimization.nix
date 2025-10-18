@@ -26,6 +26,12 @@
 #   ❌ 텔레메트리 / 분석 / 크래시 리포트
 #   ❌ Game Center / Screen Time / Dictation
 #
+# 수동 설정 필요:
+#   ⚠️ 투명도/모션 효과: System Settings > Accessibility > Display
+#      - Reduce motion (모션 효과 줄이기)
+#      - Reduce transparency (투명도 줄이기)
+#   Note: accessibility 권한이 필요하여 프로그래밍 방식으로 설정 불가
+#
 # 유지되는 기능:
 #   ✅ Handoff / Continuity (유용)
 #   ✅ AirDrop (유용)
@@ -184,6 +190,12 @@
       };
       "com.apple.Music".disableRadio = true;
       "com.apple.podcasts".MTAutoDownloadEnabled = false;
+
+      # ─── 추가 백그라운드 서비스 비활성화 ───
+      "com.apple.cloudphotod".Disabled = true; # iCloud Photos 동기화
+      "com.apple.appstoreagent".Disabled = true; # App Store 백그라운드 에이전트
+      "com.apple.AMPDevicesAgent".Disabled = true; # Apple Music/Podcasts 기기 관리
+      "com.apple.CallHistorySyncHelper".Disabled = true; # 통화 기록 동기화
 
       # ─── Safari 프라이버시 (user preferences) ───
       # Note: Safari preferences are sandboxed in containers and cannot be
