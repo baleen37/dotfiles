@@ -85,6 +85,18 @@
 
       # 파일 확장자 항상 표시
       AppleShowAllExtensions = true;
+
+      # ─── 추가 성능 최적화 (Context7 리서치) ───
+      # App Nap 완전 비활성화 (백그라운드 앱 성능 향상)
+      # Note: NSAppSleepDisabled is not a valid nix-darwin option
+      # To disable App Nap: defaults write NSGlobalDomain NSAppSleepDisabled -bool YES
+      # NSAppSleepDisabled = true;
+
+      # Focus Ring 애니메이션 비활성화
+      NSUseAnimatedFocusRing = false;
+
+      # Spring Loading 지연 제거
+      "com.apple.springing.delay" = 0.0;
     };
 
     # ─── Dock 최적화 ───
@@ -121,6 +133,9 @@
     loginwindow = {
       GuestEnabled = false;
       PowerOffDisabledWhileLoggedIn = true;
+      # Note: TALLogoutSavesState is not a valid nix-darwin option
+      # To disable logout state save: defaults write com.apple.loginwindow TALLogoutSavesState -bool NO
+      # TALLogoutSavesState = false; # 빠른 로그아웃 (앱 상태 저장 안함)
     };
 
     # ═══════════════════════════════════════════════════════════
@@ -196,6 +211,7 @@
       "com.apple.appstoreagent".Disabled = true; # App Store 백그라운드 에이전트
       "com.apple.AMPDevicesAgent".Disabled = true; # Apple Music/Podcasts 기기 관리
       "com.apple.CallHistorySyncHelper".Disabled = true; # 통화 기록 동기화
+      "com.apple.TMHelperAgent".Disabled = true; # Time Machine 헬퍼 (백업 미사용)
 
       # ─── Safari 프라이버시 (user preferences) ───
       # Note: Safari preferences are sandboxed in containers and cannot be

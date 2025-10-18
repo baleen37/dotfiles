@@ -54,6 +54,21 @@ in
         "nix-command"
         "flakes"
       ];
+
+      # Nix Store 자동 최적화 (디스크 25-35% 절약)
+      auto-optimise-store = true;
+    };
+
+    # 주기적 Nix Store 최적화 (일요일 새벽 3:15)
+    optimise = {
+      automatic = true;
+      interval = [
+        {
+          Hour = 3;
+          Minute = 15;
+          Weekday = 0; # Sunday
+        }
+      ];
     };
   };
 

@@ -34,6 +34,7 @@ _:
   "alt-tab"
   "claude"
   "karabiner-elements" # Key remapping and modification tool
+  "syncthing" # Continuous file synchronization with GUI
   "tailscale-app" # VPN mesh network with GUI
   "teleport-connect" # Teleport GUI client for secure infrastructure access
 
