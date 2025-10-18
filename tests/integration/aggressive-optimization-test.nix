@@ -87,6 +87,7 @@ let
   };
 
   # Expected CustomUserPreferences keys
+  # Note: Safari preferences excluded - they're sandboxed and can't be set via defaults write
   expectedCustomPrefs = [
     "com.apple.universalaccess"
     "com.apple.dashboard"
@@ -257,13 +258,15 @@ nixtestFinal.suite "Aggressive Optimization Integration Tests" {
 
     transparencyDisabled = nixtestFinal.test "Transparency is disabled" (
       nixtestFinal.assertions.assertTrue (
-        aggressiveOptModule.system.defaults.CustomUserPreferences."com.apple.universalaccess".reduceTransparency == true
+        aggressiveOptModule.system.defaults.CustomUserPreferences."com.apple.universalaccess".reduceTransparency
+        == true
       )
     );
 
     motionDisabled = nixtestFinal.test "Motion is disabled" (
       nixtestFinal.assertions.assertTrue (
-        aggressiveOptModule.system.defaults.CustomUserPreferences."com.apple.universalaccess".reduceMotion == true
+        aggressiveOptModule.system.defaults.CustomUserPreferences."com.apple.universalaccess".reduceMotion
+        == true
       )
     );
   };

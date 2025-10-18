@@ -184,11 +184,13 @@
       "com.apple.podcasts".MTAutoDownloadEnabled = false;
 
       # ─── Safari 프라이버시 (user preferences) ───
-      "com.apple.Safari" = {
-        SendDoNotTrackHTTPHeader = true;
-        UniversalSearchEnabled = false;
-        SuppressSearchSuggestions = true;
-      };
+      # Note: Safari preferences are sandboxed in containers and cannot be
+      # set via defaults write. These settings must be configured manually.
+      # "com.apple.Safari" = {
+      #   SendDoNotTrackHTTPHeader = true;
+      #   UniversalSearchEnabled = false;
+      #   SuppressSearchSuggestions = true;
+      # };
     };
   };
 
