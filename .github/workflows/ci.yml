@@ -40,25 +40,19 @@ jobs:
       - name: Get week number for cache rotation
         id: date
         run: echo "week=$(date +%Y-W%U)" >> $GITHUB_OUTPUT
-      # Phase 3: Enhanced caching with intelligent layering
-      - name: Cache Nix store (Phase 3 optimization)
+      # GitHub Actions cache optimization (no external dependencies)
+      - name: Cache Nix store
         uses: actions/cache@v4
-        continue-on-error: true
         with:
           path: |
             /nix/store
+            /nix/var/nix/db
             ~/.cache/nix
-            ~/.cache/nix-index
-            /tmp/nix-build-*
-          key: phase3-validate-nix-${{ hashFiles('flake.lock', 'flake.nix') }}-${{ runner.os }}-${{ steps.date.outputs.week }}
+            ~/.local/state/nix
+          key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-${{ steps.date.outputs.week }}
           restore-keys: |
-            phase3-validate-nix-${{ hashFiles('flake.lock', 'flake.nix') }}-${{ runner.os }}-
-            phase3-validate-nix-${{ hashFiles('flake.lock', 'flake.nix') }}-
-            phase3-validate-nix-${{ hashFiles('flake.lock') }}-
-            validate-nix-${{ hashFiles('flake.lock') }}
-            validate-nix-
-          # Phase 3: Multi-layer cache strategy
-          enableCrossOsArchive: false
+            nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-
+            nix-${{ runner.os }}-
           save-always: true
       - name: Lint
         run: |
@@ -128,7 +122,7 @@ jobs:
           nix_path: nixpkgs=channel:nixos-unstable
           install_url: https://releases.nixos.org/nix/nix-2.18.8/install
           enable_kvm: true
-      # Cache strategy
+      # GitHub Actions cache optimization
       - name: Get week number for cache rotation
         id: date
         run: echo "week=$(date +%Y-W%U)" >> $GITHUB_OUTPUT
@@ -137,12 +131,14 @@ jobs:
         with:
           path: |
             /nix/store
+            /nix/var/nix/db
             ~/.cache/nix
             ~/.local/state/nix
-          key: nix-${{ runner.os }}-${{ hashFiles('flake.lock', 'flake.nix') }}-${{ steps.date.outputs.week }}
+          key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-${{ steps.date.outputs.week }}
           restore-keys: |
-            nix-${{ runner.os }}-${{ hashFiles('flake.lock', 'flake.nix') }}-
+            nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-
             nix-${{ runner.os }}-
+          save-always: true
       - name: Build and test switch
         timeout-minutes: 60
         run: |
@@ -215,17 +211,22 @@ jobs:
         with:
           nix_path: nixpkgs=channel:nixos-unstable
           install_url: https://releases.nixos.org/nix/nix-2.18.8/install
-      # Restore cache from build job
+      # Restore shared cache
+      - name: Get week number for cache rotation
+        id: date
+        run: echo "week=$(date +%Y-W%U)" >> $GITHUB_OUTPUT
       - name: Restore Nix cache
         uses: actions/cache/restore@v4
         with:
           path: |
             /nix/store
+            /nix/var/nix/db
             ~/.cache/nix
             ~/.local/state/nix
-          key: nix-build-${{ runner.os }}-${{ hashFiles('flake.lock', 'flake.nix') }}
+          key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-${{ steps.date.outputs.week }}
           restore-keys: |
-            nix-build-${{ runner.os }}-
+            nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-
+            nix-${{ runner.os }}-
       - name: Run tests
         timeout-minutes: 20
         run: |
