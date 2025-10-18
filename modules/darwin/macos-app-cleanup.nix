@@ -21,7 +21,7 @@
 #   - SIP (System Integrity Protection) 활성화 시 일부 시스템 앱은 제거 불가
 #   - 제거 후 App Store에서 재설치 가능
 
-{ pkgs, ... }:
+_:
 
 {
   system.activationScripts.cleanupMacOSApps = {

@@ -9,7 +9,6 @@
 # - All commands have proper USER variable handling
 
 {
-  lib ? import <nixpkgs/lib>,
   pkgs ? import <nixpkgs> { },
 }:
 

@@ -16,7 +16,7 @@
 #   - Battery life: Extended (iCloud sync minimized)
 #   - Memory management: Improved (automatic app termination enabled)
 
-{ config, lib, ... }:
+_:
 
 {
   system.defaults = {
