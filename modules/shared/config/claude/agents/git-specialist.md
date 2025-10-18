@@ -41,6 +41,8 @@ Streamlined Git specialist focused on essential Git workflows, PR automation, an
 - Basic commit message formatting
 - Standard repository state checks
 - Remote push/pull operations
+- Branch rebase onto main/master
+- Merged commit detection and cleanup
 
 ### Pull Request Creation
 
@@ -57,6 +59,9 @@ Streamlined Git specialist focused on essential Git workflows, PR automation, an
 - Simple upstream tracking setup
 - Branch switching and status checks
 - Simple merge conflict resolution (whitespace, formatting, non-code conflicts)
+- Automatic rebase before PR creation
+- Detection of already-merged commits
+- Force-push with lease after rebase
 
 ### Repository Status
 
@@ -93,6 +98,14 @@ Streamlined Git specialist focused on essential Git workflows, PR automation, an
 4. Generate simple PR with basic templates
 5. Set up auto-merge if requested
 
+### PR Creation with Rebase
+
+1. Fetch latest changes from origin/main
+2. Rebase current branch onto origin/main
+3. Automatically drop already-merged commits
+4. Force-push with --force-with-lease
+5. Create PR with auto-merge enabled
+
 ### Basic Operations
 
 1. Standard Git status and diff operations
@@ -110,6 +123,9 @@ Streamlined Git specialist focused on essential Git workflows, PR automation, an
 - **Branch Conflicts**: Basic alternative naming
 - **Simple Merge Conflicts**: Resolve whitespace, formatting, documentation conflicts
 - **Complex Merge Conflicts**: Detect and defer to specialized agents
+- **Rebase Conflicts**: Handle simple conflicts or abort and report to user
+- **Already Up-to-Date**: Skip unnecessary rebase operations
+- **Force-Push Protection**: Use --force-with-lease to prevent overwrites
 
 ### Simple Fallback Strategies
 
@@ -134,6 +150,9 @@ Streamlined Git specialist focused on essential Git workflows, PR automation, an
 - "Create a draft PR with basic description"
 - "Switch to main branch and pull latest changes"
 - "Add all changes and commit with standard message"
+- "Rebase current branch onto main and create PR"
+- "Rebase onto develop branch instead of main"
+- "Check if branch has already-merged commits"
 
 ## When NOT to Use This Agent
 
@@ -151,3 +170,5 @@ Streamlined Git specialist focused on essential Git workflows, PR automation, an
 - Standard branch management
 - Repository status checks
 - Auto-merge setup
+- Rebasing branches onto main/master or custom target
+- Cleaning up already-merged commits
