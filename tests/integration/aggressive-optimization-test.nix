@@ -84,15 +84,11 @@ let
       "TrackpadRightClick"
       "TrackpadThreeFingerDrag"
     ];
-
-    universalaccess = [
-      "reduceTransparency"
-      "reduceMotion"
-    ];
   };
 
   # Expected CustomUserPreferences keys
   expectedCustomPrefs = [
+    "com.apple.universalaccess"
     "com.apple.dashboard"
     "NSGlobalDomain"
     "com.apple.dock"
@@ -247,25 +243,29 @@ nixtestFinal.suite "Aggressive Optimization Integration Tests" {
       );
     };
 
-    # Universal Access tests
-    universalAccessTests = nixtestFinal.suite "Universal Access Tests" {
+  };
 
-      universalAccessExists = nixtestFinal.test "Universal access exists" (
-        nixtestFinal.assertions.assertHasAttr "universalaccess" aggressiveOptModule.system.defaults
-      );
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # 3️⃣  Universal Access Tests (moved to CustomUserPreferences)
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-      transparencyDisabled = nixtestFinal.test "Transparency is disabled" (
-        nixtestFinal.assertions.assertTrue (
-          aggressiveOptModule.system.defaults.universalaccess.reduceTransparency == true
-        )
-      );
+  universalAccessTests = nixtestFinal.suite "Universal Access Tests" {
 
-      motionDisabled = nixtestFinal.test "Motion is disabled" (
-        nixtestFinal.assertions.assertTrue (
-          aggressiveOptModule.system.defaults.universalaccess.reduceMotion == true
-        )
-      );
-    };
+    universalAccessExists = nixtestFinal.test "Universal access exists in CustomUserPreferences" (
+      nixtestFinal.assertions.assertHasAttr "com.apple.universalaccess" aggressiveOptModule.system.defaults.CustomUserPreferences
+    );
+
+    transparencyDisabled = nixtestFinal.test "Transparency is disabled" (
+      nixtestFinal.assertions.assertTrue (
+        aggressiveOptModule.system.defaults.CustomUserPreferences."com.apple.universalaccess".reduceTransparency == true
+      )
+    );
+
+    motionDisabled = nixtestFinal.test "Motion is disabled" (
+      nixtestFinal.assertions.assertTrue (
+        aggressiveOptModule.system.defaults.CustomUserPreferences."com.apple.universalaccess".reduceMotion == true
+      )
+    );
   };
 
   # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -431,7 +431,6 @@ nixtestFinal.suite "Aggressive Optimization Integration Tests" {
               "finder"
               "trackpad"
               "loginwindow"
-              "universalaccess"
               "CustomUserPreferences"
               # 기타 nix-darwin 지원 키들...
             ];
