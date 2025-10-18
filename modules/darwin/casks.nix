@@ -21,6 +21,7 @@ _:
   "datagrip" # Database IDE from JetBrains
   "docker-desktop"
   "intellij-idea"
+  "visual-studio-code"
 
   # Communication Tools
   "discord"

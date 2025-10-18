@@ -111,7 +111,6 @@ let
   # Productivity and utility applications
   productivityTools = [
     bc # Command-line calculator
-    syncthing # Continuous file synchronization
   ];
 
 in

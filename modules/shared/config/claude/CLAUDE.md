@@ -172,10 +172,26 @@ Examples:
 
 ## MCP Session Management
 
-- **Context7**: Use when working with external libraries or frameworks for up-to-date documentation and API references
-- **Sequential Thinking**: Use for complex multi-step problem solving that requires breaking down tasks and tool coordination
+### Context7: Official Documentation Lookup
+
+**Use proactively** before implementing framework features, during refactoring, or when troubleshooting framework-specific issues.
+
+**Pattern**:
+```
+mcp__context7__resolve-library-id("library") → mcp__context7__get-library-docs(id, topic: "best-practices testing", tokens: 5000-8000)
+```
+
+**Topics**: `best practices`, `testing`, `migration`, `configuration`, `troubleshooting`, `optimization`, `security`
+
+**Libraries**: React, Vue, Next.js, Express, FastAPI, Django, Flutter, Kubernetes, Docker, Nix, PostgreSQL, MongoDB, Jest, Pytest, Playwright
+
+**Skip for**: Custom business logic, internal libraries, basic syntax
+
+### Other MCP Tools
+
+- **Sequential Thinking**: Complex multi-step problem solving requiring task breakdown and tool coordination
 - **Serena MCP**: Code analysis and editing (symbols, references, multi-file search, refactoring)
-- **Playwright**: Use for browser automation and testing tasks
+- **Playwright**: Browser automation and testing tasks
 
 ## Task Tool Usage Guidelines
 

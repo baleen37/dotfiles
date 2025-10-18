@@ -98,6 +98,11 @@ in
               ;
           };
 
+      # Import Makefile switch commands test (Option 3 implementation)
+      makefileSwitchCommandsTest = import (self + /tests/unit/makefile-switch-commands-test.nix) {
+        inherit lib pkgs;
+      };
+
       # Import e2e test suites directly (not using default.nix wrapper)
       buildSwitchTests = import (self + /tests/e2e/build-switch-test.nix) {
         inherit
@@ -153,6 +158,9 @@ in
       libTestSuite = runTestSuite libTests;
       platformTestSuite = runTestSuite platformTests;
 
+      # Makefile switch commands test (direct derivation)
+      makefileSwitchCommandsTestSuite = makefileSwitchCommandsTest;
+
       # Integration test derivations
       moduleInteractionTestSuite = runTestSuite moduleInteractionTests;
       crossPlatformTestSuite = runTestSuite crossPlatformTests;
@@ -179,9 +187,10 @@ in
             mkdir -p $out/results
 
             # Copy unit test results
-            mkdir -p $out/results/unit-tests/lib-tests $out/results/unit-tests/platform-tests $out/results/integration-tests
+            mkdir -p $out/results/unit-tests/lib-tests $out/results/unit-tests/platform-tests $out/results/unit-tests/makefile-switch-commands $out/results/integration-tests
             cp -r ${libTestSuite}/* $out/results/unit-tests/lib-tests/
             cp -r ${platformTestSuite}/* $out/results/unit-tests/platform-tests/
+            cp ${makefileSwitchCommandsTestSuite} $out/results/unit-tests/makefile-switch-commands/result
 
             # Copy integration test results
             mkdir -p $out/results/integration-tests/module-interaction $out/results/integration-tests/cross-platform $out/results/integration-tests/system-configuration $out/results/integration-tests/makefile-experimental-features
@@ -212,6 +221,11 @@ in
 
             echo "Platform Detection Tests:" >> $out/report.txt
             cat ${platformTestSuite}/summary.txt | sed 's/^/  /' >> $out/report.txt
+            echo "" >> $out/report.txt
+
+            echo "Makefile Switch Commands Tests (Option 3):" >> $out/report.txt
+            echo "  Test Suite: makefile-switch-commands" >> $out/report.txt
+            echo "  Status: COMPLETED" >> $out/report.txt
             echo "" >> $out/report.txt
 
             # Add integration test suite summaries
@@ -255,6 +269,7 @@ in
       # Unit test suites
       lib-functions = libTestSuite;
       platform-detection = platformTestSuite;
+      makefile-switch-commands = makefileSwitchCommandsTestSuite;
 
       # Integration test suites
       module-interaction = moduleInteractionTestSuite;
