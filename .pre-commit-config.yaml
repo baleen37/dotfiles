@@ -75,6 +75,7 @@ repos:
         entry: deadnix --edit
         language: system
         files: \.nix$
+        exclude: ^tests/unit/makefile-switch-commands-test\.nix$
         description: Dead code detector with auto-fix
 
       - id: smoke-test
