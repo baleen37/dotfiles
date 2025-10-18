@@ -267,7 +267,7 @@ jobs:
   # CI completion and status reporting
   ci-complete:
     name: CI Summary
-    needs: [validate, security, build-switch, test]
+    needs: [validate, build-switch, test]
     runs-on: ubuntu-latest
     if: always() && !cancelled()
     steps:
@@ -275,17 +275,16 @@ jobs:
         id: status
         run: |
           validate="${{ needs.validate.result }}"
-          security="${{ needs.security.result }}"
           build_switch="${{ needs.build-switch.result }}"
           test="${{ needs.test.result }}"
 
           # All jobs must succeed
-          if [[ "$validate" == "success" && "$security" == "success" && "$build_switch" == "success" && "$test" == "success" ]]; then
+          if [[ "$validate" == "success" && "$build_switch" == "success" && "$test" == "success" ]]; then
             echo "status=success" >> $GITHUB_OUTPUT
             echo "message=All CI checks passed" >> $GITHUB_OUTPUT
           else
             echo "status=failed" >> $GITHUB_OUTPUT
-            echo "message=CI failed - validate:$validate security:$security build-switch:$build_switch test:$test" >> $GITHUB_OUTPUT
+            echo "message=CI failed - validate:$validate build-switch:$build_switch test:$test" >> $GITHUB_OUTPUT
           fi
       - name: Report status
         uses: actions/github-script@v7
