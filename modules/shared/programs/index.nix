@@ -38,6 +38,7 @@
   config,
   pkgs,
   lib,
+  self,
   ...
 }:
 
@@ -56,7 +57,12 @@ let
   # Standardized module interface data
   homePath = config.home.homeDirectory;
   moduleInputs = {
-    inherit config pkgs lib;
+    inherit
+      config
+      pkgs
+      lib
+      self
+      ;
     platformInfo = {
       inherit isDarwin isLinux;
       inherit (pkgs) system;
