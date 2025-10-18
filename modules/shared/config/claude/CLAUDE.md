@@ -28,7 +28,10 @@
 
 ### Code Hygiene: Zero Tolerance
 
-- **Dead Code**: Delete unused functions, variables, imports, files immediately
+- **Dead Code**: Delete unused functions, variables, imports, files, dependencies immediately
+  - Unreachable code, commented blocks, orphaned tests all count as dead code
+  - Use git history for code archaeology, not comments
+  - Dead code misleads developers, increases cognitive load, and bloats the codebase
 - **Code Duplication**: Eliminate identical implementations on sight
 - **Temporary Artifacts**: Remove debug prints, commented code, experimental files
 - **Boy Scout Rule**: Always leave code cleaner than you found it
