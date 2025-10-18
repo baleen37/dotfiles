@@ -145,7 +145,9 @@
           system:
           darwin.lib.darwinSystem {
             inherit system;
-            specialArgs = inputs;
+            specialArgs = inputs // {
+              inherit self;
+            };
             modules = [
               ./hosts/darwin # Host config first to ensure allowUnfree is set at system level
               home-manager.darwinModules.home-manager
@@ -156,7 +158,9 @@
                   useUserPackages = true;
                   users.${user} = import ./modules/shared/home-manager.nix;
                   backupFileExtension = "bak";
-                  extraSpecialArgs = inputs;
+                  extraSpecialArgs = inputs // {
+                    inherit self;
+                  };
                 };
                 nix-homebrew = {
                   inherit user;
@@ -183,7 +187,7 @@
           nixpkgs.lib.nixosSystem {
             inherit system;
             specialArgs = inputs // {
-              inherit user;
+              inherit user self;
             };
             modules = [
               ./hosts/nixos # Host config first to ensure allowUnfree is set at system level
@@ -195,7 +199,9 @@
                   useUserPackages = true;
                   users.${user} = import ./modules/nixos/home-manager.nix;
                   backupFileExtension = "bak";
-                  extraSpecialArgs = inputs;
+                  extraSpecialArgs = inputs // {
+                    inherit self;
+                  };
                 };
               }
             ];
@@ -226,7 +232,9 @@
               };
             }
           ];
-          extraSpecialArgs = inputs;
+          extraSpecialArgs = inputs // {
+            inherit self;
+          };
         };
       };
 
