@@ -31,11 +31,13 @@ This command leverages the **git-specialist** agent for:
 1. **Repository Analysis**: Parallel execution of `git status`, `git log`, and `git diff` for complete branch state
 2. **Auto-Commit**: Automatically commit any uncommitted changes before proceeding
 3. **Branch Management**: Auto-create feature branch if currently on main/master, sync with upstream
-4. **Commit Validation**: Ensure commits exist and are ready for PR before proceeding
-5. **Content Generation**: Extract commit messages, file changes, and metadata for PR description
-6. **Template Integration**: Discover and populate repository PR templates automatically
-7. **PR Creation**: Execute `gh pr create` with optimized title and description
-8. **Auto-Merge** (when --merge flag used): Enable `gh pr create --enable-auto-merge --merge-method squash`
+4. **Rebase onto Target**: Fetch and rebase onto main/master (or custom target branch), automatically drop merged commits
+5. **Force Push**: Push rebased branch with `--force-with-lease` for safety
+6. **Commit Validation**: Ensure commits exist and are ready for PR before proceeding
+7. **Content Generation**: Extract commit messages, file changes, and metadata for PR description
+8. **Template Integration**: Discover and populate repository PR templates automatically
+9. **PR Creation**: Execute `gh pr create` with optimized title and description
+10. **Auto-Merge** (when --merge flag used): Enable `gh pr create --enable-auto-merge --merge-method squash`
 
 ## Branch Management
 
@@ -80,6 +82,9 @@ When on main/master branch:
 - **Working Directory**: Achieve clean state through auto-commit before branch operations
 - **Remote Sync**: Verify remote access and sync status
 - **Duplicate Prevention**: Check existing PRs for current branch
+- **Rebase Safety**: Always fetch latest target branch before rebasing
+- **Force-Push Protection**: Use `--force-with-lease` to prevent accidental overwrites
+- **Merged Commit Cleanup**: Automatically detect and drop already-merged commits during rebase
 
 ### Performance Optimization
 
@@ -97,6 +102,9 @@ When on main/master branch:
 - **Uncommitted Changes**: Auto-commit with intelligent commit message generation
 - **Missing Remote**: "Error: No upstream remote configured"
 - **Duplicate PR**: "Error: PR already exists for this branch"
+- **Rebase Conflicts**: Handle simple conflicts or abort with clear error message
+- **Already Merged Commits**: Automatically dropped during rebase process
+- **Outdated Branch**: Automatically synced via fetch and rebase before PR creation
 
 ### Smart Fallback Behaviors
 
@@ -122,7 +130,17 @@ Before creating PR:
 - Generate commit message based on file changes and conventional commit patterns
 - Use `git add -A && git commit -m "[generated message]"` for auto-commit
 
-After ensuring clean state, create a pull request with:
+Rebase workflow (REQUIRED before PR creation):
+
+1. Determine target branch (default: main, or master if main doesn't exist)
+2. Fetch latest changes: `git fetch origin [target-branch]`
+3. Rebase onto target: `git rebase origin/[target-branch]`
+   - Git will automatically drop already-merged commits
+   - Handle simple conflicts (whitespace, formatting, docs) if they occur
+   - Abort and report to user if complex conflicts detected
+4. Force push with safety: `git push --force-with-lease`
+
+After ensuring clean state and successful rebase, create a pull request with:
 
 - Intelligent title based on commit messages
 - Comprehensive description from file changes and commits
@@ -135,27 +153,38 @@ Branch conflict handling:
 
 - If branch exists: analyze recent commit messages to generate descriptive alternative name
 - If --merge flag: add `--enable-auto-merge --merge-method squash` to gh pr create command
-- Fallback to timestamp suffix only if context analysis fails"
+- Fallback to timestamp suffix only if context analysis fails
+
+Target branch detection:
+
+- Check if origin/main exists, use as default target
+- Otherwise check for origin/master
+- Allow custom target branch via arguments if specified"
 
 ## Examples
 
 ```bash
-/create-pr                           # Full automation with safety checks
-/create-pr "Implement user auth"     # Custom title with branch validation
-/create-pr --draft                   # Create draft PR from feature branch
-/create-pr --merge                   # Create PR and merge when checks pass
+/create-pr                           # Full automation with rebase and safety checks
+/create-pr "Implement user auth"     # Custom title with auto-rebase
+/create-pr --draft                   # Create draft PR (still rebases first)
+/create-pr --merge                   # Rebase, create PR, and auto-merge when checks pass
 ```
 
 ### Workflow Examples
 
 ```bash
-# Feature branch workflow
+# Feature branch workflow with auto-rebase
 git checkout -b feat/user-authentication
 # ... make changes and commits ...
-/create-pr                           # Creates PR from feature branch
+/create-pr                           # Rebases onto main, then creates PR
 
 # Auto-branch creation from main
 git checkout main
 # ... make commits on main ...
-/create-pr                           # Auto-creates feature branch, then PR
+/create-pr                           # Auto-creates feature branch, rebases, then PR
+
+# Rebase behavior
+# If commits are already merged, they are automatically dropped
+# Example: You have 5 commits, but 2 are already in main
+# Result: Only 3 new commits will be in the PR
 ```
