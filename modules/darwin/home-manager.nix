@@ -71,6 +71,13 @@ in
   homebrew = {
     enable = true;
     casks = pkgs.callPackage ./casks.nix { };
+    brews = [
+      {
+        name = "syncthing";
+        start_service = true; # Auto-start on login
+        restart_service = "changed"; # Restart on version change
+      }
+    ];
 
     # Performance optimization: selective cleanup
     onActivation = {
