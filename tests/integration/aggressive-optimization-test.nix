@@ -18,7 +18,6 @@
 {
   lib ? import <nixpkgs/lib>,
   pkgs ? import <nixpkgs> { },
-  system ? builtins.currentSystem,
   nixtest ? null,
 }:
 
@@ -42,73 +41,10 @@ let
   aggressiveOptModule = import ../../modules/darwin/aggressive-optimization.nix { inherit lib; };
 
   # Expected configuration structure
-  expectedDefaults = {
-    NSGlobalDomain = [
-      "NSAutomaticWindowAnimationsEnabled"
-      "NSScrollAnimationEnabled"
-      "NSWindowResizeTime"
-      "KeyRepeat"
-      "InitialKeyRepeat"
-      "NSAutomaticCapitalizationEnabled"
-      "NSAutomaticSpellingCorrectionEnabled"
-      "NSAutomaticQuoteSubstitutionEnabled"
-      "NSAutomaticDashSubstitutionEnabled"
-      "NSAutomaticPeriodSubstitutionEnabled"
-      "NSDocumentSaveNewDocumentsToCloud"
-      "AppleShowAllExtensions"
-    ];
-
-    dock = [
-      "autohide"
-      "autohide-delay"
-      "autohide-time-modifier"
-      "expose-animation-duration"
-      "tilesize"
-      "show-recents"
-      "mineffect"
-      "mru-spaces"
-    ];
-
-    finder = [
-      "AppleShowAllFiles"
-      "FXEnableExtensionChangeWarning"
-      "_FXSortFoldersFirst"
-      "ShowPathbar"
-      "ShowStatusBar"
-      "QuitMenuItem"
-      "FXDefaultSearchScope"
-    ];
-
-    trackpad = [
-      "Clicking"
-      "TrackpadRightClick"
-      "TrackpadThreeFingerDrag"
-    ];
-  };
 
   # Expected CustomUserPreferences keys
   # Note: Safari preferences excluded - they're sandboxed and can't be set via defaults write
   # Note: universalaccess excluded - requires accessibility permissions
-  expectedCustomPrefs = [
-    "com.apple.dashboard"
-    "NSGlobalDomain"
-    "com.apple.dock"
-    "com.apple.notificationcenterui"
-    "com.apple.finder"
-    "com.apple.CrashReporter"
-    "com.apple.AdLib"
-    "com.apple.assistant.support"
-    "com.apple.Photos"
-    "com.apple.gamed"
-    "com.apple.suggestions"
-    "com.apple.lookup"
-    "com.apple.cloudd"
-    "com.apple.speech.recognition.AppleSpeechRecognition.prefs"
-    "com.apple.FaceTime"
-    "com.apple.commerce"
-    "com.apple.Music"
-    "com.apple.podcasts"
-  ];
 
 in
 nixtestFinal.suite "Aggressive Optimization Integration Tests" {
