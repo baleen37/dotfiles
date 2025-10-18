@@ -35,6 +35,7 @@ in
     ../../modules/darwin/nix-gc.nix # macOS 전용 갈비지 컬렉션 설정
     ../../modules/darwin/performance-optimization.nix # macOS 성능 최적화
     ../../modules/darwin/macos-app-cleanup.nix # macOS 기본 앱 클린업
+    ../../modules/darwin/aggressive-optimization.nix # 🚀 공격적 성능 최적화 (Spotlight 비활성화 등)
     ../../modules/shared/cachix # Binary cache configuration
     ../../modules/shared
   ];
