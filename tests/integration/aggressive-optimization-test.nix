@@ -172,7 +172,7 @@ nixtestFinal.suite "Aggressive Optimization Integration Tests" {
           nsg = aggressiveOptModule.system.defaults.NSGlobalDomain;
         in
         nixtestFinal.assertions.assertTrue (
-          nsg.NSAutomaticWindowAnimationsEnabled == false && nsg.NSScrollAnimationEnabled == false
+          !nsg.NSAutomaticWindowAnimationsEnabled && !nsg.NSScrollAnimationEnabled
         )
       );
 
@@ -212,12 +212,12 @@ nixtestFinal.suite "Aggressive Optimization Integration Tests" {
       );
 
       dockAutohideEnabled = nixtestFinal.test "Dock autohide is enabled" (
-        nixtestFinal.assertions.assertTrue (aggressiveOptModule.system.defaults.dock.autohide == true)
+        nixtestFinal.assertions.assertTrue aggressiveOptModule.system.defaults.dock.autohide
       );
 
       dockHasPerformanceSettings = nixtestFinal.test "Dock has performance settings" (
         let
-          dock = aggressiveOptModule.system.defaults.dock;
+          inherit (aggressiveOptModule.system.defaults) dock;
         in
         nixtestFinal.assertions.assertTrue (dock ? autohide-delay && dock ? autohide-time-modifier)
       );
@@ -231,14 +231,12 @@ nixtestFinal.suite "Aggressive Optimization Integration Tests" {
       );
 
       finderShowHiddenFiles = nixtestFinal.test "Finder shows hidden files" (
-        nixtestFinal.assertions.assertTrue (
-          aggressiveOptModule.system.defaults.finder.AppleShowAllFiles == true
-        )
+        nixtestFinal.assertions.assertTrue aggressiveOptModule.system.defaults.finder.AppleShowAllFiles
       );
 
       finderHasUISettings = nixtestFinal.test "Finder has UI settings" (
         let
-          finder = aggressiveOptModule.system.defaults.finder;
+          inherit (aggressiveOptModule.system.defaults) finder;
         in
         nixtestFinal.assertions.assertTrue (finder ? ShowPathbar && finder ? ShowStatusBar)
       );
@@ -428,7 +426,7 @@ nixtestFinal.suite "Aggressive Optimization Integration Tests" {
       nixtestFinal.test "All system.defaults keys are valid nix-darwin options"
         (
           let
-            defaults = aggressiveOptModule.system.defaults;
+            inherit (aggressiveOptModule.system) defaults;
             # nix-darwin에서 지원하는 system.defaults 키 목록
             validKeys = [
               "NSGlobalDomain"
@@ -450,7 +448,7 @@ nixtestFinal.suite "Aggressive Optimization Integration Tests" {
     # Detects non-existent option names that would fail during build
     noInvalidCustomOptions = nixtestFinal.test "No invalid custom options in module" (
       let
-        defaults = aggressiveOptModule.system.defaults;
+        inherit (aggressiveOptModule.system) defaults;
         # CustomSystemPreferences, CustomGlobalPreferences 같은 존재하지 않는 키 감지
         dangerousKeys = [
           "CustomSystemPreferences"
