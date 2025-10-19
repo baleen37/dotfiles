@@ -46,21 +46,13 @@ in
   imports = [
     ../../modules/shared/files.nix
     ../../modules/shared/cachix
-    # disk-config.nix omitted for CI builds (prevents disko kernel module shrinking)
-    # Production deployments should import ../../modules/nixos/disk-config.nix
+    ../../modules/nixos/disk-config.nix
   ];
 
-  # Minimal filesystem config for CI builds
-  # Production uses disko (modules/nixos/disk-config.nix) for declarative disk partitioning
-  fileSystems."/" = {
-    device = "/dev/disk/by-label/nixos";
-    fsType = "ext4";
-  };
-
-  fileSystems."/boot" = {
-    device = "/dev/disk/by-label/boot";
-    fsType = "vfat";
-  };
+  # CI-safe kernel configuration: Disable module optimization
+  # Prevents "modules-shrunk not in Nix store" errors during CI builds
+  # Production deployments can override with mkForce if needed
+  boot.initrd.includeDefaultModules = pkgs.lib.mkDefault false;
 
   # Use the systemd-boot EFI boot loader.
   boot = {
