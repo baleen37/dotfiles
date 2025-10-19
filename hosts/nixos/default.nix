@@ -68,7 +68,8 @@ in
     ];
     # Uncomment for AMD GPU
     # initrd.kernelModules = [ "amdgpu" ];
-    kernelPackages = pkgs.linuxPackages;
+    # Use LTS kernel for CI stability and cache availability
+    kernelPackages = pkgs.linuxPackages_6_6;
     kernelModules = [ "uinput" ];
   };
 
