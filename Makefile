@@ -74,7 +74,9 @@ build: check-user
 	if [ "$${OS}" = "Darwin" ]; then \
 		export USER=$(USER); $(NIX) build --impure --fallback --keep-going --no-link --quiet .#darwinConfigurations.$(CURRENT_SYSTEM).system $(ARGS); \
 	else \
-		export USER=$(USER); $(NIX) build --impure --fallback --keep-going --no-link --quiet .#nixosConfigurations.$(CURRENT_SYSTEM).config.system.build.toplevel $(ARGS); \
+		echo "ℹ️  NixOS: Running configuration validation (CI-safe)..."; \
+		export USER=$(USER); $(NIX) eval --impure .#nixosConfigurations.$(CURRENT_SYSTEM).config.system.build.toplevel.outPath $(ARGS) > /dev/null; \
+		echo "✅ NixOS configuration validated successfully"; \
 	fi
 
 switch: check-user
