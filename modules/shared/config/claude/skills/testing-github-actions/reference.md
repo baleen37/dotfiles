@@ -1,14 +1,17 @@
 # Testing GitHub Actions - Reference Guide
 
-이 문서는 `SKILL.md`의 보충 자료로, 실제 사용 예제, 트러블슈팅, 고급 기법을 다룹니다.
+Comprehensive guide for act and gh CLI: installation, practical examples, troubleshooting, and advanced techniques.
+
+**Progressive Disclosure**: This reference is loaded on-demand when detailed information is needed. For quick workflows, refer to `SKILL.md`.
 
 ## Table of Contents
 
-1. [설치 및 초기 설정](#설치-및-초기-설정)
-2. [실전 예제](#실전-예제)
-3. [일반적인 문제 해결](#일반적인-문제-해결)
-4. [고급 사용법](#고급-사용법)
-5. [체크리스트 상세 설명](#체크리스트-상세-설명)
+1. [Installation and Setup](#설치-및-초기-설정)
+2. [Practical Examples](#실전-예제)
+3. [Common Troubleshooting](#일반적인-문제-해결)
+4. [Advanced Usage](#고급-사용법)
+5. [Checklist Deep Dive](#체크리스트-상세-설명)
+6. [Official Resources](#official-resources)
 
 ## 설치 및 초기 설정
 
@@ -1326,6 +1329,24 @@ jobs:
 - name: Install dependencies  # ✅ 명확
   run: npm ci
 ```
+
+## Official Resources
+
+### Essential Documentation
+- **GitHub Actions**: [Official Docs](https://docs.github.com/actions) - Complete reference for workflow syntax and features
+- **Security Best Practices**: [Security Hardening](https://docs.github.com/actions/security-guides/security-hardening-for-github-actions) - SHA pinning, permissions, OIDC
+- **act Documentation**: [nektos/act](https://github.com/nektos/act) - Local testing tool
+- **gh CLI Manual**: [GitHub CLI](https://cli.github.com/manual/gh_workflow) - Workflow management commands
+
+### Community Resources
+- **Awesome Actions**: [sdras/awesome-actions](https://github.com/sdras/awesome-actions) - Curated list of actions
+- **Action Examples**: [actions/starter-workflows](https://github.com/actions/starter-workflows) - Official templates
+- **Marketplace**: [GitHub Actions Marketplace](https://github.com/marketplace?type=actions) - Pre-built actions
+
+### Security Tools
+- **Dependabot**: [Automated dependency updates](https://docs.github.com/code-security/dependabot)
+- **CodeQL**: [Code scanning](https://docs.github.com/code-security/code-scanning)
+- **Secret Scanning**: [Detect exposed secrets](https://docs.github.com/code-security/secret-scanning)
 
 ## Quick Reference
 

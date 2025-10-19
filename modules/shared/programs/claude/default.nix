@@ -8,13 +8,14 @@
 #   - CLAUDE.md: 프로젝트별 AI 지침 (직접 링크, 재빌드 불필요)
 #   - commands/: 커스텀 Claude 명령어 (직접 링크, 재빌드 불필요)
 #   - agents/: AI 에이전트 설정 (직접 링크, 재빌드 불필요)
+#   - skills/: Claude 스킬 설정 (직접 링크, 재빌드 불필요)
 #   - hooks/: Git 훅 스크립트 (Nix store, Go 바이너리 자동 빌드)
 #
 # 지원 플랫폼: macOS (Darwin), Linux
 # 패키지 추가: go (hooks 빌드용)
 #
 # 직접 소스 링크 (mkOutOfStoreSymlink):
-#   - CLAUDE.md, commands/, agents/는 소스 디렉토리를 직접 가리킴
+#   - CLAUDE.md, commands/, agents/, skills/는 소스 디렉토리를 직접 가리킴
 #   - 재빌드 없이 즉시 변경사항 반영 가능
 #   - self.outPath 사용으로 자동 경로 해석
 #
@@ -22,10 +23,8 @@
 #   - settings.json: 설정 파일 무결성 보장
 #   - hooks/: 빌드된 Go 바이너리 (소스 직접 링크 불가)
 #
-# NOTE: skills/는 .claude/skills/에서 로컬로 관리 (Nix 관리 제외)
-#
-# VERSION: 6.1.0 (Removed skills from Nix management)
-# LAST UPDATED: 2025-10-18
+# VERSION: 6.2.0 (Added skills directory to Nix management)
+# LAST UPDATED: 2025-10-19
 
 {
   pkgs,
@@ -110,6 +109,11 @@ in
       # Agents directory - direct source link (editable without rebuild)
       "${claudeHomeDir}/agents" = {
         source = config.lib.file.mkOutOfStoreSymlink "${claudeConfigDirSource}/agents";
+      };
+
+      # Skills directory - direct source link (editable without rebuild)
+      "${claudeHomeDir}/skills" = {
+        source = config.lib.file.mkOutOfStoreSymlink "${claudeConfigDirSource}/skills";
       };
 
       # Hooks directory (with built Go binary)

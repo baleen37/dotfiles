@@ -23,17 +23,21 @@ Create new Claude skills with proper structure, validation, and integration foll
 ### Conciseness
 - Keep SKILL.md under 500 lines
 - Only include information Claude doesn't already know
-- Use progressive disclosure (reference.md for details)
+- Challenge each piece: "Does Claude really need this explanation?"
+- Use progressive disclosure (reference.md for details loaded on-demand)
 
 ### Naming
 - Use gerund form (verb + -ing): "Processing PDFs", "Analyzing Code"
 - Avoid vague names like "Helper" or "Utils"
 - Be specific and descriptive
+- Max 64 characters
 
 ### Description
 - Write in third person
 - Be specific about what it does and when to use it
 - Include key terms for invocation matching
+- Max 1024 characters
+- Explain WHEN to use this skill (context triggers)
 
 ### Structure
 ```yaml
@@ -60,6 +64,8 @@ allowed-tools: [Read, Write, Bash]
 - **Specific Instructions**: Precise actions, no vague guidance
 - **Feedback Loops**: Validation and error handling steps
 - **Consistent Terminology**: Use same terms throughout
+- **Concrete Examples**: Show expected input/output formats
+- **Error Handling**: Explicit handling in scripts, not punted to Claude
 
 ## Progressive Disclosure
 
@@ -91,6 +97,9 @@ Keep references one level deep (don't nest too deeply).
 - ❌ Time-sensitive information that will become outdated
 - ❌ Magic numbers without justification
 - ❌ Vague names like "Helper Skill" or "Utility Skill"
+- ❌ Windows-style file paths (use Unix paths)
+- ❌ Punting error handling to Claude (handle explicitly)
+- ❌ Assuming tool availability without checking
 
 ## Skill Categories
 
@@ -146,5 +155,14 @@ This will:
 
 ## References
 
-- [Claude Code Skills Docs](https://docs.claude.com/en/docs/claude-code/skills)
-- [Best Practices](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/best-practices)
+### Official Documentation
+- [Claude Code Skills Overview](https://docs.claude.com/en/docs/claude-code/skills) - Skill fundamentals and file structure
+- [Agent Skills Best Practices](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/best-practices) - Detailed guidelines for skill creation
+- [Agent Skills Introduction](https://docs.claude.com/en/docs/agents-and-tools/agent-skills) - Core concepts and invocation mechanisms
+- [Claude Code Documentation Map](https://docs.claude.com/en/docs/claude-code/claude_code_docs_map.md) - Complete docs index
+
+### Key Concepts
+- **Model-Invoked**: Skills are autonomously triggered by Claude based on description matching
+- **Progressive Loading**: Metadata always loaded, instructions loaded when needed
+- **Skill Types**: Personal (~/.claude/skills/), Project (.claude/skills/), Plugin (bundled)
+- **Multi-Model Testing**: Test with Haiku, Sonnet, and Opus for consistency
