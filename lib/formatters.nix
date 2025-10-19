@@ -45,12 +45,12 @@
 
       format_shell() {
         echo "🎨 Formatting shell scripts..."
-        find . -name "*.sh" -not -path "*/.*" -exec shfmt -w {} +
+        find . -name "*.sh" -not -path "*/.*" -not -path "*/shell-snapshots/*" -exec shfmt -w {} +
       }
 
       format_yaml() {
         echo "🎨 Formatting YAML files..."
-        find . \( -name "*.yaml" -o -name "*.yml" \) -not -path "*/.*" -exec yamlfmt -w {} +
+        find . \( -name "*.yaml" -o -name "*.yml" \) -not -path "*/.*" -exec yamlfmt {} +
       }
 
       format_json() {

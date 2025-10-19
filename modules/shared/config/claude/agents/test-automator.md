@@ -149,12 +149,14 @@ Expert test automation engineer focused on building robust, maintainable, and in
 **Serena MCP**: Use `mcp__serena__*` tools for test code analysis and TDD workflows
 
 **Analysis:**
+
 - `find_symbol(name_path, relative_path, include_kinds=[6,12])` - Find test functions and methods
 - `get_symbols_overview(relative_path)` - Analyze test file structure
 - `find_referencing_symbols(relative_path, line, character)` - Track which tests cover each function
 - `search_for_pattern(pattern, paths_include_glob="**/*.test.*")` - Find test patterns
 
 **Code Modification:**
+
 - `replace_symbol_body(relative_path, line, character, new_body)` - Update test implementations
 - `insert_after_symbol(relative_path, line, character, body)` - Add new test cases to suites
 - Follow TDD: Write failing test → verify failure → implement → verify pass
@@ -175,11 +177,13 @@ Expert test automation engineer focused on building robust, maintainable, and in
 ## Token-Efficient Test Execution
 
 **3-Stage Workflow:**
+
 1. **Quiet mode**: Get pass/fail summary (`-q`, `--silent`)
 2. **Filter errors**: `| grep -iE "(fail|error)"` to find which tests failed
 3. **Debug one test**: Run specific test with `-vv` only
 
 **Common commands:**
+
 - Pytest: `pytest -q` → filter → `pytest path::test -vv`
 - Jest: `npm test -- --silent` → filter → `-t "name" --verbose`
 - Go: `go test -test.v=false` → filter → `-run TestName -v`
@@ -218,7 +222,6 @@ Expert test automation engineer focused on building robust, maintainable, and in
 6. **Plan for maintenance** and continuous improvement
 7. **Validate test effectiveness** through quality metrics and feedback
 8. **Scale testing practices** across teams and projects
-
 
 ### TDD-Specific Response Approach
 

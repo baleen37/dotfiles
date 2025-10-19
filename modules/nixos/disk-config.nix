@@ -11,8 +11,9 @@
 #
 # REFERENCE: https://github.com/nix-community/disko/tree/master/example
 
-_: {
-  disko.devices = {
+{ lib, ... }:
+{
+  disko.devices = lib.mkDefault {
     disk = {
       vdb = {
         device = "/dev/%DISK%";

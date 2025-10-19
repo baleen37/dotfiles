@@ -28,11 +28,13 @@ env:
     cores = 0
     substituters = https://cache.nixos.org https://nix-community.cachix.org
     trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
+    fallback = true
+    narinfo-cache-negative-ttl = 0
   # Single environment variable to control entire pipeline
   CI_MODE: ${{ github.event.pull_request.draft == true && 'draft' || 'full' }}
   IS_MAIN: ${{ github.ref == 'refs/heads/main' }}
 jobs:
-  # Fast validation stage (1-2 minutes)
+  # Fast validation stage (1-2 minutes) - delegates to Makefile
   validate:
     name: Validate & Lint
     runs-on: ubuntu-latest
@@ -40,35 +42,20 @@ jobs:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
         with:
           fetch-depth: 0
-      - name: Show CI mode
-        run: "echo \"\U0001F3AF CI Mode: $CI_MODE\"\necho \"\U0001F4CD Is Main: $IS_MAIN\"\n"
 
       - name: Setup Nix with cache
         uses: ./.github/actions/setup-nix
 
       - name: Lint
         run: |
-          # Unset core.hooksPath if set (prevents pre-commit installation errors)
-          git config --unset-all core.hooksPath || true
-          # Use nix develop to load all dev tools (nixfmt, statix, deadnix, pre-commit)
-          nix develop --command bash -c "pre-commit install"
-          nix develop --command bash -c "pre-commit run --all-files"
-      - name: Validate flake
-        run: |
-          echo "Debug: USER before export: '$USER'"
-          echo "Debug: SUDO_USER: '$SUDO_USER'"
-          echo "Debug: whoami: $(whoami)"
           export USER=${USER:-ci}
-          echo "Debug: USER after export: '$USER'"
-          nix flake check --impure --no-build --all-systems
-      - name: Quick test framework validation
-        run: "export USER=${USER:-ci}\necho \"\U0001F9EA Validating NixTest framework\"\nnix build --impure .#framework-check --verbose\necho \"✅ Test framework validation passed\"\n"
-      - name: Run Go tests
+          git config --unset-all core.hooksPath || true
+          make lint-quick
+
+      - name: Quick Test
         run: |
-          echo "🧪 Running Go tests for Claude Code hooks"
-          cd modules/shared/programs/claude-hook
-          nix develop --command bash -c "go test -v ./..."
-          echo "✅ Go tests passed"
+          export USER=${USER:-ci}
+          make test-quick
   # Build and switch combined (faster, simpler)
   build-switch:
     name: Build+Switch ${{ matrix.name }}
@@ -114,117 +101,38 @@ jobs:
         with:
           enable-kvm: 'true'
 
-      - name: Build and test switch
+      - name: Clear Nix evaluation cache
+        run: |
+          rm -rf ~/.cache/nix/eval-cache-v* || true
+          echo "✅ Cleared Nix evaluation cache"
+
+      - name: Build configuration
         timeout-minutes: 60
         run: |
           export USER=${USER:-ci}
+          export HOST=${{ matrix.system }}
           echo "🏗️ Building ${{ matrix.name }} (${{ matrix.system }})"
 
-          # Wait for Nix daemon
-          max_attempts=30
-          attempt=0
-          while ! nix --version >/dev/null 2>&1; do
-            attempt=$((attempt + 1))
-            if [[ $attempt -ge $max_attempts ]]; then
-              echo "❌ Nix daemon failed to start"
-              exit 1
-            fi
-            sleep 5
-          done
-          echo "✅ Nix daemon ready"
-
-          # Build configuration
-          case "${{ matrix.system }}" in
-            *darwin*)
-              echo "Building Darwin configuration..."
-              nix build --impure --no-link .#darwinConfigurations.${{ matrix.system }}.system
-
-              echo "🧪 Testing build-switch..."
-              export HOST="${{ matrix.system }}"
-              make build-switch-dry HOST=$HOST
-              ;;
-            *linux*)
-              echo "Validating Linux configuration..."
-              nix eval --impure .#nixosConfigurations.${{ matrix.system }}.config.system.name --json
-              ;;
-          esac
-
-          echo "✅ Build and switch completed for ${{ matrix.name }}"
-  # Test stage - Linux-first with minimal Darwin (3 minutes)
+          make build
+  # Comprehensive test stage
   test:
-    name: Test ${{ matrix.category }}
+    name: Test (Comprehensive)
     needs: validate
     if: (github.event.pull_request.draft != true) || (github.ref == 'refs/heads/main')
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          # Unit tests - Linux
-          - category: unit
-            test_target: 'lib-functions platform-detection framework-check'
-            os: ubuntu-latest
-          # Integration tests - Linux
-          - category: integration
-            test_target: 'module-interaction cross-platform system-configuration'
-            os: ubuntu-latest
-          # Platform-specific - Darwin only
-          - category: platform
-            test_target: 'all'
-            os: macos-14
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
-      - name: Clean existing Nix installation
-        if: runner.os == 'macOS'
-        continue-on-error: true
-        run: |
-          echo "🧹 Cleaning existing Nix installation..."
-          sudo launchctl stop org.nixos.nix-daemon 2>/dev/null || true
-          sudo rm -rf /nix 2>/dev/null || true
-          echo "✅ macOS cleanup completed"
 
       - name: Setup Nix with cache (restore-only)
         uses: ./.github/actions/setup-nix
         with:
           cache-mode: 'restore-only'
 
-      - name: Run tests
+      - name: Run comprehensive tests
         timeout-minutes: 20
         run: |
           export USER=${USER:-ci}
-          echo "🧪 Running ${{ matrix.category }} tests"
-
-          # Execute tests
-          for target in ${{ matrix.test_target }}; do
-            echo "Running test target: $target"
-            nix build --impure .#$target
-          done
-
-          echo "✅ Tests completed for ${{ matrix.category }}"
-      - name: Generate coverage report
-        if: matrix.category == 'unit' || matrix.category == 'integration'
-        continue-on-error: true
-        run: |
-          export USER=${USER:-ci}
-          SYSTEM=$(nix eval --raw --impure --expr "builtins.currentSystem")
-          echo "📊 Generating coverage report for $SYSTEM..."
-
-          # Build coverage check
-          nix build --impure ".#checks.$SYSTEM.coverage-check" -L || true
-
-          # Display coverage report if available
-          if [[ -f result ]]; then
-            echo "=== Coverage Report ==="
-            cat result
-            echo "======================="
-          fi
-      - name: Upload coverage report
-        if: (matrix.category == 'unit' || matrix.category == 'integration') && hashFiles('result') != ''
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: coverage-report-${{ matrix.category }}-${{ runner.os }}
-          path: result
-          retention-days: 30
+          make test-all
   # CI completion and status reporting
   ci-complete:
     name: CI Summary

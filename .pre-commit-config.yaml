@@ -1,141 +1,41 @@
-# Enhanced Pre-commit configuration with auto-formatting capabilities
-# This configuration automatically fixes formatting issues instead of just reporting them
+# Pre-commit configuration - delegates to Makefile for consistency
+# All linting/formatting logic is managed in Makefile
 
 repos:
-  # Core file and content checks with auto-fixing
+  # Fast file checks (pre-commit native)
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:
-      # Auto-fixing content formatting
       - id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]
       - id: end-of-file-fixer
       - id: mixed-line-ending
         args: [--fix=lf]
-      - id: fix-byte-order-marker
-
-      # File permissions and security
-      - id: check-executables-have-shebangs
-      - id: check-shebang-scripts-are-executable
-
-      # Syntax validation (these don't auto-fix, but validate)
-      - id: check-yaml
-        args: [--allow-multiple-documents]
-      - id: check-json
-        exclude: ^\.vscode/
-      - id: check-toml
-      - id: check-xml
-
-      # Git and merge checks
       - id: check-merge-conflict
       - id: check-added-large-files
         args: [--maxkb=1000]
-      - id: forbid-new-submodules
-
-      # Security checks
       - id: detect-private-key
-      - id: detect-aws-credentials
-        args: [--allow-missing-credentials]
 
-  # Shell script formatting (auto-fix enabled)
-  - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.10.0.1
-    hooks:
-      - id: shellcheck
-        args: [--severity=error]
-        exclude: ^(scripts/lib/.*\.sh|\.envrc)$ # Skip library files and direnv config
-
-  # Shell script auto-formatting with shfmt
-  - repo: https://github.com/scop/pre-commit-shfmt
-    rev: v3.8.0-1
-    hooks:
-      - id: shfmt
-        args: [-w, -s, -i, "2"] # Write changes, simplify, indent with 2 spaces
-
-  # Nix formatting and linting (RFC 166 standard)
+  # Makefile-managed checks (single source of truth)
   - repo: local
     hooks:
-      - id: nixfmt
-        name: nixfmt (RFC 166)
-        entry: nixfmt
-        language: system
-        files: \.nix$
-        description: Official Nix code formatter
-
-      - id: statix
-        name: statix
-        entry: statix check
-        language: system
-        files: \.nix$
-        pass_filenames: false
-        description: Nix anti-pattern linter
-
-      - id: deadnix
-        name: deadnix
-        entry: deadnix --edit
-        language: system
-        files: \.nix$
-        exclude: ^tests/unit/makefile-switch-commands-test\.nix$
-        description: Dead code detector with auto-fix
-
-      - id: smoke-test
-        name: Quick Validation (Smoke Test)
-        entry: bash -c 'make smoke'
+      - id: lint-quick
+        name: Lint Quick (Makefile)
+        entry: make lint-quick
         language: system
         pass_filenames: false
-        description: Fast flake validation for all systems (cross-platform check)
+        stages: [pre-commit]
+        description: Fast format + validation via Makefile
 
-      - id: structure-validation
-        name: Folder Structure Validation
-        entry: bash -c 'nix --extra-experimental-features "nix-command flakes" build --no-link ".#checks.$(nix --extra-experimental-features "nix-command flakes" eval --impure --expr builtins.currentSystem 2>/dev/null | tr -d \"\\\"\" || echo "x86_64-darwin").structure-validation"'
+      - id: test-quick
+        name: Test Quick (Makefile)
+        entry: make test-quick
         language: system
         pass_filenames: false
-        description: Validates project folder structure and architectural boundaries
-
-      - id: go-test
-        name: Go Tests (Claude Hooks)
-        entry: bash -c 'cd modules/shared/programs/claude-hook && nix-shell -p go --run "go test -v ./..."'
-        language: system
-        pass_filenames: false
-        files: '\.go$'
-        description: Run Go tests for Claude Code hooks
-
-      - id: flake-outputs-check
-        name: Flake Outputs Naming Conflict Check
-        entry: ./scripts/check-flake-outputs.sh
-        language: system
-        pass_filenames: false
-        files: 'flake\.nix$|lib/testing\.nix$'
-        description: Prevent naming conflicts between apps, packages, and checks
-
-  # YAML auto-formatting with prettier
-  - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v4.0.0-alpha.8
-    hooks:
-      - id: prettier
-        types_or: [yaml, json]
-        args: [--write, --tab-width=2, --print-width=120]
-
-  # Markdown formatting and linting (auto-fix enabled)
-  - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.41.0
-    hooks:
-      - id: markdownlint
-        args: [--fix]
-        exclude: ^(CHANGELOG\.md|modules/shared/config/claude/.*\.md)$
-
-  # Security scanning (no auto-fix, but important validation)
-  - repo: https://github.com/Yelp/detect-secrets
-    rev: v1.5.0
-    hooks:
-      - id: detect-secrets
-        args: [--baseline, .secrets.baseline]
-
-  # Legacy test hooks removed - using NixTest framework instead
-  # Run tests via: nix build --impure .#framework-check
-  # Or: make test-core
+        stages: [pre-push]
+        description: Fast validation before push
 
 # Global configuration
-default_install_hook_types: [pre-commit, pre-push, prepare-commit-msg]
+default_install_hook_types: [pre-commit, pre-push]
 default_stages: [pre-commit]
 minimum_pre_commit_version: "3.0.0"

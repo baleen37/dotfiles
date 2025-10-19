@@ -1,37 +1,31 @@
 # Security Configuration
 # Settings for SSH keys, user permissions, and security policies
-
 security:
   # SSH configuration
   ssh:
     key_type: 'ed25519'
     key_size: 256
     default_dir: '$HOME/.ssh'
-
   # User and group settings
   users:
     allowed_users: ['@wheel', '@admin']
     trusted_users: ['root', '@wheel', '@admin']
-
   # Sudo settings
   sudo:
     refresh_interval: 240 # 4 minutes in seconds
     session_timeout: 900 # 15 minutes
     require_tty: false
-
   # File permissions
   permissions:
     config_files: '644'
     script_files: '755'
     ssh_keys: '600'
     ssh_dir: '700'
-
   # Security policies
   policies:
     allow_unfree: true
     allow_broken: false
     allow_unsupported: false
-
   # Build security
   build:
     require_sigs: true

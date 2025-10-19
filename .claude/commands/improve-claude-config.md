@@ -15,19 +15,19 @@ Goal: Claude Code 설정을 베스트 프랙티스와 비교하여 검증하고 
 
 사용자에게 개선하고 싶은 영역을 질문합니다 (최대 3개 선택):
 
-| 영역 | 설명 |
-|------|------|
-| A | **MCP 서버 설정** - Model Context Protocol 서버 연동 및 설정 최적화 |
-| B | **모델 선택 및 설정** - 사용 모델, 토큰 제한, 성능 최적화 |
-| C | **Hooks 설정** - PreToolUse, PostToolUse 자동화 훅 (2025 신기능) |
-| D | **Commands 구조** - Slash commands 구성 및 효율성, YAML frontmatter |
-| E | **프로젝트별 설정** - `.claude/settings.json` 최적화 |
-| F | **전역 설정** - `~/.claude/settings.json` 최적화 |
-| G | **CLAUDE.md 검증** - 프로젝트 지침 구조, import 기능, 구체성 검증 |
-| H | **보안 및 권한** - Permissions (allow/deny/ask), 민감 파일 보호 |
-| I | **Subagents 설정** - 전문화된 에이전트 구성 (2025 신기능) |
-| J | **신기능 활용** - Checkpoints, VS Code extension, Background tasks |
-| All | **전체 진단** - 모든 영역 종합 검토 |
+| 영역 | 설명                                                                |
+| ---- | ------------------------------------------------------------------- |
+| A    | **MCP 서버 설정** - Model Context Protocol 서버 연동 및 설정 최적화 |
+| B    | **모델 선택 및 설정** - 사용 모델, 토큰 제한, 성능 최적화           |
+| C    | **Hooks 설정** - PreToolUse, PostToolUse 자동화 훅 (2025 신기능)    |
+| D    | **Commands 구조** - Slash commands 구성 및 효율성, YAML frontmatter |
+| E    | **프로젝트별 설정** - `.claude/settings.json` 최적화                |
+| F    | **전역 설정** - `~/.claude/settings.json` 최적화                    |
+| G    | **CLAUDE.md 검증** - 프로젝트 지침 구조, import 기능, 구체성 검증   |
+| H    | **보안 및 권한** - Permissions (allow/deny/ask), 민감 파일 보호     |
+| I    | **Subagents 설정** - 전문화된 에이전트 구성 (2025 신기능)           |
+| J    | **신기능 활용** - Checkpoints, VS Code extension, Background tasks  |
+| All  | **전체 진단** - 모든 영역 종합 검토                                 |
 
 **질문 형식**:
 

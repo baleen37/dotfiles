@@ -1,6 +1,5 @@
 # error-handling.yaml - Configuration-based error handling policies
 # Centralizes error handling behavior across the entire build system
-
 # Global error handling settings
 global:
   # Error reporting configuration
@@ -9,21 +8,18 @@ global:
     report_directory: '${XDG_STATE_HOME:-$HOME/.local/state}/build-switch/error-reports'
     max_reports: 100
     cleanup_days: 30
-
   # Error message formatting
   formatting:
     default_format: 'console' # console, json, minimal
     interactive_guidance: false
     show_recovery_hints: true
     color_enabled: auto # auto, true, false
-
   # Retry configuration
   retry:
     default_max_attempts: 3
     default_delay: 2
     exponential_backoff: true
     max_delay: 30
-
 # Context-specific error handling policies
 contexts:
   # Build-related errors
@@ -42,7 +38,6 @@ contexts:
       'build failed': medium
       'dependency': medium
       'network': low
-
   DARWIN_BUILD:
     inherits: BUILD
     retry:
@@ -50,7 +45,6 @@ contexts:
       delay: 5
     recovery:
       prefer_user_mode: true
-
   NIXOS_BUILD:
     inherits: BUILD
     retry:
@@ -58,7 +52,6 @@ contexts:
       delay: 4
     recovery:
       check_sudo_access: true
-
   # Test-related errors
   TEST:
     retry:
@@ -71,24 +64,20 @@ contexts:
       'test failed': medium
       'timeout': medium
       'setup': high
-
   UNIT_TEST:
     inherits: TEST
     retry:
       max_attempts: 1 # Unit tests should be deterministic
-
   INTEGRATION_TEST:
     inherits: TEST
     retry:
       max_attempts: 3 # May have external dependencies
       delay: 2
-
   E2E_TEST:
     inherits: TEST
     retry:
       max_attempts: 3
       delay: 5 # Longer delay for system stabilization
-
   # Network-related errors
   NETWORK:
     retry:
@@ -105,19 +94,16 @@ contexts:
       'timeout': medium
       'dns': high
       'certificate': high
-
   CACHE:
     inherits: NETWORK
     recovery:
       clear_cache: true
       use_alternative_sources: true
-
   SUBSTITUTER:
     inherits: NETWORK
     recovery:
       disable_substituters: true
       build_from_source: true
-
   # Update-related errors
   AUTO_UPDATE:
     retry:
@@ -131,7 +117,6 @@ contexts:
       'flake.lock': medium
       'input': medium
       'hash mismatch': high
-
 # Error categorization patterns
 patterns:
   permission:
@@ -140,7 +125,6 @@ patterns:
     - 'access denied'
     - 'sudo'
     - 'privilege'
-
   network:
     - 'connection'
     - 'timeout'
@@ -150,13 +134,11 @@ patterns:
     - 'certificate'
     - 'ssl'
     - 'tls'
-
   disk_space:
     - 'no space left'
     - 'disk full'
     - 'quota exceeded'
     - 'filesystem full'
-
   build:
     - 'build failed'
     - 'compilation error'
@@ -164,7 +146,6 @@ patterns:
     - 'make.*error'
     - 'undefined reference'
     - 'syntax error'
-
   dependency:
     - 'package.*not found'
     - 'missing'
@@ -172,20 +153,17 @@ patterns:
     - 'dependency'
     - 'flake.*input'
     - 'hash mismatch'
-
   resource_exhaustion:
     - 'out of memory'
     - 'killed'
     - 'resource.*exhausted'
     - 'too many'
-
   configuration:
     - 'parse error'
     - 'invalid'
     - 'malformed'
     - 'syntax error'
     - 'unexpected'
-
 # Recovery recommendations by error category
 recovery_recommendations:
   permission:
@@ -200,7 +178,6 @@ recovery_recommendations:
     fallback:
       - 'Run without system modifications'
       - 'Use alternative installation method'
-
   network:
     immediate:
       - 'Enable offline mode: export OFFLINE_MODE=true'
@@ -213,7 +190,6 @@ recovery_recommendations:
     fallback:
       - 'Build from source: nix build --option substitute false'
       - 'Use mobile hotspot as alternative connection'
-
   build:
     immediate:
       - 'Clean build cache: nix-collect-garbage -d'
@@ -226,7 +202,6 @@ recovery_recommendations:
     fallback:
       - 'Build components separately'
       - 'Use alternative build method'
-
   dependency:
     immediate:
       - 'Update flake inputs: nix flake update'
@@ -239,7 +214,6 @@ recovery_recommendations:
     fallback:
       - 'Manual dependency resolution'
       - 'Temporary input overrides'
-
 # Escalation policies
 escalation:
   # When to escalate to higher severity
@@ -247,14 +221,12 @@ escalation:
     repeated_failures: 3
     high_severity_errors: 1
     system_critical_errors: 1
-
   # What to do on escalation
   actions:
     - generate_detailed_report
     - enable_debug_mode
     - suggest_manual_intervention
     - create_github_issue_template
-
   # Escalation levels
   levels:
     1:
@@ -269,7 +241,6 @@ escalation:
     4:
       name: 'Expert Support'
       actions: ['create_support_request', 'gather_full_diagnostics']
-
 # Logging configuration
 logging:
   # Log levels for different contexts
@@ -278,19 +249,16 @@ logging:
     TEST: 'debug'
     NETWORK: 'info'
     AUTO_UPDATE: 'info'
-
   # Log file locations
   files:
     error_log: '${XDG_STATE_HOME:-$HOME/.local/state}/build-switch/error.log'
     success_log: '${XDG_STATE_HOME:-$HOME/.local/state}/build-switch/success.log'
     debug_log: '${XDG_STATE_HOME:-$HOME/.local/state}/build-switch/debug.log'
-
   # Log rotation
   rotation:
     max_size: '10M'
     max_files: 5
     compress: true
-
 # Environment-specific overrides
 environments:
   development:
@@ -302,7 +270,6 @@ environments:
       levels:
         BUILD: 'debug'
         TEST: 'debug'
-
   production:
     global:
       formatting:
@@ -312,7 +279,6 @@ environments:
       levels:
         BUILD: 'info'
         TEST: 'info'
-
   ci:
     global:
       formatting:

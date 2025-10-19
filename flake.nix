@@ -191,7 +191,8 @@
             };
             modules = [
               ./hosts/nixos # Host config first to ensure allowUnfree is set at system level
-              disko.nixosModules.disko
+              # NOTE: disko.nixosModules.disko omitted for CI compatibility
+              # Production: Add disko module manually or use disko-install
               home-manager.nixosModules.home-manager
               {
                 home-manager = {

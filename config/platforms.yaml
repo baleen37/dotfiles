@@ -1,6 +1,5 @@
 # Platform Configuration
 # External configuration for platform-specific settings
-
 platforms:
   # Supported systems
   supported_systems:
@@ -8,7 +7,6 @@ platforms:
     - 'aarch64-darwin'
     - 'x86_64-linux'
     - 'aarch64-linux'
-
   # Platform-specific configurations
   platform_configs:
     darwin:
@@ -20,7 +18,6 @@ platforms:
       allow_unfree: true
       impure_mode: true
       system_suffix: '.system'
-
     linux:
       type: 'linux'
       rebuild_command: 'nixos-rebuild'
@@ -30,7 +27,6 @@ platforms:
       allow_unfree: false
       impure_mode: false
       system_suffix: '.config.system.build.toplevel'
-
   # Architecture definitions
   architectures:
     aarch64:
@@ -41,13 +37,11 @@ platforms:
       name: 'Intel/AMD 64-bit'
       description: 'x86_64 architecture'
       aliases: ['x64']
-
 # External configuration additions
 system_detection:
   auto_detect: true
   fallback_architecture: 'x86_64'
   fallback_platform: 'darwin'
-
 # Flake system patterns
 flake_patterns:
   darwin: 'darwinConfigurations.{architecture}-darwin.system'

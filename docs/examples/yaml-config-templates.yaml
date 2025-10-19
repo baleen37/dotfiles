@@ -1,6 +1,5 @@
 # YAML Configuration Templates
 # ============================
-
 # Example 1: Basic Build Configuration
 basic_build_config:
   build:
@@ -9,7 +8,6 @@ basic_build_config:
     experimental_features: # Nix experimental features
       - nix-command
       - flakes
-
   platforms:
     darwin:
       allow_unfree: true # Allow unfree packages on macOS
@@ -17,7 +15,6 @@ basic_build_config:
     linux:
       allow_unfree: false # Restrict unfree packages on Linux
       impure_mode: false # Pure builds for reproducibility
-
 # Example 2: Advanced Performance Configuration
 performance_config:
   build_optimization:
@@ -25,7 +22,6 @@ performance_config:
     parallel_builds: true # Enable parallel building
     memory_limit: '8G' # Memory limit for builds
     disk_cache_size: '20G' # Disk cache size limit
-
   cache:
     local:
       max_size_gb: 10 # Local cache size limit
@@ -35,7 +31,6 @@ performance_config:
       - 'https://cache.nixos.org'
       - 'https://nix-community.cachix.org'
       - 'https://cuda-maintainers.cachix.org'
-
 # Example 3: Development Environment Profile
 development_profile:
   build:
@@ -43,18 +38,15 @@ development_profile:
     parallel_jobs: 8 # More parallel jobs
     experimental_features: 'nix-command flakes ca-derivations'
     verbose_output: true # Enable verbose build output
-
   development:
     debug_mode: true # Enable debug features
     verbose_logging: true # Detailed logging
     performance_monitoring: true # Monitor build performance
     hot_reload: true # Enable hot reloading where possible
-
   network:
     http_connections: 100 # More HTTP connections for development
     connect_timeout: 10 # Longer connection timeout
     download_attempts: 5 # More retry attempts
-
 # Example 4: Production Environment Profile
 production_profile:
   build:
@@ -62,18 +54,15 @@ production_profile:
     parallel_jobs: 4 # Conservative parallel jobs
     experimental_features: 'nix-command flakes'
     verbose_output: false # Minimal output
-
   security:
     strict_permissions: true # Enforce strict file permissions
     verify_signatures: true # Verify package signatures
     sandbox_mode: true # Enable sandboxed builds
     audit_mode: true # Enable security auditing
-
   performance:
     optimize_for_size: true # Optimize builds for smaller size
     strip_debug_info: true # Remove debug information
     compress_outputs: true # Compress build outputs
-
 # Example 5: Platform-Specific Configuration
 platform_configs:
   supported_systems:
@@ -81,38 +70,32 @@ platform_configs:
     - 'aarch64-darwin' # Apple Silicon macOS
     - 'x86_64-linux' # x86_64 Linux
     - 'aarch64-linux' # ARM64 Linux
-
   platform_configs:
     darwin:
       rebuild_command: 'darwin-rebuild'
       flake_prefix: 'darwinConfigurations'
       system_integration: true # Enable macOS system integration
       homebrew_support: true # Support Homebrew packages
-
     linux:
       rebuild_command: 'nixos-rebuild'
       flake_prefix: 'nixosConfigurations'
       systemd_integration: true # Enable systemd services
       container_support: true # Support container workloads
-
 # Example 6: Path Configuration
 path_configuration:
   ssh_directories:
     darwin: '/Users/${USER}/.ssh' # macOS SSH directory
     linux: '/home/${USER}/.ssh' # Linux SSH directory
-
   base_directories:
     config_dir: 'config' # Configuration files directory
     scripts_dir: 'scripts' # Scripts directory
     modules_dir: 'modules' # Nix modules directory
     cache_dir: '.cache' # Cache directory
     logs_dir: '.logs' # Logs directory
-
   custom_paths:
     dotfiles_root: '${HOME}/.dotfiles'
     backup_dir: '${HOME}/.dotfiles-backup'
     temp_dir: '/tmp/dotfiles-build'
-
 # Example 7: Security Configuration
 security_settings:
   ssh:
@@ -120,17 +103,14 @@ security_settings:
     key_size: 4096 # Key size for RSA keys
     default_dir: '$HOME/.ssh' # Default SSH directory
     strict_permissions: true # Enforce strict SSH permissions
-
   sudo:
     refresh_interval: 240 # Sudo refresh interval (seconds)
     session_timeout: 900 # Session timeout (seconds)
     require_password: true # Always require password
-
   file_permissions:
     config_files: '644' # Configuration file permissions
     script_files: '755' # Script file permissions
     key_files: '600' # SSH key file permissions
-
 # Example 8: Network Configuration
 network_settings:
   http:
@@ -138,58 +118,48 @@ network_settings:
     connect_timeout: 5 # Connection timeout (seconds)
     read_timeout: 30 # Read timeout (seconds)
     download_attempts: 3 # Number of download retry attempts
-
   proxies:
     http_proxy: '' # HTTP proxy (if needed)
     https_proxy: '' # HTTPS proxy (if needed)
     no_proxy: 'localhost,127.0.0.1' # Proxy bypass list
-
   dns:
     servers: # Custom DNS servers
       - '8.8.8.8'
       - '8.8.4.4'
     timeout: 5 # DNS timeout
-
 # Example 9: Advanced Features Configuration
 advanced_features:
   experimental:
     enable_flakes: true # Enable Nix flakes
     enable_ca_derivations: true # Content-addressed derivations
     enable_recursive_nix: true # Recursive Nix evaluation
-
   build_features:
     distributed_builds: false # Enable distributed building
     remote_builders: [] # Remote builder configurations
     build_isolation: true # Isolate builds
-
   monitoring:
     collect_metrics: true # Collect build metrics
     log_level: 'info' # Logging level
     telemetry: false # Disable telemetry
-
   development:
     auto_update: false # Automatic updates
     beta_features: false # Enable beta features
     debug_symbols: false # Include debug symbols
-
 # Example 10: User Customization Template
 user_customization:
   personal:
     name: 'Your Name' # User's full name
     email: 'user@example.com' # User's email
     github_username: 'username' # GitHub username
-
   preferences:
     shell: 'zsh' # Preferred shell
     editor: 'vim' # Preferred editor
     terminal: 'alacritty' # Preferred terminal
-
   custom_packages: # Additional packages to install
     - 'htop'
     - 'tree'
     - 'curl'
     - 'jq'
-
   custom_settings:
     theme: 'dark' # UI theme preference
     font_size: 14 # Terminal font size

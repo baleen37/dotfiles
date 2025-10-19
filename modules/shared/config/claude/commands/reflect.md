@@ -14,37 +14,44 @@ Review the chat history in your context window.
 Then, examine the current Claude instructions, commands and config:
 
 <claude_instructions>
+
 # Settings Priority (Highest to Lowest):
+
 1. Project local: .claude/settings.local.json, .claude/CLAUDE.local.md
 2. Project shared: /CLAUDE.md, .claude/settings.json, .claude/commands/, .claude/agents/
 3. Global user: ~/.claude/CLAUDE.md, ~/.claude/settings.json, ~/.claude/commands/, ~/.claude/agents/
 
 # Configuration Scope:
+
 - **Project local**: Individual developer's environment-specific overrides (git-ignored)
 - **Project shared**: Team-wide settings shared via version control
 - **Global user**: Personal settings applied across all projects (must be generic/universal, never project-specific)
 
 # Actual File Locations:
+
 - **Global User**: `~/.claude/CLAUDE.md`, `~/.claude/settings.json`, `~/.claude/commands/`, `~/.claude/agents/`
 - **Project Shared**: `$PROJECT_ROOT/CLAUDE.md`, `$PROJECT_ROOT/.claude/settings.json`, `$PROJECT_ROOT/.claude/commands/`, `$PROJECT_ROOT/.claude/agents/`
 - **Project Local**: `$PROJECT_ROOT/.claude/settings.local.json`, `$PROJECT_ROOT/.claude/CLAUDE.local.md`
 
 # File Modification Guidelines:
+
 - **Commands**: Individual `.md` files in `commands/` directory (e.g., `~/.claude/commands/reflect.md`)
 - **Agents**: Individual `.md` files in `agents/` directory (e.g., `~/.claude/agents/backend-engineer.md`)
 - **Settings**: JSON format in `settings.json` or `settings.local.json`
 - **Instructions**: Markdown format in `CLAUDE.md` or `CLAUDE.local.md`
-</claude_instructions>
+  </claude_instructions>
 
 Analyze the chat history, instructions, commands and config to identify areas that could be improved. Look for:
 
 ## Rule Compliance Check (Priority)
+
 - Check if existing instructions/rules were violated in the conversation
 - Identify patterns where documented behaviors weren't followed
 - Focus on: "What rules existed but weren't applied?"
 - Prioritize fixing compliance over adding new rules
 
 ## General Improvements
+
 - Inconsistencies in Claude's responses
 - Misunderstandings of user requests
 - Areas where Claude could provide more detailed or accurate information
@@ -102,6 +109,7 @@ d) **Validation**: Explain how to verify the change was applied correctly
 e) **Impact Explanation**: Explain how this change addresses the issue identified in the analysis phase
 
 ### File Modification Process:
+
 1. **Read** the target file first to understand current state
 2. **Edit** the specific sections identified
 3. **Verify** changes by reading the modified sections
@@ -114,6 +122,7 @@ Present your final output in the following structure:
 [List the issues identified and potential improvements]
 
 [For each approved improvement:
+
 1. Section being modified
 2. New or modified instruction text
 3. Explanation of how this addresses the identified issue]

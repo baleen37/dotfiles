@@ -291,8 +291,8 @@ nixtestFinal.suite "Parallel Build Optimizer Tests" {
       # Should not exceed available memory
       let
         config = buildOptimizer.parallelBuildConfig;
-        # For 8GB system, limit should be around 6.4GB (80%)
       in
+      # For 8GB system, limit should be around 6.4GB (80%)
       nixtestFinal.assertions.assertTrue (config.memoryLimitMB > 0)
     );
 

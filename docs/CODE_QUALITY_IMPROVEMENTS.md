@@ -55,14 +55,14 @@
 
 ## Metrics Summary
 
-| Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| **Code Duplication** | 3 instances | 0 instances | -100% |
-| **Hardcoding** | 1 instance | 0 instances | -100% |
-| **flake.nix Size** | 322 lines | 304 lines | -5.6% |
-| **platform-system.nix** | 604 lines | 507 lines | -16% |
-| **Error Handling Consistency** | 50% | 100% | +100% |
-| **Build Validation** | ✅ Pass | ✅ Pass | Maintained |
+| Metric                         | Before      | After       | Improvement |
+| ------------------------------ | ----------- | ----------- | ----------- |
+| **Code Duplication**           | 3 instances | 0 instances | -100%       |
+| **Hardcoding**                 | 1 instance  | 0 instances | -100%       |
+| **flake.nix Size**             | 322 lines   | 304 lines   | -5.6%       |
+| **platform-system.nix**        | 604 lines   | 507 lines   | -16%        |
+| **Error Handling Consistency** | 50%         | 100%        | +100%       |
+| **Build Validation**           | ✅ Pass     | ✅ Pass     | Maintained  |
 
 ## Pending Improvements (Future Work)
 

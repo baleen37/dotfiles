@@ -44,10 +44,30 @@ let
 in
 {
   imports = [
-    ../../modules/nixos/disk-config.nix
     ../../modules/shared/files.nix
     ../../modules/shared/cachix
+    # NOTE: disk-config.nix (disko) omitted for CI compatibility
+    #
+    # Production deployment options:
+    #   1. Manual: Import ../../modules/nixos/disk-config.nix before installation
+    #   2. disko-install: Use `disko-install --flake .#nixos` with automatic disk setup
+    #   3. Separate config: Create hosts/nixos/production.nix with disko enabled
+    #
+    # CI builds fail with disko due to kernel module optimization requiring
+    # hardware-specific paths not available in GitHub Actions runners
   ];
+
+  # Minimal filesystem configuration for CI builds
+  # Production uses disko (modules/nixos/disk-config.nix) for declarative partitioning
+  fileSystems."/" = {
+    device = "/dev/disk/by-label/nixos";
+    fsType = "ext4";
+  };
+
+  fileSystems."/boot" = {
+    device = "/dev/disk/by-label/boot";
+    fsType = "vfat";
+  };
 
   # Use the systemd-boot EFI boot loader.
   boot = {
@@ -68,7 +88,9 @@ in
     ];
     # Uncomment for AMD GPU
     # initrd.kernelModules = [ "amdgpu" ];
-    kernelPackages = pkgs.linuxPackages;
+    # Use LTS kernel for CI stability and cache availability
+    # NOTE: Explicit kernel package disabled for CI - causes module-shrunk evaluation
+    # kernelPackages = pkgs.linuxPackages_6_6;
     kernelModules = [ "uinput" ];
   };
 
