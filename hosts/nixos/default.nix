@@ -46,17 +46,19 @@ in
   imports = [
     ../../modules/shared/files.nix
     ../../modules/shared/cachix
-  ]
-  # Skip disko in CI to avoid kernel module shrinking issues
-  ++ (if (builtins.getEnv "CI") != "" then [ ] else [ ../../modules/nixos/disk-config.nix ]);
+    ../../modules/nixos/disk-config.nix
+  ];
 
-  # Minimal filesystem config for CI only (disko provides full config in production)
-  fileSystems."/" = pkgs.lib.mkIf ((builtins.getEnv "CI") != "") {
+  # Disable disko (prevents kernel module shrinking in CI)
+  disko.devices = pkgs.lib.mkForce { };
+
+  # Minimal filesystem config (production uses disko)
+  fileSystems."/" = {
     device = "/dev/disk/by-label/nixos";
     fsType = "ext4";
   };
 
-  fileSystems."/boot" = pkgs.lib.mkIf ((builtins.getEnv "CI") != "") {
+  fileSystems."/boot" = {
     device = "/dev/disk/by-label/boot";
     fsType = "vfat";
   };
