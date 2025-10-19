@@ -72,9 +72,9 @@ build: check-user
 	@echo "🔨 Building $(CURRENT_SYSTEM)..."
 	@OS=$$(uname -s); \
 	if [ "$${OS}" = "Darwin" ]; then \
-		export USER=$(USER); $(NIX) build --impure --no-link --quiet .#darwinConfigurations.$(CURRENT_SYSTEM).system $(ARGS); \
+		export USER=$(USER); $(NIX) build --impure --fallback --keep-going --no-link --quiet .#darwinConfigurations.$(CURRENT_SYSTEM).system $(ARGS); \
 	else \
-		export USER=$(USER); $(NIX) build --impure --no-link --quiet .#nixosConfigurations.$(CURRENT_SYSTEM).config.system.build.toplevel $(ARGS); \
+		export USER=$(USER); $(NIX) build --impure --fallback --keep-going --no-link --quiet .#nixosConfigurations.$(CURRENT_SYSTEM).config.system.build.toplevel $(ARGS); \
 	fi
 
 switch: check-user
