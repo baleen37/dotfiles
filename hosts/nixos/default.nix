@@ -50,6 +50,17 @@ in
   # Skip disko in CI to avoid kernel module shrinking issues
   ++ (if (builtins.getEnv "CI") != "" then [ ] else [ ../../modules/nixos/disk-config.nix ]);
 
+  # Minimal filesystem config for CI only (disko provides full config in production)
+  fileSystems."/" = pkgs.lib.mkIf ((builtins.getEnv "CI") != "") {
+    device = "/dev/disk/by-label/nixos";
+    fsType = "ext4";
+  };
+
+  fileSystems."/boot" = pkgs.lib.mkIf ((builtins.getEnv "CI") != "") {
+    device = "/dev/disk/by-label/boot";
+    fsType = "vfat";
+  };
+
   # Use the systemd-boot EFI boot loader.
   boot = {
     loader = {
