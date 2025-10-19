@@ -1,11 +1,11 @@
 ---
-name: create-command
+name: create-claude-command
 description: "Generate new Claude commands following established patterns and conventions"
 ---
 
 Create new Claude commands with proper structure, validation, and integration following project conventions.
 
-**Usage**: `/create-command [command-name] [description]`
+**Usage**: `/create-claude-command [command-name] [description]`
 
 ## Command Creation Process
 
@@ -62,7 +62,7 @@ description: "Brief description of command purpose"
 ## Example Usage
 
 ```
-/create-command "optimize-performance" "Systematic performance analysis and optimization recommendations"
+/create-claude-command "optimize-performance" "Systematic performance analysis and optimization recommendations"
 ```
 
 This will generate a new command file following established patterns and conventions.
