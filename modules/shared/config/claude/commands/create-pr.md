@@ -117,7 +117,13 @@ When on main/master branch:
 
 Use Task tool with subagent_type="git-specialist" to execute PR creation workflow:
 
-Prompt: "Analyze Git repository state and create pull request with arguments: $ARGUMENTS. Execute these operations in parallel:
+Prompt: "**CRITICAL: You MUST execute all Git commands directly using the Bash tool. Do NOT simulate, describe, or plan - EXECUTE the actual commands and show their output.**
+
+Analyze Git repository state and create pull request with arguments: $ARGUMENTS.
+
+**MANDATORY EXECUTION STEPS** (run these commands, do not describe them):
+
+Execute these operations in parallel:
 
 1. Run `git status` to check working directory state
 2. Run `git log --oneline -10` to see recent commits
@@ -130,22 +136,24 @@ Before creating PR:
 - Generate commit message based on file changes and conventional commit patterns
 - Use `git add -A && git commit -m "[generated message]"` for auto-commit
 
-Rebase workflow (REQUIRED before PR creation):
+**EXECUTE Rebase workflow** (REQUIRED before PR creation):
 
-1. Determine target branch (default: main, or master if main doesn't exist)
-2. Fetch latest changes: `git fetch origin [target-branch]`
-3. Rebase onto target: `git rebase origin/[target-branch]`
+1. EXECUTE: Determine target branch (default: main, or master if main doesn't exist)
+2. EXECUTE: Fetch latest changes with `git fetch origin [target-branch]`
+3. EXECUTE: Rebase onto target with `git rebase origin/[target-branch]`
    - Git will automatically drop already-merged commits
    - Handle simple conflicts (whitespace, formatting, docs) if they occur
    - Abort and report to user if complex conflicts detected
-4. Force push with safety: `git push --force-with-lease`
+4. EXECUTE: Force push with safety using `git push --force-with-lease`
 
-After ensuring clean state and successful rebase, create a pull request with:
+After ensuring clean state and successful rebase, **EXECUTE `gh pr create`** with:
 
 - Intelligent title based on commit messages
 - Comprehensive description from file changes and commits
 - Proper Korean language formatting if templates exist
 - Auto-generated summary of changes
+
+**STRICTLY PROHIBITED**: Describing or simulating commands without executing them. You MUST use the Bash tool to run actual Git/gh CLI commands and show their output.
 
 Use proper Git workflow expertise for branch management and PR creation. If on main branch, create appropriate feature branch first.
 
