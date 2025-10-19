@@ -2,7 +2,17 @@ name: CI
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - 'LICENSE'
+      - '.gitignore'
   pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - 'LICENSE'
+      - '.gitignore'
   workflow_dispatch:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -27,12 +37,12 @@ jobs:
     name: Validate & Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
         with:
           fetch-depth: 0
       - name: Show CI mode
         run: "echo \"\U0001F3AF CI Mode: $CI_MODE\"\necho \"\U0001F4CD Is Main: $IS_MAIN\"\n"
-      - uses: cachix/install-nix-action@v27
+      - uses: cachix/install-nix-action@fd24c48048070c1be9acd18c9d369a83f0fe94d7 # v27
         with:
           nix_path: nixpkgs=channel:nixos-unstable
           install_url: https://releases.nixos.org/nix/nix-2.18.8/install
@@ -42,7 +52,7 @@ jobs:
         run: echo "week=$(date +%Y-W%U)" >> $GITHUB_OUTPUT
       # GitHub Actions cache optimization (no external dependencies)
       - name: Cache Nix store
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: |
             /nix/store
@@ -94,7 +104,7 @@ jobs:
             os: macos-15
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
       # Clean up any existing Nix installation on macOS
       - name: Clean existing Nix installation (macOS)
         if: runner.os == 'macOS'
@@ -117,7 +127,7 @@ jobs:
           echo "✅ macOS cleanup completed"
           set -e
       - name: Install Nix
-        uses: cachix/install-nix-action@v27
+        uses: cachix/install-nix-action@fd24c48048070c1be9acd18c9d369a83f0fe94d7 # v27
         with:
           nix_path: nixpkgs=channel:nixos-unstable
           install_url: https://releases.nixos.org/nix/nix-2.18.8/install
@@ -127,7 +137,7 @@ jobs:
         id: date
         run: echo "week=$(date +%Y-W%U)" >> $GITHUB_OUTPUT
       - name: Cache Nix store
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: |
             /nix/store
@@ -198,7 +208,7 @@ jobs:
             os: macos-14
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
       - name: Clean existing Nix installation
         if: runner.os == 'macOS'
         continue-on-error: true
@@ -207,7 +217,7 @@ jobs:
           sudo launchctl stop org.nixos.nix-daemon 2>/dev/null || true
           sudo rm -rf /nix 2>/dev/null || true
           echo "✅ macOS cleanup completed"
-      - uses: cachix/install-nix-action@v27
+      - uses: cachix/install-nix-action@fd24c48048070c1be9acd18c9d369a83f0fe94d7 # v27
         with:
           nix_path: nixpkgs=channel:nixos-unstable
           install_url: https://releases.nixos.org/nix/nix-2.18.8/install
@@ -216,7 +226,7 @@ jobs:
         id: date
         run: echo "week=$(date +%Y-W%U)" >> $GITHUB_OUTPUT
       - name: Restore Nix cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: |
             /nix/store
@@ -259,7 +269,7 @@ jobs:
           fi
       - name: Upload coverage report
         if: (matrix.category == 'unit' || matrix.category == 'integration') && hashFiles('result') != ''
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: coverage-report-${{ matrix.category }}-${{ runner.os }}
           path: result
@@ -287,7 +297,7 @@ jobs:
             echo "message=CI failed - validate:$validate build-switch:$build_switch test:$test" >> $GITHUB_OUTPUT
           fi
       - name: Report status
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           script: |
             const status = '${{ steps.status.outputs.status }}';
