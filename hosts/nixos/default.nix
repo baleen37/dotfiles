@@ -44,10 +44,11 @@ let
 in
 {
   imports = [
-    ../../modules/nixos/disk-config.nix
     ../../modules/shared/files.nix
     ../../modules/shared/cachix
-  ];
+  ]
+  # Skip disko in CI to avoid kernel module shrinking issues
+  ++ (if (builtins.getEnv "CI") != "" then [ ] else [ ../../modules/nixos/disk-config.nix ]);
 
   # Use the systemd-boot EFI boot loader.
   boot = {
