@@ -89,7 +89,8 @@ in
     # Uncomment for AMD GPU
     # initrd.kernelModules = [ "amdgpu" ];
     # Use LTS kernel for CI stability and cache availability
-    kernelPackages = pkgs.linuxPackages_6_6;
+    # NOTE: Explicit kernel package disabled for CI - causes module-shrunk evaluation
+    # kernelPackages = pkgs.linuxPackages_6_6;
     kernelModules = [ "uinput" ];
   };
 
