@@ -37,3 +37,10 @@ func RemoveQuotedContent(s string) string {
 
 	return s
 }
+
+// RemoveEnvVars removes environment variable assignments from command string
+func RemoveEnvVars(s string) string {
+	// Remove env var assignments (VAR=value or VAR = value pattern)
+	envVarPattern := regexp.MustCompile(`^\s*(\w+\s*=\s*[^\s]+\s+)*`)
+	return envVarPattern.ReplaceAllString(s, "")
+}

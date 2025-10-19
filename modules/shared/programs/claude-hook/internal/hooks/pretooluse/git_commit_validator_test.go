@@ -180,3 +180,95 @@ func TestGitCommitValidator_HandlesSingleQuotedNoVerify(t *testing.T) {
 		t.Errorf("expected exit code 0, got %d", resp.ExitCode())
 	}
 }
+
+func TestGitCommitValidator_BlocksSKIPEnvironmentVariable(t *testing.T) {
+	validator := pretooluse.NewGitCommitValidator()
+
+	testCases := []struct {
+		name    string
+		command string
+	}{
+		{
+			name:    "SKIP with single hook",
+			command: "SKIP=ruff git commit -m 'test'",
+		},
+		{
+			name:    "SKIP with multiple hooks",
+			command: "SKIP=ruff,black,mypy git commit -m 'test'",
+		},
+		{
+			name:    "SKIP with spaces around equals",
+			command: "SKIP = ruff git commit -m 'test'",
+		},
+		{
+			name:    "SKIP at beginning",
+			command: "SKIP=pre-commit-hook git commit -m 'bypass'",
+		},
+		{
+			name:    "SKIP with other env vars",
+			command: "USER=test SKIP=ruff git commit -m 'test'",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			input := hook.NewBashInput(tc.command)
+
+			resp, err := validator.Validate(context.Background(), input)
+
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			if resp.Decision != "block" {
+				t.Errorf("expected decision=block for %q, got %s", tc.command, resp.Decision)
+			}
+
+			if resp.ExitCode() != 2 {
+				t.Errorf("expected exit code 2, got %d", resp.ExitCode())
+			}
+
+			if resp.Reason == "" {
+				t.Error("expected non-empty reason for blocking")
+			}
+		})
+	}
+}
+
+func TestGitCommitValidator_AllowsSKIPInQuotes(t *testing.T) {
+	validator := pretooluse.NewGitCommitValidator()
+
+	testCases := []struct {
+		name    string
+		command string
+	}{
+		{
+			name:    "SKIP in double quotes",
+			command: `git commit -m "message about SKIP=hook"`,
+		},
+		{
+			name:    "SKIP in single quotes",
+			command: `git commit -m 'message about SKIP=hook'`,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			input := hook.NewBashInput(tc.command)
+
+			resp, err := validator.Validate(context.Background(), input)
+
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			if !resp.Continue {
+				t.Errorf("expected continue=true for SKIP in quotes: %q", tc.command)
+			}
+
+			if resp.ExitCode() != 0 {
+				t.Errorf("expected exit code 0, got %d", resp.ExitCode())
+			}
+		})
+	}
+}
