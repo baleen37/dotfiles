@@ -29,7 +29,7 @@ env:
     substituters = https://cache.nixos.org https://nix-community.cachix.org
     trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
     fallback = true
-    builders-use-substitutes = true
+    narinfo-cache-negative-ttl = 0
   # Single environment variable to control entire pipeline
   CI_MODE: ${{ github.event.pull_request.draft == true && 'draft' || 'full' }}
   IS_MAIN: ${{ github.ref == 'refs/heads/main' }}
