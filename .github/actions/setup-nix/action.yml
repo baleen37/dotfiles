@@ -1,0 +1,54 @@
+name: 'Setup Nix with Cache'
+description: 'Install Nix and setup caching with week-based rotation'
+inputs:
+  enable-kvm:
+    description: 'Enable KVM support'
+    required: false
+    default: 'false'
+  cache-mode:
+    description: 'Cache mode: "full" (save and restore) or "restore-only" (restore only)'
+    required: false
+    default: 'full'
+runs:
+  using: 'composite'
+  steps:
+    - name: Install Nix
+      uses: cachix/install-nix-action@fd24c48048070c1be9acd18c9d369a83f0fe94d7 # v27
+      with:
+        nix_path: nixpkgs=channel:nixos-unstable
+        install_url: https://releases.nixos.org/nix/nix-2.18.8/install
+        enable_kvm: ${{ inputs.enable-kvm }}
+
+    - name: Get week number for cache rotation
+      id: date
+      shell: bash
+      run: echo "week=$(date +%Y-W%U)" >> $GITHUB_OUTPUT
+
+    - name: Cache Nix store (full mode)
+      if: inputs.cache-mode == 'full'
+      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      with:
+        path: |
+          /nix/store
+          /nix/var/nix/db
+          ~/.cache/nix
+          ~/.local/state/nix
+        key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-${{ steps.date.outputs.week }}
+        restore-keys: |
+          nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-
+          nix-${{ runner.os }}-
+        save-always: true
+
+    - name: Restore Nix cache (restore-only mode)
+      if: inputs.cache-mode == 'restore-only'
+      uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      with:
+        path: |
+          /nix/store
+          /nix/var/nix/db
+          ~/.cache/nix
+          ~/.local/state/nix
+        key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-${{ steps.date.outputs.week }}
+        restore-keys: |
+          nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-
+          nix-${{ runner.os }}-

@@ -42,28 +42,10 @@ jobs:
           fetch-depth: 0
       - name: Show CI mode
         run: "echo \"\U0001F3AF CI Mode: $CI_MODE\"\necho \"\U0001F4CD Is Main: $IS_MAIN\"\n"
-      - uses: cachix/install-nix-action@fd24c48048070c1be9acd18c9d369a83f0fe94d7 # v27
-        with:
-          nix_path: nixpkgs=channel:nixos-unstable
-          install_url: https://releases.nixos.org/nix/nix-2.18.8/install
-      # Get week number for cache rotation
-      - name: Get week number for cache rotation
-        id: date
-        run: echo "week=$(date +%Y-W%U)" >> $GITHUB_OUTPUT
-      # GitHub Actions cache optimization (no external dependencies)
-      - name: Cache Nix store
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
-        with:
-          path: |
-            /nix/store
-            /nix/var/nix/db
-            ~/.cache/nix
-            ~/.local/state/nix
-          key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-${{ steps.date.outputs.week }}
-          restore-keys: |
-            nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-
-            nix-${{ runner.os }}-
-          save-always: true
+
+      - name: Setup Nix with cache
+        uses: ./.github/actions/setup-nix
+
       - name: Lint
         run: |
           # Unset core.hooksPath if set (prevents pre-commit installation errors)
@@ -126,29 +108,12 @@ jobs:
           sleep 2
           echo "✅ macOS cleanup completed"
           set -e
-      - name: Install Nix
-        uses: cachix/install-nix-action@fd24c48048070c1be9acd18c9d369a83f0fe94d7 # v27
+
+      - name: Setup Nix with cache
+        uses: ./.github/actions/setup-nix
         with:
-          nix_path: nixpkgs=channel:nixos-unstable
-          install_url: https://releases.nixos.org/nix/nix-2.18.8/install
-          enable_kvm: true
-      # GitHub Actions cache optimization
-      - name: Get week number for cache rotation
-        id: date
-        run: echo "week=$(date +%Y-W%U)" >> $GITHUB_OUTPUT
-      - name: Cache Nix store
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
-        with:
-          path: |
-            /nix/store
-            /nix/var/nix/db
-            ~/.cache/nix
-            ~/.local/state/nix
-          key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-${{ steps.date.outputs.week }}
-          restore-keys: |
-            nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-
-            nix-${{ runner.os }}-
-          save-always: true
+          enable-kvm: 'true'
+
       - name: Build and test switch
         timeout-minutes: 60
         run: |
@@ -217,26 +182,12 @@ jobs:
           sudo launchctl stop org.nixos.nix-daemon 2>/dev/null || true
           sudo rm -rf /nix 2>/dev/null || true
           echo "✅ macOS cleanup completed"
-      - uses: cachix/install-nix-action@fd24c48048070c1be9acd18c9d369a83f0fe94d7 # v27
+
+      - name: Setup Nix with cache (restore-only)
+        uses: ./.github/actions/setup-nix
         with:
-          nix_path: nixpkgs=channel:nixos-unstable
-          install_url: https://releases.nixos.org/nix/nix-2.18.8/install
-      # Restore shared cache
-      - name: Get week number for cache rotation
-        id: date
-        run: echo "week=$(date +%Y-W%U)" >> $GITHUB_OUTPUT
-      - name: Restore Nix cache
-        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
-        with:
-          path: |
-            /nix/store
-            /nix/var/nix/db
-            ~/.cache/nix
-            ~/.local/state/nix
-          key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-${{ steps.date.outputs.week }}
-          restore-keys: |
-            nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-
-            nix-${{ runner.os }}-
+          cache-mode: 'restore-only'
+
       - name: Run tests
         timeout-minutes: 20
         run: |
