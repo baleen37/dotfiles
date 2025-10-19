@@ -68,7 +68,7 @@ in
     ];
     # Uncomment for AMD GPU
     # initrd.kernelModules = [ "amdgpu" ];
-    kernelPackages = pkgs.linuxPackages_6_6; # Use LTS kernel (6.6.x)
+    kernelPackages = pkgs.linuxPackages;
     kernelModules = [ "uinput" ];
   };
 
