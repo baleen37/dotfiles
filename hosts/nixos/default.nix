@@ -49,11 +49,6 @@ in
     ../../modules/nixos/disk-config.nix
   ];
 
-  # CI-safe kernel configuration: Disable module optimization
-  # Prevents "modules-shrunk not in Nix store" errors during CI builds
-  # Production deployments can override with mkForce if needed
-  boot.initrd.includeDefaultModules = pkgs.lib.mkDefault false;
-
   # Use the systemd-boot EFI boot loader.
   boot = {
     loader = {
@@ -63,16 +58,22 @@ in
       };
       efi.canTouchEfiVariables = true;
     };
-    initrd.availableKernelModules = [
-      "xhci_pci"
-      "ahci"
-      "nvme"
-      "usbhid"
-      "usb_storage"
-      "sd_mod"
-    ];
-    # Uncomment for AMD GPU
-    # initrd.kernelModules = [ "amdgpu" ];
+    initrd = {
+      # CI-safe: Disable module optimization to prevent "modules-shrunk not in Nix store" errors
+      # Production can override with mkForce if kernel module optimization is needed
+      includeDefaultModules = pkgs.lib.mkDefault false;
+
+      availableKernelModules = [
+        "xhci_pci"
+        "ahci"
+        "nvme"
+        "usbhid"
+        "usb_storage"
+        "sd_mod"
+      ];
+      # Uncomment for AMD GPU
+      # kernelModules = [ "amdgpu" ];
+    };
     # Use LTS kernel for CI stability and cache availability
     kernelPackages = pkgs.linuxPackages_6_6;
     kernelModules = [ "uinput" ];
