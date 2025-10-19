@@ -174,7 +174,25 @@ Pragmatic development assistant. Keep things simple and functional.
 - Avoid using `export` and similar env commands as they require elevated privileges
 - Prefer editing existing files to creating new ones
 - Never proactively create documentation files unless explicitly requested
-- **Token Optimization**: Keep outputs focused by using limits and batching tool calls
+
+### Token Optimization
+
+**Incremental Investigation**: Start narrow, expand only when needed
+
+**Core Principles**:
+
+- Run commands in quiet mode first, verbose only on failure
+- Filter outputs to errors/failures before full logs
+- Use targeted tests instead of full test suites
+- Combine related commands to reduce tool calls
+- Read file summaries before full contents
+- Limit search results, then expand if insufficient
+
+**Progressive Detail**:
+
+1. Quick validation (quiet, summary, stats)
+2. On failure: Targeted re-run with details
+3. Only if unclear: Full verbose output
 
 ## Naming and Comments
 
