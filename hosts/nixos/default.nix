@@ -46,13 +46,12 @@ in
   imports = [
     ../../modules/shared/files.nix
     ../../modules/shared/cachix
-    ../../modules/nixos/disk-config.nix
+    # disk-config.nix omitted for CI builds (prevents disko kernel module shrinking)
+    # Production deployments should import ../../modules/nixos/disk-config.nix
   ];
 
-  # Disable disko (prevents kernel module shrinking in CI)
-  disko.devices = pkgs.lib.mkForce { };
-
-  # Minimal filesystem config (production uses disko)
+  # Minimal filesystem config for CI builds
+  # Production uses disko (modules/nixos/disk-config.nix) for declarative disk partitioning
   fileSystems."/" = {
     device = "/dev/disk/by-label/nixos";
     fsType = "ext4";

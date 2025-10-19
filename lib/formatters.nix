@@ -45,7 +45,7 @@
 
       format_shell() {
         echo "🎨 Formatting shell scripts..."
-        find . -name "*.sh" -not -path "*/.*" -exec shfmt -w {} +
+        find . -name "*.sh" -not -path "*/.*" -not -path "*/shell-snapshots/*" -exec shfmt -w {} +
       }
 
       format_yaml() {
