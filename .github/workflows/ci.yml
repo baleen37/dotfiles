@@ -101,6 +101,11 @@ jobs:
         with:
           enable-kvm: 'true'
 
+      - name: Clear Nix evaluation cache
+        run: |
+          rm -rf ~/.cache/nix/eval-cache-v* || true
+          echo "✅ Cleared Nix evaluation cache"
+
       - name: Build configuration
         timeout-minutes: 60
         run: |
