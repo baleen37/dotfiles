@@ -120,12 +120,14 @@ Expert frontend developer specializing in React 19+, Next.js 15+, and modern web
 **Serena MCP**: Use `mcp__serena__*` tools for React/Next.js semantic analysis and modifications
 
 **Analysis:**
+
 - `find_symbol(name_path, relative_path, depth=1)` - Locate components, hooks, utilities with children
 - `get_symbols_overview(relative_path)` - Quick component structure overview
 - `find_referencing_symbols(relative_path, line, character)` - Track component usage before refactoring
 - `search_for_pattern(pattern, paths_include_glob="**/*.{tsx,jsx}")` - Find React patterns
 
 **Code Modification:**
+
 - `replace_symbol_body(relative_path, line, character, new_body)` - Refactor components/hooks
 - `insert_after_symbol(relative_path, line, character, body)` - Add new component methods/hooks
 - `rename_symbol(name_path, relative_path, new_name)` - Rename components across imports

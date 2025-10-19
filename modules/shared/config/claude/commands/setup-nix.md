@@ -99,11 +99,13 @@ Automate Nix development environment setup with:
 **Create or update `.envrc`:**
 
 Basic configuration:
+
 ```bash
 use flake
 ```
 
 Advanced configuration (with nix-direnv):
+
 ```bash
 # Use nix-direnv for better caching and performance
 if ! has nix_direnv_version || ! nix_direnv_version 2.3.0; then
@@ -117,6 +119,7 @@ dotenv_if_exists
 ```
 
 Manual reload mode (for slower builds):
+
 ```bash
 use flake --pure --no-reload
 ```
@@ -140,6 +143,7 @@ use flake --pure --no-reload
 **Provide recommendations:**
 
 - **nix-direnv installation** (if not present):
+
   ```nix
   # Add to your system configuration or home-manager
   programs.direnv = {
@@ -149,6 +153,7 @@ use flake --pure --no-reload
   ```
 
 - **Starship integration** (visual environment indication):
+
   ```toml
   # Add to ~/.config/starship.toml
   [nix_shell]
@@ -275,6 +280,7 @@ When using remote flakes (e.g., `github:org/repo`):
 ### Monitoring & Debugging
 
 **Check direnv status:**
+
 ```bash
 direnv status          # Show current state
 direnv reload          # Force environment refresh
@@ -282,6 +288,7 @@ direnv exec . env      # Show environment variables
 ```
 
 **Debug nix-direnv:**
+
 ```bash
 # Enable debug logging
 export DIRENV_LOG_FORMAT="$(date +%Y-%m-%d\ %H:%M:%S) %s"
@@ -289,6 +296,7 @@ direnv reload
 ```
 
 **Profile environment load time:**
+
 ```bash
 time direnv reload
 ```
@@ -345,18 +353,21 @@ fi
 ### Language-Specific Configurations
 
 **Python Project:**
+
 ```bash
 use flake
 layout python python3.11  # Activate virtualenv
 ```
 
 **Node.js Project:**
+
 ```bash
 use flake
 layout node  # Setup node_modules PATH
 ```
 
 **Rust Project:**
+
 ```bash
 use flake
 watch_file Cargo.toml Cargo.lock  # Reload on dependency changes
@@ -398,6 +409,7 @@ After successful execution, the project will have:
 ### direnv: error .envrc is blocked
 
 **Solution:**
+
 ```bash
 direnv allow
 ```
@@ -405,6 +417,7 @@ direnv allow
 ### nix-direnv not found
 
 **Solution (Home Manager):**
+
 ```nix
 programs.direnv = {
   enable = true;
@@ -413,6 +426,7 @@ programs.direnv = {
 ```
 
 **Solution (Manual):**
+
 ```bash
 nix profile install nixpkgs#nix-direnv
 ```
@@ -422,6 +436,7 @@ nix profile install nixpkgs#nix-direnv
 **Cause:** nix-direnv cache not invalidated
 
 **Solution:**
+
 ```bash
 direnv reload  # Force reload
 # OR
@@ -431,11 +446,13 @@ touch .envrc   # Trigger reload
 ### Slow direnv activation
 
 **Check if nix-direnv is active:**
+
 ```bash
 direnv status | grep nix-direnv
 ```
 
 **If not, add to .envrc:**
+
 ```bash
 if ! has nix_direnv_version || ! nix_direnv_version 2.3.0; then
   source_url "https://raw.githubusercontent.com/nix-community/nix-direnv/2.3.0/direnvrc" "sha256-Dmd+j63L84wuzgyjITIfSxSD57Tx7v51DMxVZOsiUD8="  # pragma: allowlist secret
@@ -453,6 +470,7 @@ fi
 ### flake.nix evaluation fails
 
 **Debug:**
+
 ```bash
 nix flake check          # Validate flake
 nix flake show           # Show flake outputs

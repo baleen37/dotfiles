@@ -1,11 +1,9 @@
 # Path Configuration
 # External configuration for system paths and directories
-
 # SSH directory paths by platform
 ssh_directories:
   darwin: '/Users/${USER}/.ssh'
   linux: '/home/${USER}/.ssh'
-
 # Base directories
 base_directories:
   config_dir: 'config'
@@ -14,14 +12,12 @@ base_directories:
   apps_dir: 'apps'
   lib_dir: 'lib'
   tests_dir: 'tests'
-
 # Build directories
 build_directories:
   build_scripts: 'scripts/build'
   utils_scripts: 'scripts/utils'
   platform_scripts: 'scripts/platform'
   lib_scripts: 'scripts/lib'
-
 # USB mount paths by platform
 usb_mount_paths:
   darwin:
@@ -30,19 +26,16 @@ usb_mount_paths:
     - '/media'
     - '/mnt'
     - '/run/media/${USER}'
-
 # Cache directories
 cache_directories:
   nix_cache: '/nix/var/cache'
   build_cache: '.cache/build'
   test_cache: '.cache/tests'
-
 # Log directories
 log_directories:
   build_logs: 'logs/build'
   error_logs: 'logs/errors'
   debug_logs: 'logs/debug'
-
 # Temporary directories
 temp_directories:
   build_temp: '/tmp/dotfiles-build'

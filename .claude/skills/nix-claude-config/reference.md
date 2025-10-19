@@ -306,14 +306,14 @@ cat ~/.claude/settings.json
 
 ## File Permissions Reference
 
-| File/Directory | Permission | Reason |
-|---------------|-----------|---------|
-| settings.json | Read-only | Nix store |
-| hooks/ | Executable | Built Go binaries (Nix store) |
-| CLAUDE.md | Read-write | Direct source link |
-| commands/ | Read-write | Direct source link |
-| agents/ | Read-write | Direct source link |
-| skills/ | Read-write | Direct source link |
+| File/Directory | Permission | Reason                        |
+| -------------- | ---------- | ----------------------------- |
+| settings.json  | Read-only  | Nix store                     |
+| hooks/         | Executable | Built Go binaries (Nix store) |
+| CLAUDE.md      | Read-write | Direct source link            |
+| commands/      | Read-write | Direct source link            |
+| agents/        | Read-write | Direct source link            |
+| skills/        | Read-write | Direct source link            |
 
 ## Related Files
 

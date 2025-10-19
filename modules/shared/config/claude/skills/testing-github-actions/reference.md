@@ -18,16 +18,19 @@ Comprehensive guide for act and gh CLI: installation, practical examples, troubl
 ### act 설치
 
 **macOS (Homebrew)**:
+
 ```bash
 brew install act
 ```
 
 **Linux**:
+
 ```bash
 curl -s https://raw.githubusercontent.com/nektos/act/master/install.sh | sudo bash
 ```
 
 **Docker 설치 확인**:
+
 ```bash
 docker --version
 # Docker가 없으면 설치: https://docs.docker.com/get-docker/
@@ -36,11 +39,13 @@ docker --version
 ### gh CLI 설치 및 인증
 
 **설치**:
+
 ```bash
 brew install gh
 ```
 
 **인증**:
+
 ```bash
 gh auth login
 # 브라우저에서 GitHub 로그인 후 토큰 발급
@@ -49,6 +54,7 @@ gh auth login
 ### 프로젝트 초기 설정
 
 **.actrc 생성** (프로젝트 루트):
+
 ```bash
 cat > .actrc << 'EOF'
 # 경량 Ubuntu 이미지 사용 (성능 최적화)
@@ -65,6 +71,7 @@ EOF
 ```
 
 **.secrets 생성** (절대 커밋하지 말것!):
+
 ```bash
 cat > .secrets << 'EOF'
 GITHUB_TOKEN=ghp_your_token_here
@@ -77,6 +84,7 @@ echo ".secrets" >> .gitignore
 ```
 
 **.env 생성**:
+
 ```bash
 cat > .env << 'EOF'
 NODE_ENV=test
@@ -90,6 +98,7 @@ EOF
 ### 예제 1: Node.js CI 워크플로우 테스트
 
 **워크플로우 파일** (`.github/workflows/ci.yml`):
+
 ```yaml
 name: CI
 
@@ -137,6 +146,7 @@ jobs:
 ```
 
 **로컬 테스트**:
+
 ```bash
 # 1. Dry-run으로 실행 계획 확인
 act -n
@@ -155,6 +165,7 @@ act -v -j test
 ```
 
 **GitHub에서 실행**:
+
 ```bash
 # 워크플로우 트리거
 gh workflow run ci.yml
@@ -172,6 +183,7 @@ gh run view $(gh run list --workflow=ci.yml --limit 1 --json databaseId -q '.[0]
 ### 예제 2: Docker 빌드 워크플로우
 
 **워크플로우 파일** (`.github/workflows/docker.yml`):
+
 ```yaml
 name: Docker Build
 
@@ -213,6 +225,7 @@ jobs:
 ```
 
 **로컬 테스트** (Docker 빌드만 검증):
+
 ```bash
 # Docker 이미지로 act 실행 (Docker-in-Docker)
 act -j build --container-architecture linux/amd64
@@ -224,6 +237,7 @@ act -j build --secret GITHUB_TOKEN=$(gh auth token)
 ### 예제 3: Multi-stage 배포 워크플로우
 
 **워크플로우 파일** (`.github/workflows/deploy.yml`):
+
 ```yaml
 name: Deploy
 
@@ -258,6 +272,7 @@ jobs:
 ```
 
 **로컬 테스트** (이벤트 파일 사용):
+
 ```bash
 # 이벤트 JSON 파일 생성
 cat > deploy-event.json << 'EOF'
@@ -284,6 +299,7 @@ act workflow_dispatch -j deploy -e deploy-prod-event.json
 ```
 
 **GitHub에서 실행**:
+
 ```bash
 # staging 배포
 gh workflow run deploy.yml -f environment=staging
@@ -331,6 +347,7 @@ gh run list --branch=$(git branch --show-current) --limit 1
 ```
 
 **로컬에서 미리 테스트**:
+
 ```bash
 # Rebase 전에 act로 CI 검증
 git checkout feature-branch
@@ -343,6 +360,7 @@ act push
 ```
 
 **주의사항**:
+
 - `git push --force`는 절대 main/master 브랜치에 사용하지 말 것
 - `--force-with-lease`를 사용해 다른 사람의 커밋을 덮어쓰지 않도록 보호
 - Rebase 중 conflict 해결 시 테스트가 여전히 통과하는지 확인
@@ -382,6 +400,7 @@ gh run view <run-id> --log
 **일반적인 실패 원因과 해결책**:
 
 **테스트 실패**:
+
 ```bash
 # 로컬에서 동일한 환경 재현
 act -j test --env CI=true
@@ -395,6 +414,7 @@ gh workflow run ci.yml --ref $(git branch --show-current)
 ```
 
 **빌드 실패**:
+
 ```bash
 # 환경 변수 누락 확인
 act -j build --env-file .env --secret-file .secrets
@@ -405,6 +425,7 @@ act -P ubuntu-latest=ghcr.io/catthehacker/ubuntu:full-latest
 ```
 
 **권한 문제**:
+
 ```yaml
 # 워크플로우에 명시적 권한 추가
 permissions:
@@ -418,6 +439,7 @@ permissions:
 **증상**: 워크플로우에서 secret에 접근할 수 없음
 
 **Repository Secret 설정**:
+
 ```bash
 # gh CLI로 secret 추가
 gh secret set SECRET_NAME
@@ -433,6 +455,7 @@ gh secret delete SECRET_NAME
 ```
 
 **Environment Secret 설정** (환경별 분리):
+
 ```bash
 # Environment는 웹 UI에서만 생성 가능
 # Settings > Environments > New environment
@@ -446,6 +469,7 @@ gh secret list --env production
 ```
 
 **Organization Secret** (여러 저장소 공유):
+
 ```bash
 # Organization 레벨 secret 설정 (admin 권한 필요)
 gh secret set ORG_SECRET --org my-org --visibility all
@@ -455,6 +479,7 @@ gh secret set ORG_SECRET --org my-org --repos "repo1,repo2"
 ```
 
 **로컬 테스트에서 Secret 사용**:
+
 ```bash
 # .secrets 파일 (절대 커밋 금지!)
 cat > .secrets << 'EOF'
@@ -474,6 +499,7 @@ act --secret GITHUB_TOKEN=$(gh auth token) -j build
 ```
 
 **Secret 디버깅**:
+
 ```yaml
 # 워크플로우에서 secret 존재 확인 (값은 출력하지 말것!)
 - name: Check secrets
@@ -486,6 +512,7 @@ act --secret GITHUB_TOKEN=$(gh auth token) -j build
 ```
 
 **보안 주의사항**:
+
 ```bash
 # ❌ 절대 하지 말것
 echo "${{ secrets.SECRET_KEY }}"  # 로그에 노출됨
@@ -502,6 +529,7 @@ fi
 **증상**: `gh workflow run`이 "workflow_dispatch event not configured" 오류
 
 **해결 방법**:
+
 ```yaml
 # 워크플로우 파일에 workflow_dispatch 추가
 on:
@@ -516,6 +544,7 @@ on:
 ```
 
 **변경사항 커밋 후 테스트**:
+
 ```bash
 git add .github/workflows/ci.yml
 git commit -m "feat: Add workflow_dispatch trigger"
@@ -530,6 +559,7 @@ gh workflow run ci.yml
 **증상**: "Resource not accessible by integration" 오류
 
 **GITHUB_TOKEN 권한 확인 및 수정**:
+
 ```yaml
 # 워크플로우에 명시적 권한 설정
 permissions:
@@ -541,6 +571,7 @@ permissions:
 ```
 
 **최소 권한 원칙** (보안 베스트 프랙티스):
+
 ```yaml
 # Job별로 필요한 권한만 부여
 jobs:
@@ -560,6 +591,7 @@ jobs:
 ```
 
 **Personal Access Token (PAT) 사용** (GITHUB_TOKEN으론 부족할 때):
+
 ```yaml
 steps:
   - uses: actions/checkout@v4
@@ -578,6 +610,7 @@ gh secret set PAT
 **증상**: 빌드가 느리거나 캐시가 작동하지 않음
 
 **의존성 캐싱 최적화**:
+
 ```yaml
 - name: Setup Node.js
   uses: actions/setup-node@v4
@@ -596,6 +629,7 @@ gh secret set PAT
 ```
 
 **캐시 무효화** (문제 발생 시):
+
 ```bash
 # GitHub UI에서: Actions > Caches > 특정 캐시 삭제
 # 또는 워크플로우에서 캐시 키 변경
@@ -611,6 +645,7 @@ gh cache delete --all
 ```
 
 **Docker layer 캐싱**:
+
 ```yaml
 - name: Build Docker image
   uses: docker/build-push-action@v6
@@ -625,6 +660,7 @@ gh cache delete --all
 **증상**: 워크플로우가 timeout으로 실패
 
 **Timeout 최적화**:
+
 ```yaml
 jobs:
   test:
@@ -636,11 +672,13 @@ jobs:
 ```
 
 **로컬에서 실행 시간 측정**:
+
 ```bash
 time act -j test  # 전체 실행 시간
 ```
 
 **병렬 실행으로 속도 개선**:
+
 ```yaml
 strategy:
   matrix:
@@ -653,6 +691,7 @@ strategy:
 **증상**: 동일한 브랜치에서 여러 워크플로우가 동시 실행되어 충돌
 
 **Concurrency 전략 설정**:
+
 ```yaml
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -660,6 +699,7 @@ concurrency:
 ```
 
 **배포 워크플로우** (취소하지 않도록):
+
 ```yaml
 concurrency:
   group: deploy-${{ inputs.environment }}
@@ -667,6 +707,7 @@ concurrency:
 ```
 
 **실행 중인 워크플로우 확인 및 취소**:
+
 ```bash
 # 실행 중인 워크플로우 확인
 gh run list --status in_progress
@@ -685,6 +726,7 @@ done
 **증상**: 코드 변경과 무관하게 워크플로우가 계속 실행됨
 
 **Path 필터 최적화**:
+
 ```yaml
 on:
   push:
@@ -698,6 +740,7 @@ on:
 ```
 
 **로컬에서 path 필터 테스트**:
+
 ```bash
 # 특정 파일 변경 시뮬레이션
 git diff origin/main -- src/
@@ -711,6 +754,7 @@ git diff origin/main -- src/
 **증상**: Artifact가 생성되지 않거나 다운로드 실패
 
 **Artifact 업로드**:
+
 ```yaml
 - name: Upload test results
   uses: actions/upload-artifact@v4
@@ -724,6 +768,7 @@ git diff origin/main -- src/
 ```
 
 **Artifact 다운로드** (다른 job에서):
+
 ```yaml
 jobs:
   test:
@@ -740,6 +785,7 @@ jobs:
 ```
 
 **gh CLI로 로컬에 다운로드**:
+
 ```bash
 # 최근 실행의 모든 artifact 다운로드
 gh run download
@@ -755,6 +801,7 @@ gh run view <run-id> --log | grep "Uploaded artifact"
 ```
 
 **로컬 테스트 (act)**:
+
 ```bash
 # act는 artifact를 로컬 디렉토리에 저장
 mkdir -p /tmp/artifacts
@@ -769,6 +816,7 @@ ls -la /tmp/artifacts/
 ### Reusable Workflows
 
 **재사용 가능한 워크플로우 정의** (`.github/workflows/reusable-test.yml`):
+
 ```yaml
 name: Reusable Test Workflow
 
@@ -809,6 +857,7 @@ jobs:
 ```
 
 **재사용** (`.github/workflows/ci.yml`):
+
 ```yaml
 jobs:
   test-node-18:
@@ -823,6 +872,7 @@ jobs:
 ### Composite Actions
 
 **자체 Action 생성** (`.github/actions/setup-project/action.yml`):
+
 ```yaml
 name: 'Setup Project'
 description: 'Install dependencies and setup environment'
@@ -854,6 +904,7 @@ runs:
 ```
 
 **사용**:
+
 ```yaml
 steps:
   - uses: actions/checkout@v4
@@ -865,6 +916,7 @@ steps:
 ### Matrix 전략 고급 활용
 
 **동적 Matrix**:
+
 ```yaml
 jobs:
   prepare:
@@ -888,6 +940,7 @@ jobs:
 ```
 
 **Include/Exclude**:
+
 ```yaml
 strategy:
   matrix:
@@ -907,6 +960,7 @@ strategy:
 ### 조건부 실행 패턴
 
 **파일 변경 감지**:
+
 ```yaml
 jobs:
   check-changes:
@@ -934,6 +988,7 @@ jobs:
 ```
 
 **PR 라벨 기반 실행**:
+
 ```yaml
 jobs:
   deploy:
@@ -946,6 +1001,7 @@ jobs:
 ### 성능 모니터링
 
 **빌드 시간 측정**:
+
 ```yaml
 jobs:
   build:
@@ -970,6 +1026,7 @@ jobs:
 ```
 
 **리소스 사용량 모니터링**:
+
 ```yaml
 - name: System info
   run: |
@@ -986,10 +1043,12 @@ jobs:
 #### 1. 액션 SHA Pinning
 
 **왜 필요한가?**
+
 - 브랜치/태그는 언제든 변경 가능 → 악의적 코드 주입 위험
 - SHA는 불변 → 항상 동일한 코드 실행 보장
 
 **적용 방법**:
+
 ```yaml
 # ❌ 취약: 태그 사용
 uses: actions/checkout@v4
@@ -999,6 +1058,7 @@ uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332  # v4.1.7
 ```
 
 **SHA 확인**:
+
 ```bash
 # GitHub에서 릴리스 태그의 SHA 확인
 gh api repos/actions/checkout/git/ref/tags/v4.1.7 --jq '.object.sha'
@@ -1007,6 +1067,7 @@ gh api repos/actions/checkout/git/ref/tags/v4.1.7 --jq '.object.sha'
 ```
 
 **도구 활용** (자동 pinning):
+
 ```bash
 # GitHub App: Dependabot (Settings > Security > Dependabot)
 # 또는 CLI 도구
@@ -1016,6 +1077,7 @@ npx pin-github-action .github/workflows/ci.yml
 #### 2. 최소 권한 원칙
 
 **기본 권한 비활성화**:
+
 ```yaml
 # 저장소 설정: Settings > Actions > General > Workflow permissions
 # "Read repository contents and packages permissions" 선택
@@ -1030,6 +1092,7 @@ jobs:
 ```
 
 **권한 스코프**:
+
 - `contents`: 코드 읽기/쓰기, 태그, 릴리스
 - `packages`: 패키지 레지스트리
 - `pull-requests`: PR 코멘트, 리뷰
@@ -1040,6 +1103,7 @@ jobs:
 #### 3. 시크릿 보호
 
 **로그 노출 방지**:
+
 ```yaml
 # ❌ 절대 금지
 - run: echo "Token: ${{ secrets.TOKEN }}"
@@ -1055,6 +1119,7 @@ jobs:
 ```
 
 **시크릿 스캐닝 활성화**:
+
 ```bash
 # Settings > Security > Secret scanning
 # "Secret scanning" 활성화
@@ -1064,6 +1129,7 @@ jobs:
 #### 4. OIDC 인증
 
 **credential-less 배포**:
+
 ```yaml
 permissions:
   id-token: write  # OIDC 토큰 발급
@@ -1082,6 +1148,7 @@ jobs:
 ```
 
 **장점**:
+
 - 장기 credential 불필요
 - 자동 만료 (15분)
 - IAM Role 기반 권한 관리
@@ -1091,6 +1158,7 @@ jobs:
 #### 1. Timeout 설정
 
 **권장값**:
+
 ```yaml
 jobs:
   test:
@@ -1104,6 +1172,7 @@ jobs:
 ```
 
 **Step별 timeout**:
+
 ```yaml
 steps:
   - name: Install dependencies
@@ -1118,6 +1187,7 @@ steps:
 #### 2. Concurrency 전략
 
 **자동 취소**:
+
 ```yaml
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -1125,11 +1195,13 @@ concurrency:
 ```
 
 **효과**:
+
 - 불필요한 중복 실행 방지
 - GitHub Actions 분 절약
 - 빠른 피드백
 
 **배포는 예외**:
+
 ```yaml
 concurrency:
   group: deploy-${{ inputs.environment }}
@@ -1139,6 +1211,7 @@ concurrency:
 #### 3. 캐싱 전략
 
 **의존성 캐싱**:
+
 ```yaml
 - uses: actions/setup-node@v4
   with:
@@ -1153,6 +1226,7 @@ concurrency:
 ```
 
 **빌드 캐싱**:
+
 ```yaml
 - uses: actions/cache@v4
   with:
@@ -1163,6 +1237,7 @@ concurrency:
 ```
 
 **Docker layer 캐싱**:
+
 ```yaml
 - uses: docker/build-push-action@v6
   with:
@@ -1173,6 +1248,7 @@ concurrency:
 #### 4. Path 필터링
 
 **변경된 파일만 테스트**:
+
 ```yaml
 on:
   push:
@@ -1186,6 +1262,7 @@ on:
 ```
 
 **효과**:
+
 - 문서 변경 시 CI 스킵
 - 관련 없는 파일 변경 시 실행 안 함
 
@@ -1194,6 +1271,7 @@ on:
 #### 1. Matrix 테스트
 
 **다중 환경 동시 테스트**:
+
 ```yaml
 strategy:
   matrix:
@@ -1203,12 +1281,14 @@ strategy:
 ```
 
 **효과**:
+
 - 9개 조합 동시 실행 (3 OS × 3 Node)
 - 환경별 이슈 조기 발견
 
 #### 2. Service Containers
 
 **통합 테스트용 DB**:
+
 ```yaml
 jobs:
   test:
@@ -1234,6 +1314,7 @@ jobs:
 #### 3. 테스트 로그 품질
 
 **명확한 실패 메시지**:
+
 ```yaml
 - name: Run tests
   run: |
@@ -1244,6 +1325,7 @@ jobs:
 ```
 
 **Step summary 활용**:
+
 ```yaml
 - name: Test results
   if: always()
@@ -1259,6 +1341,7 @@ jobs:
 #### 1. Reusable Workflows
 
 **중복 제거**:
+
 ```yaml
 # Before: 여러 워크플로우에서 동일한 steps 반복
 # After: 재사용 가능한 워크플로우로 추출
@@ -1279,6 +1362,7 @@ jobs:
 ```
 
 **사용**:
+
 ```yaml
 jobs:
   deploy-staging:
@@ -1290,6 +1374,7 @@ jobs:
 #### 2. workflow_dispatch
 
 **수동 실행 지원**:
+
 ```yaml
 on:
   workflow_dispatch:
@@ -1304,6 +1389,7 @@ on:
 ```
 
 **효과**:
+
 - 긴급 배포 가능
 - 테스트 용이
 - 매개변수화된 실행
@@ -1311,12 +1397,14 @@ on:
 #### 3. 명확한 네이밍
 
 **워크플로우 이름**:
+
 ```yaml
 name: CI  # ❌ 너무 짧음
 name: "Build, Test, and Deploy"  # ✅ 명확
 ```
 
 **Job 이름**:
+
 ```yaml
 jobs:
   test:  # ❌ 모호함
@@ -1324,6 +1412,7 @@ jobs:
 ```
 
 **Step 이름**:
+
 ```yaml
 - run: npm ci  # ❌ 이름 없음
 - name: Install dependencies  # ✅ 명확
@@ -1333,17 +1422,20 @@ jobs:
 ## Official Resources
 
 ### Essential Documentation
+
 - **GitHub Actions**: [Official Docs](https://docs.github.com/actions) - Complete reference for workflow syntax and features
 - **Security Best Practices**: [Security Hardening](https://docs.github.com/actions/security-guides/security-hardening-for-github-actions) - SHA pinning, permissions, OIDC
 - **act Documentation**: [nektos/act](https://github.com/nektos/act) - Local testing tool
 - **gh CLI Manual**: [GitHub CLI](https://cli.github.com/manual/gh_workflow) - Workflow management commands
 
 ### Community Resources
+
 - **Awesome Actions**: [sdras/awesome-actions](https://github.com/sdras/awesome-actions) - Curated list of actions
 - **Action Examples**: [actions/starter-workflows](https://github.com/actions/starter-workflows) - Official templates
 - **Marketplace**: [GitHub Actions Marketplace](https://github.com/marketplace?type=actions) - Pre-built actions
 
 ### Security Tools
+
 - **Dependabot**: [Automated dependency updates](https://docs.github.com/code-security/dependabot)
 - **CodeQL**: [Code scanning](https://docs.github.com/code-security/code-scanning)
 - **Secret Scanning**: [Detect exposed secrets](https://docs.github.com/code-security/secret-scanning)

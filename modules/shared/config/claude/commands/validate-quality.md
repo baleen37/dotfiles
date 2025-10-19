@@ -17,6 +17,7 @@ $ARGUMENTS
 ```
 
 **What it does** (~5 seconds):
+
 1. Auto-detect project (Python/JS/Go/Rust/Java/etc.)
 2. Compare: pre-commit ↔ local scripts ↔ CI config
 3. Show gaps with **instant fix code**
@@ -29,6 +30,7 @@ $ARGUMENTS
 ### 1. Auto-Detect Project Type
 
 **Scan for marker files** (no execution):
+
 - Python: `pyproject.toml`, `setup.py`, `requirements.txt`, `Pipfile`
 - JavaScript/TypeScript: `package.json`, `tsconfig.json`
 - Go: `go.mod`
@@ -39,14 +41,17 @@ $ARGUMENTS
 - C#/.NET: `*.csproj`, `*.sln`
 
 **Scan for build tools**:
+
 - `Makefile`, `package.json` scripts, `pyproject.toml` scripts, etc.
 
 **Scan for CI**:
+
 - GitHub Actions, GitLab CI, CircleCI, Travis, Jenkins, Azure Pipelines
 
 ### 2. Extract Quality Checks
 
 **From pre-commit** (`.pre-commit-config.yaml`):
+
 ```yaml
 # Example: What checks are configured?
 - prettier (formatting)
@@ -55,6 +60,7 @@ $ARGUMENTS
 ```
 
 **From local scripts** (Makefile/package.json):
+
 ```bash
 # What commands exist?
 npm run lint → eslint .
@@ -63,6 +69,7 @@ npm run format → prettier --write .
 ```
 
 **From CI** (`.github/workflows/*.yml`):
+
 ```yaml
 # What does CI run?
 - run: npm run lint
@@ -74,15 +81,16 @@ npm run format → prettier --write .
 
 Build matrix to spot inconsistencies:
 
-| Check        | Pre-commit | Local | CI  | Gap? |
-| ------------ | ---------- | ----- | --- | ---- |
-| Format       | ✓          | ✓     | ✓   | ✅   |
-| Lint         | ✓          | ✓     | ✓   | ✅   |
-| Type-check   | ❌         | ❌    | ✓   | 🔴   |
-| Tests        | ❌         | ✓     | ✓   | 🟡   |
-| Security     | ✓          | ❌    | ✓   | 🟡   |
+| Check      | Pre-commit | Local | CI  | Gap? |
+| ---------- | ---------- | ----- | --- | ---- |
+| Format     | ✓          | ✓     | ✓   | ✅   |
+| Lint       | ✓          | ✓     | ✓   | ✅   |
+| Type-check | ❌         | ❌    | ✓   | 🔴   |
+| Tests      | ❌         | ✓     | ✓   | 🟡   |
+| Security   | ✓          | ❌    | ✓   | 🟡   |
 
 **Gap types**:
+
 - 🔴 **Critical**: CI checks but you can't run locally → surprise failures
 - 🟡 **Warning**: Inconsistent coverage → potential gaps
 - ✅ **OK**: Fully aligned
@@ -109,6 +117,7 @@ Report structure (under 50 lines for simple projects):
 **Problem**: `tsc --noEmit` runs in CI but not locally → surprise failures
 
 **Fix** (add to `.pre-commit-config.yaml`):
+
 ```yaml
 - repo: local
   hooks:
@@ -129,6 +138,7 @@ Report structure (under 50 lines for simple projects):
 **Problem**: Tests run in CI but not on commit → broken commits
 
 **Fix** (add to `.pre-commit-config.yaml`):
+
 ```yaml
 - repo: local
   hooks:
@@ -149,6 +159,7 @@ Report structure (under 50 lines for simple projects):
 ### Version Drift: eslint@8.57.0 locally vs eslint@9.0.0 in CI
 
 **Fix**: Update `package.json`:
+
 ```json
 {
   "devDependencies": {
@@ -172,11 +183,13 @@ Then: `npm install`
 ## Ecosystem Best Practices
 
 **TypeScript Projects**:
+
 - ✅ `strict: true` in tsconfig.json
 - ⚠️ Consider `@typescript-eslint/recommended`
 - 💡 Add `tsc-files` for faster pre-commit checks
 
 **Testing**:
+
 - ⚠️ Coverage threshold not configured (recommend 80%)
 - 💡 Add `--coverage` to CI test command
 
@@ -185,9 +198,11 @@ Then: `npm install`
 ## Apply Fixes?
 
 Would you like me to:
+
 1. [ ] Update `.pre-commit-config.yaml` with Gap #1 + #2 fixes
 2. [ ] Update `package.json` dependencies
 3. [ ] Show me the full changes first
+
 ```
 
 **Key improvements**:
@@ -203,38 +218,46 @@ Would you like me to:
 ### No Configuration Found
 
 ```
-⚠️  No quality tools detected
+
+⚠️ No quality tools detected
 
 Suggested setup:
+
 1. Add pre-commit: curl https://pre-commit.com/install-local.py | python -
 2. Create .pre-commit-config.yaml with language-specific hooks
 3. Run: pre-commit install
 
 Resources:
+
 - Python: https://pre-commit.com/hooks.html#python
 - JavaScript: https://pre-commit.com/hooks.html#javascript
 - Go: https://pre-commit.com/hooks.html#go
+
 ```
 
 ### Perfect Alignment
 
 ```
+
 ✅ All checks aligned!
 
 Pre-commit ↔ Local scripts ↔ CI are consistent.
 No action needed.
+
 ```
 
 ### CI-Only Setup
 
 ```
-⚠️  Quality checks only in CI
+
+⚠️ Quality checks only in CI
 
 Problem: Issues caught AFTER pushing (slow feedback)
 Solution: Add pre-commit hooks for instant feedback
 
 Would you like me to generate .pre-commit-config.yaml from your CI config?
-```
+
+````
 
 ---
 
@@ -259,9 +282,10 @@ Would you like me to generate .pre-commit-config.yaml from your CI config?
       entry: pytest tests/ -v
       language: system
       pass_filenames: false
-```
+````
 
 **Go** (go test in CI, missing locally):
+
 ```yaml
 - repo: local
   hooks:
@@ -273,6 +297,7 @@ Would you like me to generate .pre-commit-config.yaml from your CI config?
 ```
 
 **Rust** (cargo test in CI, missing locally):
+
 ```yaml
 - repo: local
   hooks:
@@ -284,6 +309,7 @@ Would you like me to generate .pre-commit-config.yaml from your CI config?
 ```
 
 **Java** (mvn test in CI, missing locally):
+
 ```yaml
 - repo: local
   hooks:

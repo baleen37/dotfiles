@@ -50,7 +50,7 @@
 
       format_yaml() {
         echo "🎨 Formatting YAML files..."
-        find . \( -name "*.yaml" -o -name "*.yml" \) -not -path "*/.*" -exec yamlfmt -w {} +
+        find . \( -name "*.yaml" -o -name "*.yml" \) -not -path "*/.*" -exec yamlfmt {} +
       }
 
       format_json() {

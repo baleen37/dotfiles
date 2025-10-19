@@ -17,6 +17,7 @@ GitHub Actions 워크플로우를 로컬 테스트(act) 및 원격 제어(gh CLI
 ### 2. act 로컬 테스트
 
 **기본 명령어**:
+
 ```bash
 act                          # 전체 실행
 act -j <job-name>           # 특정 job
@@ -25,6 +26,7 @@ act -v                      # Verbose
 ```
 
 **환경 설정**:
+
 ```bash
 act --env-file .env --secret-file .secrets
 echo "-P ubuntu-latest=catthehacker/ubuntu:act-latest" > .actrc
@@ -33,6 +35,7 @@ echo "-P ubuntu-latest=catthehacker/ubuntu:act-latest" > .actrc
 ### 3. gh CLI 원격 제어
 
 **실행 및 모니터링**:
+
 ```bash
 gh workflow run <workflow.yml> --ref <branch> -f key=value
 gh run watch
@@ -41,6 +44,7 @@ gh run view <run-id> --log-failed
 ```
 
 **재실행 및 아티팩트**:
+
 ```bash
 gh run rerun <run-id> --failed
 gh run download <run-id> -n <artifact-name>
@@ -49,22 +53,26 @@ gh run download <run-id> -n <artifact-name>
 ### 4. 품질 체크리스트
 
 **보안**:
+
 - [ ] Action SHA pinning (`uses: actions/checkout@<sha>`)
 - [ ] GITHUB_TOKEN 최소 권한 (`permissions:`)
 - [ ] Secret 로그 노출 방지
 
 **성능**:
+
 - [ ] `timeout-minutes: 10-30` (기본 360분 대신)
 - [ ] `concurrency` 중복 실행 취소
 - [ ] 의존성 캐싱 (`cache: 'npm'`)
 - [ ] `paths` 필터링
 
 **테스트**:
+
 - [ ] `matrix` 다중 환경
 - [ ] Service containers (DB 등)
 - [ ] 명확한 실패 로그
 
 **유지보수**:
+
 - [ ] Reusable workflows
 - [ ] `workflow_dispatch` 트리거
 - [ ] 명확한 네이밍
@@ -72,12 +80,14 @@ gh run download <run-id> -n <artifact-name>
 ### 5. 문제 해결
 
 **일반적 오류**:
+
 - `Docker daemon not running` → Docker 실행
 - `workflow_dispatch event not configured` → `on.workflow_dispatch` 추가
 - `Resource not accessible` → `permissions` 설정
 - `Secret not found` → `gh secret set` 또는 `.secrets` 파일
 
 **디버깅**:
+
 ```bash
 # 로컬
 act --reuse -v
@@ -88,6 +98,7 @@ gh run view <run-id> --log
 ```
 
 **Conflict 해결**:
+
 ```bash
 git fetch origin main
 git rebase origin/main
@@ -97,12 +108,14 @@ git push --force-with-lease
 ```
 
 **CI 실패 프로세스**:
+
 1. `gh run view <id> --log-failed` (로그 분석)
 2. `act -j <job> -v` (로컬 재현)
 3. 수정 후 `act` 검증
 4. Push → `gh run watch`
 
 **Secret 설정**:
+
 ```bash
 gh secret set <NAME>              # Repository
 gh secret set <NAME> --env prod   # Environment
