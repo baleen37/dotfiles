@@ -1,12 +1,13 @@
 ---
-description: Diagnose Claude Code configuration and suggest improvements based on best practices from official documentation and release notes.
+description: Validate Claude Code configuration against best practices and suggest improvements
+argument-hint: "[--area=X] [--quick] [--no-apply] [--review]"
 ---
 
 User input:
 
 $ARGUMENTS
 
-Goal: 사용자의 Claude Code 설정을 진단하고, 공식 문서와 최신 베스트 프랙티스를 기반으로 개선 방안을 제안합니다.
+Goal: Claude Code 설정을 베스트 프랙티스와 비교하여 검증하고 개선 방안을 제안합니다.
 
 ## Execution Steps
 
@@ -18,17 +19,19 @@ Goal: 사용자의 Claude Code 설정을 진단하고, 공식 문서와 최신 �
 |------|------|
 | A | **MCP 서버 설정** - Model Context Protocol 서버 연동 및 설정 최적화 |
 | B | **모델 선택 및 설정** - 사용 모델, 토큰 제한, 성능 최적화 |
-| C | **Hooks 설정** - Pre-commit, post-command 등 자동화 훅 |
-| D | **Commands 구조** - Slash commands 구성 및 효율성 |
+| C | **Hooks 설정** - PreToolUse, PostToolUse 자동화 훅 (2025 신기능) |
+| D | **Commands 구조** - Slash commands 구성 및 효율성, YAML frontmatter |
 | E | **프로젝트별 설정** - `.claude/settings.json` 최적화 |
 | F | **전역 설정** - `~/.claude/settings.json` 최적화 |
-| G | **성능 개선** - 응답 속도, 토큰 사용량 최적화 |
-| H | **보안 및 권한** - API 키 관리, 접근 제어 |
+| G | **CLAUDE.md 검증** - 프로젝트 지침 구조, import 기능, 구체성 검증 |
+| H | **보안 및 권한** - Permissions (allow/deny/ask), 민감 파일 보호 |
+| I | **Subagents 설정** - 전문화된 에이전트 구성 (2025 신기능) |
+| J | **신기능 활용** - Checkpoints, VS Code extension, Background tasks |
 | All | **전체 진단** - 모든 영역 종합 검토 |
 
 **질문 형식**:
 
-- "어떤 영역을 개선하고 싶으신가요? (A-H 또는 All 입력)"
+- "어떤 영역을 개선하고 싶으신가요? (A-J 또는 All 입력)"
 - 사용자가 선택한 영역에 대해 현재 불편한 점이나 목표 추가 질문 (선택적)
 
 ### 2. 현재 설정 분석
@@ -43,10 +46,14 @@ Goal: 사용자의 Claude Code 설정을 진단하고, 공식 문서와 최신 �
 
 **영역별 추가 분석**:
 
-- **A (MCP)**: MCP 서버 목록 확인
-- **D (Commands)**: `.claude/commands/*.md` 파일 목록 및 패턴
-- **C (Hooks)**: Hook 설정 존재 여부 및 구조
+- **A (MCP)**: MCP 서버 목록 및 연결 상태 확인
+- **C (Hooks)**: PreToolUse, PostToolUse 훅 설정 검증
+- **D (Commands)**: `.claude/commands/*.md` YAML frontmatter, 구조 패턴 분석
 - **E/F (설정)**: settings.json 구조 및 값 검토
+- **G (CLAUDE.md)**: 구체성, import 사용, 구조 품질 검증
+- **H (보안)**: permissions 설정, 민감 파일 보호 상태
+- **I (Subagents)**: `.claude/agents/*.md` 파일 및 전문화 수준
+- **J (신기능)**: Checkpoint, VS Code extension, Background task 설정
 
 현재 설정을 내부 모델로 정리:
 
@@ -58,22 +65,31 @@ Goal: 사용자의 Claude Code 설정을 진단하고, 공식 문서와 최신 �
 
 선택된 영역에 대해 최신 정보를 수집합니다:
 
-**공식 문서 조회** (WebFetch를 사용하여 병렬 조회):
+**공식 문서 조회** (WebFetch 병렬 조회):
 
-- https://docs.claude.com/en/docs/claude-code/claude_code_docs_map.md (전체 맵)
-- 영역별 관련 문서 URL (예: MCP 설정, 모델 선택, hooks 가이드)
+- https://docs.claude.com/en/docs/claude-code/common-workflows (워크플로우)
+- https://docs.claude.com/en/docs/claude-code/settings (설정)
+- https://docs.claude.com/en/docs/claude-code/slash-commands (커맨드)
+- https://docs.claude.com/en/docs/claude-code/sub-agents (서브에이전트)
+- https://docs.claude.com/en/docs/claude-code/memory (CLAUDE.md)
+- https://docs.claude.com/en/docs/claude-code/security (보안)
+- https://docs.claude.com/en/docs/claude-code/output-styles (출력 스타일)
 
-**릴리즈 노트 조회** (WebSearch 사용):
+**2025 신기능 검증**:
 
-- "Claude Code release notes 2025" 검색
-- "Claude Code [선택된 영역] best practices 2025" 검색
+- Checkpoints (/rewind 명령어)
+- VS Code extension beta
+- Subagents 위임
+- Hooks 자동화 (PreToolUse/PostToolUse)
+- Background tasks
+- CLAUDE.md imports (@path/to/file.md, 최대 5 depth)
 
 **패턴 수집**:
 
 - 권장 설정 값
-- 새로 추가된 기능
-- Deprecated된 설정
+- Deprecated 기능
 - 일반적인 실수 및 해결책
+- 보안 베스트 프랙티스
 
 ### 4. 개선 제안 생성
 
@@ -175,6 +191,56 @@ Goal: 사용자의 Claude Code 설정을 진단하고, 공식 문서와 최신 �
 - 나중에 `/improve-claude-config --review` 명령으로 다시 검토 가능
 ```
 
+## Validation Checks
+
+각 영역별 검증 항목:
+
+### Commands (D):
+
+- [ ] YAML frontmatter 존재 (description 필수)
+- [ ] argument-hint 명시 (인자 받는 경우)
+- [ ] allowed-tools 명시 (특정 도구만 사용하는 경우)
+- [ ] 명확한 사용 예시 포함
+- [ ] $ARGUMENTS 또는 $1, $2 사용 (인자 처리)
+
+### CLAUDE.md (G):
+
+- [ ] 구체적 지침 ("2-space indentation" vs "good style")
+- [ ] 마크다운 헤딩으로 구조화
+- [ ] @path/to/file.md import 활용 고려 (최대 5 depth)
+- [ ] 불필요한 temporal 표현 제거 (new, old, legacy)
+- [ ] 프로젝트별 빌드/테스트 명령어 명시
+
+### settings.json (E/F):
+
+- [ ] $schema 지정
+- [ ] permissions 설정 (allow/deny/ask)
+- [ ] hooks 설정 (PreToolUse/PostToolUse)
+- [ ] env 변수 (필요시)
+- [ ] outputStyle (커스텀 출력 스타일)
+- [ ] model (기본 모델 오버라이드)
+
+### Security (H):
+
+- [ ] 민감 파일 deny 설정 (.env, credentials)
+- [ ] Git push 작업 ask 설정
+- [ ] WebFetch 허용 도메인 제한
+- [ ] Bash 명령어 allowlist 활용
+
+### Subagents (I):
+
+- [ ] 단일 책임 원칙 (focused responsibility)
+- [ ] 명확한 description
+- [ ] 필요한 도구만 허용
+- [ ] 적절한 model 선택 (inherit/sonnet/opus/haiku)
+
+### 2025 Features (J):
+
+- [ ] Checkpoints 활용 여부
+- [ ] VS Code extension 고려
+- [ ] Background tasks 설정
+- [ ] Hooks 자동화 기회
+
 ## Behavior Rules
 
 - **대화형 우선**: 각 단계에서 사용자 확인 필요
@@ -182,15 +248,60 @@ Goal: 사용자의 Claude Code 설정을 진단하고, 공식 문서와 최신 �
 - **근거 제시**: 모든 제안에 공식 문서나 릴리즈 노트 링크 포함
 - **단계별 진행**: 한 번에 하나의 영역씩 집중
 - **롤백 가능**: 변경 전 현재 설정 백업 (사용자에게 안내)
-- **최신 정보 우선**: 2024-2025년 정보 우선 참조
+- **최신 정보 우선**: 2025년 신기능 우선 검토
 - **실용적 제안**: 이론적 최적화보다 실제 개선 효과가 있는 것 우선
 
 ## Special Flags (from $ARGUMENTS)
 
 - `--review`: 이전 제안 중 미적용 항목 다시 검토
 - `--quick`: 간단한 진단만 수행 (질문 생략, All 영역 자동 선택)
-- `--area=X`: 특정 영역만 지정 (예: `--area=MCP`)
+- `--area=X`: 특정 영역만 지정 (예: `--area=G` for CLAUDE.md only)
 - `--no-apply`: 제안만 생성, 적용하지 않음
+
+## Common Issues to Check
+
+### Commands:
+
+- Missing YAML frontmatter
+- Vague descriptions ("do stuff" vs "Create git commit with message")
+- No argument hints for commands that accept parameters
+- Overly broad allowed-tools (should be specific)
+
+### CLAUDE.md:
+
+- Vague instructions ("write good code" vs "use 2-space indentation")
+- No project-specific build/test commands
+- Temporal language (new, old, legacy, refactored)
+- Missing imports for shared instructions
+- Unstructured content (no headings)
+
+### settings.json:
+
+- Missing $schema reference
+- No permissions for sensitive operations
+- Missing hooks for common workflows (testing, linting)
+- No security restrictions (deny .env, ask git push)
+- Unused or deprecated settings
+
+### Security:
+
+- No deny rules for sensitive files
+- No ask rules for destructive operations
+- Overly permissive WebFetch
+- Missing Bash command restrictions
+
+### 2025 Features:
+
+- Not using Checkpoints for risky refactoring
+- Not considering Subagents for specialized tasks
+- Missing Hooks automation opportunities
+- CLAUDE.md not using imports to reduce duplication
+
+## Reference Documentation
+
+Official docs: https://docs.claude.com/en/docs/claude-code/
+Release notes: https://github.com/anthropics/claude-code/releases
+Best practices: https://docs.claude.com/en/docs/claude-code/common-workflows
 
 ## Context
 

@@ -21,7 +21,7 @@ func (h *GitCommitValidator) Name() string {
 	return "git-commit-validator"
 }
 
-// Validate checks if git commit command contains --no-verify flag
+// Validate checks if git commit command contains --no-verify flag or SKIP environment variable
 func (h *GitCommitValidator) Validate(ctx context.Context, input *hook.Input) (*hook.Response, error) {
 	resp := hook.NewResponse()
 
@@ -36,12 +36,13 @@ func (h *GitCommitValidator) Validate(ctx context.Context, input *hook.Input) (*
 		return resp, nil
 	}
 
-	// Check if this is a git commit command
-	if !hook.IsGitCommitCommand(command) {
+	// Remove environment variables to check if this is a git commit command
+	commandWithoutEnv := hook.RemoveEnvVars(command)
+	if !hook.IsGitCommitCommand(commandWithoutEnv) {
 		return resp, nil
 	}
 
-	// Remove quoted content to avoid false positives
+	// Remove quoted content to avoid false positives in flag detection
 	cleanCommand := hook.RemoveQuotedContent(command)
 
 	// Check for --no-verify flag
@@ -51,8 +52,21 @@ func (h *GitCommitValidator) Validate(ctx context.Context, input *hook.Input) (*
 			"Pre-commit hooks are important for code quality.\n" +
 			"Try these alternatives instead:\n" +
 			"1. Fix pre-commit errors and commit normally\n" +
-			"2. Skip specific hooks: SKIP=ruff git commit -m '...'\n" +
+			"2. Run 'make format' to auto-fix formatting issues\n" +
 			"3. Run manually in terminal if absolutely necessary")
+		return resp, nil
+	}
+
+	// Check for SKIP environment variable
+	skipPattern := regexp.MustCompile(`\bSKIP\s*=`)
+	if skipPattern.MatchString(cleanCommand) {
+		resp.Block("⚠️  SKIP environment variable detected.\n" +
+			"Skipping pre-commit hooks bypasses code quality checks.\n" +
+			"Try these alternatives instead:\n" +
+			"1. Fix pre-commit errors and commit normally\n" +
+			"2. Run 'make format' to auto-fix formatting issues\n" +
+			"3. Run 'make lint-autofix' to auto-fix linting issues\n" +
+			"4. Run manually in terminal if absolutely necessary")
 		return resp, nil
 	}
 

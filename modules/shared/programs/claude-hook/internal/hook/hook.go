@@ -27,10 +27,10 @@ type Input struct {
 
 // Response represents the hook output
 type Response struct {
-	Decision       string `json:"decision,omitempty"`        // "approve" | "block"
-	Reason         string `json:"reason,omitempty"`          // Explanation for the decision
-	Continue       bool   `json:"continue"`                  // Whether Claude should continue
-	SuppressOutput bool   `json:"suppressOutput,omitempty"`  // Hide stdout from transcript
+	Decision       string `json:"decision,omitempty"`       // "approve" | "block"
+	Reason         string `json:"reason,omitempty"`         // Explanation for the decision
+	Continue       bool   `json:"continue"`                 // Whether Claude should continue
+	SuppressOutput bool   `json:"suppressOutput,omitempty"` // Hide stdout from transcript
 }
 
 // ExitCode determines the exit code based on decision

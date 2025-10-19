@@ -38,7 +38,7 @@ Some description`,
 
 Co-authored-by: Claude <noreply@anthropic.com>`,
 			expected: `fix: bug fix`,
-			changed: true,
+			changed:  true,
 		},
 		{
 			name: "no changes if no attribution",
@@ -61,7 +61,7 @@ Regular commit message`,
 
 Co-authored-by: Claude <noreply@anthropic.com>`,
 			expected: `feat: test`,
-			changed: true,
+			changed:  true,
 		},
 	}
 
