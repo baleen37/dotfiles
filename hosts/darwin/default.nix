@@ -37,6 +37,7 @@ in
     ../../modules/darwin/macos-app-cleanup.nix # macOS 기본 앱 클린업
     ../../modules/darwin/aggressive-optimization.nix # 🚀 공격적 성능 최적화 (Spotlight 비활성화 등)
     ../../modules/shared/cachix # Binary cache configuration
+    ../../modules/shared/overlays.nix # Custom package overlays
     ../../modules/shared
   ];
 

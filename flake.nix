@@ -50,6 +50,11 @@
       url = "github:nix-community/nix-unit";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # Claude Code - Auto-updated hourly from npm
+    claude-code-nix = {
+      url = "github:sadjow/claude-code-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -64,6 +69,7 @@
       nixpkgs,
       disko,
       nix-unit,
+      claude-code-nix,
     }@inputs:
     let
       # Dynamic user resolution using dedicated user-resolution library
@@ -145,8 +151,8 @@
           system:
           darwin.lib.darwinSystem {
             inherit system;
-            specialArgs = inputs // {
-              inherit self;
+            specialArgs = {
+              inherit inputs self claude-code-nix;
             };
             modules = [
               ./hosts/darwin # Host config first to ensure allowUnfree is set at system level
@@ -186,8 +192,13 @@
           system:
           nixpkgs.lib.nixosSystem {
             inherit system;
-            specialArgs = inputs // {
-              inherit user self;
+            specialArgs = {
+              inherit
+                inputs
+                self
+                user
+                claude-code-nix
+                ;
             };
             modules = [
               ./hosts/nixos # Host config first to ensure allowUnfree is set at system level
