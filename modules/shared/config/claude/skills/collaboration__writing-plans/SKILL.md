@@ -36,7 +36,7 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 ```markdown
 # [Feature Name] Implementation Plan
 
-> **For Claude:** Use `@skills/collaboration/executing-plans/SKILL.md` to implement this plan task-by-task.
+> **For Claude:** Use `@skills/collaboration__executing-plans` to implement this plan task-by-task.
 
 **Goal:** [One sentence describing what this builds]
 
@@ -111,11 +111,11 @@ After saving the plan, offer execution choice:
 **Which approach?"**
 
 **If Subagent-Driven chosen:**
-- Use skills/collaboration/subagent-driven-development
+- Use skills/collaboration__subagent-driven-development
 - Stay in this session
 - Fresh subagent per task + code review
 
 **If Parallel Session chosen:**
 - Guide them to open new session in worktree
-- New session uses skills/collaboration/executing-plans
+- New session uses skills/collaboration__executing-plans
 ```

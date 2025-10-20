@@ -26,7 +26,7 @@ Transform rough ideas into fully-formed designs through structured questioning a
 
 ### Phase 2: Exploration
 
-- Propose 2-3 different approaches (reference skills/coding/exploring-alternatives)
+- Propose 2-3 different approaches (reference skills/coding\_\_exploring-alternatives)
 - For each: Core architecture, trade-offs, complexity assessment
 - Ask your human partner which approach resonates
 
@@ -41,7 +41,7 @@ Transform rough ideas into fully-formed designs through structured questioning a
 When design is approved and implementation will follow:
 
 - Announce: "I'm using the Using Git Worktrees skill to set up an isolated workspace."
-- Switch to skills/collaboration/using-git-worktrees
+- Switch to skills/collaboration\_\_using-git-worktrees
 - Follow that skill's process for directory selection, safety verification, and setup
 - Return here when worktree ready
 
@@ -52,13 +52,13 @@ Ask: "Ready to create the implementation plan?"
 When your human partner confirms (any affirmative response):
 
 - Announce: "I'm using the Writing Plans skill to create the implementation plan."
-- Switch to skills/collaboration/writing-plans skill
+- Switch to skills/collaboration\_\_writing-plans skill
 - Create detailed plan in the worktree
 
 ## Remember
 
 - One question per message during Phase 1
-- Apply YAGNI ruthlessly (reference skills/architecture/reducing-complexity)
+- Apply YAGNI ruthlessly (reference skills/architecture\_\_reducing-complexity)
 - Explore 2-3 alternatives before settling
 - Present incrementally, validate as you go
 - Announce skill usage at start
