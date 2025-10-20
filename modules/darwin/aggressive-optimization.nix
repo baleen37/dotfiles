@@ -161,7 +161,8 @@
         springboard-show-duration = 0.1;
         springboard-hide-duration = 0.1;
       };
-      "com.apple.notificationcenterui".bannerTime = 1;
+      # Note: Notification Center UI preferences are sandboxed and cannot be set via defaults write
+      # "com.apple.notificationcenterui".bannerTime = 1;
       "com.apple.finder" = {
         DisableAllAnimations = true;
         ShowRecentTags = false;
@@ -185,11 +186,14 @@
       };
 
       # ─── Photos 앱 최적화 ───
-      "com.apple.Photos" = {
-        ShowMemoriesNotifications = false;
-        ShowHolidayCalendar = false;
-        SharedAlbumsActivity = false;
-      };
+      # Note: Photos preferences are sandboxed in containers and cannot be
+      # set via defaults write. These settings must be configured manually
+      # in Photos.app > Settings > General
+      # "com.apple.Photos" = {
+      #   ShowMemoriesNotifications = false;
+      #   ShowHolidayCalendar = false;
+      #   SharedAlbumsActivity = false;
+      # };
 
       # ─── 백그라운드 서비스 비활성화 ───
       "com.apple.gamed".Disabled = true;
@@ -198,13 +202,16 @@
       "com.apple.cloudd".BackgroundSyncInterval = 3600; # 1시간
       "com.apple.speech.recognition.AppleSpeechRecognition.prefs".DictationIMMasterDictationEnabled =
         false;
-      "com.apple.FaceTime".AutoAcceptInvites = false;
+      # Note: FaceTime preferences are sandboxed and cannot be set via defaults write
+      # "com.apple.FaceTime".AutoAcceptInvites = false;
       "com.apple.commerce" = {
         AutoUpdate = false;
         AutoUpdateRestartRequired = false;
       };
-      "com.apple.Music".disableRadio = true;
-      "com.apple.podcasts".MTAutoDownloadEnabled = false;
+      # Note: Music preferences are sandboxed and cannot be set via defaults write
+      # "com.apple.Music".disableRadio = true;
+      # Note: Podcasts preferences are sandboxed and cannot be set via defaults write
+      # "com.apple.podcasts".MTAutoDownloadEnabled = false;
 
       # ─── 추가 백그라운드 서비스 비활성화 ───
       "com.apple.cloudphotod".Disabled = true; # iCloud Photos 동기화
