@@ -35,10 +35,15 @@ in
 {
   programs.git = {
     enable = true;
-    userName = name;
-    userEmail = email;
     lfs = {
       enable = true;
+    };
+
+    settings = {
+      user = {
+        name = name;
+        email = email;
+      };
     };
 
     ignores = [
@@ -84,7 +89,7 @@ in
       "plans/"
     ];
 
-    extraConfig = {
+    settings = {
       init.defaultBranch = "main";
       core = {
         editor = "vim";
