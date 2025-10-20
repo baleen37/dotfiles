@@ -16,39 +16,43 @@
 #   - xdg_stateHome: ~/.local/state
 
 {
-  userHome,
   ...
 }:
 
-let
-  xdg_configHome = "${userHome}/.config";
-in
 {
-  "${userHome}/.hammerspoon" = {
-    source = ./config/hammerspoon;
+  ".hammerspoon/init.lua" = {
+    source = ./config/hammerspoon/init.lua;
+  };
+
+  ".hammerspoon/configApplications.lua" = {
+    source = ./config/hammerspoon/configApplications.lua;
+  };
+
+  ".hammerspoon/Spoons" = {
+    source = ./config/hammerspoon/Spoons;
     recursive = true;
   };
 
-  "${xdg_configHome}/karabiner" = {
+  ".config/karabiner" = {
     source = ./config/karabiner;
     recursive = true;
   };
 
-  "${userHome}/Library/Preferences/com.lwouis.alt-tab-macos.plist" = {
+  "Library/Preferences/com.lwouis.alt-tab-macos.plist" = {
     source = ./config/alt-tab/com.lwouis.alt-tab-macos.plist;
   };
 
-  "${userHome}/Library/Preferences/com.runningwithcrayons.Alfred.plist" = {
+  "Library/Preferences/com.runningwithcrayons.Alfred.plist" = {
     source = ./config/alfred/com.runningwithcrayons.Alfred.plist;
   };
 
   # WezTerm configuration (restored from iTerm2)
-  "${xdg_configHome}/wezterm/wezterm.lua" = {
+  ".config/wezterm/wezterm.lua" = {
     source = ./config/wezterm/wezterm.lua;
   };
 
   # Keep iTerm2 config commented for backup
-  # "${userHome}/Library/Application Support/iTerm2/DynamicProfiles/DynamicProfiles.json" = {
+  # "Library/Application Support/iTerm2/DynamicProfiles/DynamicProfiles.json" = {
   #   source = ./config/iterm2/DynamicProfiles.json;
   # };
 

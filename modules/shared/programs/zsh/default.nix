@@ -139,7 +139,7 @@ in
         search_paths+=("intellij-idea-ultimate" "intellij-idea-community")
 
         ${lib.optionalString isDarwin ''
-          search_paths+=("/opt/homebrew/bin/idea" "/Applications/IntelliJ IDEA Ultimate.app/Contents/MacOS/idea")
+          search_paths+=("/opt/homebrew/bin/idea" "/Applications/IntelliJ IDEA.app/Contents/MacOS/idea" "/Applications/IntelliJ IDEA Ultimate.app/Contents/MacOS/idea")
         ''}
         ${lib.optionalString isLinux ''
           search_paths+=("/home/linuxbrew/.linuxbrew/bin/idea" "/usr/local/bin/idea")
