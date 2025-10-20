@@ -1,1 +1,1 @@
-@skills/collaboration/executing-plans/SKILL.md
+@skills/collaboration\_\_executing-plans
