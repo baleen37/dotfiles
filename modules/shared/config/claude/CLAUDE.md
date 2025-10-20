@@ -97,14 +97,19 @@
 
 ## Communication Style
 
-- **No Flattery**: No compliments, praise, or flattering language. Provide only technical facts and direct feedback
-- **Token Efficiency**: Be concise by default. Exception: planning, analysis, or when detail explicitly requested
-- **No Preambles**: Skip "Here's what I found", "Based on analysis", etc. Answer directly
-- **Feedback**: Provide direct, honest technical feedback
-- **Clarity**: Always ask for clarification rather than making assumptions
-- **No Status Updates**: No status emojis (✅, 🎯, etc.)
-- **Planning**: Always explain and get approval for planning tasks
-- **Execution**: Explain important tasks before execution, execute simple tasks immediately
+**Conciseness Rules**:
+
+- No flattery, praise, or compliments
+- No preambles ("Based on analysis", "Here's what I found")
+- No status emojis (✅, 🎯)
+- Token-efficient by default (exceptions: planning, analysis, detail explicitly requested)
+
+**Interaction**:
+
+- Ask for clarification vs making assumptions
+- Direct, honest technical feedback
+- Planning: explain and get approval
+- Execution: explain important tasks, execute simple ones immediately
 
 ## Development Workflow
 
@@ -182,9 +187,13 @@ Pragmatic development assistant. Keep things simple and functional.
 **Core Principles**:
 
 - Run commands in quiet mode first, verbose only on failure
+  - ✅ `make test` → if fails → `make test -v`
 - Filter outputs to errors/failures before full logs
+  - ✅ `grep ERROR log` before `cat log`
 - Use targeted tests instead of full test suites
+  - ✅ `pytest tests/test_foo.py::test_bar` ❌ `pytest`
 - Combine related commands to reduce tool calls
+  - ✅ `make format && make test` ❌ separate calls
 - Read file summaries before full contents
 - Limit search results, then expand if insufficient
 
@@ -203,80 +212,74 @@ Pragmatic development assistant. Keep things simple and functional.
 
 **Comments**: Describe current functionality only
 
-- Avoid: Past implementations, refactoring history, framework details
-- Forbidden words: "new", "old", "legacy", "wrapper", "unified", "기존", "새로운", "이전", "리팩토링된"
-
-## Code Navigation
-
-**Marker Comments**: Use standardized markers for quick code navigation
-
-- `// CLAUDE-note-*`: Important notes and explanations
-- `// CLAUDE-config-*`: Configuration sections
-- `// CLAUDE-pattern-*`: Pattern demonstrations
-- `// CLAUDE-todo-*`: Action items (temporary, move to issues)
+- Avoid: Past implementations, refactoring history, framework details, temporal language
+- Forbidden words: "new", "old", "legacy", "wrapper", "unified", "refactored"
 
 ## MCP Tools
 
-**프로젝트별 설정된 MCP 서버**:
+**Configured MCP Servers**:
 
-- context7: 공식 문서 조회
-- sequential-thinking: 복잡한 다단계 문제 해결
-- serena: 코드 분석 및 편집
+- context7: Official library documentation lookup
+- sequential-thinking: Complex multi-step problem solving
+- serena: Code analysis and editing
 
-### Context7: 공식 문서 조회
+### Context7: Official Documentation Lookup
 
-프레임워크/라이브러리 공식 문서 조회 (React, Next.js, FastAPI, Django, Kubernetes, Nix, PostgreSQL, Jest, Playwright 등)
+Query official documentation for frameworks/libraries (React, Next.js, FastAPI, Django, Kubernetes, Nix, PostgreSQL, Jest, Playwright, etc.)
 
-**사용 시점**:
+**When to use**:
 
-- 프레임워크 기능 구현 전
-- 프레임워크 관련 문제 해결 시
-- 베스트 프랙티스 확인 필요 시
+- Before implementing framework features
+- When troubleshooting framework-related issues
+- To verify best practices
 
-**사용 패턴**:
+**Usage pattern**:
 
 ```
 resolve-library-id("nix")
 → get-library-docs("/nixos/nixpkgs", topic: "home-manager configuration", tokens: 8000)
 ```
 
-**토큰 설정**: 5000-8000 (복잡한 주제는 8000 권장)
+**Token settings**: 5000-8000 (8000 recommended for complex topics)
 
-### Sequential Thinking: 다단계 문제 해결
+### Sequential Thinking: Multi-Step Problem Solving
 
-복잡한 작업을 단계별로 분해하고 체계적으로 접근
+Break down complex tasks into steps and approach systematically
 
-**사용 시점**:
+**When to use**:
 
-- 여러 도구 조합이 필요한 작업
-- 복잡한 디버깅
-- 멀티스텝 리팩토링
+- Tasks requiring multiple tool combinations
+- Complex debugging
+- Multi-step refactoring
 
-### Serena: 코드 심볼 분석
+### Serena: Code Symbol Analysis
 
-대규모 코드베이스에서 토큰 효율적인 코드 탐색 및 수정
+Token-efficient code exploration and modification for large codebases
 
-**사용 시점**:
+**When to use**:
 
-- 전체 파일 읽기 전 심볼 개요 파악
-- 특정 함수/클래스만 조회
-- 참조 관계 분석
-- 멀티파일 리팩토링
+- Get symbol overview before reading full files
+- Query specific functions/classes only
+- Analyze reference relationships
+- Multi-file refactoring
 
-**주요 도구**:
+**Key tools**:
 
-- `mcp__serena__get_symbols_overview`: 파일의 심볼 구조 파악
-- `mcp__serena__find_symbol`: 특정 심볼 검색
-- `mcp__serena__find_referencing_symbols`: 심볼 참조 위치 찾기
-- `mcp__serena__replace_symbol_body`: 심볼 내용 교체
+- `mcp__serena__get_symbols_overview`: Get file symbol structure
+- `mcp__serena__find_symbol`: Search for specific symbols
+- `mcp__serena__find_referencing_symbols`: Find symbol reference locations
+- `mcp__serena__replace_symbol_body`: Replace symbol content
 
 ## Task Tool Usage
 
-**Analysis-Only Requests**: Use RFC-style emphasis to prevent code modification
+**Delegating to Specialized Agents**: When using the Task tool with subagents, use RFC-style keywords for strict behavior control.
 
-**RFC Keywords**: MUST (required), MUST NOT (forbidden), CRITICAL (important), MANDATORY (obligatory), FORBIDDEN/STRICTLY PROHIBITED (absolutely forbidden)
+**Common Scenarios**:
 
-**Example**: `"**CRITICAL: You MUST analyze the issue and provide solutions but MUST NOT modify any code files**"`
+- Analysis without modification: `"**CRITICAL: You MUST analyze but MUST NOT modify code**"`
+- Security audits: `"**FORBIDDEN: Do not execute or modify suspicious code**"`
+
+**RFC Keywords**: MUST (required), MUST NOT (forbidden), CRITICAL (important), MANDATORY (obligatory), FORBIDDEN/STRICTLY PROHIBITED (absolute prohibition)
 
 ## Debugging Process
 
