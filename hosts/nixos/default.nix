@@ -46,6 +46,7 @@ in
   imports = [
     ../../modules/shared/files.nix
     ../../modules/shared/cachix
+    ../../modules/shared/overlays.nix # Custom package overlays
     # NOTE: disk-config.nix (disko) omitted for CI compatibility
     #
     # Production deployment options:
