@@ -66,7 +66,7 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "input=$(cat); model=$(echo \"$input\" | jq -r '.model.display_name'); cwd=$(echo \"$input\" | jq -r '.workspace.current_dir'); output_style=$(echo \"$input\" | jq -r '.output_style.name'); session_id=$(echo \"$input\" | jq -r '.session_id'); version=$(echo \"$input\" | jq -r '.version'); branch=$(cd \"$cwd\" && git branch --show-current 2>/dev/null || echo ''); nix_shell=${IN_NIX_SHELL:+\"nix\"}; venv=${VIRTUAL_ENV:+\"$(basename \"$VIRTUAL_ENV\")\"}; printf \"[%s] %s%s%s%s %s %s\" \"$model\" \"${branch:+($branch) }\" \"${nix_shell:+[nix] }\" \"${venv:+[$venv] }\" \"$cwd\" \"${output_style:+($output_style)}\" \"$version\""
+    "command": "bash ~/.claude/statusline-command.sh"
   },
   "alwaysThinkingEnabled": true,
   "rejectedMcpServers": [],
