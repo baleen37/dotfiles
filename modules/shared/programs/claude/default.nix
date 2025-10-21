@@ -85,39 +85,9 @@ in
     # Global claude-hooks binary for terminal use
     packages = [ claudeHooks ];
 
-    # Direct symlinks to dotfiles using mkOutOfStoreSymlink
-    # mkOutOfStoreSymlink creates out-of-store direct symlinks (not through Nix store)
+    # Only hooks directory managed by Nix store (contains compiled Go binary)
+    # All other files are managed by activation script for direct symlinks to local dotfiles
     file = {
-      # Settings file - editable without rebuild
-      "${claudeHomeDir}/settings.json" = {
-        source = config.lib.file.mkOutOfStoreSymlink "${claudeConfigDirSource}/settings.json";
-        force = true;
-      };
-
-      # Documentation - editable without rebuild
-      "${claudeHomeDir}/CLAUDE.md" = {
-        source = config.lib.file.mkOutOfStoreSymlink "${claudeConfigDirSource}/CLAUDE.md";
-        force = true;
-      };
-
-      # Commands directory - editable without rebuild
-      "${claudeHomeDir}/commands" = {
-        source = config.lib.file.mkOutOfStoreSymlink "${claudeConfigDirSource}/commands";
-        force = true;
-      };
-
-      # Agents directory - editable without rebuild
-      "${claudeHomeDir}/agents" = {
-        source = config.lib.file.mkOutOfStoreSymlink "${claudeConfigDirSource}/agents";
-        force = true;
-      };
-
-      # Skills directory - editable without rebuild
-      "${claudeHomeDir}/skills" = {
-        source = config.lib.file.mkOutOfStoreSymlink "${claudeConfigDirSource}/skills";
-        force = true;
-      };
-
       # Hooks directory - Nix store (contains compiled Go binary)
       "${claudeHomeDir}/hooks" = {
         source = hooksDir;
@@ -125,6 +95,57 @@ in
       };
     };
   };
+
+  # Activation script for direct symlinks to local dotfiles repository
+  # This bypasses Nix store completely and creates true out-of-store symlinks
+  home.activation.setupClaudeDirectSymlinks = config.lib.dag.entryAfter [ "writeBoundary" ] ''
+    # Claude configuration setup - Direct symlinks to local dotfiles
+    CLAUDE_HOME="$HOME/.claude"
+    CLAUDE_SOURCE_DIR="${claudeConfigDirSource}"
+
+    # Ensure source directory exists
+    if [[ ! -d "$CLAUDE_SOURCE_DIR" ]]; then
+      echo "⚠️  Claude source directory not found: $CLAUDE_SOURCE_DIR"
+      exit 1
+    fi
+
+    # Create Claude home directory if it doesn't exist
+    mkdir -p "$CLAUDE_HOME"
+
+    # Define files and directories to symlink
+    FILES=(
+      "settings.json"
+      "CLAUDE.md"
+      "agents"
+      "commands"
+      "skills"
+    )
+
+    echo "🔗 Setting up Claude direct symlinks..."
+
+    # Remove any existing Nix store links and create direct symlinks
+    for file in "''${FILES[@]}"; do
+      target="$CLAUDE_HOME/$file"
+      source="$CLAUDE_SOURCE_DIR/$file"
+
+      # Remove existing link/file if it exists
+      if [[ -e "$target" || -L "$target" ]]; then
+        rm -f "$target"
+      fi
+
+      # Create direct symlink if source exists
+      if [[ -e "$source" ]]; then
+        ln -sf "$source" "$target"
+        echo "  ✅ $file → local dotfiles"
+      else
+        echo "  ⚠️  Source not found: $source"
+      fi
+    done
+
+    echo "✅ Claude direct symlinks setup complete!"
+    echo "   📁 Source: $CLAUDE_SOURCE_DIR"
+    echo "   🎯 Target: $CLAUDE_HOME"
+  '';
 
   # No programs configuration needed
   programs = { };
