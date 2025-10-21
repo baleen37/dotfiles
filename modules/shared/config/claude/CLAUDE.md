@@ -294,3 +294,4 @@ Token-efficient code exploration and modification for large codebases
 5. Form single hypothesis, test minimally, verify before continuing
 
 **Rules**: Simplest failing test case → single fix → test → re-analyze if needed
+테스트용 주석 추가
