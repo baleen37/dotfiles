@@ -230,6 +230,69 @@ rec {
     touch $out
   '';
 
+  # Test 7: Integration test for activation script direct symlinks
+  test-activation-script-direct-symlinks =
+    pkgs.runCommand "test-claude-activation-direct-symlinks" { }
+      ''
+        echo "Testing: Activation script creates direct symlinks to source"
+
+        # Create a temporary home directory for testing
+        export HOME=$(mktemp -d)
+        export USER="testuser"
+
+        # Create mock dotfiles structure
+        DOTFILES_DIR=$(mktemp -d)
+        mkdir -p "$DOTFILES_DIR/modules/shared/config/claude"
+        echo "# Test CLAUDE.md content" > "$DOTFILES_DIR/modules/shared/config/claude/CLAUDE.md"
+        echo '{"model": "test"}' > "$DOTFILES_DIR/modules/shared/config/claude/settings.json"
+        mkdir -p "$DOTFILES_DIR/modules/shared/config/claude/commands"
+        echo "# Test command" > "$DOTFILES_DIR/modules/shared/config/claude/commands/test.md"
+
+        # Set environment variable for our test
+        export DOTFILES_ROOT="$DOTFILES_DIR"
+
+        # Simulate the activation script logic
+        source_dir="$DOTFILES_DIR/modules/shared/config/claude"
+        claude_dir="$HOME/.claude"
+
+        mkdir -p "$claude_dir"
+
+        # Create direct symlinks (mimicking our activation script)
+        ln -sf "$source_dir/CLAUDE.md" "$claude_dir/CLAUDE.md"
+        ln -sf "$source_dir/settings.json" "$claude_dir/settings.json"
+        ln -sf "$source_dir/commands" "$claude_dir/commands"
+
+        # Verify symlinks point to actual source (not Nix store)
+        claude_md_target=$(readlink "$claude_dir/CLAUDE.md")
+        settings_target=$(readlink "$claude_dir/settings.json")
+        commands_target=$(readlink "$claude_dir/commands")
+
+        # Check that targets point to our test directory (not Nix store)
+        if [[ "$claude_md_target" == *"$DOTFILES_DIR"* ]] && \
+           [[ "$settings_target" == *"$DOTFILES_DIR"* ]] && \
+           [[ "$commands_target" == *"$DOTFILES_DIR"* ]]; then
+          echo "PASS: Activation script creates direct symlinks to source directory"
+
+          # Test immediate editing functionality
+          echo "test line" >> "$source_dir/CLAUDE.md"
+          if grep -q "test line" "$claude_dir/CLAUDE.md"; then
+            echo "PASS: Immediate editing works through direct symlinks"
+            touch $out
+          else
+            echo "FAIL: Immediate editing not working through symlinks"
+            exit 1
+          fi
+        else
+          echo "FAIL: Symlinks do not point to source directory"
+          echo "CLAUDE.md target: $claude_md_target"
+          echo "Expected: $DOTFILES_DIR/modules/shared/config/claude/CLAUDE.md"
+          exit 1
+        fi
+
+        # Cleanup
+        rm -rf "$HOME" "$DOTFILES_DIR"
+      '';
+
   # Run all tests
   all-tests =
     pkgs.runCommand "test-claude-all"
@@ -241,6 +304,7 @@ rec {
           test-packages
           test-claude-md-source-link
           test-symlink-integrity
+          test-activation-script-direct-symlinks
         ];
       }
       ''

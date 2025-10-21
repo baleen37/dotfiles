@@ -88,15 +88,16 @@ in
 
     # Direct symlinks to dotfiles for all Claude configuration
     file = {
-      # Main settings file - via Nix store for immutability
+      # Main settings file - direct link for immediate editing
       "${claudeHomeDir}/settings.json" = {
-        source = "${claudeConfigDirNix}/settings.json";
+        source = config.lib.file.mkOutOfStoreSymlink "${claudeConfigDirSource}/settings.json";
         onChange = ''
           echo "Claude settings.json updated"
         '';
       };
 
       # CLAUDE.md documentation - direct link to source directory (editable without rebuild)
+      # Use absolute path for true direct symlink to source
       "${claudeHomeDir}/CLAUDE.md" = {
         source = config.lib.file.mkOutOfStoreSymlink "${claudeConfigDirSource}/CLAUDE.md";
       };
@@ -126,5 +127,81 @@ in
 
   # No programs configuration needed
   programs = { };
+
+  # Post-activation script to create direct symlinks
+  # Home Manager creates Nix store links, then we override them with direct symlinks
+  home.activation.claudeDirectSymlinks = config.lib.dag.entryAfter [ "linkGeneration" ] ''
+    # Claude 설정 디렉토리
+    CLAUDE_DIR="$HOME/.claude"
+
+    # 자동으로 dotfiles 레포 위치 찾기 (Git 기반)
+    find_dotfiles_root() {
+      # 현재 위치에서부터 상위로 Git 저장소 탐색
+      local current_dir="$(pwd)"
+      while [[ "$current_dir" != "/" ]]; do
+        if [[ -f "$current_dir/flake.nix" && -d "$current_dir/modules/shared/config/claude" ]]; then
+          echo "$current_dir"
+          return
+        fi
+        current_dir="$(dirname "$current_dir")"
+      done
+
+      # Git 저장소를 찾지 못하면 환경 변수 사용
+      if [[ -n "''${DOTFILES_ROOT:-}" && -d "''${DOTFILES_ROOT}/modules/shared/config/claude" ]]; then
+        echo "''${DOTFILES_ROOT}"
+        return
+      fi
+
+      # 실패 메시지
+      echo "❌ dotfiles 레포지토리를 찾을 수 없습니다."
+      echo "   dotfiles 레포지토리에서 'make switch'를 실행하거나"
+      echo "   export DOTFILES_ROOT=/path/to/dotfiles 설정해주세요."
+      echo ""
+    }
+
+    DOTFILES_ROOT=$(find_dotfiles_root)
+    if [[ -z "$DOTFILES_ROOT" ]]; then
+      echo ""
+      exit 0
+    fi
+
+    SOURCE_DIR="$DOTFILES_ROOT/modules/shared/config/claude"
+
+    echo "Creating direct symlinks for Claude configuration..."
+    echo "Source directory: $SOURCE_DIR"
+
+    # 디렉토리 생성
+    mkdir -p "$CLAUDE_DIR"
+
+    # 직접 심볼릭 링크 생성 (Home Manager 링크 덮어쓰기)
+    # settings.json
+    echo "Linking settings.json..."
+    rm -f "$CLAUDE_DIR/settings.json"
+    ln -sf "$SOURCE_DIR/settings.json" "$CLAUDE_DIR/settings.json"
+
+    # CLAUDE.md
+    echo "Linking CLAUDE.md..."
+    rm -f "$CLAUDE_DIR/CLAUDE.md"
+    ln -sf "$SOURCE_DIR/CLAUDE.md" "$CLAUDE_DIR/CLAUDE.md"
+
+    # commands 디렉토리
+    echo "Linking commands directory..."
+    rm -f "$CLAUDE_DIR/commands"
+    ln -sf "$SOURCE_DIR/commands" "$CLAUDE_DIR/commands"
+
+    # agents 디렉토리
+    echo "Linking agents directory..."
+    rm -f "$CLAUDE_DIR/agents"
+    ln -sf "$SOURCE_DIR/agents" "$CLAUDE_DIR/agents"
+
+    # skills 디렉토리
+    echo "Linking skills directory..."
+    rm -f "$CLAUDE_DIR/skills"
+    ln -sf "$SOURCE_DIR/skills" "$CLAUDE_DIR/skills"
+
+    # hooks는 Home Manager 관리 (Go 바이너리)
+    echo "Claude direct symlinks created successfully!"
+    echo "Settings files now point directly to: $SOURCE_DIR"
+  '';
 }
 # Trigger rebuild
