@@ -101,7 +101,35 @@ in
   home.activation.setupClaudeDirectSymlinks = config.lib.dag.entryAfter [ "writeBoundary" ] ''
     # Claude configuration setup - Direct symlinks to local dotfiles
     CLAUDE_HOME="$HOME/.claude"
-    CLAUDE_SOURCE_DIR="${claudeConfigDirSource}"
+    # Dynamically find the dotfiles repository by searching for a known file
+    # Look for .git directory or flake.nix to identify the dotfiles repo
+    CLAUDE_SOURCE_DIR=""
+
+    # Search from current directory and common locations
+    SEARCH_PATHS=(
+      "$(pwd)"
+      "$HOME/dev/dotfiles"
+      "/Users/jito/dev/dotfiles"
+      "$HOME/projects/dotfiles"
+    )
+
+    for search_path in "''${SEARCH_PATHS[@]}"; do
+      if [[ -d "$search_path/.git" ]] && [[ -d "$search_path/modules/shared/config/claude" ]]; then
+        CLAUDE_SOURCE_DIR="$search_path/modules/shared/config/claude"
+        break
+      elif [[ -f "$search_path/flake.nix" ]] && [[ -d "$search_path/modules/shared/config/claude" ]]; then
+        CLAUDE_SOURCE_DIR="$search_path/modules/shared/config/claude"
+        break
+      fi
+    done
+
+    # Fallback to Nix store if no local repo found
+    if [[ -z "$CLAUDE_SOURCE_DIR" ]]; then
+      CLAUDE_SOURCE_DIR="${claudeConfigDirSource}"
+      echo "⚠️  Using Nix store source (local dotfiles not found)"
+    else
+      echo "✅ Found local dotfiles repository"
+    fi
 
     # Ensure source directory exists
     if [[ ! -d "$CLAUDE_SOURCE_DIR" ]]; then
