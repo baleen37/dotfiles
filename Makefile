@@ -88,7 +88,13 @@ switch: check-user
 		sudo -E env USER=$(USER) ./result/sw/bin/darwin-rebuild switch --impure --flake .#$${TARGET} $(ARGS) || exit 1; \
 		rm -f ./result; \
 	else \
-		sudo -E USER=$(USER) SSH_AUTH_SOCK=$$SSH_AUTH_SOCK nixos-rebuild switch --impure --flake .#$${TARGET} $(ARGS); \
+		if [ -f /etc/nixos/configuration.nix ]; then \
+			echo "🐧 NixOS detected: Applying full system configuration..."; \
+			sudo -E USER=$(USER) SSH_AUTH_SOCK=$$SSH_AUTH_SOCK nixos-rebuild switch --impure --flake .#$${TARGET} $(ARGS); \
+		else \
+			echo "ℹ️  Ubuntu detected: Applying user configuration only..."; \
+			home-manager switch --flake ".#$(USER)" -b backup --impure $(ARGS); \
+		fi \
 	fi
 
 switch-user: check-user
