@@ -25,6 +25,14 @@
 }:
 
 let
+  # Common test platforms - consistent with unit tests
+  allTestPlatforms = [
+    "x86_64-linux"
+    "aarch64-linux"
+    "x86_64-darwin"
+    "aarch64-darwin"
+  ];
+
   # Use provided NixTest framework and helpers (or fallback to local imports)
   nixtestFinal =
     if nixtest != null then
@@ -49,12 +57,7 @@ let
       "x86_64-linux"
       "aarch64-linux"
     ];
-    all = [
-      "x86_64-darwin"
-      "aarch64-darwin"
-      "x86_64-linux"
-      "aarch64-linux"
-    ];
+    all = allTestPlatforms;
   };
 
   # Test system configurations for each platform

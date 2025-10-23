@@ -26,6 +26,7 @@ help:
 	@echo ""
 	@echo "🔨 Build & Deploy:"
 	@echo "  build       - Build current platform"
+	@echo "  build-switch - Build system (same as switch)"
 	@echo "  switch      - Build + apply system config"
 	@echo "  switch-user - Apply user config only (faster)"
 	@echo ""
@@ -79,6 +80,17 @@ build: check-user
 		echo "✅ NixOS configuration validated successfully"; \
 	fi
 
+build-switch: check-user
+	@echo "🚀 Building system configuration..."
+	@OS=$$(uname -s); \
+	TARGET=$${HOST:-$(CURRENT_SYSTEM)}; \
+	if [ "$${OS}" = "Darwin" ]; then \
+		export USER=$(USER); $(NIX) build --impure --quiet .#darwinConfigurations.$${TARGET}.system $(ARGS) || exit 1; \
+	else \
+		echo "ℹ️  NixOS: Running build for system configuration..."; \
+		export USER=$(USER); $(NIX) build --impure --quiet .#nixosConfigurations.$${TARGET}.config.system.build.toplevel $(ARGS) || exit 1; \
+	fi
+
 switch: check-user
 	@echo "🚀 Switching system configuration..."
 	@OS=$$(uname -s); \
@@ -95,4 +107,4 @@ switch-user: check-user
 	@echo "🏠 Switching user configuration (Home Manager)..."
 	@home-manager switch --flake ".#$(USER)" -b backup --impure $(ARGS)
 
-.PHONY: help check-user format lint lint-quick test test-quick test-all build switch switch-user
+.PHONY: help check-user format lint lint-quick test test-quick test-all build build-switch switch switch-user
