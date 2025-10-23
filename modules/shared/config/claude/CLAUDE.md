@@ -97,6 +97,8 @@
 
 ## Communication Style
 
+**Language**: Always communicate in Korean (한국어) with this user.
+
 **Conciseness Rules**:
 
 - No flattery, praise, or compliments

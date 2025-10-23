@@ -24,6 +24,14 @@
 }:
 
 let
+  # Common test platforms - used across multiple test suites
+  allTestPlatforms = [
+    "x86_64-linux"
+    "aarch64-linux"
+    "x86_64-darwin"
+    "aarch64-darwin"
+  ];
+
   # Use provided NixTest framework and helpers (or fallback to local imports)
   nixtestFinal =
     if nixtest != null then nixtest else (import ./nixtest-template.nix { inherit lib pkgs; }).nixtest;
@@ -42,12 +50,7 @@ let
 
   # Test data for comprehensive testing
   testData = {
-    validSystems = [
-      "x86_64-linux"
-      "aarch64-linux"
-      "x86_64-darwin"
-      "aarch64-darwin"
-    ];
+    validSystems = allTestPlatforms;
 
     invalidSystems = [
       "invalid-system"
