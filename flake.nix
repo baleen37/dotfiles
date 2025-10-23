@@ -333,8 +333,10 @@
                 cross-platform
                 system-configuration
                 makefile-experimental-features
+                switch-failure-recovery
                 build-switch-e2e
                 user-workflow-e2e
+                switch-platform-execution-e2e
                 claude-hooks-e2e
                 all
                 ;

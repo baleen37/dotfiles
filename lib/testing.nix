@@ -103,6 +103,16 @@ in
         inherit lib pkgs;
       };
 
+      # Import switch failure recovery test
+      switchFailureRecoveryTest = import (self + /tests/integration/switch-failure-recovery-test.nix) {
+        inherit
+          lib
+          pkgs
+          system
+          nixtest
+          ;
+      };
+
       # Import e2e test suites directly (not using default.nix wrapper)
       buildSwitchTests = import (self + /tests/e2e/build-switch-test.nix) {
         inherit
@@ -124,6 +134,16 @@ in
       # Import claude-hooks e2e tests
       claudeHooksTests = import (self + /tests/e2e/claude-hooks-test.nix) {
         inherit pkgs;
+      };
+
+      # Import switch platform execution e2e tests
+      switchPlatformExecutionTests = import (self + /tests/e2e/switch-platform-execution-test.nix) {
+        inherit
+          lib
+          pkgs
+          system
+          nixtest
+          ;
       };
 
       # Helper function to run test suites and format results
@@ -161,6 +181,9 @@ in
       # Makefile switch commands test (direct derivation)
       makefileSwitchCommandsTestSuite = makefileSwitchCommandsTest;
 
+      # Switch failure recovery test (direct derivation)
+      switchFailureRecoveryTestSuite = switchFailureRecoveryTest;
+
       # Integration test derivations
       moduleInteractionTestSuite = runTestSuite moduleInteractionTests;
       crossPlatformTestSuite = runTestSuite crossPlatformTests;
@@ -170,6 +193,7 @@ in
       # E2E test derivations
       buildSwitchTestSuite = runTestSuite buildSwitchTests;
       userWorkflowTestSuite = runTestSuite userWorkflowTests;
+      switchPlatformExecutionTestSuite = runTestSuite switchPlatformExecutionTests;
 
       # Claude hooks e2e tests (direct derivations, not using runTestSuite)
       claudeHooksAllTests = claudeHooksTests.all-tests;
@@ -193,16 +217,18 @@ in
             cp ${makefileSwitchCommandsTestSuite} $out/results/unit-tests/makefile-switch-commands/result
 
             # Copy integration test results
-            mkdir -p $out/results/integration-tests/module-interaction $out/results/integration-tests/cross-platform $out/results/integration-tests/system-configuration $out/results/integration-tests/makefile-experimental-features
+            mkdir -p $out/results/integration-tests/module-interaction $out/results/integration-tests/cross-platform $out/results/integration-tests/system-configuration $out/results/integration-tests/makefile-experimental-features $out/results/integration-tests/switch-failure-recovery
             cp -r ${moduleInteractionTestSuite}/* $out/results/integration-tests/module-interaction/
             cp -r ${crossPlatformTestSuite}/* $out/results/integration-tests/cross-platform/
             cp -r ${systemConfigurationTestSuite}/* $out/results/integration-tests/system-configuration/
             cp -r ${makefileExperimentalFeaturesTestSuite}/* $out/results/integration-tests/makefile-experimental-features/
+            cp ${switchFailureRecoveryTestSuite} $out/results/integration-tests/switch-failure-recovery/result
 
             # Copy e2e test results
-            mkdir -p $out/results/e2e-tests/build-switch $out/results/e2e-tests/user-workflow $out/results/e2e-tests/claude-hooks
+            mkdir -p $out/results/e2e-tests/build-switch $out/results/e2e-tests/user-workflow $out/results/e2e-tests/claude-hooks $out/results/e2e-tests/switch-platform-execution
             cp -r ${buildSwitchTestSuite}/* $out/results/e2e-tests/build-switch/
             cp -r ${userWorkflowTestSuite}/* $out/results/e2e-tests/user-workflow/
+            cp -r ${switchPlatformExecutionTestSuite}/* $out/results/e2e-tests/switch-platform-execution/
 
             # Claude hooks e2e tests (single derivation, not a suite)
             echo "Claude Hooks E2E Tests: COMPLETED" > $out/results/e2e-tests/claude-hooks/summary.txt
@@ -247,6 +273,11 @@ in
             cat ${makefileExperimentalFeaturesTestSuite}/summary.txt | sed 's/^/  /' >> $out/report.txt
             echo "" >> $out/report.txt
 
+            echo "Switch Failure Recovery Tests:" >> $out/report.txt
+            echo "  Test Suite: switch-failure-recovery" >> $out/report.txt
+            echo "  Status: COMPLETED" >> $out/report.txt
+            echo "" >> $out/report.txt
+
             # Add e2e test suite summaries
             echo "E2E TESTS" >> $out/report.txt
             echo "---------" >> $out/report.txt
@@ -256,6 +287,10 @@ in
 
             echo "User Workflow Tests:" >> $out/report.txt
             cat ${userWorkflowTestSuite}/summary.txt | sed 's/^/  /' >> $out/report.txt
+            echo "" >> $out/report.txt
+
+            echo "Switch Platform Execution Tests:" >> $out/report.txt
+            cat ${switchPlatformExecutionTestSuite}/summary.txt | sed 's/^/  /' >> $out/report.txt
             echo "" >> $out/report.txt
 
             echo "All test suites completed successfully." >> $out/report.txt
@@ -276,10 +311,12 @@ in
       cross-platform = crossPlatformTestSuite;
       system-configuration = systemConfigurationTestSuite;
       makefile-experimental-features = makefileExperimentalFeaturesTestSuite;
+      switch-failure-recovery = switchFailureRecoveryTestSuite;
 
       # E2E test suites
       build-switch-e2e = buildSwitchTestSuite;
       user-workflow-e2e = userWorkflowTestSuite;
+      switch-platform-execution-e2e = switchPlatformExecutionTestSuite;
       claude-hooks-e2e = claudeHooksAllTests;
 
       # Combined test runner
@@ -339,6 +376,13 @@ in
           echo "Makefile experimental features test file exists: PASSED" >> $out
         else
           echo "Makefile experimental features test file missing: FAILED" >> $out
+          exit 1
+        fi
+
+        if [ -f "${self + /tests/integration/switch-failure-recovery-test.nix}" ]; then
+          echo "Switch failure recovery test file exists: PASSED" >> $out
+        else
+          echo "Switch failure recovery test file missing: FAILED" >> $out
           exit 1
         fi
 
