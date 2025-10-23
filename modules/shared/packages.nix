@@ -51,6 +51,7 @@ let
     pre-commit # Pre-commit hooks framework
     gemini-cli # Command-line interface for Gemini
     claude-code # AI code generation tool
+    opencode # AI coding agent built for the terminal
     nixfmt # Official formatter for Nix code
     statix # Nix anti-pattern linter
     deadnix # Dead code detector for Nix
