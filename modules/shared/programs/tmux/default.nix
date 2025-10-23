@@ -72,39 +72,34 @@ in
       set -g repeat-time 500
       set -g status-interval 1
 
-      # Session stability settings
-      set -g set-clipboard external
+      # Session stability settings with security-first clipboard policy
+      set -g set-clipboard off  # 보안: 기본적으로 외부 클립보드 비활성화
       set -g remain-on-exit off
       set -g allow-rename off
       set -g destroy-unattached off
 
-      # Enhanced copy-paste with platform awareness
+      # Standard copy-paste configuration (works everywhere)
       setw -g mode-keys vi
       bind-key -T copy-mode-vi v send-keys -X begin-selection
-
-      # Platform-optimized clipboard integration
-      ${lib.optionalString isDarwin ''
-        # macOS: Use pbcopy/pbpaste when available
-        if command -v pbcopy >/dev/null 2>&1; then
-          bind-key -T copy-mode-vi y send-keys -X copy-pipe-and-cancel "pbcopy"
-          bind-key -T copy-mode-vi Enter send-keys -X copy-pipe-and-cancel "pbcopy"
-          bind-key ] run "pbpaste | tmux load-buffer - && tmux paste-buffer"
-        fi
-      ''}
-      ${lib.optionalString isLinux ''
-        # Linux: Use xclip when available
-        if command -v xclip >/dev/null 2>&1; then
-          bind-key -T copy-mode-vi y send-keys -X copy-pipe-and-cancel "xclip -in -selection clipboard"
-          bind-key -T copy-mode-vi Enter send-keys -X copy-pipe-and-cancel "xclip -in -selection clipboard"
-          bind-key ] run "xclip -out -selection clipboard | tmux load-buffer - && tmux paste-buffer"
-        fi
-      ''}
-
-      # Fallback to tmux buffer (universal)
-      bind-key -T copy-mode-vi Y send-keys -X copy-selection-and-cancel
+      bind-key -T copy-mode-vi y send-keys -X copy-selection-and-cancel
+      bind-key -T copy-mode-vi Enter send-keys -X copy-selection-and-cancel
       bind-key -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-selection-and-cancel
 
-      # Buffer management shortcuts
+      # Simple platform-specific clipboard integration
+      ${lib.optionalString isDarwin ''
+        # macOS: pbcopy/pbpaste integration
+        bind-key C-c run "tmux save-buffer - | pbcopy"
+        bind-key C-v run "pbpaste | tmux load-buffer -"
+      ''}
+      ${lib.optionalString isLinux ''
+        # Linux: xclip integration with fallback
+        if command -v xclip >/dev/null 2>&1; then
+          bind-key C-c run "tmux save-buffer - | xclip -in -selection clipboard >/dev/null"
+          bind-key C-v run "xclip -out -selection clipboard | tmux load-buffer -"
+        fi
+      ''}
+
+      # Standard buffer management
       bind-key P paste-buffer
       bind-key b list-buffers
       bind-key B choose-buffer
