@@ -65,6 +65,7 @@ test-all:
 	@$(NIX) build --impure --quiet .#packages.$(CURRENT_SYSTEM).lib-functions $(ARGS)
 	@$(NIX) build --impure --quiet .#packages.$(CURRENT_SYSTEM).module-interaction $(ARGS)
 	@$(NIX) build --impure --quiet .#packages.$(CURRENT_SYSTEM).build-switch-e2e $(ARGS)
+	@$(NIX) build --impure --quiet .#packages.$(CURRENT_SYSTEM).switch-platform-execution-e2e $(ARGS)
 	@echo "✅ All tests passed"
 
 
