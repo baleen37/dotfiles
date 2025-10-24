@@ -40,6 +40,9 @@ in
       # Claude CLI shortcut
       cc = "claude --dangerously-skip-permissions";
 
+      # OpenCode CLI shortcut
+      oc = "opencode";
+
       # Use difftastic for syntax-aware diffing
       diff = "difft";
 
