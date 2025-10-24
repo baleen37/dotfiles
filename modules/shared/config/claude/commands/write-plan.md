@@ -1,1 +1,1 @@
-@skills/collaboration\_\_writing-plans
+"Writing Plans" skill를 사용합니다.

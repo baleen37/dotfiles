@@ -1,1 +1,1 @@
-@skills/collaboration\_\_executing-plans
+"executing plans" skill를 사용합니다.
