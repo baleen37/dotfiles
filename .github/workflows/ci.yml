@@ -114,7 +114,7 @@ jobs:
           export HOST=${{ matrix.system }}
           echo "🏗️ Building ${{ matrix.name }} (${{ matrix.system }})"
           cd ${{ github.workspace }}
-          make build
+          make build-switch
   # Comprehensive test stage
   test:
     name: Test (Comprehensive)
