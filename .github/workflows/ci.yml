@@ -35,16 +35,27 @@ jobs:
 
       - name: Setup Nix with cache
         uses: ./.github/actions/setup-nix
+        with:
+          # Use PR source directory instead of working directory
+          path: ./
+
+      - name: Check PR source branch
+        id: pr-checkout
+        run: |
+          echo "PR Source Branch: ${{ github.head_ref }}"
+          echo "PR Target Branch: ${{ github.base_ref }}"
 
       - name: Lint
         run: |
           export USER=baleen
+          cd ${{ github.workspace }}
           git config --unset-all core.hooksPath || true
           make lint-quick
 
       - name: Quick Test
         run: |
           export USER=baleen
+          cd ${{ github.workspace }}
           make test-quick
   # Build and switch combined (faster, simpler)
   build-switch:
@@ -102,7 +113,7 @@ jobs:
           export USER=baleen
           export HOST=${{ matrix.system }}
           echo "🏗️ Building ${{ matrix.name }} (${{ matrix.system }})"
-
+          cd ${{ github.workspace }}
           make build
   # Comprehensive test stage
   test:
@@ -122,6 +133,7 @@ jobs:
         timeout-minutes: 20
         run: |
           export USER=baleen
+          cd ${{ github.workspace }}
           make test-all
   # CI completion and status reporting
   ci-complete:
