@@ -1,1 +1,5 @@
-"executing plans" skill를 사용합니다.
+---
+description: Execute plan in batches with review checkpoints
+---
+
+Use the executing-plans skill exactly as written
