@@ -30,12 +30,7 @@ in
 
 {
   imports = [
-    ../../modules/darwin/home-manager.nix
-    ../../modules/darwin/app-links.nix
-    ../../modules/darwin/nix-gc.nix # macOS 전용 갈비지 컬렉션 설정
-    ../../modules/darwin/performance-optimization.nix # macOS 성능 최적화
-    ../../modules/darwin/macos-app-cleanup.nix # macOS 기본 앱 클린업
-    ../../modules/darwin/aggressive-optimization.nix # 🚀 공격적 성능 최적화 (Spotlight 비활성화 등)
+    ../../users/baleen/darwin.nix # Consolidated macOS configuration
     ../../modules/shared/cachix # Binary cache configuration
     ../../modules/shared/overlays.nix # Custom package overlays
     ../../modules/shared
