@@ -186,43 +186,65 @@
       );
 
       # Direct NixOS configurations following dustinlyons pattern
-      # Skip if user cannot be determined (pure evaluation mode)
-      nixosConfigurations = nixpkgs.lib.optionalAttrs (user != "") (
-        nixpkgs.lib.genAttrs linuxSystems (
-          system:
-          nixpkgs.lib.nixosSystem {
-            inherit system;
-            specialArgs = {
-              inherit
-                inputs
-                self
-                user
-                claude-code-nix
-                ;
-            };
-            modules = [
-              ./hosts/nixos # Host config first to ensure allowUnfree is set at system level
-              # NOTE: disko.nixosModules.disko omitted for CI compatibility
-              # Production: Add disko module manually or use disko-install
-              home-manager.nixosModules.home-manager
-              {
-                home-manager = {
-                  useGlobalPkgs = true;
-                  useUserPackages = true;
-                  users.${user} = import ./modules/nixos/home-manager.nix;
-                  backupFileExtension = "bak";
-                  extraSpecialArgs = inputs // {
-                    inherit self;
-                  };
-                };
-              }
-            ];
-          }
-        )
-      );
 
-      # Simple direct Home Manager configurations
-      # Skip if user cannot be determined (pure evaluation mode)
+      # NixOS configurations - explicit system configurations
+      nixosConfigurations.nixos-vm-x86_64 = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        specialArgs = {
+          inherit
+            inputs
+            self
+            user
+            claude-code-nix
+            ;
+        };
+        modules = [
+          ./machines/nixos-vm.nix
+          ./users/${user}/nixos.nix
+          disko.nixosModules.disko
+          home-manager.nixosModules.home-manager
+          {
+            home-manager = {
+              useGlobalPkgs = true;
+              useUserPackages = true;
+              users.${user} = import ./users/${user}/home.nix;
+              backupFileExtension = "bak";
+              extraSpecialArgs = inputs // {
+                inherit self;
+              };
+            };
+          }
+        ];
+      };
+
+      nixosConfigurations.nixos-vm-aarch64 = nixpkgs.lib.nixosSystem {
+        system = "aarch64-linux";
+        specialArgs = {
+          inherit
+            inputs
+            self
+            user
+            claude-code-nix
+            ;
+        };
+        modules = [
+          ./machines/nixos-vm.nix
+          ./users/${user}/nixos.nix
+          disko.nixosModules.disko
+          home-manager.nixosModules.home-manager
+          {
+            home-manager = {
+              useGlobalPkgs = true;
+              useUserPackages = true;
+              users.${user} = import ./users/${user}/home.nix;
+              backupFileExtension = "bak";
+              extraSpecialArgs = inputs // {
+                inherit self;
+              };
+            };
+          }
+        ];
+      };
       homeConfigurations = nixpkgs.lib.optionalAttrs (user != "") {
         # Primary user configuration
         ${user} = home-manager.lib.homeManagerConfiguration {
