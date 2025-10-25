@@ -368,6 +368,11 @@
             echo "✓ All checks passed" >> $out
           '';
 
+      checks.aarch64-darwin.vm-config-extension = import ./tests/unit/vm-config-test.nix {
+        pkgs = pkgs-aarch64-darwin;
+        nixpkgs = pkgs-aarch64-darwin;
+      };
+
       # Apps (formatters)
       apps.aarch64-darwin.format = {
         type = "app";
@@ -407,8 +412,10 @@
       packages.x86_64-linux.claude-hooks =
         pkgs-x86_64-linux.callPackage ./modules/shared/programs/claude-hook
           { };
+      packages.x86_64-linux.vm-automation = pkgs-x86_64-linux.callPackage ./packages/vm-automation { };
       packages.aarch64-linux.claude-hooks =
         pkgs-aarch64-linux.callPackage ./modules/shared/programs/claude-hook
           { };
+      packages.aarch64-linux.vm-automation = pkgs-aarch64-linux.callPackage ./packages/vm-automation { };
     };
 }
