@@ -204,7 +204,8 @@
                 ;
             };
             modules = [
-              ./hosts/nixos # Host config first to ensure allowUnfree is set at system level
+              ./machines/nixos-vm.nix # Machine config first to ensure allowUnfree is set at system level
+              ./users/${user}/nixos.nix # Consolidated NixOS system configuration
               # NOTE: disko.nixosModules.disko omitted for CI compatibility
               # Production: Add disko module manually or use disko-install
               home-manager.nixosModules.home-manager
@@ -212,7 +213,7 @@
                 home-manager = {
                   useGlobalPkgs = true;
                   useUserPackages = true;
-                  users.${user} = import ./modules/nixos/home-manager.nix;
+                  users.${user} = import ./users/${user}/home.nix;
                   backupFileExtension = "bak";
                   extraSpecialArgs = inputs // {
                     inherit self;
