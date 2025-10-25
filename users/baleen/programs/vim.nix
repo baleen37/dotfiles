@@ -23,8 +23,8 @@
 #   - Ctrl+h/j/k/l: Move between split windows
 #   - Tab/Shift+Tab: Move between buffers
 #
-# VERSION: 4.0.0 (Migrated to Mitchell style)
-# LAST UPDATED: 2025-10-25
+# VERSION: 3.1.0 (Migrated from modules/shared/programs/vim.nix)
+# LAST UPDATED: 2024-10-25
 
 { pkgs, ... }:
 
@@ -33,6 +33,7 @@
     enable = true;
     viAlias = true;
     vimAlias = true;
+    defaultEditor = true;
 
     plugins = with pkgs.vimPlugins; [
       vim-airline
@@ -87,8 +88,6 @@
       set gdefault
 
       "" Statusbar
-      set nocompatible " Disable vi-compatibility
-      set laststatus=2 " Always show the statusline
       let g:airline_theme='bubblegum'
       let g:airline_powerline_fonts = 1
 
@@ -144,9 +143,6 @@
       let g:startify_bookmarks = [
         \ '~/.local/share/src',
         \ ]
-
-      let g:airline_theme='bubblegum'
-      let g:airline_powerline_fonts = 1
     '';
   };
 }
