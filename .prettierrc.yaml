@@ -38,10 +38,3 @@ overrides:
       proseWrap: preserve
       # Don't format code blocks
       embeddedLanguageFormatting: off
-
-# Files to ignore
-ignore:
-  - "flake.lock"
-  - "**/.git/**"
-  - "**/node_modules/**"
-  - "**/.secrets.baseline"

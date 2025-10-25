@@ -18,27 +18,16 @@
 #
 # 참고: Nix 고급 설정은 Determinate Nix가 /etc/nix/nix.conf에서 관리
 
-_:
-
-let
-  getUser = import ../../lib/user-resolution.nix {
-    returnFormat = "string";
-    default = ""; # Allow empty for pure eval
-  };
-  user = getUser;
-in
+{
+  user ? "baleen",
+  ...
+}:
 
 {
   imports = [
-    ../../modules/darwin/home-manager.nix
-    ../../modules/darwin/app-links.nix
-    ../../modules/darwin/nix-gc.nix # macOS 전용 갈비지 컬렉션 설정
-    ../../modules/darwin/performance-optimization.nix # macOS 성능 최적화
-    ../../modules/darwin/macos-app-cleanup.nix # macOS 기본 앱 클린업
-    ../../modules/darwin/aggressive-optimization.nix # 🚀 공격적 성능 최적화 (Spotlight 비활성화 등)
     ../../modules/shared/cachix # Binary cache configuration
     ../../modules/shared/overlays.nix # Custom package overlays
-    ../../modules/shared
+    # Note: Not importing ../../modules/shared due to nix-gc conflicts with nix.enable = false
   ];
 
   # Allow unfree packages (system level for useGlobalPkgs)
@@ -50,34 +39,24 @@ in
     # Disable nix-darwin's Nix management (Determinate Nix manages the installation)
     enable = false;
 
+    # Settings are managed by Determinate Nix, but we set experimental features for flakes
     settings = {
       experimental-features = [
         "nix-command"
         "flakes"
       ];
-
-      # Nix Store 자동 최적화 (디스크 25-35% 절약)
-      auto-optimise-store = true;
     };
 
-    # 주기적 Nix Store 최적화 (일요일 새벽 3:15)
-    optimise = {
-      automatic = true;
-      interval = [
-        {
-          Hour = 3;
-          Minute = 15;
-          Weekday = 0; # Sunday
-        }
-      ];
-    };
+    # Automatic optimisation and GC are disabled when nix.enable = false
+    # These features require nix-daemon to be managed by nix-darwin
+    # Determinate Nix handles these settings separately
   };
 
   # zsh program activation
   programs.zsh.enable = true;
 
   # Disable automatic app links (requires root privileges)
-  system.nixAppLinks.enable = false;
+  # Note: system.nixAppLinks has been deprecated in newer nix-darwin
 
   system = {
     checks.verifyNixPath = false;

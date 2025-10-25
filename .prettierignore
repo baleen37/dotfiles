@@ -1,0 +1,25 @@
+# Prettier ignore file
+# Ensures these files are not formatted
+
+# Version control
+flake.lock
+
+# Git directories
+.git/
+.gitignore
+
+# Node modules
+node_modules/
+
+# Secrets and security
+.secrets.baseline
+
+# Nix store (generated files)
+/nix/store/
+
+# CI/CD artifacts
+.result/
+
+# Temporary files
+*.tmp
+*.temp

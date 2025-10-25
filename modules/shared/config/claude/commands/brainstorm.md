@@ -1,2 +1,5 @@
-@skills/collaboration\_\_brainstorming
-"Brainstorming Ideas Into Designs" skill를 사용합니다.
+---
+description: Interactive design refinement using Socratic method
+---
+
+Use and follow the brainstorming skill exactly as written

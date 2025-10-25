@@ -35,16 +35,27 @@ jobs:
 
       - name: Setup Nix with cache
         uses: ./.github/actions/setup-nix
+        with:
+          # Use PR source directory instead of working directory
+          path: ./
+
+      - name: Check PR source branch
+        id: pr-checkout
+        run: |
+          echo "PR Source Branch: ${{ github.head_ref }}"
+          echo "PR Target Branch: ${{ github.base_ref }}"
 
       - name: Lint
         run: |
-          export USER=${USER:-ci}
+          export USER=baleen
+          cd ${{ github.workspace }}
           git config --unset-all core.hooksPath || true
           make lint-quick
 
       - name: Quick Test
         run: |
-          export USER=${USER:-ci}
+          export USER=baleen
+          cd ${{ github.workspace }}
           make test-quick
   # Build and switch combined (faster, simpler)
   build-switch:
@@ -56,7 +67,7 @@ jobs:
       matrix:
         include:
           - name: Linux
-            system: x86_64-linux
+            system: nixos-vm-x86_64
             os: ubuntu-latest
           - name: Darwin
             system: aarch64-darwin
@@ -99,11 +110,16 @@ jobs:
       - name: Build configuration
         timeout-minutes: 60
         run: |
-          export USER=${USER:-ci}
-          export HOST=${{ matrix.system }}
+          export USER=baleen
           echo "🏗️ Building ${{ matrix.name }} (${{ matrix.system }})"
-
-          make build
+          cd ${{ github.workspace }}
+          if [ "${{ matrix.name }}" = "Linux" ]; then
+            echo "🐧 Building NixOS configuration for Linux..."
+            nix build --impure --quiet .#nixosConfigurations.${{ matrix.system }}.config.system.build.toplevel
+          else
+            echo "🍎 Building Darwin configuration for macOS..."
+            nix build --impure --quiet .#darwinConfigurations.${{ matrix.system }}.system
+          fi
   # Comprehensive test stage
   test:
     name: Test (Comprehensive)
@@ -121,7 +137,8 @@ jobs:
       - name: Run comprehensive tests
         timeout-minutes: 20
         run: |
-          export USER=${USER:-ci}
+          export USER=baleen
+          cd ${{ github.workspace }}
           make test-all
   # CI completion and status reporting
   ci-complete:
