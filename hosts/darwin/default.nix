@@ -27,7 +27,7 @@
   imports = [
     ../../modules/shared/cachix # Binary cache configuration
     ../../modules/shared/overlays.nix # Custom package overlays
-    ../../modules/shared
+    # Note: Not importing ../../modules/shared due to nix-gc conflicts with nix.enable = false
   ];
 
   # Allow unfree packages (system level for useGlobalPkgs)
@@ -39,27 +39,17 @@
     # Disable nix-darwin's Nix management (Determinate Nix manages the installation)
     enable = false;
 
+    # Settings are managed by Determinate Nix, but we set experimental features for flakes
     settings = {
       experimental-features = [
         "nix-command"
         "flakes"
       ];
-
-      # Nix Store 자동 최적화 (디스크 25-35% 절약)
-      auto-optimise-store = true;
     };
 
-    # 주기적 Nix Store 최적화 (일요일 새벽 3:15)
-    optimise = {
-      automatic = true;
-      interval = [
-        {
-          Hour = 3;
-          Minute = 15;
-          Weekday = 0; # Sunday
-        }
-      ];
-    };
+    # Automatic optimisation and GC are disabled when nix.enable = false
+    # These features require nix-daemon to be managed by nix-darwin
+    # Determinate Nix handles these settings separately
   };
 
   # zsh program activation

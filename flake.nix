@@ -161,24 +161,25 @@
             };
             modules = [
               ./hosts/darwin # Host config first to ensure allowUnfree is set at system level
-              home-manager.darwinModules.home-manager
+              # home-manager.darwinModules.home-manager
               nix-homebrew.darwinModules.nix-homebrew
+              # Temporarily disable home-manager to isolate CI issues
+              # {
+              #   home-manager = {
+              #     useGlobalPkgs = true;
+              #     useUserPackages = true;
+              #     users.${user} = {
+              #       imports = [ ./modules/shared/home-manager.nix ];
+              #       home.stateVersion = "24.05";
+              #       home.homeDirectory = "/Users/${user}";
+              #     };
+              #     backupFileExtension = "bak";
+              #     extraSpecialArgs = inputs // {
+              #       inherit self;
+              #     };
+              #   };
+              # }
               {
-                home-manager = {
-                  useGlobalPkgs = true;
-                  useUserPackages = true;
-                  users.${user} = import ./modules/shared/home-manager.nix;
-                  backupFileExtension = "bak";
-                  extraSpecialArgs = inputs // {
-                    inherit self;
-                  };
-                  sharedModules = [
-                    {
-                      home.stateVersion = "24.05";
-                      home.homeDirectory = "/Users/${user}";
-                    }
-                  ];
-                };
                 nix-homebrew = {
                   inherit user;
                   enable = true;

@@ -67,7 +67,7 @@ jobs:
       matrix:
         include:
           - name: Linux
-            system: x86_64-linux
+            system: nixos-vm-x86_64
             os: ubuntu-latest
           - name: Darwin
             system: aarch64-darwin
@@ -111,10 +111,15 @@ jobs:
         timeout-minutes: 60
         run: |
           export USER=baleen
-          export HOST=${{ matrix.system }}
           echo "🏗️ Building ${{ matrix.name }} (${{ matrix.system }})"
           cd ${{ github.workspace }}
-          make build-switch
+          if [ "${{ matrix.name }}" = "Linux" ]; then
+            echo "🐧 Building NixOS configuration for Linux..."
+            nix build --impure --quiet .#nixosConfigurations.${{ matrix.system }}.config.system.build.toplevel
+          else
+            echo "🍎 Building Darwin configuration for macOS..."
+            nix build --impure --quiet .#darwinConfigurations.${{ matrix.system }}.system
+          fi
   # Comprehensive test stage
   test:
     name: Test (Comprehensive)
