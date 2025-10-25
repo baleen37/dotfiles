@@ -152,7 +152,7 @@
           darwin.lib.darwinSystem {
             inherit system;
             specialArgs = {
-              inherit inputs self claude-code-nix;
+              inherit inputs self claude-code-nix user;
             };
             modules = [
               ./hosts/darwin # Host config first to ensure allowUnfree is set at system level
@@ -167,6 +167,12 @@
                   extraSpecialArgs = inputs // {
                     inherit self;
                   };
+                  sharedModules = [
+                    {
+                      home.stateVersion = "24.05";
+                      home.homeDirectory = "/Users/${user}";
+                    }
+                  ];
                 };
                 nix-homebrew = {
                   inherit user;

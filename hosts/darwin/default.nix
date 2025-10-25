@@ -18,19 +18,10 @@
 #
 # 참고: Nix 고급 설정은 Determinate Nix가 /etc/nix/nix.conf에서 관리
 
-_:
-
-let
-  getUser = import ../../lib/user-resolution.nix {
-    returnFormat = "string";
-    default = ""; # Allow empty for pure eval
-  };
-  user = getUser;
-in
+{ user ? "baleen", ... }:
 
 {
   imports = [
-    ../../users/baleen/darwin.nix # Consolidated macOS configuration
     ../../modules/shared/cachix # Binary cache configuration
     ../../modules/shared/overlays.nix # Custom package overlays
     ../../modules/shared
@@ -72,7 +63,7 @@ in
   programs.zsh.enable = true;
 
   # Disable automatic app links (requires root privileges)
-  system.nixAppLinks.enable = false;
+  # Note: system.nixAppLinks has been deprecated in newer nix-darwin
 
   system = {
     checks.verifyNixPath = false;
