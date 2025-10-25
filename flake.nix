@@ -94,6 +94,9 @@
 
     in
     {
+      # Library functions for testing
+      lib = import ./lib { inherit nixpkgs; };
+
       # Simple development shells with direct package imports
       devShells = forAllSystems (
         system:
