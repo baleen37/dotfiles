@@ -1,0 +1,2 @@
+# macOS platform-specific configuration
+{ }

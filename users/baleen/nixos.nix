@@ -1,0 +1,2 @@
+# NixOS platform-specific configuration
+{ }
