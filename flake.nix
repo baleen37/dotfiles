@@ -186,64 +186,65 @@
       );
 
       # Direct NixOS configurations following dustinlyons pattern
-
-      # NixOS configurations - explicit system configurations
-      nixosConfigurations.nixos-vm-x86_64 = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
-        specialArgs = {
-          inherit
-            inputs
-            self
-            user
-            claude-code-nix
-            ;
-        };
-        modules = [
-          ./machines/nixos-vm.nix
-          ./users/${user}/nixos.nix
-          disko.nixosModules.disko
-          home-manager.nixosModules.home-manager
-          {
-            home-manager = {
-              useGlobalPkgs = true;
-              useUserPackages = true;
-              users.${user} = import ./users/${user}/home.nix;
-              backupFileExtension = "bak";
-              extraSpecialArgs = inputs // {
-                inherit self;
+      # Skip if user cannot be determined (pure evaluation mode)
+      nixosConfigurations = nixpkgs.lib.optionalAttrs (user != "") {
+        nixos-vm-x86_64 = nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          specialArgs = {
+            inherit
+              inputs
+              self
+              user
+              claude-code-nix
+              ;
+          };
+          modules = [
+            ./machines/nixos-vm.nix
+            ./users/${user}/nixos.nix
+            disko.nixosModules.disko
+            home-manager.nixosModules.home-manager
+            {
+              home-manager = {
+                useGlobalPkgs = true;
+                useUserPackages = true;
+                users.${user} = import ./users/${user}/home.nix;
+                backupFileExtension = "bak";
+                extraSpecialArgs = inputs // {
+                  inherit self;
+                };
               };
-            };
-          }
-        ];
-      };
-
-      nixosConfigurations.nixos-vm-aarch64 = nixpkgs.lib.nixosSystem {
-        system = "aarch64-linux";
-        specialArgs = {
-          inherit
-            inputs
-            self
-            user
-            claude-code-nix
-            ;
+            }
+          ];
         };
-        modules = [
-          ./machines/nixos-vm.nix
-          ./users/${user}/nixos.nix
-          disko.nixosModules.disko
-          home-manager.nixosModules.home-manager
-          {
-            home-manager = {
-              useGlobalPkgs = true;
-              useUserPackages = true;
-              users.${user} = import ./users/${user}/home.nix;
-              backupFileExtension = "bak";
-              extraSpecialArgs = inputs // {
-                inherit self;
+
+        nixos-vm-aarch64 = nixpkgs.lib.nixosSystem {
+          system = "aarch64-linux";
+          specialArgs = {
+            inherit
+              inputs
+              self
+              user
+              claude-code-nix
+              ;
+          };
+          modules = [
+            ./machines/nixos-vm.nix
+            ./users/${user}/nixos.nix
+            disko.nixosModules.disko
+            home-manager.nixosModules.home-manager
+            {
+              home-manager = {
+                useGlobalPkgs = true;
+                useUserPackages = true;
+                users.${user} = import ./users/${user}/home.nix;
+                backupFileExtension = "bak";
+                extraSpecialArgs = inputs // {
+                  inherit self;
+                };
               };
-            };
-          }
-        ];
+            }
+          ];
+        };
       };
       homeConfigurations = nixpkgs.lib.optionalAttrs (user != "") {
         # Primary user configuration

@@ -11,18 +11,26 @@
   # Set hostname
   networking.hostName = "nixos-vm";
 
+  # Bootloader configuration for VM
+  boot.loader.grub = {
+    devices = [ "/dev/vda" ];
+    efiSupport = false;
+  };
+
   # Minimal filesystem configuration for VM builds
   # Production uses disko configuration from users/baleen/nixos.nix
   fileSystems."/" = {
-    device = "/dev/disk/by-label/nixos";
+    device = "/dev/vda";
     fsType = "ext4";
   };
 
-  fileSystems."/boot" = {
-    device = "/dev/disk/by-label/boot";
-    fsType = "vfat";
-  };
+  # Create user group
+  users.groups.baleen = { };
 
-  # Add user to docker group if docker is enabled
-  users.users.baleen.extraGroups = [ "docker" ];
+  # Base user configuration (will be extended by users/baleen/nixos.nix)
+  users.users.baleen = {
+    isNormalUser = true;
+    group = "baleen";
+    extraGroups = [ "docker" ];
+  };
 }
