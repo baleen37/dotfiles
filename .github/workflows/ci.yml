@@ -38,13 +38,13 @@ jobs:
 
       - name: Lint
         run: |
-          export USER=${USER:-ci}
+          export USER=baleen
           git config --unset-all core.hooksPath || true
           make lint-quick
 
       - name: Quick Test
         run: |
-          export USER=${USER:-ci}
+          export USER=baleen
           make test-quick
   # Build and switch combined (faster, simpler)
   build-switch:
@@ -99,7 +99,7 @@ jobs:
       - name: Build configuration
         timeout-minutes: 60
         run: |
-          export USER=${USER:-ci}
+          export USER=baleen
           export HOST=${{ matrix.system }}
           echo "🏗️ Building ${{ matrix.name }} (${{ matrix.system }})"
 
@@ -121,7 +121,7 @@ jobs:
       - name: Run comprehensive tests
         timeout-minutes: 20
         run: |
-          export USER=${USER:-ci}
+          export USER=baleen
           make test-all
   # CI completion and status reporting
   ci-complete:
