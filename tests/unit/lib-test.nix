@@ -49,7 +49,7 @@ let
       import ../../lib/utils-system.nix { inherit lib pkgs; };
   defaultLib =
     if self != null then
-      import (self + /lib/default.nix) { inherit nixpkgs; }
+      import (self + /lib/default.nix) { inherit pkgs; }
     else
       import ../../lib/default.nix { nixpkgs = pkgs; };
 
