@@ -152,7 +152,12 @@
           darwin.lib.darwinSystem {
             inherit system;
             specialArgs = {
-              inherit inputs self claude-code-nix user;
+              inherit
+                inputs
+                self
+                claude-code-nix
+                user
+                ;
             };
             modules = [
               ./hosts/darwin # Host config first to ensure allowUnfree is set at system level
