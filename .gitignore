@@ -75,3 +75,43 @@ specs/
 plans/
 coverage/
 .worktrees/
+
+# Additional common patterns
+*.orig
+*.bak
+*.tmp
+*~
+.#*
+#*#
+.flake8
+.tox/
+.coverage
+htmlcov/
+.pytest_cache/
+
+# IDE and editor files
+.vscode/settings.json
+.vscode/launch.json
+.vscode/extensions.json
+.idea/
+*.sublime-*
+.fleet/
+.cache/
+
+# System files
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Runtime files
+*.pid
+*.seed
+*.pid.lock
+
+# Build artifacts
+dist/
+build/
+out/
