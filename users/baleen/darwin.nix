@@ -63,6 +63,9 @@ let
     "tailscale-app"
     "teleport-connect"
 
+    # Virtualization Tools
+    "utm"
+
     # Entertainment Tools
     "vlc"
 
