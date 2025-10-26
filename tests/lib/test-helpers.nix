@@ -1,4 +1,3 @@
-# tests/lib/test-helpers.nix
 # Extended test helpers for evantravers refactor
 # Builds upon existing NixTest framework with additional assertions
 { pkgs, lib }:
@@ -27,27 +26,21 @@ rec {
       '';
 
   # Attribute existence check (from evantravers refactor plan)
+  # File existence check
+  assertFileExists =
+    name: derivation: path:
+    assertTest name (builtins.pathExists "${derivation}/${path}")
+      "File ${path} not found in derivation";
+
+  # Attribute existence check
   assertHasAttr =
     name: attrName: set:
     assertTest name (builtins.hasAttr attrName set) "Attribute ${attrName} not found";
 
-  # Test suite aggregator (from evantravers refactor plan)
-  testSuite =
-    name: tests:
-    pkgs.runCommand "test-suite-${name}" { } ''
-      echo "Running test suite: ${name}"
-      ${lib.concatMapStringsSep "\n" (t: "cat ${t}") tests}
-      echo "✅ Test suite ${name}: All tests passed"
-      touch $out
-    '';
-
-  # Additional helpers specific to evantravers refactor requirements
-  # File existence check (NixOS system path aware)
-  assertFileExists =
-    name: derivation: path:
-    nixtest.test "file-exists-${name}" (
-      nixtest.assertions.assertTrue (builtins.pathExists "${derivation}/${path}")
-    );
+  # String contains check
+  assertContains =
+    name: needle: haystack:
+    assertTest name (lib.hasInfix needle haystack) "${needle} not found in ${haystack}";
 
   # Derivation builds successfully (version-aware)
   assertBuilds =
@@ -59,13 +52,13 @@ rec {
       touch $out
     '';
 
-  # Test suite aggregator for refactor-specific tests
-  refactorTestSuite =
+  # Test suite aggregator
+  testSuite =
     name: tests:
-    pkgs.runCommand "refactor-test-suite-${name}" { } ''
-      echo "Running refactor test suite: ${name}"
+    pkgs.runCommand "test-suite-${name}" { } ''
+      echo "Running test suite: ${name}"
       ${lib.concatMapStringsSep "\n" (t: "cat ${t}") tests}
-      echo "✅ Refactor test suite ${name}: All tests passed"
+      echo "✅ Test suite ${name}: All tests passed"
       touch $out
     '';
 
