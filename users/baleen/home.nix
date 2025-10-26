@@ -102,6 +102,7 @@
     ./programs/direnv.nix
     ./programs/ssh.nix
     ./programs/qemu-vm.nix
+    ./programs/nixos-vm.nix
   ];
 
   # Basic Home Manager settings
