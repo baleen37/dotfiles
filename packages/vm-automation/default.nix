@@ -1,48 +1,39 @@
 # VM Automation Package
 #
-# Provides VM testing utilities for NixOS VM validation across architectures.
+# Simple utilities for VM testing and validation.
+# Provides basic shell scripts for VM management.
+
+{ lib, pkgs, writeShellApplication, qemu, coreutils }:
 
 {
-  lib,
-  pkgs,
-  qemu,
-  writeShellScript,
-  coreutils,
-  gnused,
-  gnugrep,
-}:
+  # Simple VM test script
+  vm-test = pkgs.writeShellApplication {
+    name = "vm-test";
+    runtimeInputs = [ qemu coreutils ];
+    text = ''
+      #!/usr/bin/env bash
+      set -euo pipefail
 
-let
-  vmTestScript = writeShellScript "vm-test" ''
-    set -euo pipefail
+      echo "🖥️  VM Test Utility"
+      echo "Usage: vm-test <vm-configuration>"
+      echo ""
+      echo "Available commands:"
+      echo "  make test-vm-minimal    # Run minimal VM boot test"
+      echo "  make test-vm            # Run full VM test suite"
+      echo ""
+      echo "This is a utility script for VM testing."
+      echo "For actual VM tests, use the Make targets."
+    '';
+  };
 
-    # VM automation script for testing
-    echo "🚀 Starting VM validation..."
-
-    VM_NAME="$1"
-    ARCH="$2"
-
-    echo "Testing VM: $VM_NAME ($ARCH)"
-
-    # Build VM
-    nix build .#nixosConfigurations."$VM_NAME".config.system.build.vm
-
-    # Run VM tests
-    echo "✅ VM tests completed"
-  '';
-
-in
-{
-  inherit vmTestScript;
-
+  # Default package
   default = pkgs.writeShellApplication {
     name = "vm-automation";
-    runtimeInputs = [
-      qemu
-      coreutils
-      gnused
-      gnugrep
-    ];
-    text = vmTestScript;
+    runtimeInputs = [ qemu coreutils ];
+    text = ''
+      #!/usr/bin/env bash
+      echo "VM Automation Utilities"
+      echo "Use make test-vm or make test-vm-minimal for VM testing"
+    '';
   };
 }

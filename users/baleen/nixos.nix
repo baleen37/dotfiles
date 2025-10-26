@@ -12,7 +12,12 @@
 #
 # ARCHITECTURE: Mitchell-style flat configuration - all NixOS settings in one file
 
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 let
   user = "baleen";
@@ -465,51 +470,54 @@ in
   services.xserver.desktopManager.xterm.enable = false;
 
   # System packages
-  environment.systemPackages = with pkgs; [
-    # Essential system tools
-    vim
-    git
-    wget
-    curl
+  environment.systemPackages =
+    with pkgs;
+    [
+      # Essential system tools
+      vim
+      git
+      wget
+      curl
 
-    # Desktop environment
-    bspwm
-    sxhkd
-    polybar
-    polybarFull
-    dunst
-    rofi
-    rofi-calc
-    libnotify
-    pcmanfm
-    xdg-utils
+      # Desktop environment
+      bspwm
+      sxhkd
+      polybar
+      polybarFull
+      dunst
+      rofi
+      rofi-calc
+      libnotify
+      pcmanfm
+      xdg-utils
 
-    # Theming
-    gnome-themes-extra
-    adwaita-icon-theme
+      # Theming
+      gnome-themes-extra
+      adwaita-icon-theme
 
-    # Screen locking
-    i3lock-fancy-rapid
+      # Screen locking
+      i3lock-fancy-rapid
 
-    # Audio
-    pulseaudio
-    pavucontrol
+      # Audio
+      pulseaudio
+      pavucontrol
 
-    # Development tools
-    alacritty
+      # Development tools
+      alacritty
 
-    # Media
-    vlc
+      # Media
+      vlc
 
-    # Utilities
-    yad
-    xdotool
-    flameshot
-    zathura
-    font-manager
-    appimage-run
-    galculator
-  ] ++ nixosPackages;
+      # Utilities
+      yad
+      xdotool
+      flameshot
+      zathura
+      font-manager
+      appimage-run
+      galculator
+    ]
+    ++ nixosPackages;
 
   # Sound
   sound.enable = true;
@@ -520,7 +528,13 @@ in
   users.users.${user} = {
     isNormalUser = true;
     description = "Baleen";
-    extraGroups = [ "networkmanager" "wheel" "audio" "video" "input" ];
+    extraGroups = [
+      "networkmanager"
+      "wheel"
+      "audio"
+      "video"
+      "input"
+    ];
     shell = pkgs.zsh;
   };
 
@@ -742,7 +756,10 @@ in
   nix = {
     settings = {
       # Enable flakes
-      experimental-features = [ "nix-command" "flakes" ];
+      experimental-features = [
+        "nix-command"
+        "flakes"
+      ];
 
       # Automatic garbage collection
       auto-optimise-store = true;

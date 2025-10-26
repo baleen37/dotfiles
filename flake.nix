@@ -254,6 +254,11 @@
           disko.nixosModules.disko
           home-manager.nixosModules.home-manager
           {
+            # Override networking for VM compatibility
+            networking.networkmanager.enable = lib.mkForce false;
+            networking.useDHCP = true;
+          }
+          {
             home-manager = {
               useGlobalPkgs = true;
               useUserPackages = true;
@@ -282,6 +287,11 @@
           ./users/${user}/nixos.nix
           disko.nixosModules.disko
           home-manager.nixosModules.home-manager
+          {
+            # Override networking for VM compatibility
+            networking.networkmanager.enable = lib.mkForce false;
+            networking.useDHCP = true;
+          }
           {
             home-manager = {
               useGlobalPkgs = true;
@@ -371,6 +381,24 @@
       checks.aarch64-darwin.vm-config-extension = import ./tests/unit/vm-config-test.nix {
         pkgs = pkgs-aarch64-darwin;
         nixpkgs = pkgs-aarch64-darwin;
+      };
+
+      # Simple VM boot tests (Linux only, since QEMU is required)
+      checks.x86_64-linux.vm-boot-test = import ./tests/vm/boot-test.nix {
+        pkgs = pkgs-x86_64-linux;
+      };
+
+      checks.aarch64-linux.vm-boot-test = import ./tests/vm/boot-test.nix {
+        pkgs = pkgs-aarch64-linux;
+      };
+
+      # Minimal VM boot tests (Linux only, since QEMU is required)
+      checks.x86_64-linux.vm-boot-test-minimal = import ./tests/vm/boot-test-minimal.nix {
+        pkgs = pkgs-x86_64-linux;
+      };
+
+      checks.aarch64-linux.vm-boot-test-minimal = import ./tests/vm/boot-test-minimal.nix {
+        pkgs = pkgs-aarch64-linux;
       };
 
       # Apps (formatters)

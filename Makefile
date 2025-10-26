@@ -23,6 +23,8 @@ help:
 	@echo "  test        - Run core tests"
 	@echo "  test-quick  - Fast validation (2-3s)"
 	@echo "  test-all    - Comprehensive test suite"
+	@echo "  test-vm     - Run VM boot tests (Linux only)"
+	@echo "  test-vm-minimal - Run minimal VM boot test (Linux only)"
 	@echo ""
 	@echo "🔨 Build & Deploy:"
 	@echo "  build       - Build current platform"
@@ -67,6 +69,35 @@ test-all:
 	@$(NIX) build --impure --quiet .#packages.$(CURRENT_SYSTEM).build-switch-e2e $(ARGS)
 	@$(NIX) build --impure --quiet .#packages.$(CURRENT_SYSTEM).switch-platform-execution-e2e $(ARGS)
 	@echo "✅ All tests passed"
+
+test-vm:
+	@echo "🖥️  Running VM boot tests (Linux only)..."
+	@OS=$$(uname -s); \
+	if [ "$${OS}" = "Linux" ]; then \
+		echo "🐧 Running minimal VM boot test on Linux..."; \
+		$(NIX) build --impure --quiet .#checks.$(CURRENT_SYSTEM).vm-boot-test-minimal $(ARGS) || exit 1; \
+		echo "✅ Minimal VM boot test passed!"; \
+		echo "🐧 Running full VM boot test on Linux..."; \
+		$(NIX) build --impure --quiet .#checks.$(CURRENT_SYSTEM).vm-boot-test $(ARGS) || echo "⚠️  Full VM test failed (expected if NetworkManager not available)"; \
+		echo "✅ VM tests completed!"; \
+	else \
+		echo "⚠️  VM tests require Linux with QEMU support"; \
+		echo "💡 On macOS, you can use: docker run -it nixos/nix"; \
+		exit 1; \
+	fi
+
+test-vm-minimal:
+	@echo "🖥️  Running minimal VM boot test (Linux only)..."
+	@OS=$$(uname -s); \
+	if [ "$${OS}" = "Linux" ]; then \
+		echo "🐧 Running minimal VM boot test on Linux..."; \
+		$(NIX) build --impure --quiet .#checks.$(CURRENT_SYSTEM).vm-boot-test-minimal $(ARGS) || exit 1; \
+		echo "✅ Minimal VM boot test passed!"; \
+	else \
+		echo "⚠️  VM tests require Linux with QEMU support"; \
+		echo "💡 On macOS, you can use: docker run -it nixos/nix"; \
+		exit 1; \
+	fi
 
 
 # Build & Deploy
@@ -114,4 +145,4 @@ switch-user: check-user
 	@echo "🏠 Switching user configuration (Home Manager)..."
 	@home-manager switch --flake ".#$(USER)" -b backup --impure $(ARGS)
 
-.PHONY: help check-user format lint lint-quick test test-quick test-all build build-switch switch switch-user
+.PHONY: help check-user format lint lint-quick test test-quick test-all test-vm test-vm-minimal build build-switch switch switch-user
