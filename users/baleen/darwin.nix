@@ -243,30 +243,11 @@ in
   # Allow unfree packages (system level for useGlobalPkgs)
   nixpkgs.config.allowUnfree = true;
 
-  # Minimal Nix configuration compatible with Determinate Nix
-  # Advanced settings managed by Determinate Nix in /etc/nix/nix.conf
+  # Determinate Nix compatibility
+  # Determinate manages Nix installation, so disable nix-darwin's Nix management
+  # All Nix settings are managed by Determinate in /etc/nix/nix.conf
   nix = {
-    # Enable nix-darwin's Nix management for optimise.automatic
-    enable = true;
-
-    settings = {
-      experimental-features = [
-        "nix-command"
-        "flakes"
-      ];
-    };
-
-    # 주기적 Nix Store 최적화 (일요일 새벽 3:15)
-    optimise = {
-      automatic = true;
-      interval = [
-        {
-          Hour = 3;
-          Minute = 15;
-          Weekday = 0; # Sunday
-        }
-      ];
-    };
+    enable = false; # Required for Determinate compatibility
   };
 
   # zsh program activation
