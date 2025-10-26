@@ -88,7 +88,7 @@ rec {
         baseName = baseNameOf path;
         isUnnecessary = lib.any (
           pattern: lib.hasPrefix pattern baseName || lib.hasSuffix pattern baseName
-        ) unnecessaryRebuildFiles;
+        ) rebuildTriggerAnalysis.unnecessaryRebuildFiles;
       in
       !isUnnecessary;
   };

@@ -4,6 +4,7 @@
 USER ?= $(shell whoami)
 NIX := nix --extra-experimental-features 'nix-command flakes'
 CURRENT_SYSTEM := $(shell $(NIX) eval --impure --expr 'builtins.currentSystem' | tr -d '"')
+HOSTNAME := $(shell hostname -s 2>/dev/null || hostname | cut -d. -f1)
 
 check-user:
 	@if [ -z "$(USER)" ]; then \
@@ -38,7 +39,7 @@ help:
 # Code Quality
 format:
 	@echo "🎨 Auto-formatting all files..."
-	@$(NIX) run .#formatter.$(CURRENT_SYSTEM)
+	@find . -name "*.nix" -not -path "*/.*" -not -path "*/result/*" -type f -exec nix fmt -- {} +
 
 lint:
 	@echo "🔍 Running lint checks..."
@@ -84,7 +85,7 @@ build: check-user
 build-switch: check-user
 	@echo "🚀 Building system configuration..."
 	@OS=$$(uname -s); \
-	TARGET=$${HOST:-$(CURRENT_SYSTEM)}; \
+	TARGET=$${HOST:-macbook-pro}; \
 	if [ "$${OS}" = "Darwin" ]; then \
 		export USER=$(USER); $(NIX) build --impure --quiet .#darwinConfigurations.$${TARGET}.system $(ARGS) || exit 1; \
 	else \
@@ -95,7 +96,7 @@ build-switch: check-user
 switch: check-user
 	@echo "🚀 Switching system configuration..."
 	@OS=$$(uname -s); \
-	TARGET=$${HOST:-$(CURRENT_SYSTEM)}; \
+	TARGET=$${HOST:-macbook-pro}; \
 	if [ "$${OS}" = "Darwin" ]; then \
 		export USER=$(USER); $(NIX) build --impure --quiet .#darwinConfigurations.$${TARGET}.system $(ARGS) || exit 1; \
 		sudo -E env USER=$(USER) ./result/sw/bin/darwin-rebuild switch --impure --flake .#$${TARGET} $(ARGS) || exit 1; \

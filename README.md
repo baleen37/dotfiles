@@ -342,10 +342,10 @@ See [docs/TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md) for more solutions.
 
 ## Next Steps
 
-1. Run `make help` to see all commands
-2. Add packages in `modules/shared/packages.nix`
+1. Run `nix flake show` to see all configurations
+2. Add packages in `users/baleen/home-manager.nix` or individual tool files
 3. Check [CONTRIBUTING.md](./CONTRIBUTING.md) for development
 
 ---
 
-_Nix flakes + Home Manager + nix-darwin/NixOS for declarative, reproducible environments._
+_Nix flakes + evantravers pattern for declarative, reproducible environments._
