@@ -8,19 +8,18 @@ let
 
   hmConfig = import ../../users/baleen/home-manager.nix {
     inherit pkgs lib inputs;
-    config = { home = { homeDirectory = "/Users/baleen"; }; };
+    config = {
+      home = {
+        homeDirectory = "/Users/baleen";
+      };
+    };
   };
 
-in helpers.testSuite "home-manager" [
-  (helpers.assertTest "hm-has-imports"
-    (hmConfig ? imports)
-    "home-manager.nix should have imports")
+in
+helpers.testSuite "home-manager" [
+  (helpers.assertTest "hm-has-imports" (hmConfig ? imports) "home-manager.nix should have imports")
 
-  (helpers.assertTest "hm-has-home"
-    (hmConfig ? home)
-    "home-manager.nix should have home attribute")
+  (helpers.assertTest "hm-has-home" (hmConfig ? home) "home-manager.nix should have home attribute")
 
-  (helpers.assertTest "hm-username"
-    (hmConfig.home.username == "baleen")
-    "Username should be baleen")
+  (helpers.assertTest "hm-username" (hmConfig.home.username == "baleen") "Username should be baleen")
 ]

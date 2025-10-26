@@ -161,7 +161,12 @@ pkgs.runCommand "claude-test-results" { } ''
   # Test that directory has expected structure
   echo "Test 9: directory structure integrity..."
   ${
-    if claudeDirExists && claudeMdExists && settingsJsonExists && (builtins.length (lib.attrNames claudeDirContents) >= 5) then
+    if
+      claudeDirExists
+      && claudeMdExists
+      && settingsJsonExists
+      && (builtins.length (lib.attrNames claudeDirContents) >= 5)
+    then
       ''echo "✅ PASS: Directory structure is correct"''
     else
       ''echo "❌ FAIL: Directory structure is incomplete"; exit 1''

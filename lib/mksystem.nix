@@ -1,12 +1,16 @@
 { inputs }:
 
-name: { system, user, darwin ? false, wsl ? false }:
+name:
+{
+  system,
+  user,
+  darwin ? false,
+  wsl ? false,
+}:
 
 let
   lib = inputs.nixpkgs.lib;
-  systemFunc = if darwin
-    then inputs.darwin.lib.darwinSystem
-    else inputs.nixpkgs.lib.nixosSystem;
+  systemFunc = if darwin then inputs.darwin.lib.darwinSystem else inputs.nixpkgs.lib.nixosSystem;
 
   osConfig = if darwin then "darwin.nix" else "nixos.nix";
 

@@ -16,7 +16,15 @@
     };
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, darwin, home-manager, ... }@inputs:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      nixpkgs-unstable,
+      darwin,
+      home-manager,
+      ...
+    }@inputs:
     let
       mkSystem = import ./lib/mksystem.nix { inherit inputs; };
 
@@ -39,13 +47,16 @@
       };
 
       # Test checks
-      checks = nixpkgs.lib.genAttrs
-        [ "aarch64-darwin" "x86_64-darwin" "x86_64-linux" "aarch64-linux" ]
-        (system: import ./tests { inherit system inputs; });
+      checks = nixpkgs.lib.genAttrs [ "aarch64-darwin" "x86_64-darwin" "x86_64-linux" "aarch64-linux" ] (
+        system: import ./tests { inherit system inputs; }
+      );
 
       # Formatter (preserve from old flake if exists)
-      formatter = nixpkgs.lib.genAttrs
-        [ "aarch64-darwin" "x86_64-darwin" "x86_64-linux" "aarch64-linux" ]
-        (system: nixpkgs.legacyPackages.${system}.nixfmt-rfc-style);
+      formatter = nixpkgs.lib.genAttrs [
+        "aarch64-darwin"
+        "x86_64-darwin"
+        "x86_64-linux"
+        "aarch64-linux"
+      ] (system: nixpkgs.legacyPackages.${system}.nixfmt-rfc-style);
     };
 }
