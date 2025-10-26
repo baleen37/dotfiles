@@ -7,9 +7,8 @@ CURRENT_SYSTEM := $(shell $(NIX) eval --impure --expr 'builtins.currentSystem' |
 HOSTNAME := $(shell hostname -s 2>/dev/null || hostname | cut -d. -f1)
 
 check-user:
-	@if [ -z "$(USER)" ]; then \
-		echo "❌ ERROR: USER variable is not set. Please run: export USER=\$$(whoami)"; \
-		exit 1; \
+	@if [ -z "$$USER" ]; then \
+		echo "⚠️  WARNING: USER was auto-detected as $(USER). For best results, run: export USER=\$$(whoami)"; \
 	fi
 
 help:
@@ -29,7 +28,6 @@ help:
 	@echo "  build       - Build current platform"
 	@echo "  build-switch - Build system (same as switch)"
 	@echo "  switch      - Build + apply system config"
-	@echo "  switch-user - Apply user config only (faster)"
 	@echo ""
 	@echo "💡 Common Workflows:"
 	@echo "  make lint-quick && make test-quick  # Before commit"
@@ -74,12 +72,12 @@ test-all:
 build: check-user
 	@echo "🔨 Building $(CURRENT_SYSTEM)..."
 	@OS=$$(uname -s); \
+	TARGET=$${HOST:-macbook-pro}; \
 	if [ "$${OS}" = "Darwin" ]; then \
-		export USER=$(USER); $(NIX) build --impure --fallback --keep-going --no-link --quiet .#darwinConfigurations.macbook-pro.system $(ARGS); \
+		export USER=$(USER); $(NIX) build --impure --fallback --keep-going --no-link --quiet .#darwinConfigurations.$${TARGET}.system $(ARGS) || exit 1; \
 	else \
-		echo "ℹ️  NixOS: Running configuration validation (CI-safe)..."; \
-		export USER=$(USER); $(NIX) eval --impure .#nixosConfigurations.$(CURRENT_SYSTEM).config.system.build.toplevel.outPath $(ARGS) > /dev/null; \
-		echo "✅ NixOS configuration validated successfully"; \
+		echo "❌ ERROR: Only Darwin (macOS) is supported. NixOS configurations not defined."; \
+		exit 1; \
 	fi
 
 build-switch: check-user
@@ -89,8 +87,8 @@ build-switch: check-user
 	if [ "$${OS}" = "Darwin" ]; then \
 		export USER=$(USER); $(NIX) build --impure --quiet .#darwinConfigurations.$${TARGET}.system $(ARGS) || exit 1; \
 	else \
-		echo "ℹ️  NixOS: Running build for system configuration..."; \
-		export USER=$(USER); $(NIX) build --impure --quiet .#nixosConfigurations.$${TARGET}.config.system.build.toplevel $(ARGS) || exit 1; \
+		echo "❌ ERROR: Only Darwin (macOS) is supported. NixOS configurations not defined."; \
+		exit 1; \
 	fi
 
 switch: check-user
@@ -102,17 +100,8 @@ switch: check-user
 		sudo -E env USER=$(USER) ./result/sw/bin/darwin-rebuild switch --impure --flake .#$${TARGET} $(ARGS) || exit 1; \
 		rm -f ./result; \
 	else \
-		if [ -f /etc/nixos/configuration.nix ]; then \
-			echo "🐧 NixOS detected: Applying full system configuration..."; \
-			sudo -E USER=$(USER) SSH_AUTH_SOCK=$$SSH_AUTH_SOCK nixos-rebuild switch --impure --flake .#$${TARGET} $(ARGS); \
-		else \
-			echo "ℹ️  Ubuntu detected: Applying user configuration only..."; \
-			home-manager switch --flake ".#$(USER)" -b backup --impure $(ARGS); \
-		fi \
+		echo "❌ ERROR: Only Darwin (macOS) is supported. NixOS configurations not defined."; \
+		exit 1; \
 	fi
 
-switch-user: check-user
-	@echo "🏠 Switching user configuration (Home Manager)..."
-	@home-manager switch --flake ".#$(USER)" -b backup --impure $(ARGS)
-
-.PHONY: help check-user format lint lint-quick test test-quick test-all build build-switch switch switch-user
+.PHONY: help check-user format lint lint-quick test test-quick test-all build build-switch switch

@@ -91,9 +91,6 @@ let
   ];
 in
 {
-  # Primary user configuration (required for nix-darwin)
-  system.primaryUser = "baleen";
-
   # ===== Performance Optimization Settings =====
   # Comprehensive performance tuning via nix-darwin system.defaults
   system.defaults = {
@@ -191,7 +188,7 @@ in
 
   # ===== macOS App Cleanup Activation Script =====
   # Automatically removes unused default macOS apps (saves 6-8GB)
-  activationScripts.cleanupMacOSApps = {
+  system.activationScripts.cleanupMacOSApps = {
     text = ''
       echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
       echo "🧹 Removing unused macOS default apps..." >&2
@@ -275,7 +272,9 @@ in
   # zsh program activation
   programs.zsh.enable = true;
 
+  # Primary user configuration (required for nix-darwin)
   system = {
+    primaryUser = "baleen";
     checks.verifyNixPath = false;
     stateVersion = 5; # Updated to current nix-darwin version
   };
