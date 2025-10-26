@@ -91,6 +91,9 @@ let
   ];
 in
 {
+  # Primary user configuration (required for nix-darwin)
+  system.primaryUser = "baleen";
+
   # ===== Performance Optimization Settings =====
   # Comprehensive performance tuning via nix-darwin system.defaults
   system.defaults = {
@@ -246,17 +249,14 @@ in
   # Minimal Nix configuration compatible with Determinate Nix
   # Advanced settings managed by Determinate Nix in /etc/nix/nix.conf
   nix = {
-    # Disable nix-darwin's Nix management (Determinate Nix manages installation)
-    enable = false;
+    # Enable nix-darwin's Nix management for optimise.automatic
+    enable = true;
 
     settings = {
       experimental-features = [
         "nix-command"
         "flakes"
       ];
-
-      # Nix Store 자동 최적화 (디스크 25-35% 절약)
-      auto-optimise-store = true;
     };
 
     # 주기적 Nix Store 최적화 (일요일 새벽 3:15)

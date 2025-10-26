@@ -38,6 +38,12 @@ systemFunc {
       home-manager.useUserPackages = true;
       home-manager.users.${user} = import userHMConfig;
       home-manager.extraSpecialArgs = { inherit inputs; };
+
+      # Set required home-manager options
+      users.users.${user} = {
+        name = user;
+        home = if darwin then "/Users/${user}" else "/home/${user}";
+      };
     }
   ];
 }

@@ -82,4 +82,74 @@ let
   };
 
 in
-testSuite
+# Convert test suite to executable derivation
+pkgs.runCommand "vim-test-results" { } ''
+  echo "Running Vim configuration tests..."
+
+  # Test that vim.nix file exists
+  echo "Test 1: vim.nix file exists..."
+  ${
+    if vimConfigExists then
+      ''echo "✅ PASS: vim.nix file exists"''
+    else
+      ''echo "❌ FAIL: vim.nix file not found"; exit 1''
+  }
+
+  # Test that vim is enabled
+  echo "Test 2: vim is enabled..."
+  ${
+    if vimEnabled then
+      ''echo "✅ PASS: vim is enabled"''
+    else
+      ''echo "❌ FAIL: vim is not enabled"; exit 1''
+  }
+
+  # Test that vim plugins exist
+  echo "Test 3: vim plugins exist..."
+  ${
+    if hasPlugins then
+      ''echo "✅ PASS: vim plugins exist"''
+    else
+      ''echo "❌ FAIL: vim plugins missing"; exit 1''
+  }
+
+  # Test that vim settings exist
+  echo "Test 4: vim settings exist..."
+  ${
+    if hasSettings then
+      ''echo "✅ PASS: vim settings exist"''
+    else
+      ''echo "❌ FAIL: vim settings missing"; exit 1''
+  }
+
+  # Test that vim has extraConfig
+  echo "Test 5: vim has extraConfig..."
+  ${
+    if hasExtraConfig then
+      ''echo "✅ PASS: vim has extraConfig"''
+    else
+      ''echo "❌ FAIL: vim extraConfig missing"; exit 1''
+  }
+
+  # Test that airline plugin is present
+  echo "Test 6: vim airline plugin present..."
+  ${
+    if hasAirlinePlugin then
+      ''echo "✅ PASS: vim airline plugin present"''
+    else
+      ''echo "❌ FAIL: vim airline plugin missing"; exit 1''
+  }
+
+  # Test that tmux-navigator plugin is present
+  echo "Test 7: vim tmux-navigator plugin present..."
+  ${
+    if hasTmuxNavigator then
+      ''echo "✅ PASS: vim tmux-navigator plugin present"''
+    else
+      ''echo "❌ FAIL: vim tmux-navigator plugin missing"; exit 1''
+  }
+
+  echo "✅ All Vim configuration tests passed!"
+  echo "Vim configuration verified - all expected settings are present"
+  touch $out
+''

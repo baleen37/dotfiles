@@ -76,4 +76,74 @@ let
   };
 
 in
-testSuite
+# Convert test suite to executable derivation
+pkgs.runCommand "git-test-results" { } ''
+  echo "Running Git configuration tests..."
+
+  # Test that git.nix file exists
+  echo "Test 1: git.nix file exists..."
+  ${
+    if gitConfigExists then
+      ''echo "✅ PASS: git.nix file exists"''
+    else
+      ''echo "❌ FAIL: git.nix file not found"; exit 1''
+  }
+
+  # Test that git is enabled
+  echo "Test 2: git is enabled..."
+  ${
+    if gitEnabled then
+      ''echo "✅ PASS: git is enabled"''
+    else
+      ''echo "❌ FAIL: git is not enabled"; exit 1''
+  }
+
+  # Test that user settings exist
+  echo "Test 3: git user settings exist..."
+  ${
+    if hasUserSettings then
+      ''echo "✅ PASS: git user settings exist"''
+    else
+      ''echo "❌ FAIL: git user settings missing"; exit 1''
+  }
+
+  # Test that LFS is enabled
+  echo "Test 4: git LFS is enabled..."
+  ${
+    if lfsEnabled then
+      ''echo "✅ PASS: git LFS is enabled"''
+    else
+      ''echo "❌ FAIL: git LFS is not enabled"; exit 1''
+  }
+
+  # Test that ignores exist
+  echo "Test 5: git ignores exist..."
+  ${
+    if hasIgnores then
+      ''echo "✅ PASS: git ignores exist"''
+    else
+      ''echo "❌ FAIL: git ignores missing"; exit 1''
+  }
+
+  # Test that default branch is main
+  echo "Test 6: git default branch is main..."
+  ${
+    if hasMainBranch then
+      ''echo "✅ PASS: git default branch is main"''
+    else
+      ''echo "❌ FAIL: git default branch is not main"; exit 1''
+  }
+
+  # Test that pull rebase is enabled
+  echo "Test 7: git pull rebase is enabled..."
+  ${
+    if pullRebaseEnabled then
+      ''echo "✅ PASS: git pull rebase is enabled"''
+    else
+      ''echo "❌ FAIL: git pull rebase is not enabled"; exit 1''
+  }
+
+  echo "✅ All Git configuration tests passed!"
+  echo "Git configuration verified - all expected settings are present"
+  touch $out
+''

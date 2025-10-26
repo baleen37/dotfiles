@@ -82,4 +82,92 @@ let
   };
 
 in
-testSuite
+# Convert test suite to executable derivation
+pkgs.runCommand "claude-test-results" { } ''
+  echo "Running Claude configuration tests..."
+
+  # Test that Claude config directory exists
+  echo "Test 1: Claude directory exists..."
+  ${
+    if claudeDirExists then
+      ''echo "✅ PASS: Claude directory exists"''
+    else
+      ''echo "❌ FAIL: Claude directory not found"; exit 1''
+  }
+
+  # Test that CLAUDE.md exists
+  echo "Test 2: CLAUDE.md exists..."
+  ${
+    if claudeMdExists then
+      ''echo "✅ PASS: CLAUDE.md exists"''
+    else
+      ''echo "❌ FAIL: CLAUDE.md not found"; exit 1''
+  }
+
+  # Test that settings.json exists
+  echo "Test 3: settings.json exists..."
+  ${
+    if settingsJsonExists then
+      ''echo "✅ PASS: settings.json exists"''
+    else
+      ''echo "❌ FAIL: settings.json not found"; exit 1''
+  }
+
+  # Test that skills directory exists
+  echo "Test 4: skills directory exists..."
+  ${
+    if skillsDirExists then
+      ''echo "✅ PASS: skills directory exists"''
+    else
+      ''echo "❌ FAIL: skills directory not found"; exit 1''
+  }
+
+  # Test that agents directory exists
+  echo "Test 5: agents directory exists..."
+  ${
+    if agentsDirExists then
+      ''echo "✅ PASS: agents directory exists"''
+    else
+      ''echo "❌ FAIL: agents directory not found"; exit 1''
+  }
+
+  # Test that commands directory exists
+  echo "Test 6: commands directory exists..."
+  ${
+    if commandsDirExists then
+      ''echo "✅ PASS: commands directory exists"''
+    else
+      ''echo "❌ FAIL: commands directory not found"; exit 1''
+  }
+
+  # Test that hooks directory exists
+  echo "Test 7: hooks directory exists..."
+  ${
+    if hooksDirExists then
+      ''echo "✅ PASS: hooks directory exists"''
+    else
+      ''echo "❌ FAIL: hooks directory not found"; exit 1''
+  }
+
+  # Test that all expected subdirectories exist
+  echo "Test 8: expected subdirectories exist..."
+  ${
+    if hasExpectedDirs then
+      ''echo "✅ PASS: All expected subdirectories exist"''
+    else
+      ''echo "❌ FAIL: Missing expected subdirectories"; exit 1''
+  }
+
+  # Test that directory has expected structure
+  echo "Test 9: directory structure integrity..."
+  ${
+    if claudeDirExists && claudeMdExists && settingsJsonExists && (builtins.length (lib.attrNames claudeDirContents) >= 5) then
+      ''echo "✅ PASS: Directory structure is correct"''
+    else
+      ''echo "❌ FAIL: Directory structure is incomplete"; exit 1''
+  }
+
+  echo "✅ All Claude configuration tests passed!"
+  echo "Configuration integrity verified - all expected files and directories are present"
+  touch $out
+''
