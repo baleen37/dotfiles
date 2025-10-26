@@ -1,13 +1,10 @@
 # tests/default.nix
-{
-  pkgs ? import <nixpkgs> { },
-  lib ? import <nixpkgs/lib>,
-  self ? ./.,
-  inputs ? { },
-  system ? builtins.currentSystem or "x86_64-linux",
-}:
+{ inputs, system }:
 
 let
+  pkgs = import inputs.nixpkgs { inherit system; };
+  lib = pkgs.lib;
+
   # Import existing NixTest framework
   nixtest = import ./unit/nixtest-template.nix { inherit pkgs lib; };
 

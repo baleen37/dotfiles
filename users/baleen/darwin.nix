@@ -275,12 +275,9 @@ in
   # zsh program activation
   programs.zsh.enable = true;
 
-  # Disable automatic app links (requires root privileges)
-  system.nixAppLinks.enable = false;
-
   system = {
     checks.verifyNixPath = false;
-    stateVersion = 4;
+    stateVersion = 5; # Updated to current nix-darwin version
   };
 
   # Disable documentation generation to avoid builtins.toFile warnings

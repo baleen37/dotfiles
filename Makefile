@@ -38,7 +38,7 @@ help:
 # Code Quality
 format:
 	@echo "🎨 Auto-formatting all files..."
-	@$(NIX) run .#format
+	@$(NIX) run .#formatter.$(CURRENT_SYSTEM)
 
 lint:
 	@echo "🔍 Running lint checks..."
