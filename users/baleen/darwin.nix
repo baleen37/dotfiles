@@ -183,6 +183,9 @@ in
     };
   };
 
+  # Disable Nix management for Determinate compatibility
+  nix.enable = false;
+
   # Nix garbage collection (Determinate Nix compatibility)
   nix.gc = {
     automatic = lib.mkForce false;
