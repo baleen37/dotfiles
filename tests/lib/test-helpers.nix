@@ -12,6 +12,35 @@ rec {
   # Re-export NixTest framework
   inherit (nixtest) nixtest;
 
+  # Basic assertion helper (from evantravers refactor plan)
+  assertTest =
+    name: condition: message:
+    if condition then
+      pkgs.runCommand "test-${name}-pass" { } ''
+        echo "✅ ${name}: PASS"
+        touch $out
+      ''
+    else
+      pkgs.runCommand "test-${name}-fail" { } ''
+        echo "❌ ${name}: FAIL - ${message}"
+        exit 1
+      '';
+
+  # Attribute existence check (from evantravers refactor plan)
+  assertHasAttr =
+    name: attrName: set:
+    assertTest name (builtins.hasAttr attrName set) "Attribute ${attrName} not found";
+
+  # Test suite aggregator (from evantravers refactor plan)
+  testSuite =
+    name: tests:
+    pkgs.runCommand "test-suite-${name}" { } ''
+      echo "Running test suite: ${name}"
+      ${lib.concatMapStringsSep "\n" (t: "cat ${t}") tests}
+      echo "✅ Test suite ${name}: All tests passed"
+      touch $out
+    '';
+
   # Additional helpers specific to evantravers refactor requirements
   # File existence check (NixOS system path aware)
   assertFileExists =

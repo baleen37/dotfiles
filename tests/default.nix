@@ -16,4 +16,7 @@ in
     echo "✅ Test infrastructure ready - using NixTest framework"
     touch $out
   '';
+
+  # Add unit test (will fail initially)
+  unit-mksystem = import ./unit/mksystem-test.nix { inherit inputs system; };
 }
