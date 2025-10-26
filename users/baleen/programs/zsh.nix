@@ -53,8 +53,8 @@
       }
       {
         name = "powerlevel10k-config";
-        src = lib.cleanSource ../../..;
-        file = "modules/shared/config/p10k.zsh";
+        src = lib.cleanSource ../..;
+        file = "users/baleen/config/p10k.zsh";
       }
     ];
 

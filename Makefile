@@ -12,7 +12,7 @@ check-user:
 	fi
 
 help:
-	@echo "📋 Dotfiles Management (USER: $(USER), System: $(CURRENT_SYSTEM))"
+	@echo "📋 Dotfiles Management (USER: $(USER))"
 	@echo ""
 	@echo "🎨 Code Quality:"
 	@echo "  format      - Auto-format all files"
@@ -28,118 +28,79 @@ help:
 	@echo "💻 System Info:"
 	@echo "  platform-info - Show platform and system information"
 	@echo ""
-	@echo "🔨 Build & Deploy:"
+	@echo "🔨 Build & Deploy (Nix Apps):"
 	@echo "  build       - Build current platform"
-	@echo "  build-current - Build current platform (alias)"
-	@echo "  build-switch - Build system (same as switch)"
 	@echo "  build-switch-dry - Dry run build (no changes applied)"
-	@echo "  switch      - Build + apply system config"
-	@echo "  switch-user - Apply user config only (faster)"
+	@echo "  build-switch - Build system configuration"
+	@echo "  switch-user - Apply user configuration only (faster)"
+	@echo "  switch      - Build + apply system config (requires sudo)"
 	@echo ""
 	@echo "💡 Common Workflows:"
 	@echo "  make lint-quick && make test-quick  # Before commit"
 	@echo "  make format && make test            # Before PR"
 	@echo "  make smoke && make switch           # Update system safely"
 	@echo "  make platform-info                  # Check system details"
+	@echo ""
+	@echo "🚀 Direct Nix Commands (Alternative):"
+	@echo "  nix run .#format    # Auto-format"
+	@echo "  nix run .#build     # Build configuration"
+	@echo "  nix run .#test      # Run tests"
+	@echo "  nix run .#smoke     # Quick validation"
 
-# Code Quality
+# Code Quality (Nix Apps)
 format:
 	@echo "🎨 Auto-formatting all files..."
 	@$(NIX) run .#format
 
 lint:
 	@echo "🔍 Running lint checks..."
-	@statix check
-	@deadnix --fail
-	@pre-commit run --all-files
+	@$(NIX) run .#lint
 
 lint-quick:
 	@echo "⚡ Quick lint (format + validation)..."
-	@$(MAKE) format
-	@$(NIX) flake check --no-build --quiet
+	@$(NIX) run .#lint-quick
 
-# Testing
+# Testing (Nix Apps)
 test:
 	@echo "🧪 Running core tests..."
-	@$(NIX) build --impure --quiet .#packages.$(CURRENT_SYSTEM).all $(ARGS)
+	@$(NIX) run .#test
 
 test-quick:
 	@echo "⚡ Quick validation (2-3s)..."
-	@$(NIX) flake check --impure --all-systems --no-build --quiet
+	@$(NIX) run .#test-quick
 
 test-all:
 	@echo "🔬 Running comprehensive test suite..."
-	@$(NIX) build --impure --quiet .#packages.$(CURRENT_SYSTEM).lib-functions $(ARGS)
-	@$(NIX) build --impure --quiet .#packages.$(CURRENT_SYSTEM).module-interaction $(ARGS)
-	@$(NIX) build --impure --quiet .#packages.$(CURRENT_SYSTEM).build-switch-e2e $(ARGS)
-	@$(NIX) build --impure --quiet .#packages.$(CURRENT_SYSTEM).switch-platform-execution-e2e $(ARGS)
-	@echo "✅ All tests passed"
+	@$(NIX) run .#test-all
 
 smoke:
 	@echo "💨 Quick smoke test (~30 seconds)..."
-	@$(MAKE) check-user
-	@$(NIX) flake check --impure --no-build --quiet
-	@echo "✅ Smoke test passed - system is ready"
+	@$(NIX) run .#smoke
 
+# System Info (Nix Apps)
 platform-info:
 	@echo "💻 Platform Information:"
-	@echo "  User: $(USER)"
-	@echo "  System: $(CURRENT_SYSTEM)"
-	@echo "  OS: $$(uname -s)"
-	@echo "  Architecture: $$(uname -m)"
-	@echo "  Nix version: $$($(NIX) --version | head -n1)"
-	@echo "  Flake location: $$(pwd)"
+	@$(NIX) run .#platform-info
 
-build-switch-dry: check-user
-	@echo "🔍 Dry run: Building system configuration (no changes applied)..."
-	@OS=$$(uname -s); \
-	if [ "$${OS}" = "Darwin" ]; then \
-		if [ "$(CURRENT_SYSTEM)" = "aarch64-darwin" ]; then \
-			echo "🍎 macOS ARM64: Checking baleen-macbook-aarch64 configuration"; \
-			export USER=$(USER); $(NIX) eval --impure .#darwinConfigurations.baleen-macbook-aarch64.system $(ARGS); \
-		else \
-			echo "🍎 macOS x86_64: Checking baleen-macbook-x86_64 configuration"; \
-			export USER=$(USER); $(NIX) eval --impure .#darwinConfigurations.baleen-macbook-x86_64.system $(ARGS); \
-		fi; \
-	else \
-		echo "🐧 NixOS: Checking nixos-vm-x86_64 configuration"; \
-		export USER=$(USER); $(NIX) eval --impure .#nixosConfigurations.nixos-vm-x86_64.config.system.build.toplevel.outPath $(ARGS); \
-	fi; \
-	echo "✅ Dry run completed - no changes were applied"
+# Build & Deploy (Nix Apps)
+build:
+	@echo "🔨 Building current platform..."
+	@$(NIX) run .#build
 
+build-switch-dry:
+	@echo "🔍 Dry run: Building system configuration..."
+	@$(NIX) run .#build-switch-dry
 
-# Build & Deploy
-build: check-user
-	@echo "🔨 Building $(CURRENT_SYSTEM)..."
-	@OS=$$(uname -s); \
-	if [ "$${OS}" = "Darwin" ]; then \
-		if [ "$(CURRENT_SYSTEM)" = "aarch64-darwin" ]; then \
-			export USER=$(USER); $(NIX) build --impure --fallback --keep-going --no-link --quiet .#darwinConfigurations.baleen-macbook-aarch64.system $(ARGS); \
-		else \
-			export USER=$(USER); $(NIX) build --impure --fallback --keep-going --no-link --quiet .#darwinConfigurations.baleen-macbook-x86_64.system $(ARGS); \
-		fi; \
-	else \
-		echo "ℹ️  NixOS: Running configuration validation (CI-safe)..."; \
-		export USER=$(USER); $(NIX) eval --impure .#nixosConfigurations.nixos-vm-x86_64.config.system.build.toplevel.outPath $(ARGS) > /dev/null; \
-		echo "✅ NixOS configuration validated successfully"; \
-	fi
+build-switch:
+	@echo "🚀 Building system configuration..."
+	@$(NIX) run .#build-switch
 
 build-current: build
 	@echo "📝 build-current is an alias for build target"
 
-build-switch: check-user
-	@echo "🚀 Building system configuration..."
-	@OS=$$(uname -s); \
-	if [ "$${OS}" = "Darwin" ]; then \
-		if [ "$(CURRENT_SYSTEM)" = "aarch64-darwin" ]; then \
-			export USER=$(USER); $(NIX) build --impure --quiet .#darwinConfigurations.baleen-macbook-aarch64.system $(ARGS) || exit 1; \
-		else \
-			export USER=$(USER); $(NIX) build --impure --quiet .#darwinConfigurations.baleen-macbook-x86_64.system $(ARGS) || exit 1; \
-		fi; \
-	else \
-		echo "ℹ️  NixOS: Running build for system configuration..."; \
-		export USER=$(USER); $(NIX) build --impure --quiet .#nixosConfigurations.nixos-vm-x86_64.config.system.build.toplevel $(ARGS) || exit 1; \
-	fi
+switch-user:
+	@echo "🏠 Switching user configuration (Home Manager)..."
+	@$(NIX) run .#switch-user
 
 switch: check-user
 	@echo "🚀 Switching system configuration..."
@@ -162,9 +123,5 @@ switch: check-user
 			home-manager switch --flake ".#$(USER)" -b backup --impure $(ARGS); \
 		fi \
 	fi
-
-switch-user: check-user
-	@echo "🏠 Switching user configuration (Home Manager)..."
-	@home-manager switch --flake ".#$(USER)" -b backup --impure $(ARGS)
 
 .PHONY: help check-user format lint lint-quick test test-quick test-all smoke platform-info build-switch-dry build build-current build-switch switch switch-user
