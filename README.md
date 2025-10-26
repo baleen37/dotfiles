@@ -145,97 +145,90 @@ nix run .#test          # Run platform-appropriate test suite
 
 ## Configuration
 
-This system uses an **externalized configuration approach** that allows flexible customization across different environments.
+This system follows evantravers' minimalist approach with user-centric configuration files.
 
-### Configuration Files
+### User Configuration Structure
 
 ```bash
-config/
-├── platforms.yaml     # Platform-specific settings
-├── cache.yaml         # Cache management configuration
-├── network.yaml       # Network and download settings
-├── performance.yaml   # Build and system performance
-└── security.yaml      # Security policies and SSH settings
+users/baleen/
+├── home-manager.nix    # Main user configuration
+├── darwin.nix         # macOS-specific settings
+├── git.nix           # Git configuration
+├── vim.nix           # Vim/Neovim setup
+├── zsh.nix           # Zsh shell configuration
+├── tmux.nix          # Terminal multiplexer
+└── .config/claude/   # Claude Code configuration
 ```
 
 ### Environment Variables
 
-Override any configuration using environment variables:
+Required for all build operations:
 
 ```bash
-# Cache settings
-export CACHE_MAX_SIZE_GB=10
-export CACHE_CLEANUP_DAYS=14
-
-# Network settings
-export HTTP_CONNECTIONS=100
-export CONNECT_TIMEOUT=10
-
-# Platform overrides
-export PLATFORM_TYPE="darwin"
-export ARCH="aarch64"
-```
-
-### Configuration Validation
-
-```bash
-# Validate all configuration files
-./scripts/validate-config
-
-# Load configuration in scripts
-source scripts/utils/config-loader.sh
-cache_size=$(load_cache_config "max_size_gb" "5")
+# Required user variable for dynamic resolution
+export USER=$(whoami)
 ```
 
 For detailed configuration options, see [Configuration Guide](docs/CONFIGURATION.md).
 
 ## Architecture
 
-### Repository Structure
+### Directory Structure
 
 ```text
-├── flake.nix              # Flake entry point and output definitions
-├── Makefile               # Development workflow automation
-├── CLAUDE.md              # Claude Code project instructions
-├── CONTRIBUTING.md        # Development guidelines and standards
-│
-├── modules/               # Modular configuration system
-│   ├── shared/            #   Cross-platform configurations
-│   ├── darwin/            #   macOS-specific modules
-│   └── nixos/             #   NixOS-specific modules
-│
-├── hosts/                 # Host-specific configurations
-│   ├── darwin/            #   macOS system definitions
-│   └── nixos/             #   NixOS system definitions
-│
-├── lib/                   # Nix utility functions and builders
-├── scripts/               # Automation and management tools
-├── tests/                 # Multi-tier testing framework
-├── docs/                  # Comprehensive documentation
-└── overlays/              # Custom package definitions and patches
+dotfiles/
+├── flake.nix           # Entry point
+├── lib/
+│   ├── mksystem.nix    # System factory
+│   └── tests.nix       # Test utilities
+├── machines/
+│   └── macbook-pro.nix # Machine config
+├── users/baleen/       # User-centric structure
+│   ├── home-manager.nix
+│   ├── darwin.nix
+│   ├── git.nix
+│   ├── vim.nix
+│   ├── zsh.nix
+│   ├── tmux.nix
+│   └── .config/claude/ # Claude Code config
+└── tests/              # TDD test suite
+    ├── unit/
+    ├── integration/
+    └── smoke/
 ```
 
-### Module Hierarchy
+## Commands
 
-The system follows a strict modular architecture:
+```bash
+# Build current system
+nix build .#darwinConfigurations.macbook-pro.system
 
-1. **Platform modules** (`modules/{darwin,nixos}/`) contain OS-specific configurations
-2. **Shared modules** (`modules/shared/`) provide cross-platform functionality
-3. **Host configurations** (`hosts/`) define individual machine setups
-4. **Library functions** (`lib/`) provide reusable Nix utilities
+# Run tests
+nix flake check
+
+# Switch to new config
+darwin-rebuild switch --flake .#macbook-pro
+```
+
+### evantravers Architecture
+
+The system follows evantravers' minimalist user-centric architecture:
+
+1. **System Factory** (`lib/mksystem.nix`) provides a unified interface for building systems
+2. **User Configuration** (`users/baleen/`) contains all user-specific settings in flat files
+3. **Machine Definitions** (`machines/`) define hardware-specific configurations
+4. **Test Framework** (`tests/`) provides comprehensive TDD-based validation
 
 ## Customization
 
-Add packages by editing `modules/shared/packages.nix` or platform-specific files in `modules/darwin/` and `modules/nixos/`.
+Add packages by editing individual tool files in `users/baleen/` (e.g., `git.nix`, `vim.nix`) or modify `users/baleen/home-manager.nix` for package collections.
 
 ## Structure
 
-- `modules/shared/` - Cross-platform packages and configs
-- `modules/darwin/` - macOS-specific settings
-- `modules/nixos/` - NixOS-specific settings
-- `hosts/` - Individual machine configurations
-- `lib/` - Nix utilities and formatters
-- `scripts/` - Legacy automation tools (being phased out)
+- `users/baleen/` - User-centric configuration files (one file per tool)
+- `lib/mksystem.nix` - System factory following evantravers pattern
+- `machines/` - Machine-specific system configurations
+- `tests/` - TDD-based test framework with helpers
 
 ### Nix-Based Tooling
 
