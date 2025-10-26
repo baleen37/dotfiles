@@ -6,16 +6,13 @@
 }:
 
 {
-  home.packages = with pkgs; [
-    qemu
-    qemu-utils
-  ];
-
   # Create VM directory
   home.file.".local/share/nixos-vm/.keep".text = "";
 
   # NixOS VM management script
-  home.packages = [
+  home.packages = with pkgs; [
+    qemu
+    qemu-utils
     (pkgs.writeShellScriptBin "nixos-vm" ''
       set -euo pipefail
 
