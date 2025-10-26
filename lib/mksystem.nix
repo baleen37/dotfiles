@@ -3,6 +3,7 @@
 name: { system, user, darwin ? false, wsl ? false }:
 
 let
+  lib = inputs.nixpkgs.lib;
   systemFunc = if darwin
     then inputs.darwin.lib.darwinSystem
     else inputs.nixpkgs.lib.nixosSystem;

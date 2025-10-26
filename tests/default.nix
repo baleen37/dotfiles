@@ -50,4 +50,7 @@ in
 
   # Add home-manager integration test
   integration-home-manager = import ./integration/home-manager-test.nix { inherit inputs system; };
+
+  # Add full build integration test
+  integration-build = import ./integration/build-test.nix { inherit inputs system; };
 }
