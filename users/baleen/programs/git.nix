@@ -1,16 +1,102 @@
-# Git 버전 관리 설정 - 사용자별 설정
+# Git version control configuration
 #
-# 사용자 정보를 제공하는 모듈 (공유 모듈에서 상속받아 사용)
+# Manages Git global settings, aliases, and ignore file patterns
 #
-# 이 파일은 Jiho Lee의 사용자 정보를 정의하며 공유 Git 설정과 결합됩니다.
+# Features:
+#   - User info: name, email (hardcoded for Mitchell-style simplicity)
+#   - Git LFS: Large file support enabled
+#   - Global gitignore: Auto-exclude editors, OS, build files
+#   - Pull strategy: rebase by default (autoStash enabled)
+#   - Aliases:
+#       - st: status
+#       - co: checkout
+#       - br: branch
+#       - ci: commit
+#       - df: diff
+#       - lg: log --graph --oneline --decorate --all
 #
-# VERSION: 3.1.0 (User-specific configuration)
-# LAST UPDATED: 2024-10-04
+# Ignore patterns:
+#   - Editors: .vscode/, .idea/, *.swp
+#   - OS: .DS_Store, Thumbs.db
+#   - Development: .direnv/, node_modules/, .env.local
+#   - Project: issues/, specs/, plans/
+#
+# VERSION: 4.0.0 (Mitchell-style migration)
+# LAST UPDATED: 2025-10-25
 
-{ ... }:
+{ pkgs, ... }:
+
 {
-  userInfo = {
-    name = "Jiho Lee";
-    email = "baleen37@gmail.com";
+  programs.git = {
+    enable = true;
+    lfs = {
+      enable = true;
+    };
+
+    settings = {
+      user = {
+        name = "Jiho";
+        email = "baleen37@gmail.com";
+      };
+      init.defaultBranch = "main";
+      core = {
+        editor = "vim";
+        autocrlf = "input";
+        excludesFile = "~/.gitignore_global";
+      };
+      pull.rebase = true;
+      rebase.autoStash = true;
+      alias = {
+        st = "status";
+        co = "checkout";
+        br = "branch";
+        ci = "commit";
+        df = "diff";
+        lg = "log --graph --oneline --decorate --all";
+      };
+    };
+
+    ignores = [
+      # Local files
+      ".local/"
+
+      # Editor files
+      "*.swp"
+      "*.swo"
+      "*~"
+      ".vscode/"
+      ".idea/"
+
+      # OS files
+      ".DS_Store"
+      "Thumbs.db"
+      "desktop.ini"
+
+      # Development files
+      ".direnv/"
+      "result"
+      "result-*"
+      "node_modules/"
+      ".env.local"
+      ".env.*.local"
+      ".serena/"
+
+      # Temporary files
+      "*.tmp"
+      "*.log"
+      ".cache/"
+
+      # Build artifacts
+      "dist/"
+      "build/"
+      "target/"
+
+      # Issues (local project management)
+      "issues/"
+
+      # Plan files (project planning)
+      "specs/"
+      "plans/"
+    ];
   };
 }

@@ -107,7 +107,7 @@ User Command (make build)
        │
        ▼
 ┌─────────────────────┐
-│   Configuration     │ ──── modules/{shared,darwin,nixos}/
+│   Configuration     │ ──── users/{user}/
 │   Generation        │      Home Manager integration
 └─────────────────────┘      System configuration
        │
@@ -263,8 +263,8 @@ Optional Enhancements:
 │        Platform Modules             │  ←─ modules/{darwin,nixos}/
 │        (OS-specific packages)       │
 ├─────────────────────────────────────┤
-│        Shared Modules               │  ←─ modules/shared/
-│        (Cross-platform tools)       │
+│        User Configuration           │  ←─ users/{user}/
+│        (All programs & settings)    │
 ├─────────────────────────────────────┤
 │        Base Configuration           │  ←─ flake.nix + lib/
 │        (System architecture)        │

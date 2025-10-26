@@ -86,6 +86,9 @@ in
   # System state version
   system.stateVersion = 5;
 
+  # Primary user configuration (required for nix-darwin migration)
+  system.primaryUser = user;
+
   # User configuration
   users.users.${user} = {
     name = user;
@@ -200,39 +203,40 @@ in
         home = {
           enableNixpkgsReleaseCheck = false;
           packages = darwinPackages;
-          stateVersion = "23.11";
+          stateVersion = "24.05";
 
           # File mappings (from modules/darwin/files.nix)
+          # TODO: Migrate hammerspoon configs to new structure
           file = {
-            ".hammerspoon/init.lua" = {
-              source = ../../modules/darwin/config/hammerspoon/init.lua;
-            };
+            # ".hammerspoon/init.lua" = {
+            #   source = ../../modules/darwin/config/hammerspoon/init.lua;
+            # };
 
-            ".hammerspoon/configApplications.lua" = {
-              source = ../../modules/darwin/config/hammerspoon/configApplications.lua;
-            };
+            # ".hammerspoon/configApplications.lua" = {
+            #   source = ../../modules/darwin/config/hammerspoon/configApplications.lua;
+            # };
 
-            ".hammerspoon/Spoons" = {
-              source = ../../modules/darwin/config/hammerspoon/Spoons;
-              recursive = true;
-            };
+            # ".hammerspoon/Spoons" = {
+            #   source = ../../modules/darwin/config/hammerspoon/Spoons;
+            #   recursive = true;
+            # };
 
-            ".config/karabiner" = {
-              source = ../../modules/darwin/config/karabiner;
-              recursive = true;
-            };
+            # ".config/karabiner" = {
+            #   source = ../../modules/darwin/config/karabiner;
+            #   recursive = true;
+            # };
 
-            "Library/Preferences/com.lwouis.alt-tab-macos.plist" = {
-              source = ../../modules/darwin/config/alt-tab/com.lwouis.alt-tab-macos.plist;
-            };
+            # "Library/Preferences/com.lwouis.alt-tab-macos.plist" = {
+            #   source = ../../modules/darwin/config/alt-tab/com.lwouis.alt-tab-macos.plist;
+            # };
 
-            "Library/Preferences/com.runningwithcrayons.Alfred.plist" = {
-              source = ../../modules/darwin/config/alfred/com.runningwithcrayons.Alfred.plist;
-            };
+            # "Library/Preferences/com.runningwithcrayons.Alfred.plist" = {
+            #   source = ../../modules/darwin/config/alfred/com.runningwithcrayons.Alfred.plist;
+            # };
 
-            ".config/wezterm/wezterm.lua" = {
-              source = ../../modules/darwin/config/wezterm/wezterm.lua;
-            };
+            # ".config/wezterm/wezterm.lua" = {
+            #   source = ../../modules/darwin/config/wezterm/wezterm.lua;
+            # };
           };
         };
 

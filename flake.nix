@@ -189,6 +189,7 @@
                 inherit self;
               };
             };
+            nixpkgs.config.allowUnfree = true;
             nix-homebrew = {
               inherit user;
               enable = true;
@@ -222,6 +223,7 @@
                 inherit self;
               };
             };
+            nixpkgs.config.allowUnfree = true;
             nix-homebrew = {
               inherit user;
               enable = true;
@@ -263,6 +265,7 @@
                 inherit self;
               };
             };
+            nixpkgs.config.allowUnfree = true;
           }
         ];
       };
@@ -292,28 +295,30 @@
                 inherit self;
               };
             };
+            nixpkgs.config.allowUnfree = true;
           }
         ];
       };
 
       # Home Manager configurations
-      homeConfigurations.${user} = home-manager.lib.homeManagerConfiguration {
-        pkgs = nixpkgs.legacyPackages.aarch64-darwin;
-        modules = [
-          ./users/${user}/home.nix
-          {
-            nixpkgs.config.allowUnfree = true;
-            home = {
-              username = user;
-              homeDirectory = "/Users/${user}";
-              stateVersion = "24.05";
-            };
-          }
-        ];
-        extraSpecialArgs = inputs // {
-          inherit self;
-        };
-      };
+      # Note: Disabled for CI to avoid conflicts with NixOS home-manager evaluation
+      # homeConfigurations.${user} = home-manager.lib.homeManagerConfiguration {
+      #   pkgs = nixpkgs.legacyPackages.aarch64-darwin;
+      #   modules = [
+      #     ./users/${user}/home.nix
+      #     {
+      #       nixpkgs.config.allowUnfree = true;
+      #       home = {
+      #         username = user;
+      #         homeDirectory = "/Users/${user}";
+      #         stateVersion = "24.05";
+      #       };
+      #     }
+      #   ];
+      #   extraSpecialArgs = inputs // {
+      #     inherit self;
+      #   };
+      # };
 
       # Checks
       checks.aarch64-darwin.format-check = pkgs-aarch64-darwin.runCommand "format-check" { } ''
@@ -374,6 +379,9 @@
         program = "${
           (import ./lib/formatters.nix { pkgs = pkgs-aarch64-darwin; }).formatter
         }/bin/dotfiles-format";
+        meta = {
+          description = "Auto-format dotfiles (Nix, shell, YAML, JSON, Markdown)";
+        };
       };
 
       apps.x86_64-darwin.format = {
@@ -381,6 +389,9 @@
         program = "${
           (import ./lib/formatters.nix { pkgs = pkgs-x86_64-darwin; }).formatter
         }/bin/dotfiles-format";
+        meta = {
+          description = "Auto-format dotfiles (Nix, shell, YAML, JSON, Markdown)";
+        };
       };
 
       apps.x86_64-linux.format = {
@@ -388,6 +399,9 @@
         program = "${
           (import ./lib/formatters.nix { pkgs = pkgs-x86_64-linux; }).formatter
         }/bin/dotfiles-format";
+        meta = {
+          description = "Auto-format dotfiles (Nix, shell, YAML, JSON, Markdown)";
+        };
       };
 
       apps.aarch64-linux.format = {
@@ -395,20 +409,12 @@
         program = "${
           (import ./lib/formatters.nix { pkgs = pkgs-aarch64-linux; }).formatter
         }/bin/dotfiles-format";
+        meta = {
+          description = "Auto-format dotfiles (Nix, shell, YAML, JSON, Markdown)";
+        };
       };
 
-      # Packages
-      packages.aarch64-darwin.claude-hooks =
-        pkgs-aarch64-darwin.callPackage ./modules/shared/programs/claude-hook
-          { };
-      packages.x86_64-darwin.claude-hooks =
-        pkgs-x86_64-darwin.callPackage ./modules/shared/programs/claude-hook
-          { };
-      packages.x86_64-linux.claude-hooks =
-        pkgs-x86_64-linux.callPackage ./modules/shared/programs/claude-hook
-          { };
-      packages.aarch64-linux.claude-hooks =
-        pkgs-aarch64-linux.callPackage ./modules/shared/programs/claude-hook
-          { };
+      # Packages (to be added as needed)
+      # packages.aarch64-darwin.example = pkgs-aarch64-darwin.callPackage ./path/to/package { };
     };
 }

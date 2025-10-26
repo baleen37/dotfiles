@@ -40,7 +40,7 @@ graph TD
 
 ### 1. **Intelligent Activation System**
 
-**Location**: `modules/shared/lib/claude-activation.nix`  
+**Location**: `users/baleen/programs/claude.nix`
 **Purpose**: Manages Claude configuration setup and maintenance
 
 ```bash
@@ -75,10 +75,10 @@ graph TD
 ```bash
 # Structure:
 ~/.claude/
-├── commands/          → [SYMLINK] modules/shared/config/claude/commands/
-├── agents/            → [SYMLINK] modules/shared/config/claude/agents/
+├── commands/          → [SYMLINK] users/baleen/programs/claude.nix/commands/
+├── agents/            → [SYMLINK] users/baleen/programs/claude.nix/agents/
 ├── settings.json      → [COPY] with dynamic state merge
-├── CLAUDE.md          → [SYMLINK] modules/shared/config/claude/CLAUDE.md
+├── CLAUDE.md          → [SYMLINK] users/baleen/programs/claude.nix/CLAUDE.md
 └── [other .md files]  → [SYMLINK] to source files
 ```
 
@@ -96,7 +96,7 @@ claude-activation-test = pkgs.runCommand "claude-activation-test" {
   # Verify symlink creation and health
 '';
 
-# Home Manager integration via modules/shared/home-manager.nix
+# Home Manager integration via users/baleen/home.nix
 # Automatic activation during system builds
 ```
 
@@ -143,7 +143,7 @@ test-parallel:
 ### Configuration Update Flow
 
 ```text
-1. Developer modifies source files in modules/shared/config/claude/
+1. Developer modifies source files in users/baleen/programs/claude.nix/
 2. Developer runs: make build-switch
 3. Activation system detects changes
 4. Symlinks immediately reflect updates (commands/, agents/, .md files)
@@ -198,7 +198,7 @@ test-parallel:
 
 ```bash
 # Method 1: Add to dotfiles (recommended)
-echo "Custom prompt content" > modules/shared/config/claude/commands/my-command.md
+echo "Custom prompt content" > users/baleen/programs/claude.nix/commands/my-command.md
 make build-switch  # Activates immediately via symlink
 
 # Method 2: Local-only addition
@@ -210,10 +210,10 @@ echo "Local prompt" > ~/.claude/local/my-local.md
 ### Modifying Activation Behavior
 
 ```nix
-# modules/shared/lib/claude-activation.nix
+# users/baleen/programs/claude.nix
 # Modify fallback paths, permissions, or verification logic
 fallbackSources = [
-  "./modules/shared/config/claude"
+  "./users/baleen/programs/claude.nix"
   "/custom/path/to/claude/config"  # Add custom paths
   # ... existing fallbacks
 ];

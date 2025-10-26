@@ -225,7 +225,7 @@ claude /session-summary --detailed  # Detailed summary with changes
 - **Main config**: `~/.claude/settings.json` (symlinked)
 - **Commands**: `~/.claude/commands/` (folder symlink)
 - **Agents**: `~/.claude/agents/` (folder symlink)
-- **Source config**: `modules/shared/config/claude/`
+- **Source config**: `users/baleen/programs/claude.nix`
 
 ### Smart Symlink System with Intelligent Activation
 
@@ -250,14 +250,14 @@ The dotfiles use an **intelligent symlink-based configuration system** with adva
 
 ```bash
 # Folder symlinks (entire directories)
-~/.claude/commands/ → modules/shared/config/claude/commands/
-~/.claude/agents/ → modules/shared/config/claude/agents/
+~/.claude/commands/ → users/baleen/programs/claude.nix/commands/
+~/.claude/agents/ → users/baleen/programs/claude.nix/agents/
 
 # File copy with state preservation
-~/.claude/settings.json ← modules/shared/config/claude/settings.json (copied + dynamic state merged)
+~/.claude/settings.json ← users/baleen/programs/claude.nix/settings.json (copied + dynamic state merged)
 
 # File symlinks (documentation files)
-~/.claude/CLAUDE.md → modules/shared/config/claude/CLAUDE.md
+~/.claude/CLAUDE.md → users/baleen/programs/claude.nix/CLAUDE.md
 # ... and other .md files
 ```
 
@@ -315,13 +315,13 @@ claude ~/.claude/local-commands/my-local-command.md
 
 ```bash
 # Edit source files directly (recommended)
-editor modules/shared/config/claude/commands/do-plan.md
+editor users/baleen/programs/claude.nix/commands/do-plan.md
 
 # Changes are immediately active (symlinked!)
 claude /do-plan
 
 # Commit changes to preserve across systems
-git add modules/shared/config/claude/
+git add users/baleen/programs/claude.nix/
 git commit -m "feat: customize do-plan command"
 ```
 
@@ -426,7 +426,7 @@ ls ~/.claude/commands/
 ```bash
 # Solution: Ensure you're editing source files
 echo "Edit these files for changes to take effect:"
-find modules/shared/config/claude -name "*.md" -o -name "*.json"
+find users/baleen/programs/claude.nix -name "*.md" -o -name "*.json"
 
 # Then run build-switch to update links
 nix run .#build-switch
@@ -466,7 +466,7 @@ readlink ~/.claude/commands
 claude /help
 
 # Check which files are managed by dotfiles
-find modules/shared/config/claude -name "*.md" -o -name "*.json"
+find users/baleen/programs/claude.nix -name "*.md" -o -name "*.json"
 ```
 
 ## 📚 Command Quick Reference

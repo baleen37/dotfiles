@@ -83,8 +83,9 @@ let
   };
 
   sharedModules = {
-    packages = import ../../modules/shared/packages.nix { inherit pkgs; };
-    homeManager = import ../../modules/shared/home-manager.nix { inherit lib pkgs; };
+    # In Mitchell-style architecture, packages are included directly in home.nix
+    # No separate shared packages module needed
+    homeManager = import ../../users/baleen/home.nix { inherit lib pkgs; };
   };
 
   # Test data for platform testing

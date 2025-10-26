@@ -58,7 +58,7 @@ nixtestFinal.suite "Build-Switch E2E Tests" {
 
   # Test 4: Home Manager configuration buildable
   homeManagerConfigurationBuildable = nixtestFinal.test "Home Manager configuration is buildable" (
-    nixtestFinal.assertions.assertTrue (helpers.canImport ../../modules/shared/home-manager.nix)
+    nixtestFinal.assertions.assertTrue (helpers.canImport ../../users/baleen/home.nix)
   );
 
   # Test 5: System configuration for current platform buildable

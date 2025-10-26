@@ -34,7 +34,7 @@ nixtestFinal.suite "User Workflow E2E Tests" {
 
   # Test 1: Home Manager configuration complete
   homeManagerConfigurationComplete = nixtestFinal.test "Home Manager configuration is complete" (
-    nixtestFinal.assertions.assertTrue (helpers.canImport ../../modules/shared/home-manager.nix)
+    nixtestFinal.assertions.assertTrue (helpers.canImport ../../users/baleen/home.nix)
   );
 
   # Test 2: Essential packages available

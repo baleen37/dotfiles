@@ -150,23 +150,19 @@ defaults read com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking # 결�
 
 ```bash
 # 공통 패키지 추가
-vim modules/shared/packages.nix
+vim users/baleen/home.nix
 
-# macOS 전용 패키지 추가
-vim modules/darwin/packages.nix
-
-# Homebrew 앱 추가
-vim modules/darwin/casks.nix
+# macOS 전용 패키지 및 Homebrew 앱 추가
+vim users/baleen/darwin.nix
 ```
 
 ### 2. 셸 환경 설정
 
 ```bash
 # Zsh 설정 커스터마이징
-vim modules/shared/config/zsh/zshrc
+vim users/baleen/programs/zsh.nix
 
-# 별칭 추가
-vim modules/shared/config/zsh/aliases.zsh
+# 별칭 추가 (zsh.nix 파일 내에서 설정)
 ```
 
 ### 3. Hammerspoon 창 관리

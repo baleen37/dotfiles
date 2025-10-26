@@ -102,11 +102,17 @@ dotfiles/
 ├── config/         # 외부화된 설정 파일
 ├── docs/           # 문서
 ├── lib/            # Nix 라이브러리
-├── modules/        # Nix 모듈
+├── machines/       # 머신별 설정 (호스트 이름, 하드웨어만)
 ├── scripts/        # Shell 스크립트
 │   ├── lib/        # 공통 라이브러리
 │   └── platform/   # 플랫폼별 오버라이드
-└── tests/          # 테스트 파일
+├── tests/          # 테스트 파일
+└── users/          # 사용자 중심 구성 (Mitchell 스타일)
+    └── baleen/
+        ├── darwin.nix       # 모든 macOS 시스템 설정
+        ├── nixos.nix        # 모든 NixOS 시스템 설정
+        ├── home.nix         # Home Manager 진입점
+        └── programs/        # 프로그램별 설정 (플랫 구조)
     ├── unit/       # 단위 테스트
     ├── integration/ # 통합 테스트
     ├── e2e/        # End-to-End 테스트

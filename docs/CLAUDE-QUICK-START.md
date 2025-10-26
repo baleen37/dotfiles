@@ -64,4 +64,4 @@ claude /task "debug complex system issue"               # Uses root-cause-analyz
 
 ## Integration with dotfiles
 
-The Claude Code configuration automatically syncs from `modules/shared/config/claude/` to `~/.claude` when you run system builds, providing seamless integration with your development workflow.
+The Claude Code configuration is managed through `users/baleen/programs/claude.nix` and automatically syncs to `~/.claude` when you run system builds, providing seamless integration with your development workflow.

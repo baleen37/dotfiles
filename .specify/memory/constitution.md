@@ -19,7 +19,7 @@ Follow-up TODOs: None
 
 ### II. 모듈화 아키텍처 (Modular Architecture)
 
-시스템은 플랫폼별 모듈(`modules/darwin/`, `modules/nixos/`)과 공유 모듈(`modules/shared/`)로 명확히 분리되어야 합니다. 각 모듈은 단일 책임을 가지며 독립적으로 테스트 가능해야 합니다. 모듈 간 의존성은 명시적으로 선언되어야 하며, 순환 의존성을 금지합니다. 새로운 기능은 기존 모듈을 확장하거나 새 모듈을 생성하여 구현해야 합니다.
+시스템은 사용자 중심의 Mitchell-style 구조(`users/{user}/`)로 조직되어야 합니다. 각 사용자 설정은 플랫폼별 파일(`darwin.nix`, `nixos.nix`)과 프로그램별 설정(`programs/`)으로 구성됩니다. 모듈은 단일 책임을 가지며 독립적으로 테스트 가능해야 합니다. 모듈 간 의존성은 명시적으로 선언되어야 하며, 순환 의존성을 금지합니다. 새로운 기능은 기존 설정을 확장하거나 새 프로그램 파일을 생성하여 구현해야 합니다.
 
 ### III. Nix 베스트 프랙티스 (Nix Best Practices)
 
@@ -27,7 +27,7 @@ Nix 플레이크와 Home Manager의 공식 가이드라인을 엄격히 준수�
 
 ### IV. 크로스플랫폼 호환성 (Cross-Platform Compatibility)
 
-macOS(Intel + Apple Silicon)와 NixOS(x86_64 + ARM64)에서 핵심 기능이 완전히 동작해야 합니다. 플랫폼별 차이점은 조건부 설정으로 처리되어야 하며, 공통 기능은 `modules/shared/`에서 구현되어야 합니다. 새로운 기능 추가 시 모든 지원 플랫폼에서 테스트되어야 하며, 플랫폼별 제한사항은 명확히 문서화되어야 합니다.
+macOS(Intel + Apple Silicon)와 NixOS(x86_64 + ARM64)에서 핵심 기능이 완전히 동작해야 합니다. 플랫폼별 차이점은 조건부 설정으로 처리되어야 하며, 공통 기능은 `users/{user}/programs/`에서 구현되어야 합니다. 새로운 기능 추가 시 모든 지원 플랫폼에서 테스트되어야 하며, 플랫폼별 제한사항은 명확히 문서화되어야 합니다.
 
 ### V. 테스트 주도 품질 (Test-Driven Quality)
 

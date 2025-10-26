@@ -295,12 +295,12 @@ nixtestFinal.suite "Module Interaction Integration Tests" {
 
     homeManagerConfigMerging = nixtestFinal.test "Home Manager configs merge correctly" (
       let
-        sharedHM = import ../../modules/shared/home-manager.nix;
-        platformHM =
+        userHM = import ../../users/baleen/home.nix;
+        platformConfig =
           if lib.strings.hasSuffix "darwin" system then
-            import ../../modules/darwin/home-manager.nix
+            import ../../users/baleen/darwin.nix
           else if lib.strings.hasSuffix "linux" system then
-            import ../../modules/nixos/home-manager.nix
+            import ../../users/baleen/nixos.nix
           else
             { };
 

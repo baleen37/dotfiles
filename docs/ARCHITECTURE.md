@@ -32,7 +32,7 @@ This dotfiles system is built on a **modular, test-driven architecture** that pr
 - **scripts/build/**: Modularized build system with platform separation
 - **scripts/utils/**: Utility scripts and configuration loaders
 - **config/**: External configuration files (YAML-based)
-- **modules/platform/**: Platform-specific Nix modules organization
+- **users/**: User-centric configuration organization (Mitchell-style)
 
 #### ⚙️ Configuration Externalization System
 
@@ -279,14 +279,20 @@ nix build .#checks.aarch64-darwin.new_feature_unit
 │   ├── platform-apps.nix      # Platform-specific app generators
 │   └── test-apps.nix          # Test application builders
 │
-├── hosts/                      # Host-specific configurations
-│   ├── darwin/                # macOS host configurations
-│   └── nixos/                 # Linux host configurations
+├── machines/                   # Machine-specific configs (hostname, hardware only)
+│   ├── baleen-macbook.nix    # MacBook-specific settings
+│   └── nixos-vm.nix          # NixOS VM settings
 │
-├── modules/                    # Modular configuration system
-│   ├── shared/                # Cross-platform modules
-│   ├── darwin/                # macOS-specific modules
-│   └── nixos/                 # Linux-specific modules
+├── users/                      # USER-CENTRIC ORGANIZATION (Mitchell-style)
+│   └── baleen/
+│       ├── darwin.nix         # ALL macOS system settings
+│       ├── nixos.nix          # ALL NixOS system settings
+│       ├── home.nix           # Home Manager entry point
+│       └── programs/          # Program-specific configs (flat structure)
+│           ├── git.nix
+│           ├── zsh.nix
+│           ├── vim.nix
+│           └── ...
 │
 ├── apps/                       # Platform-specific executables
 │   ├── aarch64-darwin/        # Apple Silicon apps
@@ -303,22 +309,27 @@ nix build .#checks.aarch64-darwin.new_feature_unit
 └── docs/                       # Documentation
 ```text
 
-## 🔧 Module System
+## 🔧 Mitchell-Style Architecture
 
-### Module Hierarchy and Import Rules
+### User-Centric Organization
 
-1. **Platform-specific modules** (`modules/darwin/`, `modules/nixos/`)
-   - Contains OS-specific configurations
-   - Imported only by respective platform configurations
+1. **Platform configurations** (`users/baleen/darwin.nix`, `users/baleen/nixos.nix`)
+   - darwin.nix: ALL macOS system settings (Homebrew, system defaults, performance)
+   - nixos.nix: ALL NixOS system settings (services, packages, desktop)
 
-2. **Shared modules** (`modules/shared/`)
-   - Cross-platform configurations (git, zsh, vim, tmux)
-   - Can be imported by both Darwin and NixOS configurations
-   - Layout: `config/` (non-Nix files), `cachix/` (build cache), `files.nix` (static configs), `home-manager.nix` (main config), `packages.nix` (shared packages)
+2. **Program configurations** (`users/baleen/programs/`)
+   - Individual program configs in flat structure (no subdirectories)
+   - Examples: git.nix, zsh.nix, vim.nix, tmux.nix, etc.
+   - Imported via users/baleen/home.nix
 
-3. **Host configurations** (`hosts/`)
-   - Individual machine configurations
-   - Import appropriate platform and shared modules
+3. **Home Manager entry point** (`users/baleen/home.nix`)
+   - Common packages across platforms
+   - Imports all program configurations
+   - Basic Home Manager settings
+
+4. **Machine configurations** (`machines/`)
+   - Only hostname and hardware-specific settings
+   - Examples: baleen-macbook.nix, nixos-vm.nix
 
 ## 📚 Core Library Functions
 
@@ -422,10 +433,10 @@ This achieves **90% code deduplication** (656 lines → 65 lines).
 
 ### Adding New Platforms
 
-1. Create platform directory: `modules/newplatform/`
+1. Create user platform config: `users/baleen/newplatform.nix`
 2. Add platform apps: `apps/arch-newplatform/`
 3. Update flake outputs: Add to `allSystems`
-4. Create host configurations: `hosts/newplatform/`
+4. Create machine config: `machines/newplatform-machine.nix`
 
 ### Custom Modules
 

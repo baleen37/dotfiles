@@ -69,27 +69,34 @@ make build-switch-dry       # CI-safe dry-run
 ### Module Structure
 
 ```text
-modules/
-├── shared/        # Cross-platform configs (most dev tools go here)
-├── darwin/        # macOS-specific (system settings, Homebrew casks)
-│   ├── performance-optimization.nix  # Level 1+2 performance tuning
-│   └── macos-app-cleanup.nix        # Auto-remove unused default apps
-└── nixos/         # NixOS-specific (systemd services, Linux packages)
+machines/          # Machine-specific configs (hostname, hardware only)
+├── baleen-macbook.nix  # MacBook-specific settings
+└── nixos-vm.nix        # NixOS VM settings
 
-hosts/             # Machine-specific configs (hostname, hardware, user)
-lib/               # Pure Nix utilities (formatters, testing, automation)
+users/             # USER-CENTRIC ORGANIZATION (Mitchell-style)
+└── baleen/
+    ├── darwin.nix       # ALL macOS system settings
+    ├── nixos.nix        # ALL NixOS system settings
+    ├── home.nix         # Home Manager entry point
+    └── programs/        # Program-specific configs (flat structure)
+        ├── git.nix
+        ├── zsh.nix
+        ├── vim.nix
+        └── ...
+
+lib/               # Essential Nix utilities (minimal)
 tests/             # Multi-tier testing (unit, integration, e2e, performance)
 ```
 
-### Module Philosophy
+### Mitchell-Style Philosophy
 
-**Platform Separation**: `modules/{darwin,nixos}/` contain OS-specific code to prevent cross-contamination. Darwin handles macOS system settings and Homebrew; NixOS handles systemd and Linux packages.
+**User-Centric Organization**: Everything under `users/{user}/` for intuitive navigation and maintenance.
 
-**Shared Abstractions**: `modules/shared/` provides cross-platform functionality (DRY principle). Write once, use everywhere.
+**Platform Separation**: `darwin.nix` vs `nixos.nix` provide clear OS boundaries without cross-contamination.
 
-**Host Specialization**: `hosts/` define machine-specific overrides while inheriting from platform modules.
+**Flat Program Structure**: All programs in `users/{user}/programs/` with no subdirectories for simplicity.
 
-**Library Functions**: `lib/` contains platform-agnostic utilities testable in isolation.
+**Machine-Specific**: `machines/` contains only hostname and hardware settings, keeping them separate from user configuration.
 
 ### Design Principles
 
@@ -156,7 +163,7 @@ All builds require `export USER=$(whoami)` due to dynamic user resolution. Build
 
 ### Platform Detection
 
-System automatically detects platform via `lib/platform-system.nix`. Cross-platform validation runs on 4 platforms: Darwin ARM64/x64, Linux ARM64/x64.
+System automatically detects platform via `lib/default.nix`. Cross-platform validation runs on 4 platforms: Darwin ARM64/x64, Linux ARM64/x64.
 
 ## Code Documentation
 
@@ -192,7 +199,7 @@ System automatically detects platform via `lib/platform-system.nix`. Cross-platf
 
 ## macOS Optimization
 
-### Performance Tuning (modules/darwin/performance-optimization.nix)
+### Performance Tuning (users/baleen/darwin.nix)
 
 **Level 1 - Safe Optimizations:**
 
@@ -216,7 +223,7 @@ System automatically detects platform via `lib/platform-system.nix`. Cross-platf
 - Battery life: Extended (iCloud sync minimized)
 - Memory: Better management (automatic termination)
 
-### App Cleanup (modules/darwin/macos-app-cleanup.nix)
+### App Cleanup (users/baleen/darwin.nix)
 
 **Automatically removed apps (~6-8GB saved):**
 

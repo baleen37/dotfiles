@@ -48,20 +48,16 @@ flake.nix
     ├── lib/system-configs.nix        # System builders
     └── lib/platform-system.nix       # Platform detection
         │
-        ├── modules/shared/            # Cross-platform modules
-        │   ├── packages.nix          # Common packages
-        │   ├── home-manager.nix      # User environment
-        │   └── config/              # Configuration files
-        │
-        ├── modules/darwin/           # macOS-specific
-        │   ├── brew.nix             # Homebrew management
-        │   ├── system.nix           # System settings
-        │   └── home-manager.nix     # macOS Home Manager
-        │
-        └── modules/nixos/            # Linux-specific
-            ├── system.nix           # NixOS configuration
-            ├── desktop.nix          # Desktop environment
-            └── home-manager.nix     # Linux Home Manager
+        ├── users/                     # User-centric organization (Mitchell-style)
+        │   └── baleen/
+        │       ├── darwin.nix       # ALL macOS system settings
+        │       ├── nixos.nix        # ALL NixOS system settings
+        │       ├── home.nix         # Home Manager entry point
+        │       └── programs/        # Program-specific configs (flat structure)
+        │           ├── git.nix
+        │           ├── zsh.nix
+        │           ├── vim.nix
+        │           └── ...
 ```
 
 #### 3. **Configuration Management Pattern**

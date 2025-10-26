@@ -164,35 +164,33 @@ print_error() {
 #### Adding New Packages
 
 1. **Determine the appropriate location:**
-   - `modules/shared/packages.nix`: Cross-platform packages
-   - `modules/darwin/packages.nix`: macOS-specific packages
-   - `modules/nixos/packages.nix`: NixOS-specific packages
-   - `modules/darwin/casks.nix`: Homebrew casks
+   - `users/baleen/home.nix`: Cross-platform packages
+   - `users/baleen/darwin.nix`: macOS-specific packages and Homebrew casks
+   - `users/baleen/nixos.nix`: NixOS-specific packages
 
 2. **Follow the existing pattern:**
 
    ```nix
-   # modules/shared/packages.nix
-   { pkgs }:
+   # users/baleen/home.nix
+   { pkgs, ... }:
 
-   with pkgs; [
+   home.packages = with pkgs; [
      # Existing packages...
 
      # New package with comment
      new-package    # Brief description of what this package does
-   ]
+   ];
    ```
 
-#### Creating New Modules
+#### Creating New Program Configurations
 
-1. **Create the module file:**
+1. **Create the program configuration file:**
 
    ```nix
-   # modules/shared/my-new-module.nix
-   { config, pkgs, lib, ... }:
+   # users/baleen/programs/my-program.nix
+   { pkgs, ... }:
 
    {
-     # Module configuration
      programs.my-program = {
        enable = true;
        # ... configuration
@@ -200,12 +198,12 @@ print_error() {
    }
    ```
 
-2. **Import in appropriate locations:**
+2. **Import in home.nix:**
 
    ```nix
-   # In host configuration or parent module
+   # In users/baleen/home.nix
    imports = [
-     ./modules/shared/my-new-module.nix
+     ./programs/my-program.nix
    ];
    ```
 
@@ -294,7 +292,7 @@ When modifying the Claude configuration system:
    ```
 
 3. **Document policy changes in:**
-   - `modules/shared/lib/claude-config-policy.nix`
+   - `users/baleen/programs/claude.nix`
    - Update preservation behavior documentation
 
 ### Auto-Update System

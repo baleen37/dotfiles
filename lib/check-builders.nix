@@ -308,7 +308,7 @@ let
             nix eval --impure --expr '
               let
                 pkgs = import ${nixpkgs} { system = "aarch64-darwin"; };
-                shared = import ${self}/modules/shared/home-manager.nix { inherit pkgs; };
+                shared = import ${self}/users/baleen/home.nix { inherit pkgs; };
               in "ok"
             ' > /dev/null
 

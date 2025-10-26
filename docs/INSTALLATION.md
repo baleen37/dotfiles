@@ -124,14 +124,14 @@ make switch HOST=your-hostname
 
 ### Basic Customization
 
-1. **Edit packages**: Modify `modules/shared/packages.nix`
-2. **Configure shell**: Update shell settings in `modules/shared/`
-3. **Add dotfiles**: Place configuration files in `modules/shared/config/`
+1. **Edit packages**: Modify `users/baleen/home.nix`
+2. **Configure programs**: Update program settings in `users/baleen/programs/`
+3. **Add dotfiles**: Place configuration files via `users/baleen/home.nix`
 
 ### Advanced Configuration
 
-- **Platform-specific packages**: Edit `modules/darwin/packages.nix` or `modules/nixos/packages.nix`
-- **System settings**: Modify platform-specific configurations
+- **Platform-specific settings**: Edit `users/baleen/darwin.nix` or `users/baleen/nixos.nix`
+- **Machine settings**: Modify configurations in `machines/`
 - **Custom overlays**: Add packages to `overlays/`
 
 ## ✅ Step 5: Verification
@@ -202,7 +202,7 @@ nix-env --rollback
 After successful installation:
 
 1. **Read CLAUDE.md** for comprehensive usage guide
-2. **Explore modules** in `modules/shared/` for configuration options
+2. **Explore programs** in `users/baleen/programs/` for configuration options
 3. **Set up development tools** with `./scripts/setup-dev`
 4. **Configure Claude integration** (see docs/CLAUDE-INTEGRATION.md)
 

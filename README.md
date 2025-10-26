@@ -199,43 +199,51 @@ For detailed configuration options, see [Configuration Guide](docs/CONFIGURATION
 ├── CLAUDE.md              # Claude Code project instructions
 ├── CONTRIBUTING.md        # Development guidelines and standards
 │
-├── modules/               # Modular configuration system
-│   ├── shared/            #   Cross-platform configurations
-│   ├── darwin/            #   macOS-specific modules
-│   └── nixos/             #   NixOS-specific modules
+├── machines/              # Machine-specific configs (hostname, hardware only)
+│   ├── baleen-macbook.nix #   MacBook-specific settings
+│   └── nixos-vm.nix       #   NixOS VM settings
 │
-├── hosts/                 # Host-specific configurations
-│   ├── darwin/            #   macOS system definitions
-│   └── nixos/             #   NixOS system definitions
+├── users/                 # USER-CENTRIC ORGANIZATION (Mitchell-style)
+│   └── baleen/
+│       ├── darwin.nix     #   ALL macOS system settings
+│       ├── nixos.nix      #   ALL NixOS system settings
+│       ├── home.nix       #   Home Manager entry point
+│       └── programs/      #   Program-specific configs (flat structure)
+│           ├── git.nix
+│           ├── zsh.nix
+│           ├── vim.nix
+│           ├── tmux.nix
+│           └── ...
 │
-├── lib/                   # Nix utility functions and builders
+├── lib/                   # Essential Nix utilities (minimal)
 ├── scripts/               # Automation and management tools
 ├── tests/                 # Multi-tier testing framework
 ├── docs/                  # Comprehensive documentation
 └── overlays/              # Custom package definitions and patches
 ```
 
-### Module Hierarchy
+### Mitchell-Style Architecture
 
-The system follows a strict modular architecture:
+The system follows Mitchell Hashimoto's minimalist philosophy:
 
-1. **Platform modules** (`modules/{darwin,nixos}/`) contain OS-specific configurations
-2. **Shared modules** (`modules/shared/`) provide cross-platform functionality
-3. **Host configurations** (`hosts/`) define individual machine setups
-4. **Library functions** (`lib/`) provide reusable Nix utilities
+1. **User-centric organization**: Everything under `users/{user}/`
+2. **Platform separation**: `darwin.nix` vs `nixos.nix` for clear OS boundaries
+3. **Flat program structure**: All programs in `users/{user}/programs/` (no subdirectories)
+4. **Machine-specific**: `machines/` contains only hostname and hardware settings
 
 ## Customization
 
-Add packages by editing `modules/shared/packages.nix` or platform-specific files in `modules/darwin/` and `modules/nixos/`.
+Add packages by editing `users/baleen/home.nix` or individual program configs in `users/baleen/programs/`.
 
 ## Structure
 
-- `modules/shared/` - Cross-platform packages and configs
-- `modules/darwin/` - macOS-specific settings
-- `modules/nixos/` - NixOS-specific settings
-- `hosts/` - Individual machine configurations
-- `lib/` - Nix utilities and formatters
-- `scripts/` - Legacy automation tools (being phased out)
+- `users/baleen/home.nix` - Common packages and imports
+- `users/baleen/darwin.nix` - All macOS system settings
+- `users/baleen/nixos.nix` - All NixOS system settings
+- `users/baleen/programs/` - Individual program configurations
+- `machines/` - Machine-specific hostname and hardware settings
+- `lib/` - Essential Nix utilities (minimal)
+- `scripts/` - Automation and management tools
 
 ### Nix-Based Tooling
 
@@ -350,7 +358,7 @@ See [docs/TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md) for more solutions.
 ## Next Steps
 
 1. Run `make help` to see all commands
-2. Add packages in `modules/shared/packages.nix`
+2. Add packages in `users/baleen/home.nix` or specific program configs in `users/baleen/programs/`
 3. Check [CONTRIBUTING.md](./CONTRIBUTING.md) for development
 
 ---

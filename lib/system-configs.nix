@@ -75,7 +75,7 @@ in
             home-manager = {
               useGlobalPkgs = true;
               useUserPackages = true;
-              users.${user} = import ../modules/shared/home-manager.nix;
+              users.${user} = import ../users/baleen/home.nix;
               backupFileExtension = "bak";
               extraSpecialArgs = inputs;
             };

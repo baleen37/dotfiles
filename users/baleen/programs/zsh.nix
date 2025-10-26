@@ -1,4 +1,27 @@
-{ pkgs, ... }:
+# Zsh shell environment configuration
+#
+# Complete Zsh configuration in a single file (YAGNI principle)
+#
+# Features:
+#   - Powerlevel10k theme: Advanced prompt theme and configuration
+#   - 1Password SSH agent: Platform-specific socket detection and connection
+#   - PATH management: Auto-add npm, pnpm, local bin directories
+#   - IntelliJ IDEA launcher: Platform-specific install path detection
+#   - Claude CLI integration:
+#       - cc: Quick Claude Code execution (skip permissions check)
+#       - ccw: Git worktree creation/switching + Claude execution
+#   - SSH wrapper: Auto-reconnection support via autossh
+#   - dotfiles auto-update: Background update on shell startup
+#
+# Environment variables:
+#   - EDITOR/VISUAL: vim
+#   - LANG/LC_ALL: en_US.UTF-8
+#   - SSH_AUTH_SOCK: 1Password agent socket auto-configured
+#
+# VERSION: 4.0.0 (Mitchell-style migration)
+# LAST UPDATED: 2025-10-25
+
+{ pkgs, lib, ... }:
 
 {
   programs.zsh = {
@@ -30,12 +53,12 @@
       }
       {
         name = "powerlevel10k-config";
-        src = pkgs.lib.cleanSource ./../..;
+        src = lib.cleanSource ../../..;
         file = "modules/shared/config/p10k.zsh";
       }
     ];
 
-    initExtra = ''
+    initContent = ''
       # Nix daemon initialization
       if [[ -f /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]]; then
         . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh

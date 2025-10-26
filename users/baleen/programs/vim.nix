@@ -1,11 +1,11 @@
-# Vim/Neovim Configuration
+# Vim editor configuration
 #
-# Complete vim/neovim editor configuration with plugins, key bindings, and display options.
+# Vim editor plugins, key bindings, and display options
 #
 # Plugins:
 #   - vim-airline: Status bar theme (bubblegum theme, Powerline fonts)
-#   - vim-airline-themes: Additional airline themes
 #   - vim-tmux-navigator: Seamless navigation between tmux panes
+#   - yank: Clipboard integration
 #
 # Main settings:
 #   - Line numbers: Relative line numbers (relativenumber) + current line number
@@ -23,28 +23,22 @@
 #   - Ctrl+h/j/k/l: Move between split windows
 #   - Tab/Shift+Tab: Move between buffers
 #
-# VERSION: 3.1.0 (Migrated from modules/shared/programs/vim.nix)
-# LAST UPDATED: 2024-10-25
+# VERSION: 4.0.0 (Mitchell-style migration)
+# LAST UPDATED: 2025-10-25
 
 { pkgs, ... }:
 
 {
-  programs.neovim = {
+  programs.vim = {
     enable = true;
-    viAlias = true;
-    vimAlias = true;
-    defaultEditor = true;
-
     plugins = with pkgs.vimPlugins; [
       vim-airline
       vim-airline-themes
       vim-tmux-navigator
     ];
-
     settings = {
       ignorecase = true;
     };
-
     extraConfig = ''
       "" General
       set number
@@ -88,6 +82,8 @@
       set gdefault
 
       "" Statusbar
+      set nocompatible " Disable vi-compatibility
+      set laststatus=2 " Always show the statusline
       let g:airline_theme='bubblegum'
       let g:airline_powerline_fonts = 1
 
@@ -143,6 +139,9 @@
       let g:startify_bookmarks = [
         \ '~/.local/share/src',
         \ ]
+
+      let g:airline_theme='bubblegum'
+      let g:airline_powerline_fonts = 1
     '';
   };
 }

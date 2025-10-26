@@ -5,16 +5,15 @@ Detailed examples and troubleshooting for the Nix Claude Config skill.
 ## Configuration File Structure
 
 ```text
-modules/shared/
-├── config/claude/          # Source configuration files
-│   ├── settings.json       # Claude Code settings (via Nix store)
-│   ├── CLAUDE.md          # Project instructions (direct source link)
-│   ├── commands/          # Custom slash commands
-│   ├── agents/            # AI agent configurations
-│   ├── hooks/             # Git hooks (Go binaries)
-│   └── skills/            # Agent skills
-└── programs/claude/
-    └── default.nix        # Home Manager module for Claude
+users/baleen/
+├── programs/claude.nix      # Home Manager module for Claude
+└── programs/claude/         # Claude configuration source
+    ├── settings.json        # Claude Code settings (via Nix store)
+    ├── CLAUDE.md           # Project instructions (direct source link)
+    ├── commands/           # Custom slash commands
+    ├── agents/             # AI agent configurations
+    ├── hooks/              # Git hooks (Go binaries)
+    └── skills/             # Agent skills
 ```
 
 ## Complete Module Example
@@ -26,15 +25,14 @@ let
   dotfilesRoot = config.home.sessionVariables.DOTFILES_ROOT
     or "${config.home.homeDirectory}/dotfiles";
 
-  claudeConfigDirNix = ../../config/claude;
-  claudeConfigDirSource = "${dotfilesRoot}/modules/shared/config/claude";
+  claudeConfigDirSource = "${dotfilesRoot}/users/baleen/programs/claude";
   claudeHomeDir = ".claude";
 in
 {
   home.file = {
-    # Immutable via Nix store
+    # Immutable via Nix store (copied from source)
     "${claudeHomeDir}/settings.json" = {
-      source = "${claudeConfigDirNix}/settings.json";
+      source = "${claudeConfigDirSource}/settings.json";
       onChange = ''echo "Claude settings.json updated"'';
     };
 
@@ -44,10 +42,10 @@ in
         "${claudeConfigDirSource}/CLAUDE.md";
     };
 
-    # Directories
-    "${claudeHomeDir}/commands".source = "${claudeConfigDirNix}/commands";
-    "${claudeHomeDir}/agents".source = "${claudeConfigDirNix}/agents";
-    "${claudeHomeDir}/skills".source = "${claudeConfigDirNix}/skills";
+    # Directories (symlinked for immediate updates)
+    "${claudeHomeDir}/commands".source = config.lib.file.mkOutOfStoreSymlink "${claudeConfigDirSource}/commands";
+    "${claudeHomeDir}/agents".source = config.lib.file.mkOutOfStoreSymlink "${claudeConfigDirSource}/agents";
+    "${claudeHomeDir}/skills".source = config.lib.file.mkOutOfStoreSymlink "${claudeConfigDirSource}/skills";
   };
 }
 ```
@@ -58,7 +56,7 @@ in
 
 ```bash
 # Edit settings
-vim modules/shared/config/claude/settings.json
+vim users/baleen/programs/claude/settings.json
 
 # Example change
 {
@@ -77,7 +75,7 @@ make switch-user
 
 ```bash
 # Create command
-cat > modules/shared/config/claude/commands/my-command.md <<'EOF'
+cat > users/baleen/programs/claude/commands/my-command.md <<'EOF'
 You are a specialized assistant for...
 EOF
 
@@ -92,7 +90,7 @@ ls -la ~/.claude/commands/my-command.md
 
 ```bash
 # Create agent
-cat > modules/shared/config/claude/agents/my-agent.md <<'EOF'
+cat > users/baleen/programs/claude/agents/my-agent.md <<'EOF'
 # My Agent Configuration
 
 [Agent instructions here]
@@ -109,10 +107,10 @@ ls -la ~/.claude/agents/my-agent.md
 
 ```bash
 # 1. Create skill directory
-mkdir -p modules/shared/config/claude/skills/my-skill
+mkdir -p users/baleen/programs/claude/skills/my-skill
 
 # 2. Create SKILL.md
-cat > modules/shared/config/claude/skills/my-skill/SKILL.md <<'EOF'
+cat > users/baleen/programs/claude/skills/my-skill/SKILL.md <<'EOF'
 ---
 name: My Custom Skill
 description: Performs specific task in specific context
@@ -121,13 +119,10 @@ description: Performs specific task in specific context
 # Skill instructions here
 EOF
 
-# 3. Ensure skills directory is symlinked in default.nix
-# (Should already be configured)
-
-# 4. Apply
+# 3. Apply
 make switch-user
 
-# 5. Verify
+# 4. Verify
 ls -la ~/.claude/skills/my-skill/SKILL.md
 cat ~/.claude/skills/my-skill/SKILL.md
 ```
@@ -136,7 +131,7 @@ cat ~/.claude/skills/my-skill/SKILL.md
 
 ```bash
 # Edit directly (no rebuild needed!)
-vim modules/shared/config/claude/CLAUDE.md
+vim users/baleen/programs/claude/CLAUDE.md
 
 # Changes are immediately visible
 cat ~/.claude/CLAUDE.md
@@ -191,13 +186,13 @@ home.sessionVariables = {
 1. Check file exists in source:
 
    ```bash
-   ls -la modules/shared/config/claude/
+   ls -la users/baleen/programs/claude/
    ```
 
-2. Verify symlink configuration in `default.nix`:
+2. Verify symlink configuration in claude.nix:
 
    ```bash
-   cat modules/shared/programs/claude/default.nix
+   cat users/baleen/programs/claude.nix
    ```
 
 3. Check for Nix errors:
@@ -287,7 +282,7 @@ home.file = {
 
 ```bash
 # 1. Make changes
-vim modules/shared/config/claude/settings.json
+vim users/baleen/programs/claude/settings.json
 
 # 2. Test build (dry-run)
 export USER=$(whoami)
@@ -317,8 +312,7 @@ cat ~/.claude/settings.json
 
 ## Related Files
 
-- `modules/shared/programs/claude/default.nix` - Main Home Manager module
-- `modules/shared/config/claude/` - Configuration source directory
-- `modules/shared/programs/claude-hook/default.nix` - Hooks binary builder
+- `users/baleen/programs/claude.nix` - Main Home Manager module
+- `users/baleen/programs/claude/` - Configuration source directory
 - `tests/unit/modules/claude-test.nix` - Unit tests for module
 - `tests/e2e/claude-hooks-test.nix` - E2E tests for hooks

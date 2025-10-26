@@ -10,11 +10,12 @@
 # VERSION: 1.0.0 (Mitchell-style implementation)
 # LAST UPDATED: 2025-10-25
 
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 {
   home.stateVersion = "24.05";
 
   # Common packages available across all platforms
+  # Curated selection from modules/shared/packages/ for essential development
   home.packages = with pkgs; [
     # Core development tools
     ripgrep # Fast text search
@@ -38,12 +39,55 @@
     btop # Enhanced process viewer
 
     # Development tools
-    nodejs # Node.js runtime
+    nodejs_22 # Node.js runtime (LTS)
     python3 # Python runtime
+    uv # Fast Python package installer
+    direnv # Environment variable management per directory
+    pre-commit # Pre-commit hooks framework
+
+    # Terminal tools
+    tmux # Terminal multiplexer
 
     # Nix tools
     nil # Nix language server
     nixfmt # Nix formatter
+    statix # Nix anti-pattern linter
+    deadnix # Dead code detector for Nix
+
+    # Build tools
+    gnumake # GNU make build automation
+    cmake # Cross-platform build system generator
+
+    # Archive utilities
+    zip # Archive creation
+    unzip # Archive extraction
+
+    # Cloud tools
+    act # Run GitHub Actions locally
+    docker # Container platform
+
+    # Security tools
+    yubikey-agent # YubiKey support
+    keepassxc # Password manager
+
+    # SSH tools
+    autossh # Automatic SSH restart
+    mosh # Mobile shell for unreliable networks
+
+    # Database tools
+    postgresql # Database client
+    sqlite # Lightweight SQL database
+    redis # Redis client
+
+    # Media tools
+    ffmpeg # Video/audio processing
+
+    # Productivity
+    bc # Command-line calculator
+
+    # AI/CLI tools
+    claude-code # AI code generation
+    gemini-cli # Gemini CLI
   ];
 
   # Import all program-specific configurations
@@ -51,12 +95,17 @@
     ./programs/git.nix
     ./programs/zsh.nix
     ./programs/vim.nix
-    ./programs/claude.nix
+    # ./programs/claude.nix  # TODO: Fix claude-hook path references
+    ./programs/tmux.nix
+    ./programs/fzf.nix
+    ./programs/alacritty.nix
+    ./programs/direnv.nix
+    ./programs/ssh.nix
   ];
 
   # Basic Home Manager settings
   home.username = "baleen";
-  home.homeDirectory = "/Users/baleen";
+  home.homeDirectory = lib.mkDefault "/Users/baleen";
 
   # Enable basic programs
   programs.home-manager.enable = true;
