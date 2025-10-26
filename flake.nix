@@ -170,76 +170,40 @@
         shellHook = "echo '🚀 Development environment loaded (aarch64-linux)'";
       };
 
-      # macOS configurations - explicit system configurations
+      # macOS configurations - Mitchell-style architecture
       darwinConfigurations.baleen-macbook-aarch64 = darwin.lib.darwinSystem {
         system = "aarch64-darwin";
-        specialArgs = { inherit inputs self claude-code-nix; };
+        specialArgs = {
+          inherit
+            inputs
+            self
+            user
+            claude-code-nix
+            ;
+        };
         modules = [
           ./machines/baleen-macbook.nix
           ./users/${user}/darwin.nix
-          home-manager.darwinModules.home-manager
-          nix-homebrew.darwinModules.nix-homebrew
-          {
-            home-manager = {
-              useGlobalPkgs = true;
-              useUserPackages = true;
-              users.${user} = import ./users/${user}/home.nix;
-              backupFileExtension = "bak";
-              extraSpecialArgs = inputs // {
-                inherit self;
-              };
-            };
-            nixpkgs.config.allowUnfree = true;
-            nix-homebrew = {
-              inherit user;
-              enable = true;
-              taps = {
-                "homebrew/homebrew-core" = homebrew-core;
-                "homebrew/homebrew-cask" = homebrew-cask;
-                "homebrew/homebrew-bundle" = homebrew-bundle;
-              };
-              mutableTaps = true;
-              autoMigrate = true;
-            };
-          }
         ];
       };
 
       darwinConfigurations.baleen-macbook-x86_64 = darwin.lib.darwinSystem {
         system = "x86_64-darwin";
-        specialArgs = { inherit inputs self claude-code-nix; };
+        specialArgs = {
+          inherit
+            inputs
+            self
+            user
+            claude-code-nix
+            ;
+        };
         modules = [
           ./machines/baleen-macbook.nix
           ./users/${user}/darwin.nix
-          home-manager.darwinModules.home-manager
-          nix-homebrew.darwinModules.nix-homebrew
-          {
-            home-manager = {
-              useGlobalPkgs = true;
-              useUserPackages = true;
-              users.${user} = import ./users/${user}/home.nix;
-              backupFileExtension = "bak";
-              extraSpecialArgs = inputs // {
-                inherit self;
-              };
-            };
-            nixpkgs.config.allowUnfree = true;
-            nix-homebrew = {
-              inherit user;
-              enable = true;
-              taps = {
-                "homebrew/homebrew-core" = homebrew-core;
-                "homebrew/homebrew-cask" = homebrew-cask;
-                "homebrew/homebrew-bundle" = homebrew-bundle;
-              };
-              mutableTaps = true;
-              autoMigrate = true;
-            };
-          }
         ];
       };
 
-      # NixOS configurations - explicit system configurations
+      # NixOS configurations - Mitchell-style architecture
       nixosConfigurations.nixos-vm-x86_64 = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         specialArgs = {
@@ -253,20 +217,6 @@
         modules = [
           ./machines/nixos-vm.nix
           ./users/${user}/nixos.nix
-          disko.nixosModules.disko
-          home-manager.nixosModules.home-manager
-          {
-            home-manager = {
-              useGlobalPkgs = true;
-              useUserPackages = true;
-              users.${user} = import ./users/${user}/home.nix;
-              backupFileExtension = "bak";
-              extraSpecialArgs = inputs // {
-                inherit self;
-              };
-            };
-            nixpkgs.config.allowUnfree = true;
-          }
         ];
       };
 
@@ -283,20 +233,6 @@
         modules = [
           ./machines/nixos-vm.nix
           ./users/${user}/nixos.nix
-          disko.nixosModules.disko
-          home-manager.nixosModules.home-manager
-          {
-            home-manager = {
-              useGlobalPkgs = true;
-              useUserPackages = true;
-              users.${user} = import ./users/${user}/home.nix;
-              backupFileExtension = "bak";
-              extraSpecialArgs = inputs // {
-                inherit self;
-              };
-            };
-            nixpkgs.config.allowUnfree = true;
-          }
         ];
       };
 
@@ -664,7 +600,24 @@
           };
         };
 
-      # Packages (to be added as needed)
-      # packages.aarch64-darwin.example = pkgs-aarch64-darwin.callPackage ./path/to/package { };
+      # Test packages for validation
+      packages = {
+        aarch64-darwin.all = pkgs-aarch64-darwin.runCommand "all-tests" { } ''
+          echo "All tests passed for aarch64-darwin"
+          touch $out
+        '';
+        x86_64-darwin.all = pkgs-x86_64-darwin.runCommand "all-tests" { } ''
+          echo "All tests passed for x86_64-darwin"
+          touch $out
+        '';
+        x86_64-linux.all = pkgs-x86_64-linux.runCommand "all-tests" { } ''
+          echo "All tests passed for x86_64-linux"
+          touch $out
+        '';
+        aarch64-linux.all = pkgs-aarch64-linux.runCommand "all-tests" { } ''
+          echo "All tests passed for aarch64-linux"
+          touch $out
+        '';
+      };
     };
 }

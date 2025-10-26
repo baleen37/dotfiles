@@ -1,28 +1,37 @@
-# NixOS System Configuration
+# NixOS System Configuration (Mitchell-style)
 #
-# Consolidated NixOS system settings including disk configuration,
-# desktop environment, services, and platform-specific packages.
-# This file combines all NixOS-specific configurations from modules/nixos/*.
+# Complete NixOS system configuration consolidating all Linux-specific settings.
+# Mitchell-style architecture: user-centric organization with clear platform separation.
 #
-# COMPONENTS:
-#   - Disk Configuration: Disko-based partitioning with systemd-boot
-#   - Desktop Environment: bspwm window manager, polybar, rofi, theming
-#   - System Services: Home Manager, user services, auto-mounting
-#   - Packages: Linux-specific desktop and development tools
+# Consolidated functionality:
+#   - Desktop environment (bspwm, polybar, rofi, theming)
+#   - System services (audio, bluetooth, printing, virtualization)
+#   - Home Manager integration (user environment and dotfiles)
+#   - Hardware configuration (graphics, input devices)
+#   - NixOS-specific packages and configurations
 #
-# ARCHITECTURE: Mitchell-style flat configuration - all NixOS settings in one file
+# Architecture:
+#   - Machine config: machines/nixos-vm.nix (hardware only)
+#   - User config: users/baleen/nixos.nix (everything NixOS)
+#   - Home config: users/baleen/home.nix (cross-platform user settings)
 
 {
-  config,
   pkgs,
   lib,
+  inputs,
+  self,
+  user ? "baleen",
   ...
 }:
 
 let
-  user = "baleen";
   homeDir = "/home/${user}";
   xdg_configHome = "${homeDir}/.config";
+
+  # Import disko for disk configuration
+  diskoConfig = import ../../modules/nixos/disk-config.nix {
+    inherit pkgs lib;
+  };
 
   # Desktop environment files configuration
   desktopFiles = {
@@ -396,44 +405,51 @@ let
 
 in
 {
+  # Import modules for Mitchell-style architecture
+  imports = [
+    inputs.disko.nixosModules.disko
+    inputs.home-manager.nixosModules.home-manager
+  ];
+
+  # Allow unfree packages
+  nixpkgs.config.allowUnfree = true;
+
   # System configuration
   system.stateVersion = "23.11";
 
-  # Disk configuration using Disko
-  disko.devices = lib.mkDefault {
-    disk = {
-      vdb = {
-        device = "/dev/%DISK%";
-        type = "disk";
-        content = {
-          type = "gpt";
-          partitions = {
-            ESP = {
-              type = "EF00";
-              size = "100M";
-              content = {
-                type = "filesystem";
-                format = "vfat";
-                mountpoint = "/boot";
-              };
-            };
-            root = {
-              size = "100%";
-              content = {
-                type = "filesystem";
-                format = "ext4";
-                mountpoint = "/";
-              };
-            };
-          };
-        };
-      };
-    };
-  };
-
-  # Boot loader configuration
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
+  # Disk configuration using Disko (for production, not CI)
+  # Note: Disabled for CI to avoid bootloader conflicts with machines/nixos-vm.nix
+  # Production deployments should enable this with proper bootloader configuration
+  # disko.devices = lib.mkDefault {
+  #   disk = {
+  #     vdb = {
+  #       device = "/dev/%DISK%";
+  #       type = "disk";
+  #       content = {
+  #         type = "gpt";
+  #         partitions = {
+  #           ESP = {
+  #             type = "EF00";
+  #             size = "100M";
+  #             content = {
+  #               type = "filesystem";
+  #               format = "vfat";
+  #               mountpoint = "/boot";
+  #             };
+  #           };
+  #           root = {
+  #             size = "100%";
+  #             content = {
+  #               type = "filesystem";
+  #               format = "ext4";
+  #               mountpoint = "/";
+  #             };
+  #           };
+  #         };
+  #       };
+  #     };
+  #   };
+  # };
 
   # Networking configuration
   networking.networkmanager.enable = true;
@@ -538,176 +554,183 @@ in
   # Shell configuration
   programs.zsh.enable = true;
 
-  # Home Manager configuration
+  # Home Manager configuration (Mitchell-style integration)
   home-manager = {
     useGlobalPkgs = true;
     useUserPackages = true;
-    users.${user} = {
-      home.stateVersion = "24.05";
 
-      # Home directory files
-      home.file = desktopFiles;
+    users.${user} =
+      { pkgs, ... }:
+      {
+        imports = [ ./home.nix ];
 
-      # Packages
-      home.packages = nixosPackages;
+        # NixOS-specific Home Manager settings
+        home = {
+          stateVersion = "24.05";
+          packages = nixosPackages;
 
-      # GTK theming
-      gtk = {
-        enable = true;
-        theme = {
-          name = "Adwaita-dark";
-          package = pkgs.gnome-themes-extra;
+          # Desktop environment files
+          file = desktopFiles;
         };
-        iconTheme = {
-          name = "Adwaita";
-          package = pkgs.adwaita-icon-theme;
-        };
-        gtk3.extraConfig = {
-          gtk-application-prefer-dark-theme = true;
-          gtk-theme-name = "Adwaita-dark";
-          gtk-icon-theme-name = "Adwaita";
-        };
-        gtk4.extraConfig = {
-          gtk-application-prefer-dark-theme = true;
-        };
-      };
 
-      # Services
-      services = {
-        # Screen locking
-        screen-locker = {
+        # NixOS-specific GTK theming
+        gtk = {
           enable = true;
-          inactiveInterval = 10;
-          lockCmd = "${pkgs.i3lock-fancy-rapid}/bin/i3lock-fancy-rapid 10 15";
-          xautolock.enable = false;
+          theme = {
+            name = "Adwaita-dark";
+            package = pkgs.gnome-themes-extra;
+          };
+          iconTheme = {
+            name = "Adwaita";
+            package = pkgs.adwaita-icon-theme;
+          };
+          gtk3.extraConfig = {
+            gtk-application-prefer-dark-theme = true;
+            gtk-theme-name = "Adwaita-dark";
+            gtk-icon-theme-name = "Adwaita";
+          };
+          gtk4.extraConfig = {
+            gtk-application-prefer-dark-theme = true;
+          };
         };
 
-        # Device auto-mounting
-        udiskie = {
-          enable = true;
-          automount = true;
-          notify = false;
-          tray = "never";
-        };
+        # NixOS-specific services
+        services = {
+          # Screen locking
+          screen-locker = {
+            enable = true;
+            inactiveInterval = 10;
+            lockCmd = "${pkgs.i3lock-fancy-rapid}/bin/i3lock-fancy-rapid 10 15";
+            xautolock.enable = false;
+          };
 
-        # Dunst notifications
-        dunst = {
-          enable = true;
-          package = pkgs.dunst;
-          settings = {
-            global = {
-              monitor = 0;
-              follow = "mouse";
-              width = 320;
-              height = 400;
-              origin = "top-right";
-              offset = "15x65";
-              indicate_hidden = true;
-              shrink = false;
-              separator_height = 2;
-              padding = 16;
-              horizontal_padding = 16;
-              frame_width = 1;
-              transparency = 5;
-              corner_radius = 8;
-              font = "Noto Sans 11";
-              line_height = 4;
-              markup = "full";
-              format = "<b>%s</b>\n%b";
-              alignment = "left";
-              word_wrap = true;
-              ignore_newline = false;
-              sort = true;
-              idle_threshold = 120;
-              show_age_threshold = 60;
-              stack_duplicates = true;
-              hide_duplicate_count = false;
-              show_indicators = true;
-              icon_position = "left";
-              icon_theme = "Adwaita";
-              max_icon_size = 48;
-              sticky_history = true;
-              history_length = 50;
-              browser = lib.mkDefault "/usr/bin/env xdg-open";
-              always_run_script = false;
-              title = "Dunst";
-              class = "Dunst";
-            };
+          # Device auto-mounting
+          udiskie = {
+            enable = true;
+            automount = true;
+            notify = false;
+            tray = "never";
+          };
 
-            urgency_low = {
-              background = "#1e1e2e";
-              foreground = "#cdd6f4";
-              timeout = 5;
-            };
+          # Dunst notifications
+          dunst = {
+            enable = true;
+            package = pkgs.dunst;
+            settings = {
+              global = {
+                monitor = 0;
+                follow = "mouse";
+                width = 320;
+                height = 400;
+                origin = "top-right";
+                offset = "15x65";
+                indicate_hidden = true;
+                shrink = false;
+                separator_height = 2;
+                padding = 16;
+                horizontal_padding = 16;
+                frame_width = 1;
+                transparency = 5;
+                corner_radius = 8;
+                font = "Noto Sans 11";
+                line_height = 4;
+                markup = "full";
+                format = "<b>%s</b>\n%b";
+                alignment = "left";
+                word_wrap = true;
+                ignore_newline = false;
+                sort = true;
+                idle_threshold = 120;
+                show_age_threshold = 60;
+                stack_duplicates = true;
+                hide_duplicate_count = false;
+                show_indicators = true;
+                icon_position = "left";
+                icon_theme = "Adwaita";
+                max_icon_size = 48;
+                sticky_history = true;
+                history_length = 50;
+                browser = lib.mkDefault "/usr/bin/env xdg-open";
+                always_run_script = false;
+                title = "Dunst";
+                class = "Dunst";
+              };
 
-            urgency_normal = {
-              background = "#1e1e2e";
-              foreground = "#cdd6f4";
-              timeout = 10;
-            };
+              urgency_low = {
+                background = "#1e1e2e";
+                foreground = "#cdd6f4";
+                timeout = 5;
+              };
 
-            urgency_critical = {
-              background = "#1e1e2e";
-              foreground = "#f38ba8";
-              frame_color = "#f38ba8";
-              timeout = 0;
+              urgency_normal = {
+                background = "#1e1e2e";
+                foreground = "#cdd6f4";
+                timeout = 10;
+              };
+
+              urgency_critical = {
+                background = "#1e1e2e";
+                foreground = "#f38ba8";
+                frame_color = "#f38ba8";
+                timeout = 0;
+              };
             };
           };
         };
-      };
 
-      # Programs configuration
-      programs = {
-        # Shell aliases for Linux
-        zsh.shellAliases = {
-          ll = "ls -alF";
-          la = "ls -A";
-          l = "ls -CF";
-          sysinfo = "neofetch";
-          ports = "netstat -tuln";
-          psg = "ps aux | grep";
-          search = "nix search nixpkgs";
-          install = "nix-env -iA";
-          upgrade = "sudo nixos-rebuild switch --upgrade";
-        };
-
-        # Git configuration
-        git.settings = {
-          credential.helper = "store";
-        };
-      };
-
-      # XDG configuration
-      xdg = {
-        enable = true;
-        userDirs = {
-          enable = true;
-          createDirectories = true;
-          desktop = "${homeDir}/Desktop";
-          documents = "${homeDir}/Documents";
-          download = "${homeDir}/Downloads";
-          music = "${homeDir}/Music";
-          pictures = "${homeDir}/Pictures";
-          videos = "${homeDir}/Videos";
-        };
-        mimeApps = {
-          enable = true;
-          defaultApplications = {
-            "text/plain" = [ "vim.desktop" ];
-            "application/pdf" = [ "firefox.desktop" ];
-            "image/png" = [ "feh.desktop" ];
-            "image/jpeg" = [ "feh.desktop" ];
+        # NixOS-specific programs
+        programs = {
+          # Shell aliases for Linux
+          zsh.shellAliases = {
+            ll = "ls -alF";
+            la = "ls -A";
+            l = "ls -CF";
+            sysinfo = "neofetch";
+            ports = "netstat -tuln";
+            psg = "ps aux | grep";
+            search = "nix search nixpkgs";
+            install = "nix-env -iA";
+            upgrade = "sudo nixos-rebuild switch --upgrade";
           };
         };
+
+        # XDG configuration
+        xdg = {
+          enable = true;
+          userDirs = {
+            enable = true;
+            createDirectories = true;
+            desktop = "${homeDir}/Desktop";
+            documents = "${homeDir}/Documents";
+            download = "${homeDir}/Downloads";
+            music = "${homeDir}/Music";
+            pictures = "${homeDir}/Pictures";
+            videos = "${homeDir}/Videos";
+          };
+          mimeApps = {
+            enable = true;
+            defaultApplications = {
+              "text/plain" = [ "vim.desktop" ];
+              "application/pdf" = [ "firefox.desktop" ];
+              "image/png" = [ "feh.desktop" ];
+              "image/jpeg" = [ "feh.desktop" ];
+            };
+          };
+        };
+
+        # Activation script
+        home.activation.createDirectories = ''
+          echo "Setting up NixOS directory structure..."
+          mkdir -p "${xdg_configHome}"/{polybar/bin,rofi/bin,dunst}
+          mkdir -p "${homeDir}/.cache"
+          mkdir -p "${homeDir}/.local"/bin
+        '';
       };
 
-      # Activation script
-      home.activation.createDirectories = ''
-        echo "Setting up NixOS directory structure..."
-        mkdir -p "${xdg_configHome}"/{polybar/bin,rofi/bin,dunst}
-        mkdir -p "${homeDir}/.cache"
-        mkdir -p "${homeDir}/.local"/bin
-      '';
+    backupFileExtension = "bak";
+    extraSpecialArgs = {
+      inherit inputs self;
+      platform = "linux";
     };
   };
 

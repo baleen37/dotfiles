@@ -101,6 +101,7 @@
     ./programs/alacritty.nix
     ./programs/direnv.nix
     ./programs/ssh.nix
+    ./programs/qemu-vm.nix
   ];
 
   # Basic Home Manager settings

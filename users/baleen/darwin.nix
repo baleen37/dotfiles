@@ -12,15 +12,18 @@
 #   - packages.nix: macOS-specific packages
 #   - nix-gc.nix: Nix garbage collection settings
 
-{ pkgs, lib, ... }:
+{
+  pkgs,
+  lib,
+  inputs,
+  self,
+  user ? "baleen",
+  ...
+}:
 
 let
-  # User resolution (consistent with original implementation)
-  getUserInfo = import ../../lib/user-resolution.nix {
-    platform = "darwin";
-    returnFormat = "extended";
-  };
-  inherit (getUserInfo) user homePath;
+  # User resolution
+  homePath = "/Users/${user}";
 
   # Custom karabiner-elements version 14 (Darwin-only)
   karabiner-elements-14 = pkgs.karabiner-elements.overrideAttrs (_oldAttrs: {
@@ -83,13 +86,96 @@ let
 
 in
 {
-  # System state version
-  system.stateVersion = 5;
+  # Import modules for Mitchell-style architecture
+  imports = [
+    inputs.home-manager.darwinModules.home-manager
+    inputs.nix-homebrew.darwinModules.nix-homebrew
+  ];
 
-  # Primary user configuration (required for nix-darwin migration)
-  system.primaryUser = user;
+  # Home Manager configuration (Mitchell-style integration)
+  home-manager = {
+    useGlobalPkgs = true;
+    useUserPackages = true;
 
-  # User configuration
+    users.${user} =
+      { pkgs, ... }:
+      {
+        imports = [ ./home.nix ];
+
+        # macOS-specific Home Manager settings
+        home = {
+          packages = darwinPackages;
+          stateVersion = "24.05";
+
+          # macOS-specific file mappings
+          file = {
+            # TODO: Migrate hammerspoon configs to new structure
+            # ".hammerspoon/init.lua" = {
+            #   source = ../../modules/darwin/config/hammerspoon/init.lua;
+            # };
+          };
+        };
+
+        # macOS-specific programs
+        programs = {
+          zsh = {
+            shellAliases = {
+              finder = "open -a Finder";
+              preview = "open -a Preview";
+              code = "open -a 'Visual Studio Code'";
+            };
+          };
+        };
+
+        manual = {
+          manpages.enable = false;
+          html.enable = false;
+          json.enable = false;
+        };
+
+        # Nix app linking (macOS optimization)
+        home.activation.linkNixApps = ''
+          echo "🔗 Optimizing Nix application integration..."
+
+          applications="${homePath}/Applications"
+
+          if [[ ! -d "$applications" ]]; then
+            mkdir -p "$applications"
+          fi
+
+          # Basic app linking logic
+          if [[ -d "/nix/store" ]]; then
+            echo "✅ Application linking completed successfully"
+            echo "💡 Applications accessible via Spotlight and Finder"
+          else
+            echo "⚠️ Nix store not found, skipping app linking"
+          fi
+        '';
+      };
+
+    backupFileExtension = "bak";
+    extraSpecialArgs = {
+      inherit inputs self;
+      platform = "darwin";
+    };
+  };
+
+  nix-homebrew = {
+    inherit user;
+    enable = true;
+    taps = {
+      "homebrew/homebrew-core" = inputs.homebrew-core;
+      "homebrew/homebrew-cask" = inputs.homebrew-cask;
+      "homebrew/homebrew-bundle" = inputs.homebrew-bundle;
+    };
+    mutableTaps = true;
+    autoMigrate = true;
+  };
+
+  # Allow unfree packages
+  nixpkgs.config.allowUnfree = true;
+
+  # User configuration (system level)
   users.users.${user} = {
     name = user;
     home = homePath;
@@ -195,90 +281,8 @@ in
     automatic = lib.mkForce false;
   };
 
-  # Home Manager configuration
-  home-manager = {
-    useGlobalPkgs = true;
-    useUserPackages = true;
-
-    users.${user} =
-      { pkgs, lib, ... }:
-      {
-        home = {
-          enableNixpkgsReleaseCheck = false;
-          packages = darwinPackages;
-          stateVersion = "24.05";
-
-          # File mappings (from modules/darwin/files.nix)
-          # TODO: Migrate hammerspoon configs to new structure
-          file = {
-            # ".hammerspoon/init.lua" = {
-            #   source = ../../modules/darwin/config/hammerspoon/init.lua;
-            # };
-
-            # ".hammerspoon/configApplications.lua" = {
-            #   source = ../../modules/darwin/config/hammerspoon/configApplications.lua;
-            # };
-
-            # ".hammerspoon/Spoons" = {
-            #   source = ../../modules/darwin/config/hammerspoon/Spoons;
-            #   recursive = true;
-            # };
-
-            # ".config/karabiner" = {
-            #   source = ../../modules/darwin/config/karabiner;
-            #   recursive = true;
-            # };
-
-            # "Library/Preferences/com.lwouis.alt-tab-macos.plist" = {
-            #   source = ../../modules/darwin/config/alt-tab/com.lwouis.alt-tab-macos.plist;
-            # };
-
-            # "Library/Preferences/com.runningwithcrayons.Alfred.plist" = {
-            #   source = ../../modules/darwin/config/alfred/com.runningwithcrayons.Alfred.plist;
-            # };
-
-            # ".config/wezterm/wezterm.lua" = {
-            #   source = ../../modules/darwin/config/wezterm/wezterm.lua;
-            # };
-          };
-        };
-
-        programs = {
-          zsh = {
-            shellAliases = {
-              finder = "open -a Finder";
-              preview = "open -a Preview";
-              code = "open -a 'Visual Studio Code'";
-            };
-          };
-        };
-
-        manual = {
-          manpages.enable = false;
-          html.enable = false;
-          json.enable = false;
-        };
-
-        # Nix app linking (from home-manager.nix)
-        home.activation.linkNixApps = ''
-          echo "🔗 Optimizing Nix application integration..."
-
-          applications="${homePath}/Applications"
-
-          if [[ ! -d "$applications" ]]; then
-            mkdir -p "$applications"
-          fi
-
-          # Basic app linking logic
-          if [[ -d "/nix/store" ]]; then
-            echo "✅ Application linking completed successfully"
-            echo "💡 Applications accessible via Spotlight and Finder"
-          else
-            echo "⚠️ Nix store not found, skipping app linking"
-          fi
-        '';
-      };
-  };
+  # Enable system programs
+  programs.zsh.enable = true;
 
   # App cleanup activation script (from macos-app-cleanup.nix)
   system.activationScripts.postActivation.text = ''

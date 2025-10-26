@@ -1,25 +1,62 @@
 # NixOS VM Machine Configuration
 #
-# Machine-specific settings for NixOS VM environment.
-# Contains only hardware-specific settings and hostname.
-# All system configuration moved to users/baleen/nixos.nix
+# Hardware-specific settings for NixOS VM environment.
+# Contains only hardware, bootloader, and system-level configurations.
+# User configuration is handled in users/baleen/nixos.nix.
+#
+# Architecture: Mitchell-style
+#   - Hardware identification: NixOS VM
+#   - Platform: Linux/NixOS
+#   - User configuration: users/baleen/nixos.nix
+#
+# Hardware Settings:
+#   - Virtual hardware configuration
+#   - Bootloader settings
+#   - Filesystem layout (basic for CI)
+#   - System user creation
 
-{ lib, ... }:
 {
+  lib,
+  pkgs,
+  user,
+  ...
+}:
+
+{
+  # System identification
+  networking.hostName = "nixos-vm";
+
   # System state version
   system.stateVersion = lib.mkDefault "24.05";
 
-  # Allow unfree packages
-  nixpkgs.config.allowUnfree = true;
+  # Platform detection for scripts and applications
+  environment.variables = {
+    PLATFORM = "linux";
+    ARCHITECTURE = if pkgs.stdenv.isAarch64 then "arm64" else "x86_64";
+  };
 
-  # Set hostname
-  networking.hostName = "nixos-vm";
+  # Boot configuration for VM
+  boot = {
+    loader.grub = {
+      enable = true;
+      devices = [ "/dev/vda" ];
+      configurationLimit = 10;
+    };
 
-  # Boot loader for VM
-  boot.loader.grub.devices = [ "/dev/vda" ];
+    # Basic kernel modules for VM
+    initrd.availableKernelModules = [
+      "xhci_pci"
+      "ahci"
+      "nvme"
+      "usbhid"
+      "usb_storage"
+      "sd_mod"
+    ];
+    kernelModules = [ "uinput" ];
+  };
 
   # Minimal filesystem configuration for VM builds
-  # Production uses disko configuration from users/baleen/nixos.nix
+  # Production uses disko from users/baleen/nixos.nix
   fileSystems."/" = lib.mkDefault {
     device = "/dev/disk/by-label/nixos";
     fsType = "ext4";
@@ -30,18 +67,30 @@
     fsType = "vfat";
   };
 
-  # Create user (system-level only, Home Manager handles home config)
-  users.users.baleen = {
-    isNormalUser = true;
-    group = "baleen";
-    extraGroups = [
-      "docker"
-      "wheel"
-    ];
+  # User configuration handled in users/baleen/nixos.nix (Mitchell-style)
+  # Only basic system groups defined here
+  users.groups.docker = { };
+
+  # Basic networking for VM
+  networking = {
+    useDHCP = false;
+    interfaces."eth0".useDHCP = true;
   };
 
-  users.groups.baleen = { };
+  # Hardware support for VM
+  hardware = {
+    graphics.enable = true;
+  };
 
-  # Create user group for docker
-  users.groups.docker = { };
+  # Enable basic system programs
+  programs.zsh.enable = true;
+
+  # System packages (hardware level only)
+  environment.systemPackages = with pkgs; [
+    # Basic system tools
+    git
+    vim
+    curl
+    wget
+  ];
 }
