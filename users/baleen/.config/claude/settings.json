@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash",
+      "WebFetch(domain:*)",
+      "WebSearch",
+      "Write",
+      "MultiEdit",
+      "Edit",
+      "NotebookRead",
+      "NotebookEdit",
+      "Glob",
+      "Grep",
+      "LS",
+      "Read",
+      "Task",
+      "TodoWrite",
+      "BashOutput",
+      "KillBash",
+      "ListMcpResourcesTool",
+      "ReadMcpResourceTool",
+      "mcp__context7__*",
+      "mcp__sequential-thinking__*",
+      "mcp__serena__*",
+      "mcp__playwright__*",
+      "mcp__magic__*",
+      "Bash(git:*)",
+      "Bash(gh:*)"
+    ],
+    "deny": []
+  },
+  "model": "sonnet",
+  "enableAllProjectMcpServers": true,
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "claude-hooks git-commit-validator"
+          },
+          {
+            "type": "command",
+            "command": "claude-hooks gh-pr-validator"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "claude-hooks message-cleaner"
+          },
+          {
+            "type": "command",
+            "command": "claude-hooks gh-pr-cleaner"
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "bash ~/.claude/statusline-command.sh"
+  },
+  "alwaysThinkingEnabled": false,
+  "rejectedMcpServers": [],
+  "feedbackSurveyState": {
+    "lastShownTime": 1755225425616
+  }
+}

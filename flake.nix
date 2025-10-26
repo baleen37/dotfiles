@@ -328,6 +328,7 @@
                 framework-check
                 lib-functions
                 platform-detection
+                mksystem-tests
                 makefile-switch-commands
                 module-interaction
                 cross-platform

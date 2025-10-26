@@ -13,6 +13,16 @@ name:
 }:
 
 let
+  # Common special arguments passed to both config and system builder
+  specialArgs = {
+    inherit inputs;
+    currentSystem = system;
+    currentSystemName = name;
+    currentSystemUser = user;
+    isWSL = wsl;
+    isDarwin = darwin;
+  };
+
   # Select appropriate system builder
   systemFunc = if darwin then inputs.darwin.lib.darwinSystem else inputs.nixpkgs.lib.nixosSystem;
 
@@ -32,26 +42,12 @@ in
 
   config = {
     # Mock _module.args for testing
-    _module.args = {
-      inherit inputs;
-      currentSystem = system;
-      currentSystemName = name;
-      currentSystemUser = user;
-      isWSL = wsl;
-      isDarwin = darwin;
-    };
+    _module.args = specialArgs;
 
     # Minimal system configuration
     system.stateVersion = if darwin then 5 else "24.11";
   };
 
   # Also provide the special args for compatibility
-  specialArgs = {
-    inherit inputs;
-    currentSystem = system;
-    currentSystemName = name;
-    currentSystemUser = user;
-    isWSL = wsl;
-    isDarwin = darwin;
-  };
+  inherit specialArgs;
 }
