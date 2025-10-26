@@ -55,7 +55,7 @@ lint-quick:
 # Testing
 test:
 	@echo "🧪 Running core tests..."
-	@$(NIX) build --impure --quiet .#packages.$(CURRENT_SYSTEM).all $(ARGS)
+	@$(NIX) build --impure --quiet .#checks.$(CURRENT_SYSTEM).smoke $(ARGS)
 
 test-quick:
 	@echo "⚡ Quick validation (2-3s)..."

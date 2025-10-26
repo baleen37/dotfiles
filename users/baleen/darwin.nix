@@ -191,7 +191,7 @@ in
 
   # ===== macOS App Cleanup Activation Script =====
   # Automatically removes unused default macOS apps (saves 6-8GB)
-  system.activationScripts.cleanupMacOSApps = {
+  activationScripts.cleanupMacOSApps = {
     text = ''
       echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
       echo "🧹 Removing unused macOS default apps..." >&2

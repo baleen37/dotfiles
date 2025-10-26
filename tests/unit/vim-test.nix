@@ -29,7 +29,7 @@ let
       { };
 
   # Test if vim is enabled
-  vimEnabled = vimConfigExists && vimConfig.programs.vim.enable == true;
+  vimEnabled = vimConfigExists && vimConfig.programs.vim.enable;
 
   # Test if vim plugins exist
   hasPlugins = vimConfigExists && builtins.hasAttr "plugins" vimConfig.programs.vim;

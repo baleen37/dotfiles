@@ -131,7 +131,7 @@ let
     # Mock backup creation
     createMockBackup = timestamp: {
       path = "/tmp/dotfiles-backup-${timestamp}";
-      timestamp = timestamp;
+      inherit timestamp;
       files = [
         ".gitconfig"
         ".vimrc"
