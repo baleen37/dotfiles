@@ -3,7 +3,7 @@
 
 let
   pkgs = import inputs.nixpkgs { inherit system; };
-  lib = pkgs.lib;
+  inherit (pkgs) lib;
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
 
   # Try to build the full system

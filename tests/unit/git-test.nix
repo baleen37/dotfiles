@@ -29,13 +29,13 @@ let
       { };
 
   # Test if git is enabled
-  gitEnabled = gitConfigExists && gitConfig.programs.git.enable == true;
+  gitEnabled = gitConfigExists && gitConfig.programs.git.enable;
 
   # Test if user settings exist
   hasUserSettings = gitConfigExists && builtins.hasAttr "user" gitConfig.programs.git.settings;
 
   # Test if LFS is enabled
-  lfsEnabled = gitConfigExists && gitConfig.programs.git.lfs.enable == true;
+  lfsEnabled = gitConfigExists && gitConfig.programs.git.lfs.enable;
 
   # Test if ignores exist
   hasIgnores = gitConfigExists && builtins.hasAttr "ignores" gitConfig.programs.git;
@@ -44,7 +44,7 @@ let
   hasMainBranch = gitConfigExists && gitConfig.programs.git.settings.init.defaultBranch == "main";
 
   # Test if pull rebase is enabled
-  pullRebaseEnabled = gitConfigExists && gitConfig.programs.git.settings.pull.rebase == true;
+  pullRebaseEnabled = gitConfigExists && gitConfig.programs.git.settings.pull.rebase;
 
   # Test suite using NixTest framework
   testSuite = {
