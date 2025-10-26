@@ -55,9 +55,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: Linux
-            system: x86_64-linux
-            os: ubuntu-latest
           - name: Darwin
             system: aarch64-darwin
             os: macos-15

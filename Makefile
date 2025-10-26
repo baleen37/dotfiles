@@ -72,8 +72,11 @@ test-all:
 build: check-user
 	@echo "🔨 Building $(CURRENT_SYSTEM)..."
 	@OS=$$(uname -s); \
-	TARGET=$${HOST:-macbook-pro}; \
 	if [ "$${OS}" = "Darwin" ]; then \
+		TARGET=$${HOST:-macbook-pro}; \
+		case "$$TARGET" in \
+			*-darwin) TARGET=macbook-pro;; \
+		esac; \
 		export USER=$(USER); $(NIX) build --impure --fallback --keep-going --no-link --quiet .#darwinConfigurations.$${TARGET}.system $(ARGS) || exit 1; \
 	else \
 		echo "❌ ERROR: Only Darwin (macOS) is supported. NixOS configurations not defined."; \
@@ -83,8 +86,11 @@ build: check-user
 build-switch: check-user
 	@echo "🚀 Building system configuration..."
 	@OS=$$(uname -s); \
-	TARGET=$${HOST:-macbook-pro}; \
 	if [ "$${OS}" = "Darwin" ]; then \
+		TARGET=$${HOST:-macbook-pro}; \
+		case "$$TARGET" in \
+			*-darwin) TARGET=macbook-pro;; \
+		esac; \
 		export USER=$(USER); $(NIX) build --impure --quiet .#darwinConfigurations.$${TARGET}.system $(ARGS) || exit 1; \
 	else \
 		echo "❌ ERROR: Only Darwin (macOS) is supported. NixOS configurations not defined."; \
@@ -94,8 +100,11 @@ build-switch: check-user
 switch: check-user
 	@echo "🚀 Switching system configuration..."
 	@OS=$$(uname -s); \
-	TARGET=$${HOST:-macbook-pro}; \
 	if [ "$${OS}" = "Darwin" ]; then \
+		TARGET=$${HOST:-macbook-pro}; \
+		case "$$TARGET" in \
+			*-darwin) TARGET=macbook-pro;; \
+		esac; \
 		export USER=$(USER); $(NIX) build --impure --quiet .#darwinConfigurations.$${TARGET}.system $(ARGS) || exit 1; \
 		sudo -E env USER=$(USER) ./result/sw/bin/darwin-rebuild switch --impure --flake .#$${TARGET} $(ARGS) || exit 1; \
 		rm -f ./result; \
