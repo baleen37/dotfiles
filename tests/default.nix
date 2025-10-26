@@ -47,4 +47,7 @@ in
 
   # Add tmux configuration test (will fail initially)
   unit-tmux = import ./unit/tmux-test.nix { inherit inputs system; };
+
+  # Add Darwin configuration test
+  unit-darwin = import ./unit/darwin-test.nix { inherit inputs system; };
 }
