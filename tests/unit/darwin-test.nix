@@ -6,7 +6,7 @@
 
 let
   pkgs = import inputs.nixpkgs { inherit system; };
-  lib = pkgs.lib;
+  inherit (pkgs) lib;
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
 
   darwinConfig = import ../../users/baleen/darwin.nix {

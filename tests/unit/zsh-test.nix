@@ -29,7 +29,7 @@ let
       { };
 
   # Test if zsh is enabled
-  zshEnabled = zshConfigExists && zshConfig.programs.zsh.enable == true;
+  zshEnabled = zshConfigExists && zshConfig.programs.zsh.enable;
 
   # Test if zsh has shell aliases
   hasAliases = zshConfigExists && builtins.hasAttr "shellAliases" zshConfig.programs.zsh;

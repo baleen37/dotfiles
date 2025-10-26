@@ -29,7 +29,7 @@ let
       { };
 
   # Test if tmux is enabled
-  tmuxEnabled = tmuxConfigExists && tmuxConfig.programs.tmux.enable == true;
+  tmuxEnabled = tmuxConfigExists && tmuxConfig.programs.tmux.enable;
 
   # Test if tmux has plugins
   hasPlugins = tmuxConfigExists && builtins.hasAttr "plugins" tmuxConfig.programs.tmux;

@@ -9,8 +9,8 @@ name:
 }:
 
 let
-  lib = inputs.nixpkgs.lib;
-  systemFunc = if darwin then inputs.darwin.lib.darwinSystem else inputs.nixpkgs.lib.nixosSystem;
+  inherit (inputs.nixpkgs) lib;
+  systemFunc = if darwin then inputs.darwin.lib.darwinSystem else lib.nixosSystem;
 
   osConfig = if darwin then "darwin.nix" else "nixos.nix";
 
@@ -38,10 +38,12 @@ systemFunc {
     # Home Manager integration
     inputs.home-manager.darwinModules.home-manager
     {
-      home-manager.useGlobalPkgs = true;
-      home-manager.useUserPackages = true;
-      home-manager.users.${user} = import userHMConfig;
-      home-manager.extraSpecialArgs = { inherit inputs; };
+      home-manager = {
+        useGlobalPkgs = true;
+        useUserPackages = true;
+        users.${user} = import userHMConfig;
+        extraSpecialArgs = { inherit inputs; };
+      };
 
       # Set required home-manager options
       users.users.${user} = {
