@@ -69,37 +69,40 @@ make build-switch-dry       # CI-safe dry-run
 ### Module Structure
 
 ```text
-modules/
-├── shared/        # Cross-platform configs (most dev tools go here)
-├── darwin/        # macOS-specific (system settings, Homebrew casks)
-│   ├── performance-optimization.nix  # Level 1+2 performance tuning
-│   └── macos-app-cleanup.nix        # Auto-remove unused default apps
-└── nixos/         # NixOS-specific (systemd services, Linux packages)
+users/baleen/      # User-centric configuration files
+├── home-manager.nix    # Main user configuration
+├── darwin.nix         # macOS-specific settings (includes performance tuning + app cleanup)
+├── git.nix           # Git configuration
+├── vim.nix           # Vim/Neovim setup
+├── zsh.nix           # Zsh shell configuration
+├── tmux.nix          # Terminal multiplexer
+└── .config/claude/   # Claude Code configuration
 
-hosts/             # Machine-specific configs (hostname, hardware, user)
-lib/               # Pure Nix utilities (formatters, testing, automation)
-tests/             # Multi-tier testing (unit, integration, e2e, performance)
+machines/          # Machine-specific configs (hostname, hardware)
+lib/               # Pure Nix utilities (mksystem.nix factory, formatters, testing)
+tests/             # TDD test suite (unit, integration, smoke)
 ```
 
 ### Module Philosophy
 
-**Platform Separation**: `modules/{darwin,nixos}/` contain OS-specific code to prevent cross-contamination. Darwin handles macOS system settings and Homebrew; NixOS handles systemd and Linux packages.
+**User-Centric Structure**: `users/baleen/` contains all user-specific configuration in flat, tool-specific files following evantravers pattern.
 
-**Shared Abstractions**: `modules/shared/` provides cross-platform functionality (DRY principle). Write once, use everywhere.
+**System Factory**: `lib/mksystem.nix` provides a unified interface for building systems across platforms using the factory pattern.
 
-**Host Specialization**: `hosts/` define machine-specific overrides while inheriting from platform modules.
+**Machine Definitions**: `machines/` define hardware-specific configurations without complex inheritance hierarchies.
 
-**Library Functions**: `lib/` contains platform-agnostic utilities testable in isolation.
+**Test-Driven Development**: `tests/` provides comprehensive TDD framework with helpers for validating configurations.
 
 ### Design Principles
 
-**dustinlyons Patterns**: Direct imports, explicit configurations, minimal abstractions. Result: 300+ lines removed while preserving all functionality.
+**evantravers Patterns**: Factory pattern for system building, user-centric flat files, minimal abstractions. Result: clean separation of concerns with maintainable structure.
 
 **Nix-Based Tooling**:
 
+- System Building: `lib/mksystem.nix` factory → `nix build .#darwinConfigurations.macbook-pro.system`
 - Formatting: `lib/formatters.nix` → `nix run .#format`
-- Testing: Native `nix flake check` (no bats)
-- Building: Flake apps for reproducibility
+- Testing: Native `nix flake check` with TDD framework
+- Development: `nix flake show` for structure validation
 
 ## Code Quality
 
@@ -192,7 +195,7 @@ System automatically detects platform via `lib/platform-system.nix`. Cross-platf
 
 ## macOS Optimization
 
-### Performance Tuning (modules/darwin/performance-optimization.nix)
+### Performance Tuning (users/baleen/darwin.nix)
 
 **Level 1 - Safe Optimizations:**
 
@@ -216,7 +219,7 @@ System automatically detects platform via `lib/platform-system.nix`. Cross-platf
 - Battery life: Extended (iCloud sync minimized)
 - Memory: Better management (automatic termination)
 
-### App Cleanup (modules/darwin/macos-app-cleanup.nix)
+### App Cleanup (users/baleen/darwin.nix)
 
 **Automatically removed apps (~6-8GB saved):**
 
@@ -228,6 +231,6 @@ System automatically detects platform via `lib/platform-system.nix`. Cross-platf
 - Stocks (30MB)
 - Freeform (50MB) - Whiteboard
 
-**Execution:** Runs automatically during `make switch` via activation script
+**Execution:** Runs automatically during `darwin-rebuild switch` via activation script
 
 **Safety:** Only removes explicitly listed apps; system essentials protected

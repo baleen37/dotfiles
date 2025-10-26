@@ -59,6 +59,36 @@ in
           self
           ;
       };
+      mksystemTests = import (self + /tests/unit/mksystem-test.nix) {
+        inherit
+          lib
+          pkgs
+          system
+          nixtest
+          self
+          inputs
+          ;
+      };
+      claudeTests = import (self + /tests/unit/claude-test.nix) {
+        inherit
+          lib
+          pkgs
+          system
+          nixtest
+          self
+          inputs
+          ;
+      };
+      gitTests = import (self + /tests/unit/git-test.nix) {
+        inherit
+          lib
+          pkgs
+          system
+          nixtest
+          self
+          inputs
+          ;
+      };
 
       # Import integration test suites with nixtest provided
       moduleInteractionTests = import (self + /tests/integration/module-interaction-test.nix) {
@@ -131,6 +161,16 @@ in
           ;
       };
 
+      # Import home-manager integration test
+      homeManagerTests = import (self + /tests/integration/home-manager-test.nix) {
+        inherit
+          lib
+          pkgs
+          system
+          nixtest
+          ;
+      };
+
       # Import claude-hooks e2e tests
       claudeHooksTests = import (self + /tests/e2e/claude-hooks-test.nix) {
         inherit pkgs;
@@ -177,6 +217,9 @@ in
       # Individual test derivations
       libTestSuite = runTestSuite libTests;
       platformTestSuite = runTestSuite platformTests;
+      mksystemTestSuite = runTestSuite mksystemTests;
+      claudeTestSuite = runTestSuite claudeTests;
+      gitTestSuite = runTestSuite gitTests;
 
       # Makefile switch commands test (direct derivation)
       makefileSwitchCommandsTestSuite = makefileSwitchCommandsTest;
@@ -189,6 +232,7 @@ in
       crossPlatformTestSuite = runTestSuite crossPlatformTests;
       systemConfigurationTestSuite = runTestSuite systemConfigurationTests;
       makefileExperimentalFeaturesTestSuite = runTestSuite makefileNixExperimentalFeaturesTests;
+      homeManagerTestSuite = runTestSuite homeManagerTests;
 
       # E2E test derivations
       buildSwitchTestSuite = runTestSuite buildSwitchTests;
@@ -211,18 +255,22 @@ in
             mkdir -p $out/results
 
             # Copy unit test results
-            mkdir -p $out/results/unit-tests/lib-tests $out/results/unit-tests/platform-tests $out/results/unit-tests/makefile-switch-commands $out/results/integration-tests
+            mkdir -p $out/results/unit-tests/lib-tests $out/results/unit-tests/platform-tests $out/results/unit-tests/mksystem-tests $out/results/unit-tests/claude-tests $out/results/unit-tests/git-tests $out/results/unit-tests/makefile-switch-commands $out/results/integration-tests
             cp -r ${libTestSuite}/* $out/results/unit-tests/lib-tests/
             cp -r ${platformTestSuite}/* $out/results/unit-tests/platform-tests/
+            cp -r ${mksystemTestSuite}/* $out/results/unit-tests/mksystem-tests/
+            cp -r ${claudeTestSuite}/* $out/results/unit-tests/claude-tests/
+            cp -r ${gitTestSuite}/* $out/results/unit-tests/git-tests/
             cp ${makefileSwitchCommandsTestSuite} $out/results/unit-tests/makefile-switch-commands/result
 
             # Copy integration test results
-            mkdir -p $out/results/integration-tests/module-interaction $out/results/integration-tests/cross-platform $out/results/integration-tests/system-configuration $out/results/integration-tests/makefile-experimental-features $out/results/integration-tests/switch-failure-recovery
+            mkdir -p $out/results/integration-tests/module-interaction $out/results/integration-tests/cross-platform $out/results/integration-tests/system-configuration $out/results/integration-tests/makefile-experimental-features $out/results/integration-tests/switch-failure-recovery $out/results/integration-tests/home-manager-integration
             cp -r ${moduleInteractionTestSuite}/* $out/results/integration-tests/module-interaction/
             cp -r ${crossPlatformTestSuite}/* $out/results/integration-tests/cross-platform/
             cp -r ${systemConfigurationTestSuite}/* $out/results/integration-tests/system-configuration/
             cp -r ${makefileExperimentalFeaturesTestSuite}/* $out/results/integration-tests/makefile-experimental-features/
             cp ${switchFailureRecoveryTestSuite} $out/results/integration-tests/switch-failure-recovery/result
+            cp -r ${homeManagerTestSuite}/* $out/results/integration-tests/home-manager-integration/
 
             # Copy e2e test results
             mkdir -p $out/results/e2e-tests/build-switch $out/results/e2e-tests/user-workflow $out/results/e2e-tests/claude-hooks $out/results/e2e-tests/switch-platform-execution
@@ -247,6 +295,18 @@ in
 
             echo "Platform Detection Tests:" >> $out/report.txt
             cat ${platformTestSuite}/summary.txt | sed 's/^/  /' >> $out/report.txt
+            echo "" >> $out/report.txt
+
+            echo "mksystem Factory Tests:" >> $out/report.txt
+            cat ${mksystemTestSuite}/summary.txt | sed 's/^/  /' >> $out/report.txt
+            echo "" >> $out/report.txt
+
+            echo "Claude Configuration Tests:" >> $out/report.txt
+            cat ${claudeTestSuite}/summary.txt | sed 's/^/  /' >> $out/report.txt
+            echo "" >> $out/report.txt
+
+            echo "Git Configuration Tests:" >> $out/report.txt
+            cat ${gitTestSuite}/summary.txt | sed 's/^/  /' >> $out/report.txt
             echo "" >> $out/report.txt
 
             echo "Makefile Switch Commands Tests (Option 3):" >> $out/report.txt
@@ -278,6 +338,11 @@ in
             echo "  Status: COMPLETED" >> $out/report.txt
             echo "" >> $out/report.txt
 
+            echo "Home Manager Integration Tests:" >> $out/report.txt
+            echo "  Test Suite: home-manager-integration" >> $out/report.txt
+            echo "  Status: COMPLETED" >> $out/report.txt
+            echo "" >> $out/report.txt
+
             # Add e2e test suite summaries
             echo "E2E TESTS" >> $out/report.txt
             echo "---------" >> $out/report.txt
@@ -304,6 +369,9 @@ in
       # Unit test suites
       lib-functions = libTestSuite;
       platform-detection = platformTestSuite;
+      mksystem-tests = mksystemTestSuite;
+      claude-config-tests = claudeTestSuite;
+      git-config-tests = gitTestSuite;
       makefile-switch-commands = makefileSwitchCommandsTestSuite;
 
       # Integration test suites
@@ -312,6 +380,7 @@ in
       system-configuration = systemConfigurationTestSuite;
       makefile-experimental-features = makefileExperimentalFeaturesTestSuite;
       switch-failure-recovery = switchFailureRecoveryTestSuite;
+      home-manager-integration = homeManagerTestSuite;
 
       # E2E test suites
       build-switch-e2e = buildSwitchTestSuite;
