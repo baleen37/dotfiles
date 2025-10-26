@@ -63,10 +63,10 @@ test-quick:
 
 test-all:
 	@echo "🔬 Running comprehensive test suite..."
-	@$(NIX) build --impure --quiet .#packages.$(CURRENT_SYSTEM).lib-functions $(ARGS)
-	@$(NIX) build --impure --quiet .#packages.$(CURRENT_SYSTEM).module-interaction $(ARGS)
-	@$(NIX) build --impure --quiet .#packages.$(CURRENT_SYSTEM).build-switch-e2e $(ARGS)
-	@$(NIX) build --impure --quiet .#packages.$(CURRENT_SYSTEM).switch-platform-execution-e2e $(ARGS)
+	@$(NIX) build --impure --quiet .#checks.$(CURRENT_SYSTEM).smoke $(ARGS)
+	@$(NIX) build --impure --quiet .#checks.$(CURRENT_SYSTEM).unit-mksystem $(ARGS)
+	@$(NIX) build --impure --quiet .#checks.$(CURRENT_SYSTEM).unit-git $(ARGS)
+	@$(NIX) build --impure --quiet .#checks.$(CURRENT_SYSTEM).unit-claude $(ARGS)
 	@echo "✅ All tests passed"
 
 
@@ -75,7 +75,7 @@ build: check-user
 	@echo "🔨 Building $(CURRENT_SYSTEM)..."
 	@OS=$$(uname -s); \
 	if [ "$${OS}" = "Darwin" ]; then \
-		export USER=$(USER); $(NIX) build --impure --fallback --keep-going --no-link --quiet .#darwinConfigurations.$(CURRENT_SYSTEM).system $(ARGS); \
+		export USER=$(USER); $(NIX) build --impure --fallback --keep-going --no-link --quiet .#darwinConfigurations.macbook-pro.system $(ARGS); \
 	else \
 		echo "ℹ️  NixOS: Running configuration validation (CI-safe)..."; \
 		export USER=$(USER); $(NIX) eval --impure .#nixosConfigurations.$(CURRENT_SYSTEM).config.system.build.toplevel.outPath $(ARGS) > /dev/null; \
