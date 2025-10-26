@@ -38,4 +38,13 @@ in
 
   # Add git configuration test
   unit-git = import ./unit/git-test.nix { inherit inputs system; };
+
+  # Add vim configuration test (will fail initially)
+  unit-vim = import ./unit/vim-test.nix { inherit inputs system; };
+
+  # Add zsh configuration test (will fail initially)
+  unit-zsh = import ./unit/zsh-test.nix { inherit inputs system; };
+
+  # Add tmux configuration test (will fail initially)
+  unit-tmux = import ./unit/tmux-test.nix { inherit inputs system; };
 }
