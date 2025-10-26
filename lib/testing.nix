@@ -161,6 +161,16 @@ in
           ;
       };
 
+      # Import home-manager integration test
+      homeManagerTests = import (self + /tests/integration/home-manager-test.nix) {
+        inherit
+          lib
+          pkgs
+          system
+          nixtest
+          ;
+      };
+
       # Import claude-hooks e2e tests
       claudeHooksTests = import (self + /tests/e2e/claude-hooks-test.nix) {
         inherit pkgs;
@@ -222,6 +232,7 @@ in
       crossPlatformTestSuite = runTestSuite crossPlatformTests;
       systemConfigurationTestSuite = runTestSuite systemConfigurationTests;
       makefileExperimentalFeaturesTestSuite = runTestSuite makefileNixExperimentalFeaturesTests;
+      homeManagerTestSuite = runTestSuite homeManagerTests;
 
       # E2E test derivations
       buildSwitchTestSuite = runTestSuite buildSwitchTests;
@@ -253,12 +264,13 @@ in
             cp ${makefileSwitchCommandsTestSuite} $out/results/unit-tests/makefile-switch-commands/result
 
             # Copy integration test results
-            mkdir -p $out/results/integration-tests/module-interaction $out/results/integration-tests/cross-platform $out/results/integration-tests/system-configuration $out/results/integration-tests/makefile-experimental-features $out/results/integration-tests/switch-failure-recovery
+            mkdir -p $out/results/integration-tests/module-interaction $out/results/integration-tests/cross-platform $out/results/integration-tests/system-configuration $out/results/integration-tests/makefile-experimental-features $out/results/integration-tests/switch-failure-recovery $out/results/integration-tests/home-manager-integration
             cp -r ${moduleInteractionTestSuite}/* $out/results/integration-tests/module-interaction/
             cp -r ${crossPlatformTestSuite}/* $out/results/integration-tests/cross-platform/
             cp -r ${systemConfigurationTestSuite}/* $out/results/integration-tests/system-configuration/
             cp -r ${makefileExperimentalFeaturesTestSuite}/* $out/results/integration-tests/makefile-experimental-features/
             cp ${switchFailureRecoveryTestSuite} $out/results/integration-tests/switch-failure-recovery/result
+            cp -r ${homeManagerTestSuite}/* $out/results/integration-tests/home-manager-integration/
 
             # Copy e2e test results
             mkdir -p $out/results/e2e-tests/build-switch $out/results/e2e-tests/user-workflow $out/results/e2e-tests/claude-hooks $out/results/e2e-tests/switch-platform-execution
@@ -326,6 +338,11 @@ in
             echo "  Status: COMPLETED" >> $out/report.txt
             echo "" >> $out/report.txt
 
+            echo "Home Manager Integration Tests:" >> $out/report.txt
+            echo "  Test Suite: home-manager-integration" >> $out/report.txt
+            echo "  Status: COMPLETED" >> $out/report.txt
+            echo "" >> $out/report.txt
+
             # Add e2e test suite summaries
             echo "E2E TESTS" >> $out/report.txt
             echo "---------" >> $out/report.txt
@@ -363,6 +380,7 @@ in
       system-configuration = systemConfigurationTestSuite;
       makefile-experimental-features = makefileExperimentalFeaturesTestSuite;
       switch-failure-recovery = switchFailureRecoveryTestSuite;
+      home-manager-integration = homeManagerTestSuite;
 
       # E2E test suites
       build-switch-e2e = buildSwitchTestSuite;

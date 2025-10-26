@@ -50,4 +50,7 @@ in
 
   # Add Darwin configuration test
   unit-darwin = import ./unit/darwin-test.nix { inherit inputs system; };
+
+  # Add home-manager integration test
+  integration-home-manager = import ./integration/home-manager-test.nix { inherit inputs system; };
 }
