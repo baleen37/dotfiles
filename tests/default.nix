@@ -35,4 +35,7 @@ in
 
   # Add Claude configuration test
   unit-claude = import ./unit/claude-test.nix { inherit inputs system; };
+
+  # Add git configuration test
+  unit-git = import ./unit/git-test.nix { inherit inputs system; };
 }

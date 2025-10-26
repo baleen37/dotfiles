@@ -79,6 +79,16 @@ in
           inputs
           ;
       };
+      gitTests = import (self + /tests/unit/git-test.nix) {
+        inherit
+          lib
+          pkgs
+          system
+          nixtest
+          self
+          inputs
+          ;
+      };
 
       # Import integration test suites with nixtest provided
       moduleInteractionTests = import (self + /tests/integration/module-interaction-test.nix) {
@@ -199,6 +209,7 @@ in
       platformTestSuite = runTestSuite platformTests;
       mksystemTestSuite = runTestSuite mksystemTests;
       claudeTestSuite = runTestSuite claudeTests;
+      gitTestSuite = runTestSuite gitTests;
 
       # Makefile switch commands test (direct derivation)
       makefileSwitchCommandsTestSuite = makefileSwitchCommandsTest;
@@ -233,11 +244,12 @@ in
             mkdir -p $out/results
 
             # Copy unit test results
-            mkdir -p $out/results/unit-tests/lib-tests $out/results/unit-tests/platform-tests $out/results/unit-tests/mksystem-tests $out/results/unit-tests/claude-tests $out/results/unit-tests/makefile-switch-commands $out/results/integration-tests
+            mkdir -p $out/results/unit-tests/lib-tests $out/results/unit-tests/platform-tests $out/results/unit-tests/mksystem-tests $out/results/unit-tests/claude-tests $out/results/unit-tests/git-tests $out/results/unit-tests/makefile-switch-commands $out/results/integration-tests
             cp -r ${libTestSuite}/* $out/results/unit-tests/lib-tests/
             cp -r ${platformTestSuite}/* $out/results/unit-tests/platform-tests/
             cp -r ${mksystemTestSuite}/* $out/results/unit-tests/mksystem-tests/
             cp -r ${claudeTestSuite}/* $out/results/unit-tests/claude-tests/
+            cp -r ${gitTestSuite}/* $out/results/unit-tests/git-tests/
             cp ${makefileSwitchCommandsTestSuite} $out/results/unit-tests/makefile-switch-commands/result
 
             # Copy integration test results
@@ -279,6 +291,10 @@ in
 
             echo "Claude Configuration Tests:" >> $out/report.txt
             cat ${claudeTestSuite}/summary.txt | sed 's/^/  /' >> $out/report.txt
+            echo "" >> $out/report.txt
+
+            echo "Git Configuration Tests:" >> $out/report.txt
+            cat ${gitTestSuite}/summary.txt | sed 's/^/  /' >> $out/report.txt
             echo "" >> $out/report.txt
 
             echo "Makefile Switch Commands Tests (Option 3):" >> $out/report.txt
@@ -338,6 +354,7 @@ in
       platform-detection = platformTestSuite;
       mksystem-tests = mksystemTestSuite;
       claude-config-tests = claudeTestSuite;
+      git-config-tests = gitTestSuite;
       makefile-switch-commands = makefileSwitchCommandsTestSuite;
 
       # Integration test suites
