@@ -21,7 +21,7 @@
     pkgs.claude-code-nix
   ];
 
-  # Basic Claude configuration
+  # Basic Claude configuration (user-level)
   home.file.".claude/settings.json".text = ''
     {
       "theme": "dark",
@@ -29,6 +29,48 @@
       "fontSize": 14
     }
   '';
+
+  # Project-level settings for dotfiles project
+  home.file.".claude/projects/-Users-baleen-dotfiles--worktrees-mitchell-refactor/settings.json".text =
+    ''
+      {
+        "$schema": "https://json.schemastore.org/claude-code-settings.json",
+        "hooks": {
+          "SessionStart": [
+            {
+              "hooks": [
+                {
+                  "type": "command",
+                  "command": "bash ~/.claude/hooks/session-start"
+                }
+              ]
+            }
+          ],
+          "PreToolUse": [
+            {
+              "matcher": "Bash",
+              "hooks": [
+                {
+                  "type": "command",
+                  "command": "claude-hooks git-commit-validator"
+                }
+              ]
+            }
+          ],
+          "PostToolUse": [
+            {
+              "matcher": "Bash",
+              "hooks": [
+                {
+                  "type": "command",
+                  "command": "claude-hooks message-cleaner"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    '';
 
   home.file.".claude/CLAUDE.md".text = ''
     # Claude Configuration
@@ -49,6 +91,8 @@
       #!/usr/bin/env bash
       # SessionStart hook for dotfiles project
 
+      cat > /dev/null  # discard stdin
+
       set -euo pipefail
 
       # Determine hook directory and plugin root
@@ -58,18 +102,16 @@
       # Read using-skills content
       using_skills_content=$(cat "''${PLUGIN_ROOT}/skills/using-skills/SKILL.md" 2>&1 || echo "Error reading using-skills skill")
 
-      # Escape outputs for JSON
-      using_skills_escaped=$(echo "$using_skills_content" | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | awk '{printf "%s\\n", $0}')
+      # Output plain text to stdout (gets added to Claude's context)
+      cat <<CONTEXT
+      <EXTREMELY_IMPORTANT>
+      You are working in the dotfiles project.
 
-      # Output context injection as JSON
-      cat <<EOF
-      {
-        "hookSpecificOutput": {
-          "hookEventName": "SessionStart",
-          "additionalContext": "<EXTREMELY_IMPORTANT>\nYou are working in the dotfiles project.\n\n**The content below is from skills/using-skills/SKILL.md - your introduction to using skills:**\n\n''${using_skills_escaped}\n</EXTREMELY_IMPORTANT>"
-        }
-      }
-      EOF
+      **The content below is from skills/using-skills/SKILL.md - your introduction to using skills:**
+
+      ''${using_skills_content}
+      </EXTREMELY_IMPORTANT>
+      CONTEXT
 
       exit 0
     '';
