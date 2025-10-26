@@ -73,6 +73,7 @@
       uv
       direnv
       pre-commit
+      vscode
 
       # Nix tools
       nixfmt
