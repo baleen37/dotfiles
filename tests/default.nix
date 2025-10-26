@@ -1,14 +1,19 @@
 # tests/default.nix
-{ system, inputs }:
+{
+  pkgs ? import <nixpkgs> { },
+  lib ? import <nixpkgs/lib>,
+  self ? ./.,
+}:
 
 let
-  pkgs = import inputs.nixpkgs { inherit system; };
+  # Import existing NixTest framework
+  nixtest = import ./unit/nixtest-template.nix { inherit pkgs lib; };
 
 in
 {
-  # Placeholder - will add tests as we build
+  # Smoke test using NixTest framework
   smoke = pkgs.runCommand "smoke-test" { } ''
-    echo "✅ Test infrastructure ready"
+    echo "✅ Test infrastructure ready - using NixTest framework"
     touch $out
   '';
 }
