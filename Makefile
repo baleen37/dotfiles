@@ -142,24 +142,11 @@ vm/bootstrap0:
 		mkfs.ext4 -L nixos /dev/sda1; \
 		mkswap -L swap /dev/sda2; \
 		mkfs.fat -F 32 -n boot /dev/sda3; \
->>>>>>> 82b0ac3 (feat: Add NixOS UTM VM configuration with shared module support (#763))
-		sleep 1; \
+	sleep 1; \
 		mount /dev/disk/by-label/nixos /mnt; \
 		mkdir -p /mnt/boot; \
 		mount /dev/disk/by-label/boot /mnt/boot; \
 		nixos-generate-config --root /mnt; \
-<<<<<<< HEAD
-		nixos-install --flake $(MAKEFILE_DIR)#$(NIXNAME); \
-	"
-	@echo "Bootstrap complete. Reboot the VM and run 'make vm/bootstrap'"
-
-vm/bootstrap:  ## Apply full NixOS configuration to VM
-	@echo "Applying NixOS configuration to VM..."
-	NIXPKGS_ALLOW_UNFREE=1 ssh $(SSH_OPTIONS) -p$(NIXPORT) $(NIXUSER)@$(NIXADDR) " \
-		sudo nixos-rebuild switch --flake $(MAKEFILE_DIR)#$(NIXNAME) \
-	"
-	@echo "Configuration applied successfully"
-=======
 		sed --in-place '/system\.stateVersion = .*/a \
 			nix.package = pkgs.nixVersions.latest;\n \
 			nix.extraOptions = \"experimental-features = nix-command flakes\";\n \
@@ -178,7 +165,8 @@ vm/bootstrap:
 	ssh $(SSH_OPTIONS) -p$(NIXPORT) $(NIXUSER)@$(NIXADDR) " \
 		sudo reboot; \
 	"
->>>>>>> 82b0ac3 (feat: Add NixOS UTM VM configuration with shared module support (#763))
+
+.PHONY: help check-user format lint lint-quick test test-quick test-all build build-switch switch vm/bootstrap0 vm/bootstrap vm/copy vm/switch
 
 vm/copy:
 	@echo "📤 Copying configurations to VM..."
@@ -191,26 +179,10 @@ vm/copy:
 		--rsync-path="sudo rsync" \
 		. $(NIXUSER)@$(NIXADDR):/nix-config
 
-<<<<<<< HEAD
-vm/build:  ## Build NixOS VM configuration locally
-	@echo "Building NixOS VM configuration..."
-	nix build .#nixosConfigurations.$(NIXNAME).config.system.build.toplevel
-	@echo "Build successful"
-
-vm/test:  ## Run NixOS VM integration tests
-	@echo "Running NixOS VM tests..."
-	nix-build tests/nixos/vm-boot-test.nix
-	@echo "Tests passed"
-
-=======
->>>>>>> 82b0ac3 (feat: Add NixOS UTM VM configuration with shared module support (#763))
 vm/switch:
 	@echo "🔄 Applying configuration on VM..."
 	ssh $(SSH_OPTIONS) -p$(NIXPORT) $(NIXUSER)@$(NIXADDR) " \
 		sudo nixos-rebuild switch --flake \"/nix-config#vm-aarch64-utm\" \
 	"
-<<<<<<< HEAD
-=======
 
 .PHONY: help check-user format lint lint-quick test test-quick test-all build build-switch switch vm/bootstrap0 vm/bootstrap vm/copy vm/switch
->>>>>>> 82b0ac3 (feat: Add NixOS UTM VM configuration with shared module support (#763))
