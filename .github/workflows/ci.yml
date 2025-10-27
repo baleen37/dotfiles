@@ -2,6 +2,7 @@ name: CI
 on:
   push:
     branches: [main]
+    tags: ['v*']
   pull_request:
   workflow_dispatch:
 concurrency:
@@ -16,8 +17,8 @@ env:
   NIX_CONFIG: |
     max-jobs = auto
     cores = 0
-    substituters = https://cache.nixos.org https://nix-community.cachix.org
-    trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
+    substituters = https://cache.nixos.org https://nix-community.cachix.org https://baleen-nix.cachix.org
+    trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= baleen-nix.cachix.org-1:awgC7Sut148An/CZ6TZA+wnUtJmJnOvl5NThGio9j5k=
     fallback = true
     narinfo-cache-negative-ttl = 0
   # Single environment variable to control entire pipeline
@@ -101,6 +102,20 @@ jobs:
           echo "🏗️ Building ${{ matrix.name }} (${{ matrix.system }})"
 
           make build
+
+      - name: Install Cachix CLI
+        if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+        run: |
+          nix profile install nixpkgs#cachix
+
+      - name: Upload to Cachix
+        if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+        env:
+          CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
+        run: |
+          echo "📦 Uploading build artifacts to Cachix..."
+          nix path-info --json --all | jq -r '.[].storePath' | cachix push baleen-nix
+          echo "✅ Upload to Cachix completed"
   # Comprehensive test stage
   test:
     name: Test (Comprehensive)
