@@ -142,7 +142,7 @@ vm/bootstrap0:
 		mkfs.ext4 -L nixos /dev/sda1; \
 		mkswap -L swap /dev/sda2; \
 		mkfs.fat -F 32 -n boot /dev/sda3; \
-	sleep 1; \
+		sleep 1; \
 		mount /dev/disk/by-label/nixos /mnt; \
 		mkdir -p /mnt/boot; \
 		mount /dev/disk/by-label/boot /mnt/boot; \
@@ -165,8 +165,6 @@ vm/bootstrap:
 	ssh $(SSH_OPTIONS) -p$(NIXPORT) $(NIXUSER)@$(NIXADDR) " \
 		sudo reboot; \
 	"
-
-.PHONY: help check-user format lint lint-quick test test-quick test-all build build-switch switch vm/bootstrap0 vm/bootstrap vm/copy vm/switch
 
 vm/copy:
 	@echo "📤 Copying configurations to VM..."
