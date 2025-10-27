@@ -1,5 +1,9 @@
 # tests/default.nix
-{ inputs, system }:
+{
+  inputs,
+  system,
+  self,
+}:
 
 let
   pkgs = import inputs.nixpkgs { inherit system; };
@@ -9,7 +13,7 @@ let
   nixtest = import ./unit/nixtest-template.nix { inherit pkgs lib; };
 
   # Import mksystem function for testing
-  mkSystem = import ../lib/mksystem.nix { inherit inputs; };
+  mkSystem = import ../lib/mksystem.nix { inherit inputs self; };
 
 in
 {
@@ -26,6 +30,7 @@ in
       system
       pkgs
       lib
+      self
       ;
     inherit (nixtest) nixtest;
   };

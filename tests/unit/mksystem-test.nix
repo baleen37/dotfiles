@@ -12,7 +12,7 @@
 
 let
   # Test 1: mkSystem function exists and is callable
-  mkSystemFunc = import ../../lib/mksystem.nix { inherit inputs; };
+  mkSystemFunc = import ../../lib/mksystem.nix { inherit inputs self; };
   testFunctionExists = builtins.isFunction mkSystemFunc;
 
   # Test 2: File exists and can be imported

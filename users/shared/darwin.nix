@@ -27,6 +27,7 @@
   pkgs,
   lib,
   config,
+  currentSystemUser,
   ...
 }:
 
@@ -253,8 +254,9 @@ in
   programs.zsh.enable = true;
 
   # Primary user configuration (required for nix-darwin)
+  # Username is dynamically resolved from flake.nix
   system = {
-    primaryUser = "baleen";
+    primaryUser = currentSystemUser;
     checks.verifyNixPath = false;
     stateVersion = 5; # Updated to current nix-darwin version
   };

@@ -18,7 +18,7 @@ let
   inherit (nixtest.assertions) assertTrue assertFalse;
 
   # Path to Claude configuration
-  claudeDir = ../../users/baleen/.config/claude;
+  claudeDir = ../../users/shared/.config/claude;
 
   # Basic existence checks
   claudeDirExists = builtins.pathExists claudeDir;

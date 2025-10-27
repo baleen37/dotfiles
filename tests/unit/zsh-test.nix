@@ -1,6 +1,6 @@
 # tests/unit/zsh-test.nix
 # Zsh configuration extraction tests
-# Tests that zsh config is properly extracted from modules/ to users/baleen/zsh.nix
+# Tests that zsh config is properly extracted from modules/ to users/shared/zsh.nix
 {
   lib ? import <nixpkgs/lib>,
   pkgs ? import <nixpkgs> { },
@@ -15,7 +15,7 @@ let
   inherit (nixtest.assertions) assertTrue assertFalse;
 
   # Try to import zsh config (this will fail initially)
-  zshConfigFile = ../../users/baleen/zsh.nix;
+  zshConfigFile = ../../users/shared/zsh.nix;
   zshConfigExists = builtins.pathExists zshConfigFile;
 
   # Test if zsh config can be imported (will fail initially)

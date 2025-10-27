@@ -1,6 +1,6 @@
 # tests/unit/tmux-test.nix
 # Tmux configuration extraction tests
-# Tests that tmux config is properly extracted from modules/ to users/baleen/tmux.nix
+# Tests that tmux config is properly extracted from modules/ to users/shared/tmux.nix
 {
   lib ? import <nixpkgs/lib>,
   pkgs ? import <nixpkgs> { },
@@ -15,7 +15,7 @@ let
   inherit (nixtest.assertions) assertTrue assertFalse;
 
   # Try to import tmux config (this will fail initially)
-  tmuxConfigFile = ../../users/baleen/tmux.nix;
+  tmuxConfigFile = ../../users/shared/tmux.nix;
   tmuxConfigExists = builtins.pathExists tmuxConfigFile;
 
   # Test if tmux config can be imported (will fail initially)

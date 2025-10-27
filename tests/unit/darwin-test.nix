@@ -1,6 +1,6 @@
 # Darwin Configuration Test
 #
-# Tests the consolidated Darwin configuration in users/baleen/darwin.nix
+# Tests the consolidated Darwin configuration in users/shared/darwin.nix
 # Verifies that system settings, Homebrew config, and performance optimizations are properly defined.
 { inputs, system }:
 
@@ -9,9 +9,10 @@ let
   inherit (pkgs) lib;
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
 
-  darwinConfig = import ../../users/baleen/darwin.nix {
+  darwinConfig = import ../../users/shared/darwin.nix {
     inherit pkgs lib;
     config = { };
+    currentSystemUser = "baleen"; # Test with default user
   };
 
 in

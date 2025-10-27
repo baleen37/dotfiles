@@ -1,6 +1,6 @@
-# users/baleen/home-manager.nix
+# users/shared/home-manager.nix
 #
-# Home Manager configuration for baleen user
+# Shared Home Manager configuration for all users (baleen, jito, etc.)
 # Integrates all extracted tool configurations from modules/shared/ into unified config
 #
 # Tool configurations imported:
@@ -28,6 +28,7 @@
   pkgs,
   lib,
   inputs,
+  currentSystemUser,
   ...
 }:
 
@@ -42,9 +43,11 @@
   ];
 
   # Home Manager configuration
+  # Username is dynamically resolved from flake.nix (supports both baleen and jito)
   home = {
-    username = "baleen";
-    homeDirectory = if pkgs.stdenv.isDarwin then "/Users/baleen" else "/home/baleen";
+    username = currentSystemUser;
+    homeDirectory =
+      if pkgs.stdenv.isDarwin then "/Users/${currentSystemUser}" else "/home/${currentSystemUser}";
     stateVersion = "24.11";
 
     # Core system utilities
