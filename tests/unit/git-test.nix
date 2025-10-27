@@ -1,6 +1,6 @@
 # tests/unit/git-test.nix
 # Git configuration extraction tests
-# Tests that git config is properly extracted from modules/ to users/baleen/git.nix
+# Tests that git config is properly extracted from modules/ to users/shared/git.nix
 {
   lib ? import <nixpkgs/lib>,
   pkgs ? import <nixpkgs> { },
@@ -15,7 +15,7 @@ let
   inherit (nixtest.assertions) assertTrue assertFalse;
 
   # Try to import git config (this will fail initially)
-  gitConfigFile = ../../users/baleen/git.nix;
+  gitConfigFile = ../../users/shared/git.nix;
   gitConfigExists = builtins.pathExists gitConfigFile;
 
   # Test if git config can be imported (will fail initially)

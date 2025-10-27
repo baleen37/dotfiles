@@ -22,7 +22,7 @@ Enterprise-grade dotfiles management system providing reproducible development e
 
 **ALWAYS:**
 
-- Set `export USER=$(whoami)` before any build operations
+- Use Makefile commands (`make build`, `make switch`) - USER is auto-detected
 - Use `make build-current` during development (not `make build`)
 - Run `make format` before committing
 - Follow TDD: write failing test → minimal code → refactor
@@ -32,10 +32,7 @@ Enterprise-grade dotfiles management system providing reproducible development e
 ### Daily Development
 
 ```bash
-# Setup (once per session)
-export USER=$(whoami)          # REQUIRED: Set before builds
-
-# Development cycle
+# Development cycle (USER auto-detected by Makefile)
 make format                    # Auto-format all files (nix run .#format)
 make build-current            # Build current platform only (fastest)
 make test-core                # Run essential tests
@@ -45,6 +42,10 @@ make smoke                    # Quick validation (~30 seconds)
 make switch                   # Full system update (darwin-rebuild: system + Homebrew + user)
 make build-switch             # Same as 'switch' (full system update)
 make switch-user              # User config only (home-manager: git, vim, zsh - faster)
+
+# Note: Makefile automatically detects USER=$(whoami)
+# Only set manually when using nix commands directly:
+# export USER=$(whoami) && nix build --impure .#darwinConfigurations.macbook-pro.system
 ```
 
 ### Testing
@@ -69,7 +70,7 @@ make build-switch-dry       # CI-safe dry-run
 ### Module Structure
 
 ```text
-users/baleen/      # User-centric configuration files
+users/shared/      # Shared user configuration (supports multiple users: baleen, jito, etc.)
 ├── home-manager.nix    # Main user configuration
 ├── darwin.nix         # macOS-specific settings (includes performance tuning + app cleanup)
 ├── git.nix           # Git configuration
@@ -85,7 +86,7 @@ tests/             # TDD test suite (unit, integration, smoke)
 
 ### Module Philosophy
 
-**User-Centric Structure**: `users/baleen/` contains all user-specific configuration in flat, tool-specific files following evantravers pattern.
+**User-Centric Structure**: `users/shared/` contains shared configuration used by all users (baleen, jito, etc.) in flat, tool-specific files following evantravers pattern.
 
 **System Factory**: `lib/mksystem.nix` provides a unified interface for building systems across platforms using the factory pattern.
 
@@ -132,9 +133,22 @@ make lint-format         # Pre-commit workflow
 
 ## Important Notes
 
-### USER Variable
+### USER Variable & Multi-User Support
 
-All builds require `export USER=$(whoami)` due to dynamic user resolution. Builds fail without this.
+**Automatic Detection (Recommended)**:
+- Makefile automatically detects USER via `whoami`
+- Works for any user: baleen, jito, or any other username
+- Just run `make build` or `make switch` - no manual export needed
+
+**Manual Export (Only for Direct Nix Commands)**:
+- Required when running nix commands directly (bypassing Makefile)
+- Example: `export USER=$(whoami) && nix build --impure .#darwinConfigurations.macbook-pro.system`
+- The `--impure` flag is required to read environment variables
+
+**Multi-User Support**:
+- Configuration is stored in `users/shared/` directory
+- Actual username is dynamically resolved from `USER` environment variable
+- Supports multiple users without code duplication: baleen, jito, etc.
 
 ### Nix Store Paths
 

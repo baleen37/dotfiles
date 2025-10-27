@@ -1,7 +1,7 @@
 # Git 버전 관리 설정
 #
 # Git 전역 설정, 별칭, 무시 파일 패턴을 관리하는 모듈
-# modules/shared/programs/git.nix에서 users/baleen/git.nix로 추출
+# modules/shared/programs/git.nix에서 users/shared/git.nix로 추출
 #
 # 주요 기능:
 #   - 사용자 정보: 이름, 이메일 (lib/user-info.nix에서 자동 적용)

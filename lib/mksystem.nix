@@ -1,4 +1,4 @@
-{ inputs }:
+{ inputs, self }:
 
 name:
 {
@@ -14,8 +14,10 @@ let
 
   osConfig = if darwin then "darwin.nix" else "nixos.nix";
 
-  userHMConfig = ../users/${user}/home-manager.nix;
-  userOSConfig = ../users/${user}/${osConfig};
+  # Use shared user configuration directory (users/shared)
+  # Actual username is dynamically set via currentSystemUser
+  userHMConfig = ../users/shared/home-manager.nix;
+  userOSConfig = ../users/shared/${osConfig};
   machineConfig = ../machines/${name}.nix;
 
 in
@@ -23,7 +25,7 @@ systemFunc {
   inherit system;
 
   specialArgs = {
-    inherit inputs;
+    inherit inputs self;
     currentSystem = system;
     currentSystemName = name;
     currentSystemUser = user;
@@ -42,7 +44,10 @@ systemFunc {
         useGlobalPkgs = true;
         useUserPackages = true;
         users.${user} = import userHMConfig;
-        extraSpecialArgs = { inherit inputs; };
+        extraSpecialArgs = {
+          inherit inputs self;
+          currentSystemUser = user;
+        };
       };
 
       # Set required home-manager options

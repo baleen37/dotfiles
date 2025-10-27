@@ -1,6 +1,6 @@
 # tests/unit/vim-test.nix
 # Vim configuration extraction tests
-# Tests that vim config is properly extracted from modules/ to users/baleen/vim.nix
+# Tests that vim config is properly extracted from modules/ to users/shared/vim.nix
 {
   lib ? import <nixpkgs/lib>,
   pkgs ? import <nixpkgs> { },
@@ -15,7 +15,7 @@ let
   inherit (nixtest.assertions) assertTrue assertFalse;
 
   # Try to import vim config (this will fail initially)
-  vimConfigFile = ../../users/baleen/vim.nix;
+  vimConfigFile = ../../users/shared/vim.nix;
   vimConfigExists = builtins.pathExists vimConfigFile;
 
   # Test if vim config can be imported (will fail initially)

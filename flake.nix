@@ -26,7 +26,16 @@
       ...
     }@inputs:
     let
-      mkSystem = import ./lib/mksystem.nix { inherit inputs; };
+      mkSystem = import ./lib/mksystem.nix { inherit inputs self; };
+
+      # Dynamic user resolution: get from environment variable, fallback to "baleen"
+      # Usage: export USER=$(whoami) before running nix commands
+      # Requires --impure flag for nix build/switch commands
+      user =
+        let
+          envUser = builtins.getEnv "USER";
+        in
+        if envUser != "" then envUser else "baleen";
 
       # Overlays for unstable packages
       overlays = [
@@ -42,13 +51,13 @@
       # macOS configuration
       darwinConfigurations.macbook-pro = mkSystem "macbook-pro" {
         system = "aarch64-darwin";
-        user = "baleen";
+        user = user;
         darwin = true;
       };
 
       # Test checks
       checks = nixpkgs.lib.genAttrs [ "aarch64-darwin" "x86_64-darwin" "x86_64-linux" "aarch64-linux" ] (
-        system: import ./tests { inherit system inputs; }
+        system: import ./tests { inherit system inputs self; }
       );
 
       # Formatter (preserve from old flake if exists)
