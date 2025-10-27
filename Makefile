@@ -6,6 +6,15 @@ NIX := nix --extra-experimental-features 'nix-command flakes'
 CURRENT_SYSTEM := $(shell $(NIX) eval --impure --expr 'builtins.currentSystem' | tr -d '"')
 HOSTNAME := $(shell hostname -s 2>/dev/null || hostname | cut -d. -f1)
 
+# Connectivity info for Linux VM
+NIXADDR ?= unset
+NIXPORT ?= 22
+NIXUSER ?= root
+
+# SSH options that are used. These aren't meant to be overridden but are
+# reused a lot so we just store them up here.
+SSH_OPTIONS=-o PubkeyAuthentication=no -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no
+
 check-user:
 	@if [ -z "$$USER" ]; then \
 		echo "⚠️  WARNING: USER was auto-detected as $(USER). For best results, run: export USER=\$$(whoami)"; \
@@ -29,10 +38,17 @@ help:
 	@echo "  build-switch - Build system (same as switch)"
 	@echo "  switch      - Build + apply system config"
 	@echo ""
+	@echo "🖥️  VM Management:"
+	@echo "  vm/bootstrap0 - Bootstrap new NixOS VM (initial install)"
+	@echo "  vm/bootstrap  - Complete VM setup with dotfiles"
+	@echo "  vm/copy      - Copy configurations to VM"
+	@echo "  vm/switch    - Apply configuration changes on VM"
+	@echo ""
 	@echo "💡 Common Workflows:"
 	@echo "  make lint-quick && make test-quick  # Before commit"
 	@echo "  make format && make test            # Before PR"
 	@echo "  make switch                         # Update system"
+	@echo "  make vm/copy && make vm/switch      # Update VM configuration"
 
 # Code Quality
 format:
@@ -113,24 +129,26 @@ switch: check-user
 		exit 1; \
 	fi
 
-.PHONY: help check-user format lint lint-quick test test-quick test-all build build-switch switch vm/bootstrap0 vm/bootstrap vm/build vm/test vm/copy vm/switch
-
 # VM Management
-vm/bootstrap0:  ## Initial NixOS installation on VM
-	@echo "Installing NixOS on VM at $(NIXADDR)..."
+vm/bootstrap0:
+	@echo "🚀 Bootstrapping NixOS on new VM..."
 	ssh $(SSH_OPTIONS) -p$(NIXPORT) root@$(NIXADDR) " \
-		parted /dev/vda -- mklabel gpt; \
-		parted /dev/vda -- mkpart primary 512MB 100%; \
-		parted /dev/vda -- mkpart ESP fat32 1MB 512MB; \
-		parted /dev/vda -- set 2 esp on; \
+		parted /dev/sda -- mklabel gpt; \
+		parted /dev/sda -- mkpart primary 512MB -8GB; \
+		parted /dev/sda -- mkpart primary linux-swap -8GB 100\%; \
+		parted /dev/sda -- mkpart ESP fat32 1MB 512MB; \
+		parted /dev/sda -- set 3 esp on; \
 		sleep 1; \
-		mkfs.ext4 -L nixos /dev/vda1; \
-		mkfs.fat -F 32 -n boot /dev/vda2; \
+		mkfs.ext4 -L nixos /dev/sda1; \
+		mkswap -L swap /dev/sda2; \
+		mkfs.fat -F 32 -n boot /dev/sda3; \
+>>>>>>> 82b0ac3 (feat: Add NixOS UTM VM configuration with shared module support (#763))
 		sleep 1; \
 		mount /dev/disk/by-label/nixos /mnt; \
 		mkdir -p /mnt/boot; \
 		mount /dev/disk/by-label/boot /mnt/boot; \
 		nixos-generate-config --root /mnt; \
+<<<<<<< HEAD
 		nixos-install --flake $(MAKEFILE_DIR)#$(NIXNAME); \
 	"
 	@echo "Bootstrap complete. Reboot the VM and run 'make vm/bootstrap'"
@@ -141,6 +159,26 @@ vm/bootstrap:  ## Apply full NixOS configuration to VM
 		sudo nixos-rebuild switch --flake $(MAKEFILE_DIR)#$(NIXNAME) \
 	"
 	@echo "Configuration applied successfully"
+=======
+		sed --in-place '/system\.stateVersion = .*/a \
+			nix.package = pkgs.nixVersions.latest;\n \
+			nix.extraOptions = \"experimental-features = nix-command flakes\";\n \
+			services.openssh.enable = true;\n \
+			services.openssh.settings.PasswordAuthentication = true;\n \
+			services.openssh.settings.PermitRootLogin = \"yes\";\n \
+			users.users.root.initialPassword = \"root\";\n \
+		' /mnt/etc/nixos/configuration.nix; \
+		nixos-install --no-root-passwd && reboot; \
+	"
+
+vm/bootstrap:
+	@echo "🔧 Completing VM bootstrap..."
+	$(MAKE) vm/copy
+	$(MAKE) vm/switch
+	ssh $(SSH_OPTIONS) -p$(NIXPORT) $(NIXUSER)@$(NIXADDR) " \
+		sudo reboot; \
+	"
+>>>>>>> 82b0ac3 (feat: Add NixOS UTM VM configuration with shared module support (#763))
 
 vm/copy:
 	@echo "📤 Copying configurations to VM..."
@@ -153,6 +191,7 @@ vm/copy:
 		--rsync-path="sudo rsync" \
 		. $(NIXUSER)@$(NIXADDR):/nix-config
 
+<<<<<<< HEAD
 vm/build:  ## Build NixOS VM configuration locally
 	@echo "Building NixOS VM configuration..."
 	nix build .#nixosConfigurations.$(NIXNAME).config.system.build.toplevel
@@ -163,8 +202,15 @@ vm/test:  ## Run NixOS VM integration tests
 	nix-build tests/nixos/vm-boot-test.nix
 	@echo "Tests passed"
 
+=======
+>>>>>>> 82b0ac3 (feat: Add NixOS UTM VM configuration with shared module support (#763))
 vm/switch:
 	@echo "🔄 Applying configuration on VM..."
 	ssh $(SSH_OPTIONS) -p$(NIXPORT) $(NIXUSER)@$(NIXADDR) " \
 		sudo nixos-rebuild switch --flake \"/nix-config#vm-aarch64-utm\" \
 	"
+<<<<<<< HEAD
+=======
+
+.PHONY: help check-user format lint lint-quick test test-quick test-all build build-switch switch vm/bootstrap0 vm/bootstrap vm/copy vm/switch
+>>>>>>> 82b0ac3 (feat: Add NixOS UTM VM configuration with shared module support (#763))
