@@ -59,8 +59,35 @@
       nixosConfigurations = {
         vm-aarch64-utm = nixpkgs.lib.nixosSystem {
           system = "aarch64-linux";
+          specialArgs = {
+            inherit inputs self;
+            currentSystem = "aarch64-linux";
+            currentSystemName = "vm-aarch64-utm";
+            currentSystemUser = user;
+            isWSL = false;
+            isDarwin = false;
+          };
           modules = [
             ./machines/nixos/vm-aarch64-utm.nix
+            inputs.home-manager.nixosModules.home-manager
+            {
+              home-manager = {
+                useGlobalPkgs = true;
+                useUserPackages = true;
+                users.${user} = import ./users/shared/home-manager.nix;
+                extraSpecialArgs = {
+                  inherit inputs self;
+                  currentSystemUser = user;
+                };
+              };
+
+              # Set required home-manager options with correct paths
+              users.users.${user} = {
+                name = user;
+                home = "/home/${user}";
+                isNormalUser = true;
+              };
+            }
           ];
         };
       };
