@@ -113,4 +113,58 @@ switch: check-user
 		exit 1; \
 	fi
 
-.PHONY: help check-user format lint lint-quick test test-quick test-all build build-switch switch
+.PHONY: help check-user format lint lint-quick test test-quick test-all build build-switch switch vm/bootstrap0 vm/bootstrap vm/build vm/test vm/copy vm/switch
+
+# VM Management
+vm/bootstrap0:  ## Initial NixOS installation on VM
+	@echo "Installing NixOS on VM at $(NIXADDR)..."
+	ssh $(SSH_OPTIONS) -p$(NIXPORT) root@$(NIXADDR) " \
+		parted /dev/vda -- mklabel gpt; \
+		parted /dev/vda -- mkpart primary 512MB 100%; \
+		parted /dev/vda -- mkpart ESP fat32 1MB 512MB; \
+		parted /dev/vda -- set 2 esp on; \
+		sleep 1; \
+		mkfs.ext4 -L nixos /dev/vda1; \
+		mkfs.fat -F 32 -n boot /dev/vda2; \
+		sleep 1; \
+		mount /dev/disk/by-label/nixos /mnt; \
+		mkdir -p /mnt/boot; \
+		mount /dev/disk/by-label/boot /mnt/boot; \
+		nixos-generate-config --root /mnt; \
+		nixos-install --flake $(MAKEFILE_DIR)#$(NIXNAME); \
+	"
+	@echo "Bootstrap complete. Reboot the VM and run 'make vm/bootstrap'"
+
+vm/bootstrap:  ## Apply full NixOS configuration to VM
+	@echo "Applying NixOS configuration to VM..."
+	NIXPKGS_ALLOW_UNFREE=1 ssh $(SSH_OPTIONS) -p$(NIXPORT) $(NIXUSER)@$(NIXADDR) " \
+		sudo nixos-rebuild switch --flake $(MAKEFILE_DIR)#$(NIXNAME) \
+	"
+	@echo "Configuration applied successfully"
+
+vm/copy:
+	@echo "📤 Copying configurations to VM..."
+	rsync -av -e 'ssh $(SSH_OPTIONS) -p$(NIXPORT)' \
+		--exclude='vendor/' \
+		--exclude='.git/' \
+		--exclude='.git-crypt/' \
+		--exclude='.jj/' \
+		--exclude='iso/' \
+		--rsync-path="sudo rsync" \
+		. $(NIXUSER)@$(NIXADDR):/nix-config
+
+vm/build:  ## Build NixOS VM configuration locally
+	@echo "Building NixOS VM configuration..."
+	nix build .#nixosConfigurations.$(NIXNAME).config.system.build.toplevel
+	@echo "Build successful"
+
+vm/test:  ## Run NixOS VM integration tests
+	@echo "Running NixOS VM tests..."
+	nix-build tests/nixos/vm-boot-test.nix
+	@echo "Tests passed"
+
+vm/switch:
+	@echo "🔄 Applying configuration on VM..."
+	ssh $(SSH_OPTIONS) -p$(NIXPORT) $(NIXUSER)@$(NIXADDR) " \
+		sudo nixos-rebuild switch --flake \"/nix-config#vm-aarch64-utm\" \
+	"
