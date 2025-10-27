@@ -17,6 +17,7 @@ shell.nix.drv
 # Worktree directories
 tree/
 .local/tree/
+.worktrees/
 
 # Added by Task Master AI
 # Logs
