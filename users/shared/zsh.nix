@@ -3,6 +3,7 @@
 # Extracted from modules/shared/programs/zsh/default.nix
 #
 # Features:
+#   - fzf integration: Fuzzy finder with Ctrl+R (history), Ctrl+T (files), Alt+C (dirs)
 #   - Powerlevel10k theme: Advanced prompt theme and configuration
 #   - 1Password SSH agent: Cross-platform socket auto-detection and connection
 #   - PATH management: npm, pnpm, local bin directories auto-add
@@ -33,6 +34,38 @@ let
   inherit (pkgs.stdenv) isLinux;
 in
 {
+  programs.fzf = {
+    enable = true;
+    enableZshIntegration = true;
+
+    # Default options for better UX
+    defaultOptions = [
+      "--height 40%"
+      "--layout=reverse"
+      "--border"
+      "--inline-info"
+      "--preview 'bat --style=numbers --color=always --line-range :500 {}'"
+      "--preview-window 'right:50%:wrap'"
+      "--bind 'ctrl-/:toggle-preview'"
+      "--color=fg:#d0d0d0,bg:#121212,hl:#5f87af"
+      "--color=fg+:#d0d0d0,bg+:#262626,hl+:#5fd7ff"
+      "--color=info:#afaf87,prompt:#d7005f,pointer:#af5fff"
+      "--color=marker:#87ff00,spinner:#af5fff,header:#87afaf"
+    ];
+
+    # File search command (Ctrl+T)
+    fileWidgetCommand = "fd --type f --hidden --follow --exclude .git";
+    fileWidgetOptions = [
+      "--preview 'bat --style=numbers --color=always --line-range :500 {}'"
+    ];
+
+    # Directory search command (Alt+C)
+    changeDirWidgetCommand = "fd --type d --hidden --follow --exclude .git";
+    changeDirWidgetOptions = [
+      "--preview 'tree -C {} | head -200'"
+    ];
+  };
+
   programs.zsh = {
     enable = true;
     autocd = false;
@@ -56,11 +89,6 @@ in
         name = "powerlevel10k";
         src = pkgs.zsh-powerlevel10k;
         file = "share/zsh-powerlevel10k/powerlevel10k.zsh-theme";
-      }
-      {
-        name = "powerlevel10k-config";
-        src = lib.cleanSource ../../config;
-        file = "p10k.zsh";
       }
     ];
 

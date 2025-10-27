@@ -127,6 +127,9 @@
   # XDG directories
   xdg.enable = true;
 
+  # Dotfiles symlinks
+  home.file.".p10k.zsh".source = ../../config/p10k.zsh;
+
   # Programs
   programs.home-manager.enable = true;
 }
