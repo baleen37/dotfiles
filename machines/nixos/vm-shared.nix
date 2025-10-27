@@ -1,19 +1,7 @@
-# Shared NixOS VM configuration module
-#
-# This module provides common configuration for NixOS virtual machines,
-# optimized for development environments with proper virtualization support,
-# Docker/LXD containers, and SSH access. Designed to be imported by
-# machine-specific VM configurations.
-#
-# Configurable options:
-# - hostname: Network identifier for the VM
-# - timeZone: System timezone for consistent timestamps
 {
   config,
   pkgs,
   lib,
-  hostname ? "dev",
-  timeZone ? "America/Los_Angeles",
   ...
 }:
 
@@ -39,10 +27,10 @@
   boot.loader.systemd-boot.consoleMode = "0";
 
   # Define your hostname.
-  networking.hostName = hostname;
+  networking.hostName = "dev";
 
   # Set your time zone.
-  time.timeZone = timeZone;
+  time.timeZone = "America/Los_Angeles";
 
   # The global useDHCP flag is deprecated, therefore explicitly set to false here.
   # Per-interface useDHCP will be mandatory in the future, so this generated config
@@ -54,9 +42,6 @@
 
   # Virtualization settings
   virtualisation.docker.enable = true;
-  virtualisation.lxd = {
-    enable = true;
-  };
 
   # Select internationalisation properties.
   i18n = {
@@ -64,7 +49,7 @@
   };
 
   # Define a user account. Don't forget to set a password with 'passwd'.
-  users.mutableUsers = false;
+  users.mutableUsers = true;
 
   # Manage fonts.
   fonts = {

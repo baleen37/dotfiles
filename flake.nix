@@ -55,6 +55,16 @@
         darwin = true;
       };
 
+      # NixOS configurations
+      nixosConfigurations = {
+        vm-aarch64-utm = nixpkgs.lib.nixosSystem {
+          system = "aarch64-linux";
+          modules = [
+            ./machines/nixos/vm-aarch64-utm.nix
+          ];
+        };
+      };
+
       # Test checks
       checks = nixpkgs.lib.genAttrs [ "aarch64-darwin" "x86_64-darwin" "x86_64-linux" "aarch64-linux" ] (
         system: import ./tests { inherit system inputs self; }
