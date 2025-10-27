@@ -11,5 +11,6 @@
   xdg.configFile."claude" = {
     source = config.lib.file.mkOutOfStoreSymlink "${self.outPath}/users/shared/.config/claude";
     recursive = true;
+    force = true;
   };
 }
