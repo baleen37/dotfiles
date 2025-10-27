@@ -1,3 +1,27 @@
+# =============================================================================
+# VM Shared Configuration Module
+# =============================================================================
+#
+# This module provides the base configuration for NixOS virtual machines running
+# in UTM on Apple Silicon. It contains common settings that apply across all
+# VM instances regardless of specific hardware configuration.
+#
+# Purpose:
+# - Establish base NixOS system configuration for development VMs
+# - Provide common packages and services for development workflows
+# - Configure virtualization-friendly defaults (no firewall, passwordless sudo)
+# - Enable essential services (SSH, Docker) for development
+#
+# Design Philosophy:
+# Simplified module signature with hardcoded values to reduce complexity for
+# the current use case. The configuration assumes development VM usage with
+# standard settings that work well across different UTM VM configurations.
+#
+# Usage:
+# Imported by machine-specific configurations (e.g., vm-aarch64-utm.nix) which
+# provide hardware-specific overrides and additional VM-specific settings.
+#
+# =============================================================================
 {
   config,
   pkgs,
@@ -27,9 +51,13 @@
   boot.loader.systemd-boot.consoleMode = "0";
 
   # Define your hostname.
+  # Note: Hardcoded for simplicity in current use case. Could be parameterized
+  # if needed for multiple VM configurations in the future.
   networking.hostName = "dev";
 
   # Set your time zone.
+  # Note: Hardcoded for West Coast development workflow. Could be parameterized
+  # if needed for different geographical regions.
   time.timeZone = "America/Los_Angeles";
 
   # The global useDHCP flag is deprecated, therefore explicitly set to false here.
