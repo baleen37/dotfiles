@@ -17,24 +17,7 @@ link_nix_apps() {
   # Applications 디렉토리 생성
   mkdir -p "$home_apps"
 
-  # 1. Karabiner-Elements v14 최적화된 링크 (성능 개선)
-  # 기존 링크가 유효한지 먼저 확인
-  if [ -L "$home_apps/Karabiner-Elements.app" ] && [ -e "$home_apps/Karabiner-Elements.app" ]; then
-    echo "  ✅ Karabiner-Elements.app already linked (skipping search)"
-  else
-    # 제한된 경로에서만 검색 (성능 최적화)
-    local karabiner_path=$(find "$nix_store" -maxdepth 2 -name "*karabiner-elements-14*" -type d 2>/dev/null | head -1)
-    if [ -n "$karabiner_path" ]; then
-      local app_path="$karabiner_path/Library/Application Support/org.pqrs/Karabiner-Elements/Karabiner-Elements.app"
-      if [ -d "$app_path" ]; then
-        rm -f "$home_apps/Karabiner-Elements.app"
-        ln -sf "$app_path" "$home_apps/Karabiner-Elements.app"
-        echo "  ✅ Karabiner-Elements.app linked (v14.13.0 optimized)"
-      fi
-    fi
-  fi
-
-  # 1.5. WezTerm 전용 링킹 로직 추가
+  # 1. WezTerm 전용 링킹 로직
   if [ -L "$home_apps/WezTerm.app" ] && [ -e "$home_apps/WezTerm.app" ]; then
     echo "  ✅ WezTerm.app already linked (skipping search)"
   else
@@ -51,11 +34,10 @@ link_nix_apps() {
   echo "  🔍 Dynamically scanning for all GUI apps in Nix store..."
 
   local additional_apps=0
-  local excluded_apps=("Karabiner-Elements.app" "WezTerm.app")
+  local excluded_apps=("WezTerm.app")
 
   # 특별한 경로 패턴을 가진 앱들의 예외 처리
   local special_patterns=(
-    "*/Library/Application Support/org.pqrs/*/Karabiner-Elements.app"
     "*/qttools-*/bin/*.app"
     "*/qtdeclarative-*/bin/*.app"
   )
@@ -69,7 +51,7 @@ link_nix_apps() {
 
     # 이미 전용 처리된 앱들 제외 (빠른 검사)
     case "$app_name" in
-    "Karabiner-Elements.app" | "WezTerm.app")
+    "WezTerm.app")
       continue
       ;;
     esac
@@ -137,7 +119,6 @@ link_nix_apps() {
       local app_name=$(basename "$app_path")
 
       # 이미 전용 처리된 앱들 스킵
-      [ "$app_name" = "Karabiner-Elements.app" ] && continue
       [ "$app_name" = "WezTerm.app" ] && continue
 
       # 이미 유효한 링크가 있으면 스킵 (성능 개선)
@@ -157,7 +138,7 @@ link_nix_apps() {
   # 5. 요약 리포트 출력
   echo ""
   echo "  🎯 Dynamic GUI App Linking Summary:"
-  echo "    • Specialized apps: Karabiner-Elements, WezTerm (manual handling)"
+  echo "    • Specialized apps: WezTerm (manual handling)"
   echo "    • Dynamically discovered: $additional_apps apps found and linked"
   echo '    • Profile apps: processed from $HOME/.nix-profile'
   echo "    • Total valid links: $existing_valid_links"

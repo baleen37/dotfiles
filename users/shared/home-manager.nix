@@ -41,6 +41,7 @@
     ./tmux.nix
     ./claude-code.nix
     ./hammerspoon.nix
+    ./karabiner.nix
   ];
 
   # Home Manager configuration
