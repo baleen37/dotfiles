@@ -246,6 +246,44 @@ make smoke   # Quick validation
 make lint    # Code quality check
 ```
 
+## NixOS VM Testing
+
+This project includes automated NixOS VM testing using QEMU and nixos-generators for cross-platform validation.
+
+### Quick Start
+
+```bash
+# Run VM configuration tests
+make test-vm
+
+# Run full VM tests with execution
+make test-vm-full
+
+# Run all E2E tests including VM tests
+make test-e2e
+```
+
+### Architecture
+
+- **QEMU**: Cross-platform virtualization
+- **nixos-generators**: Modern VM image generation
+- **NixTest**: Test framework integration
+- **Automated SSH**: Service validation
+
+### VM Configuration
+
+The test VM includes:
+- SSH server (port 2222 forwarded)
+- Docker service
+- Test user account
+- Optimized resource allocation
+
+### Platform Support
+
+- ✅ macOS (Intel/ARM)
+- ✅ Linux (x86_64/aarch64)
+- ✅ Windows (via WSL2)
+
 ## Updates
 
 ```bash

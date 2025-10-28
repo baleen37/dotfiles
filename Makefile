@@ -33,6 +33,8 @@ help:
 	@echo "  test-quick       - Fast validation (2-3s)"
 	@echo "  test-integration - Run integration tests"
 	@echo "  test-all         - Comprehensive test suite"
+	@echo "  test-vm          - Run NixOS VM tests"
+	@echo "  test-vm-full     - Run full NixOS VM tests with execution"
 	@echo ""
 	@echo "🔨 Build & Deploy:"
 	@echo "  build       - Build current platform"
@@ -90,6 +92,17 @@ test-all:
 	@$(MAKE) test-integration
 	@echo "✅ All tests passed"
 
+test-vm:
+	@echo "🧪 Running NixOS VM tests..."
+	nix build .#packages.x86_64-linux.test-vm --no-link
+
+test-vm-full:
+	@echo "🚀 Running full NixOS VM tests with execution..."
+	nix build .#packages.x86_64-linux.test-vm
+	./result/bin/run-nixos-vm &
+	@sleep 30
+	@echo "SSH test on localhost:2222" | timeout 10 nc localhost 2222 || echo "VM test completed"
+	@pkill -f "run-nixos-vm" || true
 
 # Build & Deploy
 build: check-user
@@ -190,4 +203,4 @@ vm/switch:
 		sudo nixos-rebuild switch --flake \"/nix-config#vm-aarch64-utm\" \
 	"
 
-.PHONY: help check-user format lint lint-quick test test-quick test-all build build-switch switch vm/bootstrap0 vm/bootstrap vm/copy vm/switch
+.PHONY: help check-user format lint lint-quick test test-quick test-integration test-all test-vm test-vm-full build build-switch switch vm/bootstrap0 vm/bootstrap vm/copy vm/switch

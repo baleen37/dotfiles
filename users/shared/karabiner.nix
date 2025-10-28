@@ -11,5 +11,8 @@
 }:
 
 {
-  home.file.".config/karabiner/karabiner.json".source = ./config/karabiner/karabiner.json;
+  home.file.".config/karabiner/karabiner.json" = {
+    source = ./config/karabiner/karabiner.json;
+    force = true;
+  };
 }
