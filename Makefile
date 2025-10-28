@@ -29,9 +29,10 @@ help:
 	@echo "  lint-quick  - Fast format + basic validation"
 	@echo ""
 	@echo "🧪 Testing:"
-	@echo "  test        - Run core tests"
-	@echo "  test-quick  - Fast validation (2-3s)"
-	@echo "  test-all    - Comprehensive test suite"
+	@echo "  test             - Run core tests"
+	@echo "  test-quick       - Fast validation (2-3s)"
+	@echo "  test-integration - Run integration tests"
+	@echo "  test-all         - Comprehensive test suite"
 	@echo ""
 	@echo "🔨 Build & Deploy:"
 	@echo "  build       - Build current platform"
@@ -75,12 +76,17 @@ test-quick:
 	@echo "⚡ Quick validation (2-3s)..."
 	@$(NIX) flake check --impure --all-systems --no-build --quiet
 
+test-integration:
+	@echo "🔗 Running integration tests..."
+	@./tests/integration/test-claude-symlink.sh
+
 test-all:
 	@echo "🔬 Running comprehensive test suite..."
 	@$(NIX) build --impure --quiet .#checks.$(CURRENT_SYSTEM).smoke $(ARGS)
 	@$(NIX) build --impure --quiet .#checks.$(CURRENT_SYSTEM).unit-mksystem $(ARGS)
 	@$(NIX) build --impure --quiet .#checks.$(CURRENT_SYSTEM).unit-git $(ARGS)
 	@$(NIX) build --impure --quiet .#checks.$(CURRENT_SYSTEM).unit-claude $(ARGS)
+	@$(MAKE) test-integration
 	@echo "✅ All tests passed"
 
 
