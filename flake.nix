@@ -25,6 +25,11 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    nixos-generators = {
+      url = "github:nix-community/nixos-generators";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -34,6 +39,7 @@
       nixpkgs-unstable,
       darwin,
       home-manager,
+      nixos-generators,
       ...
     }@inputs:
     let
