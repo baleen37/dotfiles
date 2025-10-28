@@ -45,18 +45,37 @@ let
     inherit lib pkgs;
   };
 
+  # Import NixOS VM tests
+  nixosVmTests = import ./nixos-vm-test.nix {
+    inherit
+      lib
+      pkgs
+      system
+      self
+      ;
+  };
+
 in
 {
   # Individual test suites
-  inherit buildSwitchTests userWorkflowTests claudeHooksTests;
+  inherit
+    buildSwitchTests
+    userWorkflowTests
+    claudeHooksTests
+    nixosVmTests
+    ;
 
   # VM-based build-switch tests (실제 동작 검증)
   build-switch-vm-dry = buildSwitchVMTests.dryRunTest;
   build-switch-vm-full = buildSwitchVMTests.vmTest;
   build-switch-vm-all = buildSwitchVMTests.all;
 
-  # Combined e2e test suite
+  # Combined e2e test suite with VM tests
   all = nixtest.suite "All E2E Tests" {
-    inherit buildSwitchTests userWorkflowTests;
+    inherit buildSwitchTests userWorkflowTests claudeHooksTests;
+    vm = nixosVmTests.all;
   };
+
+  # VM-only test suite for focused VM testing
+  vm-only = nixosVmTests.all;
 }
