@@ -16,6 +16,7 @@
 #   - Nix tools: nixfmt, statix, deadnix, home-manager
 #   - Cloud tools: act, gh, docker
 #   - Security: yubikey-agent, keepassxc
+#   - SSH tools: autossh, mosh, teleport
 #   - Terminal: wezterm, htop, zsh-powerlevel10k
 #   - Fonts: noto-fonts-cjk-sans, jetbrains-mono
 #   - Media: ffmpeg
@@ -104,6 +105,7 @@
       # SSH tools
       autossh
       mosh
+      teleport
 
       # Terminal apps
       wezterm
