@@ -160,24 +160,31 @@ make lint-format         # Pre-commit workflow
 
 **Use command names instead** (PATH lookup) or install via Home Manager.
 
-### Symlinks Outside Nix Store (Flakes Issue)
+### Configuration File Management with home.file
 
-**Problem**: `xdg.configFile` + `mkOutOfStoreSymlink` + `self.outPath` doesn't work in flakes
-**Root Cause**: Flakes copy source to `/nix/store` during evaluation, making `self.outPath` a store path
+**Approach**: Use `home.file` to symlink configuration files to `/nix/store` (managed by Home Manager)
 
 ```nix
-# ❌ WRONG: self.outPath is already /nix/store/.../source
-xdg.configFile."claude".source =
-  config.lib.file.mkOutOfStoreSymlink "${self.outPath}/users/shared/.config/claude";
-
-# ✅ RIGHT: Use home.activation with dynamic path detection
-home.activation.linkClaudeConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-  DOTFILES_ROOT="${config.home.homeDirectory}/dotfiles"  # or detect dynamically
-  ln -sfn "$DOTFILES_ROOT/users/shared/.config/claude" "$HOME/.config/claude"
-'';
+# ✅ Recommended: Use home.file with recursive symlinks
+home.file.".claude" = {
+  source = ./.config/claude;
+  recursive = true;
+  force = true;
+};
 ```
 
-See `docs/claude-symlink-root-cause.md` for detailed analysis.
+**How it works:**
+- `~/.claude/` becomes a directory (not a symlink itself)
+- Individual files inside symlink to `/nix/store`: `~/.claude/settings.json` → `/nix/store/.../settings.json`
+- Runtime files (debug/, projects/, todos/) are created by Claude Code and git-ignored
+- Managed files are read-only but can be updated by editing dotfiles and rebuilding
+
+**Pattern used by:**
+- `users/shared/claude-code.nix`: Claude Code configuration
+- `users/shared/hammerspoon.nix`: Hammerspoon configuration
+- `users/shared/karabiner.nix`: Karabiner-Elements configuration
+
+**Alternative (home.activation):** If you need writable symlinks to actual dotfiles (not /nix/store), use `home.activation` with dynamic path detection. This is more complex but allows in-place editing.
 
 ### Build & Switch Commands (Option 3)
 

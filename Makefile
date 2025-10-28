@@ -78,6 +78,7 @@ test-quick:
 
 test-integration:
 	@echo "🔗 Running integration tests..."
+	@./tests/integration/test-claude-home-symlink.sh
 	@./tests/integration/test-claude-symlink.sh
 
 test-all:
