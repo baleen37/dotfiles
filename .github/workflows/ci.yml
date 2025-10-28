@@ -103,6 +103,12 @@ jobs:
 
           make build
 
+      - name: Run integration tests
+        run: |
+          export USER=${USER:-ci}
+          echo "🔗 Running integration tests..."
+          make test-integration
+
       - name: Install Cachix CLI
         if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
         run: |

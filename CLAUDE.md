@@ -160,6 +160,25 @@ make lint-format         # Pre-commit workflow
 
 **Use command names instead** (PATH lookup) or install via Home Manager.
 
+### Symlinks Outside Nix Store (Flakes Issue)
+
+**Problem**: `xdg.configFile` + `mkOutOfStoreSymlink` + `self.outPath` doesn't work in flakes
+**Root Cause**: Flakes copy source to `/nix/store` during evaluation, making `self.outPath` a store path
+
+```nix
+# ❌ WRONG: self.outPath is already /nix/store/.../source
+xdg.configFile."claude".source =
+  config.lib.file.mkOutOfStoreSymlink "${self.outPath}/users/shared/.config/claude";
+
+# ✅ RIGHT: Use home.activation with dynamic path detection
+home.activation.linkClaudeConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+  DOTFILES_ROOT="${config.home.homeDirectory}/dotfiles"  # or detect dynamically
+  ln -sfn "$DOTFILES_ROOT/users/shared/.config/claude" "$HOME/.config/claude"
+'';
+```
+
+See `docs/claude-symlink-root-cause.md` for detailed analysis.
+
 ### Build & Switch Commands (Option 3)
 
 **Clear Separation Philosophy:**
