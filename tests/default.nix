@@ -57,6 +57,17 @@ in
     inherit (nixtest) nixtest;
   };
 
+  # Add Hammerspoon configuration test
+  unit-hammerspoon = import ./unit/hammerspoon-test.nix {
+    inherit
+      inputs
+      system
+      pkgs
+      lib
+      ;
+    inherit (nixtest) nixtest;
+  };
+
   # TODO: Fix remaining unit tests - they need to be converted from test suites to derivations
   # unit-vim = import ./unit/vim-test.nix { inherit inputs system; };
   # unit-zsh = import ./unit/zsh-test.nix { inherit inputs system; };

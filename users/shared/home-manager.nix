@@ -40,6 +40,7 @@
     ./zsh.nix
     ./tmux.nix
     ./claude-code.nix
+    ./hammerspoon.nix
   ];
 
   # Home Manager configuration
