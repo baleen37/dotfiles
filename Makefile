@@ -33,9 +33,8 @@ help:
 	@echo "  test-quick       - Fast validation (2-3s)"
 	@echo "  test-integration - Run integration tests"
 	@echo "  test-all         - Comprehensive test suite"
-	@echo "  test-vm          - Run NixOS VM tests (requires Linux/emulation)"
-	@echo "  test-vm-full     - Run full NixOS VM tests with execution"
-	@echo "  test-vm-analysis - Analyze VM configuration (works on all platforms)"
+	@echo "  test-vm          - Full VM test (build + boot + E2E validation)"
+	@echo "  test-vm-quick    - Configuration validation only (30 seconds)"
 	@echo ""
 	@echo "🔨 Build & Deploy:"
 	@echo "  build       - Build current platform"
@@ -97,21 +96,16 @@ test-all:
 LINUX_TARGET = $(shell echo "$(CURRENT_SYSTEM)" | sed 's/darwin/linux/')
 
 test-vm:
-	@echo "🧪 Running NixOS VM tests..."
+	@echo "🚀 Full VM test (build + boot + E2E validation)..."
 	@echo "🎯 Target platform: $(LINUX_TARGET)"
-	nix build .#packages.$(LINUX_TARGET).test-vm --no-link || (echo "❌ VM build failed: cross-compilation from $(CURRENT_SYSTEM) to $(LINUX_TARGET) requires emulation setup"; echo "💡 Run 'make test-vm-analysis' for configuration validation instead"; exit 1)
-
-test-vm-full:
-	@echo "🚀 Running full NixOS VM tests with execution..."
-	@echo "🎯 Target platform: $(LINUX_TARGET)"
-	nix build .#packages.$(LINUX_TARGET).test-vm || (echo "❌ VM build failed: cross-compilation from $(CURRENT_SYSTEM) to $(LINUX_TARGET) requires emulation setup"; echo "💡 Run 'make test-vm-analysis' for configuration validation instead"; exit 1)
+	nix build .#packages.$(LINUX_TARGET).test-vm || (echo "❌ VM build failed: cross-compilation from $(CURRENT_SYSTEM) to $(LINUX_TARGET) requires emulation setup"; echo "💡 Run 'make test-vm-quick' for configuration validation instead"; exit 1)
 	./result/bin/run-nixos-vm &
 	@sleep 30
 	@echo "SSH test on localhost:2222" | timeout 10 nc localhost 2222 || echo "VM test completed"
 	@pkill -f "run-nixos-vm" || true
 
-test-vm-analysis:
-	@echo "🔍 Running VM configuration analysis (works on all platforms)..."
+test-vm-quick:
+	@echo "⚡ Configuration validation only (30 seconds)..."
 	nix build .#checks.$(CURRENT_SYSTEM).unit-vm-analysis && cat result
 
 # Build & Deploy
@@ -213,4 +207,4 @@ vm/switch:
 		sudo nixos-rebuild switch --flake \"/nix-config#vm-aarch64-utm\" \
 	"
 
-.PHONY: help check-user format lint lint-quick test test-quick test-integration test-all test-vm test-vm-full test-vm-analysis build build-switch switch vm/bootstrap0 vm/bootstrap vm/copy vm/switch
+.PHONY: help check-user format lint lint-quick test test-quick test-integration test-all test-vm test-vm-quick build build-switch switch vm/bootstrap0 vm/bootstrap vm/copy vm/switch
