@@ -51,9 +51,16 @@ make switch-user              # User config only (home-manager: git, vim, zsh - 
 ### Testing
 
 ```bash
+# Core Testing
 make test-nix                # Nix-based unit tests
 make test-enhanced           # Integration tests
 make test-monitor           # Performance monitoring
+
+# VM Testing (NixOS)
+make test-vm-quick          # Fast config validation (~30 seconds)
+make test-vm                # Full VM test suite (5-10 minutes)
+                           # - Build + generate + boot + services
+                           # - Same tests that run in CI
 ```
 
 ### Platform-Specific
@@ -221,6 +228,17 @@ System automatically detects platform via `lib/platform-system.nix`. Cross-platf
 5. Run `make build-current` to test current platform
 6. Refactor while keeping tests green
 7. Commit (pre-commit hooks run automatically)
+
+### VM Testing Workflow
+
+```bash
+# Quick iteration during VM config changes
+1. Edit VM configuration (machines/nixos/vm-shared.nix)
+2. make test-vm-quick        # 30s validation
+3. Fix issues if any
+4. Commit changes
+5. Push → CI runs full VM suite automatically
+```
 
 ## Key Features
 
