@@ -6,10 +6,26 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Enterprise-grade dotfiles management system providing reproducible development environments across macOS and NixOS using Nix flakes, Home Manager, and nix-darwin.
 
-**Platforms**: macOS (Intel/ARM), NixOS (x86_64/ARM64)
+**Platforms**: macOS (Apple Silicon/Intel), NixOS (ARM64/x86_64)
 **Architecture**: dustinlyons-inspired direct import patterns (simplified from complex abstractions)
 **Tools**: 50+ development packages, 34+ macOS GUI apps via Homebrew
 **macOS Optimization**: Performance tuning + automatic cleanup of unused default apps (6-8GB saved)
+
+## ⚠️ Multi-Platform Support
+
+**Primary Platforms**: macOS (Apple Silicon) + NixOS (ARM64)
+
+**Single Entry Point Philosophy**:
+- `make build` - Automatically detects and builds current platform
+- `make switch` - Automatically applies config for current platform
+- `make test` - Runs platform-appropriate tests
+
+**Cross-platform rules:**
+- Avoid hardcoded paths (`/Users/` vs `/home/`)
+- Use conditional logic for platform-specific packages
+- Platform-specific builds: `make build-darwin`, `make build-linux`
+
+Platform detection: `lib/mksystem.nix` (via `darwin`/`wsl` flags)
 
 ## ⚠️ Critical Rules
 
