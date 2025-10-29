@@ -97,12 +97,10 @@ LINUX_TARGET = $(shell echo "$(CURRENT_SYSTEM)" | sed 's/darwin/linux/')
 
 test-vm:
 	@echo "🚀 Full VM test (build + boot + E2E validation)..."
-	@echo "🎯 Target platform: $(LINUX_TARGET)"
-	nix build .#packages.$(LINUX_TARGET).test-vm || (echo "❌ VM build failed: cross-compilation from $(CURRENT_SYSTEM) to $(LINUX_TARGET) requires emulation setup"; echo "💡 Run 'make test-vm-quick' for configuration validation instead"; exit 1)
-	./result/bin/run-nixos-vm &
-	@sleep 30
-	@echo "SSH test on localhost:2222" | timeout 10 nc localhost 2222 || echo "VM test completed"
-	@pkill -f "run-nixos-vm" || true
+	@echo "🎯 Target platform: x86_64-linux"
+	nix build --impure .#checks.x86_64-linux.vm-test-suite --show-trace
+	@echo "✅ VM test suite completed"
+	@cat result 2>/dev/null || true
 
 test-vm-quick:
 	@echo "⚡ Configuration validation only (30 seconds)..."
