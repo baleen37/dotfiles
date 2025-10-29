@@ -74,4 +74,5 @@ __pycache__/
 # Planning documents
 specs/
 plans/
+!docs/plans/
 coverage/

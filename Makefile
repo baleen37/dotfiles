@@ -47,6 +47,10 @@ help:
 	@echo "  vm/copy      - Copy configurations to VM"
 	@echo "  vm/switch    - Apply configuration changes on VM"
 	@echo ""
+	@echo "🔧 VM Testing Scripts:"
+	@echo "  scripts/vm-test-runner.sh  - Advanced VM testing with build, boot, cleanup"
+	@echo "  scripts/vm-e2e-tests.sh    - Comprehensive E2E test suite"
+	@echo ""
 	@echo "💡 Common Workflows:"
 	@echo "  make lint-quick && make test-quick  # Before commit"
 	@echo "  make format && make test            # Before PR"
@@ -98,11 +102,7 @@ LINUX_TARGET = $(shell echo "$(CURRENT_SYSTEM)" | sed 's/darwin/linux/')
 test-vm:
 	@echo "🚀 Full VM test (build + boot + E2E validation)..."
 	@echo "🎯 Target platform: $(LINUX_TARGET)"
-	nix build .#packages.$(LINUX_TARGET).test-vm || (echo "❌ VM build failed: cross-compilation from $(CURRENT_SYSTEM) to $(LINUX_TARGET) requires emulation setup"; echo "💡 Run 'make test-vm-quick' for configuration validation instead"; exit 1)
-	./result/bin/run-nixos-vm &
-	@sleep 30
-	@echo "SSH test on localhost:2222" | timeout 10 nc localhost 2222 || echo "VM test completed"
-	@pkill -f "run-nixos-vm" || true
+	./scripts/vm-test-runner.sh
 
 test-vm-quick:
 	@echo "⚡ Configuration validation only (30 seconds)..."

@@ -36,5 +36,8 @@
   "rejectedMcpServers": [],
   "feedbackSurveyState": {
     "lastShownTime": 1755225425616
+  },
+  "enabledPlugins": {
+    "superpowers@superpowers-marketplace": true
   }
 }
