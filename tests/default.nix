@@ -80,6 +80,18 @@ in
     inherit (nixtest) nixtest;
   };
 
+  # Add VM execution test (Darwin/ARM64 compatible)
+  unit-vm-execution = import ./unit/vm-execution-test.nix {
+    inherit
+      inputs
+      system
+      pkgs
+      lib
+      self
+      ;
+    inherit (nixtest) nixtest;
+  };
+
   # TODO: Fix remaining unit tests - they need to be converted from test suites to derivations
   # unit-vim = import ./unit/vim-test.nix { inherit inputs system; };
   # unit-zsh = import ./unit/zsh-test.nix { inherit inputs system; };
