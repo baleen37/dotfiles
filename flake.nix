@@ -130,7 +130,7 @@
               # VM test suite for NixOS configurations
               vm-test-suite =
                 (import ./tests/e2e/nixos-vm-test.nix {
-                  inherit lib;
+                  inherit lib nixos-generators;
                   pkgs = pkgs-linux;
                   system = "x86_64-linux";
                   self = self;
@@ -139,7 +139,7 @@
               # Individual VM tests for granular debugging
               vm-build-test =
                 (import ./tests/e2e/nixos-vm-test.nix {
-                  inherit lib;
+                  inherit lib nixos-generators;
                   pkgs = pkgs-linux;
                   system = "x86_64-linux";
                   self = self;
@@ -147,7 +147,7 @@
 
               vm-generation-test =
                 (import ./tests/e2e/nixos-vm-test.nix {
-                  inherit lib;
+                  inherit lib nixos-generators;
                   pkgs = pkgs-linux;
                   system = "x86_64-linux";
                   self = self;
@@ -155,7 +155,7 @@
 
               vm-service-test =
                 (import ./tests/e2e/nixos-vm-test.nix {
-                  inherit lib;
+                  inherit lib nixos-generators;
                   pkgs = pkgs-linux;
                   system = "x86_64-linux";
                   self = self;
