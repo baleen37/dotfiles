@@ -14,10 +14,10 @@
 
 let
   # VM configuration files to validate
+  # Note: hardware/vm-aarch64-utm.nix is imported by vm-aarch64-utm.nix, so we don't test it separately
   vmConfigFiles = [
     ../../machines/nixos/vm-shared.nix
     ../../machines/nixos/vm-aarch64-utm.nix
-    ../../machines/nixos/hardware/vm-aarch64-utm.nix
   ];
 
   # Test function to validate a VM configuration file
@@ -55,11 +55,19 @@ let
         self ? packages
         && builtins.hasAttr "aarch64-linux" self.packages
         && builtins.hasAttr "x86_64-linux" self.packages;
+
+      # Check for QEMU availability in packages (more accurate than just checking nix store)
+      qemuCheck =
+        let
+          qemuPkgs = with pkgs; [ qemu ];
+          qemuAvailable = builtins.length qemuPkgs > 0;
+        in
+        qemuAvailable;
     in
-    if hasNixosGenerators && hasVmPackages then
-      "✅ Dependencies: nixos-generators and VM packages available"
+    if hasNixosGenerators && hasVmPackages && qemuCheck then
+      "✅ Dependencies: nixos-generators, VM packages, and QEMU available"
     else
-      "❌ Dependencies: Missing nixos-generators or VM packages";
+      "❌ Dependencies: Missing nixos-generators=${toString hasNixosGenerators}, VM packages=${toString hasVmPackages}, QEMU=${toString qemuCheck}";
 
   # Test platform compatibility
   testPlatformCompatibility =

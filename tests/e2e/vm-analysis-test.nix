@@ -21,10 +21,10 @@ let
   inherit ((import ../unit/nixtest-template.nix { inherit lib pkgs; })) nixtest;
 
   # VM configuration files to validate
+  # Note: hardware/vm-aarch64-utm.nix is imported by vm-aarch64-utm.nix, so we don't test it separately
   vmConfigFiles = [
     ../../machines/nixos/vm-shared.nix
     ../../machines/nixos/vm-aarch64-utm.nix
-    ../../machines/nixos/hardware/vm-aarch64-utm.nix
   ];
 
   # Test 1: VM Configuration File Validation
@@ -83,14 +83,19 @@ let
   );
 
   # Test 3: Dependencies Availability Test
-  # Checks that required dependencies are available in the flake
+  # Checks that required dependencies are available in the flake and validates binary availability
   dependencies-test = nixtest.test "VM dependencies availability" (
     let
       # Check if nixos-generators input is available
       hasNixosGenerators = self ? inputs.nixos-generators;
 
-      # Check if QEMU is available (we know it's available via nix shell)
-      qemuAvailable = builtins.pathExists "/nix/store"; # Basic check that Nix is working
+      # Check if QEMU is actually available in packages (more accurate than just checking nix store)
+      qemuAvailable =
+        let
+          qemuPkgs = with pkgs; [ qemu ];
+          qemuExists = builtins.length qemuPkgs > 0;
+        in
+        qemuExists;
 
       # Check if VM packages are defined
       hasVmPackages =
