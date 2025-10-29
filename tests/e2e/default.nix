@@ -55,6 +55,16 @@ let
       ;
   };
 
+  # Import VM analysis tests (cross-platform compatible)
+  vmAnalysisTests = import ./vm-analysis-test.nix {
+    inherit
+      lib
+      pkgs
+      system
+      self
+      ;
+  };
+
 in
 {
   # Individual test suites
@@ -63,6 +73,7 @@ in
     userWorkflowTests
     claudeHooksTests
     nixosVmTests
+    vmAnalysisTests
     ;
 
   # VM-based build-switch tests (실제 동작 검증)
@@ -74,8 +85,12 @@ in
   all = nixtest.suite "All E2E Tests" {
     inherit buildSwitchTests userWorkflowTests claudeHooksTests;
     vm = nixosVmTests.all;
+    vm-analysis = vmAnalysisTests.all;
   };
 
   # VM-only test suite for focused VM testing
   vm-only = nixosVmTests.all;
+
+  # VM analysis test suite for cross-platform validation
+  vm-analysis-only = vmAnalysisTests.all;
 }

@@ -68,6 +68,18 @@ in
     inherit (nixtest) nixtest;
   };
 
+  # Add VM analysis test (cross-platform compatible)
+  unit-vm-analysis = import ./unit/vm-analysis-test.nix {
+    inherit
+      inputs
+      system
+      pkgs
+      lib
+      self
+      ;
+    inherit (nixtest) nixtest;
+  };
+
   # TODO: Fix remaining unit tests - they need to be converted from test suites to derivations
   # unit-vim = import ./unit/vim-test.nix { inherit inputs system; };
   # unit-zsh = import ./unit/zsh-test.nix { inherit inputs system; };
