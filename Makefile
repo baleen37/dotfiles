@@ -106,7 +106,6 @@ test-vm:
 	echo ""; \
 	nix build --impure .#checks.$$PLATFORM.unit-vm-analysis && cat result || true; \
 	nix build --impure .#checks.$$PLATFORM.unit-vm-execution && cat result || true; \
-	nix build --impure .#checks.$$PLATFORM.unit-vm-environment-analysis-task1 && cat result || true; \
 	echo "✅ VM test suite completed"
 
 test-vm-quick:

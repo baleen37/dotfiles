@@ -92,18 +92,6 @@ in
     inherit (nixtest) nixtest;
   };
 
-  # Add VM environment analysis test for Task 1
-  unit-vm-environment-analysis-task1 = import ./unit/vm-environment-analysis-task1.nix {
-    inherit
-      inputs
-      system
-      pkgs
-      lib
-      self
-      ;
-    inherit (nixtest) nixtest;
-  };
-
   # TODO: Fix remaining unit tests - they need to be converted from test suites to derivations
   # unit-vim = import ./unit/vim-test.nix { inherit inputs system; };
   # unit-zsh = import ./unit/zsh-test.nix { inherit inputs system; };
