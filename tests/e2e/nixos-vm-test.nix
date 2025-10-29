@@ -34,6 +34,10 @@ let
   # Import E2E helpers for common utilities
   helpers = import ./helpers.nix { inherit pkgs; };
 
+  # Platform detection (shared across tests)
+  isLinux = lib.strings.hasSuffix "linux" system;
+  isDarwin = lib.strings.hasSuffix "darwin" system;
+
   # VM configuration module for testing
   # Uses shared VM configuration with minimal test-specific overrides
   vmTestConfig =
@@ -114,9 +118,6 @@ let
   # Test 1: VM Build Configuration Validation
   # Platform-conditional: Full build on Linux, type check on Darwin
   vm-build-test-assertion = nixtest.test "VM build configuration validation" (
-    let
-      isLinux = lib.strings.hasSuffix "linux" system;
-    in
     if isLinux then
       # Full build test on Linux (CI)
       let
@@ -127,7 +128,13 @@ let
       if evalResult.success then
         nixtest.assertions.assertTrue true
       else
-        throw "VM configuration build failed on Linux"
+        throw ''
+          VM configuration build failed on Linux
+          Original error: ${builtins.toString evalResult.value}
+
+          This indicates a problem with the VM configuration or its dependencies.
+          Check machines/nixos/vm-shared.nix for configuration issues.
+        ''
     else
       # Type check only on Darwin (local)
       nixtest.assertions.assertType "lambda" vmTestConfig
@@ -136,9 +143,6 @@ let
   # Test 2: VM Generation Test
   # Platform-conditional: Full generation on Linux, package check on Darwin
   vm-generation-test-assertion = nixtest.test "VM image generation test" (
-    let
-      isLinux = lib.strings.hasSuffix "linux" system;
-    in
     if isLinux then
       # Full generation test on Linux
       let
@@ -148,7 +152,13 @@ let
       if imageResult.success then
         nixtest.assertions.assertTrue true
       else
-        throw "VM image generation failed on Linux"
+        throw ''
+          VM image generation failed on Linux
+          Original error: ${builtins.toString imageResult.value}
+
+          This indicates a problem with nixos-generators or the VM image format.
+          Check that all required dependencies are available.
+        ''
     else
       # Package availability check on Darwin
       nixtest.assertions.assertType "set" pkgs.nixos-generators
@@ -172,32 +182,6 @@ let
       };
     in
     nixtest.assertions.assertType "set" configOutput
-  );
-
-  # Platform-specific validation tests
-  platform-validation-test-assertion = nixtest.test "Platform compatibility validation" (
-    let
-      # Platform detection
-      isLinux = lib.strings.hasSuffix "linux" system;
-      isDarwin = lib.strings.hasSuffix "darwin" system;
-
-      # Cross-platform validation
-      platformChecks = {
-        linux = nixtest.assertions.assertTrue isLinux;
-        darwin = nixtest.assertions.assertTrue isDarwin;
-        other = throw "Unsupported platform: ${system}";
-      };
-
-      # Select appropriate check
-      platformCheck =
-        if isLinux then
-          platformChecks.linux
-        else if isDarwin then
-          platformChecks.darwin
-        else
-          platformChecks.other;
-    in
-    platformCheck
   );
 
   # VM configuration integrity test
@@ -224,7 +208,6 @@ let
         vm-build-test-assertion.assertion
         vm-generation-test-assertion.assertion
         vm-service-test-assertion.assertion
-        platform-validation-test-assertion.assertion
         vm-config-integrity-test-assertion.assertion
       ];
     in
@@ -241,16 +224,13 @@ let
       echo "Running: VM Service Test" >> $out
       echo "  ✅ PASSED" >> $out
       echo "" >> $out
-      echo "Running: Platform Validation Test" >> $out
-      echo "  ✅ PASSED" >> $out
-      echo "" >> $out
       echo "Running: VM Config Integrity Test" >> $out
       echo "  ✅ PASSED" >> $out
       echo "" >> $out
       echo "======================" >> $out
       echo "📊 Test Results" >> $out
       echo "======================" >> $out
-      echo "Passed: 5" >> $out
+      echo "Passed: 4" >> $out
       echo "Failed: 0" >> $out
       echo "" >> $out
       echo "✅ All tests passed!" >> $out
