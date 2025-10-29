@@ -33,7 +33,7 @@ help:
 	@echo "  test-quick       - Fast validation (2-3s)"
 	@echo "  test-integration - Run integration tests"
 	@echo "  test-all         - Comprehensive test suite"
-	@echo "  test-vm          - Full VM test (build + boot + E2E validation)"
+	@echo "  test-vm          - VM test (use TARGET_PLATFORM=<platform> for specific)"
 	@echo "  test-vm-quick    - Configuration validation only (30 seconds)"
 	@echo ""
 	@echo "🔨 Build & Deploy:"
@@ -100,14 +100,14 @@ test-all:
 LINUX_TARGET = $(shell echo "$(CURRENT_SYSTEM)" | sed 's/darwin/linux/')
 
 test-vm:
-	@echo "🚀 Full VM test (build + boot + E2E validation)..."
-	@echo "🎯 Target platform: x86_64-linux (CI-compatible)"
-	@echo "⚠️  Note: Requires Linux system or remote builder. Use 'make test-vm-quick' for local validation."
-	@echo ""
-	@nix build --impure .#checks.x86_64-linux.unit-vm-analysis && cat result || true
-	@nix build --impure .#checks.x86_64-linux.unit-vm-execution && cat result || true
-	@nix build --impure .#checks.x86_64-linux.unit-vm-environment-analysis-task1 && cat result || true
-	@echo "✅ VM test suite completed"
+	@PLATFORM=$${TARGET_PLATFORM:-$(CURRENT_SYSTEM)}; \
+	echo "🚀 VM test suite for $$PLATFORM..."; \
+	echo "ℹ️  Note: Set TARGET_PLATFORM env var to test different platform"; \
+	echo ""; \
+	nix build --impure .#checks.$$PLATFORM.unit-vm-analysis && cat result || true; \
+	nix build --impure .#checks.$$PLATFORM.unit-vm-execution && cat result || true; \
+	nix build --impure .#checks.$$PLATFORM.unit-vm-environment-analysis-task1 && cat result || true; \
+	echo "✅ VM test suite completed"
 
 test-vm-quick:
 	@echo "⚡ Configuration validation only (30 seconds)..."

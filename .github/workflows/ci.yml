@@ -50,10 +50,16 @@ jobs:
 
   # VM Testing stage (NixOS)
   vm-test:
-    name: VM Testing (NixOS)
+    name: VM Test (${{ matrix.platform }})
     needs: validate
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - x86_64-linux
+          - aarch64-linux
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
 
@@ -62,9 +68,10 @@ jobs:
         with:
           enable-kvm: 'true'
 
-      - name: Run VM tests
+      - name: Run VM tests for ${{ matrix.platform }}
         run: |
           export USER=${USER:-ci}
+          export TARGET_PLATFORM=${{ matrix.platform }}
           make test-vm
 
   # Build and switch combined (faster, simpler)
