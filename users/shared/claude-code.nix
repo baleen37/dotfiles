@@ -5,9 +5,10 @@
 { ... }:
 
 {
-  # Claude Code configuration directory
-  # Uses ~/.claude (Claude Code's default location)
-  # Files are symlinked from /nix/store (managed by Home Manager)
+  # Pattern: Custom location (destination: ~/.claude/)
+  # Claude Code requires configuration in ~/.claude/ (non-XDG custom location)
+  # Source organized in .config/ for consistency, symlinked to custom location
+  # Files are read-only symlinks to /nix/store (managed by Home Manager)
   home.file.".claude" = {
     source = ./.config/claude;
     recursive = true;

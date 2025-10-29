@@ -11,8 +11,10 @@
 }:
 
 {
+  # Pattern: XDG-compliant (destination: ~/.config/karabiner/)
+  # Karabiner expects configuration in ~/.config/karabiner/ following XDG standard
   home.file.".config/karabiner/karabiner.json" = {
-    source = ./config/karabiner/karabiner.json;
+    source = ./.config/karabiner/karabiner.json;
     force = true;
   };
 }
