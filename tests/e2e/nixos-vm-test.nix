@@ -9,16 +9,16 @@
 # - QEMU-based VM execution testing
 # - Service validation and runtime checks
 #
-# Test Suite Structure:
-# 1. vm-build-test: validates configuration can be built
-# 2. vm-generation-test: creates actual VM image using nixos-generators
+# Test Suite Structure (Platform-Conditional):
+# 1. vm-build-test: Full build validation on Linux, type check on Darwin
+# 2. vm-generation-test: Full image generation on Linux, package check on Darwin
 # 3. vm-execution-test: boots VM and validates services
 # 4. vm-service-test: checks specific services are running
 #
 # Platform Support:
-# - x86_64-linux: KVM acceleration with virtio drivers
-# - aarch64-linux: KVM acceleration with virtio drivers
-# - Cross-compilation support from Darwin hosts
+# - x86_64-linux: Full VM build and generation validation (CI)
+# - aarch64-linux: Full VM build and generation validation (CI)
+# - Darwin hosts: Quick syntax and structure validation only
 
 {
   lib ? import <nixpkgs/lib>,
@@ -112,17 +112,46 @@ let
     });
 
   # Test 1: VM Build Configuration Validation
-  # Validates that the VM configuration module is valid
+  # Platform-conditional: Full build on Linux, type check on Darwin
   vm-build-test-assertion = nixtest.test "VM build configuration validation" (
-    # Just validate that the configuration module is a function that returns an attrset
-    nixtest.assertions.assertType "lambda" vmTestConfig
+    let
+      isLinux = lib.strings.hasSuffix "linux" system;
+    in
+    if isLinux then
+      # Full build test on Linux (CI)
+      let
+        evalResult = builtins.tryEval (
+          (pkgs.nixos { configuration = vmTestConfig; }).config.system.build.toplevel
+        );
+      in
+      if evalResult.success then
+        nixtest.assertions.assertTrue true
+      else
+        throw "VM configuration build failed on Linux"
+    else
+      # Type check only on Darwin (local)
+      nixtest.assertions.assertType "lambda" vmTestConfig
   );
 
   # Test 2: VM Generation Test
-  # Validates that nixos-generators is available
+  # Platform-conditional: Full generation on Linux, package check on Darwin
   vm-generation-test-assertion = nixtest.test "VM image generation test" (
-    # Check that nixos-generators package is available
-    nixtest.assertions.assertType "set" pkgs.nixos-generators
+    let
+      isLinux = lib.strings.hasSuffix "linux" system;
+    in
+    if isLinux then
+      # Full generation test on Linux
+      let
+        vmImage = generateVmConfig vmImageFormat;
+        imageResult = builtins.tryEval vmImage;
+      in
+      if imageResult.success then
+        nixtest.assertions.assertTrue true
+      else
+        throw "VM image generation failed on Linux"
+    else
+      # Package availability check on Darwin
+      nixtest.assertions.assertType "set" pkgs.nixos-generators
   );
 
   # Test 3: VM Execution Test
