@@ -64,10 +64,15 @@ make switch-user              # User config only (home-manager: git, vim, zsh - 
 ### Testing
 
 ```bash
-# Core Testing
-make test-nix                # Nix-based unit tests
-make test-enhanced           # Integration tests
-make test-monitor           # Performance monitoring
+# Automatic test discovery - zero maintenance!
+make test               # Core tests (smoke + validation)
+make test-unit          # All unit tests (auto-discovered)
+make test-integration   # All integration tests (auto-discovered)
+make test-all           # Comprehensive suite
+
+# Add new test: just create file, it's auto-discovered!
+touch tests/unit/my-feature-test.nix
+# No registration needed - automatically discovered via builtins.readDir
 
 # VM Testing (NixOS)
 make test-vm-quick          # Fast config validation (~30 seconds)
@@ -75,6 +80,44 @@ make test-vm                # Full VM test suite (5-10 minutes)
                            # - Build + generate + boot + services
                            # - Same tests that run in CI
 ```
+
+**Test organization:**
+- All `*-test.nix` files in `tests/unit/` are automatically discovered
+- All `*-test.nix` files in `tests/integration/` are automatically discovered
+- All tests are pure Nix derivations (no shell scripts)
+- Uses nixpkgs-approved pattern from `lib.filesystem`
+
+### Linux Builder (macOS only)
+
+Build Linux packages locally on macOS:
+
+```bash
+# Check if linux-builder is active
+make test-linux-builder
+
+# Build Linux packages
+nix build --impure --expr '(with import <nixpkgs> { system = "aarch64-linux"; }; package-name)'
+
+# M3+ Mac with better performance
+MAC_CHIP_GEN=m3 make switch    # Enable M3+ optimizations
+make build-m3                   # Build with optimizations
+
+# Detect your Mac hardware
+make detect-chip
+```
+
+**Hardware support:**
+- **M1/M2**: Conservative resources (4 cores, 8GB) - no nested virtualization
+- **M3+**: Optimized resources (8 cores, 20GB) - full nested virtualization
+- Set `MAC_CHIP_GEN=m3` for M3+ optimizations
+
+**Current status:**
+- Configuration is present in `machines/macbook-pro.nix`
+- **Not currently active** due to Determinate Nix usage (`nix.linux-builder.enable = false`)
+- Ready to activate when switching from Determinate Nix to nix-darwin managed Nix
+- Will automatically enable on systems using nix-darwin managed Nix daemon
+
+**Note**: CI tests on native Linux (faster than linux-builder).
 
 ### Platform-Specific Commands
 
