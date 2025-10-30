@@ -40,6 +40,7 @@ help:
 	@echo "  build       - Build current platform"
 	@echo "  build-switch - Build system (same as switch)"
 	@echo "  switch      - Build + apply system config"
+	@echo "  switch-user - Apply user config only (no sudo)"
 	@echo ""
 	@echo "🖥️  VM Management:"
 	@echo "  vm/bootstrap0 - Bootstrap new NixOS VM (initial install)"
@@ -145,6 +146,26 @@ switch: check-user
 		esac; \
 		export USER=$(USER); $(NIX) build --impure --quiet .#darwinConfigurations.$${TARGET}.system $(ARGS) || exit 1; \
 		sudo -E env USER=$(USER) ./result/sw/bin/darwin-rebuild switch --impure --flake .#$${TARGET} $(ARGS) || exit 1; \
+		rm -f ./result; \
+	else \
+		echo "❌ ERROR: Only Darwin (macOS) is supported. NixOS configurations not defined."; \
+		exit 1; \
+	fi
+
+switch-user: check-user
+	@echo "🔧 Applying user configuration only (no sudo required)..."
+	@echo "📝 Note: This will only rebuild configs. System changes require 'make switch' with sudo."
+	@OS=$$(uname -s); \
+	if [ "$${OS}" = "Darwin" ]; then \
+		TARGET=$${HOST:-macbook-pro}; \
+		case "$$TARGET" in \
+			*-darwin) TARGET=macbook-pro;; \
+		esac; \
+		echo "🔨 Building configuration for $(USER)..."; \
+		export USER=$(USER); $(NIX) build --impure --quiet .#darwinConfigurations.$${TARGET}.system $(ARGS) || exit 1; \
+		echo "✅ Build completed successfully"; \
+		echo "⚠️  To apply changes: sudo make switch (requires sudo for system-level changes)"; \
+		echo "💡 Or manually run: sudo ./result/sw/bin/darwin-rebuild switch --impure --flake .#$${TARGET}"; \
 		rm -f ./result; \
 	else \
 		echo "❌ ERROR: Only Darwin (macOS) is supported. NixOS configurations not defined."; \
