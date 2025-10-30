@@ -1,81 +1,63 @@
-{ inputs, self }:
+# mitchellh/nixos-config 스타일
+{ nixpkgs, overlays, inputs }:
 
 name:
 {
   system,
   user,
   darwin ? false,
-  wsl ? false,
+  wsl ? false
 }:
 
 let
-  inherit (inputs.nixpkgs) lib;
-  systemFunc = if darwin then inputs.darwin.lib.darwinSystem else lib.nixosSystem;
+  # WSL 확인
+  isWSL = wsl;
 
-  osConfig = if darwin then "darwin.nix" else "nixos.nix";
+  # Linux 확인 (Darwin과 WSL 제외)
+  isLinux = !darwin && !isWSL;
 
-  # Use shared user configuration directory (users/shared)
-  # Actual username is dynamically set via currentSystemUser
-  userHMConfig = ../users/shared/home-manager.nix;
-  userOSConfig = ../users/shared/${osConfig};
+  # 설정 파일 경로
   machineConfig = ../machines/${name}.nix;
+  userOSConfig = ../users/${user}/${if darwin then "darwin" else "nixos" }.nix;
+  userHMConfig = ../users/${user}/home-manager.nix;
 
-in
-systemFunc {
+  # 시스템 함수 선택
+  systemFunc = if darwin then inputs.darwin.lib.darwinSystem else nixpkgs.lib.nixosSystem;
+  home-manager = if darwin then inputs.home-manager.darwinModules else inputs.home-manager.nixosModules;
+
+in systemFunc rec {
   inherit system;
 
-  specialArgs = {
-    inherit inputs self;
-    currentSystem = system;
-    currentSystemName = name;
-    currentSystemUser = user;
-    isWSL = wsl;
-    isDarwin = darwin;
-  };
-
   modules = [
+    # 오버레이 적용
+    { nixpkgs.overlays = overlays; }
+
+    # unfree 패키지 허용
+    { nixpkgs.config.allowUnfree = true; }
+
+    # WSL 모듈 (필요시)
+    (if isWSL then inputs.nixos-wsl.nixosModules.wsl else {})
+
+    # 설정 파일들
     machineConfig
     userOSConfig
-
-    # Common nix settings for all systems
-    {
-      nix.settings = {
-        # Trust cachix configuration without prompting
-        substituters = [
-          "https://baleen-nix.cachix.org"
-          "https://cache.nixos.org/"
-        ];
-        trusted-public-keys = [
-          "baleen-nix.cachix.org-1:awgC7Sut148An/CZ6TZA+wnUtJmJnOvl5NThGio9j5k="
-          "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
-        ];
-        # Trust admin and wheel groups to eliminate warnings
-        trusted-users = [
-          "root"
-          user
-          "@admin"
-          "@wheel"
-        ];
+    home-manager.home-manager {
+      home-manager.useGlobalPkgs = true;
+      home-manager.useUserPackages = true;
+      home-manager.users.${user} = import userHMConfig {
+        isWSL = isWSL;
+        inputs = inputs;
       };
     }
 
-    # Home Manager integration
-    inputs.home-manager.darwinModules.home-manager
+    # 모듈에 추가 인자 전달
     {
-      home-manager = {
-        useGlobalPkgs = true;
-        useUserPackages = true;
-        users.${user} = import userHMConfig;
-        extraSpecialArgs = {
-          inherit inputs self;
-          currentSystemUser = user;
-        };
-      };
-
-      # Set required home-manager options
-      users.users.${user} = {
-        name = user;
-        home = if darwin then "/Users/${user}" else "/home/${user}";
+      config._module.args = {
+        currentSystem = system;
+        currentSystemName = name;
+        currentSystemUser = user;
+        isWSL = isWSL;
+        inputs = inputs;
       };
     }
   ];
