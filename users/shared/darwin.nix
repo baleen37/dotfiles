@@ -43,6 +43,7 @@ let
     "datagrip" # Database IDE from JetBrains
     "docker-desktop"
     "intellij-idea"
+    "utm" # Virtual machine manager for macOS
 
     # Communication Tools
     "discord"

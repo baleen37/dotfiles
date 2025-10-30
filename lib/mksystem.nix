@@ -51,6 +51,8 @@ systemFunc {
         ];
         # Trust admin and wheel groups to eliminate warnings
         trusted-users = [
+          "root"
+          user
           "@admin"
           "@wheel"
         ];
