@@ -1,8 +1,11 @@
 # NixOS User Configuration
 #
-# NixOS-specific user configurations and packages.
-# This file contains Linux/NixOS-specific settings that complement
+# NixOS-specific system configurations for the user.
+# This file contains Linux/NixOS-specific system settings that complement
 # the base home-manager configuration.
+#
+# Note: This is a NixOS module, not a home-manager module.
+# Home-manager configurations (packages, sessionVariables) should go in home-manager.nix
 #
 {
   pkgs,
@@ -12,30 +15,15 @@
   ...
 }:
 
-let
-  # NixOS-specific packages
-  nixos-packages = with pkgs; [
-    # Linux-specific development tools
-    systemd
-    util-linux
-    file
-    tree
-    htop
-    iotop
-  ];
-
-in
 {
-  # NixOS-specific user packages
-  home.packages = nixos-packages;
+  # NixOS-specific system configurations
+  # Add system-level configurations that are specific to NixOS here
 
-  # NixOS-specific environment variables
-  home.sessionVariables = {
-    # Linux-specific environment settings
-    XDG_CURRENT_DESKTOP = "none";
-    XDG_SESSION_TYPE = "tty";
-  };
+  # Example NixOS-specific system settings (if needed):
+  # environment.systemPackages = with pkgs; [
+  #   # System-wide packages that should be available to all users
+  # ];
 
-  # NixOS-specific services (user-level)
-  # Add user services that are specific to NixOS here
+  # User-specific NixOS configurations
+  # These are configurations that affect the user at the system level
 }

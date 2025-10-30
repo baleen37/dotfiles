@@ -1,12 +1,16 @@
 # mitchellh/nixos-config 스타일
-{ nixpkgs, overlays, inputs }:
+{
+  nixpkgs,
+  overlays,
+  inputs,
+}:
 
 name:
 {
   system,
   user,
   darwin ? false,
-  wsl ? false
+  wsl ? false,
 }:
 
 let
@@ -18,14 +22,16 @@ let
 
   # 설정 파일 경로
   machineConfig = ../machines/${name}.nix;
-  userOSConfig = ../users/${user}/${if darwin then "darwin" else "nixos" }.nix;
+  userOSConfig = ../users/${user}/${if darwin then "darwin" else "nixos"}.nix;
   userHMConfig = ../users/${user}/home-manager.nix;
 
   # 시스템 함수 선택
   systemFunc = if darwin then inputs.darwin.lib.darwinSystem else nixpkgs.lib.nixosSystem;
-  home-manager = if darwin then inputs.home-manager.darwinModules else inputs.home-manager.nixosModules;
+  home-manager =
+    if darwin then inputs.home-manager.darwinModules else inputs.home-manager.nixosModules;
 
-in systemFunc rec {
+in
+systemFunc rec {
   inherit system;
 
   modules = [
@@ -36,17 +42,20 @@ in systemFunc rec {
     { nixpkgs.config.allowUnfree = true; }
 
     # WSL 모듈 (필요시)
-    (if isWSL then inputs.nixos-wsl.nixosModules.wsl else {})
+    (if isWSL then inputs.nixos-wsl.nixosModules.wsl else { })
 
     # 설정 파일들
     machineConfig
     userOSConfig
-    home-manager.home-manager {
+    home-manager.home-manager
+    {
       home-manager.useGlobalPkgs = true;
       home-manager.useUserPackages = true;
-      home-manager.users.${user} = import userHMConfig {
+      home-manager.users.${user} = { pkgs, lib, ... }: import userHMConfig {
+        inherit pkgs lib;
         isWSL = isWSL;
         inputs = inputs;
+        currentSystemUser = user;
       };
     }
 

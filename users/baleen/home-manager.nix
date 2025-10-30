@@ -30,6 +30,7 @@
   lib,
   inputs,
   currentSystemUser,
+  isWSL ? false,
   ...
 }:
 
@@ -49,8 +50,9 @@
   # Username is dynamically resolved from flake.nix (supports both baleen and jito)
   home = {
     username = currentSystemUser;
-    homeDirectory =
-      if pkgs.stdenv.isDarwin then "/Users/${currentSystemUser}" else "/home/${currentSystemUser}";
+    homeDirectory = lib.mkDefault (
+      if pkgs.stdenv.isDarwin then "/Users/${currentSystemUser}" else "/home/${currentSystemUser}"
+    );
     stateVersion = "24.11";
 
     # Core system utilities
@@ -125,11 +127,25 @@
 
       # Productivity tools
       bc
+
+      # Linux-specific packages (only on NixOS/Linux, not macOS)
+    ] ++ lib.optionals (!pkgs.stdenv.isDarwin) [
+      systemd
+      util-linux
+      file
+      iotop
     ];
   };
 
   # XDG directories
   xdg.enable = true;
+
+  # Linux-specific environment variables (only on NixOS/Linux, not macOS)
+  home.sessionVariables = lib.mkIf (!pkgs.stdenv.isDarwin) {
+    # Linux-specific environment settings
+    XDG_CURRENT_DESKTOP = "none";
+    XDG_SESSION_TYPE = "tty";
+  };
 
   # Dotfiles symlinks
   home.file.".p10k.zsh" = {
