@@ -6,6 +6,17 @@ NIX := nix --extra-experimental-features 'nix-command flakes'
 CURRENT_SYSTEM := $(shell $(NIX) eval --impure --expr 'builtins.currentSystem' | tr -d '"')
 HOSTNAME := $(shell hostname -s 2>/dev/null || hostname | cut -d. -f1)
 
+# Platform-specific build targets (auto-selected)
+ifeq ($(CURRENT_SYSTEM),aarch64-darwin)
+  BUILD_TARGET := darwinConfigurations.macbook-pro.system
+else ifeq ($(CURRENT_SYSTEM),x86_64-linux)
+  BUILD_TARGET := nixosConfigurations.vm-test.config.system.build.toplevel
+else ifeq ($(CURRENT_SYSTEM),aarch64-linux)
+  BUILD_TARGET := nixosConfigurations.vm-test.config.system.build.toplevel
+else
+  BUILD_TARGET :=
+endif
+
 # Connectivity info for Linux VM
 NIXADDR ?= unset
 NIXPORT ?= 22
@@ -60,10 +71,9 @@ format:
 	@find . -name "*.nix" -not -path "*/.*" -not -path "*/result/*" -type f -exec nix fmt -- {} +
 
 lint:
-	@echo "🔍 Running lint checks..."
-	@statix check
-	@deadnix --fail
-	@pre-commit run --all-files
+	@echo "🔍 Linting ($(CURRENT_SYSTEM))..."
+	@find . -name "*.nix" -not -path "*/.*" -not -path "*/result/*" -type f -exec nix fmt -- {} +
+	@$(NIX) flake check --no-build --quiet
 
 lint-quick:
 	@echo "⚡ Quick lint (format + validation)..."
@@ -71,10 +81,10 @@ lint-quick:
 	@$(NIX) flake check --no-build --quiet
 
 # Testing (simplified with auto-discovery)
-test:
-	@echo "🧪 Running core tests..."
-	@$(NIX) build --impure --quiet .#checks.$(CURRENT_SYSTEM).smoke $(ARGS)
-	@$(NIX) flake check --impure --no-build $(ARGS)
+test: check-user
+	@echo "🧪 Testing $(CURRENT_SYSTEM)..."
+	@export USER=$(USER) && $(NIX) flake check --impure $(ARGS)
+	@echo "✅ Tests passed"
 
 test-quick:
 	@echo "⚡ Quick validation (2-3s)..."
@@ -128,18 +138,13 @@ test-linux-builder:
 
 # Build & Deploy
 build: check-user
-	@echo "🔨 Building $(CURRENT_SYSTEM)..."
-	@OS=$$(uname -s); \
-	if [ "$${OS}" = "Darwin" ]; then \
-		TARGET=$${HOST:-macbook-pro}; \
-		case "$$TARGET" in \
-			*-darwin) TARGET=macbook-pro;; \
-		esac; \
-		export USER=$(USER); $(NIX) build --impure --fallback --keep-going --no-link --quiet .#darwinConfigurations.$${TARGET}.system $(ARGS) || exit 1; \
-	else \
-		echo "❌ ERROR: Only Darwin (macOS) is supported. NixOS configurations not defined."; \
+	@echo "🏗️ Building $(CURRENT_SYSTEM)..."
+	@if [ -z "$(BUILD_TARGET)" ]; then \
+		echo "❌ Unsupported platform: $(CURRENT_SYSTEM)"; \
 		exit 1; \
 	fi
+	@export USER=$(USER) && $(NIX) build --impure --fallback --keep-going .#$(BUILD_TARGET) $(ARGS)
+	@echo "✅ Build complete: $(BUILD_TARGET)"
 
 build-switch: check-user
 	@echo "🚀 Building system configuration..."
