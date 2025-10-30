@@ -70,27 +70,33 @@ lint-quick:
 	@$(MAKE) format
 	@$(NIX) flake check --no-build --quiet
 
-# Testing
+# Testing (simplified with auto-discovery)
 test:
 	@echo "🧪 Running core tests..."
 	@$(NIX) build --impure --quiet .#checks.$(CURRENT_SYSTEM).smoke $(ARGS)
+	@$(NIX) flake check --impure --no-build $(ARGS)
 
 test-quick:
 	@echo "⚡ Quick validation (2-3s)..."
 	@$(NIX) flake check --impure --all-systems --no-build --quiet
 
+test-unit:
+	@echo "🧪 Running unit tests (auto-discovered)..."
+	@$(NIX) eval --impure .#checks.$(CURRENT_SYSTEM) --apply 'x: builtins.length (builtins.filter (n: builtins.match "unit-.*" n != null) (builtins.attrNames x))'
+	@echo "unit tests discovered"
+	@$(NIX) flake check --impure --no-build $(ARGS)
+
 test-integration:
-	@echo "🔗 Running integration tests..."
-	@$(NIX) build --impure --quiet .#checks.$(CURRENT_SYSTEM).integration-claude-symlink
-	@$(NIX) build --impure --quiet .#checks.$(CURRENT_SYSTEM).integration-claude-home-symlink
+	@echo "🔗 Running integration tests (auto-discovered)..."
+	@$(NIX) eval --impure .#checks.$(CURRENT_SYSTEM) --apply 'x: builtins.length (builtins.filter (n: builtins.match "integration-.*" n != null) (builtins.attrNames x))'
+	@echo "integration tests discovered"
+	@$(NIX) flake check --impure --no-build $(ARGS)
 
 test-all:
 	@echo "🔬 Running comprehensive test suite..."
-	@$(NIX) build --impure --quiet .#checks.$(CURRENT_SYSTEM).smoke $(ARGS)
-	@$(NIX) build --impure --quiet .#checks.$(CURRENT_SYSTEM).unit-mksystem $(ARGS)
-	@$(NIX) build --impure --quiet .#checks.$(CURRENT_SYSTEM).unit-git $(ARGS)
-	@$(NIX) build --impure --quiet .#checks.$(CURRENT_SYSTEM).unit-claude $(ARGS)
+	@$(MAKE) test
 	@$(MAKE) test-integration
+	@$(MAKE) test-vm
 	@echo "✅ All tests passed"
 
 # Determine Linux target for VM testing based on current Darwin architecture
