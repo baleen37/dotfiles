@@ -313,6 +313,45 @@ home.file.".claude" = {
 5. Push → CI runs full VM suite automatically
 ```
 
+## CI/CD
+
+### Multi-Platform Testing
+
+**Architecture**: Single unified job running on 3 platforms in parallel.
+
+**Platforms**:
+- Darwin (macOS-15): Apple Silicon
+- Linux x64 (ubuntu-latest): Intel
+- Linux ARM (ubuntu-latest): ARM64 with QEMU
+
+**Entry Points** (identical across all platforms):
+```bash
+make lint   # Format + validation
+make build  # Platform-specific build (auto-detected)
+make test   # Full test suite
+```
+
+**Workflow**:
+```
+ci (parallel across 3 platforms)
+├─ Darwin: lint → build → test
+├─ Linux x64: lint → build → test
+└─ Linux ARM: lint → build → test
+```
+
+**Total duration**: ~15-20 minutes (parallel execution)
+
+**Key Features**:
+- ✅ No platform-specific conditionals in CI
+- ✅ Local and CI use identical commands
+- ✅ Makefile handles platform detection
+- ✅ Easy to add new platforms (Makefile only)
+
+**Adding a new platform**:
+1. Add to `Makefile` BUILD_TARGET selection
+2. Add to `.github/workflows/ci.yml` matrix
+3. That's it!
+
 ## Key Features
 
 ### Cross-Platform Support
