@@ -141,10 +141,40 @@ jobs:
         run: |
           export USER=${USER:-ci}
           make test-all
+  # VM testing for NixOS configurations
+  vm-test:
+    name: VM Testing (NixOS)
+    needs: validate
+    if: (github.event.pull_request.draft != true) || (github.ref == 'refs/heads/main')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+
+      - name: Setup Nix with KVM
+        uses: ./.github/actions/setup-nix
+        with:
+          enable-kvm: 'true'
+          cache-mode: 'restore-only'
+
+      - name: Run VM test suite
+        timeout-minutes: 15
+        run: |
+          export USER=${USER:-ci}
+          echo "🚀 Running VM test suite for x86_64-linux..."
+          nix build --impure .#checks.x86_64-linux.vm-test-suite --show-trace
+          echo "✅ VM tests completed"
+
+      - name: Display test results
+        if: always()
+        run: |
+          if [ -e result ]; then
+            echo "📊 Test Results:"
+            cat result || echo "No detailed results available"
+          fi
   # CI completion and status reporting
   ci-complete:
     name: CI Summary
-    needs: [validate, build-switch, test]
+    needs: [validate, build-switch, test, vm-test]
     runs-on: ubuntu-latest
     if: always() && !cancelled()
     steps:
@@ -154,14 +184,15 @@ jobs:
           validate="${{ needs.validate.result }}"
           build_switch="${{ needs.build-switch.result }}"
           test="${{ needs.test.result }}"
+          vm_test="${{ needs.vm-test.result }}"
 
           # All jobs must succeed
-          if [[ "$validate" == "success" && "$build_switch" == "success" && "$test" == "success" ]]; then
+          if [[ "$validate" == "success" && "$build_switch" == "success" && "$test" == "success" && "$vm_test" == "success" ]]; then
             echo "status=success" >> $GITHUB_OUTPUT
             echo "message=All CI checks passed" >> $GITHUB_OUTPUT
           else
             echo "status=failed" >> $GITHUB_OUTPUT
-            echo "message=CI failed - validate:$validate build-switch:$build_switch test:$test" >> $GITHUB_OUTPUT
+            echo "message=CI failed - validate:$validate build-switch:$build_switch test:$test vm-test:$vm_test" >> $GITHUB_OUTPUT
           fi
       - name: Report status
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7

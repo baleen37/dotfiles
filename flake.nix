@@ -110,9 +110,62 @@
       };
 
       # Test checks
-      checks = nixpkgs.lib.genAttrs [ "aarch64-darwin" "x86_64-darwin" "x86_64-linux" "aarch64-linux" ] (
-        system: import ./tests { inherit system inputs self; }
-      );
+      checks =
+        let
+          # Standard checks for all platforms
+          standardChecks = nixpkgs.lib.genAttrs [
+            "aarch64-darwin"
+            "x86_64-darwin"
+            "x86_64-linux"
+            "aarch64-linux"
+          ] (system: import ./tests { inherit system inputs self; });
+
+          # Add VM-specific tests for x86_64-linux
+          vmTestsForLinux =
+            let
+              pkgs-linux = nixpkgs.legacyPackages.x86_64-linux;
+              lib = nixpkgs.lib;
+            in
+            {
+              # VM test suite for NixOS configurations
+              vm-test-suite =
+                (import ./tests/e2e/nixos-vm-test.nix {
+                  inherit lib nixos-generators;
+                  pkgs = pkgs-linux;
+                  system = "x86_64-linux";
+                  self = self;
+                }).vm-test-suite;
+
+              # Individual VM tests for granular debugging
+              vm-build-test =
+                (import ./tests/e2e/nixos-vm-test.nix {
+                  inherit lib nixos-generators;
+                  pkgs = pkgs-linux;
+                  system = "x86_64-linux";
+                  self = self;
+                }).vm-build-test;
+
+              vm-generation-test =
+                (import ./tests/e2e/nixos-vm-test.nix {
+                  inherit lib nixos-generators;
+                  pkgs = pkgs-linux;
+                  system = "x86_64-linux";
+                  self = self;
+                }).vm-generation-test;
+
+              vm-service-test =
+                (import ./tests/e2e/nixos-vm-test.nix {
+                  inherit lib nixos-generators;
+                  pkgs = pkgs-linux;
+                  system = "x86_64-linux";
+                  self = self;
+                }).vm-service-test;
+            };
+        in
+        standardChecks
+        // {
+          x86_64-linux = standardChecks.x86_64-linux // vmTestsForLinux;
+        };
 
       # Add VM generation packages
       packages = nixpkgs.lib.genAttrs [ "x86_64-linux" "aarch64-linux" ] (

@@ -33,8 +33,8 @@ help:
 	@echo "  test-quick       - Fast validation (2-3s)"
 	@echo "  test-integration - Run integration tests"
 	@echo "  test-all         - Comprehensive test suite"
-	@echo "  test-vm          - Run NixOS VM tests"
-	@echo "  test-vm-full     - Run full NixOS VM tests with execution"
+	@echo "  test-vm          - Full VM test (build + boot + E2E validation)"
+	@echo "  test-vm-quick    - Configuration validation only (30 seconds)"
 	@echo ""
 	@echo "🔨 Build & Deploy:"
 	@echo "  build       - Build current platform"
@@ -92,17 +92,19 @@ test-all:
 	@$(MAKE) test-integration
 	@echo "✅ All tests passed"
 
-test-vm:
-	@echo "🧪 Running NixOS VM tests..."
-	nix build .#packages.x86_64-linux.test-vm --no-link
+# Determine Linux target for VM testing based on current Darwin architecture
+LINUX_TARGET = $(shell echo "$(CURRENT_SYSTEM)" | sed 's/darwin/linux/')
 
-test-vm-full:
-	@echo "🚀 Running full NixOS VM tests with execution..."
-	nix build .#packages.x86_64-linux.test-vm
-	./result/bin/run-nixos-vm &
-	@sleep 30
-	@echo "SSH test on localhost:2222" | timeout 10 nc localhost 2222 || echo "VM test completed"
-	@pkill -f "run-nixos-vm" || true
+test-vm:
+	@echo "🚀 Full VM test (build + boot + E2E validation)..."
+	@echo "🎯 Target platform: x86_64-linux"
+	nix build --impure .#checks.x86_64-linux.vm-test-suite --show-trace
+	@echo "✅ VM test suite completed"
+	@cat result 2>/dev/null || true
+
+test-vm-quick:
+	@echo "⚡ Configuration validation only (30 seconds)..."
+	nix build .#checks.$(CURRENT_SYSTEM).unit-vm-analysis && cat result
 
 # Build & Deploy
 build: check-user
@@ -203,4 +205,4 @@ vm/switch:
 		sudo nixos-rebuild switch --flake \"/nix-config#vm-aarch64-utm\" \
 	"
 
-.PHONY: help check-user format lint lint-quick test test-quick test-integration test-all test-vm test-vm-full build build-switch switch vm/bootstrap0 vm/bootstrap vm/copy vm/switch
+.PHONY: help check-user format lint lint-quick test test-quick test-integration test-all test-vm test-vm-quick build build-switch switch vm/bootstrap0 vm/bootstrap vm/copy vm/switch
