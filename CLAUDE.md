@@ -19,7 +19,7 @@ Enterprise-grade dotfiles management system providing reproducible development e
 
 ### Key Features
 
-- **Architecture**: dustinlyons-inspired factory patterns with minimal abstractions
+- **Architecture**: Follows [mitchellh/nixos-config](https://github.com/mitchellh/nixos-config) philosophy with dustinlyons-inspired factory patterns and minimal abstractions
 - **Tools**: 50+ development packages across all platforms
 - **Cross-platform validation**: Automated testing across 3 platform combinations
 - **Dynamic user resolution**: Multi-user support without hardcoded usernames
