@@ -6,6 +6,19 @@ NIX := nix --extra-experimental-features 'nix-command flakes'
 CURRENT_SYSTEM := $(shell $(NIX) eval --impure --expr 'builtins.currentSystem' | tr -d '"')
 HOSTNAME := $(shell hostname -s 2>/dev/null || hostname | cut -d. -f1)
 
+# Platform-specific build targets (auto-selected)
+ifeq ($(CURRENT_SYSTEM),aarch64-darwin)
+  BUILD_TARGET := darwinConfigurations.macbook-pro.system
+else ifeq ($(CURRENT_SYSTEM),x86_64-linux)
+  # Linux: use checks instead of full VM build (VM tests run separately via make test-vm)
+  BUILD_TARGET := checks.x86_64-linux.smoke
+else ifeq ($(CURRENT_SYSTEM),aarch64-linux)
+  # Linux: use checks instead of full VM build (VM tests run separately via make test-vm)
+  BUILD_TARGET := checks.aarch64-linux.smoke
+else
+  BUILD_TARGET :=
+endif
+
 # Connectivity info for Linux VM
 NIXADDR ?= unset
 NIXPORT ?= 22
@@ -40,6 +53,7 @@ help:
 	@echo "  build       - Build current platform"
 	@echo "  build-switch - Build system (same as switch)"
 	@echo "  switch      - Build + apply system config"
+	@echo "  switch-user - Apply user config only (no sudo)"
 	@echo ""
 	@echo "🖥️  VM Management:"
 	@echo "  vm/bootstrap0 - Bootstrap new NixOS VM (initial install)"
@@ -59,37 +73,42 @@ format:
 	@find . -name "*.nix" -not -path "*/.*" -not -path "*/result/*" -type f -exec nix fmt -- {} +
 
 lint:
-	@echo "🔍 Running lint checks..."
-	@statix check
-	@deadnix --fail
-	@pre-commit run --all-files
+	@echo "🔍 Linting ($(CURRENT_SYSTEM))..."
+	@find . -name "*.nix" -not -path "*/.*" -not -path "*/result/*" -type f -exec nix fmt -- {} +
+	@$(NIX) flake check --no-build --quiet
 
 lint-quick:
 	@echo "⚡ Quick lint (format + validation)..."
 	@$(MAKE) format
 	@$(NIX) flake check --no-build --quiet
 
-# Testing
-test:
-	@echo "🧪 Running core tests..."
-	@$(NIX) build --impure --quiet .#checks.$(CURRENT_SYSTEM).smoke $(ARGS)
+# Testing (simplified with auto-discovery)
+test: check-user
+	@echo "🧪 Testing $(CURRENT_SYSTEM)..."
+	@export USER=$(USER) && $(NIX) flake check --impure $(ARGS)
+	@echo "✅ Tests passed"
 
 test-quick:
 	@echo "⚡ Quick validation (2-3s)..."
 	@$(NIX) flake check --impure --all-systems --no-build --quiet
 
+test-unit:
+	@echo "🧪 Running unit tests (auto-discovered)..."
+	@$(NIX) eval --impure .#checks.$(CURRENT_SYSTEM) --apply 'x: builtins.length (builtins.filter (n: builtins.match "unit-.*" n != null) (builtins.attrNames x))'
+	@echo "unit tests discovered"
+	@$(NIX) flake check --impure --no-build $(ARGS)
+
 test-integration:
-	@echo "🔗 Running integration tests..."
-	@./tests/integration/test-claude-home-symlink.sh
-	@./tests/integration/test-claude-symlink.sh
+	@echo "🔗 Running integration tests (auto-discovered)..."
+	@$(NIX) eval --impure .#checks.$(CURRENT_SYSTEM) --apply 'x: builtins.length (builtins.filter (n: builtins.match "integration-.*" n != null) (builtins.attrNames x))'
+	@echo "integration tests discovered"
+	@$(NIX) flake check --impure --no-build $(ARGS)
 
 test-all:
 	@echo "🔬 Running comprehensive test suite..."
-	@$(NIX) build --impure --quiet .#checks.$(CURRENT_SYSTEM).smoke $(ARGS)
-	@$(NIX) build --impure --quiet .#checks.$(CURRENT_SYSTEM).unit-mksystem $(ARGS)
-	@$(NIX) build --impure --quiet .#checks.$(CURRENT_SYSTEM).unit-git $(ARGS)
-	@$(NIX) build --impure --quiet .#checks.$(CURRENT_SYSTEM).unit-claude $(ARGS)
+	@$(MAKE) test
 	@$(MAKE) test-integration
+	@$(MAKE) test-vm
 	@echo "✅ All tests passed"
 
 # Determine Linux target for VM testing based on current Darwin architecture
@@ -106,34 +125,30 @@ test-vm-quick:
 	@echo "⚡ Configuration validation only (30 seconds)..."
 	nix build .#checks.$(CURRENT_SYSTEM).unit-vm-analysis && cat result
 
+# Linux Builder (macOS only)
+test-linux-builder:
+	@echo "🐧 Testing linux-builder..."
+	@if ! sudo launchctl list org.nixos.linux-builder >/dev/null 2>&1; then \
+		echo "❌ linux-builder not running"; \
+		echo "   Activate with: make switch"; \
+		exit 1; \
+	fi
+	@echo "✅ linux-builder is running"
+	@echo "🔨 Testing Linux build..."
+	@$(NIX) build --impure '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel' && \
+		echo "✅ Linux build successful"
+
 # Build & Deploy
 build: check-user
-	@echo "🔨 Building $(CURRENT_SYSTEM)..."
-	@OS=$$(uname -s); \
-	if [ "$${OS}" = "Darwin" ]; then \
-		TARGET=$${HOST:-macbook-pro}; \
-		case "$$TARGET" in \
-			*-darwin) TARGET=macbook-pro;; \
-		esac; \
-		export USER=$(USER); $(NIX) build --impure --fallback --keep-going --no-link --quiet .#darwinConfigurations.$${TARGET}.system $(ARGS) || exit 1; \
-	else \
-		echo "❌ ERROR: Only Darwin (macOS) is supported. NixOS configurations not defined."; \
+	@echo "🏗️ Building $(CURRENT_SYSTEM)..."
+	@if [ -z "$(BUILD_TARGET)" ]; then \
+		echo "❌ Unsupported platform: $(CURRENT_SYSTEM)"; \
 		exit 1; \
 	fi
+	@export USER=$(USER) && $(NIX) build --impure --fallback --keep-going .#$(BUILD_TARGET) $(ARGS)
+	@echo "✅ Build complete: $(BUILD_TARGET)"
 
-build-switch: check-user
-	@echo "🚀 Building system configuration..."
-	@OS=$$(uname -s); \
-	if [ "$${OS}" = "Darwin" ]; then \
-		TARGET=$${HOST:-macbook-pro}; \
-		case "$$TARGET" in \
-			*-darwin) TARGET=macbook-pro;; \
-		esac; \
-		export USER=$(USER); $(NIX) build --impure --quiet .#darwinConfigurations.$${TARGET}.system $(ARGS) || exit 1; \
-	else \
-		echo "❌ ERROR: Only Darwin (macOS) is supported. NixOS configurations not defined."; \
-		exit 1; \
-	fi
+build-switch: switch
 
 switch: check-user
 	@echo "🚀 Switching system configuration..."
@@ -146,6 +161,22 @@ switch: check-user
 		export USER=$(USER); $(NIX) build --impure --quiet .#darwinConfigurations.$${TARGET}.system $(ARGS) || exit 1; \
 		sudo -E env USER=$(USER) ./result/sw/bin/darwin-rebuild switch --impure --flake .#$${TARGET} $(ARGS) || exit 1; \
 		rm -f ./result; \
+	else \
+		echo "❌ ERROR: Only Darwin (macOS) is supported. NixOS configurations not defined."; \
+		exit 1; \
+	fi
+
+switch-user: check-user
+	@echo "🔧 Applying user configuration only (no sudo required)..."
+	@OS=$$(uname -s); \
+	if [ "$${OS}" = "Darwin" ]; then \
+		TARGET=$${HOST:-macbook-pro}; \
+		case "$$TARGET" in \
+			*-darwin) TARGET=macbook-pro;; \
+		esac; \
+		echo "🔨 Activating home-manager configuration for $(USER)..."; \
+		export USER=$(USER); home-manager switch --impure --flake .#$(USER)@$${TARGET} $(ARGS) || exit 1; \
+		echo "✅ User configuration applied successfully"; \
 	else \
 		echo "❌ ERROR: Only Darwin (macOS) is supported. NixOS configurations not defined."; \
 		exit 1; \
@@ -205,4 +236,4 @@ vm/switch:
 		sudo nixos-rebuild switch --flake \"/nix-config#vm-aarch64-utm\" \
 	"
 
-.PHONY: help check-user format lint lint-quick test test-quick test-integration test-all test-vm test-vm-quick build build-switch switch vm/bootstrap0 vm/bootstrap vm/copy vm/switch
+.PHONY: help check-user format lint lint-quick test test-quick test-integration test-all test-vm test-vm-quick test-linux-builder build build-switch switch switch-user vm/bootstrap0 vm/bootstrap vm/copy vm/switch

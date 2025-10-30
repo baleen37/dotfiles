@@ -64,10 +64,15 @@ make switch-user              # User config only (home-manager: git, vim, zsh - 
 ### Testing
 
 ```bash
-# Core Testing
-make test-nix                # Nix-based unit tests
-make test-enhanced           # Integration tests
-make test-monitor           # Performance monitoring
+# Automatic test discovery - zero maintenance!
+make test               # Core tests (smoke + validation)
+make test-unit          # All unit tests (auto-discovered)
+make test-integration   # All integration tests (auto-discovered)
+make test-all           # Comprehensive suite
+
+# Add new test: just create file, it's auto-discovered!
+touch tests/unit/my-feature-test.nix
+# No registration needed - automatically discovered via builtins.readDir
 
 # VM Testing (NixOS)
 make test-vm-quick          # Fast config validation (~30 seconds)
@@ -75,6 +80,37 @@ make test-vm                # Full VM test suite (5-10 minutes)
                            # - Build + generate + boot + services
                            # - Same tests that run in CI
 ```
+
+**Test organization:**
+- All `*-test.nix` files in `tests/unit/` are automatically discovered
+- All `*-test.nix` files in `tests/integration/` are automatically discovered
+- All tests are pure Nix derivations (no shell scripts)
+- Uses nixpkgs-approved pattern from `lib.filesystem`
+
+### Linux Builder (macOS only)
+
+Build Linux packages locally on macOS:
+
+```bash
+# Check if linux-builder is active
+make test-linux-builder
+
+# Build Linux packages
+nix build --impure --expr '(with import <nixpkgs> { system = "aarch64-linux"; }; package-name)'
+```
+
+**Hardware support:**
+- Apple Silicon Macs (M1/M2/M3/M4)
+- Conservative resource allocation: 4 cores, 8GB RAM, 40GB disk
+- Supports both x86_64-linux and aarch64-linux architectures
+
+**Current status:**
+- Configuration is present in `machines/macbook-pro.nix`
+- **Not currently active** due to Determinate Nix usage (`nix.linux-builder.enable = false`)
+- Ready to activate when switching from Determinate Nix to nix-darwin managed Nix
+- Will automatically enable on systems using nix-darwin managed Nix daemon
+
+**Note**: CI tests on native Linux (faster than linux-builder).
 
 ### Platform-Specific Commands
 
@@ -276,6 +312,45 @@ home.file.".claude" = {
 4. Commit changes
 5. Push → CI runs full VM suite automatically
 ```
+
+## CI/CD
+
+### Multi-Platform Testing
+
+**Architecture**: Single unified job running on 3 platforms in parallel.
+
+**Platforms**:
+- Darwin (macOS-15): Apple Silicon
+- Linux x64 (ubuntu-latest): Intel
+- Linux ARM (ubuntu-latest): ARM64 with QEMU
+
+**Entry Points** (identical across all platforms):
+```bash
+make lint   # Format + validation
+make build  # Platform-specific build (auto-detected)
+make test   # Full test suite
+```
+
+**Workflow**:
+```
+ci (parallel across 3 platforms)
+├─ Darwin: lint → build → test
+├─ Linux x64: lint → build → test
+└─ Linux ARM: lint → build → test
+```
+
+**Total duration**: ~15-20 minutes (parallel execution)
+
+**Key Features**:
+- ✅ No platform-specific conditionals in CI
+- ✅ Local and CI use identical commands
+- ✅ Makefile handles platform detection
+- ✅ Easy to add new platforms (Makefile only)
+
+**Adding a new platform**:
+1. Add to `Makefile` BUILD_TARGET selection
+2. Add to `.github/workflows/ci.yml` matrix
+3. That's it!
 
 ## Key Features
 

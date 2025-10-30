@@ -43,13 +43,13 @@ let
   # Test if airline plugin is present
   hasAirlinePlugin =
     vimConfigExists
-    && builtins.any (plugin: plugin.name or null == "vim-airline") vimConfig.programs.vim.plugins;
+    && builtins.any (plugin: plugin.pname or null == "vim-airline") vimConfig.programs.vim.plugins;
 
   # Test if tmux-navigator plugin is present
   hasTmuxNavigator =
     vimConfigExists
     && builtins.any (
-      plugin: plugin.name or null == "vim-tmux-navigator"
+      plugin: plugin.pname or null == "vim-tmux-navigator"
     ) vimConfig.programs.vim.plugins;
 
   # Test suite using NixTest framework
