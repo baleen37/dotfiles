@@ -10,9 +10,9 @@ HOSTNAME := $(shell hostname -s 2>/dev/null || hostname | cut -d. -f1)
 ifeq ($(CURRENT_SYSTEM),aarch64-darwin)
   BUILD_TARGET := darwinConfigurations.macbook-pro.system
 else ifeq ($(CURRENT_SYSTEM),x86_64-linux)
-  BUILD_TARGET := nixosConfigurations.vm-test.config.system.build.toplevel
+  BUILD_TARGET := packages.x86_64-linux.test-vm
 else ifeq ($(CURRENT_SYSTEM),aarch64-linux)
-  BUILD_TARGET := nixosConfigurations.vm-test.config.system.build.toplevel
+  BUILD_TARGET := packages.aarch64-linux.test-vm
 else
   BUILD_TARGET :=
 endif
