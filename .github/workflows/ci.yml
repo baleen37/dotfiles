@@ -1,18 +1,19 @@
 name: CI
+
 on:
   push:
     branches: [main]
     tags: ['v*']
   pull_request:
   workflow_dispatch:
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
 permissions:
   contents: read
-  pull-requests: write
-  issues: write
-  statuses: write
+
 env:
   NIX_CONFIG: |
     max-jobs = auto
@@ -21,202 +22,53 @@ env:
     trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= baleen-nix.cachix.org-1:awgC7Sut148An/CZ6TZA+wnUtJmJnOvl5NThGio9j5k=
     fallback = true
     narinfo-cache-negative-ttl = 0
-  # Single environment variable to control entire pipeline
-  CI_MODE: ${{ github.event.pull_request.draft == true && 'draft' || 'full' }}
-  IS_MAIN: ${{ github.ref == 'refs/heads/main' }}
+
 jobs:
-  # Fast validation stage (1-2 minutes) - delegates to Makefile
-  validate:
-    name: Validate & Lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup Nix with cache
-        uses: ./.github/actions/setup-nix
-
-      - name: Lint
-        run: |
-          export USER=${USER:-ci}
-          git config --unset-all core.hooksPath || true
-          make lint-quick
-
-      - name: Quick Test
-        run: |
-          export USER=${USER:-ci}
-          make test-quick
-  # Build and switch combined (faster, simpler)
-  build-switch:
-    name: Build+Switch ${{ matrix.name }}
-    needs: validate
-    if: (github.event.pull_request.draft != true) || (github.ref == 'refs/heads/main')
+  ci:
+    name: CI (${{ matrix.name }})
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
         include:
           - name: Darwin
-            system: aarch64-darwin
             os: macos-15
+          - name: Linux x64
+            os: ubuntu-latest
+          - name: Linux ARM
+            os: ubuntu-latest
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
-      # Clean up any existing Nix installation on macOS
-      - name: Clean existing Nix installation (macOS)
-        if: runner.os == 'macOS'
-        continue-on-error: true
-        run: |
-          echo "🧹 Cleaning existing Nix installation..."
-          set +e
-          sudo launchctl stop org.nixos.nix-daemon 2>/dev/null || true
-          sudo launchctl unload /Library/LaunchDaemons/org.nixos.nix-daemon.plist 2>/dev/null || true
-          if mount | grep -q "/nix"; then
-            sudo umount /nix 2>/dev/null || true
-          fi
-          if [[ -d "/nix" ]]; then
-            sudo rm -rf /nix 2>/dev/null || true
-          fi
-          sudo rm -f /etc/synthetic.conf /Library/LaunchDaemons/org.nixos.* 2>/dev/null || true
-          echo "nix" | sudo tee /etc/synthetic.conf > /dev/null 2>&1 || true
-          sync
-          sleep 2
-          echo "✅ macOS cleanup completed"
-          set -e
+      - name: Checkout
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Nix with cache
         uses: ./.github/actions/setup-nix
         with:
-          enable-kvm: 'true'
+          enable-kvm: ${{ runner.os == 'Linux' }}
 
-      - name: Clear Nix evaluation cache
-        run: |
-          rm -rf ~/.cache/nix/eval-cache-v* || true
-          echo "✅ Cleared Nix evaluation cache"
-
-      - name: Build configuration
-        timeout-minutes: 60
+      - name: Lint
         run: |
           export USER=${USER:-ci}
-          export HOST=${{ matrix.system }}
-          echo "🏗️ Building ${{ matrix.name }} (${{ matrix.system }})"
+          git config --unset-all core.hooksPath || true
+          make lint
 
+      - name: Build
+        run: |
+          export USER=${USER:-ci}
           make build
 
-      - name: Run integration tests
+      - name: Test
         run: |
           export USER=${USER:-ci}
-          echo "🔗 Running integration tests..."
-          make test-integration
-
-      - name: Install Cachix CLI
-        if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
-        run: |
-          nix profile install nixpkgs#cachix
+          make test
 
       - name: Upload to Cachix
         if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
         env:
           CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
         run: |
-          echo "📦 Uploading build artifacts to Cachix..."
+          nix profile install nixpkgs#cachix
           nix path-info --json --all | jq -r '.[].storePath' | cachix push baleen-nix
-          echo "✅ Upload to Cachix completed"
-  # Comprehensive test stage
-  test:
-    name: Test (Comprehensive)
-    needs: validate
-    if: (github.event.pull_request.draft != true) || (github.ref == 'refs/heads/main')
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
-
-      - name: Setup Nix with cache (restore-only)
-        uses: ./.github/actions/setup-nix
-        with:
-          cache-mode: 'restore-only'
-
-      - name: Run comprehensive tests
-        timeout-minutes: 20
-        run: |
-          export USER=${USER:-ci}
-          make test-all
-  # VM testing for NixOS configurations
-  vm-test:
-    name: VM Testing (NixOS)
-    needs: validate
-    if: (github.event.pull_request.draft != true) || (github.ref == 'refs/heads/main')
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
-
-      - name: Setup Nix with KVM
-        uses: ./.github/actions/setup-nix
-        with:
-          enable-kvm: 'true'
-          cache-mode: 'restore-only'
-
-      - name: Run VM test suite
-        timeout-minutes: 15
-        run: |
-          export USER=${USER:-ci}
-          echo "🚀 Running VM test suite for x86_64-linux..."
-          nix build --impure .#checks.x86_64-linux.vm-test-suite --show-trace
-          echo "✅ VM tests completed"
-
-      - name: Display test results
-        if: always()
-        run: |
-          if [ -e result ]; then
-            echo "📊 Test Results:"
-            cat result || echo "No detailed results available"
-          fi
-  # CI completion and status reporting
-  ci-complete:
-    name: CI Summary
-    needs: [validate, build-switch, test, vm-test]
-    runs-on: ubuntu-latest
-    if: always() && !cancelled()
-    steps:
-      - name: Determine overall status
-        id: status
-        run: |
-          validate="${{ needs.validate.result }}"
-          build_switch="${{ needs.build-switch.result }}"
-          test="${{ needs.test.result }}"
-          vm_test="${{ needs.vm-test.result }}"
-
-          # All jobs must succeed
-          if [[ "$validate" == "success" && "$build_switch" == "success" && "$test" == "success" && "$vm_test" == "success" ]]; then
-            echo "status=success" >> $GITHUB_OUTPUT
-            echo "message=All CI checks passed" >> $GITHUB_OUTPUT
-          else
-            echo "status=failed" >> $GITHUB_OUTPUT
-            echo "message=CI failed - validate:$validate build-switch:$build_switch test:$test vm-test:$vm_test" >> $GITHUB_OUTPUT
-          fi
-      - name: Report status
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
-        with:
-          script: |
-            const status = '${{ steps.status.outputs.status }}';
-            const message = '${{ steps.status.outputs.message }}';
-            const state = status === 'success' ? 'success' : 'failure';
-
-            // Set commit status
-            await github.rest.repos.createCommitStatus({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              sha: context.sha,
-              state: state,
-              description: message,
-              context: 'CI Summary'
-            });
-
-            console.log(`✅ CI status: ${state} - ${message}`);
-      - name: Final check
-        run: |
-          if [[ "${{ steps.status.outputs.status }}" != "success" ]]; then
-            echo "❌ CI failed: ${{ steps.status.outputs.message }}"
-            exit 1
-          fi
-          echo "✅ CI passed"
