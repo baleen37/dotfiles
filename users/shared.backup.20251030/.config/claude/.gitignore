@@ -1,9 +1,0 @@
-# Claude Code runtime state files
-# These are generated during usage and should not be committed
-
-debug/
-file-history/
-history.jsonl
-projects/
-shell-snapshots/
-todos/
