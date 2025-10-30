@@ -2,11 +2,17 @@
 #
 # Tests the consolidated Darwin configuration in users/shared/darwin.nix
 # Verifies that system settings, Homebrew config, and performance optimizations are properly defined.
-{ inputs, system }:
+{
+  inputs,
+  system,
+  pkgs ? import inputs.nixpkgs { inherit system; },
+  lib ? pkgs.lib,
+  nixtest ? { },
+  self ? ./.,
+  ...
+}:
 
 let
-  pkgs = import inputs.nixpkgs { inherit system; };
-  inherit (pkgs) lib;
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
 
   darwinConfig = import ../../users/shared/darwin.nix {
