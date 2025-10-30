@@ -81,8 +81,8 @@ test-quick:
 
 test-integration:
 	@echo "🔗 Running integration tests..."
-	@./tests/integration/test-claude-home-symlink.sh
-	@./tests/integration/test-claude-symlink.sh
+	@$(NIX) build --impure --quiet .#checks.$(CURRENT_SYSTEM).integration-claude-symlink
+	@$(NIX) build --impure --quiet .#checks.$(CURRENT_SYSTEM).integration-claude-home-symlink
 
 test-all:
 	@echo "🔬 Running comprehensive test suite..."

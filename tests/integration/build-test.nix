@@ -1,5 +1,9 @@
 # tests/integration/build-test.nix
-{ inputs, system }:
+{
+  inputs,
+  system,
+  ...
+}:
 
 let
   pkgs = import inputs.nixpkgs { inherit system; };

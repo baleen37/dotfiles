@@ -55,3 +55,4 @@ in
   '';
 }
 // discoverTests ./unit "unit"
+// discoverTests ./integration "integration"
