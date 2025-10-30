@@ -11,19 +11,6 @@ let
   isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
   isAarch64 = pkgs.stdenv.hostPlatform.isAarch64;
 
-  # Chip generation detection (M1/M2 vs M3+)
-  # Set MAC_CHIP_GEN=m3 for M3+ optimizations
-  chipGenEnv = builtins.getEnv "MAC_CHIP_GEN";
-  isM3Plus = chipGenEnv == "m3" || chipGenEnv == "m4";
-
-  # Resource allocation based on chip generation
-  builderConfig = {
-    cores = if isM3Plus then 8 else 4;
-    memory = if isM3Plus then (1024 * 20) else (1024 * 8);
-    disk = if isM3Plus then (1024 * 80) else (1024 * 40);
-    maxJobs = if isM3Plus then 8 else 4;
-  };
-
 in
 {
   # Linux builder for cross-platform development (macOS only)
@@ -39,7 +26,7 @@ in
     ];
 
     # Concurrent build jobs
-    maxJobs = builderConfig.maxJobs;
+    maxJobs = 4;
 
     # NixOS VM configuration
     config =
@@ -48,22 +35,22 @@ in
         # Enable x86_64 emulation on ARM Macs
         boot.binfmt.emulatedSystems = lib.mkIf isAarch64 [ "x86_64-linux" ];
 
-        # VM resources (hardware-aware)
+        # VM resources (conservative allocation for broad compatibility)
         virtualisation = {
-          cores = builderConfig.cores;
-          memorySize = lib.mkForce builderConfig.memory;
-          diskSize = lib.mkForce builderConfig.disk;
+          cores = 4;
+          memorySize = lib.mkForce (1024 * 8);
+          diskSize = lib.mkForce (1024 * 40);
 
           darwin-builder = {
-            diskSize = builderConfig.disk;
-            memorySize = builderConfig.memory;
+            diskSize = 1024 * 40;
+            memorySize = 1024 * 8;
           };
         };
 
         # Build optimization
         nix.settings = {
-          max-jobs = builderConfig.maxJobs;
-          cores = builderConfig.cores;
+          max-jobs = 4;
+          cores = 4;
         };
       };
   };

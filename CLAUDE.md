@@ -97,19 +97,12 @@ make test-linux-builder
 
 # Build Linux packages
 nix build --impure --expr '(with import <nixpkgs> { system = "aarch64-linux"; }; package-name)'
-
-# M3+ Mac with better performance
-MAC_CHIP_GEN=m3 make switch    # Enable M3+ optimizations
-make build-m3                   # Build with optimizations
-
-# Detect your Mac hardware
-make detect-chip
 ```
 
 **Hardware support:**
-- **M1/M2**: Conservative resources (4 cores, 8GB) - no nested virtualization
-- **M3+**: Optimized resources (8 cores, 20GB) - full nested virtualization
-- Set `MAC_CHIP_GEN=m3` for M3+ optimizations
+- Apple Silicon Macs (M1/M2/M3/M4)
+- Conservative resource allocation: 4 cores, 8GB RAM, 40GB disk
+- Supports both x86_64-linux and aarch64-linux architectures
 
 **Current status:**
 - Configuration is present in `machines/macbook-pro.nix`

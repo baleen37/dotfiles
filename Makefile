@@ -126,21 +126,6 @@ test-linux-builder:
 	@$(NIX) build --impure '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel' && \
 		echo "✅ Linux build successful"
 
-build-m3:
-	@echo "🚀 Building with M3+ optimizations..."
-	MAC_CHIP_GEN=m3 $(MAKE) build
-
-switch-m3:
-	@echo "🚀 Switching with M3+ optimizations..."
-	MAC_CHIP_GEN=m3 $(MAKE) switch
-
-detect-chip:
-	@echo "🔍 Detecting Mac chip..."
-	@sysctl machdep.cpu.brand_string | grep -q "M1" && echo "M1 detected (conservative mode)" || true
-	@sysctl machdep.cpu.brand_string | grep -q "M2" && echo "M2 detected (conservative mode)" || true
-	@sysctl machdep.cpu.brand_string | grep -q "M3" && echo "M3+ detected (optimized mode available - use make build-m3)" || true
-	@sysctl machdep.cpu.brand_string | grep -q "M4" && echo "M4 detected (optimized mode available - use make build-m3)" || true
-
 # Build & Deploy
 build: check-user
 	@echo "🔨 Building $(CURRENT_SYSTEM)..."
@@ -260,4 +245,4 @@ vm/switch:
 		sudo nixos-rebuild switch --flake \"/nix-config#vm-aarch64-utm\" \
 	"
 
-.PHONY: help check-user format lint lint-quick test test-quick test-integration test-all test-vm test-vm-quick test-linux-builder build-m3 switch-m3 detect-chip build build-switch switch vm/bootstrap0 vm/bootstrap vm/copy vm/switch
+.PHONY: help check-user format lint lint-quick test test-quick test-integration test-all test-vm test-vm-quick test-linux-builder build build-switch switch vm/bootstrap0 vm/bootstrap vm/copy vm/switch
