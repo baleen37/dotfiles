@@ -10,9 +10,11 @@ HOSTNAME := $(shell hostname -s 2>/dev/null || hostname | cut -d. -f1)
 ifeq ($(CURRENT_SYSTEM),aarch64-darwin)
   BUILD_TARGET := darwinConfigurations.macbook-pro.system
 else ifeq ($(CURRENT_SYSTEM),x86_64-linux)
-  BUILD_TARGET := packages.x86_64-linux.test-vm
+  # Linux: use checks instead of full VM build (VM tests run separately via make test-vm)
+  BUILD_TARGET := checks.x86_64-linux.smoke
 else ifeq ($(CURRENT_SYSTEM),aarch64-linux)
-  BUILD_TARGET := packages.aarch64-linux.test-vm
+  # Linux: use checks instead of full VM build (VM tests run separately via make test-vm)
+  BUILD_TARGET := checks.aarch64-linux.smoke
 else
   BUILD_TARGET :=
 endif
