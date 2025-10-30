@@ -146,19 +146,7 @@ build: check-user
 	@export USER=$(USER) && $(NIX) build --impure --fallback --keep-going .#$(BUILD_TARGET) $(ARGS)
 	@echo "✅ Build complete: $(BUILD_TARGET)"
 
-build-switch: check-user
-	@echo "🚀 Building system configuration..."
-	@OS=$$(uname -s); \
-	if [ "$${OS}" = "Darwin" ]; then \
-		TARGET=$${HOST:-macbook-pro}; \
-		case "$$TARGET" in \
-			*-darwin) TARGET=macbook-pro;; \
-		esac; \
-		export USER=$(USER); $(NIX) build --impure --quiet .#darwinConfigurations.$${TARGET}.system $(ARGS) || exit 1; \
-	else \
-		echo "❌ ERROR: Only Darwin (macOS) is supported. NixOS configurations not defined."; \
-		exit 1; \
-	fi
+build-switch: switch
 
 switch: check-user
 	@echo "🚀 Switching system configuration..."
@@ -178,19 +166,15 @@ switch: check-user
 
 switch-user: check-user
 	@echo "🔧 Applying user configuration only (no sudo required)..."
-	@echo "📝 Note: This will only rebuild configs. System changes require 'make switch' with sudo."
 	@OS=$$(uname -s); \
 	if [ "$${OS}" = "Darwin" ]; then \
 		TARGET=$${HOST:-macbook-pro}; \
 		case "$$TARGET" in \
 			*-darwin) TARGET=macbook-pro;; \
 		esac; \
-		echo "🔨 Building configuration for $(USER)..."; \
-		export USER=$(USER); $(NIX) build --impure --quiet .#darwinConfigurations.$${TARGET}.system $(ARGS) || exit 1; \
-		echo "✅ Build completed successfully"; \
-		echo "⚠️  To apply changes: sudo make switch (requires sudo for system-level changes)"; \
-		echo "💡 Or manually run: sudo ./result/sw/bin/darwin-rebuild switch --impure --flake .#$${TARGET}"; \
-		rm -f ./result; \
+		echo "🔨 Activating home-manager configuration for $(USER)..."; \
+		export USER=$(USER); home-manager switch --impure --flake .#$(USER)@$${TARGET} $(ARGS) || exit 1; \
+		echo "✅ User configuration applied successfully"; \
 	else \
 		echo "❌ ERROR: Only Darwin (macOS) is supported. NixOS configurations not defined."; \
 		exit 1; \
@@ -250,4 +234,4 @@ vm/switch:
 		sudo nixos-rebuild switch --flake \"/nix-config#vm-aarch64-utm\" \
 	"
 
-.PHONY: help check-user format lint lint-quick test test-quick test-integration test-all test-vm test-vm-quick test-linux-builder build build-switch switch vm/bootstrap0 vm/bootstrap vm/copy vm/switch
+.PHONY: help check-user format lint lint-quick test test-quick test-integration test-all test-vm test-vm-quick test-linux-builder build build-switch switch switch-user vm/bootstrap0 vm/bootstrap vm/copy vm/switch

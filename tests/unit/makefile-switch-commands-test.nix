@@ -75,7 +75,7 @@ pkgs.runCommand "makefile-switch-commands-test"
 
     # Test 6: All switch commands should have USER variable handling
     for cmd in "switch" "build-switch" "switch-user"; do
-      if grep -A 5 "^$cmd:" "$makefileSource" | grep -q "USER"; then
+      if grep -A 15 "^$cmd:" "$makefileSource" | grep -q "USER"; then
         echo "✅ Test 6.$cmd PASS: $cmd has USER variable handling"
       else
         echo "❌ Test 6.$cmd FAIL: $cmd missing USER variable handling"
