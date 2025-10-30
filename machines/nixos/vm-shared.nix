@@ -58,7 +58,7 @@
   # Set your time zone.
   # Note: Hardcoded for West Coast development workflow. Could be parameterized
   # if needed for different geographical regions.
-  time.timeZone = "America/Los_Angeles";
+  time.timeZone = "Asia/Seoul";
 
   # The global useDHCP flag is deprecated, therefore explicitly set to false here.
   # Per-interface useDHCP will be mandatory in the future, so this generated config
