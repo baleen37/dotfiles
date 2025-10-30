@@ -124,7 +124,7 @@ in
   };
 
   # Add VM environment analysis test for Task 1
-  unit-vm-environment-analysis-task1 = import ./unit/vm-environment-analysis-task1.nix {
+  unit-vm-environment-analysis-task1 = import ./unit/vm-environment-analysis-task1-test.nix {
     inherit
       inputs
       system
