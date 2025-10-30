@@ -6,10 +6,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Enterprise-grade dotfiles management system providing reproducible development environments across macOS and NixOS using Nix flakes, Home Manager, and nix-darwin.
 
-**Platforms**: macOS (Intel/ARM), NixOS (x86_64/ARM64)
-**Architecture**: dustinlyons-inspired direct import patterns (simplified from complex abstractions)
-**Tools**: 50+ development packages, 34+ macOS GUI apps via Homebrew
-**macOS Optimization**: Performance tuning + automatic cleanup of unused default apps (6-8GB saved)
+### Supported Platforms
+
+- **macOS (Darwin)**: Apple Silicon only (aarch64-darwin)
+  - Managed via nix-darwin + Home Manager
+  - Includes 34+ GUI apps via Homebrew
+  - Performance tuning + automatic app cleanup (6-8GB saved)
+
+- **NixOS (Linux)**: Intel (x86_64-linux) + ARM (aarch64-linux)
+  - Pure NixOS system configuration
+  - Managed via NixOS modules + Home Manager
+
+### Key Features
+
+- **Architecture**: dustinlyons-inspired factory patterns with minimal abstractions
+- **Tools**: 50+ development packages across all platforms
+- **Cross-platform validation**: Automated testing across 3 platform combinations
+- **Dynamic user resolution**: Multi-user support without hardcoded usernames
 
 ## ⚠️ Critical Rules
 
@@ -63,14 +76,21 @@ make test-vm                # Full VM test suite (5-10 minutes)
                            # - Same tests that run in CI
 ```
 
-### Platform-Specific
+### Platform-Specific Commands
 
 ```bash
-make build-darwin           # macOS only
-make build-linux            # NixOS only
-make platform-info          # Show platform details
-make build-switch-dry       # CI-safe dry-run
+# Platform detection & info
+make platform-info          # Show current platform details (aarch64-darwin, x86_64-linux, etc.)
+
+# Platform-specific builds
+make build-darwin           # Build macOS configuration (requires macOS host)
+make build-linux            # Build NixOS configuration (cross-platform compatible)
+
+# CI/Testing
+make build-switch-dry       # Dry-run without activation (CI-safe)
 ```
+
+**Note**: System automatically detects platform via `lib/platform-system.nix`. Commands adapt based on current host platform.
 
 ## Architecture
 
@@ -93,24 +113,34 @@ tests/             # TDD test suite (unit, integration, smoke)
 
 ### Module Philosophy
 
-**User-Centric Structure**: `users/shared/` contains shared configuration used by all users (baleen, jito, etc.) in flat, tool-specific files following evantravers pattern.
+**User-Centric Structure**
 
-**System Factory**: `lib/mksystem.nix` provides a unified interface for building systems across platforms using the factory pattern.
+`users/shared/` contains shared configuration used by all users (baleen, jito, etc.) in flat, tool-specific files following evantravers pattern.
 
-**Machine Definitions**: `machines/` define hardware-specific configurations without complex inheritance hierarchies.
+**System Factory**
 
-**Test-Driven Development**: `tests/` provides comprehensive TDD framework with helpers for validating configurations.
+`lib/mksystem.nix` provides a unified interface for building systems across platforms using the factory pattern.
+
+**Machine Definitions**
+
+`machines/` define hardware-specific configurations without complex inheritance hierarchies.
+
+**Test-Driven Development**
+
+`tests/` provides comprehensive TDD framework with helpers for validating configurations.
 
 ### Design Principles
 
-**evantravers Patterns**: Factory pattern for system building, user-centric flat files, minimal abstractions. Result: clean separation of concerns with maintainable structure.
+**evantravers Patterns**
 
-**Nix-Based Tooling**:
+Factory pattern for system building, user-centric flat files, minimal abstractions. Result: clean separation of concerns with maintainable structure.
 
-- System Building: `lib/mksystem.nix` factory → `nix build .#darwinConfigurations.macbook-pro.system`
-- Formatting: `lib/formatters.nix` → `nix run .#format`
-- Testing: Native `nix flake check` with TDD framework
-- Development: `nix flake show` for structure validation
+**Nix-Based Tooling**
+
+- **System Building**: `lib/mksystem.nix` factory → `nix build .#darwinConfigurations.macbook-pro.system`
+- **Formatting**: `lib/formatters.nix` → `nix run .#format`
+- **Testing**: Native `nix flake check` with TDD framework
+- **Development**: `nix flake show` for structure validation
 
 ## Code Quality
 
@@ -167,7 +197,7 @@ make lint-format         # Pre-commit workflow
 
 **Use command names instead** (PATH lookup) or install via Home Manager.
 
-### Configuration File Management with home.file
+### Configuration File Management
 
 **Approach**: Use `home.file` to symlink configuration files to `/nix/store` (managed by Home Manager)
 
@@ -180,33 +210,40 @@ home.file.".claude" = {
 };
 ```
 
-**How it works:**
+**How it works**
+
 - `~/.claude/` becomes a directory (not a symlink itself)
 - Individual files inside symlink to `/nix/store`: `~/.claude/settings.json` → `/nix/store/.../settings.json`
 - Runtime files (debug/, projects/, todos/) are created by Claude Code and git-ignored
 - Managed files are read-only but can be updated by editing dotfiles and rebuilding
 
-**Pattern used by:**
-- `users/shared/claude-code.nix`: Claude Code configuration
-- `users/shared/hammerspoon.nix`: Hammerspoon configuration
-- `users/shared/karabiner.nix`: Karabiner-Elements configuration
+**Modules using this pattern**
 
-**Alternative (home.activation):** If you need writable symlinks to actual dotfiles (not /nix/store), use `home.activation` with dynamic path detection. This is more complex but allows in-place editing.
+- `users/shared/claude-code.nix` - Claude Code configuration
+- `users/shared/hammerspoon.nix` - Hammerspoon configuration
+- `users/shared/karabiner.nix` - Karabiner-Elements configuration
 
-### Build & Switch Commands (Option 3)
+**Alternative**: `home.activation` for writable symlinks to actual dotfiles (not /nix/store). More complex but allows in-place editing.
 
-**Clear Separation Philosophy:**
+### Build & Switch Commands
 
-- `switch` / `build-switch`: Full system (darwin-rebuild) - includes Homebrew, system settings, user config
-- `switch-user`: User-only (home-manager) - faster for git, vim, zsh changes
+**Command Hierarchy**
 
-**Development**: `make build-current` (builds only current platform)
-**Production**: `make switch` or `make build-switch` (full system update)
-**Quick User Updates**: `make switch-user` (skips system/Homebrew)
+- **Full System**: `make switch` or `make build-switch`
+  - macOS: darwin-rebuild (system + Homebrew + user config)
+  - NixOS: nixos-rebuild (system + user config)
 
-### Platform Detection
+- **User Only**: `make switch-user`
+  - home-manager activation only (git, vim, zsh, etc.)
+  - Faster for quick configuration changes
+  - Skips system settings and Homebrew
 
-System automatically detects platform via `lib/platform-system.nix`. Cross-platform validation runs on 4 platforms: Darwin ARM64/x64, Linux ARM64/x64.
+**When to use each**
+
+- **Development**: `make build-current` - builds current platform without activation
+- **Production**: `make switch` - full system update with activation
+- **Quick updates**: `make switch-user` - user config only (no sudo required)
+
 
 ## Code Documentation
 
@@ -242,18 +279,30 @@ System automatically detects platform via `lib/platform-system.nix`. Cross-platf
 
 ## Key Features
 
-- **Dynamic User Resolution**: No hardcoded usernames
-- **Auto-Formatting**: Parallel formatting via `make format`
-- **Homebrew Integration**: Declarative GUI app management
-- **macOS Performance Optimization**: Level 1+2 tuning (animations, auto-correct, iCloud, Dock)
-- **Automatic App Cleanup**: Removes unused default apps (GarageBand, iMovie, TV, Podcasts, News, Stocks, Freeform)
-- **Advanced Testing**: 87% optimized suite with parallel execution
-- **Claude Code Integration**: 20+ specialized commands
+### Cross-Platform Support
+
+- **Dynamic User Resolution**: No hardcoded usernames - supports multiple users (baleen, jito, etc.)
+- **Platform Detection**: Automatic detection via `lib/platform-system.nix`
+- **Cross-Platform Validation**: Automated testing across 3 platform combinations
+
+### Development Experience
+
+- **Auto-Formatting**: Parallel formatting via `make format` (Nix, YAML, JSON, Markdown, shell)
+- **TDD Framework**: Comprehensive test suite with 87% optimization
+- **Claude Code Integration**: 20+ specialized commands and skills
 - **Performance Monitoring**: Real-time build metrics
+
+### macOS-Specific Features
+
+- **Homebrew Integration**: Declarative GUI app management (34+ apps)
+- **Performance Optimization**: Level 1+2 tuning (30-50% UI speed boost)
+- **Automatic App Cleanup**: Removes unused default apps (6-8GB saved)
 
 ## macOS Optimization
 
-### Performance Tuning (users/baleen/darwin.nix)
+### Performance Tuning
+
+**Configuration**: `users/shared/darwin.nix`
 
 **Level 1 - Safe Optimizations:**
 
@@ -277,9 +326,11 @@ System automatically detects platform via `lib/platform-system.nix`. Cross-platf
 - Battery life: Extended (iCloud sync minimized)
 - Memory: Better management (automatic termination)
 
-### App Cleanup (users/baleen/darwin.nix)
+### App Cleanup
 
-**Automatically removed apps (~6-8GB saved):**
+**Configuration**: `users/shared/darwin.nix`
+
+**Automatically removed apps** (~6-8GB saved):
 
 - GarageBand (2-3GB) - Music production
 - iMovie (3-4GB) - Video editing
