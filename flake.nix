@@ -43,17 +43,6 @@
       ...
     }@inputs:
     let
-      mkSystem = import ./lib/mksystem.nix { inherit inputs self; };
-
-      # Dynamic user resolution: get from environment variable, fallback to "baleen"
-      # Usage: export USER=$(whoami) before running nix commands
-      # Requires --impure flag for nix build/switch commands
-      user =
-        let
-          envUser = builtins.getEnv "USER";
-        in
-        if envUser != "" then envUser else "baleen";
-
       # Overlays for unstable packages
       overlays = [
         (final: prev: {
@@ -63,50 +52,29 @@
           };
         })
       ];
+
+      mkSystem = import ./lib/mksystem.nix {
+        inherit overlays nixpkgs inputs;
+      };
     in
     {
-      # macOS configuration
-      darwinConfigurations.macbook-pro = mkSystem "macbook-pro" {
+      # NixOS system
+      nixosConfigurations.vm-aarch64-utm = mkSystem "vm-aarch64-utm" {
+        system = "aarch64-linux";
+        user   = "baleen";
+      };
+
+      # Darwin systems
+      darwinConfigurations.macbook-pro-baleen = mkSystem "macbook-pro-baleen" {
         system = "aarch64-darwin";
-        user = user;
+        user   = "baleen";
         darwin = true;
       };
 
-      # NixOS configurations
-      nixosConfigurations = {
-        vm-aarch64-utm = nixpkgs.lib.nixosSystem {
-          system = "aarch64-linux";
-          specialArgs = {
-            inherit inputs self;
-            currentSystem = "aarch64-linux";
-            currentSystemName = "vm-aarch64-utm";
-            currentSystemUser = user;
-            isWSL = false;
-            isDarwin = false;
-          };
-          modules = [
-            ./machines/nixos/vm-aarch64-utm.nix
-            inputs.home-manager.nixosModules.home-manager
-            {
-              home-manager = {
-                useGlobalPkgs = true;
-                useUserPackages = true;
-                users.${user} = import ./users/shared/home-manager.nix;
-                extraSpecialArgs = {
-                  inherit inputs self;
-                  currentSystemUser = user;
-                };
-              };
-
-              # Set required home-manager options with correct paths
-              users.users.${user} = {
-                name = user;
-                home = "/home/${user}";
-                isNormalUser = true;
-              };
-            }
-          ];
-        };
+      darwinConfigurations.macbook-pro-jito = mkSystem "macbook-pro-jito" {
+        system = "aarch64-darwin";
+        user   = "jito";
+        darwin = true;
       };
 
       # Test checks
@@ -178,7 +146,7 @@
             inherit system;
             format = "vm-nogui";
             modules = [
-              ./machines/nixos/vm-aarch64-utm.nix
+              ./machines/vm-aarch64-utm.nix
               {
                 # VM testing configuration
                 virtualisation.memorySize = 2048;
