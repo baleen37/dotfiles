@@ -51,12 +51,14 @@ systemFunc rec {
     {
       home-manager.useGlobalPkgs = true;
       home-manager.useUserPackages = true;
-      home-manager.users.${user} = { pkgs, lib, ... }: import userHMConfig {
-        inherit pkgs lib;
-        isWSL = isWSL;
-        inputs = inputs;
-        currentSystemUser = user;
-      };
+      home-manager.users.${user} =
+        { pkgs, lib, ... }:
+        import userHMConfig {
+          inherit pkgs lib;
+          isWSL = isWSL;
+          inputs = inputs;
+          currentSystemUser = user;
+        };
     }
 
     # 모듈에 추가 인자 전달

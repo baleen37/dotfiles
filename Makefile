@@ -111,9 +111,11 @@ build: check-user
 	@echo "🔨 Building $(CURRENT_SYSTEM)..."
 	@OS=$$(uname -s); \
 	if [ "$${OS}" = "Darwin" ]; then \
-		TARGET=$${HOST:-macbook-pro}; \
+		TARGET=$${HOST:-macbook-pro-$(USER)}; \
 		case "$$TARGET" in \
-			*-darwin) TARGET=macbook-pro;; \
+			macbook-pro-baleen|macbook-pro-jito) :;; \
+			macbook-pro) TARGET="macbook-pro-$(USER)";; \
+			*-darwin) TARGET="macbook-pro-$(USER)";; \
 		esac; \
 		export USER=$(USER); $(NIX) build --impure --fallback --keep-going --no-link --quiet .#darwinConfigurations.$${TARGET}.system $(ARGS) || exit 1; \
 	else \
@@ -125,9 +127,11 @@ build-switch: check-user
 	@echo "🚀 Building system configuration..."
 	@OS=$$(uname -s); \
 	if [ "$${OS}" = "Darwin" ]; then \
-		TARGET=$${HOST:-macbook-pro}; \
+		TARGET=$${HOST:-macbook-pro-$(USER)}; \
 		case "$$TARGET" in \
-			*-darwin) TARGET=macbook-pro;; \
+			macbook-pro-baleen|macbook-pro-jito) :;; \
+			macbook-pro) TARGET="macbook-pro-$(USER)";; \
+			*-darwin) TARGET="macbook-pro-$(USER)";; \
 		esac; \
 		export USER=$(USER); $(NIX) build --impure --quiet .#darwinConfigurations.$${TARGET}.system $(ARGS) || exit 1; \
 	else \
@@ -139,9 +143,11 @@ switch: check-user
 	@echo "🚀 Switching system configuration..."
 	@OS=$$(uname -s); \
 	if [ "$${OS}" = "Darwin" ]; then \
-		TARGET=$${HOST:-macbook-pro}; \
+		TARGET=$${HOST:-macbook-pro-$(USER)}; \
 		case "$$TARGET" in \
-			*-darwin) TARGET=macbook-pro;; \
+			macbook-pro-baleen|macbook-pro-jito) :;; \
+			macbook-pro) TARGET="macbook-pro-$(USER)";; \
+			*-darwin) TARGET="macbook-pro-$(USER)";; \
 		esac; \
 		export USER=$(USER); $(NIX) build --impure --quiet .#darwinConfigurations.$${TARGET}.system $(ARGS) || exit 1; \
 		sudo -E env USER=$(USER) ./result/sw/bin/darwin-rebuild switch --impure --flake .#$${TARGET} $(ARGS) || exit 1; \

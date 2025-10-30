@@ -61,19 +61,19 @@
       # NixOS system
       nixosConfigurations.vm-aarch64-utm = mkSystem "vm-aarch64-utm" {
         system = "aarch64-linux";
-        user   = "baleen";
+        user = "baleen";
       };
 
       # Darwin systems
       darwinConfigurations.macbook-pro-baleen = mkSystem "macbook-pro-baleen" {
         system = "aarch64-darwin";
-        user   = "baleen";
+        user = "baleen";
         darwin = true;
       };
 
       darwinConfigurations.macbook-pro-jito = mkSystem "macbook-pro-jito" {
         system = "aarch64-darwin";
-        user   = "jito";
+        user = "jito";
         darwin = true;
       };
 

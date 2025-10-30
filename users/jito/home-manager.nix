@@ -1,4 +1,18 @@
 {
-  imports = [ ../baleen/home-manager.nix ];
-  # jito 특정 설정이 필요하면 여기에 추가
+  pkgs,
+  lib,
+  inputs,
+  currentSystemUser,
+  isWSL ? false,
+  ...
+}:
+
+{
+  # Import shared configuration
+  imports = [
+    ../shared/home-manager.nix
+  ];
+
+  # jito-specific customizations can be added here
+  # For now, using the same configuration as baleen
 }
