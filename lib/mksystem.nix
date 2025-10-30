@@ -53,11 +53,23 @@ systemFunc rec {
       home-manager.useUserPackages = true;
       home-manager.users.${user} =
         { pkgs, lib, ... }:
-        import userHMConfig {
-          inherit pkgs lib;
-          isWSL = isWSL;
-          inputs = inputs;
-          currentSystemUser = user;
+        let
+          # Import the user's home manager configuration
+          userConfig = import userHMConfig {
+            inherit pkgs lib;
+            isWSL = isWSL;
+            inputs = inputs;
+            currentSystemUser = user;
+          };
+        in
+        userConfig
+        // {
+          # Ensure required home directory and username are set
+          home = userConfig.home or { } // {
+            username = lib.mkForce user;
+            homeDirectory = lib.mkForce (if darwin then "/Users/${user}" else "/home/${user}");
+            stateVersion = lib.mkForce "24.11";
+          };
         };
     }
 

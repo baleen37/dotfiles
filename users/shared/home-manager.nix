@@ -47,10 +47,8 @@
   ];
 
   # Home Manager configuration
-  # Username and homeDirectory are set by the calling mkSystem function
+  # Username, homeDirectory, and stateVersion are set by the calling mkSystem function
   home = {
-    stateVersion = "24.11";
-
     # Core system utilities
     packages =
       with pkgs;
