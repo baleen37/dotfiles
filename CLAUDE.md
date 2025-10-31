@@ -47,9 +47,8 @@ Enterprise-grade dotfiles management system providing reproducible development e
 ```bash
 # Development cycle (USER auto-detected by Makefile)
 make format                    # Auto-format all files (nix run .#format)
-make build-current            # Build current platform only (fastest)
-make test-core                # Run essential tests
-make smoke                    # Quick validation (~30 seconds)
+make test                      # Run full test suite (~45 seconds)
+make build                     # Build current platform
 
 # System Management (Option 3 - Clear separation)
 make switch                   # Full system update (darwin-rebuild: system + Homebrew + user)
@@ -65,17 +64,16 @@ make switch-user              # User config only (home-manager: git, vim, zsh - 
 
 ```bash
 # Automatic test discovery - zero maintenance!
-make test               # Core tests (smoke + validation)
+make test               # Core tests (~45 seconds)
 make test-unit          # All unit tests (auto-discovered)
 make test-integration   # All integration tests (auto-discovered)
-make test-all           # Comprehensive suite
+make test-all           # Comprehensive suite (includes VM tests)
 
 # Add new test: just create file, it's auto-discovered!
 touch tests/unit/my-feature-test.nix
 # No registration needed - automatically discovered via builtins.readDir
 
 # VM Testing (NixOS)
-make test-vm-quick          # Fast config validation (~30 seconds)
 make test-vm                # Full VM test suite (5-10 minutes)
                            # - Build + generate + boot + services
                            # - Same tests that run in CI
@@ -86,6 +84,7 @@ make test-vm                # Full VM test suite (5-10 minutes)
 - All `*-test.nix` files in `tests/integration/` are automatically discovered
 - All tests are pure Nix derivations (no shell scripts)
 - Uses nixpkgs-approved pattern from `lib.filesystem`
+- Tests run automatically on every commit via pre-commit hooks
 
 ### Linux Builder (macOS only)
 
@@ -144,7 +143,7 @@ users/shared/      # Shared user configuration (supports multiple users: baleen,
 
 machines/          # Machine-specific configs (hostname, hardware)
 lib/               # Pure Nix utilities (mksystem.nix factory, formatters, testing)
-tests/             # TDD test suite (unit, integration, smoke)
+tests/             # TDD test suite (unit, integration)
 ```
 
 ### Module Philosophy
@@ -276,7 +275,7 @@ home.file.".claude" = {
 
 **When to use each**
 
-- **Development**: `make build-current` - builds current platform without activation
+- **Development**: `make build` - builds current platform without activation
 - **Production**: `make switch` - full system update with activation
 - **Quick updates**: `make switch-user` - user config only (no sudo required)
 
@@ -297,10 +296,10 @@ home.file.".claude" = {
 1. Write failing tests first (TDD)
 2. Implement minimal code to pass tests
 3. Run `make format` for auto-formatting
-4. Run `make smoke` for quick validation
-5. Run `make build-current` to test current platform
+4. Run `make test` to validate changes
+5. Run `make build` to test current platform
 6. Refactor while keeping tests green
-7. Commit (pre-commit hooks run automatically)
+7. Commit (pre-commit hooks automatically run `make lint` and `make test`)
 
 ### VM Testing Workflow
 

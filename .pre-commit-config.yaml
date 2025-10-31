@@ -19,21 +19,21 @@ repos:
   # Makefile-managed checks (single source of truth)
   - repo: local
     hooks:
-      - id: lint-quick
-        name: Lint Quick (Makefile)
-        entry: make lint-quick
+      - id: lint
+        name: Lint (Makefile)
+        entry: make lint
         language: system
         pass_filenames: false
         stages: [pre-commit]
-        description: Fast format + validation via Makefile
+        description: Format + validation via Makefile
 
-      - id: test-quick
-        name: Test Quick (Makefile)
-        entry: make test-quick
+      - id: test
+        name: Test (Makefile)
+        entry: make test
         language: system
         pass_filenames: false
-        stages: [pre-push]
-        description: Fast validation before push
+        stages: [pre-commit, pre-push]
+        description: Run full test suite
 
 # Global configuration
 default_install_hook_types: [pre-commit, pre-push]

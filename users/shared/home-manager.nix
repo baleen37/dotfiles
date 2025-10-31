@@ -18,7 +18,7 @@
 #   - Security: yubikey-agent, keepassxc
 #   - SSH tools: autossh, mosh, teleport
 #   - Terminal: ghostty, htop, zsh-powerlevel10k
-#   - Fonts: noto-fonts-cjk-sans, jetbrains-mono
+#   - Fonts: noto-fonts-cjk-sans, cascadia-code
 #   - Media: ffmpeg
 #   - Databases: postgresql, sqlite, redis, mysql80
 #
@@ -113,7 +113,7 @@
 
       # Fonts
       noto-fonts-cjk-sans
-      jetbrains-mono
+      cascadia-code
 
       # Media tools
       ffmpeg

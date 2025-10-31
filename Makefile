@@ -39,15 +39,12 @@ help:
 	@echo "🎨 Code Quality:"
 	@echo "  format      - Auto-format all files"
 	@echo "  lint        - Run all lint checks"
-	@echo "  lint-quick  - Fast format + basic validation"
 	@echo ""
 	@echo "🧪 Testing:"
 	@echo "  test             - Run core tests"
-	@echo "  test-quick       - Fast validation (2-3s)"
 	@echo "  test-integration - Run integration tests"
 	@echo "  test-all         - Comprehensive test suite"
 	@echo "  test-vm          - Full VM test (build + boot + E2E validation)"
-	@echo "  test-vm-quick    - Configuration validation only (30 seconds)"
 	@echo ""
 	@echo "🔨 Build & Deploy:"
 	@echo "  build       - Build current platform"
@@ -62,8 +59,7 @@ help:
 	@echo "  vm/switch    - Apply configuration changes on VM"
 	@echo ""
 	@echo "💡 Common Workflows:"
-	@echo "  make lint-quick && make test-quick  # Before commit"
-	@echo "  make format && make test            # Before PR"
+	@echo "  make format && make test            # Before commit (automated via pre-commit)"
 	@echo "  make switch                         # Update system"
 	@echo "  make vm/copy && make vm/switch      # Update VM configuration"
 
@@ -77,20 +73,11 @@ lint:
 	@find . -name "*.nix" -not -path "*/.*" -not -path "*/result/*" -type f -exec nix fmt -- {} +
 	@$(NIX) flake check --no-build --quiet
 
-lint-quick:
-	@echo "⚡ Quick lint (format + validation)..."
-	@$(MAKE) format
-	@$(NIX) flake check --no-build --quiet
-
 # Testing (simplified with auto-discovery)
 test: check-user
 	@echo "🧪 Testing $(CURRENT_SYSTEM)..."
 	@export USER=$(USER) && $(NIX) flake check --impure $(ARGS)
 	@echo "✅ Tests passed"
-
-test-quick:
-	@echo "⚡ Quick validation (2-3s)..."
-	@$(NIX) flake check --impure --all-systems --no-build --quiet
 
 test-unit:
 	@echo "🧪 Running unit tests (auto-discovered)..."
@@ -121,9 +108,6 @@ test-vm:
 	@echo "✅ VM test suite completed"
 	@cat result 2>/dev/null || true
 
-test-vm-quick:
-	@echo "⚡ Configuration validation only (30 seconds)..."
-	nix build .#checks.$(CURRENT_SYSTEM).unit-vm-analysis && cat result
 
 # Linux Builder (macOS only)
 test-linux-builder:
@@ -236,4 +220,4 @@ vm/switch:
 		sudo nixos-rebuild switch --flake \"/nix-config#vm-aarch64-utm\" \
 	"
 
-.PHONY: help check-user format lint lint-quick test test-quick test-integration test-all test-vm test-vm-quick test-linux-builder build build-switch switch switch-user vm/bootstrap0 vm/bootstrap vm/copy vm/switch
+.PHONY: help check-user format lint test test-unit test-integration test-all test-vm test-linux-builder build build-switch switch switch-user vm/bootstrap0 vm/bootstrap vm/copy vm/switch

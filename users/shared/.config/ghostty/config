@@ -2,7 +2,7 @@
 # Managed via Nix Home Manager
 
 # Font Configuration
-font-family = JetBrains Mono
+font-family = Cascadia Code
 font-size = 14
 
 # Theme
