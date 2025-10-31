@@ -72,7 +72,7 @@ in
 
     shellAliases = {
       # Claude CLI shortcut
-      cc = "claude --dangerously-skip-permissions --allow-dangerously-skip-permissions";
+      cc = "claude --allow-dangerously-skip-permissions";
 
       # OpenCode CLI shortcut
       oc = "opencode";
