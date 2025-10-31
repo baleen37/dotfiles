@@ -1,6 +1,6 @@
 return {
-  ['com.github.wez.wezterm'] = {
-    bundleID = 'com.github.wez.wezterm',
+  ['com.mitchellh.ghostty'] = {
+    bundleID = 'com.mitchellh.ghostty',
     hyperKey = 'i',
     tags = {'coding'}
   },
