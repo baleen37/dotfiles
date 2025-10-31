@@ -24,8 +24,30 @@ env:
     narinfo-cache-negative-ttl = 0
 
 jobs:
+  lint:
+    name: Lint
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Nix with cache
+        uses: ./.github/actions/setup-nix
+        with:
+          enable-kvm: false
+
+      - name: Run lint
+        run: |
+          export USER=${USER:-ci}
+          git config --unset-all core.hooksPath || true
+          make lint
+
   ci:
     name: CI (${{ matrix.name }})
+    needs: lint
     timeout-minutes: 60
     strategy:
       fail-fast: false
@@ -48,12 +70,6 @@ jobs:
         uses: ./.github/actions/setup-nix
         with:
           enable-kvm: ${{ runner.os == 'Linux' }}
-
-      - name: Lint
-        run: |
-          export USER=${USER:-ci}
-          git config --unset-all core.hooksPath || true
-          make lint
 
       - name: Build
         run: |
