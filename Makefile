@@ -47,6 +47,13 @@ help:
 	@echo "  test-all         - Comprehensive test suite"
 	@echo "  test-vm          - Full VM test (build + boot + E2E validation)"
 	@echo ""
+	@echo "🐳 Local CI Testing (act):"
+	@echo "  act-check        - Check Docker, act, and environment setup"
+	@echo "  act-linux        - Run Linux x64 CI job locally"
+	@echo "  act-linux-arm    - Run Linux ARM CI job locally"
+	@echo "  act-all          - Run all CI jobs locally (Darwin skipped)"
+	@echo "  act-test         - Test Node.js crypto support"
+	@echo ""
 	@echo "🔨 Build & Deploy:"
 	@echo "  build       - Build current platform"
 	@echo "  build-switch - Build system (same as switch)"
@@ -63,6 +70,7 @@ help:
 	@echo "  make format && make test            # Before commit (automated via pre-commit)"
 	@echo "  make switch                         # Update system"
 	@echo "  make vm/copy && make vm/switch      # Update VM configuration"
+	@echo "  make act-check && make act-linux    # Test CI locally before pushing"
 
 # Code Quality
 format:
@@ -234,4 +242,25 @@ vm/switch:
 		sudo nixos-rebuild switch --flake \"/nix-config#vm-aarch64-utm\" \
 	"
 
-.PHONY: help check-user format lint test test-unit test-integration test-all test-e2e test-vm test-linux-builder build build-switch switch switch-user vm/bootstrap0 vm/bootstrap vm/copy vm/switch
+# Local CI Testing with act
+act-check:
+	@echo "🔍 Checking act setup and environment..."
+	@./scripts/act-test.sh check
+
+act-linux:
+	@echo "🐧 Running Linux x64 CI job locally..."
+	@./scripts/act-test.sh linux
+
+act-linux-arm:
+	@echo "🦾 Running Linux ARM CI job locally..."
+	@./scripts/act-test.sh linux-arm
+
+act-all:
+	@echo "🌍 Running all CI jobs locally..."
+	@./scripts/act-test.sh all
+
+act-test:
+	@echo "🧪 Testing Node.js crypto support..."
+	@./scripts/act-test.sh test
+
+.PHONY: help check-user format lint test test-unit test-integration test-all test-e2e test-vm test-linux-builder build build-switch switch switch-user vm/bootstrap0 vm/bootstrap vm/copy vm/switch act-check act-linux act-linux-arm act-all act-test

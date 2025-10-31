@@ -1,2 +1,3 @@
--P catthehacker/ubuntu:act-latest=medium
+-P ubuntu-latest=catthehacker/ubuntu:act-latest
 --container-architecture linux/amd64
+--artifact-server-path /tmp/act-artifacts
