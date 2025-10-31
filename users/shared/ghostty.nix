@@ -6,7 +6,9 @@
 
 {
   # Install Ghostty package
-  home.packages = with pkgs; [ ghostty ];
+  # Note: Using ghostty-bin (official binary) instead of ghostty (source build)
+  # because ghostty source build doesn't support macOS in nixpkgs
+  home.packages = with pkgs; [ ghostty-bin ];
 
   # Symlink Ghostty configuration
   # Pattern: XDG-compliant location (destination: ~/.config/ghostty/)
