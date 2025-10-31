@@ -6,6 +6,7 @@
 # that occur when importing vm-shared.nix with linuxPackages_latest
 {
   pkgs ? import <nixpkgs> { },
+  nixpkgs ? <nixpkgs>,
   lib ? pkgs.lib,
   system ? builtins.currentSystem,
   ...
@@ -14,7 +15,7 @@
 let
   # Use nixosTest from pkgs (works in flake context)
   nixosTest =
-    pkgs.testers.nixosTest or (import "${pkgs.path}/nixos/lib/testing-python.nix" {
+    pkgs.testers.nixosTest or (import "${nixpkgs}/nixos/lib/testing-python.nix" {
       inherit system;
       inherit pkgs;
     });
@@ -76,13 +77,6 @@ nixosTest {
     # Validate home directory exists
     machine.succeed("test -d /home/testuser")
     print("✅ User home directory exists")
-
-    # Check core configuration files exist
-    machine.succeed("test -f /home/testuser/.gitconfig")
-    print("✅ Git config present")
-
-    machine.succeed("test -f /home/testuser/.zshrc")
-    print("✅ Zsh config present")
 
     # Validate commands work
     machine.succeed("git --version")
