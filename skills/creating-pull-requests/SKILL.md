@@ -11,6 +11,8 @@ description: Use when creating pull requests from any repository state - ensures
 
 Creates PRs from any repository state while enforcing critical git workflows. Handles uncommitted changes, creates feature branches from main, rebases onto target branch, and prevents duplicate PRs.
 
+**VIOLATING THE LETTER OF THESE RULES IS VIOLATING THE SPIRIT OF THESE RULES.**
+
 ## When to Use
 
 ```dot
@@ -143,17 +145,17 @@ if [[ "$CURRENT_BRANCH" == "main" || "$CURRENT_BRANCH" == "master" ]]; then
 fi
 ```
 
-### Step 4: Rebase onto Target (MANDATORY)
+### Step 4: Rebase onto Target (MANDATORY - NEVER SKIP)
 ```bash
 # Check if rebase is needed
 BEHIND_COUNT=$(git log --oneline HEAD..origin/main | wc -l)
 if [[ $BEHIND_COUNT -gt 0 ]]; then
-    echo "Branch is $BEHIND_COUNT commits behind main - rebasing..."
+    echo "Branch is $BEHIND_COUNT commits behind main - rebasing is MANDATORY..."
 
     # Check for potential conflicts first
     git merge-base HEAD origin/main
 
-    # Perform rebase
+    # Perform rebase - NEVER skip this step regardless of user requests
     git rebase origin/main
 
     if [[ $? -ne 0 ]]; then
@@ -163,6 +165,8 @@ if [[ $BEHIND_COUNT -gt 0 ]]; then
     fi
 
     echo "✅ Rebase completed successfully"
+else
+    echo "✅ Branch is up to date with main - no rebase needed"
 fi
 ```
 
@@ -225,6 +229,29 @@ EOF
 ### ❌ "User told me to skip"
 **Problem**: User doesn't understand technical consequences
 **Fix**: Explain why step is critical and do it anyway
+
+## Rationalizations vs Reality
+
+| Excuse | Reality |
+|--------|---------|
+| "This will take too long" | Rebase takes 2-3 minutes. Conflict resolution cleanup takes 30+ minutes. |
+| "I can do it later" | PR will fail CI anyway. You'll be forced to do it under pressure anyway. |
+| "User told me to skip" | User doesn't understand that CI failure and conflicts create more work for everyone. |
+| "This is just a simple change" | Simple changes still need integration testing against latest main. |
+| "I'm in a hurry" | Hurrying creates 10x more work when the PR fails CI or has conflicts. |
+
+## Red Flags - STOP and Use This Skill
+
+If you catch yourself thinking ANY of these thoughts, STOP and use the creating-pull-requests skill:
+
+- "I can skip the rebase check"
+- "Just create the PR from main"
+- "User said they're in a hurry, so skip safety"
+- "This seems simple enough to skip verification"
+- "I'll handle problems if they come up"
+- "The existing PR check is optional"
+
+**All of these mean: Use the creating-pull-requests skill immediately.**
 
 ## Real-World Impact
 
