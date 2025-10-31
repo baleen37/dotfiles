@@ -168,6 +168,14 @@
                 nixpkgs = nixpkgs;
                 system = "x86_64-linux";
               };
+
+              # E2E VM test (validates actual dotfiles configuration)
+              vm-e2e = import ./tests/e2e/vm-e2e-test.nix {
+                inherit lib;
+                pkgs = pkgs-linux;
+                nixpkgs = nixpkgs;
+                system = "x86_64-linux";
+              };
             };
         in
         standardChecks
