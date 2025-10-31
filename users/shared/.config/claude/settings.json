@@ -25,6 +25,7 @@
       "mcp__serena__*",
       "mcp__playwright__*",
       "mcp__magic__*",
+      "mcp__private-journal__*",
       "Bash(git:*)",
       "Bash(gh:*)"
     ],

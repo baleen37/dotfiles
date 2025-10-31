@@ -41,11 +41,12 @@ help:
 	@echo "  lint        - Run all lint checks"
 	@echo ""
 	@echo "🧪 Testing:"
-	@echo "  test             - Run core tests (unit + integration)"
-	@echo "  test-e2e         - Run complete E2E test (validates dotfiles, Linux only)"
-	@echo "  test-integration - Run integration tests"
-	@echo "  test-all         - Comprehensive test suite"
-	@echo "  test-vm          - Full VM test (build + boot + E2E validation)"
+	@echo "  test                     - Run core tests (unit + integration)"
+	@echo "  test-e2e                 - Run complete E2E test (validates dotfiles, Linux only)"
+	@echo "  test-comprehensive-validation - Run comprehensive test suite validation (Linux only)"
+	@echo "  test-integration         - Run integration tests"
+	@echo "  test-all                 - Comprehensive test suite"
+	@echo "  test-vm                  - Full VM test (build + boot + E2E validation)"
 	@echo ""
 	@echo "🐳 Local CI Testing (act):"
 	@echo "  act-check        - Check Docker, act, and environment setup"
@@ -129,6 +130,19 @@ test-e2e:
 		fi; \
 	else \
 		echo "⏭️  E2E test skipped (Linux only, current: $(CURRENT_SYSTEM))"; \
+	fi
+
+test-comprehensive-validation:
+	@echo "🔬 Running comprehensive test suite validation..."
+	@if echo "$(CURRENT_SYSTEM)" | grep -q "linux"; then \
+		if $(NIX) flake show --impure --all-systems 2>&1 | grep -q "checks.$(CURRENT_SYSTEM).comprehensive-suite-validation"; then \
+			$(NIX) build --impure .#checks.$(CURRENT_SYSTEM).comprehensive-suite-validation --show-trace; \
+			echo "✅ Comprehensive test suite validation passed"; \
+		else \
+			echo "⏭️  Comprehensive validation skipped (comprehensive-suite-validation check not available for $(CURRENT_SYSTEM))"; \
+		fi; \
+	else \
+		echo "⏭️  Comprehensive validation skipped (Linux only, current: $(CURRENT_SYSTEM))"; \
 	fi
 
 # Linux Builder (macOS only)
@@ -263,4 +277,4 @@ act-test:
 	@echo "🧪 Testing Node.js crypto support..."
 	@./scripts/act-test.sh test
 
-.PHONY: help check-user format lint test test-unit test-integration test-all test-e2e test-vm test-linux-builder build build-switch switch switch-user vm/bootstrap0 vm/bootstrap vm/copy vm/switch act-check act-linux act-linux-arm act-all act-test
+.PHONY: help check-user format lint test test-unit test-integration test-all test-e2e test-comprehensive-validation test-vm test-linux-builder build build-switch switch switch-user vm/bootstrap0 vm/bootstrap vm/copy vm/switch act-check act-linux act-linux-arm act-all act-test
