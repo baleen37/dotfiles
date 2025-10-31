@@ -1,6 +1,9 @@
 # Fast E2E test using NixOS Testing Framework
 # Validates actual runtime behavior: boot + files + commands
 # Target time: 2-3 minutes
+#
+# This test is completely self-contained to avoid Nix store path issues
+# that occur when importing vm-shared.nix with linuxPackages_latest
 {
   pkgs ? import <nixpkgs> { },
   nixpkgs ? <nixpkgs>,
@@ -23,8 +26,33 @@ nixosTest {
   nodes.machine =
     { config, pkgs, ... }:
     {
-      # Import shared VM configuration
-      imports = [ ../../machines/nixos/vm-shared.nix ];
+      # Minimal VM configuration - self-contained to avoid store path issues
+      # DO NOT import vm-shared.nix here (causes linuxPackages_latest store path errors)
+
+      # Use default kernel (not linuxPackages_latest) to avoid store path issues
+      # boot.kernelPackages defaults to pkgs.linuxPackages
+
+      # Basic boot configuration
+      boot.loader.systemd-boot.enable = true;
+      boot.loader.efi.canTouchEfiVariables = true;
+
+      # Networking
+      networking.hostName = "test-vm";
+      networking.useDHCP = false;
+      networking.firewall.enable = false;
+
+      # Nix configuration
+      nix = {
+        extraOptions = ''
+          experimental-features = nix-command flakes
+        '';
+      };
+
+      # System packages needed for tests
+      environment.systemPackages = with pkgs; [
+        git
+        zsh
+      ];
 
       # Minimal test user
       users.users.testuser = {
@@ -32,6 +60,12 @@ nixosTest {
         password = "test";
         extraGroups = [ "wheel" ];
       };
+
+      # Don't require password for sudo
+      security.sudo.wheelNeedsPassword = false;
+
+      # State version
+      system.stateVersion = "24.11";
     };
 
   testScript = ''

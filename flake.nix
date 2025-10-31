@@ -160,6 +160,14 @@
                   system = "x86_64-linux";
                   self = self;
                 }).vm-service-test;
+
+              # Fast E2E VM test (self-contained, no vm-shared.nix dependency)
+              fast-vm-e2e = import ./tests/e2e/fast-vm-e2e-test.nix {
+                inherit lib;
+                pkgs = pkgs-linux;
+                nixpkgs = nixpkgs;
+                system = "x86_64-linux";
+              };
             };
         in
         standardChecks
