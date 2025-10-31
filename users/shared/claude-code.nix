@@ -15,6 +15,12 @@
     recursive = true;
   };
 
+  # statusline.sh: executable script (read-only symlink)
+  home.file.".claude/statusline.sh" = {
+    source = ./.config/claude/statusline.sh;
+    executable = true;
+  };
+
   # settings.json: writable copy (always overwritten on rebuild)
   home.activation.claudeSettings = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     run mkdir -p ~/.claude

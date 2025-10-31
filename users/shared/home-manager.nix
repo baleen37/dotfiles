@@ -100,16 +100,12 @@
       gh
 
       # Security tools
-      yubikey-agent
-      keepassxc
 
       # SSH tools
-      autossh
       mosh
       teleport
 
       # Terminal apps
-      # wezterm  # Removed: Migrated to Ghostty
 
       # Fonts
       noto-fonts-cjk-sans
