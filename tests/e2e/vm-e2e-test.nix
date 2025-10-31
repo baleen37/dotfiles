@@ -5,14 +5,19 @@
 # This test applies actual dotfiles configuration and validates user environment
 {
   pkgs ? import <nixpkgs> { },
+  nixpkgs ? <nixpkgs>,
   lib ? pkgs.lib,
   system ? builtins.currentSystem,
   ...
 }:
 
 let
-  # Use nixosTest from pkgs.testers (available in recent nixpkgs)
-  nixosTest = pkgs.testers.nixosTest;
+  # Use nixosTest from pkgs (works in flake context)
+  nixosTest =
+    pkgs.testers.nixosTest or (import "${nixpkgs}/nixos/lib/testing-python.nix" {
+      inherit system;
+      inherit pkgs;
+    });
 in
 nixosTest {
   name = "dotfiles-vm-e2e";
@@ -167,93 +172,89 @@ nixosTest {
         deps = [ ];
       };
 
-      # State version (use older version for better compatibility)
-      system.stateVersion = "23.11";
+      # State version
+      system.stateVersion = "24.11";
     };
 
   testScript = ''
-    # Step 1: Boot Validation
-    machine.start()
-    machine.wait_for_unit("multi-user.target")
-    print("✅ VM booted successfully")
+      # Step 1: Boot Validation
+      machine.start()
+      machine.wait_for_unit("multi-user.target")
+      print("✅ VM booted successfully")
 
-    # Debug: Check basic system functionality
-    machine.succeed("echo 'System is responsive'")
-    print("✅ Basic system functionality confirmed")
+      # Step 2: Configuration Application Validation
+      # Switch to testuser and validate Home Manager applied configuration
+      machine.succeed("su - testuser -c 'pwd'")
+      print("✅ User session works")
 
-    # Step 2: Configuration Application Validation
-    # Switch to testuser and validate Home Manager applied configuration
-    machine.succeed("su - testuser -c 'pwd'")
-    print("✅ User session works")
+      # Check that Home Manager created the configuration files
+      machine.succeed("test -f /home/testuser/.gitconfig")
+      machine.succeed("test -f /home/testuser/.zshrc")
+      machine.succeed("test -f /home/testuser/.vimrc")
+      machine.succeed("test -f /home/testuser/.tmux.conf")
+      print("✅ Dotfiles configuration files created")
 
-    # Check that Home Manager created the configuration files
-    machine.succeed("test -f /home/testuser/.gitconfig")
-    machine.succeed("test -f /home/testuser/.zshrc")
-    machine.succeed("test -f /home/testuser/.vimrc")
-    machine.succeed("test -f /home/testuser/.tmux.conf")
-    print("✅ Dotfiles configuration files created")
+      # Step 3: File Structure Validation
+      # Validate configuration file contents
+      git_config = machine.succeed("su - testuser -c 'git config --global user.name'")
+      assert "testuser" in git_config, f"Expected 'testuser' in git user.name, got: {git_config}"
 
-    # Step 3: File Structure Validation
-    # Validate configuration file contents
-    git_config = machine.succeed("su - testuser -c 'git config --global user.name'")
-    assert "testuser" in git_config, f"Expected 'testuser' in git user.name, got: {git_config}"
+      git_email = machine.succeed("su - testuser -c 'git config --global user.email'")
+      assert "testuser@example.com" in git_email, f"Expected email in git user.email, got: {git_email}"
+      print("✅ Git configuration correctly applied")
 
-    git_email = machine.succeed("su - testuser -c 'git config --global user.email'")
-    assert "testuser@example.com" in git_email, f"Expected email in git user.email, got: {git_email}"
-    print("✅ Git configuration correctly applied")
+      # Validate Zsh configuration
+      zshrc_content = machine.succeed("su - testuser -c 'cat ~/.zshrc'")
+      assert "zsh" in zshrc_content.lower(), "Zsh configuration not found"
+      print("✅ Zsh configuration applied")
 
-    # Validate Zsh configuration
-    zshrc_content = machine.succeed("su - testuser -c 'cat ~/.zshrc'")
-    assert "zsh" in zshrc_content.lower(), "Zsh configuration not found"
-    print("✅ Zsh configuration applied")
+      # Validate Vim configuration
+      vimrc_content = machine.succeed("su - testuser -c 'cat ~/.vimrc'")
+      assert "set" in vimrc_content.lower(), "Vim configuration not found"
+      print("✅ Vim configuration applied")
 
-    # Validate Vim configuration
-    vimrc_content = machine.succeed("su - testuser -c 'cat ~/.vimrc'")
-    assert "set" in vimrc_content.lower(), "Vim configuration not found"
-    print("✅ Vim configuration applied")
+      # Step 4: Tool Functionality Validation
+      # Test Git functionality with custom configuration
+      machine.succeed("su - testuser -c 'cd /tmp && git init test-repo'")
+      machine.succeed("su - testuser -c 'cd /tmp/test-repo && git config user.name testuser && git config user.email testuser@example.com'")
+      machine.succeed("su - testuser -c 'cd /tmp/test-repo && echo \"test content\" > test.txt && git add test.txt && git commit -m \"Initial commit\"'")
+      print("✅ Git workflow works with custom configuration")
 
-    # Step 4: Tool Functionality Validation
-    # Test Git functionality with custom configuration
-    machine.succeed("su - testuser -c 'cd /tmp && git init test-repo'")
-    machine.succeed("su - testuser -c 'cd /tmp/test-repo && git config user.name testuser && git config user.email testuser@example.com'")
-    machine.succeed("su - testuser -c 'cd /tmp/test-repo && echo \"test content\" > test.txt && git add test.txt && git commit -m \"Initial commit\"'")
-    print("✅ Git workflow works with custom configuration")
+      # Test Zsh functionality with aliases
+      # First test that zsh can start and the .zshrc is loaded
+      machine.succeed("su - testuser -c 'test -f ~/.zshrc'")
+      # Test alias by sourcing .zshrc explicitly then checking alias
+      zsh_alias_test = machine.succeed("su - testuser -c 'source ~/.zshrc && alias ll'")
+      assert "ls" in zsh_alias_test, f"Expected 'ls' in ll alias, got: {zsh_alias_test}"
+      print("✅ Zsh aliases working correctly")
 
-    # Test Zsh functionality with aliases
-    # First test that zsh can start and the .zshrc is loaded
-    machine.succeed("su - testuser -c 'test -f ~/.zshrc'")
-    # Test alias by sourcing .zshrc explicitly then checking alias
-    zsh_alias_test = machine.succeed("su - testuser -c 'source ~/.zshrc && alias ll'")
-    assert "ls" in zsh_alias_test, f"Expected 'ls' in ll alias, got: {zsh_alias_test}"
-    print("✅ Zsh aliases working correctly")
+      # Test Vim functionality
+      machine.succeed("su - testuser -c 'vim --version | head -n 1'")
+    # Test that vim can start and exit cleanly
+      machine.succeed("su - testuser -c 'echo \"test content\" | vim -es \"+wq! /tmp/vim-test.txt\" -'")
+      machine.succeed("test -f /tmp/vim-test.txt")
+      print("✅ Vim functionality validated")
 
-    # Test Vim functionality
-    machine.succeed("su - testuser -c 'vim --version | head -n 1'")
-    # Test that vim can start and exit cleanly (use ex mode for headless environment)
-    machine.succeed("su - testuser -c 'echo \"test content\" | ex -s \"+wq! /tmp/vim-test.txt\"'")
-    machine.succeed("test -f /tmp/vim-test.txt")
-    print("✅ Vim functionality validated")
+      # Test tmux functionality
+      machine.succeed("su - testuser -c 'tmux new-session -d -s test-session'")
+      machine.succeed("su - testuser -c 'tmux list-sessions | grep test-session'")
+      machine.succeed("su - testuser -c 'tmux kill-session -t test-session'")
+      print("✅ Tmux functionality validated")
 
-    # Test tmux functionality
-    machine.succeed("su - testuser -c 'tmux new-session -d -s test-session'")
-    machine.succeed("su - testuser -c 'tmux list-sessions | grep test-session'")
-    machine.succeed("su - testuser -c 'tmux kill-session -t test-session'")
-    print("✅ Tmux functionality validated")
+      # Step 5: System Health Validation
+      # Check system is running properly
+      system_status = machine.succeed("systemctl is-system-running --wait")
+      assert "running" in system_status.lower(), f"System not running properly: {system_status}"
+      print("✅ System health confirmed")
 
-    # Step 5: System Health Validation
-    # Check system is running properly
-    system_status = machine.succeed("systemctl is-system-running --wait")
-    assert "running" in system_status.lower(), f"System not running properly: {system_status}"
-    print("✅ System health confirmed")
+      # Verify Home Manager activation worked
+      home_manager_path = machine.succeed("su - testuser -c 'which home-manager || echo \"not-found\"'")
+      print(f"✅ Home Manager status: {home_manager_path.strip()}")
 
-    # Verify Home Manager activation worked
-    home_manager_path = machine.succeed("su - testuser -c 'which home-manager || echo \"not-found\"'")
-    print(f"✅ Home Manager status: {home_manager_path.strip()}")
+      # Final validation - all essential dotfiles components working
+      machine.succeed("su - testuser -c 'git --version && zsh --version && vim --version && tmux -V'")
+      print("✅ All dotfiles tools functioning correctly")
 
-    # Final validation - all essential dotfiles components working
-    machine.succeed("su - testuser -c 'git --version && zsh --version && vim --version && tmux -V'")
-    print("✅ All dotfiles tools functioning correctly")
-
-    print("🎉 Complete E2E test passed - dotfiles configuration successfully applied and validated")
+      print("🎉 Complete E2E test passed - dotfiles configuration successfully applied and validated")
   '';
 }
