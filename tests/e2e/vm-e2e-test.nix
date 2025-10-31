@@ -5,19 +5,14 @@
 # This test applies actual dotfiles configuration and validates user environment
 {
   pkgs ? import <nixpkgs> { },
-  nixpkgs ? <nixpkgs>,
   lib ? pkgs.lib,
   system ? builtins.currentSystem,
   ...
 }:
 
 let
-  # Use nixosTest from pkgs (works in flake context)
-  nixosTest =
-    pkgs.testers.nixosTest or (import "${nixpkgs}/nixos/lib/testing-python.nix" {
-      inherit system;
-      inherit pkgs;
-    });
+  # Use nixosTest from pkgs.testers (available in recent nixpkgs)
+  nixosTest = pkgs.testers.nixosTest;
 in
 nixosTest {
   name = "dotfiles-vm-e2e";
@@ -172,8 +167,8 @@ nixosTest {
         deps = [ ];
       };
 
-      # State version
-      system.stateVersion = "24.11";
+      # State version (use older version for better compatibility)
+      system.stateVersion = "23.11";
     };
 
   testScript = ''
@@ -181,6 +176,10 @@ nixosTest {
     machine.start()
     machine.wait_for_unit("multi-user.target")
     print("✅ VM booted successfully")
+
+    # Debug: Check basic system functionality
+    machine.succeed("echo 'System is responsive'")
+    print("✅ Basic system functionality confirmed")
 
     # Step 2: Configuration Application Validation
     # Switch to testuser and validate Home Manager applied configuration
@@ -230,8 +229,8 @@ nixosTest {
 
     # Test Vim functionality
     machine.succeed("su - testuser -c 'vim --version | head -n 1'")
-    # Test that vim can start and exit cleanly
-    machine.succeed("su - testuser -c 'echo \"test content\" | vim -es \"+wq! /tmp/vim-test.txt\" -'")
+    # Test that vim can start and exit cleanly (use ex mode for headless environment)
+    machine.succeed("su - testuser -c 'echo \"test content\" | ex -s \"+wq! /tmp/vim-test.txt\"'")
     machine.succeed("test -f /tmp/vim-test.txt")
     print("✅ Vim functionality validated")
 

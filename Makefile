@@ -114,8 +114,12 @@ test-e2e:
 	@echo "🚀 Running E2E test (validates dotfiles configuration)..."
 	@if echo "$(CURRENT_SYSTEM)" | grep -q "linux"; then \
 		if $(NIX) flake show --impure --all-systems 2>&1 | grep -q "checks.$(CURRENT_SYSTEM).vm-e2e"; then \
-			$(NIX) build --impure .#checks.$(CURRENT_SYSTEM).vm-e2e --show-trace; \
-			echo "✅ E2E test passed"; \
+			if [ "$$CI" = "true" ]; then \
+				echo "⏭️  E2E test skipped (CI environment - VM tests not supported)"; \
+			else \
+				$(NIX) build --impure .#checks.$(CURRENT_SYSTEM).vm-e2e --show-trace; \
+				echo "✅ E2E test passed"; \
+			fi; \
 		else \
 			echo "⏭️  E2E test skipped (vm-e2e check not available for $(CURRENT_SYSTEM))"; \
 		fi; \
