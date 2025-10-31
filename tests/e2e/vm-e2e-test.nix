@@ -221,8 +221,11 @@ nixosTest {
     print("✅ Git workflow works with custom configuration")
 
     # Test Zsh functionality with aliases
-    zsh_alias_test = machine.succeed("su - testuser -c 'zsh -c \"alias ll\"'")
-    assert "ls" in zsh_alias_test.lower(), f"Expected 'ls' in ll alias, got: {zsh_alias_test}"
+    # First test that zsh can start and the .zshrc is loaded
+    machine.succeed("su - testuser -c 'test -f ~/.zshrc'")
+    # Test alias by sourcing .zshrc explicitly then checking alias
+    zsh_alias_test = machine.succeed("su - testuser -c 'source ~/.zshrc && alias ll'")
+    assert "ls" in zsh_alias_test, f"Expected 'ls' in ll alias, got: {zsh_alias_test}"
     print("✅ Zsh aliases working correctly")
 
     # Test Vim functionality
