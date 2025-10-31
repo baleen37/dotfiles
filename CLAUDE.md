@@ -417,3 +417,4 @@ ci (parallel across 3 platforms)
 **Execution:** Runs automatically during `darwin-rebuild switch` via activation script
 
 **Safety:** Only removes explicitly listed apps; system essentials protected
+- makefile는 단순하게 유지하는게 철학
