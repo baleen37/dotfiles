@@ -42,7 +42,7 @@ help:
 	@echo ""
 	@echo "🧪 Testing:"
 	@echo "  test             - Run core tests (unit + integration)"
-	@echo "  test-e2e         - Run E2E tests (fast VM test, Linux only)"
+	@echo "  test-e2e         - Run complete E2E test (validates dotfiles, Linux only)"
 	@echo "  test-integration - Run integration tests"
 	@echo "  test-all         - Comprehensive test suite"
 	@echo "  test-vm          - Full VM test (build + boot + E2E validation)"
@@ -111,12 +111,12 @@ test-vm:
 	@cat result 2>/dev/null || true
 
 test-e2e:
-	@echo "🚀 Running E2E tests (fast VM test)..."
+	@echo "🚀 Running E2E test (validates dotfiles configuration)..."
 	@if echo "$(CURRENT_SYSTEM)" | grep -q "linux"; then \
-		$(NIX) build --impure .#checks.$(CURRENT_SYSTEM).fast-vm-e2e --show-trace; \
-		echo "✅ E2E tests passed"; \
+		$(NIX) build --impure .#checks.$(CURRENT_SYSTEM).vm-e2e --show-trace; \
+		echo "✅ E2E test passed"; \
 	else \
-		echo "⏭️  E2E tests skipped (Linux only, current: $(CURRENT_SYSTEM))"; \
+		echo "⏭️  E2E test skipped (Linux only, current: $(CURRENT_SYSTEM))"; \
 	fi
 
 # Linux Builder (macOS only)
