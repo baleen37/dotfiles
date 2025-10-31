@@ -286,10 +286,4 @@ nixosTest {
     machine.shutdown()
   '';
 
-  # Enable VM-specific settings for faster execution
-  virtualisation = {
-    memorySize = 2048; # 2GB RAM
-    cores = 2; # 2 CPU cores
-    diskSize = 4096; # 4GB disk
-  };
 }
