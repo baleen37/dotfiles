@@ -93,8 +93,7 @@ make smoke    # final flake check after build
 # Individual test categories
 make test-unit                    # Unit tests only
 make test-integration             # Integration tests only
-make test-e2e                     # End-to-end tests only
-make test-perf                    # Performance tests only
+make test-e2e                     # End-to-end tests only (Linux only)
 ```
 
 #### Testing on Multiple Platforms
