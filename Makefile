@@ -41,7 +41,8 @@ help:
 	@echo "  lint        - Run all lint checks"
 	@echo ""
 	@echo "🧪 Testing:"
-	@echo "  test             - Run core tests"
+	@echo "  test             - Run core tests (unit + integration)"
+	@echo "  test-e2e         - Run E2E tests (fast VM test, Linux only)"
 	@echo "  test-integration - Run integration tests"
 	@echo "  test-all         - Comprehensive test suite"
 	@echo "  test-vm          - Full VM test (build + boot + E2E validation)"
@@ -95,6 +96,7 @@ test-all:
 	@echo "🔬 Running comprehensive test suite..."
 	@$(MAKE) test
 	@$(MAKE) test-integration
+	@$(MAKE) test-e2e
 	@$(MAKE) test-vm
 	@echo "✅ All tests passed"
 
@@ -108,6 +110,14 @@ test-vm:
 	@echo "✅ VM test suite completed"
 	@cat result 2>/dev/null || true
 
+test-e2e:
+	@echo "🚀 Running E2E tests (fast VM test)..."
+	@if echo "$(CURRENT_SYSTEM)" | grep -q "linux"; then \
+		$(NIX) build --impure .#checks.$(CURRENT_SYSTEM).fast-vm-e2e --show-trace; \
+		echo "✅ E2E tests passed"; \
+	else \
+		echo "⏭️  E2E tests skipped (Linux only, current: $(CURRENT_SYSTEM))"; \
+	fi
 
 # Linux Builder (macOS only)
 test-linux-builder:
@@ -220,4 +230,4 @@ vm/switch:
 		sudo nixos-rebuild switch --flake \"/nix-config#vm-aarch64-utm\" \
 	"
 
-.PHONY: help check-user format lint test test-unit test-integration test-all test-vm test-linux-builder build build-switch switch switch-user vm/bootstrap0 vm/bootstrap vm/copy vm/switch
+.PHONY: help check-user format lint test test-unit test-integration test-all test-e2e test-vm test-linux-builder build build-switch switch switch-user vm/bootstrap0 vm/bootstrap vm/copy vm/switch
