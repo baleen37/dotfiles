@@ -49,6 +49,11 @@ systemFunc {
           "baleen-nix.cachix.org-1:awgC7Sut148An/CZ6TZA+wnUtJmJnOvl5NThGio9j5k="
           "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
         ];
+        # Trust substituters to eliminate "ignoring untrusted substituter" warnings
+        trusted-substituters = [
+          "https://baleen-nix.cachix.org"
+          "https://cache.nixos.org/"
+        ];
         # Trust admin and wheel groups to eliminate warnings
         trusted-users = [
           "root"
