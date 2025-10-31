@@ -1,17 +1,23 @@
 # users/shared/claude-code.nix
 # Claude Code configuration managed via Home Manager
-# Symlinks config files from dotfiles to ~/.claude
 
-{ ... }:
+{ config, lib, ... }:
 
 {
-  # Pattern: Custom location (destination: ~/.claude/)
-  # Claude Code requires configuration in ~/.claude/ (non-XDG custom location)
-  # Source organized in .config/ for consistency, symlinked to custom location
-  # Files are read-only symlinks to /nix/store (managed by Home Manager)
-  home.file.".claude" = {
-    source = ./.config/claude;
+  # Commands/Skills: read-only symlinks to /nix/store (version controlled)
+  home.file.".claude/commands" = {
+    source = ./.config/claude/commands;
     recursive = true;
-    force = true;
   };
+
+  home.file.".claude/skills" = {
+    source = ./.config/claude/skills;
+    recursive = true;
+  };
+
+  # settings.json: writable copy (always overwritten on rebuild)
+  home.activation.claudeSettings = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    run mkdir -p ~/.claude
+    run cp ${./.config/claude/settings.json} ~/.claude/settings.json
+  '';
 }

@@ -24,16 +24,14 @@ let
   claudeDirExists = builtins.pathExists claudeDir;
   claudeMdExists = builtins.pathExists (claudeDir + "/CLAUDE.md");
   settingsJsonExists = builtins.pathExists (claudeDir + "/settings.json");
-  agentsDirExists = builtins.pathExists (claudeDir + "/agents");
   commandsDirExists = builtins.pathExists (claudeDir + "/commands");
-  hooksDirExists = builtins.pathExists (claudeDir + "/hooks");
+  skillsDirExists = builtins.pathExists (claudeDir + "/skills");
 
   # Directory structure validation
   claudeDirContents = if claudeDirExists then builtins.readDir claudeDir else { };
   expectedDirs = [
-    "agents"
     "commands"
-    "hooks"
+    "skills"
   ];
   hasExpectedDirs = lib.all (dir: builtins.hasAttr dir claudeDirContents) expectedDirs;
 
@@ -55,22 +53,16 @@ let
       # Test that all expected subdirectories exist
       expected-dirs-exist = nixtest.test "expected-dirs-exist" (assertTrue hasExpectedDirs);
 
-      # Test that agents directory exists
-      agents-dir-exists = nixtest.test "agents-dir-exists" (assertTrue agentsDirExists);
-
       # Test that commands directory exists
       commands-dir-exists = nixtest.test "commands-dir-exists" (assertTrue commandsDirExists);
 
-      # Test that hooks directory exists
-      hooks-dir-exists = nixtest.test "hooks-dir-exists" (assertTrue hooksDirExists);
+      # Test that skills directory exists
+      skills-dir-exists = nixtest.test "skills-dir-exists" (assertTrue skillsDirExists);
 
-      # Test that directory has expected structure (at least CLAUDE.md, settings.json, and 4 subdirs)
+      # Test that directory has expected structure (CLAUDE.md, settings.json, and 2 subdirs)
       directory-structure = nixtest.test "directory-structure" (
         assertTrue (
-          claudeDirExists
-          && claudeMdExists
-          && settingsJsonExists
-          && (builtins.length (lib.attrNames claudeDirContents) >= 4)
+          claudeDirExists && claudeMdExists && settingsJsonExists && commandsDirExists && skillsDirExists
         )
       );
     };
@@ -108,17 +100,8 @@ pkgs.runCommand "claude-test-results" { } ''
       ''echo "❌ FAIL: settings.json not found"; exit 1''
   }
 
-  # Test that agents directory exists
-  echo "Test 4: agents directory exists..."
-  ${
-    if agentsDirExists then
-      ''echo "✅ PASS: agents directory exists"''
-    else
-      ''echo "❌ FAIL: agents directory not found"; exit 1''
-  }
-
   # Test that commands directory exists
-  echo "Test 5: commands directory exists..."
+  echo "Test 4: commands directory exists..."
   ${
     if commandsDirExists then
       ''echo "✅ PASS: commands directory exists"''
@@ -126,17 +109,17 @@ pkgs.runCommand "claude-test-results" { } ''
       ''echo "❌ FAIL: commands directory not found"; exit 1''
   }
 
-  # Test that hooks directory exists
-  echo "Test 6: hooks directory exists..."
+  # Test that skills directory exists
+  echo "Test 5: skills directory exists..."
   ${
-    if hooksDirExists then
-      ''echo "✅ PASS: hooks directory exists"''
+    if skillsDirExists then
+      ''echo "✅ PASS: skills directory exists"''
     else
-      ''echo "❌ FAIL: hooks directory not found"; exit 1''
+      ''echo "❌ FAIL: skills directory not found"; exit 1''
   }
 
   # Test that all expected subdirectories exist
-  echo "Test 7: expected subdirectories exist..."
+  echo "Test 6: expected subdirectories exist..."
   ${
     if hasExpectedDirs then
       ''echo "✅ PASS: All expected subdirectories exist"''
@@ -145,13 +128,10 @@ pkgs.runCommand "claude-test-results" { } ''
   }
 
   # Test that directory has expected structure
-  echo "Test 8: directory structure integrity..."
+  echo "Test 7: directory structure integrity..."
   ${
     if
-      claudeDirExists
-      && claudeMdExists
-      && settingsJsonExists
-      && (builtins.length (lib.attrNames claudeDirContents) >= 4)
+      claudeDirExists && claudeMdExists && settingsJsonExists && commandsDirExists && skillsDirExists
     then
       ''echo "✅ PASS: Directory structure is correct"''
     else
