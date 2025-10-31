@@ -80,25 +80,25 @@ format:
 lint:
 	@echo "🔍 Linting ($(CURRENT_SYSTEM))..."
 	@find . -name "*.nix" -not -path "*/.*" -not -path "*/result/*" -type f -exec nix fmt -- {} +
-	@$(NIX) flake check --no-build --quiet
+	@$(NIX) flake check --no-build --quiet --accept-flake-config
 
 # Testing (simplified with auto-discovery)
 test: check-user
 	@echo "🧪 Testing $(CURRENT_SYSTEM)..."
-	@export USER=$(USER) && $(NIX) flake check --impure $(ARGS)
+	@export USER=$(USER) && $(NIX) flake check --impure --accept-flake-config $(ARGS)
 	@echo "✅ Tests passed"
 
 test-unit:
 	@echo "🧪 Running unit tests (auto-discovered)..."
 	@$(NIX) eval --impure .#checks.$(CURRENT_SYSTEM) --apply 'x: builtins.length (builtins.filter (n: builtins.match "unit-.*" n != null) (builtins.attrNames x))'
 	@echo "unit tests discovered"
-	@$(NIX) flake check --impure --no-build $(ARGS)
+	@$(NIX) flake check --impure --no-build --accept-flake-config $(ARGS)
 
 test-integration:
 	@echo "🔗 Running integration tests (auto-discovered)..."
 	@$(NIX) eval --impure .#checks.$(CURRENT_SYSTEM) --apply 'x: builtins.length (builtins.filter (n: builtins.match "integration-.*" n != null) (builtins.attrNames x))'
 	@echo "integration tests discovered"
-	@$(NIX) flake check --impure --no-build $(ARGS)
+	@$(NIX) flake check --impure --no-build --accept-flake-config $(ARGS)
 
 test-all:
 	@echo "🔬 Running comprehensive test suite..."
