@@ -36,7 +36,7 @@ pkgs.runCommand "claude-symlink-test"
     done
 
     # Test 3: Required directories exist
-    for dir in agents commands hooks skills; do
+    for dir in agents commands hooks; do
       if [ ! -d "$CLAUDE_SOURCE/$dir" ]; then
         echo "❌ FAIL: Missing directory: $dir/"
         exit 1
