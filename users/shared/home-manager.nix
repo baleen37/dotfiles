@@ -17,7 +17,7 @@
 #   - Cloud tools: act, gh, docker
 #   - Security: yubikey-agent, keepassxc
 #   - SSH tools: autossh, mosh, teleport
-#   - Terminal: wezterm, htop, zsh-powerlevel10k
+#   - Terminal: ghostty, htop, zsh-powerlevel10k
 #   - Fonts: noto-fonts-cjk-sans, jetbrains-mono
 #   - Media: ffmpeg
 #   - Databases: postgresql, sqlite, redis, mysql80
@@ -43,6 +43,7 @@
     ./claude-code.nix
     ./hammerspoon.nix
     ./karabiner.nix
+    ./ghostty.nix
   ];
 
   # Home Manager configuration
@@ -108,7 +109,7 @@
       teleport
 
       # Terminal apps
-      wezterm
+      # wezterm  # Removed: Migrated to Ghostty
 
       # Fonts
       noto-fonts-cjk-sans

@@ -1,0 +1,17 @@
+# Ghostty Terminal Configuration
+# Managed via Nix Home Manager
+
+# Font Configuration
+font-family = JetBrains Mono
+font-size = 14
+
+# Theme
+theme = dark
+
+# Window Settings
+window-padding-x = 10
+window-padding-y = 10
+
+# Shell Integration
+shell-integration = true
+shell-integration-features = cursor,sudo,title
