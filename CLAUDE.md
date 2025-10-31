@@ -68,6 +68,7 @@ make test               # Core tests (~45 seconds)
 make test-unit          # All unit tests (auto-discovered)
 make test-integration   # All integration tests (auto-discovered)
 make test-all           # Comprehensive suite (includes VM tests)
+make test-e2e           # E2E test (validates dotfiles configuration, Linux only)
 
 # Add new test: just create file, it's auto-discovered!
 touch tests/unit/my-feature-test.nix
@@ -222,6 +223,8 @@ make lint-format         # Pre-commit workflow
 - Actual username is dynamically resolved from `USER` environment variable
 - Supports multiple users without code duplication: baleen, jito, etc.
 
+**Important**: The `USER` variable is mandatory for all build operations. The Makefile handles this automatically via `USER ?= $(shell whoami)`.
+
 ### Nix Store Paths
 
 **NEVER** hardcode paths like `/nix/store/abc123xyz-package/bin/command`:
@@ -278,6 +281,19 @@ home.file.".claude" = {
 - **Development**: `make build` - builds current platform without activation
 - **Production**: `make switch` - full system update with activation
 - **Quick updates**: `make switch-user` - user config only (no sudo required)
+
+**Build Target Auto-Detection**
+
+The Makefile automatically selects the correct build target based on the current system:
+
+```bash
+# Auto-detected targets (no manual selection needed):
+aarch64-darwin  → darwinConfigurations.macbook-pro.system
+x86_64-linux    → checks.x86_64-linux.smoke
+aarch64-linux   → checks.aarch64-linux.smoke
+```
+
+This ensures you're always building the appropriate configuration for your platform.
 
 
 ## Code Documentation
@@ -417,4 +433,43 @@ ci (parallel across 3 platforms)
 **Execution:** Runs automatically during `darwin-rebuild switch` via activation script
 
 **Safety:** Only removes explicitly listed apps; system essentials protected
-- makefile는 단순하게 유지하는게 철학
+
+## VM Management
+
+The project includes comprehensive VM testing and management capabilities:
+
+```bash
+# VM Bootstrap & Management
+make vm/bootstrap0           # Bootstrap new NixOS VM (initial install)
+make vm/bootstrap            # Complete VM setup with dotfiles
+make vm/copy                 # Copy configurations to VM
+make vm/switch               # Apply configuration changes on VM
+
+# VM Testing (uses QEMU + nixos-generators)
+make test-vm                 # Full VM test suite (build + boot + E2E validation)
+
+# VM Configuration Requirements:
+# NIXADDR - VM IP address
+# NIXPORT - SSH port (default: 22)
+# NIXUSER - SSH user (default: root)
+```
+
+**VM Testing Architecture:**
+- **Cross-platform**: QEMU virtualization on macOS, Linux, Windows (WSL2)
+- **Automated**: Build, generate, boot, and validate in single command
+- **Service Validation**: SSH, Docker, and user configuration testing
+- **Resource Optimized**: 2 cores, 2GB RAM, 10GB disk for testing
+
+**Usage Example:**
+```bash
+# Set VM connection details
+export NIXADDR=192.168.64.2
+export NIXPORT=2222
+export NIXUSER=root
+
+# Bootstrap and test
+make vm/bootstrap0   # Initial NixOS install
+make vm/bootstrap    # Complete setup with dotfiles
+make vm/switch       # Apply configuration changes
+make test-vm         # Run validation tests
+```
