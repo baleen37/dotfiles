@@ -87,9 +87,6 @@ nixosTest {
     };
 
   testScript = ''
-    import json
-    import time
-
     # Start the machine
     machine.start()
     machine.wait_for_unit("multi-user.target")
