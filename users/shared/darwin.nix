@@ -109,6 +109,10 @@ in
       # Battery and Network Efficiency
       # Reduce iCloud sync overhead
       NSDocumentSaveNewDocumentsToCloud = false; # Default: true → Disable iCloud auto-save
+
+      # Enhanced Performance Settings
+      # Additional optimizations for system responsiveness and resource efficiency
+      ApplePressAndHoldEnabled = false; # Default: true → Disable press-and-hold for faster key repeat
     };
 
     # Dock Optimization (instant response + fast animations)
