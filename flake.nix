@@ -176,6 +176,14 @@
                 nixpkgs = nixpkgs;
                 system = "x86_64-linux";
               };
+
+              # Comprehensive test suite validation (validates all test categories)
+              comprehensive-suite-validation = import ./tests/e2e/comprehensive-suite-validation-test.nix {
+                inherit lib;
+                pkgs = pkgs-linux;
+                nixpkgs = nixpkgs;
+                system = "x86_64-linux";
+              };
             };
         in
         standardChecks

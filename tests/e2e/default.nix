@@ -65,6 +65,16 @@ let
       ;
   };
 
+  # Import comprehensive suite validation tests
+  comprehensiveValidationTests = import ./comprehensive-suite-validation-test.nix {
+    inherit
+      lib
+      pkgs
+      system
+      self
+      ;
+  };
+
 in
 {
   # Individual test suites
@@ -74,6 +84,7 @@ in
     claudeHooksTests
     nixosVmTests
     vmAnalysisTests
+    comprehensiveValidationTests
     ;
 
   # VM-based build-switch tests (실제 동작 검증)
@@ -86,6 +97,7 @@ in
     inherit buildSwitchTests userWorkflowTests claudeHooksTests;
     vm = nixosVmTests.all;
     vm-analysis = vmAnalysisTests.all;
+    comprehensive-validation = comprehensiveValidationTests.all;
   };
 
   # VM-only test suite for focused VM testing
@@ -93,4 +105,7 @@ in
 
   # VM analysis test suite for cross-platform validation
   vm-analysis-only = vmAnalysisTests.all;
+
+  # Comprehensive validation test suite
+  comprehensive-only = comprehensiveValidationTests.all;
 }

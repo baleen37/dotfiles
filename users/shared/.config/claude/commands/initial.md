@@ -1,0 +1,1 @@
+mcp__serena__initial_instructions

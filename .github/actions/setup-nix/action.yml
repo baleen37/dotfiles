@@ -24,31 +24,36 @@ runs:
       shell: bash
       run: echo "week=$(date +%Y-W%U)" >> $GITHUB_OUTPUT
 
-    - name: Cache Nix store (full mode)
+    - name: Restore Nix cache (full mode)
       if: inputs.cache-mode == 'full'
-      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
       with:
         path: |
-          /nix/store
-          /nix/var/nix/db
           ~/.cache/nix
           ~/.local/state/nix
         key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-${{ steps.date.outputs.week }}
         restore-keys: |
           nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-
           nix-${{ runner.os }}-
-        save-always: true
 
     - name: Restore Nix cache (restore-only mode)
       if: inputs.cache-mode == 'restore-only'
-      uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
       with:
         path: |
-          /nix/store
-          /nix/var/nix/db
           ~/.cache/nix
           ~/.local/state/nix
         key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-${{ steps.date.outputs.week }}
         restore-keys: |
           nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-
           nix-${{ runner.os }}-
+
+    - name: Save Nix cache (full mode only)
+      if: inputs.cache-mode == 'full' && always()
+      uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+      continue-on-error: true
+      with:
+        path: |
+          ~/.cache/nix
+          ~/.local/state/nix
+        key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-${{ steps.date.outputs.week }}

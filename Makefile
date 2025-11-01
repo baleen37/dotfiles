@@ -41,12 +41,12 @@ help:
 	@echo "  lint        - Run all lint checks"
 	@echo ""
 	@echo "🧪 Testing:"
-	@echo "  test             - Run core tests (unit + integration)"
-	@echo "  test-e2e         - Run complete E2E test (validates dotfiles, Linux only)"
-	@echo "  test-integration - Run integration tests"
-	@echo "  test-all         - Comprehensive test suite"
-	@echo "  test-vm          - Full VM test (build + boot + E2E validation)"
-	@echo ""
+	@echo "  test                     - Run core tests (unit + integration)"
+	@echo "  test-e2e                 - Run complete E2E test (validates dotfiles, Linux only)"
+	@echo "  test-integration         - Run integration tests"
+	@echo "  test-all                 - Comprehensive test suite"
+	@echo "  test-vm                  - Full VM test (build + boot + E2E validation)"
+		@echo ""
 	@echo "🔨 Build & Deploy:"
 	@echo "  build       - Build current platform"
 	@echo "  build-switch - Build system (same as switch)"
@@ -63,6 +63,7 @@ help:
 	@echo "  make format && make test            # Before commit (automated via pre-commit)"
 	@echo "  make switch                         # Update system"
 	@echo "  make vm/copy && make vm/switch      # Update VM configuration"
+	@echo "  make act-check && make act-linux    # Test CI locally before pushing"
 
 # Code Quality
 format:
@@ -72,25 +73,25 @@ format:
 lint:
 	@echo "🔍 Linting ($(CURRENT_SYSTEM))..."
 	@find . -name "*.nix" -not -path "*/.*" -not -path "*/result/*" -type f -exec nix fmt -- {} +
-	@$(NIX) flake check --no-build --quiet
+	@$(NIX) flake check --no-build --quiet --accept-flake-config
 
 # Testing (simplified with auto-discovery)
 test: check-user
 	@echo "🧪 Testing $(CURRENT_SYSTEM)..."
-	@export USER=$(USER) && $(NIX) flake check --impure $(ARGS)
+	@export USER=$(USER) && $(NIX) flake check --impure --accept-flake-config $(ARGS)
 	@echo "✅ Tests passed"
 
 test-unit:
 	@echo "🧪 Running unit tests (auto-discovered)..."
 	@$(NIX) eval --impure .#checks.$(CURRENT_SYSTEM) --apply 'x: builtins.length (builtins.filter (n: builtins.match "unit-.*" n != null) (builtins.attrNames x))'
 	@echo "unit tests discovered"
-	@$(NIX) flake check --impure --no-build $(ARGS)
+	@$(NIX) flake check --impure --no-build --accept-flake-config $(ARGS)
 
 test-integration:
 	@echo "🔗 Running integration tests (auto-discovered)..."
 	@$(NIX) eval --impure .#checks.$(CURRENT_SYSTEM) --apply 'x: builtins.length (builtins.filter (n: builtins.match "integration-.*" n != null) (builtins.attrNames x))'
 	@echo "integration tests discovered"
-	@$(NIX) flake check --impure --no-build $(ARGS)
+	@$(NIX) flake check --impure --no-build --accept-flake-config $(ARGS)
 
 test-all:
 	@echo "🔬 Running comprehensive test suite..."
@@ -122,6 +123,7 @@ test-e2e:
 	else \
 		echo "⏭️  E2E test skipped (Linux only, current: $(CURRENT_SYSTEM))"; \
 	fi
+
 
 # Linux Builder (macOS only)
 test-linux-builder:
