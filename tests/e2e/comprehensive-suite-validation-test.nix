@@ -79,10 +79,27 @@ nixosTest {
       # Enable sudo for test user
       security.sudo.wheelNeedsPassword = false;
 
-      # Create test directory structure
+      # Create test directory structure with mock test files
       system.activationScripts.testSetup = ''
-        mkdir -p /tmp/test-comprehensive
-        chown testuser:users /tmp/test-comprehensive
+                mkdir -p /tmp/test-comprehensive/{tests/unit,tests/integration}
+                # Create mock test files for discovery validation
+                cat > /tmp/test-comprehensive/tests/unit/mock-test.nix << 'EOF'
+        # Mock unit test for discovery validation
+        {
+          pkgs ? import <nixpkgs> { },
+          ...
+        }:
+        pkgs.runCommand "mock-unit-test" { } "echo Mock unit test executed && touch \$out"
+        EOF
+                cat > /tmp/test-comprehensive/tests/integration/mock-integration-test.nix << 'EOF'
+        # Mock integration test for discovery validation
+        {
+          pkgs ? import <nixpkgs> { },
+          ...
+        }:
+        pkgs.runCommand "mock-integration-test" { } "echo Mock integration test executed && touch \$out"
+        EOF
+                chown -R testuser:users /tmp/test-comprehensive
       '';
     };
 
