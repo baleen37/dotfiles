@@ -138,6 +138,13 @@ in
     };
   };
 
+  # ===== Login & Authentication Optimizations =====
+  # Faster boot and streamlined login experience
+  system.defaults.loginwindow = {
+    SHOWFULLNAME = false; # Hide full name for lighter login prompt
+    DisableConsoleAccess = false; # Maintain console access security
+  };
+
   # ===== Homebrew Configuration =====
   homebrew = {
     enable = true;
