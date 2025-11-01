@@ -137,4 +137,12 @@ return {
     bundleID = 'com.flexibits.cardhop.mac',
     localBindings = {'u'}
   },
+  ['com.raycast.macos'] = {
+    bundleID = 'com.raycast.macos',
+    localBindings = {'c', 'n', 'space', ';'}
+  },
+  ['com.superultra.Homerow'] = {
+    bundleID = 'com.superultra.Homerow',
+    localBindings = {'return', 'tab'}
+  },
 }
