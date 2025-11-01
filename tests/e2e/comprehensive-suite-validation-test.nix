@@ -73,7 +73,6 @@ nixosTest {
         vim
         curl
         jq
-        make
         nix
       ];
 
