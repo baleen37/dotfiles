@@ -148,6 +148,43 @@ rec {
       }) users
     );
 
+  # Run a list of tests and aggregate results
+  runTestList =
+    testName: tests:
+    pkgs.runCommand "test-${testName}" { } ''
+      echo "🧪 Running test suite: ${testName}"
+      echo ""
+
+      # Track overall success
+      overall_success=true
+
+      # Run each test
+      ${lib.concatMapStringsSep "\n" (test: ''
+        echo "🔍 Running test: ${test.name}"
+        echo "  Expected: ${toString test.expected}"
+        echo "  Actual: ${toString test.actual}"
+
+        if [ "${toString test.expected}" = "${toString test.actual}" ]; then
+          echo "  ✅ PASS: ${test.name}"
+        else
+          echo "  ❌ FAIL: ${test.name}"
+          echo "    Expected: ${toString test.expected}"
+          echo "    Actual: ${toString test.actual}"
+          overall_success=false
+        fi
+        echo ""
+      '') tests}
+
+      # Final result
+      if [ "$overall_success" = "true" ]; then
+        echo "✅ All tests in '${testName}' passed!"
+        touch $out
+      else
+        echo "❌ Some tests in '${testName}' failed!"
+        exit 1
+      fi
+    '';
+
   # Simple test helper to reduce boilerplate code
   # Takes a name and testLogic, produces the standard test output pattern
   mkTest =
