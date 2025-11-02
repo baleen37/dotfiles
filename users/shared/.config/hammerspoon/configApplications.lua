@@ -49,6 +49,11 @@ return {
     bundleID = 'com.hnc.Discord',
     tags = {'distraction', 'chat'},
   },
+  ['com.kakao.KakaoTalkMac'] = {
+    bundleID = 'com.kakao.KakaoTalkMac',
+    hyperKey = 'k',
+    tags = {'communication', 'chat', 'personal'}
+  },
   ['com.tinyspeck.slackmacgap'] = {
     bundleID = 'com.tinyspeck.slackmacgap',
     tags = {'distraction', 'communication', 'chat'},
