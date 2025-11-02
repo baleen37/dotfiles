@@ -1,6 +1,18 @@
 # Extended test helpers for evantravers refactor
 # Builds upon existing NixTest framework with additional assertions
-{ pkgs, lib }:
+{
+  pkgs,
+  lib,
+  # Parameterized test configuration to eliminate external dependencies
+  testConfig ? {
+    username = "testuser";
+    homeDirPrefix = if pkgs.stdenv.isDarwin then "/Users" else "/home";
+    platformSystem = {
+      isDarwin = pkgs.stdenv.isDarwin;
+      isLinux = pkgs.stdenv.isLinux;
+    };
+  },
+}:
 
 let
   # Import existing NixTest framework
@@ -80,4 +92,73 @@ rec {
         nixtest.assertions.assertHasAttr "_module" systemConfig
       );
     };
+
+  # Parameterized test helpers to minimize external dependencies
+
+  # Get user home directory in a platform-agnostic way
+  getUserHomeDir = user: "${testConfig.homeDirPrefix}/${user}";
+
+  # Get current test user home directory
+  getTestUserHome = getUserHomeDir testConfig.username;
+
+  # Create test configuration with parameterized user
+  createTestUserConfig =
+    additionalConfig:
+    {
+      home = {
+        username = testConfig.username;
+        homeDirectory = getTestUserHome;
+      }
+      // (additionalConfig.home or { });
+    }
+    // (additionalConfig.config or { });
+
+  # Platform-conditional test execution
+  runIfPlatform =
+    platform: test:
+    if platform == "darwin" && testConfig.platformSystem.isDarwin then
+      test
+    else if platform == "linux" && testConfig.platformSystem.isLinux then
+      test
+    else if platform == "any" then
+      test
+    # Create a placeholder test that reports platform skip
+    else
+      pkgs.runCommand "test-skipped-${platform}" { } ''
+        echo "⏭️  Skipped (${platform}-only test on current platform)"
+        touch $out
+      '';
+
+  # Create parameterized test configuration for modules that require currentSystemUser
+  createModuleTestConfig = moduleConfig: {
+    currentSystemUser = testConfig.username;
+    config = moduleConfig;
+  };
+
+  # Generate multiple test configurations for different users
+  generateUserTests =
+    testFunction: users:
+    builtins.listToAttrs (
+      map (user: {
+        name = "user-${user}";
+        value = testFunction {
+          username = user;
+          homeDirectory = "${testConfig.homeDirPrefix}/${user}";
+        };
+      }) users
+    );
+
+  # Simple test helper to reduce boilerplate code
+  # Takes a name and testLogic, produces the standard test output pattern
+  mkTest =
+    name: testLogic:
+    pkgs.runCommand "test-${name}-results" { } ''
+      echo "Running ${name}..."
+      ${testLogic}
+      echo "✅ ${name}: PASS"
+      touch $out
+    '';
+
+  # Backward compatibility alias for mkSimpleTest
+  mkSimpleTest = mkTest;
 }
