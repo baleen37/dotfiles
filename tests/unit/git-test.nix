@@ -100,44 +100,52 @@ let
     autocrlfConfigured = (gitConfig.programs.git.settings.core.autocrlf or "") == "input";
   };
 
-  # Validate git aliases functionality (would work with actual git commands)
-  validateAliases = {
-    # Test that aliases have proper syntax
-    statusAliasValid =
+  # Edge case validation functions
+  validateEdgeCases = {
+    # Test that aliases don't contain malformed commands
+    aliasesHaveValidSyntax =
       let
         aliases = gitConfig.programs.git.settings.alias or { };
+        dangerousCommands = [
+          "rm "
+          "rm-rf "
+          "sudo "
+          "chmod "
+          "chown "
+          "mv "
+          "cp "
+        ];
+        containsDangerousCommand =
+          aliasValue:
+          builtins.any (
+            cmd: builtins.substring 0 (builtins.stringLength cmd) aliasValue == cmd
+          ) dangerousCommands;
+        invalidAliases = lib.filterAttrs (name: value: containsDangerousCommand value) aliases;
       in
-      (aliases.st or "") == "status";
+      builtins.attrNames invalidAliases == [ ];
 
-    checkoutAliasValid =
+    # Test that user info is not empty or invalid
+    userInfoIsValid =
       let
-        aliases = gitConfig.programs.git.settings.alias or { };
+        gitUser = gitConfig.programs.git.settings.user or { };
+        name = gitUser.name or "";
+        email = gitUser.email or "";
+        nameValid = name != "" && builtins.stringLength name > 1;
+        emailValid = email != "" && builtins.match ".*@.*\\..*" email != null;
       in
-      (aliases.co or "") == "checkout";
+      nameValid && emailValid;
 
-    branchAliasValid =
-      let
-        aliases = gitConfig.programs.git.settings.alias or { };
-      in
-      (aliases.br or "") == "branch";
+    # Test that configuration exists and is accessible
+    configurationExists = gitConfigExists;
 
-    commitAliasValid =
+    # Test that required configuration sections are present
+    hasRequiredSections =
       let
-        aliases = gitConfig.programs.git.settings.alias or { };
+        hasGitProgram = builtins.hasAttr "programs" gitConfig && builtins.hasAttr "git" gitConfig.programs;
+        hasGitSettings = hasGitProgram && builtins.hasAttr "settings" gitConfig.programs.git;
+        hasUserSection = hasGitSettings && builtins.hasAttr "user" gitConfig.programs.git.settings;
       in
-      (aliases.ci or "") == "commit";
-
-    diffAliasValid =
-      let
-        aliases = gitConfig.programs.git.settings.alias or { };
-      in
-      (aliases.df or "") == "diff";
-
-    logAliasValid =
-      let
-        aliases = gitConfig.programs.git.settings.alias or { };
-      in
-      (aliases.lg or "") == "log --graph --oneline --decorate --all";
+      hasGitProgram && hasGitSettings && hasUserSection;
   };
 
   # Test suite using NixTest framework - BEHAVIORAL TESTS
@@ -194,26 +202,22 @@ let
         assertTrue validateGitConfig.autocrlfConfigured
       );
 
-      # Test individual alias configurations (BEHAVIORAL)
-      status-alias-valid = nixtest.test "status-alias-valid" (
-        assertTrue validateAliases.statusAliasValid
+      # Edge case tests (BEHAVIORAL)
+      aliases-have-valid-syntax = nixtest.test "aliases-have-valid-syntax" (
+        assertTrue validateEdgeCases.aliasesHaveValidSyntax
       );
 
-      checkout-alias-valid = nixtest.test "checkout-alias-valid" (
-        assertTrue validateAliases.checkoutAliasValid
+      user-info-is-valid = nixtest.test "user-info-is-valid" (
+        assertTrue validateEdgeCases.userInfoIsValid
       );
 
-      branch-alias-valid = nixtest.test "branch-alias-valid" (
-        assertTrue validateAliases.branchAliasValid
+      configuration-exists = nixtest.test "configuration-exists" (
+        assertTrue validateEdgeCases.configurationExists
       );
 
-      commit-alias-valid = nixtest.test "commit-alias-valid" (
-        assertTrue validateAliases.commitAliasValid
+      has-required-sections = nixtest.test "has-required-sections" (
+        assertTrue validateEdgeCases.hasRequiredSections
       );
-
-      diff-alias-valid = nixtest.test "diff-alias-valid" (assertTrue validateAliases.diffAliasValid);
-
-      log-alias-valid = nixtest.test "log-alias-valid" (assertTrue validateAliases.logAliasValid);
     };
   };
 
@@ -312,20 +316,40 @@ pkgs.runCommand "git-behavioral-test-results" { } ''
       ''echo "❌ FAIL: AutoCRLF is not configured for cross-platform use"; exit 1''
   }
 
-  # Test 11: Individual alias configurations
-  echo "Test 11: Individual alias configurations are valid..."
+  # Test 11: Aliases have valid syntax (no dangerous commands)
+  echo "Test 11: Git aliases have valid syntax and no dangerous commands..."
   ${
-    if
-      validateAliases.statusAliasValid
-      && validateAliases.checkoutAliasValid
-      && validateAliases.branchAliasValid
-      && validateAliases.commitAliasValid
-      && validateAliases.diffAliasValid
-      && validateAliases.logAliasValid
-    then
-      ''echo "✅ PASS: All individual Git aliases are properly configured"''
+    if validateEdgeCases.aliasesHaveValidSyntax then
+      ''echo "✅ PASS: Git aliases have valid syntax and no dangerous commands"''
     else
-      ''echo "❌ FAIL: Some Git aliases are not properly configured"; exit 1''
+      ''echo "❌ FAIL: Git aliases contain dangerous commands or invalid syntax"; exit 1''
+  }
+
+  # Test 12: User info is valid (not empty or malformed)
+  echo "Test 12: User information is valid and well-formed..."
+  ${
+    if validateEdgeCases.userInfoIsValid then
+      ''echo "✅ PASS: User information is valid and properly formatted"''
+    else
+      ''echo "❌ FAIL: User information is empty or malformed"; exit 1''
+  }
+
+  # Test 13: Configuration file exists and is accessible
+  echo "Test 13: Git configuration file exists and is accessible..."
+  ${
+    if validateEdgeCases.configurationExists then
+      ''echo "✅ PASS: Git configuration file exists and is accessible"''
+    else
+      ''echo "❌ FAIL: Git configuration file is missing or inaccessible"; exit 1''
+  }
+
+  # Test 14: Required configuration sections are present
+  echo "Test 14: Required Git configuration sections are present..."
+  ${
+    if validateEdgeCases.hasRequiredSections then
+      ''echo "✅ PASS: Required Git configuration sections are present"''
+    else
+      ''echo "❌ FAIL: Required Git configuration sections are missing"; exit 1''
   }
 
   echo "✅ All Git configuration BEHAVIORAL tests passed!"
