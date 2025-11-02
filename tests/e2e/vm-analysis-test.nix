@@ -10,10 +10,12 @@
 # - Test VM configuration integrity without building Linux targets
 
 {
-  lib ? import <nixpkgs/lib>,
-  pkgs ? import <nixpkgs> { },
+  inputs,
+  lib ? import inputs.nixpkgs/lib,
+  pkgs ? import inputs.nixpkgs { inherit system; },
   system ? builtins.currentSystem,
   self ? null,
+  nixtest ? { },
 }:
 
 let

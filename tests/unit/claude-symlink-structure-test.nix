@@ -1,6 +1,6 @@
-# tests/integration/claude-symlink-test.nix
-# Integration test for Claude Code symlink configuration
-# Validates source structure (CI-safe, no runtime symlink checks)
+# tests/unit/claude-symlink-structure-test.nix
+# Unit test for Claude Code source structure validation
+# Validates file and directory existence without runtime checks
 {
   pkgs,
   lib,
@@ -44,5 +44,5 @@ pkgs.runCommand "claude-symlink-test"
       echo "✅ PASS: Found directory: $dir/"
     done
 
-    echo "✅ All integration tests passed" > $out
+    echo "✅ All unit tests passed" > $out
   ''

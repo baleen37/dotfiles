@@ -18,7 +18,7 @@
 #
 # 유틸리티:
 # - generateTestData: 테스트 데이터 생성
-# - createMock: 모의 함수 생성
+# - createTestWrapper: 실제 함수를 위한 테스트 래퍼 (mock 최소화)
 # - isolateTest: 테스트 격리 래퍼
 
 {
@@ -283,28 +283,46 @@ in
 
   # Utility functions for test development
   utils = {
-    # Generate test data
+    # Generate realistic test data (based on common patterns from real configs)
     generateTestData =
       type:
       if type == "string" then
-        "test-string"
+        "claude-code-config" # Realistic configuration name
       else if type == "number" then
-        42
+        8080 # Common port number (more realistic than 42)
       else if type == "list" then
         [
-          1
-          2
-          3
-        ]
+          "git"
+          "vim"
+          "zsh"
+        ] # Real tool list from dotfiles
       else if type == "attrs" then
-        { test = "value"; }
+        {
+          programs.git.enable = true;
+          programs.vim.enable = true;
+          home.stateVersion = "23.11";
+        } # Realistic home-manager configuration
+      else if type == "username" then
+        if builtins.pathExists "/etc/passwd" then
+          # Try to get real username from system
+          (lib.head (lib.splitString "\n" (builtins.readFile "/etc/passwd")))
+        else
+          "baleen" # Fallback to actual project username
+      else if type == "email" then
+        "user@example.com" # Realistic email pattern
       else
         throw "Unknown test data type: ${type}";
 
-    # Create mock functions for testing
-    createMock =
-      _name: returnValue: _args:
-      returnValue;
+    # Create test wrapper for real functions (prefer real dependencies over mocks)
+    createTestWrapper =
+      func: testName: args:
+      let
+        result = builtins.tryEval (func args);
+      in
+      if result.success then
+        result.value
+      else
+        throw "Test wrapper '${testName}' failed: ${result.value or "unknown error"}";
 
     # Test isolation wrapper
     isolateTest = test: builtins.tryEval test;

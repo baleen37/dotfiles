@@ -1,6 +1,6 @@
-# tests/unit/claude-test.nix
-# Claude configuration behavioral tests
-# Tests that Claude configuration actually works as expected
+# tests/integration/claude-behavioral-test.nix
+# Claude configuration integration tests
+# Tests that Claude configuration works across all modules and components
 {
   lib ? import <nixpkgs/lib>,
   pkgs ? import <nixpkgs> { },

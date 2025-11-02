@@ -4,10 +4,12 @@
 #
 # This test applies actual dotfiles configuration and validates user environment
 {
-  pkgs ? import <nixpkgs> { },
-  nixpkgs ? <nixpkgs>,
+  inputs,
+  pkgs ? import inputs.nixpkgs { inherit system; },
+  nixpkgs ? inputs.nixpkgs,
   lib ? pkgs.lib,
   system ? builtins.currentSystem,
+  nixtest ? { },
   ...
 }:
 

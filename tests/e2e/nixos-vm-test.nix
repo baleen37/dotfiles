@@ -21,11 +21,13 @@
 # - Darwin hosts: Quick syntax and structure validation only
 
 {
-  lib ? import <nixpkgs/lib>,
-  pkgs ? import <nixpkgs> { },
+  inputs,
+  lib ? import inputs.nixpkgs/lib,
+  pkgs ? import inputs.nixpkgs { inherit system; },
   system ? builtins.currentSystem,
   self ? null,
   nixos-generators ? null,
+  nixtest ? { },
 }:
 
 let

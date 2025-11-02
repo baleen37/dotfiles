@@ -1,7 +1,8 @@
-# VM Analysis Unit Test
+# VM Analysis E2E Test
 #
-# Validates VM configuration and dependencies without cross-compilation
+# Validates VM configuration and dependencies for end-to-end testing
 # This test runs on Darwin to validate VM setup and platform compatibility
+# Part of E2E test suite for comprehensive system validation
 
 {
   inputs,

@@ -5,10 +5,12 @@
 # This test is completely self-contained to avoid Nix store path issues
 # that occur when importing vm-shared.nix with linuxPackages_latest
 {
-  pkgs ? import <nixpkgs> { },
-  nixpkgs ? <nixpkgs>,
+  inputs,
+  pkgs ? import inputs.nixpkgs { inherit system; },
+  nixpkgs ? inputs.nixpkgs,
   lib ? pkgs.lib,
   system ? builtins.currentSystem,
+  nixtest ? { },
   ...
 }:
 

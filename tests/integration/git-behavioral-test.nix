@@ -1,6 +1,6 @@
-# tests/unit/git-test.nix
-# Git configuration behavioral tests
-# Tests that Git configuration actually works as expected
+# tests/integration/git-behavioral-test.nix
+# Git configuration integration tests
+# Tests that Git configuration works across modules and user information
 {
   lib ? import <nixpkgs/lib>,
   pkgs ? import <nixpkgs> { },

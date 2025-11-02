@@ -1,6 +1,6 @@
-# tests/unit/error-handling-test.nix
-# Error handling behavioral tests for dotfiles configuration
-# Tests that error handling actually works in real configuration scenarios
+# tests/integration/error-handling-test.nix
+# Error handling integration tests for dotfiles configuration
+# Tests that error handling works across module interactions and real configurations
 {
   lib ? import <nixpkgs/lib>,
   pkgs ? import <nixpkgs> { },
