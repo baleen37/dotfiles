@@ -12,7 +12,8 @@
 
 let
   # Import test helpers
-  testHelpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
+  helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
+  testHelpers = helpers;
 
   # Import nixtest framework assertions
   inherit (nixtest.assertions) assertTrue assertFalse;
@@ -75,8 +76,7 @@ let
 
 in
 # Convert test suite to executable derivation
-pkgs.runCommand "hammerspoon-test-results" { } ''
-  echo "Running Hammerspoon configuration tests..."
+helpers.mkTest "hammerspoon-config" ''
 
   # Test that Hammerspoon config directory exists
   echo "Test 1: Hammerspoon directory exists..."
@@ -143,5 +143,4 @@ pkgs.runCommand "hammerspoon-test-results" { } ''
 
   echo "✅ All Hammerspoon configuration tests passed!"
   echo "Configuration integrity verified - all expected files and directories are present"
-  touch $out
 ''

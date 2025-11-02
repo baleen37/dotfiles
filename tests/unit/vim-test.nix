@@ -11,6 +11,9 @@
 }:
 
 let
+  # Import test helpers
+  helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
+
   # Import nixtest framework assertions
   inherit (nixtest.assertions) assertTrue assertFalse;
 
@@ -83,8 +86,7 @@ let
 
 in
 # Convert test suite to executable derivation
-pkgs.runCommand "vim-test-results" { } ''
-  echo "Running Vim configuration tests..."
+helpers.mkTest "vim-config" ''
 
   # Test that vim.nix file exists
   echo "Test 1: vim.nix file exists..."
@@ -151,5 +153,4 @@ pkgs.runCommand "vim-test-results" { } ''
 
   echo "✅ All Vim configuration tests passed!"
   echo "Vim configuration verified - all expected settings are present"
-  touch $out
 ''

@@ -11,6 +11,9 @@
 }:
 
 let
+  # Import test helpers
+  helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
+
   # Test 1: mkSystem function exists and is callable
   mkSystemFunc = import ../../lib/mksystem.nix { inherit inputs self; };
   testFunctionExists = builtins.isFunction mkSystemFunc;
@@ -38,8 +41,7 @@ let
 
 in
 # Create derivation that tests mkSystem function structure
-pkgs.runCommand "mksystem-test-results" { } ''
-  echo "Running mkSystem unit tests..."
+helpers.mkTest "mkSystem" ''
 
   # Test 1: mkSystem file exists
   echo "Test 1: mkSystem file exists..."
@@ -83,5 +85,4 @@ pkgs.runCommand "mksystem-test-results" { } ''
 
   echo "✅ All mkSystem tests passed!"
   echo "Function structure verified - mkSystem is correctly implemented"
-  touch $out
 ''
