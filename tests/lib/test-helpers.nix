@@ -37,12 +37,17 @@ rec {
         exit 1
       '';
 
-  # Attribute existence check (from evantravers refactor plan)
-  # File existence check
+  # Behavioral file validation check (from evantravers refactor plan)
+  # File content validation check - tests usability, not just existence
   assertFileExists =
     name: derivation: path:
-    assertTest name (builtins.pathExists "${derivation}/${path}")
-      "File ${path} not found in derivation";
+    let
+      fullPath = "${derivation}/${path}";
+      readResult = builtins.tryEval (builtins.readFile fullPath);
+    in
+    assertTest name (
+      readResult.success && builtins.stringLength readResult.value > 0
+    ) "File ${path} not readable or empty in derivation";
 
   # Attribute existence check
   assertHasAttr =
@@ -74,11 +79,18 @@ rec {
       touch $out
     '';
 
-  # Configuration file integrity test
+  # Configuration file integrity test (behavioral)
   assertConfigIntegrity =
     name: configPath: expectedFiles:
     nixtest.test "config-integrity-${name}" (
-      builtins.all (file: builtins.pathExists "${configPath}/${file}") expectedFiles
+      builtins.all (
+        file:
+        let
+          fullPath = "${configPath}/${file}";
+          readResult = builtins.tryEval (builtins.readFile fullPath);
+        in
+        readResult.success && builtins.stringLength readResult.value > 0
+      ) expectedFiles
     );
 
   # System factory validation

@@ -1,3 +1,7 @@
+---
+description: Review code and create GitHub issues collaboratively with the user
+---
+
 # Make GitHub Issue
 
 Review code and create GitHub issues collaboratively with the user.

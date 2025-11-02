@@ -14,40 +14,39 @@ let
   # Import nixtest framework assertions
   inherit (nixtest.assertions) assertTrue assertFalse;
 
-  # Try to import vim config (this will fail initially)
+  # Behavioral test: try to import and use vim config
   vimConfigFile = ../../users/shared/vim.nix;
-  vimConfigExists = builtins.pathExists vimConfigFile;
+  vimConfigResult = builtins.tryEval (
+    import vimConfigFile {
+      inherit pkgs lib;
+      config = { };
+    }
+  );
 
-  # Test if vim config can be imported (will fail initially)
-  vimConfig =
-    if vimConfigExists then
-      (import vimConfigFile {
-        inherit pkgs lib;
-        config = { };
-      })
-    else
-      { };
+  # Test if vim config can be imported and is usable
+  vimConfig = if vimConfigResult.success then vimConfigResult.value else { };
+  vimConfigUsable = vimConfigResult.success;
 
-  # Test if vim is enabled
-  vimEnabled = vimConfigExists && vimConfig.programs.vim.enable;
+  # Test if vim is enabled (behavioral)
+  vimEnabled = vimConfigUsable && vimConfig.programs.vim.enable;
 
-  # Test if vim plugins exist
-  hasPlugins = vimConfigExists && builtins.hasAttr "plugins" vimConfig.programs.vim;
+  # Test if vim plugins exist (behavioral)
+  hasPlugins = vimConfigUsable && builtins.hasAttr "plugins" vimConfig.programs.vim;
 
-  # Test if vim settings exist
-  hasSettings = vimConfigExists && builtins.hasAttr "settings" vimConfig.programs.vim;
+  # Test if vim settings exist (behavioral)
+  hasSettings = vimConfigUsable && builtins.hasAttr "settings" vimConfig.programs.vim;
 
-  # Test if vim has extraConfig (for custom key bindings)
-  hasExtraConfig = vimConfigExists && builtins.hasAttr "extraConfig" vimConfig.programs.vim;
+  # Test if vim has extraConfig (for custom key bindings) (behavioral)
+  hasExtraConfig = vimConfigUsable && builtins.hasAttr "extraConfig" vimConfig.programs.vim;
 
-  # Test if airline plugin is present
+  # Test if airline plugin is present (behavioral)
   hasAirlinePlugin =
-    vimConfigExists
+    vimConfigUsable
     && builtins.any (plugin: plugin.pname or null == "vim-airline") vimConfig.programs.vim.plugins;
 
-  # Test if tmux-navigator plugin is present
+  # Test if tmux-navigator plugin is present (behavioral)
   hasTmuxNavigator =
-    vimConfigExists
+    vimConfigUsable
     && builtins.any (
       plugin: plugin.pname or null == "vim-tmux-navigator"
     ) vimConfig.programs.vim.plugins;
@@ -58,8 +57,8 @@ let
     framework = "nixtest";
     type = "unit";
     tests = {
-      # Test that vim.nix file exists (will fail initially)
-      vim-config-exists = nixtest.test "vim-config-exists" (assertTrue vimConfigExists);
+      # Test that vim.nix can be imported and is usable (behavioral)
+      vim-config-usable = nixtest.test "vim-config-usable" (assertTrue vimConfigUsable);
 
       # Test that vim is enabled
       vim-enabled = nixtest.test "vim-enabled" (assertTrue vimEnabled);
@@ -86,13 +85,13 @@ in
 pkgs.runCommand "vim-test-results" { } ''
   echo "Running Vim configuration tests..."
 
-  # Test that vim.nix file exists
-  echo "Test 1: vim.nix file exists..."
+  # Test that vim.nix can be imported and is usable
+  echo "Test 1: vim.nix file is importable..."
   ${
-    if vimConfigExists then
-      ''echo "✅ PASS: vim.nix file exists"''
+    if vimConfigUsable then
+      ''echo "✅ PASS: vim.nix is importable and usable"''
     else
-      ''echo "❌ FAIL: vim.nix file not found"; exit 1''
+      ''echo "❌ FAIL: vim.nix is not importable or not usable"; exit 1''
   }
 
   # Test that vim is enabled

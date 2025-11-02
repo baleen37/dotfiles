@@ -125,57 +125,27 @@
             let
               pkgs-linux = nixpkgs.legacyPackages.x86_64-linux;
               lib = nixpkgs.lib;
+
+              # Optimized VM test suite - consolidates all VM testing functionality
+              # Replaces: nixos-vm-test, fast-vm-e2e, vm-e2e, core-vm-test, streamlined-vm-test
+              # Target: 3 minutes execution, 2 cores/2GB RAM (vs original 10+ minutes, 4 cores/8GB RAM)
+              vm-test-suite = import ./tests/e2e/optimized-vm-suite.nix {
+                inherit inputs;
+                pkgs = pkgs-linux;
+                system = "x86_64-linux";
+                self = self;
+              };
             in
             {
-              # VM test suite for NixOS configurations
-              vm-test-suite =
-                (import ./tests/e2e/nixos-vm-test.nix {
-                  inherit lib nixos-generators;
-                  pkgs = pkgs-linux;
-                  system = "x86_64-linux";
-                  self = self;
-                }).vm-test-suite;
+              # Primary VM test suite
+              inherit vm-test-suite;
 
-              # Individual VM tests for granular debugging
-              vm-build-test =
-                (import ./tests/e2e/nixos-vm-test.nix {
-                  inherit lib nixos-generators;
-                  pkgs = pkgs-linux;
-                  system = "x86_64-linux";
-                  self = self;
-                }).vm-build-test;
-
-              vm-generation-test =
-                (import ./tests/e2e/nixos-vm-test.nix {
-                  inherit lib nixos-generators;
-                  pkgs = pkgs-linux;
-                  system = "x86_64-linux";
-                  self = self;
-                }).vm-generation-test;
-
-              vm-service-test =
-                (import ./tests/e2e/nixos-vm-test.nix {
-                  inherit lib nixos-generators;
-                  pkgs = pkgs-linux;
-                  system = "x86_64-linux";
-                  self = self;
-                }).vm-service-test;
-
-              # Fast E2E VM test (self-contained, no vm-shared.nix dependency)
-              fast-vm-e2e = import ./tests/e2e/fast-vm-e2e-test.nix {
-                inherit lib;
-                pkgs = pkgs-linux;
-                nixpkgs = nixpkgs;
-                system = "x86_64-linux";
-              };
-
-              # E2E VM test (validates actual dotfiles configuration)
-              vm-e2e = import ./tests/e2e/vm-e2e-test.nix {
-                inherit lib;
-                pkgs = pkgs-linux;
-                nixpkgs = nixpkgs;
-                system = "x86_64-linux";
-              };
+              # Legacy aliases for backward compatibility
+              vm-build-test = vm-test-suite;
+              vm-generation-test = vm-test-suite;
+              vm-service-test = vm-test-suite;
+              fast-vm-e2e = vm-test-suite;
+              vm-e2e = vm-test-suite;
 
               # Comprehensive test suite validation (validates all test categories)
               comprehensive-suite-validation = import ./tests/e2e/comprehensive-suite-validation-test.nix {
