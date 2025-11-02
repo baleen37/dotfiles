@@ -333,16 +333,12 @@ let
           timestamp = benchmark.timestamp;
           baseline = benchmark.avgDuration;
           current = currentAvg;
-          change =
-            if benchmark.avgDuration > 0 then
-              ((currentAvg - benchmark.avgDuration) / benchmark.avgDuration) * 100
-            else
-              0;
+          change = if baseline > 0 then ((currentAvg - baseline) / baseline) * 100 else 0;
           status =
-            if benchmark.avgDuration > 0 then
-              if currentAvg < benchmark.avgDuration * 0.8 then
+            if baseline > 0 then
+              if currentAvg < baseline * 0.8 then
                 "improved"
-              else if currentAvg > benchmark.avgDuration * 1.2 then
+              else if currentAvg > baseline * 1.2 then
                 "regressed"
               else
                 "stable"
@@ -386,20 +382,16 @@ let
   };
 
 in
-# Trend analysis and regression detection test
-pkgs.runCommand "trend-analysis-test-results"
-  {
-    nativeBuildInputs = [ pkgs.jq ];
-  }
-  ''
-      echo "Running Trend Analysis and Regression Detection Test..."
-      echo "System: ${system}"
-      echo "Timestamp: $(date)"
-      echo ""
+# Use mkTest helper to create the trend analysis test
+testHelpers.mkTest "trend-analysis-regression-detection" ''
+  echo "Running Trend Analysis and Regression Detection Test..."
+  echo "System: ${system}"
+  echo "Timestamp: $(date)"
+  echo ""
 
-      # Create results directory
-      mkdir -p $out
-      RESULTS_DIR="$out"
+  # Create results directory
+  mkdir -p $out
+  RESULTS_DIR="$out"
 
       # Test 1: Statistical trend analysis
       echo "=== Test 1: Statistical Trend Analysis ==="
