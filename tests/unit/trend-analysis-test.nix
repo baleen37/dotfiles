@@ -3,9 +3,12 @@
 # Tests advanced trend analysis, regression detection, and predictive capabilities
 
 {
-  lib ? import <nixpkgs/lib>,
-  pkgs ? import <nixpkgs> { },
-  system ? builtins.currentSystem or "x86_64-linux",
+  inputs,
+  system,
+  pkgs,
+  lib,
+  self,
+  nixtest ? { },
 }:
 
 let
@@ -384,438 +387,438 @@ let
 in
 # Use mkTest helper to create the trend analysis test
 testHelpers.mkTest "trend-analysis-regression-detection" ''
-  echo "Running Trend Analysis and Regression Detection Test..."
-  echo "System: ${system}"
-  echo "Timestamp: $(date)"
-  echo ""
+    echo "Running Trend Analysis and Regression Detection Test..."
+    echo "System: ${system}"
+    echo "Timestamp: $(date)"
+    echo ""
 
-  # Create results directory
-  mkdir -p $out
-  RESULTS_DIR="$out"
+    # Create results directory
+    mkdir -p $out
+    RESULTS_DIR="$out"
 
-      # Test 1: Statistical trend analysis
-      echo "=== Test 1: Statistical Trend Analysis ==="
+    # Test 1: Statistical trend analysis
+    echo "=== Test 1: Statistical Trend Analysis ==="
 
-      echo "Testing statistical trend analysis..."
-      STATISTICAL_RESULT=$(nix eval --json --impure --expr '
-        let
-          lib = import <nixpkgs/lib>;
-          pkgs = import <nixpkgs> {};
+    echo "Testing statistical trend analysis..."
+    STATISTICAL_RESULT=$(nix eval --json --impure --expr '
+      let
+        lib = import <nixpkgs/lib>;
+        pkgs = import <nixpkgs> {};
 
-          # Sample performance measurements with clear trend
-          measurements = [
-            { duration_ms = 1000; memory_bytes = 50000000; success = true; }
-            { duration_ms = 1050; memory_bytes = 52000000; success = true; }
-            { duration_ms = 1100; memory_bytes = 51000000; success = true; }
-            { duration_ms = 1150; memory_bytes = 53000000; success = true; }
-            { duration_ms = 1200; memory_bytes = 52500000; success = true; }
-            { duration_ms = 1250; memory_bytes = 54000000; success = true; }
-            { duration_ms = 1300; memory_bytes = 53500000; success = true; }
-            { duration_ms = 1350; memory_bytes = 55000000; success = true; }
-          ];
+        # Sample performance measurements with clear trend
+        measurements = [
+          { duration_ms = 1000; memory_bytes = 50000000; success = true; }
+          { duration_ms = 1050; memory_bytes = 52000000; success = true; }
+          { duration_ms = 1100; memory_bytes = 51000000; success = true; }
+          { duration_ms = 1150; memory_bytes = 53000000; success = true; }
+          { duration_ms = 1200; memory_bytes = 52500000; success = true; }
+          { duration_ms = 1250; memory_bytes = 54000000; success = true; }
+          { duration_ms = 1300; memory_bytes = 53500000; success = true; }
+          { duration_ms = 1350; memory_bytes = 55000000; success = true; }
+        ];
 
-          # Calculate trend analysis statistics
-          avgDuration = (lib.foldl (acc: m: acc + m.duration_ms) 0 measurements) / builtins.length measurements;
-          minDuration = lib.foldl (acc: m: if m.duration_ms < acc then m.duration_ms else acc) 999999 measurements;
-          maxDuration = lib.foldl (acc: m: if m.duration_ms > acc then m.duration_ms else acc) 0 measurements;
-          variance = (lib.foldl (acc: m: acc + (m.duration_ms - avgDuration) * (m.duration_ms - avgDuration)) 0 measurements) / builtins.length measurements;
-          stdDev = builtins.sqrt variance;
+        # Calculate trend analysis statistics
+        avgDuration = (lib.foldl (acc: m: acc + m.duration_ms) 0 measurements) / builtins.length measurements;
+        minDuration = lib.foldl (acc: m: if m.duration_ms < acc then m.duration_ms else acc) 999999 measurements;
+        maxDuration = lib.foldl (acc: m: if m.duration_ms > acc then m.duration_ms else acc) 0 measurements;
+        variance = (lib.foldl (acc: m: acc + (m.duration_ms - avgDuration) * (m.duration_ms - avgDuration)) 0 measurements) / builtins.length measurements;
+        stdDev = builtins.sqrt variance;
 
-        in {
-          measurementCount = builtins.length measurements;
-          avgDuration = avgDuration;
-          minDuration = minDuration;
-          maxDuration = maxDuration;
-          variance = variance;
-          stdDev = stdDev;
-          trendDirection = "increasing";
-          consistency = if stdDev / avgDuration < 0.1 then "high" else "medium";
-        }
-      ' 2>/dev/null || echo '{"success": false}')
-      echo "Statistical analysis result: $STATISTICAL_RESULT"
-      echo "$STATISTICAL_RESULT" | jq '.' > "$RESULTS_DIR/statistical-analysis.json" 2>/dev/null || echo '{}' > "$RESULTS_DIR/statistical-analysis.json"
+      in {
+        measurementCount = builtins.length measurements;
+        avgDuration = avgDuration;
+        minDuration = minDuration;
+        maxDuration = maxDuration;
+        variance = variance;
+        stdDev = stdDev;
+        trendDirection = "increasing";
+        consistency = if stdDev / avgDuration < 0.1 then "high" else "medium";
+      }
+    ' 2>/dev/null || echo '{"success": false}')
+    echo "Statistical analysis result: $STATISTICAL_RESULT"
+    echo "$STATISTICAL_RESULT" | jq '.' > "$RESULTS_DIR/statistical-analysis.json" 2>/dev/null || echo '{}' > "$RESULTS_DIR/statistical-analysis.json"
 
-      # Test 2: Performance regression detection
-      echo ""
-      echo "=== Test 2: Performance Regression Detection ==="
+    # Test 2: Performance regression detection
+    echo ""
+    echo "=== Test 2: Performance Regression Detection ==="
 
-      echo "Testing performance regression detection..."
-      REGRESSION_RESULT=$(nix eval --json --impure --expr '
-        let
-          lib = import <nixpkgs/lib>;
-          pkgs = import <nixpkgs> {};
-          baselines = import ../../lib/performance-baselines.nix { inherit lib pkgs; };
+    echo "Testing performance regression detection..."
+    REGRESSION_RESULT=$(nix eval --json --impure --expr '
+      let
+        lib = import <nixpkgs/lib>;
+        pkgs = import <nixpkgs> {};
+        baselines = import ../../lib/performance-baselines.nix { inherit lib pkgs; };
 
-          # Sample measurements showing regression
-          baselineMeasurements = [
-            { duration_ms = 1000; memory_bytes = 50000000; success = true; }
-            { duration_ms = 1050; memory_bytes = 52000000; success = true; }
-            { duration_ms = 1100; memory_bytes = 51000000; success = true; }
-            { duration_ms = 1080; memory_bytes = 51500000; success = true; }
-            { duration_ms = 1120; memory_bytes = 52500000; success = true; }
-          ];
+        # Sample measurements showing regression
+        baselineMeasurements = [
+          { duration_ms = 1000; memory_bytes = 50000000; success = true; }
+          { duration_ms = 1050; memory_bytes = 52000000; success = true; }
+          { duration_ms = 1100; memory_bytes = 51000000; success = true; }
+          { duration_ms = 1080; memory_bytes = 51500000; success = true; }
+          { duration_ms = 1120; memory_bytes = 52500000; success = true; }
+        ];
 
-          # Recent measurements showing regression
-          recentMeasurements = [
-            { duration_ms = 2500; memory_bytes = 80000000; success = true; }
-            { duration_ms = 2600; memory_bytes = 85000000; success = true; }
-            { duration_ms = 2550; memory_bytes = 82000000; success = true; }
-          ];
+        # Recent measurements showing regression
+        recentMeasurements = [
+          { duration_ms = 2500; memory_bytes = 80000000; success = true; }
+          { duration_ms = 2600; memory_bytes = 85000000; success = true; }
+          { duration_ms = 2550; memory_bytes = 82000000; success = true; }
+        ];
 
-          # Get system baselines
-          systemBaselines = baselines.systemBaselines."${system}" or baselines.systemBaselines."x86_64-linux";
+        # Get system baselines
+        systemBaselines = baselines.systemBaselines."${system}" or baselines.systemBaselines."x86_64-linux";
 
-          # Calculate averages
-          baselineAvg = (lib.foldl (acc: m: acc + m.duration_ms) 0 baselineMeasurements) / builtins.length baselineMeasurements;
-          recentAvg = (lib.foldl (acc: m: acc + m.duration_ms) 0 recentMeasurements) / builtins.length recentMeasurements;
-          recentMemoryAvg = (lib.foldl (acc: m: acc + m.memory_bytes) 0 recentMeasurements) / builtins.length recentMeasurements;
+        # Calculate averages
+        baselineAvg = (lib.foldl (acc: m: acc + m.duration_ms) 0 baselineMeasurements) / builtins.length baselineMeasurements;
+        recentAvg = (lib.foldl (acc: m: acc + m.duration_ms) 0 recentMeasurements) / builtins.length recentMeasurements;
+        recentMemoryAvg = (lib.foldl (acc: m: acc + m.memory_bytes) 0 recentMeasurements) / builtins.length recentMeasurements;
 
-          # Regression thresholds
-          thresholds = {
-            time = { critical = 2.0; warning = 1.5; };
-            memory = { critical = 1.5; warning = 1.2; };
-            performance = { warning = 1.1; };
-          };
+        # Regression thresholds
+        thresholds = {
+          time = { critical = 2.0; warning = 1.5; };
+          memory = { critical = 1.5; warning = 1.2; };
+          performance = { warning = 1.1; };
+        };
 
-          # Detect regressions
-          timeRegression = recentAvg > systemBaselines.test.maxUnitTestTimeMs * thresholds.time.critical;
-          memoryRegression = recentMemoryAvg > (systemBaselines.memory.maxConfigMemoryMb * 1024 * 1024) * thresholds.memory.critical;
-          performanceDegradation = recentAvg > baselineAvg * thresholds.performance.warning;
+        # Detect regressions
+        timeRegression = recentAvg > systemBaselines.test.maxUnitTestTimeMs * thresholds.time.critical;
+        memoryRegression = recentMemoryAvg > (systemBaselines.memory.maxConfigMemoryMb * 1024 * 1024) * thresholds.memory.critical;
+        performanceDegradation = recentAvg > baselineAvg * thresholds.performance.warning;
 
-        in {
-          baselineAvg = baselineAvg;
-          recentAvg = recentAvg;
-          recentMemoryAvg = recentMemoryAvg;
-          systemTimeBaseline = systemBaselines.test.maxUnitTestTimeMs;
-          systemMemoryBaseline = systemBaselines.memory.maxConfigMemoryMb * 1024 * 1024;
-          timeRegression = timeRegression;
-          memoryRegression = memoryRegression;
-          performanceDegradation = performanceDegradation;
-          regressionDetected = timeRegression || memoryRegression || performanceDegradation;
-          degradationRatio = recentAvg / baselineAvg;
-        }
-      ' 2>/dev/null || echo '{"success": false}')
-      echo "Regression detection result: $REGRESSION_RESULT"
-      echo "$REGRESSION_RESULT" | jq '.' > "$RESULTS_DIR/regression-detection.json" 2>/dev/null || echo '{}' > "$RESULTS_DIR/regression-detection.json"
+      in {
+        baselineAvg = baselineAvg;
+        recentAvg = recentAvg;
+        recentMemoryAvg = recentMemoryAvg;
+        systemTimeBaseline = systemBaselines.test.maxUnitTestTimeMs;
+        systemMemoryBaseline = systemBaselines.memory.maxConfigMemoryMb * 1024 * 1024;
+        timeRegression = timeRegression;
+        memoryRegression = memoryRegression;
+        performanceDegradation = performanceDegradation;
+        regressionDetected = timeRegression || memoryRegression || performanceDegradation;
+        degradationRatio = recentAvg / baselineAvg;
+      }
+    ' 2>/dev/null || echo '{"success": false}')
+    echo "Regression detection result: $REGRESSION_RESULT"
+    echo "$REGRESSION_RESULT" | jq '.' > "$RESULTS_DIR/regression-detection.json" 2>/dev/null || echo '{}' > "$RESULTS_DIR/regression-detection.json"
 
-      # Test 3: Predictive performance analysis
-      echo ""
-      echo "=== Test 3: Predictive Performance Analysis ==="
+    # Test 3: Predictive performance analysis
+    echo ""
+    echo "=== Test 3: Predictive Performance Analysis ==="
 
-      echo "Testing predictive performance analysis..."
-      PREDICTIVE_RESULT=$(nix eval --json --impure --expr '
-        let
-          lib = import <nixpkgs/lib>;
+    echo "Testing predictive performance analysis..."
+    PREDICTIVE_RESULT=$(nix eval --json --impure --expr '
+      let
+        lib = import <nixpkgs/lib>;
 
-          # Historical measurements with clear trend
-          historicalMeasurements = [
-            { duration_ms = 1000; memory_bytes = 50000000; success = true; }
-            { duration_ms = 1050; memory_bytes = 52000000; success = true; }
-            { duration_ms = 1100; memory_bytes = 51000000; success = true; }
-            { duration_ms = 1150; memory_bytes = 53000000; success = true; }
-            { duration_ms = 1200; memory_bytes = 52500000; success = true; }
-            { duration_ms = 1250; memory_bytes = 54000000; success = true; }
-            { duration_ms = 1300; memory_bytes = 53500000; success = true; }
-            { duration_ms = 1350; memory_bytes = 55000000; success = true; }
-            { duration_ms = 1400; memory_bytes = 54500000; success = true; }
-            { duration_ms = 1450; memory_bytes = 56000000; success = true; }
-          ];
+        # Historical measurements with clear trend
+        historicalMeasurements = [
+          { duration_ms = 1000; memory_bytes = 50000000; success = true; }
+          { duration_ms = 1050; memory_bytes = 52000000; success = true; }
+          { duration_ms = 1100; memory_bytes = 51000000; success = true; }
+          { duration_ms = 1150; memory_bytes = 53000000; success = true; }
+          { duration_ms = 1200; memory_bytes = 52500000; success = true; }
+          { duration_ms = 1250; memory_bytes = 54000000; success = true; }
+          { duration_ms = 1300; memory_bytes = 53500000; success = true; }
+          { duration_ms = 1350; memory_bytes = 55000000; success = true; }
+          { duration_ms = 1400; memory_bytes = 54500000; success = true; }
+          { duration_ms = 1450; memory_bytes = 56000000; success = true; }
+        ];
 
-          # Calculate trend slope
-          count = builtins.length historicalMeasurements;
-          values = map (m: m.duration_ms) historicalMeasurements;
-          avgValue = (lib.foldl (acc: v: acc + v) 0 values) / count;
+        # Calculate trend slope
+        count = builtins.length historicalMeasurements;
+        values = map (m: m.duration_ms) historicalMeasurements;
+        avgValue = (lib.foldl (acc: v: acc + v) 0 values) / count;
 
-          # Simple linear regression slope calculation
-          indices = builtins.genList (i: i) count;
-          meanX = (lib.foldl (acc: i: acc + i) 0 indices) / count;
-          meanY = avgValue;
+        # Simple linear regression slope calculation
+        indices = builtins.genList (i: i) count;
+        meanX = (lib.foldl (acc: i: acc + i) 0 indices) / count;
+        meanY = avgValue;
 
-          slope =
-            let
-              numerator = lib.foldl (acc: i:
-                acc + (i - meanX) * ((builtins.elemAt values i) - meanY)
-              ) 0 indices;
-              denominator = lib.foldl (acc: i: acc + (i - meanX) * (i - meanX)) 0 indices;
-            in
-            if denominator > 0 then numerator / denominator else 0;
+        slope =
+          let
+            numerator = lib.foldl (acc: i:
+              acc + (i - meanX) * ((builtins.elemAt values i) - meanY)
+            ) 0 indices;
+            denominator = lib.foldl (acc: i: acc + (i - meanX) * (i - meanX)) 0 indices;
+          in
+          if denominator > 0 then numerator / denominator else 0;
 
-          lastValue = builtins.elemAt values (count - 1);
-          predictedNext = lastValue + slope;
-          predictedFuture5 = lastValue + (slope * 5);
+        lastValue = builtins.elemAt values (count - 1);
+        predictedNext = lastValue + slope;
+        predictedFuture5 = lastValue + (slope * 5);
 
-          # Risk assessment
-          trend = if slope > avgValue * 0.01 then "increasing" else "stable";
-          riskLevel = if trend == "increasing" && slope > 50 then "high" else "medium";
+        # Risk assessment
+        trend = if slope > avgValue * 0.01 then "increasing" else "stable";
+        riskLevel = if trend == "increasing" && slope > 50 then "high" else "medium";
 
-        in {
-          historicalCount = count;
-          avgDuration = avgValue;
-          trendSlope = slope;
-          trend = trend;
-          currentDuration = lastValue;
-          predictedNextDuration = predictedNext;
-          predictedFuture5Duration = predictedFuture5;
-          riskLevel = riskLevel;
-          projectedDegradation = predictedFuture5 > lastValue * 1.2;
-        }
-      ' 2>/dev/null || echo '{"success": false}')
-      echo "Predictive analysis result: $PREDICTIVE_RESULT"
-      echo "$PREDICTIVE_RESULT" | jq '.' > "$RESULTS_DIR/predictive-analysis.json" 2>/dev/null || echo '{}' > "$RESULTS_DIR/predictive-analysis.json"
+      in {
+        historicalCount = count;
+        avgDuration = avgValue;
+        trendSlope = slope;
+        trend = trend;
+        currentDuration = lastValue;
+        predictedNextDuration = predictedNext;
+        predictedFuture5Duration = predictedFuture5;
+        riskLevel = riskLevel;
+        projectedDegradation = predictedFuture5 > lastValue * 1.2;
+      }
+    ' 2>/dev/null || echo '{"success": false}')
+    echo "Predictive analysis result: $PREDICTIVE_RESULT"
+    echo "$PREDICTIVE_RESULT" | jq '.' > "$RESULTS_DIR/predictive-analysis.json" 2>/dev/null || echo '{}' > "$RESULTS_DIR/predictive-analysis.json"
 
-      # Test 4: Performance benchmark comparison
-      echo ""
-      echo "=== Test 4: Performance Benchmark Comparison ==="
+    # Test 4: Performance benchmark comparison
+    echo ""
+    echo "=== Test 4: Performance Benchmark Comparison ==="
 
-      echo "Testing benchmark comparison..."
-      BENCHMARK_RESULT=$(nix eval --json --impure --expr '
-        let
-          lib = import <nixpkgs/lib>;
+    echo "Testing benchmark comparison..."
+    BENCHMARK_RESULT=$(nix eval --json --impure --expr '
+      let
+        lib = import <nixpkgs/lib>;
 
-          # Current performance measurements
-          currentMeasurements = [
-            { duration_ms = 1200; memory_bytes = 55000000; success = true; }
-            { duration_ms = 1150; memory_bytes = 53000000; success = true; }
-            { duration_ms = 1250; memory_bytes = 57000000; success = true; }
-          ];
+        # Current performance measurements
+        currentMeasurements = [
+          { duration_ms = 1200; memory_bytes = 55000000; success = true; }
+          { duration_ms = 1150; memory_bytes = 53000000; success = true; }
+          { duration_ms = 1250; memory_bytes = 57000000; success = true; }
+        ];
 
-          # Historical benchmarks
-          historicalBenchmarks = [
-            {
-              name = "v1.0-baseline";
-              timestamp = "2024-01-01T00:00:00Z";
-              avgDuration = 1000;
-            }
-            {
-              name = "v1.1-feature-x";
-              timestamp = "2024-01-15T00:00:00Z";
-              avgDuration = 950;
-            }
-            {
-              name = "v1.2-feature-y";
-              timestamp = "2024-02-01T00:00:00Z";
-              avgDuration = 1100;
-            }
-          ];
+        # Historical benchmarks
+        historicalBenchmarks = [
+          {
+            name = "v1.0-baseline";
+            timestamp = "2024-01-01T00:00:00Z";
+            avgDuration = 1000;
+          }
+          {
+            name = "v1.1-feature-x";
+            timestamp = "2024-01-15T00:00:00Z";
+            avgDuration = 950;
+          }
+          {
+            name = "v1.2-feature-y";
+            timestamp = "2024-02-01T00:00:00Z";
+            avgDuration = 1100;
+          }
+        ];
 
-          currentAvg = (lib.foldl (acc: m: acc + m.duration_ms) 0 currentMeasurements) / builtins.length currentMeasurements;
+        currentAvg = (lib.foldl (acc: m: acc + m.duration_ms) 0 currentMeasurements) / builtins.length currentMeasurements;
 
-          # Compare with historical benchmarks
-          comparisons = map (benchmark: {
-            name = benchmark.name;
-            baseline = benchmark.avgDuration;
-            current = currentAvg;
-            change = if benchmark.avgDuration > 0 then ((currentAvg - benchmark.avgDuration) / benchmark.avgDuration) * 100 else 0;
-            status =
-              if benchmark.avgDuration > 0 then
-                if currentAvg < benchmark.avgDuration * 0.8 then "improved"
-                else if currentAvg > benchmark.avgDuration * 1.2 then "regressed"
-                else "stable"
-              else "unknown";
-          }) historicalBenchmarks;
+        # Compare with historical benchmarks
+        comparisons = map (benchmark: {
+          name = benchmark.name;
+          baseline = benchmark.avgDuration;
+          current = currentAvg;
+          change = if benchmark.avgDuration > 0 then ((currentAvg - benchmark.avgDuration) / benchmark.avgDuration) * 100 else 0;
+          status =
+            if benchmark.avgDuration > 0 then
+              if currentAvg < benchmark.avgDuration * 0.8 then "improved"
+              else if currentAvg > benchmark.avgDuration * 1.2 then "regressed"
+              else "stable"
+            else "unknown";
+        }) historicalBenchmarks;
 
-          improved = builtins.filter (c: c.status == "improved") comparisons;
-          regressed = builtins.filter (c: c.status == "regressed") comparisons;
+        improved = builtins.filter (c: c.status == "improved") comparisons;
+        regressed = builtins.filter (c: c.status == "regressed") comparisons;
 
-        in {
-          currentAvg = currentAvg;
-          benchmarkCount = builtins.length historicalBenchmarks;
-          improvedCount = builtins.length improved;
-          regressedCount = builtins.length regressed;
-          stableCount = builtins.length comparisons - builtins.length improved - builtins.length regressed;
-          overallStatus = if builtins.length regressed > builtins.length improved then "degraded" else "stable";
-          comparisonDetails = comparisons;
-        }
-      ' 2>/dev/null || echo '{"success": false}')
-      echo "Benchmark comparison result: $BENCHMARK_RESULT"
-      echo "$BENCHMARK_RESULT" | jq '.' > "$RESULTS_DIR/benchmark-comparison.json" 2>/dev/null || echo '{}' > "$RESULTS_DIR/benchmark-comparison.json"
+      in {
+        currentAvg = currentAvg;
+        benchmarkCount = builtins.length historicalBenchmarks;
+        improvedCount = builtins.length improved;
+        regressedCount = builtins.length regressed;
+        stableCount = builtins.length comparisons - builtins.length improved - builtins.length regressed;
+        overallStatus = if builtins.length regressed > builtins.length improved then "degraded" else "stable";
+        comparisonDetails = comparisons;
+      }
+    ' 2>/dev/null || echo '{"success": false}')
+    echo "Benchmark comparison result: $BENCHMARK_RESULT"
+    echo "$BENCHMARK_RESULT" | jq '.' > "$RESULTS_DIR/benchmark-comparison.json" 2>/dev/null || echo '{}' > "$RESULTS_DIR/benchmark-comparison.json"
 
-      # Test 5: Advanced trend metrics
-      echo ""
-      echo "=== Test 5: Advanced Trend Metrics ==="
+    # Test 5: Advanced trend metrics
+    echo ""
+    echo "=== Test 5: Advanced Trend Metrics ==="
 
-      echo "Testing advanced trend metrics..."
-      ADVANCED_RESULT=$(nix eval --json --impure --expr '
-        let
-          lib = import <nixpkgs/lib>;
+    echo "Testing advanced trend metrics..."
+    ADVANCED_RESULT=$(nix eval --json --impure --expr '
+      let
+        lib = import <nixpkgs/lib>;
 
-          # Complex performance data for advanced analysis
-          measurements = [
-            { duration_ms = 1000; memory_bytes = 50000000; success = true; }
-            { duration_ms = 1050; memory_bytes = 52000000; success = true; }
-            { duration_ms = 980; memory_bytes = 49000000; success = true; }
-            { duration_ms = 1120; memory_bytes = 55000000; success = true; }
-            { duration_ms = 1080; memory_bytes = 53000000; success = true; }
-            { duration_ms = 1150; memory_bytes = 57000000; success = true; }
-            { duration_ms = 1020; memory_bytes = 51000000; success = true; }
-            { duration_ms = 1200; memory_bytes = 60000000; success = true; }
-            { duration_ms = 1180; memory_bytes = 58000000; success = true; }
-            { duration_ms = 1250; memory_bytes = 62000000; success = true; }
-          ];
+        # Complex performance data for advanced analysis
+        measurements = [
+          { duration_ms = 1000; memory_bytes = 50000000; success = true; }
+          { duration_ms = 1050; memory_bytes = 52000000; success = true; }
+          { duration_ms = 980; memory_bytes = 49000000; success = true; }
+          { duration_ms = 1120; memory_bytes = 55000000; success = true; }
+          { duration_ms = 1080; memory_bytes = 53000000; success = true; }
+          { duration_ms = 1150; memory_bytes = 57000000; success = true; }
+          { duration_ms = 1020; memory_bytes = 51000000; success = true; }
+          { duration_ms = 1200; memory_bytes = 60000000; success = true; }
+          { duration_ms = 1180; memory_bytes = 58000000; success = true; }
+          { duration_ms = 1250; memory_bytes = 62000000; success = true; }
+        ];
 
-          # Calculate advanced metrics
-          durations = map (m: m.duration_ms) measurements;
-          memories = map (m: m.memory_bytes) measurements;
+        # Calculate advanced metrics
+        durations = map (m: m.duration_ms) measurements;
+        memories = map (m: m.memory_bytes) measurements;
 
-          # Duration statistics
-          avgDuration = (lib.foldl (acc: d: acc + d) 0 durations) / builtins.length durations;
-          minDuration = lib.foldl (acc: d: if d < acc then d else acc) 999999 durations;
-          maxDuration = lib.foldl (acc: d: if d > acc then d else acc) 0 durations;
-          durationRange = maxDuration - minDuration;
+        # Duration statistics
+        avgDuration = (lib.foldl (acc: d: acc + d) 0 durations) / builtins.length durations;
+        minDuration = lib.foldl (acc: d: if d < acc then d else acc) 999999 durations;
+        maxDuration = lib.foldl (acc: d: if d > acc then d else acc) 0 durations;
+        durationRange = maxDuration - minDuration;
 
-          # Memory statistics
-          avgMemory = (lib.foldl (acc: m: acc + m) 0 memories) / builtins.length memories;
-          minMemory = lib.foldl (acc: m: if m < acc then m else acc) 999999999 memories;
-          maxMemory = lib.foldl (acc: m: if m > acc then m else acc) 0 memories;
-          memoryRange = maxMemory - minMemory;
+        # Memory statistics
+        avgMemory = (lib.foldl (acc: m: acc + m) 0 memories) / builtins.length memories;
+        minMemory = lib.foldl (acc: m: if m < acc then m else acc) 999999999 memories;
+        maxMemory = lib.foldl (acc: m: if m > acc then m else acc) 0 memories;
+        memoryRange = maxMemory - minMemory;
 
-          # Consistency metrics
-          durationCV = if avgDuration > 0 then (durationRange / avgDuration) else 0;
-          memoryCV = if avgMemory > 0 then (memoryRange / avgMemory) else 0;
+        # Consistency metrics
+        durationCV = if avgDuration > 0 then (durationRange / avgDuration) else 0;
+        memoryCV = if avgMemory > 0 then (memoryRange / avgMemory) else 0;
 
-          # Performance classification
-          performanceClass =
-            if avgDuration < 1000 && avgMemory < 50000000 then "excellent"
-            else if avgDuration < 2000 && avgMemory < 100000000 then "good"
-            else if avgDuration < 5000 && avgMemory < 200000000 then "acceptable"
-            else "poor";
+        # Performance classification
+        performanceClass =
+          if avgDuration < 1000 && avgMemory < 50000000 then "excellent"
+          else if avgDuration < 2000 && avgMemory < 100000000 then "good"
+          else if avgDuration < 5000 && avgMemory < 200000000 then "acceptable"
+          else "poor";
 
-          # Stability assessment
-          stabilityScore =
-            let
-              durationStability = if durationCV < 0.2 then 1.0 else if durationCV < 0.5 then 0.7 else 0.3;
-              memoryStability = if memoryCV < 0.2 then 1.0 else if memoryCV < 0.5 then 0.7 else 0.3;
-            in
-            (durationStability + memoryStability) / 2;
+        # Stability assessment
+        stabilityScore =
+          let
+            durationStability = if durationCV < 0.2 then 1.0 else if durationCV < 0.5 then 0.7 else 0.3;
+            memoryStability = if memoryCV < 0.2 then 1.0 else if memoryCV < 0.5 then 0.7 else 0.3;
+          in
+          (durationStability + memoryStability) / 2;
 
-        in {
-          measurementCount = builtins.length measurements;
-          durationMetrics = {
-            avg = avgDuration;
-            min = minDuration;
-            max = maxDuration;
-            range = durationRange;
-            coefficientOfVariation = durationCV;
-          };
-          memoryMetrics = {
-            avg = avgMemory;
-            min = minMemory;
-            max = maxMemory;
-            range = memoryRange;
-            coefficientOfVariation = memoryCV;
-          };
-          performance = {
-            class = performanceClass;
-            stabilityScore = stabilityScore;
-            stability = if stabilityScore > 0.8 then "high" else if stabilityScore > 0.5 then "medium" else "low";
-          };
-        }
-      ' 2>/dev/null || echo '{"success": false}')
-      echo "Advanced metrics result: $ADVANCED_RESULT"
-      echo "$ADVANCED_RESULT" | jq '.' > "$RESULTS_DIR/advanced-metrics.json" 2>/dev/null || echo '{}' > "$RESULTS_DIR/advanced-metrics.json"
+      in {
+        measurementCount = builtins.length measurements;
+        durationMetrics = {
+          avg = avgDuration;
+          min = minDuration;
+          max = maxDuration;
+          range = durationRange;
+          coefficientOfVariation = durationCV;
+        };
+        memoryMetrics = {
+          avg = avgMemory;
+          min = minMemory;
+          max = maxMemory;
+          range = memoryRange;
+          coefficientOfVariation = memoryCV;
+        };
+        performance = {
+          class = performanceClass;
+          stabilityScore = stabilityScore;
+          stability = if stabilityScore > 0.8 then "high" else if stabilityScore > 0.5 then "medium" else "low";
+        };
+      }
+    ' 2>/dev/null || echo '{"success": false}')
+    echo "Advanced metrics result: $ADVANCED_RESULT"
+    echo "$ADVANCED_RESULT" | jq '.' > "$RESULTS_DIR/advanced-metrics.json" 2>/dev/null || echo '{}' > "$RESULTS_DIR/advanced-metrics.json"
 
-      echo ""
-      echo "=== Trend Analysis System Summary ==="
+    echo ""
+    echo "=== Trend Analysis System Summary ==="
 
-      # Generate comprehensive trend analysis summary
-      cat > "$RESULTS_DIR/trend-analysis-summary.md" << EOF
-    # Trend Analysis and Regression Detection Results
+    # Generate comprehensive trend analysis summary
+    cat > "$RESULTS_DIR/trend-analysis-summary.md" << EOF
+  # Trend Analysis and Regression Detection Results
 
-    ## System Information
-    - System: ${system}
-    - Timestamp: $(date)
-    - Test Type: Advanced Trend Analysis and Regression Detection
+  ## System Information
+  - System: ${system}
+  - Timestamp: $(date)
+  - Test Type: Advanced Trend Analysis and Regression Detection
 
-    ## Advanced Analysis Capabilities Validated
+  ## Advanced Analysis Capabilities Validated
 
-    ### 1. Statistical Trend Analysis
-    - Measurement Count: $(echo "$STATISTICAL_RESULT" | jq -r '.measurementCount // "failed"')
-    - Average Duration: $(echo "$STATISTICAL_RESULT" | jq -r '.avgDuration // "failed"')ms
-    - Min/Max Duration: $(echo "$STATISTICAL_RESULT" | jq -r '.minDuration // "failed"')ms / $(echo "$STATISTICAL_RESULT" | jq -r '.maxDuration // "failed"')ms
-    - Standard Deviation: $(echo "$STATISTICAL_RESULT" | jq -r '.stdDev // "failed"')ms
-    - Trend Direction: $(echo "$STATISTICAL_RESULT" | jq -r '.trendDirection // "failed"')
-    - Consistency Level: $(echo "$STATISTICAL_RESULT" | jq -r '.consistency // "failed"')
+  ### 1. Statistical Trend Analysis
+  - Measurement Count: $(echo "$STATISTICAL_RESULT" | jq -r '.measurementCount // "failed"')
+  - Average Duration: $(echo "$STATISTICAL_RESULT" | jq -r '.avgDuration // "failed"')ms
+  - Min/Max Duration: $(echo "$STATISTICAL_RESULT" | jq -r '.minDuration // "failed"')ms / $(echo "$STATISTICAL_RESULT" | jq -r '.maxDuration // "failed"')ms
+  - Standard Deviation: $(echo "$STATISTICAL_RESULT" | jq -r '.stdDev // "failed"')ms
+  - Trend Direction: $(echo "$STATISTICAL_RESULT" | jq -r '.trendDirection // "failed"')
+  - Consistency Level: $(echo "$STATISTICAL_RESULT" | jq -r '.consistency // "failed"')
 
-    ### 2. Performance Regression Detection
-    - Baseline Average: $(echo "$REGRESSION_RESULT" | jq -r '.baselineAvg // "failed"')ms
-    - Recent Average: $(echo "$REGRESSION_RESULT" | jq -r '.recentAvg // "failed"')ms
-    - Degradation Ratio: $(echo "$REGRESSION_RESULT" | jq -r '.degradationRatio // "failed"')x
-    - Time Regression: $(echo "$REGRESSION_RESULT" | jq -r '.timeRegression // "failed"')
-    - Memory Regression: $(echo "$REGRESSION_RESULT" | jq -r '.memoryRegression // "failed"')
-    - Performance Degradation: $(echo "$REGRESSION_RESULT" | jq -r '.performanceDegradation // "failed"')
-    - Overall Regression Detected: $(echo "$REGRESSION_RESULT" | jq -r '.regressionDetected // "failed"')
+  ### 2. Performance Regression Detection
+  - Baseline Average: $(echo "$REGRESSION_RESULT" | jq -r '.baselineAvg // "failed"')ms
+  - Recent Average: $(echo "$REGRESSION_RESULT" | jq -r '.recentAvg // "failed"')ms
+  - Degradation Ratio: $(echo "$REGRESSION_RESULT" | jq -r '.degradationRatio // "failed"')x
+  - Time Regression: $(echo "$REGRESSION_RESULT" | jq -r '.timeRegression // "failed"')
+  - Memory Regression: $(echo "$REGRESSION_RESULT" | jq -r '.memoryRegression // "failed"')
+  - Performance Degradation: $(echo "$REGRESSION_RESULT" | jq -r '.performanceDegradation // "failed"')
+  - Overall Regression Detected: $(echo "$REGRESSION_RESULT" | jq -r '.regressionDetected // "failed"')
 
-    ### 3. Predictive Performance Analysis
-    - Historical Data Points: $(echo "$PREDICTIVE_RESULT" | jq -r '.historicalCount // "failed"')
-    - Current Performance: $(echo "$PREDICTIVE_RESULT" | jq -r '.currentDuration // "failed"')ms
-    - Trend Slope: $(echo "$PREDICTIVE_RESULT" | jq -r '.trendSlope // "failed"')ms per measurement
-    - Predicted Next Performance: $(echo "$PREDICTIVE_RESULT" | jq -r '.predictedNextDuration // "failed"')ms
-    - Predicted Future (5 measurements): $(echo "$PREDICTIVE_RESULT" | jq -r '.predictedFuture5Duration // "failed"')ms
-    - Risk Level: $(echo "$PREDICTIVE_RESULT" | jq -r '.riskLevel // "failed"')
-    - Projected Degradation: $(echo "$PREDICTIVE_RESULT" | jq -r '.projectedDegradation // "failed"')
+  ### 3. Predictive Performance Analysis
+  - Historical Data Points: $(echo "$PREDICTIVE_RESULT" | jq -r '.historicalCount // "failed"')
+  - Current Performance: $(echo "$PREDICTIVE_RESULT" | jq -r '.currentDuration // "failed"')ms
+  - Trend Slope: $(echo "$PREDICTIVE_RESULT" | jq -r '.trendSlope // "failed"')ms per measurement
+  - Predicted Next Performance: $(echo "$PREDICTIVE_RESULT" | jq -r '.predictedNextDuration // "failed"')ms
+  - Predicted Future (5 measurements): $(echo "$PREDICTIVE_RESULT" | jq -r '.predictedFuture5Duration // "failed"')ms
+  - Risk Level: $(echo "$PREDICTIVE_RESULT" | jq -r '.riskLevel // "failed"')
+  - Projected Degradation: $(echo "$PREDICTIVE_RESULT" | jq -r '.projectedDegradation // "failed"')
 
-    ### 4. Performance Benchmark Comparison
-    - Current Average: $(echo "$BENCHMARK_RESULT" | jq -r '.currentAvg // "failed"')ms
-    - Historical Benchmarks: $(echo "$BENCHMARK_RESULT" | jq -r '.benchmarkCount // "failed"')
-    - Improved vs Benchmarks: $(echo "$BENCHMARK_RESULT" | jq -r '.improvedCount // "failed"')
-    - Regressed vs Benchmarks: $(echo "$BENCHMARK_RESULT" | jq -r '.regressedCount // "failed"')
-    - Stable vs Benchmarks: $(echo "$BENCHMARK_RESULT" | jq -r '.stableCount // "failed"')
-    - Overall Status: $(echo "$BENCHMARK_RESULT" | jq -r '.overallStatus // "failed"')
+  ### 4. Performance Benchmark Comparison
+  - Current Average: $(echo "$BENCHMARK_RESULT" | jq -r '.currentAvg // "failed"')ms
+  - Historical Benchmarks: $(echo "$BENCHMARK_RESULT" | jq -r '.benchmarkCount // "failed"')
+  - Improved vs Benchmarks: $(echo "$BENCHMARK_RESULT" | jq -r '.improvedCount // "failed"')
+  - Regressed vs Benchmarks: $(echo "$BENCHMARK_RESULT" | jq -r '.regressedCount // "failed"')
+  - Stable vs Benchmarks: $(echo "$BENCHMARK_RESULT" | jq -r '.stableCount // "failed"')
+  - Overall Status: $(echo "$BENCHMARK_RESULT" | jq -r '.overallStatus // "failed"')
 
-    ### 5. Advanced Trend Metrics
-    - Sample Size: $(echo "$ADVANCED_RESULT" | jq -r '.measurementCount // "failed"')
-    - Duration CV: $(echo "$ADVANCED_RESULT" | jq -r '.durationMetrics.coefficientOfVariation // "failed"')
-    - Memory CV: $(echo "$ADVANCED_RESULT" | jq -r '.memoryMetrics.coefficientOfVariation // "failed"')
-    - Performance Class: $(echo "$ADVANCED_RESULT" | jq -r '.performance.class // "failed"')
-    - Stability Score: $(echo "$ADVANCED_RESULT" | jq -r '.performance.stabilityScore // "failed"')
-    - Stability Assessment: $(echo "$ADVANCED_RESULT" | jq -r '.performance.stability // "failed"')
+  ### 5. Advanced Trend Metrics
+  - Sample Size: $(echo "$ADVANCED_RESULT" | jq -r '.measurementCount // "failed"')
+  - Duration CV: $(echo "$ADVANCED_RESULT" | jq -r '.durationMetrics.coefficientOfVariation // "failed"')
+  - Memory CV: $(echo "$ADVANCED_RESULT" | jq -r '.memoryMetrics.coefficientOfVariation // "failed"')
+  - Performance Class: $(echo "$ADVANCED_RESULT" | jq -r '.performance.class // "failed"')
+  - Stability Score: $(echo "$ADVANCED_RESULT" | jq -r '.performance.stabilityScore // "failed"')
+  - Stability Assessment: $(echo "$ADVANCED_RESULT" | jq -r '.performance.stability // "failed"')
 
-    ## Advanced Trend Analysis Features Implemented
-    ✅ Statistical trend analysis with linear regression
-    ✅ Performance regression detection with configurable thresholds
-    ✅ Predictive performance analysis with confidence intervals
-    ✅ Benchmark comparison and historical analysis
-    ✅ Advanced metrics including coefficient of variation
-    ✅ Risk assessment and early warning system
-    ✅ Multi-dimensional performance classification
-    ✅ Automated alert generation for regressions
+  ## Advanced Trend Analysis Features Implemented
+  ✅ Statistical trend analysis with linear regression
+  ✅ Performance regression detection with configurable thresholds
+  ✅ Predictive performance analysis with confidence intervals
+  ✅ Benchmark comparison and historical analysis
+  ✅ Advanced metrics including coefficient of variation
+  ✅ Risk assessment and early warning system
+  ✅ Multi-dimensional performance classification
+  ✅ Automated alert generation for regressions
 
-    ## Regression Detection Capabilities
-    - **Time Regression Detection**: Compares against system baselines
-    - **Memory Regression Detection**: Monitors memory usage patterns
-    - **Performance Degradation**: Detects gradual performance decline
-    - **Statistical Analysis**: Uses variance and standard deviation
-    - **Trend Classification**: Identifies improving, stable, or degrading trends
+  ## Regression Detection Capabilities
+  - **Time Regression Detection**: Compares against system baselines
+  - **Memory Regression Detection**: Monitors memory usage patterns
+  - **Performance Degradation**: Detects gradual performance decline
+  - **Statistical Analysis**: Uses variance and standard deviation
+  - **Trend Classification**: Identifies improving, stable, or degrading trends
 
-    ## Predictive Analytics Features
-    - **Linear Regression**: Simple but effective trend prediction
-    - **Confidence Intervals**: Statistical bounds for predictions
-    - **Risk Assessment**: Multi-level risk classification
-    - **Future Performance**: Predicts performance based on trends
-    - **Early Warning System**: Alerts before critical regressions
+  ## Predictive Analytics Features
+  - **Linear Regression**: Simple but effective trend prediction
+  - **Confidence Intervals**: Statistical bounds for predictions
+  - **Risk Assessment**: Multi-level risk classification
+  - **Future Performance**: Predicts performance based on trends
+  - **Early Warning System**: Alerts before critical regressions
 
-    ## Integration and Automation
-    - **Automated Data Collection**: Seamless integration with test execution
-    - **Real-time Analysis**: Immediate trend detection during test runs
-    - **Alert Generation**: Automatic alerts for detected regressions
-    - **Historical Tracking**: Long-term performance data storage
-    - **Benchmark Management**: Systematic baseline management
+  ## Integration and Automation
+  - **Automated Data Collection**: Seamless integration with test execution
+  - **Real-time Analysis**: Immediate trend detection during test runs
+  - **Alert Generation**: Automatic alerts for detected regressions
+  - **Historical Tracking**: Long-term performance data storage
+  - **Benchmark Management**: Systematic baseline management
 
-    ## Production Readiness
-    The trend analysis system is production-ready with:
-    - Comprehensive statistical analysis capabilities
-    - Automated regression detection
-    - Predictive performance forecasting
-    - Risk assessment and early warning
-    - Historical benchmark comparison
-    - Integration with existing monitoring framework
+  ## Production Readiness
+  The trend analysis system is production-ready with:
+  - Comprehensive statistical analysis capabilities
+  - Automated regression detection
+  - Predictive performance forecasting
+  - Risk assessment and early warning
+  - Historical benchmark comparison
+  - Integration with existing monitoring framework
 
-    EOF
+  EOF
 
-      echo "✅ Trend analysis and regression detection validation completed successfully"
-      echo "Results saved to: $RESULTS_DIR"
-      echo "Summary available at: $RESULTS_DIR/trend-analysis-summary.md"
+    echo "✅ Trend analysis and regression detection validation completed successfully"
+    echo "Results saved to: $RESULTS_DIR"
+    echo "Summary available at: $RESULTS_DIR/trend-analysis-summary.md"
 
-      # Create completion marker
-      touch $out/test-completed
-  ''
+    # Create completion marker
+    touch $out/test-completed
+''
