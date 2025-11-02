@@ -21,19 +21,48 @@ let
   mockClaude = {
     version = "1.0.0";
     exists = true;
-    hasSettings = builtins.pathExists (claudeDir + "/settings.json");
-    commandsAvailable = builtins.pathExists (claudeDir + "/commands");
-    skillsAvailable = builtins.pathExists (claudeDir + "/skills");
+    # Behavioral: test configuration usability rather than just file existence
+    hasSettings =
+      let
+        settingsPath = claudeDir + "/settings.json";
+      in
+      if builtins.pathExists settingsPath then
+        # Behavioral: can we actually parse and use the settings?
+        (builtins.tryEval (builtins.fromJSON (builtins.readFile settingsPath))).success
+      else
+        false;
+    commandsAvailable =
+      let
+        commandsDir = claudeDir + "/commands";
+      in
+      if builtins.pathExists commandsDir then
+        # Behavioral: can we read and process command files?
+        builtins.length (lib.attrNames (builtins.readDir commandsDir)) > 0
+      else
+        false;
+    skillsAvailable =
+      let
+        skillsDir = claudeDir + "/skills";
+      in
+      if builtins.pathExists skillsDir then
+        # Behavioral: can we read and process skill files?
+        builtins.length (lib.attrNames (builtins.readDir skillsDir)) > 0
+      else
+        false;
   };
 
   # Test configuration parsing behavior - pure Nix validation
   parseSettingsJson =
     let
       settingsPath = claudeDir + "/settings.json";
+      parseResult = builtins.tryEval (builtins.readFile settingsPath);
     in
-    if builtins.pathExists settingsPath then
-      # Behavioral validation: try to parse JSON, catch errors
-      (builtins.fromJSON (builtins.readFile settingsPath))
+    if parseResult.success && builtins.stringLength parseResult.value > 0 then
+      # Behavioral validation: try to parse JSON, catch errors with tryEval
+      let
+        jsonResult = builtins.tryEval (builtins.fromJSON parseResult.value);
+      in
+      if jsonResult.success then jsonResult.value else { }
     else
       { };
 
@@ -41,62 +70,81 @@ let
   validateCommandFiles =
     let
       commandsDir = claudeDir + "/commands";
-      # Behavioral: validate by attempting to read and parse files
-      commandFiles =
-        if builtins.pathExists commandsDir then
+      # Behavioral: validate by attempting to read and parse files safely
+      readCommandFiles =
+        let
+          readResult = builtins.tryEval (builtins.readDir commandsDir);
+        in
+        if readResult.success then
           let
-            dirContents = builtins.readDir commandsDir;
+            dirContents = readResult.value;
             mdFiles = lib.filterAttrs (name: type: lib.hasSuffix ".md" name) dirContents;
           in
           lib.attrNames mdFiles
         else
           [ ];
 
-      # Behavioral validation: check structure by parsing content
+      # Behavioral validation: check structure by attempting to parse content safely
       checkCommandStructure =
-        content:
+        filePath:
         let
-          hasMarkdownHeader = builtins.match ".*#.*" content != null;
-          hasFrontmatter = builtins.match ".*---.*description:.*" content != null;
+          contentResult = builtins.tryEval (builtins.readFile filePath);
         in
-        hasMarkdownHeader || hasFrontmatter;
+        if contentResult.success then
+          let
+            content = contentResult.value;
+            hasMarkdownHeader = builtins.match ".*#.*" content != null;
+            hasFrontmatter = builtins.match ".*---.*description:.*" content != null;
+          in
+          hasMarkdownHeader || hasFrontmatter
+        else
+          false;
     in
     map (file: {
       name = file;
       path = commandsDir + "/${file}";
-      hasValidStructure =
-        let
-          content = builtins.readFile (commandsDir + "/${file}");
-        in
-        checkCommandStructure content;
-    }) commandFiles;
+      hasValidStructure = checkCommandStructure (commandsDir + "/${file}");
+    }) readCommandFiles;
 
   # Test skill file validation - behavioral approach
   validateSkillFiles =
     let
       skillsDir = claudeDir + "/skills";
-      # Behavioral: validate by attempting to read and parse files
-      skillFiles =
-        if builtins.pathExists skillsDir then
+      # Behavioral: validate by attempting to read and parse files safely
+      readSkillFiles =
+        let
+          readResult = builtins.tryEval (builtins.readDir skillsDir);
+        in
+        if readResult.success then
           let
-            dirContents = builtins.readDir skillsDir;
+            dirContents = readResult.value;
             mdFiles = lib.filterAttrs (name: type: lib.hasSuffix ".md" name) dirContents;
           in
           lib.attrNames mdFiles
         else
           [ ];
+
+      # Behavioral validation: check skill metadata by attempting to parse content
+      checkSkillStructure =
+        filePath:
+        let
+          contentResult = builtins.tryEval (builtins.readFile filePath);
+        in
+        if contentResult.success then
+          let
+            content = contentResult.value;
+            hasName = builtins.match ".*name:.*" content != null;
+            hasDescription = builtins.match ".*description:.*" content != null;
+          in
+          hasName && hasDescription
+        else
+          false;
     in
     map (file: {
       name = file;
       path = skillsDir + "/${file}";
-      validStructure =
-        let
-          content = builtins.readFile (skillsDir + "/${file}");
-          hasName = builtins.match ".*name:.*" content != null;
-          hasDescription = builtins.match ".*description:.*" content != null;
-        in
-        hasName && hasDescription;
-    }) skillFiles;
+      validStructure = checkSkillStructure (skillsDir + "/${file}");
+    }) readSkillFiles;
 
   # Behavioral test cases - focusing on functionality over structure
   tests = {
@@ -136,12 +184,13 @@ let
       usableSkills
     ) "Skill files do not provide usable metadata";
 
-    # Test that CLAUDE.md contains meaningful content (not just exists)
+    # Test that CLAUDE.md contains meaningful content (behavioral validation)
     claude-md-behavioral = testHelpers.assertTest "claude-md-behavioral" (
       let
         claudeMdPath = claudeDir + "/CLAUDE.md";
-        # Behavioral: test content usability, not just existence
-        content = if builtins.pathExists claudeMdPath then builtins.readFile claudeMdPath else "";
+        # Behavioral: test content usability safely, not just file existence
+        readResult = builtins.tryEval (builtins.readFile claudeMdPath);
+        content = if readResult.success then readResult.value else "";
         hasUsableContent = builtins.stringLength content > 100;
         hasMarkdownStructure = builtins.match ".*#.*" content != null;
         # Behavioral: can we extract sections from the markdown?
@@ -157,7 +206,9 @@ let
         claudeMdPath = claudeDir + "/CLAUDE.md";
         # Behavioral: test if the configuration can be used together
         hasSettings = builtins.length (builtins.attrNames settings) > 0;
-        hasDocs = builtins.pathExists claudeMdPath;
+        # Behavioral: can we actually read the documentation?
+        docsResult = builtins.tryEval (builtins.readFile claudeMdPath);
+        hasDocs = docsResult.success && builtins.stringLength docsResult.value > 50;
         # Behavioral consistency: if one component exists, others should be usable
         behaviorallyConsistent = if hasSettings then hasDocs else true;
       in

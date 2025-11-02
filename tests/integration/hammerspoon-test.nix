@@ -20,21 +20,31 @@ let
   # Path to Hammerspoon configuration
   hammerspoonDir = ../../users/shared/.config/hammerspoon;
 
-  # Basic existence checks
-  hammerspoonDirExists = builtins.pathExists hammerspoonDir;
-  initLuaExists = builtins.pathExists (hammerspoonDir + "/init.lua");
-  configAppsExists = builtins.pathExists (hammerspoonDir + "/configApplications.lua");
-  spoonsDirExists = builtins.pathExists (hammerspoonDir + "/Spoons");
+  # Behavioral validation: can we read and process Hammerspoon config?
+  hammerspoonDirResult = builtins.tryEval (builtins.readDir hammerspoonDir);
+  hammerspoonDirUsable = hammerspoonDirResult.success;
+  hammerspoonDirContents = if hammerspoonDirUsable then hammerspoonDirResult.value else { };
 
-  # Directory structure validation
-  hammerspoonDirContents = if hammerspoonDirExists then builtins.readDir hammerspoonDir else { };
+  # Behavioral validation: can we read specific configuration files?
+  initLuaResult = builtins.tryEval (builtins.readFile (hammerspoonDir + "/init.lua"));
+  configAppsResult = builtins.tryEval (
+    builtins.readFile (hammerspoonDir + "/configApplications.lua")
+  );
+  spoonsDirResult = builtins.tryEval (builtins.readDir (hammerspoonDir + "/Spoons"));
+
+  initLuaUsable = initLuaResult.success && builtins.stringLength initLuaResult.value > 0;
+  configAppsUsable = configAppsResult.success && builtins.stringLength configAppsResult.value > 0;
+  spoonsDirUsable = spoonsDirResult.success;
+
+  # Behavioral directory structure validation
   hasRequiredFiles =
-    builtins.hasAttr "init.lua" hammerspoonDirContents
+    hammerspoonDirUsable
+    && builtins.hasAttr "init.lua" hammerspoonDirContents
     && builtins.hasAttr "configApplications.lua" hammerspoonDirContents
     && builtins.hasAttr "Spoons" hammerspoonDirContents;
 
-  # Spoons directory validation
-  spoonsContents = if spoonsDirExists then builtins.readDir (hammerspoonDir + "/Spoons") else { };
+  # Behavioral Spoons directory validation
+  spoonsContents = if spoonsDirUsable then spoonsDirResult.value else { };
   expectedSpoons = [
     "Hyper.spoon"
     "Headspace.spoon"
@@ -48,17 +58,17 @@ let
     framework = "nixtest";
     type = "unit";
     tests = {
-      # Test that Hammerspoon config directory exists
-      hammerspoon-dir-exists = nixtest.test "hammerspoon-dir-exists" (assertTrue hammerspoonDirExists);
+      # Test that Hammerspoon config directory is readable and usable
+      hammerspoon-dir-usable = nixtest.test "hammerspoon-dir-usable" (assertTrue hammerspoonDirUsable);
 
-      # Test that init.lua exists
-      init-lua-exists = nixtest.test "init-lua-exists" (assertTrue initLuaExists);
+      # Test that init.lua is readable and has content
+      init-lua-usable = nixtest.test "init-lua-usable" (assertTrue initLuaUsable);
 
-      # Test that configApplications.lua exists
-      config-apps-exists = nixtest.test "config-apps-exists" (assertTrue configAppsExists);
+      # Test that configApplications.lua is readable and has content
+      config-apps-usable = nixtest.test "config-apps-usable" (assertTrue configAppsUsable);
 
-      # Test that Spoons directory exists
-      spoons-dir-exists = nixtest.test "spoons-dir-exists" (assertTrue spoonsDirExists);
+      # Test that Spoons directory is readable and usable
+      spoons-dir-usable = nixtest.test "spoons-dir-usable" (assertTrue spoonsDirUsable);
 
       # Test that all required files exist
       required-files-exist = nixtest.test "required-files-exist" (assertTrue hasRequiredFiles);
@@ -66,9 +76,9 @@ let
       # Test that all expected Spoons exist
       expected-spoons-exist = nixtest.test "expected-spoons-exist" (assertTrue hasExpectedSpoons);
 
-      # Test that directory has expected structure
+      # Test that directory has expected structure (behavioral)
       directory-structure = nixtest.test "directory-structure" (
-        assertTrue (hammerspoonDirExists && initLuaExists && configAppsExists && spoonsDirExists)
+        assertTrue (hammerspoonDirUsable && initLuaUsable && configAppsUsable && spoonsDirUsable)
       );
     };
   };
@@ -78,40 +88,40 @@ in
 pkgs.runCommand "hammerspoon-test-results" { } ''
   echo "Running Hammerspoon configuration tests..."
 
-  # Test that Hammerspoon config directory exists
-  echo "Test 1: Hammerspoon directory exists..."
+  # Test that Hammerspoon config directory is readable and usable
+  echo "Test 1: Hammerspoon directory is readable..."
   ${
-    if hammerspoonDirExists then
-      ''echo "✅ PASS: Hammerspoon directory exists"''
+    if hammerspoonDirUsable then
+      ''echo "✅ PASS: Hammerspoon directory is readable and usable"''
     else
-      ''echo "❌ FAIL: Hammerspoon directory not found"; exit 1''
+      ''echo "❌ FAIL: Hammerspoon directory is not readable or not usable"; exit 1''
   }
 
-  # Test that init.lua exists
-  echo "Test 2: init.lua exists..."
+  # Test that init.lua is readable and has content
+  echo "Test 2: init.lua is readable with content..."
   ${
-    if initLuaExists then
-      ''echo "✅ PASS: init.lua exists"''
+    if initLuaUsable then
+      ''echo "✅ PASS: init.lua is readable and has content"''
     else
-      ''echo "❌ FAIL: init.lua not found"; exit 1''
+      ''echo "❌ FAIL: init.lua is not readable or empty"; exit 1''
   }
 
-  # Test that configApplications.lua exists
-  echo "Test 3: configApplications.lua exists..."
+  # Test that configApplications.lua is readable and has content
+  echo "Test 3: configApplications.lua is readable with content..."
   ${
-    if configAppsExists then
-      ''echo "✅ PASS: configApplications.lua exists"''
+    if configAppsUsable then
+      ''echo "✅ PASS: configApplications.lua is readable and has content"''
     else
-      ''echo "❌ FAIL: configApplications.lua not found"; exit 1''
+      ''echo "❌ FAIL: configApplications.lua is not readable or empty"; exit 1''
   }
 
-  # Test that Spoons directory exists
-  echo "Test 4: Spoons directory exists..."
+  # Test that Spoons directory is readable and usable
+  echo "Test 4: Spoons directory is readable..."
   ${
-    if spoonsDirExists then
-      ''echo "✅ PASS: Spoons directory exists"''
+    if spoonsDirUsable then
+      ''echo "✅ PASS: Spoons directory is readable and usable"''
     else
-      ''echo "❌ FAIL: Spoons directory not found"; exit 1''
+      ''echo "❌ FAIL: Spoons directory is not readable or not usable"; exit 1''
   }
 
   # Test that all required files exist
@@ -132,13 +142,13 @@ pkgs.runCommand "hammerspoon-test-results" { } ''
       ''echo "❌ FAIL: Missing expected Spoons"; exit 1''
   }
 
-  # Test that directory has expected structure
+  # Test that directory has expected structure (behavioral)
   echo "Test 7: directory structure integrity..."
   ${
-    if hammerspoonDirExists && initLuaExists && configAppsExists && spoonsDirExists then
-      ''echo "✅ PASS: Directory structure is correct"''
+    if hammerspoonDirUsable && initLuaUsable && configAppsUsable && spoonsDirUsable then
+      ''echo "✅ PASS: Directory structure is correct and usable"''
     else
-      ''echo "❌ FAIL: Directory structure is incomplete"; exit 1''
+      ''echo "❌ FAIL: Directory structure is incomplete or not usable"; exit 1''
   }
 
   echo "✅ All Hammerspoon configuration tests passed!"

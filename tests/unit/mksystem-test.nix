@@ -15,8 +15,12 @@ let
   mkSystemFunc = import ../../lib/mksystem.nix { inherit inputs self; };
   testFunctionExists = builtins.isFunction mkSystemFunc;
 
-  # Test 2: File exists and can be imported
-  fileExists = builtins.pathExists ../../lib/mksystem.nix;
+  # Test 2: File can be imported and is usable (behavioral test)
+  fileImportable =
+    let
+      importResult = builtins.tryEval (import ../../lib/mksystem.nix { inherit inputs self; });
+    in
+    importResult.success && builtins.isFunction importResult.value;
 
   # Test 3: Function can be called with inputs (basic test)
   canCallWithInputs = builtins.tryEval (mkSystemFunc inputs);
@@ -41,13 +45,13 @@ in
 pkgs.runCommand "mksystem-test-results" { } ''
   echo "Running mkSystem unit tests..."
 
-  # Test 1: mkSystem file exists
-  echo "Test 1: mkSystem file exists..."
+  # Test 1: mkSystem file is importable and functional
+  echo "Test 1: mkSystem file is importable..."
   ${
-    if fileExists then
-      ''echo "✅ PASS: mkSystem.nix file exists"''
+    if fileImportable then
+      ''echo "✅ PASS: mkSystem.nix is importable and returns a function"''
     else
-      ''echo "❌ FAIL: mkSystem.nix file not found"; exit 1''
+      ''echo "❌ FAIL: mkSystem.nix is not importable or not a function"; exit 1''
   }
 
   # Test 2: mkSystem function exists and is callable

@@ -25,28 +25,40 @@
     in
     result.success;
 
-  # 플랫폼별 경로 검증
+  # 플랫폼별 경로 검증 (behavioral)
   # Darwin/Linux 조건 로직 중복 제거
   checkPlatformPath =
     darwinPath: linuxPath:
     if platformSystem.isDarwin then
-      builtins.pathExists darwinPath
+      let
+        readResult = builtins.tryEval (builtins.readFile darwinPath);
+      in
+      readResult.success && builtins.stringLength readResult.value > 0
     else if platformSystem.isLinux then
-      builtins.pathExists linuxPath
+      let
+        readResult = builtins.tryEval (builtins.readFile linuxPath);
+      in
+      readResult.success && builtins.stringLength readResult.value > 0
     else
       true;
 
-  # 플랫폼별 스크립트 존재 검증
+  # 플랫폼별 스크립트 존재 검증 (behavioral)
   checkPlatformScript =
     scriptBaseName:
     let
       darwinScript = "../../scripts/${scriptBaseName}-darwin.sh";
       linuxScript = "../../scripts/${scriptBaseName}-linux.sh";
+      checkScriptReadable =
+        scriptPath:
+        let
+          readResult = builtins.tryEval (builtins.readFile scriptPath);
+        in
+        readResult.success && builtins.stringLength readResult.value > 0;
     in
     if platformSystem.isDarwin then
-      builtins.pathExists darwinScript
+      checkScriptReadable darwinScript
     else if platformSystem.isLinux then
-      builtins.pathExists linuxScript
+      checkScriptReadable linuxScript
     else
       true;
 
@@ -70,16 +82,30 @@
   # 모든 패키지가 null이 아닌지 확인
   allPackagesExist = packages: builtins.all (pkg: pkg != null) packages;
 
-  # 여러 경로 존재 여부 동시 검증
-  allPathsExist = paths: builtins.all builtins.pathExists paths;
+  # 여러 경로 존재 여부 동시 검증 (behavioral)
+  allPathsExist =
+    paths:
+    builtins.all (
+      path:
+      let
+        readResult = builtins.tryEval (builtins.readFile path);
+      in
+      readResult.success && builtins.stringLength readResult.value > 0
+    ) paths;
 
-  # 설정 디렉토리 구조 검증
+  # 설정 디렉토리 구조 검증 (behavioral)
   checkConfigStructure =
     basePath: requiredPaths:
     let
       fullPaths = builtins.map (p: "${basePath}/${p}") requiredPaths;
     in
-    builtins.all builtins.pathExists fullPaths;
+    builtins.all (
+      path:
+      let
+        readResult = builtins.tryEval (builtins.readFile path);
+      in
+      readResult.success && builtins.stringLength readResult.value > 0
+    ) fullPaths;
 
   # 사용자 설정 검증용 홈 디렉토리 생성
   getUserHomeDir = user: if platformSystem.isDarwin then "/Users/${user}" else "/home/${user}";

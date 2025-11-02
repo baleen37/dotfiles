@@ -14,37 +14,36 @@ let
   # Import nixtest framework assertions
   inherit (nixtest.assertions) assertTrue assertFalse;
 
-  # Try to import git config (this will fail initially)
+  # Behavioral test: try to import and use git config
   gitConfigFile = ../../users/shared/git.nix;
-  gitConfigExists = builtins.pathExists gitConfigFile;
+  gitConfigResult = builtins.tryEval (
+    import gitConfigFile {
+      inherit pkgs lib;
+      config = { };
+    }
+  );
 
-  # Test if git config can be imported (will fail initially)
-  gitConfig =
-    if gitConfigExists then
-      (import gitConfigFile {
-        inherit pkgs lib;
-        config = { };
-      })
-    else
-      { };
+  # Test if git config can be imported and is usable
+  gitConfig = if gitConfigResult.success then gitConfigResult.value else { };
+  gitConfigUsable = gitConfigResult.success;
 
-  # Test if git is enabled
-  gitEnabled = gitConfigExists && gitConfig.programs.git.enable;
+  # Test if git is enabled (behavioral)
+  gitEnabled = gitConfigUsable && gitConfig.programs.git.enable;
 
-  # Test if user settings exist
-  hasUserSettings = gitConfigExists && builtins.hasAttr "user" gitConfig.programs.git.settings;
+  # Test if user settings exist (behavioral)
+  hasUserSettings = gitConfigUsable && builtins.hasAttr "user" gitConfig.programs.git.settings;
 
-  # Test if LFS is enabled
-  lfsEnabled = gitConfigExists && gitConfig.programs.git.lfs.enable;
+  # Test if LFS is enabled (behavioral)
+  lfsEnabled = gitConfigUsable && gitConfig.programs.git.lfs.enable;
 
-  # Test if ignores exist
-  hasIgnores = gitConfigExists && builtins.hasAttr "ignores" gitConfig.programs.git;
+  # Test if ignores exist (behavioral)
+  hasIgnores = gitConfigUsable && builtins.hasAttr "ignores" gitConfig.programs.git;
 
-  # Test if default branch is main
-  hasMainBranch = gitConfigExists && gitConfig.programs.git.settings.init.defaultBranch == "main";
+  # Test if default branch is main (behavioral)
+  hasMainBranch = gitConfigUsable && gitConfig.programs.git.settings.init.defaultBranch == "main";
 
-  # Test if pull rebase is enabled
-  pullRebaseEnabled = gitConfigExists && gitConfig.programs.git.settings.pull.rebase;
+  # Test if pull rebase is enabled (behavioral)
+  pullRebaseEnabled = gitConfigUsable && gitConfig.programs.git.settings.pull.rebase;
 
   # Test suite using NixTest framework
   testSuite = {
@@ -52,8 +51,8 @@ let
     framework = "nixtest";
     type = "unit";
     tests = {
-      # Test that git.nix file exists (will fail initially)
-      git-config-exists = nixtest.test "git-config-exists" (assertTrue gitConfigExists);
+      # Test that git.nix can be imported and is usable (behavioral)
+      git-config-usable = nixtest.test "git-config-usable" (assertTrue gitConfigUsable);
 
       # Test that git is enabled
       git-enabled = nixtest.test "git-enabled" (assertTrue gitEnabled);
@@ -80,13 +79,13 @@ in
 pkgs.runCommand "git-test-results" { } ''
   echo "Running Git configuration tests..."
 
-  # Test that git.nix file exists
-  echo "Test 1: git.nix file exists..."
+  # Test that git.nix can be imported and is usable
+  echo "Test 1: git.nix file is importable..."
   ${
-    if gitConfigExists then
-      ''echo "✅ PASS: git.nix file exists"''
+    if gitConfigUsable then
+      ''echo "✅ PASS: git.nix is importable and usable"''
     else
-      ''echo "❌ FAIL: git.nix file not found"; exit 1''
+      ''echo "❌ FAIL: git.nix is not importable or not usable"; exit 1''
   }
 
   # Test that git is enabled
