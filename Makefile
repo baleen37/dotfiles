@@ -175,7 +175,7 @@ switch-user: check-user
 			*-darwin) TARGET=macbook-pro;; \
 		esac; \
 		echo "🔨 Activating home-manager configuration for $(USER)..."; \
-		export USER=$(USER); home-manager switch --impure --flake .#$(USER)@$${TARGET} $(ARGS) || exit 1; \
+		export USER=$(USER); NIXPKGS_ALLOW_UNFREE=1 home-manager switch --impure --flake .#$(USER)@$${TARGET} $(ARGS) || exit 1; \
 		echo "✅ User configuration applied successfully"; \
 	else \
 		echo "❌ ERROR: Only Darwin (macOS) is supported. NixOS configurations not defined."; \
