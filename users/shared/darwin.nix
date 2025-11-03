@@ -75,6 +75,7 @@ let
     "alt-tab"
     "claude"
     "karabiner-elements" # Key remapping and modification tool
+    "orbstack" # Docker and Linux VM management
     "tailscale-app" # VPN mesh network with GUI
     "teleport-connect" # Teleport GUI client for secure infrastructure access
 
