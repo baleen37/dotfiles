@@ -13,7 +13,7 @@
 # Packages included:
 #   - Core utilities: wget, zip, tree, curl, jq, ripgrep, fzf
 #   - Development tools: nodejs, python3, uv, direnv, pre-commit
-#   - Nix tools: nixfmt, statix, deadnix, home-manager
+#   - Nix tools: nixfmt, statix, deadnix
 #   - Cloud tools: act, gh, docker
 #   - Security: yubikey-agent, keepassxc
 #   - SSH tools: autossh, mosh, teleport
@@ -86,7 +86,6 @@
       nixfmt
       statix
       deadnix
-      home-manager
       gnumake
       cmake
 
@@ -136,6 +135,4 @@
     force = true;
   };
 
-  # Programs
-  programs.home-manager.enable = true;
 }

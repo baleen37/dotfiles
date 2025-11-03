@@ -72,6 +72,29 @@
         darwin = true;
       };
 
+      # Home Manager configurations (supports multiple users)
+      homeConfigurations =
+        let
+          mkHomeConfig =
+            userName:
+            home-manager.lib.homeManagerConfiguration {
+              pkgs = nixpkgs.legacyPackages.aarch64-darwin;
+              extraSpecialArgs = {
+                inherit inputs self;
+                currentSystemUser = userName;
+                isDarwin = true;
+              };
+              modules = [
+                ./users/shared/home-manager.nix
+              ];
+            };
+        in
+        {
+          baleen = mkHomeConfig "baleen";
+          jito = mkHomeConfig "jito";
+          testuser = mkHomeConfig "testuser";
+        };
+
       # NixOS configurations
       nixosConfigurations = {
         vm-aarch64-utm = nixpkgs.lib.nixosSystem {

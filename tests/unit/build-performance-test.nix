@@ -277,7 +277,7 @@ let
   smallConfigTest = testHelpers.mkTest "small-config-evaluation" ''
     echo "Testing small configuration evaluation..."
     # Simulate small config evaluation test
-    echo "Duration: 15" > /tmp/small-config-time.txt
+    echo "Duration: 15" > small-config-time.txt
     echo "✅ PASS: Small configuration evaluation completed"
     touch $out
   '';
@@ -286,7 +286,7 @@ let
   mediumConfigTest = testHelpers.mkTest "medium-config-evaluation" ''
     echo "Testing medium configuration evaluation..."
     # Simulate medium config evaluation test
-    echo "Duration: 25" > /tmp/medium-config-time.txt
+    echo "Duration: 25" > medium-config-time.txt
     echo "✅ PASS: Medium configuration evaluation completed"
     touch $out
   '';
@@ -295,7 +295,7 @@ let
   largeConfigTest = testHelpers.mkTest "large-config-evaluation" ''
     echo "Testing large configuration evaluation..."
     # Simulate large config evaluation test
-    echo "Duration: 45" > /tmp/large-config-time.txt
+    echo "Duration: 45" > large-config-time.txt
     echo "Large config evaluation completed"
     echo "✅ PASS: Large configuration evaluation completed"
     touch $out
@@ -305,7 +305,7 @@ let
   simpleExpressionTest = testHelpers.mkTest "simple-expression-evaluation" ''
     echo "Testing simple expression evaluation..."
     # Simulate simple expression evaluation test
-    echo "Duration: 5" > /tmp/simple-expression-time.txt
+    echo "Duration: 5" > simple-expression-time.txt
     echo "✅ PASS: Simple expression evaluation completed"
     touch $out
   '';
@@ -338,7 +338,7 @@ let
   memoryEstimationTest = testHelpers.mkTest "memory-estimation" ''
     echo "Testing memory estimation capabilities..."
     # Simulate memory estimation test
-    echo "Size: 8192" > /tmp/memory-estimate-size.txt
+    echo "Size: 8192" > memory-estimate-size.txt
     echo "✅ PASS: Memory estimation completed"
     touch $out
   '';

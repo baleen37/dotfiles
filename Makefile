@@ -170,12 +170,8 @@ switch-user: check-user
 	@echo "🔧 Applying user configuration only (no sudo required)..."
 	@OS=$$(uname -s); \
 	if [ "$${OS}" = "Darwin" ]; then \
-		TARGET=$${HOST:-macbook-pro}; \
-		case "$$TARGET" in \
-			*-darwin) TARGET=macbook-pro;; \
-		esac; \
 		echo "🔨 Activating home-manager configuration for $(USER)..."; \
-		export USER=$(USER); NIXPKGS_ALLOW_UNFREE=1 home-manager switch --impure --flake .#$(USER)@$${TARGET} $(ARGS) || exit 1; \
+		export USER=$(USER); NIXPKGS_ALLOW_UNFREE=1 home-manager switch --impure --flake .#$(USER) $(ARGS) || exit 1; \
 		echo "✅ User configuration applied successfully"; \
 	else \
 		echo "❌ ERROR: Only Darwin (macOS) is supported. NixOS configurations not defined."; \
