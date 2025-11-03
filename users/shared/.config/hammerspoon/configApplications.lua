@@ -63,8 +63,12 @@ return {
     localBindings = {',', '.'},
   },
     ['com.joehribar.toggl'] = {
-    bundleID = 'com.joehribar.toggl',
-    hyperKey = 'n'
+    bundleID = 'com.joehribar.toggl'
+  },
+  ['notion.id'] = {
+    bundleID = 'notion.id',
+    hyperKey = 'n',
+    tags = {'notes', 'planning', 'research'}
   },
   ['com.ideasoncanvas.mindnode.macos'] = {
     bundleID = 'com.ideasoncanvas.mindnode.macos',

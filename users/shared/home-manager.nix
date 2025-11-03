@@ -98,6 +98,8 @@
       # Cloud tools
       act
       gh
+      docker
+      docker-compose
 
       # Security tools
 
