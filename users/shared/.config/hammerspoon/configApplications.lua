@@ -34,14 +34,7 @@ return {
     hyperKey = 'e',
     tags = {'communication', 'distraction'}
   },
-  ['com.flexibits.fantastical2.mac'] = {
-    bundleID = 'com.flexibits.fantastical2.mac',
-    hyperKey = 'y',
-    localBindings = {'/'},
-    tags = {'planning', 'review', 'calendar'},
-    whitelisted = true,
-  },
-  ['com.apple.finder'] = {
+    ['com.apple.finder'] = {
     bundleID = 'com.apple.finder',
     hyperKey = 'f'
   },
@@ -69,14 +62,7 @@ return {
     whitelisted = true,
     localBindings = {',', '.'},
   },
-  ['com.agiletortoise.Drafts-OSX'] = {
-    bundleID = 'com.agiletortoise.Drafts-OSX',
-    hyperKey ='d',
-    tags = {'review', 'writing', 'research', 'notes'},
-    whitelisted = true,
-    localBindings = {'x', ';'}
-  },
-  ['com.joehribar.toggl'] = {
+    ['com.joehribar.toggl'] = {
     bundleID = 'com.joehribar.toggl',
     hyperKey = 'n'
   },
@@ -142,10 +128,10 @@ return {
     bundleID = 'com.flexibits.cardhop.mac',
     localBindings = {'u'}
   },
-  ['com.raycast.macos'] = {
-    bundleID = 'com.raycast.macos',
-    localBindings = {'c', 'n', 'space', ';'}
-  },
+  -- ['com.raycast.macos'] = {
+  --   bundleID = 'com.raycast.macos',
+  --   localBindings = {'c', 'n', 'space', "'"}
+  -- },
   ['com.superultra.Homerow'] = {
     bundleID = 'com.superultra.Homerow',
     localBindings = {'return', 'tab'}
