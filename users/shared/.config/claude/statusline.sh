@@ -79,9 +79,9 @@ else
     context_length=0
 fi
 
-# Fallback to simple context.length if transcript parsing fails
+# Fallback to simple context fields if transcript parsing fails
 if [[ "$context_length" == "null" || "$context_length" == "0" || -z "$context_length" ]]; then
-    context_length=$(echo "$input" | jq -r '.context.length // 0')
+    context_length=$(echo "$input" | jq -r '.context.length // .context.tokens // .context.inputTokens // 0')
 fi
 
 # Format context length (e.g., 18.6k)
