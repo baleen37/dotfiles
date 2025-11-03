@@ -82,6 +82,9 @@ in
       # OpenCode CLI shortcut
       oc = "opencode";
 
+      # IntelliJ IDEA launcher (background)
+      idea = "idea . &";
+
       # Use difftastic for syntax-aware diffing
       diff = "difft";
 
