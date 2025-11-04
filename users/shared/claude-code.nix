@@ -36,23 +36,25 @@
     # Claude Code plugin auto-installation
     # Runs on every build, automatically skips if already installed
 
-    CLAUDE_BIN="$(command -v claude)"
+    # PATH setup for activation script environment (required in our environment)
+    export PATH="/etc/profiles/per-user/$USER/bin:$HOME/.nix-profile/bin:/run/current-system/sw/bin:$PATH"
+
+    CLAUDE_BIN="$(command -v claude || true)"
     if [ -z "$CLAUDE_BIN" ]; then
-      echo "Claude Code not found, skipping plugin installation"
+      noteEcho "Claude Code not found, skipping plugin installation"
       exit 0
     fi
 
-    echo "Installing Claude Code plugins..."
+    verboseEcho "Installing Claude Code plugins..."
 
-    # 1. Superpowers marketplace 추가
-    echo "Adding superpowers marketplace..."
-    $CLAUDE_BIN plugin marketplace add obra/superpowers-marketplace 2>/dev/null || echo "Superpowers marketplace already exists or failed to add"
+    # Add marketplace (idempotent)
+    noteEcho "Adding superpowers marketplace..."
+    run $CLAUDE_BIN plugin marketplace add obra/superpowers-marketplace 2>/dev/null || warnEcho "Superpowers marketplace setup failed"
 
-    # 2. Superpowers 플러그인 설치
-    echo "Installing superpowers plugin..."
-    $CLAUDE_BIN plugin install superpowers@superpowers-marketplace 2>/dev/null || echo "Superpowers plugin already installed or failed to install"
+    # Install plugin (idempotent)
+    run $CLAUDE_BIN plugin install superpowers@superpowers-marketplace 2>/dev/null || warnEcho "Superpowers plugin setup failed"
 
-    echo "Claude Code plugin installation completed"
+    noteEcho "Claude Code plugin installation completed"
   '';
 
 }
