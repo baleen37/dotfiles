@@ -43,6 +43,7 @@ help:
 	@echo "🧪 Testing:"
 	@echo "  test         - Run stable tests (fast, <30s)"
 	@echo "  test-stable  - Run stable tests explicitly"
+	@echo "  benchmark    - Benchmark test performance (5 runs)"
 	@echo "  test-all     - Run comprehensive test suite (includes VM tests)"
 	@echo "  test-vm      - Full VM test (build + boot + E2E validation)"
 		@echo ""
@@ -101,6 +102,10 @@ test-stable:
 
 test: test-stable
 	@echo "🧪 Testing completed successfully"
+
+benchmark:
+	@echo "🏃 Benchmarking test performance..."
+	@./scripts/benchmark-tests.sh
 
 test-unit:
 	@echo "🧪 Running unit tests (auto-discovered)..."
@@ -253,4 +258,4 @@ vm/switch:
 		sudo nixos-rebuild switch --flake \"/nix-config#vm-aarch64-utm\" \
 	"
 
-.PHONY: help check-user format lint test test-stable test-unit test-integration test-all test-e2e test-vm test-linux-builder build build-switch switch switch-user vm/bootstrap0 vm/bootstrap vm/copy vm/switch
+.PHONY: help check-user format lint test test-stable benchmark test-unit test-integration test-all test-e2e test-vm test-linux-builder build build-switch switch switch-user vm/bootstrap0 vm/bootstrap vm/copy vm/switch
