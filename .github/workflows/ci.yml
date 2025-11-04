@@ -1,386 +1,91 @@
-name: CI/CD Pipeline
+name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
+    tags: ['v*']
   pull_request:
-    branches: [ main ]
-    types: [labeled, synchronize, ready_for_review]
-  pull_request_review:
-    types: [submitted]
-  check_suite:
-    types: [completed]
-  issue_comment:
-    types: [created]
-  pull_request_review_comment:
-    types: [created]
-  schedule:
-    # Run daily at 09:00 KST (00:00 UTC) for dependency updates
-    - cron: '0 0 * * *'
   workflow_dispatch:
-    inputs:
-      pr_number:
-        description: 'PR number to auto-merge'
-        required: false
-        type: string
-      force:
-        description: 'Force merge (skip some safety checks)'
-        required: false
-        type: boolean
-        default: false
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
-  contents: write
-  pull-requests: write
-  checks: read
-  actions: read
-  issues: write
-  actions: write
-  checks: write
-  statuses: write
-  id-token: write
+  contents: read
 
 env:
-  REPO: ${{ github.repository }}
+  NIX_CONFIG: |
+    max-jobs = auto
+    cores = 0
+    substituters = https://cache.nixos.org https://nix-community.cachix.org https://baleen-nix.cachix.org
+    trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= baleen-nix.cachix.org-1:awgC7Sut148An/CZ6TZA+wnUtJmJnOvl5NThGio9j5k=
+    fallback = true
+    narinfo-cache-negative-ttl = 0
 
 jobs:
-  # CI Tests
-  test-matrix:
-    if: github.event_name != 'schedule' && github.event_name != 'workflow_dispatch'
+  ci:
+    name: CI (${{ matrix.name }})
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
-        platform:
-          - { name: "Darwin (Apple Silicon)", os: "macos-15", arch: "aarch64-darwin" }
-          - { name: "Linux x64", os: "ubuntu-latest", arch: "x86_64-linux" }
-          - { name: "Linux ARM", os: "ubuntu-latest", arch: "aarch64-linux" }
-
-    runs-on: ${{ matrix.platform.os }}
-
+        include:
+          - name: Darwin
+            os: macos-15
+          - name: Linux x64
+            os: ubuntu-latest
+          - name: Linux ARM
+            os: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Install Nix
-      uses: cachix/install-nix-action@v22
-      with:
-        nix_path: nixpkgs=channel:nixos-unstable
-
-    - name: Setup Cachix
-      uses: cachix/cachix-action@v12
-      with:
-        name: baleen-nix
-        authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
-
-    - name: Run stable tests
-      run: |
-        echo "🧪 Running stable tests on ${{ matrix.platform.name }}..."
-        time make test
-
-    - name: Verify test execution time
-      run: |
-        echo "⏱️ Measuring test execution time..."
-        start_time=$(date +%s)
-        make test
-        end_time=$(date +%s)
-        duration=$((end_time - start_time))
-        echo "Total execution time: $duration seconds"
-
-        # Assert tests complete within 60 seconds (CI allowance)
-        if [ $duration -gt 60 ]; then
-          echo "❌ Tests took too long: $duration seconds (max: 60s)"
-          exit 1
-        else
-          echo "✅ Tests completed within time limit"
-        fi
-
-  # Auto-merge functionality
-  check-auto-merge-conditions:
-    if: github.event_name == 'pull_request' || github.event_name == 'pull_request_review' || github.event_name == 'check_suite' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    outputs:
-      should-auto-merge: ${{ steps.check.outputs.should-auto-merge }}
-      pr-number: ${{ steps.check.outputs.pr-number }}
-
-    steps:
-      - name: Check auto-merge conditions
-        id: check
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Determine PR number
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            PR_NUMBER="${{ github.event.inputs.pr_number }}"
-          elif [[ -n "${{ github.event.pull_request.number }}" ]]; then
-            PR_NUMBER="${{ github.event.pull_request.number }}"
-          else
-            echo "Auto-merge check not applicable to this event type"
-            echo "should-auto-merge=false" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          echo "pr-number=$PR_NUMBER" >> $GITHUB_OUTPUT
-          echo "Checking auto-merge conditions for PR #$PR_NUMBER"
-
-          # Get PR details
-          PR_DATA=$(gh api repos/$REPO/pulls/$PR_NUMBER)
-
-          # Check if PR has auto-merge label
-          HAS_AUTO_MERGE_LABEL=$(echo "$PR_DATA" | jq -r '.labels[] | select(.name == "auto-merge") | .name')
-
-          # Check if PR is draft
-          IS_DRAFT=$(echo "$PR_DATA" | jq -r '.draft')
-
-          # Check if PR is mergeable
-          IS_MERGEABLE=$(echo "$PR_DATA" | jq -r '.mergeable')
-
-          # Check PR state
-          PR_STATE=$(echo "$PR_DATA" | jq -r '.state')
-
-          echo "PR State: $PR_STATE"
-          echo "Is Draft: $IS_DRAFT"
-          echo "Is Mergeable: $IS_MERGEABLE"
-          echo "Has auto-merge label: $HAS_AUTO_MERGE_LABEL"
-
-          # Determine if should auto-merge
-          SHOULD_AUTO_MERGE="false"
-
-          if [[ "$PR_STATE" == "open" ]] && \
-             [[ "$IS_DRAFT" == "false" ]] && \
-             [[ "$IS_MERGEABLE" == "true" ]] && \
-             [[ -n "$HAS_AUTO_MERGE_LABEL" ]]; then
-            SHOULD_AUTO_MERGE="true"
-            echo "✅ All conditions met for auto-merge"
-          else
-            echo "❌ Auto-merge conditions not met:"
-            [[ "$PR_STATE" != "open" ]] && echo "  - PR is not open"
-            [[ "$IS_DRAFT" == "true" ]] && echo "  - PR is draft"
-            [[ "$IS_MERGEABLE" != "true" ]] && echo "  - PR is not mergeable"
-            [[ -z "$HAS_AUTO_MERGE_LABEL" ]] && echo "  - Missing 'auto-merge' label"
-          fi
-
-          echo "should-auto-merge=$SHOULD_AUTO_MERGE" >> $GITHUB_OUTPUT
-
-  auto-merge:
-    if: needs.check-auto-merge-conditions.outputs.should-auto-merge == 'true'
-    needs: check-auto-merge-conditions
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Enable auto-merge
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          PR_NUMBER="${{ needs.check-auto-merge-conditions.outputs.pr-number }}"
-
-          echo "Enabling auto-merge for PR #$PR_NUMBER"
-
-          # Enable auto-merge with squash
-          if gh pr merge "$PR_NUMBER" --auto --squash --repo "$REPO"; then
-            echo "::notice::✅ Auto-merge enabled for PR #$PR_NUMBER"
-            COMMENT="🤖 Auto-merge enabled ✅ - 이 PR은 모든 CI 검사가 통과한 후 자동으로 병합됩니다."
-          else
-            echo "::error::❌ Failed to enable auto-merge for PR #$PR_NUMBER"
-            COMMENT="❌ Auto-merge failed - Auto-merge 프로세스가 실패했습니다. CI 검사와 브랜치 보호 규칙을 확인해주세요."
-          fi
-
-          # Add comment to PR
-          gh pr comment "$PR_NUMBER" --body "$COMMENT" --repo "$REPO"
-
-  # Dependency Updates (Daily)
-  update-dependencies:
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
-    outputs:
-      has-changes: ${{ steps.check-changes.outputs.has-changes }}
-      pr-number: ${{ steps.create-pr.outputs.pr-number }}
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.REPO_PAT }}
-          fetch-depth: 0
-
-      - name: Install Nix
-        uses: cachix/install-nix-action@v25
-        with:
-          nix_path: nixpkgs=channel:nixos-unstable
-          extra_nix_config: |
-            max-jobs = auto
-            cores = 0
-            substituters = https://cache.nixos.org https://nix-community.cachix.org
-            trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
-
-      - name: Cache Nix store
-        uses: actions/cache@v4
-        with:
-          path: |
-            /nix/store
-            ~/.cache/nix
-          key: ${{ runner.os }}-auto-update-nix-${{ hashFiles('flake.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-auto-update-nix-
-            ${{ runner.os }}-nix-
-
-      - name: Configure Git for updates
-        run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-
-      - name: Update flake inputs
-        id: update
-        run: |
-          echo "::group::Updating flake inputs"
-
-          # Store original lock file hash
-          ORIGINAL_HASH=$(sha256sum flake.lock | cut -d' ' -f1)
-          echo "original-hash=$ORIGINAL_HASH" >> $GITHUB_OUTPUT
-
-          # Update all inputs
-          if ! nix flake update --commit-lock-file; then
-            echo "::error::Failed to update flake inputs"
-            exit 1
-          fi
-
-          # Store new lock file hash
-          NEW_HASH=$(sha256sum flake.lock | cut -d' ' -f1)
-          echo "new-hash=$NEW_HASH" >> $GITHUB_OUTPUT
-
-          echo "::endgroup::"
-
-      - name: Validate flake after update
-        run: |
-          echo "::group::Validating flake structure"
-
-          if ! nix flake check --impure --no-build; then
-            echo "::error::Flake validation failed after update"
-            exit 1
-          fi
-
-          echo "::endgroup::"
-
-      - name: Check for changes
-        id: check-changes
-        run: |
-          if [ "${{ steps.update.outputs.original-hash }}" = "${{ steps.update.outputs.new-hash }}" ]; then
-            echo "has-changes=false" >> $GITHUB_OUTPUT
-            echo "::notice::No dependency updates available"
-          else
-            echo "has-changes=true" >> $GITHUB_OUTPUT
-            echo "::notice::Dependency updates found"
-          fi
-
-      - name: Create and push branch
-        if: steps.check-changes.outputs.has-changes == 'true'
-        id: create-branch
-        run: |
-          BRANCH_NAME="auto-update/flake-$(date +%Y%m%d-%H%M%S)"
-          echo "branch-name=$BRANCH_NAME" >> $GITHUB_OUTPUT
-
-          # Ensure we're up to date with main before creating branch
-          git fetch origin main
-          git rebase origin/main
-
-          git checkout -b "$BRANCH_NAME"
-          git push origin "$BRANCH_NAME"
-
-      - name: Create Pull Request
-        if: steps.check-changes.outputs.has-changes == 'true'
-        id: create-pr
-        env:
-          GITHUB_TOKEN: ${{ secrets.REPO_PAT }}
-        run: |
-          echo "::group::Creating Pull Request"
-
-          PR_BODY="## Dependency Update Summary
-          The following dependencies have been updated:
-
-          ## Test Plan
-          - [ ] Successful build on all platforms
-          - [ ] CI pipeline passes
-          - [ ] Stable tests pass
-
-          🤖 This PR was automatically generated. It will be auto-merged when CI tests pass."
-
-          PR_URL=$(gh pr create \
-            --title "chore: automatic flake dependency update $(date +%Y-%m-%d)" \
-            --body "$PR_BODY" \
-            --base main \
-            --head "${{ steps.create-branch.outputs.branch-name }}" \
-            --label "dependencies" \
-            --label "auto-merge")
-
-          PR_NUMBER=$(echo "$PR_URL" | grep -o '[0-9]\+$')
-          echo "pr-number=$PR_NUMBER" >> $GITHUB_OUTPUT
-          echo "pr-url=$PR_URL" >> $GITHUB_OUTPUT
-
-          echo "::notice::Created PR #$PR_NUMBER: $PR_URL"
-          echo "::endgroup::"
-
-  # Claude Assistant Integration
-  claude-code-action:
-    if: |
-      (github.event_name == 'issue_comment' || github.event_name == 'pull_request_review_comment') &&
-      contains(github.event.comment.body, '@claude')
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
         with:
           fetch-depth: 0
 
-      - name: Run Claude PR Action
-        uses: grll/claude-code-action@beta
+      - name: Setup Nix with cache
+        uses: ./.github/actions/setup-nix
         with:
-          use_oauth: true
-          claude_access_token: ${{ secrets.CLAUDE_ACCESS_TOKEN }}
-          claude_refresh_token: ${{ secrets.CLAUDE_REFRESH_TOKEN }}
-          claude_expires_at: ${{ secrets.CLAUDE_EXPIRES_AT }}
-          timeout_minutes: '60'
-          allowed_tools: |
-            Bash(*)
-            Edit
-            MultiEdit
-            Write
-            Read
-            Grep
-            Glob
-            LS
-            NotebookRead
-            NotebookEdit
-            WebFetch
-            WebSearch
-            TodoRead
-            TodoWrite
+          enable-kvm: ${{ runner.os == 'Linux' }}
 
-  # Enable auto-merge for dependency updates
-  enable-auto-merge-deps:
-    if: needs.update-dependencies.outputs.has-changes == 'true'
-    needs: update-dependencies
-    runs-on: ubuntu-latest
-    timeout-minutes: 35
-
-    steps:
-      - name: Enable auto-merge for dependency PR
-        env:
-          GITHUB_TOKEN: ${{ secrets.REPO_PAT }}
+      - name: Lint
         run: |
-          PR_NUMBER="${{ needs.update-dependencies.outputs.pr-number }}"
+          export USER=${USER:-ci}
+          git config --unset-all core.hooksPath || true
+          make lint
 
-          echo "Enabling auto-merge for dependency PR #$PR_NUMBER"
+      - name: Build
+        run: |
+          export USER=${USER:-ci}
+          make build
 
-          # Enable auto-merge with squash for dependency PRs
-          if gh pr merge "$PR_NUMBER" --auto --squash --repo "$REPO"; then
-            echo "::notice::✅ Auto-merge enabled for dependency PR #$PR_NUMBER"
+      - name: Test (Stable)
+        run: |
+          export USER=${USER:-ci}
+          make test
+
+      - name: Verify test execution time
+        run: |
+          echo "⏱️ Measuring test execution time..."
+          start_time=$(date +%s)
+          make test
+          end_time=$(date +%s)
+          duration=$((end_time - start_time))
+          echo "Total execution time: $duration seconds"
+
+          # Assert tests complete within 60 seconds (CI allowance)
+          if [ $duration -gt 60 ]; then
+            echo "❌ Tests took too long: $duration seconds (max: 60s)"
+            exit 1
           else
-            echo "::error::Failed to enable auto-merge for dependency PR #$PR_NUMBER"
+            echo "✅ Tests completed within time limit"
           fi
+
+      - name: Upload to Cachix
+        if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+        env:
+          CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
+        run: |
+          nix profile install nixpkgs#cachix
+          nix path-info --json --all | jq -r '.[].storePath' | cachix push baleen-nix
