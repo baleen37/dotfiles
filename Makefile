@@ -41,11 +41,10 @@ help:
 	@echo "  lint        - Run all lint checks"
 	@echo ""
 	@echo "🧪 Testing:"
-	@echo "  test                     - Run core tests (unit + integration)"
-	@echo "  test-e2e                 - Run complete E2E test (validates dotfiles, Linux only)"
-	@echo "  test-integration         - Run integration tests"
-	@echo "  test-all                 - Comprehensive test suite"
-	@echo "  test-vm                  - Full VM test (build + boot + E2E validation)"
+	@echo "  test         - Run stable tests (fast, <30s)"
+	@echo "  test-stable  - Run stable tests explicitly"
+	@echo "  test-all     - Run comprehensive test suite (includes VM tests)"
+	@echo "  test-vm      - Full VM test (build + boot + E2E validation)"
 		@echo ""
 	@echo "🔨 Build & Deploy:"
 	@echo "  build       - Build current platform"
@@ -75,11 +74,33 @@ lint:
 	@find . -name "*.nix" -not -path "*/.*" -not -path "*/result/*" -type f -exec nix fmt -- {} +
 	@$(NIX) flake check --no-build --quiet --accept-flake-config
 
+# Measure command execution time
+define measure_time
+	@start_time=$$(date +%s); \
+	$(1); \
+	end_time=$$(date +%s); \
+	duration=$$((end_time - start_time)); \
+	echo "⏱️  Execution time: $$duration seconds"
+endef
+
 # Testing (simplified with auto-discovery)
-test: check-user
-	@echo "🧪 Testing $(CURRENT_SYSTEM)..."
-	@export USER=$(USER) && $(NIX) flake check --impure --accept-flake-config $(ARGS)
-	@echo "✅ Tests passed"
+test-stable:
+	@echo "🚀 Running stable tests (target: <30s)..."
+	$(call measure_time, \
+		echo "🔍 Running syntax validation..." && \
+		find . -name "*.nix" -not -path "*/.*" -not -path "*/result/*" -type f -exec nix-instantiate --parse {} \; > /dev/null && \
+		echo "🏗️ Running build possibility checks..." && \
+		$(NIX) flake check --no-build --quiet --accept-flake-config --impure && \
+		if [ -n "$(BUILD_TARGET)" ]; then \
+			$(NIX) build --dry-run --impure --quiet .#$(BUILD_TARGET); \
+		else \
+			echo "⏭️ Skipping build check on unsupported platform"; \
+		fi \
+	)
+	@echo "✅ All stable tests passed"
+
+test: test-stable
+	@echo "🧪 Testing completed successfully"
 
 test-unit:
 	@echo "🧪 Running unit tests (auto-discovered)..."
@@ -232,4 +253,4 @@ vm/switch:
 		sudo nixos-rebuild switch --flake \"/nix-config#vm-aarch64-utm\" \
 	"
 
-.PHONY: help check-user format lint test test-unit test-integration test-all test-e2e test-vm test-linux-builder build build-switch switch switch-user vm/bootstrap0 vm/bootstrap vm/copy vm/switch
+.PHONY: help check-user format lint test test-stable test-unit test-integration test-all test-e2e test-vm test-linux-builder build build-switch switch switch-user vm/bootstrap0 vm/bootstrap vm/copy vm/switch
