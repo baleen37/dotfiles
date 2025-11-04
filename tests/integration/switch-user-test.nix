@@ -200,7 +200,7 @@ helpers.testSuite "switch-user" [
         userConfig ? activationPackage
       ) "Home Manager configuration should exist and be buildable")
 
-      (helpers.assertTest "permission-simulation-works" (builtins.pathExists doubleExecutionTest)
+      (helpers.assertTest "permission-simulation-works" (builtins.pathExists doubleExecutionTest.out)
         "Double execution test script should exist"
       )
 
