@@ -47,7 +47,7 @@ Enterprise-grade dotfiles management system providing reproducible development e
 ```bash
 # Development cycle (USER auto-detected by Makefile)
 make format                    # Auto-format all files (nix run .#format)
-make test                      # Run full test suite (~45 seconds)
+make test                      # Run stable tests (30s, default)
 make build                     # Build current platform
 
 # System Management (Option 3 - Clear separation)
@@ -62,30 +62,23 @@ make switch-user              # User config only (home-manager: git, vim, zsh - 
 
 ### Testing
 
+**Stable Testing (Primary)**:
 ```bash
-# Automatic test discovery - zero maintenance!
-make test               # Core tests (~45 seconds)
-make test-unit          # All unit tests (auto-discovered)
-make test-integration   # All integration tests (auto-discovered)
-make test-all           # Comprehensive suite (includes VM tests)
-make test-e2e           # E2E test (validates dotfiles configuration, Linux only)
-
-# Add new test: just create file, it's auto-discovered!
-touch tests/unit/my-feature-test.nix
-# No registration needed - automatically discovered via builtins.readDir
-
-# VM Testing (NixOS)
-make test-vm                # Full VM test suite (5-10 minutes)
-                           # - Build + generate + boot + services
-                           # - Same tests that run in CI
+make test               # Run all stable tests (30s, default)
+make test-stable        # Explicit stable test execution
 ```
 
-**Test organization:**
-- All `*-test.nix` files in `tests/unit/` are automatically discovered
-- All `*-test.nix` files in `tests/integration/` are automatically discovered
-- All tests are pure Nix derivations (no shell scripts)
-- Uses nixpkgs-approved pattern from `lib.filesystem`
-- Tests run automatically on every commit via pre-commit hooks
+**Comprehensive Testing (Optional)**:
+```bash
+make test-all           # Full test suite (includes VM tests)
+make test-vm            # VM testing only
+```
+
+**Test Philosophy**:
+- **Stable tests only**: Eliminate flaky network-dependent tests
+- **Fast feedback**: Complete in under 30 seconds
+- **CI/Local consistency**: Identical test execution locally and in CI
+- **Dry-run validation**: No unnecessary builds, dependency checks only
 
 ### Linux Builder (macOS only)
 
@@ -343,18 +336,18 @@ This ensures you're always building the appropriate configuration for your platf
 ```bash
 make lint   # Format + validation
 make build  # Platform-specific build (auto-detected)
-make test   # Full test suite
+make test   # Stable tests (30s, identical to local)
 ```
 
 **Workflow**:
 ```
 ci (parallel across 3 platforms)
-├─ Darwin: lint → build → test
-├─ Linux x64: lint → build → test
-└─ Linux ARM: lint → build → test
+├─ Darwin: lint → build → test (stable, <30s)
+├─ Linux x64: lint → build → test (stable, <30s)
+└─ Linux ARM: lint → build → test (stable, <30s)
 ```
 
-**Total duration**: ~15-20 minutes (parallel execution)
+**Total duration**: ~5-8 minutes (parallel execution, stable tests only)
 
 **Key Features**:
 - ✅ No platform-specific conditionals in CI
