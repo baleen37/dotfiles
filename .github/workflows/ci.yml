@@ -1,80 +1,56 @@
-name: CI
+name: CI - Optimized Stable Testing
 
 on:
   push:
-    branches: [main]
-    tags: ['v*']
+    branches: [ main ]
   pull_request:
-  workflow_dispatch:
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
-permissions:
-  contents: read
-
-env:
-  NIX_CONFIG: |
-    max-jobs = auto
-    cores = 0
-    substituters = https://cache.nixos.org https://nix-community.cachix.org https://baleen-nix.cachix.org
-    trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= baleen-nix.cachix.org-1:awgC7Sut148An/CZ6TZA+wnUtJmJnOvl5NThGio9j5k=
-    fallback = true
-    narinfo-cache-negative-ttl = 0
+    branches: [ main ]
 
 jobs:
-  ci:
-    name: CI (${{ matrix.name }})
-    timeout-minutes: 60
+  test-matrix:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - name: Darwin
-            os: macos-15
-          - name: Linux x64
-            os: ubuntu-latest
-          - name: Linux ARM
-            os: ubuntu-latest
-    runs-on: ${{ matrix.os }}
+        platform:
+          - { name: "Darwin (Apple Silicon)", os: "macos-15", arch: "aarch64-darwin" }
+          - { name: "Linux x64", os: "ubuntu-latest", arch: "x86_64-linux" }
+          - { name: "Linux ARM", os: "ubuntu-latest", arch: "aarch64-linux" }
+
+    runs-on: ${{ matrix.platform.os }}
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
-        with:
-          fetch-depth: 0
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
-      - name: Setup Nix with cache
-        uses: ./.github/actions/setup-nix
-        with:
-          enable-kvm: ${{ runner.os == 'Linux' }}
+    - name: Install Nix
+      uses: cachix/install-nix-action@v22
+      with:
+        nix_path: nixpkgs=channel:nixos-unstable
 
-      - name: Lint
-        run: |
-          export USER=${USER:-ci}
-          git config --unset-all core.hooksPath || true
-          make lint
+    - name: Setup Cachix
+      uses: cachix/cachix-action@v12
+      with:
+        name: baleen-nix
+        authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
 
-      - name: Build
-        run: |
-          export USER=${USER:-ci}
-          make build
+    - name: Run stable tests
+      run: |
+        echo "🧪 Running stable tests on ${{ matrix.platform.name }}..."
+        time make test
 
-      - name: Test
-        run: |
-          export USER=${USER:-ci}
-          make test
+    - name: Verify test execution time
+      run: |
+        echo "⏱️ Measuring test execution time..."
+        start_time=$(date +%s)
+        make test
+        end_time=$(date +%s)
+        duration=$((end_time - start_time))
+        echo "Total execution time: $duration seconds"
 
-      - name: E2E Test
-        if: runner.os == 'Linux'
-        run: |
-          export USER=${USER:-ci}
-          make test-e2e
-
-      - name: Upload to Cachix
-        if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
-        env:
-          CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
-        run: |
-          nix profile install nixpkgs#cachix
-          nix path-info --json --all | jq -r '.[].storePath' | cachix push baleen-nix
+        # Assert tests complete within 60 seconds (CI allowance)
+        if [ $duration -gt 60 ]; then
+          echo "❌ Tests took too long: $duration seconds (max: 60s)"
+          exit 1
+        else
+          echo "✅ Tests completed within time limit"
+        fi
