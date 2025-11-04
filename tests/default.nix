@@ -53,6 +53,11 @@ in
     echo "✅ Test infrastructure ready - automatic discovery enabled"
     touch $out
   '';
+
+  # Test classification library test
+  unit-test-classification = import ./unit/test-classification-test.nix {
+    inherit (pkgs) lib;
+  };
 }
 // discoverTests ./unit "unit"
 // discoverTests ./integration "integration"
