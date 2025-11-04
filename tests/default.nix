@@ -56,7 +56,14 @@ in
 
   # Test classification library test
   unit-test-classification = import ./unit/test-classification-test.nix {
-    inherit (pkgs) lib;
+    inherit
+      inputs
+      system
+      pkgs
+      lib
+      self
+      ;
+    inherit (nixtest) nixtest;
   };
 }
 // discoverTests ./unit "unit"
