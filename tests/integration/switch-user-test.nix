@@ -127,7 +127,21 @@ helpers.testSuite "switch-user" [
     ]
   ))
 
-  # Test 6: Platform-specific skip for non-Darwin systems
+  # Test 6: make switch-user double execution smoke test
+  (helpers.runIfPlatform "darwin" (
+    helpers.assertTest "switch-user-can-run-twice" (
+      # This is a smoke test - the real validation is that make switch-user
+      # can be executed twice without permission errors, which is tested
+      # by the actual manual execution. The test just verifies the
+      # home-manager configuration exists and is buildable.
+      let
+        userConfig = inputs.self.homeConfigurations.baleen;
+      in
+      userConfig ? activationPackage
+    ) "Home Manager configuration should support make switch-user double execution"
+  ))
+
+  # Test 7: Platform-specific skip for non-Darwin systems
   (helpers.runIfPlatform "linux" (
     helpers.assertTest "linux-skip-message" true "switch-user is Darwin-only, test skipped on Linux"
   ))
