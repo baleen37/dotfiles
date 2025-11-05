@@ -41,6 +41,11 @@
     force = true;
   };
 
+  home.file.".claude/CLAUDE.md" = {
+    source = ./.config/claude/CLAUDE.md;
+    force = true;
+  };
+
   # settings.json: writable copy (always overwritten on rebuild)
   home.activation.claudeSettings = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     run mkdir -p ~/.claude
