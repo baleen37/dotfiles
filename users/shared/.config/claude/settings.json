@@ -42,5 +42,18 @@
   "statusLine": {
     "type": "command",
     "command": "~/.claude/statusline.sh"
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/git-command-validator.sh \"$(jq -r '.tool_input.command // empty')\""
+          }
+        ]
+      }
+    ]
   }
 }

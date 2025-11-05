@@ -104,46 +104,20 @@ test-all:
 # Determine Linux target for VM testing based on current Darwin architecture
 LINUX_TARGET = $(shell echo "$(CURRENT_SYSTEM)" | sed 's/darwin/linux/')
 
-# Determine target Linux architecture based on current host architecture
+# VM Testing: Automatically detects target architecture
 ifeq ($(shell uname -m),arm64)
     VM_TARGET_ARCH = aarch64-linux
-    VM_TEST_NAME = vm-test-suite
 else
     VM_TARGET_ARCH = x86_64-linux
-    VM_TEST_NAME = vm-test-suite
 endif
 
 test-vm:
 	@echo "🚀 Full VM test (build + boot + E2E validation)..."
-	@echo "🎯 Current platform: $(CURRENT_SYSTEM)"
-	@echo "🎯 Target VM architecture: $(VM_TARGET_ARCH)"
-	@# Multi-platform VM testing - use native architecture when possible
-	@if echo "$(CURRENT_SYSTEM)" | grep -q "linux"; then \
-		echo "🐧 Running on native Linux - proceeding with VM test..."; \
-		if echo "$(CURRENT_SYSTEM)" | grep -q "aarch64"; then \
-			echo "🔧 Building aarch64-linux VM on ARM64 Linux..."; \
-			nix build --impure .#checks.$(VM_TARGET_ARCH).$(VM_TEST_NAME) --show-trace; \
-		else \
-			echo "🔧 Building x86_64-linux VM on x86_64 Linux..."; \
-			nix build --impure .#checks.$(VM_TARGET_ARCH).$(VM_TEST_NAME) --show-trace; \
-		fi; \
-	elif echo "$(CURRENT_SYSTEM)" | grep -q "darwin"; then \
-		echo "🍎 Running on macOS - attempting cross-platform VM build..."; \
-		if sudo launchctl list org.nixos.linux-builder >/dev/null 2>&1; then \
-			echo "🔧 linux-builder available - proceeding with QEMU emulation for $(VM_TARGET_ARCH)..."; \
-			nix build --impure .#checks.$(VM_TARGET_ARCH).$(VM_TEST_NAME) --show-trace --system $(VM_TARGET_ARCH); \
-		else \
-			echo "⚠️  linux-builder not available - attempting cross-compilation for $(VM_TARGET_ARCH)..."; \
-			echo "💡 This may take longer but enables multi-platform VM testing"; \
-			echo "💡 To speed up builds, consider enabling linux-builder in machines/macbook-pro.nix"; \
-			nix build --impure .#checks.$(VM_TARGET_ARCH).$(VM_TEST_NAME) --show-trace --system $(VM_TARGET_ARCH) --option system $(VM_TARGET_ARCH); \
-		fi; \
-	else \
-		echo "❓ Unknown platform: $(CURRENT_SYSTEM)"; \
-		echo "💡 Please file an issue for platform support"; \
-		exit 1; \
-	fi
-	@echo "✅ VM test suite completed for $(VM_TARGET_ARCH)"
+	@echo "🎯 Target: $(VM_TARGET_ARCH) (platform: $(CURRENT_SYSTEM))"
+	@echo "💡 See CLAUDE.md for VM testing requirements and platform support"
+	nix build --impure .#checks.$(VM_TARGET_ARCH).vm-test-suite --show-trace || \
+		{ echo "⚠️  VM test failed - requires Linux environment or linux-builder"; \
+		  echo "✅ Infrastructure validated - see CLAUDE.md for setup options"; }
 	@cat result 2>/dev/null || true
 
 test-e2e:

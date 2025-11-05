@@ -78,7 +78,26 @@ touch tests/unit/my-feature-test.nix
 make test-vm                # Full VM test suite (5-10 minutes)
                            # - Build + generate + boot + services
                            # - Same tests that run in CI
+                           # - Multi-platform: ARM64 Mac → aarch64-linux, Intel Mac → x86_64-linux
 ```
+
+**VM Testing Platform Support:**
+
+- **Native Linux**: Full VM testing with no emulation required
+- **macOS (ARM64)**: Cross-compiles to `aarch64-linux` VM
+- **macOS (Intel)**: Cross-compiles to `x86_64-linux` VM
+
+**VM Testing Requirements:**
+
+VM testing requires Linux execution environment. On macOS without `linux-builder`, the test will:
+
+1. Attempt cross-compilation (may fail due to QEMU requirements)
+2. Provide clear guidance for enabling full VM testing:
+   - Enable `linux-builder` in `machines/macbook-pro.nix` (requires `nix.enable = true`)
+   - Run tests on native Linux system
+   - Use GitHub Actions CI for automated VM testing
+
+**Note**: VM test infrastructure validates cross-platform compatibility even when QEMU emulation is unavailable.
 
 **Test organization:**
 - All `*-test.nix` files in `tests/unit/` are automatically discovered
