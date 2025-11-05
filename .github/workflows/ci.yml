@@ -63,7 +63,7 @@ jobs:
       - name: Test
         run: |
           export USER=${USER:-ci}
-          # Run only unit and integration tests, skip VM tests in CI
+          # Run unit and integration tests, skip VM tests in CI for stability
           make test-unit test-integration
 
       - name: E2E Test
@@ -71,11 +71,11 @@ jobs:
           export USER=${USER:-ci}
           make test-e2e
 
-      - name: VM Test (Skipped)
+      - name: VM Test (Skipped in CI)
         run: |
-          echo "ℹ️ VM test skipped for CI stability"
-          echo "💡 Use local VM testing: make test-vm"
-          echo "💡 E2E validation provides sufficient coverage"
+          echo "ℹ️ VM test skipped in CI for stability"
+          echo "💡 Run locally: make test-vm"
+          echo "✅ Core functionality validated by other tests"
 
       - name: Upload to Cachix
         if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
