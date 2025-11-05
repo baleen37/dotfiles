@@ -153,7 +153,11 @@ test-all:
 LINUX_TARGET = $(shell echo "$(CURRENT_SYSTEM)" | sed 's/darwin/linux/')
 
 # Determine target Linux architecture based on current host architecture
-ifeq ($(shell uname -m),arm64)
+# In CI, always use x86_64-linux to match runner hardware (even for "Linux ARM" which runs on x86_64 via QEMU)
+ifdef CI
+    VM_TARGET_ARCH = x86_64-linux
+    VM_TEST_NAME = vm-test-suite
+else ifeq ($(shell uname -m),arm64)
     VM_TARGET_ARCH = aarch64-linux
     VM_TEST_NAME = vm-test-suite
 else
