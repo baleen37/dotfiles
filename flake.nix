@@ -166,11 +166,32 @@
                 system = "aarch64-linux";
                 self = self;
               };
+
+              # Build-only VM fallback validation - works without QEMU/emulation
+              # Provides meaningful validation when full VM testing fails
+              # Cross-platform compatible, fast execution, comprehensive validation
+              vm-build-only-fallback-x64 = import ./tests/e2e/vm-build-only-fallback.nix {
+                inherit inputs;
+                pkgs = pkgs-linux-x64;
+                system = "x86_64-linux";
+                self = self;
+              };
+
+              vm-build-only-fallback-arm = import ./tests/e2e/vm-build-only-fallback.nix {
+                inherit inputs;
+                pkgs = pkgs-linux-arm;
+                system = "aarch64-linux";
+                self = self;
+              };
             in
             {
               # Primary VM test suites for both architectures
               vm-test-suite-x64 = vm-test-suite-x64;
               vm-test-suite-arm = vm-test-suite-arm;
+
+              # Build-only fallback tests for both architectures
+              vm-build-only-fallback-x64 = vm-build-only-fallback-x64;
+              vm-build-only-fallback-arm = vm-build-only-fallback-arm;
 
               # Legacy aliases for backward compatibility (x86_64-linux)
               vm-test-suite = vm-test-suite-x64;
@@ -179,6 +200,10 @@
               vm-service-test = vm-test-suite-x64;
               fast-vm-e2e = vm-test-suite-x64;
               vm-e2e = vm-test-suite-x64;
+
+              # Fallback validation aliases
+              vm-build-only-fallback = vm-build-only-fallback-x64;
+              vm-fallback-validation = vm-build-only-fallback-x64;
 
               # Comprehensive test suite validation (validates all test categories)
               comprehensive-suite-validation = import ./tests/e2e/comprehensive-suite-validation-test.nix {
@@ -202,10 +227,21 @@
                 system = "aarch64-linux";
                 self = self;
               };
+
+              # ARM-specific build-only fallback validation
+              vm-build-only-fallback = import ./tests/e2e/vm-build-only-fallback.nix {
+                inherit inputs;
+                pkgs = pkgs-linux-arm;
+                system = "aarch64-linux";
+                self = self;
+              };
             in
             {
               # Primary VM test suite for ARM
               inherit vm-test-suite;
+
+              # Build-only fallback for ARM
+              inherit vm-build-only-fallback;
 
               # Legacy aliases for backward compatibility
               vm-build-test = vm-test-suite;
@@ -213,6 +249,7 @@
               vm-service-test = vm-test-suite;
               fast-vm-e2e = vm-test-suite;
               vm-e2e = vm-test-suite;
+              vm-fallback-validation = vm-build-only-fallback;
             };
         in
         standardChecks

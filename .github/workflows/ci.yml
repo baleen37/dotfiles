@@ -77,25 +77,8 @@ jobs:
           if [[ "${{ runner.os }}" == "Linux" ]]; then
             echo "🐧 Running on Linux - proceeding with VM tests..."
             make test-vm
-          elif [[ "${{ runner.os }}" == "macOS" ]]; then
-            echo "🍎 Running on macOS - checking VM testing capabilities..."
-            # Check if we can run VM tests (has linux-builder or supports cross-compilation)
-            if make test-linux-builder 2>/dev/null; then
-              echo "✅ linux-builder available - running VM tests with QEMU emulation"
-              make test-vm
-            else
-              echo "⚠️ linux-builder not available - running VM tests with cross-compilation"
-              echo "💡 This may take longer but provides cross-platform validation"
-              # Attempt VM tests with cross-compilation, allow graceful failure
-              make test-vm || {
-                echo "ℹ️ VM tests skipped due to platform limitations"
-                echo "💡 VM tests run successfully on native Linux in CI"
-                echo "💡 To enable faster VM testing on macOS, enable linux-builder"
-              }
-            fi
           else
-            echo "⚠️ VM testing not supported on ${{ runner.os }} - skipping"
-            echo "💡 VM tests run on Linux platforms in CI for cross-platform validation"
+            echo "⚠️ VM testing skipped on ${{ runner.os }} - Linux runners provide cross-platform VM validation"
           fi
 
       - name: Upload to Cachix

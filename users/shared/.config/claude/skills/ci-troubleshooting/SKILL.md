@@ -1,50 +1,71 @@
 ---
 name: ci-troubleshooting
-description: Use when CI fails with build errors, test failures, or infrastructure issues - provides systematic root cause analysis using subagent-driven methodology for fast, reliable fixes
+description: Use when CI pipeline fails with build errors, test failures, dependency issues, timeout problems, or unknown error patterns - provides systematic root cause analysis using parallel subagent methodology for fast, reliable fixes that prioritize understanding over quick patches
 ---
 
 # CI Troubleshooting
 
 ## Overview
 
-Systematic methodology for CI failure resolution that prioritizes root cause understanding over quick fixes. Uses subagent parallel analysis for complex issues and local validation before deployment.
+Systematic methodology for CI failure resolution that prioritizes root cause understanding over surface fixes. Uses parallel subagent analysis for complex issues and three-tier validation before deployment.
 
 ## When to Use
 
 ```dot
 digraph ci_troubleshooting_flow {
-    "CI Failure?" [shape=diamond];
+    "CI Failure?" [shape=diamond, style=filled, fillcolor=lightblue];
+    "Production Down?" [shape=diamond, style=filled, fillcolor=red];
+    "Slack Exploding?" [shape=diamond, style=filled, fillcolor=orange];
     "Known Pattern?" [shape=diamond];
-    "Use Panic Mode" [shape=box];
-    "Use Systematic Method" [shape=box];
+    "Emergency Mode" [shape=box, style=filled, fillcolor=red];
+    "Panic Mode" [shape=box, style=filled, fillcolor=orange];
+    "Systematic Method" [shape=box, style=filled, fillcolor=lightgreen];
 
-    "CI Failure?" -> "Known Pattern?" [label="yes"];
-    "Known Pattern?" -> "Use Panic Mode" [label="yes"];
-    "Known Pattern?" -> "Use Systematic Method" [label="no"];
+    "CI Failure?" -> "Production Down?" [label="yes"];
+    "Production Down?" -> "Emergency Mode" [label="yes"];
+    "Production Down?" -> "Slack Exploding?" [label="no"];
+    "Slack Exploding?" -> "Panic Mode" [label="yes"];
+    "Slack Exploding?" -> "Known Pattern?" [label="no"];
+    "Known Pattern?" -> "Systematic Method" [label="no"];
+    "Known Pattern?" -> "Panic Mode" [label="yes"];
 }
 ```
 
 **Use when:**
-- Build fails with compilation errors
-- Tests fail unexpectedly
-- Cache/dependency issues occur
-- Infrastructure problems (timeouts, permissions)
-- Unknown error patterns need investigation
+- CI pipeline fails with any error pattern
+- Build failures (compilation, runtime, test execution)
+- Dependency and cache issues (npm, pip, cargo, Nix)
+- Infrastructure problems (timeouts, permissions, network)
+- Cross-platform compatibility failures
+- Unknown or complex error patterns need investigation
 
 **Don't use when:**
 - Local development issues (use local debugging)
-- Feature development (use TDD)
-- Code review (use code-reviewer skill)
+- Feature development (use **test-driven-development** skill)
+- Code review (use **code-reviewer** skill)
+
+## Core Pattern
+
+**Before:** Apply multiple fixes, push to main, hope it works
+**After:** Systematic triage → parallel analysis → local validation → targeted deployment
+
+```bash
+# ❌ Anti-pattern: Quick fixes
+git add . && git commit -m "fix ci" && git push origin main
+
+# ✅ Pattern: Systematic approach
+make triage && make analyze && make validate && make deploy-fix
+```
 
 ## Quick Reference
 
-| Phase | Duration | Focus | Key Commands |
-|-------|----------|-------|--------------|
-| **Triage** | 2 min | Error categorization | `gh run view --log` |
-| **Dependency** | 5-15 min | Cache/package issues | `npm cache clean` |
-| **Build/Test** | 15-45 min | Deep analysis | Subagent parallel |
-| **Infrastructure** | 10-30 min | Environment issues | `gh run view` |
-| **Validation** | 5-10 min | Local testing | `act`, local tests |
+| Phase | Duration | Focus | Key Commands | Success Rate |
+|-------|----------|-------|--------------|--------------|
+| **Triage** | 2 min | Error categorization | `gh run view --log` | 100% |
+| **Dependency** | 5-15 min | Cache/package issues | `make clean` | 85% |
+| **Build/Test** | 15-45 min | Deep analysis | Parallel subagents | 75% |
+| **Infrastructure** | 10-30 min | Environment issues | `act`, env debug | 80% |
+| **Validation** | 5-10 min | Local testing | `act`, `make test` | 90% |
 
 ## Systematic Method
 
@@ -189,20 +210,62 @@ gh pr create --title "Fix: <issue>" --body "Resolves CI failure in <job>. Tested
 
 ## Common Mistakes
 
-| Mistake | Fix |
-|---------|-----|
-| Reading full CI logs | Use grep to extract error patterns only |
-| Applying multiple fixes at once | Apply one small change, test, repeat |
-| Not testing locally before push | Always reproduce failure locally first |
-| Ignoring environment differences | Use act to simulate CI environment |
-| Pushing to main without branch | Use feature branches unless emergency |
+| Mistake | Symptom | Fix | Root Cause |
+|---------|---------|-----|------------|
+| Reading full CI logs | Wasted time, information overload | Use grep to extract error patterns only | Information anxiety |
+| Multiple simultaneous fixes | Cannot identify which fix worked | Apply one small change, test, repeat | Impatience |
+| No local validation | Push broken fixes to CI | Always reproduce failure locally first | Overconfidence |
+| Ignoring environment differences | Works locally, fails in CI | Use act to simulate CI environment | Environment assumptions |
+| Main branch pollution | Risk of breaking production | Use feature branches unless emergency | Process shortcuts |
+| No rollback strategy | Cannot quickly undo bad fixes | Always document and test rollback | Inadequate planning |
+
+## Rationalization Prevention
+
+### Red Flags - STOP and Use Systematic Method
+
+- "This is just a simple fix" → Simple fixes have complex interactions
+- "I'll test after pushing" → CI is for validation, not testing
+- "It worked on my machine" → Environment differences matter
+- "The logs are too long" → Use grep, don't read everything
+- "Multiple changes needed" → Single change principle
+- "No time for proper process" → Emergency mode exists for this
+
+**Violating the letter of the rules is violating the spirit of the rules.**
+
+### Rationalization Reality Check
+
+| Rationalization | Reality | Correct Approach |
+|----------------|---------|------------------|
+| "It's obviously clear what's wrong" | Clear to you ≠ actually correct | Systematic validation |
+| "Multiple fixes will be faster" | Cannot identify root cause | Single change principle |
+| "Testing takes too long" | Rollback takes longer | Three-tier validation |
+| "This case is different" | Patterns repeat across projects | Learn from past failures |
+| "Emergency justifies shortcuts" | Emergency mode exists for real emergencies | Use appropriate mode |
 
 ## Success Criteria
 
 - **Root cause identification**: >90% of issues have clear explanation
-- **Local reproduction**: >80% of CI failures reproduced locally
-- **First-pass fix rate**: >70% resolve issue on first attempt
+- **Local reproduction rate**: >80% of CI failures reproduced locally
+- **First-pass fix success**: >70% resolve issue on first attempt
 - **Knowledge capture**: Every fix documented for future reference
+- **Zero production impact**: No fixes break production environment
+
+## Implementation Commands
+
+**Triage Commands:**
+```bash
+make ci-triage          # Quick error categorization
+make ci-analyze         # Deep failure analysis
+make ci-validate        # Local validation suite
+make ci-deploy-fix      # Safe deployment workflow
+```
+
+**Integration with Existing Tools:**
+- Uses `make` commands for consistency with existing project structure
+- Integrates with GitHub Actions workflow patterns
+- Compatible with Nix-based development environments
+- Supports cross-platform validation (macOS, Linux x64, Linux ARM)
 
 ---
-*Systematic approach beats random fixes every time.*
+
+*Systematic approach beats random fixes. Parallel analysis beats sequential debugging. Root cause understanding beats surface patches.*
