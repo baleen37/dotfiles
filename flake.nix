@@ -143,24 +143,68 @@
             "aarch64-linux"
           ] (system: import ./tests { inherit system inputs self; });
 
-          # Add VM-specific tests for x86_64-linux
+          # Add VM-specific tests for both Linux architectures
           vmTestsForLinux =
             let
-              pkgs-linux = nixpkgs.legacyPackages.x86_64-linux;
+              pkgs-linux-x64 = nixpkgs.legacyPackages.x86_64-linux;
+              pkgs-linux-arm = nixpkgs.legacyPackages.aarch64-linux;
               lib = nixpkgs.lib;
 
               # Optimized VM test suite - consolidates all VM testing functionality
               # Replaces: nixos-vm-test, fast-vm-e2e, vm-e2e, core-vm-test, streamlined-vm-test
               # Target: 3 minutes execution, 2 cores/2GB RAM (vs original 10+ minutes, 4 cores/8GB RAM)
-              vm-test-suite = import ./tests/e2e/optimized-vm-suite.nix {
+              vm-test-suite-x64 = import ./tests/e2e/optimized-vm-suite.nix {
                 inherit inputs;
-                pkgs = pkgs-linux;
+                pkgs = pkgs-linux-x64;
                 system = "x86_64-linux";
+                self = self;
+              };
+
+              vm-test-suite-arm = import ./tests/e2e/optimized-vm-suite.nix {
+                inherit inputs;
+                pkgs = pkgs-linux-arm;
+                system = "aarch64-linux";
                 self = self;
               };
             in
             {
-              # Primary VM test suite
+              # Primary VM test suites for both architectures
+              vm-test-suite-x64 = vm-test-suite-x64;
+              vm-test-suite-arm = vm-test-suite-arm;
+
+              # Legacy aliases for backward compatibility (x86_64-linux)
+              vm-test-suite = vm-test-suite-x64;
+              vm-build-test = vm-test-suite-x64;
+              vm-generation-test = vm-test-suite-x64;
+              vm-service-test = vm-test-suite-x64;
+              fast-vm-e2e = vm-test-suite-x64;
+              vm-e2e = vm-test-suite-x64;
+
+              # Comprehensive test suite validation (validates all test categories)
+              comprehensive-suite-validation = import ./tests/e2e/comprehensive-suite-validation-test.nix {
+                inherit lib;
+                pkgs = pkgs-linux-x64;
+                nixpkgs = nixpkgs;
+                system = "x86_64-linux";
+              };
+            };
+
+          # Add VM-specific tests for aarch64-linux
+          vmTestsForLinuxARM =
+            let
+              pkgs-linux-arm = nixpkgs.legacyPackages.aarch64-linux;
+              lib = nixpkgs.lib;
+
+              # ARM-specific VM test suite
+              vm-test-suite = import ./tests/e2e/optimized-vm-suite.nix {
+                inherit inputs;
+                pkgs = pkgs-linux-arm;
+                system = "aarch64-linux";
+                self = self;
+              };
+            in
+            {
+              # Primary VM test suite for ARM
               inherit vm-test-suite;
 
               # Legacy aliases for backward compatibility
@@ -169,19 +213,12 @@
               vm-service-test = vm-test-suite;
               fast-vm-e2e = vm-test-suite;
               vm-e2e = vm-test-suite;
-
-              # Comprehensive test suite validation (validates all test categories)
-              comprehensive-suite-validation = import ./tests/e2e/comprehensive-suite-validation-test.nix {
-                inherit lib;
-                pkgs = pkgs-linux;
-                nixpkgs = nixpkgs;
-                system = "x86_64-linux";
-              };
             };
         in
         standardChecks
         // {
           x86_64-linux = standardChecks.x86_64-linux // vmTestsForLinux;
+          aarch64-linux = standardChecks.aarch64-linux // vmTestsForLinuxARM;
         };
 
       # Add VM generation packages
