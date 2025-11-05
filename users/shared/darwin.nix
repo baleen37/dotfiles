@@ -266,8 +266,7 @@ in
 
       sleep 2
 
-      # Enable keyboard navigation and optimize key repeat for Korean typing
-      /usr/bin/defaults write NSGlobalDomain AppleKeyboardUIMode -int 2
+      # Optimize key repeat for Korean typing (no keyboard navigation)
       /usr/bin/defaults write NSGlobalDomain ApplePressAndHoldEnabled -bool false
       /usr/bin/defaults write NSGlobalDomain KeyRepeat -int 2
       /usr/bin/defaults write NSGlobalDomain InitialKeyRepeat -int 25
