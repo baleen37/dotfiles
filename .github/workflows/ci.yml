@@ -73,6 +73,8 @@ jobs:
       - name: VM Test
         run: |
           export USER=${USER:-ci}
+          export CI=true
+          export VM_TARGET_ARCH=x86_64-linux
           [[ "${{ runner.os }}" == "Linux" ]] && make test-vm || echo "VM test skipped on ${{ runner.os }}"
 
       - name: Upload to Cachix
