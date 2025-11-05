@@ -73,13 +73,7 @@ jobs:
       - name: VM Test
         run: |
           export USER=${USER:-ci}
-          # Check if VM testing is supported on this platform
-          if [[ "${{ runner.os }}" == "Linux" ]]; then
-            echo "🐧 Running on Linux - proceeding with VM tests..."
-            make test-vm
-          else
-            echo "⚠️ VM testing skipped on ${{ runner.os }} - Linux runners provide cross-platform VM validation"
-          fi
+          [[ "${{ runner.os }}" == "Linux" ]] && make test-vm || echo "VM test skipped on ${{ runner.os }}"
 
       - name: Upload to Cachix
         if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
