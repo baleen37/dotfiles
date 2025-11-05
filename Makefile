@@ -165,6 +165,10 @@ test-vm:
 	@echo "🎯 Current platform: $(CURRENT_SYSTEM)"
 	@echo "🎯 Target VM architecture: $(VM_TARGET_ARCH)"
 	@echo "💡 See CLAUDE.md for VM testing requirements and platform support"
+	@# Check for CI environment
+	@if [ -n "$$CI" ] || [ "$$GITHUB_ACTIONS" = "true" ]; then \
+		echo "🤖 Running in CI environment - using CI-optimized VM testing..."; \
+	fi
 	@# Multi-platform VM testing - use native architecture when possible
 	@if echo "$(CURRENT_SYSTEM)" | grep -q "linux"; then \
 		echo "🐧 Running on native Linux - proceeding with VM test..."; \
@@ -189,7 +193,19 @@ test-vm:
 		fi; \
 	elif echo "$(CURRENT_SYSTEM)" | grep -q "darwin"; then \
 		echo "🍎 Running on macOS - attempting cross-platform VM build..."; \
-		if sudo launchctl list org.nixos.linux-builder >/dev/null 2>&1; then \
+		if [ -n "$$CI" ] || [ "$$GITHUB_ACTIONS" = "true" ]; then \
+			echo "🤖 CI environment detected - using cross-compilation without sudo check..."; \
+			echo "⚠️ linux-builder not available in CI - using cross-compilation for $(VM_TARGET_ARCH)..."; \
+			echo "💡 This may take longer but provides cross-platform validation"; \
+			if nix build --impure .#checks.$(VM_TARGET_ARCH).$(VM_TEST_NAME) --show-trace --system $(VM_TARGET_ARCH) --option system $(VM_TARGET_ARCH) --accept-flake-config; then \
+				echo "✅ Cross-platform VM test completed successfully with cross-compilation"; \
+			else \
+				echo "❌ Cross-platform VM test failed with cross-compilation"; \
+				echo "💡 VM tests require native Linux or linux-enabled macOS for full functionality"; \
+				echo "💡 This is expected in CI environments without linux-builder"; \
+				exit 1; \
+			fi; \
+		elif sudo launchctl list org.nixos.linux-builder >/dev/null 2>&1; then \
 			echo "🔧 linux-builder available - proceeding with QEMU emulation for $(VM_TARGET_ARCH)..."; \
 			if nix build --impure .#checks.$(VM_TARGET_ARCH).$(VM_TEST_NAME) --show-trace --system $(VM_TARGET_ARCH); then \
 				echo "✅ Cross-platform VM test completed successfully with QEMU emulation"; \
@@ -293,6 +309,18 @@ test-linux-builder:
 		exit 0; \
 	fi
 	@echo "🔍 Checking linux-builder availability..."
+	@# Check for CI environment (no sudo available)
+	@if [ -n "$$CI" ] || [ "$$GITHUB_ACTIONS" = "true" ]; then \
+		echo "🤖 Running in CI environment - checking for linux-builder availability without sudo"; \
+		if command -v linux-builder >/dev/null 2>&1; then \
+			echo "✅ linux-builder command available in CI"; \
+			exit 0; \
+		else \
+			echo "⚠️ linux-builder not available in CI - cross-compilation will be used"; \
+			exit 1; \
+		fi; \
+	fi
+	@# Non-CI environment with sudo available
 	@if ! command -v linux-builder >/dev/null 2>&1; then \
 		echo "❌ linux-builder command not found"; \
 		echo "💡 Install with: brew install nix"; \
