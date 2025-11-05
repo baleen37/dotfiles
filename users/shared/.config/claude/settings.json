@@ -35,7 +35,9 @@
   "enableAllProjectMcpServers": true,
   "alwaysThinkingEnabled": false,
   "rejectedMcpServers": [],
-  "enabledPlugins": {},
+  "enabledPlugins": {
+    "superpowers@superpowers-marketplace": true
+  },
   "feedbackSurveyState": {
     "lastShownTime": 1755225425616
   },
