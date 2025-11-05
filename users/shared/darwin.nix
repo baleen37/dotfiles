@@ -258,6 +258,52 @@ in
     ];
   };
 
+  # ===== Keyboard Input Source Configuration Script =====
+  # Configures cmd+shift+space for Korean/English input source switching
+  system.activationScripts.configureKeyboard = {
+    text = ''
+      echo "⌨️  Configuring keyboard input sources..." >&2
+
+      sleep 2
+
+      # Optimize key repeat for Korean typing (no keyboard navigation)
+      /usr/bin/defaults write NSGlobalDomain ApplePressAndHoldEnabled -bool false
+      /usr/bin/defaults write NSGlobalDomain KeyRepeat -int 2
+      /usr/bin/defaults write NSGlobalDomain InitialKeyRepeat -int 25
+
+      # cmd+shift+space for input source switching (hotkey 60)
+      /usr/bin/defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 60 '{
+          enabled = 1;
+          value = {
+              type = standard;
+              parameters = (49, 1048576, 131072);  # space(49), cmd, shift
+          };
+      }'
+
+      # control+space as backup hotkey (61)
+      /usr/bin/defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 61 '{
+          enabled = 1;
+          value = {
+              type = standard;
+              parameters = (49, 262144, 0, 0);        # space, control
+          };
+      }'
+
+      # Enable language indicator for visual feedback
+      /usr/bin/defaults write kCFPreferencesAnyApplication TSMLanguageIndicatorEnabled -bool true
+
+      # Restart system services to apply changes
+      if pgrep -x "SystemUIServer" > /dev/null; then
+          killall SystemUIServer 2>/dev/null || true
+      fi
+      if pgrep -x "ControlCenter" > /dev/null; then
+          killall ControlCenter 2>/dev/null || true
+      fi
+
+      echo "✅ Keyboard configuration complete!" >&2
+    '';
+  };
+
   # ===== macOS App Cleanup Activation Script =====
   # Automated storage optimization through removal of unused default macOS applications
   # Saves 6-8GB of storage space and reduces system resource consumption

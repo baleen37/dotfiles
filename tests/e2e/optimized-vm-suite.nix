@@ -287,13 +287,9 @@ nixosTest {
     print("\n🌐 Phase 5: Cross-Platform Compatibility Test")
 
     # Test platform-specific configurations work
-    if "${builtins.toString isLinux}" == "true":
-        # Linux-specific tests
-        machine.succeed("test -f /etc/os-release")
-        print("✅ Linux platform validation passed")
-    else:
-        # Darwin/macOS-specific tests (when running on macOS)
-        print("✅ Cross-platform configuration compatible")
+    # Linux-specific tests (VM always runs on Linux)
+    machine.succeed("test -f /etc/os-release")
+    print("✅ Linux platform validation passed")
 
     # Test flake support (platform-independent)
     machine.succeed("nix flake --help | head -n 1")
