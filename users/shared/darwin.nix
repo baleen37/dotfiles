@@ -276,7 +276,7 @@ in
           enabled = 1;
           value = {
               type = standard;
-              parameters = (32, 1048576, 131072, 0);  # space, cmd, shift
+              parameters = (49, 1048576, 131072);  # space(49), cmd, shift
           };
       }'
 
