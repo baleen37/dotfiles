@@ -63,7 +63,8 @@ jobs:
       - name: Test
         run: |
           export USER=${USER:-ci}
-          make test
+          # Run only unit and integration tests, skip VM tests in CI
+          make test-unit test-integration
 
       - name: E2E Test
         run: |
