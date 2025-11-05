@@ -36,7 +36,7 @@ Enterprise-grade dotfiles management system providing reproducible development e
 **ALWAYS:**
 
 - Use Makefile commands (`make build`, `make switch`) - USER is auto-detected
-- Use `make build-current` during development (not `make build`)
+- Use `make build` during development (builds current platform automatically)
 - Run `make format` before committing
 - Follow TDD: write failing test → minimal code → refactor
 
