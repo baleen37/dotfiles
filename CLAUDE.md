@@ -36,7 +36,7 @@ Enterprise-grade dotfiles management system providing reproducible development e
 **ALWAYS:**
 
 - Use Makefile commands (`make build`, `make switch`) - USER is auto-detected
-- Use `make build-current` during development (not `make build`)
+- Use `make build` during development (builds current platform automatically)
 - Run `make format` before committing
 - Follow TDD: write failing test → minimal code → refactor
 
@@ -68,17 +68,35 @@ make test               # Core tests (~45 seconds)
 make test-unit          # All unit tests (auto-discovered)
 make test-integration   # All integration tests (auto-discovered)
 make test-all           # Comprehensive suite (includes VM tests)
-make test-e2e           # E2E test (validates dotfiles configuration, Linux only)
+make test-e2e           # E2E test (validates dotfiles configuration)
 
 # Add new test: just create file, it's auto-discovered!
 touch tests/unit/my-feature-test.nix
 # No registration needed - automatically discovered via builtins.readDir
 
 # VM Testing (NixOS)
-make test-vm                # Full VM test suite (5-10 minutes)
-                           # - Build + generate + boot + services
+make test-vm                # VM test suite (build + boot + E2E validation)
                            # - Same tests that run in CI
+                           # - Multi-platform: ARM64 Mac → aarch64-linux, Intel Mac → x86_64-linux
 ```
+
+**VM Testing Platform Support:**
+
+- **Native Linux**: Full VM testing with no emulation required
+- **macOS (ARM64)**: Cross-compiles to `aarch64-linux` VM
+- **macOS (Intel)**: Cross-compiles to `x86_64-linux` VM
+
+**VM Testing Requirements:**
+
+VM testing requires Linux execution environment. On macOS without `linux-builder`, the test will:
+
+1. Attempt cross-compilation (may fail due to QEMU requirements)
+2. Provide clear guidance for enabling full VM testing:
+   - Enable `linux-builder` in `machines/macbook-pro.nix` (requires `nix.enable = true`)
+   - Run tests on native Linux system
+   - Use GitHub Actions CI for automated VM testing
+
+**Note**: VM test infrastructure validates cross-platform compatibility even when QEMU emulation is unavailable.
 
 **Test organization:**
 - All `*-test.nix` files in `tests/unit/` are automatically discovered
@@ -320,9 +338,9 @@ This ensures you're always building the appropriate configuration for your platf
 ### VM Testing Workflow
 
 ```bash
-# Quick iteration during VM config changes
+# Development iteration during VM config changes
 1. Edit VM configuration (machines/nixos/vm-shared.nix)
-2. make test-vm-quick        # 30s validation
+2. make test-vm             # VM test suite
 3. Fix issues if any
 4. Commit changes
 5. Push → CI runs full VM suite automatically
@@ -344,17 +362,19 @@ This ensures you're always building the appropriate configuration for your platf
 make lint   # Format + validation
 make build  # Platform-specific build (auto-detected)
 make test   # Full test suite
+make test-e2e   # E2E test
+make test-vm     # VM test suite
 ```
 
 **Workflow**:
 ```
 ci (parallel across 3 platforms)
-├─ Darwin: lint → build → test
-├─ Linux x64: lint → build → test
-└─ Linux ARM: lint → build → test
+├─ Darwin: lint → build → test → test-e2e → test-vm
+├─ Linux x64: lint → build → test → test-e2e → test-vm
+└─ Linux ARM: lint → build → test → test-e2e → test-vm
 ```
 
-**Total duration**: ~15-20 minutes (parallel execution)
+**Total duration**: ~90 minutes (parallel execution, includes VM testing)
 
 **Key Features**:
 - ✅ No platform-specific conditionals in CI

@@ -2,9 +2,9 @@ name: 'Setup Nix with Cache'
 description: 'Install Nix and setup caching with week-based rotation'
 inputs:
   enable-kvm:
-    description: 'Enable KVM support'
+    description: 'Enable KVM support (automatically enabled on Linux)'
     required: false
-    default: 'false'
+    default: 'true'
   cache-mode:
     description: 'Cache mode: "full" (save and restore) or "restore-only" (restore only)'
     required: false
@@ -13,11 +13,11 @@ runs:
   using: 'composite'
   steps:
     - name: Install Nix
-      uses: cachix/install-nix-action@fd24c48048070c1be9acd18c9d369a83f0fe94d7 # v27
+      uses: DeterminateSystems/nix-installer-action@da36cb69b1c3247ad7a1f931ebfd954a1105ef14 # v14
       with:
-        nix_path: nixpkgs=channel:nixos-unstable
-        install_url: https://releases.nixos.org/nix/nix-2.18.8/install
-        enable_kvm: ${{ inputs.enable-kvm }}
+        extra-conf: |
+          experimental-features = nix-command flakes
+          accept-flake-config = true
 
     - name: Get week number for cache rotation
       id: date

@@ -82,6 +82,17 @@ in
       # OpenCode CLI shortcut
       oc = "opencode";
 
+      # Git aliases
+      ga = "git add";
+      gc = "git commit";
+      gco = "git checkout";
+      gcp = "git cherry-pick";
+      gdiff = "git diff";
+      gl = "git prettylog";
+      gp = "git push";
+      gs = "git status";
+      gt = "git tag";
+
       # Use difftastic for syntax-aware diffing
       diff = "difft";
 

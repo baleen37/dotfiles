@@ -35,12 +35,27 @@
   "enableAllProjectMcpServers": true,
   "alwaysThinkingEnabled": false,
   "rejectedMcpServers": [],
-  "enabledPlugins": {},
+  "enabledPlugins": {
+    "superpowers@superpowers-marketplace": true
+  },
   "feedbackSurveyState": {
     "lastShownTime": 1755225425616
   },
   "statusLine": {
     "type": "command",
     "command": "~/.claude/statusline.sh"
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/git-command-validator.sh \"$(jq -r '.tool_input.command // empty')\""
+          }
+        ]
+      }
+    ]
   }
 }
