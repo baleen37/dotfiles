@@ -85,6 +85,7 @@ gh pr create --title "feat: [proper title]" --body "[comprehensive description]"
 |-----------|------------------|---------|
 | Uncommitted changes | Auto-commit before PR | `git add . && git commit` |
 | On main/master | Create feature branch first | `git checkout -b feature/*` |
+| Main branch cleanup | Ask user confirmation | Interactive prompt |
 | Branch behind target | Rebase before PR | `git rebase origin/main` |
 | Force pushing needed | Use safe force | `--force-with-lease` |
 | Uncertain about existing PR | Check first | `gh pr view` |
@@ -132,17 +133,43 @@ fi
 CURRENT_BRANCH=$(git branch --show-current)
 if [[ "$CURRENT_BRANCH" == "main" || "$CURRENT_BRANCH" == "master" ]]; then
     echo "On $CURRENT_BRANCH - creating feature branch..."
-    git checkout -b feature/$(date +%Y-%m-%d)-$(git log -1 --pretty=format:'%h')
+    FEATURE_BRANCH="feature/$(date +%Y-%m-%d)-$(git log -1 --pretty=format:'%h')"
+    git checkout -b "$FEATURE_BRANCH"
 
     # Push feature branch
     git push -u origin "$(git branch --show-current)"
 
-    # Reset main to clean state
-    git checkout main
-    git reset --hard origin/main
+    # Ask for confirmation before cleanup operations
+    echo ""
+    echo "🔧 Cleanup Required"
+    echo "The main branch needs to be reset to a clean state to avoid pollution."
+    echo "This will:"
+    echo "  1. Switch back to main"
+    echo "  2. Reset main to match origin/main (removes local commits)"
+    echo "  3. Return to feature branch '$FEATURE_BRANCH'"
+    echo ""
+    read -p "❓ Proceed with main branch cleanup? (y/N): " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        echo "🧹 Cleaning up main branch..."
 
-    # Switch back to feature branch
-    git checkout "$(git rev-parse --abbrev-ref HEAD@{1})"
+        # Reset main to clean state
+        git checkout main
+        echo "   ✓ Switched to main"
+
+        git reset --hard origin/main
+        echo "   ✓ Reset main to origin/main"
+
+        # Switch back to feature branch
+        git checkout "$FEATURE_BRANCH"
+        echo "   ✓ Returned to feature branch '$FEATURE_BRANCH'"
+
+        echo "✅ Main branch cleanup completed"
+    else
+        echo "⚠️  Skipping main branch cleanup"
+        echo "   Main branch contains commits that should be in a feature branch"
+        echo "   Consider manually running: git checkout main && git reset --hard origin/main"
+    fi
 fi
 ```
 
@@ -253,6 +280,10 @@ fi
 **Problem**: Auto-merge should be opt-in, not automatic
 **Fix**: Only enable auto-merge when explicitly requested with `--auto-merge` flag
 
+### ❌ "Skip user confirmation for cleanup"
+**Problem**: Main branch cleanup removes commits without user consent
+**Fix**: Always ask for confirmation before reset operations on main branch
+
 ## Rationalizations vs Reality
 
 | Excuse | Reality |
@@ -273,6 +304,8 @@ If you catch yourself thinking ANY of these thoughts, STOP and use the creating-
 - "This seems simple enough to skip verification"
 - "I'll handle problems if they come up"
 - "The existing PR check is optional"
+- "I don't need to ask for cleanup confirmation"
+- "Main branch cleanup is just a routine step"
 
 **All of these mean: Use the creating-pull-requests skill immediately.**
 
