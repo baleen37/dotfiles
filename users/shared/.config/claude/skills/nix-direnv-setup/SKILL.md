@@ -1,6 +1,6 @@
 ---
 name: nix-direnv-setup
-description: Use when setting up automatic Nix development environments in projects - provides standardized nix-direnv configuration with proper git exclude handling and reference to NixOS templates for best practices
+description: Use when setting up direnv integration for Nix flake projects (.envrc with "use flake"). Not for git workflows or general Nix setup.
 ---
 
 # Nix-Direnv Setup
@@ -12,27 +12,17 @@ Standardized technique for setting up nix-direnv with automatic shell environmen
 
 ## When to Use
 
-```dot
-digraph when_flowchart {
-    "Working in Nix project?" [shape=diamond];
-    "Need automatic shell env?" [shape=diamond];
-    "Team uses nix-direnv?" [shape=diamond];
-    "Use this skill" [shape=box];
-    "Consider alternatives" [shape=box];
+Use this skill when setting up **direnv integration** for Nix flake projects.
 
-    "Working in Nix project?" -> "Need automatic shell env?" [label="yes"];
-    "Need automatic shell env?" -> "Team uses nix-direnv?" [label="yes"];
-    "Team uses nix-direnv?" -> "Use this skill" [label="yes"];
-    "Team uses nix-direnv?" -> "Consider alternatives" [label="no"];
-    "Working in Nix project?" -> "Consider alternatives" [label="no"];
-    "Need automatic shell env?" -> "Consider alternatives" [label="no"];
-}
-```
+**Perfect for:**
+- Creating `.envrc` files with `use flake`
+- Automatic shell environment loading
+- Team standardization of development environments
 
-**When NOT to use:**
-- Project doesn't use flakes or shells (use `nix develop` directly)
-- Team prefers manual environment management
-- Simple projects where `nix shell` is sufficient
+**Not for:**
+- Git workflows (branches, worktrees, commits)
+- General Nix package management
+- Projects without `flake.nix`
 
 ## Core Pattern
 
