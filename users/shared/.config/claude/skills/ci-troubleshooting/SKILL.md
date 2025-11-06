@@ -1,13 +1,13 @@
 ---
-name: claude-code-ci-troubleshooting
-description: Use when CI/CD pipeline fails with build errors, test failures, dependency issues, or infrastructure problems - provides systematic Claude Code-powered troubleshooting using parallel subagent analysis, three-tier validation, and knowledge capture for reliable fixes with 61% faster resolution times
+name: ci-troubleshooting
+description: Use when CI/CD pipeline fails with build errors, test failures, dependency issues, or infrastructure problems - systematic Claude Code-powered troubleshooting with parallel subagent analysis and three-tier validation for reliable fixes
 ---
 
-# Claude Code CI Troubleshooting
+# CI Troubleshooting
 
 ## Overview
 
-Systematic CI/CD failure resolution leveraging Claude Code's unique capabilities: parallel subagent analysis, sophisticated tool orchestration, and knowledge capture. Transforms reactive debugging into intelligent, learning-oriented methodology with measurable improvements: 61% faster resolution, >90% root cause identification, >80% local reproduction rate.
+Systematic CI/CD failure resolution using three-tier validation methodology. Achieves faster resolution through intelligent approach instead of reactive debugging.
 
 ## When to Use
 
@@ -135,6 +135,62 @@ esac
 - **Unknown** → Complex patterns requiring deep investigation
 
 ### Phase 2: Pattern-Specific Resolution
+
+#### Merge Conflicts (5-15 minutes)
+
+```bash
+# Identify merge conflicts in CI
+git fetch origin
+git merge origin/main  # Reproduce conflict locally
+
+# Resolution workflow
+git status  # Identify conflicted files
+git add <resolved-file>  # Stage resolved files
+git commit  # Complete merge
+make test  # Validate resolution
+```
+
+**Common patterns:**
+- **Upstream changes**: Rebase onto latest main before merging
+- **Dependency conflicts**: Resolve package.json/requirements.txt conflicts
+- **Config file conflicts**: Use upstream version, add changes via separate PR
+
+#### GitHub CI Status Check Failures (5-20 minutes)
+
+```bash
+# Check required status checks
+gh api repos/:owner/:repo/branches/main
+gh run list --limit 5 --status=failure
+
+# Identify failed checks
+gh run view <run-id> --log
+gh pr checks <pr-number>  # For PR-specific failures
+```
+
+**Common solutions:**
+- **Missing checks**: Ensure workflows trigger on PR events
+- **Timeout failures**: Increase timeout values or optimize workflow
+- **Permission issues**: Check GitHub token permissions
+- **Missing artifacts**: Verify artifact upload/download steps
+
+#### Workflow CI Check Issues (10-30 minutes)
+
+```bash
+# Debug workflow syntax
+gh workflow list
+gh workflow view <workflow-name>
+gh workflow run <workflow-name> --field field=value
+
+# Local testing with act
+act -j <failing-job> --bind --verbose
+act -j <failing-job> -s GITHUB_TOKEN=$GITHUB_TOKEN
+```
+
+**Common patterns:**
+- **YAML syntax errors**: Use online YAML validator or `gh workflow view`
+- **Missing dependencies**: Check runner image and package installations
+- **Environment variables**: Verify secrets and variable passing
+- **Path issues**: Use absolute paths, check working directory
 
 #### Dependency/Cache Issues (5-15 minutes)
 
