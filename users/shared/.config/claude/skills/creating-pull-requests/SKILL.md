@@ -88,6 +88,7 @@ gh pr create --title "feat: [proper title]" --body "[comprehensive description]"
 | Branch behind target | Rebase before PR | `git rebase origin/main` |
 | Force pushing needed | Use safe force | `--force-with-lease` |
 | Uncertain about existing PR | Check first | `gh pr view` |
+| Auto-merge requested | Enable after PR creation | `gh pr merge --auto --squash` |
 
 ## Implementation
 
@@ -206,6 +207,13 @@ $(git log --oneline origin/main..HEAD | sed 's/^/- /')
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 EOF
 )"
+
+# Auto-merge: only if explicitly requested
+if [[ "$1" == "--auto-merge" ]]; then
+    echo "Enabling auto-merge..."
+    gh pr merge --auto --squash  # Squash recommended for clean history
+    echo "✅ Auto-merge enabled"
+fi
 ```
 
 ## Common Mistakes
@@ -230,6 +238,10 @@ EOF
 **Problem**: User doesn't understand technical consequences
 **Fix**: Explain why step is critical and do it anyway
 
+### ❌ "Always enable auto-merge by default"
+**Problem**: Auto-merge should be opt-in, not automatic
+**Fix**: Only enable auto-merge when explicitly requested with `--auto-merge` flag
+
 ## Rationalizations vs Reality
 
 | Excuse | Reality |
@@ -253,6 +265,19 @@ If you catch yourself thinking ANY of these thoughts, STOP and use the creating-
 
 **All of these mean: Use the creating-pull-requests skill immediately.**
 
+## Auto-Merge
+
+**Usage**: `skill creating-pull-requests --auto-merge`
+
+**What it does**: PR automatically merges when CI passes and reviews approved
+
+**Available methods**:
+- `--squash` (recommended): Clean history
+- `--merge`: Preserves exact commits
+- `--rebase`: Linear history
+
+**Requirements**: Status checks + reviews pass, no conflicts
+
 ## Real-World Impact
 
 **Before skill**: PRs created with merge conflicts, duplicate PRs, polluted main branch
@@ -260,3 +285,4 @@ If you catch yourself thinking ANY of these thoughts, STOP and use the creating-
 
 **Time savings**: 5-minute rebase vs 30-minute conflict resolution cleanup
 **Team impact**: Prevents main branch blocking, maintains clean git history
+**Auto-merge benefit**: Reduces manual merge steps for approved PRs
