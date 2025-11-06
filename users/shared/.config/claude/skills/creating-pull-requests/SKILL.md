@@ -182,15 +182,23 @@ fi
 
 # Check for existing PR
 if gh pr view --json number >/dev/null 2>&1; then
-    echo "❌ PR already exists for this branch"
-    gh pr view
-    exit 1
+    echo "ℹ️ PR already exists for this branch"
+    PR_NUMBER=$(gh pr view --json number --jq '.number')
+    echo "📋 Current PR: #$PR_NUMBER"
+
+    # Auto-merge: only if explicitly requested
+    if [[ "$1" == "--auto-merge" ]]; then
+        echo "Enabling auto-merge on existing PR..."
+        gh pr merge "$PR_NUMBER" --auto --squash
+        echo "✅ Auto-merge enabled on PR #$PR_NUMBER"
+    fi
+    exit 0
 fi
 
 # Create PR with comprehensive description
 git log --oneline origin/main..HEAD  # Analyze all commits for PR description
 
-gh pr create \
+PR_URL=$(gh pr create \
     --title "$(git log -1 --pretty=format:'%s')" \
     --body "$(cat <<'EOF'
 ## Summary
@@ -206,12 +214,15 @@ $(git log --oneline origin/main..HEAD | sed 's/^/- /')
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 EOF
-)"
+)")
+
+echo "✅ PR created: $PR_URL"
 
 # Auto-merge: only if explicitly requested
 if [[ "$1" == "--auto-merge" ]]; then
     echo "Enabling auto-merge..."
-    gh pr merge --auto --squash  # Squash recommended for clean history
+    PR_NUMBER=$(echo "$PR_URL" | grep -o '[0-9]\+')
+    gh pr merge "$PR_NUMBER" --auto --squash
     echo "✅ Auto-merge enabled"
 fi
 ```
@@ -271,12 +282,21 @@ If you catch yourself thinking ANY of these thoughts, STOP and use the creating-
 
 **What it does**: PR automatically merges when CI passes and reviews approved
 
+**Two-step process**:
+1. Create PR (or check if exists)
+2. Enable auto-merge with `gh pr merge --auto --squash`
+
 **Available methods**:
 - `--squash` (recommended): Clean history
 - `--merge`: Preserves exact commits
 - `--rebase`: Linear history
 
 **Requirements**: Status checks + reviews pass, no conflicts
+
+**Existing PR handling**:
+- If PR exists, enables auto-merge on existing PR
+- Uses `gh pr view` to get PR number
+- No duplicate PR creation
 
 ## Real-World Impact
 
