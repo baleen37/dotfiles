@@ -307,6 +307,55 @@
         }
       );
 
+      # Development shell for nix-direnv
+      devShells =
+        nixpkgs.lib.genAttrs
+          [
+            "aarch64-darwin"
+            "x86_64-darwin"
+            "x86_64-linux"
+            "aarch64-linux"
+          ]
+          (
+            system:
+            let
+              pkgs = nixpkgs.legacyPackages.${system};
+            in
+            {
+              default = pkgs.mkShell {
+                packages = with pkgs; [
+                  # Core Nix tooling
+                  nixfmt-rfc-style
+                  alejandra
+                  deadnix
+                  statix
+
+                  # Development utilities
+                  git
+                  jq
+                  yq
+
+                  # Testing tools
+                  bats
+
+                  # Optional: common utilities
+                  curl
+                  wget
+                ];
+
+                # Set up development environment
+                shellHook = ''
+                  echo "🚀 Dotfiles development environment loaded"
+                  echo "Available commands:"
+                  echo "  make format    - Format all files"
+                  echo "  make test      - Run tests"
+                  echo "  make build     - Build current platform"
+                  echo "  make switch    - Apply configuration changes"
+                '';
+              };
+            }
+          );
+
       # Formatter (preserve from old flake if exists)
       formatter = nixpkgs.lib.genAttrs [
         "aarch64-darwin"
