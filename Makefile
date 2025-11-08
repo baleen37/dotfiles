@@ -458,8 +458,15 @@ switch: check-user
 		export USER=$(USER); $(NIX) build --impure --quiet .#darwinConfigurations.$${TARGET}.system $(ARGS) || exit 1; \
 		sudo -E env USER=$(USER) ./result/sw/bin/darwin-rebuild switch --impure --flake .#$${TARGET} $(ARGS) || exit 1; \
 		rm -f ./result; \
+	elif [ "$${OS}" = "Linux" ]; then \
+		TARGET=$$(hostname -s); \
+		echo "🐧 Building NixOS configuration for $${TARGET}..."; \
+		export USER=$(USER); $(NIX) build --impure --quiet .#nixosConfigurations.$${TARGET}.config.system.build.toplevel $(ARGS) || exit 1; \
+		echo "🔄 Activating NixOS configuration..."; \
+		sudo -E env USER=$(USER) nixos-rebuild switch --impure --flake .#$${TARGET} $(ARGS) || exit 1; \
+		rm -f ./result; \
 	else \
-		echo "❌ ERROR: Only Darwin (macOS) is supported. NixOS configurations not defined."; \
+		echo "❌ ERROR: Unsupported operating system: $${OS}"; \
 		exit 1; \
 	fi
 
@@ -470,8 +477,12 @@ switch-user: check-user
 		echo "🔨 Activating home-manager configuration for $(USER)..."; \
 		export USER=$(USER); NIXPKGS_ALLOW_UNFREE=1 home-manager switch --impure --flake .#$(USER) $(ARGS) || exit 1; \
 		echo "✅ User configuration applied successfully"; \
+	elif [ "$${OS}" = "Linux" ]; then \
+		echo "🔨 Activating home-manager configuration for $(USER)..."; \
+		export USER=$(USER); NIXPKGS_ALLOW_UNFREE=1 home-manager switch --impure --flake .#$(USER) $(ARGS) || exit 1; \
+		echo "✅ User configuration applied successfully"; \
 	else \
-		echo "❌ ERROR: Only Darwin (macOS) is supported. NixOS configurations not defined."; \
+		echo "❌ ERROR: Unsupported operating system: $${OS}"; \
 		exit 1; \
 	fi
 

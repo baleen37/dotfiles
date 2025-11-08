@@ -40,13 +40,6 @@ in
       enable = true;
     };
 
-    settings = {
-      user = {
-        name = name;
-        email = email;
-      };
-    };
-
     ignores = [
       # Local files
       ".local/"
@@ -91,6 +84,10 @@ in
     ];
 
     settings = {
+      user = {
+        name = name;
+        email = email;
+      };
       init.defaultBranch = "main";
       core = {
         editor = "vim";
@@ -99,6 +96,7 @@ in
       };
       pull.rebase = true;
       rebase.autoStash = true;
+      "protocol \"https\"".allow = "always";
       alias = {
         st = "status";
         co = "checkout";

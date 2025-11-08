@@ -30,6 +30,11 @@
       url = "github:nix-community/nixos-generators";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    nixos-wsl = {
+      url = "github:nix-community/NixOS-WSL";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -40,6 +45,7 @@
       darwin,
       home-manager,
       nixos-generators,
+      nixos-wsl,
       ...
     }@inputs:
     let
@@ -97,6 +103,54 @@
 
       # NixOS configurations
       nixosConfigurations = {
+        # General x86_64 NixOS configuration (supports bare metal, VM, WSL)
+        nixos = nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          specialArgs = {
+            inherit inputs self;
+            currentSystem = "x86_64-linux";
+            currentSystemName = "nixos";
+            currentSystemUser = user;
+            isDarwin = false;
+          };
+          modules = [
+            nixos-wsl.nixosModules.wsl
+            ./machines/nixos/nixos.nix
+            inputs.home-manager.nixosModules.home-manager
+            {
+              # Enable WSL
+              wsl = {
+                enable = true;
+                defaultUser = user;
+                startMenuLaunchers = true;
+              };
+
+              home-manager = {
+                useGlobalPkgs = true;
+                useUserPackages = true;
+                users.${user} = import ./users/shared/home-manager.nix;
+                extraSpecialArgs = {
+                  inherit inputs self;
+                  currentSystemUser = user;
+                  isDarwin = false;
+                };
+              };
+
+              # Set required home-manager options with correct paths
+              users.users.${user} = {
+                name = user;
+                home = "/home/${user}";
+                isNormalUser = true;
+                extraGroups = [
+                  "wheel"
+                  "docker"
+                ];
+              };
+            }
+          ];
+        };
+
+        # VM configuration for aarch64
         vm-aarch64-utm = nixpkgs.lib.nixosSystem {
           system = "aarch64-linux";
           specialArgs = {

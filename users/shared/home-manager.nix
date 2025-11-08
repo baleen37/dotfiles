@@ -30,21 +30,26 @@
   lib,
   inputs,
   currentSystemUser,
+  isDarwin ? pkgs.stdenv.isDarwin,
   ...
 }:
 
 {
   # Import all extracted tool configurations
-  imports = [
-    ./git.nix
-    ./vim.nix
-    ./zsh.nix
-    ./tmux.nix
-    ./claude-code.nix
-    ./hammerspoon.nix
-    ./karabiner.nix
-    ./ghostty.nix
-  ];
+  imports =
+    [
+      ./git.nix
+      ./vim.nix
+      ./zsh.nix
+      ./tmux.nix
+      ./claude-code.nix
+    ]
+    ++ lib.optionals isDarwin [
+      # macOS-specific configurations
+      ./hammerspoon.nix
+      ./karabiner.nix
+      ./ghostty.nix
+    ];
 
   # Home Manager configuration
   # Username is dynamically resolved from flake.nix (supports both baleen and jito)

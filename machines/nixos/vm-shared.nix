@@ -42,18 +42,17 @@
     '';
   };
 
-  # Use the systemd-boot EFI boot loader.
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
+  # Use the systemd-boot EFI boot loader (can be overridden for WSL)
+  boot.loader.systemd-boot.enable = lib.mkDefault true;
+  boot.loader.efi.canTouchEfiVariables = lib.mkDefault true;
 
   # VMware, Parallels both only support this being 0 otherwise you see
   # "error switching console mode" on boot.
   boot.loader.systemd-boot.consoleMode = "0";
 
   # Define your hostname.
-  # Note: Hardcoded for simplicity in current use case. Could be parameterized
-  # if needed for multiple VM configurations in the future.
-  networking.hostName = "dev";
+  # Note: Can be overridden in machine-specific configuration
+  networking.hostName = lib.mkDefault "dev";
 
   # Set your time zone.
   # Note: Hardcoded for West Coast development workflow. Could be parameterized
