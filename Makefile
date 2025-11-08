@@ -27,14 +27,38 @@ UNAME := $(shell uname)
 
 build-switch: switch
 
-switch:
-ifeq ($(UNAME), Darwin)
-	NIXPKGS_ALLOW_UNFREE=1 $(SUDO_NIX) run nix-darwin -- switch --flake ".#$(NIXNAME)"
-else
-	NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 $(SUDO_NIX) run "nixpkgs#nixos-rebuild" -- switch --flake ".#${NIXNAME}"
-endif
+# Validate USER environment variable is set
+check-user:
+	@if [ -z "$(USER)" ]; then \
+		echo "❌ ERROR: USER environment variable is not set"; \
+		echo "💡 Run: export USER=$$(whoami)"; \
+		exit 1; \
+	fi
 
-test:
+switch: check-user
+	@echo "🚀 Switching system configuration..."
+	@OS=$$(uname -s); \
+	if [ "$${OS}" = "Darwin" ]; then \
+		TARGET=$${HOST:-macbook-pro}; \
+		case "$$TARGET" in \
+			*-darwin) TARGET=macbook-pro;; \
+		esac; \
+		export USER=$(USER); $(NIX) build --impure --quiet .#darwinConfigurations.$${TARGET}.system $(ARGS) || exit 1; \
+		sudo -E env USER=$(USER) ./result/sw/bin/darwin-rebuild switch --impure --flake .#$${TARGET} $(ARGS) || exit 1; \
+		rm -f ./result; \
+	elif [ "$${OS}" = "Linux" ]; then \
+		TARGET=$$(hostname -s); \
+		echo "🐧 Building NixOS configuration for $${TARGET}..."; \
+		export USER=$(USER); $(NIX) build --impure --quiet .#nixosConfigurations.$${TARGET}.config.system.build.toplevel $(ARGS) || exit 1; \
+		echo "🔄 Activating NixOS configuration..."; \
+		sudo -E env USER=$(USER) nixos-rebuild switch --impure --flake .#$${TARGET} $(ARGS) || exit 1; \
+		rm -f ./result; \
+	else \
+		echo "❌ ERROR: Unsupported operating system: $${OS}"; \
+		exit 1; \
+	fi
+
+test: check-user
 	@echo "🚀 Running dual-mode tests..."
 	@export USER=$${USER:-$(whoami)} && \
 	if [ "$(UNAME)" = "Darwin" ]; then \
@@ -49,7 +73,7 @@ test:
 		NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 $(NIX) flake check --impure --accept-flake-config --show-trace; \
 	fi
 
-test-integration:
+test-integration: check-user
 	@echo "🔧 Running integration tests..."
 ifeq ($(UNAME), Darwin)
 	NIXPKGS_ALLOW_UNFREE=1 $(NIX) eval '.#checks.aarch64-darwin.smoke' --impure --accept-flake-config
@@ -62,7 +86,7 @@ test-all: test test-integration
 
 # Optional: Attempt cross-platform container testing (experimental)
 # Note: This requires additional setup and may not work on all systems
-test-containers:
+test-containers: check-user
 	@echo "🔬 Attempting container test execution (experimental)..."
 	@export USER=$${USER:-$(whoami)} && \
 	if [ "$(UNAME)" = "Darwin" ]; then \
@@ -79,6 +103,24 @@ test-containers:
 	else \
 		echo "🐧 Linux environment - running full container tests..."; \
 		NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 $(NIX) build '.#checks.$(shell uname -m | sed 's/x86_64/x86_64/;s/arm64/aarch64/').basic' --impure --accept-flake-config --print-build-logs; \
+	fi
+
+switch-user: check-user
+switch-user: check-user
+	@echo "🔧 Applying user configuration only (no sudo required)..."
+	@OS=$$(uname -s); \
+	if [ "$${OS}" = "Darwin" ]; then \
+		echo "🔨 Activating home-manager configuration for $(USER)..."; \
+		export USER=$(USER); NIXPKGS_ALLOW_UNFREE=1 home-manager switch --impure --flake .#$(USER) $(ARGS) || exit 1; \
+		echo "✅ User configuration applied successfully"; \
+	elif [ "$${OS}" = "Linux" ]; then \
+		echo "🔨 Activating home-manager configuration for $(USER)..."; \
+		export USER=$(USER); NIXPKGS_ALLOW_UNFREE=1 home-manager switch --impure --flake .#$(USER) $(ARGS) || exit 1; \
+		echo "✅ User configuration applied successfully"; \
+	else \
+		echo "❌ ERROR: Unsupported operating system: $${OS}"; \
+		exit 1; \
+>>>>>>> 49134b0 (feat: add comprehensive NixOS and WSL support to dotfiles)
 	fi
 
 # This builds the given configuration and pushes the results to the
