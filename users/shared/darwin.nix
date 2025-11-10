@@ -380,7 +380,7 @@ in
   # User and System Management
   # Primary user configuration for nix-darwin system management
   # Username is dynamically resolved from flake.nix for multi-user support
-  users.users.root.home = lib.mkOverride 50 "/var/root";
+  # Root user management is now handled by system defaults, home-manager is disabled
 
   system = {
     primaryUser = currentSystemUser; # Dynamic user resolution for multi-environment support
