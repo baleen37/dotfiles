@@ -14,7 +14,12 @@ NIXNAME ?= $(shell hostname -s 2>/dev/null || hostname | cut -d. -f1)
 SSH_OPTIONS=-o PubkeyAuthentication=no -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no
 
 # Nix command with experimental features
-NIX := nix --extra-experimental-features nix-command --extra-experimental-features flakes
+# For CI environments, use full path to nix binary when available
+NIX_PATH := $(shell which nix 2>/dev/null || echo "nix")
+NIX := $(NIX_PATH) --extra-experimental-features nix-command --extra-experimental-features flakes
+
+# For sudo commands, we need the full path or preserved PATH
+SUDO_NIX := sudo env PATH=$$PATH $(NIX_PATH) --extra-experimental-features nix-command --extra-experimental-features flakes
 
 # We need to do some OS switching below.
 UNAME := $(shell uname)
@@ -23,14 +28,14 @@ switch:
 ifeq ($(UNAME), Darwin)
 	NIXPKGS_ALLOW_UNFREE=1 $(NIX) run nix-darwin -- switch --flake ".#$(NIXNAME)"
 else
-	sudo NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 $(NIX) run "nixpkgs#nixos-rebuild" -- switch --flake ".#${NIXNAME}"
+	NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 $(SUDO_NIX) run "nixpkgs#nixos-rebuild" -- switch --flake ".#${NIXNAME}"
 endif
 
 test:
 ifeq ($(UNAME), Darwin)
 	NIXPKGS_ALLOW_UNFREE=1 $(NIX) flake check --no-build --impure --accept-flake-config
 else
-	sudo NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 $(NIX) run "nixpkgs#nixos-rebuild" -- test --flake ".#$(NIXNAME)"
+	NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 $(SUDO_NIX) run "nixpkgs#nixos-rebuild" -- test --flake ".#$(NIXNAME)"
 endif
 
 # This builds the given configuration and pushes the results to the
@@ -147,7 +152,7 @@ vm/copy:
 # have to run vm/copy before.
 vm/switch:
 	ssh $(SSH_OPTIONS) -p$(NIXPORT) $(NIXUSER)@$(NIXADDR) " \
-		sudo NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 nix --extra-experimental-features nix-command --extra-experimental-features flakes run \"nixpkgs#nixos-rebuild\" -- switch --flake \"/nix-config#${NIXNAME}\" \
+		sudo env PATH=$$PATH NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 nix --extra-experimental-features nix-command --extra-experimental-features flakes run \"nixpkgs#nixos-rebuild\" -- switch --flake \"/nix-config#${NIXNAME}\" \
 	"
 
 # Build a WSL installer
