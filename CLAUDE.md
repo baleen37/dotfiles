@@ -156,7 +156,7 @@ lib/               # Pure Nix utilities (mksystem.nix factory, performance, test
 tests/             # TDD test suite (unit, integration, e2e, performance)
 ├── unit/                   # Unit tests
 ├── integration/            # Integration tests
-├── e2e/                    # End-to-end tests (including VM testing)
+├── e2e/                    # End-to-end tests
 ├── lib/                    # Test helpers and utilities
 ├── performance/            # Performance benchmarks
 └── default.nix             # Test entry point
@@ -454,7 +454,7 @@ The project uses GitHub Actions for continuous integration with:
 
 ## VM Management
 
-The project includes comprehensive VM testing and management capabilities:
+The project includes comprehensive VM management capabilities:
 
 ```bash
 # VM Bootstrap & Management
