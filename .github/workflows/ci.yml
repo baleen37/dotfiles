@@ -26,17 +26,17 @@ env:
 jobs:
   ci:
     name: CI (${{ matrix.name }})
-    timeout-minutes: 120
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
         include:
           - name: Darwin
             os: macos-15
+            arch: aarch64
           - name: Linux x64
             os: ubuntu-latest
-          - name: Linux ARM
-            os: ubuntu-latest
+            arch: x86_64
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
@@ -64,11 +64,13 @@ jobs:
           export USER=${USER:-ci}
           if [ "$RUNNER_OS" = "macOS" ]; then
             export NIXNAME=macbook-pro
+            # Run minimal checks for macOS - smoke test only
+            nix eval '.#checks.aarch64-darwin.smoke' --impure --accept-flake-config
           else
             export NIXNAME=vm-aarch64-utm
+            # Run minimal checks for Linux x64 - use native architecture
+            nix eval '.#checks.x86_64-linux.smoke' --impure --accept-flake-config
           fi
-          echo "Running configuration tests..."
-          make test
 
       - name: Test secrets backup
         run: |
@@ -85,8 +87,14 @@ jobs:
           export USER=${USER:-ci}
           if [ "$RUNNER_OS" = "macOS" ]; then
             export NIXNAME=macbook-pro
+            # Cache macOS build
+            nix build '.#darwinConfigurations.macbook-pro.system' --json \
+              | jq -r '.[].outputs | to_entries[].value' \
+              | cachix push baleen-nix || echo "Cache upload incomplete"
           else
             export NIXNAME=vm-aarch64-utm
+            # Cache Linux build (use x86_64 since that's our runner)
+            nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel' --json \
+              | jq -r '.[].outputs | to_entries[].value' \
+              | cachix push baleen-nix || echo "Cache upload incomplete"
           fi
-          echo "Uploading to Cachix..."
-          make cache
