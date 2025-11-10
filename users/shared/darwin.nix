@@ -380,6 +380,8 @@ in
   # User and System Management
   # Primary user configuration for nix-darwin system management
   # Username is dynamically resolved from flake.nix for multi-user support
+  users.users.root.home = lib.mkForce "/var/root";
+
   system = {
     primaryUser = currentSystemUser; # Dynamic user resolution for multi-environment support
     checks.verifyNixPath = false; # Disable NIX_PATH verification for cleaner builds
