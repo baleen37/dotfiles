@@ -107,10 +107,23 @@ vm/switch:
 		sudo nixos-rebuild switch --flake \"/nix-config#$(NIXNAME)\" \
 	"
 
-# Formatting and linting
+cache:
+ifeq ($(UNAME), Darwin)
+	NIXPKGS_ALLOW_UNFREE=1 nix build --impure --extra-experimental-features nix-command --extra-experimental-features flakes ".#darwinConfigurations.macbook-pro.system"
+	cachix push baleen-nix ./result
+else
+	NIXPKGS_ALLOW_UNFREE=1 nix build --impure --extra-experimental-features nix-command --extra-experimental-features flakes ".#nixosConfigurations.${NIXNAME}.config.system.build.toplevel"
+	cachix push baleen-nix ./result
+endif
+
 format:
-	nix fmt flake.nix
+	@echo "Formatting all files..."
+	@find . -name "*.nix" -not -path "*/.*" -not -path "*/result/*" -type f -exec nix fmt --extra-experimental-features 'nix-command flakes' {} +
+
+check:
+	@echo "Running flake check..."
+	nix flake check --no-build --extra-experimental-features 'nix-command flakes'
 
 lint: format
 
-.PHONY: help build switch test format lint vm/bootstrap0 vm/bootstrap vm/copy vm/switch
+.PHONY: help build switch test cache format check lint vm/bootstrap0 vm/bootstrap vm/copy vm/switch
