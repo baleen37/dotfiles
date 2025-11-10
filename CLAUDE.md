@@ -19,7 +19,10 @@ Enterprise-grade dotfiles management system providing reproducible development e
 
 ### Key Features
 
-- **Architecture**: Follows [mitchellh/nixos-config](https://github.com/mitchellh/nixos-config) philosophy with dustinlyons-inspired factory patterns and minimal abstractions
+- **Architecture**: Follows [mitchellh/nixos-config](https://github.com/mitchellh/nixos-config) philosophy:
+  - **Simplicity over complexity**: One purpose per target, minimal abstractions
+  - **Explicit over implicit**: Clear configuration names, no magic auto-detection
+  - **Working code over comprehensive**: Focus on what actually works
 - **Tools**: 50+ development packages across all platforms
 - **Cross-platform validation**: Automated testing across 3 platform combinations
 - **Dynamic user resolution**: Multi-user support without hardcoded usernames
@@ -35,7 +38,7 @@ Enterprise-grade dotfiles management system providing reproducible development e
 
 **ALWAYS:**
 
-- Use Makefile commands (`make build`, `make switch`) - USER is auto-detected
+- Use Makefile commands (`make build`, `make switch`) - USER must be set manually
 - Use `make build` during development (builds current platform automatically)
 - Run `make format` before committing
 - Follow TDD: write failing test → minimal code → refactor
@@ -45,26 +48,23 @@ Enterprise-grade dotfiles management system providing reproducible development e
 ### Daily Development
 
 ```bash
-# Development cycle (USER auto-detected by Makefile)
-make format                    # Auto-format all files (nix run .#format)
-make test                      # Run full test suite (~45 seconds)
-make build                     # Build current platform
-make check                     # Run flake check
-make cache                     # Build and push to cache
+# Simple development cycle
+export USER=$(whoami)          # Required first step
+make format                    # Format files
+make build                     # Build configuration
+make switch                    # Apply configuration
+make test                      # Test configuration
+make cache                     # Push to cache
 
-# System Management
-make switch                   # Full system update (darwin-rebuild: system + Homebrew + user)
-
-# Note: Makefile automatically detects USER=$(whoami)
-# Only set manually when using nix commands directly:
-# export USER=$(whoami) && nix build --impure .#darwinConfigurations.macbook-pro.system
+# USER required for all nix operations
+# hostname automatically detected
 ```
 
 ### Testing
 
 ```bash
 # Core test commands
-make test               # Run full test suite (~45 seconds)
+make test               # Run full test suite (includes build test)
 
 # VM Testing (NixOS)
 make test-vm                # VM test suite (build + boot + E2E validation)
@@ -75,6 +75,13 @@ make test-vm                # VM test suite (build + boot + E2E validation)
 touch tests/unit/my-feature-test.nix
 # No registration needed - automatically discovered via builtins.readDir
 ```
+
+**Current Test Structure:**
+- `tests/unit/` - Unit tests for individual components
+- `tests/integration/` - Integration tests for module interactions
+- `tests/e2e/` - End-to-end tests including VM testing
+- `tests/lib/` - Test helpers and utilities
+- `tests/performance/` - Performance benchmarking tests
 
 **VM Testing Platform Support:**
 
@@ -137,11 +144,32 @@ users/shared/      # Shared user configuration (supports multiple users: baleen,
 ├── vim.nix           # Vim/Neovim setup
 ├── zsh.nix           # Zsh shell configuration
 ├── tmux.nix          # Terminal multiplexer
-└── .config/claude/   # Claude Code configuration
+├── claude-code.nix   # Claude Code configuration
+├── hammerspoon.nix   # Hammerspoon automation
+├── karabiner.nix     # Karabiner key remapping
+├── ghostty.nix       # Ghostty terminal configuration
+└── .config/claude/   # Claude Code settings and skills
 
 machines/          # Machine-specific configs (hostname, hardware)
-lib/               # Pure Nix utilities (mksystem.nix factory, formatters, testing)
-tests/             # TDD test suite (unit, integration)
+├── macbook-pro.nix          # macOS configuration
+└── nixos/                  # NixOS configurations
+    ├── vm-aarch64-utm.nix   # ARM64 VM for UTM
+    ├── vm-shared.nix        # Shared VM settings
+    └── hardware/            # Hardware-specific configs
+
+lib/               # Pure Nix utilities (mksystem.nix factory, performance, testing)
+├── mksystem.nix             # System factory function
+├── user-info.nix            # User information utilities
+├── performance*.nix         # Performance monitoring and reporting
+└── nix-app-linker.sh        # Nix app linking script
+
+tests/             # TDD test suite (unit, integration, e2e, performance)
+├── unit/                   # Unit tests
+├── integration/            # Integration tests
+├── e2e/                    # End-to-end tests (including VM testing)
+├── lib/                    # Test helpers and utilities
+├── performance/            # Performance benchmarks
+└── default.nix             # Test entry point
 ```
 
 ### Module Philosophy
@@ -171,20 +199,22 @@ Factory pattern for system building, user-centric flat files, minimal abstractio
 **Nix-Based Tooling**
 
 - **System Building**: `lib/mksystem.nix` factory → `nix build .#darwinConfigurations.macbook-pro.system`
-- **Formatting**: `lib/formatters.nix` → `nix run .#format`
-- **Testing**: Native `nix flake check` with TDD framework
+- **Formatting**: `make format` (uses `nixfmt-rfc-style`) → direct formatting available
+- **Testing**: Native `nix flake check` with comprehensive TDD framework
 - **Development**: `nix flake show` for structure validation
+- **Performance**: Built-in performance monitoring and benchmarking via `lib/performance*.nix`
 
 ## Code Quality
 
 ### Auto-Formatting
 
 ```bash
-make format              # Format all files (Nix)
+make format              # Format all files (uses nixfmt-rfc-style)
 make check               # Run flake check (validation)
+make lint                # Alias for format (for CI compatibility)
 ```
 
-**Supported formats**: nixfmt (Nix)
+**Supported formats**: nixfmt-rfc-style (Nix) - specified in flake.nix formatter
 
 ### Pre-commit Hooks
 
@@ -205,22 +235,17 @@ make check               # Run flake check (validation)
 
 ### USER Variable & Multi-User Support
 
-**Automatic Detection (Recommended)**:
-- Makefile automatically detects USER via `whoami`
-- Works for any user: baleen, jito, or any other username
-- Just run `make build` or `make switch` - no manual export needed
-
-**Manual Export (Only for Direct Nix Commands)**:
-- Required when running nix commands directly (bypassing Makefile)
-- Example: `export USER=$(whoami) && nix build --impure .#darwinConfigurations.macbook-pro.system`
-- The `--impure` flag is required to read environment variables
+**Manual Export Required for All Operations**:
+- Must set USER environment variable before any build operation
+- Example: `export USER=$(whoami) && make build`
+- The `--impure` flag is required for nix commands to read environment variables
 
 **Multi-User Support**:
 - Configuration is stored in `users/shared/` directory
-- Actual username is dynamically resolved from `USER` environment variable
+- Actual username is dynamically resolved from `USER` environment variable in flake.nix
 - Supports multiple users without code duplication: baleen, jito, etc.
 
-**Important**: The `USER` variable is mandatory for all build operations. The Makefile handles this automatically via `USER ?= $(shell whoami)`.
+**Important**: The `USER` variable is mandatory for all build operations. The Makefile does NOT automatically detect USER - you must export it manually.
 
 ### Nix Store Paths
 
@@ -306,7 +331,22 @@ This ensures you're always building the appropriate configuration for your platf
 4. Run `make test` to validate changes
 5. Run `make build` to test current platform
 6. Refactor while keeping tests green
-7. Commit (pre-commit hooks automatically run `make lint` and `make test`)
+7. Commit (pre-commit hooks automatically run quality checks)
+
+### Git Workflow
+
+- **Branch**: Currently on `feature/makefile-refactor-2025-01-10`
+- **Main Branch**: `main` (target for PRs)
+- **Status**: Clean working directory
+- **Recent commits**: Makefile refactoring and documentation updates
+
+### CI/CD Pipeline
+
+The project uses GitHub Actions for continuous integration with:
+- **Multi-platform testing**: macOS (Darwin), Linux x64, Linux ARM
+- **Consistent commands**: Same `make format/check/build/test` commands across all platforms
+- **Automatic caching**: Pushes to cachix.io on main branch
+- **120-minute timeout**: Sufficient for full build and test suite
 
 ### VM Testing Workflow
 
