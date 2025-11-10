@@ -19,3 +19,25 @@ SSH_OPTIONS=-o PubkeyAuthentication=no -o UserKnownHostsFile=/dev/null -o Strict
 UNAME := $(shell uname)
 
 .DEFAULT_GOAL := help
+
+help:
+	@echo "Available targets:"
+	@echo "  build     - Build configuration"
+	@echo "  switch    - Build and switch configuration"
+	@echo "  test      - Test configuration"
+	@echo "  cache     - Build and push to cache"
+	@echo "  format    - Format all files"
+	@echo "  check     - Run flake check"
+	@echo ""
+	@echo "VM targets:"
+	@echo "  vm/bootstrap0  - Initialize VM"
+	@echo "  vm/bootstrap   - Complete VM setup"
+	@echo "  vm/copy        - Copy configs to VM"
+	@echo "  vm/switch      - Apply configs on VM"
+
+build:
+ifeq ($(UNAME), Darwin)
+	NIXPKGS_ALLOW_UNFREE=1 nix build --impure --extra-experimental-features nix-command --extra-experimental-features flakes ".#darwinConfigurations.${NIXNAME}.system"
+else
+	NIXPKGS_ALLOW_UNFREE=1 nix build --impure --extra-experimental-features nix-command --extra-experimental-features flakes ".#nixosConfigurations.${NIXNAME}.config.system.build.toplevel"
+endif
