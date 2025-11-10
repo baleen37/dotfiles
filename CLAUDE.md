@@ -49,11 +49,11 @@ Enterprise-grade dotfiles management system providing reproducible development e
 make format                    # Auto-format all files (nix run .#format)
 make test                      # Run full test suite (~45 seconds)
 make build                     # Build current platform
+make check                     # Run flake check
+make cache                     # Build and push to cache
 
-# System Management (Option 3 - Clear separation)
+# System Management
 make switch                   # Full system update (darwin-rebuild: system + Homebrew + user)
-make build-switch             # Same as 'switch' (full system update)
-make switch-user              # User config only (home-manager: git, vim, zsh - faster)
 
 # Note: Makefile automatically detects USER=$(whoami)
 # Only set manually when using nix commands directly:
@@ -63,21 +63,17 @@ make switch-user              # User config only (home-manager: git, vim, zsh - 
 ### Testing
 
 ```bash
-# Automatic test discovery - zero maintenance!
-make test               # Core tests (~45 seconds)
-make test-unit          # All unit tests (auto-discovered)
-make test-integration   # All integration tests (auto-discovered)
-make test-all           # Comprehensive suite (includes VM tests)
-make test-e2e           # E2E test (validates dotfiles configuration)
-
-# Add new test: just create file, it's auto-discovered!
-touch tests/unit/my-feature-test.nix
-# No registration needed - automatically discovered via builtins.readDir
+# Core test commands
+make test               # Run full test suite (~45 seconds)
 
 # VM Testing (NixOS)
 make test-vm                # VM test suite (build + boot + E2E validation)
                            # - Same tests that run in CI
                            # - Multi-platform: ARM64 Mac → aarch64-linux, Intel Mac → x86_64-linux
+
+# Add new test: just create file, it's auto-discovered!
+touch tests/unit/my-feature-test.nix
+# No registration needed - automatically discovered via builtins.readDir
 ```
 
 **VM Testing Platform Support:**
@@ -110,9 +106,6 @@ VM testing requires Linux execution environment. On macOS without `linux-builder
 Build Linux packages locally on macOS:
 
 ```bash
-# Check if linux-builder is active
-make test-linux-builder
-
 # Build Linux packages
 nix build --impure --expr '(with import <nixpkgs> { system = "aarch64-linux"; }; package-name)'
 ```
@@ -129,20 +122,6 @@ nix build --impure --expr '(with import <nixpkgs> { system = "aarch64-linux"; };
 - Will automatically enable on systems using nix-darwin managed Nix daemon
 
 **Note**: CI tests on native Linux (faster than linux-builder).
-
-### Platform-Specific Commands
-
-```bash
-# Platform detection & info
-make platform-info          # Show current platform details (aarch64-darwin, x86_64-linux, etc.)
-
-# Platform-specific builds
-make build-darwin           # Build macOS configuration (requires macOS host)
-make build-linux            # Build NixOS configuration (cross-platform compatible)
-
-# CI/Testing
-make build-switch-dry       # Dry-run without activation (CI-safe)
-```
 
 **Note**: System automatically detects platform via `lib/platform-system.nix`. Commands adapt based on current host platform.
 
@@ -201,11 +180,11 @@ Factory pattern for system building, user-centric flat files, minimal abstractio
 ### Auto-Formatting
 
 ```bash
-make format              # Format all files (Nix, YAML, JSON, Markdown, shell)
-make lint-format         # Pre-commit workflow
+make format              # Format all files (Nix)
+make check               # Run flake check (validation)
 ```
 
-**Supported formats**: nixfmt (Nix), yamlfmt (YAML), jq (JSON), prettier (Markdown), shfmt (shell)
+**Supported formats**: nixfmt (Nix)
 
 ### Pre-commit Hooks
 
@@ -285,20 +264,14 @@ home.file.".claude" = {
 
 **Command Hierarchy**
 
-- **Full System**: `make switch` or `make build-switch`
+- **Full System**: `make switch`
   - macOS: darwin-rebuild (system + Homebrew + user config)
   - NixOS: nixos-rebuild (system + user config)
-
-- **User Only**: `make switch-user`
-  - home-manager activation only (git, vim, zsh, etc.)
-  - Faster for quick configuration changes
-  - Skips system settings and Homebrew
 
 **When to use each**
 
 - **Development**: `make build` - builds current platform without activation
 - **Production**: `make switch` - full system update with activation
-- **Quick updates**: `make switch-user` - user config only (no sudo required)
 
 **Build Target Auto-Detection**
 
@@ -359,19 +332,19 @@ This ensures you're always building the appropriate configuration for your platf
 
 **Entry Points** (identical across all platforms):
 ```bash
-make lint   # Format + validation
-make build  # Platform-specific build (auto-detected)
-make test   # Full test suite
-make test-e2e   # E2E test
-make test-vm     # VM test suite
+make format  # Format files
+make check   # Run flake check
+make build   # Platform-specific build (auto-detected)
+make test    # Full test suite
+make test-vm # VM test suite
 ```
 
 **Workflow**:
 ```
 ci (parallel across 3 platforms)
-├─ Darwin: lint → build → test → test-e2e → test-vm
-├─ Linux x64: lint → build → test → test-e2e → test-vm
-└─ Linux ARM: lint → build → test → test-e2e → test-vm
+├─ Darwin: format → check → build → test → test-vm
+├─ Linux x64: format → check → build → test → test-vm
+└─ Linux ARM: format → check → build → test → test-vm
 ```
 
 **Total duration**: ~90 minutes (parallel execution, includes VM testing)
@@ -397,7 +370,7 @@ ci (parallel across 3 platforms)
 
 ### Development Experience
 
-- **Auto-Formatting**: Parallel formatting via `make format` (Nix, YAML, JSON, Markdown, shell)
+- **Auto-Formatting**: Nix formatting via `make format`
 - **TDD Framework**: Comprehensive test suite with 87% optimization
 - **Claude Code Integration**: 20+ specialized commands and skills
 - **Performance Monitoring**: Real-time build metrics

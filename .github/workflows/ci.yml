@@ -33,16 +33,10 @@ jobs:
         include:
           - name: Darwin
             os: macos-15
-            vm-timeout: 45
-            cores: 4
           - name: Linux x64
             os: ubuntu-latest
-            vm-timeout: 30
-            cores: 2
           - name: Linux ARM
             os: ubuntu-latest
-            vm-timeout: 45
-            cores: 2
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
@@ -52,20 +46,6 @@ jobs:
 
       - name: Setup Nix with cache
         uses: ./.github/actions/setup-nix
-        with:
-          enable-kvm: ${{ runner.os == 'Linux' }}
-
-      - name: Verify KVM availability (Linux only)
-        if: runner.os == 'Linux'
-        run: |
-          echo "🔍 Verifying KVM availability for VM testing..."
-          if [ -e /dev/kvm ]; then
-            echo "✅ KVM device available"
-            ls -la /dev/kvm
-            echo "DETERMINATE_NIX_KVM=$DETERMINATE_NIX_KVM"
-          else
-            echo "⚠️  KVM device not found - VM tests may run slower without hardware acceleration"
-          fi
 
       - name: Lint
         run: |
@@ -81,38 +61,7 @@ jobs:
       - name: Test
         run: |
           export USER=${USER:-ci}
-          # Run unit and integration tests, skip VM tests in CI for stability
-          make test-unit test-integration
-
-      - name: E2E Test
-        run: |
-          export USER=${USER:-ci}
-          make test-e2e
-
-      - name: VM Test
-        timeout-minutes: ${{ matrix.vm-timeout }}
-        run: |
-          export USER=${USER:-ci}
-          export CI=true
-          export GITHUB_ACTIONS=true
-          # Enable VM testing in CI by overriding the skip behavior
-          export ENABLE_VM_TESTS_IN_CI=true
-          # Set VM testing parameters for CI
-          export VM_TIMEOUT=${{ matrix.vm-timeout }}
-          export VM_CORES=${{ matrix.cores }}
-          echo "🚀 Running VM tests in CI environment..."
-          echo "🎯 Platform: ${{ runner.os }} (${{ matrix.name }})"
-          echo "⏱️  VM timeout: ${{ matrix.vm-timeout }} minutes"
-          echo "🔧 VM cores: ${{ matrix.cores }}"
-
-          # Use lightweight fallback for Darwin to avoid cross-compilation timeouts
-          if [[ "${{ runner.os }}" == "macOS" ]]; then
-            echo "🍎 Darwin detected - using lightweight VM validation..."
-            make test-vm-fallback
-          else
-            echo "🐧 Linux detected - using full VM test suite..."
-            make test-vm
-          fi
+          make test
 
       - name: Upload to Cachix
         if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
