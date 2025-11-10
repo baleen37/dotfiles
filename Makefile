@@ -44,8 +44,8 @@ endif
 
 switch:
 ifeq ($(UNAME), Darwin)
-	NIXPKGS_ALLOW_UNFREE=1 nix build --impure --extra-experimental-features nix-command --extra-experimental-features flakes ".#darwinConfigurations.macbook-pro.system"
-	sudo NIXPKGS_ALLOW_UNFREE=1 ./result/sw/bin/darwin-rebuild switch --impure --flake "$$(pwd)#macbook-pro"
+	NIXPKGS_ALLOW_UNFREE=1 nix build --impure --extra-experimental-features nix-command --extra-experimental-features flakes ".#darwinConfigurations.${NIXNAME}.system"
+	sudo NIXPKGS_ALLOW_UNFREE=1 darwin-rebuild switch --impure --flake "$$(pwd)#${NIXNAME}"
 else
 	sudo NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 nixos-rebuild switch --impure --flake ".#${NIXNAME}"
 endif
