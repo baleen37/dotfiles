@@ -23,14 +23,14 @@ switch:
 ifeq ($(UNAME), Darwin)
 	NIXPKGS_ALLOW_UNFREE=1 $(NIX) run nix-darwin -- switch --flake ".#$(NIXNAME)"
 else
-	sudo NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 nixos-rebuild switch --impure --flake ".#${NIXNAME}"
+	sudo NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 $(NIX) run "nixpkgs#nixos-rebuild" -- switch --flake ".#${NIXNAME}"
 endif
 
 test:
 ifeq ($(UNAME), Darwin)
 	NIXPKGS_ALLOW_UNFREE=1 $(NIX) flake check --no-build --impure --accept-flake-config
 else
-	sudo NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 nixos-rebuild test --impure --flake ".#$(NIXNAME)"
+	sudo NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 $(NIX) run "nixpkgs#nixos-rebuild" -- test --flake ".#$(NIXNAME)"
 endif
 
 # This builds the given configuration and pushes the results to the
@@ -147,7 +147,7 @@ vm/copy:
 # have to run vm/copy before.
 vm/switch:
 	ssh $(SSH_OPTIONS) -p$(NIXPORT) $(NIXUSER)@$(NIXADDR) " \
-		sudo NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 nixos-rebuild switch --flake \"/nix-config#${NIXNAME}\" \
+		sudo NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 nix --extra-experimental-features nix-command --extra-experimental-features flakes run \"nixpkgs#nixos-rebuild\" -- switch --flake \"/nix-config#${NIXNAME}\" \
 	"
 
 # Build a WSL installer
