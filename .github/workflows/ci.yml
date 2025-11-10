@@ -56,13 +56,21 @@ jobs:
       - name: Build
         run: |
           export USER=${USER:-ci}
-          export NIXNAME=macbook-pro
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            export NIXNAME=macbook-pro
+          else
+            export NIXNAME=vm-aarch64-utm
+          fi
           make build
 
       - name: Test
         run: |
           export USER=${USER:-ci}
-          export NIXNAME=macbook-pro
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            export NIXNAME=macbook-pro
+          else
+            export NIXNAME=vm-aarch64-utm
+          fi
           make test
 
       - name: Upload to Cachix
