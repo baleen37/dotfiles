@@ -56,11 +56,13 @@ jobs:
       - name: Build
         run: |
           export USER=${USER:-ci}
+          export NIXNAME=macbook-pro
           make build
 
       - name: Test
         run: |
           export USER=${USER:-ci}
+          export NIXNAME=macbook-pro
           make test
 
       - name: Upload to Cachix
