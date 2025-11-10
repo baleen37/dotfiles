@@ -74,12 +74,7 @@ jobs:
         run: |
           export USER=${USER:-ci}
           echo "Testing secrets backup (dry-run)..."
-          if make -n secrets/backup; then
-            echo "✓ Secrets backup command is valid"
-          else
-            echo "✗ Secrets backup command failed"
-            exit 1
-          fi
+          make -n secrets/backup
 
       - name: Upload to Cachix
         if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
@@ -94,5 +89,4 @@ jobs:
             export NIXNAME=vm-aarch64-utm
           fi
           echo "Uploading to Cachix..."
-          nix profile install nixpkgs#cachix
           make cache
