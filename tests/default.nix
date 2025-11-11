@@ -11,41 +11,10 @@ let
 
   # Import container tests - inline for now to avoid path issues
   containerTests = {
-    basic = {
-      name = "basic-system-test";
-
-      nodes.machine = {
-        # Basic NixOS configuration
-        system.stateVersion = "24.11";
-
-        # User setup
-        users.users."baleen" = {
-          isNormalUser = true;
-          home = "/home/baleen";
-        };
-
-        # Essential services
-        services.openssh.enable = true;
-
-        # Test packages
-        environment.systemPackages = with pkgs; [ git vim ];
-      };
-
-      testScript = ''
-        start_all()
-
-        # Wait for system to be ready
-        machine.wait_for_unit("multi-user.target")
-
-        # Verify basic functionality
-        machine.succeed("test -f /etc/nixos/configuration.nix")
-        machine.succeed("which git")
-        machine.succeed("which vim")
-        machine.succeed("systemctl is-active sshd")
-      '';
-    };
-
+    basic = import ./containers/basic-system.nix { inherit pkgs lib; };
     user-config = import ./containers/user-config.nix { inherit pkgs lib inputs self; };
+    services = import ./containers/services.nix { inherit pkgs lib; };
+    packages = import ./containers/packages.nix { inherit pkgs lib; };
   };
 
   # Convert to nixosTest checks
