@@ -3,7 +3,8 @@
 
 let
   user = builtins.getEnv "USER";
-in {
+in
+{
   name = "services-test";
 
   nodes.machine = {

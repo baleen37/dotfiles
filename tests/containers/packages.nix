@@ -11,7 +11,8 @@ let
     htop
     jq
   ];
-in {
+in
+{
   name = "packages-test";
 
   nodes.machine = {
