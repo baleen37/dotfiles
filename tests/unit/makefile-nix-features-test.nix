@@ -181,15 +181,15 @@ pkgs.runCommand "makefile-nix-features-test-results"
     fi
 
     # Check that NIX variable is defined with experimental features
-    if grep -q "^NIX.*experimental-features.*nix-command.*flakes" "$makefileSource"; then
+    if grep "^NIX :=" "$makefileSource" | grep -q "experimental-features.*nix-command.*flakes"; then
       echo "✅ PASS: NIX variable defined with experimental features"
     else
       echo "❌ FAIL: NIX variable missing or incomplete experimental features"
       exit 1
     fi
 
-    # Simple check for any direct nix commands (this is a simplified check)
-    if grep "^NIX.*=" "$makefileSource" | head -1 | grep -q "experimental-features"; then
+    # Simple check for NIX variable (more precise pattern to avoid NIXADDR, NIXPORT, etc.)
+    if grep "^NIX :=" "$makefileSource" | head -1 | grep -q "experimental-features"; then
       echo "✅ PASS: Makefile appears to use NIX variable correctly"
     else
       echo "❌ FAIL: Makefile NIX variable configuration issue"
