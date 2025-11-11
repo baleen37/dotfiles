@@ -32,11 +32,20 @@ else
 endif
 
 test:
+	@echo "🚀 Running fast NixOS container tests..."
+	@export USER=$${USER:-$(whoami)} && \
+	NIXPKGS_ALLOW_UNFREE=1 $(NIX) flake check --no-build --impure --accept-flake-config --show-trace
+
+test-integration:
+	@echo "🔧 Running integration tests..."
 ifeq ($(UNAME), Darwin)
-	NIXPKGS_ALLOW_UNFREE=1 $(NIX) flake check --no-build --impure --accept-flake-config
+	NIXPKGS_ALLOW_UNFREE=1 $(NIX) eval '.#checks.aarch64-darwin.smoke' --impure --accept-flake-config
 else
-	NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 $(SUDO_NIX) run "nixpkgs#nixos-rebuild" -- test --flake ".#$(NIXNAME)"
+	NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 $(NIX) eval '.#checks.x86_64-linux.smoke' --impure --accept-flake-config
 endif
+
+test-all: test test-integration
+	@echo "✅ All tests completed successfully"
 
 # This builds the given configuration and pushes the results to the
 # cache. This does not alter the current running system. This requires
@@ -161,4 +170,4 @@ wsl:
 	 nix build ".#nixosConfigurations.wsl.config.system.build.installer"
 
 # Phony targets
-.PHONY: switch test cache vm/bootstrap0 vm/bootstrap vm/copy vm/switch vm/secrets secrets/backup secrets/restore
+.PHONY: switch test test-integration test-all cache vm/bootstrap0 vm/bootstrap vm/copy vm/switch vm/secrets secrets/backup secrets/restore
