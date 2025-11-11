@@ -246,37 +246,45 @@ make smoke   # Quick validation
 make lint    # Code quality check
 ```
 
-## NixOS VM Testing
+## NixOS VM Management
 
-This project includes automated NixOS VM testing using QEMU and nixos-generators for cross-platform validation.
+This project includes NixOS VM management commands for development and testing environments.
 
-### Quick Start
+### VM Setup Commands
 
 ```bash
-# Run VM configuration tests
-make test-vm
+# Bootstrap a brand new NixOS VM (requires NIXADDR, NIXPORT, NIXUSER)
+make vm/bootstrap0
 
-# Run full VM tests with execution
-make test-vm-full
+# Complete VM setup with dotfiles configuration
+make vm/bootstrap
 
-# Run all E2E tests including VM tests
-make test-e2e
+# Copy configuration files to VM
+make vm/copy
+
+# Apply configuration changes on VM
+make vm/switch
+
+# Copy SSH keys and GPG keyring to VM
+make vm/secrets
 ```
-
-### Architecture
-
-- **QEMU**: Cross-platform virtualization
-- **nixos-generators**: Modern VM image generation
-- **NixTest**: Test framework integration
-- **Automated SSH**: Service validation
 
 ### VM Configuration
 
-The test VM includes:
-- SSH server (port 2222 forwarded)
-- Docker service
-- Test user account
-- Optimized resource allocation
+The VM management system supports:
+- SSH-based deployment and management
+- Automated NixOS installation
+- Configuration synchronization
+- Secrets management
+
+### Environment Variables
+
+```bash
+# Required for VM commands
+export NIXADDR=192.168.64.2    # VM IP address
+export NIXPORT=22              # SSH port (default: 22)
+export NIXUSER=root            # SSH user (default: root)
+```
 
 ### Platform Support
 

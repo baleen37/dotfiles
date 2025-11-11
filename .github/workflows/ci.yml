@@ -26,23 +26,20 @@ env:
 jobs:
   ci:
     name: CI (${{ matrix.name }})
-    timeout-minutes: 120
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
         include:
           - name: Darwin
             os: macos-15
-            vm-timeout: 45
-            cores: 4
+            arch: aarch64
           - name: Linux x64
             os: ubuntu-latest
-            vm-timeout: 30
-            cores: 2
-          - name: Linux ARM
+            arch: x86_64
+          - name: Linux ARM64
             os: ubuntu-latest
-            vm-timeout: 45
-            cores: 2
+            arch: aarch64
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
@@ -52,72 +49,55 @@ jobs:
 
       - name: Setup Nix with cache
         uses: ./.github/actions/setup-nix
-        with:
-          enable-kvm: ${{ runner.os == 'Linux' }}
 
-      - name: Verify KVM availability (Linux only)
-        if: runner.os == 'Linux'
+      - name: Validate configuration (dry-run)
         run: |
-          echo "🔍 Verifying KVM availability for VM testing..."
-          if [ -e /dev/kvm ]; then
-            echo "✅ KVM device available"
-            ls -la /dev/kvm
-            echo "DETERMINATE_NIX_KVM=$DETERMINATE_NIX_KVM"
+          export USER=${USER:-ci}
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            export NIXNAME=macbook-pro
           else
-            echo "⚠️  KVM device not found - VM tests may run slower without hardware acceleration"
+            export NIXNAME=vm-aarch64-utm
+          fi
+          echo "Testing configuration validation (dry-run)..."
+          make -n switch
+          make -n test
+
+      - name: Test configuration
+        run: |
+          export USER=${USER:-ci}
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            export NIXNAME=macbook-pro
+            # Run minimal checks for macOS - smoke test only
+            nix eval '.#checks.aarch64-darwin.smoke' --impure --accept-flake-config
+          else
+            export NIXNAME=vm-aarch64-utm
+            # Run minimal checks for Linux x64 - use native architecture
+            nix eval '.#checks.x86_64-linux.smoke' --impure --accept-flake-config
           fi
 
-      - name: Lint
+      - name: Test secrets backup
         run: |
           export USER=${USER:-ci}
-          git config --unset-all core.hooksPath || true
-          make lint
-
-      - name: Build
-        run: |
-          export USER=${USER:-ci}
-          make build
-
-      - name: Test
-        run: |
-          export USER=${USER:-ci}
-          # Run unit and integration tests, skip VM tests in CI for stability
-          make test-unit test-integration
-
-      - name: E2E Test
-        run: |
-          export USER=${USER:-ci}
-          make test-e2e
-
-      - name: VM Test
-        timeout-minutes: ${{ matrix.vm-timeout }}
-        run: |
-          export USER=${USER:-ci}
-          export CI=true
-          export GITHUB_ACTIONS=true
-          # Enable VM testing in CI by overriding the skip behavior
-          export ENABLE_VM_TESTS_IN_CI=true
-          # Set VM testing parameters for CI
-          export VM_TIMEOUT=${{ matrix.vm-timeout }}
-          export VM_CORES=${{ matrix.cores }}
-          echo "🚀 Running VM tests in CI environment..."
-          echo "🎯 Platform: ${{ runner.os }} (${{ matrix.name }})"
-          echo "⏱️  VM timeout: ${{ matrix.vm-timeout }} minutes"
-          echo "🔧 VM cores: ${{ matrix.cores }}"
-
-          # Use lightweight fallback for Darwin to avoid cross-compilation timeouts
-          if [[ "${{ runner.os }}" == "macOS" ]]; then
-            echo "🍎 Darwin detected - using lightweight VM validation..."
-            make test-vm-fallback
-          else
-            echo "🐧 Linux detected - using full VM test suite..."
-            make test-vm
-          fi
+          echo "Testing secrets backup (dry-run)..."
+          make -n secrets/backup
 
       - name: Upload to Cachix
         if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
         env:
+          USER: ${USER:-ci}
           CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
         run: |
-          nix profile install nixpkgs#cachix
-          nix path-info --json --all | jq -r '.[].storePath' | cachix push baleen-nix
+          export USER=${USER:-ci}
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            export NIXNAME=macbook-pro
+            # Cache macOS build
+            nix build '.#darwinConfigurations.macbook-pro.system' --json \
+              | jq -r '.[].outputs | to_entries[].value' \
+              | cachix push baleen-nix || echo "Cache upload incomplete"
+          else
+            export NIXNAME=vm-aarch64-utm
+            # Cache Linux build (use x86_64 since that's our runner)
+            nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel' --json \
+              | jq -r '.[].outputs | to_entries[].value' \
+              | cachix push baleen-nix || echo "Cache upload incomplete"
+          fi

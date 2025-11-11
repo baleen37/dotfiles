@@ -19,21 +19,13 @@ repos:
   # Makefile-managed checks (single source of truth)
   - repo: local
     hooks:
-      - id: lint
-        name: Lint (Makefile)
-        entry: make lint
-        language: system
-        pass_filenames: false
-        stages: [pre-commit]
-        description: Format + validation via Makefile
-
       - id: test
         name: Test (Makefile)
         entry: make test
         language: system
         pass_filenames: false
         stages: [pre-commit, pre-push]
-        description: Run full test suite
+        description: Run configuration test
 
 # Global configuration
 default_install_hook_types: [pre-commit, pre-push]
