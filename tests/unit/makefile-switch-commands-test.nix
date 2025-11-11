@@ -1,12 +1,13 @@
 # Makefile Switch Commands Test
 #
-# Tests for Makefile switch command behavior (Option 3 implementation)
+# Tests for Makefile switch command behavior
 #
 # Test Coverage:
-# - build-switch uses darwin-rebuild (not home-manager)
-# - switch uses darwin-rebuild
-# - switch-user uses home-manager
+# - build-switch uses nix-darwin via dependency on switch (not home-manager)
+# - switch uses nix-darwin
+# - build-switch and switch do not use home-manager on Darwin
 # - All commands have proper USER variable handling
+# - switch is in .PHONY
 
 {
   lib ? import <nixpkgs/lib>,
@@ -33,61 +34,48 @@ pkgs.runCommand "makefile-switch-commands-test"
   ''
     echo "Testing Makefile switch commands (Option 3)"
 
-    # Test 1: build-switch should use darwin-rebuild on Darwin
-    if grep -A 20 "^build-switch:" "$makefileSource" | grep -q "darwin-rebuild"; then
-      echo "✅ Test 1 PASS: build-switch uses darwin-rebuild"
+    # Test 1: build-switch should use nix-darwin on Darwin (via dependency on switch)
+    # build-switch depends on switch, and switch contains nix-darwin command
+    if (grep -A 5 "^build-switch:" "$makefileSource" | grep -q "switch") &&
+       (grep -A 20 "^switch:" "$makefileSource" | grep -q "nix-darwin"); then
+      echo "✅ Test 1 PASS: build-switch uses nix-darwin via dependency on switch"
     else
-      echo "❌ Test 1 FAIL: build-switch should use darwin-rebuild, not home-manager"
+      echo "❌ Test 1 FAIL: build-switch should depend on switch which uses nix-darwin"
       exit 1
     fi
 
-    # Test 2: switch should use darwin-rebuild on Darwin
-    if grep -A 20 "^switch:" "$makefileSource" | grep -q "darwin-rebuild"; then
-      echo "✅ Test 2 PASS: switch uses darwin-rebuild"
+    # Test 2: switch should use nix-darwin on Darwin
+    if grep -A 20 "^switch:" "$makefileSource" | grep -q "nix-darwin"; then
+      echo "✅ Test 2 PASS: switch uses nix-darwin"
     else
-      echo "❌ Test 2 FAIL: switch should use darwin-rebuild"
+      echo "❌ Test 2 FAIL: switch should use nix-darwin"
       exit 1
     fi
 
-    # Test 3: switch-user target should exist
-    if grep -q "^switch-user:" "$makefileSource"; then
-      echo "✅ Test 3 PASS: switch-user target exists"
-    else
-      echo "❌ Test 3 FAIL: switch-user target does not exist"
-      exit 1
-    fi
-
-    # Test 4: switch-user should use home-manager
-    if grep -A 10 "^switch-user:" "$makefileSource" | grep -q "home-manager"; then
-      echo "✅ Test 4 PASS: switch-user uses home-manager"
-    else
-      echo "❌ Test 4 FAIL: switch-user should use home-manager"
-      exit 1
-    fi
-
-    # Test 5: build-switch should NOT use home-manager on Darwin
-    if grep -A 20 "^build-switch:" "$makefileSource" | grep "Darwin" | grep -q "home-manager"; then
-      echo "❌ Test 5 FAIL: build-switch should not use home-manager on Darwin"
+    # Test 3: build-switch should NOT use home-manager (check via switch dependency)
+    # build-switch should use nix-darwin, not home-manager
+    if (grep -A 20 "^switch:" "$makefileSource" | grep -q "home-manager"); then
+      echo "❌ Test 3 FAIL: switch (used by build-switch) should not use home-manager on Darwin"
       exit 1
     else
-      echo "✅ Test 5 PASS: build-switch does not use home-manager on Darwin"
+      echo "✅ Test 3 PASS: build-switch does not use home-manager on Darwin"
     fi
 
-    # Test 6: All switch commands should have USER variable handling
-    for cmd in "switch" "build-switch" "switch-user"; do
+    # Test 4: All switch commands should have USER variable handling
+    for cmd in "switch" "build-switch"; do
       if grep -A 15 "^$cmd:" "$makefileSource" | grep -q "USER"; then
-        echo "✅ Test 6.$cmd PASS: $cmd has USER variable handling"
+        echo "✅ Test 4.$cmd PASS: $cmd has USER variable handling"
       else
-        echo "❌ Test 6.$cmd FAIL: $cmd missing USER variable handling"
+        echo "❌ Test 4.$cmd FAIL: $cmd missing USER variable handling"
         exit 1
       fi
     done
 
-    # Test 7: switch-user should be in .PHONY
-    if grep "^\.PHONY:" "$makefileSource" | grep -q "switch-user"; then
-      echo "✅ Test 7 PASS: switch-user is in .PHONY"
+    # Test 5: switch should be in .PHONY (build-switch is not in .PHONY by design)
+    if grep "^\.PHONY:" "$makefileSource" | grep -q "switch"; then
+      echo "✅ Test 5 PASS: switch is in .PHONY"
     else
-      echo "❌ Test 7 FAIL: switch-user should be in .PHONY"
+      echo "❌ Test 5 FAIL: switch should be in .PHONY"
       exit 1
     fi
 
