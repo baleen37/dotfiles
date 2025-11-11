@@ -82,6 +82,9 @@ systemFunc {
         name = user;
         home = if darwin then "/Users/${user}" else "/home/${user}";
       };
+
+      # Set hostname for Darwin systems
+      networking.hostName = lib.mkIf darwin name;
     }
   ];
 }
