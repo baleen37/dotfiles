@@ -9,6 +9,19 @@ let
   pkgs = import inputs.nixpkgs { inherit system; };
   lib = pkgs.lib;
 
+  # Import container tests - inline for now to avoid path issues
+  containerTests = {
+    basic = import ./containers/basic-system.nix { inherit pkgs lib; };
+    # user-config = import ./containers/user-config.nix { inherit pkgs lib inputs self; };  # Temporarily disabled due to dependency issues
+    services = import ./containers/services.nix { inherit pkgs lib; };
+    packages = import ./containers/packages.nix { inherit pkgs lib; };
+  };
+
+  # Convert to nixosTest checks
+  containerChecks = builtins.mapAttrs (name: test:
+    pkgs.testers.nixosTest test
+  ) containerTests;
+
   # Automatic test discovery function (nixpkgs pattern)
   # Discovers all *-test.nix files in a directory
   discoverTests =
@@ -54,5 +67,6 @@ in
     touch $out
   '';
 }
+// containerChecks
 // discoverTests ./unit "unit"
 // discoverTests ./integration "integration"

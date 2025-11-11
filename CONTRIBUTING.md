@@ -24,7 +24,8 @@ cd dotfiles
 
 # Set up the development environment
 export USER=$(whoami)
-make smoke    # Quick validation
+make test     # Fast container tests (2-5 seconds)
+make test-all # Complete validation
 make lint     # Check code quality
 ```
 
@@ -53,7 +54,7 @@ git merge feature/add-new-package
 
 - [ ] Create a descriptive branch name
 - [ ] Ensure `USER` environment variable is set
-- [ ] Run `make smoke` to verify baseline functionality
+- [ ] Run `make test` to verify baseline functionality
 
 #### 2. Development Loop
 
@@ -63,9 +64,9 @@ git merge feature/add-new-package
 
 # Test your changes
 make lint           # Code quality checks
-make smoke          # Quick validation
+make test           # Fast container tests (2-5 seconds)
+make test-all       # Complete validation
 make build          # Full system build
-make test           # Run test suite
 
 # Test on target platform(s)
 nix run --impure .#build-switch  # Test system integration
@@ -76,10 +77,11 @@ nix run --impure .#build-switch  # Test system integration
 **Always run these commands in order before committing:**
 
 ```bash
-make lint     # pre-commit run --all-files
-make smoke    # nix flake check --all-systems --no-build
-make build    # build all NixOS/darwin configurations
-make smoke    # final flake check after build
+make lint      # pre-commit run --all-files
+make test      # Fast container tests (2-5 seconds)
+make test-all  # Complete validation
+make build     # build all NixOS/darwin configurations
+make test-all  # final validation after build
 ```
 
 ### Testing Strategy
@@ -389,7 +391,7 @@ nix build --impure .#checks.$(nix eval --impure --expr 'builtins.currentSystem')
 1. **Complete the pre-commit workflow:**
 
    ```bash
-   make lint && make smoke && make build && make smoke
+   make lint && make test && make test-all && make build && make test-all
    ```
 
 2. **Run comprehensive local tests:**

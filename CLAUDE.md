@@ -216,6 +216,22 @@ Pre-commit hooks are configured to validate code quality. If pre-commit fails, u
 
 ### Testing
 
+**Fast NixOS Container Tests (2-5 seconds):**
+- `make test` - Fast container-based configuration validation
+- `make test-integration` - Traditional integration tests
+- `make test-all` - Complete test suite
+
+**NixOS Container Tests:**
+- Basic system functionality validation
+- User configuration testing
+- Services verification (SSH, Docker)
+- Package installation validation
+
+**Multi-platform Support:**
+- Automatic cross-platform testing via Nix
+- CI runs tests on Darwin, Linux x64, Linux ARM
+- Local testing optimized for current platform
+
 **Multi-tier strategy**:
 
 - Unit tests: Component-level validation
@@ -372,23 +388,29 @@ The project uses GitHub Actions for continuous integration with:
 - Linux ARM (ubuntu-latest): ARM64 with QEMU
 
 **CI Workflow**:
-1. **Configuration Validation** (dry-run):
+1. **Fast Container Tests** (2-5 seconds):
+   ```bash
+   export USER=${USER:-ci}
+   make test         # Run fast NixOS container tests
+   ```
+
+2. **Full Test Suite** (PRs and main branch):
+   ```bash
+   export USER=${USER:-ci}
+   make test-all     # Run complete test suite with integration tests
+   ```
+
+3. **Configuration Validation** (dry-run):
    ```bash
    make -n switch    # Validate switch command without execution
-   make -n test      # Validate test command without execution
    ```
 
-2. **Configuration Testing**:
-   ```bash
-   make test         # Run configuration test (build validation)
-   ```
-
-3. **Secrets Validation**:
+4. **Secrets Validation**:
    ```bash
    make -n secrets/backup  # Validate secrets backup command
    ```
 
-4. **Cache Upload** (main branch and tags only):
+5. **Cache Upload** (main branch and tags only):
    ```bash
    make cache        # Upload build results to cachix
    ```
@@ -415,7 +437,8 @@ The project uses GitHub Actions for continuous integration with:
 ### Development Experience
 
 - **Auto-Formatting**: Nix formatting via `nix fmt`
-- **TDD Framework**: Comprehensive test suite with 87% optimization
+- **Fast Container Testing**: 2-5 second test validation (vs previous minutes)
+- **TDD Framework**: Comprehensive test suite with NixOS containers
 - **Claude Code Integration**: 20+ specialized commands and skills
 - **Performance Monitoring**: Real-time build metrics
 

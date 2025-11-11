@@ -24,6 +24,8 @@ SUDO_NIX := sudo env PATH=$$PATH $(NIX_PATH) --extra-experimental-features nix-c
 # We need to do some OS switching below.
 UNAME := $(shell uname)
 
+build-switch: switch
+
 switch:
 ifeq ($(UNAME), Darwin)
 	NIXPKGS_ALLOW_UNFREE=1 $(SUDO_NIX) run nix-darwin -- switch --flake ".#$(NIXNAME)"
@@ -32,11 +34,49 @@ else
 endif
 
 test:
+	@echo "🚀 Running dual-mode tests..."
+	@export USER=$${USER:-$(whoami)} && \
+	if [ "$(UNAME)" = "Darwin" ]; then \
+		echo "📱 macOS detected: Running validation mode (container tests require Linux)"; \
+		echo "🔧 Validating all test configurations without execution..."; \
+		NIXPKGS_ALLOW_UNFREE=1 $(NIX) flake check --no-build --impure --accept-flake-config --show-trace; \
+		echo "✅ Validation completed - Full container tests will run in CI"; \
+	else \
+		echo "🐧 Linux detected: Running full container test execution..."; \
+		NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 $(NIX) flake check --impure --accept-flake-config --show-trace; \
+	fi
+
+test-integration:
+	@echo "🔧 Running integration tests..."
 ifeq ($(UNAME), Darwin)
-	NIXPKGS_ALLOW_UNFREE=1 $(NIX) flake check --no-build --impure --accept-flake-config
+	NIXPKGS_ALLOW_UNFREE=1 $(NIX) eval '.#checks.aarch64-darwin.smoke' --impure --accept-flake-config
 else
-	NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 $(SUDO_NIX) run "nixpkgs#nixos-rebuild" -- test --flake ".#$(NIXNAME)"
+	NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 $(NIX) eval '.#checks.x86_64-linux.smoke' --impure --accept-flake-config
 endif
+
+test-all: test test-integration
+	@echo "✅ All tests completed successfully"
+
+# Optional: Attempt cross-platform container testing (experimental)
+# Note: This requires additional setup and may not work on all systems
+test-containers:
+	@echo "🔬 Attempting container test execution (experimental)..."
+	@export USER=$${USER:-$(whoami)} && \
+	if [ "$(UNAME)" = "Darwin" ]; then \
+		echo "⚠️  Cross-compilation detected - this may require additional setup"; \
+		echo "💡 Consider running tests in a Linux VM or CI for reliable results"; \
+		echo "🚧 Attempting individual container test build..."; \
+		if NIXPKGS_ALLOW_UNFREE=1 $(NIX) build '.#checks.aarch64-darwin.basic' --impure --accept-flake-config --print-build-logs 2>/dev/null; then \
+			echo "✅ Container test executed successfully"; \
+		else \
+			echo "❌ Container test failed - this is expected on macOS without linux-builder"; \
+			echo "💡 Use 'make test' for validation mode or run tests in Linux environment"; \
+			exit 1; \
+		fi; \
+	else \
+		echo "🐧 Linux environment - running full container tests..."; \
+		NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 $(NIX) build '.#checks.$(shell uname -m | sed 's/x86_64/x86_64/;s/arm64/aarch64/').basic' --impure --accept-flake-config --print-build-logs; \
+	fi
 
 # This builds the given configuration and pushes the results to the
 # cache. This does not alter the current running system. This requires
@@ -161,4 +201,4 @@ wsl:
 	 nix build ".#nixosConfigurations.wsl.config.system.build.installer"
 
 # Phony targets
-.PHONY: switch test cache vm/bootstrap0 vm/bootstrap vm/copy vm/switch vm/secrets secrets/backup secrets/restore
+.PHONY: switch test test-integration test-all test-containers cache vm/bootstrap0 vm/bootstrap vm/copy vm/switch vm/secrets secrets/backup secrets/restore

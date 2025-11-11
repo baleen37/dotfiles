@@ -52,7 +52,7 @@
         let
           envUser = builtins.getEnv "USER";
         in
-        if envUser != "" then envUser else "baleen";
+        if envUser != "" && envUser != "root" then envUser else "baleen";
 
       # Overlays for unstable packages
       overlays = [
@@ -133,7 +133,7 @@
                 };
               };
 
-              # Set required home-manager options with correct paths
+              # Set required user options with correct paths
               users.users.${user} = {
                 name = user;
                 home = "/home/${user}";

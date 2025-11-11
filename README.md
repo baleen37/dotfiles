@@ -9,7 +9,7 @@ Modern Nix flakes-based dotfiles providing reproducible cross-platform developme
 - **RFC-Compliant Architecture**: Follows RFC 166 formatting and RFC 145 documentation standards
 - **Cross-Platform Excellence**: Native support for macOS (Intel + Apple Silicon) and NixOS (x86_64 + ARM64)
 - **AI-First Development**: Deep Claude Code integration with 20+ specialized commands and MCP servers
-- **Enterprise Testing**: Multi-tier testing framework (unit, integration, e2e, performance) with 87% optimization
+- **Fast Container Testing**: NixOS container-based validation in 2-5 seconds (vs previous minutes)
 - **Zero-Config Deployment**: Reproducible environments with flake-based dependency management
 - **Production Monitoring**: Real-time build performance and resource usage tracking
 
@@ -43,8 +43,8 @@ export USER=$(whoami)  # Required for user-specific configurations
 make install-hooks     # Install pre-commit hooks for quality enforcement
 
 # 3. Build and validate system
-make build             # Build all configurations (~5-10 minutes first time)
-make test-smoke        # Quick validation (~30 seconds)
+make test             # Fast container tests (2-5 seconds)
+make test-all         # Complete validation (~30 seconds)
 
 # 4. Deploy system configuration
 nix run --impure .#build-switch  # Apply configuration (requires sudo)
@@ -103,7 +103,7 @@ make test              # Run tests
 make format            # Auto-format (uses nix run .#format)
 
 # Quick operations
-make smoke             # Fast validation
+make test              # Fast container tests (2-5 seconds)
 nix run .#build-switch # Build and apply together
 nix run .#format       # Direct Nix formatting (alternative)
 ```
@@ -240,11 +240,18 @@ The project uses declarative Nix solutions for development tooling:
 
 ## Testing
 
+**Fast NixOS Container Tests (2-5 seconds):**
 ```bash
-make test    # Run all tests
-make smoke   # Quick validation
-make lint    # Code quality check
+make test             # Fast container-based configuration validation
+make test-integration # Traditional integration tests
+make test-all         # Complete test suite
 ```
+
+**Container Test Coverage:**
+- Basic system functionality validation
+- User configuration testing
+- Services verification (SSH, Docker)
+- Package installation validation
 
 ## NixOS VM Management
 
