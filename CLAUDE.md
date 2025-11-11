@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+**한국어로 소통해주세요 (Please communicate in Korean)**
+
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
