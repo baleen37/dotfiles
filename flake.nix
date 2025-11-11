@@ -78,6 +78,12 @@
         darwin = true;
       };
 
+      darwinConfigurations.kakaostyle-jito = mkSystem "kakaostyle-jito" {
+        system = "aarch64-darwin";
+        user = user;
+        darwin = true;
+      };
+
       # Home Manager configurations (supports multiple users)
       homeConfigurations =
         let

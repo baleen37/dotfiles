@@ -325,6 +325,23 @@ This ensures you're always building the appropriate configuration for your platf
 6. Refactor while keeping tests green
 7. Commit (pre-commit hooks automatically run quality checks)
 
+### Mitchellh's Influence on Workflow
+
+**Makefile-First Approach**: Following mitchellh's pattern, the Makefile is the primary interface for all operations, providing comprehensive automation without requiring deep Nix knowledge.
+
+**VM-Centric Development**: Embraces mitchellh's "best of both worlds" philosophy:
+- macOS host for hardware reliability and ecosystem access
+- NixOS VMs for pure Linux development environments
+- Automated VM lifecycle management (bootstrap → copy → switch)
+
+**Pragmatic Command Set**: Limited, well-defined commands that cover all essential operations without overwhelming complexity:
+- Core operations: `switch`, `test`, `cache`
+- VM management: `vm/*` series for complete lifecycle
+- Secrets: `secrets/*` for backup/restore workflows
+- Platform support: `wsl` for Windows environments
+
+**No Premature Optimization**: Implements mitchellh's "modern computers are plenty fast enough" philosophy by focusing on functionality over theoretical performance gains.
+
 ### Git Workflow
 
 - **Branch**: Currently on `feature/makefile-refactor-2025-01-10`
