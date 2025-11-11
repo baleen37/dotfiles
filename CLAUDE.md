@@ -296,12 +296,14 @@ The Makefile automatically selects the correct build target based on the current
 
 ```bash
 # Auto-detected targets (no manual selection needed):
-aarch64-darwin  → darwinConfigurations.macbook-pro.system
+aarch64-darwin  → darwinConfigurations.macbook-pro.system (or hostname-specific)
 x86_64-linux    → checks.x86_64-linux.smoke
 aarch64-linux   → checks.aarch64-linux.smoke
 ```
 
-This ensures you're always building the appropriate configuration for your platform.
+The system automatically uses the hostname (`hostname -s`) to determine the correct configuration, supporting multiple Darwin configurations: `macbook-pro`, `baleen-macbook`, `kakaostyle-jito`, etc.
+
+This ensures you're always building the appropriate configuration for your platform and machine.
 
 
 ## Code Documentation
@@ -344,10 +346,10 @@ This ensures you're always building the appropriate configuration for your platf
 
 ### Git Workflow
 
-- **Branch**: Currently on `feature/makefile-refactor-2025-01-10`
+- **Branch**: Currently on `feature/add-kakaostyle-jito-config`
 - **Main Branch**: `main` (target for PRs)
 - **Status**: Clean working directory
-- **Recent commits**: Makefile refactoring and documentation updates
+- **Recent commits**: Added kakaostyle-jito Darwin configuration support
 
 ### CI/CD Pipeline
 
