@@ -24,6 +24,8 @@ SUDO_NIX := sudo env PATH=$$PATH $(NIX_PATH) --extra-experimental-features nix-c
 # We need to do some OS switching below.
 UNAME := $(shell uname)
 
+build-switch: switch
+
 switch:
 ifeq ($(UNAME), Darwin)
 	NIXPKGS_ALLOW_UNFREE=1 $(SUDO_NIX) run nix-darwin -- switch --flake ".#$(NIXNAME)"
