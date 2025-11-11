@@ -9,6 +9,69 @@ let
   pkgs = import inputs.nixpkgs { inherit system; };
   lib = pkgs.lib;
 
+  # Import container tests - inline for now to avoid path issues
+  containerTests = {
+    basic = {
+      name = "basic-system-test";
+
+      nodes.machine = {
+        # Basic NixOS configuration
+        system.stateVersion = "24.11";
+
+        # User setup
+        users.users."baleen" = {
+          isNormalUser = true;
+          home = "/home/baleen";
+        };
+
+        # Essential services
+        services.openssh.enable = true;
+
+        # Test packages
+        environment.systemPackages = with pkgs; [ git vim ];
+      };
+
+      testScript = ''
+        start_all()
+
+        # Wait for system to be ready
+        machine.wait_for_unit("multi-user.target")
+
+        # Verify basic functionality
+        machine.succeed("test -f /etc/nixos/configuration.nix")
+        machine.succeed("which git")
+        machine.succeed("which vim")
+        machine.succeed("systemctl is-active sshd")
+      '';
+    };
+
+    user-config = {
+      name = "user-config-test";
+
+      nodes.machine = {
+        system.stateVersion = "24.11";
+
+        users.users."baleen" = {
+          isNormalUser = true;
+          home = "/home/baleen";
+        };
+
+        services.openssh.enable = true;
+      };
+
+      testScript = ''
+        start_all()
+        machine.wait_for_unit("multi-user.target")
+        machine.succeed("echo 'Placeholder test - will be implemented in Task 2'")
+      '';
+    };
+  };
+
+  # Convert to nixosTest checks
+  containerChecks = builtins.mapAttrs (name: test:
+    pkgs.testers.nixosTest test
+  ) containerTests;
+
   # Automatic test discovery function (nixpkgs pattern)
   # Discovers all *-test.nix files in a directory
   discoverTests =
@@ -54,5 +117,6 @@ in
     touch $out
   '';
 }
+// containerChecks
 // discoverTests ./unit "unit"
 // discoverTests ./integration "integration"
