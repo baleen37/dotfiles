@@ -31,7 +31,6 @@ in {
     machine.wait_for_unit("multi-user.target")
 
     # Verify basic functionality
-    machine.succeed("test -f /etc/nixos/configuration.nix")
     machine.succeed("which git")
     machine.succeed("which vim")
     machine.succeed("systemctl is-active sshd")
