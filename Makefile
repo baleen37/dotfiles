@@ -18,15 +18,18 @@ SSH_OPTIONS=-o PubkeyAuthentication=no -o UserKnownHostsFile=/dev/null -o Strict
 NIX_PATH := $(shell which nix 2>/dev/null || echo "nix")
 NIX := $(NIX_PATH) --extra-experimental-features nix-command --extra-experimental-features flakes
 
-# For sudo commands, we need the full path or preserved PATH
-SUDO_NIX := sudo env PATH=$$PATH $(NIX_PATH) --extra-experimental-features nix-command --extra-experimental-features flakes
+# Get the current user (required for all nix operations)
+USER := $(shell whoami)
+
+# For sudo commands, we need the full path or preserved PATH and USER
+SUDO_NIX := sudo env PATH=$$PATH USER=$(USER) $(NIX_PATH) --extra-experimental-features nix-command --extra-experimental-features flakes
 
 # We need to do some OS switching below.
 UNAME := $(shell uname)
 
 switch:
 ifeq ($(UNAME), Darwin)
-	NIXPKGS_ALLOW_UNFREE=1 $(NIX) run nix-darwin -- switch --flake ".#$(NIXNAME)"
+	NIXPKGS_ALLOW_UNFREE=1 $(SUDO_NIX) run nix-darwin -- switch --flake ".#$(NIXNAME)" --impure
 else
 	NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 $(SUDO_NIX) run "nixpkgs#nixos-rebuild" -- switch --flake ".#${NIXNAME}"
 endif
