@@ -53,20 +53,22 @@ jobs:
       - name: Fast container tests
         run: |
           export USER=${USER:-ci}
-          echo "Running fast container tests..."
+          export TEST_USER=${TEST_USER:-testuser}  # Ensure consistent test user
+          echo "🚀 Running fast container tests with static test user..."
           make test
 
       - name: Full test suite
         if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
         run: |
           export USER=${USER:-ci}
-          echo "Running full test suite..."
+          export TEST_USER=${TEST_USER:-testuser}  # Ensure consistent test user
+          echo "🔬 Running full test suite with static test user..."
           make test-all
 
       - name: Test secrets backup
         run: |
           export USER=${USER:-ci}
-          echo "Testing secrets backup (dry-run)..."
+          echo "🔐 Testing secrets backup (dry-run)..."
           make -n secrets/backup
 
       - name: Upload to Cachix

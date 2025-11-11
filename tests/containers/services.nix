@@ -2,7 +2,8 @@
 { pkgs, lib, ... }:
 
 let
-  user = builtins.getEnv "USER";
+  # Use static test user for environment independence
+  userName = "testuser";
 in
 {
   name = "services-test";
@@ -10,9 +11,9 @@ in
   nodes.machine = {
     system.stateVersion = "24.11";
 
-    users.users.${user} = {
+    users.users.${userName} = {
       isNormalUser = true;
-      home = "/home/${user}";
+      home = "/home/${userName}";
       extraGroups = [ "docker" ];
     };
 
@@ -35,5 +36,7 @@ in
     # Test Docker service (if available)
     machine.wait_for_unit("docker.service", timeout=60)
     machine.succeed("docker --version")
+
+    print("✅ Services test passed")
   '';
 }

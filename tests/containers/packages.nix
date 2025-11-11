@@ -2,7 +2,8 @@
 { pkgs, lib, ... }:
 
 let
-  user = builtins.getEnv "USER";
+  # Use static test user for environment independence
+  userName = "testuser";
   testPackages = with pkgs; [
     git
     vim
@@ -18,9 +19,9 @@ in
   nodes.machine = {
     system.stateVersion = "24.11";
 
-    users.users.${user} = {
+    users.users.${userName} = {
       isNormalUser = true;
-      home = "/home/${user}";
+      home = "/home/${userName}";
     };
 
     # Test packages
@@ -41,5 +42,7 @@ in
     machine.succeed("git --version")
     machine.succeed("vim --version | head -1")
     machine.succeed("curl --version | head -1")
+
+    print("✅ Packages test passed")
   '';
 }

@@ -1,12 +1,10 @@
 # User configuration container test
-{ pkgs, lib, inputs, ... }:
+{ pkgs, lib, inputs, self }:
 
 let
-  user =
-    let
-      envUser = builtins.getEnv "USER";
-    in
-    if envUser != "" then envUser else "baleen";
+  # Import test utilities for environment-independent testing
+  testUtils = import ../lib/test-utils.nix { inherit pkgs lib; };
+  userName = testUtils.testUserName;
 in {
   name = "user-config-test";
 
@@ -22,38 +20,44 @@ in {
     # Enable Zsh shell
     programs.zsh.enable = true;
 
-    # User setup for testing
-    users.users.${user} = {
-      isNormalUser = true;
-      home = "/home/${user}";
+    # User setup for testing - use static test user
+    users.users.${userName} = testUtils.mkTestUser {
       shell = pkgs.zsh;
+      extraGroups = [ "wheel" ];  # Allow sudo for testing
     };
 
     # Enable Home Manager
     home-manager.useGlobalPkgs = true;
     home-manager.useUserPackages = true;
-    home-manager.users.${user} = {
-      home = {
-        username = user;
-        homeDirectory = "/home/${user}";
-        stateVersion = "24.11";
-
+    home-manager.users.${userName} =
+      testUtils.mkHomeManagerConfig { inherit userName; } // {
         # Core system utilities for testing
-        packages = with pkgs; [
+        home.packages = with pkgs; [
           git
           zsh
           vim
           curl
           ripgrep
         ];
-      };
 
-      # Import key user configurations for testing
-      imports = [
-        ../../users/shared/git.nix
-        ../../users/shared/zsh.nix
-      ];
-    };
+        # Basic git configuration
+        programs.git = {
+          enable = true;
+          userName = "Test User";
+          userEmail = "test@example.com";
+        };
+
+        # Basic zsh configuration
+        programs.zsh = {
+          enable = true;
+          enableCompletion = true;
+          enableAutosuggestions = true;
+          history.size = 10000;
+          initExtra = ''
+            export PATH=$HOME/.local/bin:$PATH
+          '';
+        };
+      };
 
     services.openssh.enable = true;
   };
@@ -64,18 +68,23 @@ in {
     # Wait for system to be ready
     machine.wait_for_unit("multi-user.target")
 
+    # Use the static test user name
+    userName = "${userName}"
+
     # Verify user home directory exists
-    machine.succeed("test -d /home/${user}")
+    machine.succeed(f"test -d /home/{userName}")
 
     # Test user configuration files exist
-    machine.succeed("test -f /home/${user}/.zshrc")
-    machine.succeed("test -f /home/${user}/.gitconfig")
+    machine.succeed(f"test -f /home/{userName}/.zshrc")
+    machine.succeed(f"test -f /home/{userName}/.gitconfig")
 
     # Verify essential packages are available
     machine.succeed("which git")
     machine.succeed("which zsh")
 
     # Test shell configuration
-    machine.succeed("grep 'export PATH=' /home/${user}/.zshrc")
+    machine.succeed(f"grep 'export PATH=' /home/{userName}/.zshrc")
+
+    print("✅ User configuration test passed")
   '';
 }

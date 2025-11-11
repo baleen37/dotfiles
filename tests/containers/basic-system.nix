@@ -2,7 +2,8 @@
 { pkgs, lib, ... }:
 
 let
-  user = builtins.getEnv "USER";
+  # Use static test user for environment independence
+  userName = "testuser";
 in {
   name = "basic-system-test";
 
@@ -10,10 +11,10 @@ in {
     # Basic NixOS configuration
     system.stateVersion = "24.11";
 
-    # User setup
-    users.users.${user} = {
+    # User setup - use static test user
+    users.users.${userName} = {
       isNormalUser = true;
-      home = "/home/${user}";
+      home = "/home/${userName}";
     };
 
     # Essential services
@@ -34,5 +35,7 @@ in {
     machine.succeed("which git")
     machine.succeed("which vim")
     machine.succeed("systemctl is-active sshd")
+
+    print("✅ Basic system test passed")
   '';
 }

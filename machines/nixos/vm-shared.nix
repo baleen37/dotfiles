@@ -79,6 +79,9 @@
   # Define a user account. Don't forget to set a password with 'passwd'.
   users.mutableUsers = true;
 
+  # Fix root user home directory conflict
+  users.users.root.home = lib.mkForce "/root";
+
   # Manage fonts.
   fonts = {
     fontDir.enable = true;
