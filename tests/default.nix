@@ -45,26 +45,7 @@ let
       '';
     };
 
-    user-config = {
-      name = "user-config-test";
-
-      nodes.machine = {
-        system.stateVersion = "24.11";
-
-        users.users."baleen" = {
-          isNormalUser = true;
-          home = "/home/baleen";
-        };
-
-        services.openssh.enable = true;
-      };
-
-      testScript = ''
-        start_all()
-        machine.wait_for_unit("multi-user.target")
-        machine.succeed("echo 'Placeholder test - will be implemented in Task 2'")
-      '';
-    };
+    user-config = import ./containers/user-config.nix { inherit pkgs lib inputs self; };
   };
 
   # Convert to nixosTest checks
