@@ -20,12 +20,20 @@ repos:
   - repo: local
     hooks:
       - id: test
-        name: Test (Makefile)
+        name: Fast Tests
         entry: make test
         language: system
         pass_filenames: false
-        stages: [pre-commit, pre-push]
-        description: Run configuration test
+        stages: [pre-commit]
+        description: Run fast container tests
+
+      - id: test-all
+        name: All Tests
+        entry: make test-all
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+        description: Run all tests including integration
 
 # Global configuration
 default_install_hook_types: [pre-commit, pre-push]
