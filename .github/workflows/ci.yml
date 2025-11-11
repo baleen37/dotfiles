@@ -50,30 +50,18 @@ jobs:
       - name: Setup Nix with cache
         uses: ./.github/actions/setup-nix
 
-      - name: Validate configuration (dry-run)
+      - name: Fast container tests
         run: |
           export USER=${USER:-ci}
-          if [ "$RUNNER_OS" = "macOS" ]; then
-            export NIXNAME=macbook-pro
-          else
-            export NIXNAME=vm-aarch64-utm
-          fi
-          echo "Testing configuration validation (dry-run)..."
-          make -n switch
-          make -n test
+          echo "Running fast container tests..."
+          make test
 
-      - name: Test configuration
+      - name: Full test suite
+        if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
         run: |
           export USER=${USER:-ci}
-          if [ "$RUNNER_OS" = "macOS" ]; then
-            export NIXNAME=macbook-pro
-            # Run minimal checks for macOS - smoke test only
-            nix eval '.#checks.aarch64-darwin.smoke' --impure --accept-flake-config
-          else
-            export NIXNAME=vm-aarch64-utm
-            # Run minimal checks for Linux x64 - use native architecture
-            nix eval '.#checks.x86_64-linux.smoke' --impure --accept-flake-config
-          fi
+          echo "Running full test suite..."
+          make test-all
 
       - name: Test secrets backup
         run: |
