@@ -22,8 +22,6 @@
 #   - Window navigate: Alt+h/l (no prefix needed)
 #   - Copy mode: vi key bindings
 #
-# VERSION: 1.0.0 (Extracted from modules/shared/programs/tmux/default.nix)
-# LAST UPDATED: 2025-10-26
 
 {
   pkgs,

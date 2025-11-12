@@ -16,27 +16,42 @@ let
   # In CI: use static test users
   # In local: optionally use real user for debugging
   testUserName =
-    if isCI then testUsers.main
+    if isCI then
+      testUsers.main
     else
-      let envUser = builtins.getEnv "TEST_USER"; in
+      let
+        envUser = builtins.getEnv "TEST_USER";
+      in
       if envUser != "" then envUser else testUsers.main;
 
-in {
+in
+{
   inherit isCI testUsers testUserName;
 
   # Helper to create test user configuration
-  mkTestUser = { name ? testUserName, extraGroups ? [], ... }: {
-    isNormalUser = true;
-    home = "/home/${name}";
-    inherit extraGroups;
-  };
+  mkTestUser =
+    {
+      name ? testUserName,
+      extraGroups ? [ ],
+      ...
+    }:
+    {
+      isNormalUser = true;
+      home = "/home/${name}";
+      inherit extraGroups;
+    };
 
   # Helper for Home Manager configuration
-  mkHomeManagerConfig = { userName ? testUserName, ... }: {
-    home = {
-      username = userName;
-      homeDirectory = "/home/${userName}";
-      stateVersion = "24.11";
+  mkHomeManagerConfig =
+    {
+      userName ? testUserName,
+      ...
+    }:
+    {
+      home = {
+        username = userName;
+        homeDirectory = "/home/${userName}";
+        stateVersion = "24.11";
+      };
     };
-  };
 }

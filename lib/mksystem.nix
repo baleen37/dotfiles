@@ -20,6 +20,24 @@ let
   userOSConfig = ../users/shared/${osConfig};
   machineConfig = ../machines/${name}.nix;
 
+  # Unified cache configuration for both Determinate Nix and traditional Nix
+  cacheSettings = {
+    substituters = [
+      "https://baleen-nix.cachix.org"
+      "https://cache.nixos.org/"
+    ];
+    trusted-public-keys = [
+      "baleen-nix.cachix.org-1:awgC7Sut148An/CZ6TZA+wnUtJmJnOvl5NThGio9j5k="
+      "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+    ];
+    trusted-users = [
+      "root"
+      user
+      "@admin"
+      "@wheel"
+    ];
+  };
+
 in
 systemFunc {
   inherit system;
@@ -37,33 +55,33 @@ systemFunc {
     machineConfig
     userOSConfig
 
-    # Common nix settings for all systems
-    {
-      nix.settings = {
-        # Trust cachix configuration without prompting
-        substituters = [
-          "https://baleen-nix.cachix.org"
-          "https://cache.nixos.org/"
-        ];
-        trusted-public-keys = [
-          "baleen-nix.cachix.org-1:awgC7Sut148An/CZ6TZA+wnUtJmJnOvl5NThGio9j5k="
-          "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
-        ];
-        # Trust substituters to eliminate "ignoring untrusted substituter" warnings
-        trusted-substituters = [
-          "https://baleen-nix.cachix.org"
-          "https://cache.nixos.org/"
-        ];
-        # Trust admin and wheel groups to eliminate warnings
-        trusted-users = [
-          "root"
-          user
-          "@admin"
-          "@wheel"
-        ];
-      };
-    }
+    # Conditional Nix configuration for Determinate vs traditional setups
+    (
+      { lib, ... }:
+      {
+        # Traditional Nix settings (Linux systems)
+        nix.settings = lib.mkIf (!darwin) {
+          # Trust cachix configuration without prompting
+          substituters = cacheSettings.substituters;
+          trusted-public-keys = cacheSettings.trusted-public-keys;
+          # Trust substituters to eliminate "ignoring untrusted substituter" warnings
+          trusted-substituters = cacheSettings.substituters;
+          # Trust admin and wheel groups to eliminate warnings
+          trusted-users = cacheSettings.trusted-users;
+        };
 
+        # Determinate Nix integration
+        determinate-nix.customSettings = cacheSettings;
+
+        # Let Determinate manage Nix on Darwin systems
+        nix.enable = lib.mkIf darwin false;
+      }
+    )
+  ]
+  ++ lib.optionals darwin [
+    # Determinate Nix integration (Darwin systems only)
+    inputs.determinate.darwinModules.default
+  ] ++ [
     # Home Manager integration
     inputs.home-manager.darwinModules.home-manager
     {

@@ -19,8 +19,6 @@
 #   - LANG/LC_ALL: en_US.UTF-8
 #   - SSH_AUTH_SOCK: 1Password agent socket auto-setup
 #
-# VERSION: 1.0.0 (Extracted from modules/shared/programs/zsh/default.nix)
-# LAST UPDATED: 2025-10-26
 
 {
   pkgs,

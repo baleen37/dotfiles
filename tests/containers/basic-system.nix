@@ -4,7 +4,8 @@
 let
   # Use static test user for environment independence
   userName = "testuser";
-in {
+in
+{
   name = "basic-system-test";
 
   nodes.machine = {
@@ -21,7 +22,10 @@ in {
     services.openssh.enable = true;
 
     # Test packages
-    environment.systemPackages = with pkgs; [ git vim ];
+    environment.systemPackages = with pkgs; [
+      git
+      vim
+    ];
   };
 
   testScript = ''

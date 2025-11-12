@@ -38,6 +38,8 @@ Enterprise-grade dotfiles management system providing reproducible development e
 - Manually fix formatting - use `nix fmt` instead
 - Use bats for testing - use Nix's built-in test framework
 - **Add new Makefile commands** - Use only existing commands: `switch`, `test`, `cache`, `vm/*`, `secrets/*`, `wsl`
+- **Use conditional settings** - Only allowed for platform, host, or user differences
+- **Add unnecessary abstractions** - Direct configuration over complex patterns
 
 **ALWAYS:**
 
@@ -46,6 +48,8 @@ Enterprise-grade dotfiles management system providing reproducible development e
 - Run `nix fmt` before committing for code formatting
 - Follow TDD: write failing test → minimal code → refactor
 - **Use `nix fmt` directly for formatting** - Do NOT add `make format` command
+- **Keep configuration explicit** - No magic auto-detection or hidden behavior
+- **Maintain flat configuration structure** - Avoid deep inheritance hierarchies
 
 ## Essential Commands
 
@@ -124,6 +128,24 @@ nix build --impure --expr '(with import <nixpkgs> { system = "aarch64-linux"; };
 
 **Note**: System automatically detects platform via `lib/platform-system.nix`. Commands adapt based on current host platform.
 
+### Determinate Nix Integration
+
+**Configuration**: Integrated via flake input and lib/mksystem.nix
+
+**What it provides**:
+- **Enhanced security**: SOC 2 Type II validated Nix daemon management
+- **Better macOS integration**: Optimized Nix installation and management
+- **Automatic updates**: Managed through Determinate's infrastructure
+- **Simplified setup**: Reduced configuration complexity for macOS users
+
+**How it works**:
+- Darwin systems use Determinate Nix by default (`determinate.darwinModules.default`)
+- Cache configuration managed through `determinate-nix.customSettings`
+- Traditional Nix settings disabled on Darwin (`nix.enable = false`)
+- Linux systems continue using traditional Nix management
+
+**Cache trust**: All binary cache trust configured deterministically through system settings, eliminating "untrusted substituter" warnings.
+
 ## Architecture
 
 ### Module Structure
@@ -184,17 +206,23 @@ tests/             # TDD test suite (unit, integration, e2e, performance)
 
 ### Design Principles
 
+**Core Philosophy**
+- **Simplicity over complexity**: One purpose per target, minimal abstractions
+- **Explicit over implicit**: Clear configuration names, no magic auto-detection
+- **Working code over comprehensive**: Focus on what actually works
+- **Direct configuration**: No conditional settings except for platform/host/user differences
+
 **evantravers Patterns**
+- **Factory pattern**: `lib/mksystem.nix` for consistent system building
+- **Flat user configs**: `users/shared/` with tool-specific files
+- **No deep inheritance**: Machine configs are flat, no complex hierarchies
+- **Clean separation**: System, user, and tool concerns are separated
 
-Factory pattern for system building, user-centric flat files, minimal abstractions. Result: clean separation of concerns with maintainable structure.
-
-**Nix-Based Tooling**
-
-- **System Building**: `lib/mksystem.nix` factory → `nix build .#darwinConfigurations.macbook-pro.system`
-- **Formatting**: `nix fmt` (uses `nixfmt-rfc-style` from flake.nix formatter)
-- **Testing**: Native `nix flake check` with comprehensive TDD framework
-- **Development**: `nix flake show` for structure validation
-- **Performance**: Built-in performance monitoring and benchmarking via `lib/performance*.nix`
+**mitchellh Influence**
+- **Makefile-first**: All operations through Make commands, no deep Nix knowledge required
+- **VM-centric**: macOS host + NixOS VMs for "best of both worlds"
+- **Limited commands**: Essential operations only, no overwhelming complexity
+- **Pragmatic approach**: Focus on functionality over theoretical optimization
 
 ## Code Quality
 

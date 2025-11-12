@@ -22,8 +22,6 @@
 #   - Media: ffmpeg
 #   - Databases: postgresql, sqlite, redis, mysql80
 #
-# VERSION: 1.0.0 (Task 7 - Home Manager Integration)
-# LAST UPDATED: 2025-10-26
 
 {
   pkgs,

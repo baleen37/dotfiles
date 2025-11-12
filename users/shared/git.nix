@@ -22,9 +22,6 @@
 #   - 개발: .direnv/, node_modules/, .env.local
 #   - 프로젝트: issues/, specs/, plans/
 #
-# VERSION: 3.1.0 (Extracted from development.nix)
-# LAST UPDATED: 2024-10-04
-# EXTRACTED: 2025-10-26 (TDD Task 4)
 
 { pkgs, lib, ... }:
 
