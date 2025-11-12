@@ -23,8 +23,6 @@
 #   - Ctrl+h/j/k/l: Navigate split windows
 #   - Tab/Shift+Tab: Navigate buffers
 #
-# VERSION: 1.0.0 (Extracted from modules/shared/programs/vim.nix)
-# LAST UPDATED: 2025-10-26
 
 {
   pkgs,
