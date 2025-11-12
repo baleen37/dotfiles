@@ -36,7 +36,7 @@ let
   };
 
 in
-{
+let
   # Test 1: vim module imports successfully
   importTest = helpers.assertTest "vim-import"
     (helpers.canImport ../../users/shared/vim.nix)
@@ -156,4 +156,24 @@ in
       builtins.any (name: lib.hasInfix "vim-tmux-navigator" name) pluginNames
     )
     "vim should have tmux navigator plugin for seamless navigation";
-}
+
+  # Test suite aggregator
+  testSuite = helpers.testSuite "vim" [
+    importTest
+    enabledTest
+    essentialPluginsTest
+    ignorecaseTest
+    extraConfigTest
+    basicSettingsTest
+    whitespaceTest
+    searchSettingsTest
+    backupSettingsTest
+    statusLineTest
+    keyMappingsTest
+    relativeLineNumbersTest
+    clipboardTest
+    fileTypeTest
+    tmuxNavigationTest
+  ];
+in
+testSuite

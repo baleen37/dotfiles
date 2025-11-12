@@ -36,7 +36,7 @@ let
   };
 
 in
-{
+let
   # Test 1: tmux module imports successfully
   importTest = helpers.assertTest "tmux-import"
     (helpers.canImport ../../users/shared/tmux.nix)
@@ -143,4 +143,24 @@ in
     helpers.assertTest "tmux-status-bar"
       hasStatusBarSettings
       "tmux should have status bar configured";
-}
+
+  # Test suite aggregator
+  testSuite = helpers.testSuite "tmux" [
+    importTest
+    enabledTest
+    terminalTest
+    prefixTest
+    escapeTimeTest
+    historyLimitTest
+    pluginsTest
+    essentialPluginsTest
+    extraConfigTest
+    sessionPersistenceTest
+    mouseSupportTest
+    viKeyBindingsTest
+    windowNavigationTest
+    trueColorTest
+    statusBarTest
+  ];
+in
+testSuite

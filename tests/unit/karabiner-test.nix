@@ -42,7 +42,7 @@ let
     else "";
 
 in
-{
+let
   # Test 1: karabiner module imports successfully
   importTest = helpers.assertTest "karabiner-import"
     (helpers.canImport ../../users/shared/karabiner.nix)
@@ -55,7 +55,7 @@ in
 
   # Test 3: karabiner source points to config file
   sourceTest = helpers.assertTest "karabiner-source"
-    (karabinerTestConfig.home.file.".config/karabiner/karabiner.json".source == ./../users/shared/.config/karabiner/karabiner.json)
+    (karabinerTestConfig.home.file.".config/karabiner/karabiner.json".source == ../../users/shared/.config/karabiner/karabiner.json)
     "karabiner should source from .config/karabiner/karabiner.json";
 
   # Test 4: karabiner configuration forces overwrite
@@ -92,7 +92,7 @@ in
 
   # Test 9: karabiner config directory exists
   configDirTest = helpers.assertTest "karabiner-config-dir"
-    (builtins.pathExists (./../users/shared/.config/karabiner))
+    (builtins.pathExists ../../users/shared/.config/karabiner)
     "karabiner config directory should exist";
 
   # Test 10: Platform-specific: only run on Darwin (macOS)
@@ -109,7 +109,7 @@ in
   # Test 12: karabiner config structure is not empty
   notEmptyTest = helpers.assertTest "karabiner-not-empty"
     (
-      builtins.stringLength (lib.replaceStrings [" " "\n" "\t" "{" "}"] [""] karabinerConfigContent) > 0
+      builtins.stringLength (lib.replaceStrings [" " "\n" "\t" "{" "}"] ["" "" "" "" ""] karabinerConfigContent) > 0
     )
     "karabiner config should not be empty structure";
 
@@ -117,4 +117,22 @@ in
   filePathTest = helpers.assertTest "karabiner-file-path"
     (karabinerTestConfig.home.file.".config/karabiner/karabiner.json".source != null)
     "karabiner source path should be valid";
-}
+
+  # Test suite aggregator
+  testSuite = helpers.testSuite "karabiner" [
+    importTest
+    fileConfigTest
+    sourceTest
+    forceTest
+    configExistsTest
+    configContentTest
+    jsonValidTest
+    essentialStructureTest
+    configDirTest
+    darwinOnlyTest
+    reasonableLengthTest
+    notEmptyTest
+    filePathTest
+  ];
+in
+testSuite

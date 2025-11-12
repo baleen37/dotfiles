@@ -36,13 +36,13 @@ let
   };
 
   # Ghostty config content for validation
-  ghosttyConfigPath = ./../users/shared/.config/ghostty + "/config";
+  ghosttyConfigPath = .../../users/shared/.config/ghostty/config;
   ghosttyConfigContent = if builtins.pathExists ghosttyConfigPath
     then builtins.readFile ghosttyConfigPath
     else "";
 
 in
-{
+let
   # Test 1: ghostty module imports successfully
   importTest = helpers.assertTest "ghostty-import"
     (helpers.canImport ../../users/shared/ghostty.nix)
@@ -64,7 +64,7 @@ in
 
   # Test 4: ghostty source points to config directory
   sourceTest = helpers.assertTest "ghostty-source"
-    (ghosttyTestConfig.home.file.".config/ghostty".source == ./../users/shared/.config/ghostty)
+    (ghosttyTestConfig.home.file.".config/ghostty".source == ../../users/shared/.config/ghostty)
     "ghostty should source from .config/ghostty directory";
 
   # Test 5: ghostty configuration is recursive
@@ -145,6 +145,29 @@ in
 
   # Test 18: ghostty has proper configuration directory structure
   directoryStructureTest = helpers.assertTest "ghostty-directory-structure"
-    (builtins.pathExists (./../users/shared/.config/ghostty))
+    (builtins.pathExists (../../users/shared/.config/ghostty))
     "ghostty should have proper configuration directory structure";
-}
+
+  # Test suite aggregator
+  testSuite = helpers.testSuite "ghostty" [
+    importTest
+    packageTest
+    fileConfigTest
+    sourceTest
+    recursiveTest
+    forceTest
+    configExistsTest
+    configContentTest
+    fontFamilyTest
+    fontSizeTest
+    themeTest
+    windowPaddingTest
+    shellIntegrationTest
+    shellIntegrationFeaturesTest
+    essentialSettingsTest
+    packageAvailabilityTest
+    configStructureTest
+    directoryStructureTest
+  ];
+in
+testSuite
