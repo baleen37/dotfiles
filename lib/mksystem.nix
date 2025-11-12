@@ -20,8 +20,8 @@ let
   userOSConfig = ../users/shared/${osConfig};
   machineConfig = ../machines/${name}.nix;
 
-  # Cache configuration - using Determinate Nix on Darwin
-  cacheConfig = {
+  # Unified cache configuration for both Determinate Nix and traditional Nix
+  cacheSettings = {
     substituters = [
       "https://baleen-nix.cachix.org"
       "https://cache.nixos.org/"
