@@ -19,7 +19,8 @@ NIX_PATH := $(shell which nix 2>/dev/null || echo "nix")
 NIX := $(NIX_PATH) --extra-experimental-features nix-command --extra-experimental-features flakes
 
 # For sudo commands, we need the full path or preserved PATH
-SUDO_NIX := sudo env PATH=$$PATH $(NIX_PATH) --extra-experimental-features nix-command --extra-experimental-features flakes
+# Use -H flag to set HOME to target user's home directory and avoid warnings
+SUDO_NIX := sudo -H env PATH=$$PATH $(NIX_PATH) --extra-experimental-features nix-command --extra-experimental-features flakes
 
 # We need to do some OS switching below.
 UNAME := $(shell uname)
