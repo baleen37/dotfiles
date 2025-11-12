@@ -51,6 +51,37 @@ let
       ))
     ];
 
+  # Manual test discovery for new unit tests that don't require nixtest
+  discoverNewUnitTests =
+    let
+      unitDir = ./unit;
+      unitFiles = builtins.readDir unitDir;
+      newTestNames = [
+        "tmux-test.nix"
+        "hammerspoon-test.nix"
+        "ghostty-test.nix"
+        "karabiner-test.nix"
+        "vim-test.nix"
+      ];
+    in
+    lib.listToAttrs (
+      builtins.map (fileName:
+        let
+          testName = "unit-${lib.removeSuffix "-test.nix" fileName}";
+          filePath = unitDir + "/${fileName}";
+        in
+        {
+          name = testName;
+          value = import filePath {
+            inherit
+              pkgs
+              lib
+              ;
+          };
+        }
+      ) newTestNames
+    );
+
   # Import existing NixTest framework
   nixtest = import ./unit/nixtest-template.nix { inherit pkgs lib; };
 
@@ -67,6 +98,7 @@ in
 }
 // containerChecks
 // discoverTests ./unit "unit"
+// discoverNewUnitTests
 // discoverTests ./integration "integration"
 # E2E tests are heavy VM tests - exclude from automatic discovery
 # They are available individually via nix eval on the specific test files
