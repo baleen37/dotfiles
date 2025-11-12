@@ -40,6 +40,8 @@ test:
 		echo "📱 macOS detected: Running validation mode (container tests require Linux)"; \
 		echo "🔧 Validating all test configurations without execution..."; \
 		NIXPKGS_ALLOW_UNFREE=1 $(NIX) flake check --no-build --impure --accept-flake-config --show-trace; \
+		echo "🌍 Validating E2E scenario tests..."; \
+		$(NIX) eval --impure --expr '(import ./tests/e2e/default.nix { self = ./.; }).real-world-only' >/dev/null && echo "✅ E2E tests validated"; \
 		echo "✅ Validation completed - Full container tests will run in CI"; \
 	else \
 		echo "🐧 Linux detected: Running full container test execution..."; \

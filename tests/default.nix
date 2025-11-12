@@ -68,3 +68,5 @@ in
 // containerChecks
 // discoverTests ./unit "unit"
 // discoverTests ./integration "integration"
+# E2E tests are heavy VM tests - exclude from automatic discovery
+# They are available individually via nix eval on the specific test files
