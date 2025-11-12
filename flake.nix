@@ -2,14 +2,14 @@
   description = "baleen's dotfiles - Nix-based development environment";
 
   nixConfig = {
+    # Flake evaluation only - minimal trusted caches
     substituters = [
-      "https://baleen-nix.cachix.org"
       "https://cache.nixos.org/"
     ];
     trusted-public-keys = [
-      "baleen-nix.cachix.org-1:awgC7Sut148An/CZ6TZA+wnUtJmJnOvl5NThGio9j5k="
       "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
     ];
+    accept-flake-config = true;
   };
 
   inputs = {
@@ -18,6 +18,11 @@
 
     darwin = {
       url = "github:LnL7/nix-darwin";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    determinate = {
+      url = "https://flakehub.com/f/DeterminateSystems/determinate/0.1";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -40,6 +45,7 @@
       darwin,
       home-manager,
       nixos-generators,
+      determinate,
       ...
     }@inputs:
     let

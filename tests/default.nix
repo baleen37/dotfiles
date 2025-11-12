@@ -18,9 +18,7 @@ let
   };
 
   # Convert to nixosTest checks
-  containerChecks = builtins.mapAttrs (name: test:
-    pkgs.testers.nixosTest test
-  ) containerTests;
+  containerChecks = builtins.mapAttrs (name: test: pkgs.testers.nixosTest test) containerTests;
 
   # Automatic test discovery function (nixpkgs pattern)
   # Discovers all *-test.nix files in a directory
