@@ -11,8 +11,8 @@
 }:
 
 let
-  # Import NixTest framework
-  inherit ((import ../unit/nixtest-template.nix { inherit lib pkgs; })) nixtest;
+  # Note: E2E tests are individual VM tests, not nixtest suite
+  # Each test is a complete NixOS VM test
 
   # Import individual e2e test suites
   buildSwitchTests = import ./build-switch-test.nix {
@@ -20,7 +20,6 @@ let
       lib
       pkgs
       system
-      nixtest
       self
       ;
   };
@@ -30,7 +29,6 @@ let
       lib
       pkgs
       system
-      nixtest
       self
       ;
   };
@@ -75,6 +73,34 @@ let
       ;
   };
 
+  # Import real-world scenario tests
+  freshMachineSetupTests = import ./fresh-machine-setup-test.nix {
+    inherit
+      lib
+      pkgs
+      system
+      self
+      ;
+  };
+
+  environmentReplicationTests = import ./environment-replication-test.nix {
+    inherit
+      lib
+      pkgs
+      system
+      self
+      ;
+  };
+
+  realProjectWorkflowTests = import ./real-project-workflow-test.nix {
+    inherit
+      lib
+      pkgs
+      system
+      self
+      ;
+  };
+
 in
 {
   # Individual test suites
@@ -85,6 +111,9 @@ in
     nixosVmTests
     vmAnalysisTests
     comprehensiveValidationTests
+    freshMachineSetupTests
+    environmentReplicationTests
+    realProjectWorkflowTests
     ;
 
   # VM-based build-switch tests (실제 동작 검증)
@@ -92,12 +121,16 @@ in
   build-switch-vm-full = buildSwitchVMTests.vmTest;
   build-switch-vm-all = buildSwitchVMTests.all;
 
-  # Combined e2e test suite with VM tests
-  all = nixtest.suite "All E2E Tests" {
-    inherit buildSwitchTests userWorkflowTests claudeHooksTests;
-    vm = nixosVmTests.all;
-    vm-analysis = vmAnalysisTests.all;
-    comprehensive-validation = comprehensiveValidationTests.all;
+  # Real-world scenario test runners
+  fresh-machine-setup = freshMachineSetupTests;
+  environment-replication = environmentReplicationTests;
+  real-project-workflow = realProjectWorkflowTests;
+
+  # Real-world scenarios only (individual VM tests)
+  real-world-only = {
+    "fresh-machine-setup" = freshMachineSetupTests;
+    "environment-replication" = environmentReplicationTests;
+    "real-project-workflow" = realProjectWorkflowTests;
   };
 
   # VM-only test suite for focused VM testing
