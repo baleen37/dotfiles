@@ -86,7 +86,7 @@
 
       darwinConfigurations.kakaostyle-jito = mkSystem "kakaostyle-jito" {
         system = "aarch64-darwin";
-        user = user;
+        user = "jito";
         darwin = true;
       };
 
