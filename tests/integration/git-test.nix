@@ -7,6 +7,8 @@
   system ? builtins.currentSystem or "x86_64-linux",
   self ? ./.,
   inputs ? { },
+  nixtest ? { },
+  ...
 }:
 
 let
