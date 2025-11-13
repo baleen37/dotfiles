@@ -51,7 +51,7 @@ let
       ))
     ];
 
-  # Import existing NixTest framework
+  # Import existing NixTest framework (moved up to fix dependency order)
   nixtest = import ./unit/nixtest-template.nix { inherit pkgs lib; };
 
   # Import mksystem function for testing
