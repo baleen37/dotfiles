@@ -1,5 +1,5 @@
 ---
-description: Use and follow the creating-pull-requests skill exactly as written
+description: Create pull requests using the creating-pull-requests skill
 ---
 
-Use the creating-pull-requests skill to create pull requests.
+Create pull requests by following the creating-pull-requests skill exactly.
