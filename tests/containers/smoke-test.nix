@@ -97,7 +97,7 @@ in
     ${lib.concatMapStringsSep "\n" (pkg: ''
       machine.succeed("which ${lib.getName pkg}")
       # Actually invoke the package to verify it's functional (not just checking --version)
-      machine.succeed("${lib.getName pkg} --version 2>&1 || ${lib.getName pkg} -V 2>&1 || ${lib.getName pkg} --help 2>&1 | head -1")
+      machine.succeed("${lib.getName pkg} --version 2>&1 || ${lib.getName pkg} -V 2>&1 || ${lib.getName pkg} --help 2>&1 | sed -n 1p")
     '') corePackages}
 
     # === Network Connectivity ===
@@ -118,7 +118,7 @@ in
     # Test Nix functionality
     machine.succeed("nix --version")
     machine.succeed("nix-store --version")
-    machine.succeed("test -d /nix/store && ls /nix/store | head -5")
+    machine.succeed("test -d /nix/store && ls /nix/store | sed -n '1,5p'")
 
     # === Performance Basic Checks ===
 
@@ -135,8 +135,8 @@ in
     machine.succeed("! journalctl --priority=0..3 --no-pager --lines=20 --quiet | grep -q .")
 
     # Final validation - all core commands should work
-    machine.succeed("git --help | head -1")
-    machine.succeed("vim --version | head -1")
+    machine.succeed("git --help | sed -n 1p")
+    machine.succeed("vim --version | sed -n 1p")
     machine.succeed("jq --version")
     machine.succeed("grep --version")
     machine.succeed("find --version")
