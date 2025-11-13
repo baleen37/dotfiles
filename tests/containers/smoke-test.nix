@@ -96,7 +96,8 @@ in
     # Test each core package is available and functional
     ${lib.concatMapStringsSep "\n" (pkg: ''
       machine.succeed("which ${lib.getName pkg}")
-      machine.succeed("${lib.getName pkg} --version || ${lib.getName pkg} -V || echo ${lib.getName pkg}")
+      # Actually invoke the package to verify it's functional (not just checking --version)
+      machine.succeed("${lib.getName pkg} --version 2>&1 || ${lib.getName pkg} -V 2>&1 || ${lib.getName pkg} --help 2>&1 | head -1")
     '') corePackages}
 
     # === Network Connectivity ===
@@ -117,7 +118,7 @@ in
     # Test Nix functionality
     machine.succeed("nix --version")
     machine.succeed("nix-store --version")
-    machine.succeed("ls /nix/store || echo 'Nix store accessible'")
+    machine.succeed("test -d /nix/store && ls /nix/store | head -5")
 
     # === Performance Basic Checks ===
 
@@ -130,8 +131,8 @@ in
 
     # === Cleanup and Validation ===
 
-    # Verify no critical errors in system logs
-    machine.succeed("journalctl --priority=0..3 --lines=10 || echo 'No critical errors found'")
+    # Check for critical errors in journal (emerg, alert, crit, err)
+    machine.succeed("! journalctl --priority=0..3 --no-pager --lines=20 --quiet | grep -q .")
 
     # Final validation - all core commands should work
     machine.succeed("git --help | head -1")
