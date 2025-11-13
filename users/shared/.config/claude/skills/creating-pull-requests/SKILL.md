@@ -1,6 +1,6 @@
 ---
 name: creating-pull-requests
-description: Use when creating pull requests from any repository state - ensures proper branch management, auto-commits uncommitted changes, rebases onto target branch, and prevents duplicate PRs under time pressure or uncertainty
+description: Use when creating pull requests from any repository state - ensures proper branch management, auto-commits uncommitted changes, rebases onto target branch, and prevents duplicate PRs. Counters rationalizations like "I'm in a hurry", "the fast way is better", "manual testing is enough", and "I can skip safety steps".
 ---
 
 # Creating Pull Requests
@@ -12,6 +12,28 @@ description: Use when creating pull requests from any repository state - ensures
 Creates PRs from any repository state while enforcing critical git workflows. Handles uncommitted changes, creates feature branches from main, rebases onto target branch, and prevents duplicate PRs.
 
 **VIOLATING THE LETTER OF THESE RULES IS VIOLATING THE SPIRIT OF THESE RULES.**
+
+## Non-Negotiable Principles
+
+**1. Process Over Speed**
+- "I'm in a hurry" is NOT a valid reason to skip steps
+- Hurrying guarantees 10x more work later
+- Every step exists because someone learned the hard way
+
+**2. No Shortcuts**
+- "The fast way" always creates more problems
+- Manual testing != automated CI testing
+- Quality gates prevent rework, they don't delay it
+
+**3. Branch Hygiene is Mandatory**
+- Never create PRs directly from main/master
+- Always rebase before PR creation
+- Clean history prevents merge conflicts
+
+**4. Complete Compliance**
+- Following "most" steps = following no steps
+- Each step is mandatory, not optional
+- "This case is different" is always wrong
 
 ## When to Use
 
@@ -284,6 +306,10 @@ fi
 **Problem**: Main branch cleanup removes commits without user consent
 **Fix**: Always ask for confirmation before reset operations on main branch
 
+### ❌ "Try to do everything at once"
+**Problem**: Workflow overload leads to mistakes and skipped steps
+**Fix**: Follow the step-by-step process exactly. Each step exists for a reason.
+
 ## Rationalizations vs Reality
 
 | Excuse | Reality |
@@ -293,6 +319,10 @@ fi
 | "User told me to skip" | User doesn't understand that CI failure and conflicts create more work for everyone. |
 | "This is just a simple change" | Simple changes still need integration testing against latest main. |
 | "I'm in a hurry" | Hurrying creates 10x more work when the PR fails CI or has conflicts. |
+| "The fast way is more efficient" | The "fast way" creates duplicate work, conflicts, and blocks others. |
+| "I already tested it manually" | Manual testing != CI integration. PR must pass automated tests anyway. |
+| "Just push and create PR quickly" | Quick push creates messy history that will need cleanup later. |
+| "Quality checks can wait" | Quality checks prevent rework. Waiting guarantees rework. |
 
 ## Red Flags - STOP and Use This Skill
 
@@ -306,6 +336,10 @@ If you catch yourself thinking ANY of these thoughts, STOP and use the creating-
 - "The existing PR check is optional"
 - "I don't need to ask for cleanup confirmation"
 - "Main branch cleanup is just a routine step"
+- "Let me just commit everything and push quickly"
+- "I don't need to follow all the steps - it's working"
+- "Quality checks are just formalities"
+- "The fast approach is fine for now"
 
 **All of these mean: Use the creating-pull-requests skill immediately.**
 
