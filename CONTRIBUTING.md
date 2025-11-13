@@ -225,32 +225,45 @@ print_error() {
 
 #### Writing Tests
 
-Follow the hierarchical test structure:
+Follow the hierarchical test structure and use consistent helper patterns:
 
 ```bash
 tests/
 ├── unit/           # Individual function/module tests
 ├── integration/    # Module interaction tests
 ├── e2e/           # Complete workflow tests
-└── performance/   # Build time and resource tests
+├── performance/   # Build time and resource tests
+└── lib/           # Test helpers and utilities
 ```
 
-**Example unit test:**
+**Use the consistent test helper framework:**
 
 ```nix
 # tests/unit/my-feature-unit.nix
-{ pkgs }:
+{ pkgs, lib }:
 
-pkgs.runCommand "my-feature-unit-test" {} ''
-  echo "Testing my feature..."
+let
+  helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
 
-  # Your test logic here
-  ${pkgs.my-package}/bin/my-command --version
-
-  echo "Test passed!"
-  touch $out
-''
+  # Test your feature logic
+  featureWorks = true;  # Your actual test condition
+in
+helpers.testSuite "my-feature" [
+  (helpers.assertTest "feature-enabled" featureWorks
+    "My feature should be enabled")
+]
 ```
+
+#### Test Helper Functions
+
+The project provides a comprehensive test helper framework in `tests/lib/test-helpers.nix`:
+
+- **`helpers.testSuite`**: Create consistent test suites
+- **`helpers.assertTest`**: Simple assertions with clear messages
+- **`helpers.assertTestWithDetails`**: Enhanced assertions showing expected/actual values
+- **`helpers.assertFileExists`**: Test file existence
+- **`helpers.assertHasAttr`**: Test attribute presence
+- **Property testing helpers**: Test invariants across scenarios
 
 #### Test Categories
 
@@ -258,6 +271,10 @@ pkgs.runCommand "my-feature-unit-test" {} ''
 - **Integration Tests**: Test module interactions and dependencies
 - **E2E Tests**: Test complete workflows and system behavior
 - **Performance Tests**: Monitor build times and resource usage
+
+#### Detailed Testing Guidelines
+
+For comprehensive testing strategies, edge cases, and property testing examples, see `tests/README.md`.
 
 ### Documentation
 
