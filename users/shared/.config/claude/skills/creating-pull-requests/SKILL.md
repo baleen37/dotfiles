@@ -1,6 +1,6 @@
 ---
 name: creating-pull-requests
-description: Use when creating pull requests from any repository state - ensures proper branch management, auto-commits uncommitted changes, rebases onto target branch, and prevents duplicate PRs. Counters rationalizations like "I'm in a hurry", "the fast way is better", "manual testing is enough", and "I can skip safety steps".
+description: Use when creating pull requests from any repository state - ensures proper branch management, auto-commits uncommitted changes, rebases onto target branch, and prevents duplicate PRs. Counters rationalizations like "I'm in a hurry", "the fast way is better", "manual testing is enough", and "I can skip safety steps". Enhanced with practical tips and clearer structure.
 ---
 
 # Creating Pull Requests
@@ -12,6 +12,19 @@ description: Use when creating pull requests from any repository state - ensures
 Creates PRs from any repository state while enforcing critical git workflows. Handles uncommitted changes, creates feature branches from main, rebases onto target branch, and prevents duplicate PRs.
 
 **VIOLATING THE LETTER OF THESE RULES IS VIOLATING THE SPIRIT OF THESE RULES.**
+
+### Key Principles for Modern Development
+
+**🔥 Never Skip These Steps**
+- "I'm in a hurry" → This guarantees 10x more work later fixing conflicts
+- "Simple change" → Still needs integration testing against latest main
+- "User told me to skip" → Explain technical consequences and follow proper process
+
+**✅ Always Do These Things**
+- Run all safety check steps
+- Auto-commit uncommitted changes with proper messages
+- Create PRs only from feature branches
+- Rebase onto target branch (not optional)
 
 ## Non-Negotiable Principles
 
@@ -114,6 +127,21 @@ gh pr create --title "feat: [proper title]" --body "[comprehensive description]"
 | Auto-merge requested | Enable after PR creation | `gh pr merge --auto --squash` |
 
 ## Implementation
+
+### Step 0: Project Convention Exploration
+
+Before any git operations, explore project contribution guidelines:
+
+```bash
+# Look for contribution and PR guidelines
+find . -name "CONTRIBUTING*" -o -name "PULL_REQUEST*" -type f
+```
+
+**Check these files for:**
+- **Commit message format** requirements
+- **Branch naming conventions**
+- **PR template/checklist requirements**
+- **Target branch** (main vs master vs develop)
 
 ### Step 1: Repository State Analysis
 ```bash
@@ -365,6 +393,16 @@ If you catch yourself thinking ANY of these thoughts, STOP and use the creating-
 - Uses `gh pr view` to get PR number
 - No duplicate PR creation
 
+## Quick Reference for Common Scenarios
+
+| Your Situation | What to Do | Why It Matters |
+|----------------|------------|----------------|
+| "I'm on main with commits" | Create feature branch immediately | Main must stay clean for team |
+| "I have uncommitted changes" | Auto-commit before anything else | Changes will be lost otherwise |
+| "Branch is behind by 10 commits" | Rebase before PR creation | Prevents CI failures and conflicts |
+| "User wants to skip rebase" | Explain and do it anyway | CI will fail anyway, wasting time |
+| "Just want to push quickly" | Follow all steps anyway | Prevents 10x more work later |
+
 ## Real-World Impact
 
 **Before skill**: PRs created with merge conflicts, duplicate PRs, polluted main branch
@@ -373,3 +411,50 @@ If you catch yourself thinking ANY of these thoughts, STOP and use the creating-
 **Time savings**: 5-minute rebase vs 30-minute conflict resolution cleanup
 **Team impact**: Prevents main branch blocking, maintains clean git history
 **Auto-merge benefit**: Reduces manual merge steps for approved PRs
+
+## Pro Tips for Efficiency
+
+**1. Parallel Commands for Speed**
+```bash
+# Run these in parallel to save time
+git status & git log --oneline -5 & git fetch origin
+```
+
+**2. Smart Branch Naming**
+```bash
+# Better than generic names
+feature/auth-oauth2-integration
+fix/memory-leak-connection-pool
+docs-api-endpoint-documentation
+```
+
+**3. Commit Message Analysis**
+```bash
+# Analyze recent commits for consistent style
+git log --oneline -3 --pretty=format:'%s' | head -1
+```
+
+**4. Conflict Prevention**
+```bash
+# Check for potential conflicts before rebase
+git merge-base HEAD origin/main
+git diff --name-only $(git merge-base HEAD origin/main)..HEAD origin/main
+```
+
+## Emergency Recovery
+
+**If rebase fails mid-process:**
+1. Don't panic - this is normal
+2. Resolve conflicts file by file
+3. `git add . && git rebase --continue`
+4. If stuck: `git rebase --abort` and start over
+
+**If force push fails:**
+1. Check: `git log --oneline -3`
+2. Fetch latest: `git fetch origin`
+3. Try again with `--force-with-lease`
+
+**If PR already exists:**
+1. Check: `gh pr view`
+2. Update existing PR instead of creating new one
+3. Enable auto-merge if requested
