@@ -7,28 +7,32 @@ description: Use when creating Claude Code slash commands - provides systematic 
 
 ## Overview
 
-**Writing Claude commands IS creating focused, reusable interfaces to specific workflows or automations.**
+**Writing Claude commands IS creating focused, minimal interfaces to specific tasks.**
 
-Commands provide simple entry points for complex operations by mapping intuitive names to clear instructions or underlying skills.
+Commands provide simple entry points that do exactly one thing well. They are NOT comprehensive workflow systems or complex automation tools.
 
-**Core principle:** Commands should be simple to use but precise in their purpose - each command solves one specific problem well.
+**Core principle:** Commands must be SIMPLE. Each command solves ONE specific problem with MINIMAL complexity.
+
+**Iron Rule: If you're creating a complex workflow with 6+ steps, you're building a skill, not a command.**
 
 **REQUIRED BACKGROUND:** You MUST understand superpowers:test-driven-development before using this skill. Commands follow the same RED-GREEN-REFACTOR cycle as code and skills.
 
 ## When to Create Commands
 
 **Create when:**
-- Workflow is frequently repeated but complex to remember
-- Task needs consistent execution across multiple users
-- Existing skill needs simple interface for common use cases
-- Operation requires specific tool permissions or context setup
-- Team needs standardized approach to common operations
+- Task is REPEATEDLY needed and can be explained in 2-3 sentences
+- Task is CONSISTENTLY the same each time (no complex decision trees)
+- Task is FORGETTABLE or error-prone when done manually
+- Task needs specific PERMISSIONS that are tedious to set up each time
 
 **Don't create for:**
-- One-off operations or unique situations
-- Simple tool calls that are already intuitive
-- Operations that don't benefit from standardization
-- Commands that would duplicate existing functionality
+- Complex workflows that require multiple steps or decisions
+- Tasks that need adaptation based on context
+- Simple operations that are already intuitive (like "list files")
+- One-time operations or unique situations
+- Anything that would benefit from a full skill instead
+
+**Remember: Commands = Simple and Repeatable, Skills = Complex and Comprehensive**
 
 ## Command Types
 
@@ -185,27 +189,46 @@ Follow this workflow:
 - Have specific workflow to automate
 - Basic familiarity with YAML frontmatter
 
-## Common Mistakes
+## Common Mistakes (Based on Agent Testing)
 
-**Commands that are too complex**
-- Problem: Should be a skill instead
-- Fix: Extract complexity to skill, keep command simple
+**❌ Creating Complex Workflows (Over-Engineering)**
+```markdown
+# BAD: 6-step comprehensive system
+## Context: [3 bash commands]
+## Step 1: Pre-flight checks
+## Step 2: Branch name validation
+## Step 3: Base branch selection
+## Step 4: Branch creation
+## Step 5: Initial setup
+## Step 6: Verification
+```
+**Reality:** This is a SKILL, not a command
+**Fix:** Simplify to ONE specific task or create a skill instead
 
-**Missing tool permissions**
-- Problem: Command fails when trying to execute bash commands
-- Fix: Add explicit allowed-tools in frontmatter
+**❌ "Just Works" Mentality**
+- Problem: Trying to handle every edge case creates complexity
+- Reality: Commands should handle COMMON cases gracefully, fail clearly on edge cases
+- Fix: Handle 80% of cases, provide helpful error for remaining 20%
 
-**Vague descriptions**
-- Problem: Users don't know what command does
-- Fix: Write clear, action-oriented descriptions
+**❌ Interactive Guidance Systems**
+```markdown
+# BAD: Complex user interaction
+"Would you like to: A) Commit changes, B) Stash changes, C) Continue anyway?"
+```
+**Problem:** Commands are not interactive scripts
+**Fix:** Make clear assumptions or provide clear error messages
 
-**No error handling**
-- Problem: Command fails silently on invalid input
-- Fix: Add validation and helpful error messages
+**❌ Missing Tool Permissions**
+- Problem: Command fails with cryptic "tool not allowed" errors
+- Fix: Add explicit allowed-tools in frontmatter for EVERY tool used
 
-**Poor argument handling**
-- Problem: Commands break with unexpected input formats
-- Fix: Use argument hints and validation patterns
+**❌ Poor Argument Validation**
+- Problem: No arguments = confusing empty behavior
+- Fix: Add argument-hint and basic validation
+
+**❌ No Clear Purpose**
+- Problem: "Help with git operations" - too broad
+- Fix: "Create feature branch from main" - specific and actionable
 
 ## Testing Checklist
 

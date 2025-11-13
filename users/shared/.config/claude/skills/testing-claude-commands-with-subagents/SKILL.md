@@ -7,13 +7,15 @@ description: Use when validating Claude Code slash commands before deployment - 
 
 ## Overview
 
-**Testing commands is verifying they work reliably under real-world pressure and edge cases.**
+**Testing commands IS systematically verifying they work under real-world conditions and edge cases.**
 
-Commands seem simple but can fail in subtle ways: ambiguous arguments, missing context, permission errors, or user confusion. Testing with subagents simulates real usage patterns.
+Commands seem simple but fail in predictable ways: no arguments, wrong context, permission errors, or confusing feedback. Testing requires METHODICAL approach, not random clicking.
 
-**Core principle:** If you didn't watch an agent struggle with the command, you don't know if it's robust enough for production.
+**Core principle:** Test EVERYTHING that can realistically go wrong. Don't assume "obvious" cases work.
 
-**REQUIRED BACKGROUND:** You MUST understand superpowers:test-driven-development and superpowers:testing-skills-with-subagents. This skill adapts those patterns specifically to slash commands.
+**Iron Rule: If you didn't test it, it's broken.**
+
+**REQUIRED BACKGROUND:** You MUST understand superpowers:test-driven-development and superpowers:testing-skills-with-subagents. This skill applies systematic testing to commands.
 
 ## When to Test Commands
 
@@ -41,45 +43,96 @@ Commands seem simple but can fail in subtle ways: ambiguous arguments, missing c
 | **REFACTOR** | Handle edge cases | Test ambiguous inputs, missing permissions, etc. |
 | **Stay GREEN** | Re-verify | Test again, ensure still works under pressure |
 
-## RED Phase: Baseline Testing (Watch It Fail)
+## MANDATORY Test Categories (Don't Skip Any)
 
-**Goal:** Run task WITHOUT the command - document exactly how agents struggle.
+Based on agent testing failures, ALL commands must be tested for:
 
-### Test Scenarios
+### 1. Argument Testing
+**Must test:**
+- No arguments (`/command` with nothing after)
+- Single word arguments
+- Multiple word arguments
+- Special characters (`!@#$%^&*()`)
+- Quotes and spaces (`"feature name"`)
 
-#### 1. Manual Task Attempt
-```bash
-# Test without command: "Create a feature branch for user authentication"
-# Expected RED behavior:
-# - Agent forgets to switch from main
-# - Creates poorly named branch
-# - Doesn't verify git status
-# - Makes common mistakes
+### 2. Context Testing
+**Must test:**
+- Wrong directory (not in git repo)
+- Dirty working directory (uncommitted changes)
+- Missing prerequisites (no network, wrong permissions)
+- Conflicting state (branch already exists)
+
+### 3. Permission Testing
+**Must test:**
+- Missing tools from allowed-tools
+- Insufficient permissions
+- Tool execution failures
+
+### 4. Error Message Testing
+**Must verify:**
+- Error messages are helpful, not technical
+- Users know what to do next
+- No cryptic git/tool errors leak through
+
+### 5. Pressure Testing
+**Must test:**
+- Time pressure scenarios
+- Multiple rapid uses
+- User confusion scenarios
+
+## Testing Templates (Use These Exact Scenarios)
+
+### Template 1: No Arguments Test
+```markdown
+IMPORTANT: Real scenario. Test this command now:
+
+/command
+(with no arguments after it)
+
+What happens? Is the output clear? Does it help users understand what they should provide?
 ```
 
-#### 2. Ambiguous Instructions
-```bash
-# Test vague request: "Set up a new project"
-# Expected confusion:
-# - Agent asks many clarifying questions
-# - Makes assumptions about project type
-# - Misses important setup steps
+### Template 2: Edge Case Test
+```markdown
+IMPORTANT: Real scenario. Test this command now:
+
+/command "feature/weird@name#123"
+
+What happens with special characters and spaces?
 ```
 
-#### 3. Time Pressure Scenarios
-```bash
-# Add urgency: "Quick! Before the meeting, create a PR for this hotfix"
-# Expected failures:
-# - Skips important steps
-# - Makes sloppy commit messages
-# - Forgets to add reviewers
+### Template 3: Wrong Context Test
+```markdown
+IMPORTANT: Real scenario. Test this command now:
+
+cd /tmp
+/command test-branch
+
+You're NOT in a git repository. What happens? Is the error message helpful?
 ```
 
-**Document specific failures verbatim:**
-- Exact questions agents ask
-- Mistakes they commonly make
-- Points where they get stuck
-- Wrong assumptions they make
+### Template 4: Dirty State Test
+```markdown
+IMPORTANT: Real scenario. Test this command now:
+
+# Create a file with changes
+echo "test" > /tmp/repo/dirty.txt
+cd /tmp/repo
+/command test-branch
+
+Working directory is dirty. What happens? Does it provide clear guidance?
+```
+
+## Documentation Requirements
+
+**For each test, document:**
+1. **Exact command used**
+2. **Expected behavior**
+3. **Actual behavior**
+4. **Problem identified**
+5. **Specific fix needed**
+
+Don't write summaries. Document each test individually with specific details.
 
 ## GREEN Phase: Write Command to Address RED
 
