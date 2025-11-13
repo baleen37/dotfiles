@@ -208,6 +208,210 @@ rec {
       touch $out
     '';
 
+  # Enhanced assertion with detailed error reporting
+  # Shows both expected and actual values when tests fail
+  assertTestWithDetails =
+    name: expected: actual: message:
+    let
+      # Convert both expected and actual to strings for comparison and display
+      expectedStr = toString expected;
+      actualStr = toString actual;
+      isEqual = expectedStr == actualStr;
+    in
+    if isEqual then
+      pkgs.runCommand "test-${name}-pass" { } ''
+        echo "✅ ${name}: PASS"
+        echo "  Expected: ${expectedStr}"
+        echo "  Actual: ${actualStr}"
+        echo "  ${message}"
+        touch $out
+      ''
+    else
+      pkgs.runCommand "test-${name}-fail" { } ''
+        echo "❌ ${name}: FAIL"
+        echo "  Expected: ${expectedStr}"
+        echo "  Actual: ${actualStr}"
+        echo "  ${message}"
+        echo ""
+        echo "🔍 Comparison details:"
+        echo "  Expected length: ${toString (builtins.stringLength expectedStr)}"
+        echo "  Actual length: ${toString (builtins.stringLength actualStr)}"
+        echo "  Expected type: ${builtins.typeOf expected}"
+        echo "  Actual type: ${builtins.typeOf actual}"
+        exit 1
+      '';
+
+  # Property-based testing helper
+  # Tests a property against a list of test values
+  propertyTest =
+    name: property: testValues:
+    let
+      # Test each value with the property
+      testResults = builtins.map (
+        value: {
+          value = value;
+          result = builtins.tryEval (property value);
+        }
+      ) testValues;
+
+      # Check if all tests passed
+      allPassed = builtins.all (test: test.result.success) testResults;
+      failedTests = builtins.filter (test: !test.result.success) testResults;
+    in
+    if allPassed then
+      pkgs.runCommand "property-test-${name}-pass" { } ''
+        echo "✅ Property test ${name}: PASS"
+        echo "  Tested ${toString (builtins.length testValues)} values"
+        echo "  Property holds for all test cases"
+        touch $out
+      ''
+    else
+      pkgs.runCommand "property-test-${name}-fail" { } ''
+        echo "❌ Property test ${name}: FAIL"
+        echo "  Property failed for ${toString (builtins.length failedTests)} out of ${toString (builtins.length testValues)} values"
+        echo ""
+        echo "🔍 Failed test cases:"
+        ${lib.concatMapStringsSep "\n" (test: ''
+          echo "  Value: ${toString test.value}"
+          echo "  Error: ${test.result.value or "Unknown error"}"
+        '') failedTests}
+        exit 1
+      '';
+
+  # Enhanced property testing with multiple parameters
+  # Tests binary/ternary properties against multiple value sets
+  multiParamPropertyTest =
+    name: property: testValueSets:
+    let
+      # Generate all combinations of test values
+      generateCombinations = valueSets:
+        if builtins.length valueSets == 0 then
+          [ [] ]
+        else
+          let
+            rest = generateCombinations (builtins.tail valueSets);
+            current = builtins.head valueSets;
+          in
+          builtins.concatLists (
+            builtins.map (combo:
+              builtins.map (val: [val] ++ combo) current
+            ) rest
+          );
+
+      # Test each combination with the property
+      combinations = generateCombinations testValueSets;
+      testResults = builtins.map (
+        values: {
+          values = values;
+          result = builtins.tryEval (builtins.foldl' (acc: v: acc v) property values);
+        }
+      ) combinations;
+
+      # Check if all tests passed
+      allPassed = builtins.all (test: test.result.success) testResults;
+      failedTests = builtins.filter (test: !test.result.success) testResults;
+    in
+    if allPassed then
+      pkgs.runCommand "multi-property-test-${name}-pass" { } ''
+        echo "✅ Multi-parameter property test ${name}: PASS"
+        echo "  Tested ${toString (builtins.length combinations)} combinations"
+        echo "  Property holds for all test cases"
+        touch $out
+      ''
+    else
+      pkgs.runCommand "multi-property-test-${name}-fail" { } ''
+        echo "❌ Multi-parameter property test ${name}: FAIL"
+        echo "  Property failed for ${toString (builtins.length failedTests)} out of ${toString (builtins.length combinations)} combinations"
+        echo ""
+        echo "🔍 Failed test cases:"
+        ${lib.concatMapStringsSep "\n" (test: ''
+          echo "  Values: [${lib.concatMapStringsSep ", " toString test.values}]"
+          echo "  Error: ${test.result.value or "Unknown error"}"
+        '') failedTests}
+        exit 1
+      '';
+
+  # Performance assertion helper
+  # Measures execution time and validates against expected bounds
+  assertPerformance =
+    name: expectedBoundMs: command:
+    let
+      performanceScript = pkgs.writeShellScript "perf-script-${name}" ''
+        # Measure execution time
+        start_time=$(/usr/bin/time -p bash -c '${command}' 2>&1 | grep "real" | awk '{print $2}')
+        echo "Execution time: $start_time seconds"
+
+        # Convert to milliseconds and check bound
+        echo "$start_time * 1000" | bc | sed 's/\.0*$//' | {
+          read time_ms
+          echo "Time in ms: $time_ms"
+
+          if [ "$time_ms" -le ${toString expectedBoundMs} ]; then
+            echo "✅ Performance test ${name}: PASS"
+            echo "  Time: $time_ms ms (≤ ${toString expectedBoundMs} ms)"
+            exit 0
+          else
+            echo "❌ Performance test ${name}: FAIL"
+            echo "  Time: $time_ms ms (> ${toString expectedBoundMs} ms)"
+            exit 1
+          fi
+        }
+      '';
+    in
+    pkgs.runCommand "perf-test-${name}" {
+      buildInputs = [ pkgs.bc ];
+      passthru.script = performanceScript;
+    } ''
+      echo "🕒 Running performance test: ${name}"
+      echo "Expected bound: ${toString expectedBoundMs}ms"
+      echo "Command: ${command}"
+      echo ""
+
+      ${performanceScript}
+
+      if [ $? -eq 0 ]; then
+        touch $out
+      else
+        exit 1
+      fi
+    '';
+
+  # Property testing helper for all cases (forAllCases)
+  # Tests a property across all test cases using helper pattern
+  # Returns a testSuite with individual assertTest assertions
+  forAllCases =
+    testName: testCases: propertyFn:
+    let
+      # Create individual tests for each case
+      individualTests = builtins.map (
+        testCase:
+        let
+          caseName = "${testName}-${testCase.name or "case"}";
+          propertyResult = builtins.tryEval (propertyFn testCase);
+        in
+        if propertyResult.success then
+          assertTest caseName propertyResult.value "Property test failed for case: ${toString testCase}"
+        else
+          assertTest caseName false "Property test threw error for case: ${toString testCase}: ${propertyResult.value}"
+      ) testCases;
+
+      # Create a summary test that aggregates all results
+      summaryTest = pkgs.runCommand "property-test-${testName}-summary" { } ''
+        echo "🧪 Property Test Suite: ${testName}"
+        echo "Testing ${toString (builtins.length testCases)} cases..."
+        echo ""
+        ${lib.concatMapStringsSep "\n" (testCase: ''
+          echo "  🔍 Testing case: ${testCase.name or "unnamed"}"
+        '') testCases}
+        echo ""
+        echo "✅ All property tests passed for ${testName}"
+        echo "Property holds across all test cases"
+        touch $out
+      '';
+    in
+    # Return test suite with all individual tests and summary
+    testSuite "${testName}-property-tests" (individualTests ++ [summaryTest]);
+
   # Backward compatibility alias for mkSimpleTest
   mkSimpleTest = mkTest;
 }

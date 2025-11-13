@@ -2,15 +2,18 @@
 # evantravers-style system factory tests
 # Tests lib/mksystem.nix system factory function
 {
-  lib ? import <nixpkgs/lib>,
-  pkgs ? import <nixpkgs> { },
-  system ? builtins.currentSystem or "x86_64-linux",
+  inputs,
+  system,
+  pkgs ? import inputs.nixpkgs { inherit system; },
+  lib ? pkgs.lib,
   nixtest ? { },
   self ? ./.,
-  inputs ? { },
+  ...
 }:
 
 let
+  helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
+
   # Test 1: mkSystem function exists and is callable
   mkSystemFunc = import ../../lib/mksystem.nix { inherit inputs self; };
   testFunctionExists = builtins.isFunction mkSystemFunc;
@@ -28,64 +31,23 @@ let
   # Test 4: The function returns a function when called with inputs
   returnsFunction = canCallWithInputs.success && builtins.isFunction canCallWithInputs.value;
 
-  # Test 5: Skip smoke test - calling mkSystem requires file dependencies
-  # smokeTest = builtins.tryEval (
-  #   if returnsFunction then
-  #     (canCallWithInputs.value "test-machine" {
-  #       inherit system;
-  #       user = "testuser";
-  #       darwin = (lib.hasSuffix "-darwin" system);
-  #     })
-  #   else
-  #     null
-  # );
-
 in
-# Create derivation that tests mkSystem function structure
-pkgs.runCommand "mksystem-test-results" { } ''
-  echo "Running mkSystem unit tests..."
+helpers.testSuite "mksystem" [
+  # Test mkSystem file importability and functionality
+  (helpers.assertTest "mksystem-file-importable" fileImportable
+    "mkSystem.nix should be importable and return a function")
 
-  # Test 1: mkSystem file is importable and functional
-  echo "Test 1: mkSystem file is importable..."
-  ${
-    if fileImportable then
-      ''echo "✅ PASS: mkSystem.nix is importable and returns a function"''
-    else
-      ''echo "❌ FAIL: mkSystem.nix is not importable or not a function"; exit 1''
-  }
+  # Test mkSystem function existence and callability
+  (helpers.assertTest "mksystem-function-exists" testFunctionExists
+    "mkSystem function should exist and be callable")
 
-  # Test 2: mkSystem function exists and is callable
-  echo "Test 2: mkSystem function exists..."
-  ${
-    if testFunctionExists then
-      ''echo "✅ PASS: mkSystem function exists and is callable"''
-    else
-      ''echo "❌ FAIL: mkSystem function not found or not callable"; exit 1''
-  }
+  # Test mkSystem accepts inputs parameter
+  (helpers.assertTest "mksystem-accepts-inputs" canCallWithInputs.success
+    "mkSystem should accept inputs parameter")
 
-  # Test 3: mkSystem accepts inputs parameter
-  echo "Test 3: mkSystem accepts inputs..."
-  ${
-    if canCallWithInputs.success then
-      ''echo "✅ PASS: mkSystem accepts inputs parameter"''
-    else
-      ''echo "❌ FAIL: mkSystem rejected inputs - ${canCallWithInputs.value or "unknown error"}"; exit 1''
-  }
+  # Test mkSystem returns function after inputs
+  (helpers.assertTest "mksystem-returns-function" returnsFunction
+    "mkSystem should return function after inputs are provided")
 
-  # Test 4: mkSystem returns function after inputs
-  echo "Test 4: mkSystem returns function after inputs..."
-  ${
-    if returnsFunction then
-      ''echo "✅ PASS: mkSystem returns function after inputs are provided"''
-    else
-      ''echo "❌ FAIL: mkSystem doesn't return function after inputs"; exit 1''
-  }
-
-  # Test 5: Skip smoke test - requires actual config files
-  echo "Test 5: mkSystem smoke test skipped..."
-  echo "⚠️  SKIPPED: mkSystem smoke test requires file dependencies"
-
-  echo "✅ All mkSystem tests passed!"
-  echo "Function structure verified - mkSystem is correctly implemented"
-  touch $out
-''
+  # Note: Smoke test skipped - calling mkSystem requires file dependencies
+]
