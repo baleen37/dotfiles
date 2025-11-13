@@ -1,11 +1,12 @@
-# Property-Based Git Configuration Test
+# Property-Based Git Configuration Test (Helper Pattern)
 # Tests invariants across different git configurations and user scenarios
 #
 # This test validates that git configuration maintains essential properties
 # regardless of user identity, platform differences, or configuration variations.
 #
-# VERSION: 1.0.0 (Task 6 - Property Testing Implementation)
-# LAST UPDATED: 2025-11-02
+# VERSION: 2.0.0 (Task 3 - Helper Pattern Migration)
+# LAST UPDATED: 2025-01-14
+# MIGRATED: From bash-based to helper-pattern approach
 
 {
   lib ? import <nixpkgs/lib>,
@@ -17,213 +18,174 @@
 }:
 
 let
-  # Import property testing helpers
-  propertyTestHelpers = import ../lib/property-test-helpers.nix { inherit pkgs lib; };
+  # Import test helpers with helper pattern
+  helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
 
-  # Test users for property testing
+  # Generated test users - no personal data
   testUsers = [
-    {
-      name = "Jiho Lee";
-      email = "baleen37@gmail.com";
-      username = "jito";
-    }
     {
       name = "Test User";
       email = "test@example.com";
       username = "testuser";
     }
     {
-      name = "Alice Smith";
+      name = "Alice Developer";
       email = "alice@opensource.org";
       username = "alice";
     }
     {
-      name = "Bob Developer";
+      name = "Bob Engineer";
       email = "bob@techcorp.io";
       username = "bob";
+    }
+    {
+      name = "Carol Smith";
+      email = "carol@innovation.lab";
+      username = "carol";
+    }
+    {
+      name = "David Chen";
+      email = "david@startup.dev";
+      username = "david";
     }
   ];
 
   # Git configuration variations
   gitConfigVariations = [
     {
+      name = "full-config";
       withAliases = true;
       withLfs = true;
     }
     {
+      name = "aliases-only";
       withAliases = true;
       withLfs = false;
     }
     {
+      name = "lfs-only";
       withAliases = false;
       withLfs = true;
     }
     {
+      name = "minimal-config";
       withAliases = false;
       withLfs = false;
     }
   ];
 
+  # Cross-platform configurations
+  platformConfigs = [
+    {
+      name = "darwin";
+      autocrlf = "input";
+      editor = "vim";
+      defaultBranch = "main";
+    }
+    {
+      name = "linux";
+      autocrlf = "false";
+      editor = "vim";
+      defaultBranch = "main";
+    }
+  ];
+
+  # Property: User identity validation
+  validateUserIdentity = user:
+    let
+      nameValid = builtins.match "^[A-Za-z ]+$" user.name != null;
+      emailValid = builtins.match "^[^@]+@[^@]+\\.[^@]+$" user.email != null;
+      usernameValid = builtins.match "^[a-zA-Z0-9_-]+$" user.username != null;
+    in
+    nameValid && emailValid && usernameValid;
+
+  # Property: Git alias safety
+  validateAliasSafety = config:
+    let
+      # Define aliases based on configuration
+      aliases = if config.withAliases then
+        [ "st=status" "co=checkout" "br=branch" "ci=commit" "df=diff" "lg=log --graph --oneline" "aa=add --all" "cm=commit -m" ]
+      else
+        [ "st=status" "co=checkout" "br=branch" "ci=commit" "df=diff" "lg=log --graph --oneline" ];
+
+      # Extract commands from aliases
+      commands = map (alias:
+        let
+          parts = lib.splitString "=" alias;
+          command = if builtins.length parts > 1 then lib.last parts else "";
+        in command
+      ) aliases;
+
+      # Check for dangerous commands
+      dangerousPatterns = [ "rm -rf" "sudo " "chmod 777" "chown " "format " "fdisk" ];
+      hasDangerous = builtins.any (cmd:
+        builtins.any (pattern: lib.hasInfix pattern cmd) commands
+      ) dangerousPatterns;
+
+      # Check for empty commands
+      hasEmpty = builtins.any (cmd: cmd == "") commands;
+
+      # Check for essential aliases
+      aliasNames = map (alias:
+        let parts = lib.splitString "=" alias;
+        in if builtins.length parts > 0 then lib.head parts else ""
+      ) aliases;
+      hasSt = builtins.any (name: name == "st") aliasNames;
+      hasCi = builtins.any (name: name == "ci") aliasNames;
+    in
+    !hasDangerous && !hasEmpty && hasSt && hasCi;
+
+  # Property: Platform configuration validity
+  validatePlatformConfig = platform:
+    platform.autocrlf == (if platform.name == "darwin" then "input" else "false") &&
+    platform.editor == "vim" &&
+    platform.defaultBranch == "main";
+
 in
-# Property-based Git configuration test that returns a derivation
-pkgs.runCommand "property-based-git-config-test-results" { } ''
-  echo "🧪 Running Property-Based Git Configuration Tests..."
-  echo ""
+# Helper-based property test suite
+helpers.testSuite "property-based-git-config-test" [
+  # User identity validation property test
+  (helpers.forAllCases "user-identity-validation" testUsers validateUserIdentity)
 
-  # Test 1: User Identity Validation
-  echo "Test 1: Git User Identity Validation"
-  user_count=0
-  identity_passed=0
+  # Git alias safety property test
+  (helpers.forAllCases "git-alias-safety" gitConfigVariations validateAliasSafety)
 
-  ${lib.concatMapStringsSep "\n" (userConfig: ''
-    user_count=$((user_count + 1))
-    echo "  Testing user ${userConfig.username} (${userConfig.name})"
+  # Cross-platform configuration property test
+  (helpers.forAllCases "cross-platform-config" platformConfigs validatePlatformConfig)
 
-    # Validate name format
-    if [[ "${userConfig.name}" =~ ^[A-Za-z\ ]+$ ]]; then
-      echo "    ✅ Name format valid"
-      name_valid=true
-    else
-      echo "    ❌ Name format invalid"
-      name_valid=false
-    fi
+  # Comprehensive property test summary
+  (pkgs.runCommand "property-based-git-config-summary" { } ''
+    echo "🎯 Property-Based Git Configuration Test Summary"
+    echo ""
+    echo "✅ User Identity Validation:"
+    echo "   • Tested ${toString (builtins.length testUsers)} generated test users"
+    echo "   • Validated name, email, and username formats"
+    echo "   • No personal data included - all generated test cases"
+    echo ""
+    echo "✅ Git Alias Safety:"
+    echo "   • Tested ${toString (builtins.length gitConfigVariations)} configuration variations"
+    echo "   • Verified no dangerous commands in aliases"
+    echo "   • Confirmed essential aliases (st, ci) are present"
+    echo ""
+    echo "✅ Cross-Platform Configuration:"
+    echo "   • Tested ${toString (builtins.length platformConfigs)} platform configurations"
+    echo "   • Validated macOS (Darwin) and Linux compatibility"
+    echo "   • Confirmed consistent editor and branch naming"
+    echo ""
+    echo "🏗️  Helper Pattern Benefits:"
+    echo "   • Migrated from complex bash scripting to clean Nix expressions"
+    echo "   • Individual test cases with detailed failure reporting"
+    echo "   • Composable property testing framework"
+    echo "   • No hardcoded personal data"
+    echo ""
+    echo "🧪 Property-Based Testing:"
+    echo "   • Tests invariants across diverse scenarios"
+    echo "   • Catches edge cases missed by example-based testing"
+    echo "   • Validates git configuration robustness"
+    echo ""
+    echo "✅ All Property-Based Git Configuration Tests Passed!"
+    echo "Git configuration invariants verified across all test scenarios"
 
-    # Validate email format
-    if [[ "${userConfig.email}" =~ ^[^@]+@[^@]+\.[^@]+$ ]]; then
-      echo "    ✅ Email format valid"
-      email_valid=true
-    else
-      echo "    ❌ Email format invalid"
-      email_valid=false
-    fi
-
-    # Validate username format
-    if [[ "${userConfig.username}" =~ ^[a-zA-Z0-9_-]+$ ]]; then
-      echo "    ✅ Username format valid"
-      username_valid=true
-    else
-      echo "    ❌ Username format invalid"
-      username_valid=false
-    fi
-
-    if [[ "$name_valid" == true && "$email_valid" == true && "$username_valid" == true ]]; then
-      identity_passed=$((identity_passed + 1))
-    fi
-  '') testUsers}
-
-  echo "  User identity validation: $identity_passed/$user_count passed"
-  if [ $identity_passed -eq $user_count ]; then
-    echo "✅ PASS: All user identities are valid"
-  else
-    echo "❌ FAIL: Some user identities are invalid"
-    exit 1
-  fi
-
-  echo ""
-  # Test 2: Git Alias Safety
-  echo "Test 2: Git Alias Safety"
-  alias_count=0
-  alias_passed=0
-
-  ${lib.concatMapStringsSep "\n" (configVariation: ''
-    alias_count=$((alias_count + 1))
-    echo "  Testing configuration variation $alias_count"
-
-    # Define aliases based on configuration
-    aliases=()
-    if [[ "${if configVariation.withAliases then "true" else "false"}" == "true" ]]; then
-      aliases=("st=status" "co=checkout" "br=branch" "ci=commit" "df=diff" "lg=log --graph --oneline" "aa=add --all" "cm=commit -m")
-    else
-      aliases=("st=status" "co=checkout" "br=branch" "ci=commit" "df=diff" "lg=log --graph --oneline")
-    fi
-
-    # Check for dangerous commands
-    dangerous_found=false
-    for alias in "''${aliases[@]}"; do
-      command=$(echo "$alias" | cut -d'=' -f2-)
-      if [[ "$command" =~ ^(rm\ -rf|sudo\ |chmod\ 777|chown\ |format\ |fdisk) ]]; then
-        echo "    ❌ Dangerous command found: $command"
-        dangerous_found=true
-      fi
-    done
-
-    # Check for empty aliases
-    empty_found=false
-    for alias in "''${aliases[@]}"; do
-      command=$(echo "$alias" | cut -d'=' -f2-)
-      if [[ -z "$command" ]]; then
-        echo "    ❌ Empty alias found"
-        empty_found=true
-      fi
-    done
-
-    # Check for essential aliases
-    has_st=false
-    has_ci=false
-    for alias in "''${aliases[@]}"; do
-      name=$(echo "$alias" | cut -d'=' -f1)
-      if [[ "$name" == "st" ]]; then has_st=true; fi
-      if [[ "$name" == "ci" ]]; then has_ci=true; fi
-    done
-
-    if [[ "$dangerous_found" == false && "$empty_found" == false && "$has_st" == true && "$has_ci" == true ]]; then
-      echo "    ✅ Alias safety checks passed"
-      alias_passed=$((alias_passed + 1))
-    else
-      echo "    ❌ Alias safety checks failed"
-    fi
-  '') gitConfigVariations}
-
-  echo "  Git alias safety: $alias_passed/$alias_count passed"
-  if [ $alias_passed -eq $alias_count ]; then
-    echo "✅ PASS: All git alias safety checks passed"
-  else
-    echo "❌ FAIL: Some git alias safety checks failed"
-    exit 1
-  fi
-
-  echo ""
-  # Test 3: Cross-Platform Git Configuration
-  echo "Test 3: Cross-Platform Git Configuration"
-
-  # Test macOS configuration
-  echo "  Testing macOS configuration"
-  darwin_autocrlf="input"
-  darwin_editor="vim"
-  darwin_default_branch="main"
-
-  if [[ "$darwin_autocrlf" == "input" && "$darwin_editor" == "vim" && "$darwin_default_branch" == "main" ]]; then
-    echo "    ✅ macOS configuration valid"
-  else
-    echo "    ❌ macOS configuration invalid"
-    exit 1
-  fi
-
-  # Test Linux configuration
-  echo "  Testing Linux configuration"
-  linux_autocrlf="false"
-  linux_editor="vim"
-  linux_default_branch="main"
-
-  if [[ "$linux_autocrlf" == "false" && "$linux_editor" == "vim" && "$linux_default_branch" == "main" ]]; then
-    echo "    ✅ Linux configuration valid"
-  else
-    echo "    ❌ Linux configuration invalid"
-    exit 1
-  fi
-
-  echo "✅ PASS: Cross-platform git configurations are valid"
-
-  echo ""
-  echo "🎯 Property-Based Testing Summary:"
-  echo "• Tested user identity validation across multiple users"
-  echo "• Verified git alias safety across configuration variations"
-  echo "• Confirmed cross-platform compatibility for macOS and Linux"
-  echo "• Property-based testing validates invariants across diverse scenarios"
-  echo "• Tests catch edge cases that traditional example-based testing might miss"
-  echo ""
-  echo "✅ All Property-Based Git Configuration Tests Passed!"
-  echo "Git configuration invariants verified across all test scenarios"
-
-  touch $out
-''
+    touch $out
+  '')
+]

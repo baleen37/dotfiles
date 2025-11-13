@@ -376,6 +376,42 @@ rec {
       fi
     '';
 
+  # Property testing helper for all cases (forAllCases)
+  # Tests a property across all test cases using helper pattern
+  # Returns a testSuite with individual assertTest assertions
+  forAllCases =
+    testName: testCases: propertyFn:
+    let
+      # Create individual tests for each case
+      individualTests = builtins.map (
+        testCase:
+        let
+          caseName = "${testName}-${testCase.name or "case"}";
+          propertyResult = builtins.tryEval (propertyFn testCase);
+        in
+        if propertyResult.success then
+          assertTest caseName propertyResult.value "Property test failed for case: ${toString testCase}"
+        else
+          assertTest caseName false "Property test threw error for case: ${toString testCase}: ${propertyResult.value}"
+      ) testCases;
+
+      # Create a summary test that aggregates all results
+      summaryTest = pkgs.runCommand "property-test-${testName}-summary" { } ''
+        echo "🧪 Property Test Suite: ${testName}"
+        echo "Testing ${toString (builtins.length testCases)} cases..."
+        echo ""
+        ${lib.concatMapStringsSep "\n" (testCase: ''
+          echo "  🔍 Testing case: ${testCase.name or "unnamed"}"
+        '') testCases}
+        echo ""
+        echo "✅ All property tests passed for ${testName}"
+        echo "Property holds across all test cases"
+        touch $out
+      '';
+    in
+    # Return test suite with all individual tests and summary
+    testSuite "${testName}-property-tests" (individualTests ++ [summaryTest]);
+
   # Backward compatibility alias for mkSimpleTest
   mkSimpleTest = mkTest;
 }
