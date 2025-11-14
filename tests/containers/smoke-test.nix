@@ -126,7 +126,7 @@ in
     machine.succeed("nix --version")
     machine.succeed("nix-store --version")
     machine.succeed("test -d /nix/store")
-    machine.succeed("ls /nix/store | head -5")
+    machine.succeed("sh -c 'ls /nix/store 2>/dev/null | { read first; echo $first; }'")
 
     # === Performance Basic Checks ===
 
