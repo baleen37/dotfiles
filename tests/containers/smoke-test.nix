@@ -7,20 +7,20 @@ let
 
   # Core packages that should always be available and functional
   corePackages = with pkgs; [
-    git          # Version control
-    vim          # Text editor
-    curl         # Network tool
-    wget         # Network tool
-    htop         # System monitoring
-    jq           # JSON processing
-    zsh          # Shell
-    findutils    # File search
+    git # Version control
+    vim # Text editor
+    curl # Network tool
+    wget # Network tool
+    htop # System monitoring
+    jq # JSON processing
+    zsh # Shell
+    findutils # File search
   ];
 
   # Packages where package name != main executable name
   # These are excluded from automated 'which' tests but manually tested
   packagesWithDifferentExecutables = [
-    "findutils"  # provides 'find', 'xargs', etc.
+    "findutils" # provides 'find', 'xargs', etc.
   ];
 in
 {
@@ -45,16 +45,6 @@ in
 
     # Core packages
     environment.systemPackages = corePackages;
-
-    # Basic networking
-    networking.hostName = "smoke-test";
-    networking.useDHCP = false;
-    networking.interfaces.eth1.ipv4.addresses = [
-      {
-        address = "10.0.0.1";
-        prefixLength = 24;
-      }
-    ];
 
     # Ensure proper permissions
     security.sudo.wheelNeedsPassword = false;
@@ -104,7 +94,7 @@ in
     # Skip packages where executable name differs from package name
     ${lib.concatMapStringsSep "\n" (pkg: ''
       ${lib.optionalString (!lib.elem (lib.getName pkg) packagesWithDifferentExecutables) ''
-      machine.succeed("which ${lib.getName pkg}")
+        machine.succeed("which ${lib.getName pkg}")
       ''}
     '') corePackages}
 
