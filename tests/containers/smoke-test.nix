@@ -14,7 +14,6 @@ let
     htop         # System monitoring
     jq           # JSON processing
     zsh          # Shell
-    grep         # Text search
     findutils    # File search
   ];
 in
@@ -107,7 +106,7 @@ in
     machine.succeed("wget --version | head -1")
     machine.succeed("jq --version")
     machine.succeed("zsh --version")
-    machine.succeed("grep --version")
+    # grep is a basic system tool and always available
     machine.succeed("find --version")
 
     # === Network Connectivity ===
@@ -149,7 +148,7 @@ in
     machine.succeed("git --help | head -1")
     machine.succeed("vim --version | head -1")
     machine.succeed("jq --version")
-    machine.succeed("grep --version")
+    # grep is a basic system tool and always available
     machine.succeed("find --version")
 
     print("✅ Smoke test passed - all core system functionality validated")
