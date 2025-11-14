@@ -11,6 +11,7 @@ let
 
   # Import container tests - inline for now to avoid path issues
   containerTests = {
+    "container-smoke" = import ./containers/smoke-test.nix { inherit pkgs lib; };
     basic = import ./containers/basic-system.nix { inherit pkgs lib; };
     # user-config = import ./containers/user-config.nix { inherit pkgs lib inputs self; };  # Temporarily disabled due to dependency issues
     services = import ./containers/services.nix { inherit pkgs lib; };
