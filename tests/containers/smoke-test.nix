@@ -16,6 +16,12 @@ let
     zsh          # Shell
     findutils    # File search
   ];
+
+  # Packages where package name != main executable name
+  # These are excluded from automated 'which' tests but manually tested
+  packagesWithDifferentExecutables = [
+    "findutils"  # provides 'find', 'xargs', etc.
+  ];
 in
 {
   name = "smoke-test";
@@ -95,8 +101,11 @@ in
     # === Core Package Functionality ===
 
     # Test each core package is available and functional
+    # Skip packages where executable name differs from package name
     ${lib.concatMapStringsSep "\n" (pkg: ''
+      ${lib.optionalString (!lib.elem (lib.getName pkg) packagesWithDifferentExecutables) ''
       machine.succeed("which ${lib.getName pkg}")
+      ''}
     '') corePackages}
 
     # Test specific core packages with simple, known-working commands
