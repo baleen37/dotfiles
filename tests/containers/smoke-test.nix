@@ -60,7 +60,6 @@ in
 
     # Wait for system to be fully ready
     machine.wait_for_unit("multi-user.target")
-    machine.wait_for_unit("network-online.target")
 
     # === Basic System Health ===
 
