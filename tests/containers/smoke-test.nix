@@ -25,6 +25,9 @@ in
     # Basic system configuration
     system.stateVersion = "24.11";
 
+    # Enable Zsh shell for users
+    programs.zsh.enable = true;
+
     # User setup
     users.users.${userName} = {
       isNormalUser = true;
