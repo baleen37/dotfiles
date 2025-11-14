@@ -14,7 +14,7 @@ let
     htop         # System monitoring
     jq           # JSON processing
     zsh          # Shell
-    gnugrep      # Text search
+    grep         # Text search
     findutils    # File search
   ];
 in
