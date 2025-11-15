@@ -225,6 +225,7 @@ in
         start_service = true; # Auto-start on login for seamless file synchronization
         restart_service = "changed"; # Restart on version change for stability
       }
+      "yabai" # Tiling window manager for macOS
     ];
 
     # Performance Optimization: Selective Cleanup Strategy
@@ -255,6 +256,7 @@ in
     # Additional Homebrew taps for specialized packages and development tools
     taps = [
       "homebrew/cask" # Essential for GUI application management
+      "koekeishiya/formulae" # Yabai tiling window manager tap
     ];
   };
 
