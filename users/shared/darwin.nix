@@ -53,6 +53,7 @@ let
   # macOS-specific packages
   darwin-packages = with pkgs; [
     dockutil
+    yabai # Tiling window manager for macOS
   ];
 
   # Homebrew Cask definitions (GUI applications)
@@ -225,7 +226,6 @@ in
         start_service = true; # Auto-start on login for seamless file synchronization
         restart_service = "changed"; # Restart on version change for stability
       }
-      "yabai" # Tiling window manager for macOS
     ];
 
     # Performance Optimization: Selective Cleanup Strategy
@@ -256,7 +256,6 @@ in
     # Additional Homebrew taps for specialized packages and development tools
     taps = [
       "homebrew/cask" # Essential for GUI application management
-      "koekeishiya/formulae" # Yabai tiling window manager tap
     ];
   };
 
@@ -389,6 +388,10 @@ in
     checks.verifyNixPath = false; # Disable NIX_PATH verification for cleaner builds
     stateVersion = 5; # Updated to current nix-darwin version for compatibility
   };
+
+  # Package Installation
+  # Install macOS-specific packages including yabai tiling window manager
+  environment.systemPackages = darwin-packages;
 
   # Build Performance Optimization
   # Disable documentation generation to avoid builtins.toFile warnings and improve build speed
