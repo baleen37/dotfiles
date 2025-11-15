@@ -127,6 +127,13 @@ in
       export PATH=$HOME/.local/share/bin:$PATH
       export PATH=$HOME/.local/bin:$PATH
 
+      # Homebrew PATH configuration (macOS only)
+      ${lib.optionalString isDarwin ''
+        if [[ -d /opt/homebrew ]]; then
+          export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
+        fi
+      ''}
+
       # History configuration
       export HISTIGNORE="pwd:ls:cd"
 
