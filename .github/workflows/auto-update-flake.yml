@@ -35,26 +35,10 @@ jobs:
           token: ${{ secrets.REPO_PAT }}
           fetch-depth: 0
 
-      - name: Install Nix
-        uses: cachix/install-nix-action@v25
+      - name: Setup Nix with cache
+        uses: ./.github/actions/setup-nix
         with:
-          nix_path: nixpkgs=channel:nixos-unstable
-          extra_nix_config: |
-            max-jobs = auto
-            cores = 0
-            substituters = https://cache.nixos.org https://nix-community.cachix.org
-            trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
-
-      - name: Cache Nix store
-        uses: actions/cache@v4
-        with:
-          path: |
-            /nix/store
-            ~/.cache/nix
-          key: ${{ runner.os }}-auto-update-nix-${{ hashFiles('flake.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-auto-update-nix-
-            ${{ runner.os }}-nix-
+          cache-mode: restore-only
 
       - name: Configure Git for updates
         run: |
@@ -212,7 +196,7 @@ jobs:
           WAIT_TIME=0
 
           # Required checks that must pass before merge
-          REQUIRED_CHECKS=("CI Summary" "Validate & Lint")
+          REQUIRED_CHECKS=("CI")
 
           echo "Required CI checks that must pass:"
           for check in "${REQUIRED_CHECKS[@]}"; do
@@ -297,7 +281,7 @@ jobs:
           echo "Final verification of CI status before enabling auto-merge..."
 
           COMMIT_SHA=$(gh api repos/$REPO/pulls/$PR_NUMBER --jq '.head.sha')
-          REQUIRED_CHECKS=("CI Summary" "Validate & Lint")
+          REQUIRED_CHECKS=("CI")
 
           FINAL_CHECK_PASSED=true
           for required_check in "${REQUIRED_CHECKS[@]}"; do
