@@ -76,6 +76,7 @@ let
     "claude"
     "karabiner-elements" # Key remapping and modification tool
     "orbstack" # Docker and Linux VM management
+    "rectangle" # Simple window management tool
     "tailscale-app" # VPN mesh network with GUI
     "teleport-connect" # Teleport GUI client for secure infrastructure access
 
@@ -246,7 +247,6 @@ in
     # Carefully selected apps for development productivity and system management
     # IDs obtained via: nix shell nixpkgs#mas && mas search <app name>
     masApps = {
-      "Magnet" = 441258766; # Window management tool for enhanced productivity
       "WireGuard" = 1451685025; # Lightweight, secure VPN client
       "KakaoTalk" = 869223134; # Communication platform (if needed)
     };
@@ -387,6 +387,11 @@ in
     checks.verifyNixPath = false; # Disable NIX_PATH verification for cleaner builds
     stateVersion = 5; # Updated to current nix-darwin version for compatibility
   };
+
+  # Package Installation
+  # Install macOS-specific packages
+  environment.systemPackages = darwin-packages;
+
 
   # Build Performance Optimization
   # Disable documentation generation to avoid builtins.toFile warnings and improve build speed

@@ -37,3 +37,8 @@ end)
 
 HyperModal = spoon.HyperModal
 Hyper:bind({}, 'm', function() HyperModal:toggle() end)
+
+-- HyperModal with basic bindings
+HyperModal
+ :start()
+ :bind('', ";", function() hs.urlevent.openURL("raycast://extensions/raycast/system/toggle-system-appearance") end)

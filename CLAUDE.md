@@ -476,6 +476,13 @@ The project uses GitHub Actions for continuous integration with:
 - **Performance Optimization**: Level 1+2 tuning (30-50% UI speed boost)
 - **Automatic App Cleanup**: Removes unused default apps (6-8GB saved)
 
+### GUI App Management on Darwin
+
+**Use Homebrew for GUI apps on Darwin**
+
+- **GUI Apps**: Use Homebrew casks (native integration, auto-updates, better performance)
+- **CLI Tools**: Use Nix packages (cross-platform consistency, version management)
+
 ## macOS Optimization
 
 ### Performance Tuning
