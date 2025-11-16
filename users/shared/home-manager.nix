@@ -42,6 +42,7 @@
     ./hammerspoon.nix
     ./karabiner.nix
     ./ghostty.nix
+    ./aerospace.nix
   ];
 
   # Home Manager configuration

@@ -1,5 +1,6 @@
 # Ghostty Terminal Configuration
 # Managed via Nix Home Manager
+# AeroSpace 호환성 최적화 적용
 
 # Font Configuration
 font-family = Cascadia Code
@@ -8,10 +9,20 @@ font-size = 14
 # Theme
 theme = dark
 
-# Window Settings
+# Window Settings - AeroSpace 호환성 강화
 window-padding-x = 10
 window-padding-y = 10
+macos-titlebar-style = auto  # AeroSpace와의 호환성 개선
+macos-native-keyboard-processing = true
+window-decoration = false  # AeroSpace tiling과의 호환성을 위해 데코레이션 최소화
 
 # Shell Integration
 shell-integration = true
 shell-integration-features = cursor,sudo,title
+
+# Performance 최적화
+gpu-acceleration = true
+confirm-close-surface = false
+
+# AeroSpace 호환성: 탭 기능 관련 설정 제거
+# 탭 대신 워크스페이스 기반 멀티 터미널 사용
