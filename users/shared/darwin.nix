@@ -389,7 +389,7 @@ in
   };
 
   # Package Installation
-  # Install macOS-specific packages including aerospace tiling window manager
+  # Install macOS-specific packages
   environment.systemPackages = darwin-packages;
 
 
