@@ -53,7 +53,6 @@ let
   # macOS-specific packages
   darwin-packages = with pkgs; [
     dockutil
-    aerospace
   ];
 
   # Homebrew Cask definitions (GUI applications)
@@ -77,6 +76,7 @@ let
     "claude"
     "karabiner-elements" # Key remapping and modification tool
     "orbstack" # Docker and Linux VM management
+    "rectangle" # Simple window management tool
     "tailscale-app" # VPN mesh network with GUI
     "teleport-connect" # Teleport GUI client for secure infrastructure access
 
@@ -247,7 +247,6 @@ in
     # Carefully selected apps for development productivity and system management
     # IDs obtained via: nix shell nixpkgs#mas && mas search <app name>
     masApps = {
-      "Magnet" = 441258766; # Window management tool for enhanced productivity
       "WireGuard" = 1451685025; # Lightweight, secure VPN client
       "KakaoTalk" = 869223134; # Communication platform (if needed)
     };
@@ -393,53 +392,6 @@ in
   # Install macOS-specific packages including aerospace tiling window manager
   environment.systemPackages = darwin-packages;
 
-  # ===== Aerospace Tiling Window Manager Configuration =====
-  # Modern tiling window manager with excellent macOS integration and stability
-  services.aerospace = {
-    enable = true;
-    settings = {
-      # Layout settings
-      accordion-padding = 0;
-      gaps = {
-        inner = 8;
-        outer = {
-          left = 4;
-          right = 4;
-          top = 4;
-          bottom = 4;
-        };
-      };
-
-      # Basic keybindings
-      mode.main.binding = {
-        # Navigation
-        alt-h = "focus left";
-        alt-j = "focus down";
-        alt-k = "focus up";
-        alt-l = "focus right";
-
-        # Move windows
-        alt-shift-h = "move left";
-        alt-shift-j = "move down";
-        alt-shift-k = "move up";
-        alt-shift-l = "move right";
-
-        # Workspaces
-        alt-1 = "workspace 1";
-        alt-2 = "workspace 2";
-        alt-3 = "workspace 3";
-        alt-4 = "workspace 4";
-        alt-5 = "workspace 5";
-
-        # Layouts
-        alt-f = "fullscreen";
-        alt-s = "layout floating tiling";
-
-        # Reload configuration
-        alt-r = "reload-config";
-      };
-    };
-  };
 
   # Build Performance Optimization
   # Disable documentation generation to avoid builtins.toFile warnings and improve build speed
