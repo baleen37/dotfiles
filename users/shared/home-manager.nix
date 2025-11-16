@@ -42,6 +42,7 @@
     ./hammerspoon.nix
     ./karabiner.nix
     ./ghostty.nix
+    ./rectangle.nix
   ];
 
   # Home Manager configuration
