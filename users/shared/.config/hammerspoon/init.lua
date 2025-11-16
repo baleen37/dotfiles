@@ -37,3 +37,51 @@ end)
 
 HyperModal = spoon.HyperModal
 Hyper:bind({}, 'm', function() HyperModal:toggle() end)
+
+-- yabai function for window management
+local yabai = function(args, completion)
+ local yabai_output = ""
+ local yabai_error = ""
+ -- Runs in background very fast
+ local yabai_task = hs.task.new("/run/current-system/sw/bin/yabai", function(err, stdout, stderr)
+  print()
+ end, function(task, stdout, stderr)
+  if stdout ~= nil then
+   yabai_output = yabai_output .. stdout
+  end
+  if stderr ~= nil then
+   yabai_error = yabai_error .. stderr
+  end
+  return true
+ end, args)
+ if type(completion) == "function" then
+  yabai_task:setCallback(function()
+   completion(yabai_output, yabai_error)
+  end)
+ end
+ yabai_task:start()
+end
+
+-- HyperModal with yabai bindings
+HyperModal
+ :start()
+ :bind('', "1", function() yabai({"-m", "window", "--swap", "first"}) end)
+ :bind('', "z", function() yabai({"-m", "window", "--toggle", "zoom-parent"}) end)
+ :bind('', "v", function() yabai({"-m", "space", "--mirror", "y-axis"}) end)
+ :bind('', "x", function() yabai({"-m", "window", "--toggle", "split"}) end)
+ :bind('', "space", function() yabai({"-m", "space", "--toggle", "zoom-fullscreen"}) end)
+ :bind('', "h", function() yabai({"-m", "window", "--swap", "west"}) end)
+ :bind('', "j", function() yabai({"-m", "window", "--swap", "south"}) end)
+ :bind('', "k", function() yabai({"-m", "window", "--swap", "north"}) end)
+ :bind('', "l", function() yabai({"-m", "window", "--swap", "east"}) end)
+ :bind({"alt"}, "h", function() yabai({"-m", "window", "--warp", "west"}) end)
+ :bind({"alt"}, "j", function() yabai({"-m", "window", "--warp", "south"}) end)
+ :bind({"alt"}, "k", function() yabai({"-m", "window", "--warp", "north"}) end)
+ :bind({"alt"}, "l", function() yabai({"-m", "window", "--warp", "east"}) end)
+ :bind({"shift"}, "l", function() yabai({"-m", "window", "--display", "east"}) end)
+ :bind({"shift"}, "h", function() yabai({"-m", "window", "--display", "west"}) end)
+ :bind("", "s", function() yabai({"-m", "window", "--stack", "mouse"}) end)
+ :bind('', "r", function() yabai({"-m", "space", "--balance"}) end)
+ :bind({"shift"}, "b", function() yabai({"-m", "space", "--layout", "stack"}) end)
+ :bind("", "b", function() yabai({"-m", "space", "--layout", "bsp"}) end)
+ :bind('', ";", function() hs.urlevent.openURL("raycast://extensions/raycast/system/toggle-system-appearance") end)
