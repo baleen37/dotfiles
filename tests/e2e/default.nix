@@ -14,54 +14,10 @@ let
   # Note: E2E tests are individual VM tests, not nixtest suite
   # Each test is a complete NixOS VM test
 
-  # Import individual e2e test suites
-  buildSwitchTests = import ./build-switch-test.nix {
-    inherit
-      lib
-      pkgs
-      system
-      self
-      ;
-  };
-
-  userWorkflowTests = import ./user-workflow-test.nix {
-    inherit
-      lib
-      pkgs
-      system
-      self
-      ;
-  };
-
-  # Import VM-based build-switch tests
-  buildSwitchVMTests = import ./build-switch-vm-test.nix {
-    inherit lib pkgs system;
-  };
-
-  # Import Claude hooks tests
-  claudeHooksTests = import ./claude-hooks-test.nix {
-    inherit lib pkgs;
-  };
-
-  # Import NixOS VM tests
-  nixosVmTests = import ./nixos-vm-test.nix {
-    inherit
-      lib
-      pkgs
-      system
-      self
-      ;
-  };
-
-  # Import VM analysis tests (cross-platform compatible)
-  vmAnalysisTests = import ./vm-analysis-test.nix {
-    inherit
-      lib
-      pkgs
-      system
-      self
-      ;
-  };
+  # Note: Removed missing/broken test files
+  # build-switch-test.nix, user-workflow-test.nix, claude-hooks-test.nix,
+  # nixos-vm-test.nix, vm-analysis-test.nix were referenced but didn't exist
+  # These have been removed to fix broken references
 
   # Import comprehensive suite validation tests
   comprehensiveValidationTests = import ./comprehensive-suite-validation-test.nix {
@@ -103,23 +59,13 @@ let
 
 in
 {
-  # Individual test suites
+  # Available test suites (removed missing ones)
   inherit
-    buildSwitchTests
-    userWorkflowTests
-    claudeHooksTests
-    nixosVmTests
-    vmAnalysisTests
     comprehensiveValidationTests
     freshMachineSetupTests
     environmentReplicationTests
     realProjectWorkflowTests
     ;
-
-  # VM-based build-switch tests (실제 동작 검증)
-  build-switch-vm-dry = buildSwitchVMTests.dryRunTest;
-  build-switch-vm-full = buildSwitchVMTests.vmTest;
-  build-switch-vm-all = buildSwitchVMTests.all;
 
   # Real-world scenario test runners
   fresh-machine-setup = freshMachineSetupTests;
@@ -133,11 +79,8 @@ in
     "real-project-workflow" = realProjectWorkflowTests;
   };
 
-  # VM-only test suite for focused VM testing
-  vm-only = nixosVmTests.all;
-
-  # VM analysis test suite for cross-platform validation
-  vm-analysis-only = vmAnalysisTests.all;
+  # Note: vm-only and vm-analysis-only tests removed due to missing files
+  # These referenced non-existent test files and have been cleaned up
 
   # Comprehensive validation test suite
   comprehensive-only = comprehensiveValidationTests.all;
