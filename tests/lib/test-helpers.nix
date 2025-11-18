@@ -98,7 +98,7 @@ rec {
       echo "🧪 Running test suite: ${name}"
       echo ""
 
-      # Run all tests and collect results
+      # Run all tests and collect results (handle both set and list)
       ${lib.concatMapStringsSep "\n" (test: ''
         echo "🔍 Running: ${test.name or "unnamed test"}"
         if [ -f "${test}" ]; then
@@ -107,7 +107,7 @@ rec {
           echo "❌ ${test.name or "test"}: FAIL"
           exit 1
         fi
-      '') (builtins.attrValues tests)}
+      '') (if builtins.isList tests then tests else builtins.attrValues tests)}
 
       echo ""
       echo "✅ Test suite '${name}': All tests passed"

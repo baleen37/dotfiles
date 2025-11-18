@@ -145,13 +145,13 @@ in
 # Helper-based property test suite
 helpers.testSuite "property-based-git-config-test" [
   # User identity validation property test
-  (helpers.forAllCases "user-identity-validation" testUsers validateUserIdentity)
+  (helpers.assertTest "user-identity-validation" (lib.all (validateUserIdentity) testUsers) "User identity validation")
 
   # Git alias safety property test
-  (helpers.forAllCases "git-alias-safety" gitConfigVariations validateAliasSafety)
+  (helpers.assertTest "git-alias-safety" (lib.all (validateAliasSafety) gitConfigVariations) "Git alias safety")
 
   # Cross-platform configuration property test
-  (helpers.forAllCases "cross-platform-config" platformConfigs validatePlatformConfig)
+  (helpers.assertTest "cross-platform-config" (lib.all (validatePlatformConfig) platformConfigs) "Cross-platform config")
 
   # Comprehensive property test summary
   (pkgs.runCommand "property-based-git-config-summary" { } ''

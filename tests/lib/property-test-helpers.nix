@@ -391,7 +391,7 @@ rec {
         echo "Running test: ${test.name}"
         cat ${test.result}
         echo ""
-      '') (builtins.attrValues tests)}
+      '') (if builtins.isList tests then tests else builtins.attrValues tests)}
 
       echo "✅ Property test suite ${name}: All tests passed"
       touch $out
