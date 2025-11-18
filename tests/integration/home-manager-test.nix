@@ -2,6 +2,7 @@
 {
   inputs,
   system,
+  nixtest ? { },
   ...
 }:
 
