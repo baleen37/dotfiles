@@ -124,19 +124,14 @@
             currentSystemName = "nixos";
             currentSystemUser = user;
             isDarwin = false;
+            isWSL = true;
           };
           modules = [
             nixos-wsl.nixosModules.wsl
             ./machines/nixos/nixos.nix
+            ./users/shared/nixos.nix
             inputs.home-manager.nixosModules.home-manager
             {
-              # Enable WSL
-              wsl = {
-                enable = true;
-                defaultUser = user;
-                startMenuLaunchers = true;
-              };
-
               home-manager = {
                 useGlobalPkgs = true;
                 useUserPackages = true;
@@ -146,17 +141,6 @@
                   currentSystemUser = user;
                   isDarwin = false;
                 };
-              };
-
-              # Set required home-manager options with correct paths
-              users.users.${user} = {
-                name = user;
-                home = "/home/${user}";
-                isNormalUser = true;
-                extraGroups = [
-                  "wheel"
-                  "docker"
-                ];
               };
             }
           ];
@@ -175,6 +159,7 @@
           };
           modules = [
             ./machines/nixos/vm-aarch64-utm.nix
+            ./users/shared/nixos.nix
             inputs.home-manager.nixosModules.home-manager
             {
               home-manager = {
@@ -184,14 +169,8 @@
                 extraSpecialArgs = {
                   inherit inputs self;
                   currentSystemUser = user;
+                  isDarwin = false;
                 };
-              };
-
-              # Set required user options with correct paths
-              users.users.${user} = {
-                name = user;
-                home = "/home/${user}";
-                isNormalUser = true;
               };
             }
           ];

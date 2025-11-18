@@ -37,6 +37,9 @@
   # Define a user account
   users.mutableUsers = true;
 
+  # Set zsh as default shell
+  programs.zsh.enable = true;
+
   # Manage fonts
   fonts = {
     fontDir.enable = true;
