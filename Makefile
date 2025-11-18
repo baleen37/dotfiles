@@ -120,7 +120,6 @@ switch-user: check-user
 	else \
 		echo "❌ ERROR: Unsupported operating system: $${OS}"; \
 		exit 1; \
->>>>>>> 49134b0 (feat: add comprehensive NixOS and WSL support to dotfiles)
 	fi
 
 # This builds the given configuration and pushes the results to the
