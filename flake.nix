@@ -158,6 +158,7 @@
             isDarwin = false;
           };
           modules = [
+            nixos-wsl.nixosModules.wsl
             ./machines/nixos/vm-aarch64-utm.nix
             ./users/shared/nixos.nix
             inputs.home-manager.nixosModules.home-manager
