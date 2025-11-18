@@ -78,6 +78,9 @@
   # Define a user account. Don't forget to set a password with 'passwd'.
   users.mutableUsers = true;
 
+  # Set zsh as default shell
+  programs.zsh.enable = true;
+
   # Fix root user home directory conflict
   users.users.root.home = lib.mkForce "/root";
 
