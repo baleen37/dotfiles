@@ -35,6 +35,7 @@ runs:
         restore-keys: |
           nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-
           nix-${{ runner.os }}-
+      continue-on-error: true
 
     - name: Restore Nix cache (restore-only mode)
       if: inputs.cache-mode == 'restore-only'
@@ -47,6 +48,16 @@ runs:
         restore-keys: |
           nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-
           nix-${{ runner.os }}-
+      continue-on-error: true
+
+    - name: Cache status check
+      shell: bash
+      run: |
+        echo "🔍 Cache configuration:"
+        echo "  - Cache mode: ${{ inputs.cache-mode }}"
+        echo "  - Cache key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-${{ steps.date.outputs.week }}"
+        echo "  - Week: ${{ steps.date.outputs.week }}"
+        echo "  - Flake.lock hash: ${{ hashFiles('flake.lock') }}"
 
     - name: Save Nix cache (full mode only)
       if: inputs.cache-mode == 'full' && always()
