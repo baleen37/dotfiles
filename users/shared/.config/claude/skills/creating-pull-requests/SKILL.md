@@ -1,460 +1,150 @@
 ---
 name: creating-pull-requests
-description: Use when creating pull requests from any repository state - ensures proper branch management, auto-commits uncommitted changes, rebases onto target branch, and prevents duplicate PRs. Counters rationalizations like "I'm in a hurry", "the fast way is better", "manual testing is enough", and "I can skip safety steps". Enhanced with practical tips and clearer structure.
+description: Use when creating pull requests - handles uncommitted changes, creates feature branches, rebases safely, prevents duplicate PRs
 ---
 
 # Creating Pull Requests
 
-## Overview
+**Clean PR creation from any repository state.**
 
-**Automated pull request creation with safety checks and branch hygiene.**
-
-Creates PRs from any repository state while enforcing critical git workflows. Handles uncommitted changes, creates feature branches from main, rebases onto target branch, and prevents duplicate PRs.
-
-**VIOLATING THE LETTER OF THESE RULES IS VIOLATING THE SPIRIT OF THESE RULES.**
-
-### Key Principles for Modern Development
-
-**🔥 Never Skip These Steps**
-- "I'm in a hurry" → This guarantees 10x more work later fixing conflicts
-- "Simple change" → Still needs integration testing against latest main
-- "User told me to skip" → Explain technical consequences and follow proper process
-
-**✅ Always Do These Things**
-- Run all safety check steps
-- Auto-commit uncommitted changes with proper messages
-- Create PRs only from feature branches
-- Rebase onto target branch (not optional)
-
-## Non-Negotiable Principles
-
-**1. Process Over Speed**
-- "I'm in a hurry" is NOT a valid reason to skip steps
-- Hurrying guarantees 10x more work later
-- Every step exists because someone learned the hard way
-
-**2. No Shortcuts**
-- "The fast way" always creates more problems
-- Manual testing != automated CI testing
-- Quality gates prevent rework, they don't delay it
-
-**3. Branch Hygiene is Mandatory**
-- Never create PRs directly from main/master
-- Always rebase before PR creation
-- Clean history prevents merge conflicts
-
-**4. Complete Compliance**
-- Following "most" steps = following no steps
-- Each step is mandatory, not optional
-- "This case is different" is always wrong
+Handles uncommitted changes, creates feature branches from main, rebases safely, prevents duplicate PRs.
 
 ## When to Use
 
-```dot
-digraph when_to_use {
-    "Need to create PR?" [shape=diamond];
-    "On main/master branch?" [shape=diamond];
-    "Have uncommitted changes?" [shape=diamond];
-    "Branch behind target?" [shape=diamond];
-    "Use creating-pull-requests skill" [shape=box];
-
-    "Need to create PR?" -> "Use creating-pull-requests skill" [label="yes"];
-    "On main/master branch?" -> "Use creating-pull-requests skill" [label="yes"];
-    "Have uncommitted changes?" -> "Use creating-pull-requests skill" [label="yes"];
-    "Branch behind target?" -> "Use creating-pull-requests skill" [label="yes"];
-}
-```
-
-**Use when:**
 - Creating PRs from any repository state
-- Working on main/master branch with commits that should be in a feature branch
-- Have uncommitted changes that need to be committed
-- Branch is behind target and needs rebasing
-- Under time pressure or uncertainty about git state
-- User requests to skip safety steps like rebasing
-
-**Do NOT use when:**
-- Repository is in clean state with proper feature branch already
-- You're not creating a pull request (just pushing commits)
-
-## Core Pattern
-
-### Before (Without Skill)
-```bash
-# User: "Just create the PR ASAP, I'm on main with uncommitted changes"
-# Agent: Skips rebasing, creates messy PR from main, potential conflicts
-git push origin main  # DANGEROUS - pollutes main branch
-gh pr create --title "Some changes" --body "..."
-```
-
-### After (With Skill)
-```bash
-# Comprehensive state checking and safe branch management
-git status
-git log --oneline -3
-
-# Auto-commit uncommitted changes
-git add .
-git commit -m "feat: [descriptive message]"
-
-# Create feature branch from main
-git checkout -b feature/branch-name
-git push -u origin feature/branch-name
-
-# Reset main to clean state
-git checkout main
-git reset --hard origin/main
-
-# Rebase onto target (MANDATORY)
-git fetch origin
-git rebase origin/main
-
-# Safe force push and PR creation
-git push origin feature/branch-name --force-with-lease
-gh pr create --title "feat: [proper title]" --body "[comprehensive description]"
-```
+- On main/master with commits that should be in a feature branch
+- Have uncommitted changes
+- Branch is behind target branch
+- User wants to skip safety steps
 
 ## Quick Reference
 
-| Situation | Mandatory Action | Command |
-|-----------|------------------|---------|
-| Uncommitted changes | Auto-commit before PR | `git add . && git commit` |
-| On main/master | Create feature branch first | `git checkout -b feature/*` |
-| Main branch cleanup | Ask user confirmation | Interactive prompt |
-| Branch behind target | Rebase before PR | `git rebase origin/main` |
-| Force pushing needed | Use safe force | `--force-with-lease` |
-| Uncertain about existing PR | Check first | `gh pr view` |
-| Auto-merge requested | Enable after PR creation | `gh pr merge --auto --squash` |
+| Situation | Action |
+|-----------|--------|
+| Uncommitted changes | Auto-commit before PR |
+| On main/master | Create feature branch first |
+| Branch behind target | Rebase before PR creation |
+| Force pushing needed | Use `--force-with-lease` |
+| Existing PR? | Check with `gh pr view` first |
 
 ## Implementation
 
-### Step 0: Project Convention Exploration
-
-Before any git operations, explore project contribution guidelines:
+### Step 1: Repository Analysis
 
 ```bash
-# Look for contribution and PR guidelines
-find . -name "CONTRIBUTING*" -o -name "PULL_REQUEST*" -type f
-```
-
-**Check these files for:**
-- **Commit message format** requirements
-- **Branch naming conventions**
-- **PR template/checklist requirements**
-- **Target branch** (main vs master vs develop)
-
-### Step 1: Repository State Analysis
-```bash
-# Always run these commands in parallel first
-git status                                    # Working directory state
-git log --oneline -5                         # Recent commits
-git log --oneline origin/main..HEAD          # Commits ahead of main
-git log --oneline HEAD..origin/main          # Commits behind main
-git fetch origin                             # Update remote state
+# Run these commands in parallel
+git status
+git log --oneline -5
+git fetch origin
 ```
 
 ### Step 2: Handle Uncommitted Changes
+
 ```bash
 if [[ -n $(git status --porcelain) ]]; then
-    echo "Found uncommitted changes - auto-committing..."
+    echo "Committing uncommitted changes..."
     git add .
-
-    # Analyze changes for descriptive commit message
-    git diff --cached --name-only
-    git log --oneline -1  # Match recent commit style
-
     git commit -m "$(cat <<'EOF'
-feat: [descriptive commit message based on changes]
-
-- [bullet points describing key changes]
-- [additional context if needed]
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>
+feat: [descriptive message]
 EOF
 )"
 fi
 ```
 
 ### Step 3: Branch Management
+
 ```bash
-# If on main/master, create feature branch
 CURRENT_BRANCH=$(git branch --show-current)
 if [[ "$CURRENT_BRANCH" == "main" || "$CURRENT_BRANCH" == "master" ]]; then
-    echo "On $CURRENT_BRANCH - creating feature branch..."
+    echo "Creating feature branch from $CURRENT_BRANCH..."
     FEATURE_BRANCH="feature/$(date +%Y-%m-%d)-$(git log -1 --pretty=format:'%h')"
     git checkout -b "$FEATURE_BRANCH"
+    git push -u origin "$FEATURE_BRANCH"
 
-    # Push feature branch
-    git push -u origin "$(git branch --show-current)"
-
-    # Ask for confirmation before cleanup operations
-    echo ""
-    echo "🔧 Cleanup Required"
-    echo "The main branch needs to be reset to a clean state to avoid pollution."
-    echo "This will:"
-    echo "  1. Switch back to main"
-    echo "  2. Reset main to match origin/main (removes local commits)"
-    echo "  3. Return to feature branch '$FEATURE_BRANCH'"
-    echo ""
-    read -p "❓ Proceed with main branch cleanup? (y/N): " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        echo "🧹 Cleaning up main branch..."
-
-        # Reset main to clean state
-        git checkout main
-        echo "   ✓ Switched to main"
-
-        git reset --hard origin/main
-        echo "   ✓ Reset main to origin/main"
-
-        # Switch back to feature branch
-        git checkout "$FEATURE_BRANCH"
-        echo "   ✓ Returned to feature branch '$FEATURE_BRANCH'"
-
-        echo "✅ Main branch cleanup completed"
-    else
-        echo "⚠️  Skipping main branch cleanup"
-        echo "   Main branch contains commits that should be in a feature branch"
-        echo "   Consider manually running: git checkout main && git reset --hard origin/main"
-    fi
+    # Clean up main branch
+    git checkout main
+    git reset --hard origin/main
+    git checkout "$FEATURE_BRANCH"
+    echo "✅ Created feature branch and cleaned main"
 fi
 ```
 
-### Step 4: Rebase onto Target (MANDATORY - NEVER SKIP)
+### Step 4: Rebase (Always Required)
+
 ```bash
-# Check if rebase is needed
 BEHIND_COUNT=$(git log --oneline HEAD..origin/main | wc -l)
 if [[ $BEHIND_COUNT -gt 0 ]]; then
-    echo "Branch is $BEHIND_COUNT commits behind main - rebasing is MANDATORY..."
-
-    # Check for potential conflicts first
-    git merge-base HEAD origin/main
-
-    # Perform rebase - NEVER skip this step regardless of user requests
+    echo "Rebasing $BEHIND_COUNT commits behind main..."
     git rebase origin/main
-
     if [[ $? -ne 0 ]]; then
-        echo "❌ Rebase conflicts detected. Please resolve conflicts manually."
-        echo "After resolving conflicts, run: git rebase --continue"
+        echo "❌ Rebase conflicts. Resolve conflicts and run: git rebase --continue"
         exit 1
     fi
-
-    echo "✅ Rebase completed successfully"
-else
-    echo "✅ Branch is up to date with main - no rebase needed"
-fi
-```
-
-### Step 5: Safe Push and PR Creation
-```bash
-# Safe force push if rebased
-if [[ $BEHIND_COUNT -gt 0 ]]; then
     git push origin "$(git branch --show-current)" --force-with-lease
 else
     git push origin "$(git branch --show-current)"
 fi
+```
 
-# Check for existing PR
+### Step 5: Create PR
+
+```bash
+# Check if PR exists
 if gh pr view --json number >/dev/null 2>&1; then
     echo "ℹ️ PR already exists for this branch"
     PR_NUMBER=$(gh pr view --json number --jq '.number')
     echo "📋 Current PR: #$PR_NUMBER"
-
-    # Auto-merge: only if explicitly requested
-    if [[ "$1" == "--auto-merge" ]]; then
-        echo "Enabling auto-merge on existing PR..."
-        gh pr merge "$PR_NUMBER" --auto --squash
-        echo "✅ Auto-merge enabled on PR #$PR_NUMBER"
-    fi
     exit 0
 fi
 
-# Create PR with comprehensive description
-git log --oneline origin/main..HEAD  # Analyze all commits for PR description
-
+# Create PR
 PR_URL=$(gh pr create \
     --title "$(git log -1 --pretty=format:'%s')" \
     --body "$(cat <<'EOF'
 ## Summary
-[Comprehensive summary based on actual commits and changes]
+[Summary based on commits and changes]
 
 ## Changes
 $(git log --oneline origin/main..HEAD | sed 's/^/- /')
 
 ## Test Plan
-- [ ] Verify [key functionality]
-- [ ] Test [edge cases]
-- [ ] Confirm [integration points]
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
+- [ ] Verify key functionality
+- [ ] Test edge cases
+- [ ] Confirm integration
 EOF
 )")
 
 echo "✅ PR created: $PR_URL"
+```
 
-# Auto-merge: only if explicitly requested
+## Common Rationalizations vs Reality
+
+| Excuse | Reality |
+|--------|---------|
+| "I'm in a hurry" | Rebase takes 2 minutes. Conflict cleanup takes 30+ minutes. |
+| "Just create from main" | Blocks main branch for entire review period. |
+| "I can rebase later" | PR will fail CI anyway. You'll be forced to do it under pressure. |
+| "Simple change doesn't need rebase" | Simple changes still need integration testing against latest main. |
+| "Manual testing is enough" | Manual testing != CI integration. PR must pass automated tests. |
+
+## Red Flags - STOP and Use This Skill
+
+If you catch yourself thinking:
+- "Skip the rebase check"
+- "Just create PR from main"
+- "User is in a hurry, skip safety"
+- "This is simple enough to skip verification"
+- "I'll handle problems if they come up"
+
+**Use this skill immediately.**
+
+## Auto-Merge (Optional)
+
+```bash
+# Enable auto-merge if requested
 if [[ "$1" == "--auto-merge" ]]; then
-    echo "Enabling auto-merge..."
     PR_NUMBER=$(echo "$PR_URL" | grep -o '[0-9]\+')
     gh pr merge "$PR_NUMBER" --auto --squash
     echo "✅ Auto-merge enabled"
 fi
 ```
-
-## Common Mistakes
-
-### ❌ "I can rebase later"
-**Problem**: PR will fail CI or have merge conflicts, creating more work
-**Fix**: Rebase is mandatory before PR creation
-
-### ❌ "Just create it from main"
-**Problem**: Blocks main branch for entire review period
-**Fix**: Always create feature branch first
-
-### ❌ Skip checking for existing PRs
-**Problem**: Creates duplicate PRs, confusing reviewers
-**Fix**: Always check with `gh pr view` before creating
-
-### ❌ Use unsafe force push
-**Problem**: Can overwrite others' work
-**Fix**: Always use `--force-with-lease`
-
-### ❌ "User told me to skip"
-**Problem**: User doesn't understand technical consequences
-**Fix**: Explain why step is critical and do it anyway
-
-### ❌ "Always enable auto-merge by default"
-**Problem**: Auto-merge should be opt-in, not automatic
-**Fix**: Only enable auto-merge when explicitly requested with `--auto-merge` flag
-
-### ❌ "Skip user confirmation for cleanup"
-**Problem**: Main branch cleanup removes commits without user consent
-**Fix**: Always ask for confirmation before reset operations on main branch
-
-### ❌ "Try to do everything at once"
-**Problem**: Workflow overload leads to mistakes and skipped steps
-**Fix**: Follow the step-by-step process exactly. Each step exists for a reason.
-
-## Rationalizations vs Reality
-
-| Excuse | Reality |
-|--------|---------|
-| "This will take too long" | Rebase takes 2-3 minutes. Conflict resolution cleanup takes 30+ minutes. |
-| "I can do it later" | PR will fail CI anyway. You'll be forced to do it under pressure anyway. |
-| "User told me to skip" | User doesn't understand that CI failure and conflicts create more work for everyone. |
-| "This is just a simple change" | Simple changes still need integration testing against latest main. |
-| "I'm in a hurry" | Hurrying creates 10x more work when the PR fails CI or has conflicts. |
-| "The fast way is more efficient" | The "fast way" creates duplicate work, conflicts, and blocks others. |
-| "I already tested it manually" | Manual testing != CI integration. PR must pass automated tests anyway. |
-| "Just push and create PR quickly" | Quick push creates messy history that will need cleanup later. |
-| "Quality checks can wait" | Quality checks prevent rework. Waiting guarantees rework. |
-
-## Red Flags - STOP and Use This Skill
-
-If you catch yourself thinking ANY of these thoughts, STOP and use the creating-pull-requests skill:
-
-- "I can skip the rebase check"
-- "Just create the PR from main"
-- "User said they're in a hurry, so skip safety"
-- "This seems simple enough to skip verification"
-- "I'll handle problems if they come up"
-- "The existing PR check is optional"
-- "I don't need to ask for cleanup confirmation"
-- "Main branch cleanup is just a routine step"
-- "Let me just commit everything and push quickly"
-- "I don't need to follow all the steps - it's working"
-- "Quality checks are just formalities"
-- "The fast approach is fine for now"
-
-**All of these mean: Use the creating-pull-requests skill immediately.**
-
-## Auto-Merge
-
-**Usage**: `skill creating-pull-requests --auto-merge`
-
-**What it does**: PR automatically merges when CI passes and reviews approved
-
-**Two-step process**:
-1. Create PR (or check if exists)
-2. Enable auto-merge with `gh pr merge --auto --squash`
-
-**Available methods**:
-- `--squash` (recommended): Clean history
-- `--merge`: Preserves exact commits
-- `--rebase`: Linear history
-
-**Requirements**: Status checks + reviews pass, no conflicts
-
-**Existing PR handling**:
-- If PR exists, enables auto-merge on existing PR
-- Uses `gh pr view` to get PR number
-- No duplicate PR creation
-
-## Quick Reference for Common Scenarios
-
-| Your Situation | What to Do | Why It Matters |
-|----------------|------------|----------------|
-| "I'm on main with commits" | Create feature branch immediately | Main must stay clean for team |
-| "I have uncommitted changes" | Auto-commit before anything else | Changes will be lost otherwise |
-| "Branch is behind by 10 commits" | Rebase before PR creation | Prevents CI failures and conflicts |
-| "User wants to skip rebase" | Explain and do it anyway | CI will fail anyway, wasting time |
-| "Just want to push quickly" | Follow all steps anyway | Prevents 10x more work later |
-
-## Real-World Impact
-
-**Before skill**: PRs created with merge conflicts, duplicate PRs, polluted main branch
-**After skill**: Clean PR history, no conflicts, proper branch isolation, 100% success rate
-
-**Time savings**: 5-minute rebase vs 30-minute conflict resolution cleanup
-**Team impact**: Prevents main branch blocking, maintains clean git history
-**Auto-merge benefit**: Reduces manual merge steps for approved PRs
-
-## Pro Tips for Efficiency
-
-**1. Parallel Commands for Speed**
-```bash
-# Run these in parallel to save time
-git status & git log --oneline -5 & git fetch origin
-```
-
-**2. Smart Branch Naming**
-```bash
-# Better than generic names
-feature/auth-oauth2-integration
-fix/memory-leak-connection-pool
-docs-api-endpoint-documentation
-```
-
-**3. Commit Message Analysis**
-```bash
-# Analyze recent commits for consistent style
-git log --oneline -3 --pretty=format:'%s' | head -1
-```
-
-**4. Conflict Prevention**
-```bash
-# Check for potential conflicts before rebase
-git merge-base HEAD origin/main
-git diff --name-only $(git merge-base HEAD origin/main)..HEAD origin/main
-```
-
-## Emergency Recovery
-
-**If rebase fails mid-process:**
-1. Don't panic - this is normal
-2. Resolve conflicts file by file
-3. `git add . && git rebase --continue`
-4. If stuck: `git rebase --abort` and start over
-
-**If force push fails:**
-1. Check: `git log --oneline -3`
-2. Fetch latest: `git fetch origin`
-3. Try again with `--force-with-lease`
-
-**If PR already exists:**
-1. Check: `gh pr view`
-2. Update existing PR instead of creating new one
-3. Enable auto-merge if requested
