@@ -20,6 +20,16 @@ let
   userOSConfig = ../users/shared/${osConfig};
   machineConfig = ../machines/${name}.nix;
 
+  # Overlays for unstable packages
+  overlays = [
+    (final: prev: {
+      unstable = import inputs.nixpkgs-unstable {
+        inherit (prev) system;
+        config.allowUnfree = true;
+      };
+    })
+  ];
+
   # Unified cache configuration for both Determinate Nix and traditional Nix
   cacheSettings = {
     substituters = [
@@ -86,13 +96,20 @@ systemFunc {
     inputs.home-manager.darwinModules.home-manager
     {
       home-manager = {
-        useGlobalPkgs = true;
+        useGlobalPkgs = false;
         useUserPackages = true;
         users.${user} = import userHMConfig;
         extraSpecialArgs = {
           inherit inputs self;
           currentSystemUser = user;
+          inherit overlays;
         };
+        sharedModules = [
+          {
+            nixpkgs.overlays = overlays;
+            nixpkgs.config.allowUnfree = true;
+          }
+        ];
       };
 
       # Set required home-manager options

@@ -28,6 +28,7 @@
   lib,
   inputs,
   currentSystemUser,
+  overlays ? [],
   ...
 }:
 
@@ -91,7 +92,11 @@
       # AI/CLI tools
       claude-code
       opencode
-      gemini-cli
+      (let
+        # Apply overlays to get access to unstable packages
+        finalPkgs = pkgs // (if overlays != [] then (builtins.foldl' (acc: overlay: acc // (overlay acc pkgs)) pkgs overlays) else {});
+      in
+      finalPkgs.unstable.gemini-cli or pkgs.gemini-cli)
 
 
       # Cloud tools
