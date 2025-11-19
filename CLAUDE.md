@@ -483,6 +483,44 @@ The project uses GitHub Actions for continuous integration with:
 - **GUI Apps**: Use Homebrew casks (native integration, auto-updates, better performance)
 - **CLI Tools**: Use Nix packages (cross-platform consistency, version management)
 
+### Global Package Management
+
+While Nix is the primary package manager for this dotfiles system, some tools may require global installation via traditional package managers for compatibility or convenience.
+
+**npm (Node.js)**
+- **Configuration**: `npm config set prefix '~/.npm-global'` (automatically set in zsh.nix)
+- **PATH**: `~/.npm-global/bin` is included in PATH configuration
+- **Usage**: `npm install -g package-name`
+- **Example**: `npm install -g @musistudio/claude-code-router`
+
+**pip (Python)**
+- **Configuration**: `export PIP_USER=true` for user-space installation
+- **PATH**: `~/.local/bin` is included in PATH configuration
+- **Usage**: `pip install --user package-name`
+- **Alternative**: Use `pipx` for isolated CLI tool installation
+
+**cargo (Rust)**
+- **Configuration**: Uses `~/.cargo/bin` by default
+- **PATH**: `~/.cargo/bin` is included in PATH configuration
+- **Usage**: `cargo install package-name`
+
+**gem (Ruby)**
+- **Configuration**: `export GEM_HOME=~/.gem` and `export PATH=$GEM_HOME/bin:$PATH`
+- **Usage**: `gem install --user-install package-name`
+
+**go install (Go)**
+- **Configuration**: Uses `~/go/bin` by default
+- **PATH**: `~/go/bin` is included in PATH configuration
+- **Usage**: `go install package@version`
+
+**Guidelines**:
+- ✅ Use traditional package managers when Nix package is unavailable or outdated
+- ✅ Prefer user-space installation over system-wide
+- ✅ Use `pipx` for Python CLI tools when possible
+- ✅ Keep installations minimal and well-documented
+- ❌ Avoid system-wide installations that require sudo
+- ❌ Don't mix package managers for the same dependency
+
 ## macOS Optimization
 
 ### Performance Tuning
