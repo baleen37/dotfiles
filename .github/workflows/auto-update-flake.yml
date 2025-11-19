@@ -184,7 +184,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: update-dependencies
     if: needs.update-dependencies.outputs.has-changes == 'true'
-    timeout-minutes: 35
+    timeout-minutes: 60
 
     steps:
       - name: Wait for CI checks to complete
@@ -194,8 +194,13 @@ jobs:
           echo "::group::Waiting for CI checks to complete"
 
           PR_NUMBER="${{ needs.update-dependencies.outputs.pr-number }}"
-          MAX_WAIT=1800  # 30 minutes for CI completion
+          MAX_WAIT=3000  # 50 minutes for CI completion (increased from 30)
           WAIT_TIME=0
+
+          echo "📊 CI monitoring configuration:"
+          echo "  - PR number: $PR_NUMBER"
+          echo "  - Max wait time: ${MAX_WAIT} seconds ($(($MAX_WAIT / 60)) minutes)"
+          echo "  - Check interval: 60 seconds"
 
           # Required checks that must pass before merge
           REQUIRED_CHECKS=("CI")
@@ -310,18 +315,23 @@ jobs:
             exit 1
           fi
 
-          # Enable auto-merge with squash only after confirming CI success
+          # Enable GitHub's built-in auto-merge
           if gh pr merge "$PR_NUMBER" --auto --squash --repo "$REPO"; then
             echo "::notice::✅ Auto-merge enabled for PR #$PR_NUMBER"
             echo "::notice::All required CI checks have passed"
-            echo "::notice::PR will be automatically merged when branch protection allows"
+            echo "::notice::PR will be automatically merged when CI completes"
           else
             echo "::error::Failed to enable auto-merge for PR #$PR_NUMBER"
-            echo "::notice::All CI checks passed, but auto-merge setup failed"
-            echo "::notice::PR may need to be merged manually"
+            echo "::notice::Attempting alternative auto-merge method..."
 
-            # Show current PR status for debugging
-            gh pr view "$PR_NUMBER" --json mergeable,mergeStateStatus,statusCheckRollup --repo "$REPO"
+            # Alternative: enable auto-merge using PR edit API
+            gh pr edit "$PR_NUMBER" --add-label "auto-merge" --repo "$REPO" || echo "Could not add auto-merge label"
+
+            # Final attempt with direct merge command (will only work if CI is passing)
+            if gh pr view "$PR_NUMBER" --json mergeable --jq '.mergeable' --repo "$REPO" | grep -q "true"; then
+              echo "::notice::PR is mergeable, attempting immediate merge..."
+              gh pr merge "$PR_NUMBER" --squash --repo "$REPO" || echo "Merge failed - will wait for auto-merge"
+            fi
           fi
 
           echo "::endgroup::"
