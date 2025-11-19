@@ -57,7 +57,7 @@ runs:
         echo "  - Cache mode: ${{ inputs.cache-mode }}"
         echo "  - Cache key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-${{ steps.date.outputs.week }}"
         echo "  - Week: ${{ steps.date.outputs.week }}"
-        echo "  - Flake.lock hash: ${hashFiles('flake.lock')}"
+        echo "  - Flake.lock hash: ${{ hashFiles('flake.lock') }}"
 
     - name: Save Nix cache (full mode only)
       if: inputs.cache-mode == 'full' && always()
