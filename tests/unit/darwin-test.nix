@@ -22,7 +22,10 @@ let
   };
 
 in
-helpers.testSuite "darwin" [
+# Platform filtering - this test should only run on Darwin systems
+{
+  platforms = ["darwin"];
+  value = helpers.testSuite "darwin" [
   # Test system settings exist
   (helpers.assertTest "darwin-has-system-settings" (
     darwinConfig ? system
@@ -47,4 +50,5 @@ helpers.testSuite "darwin" [
   (helpers.assertTest "darwin-has-app-cleanup" (
     darwinConfig.system.activationScripts ? cleanupMacOSApps
   ) "Darwin config should have macOS app cleanup activation script")
-]
+  ];
+}
