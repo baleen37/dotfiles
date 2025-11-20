@@ -5,30 +5,68 @@
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
   enhancedHelpers = import ../lib/enhanced-assertions.nix { inherit pkgs lib; };
+
+  # Import platform helpers once for testing
+  platformHelpers = import ../lib/platform-helpers.nix { inherit pkgs lib; };
+  currentPlatform = platformHelpers.getCurrentPlatform;
 in
-helpers.testSuite "platform-helpers" [
-  # Test mkPlatformTest function availability
-  (helpers.assertTest "mkPlatformTest-availability"
-    (builtins.isFunction (import ../lib/platform-helpers.nix { inherit pkgs lib; }))
-    "platform-helpers.nix should be importable and provide mkPlatformTest function")
+# Simple test suite that works within framework constraints
+pkgs.runCommand "test-suite-platform-helpers" { } ''
+  echo "🧪 Running platform helpers test suite"
+  echo "🌍 Platform: ${currentPlatform}"
+  echo ""
 
-  # Test filterPlatformTests function availability
-  (helpers.assertTest "filterPlatformTests-availability"
-    (builtins.isFunction (import ../lib/platform-helpers.nix { inherit pkgs lib; }))
-    "platform-helpers.nix should provide filterPlatformTests function")
+  echo "🔍 Test: mkPlatformTest function availability"
+  if ${if builtins.isFunction platformHelpers.mkPlatformTest then "echo '✅ PASS: mkPlatformTest available'" else "echo '❌ FAIL: mkPlatformTest not available'; exit 1"}; then
+    echo "  ✅ PASS"
+  else
+    echo "  ❌ FAIL"
+    exit 1
+  fi
 
-  # Test getCurrentPlatform function availability
-  (helpers.assertTest "getCurrentPlatform-availability"
-    (builtins.isFunction (import ../lib/platform-helpers.nix { inherit pkgs lib; }))
-    "platform-helpers.nix should provide getCurrentPlatform function")
+  echo "🔍 Test: filterPlatformTests function availability"
+  if ${if builtins.isFunction platformHelpers.filterPlatformTests then "echo '✅ PASS: filterPlatformTests available'" else "echo '❌ FAIL: filterPlatformTests not available'; exit 1"}; then
+    echo "  ✅ PASS"
+  else
+    echo "  ❌ FAIL"
+    exit 1
+  fi
 
-  # Test that platform detection returns a valid platform string
-  (helpers.assertTest "getCurrentPlatform-returns-string"
-    (builtins.isString ( (import ../lib/platform-helpers.nix { inherit pkgs lib; }).getCurrentPlatform ))
-    "getCurrentPlatform should return a string identifier")
+  echo "🔍 Test: getCurrentPlatform value availability"
+  if ${if builtins.isString currentPlatform then "echo '✅ PASS: getCurrentPlatform available'" else "echo '❌ FAIL: getCurrentPlatform not available'; exit 1"}; then
+    echo "  ✅ PASS"
+  else
+    echo "  ❌ FAIL"
+    exit 1
+  fi
 
-  # Test that current platform is one of expected values
-  (helpers.assertTest "getCurrentPlatform-valid-value"
-    (builtins.any (p: p == (import ../lib/platform-helpers.nix { inherit pkgs lib; }).getCurrentPlatform) ["darwin" "linux" "unknown"])
-    "getCurrentPlatform should return darwin, linux, or unknown")
-]
+  echo "🔍 Test: Platform detection returns valid value"
+  echo "  Current platform: ${currentPlatform}"
+  if [ "${currentPlatform}" = "darwin" ] || [ "${currentPlatform}" = "linux" ] || [ "${currentPlatform}" = "unknown" ]; then
+    echo "  ✅ PASS: Platform value is valid"
+  else
+    echo "  ❌ FAIL: Invalid platform value"
+    exit 1
+  fi
+
+  echo "🔍 Test: isCurrentPlatform helper availability"
+  if ${if builtins.isFunction platformHelpers.isCurrentPlatform then "echo '✅ PASS: isCurrentPlatform available'" else "echo '❌ FAIL: isCurrentPlatform not available'; exit 1"}; then
+    echo "  ✅ PASS"
+  else
+    echo "  ❌ FAIL"
+    exit 1
+  fi
+
+  echo "🔍 Test: mkPlatformTestSuite helper availability"
+  if ${if builtins.isFunction platformHelpers.mkPlatformTestSuite then "echo '✅ PASS: mkPlatformTestSuite available'" else "echo '❌ FAIL: mkPlatformTestSuite not available'; exit 1"}; then
+    echo "  ✅ PASS"
+  else
+    echo "  ❌ FAIL"
+    exit 1
+  fi
+
+  echo ""
+  echo "✅ Test suite platform-helpers: All tests passed"
+  echo "🎯 Platform discovery integration is working correctly"
+  touch $out
+''
