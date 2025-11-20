@@ -269,6 +269,112 @@ Pre-commit hooks are configured to validate code quality. If pre-commit fails, u
 
 **NO bats** - use Nix's built-in test framework (`pkgs.runCommand`, etc.)
 
+### Test Writing Guidelines
+
+**FOR ALL NEW FEATURES AND BUGFIXES, YOU MUST FOLLOW TDD:**
+
+1. **Write Failing Test First**: Always create a test that clearly demonstrates expected behavior
+2. **Verify Test Fails**: Run test to confirm it fails with clear error message
+3. **Implement Minimal Code**: Write simplest code that makes test pass
+4. **Verify Test Passes**: Confirm test passes with implementation
+5. **Refactor**: Improve code while keeping tests green
+
+**Naming Conventions - Feature-Scenario-ExpectedResult:**
+- `mksystem-file-importability-succeeds`
+- `git-config-generation-creates-valid-file`
+- `darwin-homebrew-integration-works`
+- `enhanced-assertions-detailed-error-reporting`
+
+**Enhanced Assertions Usage:**
+```nix
+# Always use enhanced assertions for better error reporting
+helpers = import ../lib/enhanced-assertions.nix { inherit pkgs lib; };
+
+# Basic assertion with details
+(helpers.assertTestWithDetails "feature-scenario-expected"
+  condition
+  "Descriptive message"
+  expectedValue     # Optional: for comparison
+  actualValue)      # Optional: for comparison
+
+# File content validation
+(helpers.assertFileContent "file-content-matches"
+  generatedFile
+  expectedContent)
+```
+
+**Platform-Specific Testing:**
+```nix
+# Add platform attributes for platform-specific tests
+{
+  test-darwin-specific = {
+    platforms = ["darwin"];
+    # Test implementation
+  };
+
+  test-linux-specific = {
+    platforms = ["linux"];
+    # Test implementation
+  };
+
+  test-cross-platform = {
+    # No platform attribute = runs on all platforms
+  };
+}
+```
+
+**Test Structure:**
+```nix
+# Standard test file structure
+{
+  inputs,
+  system,
+  pkgs ? import inputs.nixpkgs { inherit system; },
+  lib ? pkgs.lib,
+  self ? ../,
+  ...
+}:
+
+let
+  helpers = import ../../lib/enhanced-assertions.nix { inherit pkgs lib; };
+  # Test setup
+in
+helpers.testSuite "feature-name" [
+  # Test assertions using enhanced helpers
+  (helpers.assertTestWithDetails "...")
+]
+```
+
+**Running Tests:**
+```bash
+# Required: USER environment variable
+export USER=$(whoami)
+
+# All tests (fast container tests)
+make test
+
+# Complete test suite with integration tests
+make test-all
+
+# Specific test execution
+nix build .#checks.x86_64-linux.unit-test-name
+
+# Platform-specific tests
+nix build .#checks.aarch64-darwin.integration-darwin-specific
+```
+
+**Critical Rules for Testing:**
+- ✅ ALWAYS use enhanced assertions from `tests/lib/enhanced-assertions.nix`
+- ✅ ALWAYS follow Feature-Scenario-ExpectedResult naming
+- ✅ ALWAYS include detailed failure messages
+- ✅ ALWAYS export USER=$(whoami) before running tests
+- ✅ ALWAYS add platform attributes for platform-specific tests
+- ❌ NEVER use bats - use Nix's built-in test framework
+- ❌ NEVER write tests without clear expected behavior
+- ❌ NEVER skip TDD process for any new feature
+
+**For complete testing documentation, see:** `docs/testing-guide.md`
+
 ## Important Notes
 
 ### USER Variable & Multi-User Support
