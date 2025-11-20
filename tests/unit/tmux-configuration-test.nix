@@ -49,4 +49,13 @@ helpers.testSuite "tmux-standard-configuration" [
      builtins.match ".*paste-buffer.*" tmuxConfig.extraConfig != null &&
      builtins.match ".*begin-selection.*" tmuxConfig.extraConfig != null)
     "tmux should have standard copy mode key bindings")
+
+  # Task 5: Add Mouse Support for Paste
+  (enhancedHelpers.assertTestWithDetails "tmux-has-mouse-paste-support"
+    (builtins.match ".*bind-key -n MouseDown2Pane paste-buffer.*" tmuxConfig.extraConfig != null)
+    "tmux should support middle-click paste"
+    "enabled"
+    (if builtins.match ".*bind-key -n MouseDown2Pane paste-buffer.*" tmuxConfig.extraConfig != null then "enabled" else "disabled")
+    null
+    null)
 ]

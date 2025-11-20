@@ -63,6 +63,7 @@ in
       # Enhanced terminal and display settings
       set-environment -g TERM screen-256color
       set -g mouse on
+      bind-key -n MouseDown2Pane paste-buffer  # Middle-click paste
       set -g base-index 1
       set -g pane-base-index 1
       set -g renumber-windows on
