@@ -44,10 +44,11 @@ let
             value = discoverTests (dir + "/${name}") "${prefix}-${name}";
           }
         else
-          # Import test file
-          {
-            name = "${prefix}-${lib.removeSuffix "-test.nix" name}";
-            value = import (dir + "/${name}") {
+          # Import test file with safe error handling
+          let
+            filePath = dir + "/${name}";
+            # Try to import the test file, but handle errors gracefully
+            testResult = builtins.tryEval (import filePath {
               inherit
                 inputs
                 system
@@ -56,8 +57,27 @@ let
                 self
                 ;
               inherit nixtest;
-            };
-          }
+            });
+          in
+          if testResult.success then
+            {
+              name = "${prefix}-${lib.removeSuffix "-test.nix" name}";
+              value = testResult.value;
+            }
+          else
+            # Create a failing test that clearly indicates the import problem
+            {
+              name = "${prefix}-${lib.removeSuffix "-test.nix" name}-import-failed";
+              value = pkgs.runCommand "test-import-failed-${name}" { } ''
+                echo "❌ TEST IMPORT FAILED: ${name}"
+                echo "📁 Path: ${filePath}"
+                echo "🚨 Error: ${testResult.value}"
+                echo ""
+                echo "This is likely a cross-platform compatibility issue or missing dependency."
+                echo "The test file may be trying to import platform-specific code."
+                exit 1
+              '';
+            }
       ))
     ];
 
