@@ -78,12 +78,13 @@ in
       set -g allow-rename off
       set -g destroy-unattached off
 
-      # Standard copy-paste configuration (works everywhere)
+      # Standard copy-paste configuration
       setw -g mode-keys vi
+      bind [ copy-mode
+      bind ] paste-buffer
       bind-key -T copy-mode-vi v send-keys -X begin-selection
       bind-key -T copy-mode-vi y send-keys -X copy-selection-and-cancel
       bind-key -T copy-mode-vi Enter send-keys -X copy-selection-and-cancel
-      bind-key -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-selection-and-cancel
 
       # Simple platform-specific clipboard integration
       ${lib.optionalString isDarwin ''

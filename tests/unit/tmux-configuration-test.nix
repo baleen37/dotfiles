@@ -40,4 +40,13 @@ helpers.testSuite "tmux-standard-configuration" [
     "on"
     (if builtins.match ".*set -g set-clipboard on.*" tmuxConfig.extraConfig != null then "on" else "off")
     "tmux should enable automatic clipboard synchronization")
+
+  # Task 4: Add Standard Copy Mode Key Bindings
+  (helpers.assertTest "tmux-has-standard-copy-bindings"
+    (builtins.substring 0 1000 tmuxConfig.extraConfig != "" &&
+     builtins.stringLength tmuxConfig.extraConfig > 500 &&
+     builtins.match ".*copy-mode.*" tmuxConfig.extraConfig != null &&
+     builtins.match ".*paste-buffer.*" tmuxConfig.extraConfig != null &&
+     builtins.match ".*begin-selection.*" tmuxConfig.extraConfig != null)
+    "tmux should have standard copy mode key bindings")
 ]
