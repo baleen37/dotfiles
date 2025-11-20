@@ -93,8 +93,14 @@ let
   discoverPlatformTests = dir: prefix:
     let
       discoveredTests = discoverTests dir prefix;
+      filteredTests = platformHelpers.filterPlatformTests discoveredTests;
+      # Extract actual test values from platform-filtered tests
+      extractTestValues = tests:
+        lib.mapAttrs (name: test:
+          if builtins.hasAttr "value" test then test.value else test
+        ) filteredTests;
     in
-    platformHelpers.filterPlatformTests discoveredTests;
+    extractTestValues filteredTests;
 
 in
 {
@@ -105,13 +111,13 @@ in
   '';
 }
 // containerChecks
-// (flattenTests (discoverTests ./unit "unit") // (
+// flattenTests (discoverPlatformTests ./unit "unit") // (
   # Add the new mksystem tests explicitly by flattening the set
   import ./unit/functions/mksystem-factory-validation.nix {
     inherit inputs system pkgs lib self;
     inherit nixtest;
   }
-))
+)
 // flattenTests (discoverTests ./integration "integration")
 # E2E tests are heavy VM tests - exclude from automatic discovery
 # They are available individually via nix eval on the specific test files
