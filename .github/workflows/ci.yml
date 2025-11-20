@@ -51,19 +51,37 @@ jobs:
         uses: ./.github/actions/setup-nix
 
       - name: Fast container tests
+        continue-on-error: false
         run: |
           export USER=${USER:-ci}
           export TEST_USER=${TEST_USER:-testuser}  # Ensure consistent test user
           echo "🚀 Running fast container tests with static test user..."
-          make test
+          echo "📊 Environment info:"
+          echo "  - USER: $USER"
+          echo "  - TEST_USER: $TEST_USER"
+          echo "  - RUNNER_OS: $RUNNER_OS"
+          make test || {
+            echo "❌ Fast container tests failed"
+            echo "🔍 This may be due to cache service issues, not code problems"
+            exit 1
+          }
 
       - name: Full test suite
         if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+        continue-on-error: false
         run: |
           export USER=${USER:-ci}
           export TEST_USER=${TEST_USER:-testuser}  # Ensure consistent test user
           echo "🔬 Running full test suite with static test user..."
-          make test-all
+          echo "📊 Environment info:"
+          echo "  - USER: $USER"
+          echo "  - TEST_USER: $TEST_USER"
+          echo "  - RUNNER_OS: $RUNNER_OS"
+          make test-all || {
+            echo "❌ Full test suite failed"
+            echo "🔍 This may be due to cache service issues, not code problems"
+            exit 1
+          }
 
       - name: Test secrets backup
         run: |
@@ -76,18 +94,20 @@ jobs:
         env:
           USER: ${USER:-ci}
           CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
+        continue-on-error: true
         run: |
           export USER=${USER:-ci}
+          echo "🚀 Uploading to Cachix (continue-on-error enabled)..."
           if [ "$RUNNER_OS" = "macOS" ]; then
             export NIXNAME=macbook-pro
             # Cache macOS build
             nix build '.#darwinConfigurations.macbook-pro.system' --json \
               | jq -r '.[].outputs | to_entries[].value' \
-              | cachix push baleen-nix || echo "Cache upload incomplete"
+              | cachix push baleen-nix || echo "⚠️ Cache upload incomplete - continuing..."
           else
             export NIXNAME=vm-aarch64-utm
             # Cache Linux build (use x86_64 since that's our runner)
             nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel' --json \
               | jq -r '.[].outputs | to_entries[].value' \
-              | cachix push baleen-nix || echo "Cache upload incomplete"
+              | cachix push baleen-nix || echo "⚠️ Cache upload incomplete - continuing..."
           fi
