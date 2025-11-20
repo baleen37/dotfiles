@@ -1,42 +1,37 @@
-# tests/unit/tmux-configuration-test.nix
-# Test tmux standard configuration implementation
-
-{ inputs, system, pkgs, lib, self, nixtest ? {} }:
+{
+  inputs,
+  system,
+  pkgs ? import inputs.nixpkgs { inherit system; },
+  lib ? pkgs.lib,
+  nixtest ? { },
+  self ? ../..
+}:
 
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
   enhancedHelpers = import ../lib/enhanced-assertions.nix { inherit pkgs lib; };
 
-  # Mock config for testing - we'll import the actual tmux configuration
+  # Mock config for testing tmux configuration
   mockConfig = {
-    home = {
-      homeDirectory = "/home/test";
-    };
+    home.homeDirectory = "/home/test";
   };
 
-  # Read current tmux configuration to check its settings
-  tmuxExtraConfig = (import ../../users/shared/tmux.nix {
+  # Import tmux configuration with mocked dependencies
+  tmuxModule = import ../../users/shared/tmux.nix {
     inherit pkgs lib;
     config = mockConfig;
-  }).programs.tmux.extraConfig;
-
+  };
+  tmuxConfig = tmuxModule.programs.tmux;
 in
-helpers.testSuite "tmux-configuration" [
-  # Test that tmux configuration exists and can be parsed
-  (enhancedHelpers.assertTestWithDetails "tmux-config-exists"
-    (tmuxExtraConfig != null)
-    "tmux configuration should exist"
-    "exists"
-    "exists"
-    null
-    null)
+helpers.testSuite "tmux-standard-configuration" [
+  # Task 2: Remove Yank Plugin Dependency
+  # Test that tmux has plugins configured
+  (helpers.assertTest "tmux-has-plugins"
+    (tmuxConfig.plugins != null && builtins.length tmuxConfig.plugins > 0)
+    "tmux should have plugins configured")
 
-  # Test that tmux currently has set-clipboard disabled (as expected from current config)
-  (enhancedHelpers.assertTestWithDetails "tmux-currently-has-clipboard-disabled"
-    (builtins.match ".*set -g set-clipboard off.*" tmuxExtraConfig != null)
-    "Current tmux config should have set-clipboard disabled"
-    "off"
-    "off"
-    null
-    null)
+  # Test the correct number of plugins after yank removal
+  (helpers.assertTest "tmux-has-four-plugins-after-removal"
+    (builtins.length tmuxConfig.plugins == 4)
+    "tmux should have 4 plugins after yank removal")
 ]

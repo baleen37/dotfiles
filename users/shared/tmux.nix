@@ -42,7 +42,7 @@ in
     plugins = with pkgs.tmuxPlugins; [
       sensible
       vim-tmux-navigator
-      yank
+      # yank  # Removed - Task 2: Remove Yank Plugin Dependency
       resurrect
       continuum
     ];
