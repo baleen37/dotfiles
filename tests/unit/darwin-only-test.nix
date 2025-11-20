@@ -13,7 +13,6 @@ helpers.testSuite "darwin-only-test" [
 
   # Test Darwin-specific functionality
   (helpers.assertTest "darwin-homebrew-works"
-    builtins.any (pkg: pkg ? pname && builtins.match ".*homebrew.*" pkg.pname != null)
-      (lib.attrValues pkgs)
+    (pkgs.stdenv.hostPlatform.isDarwin && (builtins.hasAttr "homebrew" pkgs))
     "Homebrew should be available on Darwin")
 ]
