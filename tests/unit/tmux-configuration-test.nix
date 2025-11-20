@@ -34,4 +34,10 @@ helpers.testSuite "tmux-standard-configuration" [
   (helpers.assertTest "tmux-has-four-plugins-after-removal"
     (builtins.length tmuxConfig.plugins == 4)
     "tmux should have 4 plugins after yank removal")
+
+  # Task 3: Enable Standard Clipboard Synchronization
+  (helpers.assertTestWithDetails "tmux-enables-clipboard-synchronization"
+    "on"
+    (if builtins.match ".*set -g set-clipboard on.*" tmuxConfig.extraConfig != null then "on" else "off")
+    "tmux should enable automatic clipboard synchronization")
 ]

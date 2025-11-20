@@ -72,8 +72,8 @@ in
       set -g repeat-time 500
       set -g status-interval 1
 
-      # Session stability settings with security-first clipboard policy
-      set -g set-clipboard off  # Security: disable external clipboard by default
+      # Session stability settings with standard clipboard synchronization
+      set -g set-clipboard on   # Enable external clipboard by default for automatic synchronization
       set -g remain-on-exit off
       set -g allow-rename off
       set -g destroy-unattached off
