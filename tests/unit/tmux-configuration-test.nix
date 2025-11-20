@@ -70,4 +70,18 @@ helpers.testSuite "tmux-standard-configuration" [
      else "no copy-pipe-and-cancel integration")
     null
     null)
+
+  # Task 7: Clean Up Redundant Configuration
+  (enhancedHelpers.assertTestWithDetails "tmux-removes-redundant-buffer-commands"
+    (!(builtins.match ".*bind-key P paste-buffer.*" tmuxConfig.extraConfig != null) &&
+     !(builtins.match ".*bind-key b list-buffers.*" tmuxConfig.extraConfig != null) &&
+     !(builtins.match ".*bind-key B choose-buffer.*" tmuxConfig.extraConfig != null))
+    "tmux should remove redundant buffer management commands"
+    "clean configuration"
+    (if builtins.match ".*bind-key P paste-buffer.*" tmuxConfig.extraConfig != null then "has redundant P key binding"
+     else if builtins.match ".*bind-key b list-buffers.*" tmuxConfig.extraConfig != null then "has redundant b key binding"
+     else if builtins.match ".*bind-key B choose-buffer.*" tmuxConfig.extraConfig != null then "has redundant B key binding"
+     else "clean configuration")
+    null
+    null)
 ]

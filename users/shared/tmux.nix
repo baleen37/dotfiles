@@ -102,10 +102,6 @@ in
         fi
       ''}
 
-      # Standard buffer management
-      bind-key P paste-buffer
-      bind-key b list-buffers
-      bind-key B choose-buffer
 
       # Optimized terminal capabilities with True Color support
       set -ga terminal-overrides ",*256col*:Tc,*:U8=0"
