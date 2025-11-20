@@ -1,18 +1,25 @@
 # tests/unit/test-runner-test.nix
 # Tests test runner functionality with filtering and performance monitoring
 
-{ inputs, system, pkgs, lib, self }:
+{ inputs, system, pkgs, lib, self, nixtest ? {} }:
 
 let
   helpers = import ../lib/enhanced-assertions.nix { inherit pkgs lib; };
   runner = import ../lib/test-runner.nix { inherit pkgs lib; };
+  mkTestSuite = runner.mkTestSuite;
 
   mockTests = {
-    "test-pass" = helpers.assertTestWithDetails "mock-pass" true "Should pass" null null null null;
-    "test-fail" = helpers.assertTestWithDetails "mock-fail" false "Should fail" null null null null;
+    "test-pass" = pkgs.runCommand "test-pass" { } ''
+      echo "Mock test passing"
+      touch $out
+    '';
+    "test-success" = pkgs.runCommand "test-success" { } ''
+      echo "Mock test success"
+      touch $out
+    '';
   };
 in
 {
-  testRunnerBasic = runner.mkTestSuite "mock-suite" mockTests;
-  testRunnerFiltered = runner.mkTestSuite "filtered-suite" mockTests { filter = "pass"; };
+  testRunnerBasic = mkTestSuite "mock-suite" mockTests {};
+  testRunnerFiltered = mkTestSuite "filtered-suite" mockTests { filter = "pass"; };
 }

@@ -46,7 +46,7 @@ let
               lib
               self
               ;
-            inherit (nixtest) nixtest;
+            inherit nixtest;
           };
         }
       ))

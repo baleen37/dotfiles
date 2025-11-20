@@ -8,26 +8,29 @@ let
   # Parameters: name, condition, message, ?expected, ?actual, ?file, ?line
   assertTestWithDetails =
     name: condition: message: expected: actual: file: line:
-    if condition then
-      pkgs.runCommand "test-${name}-pass" { } ''
-        echo "✅ ${name}: PASS"
-        touch $out
-      ''
-    else
-      pkgs.runCommand "test-${name}-fail" { } ''
-        echo "❌ ${name}: FAIL"
-        echo "  📝 ${message}"
-        ${lib.optionalString (expected != null) ''
-        echo "  🔮 Expected: ${expected}"
-        ''}
-        ${lib.optionalString (actual != null) ''
-        echo "  🔍 Actual: ${actual}"
-        ''}
-        ${lib.optionalString (file != null) ''
-        echo "  📍 Location: ${file}${lib.optionalString (line != null) ":${toString line}"}"
-        ''}
-        exit 1
-      '';
+    let
+      result = if condition then
+        pkgs.runCommand "test-${name}-pass" { } ''
+          echo "✅ ${name}: PASS"
+          touch $out
+        ''
+      else
+        pkgs.runCommand "test-${name}-fail" { } ''
+          echo "❌ ${name}: FAIL"
+          echo "  📝 ${message}"
+          ${lib.optionalString (expected != null) ''
+          echo "  🔮 Expected: ${expected}"
+          ''}
+          ${lib.optionalString (actual != null) ''
+          echo "  🔍 Actual: ${actual}"
+          ''}
+          ${lib.optionalString (file != null) ''
+          echo "  📍 Location: ${file}${lib.optionalString (line != null) ":${toString line}"}"
+          ''}
+          exit 1
+        '';
+    in
+    result;
 
   # File content validation with diff support
   assertFileContent =
