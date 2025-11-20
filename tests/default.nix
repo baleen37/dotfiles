@@ -83,8 +83,18 @@ let
   # Import existing NixTest framework
   nixtest = import ./unit/nixtest-template.nix { inherit pkgs lib; };
 
+  # Import platform helpers for platform-aware test discovery
+  # platformHelpers = import ./lib/platform-helpers.nix { inherit pkgs lib; };
+
   # Import mksystem function for testing
   mkSystem = import ../lib/mksystem.nix { inherit inputs self; };
+
+  # Platform-specific test discovery function (commented out due to path resolution issues in flake evaluation)
+  # discoverPlatformTests = dir: prefix:
+  #   let
+  #     discoveredTests = discoverTests dir prefix;
+  #   in
+  #   platformHelpers.filterPlatformTests discoveredTests;
 
 in
 {
