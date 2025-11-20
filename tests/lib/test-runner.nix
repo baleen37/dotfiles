@@ -31,7 +31,7 @@ let
 
         # Filter application using regex matching
         ${lib.optionalString (filter != null) ''
-        if [[ ! "$test_name" =~ ${toString filter} ]]; then
+        if [[ ! "$test_name" =~ "${toString filter}" ]]; then
           echo "⏭️  Skipping: $test_name"
           continue
         fi
