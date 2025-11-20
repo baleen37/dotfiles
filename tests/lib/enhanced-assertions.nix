@@ -1,16 +1,13 @@
 # tests/lib/enhanced-assertions.nix
+# Enhanced assertion utilities with detailed error reporting for test debugging
+
 { pkgs, lib }:
 
 let
   # Enhanced assertion with detailed error reporting
+  # Parameters: name, condition, message, ?expected, ?actual, ?file, ?line
   assertTestWithDetails =
-    name: condition: message:
-    let
-      expected = null;
-      actual = null;
-      file = null;
-      line = null;
-    in
+    name: condition: message: expected: actual: file: line:
     if condition then
       pkgs.runCommand "test-${name}-pass" { } ''
         echo "✅ ${name}: PASS"
@@ -44,7 +41,8 @@ let
       "File content mismatch"
       expectedContent
       actualContent
-      expectedPath;
+      expectedPath
+      null;
 in
 {
   inherit assertTestWithDetails assertFileContent;
