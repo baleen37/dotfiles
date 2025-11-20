@@ -1,26 +1,27 @@
 # Tmux Terminal Multiplexer Configuration
 #
-# Extracted from modules/shared/programs/tmux/default.nix
+# Standard Configuration with Enhanced Copy-Paste Support
 #
 # Features:
-#   - Performance optimization: 0ms escape time, 50000 history, 500ms repeat time
-#   - Cross-platform clipboard integration:
-#       - macOS: pbcopy/pbpaste
-#       - Linux: xclip
-#       - Universal: tmux built-in buffer
-#   - Session persistence:
-#       - resurrect: Automatic session save/restore
-#       - continuum: 15-minute interval auto-save
-#   - True Color support: 256-color + RGB color
+#   - Standard copy-paste: Mouse selection auto-copies to clipboard
+#   - Vi-style copy mode: v to select, y to copy
+#   - Cross-platform support: pbcopy (macOS), xclip (Linux)
+#   - Middle-click paste: MouseDown2Pane for quick paste
+#   - Session persistence: resurrect + continuum plugins
 #   - Vim integration: vim-tmux-navigator plugin
-#   - Mouse support: Scroll, panel resizing
 #
 # Key Bindings:
 #   - Prefix: Ctrl+b
-#   - Panel split: | (horizontal), - (vertical)
-#   - Window create: Prefix+t
+#   - Copy mode: Prefix+[ or v in copy mode
+#   - Paste: Prefix+] or middle-click
+#   - Window split: | (horizontal), - (vertical)
 #   - Window navigate: Alt+h/l (no prefix needed)
-#   - Copy mode: vi key bindings
+#
+# Copy Mode (vi-style):
+#   v: Begin selection
+#   y: Copy to system clipboard
+#   r: Rectangle toggle
+#   Movement: hjkl, w, b, 0, $, etc.
 #
 
 {
