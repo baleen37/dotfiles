@@ -9,13 +9,13 @@ let
   mkTestSuite = runner.mkTestSuite;
 
   mockTests = {
-    "test-pass" = pkgs.runCommand "test-pass" { } ''
+    "test-pass" = pkgs.writeShellScript "test-pass" ''
       echo "Mock test passing"
-      touch $out
+      exit 0
     '';
-    "test-success" = pkgs.runCommand "test-success" { } ''
+    "test-success" = pkgs.writeShellScript "test-success" ''
       echo "Mock test success"
-      touch $out
+      exit 0
     '';
   };
 in
