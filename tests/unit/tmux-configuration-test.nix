@@ -58,4 +58,16 @@ helpers.testSuite "tmux-standard-configuration" [
     (if builtins.match ".*bind-key -n MouseDown2Pane paste-buffer.*" tmuxConfig.extraConfig != null then "enabled" else "disabled")
     null
     null)
+
+  # Task 6: Implement Cross-Platform Clipboard Integration
+  (enhancedHelpers.assertTestWithDetails "tmux-has-copy-pipe-and-cancel-integration"
+    (builtins.match ".*copy-pipe-and-cancel.*pbcopy.*" tmuxConfig.extraConfig != null ||
+     builtins.match ".*copy-pipe-and-cancel.*xclip.*" tmuxConfig.extraConfig != null)
+    "tmux should have copy-pipe-and-cancel with platform-specific clipboard integration"
+    "copy-pipe-and-cancel present"
+    (if builtins.match ".*copy-pipe-and-cancel.*pbcopy.*" tmuxConfig.extraConfig != null then "macOS copy-pipe-and-cancel with pbcopy present"
+     else if builtins.match ".*copy-pipe-and-cancel.*xclip.*" tmuxConfig.extraConfig != null then "Linux copy-pipe-and-cancel with xclip present"
+     else "no copy-pipe-and-cancel integration")
+    null
+    null)
 ]

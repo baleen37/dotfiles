@@ -84,18 +84,19 @@ in
       bind [ copy-mode
       bind ] paste-buffer
       bind-key -T copy-mode-vi v send-keys -X begin-selection
-      bind-key -T copy-mode-vi y send-keys -X copy-selection-and-cancel
       bind-key -T copy-mode-vi Enter send-keys -X copy-selection-and-cancel
 
-      # Simple platform-specific clipboard integration
+      # Cross-platform clipboard integration with copy-pipe-and-cancel
       ${lib.optionalString isDarwin ''
         # macOS: pbcopy/pbpaste integration
+        bind-key -T copy-mode-vi y send-keys -X copy-pipe-and-cancel "pbcopy"
         bind-key C-c run "tmux save-buffer - | pbcopy"
         bind-key C-v run "pbpaste | tmux load-buffer -"
       ''}
       ${lib.optionalString isLinux ''
         # Linux: xclip integration with fallback
         if command -v xclip >/dev/null 2>&1; then
+          bind-key -T copy-mode-vi y send-keys -X copy-pipe-and-cancel "xclip -in -selection clipboard"
           bind-key C-c run "tmux save-buffer - | xclip -in -selection clipboard >/dev/null"
           bind-key C-v run "xclip -out -selection clipboard | tmux load-buffer -"
         fi
