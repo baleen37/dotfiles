@@ -30,10 +30,12 @@ let
         test_name="${testName}"
 
         # Filter application using regex matching
-        if [ -n "${toString filter}" ] && [[ ! "$test_name" =~ ${toString filter} ]]; then
+        ${lib.optionalString (filter != null) ''
+        if [[ ! "$test_name" =~ ${toString filter} ]]; then
           echo "⏭️  Skipping: $test_name"
           continue
         fi
+        ''}
 
         total_tests=$((total_tests + 1))
         echo ""
