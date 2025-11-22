@@ -56,14 +56,16 @@ in
   in
   helpers.assertTestWithDetails "wsl-configuration-has-systemd-config"
     (builtins.hasAttr "systemd" evaluatedConfig &&
-     builtins.hasAttr "extraConfig" evaluatedConfig.systemd &&
-     builtins.isString evaluatedConfig.systemd.extraConfig)
+     builtins.hasAttr "settings" evaluatedConfig.systemd &&
+     builtins.hasAttr "Manager" evaluatedConfig.systemd.settings)
     "WSL configuration should have systemd performance optimizations"
-    "systemd.extraConfig with performance settings"
+    "systemd.settings with performance optimizations"
     (if builtins.hasAttr "systemd" evaluatedConfig
-     then if builtins.hasAttr "extraConfig" evaluatedConfig.systemd
-          then "systemd.extraConfig exists"
-          else "no systemd.extraConfig"
+     then if builtins.hasAttr "settings" evaluatedConfig.systemd
+          then if builtins.hasAttr "Manager" evaluatedConfig.systemd.settings
+               then "systemd.settings.Manager exists"
+               else "no systemd.settings.Manager"
+          else "no systemd.settings"
      else "no systemd attribute")
     null
     null
