@@ -99,6 +99,33 @@ make vm/secrets                # Copy SSH/GPG secrets to VM
 
 ### WSL Support
 
+baleen37/dotfiles now supports Windows Subsystem for Linux (WSL2) with native NixOS integration.
+
+#### Requirements
+
+- Windows 11 with WSL2 installed
+- NixOS-WSL distribution or WSL2 with Nix installed
+
+#### Usage
+
+```bash
+# Set your username and configuration
+export USER=nixos
+export NIXNAME=wsl
+
+# Apply dotfiles configuration (uses standard Linux commands)
+make switch
+
+# Or directly with Home Manager
+nix run .#homeConfigurations.nixos.activationPackage
+```
+
+#### Limitations
+
+- WSL+NixOS uses standard `nixos-rebuild switch` (it's a real NixOS environment!)
+- Some systemd services may be limited by WSL virtualization
+- Windows-specific hardware features not available
+
 ```bash
 # Build WSL installer
 make wsl                       # Build Windows Subsystem for Linux installer
