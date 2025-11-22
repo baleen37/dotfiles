@@ -148,6 +148,13 @@
             }
           ];
         };
+
+        # WSL configuration
+        wsl = mkSystem "wsl" {
+          system = "x86_64-linux";
+          user = user;
+          wsl = true;
+        };
       };
 
       # Test checks
