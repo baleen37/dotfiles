@@ -101,16 +101,22 @@
         let
           mkHomeConfig =
             userName:
+            let
+              # Determine package system based on user
+              system = if userName == "nixos" then "x86_64-linux" else "aarch64-darwin";
+              # Determine platform flags based on user
+              isWSL = if userName == "nixos" then true else false;
+              isDarwin = if userName == "nixos" then false else true;
+            in
             home-manager.lib.homeManagerConfiguration {
               pkgs = import nixpkgs {
-                system = "x86_64-linux";
+                inherit system;
                 config.allowUnfree = true;
               };
               extraSpecialArgs = {
                 inherit inputs self;
                 currentSystemUser = userName;
-                isWSL = if userName == "nixos" then true else false;
-                isDarwin = false;
+                inherit isWSL isDarwin;
               };
               modules = [
                 ./users/shared/home-manager.nix
@@ -147,6 +153,8 @@
                 extraSpecialArgs = {
                   inherit inputs self;
                   currentSystemUser = user;
+                  isWSL = false;
+                  isDarwin = false;
                 };
               };
 

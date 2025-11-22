@@ -96,6 +96,9 @@ systemFunc {
         extraSpecialArgs = {
           inherit inputs self;
           currentSystemUser = user;
+          inherit wsl darwin;
+          isWSL = wsl;
+          isDarwin = darwin;
         };
       };
 
@@ -103,7 +106,13 @@ systemFunc {
       users.users.${user} = {
         name = user;
         home = if darwin then "/Users/${user}" else "/home/${user}";
+      } // lib.optionalAttrs (!darwin) {
+        isNormalUser = true;
+        group = user;
       };
+
+      # Create user group for NixOS systems
+      users.groups.${user} = lib.mkIf (!darwin) {};
 
       # Set hostname for Darwin systems
       networking.hostName = lib.mkIf darwin name;
