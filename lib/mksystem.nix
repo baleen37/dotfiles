@@ -70,9 +70,6 @@ systemFunc {
           trusted-users = cacheSettings.trusted-users;
         };
 
-        # Determinate Nix integration
-        determinate-nix.customSettings = cacheSettings;
-
         # Let Determinate manage Nix on Darwin systems
         nix.enable = lib.mkIf darwin false;
       }
@@ -81,6 +78,13 @@ systemFunc {
   ++ lib.optionals darwin [
     # Determinate Nix integration (Darwin systems only)
     inputs.determinate.darwinModules.default
+    {
+      # Determinate Nix cache settings
+      determinate-nix.customSettings = cacheSettings;
+    }
+  ] ++ lib.optionals wsl [
+    # NixOS-WSL integration (WSL systems only)
+    inputs.nixos-wsl.nixosModules.default
   ] ++ [
     # Home Manager integration
     inputs.home-manager.darwinModules.home-manager

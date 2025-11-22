@@ -14,12 +14,12 @@
   };
 
   # Performance optimizations for WSL
-  systemd = {
-    extraConfig = ''
-      DefaultLimitNOFILE=1048576
-      DefaultTimeoutStartSec=10s
-      DefaultTimeoutStopSec=10s
-    '';
+  systemd.settings = {
+    Manager = {
+      DefaultLimitNOFILE = 1048576;
+      DefaultTimeoutStartSec = "10s";
+      DefaultTimeoutStopSec = "10s";
+    };
   };
 
   # Windows interoperability
