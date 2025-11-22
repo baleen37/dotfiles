@@ -111,3 +111,23 @@ jobs:
               | jq -r '.[].outputs | to_entries[].value' \
               | cachix push baleen-nix || echo "⚠️ Cache upload incomplete - continuing..."
           fi
+
+  wsl-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup WSL
+        uses: Vampire/setup-wsl@v1
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v22
+        with:
+          install_url: https://nixos.org/nix/install
+
+      - name: Test WSL configuration
+        run: |
+          export USER=nixos
+          nix flake check --impure
+          nix build .#nixosConfigurations.wsl.config.system.build.toplevel --impure
