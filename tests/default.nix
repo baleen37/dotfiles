@@ -141,7 +141,21 @@ in
     # Only run on Linux platforms since WSL is Linux-specific
     if lib.strings.hasSuffix "linux" system then wslTest.test else
       pkgs.runCommand "wsl-test-skipped-${system}" { } ''
-        echo "✅ WSL test skipped on ${system} (Linux-only test)"
+        echo "✅ WSL input requirements test skipped on ${system} (Linux-only test)"
+        touch $out
+      '';
+
+  # WSL configuration test (explicit inclusion with platform filtering)
+  wsl-configuration =
+    let
+      wslConfigTest = import ./wsl-test.nix {
+        inherit inputs system pkgs lib;
+      };
+    in
+    # Only run on Linux platforms since WSL is Linux-specific
+    if lib.strings.hasSuffix "linux" system then wslConfigTest.test else
+      pkgs.runCommand "wsl-configuration-test-skipped-${system}" { } ''
+        echo "✅ WSL configuration test skipped on ${system} (Linux-only test)"
         touch $out
       '';
 }
