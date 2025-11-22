@@ -102,11 +102,15 @@
           mkHomeConfig =
             userName:
             home-manager.lib.homeManagerConfiguration {
-              pkgs = nixpkgs.legacyPackages.aarch64-darwin;
+              pkgs = import nixpkgs {
+                system = "x86_64-linux";
+                config.allowUnfree = true;
+              };
               extraSpecialArgs = {
                 inherit inputs self;
                 currentSystemUser = userName;
-                isDarwin = true;
+                isWSL = if userName == "nixos" then true else false;
+                isDarwin = false;
               };
               modules = [
                 ./users/shared/home-manager.nix
@@ -117,6 +121,7 @@
           baleen = mkHomeConfig "baleen";
           jito = mkHomeConfig "jito";
           testuser = mkHomeConfig "testuser";
+          nixos = mkHomeConfig "nixos";  # Default WSL user
         };
 
       # NixOS configurations

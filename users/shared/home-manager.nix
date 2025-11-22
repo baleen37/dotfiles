@@ -28,6 +28,8 @@
   lib,
   inputs,
   currentSystemUser,
+  isWSL ? false,
+  isDarwin ? true,
   ...
 }:
 
@@ -39,6 +41,7 @@
     ./zsh.nix
     ./tmux.nix
     ./claude-code.nix
+  ] ++ lib.optionals isDarwin [
     ./hammerspoon.nix
     ./karabiner.nix
     ./ghostty.nix
