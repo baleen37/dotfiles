@@ -9,8 +9,7 @@
   system,
   pkgs ? import inputs.nixpkgs { inherit system; },
   lib ? pkgs.lib,
-  self ? ../,
-  ...
+    ...
 }:
 
 let

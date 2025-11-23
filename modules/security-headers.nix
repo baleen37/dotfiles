@@ -72,9 +72,6 @@ in
     security = {
       # Prevent core dumps and other information leakage
       protectKernelImage = true;
-
-      # Enable Address Space Layout Randomization
-      randomizeSeed = true;
     };
 
     # Network security headers via iptables/nftables
