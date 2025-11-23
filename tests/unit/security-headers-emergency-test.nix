@@ -25,7 +25,7 @@
       echo "❌ Security headers module failed to import"
       exit 1
     fi
-  '')
+  ''
 
   # Test 2: VM configuration includes emergency security
   vm-shared-includes-emergency-security = pkgs.runCommand "vm-shared-includes-emergency-security" {
@@ -44,7 +44,7 @@
       echo "❌ VM configuration missing emergency security"
       exit 1
     fi
-  '')
+  ''
 
   # Test 3: Security headers configuration contains essential headers
   essential-security-headers-present = pkgs.runCommand "essential-security-headers-present" {
@@ -73,7 +73,7 @@
       echo "❌ Essential security headers missing"
       exit 1
     fi
-  '')
+  ''
 
   # Test 4: Emergency deployment validation
   emergency-deployment-validation = pkgs.runCommand "emergency-deployment-validation" {
@@ -100,5 +100,5 @@
       echo "❌ Emergency deployment validation failed"
       exit 1
     fi
-  '')
+  ''
 }
