@@ -1,6 +1,18 @@
-{ config, pkgs, inputs, ... }:
+{
+  config,
+  pkgs,
+  inputs,
+  ...
+}:
 
 {
+  # Basic system configuration
+  networking.hostName = "wsl-dev";
+  time.timeZone = "Asia/Seoul";
+
+  # Internationalization
+  i18n.defaultLocale = "en_US.UTF-8";
+
   # WSL-specific system configuration
   wsl = {
     enable = true;
@@ -25,13 +37,33 @@
   # Windows interoperability
   environment.variables = {
     WSLENV = "NIXPKGS_ALLOW_UNFREE:NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM";
-    LIBGL_ALWAYS_SOFTWARE = "1";  # For graphics in virtualized environment
+    LIBGL_ALWAYS_SOFTWARE = "1"; # For graphics in virtualized environment
   };
 
   # Essential services for WSL
   services = {
     sshd.enable = true;
   };
+
+  # Development environment - Virtualization
+  virtualisation.docker.enable = true;
+
+  # Development environment - Fonts
+  fonts = {
+    fontDir.enable = true;
+    packages = [
+      pkgs.fira-code
+      pkgs.cascadia-code
+    ];
+  };
+
+  # Development environment - System packages
+  environment.systemPackages = with pkgs; [
+    cachix
+    gnumake
+    killall
+    xclip
+  ];
 
   # Allow packages that may not officially support WSL
   nixpkgs.config.allowUnfree = true;

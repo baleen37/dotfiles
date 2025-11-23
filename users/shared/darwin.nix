@@ -314,7 +314,6 @@ in
   # Install macOS-specific packages
   environment.systemPackages = darwin-packages;
 
-
   # Build Performance Optimization
   # Disable documentation generation to avoid builtins.toFile warnings and improve build speed
   documentation.enable = false;

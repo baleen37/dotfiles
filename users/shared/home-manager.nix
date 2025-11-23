@@ -41,7 +41,8 @@
     ./zsh.nix
     ./tmux.nix
     ./claude-code.nix
-  ] ++ lib.optionals isDarwin [
+  ]
+  ++ lib.optionals isDarwin [
     ./hammerspoon.nix
     ./karabiner.nix
     ./ghostty.nix
@@ -95,7 +96,6 @@
       claude-code
       opencode
       gemini-cli
-
 
       # Cloud tools
       act

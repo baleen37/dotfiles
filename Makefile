@@ -6,8 +6,11 @@ NIXUSER ?= root
 # Get the path to this Makefile and directory
 MAKEFILE_DIR := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 
+# Detect WSL environment and override configuration name
+IS_WSL := $(shell uname -r 2>/dev/null | grep -qi microsoft && echo true || echo false)
+
 # The name of the nixosConfiguration in the flake
-NIXNAME ?= $(shell hostname -s 2>/dev/null || hostname | cut -d. -f1)
+NIXNAME ?= $(if $(IS_WSL),wsl,$(shell hostname -s 2>/dev/null || hostname | cut -d. -f1))
 
 # SSH options that are used. These aren't meant to be overridden but are
 # reused a lot so we just store them up here.
