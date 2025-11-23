@@ -11,6 +11,32 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+# Find git root and change to it
+# Save the directory where script was invoked
+SCRIPT_INVOKE_DIR="$PWD"
+
+# Try to find git root from current directory
+GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || true)
+
+# If not in git repo, try from the directory where script was invoked (PWD)
+# This handles the case where script is run from symlinked location like ~/.claude/skills
+if [ -z "$GIT_ROOT" ]; then
+  cd "$SCRIPT_INVOKE_DIR"
+  GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || true)
+fi
+
+# If still not found, error out
+if [ -z "$GIT_ROOT" ]; then
+  echo -e "${RED}Error: Not in a git repository${NC}"
+  echo "Please run this script from within a git repository"
+  echo "Script invoked from: $SCRIPT_INVOKE_DIR"
+  exit 1
+fi
+
+# Change to git root directory
+cd "$GIT_ROOT"
+echo -e "${BLUE}Working directory:${NC} $GIT_ROOT"
+
 # Configuration
 AUTO_MERGE=false
 TARGET_BRANCH="main"
