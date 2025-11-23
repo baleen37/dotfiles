@@ -65,12 +65,11 @@ digraph when_to_use {
 
 ## Usage
 
-**Run the script from the skill's tools directory:**
+**Run the script from your project directory:**
 ```bash
-cd ~/.claude/skills/creating-pull-requests/tools
-./create-pr.sh                 # Create PR normally
-./create-pr.sh --auto-merge    # Create PR with auto-merge enabled
-./create-pr.sh --help          # Show detailed help
+../.claude/skills/creating-pull-requests/tools/create-pr.sh                 # Create PR normally
+../.claude/skills/creating-pull-requests/tools/create-pr.sh --auto-merge    # Create PR with auto-merge enabled
+../.claude/skills/creating-pull-requests/tools/create-pr.sh --help          # Show detailed help
 ```
 
 ## Quick Reference
