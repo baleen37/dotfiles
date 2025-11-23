@@ -65,12 +65,14 @@ digraph when_to_use {
 
 ## Usage
 
-**Run the script from your project directory:**
+**Execute the script from your git project directory:**
 ```bash
-../.claude/skills/creating-pull-requests/tools/create-pr.sh                 # Create PR normally
-../.claude/skills/creating-pull-requests/tools/create-pr.sh --auto-merge    # Create PR with auto-merge enabled
-../.claude/skills/creating-pull-requests/tools/create-pr.sh --help          # Show detailed help
+bash tools/create-pr.sh                 # Create PR normally
+bash tools/create-pr.sh --auto-merge    # Create PR with auto-merge enabled
+bash tools/create-pr.sh --help          # Show detailed help
 ```
+
+The script operates on the current working directory's git repository.
 
 ## Quick Reference
 
@@ -178,4 +180,4 @@ If you catch yourself thinking ANY of these thoughts, STOP and use the creating-
 
 ## Script Location
 
-All implementation logic is in `tools/create-pr.sh`. Run `./create-pr.sh --help` for detailed usage.
+All implementation logic is in `tools/create-pr.sh`. Run with `--help` flag for detailed usage.
