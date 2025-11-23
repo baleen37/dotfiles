@@ -31,9 +31,9 @@ runs:
         path: |
           ~/.cache/nix
           ~/.local/state/nix
-        key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-${{ steps.date.outputs.week }}
+        key: nix-${{ runner.os }}-${{ hashFiles('**/flake.lock') }}-${{ steps.date.outputs.week }}
         restore-keys: |
-          nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-
+          nix-${{ runner.os }}-${{ hashFiles('**/flake.lock') }}-
           nix-${{ runner.os }}-
       continue-on-error: true
 
@@ -44,9 +44,9 @@ runs:
         path: |
           ~/.cache/nix
           ~/.local/state/nix
-        key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-${{ steps.date.outputs.week }}
+        key: nix-${{ runner.os }}-${{ hashFiles('**/flake.lock') }}-${{ steps.date.outputs.week }}
         restore-keys: |
-          nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-
+          nix-${{ runner.os }}-${{ hashFiles('**/flake.lock') }}-
           nix-${{ runner.os }}-
       continue-on-error: true
 
@@ -55,9 +55,9 @@ runs:
       run: |
         echo "🔍 Cache configuration:"
         echo "  - Cache mode: ${{ inputs.cache-mode }}"
-        echo "  - Cache key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-${{ steps.date.outputs.week }}"
+        echo "  - Cache key: nix-${{ runner.os }}-${{ hashFiles('**/flake.lock') }}-${{ steps.date.outputs.week }}"
         echo "  - Week: ${{ steps.date.outputs.week }}"
-        echo "  - Flake.lock hash: ${{ hashFiles('flake.lock') }}"
+        echo "  - Flake.lock hash: ${{ hashFiles('**/flake.lock') }}"
 
     - name: Save Nix cache (full mode only)
       if: inputs.cache-mode == 'full' && always()
@@ -67,4 +67,4 @@ runs:
         path: |
           ~/.cache/nix
           ~/.local/state/nix
-        key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-${{ steps.date.outputs.week }}
+        key: nix-${{ runner.os }}-${{ hashFiles('**/flake.lock') }}-${{ steps.date.outputs.week }}
