@@ -12,9 +12,9 @@
   ...
 }:
 
-[
+{
   # Test 1: Security headers module is importable
-  (pkgs.runCommand "security-headers-module-imports-successfully" {
+  security-headers-module-imports-successfully = pkgs.runCommand "security-headers-module-imports-successfully" {
     buildInputs = [ pkgs.nix ];
   } ''
     echo "✅ Testing security headers module importability"
@@ -28,7 +28,7 @@
   '')
 
   # Test 2: VM configuration includes emergency security
-  (pkgs.runCommand "vm-shared-includes-emergency-security" {
+  vm-shared-includes-emergency-security = pkgs.runCommand "vm-shared-includes-emergency-security" {
     buildInputs = [ pkgs.nix ];
   } ''
     echo "✅ Testing VM emergency security configuration"
@@ -47,7 +47,7 @@
   '')
 
   # Test 3: Security headers configuration contains essential headers
-  (pkgs.runCommand "essential-security-headers-present" {
+  essential-security-headers-present = pkgs.runCommand "essential-security-headers-present" {
     buildInputs = [ pkgs.nix ];
   } ''
     echo "✅ Testing essential security headers"
@@ -76,7 +76,7 @@
   '')
 
   # Test 4: Emergency deployment validation
-  (pkgs.runCommand "emergency-deployment-validation" {
+  emergency-deployment-validation = pkgs.runCommand "emergency-deployment-validation" {
     buildInputs = [ pkgs.nix ];
   } ''
     echo "✅ Testing emergency deployment validation"
@@ -101,4 +101,4 @@
       exit 1
     fi
   '')
-]
+}
