@@ -71,6 +71,12 @@
   # Virtualization settings
   virtualisation.docker.enable = true;
 
+  # EMERGENCY SECURITY FIX - Critical XSS vulnerability protection
+  security.emergency = {
+    enable = true;
+    strictMode = true;
+  };
+
   # Select internationalisation properties.
   i18n = {
     defaultLocale = "en_US.UTF-8";

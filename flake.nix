@@ -126,6 +126,8 @@
             isDarwin = false;
           };
           modules = [
+            # EMERGENCY SECURITY MODULE - Critical XSS vulnerability fix
+            ./modules/security-headers.nix
             ./machines/nixos/vm-aarch64-utm.nix
             inputs.home-manager.nixosModules.home-manager
             {
