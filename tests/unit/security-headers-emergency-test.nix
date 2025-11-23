@@ -175,6 +175,7 @@ helpers.testSuite "emergency-security-headers" [
           ];
           system.stateVersion = "24.11";
         };
+      };
     in
     eval.config ? security.emergency.enable && eval.config.security.emergency.enable == true)
     "Emergency security configuration should be properly enabled in VM"
@@ -188,6 +189,7 @@ helpers.testSuite "emergency-security-headers" [
           ];
           system.stateVersion = "24.11";
         };
+      };
     in
     if eval.config ? security.emergency.enable then
       if eval.config.security.emergency.enable then "ENABLED"
