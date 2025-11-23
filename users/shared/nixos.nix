@@ -33,6 +33,13 @@
     tree
   ];
 
+  # Enable zsh system-wide
+  programs.zsh.enable = true;
+
+  # Set zsh as default shell for all users
+  # Note: User shell is set in flake.nix per-user configuration
+  users.defaultUserShell = pkgs.zsh;
+
   # Basic system settings
   system = {
     # Auto upgrade configuration
