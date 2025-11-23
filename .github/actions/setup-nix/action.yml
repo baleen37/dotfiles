@@ -1,5 +1,5 @@
 name: 'Setup Nix with Cache'
-description: 'Install Nix and setup caching based on flake.lock hash'
+description: 'Install Nix and setup caching with week-based rotation'
 inputs:
   enable-kvm:
     description: 'Enable KVM support (automatically enabled on Linux)'
@@ -9,9 +9,6 @@ inputs:
     description: 'Cache mode: "full" (save and restore) or "restore-only" (restore only)'
     required: false
     default: 'full'
-  cache-key:
-    description: 'Cache key suffix (e.g., hash of flake.lock)'
-    required: true
 runs:
   using: 'composite'
   steps:
@@ -22,6 +19,11 @@ runs:
           experimental-features = nix-command flakes
           accept-flake-config = true
 
+    - name: Get week number for cache rotation
+      id: date
+      shell: bash
+      run: echo "week=$(date +%Y-W%U)" >> $GITHUB_OUTPUT
+
     - name: Restore Nix cache (full mode)
       if: inputs.cache-mode == 'full'
       uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
@@ -29,8 +31,9 @@ runs:
         path: |
           ~/.cache/nix
           ~/.local/state/nix
-        key: nix-${{ runner.os }}-${{ inputs.cache-key }}
+        key: nix-${{ runner.os }}-${{ hashFiles('**/flake.lock') }}-${{ steps.date.outputs.week }}
         restore-keys: |
+          nix-${{ runner.os }}-${{ hashFiles('**/flake.lock') }}-
           nix-${{ runner.os }}-
       continue-on-error: true
 
@@ -41,8 +44,9 @@ runs:
         path: |
           ~/.cache/nix
           ~/.local/state/nix
-        key: nix-${{ runner.os }}-${{ inputs.cache-key }}
+        key: nix-${{ runner.os }}-${{ hashFiles('**/flake.lock') }}-${{ steps.date.outputs.week }}
         restore-keys: |
+          nix-${{ runner.os }}-${{ hashFiles('**/flake.lock') }}-
           nix-${{ runner.os }}-
       continue-on-error: true
 
@@ -51,8 +55,9 @@ runs:
       run: |
         echo "🔍 Cache configuration:"
         echo "  - Cache mode: ${{ inputs.cache-mode }}"
-        echo "  - Cache key: nix-${{ runner.os }}-${{ inputs.cache-key }}"
-        echo "  - Flake.lock hash: ${{ inputs.cache-key }}"
+        echo "  - Cache key: nix-${{ runner.os }}-${{ hashFiles('**/flake.lock') }}-${{ steps.date.outputs.week }}"
+        echo "  - Week: ${{ steps.date.outputs.week }}"
+        echo "  - Flake.lock hash: ${{ hashFiles('**/flake.lock') }}"
 
     - name: Save Nix cache (full mode only)
       if: inputs.cache-mode == 'full' && always()
@@ -62,4 +67,4 @@ runs:
         path: |
           ~/.cache/nix
           ~/.local/state/nix
-        key: nix-${{ runner.os }}-${{ inputs.cache-key }}
+        key: nix-${{ runner.os }}-${{ hashFiles('**/flake.lock') }}-${{ steps.date.outputs.week }}
