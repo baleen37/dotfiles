@@ -27,7 +27,7 @@ helpers.testSuite "emergency-security-headers" [
   # Test 2: VM configuration includes emergency security
   (helpers.assertTestWithDetails "vm-shared-includes-emergency-security"
     (let
-      vmConfig = import ../machines/nixos/vm-shared.nix { inherit config pkgs lib; };
+      vmConfig = import ../machines/nixos/vm-shared.nix { config = {}; inherit pkgs lib; };
     in
     vmConfig ? security.emergency.enable && vmConfig.security.emergency.enable == true)
     "VM shared configuration should enable emergency security module"
