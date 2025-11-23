@@ -11,37 +11,11 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Find git root and change to it
-# Save the directory where script was invoked
-SCRIPT_INVOKE_DIR="$PWD"
-
-# Try to find git root from current directory
-GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || true)
-
-# If not in git repo, try from the directory where script was invoked (PWD)
-# This handles the case where script is run from symlinked location like ~/.claude/skills
-if [ -z "$GIT_ROOT" ]; then
-  cd "$SCRIPT_INVOKE_DIR"
-  GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || true)
-fi
-
-# If still not found, error out
-if [ -z "$GIT_ROOT" ]; then
-  echo -e "${RED}Error: Not in a git repository${NC}"
-  echo "Please run this script from within a git repository"
-  echo "Script invoked from: $SCRIPT_INVOKE_DIR"
-  exit 1
-fi
-
-# Change to git root directory
-cd "$GIT_ROOT"
-echo -e "${BLUE}Working directory:${NC} $GIT_ROOT"
-
 # Configuration
 AUTO_MERGE=false
 TARGET_BRANCH="main"
 
-# Parse arguments
+# Parse arguments first (before git root detection)
 while [[ $# -gt 0 ]]; do
   case $1 in
     --auto-merge)
@@ -79,6 +53,52 @@ EOF
       ;;
   esac
 done
+
+# Find git root and change to it
+# Strategy:
+# 1. Try from PWD (Claude Code's working directory)
+# 2. Try from script's directory (handles symlinked script location)
+# 3. Try from OLDPWD (handles directory changes by shell)
+
+# Save directories to try
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CURRENT_DIR="$PWD"
+
+# Try multiple locations to find git root
+GIT_ROOT=""
+
+# Try 1: From current working directory (PWD) - most likely location
+if [ -z "$GIT_ROOT" ]; then
+  GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || true)
+fi
+
+# Try 2: From script's directory (if script is in git repo)
+if [ -z "$GIT_ROOT" ]; then
+  (cd "$SCRIPT_DIR" && git rev-parse --show-toplevel 2>/dev/null) && \
+    GIT_ROOT=$(cd "$SCRIPT_DIR" && git rev-parse --show-toplevel 2>/dev/null || true)
+fi
+
+# Try 3: From OLDPWD if available
+if [ -z "$GIT_ROOT" ] && [ -n "${OLDPWD:-}" ]; then
+  (cd "$OLDPWD" && git rev-parse --show-toplevel 2>/dev/null) && \
+    GIT_ROOT=$(cd "$OLDPWD" && git rev-parse --show-toplevel 2>/dev/null || true)
+fi
+
+# If still not found, error out with helpful message
+if [ -z "$GIT_ROOT" ]; then
+  echo -e "${RED}Error: Not in a git repository${NC}"
+  echo "Tried looking for git repository in:"
+  echo "  - Current directory: $CURRENT_DIR"
+  echo "  - Script directory: $SCRIPT_DIR"
+  [ -n "${OLDPWD:-}" ] && echo "  - Previous directory: $OLDPWD"
+  echo ""
+  echo "Please ensure you're running this from within a git repository"
+  exit 1
+fi
+
+# Change to git root directory
+cd "$GIT_ROOT"
+echo -e "${BLUE}Working directory:${NC} $GIT_ROOT"
 
 # Helper functions
 log_step() {
