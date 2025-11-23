@@ -65,14 +65,17 @@ digraph when_to_use {
 
 ## Usage
 
-**Execute the script from your git project directory:**
+**The script automatically detects your git repository and can be run from anywhere:**
 ```bash
-bash tools/create-pr.sh                 # Create PR normally
-bash tools/create-pr.sh --auto-merge    # Create PR with auto-merge enabled
-bash tools/create-pr.sh --help          # Show detailed help
+~/.claude/skills/creating-pull-requests/tools/create-pr.sh                 # Create PR normally
+~/.claude/skills/creating-pull-requests/tools/create-pr.sh --auto-merge    # Create PR with auto-merge enabled
+~/.claude/skills/creating-pull-requests/tools/create-pr.sh --help          # Show detailed help
 ```
 
-The script operates on the current working directory's git repository.
+The script:
+1. Automatically detects the git repository root from your current working directory
+2. Works even when run from symlinked locations (like ~/.claude/skills)
+3. Changes to the git root directory before executing any git operations
 
 ## Quick Reference
 
