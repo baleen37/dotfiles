@@ -1,0 +1,469 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# System Health Check Utility for Nix-based dotfiles
+# Provides comprehensive monitoring of system status, performance, and configuration
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+PURPLE='\033[0;35m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
+
+# Functions for formatted output
+print_header() {
+    echo -e "${BLUE}=== $1 ===${NC}"
+}
+
+print_success() {
+    echo -e "${GREEN}[✓]${NC} $1"
+}
+
+print_warning() {
+    echo -e "${YELLOW}[⚠]${NC} $1"
+}
+
+print_error() {
+    echo -e "${RED}[✗]${NC} $1"
+}
+
+print_info() {
+    echo -e "${CYAN}[ℹ]${NC} $1"
+}
+
+# System information
+get_system_info() {
+    print_header "System Information"
+
+    local os_type=$(uname -s)
+    local arch=$(uname -m)
+    local hostname=$(hostname)
+    local kernel=$(uname -r)
+
+    echo "Operating System: $os_type"
+    echo "Architecture: $arch"
+    echo "Hostname: $hostname"
+    echo "Kernel Version: $kernel"
+
+    # Nix version
+    if command -v nix >/dev/null 2>&1; then
+        local nix_version=$(nix --version | head -n1)
+        echo "Nix Version: $nix_version"
+    else
+        print_error "Nix not found in PATH"
+    fi
+
+    # Check if in NixOS or nix-darwin environment
+    if [[ -f /etc/NIXOS ]]; then
+        print_info "Running on NixOS"
+        echo "NixOS Version: $(cat /etc/NIXOS_VERSION 2>/dev/null || 'unknown')"
+    elif [[ "$os_type" == "Darwin" ]]; then
+        print_info "Running on macOS with nix-darwin"
+        echo "macOS Version: $(sw_vers -productVersion)"
+    fi
+}
+
+# Disk usage analysis
+check_disk_usage() {
+    print_header "Disk Usage Analysis"
+
+    local filesystems=("/")
+
+    # Add common mount points on Linux
+    if [[ "$(uname -s)" != "Darwin" ]]; then
+        filesystems+=("/home" "/var" "/tmp")
+    fi
+
+    for fs in "${filesystems[@]}"; do
+        if [[ -d "$fs" ]]; then
+            local usage=$(df -h "$fs" | awk 'NR==2 {print $5}' | sed 's/%//')
+            local available=$(df -h "$fs" | awk 'NR==2 {print $4}')
+            local used=$(df -h "$fs" | awk 'NR==2 {print $3}')
+
+            echo -n "$fs: $used used ($usage%) - $available available"
+
+            if [[ $usage -lt 70 ]]; then
+                print_success ""
+            elif [[ $usage -lt 85 ]]; then
+                print_warning ""
+            else
+                print_error ""
+            fi
+        fi
+    done
+
+    # Check Nix store size
+    if command -v nix >/dev/null 2>&1; then
+        local nix_store_size=$(du -sh /nix/store 2>/dev/null | cut -f1 || echo "unknown")
+        echo "Nix Store Size: $nix_store_size"
+    fi
+}
+
+# Memory usage analysis
+check_memory_usage() {
+    print_header "Memory Usage"
+
+    if [[ "$(uname -s)" == "Darwin" ]]; then
+        # macOS memory analysis
+        local mem_pressure=$(memory_pressure | grep "System-wide memory free percentage" | awk '{print $5}' | sed 's/%//')
+        local phys_mem=$(sysctl -n hw.memsize)
+        local total_gb=$((phys_mem / 1024 / 1024 / 1024))
+
+        echo "Total Memory: ${total_gb}GB"
+        echo "Memory Pressure: ${mem_pressure}% free"
+
+        if [[ $mem_pressure -gt 20 ]]; then
+            print_success "Memory pressure is healthy"
+        elif [[ $mem_pressure -gt 10 ]]; then
+            print_warning "Memory pressure is moderate"
+        else
+            print_error "Memory pressure is high"
+        fi
+    else
+        # Linux memory analysis
+        if [[ -f /proc/meminfo ]]; then
+            local total=$(grep MemTotal /proc/meminfo | awk '{print $2}')
+            local available=$(grep MemAvailable /proc/meminfo | awk '{print $2}')
+            local used=$((total - available))
+            local total_gb=$((total / 1024 / 1024))
+            local used_gb=$((used / 1024 / 1024))
+            local available_gb=$((available / 1024 / 1024))
+            local usage_percent=$((used * 100 / total))
+
+            echo "Total Memory: ${total_gb}GB"
+            echo "Used Memory: ${used_gb}GB (${usage_percent}%)"
+            echo "Available Memory: ${available_gb}GB"
+
+            if [[ $usage_percent -lt 70 ]]; then
+                print_success "Memory usage is healthy"
+            elif [[ $usage_percent -lt 85 ]]; then
+                print_warning "Memory usage is moderate"
+            else
+                print_error "Memory usage is high"
+            fi
+        else
+            print_warning "Cannot read memory information"
+        fi
+    fi
+}
+
+# CPU usage analysis
+check_cpu_usage() {
+    print_header "CPU Usage"
+
+    if [[ "$(uname -s)" == "Darwin" ]]; then
+        # macOS CPU analysis
+        local cpu_usage=$(top -l 1 | grep "CPU usage" | awk '{print $3}' | sed 's/%//')
+        local idle=$(top -l 1 | grep "CPU usage" | awk '{print $7}' | sed 's/%idle,//')
+
+        echo "CPU Usage: ${cpu_usage}%"
+        echo "CPU Idle: ${idle}%"
+
+        if [[ ${cpu_usage%.*} -lt 50 ]]; then
+            print_success "CPU usage is low"
+        elif [[ ${cpu_usage%.*} -lt 80 ]]; then
+            print_warning "CPU usage is moderate"
+        else
+            print_error "CPU usage is high"
+        fi
+    else
+        # Linux CPU analysis
+        if command -v mpstat >/dev/null 2>&1; then
+            local cpu_idle=$(mpstat 1 1 | tail -n1 | awk '{print $NF}')
+            local cpu_usage=$(echo "100 - $cpu_idle" | bc)
+
+            echo "CPU Usage: ${cpu_usage}%"
+
+            if [[ ${cpu_usage%.*} -lt 50 ]]; then
+                print_success "CPU usage is low"
+            elif [[ ${cpu_usage%.*} -lt 80 ]]; then
+                print_warning "CPU usage is moderate"
+            else
+                print_error "CPU usage is high"
+            fi
+        else
+            print_warning "mpstat not available for CPU analysis"
+        fi
+    fi
+}
+
+# Network connectivity check
+check_network() {
+    print_header "Network Connectivity"
+
+    # Check basic connectivity
+    if ping -c 1 8.8.8.8 >/dev/null 2>&1; then
+        print_success "Internet connectivity (8.8.8.8)"
+    else
+        print_error "No internet connectivity"
+    fi
+
+    # Check DNS resolution
+    if nslookup google.com >/dev/null 2>&1; then
+        print_success "DNS resolution working"
+    else
+        print_error "DNS resolution failed"
+    fi
+
+    # Check if Nix cache is accessible
+    if command -v nix >/dev/null 2>&1; then
+        if timeout 10 nix store ping --store https://cache.nixos.org >/dev/null 2>&1; then
+            print_success "Nix cache accessible"
+        else
+            print_warning "Nix cache not accessible or slow"
+        fi
+    fi
+}
+
+# Git repository status
+check_git_status() {
+    print_header "Git Repository Status"
+
+    if [[ -d ".git" ]]; then
+        # Check for uncommitted changes
+        if [[ -n $(git status --porcelain 2>/dev/null) ]]; then
+            print_warning "Uncommitted changes detected"
+            git status --porcelain | head -5
+            if [[ $(git status --porcelain 2>/dev/null | wc -l) -gt 5 ]]; then
+                echo "   ... and more"
+            fi
+        else
+            print_success "Working directory is clean"
+        fi
+
+        # Check if branch is behind main
+        if git fetch origin >/dev/null 2>&1; then
+            local behind=$(git rev-list --count HEAD..origin/main 2>/dev/null || echo "0")
+            if [[ $behind -gt 0 ]]; then
+                print_warning "Branch is $behind commits behind main"
+            else
+                print_success "Branch is up to date with main"
+            fi
+        fi
+
+        # Check for untracked files
+        local untracked=$(git ls-files --others --exclude-standard | wc -l)
+        if [[ $untracked -gt 0 ]]; then
+            print_warning "$untracked untracked files"
+        fi
+    else
+        print_info "Not in a git repository"
+    fi
+}
+
+# Nix configuration status
+check_nix_config() {
+    print_header "Nix Configuration Status"
+
+    if command -v nix >/dev/null 2>&1; then
+        # Check if flake.nix exists
+        if [[ -f "flake.nix" ]]; then
+            print_success "flake.nix found"
+
+            # Check if flake is valid
+            if nix flake check --quiet 2>/dev/null; then
+                print_success "Flake configuration is valid"
+            else
+                print_warning "Flake configuration has issues"
+            fi
+        else
+            print_warning "No flake.nix found"
+        fi
+
+        # Check environment variables
+        if [[ -n "${USER:-}" ]]; then
+            print_success "USER environment variable is set: $USER"
+        else
+            print_error "USER environment variable is not set"
+        fi
+
+        # Check nix settings
+        if nix config show --json >/dev/null 2>&1; then
+            local substituters=$(nix config show --json | jq -r '.substituers // [] | length' 2>/dev/null || echo "unknown")
+            echo "Configured substituters: $substituters"
+        fi
+    else
+        print_error "Nix is not installed or not in PATH"
+    fi
+}
+
+# Process monitoring
+check_processes() {
+    print_header "Process Monitoring"
+
+    # Check for high memory processes
+    if [[ "$(uname -s)" == "Darwin" ]]; then
+        echo "Top 5 processes by memory usage:"
+        ps aux | sort -rk 4,4 | head -6 | awk '{printf "%-10s %5s%% %s\n", $1, $4, $11}' | tail -n +2
+    else
+        if command -v ps >/dev/null 2>&1; then
+            echo "Top 5 processes by memory usage:"
+            ps aux --sort=-%mem | head -6 | awk '{printf "%-10s %5s%% %s\n", $1, $4, $11}' | tail -n +2
+        fi
+    fi
+
+    # Check zombie processes
+    local zombies=$(ps aux | awk '$8 ~ /^Z/ { count++ } END { print count+0 }')
+    if [[ $zombies -gt 0 ]]; then
+        print_warning "$zombies zombie processes found"
+    else
+        print_success "No zombie processes"
+    fi
+}
+
+# System load
+check_system_load() {
+    print_header "System Load"
+
+    if [[ -f /proc/loadavg ]]; then
+        # Linux load average
+        local load=$(cat /proc/loadavg | cut -d' ' -f1-3)
+        local cpu_count=$(nproc)
+        echo "Load Average (1m, 5m, 15m): $load"
+        echo "CPU Cores: $cpu_count"
+
+        local load1=$(echo $load | cut -d' ' -f1)
+        if (( $(echo "$load1 < $cpu_count" | bc -l) )); then
+            print_success "System load is healthy"
+        elif (( $(echo "$load1 < $cpu_count * 2" | bc -l) )); then
+            print_warning "System load is moderate"
+        else
+            print_error "System load is high"
+        fi
+    elif [[ "$(uname -s)" == "Darwin" ]]; then
+        # macOS load average
+        local load=$(uptime | awk -F'load average:' '{print $2}' | sed 's/^[ \t]*//')
+        local cpu_count=$(sysctl -n hw.ncpu)
+        echo "Load Average (1m, 5m, 15m): $load"
+        echo "CPU Cores: $cpu_count"
+
+        local load1=$(echo $load | cut -d' ' -f1)
+        if (( $(echo "$load1 < $cpu_count" | bc -l) )); then
+            print_success "System load is healthy"
+        elif (( $(echo "$load1 < $cpu_count * 2" | bc -l) )); then
+            print_warning "System load is moderate"
+        else
+            print_error "System load is high"
+        fi
+    fi
+}
+
+# Docker status (if installed)
+check_docker() {
+    if command -v docker >/dev/null 2>&1; then
+        print_header "Docker Status"
+
+        if docker info >/dev/null 2>&1; then
+            print_success "Docker daemon is running"
+
+            local containers=$(docker ps -q | wc -l)
+            local images=$(docker images -q | wc -l)
+            echo "Running containers: $containers"
+            echo "Available images: $images"
+        else
+            print_error "Docker daemon is not running"
+        fi
+    fi
+}
+
+# Main execution
+main() {
+    echo -e "${PURPLE}System Health Check - $(date)${NC}"
+    echo
+
+    get_system_info
+    echo
+
+    check_disk_usage
+    echo
+
+    check_memory_usage
+    echo
+
+    check_cpu_usage
+    echo
+
+    check_system_load
+    echo
+
+    check_network
+    echo
+
+    check_git_status
+    echo
+
+    check_nix_config
+    echo
+
+    check_processes
+    echo
+
+    check_docker
+    echo
+
+    print_header "Health Check Summary"
+    print_info "System health check completed"
+    echo "For detailed analysis of any component, run this script with individual function calls"
+}
+
+# Handle command line arguments
+case "${1:-all}" in
+    "system")
+        get_system_info
+        ;;
+    "disk")
+        check_disk_usage
+        ;;
+    "memory")
+        check_memory_usage
+        ;;
+    "cpu")
+        check_cpu_usage
+        ;;
+    "network")
+        check_network
+        ;;
+    "git")
+        check_git_status
+        ;;
+    "nix")
+        check_nix_config
+        ;;
+    "processes")
+        check_processes
+        ;;
+    "load")
+        check_system_load
+        ;;
+    "docker")
+        check_docker
+        ;;
+    "all"|"")
+        main
+        ;;
+    "help"|"-h"|"--help")
+        echo "Usage: $0 [component]"
+        echo
+        echo "Components:"
+        echo "  system    - System information"
+        echo "  disk      - Disk usage analysis"
+        echo "  memory    - Memory usage analysis"
+        echo "  cpu       - CPU usage analysis"
+        echo "  network   - Network connectivity"
+        echo "  git       - Git repository status"
+        echo "  nix       - Nix configuration status"
+        echo "  processes - Process monitoring"
+        echo "  load      - System load analysis"
+        echo "  docker    - Docker status (if installed)"
+        echo "  all       - Run all checks (default)"
+        echo "  help      - Show this help message"
+        ;;
+    *)
+        print_error "Unknown component: $1"
+        echo "Use '$0 help' for available options"
+        exit 1
+        ;;
+esac
