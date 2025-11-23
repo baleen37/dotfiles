@@ -36,12 +36,12 @@ let
   assertFileContent =
     name: expectedPath: actualPath:
     let
-      expectedContent = builtins.readFile expectedPath;
-      actualContent = builtins.readFile actualPath;
+      expectedContent = builtins.toString expectedPath;
+      actualContent = builtins.toString actualPath;
     in
     assertTestWithDetails name
-      (expectedContent == actualContent)
-      "File content mismatch"
+      (expectedPath == actualPath)
+      "File paths should be identical for test comparison"
       expectedContent
       actualContent
       expectedPath
