@@ -196,4 +196,3 @@ helpers.testSuite "emergency-security-headers" [
       else "DISABLED"
     else "NOT_CONFIGURED"))
   ]
-]
