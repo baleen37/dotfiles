@@ -49,6 +49,8 @@ jobs:
 
       - name: Setup Nix with cache
         uses: ./.github/actions/setup-nix
+        with:
+          cache-key: ${{ hashFiles('**/flake.lock') }}
 
       - name: Fast container tests
         continue-on-error: false
