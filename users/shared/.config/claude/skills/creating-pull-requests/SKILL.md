@@ -121,23 +121,23 @@ The script operates on the current working directory's git repository.
 
 ## Common Mistakes
 
-### ❌ "Just create it from main"
+### "Just create it from main"
 **Problem**: Blocks main branch for entire review period
 **Fix**: Script automatically creates feature branch
 
-### ❌ "Always rebase even without conflicts"
+### "Always rebase even without conflicts"
 **Problem**: Unnecessary history rewriting, slower workflow
 **Fix**: Script only rebases when conflicts detected
 
-### ❌ "Skip checking for existing PRs"
+### "Skip checking for existing PRs"
 **Problem**: Creates duplicate PRs, confusing reviewers
 **Fix**: Script checks `gh pr view` before creating
 
-### ❌ "User told me to skip safety steps"
+### "User told me to skip safety steps"
 **Problem**: User doesn't understand technical consequences
 **Fix**: Explain why step is critical, run script anyway
 
-### ❌ "Manual commit messages are fine"
+### "Manual commit messages are fine"
 **Problem**: Inconsistent format, missing context
 **Fix**: Script generates conventional commit messages
 

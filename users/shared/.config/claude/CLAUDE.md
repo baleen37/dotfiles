@@ -63,6 +63,10 @@ Only pause to ask for confirmation when:
 YOU MUST name code by what it does in the domain, not how it's implemented or its history.
 YOU MUST write comments explaining WHAT and WHY, never temporal context or what changed.
 
+## Communication Style
+
+- NEVER use emojis unless explicitly requested.
+
 ## Version Control
 
 - If the project isn't in a git repo, STOP and ask permission to initialize one.

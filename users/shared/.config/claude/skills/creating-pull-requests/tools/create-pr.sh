@@ -60,15 +60,15 @@ log_step() {
 }
 
 log_success() {
-  echo -e "${GREEN}✅${NC} $1"
+  echo -e "${GREEN}[OK]${NC} $1"
 }
 
 log_warning() {
-  echo -e "${YELLOW}⚠️${NC}  $1"
+  echo -e "${YELLOW}[WARN]${NC} $1"
 }
 
 log_error() {
-  echo -e "${RED}❌${NC} $1"
+  echo -e "${RED}[ERROR]${NC} $1"
 }
 
 # Step 0: Check project conventions
@@ -95,19 +95,19 @@ check_conventions() {
 analyze_repo_state() {
   log_step "Step 1: Analyzing repository state"
 
-  echo "📊 Working directory state:"
+  echo "Working directory state:"
   git status --short
 
-  echo -e "\n📝 Recent commits:"
+  echo -e "\nRecent commits:"
   git log --oneline -5
 
-  echo -e "\n🔄 Fetching latest changes..."
+  echo -e "\nFetching latest changes..."
   git fetch origin
 
-  echo -e "\n📈 Commits ahead of $TARGET_BRANCH:"
+  echo -e "\nCommits ahead of $TARGET_BRANCH:"
   git log --oneline origin/$TARGET_BRANCH..HEAD || log_warning "Unable to compare with origin/$TARGET_BRANCH"
 
-  echo -e "\n📉 Commits behind $TARGET_BRANCH:"
+  echo -e "\nCommits behind $TARGET_BRANCH:"
   git log --oneline HEAD..origin/$TARGET_BRANCH || log_warning "Unable to compare with origin/$TARGET_BRANCH"
 }
 
@@ -123,7 +123,7 @@ commit_changes() {
   log_warning "Found uncommitted changes - auto-committing..."
 
   # Show what's being committed
-  echo -e "\n📁 Files to commit:"
+  echo -e "\nFiles to commit:"
   git status --short
 
   # Analyze changes for commit message
@@ -138,7 +138,7 @@ commit_changes() {
 Files changed:
 $(echo "$changed_files" | sed 's/^/- /')
 
-🤖 Generated with Claude Code (https://claude.com/claude-code)
+Generated with Claude Code (https://claude.com/claude-code)
 
 Co-Authored-By: Claude <noreply@anthropic.com>"
 
@@ -197,7 +197,7 @@ check_and_rebase() {
   log_warning "Potential conflicts detected in:"
   echo "$conflicts" | sed 's/^/  - /'
 
-  echo -e "\n🔄 Attempting rebase..."
+  echo -e "\nAttempting rebase..."
   if git rebase origin/$TARGET_BRANCH; then
     log_success "Rebase completed successfully"
   else
@@ -256,7 +256,7 @@ $commits
 - [ ] Test edge cases
 - [ ] Confirm integration points
 
-🤖 Generated with Claude Code (https://claude.com/claude-code)"
+Generated with Claude Code (https://claude.com/claude-code)"
 
   # Create PR
   local pr_url=$(gh pr create \
