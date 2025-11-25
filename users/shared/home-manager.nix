@@ -14,7 +14,7 @@
 #   - Core utilities: wget, zip, tree, curl, jq, ripgrep, fzf
 #   - Development tools: nodejs, python3, uv, direnv, pre-commit
 #   - Nix tools: nixfmt, statix, deadnix
-#   - Cloud tools: act, gh, docker
+#   - Cloud tools: act, gh, docker, awscli2
 #   - Security: yubikey-agent, keepassxc
 #   - SSH tools: autossh, mosh, teleport
 #   - Terminal: ghostty, htop, zsh-powerlevel10k
@@ -93,12 +93,12 @@
       opencode
       gemini-cli
 
-
       # Cloud tools
       act
       gh
       docker
       docker-compose
+      awscli2
 
       # Security tools
 
