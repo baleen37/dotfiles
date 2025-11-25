@@ -188,6 +188,9 @@ in
 
       _setup_1password_agent
 
+      # Setup SSH agent for GUI applications (IntelliJ IDEA, etc.)
+      setup_ssh_agent_for_gui
+
       # nix shortcuts
       shell() {
           nix-shell '<nixpkgs>' -A "$1"
@@ -218,12 +221,26 @@ in
       idea() {
         if command -v idea >/dev/null 2>&1; then
           # Run IntelliJ IDEA in background, disown from shell
-          nohup command idea "$@" >/dev/null 2>&1 &
+          # Preserve SSH agent and other important environment variables
+          nohup env SSH_AUTH_SOCK="$SSH_AUTH_SOCK" SSH_AGENT_PID="$SSH_AGENT_PID" \
+            GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no" \
+            command idea "$@" >/dev/null 2>&1 &
           disown %% 2>/dev/null || true
-          echo "✨ IntelliJ IDEA started in background"
+          echo "✨ IntelliJ IDEA started in background with SSH agent integration"
         else
           echo "❌ IntelliJ IDEA not found. Please install it first."
           return 1
+        fi
+      }
+
+      # SSH agent setup for GUI applications (including IntelliJ IDEA)
+      # Ensures GUI apps can access SSH agent for Git operations
+      setup_ssh_agent_for_gui() {
+        if [[ -n "$SSH_AUTH_SOCK" && -S "$SSH_AUTH_SOCK" ]]; then
+          # Set SSH agent variables for GUI applications
+          launchctl setenv SSH_AUTH_SOCK "$SSH_AUTH_SOCK" 2>/dev/null || true
+          [[ -n "$SSH_AGENT_PID" ]] && launchctl setenv SSH_AGENT_PID "$SSH_AGENT_PID" 2>/dev/null || true
+          echo "✅ SSH agent configured for GUI applications"
         fi
       }
     '';
