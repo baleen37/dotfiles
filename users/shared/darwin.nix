@@ -25,6 +25,7 @@ let
   homebrew-casks = [
     # Development Tools
     "datagrip" # Database IDE from JetBrains
+    "ghostty" # GPU-accelerated terminal emulator
     "intellij-idea"
     "utm" # Virtual machine manager for macOS
 
