@@ -211,6 +211,21 @@ in
             "$@"
         fi
       }
+
+      # IntelliJ IDEA background launcher
+      # Runs IntelliJ IDEA in background to avoid blocking terminal
+      # Usage: idea [project-dir] [file-path]
+      idea() {
+        if command -v idea >/dev/null 2>&1; then
+          # Run IntelliJ IDEA in background, disown from shell
+          nohup command idea "$@" >/dev/null 2>&1 &
+          disown %% 2>/dev/null || true
+          echo "✨ IntelliJ IDEA started in background"
+        else
+          echo "❌ IntelliJ IDEA not found. Please install it first."
+          return 1
+        fi
+      }
     '';
   };
 }
