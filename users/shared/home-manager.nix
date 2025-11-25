@@ -1,6 +1,6 @@
 # users/shared/home-manager.nix
 #
-# Shared Home Manager configuration for all users (baleen, jito, etc.)
+# Shared Home Manager configuration for all users (baleen, jito.hello, etc.)
 # Integrates all extracted tool configurations from modules/shared/ into unified config
 #
 # Tool configurations imported:
@@ -14,7 +14,7 @@
 #   - Core utilities: wget, zip, tree, curl, jq, ripgrep, fzf
 #   - Development tools: nodejs, python3, uv, direnv, pre-commit
 #   - Nix tools: nixfmt, statix, deadnix
-#   - Cloud tools: act, gh, docker
+#   - Cloud tools: act, gh, docker, awscli2
 #   - Security: yubikey-agent, keepassxc
 #   - SSH tools: autossh, mosh, teleport
 #   - Terminal: ghostty, htop, zsh-powerlevel10k
@@ -46,7 +46,7 @@
   ];
 
   # Home Manager configuration
-  # Username is dynamically resolved from flake.nix (supports both baleen and jito)
+  # Username is dynamically resolved from flake.nix (supports both baleen and jito.hello)
   home = {
     username = currentSystemUser;
     homeDirectory =
@@ -93,12 +93,12 @@
       opencode
       gemini-cli
 
-
       # Cloud tools
       act
       gh
       docker
       docker-compose
+      awscli2
 
       # Security tools
 

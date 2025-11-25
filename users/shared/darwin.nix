@@ -25,7 +25,7 @@ let
   homebrew-casks = [
     # Development Tools
     "datagrip" # Database IDE from JetBrains
-    "docker-desktop"
+    "ghostty" # GPU-accelerated terminal emulator
     "intellij-idea"
     "utm" # Virtual machine manager for macOS
 
@@ -142,13 +142,7 @@ in
     casks = homebrew-casks;
 
     # Development Services Configuration
-    brews = [
-      {
-        name = "syncthing";
-        start_service = true; # Auto-start on login for seamless file synchronization
-        restart_service = "changed"; # Restart on version change for stability
-      }
-    ];
+    brews = [ ];
 
     # Performance Optimization: Selective Cleanup Strategy
     # Prevents unexpected interruptions during development while maintaining system hygiene
@@ -175,9 +169,8 @@ in
 
     # Extended Package Repository Access
     # Additional Homebrew taps for specialized packages and development tools
-    taps = [
-      "homebrew/cask" # Essential for GUI application management
-    ];
+    # Note: homebrew/cask is now built into Homebrew by default (since 2023)
+    taps = [ ];
   };
 
   # ===== Keyboard Input Source Configuration Script =====

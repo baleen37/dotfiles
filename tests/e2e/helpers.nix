@@ -115,7 +115,7 @@
     # 공통 테스트 사용자
     testUsers = [
       "baleen"
-      "jito"
+      "jito.hello"
       "user"
       "runner"
       "ubuntu"
