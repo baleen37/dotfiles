@@ -151,7 +151,7 @@ nix build --impure --expr '(with import <nixpkgs> { system = "aarch64-linux"; };
 ### Module Structure
 
 ```text
-users/shared/      # Shared user configuration (supports multiple users: baleen, jito, etc.)
+users/shared/      # Shared user configuration (supports multiple users: baleen, jito.hello, etc.)
 ├── home-manager.nix    # Main user configuration
 ├── darwin.nix         # macOS-specific settings (includes performance tuning + app cleanup)
 ├── git.nix           # Git configuration
@@ -190,7 +190,7 @@ tests/             # TDD test suite (unit, integration, e2e, performance)
 
 **User-Centric Structure**
 
-`users/shared/` contains shared configuration used by all users (baleen, jito, etc.) in flat, tool-specific files following evantravers pattern.
+`users/shared/` contains shared configuration used by all users (baleen, jito.hello, etc.) in flat, tool-specific files following evantravers pattern.
 
 **System Factory**
 
@@ -387,7 +387,7 @@ nix build .#checks.aarch64-darwin.integration-darwin-specific
 **Multi-User Support**:
 - Configuration is stored in `users/shared/` directory
 - Actual username is dynamically resolved from `USER` environment variable in flake.nix
-- Supports multiple users without code duplication: baleen, jito, etc.
+- Supports multiple users without code duplication: baleen, jito.hello, etc.
 
 **Important**: The `USER` variable is mandatory for all build operations. The Makefile does NOT automatically detect USER - you must export it manually.
 
@@ -564,7 +564,7 @@ The project uses GitHub Actions for continuous integration with:
 
 ### Cross-Platform Support
 
-- **Dynamic User Resolution**: No hardcoded usernames - supports multiple users (baleen, jito, etc.)
+- **Dynamic User Resolution**: No hardcoded usernames - supports multiple users (baleen, jito.hello, etc.)
 - **Platform Detection**: Automatic detection via `lib/platform-system.nix`
 - **Cross-Platform Validation**: Automated testing across 3 platform combinations
 

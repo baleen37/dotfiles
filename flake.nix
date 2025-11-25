@@ -86,7 +86,7 @@
 
       darwinConfigurations.kakaostyle-jito = mkSystem "kakaostyle-jito" {
         system = "aarch64-darwin";
-        user = "jito";
+        user = "jito.hello";
         darwin = true;
       };
 
@@ -109,7 +109,7 @@
         in
         {
           baleen = mkHomeConfig "baleen";
-          jito = mkHomeConfig "jito";
+          "jito.hello" = mkHomeConfig "jito.hello";
           testuser = mkHomeConfig "testuser";
         };
 

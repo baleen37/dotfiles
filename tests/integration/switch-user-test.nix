@@ -23,7 +23,7 @@ let
   # Test users that should be supported
   testUsers = [
     "baleen"
-    "jito"
+    "jito.hello"
     "testuser"
   ];
 

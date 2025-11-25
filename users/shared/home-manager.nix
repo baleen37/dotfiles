@@ -1,6 +1,6 @@
 # users/shared/home-manager.nix
 #
-# Shared Home Manager configuration for all users (baleen, jito, etc.)
+# Shared Home Manager configuration for all users (baleen, jito.hello, etc.)
 # Integrates all extracted tool configurations from modules/shared/ into unified config
 #
 # Tool configurations imported:
@@ -46,7 +46,7 @@
   ];
 
   # Home Manager configuration
-  # Username is dynamically resolved from flake.nix (supports both baleen and jito)
+  # Username is dynamically resolved from flake.nix (supports both baleen and jito.hello)
   home = {
     username = currentSystemUser;
     homeDirectory =

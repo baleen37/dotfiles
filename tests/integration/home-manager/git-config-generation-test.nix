@@ -355,7 +355,7 @@ helpers.testSuite "git-config-generation" [
           toString homeManagerConfig.programs.git.enable
         else "programs.git missing")
      else "programs missing")
-    "/Users/jito/dotfiles/tests/integration/home-manager/git-config-generation-test.nix"
+    "/Users/jito.hello/dotfiles/tests/integration/home-manager/git-config-generation-test.nix"
     85)
 
   # Test: User configuration validation
@@ -365,7 +365,7 @@ helpers.testSuite "git-config-generation" [
     "Git user configuration should be properly set"
     "userName = ${testUser.name}, userEmail = ${testUser.email}"
     "userName = ${toString homeManagerConfig.programs.git.userName}, userEmail = ${toString homeManagerConfig.programs.git.userEmail}"
-    "/Users/jito/dotfiles/tests/integration/home-manager/git-config-generation-test.nix"
+    "/Users/jito.hello/dotfiles/tests/integration/home-manager/git-config-generation-test.nix"
     95)
 
   # Test: LFS configuration validation
@@ -374,7 +374,7 @@ helpers.testSuite "git-config-generation" [
     "Git LFS should be enabled"
     "lfs.enable = true"
     "lfs.enable = ${toString homeManagerConfig.programs.git.lfs.enable}"
-    "/Users/jito/dotfiles/tests/integration/home-manager/git-config-generation-test.nix"
+    "/Users/jito.hello/dotfiles/tests/integration/home-manager/git-config-generation-test.nix"
     100)
 
   # Test: Aliases configuration validation
@@ -389,7 +389,7 @@ helpers.testSuite "git-config-generation" [
           "alias.st = ${homeManagerConfig.programs.git.settings.alias.st}"
         else "alias.st missing")
      else "alias missing")
-    "/Users/jito/dotfiles/tests/integration/home-manager/git-config-generation-test.nix"
+    "/Users/jito.hello/dotfiles/tests/integration/home-manager/git-config-generation-test.nix"
     105)
 
   # Test: Git ignores list validation
@@ -402,7 +402,7 @@ helpers.testSuite "git-config-generation" [
     (if builtins.hasAttr "ignores" homeManagerConfig.programs.git then
          "ignores length: ${toString (builtins.length homeManagerConfig.programs.git.ignores)}"
        else "ignores missing")
-    "/Users/jito/dotfiles/tests/integration/home-manager/git-config-generation-test.nix"
+    "/Users/jito.hello/dotfiles/tests/integration/home-manager/git-config-generation-test.nix"
     110)
 
   # Test: Default branch configuration validation
@@ -411,6 +411,6 @@ helpers.testSuite "git-config-generation" [
     "Git default branch should be set to main"
     "init.defaultBranch = main"
     "init.defaultBranch = ${toString homeManagerConfig.programs.git.settings.init.defaultBranch}"
-    "/Users/jito/dotfiles/tests/integration/home-manager/git-config-generation-test.nix"
+    "/Users/jito.hello/dotfiles/tests/integration/home-manager/git-config-generation-test.nix"
     115)
 ]
