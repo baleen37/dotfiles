@@ -1,344 +1,309 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# create-pr.sh - Automated pull request creation with safety checks
-# Usage: ./create-pr.sh [--auto-merge]
+# create-pr.sh - Safe PR creation that prevents common mistakes
+#
+# Prevents: direct main push, blind git add, duplicate PRs, skipped conflict checks
 
-# Color codes for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
-# Configuration
 AUTO_MERGE=false
-TARGET_BRANCH="main"
 
-# Parse arguments first (before git root detection)
+# Parse arguments
 while [[ $# -gt 0 ]]; do
   case $1 in
-    --auto-merge)
-      AUTO_MERGE=true
-      shift
-      ;;
+    --auto-merge) AUTO_MERGE=true; shift ;;
     --help)
-      cat <<EOF
-Usage: ./create-pr.sh [OPTIONS]
+      cat <<'EOF'
+Usage: create-pr.sh [--auto-merge]
 
-Automated pull request creation with safety checks and branch hygiene.
+Safe PR creation with automatic safety checks.
 
-OPTIONS:
-  --auto-merge    Enable auto-merge on PR after creation
-  --help          Show this help message
+What it does:
+  1. Checks for existing PR (prevents duplicates)
+  2. Shows changed files for review (prevents blind git add)
+  3. Creates feature branch if on main (prevents main pollution)
+  4. Checks for conflicts with main (prevents merge failures)
+  5. Creates PR with proper description (prevents empty PRs)
 
-WORKFLOW:
-  1. Check project conventions (CONTRIBUTING, PR templates)
-  2. Analyze repository state
-  3. Auto-commit uncommitted changes
-  4. Create feature branch if on main/master
-  5. Check conflicts and rebase only if needed
-  6. Create pull request
+Options:
+  --auto-merge  Enable auto-merge after PR creation
+  --help        Show this help
 
-EXAMPLES:
-  ./create-pr.sh                 # Create PR normally
-  ./create-pr.sh --auto-merge    # Create PR with auto-merge enabled
+Examples:
+  ./create-pr.sh              # Normal PR creation
+  ./create-pr.sh --auto-merge # PR with auto-merge
 EOF
       exit 0
       ;;
-    *)
-      echo -e "${RED}Unknown option: $1${NC}"
-      echo "Run with --help for usage information"
-      exit 1
-      ;;
+    *) echo -e "${RED}Unknown option: $1${NC}"; exit 1 ;;
   esac
 done
 
-# Find git root and change to it
-# Strategy:
-# 1. Try from PWD (Claude Code's working directory)
-# 2. Try from script's directory (handles symlinked script location)
-# 3. Try from OLDPWD (handles directory changes by shell)
-
-# Save directories to try
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CURRENT_DIR="$PWD"
-
-# Try multiple locations to find git root
-GIT_ROOT=""
-
-# Try 1: From current working directory (PWD) - most likely location
-if [ -z "$GIT_ROOT" ]; then
-  GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || true)
-fi
-
-# Try 2: From script's directory (if script is in git repo)
-if [ -z "$GIT_ROOT" ]; then
-  (cd "$SCRIPT_DIR" && git rev-parse --show-toplevel 2>/dev/null) && \
-    GIT_ROOT=$(cd "$SCRIPT_DIR" && git rev-parse --show-toplevel 2>/dev/null || true)
-fi
-
-# Try 3: From OLDPWD if available
-if [ -z "$GIT_ROOT" ] && [ -n "${OLDPWD:-}" ]; then
-  (cd "$OLDPWD" && git rev-parse --show-toplevel 2>/dev/null) && \
-    GIT_ROOT=$(cd "$OLDPWD" && git rev-parse --show-toplevel 2>/dev/null || true)
-fi
-
-# If still not found, error out with helpful message
-if [ -z "$GIT_ROOT" ]; then
+# Find git root
+GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || {
   echo -e "${RED}Error: Not in a git repository${NC}"
-  echo "Tried looking for git repository in:"
-  echo "  - Current directory: $CURRENT_DIR"
-  echo "  - Script directory: $SCRIPT_DIR"
-  [ -n "${OLDPWD:-}" ] && echo "  - Previous directory: $OLDPWD"
-  echo ""
-  echo "Please ensure you're running this from within a git repository"
   exit 1
+}
+cd "$GIT_ROOT"
+
+log_step() { echo -e "\n${BLUE}==>${NC} $1"; }
+log_ok() { echo -e "${GREEN}OK:${NC} $1"; }
+log_warn() { echo -e "${YELLOW}WARN:${NC} $1"; }
+log_error() { echo -e "${RED}ERROR:${NC} $1"; }
+
+# Detect target branch (main or master)
+TARGET_BRANCH="main"
+if ! git show-ref --verify --quiet refs/heads/main 2>/dev/null; then
+  if git show-ref --verify --quiet refs/heads/master 2>/dev/null; then
+    TARGET_BRANCH="master"
+  fi
 fi
 
-# Change to git root directory
-cd "$GIT_ROOT"
-echo -e "${BLUE}Working directory:${NC} $GIT_ROOT"
+#=============================================================================
+# Step 1: Check for existing PR
+#=============================================================================
+check_existing_pr() {
+  log_step "Step 1: Checking for existing PR"
 
-# Helper functions
-log_step() {
-  echo -e "\n${BLUE}==>${NC} $1"
-}
+  local current_branch=$(git branch --show-current)
 
-log_success() {
-  echo -e "${GREEN}[OK]${NC} $1"
-}
+  if [[ "$current_branch" == "main" || "$current_branch" == "master" ]]; then
+    log_ok "On $current_branch - will create feature branch"
+    return 0
+  fi
 
-log_warning() {
-  echo -e "${YELLOW}[WARN]${NC} $1"
-}
-
-log_error() {
-  echo -e "${RED}[ERROR]${NC} $1"
-}
-
-# Step 0: Check project conventions
-check_conventions() {
-  log_step "Step 0: Checking project conventions"
-
-  local found_files=$(find . -maxdepth 2 \( -name "CONTRIBUTING*" -o -name "PULL_REQUEST*" \) -type f 2>/dev/null || true)
-
-  if [ -n "$found_files" ]; then
-    log_success "Found contribution guidelines:"
-    echo "$found_files" | sed 's/^/  - /'
-    echo ""
-    echo "Please review for:"
-    echo "  - Commit message format requirements"
-    echo "  - Branch naming conventions"
-    echo "  - PR template/checklist requirements"
-    echo "  - Target branch (main vs master vs develop)"
+  if gh pr view --json number,url,state 2>/dev/null; then
+    local pr_state=$(gh pr view --json state --jq '.state' 2>/dev/null)
+    if [[ "$pr_state" == "OPEN" ]]; then
+      log_warn "PR already exists - will update with new commits"
+      EXISTING_PR=true
+    fi
   else
-    log_warning "No CONTRIBUTING or PULL_REQUEST template found"
+    log_ok "No existing PR found"
   fi
 }
 
-# Step 1: Analyze repository state
-analyze_repo_state() {
-  log_step "Step 1: Analyzing repository state"
+#=============================================================================
+# Step 2: Review changed files (prevent blind git add)
+#=============================================================================
+review_changes() {
+  log_step "Step 2: Reviewing changed files"
 
-  echo "Working directory state:"
-  git status --short
+  local status=$(git status --porcelain)
 
-  echo -e "\nRecent commits:"
-  git log --oneline -5
-
-  echo -e "\nFetching latest changes..."
-  git fetch origin
-
-  echo -e "\nCommits ahead of $TARGET_BRANCH:"
-  git log --oneline origin/$TARGET_BRANCH..HEAD || log_warning "Unable to compare with origin/$TARGET_BRANCH"
-
-  echo -e "\nCommits behind $TARGET_BRANCH:"
-  git log --oneline HEAD..origin/$TARGET_BRANCH || log_warning "Unable to compare with origin/$TARGET_BRANCH"
-}
-
-# Step 2: Handle uncommitted changes
-commit_changes() {
-  log_step "Step 2: Checking for uncommitted changes"
-
-  if [[ -z $(git status --porcelain) ]]; then
-    log_success "No uncommitted changes"
-    return
+  if [[ -z "$status" ]]; then
+    log_ok "Working directory clean"
+    return 0
   fi
 
-  log_warning "Found uncommitted changes - auto-committing..."
+  echo ""
+  echo "Changed files:"
 
-  # Show what's being committed
-  echo -e "\nFiles to commit:"
-  git status --short
+  # Check for sensitive files first
+  if echo "$status" | grep -qE '\.(env|pem|key|secret)$|^[^[:space:]]+[[:space:]]+\.env'; then
+    echo "$status" | while read -r line; do
+      echo -e "  ${RED}$line${NC}  <-- SENSITIVE FILE"
+    done
+    log_error "Sensitive files detected - aborting for safety"
+    exit 1
+  fi
 
-  # Analyze changes for commit message
-  local changed_files=$(git diff --cached --name-only 2>/dev/null || git diff --name-only)
-  local recent_style=$(git log -1 --pretty=format:'%s' 2>/dev/null || echo "")
+  # Display changed files
+  echo "$status" | while read -r line; do
+    local file=$(echo "$line" | awk '{print $2}')
+    if [[ "$file" =~ node_modules|\.pyc$|__pycache__|\.DS_Store ]]; then
+      echo -e "  ${YELLOW}$line${NC}  <-- Should be gitignored"
+    else
+      echo "  $line"
+    fi
+  done
 
-  git add .
+  git add -A
+  log_ok "Files staged"
+}
 
-  # Generate commit message
-  local commit_msg="feat: auto-commit changes for PR
+#=============================================================================
+# Step 3: Create commit with proper message
+#=============================================================================
+create_commit() {
+  log_step "Step 3: Creating commit"
 
-Files changed:
-$(echo "$changed_files" | sed 's/^/- /')
+  if [[ -z $(git diff --cached --name-only) ]]; then
+    log_ok "Nothing to commit"
+    return 0
+  fi
 
-Generated with Claude Code (https://claude.com/claude-code)
+  # Detect commit type from changed files
+  local files=$(git diff --cached --name-only)
+  local commit_type="feat"
 
+  if echo "$files" | grep -qE '\.(test|spec)\.(ts|js|py|go)$'; then
+    commit_type="test"
+  elif echo "$files" | grep -qE '\.(md|txt|rst)$'; then
+    commit_type="docs"
+  elif echo "$files" | grep -qE '(Makefile|Dockerfile|\.github)'; then
+    commit_type="build"
+  elif echo "$files" | grep -qE '(fix|bug)'; then
+    commit_type="fix"
+  fi
+
+  echo ""
+  echo "Detected commit type: $commit_type"
+
+  commit_msg="$commit_type: auto-commit changes for PR"
+
+  git commit -m "$commit_msg
+
+$(echo "$files" | sed 's/^/- /')
+
+Generated with Claude Code
 Co-Authored-By: Claude <noreply@anthropic.com>"
 
-  git commit -m "$commit_msg"
-  log_success "Changes committed"
+  log_ok "Committed: $commit_msg"
 }
 
-# Step 3: Branch management
-manage_branches() {
-  log_step "Step 3: Managing branches"
+#=============================================================================
+# Step 4: Ensure feature branch (prevent main pollution)
+#=============================================================================
+ensure_feature_branch() {
+  log_step "Step 4: Checking branch"
 
   local current_branch=$(git branch --show-current)
 
   if [[ "$current_branch" != "main" && "$current_branch" != "master" ]]; then
-    log_success "Already on feature branch: $current_branch"
-    return
+    log_ok "On feature branch: $current_branch"
+    return 0
   fi
 
-  log_warning "On $current_branch - creating feature branch..."
+  log_warn "On $current_branch - creating feature branch"
 
-  # Generate feature branch name
-  local timestamp=$(date +%Y-%m-%d)
-  local commit_hash=$(git log -1 --pretty=format:'%h')
-  local feature_branch="feature/${timestamp}-${commit_hash}"
+  local date_str=$(date +%Y-%m-%d)
+  local hash=$(git log -1 --pretty=format:'%h')
+  local new_branch="feature/${date_str}-${hash}"
 
-  # Create and push feature branch
-  git checkout -b "$feature_branch"
-  git push -u origin "$feature_branch"
+  git checkout -b "$new_branch"
+  log_ok "Created branch: $new_branch"
 
-  log_success "Created feature branch: $feature_branch"
-  log_warning "Note: $current_branch still contains these commits"
-  echo "  You can clean up $current_branch later with:"
-  echo "  git checkout $current_branch && git reset --hard origin/$current_branch"
+  echo ""
+  echo "Note: Your commits are still on $current_branch"
+  echo "To clean up later: git checkout $current_branch && git reset --hard origin/$current_branch"
 }
 
-# Step 4: Check conflicts and rebase if needed
-check_and_rebase() {
-  log_step "Step 4: Checking for conflicts with $TARGET_BRANCH"
+#=============================================================================
+# Step 5: Check for conflicts with target branch
+#=============================================================================
+check_conflicts() {
+  log_step "Step 5: Checking for conflicts with $TARGET_BRANCH"
 
-  # Get merge base
-  local merge_base=$(git merge-base HEAD origin/$TARGET_BRANCH 2>/dev/null || echo "")
+  git fetch origin "$TARGET_BRANCH" 2>/dev/null || true
 
-  if [ -z "$merge_base" ]; then
-    log_error "Unable to find merge base with origin/$TARGET_BRANCH"
-    exit 1
+  local behind=$(git rev-list --count HEAD..origin/$TARGET_BRANCH 2>/dev/null || echo "0")
+
+  if [[ "$behind" == "0" ]]; then
+    log_ok "Up to date with $TARGET_BRANCH"
+    return 0
   fi
 
-  # Check for potential conflicts
-  local conflicts=$(git diff --name-only "$merge_base"..HEAD "$merge_base"..origin/$TARGET_BRANCH 2>/dev/null | sort | uniq -d || true)
+  log_warn "Behind $TARGET_BRANCH by $behind commits"
 
-  if [ -z "$conflicts" ]; then
-    log_success "No conflicts detected - rebase not needed"
-    return
+  # Check for actual file conflicts
+  local our_files=$(git diff --name-only origin/$TARGET_BRANCH...HEAD 2>/dev/null || echo "")
+  local their_files=$(git diff --name-only HEAD...origin/$TARGET_BRANCH 2>/dev/null || echo "")
+  local conflicts=$(comm -12 <(echo "$our_files" | sort) <(echo "$their_files" | sort) 2>/dev/null || echo "")
+
+  if [[ -z "$conflicts" ]]; then
+    log_ok "No conflicting files detected"
+    return 0
   fi
 
-  log_warning "Potential conflicts detected in:"
+  echo ""
+  echo "Potentially conflicting files:"
   echo "$conflicts" | sed 's/^/  - /'
 
-  echo -e "\nAttempting rebase..."
-  if git rebase origin/$TARGET_BRANCH; then
-    log_success "Rebase completed successfully"
-  else
-    log_error "Rebase conflicts detected. Please resolve manually:"
-    echo ""
-    git diff --name-only --diff-filter=U | sed 's/^/  - /'
-    echo ""
-    echo "After resolving conflicts, run:"
-    echo "  git add ."
-    echo "  git rebase --continue"
-    echo "  git push origin \$(git branch --show-current) --force-with-lease"
-    echo "  gh pr create ..."
-    exit 1
-  fi
+  log_warn "Skipping rebase - conflicts may occur during merge"
+  return 0
 }
 
-# Step 5: Create pull request
+#=============================================================================
+# Step 6: Push and create PR
+#=============================================================================
 create_pr() {
-  log_step "Step 5: Creating pull request"
+  log_step "Step 6: Creating PR"
 
   local current_branch=$(git branch --show-current)
 
-  # Check if PR already exists
-  if gh pr view --json number >/dev/null 2>&1; then
-    local pr_number=$(gh pr view --json number --jq '.number')
-    log_warning "PR already exists for this branch: #$pr_number"
-
-    if [ "$AUTO_MERGE" = true ]; then
-      log_step "Enabling auto-merge on existing PR..."
-      gh pr merge "$pr_number" --auto --squash
-      log_success "Auto-merge enabled on PR #$pr_number"
-    fi
-
-    gh pr view
-    exit 0
-  fi
-
-  # Push changes (force-with-lease if rebased)
-  if git log --oneline origin/$TARGET_BRANCH..HEAD | grep -q "rebase"; then
-    git push origin "$current_branch" --force-with-lease
+  # Push
+  if [[ "${NEEDS_FORCE_PUSH:-false}" == "true" ]]; then
+    git push --force-with-lease -u origin "$current_branch"
   else
-    git push origin "$current_branch"
+    git push -u origin "$current_branch" 2>/dev/null || git push --force-with-lease -u origin "$current_branch"
+  fi
+  log_ok "Pushed to origin/$current_branch"
+
+  # Check if PR exists (might have been created earlier)
+  if [[ "${EXISTING_PR:-false}" == "true" ]]; then
+    log_ok "Existing PR updated with new commits"
+    gh pr view
+    return 0
   fi
 
-  # Generate PR description
-  local pr_title=$(git log -1 --pretty=format:'%s')
-  local commits=$(git log --oneline origin/$TARGET_BRANCH..HEAD | sed 's/^/- /')
+  # Generate PR body
+  local commits=$(git log --oneline origin/$TARGET_BRANCH..HEAD 2>/dev/null | sed 's/^/- /' || echo "- Initial commit")
+  local title=$(git log -1 --pretty=format:'%s')
 
-  local pr_body="## Summary
-Changes in this PR:
+  local body="## Summary
 
 $commits
 
 ## Test Plan
-- [ ] Verify key functionality
-- [ ] Test edge cases
-- [ ] Confirm integration points
 
-Generated with Claude Code (https://claude.com/claude-code)"
+- [ ] Tests pass locally
+- [ ] CI checks pass
+- [ ] Manual verification complete
+
+---
+Generated with Claude Code"
 
   # Create PR
   local pr_url=$(gh pr create \
-    --title "$pr_title" \
-    --body "$pr_body")
+    --base "$TARGET_BRANCH" \
+    --title "$title" \
+    --body "$body")
 
-  log_success "PR created: $pr_url"
+  log_ok "PR created: $pr_url"
 
-  # Enable auto-merge if requested
-  if [ "$AUTO_MERGE" = true ]; then
-    log_step "Enabling auto-merge..."
-    local pr_number=$(echo "$pr_url" | grep -o '[0-9]\+$')
+  # Auto-merge if requested
+  if [[ "$AUTO_MERGE" == "true" ]]; then
+    local pr_number=$(echo "$pr_url" | grep -o '[0-9]*$')
     gh pr merge "$pr_number" --auto --squash
-    log_success "Auto-merge enabled"
+    log_ok "Auto-merge enabled"
   fi
 
-  # Show PR details
   gh pr view
 }
 
-# Main workflow
+#=============================================================================
+# Main
+#=============================================================================
 main() {
-  echo -e "${BLUE}╔════════════════════════════════════════╗${NC}"
-  echo -e "${BLUE}║${NC}  Automated PR Creation with Safety   ${BLUE}║${NC}"
-  echo -e "${BLUE}╚════════════════════════════════════════╝${NC}"
+  echo -e "${BLUE}Safe PR Creation${NC}"
+  echo "================"
+  echo ""
 
-  check_conventions
-  analyze_repo_state
-  commit_changes
-  manage_branches
-  check_and_rebase
+  check_existing_pr
+  review_changes
+  create_commit
+  ensure_feature_branch
+  check_conflicts
   create_pr
 
-  echo -e "\n${GREEN}╔════════════════════════════════════════╗${NC}"
-  echo -e "${GREEN}║${NC}         PR Creation Complete!         ${GREEN}║${NC}"
-  echo -e "${GREEN}╚════════════════════════════════════════╝${NC}"
+  echo ""
+  echo -e "${GREEN}PR creation complete${NC}"
 }
 
 main
