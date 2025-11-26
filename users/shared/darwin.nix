@@ -86,6 +86,13 @@ in
       NSAutomaticPeriodSubstitutionEnabled = false; # Disable auto-period
       ApplePressAndHoldEnabled = false; # Faster key repeat
 
+      # Keyboard Speed (macOS GUI 제한을 초과하는 최고속 설정)
+      KeyRepeat = 1; # 키 반복 속도 (1-120, 낮을수록 빠름, GUI 최소값: 2)
+      InitialKeyRepeat = 10; # 초기 반복 지연 (10-120, 낮을수록 빠름, GUI 최소값: 15)
+
+      # Trackpad Speed (최대 속도 설정)
+      "com.apple.trackpad.scaling" = 3.0; # 커서 이동 속도 (0.0-3.0, 최대값)
+
       # Memory & Battery
       NSDisableAutomaticTermination = false; # Enable app auto-termination
       NSDocumentSaveNewDocumentsToCloud = false; # Disable iCloud auto-save
@@ -127,6 +134,13 @@ in
     # System Management - Spaces
     spaces = {
       spans-displays = false; # Better performance
+    };
+
+    # Custom User Preferences (스크롤 속도는 여기서만 설정 가능)
+    CustomUserPreferences = {
+      "NSGlobalDomain" = {
+        "com.apple.scrollwheel.scaling" = 1.0; # 스크롤 속도 (최대값, -1은 가속 비활성화)
+      };
     };
   };
 
@@ -182,10 +196,7 @@ in
 
       sleep 2
 
-      # Optimize key repeat for Korean typing (no keyboard navigation)
-      /usr/bin/defaults write NSGlobalDomain ApplePressAndHoldEnabled -bool false
-      /usr/bin/defaults write NSGlobalDomain KeyRepeat -int 2
-      /usr/bin/defaults write NSGlobalDomain InitialKeyRepeat -int 25
+      # Note: KeyRepeat and InitialKeyRepeat are now managed in system.defaults.NSGlobalDomain
 
       # cmd+shift+space for input source switching (hotkey 60)
       /usr/bin/defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 60 '{
