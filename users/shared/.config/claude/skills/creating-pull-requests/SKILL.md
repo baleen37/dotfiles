@@ -1,122 +1,91 @@
 ---
 name: creating-pull-requests
-description: Use when creating pull requests, when on main branch with changes, when unsure about existing PRs, or when under time pressure to "just push it" - prevents duplicate PRs, enforces branch hygiene, and resists shortcuts that cause merge conflicts
+description: Use when creating a PR, especially under time pressure or fatigue - enforces pre-flight checks that get skipped when rushed (template, diff, uncommitted changes, base branch)
 ---
 
 # Creating Pull Requests
 
 ## Overview
 
-**Safe PR creation that prevents the mistakes agents make under pressure.**
+**A PR created without proper checks is worse than no PR at all.** Time pressure is when you most need this discipline.
 
-Core principle: Every "shortcut" creates more work. The script enforces safety so you don't have to resist pressure.
+## Pre-Flight Checklist (MANDATORY)
 
-## When to Use
+Before running `gh pr create`, you MUST complete ALL of these. No exceptions.
 
-- Creating any PR
-- On main/master with changes to push
-- Unsure if PR already exists
-- Someone says "just push it fast"
+| Check | Command | Why |
+|-------|---------|-----|
+| Clean working directory | `git status` | Uncommitted changes = incomplete PR |
+| PR template exists? | `cat .github/PULL_REQUEST_TEMPLATE.md 2>/dev/null` | Template = project standards |
+| Actual diff reviewed | `git diff <base>...HEAD` | Commit messages lie, diff doesn't |
+| Base branch confirmed | `git remote show origin \| grep "HEAD branch"` | Don't guess main vs master vs develop |
+| Branch pushed | `git push -u origin HEAD` | Can't PR unpushed branch |
 
-## Usage
+**Skip any check = start over.** Not negotiable.
+
+**Interrupted?** If more than 5 minutes passed since checks, re-run ALL of them. State changes.
+
+## Quick Reference
 
 ```bash
-./tools/create-pr.sh              # Safe PR creation
-./tools/create-pr.sh --auto-merge # With auto-merge enabled
+# 1. Verify clean state
+git status
+
+# 2. Get base branch
+BASE=$(git remote show origin | grep "HEAD branch" | cut -d: -f2 | tr -d ' ')
+
+# 3. Check for PR template
+cat .github/PULL_REQUEST_TEMPLATE.md 2>/dev/null
+
+# 4. Review actual changes (not just commit messages)
+git log ${BASE}..HEAD --oneline
+git diff ${BASE}...HEAD --stat
+
+# 5. Push and create PR
+git push -u origin HEAD
+gh pr create --base ${BASE} --title "..." --body "..."
 ```
 
-The script handles everything: branch creation, conflict checks, duplicate PR detection, proper commits.
+## PR Body Structure
 
-## What the Script Prevents
+Use project template if exists. Fallback:
 
-| Shortcut Agents Take | Why It Fails | Script Prevention |
-|---------------------|--------------|-------------------|
-| `git add .` or `git add -A` | Adds unintended files | Shows files, asks confirmation |
-| `git push origin main` | No code review, no CI | Forces feature branch |
-| `gh pr create --fill` | Empty/useless PR body | Generates proper description |
-| Skip existing PR check | Creates duplicates | Checks first, updates if exists |
-| Skip conflict check | Merge failures later | Checks before push |
-| `git push -f` | Destroys history | Uses `--force-with-lease` only when needed |
+```markdown
+## Summary
+[2-3 bullets: WHAT changed and WHY]
 
-## Red Flags - Use This Skill Immediately
+## Test plan
+- [ ] [Specific verification steps]
+```
 
-If you hear or think any of these:
+## Red Flags - STOP
 
-- "Just push to main, it's a small change"
-- "Skip the PR, we're in a hurry"
-- "Deal with conflicts later"
-- "git add -A and commit quick"
-- "The tech lead said skip the process"
-- "It's Friday, just force push"
+If you catch yourself thinking any of these, STOP:
 
-**These are exactly when the script is most needed.**
+- "I don't have time to check the template"
+- "The commit messages explain everything"
+- "I'll fix the uncommitted changes after"
+- "It's definitely main, I don't need to check"
+- "This is urgent, I can skip the diff review"
+- "Senior dev said to skip the process"
+- "I already did the checks 30 minutes ago"
 
-## Rationalizations vs Reality
+**All of these mean: You're about to create a bad PR. Slow down.**
+
+**Authority override is not an excuse.** If someone tells you to skip checks, the answer is "2 more minutes" not "okay".
+
+## Draft PRs
+
+Use `--draft` for incomplete features or uncertain approaches.
+
+## Rationalization Table
 
 | Excuse | Reality |
 |--------|---------|
-| "We're losing money every minute" | Script takes 30 seconds. Broken deploy takes hours. |
-| "It's just a config change" | Config changes break production too. PR required. |
-| "Tech lead said skip it" | Tech lead isn't liable for the outage you cause. |
-| "I'll fix conflicts Monday" | Monday-you will hate Friday-you. |
-| "git add -A is fine, I know what changed" | You don't. There's always a .env or node_modules. |
-| "--fill is good enough" | Reviewers need context. Empty PRs get ignored. |
-
-## Never Do These
-
-```bash
-# NEVER: Push directly to main
-git push origin main
-
-# NEVER: Blind add all files
-git add -A
-git add .
-
-# NEVER: Force push without lease
-git push -f origin branch
-
-# NEVER: Create PR without checking for existing
-gh pr create  # without checking gh pr list first
-
-# NEVER: Skip PR for "simple" changes
-# There are no simple changes. All changes need review.
-```
-
-## Always Do These
-
-```bash
-# ALWAYS: Use the script
-./tools/create-pr.sh
-
-# Or if manual, ALWAYS check first:
-git status                        # What files changed?
-gh pr list --head $(git branch --show-current)  # PR exists?
-git fetch && git log HEAD..origin/main --oneline  # Behind main?
-```
-
-## If Script Fails
-
-Script hanging or broken? Debug it, don't bypass it.
-
-```bash
-# Check for locks
-ls -la .git/*.lock && rm -f .git/index.lock
-
-# Check network
-git fetch origin  # If this hangs, it's network, not script
-
-# Retry
-./tools/create-pr.sh
-```
-
-**Never use "script is broken" as excuse to skip safety checks.**
-The script failing means something is wrong - bypassing it makes it worse.
-
-## "Spirit vs Letter" is Not Valid
-
-If you're thinking:
-- "I'll do it manually but follow the spirit"
-- "I'm experienced, I know what files changed"
-- "Targeted git add is safer than a script"
-
-**These are rationalizations.** The script exists because "experienced engineers who know what changed" still make mistakes under pressure. Use the script.
+| "No time for template check" | 5 seconds to cat a file vs hours fixing rejected PR |
+| "Commits are clear enough" | Reviewers need context commits don't provide |
+| "Uncommitted changes are unrelated" | If unrelated, stash them. If related, commit them. |
+| "I know the base branch" | You're often wrong. 10 seconds to verify. |
+| "Urgent means skip checks" | Urgent means get it RIGHT the first time |
+| "Senior dev said skip it" | You own the quality. They own the review. Different jobs. |
+| "I checked 30 min ago" | State changes. Re-run. 90 seconds vs broken PR. |

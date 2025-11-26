@@ -2,4 +2,4 @@
 description: Create pull requests using the creating-pull-requests skill
 ---
 
-Create pull requests by following the creating-pull-requests skill exactly.
+Use the creating-pull-requests skill to create a PR, after first reading the project's convention documents (CONTRIBUTING.md, CLAUDE.md) for branch and commit naming conventions.
