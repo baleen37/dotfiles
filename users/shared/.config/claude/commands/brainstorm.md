@@ -2,4 +2,4 @@
 description: Interactive design refinement using Socratic method
 ---
 
-Use and follow the brainstorming skill exactly as written
+First, use the Skill tool to load the brainstorming skill, then follow it exactly as written
