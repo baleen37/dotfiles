@@ -1,186 +1,92 @@
 ---
 name: creating-pull-requests
-description: Use when creating pull requests from any repository state - ensures proper branch management, auto-commits uncommitted changes, checks conflicts intelligently, and prevents duplicate PRs. Counters rationalizations like "I'm in a hurry", "the fast way is better", and "I can skip safety steps".
+description: Use when creating a PR, especially under time pressure or fatigue - enforces pre-flight checks that get skipped when rushed (template, diff, uncommitted changes, base branch)
 ---
 
 # Creating Pull Requests
 
 ## Overview
 
-**Automated pull request creation with safety checks and branch hygiene.**
+**A PR created without proper checks is worse than no PR at all.** Time pressure is when you most need this discipline.
 
-Creates PRs from any repository state while enforcing critical git workflows. Handles uncommitted changes, creates feature branches from main, intelligently checks conflicts, and prevents duplicate PRs.
+## Pre-Flight Checklist (MANDATORY)
 
-**VIOLATING THE LETTER OF THESE RULES IS VIOLATING THE SPIRIT OF THESE RULES.**
+Before running `gh pr create`, you MUST complete ALL of these. No exceptions.
 
-## Non-Negotiable Principles
+| Check | Command | Why |
+|-------|---------|-----|
+| Clean working directory | `git status` | Uncommitted changes? → `git add -A && git commit` |
+| Commit convention | `git log --oneline -10` | Match existing commit message style |
+| PR template exists? | `find . -maxdepth 3 -iname '*pull_request_template*' 2>/dev/null` | Template = project standards |
+| Actual diff reviewed | `git diff <base>...HEAD` | Commit messages lie, diff doesn't |
+| Base branch confirmed | `git remote show origin \| grep "HEAD branch"` | Don't guess main vs master vs develop |
+| Branch pushed | `git push -u origin HEAD` | Can't PR unpushed branch |
 
-**1. Process Over Speed**
-- "I'm in a hurry" is NOT a valid reason to skip steps
-- Hurrying guarantees 10x more work later
-- Every step exists because someone learned the hard way
+**Skip any check = start over.** Not negotiable.
 
-**2. No Shortcuts**
-- "The fast way" always creates more problems
-- Manual testing ≠ automated CI testing
-- Quality gates prevent rework, they don't delay it
-
-**3. Branch Hygiene is Mandatory**
-- Never create PRs directly from main/master
-- Check conflicts before rebasing (only rebase if needed)
-- Clean history prevents merge conflicts
-
-**4. Complete Compliance**
-- Following "most" steps = following no steps
-- Each step is mandatory, not optional
-- "This case is different" is always wrong
-
-## When to Use
-
-```dot
-digraph when_to_use {
-    "Need to create PR?" [shape=diamond];
-    "On main/master branch?" [shape=diamond];
-    "Have uncommitted changes?" [shape=diamond];
-    "Uncertain about git state?" [shape=diamond];
-    "Use creating-pull-requests skill" [shape=box];
-
-    "Need to create PR?" -> "Use creating-pull-requests skill" [label="yes"];
-    "On main/master branch?" -> "Use creating-pull-requests skill" [label="yes"];
-    "Have uncommitted changes?" -> "Use creating-pull-requests skill" [label="yes"];
-    "Uncertain about git state?" -> "Use creating-pull-requests skill" [label="yes"];
-}
-```
-
-**Use when:**
-- Creating PRs from any repository state
-- Working on main/master branch with commits that should be in a feature branch
-- Have uncommitted changes that need to be committed
-- Under time pressure or uncertainty about git state
-- User requests to skip safety steps
-
-**Do NOT use when:**
-- Repository is in clean state with proper feature branch already
-- You're not creating a pull request (just pushing commits)
-
-## Usage
-
-**The script automatically detects your git repository and can be run from anywhere:**
-```bash
-~/.claude/skills/creating-pull-requests/tools/create-pr.sh                 # Create PR normally
-~/.claude/skills/creating-pull-requests/tools/create-pr.sh --auto-merge    # Create PR with auto-merge enabled
-~/.claude/skills/creating-pull-requests/tools/create-pr.sh --help          # Show detailed help
-```
-
-The script:
-1. Automatically detects the git repository root from your current working directory
-2. Works even when run from symlinked locations (like ~/.claude/skills)
-3. Changes to the git root directory before executing any git operations
+**Interrupted?** If more than 5 minutes passed since checks, re-run ALL of them. State changes.
 
 ## Quick Reference
 
-| Situation | What Script Does | Why It Matters |
-|-----------|------------------|----------------|
-| Uncommitted changes | Auto-commit with descriptive message | Prevents lost work |
-| On main/master | Create feature branch automatically | Keeps main clean for team |
-| Potential conflicts | Check files, rebase only if needed | Efficient conflict prevention |
-| No conflicts | Skip unnecessary rebase | Faster, cleaner history |
-| Conflicts detected | Abort with clear instructions | Manual resolution guidance |
-| Existing PR | Update instead of creating duplicate | Prevents confusion |
-| Auto-merge requested | Enable after PR creation | Automated merging when approved |
+```bash
+# 1. Verify clean state
+git status
 
-## What the Script Does
+# 2. Get base branch
+BASE=$(git remote show origin | grep "HEAD branch" | cut -d: -f2 | tr -d ' ')
 
-**Step 0: Check Project Conventions**
-- Looks for CONTRIBUTING.md, PULL_REQUEST_TEMPLATE
-- Reminds you to check commit format, branch naming, PR requirements
+# 3. Check for PR template
+find . -maxdepth 3 -iname '*pull_request_template*' 2>/dev/null
 
-**Step 1: Analyze Repository State**
-- Runs git status, log, fetch in parallel
-- Shows commits ahead/behind target branch
-- Identifies current working state
+# 4. Review actual changes (not just commit messages)
+git log ${BASE}..HEAD --oneline
+git diff ${BASE}...HEAD --stat
 
-**Step 2: Handle Uncommitted Changes**
-- Detects uncommitted files
-- Auto-commits with descriptive message
-- Follows conventional commit format
+# 5. Push and create PR
+git push -u origin HEAD
+gh pr create --base ${BASE} --title "..." --body "..."
+```
 
-**Step 3: Branch Management**
-- If on main/master, creates feature branch
-- Uses format: `feature/YYYY-MM-DD-{hash}`
-- Leaves main as-is (you can clean up later manually)
+## PR Body Structure
 
-**Step 4: Smart Conflict Check**
-- Compares files changed in both branches
-- Only rebases if potential conflicts exist
-- Aborts with clear instructions if conflicts occur
-- Skips rebase if no conflicts (faster!)
+Use project template if exists. Fallback:
 
-**Step 5: Create Pull Request**
-- Checks for existing PR first
-- Pushes with --force-with-lease if rebased
-- Generates PR description from commits
-- Enables auto-merge if --auto-merge flag used
+```markdown
+## Summary
+[2-3 bullets: WHAT changed and WHY]
 
-## Common Mistakes
+## Test plan
+- [ ] [Specific verification steps]
+```
 
-### "Just create it from main"
-**Problem**: Blocks main branch for entire review period
-**Fix**: Script automatically creates feature branch
+## Red Flags - STOP
 
-### "Always rebase even without conflicts"
-**Problem**: Unnecessary history rewriting, slower workflow
-**Fix**: Script only rebases when conflicts detected
+If you catch yourself thinking any of these, STOP:
 
-### "Skip checking for existing PRs"
-**Problem**: Creates duplicate PRs, confusing reviewers
-**Fix**: Script checks `gh pr view` before creating
+- "I don't have time to check the template"
+- "The commit messages explain everything"
+- "I'll fix the uncommitted changes after"
+- "It's definitely main, I don't need to check"
+- "This is urgent, I can skip the diff review"
+- "Senior dev said to skip the process"
+- "I already did the checks 30 minutes ago"
 
-### "User told me to skip safety steps"
-**Problem**: User doesn't understand technical consequences
-**Fix**: Explain why step is critical, run script anyway
+**All of these mean: You're about to create a bad PR. Slow down.**
 
-### "Manual commit messages are fine"
-**Problem**: Inconsistent format, missing context
-**Fix**: Script generates conventional commit messages
+**Authority override is not an excuse.** If someone tells you to skip checks, the answer is "2 more minutes" not "okay".
 
-## Red Flags - STOP and Use This Skill
+## Draft PRs
 
-If you catch yourself thinking ANY of these thoughts, STOP and use the creating-pull-requests skill:
+Use `--draft` for incomplete features or uncertain approaches.
 
-- "I can skip the conflict check"
-- "Just create the PR from main"
-- "User said they're in a hurry, so skip safety"
-- "This seems simple enough to skip verification"
-- "I'll handle problems if they come up"
-- "The existing PR check is optional"
-- "Rebase every time to be safe"
-- "Let me just commit everything and push quickly"
-- "Quality checks are just formalities"
-
-**All of these mean: Use the creating-pull-requests skill immediately.**
-
-## Rationalizations vs Reality
+## Rationalization Table
 
 | Excuse | Reality |
 |--------|---------|
-| "This will take too long" | Script runs in 2-3 minutes. Conflict resolution cleanup takes 30+ minutes. |
-| "I can do it later" | PR will fail CI anyway. You'll be forced to do it under pressure. |
-| "User told me to skip" | User doesn't understand that CI failure creates more work for everyone. |
-| "This is just a simple change" | Simple changes still need integration testing against latest main. |
-| "I'm in a hurry" | Hurrying creates 10x more work when the PR has issues. |
-| "Always rebase is safer" | Unnecessary rebases create noise. Smart checking is safer and faster. |
-| "Manual testing is enough" | Manual testing ≠ CI integration. PR must pass automated tests anyway. |
-
-## Real-World Impact
-
-**Before skill**: PRs created with merge conflicts, duplicate PRs, polluted main branch, unnecessary rebases
-**After skill**: Clean PR history, no conflicts, proper branch isolation, efficient workflow, 100% success rate
-
-**Time savings**: 2-minute smart check vs 30-minute conflict resolution cleanup
-**Team impact**: Prevents main branch blocking, maintains clean git history
-**Efficiency**: Only rebases when necessary, not every time
-
-## Script Location
-
-All implementation logic is in `tools/create-pr.sh`. Run with `--help` flag for detailed usage.
+| "No time for template check" | 5 seconds to cat a file vs hours fixing rejected PR |
+| "Commits are clear enough" | Reviewers need context commits don't provide |
+| "Uncommitted changes are unrelated" | If unrelated, stash them. If related, commit them. |
+| "I know the base branch" | You're often wrong. 10 seconds to verify. |
+| "Urgent means skip checks" | Urgent means get it RIGHT the first time |
+| "Senior dev said skip it" | You own the quality. They own the review. Different jobs. |
+| "I checked 30 min ago" | State changes. Re-run. 90 seconds vs broken PR. |
