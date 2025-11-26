@@ -10,7 +10,7 @@ description: Use when creating a PR, especially under time pressure or fatigue -
 1. `git status` - uncommitted changes? commit first (`git log --oneline -5` for convention)
 2. `git diff <base>...HEAD` - **read the actual diff**, not just stats
 3. `git remote show origin | grep "HEAD branch"` - verify base branch
-4. Read `.github/PULL_REQUEST_TEMPLATE.md` - follow exactly (fallback: Summary + Test plan)
+4. Search for PR template (`find . -maxdepth 3 -iname '*pull_request_template*'`) - follow exactly (fallback: Summary + Test plan)
 5. `git push -u origin HEAD && gh pr create`
 
 Use `--draft` for incomplete work.
