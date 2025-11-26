@@ -49,6 +49,7 @@
   # settings.json: writable copy (always overwritten on rebuild)
   home.activation.claudeSettings = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     run mkdir -p ~/.claude
+    run rm -f ~/.claude/settings.json
     run cp ${./.config/claude/settings.json} ~/.claude/settings.json
   '';
 }

@@ -292,6 +292,13 @@ in
   # Enable zsh as the system shell for consistency with user configuration
   programs.zsh.enable = true;
 
+  # Keyboard Configuration
+  # System-level keyboard remapping for modifier keys
+  system.keyboard = {
+    enableKeyMapping = true;
+    remapCapsLockToControl = true;
+  };
+
   # User and System Management
   # Primary user configuration for nix-darwin system management
   # Username is dynamically resolved from flake.nix for multi-user support
