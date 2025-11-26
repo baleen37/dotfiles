@@ -15,8 +15,9 @@ Before running `gh pr create`, you MUST complete ALL of these. No exceptions.
 
 | Check | Command | Why |
 |-------|---------|-----|
-| Clean working directory | `git status` | Uncommitted changes = incomplete PR |
-| PR template exists? | `cat .github/PULL_REQUEST_TEMPLATE.md 2>/dev/null` | Template = project standards |
+| Clean working directory | `git status` | Uncommitted changes? → `git add -A && git commit` |
+| Commit convention | `git log --oneline -10` | Match existing commit message style |
+| PR template exists? | `find . -maxdepth 3 -iname '*pull_request_template*' 2>/dev/null` | Template = project standards |
 | Actual diff reviewed | `git diff <base>...HEAD` | Commit messages lie, diff doesn't |
 | Base branch confirmed | `git remote show origin \| grep "HEAD branch"` | Don't guess main vs master vs develop |
 | Branch pushed | `git push -u origin HEAD` | Can't PR unpushed branch |
@@ -35,7 +36,7 @@ git status
 BASE=$(git remote show origin | grep "HEAD branch" | cut -d: -f2 | tr -d ' ')
 
 # 3. Check for PR template
-cat .github/PULL_REQUEST_TEMPLATE.md 2>/dev/null
+find . -maxdepth 3 -iname '*pull_request_template*' 2>/dev/null
 
 # 4. Review actual changes (not just commit messages)
 git log ${BASE}..HEAD --oneline

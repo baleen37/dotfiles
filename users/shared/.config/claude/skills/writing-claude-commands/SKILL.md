@@ -165,7 +165,6 @@ If you find yourself doing ANY of these, STOP:
 |----------|-------|----------|
 | `.claude/commands/` | Project | (project) |
 | `~/.claude/commands/` | Personal | (user) |
-| `users/shared/.config/claude/commands/` | Dotfiles | (user) |
 
 ## Quick Checklist
 
