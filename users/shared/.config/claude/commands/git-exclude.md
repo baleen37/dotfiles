@@ -1,3 +1,10 @@
+---
+description: Manage .git/info/exclude file for personal file exclusions
+allowed-tools:
+  - Bash
+  - Read
+---
+
 # Git Exclude Manager
 
 Manage `.git/info/exclude` file to exclude personal files from Git repository.

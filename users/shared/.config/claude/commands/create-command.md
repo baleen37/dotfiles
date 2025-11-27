@@ -1,5 +1,11 @@
 ---
 description: Create new Claude Code slash commands with systematic workflow and best practices
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Glob
+  - Grep
 ---
 
 Create a new Claude Code slash command by following this systematic process:
