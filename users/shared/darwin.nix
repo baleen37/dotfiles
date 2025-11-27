@@ -41,8 +41,8 @@ let
     "alt-tab"
     "claude"
     "karabiner-elements" # Key remapping and modification tool
+    "magnet" # Window management tool with multi-monitor support
     "orbstack" # Docker and Linux VM management
-    "rectangle" # Simple window management tool
     "tailscale-app" # VPN mesh network with GUI
     "teleport-connect" # Teleport GUI client for secure infrastructure access
 
