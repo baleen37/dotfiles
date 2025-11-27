@@ -1,55 +1,54 @@
 ---
 name: creating-pull-requests
-description: Use when creating a PR, especially under time pressure or fatigue - enforces pre-flight checks that get skipped when rushed (template, diff, uncommitted changes, base branch)
+description: Use when creating or updating a PR - enforces base branch detection, draft for WIP branches, selective git add
 ---
 
 # Creating Pull Requests
 
-## Pre-flight (before `gh pr create`)
+## Overview
 
-### 1. Gather context (parallel)
-Run these simultaneously - all are independent reads:
-- `git status`
-- `git diff <base>...HEAD`
-- `git remote show origin | grep "HEAD branch"`
-- `find . -maxdepth 3 -iname '*pull_request_template*'`
-- `git log --oneline -5`
+Streamlined PR workflow minimizing roundtrips. Enforces explicit `--base`, `--draft` for WIP branches, and selective file staging.
 
-### 2. Act on findings (sequential)
-- Uncommitted changes? → **commit immediately** following convention
-- PR template found? → **follow it exactly** (fallback: Summary + Test plan)
-- `git push -u origin HEAD && gh pr create`
+## Quick Reference
 
-Use `--draft` for incomplete work.
+| Condition | Action |
+|-----------|--------|
+| PR exists | `gh pr edit --title "..." --body "..."` |
+| Branch `wip/\|draft/\|WIP-` | `gh pr create --draft --base $BASE` |
+| Otherwise | `gh pr create --base $BASE` |
 
-## Auto Merge (Optional)
+## Implementation
 
+### 1. Gather Context (single parallel call)
 ```bash
-# Enable auto-merge after requirements are met
-gh pr merge --auto
-
-# Disable auto-merge for this PR
-gh pr merge --disable-auto
-
-# Check PR status including conflicts
-gh pr status --conflict-status
+git status --porcelain
+git branch --show-current
+BASE=$(gh repo view --json defaultBranchRef -q .defaultBranchRef.name) && \
+  git log --oneline $BASE..HEAD && \
+  git diff $BASE..HEAD --stat
+find . .github -maxdepth 2 -iname '*pull_request_template*' -type f 2>/dev/null | head -1 | xargs cat 2>/dev/null
 ```
 
-## Red Flags - STOP
+### 2. Commit Uncommitted Changes
+- `git add <specific-files>` - stage only relevant files
+- NEVER `git add -A` blindly
 
-- "It's just a typo" → **All PRs follow this process. No exceptions.**
-- "I know what I changed" → **Read the diff anyway. Memory lies.**
-- "CI will catch it" → **Verify locally first.**
-- "I can fix it later" → **Fix it now or don't merge.**
-- "I'll do it in a follow-up PR" → **Same thing. Fix it now.**
-- "Friday 6pm, need to ship" → **Especially then. Fatigue = mistakes.**
-- "This section doesn't apply" → **Write "N/A - [reason]", don't delete.**
+### 3. Push & Create/Update PR
+```bash
+git push -u origin HEAD
+gh pr view --json url -q .url 2>/dev/null && gh pr edit ... || gh pr create --base $BASE ...
+```
+
+Fill PR template sections from commits and diff.
 
 ## Common Mistakes
 
-| Mistake | Reality |
-|---------|---------|
-| Skip template | Template exists for reviewers. Follow it. |
-| `--stat` only | Stats hide actual changes. Read full diff. |
-| Assume base branch | Could be `develop`, `staging`. Verify. |
-| Mark checklist without doing | Lying to reviewers. Run the tests. |
+| Mistake | Fix |
+|---------|-----|
+| Omit `--base` | Always use `--base $BASE` from step 1 |
+| Forget `--draft` for WIP | Check branch name pattern before creating |
+| `git add -A` | Review status, add specific files only |
+
+## Auto Merge
+
+Only on explicit request: `gh pr merge --auto --squash`
