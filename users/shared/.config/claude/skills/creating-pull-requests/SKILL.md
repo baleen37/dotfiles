@@ -7,11 +7,18 @@ description: Use when creating a PR, especially under time pressure or fatigue -
 
 ## Pre-flight (before `gh pr create`)
 
-1. `git status` - uncommitted changes? **commit immediately** without asking (`git log --oneline -5` for convention)
-2. `git diff <base>...HEAD` - **read the actual diff**, not just stats
-3. `git remote show origin | grep "HEAD branch"` - verify base branch
-4. Search for PR template (`find . -maxdepth 3 -iname '*pull_request_template*'`) - follow exactly (fallback: Summary + Test plan)
-5. `git push -u origin HEAD && gh pr create`
+### 1. Gather context (parallel)
+Run these simultaneously - all are independent reads:
+- `git status`
+- `git diff <base>...HEAD`
+- `git remote show origin | grep "HEAD branch"`
+- `find . -maxdepth 3 -iname '*pull_request_template*'`
+- `git log --oneline -5`
+
+### 2. Act on findings (sequential)
+- Uncommitted changes? → **commit immediately** following convention
+- PR template found? → **follow it exactly** (fallback: Summary + Test plan)
+- `git push -u origin HEAD && gh pr create`
 
 Use `--draft` for incomplete work.
 
