@@ -1,53 +1,85 @@
 ---
 name: creating-pull-requests
-description: Use when creating or updating a PR - enforces base branch detection, draft for WIP branches, selective git add
+description: Use when creating or updating a PR - enforces parallel context gathering, explicit --base flag, PR state check before action
 ---
 
 # Creating Pull Requests
 
 ## Overview
 
-Streamlined PR workflow minimizing roundtrips. Enforces explicit `--base`, `--draft` for WIP branches, and selective file staging.
+Prevent common PR mistakes. **Core: gather all context in parallel, always use --base.**
 
-## Quick Reference
+## Red Flags - STOP If You Think This
 
-| Condition | Action |
-|-----------|--------|
-| PR exists | `gh pr edit --title "..." --body "..."` |
-| Branch `wip/\|draft/\|WIP-` | `gh pr create --draft --base $BASE` |
-| Otherwise | `gh pr create --base $BASE` |
+- "GitHub will use the default branch anyway" → **WRONG.** `--base` is mandatory
+- "Let me check status first..." → **WRONG.** Gather all context in parallel
+- "There's no existing PR" → **WRONG.** Always check PR state first
 
-## Implementation
+## Implementation (Exactly 3 Steps)
 
-### 1. Gather Context (single parallel call)
+### 1. Gather Context (parallel Bash calls)
+
+Run these commands in **parallel** (multiple Bash tool calls in one message):
+
 ```bash
-git status --porcelain
-git branch --show-current
+# Call 1: Git state
+git status --porcelain && git branch --show-current
+
+# Call 2: Base branch and diff
 BASE=$(gh repo view --json defaultBranchRef -q .defaultBranchRef.name) && \
-  git log --oneline $BASE..HEAD && \
-  git diff $BASE..HEAD --stat
-find . .github -maxdepth 2 -iname '*pull_request_template*' -type f 2>/dev/null | head -1 | xargs cat 2>/dev/null
+echo "BASE=$BASE" && \
+git log --oneline $BASE..HEAD && \
+git diff $BASE..HEAD --stat
+
+# Call 3: PR state
+gh pr view --json state,number,url -q '{state: .state, number: .number, url: .url}' 2>/dev/null || echo "NO_PR"
+
+# Call 4: PR template (if exists)
+find .github -maxdepth 2 -iname '*pull_request_template*' -type f 2>/dev/null | head -1 | xargs cat 2>/dev/null
 ```
 
-### 2. Commit Uncommitted Changes
-- `git add <specific-files>` - stage only relevant files
-- NEVER `git add -A` blindly
+**Run all 4 calls in parallel. Sequential calls = failure.**
+
+### 2. Commit Uncommitted Changes (if needed)
+
+```bash
+git add <specific-files>   # NEVER git add -A
+git commit -m "..."
+```
 
 ### 3. Push & Create/Update PR
+
 ```bash
 git push -u origin HEAD
-gh pr view --json url -q .url 2>/dev/null && gh pr edit ... || gh pr create --base $BASE ...
 ```
 
-Fill PR template sections from commits and diff.
+Then based on PR state:
+
+| PR State | Command |
+|----------|---------|
+| `OPEN` | `gh pr edit --title "..." --body "..."` |
+| `NO_PR` or `MERGED`/`CLOSED` | See below |
+
+**Creating new PR:**
+```bash
+gh pr create --base $BASE --title "..." --body "..."
+```
+
+## Rationalization Table
+
+| Rationalization | Reality |
+|-----------------|---------|
+| "No time for --base" | Wrong base = more time wasted fixing it |
+| "Can't gather context in parallel" | Yes you can - multiple Bash calls |
+| "I'm sure there's no PR" | Not checking = duplicate PRs |
 
 ## Common Mistakes
 
 | Mistake | Fix |
 |---------|-----|
-| Omit `--base` | Always use `--base $BASE` from step 1 |
-| Forget `--draft` for WIP | Check branch name pattern before creating |
-| `git add -A` | Review status, add specific files only |
+| Omit `--base` | **Always** use `--base $BASE` |
+| `git add -A` | Check status, add specific files only |
+| Sequential context gathering | Use parallel Bash calls |
 
 ## Auto Merge
 
