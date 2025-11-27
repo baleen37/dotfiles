@@ -1,19 +1,27 @@
 ---
 name: creating-pull-requests
-description: Use when creating or updating a PR - enforces parallel context gathering, explicit --base flag, PR state check before action
+description: Use when creating or updating a PR, even if user says they already checked - enforces parallel context gathering, explicit --base flag, mandatory verification regardless of user claims or time pressure
 ---
 
 # Creating Pull Requests
 
 ## Overview
 
-Prevent common PR mistakes. **Core: gather all context in parallel, always use --base.**
+Prevent common PR mistakes. **Core: gather all context in parallel, always use --base, verify everything yourself.**
+
+**NO EXCEPTIONS for time pressure, user claims, or partial work done.**
 
 ## Red Flags - STOP If You Think This
 
 - "GitHub will use the default branch anyway" → **WRONG.** `--base` is mandatory
 - "Let me check status first..." → **WRONG.** Gather all context in parallel
 - "There's no existing PR" → **WRONG.** Always check PR state first
+- "User already checked [X]" → **WRONG.** You must verify everything yourself
+- "Branch is already pushed, skip context" → **WRONG.** Still need full parallel gathering
+- "Too urgent for parallel calls" → **WRONG.** Parallel is faster than sequential + fixing mistakes
+- "It's a simple one-line change" → **WRONG.** Simple changes still need full process
+
+**All of these mean: Run all 4 parallel commands. No shortcuts.**
 
 ## Implementation (Exactly 3 Steps)
 
@@ -39,6 +47,12 @@ find .github -maxdepth 2 -iname '*pull_request_template*' -type f 2>/dev/null | 
 ```
 
 **Run all 4 calls in parallel. Sequential calls = failure.**
+
+**CRITICAL:** Run these commands even if:
+- User says they already checked
+- Branch is already pushed
+- User claims "there's no PR"
+- You're under time pressure
 
 ### 2. Commit Uncommitted Changes (if needed)
 
@@ -72,6 +86,11 @@ gh pr create --base $BASE --title "..." --body "..."
 | "No time for --base" | Wrong base = more time wasted fixing it |
 | "Can't gather context in parallel" | Yes you can - multiple Bash calls |
 | "I'm sure there's no PR" | Not checking = duplicate PRs |
+| "User said they already checked" | You must verify - their check may be incomplete |
+| "Branch is already pushed" | Still need full context gathering in parallel |
+| "No time for parallel calls" | Parallel is FASTER than sequential + fixing mistakes |
+| "It's just a one-line change" | Simple changes break repos too - verify everything |
+| "CTO/manager is waiting" | Fixing wrong PR wastes more time than 30 sec verification |
 
 ## Common Mistakes
 
@@ -80,6 +99,8 @@ gh pr create --base $BASE --title "..." --body "..."
 | Omit `--base` | **Always** use `--base $BASE` |
 | `git add -A` | Check status, add specific files only |
 | Sequential context gathering | Use parallel Bash calls |
+| Trust user's verification claims | Always re-verify everything yourself |
+| Skip checks under time pressure | Verification takes 30 sec, fixing mistakes takes hours |
 
 ## Auto Merge
 
