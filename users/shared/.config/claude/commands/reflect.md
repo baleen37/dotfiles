@@ -1,6 +1,5 @@
 ---
-name: reflect
-description: "Claude Code prompt optimization and command improvement specialist"
+description: Claude Code prompt optimization and command improvement specialist
 ---
 
 # /reflect - Claude Code Instruction Optimization
