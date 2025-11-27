@@ -14,8 +14,8 @@ Fully automated. No confirmation prompts.
 git status --porcelain                                           # check uncommitted
 gh repo view --json defaultBranchRef -q .defaultBranchRef.name   # base branch
 git branch --show-current                                        # current branch
-git log --oneline @{u}.. 2>/dev/null || git log --oneline -5     # commits
-find .github -maxdepth 1 -iname 'pull_request_template*' -exec cat {} \; 2>/dev/null  # PR template
+git log --oneline @{u}.. 2>/dev/null | grep -q . && git log --oneline @{u}.. || git log --oneline -5  # commits
+find . .github -maxdepth 1 -iname 'pull_request_template*' 2>/dev/null | head -1 | xargs cat 2>/dev/null  # PR template
 ```
 
 If uncommitted changes exist:
@@ -26,9 +26,10 @@ git add -A && git commit  # follow repo's commit convention
 ### 2. Push & Create PR
 ```bash
 git push -u origin HEAD
-gh pr create --fill [--draft]
+gh pr create --fill [--draft] || gh pr edit --body-file -  # update if exists
 ```
-Add `--draft` if branch matches `wip/|draft/|WIP-`.
+- Add `--draft` if branch matches `wip/|draft/|WIP-`
+- Extract ticket/issue from branch name if present
 
 ### 3. Done
 
