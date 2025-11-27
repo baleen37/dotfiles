@@ -42,7 +42,6 @@ let
     "claude"
     "karabiner-elements" # Key remapping and modification tool
     "orbstack" # Docker and Linux VM management
-    "rectangle" # Simple window management tool
     "tailscale-app" # VPN mesh network with GUI
     "teleport-connect" # Teleport GUI client for secure infrastructure access
 
@@ -178,6 +177,7 @@ in
     # Carefully selected apps for development productivity and system management
     # IDs obtained via: nix shell nixpkgs#mas && mas search <app name>
     masApps = {
+      "Magnet" = 441258766; # Window management tool with multi-monitor support
       "WireGuard" = 1451685025; # Lightweight, secure VPN client
       "KakaoTalk" = 869223134; # Communication platform (if needed)
     };
