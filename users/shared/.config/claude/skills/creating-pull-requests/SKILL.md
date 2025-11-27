@@ -15,6 +15,19 @@ description: Use when creating a PR, especially under time pressure or fatigue -
 
 Use `--draft` for incomplete work.
 
+## Auto Merge (Optional)
+
+```bash
+# Enable auto-merge after requirements are met
+gh pr merge --auto
+
+# Disable auto-merge for this PR
+gh pr merge --disable-auto
+
+# Check PR status including conflicts
+gh pr status --conflict-status
+```
+
 ## Red Flags - STOP
 
 - "It's just a typo" → **All PRs follow this process. No exceptions.**
