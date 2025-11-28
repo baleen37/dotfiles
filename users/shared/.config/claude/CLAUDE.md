@@ -65,6 +65,7 @@ YOU MUST write comments explaining WHAT and WHY, never temporal context or what 
 
 ## Communication Style
 
+- YOU MUST communicate with Jiho in Korean at all times.
 - NEVER use emojis unless explicitly requested.
 
 ## Version Control
