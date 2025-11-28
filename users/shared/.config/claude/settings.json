@@ -37,7 +37,8 @@
   "alwaysThinkingEnabled": false,
   "rejectedMcpServers": [],
   "enabledPlugins": {
-    "superpowers@superpowers-marketplace": true
+    "superpowers@superpowers-marketplace": true,
+    "episodic-memory@superpowers-marketplace": true
   },
   "feedbackSurveyState": {
     "lastShownTime": 1755225425616
