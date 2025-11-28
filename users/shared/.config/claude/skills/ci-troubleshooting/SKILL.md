@@ -34,10 +34,26 @@ Fix CI failures systematically: **Observe actual errors â†’ Cluster by commit â†
 **First action for ANY CI failure:**
 
 ```bash
-# Get actual error from latest run
-gh run list --limit 1 --json databaseId -q '.[0].databaseId' | \
-  xargs -I{} gh run view {} --log | \
-  grep -E "(error|Error|ERROR|FAIL)" -A3 -B3 | head -30
+# Get the latest failed run and show error logs
+gh run list --limit 20 --json databaseId,conclusion -q '.[] | select(.conclusion=="failure") | .databaseId' | head -1 | xargs -I{} gh run view {} --log | grep -E "(error|Error|ERROR|FAIL|failed)" -A3 -B3 | head -50
+```
+
+**If no failures found, check in-progress or all runs:**
+```bash
+# List recent runs to manually inspect
+gh run list --limit 10
+
+# View specific run logs (use run number from list above)
+gh run view <run-number> --log
+```
+
+**For specific job failures:**
+```bash
+# View run summary to see which jobs failed
+gh run view <run-number>
+
+# Then check logs for errors
+gh run view <run-number> --log | grep -E "(error|Error|ERROR|FAIL)" -A5 -B2
 ```
 
 **This is non-negotiable:**
