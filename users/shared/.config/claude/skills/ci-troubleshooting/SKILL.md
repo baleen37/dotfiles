@@ -1,6 +1,6 @@
 ---
 name: ci-troubleshooting
-description: Use when CI/CD pipeline fails - systematic approach that starts with observing actual errors before forming hypotheses, clusters failures by triggering commit, and validates fixes locally before pushing
+description: Use when CI is broken, failing, or needs fixing - systematic approach that starts with observing actual errors before forming hypotheses, clusters failures by triggering commit, and validates fixes locally before pushing (user)
 ---
 
 # CI Troubleshooting
