@@ -1,117 +1,135 @@
 ---
 name: ci-troubleshooting
-description: Use when CI/CD pipeline fails with build errors, test failures, dependency issues, or infrastructure problems - systematic triage with change-aware clustering and three-tier validation
+description: Use when CI is broken, failing, or needs fixing - systematic approach that starts with observing actual errors before forming hypotheses, clusters failures by triggering commit, and validates fixes locally before pushing (user)
 ---
 
 # CI Troubleshooting
 
 ## Overview
 
-Systematic CI failure resolution through **Observe-Reason-Plan-Act** loop. Key insight: cluster failures by triggering commit, not individual symptoms.
+Fix CI failures systematically: **Observe actual errors → Cluster by commit → Reproduce locally → Fix → Validate**.
+
+**Critical principle:** Always observe actual CI errors before guessing. 30 seconds of observation beats hours of wrong hypotheses.
 
 ## When to Use
 
-**Use for:** Build errors, test failures, dependency issues, timeouts, cross-platform failures
+**Use for:** Build failures, test failures, dependency issues, CI timeouts
 
-**Don't use for:** Local development (use systematic-debugging), feature work (use test-driven-development)
+**Don't use for:** Local development bugs (use systematic-debugging skill instead)
 
-## Core Loop: Observe-Reason-Plan-Act
+## Core Workflow
 
 ```
-1. OBSERVE: Extract error patterns (30s)
-2. REASON: Cluster by triggering commit (30s)
-3. PLAN: Single targeted fix (30s)
-4. ACT: Validate locally → commit → monitor
+1. OBSERVE: Get actual error from CI (30 sec)
+2. CLUSTER: Find triggering commit (30 sec)
+3. REPRODUCE: Run exact failing command locally (2 min)
+4. FIX: Apply minimal change
+5. VALIDATE: Local → Branch → Main (no shortcuts)
 ```
 
-**Repeat until resolved.** Each cycle: 30-60 seconds.
+**Start with step 1 every time.** When stuck after 3+ attempts, return to step 1.
 
-## Phase 1: Rapid Triage (2 min)
+## Step 1: Observe Actual Errors
+
+**First action for ANY CI failure:**
 
 ```bash
-# Get latest failure
-gh run list --limit 1 --json databaseId -q '.[0].databaseId' | xargs -I{} gh run view {} --log | grep -E "(error|Error|ERROR)" -A3 -B3 | head -30
+# Get actual error from latest run
+gh run list --limit 1 --json databaseId -q '.[0].databaseId' | \
+  xargs -I{} gh run view {} --log | \
+  grep -E "(error|Error|ERROR|FAIL)" -A3 -B3 | head -30
 ```
 
-**Categorize:**
-- **Dependency**: Package manager, version conflicts
-- **Build/Test**: Compilation, assertion failures
+**This is non-negotiable:**
+- Takes 30 seconds
+- Shows actual error, not your hypothesis
+- Prevents "80% confident" guessing
+
+**Categorize what you see:**
+- **Dependency**: Missing packages, version conflicts
+- **Build/Test**: Compilation errors, assertion failures
 - **Infrastructure**: Timeouts, permissions, resources
-- **Cross-Platform**: Architecture differences
+- **Platform**: Works locally, fails in CI (OS/arch differences)
 
-## Phase 2: Change-Aware Clustering
+## Step 2: Cluster by Triggering Commit
 
-**Critical insight:** 50 test failures from 1 commit = 1 root cause.
+**THE KEY INSIGHT: 47 test failures from 1 commit = 1 root cause, not 47 problems.**
+
+This is the fastest path to resolution. Multiple failures appearing together means clustering by **when they started**, not what they say.
 
 ```bash
-# Find triggering commit
+# Find when it broke
 git log --oneline -10
-git diff HEAD~1 --stat  # What changed?
+
+# See what changed in the triggering commit
+git diff <suspect-commit>~1 <suspect-commit> --stat
+git show <suspect-commit>
 ```
 
-**Don't:** Investigate each failure individually.
-**Do:** Find common ancestor commit, fix there.
+**If all failures started with one commit → Fix that commit, don't debug each test.**
 
-## Phase 3: Resolution Patterns
+## Step 3: Reproduce Locally
 
-### Dependency/Cache
-```bash
-rm -rf node_modules package-lock.json && npm install
-# or: make clean && make build
-```
-
-### Build/Test Failures
-1. Reproduce locally with exact command from CI
-2. Apply minimal fix
-3. Validate: `make test` or equivalent
-
-### Infrastructure
-```bash
-# Check resource constraints in CI logs
-grep -E "(timeout|memory|disk|permission)" ci.log -A5
-```
-
-**Common fixes:** Increase timeout, add retry, check token permissions
-
-## Phase 4: Three-Tier Validation
-
-1. **Local**: Run exact failing command
-2. **Edge cases**: Test related functionality
-3. **Monitor**: Watch CI after push
-
-## Commit Template
+**Before reading code or logs, run the failing test:**
 
 ```bash
-git commit -m "fix: <issue> - resolves CI failure
-
-Root cause: <one line>
-Validation: local ✓"
+# Copy EXACT command from CI logs and run it locally
+pytest tests/path/test_file.py::test_name -v
+npm test -- --testNamePattern="failing test name"
+cargo test test_name
+<project test command>
 ```
 
-## Red Flags - STOP
+**Why:** Confirms you can reproduce, shows exact error, enables iterative debugging.
 
-- "Just a simple fix" → Complex interactions exist
-- "It worked locally" → Environment differences matter
-- "No time for process" → You're about to make it worse
-- Multiple fixes at once → One change at a time
+## Step 4: Fix
 
-**Violating the letter of the rules is violating the spirit of the rules.**
+Apply minimal change that fixes the root cause you identified.
+
+**Common patterns:**
+- Dependency: Clear cache, reinstall dependencies
+- Build: Clean build artifacts, rebuild
+- Infrastructure: Check logs for timeout/memory/permission errors
+
+## Step 5: Validate (Three Tiers - No Shortcuts)
+
+**Even for "simple fixes." Even under time pressure. No exceptions.**
+
+### Tier 1: Local
+Run specific test, then full suite to catch regressions.
+
+### Tier 2: Branch CI
+Push to feature branch (NOT main). Watch CI. Wait for green. If fails, return to Step 1.
+
+### Tier 3: Post-Merge
+Monitor main CI for 5 minutes. If breaks: REVERT immediately, re-investigate on branch.
+
+## When You're Stuck
+
+**Tried 3+ things? STOP. You're guessing, not debugging.**
+
+Return to Step 1. Don't try thing #6. Sunk cost is not a reason to continue wrong approach.
 
 ## Quick Reference
 
-| Failure Type | First Action | Typical Fix |
-|--------------|--------------|-------------|
-| Dependency | Clear cache | `rm -rf node_modules && npm i` |
-| Test | Reproduce locally | Fix failing assertion |
-| Timeout | Check resources | Increase limit or optimize |
-| Permission | Check tokens | Update secrets/permissions |
-| Cross-platform | Check CI matrix | Platform-specific fix |
+| Symptom | First Action | Common Fix |
+|---------|-------------|------------|
+| **Any failure** | **Step 1: grep command** | **See actual error first** |
+| Test passes on retry | Re-run 3-5 times locally | Likely flaky test (separate issue) |
+| Can't reproduce locally | Retry in CI (3x) | Likely transient |
+| Consistent failure | Reproduce with exact CI command | Fix the specific test/build |
+| Package errors | Clear cache | Clear dependency cache and reinstall |
+| Timeout | Reproduce locally first | Fix slowness, don't just increase timeout |
 
-## Common Mistakes
+## Red Flags - STOP
 
-| Mistake | Prevention |
-|---------|------------|
-| Reading full logs | grep for errors only |
-| Multiple fixes | One change at a time |
-| Skip local validation | Always reproduce first |
-| No rollback plan | Know your revert command |
+- "80% confident, let's try..." → Observe actual error first (30 sec)
+- "No time for validation" → Systematic is faster: 15 min vs 30+ min guessing
+- "Senior dev says just do X" → Run Steps 1-3 first (3 min triage)
+- "Push directly to main" → Always use branch first
+- "Skip local testing" → Reproduce locally before pushing
+- "I've tried 5 things" → Return to Step 1, don't try #6
+- "Investigate each failure" → Cluster by triggering commit first
+- "Let me read code first" → Run the failing test first
+
+**All steps required under all pressures. Violating the letter violates the spirit.**
