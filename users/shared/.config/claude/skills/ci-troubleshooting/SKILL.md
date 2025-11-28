@@ -73,99 +73,42 @@ git show <suspect-commit>
 **Before reading code or logs, run the failing test:**
 
 ```bash
-# Copy EXACT command from CI logs
-make test TEST=specific_test
-# or: pytest tests/path/test_file.py::test_name -v
-# or: npm test -- --testNamePattern="failing test name"
-# or: cargo test test_name
+# Copy EXACT command from CI logs and run it locally
+pytest tests/path/test_file.py::test_name -v
+npm test -- --testNamePattern="failing test name"
+cargo test test_name
+<project test command>
 ```
 
-**Why this is fastest:**
-- Confirms you can reproduce
-- Shows exact error in your terminal
-- Enables iterative debugging
-- No guessing
-
-**Red Flag:** "Let me read the code first"
-
-**Reality:** Running the test shows exactly where it fails.
+**Why:** Confirms you can reproduce, shows exact error, enables iterative debugging.
 
 ## Step 4: Fix
 
 Apply minimal change that fixes the root cause you identified.
 
-**Common fixes by category:**
-
-```bash
-# Dependency issues
-# Clear cache and reinstall (adapt to your tool)
-# npm: rm -rf node_modules package-lock.json && npm install
-# python: rm -rf .venv && python -m venv .venv && pip install -r requirements.txt
-# nix: nix flake update && nix build
-
-# Build issues
-make clean && make build
-
-# Infrastructure
-# Check CI logs for resource constraints
-gh run view <run-id> --log | grep -E "(timeout|memory|permission)" -A5
-```
+**Common patterns:**
+- Dependency: Clear cache, reinstall dependencies
+- Build: Clean build artifacts, rebuild
+- Infrastructure: Check logs for timeout/memory/permission errors
 
 ## Step 5: Validate (Three Tiers - No Shortcuts)
 
 **Even for "simple fixes." Even under time pressure. No exceptions.**
 
-### Tier 1: Local (before pushing)
+### Tier 1: Local
+Run specific test, then full suite to catch regressions.
 
-```bash
-# Run the specific failing test
-make test TEST_NAME=failing_test
+### Tier 2: Branch CI
+Push to feature branch (NOT main). Watch CI. Wait for green. If fails, return to Step 1.
 
-# Run full suite to catch regressions
-make test-all
-```
-
-**Red Flag:** "It's a simple fix, skip local validation"
-
-**Reality:** Simple fixes still need validation.
-
-### Tier 2: Branch CI (before merging)
-
-```bash
-# Push to feature branch (NOT main)
-git push origin fix/ci-issue
-
-# Watch CI run
-gh run watch
-```
-
-**Red Flag:** "Push directly to main to save time"
-
-**Reality:** Broken main blocks entire team.
-
-Wait for green checkmark. If it fails, return to Step 1.
-
-### Tier 3: Post-Merge Monitoring
-
-```bash
-# Watch main CI after merge
-gh run list --branch main --limit 1
-
-# Monitor first 5 minutes
-# If main breaks: REVERT immediately, then re-investigate on branch
-```
+### Tier 3: Post-Merge
+Monitor main CI for 5 minutes. If breaks: REVERT immediately, re-investigate on branch.
 
 ## When You're Stuck
 
-**Tried 3+ things without finding root cause?**
+**Tried 3+ things? STOP. You're guessing, not debugging.**
 
-**STOP. You're guessing, not debugging.**
-
-1. Acknowledge: "I've been fixing symptoms, not root cause"
-2. Reset: Return to Step 1 (observe actual errors)
-3. Don't: Try thing #6 based on earlier wrong hypothesis
-
-**Sunk cost fallacy:** "I've spent 3 hours" is not a reason to continue wrong approach.
+Return to Step 1. Don't try thing #6. Sunk cost is not a reason to continue wrong approach.
 
 ## Quick Reference
 
@@ -190,19 +133,3 @@ gh run list --branch main --limit 1
 - "Let me read code first" → Run the failing test first
 
 **All steps required under all pressures. Violating the letter violates the spirit.**
-
-## Process Checklist
-
-Use TodoWrite to track:
-
-- [ ] Step 1: Run grep command, see actual CI error
-- [ ] Step 1: Categorize error type
-- [ ] Step 2: Find triggering commit
-- [ ] Step 2: Check what changed in that commit
-- [ ] Step 3: Reproduce locally with exact CI command
-- [ ] Step 4: Apply minimal fix
-- [ ] Step 5: Validate locally (full test suite passes)
-- [ ] Step 5: Push to branch, watch CI until green
-- [ ] Step 5: Merge to main, monitor for 5 minutes
-
-**All steps required. No shortcuts under pressure.**
