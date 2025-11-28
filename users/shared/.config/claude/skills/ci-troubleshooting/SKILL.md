@@ -53,19 +53,20 @@ gh run list --limit 1 --json databaseId -q '.[0].databaseId' | \
 
 ## Step 2: Cluster by Triggering Commit
 
-**Key insight:** 47 test failures from 1 commit = 1 root cause to fix.
+**THE KEY INSIGHT: 47 test failures from 1 commit = 1 root cause, not 47 problems.**
+
+This is the fastest path to resolution. Multiple failures appearing together means clustering by **when they started**, not what they say.
 
 ```bash
 # Find when it broke
 git log --oneline -10
 
-# See what changed
+# See what changed in the triggering commit
 git diff <suspect-commit>~1 <suspect-commit> --stat
+git show <suspect-commit>
 ```
 
-**Red Flag:** "Let me investigate each failure individually"
-
-**Reality:** If failures started with one commit, fix that commit. Don't debug 47 tests separately.
+**If all failures started with one commit → Fix that commit, don't debug each test.**
 
 ## Step 3: Reproduce Locally
 
@@ -162,34 +163,6 @@ gh run list --branch main --limit 1
 
 **Sunk cost fallacy:** "I've spent 3 hours" is not a reason to continue wrong approach.
 
-## Handling Pressure
-
-### Authority: "Senior Dev Says Just Fix It Quickly"
-
-**Professional response:**
-```
-"I want to run a 2-minute triage since the failure started with my commit.
-If I don't find anything obvious, I'll go with your suggestion.
-Want to make sure I'm not masking a real bug."
-```
-
-Then run Steps 1-3 (takes 3 minutes total).
-
-### Time Pressure: "Prod Deploy in 30 Minutes"
-
-**Red Flag:** "No time for process"
-
-**Reality:** Systematic approach is faster than guessing.
-
-**Breakdown:**
-- Step 1 (observe): 30 seconds
-- Step 2 (cluster): 30 seconds
-- Step 3 (reproduce): 2 minutes
-- Step 4 (fix + local test): 5-10 minutes
-- Step 5 (branch CI): 5 minutes
-
-**Total: ~15 minutes with confidence vs 30+ minutes of trial and error**
-
 ## Quick Reference
 
 | Symptom | First Action | Common Fix |
@@ -203,15 +176,16 @@ Then run Steps 1-3 (takes 3 minutes total).
 
 ## Red Flags - STOP
 
-- "80% confident, let's try..." → Observe actual error first
-- "No time for validation" → Validation prevents bigger time loss
+- "80% confident, let's try..." → Observe actual error first (30 sec)
+- "No time for validation" → Systematic is faster: 15 min vs 30+ min guessing
+- "Senior dev says just do X" → Run Steps 1-3 first (3 min triage)
 - "Push directly to main" → Always use branch first
 - "Skip local testing" → Reproduce locally before pushing
 - "I've tried 5 things" → Return to Step 1, don't try #6
-- "Investigate each failure" → Cluster by triggering commit
+- "Investigate each failure" → Cluster by triggering commit first
 - "Let me read code first" → Run the failing test first
 
-**Violating the letter of the rules is violating the spirit of the rules.**
+**All steps required under all pressures. Violating the letter violates the spirit.**
 
 ## Process Checklist
 
