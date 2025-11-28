@@ -46,8 +46,7 @@ git log --oneline $BASE..HEAD && \
 git diff $BASE..HEAD --stat
 
 # Call 3: Branch divergence (how far behind base)
-BASE=$(gh repo view --json defaultBranchRef -q .defaultBranchRef.name) && \
-git log --oneline HEAD..$BASE | wc -l | xargs echo "Commits behind base:"
+gh repo view --json defaultBranchRef -q .defaultBranchRef.name | xargs -I {} sh -c 'git log --oneline HEAD..{} | wc -l | xargs echo "Commits behind base:"'
 
 # Call 4: PR state (OPEN/MERGED/CLOSED/DRAFT)
 gh pr view --json state,number,url,isDraft -q '{state: .state, number: .number, url: .url, isDraft: .isDraft}' 2>/dev/null || echo "NO_PR"
