@@ -74,9 +74,10 @@ git show <suspect-commit>
 
 ```bash
 # Copy EXACT command from CI logs
-npm test -- --testNamePattern="failing test name"
+make test TEST=specific_test
 # or: pytest tests/path/test_file.py::test_name -v
-# or: make test TEST=specific_test
+# or: npm test -- --testNamePattern="failing test name"
+# or: cargo test test_name
 ```
 
 **Why this is fastest:**
@@ -97,14 +98,17 @@ Apply minimal change that fixes the root cause you identified.
 
 ```bash
 # Dependency issues
-rm -rf node_modules package-lock.json && npm install
+# Clear cache and reinstall (adapt to your tool)
+# npm: rm -rf node_modules package-lock.json && npm install
+# python: rm -rf .venv && python -m venv .venv && pip install -r requirements.txt
+# nix: nix flake update && nix build
 
 # Build issues
 make clean && make build
 
 # Infrastructure
 # Check CI logs for resource constraints
-grep -E "(timeout|memory|permission)" ci.log -A5
+gh run view <run-id> --log | grep -E "(timeout|memory|permission)" -A5
 ```
 
 ## Step 5: Validate (Three Tiers - No Shortcuts)
@@ -171,7 +175,7 @@ gh run list --branch main --limit 1
 | Test passes on retry | Re-run 3-5 times locally | Likely flaky test (separate issue) |
 | Can't reproduce locally | Retry in CI (3x) | Likely transient |
 | Consistent failure | Reproduce with exact CI command | Fix the specific test/build |
-| Package errors | Clear cache | `rm -rf node_modules && npm i` |
+| Package errors | Clear cache | Clear dependency cache and reinstall |
 | Timeout | Reproduce locally first | Fix slowness, don't just increase timeout |
 
 ## Red Flags - STOP
