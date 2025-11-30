@@ -7,244 +7,244 @@ description: Use when videos won't play, look blocky/blurry, have washed out col
 
 ## Overview
 
-5단계 워크플로우: **Triage (30초) → Categorize → Analyze → Diagnose → Recommend**
+5-step workflow: **Triage (30s) → Categorize → Analyze → Diagnose → Recommend**
 
-**핵심 원칙:** 참조 영상 불필요. 메타데이터 + 프레임 추출로 품질 평가. 증상이 아닌 근본 원인 파악.
+**Core principle:** No reference video needed. Evaluate quality via metadata + frame extraction. Find root cause, not symptoms.
 
 ## When to Use
 
-**사용 대상:**
-- 비디오 파일 재생 문제 (깨짐, 재생 불가)
-- 품질 저하 진단 (블로킹, 블러링, 압축 아티팩트)
-- 인코딩 후 품질 평가
-- A/V 동기화 문제
-- 코덱/컨테이너 호환성 검증
+**Use for:**
+- Video playback issues (corruption, won't play)
+- Quality degradation diagnosis (blocking, blurring, compression artifacts)
+- Post-encoding quality assessment
+- A/V sync problems
+- Codec/container compatibility verification
 
-**사용 안 함:**
-- 실시간 스트리밍 문제 (네트워크 이슈는 범위 외)
-- 비디오 편집 작업 (자르기, 합치기 등)
+**Don't use for:**
+- Live streaming issues (network problems out of scope)
+- Video editing tasks (cutting, merging, etc.)
 
 ## Workflow
 
-1. **TRIAGE** (30초): 메타데이터로 카테고리 식별
+1. **TRIAGE** (30s): Identify category via metadata
 2. **CATEGORIZE**: CORRUPTED / CONTAINER / QUALITY / CODEC / SYNC / ASSESSMENT
-3. **ANALYZE**: 카테고리별 심화 (프레임 추출)
-4. **DIAGNOSE**: 근본 원인 파악
-5. **RECOMMEND**: 구체적 해결 방안
+3. **ANALYZE**: Deep dive by category (frame extraction)
+4. **DIAGNOSE**: Identify root cause
+5. **RECOMMEND**: Specific solutions
 
-**전체 워크플로우 필수. 단계 생략 금지.**
+**Complete workflow required. No skipping steps.**
 
-## Step 1: TRIAGE - 초기 진단
+## Step 1: TRIAGE - Initial Diagnosis
 
-**목표**: 30초 내 기본 정보 수집 및 카테고리 파악
+**Goal**: Gather basic info and categorize within 30 seconds
 
-### 필수 명령어 (병렬 실행)
+### Required Commands (run in parallel)
 
 ```bash
-# 메타데이터 + 무결성 체크
+# Metadata + integrity check
 ffprobe -v error -show_format -show_streams -of json "$VIDEO_FILE"
 ffmpeg -v error -i "$VIDEO_FILE" -f null - 2>&1
 
-# 핵심 스펙 (비디오 + 오디오)
+# Core specs (video + audio)
 ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,width,height,r_frame_rate,bit_rate,pix_fmt,duration -of default=noprint_wrappers=1 "$VIDEO_FILE"
 ffprobe -v error -select_streams a:0 -show_entries stream=codec_name,sample_rate,channels -of default=noprint_wrappers=1 "$VIDEO_FILE"
 ```
 
-### 자동 카테고리 분류
+### Auto-Categorization
 
-| 증상 | 카테고리 | 다음 단계 |
-|------|----------|-----------|
-| ffmpeg 에러 발생 | **CORRUPTED** (손상) | Step 2-A |
-| 재생 불가 메타데이터 | **CONTAINER** (컨테이너) | Step 2-B |
-| 비트레이트 < 500kbps 또는 품질 의심 | **QUALITY** (품질 저하) | Step 2-C |
-| 코덱 호환성 의심 | **CODEC** (코덱) | Step 2-D |
-| A/V duration 불일치 > 1초 | **SYNC** (동기화) | Step 2-E |
-| 정상 메타데이터, 특정 문제 없음 | **ASSESSMENT** (평가) | Step 2-F |
+| Symptom | Category | Next Step |
+|---------|----------|-----------|
+| ffmpeg errors | **CORRUPTED** (corruption) | Step 2-A |
+| Unplayable metadata | **CONTAINER** (container) | Step 2-B |
+| Bitrate < 500kbps or quality concerns | **QUALITY** (degradation) | Step 2-C |
+| Codec compatibility issues | **CODEC** (codec) | Step 2-D |
+| A/V duration mismatch > 1s | **SYNC** (synchronization) | Step 2-E |
+| Normal metadata, no specific issues | **ASSESSMENT** (evaluation) | Step 2-F |
 
-**TodoWrite 필수**:
-- Step 1 시작 시: "TRIAGE 실행"
-- 카테고리 분류 후: "QUALITY 카테고리 심화 분석" 등
-- 각 주요 단계 전환 시 업데이트
+**TodoWrite required**:
+- Step 1 start: "TRIAGE execution"
+- After categorization: "QUALITY category deep analysis", etc.
+- Update at each major step transition
 
-## Step 2-C: QUALITY (품질 저하) - 가장 흔한 케이스
+## Step 2-C: QUALITY (Degradation) - Most Common Case
 
-**참조 영상 불필요**: 원본 파일 없이도 진단 가능. 절대적 기준 (1080p → 최소 2Mbps) + 시각적 아티팩트로 평가.
+**No reference needed**: Can diagnose without original file. Use absolute standards (1080p → minimum 2Mbps) + visual artifact analysis.
 
-### 진단 순서
+### Diagnosis Steps
 
-1. **비트레이트 분석**
+1. **Bitrate Analysis**
    ```bash
-   # 평균 비트레이트
+   # Average bitrate
    ffprobe -v error -show_entries format=bit_rate -of default=noprint_wrappers=1:nokey=1 "$VIDEO_FILE"
 
-   # 프레임별 패킷 크기 (변동성 확인)
+   # Per-frame packet size (check variance)
    ffprobe -v error -select_streams v:0 -show_entries frame=pkt_size -of csv "$VIDEO_FILE" | head -100
    ```
 
-2. **프레임 자동 추출** (영상 길이 기반)
+2. **Auto Frame Extraction** (based on duration)
 
-   **길이 확인:**
+   **Check duration:**
    ```bash
    DURATION=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$VIDEO_FILE")
    ```
 
-   **전략 선택:**
+   **Strategy selection:**
 
-   - **짧은 영상 (< 60초)**: 모든 I-프레임
+   - **Short video (< 60s)**: All I-frames
      ```bash
      ffmpeg -skip_frame nokey -i "$VIDEO_FILE" -vsync vfr -frame_pts true frames/frame-%d.jpg
      ```
 
-   - **중간 영상 (60-600초)**: I-프레임 + 장면 변화
+   - **Medium video (60-600s)**: I-frames + scene changes
      ```bash
      ffmpeg -i "$VIDEO_FILE" -vf "select='eq(pict_type,I)+gt(scene,0.4)'" -vsync vfr frames/frame-%d.jpg
      ```
 
-   - **긴 영상 (> 600초)**: I-프레임 + 5초 간격
+   - **Long video (> 600s)**: I-frames + 5s intervals
      ```bash
      ffmpeg -i "$VIDEO_FILE" -vf "select='eq(pict_type,I)',fps=1/5" -vsync vfr frames/frame-%d.jpg
      ```
 
-3. **Claude 시각 분석**
+3. **Claude Visual Analysis**
 
-   추출된 프레임을 Read 도구로 로드하여 다음 항목 체크:
+   Load extracted frames with Read tool and check:
 
-   **프레임 분석 개수:**
-   - 1-8개: 전체 분석
-   - 9-20개: 처음 5개 + 문제 구간 집중
-   - 21개 이상: 샘플링 (처음, 중간, 끝 각 2-3개)
+   **Frame analysis count:**
+   - 1-8 frames: Analyze all
+   - 9-20 frames: First 5 + problem areas
+   - 21+ frames: Sample (first, middle, end - 2-3 each)
 
-   **체크리스트:**
+   **Checklist:**
 
-   - [ ] **블로킹**: 8x8 또는 16x16 블록 경계 보임 (DCT 압축 아티팩트)
-   - [ ] **블러링**: 엣지 선명도 저하, 텍스처 디테일 손실
-   - [ ] **색상 출혈**: 색상 경계에서 의도하지 않은 확산
-   - [ ] **모기 노이즈**: 객체 주변 흐르는 듯한 아티팩트
-   - [ ] **밴딩**: 그라데이션에서 띠 현상 (비트 깊이 부족)
-   - [ ] **색상 정확성**: 부자연스러운 색조, 채도 문제
-   - [ ] **밝기 균일성**: 예상치 못한 어두운/밝은 영역
+   - [ ] **Blocking**: 8x8 or 16x16 block boundaries visible (DCT compression artifacts)
+   - [ ] **Blurring**: Edge sharpness degraded, texture detail lost
+   - [ ] **Color bleeding**: Unintended color spread at boundaries
+   - [ ] **Mosquito noise**: Flowing artifacts around objects
+   - [ ] **Banding**: Striping in gradients (insufficient bit depth)
+   - [ ] **Color accuracy**: Unnatural hue, saturation issues
+   - [ ] **Brightness uniformity**: Unexpected dark/bright areas
 
-## Step 2-A: CORRUPTED (파일 손상)
+## Step 2-A: CORRUPTED (File Corruption)
 
 ```bash
-# 비트스트림 상세 에러 감지
+# Detailed bitstream error detection
 ffmpeg -err_detect bitstream+crccheck+explode -i "$VIDEO_FILE" -f null - 2>&1
 
-# 재생 가능 구간 추출 시도
+# Extract playable segments
 ffmpeg -i "$VIDEO_FILE" -c copy -avoid_negative_ts 1 recovered.mp4 2>&1
 
-# H.264/HEVC 헤더 분석
+# H.264/HEVC header analysis
 ffmpeg -bsf:v trace_headers -i "$VIDEO_FILE" -f null - 2>&1 | head -100
 ```
 
-**복구 가능성:** 전체 손상 (재생성) / 부분 손상 (구간 추출) / 메타데이터만 (리먹싱)
+**Recovery possibility:** Complete corruption (regenerate) / Partial corruption (extract segments) / Metadata only (remux)
 
-## Step 2-B: CONTAINER (컨테이너 문제)
+## Step 2-B: CONTAINER (Container Issues)
 
 ```bash
-# 컨테이너 포맷 확인
+# Container format check
 ffprobe -v error -show_entries format=format_name,format_long_name -of default=noprint_wrappers=1 "$VIDEO_FILE"
 
-# MP4: moov atom 최적화 (스트리밍)
+# MP4: moov atom optimization (streaming)
 ffmpeg -i "$VIDEO_FILE" -c copy -movflags +faststart output.mp4
 ```
 
-**확인 항목:** MP4 (moov atom 위치) / AVI (인덱스 체인) / MKV (타임코드 일관성)
+**Check items:** MP4 (moov atom location) / AVI (index chain) / MKV (timecode consistency)
 
-## Step 2-D: CODEC (코덱 호환성)
+## Step 2-D: CODEC (Codec Compatibility)
 
 ```bash
-# 코덱 프로필/레벨 확인
+# Codec profile/level check
 ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,profile,level -of default=noprint_wrappers=1 "$VIDEO_FILE"
 ```
 
-**호환성:** H.264 Baseline (모든 디바이스) > Main (대부분) > High (신형) / VP9 (2B+ 엔드포인트) / AV1 (최신만, Safari 미지원)
+**Compatibility:** H.264 Baseline (all devices) > Main (most) > High (modern) / VP9 (2B+ endpoints) / AV1 (latest only, Safari unsupported)
 
-## Step 2-E: SYNC (A/V 동기화)
+## Step 2-E: SYNC (A/V Synchronization)
 
 ```bash
-# Duration 비교 (불일치 > 1초면 문제)
+# Duration comparison (mismatch > 1s = problem)
 ffprobe -v error -select_streams v:0 -show_entries stream=duration -of default=noprint_wrappers=1:nokey=1 "$VIDEO_FILE"
 ffprobe -v error -select_streams a:0 -show_entries stream=duration -of default=noprint_wrappers=1:nokey=1 "$VIDEO_FILE"
 
-# PTS/DTS 타임스탬프 분석 (시작/중간/끝)
+# PTS/DTS timestamp analysis (start/middle/end)
 ffprobe -show_frames -select_streams v:0 -show_entries frame=pkt_pts_time -of csv "$VIDEO_FILE" | head -20
 ffprobe -show_frames -select_streams a:0 -show_entries frame=pkt_pts_time -of csv "$VIDEO_FILE" | head -20
 ```
 
-**드리프트 측정:** 시작/중간/끝 지점에서 A/V offset 비교
+**Drift measurement:** Compare A/V offset at start/middle/end points
 
-## Step 2-F: ASSESSMENT (일반 평가)
+## Step 2-F: ASSESSMENT (General Evaluation)
 
-메타데이터 정상, 특정 문제 없을 때:
+When metadata is normal with no specific issues:
 
-1. **기본 스펙 리포트**: 해상도, 프레임율, 비트레이트, 코덱, duration, 호환성
-2. **선택적 프레임 샘플링**: 사용자 요청 시만
-3. **최적화 제안**: 비트레이트/코덱/컨테이너 개선 가능성
+1. **Basic spec report**: Resolution, framerate, bitrate, codec, duration, compatibility
+2. **Optional frame sampling**: Only when user requests visual quality check
+3. **Optimization suggestions**: Potential bitrate/codec/container improvements
 
-## Step 4: DIAGNOSE - 근본 원인
+## Step 4: DIAGNOSE - Root Cause
 
-분석 결과 종합: 단일 원인 / 복합 원인 / 우선순위
+Synthesize analysis results: Single cause / Multiple causes / Priority
 
-**CRITICAL**: 증상이 아닌 근본 원인. 예: "재생 안 됨" (증상) → "moov atom이 파일 끝에 위치" (근본 원인)
+**CRITICAL**: Find root cause, not symptoms. Example: "won't play" (symptom) → "moov atom at end of file" (root cause)
 
-## Step 5: RECOMMEND - 해결 방안
+## Step 5: RECOMMEND - Solutions
 
-### 카테고리별 명령어
+### Commands by Category
 
 **QUALITY**: `ffmpeg -i "$VIDEO_FILE" -c:v libx264 -crf 23 -preset medium -c:a aac -b:a 128k output.mp4` (CRF: 18-28)
 
-**CONTAINER**: `ffmpeg -i "$VIDEO_FILE" -c copy -movflags +faststart output.mp4` (MP4 스트리밍 최적화)
+**CONTAINER**: `ffmpeg -i "$VIDEO_FILE" -c copy -movflags +faststart output.mp4` (MP4 streaming optimization)
 
-**CODEC**: `ffmpeg -i "$VIDEO_FILE" -c:v libx264 -profile:v baseline -level 3.0 -c:a aac output.mp4` (최대 호환성)
+**CODEC**: `ffmpeg -i "$VIDEO_FILE" -c:v libx264 -profile:v baseline -level 3.0 -c:a aac output.mp4` (maximum compatibility)
 
-**CORRUPTED**: 복구 불가 (재생성) / 부분 복구 (구간 추출 명령어 제공)
+**CORRUPTED**: Unrecoverable (regenerate) / Partial recovery (provide segment extraction command)
 
 **SYNC**: `ffmpeg -i "$VIDEO_FILE" -itsoffset 0.5 -i "$VIDEO_FILE" -map 0:v -map 1:a -c copy output.mp4`
 
-**CRITICAL**: 실제 파일 수정은 사용자 명시적 허가 후에만 실행
+**CRITICAL**: Execute file modifications only after explicit user permission
 
 ## Handling Time Pressure
 
-사용자가 "급해요", "빨리 해줘", "명령어만 달라"고 압박하면:
+When user pressures with "hurry", "quick", "just give me the command":
 
-**응답 템플릿:**
-"Jiho, [증상]의 정확한 원인 파악에 30-60초면 됩니다. 잘못된 명령어로 시간 낭비하는 것보다 빠릅니다. 트리아지 먼저 실행하겠습니다."
+**Response template:**
+"Identifying the exact cause of [symptom] takes 30-60 seconds. Faster than wasting time with wrong commands. Running triage first."
 
-**절대 하지 말 것:**
-- "알겠습니다, 명령어 드릴게요" → 진단 없이 명령어 제공 금지
-- 단계 생략이나 축약
-- "대충 이럴 것 같은데요" 같은 추측
+**Never do:**
+- "Okay, here's the command" → No commands without diagnosis
+- Skip or abbreviate steps
+- Speculation like "probably this..."
 
 ## Red Flags - STOP
 
-다음 행동은 금지:
+Forbidden actions:
 
-- "프레임 추출 건너뛰고 추측" → Step 3 프레임 분석 필수 (QUALITY 카테고리)
-- "메타데이터만 보고 결론" → 시각적 품질은 반드시 프레임으로 확인
-- "여러 문제 동시 수정" → 한 번에 하나씩, 검증 후 다음
-- "사용자 확인 없이 파일 수정" → 읽기 전용 분석, 수정은 명시적 허가 후
-- "긴 영상이라 전체 스킵" → 샘플링 전략 적용, 완전 스킵 금지
-- "FFmpeg 에러 무시하고 진행" → 에러는 항상 중요한 정보 포함
-- "Step 1 트리아지 생략" → 모든 케이스에서 트리아지부터 시작
-- "참조 영상 요구" → 이 스킬은 참조 없이 작동하도록 설계됨
+- "Skip frame extraction and guess" → Step 3 frame analysis required (QUALITY category)
+- "Conclude from metadata only" → Visual quality must be verified with frames
+- "Fix multiple issues at once" → One at a time, verify after each
+- "Modify file without user confirmation" → Read-only analysis, modification requires explicit permission
+- "Skip entire video because it's long" → Apply sampling strategy, never skip completely
+- "Ignore and proceed past FFmpeg errors" → Errors always contain important information
+- "Skip Step 1 triage" → Always start with triage for all cases
+- "Request reference video" → This skill designed to work without reference
 
-## Quick Reference - 증상별 진단 경로
+## Quick Reference - Diagnostic Paths by Symptom
 
-| 증상 | 카테고리 | 첫 번째 체크 | 일반적 원인 | 상세 단계 |
-|------|----------|-------------|-----------|----------|
-| **재생 불가** | CORRUPTED | `ffmpeg -v error -i file.mp4 -f null -` | 손상 또는 컨테이너 문제 | Step 2-A |
-| **품질 저하, 블로킹, 흐림** | QUALITY | 비트레이트 + 프레임 분석 | 저비트레이트, 과도한 압축 | Step 2-C |
-| **일부 디바이스만 재생 안 됨** | CODEC | 코덱 프로필 확인 | 호환성 문제 (Safari 등) | Step 2-D |
-| **브라우저에서 스트리밍 안 됨** | CONTAINER | moov atom 위치 | MP4 메타데이터 위치 | Step 2-B |
-| **A/V 불일치** | SYNC | Duration 비교 | 인코딩 설정, 스트림 문제 | Step 2-E |
-| **특정 문제 없음, 평가만** | ASSESSMENT | 기본 스펙 리포트 | N/A | Step 2-F |
+| Symptom | Category | First Check | Common Cause | Detail Step |
+|---------|----------|-------------|--------------|-------------|
+| **Won't play** | CORRUPTED | `ffmpeg -v error -i file.mp4 -f null -` | Corruption or container issue | Step 2-A |
+| **Quality degradation, blocking, blur** | QUALITY | Bitrate + frame analysis | Low bitrate, excessive compression | Step 2-C |
+| **Only some devices won't play** | CODEC | Codec profile check | Compatibility issue (Safari, etc.) | Step 2-D |
+| **Browser won't stream** | CONTAINER | moov atom location | MP4 metadata location | Step 2-B |
+| **A/V mismatch** | SYNC | Duration comparison | Encoding settings, stream issue | Step 2-E |
+| **No specific issue, just evaluate** | ASSESSMENT | Basic spec report | N/A | Step 2-F |
 
-**모든 케이스는 Step 1 (TRIAGE)부터 시작. 위 테이블로 바로 점프 금지.**
+**All cases start with Step 1 (TRIAGE). Don't jump directly to table.**
 
 ## Core Principles
 
-- **정확성 > 속도**: 트리아지는 30초, 전체는 필요한 만큼
-- **참조 불필요**: PSNR/SSIM 같은 참조 메트릭 의존 안 함. 절대적 기준 + 시각 분석
-- **TodoWrite**: 각 단계 추적, 프레임 분석 시 진행상황 가시화
-- **전체 워크플로우 필수**: 압박 상황에서도 단계 생략 금지
+- **Accuracy > Speed**: Triage is 30s, overall takes as long as needed
+- **No reference needed**: Don't rely on reference metrics like PSNR/SSIM. Use absolute standards + visual analysis
+- **TodoWrite**: Track each step, visualize progress when analyzing frames
+- **Complete workflow required**: No skipping steps even under pressure
