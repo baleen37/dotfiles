@@ -79,6 +79,7 @@
       direnv
       pre-commit
       vscode
+      postman
 
       # Nix tools
       nixfmt
