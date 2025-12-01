@@ -262,7 +262,7 @@ in
         fi
 
         # Sanitize branch name: replace slashes with hyphens
-        local worktree_dir=".worktrees/$${branch_name//\//-}"
+        local worktree_dir=".worktrees/''${branch_name//\//-}"
 
         # Check if worktree directory already exists
         if [[ -d "$worktree_dir" ]]; then
