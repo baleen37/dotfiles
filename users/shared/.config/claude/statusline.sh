@@ -50,33 +50,20 @@ current_dir=$(echo "$input" | jq -r '.workspace.current_dir // "."')
 # Find the most recent main chain entry (where isSidechain !== true) and calculate context length
 transcript_path=$(echo "$input" | jq -r '.transcript_path // empty')
 
+context_length=0
 if [[ -n "$transcript_path" && -f "$transcript_path" ]]; then
     # Read transcript file (JSONL format) and calculate context length
-    # Each line is a separate JSON object, find the most recent main chain entry
-    context_length=$(tac "$transcript_path" 2>/dev/null | while IFS= read -r line; do
-        if [[ -n "$line" ]]; then
-            # Check if this line has isSidechain !== true and has message.usage
-            is_main_chain=$(echo "$line" | jq -r 'if .isSidechain == true then "false" else "true" end' 2>/dev/null)
-            has_usage=$(echo "$line" | jq -r 'if .message.usage then "true" else "false" end' 2>/dev/null)
+    # Find the most recent main chain entry using jq
+    most_recent=$(jq -Rc 'fromjson? | select(. != null) | select(.message.usage and (.isSidechain | not))' \
+        "$transcript_path" 2>/dev/null | tail -1 || echo "")
 
-            if [[ "$is_main_chain" == "true" && "$has_usage" == "true" ]]; then
-                # Calculate context length from this entry
-                echo "$line" | jq -r '
-                    (.message.usage.input_tokens // 0) +
-                    (.message.usage.cache_read_input_tokens // 0) +
-                    (.message.usage.cache_creation_input_tokens // 0)
-                ' 2>/dev/null
-                break
-            fi
-        fi
-    done)
-
-    # If context_length is empty or null, set to 0
-    if [[ -z "$context_length" || "$context_length" == "null" ]]; then
-        context_length=0
+    if [[ -n "$most_recent" ]]; then
+        context_length=$(echo "$most_recent" | jq -r '
+            (.message.usage.input_tokens // 0) +
+            (.message.usage.cache_read_input_tokens // 0) +
+            (.message.usage.cache_creation_input_tokens // 0)
+        ' 2>/dev/null || echo "0")
     fi
-else
-    context_length=0
 fi
 
 # Fallback to simple context fields if transcript parsing fails

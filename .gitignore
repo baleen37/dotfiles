@@ -72,7 +72,5 @@ __pycache__/
 .serena
 
 # Planning documents
-specs/
-plans/
 coverage/
 .private-journal/

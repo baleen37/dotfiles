@@ -243,6 +243,62 @@ in
           echo "✅ SSH agent configured for GUI applications"
         fi
       }
+
+      # Claude Code Worktree - Create git worktree and launch Claude Code
+      # Usage: ccw <branch-name>
+      ccw() {
+        # Validate input
+        if [[ $# -eq 0 ]]; then
+          echo "Usage: ccw <branch-name>"
+          return 1
+        fi
+
+        local branch_name="$1"
+
+        # Check if in a git repository
+        if ! git rev-parse --git-dir > /dev/null 2>&1; then
+          echo "❌ Not a git repository"
+          return 1
+        fi
+
+        # Sanitize branch name: replace slashes with hyphens
+        local worktree_dir=".worktrees/$${branch_name//\//-}"
+
+        # Check if worktree directory already exists
+        if [[ -d "$worktree_dir" ]]; then
+          echo "❌ Worktree already exists: $worktree_dir"
+          return 1
+        fi
+
+        # Find base branch (main or master)
+        local base_branch
+        if git rev-parse --verify main >/dev/null 2>&1; then
+          base_branch="main"
+        elif git rev-parse --verify master >/dev/null 2>&1; then
+          base_branch="master"
+        else
+          echo "❌ No main or master branch found"
+          return 1
+        fi
+
+        # Create worktree
+        if git rev-parse --verify "$branch_name" >/dev/null 2>&1; then
+          # Branch exists - create worktree from existing branch
+          git worktree add "$worktree_dir" "$branch_name"
+        else
+          # Branch doesn't exist - create new branch from base
+          git worktree add -b "$branch_name" "$worktree_dir" "$base_branch"
+        fi
+
+        # If worktree creation succeeded, navigate and launch Claude Code
+        if [[ $? -eq 0 ]]; then
+          echo "✅ Worktree created: $worktree_dir"
+          cd "$worktree_dir" && cc
+        else
+          echo "❌ Failed to create worktree"
+          return 1
+        fi
+      }
     '';
   };
 }
