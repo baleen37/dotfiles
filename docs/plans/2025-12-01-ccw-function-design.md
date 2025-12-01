@@ -20,12 +20,12 @@ ccw <branch-name>
 - 저장소가 아니면 에러 메시지 표시 후 종료
 
 ### 3. Path Handling
-- Worktree 경로: `.worktree/<branch-name>`
+- Worktree 경로: `.worktrees/<branch-name>`
 - 브랜치 이름의 슬래시(`/`)를 하이픈(`-`)으로 치환
-  - Example: `feature/jito/test` → `.worktree/feature-jito-test`
+  - Example: `feature/jito/test` → `.worktrees/feature-jito-test`
 
 ### 4. Worktree Directory Conflict Check
-- `.worktree/<sanitized-branch-name>` 디렉토리가 이미 존재하면 에러 표시 후 종료
+- `.worktrees/<sanitized-branch-name>` 디렉토리가 이미 존재하면 에러 표시 후 종료
 
 ### 5. Base Branch Detection
 - `main` 브랜치 존재 여부 확인
@@ -76,17 +76,17 @@ ccw <branch-name>
 ```bash
 # Example 1: Create new branch and worktree
 $ ccw feature/new-feature
-✅ Worktree created: .worktree/feature-new-feature
-# Claude Code starts in .worktree/feature-new-feature/
+✅ Worktree created: .worktrees/feature-new-feature
+# Claude Code starts in .worktrees/feature-new-feature/
 
 # Example 2: Use existing branch
 $ ccw existing-branch
-✅ Worktree created: .worktree/existing-branch
-# Claude Code starts in .worktree/existing-branch/
+✅ Worktree created: .worktrees/existing-branch
+# Claude Code starts in .worktrees/existing-branch/
 
 # Example 3: Worktree already exists
 $ ccw feature/new-feature
-❌ Worktree already exists: .worktree/feature-new-feature
+❌ Worktree already exists: .worktrees/feature-new-feature
 
 # Example 4: No argument provided
 $ ccw
@@ -97,12 +97,12 @@ Usage: ccw <branch-name>
 
 - User remains in worktree directory after Claude Code exits
 - Worktree cleanup options:
-  - `git worktree remove .worktree/<branch-name>`
-  - `rm -rf .worktree/<branch-name> && git worktree prune`
+  - `git worktree remove .worktrees/<branch-name>`
+  - `rm -rf .worktrees/<branch-name> && git worktree prune`
 
 ## Recommendations
 
-1. Add `.worktree/` to `.gitignore`
+1. Use existing `.worktrees/` in `.gitignore`
 2. Consider companion cleanup command for removing worktrees
 3. Consider `git worktree list` integration for discovering existing worktrees
 
