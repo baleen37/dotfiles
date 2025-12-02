@@ -226,9 +226,9 @@ in
             GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no" \
             command idea "$@" >/dev/null 2>&1 &
           disown %% 2>/dev/null || true
-          echo "✨ IntelliJ IDEA started in background with SSH agent integration"
+          echo "\033[0;32mIntelliJ IDEA started in background with SSH agent integration\033[0m"
         else
-          echo "❌ IntelliJ IDEA not found. Please install it first."
+          echo "\033[0;31mIntelliJ IDEA not found. Please install it first.\033[0m"
           return 1
         fi
       }
@@ -247,95 +247,137 @@ in
       # Claude Code Worktree - Create git worktree and launch Claude Code
       # Usage: ccw <branch-name>
       ccw() {
-        # Validate input
+        # ANSI color codes
+        local RED='\033[0;31m'
+        local GREEN='\033[0;32m'
+        local YELLOW='\033[0;33m'
+        local BLUE='\033[0;34m'
+        local RESET='\033[0m'
+
+        # Helper: Print colored message to stderr (so command substitution doesn't capture it)
+        local _msg() {
+          local color="$1"
+          shift
+          echo "''${color}$*''${RESET}" >&2
+        }
+
+        # Helper: Print error and exit
+        local _error() {
+          _msg "$RED" "$@"
+          return 1
+        }
+
+        # Helper: Sanitize branch name for directory (replace / with -)
+        local _sanitize_branch() {
+          echo ".worktrees/''${1//\//-}"
+        }
+
+        # Helper: Find base branch (main or master)
+        local _find_base_branch() {
+          if git rev-parse --verify main >/dev/null 2>&1; then
+            echo "main"
+          elif git rev-parse --verify master >/dev/null 2>&1; then
+            echo "master"
+          else
+            return 1
+          fi
+        }
+
+        # Helper: Check if worktree directory exists
+        local _check_worktree_exists() {
+          if [[ -d "$1" ]]; then
+            _error "Worktree already exists: $1"
+            return 1
+          fi
+          return 0
+        }
+
+        # Helper: Create worktree with existing or new branch
+        # Outputs error messages to stdout on failure, returns exit code
+        local _create_worktree() {
+          local branch="$1"
+          local worktree_dir="$2"
+          local base_branch="$3"
+          local error_output
+
+          if git rev-parse --verify "$branch" >/dev/null 2>&1; then
+            _msg "$BLUE" "Branch '$branch' already exists. Using existing branch."
+            error_output=$(git worktree add "$worktree_dir" "$branch" 2>&1)
+          else
+            _msg "$GREEN" "Creating new branch '$branch' (base: $base_branch)"
+            error_output=$(git worktree add -b "$branch" "$worktree_dir" "$base_branch" 2>&1)
+          fi
+
+          local result=$?
+          if [[ $result -ne 0 ]]; then
+            echo "$error_output" >&2
+          fi
+          return $result
+        }
+
+        # Helper: Handle hierarchical branch conflicts
+        local _handle_ref_conflict() {
+          local branch="$1"
+          local error_output="$2"
+
+          if ! echo "$error_output" | grep -q "cannot lock ref"; then
+            return 1
+          fi
+
+          local existing_branch=$(git branch --list | grep -E "^\s+$branch/" | head -1 | sed 's/^[* ]*//')
+          if [[ -z "$existing_branch" ]]; then
+            return 1
+          fi
+
+          _msg "$YELLOW" "Branch '$branch' conflicts with existing branch '$existing_branch'"
+          _msg "$BLUE" "Using existing branch: $existing_branch"
+          echo "$existing_branch"
+          return 0
+        }
+
+        # Main logic
         if [[ $# -eq 0 ]]; then
           echo "Usage: ccw <branch-name>"
           return 1
         fi
 
+        if ! git rev-parse --git-dir >/dev/null 2>&1; then
+          _error "Not a git repository"
+          return 1
+        fi
+
         local branch_name="$1"
+        local worktree_dir=$(_sanitize_branch "$branch_name")
 
-        # Check if in a git repository
-        if ! git rev-parse --git-dir > /dev/null 2>&1; then
-          echo "❌ Not a git repository"
+        _check_worktree_exists "$worktree_dir" || return 1
+
+        local base_branch=$(_find_base_branch)
+        if [[ -z "$base_branch" ]]; then
+          _error "No main or master branch found"
           return 1
         fi
 
-        # Sanitize branch name: replace slashes with hyphens
-        local worktree_dir=".worktrees/''${branch_name//\//-}"
+        local create_error
+        if ! create_error=$(_create_worktree "$branch_name" "$worktree_dir" "$base_branch"); then
+          # Try to handle hierarchical ref conflict
+          local resolved_branch=$(_handle_ref_conflict "$branch_name" "$create_error")
+          if [[ -n "$resolved_branch" ]]; then
+            worktree_dir=$(_sanitize_branch "$resolved_branch")
+            _check_worktree_exists "$worktree_dir" || return 1
 
-        # Check if worktree directory already exists
-        if [[ -d "$worktree_dir" ]]; then
-          echo "❌ Worktree already exists: $worktree_dir"
-          return 1
-        fi
-
-        # Find base branch (main or master)
-        local base_branch
-        if git rev-parse --verify main >/dev/null 2>&1; then
-          base_branch="main"
-        elif git rev-parse --verify master >/dev/null 2>&1; then
-          base_branch="master"
-        else
-          echo "❌ No main or master branch found"
-          return 1
-        fi
-
-        # Create worktree
-        local create_result
-        local error_output
-        if git rev-parse --verify "$branch_name" >/dev/null 2>&1; then
-          # Branch exists - create worktree from existing branch
-          error_output=$(git worktree add "$worktree_dir" "$branch_name" 2>&1)
-          create_result=$?
-        else
-          # Branch doesn't exist - create new branch from base
-          error_output=$(git worktree add -b "$branch_name" "$worktree_dir" "$base_branch" 2>&1)
-          create_result=$?
-        fi
-
-        # If worktree creation failed due to hierarchical conflict, try to find existing branch
-        if [[ $create_result -ne 0 ]]; then
-          # Check if error is due to hierarchical ref conflict
-          if echo "$error_output" | grep -q "cannot lock ref"; then
-            # Find the first matching child branch
-            local existing_branch=$(git branch --list | grep -E "^\s+$branch_name/" | head -1 | sed 's/^[* ]*//')
-            if [[ -n "$existing_branch" ]]; then
-              echo "⚠️  Branch '$branch_name' conflicts with existing branch '$existing_branch'"
-              echo "📝 Using existing branch: $existing_branch"
-
-              # Update sanitized worktree directory name
-              worktree_dir=".worktrees/''${existing_branch//\//-}"
-
-              # Check if worktree for existing branch already exists
-              if [[ -d "$worktree_dir" ]]; then
-                echo "❌ Worktree already exists: $worktree_dir"
-                return 1
-              fi
-
-              # Create worktree with existing branch
-              git worktree add "$worktree_dir" "$existing_branch"
-              create_result=$?
-            else
-              echo "❌ Failed to create worktree"
-              echo "$error_output"
+            if ! git worktree add "$worktree_dir" "$resolved_branch" >/dev/null 2>&1; then
+              _error "Failed to create worktree"
               return 1
             fi
           else
-            echo "❌ Failed to create worktree"
-            echo "$error_output"
+            _error "Failed to create worktree"
+            echo "$create_error"
             return 1
           fi
         fi
 
-        # If worktree creation succeeded, navigate and launch Claude Code
-        if [[ $create_result -eq 0 ]]; then
-          echo "✅ Worktree created: $worktree_dir"
-          cd "$worktree_dir" && cc
-        else
-          echo "❌ Failed to create worktree"
-          return 1
-        fi
+        _msg "$GREEN" "Worktree created: $worktree_dir"
+        cd "$worktree_dir" && cc
       }
     '';
   };
