@@ -34,7 +34,10 @@ Fix GitHub Actions failures systematically: **Observe → Cluster → Reproduce 
 ## Step 1: Observe Actual Errors
 
 ```bash
-gh run list --limit 10 --branch <branch-name>  # Filter by branch
+# List recent runs for current branch
+gh run list --limit 10 --branch "$(git branch --show-current)"
+
+# View specific failed run
 gh run view <run-id> --log-failed
 ```
 
