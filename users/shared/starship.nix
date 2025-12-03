@@ -42,8 +42,10 @@
       directory = {
         truncation_length = 3;
         truncate_to_repo = true;
-        format = "[$path]($style) ";
-        style = "bold cyan";
+        format = "[$path]($style)";
+        repo_root_format = "[$repo_root]($repo_root_style)([$path]($style)) ";
+        repo_root_style = "bold cyan";
+        style = "cyan";
       };
 
       # Git branch
@@ -61,7 +63,7 @@
         behind = "⇣\${count}";
         diverged = "⇕⇡\${ahead_count}⇣\${behind_count}";
         untracked = "?\${count}";
-        stashed = "$";
+        stashed = "\$";
         modified = "!\${count}";
         staged = "+\${count}";
         renamed = "»";
@@ -91,6 +93,8 @@
       nix_shell = {
         format = "[$symbol$state( \\($name\\))]($style) ";
         symbol = " ";
+        impure_msg = "!";
+        pure_msg = "";
         style = "bold blue";
       };
 
