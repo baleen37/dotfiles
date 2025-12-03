@@ -63,7 +63,7 @@
         behind = "⇣\${count}";
         diverged = "⇕⇡\${ahead_count}⇣\${behind_count}";
         untracked = "?\${count}";
-        stashed = "\$";
+        stashed = "$\${count}";
         modified = "!\${count}";
         staged = "+\${count}";
         renamed = "»";
