@@ -103,6 +103,7 @@
       awscli2
 
       # Security tools
+      git-crypt
 
       # SSH tools
       mosh
