@@ -91,7 +91,7 @@
 
       # Nix shell
       nix_shell = {
-        format = "[$symbol( \\($name\\))]($style) ";
+        format = "[$symbol]($style) ";
         symbol = "nix";
         style = "bold blue";
       };
