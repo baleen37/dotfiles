@@ -6,7 +6,8 @@
 # Tool configurations imported:
 #   - git.nix: Git version control with aliases, LFS, and global gitignore
 #   - vim.nix: Vim editor with plugins and keybindings
-#   - zsh.nix: Zsh shell with Powerlevel10k theme and CLI shortcuts
+#   - zsh.nix: Zsh shell configuration and CLI shortcuts
+#   - starship.nix: Starship prompt - fast, minimal, cross-shell prompt
 #   - tmux.nix: Terminal multiplexer with session persistence
 #   - claude-code.nix: Claude Code AI assistant configuration
 #
@@ -37,6 +38,7 @@
     ./git.nix
     ./vim.nix
     ./zsh.nix
+    ./starship.nix
     ./tmux.nix
     ./claude-code.nix
     ./hammerspoon.nix
@@ -128,11 +130,5 @@
 
   # XDG directories
   xdg.enable = true;
-
-  # Dotfiles symlinks
-  home.file.".p10k.zsh" = {
-    source = .config/p10k.zsh;
-    force = true;
-  };
 
 }
