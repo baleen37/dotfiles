@@ -192,7 +192,7 @@ in
   # Configures cmd+shift+space for Korean/English input source switching
   system.activationScripts.configureKeyboard = {
     text = ''
-      echo "⌨️  Configuring keyboard input sources..." >&2
+      echo "Configuring keyboard input sources..." >&2
 
       sleep 2
 
@@ -227,7 +227,7 @@ in
           killall ControlCenter 2>/dev/null || true
       fi
 
-      echo "✅ Keyboard configuration complete!" >&2
+      echo "Keyboard configuration complete!" >&2
     '';
   };
 
@@ -237,7 +237,7 @@ in
   system.activationScripts.cleanupMacOSApps = {
     text = ''
       echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
-      echo "🧹 Removing unused macOS default apps..." >&2
+      echo "Removing unused macOS default apps..." >&2
       echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
 
       # 제거할 앱 목록
@@ -258,7 +258,7 @@ in
         app_path="/Applications/$app"
 
         if [ -e "$app_path" ]; then
-          echo "  🗑️  Removing: $app" >&2
+          echo "  Removing: $app" >&2
 
           # sudo 없이 제거 시도 (사용자 설치 앱)
           if rm -rf "$app_path" 2>/dev/null; then
@@ -268,7 +268,7 @@ in
             if sudo rm -rf "$app_path" 2>/dev/null; then
               removed_count=$((removed_count + 1))
             else
-              echo "     ⚠️  Failed to remove (SIP protected): $app" >&2
+              echo "     Failed to remove (SIP protected): $app" >&2
               skipped_count=$((skipped_count + 1))
             fi
           fi
@@ -278,7 +278,7 @@ in
       done
 
       echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
-      echo "✨ Cleanup complete!" >&2
+      echo "Cleanup complete!" >&2
       echo "   - Removed: $removed_count apps" >&2
       echo "   - Skipped: $skipped_count apps (protected)" >&2
       echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2

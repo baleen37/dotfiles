@@ -199,7 +199,7 @@ jobs:
         run: |
           echo "::group::Enabling GitHub built-in auto-merge"
 
-          echo "🔄 Enabling auto-merge for PR #$PR_NUMBER"
+          echo "Enabling auto-merge for PR #$PR_NUMBER"
 
           # Enable GitHub's built-in auto-merge - this will auto-merge when CI passes
           gh pr merge "$PR_NUMBER" \
@@ -211,6 +211,6 @@ jobs:
             echo "::notice::PR will need manual merge or GitHub UI auto-merge"
           }
 
-          echo "::notice::✅ Auto-merge request sent for PR #$PR_NUMBER"
+          echo "::notice::Auto-merge request sent for PR #$PR_NUMBER"
           echo "::notice::PR will automatically merge when all CI checks pass"
           echo "::endgroup::"

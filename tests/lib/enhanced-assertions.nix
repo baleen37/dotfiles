@@ -11,12 +11,12 @@ let
     let
       result = if condition then
         pkgs.runCommand "test-${name}-pass" { } ''
-          echo "✅ ${name}: PASS"
+          echo "PASS: ${name}"
           touch $out
         ''
       else
         pkgs.runCommand "test-${name}-fail" { } ''
-          echo "❌ ${name}: FAIL"
+          echo "FAIL: ${name}"
           echo "  📝 ${message}"
           ${lib.optionalString (expected != null) ''
           echo "  🔮 Expected: ${expected}"

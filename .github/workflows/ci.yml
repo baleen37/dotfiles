@@ -55,14 +55,14 @@ jobs:
         run: |
           export USER=${USER:-ci}
           export TEST_USER=${TEST_USER:-testuser}  # Ensure consistent test user
-          echo "🚀 Running fast container tests with static test user..."
-          echo "📊 Environment info:"
+          echo "Running fast container tests with static test user..."
+          echo "Environment info:"
           echo "  - USER: $USER"
           echo "  - TEST_USER: $TEST_USER"
           echo "  - RUNNER_OS: $RUNNER_OS"
           make test || {
             echo "❌ Fast container tests failed"
-            echo "🔍 This may be due to cache service issues, not code problems"
+            echo "This may be due to cache service issues, not code problems"
             exit 1
           }
 
@@ -72,21 +72,21 @@ jobs:
         run: |
           export USER=${USER:-ci}
           export TEST_USER=${TEST_USER:-testuser}  # Ensure consistent test user
-          echo "🔬 Running full test suite with static test user..."
-          echo "📊 Environment info:"
+          echo "Running full test suite with static test user..."
+          echo "Environment info:"
           echo "  - USER: $USER"
           echo "  - TEST_USER: $TEST_USER"
           echo "  - RUNNER_OS: $RUNNER_OS"
           make test-all || {
             echo "❌ Full test suite failed"
-            echo "🔍 This may be due to cache service issues, not code problems"
+            echo "This may be due to cache service issues, not code problems"
             exit 1
           }
 
       - name: Test secrets backup
         run: |
           export USER=${USER:-ci}
-          echo "🔐 Testing secrets backup (dry-run)..."
+          echo "Testing secrets backup (dry-run)..."
           make -n secrets/backup
 
       - name: Upload to Cachix
@@ -97,7 +97,7 @@ jobs:
         continue-on-error: true
         run: |
           export USER=${USER:-ci}
-          echo "🚀 Uploading to Cachix (continue-on-error enabled)..."
+          echo "Uploading to Cachix (continue-on-error enabled)..."
           if [ "$RUNNER_OS" = "macOS" ]; then
             export NIXNAME=macbook-pro
             # Cache macOS build
