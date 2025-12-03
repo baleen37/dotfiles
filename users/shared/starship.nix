@@ -42,10 +42,13 @@
       directory = {
         truncation_length = 3;
         truncate_to_repo = true;
+        use_logical_path = false;
         format = "[$path]($style)";
-        repo_root_format = "[$repo_root]($repo_root_style)([$path]($style)) ";
+        repo_root_format = "[$before_root_path]($before_repo_root_style)[$repo_root]($repo_root_style)([$path]($style)) ";
+        before_repo_root_style = "cyan";
         repo_root_style = "bold cyan";
         style = "cyan";
+        truncation_symbol = ".../";
       };
 
       # Git branch
@@ -63,7 +66,7 @@
         behind = "⇣\${count}";
         diverged = "⇕⇡\${ahead_count}⇣\${behind_count}";
         untracked = "?\${count}";
-        stashed = "$\${count}";
+        stashed = "≡\${count}";
         modified = "!\${count}";
         staged = "+\${count}";
         renamed = "»";
