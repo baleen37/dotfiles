@@ -4,7 +4,7 @@
 #
 # Features:
 #   - fzf integration: Fuzzy finder with Ctrl+R (history), Ctrl+T (files), Alt+C (dirs)
-#   - Powerlevel10k theme: Advanced prompt theme and configuration
+#   - Starship prompt: Fast, minimal, cross-shell prompt
 #   - 1Password SSH agent: Cross-platform socket auto-detection and connection
 #   - PATH management: npm, pnpm, local bin directories auto-add
 #   - IntelliJ IDEA launcher: Cross-platform installation path auto-detection
@@ -106,13 +106,7 @@ in
       la = "ls -la --color=auto";
     };
 
-    plugins = [
-      {
-        name = "powerlevel10k";
-        src = pkgs.zsh-powerlevel10k;
-        file = "share/zsh-powerlevel10k/powerlevel10k.zsh-theme";
-      }
-    ];
+    plugins = [ ];
 
     initContent = lib.mkAfter ''
       # Nix daemon initialization
@@ -188,9 +182,6 @@ in
 
       _setup_1password_agent
 
-      # Setup SSH agent for GUI applications (IntelliJ IDEA, etc.)
-      setup_ssh_agent_for_gui
-
       # nix shortcuts
       shell() {
           nix-shell '<nixpkgs>' -A "$1"
@@ -240,9 +231,12 @@ in
           # Set SSH agent variables for GUI applications
           launchctl setenv SSH_AUTH_SOCK "$SSH_AUTH_SOCK" 2>/dev/null || true
           [[ -n "$SSH_AGENT_PID" ]] && launchctl setenv SSH_AGENT_PID "$SSH_AGENT_PID" 2>/dev/null || true
-          echo "✅ SSH agent configured for GUI applications"
+          echo "SSH agent configured for GUI applications"
         fi
       }
+
+      # Setup SSH agent for GUI applications (IntelliJ IDEA, etc.)
+      setup_ssh_agent_for_gui
 
       # Claude Code Worktree - Create git worktree and launch Claude Code
       # Usage: ccw <branch-name>

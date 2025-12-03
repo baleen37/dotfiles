@@ -35,22 +35,22 @@ else
 endif
 
 test:
-	@echo "🚀 Running dual-mode tests..."
+	@echo "Running dual-mode tests..."
 	@export USER=$${USER:-$(whoami)} && \
 	if [ "$(UNAME)" = "Darwin" ]; then \
-		echo "📱 macOS detected: Running validation mode (container tests require Linux)"; \
-		echo "🔧 Validating all test configurations without execution..."; \
+		echo "macOS detected: Running validation mode (container tests require Linux)"; \
+		echo "Validating all test configurations without execution..."; \
 		NIXPKGS_ALLOW_UNFREE=1 $(NIX) flake check --no-build --impure --accept-flake-config --show-trace; \
-		echo "🌍 Validating E2E scenario tests..."; \
-		$(NIX) eval --impure --expr '(import ./tests/e2e/default.nix { self = ./.; }).real-world-only' >/dev/null && echo "✅ E2E tests validated"; \
-		echo "✅ Validation completed - Full container tests will run in CI"; \
+		echo "Validating E2E scenario tests..."; \
+		$(NIX) eval --impure --expr '(import ./tests/e2e/default.nix { self = ./.; }).real-world-only' >/dev/null && echo "E2E tests validated"; \
+		echo "Validation completed - Full container tests will run in CI"; \
 	else \
-		echo "🐧 Linux detected: Running full container test execution..."; \
+		echo "Linux detected: Running full container test execution..."; \
 		NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 $(NIX) flake check --impure --accept-flake-config --show-trace; \
 	fi
 
 test-integration:
-	@echo "🔧 Running integration tests..."
+	@echo "Running integration tests..."
 ifeq ($(UNAME), Darwin)
 	NIXPKGS_ALLOW_UNFREE=1 $(NIX) eval '.#checks.aarch64-darwin.smoke' --impure --accept-flake-config
 else
@@ -58,26 +58,26 @@ else
 endif
 
 test-all: test test-integration
-	@echo "✅ All tests completed successfully"
+	@echo "All tests completed successfully"
 
 # Optional: Attempt cross-platform container testing (experimental)
 # Note: This requires additional setup and may not work on all systems
 test-containers:
-	@echo "🔬 Attempting container test execution (experimental)..."
+	@echo "Attempting container test execution (experimental)..."
 	@export USER=$${USER:-$(whoami)} && \
 	if [ "$(UNAME)" = "Darwin" ]; then \
-		echo "⚠️  Cross-compilation detected - this may require additional setup"; \
-		echo "💡 Consider running tests in a Linux VM or CI for reliable results"; \
-		echo "🚧 Attempting individual container test build..."; \
+		echo "Cross-compilation detected - this may require additional setup"; \
+		echo "Consider running tests in a Linux VM or CI for reliable results"; \
+		echo "Attempting individual container test build..."; \
 		if NIXPKGS_ALLOW_UNFREE=1 $(NIX) build '.#checks.aarch64-darwin.basic' --impure --accept-flake-config --print-build-logs 2>/dev/null; then \
-			echo "✅ Container test executed successfully"; \
+			echo "Container test executed successfully"; \
 		else \
-			echo "❌ Container test failed - this is expected on macOS without linux-builder"; \
-			echo "💡 Use 'make test' for validation mode or run tests in Linux environment"; \
+			echo "Container test failed - this is expected on macOS without linux-builder"; \
+			echo "Use 'make test' for validation mode or run tests in Linux environment"; \
 			exit 1; \
 		fi; \
 	else \
-		echo "🐧 Linux environment - running full container tests..."; \
+		echo "Linux environment - running full container tests..."; \
 		NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 $(NIX) build '.#checks.$(shell uname -m | sed 's/x86_64/x86_64/;s/arm64/aarch64/').basic' --impure --accept-flake-config --print-build-logs; \
 	fi
 

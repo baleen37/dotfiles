@@ -43,6 +43,6 @@ in
     machine.succeed("vim --version | head -1")
     machine.succeed("curl --version | head -1")
 
-    print("✅ Packages test passed")
+    print("Packages test passed")
   '';
 }
