@@ -41,7 +41,7 @@
       # Directory module
       directory = {
         truncation_length = 3;
-        truncate_to_repo = true;
+        truncate_to_repo = false;
         use_logical_path = false;
         format = "[$path]($style)";
         repo_root_format = "[$before_root_path]($before_repo_root_style)[$repo_root]($repo_root_style)([$path]($style)) ";
