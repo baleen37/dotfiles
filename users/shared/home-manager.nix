@@ -104,6 +104,7 @@
 
       # Security tools
       git-crypt
+      gnupg
 
       # SSH tools
       mosh
