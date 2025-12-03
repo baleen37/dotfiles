@@ -182,9 +182,6 @@ in
 
       _setup_1password_agent
 
-      # Setup SSH agent for GUI applications (IntelliJ IDEA, etc.)
-      setup_ssh_agent_for_gui
-
       # nix shortcuts
       shell() {
           nix-shell '<nixpkgs>' -A "$1"
@@ -237,6 +234,9 @@ in
           echo "SSH agent configured for GUI applications"
         fi
       }
+
+      # Setup SSH agent for GUI applications (IntelliJ IDEA, etc.)
+      setup_ssh_agent_for_gui
 
       # Claude Code Worktree - Create git worktree and launch Claude Code
       # Usage: ccw <branch-name>
