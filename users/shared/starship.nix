@@ -91,10 +91,8 @@
 
       # Nix shell
       nix_shell = {
-        format = "[$symbol$state( \\($name\\))]($style) ";
-        symbol = "nix ";
-        impure_msg = "!";
-        pure_msg = "";
+        format = "[$symbol( \\($name\\))]($style) ";
+        symbol = "nix";
         style = "bold blue";
       };
 
