@@ -22,7 +22,7 @@ Prevent common PR mistakes. **Core: gather all context in parallel, always use -
 Run the context gathering script:
 
 ```bash
-bash scripts/pr-check.sh
+bash {baseDir}/scripts/pr-check.sh
 ```
 
 This script collects (in parallel):
