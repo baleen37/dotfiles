@@ -17,28 +17,21 @@ Prevent common PR mistakes. **Core: gather all context in parallel, always use -
 
 ## Implementation (Exactly 3 Steps)
 
-### 1. Gather Context (parallel Bash calls)
+### 1. Gather Context
 
-Run these commands in **parallel** (multiple Bash tool calls in one message):
+Run the context gathering script:
 
 ```bash
-# Call 1: Git state
-git status --porcelain && git branch --show-current
-
-# Call 2: Base branch and diff
-BASE=$(gh repo view --json defaultBranchRef -q .defaultBranchRef.name) && \
-echo "BASE=$BASE" && \
-git log --oneline $BASE..HEAD && \
-git diff $BASE..HEAD --stat
-
-# Call 3: PR state
-gh pr view --json state,number,url -q '{state: .state, number: .number, url: .url}' 2>/dev/null || echo "NO_PR"
-
-# Call 4: PR template (if exists)
-find .github -maxdepth 2 -iname '*pull_request_template*' -type f 2>/dev/null | head -1 | xargs cat 2>/dev/null
+bash scripts/pr-check.sh
 ```
 
-**Run all 4 calls in parallel. Sequential calls = failure.**
+This script collects (in parallel):
+- Git status and current branch
+- Base branch, commit history, and diff stats
+- Existing PR state (if any)
+- PR template (if exists)
+
+**All checks run in parallel for speed. Review all output before proceeding.**
 
 ### 2. Commit Uncommitted Changes (if needed)
 
