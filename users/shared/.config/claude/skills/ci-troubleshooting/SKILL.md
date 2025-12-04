@@ -64,13 +64,25 @@ Copy EXACT command from CI logs and run locally. Match CI environment if needed 
 
 Apply minimal change that fixes the root cause.
 
-## Step 5: Validate (Three Tiers - No Shortcuts)
+## Step 5: Validate (Two Tiers - No Shortcuts)
 
 **Even for "simple fixes." Even under time pressure. No exceptions.**
 
 1. **Local:** Run specific test, then full suite
-2. **Branch CI:** Push to feature branch (NOT main), wait for green, return to Step 1 if fails
-3. **Post-Merge:** Monitor main for 5 minutes, REVERT immediately if breaks
+2. **Branch CI:** Push to feature branch (NOT main), verify green before merging
+   ```bash
+   # Push to feature branch
+   git push origin <branch-name>
+
+   # Watch CI status in real-time
+   gh run watch
+
+   # Or check status after push
+   gh run list --branch "$(git branch --show-current)" --limit 1
+   gh run view <run-id>  # If failed, return to Step 1
+   ```
+
+**If CI fails on branch: Return to Step 1. Do not merge until green.**
 
 ## When You're Stuck
 
@@ -83,6 +95,7 @@ Apply minimal change that fixes the root cause.
 | **Any failure** | `gh run view --log-failed` → See actual error |
 | Multiple failures | Check triggering commit → Fix commit, not each test |
 | Can't reproduce locally | Compare environments (env vars, versions) |
+| **Branch CI still red** | `gh run watch` → Return to Step 1 if fails |
 | Flaky test | Run 10+ times locally → Fix race condition |
 | Timeout | Reproduce locally → Fix slowness or increase timeout |
 
@@ -90,7 +103,7 @@ Apply minimal change that fixes the root cause.
 
 - "80% confident, let's try..." → Observe actual error first (30 sec)
 - "No time for validation" → Systematic is faster (15 min vs 30+ min guessing)
-- "Push directly to main" → Always use branch first
+- "Merge before CI green" → Always verify branch CI passes first
 - "I've tried 5 things" → Return to Step 1, don't try #6
 - "Investigate each failure" → Cluster by triggering commit first
 
