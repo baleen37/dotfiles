@@ -103,7 +103,8 @@
       awscli2
 
       # Security tools
-      git-crypt
+      age
+      sops
 
       # SSH tools
       mosh
