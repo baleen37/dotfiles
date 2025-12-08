@@ -1,57 +1,76 @@
 --- === Pomodoro ===
 ---
---- A Pomodoro timer Spoon with manual control.
+--- A simplified Pomodoro timer Spoon.
 --- Provides 25-minute work sessions followed by 5-minute breaks.
 ---
 --- Features:
 --- - Manual start/stop control via menubar or hotkeys
---- - Menubar countdown display
+--- - Menubar countdown display with emoji indicators
 --- - Daily statistics tracking
---- - Configurable work/break durations
-
--- Load dependencies
-local StateManager = require("state_manager")
-local UIManager = require("ui_manager")
-local utils = require("utils")
-local Timer = require("timer")
+--- - Session completion notifications
+--- - Focus Mode synchronization (macOS)
 
 local obj = {}
 obj.__index = obj
+
+-- Import Focus Integration module
+local focusIntegration
+if hs and hs.spoons and hs.spoons.scriptPath then
+  -- Running in Hammerspoon environment
+  local scriptPath = hs.spoons.scriptPath()
+  focusIntegration = dofile(scriptPath .. "/focus_integration")
+else
+  -- Running in test environment
+  focusIntegration = dofile("focus_integration.lua")
+end
 
 -- Metadata
 obj.name = "Pomodoro"
 obj.version = "1.0"
 obj.author = "Jiho Hwang <jito.hello@gmail.com>"
 obj.license = "MIT <https://opensource.org/licenses/MIT>"
-obj.homepage = "https://github.com/evantravers/dotfiles"
 
 -- Constants
 local WORK_DURATION = 25 * 60  -- 25 minutes in seconds
 local BREAK_DURATION = 5 * 60  -- 5 minutes in seconds
 
--- Initialize managers
-obj.state = StateManager:new()
-obj.ui = UIManager:new()
+-- Local state variables
+local menubarItem = nil
+local timer = nil
+local isRunning = false
+local isBreak = false
+local timeLeft = 0
+local sessionsCompleted = 0
 
--- TODO: Consider making durations configurable
--- TODO: Add support for different notification sounds
--- TODO: Consider adding a "pause" functionality
--- TODO: Add support for custom work/break ratios
+-- Constructor
+function obj:new()
+  local instance = {}
+  setmetatable(instance, self)
+  self.__index = self
+  return instance
+end
 
--- Observer setup
-local function setupStateObserver()
-  obj.state:addObserver(function(property, value, state)
-    -- Auto-update UI when state changes
-    if not state:isRunning() then
-      obj.ui:updateMenuBarReady()
-    else
-      local sessionType = state:isBreak() and "Break" or "Work"
-      obj.ui:updateMenuBarText(sessionType, state:getTimeLeft())
-    end
+-- Helper functions
 
-    -- Also update the menu
-    obj.ui:updateMenu(state, obj)
-  end)
+local function formatTime(seconds)
+  local minutes = math.floor(seconds / 60)
+  local secs = seconds % 60
+  return string.format("%d:%02d", minutes, secs)
+end
+
+local function updateMenuBar()
+  if not menubarItem then return end
+
+  if not isRunning then
+    local emoji = "🍅"
+    local title = string.format("%s %d", emoji, sessionsCompleted)
+    menubarItem:setTitle(title)
+  else
+    local emoji = isBreak and "☕" or "🍅"
+    local timeStr = formatTime(timeLeft)
+    local title = string.format("%s %s", emoji, timeStr)
+    menubarItem:setTitle(title)
+  end
 end
 
 local function showNotification(title, subtitle)
@@ -64,168 +83,175 @@ local function showNotification(title, subtitle)
 end
 
 local function saveStatistics()
-  obj.state:saveSession()
+  local today = os.date("%Y-%m-%d")
+  local stats = hs.settings.get("pomodoro.stats") or {}
+  stats[today] = sessionsCompleted
+  hs.settings.set("pomodoro.stats", stats)
 end
 
 local function loadStatistics()
-  return obj.state:loadStatistics()
+  local today = os.date("%Y-%m-%d")
+  local stats = hs.settings.get("pomodoro.stats") or {}
+  return stats[today] or 0
+end
+
+local function updateMenu()
+  if not menubarItem then return end
+
+  local menuTable = {}
+
+  if isRunning then
+    table.insert(menuTable, {
+      title = isBreak and "Break in Progress" or "Work Session",
+      disabled = true
+    })
+    table.insert(menuTable, {
+      title = "Stop Session",
+      fn = function()
+        stopSession()
+      end
+    })
+  else
+    table.insert(menuTable, {
+      title = "Start Work Session",
+      fn = function()
+        startWorkSession()
+      end
+    })
+  end
+
+  table.insert(menuTable, { title = "-" })
+
+  -- Statistics
+  table.insert(menuTable, {
+    title = string.format("Today: %d sessions", sessionsCompleted),
+    disabled = true
+  })
+
+  table.insert(menuTable, { title = "-" })
+
+  -- Configuration info
+  table.insert(menuTable, {
+    title = string.format("Work: %d min", WORK_DURATION / 60),
+    disabled = true
+  })
+  table.insert(menuTable, {
+    title = string.format("Break: %d min", BREAK_DURATION / 60),
+    disabled = true
+  })
+
+  menubarItem:setMenu(menuTable)
 end
 
 local function stopTimer()
-  obj.state:setRunning(false)
-  obj.state:setBreak(false)
-  obj.state:setTimeLeft(0)
-  obj.state:setSessionStartTime(nil)
-  obj.state:setTimer(nil)
+  if timer then
+    timer:stop()
+    timer = nil
+  end
+  isRunning = false
+  isBreak = false
+  timeLeft = 0
+  updateMenuBar()
+  updateMenu()
 end
 
 local function startWorkSession()
-  obj.state:setBreak(false)
-  obj.state:setTimeLeft(WORK_DURATION)
-  obj.state:setRunning(true)
-  obj.state:setSessionStartTime(os.time())
-  obj.state:setSessionsCompleted(loadStatistics() + 1)
+  if isRunning then return end
+
+  isRunning = true
+  isBreak = false
+  timeLeft = WORK_DURATION
+
+  -- Update statistics
+  sessionsCompleted = loadStatistics() + 1
+  saveStatistics()
 
   showNotification("Pomodoro Started", "Work session begins!")
 
-  -- Create timer using the Timer module
-  local timerResult = Timer.createTimer(
-    WORK_DURATION,
-    function(timeLeft)
-      obj.state:setTimeLeft(timeLeft)
-    end,
-    function()
+  timer = hs.timer.doEvery(1, function()
+    timeLeft = timeLeft - 1
+    updateMenuBar()
+
+    if timeLeft <= 0 then
       stopTimer()
       startBreakSession()
     end
-  )
+  end)
 
-  if not timerResult.success then
-    utils.showError("Failed to create timer: " .. tostring(timerResult.error))
-    obj.state:setRunning(false)
-    return
-  end
-
-  obj.state:setTimer(timerResult.timer)
-  timerResult.timer:start()
+  updateMenuBar()
+  updateMenu()
 end
 
 local function startBreakSession()
-  obj.state:setBreak(true)
-  obj.state:setTimeLeft(BREAK_DURATION)
-  obj.state:setRunning(true)
+  isRunning = true
+  isBreak = true
+  timeLeft = BREAK_DURATION
 
   showNotification("Break Time!", "Take a 5-minute break")
 
-  -- Create timer using the Timer module
-  local timerResult = Timer.createTimer(
-    BREAK_DURATION,
-    function(timeLeft)
-      obj.state:setTimeLeft(timeLeft)
-    end,
-    function()
+  timer = hs.timer.doEvery(1, function()
+    timeLeft = timeLeft - 1
+    updateMenuBar()
+
+    if timeLeft <= 0 then
       stopTimer()
-      saveStatistics()
       showNotification("Session Complete!", "Great job! Ready for another?")
     end
-  )
-
-  if not timerResult.success then
-    utils.showError("Failed to create break timer: " .. tostring(timerResult.error))
-    obj.state:setRunning(false)
-    return
-  end
-
-  obj.state:setTimer(timerResult.timer)
-  timerResult.timer:start()
-end
-
--- Spoon methods
-
---- Pomodoro:start() -> Pomodoro
---- Method
---- Starts the Pomodoro Spoon and initializes the menubar
----
---- Returns:
----  * The Pomodoro object
-function obj:start()
-  -- Initialize menubar
-  local menubarItem = hs.menubar.new()
-  obj.state:setMenuBarItem(menubarItem)
-  obj.ui:setMenuBarItem(menubarItem)
-
-  menubarItem:setClickCallback(function()
-    -- Update menu on click
-    obj.ui:updateMenu(obj.state, obj)
   end)
 
-  -- Setup state observer for automatic UI updates
-  setupStateObserver()
+  updateMenuBar()
+  updateMenu()
+end
+
+-- Public API
+
+function obj:start()
+  -- Initialize menubar
+  menubarItem = hs.menubar.new()
+  menubarItem:setClickCallback(function()
+    updateMenu()
+  end)
 
   -- Load initial statistics
-  obj.state:setSessionsCompleted(loadStatistics())
+  sessionsCompleted = loadStatistics()
 
-  -- Initial UI update (observer will handle this)
-  if not obj.state:isRunning() then
-    obj.ui:updateMenuBarReady()
-  else
-    local sessionType = obj.state:isBreak() and "Break" or "Work"
-    obj.ui:updateMenuBarText(sessionType, obj.state:getTimeLeft())
-  end
+  -- Initialize Focus Integration
+  focusIntegration.init(self)
+
+  -- Initial UI update
+  updateMenuBar()
 
   return self
 end
 
---- Pomodoro:stop() -> Pomodoro
---- Method
---- Stops the Pomodoro Spoon and cleans up resources
----
---- Returns:
----  * The Pomodoro object
 function obj:stop()
-  -- Stop timer if running
   stopTimer()
 
-  -- Save statistics
-  saveStatistics()
+  -- Cleanup Focus Integration
+  focusIntegration.cleanup()
 
-  -- Remove menubar item
-  local menubarItem = obj.ui:getMenuBarItem()
   if menubarItem then
     menubarItem:delete()
-    obj.state:setMenuBarItem(nil)
-    obj.ui:setMenuBarItem(nil)
+    menubarItem = nil
   end
 
   return self
 end
 
---- Pomodoro:bindHotkeys(mapping) -> Pomodoro
---- Method
---- Binds hotkeys for Pomodoro control
----
---- Parameters:
----  * mapping - A table containing hotkey modifier/key details for the following items:
----   * start - Start a Pomodoro session
----   * stop - Stop the current session
----   * toggle - Toggle between start/stop
----
---- Returns:
----  * The Pomodoro object
 function obj:bindHotkeys(mapping)
   local specs = {
     start = function()
-      if not obj.state:isRunning() then
+      if not isRunning then
         startWorkSession()
       end
     end,
     stop = function()
-      if obj.state:isRunning() then
+      if isRunning then
         stopTimer()
       end
     end,
     toggle = function()
-      if obj.state:isRunning() then
+      if isRunning then
         stopTimer()
       else
         startWorkSession()
@@ -237,14 +263,6 @@ function obj:bindHotkeys(mapping)
   return self
 end
 
---- Pomodoro:getStatistics() -> table
---- Method
---- Returns Pomodoro statistics
----
---- Returns:
----  * A table with keys:
----    * today - Number of sessions completed today
----    * all - Table of daily statistics
 function obj:getStatistics()
   local today = os.date("%Y-%m-%d")
   local stats = hs.settings.get("pomodoro.stats") or {}
@@ -255,194 +273,96 @@ function obj:getStatistics()
   }
 end
 
---- Pomodoro:startSession() -> Pomodoro
---- Method
---- Manually starts a Pomodoro work session
----
---- Returns:
----  * The Pomodoro object
 function obj:startSession()
-  if not obj.state:isRunning() then
+  if not isRunning then
     startWorkSession()
-  end
-  return self
-end
-
---- Pomodoro:stopSession() -> Pomodoro
---- Method
---- Manually stops the current Pomodoro session
----
---- Returns:
----  * The Pomodoro object
-function obj:stopSession()
-  if obj.state:isRunning() then
-    stopTimer()
-  end
-  return self
-end
-
---- Pomodoro:toggleSession() -> Pomodoro
---- Method
---- Toggles between starting and stopping a Pomodoro session
----
---- Returns:
----  * The Pomodoro object
-function obj:toggleSession()
-  if obj.state:isRunning() then
-    stopTimer()
-  else
-    startWorkSession()
-  end
-  return self
-end
-
---- Pomodoro:startSessionWithDuration(duration, isRestore) -> boolean
---- Method
---- Starts a work session with custom duration
----
---- Parameters:
----  * duration - Duration in seconds (must be positive number)
----  * isRestore - Optional boolean indicating if this is a restored session
----
---- Returns:
----  * Boolean - true if session started successfully, false otherwise
-function obj:startSessionWithDuration(duration, isRestore)
-  -- Validate input
-  if not duration or type(duration) ~= "number" or duration <= 0 then
-    utils.showError("Invalid duration: must be a positive number")
-    return false
-  end
-
-  if obj.state:isRunning() then
-    utils.showInfo("Session already running")
-    return false
-  end
-
-  -- Start session with custom duration
-  obj.state:setBreak(false)
-  obj.state:setTimeLeft(duration)
-  obj.state:setRunning(true)
-  obj.state:setSessionStartTime(os.time())
-
-  -- Only increment sessions if this is not a restore
-  if not isRestore then
-    obj.state:setSessionsCompleted(loadStatistics() + 1)
-  end
-
-  if isRestore then
-    showNotification("Pomodoro Restored", "Work session restored!")
-  else
-    showNotification("Pomodoro Started", "Work session begins!")
-  end
-
-  -- Create timer using the Timer module
-  local timerResult = Timer.createTimer(
-    duration,
-    function(timeLeft)
-      obj.state:setTimeLeft(timeLeft)
-    end,
-    function()
-      stopTimer()
-      startBreakSession()
+    -- Sync with Focus Mode - enable when starting a work session
+    if not isBreak then
+      focusIntegration.enablePomodoroFocus()
     end
-  )
-
-  if not timerResult.success then
-    utils.showError("Failed to create timer: " .. tostring(timerResult.error))
-    obj.state:setRunning(false)
-    return false
   end
-
-  obj.state:setTimer(timerResult.timer)
-  timerResult.timer:start()
-
-  return true
+  return self
 end
 
---- Pomodoro:validateSettings() -> boolean
---- Method
---- Validates current timer settings
----
---- Returns:
----  * Boolean - true if settings are valid
-function obj:validateSettings()
-  local isValid, message = utils.validateSettings({
-    workDuration = WORK_DURATION,
-    breakDuration = BREAK_DURATION
-  })
-
-  if not isValid then
-    utils.showError("Invalid settings: " .. message)
-    return false
+function obj:stopSession()
+  if isRunning then
+    stopTimer()
+    -- Sync with Focus Mode - disable when stopping a session
+    focusIntegration.disablePomodoroFocus()
   end
+  return self
+end
 
-  return true
+function obj:toggleSession()
+  if isRunning then
+    stopTimer()
+  else
+    startWorkSession()
+  end
+  return self
 end
 
 -- State API for external integrations
-
---- Pomodoro:isRunning() -> boolean
---- Method
---- Returns whether a Pomodoro session is currently running
----
---- Returns:
----  * Boolean - true if a session is running, false otherwise
 function obj:isRunning()
-  return obj.state:isRunning()
+  return isRunning
 end
 
---- Pomodoro:isBreak() -> boolean
---- Method
---- Returns whether the current session is a break
----
---- Returns:
----  * Boolean - true if currently on break, false otherwise
 function obj:isBreak()
-  return obj.state:isBreak()
+  return isBreak
 end
 
---- Pomodoro:getTimeLeft() -> number
---- Method
---- Returns the time left in the current session
----
---- Returns:
----  * Number - Time remaining in seconds
 function obj:getTimeLeft()
-  return obj.state:getTimeLeft()
+  return timeLeft
 end
 
---- Pomodoro:getSessionStartTime() -> number or nil
---- Method
---- Returns the start time of the current session
----
---- Returns:
----  * Number - Unix timestamp when session started, or nil if no active session
-function obj:getSessionStartTime()
-  return obj.state:getSessionStartTime()
-end
-
---- Pomodoro:getSessionsCompleted() -> number
---- Method
---- Returns the number of sessions completed today
----
---- Returns:
----  * Number - Sessions completed today
 function obj:getSessionsCompleted()
-  return obj.state:getSessionsCompleted()
+  return sessionsCompleted
 end
 
---- Pomodoro:setBreak(isBreak) -> Pomodoro
---- Method
---- Sets the break state (for internal use by integrations)
----
---- Parameters:
----  * isBreak - Boolean indicating break state
----
---- Returns:
----  * The Pomodoro object
-function obj:setBreak(isBreak)
-  obj.state:setBreak(isBreak)
-  return self
+-- Focus Mode API for external integrations
+
+--- Register a callback for Focus Mode state changes
+--- @param callback function The callback function that receives a boolean (isActive) parameter
+--- @return boolean true if callback was registered successfully, false otherwise
+function obj:onFocusModeChanged(callback)
+  return focusIntegration.onFocusModeChanged(callback)
+end
+
+--- Remove a previously registered Focus Mode callback
+--- @param callback function The callback function to remove
+--- @return boolean true if callback was removed successfully, false otherwise
+function obj:removeFocusModeCallback(callback)
+  return focusIntegration.removeFocusModeCallback(callback)
+end
+
+--- Check if Pomodoro Focus Mode is currently active
+--- @return boolean true if Focus Mode is active, false otherwise
+function obj:isFocusModeActive()
+  return focusIntegration.isPomodoroFocusActive()
+end
+
+--- Manually enable Pomodoro Focus Mode
+--- @return boolean true if Focus Mode was enabled successfully, false otherwise
+function obj:enableFocusMode()
+  return focusIntegration.enablePomodoroFocus()
+end
+
+--- Manually disable Pomodoro Focus Mode
+--- @return boolean true if Focus Mode was disabled successfully, false otherwise
+function obj:disableFocusMode()
+  return focusIntegration.disablePomodoroFocus()
+end
+
+--- Toggle Pomodoro Focus Mode state
+--- @return boolean true if operation was successful, false otherwise
+function obj:toggleFocusMode()
+  return focusIntegration.togglePomodoroFocus()
+end
+
+--- Get debug information about Focus Integration
+--- @return table Debug information including state, timers, callbacks, etc.
+function obj:getFocusDebugInfo()
+  return focusIntegration.getDebugInfo()
 end
 
 return obj
