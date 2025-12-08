@@ -1,385 +1,301 @@
---- === Pomodoro Focus Integration ===
+--- === Focus Integration ===
 ---
---- Integration module for Pomodoro Spoon with Focus Mode Detector
---- Provides automatic Pomodoro session management based on Focus Mode state
+--- Focus Mode 통합 모듈
+--- macOS Focus Mode 'Pomodoro'와 Hammerspoon Pomodoro 스푼 간의 양방향 동기화
 ---
 --- Features:
---- - Auto-start Pomodoro when Focus Mode activates
---- - Auto-pause when Focus Mode deactivates
---- - Configurable behavior preferences
---- - Focus-aware notifications
+--- - Focus Mode 상태 감지 (hs.focus 모듈 사용)
+--- - Focus Mode 제어 (Shortcuts 통한 간접 제어)
+--- - 무한 루프 방지를 위한 디바운싱 및 내부 상태 추적
+--- - 양방향 동기화 지원
 
 local obj = {}
 obj.__index = obj
 
--- Import Simple Focus Detector
-local simpleFocus = require("simple_focus")
+-- 상수
+local POMODORO_FOCUS_NAME = "Pomodoro"
+local DEBOUNCE_DELAY = 1.0  -- 1초 디바운싱
+local FOCUS_CONTROL_SHORTCUT = "EnablePomodoroFocus"
+local FOCUS_DISABLE_SHORTCUT = "DisablePomodoroFocus"
 
--- Configuration
-local config = {
-  -- Auto-management settings
-  autoStartOnFocus = true,        -- Start Pomodoro when Focus Mode activates
-  autoPauseOnUnfocus = true,      -- Pause when Focus Mode deactivates
-  resumeOnRefocus = true,         -- Resume paused session when Focus returns
-  requireManualStart = false,     -- Require manual start for first session
-
-  -- Session settings
-  focusSessionDuration = 25 * 60, -- Focus session duration (25 min)
-  focusBreakDuration = 5 * 60,    -- Focus break duration (5 min)
-
-  -- Notification settings
-  enableNotifications = true,
-  notificationSound = "Glass",
-
-  -- State preservation
-  preserveState = true,           -- Remember session state across Focus changes
-  maxPauseDuration = 10 * 60      -- Max pause time before session auto-cancels
+-- 내부 상태
+local internalState = {
+  isPomodoroFocusActive = false,
+  lastChangeTime = 0,
+  isInternalChange = false,
+  watcher = nil,
+  callbacks = {},
 }
-
--- State tracking
-local focusState = {
-  active = false,
-  sessionActive = false,
-  wasRunning = false,
-  pauseTime = nil,
-  originalDuration = 0,
-  timeRemaining = 0
-}
-
--- Pomodoro reference (will be set externally)
-local pomodoroRef = nil
 
 -- Helper functions
-local function log(...)
-  if simpleFocus then
-    simpleFocus.setDebugMode(config.debug or false)
+
+local function getCurrentTimestamp()
+  return os.time()
+end
+
+local function shouldProcessChange()
+  local now = getCurrentTimestamp()
+  return (now - internalState.lastChangeTime) >= DEBOUNCE_DELAY
+end
+
+local function setInternalChangeFlag(flag)
+  internalState.isInternalChange = flag
+  if flag then
+    internalState.lastChangeTime = getCurrentTimestamp()
   end
-  print("[PomodoroFocus]", ...)
 end
 
-local function showNotification(title, subtitle)
-  if config.enableNotifications then
-    hs.notify.new({
-      title = title,
-      subtitle = subtitle,
-      informativeText = "",
-      soundName = config.notificationSound
-    }):send()
+local function notifyCallbacks(isActive)
+  for _, callback in ipairs(internalState.callbacks) do
+    pcall(callback, isActive)
   end
 end
 
-local function saveCurrentState()
-  if not pomodoroRef then return end
-
-  local stats = pomodoroRef:getStatistics()
-  local currentState = {
-    timerRunning = pomodoroRef:isRunning(),
-    isBreak = pomodoroRef:isBreak(),
-    sessionsCompleted = stats.today,
-    timeLeft = pomodoroRef:getTimeLeft()
-  }
-
-  hs.settings.set("pomodoro.focusState", currentState)
-  log("Saved state:", hs.inspect(currentState))
+local function log(message, debugOnly)
+  if debugOnly == nil or debugOnly == false then
+    print("[FocusIntegration] " .. message)
+  end
 end
 
-local function loadSavedState()
-  return hs.settings.get("pomodoro.focusState")
-end
+-- Private functions
 
-local function clearSavedState()
-  hs.settings.set("pomodoro.focusState", nil)
-end
-
--- Focus Mode change handler
-local function onFocusModeChanged(isActive, wasActive, source)
-  log(string.format("Focus Mode changed: %s -> %s (source: %s)",
-                   tostring(wasActive), tostring(isActive), source))
-
-  focusState.active = isActive
-
-  if not pomodoroRef then
-    log("Warning: No Pomodoro reference available")
+local function onFocusModeChanged(focusModes)
+  if internalState.isInternalChange or not shouldProcessChange() then
     return
   end
 
-  if isActive then
-    -- Focus Mode activated
-    handleFocusActivation(source)
+  local wasActive = internalState.isPomodoroFocusActive
+  local isActive = false
+
+  -- hs.focus 모듈이 있는지 확인
+  if hs.focus then
+    -- Focus Mode 상태 확인
+    for _, mode in ipairs(focusModes or {}) do
+      if mode.name == POMODORO_FOCUS_NAME then
+        isActive = mode.active
+        break
+      end
+    end
   else
-    -- Focus Mode deactivated
-    handleFocusDeactivation(source)
+    -- Fallback: AppleScript를 사용한 상태 확인
+    isActive = obj.getCurrentFocusState()
   end
-end
 
-local function handleFocusActivation(source)
-  log("Handling Focus activation from:", source)
-
-  if config.autoStartOnFocus then
-    if pomodoroRef and not pomodoroRef:isRunning() then
-      -- Check if there's a saved state to resume
-      local savedState = loadSavedState()
-      if savedState and config.preserveState then
-        log("Resuming from saved state")
-        -- Restore session with remaining time
-        if savedState.timeLeft and savedState.timeLeft > 0 then
-          -- Use startSessionWithDuration with isRestore flag
-          if pomodoroRef.startSessionWithDuration and type(pomodoroRef.startSessionWithDuration) == "function" then
-            pomodoroRef:startSessionWithDuration(savedState.timeLeft, true)
-          else
-            pomodoroRef:startSession()
-          end
-          if savedState.isBreak then
-            pomodoroRef:setBreak(savedState.isBreak)
-          end
-          showNotification("Pomodoro Resumed", "Session restored from Focus Mode")
-        else
-          pomodoroRef:startSession()
-          showNotification("Pomodoro Started", "Auto-started with Focus Mode")
-        end
-      else
-        -- Start fresh session
-        pomodoroRef:startSession()
-        showNotification("Pomodoro Started", "Auto-started with Focus Mode")
-      end
-
-      focusState.sessionActive = true
-      focusState.wasRunning = true
-    elseif config.resumeOnRefocus and focusState.pauseTime then
-      -- Resume paused session
-      local pauseDuration = os.time() - focusState.pauseTime
-      if pauseDuration < config.maxPauseDuration then
-        pomodoroRef:startSession()
-        showNotification("Pomodoro Resumed", "Session continued with Focus Mode")
-        focusState.pauseTime = nil
-      else
-        showNotification("Session Expired", "Start a new Pomodoro session")
-        clearSavedState()
-      end
-    end
-  end
-end
-
-local function handleFocusDeactivation(source)
-  log("Handling Focus deactivation from:", source)
-
-  if config.autoPauseOnUnfocus then
-    if pomodoroRef and pomodoroRef:isRunning() then
-      -- Save current state
-      focusState.wasRunning = true
-      focusState.pauseTime = os.time()
-
-      if config.preserveState then
-        saveCurrentState()
-      end
-
-      -- Pause the session
-      pomodoroRef:stopSession()
-      showNotification("Pomodoro Paused", "Session paused (Focus Mode off)")
-    end
+  if wasActive ~= isActive then
+    log("Focus Mode state changed: " .. (isActive and "active" or "inactive"))
+    internalState.isPomodoroFocusActive = isActive
+    notifyCallbacks(isActive)
   end
 end
 
 -- Public API
 
---- PomodoroFocus:setPomodoroReference(pomodoroObject)
---- Method
---- Sets a reference to the main Pomodoro object
----
---- Parameters:
----  * pomodoroObject - The main Pomodoro Spoon object
-function obj:setPomodoroReference(pomodoroObject)
-  pomodoroRef = pomodoroObject
-  log("Pomodoro reference set")
-end
+--- Focus Integration 초기화
+function obj.init(pomodoroSpoon)
+  -- hs.focus 모듈 사용 가능 여부 확인
+  if hs.focus then
+    log("Using hs.focus module for Focus Mode detection")
 
---- PomodoroFocus:start() -> PomodoroFocus
---- Method
---- Starts the Focus Mode integration
----
---- Returns:
----  * The PomodoroFocus object
-function obj:start()
-  if not simpleFocus then
-    log("Error: Simple Focus not loaded")
-    return self
+    -- Focus Mode watcher 설정
+    if internalState.watcher then
+      internalState.watcher:stop()
+    end
+
+    -- 현재 상태 확인
+    local currentModes = hs.focus.getFocusModes()
+    internalState.isPomodoroFocusActive = obj.isPomodoroActive(currentModes)
+
+    -- watcher 설정
+    internalState.watcher = hs.focus.new(onFocusModeChanged)
+  else
+    log("hs.focus module not available, using fallback detection")
+    obj.setupFallbackDetection(pomodoroSpoon)
   end
 
-  -- Initialize simple focus
-  simpleFocus.init({
-    pollInterval = 2.0,
-    debug = config.debug or false
-  })
-
-  -- Register callback for Focus Mode changes
-  simpleFocus.onFocusModeChanged(onFocusModeChanged)
-
-  -- Start monitoring
-  simpleFocus.startMonitoring()
-
-  -- Get current Focus state
-  local currentFocus = simpleFocus.getCurrentState()
-  focusState.active = currentFocus
-
-  log("Focus Integration started, current Focus state:", currentFocus)
-
-  return self
+  return obj
 end
 
---- PomodoroFocus:stop() -> PomodoroFocus
---- Method
---- Stops the Focus Mode integration
----
---- Returns:
----  * The PomodoroFocus object
-function obj:stop()
-  if simpleFocus then
-    simpleFocus.removeFocusModeCallback(onFocusModeChanged)
-    simpleFocus.stopMonitoring()
-  end
+--- Fallback 감지 설정 (hs.focus가 없을 때)
+function obj.setupFallbackDetection(pomodoroSpoon)
+  local lastKnownState = obj.getCurrentFocusState()
+  internalState.isPomodoroFocusActive = lastKnownState
 
-  -- Clean up any saved state
-  clearSavedState()
+  hs.timer.doEvery(2.0, function()
+    local currentState = obj.getCurrentFocusState()
+    if currentState ~= lastKnownState then
+      log("Fallback detected state change: " .. tostring(currentState))
+      lastKnownState = currentState
+      internalState.isPomodoroFocusActive = currentState
+      notifyCallbacks(currentState)
 
-  log("Focus Integration stopped")
-  return self
+      -- Pomodoro 스푼과 동기화
+      if pomodoroSpoon then
+        if currentState and not pomodoroSpoon:isRunning() then
+          pomodoroSpoon:startSession()
+        elseif not currentState and pomodoroSpoon:isRunning() then
+          pomodoroSpoon:stopSession()
+        end
+      end
+    end
+  end)
 end
 
---- PomodoroFocus:configure(settings) -> PomodoroFocus
---- Method
---- Configures the Focus integration behavior
----
---- Parameters:
----  * settings - Table with configuration options
----
---- Returns:
----  * The PomodoroFocus object
-function obj:configure(settings)
-  for key, value in pairs(settings) do
-    if config[key] ~= nil then
-      config[key] = value
-      log("Configuration updated:", key, "=", tostring(value))
-    else
-      log("Warning: Unknown configuration option:", key)
+--- 현재 Focus 상태 확인 (fallback용)
+function obj.getCurrentFocusState()
+  -- AppleScript를 사용한 Focus 상태 확인
+  local script = string.format([[
+    tell application "System Events"
+      tell process "ControlCenter"
+        try
+          return value of menu bar item "%s" of menu bar 1
+        on error
+          return false
+        end try
+      end tell
+    end tell
+  ]], POMODORO_FOCUS_NAME)
+
+  -- hs.osascript 모듈이 있는지 확인
+  if hs.osascript then
+    local success, result = hs.osascript.applescript(script)
+    if success then
+      return result == 1 or result == true
     end
   end
-  return self
+
+  -- fallback: false 반환
+  return false
 end
 
---- PomodoroFocus:getConfiguration() -> table
---- Method
---- Returns current configuration
----
---- Returns:
----  * Table with current configuration settings
-function obj:getConfiguration()
-  -- Return a copy to prevent external modification
-  local copy = {}
-  for k, v in pairs(config) do
-    copy[k] = v
+--- Focus Mode 목록에서 Pomodoro 활성 상태 확인
+function obj.isPomodoroActive(focusModes)
+  if not focusModes then return false end
+
+  for _, mode in ipairs(focusModes) do
+    if mode.name == POMODORO_FOCUS_NAME then
+      return mode.active
+    end
   end
-  return copy
+  return false
 end
 
---- PomodoroFocus:isFocusModeActive() -> boolean
---- Method
---- Returns the current Focus Mode state
----
---- Returns:
----  * true if Focus Mode is active, false otherwise
-function obj:isFocusModeActive()
-  return focusState.active
+--- Focus Integration 정리
+function obj.cleanup()
+  if internalState.watcher then
+    internalState.watcher:stop()
+    internalState.watcher = nil
+  end
+
+  -- Reset all internal state
+  internalState.isPomodoroFocusActive = false
+  internalState.lastChangeTime = 0
+  internalState.isInternalChange = false
+  internalState.callbacks = {}
+  return obj
 end
 
---- PomodoroFocus:manuallyTriggerFocus(isActive)
---- Method
---- Manually triggers Focus Mode state change
----
---- Parameters:
----  * isActive - Boolean indicating desired Focus Mode state
-function obj:manuallyTriggerFocus(isActive)
-  -- Manual triggering is not supported in Simple Focus
-  log("Manual focus triggering not supported in Simple Focus")
+--- Focus Mode 상태 확인
+function obj.isPomodoroFocusActive()
+  return internalState.isPomodoroFocusActive
 end
 
---- PomodoroFocus:getStatus() -> table
---- Method
---- Returns current status information
----
---- Returns:
----  * Table with status information
-function obj:getStatus()
+--- Focus Mode 활성화 (Shortcuts 통한 간접 제어)
+function obj.enablePomodoroFocus()
+  if not shouldProcessChange() then
+    return false
+  end
+
+  setInternalChangeFlag(true)
+
+  -- Shortcuts 실행
+  local url = "shortcuts://run-shortcut?name=" .. FOCUS_CONTROL_SHORTCUT
+  local result = hs.urlevent.openURL(url)
+
+  if result then
+    internalState.isPomodoroFocusActive = true
+    notifyCallbacks(true)
+  end
+
+  -- 내부 변경 플래그 나중에 해제
+  hs.timer.doAfter(DEBOUNCE_DELAY, function()
+    setInternalChangeFlag(false)
+  end)
+
+  return result
+end
+
+--- Focus Mode 비활성화 (Shortcuts 통한 간접 제어)
+function obj.disablePomodoroFocus()
+  if not shouldProcessChange() then
+    return false
+  end
+
+  setInternalChangeFlag(true)
+
+  -- Shortcuts 실행
+  local url = "shortcuts://run-shortcut?name=" .. FOCUS_DISABLE_SHORTCUT
+  local result = hs.urlevent.openURL(url)
+
+  if result then
+    internalState.isPomodoroFocusActive = false
+    notifyCallbacks(false)
+  end
+
+  -- 내부 변경 플래그 나중에 해제
+  hs.timer.doAfter(DEBOUNCE_DELAY, function()
+    setInternalChangeFlag(false)
+  end)
+
+  return result
+end
+
+--- Focus Mode 토글
+function obj.togglePomodoroFocus()
+  if internalState.isPomodoroFocusActive then
+    return obj.disablePomodoroFocus()
+  else
+    return obj.enablePomodoroFocus()
+  end
+end
+
+--- Focus Mode 상태 변경 콜백 등록
+function obj.onFocusModeChanged(callback)
+  if type(callback) == "function" then
+    table.insert(internalState.callbacks, callback)
+    return true
+  end
+  return false
+end
+
+--- 콜백 제거
+function obj.removeFocusModeCallback(callback)
+  for i, cb in ipairs(internalState.callbacks) do
+    if cb == callback then
+      table.remove(internalState.callbacks, i)
+      return true
+    end
+  end
+  return false
+end
+
+--- 디버그 정보 반환
+function obj.getDebugInfo()
   return {
-    focusActive = focusState.active,
-    sessionActive = focusState.sessionActive,
-    wasRunning = focusState.wasRunning,
-    pausedAt = focusState.pauseTime,
-    integrationEnabled = simpleFocus ~= nil
+    isActive = internalState.isPomodoroFocusActive,
+    lastChangeTime = internalState.lastChangeTime,
+    isInternalChange = internalState.isInternalChange,
+    hasWatcher = internalState.watcher ~= nil,
+    callbackCount = #internalState.callbacks,
+    hasFocusModule = hs.focus ~= nil
   }
 end
 
--- Integration helper for Pomodoro Spoon
-local function createIntegrationMenu(pomodoro)
-  local menu = {}
-
-  -- Focus Mode status
-  local focusActive = obj:isFocusModeActive()
-  table.insert(menu, {
-    title = string.format("Focus Mode: %s", focusActive and "On" or "Off"),
-    disabled = true
-  })
-
-  table.insert(menu, hs.menuitem.separator)
-
-  -- Focus integration toggle
-  local integrationEnabled = config.autoStartOnFocus
-  table.insert(menu, {
-    title = string.format("Auto-Start: %s", integrationEnabled and "On" or "Off"),
-    fn = function()
-      obj:configure({ autoStartOnFocus = not integrationEnabled })
-      -- Note: This would require menu refresh to show updated state
-    end
-  })
-
-  table.insert(menu, {
-    title = string.format("Auto-Pause: %s", config.autoPauseOnUnfocus and "On" or "Off"),
-    fn = function()
-      obj:configure({ autoPauseOnUnfocus = not config.autoPauseOnUnfocus })
-    end
-  })
-
-  table.insert(menu, hs.menuitem.separator)
-
-  -- Manual Focus trigger
-  table.insert(menu, {
-    title = "Trigger Focus Mode",
-    fn = function()
-      obj:manuallyTriggerFocus(not focusActive)
-    end
-  })
-
-  table.insert(menu, {
-    title = "Check Focus Status",
-    fn = function()
-      if simpleFocus then
-        local isActive = simpleFocus.isFocusModeActive()
-        hs.alert.show(string.format("Focus Mode: %s", isActive and "Active" or "Inactive"))
-      end
-    end
-  })
-
-  table.insert(menu, hs.menuitem.separator)
-
-  -- Integration info
-  table.insert(menu, {
-    title = "Detection Method: AppleScript",
-    disabled = true
-  })
-
-  return menu
+--- 현재 Focus Mode 목록 반환 (디버그용)
+function obj.getCurrentFocusModes()
+  if hs.focus then
+    return hs.focus.getFocusModes()
+  end
+  return {}
 end
-
--- Export the integration menu helper
-obj.createIntegrationMenu = createIntegrationMenu
 
 return obj
