@@ -1,0 +1,66 @@
+{
+  "WFWorkflowMinimumClientVersionString": "900",
+  "WFWorkflowMinimumClientVersion": 900,
+  "WFWorkflowIcon": {
+    "WFWorkflowIconStartColor": 473712287,
+    "WFWorkflowIconGlyphNumber": 61440,
+    "WFWorkflowIconExtension": "WFGlyph"
+  },
+  "WFWorkflowClientVersion": "2605.0.5",
+  "WFWorkflowOutputContentItemClasses": [],
+  "WFWorkflowHasOutputFallback": false,
+  "WFWorkflowTypes": ["Watch"],
+  "WFWorkflowActions": [
+    {
+      "WFWorkflowActionIdentifier": "com.apple.focus.setfocus",
+      "WFWorkflowActionParameters": {
+        "WFSetFocusActionMode": "ON",
+        "WFSetFocusActionName": {
+          "Value": {
+            "Type": "Extension",
+            "Extension": {
+              "ExtensionIdentifier": "com.apple.focus.Focus",
+              "ExtensionBundleIdentifier": "com.apple.Focus",
+              "ExtensionAttributes": {
+                "WFFocusName": "Pomodoro"
+              }
+            }
+          },
+          "WFSerializationType": "WFTextTokenString"
+        }
+      },
+      "WFWorkflowActionIdentifier": "com.apple.focus.setfocus",
+      "WFWorkflowActionDescription": "Sets the Pomodoro Focus Mode"
+    },
+    {
+      "WFWorkflowActionIdentifier": "com.apple.mobilenotification.displaynotification",
+      "WFWorkflowActionParameters": {
+        "WFNotificationActionTitle": {
+          "Value": {
+            "string": "Focus Mode Activated",
+            "WFTextTokenString": "Focus Mode Activated"
+          },
+          "WFSerializationType": "WFTextTokenString"
+        },
+        "WFNotificationActionBody": {
+          "Value": {
+            "string": "Pomodoro Focus Mode has been enabled",
+            "WFTextTokenString": "Pomodoro Focus Mode has been enabled"
+          },
+          "WFSerializationType": "WFTextTokenString"
+        }
+      }
+    }
+  ],
+  "WFWorkflowImportQuestions": [
+    {
+      "Category": "Parameter",
+      "ParameterKey": "WFSetFocusActionName",
+      "Text": "The name of the Focus Mode",
+      "DefaultValue": "Pomodoro",
+      "Regex": ".*",
+      "Type": "Text"
+    }
+  ],
+  "WFWorkflowHasShortcutInputVariables": false
+}

@@ -1,0 +1,65 @@
+{
+  "WFWorkflowMinimumClientVersionString": "900",
+  "WFWorkflowMinimumClientVersion": 900,
+  "WFWorkflowIcon": {
+    "WFWorkflowIconStartColor": 1152921504606846976,
+    "WFWorkflowIconGlyphNumber": 61440,
+    "WFWorkflowIconExtension": "WFGlyph"
+  },
+  "WFWorkflowClientVersion": "2605.0.5",
+  "WFWorkflowOutputContentItemClasses": [],
+  "WFWorkflowHasOutputFallback": false,
+  "WFWorkflowTypes": ["Watch"],
+  "WFWorkflowActions": [
+    {
+      "WFWorkflowActionIdentifier": "com.apple.focus.setfocus",
+      "WFWorkflowActionParameters": {
+        "WFSetFocusActionMode": "OFF",
+        "WFSetFocusActionName": {
+          "Value": {
+            "Type": "Extension",
+            "Extension": {
+              "ExtensionIdentifier": "com.apple.focus.Focus",
+              "ExtensionBundleIdentifier": "com.apple.Focus",
+              "ExtensionAttributes": {
+                "WFFocusName": "Pomodoro"
+              }
+            }
+          },
+          "WFSerializationType": "WFTextTokenString"
+        }
+      },
+      "WFWorkflowActionDescription": "Disables the Pomodoro Focus Mode"
+    },
+    {
+      "WFWorkflowActionIdentifier": "com.apple.mobilenotification.displaynotification",
+      "WFWorkflowActionParameters": {
+        "WFNotificationActionTitle": {
+          "Value": {
+            "string": "Focus Mode Deactivated",
+            "WFTextTokenString": "Focus Mode Deactivated"
+          },
+          "WFSerializationType": "WFTextTokenString"
+        },
+        "WFNotificationActionBody": {
+          "Value": {
+            "string": "Pomodoro Focus Mode has been disabled",
+            "WFTextTokenString": "Pomodoro Focus Mode has been disabled"
+          },
+          "WFSerializationType": "WFTextTokenString"
+        }
+      }
+    }
+  ],
+  "WFWorkflowImportQuestions": [
+    {
+      "Category": "Parameter",
+      "ParameterKey": "WFSetFocusActionName",
+      "Text": "The name of the Focus Mode",
+      "DefaultValue": "Pomodoro",
+      "Regex": ".*",
+      "Type": "Text"
+    }
+  ],
+  "WFWorkflowHasShortcutInputVariables": false
+}
