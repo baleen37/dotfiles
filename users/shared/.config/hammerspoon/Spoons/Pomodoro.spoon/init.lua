@@ -1,14 +1,13 @@
 --- === Pomodoro ===
 ---
---- A Pomodoro timer Spoon that integrates with macOS Focus modes.
---- Automatically starts when Focus mode changes to "Pomodoro" and
---- provides a 25-minute work session followed by a 5-minute break.
+--- A Pomodoro timer Spoon with manual control.
+--- Provides 25-minute work sessions followed by 5-minute breaks.
 ---
 --- Features:
---- - Automatic Focus mode integration
+--- - Manual start/stop control via menubar or hotkeys
 --- - Menubar countdown display
 --- - Daily statistics tracking
---- - One-cycle-per-session approach
+--- - Configurable work/break durations
 
 local obj = {}
 obj.__index = obj
@@ -23,7 +22,6 @@ obj.homepage = "https://github.com/evantravers/dotfiles"
 -- Constants
 local WORK_DURATION = 25 * 60  -- 25 minutes in seconds
 local BREAK_DURATION = 5 * 60  -- 5 minutes in seconds
-local POMODORO_FOCUS_MODE = "Pomodoro"
 
 -- State variables
 local timerRunning = false
@@ -33,7 +31,6 @@ local timeLeft = 0
 local sessionStartTime = nil
 local countdownTimer = nil
 local menubarItem = nil
-local focusWatcher = nil
 
 -- Helper functions
 local function formatTime(seconds)
@@ -114,12 +111,6 @@ local function startWorkSession()
 end
 
 local function startBreakSession()
-  if hs.focus.getFocusMode() ~= POMODORO_FOCUS_MODE then
-    -- Focus mode changed, don't start break
-    saveStatistics()
-    return
-  end
-
   isBreak = true
   timeLeft = BREAK_DURATION
   timerRunning = true
@@ -142,27 +133,7 @@ local function startBreakSession()
   countdownTimer:start()
 end
 
--- Focus mode handling
-local function focusModeChanged(focusModes)
-  if not focusModes then return end
-
-  local hasPomodoro = false
-  for _, mode in ipairs(focusModes) do
-    if mode == POMODORO_FOCUS_MODE then
-      hasPomodoro = true
-      break
-    end
-  end
-
-  if hasPomodoro and not timerRunning then
-    -- Pomodoro focus mode activated, start timer
-    startWorkSession()
-  elseif not hasPomodoro and timerRunning then
-    -- Pomodoro focus mode deactivated, stop timer
-    showNotification("Pomodoro Stopped", "Focus mode changed")
-    stopTimer()
-  end
-end
+-- Manual control functions
 
 -- Menu construction
 local function buildMenu()
@@ -226,7 +197,7 @@ end
 
 --- Pomodoro:start() -> Pomodoro
 --- Method
---- Starts the Pomodoro Spoon and initializes all watchers and timers
+--- Starts the Pomodoro Spoon and initializes the menubar
 ---
 --- Returns:
 ---  * The Pomodoro object
@@ -240,18 +211,8 @@ function obj:start()
   -- Load initial statistics
   sessionsCompleted = loadStatistics()
 
-  -- Set up focus mode watcher
-  focusWatcher = hs.focus.watcher.new(focusModeChanged)
-  focusWatcher:start()
-
   -- Initial menubar update
   updateMenubar()
-
-  -- Check current focus mode in case it's already active
-  local currentFocus = hs.focus.getFocusMode()
-  if currentFocus then
-    focusModeChanged(currentFocus)
-  end
 
   return self
 end
@@ -268,12 +229,6 @@ function obj:stop()
 
   -- Save statistics
   saveStatistics()
-
-  -- Stop focus watcher
-  if focusWatcher then
-    focusWatcher:stop()
-    focusWatcher = nil
-  end
 
   -- Remove menubar item
   if menubarItem then
@@ -292,6 +247,7 @@ end
 ---  * mapping - A table containing hotkey modifier/key details for the following items:
 ---   * start - Start a Pomodoro session
 ---   * stop - Stop the current session
+---   * toggle - Toggle between start/stop
 ---
 --- Returns:
 ---  * The Pomodoro object
@@ -305,6 +261,13 @@ function obj:bindHotkeys(mapping)
     stop = function()
       if timerRunning then
         stopTimer()
+      end
+    end,
+    toggle = function()
+      if timerRunning then
+        stopTimer()
+      else
+        startWorkSession()
       end
     end
   }
@@ -331,4 +294,50 @@ function obj:getStatistics()
   }
 end
 
+--- Pomodoro:startSession() -> Pomodoro
+--- Method
+--- Manually starts a Pomodoro work session
+---
+--- Returns:
+---  * The Pomodoro object
+function obj:startSession()
+  if not timerRunning then
+    startWorkSession()
+  end
+  return self
+end
+
+--- Pomodoro:stopSession() -> Pomodoro
+--- Method
+--- Manually stops the current Pomodoro session
+---
+--- Returns:
+---  * The Pomodoro object
+function obj:stopSession()
+  if timerRunning then
+    stopTimer()
+  end
+  return self
+end
+
+--- Pomodoro:toggleSession() -> Pomodoro
+--- Method
+--- Toggles between starting and stopping a Pomodoro session
+---
+--- Returns:
+---  * The Pomodoro object
+function obj:toggleSession()
+  if timerRunning then
+    stopTimer()
+  else
+    startWorkSession()
+  end
+  return self
+end
+
 return obj
+
+-- Test helper
+if _G.POMODORO_TEST_MODE then
+    return obj  -- Return the spoon object for testing
+end
