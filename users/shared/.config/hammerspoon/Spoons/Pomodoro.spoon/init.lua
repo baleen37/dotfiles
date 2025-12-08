@@ -331,6 +331,74 @@ function obj:toggleSession()
   return self
 end
 
+--- Pomodoro:startSessionWithDuration(duration) -> boolean
+--- Method
+--- Starts a work session with custom duration
+---
+--- Parameters:
+---  * duration - Duration in seconds (must be positive number)
+---
+--- Returns:
+---  * Boolean - true if session started successfully, false otherwise
+function obj:startSessionWithDuration(duration)
+  -- Validate input
+  if not duration or type(duration) ~= "number" or duration <= 0 then
+    utils.showError("Invalid duration: must be a positive number")
+    return false
+  end
+
+  if obj.state:isRunning() then
+    utils.showInfo("Session already running")
+    return false
+  end
+
+  -- Start session with custom duration
+  obj.state:setBreak(false)
+  obj.state:setTimeLeft(duration)
+  obj.state:setRunning(true)
+  obj.state:setSessionStartTime(os.time())
+  obj.state:setSessionsCompleted(loadStatistics() + 1)
+
+  updateMenubar()
+  showNotification("Pomodoro Started", "Work session begins!")
+
+  local timer = hs.timer.new(1, function()
+    obj.state:setTimeLeft(obj.state:getTimeLeft() - 1)
+
+    if obj.state:getTimeLeft() <= 0 then
+      stopTimer()
+      startBreakSession()
+    else
+      updateMenubar()
+    end
+  end)
+
+  obj.state:setTimer(timer)
+  timer:start()
+
+  return true
+end
+
+--- Pomodoro:validateSettings() -> boolean
+--- Method
+--- Validates current timer settings
+---
+--- Returns:
+---  * Boolean - true if settings are valid
+function obj:validateSettings()
+  local isValid, message = utils.validateSettings({
+    workDuration = WORK_DURATION,
+    breakDuration = BREAK_DURATION
+  })
+
+  if not isValid then
+    utils.showError("Invalid settings: " .. message)
+    return false
+  end
+
+  return true
+end
+
 return obj
 
 -- Test helper
