@@ -95,8 +95,9 @@ local function onFocusModeChanged(focusModes)
   local wasActive = internalState.isPomodoroFocusActive
   local isActive = false
 
-  -- hs.focus 모듈이 있는지 확인
-  if hs.focus then
+  -- Focus Mode 모듈이 있는지 확인 (macOS 14+와 Hammerspoon 0.9.90+ 필요)
+  -- 참고: hs.focus는 포어그라운드 함수이므로 Focus Mode API와는 다름
+  if false then -- Focus Mode API가 현재 설치되지 않았으므로 일단 비활성화
     -- Focus Mode 상태 확인
     for _, mode in ipairs(focusModes or {}) do
       if mode.name == POMODORO_FOCUS_NAME then
@@ -120,8 +121,9 @@ end
 
 --- Focus Integration 초기화
 function obj.init(pomodoroSpoon)
-  -- hs.focus 모듈 사용 가능 여부 확인
-  if hs.focus then
+  -- Focus Mode 모듈 사용 가능 여부 확인
+  -- 참고: 현재 Hammerspoon 버전에서는 Focus Mode API를 사용할 수 없음
+  if false then -- Focus Mode API가 현재 설치되지 않았으므로 일단 비활성화
     log("Using hs.focus module for Focus Mode detection")
 
     -- Focus Mode watcher 설정
@@ -182,7 +184,8 @@ function obj.getCurrentFocusState()
         tell process "ControlCenter"
           try
             return value of menu bar item "%s" of menu bar 1
-          on error
+          on error errMsg
+            log "ControlCenter error: " & errMsg
             return "not_found"
           end try
         end tell
@@ -190,29 +193,31 @@ function obj.getCurrentFocusState()
     ]], POMODORO_FOCUS_NAME),
 
     -- 방법 2: System Preferences.app를 통한 확인
-    string.format([[
+    [[
       tell application "System Events"
         try
           tell application "System Preferences"
             activate
             set the pane to pane id "com.apple.preference.dock"
-            tell window "Dock & Menu Bar"
+            tell window "Dock \\& Menu Bar"
               try
                 return selected of row 1 of table 1 of scroll area 1 of group "Focus Modes"
-              on error
+              on error errMsg
+                log "Could not find Focus Modes: " & errMsg
                 return "not_found"
               end try
             end tell
           end tell
           quit application "System Preferences"
-        on error
+        on error errMsg
           try
             quit application "System Preferences"
           end try
+          log "System Preferences error: " & errMsg
           return "not_found"
         end try
       end tell
-    ]], POMODORO_FOCUS_NAME),
+    ]],
 
     -- 방법 3: NSWorkspace를 통한 확인 (macOS 12+)
     [[
@@ -220,7 +225,8 @@ function obj.getCurrentFocusState()
         try
           do shell script "defaults read com.apple.controlcenter FocusModePomodoro"
           return "active"
-        on error
+        on error errMsg
+          log "Defaults read error: " & errMsg
           return "not_found"
         end try
       end tell
@@ -230,9 +236,12 @@ function obj.getCurrentFocusState()
   -- hs.osascript 모듈이 있는지 확인
   if hs.osascript then
     -- 각 스크립트 방법 시도
-    for _, script in ipairs(scripts) do
+    for i, script in ipairs(scripts) do
+      log("Executing script #" .. i .. ", length: " .. string.len(script))
       local success, result = hs.osascript.applescript(script)
-      if success then
+      if not success then
+        log("Script #" .. i .. " failed: " .. tostring(result))
+      else
         if result == 1 or result == true or result == "active" then
           return true
         elseif result == 0 or result == false then
@@ -384,9 +393,7 @@ end
 
 --- 현재 Focus Mode 목록 반환 (디버그용)
 function obj.getCurrentFocusModes()
-  if hs.focus then
-    return hs.focus.getFocusModes()
-  end
+  -- 참고: hs.focus는 포어그라운드 함수이므로 Focus Mode API를 제공하지 않음
   return {}
 end
 
