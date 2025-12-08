@@ -9,6 +9,10 @@
 --- - Daily statistics tracking
 --- - Configurable work/break durations
 
+-- Load dependencies
+local StateManager = require("state_manager")
+local utils = require("utils")
+
 local obj = {}
 obj.__index = obj
 
@@ -23,14 +27,8 @@ obj.homepage = "https://github.com/evantravers/dotfiles"
 local WORK_DURATION = 25 * 60  -- 25 minutes in seconds
 local BREAK_DURATION = 5 * 60  -- 5 minutes in seconds
 
--- State variables
-local timerRunning = false
-local isBreak = false
-local sessionsCompleted = 0
-local timeLeft = 0
-local sessionStartTime = nil
-local countdownTimer = nil
-local menubarItem = nil
+-- Initialize state manager
+obj.state = StateManager:new()
 
 -- Helper functions
 local function formatTime(seconds)
@@ -40,13 +38,14 @@ local function formatTime(seconds)
 end
 
 local function updateMenubar()
+  local menubarItem = obj.state:getMenuBarItem()
   if not menubarItem then return end
 
-  if not timerRunning then
+  if not obj.state:isRunning() then
     menubarItem:setTitle("🍅 Ready")
   else
-    local emoji = isBreak and "☕" or "🍅"
-    menubarItem:setTitle(emoji .. " " .. formatTime(timeLeft))
+    local emoji = obj.state:isBreak() and "☕" or "🍅"
+    menubarItem:setTitle(emoji .. " " .. formatTime(obj.state:getTimeLeft()))
   end
 end
 
@@ -60,10 +59,7 @@ local function showNotification(title, subtitle)
 end
 
 local function saveStatistics()
-  local today = os.date("%Y-%m-%d")
-  local stats = hs.settings.get("pomodoro.stats") or {}
-  stats[today] = sessionsCompleted
-  hs.settings.set("pomodoro.stats", stats)
+  obj.state:saveSession()
 end
 
 local function loadStatistics()
@@ -73,33 +69,29 @@ local function loadStatistics()
 end
 
 local function stopTimer()
-  timerRunning = false
-  isBreak = false
-  timeLeft = 0
-  sessionStartTime = nil
-
-  if countdownTimer then
-    countdownTimer:stop()
-    countdownTimer = nil
-  end
+  obj.state:setRunning(false)
+  obj.state:setBreak(false)
+  obj.state:setTimeLeft(0)
+  obj.state:setSessionStartTime(nil)
+  obj.state:setTimer(nil)
 
   updateMenubar()
 end
 
 local function startWorkSession()
-  isBreak = false
-  timeLeft = WORK_DURATION
-  timerRunning = true
-  sessionStartTime = os.time()
-  sessionsCompleted = loadStatistics() + 1
+  obj.state:setBreak(false)
+  obj.state:setTimeLeft(WORK_DURATION)
+  obj.state:setRunning(true)
+  obj.state:setSessionStartTime(os.time())
+  obj.state:setSessionsCompleted(loadStatistics() + 1)
 
   updateMenubar()
   showNotification("Pomodoro Started", "Work session begins!")
 
-  countdownTimer = hs.timer.new(1, function()
-    timeLeft = timeLeft - 1
+  local timer = hs.timer.new(1, function()
+    obj.state:setTimeLeft(obj.state:getTimeLeft() - 1)
 
-    if timeLeft <= 0 then
+    if obj.state:getTimeLeft() <= 0 then
       stopTimer()
       startBreakSession()
     else
@@ -107,21 +99,22 @@ local function startWorkSession()
     end
   end)
 
-  countdownTimer:start()
+  obj.state:setTimer(timer)
+  timer:start()
 end
 
 local function startBreakSession()
-  isBreak = true
-  timeLeft = BREAK_DURATION
-  timerRunning = true
+  obj.state:setBreak(true)
+  obj.state:setTimeLeft(BREAK_DURATION)
+  obj.state:setRunning(true)
 
   updateMenubar()
   showNotification("Break Time!", "Take a 5-minute break")
 
-  countdownTimer = hs.timer.new(1, function()
-    timeLeft = timeLeft - 1
+  local timer = hs.timer.new(1, function()
+    obj.state:setTimeLeft(obj.state:getTimeLeft() - 1)
 
-    if timeLeft <= 0 then
+    if obj.state:getTimeLeft() <= 0 then
       stopTimer()
       saveStatistics()
       showNotification("Session Complete!", "Great job! Ready for another?")
@@ -130,7 +123,8 @@ local function startBreakSession()
     end
   end)
 
-  countdownTimer:start()
+  obj.state:setTimer(timer)
+  timer:start()
 end
 
 -- Manual control functions
@@ -139,7 +133,7 @@ end
 local function buildMenu()
   local menu = {}
 
-  if not timerRunning then
+  if not obj.state:isRunning() then
     table.insert(menu, {
       title = "Start Session",
       fn = function()
@@ -147,9 +141,9 @@ local function buildMenu()
       end
     })
   else
-    local status = isBreak and "Break" or "Work"
+    local status = obj.state:isBreak() and "Break" or "Work"
     table.insert(menu, {
-      title = string.format("Status: %s (%s)", status, formatTime(timeLeft)),
+      title = string.format("Status: %s (%s)", status, formatTime(obj.state:getTimeLeft())),
       disabled = true
     })
 
@@ -177,7 +171,7 @@ local function buildMenu()
       local stats = hs.settings.get("pomodoro.stats") or {}
       stats[today] = 0
       hs.settings.set("pomodoro.stats", stats)
-      sessionsCompleted = 0
+      obj.state:setSessionsCompleted(0)
     end
   })
 
@@ -203,13 +197,14 @@ end
 ---  * The Pomodoro object
 function obj:start()
   -- Initialize menubar
-  menubarItem = hs.menubar.new()
+  local menubarItem = hs.menubar.new()
+  obj.state:setMenuBarItem(menubarItem)
   menubarItem:setClickCallback(function()
     menubarItem:setMenu(buildMenu())
   end)
 
   -- Load initial statistics
-  sessionsCompleted = loadStatistics()
+  obj.state:setSessionsCompleted(loadStatistics())
 
   -- Initial menubar update
   updateMenubar()
@@ -231,9 +226,10 @@ function obj:stop()
   saveStatistics()
 
   -- Remove menubar item
+  local menubarItem = obj.state:getMenuBarItem()
   if menubarItem then
     menubarItem:delete()
-    menubarItem = nil
+    obj.state:setMenuBarItem(nil)
   end
 
   return self
@@ -254,17 +250,17 @@ end
 function obj:bindHotkeys(mapping)
   local specs = {
     start = function()
-      if not timerRunning then
+      if not obj.state:isRunning() then
         startWorkSession()
       end
     end,
     stop = function()
-      if timerRunning then
+      if obj.state:isRunning() then
         stopTimer()
       end
     end,
     toggle = function()
-      if timerRunning then
+      if obj.state:isRunning() then
         stopTimer()
       else
         startWorkSession()
@@ -301,7 +297,7 @@ end
 --- Returns:
 ---  * The Pomodoro object
 function obj:startSession()
-  if not timerRunning then
+  if not obj.state:isRunning() then
     startWorkSession()
   end
   return self
@@ -314,7 +310,7 @@ end
 --- Returns:
 ---  * The Pomodoro object
 function obj:stopSession()
-  if timerRunning then
+  if obj.state:isRunning() then
     stopTimer()
   end
   return self
@@ -327,7 +323,7 @@ end
 --- Returns:
 ---  * The Pomodoro object
 function obj:toggleSession()
-  if timerRunning then
+  if obj.state:isRunning() then
     stopTimer()
   else
     startWorkSession()
