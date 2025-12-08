@@ -11,6 +11,7 @@
 
 -- Load dependencies
 local StateManager = require("state_manager")
+local UIManager = require("ui_manager")
 local utils = require("utils")
 
 local obj = {}
@@ -27,8 +28,9 @@ obj.homepage = "https://github.com/evantravers/dotfiles"
 local WORK_DURATION = 25 * 60  -- 25 minutes in seconds
 local BREAK_DURATION = 5 * 60  -- 5 minutes in seconds
 
--- Initialize state manager
+-- Initialize managers
 obj.state = StateManager:new()
+obj.ui = UIManager:new()
 
 -- Helper functions
 local function formatTime(seconds)
@@ -38,15 +40,15 @@ local function formatTime(seconds)
 end
 
 local function updateMenubar()
-  local menubarItem = obj.state:getMenuBarItem()
-  if not menubarItem then return end
-
   if not obj.state:isRunning() then
-    menubarItem:setTitle("🍅 Ready")
+    obj.ui:updateMenuBarReady()
   else
-    local emoji = obj.state:isBreak() and "☕" or "🍅"
-    menubarItem:setTitle(emoji .. " " .. formatTime(obj.state:getTimeLeft()))
+    local sessionType = obj.state:isBreak() and "Break" or "Work"
+    obj.ui:updateMenuBarText(sessionType, obj.state:getTimeLeft())
   end
+
+  -- Also update the menu
+  obj.ui:updateMenu(obj.state)
 end
 
 local function showNotification(title, subtitle)
@@ -143,66 +145,6 @@ local function startBreakSession()
   timer:start()
 end
 
--- Manual control functions
-
--- Menu construction
-local function buildMenu()
-  local menu = {}
-
-  if not obj.state:isRunning() then
-    table.insert(menu, {
-      title = "Start Session",
-      fn = function()
-        startWorkSession()
-      end
-    })
-  else
-    local status = obj.state:isBreak() and "Break" or "Work"
-    table.insert(menu, {
-      title = string.format("Status: %s (%s)", status, formatTime(obj.state:getTimeLeft())),
-      disabled = true
-    })
-
-    table.insert(menu, {
-      title = "Stop Session",
-      fn = function()
-        stopTimer()
-      end
-    })
-  end
-
-  table.insert(menu, hs.menuitem.separator)
-
-  -- Statistics
-  local todaySessions = loadStatistics()
-  table.insert(menu, {
-    title = string.format("Today: %d sessions", todaySessions),
-    disabled = true
-  })
-
-  table.insert(menu, {
-    title = "Reset Stats",
-    fn = function()
-      local today = os.date("%Y-%m-%d")
-      local stats = hs.settings.get("pomodoro.stats") or {}
-      stats[today] = 0
-      hs.settings.set("pomodoro.stats", stats)
-      obj.state:setSessionsCompleted(0)
-    end
-  })
-
-  table.insert(menu, hs.menuitem.separator)
-
-  table.insert(menu, {
-    title = "Quit",
-    fn = function()
-      obj:stop()
-    end
-  })
-
-  return menu
-end
-
 -- Spoon methods
 
 --- Pomodoro:start() -> Pomodoro
@@ -215,8 +157,11 @@ function obj:start()
   -- Initialize menubar
   local menubarItem = hs.menubar.new()
   obj.state:setMenuBarItem(menubarItem)
+  obj.ui:setMenuBarItem(menubarItem)
+
   menubarItem:setClickCallback(function()
-    menubarItem:setMenu(buildMenu())
+    -- Update menu on click
+    obj.ui:updateMenu(obj.state)
   end)
 
   -- Load initial statistics
@@ -242,10 +187,11 @@ function obj:stop()
   saveStatistics()
 
   -- Remove menubar item
-  local menubarItem = obj.state:getMenuBarItem()
+  local menubarItem = obj.ui:getMenuBarItem()
   if menubarItem then
     menubarItem:delete()
     obj.state:setMenuBarItem(nil)
+    obj.ui:setMenuBarItem(nil)
   end
 
   return self
