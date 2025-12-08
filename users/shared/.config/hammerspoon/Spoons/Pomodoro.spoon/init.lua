@@ -108,7 +108,7 @@ local function updateMenu()
     table.insert(menuTable, {
       title = "Stop Session",
       fn = function()
-        stopSession()
+        stopTimer()
       end
     })
   else
@@ -151,6 +151,10 @@ local function stopTimer()
   isRunning = false
   isBreak = false
   timeLeft = 0
+
+  -- Sync with Focus Mode - disable when stopping any session
+  focusIntegration.disablePomodoroFocus()
+
   updateMenuBar()
   updateMenu()
 end
@@ -167,6 +171,9 @@ local function startWorkSession()
   saveStatistics()
 
   showNotification("Pomodoro Started", "Work session begins!")
+
+  -- Sync with Focus Mode - enable when starting a work session
+  focusIntegration.enablePomodoroFocus()
 
   timer = hs.timer.doEvery(1, function()
     timeLeft = timeLeft - 1
@@ -188,6 +195,9 @@ local function startBreakSession()
   timeLeft = BREAK_DURATION
 
   showNotification("Break Time!", "Take a 5-minute break")
+
+  -- Sync with Focus Mode - disable during breaks
+  focusIntegration.disablePomodoroFocus()
 
   timer = hs.timer.doEvery(1, function()
     timeLeft = timeLeft - 1
@@ -246,9 +256,7 @@ function obj:bindHotkeys(mapping)
       end
     end,
     stop = function()
-      if isRunning then
-        stopTimer()
-      end
+      stopTimer()
     end,
     toggle = function()
       if isRunning then
@@ -276,20 +284,12 @@ end
 function obj:startSession()
   if not isRunning then
     startWorkSession()
-    -- Sync with Focus Mode - enable when starting a work session
-    if not isBreak then
-      focusIntegration.enablePomodoroFocus()
-    end
   end
   return self
 end
 
 function obj:stopSession()
-  if isRunning then
-    stopTimer()
-    -- Sync with Focus Mode - disable when stopping a session
-    focusIntegration.disablePomodoroFocus()
-  end
+  stopTimer()
   return self
 end
 
