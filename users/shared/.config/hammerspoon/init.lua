@@ -49,7 +49,7 @@ Pomodoro = spoon.Pomodoro
 Pomodoro:start()
 
 -- Optional: Bind hotkeys for manual control
--- Pomodoro:bindHotkeys({
---   start = {{"ctrl", "alt"}, "p"},
---   stop = {{"ctrl", "alt"}, "s"}
--- })
+Pomodoro:bindHotkeys({
+  start = {{"ctrl", "alt"}, "p"},
+  stop = {{"ctrl", "alt"}, "s"}
+})
