@@ -1,82 +1,82 @@
 {
-  "Pomodoro": {
-    "type": "Spoon",
-    "name": "Pomodoro",
-    "version": "1.0",
-    "author": "Jiho Hwang <jito.hello@gmail.com>",
-    "license": "MIT <https://opensource.org/licenses/MIT>",
-    "homepage": "https://github.com/evantravers/dotfiles",
-    "description": "A Pomodoro timer Spoon that integrates with macOS Focus modes. Automatically starts when Focus mode changes to \"Pomodoro\" and provides a 25-minute work session followed by a 5-minute break.",
-    "features": [
-      "Automatic Focus mode integration",
-      "Menubar countdown display",
-      "Daily statistics tracking",
-      "One-cycle-per-session approach",
-      "25-minute work sessions followed by 5-minute breaks",
-      "Notifications for session transitions"
-    ],
-    "api": {
-      "methods": [
-        {
-          "name": "start",
-          "signature": "Pomodoro:start() -> Pomodoro",
-          "type": "Method",
-          "description": "Starts the Pomodoro Spoon and initializes all watchers and timers",
-          "returns": [
-            {
-              "type": "Pomodoro",
-              "description": "The Pomodoro object"
-            }
-          ]
-        },
-        {
-          "name": "stop",
-          "signature": "Pomodoro:stop() -> Pomodoro",
-          "type": "Method",
-          "description": "Stops the Pomodoro Spoon and cleans up resources",
-          "returns": [
-            {
-              "type": "Pomodoro",
-              "description": "The Pomodoro object"
-            }
-          ]
-        },
-        {
-          "name": "bindHotkeys",
-          "signature": "Pomodoro:bindHotkeys(mapping) -> Pomodoro",
-          "type": "Method",
-          "description": "Binds hotkeys for Pomodoro control",
-          "parameters": [
-            {
-              "name": "mapping",
-              "type": "table",
-              "description": "A table containing hotkey modifier/key details for the following items:\n* start - Start a Pomodoro session\n* stop - Stop the current session"
-            }
-          ],
-          "returns": [
-            {
-              "type": "Pomodoro",
-              "description": "The Pomodoro object"
-            }
-          ],
-          "notes": [
-            "Example:\n```lua\nhs.loadSpoon(\"Pomodoro\")\nspoon.Pomodoro:bindHotkeys({\n  start = {hyper, \"p\"},\n  stop = {hyper, \"s\"}\n})\n```"
-          ]
-        },
-        {
-          "name": "getStatistics",
-          "signature": "Pomodoro:getStatistics() -> table",
-          "type": "Method",
-          "description": "Returns Pomodoro statistics",
-          "returns": [
-            {
-              "type": "table",
-              "description": "A table with keys:\n* today - Number of sessions completed today\n* all - Table of daily statistics",
-              "example": "{\n  today = 3,\n  all = {\n    [\"2025-12-08\"] = 3,\n    [\"2025-12-07\"] = 5\n  }\n}"
-            }
-          ]
-        }
-      ],
+  "name": "Pomodoro.spoon",
+  "version": "1.0.0",
+  "description": "A Pomodoro timer with error handling and encapsulated state",
+  "author": "Jiho Hwang <jito.hello@gmail.com>",
+  "license": "MIT <https://opensource.org/licenses/MIT>",
+  "homepage": "https://github.com/evantravers/dotfiles",
+  "features": [
+    "Error handling and validation",
+    "Encapsulated state management",
+    "Menubar countdown display",
+    "Daily statistics tracking",
+    "25-minute work sessions followed by 5-minute breaks",
+    "Notifications for session transitions"
+  ],
+"functions": {
+    "start": {
+      "description": "Starts the Pomodoro Spoon and initializes the menubar",
+      "returns": "Pomodoro object",
+      "errors": "None"
+    },
+    "stop": {
+      "description": "Stops the Pomodoro Spoon and cleans up resources",
+      "returns": "Pomodoro object",
+      "errors": "None"
+    },
+    "bindHotkeys": {
+      "description": "Binds hotkeys for Pomodoro control",
+      "parameters": {
+        "mapping": "Table containing hotkey modifier/key details for start, stop, and toggle"
+      },
+      "returns": "Pomodoro object",
+      "errors": "Invalid hotkey mapping"
+    },
+    "startSession": {
+      "description": "Manually starts a Pomodoro work session",
+      "returns": "Pomodoro object",
+      "errors": "Timer creation failure"
+    },
+    "stopSession": {
+      "description": "Manually stops the current Pomodoro session",
+      "returns": "Pomodoro object",
+      "errors": "None"
+    },
+    "toggleSession": {
+      "description": "Toggles between starting and stopping a Pomodoro session",
+      "returns": "Pomodoro object",
+      "errors": "Timer creation failure"
+    },
+    "startSessionWithDuration": {
+      "description": "Starts a work session with custom duration",
+      "parameters": {
+        "duration": "Duration in seconds (must be positive number)"
+      },
+      "returns": "boolean - true if session started successfully",
+      "errors": "Returns false if duration is invalid or timer creation fails"
+    },
+    "validateSettings": {
+      "description": "Validate current timer settings",
+      "returns": "boolean - true if settings are valid",
+      "errors": "Shows error notification if settings are invalid"
+    },
+    "getStatistics": {
+      "description": "Returns Pomodoro statistics",
+      "returns": "Table with today and all daily statistics",
+      "errors": "None"
+    }
+  },
+  "dependencies": [
+    "hs.timer",
+    "hs.menubar",
+    "hs.notify",
+    "hs.settings"
+  ],
+  "internal_modules": [
+    "state_manager - Encapsulates all timer state",
+    "ui_manager - Handles menubar updates",
+    "utils - Error handling and validation utilities"
+  ]
       "configuration": {
         "constants": [
           {
