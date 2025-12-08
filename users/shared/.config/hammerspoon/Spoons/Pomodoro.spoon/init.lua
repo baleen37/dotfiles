@@ -18,7 +18,7 @@ local focusIntegration
 if hs and hs.spoons and hs.spoons.scriptPath then
   -- Running in Hammerspoon environment
   local scriptPath = hs.spoons.scriptPath()
-  focusIntegration = dofile(scriptPath .. "/focus_integration")
+  focusIntegration = dofile(scriptPath .. "/focus_integration.lua")
 else
   -- Running in test environment
   focusIntegration = dofile("focus_integration.lua")
