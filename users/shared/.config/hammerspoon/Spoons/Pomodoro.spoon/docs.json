@@ -1,19 +1,17 @@
 {
   "name": "Pomodoro.spoon",
   "version": "1.0.0",
-  "description": "A Pomodoro timer with error handling and encapsulated state",
+  "description": "A simple Pomodoro timer for Hammerspoon",
   "author": "Jiho Hwang <jito.hello@gmail.com>",
   "license": "MIT <https://opensource.org/licenses/MIT>",
   "homepage": "https://github.com/evantravers/dotfiles",
   "features": [
-    "Error handling and validation",
-    "Encapsulated state management",
+    "25-minute work sessions followed by 5-minute breaks",
     "Menubar countdown display",
     "Daily statistics tracking",
-    "25-minute work sessions followed by 5-minute breaks",
-    "Notifications for session transitions"
+    "Manual control via hotkeys"
   ],
-"functions": {
+  "functions": {
     "start": {
       "description": "Starts the Pomodoro Spoon and initializes the menubar",
       "returns": "Pomodoro object",
@@ -33,32 +31,19 @@
       "errors": "Invalid hotkey mapping"
     },
     "startSession": {
-      "description": "Manually starts a Pomodoro work session",
+      "description": "Starts a Pomodoro work session",
       "returns": "Pomodoro object",
-      "errors": "Timer creation failure"
+      "errors": "None"
     },
     "stopSession": {
-      "description": "Manually stops the current Pomodoro session",
+      "description": "Stops the current Pomodoro session",
       "returns": "Pomodoro object",
       "errors": "None"
     },
     "toggleSession": {
       "description": "Toggles between starting and stopping a Pomodoro session",
       "returns": "Pomodoro object",
-      "errors": "Timer creation failure"
-    },
-    "startSessionWithDuration": {
-      "description": "Starts a work session with custom duration",
-      "parameters": {
-        "duration": "Duration in seconds (must be positive number)"
-      },
-      "returns": "boolean - true if session started successfully",
-      "errors": "Returns false if duration is invalid or timer creation fails"
-    },
-    "validateSettings": {
-      "description": "Validate current timer settings",
-      "returns": "boolean - true if settings are valid",
-      "errors": "Shows error notification if settings are invalid"
+      "errors": "None"
     },
     "getStatistics": {
       "description": "Returns Pomodoro statistics",
@@ -72,68 +57,57 @@
     "hs.notify",
     "hs.settings"
   ],
-  "internal_modules": [
-    "state_manager - Encapsulates all timer state",
-    "ui_manager - Handles menubar updates",
-    "utils - Error handling and validation utilities"
-  ]
-      "configuration": {
-        "constants": [
-          {
-            "name": "WORK_DURATION",
-            "type": "number",
-            "value": 1500,
-            "description": "Work session duration in seconds (25 minutes)"
-          },
-          {
-            "name": "BREAK_DURATION",
-            "type": "number",
-            "value": 300,
-            "description": "Break duration in seconds (5 minutes)"
-          },
-          {
-            "name": "POMODORO_FOCUS_MODE",
-            "type": "string",
-            "value": "Pomodoro",
-            "description": "Focus mode name that triggers Pomodoro sessions"
-          }
-        ],
-        "notes": [
-          "The Spoon automatically integrates with macOS Focus modes",
-          "When the 'Pomodoro' Focus mode is activated, a 25-minute work session starts",
-          "After the work session completes, a 5-minute break automatically begins",
-          "Statistics are stored in hs.settings with the key 'pomodoro.stats'",
-          "The menubar displays a tomato emoji (🍅) during work and coffee emoji (☕) during breaks"
-        ]
-      }
-    },
-    "usage_examples": [
+  "configuration": {
+    "constants": [
       {
-        "title": "Basic usage",
-        "description": "Load and start the Pomodoro Spoon",
-        "code": "hs.loadSpoon(\"Pomodoro\")\nspoon.Pomodoro:start()"
+        "name": "WORK_DURATION",
+        "type": "number",
+        "value": 1500,
+        "description": "Work session duration in seconds (25 minutes)"
       },
       {
-        "title": "With hotkeys",
-        "description": "Load with custom hotkeys",
-        "code": "hs.loadSpoon(\"Pomodoro\")\nspoon.Pomodoro:bindHotkeys({\n  start = {hyper, \"p\"},\n  stop = {hyper, \"s\"}\n})\nspoon.Pomodoro:start()"
-      },
-      {
-        "title": "Get statistics",
-        "description": "Retrieve daily Pomodoro statistics",
-        "code": "local stats = spoon.Pomodoro:getStatistics()\nprint(\"Today's sessions:\", stats.today)\nprint(\"All stats:\", hs.inspect(stats.all))"
+        "name": "BREAK_DURATION",
+        "type": "number",
+        "value": 300,
+        "description": "Break duration in seconds (5 minutes)"
       }
     ],
-    "changelog": [
-      {
-        "version": "1.0",
-        "changes": [
-          "Initial release with Focus mode integration",
-          "25-minute work sessions with 5-minute breaks",
-          "Daily statistics tracking",
-          "Menubar countdown display"
-        ]
-      }
+    "notes": [
+      "Statistics are stored in hs.settings with the key 'pomodoro.stats'",
+      "The menubar displays a tomato emoji (🍅) during work and coffee emoji (☕) during breaks"
     ]
-  }
+  },
+  "usage_examples": [
+    {
+      "title": "Basic usage",
+      "description": "Load and start the Pomodoro Spoon",
+      "code": "hs.loadSpoon(\"Pomodoro\")\nspoon.Pomodoro:start()"
+    },
+    {
+      "title": "With hotkeys",
+      "description": "Load with custom hotkeys",
+      "code": "hs.loadSpoon(\"Pomodoro\")\nspoon.Pomodoro:bindHotkeys({\n  start = {{\"ctrl\", \"cmd\"}, \"p\"},\n  stop = {{\"ctrl\", \"cmd\"}, \"s\"},\n  toggle = {{\"ctrl\", \"cmd\"}, \"t\"}\n})\nspoon.Pomodoro:start()"
+    },
+    {
+      "title": "Manual control",
+      "description": "Control sessions programmatically",
+      "code": "-- Start a session\nspoon.Pomodoro:startSession()\n\n-- Stop current session\nspoon.Pomodoro:stopSession()\n\n-- Toggle session\nspoon.Pomodoro:toggleSession()"
+    },
+    {
+      "title": "Get statistics",
+      "description": "Retrieve daily Pomodoro statistics",
+      "code": "local stats = spoon.Pomodoro:getStatistics()\nprint(\"Today's sessions:\", stats.today)"
+    }
+  ],
+  "changelog": [
+    {
+      "version": "1.0.0",
+      "changes": [
+        "Initial release with manual control",
+        "25-minute work sessions with 5-minute breaks",
+        "Daily statistics tracking",
+        "Menubar countdown display"
+      ]
+    }
+  ]
 }
