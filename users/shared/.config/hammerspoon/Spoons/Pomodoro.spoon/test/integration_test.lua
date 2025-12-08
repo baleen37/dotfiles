@@ -1,12 +1,28 @@
 -- test/integration_test.lua
--- Set test mode to avoid executing initialization code
-_G.POMODORO_TEST_MODE = true
+-- Set up test environment first
+package.path = package.path .. ";../?.lua"
 
+-- Load test helper BEFORE any other modules
+dofile("test_helper.lua")
+testHelper.resetMocks()
+
+-- Now load the pomodoro module
 local pomodoro = require("init")
+
+-- Initialize state if needed
+if not pomodoro.state then
+    local StateManager = require("state_manager")
+    pomodoro.state = StateManager:new()
+end
+
+if not pomodoro.ui then
+    local UIManager = require("ui_manager")
+    pomodoro.ui = UIManager:new()
+end
 
 function testFullSession()
     -- Setup
-    pomodoro:reset()
+    pomodoro.state:reset()
 
     -- Test initial state
     assert(pomodoro.state:isRunning() == false, "Initial state should not be running")
@@ -125,7 +141,7 @@ end
 
 function testStatePersistence()
     -- Test that state persists correctly
-    pomodoro:reset()
+    pomodoro.state:reset()
 
     -- Set some state
     pomodoro.state:setSessionsCompleted(5)

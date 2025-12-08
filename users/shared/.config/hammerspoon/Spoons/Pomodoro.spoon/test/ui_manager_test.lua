@@ -1,6 +1,20 @@
 -- test/ui_manager_test.lua
+-- Set up test environment
+package.path = package.path .. ";../?.lua"
+local testHelper = require("test_helper")
+testHelper.resetMocks()
+
+-- Mock utils first
+package.preload["utils"] = function()
+    return {
+        safeCall = function(fn)
+            local success, result = pcall(fn)
+            return { success = success, result = result }
+        end
+    }
+end
+
 local UIManager = require("ui_manager")
-local utils = require("utils")
 
 function testUIManagerCreation()
     local ui = UIManager:new()

@@ -47,7 +47,7 @@ function UIManager:updateMenuBarReady()
     end
 end
 
-function UIManager:updateMenu(state)
+function UIManager:updateMenu(state, pomodoroObj)
     if not self.menuBarItem then
         return
     end
@@ -69,12 +69,20 @@ function UIManager:updateMenu(state)
 
         table.insert(menuItems, {
             title = "Stop Session",
-            fn = function() obj:stopSession() end
+            fn = function()
+                if pomodoroObj then
+                    pomodoroObj:stopSession()
+                end
+            end
         })
     else
         table.insert(menuItems, {
             title = "Start Session",
-            fn = function() obj:startSession() end
+            fn = function()
+                if pomodoroObj then
+                    pomodoroObj:startSession()
+                end
+            end
         })
     end
 
@@ -97,7 +105,9 @@ function UIManager:updateMenu(state)
             local stats = hs.settings.get("pomodoro.stats") or {}
             stats[today] = 0
             hs.settings.set("pomodoro.stats", stats)
-            obj.state:setSessionsCompleted(0)
+            if pomodoroObj then
+                pomodoroObj.state:setSessionsCompleted(0)
+            end
         end
     })
 
@@ -106,7 +116,9 @@ function UIManager:updateMenu(state)
     table.insert(menuItems, {
         title = "Quit",
         fn = function()
-            obj:stop()
+            if pomodoroObj then
+                pomodoroObj:stop()
+            end
         end
     })
 

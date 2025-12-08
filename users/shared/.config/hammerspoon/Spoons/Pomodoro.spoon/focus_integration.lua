@@ -12,8 +12,8 @@
 local obj = {}
 obj.__index = obj
 
--- Import Focus Mode Detector
-local focusDetector = dofile(hs.fs.path.tildeexpand("~/.hammerspoon/Spoons/Pomodoro.spoon/focus_detector.lua"))
+-- Import Simple Focus Detector
+local simpleFocus = require("simple_focus")
 
 -- Configuration
 local config = {
@@ -51,8 +51,8 @@ local pomodoroRef = nil
 
 -- Helper functions
 local function log(...)
-  if focusDetector then
-    focusDetector:setDebugMode(true)
+  if simpleFocus then
+    simpleFocus.setDebugMode(config.debug or false)
   end
   print("[PomodoroFocus]", ...)
 end
@@ -73,10 +73,10 @@ local function saveCurrentState()
 
   local stats = pomodoroRef:getStatistics()
   local currentState = {
-    timerRunning = pomodoroRef.timerRunning,
-    isBreak = pomodoroRef.isBreak,
+    timerRunning = pomodoroRef:isRunning(),
+    isBreak = pomodoroRef:isBreak(),
     sessionsCompleted = stats.today,
-    timeLeft = pomodoroRef.timeLeft
+    timeLeft = pomodoroRef:getTimeLeft()
   }
 
   hs.settings.set("pomodoro.focusState", currentState)
@@ -116,16 +116,22 @@ local function handleFocusActivation(source)
   log("Handling Focus activation from:", source)
 
   if config.autoStartOnFocus then
-    if not pomodoroRef.timerRunning then
+    if pomodoroRef and not pomodoroRef:isRunning() then
       -- Check if there's a saved state to resume
       local savedState = loadSavedState()
       if savedState and config.preserveState then
         log("Resuming from saved state")
         -- Restore session with remaining time
         if savedState.timeLeft and savedState.timeLeft > 0 then
-          pomodoroRef.timeLeft = savedState.timeLeft
-          pomodoroRef.isBreak = savedState.isBreak or false
-          pomodoroRef:startSession()
+          -- Use startSessionWithDuration with isRestore flag
+          if pomodoroRef.startSessionWithDuration and type(pomodoroRef.startSessionWithDuration) == "function" then
+            pomodoroRef:startSessionWithDuration(savedState.timeLeft, true)
+          else
+            pomodoroRef:startSession()
+          end
+          if savedState.isBreak then
+            pomodoroRef:setBreak(savedState.isBreak)
+          end
           showNotification("Pomodoro Resumed", "Session restored from Focus Mode")
         else
           pomodoroRef:startSession()
@@ -158,7 +164,7 @@ local function handleFocusDeactivation(source)
   log("Handling Focus deactivation from:", source)
 
   if config.autoPauseOnUnfocus then
-    if pomodoroRef.timerRunning then
+    if pomodoroRef and pomodoroRef:isRunning() then
       -- Save current state
       focusState.wasRunning = true
       focusState.pauseTime = os.time()
@@ -194,19 +200,25 @@ end
 --- Returns:
 ---  * The PomodoroFocus object
 function obj:start()
-  if not focusDetector then
-    log("Error: Focus Mode Detector not loaded")
+  if not simpleFocus then
+    log("Error: Simple Focus not loaded")
     return self
   end
 
-  -- Start the focus detector
-  focusDetector:start()
+  -- Initialize simple focus
+  simpleFocus.init({
+    pollInterval = 2.0,
+    debug = config.debug or false
+  })
 
   -- Register callback for Focus Mode changes
-  focusDetector:addCallback(onFocusModeChanged)
+  simpleFocus.onFocusModeChanged(onFocusModeChanged)
+
+  -- Start monitoring
+  simpleFocus.startMonitoring()
 
   -- Get current Focus state
-  local currentFocus = focusDetector:isFocusModeActive()
+  local currentFocus = simpleFocus.getCurrentState()
   focusState.active = currentFocus
 
   log("Focus Integration started, current Focus state:", currentFocus)
@@ -221,8 +233,9 @@ end
 --- Returns:
 ---  * The PomodoroFocus object
 function obj:stop()
-  if focusDetector then
-    focusDetector:removeCallback(onFocusModeChanged)
+  if simpleFocus then
+    simpleFocus.removeFocusModeCallback(onFocusModeChanged)
+    simpleFocus.stopMonitoring()
   end
 
   -- Clean up any saved state
@@ -285,9 +298,8 @@ end
 --- Parameters:
 ---  * isActive - Boolean indicating desired Focus Mode state
 function obj:manuallyTriggerFocus(isActive)
-  if focusDetector then
-    focusDetector:setManualFocus(isActive)
-  end
+  -- Manual triggering is not supported in Simple Focus
+  log("Manual focus triggering not supported in Simple Focus")
 end
 
 --- PomodoroFocus:getStatus() -> table
@@ -302,7 +314,7 @@ function obj:getStatus()
     sessionActive = focusState.sessionActive,
     wasRunning = focusState.wasRunning,
     pausedAt = focusState.pauseTime,
-    integrationEnabled = focusDetector ~= nil
+    integrationEnabled = simpleFocus ~= nil
   }
 end
 
@@ -349,8 +361,9 @@ local function createIntegrationMenu(pomodoro)
   table.insert(menu, {
     title = "Check Focus Status",
     fn = function()
-      if focusDetector then
-        focusDetector.checkAllDetectionMethods()
+      if simpleFocus then
+        local isActive = simpleFocus.isFocusModeActive()
+        hs.alert.show(string.format("Focus Mode: %s", isActive and "Active" or "Inactive"))
       end
     end
   })
@@ -358,19 +371,10 @@ local function createIntegrationMenu(pomodoro)
   table.insert(menu, hs.menuitem.separator)
 
   -- Integration info
-  if focusDetector then
-    local methods = focusDetector:getDetectionMethods()
-    local activeCount = 0
-    for _, method in pairs(methods) do
-      if method.active then
-        activeCount = activeCount + 1
-      end
-    end
-    table.insert(menu, {
-      title = string.format("Detection Methods: %d active", activeCount),
-      disabled = true
-    })
-  end
+  table.insert(menu, {
+    title = "Detection Method: AppleScript",
+    disabled = true
+  })
 
   return menu
 end

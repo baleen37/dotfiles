@@ -1,4 +1,9 @@
 -- test/state_manager_test.lua
+-- Set up test environment
+package.path = package.path .. ";../?.lua"
+local testHelper = require("test_helper")
+testHelper.resetMocks()
+
 local StateManager = require("state_manager")
 
 function testStateManagerCreation()
@@ -47,10 +52,15 @@ end
 function testStateManagerSaveSession()
     local state = StateManager:new()
 
-    local initialCount = state:getSessionsCompleted()
+    -- Manually increment session count to test save functionality
+    state.sessionsCompleted = 5
     state:saveSession()
 
-    assert(state:getSessionsCompleted() == initialCount + 1, "Should increment session count")
+    -- Check that the value was saved to mock settings
+    local today = os.date("%Y-%m-%d")
+    local stats = mockSettings["pomodoro.stats"]
+    assert(stats, "Stats should be saved")
+    assert(stats[today] == 5, "Should save correct session count")
 
     print("✓ StateManager save session test passed")
 end

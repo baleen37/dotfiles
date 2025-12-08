@@ -13,6 +13,7 @@
 local StateManager = require("state_manager")
 local UIManager = require("ui_manager")
 local utils = require("utils")
+local Timer = require("timer")
 
 local obj = {}
 obj.__index = obj
@@ -37,17 +38,20 @@ obj.ui = UIManager:new()
 -- TODO: Consider adding a "pause" functionality
 -- TODO: Add support for custom work/break ratios
 
--- Helper functions
-local function updateMenubar()
-  if not obj.state:isRunning() then
-    obj.ui:updateMenuBarReady()
-  else
-    local sessionType = obj.state:isBreak() and "Break" or "Work"
-    obj.ui:updateMenuBarText(sessionType, obj.state:getTimeLeft())
-  end
+-- Observer setup
+local function setupStateObserver()
+  obj.state:addObserver(function(property, value, state)
+    -- Auto-update UI when state changes
+    if not state:isRunning() then
+      obj.ui:updateMenuBarReady()
+    else
+      local sessionType = state:isBreak() and "Break" or "Work"
+      obj.ui:updateMenuBarText(sessionType, state:getTimeLeft())
+    end
 
-  -- Also update the menu
-  obj.ui:updateMenu(obj.state)
+    -- Also update the menu
+    obj.ui:updateMenu(state, obj)
+  end)
 end
 
 local function showNotification(title, subtitle)
@@ -64,9 +68,7 @@ local function saveStatistics()
 end
 
 local function loadStatistics()
-  local today = os.date("%Y-%m-%d")
-  local stats = hs.settings.get("pomodoro.stats") or {}
-  return stats[today] or 0
+  return obj.state:loadStatistics()
 end
 
 local function stopTimer()
@@ -75,8 +77,6 @@ local function stopTimer()
   obj.state:setTimeLeft(0)
   obj.state:setSessionStartTime(nil)
   obj.state:setTimer(nil)
-
-  updateMenubar()
 end
 
 local function startWorkSession()
@@ -86,30 +86,28 @@ local function startWorkSession()
   obj.state:setSessionStartTime(os.time())
   obj.state:setSessionsCompleted(loadStatistics() + 1)
 
-  updateMenubar()
   showNotification("Pomodoro Started", "Work session begins!")
 
-  local success, timer = utils.safeCall(function()
-    return hs.timer.new(1, function()
-      obj.state:setTimeLeft(obj.state:getTimeLeft() - 1)
+  -- Create timer using the Timer module
+  local timerResult = Timer.createTimer(
+    WORK_DURATION,
+    function(timeLeft)
+      obj.state:setTimeLeft(timeLeft)
+    end,
+    function()
+      stopTimer()
+      startBreakSession()
+    end
+  )
 
-      if obj.state:getTimeLeft() <= 0 then
-        stopTimer()
-        startBreakSession()
-      else
-        updateMenubar()
-      end
-    end)
-  end)
-
-  if not success then
-    utils.showError("Failed to create timer: " .. timer.error)
+  if not timerResult.success then
+    utils.showError("Failed to create timer: " .. tostring(timerResult.error))
     obj.state:setRunning(false)
     return
   end
 
-  obj.state:setTimer(timer)
-  timer:start()
+  obj.state:setTimer(timerResult.timer)
+  timerResult.timer:start()
 end
 
 local function startBreakSession()
@@ -117,31 +115,29 @@ local function startBreakSession()
   obj.state:setTimeLeft(BREAK_DURATION)
   obj.state:setRunning(true)
 
-  updateMenubar()
   showNotification("Break Time!", "Take a 5-minute break")
 
-  local success, timer = utils.safeCall(function()
-    return hs.timer.new(1, function()
-      obj.state:setTimeLeft(obj.state:getTimeLeft() - 1)
+  -- Create timer using the Timer module
+  local timerResult = Timer.createTimer(
+    BREAK_DURATION,
+    function(timeLeft)
+      obj.state:setTimeLeft(timeLeft)
+    end,
+    function()
+      stopTimer()
+      saveStatistics()
+      showNotification("Session Complete!", "Great job! Ready for another?")
+    end
+  )
 
-      if obj.state:getTimeLeft() <= 0 then
-        stopTimer()
-        saveStatistics()
-        showNotification("Session Complete!", "Great job! Ready for another?")
-      else
-        updateMenubar()
-      end
-    end)
-  end)
-
-  if not success then
-    utils.showError("Failed to create break timer: " .. timer.error)
+  if not timerResult.success then
+    utils.showError("Failed to create break timer: " .. tostring(timerResult.error))
     obj.state:setRunning(false)
     return
   end
 
-  obj.state:setTimer(timer)
-  timer:start()
+  obj.state:setTimer(timerResult.timer)
+  timerResult.timer:start()
 end
 
 -- Spoon methods
@@ -160,14 +156,22 @@ function obj:start()
 
   menubarItem:setClickCallback(function()
     -- Update menu on click
-    obj.ui:updateMenu(obj.state)
+    obj.ui:updateMenu(obj.state, obj)
   end)
+
+  -- Setup state observer for automatic UI updates
+  setupStateObserver()
 
   -- Load initial statistics
   obj.state:setSessionsCompleted(loadStatistics())
 
-  -- Initial menubar update
-  updateMenubar()
+  -- Initial UI update (observer will handle this)
+  if not obj.state:isRunning() then
+    obj.ui:updateMenuBarReady()
+  else
+    local sessionType = obj.state:isBreak() and "Break" or "Work"
+    obj.ui:updateMenuBarText(sessionType, obj.state:getTimeLeft())
+  end
 
   return self
 end
@@ -292,16 +296,17 @@ function obj:toggleSession()
   return self
 end
 
---- Pomodoro:startSessionWithDuration(duration) -> boolean
+--- Pomodoro:startSessionWithDuration(duration, isRestore) -> boolean
 --- Method
 --- Starts a work session with custom duration
 ---
 --- Parameters:
 ---  * duration - Duration in seconds (must be positive number)
+---  * isRestore - Optional boolean indicating if this is a restored session
 ---
 --- Returns:
 ---  * Boolean - true if session started successfully, false otherwise
-function obj:startSessionWithDuration(duration)
+function obj:startSessionWithDuration(duration, isRestore)
   -- Validate input
   if not duration or type(duration) ~= "number" or duration <= 0 then
     utils.showError("Invalid duration: must be a positive number")
@@ -318,32 +323,38 @@ function obj:startSessionWithDuration(duration)
   obj.state:setTimeLeft(duration)
   obj.state:setRunning(true)
   obj.state:setSessionStartTime(os.time())
-  obj.state:setSessionsCompleted(loadStatistics() + 1)
 
-  updateMenubar()
-  showNotification("Pomodoro Started", "Work session begins!")
+  -- Only increment sessions if this is not a restore
+  if not isRestore then
+    obj.state:setSessionsCompleted(loadStatistics() + 1)
+  end
 
-  local success, timer = utils.safeCall(function()
-    return hs.timer.new(1, function()
-      obj.state:setTimeLeft(obj.state:getTimeLeft() - 1)
+  if isRestore then
+    showNotification("Pomodoro Restored", "Work session restored!")
+  else
+    showNotification("Pomodoro Started", "Work session begins!")
+  end
 
-      if obj.state:getTimeLeft() <= 0 then
-        stopTimer()
-        startBreakSession()
-      else
-        updateMenubar()
-      end
-    end)
-  end)
+  -- Create timer using the Timer module
+  local timerResult = Timer.createTimer(
+    duration,
+    function(timeLeft)
+      obj.state:setTimeLeft(timeLeft)
+    end,
+    function()
+      stopTimer()
+      startBreakSession()
+    end
+  )
 
-  if not success then
-    utils.showError("Failed to create timer: " .. timer.error)
+  if not timerResult.success then
+    utils.showError("Failed to create timer: " .. tostring(timerResult.error))
     obj.state:setRunning(false)
     return false
   end
 
-  obj.state:setTimer(timer)
-  timer:start()
+  obj.state:setTimer(timerResult.timer)
+  timerResult.timer:start()
 
   return true
 end
@@ -368,9 +379,70 @@ function obj:validateSettings()
   return true
 end
 
-return obj
+-- State API for external integrations
 
--- Test helper
-if _G.POMODORO_TEST_MODE then
-    return obj  -- Return the spoon object for testing
+--- Pomodoro:isRunning() -> boolean
+--- Method
+--- Returns whether a Pomodoro session is currently running
+---
+--- Returns:
+---  * Boolean - true if a session is running, false otherwise
+function obj:isRunning()
+  return obj.state:isRunning()
 end
+
+--- Pomodoro:isBreak() -> boolean
+--- Method
+--- Returns whether the current session is a break
+---
+--- Returns:
+---  * Boolean - true if currently on break, false otherwise
+function obj:isBreak()
+  return obj.state:isBreak()
+end
+
+--- Pomodoro:getTimeLeft() -> number
+--- Method
+--- Returns the time left in the current session
+---
+--- Returns:
+---  * Number - Time remaining in seconds
+function obj:getTimeLeft()
+  return obj.state:getTimeLeft()
+end
+
+--- Pomodoro:getSessionStartTime() -> number or nil
+--- Method
+--- Returns the start time of the current session
+---
+--- Returns:
+---  * Number - Unix timestamp when session started, or nil if no active session
+function obj:getSessionStartTime()
+  return obj.state:getSessionStartTime()
+end
+
+--- Pomodoro:getSessionsCompleted() -> number
+--- Method
+--- Returns the number of sessions completed today
+---
+--- Returns:
+---  * Number - Sessions completed today
+function obj:getSessionsCompleted()
+  return obj.state:getSessionsCompleted()
+end
+
+--- Pomodoro:setBreak(isBreak) -> Pomodoro
+--- Method
+--- Sets the break state (for internal use by integrations)
+---
+--- Parameters:
+---  * isBreak - Boolean indicating break state
+---
+--- Returns:
+---  * The Pomodoro object
+function obj:setBreak(isBreak)
+  obj.state:setBreak(isBreak)
+  return self
+end
+
+return obj

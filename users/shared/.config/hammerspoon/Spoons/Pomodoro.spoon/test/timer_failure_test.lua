@@ -1,4 +1,9 @@
 -- test/timer_failure_test.lua
+-- Set up test environment
+package.path = package.path .. ";../?.lua"
+local testHelper = require("test_helper")
+testHelper.resetMocks()
+
 -- Set test mode to avoid executing initialization code
 _G.POMODORO_TEST_MODE = true
 
