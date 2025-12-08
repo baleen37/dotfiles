@@ -32,13 +32,12 @@ local BREAK_DURATION = 5 * 60  -- 5 minutes in seconds
 obj.state = StateManager:new()
 obj.ui = UIManager:new()
 
--- Helper functions
-local function formatTime(seconds)
-  local minutes = math.floor(seconds / 60)
-  local secs = seconds % 60
-  return string.format("%02d:%02d", minutes, secs)
-end
+-- TODO: Consider making durations configurable
+-- TODO: Add support for different notification sounds
+-- TODO: Consider adding a "pause" functionality
+-- TODO: Add support for custom work/break ratios
 
+-- Helper functions
 local function updateMenubar()
   if not obj.state:isRunning() then
     obj.ui:updateMenuBarReady()

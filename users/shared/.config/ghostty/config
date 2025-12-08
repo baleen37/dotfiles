@@ -16,6 +16,10 @@ window-padding-y = 10
 shell-integration = true
 shell-integration-features = cursor,sudo,title
 
+# Mouse Scrolling
+# Reduce scroll multiplier for better control in Claude Code
+mouse-scroll-multiplier = precision:0.1,discrete:1
+
 # Keybindings for Claude Code compatibility
 # Claude Code doesn't support modern keyboard protocols (CSI u, modifyOtherKeys)
 keybind = shift+enter=text:\n

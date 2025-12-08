@@ -1,7 +1,7 @@
 hs.loadSpoon('Hyper')
 -- hs.loadSpoon('Headspace'):start()
 hs.loadSpoon('HyperModal')
-hs.loadSpoon('Pomodoro')
+hs.loadSpoon('Pomodoro')  -- FIXED: hs.focus dependency removed
 
 
 Config = {}
@@ -46,10 +46,11 @@ HyperModal
 
 -- Initialize Pomodoro Spoon
 Pomodoro = spoon.Pomodoro
-Pomodoro:start()
+Pomodoro:start()  -- FIXED: hs.focus dependency removed
 
--- Optional: Bind hotkeys for manual control
--- Pomodoro:bindHotkeys({
---   start = {{"ctrl", "alt"}, "p"},
---   stop = {{"ctrl", "alt"}, "s"}
--- })
+-- Bind hotkeys for manual control
+Pomodoro:bindHotkeys({
+  start = {{"ctrl"}, "1"},
+  stop = {{"ctrl"}, "2"},
+  toggle = {{"ctrl"}, "p"}
+})
