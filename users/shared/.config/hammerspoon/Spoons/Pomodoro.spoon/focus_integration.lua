@@ -25,6 +25,7 @@ local internalState = {
   isInternalChange = false,
   watcher = nil,
   callbacks = {},
+  timers = {},  -- 활성 타이머들을 추적하기 위한 배열
 }
 
 -- Helper functions
@@ -49,6 +50,33 @@ local function notifyCallbacks(isActive)
   for _, callback in ipairs(internalState.callbacks) do
     pcall(callback, isActive)
   end
+end
+
+-- 타이머 정리 함수
+local function cleanupTimers()
+  for _, timer in ipairs(internalState.timers) do
+    if timer then
+      timer:stop()
+    end
+  end
+  internalState.timers = {}
+end
+
+-- 타이머를 생성하고 추적하는 헬퍼 함수
+local function scheduleDelayedCall(delay, fn)
+  local timer = hs.timer.doAfter(delay, function()
+    -- 타이머 완료 후 목록에서 제거
+    for i, t in ipairs(internalState.timers) do
+      if t == timer then
+        table.remove(internalState.timers, i)
+        break
+      end
+    end
+    fn()
+  end)
+
+  table.insert(internalState.timers, timer)
+  return timer
 end
 
 local function log(message, debugOnly)
@@ -120,7 +148,8 @@ function obj.setupFallbackDetection(pomodoroSpoon)
   local lastKnownState = obj.getCurrentFocusState()
   internalState.isPomodoroFocusActive = lastKnownState
 
-  hs.timer.doEvery(2.0, function()
+  -- timer를 internalState에 저장하여 추적
+  local fallbackTimer = hs.timer.doEvery(2.0, function()
     local currentState = obj.getCurrentFocusState()
     if currentState ~= lastKnownState then
       log("Fallback detected state change: " .. tostring(currentState))
@@ -138,28 +167,78 @@ function obj.setupFallbackDetection(pomodoroSpoon)
       end
     end
   end)
+
+  internalState.fallbackTimer = fallbackTimer
 end
 
 --- 현재 Focus 상태 확인 (fallback용)
 function obj.getCurrentFocusState()
   -- AppleScript를 사용한 Focus 상태 확인
-  local script = string.format([[
-    tell application "System Events"
-      tell process "ControlCenter"
+  -- ControlCenter가 메뉴 막대에 없는 경우를 대비한 여러 방법 시도
+  local scripts = {
+    -- 방법 1: ControlCenter 메뉴 막대 아이템 확인
+    string.format([[
+      tell application "System Events"
+        tell process "ControlCenter"
+          try
+            return value of menu bar item "%s" of menu bar 1
+          on error
+            return "not_found"
+          end try
+        end tell
+      end tell
+    ]], POMODORO_FOCUS_NAME),
+
+    -- 방법 2: System Preferences.app를 통한 확인
+    string.format([[
+      tell application "System Events"
         try
-          return value of menu bar item "%s" of menu bar 1
+          tell application "System Preferences"
+            activate
+            set the pane to pane id "com.apple.preference.dock"
+            tell window "Dock & Menu Bar"
+              try
+                return selected of row 1 of table 1 of scroll area 1 of group "Focus Modes"
+              on error
+                return "not_found"
+              end try
+            end tell
+          end tell
+          quit application "System Preferences"
         on error
-          return false
+          try
+            quit application "System Preferences"
+          end try
+          return "not_found"
         end try
       end tell
-    end tell
-  ]], POMODORO_FOCUS_NAME)
+    ]], POMODORO_FOCUS_NAME),
+
+    -- 방법 3: NSWorkspace를 통한 확인 (macOS 12+)
+    [[
+      tell application "System Events"
+        try
+          do shell script "defaults read com.apple.controlcenter FocusModePomodoro"
+          return "active"
+        on error
+          return "not_found"
+        end try
+      end tell
+    ]]
+  }
 
   -- hs.osascript 모듈이 있는지 확인
   if hs.osascript then
-    local success, result = hs.osascript.applescript(script)
-    if success then
-      return result == 1 or result == true
+    -- 각 스크립트 방법 시도
+    for _, script in ipairs(scripts) do
+      local success, result = hs.osascript.applescript(script)
+      if success then
+        if result == 1 or result == true or result == "active" then
+          return true
+        elseif result == 0 or result == false then
+          return false
+        end
+      end
     end
   end
 
@@ -181,16 +260,27 @@ end
 
 --- Focus Integration 정리
 function obj.cleanup()
+  -- Watcher 정리
   if internalState.watcher then
     internalState.watcher:stop()
     internalState.watcher = nil
   end
+
+  -- Fallback timer 정리
+  if internalState.fallbackTimer then
+    internalState.fallbackTimer:stop()
+    internalState.fallbackTimer = nil
+  end
+
+  -- 모든 지연된 타이머 정리
+  cleanupTimers()
 
   -- Reset all internal state
   internalState.isPomodoroFocusActive = false
   internalState.lastChangeTime = 0
   internalState.isInternalChange = false
   internalState.callbacks = {}
+
   return obj
 end
 
@@ -217,7 +307,7 @@ function obj.enablePomodoroFocus()
   end
 
   -- 내부 변경 플래그 나중에 해제
-  hs.timer.doAfter(DEBOUNCE_DELAY, function()
+  scheduleDelayedCall(DEBOUNCE_DELAY, function()
     setInternalChangeFlag(false)
   end)
 
@@ -242,7 +332,7 @@ function obj.disablePomodoroFocus()
   end
 
   -- 내부 변경 플래그 나중에 해제
-  hs.timer.doAfter(DEBOUNCE_DELAY, function()
+  scheduleDelayedCall(DEBOUNCE_DELAY, function()
     setInternalChangeFlag(false)
   end)
 
@@ -285,6 +375,8 @@ function obj.getDebugInfo()
     lastChangeTime = internalState.lastChangeTime,
     isInternalChange = internalState.isInternalChange,
     hasWatcher = internalState.watcher ~= nil,
+    hasFallbackTimer = internalState.fallbackTimer ~= nil,
+    activeTimerCount = #internalState.timers,
     callbackCount = #internalState.callbacks,
     hasFocusModule = hs.focus ~= nil
   }
