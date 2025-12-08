@@ -50,6 +50,6 @@ Pomodoro:start()
 
 -- Optional: Bind hotkeys for manual control
 Pomodoro:bindHotkeys({
-  start = {{"ctrl", "alt"}, "p"},
-  stop = {{"ctrl", "alt"}, "s"}
+  start = {{"ctrl", "alt", "shift", "cmd"}, "p"},
+  stop = {{"ctrl", "alt", "shift", "cmd"}, "p"}
 })

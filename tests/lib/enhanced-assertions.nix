@@ -36,16 +36,21 @@ let
   assertFileContent =
     name: expectedPath: actualPath:
     let
-      expectedContent = builtins.readFile expectedPath;
-      actualContent = builtins.readFile actualPath;
+      result = pkgs.runCommand "test-${name}" { } ''
+        if cmp -s ${expectedPath} ${actualPath}; then
+          echo "PASS: ${name}"
+          touch $out
+        else
+          echo "FAIL: ${name}"
+          echo "  📝 File content mismatch"
+          echo "  🔮 Expected: $(cat ${expectedPath})"
+          echo "  🔍 Actual: $(cat ${actualPath})"
+          echo "  📍 Expected file: ${expectedPath}"
+          exit 1
+        fi
+      '';
     in
-    assertTestWithDetails name
-      (expectedContent == actualContent)
-      "File content mismatch"
-      expectedContent
-      actualContent
-      expectedPath
-      null;
+    result;
 in
 {
   inherit assertTestWithDetails assertFileContent;
