@@ -1,6 +1,7 @@
 hs.loadSpoon('Hyper')
 -- hs.loadSpoon('Headspace'):start()
 hs.loadSpoon('HyperModal')
+hs.loadSpoon('Pomodoro')
 
 
 Config = {}
@@ -42,3 +43,13 @@ Hyper:bind({}, 'm', function() HyperModal:toggle() end)
 HyperModal
  :start()
  :bind('', ";", function() hs.urlevent.openURL("raycast://extensions/raycast/system/toggle-system-appearance") end)
+
+-- Initialize Pomodoro Spoon
+Pomodoro = spoon.Pomodoro
+Pomodoro:start()
+
+-- Optional: Bind hotkeys for manual control
+-- Pomodoro:bindHotkeys({
+--   start = {{"ctrl", "alt"}, "p"},
+--   stop = {{"ctrl", "alt"}, "s"}
+-- })
