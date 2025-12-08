@@ -88,16 +88,24 @@ local function startWorkSession()
   updateMenubar()
   showNotification("Pomodoro Started", "Work session begins!")
 
-  local timer = hs.timer.new(1, function()
-    obj.state:setTimeLeft(obj.state:getTimeLeft() - 1)
+  local success, timer = utils.safeCall(function()
+    return hs.timer.new(1, function()
+      obj.state:setTimeLeft(obj.state:getTimeLeft() - 1)
 
-    if obj.state:getTimeLeft() <= 0 then
-      stopTimer()
-      startBreakSession()
-    else
-      updateMenubar()
-    end
+      if obj.state:getTimeLeft() <= 0 then
+        stopTimer()
+        startBreakSession()
+      else
+        updateMenubar()
+      end
+    end)
   end)
+
+  if not success then
+    utils.showError("Failed to create timer: " .. timer.error)
+    obj.state:setRunning(false)
+    return
+  end
 
   obj.state:setTimer(timer)
   timer:start()
@@ -111,17 +119,25 @@ local function startBreakSession()
   updateMenubar()
   showNotification("Break Time!", "Take a 5-minute break")
 
-  local timer = hs.timer.new(1, function()
-    obj.state:setTimeLeft(obj.state:getTimeLeft() - 1)
+  local success, timer = utils.safeCall(function()
+    return hs.timer.new(1, function()
+      obj.state:setTimeLeft(obj.state:getTimeLeft() - 1)
 
-    if obj.state:getTimeLeft() <= 0 then
-      stopTimer()
-      saveStatistics()
-      showNotification("Session Complete!", "Great job! Ready for another?")
-    else
-      updateMenubar()
-    end
+      if obj.state:getTimeLeft() <= 0 then
+        stopTimer()
+        saveStatistics()
+        showNotification("Session Complete!", "Great job! Ready for another?")
+      else
+        updateMenubar()
+      end
+    end)
   end)
+
+  if not success then
+    utils.showError("Failed to create break timer: " .. timer.error)
+    obj.state:setRunning(false)
+    return
+  end
 
   obj.state:setTimer(timer)
   timer:start()
@@ -362,16 +378,24 @@ function obj:startSessionWithDuration(duration)
   updateMenubar()
   showNotification("Pomodoro Started", "Work session begins!")
 
-  local timer = hs.timer.new(1, function()
-    obj.state:setTimeLeft(obj.state:getTimeLeft() - 1)
+  local success, timer = utils.safeCall(function()
+    return hs.timer.new(1, function()
+      obj.state:setTimeLeft(obj.state:getTimeLeft() - 1)
 
-    if obj.state:getTimeLeft() <= 0 then
-      stopTimer()
-      startBreakSession()
-    else
-      updateMenubar()
-    end
+      if obj.state:getTimeLeft() <= 0 then
+        stopTimer()
+        startBreakSession()
+      else
+        updateMenubar()
+      end
+    end)
   end)
+
+  if not success then
+    utils.showError("Failed to create timer: " .. timer.error)
+    obj.state:setRunning(false)
+    return false
+  end
 
   obj.state:setTimer(timer)
   timer:start()
