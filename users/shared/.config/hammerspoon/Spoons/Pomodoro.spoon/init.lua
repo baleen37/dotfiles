@@ -26,12 +26,12 @@ obj.license = "MIT"
 obj.homepage = "https://github.com/evantravers/dotfiles"
 obj.description = "Pomodoro timer with Focus mode integration"
 
--- Configuration Constants
-local CONFIG = {
-  WORK_DURATION = 25 * 60,      -- 25 minutes in seconds
-  BREAK_DURATION = 5 * 60,      -- 5 minutes in seconds
-  FOCUS_MODE = "Pomodoro",
-  STATS_CACHE_DURATION = 300    -- 5 minutes in seconds
+-- Default Configuration
+obj.config = {
+  workDuration = 25 * 60,        -- 25 minutes in seconds
+  breakDuration = 5 * 60,        -- 5 minutes in seconds
+  focusMode = "Pomodoro",
+  statsCacheDuration = 300       -- 5 minutes in seconds
 }
 
 -- Application State
@@ -65,7 +65,7 @@ local Cache = {
 
 local function getCurrentDateString()
   local now = os.time()
-  if not Cache.dateString or math.abs(now - Cache.timestamp) > CONFIG.STATS_CACHE_DURATION then
+  if not Cache.dateString or math.abs(now - Cache.timestamp) > obj.config.statsCacheDuration then
     Cache.dateString = os.date("%Y-%m-%d")
     Cache.timestamp = now
   end
@@ -93,7 +93,7 @@ end
 
 local function getCachedStatistics()
   local now = os.time()
-  if not Cache.stats or math.abs(now - Cache.timestamp) > CONFIG.STATS_CACHE_DURATION then
+  if not Cache.stats or math.abs(now - Cache.timestamp) > obj.config.statsCacheDuration then
     Cache.stats = hs.settings.get("pomodoro.stats") or {}
     Cache.timestamp = now
   end
@@ -226,7 +226,7 @@ function TimerManager.startWorkSession()
   TimerManager.cleanup()
 
   State.isBreak = false
-  State.timeLeft = CONFIG.WORK_DURATION
+  State.timeLeft = obj.config.workDuration
   State.timerRunning = true
   State.sessionStartTime = os.time()
 
@@ -241,7 +241,7 @@ function TimerManager.startBreakSession()
   TimerManager.cleanup()
 
   State.isBreak = true
-  State.timeLeft = CONFIG.BREAK_DURATION
+  State.timeLeft = obj.config.breakDuration
   State.timerRunning = true
 
   updateMenubarDisplay()
@@ -299,7 +299,7 @@ end
 
 function FocusManager.isPomodoroActive()
   local currentMode = FocusManager.getCurrentFocusMode()
-  return currentMode == CONFIG.FOCUS_MODE
+  return currentMode == obj.config.focusMode
 end
 
 function FocusManager.handleFocusChange()
@@ -356,6 +356,33 @@ end
 -- ============================================================================
 -- SPOON INTERFACE METHODS
 -- ============================================================================
+
+--- Pomodoro:init(config) -> Pomodoro
+--- Method
+--- Initializes the Pomodoro Spoon with custom configuration
+---
+--- Parameters:
+---  * config - Optional table containing configuration options:
+---    * focusMode - String name of the Focus mode to monitor (default: "Pomodoro")
+---    * workDuration - Work session duration in seconds (default: 25 * 60)
+---    * breakDuration - Break duration in seconds (default: 5 * 60)
+---
+--- Returns:
+---  * The Pomodoro object
+---
+--- Notes:
+---  * This method is optional. If not called, default configuration will be used
+---  * Can be chained with start(): `spoon.Pomodoro:init({focusMode = "Deep Work"}):start()`
+function obj:init(config)
+  if config then
+    for k, v in pairs(config) do
+      if self.config[k] ~= nil then
+        self.config[k] = v
+      end
+    end
+  end
+  return self
+end
 
 --- Pomodoro:start() -> Pomodoro
 --- Method
