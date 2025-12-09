@@ -48,8 +48,5 @@ HyperModal
 Pomodoro = spoon.Pomodoro
 Pomodoro:start()
 
--- Optional: Bind hotkeys for manual control
-Pomodoro:bindHotkeys({
-  start = {{"ctrl", "alt"}, "p"},
-  stop = {{"ctrl", "alt"}, "s"}
-})
+-- Bind Hyper+P to toggle Pomodoro session
+Hyper:bind({}, 'p', function() Pomodoro:toggleSession() end)
