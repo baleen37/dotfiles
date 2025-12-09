@@ -5,10 +5,15 @@
 --- provides a 25-minute work session followed by a 5-minute break.
 ---
 --- Features:
---- - Automatic Focus mode integration
+--- - Event-based Focus mode integration using NSDistributedNotificationCenter
+--- - JXA-based Focus mode detection for macOS Sequoia compatibility
 --- - Menubar countdown display
 --- - Daily statistics tracking
 --- - One-cycle-per-session approach
+---
+--- Requirements:
+--- - macOS Sequoia (15.x) or later
+--- - Full Disk Access permission for Hammerspoon
 
 local obj = {}
 obj.__index = obj
@@ -21,13 +26,12 @@ obj.license = "MIT"
 obj.homepage = "https://github.com/evantravers/dotfiles"
 obj.description = "Pomodoro timer with Focus mode integration"
 
--- Configuration Constants
-local CONFIG = {
-  WORK_DURATION = 25 * 60,      -- 25 minutes in seconds
-  BREAK_DURATION = 5 * 60,      -- 5 minutes in seconds
-  FOCUS_MODE = "Pomodoro",
-  STATS_CACHE_DURATION = 300,   -- 5 minutes in seconds
-  FOCUS_CHECK_INTERVAL = 30     -- seconds
+-- Default Configuration
+obj.config = {
+  workDuration = 25 * 60,        -- 25 minutes in seconds
+  breakDuration = 5 * 60,        -- 5 minutes in seconds
+  focusMode = "Pomodoro",
+  statsCacheDuration = 300       -- 5 minutes in seconds
 }
 
 -- Application State
@@ -43,7 +47,8 @@ local State = {
 local UI = {
   countdownTimer = nil,
   menubarItem = nil,
-  focusChecker = nil,
+  focusWatcherEnabled = nil,
+  focusWatcherDisabled = nil,
   lastKnownFocus = nil,
 }
 
@@ -60,7 +65,7 @@ local Cache = {
 
 local function getCurrentDateString()
   local now = os.time()
-  if not Cache.dateString or math.abs(now - Cache.timestamp) > CONFIG.STATS_CACHE_DURATION then
+  if not Cache.dateString or math.abs(now - Cache.timestamp) > obj.config.statsCacheDuration then
     Cache.dateString = os.date("%Y-%m-%d")
     Cache.timestamp = now
   end
@@ -88,7 +93,7 @@ end
 
 local function getCachedStatistics()
   local now = os.time()
-  if not Cache.stats or math.abs(now - Cache.timestamp) > CONFIG.STATS_CACHE_DURATION then
+  if not Cache.stats or math.abs(now - Cache.timestamp) > obj.config.statsCacheDuration then
     Cache.stats = hs.settings.get("pomodoro.stats") or {}
     Cache.timestamp = now
   end
@@ -221,7 +226,7 @@ function TimerManager.startWorkSession()
   TimerManager.cleanup()
 
   State.isBreak = false
-  State.timeLeft = CONFIG.WORK_DURATION
+  State.timeLeft = obj.config.workDuration
   State.timerRunning = true
   State.sessionStartTime = os.time()
 
@@ -236,7 +241,7 @@ function TimerManager.startBreakSession()
   TimerManager.cleanup()
 
   State.isBreak = true
-  State.timeLeft = CONFIG.BREAK_DURATION
+  State.timeLeft = obj.config.breakDuration
   State.timerRunning = true
 
   updateMenubarDisplay()
@@ -257,9 +262,44 @@ end
 
 local FocusManager = {}
 
+function FocusManager.getCurrentFocusMode()
+  local script = [[
+    (function() {
+      const app = Application.currentApplication();
+      app.includeStandardAdditions = true;
+
+      function getJSON(path) {
+        const fullPath = path.replace(/^~/, app.pathTo('home folder'));
+        const contents = app.read(fullPath);
+        return JSON.parse(contents);
+      }
+
+      try {
+        const assert = getJSON("~/Library/DoNotDisturb/DB/Assertions.json").data[0].storeAssertionRecords;
+        const config = getJSON("~/Library/DoNotDisturb/DB/ModeConfigurations.json").data[0].modeConfigurations;
+
+        if (assert && assert.length > 0) {
+          const modeid = assert[0].assertionDetails.assertionDetailsModeIdentifier;
+          return config[modeid].mode.name;
+        }
+
+        return null;
+      } catch (e) {
+        return null;
+      }
+    })();
+  ]]
+
+  local ok, result = hs.osascript.javascript(script)
+  if ok and result then
+    return result
+  end
+  return nil
+end
+
 function FocusManager.isPomodoroActive()
-  local output, exitCode = hs.execute("defaults read com.apple.controlcenter FocusMode 2>/dev/null", true)
-  return exitCode == 0 and output and output:match(CONFIG.FOCUS_MODE) ~= nil
+  local currentMode = FocusManager.getCurrentFocusMode()
+  return currentMode == obj.config.focusMode
 end
 
 function FocusManager.handleFocusChange()
@@ -279,27 +319,70 @@ function FocusManager.handleFocusChange()
 end
 
 function FocusManager.startMonitoring()
-  UI.focusChecker = hs.timer.new(CONFIG.FOCUS_CHECK_INTERVAL, function()
-    local currentFocus = FocusManager.isPomodoroActive()
-    if currentFocus ~= UI.lastKnownFocus then
-      FocusManager.handleFocusChange()
-      UI.lastKnownFocus = currentFocus
+  -- Watch for Focus mode enabled
+  UI.focusWatcherEnabled = hs.distributednotifications.new(function(name, object, userInfo)
+    if FocusManager.isPomodoroActive() then
+      if not State.timerRunning then
+        TimerManager.startWorkSession()
+      end
     end
-  end)
-  UI.focusChecker:start()
+  end, "_NSDoNotDisturbEnabledNotification")
+  UI.focusWatcherEnabled:start()
+
+  -- Watch for Focus mode disabled
+  UI.focusWatcherDisabled = hs.distributednotifications.new(function(name, object, userInfo)
+    if State.timerRunning then
+      showNotification("Pomodoro Stopped", "Focus mode changed")
+      saveCurrentStatistics()
+      TimerManager.stop()
+    end
+  end, "_NSDoNotDisturbDisabledNotification")
+  UI.focusWatcherDisabled:start()
+
   UI.lastKnownFocus = FocusManager.isPomodoroActive()
 end
 
 function FocusManager.stopMonitoring()
-  if UI.focusChecker then
-    UI.focusChecker:stop()
-    UI.focusChecker = nil
+  if UI.focusWatcherEnabled then
+    UI.focusWatcherEnabled:stop()
+    UI.focusWatcherEnabled = nil
+  end
+  if UI.focusWatcherDisabled then
+    UI.focusWatcherDisabled:stop()
+    UI.focusWatcherDisabled = nil
   end
 end
 
 -- ============================================================================
 -- SPOON INTERFACE METHODS
 -- ============================================================================
+
+--- Pomodoro:init(config) -> Pomodoro
+--- Method
+--- Initializes the Pomodoro Spoon with custom configuration
+---
+--- Parameters:
+---  * config - Optional table containing configuration options:
+---    * focusMode - String name of the Focus mode to monitor (default: "Pomodoro")
+---    * workDuration - Work session duration in seconds (default: 25 * 60)
+---    * breakDuration - Break duration in seconds (default: 5 * 60)
+---
+--- Returns:
+---  * The Pomodoro object
+---
+--- Notes:
+---  * This method is optional. If not called, default configuration will be used
+---  * Can be chained with start(): `spoon.Pomodoro:init({focusMode = "Deep Work"}):start()`
+function obj:init(config)
+  if config then
+    for k, v in pairs(config) do
+      if self.config[k] ~= nil then
+        self.config[k] = v
+      end
+    end
+  end
+  return self
+end
 
 --- Pomodoro:start() -> Pomodoro
 --- Method
