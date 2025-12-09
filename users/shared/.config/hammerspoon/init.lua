@@ -46,7 +46,14 @@ HyperModal
 
 -- Initialize Pomodoro Spoon
 Pomodoro = spoon.Pomodoro
-Pomodoro:start()
+Pomodoro:init({
+  onBreakStart = function()
+    hs.alert.show("🍅 25분 완료!\n5분 휴식하세요", 3)
+  end,
+  onComplete = function()
+    hs.alert.show("✅ 세션 완료!\n수고하셨습니다", 3)
+  end
+}):start()
 
 -- Bind Hyper+P to toggle Pomodoro session
 Hyper:bind({}, 'p', function() Pomodoro:toggleSession() end)
