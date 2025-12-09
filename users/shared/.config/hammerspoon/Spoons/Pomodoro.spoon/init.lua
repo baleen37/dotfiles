@@ -31,7 +31,11 @@ obj.config = {
   workDuration = 25 * 60,        -- 25 minutes in seconds
   breakDuration = 5 * 60,        -- 5 minutes in seconds
   focusMode = "Pomodoro",
-  statsCacheDuration = 300       -- 5 minutes in seconds
+  statsCacheDuration = 300,      -- 5 minutes in seconds
+  -- Callbacks
+  onWorkStart = nil,             -- Called when work session starts
+  onBreakStart = nil,            -- Called when break starts (work completed)
+  onComplete = nil               -- Called when session completes (break ends)
 }
 
 -- Application State
@@ -233,6 +237,11 @@ function TimerManager.startWorkSession()
   updateMenubarDisplay()
   showNotification("Pomodoro Started", "Work session begins!")
 
+  -- Callback: onWorkStart
+  if obj.config.onWorkStart then
+    obj.config.onWorkStart()
+  end
+
   UI.countdownTimer = hs.timer.new(1, TimerManager.createCallback(TimerManager.startBreakSession))
   UI.countdownTimer:start()
 end
@@ -247,11 +256,21 @@ function TimerManager.startBreakSession()
   updateMenubarDisplay()
   showNotification("Break Time!", "Take a 5-minute break")
 
+  -- Callback: onBreakStart
+  if obj.config.onBreakStart then
+    obj.config.onBreakStart()
+  end
+
   UI.countdownTimer = hs.timer.new(1, TimerManager.createCallback(function()
     State.sessionsCompleted = State.sessionsCompleted + 1
     TimerManager.stop()
     saveCurrentStatistics()
     showNotification("Session Complete!", "Great job! Ready for another?")
+
+    -- Callback: onComplete
+    if obj.config.onComplete then
+      obj.config.onComplete()
+    end
   end))
   UI.countdownTimer:start()
 end
@@ -366,6 +385,9 @@ end
 ---    * focusMode - String name of the Focus mode to monitor (default: "Pomodoro")
 ---    * workDuration - Work session duration in seconds (default: 25 * 60)
 ---    * breakDuration - Break duration in seconds (default: 5 * 60)
+---    * onWorkStart - Function called when work session starts (optional)
+---    * onBreakStart - Function called when break starts (work completed) (optional)
+---    * onComplete - Function called when session completes (break ends) (optional)
 ---
 --- Returns:
 ---  * The Pomodoro object
@@ -373,6 +395,7 @@ end
 --- Notes:
 ---  * This method is optional. If not called, default configuration will be used
 ---  * Can be chained with start(): `spoon.Pomodoro:init({focusMode = "Deep Work"}):start()`
+---  * Callbacks allow custom notifications or actions at key moments
 function obj:init(config)
   if config then
     for k, v in pairs(config) do
