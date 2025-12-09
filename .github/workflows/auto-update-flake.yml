@@ -29,10 +29,17 @@ jobs:
       pr-number: ${{ steps.create-pr.outputs.pr-number }}
 
     steps:
+      - name: Generate GitHub App Token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: 2439184
+          private-key: ${{ secrets.APP_AUTO_UPDATE_KEY }}
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.REPO_PAT }}
+          token: ${{ steps.app-token.outputs.token }}
           fetch-depth: 0
 
       - name: Setup Nix with cache
@@ -138,7 +145,7 @@ jobs:
         if: steps.check-changes.outputs.has-changes == 'true'
         id: create-pr
         env:
-          GITHUB_TOKEN: ${{ secrets.REPO_PAT }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           echo "::group::Creating Pull Request"
 
@@ -159,7 +166,7 @@ jobs:
       - name: Close existing dependency PRs
         if: steps.check-changes.outputs.has-changes == 'true'
         env:
-          GITHUB_TOKEN: ${{ secrets.REPO_PAT }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           echo "::group::Closing existing dependency update PRs"
 
@@ -187,14 +194,21 @@ jobs:
     timeout-minutes: 10
 
     steps:
+      - name: Generate GitHub App Token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: 2439184
+          private-key: ${{ secrets.APP_AUTO_UPDATE_KEY }}
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.REPO_PAT }}
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Enable GitHub auto-merge
         env:
-          GITHUB_TOKEN: ${{ secrets.REPO_PAT }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
           PR_NUMBER: ${{ needs.update-dependencies.outputs.pr-number }}
         run: |
           echo "::group::Enabling GitHub built-in auto-merge"
