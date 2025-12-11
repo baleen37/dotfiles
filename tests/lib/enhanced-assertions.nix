@@ -36,15 +36,17 @@ let
   assertFileContent =
     name: expectedPath: actualPath:
     let
-      expectedContent = builtins.readFile expectedPath;
-      actualContent = builtins.readFile actualPath;
+      # Use toString to get the path after the derivation is built
+      # This avoids the issue with builtins.readFile on unbuilt derivations
+      expectedContent = builtins.readFile (toString expectedPath);
+      actualContent = builtins.readFile (toString actualPath);
     in
     assertTestWithDetails name
       (expectedContent == actualContent)
       "File content mismatch"
       expectedContent
       actualContent
-      expectedPath
+      (toString expectedPath)
       null;
 in
 {
