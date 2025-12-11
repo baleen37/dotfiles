@@ -70,6 +70,14 @@ in
     nix-direnv.enable = true;
   };
 
+  # Direnv auto-allow configuration
+  # Automatically trust all .envrc files in the user's home directory
+  # This eliminates the need to manually run `direnv allow` for each project
+  xdg.configFile."direnv/direnv.toml".text = ''
+    [whitelist]
+    prefix = [ "${config.home.homeDirectory}/" ]
+  '';
+
   programs.zsh = {
     enable = true;
     autocd = false;
