@@ -19,12 +19,12 @@ local obj = {}
 obj.__index = obj
 
 -- Spoon Metadata
-obj.name = "Pomodoro"
+obj.name = "FocusTracker"
 obj.version = "1.0"
 obj.author = "Jiho Hwang <jito.hello@gmail.com>"
 obj.license = "MIT"
-obj.homepage = "https://github.com/evantravers/dotfiles"
-obj.description = "Pomodoro timer with Focus mode integration"
+obj.homepage = "https://github.com/jito-hwang/dotfiles"
+obj.description = "Focus Mode tracker with real-time duration display"
 
 -- Default Configuration
 obj.config = {
