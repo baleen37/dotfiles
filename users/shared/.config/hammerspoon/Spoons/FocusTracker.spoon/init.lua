@@ -122,12 +122,7 @@ local function buildMenuTable()
   table.insert(menu, {
     title = "Reset Stats",
     fn = function()
-      local todayStr = getCurrentDateString()
-      local stats = getCachedStatistics()
-      stats[todayStr] = 0
-      hs.settings.set("pomodoro.stats", stats)
       State.sessionsCompleted = 0
-      invalidateStatisticsCache()
     end
   })
 
@@ -206,7 +201,6 @@ function TimerManager.startBreakSession()
   UI.countdownTimer = hs.timer.new(1, TimerManager.createCallback(function()
     State.sessionsCompleted = State.sessionsCompleted + 1
     TimerManager.stop()
-    saveCurrentStatistics()
     showNotification("Session Complete!", "Great job! Ready for another?")
   end))
   UI.countdownTimer:start()
@@ -268,7 +262,6 @@ function FocusManager.handleFocusChange()
   else
     if State.timerRunning then
       showNotification("Pomodoro Stopped", "Focus mode changed")
-      saveCurrentStatistics()
       TimerManager.stop()
     end
   end
@@ -289,7 +282,6 @@ function FocusManager.startMonitoring()
   UI.focusWatcherDisabled = hs.distributednotifications.new(function(name, object, userInfo)
     if State.timerRunning then
       showNotification("Pomodoro Stopped", "Focus mode changed")
-      saveCurrentStatistics()
       TimerManager.stop()
     end
   end, "_NSDoNotDisturbDisabledNotification")
