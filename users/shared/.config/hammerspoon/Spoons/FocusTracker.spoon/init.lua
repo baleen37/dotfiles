@@ -297,12 +297,12 @@ function obj:start()
   return self
 end
 
---- Pomodoro:stop() -> Pomodoro
+--- FocusTracker:stop() -> FocusTracker
 --- Method
---- Stops the Pomodoro Spoon and cleans up resources
+--- Stops the FocusTracker Spoon and cleans up resources
 ---
 --- Returns:
----  * The Pomodoro object
+---  * The FocusTracker object
 function obj:stop()
   -- Stop active timer
   TimerManager.stopTracking()
