@@ -1,139 +1,56 @@
-{
-  "Pomodoro": {
-    "type": "Spoon",
-    "name": "Pomodoro",
-    "version": "1.0",
-    "author": "Jiho Hwang <jito.hello@gmail.com>",
-    "license": "MIT <https://opensource.org/licenses/MIT>",
-    "homepage": "https://github.com/evantravers/dotfiles",
-    "description": "A Pomodoro timer Spoon that integrates with macOS Focus modes. Automatically starts when Focus mode changes to \"Pomodoro\" and provides a 25-minute work session followed by a 5-minute break.",
-    "features": [
-      "Automatic Focus mode integration",
-      "Menubar countdown display",
-      "Daily statistics tracking",
-      "One-cycle-per-session approach",
-      "25-minute work sessions followed by 5-minute breaks",
-      "Notifications for session transitions"
-    ],
-    "api": {
-      "methods": [
-        {
-          "name": "start",
-          "signature": "Pomodoro:start() -> Pomodoro",
-          "type": "Method",
-          "description": "Starts the Pomodoro Spoon and initializes all watchers and timers",
-          "returns": [
-            {
-              "type": "Pomodoro",
-              "description": "The Pomodoro object"
-            }
-          ]
-        },
-        {
-          "name": "stop",
-          "signature": "Pomodoro:stop() -> Pomodoro",
-          "type": "Method",
-          "description": "Stops the Pomodoro Spoon and cleans up resources",
-          "returns": [
-            {
-              "type": "Pomodoro",
-              "description": "The Pomodoro object"
-            }
-          ]
-        },
-        {
-          "name": "bindHotkeys",
-          "signature": "Pomodoro:bindHotkeys(mapping) -> Pomodoro",
-          "type": "Method",
-          "description": "Binds hotkeys for Pomodoro control",
-          "parameters": [
-            {
-              "name": "mapping",
-              "type": "table",
-              "description": "A table containing hotkey modifier/key details for the following items:\n* start - Start a Pomodoro session\n* stop - Stop the current session"
-            }
-          ],
-          "returns": [
-            {
-              "type": "Pomodoro",
-              "description": "The Pomodoro object"
-            }
-          ],
-          "notes": [
-            "Example:\n```lua\nhs.loadSpoon(\"Pomodoro\")\nspoon.Pomodoro:bindHotkeys({\n  start = {hyper, \"p\"},\n  stop = {hyper, \"s\"}\n})\n```"
-          ]
-        },
-        {
-          "name": "getStatistics",
-          "signature": "Pomodoro:getStatistics() -> table",
-          "type": "Method",
-          "description": "Returns Pomodoro statistics",
-          "returns": [
-            {
-              "type": "table",
-              "description": "A table with keys:\n* today - Number of sessions completed today\n* all - Table of daily statistics",
-              "example": "{\n  today = 3,\n  all = {\n    [\"2025-12-08\"] = 3,\n    [\"2025-12-07\"] = 5\n  }\n}"
-            }
-          ]
-        }
-      ],
-      "configuration": {
-        "constants": [
-          {
-            "name": "WORK_DURATION",
-            "type": "number",
-            "value": 1500,
-            "description": "Work session duration in seconds (25 minutes)"
-          },
-          {
-            "name": "BREAK_DURATION",
-            "type": "number",
-            "value": 300,
-            "description": "Break duration in seconds (5 minutes)"
-          },
-          {
-            "name": "POMODORO_FOCUS_MODE",
-            "type": "string",
-            "value": "Pomodoro",
-            "description": "Focus mode name that triggers Pomodoro sessions"
-          }
+[
+  {
+    "Constant": [],
+    "Variable": [],
+    "Method": [
+      {
+        "def": "FocusTracker:init(config)",
+        "desc": "Initializes the FocusTracker Spoon with custom configuration",
+        "doc": "Initializes the FocusTracker Spoon with custom configuration\n\nParameters:\n * config - Optional table containing configuration options:\n   * onFocusStart - Function called when Focus Mode starts: function(focusModeName) (optional)\n   * onFocusEnd - Function called when Focus Mode ends: function(focusModeName, durationInSeconds) (optional)\n\nReturns:\n * The FocusTracker object\n\nNotes:\n * This method is optional. If not called, no callbacks will be triggered\n * Can be chained with start(): `spoon.FocusTracker:init({onFocusStart = ...}):start()`\n * Callbacks allow custom notifications or actions when Focus Mode changes",
+        "name": "init",
+        "parameters": [
+          " * config - Optional table containing configuration options:",
+          "   * onFocusStart - Function called when Focus Mode starts: function(focusModeName) (optional)",
+          "   * onFocusEnd - Function called when Focus Mode ends: function(focusModeName, durationInSeconds) (optional)"
         ],
-        "notes": [
-          "The Spoon automatically integrates with macOS Focus modes",
-          "When the 'Pomodoro' Focus mode is activated, a 25-minute work session starts",
-          "After the work session completes, a 5-minute break automatically begins",
-          "Statistics are stored in hs.settings with the key 'pomodoro.stats'",
-          "The menubar displays a tomato emoji (🍅) during work and coffee emoji (☕) during breaks"
-        ]
-      }
-    },
-    "usage_examples": [
-      {
-        "title": "Basic usage",
-        "description": "Load and start the Pomodoro Spoon",
-        "code": "hs.loadSpoon(\"Pomodoro\")\nspoon.Pomodoro:start()"
+        "returns": [
+          " * The FocusTracker object"
+        ],
+        "signature": "FocusTracker:init(config)",
+        "stripped_doc": "Initializes the FocusTracker Spoon with custom configuration\nParameters:\nReturns:\nNotes:",
+        "type": "Method"
       },
       {
-        "title": "With hotkeys",
-        "description": "Load with custom hotkeys",
-        "code": "hs.loadSpoon(\"Pomodoro\")\nspoon.Pomodoro:bindHotkeys({\n  start = {hyper, \"p\"},\n  stop = {hyper, \"s\"}\n})\nspoon.Pomodoro:start()"
+        "def": "FocusTracker:start()",
+        "desc": "Starts the FocusTracker Spoon and initializes all watchers and timers",
+        "doc": "Starts the FocusTracker Spoon and initializes all watchers and timers\n\nReturns:\n * The FocusTracker object",
+        "name": "start",
+        "parameters": [],
+        "returns": [
+          " * The FocusTracker object"
+        ],
+        "signature": "FocusTracker:start()",
+        "stripped_doc": "Starts the FocusTracker Spoon and initializes all watchers and timers\nReturns:",
+        "type": "Method"
       },
       {
-        "title": "Get statistics",
-        "description": "Retrieve daily Pomodoro statistics",
-        "code": "local stats = spoon.Pomodoro:getStatistics()\nprint(\"Today's sessions:\", stats.today)\nprint(\"All stats:\", hs.inspect(stats.all))"
+        "def": "FocusTracker:stop()",
+        "desc": "Stops the FocusTracker Spoon and cleans up resources",
+        "doc": "Stops the FocusTracker Spoon and cleans up resources\n\nReturns:\n * The FocusTracker object",
+        "name": "stop",
+        "parameters": [],
+        "returns": [
+          " * The FocusTracker object"
+        ],
+        "signature": "FocusTracker:stop()",
+        "stripped_doc": "Stops the FocusTracker Spoon and cleans up resources\nReturns:",
+        "type": "Method"
       }
     ],
-    "changelog": [
-      {
-        "version": "1.0",
-        "changes": [
-          "Initial release with Focus mode integration",
-          "25-minute work sessions with 5-minute breaks",
-          "Daily statistics tracking",
-          "Menubar countdown display"
-        ]
-      }
-    ]
+    "Command": [],
+    "Constructor": [],
+    "Field": [],
+    "Function": [],
+    "name": "FocusTracker"
   }
-}
+]
