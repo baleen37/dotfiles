@@ -64,7 +64,7 @@ local Cache = {
 
 local function getCurrentDateString()
   local now = os.time()
-  if not Cache.dateString or math.abs(now - Cache.timestamp) > obj.config.statsCacheDuration then
+  if not Cache.dateString or math.abs(now - Cache.timestamp) > 300 then
     Cache.dateString = os.date("%Y-%m-%d")
     Cache.timestamp = now
   end
@@ -92,7 +92,7 @@ end
 
 local function getCachedStatistics()
   local now = os.time()
-  if not Cache.stats or math.abs(now - Cache.timestamp) > obj.config.statsCacheDuration then
+  if not Cache.stats or math.abs(now - Cache.timestamp) > 300 then
     Cache.stats = hs.settings.get("pomodoro.stats") or {}
     Cache.timestamp = now
   end
@@ -207,11 +207,6 @@ function TimerManager.stop()
 
   TimerManager.cleanup()
   updateMenubarDisplay()
-
-  -- Callback: onStopped
-  if obj.config.onStopped then
-    obj.config.onStopped()
-  end
 end
 
 function TimerManager.createCallback(onComplete)
@@ -230,17 +225,12 @@ function TimerManager.startWorkSession()
   TimerManager.cleanup()
 
   State.isBreak = false
-  State.timeLeft = obj.config.workDuration
+  State.timeLeft = 25 * 60
   State.timerRunning = true
   State.sessionStartTime = os.time()
 
   updateMenubarDisplay()
   showNotification("Pomodoro Started", "Work session begins!")
-
-  -- Callback: onWorkStart
-  if obj.config.onWorkStart then
-    obj.config.onWorkStart()
-  end
 
   UI.countdownTimer = hs.timer.new(1, TimerManager.createCallback(TimerManager.startBreakSession))
   UI.countdownTimer:start()
@@ -250,27 +240,17 @@ function TimerManager.startBreakSession()
   TimerManager.cleanup()
 
   State.isBreak = true
-  State.timeLeft = obj.config.breakDuration
+  State.timeLeft = 5 * 60
   State.timerRunning = true
 
   updateMenubarDisplay()
   showNotification("Break Time!", "Take a 5-minute break")
-
-  -- Callback: onBreakStart
-  if obj.config.onBreakStart then
-    obj.config.onBreakStart()
-  end
 
   UI.countdownTimer = hs.timer.new(1, TimerManager.createCallback(function()
     State.sessionsCompleted = State.sessionsCompleted + 1
     TimerManager.stop()
     saveCurrentStatistics()
     showNotification("Session Complete!", "Great job! Ready for another?")
-
-    -- Callback: onComplete
-    if obj.config.onComplete then
-      obj.config.onComplete()
-    end
   end))
   UI.countdownTimer:start()
 end
@@ -318,7 +298,7 @@ end
 
 function FocusManager.isPomodoroActive()
   local currentMode = FocusManager.getCurrentFocusMode()
-  return currentMode == obj.config.focusMode
+  return currentMode == "Pomodoro"
 end
 
 function FocusManager.handleFocusChange()
