@@ -275,7 +275,7 @@ function obj:start()
     return hs.menubar.new()
   end)
   if not success or not menubar then
-    hs.alert.show("Failed to create menubar item for Pomodoro")
+    hs.alert.show("Failed to create menubar item for FocusTracker")
     return self
   end
   UI.menubarItem = menubar
@@ -289,8 +289,9 @@ function obj:start()
   updateMenubarDisplay()
 
   -- Handle current focus mode if already active
-  if UI.lastKnownFocus then
-    FocusManager.handleFocusChange()
+  if FocusManager.getCurrentFocusMode() then
+    TimerManager.startTracking()
+    updateMenubarDisplay()
   end
 
   return self
