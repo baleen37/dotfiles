@@ -227,10 +227,6 @@ function FocusManager.getCurrentFocusMode()
   return nil
 end
 
-function FocusManager.isPomodoroActive()
-  local currentMode = FocusManager.getCurrentFocusMode()
-  return currentMode == "Pomodoro"
-end
 
 function FocusManager.handleFocusChange()
   local currentMode = FocusManager.getCurrentFocusMode()
@@ -251,9 +247,10 @@ end
 function FocusManager.startMonitoring()
   -- Watch for Focus mode enabled
   UI.focusWatcherEnabled = hs.distributednotifications.new(function(name, object, userInfo)
-    if FocusManager.isPomodoroActive() then
-      if not State.timerRunning then
-        TimerManager.startWorkSession()
+    if FocusManager.getCurrentFocusMode() then
+      if not State.isTracking then
+        TimerManager.startTracking()
+        updateMenubarDisplay()
       end
     end
   end, "_NSDoNotDisturbEnabledNotification")
@@ -261,14 +258,14 @@ function FocusManager.startMonitoring()
 
   -- Watch for Focus mode disabled
   UI.focusWatcherDisabled = hs.distributednotifications.new(function(name, object, userInfo)
-    if State.timerRunning then
-      showNotification("Pomodoro Stopped", "Focus mode changed")
+    if State.isTracking then
       TimerManager.stopTracking()
+      updateMenubarDisplay()
     end
   end, "_NSDoNotDisturbDisabledNotification")
   UI.focusWatcherDisabled:start()
 
-  UI.lastKnownFocus = FocusManager.isPomodoroActive()
+  UI.lastKnownFocus = FocusManager.getCurrentFocusMode()
 end
 
 function FocusManager.stopMonitoring()
