@@ -233,16 +233,17 @@ function FocusManager.isPomodoroActive()
 end
 
 function FocusManager.handleFocusChange()
-  local hasPomodoro = FocusManager.isPomodoroActive()
+  local currentMode = FocusManager.getCurrentFocusMode()
 
-  if hasPomodoro then
-    if not State.timerRunning then
-      TimerManager.startWorkSession()
+  if currentMode then
+    if not State.isTracking then
+      TimerManager.startTracking()
+      updateMenubarDisplay()
     end
   else
-    if State.timerRunning then
-      showNotification("Pomodoro Stopped", "Focus mode changed")
+    if State.isTracking then
       TimerManager.stopTracking()
+      updateMenubarDisplay()
     end
   end
 end
