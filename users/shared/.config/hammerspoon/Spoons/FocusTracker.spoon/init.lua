@@ -263,12 +263,12 @@ function obj:init(config)
   return self
 end
 
---- Pomodoro:start() -> Pomodoro
+--- FocusTracker:start() -> FocusTracker
 --- Method
---- Starts the Pomodoro Spoon and initializes all watchers and timers
+--- Starts the FocusTracker Spoon and initializes all watchers and timers
 ---
 --- Returns:
----  * The Pomodoro object
+---  * The FocusTracker object
 function obj:start()
   -- Initialize menubar with error handling
   local success, menubar = pcall(function()
