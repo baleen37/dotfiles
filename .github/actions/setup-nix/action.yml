@@ -13,7 +13,7 @@ runs:
   using: 'composite'
   steps:
     - name: Install Nix
-      uses: DeterminateSystems/nix-installer-action@7ba22a244ba4bf8a2cf5ce5d58b5d1df6e565d16 # v21
+      uses: DeterminateSystems/nix-installer-action@c5a866b6ab867e88becbed4467b93592bce69f8a # v21
       with:
         extra-conf: |
           experimental-features = nix-command flakes
