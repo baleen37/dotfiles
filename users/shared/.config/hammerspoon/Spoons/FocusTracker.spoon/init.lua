@@ -1,15 +1,15 @@
---- === Pomodoro ===
+--- === FocusTracker ===
 ---
---- A Pomodoro timer Spoon that integrates with macOS Focus modes.
---- Automatically starts when Focus mode changes to "Pomodoro" and
---- provides a 25-minute work session followed by a 5-minute break.
+--- A Focus Mode tracker Spoon that integrates with macOS Focus modes.
+--- Automatically starts when Focus mode changes and provides a real-time
+--- duration display of the current Focus Mode session.
 ---
 --- Features:
 --- - Event-based Focus mode integration using NSDistributedNotificationCenter
 --- - JXA-based Focus mode detection for macOS Sequoia compatibility
 --- - Menubar countdown display
---- - Daily statistics tracking
---- - One-cycle-per-session approach
+--- - Real-time duration tracking
+--- - Session-based tracking approach
 ---
 --- Requirements:
 --- - macOS Sequoia (15.x) or later
@@ -45,9 +45,6 @@ local State = {
 local UI = {
   countdownTimer = nil,
   menubarItem = nil,
-  focusWatcherEnabled = nil,
-  focusWatcherDisabled = nil,
-  lastKnownFocus = nil,
 }
 
 
