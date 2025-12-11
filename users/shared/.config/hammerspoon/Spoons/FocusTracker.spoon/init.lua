@@ -82,52 +82,6 @@ local function updateMenubarDisplay()
   end
 end
 
-local function buildMenuTable()
-  local menu = {}
-
-  if not State.timerRunning then
-    table.insert(menu, {
-      title = "Start Session",
-      fn = TimerManager.startWorkSession
-    })
-  else
-    local status = State.isBreak and "Break" or "Work"
-    table.insert(menu, {
-      title = string.format("Status: %s (%s)", status, formatTime(State.timeLeft)),
-      disabled = true
-    })
-
-    table.insert(menu, {
-      title = "Stop Session",
-      fn = TimerManager.stop
-    })
-  end
-
-  table.insert(menu, hs.menuitem.separator)
-
-  table.insert(menu, {
-    title = string.format("Today: %d sessions", State.sessionsCompleted),
-    disabled = true
-  })
-
-  table.insert(menu, {
-    title = "Reset Stats",
-    fn = function()
-      State.sessionsCompleted = 0
-    end
-  })
-
-  table.insert(menu, hs.menuitem.separator)
-
-  table.insert(menu, {
-    title = "Quit",
-    fn = function()
-      obj:stop()
-    end
-  })
-
-  return menu
-end
 
 -- ============================================================================
 -- TIMER MANAGEMENT
@@ -336,11 +290,7 @@ function obj:start()
   end
   UI.menubarItem = menubar
 
-  -- Set up menu callback
-  local menuCallback = function()
-    UI.menubarItem:setMenu(buildMenuTable())
-  end
-  UI.menubarItem:setClickCallback(menuCallback)
+  -- No menu callback (clicking does nothing)
 
   -- Start focus mode monitoring
   FocusManager.startMonitoring()
