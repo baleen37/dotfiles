@@ -75,11 +75,10 @@ end
 local function updateMenubarDisplay()
   if not UI.menubarItem then return end
 
-  if not State.timerRunning then
-    UI.menubarItem:setTitle("🍅 Ready")
+  if not State.isTracking then
+    UI.menubarItem:setTitle("🔵 Ready")
   else
-    local emoji = State.isBreak and "☕" or "🍅"
-    UI.menubarItem:setTitle(emoji .. " " .. formatTime(State.timeLeft))
+    UI.menubarItem:setTitle("🔵 " .. formatTime(State.elapsedTime))
   end
 end
 
