@@ -62,14 +62,6 @@ local function formatTime(seconds)
   return string.format("%02d:%02d", minutes, secs)
 end
 
-local function showNotification(title, subtitle)
-  hs.notify.new({
-    title = title,
-    subtitle = subtitle,
-    informativeText = "",
-    soundName = "Glass"
-  }):send()
-end
 
 
 
