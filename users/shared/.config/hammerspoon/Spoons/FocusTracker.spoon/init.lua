@@ -236,32 +236,22 @@ end
 -- SPOON INTERFACE METHODS
 -- ============================================================================
 
---- Pomodoro:init(config) -> Pomodoro
+--- FocusTracker:init(config) -> FocusTracker
 --- Method
---- Initializes the Pomodoro Spoon with custom configuration
+--- Initializes the FocusTracker Spoon with custom configuration
 ---
 --- Parameters:
 ---  * config - Optional table containing configuration options:
----    * focusMode - String name of the Focus mode to monitor (default: "Pomodoro")
----    * workDuration - Work session duration in seconds (default: 25 * 60)
----    * breakDuration - Break duration in seconds (default: 5 * 60)
----    * onWorkStart - Function called when work session starts (optional)
----    * onBreakStart - Function called when break starts (work completed) (optional)
----    * onComplete - Function called when session completes (break ends) (optional)
----    * onStopped - Function called when session is stopped prematurely (optional)
+---    * onFocusStart - Function called when Focus Mode starts: function(focusModeName) (optional)
+---    * onFocusEnd - Function called when Focus Mode ends: function(focusModeName, durationInSeconds) (optional)
 ---
 --- Returns:
----  * The Pomodoro object
+---  * The FocusTracker object
 ---
 --- Notes:
----  * This method is optional. If not called, default configuration will be used
----  * Can be chained with start(): `spoon.Pomodoro:init({focusMode = "Deep Work"}):start()`
----  * Callbacks allow custom notifications or actions at key moments
----  * Example: `spoon.Pomodoro:init({
----    onStopped = function()
----      hs.alert.show("Session stopped!", {duration = 2})
----    end
----  })`
+---  * This method is optional. If not called, no callbacks will be triggered
+---  * Can be chained with start(): `spoon.FocusTracker:init({onFocusStart = ...}):start()`
+---  * Callbacks allow custom notifications or actions when Focus Mode changes
 function obj:init(config)
   if config then
     for k, v in pairs(config) do
