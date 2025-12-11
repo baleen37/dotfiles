@@ -35,11 +35,10 @@ obj.config = {
 
 -- Application State
 local State = {
-  timerRunning = false,
-  isBreak = false,
-  sessionsCompleted = 0,
-  timeLeft = 0,
-  sessionStartTime = nil,
+  isTracking = false,
+  elapsedTime = 0,
+  currentFocusMode = nil,
+  startTime = nil,
 }
 
 -- UI Components
