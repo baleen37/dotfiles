@@ -165,18 +165,27 @@ function TimerManager.createCallback(onComplete)
   end
 end
 
-function TimerManager.startWorkSession()
+function TimerManager.startTracking()
   TimerManager.cleanup()
 
-  State.isBreak = false
-  State.timeLeft = 25 * 60
-  State.timerRunning = true
-  State.sessionStartTime = os.time()
+  State.isTracking = true
+  State.elapsedTime = 0
+  State.startTime = os.time()
+  State.currentFocusMode = FocusManager.getCurrentFocusMode()
 
-  updateMenubarDisplay()
-  showNotification("Pomodoro Started", "Work session begins!")
+  if not State.currentFocusMode then
+    State.currentFocusMode = "Focus Mode"
+  end
 
-  UI.countdownTimer = hs.timer.new(1, TimerManager.createCallback(TimerManager.startBreakSession))
+  -- Callback: onFocusStart
+  if obj.config.onFocusStart then
+    obj.config.onFocusStart(State.currentFocusMode)
+  end
+
+  UI.countdownTimer = hs.timer.new(1, function()
+    State.elapsedTime = State.elapsedTime + 1
+    updateMenubarDisplay()
+  end)
   UI.countdownTimer:start()
 end
 
