@@ -50,25 +50,11 @@ local UI = {
   lastKnownFocus = nil,
 }
 
--- Cache Management
-local Cache = {
-  dateString = nil,
-  stats = nil,
-  timestamp = 0
-}
 
 -- ============================================================================
 -- UTILITY FUNCTIONS
 -- ============================================================================
 
-local function getCurrentDateString()
-  local now = os.time()
-  if not Cache.dateString or math.abs(now - Cache.timestamp) > 300 then
-    Cache.dateString = os.date("%Y-%m-%d")
-    Cache.timestamp = now
-  end
-  return Cache.dateString
-end
 
 local function formatTime(seconds)
   local minutes = math.floor(seconds / 60)
@@ -85,38 +71,10 @@ local function showNotification(title, subtitle)
   }):send()
 end
 
--- ============================================================================
--- CACHE MANAGEMENT
--- ============================================================================
 
-local function getCachedStatistics()
-  local now = os.time()
-  if not Cache.stats or math.abs(now - Cache.timestamp) > 300 then
-    Cache.stats = hs.settings.get("pomodoro.stats") or {}
-    Cache.timestamp = now
-  end
-  return Cache.stats
-end
 
-local function invalidateStatisticsCache()
-  Cache.stats = nil
-  Cache.timestamp = 0
-end
 
-local function saveCurrentStatistics()
-  local todayStr = getCurrentDateString()
-  local stats = getCachedStatistics()
-  stats[todayStr] = State.sessionsCompleted
-  hs.settings.set("pomodoro.stats", stats)
-  invalidateStatisticsCache()
-end
 
-local function loadCurrentStatistics()
-  local stats = getCachedStatistics()
-  local todayStr = getCurrentDateString()
-  State.sessionsCompleted = stats[todayStr] or 0
-  return State.sessionsCompleted
-end
 
 -- ============================================================================
 -- UI MANAGEMENT
@@ -399,10 +357,6 @@ end
 --- Returns:
 ---  * The Pomodoro object
 function obj:start()
-  -- Clear existing cache
-  invalidateStatisticsCache()
-  Cache.dateString = nil
-
   -- Initialize menubar with error handling
   local success, menubar = pcall(function()
     return hs.menubar.new()
@@ -418,9 +372,6 @@ function obj:start()
     UI.menubarItem:setMenu(buildMenuTable())
   end
   UI.menubarItem:setClickCallback(menuCallback)
-
-  -- Load initial statistics
-  loadCurrentStatistics()
 
   -- Start focus mode monitoring
   FocusManager.startMonitoring()
@@ -446,9 +397,6 @@ function obj:stop()
   -- Stop active timer
   TimerManager.stop()
 
-  -- Save current statistics
-  saveCurrentStatistics()
-
   -- Stop focus monitoring
   FocusManager.stopMonitoring()
 
@@ -458,9 +406,7 @@ function obj:stop()
     UI.menubarItem = nil
   end
 
-  -- Clear all caches and reset state
-  invalidateStatisticsCache()
-  Cache.dateString = nil
+  -- Clear state
   UI.lastKnownFocus = nil
 
   return self
@@ -495,23 +441,6 @@ function obj:bindHotkeys(mapping)
   return self
 end
 
---- Pomodoro:getStatistics() -> table
---- Method
---- Returns Pomodoro statistics
----
---- Returns:
----  * A table with keys:
----    * today - Number of sessions completed today
----    * all - Table of daily statistics
-function obj:getStatistics()
-  local todayStr = getCurrentDateString()
-  local stats = getCachedStatistics()
-
-  return {
-    today = stats[todayStr] or 0,
-    all = stats
-  }
-end
 
 --- Pomodoro:toggleSession() -> boolean
 --- Method
