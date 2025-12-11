@@ -143,14 +143,21 @@ function TimerManager.cleanup()
   end
 end
 
-function TimerManager.stop()
-  State.timerRunning = false
-  State.isBreak = false
-  State.timeLeft = 0
-  State.sessionStartTime = nil
+function TimerManager.stopTracking()
+  local duration = State.elapsedTime
+  local focusName = State.currentFocusMode
 
   TimerManager.cleanup()
-  updateMenubarDisplay()
+
+  State.isTracking = false
+  State.elapsedTime = 0
+  State.currentFocusMode = nil
+  State.startTime = nil
+
+  -- Callback: onFocusEnd
+  if obj.config.onFocusEnd then
+    obj.config.onFocusEnd(focusName, duration)
+  end
 end
 
 function TimerManager.createCallback(onComplete)
@@ -201,7 +208,7 @@ function TimerManager.startBreakSession()
 
   UI.countdownTimer = hs.timer.new(1, TimerManager.createCallback(function()
     State.sessionsCompleted = State.sessionsCompleted + 1
-    TimerManager.stop()
+    TimerManager.stopTracking()
     showNotification("Session Complete!", "Great job! Ready for another?")
   end))
   UI.countdownTimer:start()
@@ -263,7 +270,7 @@ function FocusManager.handleFocusChange()
   else
     if State.timerRunning then
       showNotification("Pomodoro Stopped", "Focus mode changed")
-      TimerManager.stop()
+      TimerManager.stopTracking()
     end
   end
 end
@@ -283,7 +290,7 @@ function FocusManager.startMonitoring()
   UI.focusWatcherDisabled = hs.distributednotifications.new(function(name, object, userInfo)
     if State.timerRunning then
       showNotification("Pomodoro Stopped", "Focus mode changed")
-      TimerManager.stop()
+      TimerManager.stopTracking()
     end
   end, "_NSDoNotDisturbDisabledNotification")
   UI.focusWatcherDisabled:start()
@@ -388,7 +395,7 @@ end
 ---  * The Pomodoro object
 function obj:stop()
   -- Stop active timer
-  TimerManager.stop()
+  TimerManager.stopTracking()
 
   -- Stop focus monitoring
   FocusManager.stopMonitoring()
@@ -425,7 +432,7 @@ function obj:bindHotkeys(mapping)
     end,
     stop = function()
       if State.timerRunning then
-        TimerManager.stop()
+        TimerManager.stopTracking()
       end
     end
   }
@@ -443,7 +450,7 @@ end
 ---  * boolean - true if session was started, false if stopped
 function obj:toggleSession()
   if State.timerRunning then
-    TimerManager.stop()
+    TimerManager.stopTracking()
     return false
   else
     TimerManager.startWorkSession()
