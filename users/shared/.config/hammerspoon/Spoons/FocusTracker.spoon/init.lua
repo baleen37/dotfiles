@@ -28,15 +28,9 @@ obj.description = "Focus Mode tracker with real-time duration display"
 
 -- Default Configuration
 obj.config = {
-  workDuration = 25 * 60,        -- 25 minutes in seconds
-  breakDuration = 5 * 60,        -- 5 minutes in seconds
-  focusMode = "Pomodoro",
-  statsCacheDuration = 300,      -- 5 minutes in seconds
   -- Callbacks
-  onWorkStart = nil,             -- Called when work session starts
-  onBreakStart = nil,            -- Called when break starts (work completed)
-  onComplete = nil,              -- Called when session completes (break ends)
-  onStopped = nil                -- Called when session is stopped prematurely
+  onFocusStart = nil,  -- Called when Focus Mode starts: function(focusModeName)
+  onFocusEnd = nil     -- Called when Focus Mode ends: function(focusModeName, durationInSeconds)
 }
 
 -- Application State
