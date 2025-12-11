@@ -160,17 +160,6 @@ function TimerManager.stopTracking()
   end
 end
 
-function TimerManager.createCallback(onComplete)
-  return function()
-    State.timeLeft = State.timeLeft - 1
-    if State.timeLeft <= 0 then
-      TimerManager.cleanup()
-      onComplete()
-    else
-      updateMenubarDisplay()
-    end
-  end
-end
 
 function TimerManager.startTracking()
   TimerManager.cleanup()
@@ -196,23 +185,6 @@ function TimerManager.startTracking()
   UI.countdownTimer:start()
 end
 
-function TimerManager.startBreakSession()
-  TimerManager.cleanup()
-
-  State.isBreak = true
-  State.timeLeft = 5 * 60
-  State.timerRunning = true
-
-  updateMenubarDisplay()
-  showNotification("Break Time!", "Take a 5-minute break")
-
-  UI.countdownTimer = hs.timer.new(1, TimerManager.createCallback(function()
-    State.sessionsCompleted = State.sessionsCompleted + 1
-    TimerManager.stopTracking()
-    showNotification("Session Complete!", "Great job! Ready for another?")
-  end))
-  UI.countdownTimer:start()
-end
 
 -- ============================================================================
 -- FOCUS MODE DETECTION
