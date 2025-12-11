@@ -47,11 +47,17 @@ HyperModal
 -- Initialize Pomodoro Spoon
 Pomodoro = spoon.Pomodoro
 Pomodoro:init({
+  onWorkStart = function()
+    hs.alert.show("🚀 Pomodoro 시작!", 1)
+  end,
   onBreakStart = function()
-    hs.alert.show("🍅 25분 완료!\n5분 휴식하세요", 3)
+    hs.alert.show("🍅 25분 완료!\n5분 휴식하세요", 2)
   end,
   onComplete = function()
-    hs.alert.show("✅ 세션 완료!\n수고하셨습니다", 3)
+    hs.alert.show("✅ 세션 완료!\n수고하셨습니다", 2)
+  end,
+  onStopped = function()
+    hs.alert.show("⏹️ Pomodoro 세션 중지됨", 2)
   end
 }):start()
 

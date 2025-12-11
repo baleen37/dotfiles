@@ -35,7 +35,8 @@ obj.config = {
   -- Callbacks
   onWorkStart = nil,             -- Called when work session starts
   onBreakStart = nil,            -- Called when break starts (work completed)
-  onComplete = nil               -- Called when session completes (break ends)
+  onComplete = nil,              -- Called when session completes (break ends)
+  onStopped = nil                -- Called when session is stopped prematurely
 }
 
 -- Application State
@@ -212,6 +213,11 @@ function TimerManager.stop()
 
   TimerManager.cleanup()
   updateMenubarDisplay()
+
+  -- Callback: onStopped
+  if obj.config.onStopped then
+    obj.config.onStopped()
+  end
 end
 
 function TimerManager.createCallback(onComplete)
@@ -388,6 +394,7 @@ end
 ---    * onWorkStart - Function called when work session starts (optional)
 ---    * onBreakStart - Function called when break starts (work completed) (optional)
 ---    * onComplete - Function called when session completes (break ends) (optional)
+---    * onStopped - Function called when session is stopped prematurely (optional)
 ---
 --- Returns:
 ---  * The Pomodoro object
@@ -396,6 +403,11 @@ end
 ---  * This method is optional. If not called, default configuration will be used
 ---  * Can be chained with start(): `spoon.Pomodoro:init({focusMode = "Deep Work"}):start()`
 ---  * Callbacks allow custom notifications or actions at key moments
+---  * Example: `spoon.Pomodoro:init({
+---    onStopped = function()
+---      hs.alert.show("Session stopped!", {duration = 2})
+---    end
+---  })`
 function obj:init(config)
   if config then
     for k, v in pairs(config) do
