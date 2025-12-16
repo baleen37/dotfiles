@@ -33,21 +33,27 @@ let
     result;
 
   # File content validation with diff support
+  # Note: Nix 3.14.0+ cannot use builtins.readFile on derivations at eval time
+  # Instead, we compare files at build time using diff
   assertFileContent =
     name: expectedPath: actualPath:
-    let
-      # Use toString to get the path after the derivation is built
-      # This avoids the issue with builtins.readFile on unbuilt derivations
-      expectedContent = builtins.readFile (toString expectedPath);
-      actualContent = builtins.readFile (toString actualPath);
-    in
-    assertTestWithDetails name
-      (expectedContent == actualContent)
-      "File content mismatch"
-      expectedContent
-      actualContent
-      (toString expectedPath)
-      null;
+    pkgs.runCommand "test-${name}" {
+      inherit expectedPath actualPath;
+    } ''
+      if diff -u "$expectedPath" "$actualPath" > /dev/null 2>&1; then
+        echo "PASS: ${name}"
+        touch $out
+      else
+        echo "FAIL: ${name}"
+        echo "  📝 File content mismatch"
+        echo "  📍 Expected: $expectedPath"
+        echo "  📍 Actual: $actualPath"
+        echo ""
+        echo "Diff:"
+        diff -u "$expectedPath" "$actualPath" || true
+        exit 1
+      fi
+    '';
 in
 {
   inherit assertTestWithDetails assertFileContent;
