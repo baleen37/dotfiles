@@ -13,7 +13,7 @@
 
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
-  enhancedHelpers = import ../lib/enhanced-assertions.nix { inherit pkgs lib; };
+  assertHelpers = import ../lib/assertions.nix { inherit pkgs lib; };
 
   # Mock configuration for testing tmux integration
   mockConfig = {

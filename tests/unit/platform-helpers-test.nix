@@ -4,7 +4,7 @@
 
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
-  enhancedHelpers = import ../lib/enhanced-assertions.nix { inherit pkgs lib; };
+  assertHelpers = import ../lib/assertions.nix { inherit pkgs lib; };
 
   # Import platform helpers once for testing
   platformHelpers = import ../lib/platform-helpers.nix { inherit pkgs lib; };

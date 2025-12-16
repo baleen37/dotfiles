@@ -4,7 +4,7 @@
 { inputs, system, pkgs, lib, self, nixtest ? {} }:
 
 let
-  helpers = import ../lib/enhanced-assertions.nix { inherit pkgs lib; };
+  helpers = import ../lib/assertions.nix { inherit pkgs lib; };
   runner = import ../lib/test-runner.nix { inherit pkgs lib; };
   mkTestSuite = runner.mkTestSuite;
 

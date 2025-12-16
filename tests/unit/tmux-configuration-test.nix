@@ -9,7 +9,7 @@
 
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
-  enhancedHelpers = import ../lib/enhanced-assertions.nix { inherit pkgs lib; };
+  assertHelpers = import ../lib/assertions.nix { inherit pkgs lib; };
 
   # Mock config for testing tmux configuration
   mockConfig = {
@@ -51,7 +51,7 @@ helpers.testSuite "tmux-standard-configuration" [
     "tmux should have standard copy mode key bindings")
 
   # Task 5: Add Mouse Support for Paste
-  (enhancedHelpers.assertTestWithDetails "tmux-has-mouse-paste-support"
+  (assertHelpers.assertTestWithDetails "tmux-has-mouse-paste-support"
     (builtins.match ".*bind-key -n MouseDown2Pane paste-buffer.*" tmuxConfig.extraConfig != null)
     "tmux should support middle-click paste"
     "enabled"
@@ -60,7 +60,7 @@ helpers.testSuite "tmux-standard-configuration" [
     null)
 
   # Task 6: Implement Cross-Platform Clipboard Integration
-  (enhancedHelpers.assertTestWithDetails "tmux-has-copy-pipe-and-cancel-integration"
+  (assertHelpers.assertTestWithDetails "tmux-has-copy-pipe-and-cancel-integration"
     (builtins.match ".*copy-pipe-and-cancel.*pbcopy.*" tmuxConfig.extraConfig != null ||
      builtins.match ".*copy-pipe-and-cancel.*xclip.*" tmuxConfig.extraConfig != null)
     "tmux should have copy-pipe-and-cancel with platform-specific clipboard integration"
@@ -72,7 +72,7 @@ helpers.testSuite "tmux-standard-configuration" [
     null)
 
   # Task 7: Clean Up Redundant Configuration
-  (enhancedHelpers.assertTestWithDetails "tmux-removes-redundant-buffer-commands"
+  (assertHelpers.assertTestWithDetails "tmux-removes-redundant-buffer-commands"
     (!(builtins.match ".*bind-key P paste-buffer.*" tmuxConfig.extraConfig != null) &&
      !(builtins.match ".*bind-key b list-buffers.*" tmuxConfig.extraConfig != null) &&
      !(builtins.match ".*bind-key B choose-buffer.*" tmuxConfig.extraConfig != null))
