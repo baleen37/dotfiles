@@ -1,5 +1,5 @@
-# tests/lib/enhanced-assertions.nix
-# Enhanced assertion utilities with detailed error reporting for test debugging
+# tests/lib/assertions.nix
+# Assertion utilities with detailed error reporting for test debugging
 
 { pkgs, lib }:
 

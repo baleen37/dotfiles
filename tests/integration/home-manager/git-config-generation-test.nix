@@ -12,7 +12,7 @@ let
   pkgs = import inputs.nixpkgs { inherit system; };
   inherit (pkgs) lib;
   helpers = import ../../lib/test-helpers.nix { inherit pkgs lib; };
-  enhancedHelpers = import ../../lib/enhanced-assertions.nix { inherit pkgs lib; };
+  assertHelpers = import ../../lib/assertions.nix { inherit pkgs lib; };
 
   # Test user configuration
   testUser = {
@@ -344,7 +344,7 @@ helpers.testSuite "git-config-generation" [
   '')
 
   # Test: Home Manager configuration structure validation
-  (enhancedHelpers.assertTestWithDetails "home-manager-config-structure-validation"
+  (assertHelpers.assertTestWithDetails "home-manager-config-structure-validation"
     (builtins.hasAttr "programs" homeManagerConfig &&
      builtins.hasAttr "git" homeManagerConfig.programs &&
      homeManagerConfig.programs.git.enable == true)
@@ -359,7 +359,7 @@ helpers.testSuite "git-config-generation" [
     85)
 
   # Test: User configuration validation
-  (enhancedHelpers.assertTestWithDetails "git-user-config-validation"
+  (assertHelpers.assertTestWithDetails "git-user-config-validation"
     (homeManagerConfig.programs.git.userName == testUser.name &&
      homeManagerConfig.programs.git.userEmail == testUser.email)
     "Git user configuration should be properly set"
@@ -369,7 +369,7 @@ helpers.testSuite "git-config-generation" [
     95)
 
   # Test: LFS configuration validation
-  (enhancedHelpers.assertTestWithDetails "git-lfs-config-validation"
+  (assertHelpers.assertTestWithDetails "git-lfs-config-validation"
     (homeManagerConfig.programs.git.lfs.enable == true)
     "Git LFS should be enabled"
     "lfs.enable = true"
@@ -378,7 +378,7 @@ helpers.testSuite "git-config-generation" [
     100)
 
   # Test: Aliases configuration validation
-  (enhancedHelpers.assertTestWithDetails "git-aliases-config-validation"
+  (assertHelpers.assertTestWithDetails "git-aliases-config-validation"
     (builtins.hasAttr "alias" homeManagerConfig.programs.git.settings &&
      builtins.hasAttr "st" homeManagerConfig.programs.git.settings.alias &&
      homeManagerConfig.programs.git.settings.alias.st == "status")
@@ -393,7 +393,7 @@ helpers.testSuite "git-config-generation" [
     105)
 
   # Test: Git ignores list validation
-  (enhancedHelpers.assertTestWithDetails "git-ignores-list-validation"
+  (assertHelpers.assertTestWithDetails "git-ignores-list-validation"
     (builtins.hasAttr "ignores" homeManagerConfig.programs.git &&
      builtins.length homeManagerConfig.programs.git.ignores > 0 &&
      builtins.any (pattern: pattern == ".local/") homeManagerConfig.programs.git.ignores)
@@ -406,7 +406,7 @@ helpers.testSuite "git-config-generation" [
     110)
 
   # Test: Default branch configuration validation
-  (enhancedHelpers.assertTestWithDetails "git-default-branch-validation"
+  (assertHelpers.assertTestWithDetails "git-default-branch-validation"
     (homeManagerConfig.programs.git.settings.init.defaultBranch == "main")
     "Git default branch should be set to main"
     "init.defaultBranch = main"
