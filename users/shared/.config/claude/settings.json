@@ -38,7 +38,10 @@
   "rejectedMcpServers": [],
   "enabledPlugins": {
     "superpowers@superpowers-marketplace": true,
-    "episodic-memory@superpowers-marketplace": true
+    "episodic-memory@superpowers-marketplace": true,
+    "pyright@Piebald-AI/claude-code-lsps": true,
+    "kotlin-lsp@Piebald-AI/claude-code-lsps": true,
+    "gopls@Piebald-AI/claude-code-lsps": true
   },
   "feedbackSurveyState": {
     "lastShownTime": 1755225425616
