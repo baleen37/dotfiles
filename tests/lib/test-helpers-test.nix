@@ -9,8 +9,7 @@ let
   # Import test helpers framework
   testHelpers = import ./test-helpers.nix { inherit pkgs lib; };
 
-  # Import test framework
-  nixtest = import ../unit/nixtest-template.nix { inherit pkgs lib; };
+
 in
 
 {

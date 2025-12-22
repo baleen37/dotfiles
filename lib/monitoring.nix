@@ -10,7 +10,7 @@
 let
   # Import existing performance frameworks
   perf = import ./performance.nix { inherit lib pkgs; };
-  perfReporting = import ./performance-reporting.nix { inherit lib pkgs; };
+
   baselines = import ./performance-baselines.nix { inherit lib pkgs; };
 
   # Current system detection
@@ -566,7 +566,7 @@ let
           ) [ ] categories;
 
           # Generate performance report using existing framework
-          perfReport = perfReporting.generateReport allMeasurements metadata;
+          perfReport = perf.report.summary allMeasurements;
 
           # System-specific metrics
           systemMetrics = lib.foldl (
@@ -741,6 +741,6 @@ in
     integration
     ;
   inherit (perf) perf;
-  inherit (perfReporting) perfReporting;
+
   inherit (baselines) baselines;
 }
