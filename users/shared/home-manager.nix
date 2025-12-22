@@ -10,6 +10,7 @@
 #   - starship.nix: Starship prompt - fast, minimal, cross-shell prompt
 #   - tmux.nix: Terminal multiplexer with session persistence
 #   - claude-code.nix: Claude Code AI assistant configuration
+#   - opencode.nix: OpenCode AI assistant configuration
 #
 # Packages included:
 #   - Core utilities: wget, zip, tree, curl, jq, ripgrep, fzf
@@ -41,6 +42,7 @@
     ./starship.nix
     ./tmux.nix
     ./claude-code.nix
+    ./opencode.nix
     ./hammerspoon.nix
     ./karabiner.nix
     ./ghostty.nix
