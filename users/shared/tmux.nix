@@ -106,10 +106,6 @@ in
 
       # Optimized terminal capabilities with True Color support
       set -ga terminal-overrides ",*256col*:Tc,*:U8=0"
-      set -ga terminal-overrides ",screen*:Tc,*:U8=0"
-      set -ga terminal-overrides ",xterm*:Tc,*:U8=0"
-      set -ga terminal-overrides ",tmux*:Tc,*:U8=0"
-      set -ga terminal-overrides ",alacritty:Tc,*:U8=0"
 
       # Keyboard settings
       set-window-option -g xterm-keys on

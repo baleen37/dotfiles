@@ -18,7 +18,7 @@
 #   - Cloud tools: act, gh, docker, awscli2
 #   - Security: yubikey-agent, keepassxc
 #   - SSH tools: autossh, mosh, teleport
-#   - Terminal: ghostty, htop, zsh-powerlevel10k
+#   - Terminal: ghostty, htop, starship
 #   - Fonts: noto-fonts-cjk-sans, cascadia-code
 #   - Media: ffmpeg
 #   - Databases: postgresql, sqlite, redis, mysql80
