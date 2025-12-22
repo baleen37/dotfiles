@@ -16,7 +16,7 @@
   };
 
   # Commands: Share Claude Code's commands
-  home.file.".config/opencode/commands" = {
+  home.file.".config/opencode/command" = {
     source = ./.config/claude/commands;
     recursive = true;
     force = true;

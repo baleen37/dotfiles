@@ -1,4 +1,4 @@
-{ inputs, self }:
+{ inputs, self, overlays ? [] }:
 
 name:
 {
@@ -103,6 +103,9 @@ systemFunc {
 
       # Set hostname for Darwin systems
       networking.hostName = lib.mkIf darwin name;
+
+      # Apply overlays
+      nixpkgs.overlays = overlays;
     }
   ];
 }
