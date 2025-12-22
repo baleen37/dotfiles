@@ -157,6 +157,9 @@ in
       export EDITOR="vim"
       export VISUAL="vim"
 
+      # npm configuration
+      export NPM_CONFIG_PREFIX="$HOME/.npm-global"
+
       # Optimized 1Password SSH agent detection with platform awareness
       _setup_1password_agent() {
         # Early exit if already configured
