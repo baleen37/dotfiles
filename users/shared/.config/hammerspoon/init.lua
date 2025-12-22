@@ -1,5 +1,4 @@
 hs.loadSpoon('Hyper')
--- hs.loadSpoon('Headspace'):start()
 hs.loadSpoon('HyperModal')
 hs.loadSpoon('Pomodoro')
 

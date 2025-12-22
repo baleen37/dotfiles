@@ -79,6 +79,20 @@ local function updateMenubarDisplay()
   end
 end
 
+-- ============================================================================
+-- TIMER MANAGEMENT
+-- ============================================================================
+
+local function updateMenubarDisplay()
+  if not UI.menubarItem then return end
+
+  if not State.isTracking then
+    UI.menubarItem:setTitle("🔵 Ready")
+  else
+    UI.menubarItem:setTitle("🔵 " .. formatTime(State.elapsedTime))
+  end
+end
+
 
 -- ============================================================================
 -- TIMER MANAGEMENT
