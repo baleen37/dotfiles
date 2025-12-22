@@ -10,6 +10,7 @@
 #   - starship.nix: Starship prompt - fast, minimal, cross-shell prompt
 #   - tmux.nix: Terminal multiplexer with session persistence
 #   - claude-code.nix: Claude Code AI assistant configuration
+#   - opencode.nix: OpenCode AI assistant configuration
 #
 # Packages included:
 #   - Core utilities: wget, zip, tree, curl, jq, ripgrep, fzf
@@ -18,7 +19,7 @@
 #   - Cloud tools: act, gh, docker, awscli2
 #   - Security: yubikey-agent, keepassxc
 #   - SSH tools: autossh, mosh, teleport
-#   - Terminal: ghostty, htop, zsh-powerlevel10k
+#   - Terminal: ghostty, htop, starship
 #   - Fonts: noto-fonts-cjk-sans, cascadia-code
 #   - Media: ffmpeg
 #   - Databases: postgresql, sqlite, redis, mysql80
@@ -41,6 +42,7 @@
     ./starship.nix
     ./tmux.nix
     ./claude-code.nix
+    ./opencode.nix
     ./hammerspoon.nix
     ./karabiner.nix
     ./ghostty.nix
