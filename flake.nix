@@ -16,10 +16,6 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
-    # Claude Code - 2.0.67 버전 고정
-    # 최신 버전으로 업그레이드하려면 이 input과 overlay를 제거
-    claude-code.url = "github:sadjow/claude-code-nix/fd14c5c923937946e2c079d786e1072890975f6a";
-
     darwin = {
       url = "github:LnL7/nix-darwin";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -50,7 +46,6 @@
       home-manager,
       nixos-generators,
       determinate,
-      claude-code,
       ...
     }@inputs:
     let
@@ -61,10 +56,6 @@
             inherit (prev) system;
             config.allowUnfree = true;
           };
-
-          # Claude Code 2.0.67 버전 고정 (sadjow/claude-code-nix)
-          # 최신 버전으로 업그레이드하려면 이 override와 input을 제거
-          claude-code = claude-code.packages.${prev.system}.default;
         })
       ];
 
