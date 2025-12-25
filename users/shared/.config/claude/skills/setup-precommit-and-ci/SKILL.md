@@ -88,13 +88,13 @@ Provide specific .pre-commit-config.yaml recommendations.
 
 ### 3. Write Configs
 
-**Pre-commit**: See [precommit-config-template.yml](precommit-config-template.yml)
+**Pre-commit**: See [templates/precommit-config-template.yml](templates/precommit-config-template.yml)
 
-**CI**: Copy [ci-workflow-template.yml](ci-workflow-template.yml) to `.github/workflows/pre-commit.yml`
+**CI**: Copy [templates/ci-workflow-template.yml](templates/ci-workflow-template.yml) to `.github/workflows/pre-commit.yml`
 
 ### 4. Branch Protection (Recommended)
 
-Run: `./setup-branch-protection.sh`
+Run: `scripts/setup-branch-protection.sh`
 
 Sets up:
 - Direct push to main blocked
