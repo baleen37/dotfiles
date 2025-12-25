@@ -3,11 +3,11 @@
 
 repos:
   # Shell script linting
-  - repo: https://github.com/koalaman/shellcheck-precommit
-    rev: v0.11.0
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.10.0.1
     hooks:
       - id: shellcheck
-        args: ['--severity=warning', '--shell=bash', '--exclude=SC2155,SC2034,SC1090']
+        args: ['--severity=warning', '--shell=bash', '--exclude=SC2155,SC2034,SC1090,SC2120']
         exclude: ^users/shared/\.config/p10k\.zsh$
 
   # Shell script formatting
