@@ -14,13 +14,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Cache pre-commit environments for faster runs
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
+
+      # Python: auto-detect version from project
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version-file: '.python-version'  # or pyproject.toml
+          cache: 'pip'
 
       # For Node.js projects, uncomment:
       # - uses: actions/setup-node@v4
       #   with:
-      #     node-version: '20'
+      #     node-version-file: '.nvmrc'  # or package.json
+      #     cache: 'npm'
 
       - uses: pre-commit/action@v3.0.1

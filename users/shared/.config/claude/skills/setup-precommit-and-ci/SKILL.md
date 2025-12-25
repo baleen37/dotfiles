@@ -70,18 +70,21 @@ If unclear, check source files (*.py, *.js, *.ts) or ASK USER.
 **Process**: Launch 2 parallel subagents with Task tool, identical prompts:
 
 ```
-Research best practices for pre-commit in [TECH_STACK].
+Research pre-commit best practices for [TECH_STACK].
 You are competing with another agent.
 
-Include:
-1. Recommended hooks for 2025
-2. Versions (latest stable)
-3. Config best practices
-4. Common pitfalls
+PRIMARY SOURCES (in priority order):
+1. Official pre-commit.com documentation
+2. Official [TECH_STACK] language/tooling documentation
+3. Recent migration guides and changelogs (2024-2025)
 
-Sources: pre-commit.com, language docs, popular repos, recent guides
+REQUIRED OUTPUT:
+1. Exact hook versions with release dates
+2. Why this version? (stable/latest/LTS)
+3. Standard configuration patterns from official docs
+4. Common gotchas and known issues
 
-Provide specific .pre-commit-config.yaml recommendations.
+Provide specific .pre-commit-config.yaml recommendations based on official standards, not popularity metrics.
 ```
 
 **Present both** to user - let them choose or combine.
@@ -160,6 +163,114 @@ git push
 4. Environment variables → CI missing env vars
 
 **Process**: Compare environments → Identify difference → Fix root cause → Test both
+
+## Debugging: CI Passes, Local Fails
+
+**Common causes**:
+1. Stale local cache → `pre-commit clean && pre-commit gc`
+2. Uncommitted changes affecting hooks → `git status`
+3. Different Python/Node version locally → Check version files match
+4. Local tool installed globally conflicting → Use hook's isolated env
+
+**Process**: Clean cache → Check uncommitted files → Verify versions → Re-run
+
+## Debugging: Hooks Too Slow
+
+**Symptoms**: Pre-commit takes >30s, developers complain
+
+**Solutions**:
+1. **Profile first**: `pre-commit run --all-files --verbose` to see timings
+2. **Add file filters**: Skip tests/migrations if not needed
+3. **Use caching**: Many hooks support cache directories
+4. **Consider staged-only**: Remove `--all-files` for faster commits
+
+**Example**:
+```yaml
+- id: ruff
+  args: [--fix]
+  stages: [commit]  # Only run on commit, not push
+```
+
+## Debugging: Skip Hooks in Emergency
+
+**When**: Critical hotfix needed, hooks blocking deploy
+
+**Process**:
+1. **ONE TIME ONLY**: `git commit --no-verify -m "hotfix: ..."`
+2. **Immediately after**: Fix hook issues in follow-up PR
+3. **Document**: Why skip was necessary in commit message
+
+**Red flags**:
+- `--no-verify` becomes habit → Hooks need fixing or removal
+- Team culture of skipping → Setup is broken, address root cause
+
+## Incremental Hook Addition
+
+When adding hooks to existing setup:
+
+1. **Add ONE hook at a time** - Don't batch multiple new hooks
+2. **Test each individually** - Isolate failures to specific hooks
+3. **Verify CI for each** - Ensure CI picks up new hook before adding next
+4. **Document why** - Record reasoning in commit message
+
+**Why**: If 5 hooks added at once fail, debugging which one causes issues wastes time.
+
+## Performance Optimization
+
+**Hook runtime matters**:
+
+```bash
+# Check hook performance
+pre-commit run --all-files --verbose
+
+# If slow (>30s total):
+# 1. Review which hooks are slow
+# 2. Consider skip patterns for large files
+# 3. Use language-specific ignore patterns
+```
+
+**Example optimization**:
+```yaml
+- id: mypy
+  exclude: ^(tests/|migrations/)  # Skip non-critical paths
+  args: [--cache-dir=/tmp/mypy_cache]  # Enable caching
+```
+
+## Handling Pre-commit Updates
+
+```bash
+# Update all hook versions
+pre-commit autoupdate
+
+# MUST test after update
+pre-commit run --all-files
+
+# If breaks, pin problematic hook
+# In .pre-commit-config.yaml:
+# rev: v1.2.3  # Don't auto-update this one
+```
+
+**Red flag**: Auto-updating without testing breaks team's workflow.
+
+## Skip Patterns for Monorepos
+
+For large codebases, use strategic exclusions:
+
+```yaml
+repos:
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: v8.0.0
+    hooks:
+      - id: eslint
+        exclude: |
+          (?x)^(
+              legacy/.*|
+              vendor/.*|
+              .*\.min\.js
+          )$
+```
+
+**Balance**: Don't skip so much that quality degrades; don't run on vendored code.
 
 ## Real Impact
 

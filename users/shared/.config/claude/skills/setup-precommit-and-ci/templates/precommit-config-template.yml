@@ -1,8 +1,8 @@
 # .pre-commit-config.yaml template
-# Customize for your project's tech stack
+# Minimal baseline - research will add tech-stack-specific hooks
 
 repos:
-  # Basic hooks (always include)
+  # Universal hooks (all projects need these)
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0
     hooks:
@@ -11,22 +11,4 @@ repos:
       - id: check-yaml
       - id: check-added-large-files
 
-  # Python projects
-  - repo: https://github.com/psf/black
-    rev: 24.10.0
-    hooks:
-      - id: black
-
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.7.4
-    hooks:
-      - id: ruff
-        args: [--fix]
-      - id: ruff-format
-
-  # JavaScript/TypeScript projects
-  # - repo: https://github.com/pre-commit/mirrors-eslint
-  #   rev: v9.0.0
-  #   hooks:
-  #     - id: eslint
-  #       files: \.(js|ts|jsx|tsx)$
+# Tech-stack-specific hooks will be added based on competitive research results
