@@ -37,7 +37,7 @@ log_with_timestamp() {
     local level="$1"
     local message="$2"
     local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-    
+
     case "$level" in
         "INFO")
             log_info "[$timestamp] $message"
@@ -64,7 +64,7 @@ log_with_timestamp() {
 show_progress() {
     local message="$1"
     local duration="${2:-3}"
-    
+
     for i in $(seq 1 "$duration"); do
         echo -n "${message}..."
         sleep 1
