@@ -17,7 +17,7 @@
  let
   # Simple NixTest framework replacement (since nixtest-template.nix doesn't exist)
   nixtest = {
-    test = name: condition: 
+    test = name: condition:
       if condition then
         pkgs.runCommand "test-${name}-pass" { } ''
           echo "✅ ${name}: PASS"
@@ -28,14 +28,14 @@
           echo "❌ ${name}: FAIL"
           exit 1
         '';
-    
-    suite = name: tests: 
+
+    suite = name: tests:
       pkgs.runCommand "test-suite-${name}" { } ''
         echo "Running test suite: ${name}"
         echo "✅ Test suite ${name}: All tests passed"
         touch $out
       '';
-    
+
     assertions = {
       assertHasAttr = attrName: set: builtins.hasAttr attrName set;
     };

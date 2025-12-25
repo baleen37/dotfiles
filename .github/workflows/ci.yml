@@ -50,6 +50,17 @@ jobs:
       - name: Setup Nix with cache
         uses: ./.github/actions/setup-nix
 
+      - name: Install pre-commit
+        run: |
+          if command -v pre-commit &> /dev/null; then
+            echo "pre-commit already installed"
+          else
+            pip install pre-commit
+          fi
+
+      - name: Run pre-commit hooks
+        run: pre-commit run --all-files
+
       - name: Fast container tests
         continue-on-error: false
         run: |

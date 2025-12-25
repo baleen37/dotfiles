@@ -19,8 +19,9 @@ NO CHANGES WITHOUT TESTING
 ```dot
 digraph precommit_setup {
     "Detect stack" [shape=box];
-    "Research (2 parallel)" [shape=diamond];
-    "Present options" [shape=box];
+    "Research agent A" [shape=box, style=dotted];
+    "Research agent B" [shape=box, style=dotted];
+    "Present BOTH options" [shape=box];
     "User selects" [shape=box];
     "Write configs" [shape=box];
     "Setup branch protection?" [shape=diamond];
@@ -30,9 +31,11 @@ digraph precommit_setup {
     "Fix" [shape=box];
     "Commit & verify CI" [shape=box];
 
-    "Detect stack" -> "Research (2 parallel)";
-    "Research (2 parallel)" -> "Present options";
-    "Present options" -> "User selects";
+    "Detect stack" -> "Research agent A";
+    "Detect stack" -> "Research agent B";
+    "Research agent A" -> "Present BOTH options";
+    "Research agent B" -> "Present BOTH options";
+    "Present BOTH options" -> "User selects";
     "User selects" -> "Write configs";
     "Write configs" -> "Setup branch protection?";
     "Setup branch protection?" -> "Run script" [label="yes"];
@@ -65,7 +68,7 @@ If unclear, check source files (*.py, *.js, *.ts) or ASK USER.
 
 **REQUIRED for**: New setup, adding hooks, user requests
 
-**SKIP for**: Version updates only, removing hooks
+**SKIP for**: Updating hook versions (`.pre-commit-config.yaml` `rev:` fields only), removing hooks
 
 **Process**: Launch 2 parallel subagents with Task tool, identical prompts:
 
@@ -94,7 +97,8 @@ Provide specific .pre-commit-config.yaml recommendations.
 
 ### 4. Branch Protection (Recommended)
 
-Run: `scripts/setup-branch-protection.sh`
+Run: `bash {baseDir}/scripts/setup-branch-protection.sh`
+*({baseDir} is the skill directory; Claude Code resolves this automatically)*
 
 Sets up:
 - Direct push to main blocked
@@ -148,8 +152,7 @@ git push
 - "Just one hook" → One hook breaks everything
 - "Local works" → Local ≠ CI
 - "User wants fast" → Fast = efficient, not careless
-- "Ask about research" → Launch research, don't ask
-- "Skip research option" → User picks result, not whether to research
+- "Ask about research" → Always launch research; user picks result, not whether to research
 
 ## Debugging: Local Passes, CI Fails
 
@@ -160,6 +163,71 @@ git push
 4. Environment variables → CI missing env vars
 
 **Process**: Compare environments → Identify difference → Fix root cause → Test both
+
+## Debugging: CI Fails - Reproduce Locally
+
+**When CI fails**, reproduce it locally before fixing:
+
+### 1. Check CI Failure Details
+
+```bash
+# View recent CI runs
+gh run list --limit 5
+
+# Get specific run details
+gh run view <run-id>
+
+# Download logs for analysis
+gh run view <run-id> --log-failed
+```
+
+### 2. Reproduce Locally
+
+```bash
+# Clean state - remove cached results
+pre-commit clean
+
+# Run exact same checks as CI
+pre-commit run --all-files
+
+# If specific hook fails in CI, run just that hook
+pre-commit run <hook-id> --all-files
+```
+
+### 3. Common Gotchas
+
+| Issue | Symptom | Solution |
+|-------|---------|----------|
+| Stale cache | Local passes, CI fails on same commit | `pre-commit clean` then re-run |
+| Tool version mismatch | Different errors local vs CI | Check `.pre-commit-config.yaml` versions match installed tools |
+| Missing system deps | CI fails on setup | Install deps: `brew install <tool>` or `pip install <tool>` |
+| Files not staged | CI sees files you don't | Check `git status`, stage necessary files |
+| Environment differences | CI has different PATH/env | Check CI workflow env vars, replicate locally |
+
+### 4. Systematic Process
+
+```bash
+# 1. Sync with remote
+git fetch origin
+git status
+
+# 2. Clean pre-commit cache
+pre-commit clean
+
+# 3. Run all hooks
+pre-commit run --all-files
+
+# 4. If passes locally but CI fails
+#    → Check CI logs for exact hook and error
+#    → Compare tool versions: pre-commit run --verbose
+#    → Check for uncommitted files affecting CI
+```
+
+**Golden Rule**: If you can't reproduce locally, CI environment differs from yours. Compare:
+- Tool versions (`.pre-commit-config.yaml` vs installed)
+- Python/Node/etc versions (CI workflow vs local)
+- System dependencies (CI runner vs your machine)
+- Environment variables (CI secrets vs local env)
 
 ## Real Impact
 
