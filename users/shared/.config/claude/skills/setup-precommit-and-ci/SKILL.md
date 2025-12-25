@@ -1,368 +1,174 @@
 ---
 name: setup-precommit-and-ci
-description: Use when setting up pre-commit hooks (new or modifying existing), before writing config files, or when pre-commit passes locally but fails in CI
+description: Use when setting up or modifying pre-commit hooks, or when local passes but CI fails
 ---
 
 # Setting Up Pre-commit and CI
 
-## Overview
-
-**Pre-commit without CI is half a solution.** Local hooks catch issues before commit, CI ensures everyone runs the same checks.
-
-**Core principle**: If it passes locally, it must pass in CI. If it fails in CI, it must fail locally.
-
 ## The Iron Law
 
 ```
-NO PRE-COMMIT SETUP WITHOUT CI WORKFLOW
-NO PRE-COMMIT CHANGES WITHOUT TESTING
+NO PRE-COMMIT WITHOUT CI
+NO CHANGES WITHOUT TESTING
 ```
 
-## When to Use
-
-Use this skill when:
-- Setting up pre-commit for new project
-- Adding/removing/modifying hooks in existing config
-- Pre-commit passes locally but fails in CI
-- Project has pre-commit but no CI workflow
-
-Do NOT use for:
-- Projects that explicitly cannot use CI
-- Read-only analysis of existing setups
+**Core principle**: Local and CI must be consistent. If it passes locally, it must pass in CI.
 
 ## Workflow
 
 ```dot
 digraph precommit_setup {
-    "User requests pre-commit setup" [shape=box];
-    "Detect technology stack" [shape=box];
-    "Launch competitive research" [shape=diamond];
-    "Research A: Best practices" [shape=box];
-    "Research B: Best practices" [shape=box];
-    "Present both results to user" [shape=box];
-    "User selects approach" [shape=box];
-    "Write .pre-commit-config.yaml" [shape=box];
-    "Write CI workflow" [shape=box];
+    "Detect stack" [shape=box];
+    "Research (2 parallel)" [shape=diamond];
+    "Present options" [shape=box];
+    "User selects" [shape=box];
+    "Write configs" [shape=box];
+    "Setup branch protection?" [shape=diamond];
+    "Run script" [shape=box];
     "Test locally" [shape=box];
-    "Test passes?" [shape=diamond];
-    "Fix issues" [shape=box];
-    "Commit and verify CI" [shape=box];
-    "Done" [shape=box];
+    "Passes?" [shape=diamond];
+    "Fix" [shape=box];
+    "Commit & verify CI" [shape=box];
 
-    "User requests pre-commit setup" -> "Detect technology stack";
-    "Detect technology stack" -> "Launch competitive research";
-    "Launch competitive research" -> "Research A: Best practices" [label="parallel"];
-    "Launch competitive research" -> "Research B: Best practices" [label="parallel"];
-    "Research A: Best practices" -> "Present both results to user";
-    "Research B: Best practices" -> "Present both results to user";
-    "Present both results to user" -> "User selects approach";
-    "User selects approach" -> "Write .pre-commit-config.yaml";
-    "Write .pre-commit-config.yaml" -> "Write CI workflow";
-    "Write CI workflow" -> "Test locally";
-    "Test locally" -> "Test passes?";
-    "Test passes?" -> "Commit and verify CI" [label="yes"];
-    "Test passes?" -> "Fix issues" [label="no"];
-    "Fix issues" -> "Test locally";
-    "Commit and verify CI" -> "Done";
+    "Detect stack" -> "Research (2 parallel)";
+    "Research (2 parallel)" -> "Present options";
+    "Present options" -> "User selects";
+    "User selects" -> "Write configs";
+    "Write configs" -> "Setup branch protection?";
+    "Setup branch protection?" -> "Run script" [label="yes"];
+    "Setup branch protection?" -> "Test locally" [label="no"];
+    "Run script" -> "Test locally";
+    "Test locally" -> "Passes?";
+    "Passes?" -> "Commit & verify CI" [label="yes"];
+    "Passes?" -> "Fix" [label="no"];
+    "Fix" -> "Test locally";
 }
 ```
 
-## Step-by-Step Process
+## Step-by-Step
 
-### 1. Detect Technology Stack
-
-**BEFORE researching, understand the project:**
+### 1. Detect Tech Stack
 
 ```bash
-# Check for dependency files
-ls package.json requirements.txt pyproject.toml Cargo.toml go.mod 2>/dev/null
+# Check for dependency and config files
+ls package.json requirements.txt pyproject.toml Cargo.toml go.mod \
+   .eslintrc tsconfig.json 2>/dev/null
 
-# Check existing pre-commit config
+# Check existing setup
 cat .pre-commit-config.yaml 2>/dev/null
-
-# Check for CI workflows
-ls .github/workflows/*.{yml,yaml} .gitlab-ci.yml 2>/dev/null
+ls .github/workflows/*.yml 2>/dev/null
 ```
 
-Extract:
-- **Languages**: Python, JavaScript/TypeScript, Rust, Go, etc.
-- **Tools**: ESLint, Black, Ruff, Prettier, mypy, etc.
-- **Existing hooks**: What's already configured
-- **Existing CI**: What CI platform (GitHub Actions, GitLab, etc.)
-
-If unclear, ASK USER directly:
-- "What languages/frameworks does this project use?"
-- "Do you have preferences for linters/formatters?"
+If unclear, check source files (*.py, *.js, *.ts) or ASK USER.
 
 ### 2. MANDATORY Competitive Research
 
-**REQUIRED when**: Setting up pre-commit for the first time
+**REQUIRED for**: New setup, adding hooks, user requests
 
-**Optional when**: User explicitly requests research for existing setup
+**SKIP for**: Version updates only, removing hooks
 
-**IMPORTANT**: Do NOT ask user for permission to research. Launch research, THEN present results for user to choose.
+**Process**: Launch 2 parallel subagents with Task tool, identical prompts:
 
-**How**: Launch 2 parallel subagents with Task tool
-
-**Subagent A prompt:**
 ```
-Research best practices for pre-commit setup in [DETECTED_TECH_STACK].
-
-You are competing with another agent to find better recommendations.
+Research best practices for pre-commit in [TECH_STACK].
+You are competing with another agent.
 
 Include:
-1. Current recommended hooks for 2025
-2. Versions to use (latest stable vs pinned)
-3. Configuration best practices
-4. Common pitfalls to avoid
+1. Recommended hooks for 2025
+2. Versions (latest stable)
+3. Config best practices
+4. Common pitfalls
 
-Sources to check:
-- Official pre-commit.com documentation
-- Language-specific linting/formatting tool docs
-- Popular GitHub repositories using this stack
-- Recent blog posts/guides (2024-2025)
+Sources: pre-commit.com, language docs, popular repos, recent guides
 
 Provide specific .pre-commit-config.yaml recommendations.
 ```
 
-**Subagent B prompt:**
-```
-[IDENTICAL TO SUBAGENT A]
-```
+**Present both** to user - let them choose or combine.
 
-**Present both results** to user:
-```
-Two research approaches found:
+### 3. Write Configs
 
-**Approach A:**
-[Summary of A's recommendations]
-- Pros: [...]
-- Cons: [...]
+**Pre-commit**: See [precommit-config-template.yml](precommit-config-template.yml)
 
-**Approach B:**
-[Summary of B's recommendations]
-- Pros: [...]
-- Cons: [...]
+**CI**: Copy [ci-workflow-template.yml](ci-workflow-template.yml) to `.github/workflows/pre-commit.yml`
 
-Which approach do you prefer, or should I combine the best of both?
-```
+### 4. Branch Protection (Recommended)
 
-**IMPORTANT**: DO NOT pick for the user. Present options, let them decide.
+Run: `./setup-branch-protection.sh`
 
-### 3. Write .pre-commit-config.yaml
+Sets up:
+- Direct push to main blocked
+- CI must pass to merge
+- Force push disabled
 
-Based on research/user selection, create config with:
-
-**Required structure:**
-```yaml
-repos:
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0  # Use current latest
-    hooks:
-      - id: trailing-whitespace
-      - id: end-of-file-fixer
-      - id: check-yaml
-      - id: check-added-large-files
-
-  # Language-specific hooks based on tech stack
-  # Example for Python:
-  - repo: https://github.com/psf/black
-    rev: 24.10.0
-    hooks:
-      - id: black
-
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.7.4
-    hooks:
-      - id: ruff
-        args: [--fix]
-      - id: ruff-format
-```
-
-**Version selection:**
-- Use latest stable versions (verify with research)
-- Pin to specific versions, not branches
-- Document why if using older version
-
-### 4. Write CI Workflow
-
-**CI is MANDATORY, not optional.**
-
-Create `.github/workflows/pre-commit.yml` (adjust for GitLab/other CI):
-
-```yaml
-name: pre-commit
-
-on:
-  pull_request:
-  push:
-    branches: [main, master]
-
-jobs:
-  pre-commit:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      # Install language-specific dependencies if needed
-      # For Node.js projects:
-      # - uses: actions/setup-node@v4
-      #   with:
-      #     node-version: '20'
-
-      - uses: pre-commit/action@v3.0.1
-```
-
-**Critical**: CI must run the SAME hooks as local pre-commit.
+Options: `--yes` (auto-confirm), `--branch <name>`
 
 ### 5. Test Locally
 
-**MANDATORY before claiming done:**
-
 ```bash
-# Install pre-commit
 pip install pre-commit  # or brew install pre-commit
-
-# Install hooks
 pre-commit install
-
-# Run on all files
 pre-commit run --all-files
 ```
 
-**If tests fail:**
-- Fix issues (code or config)
-- Run again until passing
-- NEVER skip failures
+**MUST pass before committing**. Fix issues, re-run until clean.
 
-**If tests pass:**
-- Proceed to commit
-
-### 6. Commit and Verify CI
+### 6. Commit & Verify
 
 ```bash
 git add .pre-commit-config.yaml .github/workflows/pre-commit.yml
-git commit -m "Add pre-commit with CI workflow"
+git commit -m "Add pre-commit with CI"
 git push
 ```
 
-**THEN verify CI:**
-- Check GitHub Actions (or relevant CI) runs
-- Confirm it passes
-- If CI fails but local passed: **STOP** - investigate inconsistency
+**Watch CI run**. If CI fails but local passed → investigate inconsistency.
 
-## Modifying Existing Pre-commit
+## Modifying Existing Setup
 
-**When adding/changing hooks:**
-
-1. **Research** (even for "simple" changes)
-   - What's the current best practice?
-   - Are there better alternatives now?
-
-2. **Edit config**
-   - Make minimal necessary changes
-
-3. **Verify CI still has same hooks**
-   - Check `.github/workflows/` or CI config
-   - Update if needed
-
-4. **Test locally**
-   ```bash
-   pre-commit run --all-files
-   ```
-
-5. **Commit and verify CI**
-   - Push changes
-   - Watch CI run
-   - Confirm passes
+1. Research (for new hooks)
+2. Edit config
+3. Verify CI has same hooks
+4. Test: `pre-commit run --all-files`
+5. Commit & verify CI
 
 ## Common Mistakes
 
-| Mistake | Why It's Wrong | Correct Approach |
-|---------|---------------|------------------|
-| "Just local pre-commit, CI later" | CI never gets added | CI is part of setup, not optional |
-| "Quick change, no need to test" | Config errors break everyone | Always test, even 1-line changes |
-| "Local passes, ship it" | CI might fail due to env differences | Always verify in CI after push |
-| "Use whatever is standard" | "Standard" undefined, likely outdated | Research current best practices |
-| Skip research for "simple" adds | Tools evolve, better options exist | Quick research prevents tech debt |
-| Hard-code versions without checking | Might use outdated/vulnerable versions | Verify latest stable versions |
+| Mistake | Why Wrong | Fix |
+|---------|-----------|-----|
+| "Local only, CI later" | CI never added | CI is mandatory |
+| "Quick, skip test" | Breaks everyone | Always test |
+| "Local works, ship it" | Env differences | Verify in CI |
+| "Use standard" | Undefined, outdated | Research |
+| Skip research for "simple" add | Tools evolve | Quick research |
 
-## Resisting Rationalization
+## Red Flags - STOP
 
-**Red flags - STOP if you think:**
-- "This is quick, skip testing"
-- "CI can come later"
-- "It's just one hook, won't break anything"
-- "Local works, good enough"
-- "User said quickly, skip research"
-- "Let me ask if they want research" (for new setups)
-- "User can choose to skip research"
-
-**Reality:**
-- Quick done right > Quick and broken
-- CI is mandatory, period
-- One hook can break entire workflow
-- Local ≠ CI environment
-- "Quickly" means efficient, not careless
-- Research is mandatory for new setups, not optional
-- User chooses WHICH research result, not WHETHER to research
+- "Quick, skip testing" → Quick done right, not quick and broken
+- "CI later" → CI mandatory, period
+- "Just one hook" → One hook breaks everything
+- "Local works" → Local ≠ CI
+- "User wants fast" → Fast = efficient, not careless
+- "Ask about research" → Launch research, don't ask
+- "Skip research option" → User picks result, not whether to research
 
 ## Debugging: Local Passes, CI Fails
 
-**When this happens:**
+**Common causes**:
+1. Different tool versions → Pin in both
+2. Missing dependencies → CI needs same deps
+3. File not committed → Check .gitignore
+4. Environment variables → CI missing env vars
 
-```dot
-digraph debug_flow {
-    "CI fails, local passes" [shape=box];
-    "Compare environments" [shape=box];
-    "Check tool versions" [shape=box];
-    "Check file visibility" [shape=box];
-    "Check dependencies" [shape=box];
-    "Identify difference" [shape=box];
-    "Fix root cause" [shape=diamond];
-    "Align CI to local" [shape=box];
-    "Align local to CI" [shape=box];
-    "Test both" [shape=box];
-    "Both pass?" [shape=diamond];
-    "Done" [shape=box];
+**Process**: Compare environments → Identify difference → Fix root cause → Test both
 
-    "CI fails, local passes" -> "Compare environments";
-    "Compare environments" -> "Check tool versions";
-    "Compare environments" -> "Check file visibility";
-    "Compare environments" -> "Check dependencies";
-    "Check tool versions" -> "Identify difference";
-    "Check file visibility" -> "Identify difference";
-    "Check dependencies" -> "Identify difference";
-    "Identify difference" -> "Fix root cause";
-    "Fix root cause" -> "Align CI to local" [label="CI is wrong"];
-    "Fix root cause" -> "Align local to CI" [label="local is wrong"];
-    "Align CI to local" -> "Test both";
-    "Align local to CI" -> "Test both";
-    "Test both" -> "Both pass?";
-    "Both pass?" -> "Done" [label="yes"];
-    "Both pass?" -> "Compare environments" [label="no"];
-}
-```
+## Real Impact
 
-**Common causes:**
-1. **Different tool versions** - Pin versions in both places
-2. **Missing dependencies** - CI needs same deps as local
-3. **File not committed** - `.gitignore` hiding needed files
-4. **Environment variables** - CI missing required env vars
+**Without**:
+- Devs use `--no-verify`
+- CI catches what local missed
+- "Works on my machine"
 
-## Real-World Impact
-
-**Without this discipline:**
-- ❌ Developers commit with `--no-verify` because hooks unreliable
-- ❌ CI catches issues local hooks missed
-- ❌ "Works on my machine" syndrome
-- ❌ Pre-commit becomes waste of time
-
-**With this discipline:**
-- ✅ Local and CI always consistent
-- ✅ Developers trust the hooks
-- ✅ Issues caught before commit, not in CI
-- ✅ Pre-commit saves time, not wastes it
+**With**:
+- Local and CI always consistent
+- Developers trust hooks
+- Issues caught before commit
