@@ -39,9 +39,9 @@
   "enabledPlugins": {
     "superpowers@superpowers-marketplace": true,
     "episodic-memory@superpowers-marketplace": true,
-    "pyright@Piebald-AI/claude-code-lsps": true,
-    "kotlin-lsp@Piebald-AI/claude-code-lsps": true,
-    "gopls@Piebald-AI/claude-code-lsps": true
+    "pyright-lsp@claude-plugins-official": true,
+    "typescript-lsp@claude-plugins-official": true,
+    "gopls-lsp@claude-plugins-official": true
   },
   "feedbackSurveyState": {
     "lastShownTime": 1755225425616
