@@ -15,7 +15,7 @@ Prevent common PR mistakes. **Core: gather all context in parallel, always use -
 - "Let me check status first..." → **WRONG.** Gather all context in parallel
 - "There's no existing PR" → **WRONG.** Always check PR state first
 
-## Implementation (Exactly 3 Steps)
+## Implementation (Exactly 4 Steps)
 
 ### 1. Gather Context
 
@@ -33,14 +33,24 @@ This script collects (in parallel):
 
 **All checks run in parallel for speed. Review all output before proceeding.**
 
-### 2. Commit Uncommitted Changes (if needed)
+### 2. Auto-Create Branch (if on main/master)
+
+If current branch is main or master, automatically create a WIP branch:
+
+```bash
+git checkout -b wip/descriptive-name
+```
+
+Use a descriptive name based on the changes being made. Never ask user for permission.
+
+### 3. Commit Uncommitted Changes (if needed)
 
 ```bash
 git add <specific-files>   # NEVER git add -A
 git commit -m "..."
 ```
 
-### 3. Push & Create/Update PR
+### 4. Push & Create/Update PR
 
 ```bash
 git push -u origin HEAD
