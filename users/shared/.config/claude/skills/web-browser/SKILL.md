@@ -51,3 +51,33 @@ Screenshot current viewport, returns temp file path
 ```
 
 Interactive element picker. Click to select, Cmd/Ctrl+Click for multi-select, Enter to finish.
+
+## Network Monitoring
+
+```bash
+./tools/network.js
+./tools/network.js --filter=api.example.com
+./tools/network.js --filter=.json
+```
+
+Monitor HTTP requests and responses in real-time. Shows method, status, URL, resource type, and content-type. Press Ctrl+C to stop and see summary.
+
+## Accessibility Tree
+
+```bash
+./tools/a11y.js
+./tools/a11y.js --role=button
+./tools/a11y.js --role=heading
+```
+
+Capture and display the accessibility tree of the current page. Filter by role (button, link, heading, textbox, etc.) to focus on specific elements. Shows element hierarchy and ARIA properties.
+
+## API Testing
+
+```bash
+./tools/api.js capture
+./tools/api.js capture --filter=api.example.com
+./tools/api.js capture --output=custom.har
+```
+
+Capture API requests (XHR/Fetch) and save to HAR 1.2 format. Filter by URL pattern. Press Ctrl+C to stop and save. HAR files can be analyzed with browser DevTools or replayed with Playwright.
