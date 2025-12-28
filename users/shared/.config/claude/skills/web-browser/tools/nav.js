@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import puppeteer from "puppeteer-core";
+import { chromium } from "playwright";
 
 const url = process.argv[2];
 const newTab = process.argv[3] === "--new";
@@ -13,19 +13,19 @@ if (!url) {
   process.exit(1);
 }
 
-const b = await puppeteer.connect({
-  browserURL: "http://localhost:9222",
-  defaultViewport: null,
-});
+const b = await chromium.connectOverCDP("http://localhost:9222");
+const contexts = b.contexts();
+const context = contexts[0];
 
 if (newTab) {
-  const p = await b.newPage();
+  const p = await context.newPage();
   await p.goto(url, { waitUntil: "domcontentloaded" });
   console.log("✓ Opened:", url);
 } else {
-  const p = (await b.pages()).at(-1);
+  const pages = context.pages();
+  const p = pages.at(-1);
   await p.goto(url, { waitUntil: "domcontentloaded" });
   console.log("✓ Navigated to:", url);
 }
 
-await b.disconnect();
+await b.close();
