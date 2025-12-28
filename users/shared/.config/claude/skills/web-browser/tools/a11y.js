@@ -23,11 +23,53 @@ if (!p) {
   process.exit(1);
 }
 
-// Get accessibility snapshot
-const snapshot = await p.accessibility.snapshot();
+// Get CDP session to access Accessibility domain
+const client = await p.context().newCDPSession(p);
+
+// Get accessibility snapshot using CDP directly
+const { nodes } = await client.send('Accessibility.getFullAXTree');
+
+if (!nodes || nodes.length === 0) {
+  console.error("✗ Could not capture accessibility tree");
+  process.exit(1);
+}
+
+// Convert CDP accessibility nodes to Puppeteer-like format
+function convertNode(node, allNodes) {
+  const result = {
+    role: node.role?.value || 'unknown',
+    name: node.name?.value || '',
+  };
+
+  if (node.value?.value) {
+    result.value = node.value.value;
+  }
+
+  // Add important properties
+  if (node.focused?.value) result.focused = true;
+  if (node.disabled?.value) result.disabled = true;
+  if (node.checked?.value) result.checked = node.checked.value === 'true';
+  if (node.pressed?.value) result.pressed = node.pressed.value === 'true';
+  if (node.expanded?.value) result.expanded = node.expanded.value === 'true';
+  if (node.level?.value) result.level = parseInt(node.level.value);
+
+  // Process children
+  if (node.childIds && node.childIds.length > 0) {
+    result.children = node.childIds
+      .map(childId => allNodes.find(n => n.nodeId === childId))
+      .filter(Boolean)
+      .map(childNode => convertNode(childNode, allNodes));
+  }
+
+  return result;
+}
+
+// Find root node (usually the first one)
+const rootNode = nodes[0];
+const snapshot = convertNode(rootNode, nodes);
 
 if (!snapshot) {
-  console.error("✗ Could not capture accessibility tree");
+  console.error("✗ Could not parse accessibility tree");
   process.exit(1);
 }
 
