@@ -34,7 +34,7 @@ if (!nodes || nodes.length === 0) {
   process.exit(1);
 }
 
-// Convert CDP accessibility nodes to Puppeteer-like format
+// Convert CDP accessibility nodes to standardized format
 function convertNode(node, allNodes) {
   const result = {
     role: node.role?.value || 'unknown',
