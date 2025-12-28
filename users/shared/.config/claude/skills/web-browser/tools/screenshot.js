@@ -2,14 +2,11 @@
 
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import puppeteer from "puppeteer-core";
+import { chromium } from "playwright";
 
-const b = await puppeteer.connect({
-  browserURL: "http://localhost:9222",
-  defaultViewport: null,
-});
-
-const p = (await b.pages()).at(-1);
+const b = await chromium.connectOverCDP("http://localhost:9222");
+const contexts = b.contexts();
+const p = contexts[0].pages().at(-1);
 
 if (!p) {
   console.error("✗ No active tab found");
@@ -24,4 +21,4 @@ await p.screenshot({ path: filepath });
 
 console.log(filepath);
 
-await b.disconnect();
+await b.close();
