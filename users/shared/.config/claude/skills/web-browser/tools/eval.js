@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import puppeteer from "puppeteer-core";
+import { chromium } from "playwright";
 
 const code = process.argv.slice(2).join(" ");
 if (!code) {
@@ -11,12 +11,9 @@ if (!code) {
   process.exit(1);
 }
 
-const b = await puppeteer.connect({
-  browserURL: "http://localhost:9222",
-  defaultViewport: null,
-});
-
-const p = (await b.pages()).at(-1);
+const b = await chromium.connectOverCDP("http://localhost:9222");
+const contexts = b.contexts();
+const p = contexts[0].pages().at(-1);
 
 if (!p) {
   console.error("✗ No active tab found");
@@ -52,4 +49,4 @@ if (Array.isArray(result)) {
   console.log(result);
 }
 
-await b.disconnect();
+await b.close();
