@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { spawn, execSync } from "node:child_process";
-import puppeteer from "puppeteer-core";
+import { chromium } from "playwright";
 
 const useProfile = process.argv[2] === "--profile";
 
@@ -50,11 +50,8 @@ spawn(
 let connected = false;
 for (let i = 0; i < 30; i++) {
   try {
-    const browser = await puppeteer.connect({
-      browserURL: "http://localhost:9222",
-      defaultViewport: null,
-    });
-    await browser.disconnect();
+    const browser = await chromium.connectOverCDP("http://localhost:9222");
+    await browser.close();
     connected = true;
     break;
   } catch {
