@@ -2,24 +2,12 @@
 
 import { chromium } from "playwright";
 
-const roleFilter = process.argv.find((arg) => arg.startsWith("--role="))?.split("=")[1];
-const showHelp = process.argv.includes("--help");
-
-if (showHelp) {
-  console.log("Usage: a11y.js [--role=<role>]");
-  console.log("\nExamples:");
-  console.log("  a11y.js                # Show full accessibility tree");
-  console.log("  a11y.js --role=button  # Filter by role (button, link, heading, etc.)");
-  console.log("  a11y.js --role=heading # Show only headings");
-  process.exit(0);
-}
-
 const b = await chromium.connectOverCDP("http://localhost:9222");
 const contexts = b.contexts();
 const p = contexts[0].pages().at(-1);
 
 if (!p) {
-  console.error("✗ No active tab found");
+  console.error("No active tab found");
   process.exit(1);
 }
 
@@ -30,7 +18,7 @@ const client = await p.context().newCDPSession(p);
 const { nodes } = await client.send('Accessibility.getFullAXTree');
 
 if (!nodes || nodes.length === 0) {
-  console.error("✗ Could not capture accessibility tree");
+  console.error("Could not capture accessibility tree");
   process.exit(1);
 }
 
@@ -69,78 +57,60 @@ const rootNode = nodes[0];
 const snapshot = convertNode(rootNode, nodes);
 
 if (!snapshot) {
-  console.error("✗ Could not parse accessibility tree");
+  console.error("Could not parse accessibility tree");
   process.exit(1);
 }
 
-// Function to format and display the tree
-function displayNode(node, indent = 0) {
+// Convert to YAML-like format (Playwright ARIA Snapshot style)
+function toYAML(node, indent = 0) {
   const prefix = "  ".repeat(indent);
 
-  // Skip if role filter is set and doesn't match
-  if (roleFilter && node.role !== roleFilter) {
-    // Still process children
+  // Skip nodes without meaningful role
+  const skipRoles = ['generic', 'none', 'StaticText', 'InlineTextBox', 'LineBreak'];
+  if (!node.role || skipRoles.includes(node.role)) {
+    // Process children directly
     if (node.children) {
-      node.children.forEach((child) => displayNode(child, indent));
+      node.children.forEach((child) => toYAML(child, indent));
     }
     return;
   }
 
-  // Build node description
-  let description = `${prefix}[${node.role}]`;
+  // Build YAML line
+  let line = `${prefix}- ${node.role}`;
 
   if (node.name) {
-    description += ` "${node.name}"`;
+    line += ` "${node.name}"`;
   }
 
-  if (node.value) {
-    description += ` = ${node.value}`;
+  // Add attributes in brackets
+  const attrs = [];
+  if (node.level) attrs.push(`level=${node.level}`);
+  if (node.checked === true) attrs.push('checked=true');
+  if (node.checked === false) attrs.push('checked=false');
+  if (node.pressed === true) attrs.push('pressed=true');
+  if (node.pressed === false) attrs.push('pressed=false');
+  if (node.expanded === true) attrs.push('expanded=true');
+  if (node.expanded === false) attrs.push('expanded=false');
+  if (node.disabled) attrs.push('disabled=true');
+  if (node.focused) attrs.push('focused=true');
+
+  if (attrs.length > 0) {
+    line += ` [${attrs.join(', ')}]`;
   }
 
-  // Add important properties
-  const props = [];
-  if (node.focused) props.push("focused");
-  if (node.disabled) props.push("disabled");
-  if (node.checked === true) props.push("checked");
-  if (node.checked === false) props.push("unchecked");
-  if (node.pressed === true) props.push("pressed");
-  if (node.expanded === true) props.push("expanded");
-  if (node.expanded === false) props.push("collapsed");
-  if (node.level) props.push(`level=${node.level}`);
-
-  if (props.length > 0) {
-    description += ` (${props.join(", ")})`;
+  // Add children indicator
+  if (node.children && node.children.length > 0) {
+    line += ':';
   }
 
-  console.log(description);
+  console.log(line);
 
-  // Process children
+  // Process children with increased indent
   if (node.children) {
-    node.children.forEach((child) => displayNode(child, indent + 1));
+    node.children.forEach((child) => toYAML(child, indent + 1));
   }
 }
 
-console.log("🌲 Accessibility Tree:\n");
-displayNode(snapshot);
-
-console.log("\n📊 Summary:");
-
-// Count nodes by role
-function countByRole(node, counts = {}) {
-  if (node.role) {
-    counts[node.role] = (counts[node.role] || 0) + 1;
-  }
-  if (node.children) {
-    node.children.forEach((child) => countByRole(child, counts));
-  }
-  return counts;
-}
-
-const roleCounts = countByRole(snapshot);
-const sortedRoles = Object.entries(roleCounts).sort((a, b) => b[1] - a[1]);
-
-sortedRoles.forEach(([role, count]) => {
-  console.log(`  ${role}: ${count}`);
-});
+toYAML(snapshot);
 
 await b.close();
