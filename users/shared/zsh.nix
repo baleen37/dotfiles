@@ -90,8 +90,8 @@ in
     completionInit = "autoload -Uz compinit && compinit -C";
 
     shellAliases = {
-      # Claude CLI shortcut
-      cc = "claude --dangerously-skip-permissions";
+      # Claude CLI shortcut with LSP tool enabled by default
+      cc = "ENABLE_LSP_TOOL=true claude --dangerously-skip-permissions";
 
       # OpenCode CLI shortcut
       oc = "opencode";
