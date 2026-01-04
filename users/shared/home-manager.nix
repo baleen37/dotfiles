@@ -111,6 +111,7 @@
       # SSH tools
       mosh
       teleport
+      sshpass
 
       # Terminal apps
 
