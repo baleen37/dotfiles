@@ -16,8 +16,8 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
-    # Claude Code - 2.0.67 버전 고정 (LSP 버그 없는 안정 버전)
-    claude-code.url = "github:sadjow/claude-code-nix/fd14c5c923937946e2c079d786e1072890975f6a";
+    # Claude Code - latest stable
+    claude-code.url = "github:sadjow/claude-code-nix/main";
 
     darwin = {
       url = "github:LnL7/nix-darwin";
@@ -61,7 +61,7 @@
             config.allowUnfree = true;
           };
 
-          # Claude Code 2.0.67 버전 고정 (LSP 버그 없는 안정 버전)
+          # Claude Code - latest from flake input
           claude-code = claude-code.packages.${prev.system}.default;
         })
       ];
