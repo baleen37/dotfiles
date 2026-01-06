@@ -55,7 +55,7 @@ let
   ) tmuxConfig.plugins;
 
   hasContinuumPlugin = builtins.any (
-    plugin: plugin.pname or null == "tmux-continuum"
+    plugin: builtins.match ".*continuum.*" (plugin.pname or "") != null
   ) tmuxConfig.plugins;
 
   # Test that yank plugin is NOT present (Task 2: Remove Yank Plugin Dependency)
