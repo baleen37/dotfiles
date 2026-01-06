@@ -68,31 +68,19 @@ git commit -m "..."
 git push -u origin HEAD
 ```
 
-**Draft PR for early development (recommended for WIP):**
+**For WIP/early development:**
 ```bash
-gh pr create --base $BASE --draft --title "WIP: type(scope): description"
+gh pr create --base $BASE --draft --title "WIP: type(scope): description" --body "..."
+gh pr ready  # When ready for review
 ```
 
-**Ready for review:**
+**For ready PRs:**
 ```bash
-gh pr ready  # Convert draft to ready for review
-```
-
-Then based on PR state (for non-draft):
-
-| PR State | Command |
-|----------|---------|
-| `OPEN` | `gh pr edit --title "..." --body "..."` |
-| `NO_PR` or `MERGED`/`CLOSED` | See below |
-
-**Creating new PR:**
-```bash
+# New PR
 gh pr create --base $BASE --title "..." --body "..."
-```
 
-**Creating draft PR (for early development):**
-```bash
-gh pr create --base $BASE --draft --title "..." --body "..."
+# Update existing PR
+gh pr edit --title "..." --body "..."
 ```
 
 ## PR Title Format (Conventional Commits)
