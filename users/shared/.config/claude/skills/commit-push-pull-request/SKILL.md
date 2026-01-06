@@ -23,8 +23,9 @@ Complete git workflow: commit → push → create/update PR. **Core: gather all 
 Run the context gathering script:
 
 ```bash
-bash users/shared/.config/claude/skills/commit-push-pr/scripts/pr-check.sh
+bash {baseDir}/scripts/pr-check.sh
 ```
+*({baseDir} is the skill directory; Claude Code resolves this automatically)*
 
 This script collects (in parallel):
 - Git status and current branch
