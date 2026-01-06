@@ -196,6 +196,41 @@ Labels are automatically applied based on Conventional Commits type:
 
 **Scope labels** (if configured): `scope:auth`, `scope:api`, etc.
 
+## CODEOWNERS and Branch Protection
+
+**CODEOWNERS file** ensures proper review assignments:
+
+```text
+# .github/CODEOWNERS
+
+# Specific file patterns
+src/payments/ @billing-team
+*.js @frontend-devs
+
+# Entire directories
+docs/ @docs-team
+
+# Default owner for everything else
+* @senior-devs
+```
+
+**Branch Protection Rules** (via GitHub Settings > Branches):
+
+| Setting | Recommendation |
+|---------|---------------|
+| Require pull request before merging | **Enable** |
+| Required approvals | 1-2 depending on criticality |
+| Require approval from code owners | **Enable** |
+| Require status checks to pass | **Enable** CI tests |
+| Require branches to be up to date | **Enable** before merge |
+| Do not allow bypassing settings | **Enable** |
+
+**Why this matters:**
+- Prevents direct pushes to `main`/`master`
+- Ensures all code goes through review
+- CODEOWNERS integration works with base branch version
+- Enables team-wide quality enforcement
+
 ## Rationalization Table
 
 | Rationalization | Reality |
@@ -225,3 +260,11 @@ Labels are automatically applied based on Conventional Commits type:
 ## Auto Merge
 
 Only on explicit request: `gh pr merge --auto --squash`
+
+## References and Further Reading
+
+- [8 Essential Pull Request Best Practices for 2025](https://heysopa.com/post/pull-request-best-practices)
+- [Improve GitHub Pull Request Workflow with Conventional Commits](https://aws.plainenglish.io/improve-github-pull-request-workflow-with-conventional-commits-c6602fb1ab49)
+- [How Teams Can Speed Up GitHub PR Reviews in 2026](https://www.codeant.ai/blogs/github-code-reviews)
+- [Establishing code ownership best practices](https://graphite.com/guides/code-ownership-best-practices)
+- [Code Reviews at Scale: CODEOWNERS & GitHub Actions](https://www.aviator.co/blog/code-reviews-at-scale/)
