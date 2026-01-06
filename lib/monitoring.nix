@@ -26,7 +26,7 @@ let
         data = { };
         metadata = {
           version = "1.0.0";
-          created = perf.time.now;
+          created = builtins.currentTime;
           system = currentSystem;
         };
       };
@@ -35,7 +35,7 @@ let
       addMeasurement =
         store: category: measurement:
         let
-          timestamp = toString perf.time.now;
+          timestamp = toString builtins.currentTime;
           existingData = store.data.${category} or [ ];
           newData = existingData ++ [
             {
@@ -50,7 +50,7 @@ let
             "${category}" = newData;
           };
           metadata = store.metadata // {
-            lastUpdated = perf.time.now;
+            lastUpdated = builtins.currentTime;
             totalMeasurements = lib.foldl (acc: cat: acc + builtins.length store.data.${cat} or [ ]) 0 (
               lib.attrNames store.data
             );
@@ -88,7 +88,7 @@ let
       cleanup =
         store: category: maxAge:
         let
-          cutoffTime = perf.time.now - maxAge;
+          cutoffTime = builtins.currentTime - maxAge;
           allMeasurements = store.data.${category} or [ ];
           filtered = builtins.filter (m: (lib.trivial.importJSON (builtins.toJSON m.timestamp)) >= cutoffTime) allMeasurements;
         in
@@ -109,7 +109,7 @@ let
           baseMeasurement = {
             testName = testName;
             testType = testType; # unit, integration, e2e, performance
-            timestamp = perf.time.now;
+            timestamp = builtins.currentTime;
             system = currentSystem;
           };
         in
@@ -269,7 +269,7 @@ let
           metadata = {
             testName = testName;
             system = currentSystem;
-            timestamp = toString perf.time.now;
+            timestamp = toString builtins.currentTime;
             framework = "nix-test-monitoring";
             version = "1.0.0";
             measurementCount = builtins.length measurements;
@@ -364,16 +364,16 @@ let
 
       # Get current system metrics (simulated for Nix environment)
       getCurrentSystemMetrics = {
-        timestamp = perf.time.now;
+        timestamp = builtins.currentTime;
         memory =
           let
             # Simulate memory usage based on current evaluation
             dummyEval = builtins.deepSeq (builtins.currentSystem) builtins.currentSystem;
           in
-          100 * 1024 * 1024 + (lib.mod (perf.time.now / 1000) 50) * 1024 * 1024; # 100-150MB
-        cpu = lib.mod (perf.time.now / 100) 100; # 0-99%
-        disk = 1000 * 1024 * 1024 + (lib.mod (perf.time.now / 10000) 500) * 1024 * 1024; # 1-1.5GB
-        network = (lib.mod (perf.time.now / 5000) 10) * 1024 * 1024; # 0-10MB
+          100 * 1024 * 1024 + (lib.mod (builtins.currentTime / 1000) 50) * 1024 * 1024; # 100-150MB
+        cpu = lib.mod (builtins.currentTime / 100) 100; # 0-99%
+        disk = 1000 * 1024 * 1024 + (lib.mod (builtins.currentTime / 10000) 500) * 1024 * 1024; # 1-1.5GB
+        network = (lib.mod (builtins.currentTime / 5000) 10) * 1024 * 1024; # 0-10MB
       };
 
       # Aggregate metrics over time
@@ -466,8 +466,8 @@ let
     alerts = {
       # Create alert
       createAlert = severity: type: message: value: threshold: {
-        id = "alert-${toString perf.time.now}-${type}";
-        timestamp = perf.time.now;
+        id = "alert-${toString builtins.currentTime}-${type}";
+        timestamp = builtins.currentTime;
         inherit
           severity
           type

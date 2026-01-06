@@ -8,6 +8,7 @@
   pkgs,
   lib,
   self,
+  nixtest,
 }:
 
 let
@@ -83,7 +84,7 @@ in
         { duration_ms = 200; }
         { duration_ms = 300; }
       ];
-      storeWithMeasurements = builtins.foldl (acc: m:
+      storeWithMeasurements = lib.foldl (acc: m:
         monitoring.monitoring.storage.addMeasurement acc "test" m
       ) store measurements;
       queried = monitoring.monitoring.storage.queryMeasurements
@@ -104,7 +105,7 @@ in
         { duration_ms = 200; }
         { duration_ms = 300; }
       ];
-      storeWithMeasurements = builtins.foldl (acc: m:
+      storeWithMeasurements = lib.foldl (acc: m:
         monitoring.monitoring.storage.addMeasurement acc "test" m
       ) store measurements;
       latest = monitoring.monitoring.storage.getLatest storeWithMeasurements "test" 2;
