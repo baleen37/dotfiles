@@ -269,10 +269,11 @@ in
         user = "testuser";
         darwin = false;
       };
-      # Both should succeed
-      result = builtins.tryEval (darwinSystem && linuxSystem);
+      # Both should succeed (check if both are valid configurations)
+      resultDarwin = builtins.tryEval darwinSystem;
+      resultLinux = builtins.tryEval linuxSystem;
     in
-    result.success
+    resultDarwin.success && resultLinux.success
   ) "isDarwin should be set based on darwin parameter";
 
   # Test 20: Multiple systems can be created

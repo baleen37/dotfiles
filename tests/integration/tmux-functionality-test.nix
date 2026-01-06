@@ -40,6 +40,51 @@ let
     # Test that tmux can be built (no evaluation errors)
     buildsSuccessfully = tmuxConfig ? enable && tmuxConfig ? extraConfig;
   };
+
+  # Test plugin presence
+  hasSensiblePlugin = builtins.any (
+    plugin: plugin.pname or null == "tmux-sensible"
+  ) tmuxConfig.plugins;
+
+  hasVimTmuxNavigatorPlugin = builtins.any (
+    plugin: plugin.pname or null == "vim-tmux-navigator"
+  ) tmuxConfig.plugins;
+
+  hasResurrectPlugin = builtins.any (
+    plugin: plugin.pname or null == "tmux-resurrect"
+  ) tmuxConfig.plugins;
+
+  hasContinuumPlugin = builtins.any (
+    plugin: plugin.pname or null == "tmux-continuum"
+  ) tmuxConfig.plugins;
+
+  # Test that yank plugin is NOT present (Task 2: Remove Yank Plugin Dependency)
+  hasYankPlugin = builtins.any (
+    plugin: plugin.pname or null == "tmux-yank"
+  ) tmuxConfig.plugins;
+
+  # Test vi mode key bindings
+  hasViModeKeys = builtins.match ".*setw -g mode-keys vi.*" tmuxConfig.extraConfig != null;
+
+  hasCopyModeBinding = builtins.match ".*bind \\\\\\[ copy-mode.*" tmuxConfig.extraConfig != null;
+
+  hasPasteBufferBinding = builtins.match ".*bind \\\\] paste-buffer.*" tmuxConfig.extraConfig != null;
+
+  hasBeginSelectionBinding = builtins.match ".*bind-key -T copy-mode-vi v send-keys -X begin-selection.*" tmuxConfig.extraConfig != null;
+
+  # Test resurrect and continuum settings
+  hasResurrectCapturePane = builtins.match ".*set -g @resurrect-capture-pane-contents.*" tmuxConfig.extraConfig != null;
+
+  hasResurrectStrategyVim = builtins.match ".*set -g @resurrect-strategy-vim.*" tmuxConfig.extraConfig != null;
+
+  hasResurrectStrategyNvim = builtins.match ".*set -g @resurrect-strategy-nvim.*" tmuxConfig.extraConfig != null;
+
+  hasContinuumRestore = builtins.match ".*set -g @continuum-restore.*" tmuxConfig.extraConfig != null;
+
+  hasContinuumSaveInterval = builtins.match ".*set -g @continuum-save-interval.*" tmuxConfig.extraConfig != null;
+
+  hasContinuumBoot = builtins.match ".*set -g @continuum-boot.*" tmuxConfig.extraConfig != null;
+
 in
 helpers.testSuite "tmux-integration" [
   (helpers.assertTestWithDetails "tmux-config-builds-successfully"
@@ -56,4 +101,79 @@ helpers.testSuite "tmux-integration" [
     (if homeManagerIntegration.enabled then "enabled" else "disabled")
     "enabled"
     "tmux should be enabled in home manager configuration")
+
+  # Test vim-tmux-navigator plugin is present
+  (helpers.assertTest "tmux-has-vim-tmux-navigator-plugin"
+    hasVimTmuxNavigatorPlugin
+    "tmux should have vim-tmux-navigator plugin")
+
+  # Test sensible plugin is present
+  (helpers.assertTest "tmux-has-sensible-plugin"
+    hasSensiblePlugin
+    "tmux should have sensible plugin")
+
+  # Test resurrect plugin is present
+  (helpers.assertTest "tmux-has-resurrect-plugin"
+    hasResurrectPlugin
+    "tmux should have resurrect plugin")
+
+  # Test continuum plugin is present
+  (helpers.assertTest "tmux-has-continuum-plugin"
+    hasContinuumPlugin
+    "tmux should have continuum plugin")
+
+  # Test that yank plugin is NOT present
+  (helpers.assertTest "tmux-no-yank-plugin"
+    (!hasYankPlugin)
+    "tmux should NOT have yank plugin (removed in Task 2)")
+
+  # Test vi mode is enabled
+  (helpers.assertTest "tmux-vi-mode-enabled"
+    hasViModeKeys
+    "tmux should have vi mode enabled")
+
+  # Test copy mode binding
+  (helpers.assertTest "tmux-copy-mode-binding"
+    hasCopyModeBinding
+    "tmux should have copy mode binding")
+
+  # Test paste buffer binding
+  (helpers.assertTest "tmux-paste-buffer-binding"
+    hasPasteBufferBinding
+    "tmux should have paste buffer binding")
+
+  # Test begin-selection binding in vi mode
+  (helpers.assertTest "tmux-vi-begin-selection-binding"
+    hasBeginSelectionBinding
+    "tmux should have begin-selection binding in vi copy mode")
+
+  # Test resurrect capture pane contents setting
+  (helpers.assertTest "tmux-resurrect-capture-pane-contents"
+    hasResurrectCapturePane
+    "tmux resurrect should capture pane contents")
+
+  # Test resurrect strategy for vim
+  (helpers.assertTest "tmux-resurrect-strategy-vim"
+    hasResurrectStrategyVim
+    "tmux resurrect should have vim session strategy")
+
+  # Test resurrect strategy for neovim
+  (helpers.assertTest "tmux-resurrect-strategy-nvim"
+    hasResurrectStrategyNvim
+    "tmux resurrect should have nvim session strategy")
+
+  # Test continuum restore on start
+  (helpers.assertTest "tmux-continuum-restore"
+    hasContinuumRestore
+    "tmux continuum should restore on start")
+
+  # Test continuum save interval
+  (helpers.assertTest "tmux-continuum-save-interval"
+    hasContinuumSaveInterval
+    "tmux continuum should have save interval configured")
+
+  # Test continuum boot option
+  (helpers.assertTest "tmux-continuum-boot"
+    hasContinuumBoot
+    "tmux continuum should start on boot")
 ]
