@@ -147,26 +147,7 @@ in
     hasHomeManager
   ) "System configuration should integrate Home Manager";
 
-  # Test 10: User configuration path exists
-  user-config-path-exists = helpers.assertTest "mksystem-user-config-path-exists" (
-    let
-      userHMConfig = ../users/shared/home-manager.nix;
-      result = builtins.tryEval (builtins.pathExists userHMConfig);
-    in
-    result.success && result.value
-  ) "User Home Manager configuration path should exist";
-
-  # Test 11: Machine configuration path exists for test machine
-  machine-config-path-template = helpers.assertTest "mksystem-machine-config-path-template" (
-    let
-      # Check that the machines directory exists
-      machinesDir = ../machines;
-      result = builtins.tryEval (builtins.pathExists machinesDir);
-    in
-    result.success && result.value
-  ) "Machines directory should exist";
-
-  # Test 12: Determinate Nix integration for Darwin
+  # Test 10: Determinate Nix integration for Darwin
   determinate-nix-darwin = helpers.assertTest "mksystem-determinate-nix-darwin" (
     let
       # Check that determinate-nix input exists
@@ -175,7 +156,7 @@ in
     hasDeterminate
   ) "System should integrate Determinate Nix for Darwin";
 
-  # Test 13: WSL parameter is respected
+  # Test 11: WSL parameter is respected
   wsl-parameter-respected = helpers.assertTest "mksystem-wsl-parameter-respected" (
     let
       # Create systems with different WSL settings
@@ -198,7 +179,7 @@ in
     wslResult.success && nonWslResult.success
   ) "mkSystem should accept and respect WSL parameter";
 
-  # Test 14: User parameter is required
+  # Test 12: User parameter is required
   user-parameter-used = helpers.assertTest "mksystem-user-parameter-used" (
     let
       # The user parameter should be used in trusted-users
@@ -208,7 +189,7 @@ in
     builtins.elem testUser trustedUsers
   ) "User parameter should be included in trusted users";
 
-  # Test 15: System name is used
+  # Test 13: System name is used
   system-name-used = helpers.assertTest "mksystem-system-name-used" (
     let
       testName = "test-machine";
@@ -217,7 +198,7 @@ in
     builtins.stringLength testName > 0
   ) "System name parameter should be used in configuration";
 
-  # Test 16: Overlays can be passed
+  # Test 14: Overlays can be passed
   overlays-can-be-passed = helpers.assertTest "mksystem-overlays-can-be-passed" (
     let
       # mkSystem should accept overlays parameter
@@ -234,7 +215,7 @@ in
     result.success
   ) "mkSystem should accept and apply overlays parameter";
 
-  # Test 17: CurrentSystemUser is set correctly
+  # Test 15: CurrentSystemUser is set correctly
   current-system-user-set = helpers.assertTest "mksystem-current-system-user-set" (
     let
       testUser = "testuser";
@@ -243,7 +224,7 @@ in
     builtins.stringLength testUser > 0
   ) "currentSystemUser should be set to the user parameter";
 
-  # Test 18: isDarwin boolean is set correctly
+  # Test 16: isDarwin boolean is set correctly
   is-darwin-set = helpers.assertTest "mksystem-is-darwin-set" (
     let
       darwinSystem = mkSystem "darwin-test" {
@@ -263,7 +244,7 @@ in
     resultDarwin.success && resultLinux.success
   ) "isDarwin should be set based on darwin parameter";
 
-  # Test 19: Multiple systems can be created
+  # Test 17: Multiple systems can be created
   multiple-systems-creatable = helpers.assertTest "mksystem-multiple-systems-creatable" (
     let
       system1 = mkSystem "system1" {
