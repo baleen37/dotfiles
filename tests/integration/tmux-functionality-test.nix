@@ -51,7 +51,7 @@ let
   ) tmuxConfig.plugins;
 
   hasResurrectPlugin = builtins.any (
-    plugin: plugin.pname or null == "tmux-resurrect"
+    plugin: builtins.match ".*resurrect.*" (plugin.pname or "") != null
   ) tmuxConfig.plugins;
 
   hasContinuumPlugin = builtins.any (
