@@ -358,7 +358,7 @@ claude mcp list
 
 - `/build` - Build and test with validation
 - `/commit` - Generate semantic commits
-- `/create-pr` - Create pull requests
+- `/commit-push-pr` - Commit changes, push, and create pull request
 - `/update-claude` - Update Claude configuration
 
 ### Features

@@ -41,7 +41,8 @@
     "episodic-memory@superpowers-marketplace": true,
     "pyright-lsp@claude-plugins-official": true,
     "typescript-lsp@claude-plugins-official": true,
-    "gopls-lsp@claude-plugins-official": true
+    "gopls-lsp@claude-plugins-official": true,
+    "ralph-wiggum@superpowers-marketplace": true
   },
   "feedbackSurveyState": {
     "lastShownTime": 1755225425616
