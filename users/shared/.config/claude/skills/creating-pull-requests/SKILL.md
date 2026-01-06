@@ -53,7 +53,7 @@ gh pr create --base $BASE --title "..." --body "..."
 
 ## PR Title (Conventional Commits)
 
-**Format:** `type(scope): description`
+**Format:** `type scope: description` (no parentheses)
 
 | Type | Usage |
 |------|-------|
@@ -64,7 +64,15 @@ gh pr create --base $BASE --title "..." --body "..."
 | `test` | Test changes |
 | `chore` | Build/tools |
 
-**Breaking:** Add `!` → `feat!: ...` or `fix(scope)!: ...`
+**Breaking:** Add `!` → `feat!: ...` or `fix scope!: ...`
+
+**Examples:**
+```
+feat auth: add OAuth2 login support
+fix api: resolve race condition in user creation
+docs readme: update installation instructions
+refactor config: simplify module imports
+```
 
 ## PR Body
 
@@ -137,6 +145,7 @@ git push --force-with-lease
 | `git add -A` | Add specific files |
 | Sequential checks | Parallel script |
 | Free-form title | Conventional Commits |
+| `type(scope):` | `type scope:` (no parentheses) |
 | Missing structure | Use template |
 | PR > 250 lines | Break into smaller PRs |
 | `git push --force` | `--force-with-lease` |
