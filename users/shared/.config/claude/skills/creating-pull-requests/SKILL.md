@@ -86,6 +86,49 @@ Context/motivation.
 Co-Authored-By: Claude <noreply@anthropic.com>
 ```
 
+## Handling Conflicts
+
+### Push Conflicts
+
+```bash
+# Pull latest changes first
+git pull --rebase origin $BASE
+
+# Fix conflicts if any
+# Edit conflicted files
+git add <resolved-files>
+git rebase --continue
+
+# Push again
+git push -u origin HEAD
+```
+
+### Merge Conflicts in PR
+
+When PR has conflicts with base branch:
+
+```bash
+# Update branch
+git fetch origin
+git rebase origin/$BASE
+
+# Resolve conflicts
+# (edit files)
+git add <resolved-files>
+git rebase --continue
+
+# Force push (safe for your branch)
+git push --force-with-lease
+```
+
+**Never use `git push --force`** - always `--force-with-lease`.
+
+### Avoiding Conflicts
+
+- Keep PRs small and short-lived
+- Rebase frequently: `git pull --rebase`
+- Communicate with team on overlapping work
+
 ## Common Mistakes
 
 | Wrong | Right |
@@ -96,3 +139,4 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 | Free-form title | Conventional Commits |
 | Missing structure | Use template |
 | PR > 250 lines | Break into smaller PRs |
+| `git push --force` | `--force-with-lease` |
