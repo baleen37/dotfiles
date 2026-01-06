@@ -14,8 +14,9 @@ Complete git workflow: commit → push → create/update PR. **Core: gather all 
 - "GitHub will use the default branch anyway" → **WRONG.** `--base` is mandatory
 - "Let me check status first..." → **WRONG.** Gather all context in parallel
 - "There's no existing PR" → **WRONG.** Always check PR state first
+- "No conflicts, I can push directly" → **WRONG.** Always check for merge conflicts first
 
-## Implementation (Exactly 4 Steps)
+## Implementation (Exactly 5 Steps)
 
 ### 1. Gather Context
 
@@ -32,6 +33,38 @@ This script collects (in parallel):
 - PR template (if exists)
 
 **All checks run in parallel for speed. Review all output before proceeding.**
+
+### 1.5. Check for Merge Conflicts (IMPORTANT)
+
+**Before pushing, ALWAYS check if your branch can merge cleanly:**
+
+```bash
+# Fetch latest base branch
+git fetch origin $BASE
+
+# Check for conflicts without merging
+git merge-tree $(git merge-base HEAD origin/$BASE) HEAD origin/$BASE
+```
+
+**If conflicts are detected:**
+
+1. **Identify conflict files** from the output
+2. **Merge base branch** to resolve conflicts:
+   ```bash
+   git merge origin/$BASE
+   ```
+3. **Resolve conflicts** in each file:
+   - Remove conflict markers (`<<<<<<<`, `=======`, `>>>>>>>`)
+   - Keep correct content from both branches
+   - Test that files are valid
+4. **Commit merge resolution**:
+   ```bash
+   git add <resolved-files>
+   git commit -m "fix: resolve merge conflicts from $BASE"
+   ```
+5. **Only then proceed** to Step 4 (push)
+
+**If no conflicts**: Proceed directly to Step 4.
 
 ### 2. Auto-Create Branch (if on main/master)
 
@@ -88,7 +121,7 @@ Use Conventional Commits:
 
 If uncertain about commit type, default to `chore:` or ask for clarification.
 
-### 4. Push & Create/Update PR
+### 5. Push & Create/Update PR
 
 ```bash
 git push -u origin HEAD
@@ -142,6 +175,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 | "No time for --base" | Wrong base = more time wasted fixing it |
 | "Can't gather context in parallel" | Yes you can - multiple Bash calls |
 | "I'm sure there's no PR" | Not checking = duplicate PRs |
+| "Conflicts are rare" | Conflicts block PR merging = wasted CI time |
 
 ## Common Mistakes
 
@@ -150,6 +184,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 | Omit `--base` | **Always** use `--base $BASE` |
 | `git add -A` | Check status, add specific files only |
 | Sequential context gathering | Use parallel Bash calls |
+| Skipping conflict check | Always check `git merge-tree` before pushing |
 
 ## Auto Merge
 
