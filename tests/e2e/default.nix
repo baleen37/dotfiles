@@ -14,55 +14,6 @@ let
   # Note: E2E tests are individual VM tests, not nixtest suite
   # Each test is a complete NixOS VM test
 
-  # Import individual e2e test suites
-  buildSwitchTests = import ./build-switch-test.nix {
-    inherit
-      lib
-      pkgs
-      system
-      self
-      ;
-  };
-
-  userWorkflowTests = import ./user-workflow-test.nix {
-    inherit
-      lib
-      pkgs
-      system
-      self
-      ;
-  };
-
-  # Import VM-based build-switch tests
-  buildSwitchVMTests = import ./build-switch-vm-test.nix {
-    inherit lib pkgs system;
-  };
-
-  # Import Claude hooks tests
-  claudeHooksTests = import ./claude-hooks-test.nix {
-    inherit lib pkgs;
-  };
-
-  # Import NixOS VM tests
-  nixosVmTests = import ./nixos-vm-test.nix {
-    inherit
-      lib
-      pkgs
-      system
-      self
-      ;
-  };
-
-  # Import VM analysis tests (cross-platform compatible)
-  vmAnalysisTests = import ./vm-analysis-test.nix {
-    inherit
-      lib
-      pkgs
-      system
-      self
-      ;
-  };
-
   # Import comprehensive suite validation tests
   comprehensiveValidationTests = import ./comprehensive-suite-validation-test.nix {
     inherit
@@ -101,43 +52,39 @@ let
       ;
   };
 
+  buildSwitchTests = import ./build-switch-test.nix {
+    inherit
+      lib
+      pkgs
+      system
+      self
+      ;
+  };
+
 in
 {
   # Individual test suites
   inherit
-    buildSwitchTests
-    userWorkflowTests
-    claudeHooksTests
-    nixosVmTests
-    vmAnalysisTests
     comprehensiveValidationTests
     freshMachineSetupTests
     environmentReplicationTests
     realProjectWorkflowTests
+    buildSwitchTests
     ;
-
-  # VM-based build-switch tests (실제 동작 검증)
-  build-switch-vm-dry = buildSwitchVMTests.dryRunTest;
-  build-switch-vm-full = buildSwitchVMTests.vmTest;
-  build-switch-vm-all = buildSwitchVMTests.all;
 
   # Real-world scenario test runners
   fresh-machine-setup = freshMachineSetupTests;
   environment-replication = environmentReplicationTests;
   real-project-workflow = realProjectWorkflowTests;
+  build-switch = buildSwitchTests;
 
   # Real-world scenarios only (individual VM tests)
   real-world-only = {
     "fresh-machine-setup" = freshMachineSetupTests;
     "environment-replication" = environmentReplicationTests;
     "real-project-workflow" = realProjectWorkflowTests;
+    "build-switch" = buildSwitchTests;
   };
-
-  # VM-only test suite for focused VM testing
-  vm-only = nixosVmTests.all;
-
-  # VM analysis test suite for cross-platform validation
-  vm-analysis-only = vmAnalysisTests.all;
 
   # Comprehensive validation test suite
   comprehensive-only = comprehensiveValidationTests.all;

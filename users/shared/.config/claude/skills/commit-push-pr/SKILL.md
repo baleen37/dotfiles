@@ -23,7 +23,7 @@ Complete git workflow: commit → push → create/update PR. **Core: gather all 
 Run the context gathering script:
 
 ```bash
-bash {baseDir}/scripts/pr-check.sh
+bash users/shared/.config/claude/skills/commit-push-pr/scripts/pr-check.sh
 ```
 
 This script collects (in parallel):

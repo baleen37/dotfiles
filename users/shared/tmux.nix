@@ -32,8 +32,7 @@
 }:
 
 let
-  inherit (pkgs.stdenv) isDarwin;
-  inherit (pkgs.stdenv) isLinux;
+  inherit (pkgs.stdenv) isDarwin isLinux;
   homePath = config.home.homeDirectory;
 in
 {

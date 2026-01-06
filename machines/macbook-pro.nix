@@ -10,13 +10,14 @@ let
   # Platform detection
   isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
   isAarch64 = pkgs.stdenv.hostPlatform.isAarch64;
+  useLinuxBuilder = isDarwin && config.nix.enable;
 
 in
 {
   # Linux builder for cross-platform development (macOS only)
   # Note: Requires nix.enable = true (incompatible with Determinate Nix)
   # Will auto-activate if nix-darwin manages Nix (not using Determinate)
-  nix.linux-builder = lib.mkIf (isDarwin && config.nix.enable) {
+  nix.linux-builder = lib.mkIf useLinuxBuilder {
     enable = true;
 
     # Support both Linux architectures
@@ -69,7 +70,7 @@ in
   system.stateVersion = 5;
 
   # Nix settings (only linux-builder config, base settings in darwin.nix)
-  nix.settings = lib.mkIf (isDarwin && config.nix.enable) {
+  nix.settings = lib.mkIf useLinuxBuilder {
     # System features for NixOS testing (requires nix.enable = true)
     system-features = [
       "nixos-test"

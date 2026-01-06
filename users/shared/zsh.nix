@@ -30,8 +30,7 @@
 }:
 
 let
-  inherit (pkgs.stdenv) isDarwin;
-  inherit (pkgs.stdenv) isLinux;
+  inherit (pkgs.stdenv) isDarwin isLinux;
 in
 {
   programs.fzf = {

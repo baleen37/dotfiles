@@ -87,7 +87,6 @@
       set gdefault
 
       "" Statusbar
-      set nocompatible " Disable vi-compatibility
       set laststatus=2 " Always show statusline
       let g:airline_theme='bubblegum'
       let g:airline_powerline_fonts = 1
