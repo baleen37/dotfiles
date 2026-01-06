@@ -68,7 +68,7 @@ let
 
   hasCopyModeBinding = lib.hasInfix "bind [ copy-mode" tmuxConfig.extraConfig;
 
-  hasPasteBufferBinding = builtins.match ".*bind \\\\] paste-buffer.*" tmuxConfig.extraConfig != null;
+  hasPasteBufferBinding = lib.hasInfix "bind ] paste-buffer" tmuxConfig.extraConfig;
 
   hasBeginSelectionBinding = builtins.match ".*bind-key -T copy-mode-vi v send-keys -X begin-selection.*" tmuxConfig.extraConfig != null;
 

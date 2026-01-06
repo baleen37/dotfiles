@@ -78,6 +78,7 @@ in
 
       # Development tools
       nodejs_22
+      bun
       python3
       python3Packages.pipx
       virtualenv
