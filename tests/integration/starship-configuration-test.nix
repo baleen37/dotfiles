@@ -29,7 +29,7 @@ let
 
   # Test helper to check if format contains module
   formatContains = module:
-    lib.hasInfix ("${" + module + "}") starshipSettings.format;
+    lib.hasInfix ("$" + module) starshipSettings.format;
 
 in
 helpers.testSuite "starship-configuration" [
