@@ -43,11 +43,11 @@ let
 
   # Test plugin presence
   hasSensiblePlugin = builtins.any (
-    plugin: plugin.pname or null == "tmux-sensible"
+    plugin: builtins.match ".*sensible.*" (plugin.pname or "") != null
   ) tmuxConfig.plugins;
 
   hasVimTmuxNavigatorPlugin = builtins.any (
-    plugin: plugin.pname or null == "vim-tmux-navigator"
+    plugin: builtins.match ".*navigator.*" (plugin.pname or "") != null
   ) tmuxConfig.plugins;
 
   hasResurrectPlugin = builtins.any (
