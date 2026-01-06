@@ -9,17 +9,16 @@
 }:
 
 {
-  # TEMPORARILY DISABLED - uncomment when needed
-  # # AGENTS.md: Symlink to CLAUDE.md for shared AI assistant instructions
-  # home.file.".config/opencode/AGENTS.md" = {
-  #   source = ./.config/opencode/AGENTS.md;
-  #   force = true;
-  # };
+  # AGENTS.md: Symlink to CLAUDE.md for shared AI assistant instructions
+  home.file.".config/opencode/AGENTS.md" = {
+    source = ./.config/opencode/AGENTS.md;
+    force = true;
+  };
 
-  # # Commands: Share Claude Code's commands
-  # home.file.".config/opencode/command" = {
-  #   source = ./.config/claude/commands;
-  #   recursive = true;
-  #   force = true;
-  # };
+  # Commands: Share Claude Code's commands
+  home.file.".config/opencode/command" = {
+    source = ./.config/claude/commands;
+    recursive = true;
+    force = true;
+  };
 }
