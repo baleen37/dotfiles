@@ -29,14 +29,17 @@ let
       # Filter for .nix files, excluding helpers, and include subdirectories
       (lib.filterAttrs (
         name: type:
-        (type == "regular"
+        (
+          type == "regular"
           && lib.hasSuffix "-test.nix" name
           && name != "default.nix"
-          && name != "nixtest-template.nix")
+          && name != "nixtest-template.nix"
+        )
         || type == "directory"
       ))
       # Process both files and directories
-      (lib.mapAttrs' (name: type:
+      (lib.mapAttrs' (
+        name: type:
         if type == "directory" then
           # Recursively discover tests in subdirectories
           {
@@ -48,16 +51,18 @@ let
           let
             filePath = dir + "/${name}";
             # Try to import the test file, but handle errors gracefully
-            testResult = builtins.tryEval (import filePath {
-              inherit
-                inputs
-                system
-                pkgs
-                lib
-                self
-                ;
-              inherit nixtest;
-            });
+            testResult = builtins.tryEval (
+              import filePath {
+                inherit
+                  inputs
+                  system
+                  pkgs
+                  lib
+                  self
+                  ;
+                inherit nixtest;
+              }
+            );
           in
           if testResult.success then
             {
@@ -82,10 +87,12 @@ let
     ];
 
   # Flatten nested discovery results
-  flattenTests = tests:
+  flattenTests =
+    tests:
     lib.listToAttrs (
       lib.flatten (
-        lib.mapAttrsToList (name: value:
+        lib.mapAttrsToList (
+          name: value:
           if lib.isAttrs value && !builtins.hasAttr "name" value && !builtins.hasAttr "value" value then
             # This is a nested discovery result, flatten it
             lib.mapAttrsToList (subName: subValue: {
@@ -110,15 +117,15 @@ let
   mkSystem = import ../lib/mksystem.nix { inherit inputs self; };
 
   # Platform-specific test discovery function
-  discoverPlatformTests = dir: prefix:
+  discoverPlatformTests =
+    dir: prefix:
     let
       discoveredTests = discoverTests dir prefix;
       filteredTests = platformHelpers.filterPlatformTests discoveredTests;
       # Extract actual test values from platform-filtered tests
-      extractTestValues = tests:
-        lib.mapAttrs (name: test:
-          if builtins.hasAttr "value" test then test.value else test
-        ) filteredTests;
+      extractTestValues =
+        tests:
+        lib.mapAttrs (name: test: if builtins.hasAttr "value" test then test.value else test) filteredTests;
     in
     extractTestValues filteredTests;
 
@@ -131,13 +138,28 @@ in
   '';
 }
 // containerChecks
-// flattenTests (discoverPlatformTests ./unit "unit") // (
+// flattenTests (discoverPlatformTests ./unit "unit")
+// (
   # Add the new mksystem tests explicitly by flattening the set
   import ./unit/functions/mksystem-factory-validation.nix {
-    inherit inputs system pkgs lib self;
+    inherit
+      inputs
+      system
+      pkgs
+      lib
+      self
+      ;
     inherit nixtest;
   }
 )
 // flattenTests (discoverTests ./integration "integration")
-# E2E tests are heavy VM tests - exclude from automatic discovery
-# They are available individually via nix eval on the specific test files
+// flattenTests (
+  import ./e2e/default.nix {
+    inherit
+      lib
+      pkgs
+      system
+      self
+      ;
+  }
+)
