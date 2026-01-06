@@ -1,5 +1,5 @@
 ---
-name: commit-push-pr
+name: commit-push-pull-request
 description: Commit changes, push to remote, and create/update pull request with proper context gathering and --base flag enforcement
 ---
 
