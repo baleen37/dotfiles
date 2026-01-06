@@ -1,5 +1,5 @@
 ---
-description: Commit, push, and create pull requests
+description: Use and follow the commit-push-pull-request skill exactly as written
 ---
 
-You MUST use the commit-push-pr skill to commit changes, push to remote, and create a PR.
+Use the commit-push-pull-request skill to commit changes, push to remote, and create/update a pull request.
