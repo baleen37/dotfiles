@@ -59,12 +59,12 @@ let
     ifeq ($(UNAME), Darwin)
     	NIXPKGS_ALLOW_UNFREE=1 $(SUDO_NIX) run nix-darwin -- switch --flake ".#$(NIXNAME)"
     else
-    	NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 $(SUDO_NIX) run "nixpkgs#nixos-rebuild" -- switch --flake ".#${NIXNAME}"
+    	NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 $(SUDO_NIX) run "nixpkgs#nixos-rebuild" -- switch --flake ".#''${NIXNAME}"
     endif
 
     test:
     	@echo "Running dual-mode tests..."
-    	@export USER=$${USER:-$(whoami)} && \
+    	@export USER=$''${USER:-$(whoami)} && \
     	if [ "$(UNAME)" = "Darwin" ]; then \
     		echo "macOS detected: Running validation mode (container tests require Linux)"; \
     		echo "Validating all test configurations without execution..."; \
@@ -92,7 +92,7 @@ let
     # Note: This requires additional setup and may not work on all systems
     test-containers:
     	@echo "Attempting container test execution (experimental)..."
-    	@export USER=$${USER:-$(whoami)} && \
+    	@export USER=$''${USER:-$(whoami)} && \
     	if [ "$(UNAME)" = "Darwin" ]; then \
     		echo "Cross-compilation detected - this may require additional setup"; \
     		echo "Consider running tests in a Linux VM or CI for reliable results"; \
@@ -223,7 +223,7 @@ let
     # have to run vm/copy before.
     vm/switch:
     	ssh $(SSH_OPTIONS) -p$(NIXPORT) $(NIXUSER)@$(NIXADDR) " \
-    		sudo env PATH=$$PATH NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 nix --extra-experimental-features nix-command --extra-experimental-features flakes run \"nixpkgs#nixos-rebuild\" -- switch --flake \"/nix-config#${NIXNAME}\" \
+    		sudo env PATH=$$PATH NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 nix --extra-experimental-features nix-command --extra-experimental-features flakes run \"nixpkgs#nixos-rebuild\" -- switch --flake \"/nix-config#''${NIXNAME}\" \
     	"
 
     # Build a WSL installer

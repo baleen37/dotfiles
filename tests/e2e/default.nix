@@ -87,5 +87,5 @@ in
   };
 
   # Comprehensive validation test suite
-  comprehensive-only = comprehensiveValidationTests.all;
+  comprehensive-only = comprehensiveValidationTests;
 }
