@@ -33,6 +33,9 @@
   ...
 }:
 
+let
+  inherit (pkgs.stdenv) isDarwin;
+in
 {
   # Import all extracted tool configurations
   imports = [
@@ -52,8 +55,7 @@
   # Username is dynamically resolved from flake.nix (supports both baleen and jito.hello)
   home = {
     username = currentSystemUser;
-    homeDirectory =
-      if pkgs.stdenv.isDarwin then "/Users/${currentSystemUser}" else "/home/${currentSystemUser}";
+    homeDirectory = if isDarwin then "/Users/${currentSystemUser}" else "/home/${currentSystemUser}";
     stateVersion = "24.11";
 
     # Core system utilities
