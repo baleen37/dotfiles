@@ -33,22 +33,13 @@ let
           end = perf.time.now;
           duration = end - start;
         in
-        if result.success then
-          {
-            inherit (result) value;
-            inherit duration start end;
-            success = true;
-            duration_ms = duration / 1000000;
-            duration_s = duration / 1000000000;
-          }
-        else
-          {
-            inherit (result) value;
-            inherit duration start end;
-            success = false;
-            duration_ms = duration / 1000000;
-            duration_s = duration / 1000000000;
-          };
+        {
+          inherit (result) value;
+          inherit duration start end;
+          success = result.success;
+          duration_ms = duration / 1000000;
+          duration_s = duration / 1000000000;
+        };
 
       # Benchmark function with multiple runs
       benchmark =
@@ -57,18 +48,19 @@ let
           results = builtins.genList (i: perf.time.measure func) iterations;
           durations = map (r: r.duration) (builtins.filter (r: r.success) results);
           successfulRuns = builtins.length durations;
+          totalDuration = lib.foldl (acc: d: acc + d) 0 durations;
+          averageDuration = if successfulRuns > 0 then totalDuration / successfulRuns else 0;
         in
         if successfulRuns > 0 then
           {
             iterations = successfulRuns;
-            totalDuration = lib.foldl (acc: d: acc + d) 0 durations;
-            averageDuration = (lib.foldl (acc: d: acc + d) 0 durations) / successfulRuns;
+            inherit totalDuration averageDuration;
             minDuration = lib.foldl (acc: d: if d < acc then d else acc) (builtins.head durations) durations;
             maxDuration = lib.foldl (acc: d: if d > acc then d else acc) (builtins.head durations) durations;
             successRate = successfulRuns / builtins.length results;
             results = results;
-            averageDuration_ms = ((lib.foldl (acc: d: acc + d) 0 durations) / successfulRuns) / 1000000;
-            averageDuration_s = ((lib.foldl (acc: d: acc + d) 0 durations) / successfulRuns) / 1000000000;
+            averageDuration_ms = averageDuration / 1000000;
+            averageDuration_s = averageDuration / 1000000000;
           }
         else
           {
