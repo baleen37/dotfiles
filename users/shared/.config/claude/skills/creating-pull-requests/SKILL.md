@@ -68,7 +68,17 @@ git commit -m "..."
 git push -u origin HEAD
 ```
 
-Then based on PR state:
+**Draft PR for early development (recommended for WIP):**
+```bash
+gh pr create --base $BASE --draft --title "WIP: type(scope): description"
+```
+
+**Ready for review:**
+```bash
+gh pr ready  # Convert draft to ready for review
+```
+
+Then based on PR state (for non-draft):
 
 | PR State | Command |
 |----------|---------|
@@ -119,39 +129,33 @@ chore!: drop support for Node 6
 **ALWAYS use this structure:**
 
 ```markdown
-## Summary
+## What
+<!-- 1-2 sentences: What this PR does -->
 
-<!-- 2-3 bullet points summarizing key changes -->
+Brief description of what changes.
 
-- First major change
-- Second major change
-- Third major change
+## Why
+<!-- 1-2 sentences: Context/motivation -->
 
-## Changes
+Why this change is needed.
 
-<!-- Detailed list of specific changes -->
+## How
+<!-- Bullet points: Implementation details -->
 
 - File X: what changed and why
 - File Y: what changed and why
 
-## Test plan
+## Checklist
 
-- [ ] Unit tests pass
-- [ ] Integration tests pass
-- [ ] Manual testing completed
-
-## Breaking changes
-
-<!-- None or describe breaking changes -->
-
-None (or describe breaking changes with migration notes)
+- [ ] Tests pass
+- [ ] Documentation updated (if applicable)
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 
 Co-Authored-By: Claude <noreply@anthropic.com>
 ```
 
-**If PR template exists:** Include it after "## Changes" section or replace the template structure if project-specific.
+**If project has PR template:** Script will auto-detect and display it.
 
 ## Commit History Best Practices
 
