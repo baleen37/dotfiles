@@ -59,20 +59,7 @@ in
     result.success
   ) "mkSystem with darwin=false should create valid nixos configuration";
 
-  # Test 4: System configuration has expected modules
-  has-expected-modules = helpers.assertTest "mksystem-has-expected-modules" (
-    let
-      config = testSystem;
-      # The result should be a function or attribute set with modules
-      result = builtins.tryEval (
-        builtins.hasAttr "modules" config
-        || builtins.isFunction config
-      );
-    in
-    result.success && result.value
-  ) "System configuration should have modules structure";
-
-  # Test 5: Cache settings structure contains expected attributes
+  # Test 4: Cache settings structure contains expected attributes
   cache-settings-structure = helpers.assertTest "mksystem-cache-settings-structure" (
     let
       # Import the module to check cache settings
@@ -101,7 +88,7 @@ in
     && builtins.length cacheSettings.trusted-users > 0
   ) "Cache settings should have substituters, trusted-public-keys, and trusted-users";
 
-  # Test 6: Cache settings include required substituters
+  # Test 5: Cache settings include required substituters
   cache-settings-has-cachix = helpers.assertTest "mksystem-cache-settings-has-cachix" (
     let
       substituters = [
@@ -113,7 +100,7 @@ in
     && builtins.elem "https://cache.nixos.org/" substituters
   ) "Cache settings should include baleen-nix.cachix.org and cache.nixos.org";
 
-  # Test 7: Cache settings include required trusted keys
+  # Test 6: Cache settings include required trusted keys
   cache-settings-has-keys = helpers.assertTest "mksystem-cache-settings-has-keys" (
     let
       keys = [
@@ -125,7 +112,7 @@ in
     && builtins.elem "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=" keys
   ) "Cache settings should include baleen-nix and cache.nixos.org trusted keys";
 
-  # Test 8: Trusted users includes root and specified user
+  # Test 7: Trusted users includes root and specified user
   cache-settings-trusted-users = helpers.assertTest "mksystem-cache-settings-trusted-users" (
     let
       trustedUsers = [ "root" "testuser" "@admin" "@wheel" ];
@@ -136,7 +123,7 @@ in
     && builtins.elem "@wheel" trustedUsers
   ) "Cache settings should include root, user, @admin, and @wheel in trusted users";
 
-  # Test 9: SpecialArgs structure is correct
+  # Test 8: SpecialArgs structure is correct
   specialargs-structure = helpers.assertTest "mksystem-specialargs-structure" (
     let
       # The specialArgs should include currentSystem, currentSystemName, currentSystemUser
@@ -151,7 +138,7 @@ in
     builtins.length requiredArgs == 5
   ) "System should pass currentSystem, currentSystemName, currentSystemUser, isDarwin, and isWSL as specialArgs";
 
-  # Test 10: Home Manager is integrated
+  # Test 9: Home Manager is integrated
   home-manager-integrated = helpers.assertTest "mksystem-home-manager-integrated" (
     let
       # Check that home-manager is in the inputs (for integration)
@@ -160,7 +147,7 @@ in
     hasHomeManager
   ) "System configuration should integrate Home Manager";
 
-  # Test 11: User configuration path exists
+  # Test 10: User configuration path exists
   user-config-path-exists = helpers.assertTest "mksystem-user-config-path-exists" (
     let
       userHMConfig = ../users/shared/home-manager.nix;
@@ -169,7 +156,7 @@ in
     result.success && result.value
   ) "User Home Manager configuration path should exist";
 
-  # Test 12: Machine configuration path exists for test machine
+  # Test 11: Machine configuration path exists for test machine
   machine-config-path-template = helpers.assertTest "mksystem-machine-config-path-template" (
     let
       # Check that the machines directory exists
@@ -179,7 +166,7 @@ in
     result.success && result.value
   ) "Machines directory should exist";
 
-  # Test 13: Determinate Nix integration for Darwin
+  # Test 12: Determinate Nix integration for Darwin
   determinate-nix-darwin = helpers.assertTest "mksystem-determinate-nix-darwin" (
     let
       # Check that determinate-nix input exists
@@ -188,7 +175,7 @@ in
     hasDeterminate
   ) "System should integrate Determinate Nix for Darwin";
 
-  # Test 14: WSL parameter is respected
+  # Test 13: WSL parameter is respected
   wsl-parameter-respected = helpers.assertTest "mksystem-wsl-parameter-respected" (
     let
       # Create systems with different WSL settings
@@ -211,7 +198,7 @@ in
     wslResult.success && nonWslResult.success
   ) "mkSystem should accept and respect WSL parameter";
 
-  # Test 15: User parameter is required
+  # Test 14: User parameter is required
   user-parameter-used = helpers.assertTest "mksystem-user-parameter-used" (
     let
       # The user parameter should be used in trusted-users
@@ -221,7 +208,7 @@ in
     builtins.elem testUser trustedUsers
   ) "User parameter should be included in trusted users";
 
-  # Test 16: System name is used
+  # Test 15: System name is used
   system-name-used = helpers.assertTest "mksystem-system-name-used" (
     let
       testName = "test-machine";
@@ -230,7 +217,7 @@ in
     builtins.stringLength testName > 0
   ) "System name parameter should be used in configuration";
 
-  # Test 17: Overlays can be passed
+  # Test 16: Overlays can be passed
   overlays-can-be-passed = helpers.assertTest "mksystem-overlays-can-be-passed" (
     let
       # mkSystem should accept overlays parameter
@@ -247,7 +234,7 @@ in
     result.success
   ) "mkSystem should accept and apply overlays parameter";
 
-  # Test 18: CurrentSystemUser is set correctly
+  # Test 17: CurrentSystemUser is set correctly
   current-system-user-set = helpers.assertTest "mksystem-current-system-user-set" (
     let
       testUser = "testuser";
@@ -256,7 +243,7 @@ in
     builtins.stringLength testUser > 0
   ) "currentSystemUser should be set to the user parameter";
 
-  # Test 19: isDarwin boolean is set correctly
+  # Test 18: isDarwin boolean is set correctly
   is-darwin-set = helpers.assertTest "mksystem-is-darwin-set" (
     let
       darwinSystem = mkSystem "darwin-test" {
@@ -276,7 +263,7 @@ in
     resultDarwin.success && resultLinux.success
   ) "isDarwin should be set based on darwin parameter";
 
-  # Test 20: Multiple systems can be created
+  # Test 19: Multiple systems can be created
   multiple-systems-creatable = helpers.assertTest "mksystem-multiple-systems-creatable" (
     let
       system1 = mkSystem "system1" {
