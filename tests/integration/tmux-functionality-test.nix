@@ -66,7 +66,7 @@ let
   # Test vi mode key bindings
   hasViModeKeys = builtins.match ".*setw -g mode-keys vi.*" tmuxConfig.extraConfig != null;
 
-  hasCopyModeBinding = builtins.match ".*bind \\\\\[ copy-mode.*" tmuxConfig.extraConfig != null;
+  hasCopyModeBinding = builtins.match ".*bind \\\\\\\\[ copy-mode.*" tmuxConfig.extraConfig != null;
 
   hasPasteBufferBinding = builtins.match ".*bind \\\\] paste-buffer.*" tmuxConfig.extraConfig != null;
 
