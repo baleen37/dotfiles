@@ -16,6 +16,9 @@ window-padding-y = 10
 shell-integration = true
 shell-integration-features = cursor,sudo,title
 
+# Option key as Alt for terminal keybindings (opt+t for Claude Code think toggle)
+macos-option-as-alt=left
+
 # Keybindings for Claude Code compatibility
 # Claude Code doesn't support modern keyboard protocols (CSI u, modifyOtherKeys)
 keybind = shift+enter=text:\n
