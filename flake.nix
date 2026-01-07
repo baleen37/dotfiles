@@ -16,6 +16,9 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
+    # Claude Code - latest stable
+    claude-code.url = "github:sadjow/claude-code-nix/main";
+
     darwin = {
       url = "github:LnL7/nix-darwin";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -46,6 +49,7 @@
       home-manager,
       nixos-generators,
       determinate,
+      claude-code,
       ...
     }@inputs:
     let
@@ -56,6 +60,9 @@
             inherit (prev) system;
             config.allowUnfree = true;
           };
+
+          # Claude Code - latest from flake input
+          claude-code = claude-code.packages.${prev.system}.default;
         })
       ];
 

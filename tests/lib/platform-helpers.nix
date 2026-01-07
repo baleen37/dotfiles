@@ -7,7 +7,8 @@ let
   # Check if current platform matches a given platform
   # Helper for conditional test execution
   isCurrentPlatform = platform:
-    if platform == "darwin" then pkgs.stdenv.hostPlatform.isDarwin
+    if platform == "any" then true
+    else if platform == "darwin" then pkgs.stdenv.hostPlatform.isDarwin
     else if platform == "linux" then pkgs.stdenv.hostPlatform.isLinux
     else if platform == "unknown" then (!pkgs.stdenv.hostPlatform.isDarwin && !pkgs.stdenv.hostPlatform.isLinux)
     else false;

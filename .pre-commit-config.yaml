@@ -41,6 +41,7 @@ repos:
       - id: check-added-large-files
         args: [--maxkb=1000]
       - id: detect-private-key
+        exclude: ^tests/e2e/secret-management-test\.nix$
       - id: check-yaml
 
   # Makefile-managed checks (single source of truth)

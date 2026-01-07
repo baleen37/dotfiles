@@ -90,6 +90,9 @@ in
       "*.log"
       ".cache/"
 
+      # Git worktrees
+      ".worktrees/"
+
       # Build artifacts
       "dist/"
       "build/"
