@@ -145,6 +145,15 @@ let
       ;
   };
 
+  machineSpecificConfigTests = import ./machine-specific-config-test.nix {
+    inherit
+      lib
+      pkgs
+      system
+      self
+      ;
+  };
+
 in
 {
   # Individual test suites
@@ -163,6 +172,7 @@ in
     serviceManagementTests
     secretManagementTests
     packageManagementTests
+    machineSpecificConfigTests
     ;
 
   # Real-world scenario test runners
@@ -223,5 +233,6 @@ in
     "service-management" = serviceManagementTests;
     "secret-management" = secretManagementTests;
     "package-management" = packageManagementTests;
+    "machine-specific-config" = machineSpecificConfigTests;
   };
 }
