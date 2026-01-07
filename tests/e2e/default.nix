@@ -14,55 +14,6 @@ let
   # Note: E2E tests are individual VM tests, not nixtest suite
   # Each test is a complete NixOS VM test
 
-  # Import individual e2e test suites
-  buildSwitchTests = import ./build-switch-test.nix {
-    inherit
-      lib
-      pkgs
-      system
-      self
-      ;
-  };
-
-  userWorkflowTests = import ./user-workflow-test.nix {
-    inherit
-      lib
-      pkgs
-      system
-      self
-      ;
-  };
-
-  # Import VM-based build-switch tests
-  buildSwitchVMTests = import ./build-switch-vm-test.nix {
-    inherit lib pkgs system;
-  };
-
-  # Import Claude hooks tests
-  claudeHooksTests = import ./claude-hooks-test.nix {
-    inherit lib pkgs;
-  };
-
-  # Import NixOS VM tests
-  nixosVmTests = import ./nixos-vm-test.nix {
-    inherit
-      lib
-      pkgs
-      system
-      self
-      ;
-  };
-
-  # Import VM analysis tests (cross-platform compatible)
-  vmAnalysisTests = import ./vm-analysis-test.nix {
-    inherit
-      lib
-      pkgs
-      system
-      self
-      ;
-  };
-
   # Import comprehensive suite validation tests
   comprehensiveValidationTests = import ./comprehensive-suite-validation-test.nix {
     inherit
@@ -101,44 +52,187 @@ let
       ;
   };
 
+  buildSwitchTests = import ./build-switch-test.nix {
+    inherit
+      lib
+      pkgs
+      system
+      self
+      ;
+  };
+
+  # Priority 1: Critical system feature tests
+  multiUserSupportTests = import ./multi-user-support-test.nix {
+    inherit
+      lib
+      pkgs
+      system
+      self
+      ;
+  };
+
+  crossPlatformBuildTests = import ./cross-platform-build-test.nix {
+    inherit
+      lib
+      pkgs
+      system
+      self
+      ;
+  };
+
+  systemFactoryValidationTests = import ./system-factory-validation-test.nix {
+    inherit
+      lib
+      pkgs
+      system
+      self
+      ;
+  };
+
+  # Priority 2: Integration and workflow tests
+  cacheConfigurationTests = import ./cache-configuration-test.nix {
+    inherit
+      lib
+      pkgs
+      system
+      self
+      ;
+  };
+
+  toolIntegrationTests = import ./tool-integration-test.nix {
+    inherit
+      lib
+      pkgs
+      system
+      self
+      ;
+  };
+
+  completeVmBootstrapTests = import ./complete-vm-bootstrap-test.nix {
+    inherit
+      lib
+      pkgs
+      system
+      self
+      ;
+  };
+
+  # Priority 3: Operational and maintenance tests
+  serviceManagementTests = import ./service-management-test.nix {
+    inherit
+      lib
+      pkgs
+      system
+      self
+      ;
+  };
+
+  secretManagementTests = import ./secret-management-test.nix {
+    inherit
+      lib
+      pkgs
+      system
+      self
+      ;
+  };
+
+  packageManagementTests = import ./package-management-test.nix {
+    inherit
+      lib
+      pkgs
+      system
+      self
+      ;
+  };
+
+  machineSpecificConfigTests = import ./machine-specific-config-test.nix {
+    inherit
+      lib
+      pkgs
+      system
+      self
+      ;
+  };
+
 in
 {
   # Individual test suites
   inherit
-    buildSwitchTests
-    userWorkflowTests
-    claudeHooksTests
-    nixosVmTests
-    vmAnalysisTests
     comprehensiveValidationTests
     freshMachineSetupTests
     environmentReplicationTests
     realProjectWorkflowTests
+    buildSwitchTests
+    multiUserSupportTests
+    crossPlatformBuildTests
+    systemFactoryValidationTests
+    cacheConfigurationTests
+    toolIntegrationTests
+    completeVmBootstrapTests
+    serviceManagementTests
+    secretManagementTests
+    packageManagementTests
+    machineSpecificConfigTests
     ;
-
-  # VM-based build-switch tests (실제 동작 검증)
-  build-switch-vm-dry = buildSwitchVMTests.dryRunTest;
-  build-switch-vm-full = buildSwitchVMTests.vmTest;
-  build-switch-vm-all = buildSwitchVMTests.all;
 
   # Real-world scenario test runners
   fresh-machine-setup = freshMachineSetupTests;
   environment-replication = environmentReplicationTests;
   real-project-workflow = realProjectWorkflowTests;
+  build-switch = buildSwitchTests;
+
+  # Critical system feature test runners (Priority 1)
+  multi-user-support = multiUserSupportTests;
+  cross-platform-build = crossPlatformBuildTests;
+  system-factory-validation = systemFactoryValidationTests;
 
   # Real-world scenarios only (individual VM tests)
   real-world-only = {
     "fresh-machine-setup" = freshMachineSetupTests;
     "environment-replication" = environmentReplicationTests;
     "real-project-workflow" = realProjectWorkflowTests;
+    "build-switch" = buildSwitchTests;
   };
 
-  # VM-only test suite for focused VM testing
-  vm-only = nixosVmTests.all;
+  # Critical system features only (Priority 1)
+  critical-features-only = {
+    "multi-user-support" = multiUserSupportTests;
+    "cross-platform-build" = crossPlatformBuildTests;
+    "system-factory-validation" = systemFactoryValidationTests;
+  };
 
-  # VM analysis test suite for cross-platform validation
-  vm-analysis-only = vmAnalysisTests.all;
+  # Integration and workflow tests (Priority 2)
+  integration-tests = {
+    "cache-configuration" = cacheConfigurationTests;
+    "tool-integration" = toolIntegrationTests;
+    "complete-vm-bootstrap" = completeVmBootstrapTests;
+  };
+
+  # Operational and maintenance tests (Priority 3)
+  operational-tests = {
+    "service-management" = serviceManagementTests;
+    "secret-management" = secretManagementTests;
+    "package-management" = packageManagementTests;
+  };
 
   # Comprehensive validation test suite
   comprehensive-only = comprehensiveValidationTests.all;
+
+  # All e2e tests combined
+  all = {
+    "fresh-machine-setup" = freshMachineSetupTests;
+    "environment-replication" = environmentReplicationTests;
+    "real-project-workflow" = realProjectWorkflowTests;
+    "build-switch" = buildSwitchTests;
+    "multi-user-support" = multiUserSupportTests;
+    "cross-platform-build" = crossPlatformBuildTests;
+    "system-factory-validation" = systemFactoryValidationTests;
+    "cache-configuration" = cacheConfigurationTests;
+    "tool-integration" = toolIntegrationTests;
+    "complete-vm-bootstrap" = completeVmBootstrapTests;
+    "service-management" = serviceManagementTests;
+    "secret-management" = secretManagementTests;
+    "package-management" = packageManagementTests;
+    "machine-specific-config" = machineSpecificConfigTests;
+  };
 }

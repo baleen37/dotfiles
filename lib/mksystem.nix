@@ -60,14 +60,9 @@ systemFunc {
       { lib, ... }:
       {
         # Traditional Nix settings (Linux systems)
-        nix.settings = lib.mkIf (!darwin) {
-          # Trust cachix configuration without prompting
-          substituters = cacheSettings.substituters;
-          trusted-public-keys = cacheSettings.trusted-public-keys;
+        nix.settings = lib.mkIf (!darwin) cacheSettings // {
           # Trust substituters to eliminate "ignoring untrusted substituter" warnings
           trusted-substituters = cacheSettings.substituters;
-          # Trust admin and wheel groups to eliminate warnings
-          trusted-users = cacheSettings.trusted-users;
         };
 
         # Determinate Nix integration
