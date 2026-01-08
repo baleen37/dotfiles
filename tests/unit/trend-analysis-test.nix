@@ -272,7 +272,7 @@ testHelpers.mkTest "trend-analysis-regression-detection" ''
   - Recommendations: ${lib.concatMapStringsSep "; " lib.id (predictiveResult.recommendations or [ "none" ])}
 
   ### 4. Performance Benchmark Comparison
-  - Current Average: ${toString (builtins.foldl (acc: m: acc + m.duration_ms) 0 currentBenchmarkMeasurements / builtins.length currentBenchmarkMeasurements)}ms
+  - Current Average: ${toString (lib.foldl (acc: m: acc + m.duration_ms) 0 currentBenchmarkMeasurements / builtins.length currentBenchmarkMeasurements)}ms
   - Historical Benchmarks: ${toString benchmarkResult.comparison.total}
   - Improved vs Benchmarks: ${toString benchmarkResult.comparison.improved}
   - Regressed vs Benchmarks: ${toString benchmarkResult.comparison.regressed}

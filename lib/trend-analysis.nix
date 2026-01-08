@@ -18,26 +18,31 @@ rec {
       # Calculate mean
       mean = if count > 0 then (lib.foldl (acc: v: acc + v) 0 values) / count else 0;
 
-      # Calculate variance and standard deviation
-      variance =
-        if count > 1 then (lib.foldl (acc: v: acc + (v - mean) * (v - mean)) 0 values) / (count - 1) else 0;
-      # Use builtins.sqrt if available (Nix 2.19+), otherwise approximation
-      stdDev = if variance > 0 then
-        if builtins ? sqrt then builtins.sqrt variance
-        # Newton's method approximation for sqrt
+      # Absolute value function (builtins.abs doesn't exist in Nix)
+      abs = x: if x < 0 then -x else x;
+
+      # Square root with fallback for older Nix versions
+      sqrt = x:
+        if x == 0 then 0
+        else if builtins ? sqrt then builtins.sqrt x
         else
+          # Newton's method approximation for sqrt
           let
-            sqrtIter = x: epsilon: n:
+            sqrtIter = v: epsilon: n:
               if n == 0 then 0
               else if n < 0 then 0
               else
                 let
-                  next = x / 2.0 + variance / (2.0 * x);
+                  next = v / 2.0 + x / (2.0 * v);
                 in
-                if builtins.abs (next - x) < epsilon then next else sqrtIter next epsilon (n - 1);
-            in
-            sqrtIter (variance / 2.0 + 0.5) 0.000001 100
-      else 0;
+                if abs (next - v) < epsilon then next else sqrtIter next epsilon (n - 1);
+          in
+            sqrtIter (x / 2.0 + 0.5) 0.000001 100;
+
+      # Calculate variance and standard deviation
+      variance =
+        if count > 1 then (lib.foldl (acc: v: acc + (v - mean) * (v - mean)) 0 values) / (count - 1) else 0;
+      stdDev = if variance > 0 then sqrt variance else 0;
 
       # Calculate trend slope (simple linear regression)
       indices = builtins.genList (i: i) count;
@@ -59,11 +64,12 @@ rec {
         if (count > 1) && (stdDev > 0) then
           let
             numerator = lib.foldl (acc: i: acc + (i - meanX) * ((builtins.elemAt values i) - meanY)) 0 indices;
-            xStdDev =
+            xVariance =
               if count > 1 then
-                builtins.sqrt ((lib.foldl (acc: i: acc + (i - meanX) * (i - meanX)) 0 indices) / (count - 1))
+                (lib.foldl (acc: i: acc + (i - meanX) * (i - meanX)) 0 indices) / (count - 1)
               else
                 0;
+            xStdDev = if xVariance > 0 then sqrt xVariance else 0;
           in
           if xStdDev > 0 && stdDev > 0 then numerator / ((count - 1) * xStdDev * stdDev) else 0
         else
@@ -71,7 +77,7 @@ rec {
 
       # Trend classification
       trendClass =
-        if builtins.abs slope < mean * 0.01 then
+        if abs slope < mean * 0.01 then
           "stable"
         else if slope > mean * 0.05 then
           "improving" # Negative slope is improvement for time
@@ -98,7 +104,7 @@ rec {
             "decreasing"
           else
             "stable";
-        strength = builtins.abs correlation;
+        strength = abs correlation;
       };
       quality = {
         consistency =
@@ -109,9 +115,9 @@ rec {
           else
             "low";
         predictability =
-          if builtins.abs correlation > 0.8 then
+          if abs correlation > 0.8 then
             "high"
-          else if builtins.abs correlation > 0.5 then
+          else if abs correlation > 0.5 then
             "medium"
           else
             "low";
@@ -270,7 +276,7 @@ rec {
             else
               consistencyRecs;
         in
-        predictionRecs;
+          predictionRecs;
     };
 
   # Performance benchmark comparison
