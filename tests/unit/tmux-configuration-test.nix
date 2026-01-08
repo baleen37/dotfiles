@@ -10,6 +10,7 @@
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
   assertHelpers = import ../lib/assertions.nix { inherit pkgs lib; };
+  constants = import ../lib/constants.nix { inherit pkgs lib; };
 
   # Mock config for testing tmux configuration
   mockConfig = {
@@ -45,8 +46,8 @@ in
 
     # Task 4: Add Standard Copy Mode Key Bindings
     (helpers.assertTest "tmux-has-standard-copy-bindings"
-      (builtins.substring 0 1000 tmuxConfig.extraConfig != "" &&
-       builtins.stringLength tmuxConfig.extraConfig > 500 &&
+      (builtins.substring 0 constants.tmuxMaxConfigReadLength tmuxConfig.extraConfig != "" &&
+       builtins.stringLength tmuxConfig.extraConfig > constants.tmuxMinConfigLength &&
        builtins.match ".*copy-mode.*" tmuxConfig.extraConfig != null &&
        builtins.match ".*paste-buffer.*" tmuxConfig.extraConfig != null &&
        builtins.match ".*begin-selection.*" tmuxConfig.extraConfig != null)

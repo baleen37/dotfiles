@@ -23,17 +23,18 @@ let
 
   # Automatic test discovery function (nixpkgs pattern)
   # Discovers all *-test.nix files in a directory and subdirectories
+  # Excludes disabled/ directory and its contents
   discoverTests =
     dir: prefix:
     lib.pipe (builtins.readDir dir) [
-      # Filter for .nix files, excluding helpers, and include subdirectories
+      # Filter for .nix files, excluding helpers, disabled/, and include subdirectories
       (lib.filterAttrs (
         name: type:
         (type == "regular"
           && lib.hasSuffix "-test.nix" name
           && name != "default.nix"
           && name != "nixtest-template.nix")
-        || type == "directory"
+        || (type == "directory" && name != "disabled")
       ))
       # Process both files and directories
       (lib.mapAttrs' (name: type:
@@ -138,6 +139,6 @@ in
     inherit nixtest;
   }
 )
-// flattenTests (discoverTests ./integration "integration")
+// flattenTests (discoverPlatformTests ./integration "integration")
 # E2E tests are heavy VM tests - exclude from automatic discovery
 # They are available individually via nix eval on the specific test files

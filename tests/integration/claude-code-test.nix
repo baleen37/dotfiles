@@ -13,6 +13,7 @@
 
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
+  claudeHelpers = import (self + /tests/lib/claude-test-helpers.nix) { inherit pkgs lib helpers; };
 
   # Import claude-code configuration
   claudeCodeConfig = import ../../users/shared/claude-code.nix {
@@ -25,71 +26,6 @@ let
 
   # Behavioral tests: can we read the source files?
   claudeConfigDir = ../../users/shared/.config/claude;
-
-  # Test helpers
-  hasFileConfig = fileAttr: builtins.hasAttr fileAttr homeFiles;
-
-  hasForceEnabled = fileAttr:
-    if hasFileConfig fileAttr then
-      homeFiles.${fileAttr}.force or false
-    else
-      false;
-
-  isRecursive = fileAttr:
-    if hasFileConfig fileAttr then
-      homeFiles.${fileAttr}.recursive or false
-    else
-      false;
-
-  isExecutable = fileAttr:
-    if hasFileConfig fileAttr then
-      homeFiles.${fileAttr}.executable or false
-    else
-      false;
-
-  hasActivation = name: builtins.hasAttr name (claudeCodeConfig.home.activation or { });
-
-  # Data-driven test helpers
-  # Test that a file is configured in home.file
-  assertFileConfigured = fileAttr:
-    helpers.assertTest "${lib.strings.sanitizeDerivationName fileAttr}-configured" (hasFileConfig fileAttr)
-      "${fileAttr} should be configured in home.file";
-
-  # Test that a file has force enabled
-  assertFileForceEnabled = fileAttr:
-    helpers.assertTest "${lib.strings.sanitizeDerivationName fileAttr}-force-enabled" (hasForceEnabled fileAttr)
-      "${fileAttr} should have force=true to overwrite existing files";
-
-  # Test that a directory is recursive
-  assertDirRecursive = fileAttr:
-    helpers.assertTest "${lib.strings.sanitizeDerivationName fileAttr}-recursive" (isRecursive fileAttr)
-      "${fileAttr} should be recursive to copy all contents";
-
-  # Test that a directory is readable and has files
-  assertDirReadableAndHasFiles = name: sourcePath:
-    let
-      dirReadable = builtins.tryEval (builtins.readDir sourcePath);
-    in
-    [
-      (helpers.assertTest "${name}-dir-readable" dirReadable.success
-        "${name} source directory should be readable")
-      (helpers.assertTest "${name}-dir-has-files"
-        (dirReadable.success && builtins.length (builtins.attrNames dirReadable.value) > 0)
-        "${name} source directory should contain files")
-    ];
-
-  # Test that a file is readable and has content
-  assertFileReadableAndHasContent = name: sourcePath:
-    let
-      fileReadable = builtins.tryEval (builtins.readFile sourcePath);
-    in
-    [
-      (helpers.assertTest "${name}-readable" fileReadable.success
-        "${name} source file should be readable")
-      (helpers.assertTest "${name}-has-content"
-        (fileReadable.success && builtins.stringLength fileReadable.value > 0)
-        "${name} source file should have content")
-    ];
 
   # Define test data
   # Directories that should be configured, force-enabled, and recursive
@@ -117,37 +53,35 @@ let
     settings = claudeConfigDir + "/settings.json";
   };
 
+  # Check if activation exists
+  hasActivation = name: builtins.hasAttr name (claudeCodeConfig.home.activation or { });
+
 in
 helpers.testSuite "claude-code" (
-  # Configuration tests for directories
-  (builtins.map assertFileConfigured directories) ++
-  # Configuration tests for files
-  (builtins.map assertFileConfigured files) ++
+  # Configuration tests for directories and files
+  (claudeHelpers.assertClaudeFilesConfigured (directories ++ files) homeFiles) ++
   # Activation script test for settings.json
   [
-    (helpers.assertTest "settings-activation-exists" (hasActivation "claudeSettings")
-      "Activation script for settings.json should exist")
+    (claudeHelpers.assertClaudeActivationExists "settings-activation-exists"
+      claudeCodeConfig.home.activation "claudeSettings")
   ] ++
-  # Force enabled tests for directories
-  (builtins.map assertFileForceEnabled directories) ++
-  # Force enabled tests for files
-  (builtins.map assertFileForceEnabled files) ++
+  # Force enabled tests for directories and files
+  (claudeHelpers.assertClaudeFilesForceEnabled (directories ++ files) homeFiles) ++
   # Recursive tests for directories
-  (builtins.map assertDirRecursive directories) ++
+  (claudeHelpers.assertClaudeDirsRecursive directories homeFiles) ++
   # Executable test for statusline.sh
   [
-    (helpers.assertTest "statusline-executable" (isExecutable ".claude/statusline.sh")
-      "statusline.sh should be marked as executable")
+    (claudeHelpers.assertClaudeFileExecutable "statusline-executable" homeFiles ".claude/statusline.sh")
   ] ++
   # Behavioral tests for directories (readable and has files)
-  (assertDirReadableAndHasFiles "commands" sourcePaths.commands) ++
-  (assertDirReadableAndHasFiles "agents" sourcePaths.agents) ++
-  (assertDirReadableAndHasFiles "skills" sourcePaths.skills) ++
-  (assertDirReadableAndHasFiles "hooks" sourcePaths.hooks) ++
+  (claudeHelpers.assertClaudeDirReadableAndHasFiles "commands" sourcePaths.commands) ++
+  (claudeHelpers.assertClaudeDirReadableAndHasFiles "agents" sourcePaths.agents) ++
+  (claudeHelpers.assertClaudeDirReadableAndHasFiles "skills" sourcePaths.skills) ++
+  (claudeHelpers.assertClaudeDirReadableAndHasFiles "hooks" sourcePaths.hooks) ++
   # Behavioral tests for files (readable and has content)
-  (assertFileReadableAndHasContent "statusline" sourcePaths.statusline) ++
-  (assertFileReadableAndHasContent "claude-md" sourcePaths.claudeMd) ++
-  (assertFileReadableAndHasContent "settings" sourcePaths.settings) ++
+  (claudeHelpers.assertClaudeFileReadableAndHasContent "statusline" sourcePaths.statusline) ++
+  (claudeHelpers.assertClaudeFileReadableAndHasContent "claude-md" sourcePaths.claudeMd) ++
+  (claudeHelpers.assertClaudeFileReadableAndHasContent "settings" sourcePaths.settings) ++
   # Configuration integrity tests
   [
     (helpers.assertTest "home-file-exists" (homeFiles != null)

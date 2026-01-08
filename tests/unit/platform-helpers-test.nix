@@ -1,72 +1,47 @@
-# tests/unit/platform-helpers-test.nix
+# Platform Helpers Test
+#
 # Tests platform helper utilities for conditional test inclusion
-{ inputs, system, pkgs, lib, self, nixtest ? {} }:
+# Verifies that platform detection and filtering functions work correctly.
+{ inputs, system, pkgs, lib, self, nixtest ? {}, ... }:
 
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
-  assertHelpers = import ../lib/assertions.nix { inherit pkgs lib; };
 
   # Import platform helpers once for testing
   platformHelpers = import ../lib/platform-helpers.nix { inherit pkgs lib; };
   currentPlatform = platformHelpers.getCurrentPlatform;
 in
-# Simple test suite that works within framework constraints
-pkgs.runCommand "test-suite-platform-helpers" { } ''
-  echo "🧪 Running platform helpers test suite"
-  echo "🌍 Platform: ${currentPlatform}"
-  echo ""
+{
+  platforms = ["any"];
+  value = helpers.testSuite "platform-helpers" [
+    # Test mkPlatformTest function availability
+    (helpers.assertTest "mkPlatformTest-available" (
+      builtins.isFunction platformHelpers.mkPlatformTest
+    ) "mkPlatformTest should be available")
 
-  echo "🔍 Test: mkPlatformTest function availability"
-  if ${if builtins.isFunction platformHelpers.mkPlatformTest then "echo '✅ PASS: mkPlatformTest available'" else "echo '❌ FAIL: mkPlatformTest not available'; exit 1"}; then
-    echo "  ✅ PASS"
-  else
-    echo "  ❌ FAIL"
-    exit 1
-  fi
+    # Test filterPlatformTests function availability
+    (helpers.assertTest "filterPlatformTests-available" (
+      builtins.isFunction platformHelpers.filterPlatformTests
+    ) "filterPlatformTests should be available")
 
-  echo "🔍 Test: filterPlatformTests function availability"
-  if ${if builtins.isFunction platformHelpers.filterPlatformTests then "echo '✅ PASS: filterPlatformTests available'" else "echo '❌ FAIL: filterPlatformTests not available'; exit 1"}; then
-    echo "  ✅ PASS"
-  else
-    echo "  ❌ FAIL"
-    exit 1
-  fi
+    # Test getCurrentPlatform value availability
+    (helpers.assertTest "getCurrentPlatform-available" (
+      builtins.isString currentPlatform
+    ) "getCurrentPlatform should return a string")
 
-  echo "🔍 Test: getCurrentPlatform value availability"
-  if ${if builtins.isString currentPlatform then "echo '✅ PASS: getCurrentPlatform available'" else "echo '❌ FAIL: getCurrentPlatform not available'; exit 1"}; then
-    echo "  ✅ PASS"
-  else
-    echo "  ❌ FAIL"
-    exit 1
-  fi
+    # Test platform detection returns valid value
+    (helpers.assertTest "platform-detection-valid" (
+      currentPlatform == "darwin" || currentPlatform == "linux" || currentPlatform == "unknown"
+    ) "Platform detection should return a valid value")
 
-  echo "🔍 Test: Platform detection returns valid value"
-  echo "  Current platform: ${currentPlatform}"
-  if [ "${currentPlatform}" = "darwin" ] || [ "${currentPlatform}" = "linux" ] || [ "${currentPlatform}" = "unknown" ]; then
-    echo "  ✅ PASS: Platform value is valid"
-  else
-    echo "  ❌ FAIL: Invalid platform value"
-    exit 1
-  fi
+    # Test isCurrentPlatform helper availability
+    (helpers.assertTest "isCurrentPlatform-available" (
+      builtins.isFunction platformHelpers.isCurrentPlatform
+    ) "isCurrentPlatform should be available")
 
-  echo "🔍 Test: isCurrentPlatform helper availability"
-  if ${if builtins.isFunction platformHelpers.isCurrentPlatform then "echo '✅ PASS: isCurrentPlatform available'" else "echo '❌ FAIL: isCurrentPlatform not available'; exit 1"}; then
-    echo "  ✅ PASS"
-  else
-    echo "  ❌ FAIL"
-    exit 1
-  fi
-
-  echo "🔍 Test: mkPlatformTestSuite helper availability"
-  if ${if builtins.isFunction platformHelpers.mkPlatformTestSuite then "echo '✅ PASS: mkPlatformTestSuite available'" else "echo '❌ FAIL: mkPlatformTestSuite not available'; exit 1"}; then
-    echo "  ✅ PASS"
-  else
-    echo "  ❌ FAIL"
-    exit 1
-  fi
-
-  echo ""
-  echo "✅ Test suite platform-helpers: All tests passed"
-  echo "🎯 Platform discovery integration is working correctly"
-  touch $out
-''
+    # Test mkPlatformTestSuite helper availability
+    (helpers.assertTest "mkPlatformTestSuite-available" (
+      builtins.isFunction platformHelpers.mkPlatformTestSuite
+    ) "mkPlatformTestSuite should be available")
+  ];
+}

@@ -41,20 +41,20 @@
 {
   inputs,
   system,
+  nixtest ? { },
   pkgs,
   lib,
   self,
-  nixtest,
 }:
 
 let
-  testHelpers = import ../lib/test-helpers.nix { inherit lib pkgs; };
+  helpers = import ../lib/test-helpers.nix { inherit lib pkgs; };
   monitoring = import ../../lib/monitoring.nix { inherit lib pkgs; };
 
 in
 {
   # Test 1: Monitoring module structure exists
-  monitoring-structure-exists = testHelpers.assertTest "monitoring-structure-exists" (
+  monitoring-structure-exists = helpers.assertTest "monitoring-structure-exists" (
     builtins.hasAttr "monitoring" monitoring
     && builtins.hasAttr "storage" monitoring.monitoring
     && builtins.hasAttr "tests" monitoring.monitoring
@@ -65,7 +65,7 @@ in
   ) "Monitoring should have storage, tests, metrics, alerts, reporting, and integration sections";
 
   # Test 2: Storage createStore creates store
-  storage-create-store = testHelpers.assertTest "monitoring-storage-create-store" (
+  storage-create-store = helpers.assertTest "monitoring-storage-create-store" (
     let
       store = monitoring.monitoring.storage.createStore "/tmp/test-store";
     in
@@ -76,7 +76,7 @@ in
   ) "storage.createStore should create a store with path, data, and metadata";
 
   # Test 3: Storage createStore metadata structure
-  storage-create-store-metadata = testHelpers.assertTest "monitoring-storage-create-store-metadata" (
+  storage-create-store-metadata = helpers.assertTest "monitoring-storage-create-store-metadata" (
     let
       store = monitoring.monitoring.storage.createStore "/tmp/test";
     in
@@ -86,7 +86,7 @@ in
   ) "storage.createStore metadata should include version, created, and system";
 
   # Test 4: Storage addMeasurement adds measurement
-  storage-add-measurement = testHelpers.assertTest "monitoring-storage-add-measurement" (
+  storage-add-measurement = helpers.assertTest "monitoring-storage-add-measurement" (
     let
       store = monitoring.monitoring.storage.createStore "/tmp/test";
       updatedStore = monitoring.monitoring.storage.addMeasurement
@@ -99,7 +99,7 @@ in
   ) "storage.addMeasurement should add measurement to store";
 
   # Test 5: Storage addMeasurement updates metadata
-  storage-add-measurement-metadata = testHelpers.assertTest "monitoring-storage-add-measurement-metadata" (
+  storage-add-measurement-metadata = helpers.assertTest "monitoring-storage-add-measurement-metadata" (
     let
       store = monitoring.monitoring.storage.createStore "/tmp/test";
       updatedStore = monitoring.monitoring.storage.addMeasurement
@@ -112,7 +112,7 @@ in
   ) "storage.addMeasurement should update store metadata";
 
   # Test 6: Storage queryMeasurements filters by time
-  storage-query-measurements = testHelpers.assertTest "monitoring-storage-query-measurements" (
+  storage-query-measurements = helpers.assertTest "monitoring-storage-query-measurements" (
     let
       store = monitoring.monitoring.storage.createStore "/tmp/test";
       measurements = [
@@ -133,7 +133,7 @@ in
   ) "storage.queryMeasurements should return measurements within time range";
 
   # Test 7: Storage getLatest returns latest measurements
-  storage-get-latest = testHelpers.assertTest "monitoring-storage-get-latest" (
+  storage-get-latest = helpers.assertTest "monitoring-storage-get-latest" (
     let
       store = monitoring.monitoring.storage.createStore "/tmp/test";
       measurements = [
@@ -150,7 +150,7 @@ in
   ) "storage.getLatest should return specified number of latest measurements";
 
   # Test 8: Tests trackExecution creates measurement
-  tests-track-execution = testHelpers.assertTest "monitoring-tests-track-execution" (
+  tests-track-execution = helpers.assertTest "monitoring-tests-track-execution" (
     let
       measurement = monitoring.monitoring.tests.trackExecution
         "test-name"
@@ -167,7 +167,7 @@ in
   ) "tests.trackExecution should create measurement with all required fields";
 
   # Test 9: Tests measureExecution returns profile
-  tests-measure-execution = testHelpers.assertTest "monitoring-tests-measure-execution" (
+  tests-measure-execution = helpers.assertTest "monitoring-tests-measure-execution" (
     let
       result = monitoring.monitoring.tests.measureExecution
         "test-name"
@@ -179,7 +179,7 @@ in
   ) "tests.measureExecution should return measurement and profile";
 
   # Test 10: Tests analyzeTrends returns analysis
-  tests-analyze-trends = testHelpers.assertTest "monitoring-tests-analyze-trends" (
+  tests-analyze-trends = helpers.assertTest "monitoring-tests-analyze-trends" (
     let
       measurements = [
         { duration_ms = 100; memory_bytes = 1000; success = true; }
@@ -195,7 +195,7 @@ in
   ) "tests.analyzeTrends should return summary, performance, reliability, and alerts";
 
   # Test 11: Tests analyzeTrends summary structure
-  tests-analyze-trends-summary = testHelpers.assertTest "monitoring-tests-analyze-trends-summary" (
+  tests-analyze-trends-summary = helpers.assertTest "monitoring-tests-analyze-trends-summary" (
     let
       measurements = [
         { duration_ms = 100; memory_bytes = 1000; success = true; }
@@ -211,7 +211,7 @@ in
   ) "tests.analyzeTrends summary should include totalRuns, successfulRuns, successRate, avgDuration_ms, and avgMemory_mb";
 
   # Test 12: Metrics getCurrentSystemMetrics returns metrics
-  metrics-get-current-system-metrics = testHelpers.assertTest "monitoring-metrics-get-current-system-metrics" (
+  metrics-get-current-system-metrics = helpers.assertTest "monitoring-metrics-get-current-system-metrics" (
     let
       metrics = monitoring.monitoring.metrics.getCurrentSystemMetrics;
     in
@@ -223,7 +223,7 @@ in
   ) "metrics.getCurrentSystemMetrics should return timestamp, memory, cpu, disk, and network";
 
   # Test 13: Metrics aggregateMetrics aggregates correctly
-  metrics-aggregate-metrics = testHelpers.assertTest "monitoring-metrics-aggregate-metrics" (
+  metrics-aggregate-metrics = helpers.assertTest "monitoring-metrics-aggregate-metrics" (
     let
       measurements = [
         {
@@ -244,7 +244,7 @@ in
   ) "metrics.aggregateMetrics should aggregate measurements correctly";
 
   # Test 14: Alerts createAlert creates alert
-  alerts-create-alert = testHelpers.assertTest "monitoring-alerts-create-alert" (
+  alerts-create-alert = helpers.assertTest "monitoring-alerts-create-alert" (
     let
       alert = monitoring.monitoring.alerts.createAlert
         "critical"
@@ -265,7 +265,7 @@ in
   ) "alerts.createAlert should create alert with all required fields";
 
   # Test 15: Alerts generateSummary aggregates alerts
-  alerts-generate-summary = testHelpers.assertTest "monitoring-alerts-generate-summary" (
+  alerts-generate-summary = helpers.assertTest "monitoring-alerts-generate-summary" (
     let
       alerts = [
         (monitoring.monitoring.alerts.createAlert "critical" "test1" "msg1" 1 1)
@@ -286,7 +286,7 @@ in
   ) "alerts.generateSummary should aggregate alerts by severity";
 
   # Test 16: Alerts status is calculated correctly
-  alerts-generate-summary-status = testHelpers.assertTest "monitoring-alerts-generate-summary-status" (
+  alerts-generate-summary-status = helpers.assertTest "monitoring-alerts-generate-summary-status" (
     let
       criticalOnly = [
         (monitoring.monitoring.alerts.createAlert "critical" "test" "msg" 1 1)
@@ -307,7 +307,7 @@ in
   ) "alerts.generateSummary status should be critical/warning/healthy based on alerts";
 
   # Test 17: Integration wrapTest wraps test
-  integration-wrap-test = testHelpers.assertTest "monitoring-integration-wrap-test" (
+  integration-wrap-test = helpers.assertTest "monitoring-integration-wrap-test" (
     let
       result = monitoring.monitoring.integration.wrapTest
         "test-name"
@@ -320,7 +320,7 @@ in
   ) "integration.wrapTest should wrap test execution with monitoring";
 
   # Test 18: Integration ciConfig has expected structure
-  integration-ci-config = testHelpers.assertTest "monitoring-integration-ci-config" (
+  integration-ci-config = helpers.assertTest "monitoring-integration-ci-config" (
     let
       config = monitoring.monitoring.integration.ciConfig;
     in
@@ -332,7 +332,7 @@ in
   ) "integration.ciConfig should have enableMonitoring, formats, artifacts, thresholds, and notifications";
 
   # Test 19: Integration ciConfig thresholds structure
-  integration-ci-config-thresholds = testHelpers.assertTest "monitoring-integration-ci-config-thresholds" (
+  integration-ci-config-thresholds = helpers.assertTest "monitoring-integration-ci-config-thresholds" (
     let
       thresholds = monitoring.monitoring.integration.ciConfig.thresholds;
     in
@@ -342,7 +342,7 @@ in
   ) "integration.ciConfig thresholds should include successRate, duration, and memory";
 
   # Test 20: Reporting formatSummary returns string
-  reporting-format-summary = testHelpers.assertTest "monitoring-reporting-format-summary" (
+  reporting-format-summary = helpers.assertTest "monitoring-reporting-format-summary" (
     let
       mockReport = {
         metadata = {

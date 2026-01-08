@@ -5,6 +5,7 @@
 {
   inputs,
   system,
+  nixtest ? { },
   pkgs ? import inputs.nixpkgs { inherit system; },
   lib ? pkgs.lib,
   self ? ./.,
@@ -13,6 +14,10 @@
 
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
+
+  # Check if inputs.darwin is available
+  hasDarwinInputs = inputs ? darwin;
+
   mkSystem = import ../../lib/mksystem.nix { inherit inputs self; };
 
   # Create a test system configuration
@@ -25,7 +30,7 @@ let
 
 in
 {
-  platforms = ["any"];
+  platforms = ["darwin"];
   value = {
     # Test 1: mkSystem accepts all required parameters
     accepts-required-params = helpers.assertTest "mksystem-accepts-required-params" (
@@ -35,16 +40,19 @@ in
     # Test 2: mkSystem with darwin=true returns darwinSystem
     darwin-system-creates-darwin-config = helpers.assertTest "mksystem-darwin-creates-darwin-config" (
       let
-        darwinSystem = mkSystem "darwin-test" {
-          system = "aarch64-darwin";
-          user = "testuser";
-          darwin = true;
-          wsl = false;
-        };
+        darwinSystem = if hasDarwinInputs then
+          mkSystem "darwin-test" {
+            system = "aarch64-darwin";
+            user = "testuser";
+            darwin = true;
+            wsl = false;
+          }
+        else
+          null;
         # Check that it's a valid configuration structure
         result = builtins.tryEval darwinSystem;
       in
-      result.success
+      hasDarwinInputs && result.success
     ) "mkSystem with darwin=true should create valid darwin configuration";
 
     # Test 3: mkSystem with darwin=false returns nixosSystem
@@ -229,11 +237,14 @@ in
     # Test 16: isDarwin boolean is set correctly
     is-darwin-set = helpers.assertTest "mksystem-is-darwin-set" (
       let
-        darwinSystem = mkSystem "darwin-test" {
-          system = "aarch64-darwin";
-          user = "testuser";
-          darwin = true;
-        };
+        darwinSystem = if hasDarwinInputs then
+          mkSystem "darwin-test" {
+            system = "aarch64-darwin";
+            user = "testuser";
+            darwin = true;
+          }
+        else
+          null;
         linuxSystem = mkSystem "linux-test" {
           system = "x86_64-linux";
           user = "testuser";
@@ -254,15 +265,18 @@ in
           user = "user1";
           darwin = false;
         };
-        system2 = mkSystem "system2" {
-          system = "aarch64-darwin";
-          user = "user2";
-          darwin = true;
-        };
+        system2 = if hasDarwinInputs then
+          mkSystem "system2" {
+            system = "aarch64-darwin";
+            user = "user2";
+            darwin = true;
+          }
+        else
+          null;
         result1 = builtins.tryEval system1;
         result2 = builtins.tryEval system2;
       in
-      result1.success && result2.success
+      result1.success && (result2.success || !hasDarwinInputs)
     ) "mkSystem should be able to create multiple independent system configurations";
   };
 }

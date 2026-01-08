@@ -13,7 +13,7 @@
 
 let
   # Import test helpers and frameworks
-  testHelpers = import ../lib/test-helpers.nix { inherit lib pkgs; };
+  helpers = import ../lib/test-helpers.nix { inherit lib pkgs; };
   trendAnalysis = import ../../lib/trend-analysis.nix { inherit lib pkgs; };
   baselines = import ../../lib/performance-baselines.nix { inherit lib pkgs; };
 
@@ -115,7 +115,7 @@ let
   overallRegressionStatus = if regressionResult.regression.detected then "DETECTED" else "not detected";
 
 in
-testHelpers.mkTest "trend-analysis-regression-detection" ''
+helpers.mkTest "trend-analysis-regression-detection" ''
   echo "Running Trend Analysis and Regression Detection Test..."
   echo "System: ${system}"
   echo "Timestamp: $(date)"
@@ -296,7 +296,7 @@ testHelpers.mkTest "trend-analysis-regression-detection" ''
   ## Code Quality Improvements
   ✅ Extracted trend analysis logic to lib/trend-analysis.nix
   ✅ Eliminated complex inline nix eval calls
-  ✅ Used testHelpers.mkTest for consistent test structure
+  ✅ Used helpers.mkTest for consistent test structure
   ✅ Maintained identical test coverage
   ✅ Improved code reusability and maintainability
 

@@ -171,6 +171,18 @@ Tests can specify platform requirements using the `platforms` attribute:
 
 ## Test Helpers
 
+### Test Helpers Overview
+
+The testing framework provides multiple helper libraries organized by purpose:
+
+- **test-helpers.nix**: Core assertion helpers, property testing, configuration validation
+- **git-test-helpers.nix**: Git-specific testing helpers (aliases, settings, LFS, safety)
+- **darwin-test-helpers.nix**: macOS/Darwin optimization levels and system settings
+- **constants.nix**: Centralized test constants (67 constants for performance, validation, tools)
+- **conventions.nix**: Testing standards and patterns (see [Test Conventions](#test-conventions))
+- **assertions.nix**: Enhanced assertion utilities with detailed error messages
+- **platform-helpers.nix**: Platform-aware test filtering for cross-platform support
+
 ### Core Helpers (tests/lib/test-helpers.nix)
 
 #### Basic Assertions
@@ -251,6 +263,170 @@ Validates a derivation builds successfully.
 **Example**:
 ```nix
 helpers.assertBuilds "vim-builds" pkgs.vim
+```
+
+---
+
+**`assertConfigIntegrity`**
+```nix
+assertConfigIntegrity "test-name" configPath expectedFiles
+```
+Validates configuration file integrity - checks that all expected files exist and have content.
+
+**Example**:
+```nix
+helpers.assertConfigIntegrity "vim-config" vimConfig [
+  ".vimrc"
+  ".vim/plugins.vim"
+]
+```
+
+---
+
+**`assertAttrsEqual`**
+```nix
+assertAttrsEqual "test-name" expected actual "message"
+```
+Deep equality comparison for attribute sets with detailed mismatch reporting.
+
+**Example**:
+```nix
+helpers.assertAttrsEqual "git-settings" expectedSettings actualSettings "Git settings should match"
+```
+
+---
+
+**`assertContainsGeneric`**
+```nix
+assertContainsGeneric "test-name" needle haystack "message"
+```
+Generic membership test for lists, attribute sets, or strings.
+
+**Example**:
+```nix
+# Check if item is in a list
+helpers.assertContainsGeneric "has-package" "vim" packages "vim should be in packages"
+
+# Check if key exists in attribute set
+helpers.assertContainsGeneric "has-attr" "programs" config "config should have programs"
+
+# Check if substring exists in string
+helpers.assertContainsGeneric "has-substring" "@", email "email should contain @"
+```
+
+---
+
+### Plugin and Configuration Helpers
+
+**`assertPluginPresent`**
+```nix
+assertPluginPresent "test-name" plugins expectedPlugins options
+```
+Test plugin/package presence in a list or attribute set with exact or regex matching.
+
+**Parameters**:
+- `name`: Test name for reporting
+- `plugins`: List of plugins or attribute set of plugin configurations
+- `expectedPlugins`: List of plugin names (exact strings) or regex patterns
+- `options`: Optional attributes (default: `{ matchType = "exact"; allowExtra = true; }`)
+
+**Example**:
+```nix
+# Exact match
+helpers.assertPluginPresent "vim-plugins" vimPlugins [
+  "vim-airline"
+  "nerdtree"
+]
+
+# Regex match
+helpers.assertPluginPresent "npm-packages" npmPackages [
+  "eslint-.*"
+  "prettier-.*"
+] { matchType = "regex"; }
+```
+
+---
+
+**`assertConfigPattern`**
+```nix
+assertConfigPattern "test-name" configFiles expectedPatterns
+```
+Test configuration file pattern matching using regex or substring search.
+
+**Parameters**:
+- `name`: Test name for reporting
+- `configFiles`: Attribute set mapping file paths to their content (strings)
+- `expectedPatterns`: Attribute set with substring strings, regex patterns, or lists
+
+**Example**:
+```nix
+# Substring match
+helpers.assertConfigPattern "vimrc" {
+  ".vimrc" = vimrcContent;
+} {
+  ".vimrc" = "set number";
+}
+
+# Regex match
+helpers.assertConfigPattern "gitconfig" {
+  ".gitconfig" = gitContent;
+} {
+  ".gitconfig" = {
+    regex = "\\[user\\]\\s*\\n.*name = Jiho";
+  };
+}
+
+# Multiple patterns
+helpers.assertConfigPattern "zshrc" {
+  ".zshrc" = zshContent;
+} {
+  ".zshrc" = {
+    patterns = [
+      "export PATH"
+      { regex = "fzf.*setup" }
+    ];
+  };
+}
+```
+
+---
+
+**`assertHomeFileConfigured`**
+```nix
+assertHomeFileConfigured "test-name" homeConfig expectedFiles
+```
+Test Home Manager file configuration in `home.file` or `home.xdg.configFile`.
+
+**Parameters**:
+- `name`: Test name for reporting
+- `homeConfig`: The Home Manager configuration attribute set
+- `expectedFiles`: Attribute set with file paths and optional settings (force, recursive, executable, text)
+
+**Example**:
+```nix
+# Basic file presence check
+helpers.assertHomeFileConfigured "vim-config" homeConfig {
+  ".vimrc".path = ".vimrc";
+  ".config/nvim/init.vim" = null;
+}
+
+# Check file options
+helpers.assertHomeFileConfigured "scripts" homeConfig {
+  "bin/myscript.sh" = {
+    executable = true;
+    force = true;
+  };
+  "bin/readonly.sh" = {
+    executable = false;
+  };
+}
+
+# Check file content
+helpers.assertHomeFileConfigured "config-content" homeConfig {
+  ".config/app/config.conf" = {
+    text = "setting=value";
+  };
+}
 ```
 
 ---
@@ -371,6 +547,192 @@ helpers.assertGitIgnorePatterns "gitignore" gitConfig [
 
 ---
 
+### Git Helpers Library (tests/lib/git-test-helpers.nix)
+
+The Git Helpers library provides specialized functions for comprehensive Git configuration testing. Import with:
+
+```nix
+gitHelpers = import ../lib/git-test-helpers.nix {
+  inherit pkgs lib;
+  testHelpers = helpers;
+};
+```
+
+#### Git User Information
+
+**`assertGitUserInfo`**
+```nix
+assertGitUserInfo "test-name" gitSettings userInfo
+```
+Validate Git user information against `lib/user-info.nix` (single source of truth).
+
+**Example**:
+```nix
+gitHelpers.assertGitUserInfo "git-user-info" gitSettings userInfo
+```
+
+---
+
+**`assertGitUserInfoValues`**
+```nix
+assertGitUserInfoValues "test-name" gitSettings expectedName expectedEmail
+```
+Validate Git user info with specific expected values.
+
+**Example**:
+```nix
+gitHelpers.assertGitUserInfoValues "git-user" gitSettings "Jiho Lee" "baleen37@gmail.com"
+```
+
+#### Git LFS Configuration
+
+**`assertGitLFS`**
+```nix
+assertGitLFS "test-name" gitConfig expectedEnabled
+```
+Validate Git LFS configuration state.
+
+**Example**:
+```nix
+gitHelpers.assertGitLFS "git-lfs" gitConfig true
+```
+
+#### Bulk Git Assertions
+
+**`assertGitAliasesBulk`**
+```nix
+assertGitAliasesBulk "test-name" aliasSettings expectedAliases
+```
+Bulk assertion helper for Git aliases with individual test reporting.
+
+**Example**:
+```nix
+gitHelpers.assertGitAliasesBulk "git-aliases" gitSettings.alias {
+  st = "status";
+  co = "checkout";
+  br = "branch";
+  ci = "commit";
+}
+```
+
+---
+
+**`assertGitSettingsBulk`**
+```nix
+assertGitSettingsBulk "test-name" gitSettings expectedSettings
+```
+Bulk assertion helper for Git settings (supports nested keys).
+
+**Example**:
+```nix
+gitHelpers.assertGitSettingsBulk "git-core" gitSettings.core {
+  editor = "vim";
+  autocrlf = "input";
+  excludesFile = "~/.gitignore_global";
+}
+```
+
+---
+
+**`assertGitIgnorePatternsBulk`**
+```nix
+assertGitIgnorePatternsBulk "test-name" actualPatterns expectedPatterns
+```
+Bulk assertion helper for Git ignore patterns.
+
+**Example**:
+```nix
+gitHelpers.assertGitIgnorePatternsBulk "gitignore" gitIgnores [
+  "*.swp"
+  "*.swo"
+  ".DS_Store"
+  "node_modules/"
+]
+```
+
+#### Comprehensive Git Configuration
+
+**`assertGitConfigComplete`**
+```nix
+assertGitConfigComplete "test-name" gitConfig userInfo expectedAliases expectedIgnores options
+```
+Complete Git configuration validation with all aspects:
+- Git enabled
+- User info matches `lib/user-info.nix`
+- Git LFS enabled
+- Core settings (editor, autocrlf, excludesFile)
+- Init settings (defaultBranch)
+- Pull settings (rebase)
+- Rebase settings (autoStash)
+- Git aliases
+- Git ignore patterns
+
+**Parameters**:
+- `name`: Test suite name
+- `gitConfig`: Full git configuration attribute set
+- `userInfo`: User info from `lib/user-info.nix`
+- `expectedAliases`: Attribute set of expected Git aliases
+- `expectedIgnores`: List of expected gitignore patterns
+- `options`: Optional configuration (default: all checks enabled)
+
+**Example**:
+```nix
+gitHelpers.assertGitConfigComplete "git-config" gitConfig userInfo {
+  st = "status";
+  co = "checkout";
+  br = "branch";
+  ci = "commit";
+  unstage = "reset HEAD --";
+  last = "log -1 HEAD";
+} [
+  "*.swp"
+  "*.swo"
+  ".DS_Store"
+  "node_modules/"
+  ".env.local"
+] {
+  checkUserInfo = true;
+  checkLFS = true;
+  checkAliases = true;
+  checkIgnores = true;
+}
+```
+
+#### Git Safety Validation
+
+**`assertGitAliasSafety`**
+```nix
+assertGitAliasSafety "test-name" aliasSettings options
+```
+Validate Git alias safety - checks for dangerous commands and essential aliases.
+
+**Default dangerous patterns**: `rm -rf`, `sudo `, `chmod 777`, `chown `, `format`, `fdisk`
+
+**Default required aliases**: `st`, `ci`
+
+**Example**:
+```nix
+gitHelpers.assertGitAliasSafety "git-alias-safety" gitSettings.alias {
+  requiredAliases = [ "st" "ci" "co" ];
+  dangerousPatterns = [ "rm -rf" "sudo " "format " ];
+}
+```
+
+---
+
+**`assertGitIgnoreSafety`**
+```nix
+assertGitIgnoreSafety "test-name" ignorePatterns
+```
+Validate Git ignore pattern safety - checks for path traversal attacks.
+
+**Example**:
+```nix
+gitHelpers.assertGitIgnoreSafety "gitignore-safety" gitIgnores
+```
+
+---
+
 ### macOS-Specific Helpers
 
 **`assertNSGlobalDef`**
@@ -418,6 +780,201 @@ assertTrackpadSetting "test-name" "key" expectedValue darwinConfig
 ```
 Test trackpad setting.
 
+**Example**:
+```nix
+helpers.assertTrackpadSetting "clicking" "Clicking" true darwinConfig
+```
+
+---
+
+### Darwin Helpers Library (tests/lib/darwin-test-helpers.nix)
+
+The Darwin Helpers library provides comprehensive macOS system settings testing with semantic optimization levels. Import with:
+
+```nix
+darwinHelpers = import ../lib/darwin-test-helpers.nix {
+  inherit pkgs lib;
+  helpers = helpers;
+  constants = testConstants;
+};
+```
+
+#### Darwin Optimization Levels
+
+The library provides three optimization levels for progressive macOS performance tuning:
+
+**Level 1: Core System Optimizations**
+- Disables UI animations (40-60% faster UI responsiveness)
+- Optimizes input processing
+- Settings: window animations, resize time, scroll animations, auto-capitalization, spell correction, smart quotes/dashes, press-and-hold
+
+**`assertDarwinOptimizationsLevel1`**
+```nix
+assertDarwinOptimizationsLevel1 darwinConfig
+```
+
+**Example**:
+```nix
+darwinHelpers.assertDarwinOptimizationsLevel1 darwinConfig
+```
+
+---
+
+**Level 2: Memory Management and Battery Efficiency**
+- Enables app termination for 20-30% battery life extension
+- Disables iCloud auto-save
+
+**`assertDarwinOptimizationsLevel2`**
+```nix
+assertDarwinOptimizationsLevel2 darwinConfig
+```
+
+---
+
+**Level 3: Advanced UI Reduction Optimizations**
+- Disables navigation gestures
+- Optimizes font smoothing
+- Compacts save dialogs
+
+**`assertDarwinOptimizationsLevel3`**
+```nix
+assertDarwinOptimizationsLevel3 darwinConfig
+```
+
+---
+
+**All Optimization Levels Combined**
+
+**`assertDarwinOptimizationsAll`**
+```nix
+assertDarwinOptimizationsAll darwinConfig
+```
+Run all three optimization level tests.
+
+---
+
+#### Comprehensive macOS Optimization Test Suite
+
+**`assertDarwinFullOptimizationSuite`**
+```nix
+assertDarwinFullOptimizationSuite darwinConfig
+```
+Complete macOS optimization test suite including:
+- All optimization levels (1, 2, 3)
+- Login window optimizations
+- Dock optimizations
+- Finder optimizations
+- Trackpad optimizations
+
+**Example**:
+```nix
+darwinHelpers.assertDarwinFullOptimizationSuite darwinConfig
+```
+
+#### Individual macOS Component Tests
+
+**Login Window Optimizations**
+```nix
+assertLoginWindowOptimizations darwinConfig
+```
+Tests login window settings for faster boot and streamlined login.
+
+---
+
+**Dock Optimizations**
+```nix
+assertDockOptimizations darwinConfig
+```
+Tests standard dock optimizations: autohide, instant delay, fast animation, optimized tile size.
+
+---
+
+**Finder Optimizations**
+```nix
+assertFinderOptimizations darwinConfig
+```
+Tests finder optimizations: show hidden files, disable extension warning, folders first, path bar, status bar.
+
+---
+
+**Trackpad Optimizations**
+```nix
+assertTrackpadOptimizations darwinConfig
+```
+Tests trackpad optimizations: tap-to-click, right-click, three-finger drag.
+
+#### Darwin Configuration Tests
+
+**`assertDarwinFullConfigSuite`**
+```nix
+assertDarwinFullConfigSuite expectedUser darwinConfig
+```
+Complete Darwin configuration test suite including:
+- All optimizations
+- Spaces settings (no span displays)
+- Homebrew configuration (enabled, casks, brews, global settings)
+- System configuration (primary user, documentation disabled)
+- App cleanup script
+
+**Example**:
+```nix
+darwinHelpers.assertDarwinFullConfigSuite "baleen" darwinConfig
+```
+
+#### Individual Setting Tests
+
+**Space Settings**
+```nix
+assertSpacesNoSpanDisplays darwinConfig
+```
+
+**Homebrew Configuration**
+```nix
+assertHomebrewEnabled darwinConfig
+assertHomebrewCasksConfigured darwinConfig
+assertHomebrewBrewsConfigured darwinConfig
+assertHomebrewGlobalSettings darwinConfig
+```
+
+**System Configuration**
+```nix
+assertSystemPrimaryUser "expectedUser" darwinConfig
+assertDocumentationDisabled darwinConfig
+assertCleanupScriptConfigured darwinConfig
+```
+
+#### Bulk Setting Helpers
+
+**NSGlobalDomain Settings**
+```nix
+assertNSGlobalDefs [ ["key1" val1] ["key2" val2] ] darwinConfig
+```
+Test multiple NSGlobalDomain settings at once.
+
+---
+
+**Dock Settings**
+```nix
+assertDockSettings [ ["name1" "key1" val1] ["name2" "key2" val2] ] darwinConfig
+```
+Test multiple dock settings at once.
+
+---
+
+**Finder Settings**
+```nix
+assertFinderSettings [ ["name1" "key1" val1] ["name2" "key2" val2] ] darwinConfig
+```
+Test multiple finder settings at once.
+
+---
+
+**Trackpad Settings**
+```nix
+assertTrackpadSettings [ ["name1" "key1" val1] ["name2" "key2" val2] ] darwinConfig
+```
+Test multiple trackpad settings at once.
+
 ---
 
 ### Test Suite Helpers
@@ -455,6 +1012,25 @@ helpers.propertyTest "commutative-addition"
 
 ---
 
+**`multiParamPropertyTest`**
+```nix
+multiParamPropertyTest "test-name" propertyFunction testValueSets
+```
+Test multi-parameter properties across all combinations of test values.
+
+**Example**:
+```nix
+helpers.multiParamPropertyTest "string-concat"
+  (a: b: a + b == b + a)
+  [
+    ["hello" "world"]
+    ["foo" "bar"]
+    ["a" "b" "c"]
+  ]
+```
+
+---
+
 **`forAllCases`**
 ```nix
 forAllCases "test-name" testCases propertyFunction
@@ -464,6 +1040,21 @@ Helper pattern for property-based testing with named test cases.
 **Example**:
 ```nix
 helpers.forAllCases "user-identity-validation" testUsers validateUserIdentity
+```
+
+---
+
+**`generateUserTests`**
+```nix
+generateUserTests testFunction users
+```
+Generate multiple test configurations for different users.
+
+**Example**:
+```nix
+helpers.generateUserTests
+  (user: helpers.assertTest "user-${user}" true "User test")
+  ["alice" "bob" "charlie"]
 ```
 
 ---
@@ -556,6 +1147,313 @@ createModuleTestConfig moduleConfig
 Create test configuration for modules requiring `currentSystemUser`.
 
 ---
+
+## Test Constants (tests/lib/constants.nix)
+
+Centralized test constants eliminate magic numbers and provide documented rationale for test values. Import with:
+
+```nix
+testConstants = import ../lib/constants.nix { inherit pkgs lib; };
+```
+
+### Darwin Performance Constants
+
+**Window and Dock Animation Timing**
+```nix
+darwinWindowResizeTime = 0.1;           # 100ms - fastest perceivable resize
+darwinDockAutohideDelay = 0.0;          # 0.0 - instant dock appearance
+darwinDockAutohideTimeModifier = 0.15;  # 150ms - fast/smooth animation
+darwinExposeAnimationDuration = 0.2;    # 200ms - quick Mission Control
+darwinDockTileSize = 48;                # 48px - balance visibility/space
+darwinFontSmoothing = 1;                # 1 = reduced for sharpness
+```
+
+**Keyboard and Trackpad Speed**
+```nix
+darwinKeyRepeat = 1;                   # 1 (~16ms) - fastest repeat
+darwinInitialKeyRepeat = 10;           # 10 (~167ms) - fast initial delay
+darwinTrackpadScaling = 3.0;           # 3.0 - maximum cursor speed
+darwinScrollwheelScaling = 1.0;        # 1.0 - maximum scroll speed
+```
+
+**Hotkey Modifiers**
+```nix
+darwinHotkeySpaceKeyCode = 49;         # kVK_Space from HIToolbox
+darwinHotkeyCmdModifier = 1048576;     # cmdKey (256 * 4096)
+darwinHotkeyShiftModifier = 131072;    # shiftKey (256 * 512)
+darwinHotkeyCtrlModifier = 262144;     # controlKey (256 * 1024)
+```
+
+### Tool-Specific Constants
+
+**Starship Prompt**
+```nix
+starshipCommandTimeout = 1000;         # 1s - balance responsiveness
+starshipScanTimeout = 30;              # 30s - prevent hangs on large dirs
+starshipCmdDurationMinTime = 3000;     # 3s - only show slow commands
+starshipDirectoryTruncationLength = 3; # 3 segments - compact but informative
+```
+
+**Tmux**
+```nix
+tmuxHistoryLimit = 50000;              # 50K lines - searchable history
+tmuxDisplayTime = 2000;                # 2s - message duration
+tmuxRepeatTime = 500;                  # 500ms - repeat command timeout
+```
+
+**Vim**
+```nix
+vimHistory = 1000;                     # 1000 entries - command history
+```
+
+**Zsh/Fzf**
+```nix
+fzfPreviewLineRange = 500;             # 500 lines - preview context
+fzfTreeHeadLimit = 200;                # 200 lines - tree structure
+zshHistorySize = 10000;                # 10K entries - shell history
+```
+
+### Performance Test Constants
+
+**Timeout Thresholds**
+```nix
+perfFastTimeout = 100;                 # 100ms - instant operations
+perfMediumTimeout = 500;               # 500ms - quick operations
+perfSlowTimeout = 1000;                # 1000ms - data processing
+perfVerySlowTimeout = 5000;            # 5000ms - heavy computations
+```
+
+**Memory Allocations**
+```nix
+perfSmallMemory = 1 * 1024 * 1024;     # 1 MB - minimal allocation
+perfMediumMemory = 10 * 1024 * 1024;   # 10 MB - typical operations
+perfLargeMemory = 50 * 1024 * 1024;    # 50 MB - stress testing
+```
+
+**Regression Thresholds**
+```nix
+perfRegressionThresholdSmall = 0.3;    # 30% - small configs
+perfRegressionThresholdMedium = 0.6;   # 60% - medium configs
+perfRegressionThresholdLarge = 0.9;    # 90% - large configs
+```
+
+**Test Data Sizes**
+```nix
+perfTestSmallSize = 1000;              # 1K items
+perfTestMediumSize = 5000;             # 5K items
+perfTestLargeSize = 10000;             # 10K items
+```
+
+### String Length Validation
+
+**Git Limits**
+```nix
+gitMaxCommandLength = 200;             # 200 chars - max alias length
+gitMaxPatternLength = 200;             # 200 chars - max gitignore pattern
+gitMaxNameLength = 100;                # 100 chars - practical name limit
+gitMaxEmailLength = 254;               # 254 chars - RFC 5321 max
+gitMaxEntryCount = 100;                # 100 entries - collection limit
+```
+
+**User Property Limits**
+```nix
+minFullNameLength = 2;                 # 2 chars - minimum name (e.g., "Al")
+maxFullNameLength = 100;               # 100 chars - display limit
+minEmailLength = 5;                    # 5 chars - min valid email
+maxEmailLength = 254;                  # 254 chars - RFC 5321 max
+```
+
+### VM and System Test Constants
+
+```nix
+vmMemorySize = 2048;                   # 2 GB - minimum for development
+vmDiskSize = 4096;                     # 4 GB - sufficient for testing
+shellHistoryLimit = 5000;              # 5K entries - test sessions
+```
+
+### Content Validation
+
+```nix
+minContentLength = 100;                # 100 chars - meaningful content
+tmuxMinConfigLength = 500;             # 500 chars - substantial config
+tmuxMaxConfigReadLength = 1000;        # 1K chars - validation limit
+```
+
+### Mac App Store Constants
+
+```nix
+masAppMagnet = 441258766;              # Magnet app ID
+masAppWireGuard = 1451685025;          # WireGuard app ID
+masAppKakaoTalk = 869223134;           # KakaoTalk app ID
+```
+
+### Trend Analysis Constants
+
+```nix
+trendBaseDuration = 1000;              # 1000ms - baseline duration
+trendBaseMemory = 50000000;            # 50 MB - baseline memory
+trendDurationIncrement = 50;           # 50ms - duration increment
+trendMemoryIncrement = 1000000;        # 1 MB - memory increment
+trendSlowBaselineDuration = 2500;      # 2500ms - slow baseline
+trendSlowBaselineMemory = 80000000;    # 80 MB - memory-intensive baseline
+trendImprovedBaselineDuration = 950;   # 950ms - optimized baseline
+```
+
+### Other Constants
+
+```nix
+gpgDefaultCacheTtl = 1800;             # 1800s (30 min) - GPG cache
+expectedMemorySize = 8192;             # 8192 - memory test value
+expectedTestResult = 285;              # 285 - sum of squares 0-9
+expectedTestCount = 10;                # 10 - iteration count
+```
+
+## Test Conventions (tests/lib/conventions.nix)
+
+The conventions library defines standard patterns for writing consistent, maintainable tests. Import with:
+
+```nix
+conventions = import ../lib/conventions.nix { inherit pkgs lib; };
+```
+
+### Standard Test Structure
+
+All test files must use one of these two standard structures:
+
+**Pattern 1: Platform-filtered test (recommended)**
+```nix
+{
+  platforms = ["any"];  # or ["darwin"] or ["linux"] or ["darwin" "linux"]
+  value = helpers.testSuite "test-name" [
+    (helpers.assertTest "test-1" condition "message")
+    (helpers.assertTest "test-2" condition "message")
+  ];
+}
+```
+
+**Pattern 2: Direct test suite (platform-agnostic)**
+```nix
+helpers.testSuite "test-name" [
+  (helpers.assertTest "test-1" condition "message")
+  (helpers.assertTest "test-2" condition "message")
+]
+```
+
+### Standard Helper Import Pattern
+
+Always use the variable name "helpers":
+```nix
+let
+  helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
+in
+# test structure here
+```
+
+### Standard Test File Header
+
+All test files must start with:
+```nix
+# Single-line description of what is being tested
+#
+# Optional: More detailed description
+{ inputs, system, pkgs, lib, self, nixtest ? {}, ... }:
+```
+
+### Naming Conventions
+
+**Test file names**: `tests/unit/<feature>-test.nix` or `tests/integration/<feature>-test.nix`
+
+**Test suite names**: Lowercase with hyphens (`"git-configuration"`, `"vim-settings"`)
+
+**Individual test names**: Lowercase with hyphens, format: `<feature>-<aspect>-<expectation>`
+
+**Helper function names**: camelCase (`hasPluginByName`, `mkConfigTest`), test creators start with "mk"
+
+### Standard Assertion Patterns
+
+```nix
+# Basic assertion
+(helpers.assertTest "test-name" condition "failure message")
+
+# Assertion with details
+(helpers.assertTestWithDetails "test-name" expected actual "message")
+
+# File existence
+(helpers.assertFileExists "test-name" derivation "path/to/file")
+
+# Attribute existence
+(helpers.assertHasAttr "test-name" "attrName" attributeSet)
+
+# String contains
+(helpers.assertContains "test-name" "needle" "haystack")
+
+# Multiple related settings (bulk assertion)
+(helpers.assertSettings "group-name" settings {
+  key1 = expectedValue1;
+  key2 = expectedValue2;
+})
+```
+
+### Anti-Patterns to Avoid
+
+```nix
+# DON'T: Use direct pkgs.runCommand for tests
+pkgs.runCommand "test-name" { } "echo 'pass'; touch $out"
+
+# INSTEAD: Use helpers.testSuite
+helpers.testSuite "test-name" [
+  (helpers.assertTest "test-1" true "should pass")
+]
+```
+
+```nix
+# DON'T: Use variable names other than "helpers"
+let h = import ../lib/test-helpers.nix { inherit pkgs lib; };
+
+# INSTEAD: Always use "helpers"
+let helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
+```
+
+```nix
+# DON'T: Mix test styles in the same file
+{ platforms = ["any"]; value = ... }
+helpers.testSuite "other" [...]
+
+# INSTEAD: Be consistent
+{ platforms = ["any"]; value = helpers.testSuite "feature" [...]; }
+```
+
+### Example: Standard Test File
+
+```nix
+# Feature Configuration Test
+#
+# Tests the feature configuration in users/shared/feature.nix
+# Verifies that settings are properly configured.
+{ inputs, system, pkgs, lib, self, nixtest ? {}, ... }:
+
+let
+  helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
+
+  featureConfig = import ../../users/shared/feature.nix {
+    inherit pkgs lib;
+    config = { };
+  };
+
+in
+{
+  platforms = ["any"];
+  value = helpers.testSuite "feature" [
+    (helpers.assertTest "feature-enabled" (
+      featureConfig.programs.feature.enable == true
+    ) "Feature should be enabled")
+
+    (helpers.assertTest "feature-has-settings" (
+      featureConfig.programs.feature ? settings
+    ) "Feature should have settings configured")
+  ];
+}
+```
 
 ## Writing Tests
 
@@ -965,9 +1863,13 @@ make test
 ### Key Files
 
 - **tests/default.nix**: Test orchestration and auto-discovery
-- **tests/lib/test-helpers.nix**: Main test helpers framework
-- **tests/lib/assertions.nix**: Enhanced assertion utilities
-- **tests/lib/platform-helpers.nix**: Platform-aware filtering
+- **tests/lib/test-helpers.nix**: Main test helpers framework (core assertions, property testing, configuration validation)
+- **tests/lib/git-test-helpers.nix**: Git-specific testing helpers (aliases, settings, LFS, safety)
+- **tests/lib/darwin-test-helpers.nix**: macOS/Darwin optimization levels and system settings
+- **tests/lib/constants.nix**: Centralized test constants (67 constants for performance, validation, tools)
+- **tests/lib/conventions.nix**: Testing standards and patterns
+- **tests/lib/assertions.nix**: Enhanced assertion utilities with detailed error messages
+- **tests/lib/platform-helpers.nix**: Platform-aware test filtering for cross-platform support
 - **Makefile**: Test commands and CI integration
 
 ### Related Documentation
@@ -985,3 +1887,5 @@ make test
 - **tests/unit/darwin-only-test.nix**: Platform-specific test
 - **tests/containers/basic-system.nix**: Container test
 - **tests/lib/test-helpers-test.nix**: Test helpers validation
+- **tests/integration/git-helpers-test.nix**: Git helpers library examples
+- **tests/integration/darwin-optimizations-test.nix**: Darwin optimization level examples

@@ -13,6 +13,7 @@
 
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
+  pluginHelpers = import ../lib/plugin-test-helpers.nix { inherit pkgs lib; inherit helpers; };
 
   # Behavioral test: try to import and use vim config
   vimConfigFile = ../../users/shared/vim.nix;
@@ -27,19 +28,18 @@ let
   vimConfig = if vimConfigResult.success then vimConfigResult.value else { };
   vimConfigUsable = vimConfigResult.success;
 
-  # Helper function to check if a plugin exists by pname
+  # Helper function to check if a plugin exists by pname (with vimConfigUsable guard)
   hasPluginByName =
     pname:
-    vimConfigUsable
-    && builtins.any (plugin: plugin.pname or null == pname) vimConfig.programs.vim.plugins;
+    vimConfigUsable && pluginHelpers.hasPluginByName vimConfig.programs.vim.plugins pname;
 
-  # Helper function to check if extraConfig contains a pattern
+  # Helper function to check if extraConfig contains a pattern (with vimConfigUsable guard)
   hasConfigPattern =
-    pattern: vimConfigUsable && builtins.match pattern vimConfig.programs.vim.extraConfig != null;
+    pattern: vimConfigUsable && pluginHelpers.hasConfigPattern vimConfig.programs.vim.extraConfig pattern;
 
   # Helper function to check multiple config patterns (all must match)
   hasAllConfigPatterns =
-    patterns: vimConfigUsable && builtins.all (pattern: hasConfigPattern pattern) patterns;
+    patterns: vimConfigUsable && pluginHelpers.hasAllConfigPatterns vimConfig.programs.vim.extraConfig patterns;
 
 in
 helpers.testSuite "vim" [

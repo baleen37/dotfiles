@@ -13,7 +13,7 @@
 
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
-  assertHelpers = import ../lib/assertions.nix { inherit pkgs lib; };
+  pluginHelpers = import ../lib/plugin-test-helpers.nix { inherit pkgs lib; inherit helpers; };
 
   # Mock configuration for testing tmux integration
   mockConfig = {
@@ -41,21 +41,21 @@ let
     buildsSuccessfully = tmuxConfig ? enable && tmuxConfig ? extraConfig;
   };
 
-  # Helper function to check if a plugin is present by pattern
+  # Helper function to check if a plugin is present by pattern (uses pluginHelpers)
   hasPluginByPattern =
-    pattern: builtins.any (plugin: builtins.match pattern (plugin.pname or "") != null) tmuxConfig.plugins;
+    pattern: pluginHelpers.hasPluginByPattern tmuxConfig.plugins pattern;
 
-  # Helper function to check if a plugin is present by exact name
+  # Helper function to check if a plugin is present by exact name (uses pluginHelpers)
   hasPluginByName =
-    name: builtins.any (plugin: plugin.pname or null == name) tmuxConfig.plugins;
+    name: pluginHelpers.hasPluginByName tmuxConfig.plugins name;
 
-  # Helper function to check if config contains a regex pattern
+  # Helper function to check if config contains a regex pattern (uses pluginHelpers)
   hasConfigPattern =
-    pattern: builtins.match pattern tmuxConfig.extraConfig != null;
+    pattern: pluginHelpers.hasConfigPattern tmuxConfig.extraConfig pattern;
 
-  # Helper function to check if config contains a string
+  # Helper function to check if config contains a string (uses pluginHelpers)
   hasConfigString =
-    str: lib.hasInfix str tmuxConfig.extraConfig;
+    str: pluginHelpers.hasConfigString tmuxConfig.extraConfig str;
 
   # Plugin presence tests
   pluginTests = {

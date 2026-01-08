@@ -12,6 +12,7 @@
 
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
+  claudeHelpers = import (self + /tests/lib/claude-test-helpers.nix) { inherit pkgs lib helpers; };
 
   # Path to Claude configuration
   claudeDir = ../../users/shared/.config/claude;
@@ -25,16 +26,6 @@ let
       builtins.tryEval (builtins.fromJSON contentResult.value)
     else
       { success = false; };
-
-  # Helper to check if file has valid markdown structure
-  hasMarkdownStructure = content:
-    (builtins.match ".*#.*" content != null) ||
-    (builtins.match ".*---.*description:.*" content != null);
-
-  # Helper to check if skill file has required metadata
-  hasSkillMetadata = content:
-    (builtins.match ".*name:.*" content != null) &&
-    (builtins.match ".*description:.*" content != null);
 
   # Individual test assertions using helpers.assertTest
   tests = {
@@ -54,7 +45,7 @@ let
         claudeMdPath = claudeDir + "/CLAUDE.md";
         readResult = builtins.tryEval (builtins.readFile claudeMdPath);
         hasContent = readResult.success && builtins.stringLength readResult.value > 100;
-        hasStructure = if hasContent then hasMarkdownStructure readResult.value else false;
+        hasStructure = if hasContent then claudeHelpers.hasMarkdownStructure readResult.value else false;
       in
       hasContent && hasStructure
     ) "CLAUDE.md is missing, too short, or lacks markdown structure";
@@ -75,7 +66,7 @@ let
               filePath = commandsDir + "/${fileName}";
               contentResult = builtins.tryEval (builtins.readFile filePath);
             in
-            contentResult.success && hasMarkdownStructure contentResult.value;
+            contentResult.success && claudeHelpers.hasMarkdownStructure contentResult.value;
 
           validFiles = builtins.filter validateFile fileNames;
         in
@@ -104,12 +95,12 @@ let
                 skillMdPath = entryPath + "/SKILL.md";
                 contentResult = builtins.tryEval (builtins.readFile skillMdPath);
               in
-              contentResult.success && hasSkillMetadata contentResult.value
+              contentResult.success && claudeHelpers.hasSkillMetadata contentResult.value
             else if lib.hasSuffix ".md" entryName then
               let
                 contentResult = builtins.tryEval (builtins.readFile entryPath);
               in
-              contentResult.success && hasSkillMetadata contentResult.value
+              contentResult.success && claudeHelpers.hasSkillMetadata contentResult.value
             else
               false;
 
