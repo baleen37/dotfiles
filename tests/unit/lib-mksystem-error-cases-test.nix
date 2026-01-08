@@ -230,33 +230,37 @@ in
     ) "mkSystem with user parameter as number should fail evaluation";
 
     # Test 15: Darwin parameter with wrong type (string instead of bool)
-    darwin-parameter-wrong-type-fails = helpers.assertTest "mksystem-darwin-parameter-wrong-type-fails" (
-      let
-        result = builtins.tryEval (
-          mkSystem "test-machine" {
-            system = "x86_64-linux";
-            user = "testuser";
-            darwin = "true";
-          }
-        );
-      in
-      !result.success
-    ) "mkSystem with darwin parameter as string should fail evaluation";
+    # NOTE: This test cannot be run in flake check because builtins.tryEval
+    # doesn't prevent evaluation errors during attribute set construction.
+    # The error would be: "expected a Boolean but found a string: 'true'"
+    # darwin-parameter-wrong-type-fails = helpers.assertTest "mksystem-darwin-parameter-wrong-type-fails" (
+    #   let
+    #     result = builtins.tryEval (
+    #       mkSystem "test-machine" {
+    #         system = "x86_64-linux";
+    #         user = "testuser";
+    #         darwin = "true";
+    #       }
+    #     );
+    #   in
+    #   !result.success
+    # ) "mkSystem with darwin parameter as string should fail evaluation";
 
     # Test 16: WSL parameter with wrong type (string instead of bool)
-    wsl-parameter-wrong-type-fails = helpers.assertTest "mksystem-wsl-parameter-wrong-type-fails" (
-      let
-        result = builtins.tryEval (
-          mkSystem "test-machine" {
-            system = "x86_64-linux";
-            user = "testuser";
-            darwin = false;
-            wsl = "true";
-          }
-        );
-      in
-      !result.success
-    ) "mkSystem with wsl parameter as string should fail evaluation";
+    # NOTE: Same issue as darwin-parameter-wrong-type-fails above
+    # wsl-parameter-wrong-type-fails = helpers.assertTest "mksystem-wsl-parameter-wrong-type-fails" (
+    #   let
+    #     result = builtins.tryEval (
+    #       mkSystem "test-machine" {
+    #         system = "x86_64-linux";
+    #         user = "testuser";
+    #         darwin = false;
+    #         wsl = "true";
+    #       }
+    #     );
+    #   in
+    #   !result.success
+    # ) "mkSystem with wsl parameter as string should fail evaluation";
 
     # Test 17: Name parameter with path traversal attempt
     name-with-path-traversal-fails = helpers.assertTest "mksystem-name-with-path-traversal-fails" (
