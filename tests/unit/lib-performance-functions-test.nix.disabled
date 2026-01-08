@@ -1,3 +1,45 @@
+# ============================================================================
+# DISABLED TEST - lib-performance-functions-test.nix
+# ============================================================================
+#
+# WHAT THIS TESTS:
+#   Core unit tests for lib/performance.nix functions. Tests cover:
+#   - Time measurement: perf.time.now, perf.time.measure
+#   - Memory estimation: perf.memory.estimateSize for strings, lists, attrsets,
+#     nested structures
+#   - Build performance: perf.build.measureEval, perf.build.measureConfigComplexity
+#   - Regression detection: perf.perf.regression.createBaseline, checkBaseline,
+#     analyzeTrend (stable/improving/degrading)
+#   - Report generation: perf.perf.report.summary with statistics
+#   - Testing helpers: perf.perf.testing.mkPerfTest, mkBenchmarkSuite
+#   - Resource monitoring: perf.perf.resources.profile, compare
+#   - Legacy exports: Backward compatibility layer
+#
+# WHY DISABLED:
+#   This is the foundational performance testing suite that validates core
+#   functionality. It's disabled likely due to:
+#   1. Core performance.nix framework may still be in experimental state
+#   2. Some functions may rely on features not available in pure Nix evaluation
+#   3. Memory estimation may be approximate and not testable reliably
+#   4. Time measurement functions may have implementation issues
+#   5. The entire performance monitoring system may be undergoing refactoring
+#
+# WHAT WOULD NEED TO BE FIXED TO RE-ENABLE:
+#   1. Complete and stabilize the core performance.nix API
+#   2. Ensure all functions work correctly in pure Nix evaluation context
+#   3. Fix any implementation issues with time/memory measurement
+#   4. Add proper error handling for edge cases
+#   5. Verify regression detection algorithms are correct
+#   6. Test thoroughly across different Nix versions and platforms
+#   7. Rename file from .nix.disabled to .nix to re-enable
+#
+# WHEN DISABLED:
+#   Date unknown (file was already disabled when this documentation was added)
+#   Documentation added: 2026-01-08
+#
+# TOTAL TESTS: 20 tests covering core performance functionality
+# ============================================================================
+
 # tests/unit/lib-performance-test.nix
 # Unit tests for lib/performance.nix core functions
 # Tests time measurement, memory estimation, and regression detection

@@ -1,3 +1,44 @@
+# ============================================================================
+# DISABLED TEST - lib-performance-advanced-test.nix
+# ============================================================================
+#
+# WHAT THIS TESTS:
+#   Advanced unit tests for lib/performance.nix functions. Tests cover:
+#   - perf.time.measure: Returns value, duration, timing metrics, success status
+#   - perf.time.benchmark: Iteration execution with statistics (min/max/avg)
+#   - perf.memory.monitor: Memory tracking with before/after/delta metrics
+#   - perf.build.measureEval: Evaluation performance measurement
+#   - perf.build.measureDerivation: Derivation build performance
+#   - perf.build.measureConfigComplexity: Configuration complexity analysis
+#   - perf.resources.profile: Comprehensive resource profiling with CPU/memory
+#   - perf.resources.compare: Comparative analysis between operations
+#   - perf.testing.mkPerfTest: Performance test creation and execution
+#   - perf.testing.mkBenchmarkSuite: Benchmark suite management
+#   - perf.report.formatResults: Report generation and formatting
+#
+# WHY DISABLED:
+#   The performance testing framework appears to be a sophisticated performance
+#   measurement system that may not be stable or fully integrated. Possible reasons:
+#   1. Performance tests may be flaky due to environmental variations
+#   2. The framework may still be under active development
+#   3. Performance tests may be intended for manual/periodic running only
+#   4. Time measurements may not be reliable in all CI environments
+#
+# WHAT WOULD NEED TO BE FIXED TO RE-ENABLE:
+#   1. Stabilize performance measurements across different environments
+#   2. Add tolerance/thresholds for environmental variations
+#   3. Ensure tests are deterministic and not affected by system load
+#   4. Consider running performance tests only in specific CI jobs
+#   5. Verify all functions are working as expected with current Nix version
+#   6. Rename file from .nix.disabled to .nix to re-enable
+#
+# WHEN DISABLED:
+#   Date unknown (file was already disabled when this documentation was added)
+#   Documentation added: 2026-01-08
+#
+# TOTAL TESTS: 23 tests covering advanced performance measurement functionality
+# ============================================================================
+
 # tests/unit/lib-performance-advanced-test.nix
 # Advanced unit tests for lib/performance.nix functions
 # Tests detailed functionality beyond basic existence checks

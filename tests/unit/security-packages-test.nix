@@ -28,24 +28,27 @@ let
   packageNames = map (pkg: pkg.pname or pkg.name or "") hmConfig.home.packages;
 
 in
-helpers.testSuite "security-packages" [
-  # Test that age is installed
-  (helpers.assertTest "age-installed" (
-    builtins.any (name: name == "age") packageNames
-  ) "age should be in home.packages")
+{
+  platforms = ["any"];
+  value = helpers.testSuite "security-packages" [
+    # Test that age is installed
+    (helpers.assertTest "age-installed" (
+      builtins.any (name: name == "age") packageNames
+    ) "age should be in home.packages")
 
-  # Test that sops is installed
-  (helpers.assertTest "sops-installed" (
-    builtins.any (name: name == "sops") packageNames
-  ) "sops should be in home.packages")
+    # Test that sops is installed
+    (helpers.assertTest "sops-installed" (
+      builtins.any (name: name == "sops") packageNames
+    ) "sops should be in home.packages")
 
-  # Test that git-crypt is NOT installed
-  (helpers.assertTest "git-crypt-removed" (
-    !(builtins.any (name: name == "git-crypt") packageNames)
-  ) "git-crypt should NOT be in home.packages")
+    # Test that git-crypt is NOT installed
+    (helpers.assertTest "git-crypt-removed" (
+      !(builtins.any (name: name == "git-crypt") packageNames)
+    ) "git-crypt should NOT be in home.packages")
 
-  # Test that gnupg is NOT installed
-  (helpers.assertTest "gnupg-removed" (
-    !(builtins.any (name: name == "gnupg") packageNames)
-  ) "gnupg should NOT be in home.packages")
-]
+    # Test that gnupg is NOT installed
+    (helpers.assertTest "gnupg-removed" (
+      !(builtins.any (name: name == "gnupg") packageNames)
+    ) "gnupg should NOT be in home.packages")
+  ];
+}

@@ -1,3 +1,39 @@
+# ============================================================================
+# DISABLED TEST - lib/monitoring-test.nix
+# ============================================================================
+#
+# WHAT THIS TESTS:
+#   Unit tests for lib/monitoring.nix monitoring system. Tests cover:
+#   - Storage: createStore, addMeasurement, queryMeasurements, getLatest
+#   - Tests: trackExecution, measureExecution, analyzeTrends
+#   - Metrics: getCurrentSystemMetrics, aggregateMetrics
+#   - Alerts: createAlert, generateSummary with status calculation
+#   - Integration: wrapTest, ciConfig structure
+#   - Reporting: formatSummary output generation
+#
+# WHY DISABLED:
+#   The monitoring.nix library appears to be a comprehensive monitoring and
+#   performance tracking system that is not currently integrated into the
+#   main test suite. This may be because:
+#   1. The monitoring system is still experimental or under development
+#   2. The tests may have dependencies that are not available in all environments
+#   3. The monitoring system may not be considered core functionality yet
+#
+# WHAT WOULD NEED TO BE FIXED TO RE-ENABLE:
+#   1. Verify that lib/monitoring.nix is stable and production-ready
+#   2. Ensure all dependencies are available in the test environment
+#   3. Run tests locally to verify they pass
+#   4. Consider if monitoring should be part of the core test suite or
+#      remain as an optional/testing-only component
+#   5. Rename file from .nix.disabled to .nix to re-enable
+#
+# WHEN DISABLED:
+#   Date unknown (file was already disabled when this documentation was added)
+#   Documentation added: 2026-01-08
+#
+# TOTAL TESTS: 20 tests covering all major monitoring functionality
+# ============================================================================
+
 # tests/unit/lib-monitoring-test.nix
 # Unit tests for lib/monitoring.nix monitoring system
 # Tests storage, metrics, alerts, and reporting functionality

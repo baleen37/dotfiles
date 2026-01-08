@@ -1,3 +1,46 @@
+# ============================================================================
+# DISABLED TEST - lib-performance-baselines-test.nix
+# ============================================================================
+#
+# WHAT THIS TESTS:
+#   Unit tests for lib/performance-baselines.nix baseline configuration.
+#   Tests cover:
+#   - systemBaselines: Platform-specific thresholds for aarch64-darwin,
+#     x86_64-linux, aarch64-linux
+#   - operationBaselines: Performance baselines for config-load, module-eval,
+#     build-operation, test-execution with size tiers (small/medium/large)
+#   - regressionThresholds: Time and memory regression factors with
+#     warning/critical levels
+#   - monitoringConfig: Sample intervals, max samples, alert thresholds
+#   - getCurrentBaseline: Dynamic baseline selection with fallback
+#   - createBaselineMeasurements: Baseline measurement creation
+#   - Legacy exports: Backward compatibility functions
+#   - Testing helpers: mkPerfTest, mkBenchmarkSuite
+#
+# WHY DISABLED:
+#   The performance baselines system is tightly coupled with the performance
+#   testing framework and shares similar issues:
+#   1. Baselines may be platform-specific and not portable across architectures
+#   2. Threshold values may need frequent updates as codebase evolves
+#   3. System-specific baselines may not apply to all test environments
+#   4. May require historical performance data to be meaningful
+#   5. Dependent on performance.nix framework stability
+#
+# WHAT WOULD NEED TO BE FIXED TO RE-ENABLE:
+#   1. Establish and validate baseline values for all supported platforms
+#   2. Create mechanism for updating baselines as performance characteristics change
+#   3. Ensure baselines are reasonable and not overly strict
+#   4. Consider making baselines configurable per environment
+#   5. Verify baseline accuracy on all supported platforms (macOS, Linux x64/ARM)
+#   6. Rename file from .nix.disabled to .nix to re-enable
+#
+# WHEN DISABLED:
+#   Date unknown (file was already disabled when this documentation was added)
+#   Documentation added: 2026-01-08
+#
+# TOTAL TESTS: 20 tests covering baseline configuration and threshold validation
+# ============================================================================
+
 # tests/unit/lib-performance-baselines-test.nix
 # Unit tests for lib/performance-baselines.nix baseline configuration
 # Tests performance thresholds and system-specific baselines

@@ -143,49 +143,52 @@ let
 
 in
 # Helper-based property test suite
-helpers.testSuite "property-based-git-config-test" [
-  # User identity validation property test
-  (helpers.forAllCases "user-identity-validation" testUsers validateUserIdentity)
+{
+  platforms = ["any"];
+  value = helpers.testSuite "property-based-git-config-test" [
+    # User identity validation property test
+    (helpers.forAllCases "user-identity-validation" testUsers validateUserIdentity)
 
-  # Git alias safety property test
-  (helpers.forAllCases "git-alias-safety" gitConfigVariations validateAliasSafety)
+    # Git alias safety property test
+    (helpers.forAllCases "git-alias-safety" gitConfigVariations validateAliasSafety)
 
-  # Cross-platform configuration property test
-  (helpers.forAllCases "cross-platform-config" platformConfigs validatePlatformConfig)
+    # Cross-platform configuration property test
+    (helpers.forAllCases "cross-platform-config" platformConfigs validatePlatformConfig)
 
-  # Comprehensive property test summary
-  (pkgs.runCommand "property-based-git-config-summary" { } ''
-    echo "🎯 Property-Based Git Configuration Test Summary"
-    echo ""
-    echo "✅ User Identity Validation:"
-    echo "   • Tested ${toString (builtins.length testUsers)} generated test users"
-    echo "   • Validated name, email, and username formats"
-    echo "   • No personal data included - all generated test cases"
-    echo ""
-    echo "✅ Git Alias Safety:"
-    echo "   • Tested ${toString (builtins.length gitConfigVariations)} configuration variations"
-    echo "   • Verified no dangerous commands in aliases"
-    echo "   • Confirmed essential aliases (st, ci) are present"
-    echo ""
-    echo "✅ Cross-Platform Configuration:"
-    echo "   • Tested ${toString (builtins.length platformConfigs)} platform configurations"
-    echo "   • Validated macOS (Darwin) and Linux compatibility"
-    echo "   • Confirmed consistent editor and branch naming"
-    echo ""
-    echo "🏗️  Helper Pattern Benefits:"
-    echo "   • Migrated from complex bash scripting to clean Nix expressions"
-    echo "   • Individual test cases with detailed failure reporting"
-    echo "   • Composable property testing framework"
-    echo "   • No hardcoded personal data"
-    echo ""
-    echo "🧪 Property-Based Testing:"
-    echo "   • Tests invariants across diverse scenarios"
-    echo "   • Catches edge cases missed by example-based testing"
-    echo "   • Validates git configuration robustness"
-    echo ""
-    echo "✅ All Property-Based Git Configuration Tests Passed!"
-    echo "Git configuration invariants verified across all test scenarios"
+    # Comprehensive property test summary
+    (pkgs.runCommand "property-based-git-config-summary" { } ''
+      echo "🎯 Property-Based Git Configuration Test Summary"
+      echo ""
+      echo "✅ User Identity Validation:"
+      echo "   • Tested ${toString (builtins.length testUsers)} generated test users"
+      echo "   • Validated name, email, and username formats"
+      echo "   • No personal data included - all generated test cases"
+      echo ""
+      echo "✅ Git Alias Safety:"
+      echo "   • Tested ${toString (builtins.length gitConfigVariations)} configuration variations"
+      echo "   • Verified no dangerous commands in aliases"
+      echo "   • Confirmed essential aliases (st, ci) are present"
+      echo ""
+      echo "✅ Cross-Platform Configuration:"
+      echo "   • Tested ${toString (builtins.length platformConfigs)} platform configurations"
+      echo "   • Validated macOS (Darwin) and Linux compatibility"
+      echo "   • Confirmed consistent editor and branch naming"
+      echo ""
+      echo "🏗️  Helper Pattern Benefits:"
+      echo "   • Migrated from complex bash scripting to clean Nix expressions"
+      echo "   • Individual test cases with detailed failure reporting"
+      echo "   • Composable property testing framework"
+      echo "   • No hardcoded personal data"
+      echo ""
+      echo "🧪 Property-Based Testing:"
+      echo "   • Tests invariants across diverse scenarios"
+      echo "   • Catches edge cases missed by example-based testing"
+      echo "   • Validates git configuration robustness"
+      echo ""
+      echo "✅ All Property-Based Git Configuration Tests Passed!"
+      echo "Git configuration invariants verified across all test scenarios"
 
-    touch $out
-  '')
-]
+      touch $out
+    '')
+  ];
+}

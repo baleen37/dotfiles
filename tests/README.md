@@ -1,387 +1,987 @@
-# Testing Guidelines and Helper Documentation
+# Testing Documentation
 
-This document provides comprehensive guidelines for writing and maintaining tests in this dotfiles repository.
-
-## Table of Contents
-
-- [Overview](#overview)
-- [Standard Test Structure](#standard-test-structure)
-- [Available Helpers](#available-helpers)
-- [Test Types](#test-types)
-- [Writing New Tests](#writing-new-tests)
-- [Test Examples](#test-examples)
-- [Best Practices](#best-practices)
-- [Running Tests](#running-tests)
+Comprehensive testing framework for Nix flakes-based dotfiles with TDD methodology, automatic test discovery, and cross-platform support.
 
 ## Overview
 
-The testing framework follows a consistent pattern using helper functions from `tests/lib/test-helpers.nix`. This ensures all tests have uniform structure, output formatting, and error handling.
+This testing framework provides:
 
-### Key Principles
-
-- **Consistency**: All unit tests use the same helper pattern
-- **Clarity**: Test names and messages clearly describe what is being tested
-- **Maintainability**: Helper functions reduce code duplication and centralize test logic
-- **TDD**: Tests are written first, then implementation follows
-
-## Standard Test Structure
-
-All unit tests should follow this standard pattern:
-
-```nix
-{
-  inputs,
-  system,
-  pkgs ? import inputs.nixpkgs { inherit system; },
-  lib ? pkgs.lib,
-  nixtest ? { },
-  self ? ./.,
-  ...
-}:
-
-let
-  helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
-
-  # Test data and helper functions specific to this test
-  testData = {
-    # ... your test data here
-  };
-
-  # Validation functions
-  validateSomething = input:
-    # ... your validation logic here
-    ;
-
-in
-helpers.testSuite "test-name" [
-  # Individual test cases using assertTest
-  (helpers.assertTest "test-case-name" (
-    # Test expression that evaluates to true/false
-    validateSomething testData.someInput
-  ) "Descriptive message explaining what the test verifies")
-
-  # More test cases...
-]
-```
-
-## Available Helpers
-
-### `helpers.testSuite`
-
-The main wrapper for creating a test suite.
-
-```nix
-helpers.testSuite "suite-name" [
-  (helpers.assertTest "test-1" true "Test 1 description")
-  (helpers.assertTest "test-2" false "Test 2 description")
-  # ... more tests
-]
-```
-
-**Parameters:**
-- `suite-name`: String identifier for the test suite
-- List of `assertTest` calls
-
-### `helpers.assertTest`
-
-Creates an individual test case within a test suite.
-
-```nix
-helpers.assertTest "test-name" test-expression "failure-message"
-```
-
-**Parameters:**
-- `test-name`: Unique name for this test case
-- `test-expression`: Boolean expression that should evaluate to `true` for the test to pass
-- `failure-message`: Descriptive message explaining what the test verifies
-
-### `helpers.runTestList`
-
-Utility for testing multiple scenarios with the same validation function.
-
-```nix
-helpers.runTestList "test-group-name" [
-  {
-    name = "test-case-1";
-    expected = true;
-    actual = validateSomething input1;
-  }
-  {
-    name = "test-case-2";
-    expected = false;
-    actual = validateSomething input2;
-  }
-]
-```
-
-### `helpers.mkTest`
-
-Legacy helper for creating shell-based tests (use `testSuite` for new tests).
-
-```nix
-helpers.mkTest "test-name" ''
-  # Shell script that writes to $out to indicate success
-  echo "Test passed"
-  touch $out
-''
-```
+- **Multiple Test Types**: Unit, integration, container, and end-to-end tests
+- **Auto-Discovery**: Automatic test discovery using `*-test.nix` naming pattern
+- **Platform Filtering**: Run tests only on relevant platforms (Darwin/Linux)
+- **Rich Helpers**: Comprehensive test helpers for common patterns
+- **TDD Support**: Test-driven development workflow integration
+- **Fast Feedback**: Unit tests run in 2-5 seconds, container tests in CI
 
 ## Test Types
 
-### Unit Tests (`tests/unit/`)
+### Unit Tests
+Fast, isolated tests for individual functions and modules.
 
-Test individual components, functions, and configurations in isolation.
+**Location**: `tests/unit/*-test.nix`
 
-**Examples:**
-- Configuration validation
-- Function behavior testing
-- Data structure validation
-- Edge case handling
+**Purpose**: Test pure functions, data transformations, and configuration logic.
 
-**Standard Pattern**: Always use `helpers.testSuite`
-
-### Integration Tests (`tests/integration/`)
-
-Test how multiple components work together.
-
-**Examples:**
-- Home Manager with system configuration
-- Cross-platform behavior
-- Service interactions
-- Tool integration
-
-### End-to-End Tests (`tests/e2e/`)
-
-Test complete workflows and real-world scenarios.
-
-**Examples:**
-- Full system switch process
-- Application installation and configuration
-- Development environment setup
-
-## Writing New Tests
-
-### Step 1: Create Test File
-
-Create a new file in the appropriate directory:
-- `tests/unit/` for component tests
-- `tests/integration/` for integration tests
-- `tests/e2e/` for end-to-end tests
-
-File naming convention: `component-name-test.nix`
-
-### Step 2: Use Standard Template
-
+**Example**:
 ```nix
-# Brief description of what this test covers
-#
-# Additional context about what's being tested and why it's important
-
+# tests/unit/lib-user-info-test.nix
 {
-  inputs,
-  system,
-  pkgs ? import inputs.nixpkgs { inherit system; },
-  lib ? pkgs.lib,
-  nixtest ? { },
-  self ? ./.,
+  inputs, system, pkgs, lib, self,
+}:
+let
+  testHelpers = import ../lib/test-helpers.nix { inherit lib pkgs; };
+  userInfo = import ../../lib/user-info.nix;
+in
+{
+  name-is-non-empty = testHelpers.assertTest "user-info-name-is-non-empty" (
+    builtins.typeOf userInfo.name == "string"
+    && builtins.stringLength userInfo.name > 0
+  ) "userInfo.name should be a non-empty string";
+}
+```
+
+### Integration Tests
+Tests that verify multiple components work together.
+
+**Location**: `tests/integration/*-test.nix`
+
+**Purpose**: Test module interactions, configuration generation, and tool integration.
+
+**Example**:
+```nix
+# tests/integration/git-configuration-test.nix
+{
+  lib ? import <nixpkgs/lib>,
+  pkgs ? import <nixpkgs> { },
   ...
 }:
-
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
+  gitConfig = import ../../users/shared/git.nix {
+    inherit pkgs lib;
+    config = { };
+  };
+in
+helpers.testSuite "git-configuration" [
+  (helpers.assertTest "git-enabled" (
+    gitConfig.programs.git.enable == true
+  ) "Git should be enabled")
+]
+```
 
-  # Test data and setup
-  testData = {
-    # ... test-specific data
+### Container Tests
+NixOS container tests for system-level validation.
+
+**Location**: `tests/containers/*.nix`
+
+**Purpose**: Test system configuration, services, and packages in isolated containers.
+
+**Platform**: Linux only (via `pkgs.testers.nixosTest`).
+
+**Example**:
+```nix
+# tests/containers/basic-system.nix
+{ pkgs, lib, ... }:
+{
+  name = "basic-system-test";
+
+  nodes.machine = {
+    system.stateVersion = "24.11";
+    users.users.testuser = {
+      isNormalUser = true;
+      home = "/home/testuser";
+    };
+    environment.systemPackages = with pkgs; [ git vim ];
   };
 
-  # Validation functions
-  validateFeature = input:
-    # ... validation logic
-    ;
-
-in
-helpers.testSuite "component-name" [
-  # Test cases go here
-]
+  testScript = ''
+    start_all()
+    machine.wait_for_unit("multi-user.target")
+    machine.succeed("which git")
+    machine.succeed("which vim")
+    print("✅ Basic system test passed")
+  '';
+}
 ```
 
-### Step 3: Add Test Cases
+### End-to-End Tests
+Heavy VM tests for complete system validation.
 
-For each test case:
+**Location**: `tests/e2e/*-test.nix`
 
-1. **Use descriptive names**: `feature-works-correctly`, `error-handling`, `edge-case-validation`
-2. **Write clear failure messages**: Explain what should happen and why it's important
-3. **Test both success and failure cases**: Validate both positive and negative scenarios
-4. **Keep tests focused**: Each test should verify one specific behavior
+**Purpose**: Full system bootstrap, cross-platform builds, multi-user scenarios.
 
-### Step 4: Verify Test Discovery
+**Usage**: Manual invocation only (excluded from auto-discovery).
 
-Ensure your test is discoverable by checking it appears in:
 ```bash
-make test  # Should include your new test
+nix eval '.#checks.aarch64-darwin.e2e-test-name' --impure
 ```
 
-## Test Examples
+## Test Structure
 
-### Basic Configuration Test
+### Directory Layout
+
+```
+tests/
+├── lib/
+│   ├── test-helpers.nix      # Main test helpers framework
+│   ├── assertions.nix         # Assertion utilities with detailed errors
+│   └── platform-helpers.nix   # Platform-aware test filtering
+├── unit/                      # Fast unit tests (auto-discovered)
+│   └── *-test.nix
+├── integration/               # Integration tests (auto-discovered)
+│   └── *-test.nix
+├── containers/                # Container tests (manual)
+│   ├── smoke-test.nix
+│   ├── basic-system.nix
+│   ├── services.nix
+│   └── packages.nix
+├── e2e/                      # End-to-end tests (manual)
+│   └── *-test.nix
+└── default.nix               # Test orchestration and discovery
+```
+
+### Naming Conventions
+
+**Test Files**: Must end with `-test.nix` for auto-discovery
+
+**Helper Files**: Must NOT end with `-test.nix` (excluded from discovery)
+
+**Excluded Patterns**:
+- `default.nix`
+- `nixtest-template.nix`
+- Files in `lib/` directory
+
+### Platform Filtering
+
+Tests can specify platform requirements using the `platforms` attribute:
 
 ```nix
-helpers.testSuite "darwin" [
-  # Test system settings exist
-  (helpers.assertTest "darwin-has-system-settings" (
-    darwinConfig ? system
-  ) "Darwin config should have system settings")
-
-  # Test Homebrew config exists
-  (helpers.assertTest "darwin-has-homebrew" (
-    darwinConfig ? homebrew
-  ) "Darwin config should have Homebrew configuration")
-]
+{
+  platforms = ["darwin"];  # Only runs on macOS
+  value = helpers.assertTest "darwin-specific" true "Test message";
+}
 ```
 
-### Function Behavior Test
+**Supported Platforms**:
+- `"darwin"` - macOS only
+- `"linux"` - Linux only
+- `["darwin" "linux"]` - Both platforms
+- No `platforms` attribute - All platforms
 
+## Test Helpers
+
+### Core Helpers (tests/lib/test-helpers.nix)
+
+#### Basic Assertions
+
+**`assertTest`**
 ```nix
-helpers.testSuite "mksystem" [
-  # Test function exists
-  (helpers.assertTest "mksystem-function-exists" testFunctionExists
-    "mkSystem function should exist and be callable")
-
-  # Test function accepts inputs
-  (helpers.assertTest "mksystem-accepts-inputs" canCallWithInputs.success
-    "mkSystem should accept inputs parameter")
-]
+assertTest "test-name" condition "failure message"
 ```
+Basic assertion with pass/fail reporting.
 
-### Edge Case Test
-
+**Example**:
 ```nix
-helpers.testSuite "edge-case-user-config" [
-  # Test minimum username length
-  (helpers.assertTest "username-min-length" (
-    builtins.stringLength username >= 1
-  ) "Single character username should be valid")
-
-  # Test unusual username formats
-  (helpers.assertTest "unusual-username-format" (
-    builtins.match "^[a-z][a-z0-9-]*[a-z0-9]$" username != null
-  ) "Username with numbers and hyphens should be valid")
-]
+helpers.assertTest "git-enabled" (
+  gitConfig.programs.git.enable == true
+) "Git should be enabled"
 ```
-
-## Best Practices
-
-### DOs
-
-✅ **Use consistent helper patterns** - Always use `helpers.testSuite` for unit tests
-✅ **Write descriptive test names** - Use clear, specific names that describe what's being tested
-✅ **Provide clear failure messages** - Explain what should happen and why it's important
-✅ **Test both positive and negative cases** - Validate both success and failure scenarios
-✅ **Keep tests focused** - Each test should verify one specific behavior
-✅ **Follow TDD methodology** - Write failing tests first, then implement to pass
-✅ **Use meaningful test data** - Test with realistic data and edge cases
-✅ **Validate behavior, not just structure** - Test that functionality works, not just that files exist
-
-### DON'Ts
-
-❌ **Mix testing patterns** - Don't combine `pkgs.runCommand` with `helpers.testSuite` in the same test
-❌ **Write vague test names** - Avoid names like `test-1`, `test-basic`, `simple-test`
-❌ **Skip failure messages** - Always provide descriptive messages for assertTest
-❌ **Test implementation details** - Test behavior, not how it's implemented
-❌ **Write complex test logic** - Keep validation functions simple and focused
-❌ **Ignore edge cases** - Test boundary conditions and unusual but valid inputs
-❌ **Hardcode system-specific paths** - Use platform-independent approaches
-
-### Test Data Management
-
-- **Local test data**: Define within the test file using `let` blocks
-- **Shared test data**: Use `tests/lib/` for common test utilities
-- **External dependencies**: Avoid when possible; prefer pure Nix tests
-- **Platform-specific tests**: Use conditional logic for cross-platform compatibility
-
-## Running Tests
-
-### Quick Validation (macOS)
-
-```bash
-export USER=$(whoami)
-make test
-```
-
-This runs validation mode on macOS, ensuring all test configurations evaluate correctly.
-
-### Full Test Suite (Linux/CI)
-
-```bash
-export USER=$(whoami)
-make test-all
-```
-
-This runs the complete test suite including container-based integration tests.
-
-### Individual Test Categories
-
-```bash
-# Unit tests only
-make test-unit
-
-# Integration tests only
-make test-integration
-
-# End-to-end tests only
-make test-e2e
-```
-
-### Test Discovery
-
-All tests are automatically discovered and included in the test suite. Test files follow the naming pattern:
-- `*-test.nix` in appropriate test directory
-- Tests are grouped by type: unit, integration, e2e
-
-## Test Framework Evolution
-
-### Legacy Tests
-
-Some existing tests use `pkgs.runCommand` instead of the standard helper pattern. While these continue to work, new tests should use `helpers.testSuite` for consistency.
-
-### Migration Path
-
-When updating legacy tests:
-1. Preserve existing test logic and validation
-2. Convert `pkgs.runCommand` to `helpers.testSuite` pattern
-3. Maintain test coverage and edge cases
-4. Verify test behavior remains unchanged
-
-## Troubleshooting
-
-### Common Issues
-
-**Tests not discovered**: Ensure file follows naming pattern (`*-test.nix`) and is in correct directory
-
-**Helper function not found**: Verify import path `../lib/test-helpers.nix` is correct relative to test file location
-
-**Test evaluation fails**: Check for syntax errors, missing imports, or incorrect helper usage
-
-**Platform-specific failures**: Use conditional logic or skip tests on incompatible platforms
-
-### Debug Tips
-
-- Use `nix-instantiate --eval` to test individual expressions
-- Check test output for specific failure messages
-- Verify test data and validation functions are working correctly
-- Use `make test-nix-dry` to validate configuration without running tests
-
-## Contributing
-
-When adding new tests:
-
-1. **Follow the standard pattern** - Use `helpers.testSuite` and `helpers.assertTest`
-2. **Provide comprehensive coverage** - Include edge cases and error conditions
-3. **Document test purpose** - Use comments to explain what and why you're testing
-4. **Verify test discovery** - Ensure tests are included in the overall test suite
-5. **Update this documentation** - Add examples and patterns for new test types
 
 ---
 
-*This documentation should be updated as the testing framework evolves. Last updated: 2025-01-14*
+**`assertTestWithDetails`**
+```nix
+assertTestWithDetails "test-name" expected actual "message"
+```
+Enhanced assertion with expected/actual value comparison.
+
+**Example**:
+```nix
+helpers.assertTestWithDetails "user-name" "Jiho Lee" userInfo.name "User name should match"
+```
+
+---
+
+**`assertFileExists`**
+```nix
+assertFileExists "test-name" derivation "path/in/derivation"
+```
+Validates file exists and is readable in a derivation.
+
+**Example**:
+```nix
+helpers.assertFileExists "gitconfig-exists" homeConfig ".gitconfig"
+```
+
+---
+
+**`assertHasAttr`**
+```nix
+assertHasAttr "test-name" "attr-name" attrset
+```
+Checks for attribute existence in a set.
+
+**Example**:
+```nix
+helpers.assertHasAttr "has-git" "git" config.programs
+```
+
+---
+
+**`assertContains`**
+```nix
+assertContains "test-name" "needle" "haystack"
+```
+String substring check.
+
+**Example**:
+```nix
+helpers.assertContains "email-has-at" "@" userEmail
+```
+
+---
+
+**`assertBuilds`**
+```nix
+assertBuilds "test-name" derivation
+```
+Validates a derivation builds successfully.
+
+**Example**:
+```nix
+helpers.assertBuilds "vim-builds" pkgs.vim
+```
+
+---
+
+### Bulk Assertion Helpers
+
+**`assertSettings`**
+```nix
+assertSettings "group-name" actualSettings expectedSettings
+```
+Test multiple key-value pairs in nested attribute sets.
+
+**Example**:
+```nix
+helpers.assertSettings "git-core" gitSettings.core {
+  editor = "vim";
+  autocrlf = "input";
+  excludesFile = "~/.gitignore_global";
+}
+```
+
+---
+
+**`assertPatterns`**
+```nix
+assertPatterns "list-name" actualList expectedPatterns
+```
+Test that a list contains all expected patterns.
+
+**Example**:
+```nix
+helpers.assertPatterns "gitignore" gitIgnores [
+  "*.swp"
+  "*.swo"
+  ".DS_Store"
+]
+```
+
+---
+
+**`assertAliases`**
+```nix
+assertAliases aliasSettings expectedAliases
+```
+Test git alias configuration.
+
+**Example**:
+```nix
+helpers.assertAliases gitSettings.alias {
+  st = "status";
+  co = "checkout";
+  br = "branch";
+}
+```
+
+---
+
+### Git-Specific Helpers
+
+**`assertGitUserInfo`**
+```nix
+assertGitUserInfo "test-name" gitConfig expectedName expectedEmail
+```
+Validate git user name and email.
+
+**Example**:
+```nix
+helpers.assertGitUserInfo "git-user" gitConfig "Jiho Lee" "baleen37@gmail.com"
+```
+
+---
+
+**`assertGitSettings`**
+```nix
+assertGitSettings "test-name" gitConfig expectedSettings
+```
+Validate git settings (supports nested keys like "init.defaultBranch").
+
+**Example**:
+```nix
+helpers.assertGitSettings "git-settings" gitConfig {
+  lfs.enable = true;
+  init.defaultBranch = "main";
+}
+```
+
+---
+
+**`assertGitAliases`**
+```nix
+assertGitAliases "test-name" gitConfig expectedAliases
+```
+Validate git aliases with detailed error reporting.
+
+**Example**:
+```nix
+helpers.assertGitAliases "git-aliases" gitConfig {
+  st = "status";
+  co = "checkout";
+}
+```
+
+---
+
+**`assertGitIgnorePatterns`**
+```nix
+assertGitIgnorePatterns "test-name" gitConfig expectedPatterns
+```
+Validate gitignore patterns.
+
+**Example**:
+```nix
+helpers.assertGitIgnorePatterns "gitignore" gitConfig [
+  "*.swp"
+  ".DS_Store"
+]
+```
+
+---
+
+### macOS-Specific Helpers
+
+**`assertNSGlobalDef`**
+```nix
+assertNSGlobalDef "test-name" "key" expectedValue darwinConfig
+```
+Test NSGlobalDomain default setting.
+
+**Example**:
+```nix
+helpers.assertNSGlobalDef "window-animations" "NSAutomaticWindowAnimationsEnabled" false darwinConfig
+```
+
+---
+
+**`assertDockSetting`**
+```nix
+assertDockSetting "test-name" "key" expectedValue darwinConfig
+```
+Test dock setting.
+
+**Example**:
+```nix
+helpers.assertDockSetting "autohide" "autohide" true darwinConfig
+```
+
+---
+
+**`assertFinderSetting`**
+```nix
+assertFinderSetting "test-name" "key" expectedValue darwinConfig
+```
+Test Finder setting.
+
+**Example**:
+```nix
+helpers.assertFinderSetting "show-hidden" "AppleShowAllFiles" true darwinConfig
+```
+
+---
+
+**`assertTrackpadSetting`**
+```nix
+assertTrackpadSetting "test-name" "key" expectedValue darwinConfig
+```
+Test trackpad setting.
+
+---
+
+### Test Suite Helpers
+
+**`testSuite`**
+```nix
+testSuite "suite-name" [test1 test2 test3]
+```
+Aggregate multiple tests into a suite.
+
+**Example**:
+```nix
+helpers.testSuite "git-configuration" [
+  (helpers.assertTest "git-enabled" gitConfig.programs.git.enable == true)
+  (helpers.assertSettings "git-core" gitSettings.core { editor = "vim"; })
+]
+```
+
+---
+
+### Property-Based Testing
+
+**`propertyTest`**
+```nix
+propertyTest "test-name" propertyFunction testValues
+```
+Test a property across multiple test values.
+
+**Example**:
+```nix
+helpers.propertyTest "commutative-addition"
+  (x: x + 1 == 1 + x)
+  [1 2 3 4 5 0 -1]
+```
+
+---
+
+**`forAllCases`**
+```nix
+forAllCases "test-name" testCases propertyFunction
+```
+Helper pattern for property-based testing with named test cases.
+
+**Example**:
+```nix
+helpers.forAllCases "user-identity-validation" testUsers validateUserIdentity
+```
+
+---
+
+### Platform Helpers
+
+**`runIfPlatform`**
+```nix
+runIfPlatform "darwin" test
+```
+Conditionally run test based on platform.
+
+**Example**:
+```nix
+helpers.runIfPlatform "darwin" (
+  helpers.assertTest "homebrew-check" true "Homebrew available"
+)
+```
+
+---
+
+### Utility Helpers
+
+**`mkTest`**
+```nix
+mkTest "test-name" "bash test logic"
+```
+Create a test with custom bash logic.
+
+**Example**:
+```nix
+helpers.mkTest "custom-check" ''
+  if [ -f "/path/to/file" ]; then
+    echo "File exists"
+  else
+    exit 1
+  fi
+''
+```
+
+---
+
+**`runTestList`**
+```nix
+runTestList "test-name" [
+  { name = "test1"; expected = true; actual = true; }
+  { name = "test2"; expected = "hello"; actual = "hello"; }
+]
+```
+Run a list of test cases with expected/actual comparison.
+
+---
+
+**`assertPerformance`**
+```nix
+assertPerformance "test-name" expectedBoundMs "command"
+```
+Performance test with execution time bound.
+
+**Example**:
+```nix
+helpers.assertPerformance "fast-command" 1000 "echo 'test'"
+```
+
+---
+
+### Configuration Helpers
+
+**`createTestUserConfig`**
+```nix
+createTestUserConfig { home.packages = [pkgs.vim]; }
+```
+Create test user configuration with parameterized settings.
+
+---
+
+**`getUserHomeDir`** / **`getTestUserHome`**
+```nix
+getUserHomeDir "username"  # Returns "/Users/username" or "/home/username"
+getTestUserHome            # Returns test user home directory
+```
+Platform-agnostic home directory resolution.
+
+---
+
+**`createModuleTestConfig`**
+```nix
+createModuleTestConfig moduleConfig
+```
+Create test configuration for modules requiring `currentSystemUser`.
+
+---
+
+## Writing Tests
+
+### Standard Test Pattern
+
+All test files should follow this structure:
+
+```nix
+# tests/unit/my-feature-test.nix
+{
+  inputs, system, pkgs, lib, self, nixtest ? {}
+}:
+let
+  helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
+  # Import the code under test
+  myConfig = import ../../users/shared/my-feature.nix {
+    inherit pkgs lib;
+    config = { };
+  };
+in
+helpers.testSuite "my-feature" [
+  # Test cases here
+  (helpers.assertTest "feature-enabled" (
+    myConfig.enable == true
+  ) "Feature should be enabled")
+]
+```
+
+### Unit Test Pattern
+
+For testing pure functions and data transformations:
+
+```nix
+{
+  inputs, system, pkgs, lib, self,
+}:
+let
+  testHelpers = import ../lib/test-helpers.nix { inherit lib pkgs; };
+  myFunction = import ../../lib/my-function.nix;
+in
+{
+  test-1 = testHelpers.assertTest "function-works" (
+    myFunction 2 == 4
+  ) "Function should double input";
+
+  test-2 = testHelpers.assertTest "handles-zero" (
+    myFunction 0 == 0
+  ) "Function should handle zero";
+}
+```
+
+### Integration Test Pattern
+
+For testing module interactions:
+
+```nix
+{
+  lib ? import <nixpkgs/lib>,
+  pkgs ? import <nixpkgs> { },
+  ...
+}:
+let
+  helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
+  config = import ../../users/shared/my-config.nix {
+    inherit pkgs lib;
+    config = { };
+  };
+in
+helpers.testSuite "my-config-integration" [
+  (helpers.assertTest "config-valid" (
+    config ? programs && config ? services
+  ) "Config should have programs and services")
+
+  (helpers.assertSettings "program-settings" config.programs.myProgram {
+    enable = true;
+    setting = "value";
+  })
+]
+```
+
+### Property-Based Test Pattern
+
+For testing invariants across multiple scenarios:
+
+```nix
+{
+  inputs, system, pkgs, lib, self, nixtest ? {}
+}:
+let
+  helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
+
+  testCases = [
+    { name = "case1"; value = 1; }
+    { name = "case2"; value = 2; }
+    { name = "case3"; value = 3; }
+  ];
+
+  validateProperty = case: case.value > 0;
+in
+helpers.testSuite "property-test" [
+  (helpers.forAllCases "my-property" testCases validateProperty)
+]
+```
+
+### Platform-Specific Test Pattern
+
+For tests that only run on specific platforms:
+
+```nix
+{
+  inputs, system, pkgs, lib, self, nixtest ? {}
+}:
+let
+  helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
+in
+{
+  platforms = ["darwin"];
+  value = helpers.assertTest "darwin-feature" (
+    pkgs.stdenv.hostPlatform.isDarwin
+  ) "This test only runs on Darwin";
+}
+```
+
+### Best Practices
+
+1. **Use Helper Functions**: Always prefer helper functions over raw derivations
+2. **Descriptive Names**: Use clear, descriptive test names
+3. **Specific Assertions**: Test one thing per assertion
+4. **Bulk Helpers**: Use `assertSettings`, `assertPatterns` for multiple values
+5. **Property Testing**: Use `forAllCases` for invariant validation
+6. **Platform Filtering**: Use `platforms` attribute for platform-specific tests
+7. **Test Data**: Use generated test data, not personal information
+8. **Error Messages**: Include clear failure messages for debugging
+
+### Common Patterns
+
+**Testing Configuration Generation**:
+```nix
+(helpers.assertFileExists "config-file" configDerivation ".config/app/config.conf")
+```
+
+**Testing Package Installation**:
+```nix
+(helpers.assertTest "package-installed" (
+  builtins.elem "mypackage" config.home.packages
+) "Package should be in packages list")
+```
+
+**Testing Aliases**:
+```nix
+(helpers.assertAliases config.programs.git.aliases {
+  st = "status";
+  co = "checkout";
+})
+```
+
+**Testing Platform-Specific Code**:
+```nix
+(helpers.runIfPlatform "darwin" (
+  helpers.assertTest "homebrew-enabled" true "Homebrew available on Darwin"
+))
+```
+
+## Running Tests
+
+### Make Commands
+
+**Quick Test** (Unit + Integration):
+```bash
+make test
+```
+
+**All Tests** (Unit + Integration + Container):
+```bash
+make test-all
+```
+
+**Integration Tests Only**:
+```bash
+make test-integration
+```
+
+### Nix Commands
+
+**Run All Tests**:
+```bash
+export USER=$(whoami)
+nix flake check --impure
+```
+
+**Run Specific Test**:
+```bash
+nix build '.#checks.aarch64-darwin.unit-lib-user-info' --impure
+```
+
+**Run Container Test** (Linux only):
+```bash
+nix build '.#checks.x86_64-linux.basic' --impure
+```
+
+### Platform-Specific Considerations
+
+**macOS**:
+- Container tests don't run (require Linux)
+- `make test` runs validation mode (config check without execution)
+- Full container tests run in CI
+
+**Linux**:
+- All tests run including container tests
+- `make test` executes full test suite
+- Faster feedback without validation mode
+
+**CI**:
+- Runs on macOS-15 (ARM) and Ubuntu (x64 + ARM64)
+- Executes full container tests on Linux runners
+- Uploads successful builds to Cachix
+
+## Refactoring Guidelines
+
+### When to Create New Helpers
+
+Create a new helper when:
+
+1. **Code Duplication**: Same pattern appears in 3+ tests
+2. **Domain-Specific Logic**: Complex validation logic for specific domain (git, darwin, etc.)
+3. **Cross-Cutting Concerns**: Platform filtering, user configuration, etc.
+4. **Improved Error Messages**: Current helpers don't provide enough debugging info
+
+### How to Reduce Duplication
+
+**Before** (Duplicated):
+```nix
+(helpers.assertTest "git-editor" gitSettings.core.editor == "vim")
+(helpers.assertTest "git-autocrlf" gitSettings.core.autocrlf == "input")
+(helpers.assertTest "git-excludes" gitSettings.core.excludesFile == "~/.gitignore_global")
+```
+
+**After** (Using Helper):
+```nix
+(helpers.assertSettings "git-core" gitSettings.core {
+  editor = "vim";
+  autocrlf = "input";
+  excludesFile = "~/.gitignore_global";
+})
+```
+
+### Code Review Checklist
+
+When reviewing test code:
+
+- [ ] Uses appropriate helper functions
+- [ ] Descriptive test names
+- [ ] Clear failure messages
+- [ ] Platform filtering if needed
+- [ ] No hardcoded personal data
+- [ ] Follows naming conventions (`*-test.nix`)
+- [ ] Tests are discoverable (not in `lib/`)
+- [ ] Uses `testSuite` for multiple related tests
+- [ ] Property testing for invariants
+- [ ] No test implementation in production code
+
+### Creating New Helpers
+
+**Step 1**: Identify the pattern
+
+```nix
+# Pattern found in 3+ tests
+(helpers.assertTest "setting1" config.setting1 == "value1")
+(helpers.assertTest "setting2" config.setting2 == "value2")
+(helpers.assertTest "setting3" config.setting3 == "value3")
+```
+
+**Step 2**: Create helper in `tests/lib/test-helpers.nix`
+
+```nix
+assertSettings =
+  name: settings: expectedValues:
+  let
+    individualTests = builtins.map (
+      key:
+      let
+        expectedValue = builtins.getAttr key expectedValues;
+        actualValue = builtins.getAttr key settings;
+        testName = "${name}-${key}";
+      in
+      assertTest testName (actualValue == expectedValue) "${name}.${key} should match"
+    ) (builtins.attrNames expectedValues);
+
+    summaryTest = pkgs.runCommand "${name}-settings-summary" { } ''
+      echo "✅ Settings group '${name}': All tests passed"
+      touch $out
+    '';
+  in
+  testSuite "${name}-settings" (individualTests ++ [ summaryTest ]);
+```
+
+**Step 3**: Use the helper
+
+```nix
+(helpers.assertSettings "my-settings" config {
+  setting1 = "value1";
+  setting2 = "value2";
+  setting3 = "value3";
+})
+```
+
+**Step 4**: Update documentation (this file)
+
+## Test Discovery
+
+Tests are automatically discovered using the pattern in `tests/default.nix`:
+
+```nix
+discoverTests = dir: prefix:
+  lib.pipe (builtins.readDir dir) [
+    (lib.filterAttrs (
+      name: type:
+      (type == "regular" && lib.hasSuffix "-test.nix" name)
+      || type == "directory"
+    ))
+    # Process files and directories recursively
+  ];
+```
+
+**Discovery Rules**:
+1. Files must end with `-test.nix`
+2. Directories are searched recursively
+3. Excludes: `default.nix`, `nixtest-template.nix`, `lib/` directory
+4. Import failures create failing test derivations (not silent skips)
+
+## CI/CD Integration
+
+Tests run automatically in GitHub Actions (`.github/workflows/ci.yml`):
+
+**Triggers**:
+- Push to main branch
+- Pull requests
+- Manual workflow dispatch
+
+**Platforms**:
+- macOS-15 (ARM64)
+- Ubuntu (x86_64)
+- Ubuntu (ARM64)
+
+**Required Environment Variables**:
+```bash
+export USER=${USER:-ci}
+export TEST_USER=${TEST_USER:-testuser}
+```
+
+**Caching**:
+- Cachix integration for successful builds
+- Week-based cache rotation for Nix installations
+
+## Troubleshooting
+
+### Test Import Failures
+
+**Error**: `❌ TEST IMPORT FAILED: test-name`
+
+**Cause**: Cross-platform compatibility issue or missing dependency
+
+**Solution**:
+1. Check if test uses platform-specific code
+2. Add `platforms` attribute to filter test
+3. Ensure all imports are available on target platform
+
+### Container Tests on macOS
+
+**Error**: Container tests fail on macOS
+
+**Expected**: Container tests require Linux
+
+**Solution**:
+- Use `make test` for validation mode on macOS
+- Run container tests in CI or Linux VM
+- Use `nix build` for specific container tests
+
+### Pre-commit Hook Failures
+
+**Error**: Tests fail during pre-commit
+
+**Solution**:
+```bash
+# Run all hooks to see failures
+pre-commit run --all-files
+
+# Format Nix files
+make format
+
+# Run tests
+make test
+```
+
+### Performance Issues
+
+**Slow Tests**: Unit tests taking > 5 seconds
+
+**Solutions**:
+1. Use `assertTest` instead of `runTestList` for simple cases
+2. Avoid heavy derivations in unit tests
+3. Move slow tests to integration or e2e
+4. Use `--no-build` for validation mode
+
+## References
+
+### Key Files
+
+- **tests/default.nix**: Test orchestration and auto-discovery
+- **tests/lib/test-helpers.nix**: Main test helpers framework
+- **tests/lib/assertions.nix**: Enhanced assertion utilities
+- **tests/lib/platform-helpers.nix**: Platform-aware filtering
+- **Makefile**: Test commands and CI integration
+
+### Related Documentation
+
+- **CLAUDE.md**: Project overview and development guidelines
+- **CONTRIBUTING.md**: Detailed contribution workflow
+- **lib/mksystem.nix**: System factory pattern
+- **flake.nix**: Configuration entry point
+
+### Test Examples
+
+- **tests/unit/lib-user-info-test.nix**: Basic unit test
+- **tests/integration/git-configuration-test.nix**: Integration test with bulk helpers
+- **tests/unit/property-based-git-config-test.nix**: Property-based testing
+- **tests/unit/darwin-only-test.nix**: Platform-specific test
+- **tests/containers/basic-system.nix**: Container test
+- **tests/lib/test-helpers-test.nix**: Test helpers validation

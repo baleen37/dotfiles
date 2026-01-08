@@ -14,9 +14,10 @@ let
   fullSystem = inputs.self.darwinConfigurations.macbook-pro;
 
 in
-# Use consistent helper pattern for platform-specific testing
-helpers.runIfPlatform "darwin" (
-  helpers.testSuite "integration-build" [
+# Darwin-only test
+{
+  platforms = ["darwin"];
+  value = helpers.testSuite "integration-build" [
     # Test 1: Full system should have config attribute
     (helpers.assertTest "system-has-config"
       (fullSystem ? config)
@@ -31,5 +32,5 @@ helpers.runIfPlatform "darwin" (
     (helpers.assertTest "system-buildable"
       (fullSystem ? system)
       "System configuration should be buildable")
-  ]
-)
+  ];
+}
