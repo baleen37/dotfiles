@@ -21,7 +21,23 @@ rec {
       # Calculate variance and standard deviation
       variance =
         if count > 1 then (lib.foldl (acc: v: acc + (v - mean) * (v - mean)) 0 values) / (count - 1) else 0;
-      stdDev = if variance > 0 then builtins.sqrt variance else 0;
+      # Use builtins.sqrt if available (Nix 2.19+), otherwise approximation
+      stdDev = if variance > 0 then
+        if builtins ? sqrt then builtins.sqrt variance
+        # Newton's method approximation for sqrt
+        else
+          let
+            sqrtIter = x: epsilon: n:
+              if n == 0 then 0
+              else if n < 0 then 0
+              else
+                let
+                  next = x / 2.0 + variance / (2.0 * x);
+                in
+                if builtins.abs (next - x) < epsilon then next else sqrtIter next epsilon (n - 1);
+            in
+            sqrtIter (variance / 2.0 + 0.5) 0.000001 100
+      else 0;
 
       # Calculate trend slope (simple linear regression)
       indices = builtins.genList (i: i) count;
