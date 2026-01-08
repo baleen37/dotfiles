@@ -1,15 +1,15 @@
 ---
-name: committing-and-pushing-pr
+name: commit-push-pr
 description: Handle complete git workflow (commit → push → PR) with parallel context gathering, --base enforcement, and merge conflict detection. Use when user asks to commit, push, create PR, mentions git workflow, or says "auto merge".
 ---
 
-# Committing and Pushing PR
+# Commit Push PR
 
 ## Overview
 
 Automates the full git workflow: gather context → check conflicts → commit → push → create/update PR. **Core principles: parallel context gathering, --base flag mandatory, conflict check before push.**
 
-**Announce at start:** "I'm using the committing-and-pushing-pr skill to handle the git workflow."
+**Announce at start:** "I'm using the commit-push-pr skill to handle the git workflow."
 
 **Auto-merge shortcut:** If user says "auto merge", skip the prompt and automatically run `gh pr merge --auto` after creating PR.
 
