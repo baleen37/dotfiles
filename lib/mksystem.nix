@@ -10,7 +10,7 @@ name:
 
 let
   inherit (inputs.nixpkgs) lib;
-  systemFunc = if darwin == true && inputs ? darwin && inputs.darwin != null then inputs.darwin.lib.darwinSystem else lib.nixosSystem or (import (inputs.nixpkgs + "/nixos/lib/eval-config.nix")).nixos;
+  systemFunc = if darwin then inputs.darwin.lib.darwinSystem else lib.nixosSystem;
 
   osConfig = if darwin then "darwin.nix" else "nixos.nix";
 
