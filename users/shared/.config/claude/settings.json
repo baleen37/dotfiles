@@ -34,7 +34,7 @@
   },
   "model": "sonnet",
   "enableAllProjectMcpServers": true,
-  "alwaysThinkingEnabled": false,
+  "alwaysThinkingEnabled": true,
   "rejectedMcpServers": [],
   "enabledPlugins": {
     "superpowers@superpowers-marketplace": true,
