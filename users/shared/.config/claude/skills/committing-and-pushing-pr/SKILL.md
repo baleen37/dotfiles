@@ -119,10 +119,10 @@ git push -u origin HEAD
 
 If user said "auto merge" initially:
 ```bash
-gh pr merge --auto
+gh pr merge --auto --squash
 ```
 
-This enables auto-merge (merges automatically when CI passes).
+This enables auto-merge with squash (merges automatically when CI passes).
 
 **CLOSED state handling:**
 1. Ask user: "PR was closed. Create new PR or reopen closed one?"
