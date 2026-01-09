@@ -25,6 +25,7 @@
 let
   # Import test helpers
   testHelpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
+  constants = import ../lib/constants.nix { inherit pkgs lib; };
   userInfo = import ../../lib/user-info.nix;
 
   # === Git Alias Edge Cases ===
@@ -91,7 +92,9 @@ let
         builtins.stringLength alias > 0
         && builtins.stringLength alias <= 50
         && builtins.match "^[a-zA-Z0-9._-]+$" alias != null;
-      commandValid = builtins.stringLength command > 0 && builtins.stringLength command <= 200;
+      commandValid =
+        builtins.stringLength command > 0
+        && builtins.stringLength command <= constants.gitMaxCommandLength;
     in
     aliasValid && commandValid;
 
@@ -211,7 +214,7 @@ let
     pattern:
     let
       nonEmpty = builtins.stringLength pattern > 0;
-      reasonableLength = builtins.stringLength pattern <= 200;
+      reasonableLength = builtins.stringLength pattern <= constants.gitMaxPatternLength;
       # No dangerous patterns that could escape repository
       safePattern =
         !lib.hasInfix "../" pattern && !lib.hasPrefix "/" pattern
@@ -310,11 +313,13 @@ let
   validateUserIdentity =
     name: email:
     let
-      nameValid = builtins.stringLength name > 0 && builtins.stringLength name <= 100;
+      nameValid =
+        builtins.stringLength name > 0
+        && builtins.stringLength name <= constants.gitMaxNameLength;
       emailValid =
         builtins.match ".*@.*\\..*" email != null
-        && builtins.stringLength email >= 5
-        && builtins.stringLength email <= 254;
+        && builtins.stringLength email >= constants.minEmailLength
+        && builtins.stringLength email <= constants.gitMaxEmailLength;
     in
     nameValid && emailValid;
 
@@ -453,7 +458,7 @@ let
           0;
 
       entryCount = countEntries config;
-      reasonableSize = entryCount <= 100; # Reasonable limit
+      reasonableSize = entryCount <= constants.gitMaxEntryCount;
     in
     reasonableSize;
 

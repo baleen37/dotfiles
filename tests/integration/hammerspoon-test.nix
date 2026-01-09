@@ -17,30 +17,37 @@ let
   # Path to Hammerspoon configuration
   hammerspoonDir = ../../users/shared/.config/hammerspoon;
 
-  # Behavioral validation: can we read and process Hammerspoon config?
-  hammerspoonDirResult = builtins.tryEval (builtins.readDir hammerspoonDir);
-  hammerspoonDirUsable = hammerspoonDirResult.success;
+  # Helper to validate file readability and content
+  # Returns: { success = bool; value = content; }
+  validateFile = filePath: builtins.tryEval (builtins.readFile filePath);
+
+  # Helper to validate directory readability
+  # Returns: { success = bool; value = dirContents; }
+  validateDir = dirPath: builtins.tryEval (builtins.readDir dirPath);
+
+  # Behavioral validation: check if file/dir is usable (readable and has content)
+  isFileUsable = fileResult: fileResult.success && builtins.stringLength fileResult.value > 0;
+  isDirUsable = dirResult: dirResult.success;
+
+  # Core validation results
+  hammerspoonDirResult = validateDir hammerspoonDir;
+  hammerspoonDirUsable = isDirUsable hammerspoonDirResult;
   hammerspoonDirContents = if hammerspoonDirUsable then hammerspoonDirResult.value else { };
 
-  # Behavioral validation: can we read specific configuration files?
-  initLuaResult = builtins.tryEval (builtins.readFile (hammerspoonDir + "/init.lua"));
-  configAppsResult = builtins.tryEval (
-    builtins.readFile (hammerspoonDir + "/configApplications.lua")
-  );
-  spoonsDirResult = builtins.tryEval (builtins.readDir (hammerspoonDir + "/Spoons"));
+  # Validate required configuration files
+  initLuaResult = validateFile (hammerspoonDir + "/init.lua");
+  configAppsResult = validateFile (hammerspoonDir + "/configApplications.lua");
+  spoonsDirResult = validateDir (hammerspoonDir + "/Spoons");
 
-  initLuaUsable = initLuaResult.success && builtins.stringLength initLuaResult.value > 0;
-  configAppsUsable = configAppsResult.success && builtins.stringLength configAppsResult.value > 0;
-  spoonsDirUsable = spoonsDirResult.success;
+  initLuaUsable = isFileUsable initLuaResult;
+  configAppsUsable = isFileUsable configAppsResult;
+  spoonsDirUsable = isDirUsable spoonsDirResult;
 
-  # Behavioral directory structure validation
-  hasRequiredFiles =
-    hammerspoonDirUsable
-    && builtins.hasAttr "init.lua" hammerspoonDirContents
-    && builtins.hasAttr "configApplications.lua" hammerspoonDirContents
-    && builtins.hasAttr "Spoons" hammerspoonDirContents;
+  # Required top-level files and directories
+  requiredItems = [ "init.lua" "configApplications.lua" "Spoons" ];
+  hasRequiredItems = lib.all (item: builtins.hasAttr item hammerspoonDirContents) requiredItems;
 
-  # Behavioral Spoons directory validation
+  # Expected Spoons validation
   spoonsContents = if spoonsDirUsable then spoonsDirResult.value else { };
   expectedSpoons = [
     "Hyper.spoon"
@@ -49,34 +56,36 @@ let
   ];
   hasExpectedSpoons = lib.all (spoon: builtins.hasAttr spoon spoonsContents) expectedSpoons;
 
+  # Overall structure integrity
+  structureValid = hammerspoonDirUsable && initLuaUsable && configAppsUsable && spoonsDirUsable;
+
 in
-helpers.testSuite "hammerspoon" [
-  # Test that Hammerspoon config directory is readable and usable
+{
+  platforms = ["darwin"];
+  value = helpers.testSuite "hammerspoon" [
+    # Directory usability tests
   (helpers.assertTest "hammerspoon-dir-usable" hammerspoonDirUsable
     "Hammerspoon directory should be readable and usable")
 
-  # Test that init.lua is readable and has content
+  # Configuration file content tests
   (helpers.assertTest "init-lua-usable" initLuaUsable
     "init.lua should be readable and have content")
 
-  # Test that configApplications.lua is readable and has content
   (helpers.assertTest "config-apps-usable" configAppsUsable
     "configApplications.lua should be readable and have content")
 
-  # Test that Spoons directory is readable and usable
+  # Spoons directory test
   (helpers.assertTest "spoons-dir-usable" spoonsDirUsable
     "Spoons directory should be readable and usable")
 
-  # Test that all required files exist
-  (helpers.assertTest "required-files-exist" hasRequiredFiles
-    "All required files should exist")
+  # Structure validation tests
+  (helpers.assertTest "required-items-exist" hasRequiredItems
+    "All required items should exist (init.lua, configApplications.lua, Spoons)")
 
-  # Test that all expected Spoons exist
   (helpers.assertTest "expected-spoons-exist" hasExpectedSpoons
     "All expected Spoons should exist (Hyper, Headspace, HyperModal)")
 
-  # Test that directory has expected structure (behavioral)
-  (helpers.assertTest "directory-structure"
-    (hammerspoonDirUsable && initLuaUsable && configAppsUsable && spoonsDirUsable)
-    "Directory structure should be correct and usable")
-]
+  (helpers.assertTest "directory-structure" structureValid
+    "Directory structure should be correct and all components usable")
+  ];
+}

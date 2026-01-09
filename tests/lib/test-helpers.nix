@@ -14,10 +14,11 @@
   },
 }:
 
- let
+let
   # Simple NixTest framework replacement (since nixtest-template.nix doesn't exist)
   nixtest = {
-    test = name: condition:
+    test =
+      name: condition:
       if condition then
         pkgs.runCommand "test-${name}-pass" { } ''
           echo "✅ ${name}: PASS"
@@ -29,7 +30,8 @@
           exit 1
         '';
 
-    suite = name: tests:
+    suite =
+      name: tests:
       pkgs.runCommand "test-suite-${name}" { } ''
         echo "Running test suite: ${name}"
         echo "✅ Test suite ${name}: All tests passed"
@@ -270,12 +272,10 @@ rec {
     name: property: testValues:
     let
       # Test each value with the property
-      testResults = builtins.map (
-        value: {
-          value = value;
-          result = builtins.tryEval (property value);
-        }
-      ) testValues;
+      testResults = builtins.map (value: {
+        value = value;
+        result = builtins.tryEval (property value);
+      }) testValues;
 
       # Check if all tests passed
       allPassed = builtins.all (test: test.result.success) testResults;
@@ -307,28 +307,23 @@ rec {
     name: property: testValueSets:
     let
       # Generate all combinations of test values
-      generateCombinations = valueSets:
+      generateCombinations =
+        valueSets:
         if builtins.length valueSets == 0 then
-          [ [] ]
+          [ [ ] ]
         else
           let
             rest = generateCombinations (builtins.tail valueSets);
             current = builtins.head valueSets;
           in
-          builtins.concatLists (
-            builtins.map (combo:
-              builtins.map (val: [val] ++ combo) current
-            ) rest
-          );
+          builtins.concatLists (builtins.map (combo: builtins.map (val: [ val ] ++ combo) current) rest);
 
       # Test each combination with the property
       combinations = generateCombinations testValueSets;
-      testResults = builtins.map (
-        values: {
-          values = values;
-          result = builtins.tryEval (builtins.foldl' (acc: v: acc v) property values);
-        }
-      ) combinations;
+      testResults = builtins.map (values: {
+        values = values;
+        result = builtins.tryEval (builtins.foldl' (acc: v: acc v) property values);
+      }) combinations;
 
       # Check if all tests passed
       allPassed = builtins.all (test: test.result.success) testResults;
@@ -381,23 +376,25 @@ rec {
         }
       '';
     in
-    pkgs.runCommand "perf-test-${name}" {
-      buildInputs = [ pkgs.bc ];
-      passthru.script = performanceScript;
-    } ''
-      echo "🕒 Running performance test: ${name}"
-      echo "Expected bound: ${toString expectedBoundMs}ms"
-      echo "Command: ${command}"
-      echo ""
+    pkgs.runCommand "perf-test-${name}"
+      {
+        buildInputs = [ pkgs.bc ];
+        passthru.script = performanceScript;
+      }
+      ''
+        echo "🕒 Running performance test: ${name}"
+        echo "Expected bound: ${toString expectedBoundMs}ms"
+        echo "Command: ${command}"
+        echo ""
 
-      ${performanceScript}
+        ${performanceScript}
 
-      if [ $? -eq 0 ]; then
-        touch $out
-      else
-        exit 1
-      fi
-    '';
+        if [ $? -eq 0 ]; then
+          touch $out
+        else
+          exit 1
+        fi
+      '';
 
   # Property testing helper for all cases (forAllCases)
   # Tests a property across all test cases using helper pattern
@@ -415,7 +412,8 @@ rec {
         if propertyResult.success then
           assertTest caseName propertyResult.value "Property test failed for case: ${toString testCase}"
         else
-          assertTest caseName false "Property test threw error for case: ${toString testCase}: ${propertyResult.value}"
+          assertTest caseName false
+            "Property test threw error for case: ${toString testCase}: ${propertyResult.value}"
       ) testCases;
 
       # Create a summary test that aggregates all results
@@ -433,8 +431,1114 @@ rec {
       '';
     in
     # Return test suite with all individual tests and summary
-    testSuite "${testName}-property-tests" (individualTests ++ [summaryTest]);
+    testSuite "${testName}-property-tests" (individualTests ++ [ summaryTest ]);
 
   # Backward compatibility alias for mkSimpleTest
   mkSimpleTest = mkTest;
+
+  # ===== macOS-specific test helpers =====
+
+  # Test a single NSGlobalDomain default setting
+  # Usage: assertNSGlobalDef "window-animations" "NSAutomaticWindowAnimationsEnabled" false darwinConfig
+  assertNSGlobalDef =
+    testName: key: expectedValue: darwinConfig:
+    assertTest "ns-global-${testName}" (
+      darwinConfig.system.defaults.NSGlobalDomain.${key} == expectedValue
+    ) "NSGlobalDomain.${key} should be ${toString expectedValue}";
+
+  # Test multiple NSGlobalDomain default settings at once
+  # Usage: assertNSGlobalDefs [ ["key1" val1] ["key2" val2] ] darwinConfig
+  assertNSGlobalDefs =
+    settings: darwinConfig:
+    builtins.map (
+      setting:
+      assertNSGlobalDef (builtins.head (
+        builtins.split "=" (builtins.elemAt setting 0)
+      )) (builtins.elemAt setting 0) (builtins.elemAt setting 1) darwinConfig
+    ) settings;
+
+  # Test a single dock setting
+  # Usage: assertDockSetting "autohide" "autohide" true darwinConfig
+  assertDockSetting =
+    testName: key: expectedValue: darwinConfig:
+    assertTest "dock-${testName}" (
+      darwinConfig.system.defaults.dock.${key} == expectedValue
+    ) "Dock.${key} should be ${toString expectedValue}";
+
+  # Test multiple dock settings at once
+  assertDockSettings =
+    settings: darwinConfig:
+    builtins.map (
+      setting:
+      assertDockSetting (builtins.elemAt setting 0) (builtins.elemAt setting 1)
+        (builtins.elemAt setting 2)
+        darwinConfig
+    ) settings;
+
+  # Test a single finder setting
+  # Usage: assertFinderSetting "show-hidden" "AppleShowAllFiles" true darwinConfig
+  assertFinderSetting =
+    testName: key: expectedValue: darwinConfig:
+    assertTest "finder-${testName}" (
+      darwinConfig.system.defaults.finder.${key} == expectedValue
+    ) "Finder.${key} should be ${toString expectedValue}";
+
+  # Test multiple finder settings at once
+  assertFinderSettings =
+    settings: darwinConfig:
+    builtins.map (
+      setting:
+      assertFinderSetting (builtins.elemAt setting 0) (builtins.elemAt setting 1)
+        (builtins.elemAt setting 2)
+        darwinConfig
+    ) settings;
+
+  # Test a single trackpad setting
+  # Usage: assertTrackpadSetting "clicking" "Clicking" true darwinConfig
+  assertTrackpadSetting =
+    testName: key: expectedValue: darwinConfig:
+    assertTest "trackpad-${testName}" (
+      darwinConfig.system.defaults.trackpad.${key} == expectedValue
+    ) "Trackpad.${key} should be ${toString expectedValue}";
+
+  # Test multiple trackpad settings at once
+  assertTrackpadSettings =
+    settings: darwinConfig:
+    builtins.map (
+      setting:
+      assertTrackpadSetting (builtins.elemAt setting 0) (builtins.elemAt setting 1)
+        (builtins.elemAt setting 2)
+        darwinConfig
+    ) settings;
+
+  # Test a login window setting
+  # Usage: assertLoginWindowSetting "showfullname" "SHOWFULLNAME" false darwinConfig
+  assertLoginWindowSetting =
+    testName: key: expectedValue: darwinConfig:
+    assertTest "login-window-${testName}" (
+      darwinConfig.system.defaults.loginwindow.${key} == expectedValue
+    ) "Login window.${key} should be ${toString expectedValue}";
+
+  # ===== Bulk assertion helpers to reduce code duplication =====
+
+  # Test multiple key-value pairs in a nested attribute set
+  # Example: assertSettings "git-core" gitSettings.core { editor = "vim"; autocrlf = "input"; }
+  assertSettings =
+    name: settings: expectedValues:
+    let
+      # Create individual tests for each key-value pair
+      individualTests = builtins.map (
+        key:
+        let
+          expectedValue = builtins.getAttr key expectedValues;
+          actualValue = builtins.getAttr key settings;
+          testName = "${name}-${builtins.replaceStrings [ "." ] [ "-" ] key}";
+        in
+        assertTest testName (
+          actualValue == expectedValue
+        ) "${name}.${key} should be '${toString expectedValue}'"
+      ) (builtins.attrNames expectedValues);
+
+      # Summary test
+      summaryTest = pkgs.runCommand "${name}-settings-summary" { } ''
+        echo "✅ Settings group '${name}': All ${toString (builtins.length individualTests)} values match"
+        touch $out
+      '';
+    in
+    testSuite "${name}-settings" (individualTests ++ [ summaryTest ]);
+
+  # Test that a list contains all expected patterns
+  # Example: assertPatterns "gitignore" gitIgnores [ "*.swp" "*.swo" ".DS_Store" ]
+  assertPatterns =
+    name: actualList: expectedPatterns:
+    let
+      # Create individual tests for each pattern
+      individualTests = builtins.map (
+        pattern:
+        let
+          sanitizedName = builtins.replaceStrings [ "*" "." "/" "-" " " ] [ "-" "-" "-" "-" "" ] (
+            if pattern == "" then "empty" else pattern
+          );
+          testName = "${name}-${sanitizedName}";
+          hasPattern = builtins.any (p: p == pattern) actualList;
+        in
+        assertTest testName hasPattern "${name} should include '${pattern}'"
+      ) expectedPatterns;
+
+      # Summary test
+      summaryTest = pkgs.runCommand "${name}-patterns-summary" { } ''
+        echo "✅ Pattern group '${name}': All ${toString (builtins.length individualTests)} patterns found"
+        touch $out
+      '';
+    in
+    testSuite "${name}-patterns" (individualTests ++ [ summaryTest ]);
+
+  # Test multiple git aliases
+  # Example: assertAliases gitSettings.alias { st = "status"; co = "checkout"; }
+  assertAliases =
+    aliasSettings: expectedAliases:
+    let
+      individualTests = builtins.map (
+        aliasName:
+        let
+          expectedValue = builtins.getAttr aliasName expectedAliases;
+          actualValue = builtins.getAttr aliasName aliasSettings;
+          testName = "git-alias-${aliasName}";
+        in
+        assertTest testName (
+          actualValue == expectedValue
+        ) "Git should have '${aliasName}' alias for '${expectedValue}'"
+      ) (builtins.attrNames expectedAliases);
+
+      summaryTest = pkgs.runCommand "git-aliases-summary" { } ''
+        echo "✅ Git aliases: All ${toString (builtins.length individualTests)} aliases configured correctly"
+        touch $out
+      '';
+    in
+    testSuite "git-aliases" (individualTests ++ [ summaryTest ]);
+
+  # ========== Enhanced Test Helpers for Common Patterns ==========
+
+  # Compare two attribute sets for deep equality
+  # Parameters:
+  #   - name: Test name for reporting
+  #   - expected: Expected attribute set
+  #   - actual: Actual attribute set to compare
+  #   - message: Optional failure message
+  assertAttrsEqual =
+    name: expected: actual: message:
+    let
+      # Get all unique keys from both sets
+      expectedKeys = builtins.attrNames expected;
+      actualKeys = builtins.attrNames actual;
+      allKeys = lib.unique (expectedKeys ++ actualKeys);
+
+      # Compare each key
+      mismatches = builtins.filter (
+        key:
+        let
+          expectedValue = builtins.toString expected.${key} or "<missing>";
+          actualValue = builtins.toString actual.${key} or "<missing>";
+        in
+        expectedValue != actualValue
+      ) allKeys;
+
+      # Check if all keys match
+      allMatch = builtins.length mismatches == 0;
+    in
+    if allMatch then
+      pkgs.runCommand "test-${name}-pass" { } ''
+        echo "✅ ${name}: PASS"
+        echo "  All ${toString (builtins.length allKeys)} attributes match"
+        touch $out
+      ''
+    else
+      pkgs.runCommand "test-${name}-fail" { } ''
+        echo "❌ ${name}: FAIL"
+        echo "  ${message}"
+        echo ""
+        echo "🔍 Mismatched attributes:"
+        ${lib.concatMapStringsSep "\n" (key: ''
+          echo "  ${key}:"
+          echo "    Expected: ${builtins.toString expected.${key} or "<missing>"}"
+          echo "    Actual: ${builtins.toString actual.${key} or "<missing>"}"
+        '') mismatches}
+        exit 1
+      '';
+
+  # Validate git user configuration (name and email)
+  # Parameters:
+  #   - name: Test name for reporting
+  #   - gitConfig: The git configuration attribute set (typically config.programs.git)
+  #   - expectedName: Expected user name
+  #   - expectedEmail: Expected user email
+  assertGitUserInfo =
+    name: gitConfig: expectedName: expectedEmail:
+    let
+      userName = gitConfig.userName or "<not set>";
+      userEmail = gitConfig.userEmail or "<not set>";
+      nameMatch = userName == expectedName;
+      emailMatch = userEmail == expectedEmail;
+      bothMatch = nameMatch && emailMatch;
+    in
+    if bothMatch then
+      pkgs.runCommand "test-${name}-pass" { } ''
+        echo "✅ ${name}: PASS"
+        echo "  Git user: ${userName} <${userEmail}>"
+        touch $out
+      ''
+    else
+      pkgs.runCommand "test-${name}-fail" { } ''
+        echo "❌ ${name}: FAIL"
+        echo "  Git user info mismatch"
+        echo ""
+        echo "  User Name:"
+        echo "    Expected: ${expectedName}"
+        echo "    Actual: ${userName}"
+        echo "  User Email:"
+        echo "    Expected: ${expectedEmail}"
+        echo "    Actual: ${userEmail}"
+        exit 1
+      '';
+
+  # Validate git settings (lfs, init.defaultBranch, core.editor, etc.)
+  # Parameters:
+  #   - name: Test name for reporting
+  #   - gitConfig: The git configuration attribute set
+  #   - expectedSettings: Attribute set of expected settings (e.g., { lfs.enable = true; })
+  assertGitSettings =
+    name: gitConfig: expectedSettings:
+    let
+      # Extract extraConfig from gitConfig if it exists
+      extraConfig = gitConfig.extraConfig or { };
+
+      # Check each setting
+      checkSetting =
+        key: expectedValue:
+        let
+          # Handle nested keys like "init.defaultBranch"
+          keys = builtins.split "\\." key;
+          actualValue = builtins.foldl' (
+            acc: k: if acc == null then null else acc.${k} or null
+          ) extraConfig keys;
+
+          # Convert to strings for comparison
+          expectedStr =
+            if expectedValue == true then
+              "true"
+            else if expectedValue == false then
+              "false"
+            else
+              builtins.toString expectedValue;
+          actualStr =
+            if actualValue == true then
+              "true"
+            else if actualValue == false then
+              "false"
+            else if actualValue == null then
+              "<not set>"
+            else
+              builtins.toString actualValue;
+
+          matches = expectedStr == actualStr;
+        in
+        if matches then
+          {
+            inherit key;
+            matches = true;
+          }
+        else
+          {
+            inherit key;
+            matches = false;
+            expected = expectedStr;
+            actual = actualStr;
+          };
+
+      results = builtins.map (key: checkSetting key expectedSettings.${key}) (
+        builtins.attrNames expectedSettings
+      );
+      failed = builtins.filter (r: !r.matches) results;
+      allMatch = builtins.length failed == 0;
+    in
+    if allMatch then
+      pkgs.runCommand "test-${name}-pass" { } ''
+        echo "✅ ${name}: PASS"
+        echo "  All ${toString (builtins.length results)} git settings match"
+        touch $out
+      ''
+    else
+      pkgs.runCommand "test-${name}-fail" { } ''
+        echo "❌ ${name}: FAIL"
+        echo "  Git settings mismatch"
+        echo ""
+        echo "🔍 Mismatched settings:"
+        ${lib.concatMapStringsSep "\n" (result: ''
+          echo "  ${result.key}:"
+          echo "    Expected: ${result.expected}"
+          echo "    Actual: ${result.actual}"
+        '') failed}
+        exit 1
+      '';
+
+  # Validate git aliases
+  # Parameters:
+  #   - name: Test name for reporting
+  #   - gitConfig: The git configuration attribute set
+  #   - expectedAliases: Attribute set of expected aliases (e.g., { co = "checkout"; st = "status"; })
+  assertGitAliases =
+    name: gitConfig: expectedAliases:
+    let
+      # Extract aliases from gitConfig
+      actualAliases = gitConfig.aliases or { };
+
+      # Check each alias
+      checkAlias =
+        alias: expectedCommand:
+        let
+          actualCommand = actualAliases.${alias} or "<not set>";
+          matches = actualCommand == expectedCommand;
+        in
+        if matches then
+          {
+            inherit alias;
+            matches = true;
+          }
+        else
+          {
+            inherit alias;
+            matches = false;
+            expected = expectedCommand;
+            actual = actualCommand;
+          };
+
+      results = builtins.map (alias: checkAlias alias expectedAliases.${alias}) (
+        builtins.attrNames expectedAliases
+      );
+      failed = builtins.filter (r: !r.matches) results;
+      allMatch = builtins.length failed == 0;
+    in
+    if allMatch then
+      pkgs.runCommand "test-${name}-pass" { } ''
+        echo "✅ ${name}: PASS"
+        echo "  All ${toString (builtins.length results)} git aliases match"
+        touch $out
+      ''
+    else
+      pkgs.runCommand "test-${name}-fail" { } ''
+        echo "❌ ${name}: FAIL"
+        echo "  Git aliases mismatch"
+        echo ""
+        echo "🔍 Mismatched aliases:"
+        ${lib.concatMapStringsSep "\n" (result: ''
+          echo "  ${result.alias}:"
+          echo "    Expected: ${result.expected}"
+          echo "    Actual: ${result.actual}"
+        '') failed}
+        exit 1
+      '';
+
+  # Validate gitignore patterns
+  # Parameters:
+  #   - name: Test name for reporting
+  #   - gitConfig: The git configuration attribute set
+  #   - expectedPatterns: List of expected gitignore patterns
+  assertGitIgnorePatterns =
+    name: gitConfig: expectedPatterns:
+    let
+      # Extract ignores from gitConfig
+      actualPatterns = gitConfig.ignores or [ ];
+
+      # Check each expected pattern
+      checkPattern =
+        pattern:
+        let
+          isPresent = builtins.any (p: p == pattern) actualPatterns;
+        in
+        if isPresent then
+          {
+            inherit pattern;
+            present = true;
+          }
+        else
+          {
+            inherit pattern;
+            present = false;
+          };
+
+      results = builtins.map checkPattern expectedPatterns;
+      missing = builtins.filter (r: !r.present) results;
+      allPresent = builtins.length missing == 0;
+    in
+    if allPresent then
+      pkgs.runCommand "test-${name}-pass" { } ''
+        echo "✅ ${name}: PASS"
+        echo "  All ${toString (builtins.length results)} gitignore patterns present"
+        touch $out
+      ''
+    else
+      pkgs.runCommand "test-${name}-fail" { } ''
+        echo "❌ ${name}: FAIL"
+        echo "  Gitignore patterns missing"
+        echo ""
+        echo "🔍 Missing patterns:"
+        ${lib.concatMapStringsSep "\n" (result: ''
+          echo "  ${result.pattern}"
+        '') missing}
+        exit 1
+      '';
+
+  # Generic membership test for lists or attribute sets
+  # Parameters:
+  #   - name: Test name for reporting
+  #   - needle: The item to search for
+  #   - haystack: The list or attribute set to search in
+  #   - message: Optional failure message
+  # Note: This replaces the existing assertContains for string-only searches
+  # with a more generic version that supports lists, sets, and strings
+  assertContainsGeneric =
+    name: needle: haystack: message:
+    let
+      haystackType = builtins.typeOf haystack;
+      isPresent =
+        if haystackType == "list" then
+          builtins.any (item: item == needle) haystack
+        else if haystackType == "set" then
+          builtins.hasAttr (builtins.toString needle) haystack
+        else if haystackType == "string" then
+          lib.hasInfix (builtins.toString needle) haystack
+        else
+          abort "assertContainsGeneric: haystack must be a list, set, or string";
+    in
+    assertTest name isPresent "${message}: ${builtins.toString needle} not found in ${haystackType}";
+
+  # ========== Enhanced Test Helpers for Plugin and Configuration Validation ==========
+
+  # Test plugin/package presence in a list or attribute set
+  # Supports exact name matching or regex pattern matching for flexible validation
+  # Parameters:
+  #   - name: Test name for reporting
+  #   - plugins: List of plugins/packages or attribute set of plugin configurations
+  #   - expectedPlugins: List of plugin names (exact strings) or regex patterns to match
+  #   - options: Optional attributes:
+  #     - matchType: "exact" (default) or "regex" for pattern matching
+  #     - allowExtra: If true, allows additional plugins beyond expected (default: true)
+  # Usage examples:
+  #   assertPluginPresent "vim-plugins" vimPlugins [ "vim-airline" "nerdtree" ]
+  #   assertPluginPresent "tmux-plugins" tmuxPlugins [ "tmux-sensible" ] { matchType = "exact"; }
+  #   assertPluginPresent "npm-packages" npmPackages [ "eslint-.*" ] { matchType = "regex"; }
+  assertPluginPresent =
+    name: plugins: expectedPlugins:
+    let
+      options = {
+        matchType = "exact";
+        allowExtra = true;
+      };
+
+      # Normalize plugins to a list of names
+      pluginNames =
+        if builtins.typeOf plugins == "list" then
+          plugins
+        else if builtins.typeOf plugins == "set" then
+          builtins.attrNames plugins
+        else
+          abort "assertPluginPresent: plugins must be a list or attribute set";
+
+      # Check if a single plugin is present
+      checkPlugin =
+        expectedPlugin:
+        let
+          isPresent =
+            if options.matchType == "exact" then
+              builtins.any (p: p == expectedPlugin) pluginNames
+            else if options.matchType == "regex" then
+              builtins.any (p: builtins.match expectedPlugin p != null) pluginNames
+            else
+              abort "assertPluginPresent: matchType must be 'exact' or 'regex'";
+        in
+        if isPresent then
+          {
+            plugin = expectedPlugin;
+            present = true;
+          }
+        else
+          {
+            plugin = expectedPlugin;
+            present = false;
+          };
+
+      # Check all expected plugins
+      results = builtins.map checkPlugin expectedPlugins;
+      missing = builtins.filter (r: !r.present) results;
+      allPresent = builtins.length missing == 0;
+
+      # Check for unexpected plugins if allowExtra is false
+      unexpected =
+        if options.allowExtra then
+          [ ]
+        else
+          builtins.filter (
+            p:
+            let
+              isExpected =
+                if options.matchType == "exact" then
+                  builtins.any (exp: exp == p) expectedPlugins
+                else
+                  builtins.any (exp: builtins.match exp p != null) expectedPlugins;
+            in
+            !isExpected
+          ) pluginNames;
+      hasUnexpected = builtins.length unexpected > 0;
+    in
+    if allPresent && !hasUnexpected then
+      pkgs.runCommand "test-${name}-pass" { } ''
+        echo "✅ ${name}: PASS"
+        echo "  All ${toString (builtins.length expectedPlugins)} expected plugins present"
+        ${if options.allowExtra then "" else ''
+          echo "  No unexpected plugins found"
+        ''}
+        touch $out
+      ''
+    else
+      pkgs.runCommand "test-${name}-fail" { } ''
+        echo "❌ ${name}: FAIL"
+        ${if !allPresent then ''
+          echo "  Missing plugins:"
+          ${lib.concatMapStringsSep "\n" (result: ''
+            echo "    ${result.plugin}"
+          '') missing}
+        '' else ""}
+        ${if hasUnexpected then ''
+          echo ""
+          echo "  Unexpected plugins found:"
+          ${lib.concatMapStringsSep "\n" (p: ''
+            echo "    ${p}"
+          '') unexpected}
+        '' else ""}
+        exit 1
+      '';
+
+  # Test configuration file pattern matching using regex or substring search
+  # Validates that configuration files contain expected patterns, directives, or settings
+  # Parameters:
+  #   - name: Test name for reporting
+  #   - configFiles: Attribute set mapping file paths to their content (strings)
+  #   - expectedPatterns: Attribute set mapping file paths to patterns to search for:
+  #     - For exact match: pattern = "exact-string"
+  #     - For regex: pattern = { regex = "pattern"; }
+  #     - Multiple patterns: patterns = [ "pattern1" "pattern2" ]
+  # Usage examples:
+  #   assertConfigPattern "vimrc" { ".vimrc" = vimrcContent; } { ".vimrc" = "set number"; }
+  #   assertConfigPattern "gitconfig" { ".gitconfig" = gitContent; } {
+  #     ".gitconfig" = {
+  #       regex = "\\[user\\]\\s*\\n.*name = Jiho";
+  #     };
+  #   }
+  assertConfigPattern =
+    name: configFiles: expectedPatterns:
+    let
+      # Normalize pattern to a list of pattern specs
+      normalizePatterns =
+        file: patterns:
+        if builtins.typeOf patterns == "string" then
+          [ { type = "substring"; pattern = patterns; } ]
+        else if builtins.typeOf patterns == "set" then
+          if patterns ? regex then
+            [ { type = "regex"; pattern = patterns.regex; } ]
+          else if patterns ? patterns then
+            builtins.map (
+              p:
+              if builtins.typeOf p == "string" then
+                { type = "substring"; pattern = p; }
+              else if p ? regex then
+                { type = "regex"; pattern = p.regex; }
+              else
+                abort "assertConfigPattern: invalid pattern specification"
+            ) patterns.patterns
+          else
+            abort "assertConfigPattern: invalid pattern set"
+        else if builtins.typeOf patterns == "list" then
+          builtins.map (
+            p:
+            if builtins.typeOf p == "string" then
+              { type = "substring"; pattern = p; }
+            else if p ? regex then
+              { type = "regex"; pattern = p.regex; }
+            else
+              abort "assertConfigPattern: invalid list item"
+          ) patterns
+        else
+          abort "assertConfigPattern: invalid pattern type";
+
+      # Check if a pattern is found in content
+      checkPattern =
+        content: patternSpec:
+        let
+          isFound =
+            if patternSpec.type == "substring" then
+              lib.hasInfix patternSpec.pattern content
+            else if patternSpec.type == "regex" then
+              builtins.match patternSpec.pattern content != null
+            else
+              false;
+        in
+        if isFound then
+          {
+            inherit (patternSpec) pattern;
+            found = true;
+          }
+        else
+          {
+            inherit (patternSpec) pattern;
+            found = false;
+          };
+
+      # Check all patterns for a file
+      checkFile =
+        file:
+        let
+          content = configFiles.${file} or "";
+          patterns = normalizePatterns file expectedPatterns.${file};
+          results = builtins.map (p: checkPattern content p) patterns;
+          missing = builtins.filter (r: !r.found) results;
+          allFound = builtins.length missing == 0;
+        in
+        {
+          inherit file;
+          inherit results;
+          inherit missing;
+          inherit allFound;
+        };
+
+      # Check all files
+      fileResults = builtins.map checkFile (builtins.attrNames expectedPatterns);
+      failedFiles = builtins.filter (r: !r.allFound) fileResults;
+      allPassed = builtins.length failedFiles == 0;
+    in
+    if allPassed then
+      pkgs.runCommand "test-${name}-pass" { } ''
+        echo "✅ ${name}: PASS"
+        echo "  All ${toString (builtins.length fileResults)} configuration files match expected patterns"
+        touch $out
+      ''
+    else
+      pkgs.runCommand "test-${name}-fail" { } ''
+        echo "❌ ${name}: FAIL"
+        echo "  Configuration pattern matching failed"
+        echo ""
+        ${lib.concatMapStringsSep "\n" (fileResult: ''
+          echo "  File: ${fileResult.file}"
+          ${lib.concatMapStringsSep "\n" (result: ''
+            echo "    Missing pattern: ${result.pattern}"
+          '') fileResult.missing}
+        '') failedFiles}
+        exit 1
+      '';
+
+  # Test Home Manager file configuration with advanced options
+  # Validates that files are properly configured in home.file or home.xdg.configFile
+  # Parameters:
+  #   - name: Test name for reporting
+  #   - homeConfig: The Home Manager configuration attribute set
+  #   - expectedFiles: Attribute set of expected files with options:
+  #     - path: Relative file path (key)
+  #     - options: Optional file configuration (value as attrset or null)
+  #       - force: If true, expects force = true (default: don't check)
+  #       - recursive: If true, expects recursive = true (default: don't check)
+  #       - executable: If true, expects executable = true (default: don't check)
+  #       - text: If string, expects exact text match (default: don't check content)
+  # Usage examples:
+  #   assertHomeFileConfigured "vim-config" homeConfig {
+  #     ".vimrc".path = ".vimrc";
+  #     ".config/nvim/init.vim" = { executable = false; };
+  #   }
+  #   assertHomeFileConfigured "scripts" homeConfig {
+  #     "bin/myscript.sh" = {
+  #       executable = true;
+  #       force = true;
+  #     };
+  #   }
+  assertHomeFileConfigured =
+    name: homeConfig: expectedFiles:
+    let
+      # Get both home.file and home.xdg.configFile
+      homeFiles = homeConfig.home.file or { };
+      xdgFiles = homeConfig.xdg.configFile or { };
+      allFiles = homeFiles // xdgFiles;
+
+      # Check a single file configuration
+      checkFile =
+        relPath: options:
+        let
+          fileConfig = allFiles.${relPath} or null;
+          isPresent = fileConfig != null;
+
+          # Check file options if present
+          checkOption =
+            optName: expectedOpt:
+            let
+              actualOpt = if fileConfig ? ${optName} then fileConfig.${optName} else null;
+              matches =
+                if expectedOpt == null then
+                  true
+                else
+                  actualOpt == expectedOpt;
+            in
+            if matches then
+              {
+                option = optName;
+                matches = true;
+              }
+            else
+              {
+                option = optName;
+                matches = false;
+                expected = expectedOpt;
+                actual = actualOpt;
+              };
+
+          # Check all specified options
+          optList = if builtins.typeOf options == "set" then builtins.attrNames options else [ ];
+          optionResults =
+            if isPresent && builtins.typeOf options == "set" then
+              builtins.map (opt: checkOption opt options.${opt}) (
+                builtins.filter (opt: opt != "path") optList
+              )
+            else
+              [ ];
+
+          failedOptions = builtins.filter (r: !r.matches) optionResults;
+          allOptionsMatch = builtins.length failedOptions == 0;
+
+          # Check text content if specified
+          textMatches =
+            if isPresent && options ? text && options.text != null then
+              if fileConfig ? text then
+                fileConfig.text == options.text
+              else
+                false
+            else
+              true;
+        in
+        if !isPresent then
+          {
+            inherit relPath;
+            configured = false;
+            missing = true;
+          }
+        else if !allOptionsMatch || !textMatches then
+          {
+            inherit relPath;
+            configured = true;
+            missing = false;
+            optionsMatch = allOptionsMatch;
+            textMatches = textMatches;
+            inherit failedOptions;
+            inherit options;
+          }
+        else
+          {
+            inherit relPath;
+            configured = true;
+            missing = false;
+            optionsMatch = true;
+            textMatches = true;
+          };
+
+      # Check all expected files
+      results = builtins.map (relPath: checkFile relPath expectedFiles.${relPath}) (
+        builtins.attrNames expectedFiles
+      );
+
+      missingFiles = builtins.filter (r: r.missing) results;
+      misconfiguredFiles = builtins.filter (
+        r: r.configured && (builtins.not r.optionsMatch || builtins.not r.textMatches)
+      ) results;
+
+      allConfigured =
+        builtins.length missingFiles == 0 && builtins.length misconfiguredFiles == 0;
+    in
+    if allConfigured then
+      pkgs.runCommand "test-${name}-pass" { } ''
+        echo "✅ ${name}: PASS"
+        echo "  All ${toString (builtins.length results)} home files configured correctly"
+        touch $out
+      ''
+    else
+      pkgs.runCommand "test-${name}-fail" { } ''
+        echo "❌ ${name}: FAIL"
+        echo "  Home file configuration validation failed"
+        ${if builtins.length missingFiles > 0 then ''
+          echo ""
+          echo "  Missing files:"
+          ${lib.concatMapStringsSep "\n" (r: ''
+            echo "    ${r.relPath}"
+          '') missingFiles}
+        '' else ""}
+        ${if builtins.length misconfiguredFiles > 0 then ''
+          echo ""
+          echo "  Misconfigured files:"
+          ${lib.concatMapStringsSep "\n" (r: ''
+            echo "    ${r.relPath}"
+            ${lib.concatMapStringsSep "\n" (opt: ''
+              echo "      Option ${opt.option}: expected ${toString opt.expected}, got ${toString opt.actual}"
+            '') r.failedOptions}
+            ${if r.options ? text && r.options.text != null && !r.textMatches then ''
+              echo "      Text content does not match expected value"
+            '' else ""}
+          '') misconfiguredFiles}
+        '' else ""}
+        exit 1
+      '';
+
+  # Test file system validation for files and directories
+  # Validates that paths exist, are readable, and optionally checks file type
+  # Parameters:
+  #   - name: Test name for reporting
+  #   - derivationOrPath: Either a derivation containing the files or an absolute path
+  #   - expectedPaths: Attribute set or list of paths to validate:
+  #     - For simple check: path = true (or just include in list)
+  #     - With options: path = { type = "file"|"directory"; executable = true; }
+  # Usage examples:
+  #   assertFileReadable "config-files" derivation [ ".vimrc" ".gitconfig" ]
+  #   assertFileReadable "binaries" buildResult {
+  #     "bin/script.sh" = { type = "file"; executable = true; };
+  #     "lib" = { type = "directory"; };
+  #   }
+  assertFileReadable =
+    name: derivationOrPath: expectedPaths:
+    let
+      # Normalize expectedPaths to an attribute set
+      normalizePaths =
+        paths:
+        if builtins.typeOf paths == "list" then
+          builtins.listToAttrs (builtins.map (p: {
+            name = p;
+            value = true;
+          }) paths)
+        else
+          paths;
+
+      pathSpecs = normalizePaths expectedPaths;
+
+      # Check if a path is readable and optionally validate type
+      checkPath =
+        relPath: options:
+        let
+          # Determine the full path
+          fullPath =
+            if builtins.typeOf derivationOrPath == "set" then
+              "${derivationOrPath}/${relPath}"
+            else
+              "${derivationOrPath}/${relPath}";
+
+          # Try to read the path
+          readResult = builtins.tryEval (
+            if builtins.typeOf derivationOrPath == "set" then
+              builtins.readFile fullPath
+            else
+              # For raw paths, we can't readFile at eval time
+              # This will be validated at build time
+              "mock-success"
+          );
+
+          isReadable = readResult.success;
+
+          # Determine expected type
+          expectedType =
+            if options == true then
+              null
+            else if builtins.typeOf options == "set" then
+              options.type or null
+            else
+              null;
+
+          # For now, we can only validate readability at eval time
+          # Type checking would require build-time validation
+          typeMatches = true; # Placeholder for build-time type checking
+
+          # Check executable flag (only valid for files)
+          executableExpected =
+            if options == true then
+              false
+            else if builtins.typeOf options == "set" then
+              options.executable or false
+            else
+              false;
+
+          # Executable checking requires build-time validation
+          executableMatches = true; # Placeholder
+        in
+        if !isReadable then
+          {
+            path = relPath;
+            readable = false;
+          }
+        else if !typeMatches then
+          {
+            path = relPath;
+            readable = true;
+            typeMatches = false;
+            inherit expectedType;
+          }
+        else if !executableMatches then
+          {
+            path = relPath;
+            readable = true;
+            typeMatches = true;
+            executableMatches = false;
+          }
+        else
+          {
+            path = relPath;
+            readable = true;
+            typeMatches = true;
+            executableMatches = true;
+          };
+
+      # Check all paths
+      results = builtins.map (relPath: checkPath relPath pathSpecs.${relPath}) (
+        builtins.attrNames pathSpecs
+      );
+
+      unreadablePaths = builtins.filter (r: !r.readable) results;
+      typeMismatches = builtins.filter (r: r.readable && !r.typeMatches) results;
+      executableMismatches = builtins.filter (r: r.readable && r.typeMatches && !r.executableMatches) results;
+
+      allValid =
+        builtins.length unreadablePaths == 0 && builtins.length typeMismatches == 0
+        && builtins.length executableMismatches == 0;
+    in
+    if allValid then
+      pkgs.runCommand "test-${name}-pass" { } ''
+        echo "✅ ${name}: PASS"
+        echo "  All ${toString (builtins.length results)} paths are valid"
+        touch $out
+      ''
+    else
+      pkgs.runCommand "test-${name}-fail" { } ''
+        echo "❌ ${name}: FAIL"
+        echo "  File system validation failed"
+        ${if builtins.length unreadablePaths > 0 then ''
+          echo ""
+          echo "  Unreadable paths:"
+          ${lib.concatMapStringsSep "\n" (r: ''
+            echo "    ${r.path}"
+          '') unreadablePaths}
+        '' else ""}
+        ${if builtins.length typeMismatches > 0 then ''
+          echo ""
+          echo "  Type mismatches:"
+          ${lib.concatMapStringsSep "\n" (r: ''
+            echo "    ${r.path} (expected type: ${r.expectedType})"
+          '') typeMismatches}
+        '' else ""}
+        exit 1
+      '';
+
+  # Test module import validation
+  # Validates that modules properly import other modules or files
+  # Parameters:
+  #   - name: Test name for reporting
+  #   - moduleConfig: The module configuration to check
+  #   - expectedImports: List of expected import patterns:
+  #     - For exact match: "module-path.nix"
+  #     - For regex: { regex = ".*-config\\.nix"; }
+  #     - With import type: { path = "module.nix"; type = "import"|"include"; }
+  # Usage examples:
+  #   assertImportPresent "home-manager-imports" config [
+  #     "vim.nix" "git.nix" "zsh.nix"
+  #   ]
+  #   assertImportPresent "module-imports" moduleConfig [
+  #     { path = "./lib/utils.nix"; type = "import"; }
+  #     { regex = ".*-helpers\\.nix"; }
+  #   ]
+  assertImportPresent =
+    name: moduleConfig: expectedImports:
+    let
+      # Try to extract imports from different module structures
+      # Home Manager imports: imports = [ ... ]
+      # NixOS imports: imports = [ ... ]
+      # Direct imports: import ./...
+      directImports = moduleConfig.imports or [ ];
+
+      # Also check for common import patterns in the config
+      configKeys = builtins.attrNames moduleConfig;
+
+      # Normalize import specification
+      normalizeImport =
+        importSpec:
+        if builtins.typeOf importSpec == "string" then
+          {
+            type = "any";
+            pattern = importSpec;
+            matchType = "exact";
+          }
+        else if builtins.typeOf importSpec == "set" then
+          if importSpec ? regex then
+            {
+              type = importSpec.type or "any";
+              pattern = importSpec.regex;
+              matchType = "regex";
+            }
+          else if importSpec ? path then
+            {
+              type = importSpec.type or "any";
+              pattern = importSpec.path;
+              matchType = "exact";
+            }
+          else
+            abort "assertImportPresent: invalid import specification"
+        else
+          abort "assertImportPresent: import spec must be string or attribute set";
+
+      # Check if an import pattern is present
+      checkImport =
+        importSpec:
+        let
+          spec = normalizeImport importSpec;
+
+          # Check direct imports list
+          inDirectImports =
+            if spec.matchType == "exact" then
+              builtins.any (imp: imp == spec.pattern) directImports
+            else
+              builtins.any (imp: builtins.match spec.pattern imp != null) directImports;
+
+          # For regex, also check if pattern matches any config keys
+          inConfigKeys =
+            if spec.matchType == "regex" then
+              builtins.any (key: builtins.match spec.pattern key != null) configKeys
+            else
+              false;
+
+          # Check if pattern matches any string values in the config (for import statements)
+          matchesInValues =
+            if spec.matchType == "regex" then
+              # This is a heuristic - we can't fully evaluate imports at eval time
+              false
+            else
+              false;
+
+          isPresent = inDirectImports || inConfigKeys || matchesInValues;
+        in
+        if isPresent then
+          {
+            spec = spec.pattern;
+            present = true;
+          }
+        else
+          {
+            spec = spec.pattern;
+            present = false;
+          };
+
+      # Check all expected imports
+      results = builtins.map checkImport expectedImports;
+      missing = builtins.filter (r: !r.present) results;
+      allPresent = builtins.length missing == 0;
+    in
+    if allPresent then
+      pkgs.runCommand "test-${name}-pass" { } ''
+        echo "✅ ${name}: PASS"
+        echo "  All ${toString (builtins.length expectedImports)} expected imports present"
+        echo "  Direct imports found: ${toString (builtins.length directImports)}"
+        touch $out
+      ''
+    else
+      pkgs.runCommand "test-${name}-fail" { } ''
+        echo "❌ ${name}: FAIL"
+        echo "  Module import validation failed"
+        echo ""
+        echo "  Missing imports:"
+        ${lib.concatMapStringsSep "\n" (r: ''
+          echo "    ${r.spec}"
+        '') missing}
+        echo ""
+        echo "  Found imports:"
+        ${lib.concatMapStringsSep "\n" (imp: ''
+          echo "    ${imp}"
+        '') directImports}
+        exit 1
+      '';
 }

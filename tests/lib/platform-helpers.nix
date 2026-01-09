@@ -1,5 +1,38 @@
 # tests/lib/platform-helpers.nix
 # Platform-aware test utilities for conditional test inclusion
+#
+# STANDARD PATTERN FOR PLATFORM-SPECIFIC TESTS:
+#
+# All platform-specific tests should use the `platforms` attribute pattern:
+#
+#   {
+#     platforms = ["darwin"];  # or ["linux"] or ["darwin" "linux"]
+#     value = yourTestDerivation;
+#   }
+#
+# This is the PREFERRED approach because:
+# 1. Declarative - platform requirements are explicit in the test metadata
+# 2. Composable - supports multiple platforms: ["darwin" "linux"]
+# 3. Test Discovery Integration - works with automatic test filtering in tests/default.nix
+# 4. Consistent - matches the pattern used in darwin-test.nix and darwin-only-test.nix
+#
+# DEPRECATED: Do NOT use helpers.runIfPlatform() in new tests.
+# The runIfPlatform function is kept for backward compatibility but should not be used.
+#
+# Example test file:
+#   # tests/unit/my-darwin-test.nix
+#   { inputs, system, pkgs, lib, self, ... }:
+#   let
+#     helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
+#   in
+#   {
+#     platforms = ["darwin"];
+#     value = helpers.testSuite "my-darwin-test" [
+#       (helpers.assertTest "test-name" true "Test description")
+#     ];
+#   }
+#
+# Tests without a `platforms` attribute run on all platforms.
 
 { pkgs, lib }:
 

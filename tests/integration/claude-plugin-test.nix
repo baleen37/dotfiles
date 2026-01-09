@@ -12,7 +12,7 @@
 
 let
   # Import test helpers
-  testHelpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
+  helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
 
   # Path to Claude configuration
   claudeConfigDir = ../../users/shared/.config/claude;

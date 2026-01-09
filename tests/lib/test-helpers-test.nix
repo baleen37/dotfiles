@@ -36,21 +36,25 @@ in
   # Test assertContains functionality
   contains-test = testHelpers.assertContains "contains-test" "needle" "haystack with needle";
 
-  # Test platform-specific test execution
-  darwin-test = testHelpers.runIfPlatform "darwin" (
-    pkgs.runCommand "darwin-only-test" {} ''
+  # Test platform-specific test execution using the STANDARD pattern
+  darwin-test = {
+    platforms = ["darwin"];
+    value = pkgs.runCommand "darwin-only-test" {} ''
       echo "Running Darwin-specific test"
       touch $out
-    ''
-  );
+    '';
+  };
 
-  linux-test = testHelpers.runIfPlatform "linux" (
-    pkgs.runCommand "linux-only-test" {} ''
+  linux-test = {
+    platforms = ["linux"];
+    value = pkgs.runCommand "linux-only-test" {} ''
       echo "Running Linux-specific test"
       touch $out
-    ''
-  );
+    '';
+  };
 
+  # Keep one test using runIfPlatform to verify backward compatibility
+  # (This is deprecated but should still work)
   any-platform-test = testHelpers.runIfPlatform "any" (
     pkgs.runCommand "any-platform-test" {} ''
       echo "Running any-platform test"
