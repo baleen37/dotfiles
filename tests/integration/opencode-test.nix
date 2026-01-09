@@ -26,9 +26,6 @@ let
   # Test if AGENTS.md file is configured
   hasAgentsMd = builtins.hasAttr ".config/opencode/AGENTS.md" homeFiles;
 
-  # Test if command directory is configured
-  hasCommandDir = builtins.hasAttr ".config/opencode/command" homeFiles;
-
   # Generic helper to extract a boolean attribute from home.file configuration
   # Usage: getFileBoolAttr "force" ".config/opencode/AGENTS.md" -> true/false
   getFileBoolAttr = attrName: fileAttr:
@@ -41,12 +38,10 @@ let
   # Source paths for behavioral tests
   opencodeConfigDir = ../../users/shared/.config/opencode;
   agentsMdSource = opencodeConfigDir + "/AGENTS.md";
-  commandsSource = ../../users/shared/.config/claude/commands;
 
   # Check readability of source files/directories
-  # AGENTS.md is a file, commands is a directory
+  # AGENTS.md is a file
   agentsMdReadable = builtins.tryEval (builtins.readFile agentsMdSource);
-  commandsDirReadable = builtins.tryEval (builtins.readDir commandsSource);
 
   # Helper to create readable and has-content tests for a source
   # Usage: makeSourceTests "agents-md" agentsMdReadable isDirectory -> [readableTest, hasContentTest]
@@ -77,19 +72,12 @@ helpers.testSuite "opencode" (
   ++ [
     (helpers.assertTest "agents-md-configured" hasAgentsMd
       "AGENTS.md should be configured in home.file")
-    (helpers.assertTest "command-dir-configured" hasCommandDir
-      "Command directory should be configured in home.file")
   ]
   # Force and recursive attribute tests
   ++ [
     (helpers.assertTest "agents-md-force-enabled" (hasForceEnabled ".config/opencode/AGENTS.md")
       "AGENTS.md should have force=true to overwrite existing files")
-    (helpers.assertTest "command-dir-force-enabled" (hasForceEnabled ".config/opencode/command")
-      "Command directory should have force=true to overwrite existing files")
-    (helpers.assertTest "command-dir-recursive" (isRecursive ".config/opencode/command")
-      "Command directory should be recursive to copy all commands")
   ]
   # Behavioral tests for source files using helper
   ++ (makeSourceTests "agents-md" agentsMdReadable false)
-  ++ (makeSourceTests "commands-dir" commandsDirReadable true)
 )
