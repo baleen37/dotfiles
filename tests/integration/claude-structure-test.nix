@@ -26,13 +26,8 @@ let
     ".gitignore"
   ];
 
-  # Required directories
-  requiredDirs = [
-    "commands"
-    "agents"
-    "hooks"
-    "skills"
-  ];
+  # Required directories (migrated to claude-plugins repository)
+  requiredDirs = [ ];
 
   # Individual file existence tests
   fileTests = builtins.map (fileName:
