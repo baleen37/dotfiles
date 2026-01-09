@@ -192,31 +192,32 @@ helpers.mkTest "trend-analysis-regression-detection" ''
     exit 1
   fi
 
-  if [ "${toString statisticalResult.statistical.stdDev}" -ge 0 ]; then
+  # Use awk for floating point comparison
+  if awk "BEGIN {exit !(${toString statisticalResult.statistical.stdDev} >= 0)}"; then
     echo "✓ Standard deviation is non-negative"
   else
     echo "✗ Standard deviation should be non-negative"
     exit 1
   fi
 
-  # Validate trend properties
-  if [ "${toString statisticalResult.trend.strength}" -ge 0 ] && [ "${toString statisticalResult.trend.strength}" -le 1 ]; then
+  # Validate trend properties (use awk for floating point comparison)
+  if awk "BEGIN {exit !(${toString statisticalResult.trend.strength} >= 0 && ${toString statisticalResult.trend.strength} <= 1)}"; then
     echo "✓ Correlation strength is in valid range [0, 1]"
   else
     echo "✗ Correlation strength should be in range [0, 1]"
     exit 1
   fi
 
-  # Validate regression detection
-  if [ "${toString regressionResult.comparison.recent}" -gt 0 ]; then
+  # Validate regression detection (use awk for floating point comparison)
+  if awk "BEGIN {exit !(${toString regressionResult.comparison.recent} > 0)}"; then
     echo "✓ Recent average is positive"
   else
     echo "✗ Recent average should be positive"
     exit 1
   fi
 
-  # Validate prediction bounds
-  if [ "${toString predictiveResult.prediction.upperBound}" -ge "${toString predictiveResult.prediction.lowerBound}" ]; then
+  # Validate prediction bounds (use awk for floating point comparison)
+  if awk "BEGIN {exit !(${toString predictiveResult.prediction.upperBound} >= ${toString predictiveResult.prediction.lowerBound})}"; then
     echo "✓ Prediction bounds are valid (upper >= lower)"
   else
     echo "✗ Upper bound should be >= lower bound"
