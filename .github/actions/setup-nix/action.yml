@@ -31,9 +31,8 @@ runs:
         path: |
           ~/.cache/nix
           ~/.local/state/nix
-        key: nix-${{ runner.os }}-${{ hashFiles('**/flake.lock') }}-${{ steps.date.outputs.week }}-v2
+        key: nix-${{ runner.os }}-${{ hashFiles('**/flake.lock') }}-${{ steps.date.outputs.week }}-v3
         restore-keys: |
-          nix-${{ runner.os }}-${{ hashFiles('**/flake.lock') }}-
           nix-${{ runner.os }}-
       continue-on-error: true
 
@@ -44,9 +43,8 @@ runs:
         path: |
           ~/.cache/nix
           ~/.local/state/nix
-        key: nix-${{ runner.os }}-${{ hashFiles('**/flake.lock') }}-${{ steps.date.outputs.week }}-v2
+        key: nix-${{ runner.os }}-${{ hashFiles('**/flake.lock') }}-${{ steps.date.outputs.week }}-v3
         restore-keys: |
-          nix-${{ runner.os }}-${{ hashFiles('**/flake.lock') }}-
           nix-${{ runner.os }}-
       continue-on-error: true
 
@@ -67,4 +65,4 @@ runs:
         path: |
           ~/.cache/nix
           ~/.local/state/nix
-        key: nix-${{ runner.os }}-${{ hashFiles('**/flake.lock') }}-${{ steps.date.outputs.week }}-v2
+        key: nix-${{ runner.os }}-${{ hashFiles('**/flake.lock') }}-${{ steps.date.outputs.week }}-v3
