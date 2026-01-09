@@ -200,8 +200,9 @@ in
   (helpers.assertTest "ssh-wrapper-keepalive" (initContentHas "ServerAliveInterval")
     "ssh wrapper should set keepalive options")
 
-  # macOS-specific Homebrew PATH
+  # macOS-specific Homebrew PATH (only test on Darwin)
   (helpers.assertTest "homebrew-path-macos" (
+    !pkgs.stdenv.hostPlatform.isDarwin ||  # Skip on Linux, or check on Darwin
     lib.any (line: lib.hasInfix "/opt/homebrew" line) (lib.splitString "\n" initContent)
   ) "Homebrew PATH should be configured for macOS")
 
@@ -215,10 +216,14 @@ in
     "NPM_CONFIG_PREFIX should be set for global npm packages")
 
   # SSH agent setup for GUI applications (macOS)
-  (helpers.assertTest "ssh-agent-gui-function" (initContentHas "setup_ssh_agent_for_gui")
-    "setup_ssh_agent_for_gui() function should exist")
-  (helpers.assertTest "ssh-agent-launchctl" (initContentHas "launchctl setenv")
-    "SSH agent should be configured for GUI apps via launchctl")
+  (helpers.assertTest "ssh-agent-gui-function" (
+    !pkgs.stdenv.hostPlatform.isDarwin ||  # Skip on Linux, or check on Darwin
+    initContentHas "setup_ssh_agent_for_gui"
+  ) "setup_ssh_agent_for_gui() function should exist")
+  (helpers.assertTest "ssh-agent-launchctl" (
+    !pkgs.stdenv.hostPlatform.isDarwin ||  # Skip on Linux, or check on Darwin
+    initContentHas "launchctl setenv"
+  ) "SSH agent should be configured for GUI apps via launchctl")
 
   # IntelliJ IDEA launcher environment
   (helpers.assertTest "idea-env-ssh-agent" (initContentHas "SSH_AUTH_SOCK=\"$SSH_AUTH_SOCK\"")
