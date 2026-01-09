@@ -3,6 +3,9 @@
 # Unified Nix-based test for Claude Code configuration structure.
 # Replaces bash-based symlink tests with pure Nix assertions.
 # Validates source structure (CI-safe, no runtime symlink checks).
+#
+# NOTE: Updated 2025-01-09 - Commands, agents, hooks, and skills directories
+# migrated to claude-plugins repository.
 {
   lib ? import <nixpkgs/lib>,
   pkgs ? import <nixpkgs> { },
@@ -26,13 +29,8 @@ let
     ".gitignore"
   ];
 
-  # Required directories
-  requiredDirs = [
-    "commands"
-    "agents"
-    "hooks"
-    "skills"
-  ];
+  # Required directories (migrated to claude-plugins repository)
+  requiredDirs = [ ];
 
   # Individual file existence tests
   fileTests = builtins.map (fileName:

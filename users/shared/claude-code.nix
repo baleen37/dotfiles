@@ -1,6 +1,9 @@
 # users/shared/claude-code.nix
 # Claude Code configuration managed via Home Manager
 # Configuration files only - package managed in home-manager.nix
+#
+# NOTE: commands, agents, skills, and hooks are now managed via external plugin:
+# https://github.com/baleen37/claude-plugins
 
 {
   pkgs,
@@ -11,30 +14,6 @@
 {
 
   # Configuration files: read-only symlinks to /nix/store (version controlled)
-  home.file.".claude/commands" = {
-    source = ./.config/claude/commands;
-    recursive = true;
-    force = true;
-  };
-
-  home.file.".claude/agents" = {
-    source = ./.config/claude/agents;
-    recursive = true;
-    force = true;
-  };
-
-  home.file.".claude/skills" = {
-    source = ./.config/claude/skills;
-    recursive = true;
-    force = true;
-  };
-
-  home.file.".claude/hooks" = {
-    source = ./.config/claude/hooks;
-    recursive = true;
-    force = true;
-  };
-
   home.file.".claude/statusline.sh" = {
     source = ./.config/claude/statusline.sh;
     executable = true;
