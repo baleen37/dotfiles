@@ -34,23 +34,6 @@
   },
   "model": "sonnet",
   "enableAllProjectMcpServers": true,
-  "alwaysThinkingEnabled": true,
-  "rejectedMcpServers": [],
-  "enabledPlugins": {
-    "superpowers@superpowers-marketplace": true,
-    "episodic-memory@superpowers-marketplace": true,
-    "pyright-lsp@claude-plugins-official": true,
-    "typescript-lsp@claude-plugins-official": true,
-    "gopls-lsp@claude-plugins-official": true,
-    "ralph-loop@claude-plugins-official": true
-  },
-  "feedbackSurveyState": {
-    "lastShownTime": 1755225425616
-  },
-  "statusLine": {
-    "type": "command",
-    "command": "~/.claude/statusline.sh"
-  },
   "hooks": {
     "PreToolUse": [
       {
@@ -63,5 +46,24 @@
         ]
       }
     ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/statusline.sh"
+  },
+  "enabledPlugins": {
+    "superpowers@superpowers-marketplace": true,
+    "episodic-memory@superpowers-marketplace": true,
+    "pyright-lsp@claude-plugins-official": true,
+    "typescript-lsp@claude-plugins-official": true,
+    "gopls-lsp@claude-plugins-official": true,
+    "ralph-loop@baleen-plugins": true,
+    "my-workflow@baleen-plugins": true,
+    "me@baleen-plugins": true
+  },
+  "alwaysThinkingEnabled": false,
+  "rejectedMcpServers": [],
+  "feedbackSurveyState": {
+    "lastShownTime": 1755225425616
   }
 }
