@@ -25,10 +25,12 @@
     force = true;
   };
 
-  # settings.json: writable copy (always overwritten on rebuild)
+  # settings.json: initial copy only (writable after first setup)
   home.activation.claudeSettings = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    run mkdir -p ~/.claude
-    run rm -f ~/.claude/settings.json
-    run cp ${./.config/claude/settings.json} ~/.claude/settings.json
+    if [ ! -f ~/.claude/settings.json ]; then
+      run mkdir -p ~/.claude
+      run cp ${./.config/claude/settings.json} ~/.claude/settings.json
+      run chmod 644 ~/.claude/settings.json
+    fi
   '';
 }
