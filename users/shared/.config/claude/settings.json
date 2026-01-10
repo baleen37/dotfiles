@@ -29,8 +29,7 @@
       "Bash(git:*)",
       "Bash(gh:*)"
     ],
-    "deny": [
-    ]
+    "deny": []
   },
   "model": "sonnet",
   "enableAllProjectMcpServers": true,
@@ -58,7 +57,7 @@
     "typescript-lsp@claude-plugins-official": true,
     "gopls-lsp@claude-plugins-official": true,
     "ralph-loop@baleen-plugins": true,
-    "my-workflow@baleen-plugins": true,
+    "git-guard@baleen-plugins": true,
     "me@baleen-plugins": true
   },
   "alwaysThinkingEnabled": false,
