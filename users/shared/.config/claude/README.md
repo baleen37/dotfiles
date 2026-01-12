@@ -7,30 +7,24 @@ This directory contains Claude Code commands, skills, and hooks for dotfiles dev
 ```
 .claude/
 ├── CLAUDE.md              # Project-specific instructions
-├── settings.json          # Claude Code settings
+├── settings.json          # Claude Code settings (writable after initial setup)
 ├── statusline.sh          # Custom status line
+├── README.md              # This file
 │
-├── commands/              # Slash commands (/, quick actions)
-│   ├── commit-push-pr.md  # Commit, push, create PR
-│   ├── create-*.md        # Creation helpers
-│   ├── fix-ci.md          # CI troubleshooting
-│   └── *.md               # Other commands
+├── handoffs/              # Session handoff context
+│   └── *.md               # Handoff notes for session continuity
 │
-├── skills/                # Reusable workflows (Skill tool)
-│   ├── creating-pull-requests/
-│   │   └── SKILL.md       # Skill definition
-│   ├── ci-troubleshooting/
-│   ├── setup-precommit-and-ci/
-│   └── */
-│
-├── hooks/                 # Lifecycle hooks
-│   └── git-command-validator.sh
-│
-├── agents/                # Custom agent prompts
-│   └── code-reviewer.md
-│
-└── handoffs/              # Session handoff context
+└── [future extensions]
+    ├── commands/          # Slash commands (/, quick actions)
+    ├── skills/            # Reusable workflows (Skill tool)
+    ├── hooks/             # Lifecycle hooks
+    └── agents/            # Custom agent prompts
 ```
+
+**Note**: Commands, skills, hooks, and agents are currently managed via external plugin:
+https://github.com/baleen37/claude-plugins
+
+Local commands can be added by creating the `commands/` directory and `.md` files.
 
 ## Commands vs Skills
 
