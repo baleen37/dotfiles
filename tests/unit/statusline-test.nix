@@ -2,9 +2,13 @@
 # Statusline context extraction logic tests
 # Tests cross-model compatibility for glm-4.7 and Claude models
 {
-  lib ? import <nixpkgs/lib>,
-  pkgs ? import <nixpkgs> { },
+  inputs,
+  system,
+  pkgs ? import inputs.nixpkgs { inherit system; },
+  lib ? pkgs.lib,
+  nixtest ? { },
   self ? ./.,
+  ...
 }:
 
 let
