@@ -46,30 +46,12 @@ input=$(cat)
 model_name=$(echo "$input" | jq -r '.model.display_name // "Claude"')
 current_dir=$(echo "$input" | jq -r '.workspace.current_dir // "."')
 
-# Extract context information using proper getTokenMetrics implementation
-# Find the most recent main chain entry (where isSidechain !== true) and calculate context length
-transcript_path=$(echo "$input" | jq -r '.transcript_path // empty')
-
-context_length=0
-if [[ -n "$transcript_path" && -f "$transcript_path" ]]; then
-    # Read transcript file (JSONL format) and calculate context length
-    # Find the most recent main chain entry using jq
-    most_recent=$(jq -Rc 'fromjson? | select(. != null) | select(.message.usage and (.isSidechain | not))' \
-        "$transcript_path" 2>/dev/null | tail -1 || echo "")
-
-    if [[ -n "$most_recent" ]]; then
-        context_length=$(echo "$most_recent" | jq -r '
-            (.message.usage.input_tokens // 0) +
-            (.message.usage.cache_read_input_tokens // 0) +
-            (.message.usage.cache_creation_input_tokens // 0)
-        ' 2>/dev/null || echo "0")
-    fi
-fi
-
-# Fallback to simple context fields if transcript parsing fails
-if [[ "$context_length" == "null" || "$context_length" == "0" || -z "$context_length" ]]; then
-    context_length=$(echo "$input" | jq -r '.context.length // .context.tokens // .context.inputTokens // 0')
-fi
+# Extract context length from context_window
+context_length=$(echo "$input" | jq -r '
+    (.context_window.current_usage.input_tokens // 0) +
+    (.context_window.current_usage.cache_read_input_tokens // 0) +
+    (.context_window.current_usage.cache_creation_input_tokens // 0)
+' 2>/dev/null)
 
 # Format context length (e.g., 18.6k)
 if [[ "$context_length" -ge 1000 ]]; then
@@ -81,14 +63,15 @@ fi
 # Get current directory relative to home directory
 if [[ "$current_dir" == "$HOME"* ]]; then
     # Replace home path with ~ for display
-    dir_display="${current_dir/#$HOME/~}"
+    dir_display="~${current_dir:${#HOME}}"
 else
     # Keep full path if not under home directory
     dir_display="$current_dir"
 fi
 # Get git status and worktree information with enhanced detection
 git_info=""
-if git -C "$current_dir" rev-parse --git-dir >/dev/null 2>&1; then
+git_dir=$(git -C "$current_dir" rev-parse --git-dir 2>/dev/null)
+if [[ -n "$git_dir" ]]; then
     branch=$(git -C "$current_dir" branch --show-current 2>/dev/null)
 
     # If no branch (detached HEAD), show short commit hash
@@ -99,7 +82,6 @@ if git -C "$current_dir" rev-parse --git-dir >/dev/null 2>&1; then
 
     # Enhanced worktree detection
     worktree_info=""
-    git_dir=$(git -C "$current_dir" rev-parse --git-dir 2>/dev/null)
 
     # Check if we're in a worktree
     if [[ "$git_dir" == *".git/worktrees/"* ]] || [[ -f "$git_dir/gitdir" ]]; then
@@ -123,14 +105,15 @@ if git -C "$current_dir" rev-parse --git-dir >/dev/null 2>&1; then
 
         # Count different types of changes (handle empty status gracefully)
         if [[ -n "$git_status" ]]; then
-            # Count untracked files (starts with ??)
-            untracked=$(echo "$git_status" | grep -c '^??')
-            # Count modified files (M in second column or first column with space)
-            modified=$(echo "$git_status" | grep -c '^.M\|^ M')
-            # Count staged files (non-space in first column, excluding ??)
-            staged=$(echo "$git_status" | grep -c '^[ADMR]')
-            # Count conflicts (UU, AA, DD)
-            conflicts=$(echo "$git_status" | grep -c '^UU\|^AA\|^DD')
+            # Use awk for single-pass counting (avoids grep -c exit code issues)
+            read -r untracked modified staged conflicts <<< "$(echo "$git_status" | awk '
+                BEGIN {u=0; m=0; s=0; c=0}
+                /^\?\?/ {u++}
+                /^.M|^ M/ {m++}
+                /^[ADMR]/ {s++}
+                /^UU|^AA|^DD/ {c++}
+                END {print u, m, s, c}
+            ')"
         else
             untracked=0
             modified=0
@@ -149,8 +132,8 @@ if git -C "$current_dir" rev-parse --git-dir >/dev/null 2>&1; then
         ahead_behind=""
         upstream=$(git -C "$current_dir" rev-parse --abbrev-ref '@{u}' 2>/dev/null)
         if [[ -n "$upstream" ]]; then
-            ahead=$(git -C "$current_dir" rev-list --count '@{u}..HEAD' 2>/dev/null)
-            behind=$(git -C "$current_dir" rev-list --count 'HEAD..@{u}' 2>/dev/null)
+            # Single command to get both ahead and behind counts
+            read -r ahead behind <<< "$(git -C "$current_dir" rev-list --left-right --count '@{u}...HEAD' 2>/dev/null)"
 
             if [[ "$ahead" -gt 0 ]] && [[ "$behind" -gt 0 ]]; then
                 ahead_behind=" ${YELLOW}↕${ahead}/${behind}${RESET}"
@@ -167,8 +150,9 @@ if git -C "$current_dir" rev-parse --git-dir >/dev/null 2>&1; then
             # Only check for PRs if we're in a GitHub repo
             remote_url=$(git -C "$current_dir" config --get remote.origin.url 2>/dev/null)
             if [[ "$remote_url" == *"github.com"* ]]; then
-                # Quick PR check (gh caches this, so it's usually fast after first run)
-                pr_number=$(gh pr view --json number -q .number 2>/dev/null)
+                # Quick PR check with timeout to prevent hanging
+                # gh has internal caching, so this is fast after first run
+                pr_number=$(timeout 0.5 gh pr view --json number -q .number 2>/dev/null || echo "")
                 if [[ -n "$pr_number" ]]; then
                     pr_info=" ${CYAN}PR#${pr_number}${RESET}"
                 fi

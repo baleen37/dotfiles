@@ -54,6 +54,9 @@ in
     # Basic zsh configuration
   (helpers.assertTest "zsh-enabled" zshSettings.enable "zsh should be enabled")
   (helpers.assertTest "zsh-autocd-disabled" (!zshSettings.autocd) "zsh autocd should be disabled")
+  (helpers.assertTest "zsh-dotDir-home-directory" (
+    (zshSettings.dotDir or null) == "/home/testuser"
+  ) "zsh dotDir should be set to home directory")
   (helpers.assertTest "zsh-completion-enabled" zshSettings.enableCompletion "zsh completion should be enabled")
   (helpers.assertTest "zsh-fast-completion" (zshSettings.completionInit == "autoload -Uz compinit && compinit -C")
     "zsh should use fast completion (compinit -C)")
