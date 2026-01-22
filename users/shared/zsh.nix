@@ -82,6 +82,7 @@ in
   programs.zsh = {
     enable = true;
     autocd = false;
+    dotDir = config.home.homeDirectory;
 
     # Skip compaudit security checks for 40x faster startup (2.3s -> 0.06s)
     # Safe in Nix environment where all paths are immutable
