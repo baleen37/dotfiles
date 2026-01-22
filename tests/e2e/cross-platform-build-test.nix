@@ -207,7 +207,7 @@ nixosTest {
 
       # Determinate Nix integration
       nix.enable = false;
-      determinate-nix.customSettings = {
+      determinateNix.customSettings = {
         substituters = [
           "https://baleen-nix.cachix.org"
           "https://cache.nixos.org/"

@@ -169,7 +169,7 @@ nixosTest {
             };
 
             # Determinate Nix integration
-            determinate-nix.customSettings = cacheSettings;
+            determinateNix.customSettings = cacheSettings;
 
             # Let Determinate manage Nix on Darwin systems
             nix.enable = lib.mkIf darwin false;

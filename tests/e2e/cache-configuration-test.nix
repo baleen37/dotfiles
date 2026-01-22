@@ -227,7 +227,7 @@ nixosTest {
             };
 
             # Determinate Nix integration
-            determinate-nix.customSettings = cacheSettings;
+            determinateNix.customSettings = cacheSettings;
 
             # Let Determinate manage Nix on Darwin systems
             nix.enable = lib.mkIf darwin false;
@@ -374,11 +374,11 @@ nixosTest {
         darwin = true;
       };
 
-      # Find determinate-nix.customSettings in modules
+      # Find determinateNix.customSettings in modules
       modules = darwinConfig.modules;
       hasDeterminateSettings = builtins.any (x:
         if builtins.isAttrs x then
-          (x ? "determinate-nix" && x."determinate-nix" ? "customSettings")
+          (x ? "determinateNix" && x."determinateNix" ? "customSettings")
         else
           false
       ) modules;
