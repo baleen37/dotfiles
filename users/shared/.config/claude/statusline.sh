@@ -46,19 +46,10 @@ input=$(cat)
 model_name=$(echo "$input" | jq -r '.model.display_name // "Claude"')
 current_dir=$(echo "$input" | jq -r '.workspace.current_dir // "."')
 
-# Extract context length from context_window
-context_length=$(echo "$input" | jq -r '
-    (.context_window.current_usage.input_tokens // 0) +
-    (.context_window.current_usage.cache_read_input_tokens // 0) +
-    (.context_window.current_usage.cache_creation_input_tokens // 0)
-' 2>/dev/null)
-
-# Format context length (e.g., 18.6k)
-if [[ "$context_length" -ge 1000 ]]; then
-    ctx_display=$(awk "BEGIN {printf \"%.1fk\", $context_length/1000}")
-else
-    ctx_display="$context_length"
-fi
+# Extract context usage percentage from context_window
+# Used percentage is more reliable across different models (e.g., glm-4.7 vs Sonnet 4.5)
+context_percent=$(echo "$input" | jq -r '.context_window.used_percentage // 0')
+ctx_display="${context_percent}%"
 
 # Get current directory relative to home directory
 if [[ "$current_dir" == "$HOME"* ]]; then
