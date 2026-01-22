@@ -33,4 +33,13 @@
       run chmod 644 ~/.claude/settings.json
     fi
   '';
+
+  # Auto-install plugins from baleen37/claude-plugins
+  home.activation.claudePlugins = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    if command -v claude >/dev/null 2>&1; then
+      run claude plugin marketplace add https://github.com/baleen37/claude-plugins || true
+      run claude plugin install auto-updater@baleen-plugins || true
+      run claude plugin update auto-updater@baleen-plugins || true
+    fi
+  '';
 }
