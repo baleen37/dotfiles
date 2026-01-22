@@ -155,6 +155,35 @@ let
       expectedCtx = "100";
       description = "Empty current_usage object falls back to total_input_tokens";
     };
+
+    # Bug: Very large context values (1M+ tokens) were displaying as 0.0k
+    # This test reproduces the reported bug
+    large-context-1m-tokens = {
+      input = builtins.toJSON {
+        hook_event_name = "Status";
+        model = { display_name = "Sonnet 4.5"; };
+        workspace = { current_dir = "/Users/test/dotfiles"; };
+        context_window = {
+          total_input_tokens = 1560000;
+        };
+      };
+      expectedCtx = "1560.0k";
+      description = "Large context (1.56M tokens) should display correctly, not as 0.0k";
+    };
+
+    # Additional large value test
+    large-context-2m-tokens = {
+      input = builtins.toJSON {
+        hook_event_name = "Status";
+        model = { display_name = "Sonnet 4.5"; };
+        workspace = { current_dir = "/Users/test/dotfiles"; };
+        context_window = {
+          total_input_tokens = 2500000;
+        };
+      };
+      expectedCtx = "2500.0k";
+      description = "Large context (2.5M tokens) should display correctly, not as 0.0k";
+    };
   };
 
   # Create individual test for each data point

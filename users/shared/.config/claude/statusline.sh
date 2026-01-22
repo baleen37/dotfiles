@@ -62,8 +62,10 @@ context_length=$(
 )
 
 # Format context length (e.g., 18.6k)
+# Ensure context_length is a valid number, default to 0 if empty/null
+: "${context_length:=0}"
 if [[ "$context_length" -ge 1000 ]]; then
-    ctx_display=$(awk "BEGIN {printf \"%.1fk\", $context_length/1000}")
+    ctx_display=$(awk -v val="$context_length" 'BEGIN {printf "%.1fk", val/1000}')
 else
     ctx_display="$context_length"
 fi
