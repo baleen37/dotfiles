@@ -42,10 +42,6 @@ readonly BOLD='\033[1m'       # Bold text
 # Read JSON input from stdin
 input=$(cat)
 
-# DEBUG: Capture actual JSON input from Claude Code
-# Save to a fixed location for inspection
-echo "$input" | jq '.' > /tmp/claude_statusline_input.json 2>/dev/null || echo "$input" > /tmp/claude_statusline_input_raw.txt
-
 # Extract data from JSON input using jq
 model_name=$(echo "$input" | jq -r '.model.display_name // "Claude"')
 current_dir=$(echo "$input" | jq -r '.workspace.current_dir // "."')
