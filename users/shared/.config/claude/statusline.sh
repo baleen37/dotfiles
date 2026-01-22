@@ -47,10 +47,15 @@ model_name=$(echo "$input" | jq -r '.model.display_name // "Claude"')
 current_dir=$(echo "$input" | jq -r '.workspace.current_dir // "."')
 
 # Extract context length from context_window
+# Try current_usage first (Claude models), fallback to total_input_tokens (glm-4.7 compatibility)
 context_length=$(echo "$input" | jq -r '
-    (.context_window.current_usage.input_tokens // 0) +
-    (.context_window.current_usage.cache_read_input_tokens // 0) +
-    (.context_window.current_usage.cache_creation_input_tokens // 0)
+    if .context_window.current_usage != null and .context_window.current_usage != {} then
+        (.context_window.current_usage.input_tokens // 0) +
+        (.context_window.current_usage.cache_read_input_tokens // 0) +
+        (.context_window.current_usage.cache_creation_input_tokens // 0)
+    else
+        .context_window.total_input_tokens // 0
+    end
 ' 2>/dev/null)
 
 # Format context length (e.g., 18.6k)
