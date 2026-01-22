@@ -160,7 +160,7 @@ in
     # Test 10: Determinate Nix integration for Darwin
     determinate-nix-darwin = helpers.assertTest "mksystem-determinate-nix-darwin" (
       let
-        # Check that determinate-nix input exists
+        # Check that determinate Nix input exists
         hasDeterminate = builtins.hasAttr "determinate" inputs;
       in
       hasDeterminate
