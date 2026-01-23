@@ -49,14 +49,19 @@ current_dir=$(echo "$input" | jq -r '.workspace.current_dir // "."')
 # Extract context length from context_window
 # Try current_usage first (Claude models), fallback to total_input_tokens (glm-4.7 compatibility)
 # Use variable binding to avoid bash history expansion issues with != operator
-# Check for null or empty object ({})
+# Check for null or empty object ({}), or zero-filled current_usage (glm-4.7 returns 0s)
 context_length=$(
     echo "$input" | jq -r '
         .context_window.current_usage as $cu |
         if $cu == null or ($cu | length) == 0 then
             .context_window.total_input_tokens // 0
         else
-            ($cu.input_tokens // 0) + ($cu.cache_read_input_tokens // 0) + ($cu.cache_creation_input_tokens // 0)
+            ((($cu.input_tokens // 0) + ($cu.cache_read_input_tokens // 0) + ($cu.cache_creation_input_tokens // 0))) as $sum |
+            if $sum == 0 then
+                .context_window.total_input_tokens // 0
+            else
+                $sum
+            end
         end
     ' 2>/dev/null
 )
