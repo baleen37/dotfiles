@@ -18,13 +18,16 @@ let
   statuslineScript = ../../users/shared/.config/claude/statusline.sh;
 
   # Helper to run statusline script with JSON input
-  runStatusline = inputData: pkgs.runCommand "statusline-test" { buildInputs = [ pkgs.jq ]; } ''
-    echo '${inputData}' | bash ${statuslineScript} > $out 2>&1 || true
-    cat $out
-  '';
+  runStatusline =
+    inputData:
+    pkgs.runCommand "statusline-test" { buildInputs = [ pkgs.jq ]; } ''
+      echo '${inputData}' | bash ${statuslineScript} > $out 2>&1 || true
+      cat $out
+    '';
 
   # Helper to extract context value from statusline output
-  extractCtxValue = output:
+  extractCtxValue =
+    output:
     let
       match = builtins.match ".*Ctx: ([0-9.]+[kK]?).*" output;
     in
@@ -39,8 +42,12 @@ let
     glm-4-7-basic = {
       input = builtins.toJSON {
         hook_event_name = "Status";
-        model = { display_name = "glm-4.7"; };
-        workspace = { current_dir = "/Users/test/dotfiles"; };
+        model = {
+          display_name = "glm-4.7";
+        };
+        workspace = {
+          current_dir = "/Users/test/dotfiles";
+        };
         context_window = {
           total_input_tokens = 1000;
           total_output_tokens = 100;
@@ -54,8 +61,12 @@ let
     glm-4-7-no-context = {
       input = builtins.toJSON {
         hook_event_name = "Status";
-        model = { display_name = "glm-4.7"; };
-        workspace = { current_dir = "/Users/test/dotfiles"; };
+        model = {
+          display_name = "glm-4.7";
+        };
+        workspace = {
+          current_dir = "/Users/test/dotfiles";
+        };
       };
       expectedCtx = "0";
       description = "glm-4.7 with no context_window field";
@@ -65,8 +76,12 @@ let
     sonnet-4-5-current-usage = {
       input = builtins.toJSON {
         hook_event_name = "Status";
-        model = { display_name = "Sonnet 4.5"; };
-        workspace = { current_dir = "/Users/test/dotfiles"; };
+        model = {
+          display_name = "Sonnet 4.5";
+        };
+        workspace = {
+          current_dir = "/Users/test/dotfiles";
+        };
         context_window = {
           current_usage = {
             input_tokens = 1000;
@@ -84,8 +99,12 @@ let
     sonnet-4-5-no-cache = {
       input = builtins.toJSON {
         hook_event_name = "Status";
-        model = { display_name = "Sonnet 4.5"; };
-        workspace = { current_dir = "/Users/test/dotfiles"; };
+        model = {
+          display_name = "Sonnet 4.5";
+        };
+        workspace = {
+          current_dir = "/Users/test/dotfiles";
+        };
         context_window = {
           current_usage = {
             input_tokens = 500;
@@ -101,8 +120,12 @@ let
     fallback-to-total = {
       input = builtins.toJSON {
         hook_event_name = "Status";
-        model = { display_name = "Unknown Model"; };
-        workspace = { current_dir = "/Users/test/dotfiles"; };
+        model = {
+          display_name = "Unknown Model";
+        };
+        workspace = {
+          current_dir = "/Users/test/dotfiles";
+        };
         context_window = {
           current_usage = null;
           total_input_tokens = 2500;
@@ -117,8 +140,12 @@ let
     large-tokens = {
       input = builtins.toJSON {
         hook_event_name = "Status";
-        model = { display_name = "Sonnet 4.5"; };
-        workspace = { current_dir = "/Users/test/dotfiles"; };
+        model = {
+          display_name = "Sonnet 4.5";
+        };
+        workspace = {
+          current_dir = "/Users/test/dotfiles";
+        };
         context_window = {
           total_input_tokens = 18600;
         };
@@ -131,8 +158,12 @@ let
     very-large-tokens = {
       input = builtins.toJSON {
         hook_event_name = "Status";
-        model = { display_name = "Sonnet 4.5"; };
-        workspace = { current_dir = "/Users/test/dotfiles"; };
+        model = {
+          display_name = "Sonnet 4.5";
+        };
+        workspace = {
+          current_dir = "/Users/test/dotfiles";
+        };
         context_window = {
           total_input_tokens = 128000;
         };
@@ -145,8 +176,12 @@ let
     empty-current-usage = {
       input = builtins.toJSON {
         hook_event_name = "Status";
-        model = { display_name = "Some Model"; };
-        workspace = { current_dir = "/Users/test/dotfiles"; };
+        model = {
+          display_name = "Some Model";
+        };
+        workspace = {
+          current_dir = "/Users/test/dotfiles";
+        };
         context_window = {
           current_usage = { };
           total_input_tokens = 100;
@@ -155,28 +190,48 @@ let
       expectedCtx = "100";
       description = "Empty current_usage object falls back to total_input_tokens";
     };
+
+    # glm-4.7: zero-filled current_usage (all fields are 0, but object exists)
+    glm-4-7-zero-current-usage = {
+      input = builtins.toJSON {
+        hook_event_name = "Status";
+        model = {
+          display_name = "glm-4.7";
+        };
+        workspace = {
+          current_dir = "/Users/test/dotfiles";
+        };
+        context_window = {
+          current_usage = {
+            input_tokens = 0;
+            cache_read_input_tokens = 0;
+            cache_creation_input_tokens = 0;
+          };
+          total_input_tokens = 5000;
+        };
+      };
+      expectedCtx = "5.0k";
+      description = "glm-4.7 with zero-filled current_usage falls back to total_input_tokens";
+    };
   };
 
   # Create individual test for each data point
-  createTest = testName: data:
-    helpers.assertTest testName
-      (
-        let
-          # Run statusline with test input
-          result = builtins.tryEval (
-            builtins.substring 0 500 (
-              builtins.readFile (
-                runStatusline data.input
-              )
-            )
-          );
-        in
-        # Check if output contains expected context value
-        result.success &&
-        builtins.isString result.value &&
-        builtins.match ".*Ctx:[[:space:]]*${lib.escapeRegex data.expectedCtx}.*" result.value != null
-      )
-      "${data.description}: expected 'Ctx: ${data.expectedCtx}'";
+  createTest =
+    testName: data:
+    helpers.assertTest testName (
+      let
+        # Run statusline with test input
+        result = builtins.tryEval (
+          builtins.substring 0 500 (builtins.readFile (runStatusline data.input))
+        );
+      in
+      # Check if output contains expected context value
+      result.success
+      && builtins.isString result.value
+      &&
+        builtins.match ".*Ctx:[[:space:]]*${lib.escapeRegex data.expectedCtx}.*" result.value
+        != null
+    ) "${data.description}: expected 'Ctx: ${data.expectedCtx}'";
 
 in
 {
