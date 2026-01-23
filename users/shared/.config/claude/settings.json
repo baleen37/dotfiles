@@ -38,6 +38,7 @@
     "command": "~/.claude/statusline.sh"
   },
   "alwaysThinkingEnabled": false,
+  "installMethod": "native",
   "rejectedMcpServers": [],
   "feedbackSurveyState": {
     "lastShownTime": 1755225425616
