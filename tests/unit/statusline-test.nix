@@ -213,6 +213,49 @@ let
       expectedCtx = "5.0k";
       description = "glm-4.7 with zero-filled current_usage falls back to total_input_tokens";
     };
+
+    # Bug: Very large context values (1M+ tokens) should display with M suffix
+    # This test reproduces the reported bug and verifies M suffix formatting
+    large-context-1m-tokens = {
+      input = builtins.toJSON {
+        hook_event_name = "Status";
+        model = { display_name = "Sonnet 4.5"; };
+        workspace = { current_dir = "/Users/test/dotfiles"; };
+        context_window = {
+          total_input_tokens = 1560000;
+        };
+      };
+      expectedCtx = "1.6M";
+      description = "Large context (1.56M tokens) should display with M suffix";
+    };
+
+    # Additional large value test
+    large-context-2m-tokens = {
+      input = builtins.toJSON {
+        hook_event_name = "Status";
+        model = { display_name = "Sonnet 4.5"; };
+        workspace = { current_dir = "/Users/test/dotfiles"; };
+        context_window = {
+          total_input_tokens = 2500000;
+        };
+      };
+      expectedCtx = "2.5M";
+      description = "Large context (2.5M tokens) should display with M suffix";
+    };
+
+    # Edge case: exactly 1M tokens
+    exact-1m-tokens = {
+      input = builtins.toJSON {
+        hook_event_name = "Status";
+        model = { display_name = "Sonnet 4.5"; };
+        workspace = { current_dir = "/Users/test/dotfiles"; };
+        context_window = {
+          total_input_tokens = 1000000;
+        };
+      };
+      expectedCtx = "1.0M";
+      description = "Exactly 1M tokens should display as 1.0M";
+    };
   };
 
   # Create individual test for each data point

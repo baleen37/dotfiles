@@ -66,10 +66,14 @@ context_length=$(
     ' 2>/dev/null
 )
 
-# Format context length (e.g., 18.6k)
+# Format context length (e.g., 18.6k, 1.6M)
 # Ensure context_length is a valid number, default to 0 if empty/null
 : "${context_length:=0}"
-if [[ "$context_length" -ge 1000 ]]; then
+if [[ "$context_length" -ge 1000000 ]]; then
+    # Use M suffix for values >= 1M, show one decimal place
+    ctx_display=$(awk -v val="$context_length" 'BEGIN {printf "%.1fM", val/1000000}')
+elif [[ "$context_length" -ge 1000 ]]; then
+    # Use k suffix for values >= 1k, show one decimal place
     ctx_display=$(awk -v val="$context_length" 'BEGIN {printf "%.1fk", val/1000}')
 else
     ctx_display="$context_length"
