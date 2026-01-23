@@ -47,7 +47,8 @@ model_name=$(echo "$input" | jq -r '.model.display_name // "Claude"')
 current_dir=$(echo "$input" | jq -r '.workspace.current_dir // "."')
 
 # Extract context length from context_window
-# Try current_usage first (Claude models), fallback to total_input_tokens (glm-4.7 compatibility)
+# Try current_usage first (Claude models), fallback to total_input_tokens (glm-4.7 compatibility),
+# then fallback to used_percentage calculation (for third-party models with broken token reporting)
 # Use variable binding to avoid bash history expansion issues with != operator
 # Check for null or empty object ({}), or zero-filled current_usage (glm-4.7 returns 0s)
 context_length=$(
@@ -65,6 +66,20 @@ context_length=$(
         end
     ' 2>/dev/null
 )
+
+# Final fallback: if context_length is still 0, try used_percentage * context_window_size / 100
+# This handles third-party models where current_usage and total_input_tokens are both 0 or null
+if [[ "$context_length" -eq 0 ]]; then
+    used_percentage=$(echo "$input" | jq -r '.context_window.used_percentage // empty' 2>/dev/null)
+    context_window_size=$(echo "$input" | jq -r '.context_window.context_window_size // empty' 2>/dev/null)
+
+    if [[ -n "$used_percentage" ]] && [[ "$used_percentage" != "null" ]] && \
+       [[ -n "$context_window_size" ]] && [[ "$context_window_size" != "null" ]]; then
+        # Calculate: context_length = (used_percentage / 100) * context_window_size
+        context_length=$(awk -v pct="$used_percentage" -v size="$context_window_size" \
+            'BEGIN {printf "%.0f", (pct / 100) * size}')
+    fi
+fi
 
 # Format context length (e.g., 18.6k, 1.6M)
 # Ensure context_length is a valid number, default to 0 if empty/null

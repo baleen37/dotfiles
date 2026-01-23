@@ -256,6 +256,85 @@ let
       expectedCtx = "1.0M";
       description = "Exactly 1M tokens should display as 1.0M";
     };
+
+    # NEW: used_percentage fallback - basic case
+    used-percentage-fallback = {
+      input = builtins.toJSON {
+        hook_event_name = "Status";
+        model = { display_name = "Sonnet 4.5"; };
+        workspace = { current_dir = "/Users/test/dotfiles"; };
+        context_window = {
+          used_percentage = 25.5;
+          context_window_size = 200000;
+        };
+      };
+      expectedCtx = "51.0k";
+      description = "used_percentage fallback: 25.5% of 200k = 51k tokens";
+    };
+
+    # NEW: used_percentage fallback - large value with M suffix
+    used-percentage-large = {
+      input = builtins.toJSON {
+        hook_event_name = "Status";
+        model = { display_name = "Sonnet 4.5"; };
+        workspace = { current_dir = "/Users/test/dotfiles"; };
+        context_window = {
+          used_percentage = 80;
+          context_window_size = 2000000;
+        };
+      };
+      expectedCtx = "1.6M";
+      description = "used_percentage fallback: 80% of 2M = 1.6M tokens";
+    };
+
+    # NEW: used_percentage fallback - edge case null values
+    used-percentage-null = {
+      input = builtins.toJSON {
+        hook_event_name = "Status";
+        model = { display_name = "Sonnet 4.5"; };
+        workspace = { current_dir = "/Users/test/dotfiles"; };
+        context_window = {
+          used_percentage = null;
+          context_window_size = null;
+        };
+      };
+      expectedCtx = "0";
+      description = "used_percentage fallback: null values should default to 0";
+    };
+
+    # NEW: used_percentage fallback - edge case 0 values
+    used-percentage-zero = {
+      input = builtins.toJSON {
+        hook_event_name = "Status";
+        model = { display_name = "Sonnet 4.5"; };
+        workspace = { current_dir = "/Users/test/dotfiles"; };
+        context_window = {
+          used_percentage = 0;
+          context_window_size = 0;
+        };
+      };
+      expectedCtx = "0";
+      description = "used_percentage fallback: 0 values should result in 0";
+    };
+
+    # NEW: used_percentage fallback - full chain test
+    # When both current_usage and total_input_tokens are unavailable,
+    # used_percentage should be used as final fallback
+    used-percentage-full-chain = {
+      input = builtins.toJSON {
+        hook_event_name = "Status";
+        model = { display_name = "Unknown Model"; };
+        workspace = { current_dir = "/Users/test/dotfiles"; };
+        context_window = {
+          current_usage = null;
+          total_input_tokens = null;
+          used_percentage = 50;
+          context_window_size = 100000;
+        };
+      };
+      expectedCtx = "50.0k";
+      description = "Full fallback chain: null current_usage → null total_input_tokens → used_percentage";
+    };
   };
 
   # Create individual test for each data point

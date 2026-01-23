@@ -177,5 +177,157 @@ fi
 
 rm "$temp_transcript"
 
+# Test 6: used_percentage fallback - basic case (25.5% of 200k = 51k)
+echo -n "Test 6: used_percentage fallback (25.5% of 200k = 51k)... "
+input=$(cat <<EOF
+{
+  "hook_event_name": "Status",
+  "model": {"display_name": "Sonnet 4.5"},
+  "workspace": {"current_dir": "$PWD"},
+  "context_window": {
+    "used_percentage": 25.5,
+    "context_window_size": 200000
+  }
+}
+EOF
+)
+
+if output=$(echo "$input" | bash "$STATUSLINE_SCRIPT" 2>&1); then
+  if echo "$output" | grep -q "Ctx: 51.0k"; then
+    echo -e "${GREEN}✓ PASS${NC}"
+    echo "  Output: $output" | head -1
+  else
+    echo -e "${RED}✗ FAIL${NC} - Expected 'Ctx: 51.0k'"
+    echo "Output: $output"
+    exit 1
+  fi
+else
+  echo -e "${RED}✗ FAIL${NC} - Script crashed"
+  echo "Output: $output"
+  exit 1
+fi
+
+# Test 7: used_percentage fallback - large value with M suffix (80% of 2M = 1.6M)
+echo -n "Test 7: used_percentage fallback (80% of 2M = 1.6M)... "
+input=$(cat <<EOF
+{
+  "hook_event_name": "Status",
+  "model": {"display_name": "Sonnet 4.5"},
+  "workspace": {"current_dir": "$PWD"},
+  "context_window": {
+    "used_percentage": 80,
+    "context_window_size": 2000000
+  }
+}
+EOF
+)
+
+if output=$(echo "$input" | bash "$STATUSLINE_SCRIPT" 2>&1); then
+  if echo "$output" | grep -q "Ctx: 1.6M"; then
+    echo -e "${GREEN}✓ PASS${NC}"
+    echo "  Output: $output" | head -1
+  else
+    echo -e "${RED}✗ FAIL${NC} - Expected 'Ctx: 1.6M'"
+    echo "Output: $output"
+    exit 1
+  fi
+else
+  echo -e "${RED}✗ FAIL${NC} - Script crashed"
+  echo "Output: $output"
+  exit 1
+fi
+
+# Test 8: used_percentage fallback - null values should default to 0
+echo -n "Test 8: used_percentage fallback (null values)... "
+input=$(cat <<EOF
+{
+  "hook_event_name": "Status",
+  "model": {"display_name": "Sonnet 4.5"},
+  "workspace": {"current_dir": "$PWD"},
+  "context_window": {
+    "used_percentage": null,
+    "context_window_size": null
+  }
+}
+EOF
+)
+
+if output=$(echo "$input" | bash "$STATUSLINE_SCRIPT" 2>&1); then
+  if echo "$output" | grep -q "Ctx: 0"; then
+    echo -e "${GREEN}✓ PASS${NC}"
+    echo "  Output: $output" | head -1
+  else
+    echo -e "${RED}✗ FAIL${NC} - Expected 'Ctx: 0'"
+    echo "Output: $output"
+    exit 1
+  fi
+else
+  echo -e "${RED}✗ FAIL${NC} - Script crashed"
+  echo "Output: $output"
+  exit 1
+fi
+
+# Test 9: used_percentage fallback - 0 values should result in 0
+echo -n "Test 9: used_percentage fallback (0 values)... "
+input=$(cat <<EOF
+{
+  "hook_event_name": "Status",
+  "model": {"display_name": "Sonnet 4.5"},
+  "workspace": {"current_dir": "$PWD"},
+  "context_window": {
+    "used_percentage": 0,
+    "context_window_size": 0
+  }
+}
+EOF
+)
+
+if output=$(echo "$input" | bash "$STATUSLINE_SCRIPT" 2>&1); then
+  if echo "$output" | grep -q "Ctx: 0"; then
+    echo -e "${GREEN}✓ PASS${NC}"
+    echo "  Output: $output" | head -1
+  else
+    echo -e "${RED}✗ FAIL${NC} - Expected 'Ctx: 0'"
+    echo "Output: $output"
+    exit 1
+  fi
+else
+  echo -e "${RED}✗ FAIL${NC} - Script crashed"
+  echo "Output: $output"
+  exit 1
+fi
+
+# Test 10: used_percentage fallback - full chain test
+echo -n "Test 10: used_percentage fallback (full chain)... "
+input=$(cat <<EOF
+{
+  "hook_event_name": "Status",
+  "model": {"display_name": "Unknown Model"},
+  "workspace": {"current_dir": "$PWD"},
+  "context_window": {
+    "current_usage": null,
+    "total_input_tokens": null,
+    "used_percentage": 50,
+    "context_window_size": 100000
+  }
+}
+EOF
+)
+
+if output=$(echo "$input" | bash "$STATUSLINE_SCRIPT" 2>&1); then
+  if echo "$output" | grep -q "Ctx: 50.0k"; then
+    echo -e "${GREEN}✓ PASS${NC}"
+    echo "  Output: $output" | head -1
+  else
+    echo -e "${RED}✗ FAIL${NC} - Expected 'Ctx: 50.0k'"
+    echo "Output: $output"
+    exit 1
+  fi
+else
+  echo -e "${RED}✗ FAIL${NC} - Script crashed"
+  echo "Output: $output"
+  exit 1
+fi
+
 echo
 echo -e "${GREEN}✅ All tests passed!${NC}"
