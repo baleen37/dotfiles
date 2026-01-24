@@ -259,7 +259,7 @@ fi
 current_time="$(date '+%H:%M')"
 
 # Build simple linear output - always show all components
-output_string=" ${BOLD}${BLUE}${model_name}${RESET} ${GRAY}│${RESET} ${CYAN}Ctx: ${ctx_display}${RESET} ${GRAY}│${RESET} ${PURPLE}${dir_display}${RESET}"
+output_string="${BOLD}${BLUE}${model_name}${RESET} ${GRAY}│${RESET} ${CYAN}Ctx: ${ctx_display}${RESET} ${GRAY}│${RESET} ${PURPLE}${dir_display}${RESET}"
 
 # Add git info if available
 if [[ -n "$git_info" ]]; then
@@ -277,7 +277,7 @@ if [[ -n "$node_info" ]]; then
 fi
 
 # Add time
-output_string="${output_string} ${GRAY}│${RESET} ${WHITE}${current_time}${RESET} "
+output_string="${output_string} ${GRAY}│${RESET} ${WHITE}${current_time}${RESET}"
 
 # Output the complete string
 echo -e "$output_string"
