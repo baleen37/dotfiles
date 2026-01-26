@@ -12,12 +12,6 @@
 }:
 
 {
-  # AGENTS.md: Symlink to CLAUDE.md for shared AI assistant instructions
-  home.file.".config/opencode/AGENTS.md" = {
-    source = ./.config/opencode/AGENTS.md;
-    force = true;
-  };
-
   home.file.".config/opencode/opencode.json" = {
     source = ./.config/opencode/opencode.json;
     force = true;
