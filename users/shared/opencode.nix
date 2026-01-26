@@ -17,4 +17,9 @@
     source = ./.config/opencode/AGENTS.md;
     force = true;
   };
+
+  home.file.".config/opencode/opencode.json" = {
+    source = ./.config/opencode/opencode.json;
+    force = true;
+  };
 }
