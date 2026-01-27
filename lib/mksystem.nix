@@ -76,7 +76,8 @@ systemFunc {
   ++ lib.optionals darwin [
     # Determinate Nix integration (Darwin systems only)
     inputs.determinate.darwinModules.default
-  ] ++ [
+  ]
+  ++ [
     # Home Manager integration
     inputs.home-manager.darwinModules.home-manager
     {
