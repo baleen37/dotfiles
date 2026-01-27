@@ -155,6 +155,39 @@
             }
           ];
         };
+
+        vm-x86_64-utm = nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          specialArgs = {
+            inherit inputs self;
+            currentSystem = "x86_64-linux";
+            currentSystemName = "vm-x86_64-utm";
+            currentSystemUser = user;
+            isWSL = false;
+            isDarwin = false;
+          };
+          modules = [
+            ./machines/nixos/vm-x86_64-utm.nix
+            inputs.home-manager.nixosModules.home-manager
+            {
+              home-manager = {
+                useGlobalPkgs = true;
+                useUserPackages = true;
+                users.${user} = import ./users/shared/home-manager.nix;
+                extraSpecialArgs = {
+                  inherit inputs self;
+                  currentSystemUser = user;
+                };
+              };
+
+              users.users.${user} = {
+                name = user;
+                home = "/home/${user}";
+                isNormalUser = true;
+              };
+            }
+          ];
+        };
       };
 
       # Test checks
