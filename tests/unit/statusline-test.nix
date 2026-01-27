@@ -14,8 +14,10 @@
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
 
-  # Path to statusline script
-  statuslineScript = ../../users/shared/.config/claude/statusline.sh;
+  # Copy statusline script to Nix store
+  statuslineScript = pkgs.writeScript "statusline.sh" (
+    builtins.readFile ../../users/shared/.config/claude/statusline.sh
+  );
 
   # Helper to run statusline script with JSON input
   runStatusline =
@@ -219,8 +221,12 @@ let
     large-context-1m-tokens = {
       input = builtins.toJSON {
         hook_event_name = "Status";
-        model = { display_name = "Sonnet 4.5"; };
-        workspace = { current_dir = "/Users/test/dotfiles"; };
+        model = {
+          display_name = "Sonnet 4.5";
+        };
+        workspace = {
+          current_dir = "/Users/test/dotfiles";
+        };
         context_window = {
           total_input_tokens = 1560000;
         };
@@ -233,8 +239,12 @@ let
     large-context-2m-tokens = {
       input = builtins.toJSON {
         hook_event_name = "Status";
-        model = { display_name = "Sonnet 4.5"; };
-        workspace = { current_dir = "/Users/test/dotfiles"; };
+        model = {
+          display_name = "Sonnet 4.5";
+        };
+        workspace = {
+          current_dir = "/Users/test/dotfiles";
+        };
         context_window = {
           total_input_tokens = 2500000;
         };
@@ -247,8 +257,12 @@ let
     exact-1m-tokens = {
       input = builtins.toJSON {
         hook_event_name = "Status";
-        model = { display_name = "Sonnet 4.5"; };
-        workspace = { current_dir = "/Users/test/dotfiles"; };
+        model = {
+          display_name = "Sonnet 4.5";
+        };
+        workspace = {
+          current_dir = "/Users/test/dotfiles";
+        };
         context_window = {
           total_input_tokens = 1000000;
         };
@@ -261,8 +275,12 @@ let
     used-percentage-fallback = {
       input = builtins.toJSON {
         hook_event_name = "Status";
-        model = { display_name = "Sonnet 4.5"; };
-        workspace = { current_dir = "/Users/test/dotfiles"; };
+        model = {
+          display_name = "Sonnet 4.5";
+        };
+        workspace = {
+          current_dir = "/Users/test/dotfiles";
+        };
         context_window = {
           used_percentage = 25.5;
           context_window_size = 200000;
@@ -276,8 +294,12 @@ let
     used-percentage-large = {
       input = builtins.toJSON {
         hook_event_name = "Status";
-        model = { display_name = "Sonnet 4.5"; };
-        workspace = { current_dir = "/Users/test/dotfiles"; };
+        model = {
+          display_name = "Sonnet 4.5";
+        };
+        workspace = {
+          current_dir = "/Users/test/dotfiles";
+        };
         context_window = {
           used_percentage = 80;
           context_window_size = 2000000;
@@ -291,8 +313,12 @@ let
     used-percentage-null = {
       input = builtins.toJSON {
         hook_event_name = "Status";
-        model = { display_name = "Sonnet 4.5"; };
-        workspace = { current_dir = "/Users/test/dotfiles"; };
+        model = {
+          display_name = "Sonnet 4.5";
+        };
+        workspace = {
+          current_dir = "/Users/test/dotfiles";
+        };
         context_window = {
           used_percentage = null;
           context_window_size = null;
@@ -306,8 +332,12 @@ let
     used-percentage-zero = {
       input = builtins.toJSON {
         hook_event_name = "Status";
-        model = { display_name = "Sonnet 4.5"; };
-        workspace = { current_dir = "/Users/test/dotfiles"; };
+        model = {
+          display_name = "Sonnet 4.5";
+        };
+        workspace = {
+          current_dir = "/Users/test/dotfiles";
+        };
         context_window = {
           used_percentage = 0;
           context_window_size = 0;
@@ -323,8 +353,12 @@ let
     used-percentage-full-chain = {
       input = builtins.toJSON {
         hook_event_name = "Status";
-        model = { display_name = "Unknown Model"; };
-        workspace = { current_dir = "/Users/test/dotfiles"; };
+        model = {
+          display_name = "Unknown Model";
+        };
+        workspace = {
+          current_dir = "/Users/test/dotfiles";
+        };
         context_window = {
           current_usage = null;
           total_input_tokens = null;
@@ -343,16 +377,12 @@ let
     helpers.assertTest testName (
       let
         # Run statusline with test input
-        result = builtins.tryEval (
-          builtins.substring 0 500 (builtins.readFile (runStatusline data.input))
-        );
+        result = builtins.tryEval (builtins.substring 0 500 (builtins.readFile (runStatusline data.input)));
       in
       # Check if output contains expected context value
       result.success
       && builtins.isString result.value
-      &&
-        builtins.match ".*Ctx:[[:space:]]*${lib.escapeRegex data.expectedCtx}.*" result.value
-        != null
+      && builtins.match ".*Ctx:[[:space:]]*${lib.escapeRegex data.expectedCtx}.*" result.value != null
     ) "${data.description}: expected 'Ctx: ${data.expectedCtx}'";
 
 in
