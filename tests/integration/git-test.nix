@@ -48,30 +48,23 @@ let
 in
 helpers.testSuite "git" [
   # Test that git.nix can be imported and is usable (behavioral)
-  (helpers.assertTest "git-config-usable" gitConfigUsable
-    "git.nix should be importable and usable")
+  (helpers.assertTest "git-config-usable" gitConfigUsable "git.nix should be importable and usable")
 
   # Test that git is enabled
-  (helpers.assertTest "git-enabled" gitEnabled
-    "git should be enabled")
+  (helpers.assertTest "git-enabled" gitEnabled "git should be enabled")
 
   # Test that user settings exist
-  (helpers.assertTest "user-settings-exist" hasUserSettings
-    "git user settings should exist")
+  (helpers.assertTest "user-settings-exist" hasUserSettings "git user settings should exist")
 
   # Test that LFS is enabled
-  (helpers.assertTest "lfs-enabled" lfsEnabled
-    "git LFS should be enabled")
+  (helpers.assertTest "lfs-enabled" lfsEnabled "git LFS should be enabled")
 
   # Test that ignores exist
-  (helpers.assertTest "ignores-exist" hasIgnores
-    "git ignores should exist")
+  (helpers.assertTest "ignores-exist" hasIgnores "git ignores should exist")
 
   # Test that default branch is main
-  (helpers.assertTest "default-branch-main" hasMainBranch
-    "git default branch should be main")
+  (helpers.assertTest "default-branch-main" hasMainBranch "git default branch should be main")
 
   # Test that pull rebase is enabled
-  (helpers.assertTest "pull-rebase-enabled" pullRebaseEnabled
-    "git pull rebase should be enabled")
+  (helpers.assertTest "pull-rebase-enabled" pullRebaseEnabled "git pull rebase should be enabled")
 ]

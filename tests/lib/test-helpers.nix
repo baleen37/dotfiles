@@ -247,12 +247,10 @@ rec {
     name: property: testValues:
     let
       # Test each value with the property
-      testResults = builtins.map (
-        value: {
-          value = value;
-          result = builtins.tryEval (property value);
-        }
-      ) testValues;
+      testResults = builtins.map (value: {
+        value = value;
+        result = builtins.tryEval (property value);
+      }) testValues;
 
       # Check if all tests passed
       allPassed = builtins.all (test: test.result.success) testResults;
@@ -284,28 +282,23 @@ rec {
     name: property: testValueSets:
     let
       # Generate all combinations of test values
-      generateCombinations = valueSets:
+      generateCombinations =
+        valueSets:
         if builtins.length valueSets == 0 then
-          [ [] ]
+          [ [ ] ]
         else
           let
             rest = generateCombinations (builtins.tail valueSets);
             current = builtins.head valueSets;
           in
-          builtins.concatLists (
-            builtins.map (combo:
-              builtins.map (val: [val] ++ combo) current
-            ) rest
-          );
+          builtins.concatLists (builtins.map (combo: builtins.map (val: [ val ] ++ combo) current) rest);
 
       # Test each combination with the property
       combinations = generateCombinations testValueSets;
-      testResults = builtins.map (
-        values: {
-          values = values;
-          result = builtins.tryEval (builtins.foldl' (acc: v: acc v) property values);
-        }
-      ) combinations;
+      testResults = builtins.map (values: {
+        values = values;
+        result = builtins.tryEval (builtins.foldl' (acc: v: acc v) property values);
+      }) combinations;
 
       # Check if all tests passed
       allPassed = builtins.all (test: test.result.success) testResults;
@@ -358,23 +351,25 @@ rec {
         }
       '';
     in
-    pkgs.runCommand "perf-test-${name}" {
-      buildInputs = [ pkgs.bc ];
-      passthru.script = performanceScript;
-    } ''
-      echo "🕒 Running performance test: ${name}"
-      echo "Expected bound: ${toString expectedBoundMs}ms"
-      echo "Command: ${command}"
-      echo ""
+    pkgs.runCommand "perf-test-${name}"
+      {
+        buildInputs = [ pkgs.bc ];
+        passthru.script = performanceScript;
+      }
+      ''
+        echo "🕒 Running performance test: ${name}"
+        echo "Expected bound: ${toString expectedBoundMs}ms"
+        echo "Command: ${command}"
+        echo ""
 
-      ${performanceScript}
+        ${performanceScript}
 
-      if [ $? -eq 0 ]; then
-        touch $out
-      else
-        exit 1
-      fi
-    '';
+        if [ $? -eq 0 ]; then
+          touch $out
+        else
+          exit 1
+        fi
+      '';
 
   # Property testing helper for all cases (forAllCases)
   # Tests a property across all test cases using helper pattern
@@ -392,7 +387,8 @@ rec {
         if propertyResult.success then
           assertTest caseName propertyResult.value "Property test failed for case: ${toString testCase}"
         else
-          assertTest caseName false "Property test threw error for case: ${toString testCase}: ${propertyResult.value}"
+          assertTest caseName false
+            "Property test threw error for case: ${toString testCase}: ${propertyResult.value}"
       ) testCases;
 
       # Create a summary test that aggregates all results
@@ -410,7 +406,7 @@ rec {
       '';
     in
     # Return test suite with all individual tests and summary
-    testSuite "${testName}-property-tests" (individualTests ++ [summaryTest]);
+    testSuite "${testName}-property-tests" (individualTests ++ [ summaryTest ]);
 
   # Backward compatibility alias for mkSimpleTest
   mkSimpleTest = mkTest;

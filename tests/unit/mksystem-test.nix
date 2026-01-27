@@ -35,19 +35,23 @@ in
 helpers.testSuite "mksystem" [
   # Test mkSystem file importability and functionality
   (helpers.assertTest "mksystem-file-importable" fileImportable
-    "mkSystem.nix should be importable and return a function")
+    "mkSystem.nix should be importable and return a function"
+  )
 
   # Test mkSystem function existence and callability
   (helpers.assertTest "mksystem-function-exists" testFunctionExists
-    "mkSystem function should exist and be callable")
+    "mkSystem function should exist and be callable"
+  )
 
   # Test mkSystem accepts inputs parameter
   (helpers.assertTest "mksystem-accepts-inputs" canCallWithInputs.success
-    "mkSystem should accept inputs parameter")
+    "mkSystem should accept inputs parameter"
+  )
 
   # Test mkSystem returns function after inputs
   (helpers.assertTest "mksystem-returns-function" returnsFunction
-    "mkSystem should return function after inputs are provided")
+    "mkSystem should return function after inputs are provided"
+  )
 
   # Note: Smoke test skipped - calling mkSystem requires file dependencies
 ]

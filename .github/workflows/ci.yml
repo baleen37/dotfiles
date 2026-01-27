@@ -85,9 +85,15 @@ jobs:
               | jq -r '.[].outputs | to_entries[].value' \
               | cachix push baleen-nix || echo "Cache upload incomplete"
           else
-            export NIXNAME=vm-aarch64-utm
-            # Cache Linux build (use x86_64 since that's our runner)
-            nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel' --json \
-              | jq -r '.[].outputs | to_entries[].value' \
-              | cachix push baleen-nix || echo "Cache upload incomplete"
+            if [ "${{ matrix.arch }}" = "x86_64" ]; then
+              # Linux x64: x86_64-linux (native)
+              nix build '.#nixosConfigurations.vm-x86_64-utm.config.system.build.toplevel' --json \
+                | jq -r '.[].outputs | to_entries[].value' \
+                | cachix push baleen-nix || echo "Cache upload incomplete"
+            else
+              # Linux ARM64: aarch64-linux (native)
+              nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel' --json \
+                | jq -r '.[].outputs | to_entries[].value' \
+                | cachix push baleen-nix || echo "Cache upload incomplete"
+            fi
           fi

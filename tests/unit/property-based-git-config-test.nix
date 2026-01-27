@@ -91,7 +91,8 @@ let
   ];
 
   # Property: User identity validation
-  validateUserIdentity = user:
+  validateUserIdentity =
+    user:
     let
       nameValid = builtins.match "^[A-Za-z ]+$" user.name != null;
       emailValid = builtins.match "^[^@]+@[^@]+\\.[^@]+$" user.email != null;
@@ -100,35 +101,65 @@ let
     nameValid && emailValid && usernameValid;
 
   # Property: Git alias safety
-  validateAliasSafety = config:
+  validateAliasSafety =
+    config:
     let
       # Define aliases based on configuration
-      aliases = if config.withAliases then
-        [ "st=status" "co=checkout" "br=branch" "ci=commit" "df=diff" "lg=log --graph --oneline" "aa=add --all" "cm=commit -m" ]
-      else
-        [ "st=status" "co=checkout" "br=branch" "ci=commit" "df=diff" "lg=log --graph --oneline" ];
+      aliases =
+        if config.withAliases then
+          [
+            "st=status"
+            "co=checkout"
+            "br=branch"
+            "ci=commit"
+            "df=diff"
+            "lg=log --graph --oneline"
+            "aa=add --all"
+            "cm=commit -m"
+          ]
+        else
+          [
+            "st=status"
+            "co=checkout"
+            "br=branch"
+            "ci=commit"
+            "df=diff"
+            "lg=log --graph --oneline"
+          ];
 
       # Extract commands from aliases
-      commands = map (alias:
+      commands = map (
+        alias:
         let
           parts = lib.splitString "=" alias;
           command = if builtins.length parts > 1 then lib.last parts else "";
-        in command
+        in
+        command
       ) aliases;
 
       # Check for dangerous commands
-      dangerousPatterns = [ "rm -rf" "sudo " "chmod 777" "chown " "format " "fdisk" ];
-      hasDangerous = builtins.any (cmd:
-        builtins.any (pattern: lib.hasInfix pattern cmd) commands
+      dangerousPatterns = [
+        "rm -rf"
+        "sudo "
+        "chmod 777"
+        "chown "
+        "format "
+        "fdisk"
+      ];
+      hasDangerous = builtins.any (
+        cmd: builtins.any (pattern: lib.hasInfix pattern cmd) commands
       ) dangerousPatterns;
 
       # Check for empty commands
       hasEmpty = builtins.any (cmd: cmd == "") commands;
 
       # Check for essential aliases
-      aliasNames = map (alias:
-        let parts = lib.splitString "=" alias;
-        in if builtins.length parts > 0 then lib.head parts else ""
+      aliasNames = map (
+        alias:
+        let
+          parts = lib.splitString "=" alias;
+        in
+        if builtins.length parts > 0 then lib.head parts else ""
       ) aliases;
       hasSt = builtins.any (name: name == "st") aliasNames;
       hasCi = builtins.any (name: name == "ci") aliasNames;
@@ -136,10 +167,11 @@ let
     !hasDangerous && !hasEmpty && hasSt && hasCi;
 
   # Property: Platform configuration validity
-  validatePlatformConfig = platform:
-    platform.autocrlf == (if platform.name == "darwin" then "input" else "false") &&
-    platform.editor == "vim" &&
-    platform.defaultBranch == "main";
+  validatePlatformConfig =
+    platform:
+    platform.autocrlf == (if platform.name == "darwin" then "input" else "false")
+    && platform.editor == "vim"
+    && platform.defaultBranch == "main";
 
 in
 # Helper-based property test suite

@@ -54,30 +54,27 @@ let
 in
 helpers.testSuite "vim" [
   # Test that vim.nix can be imported and is usable (behavioral)
-  (helpers.assertTest "vim-config-usable" vimConfigUsable
-    "vim.nix should be importable and usable")
+  (helpers.assertTest "vim-config-usable" vimConfigUsable "vim.nix should be importable and usable")
 
   # Test that vim is enabled
-  (helpers.assertTest "vim-enabled" vimEnabled
-    "vim should be enabled")
+  (helpers.assertTest "vim-enabled" vimEnabled "vim should be enabled")
 
   # Test that vim plugins exist
-  (helpers.assertTest "vim-plugins-exist" hasPlugins
-    "vim plugins should exist")
+  (helpers.assertTest "vim-plugins-exist" hasPlugins "vim plugins should exist")
 
   # Test that vim settings exist
-  (helpers.assertTest "vim-settings-exist" hasSettings
-    "vim settings should exist")
+  (helpers.assertTest "vim-settings-exist" hasSettings "vim settings should exist")
 
   # Test that vim has extraConfig
   (helpers.assertTest "vim-extra-config" hasExtraConfig
-    "vim should have extraConfig for custom key bindings")
+    "vim should have extraConfig for custom key bindings"
+  )
 
   # Test that airline plugin is present
-  (helpers.assertTest "vim-airline-plugin" hasAirlinePlugin
-    "vim airline plugin should be present")
+  (helpers.assertTest "vim-airline-plugin" hasAirlinePlugin "vim airline plugin should be present")
 
   # Test that tmux-navigator plugin is present
   (helpers.assertTest "vim-tmux-navigator" hasTmuxNavigator
-    "vim tmux-navigator plugin should be present")
+    "vim tmux-navigator plugin should be present"
+  )
 ]

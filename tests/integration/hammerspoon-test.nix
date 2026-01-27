@@ -53,30 +53,32 @@ in
 helpers.testSuite "hammerspoon" [
   # Test that Hammerspoon config directory is readable and usable
   (helpers.assertTest "hammerspoon-dir-usable" hammerspoonDirUsable
-    "Hammerspoon directory should be readable and usable")
+    "Hammerspoon directory should be readable and usable"
+  )
 
   # Test that init.lua is readable and has content
-  (helpers.assertTest "init-lua-usable" initLuaUsable
-    "init.lua should be readable and have content")
+  (helpers.assertTest "init-lua-usable" initLuaUsable "init.lua should be readable and have content")
 
   # Test that configApplications.lua is readable and has content
   (helpers.assertTest "config-apps-usable" configAppsUsable
-    "configApplications.lua should be readable and have content")
+    "configApplications.lua should be readable and have content"
+  )
 
   # Test that Spoons directory is readable and usable
   (helpers.assertTest "spoons-dir-usable" spoonsDirUsable
-    "Spoons directory should be readable and usable")
+    "Spoons directory should be readable and usable"
+  )
 
   # Test that all required files exist
-  (helpers.assertTest "required-files-exist" hasRequiredFiles
-    "All required files should exist")
+  (helpers.assertTest "required-files-exist" hasRequiredFiles "All required files should exist")
 
   # Test that all expected Spoons exist
   (helpers.assertTest "expected-spoons-exist" hasExpectedSpoons
-    "All expected Spoons should exist (Hyper, Headspace, HyperModal)")
+    "All expected Spoons should exist (Hyper, Headspace, HyperModal)"
+  )
 
   # Test that directory has expected structure (behavioral)
-  (helpers.assertTest "directory-structure"
-    (hammerspoonDirUsable && initLuaUsable && configAppsUsable && spoonsDirUsable)
-    "Directory structure should be correct and usable")
+  (helpers.assertTest "directory-structure" (
+    hammerspoonDirUsable && initLuaUsable && configAppsUsable && spoonsDirUsable
+  ) "Directory structure should be correct and usable")
 ]
