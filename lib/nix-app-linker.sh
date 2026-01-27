@@ -34,13 +34,6 @@ link_nix_apps() {
   echo "  🔍 Dynamically scanning for all GUI apps in Nix store..."
 
   local additional_apps=0
-  local excluded_apps=("WezTerm.app")
-
-  # 특별한 경로 패턴을 가진 앱들의 예외 처리
-  local special_patterns=(
-    "*/qttools-*/bin/*.app"
-    "*/qtdeclarative-*/bin/*.app"
-  )
 
   # Nix store에서 모든 .app 디렉토리 동적 검색 (성능 최적화됨)
   local discovered_apps=()

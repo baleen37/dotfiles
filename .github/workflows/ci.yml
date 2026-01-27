@@ -18,8 +18,8 @@ env:
   NIX_CONFIG: |
     max-jobs = auto
     cores = 0
-    substituters = https://cache.nixos.org https://nix-community.cachix.org https://baleen-nix.cachix.org
-    trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= baleen-nix.cachix.org-1:awgC7Sut148An/CZ6TZA+wnUtJmJnOvl5NThGio9j5k=
+    substituters = https://cache.nixos.org https://nix-community.cachix.org
+    trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
     fallback = true
     narinfo-cache-negative-ttl = 0
 
@@ -47,28 +47,64 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Clear Nix store cache
+        shell: bash
+        run: |
+          echo "Clearing Nix store to avoid stale derivations..."
+          rm -rf ~/.cache/nix ~/.local/state/nix || true
+          echo "Nix store cache cleared"
+
       - name: Setup Nix with cache
         uses: ./.github/actions/setup-nix
 
+      - name: Install pre-commit
+        run: |
+          if command -v pre-commit &> /dev/null; then
+            echo "pre-commit already installed"
+          else
+            pip install pre-commit
+          fi
+
+      - name: Run pre-commit hooks
+        run: pre-commit run --all-files
+
       - name: Fast container tests
+        continue-on-error: false
         run: |
           export USER=${USER:-ci}
           export TEST_USER=${TEST_USER:-testuser}  # Ensure consistent test user
-          echo "🚀 Running fast container tests with static test user..."
-          make test
+          echo "Running fast container tests with static test user..."
+          echo "Environment info:"
+          echo "  - USER: $USER"
+          echo "  - TEST_USER: $TEST_USER"
+          echo "  - RUNNER_OS: $RUNNER_OS"
+          make test || {
+            echo "❌ Fast container tests failed"
+            echo "This may be due to cache service issues, not code problems"
+            exit 1
+          }
 
       - name: Full test suite
         if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+        continue-on-error: false
         run: |
           export USER=${USER:-ci}
           export TEST_USER=${TEST_USER:-testuser}  # Ensure consistent test user
-          echo "🔬 Running full test suite with static test user..."
-          make test-all
+          echo "Running full test suite with static test user..."
+          echo "Environment info:"
+          echo "  - USER: $USER"
+          echo "  - TEST_USER: $TEST_USER"
+          echo "  - RUNNER_OS: $RUNNER_OS"
+          make test-all || {
+            echo "❌ Full test suite failed"
+            echo "This may be due to cache service issues, not code problems"
+            exit 1
+          }
 
       - name: Test secrets backup
         run: |
           export USER=${USER:-ci}
-          echo "🔐 Testing secrets backup (dry-run)..."
+          echo "Testing secrets backup (dry-run)..."
           make -n secrets/backup
 
       - name: Upload to Cachix
@@ -76,14 +112,16 @@ jobs:
         env:
           USER: ${USER:-ci}
           CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
+        continue-on-error: true
         run: |
           export USER=${USER:-ci}
+          echo "Uploading to Cachix (continue-on-error enabled)..."
           if [ "$RUNNER_OS" = "macOS" ]; then
             export NIXNAME=macbook-pro
             # Cache macOS build
             nix build '.#darwinConfigurations.macbook-pro.system' --json \
               | jq -r '.[].outputs | to_entries[].value' \
-              | cachix push baleen-nix || echo "Cache upload incomplete"
+              | cachix push baleen-nix || echo "⚠️ Cache upload incomplete - continuing..."
           else
             if [ "${{ matrix.arch }}" = "x86_64" ]; then
               # Linux x64: x86_64-linux (native)

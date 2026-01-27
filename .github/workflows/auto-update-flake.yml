@@ -29,32 +29,23 @@ jobs:
       pr-number: ${{ steps.create-pr.outputs.pr-number }}
 
     steps:
+      - name: Generate GitHub App Token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: 2439184
+          private-key: ${{ secrets.APP_AUTO_UPDATE_KEY }}
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.REPO_PAT }}
+          token: ${{ steps.app-token.outputs.token }}
           fetch-depth: 0
 
-      - name: Install Nix
-        uses: cachix/install-nix-action@v25
+      - name: Setup Nix with cache
+        uses: ./.github/actions/setup-nix
         with:
-          nix_path: nixpkgs=channel:nixos-unstable
-          extra_nix_config: |
-            max-jobs = auto
-            cores = 0
-            substituters = https://cache.nixos.org https://nix-community.cachix.org
-            trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
-
-      - name: Cache Nix store
-        uses: actions/cache@v4
-        with:
-          path: |
-            /nix/store
-            ~/.cache/nix
-          key: ${{ runner.os }}-auto-update-nix-${{ hashFiles('flake.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-auto-update-nix-
-            ${{ runner.os }}-nix-
+          cache-mode: restore-only
 
       - name: Configure Git for updates
         run: |
@@ -150,33 +141,11 @@ jobs:
 
           echo "::endgroup::"
 
-      - name: Close existing dependency PRs
-        if: steps.check-changes.outputs.has-changes == 'true'
-        env:
-          GITHUB_TOKEN: ${{ secrets.REPO_PAT }}
-        run: |
-          echo "::group::Closing existing dependency update PRs"
-
-          # Find all open PRs with dependencies label
-          EXISTING_PRS=$(gh pr list --label "dependencies" --state open --json number --jq '.[].number')
-
-          if [ -n "$EXISTING_PRS" ]; then
-            echo "Found existing dependency PRs to close:"
-            for pr in $EXISTING_PRS; do
-              echo "  Closing PR #$pr"
-              gh pr close "$pr" --comment "Superseded by newer dependency update"
-            done
-          else
-            echo "No existing dependency PRs to close"
-          fi
-
-          echo "::endgroup::"
-
       - name: Create Pull Request
         if: steps.check-changes.outputs.has-changes == 'true'
         id: create-pr
         env:
-          GITHUB_TOKEN: ${{ secrets.REPO_PAT }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           echo "::group::Creating Pull Request"
 
@@ -194,148 +163,68 @@ jobs:
           echo "::notice::Created PR #$PR_NUMBER: $PR_URL"
           echo "::endgroup::"
 
-  enable-auto-merge:
-    runs-on: ubuntu-latest
-    needs: update-dependencies
-    if: needs.update-dependencies.outputs.has-changes == 'true'
-    timeout-minutes: 35
-
-    steps:
-      - name: Wait for CI checks to complete
+      - name: Close existing dependency PRs
+        if: steps.check-changes.outputs.has-changes == 'true'
         env:
-          GITHUB_TOKEN: ${{ secrets.REPO_PAT }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
-          echo "::group::Waiting for CI checks to complete"
+          echo "::group::Closing existing dependency update PRs"
 
-          PR_NUMBER="${{ needs.update-dependencies.outputs.pr-number }}"
-          MAX_WAIT=1800  # 30 minutes for CI completion
-          WAIT_TIME=0
+          NEW_PR_NUMBER="${{ steps.create-pr.outputs.pr-number }}"
 
-          # Required checks that must pass before merge
-          REQUIRED_CHECKS=("CI Summary" "Validate & Lint")
+          # Find all open PRs with dependencies label, excluding the newly created one
+          EXISTING_PRS=$(gh pr list --label "dependencies" --state open --json number --jq ".[] | select(.number != $NEW_PR_NUMBER) | .number")
 
-          echo "Required CI checks that must pass:"
-          for check in "${REQUIRED_CHECKS[@]}"; do
-            echo "  - $check"
-          done
-          echo ""
-
-          while [ $WAIT_TIME -lt $MAX_WAIT ]; do
-            echo "Checking CI status... (${WAIT_TIME}s elapsed)"
-
-            # Get the latest commit SHA for the PR
-            COMMIT_SHA=$(gh api repos/$REPO/pulls/$PR_NUMBER --jq '.head.sha')
-
-            # Check status of all required checks
-            ALL_PASSED=true
-            CHECKS_STATUS=""
-
-            for required_check in "${REQUIRED_CHECKS[@]}"; do
-              # Get check run status for this specific check
-              CHECK_RESULT=$(gh api repos/$REPO/commits/$COMMIT_SHA/check-runs \
-                --jq ".check_runs[] | select(.name == \"$required_check\") | .conclusion" 2>/dev/null || echo "")
-
-              if [ -z "$CHECK_RESULT" ]; then
-                # Check if it's a status check instead of check run
-                STATUS_RESULT=$(gh api repos/$REPO/commits/$COMMIT_SHA/status \
-                  --jq ".statuses[] | select(.context == \"$required_check\") | .state" 2>/dev/null || echo "")
-
-                if [ -z "$STATUS_RESULT" ]; then
-                  CHECK_STATUS="pending"
-                  ALL_PASSED=false
-                else
-                  CHECK_STATUS="$STATUS_RESULT"
-                  if [ "$STATUS_RESULT" != "success" ]; then
-                    ALL_PASSED=false
-                  fi
-                fi
-              else
-                CHECK_STATUS="$CHECK_RESULT"
-                if [ "$CHECK_RESULT" != "success" ]; then
-                  ALL_PASSED=false
-                fi
-              fi
-
-              CHECKS_STATUS="$CHECKS_STATUS$required_check: $CHECK_STATUS\n"
+          if [ -n "$EXISTING_PRS" ]; then
+            echo "Found existing dependency PRs to close:"
+            for pr in $EXISTING_PRS; do
+              echo "  Closing PR #$pr"
+              gh pr close "$pr" --comment "Auto-closed: Branch was BEHIND main. See #$NEW_PR_NUMBER for latest update."
             done
-
-            echo -e "Current check status:\n$CHECKS_STATUS"
-
-            if [ "$ALL_PASSED" = true ]; then
-              echo "✅ All required CI checks have passed!"
-              break
-            fi
-
-            # Check if any required check failed
-            if echo -e "$CHECKS_STATUS" | grep -E "(failure|error|cancelled)"; then
-              echo "❌ Some required CI checks have failed. Auto-merge will not proceed."
-              echo "::error::CI checks failed - auto-merge cancelled"
-              exit 1
-            fi
-
-            sleep 60  # Check every minute
-            WAIT_TIME=$((WAIT_TIME + 60))
-          done
-
-          if [ $WAIT_TIME -ge $MAX_WAIT ]; then
-            echo "::error::Timeout waiting for CI checks to complete"
-            echo "Auto-merge will not proceed due to incomplete CI"
-            exit 1
+          else
+            echo "No existing dependency PRs to close"
           fi
 
           echo "::endgroup::"
 
-      - name: Enable auto-merge
+  enable-auto-merge:
+    runs-on: ubuntu-latest
+    needs: update-dependencies
+    if: needs.update-dependencies.outputs.has-changes == 'true'
+    timeout-minutes: 10
+
+    steps:
+      - name: Generate GitHub App Token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: 2439184
+          private-key: ${{ secrets.APP_AUTO_UPDATE_KEY }}
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Enable GitHub auto-merge
         env:
-          GITHUB_TOKEN: ${{ secrets.REPO_PAT }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+          PR_NUMBER: ${{ needs.update-dependencies.outputs.pr-number }}
         run: |
-          echo "::group::Enabling auto-merge"
+          echo "::group::Enabling GitHub built-in auto-merge"
 
-          PR_NUMBER="${{ needs.update-dependencies.outputs.pr-number }}"
+          echo "Enabling auto-merge for PR #$PR_NUMBER"
 
-          # Double-check that all CI checks are still passing before enabling auto-merge
-          echo "Final verification of CI status before enabling auto-merge..."
+          # Enable GitHub's built-in auto-merge - this will auto-merge when CI passes
+          gh pr merge "$PR_NUMBER" \
+            --auto \
+            --squash \
+            --repo "$REPO" \
+            --delete-branch || {
+            echo "::warning::Failed to enable auto-merge via CLI"
+            echo "::notice::PR will need manual merge or GitHub UI auto-merge"
+          }
 
-          COMMIT_SHA=$(gh api repos/$REPO/pulls/$PR_NUMBER --jq '.head.sha')
-          REQUIRED_CHECKS=("CI Summary" "Validate & Lint")
-
-          FINAL_CHECK_PASSED=true
-          for required_check in "${REQUIRED_CHECKS[@]}"; do
-            CHECK_RESULT=$(gh api repos/$REPO/commits/$COMMIT_SHA/check-runs \
-              --jq ".check_runs[] | select(.name == \"$required_check\") | .conclusion" 2>/dev/null || echo "")
-
-            if [ -z "$CHECK_RESULT" ]; then
-              STATUS_RESULT=$(gh api repos/$REPO/commits/$COMMIT_SHA/status \
-                --jq ".statuses[] | select(.context == \"$required_check\") | .state" 2>/dev/null || echo "")
-              CHECK_RESULT="$STATUS_RESULT"
-            fi
-
-            echo "Final check - $required_check: $CHECK_RESULT"
-
-            if [ "$CHECK_RESULT" != "success" ]; then
-              echo "❌ Check $required_check is not successful: $CHECK_RESULT"
-              FINAL_CHECK_PASSED=false
-            fi
-          done
-
-          if [ "$FINAL_CHECK_PASSED" != true ]; then
-            echo "::error::CI checks are not all passing. Auto-merge aborted."
-            echo "::notice::Please wait for all CI checks to pass before manual merge"
-            exit 1
-          fi
-
-          # Enable auto-merge with squash only after confirming CI success
-          if gh pr merge "$PR_NUMBER" --auto --squash --repo "$REPO"; then
-            echo "::notice::✅ Auto-merge enabled for PR #$PR_NUMBER"
-            echo "::notice::All required CI checks have passed"
-            echo "::notice::PR will be automatically merged when branch protection allows"
-          else
-            echo "::error::Failed to enable auto-merge for PR #$PR_NUMBER"
-            echo "::notice::All CI checks passed, but auto-merge setup failed"
-            echo "::notice::PR may need to be merged manually"
-
-            # Show current PR status for debugging
-            gh pr view "$PR_NUMBER" --json mergeable,mergeStateStatus,statusCheckRollup --repo "$REPO"
-          fi
-
+          echo "::notice::Auto-merge request sent for PR #$PR_NUMBER"
+          echo "::notice::PR will automatically merge when all CI checks pass"
           echo "::endgroup::"

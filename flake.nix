@@ -16,6 +16,9 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
+    # Claude Code - latest stable
+    claude-code.url = "github:sadjow/claude-code-nix/main";
+
     darwin = {
       url = "github:LnL7/nix-darwin";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -46,10 +49,24 @@
       home-manager,
       nixos-generators,
       determinate,
+      claude-code,
       ...
     }@inputs:
     let
-      mkSystem = import ./lib/mksystem.nix { inherit inputs self; };
+      # Overlays for unstable packages
+      overlays = [
+        (final: prev: {
+          unstable = import nixpkgs-unstable {
+            inherit (prev) system;
+            config.allowUnfree = true;
+          };
+
+          # Claude Code - latest from flake input
+          claude-code = claude-code.packages.${prev.system}.default;
+        })
+      ];
+
+      mkSystem = import ./lib/mksystem.nix { inherit inputs self overlays; };
 
       # Dynamic user resolution: get from environment variable, fallback to "baleen"
       # Usage: export USER=$(whoami) before running nix commands
@@ -59,16 +76,6 @@
           envUser = builtins.getEnv "USER";
         in
         if envUser != "" && envUser != "root" then envUser else "baleen";
-
-      # Overlays for unstable packages
-      overlays = [
-        (final: prev: {
-          unstable = import nixpkgs-unstable {
-            inherit (prev) system;
-            config.allowUnfree = true;
-          };
-        })
-      ];
     in
     {
       # macOS configuration
@@ -86,7 +93,7 @@
 
       darwinConfigurations.kakaostyle-jito = mkSystem "kakaostyle-jito" {
         system = "aarch64-darwin";
-        user = "jito";
+        user = "jito.hello";
         darwin = true;
       };
 
@@ -109,7 +116,7 @@
         in
         {
           baleen = mkHomeConfig "baleen";
-          jito = mkHomeConfig "jito";
+          "jito.hello" = mkHomeConfig "jito.hello";
           testuser = mkHomeConfig "testuser";
         };
 

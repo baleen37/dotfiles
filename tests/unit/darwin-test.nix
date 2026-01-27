@@ -14,15 +14,20 @@
 
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
+  darwinHelpers = import ../lib/darwin-test-helpers.nix { inherit pkgs lib helpers; };
+  mockConfig = import ../lib/mock-config.nix { inherit pkgs lib; };
 
   darwinConfig = import ../../users/shared/darwin.nix {
     inherit pkgs lib;
-    config = { };
+    config = mockConfig.mkEmptyConfig;
     currentSystemUser = "baleen"; # Test with default user
   };
 
 in
-helpers.testSuite "darwin" [
+# Platform filtering - this test should only run on Darwin systems
+{
+  platforms = ["darwin"];
+  value = helpers.testSuite "darwin" [
   # Test system settings exist
   (helpers.assertTest "darwin-has-system-settings" (
     darwinConfig ? system
@@ -44,7 +49,6 @@ helpers.testSuite "darwin" [
   ) "Darwin config should have dock optimization settings")
 
   # Test app cleanup activation script
-  (helpers.assertTest "darwin-has-app-cleanup" (
-    darwinConfig.system.activationScripts ? cleanupMacOSApps
-  ) "Darwin config should have macOS app cleanup activation script")
-]
+  (darwinHelpers.assertCleanupScriptConfigured darwinConfig)
+  ];
+}

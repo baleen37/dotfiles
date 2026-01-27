@@ -42,6 +42,22 @@ in
         name = name;
         email = email;
       };
+      init.defaultBranch = "main";
+      core = {
+        editor = "vim";
+        autocrlf = "input";
+        excludesFile = "~/.gitignore_global";
+      };
+      pull.rebase = true;
+      rebase.autoStash = true;
+      alias = {
+        st = "status";
+        co = "checkout";
+        br = "branch";
+        ci = "commit";
+        df = "diff";
+        lg = "log --graph --oneline --decorate --all";
+      };
     };
 
     ignores = [
@@ -74,6 +90,9 @@ in
       "*.log"
       ".cache/"
 
+      # Git worktrees
+      ".worktrees/"
+
       # Build artifacts
       "dist/"
       "build/"
@@ -86,24 +105,5 @@ in
       "specs/"
       "plans/"
     ];
-
-    settings = {
-      init.defaultBranch = "main";
-      core = {
-        editor = "vim";
-        autocrlf = "input";
-        excludesFile = "~/.gitignore_global";
-      };
-      pull.rebase = true;
-      rebase.autoStash = true;
-      alias = {
-        st = "status";
-        co = "checkout";
-        br = "branch";
-        ci = "commit";
-        df = "diff";
-        lg = "log --graph --oneline --decorate --all";
-      };
-    };
   };
 }

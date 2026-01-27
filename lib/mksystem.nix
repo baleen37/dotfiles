@@ -1,4 +1,4 @@
-{ inputs, self }:
+{ inputs, self, overlays ? [] }:
 
 name:
 {
@@ -60,18 +60,13 @@ systemFunc {
       { lib, ... }:
       {
         # Traditional Nix settings (Linux systems)
-        nix.settings = lib.mkIf (!darwin) {
-          # Trust cachix configuration without prompting
-          substituters = cacheSettings.substituters;
-          trusted-public-keys = cacheSettings.trusted-public-keys;
+        nix.settings = lib.mkIf (!darwin) cacheSettings // {
           # Trust substituters to eliminate "ignoring untrusted substituter" warnings
           trusted-substituters = cacheSettings.substituters;
-          # Trust admin and wheel groups to eliminate warnings
-          trusted-users = cacheSettings.trusted-users;
         };
 
         # Determinate Nix integration
-        determinate-nix.customSettings = cacheSettings;
+        determinateNix.customSettings = cacheSettings;
 
         # Let Determinate manage Nix on Darwin systems
         nix.enable = lib.mkIf darwin false;
@@ -104,6 +99,9 @@ systemFunc {
 
       # Set hostname for Darwin systems
       networking.hostName = lib.mkIf darwin name;
+
+      # Apply overlays
+      nixpkgs.overlays = overlays;
     }
   ];
 }

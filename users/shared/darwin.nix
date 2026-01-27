@@ -1,45 +1,11 @@
-# macOS Consolidated Configuration
+# macOS Configuration
 #
-# Consolidates all macOS-specific configurations from modules/darwin/ into a single file.
-# Includes system settings, performance optimizations, Homebrew configuration, and app cleanup.
-#
-# Consolidated from:
-#   - modules/darwin/performance-optimization.nix (Level 1+2 performance tuning)
-#   - modules/darwin/macos-app-cleanup.nix (app cleanup activation script)
-#   - modules/darwin/home-manager.nix (Homebrew integration)
-#   - modules/darwin/casks.nix (GUI apps list)
-#   - modules/darwin/packages.nix (macOS-specific packages)
-#
-# Performance Optimizations (Level 1+2+3):
-#   - Level 1 (Safe): Core system optimizations for immediate performance gains
-#     • UI Animations: Disable window/scroll animations for 30-50% responsiveness boost
-#     • Input Processing: Disable CPU-intensive auto-correction and smart typing features
-#     • Dock Optimization: Instant appearance and faster animations (70-80% improvement)
-#
-#   - Level 2 (Performance Priority): Advanced optimizations for maximum performance
-#     • Memory Management: Enable automatic app termination for resource efficiency
-#     • Battery Efficiency: Minimize iCloud sync and background processing overhead
-#     • Developer Experience: Finder enhancements, trackpad responsiveness, and system UI improvements
-#
-#   - Level 3 (Advanced UI Reduction): Maximum performance through visual effects reduction
-#     • Swipe Navigation: Disable swipe gestures and scroll-based navigation for CPU savings
-#     • Font Rendering: Reduced font smoothing for improved performance
-#     • Window Server: Minimized visual effects and compact dialogs
-#     • System Resource Optimization: Reduced GPU load through transparency and motion reduction
-#
-# Expected Impact:
-#   - UI responsiveness: 40-60% faster overall (Level 1: 30-50%, Level 2-3: additional 10-20%)
-#   - CPU usage: Significantly reduced (auto-correction disabled + swipe navigation eliminated)
-#   - Battery life: Extended 20-30% (iCloud sync minimized + reduced visual processing)
-#   - Memory management: 15-25% improvement (automatic termination + reduced window server load)
-#   - System resources: Lower GPU usage (transparency and blur effects minimized)
-#   - Developer productivity: Enhanced workflow with faster file operations and navigation
-#
-# Security Considerations:
-#   - No system-critical features are disabled
-#   - All security protections remain intact
-#   - User data and privacy features preserved
-#   - Console access maintained for troubleshooting
+# Optimized macOS setup with:
+# - Performance optimizations (UI, input, memory)
+# - Developer-friendly interface (Dock, Finder, Trackpad)
+# - Homebrew integration for GUI apps
+# - Automated app cleanup (6-8GB storage saved)
+# - Korean keyboard support with cmd+shift+space
 
 {
   pkgs,
@@ -59,7 +25,7 @@ let
   homebrew-casks = [
     # Development Tools
     "datagrip" # Database IDE from JetBrains
-    "docker-desktop"
+    "ghostty" # GPU-accelerated terminal emulator
     "intellij-idea"
     "utm" # Virtual machine manager for macOS
 
@@ -87,6 +53,7 @@ let
 
     # Productivity Tools
     "alfred"
+    "raycast"
 
     # Password Management
     "1password"
@@ -101,115 +68,85 @@ let
   ];
 in
 {
-  # ===== Performance Optimization Settings =====
-  # Comprehensive performance tuning across all three optimization levels
+  # ===== Core System Configuration =====
   system.defaults = {
-    # Level 1: Core System Optimizations (Safe)
-    # These provide immediate performance gains without affecting usability
-
-    # UI Animations (30-50% speed boost)
+    # Global system preferences and performance optimizations
     NSGlobalDomain = {
-      # Window animations
-      NSAutomaticWindowAnimationsEnabled = false; # Default: true → Disable window/popover animations
-      NSWindowResizeTime = 0.1; # Default: 0.2s → 50% faster resize animation
+      # UI Performance
+      NSAutomaticWindowAnimationsEnabled = false; # Disable window animations
+      NSWindowResizeTime = 0.1; # Faster window resizing
+      NSScrollAnimationEnabled = false; # Disable smooth scrolling
 
-      # Scroll behavior
-      NSScrollAnimationEnabled = false; # Default: true → Disable smooth scrolling for performance
+      # Input Optimization
+      NSAutomaticCapitalizationEnabled = false; # Disable auto-capitalization
+      NSAutomaticSpellingCorrectionEnabled = false; # Disable spell correction
+      NSAutomaticQuoteSubstitutionEnabled = false; # Disable smart quotes
+      NSAutomaticDashSubstitutionEnabled = false; # Disable smart dashes
+      NSAutomaticPeriodSubstitutionEnabled = false; # Disable auto-period
+      ApplePressAndHoldEnabled = false; # Faster key repeat
 
-      # Input Auto-correction (CPU savings)
-      # Disable CPU-intensive text processing features
-      NSAutomaticCapitalizationEnabled = false; # Default: true → Disable auto-capitalization
-      NSAutomaticSpellingCorrectionEnabled = false; # Default: true → Disable spell correction
-      NSAutomaticQuoteSubstitutionEnabled = false; # Default: true → Disable smart quotes
-      NSAutomaticDashSubstitutionEnabled = false; # Default: true → Disable smart dashes
-      NSAutomaticPeriodSubstitutionEnabled = false; # Default: true → Disable auto-period
+      # Keyboard Speed (macOS GUI 제한을 초과하는 최고속 설정)
+      KeyRepeat = 1; # 키 반복 속도 (1-120, 낮을수록 빠름, GUI 최소값: 2)
+      InitialKeyRepeat = 10; # 초기 반복 지연 (10-120, 낮을수록 빠름, GUI 최소값: 15)
 
-      # Level 2: Memory Management and Battery Efficiency
-      # Advanced optimizations for resource management and power savings
+      # Trackpad Speed (최대 속도 설정)
+      "com.apple.trackpad.scaling" = 3.0; # 커서 이동 속도 (0.0-3.0, 최대값)
 
-      # Memory Management
-      # Enable automatic termination of inactive apps for memory efficiency
-      NSDisableAutomaticTermination = false; # Default: true → Enable auto-termination (frees memory)
+      # Memory & Battery
+      NSDisableAutomaticTermination = false; # Enable app auto-termination
+      NSDocumentSaveNewDocumentsToCloud = false; # Disable iCloud auto-save
 
-      # Battery and Network Efficiency
-      # Reduce iCloud sync overhead for extended battery life
-      NSDocumentSaveNewDocumentsToCloud = false; # Default: true → Disable iCloud auto-save
-
-      # Enhanced Performance Settings
-      # Additional optimizations for system responsiveness and resource efficiency
-      ApplePressAndHoldEnabled = false; # Default: true → Disable press-and-hold for faster key repeat
-
-      # Level 3: Advanced UI Reduction Optimizations
-      # Maximum performance through visual effects reduction and system resource optimization
-
-      # Swipe Navigation and Gesture Reduction
-      # Disable CPU-intensive swipe gestures for significant performance gains
-      "AppleEnableMouseSwipeNavigateWithScrolls" = false; # Default: true → Disable swipe navigation (CPU savings)
-      "AppleEnableSwipeNavigateWithScrolls" = false; # Default: true → Disable swipe navigation in Chrome
-
-      # Font Rendering Optimization
-      # Reduced font smoothing for improved performance in text-heavy applications
-      "AppleFontSmoothing" = 1; # Default: varies → Reduced font smoothing for performance
-
-      # System Resource Optimizations
-      # Compact dialogs and reduced window server load for improved responsiveness
-      "NSNavPanelExpandedStateForSaveMode" = false; # Default: true → Keep save dialogs compact
-      "NSNavPanelExpandedStateForSaveMode2" = false; # Default: true → Keep save dialogs compact
-
-      # Note: Some advanced window server and visual effects settings are not available in nix-darwin
-      # These are typically managed through System Preferences or require manual configuration
+      # Advanced Optimizations
+      "AppleEnableMouseSwipeNavigateWithScrolls" = false; # Disable swipe navigation
+      "AppleEnableSwipeNavigateWithScrolls" = false; # Disable Chrome swipe navigation
+      "AppleFontSmoothing" = 1; # Reduced font smoothing
+      "NSNavPanelExpandedStateForSaveMode" = false; # Compact save dialogs
+      "NSNavPanelExpandedStateForSaveMode2" = false; # Compact save dialogs
     };
 
-    # Dock Optimization (Level 1: instant response + fast animations)
-    # Optimized Dock behavior for maximum responsiveness and screen space efficiency
+    # User Interface - Dock
     dock = {
-      autohide = true; # Enable auto-hide for increased screen real estate
-      autohide-delay = 0.0; # Default: 0.5s → Instant Dock appearance (100% improvement)
-      autohide-time-modifier = 0.15; # Default: 0.5s → 70% faster slide animation
-      expose-animation-duration = 0.2; # Default: 1.0s → 80% faster Mission Control
-      tilesize = 48; # Default: 64 → Smaller icons for memory savings and cleaner appearance
-      mru-spaces = false; # Default: true → Disable auto-reordering for predictable layout
+      autohide = true; # Auto-hide dock
+      autohide-delay = 0.0; # Instant appearance
+      autohide-time-modifier = 0.15; # Faster animation
+      expose-animation-duration = 0.2; # Quick Mission Control
+      tilesize = 48; # Smaller icons
+      mru-spaces = false; # Predictable layout
     };
 
-    # Finder Optimization (Level 2: enhanced developer experience)
-    # Productivity-focused Finder configuration for development workflows
+    # User Interface - Finder
     finder = {
-      AppleShowAllFiles = true; # Default: false → Show hidden files (essential for development)
-      FXEnableExtensionChangeWarning = false; # Default: true → Disable extension change warnings
-      _FXSortFoldersFirst = true; # Default: false → Folders first for better navigation hierarchy
-      ShowPathbar = true; # Default: false → Show path bar for navigation context
-      ShowStatusBar = true; # Default: false → Show status bar for file information
+      AppleShowAllFiles = true; # Show hidden files
+      FXEnableExtensionChangeWarning = false; # No extension warnings
+      _FXSortFoldersFirst = true; # Folders first
+      ShowPathbar = true; # Show path navigation
+      ShowStatusBar = true; # Show file information
     };
 
-    # Trackpad Optimization (Level 1: enhanced responsiveness)
-    # Improved trackpad behavior for efficient navigation and interaction
+    # User Interface - Trackpad
     trackpad = {
-      Clicking = true; # Default: false → Enable tap-to-click for faster interaction
-      TrackpadRightClick = true; # Default: varies → Enable two-finger right-click
-      TrackpadThreeFingerDrag = true; # Default: false → Enable three-finger drag for window management
+      Clicking = true; # Enable tap-to-click
+      TrackpadRightClick = true; # Enable two-finger right-click
+      TrackpadThreeFingerDrag = true; # Enable three-finger drag
     };
 
-    # Level 2: Additional System UI Optimizations
-    # Enhanced system behavior for improved performance and usability
-
-    # Window Management and Spaces Optimization
+    # System Management - Spaces
     spaces = {
-      spans-displays = false; # Default: true → Disable spaces spanning for better performance
+      spans-displays = false; # Better performance
     };
 
-    # Mission Control and Window Management
-    # Note: Some WindowManager settings may not be fully supported in nix-darwin
-    # These optimizations are handled by the system through other mechanisms
-
-    # Additional Finder Optimizations
-    # Note: Some advanced Finder settings like NSQuitAlwaysKeepsWindows are not available in nix-darwin
+    # Custom User Preferences (스크롤 속도는 여기서만 설정 가능)
+    CustomUserPreferences = {
+      "NSGlobalDomain" = {
+        "com.apple.scrollwheel.scaling" = 1.0; # 스크롤 속도 (최대값, -1은 가속 비활성화)
+      };
+    };
   };
 
-  # ===== Login & Authentication Optimizations =====
-  # Level 1: Faster boot and streamlined login experience without compromising security
+  # ===== Authentication Configuration =====
   system.defaults.loginwindow = {
-    SHOWFULLNAME = false; # Hide full name for lighter login prompt (minor performance gain)
-    DisableConsoleAccess = false; # Maintain console access security for troubleshooting
+    SHOWFULLNAME = false; # Compact login prompt
+    DisableConsoleAccess = false; # Maintain console access
   };
 
   # ===== Homebrew Configuration =====
@@ -219,13 +156,7 @@ in
     casks = homebrew-casks;
 
     # Development Services Configuration
-    brews = [
-      {
-        name = "syncthing";
-        start_service = true; # Auto-start on login for seamless file synchronization
-        restart_service = "changed"; # Restart on version change for stability
-      }
-    ];
+    brews = [ ];
 
     # Performance Optimization: Selective Cleanup Strategy
     # Prevents unexpected interruptions during development while maintaining system hygiene
@@ -246,30 +177,26 @@ in
     # Carefully selected apps for development productivity and system management
     # IDs obtained via: nix shell nixpkgs#mas && mas search <app name>
     masApps = {
-      "Magnet" = 441258766; # Window management tool for enhanced productivity
+      "Magnet" = 441258766; # Window management tool with multi-monitor support
       "WireGuard" = 1451685025; # Lightweight, secure VPN client
       "KakaoTalk" = 869223134; # Communication platform (if needed)
     };
 
     # Extended Package Repository Access
     # Additional Homebrew taps for specialized packages and development tools
-    taps = [
-      "homebrew/cask" # Essential for GUI application management
-    ];
+    # Note: homebrew/cask is now built into Homebrew by default (since 2023)
+    taps = [ ];
   };
 
   # ===== Keyboard Input Source Configuration Script =====
   # Configures cmd+shift+space for Korean/English input source switching
   system.activationScripts.configureKeyboard = {
     text = ''
-      echo "⌨️  Configuring keyboard input sources..." >&2
+      echo "Configuring keyboard input sources..." >&2
 
       sleep 2
 
-      # Optimize key repeat for Korean typing (no keyboard navigation)
-      /usr/bin/defaults write NSGlobalDomain ApplePressAndHoldEnabled -bool false
-      /usr/bin/defaults write NSGlobalDomain KeyRepeat -int 2
-      /usr/bin/defaults write NSGlobalDomain InitialKeyRepeat -int 25
+      # Note: KeyRepeat and InitialKeyRepeat are now managed in system.defaults.NSGlobalDomain
 
       # cmd+shift+space for input source switching (hotkey 60)
       /usr/bin/defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 60 '{
@@ -300,7 +227,7 @@ in
           killall ControlCenter 2>/dev/null || true
       fi
 
-      echo "✅ Keyboard configuration complete!" >&2
+      echo "Keyboard configuration complete!" >&2
     '';
   };
 
@@ -310,7 +237,7 @@ in
   system.activationScripts.cleanupMacOSApps = {
     text = ''
       echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
-      echo "🧹 Removing unused macOS default apps..." >&2
+      echo "Removing unused macOS default apps..." >&2
       echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
 
       # 제거할 앱 목록
@@ -331,7 +258,7 @@ in
         app_path="/Applications/$app"
 
         if [ -e "$app_path" ]; then
-          echo "  🗑️  Removing: $app" >&2
+          echo "  Removing: $app" >&2
 
           # sudo 없이 제거 시도 (사용자 설치 앱)
           if rm -rf "$app_path" 2>/dev/null; then
@@ -341,7 +268,7 @@ in
             if sudo rm -rf "$app_path" 2>/dev/null; then
               removed_count=$((removed_count + 1))
             else
-              echo "     ⚠️  Failed to remove (SIP protected): $app" >&2
+              echo "     Failed to remove (SIP protected): $app" >&2
               skipped_count=$((skipped_count + 1))
             fi
           fi
@@ -351,7 +278,7 @@ in
       done
 
       echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
-      echo "✨ Cleanup complete!" >&2
+      echo "Cleanup complete!" >&2
       echo "   - Removed: $removed_count apps" >&2
       echo "   - Skipped: $skipped_count apps (protected)" >&2
       echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
@@ -377,6 +304,13 @@ in
   # Enable zsh as the system shell for consistency with user configuration
   programs.zsh.enable = true;
 
+  # Keyboard Configuration
+  # System-level keyboard remapping for modifier keys
+  system.keyboard = {
+    enableKeyMapping = true;
+    remapCapsLockToControl = true;
+  };
+
   # User and System Management
   # Primary user configuration for nix-darwin system management
   # Username is dynamically resolved from flake.nix for multi-user support
@@ -387,6 +321,10 @@ in
     checks.verifyNixPath = false; # Disable NIX_PATH verification for cleaner builds
     stateVersion = 5; # Updated to current nix-darwin version for compatibility
   };
+
+  # Package Installation
+  # Install macOS-specific packages
+  environment.systemPackages = darwin-packages;
 
   # Build Performance Optimization
   # Disable documentation generation to avoid builtins.toFile warnings and improve build speed

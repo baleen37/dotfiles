@@ -30,8 +30,8 @@ in
     machine.wait_for_unit("multi-user.target")
 
     # Test SSH service
-    machine.succeed("systemctl is-active sshd")
-    machine.succeed("ss --listen | grep ':22'")
+    machine.wait_for_unit("sshd.service")
+    machine.wait_for_open_port(22)
 
     # Test Docker service (if available)
     machine.wait_for_unit("docker.service", timeout=60)

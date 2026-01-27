@@ -46,47 +46,50 @@ input=$(cat)
 model_name=$(echo "$input" | jq -r '.model.display_name // "Claude"')
 current_dir=$(echo "$input" | jq -r '.workspace.current_dir // "."')
 
-# Extract context information using proper getTokenMetrics implementation
-# Find the most recent main chain entry (where isSidechain !== true) and calculate context length
-transcript_path=$(echo "$input" | jq -r '.transcript_path // empty')
+# Extract context length from context_window
+# Try current_usage first (Claude models), fallback to total_input_tokens (glm-4.7 compatibility),
+# then fallback to used_percentage calculation (for third-party models with broken token reporting)
+# Use variable binding to avoid bash history expansion issues with != operator
+# Check for null or empty object ({}), or zero-filled current_usage (glm-4.7 returns 0s)
+context_length=$(
+    echo "$input" | jq -r '
+        .context_window.current_usage as $cu |
+        if $cu == null or ($cu | length) == 0 then
+            .context_window.total_input_tokens // 0
+        else
+            ((($cu.input_tokens // 0) + ($cu.cache_read_input_tokens // 0) + ($cu.cache_creation_input_tokens // 0))) as $sum |
+            if $sum == 0 then
+                .context_window.total_input_tokens // 0
+            else
+                $sum
+            end
+        end
+    ' 2>/dev/null
+)
 
-if [[ -n "$transcript_path" && -f "$transcript_path" ]]; then
-    # Read transcript file (JSONL format) and calculate context length
-    # Each line is a separate JSON object, find the most recent main chain entry
-    context_length=$(tac "$transcript_path" 2>/dev/null | while IFS= read -r line; do
-        if [[ -n "$line" ]]; then
-            # Check if this line has isSidechain !== true and has message.usage
-            is_main_chain=$(echo "$line" | jq -r 'if .isSidechain == true then "false" else "true" end' 2>/dev/null)
-            has_usage=$(echo "$line" | jq -r 'if .message.usage then "true" else "false" end' 2>/dev/null)
+# Final fallback: if context_length is still 0, try used_percentage * context_window_size / 100
+# This handles third-party models where current_usage and total_input_tokens are both 0 or null
+if [[ "$context_length" -eq 0 ]]; then
+    used_percentage=$(echo "$input" | jq -r '.context_window.used_percentage // empty' 2>/dev/null)
+    context_window_size=$(echo "$input" | jq -r '.context_window.context_window_size // empty' 2>/dev/null)
 
-            if [[ "$is_main_chain" == "true" && "$has_usage" == "true" ]]; then
-                # Calculate context length from this entry
-                echo "$line" | jq -r '
-                    (.message.usage.input_tokens // 0) +
-                    (.message.usage.cache_read_input_tokens // 0) +
-                    (.message.usage.cache_creation_input_tokens // 0)
-                ' 2>/dev/null
-                break
-            fi
-        fi
-    done)
-
-    # If context_length is empty or null, set to 0
-    if [[ -z "$context_length" || "$context_length" == "null" ]]; then
-        context_length=0
+    if [[ -n "$used_percentage" ]] && [[ "$used_percentage" != "null" ]] && \
+       [[ -n "$context_window_size" ]] && [[ "$context_window_size" != "null" ]]; then
+        # Calculate: context_length = (used_percentage / 100) * context_window_size
+        context_length=$(awk -v pct="$used_percentage" -v size="$context_window_size" \
+            'BEGIN {printf "%.0f", (pct / 100) * size}')
     fi
-else
-    context_length=0
 fi
 
-# Fallback to simple context fields if transcript parsing fails
-if [[ "$context_length" == "null" || "$context_length" == "0" || -z "$context_length" ]]; then
-    context_length=$(echo "$input" | jq -r '.context.length // .context.tokens // .context.inputTokens // 0')
-fi
-
-# Format context length (e.g., 18.6k)
-if [[ "$context_length" -ge 1000 ]]; then
-    ctx_display=$(awk "BEGIN {printf \"%.1fk\", $context_length/1000}")
+# Format context length (e.g., 18.6k, 1.6M)
+# Ensure context_length is a valid number, default to 0 if empty/null
+: "${context_length:=0}"
+if [[ "$context_length" -ge 1000000 ]]; then
+    # Use M suffix for values >= 1M, show one decimal place
+    ctx_display=$(awk -v val="$context_length" 'BEGIN {printf "%.1fM", val/1000000}')
+elif [[ "$context_length" -ge 1000 ]]; then
+    # Use k suffix for values >= 1k, show one decimal place
+    ctx_display=$(awk -v val="$context_length" 'BEGIN {printf "%.1fk", val/1000}')
 else
     ctx_display="$context_length"
 fi
@@ -94,14 +97,15 @@ fi
 # Get current directory relative to home directory
 if [[ "$current_dir" == "$HOME"* ]]; then
     # Replace home path with ~ for display
-    dir_display="${current_dir/#$HOME/~}"
+    dir_display="~${current_dir:${#HOME}}"
 else
     # Keep full path if not under home directory
     dir_display="$current_dir"
 fi
 # Get git status and worktree information with enhanced detection
 git_info=""
-if git -C "$current_dir" rev-parse --git-dir >/dev/null 2>&1; then
+git_dir=$(git -C "$current_dir" rev-parse --git-dir 2>/dev/null)
+if [[ -n "$git_dir" ]]; then
     branch=$(git -C "$current_dir" branch --show-current 2>/dev/null)
 
     # If no branch (detached HEAD), show short commit hash
@@ -112,7 +116,6 @@ if git -C "$current_dir" rev-parse --git-dir >/dev/null 2>&1; then
 
     # Enhanced worktree detection
     worktree_info=""
-    git_dir=$(git -C "$current_dir" rev-parse --git-dir 2>/dev/null)
 
     # Check if we're in a worktree
     if [[ "$git_dir" == *".git/worktrees/"* ]] || [[ -f "$git_dir/gitdir" ]]; then
@@ -136,14 +139,15 @@ if git -C "$current_dir" rev-parse --git-dir >/dev/null 2>&1; then
 
         # Count different types of changes (handle empty status gracefully)
         if [[ -n "$git_status" ]]; then
-            # Count untracked files (starts with ??)
-            untracked=$(echo "$git_status" | grep -c '^??')
-            # Count modified files (M in second column or first column with space)
-            modified=$(echo "$git_status" | grep -c '^.M\|^ M')
-            # Count staged files (non-space in first column, excluding ??)
-            staged=$(echo "$git_status" | grep -c '^[ADMR]')
-            # Count conflicts (UU, AA, DD)
-            conflicts=$(echo "$git_status" | grep -c '^UU\|^AA\|^DD')
+            # Use awk for single-pass counting (avoids grep -c exit code issues)
+            read -r untracked modified staged conflicts <<< "$(echo "$git_status" | awk '
+                BEGIN {u=0; m=0; s=0; c=0}
+                /^\?\?/ {u++}
+                /^.M|^ M/ {m++}
+                /^[ADMR]/ {s++}
+                /^UU|^AA|^DD/ {c++}
+                END {print u, m, s, c}
+            ')"
         else
             untracked=0
             modified=0
@@ -162,8 +166,8 @@ if git -C "$current_dir" rev-parse --git-dir >/dev/null 2>&1; then
         ahead_behind=""
         upstream=$(git -C "$current_dir" rev-parse --abbrev-ref '@{u}' 2>/dev/null)
         if [[ -n "$upstream" ]]; then
-            ahead=$(git -C "$current_dir" rev-list --count '@{u}..HEAD' 2>/dev/null)
-            behind=$(git -C "$current_dir" rev-list --count 'HEAD..@{u}' 2>/dev/null)
+            # Single command to get both ahead and behind counts
+            read -r ahead behind <<< "$(git -C "$current_dir" rev-list --left-right --count '@{u}...HEAD' 2>/dev/null)"
 
             if [[ "$ahead" -gt 0 ]] && [[ "$behind" -gt 0 ]]; then
                 ahead_behind=" ${YELLOW}↕${ahead}/${behind}${RESET}"
@@ -180,8 +184,9 @@ if git -C "$current_dir" rev-parse --git-dir >/dev/null 2>&1; then
             # Only check for PRs if we're in a GitHub repo
             remote_url=$(git -C "$current_dir" config --get remote.origin.url 2>/dev/null)
             if [[ "$remote_url" == *"github.com"* ]]; then
-                # Quick PR check (gh caches this, so it's usually fast after first run)
-                pr_number=$(gh pr view --json number -q .number 2>/dev/null)
+                # Quick PR check with timeout to prevent hanging
+                # gh has internal caching, so this is fast after first run
+                pr_number=$(timeout 0.5 gh pr view --json number -q .number 2>/dev/null || echo "")
                 if [[ -n "$pr_number" ]]; then
                     pr_info=" ${CYAN}PR#${pr_number}${RESET}"
                 fi
@@ -254,7 +259,7 @@ fi
 current_time="$(date '+%H:%M')"
 
 # Build simple linear output - always show all components
-output_string=" ${BOLD}${BLUE}${model_name}${RESET} ${GRAY}│${RESET} ${CYAN}Ctx: ${ctx_display}${RESET} ${GRAY}│${RESET} ${PURPLE}${dir_display}${RESET}"
+output_string="${BOLD}${BLUE}${model_name}${RESET} ${GRAY}│${RESET} ${CYAN}Ctx: ${ctx_display}${RESET} ${GRAY}│${RESET} ${PURPLE}${dir_display}${RESET}"
 
 # Add git info if available
 if [[ -n "$git_info" ]]; then
@@ -272,7 +277,7 @@ if [[ -n "$node_info" ]]; then
 fi
 
 # Add time
-output_string="${output_string} ${GRAY}│${RESET} ${WHITE}${current_time}${RESET} "
+output_string="${output_string} ${GRAY}│${RESET} ${WHITE}${current_time}${RESET}"
 
 # Output the complete string
 echo -e "$output_string"

@@ -1,553 +1,385 @@
 # CLAUDE.md
 
-**한국어로 소통해주세요 (Please communicate in Korean)**
-
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
 
-Enterprise-grade dotfiles management system providing reproducible development environments across macOS and NixOS using Nix flakes, Home Manager, and nix-darwin.
-
-### Supported Platforms
-
-- **macOS (Darwin)**: Apple Silicon only (aarch64-darwin)
-  - Managed via nix-darwin + Home Manager
-  - Includes 34+ GUI apps via Homebrew
-  - Performance tuning + automatic app cleanup (6-8GB saved)
-
-- **NixOS (Linux)**: Intel (x86_64-linux) + ARM (aarch64-linux)
-  - Pure NixOS system configuration
-  - Managed via NixOS modules + Home Manager
-
-### Key Features
-
-- **Architecture**: Follows [mitchellh/nixos-config](https://github.com/mitchellh/nixos-config) philosophy:
-  - **Simplicity over complexity**: One purpose per target, minimal abstractions
-  - **Explicit over implicit**: Clear configuration names, no magic auto-detection
-  - **Working code over comprehensive**: Focus on what actually works
-- **Tools**: 50+ development packages across all platforms
-- **Cross-platform validation**: Automated testing across 3 platform combinations
-- **Dynamic user resolution**: Multi-user support without hardcoded usernames
-
-## ⚠️ Critical Rules
-
-**NEVER:**
-
-- Hardcode Nix store paths (they change with every rebuild)
-- Skip pre-commit hooks with `--no-verify`
-- Manually fix formatting - use `nix fmt` instead
-- Use bats for testing - use Nix's built-in test framework
-- **Add new Makefile commands** - Use only existing commands: `switch`, `test`, `cache`, `vm/*`, `secrets/*`, `wsl`
-- **Use conditional settings** - Only allowed for platform, host, or user differences
-- **Add unnecessary abstractions** - Direct configuration over complex patterns
-
-**ALWAYS:**
-
-- Use Makefile commands (`make switch`, `make test`, `make cache`) - USER must be set manually
-- Set `export USER=$(whoami)` before any Makefile operation
-- Run `nix fmt` before committing for code formatting
-- Follow TDD: write failing test → minimal code → refactor
-- **Use `nix fmt` directly for formatting** - Do NOT add `make format` command
-- **Keep configuration explicit** - No magic auto-detection or hidden behavior
-- **Maintain flat configuration structure** - Avoid deep inheritance hierarchies
+Nix flakes-based dotfiles system providing reproducible development environments for macOS and NixOS. Uses the evantravers user-centric architecture pattern with dynamic user resolution and comprehensive TDD testing.
 
 ## Essential Commands
 
-### Daily Development
+### Environment Setup
+
+All build operations require the USER environment variable:
 
 ```bash
-# Required environment variables
-export USER=$(whoami)          # Required for all operations
-# hostname automatically detected via hostname -s
-
-# Core commands
-make switch                    # Apply configuration to current system
-make test                      # Test configuration (dry-run build)
-make cache                     # Push build results to cachix (requires auth)
-
-# USER required for all nix operations
-# Commands automatically detect platform (Darwin vs NixOS)
+export USER=$(whoami)  # Required before any Nix commands
 ```
 
-### Secrets Management
+### Common Operations
 
 ```bash
-# Backup/restore SSH keys and GPG keyring
-make secrets/backup            # Create backup.tar.gz with secrets
-make secrets/restore           # Restore from backup.tar.gz
+# Core workflow
+make test              # Fast container tests (2-5 seconds, Linux only - validation mode on macOS)
+make test-all          # Full test suite including integration tests
+make switch            # Build and apply configuration (uses sudo internally)
+make format            # Format all Nix files
 
-# Note: backup.tar.gz is created in repository root
+# Build operations
+nix run --impure .#build-switch  # Build and switch in one step
+nix flake check --impure         # Run all checks
+
+# Testing
+nix build '.#checks.aarch64-darwin.basic' --impure  # Specific check
+make test-integration                                # Integration tests only
 ```
 
-### VM Management
+### Platform-Specific Commands
 
 ```bash
-# Required environment variables for VM operations
-export NIXADDR=<vm-ip>         # VM IP address
-export NIXPORT=<ssh-port>      # SSH port (default: 22)
-export NIXUSER=<ssh-user>      # SSH user (default: root)
+# macOS
+darwin-rebuild switch --flake .#macbook-pro
+nix build '.#darwinConfigurations.macbook-pro.system'
 
-# VM lifecycle
-make vm/bootstrap0             # Initial NixOS installation on new VM
-make vm/bootstrap              # Complete VM setup with configurations
-make vm/copy                   # Copy configurations to VM
-make vm/switch                 # Apply configuration changes on VM
-make vm/secrets                # Copy SSH/GPG secrets to VM
-
-# Note: bootstrap0 requires fresh NixOS VM with root password set to "root"
+# NixOS
+nixos-rebuild switch --flake .#vm-aarch64-utm
+nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel'
 ```
-
-### WSL Support
-
-```bash
-# Build WSL installer
-make wsl                       # Build Windows Subsystem for Linux installer
-```
-
-### Linux Builder (macOS only)
-
-Build Linux packages locally on macOS:
-
-```bash
-# Build Linux packages
-nix build --impure --expr '(with import <nixpkgs> { system = "aarch64-linux"; }; package-name)'
-```
-
-**Hardware support:**
-- Apple Silicon Macs (M1/M2/M3/M4)
-- Conservative resource allocation: 4 cores, 8GB RAM, 40GB disk
-- Supports both x86_64-linux and aarch64-linux architectures
-
-**Current status:**
-- Configuration is present in `machines/macbook-pro.nix`
-- **Not currently active** due to Determinate Nix usage (`nix.linux-builder.enable = false`)
-- Ready to activate when switching from Determinate Nix to nix-darwin managed Nix
-- Will automatically enable on systems using nix-darwin managed Nix daemon
-
-**Note**: CI tests on native Linux (faster than linux-builder).
-
-**Note**: System automatically detects platform via `lib/platform-system.nix`. Commands adapt based on current host platform.
-
-### Determinate Nix Integration
-
-**Configuration**: Integrated via flake input and lib/mksystem.nix
-
-**What it provides**:
-- **Enhanced security**: SOC 2 Type II validated Nix daemon management
-- **Better macOS integration**: Optimized Nix installation and management
-- **Automatic updates**: Managed through Determinate's infrastructure
-- **Simplified setup**: Reduced configuration complexity for macOS users
-
-**How it works**:
-- Darwin systems use Determinate Nix by default (`determinate.darwinModules.default`)
-- Cache configuration managed through `determinate-nix.customSettings`
-- Traditional Nix settings disabled on Darwin (`nix.enable = false`)
-- Linux systems continue using traditional Nix management
-
-**Cache trust**: All binary cache trust configured deterministically through system settings, eliminating "untrusted substituter" warnings.
 
 ## Architecture
 
-### Module Structure
+### System Factory Pattern (lib/mksystem.nix)
+
+The `mkSystem` function provides unified system creation:
+
+- Takes `name`, `system`, `user`, `darwin`, and `wsl` parameters
+- Returns darwinSystem or nixosSystem based on platform
+- Handles Home Manager integration automatically
+- Manages cache configuration for both traditional Nix and Determinate Nix
+
+Key specialArgs passed to all modules:
+
+- `currentSystemUser`: The actual username (e.g., "baleen" or "jito.hello")
+- `currentSystem`: Platform architecture (e.g., "aarch64-darwin")
+- `currentSystemName`: Machine name (e.g., "macbook-pro")
+- `isDarwin`: Boolean for platform-specific logic
+- `isWSL`: Boolean for WSL-specific logic
+
+### User Configuration Structure
+
+All user configurations are in `users/shared/` using flat, tool-specific files:
 
 ```text
-users/shared/      # Shared user configuration (supports multiple users: baleen, jito, etc.)
-├── home-manager.nix    # Main user configuration
-├── darwin.nix         # macOS-specific settings (includes performance tuning + app cleanup)
-├── git.nix           # Git configuration
+users/shared/
+├── home-manager.nix   # Main entry point, imports all modules
+├── darwin.nix         # macOS system settings (Dock, Finder, Homebrew)
+├── git.nix           # Git configuration with aliases
 ├── vim.nix           # Vim/Neovim setup
 ├── zsh.nix           # Zsh shell configuration
 ├── tmux.nix          # Terminal multiplexer
+├── starship.nix      # Shell prompt
 ├── claude-code.nix   # Claude Code configuration
-├── hammerspoon.nix   # Hammerspoon automation
-├── karabiner.nix     # Karabiner key remapping
-├── ghostty.nix       # Ghostty terminal configuration
-└── .config/claude/   # Claude Code settings and skills
-
-machines/          # Machine-specific configs (hostname, hardware)
-├── macbook-pro.nix          # macOS configuration
-└── nixos/                  # NixOS configurations
-    ├── vm-aarch64-utm.nix   # ARM64 VM for UTM
-    ├── vm-shared.nix        # Shared VM settings
-    └── hardware/            # Hardware-specific configs
-
-lib/               # Pure Nix utilities (mksystem.nix factory, performance, testing)
-├── mksystem.nix             # System factory function
-├── user-info.nix            # User information utilities
-├── performance*.nix         # Performance monitoring and reporting
-└── nix-app-linker.sh        # Nix app linking script
-
-tests/             # TDD test suite (unit, integration, e2e, performance)
-├── unit/                   # Unit tests
-├── integration/            # Integration tests
-├── e2e/                    # End-to-end tests
-├── lib/                    # Test helpers and utilities
-├── performance/            # Performance benchmarks
-└── default.nix             # Test entry point
+└── .config/claude/   # Claude Code commands, skills, hooks
 ```
 
-### Module Philosophy
+**Important**: The `currentSystemUser` variable contains the actual username. User info (name, email) is centralized in `lib/user-info.nix`.
 
-**User-Centric Structure**
+### Machine Configurations
 
-`users/shared/` contains shared configuration used by all users (baleen, jito, etc.) in flat, tool-specific files following evantravers pattern.
+Machine-specific hardware and system settings:
 
-**System Factory**
-
-`lib/mksystem.nix` provides a unified interface for building systems across platforms using the factory pattern.
-
-**Machine Definitions**
-
-`machines/` define hardware-specific configurations without complex inheritance hierarchies.
-
-**Test-Driven Development**
-
-`tests/` provides comprehensive TDD framework with helpers for validating configurations.
-
-### Design Principles
-
-**Core Philosophy**
-- **Simplicity over complexity**: One purpose per target, minimal abstractions
-- **Explicit over implicit**: Clear configuration names, no magic auto-detection
-- **Working code over comprehensive**: Focus on what actually works
-- **Direct configuration**: No conditional settings except for platform/host/user differences
-
-**evantravers Patterns**
-- **Factory pattern**: `lib/mksystem.nix` for consistent system building
-- **Flat user configs**: `users/shared/` with tool-specific files
-- **No deep inheritance**: Machine configs are flat, no complex hierarchies
-- **Clean separation**: System, user, and tool concerns are separated
-
-**mitchellh Influence**
-- **Makefile-first**: All operations through Make commands, no deep Nix knowledge required
-- **VM-centric**: macOS host + NixOS VMs for "best of both worlds"
-- **Limited commands**: Essential operations only, no overwhelming complexity
-- **Pragmatic approach**: Focus on functionality over theoretical optimization
-
-## Code Quality
-
-### Nix Formatting
-
-The project uses nixfmt-rfc-style for Nix file formatting. This is specified in the flake.nix formatter configuration.
-
-```bash
-# Direct formatting commands
-nix fmt                  # Format all Nix files using flake.nix formatter
-nix flake check          # Run flake validation and checks
+```text
+machines/
+├── macbook-pro.nix        # Primary macOS machine (includes linux-builder)
+├── baleen-macbook.nix     # Secondary macOS machine
+├── kakaostyle-jito.nix    # Work machine (jito.hello user)
+└── nixos/
+    ├── vm-aarch64-utm.nix # ARM64 NixOS VM
+    └── vm-shared.nix      # Shared NixOS settings
 ```
 
-### Pre-commit Hooks
+### Testing Framework
 
-Pre-commit hooks are configured to validate code quality. If pre-commit fails, use the direct nix formatting commands instead of manual fixes.
+TDD-based testing with automatic test discovery:
 
-**Never bypass** with `--no-verify`.
+```text
+tests/
+├── default.nix                    # Test orchestration and discovery
+├── unit/                          # Fast unit tests (automatic discovery)
+│   └── *-test.nix                # Auto-discovered tests
+├── integration/                   # Integration tests (automatic discovery)
+│   └── *-test.nix
+├── containers/                    # NixOS container tests (Linux only)
+│   ├── basic-system.nix
+│   ├── services.nix
+│   └── packages.nix
+├── e2e/                          # End-to-end tests (manual, heavy)
+│   └── *.nix
+└── lib/                          # Test utilities
+    ├── platform-helpers.nix     # Platform-aware test filtering
+    ├── test-helpers.nix
+    └── assertions.nix
+```
 
-### Testing
+**Container Tests**: Only run on Linux. On macOS, `make test` runs validation mode (config check without execution). Full container tests run in CI.
 
-**Fast NixOS Container Tests (2-5 seconds):**
-- `make test` - Fast container-based configuration validation
-- `make test-integration` - Traditional integration tests
-- `make test-all` - Complete test suite
+### Dynamic User Resolution
 
-**NixOS Container Tests:**
-- Basic system functionality validation
-- User configuration testing
-- Services verification (SSH, Docker)
-- Package installation validation
-
-**Multi-platform Support:**
-- Automatic cross-platform testing via Nix
-- CI runs tests on Darwin, Linux x64, Linux ARM
-- Local testing optimized for current platform
-
-**Multi-tier strategy**:
-
-- Unit tests: Component-level validation
-- Integration tests: Module interaction verification
-- E2E tests: Complete workflow validation
-- Performance tests: Build time and resource monitoring
-
-**NO bats** - use Nix's built-in test framework (`pkgs.runCommand`, etc.)
-
-## Important Notes
-
-### USER Variable & Multi-User Support
-
-**Manual Export Required for All Operations**:
-- Must set USER environment variable before any build operation
-- Example: `export USER=$(whoami) && make test`
-- The `--impure` flag is required for nix commands to read environment variables
-
-**Multi-User Support**:
-- Configuration is stored in `users/shared/` directory
-- Actual username is dynamically resolved from `USER` environment variable in flake.nix
-- Supports multiple users without code duplication: baleen, jito, etc.
-
-**Important**: The `USER` variable is mandatory for all build operations. The Makefile does NOT automatically detect USER - you must export it manually.
-
-### Nix Store Paths
-
-**NEVER** hardcode paths like `/nix/store/abc123xyz-package/bin/command`:
-
-- Change with every rebuild
-- Differ across platforms
-- Break after `nix-collect-garbage`
-
-**Use command names instead** (PATH lookup) or install via Home Manager.
-
-### Configuration File Management
-
-**Approach**: Use `home.file` to symlink configuration files to `/nix/store` (managed by Home Manager)
+The flake supports multiple users via environment variable:
 
 ```nix
-# ✅ Recommended: Use home.file with recursive symlinks
-home.file.".claude" = {
-  source = ./.config/claude;
-  recursive = true;
-  force = true;
-};
+# flake.nix
+user = let envUser = builtins.getEnv "USER";
+       in if envUser != "" && envUser != "root" then envUser else "baleen";
 ```
 
-**How it works**
+This allows the same configuration to work for different users without hardcoding usernames.
 
-- `~/.claude/` becomes a directory (not a symlink itself)
-- Individual files inside symlink to `/nix/store`: `~/.claude/settings.json` → `/nix/store/.../settings.json`
-- Runtime files (debug/, projects/, todos/) are created by Claude Code and git-ignored
-- Managed files are read-only but can be updated by editing dotfiles and rebuilding
+## Development Guidelines
 
-**Modules using this pattern**
+### Adding Packages
 
-- `users/shared/claude-code.nix` - Claude Code configuration
-- `users/shared/hammerspoon.nix` - Hammerspoon configuration
-- `users/shared/karabiner.nix` - Karabiner-Elements configuration
+**User packages** (CLI tools, development utilities):
 
-**Alternative**: `home.activation` for writable symlinks to actual dotfiles (not /nix/store). More complex but allows in-place editing.
+- Add to `users/shared/home-manager.nix` in the `packages` list
+- Or create/modify specific tool configuration in `users/shared/*.nix`
 
-### Build & Switch Commands
+**System packages** (macOS GUI apps):
 
-**Command Hierarchy**
+- Add Homebrew casks to `users/shared/darwin.nix` in `homebrew-casks` list
+- Add Mac App Store apps to `masApps` in `users/shared/darwin.nix`
 
-- **Full System**: `make switch`
-  - macOS: darwin-rebuild (system + Homebrew + user config)
-  - NixOS: nixos-rebuild (system + user config)
+### Adding New Users
 
-**When to use each**
+1. No code changes needed - use environment variable:
 
-- **Development**: `make test` - validates configuration without applying changes
-- **Production**: `make switch` - full system update with activation
+   ```bash
+   export USER=newusername
+   nix run --impure .#build-switch
+   ```
 
-**Build Target Auto-Detection**
+2. For permanent machine configuration, add to `flake.nix`:
 
-The Makefile automatically selects the correct build target based on the current system:
+   ```nix
+   darwinConfigurations.newmachine = mkSystem "newmachine" {
+     system = "aarch64-darwin";
+     user = "newusername";
+     darwin = true;
+   };
+   ```
+
+### Adding Tests
+
+**Unit/Integration tests** (automatic discovery):
+
+- Create `*-test.nix` in `tests/unit/` or `tests/integration/`
+- Use test helpers from `tests/lib/test-helpers.nix`
+- Tests are automatically discovered and run
+
+**Container tests** (manual):
+
+- Add to `tests/containers/`
+- Import in `tests/default.nix` containerTests
+- Run with `make test` (Linux) or CI
+
+### Formatting and Linting
 
 ```bash
-# Auto-detected targets (no manual selection needed):
-aarch64-darwin  → darwinConfigurations.macbook-pro.system
-x86_64-linux    → checks.x86_64-linux.smoke
-aarch64-linux   → checks.aarch64-linux.smoke
+make format           # Format with nixfmt-rfc-style
+nix run .#format     # Direct formatter invocation
+pre-commit run --all-files  # Run all pre-commit hooks
 ```
 
-This ensures you're always building the appropriate configuration for your platform.
+## macOS-Specific Notes
 
+### Determinate Nix Integration
 
-## Code Documentation
+This system uses Determinate Nix installer on macOS:
+- `nix.enable = false` in darwin.nix (required for compatibility)
+- Cache settings managed via `determinate-nix.customSettings`
+- All Nix configuration is in `/etc/nix/nix.custom.conf`
 
-**File headers**: Every file must explain its role
-**Inline comments**: Sparingly, for complex logic only
-**Avoid**: Implementation details, temporal context (new/old/legacy), refactoring history
+### Performance Optimizations
 
-```nix
-# ❌ BAD: Refactored Zod validation wrapper
-# ✅ GOOD: Validates user input against schema
-```
+macOS configuration includes:
 
-## Development Workflow
+- Disabled window animations for faster UI
+- Optimized keyboard repeat rates (faster than GUI allows)
+- Maximum trackpad speed
+- Automated cleanup of unused default apps (GarageBand, iMovie, etc.)
 
-1. Write failing tests first (TDD)
-2. Implement minimal code to pass tests
-3. Run `nix fmt` for code formatting
-4. Run `make test` to validate configuration changes
-5. Run `make switch` to apply changes to current system
-6. Refactor while keeping tests green
-7. Commit (pre-commit hooks automatically run quality checks)
+### Linux Builder
 
-### Mitchellh's Influence on Workflow
-
-**Makefile-First Approach**: Following mitchellh's pattern, the Makefile is the primary interface for all operations, providing comprehensive automation without requiring deep Nix knowledge.
-
-**VM-Centric Development**: Embraces mitchellh's "best of both worlds" philosophy:
-- macOS host for hardware reliability and ecosystem access
-- NixOS VMs for pure Linux development environments
-- Automated VM lifecycle management (bootstrap → copy → switch)
-
-**Pragmatic Command Set**: Limited, well-defined commands that cover all essential operations without overwhelming complexity:
-- Core operations: `switch`, `test`, `cache`
-- VM management: `vm/*` series for complete lifecycle
-- Secrets: `secrets/*` for backup/restore workflows
-- Platform support: `wsl` for Windows environments
-
-**No Premature Optimization**: Implements mitchellh's "modern computers are plenty fast enough" philosophy by focusing on functionality over theoretical performance gains.
-
-### Git Workflow
-
-- **Branch**: Currently on `feature/makefile-refactor-2025-01-10`
-- **Main Branch**: `main` (target for PRs)
-- **Status**: Clean working directory
-- **Recent commits**: Makefile refactoring and documentation updates
-
-### CI/CD Pipeline
-
-The project uses GitHub Actions for continuous integration with:
-- **Multi-platform testing**: macOS (Darwin), Linux x64, Linux ARM
-- **Configuration validation**: Dry-run testing of switch and test commands
-- **Secrets validation**: Testing backup/restore functionality
-- **Automatic caching**: Pushes to cachix.io on main branch and tags
-- **120-minute timeout**: Sufficient for full validation
+`machines/macbook-pro.nix` includes a Linux builder configuration for cross-platform testing, but it's disabled when using Determinate Nix (requires `nix.enable = true`).
 
 ## CI/CD
 
-### Multi-Platform Testing
+GitHub Actions workflow (`.github/workflows/ci.yml`):
 
-**Architecture**: Single unified job running on 3 platforms in parallel.
+- Runs on: macOS-15 (ARM), Ubuntu (x64 + ARM64)
+- Pre-commit hooks validation
+- Fast container tests (Linux) or validation mode (macOS)
+- Full test suite on PRs and main branch
+- Cachix upload for successful builds
 
-**Platforms**:
-- Darwin (macOS-15): Apple Silicon
-- Linux x64 (ubuntu-latest): Intel
-- Linux ARM (ubuntu-latest): ARM64 with QEMU
-
-**CI Workflow**:
-1. **Fast Container Tests** (2-5 seconds):
-   ```bash
-   export USER=${USER:-ci}
-   make test         # Run fast NixOS container tests
-   ```
-
-2. **Full Test Suite** (PRs and main branch):
-   ```bash
-   export USER=${USER:-ci}
-   make test-all     # Run complete test suite with integration tests
-   ```
-
-3. **Configuration Validation** (dry-run):
-   ```bash
-   make -n switch    # Validate switch command without execution
-   ```
-
-4. **Secrets Validation**:
-   ```bash
-   make -n secrets/backup  # Validate secrets backup command
-   ```
-
-5. **Cache Upload** (main branch and tags only):
-   ```bash
-   make cache        # Upload build results to cachix
-   ```
-
-**Environment Setup in CI**:
-- `USER=ci` (fallback for missing USER variable)
-- `NIXNAME=macbook-pro` (Darwin) or `vm-aarch64-utm` (Linux)
-
-**Key Features**:
-- ✅ No platform-specific conditionals in CI
-- ✅ Validates existing Makefile commands only
-- ✅ Tests both dry-run and actual execution
-- ✅ Automatic cachix upload on main branch
-- ✅ Secrets management validation
-
-## Key Features
-
-### Cross-Platform Support
-
-- **Dynamic User Resolution**: No hardcoded usernames - supports multiple users (baleen, jito, etc.)
-- **Platform Detection**: Automatic detection via `lib/platform-system.nix`
-- **Cross-Platform Validation**: Automated testing across 3 platform combinations
-
-### Development Experience
-
-- **Auto-Formatting**: Nix formatting via `nix fmt`
-- **Fast Container Testing**: 2-5 second test validation (vs previous minutes)
-- **TDD Framework**: Comprehensive test suite with NixOS containers
-- **Claude Code Integration**: 20+ specialized commands and skills
-- **Performance Monitoring**: Real-time build metrics
-
-### macOS-Specific Features
-
-- **Homebrew Integration**: Declarative GUI app management (34+ apps)
-- **Performance Optimization**: Level 1+2 tuning (30-50% UI speed boost)
-- **Automatic App Cleanup**: Removes unused default apps (6-8GB saved)
-
-## macOS Optimization
-
-### Performance Tuning
-
-**Configuration**: `users/shared/darwin.nix`
-
-**Level 1 - Safe Optimizations:**
-
-- Disable window/popover animations (30-50% UI speed boost)
-- Disable auto-capitalization, spelling correction, quote substitution
-- Fast Dock with minimal delays (autohide-delay: 0.0s)
-- Mission Control speed boost (expose-animation: 0.2s)
-
-**Level 2 - Performance Priority:**
-
-- Window resize speed: 0.1s (default: 0.2s)
-- Disable smooth scrolling for performance
-- Enable automatic app termination (memory management)
-- Disable iCloud auto-save (battery/network savings)
-- Optimized trackpad settings (tap-to-click, three-finger drag)
-
-**Expected Impact:**
-
-- UI responsiveness: 30-50% faster
-- CPU usage: Reduced (auto-correction disabled)
-- Battery life: Extended (iCloud sync minimized)
-- Memory: Better management (automatic termination)
-
-### App Cleanup
-
-**Configuration**: `users/shared/darwin.nix`
-
-**Automatically removed apps** (~6-8GB saved):
-
-- GarageBand (2-3GB) - Music production
-- iMovie (3-4GB) - Video editing
-- TV (200MB) - Apple TV+
-- Podcasts (100MB)
-- News (50MB)
-- Stocks (30MB)
-- Freeform (50MB) - Whiteboard
-
-**Execution:** Runs automatically during `darwin-rebuild switch` via activation script
-
-**Safety:** Only removes explicitly listed apps; system essentials protected
-
-## VM Management
-
-The project includes comprehensive VM management capabilities:
+Required environment variables in CI:
 
 ```bash
-# VM Bootstrap & Management
-make vm/bootstrap0           # Bootstrap new NixOS VM (initial install)
-make vm/bootstrap            # Complete VM setup with dotfiles
-make vm/copy                 # Copy configurations to VM
-make vm/switch               # Apply configuration changes on VM
-
-# VM Configuration Requirements:
-# NIXADDR - VM IP address
-# NIXPORT - SSH port (default: 22)
-# NIXUSER - SSH user (default: root)
+export USER=${USER:-ci}
+export TEST_USER=${TEST_USER:-testuser}
 ```
 
-**Usage Example:**
+## Common Patterns
+
+### Reading Current User
+
+```nix
+# In any module that receives specialArgs
+{ currentSystemUser, ... }:
+{
+  programs.git.userName = currentSystemUser;
+  home.homeDirectory = "/Users/${currentSystemUser}";
+}
+```
+
+### Platform-Specific Logic
+
+```nix
+{ pkgs, isDarwin, ... }:
+{
+  home.packages = with pkgs; [
+    common-package
+  ] ++ lib.optionals isDarwin [
+    macos-only-package
+  ];
+}
+```
+
+### Adding Machine-Specific Settings
+
+Machine files should be minimal - only hardware-specific settings. User preferences go in `users/shared/`.
+
+## Troubleshooting
+
+### Build Failures
+
 ```bash
-# Set VM connection details
-export NIXADDR=192.168.64.2
-export NIXPORT=2222
-export NIXUSER=root
-
-# Bootstrap and manage
-make vm/bootstrap0   # Initial NixOS install
-make vm/bootstrap    # Complete setup with dotfiles
-make vm/switch       # Apply configuration changes
+export USER=$(whoami)  # Ensure USER is set
+nix store gc            # Clear cache if needed
+make build             # Retry build
 ```
+
+### Container Tests Failing on macOS
+
+This is expected - container tests require Linux. Use `make test` for validation mode or run in CI.
+
+### Pre-commit Hook Failures
+
+```bash
+pre-commit run --all-files  # Run all hooks
+make format                 # Auto-format Nix files
+```
+
+### Cache Warnings
+
+Add your user to trusted users in `/etc/nix/nix.custom.conf`:
+
+```text
+trusted-users = root @admin yourusername
+```
+
+## Key Configuration Files
+
+### Core Infrastructure
+
+- **flake.nix**: Entry point, defines all system configurations and package outputs
+- **lib/mksystem.nix**: System factory function, core abstraction for building Darwin/NixOS systems
+- **lib/user-info.nix**: Centralized user identity (name, email) - single source of truth
+- **Makefile**: High-level commands, CI integration, and cross-platform build orchestration
+
+### User Configuration
+
+- **users/shared/home-manager.nix**: Main user config entry point, imports all tool modules
+- **users/shared/darwin.nix**: macOS system settings (300+ lines: Dock, Finder, Homebrew, performance tweaks)
+- **users/shared/git.nix**: Git configuration with centralized user info from lib/user-info.nix
+- **users/shared/vim.nix**: Vim setup with airline, tmux-navigator, relative line numbers
+- **users/shared/zsh.nix**: Zsh environment with fzf, direnv, Claude/OpenCode aliases
+- **users/shared/tmux.nix**: Tmux config with vi-mode copy-paste, session persistence
+- **users/shared/starship.nix**: Minimal prompt configuration
+- **users/shared/claude-code.nix**: Claude Code commands/skills/hooks deployment
+
+### Testing and Quality
+
+- **tests/default.nix**: Test orchestration, automatic discovery of `*-test.nix` files
+- **tests/lib/test-helpers.nix**: Test assertion framework (assertTest, assertFileExists, assertHasAttr)
+- **tests/lib/platform-helpers.nix**: Platform-aware test filtering for cross-platform support
+- **.pre-commit-config.yaml**: Quality enforcement hooks (shellcheck, shfmt, tests)
+
+### Continuous Integration
+
+- **.github/workflows/ci.yml**: Multi-platform CI (macOS, Linux x64/ARM64)
+- **.github/actions/setup-nix/action.yml**: Nix installation with week-based cache rotation
+
+## Important Development Notes
+
+### Shell Aliases and Shortcuts
+
+The zsh configuration provides these shortcuts (defined in `users/shared/zsh.nix`):
+
+- `cc`: Claude Code with permission checks disabled (`claude --dangerously-skip-permissions`)
+- `oc`: OpenCode shortcut
+- `ccw` / `oow`: Git worktree + Claude/OpenCode execution wrappers
+
+### Tool Configuration Highlights
+
+**Vim** (users/shared/vim.nix):
+
+- Leader key: `,` (comma)
+- Clipboard: `<Leader>,` paste, `<Leader>.` copy
+- Window navigation: Ctrl+h/j/k/l
+- Buffer navigation: Tab/Shift+Tab
+
+**Tmux** (users/shared/tmux.nix):
+
+- Prefix: Ctrl+b
+- Vi-style copy mode with clipboard integration
+- Cross-platform: pbcopy (macOS), xclip (Linux)
+- Session persistence via resurrect/continuum plugins
+
+**Fzf** (in zsh.nix):
+
+- Ctrl+R: Command history search
+- Ctrl+T: File search with bat preview
+- Alt+C: Directory search with tree preview
+
+### Test Writing Guidelines
+
+Use test helpers from `tests/lib/test-helpers.nix`:
+
+```nix
+{ pkgs, lib, ... }:
+let
+  helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
+in
+{
+  myTest = helpers.assertTest "feature-works"
+    (someCondition == expectedValue)
+    "Feature should work correctly";
+}
+```
+
+Available assertions:
+
+- `assertTest name condition message`: Basic assertion
+- `assertFileExists name derivation path`: File readability check
+- `assertHasAttr name attrName set`: Attribute existence
+- `assertStringContains name haystack needle`: String content check
+
+## References
+
+- **flake.nix**: Entry point, defines all configurations
+- **lib/mksystem.nix**: System factory, core abstraction
+- **Makefile**: High-level commands and CI integration
+- **.pre-commit-config.yaml**: Quality enforcement hooks
+- **tests/default.nix**: Test discovery and orchestration
+- **CONTRIBUTING.md**: Detailed development guidelines and workflow

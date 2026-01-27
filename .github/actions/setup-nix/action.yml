@@ -13,7 +13,7 @@ runs:
   using: 'composite'
   steps:
     - name: Install Nix
-      uses: DeterminateSystems/nix-installer-action@da36cb69b1c3247ad7a1f931ebfd954a1105ef14 # v14
+      uses: DeterminateSystems/nix-installer-action@c5a866b6ab867e88becbed4467b93592bce69f8a # v21
       with:
         extra-conf: |
           experimental-features = nix-command flakes
@@ -37,10 +37,10 @@ runs:
         path: |
           ~/.cache/nix
           ~/.local/state/nix
-        key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-${{ steps.date.outputs.week }}
+        key: nix-${{ runner.os }}-${{ hashFiles('**/flake.lock') }}-${{ steps.date.outputs.week }}-v3
         restore-keys: |
-          nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-
           nix-${{ runner.os }}-
+      continue-on-error: true
 
     - name: Restore Nix cache (restore-only mode)
       if: inputs.cache-mode == 'restore-only'
@@ -49,10 +49,19 @@ runs:
         path: |
           ~/.cache/nix
           ~/.local/state/nix
-        key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-${{ steps.date.outputs.week }}
+        key: nix-${{ runner.os }}-${{ hashFiles('**/flake.lock') }}-${{ steps.date.outputs.week }}-v3
         restore-keys: |
-          nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-
           nix-${{ runner.os }}-
+      continue-on-error: true
+
+    - name: Cache status check
+      shell: bash
+      run: |
+        echo "🔍 Cache configuration:"
+        echo "  - Cache mode: ${{ inputs.cache-mode }}"
+        echo "  - Cache key: nix-${{ runner.os }}-${{ hashFiles('**/flake.lock') }}-${{ steps.date.outputs.week }}"
+        echo "  - Week: ${{ steps.date.outputs.week }}"
+        echo "  - Flake.lock hash: ${{ hashFiles('**/flake.lock') }}"
 
     - name: Save Nix cache (full mode only)
       if: inputs.cache-mode == 'full' && always()
@@ -62,4 +71,4 @@ runs:
         path: |
           ~/.cache/nix
           ~/.local/state/nix
-        key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}-${{ steps.date.outputs.week }}
+        key: nix-${{ runner.os }}-${{ hashFiles('**/flake.lock') }}-${{ steps.date.outputs.week }}-v3

@@ -101,8 +101,8 @@ export TEST_USER=mydebuguser
 make test
 
 # Test with specific user configuration
-export USER=jito
-export TEST_USER=jito
+export USER=jito.hello
+export TEST_USER=jito.hello
 make test
 ```
 
@@ -131,7 +131,7 @@ The GitHub Actions workflow (`.github/workflows/ci.yml`) ensures consistent test
 ### Maintained Flexibility
 
 - ✅ **Dynamic system configs**: Actual system configurations still use dynamic user resolution
-- ✅ **Multi-user support**: Real deployments continue to support multiple users (baleen, jito, etc.)
+- ✅ **Multi-user support**: Real deployments continue to support multiple users (baleen, jito.hello, etc.)
 - ✅ **Local development**: Developers can test with their actual user configuration
 
 ## Best Practices

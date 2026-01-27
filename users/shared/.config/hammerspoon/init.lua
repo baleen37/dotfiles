@@ -1,6 +1,6 @@
 hs.loadSpoon('Hyper')
--- hs.loadSpoon('Headspace'):start()
 hs.loadSpoon('HyperModal')
+hs.loadSpoon('Pomodoro')
 
 
 Config = {}
@@ -37,3 +37,28 @@ end)
 
 HyperModal = spoon.HyperModal
 Hyper:bind({}, 'm', function() HyperModal:toggle() end)
+
+-- HyperModal with basic bindings
+HyperModal
+ :start()
+ :bind('', ";", function() hs.urlevent.openURL("raycast://extensions/raycast/system/toggle-system-appearance") end)
+
+-- Initialize Pomodoro Spoon
+Pomodoro = spoon.Pomodoro
+Pomodoro:init({
+  onWorkStart = function()
+    hs.alert.show("🚀 Pomodoro 시작!", 1)
+  end,
+  onBreakStart = function()
+    hs.alert.show("🍅 25분 완료!\n5분 휴식하세요", 2)
+  end,
+  onComplete = function()
+    hs.alert.show("✅ 세션 완료!\n수고하셨습니다", 2)
+  end,
+  onStopped = function()
+    hs.alert.show("⏹️ Pomodoro 세션 중지됨", 2)
+  end
+}):start()
+
+-- Bind Hyper+P to toggle Pomodoro session
+Hyper:bind({}, 'p', function() Pomodoro:toggleSession() end)

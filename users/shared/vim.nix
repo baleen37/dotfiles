@@ -63,7 +63,6 @@
       set nowrap
       set ruler
       set backspace=indent,eol,start
-      set laststatus=2
       set clipboard=autoselect
 
       " Dir stuff
@@ -88,7 +87,6 @@
       set gdefault
 
       "" Statusbar
-      set nocompatible " Disable vi-compatibility
       set laststatus=2 " Always show statusline
       let g:airline_theme='bubblegum'
       let g:airline_powerline_fonts = 1
@@ -135,19 +133,6 @@
 
       "" Like a boss, sudo AFTER opening the file to write
       cmap w!! w !sudo tee % >/dev/null
-
-      let g:startify_lists = [
-        \ { 'type': 'dir',       'header': ['   Current Directory '. getcwd()] },
-        \ { 'type': 'sessions',  'header': ['   Sessions']       },
-        \ { 'type': 'bookmarks', 'header': ['   Bookmarks']      }
-        \ ]
-
-      let g:startify_bookmarks = [
-        \ '~/.local/share/src',
-        \ ]
-
-      let g:airline_theme='bubblegum'
-      let g:airline_powerline_fonts = 1
     '';
   };
 }

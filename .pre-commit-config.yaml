@@ -2,10 +2,36 @@
 # All linting/formatting logic is managed in Makefile
 
 repos:
+  # Shell script linting
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.10.0.1
+    hooks:
+      - id: shellcheck
+        args: ['--severity=warning', '--shell=bash', '--exclude=SC2155,SC2034,SC1090,SC2120']
+        exclude: ^users/shared/\.config/p10k\.zsh$
+
+  # Shell script formatting
+  - repo: https://github.com/scop/pre-commit-shfmt
+    rev: v3.12.0-2
+    hooks:
+      - id: shfmt
+        args: ['-i', '2', '-ci', '-bn', '-sr']
+        exclude: ^users/shared/\.config/p10k\.zsh$
+
+  # Bash style checker
+  - repo: https://github.com/openstack/bashate
+    rev: 2.1.1
+    hooks:
+      - id: bashate
+        args: ['--ignore=E003,E006']
+        exclude: ^users/shared/\.config/.*\.zsh$
+
   # Fast file checks (pre-commit native)
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:
+      - id: check-executables-have-shebangs
+      - id: check-shebang-scripts-are-executable
       - id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]
       - id: end-of-file-fixer
@@ -15,6 +41,8 @@ repos:
       - id: check-added-large-files
         args: [--maxkb=1000]
       - id: detect-private-key
+        exclude: ^tests/e2e/secret-management-test\.nix$
+      - id: check-yaml
 
   # Makefile-managed checks (single source of truth)
   - repo: local

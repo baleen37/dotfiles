@@ -1,26 +1,27 @@
 # Tmux Terminal Multiplexer Configuration
 #
-# Extracted from modules/shared/programs/tmux/default.nix
+# Standard Configuration with Enhanced Copy-Paste Support
 #
 # Features:
-#   - Performance optimization: 0ms escape time, 50000 history, 500ms repeat time
-#   - Cross-platform clipboard integration:
-#       - macOS: pbcopy/pbpaste
-#       - Linux: xclip
-#       - Universal: tmux built-in buffer
-#   - Session persistence:
-#       - resurrect: Automatic session save/restore
-#       - continuum: 15-minute interval auto-save
-#   - True Color support: 256-color + RGB color
+#   - Standard copy-paste: Mouse selection auto-copies to clipboard
+#   - Vi-style copy mode: v to select, y to copy
+#   - Cross-platform support: pbcopy (macOS), xclip (Linux)
+#   - Middle-click paste: MouseDown2Pane for quick paste
+#   - Session persistence: resurrect + continuum plugins
 #   - Vim integration: vim-tmux-navigator plugin
-#   - Mouse support: Scroll, panel resizing
 #
 # Key Bindings:
 #   - Prefix: Ctrl+b
-#   - Panel split: | (horizontal), - (vertical)
-#   - Window create: Prefix+t
+#   - Copy mode: Prefix+[ or v in copy mode
+#   - Paste: Prefix+] or middle-click
+#   - Window split: | (horizontal), - (vertical)
 #   - Window navigate: Alt+h/l (no prefix needed)
-#   - Copy mode: vi key bindings
+#
+# Copy Mode (vi-style):
+#   v: Begin selection
+#   y: Copy to system clipboard
+#   r: Rectangle toggle
+#   Movement: hjkl, w, b, 0, $, etc.
 #
 
 {
@@ -31,8 +32,7 @@
 }:
 
 let
-  inherit (pkgs.stdenv) isDarwin;
-  inherit (pkgs.stdenv) isLinux;
+  inherit (pkgs.stdenv) isDarwin isLinux;
   homePath = config.home.homeDirectory;
 in
 {
@@ -42,7 +42,7 @@ in
     plugins = with pkgs.tmuxPlugins; [
       sensible
       vim-tmux-navigator
-      yank
+      # yank  # Removed - Task 2: Remove Yank Plugin Dependency
       resurrect
       continuum
     ];
@@ -63,6 +63,7 @@ in
       # Enhanced terminal and display settings
       set-environment -g TERM screen-256color
       set -g mouse on
+      bind-key -n MouseDown2Pane paste-buffer  # Middle-click paste
       set -g base-index 1
       set -g pane-base-index 1
       set -g renumber-windows on
@@ -72,44 +73,38 @@ in
       set -g repeat-time 500
       set -g status-interval 1
 
-      # Session stability settings with security-first clipboard policy
-      set -g set-clipboard off  # Security: disable external clipboard by default
+      # Session stability settings with standard clipboard synchronization
+      set -g set-clipboard on   # Enable external clipboard by default for automatic synchronization
       set -g remain-on-exit off
       set -g allow-rename off
       set -g destroy-unattached off
 
-      # Standard copy-paste configuration (works everywhere)
+      # Standard copy-paste configuration
       setw -g mode-keys vi
+      bind [ copy-mode
+      bind ] paste-buffer
       bind-key -T copy-mode-vi v send-keys -X begin-selection
-      bind-key -T copy-mode-vi y send-keys -X copy-selection-and-cancel
       bind-key -T copy-mode-vi Enter send-keys -X copy-selection-and-cancel
-      bind-key -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-selection-and-cancel
 
-      # Simple platform-specific clipboard integration
+      # Cross-platform clipboard integration with copy-pipe-and-cancel
       ${lib.optionalString isDarwin ''
         # macOS: pbcopy/pbpaste integration
+        bind-key -T copy-mode-vi y send-keys -X copy-pipe-and-cancel "pbcopy"
         bind-key C-c run "tmux save-buffer - | pbcopy"
         bind-key C-v run "pbpaste | tmux load-buffer -"
       ''}
       ${lib.optionalString isLinux ''
         # Linux: xclip integration with fallback
         if command -v xclip >/dev/null 2>&1; then
+          bind-key -T copy-mode-vi y send-keys -X copy-pipe-and-cancel "xclip -in -selection clipboard"
           bind-key C-c run "tmux save-buffer - | xclip -in -selection clipboard >/dev/null"
           bind-key C-v run "xclip -out -selection clipboard | tmux load-buffer -"
         fi
       ''}
 
-      # Standard buffer management
-      bind-key P paste-buffer
-      bind-key b list-buffers
-      bind-key B choose-buffer
 
       # Optimized terminal capabilities with True Color support
       set -ga terminal-overrides ",*256col*:Tc,*:U8=0"
-      set -ga terminal-overrides ",screen*:Tc,*:U8=0"
-      set -ga terminal-overrides ",xterm*:Tc,*:U8=0"
-      set -ga terminal-overrides ",tmux*:Tc,*:U8=0"
-      set -ga terminal-overrides ",alacritty:Tc,*:U8=0"
 
       # Keyboard settings
       set-window-option -g xterm-keys on

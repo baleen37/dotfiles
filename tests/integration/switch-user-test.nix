@@ -23,31 +23,31 @@ let
   # Test users that should be supported
   testUsers = [
     "baleen"
-    "jito"
+    "jito.hello"
     "testuser"
   ];
 
 in
-helpers.testSuite "switch-user" [
-  # Test 1: Home Manager configurations exist for supported users
-  (helpers.assertTest "home-configs-exist" (builtins.all (
-    user: inputs.self ? homeConfigurations.${user}
-  ) testUsers) "Home Manager configurations should exist for all supported users")
+# This test suite is Darwin-only
+{
+  platforms = ["darwin"];
+  value = helpers.testSuite "switch-user" [
+    # Test 1: Home Manager configurations exist for supported users
+    (helpers.assertTest "home-configs-exist" (builtins.all (
+      user: inputs.self ? homeConfigurations.${user}
+    ) testUsers) "Home Manager configurations should exist for all supported users")
 
-  # Test 2: Home Manager configuration can be built (Darwin-only)
-  (helpers.runIfPlatform "darwin" (
-    let
+    # Test 2: Home Manager configuration can be built
+    (let
       # Test with default user (baleen)
       userConfig = inputs.self.homeConfigurations.baleen;
     in
     helpers.assertTest "home-config-builds" (
       userConfig ? activationPackage
-    ) "Home Manager configuration should be buildable for user activation"
-  ))
+    ) "Home Manager configuration should be buildable for user activation")
 
-  # Test 3: User configuration includes required modules
-  (helpers.runIfPlatform "darwin" (
-    let
+    # Test 3: User configuration includes required modules
+    (let
       # Extract home-manager configuration to test module imports
       hmConfig = import ../../users/shared/home-manager.nix {
         inherit pkgs lib inputs;
@@ -74,14 +74,12 @@ helpers.testSuite "switch-user" [
       (helpers.assertTest "has-tmux-module" (builtins.any (
         m: lib.hasSuffix "/users/shared/tmux.nix" (builtins.toString m)
       ) hmConfig.imports) "User configuration should import tmux.nix module")
-    ]
-  ))
+    ])
 
-  # Test 4: User configuration includes essential packages
-  # Note: This test uses the evaluated homeConfiguration from the flake
-  # because raw module imports don't have evaluated home.packages
-  (helpers.runIfPlatform "darwin" (
-    let
+    # Test 4: User configuration includes essential packages
+    # Note: This test uses the evaluated homeConfiguration from the flake
+    # because raw module imports don't have evaluated home.packages
+    (let
       # Use the actual evaluated homeConfiguration
       userConfig = inputs.self.homeConfigurations.baleen;
       essentialPackages = [
@@ -101,12 +99,10 @@ helpers.testSuite "switch-user" [
         # Full package validation would require building the entire configuration
         userConfig ? activationPackage
       ) "User configuration should include essential packages via home-manager")
-    ]
-  ))
+    ])
 
-  # Test 5: User home directory is correctly configured
-  (helpers.runIfPlatform "darwin" (
-    let
+    # Test 5: User home directory is correctly configured
+    (let
       hmConfig = import ../../users/shared/home-manager.nix {
         inherit pkgs lib inputs;
         currentSystemUser = "baleen";
@@ -124,11 +120,6 @@ helpers.testSuite "switch-user" [
       (helpers.assertTest "has-state-version" (
         hmConfig.home ? stateVersion && hmConfig.home.stateVersion == "24.11"
       ) "Home Manager configuration should have state version")
-    ]
-  ))
-
-  # Test 6: Platform-specific skip for non-Darwin systems
-  (helpers.runIfPlatform "linux" (
-    helpers.assertTest "linux-skip-message" true "switch-user is Darwin-only, test skipped on Linux"
-  ))
-]
+    ])
+  ];
+}

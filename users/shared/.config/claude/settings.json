@@ -29,34 +29,18 @@
       "Bash(git:*)",
       "Bash(gh:*)"
     ],
-    "deny": [
-    ]
+    "deny": []
   },
   "model": "sonnet",
   "enableAllProjectMcpServers": true,
-  "alwaysThinkingEnabled": false,
-  "rejectedMcpServers": [],
-  "enabledPlugins": {
-    "superpowers@superpowers-marketplace": true
-  },
-  "feedbackSurveyState": {
-    "lastShownTime": 1755225425616
-  },
   "statusLine": {
     "type": "command",
     "command": "~/.claude/statusline.sh"
   },
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/git-command-validator.sh"
-          }
-        ]
-      }
-    ]
+  "alwaysThinkingEnabled": false,
+  "installMethod": "native",
+  "rejectedMcpServers": [],
+  "feedbackSurveyState": {
+    "lastShownTime": 1755225425616
   }
 }

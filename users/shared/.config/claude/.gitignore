@@ -3,6 +3,7 @@
 
 debug/
 file-history/
+handoffs/
 history.jsonl
 projects/
 shell-snapshots/
