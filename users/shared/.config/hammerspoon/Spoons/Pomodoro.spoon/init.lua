@@ -60,7 +60,7 @@ local UI = {
   focusWatcherDisabled = nil,
   lastKnownFocus = nil,
   overlayCanvas = nil,
-  hoverChecker = nil,
+  dragTimer = nil,
   screenWatcher = nil,
 }
 
@@ -173,6 +173,7 @@ function OverlayManager.create()
     textSize = 48,
     textColor = {white = 1, alpha = 0.2},
     textAlignment = "right",
+    trackMouseEnterExit = true,
     frame = {x = 0, y = 0, w = canvasWidth, h = canvasHeight}
   }
 
@@ -182,17 +183,23 @@ function OverlayManager.create()
     hs.drawing.windowBehaviors.stationary
   })
 
-  -- Mouse event handlers for dragging
-  canvas:mouseCallback(function(canvas, event, id, x, y)
-    if event == "mouseDown" then
+  -- Mouse event handlers for hover and dragging
+  canvas:mouseCallback(function(c, event, id, x, y)
+    if event == "mouseEnter" then
+      c[1].textColor = {white = 1, alpha = 1.0}
+    elseif event == "mouseExit" then
+      c[1].textColor = {white = 1, alpha = 0.2}
+    elseif event == "mouseDown" then
       State.isDragging = true
       State.dragStartPos = hs.mouse.getAbsolutePosition()
-      State.dragStartFrame = canvas:frame()
+      State.dragStartFrame = c:frame()
+      OverlayManager.startDragTimer()
     elseif event == "mouseUp" then
       if State.isDragging then
         State.isDragging = false
+        OverlayManager.stopDragTimer()
         -- Save position
-        local currentFrame = canvas:frame()
+        local currentFrame = c:frame()
         hs.settings.set("pomodoro.overlay.position", {
           x = currentFrame.x,
           y = currentFrame.y
@@ -202,7 +209,6 @@ function OverlayManager.create()
   end)
 
   UI.overlayCanvas = canvas
-  OverlayManager.startHoverChecker()
   OverlayManager.startScreenWatcher()
 end
 
@@ -217,53 +223,47 @@ function OverlayManager.update()
   end
 end
 
-function OverlayManager.startHoverChecker()
-  if UI.hoverChecker then
-    UI.hoverChecker:stop()
-  end
+function OverlayManager.startDragTimer()
+  if UI.dragTimer then return end
 
-  UI.hoverChecker = hs.timer.new(0.1, function()
-    if not UI.overlayCanvas then return end
-    if not State.timerRunning then return end
+  UI.dragTimer = hs.timer.new(0.016, function()
+    if not State.isDragging then return end
+    if not State.dragStartPos or not State.dragStartFrame then return end
 
-    local mousePos = hs.mouse.getAbsolutePosition()
+    local currentPos = hs.mouse.getAbsolutePosition()
+    local deltaX = currentPos.x - State.dragStartPos.x
+    local deltaY = currentPos.y - State.dragStartPos.y
+
+    local screen = hs.screen.mainScreen()
+    local screenFrame = screen:frame()
     local canvasFrame = UI.overlayCanvas:frame()
 
-    local isHover = mousePos.x >= canvasFrame.x and
-                    mousePos.x <= canvasFrame.x + canvasFrame.w and
-                    mousePos.y >= canvasFrame.y and
-                    mousePos.y <= canvasFrame.y + canvasFrame.h
+    -- Calculate new position with boundary constraints
+    local newX = math.max(0, math.min(
+      State.dragStartFrame.x + deltaX,
+      screenFrame.w - canvasFrame.w
+    ))
+    local newY = math.max(0, math.min(
+      State.dragStartFrame.y + deltaY,
+      screenFrame.h - canvasFrame.h
+    ))
 
-    -- Handle dragging
-    if State.isDragging and State.dragStartPos and State.dragStartFrame then
-      local currentPos = hs.mouse.getAbsolutePosition()
-      local deltaX = currentPos.x - State.dragStartPos.x
-      local deltaY = currentPos.y - State.dragStartPos.y
-
-      local screen = hs.screen.mainScreen()
-      local screenFrame = screen:frame()
-
-      -- Calculate new position with boundary constraints
-      local newX = State.dragStartFrame.x + deltaX
-      local newY = State.dragStartFrame.y + deltaY
-
-      -- Keep within screen bounds
-      newX = math.max(0, math.min(newX, screenFrame.w - canvasFrame.w))
-      newY = math.max(0, math.min(newY, screenFrame.h - canvasFrame.h))
-
-      UI.overlayCanvas:frame({
-        x = newX,
-        y = newY,
-        w = canvasFrame.w,
-        h = canvasFrame.h
-      })
-    end
-
-    UI.overlayCanvas[1].textColor = {white = 1, alpha = isHover and 1.0 or 0.2}
-    UI.overlayCanvas:show()
+    UI.overlayCanvas:frame({
+      x = newX,
+      y = newY,
+      w = canvasFrame.w,
+      h = canvasFrame.h
+    })
   end)
 
-  UI.hoverChecker:start()
+  UI.dragTimer:start()
+end
+
+function OverlayManager.stopDragTimer()
+  if UI.dragTimer then
+    UI.dragTimer:stop()
+    UI.dragTimer = nil
+  end
 end
 
 function OverlayManager.startScreenWatcher()
@@ -280,10 +280,7 @@ function OverlayManager.startScreenWatcher()
 end
 
 function OverlayManager.cleanup()
-  if UI.hoverChecker then
-    UI.hoverChecker:stop()
-    UI.hoverChecker = nil
-  end
+  OverlayManager.stopDragTimer()
 
   if UI.screenWatcher then
     UI.screenWatcher:stop()
