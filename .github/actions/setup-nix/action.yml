@@ -18,6 +18,7 @@ runs:
         extra-conf: |
           experimental-features = nix-command flakes
           accept-flake-config = true
+          trusted-users = root runner
 
     - name: Install cachix
       uses: cachix/cachix-action@v14
