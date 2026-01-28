@@ -224,6 +224,7 @@ function OverlayManager.startHoverChecker()
 
   UI.hoverChecker = hs.timer.new(0.1, function()
     if not UI.overlayCanvas then return end
+    if not State.timerRunning then return end
 
     local mousePos = hs.mouse.getAbsolutePosition()
     local canvasFrame = UI.overlayCanvas:frame()
