@@ -46,6 +46,10 @@ local State = {
   sessionsCompleted = 0,
   timeLeft = 0,
   sessionStartTime = nil,
+  -- Drag state
+  isDragging = false,
+  dragStartPos = nil,
+  dragStartFrame = nil,
 }
 
 -- UI Components
@@ -55,6 +59,9 @@ local UI = {
   focusWatcherEnabled = nil,
   focusWatcherDisabled = nil,
   lastKnownFocus = nil,
+  overlayCanvas = nil,
+  dragTimer = nil,
+  screenWatcher = nil,
 }
 
 -- Cache Management
@@ -126,6 +133,167 @@ local function loadCurrentStatistics()
 end
 
 -- ============================================================================
+-- OVERLAY MANAGEMENT
+-- ============================================================================
+
+local OverlayManager = {}
+
+function OverlayManager.create()
+  OverlayManager.cleanup()
+
+  local screen = hs.screen.mainScreen()
+  local frame = screen:frame()
+
+  local canvasWidth = 200
+  local canvasHeight = 60
+  local padding = 20
+
+  -- Load saved position or use default
+  local savedPos = hs.settings.get("pomodoro.overlay.position")
+  local canvasX, canvasY
+  if savedPos then
+    canvasX = savedPos.x
+    canvasY = savedPos.y
+  else
+    canvasX = frame.w - canvasWidth - padding
+    canvasY = frame.h - canvasHeight - padding
+  end
+
+  local canvas = hs.canvas.new({
+    x = canvasX,
+    y = canvasY,
+    w = canvasWidth,
+    h = canvasHeight
+  })
+
+  canvas[1] = {
+    type = "text",
+    text = "",
+    textFont = "SF Pro Display",
+    textSize = 48,
+    textColor = {white = 1, alpha = 0.2},
+    textAlignment = "right",
+    trackMouseEnterExit = true,
+    frame = {x = 0, y = 0, w = canvasWidth, h = canvasHeight}
+  }
+
+  canvas:level(hs.drawing.windowLevels.floating)
+  canvas:behavior({
+    hs.drawing.windowBehaviors.canJoinAllSpaces,
+    hs.drawing.windowBehaviors.stationary
+  })
+
+  -- Mouse event handlers for hover and dragging
+  canvas:mouseCallback(function(c, event, id, x, y)
+    if event == "mouseEnter" then
+      c[1].textColor = {white = 1, alpha = 1.0}
+    elseif event == "mouseExit" then
+      c[1].textColor = {white = 1, alpha = 0.2}
+    elseif event == "mouseDown" then
+      State.isDragging = true
+      State.dragStartPos = hs.mouse.getAbsolutePosition()
+      State.dragStartFrame = c:frame()
+      OverlayManager.startDragTimer()
+    elseif event == "mouseUp" then
+      if State.isDragging then
+        State.isDragging = false
+        OverlayManager.stopDragTimer()
+        -- Save position
+        local currentFrame = c:frame()
+        hs.settings.set("pomodoro.overlay.position", {
+          x = currentFrame.x,
+          y = currentFrame.y
+        })
+      end
+    end
+  end)
+
+  UI.overlayCanvas = canvas
+  OverlayManager.startScreenWatcher()
+end
+
+function OverlayManager.update()
+  if not UI.overlayCanvas then return end
+
+  if State.timerRunning then
+    UI.overlayCanvas[1].text = formatTime(State.timeLeft)
+    UI.overlayCanvas:show()
+  else
+    UI.overlayCanvas:hide()
+  end
+end
+
+function OverlayManager.startDragTimer()
+  if UI.dragTimer then return end
+
+  UI.dragTimer = hs.timer.new(0.016, function()
+    if not State.isDragging then return end
+    if not State.dragStartPos or not State.dragStartFrame then return end
+
+    local currentPos = hs.mouse.getAbsolutePosition()
+    local deltaX = currentPos.x - State.dragStartPos.x
+    local deltaY = currentPos.y - State.dragStartPos.y
+
+    local screen = hs.screen.mainScreen()
+    local screenFrame = screen:frame()
+    local canvasFrame = UI.overlayCanvas:frame()
+
+    -- Calculate new position with boundary constraints
+    local newX = math.max(0, math.min(
+      State.dragStartFrame.x + deltaX,
+      screenFrame.w - canvasFrame.w
+    ))
+    local newY = math.max(0, math.min(
+      State.dragStartFrame.y + deltaY,
+      screenFrame.h - canvasFrame.h
+    ))
+
+    UI.overlayCanvas:frame({
+      x = newX,
+      y = newY,
+      w = canvasFrame.w,
+      h = canvasFrame.h
+    })
+  end)
+
+  UI.dragTimer:start()
+end
+
+function OverlayManager.stopDragTimer()
+  if UI.dragTimer then
+    UI.dragTimer:stop()
+    UI.dragTimer = nil
+  end
+end
+
+function OverlayManager.startScreenWatcher()
+  if UI.screenWatcher then
+    UI.screenWatcher:stop()
+  end
+
+  UI.screenWatcher = hs.screen.watcher.new(function()
+    if UI.overlayCanvas and State.timerRunning then
+      OverlayManager.create()
+      OverlayManager.update()
+    end
+  end):start()
+end
+
+function OverlayManager.cleanup()
+  OverlayManager.stopDragTimer()
+
+  if UI.screenWatcher then
+    UI.screenWatcher:stop()
+    UI.screenWatcher = nil
+  end
+
+  if UI.overlayCanvas then
+    UI.overlayCanvas:delete()
+    UI.overlayCanvas = nil
+  end
+end
+
+-- ============================================================================
 -- UI MANAGEMENT
 -- ============================================================================
 
@@ -138,6 +306,8 @@ local function updateMenubarDisplay()
     local emoji = State.isBreak and "☕" or "🍅"
     UI.menubarItem:setTitle(emoji .. " " .. formatTime(State.timeLeft))
   end
+
+  OverlayManager.update()
 end
 
 local function buildMenuTable()
@@ -241,6 +411,12 @@ function TimerManager.startWorkSession()
   State.sessionStartTime = os.time()
 
   updateMenubarDisplay()
+
+  -- Create overlay if not exists
+  if not UI.overlayCanvas then
+    OverlayManager.create()
+  end
+
   showNotification("Pomodoro Started", "Work session begins!")
 
   -- Callback: onWorkStart
@@ -460,6 +636,12 @@ function obj:start()
     FocusManager.handleFocusChange()
   end
 
+  -- Create overlay if timer is running
+  if State.timerRunning then
+    OverlayManager.create()
+    OverlayManager.update()
+  end
+
   return self
 end
 
@@ -484,6 +666,9 @@ function obj:stop()
     UI.menubarItem:delete()
     UI.menubarItem = nil
   end
+
+  -- Clean up overlay
+  OverlayManager.cleanup()
 
   -- Clear all caches and reset state
   invalidateStatisticsCache()
