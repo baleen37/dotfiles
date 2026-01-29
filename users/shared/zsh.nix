@@ -90,6 +90,12 @@ in
     completionInit = "autoload -Uz compinit && compinit -C";
 
     shellAliases = {
+      # Multi-level directory navigation
+      "..." = "cd ../..";
+      "...." = "cd ../../..";
+      "....." = "cd ../../../..";
+      "......" = "cd ../../../../..";
+
       # Claude CLI shortcut with LSP tool enabled by default
       cc = "ENABLE_LSP_TOOL=true claude --dangerously-skip-permissions";
 
