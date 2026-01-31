@@ -255,10 +255,10 @@ let
           recent = lib.lists.sublist (lib.max 0 (len - 5)) 5 sorted; # Last 5 measurements
           recentAvg =
             if builtins.length recent > 0 then
-              lib.foldl (acc: m: acc + m.duration_ms) 0 recent / builtins.length recent
+              (lib.foldl (acc: m: acc + m.duration_ms) 0 recent * 1.0) / builtins.length recent
             else
-              0;
-          overallAvg = if len > 0 then lib.foldl (acc: m: acc + m.duration_ms) 0 measurements / len else 0;
+              0.0;
+          overallAvg = if len > 0 then (lib.foldl (acc: m: acc + m.duration_ms) 0 measurements * 1.0) / len else 0.0;
         in
         {
           trend =
@@ -272,7 +272,7 @@ let
           overallAverage = overallAvg;
           sampleCount = len;
           direction = if recentAvg > overallAvg then "up" else "down";
-          changePercent = if overallAvg > 0 then ((recentAvg - overallAvg) / overallAvg) * 100 else 0;
+          changePercent = if overallAvg > 0 then ((recentAvg - overallAvg) / overallAvg) * 100.0 else 0.0;
         };
     };
 
