@@ -106,7 +106,7 @@ in
     (helpers.assertTest "mksystem-darwin-uses-darwin-system" (
       let
         testScenario = builtins.elemAt systemScenarios 0;
-        result = mkSystem mockInputs self testScenario.name {
+        result = mkSystem testScenario.name {
           inherit (testScenario) system user darwin wsl;
         };
       in
@@ -116,7 +116,7 @@ in
     (helpers.assertTest "mksystem-linux-uses-nixos-system" (
       let
         testScenario = builtins.elemAt systemScenarios 2;
-        result = mkSystem mockInputs self testScenario.name {
+        result = mkSystem testScenario.name {
           inherit (testScenario) system user darwin wsl;
         };
       in
@@ -128,7 +128,7 @@ in
     (helpers.assertTest "mksystem-specialargs-present-darwin" (
       let
         testScenario = builtins.elemAt systemScenarios 0;
-        result = mkSystem mockInputs self testScenario.name {
+        result = mkSystem testScenario.name {
           inherit (testScenario) system user darwin wsl;
         };
         args = result.specialArgs or { };
@@ -143,7 +143,7 @@ in
     (helpers.assertTest "mksystem-specialargs-correct-darwin" (
       let
         testScenario = builtins.elemAt systemScenarios 0;
-        result = mkSystem mockInputs self testScenario.name {
+        result = mkSystem testScenario.name {
           inherit (testScenario) system user darwin wsl;
         };
         args = result.specialArgs or { };
@@ -158,7 +158,7 @@ in
     (helpers.assertTest "mksystem-specialargs-correct-linux" (
       let
         testScenario = builtins.elemAt systemScenarios 2;
-        result = mkSystem mockInputs self testScenario.name {
+        result = mkSystem testScenario.name {
           inherit (testScenario) system user darwin wsl;
         };
         args = result.specialArgs or { };
@@ -175,7 +175,7 @@ in
     (helpers.assertTest "mksystem-modules-present" (
       let
         testScenario = builtins.elemAt systemScenarios 0;
-        result = mkSystem mockInputs self testScenario.name {
+        result = mkSystem testScenario.name {
           inherit (testScenario) system user darwin wsl;
         };
         modules = result.modules or [ ];
@@ -191,7 +191,7 @@ in
     (helpers.assertTest "mksystem-monotonic-darwin" (
       let
         testScenario = builtins.elemAt systemScenarios 0;
-        baseResult = mkSystem mockInputs self testScenario.name {
+        baseResult = mkSystem testScenario.name {
           inherit (testScenario) system user darwin wsl;
         };
         baseModuleCount = builtins.length (baseResult.modules or [ ]);
@@ -205,10 +205,10 @@ in
       let
         darwinScenario = builtins.elemAt systemScenarios 0;
         linuxScenario = builtins.elemAt systemScenarios 2;
-        darwinResult = mkSystem mockInputs self darwinScenario.name {
+        darwinResult = mkSystem darwinScenario.name {
           inherit (darwinScenario) system user darwin wsl;
         };
-        linuxResult = mkSystem mockInputs self linuxScenario.name {
+        linuxResult = mkSystem linuxScenario.name {
           inherit (linuxScenario) system user darwin wsl;
         };
         darwinUser = (darwinResult.specialArgs or { }).currentSystemUser or "";
@@ -222,7 +222,7 @@ in
     (helpers.assertTest "mksystem-cache-settings-darwin" (
       let
         testScenario = builtins.elemAt systemScenarios 0;
-        result = mkSystem mockInputs self testScenario.name {
+        result = mkSystem testScenario.name {
           inherit (testScenario) system user darwin wsl;
         };
         # Find determinate Nix settings
@@ -234,7 +234,7 @@ in
     (helpers.assertTest "mksystem-cache-settings-linux" (
       let
         testScenario = builtins.elemAt systemScenarios 2;
-        result = mkSystem mockInputs self testScenario.name {
+        result = mkSystem testScenario.name {
           inherit (testScenario) system user darwin wsl;
         };
         # Find Nix settings
@@ -248,7 +248,7 @@ in
     (helpers.assertTest "mksystem-wsl-flag-propagation" (
       let
         testScenario = builtins.elemAt systemScenarios 4; # WSL scenario
-        result = mkSystem mockInputs self testScenario.name {
+        result = mkSystem testScenario.name {
           inherit (testScenario) system user darwin wsl;
         };
         args = result.specialArgs or { };
@@ -259,7 +259,7 @@ in
     (helpers.assertTest "mksystem-non-wsl-flag-propagation" (
       let
         testScenario = builtins.elemAt systemScenarios 2; # Non-WSL scenario
-        result = mkSystem mockInputs self testScenario.name {
+        result = mkSystem testScenario.name {
           inherit (testScenario) system user darwin wsl;
         };
         args = result.specialArgs or { };
