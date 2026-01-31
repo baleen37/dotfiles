@@ -9,7 +9,8 @@
 
 let
   # Import existing performance frameworks
-  perf = import ./performance.nix { inherit lib pkgs; };
+  perfModule = import ./performance.nix { inherit lib pkgs; };
+  perf = perfModule.perf;
 
   baselines = import ./performance-baselines.nix { inherit lib pkgs; };
 
