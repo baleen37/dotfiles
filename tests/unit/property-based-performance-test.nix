@@ -504,7 +504,7 @@ in
       echo "  Cross-operation consistency"
       echo "  Nested structure handling"
       echo ""
-      echo "Operations tested: ${toString (builtins.attrNames testOperations |> builtins.length)}"
+      echo "Operations tested: ${toString (builtins.length (builtins.attrNames testOperations))}"
       echo "  - Constant time operations"
       echo "  - Linear time operations"
       echo "  - String operations"
