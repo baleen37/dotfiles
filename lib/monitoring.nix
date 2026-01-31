@@ -69,7 +69,7 @@ let
               untilTime = if until != null then until else 999999999999999999;
             in
             builtins.filter (
-              m: (builtins.fromString "int" m.timestamp) >= sinceTime && (builtins.fromString "int" m.timestamp) <= untilTime
+              m: (builtins.fromJSON ("\"" + m.timestamp + "\"")) >= sinceTime && (builtins.fromJSON ("\"" + m.timestamp + "\"")) <= untilTime
             ) allMeasurements;
         in
         map (m: m.measurement) filtered;
@@ -80,7 +80,7 @@ let
         let
           allMeasurements = store.data.${category} or [ ];
           sorted = builtins.sort (
-            a: b: (builtins.fromString "int" a.timestamp) > (builtins.fromString "int" b.timestamp)
+            a: b: (builtins.fromJSON ("\"" + a.timestamp + "\"")) > (builtins.fromJSON ("\"" + b.timestamp + "\""))
           ) allMeasurements;
         in
         map (m: m.measurement) (lib.sublist 0 count sorted);
@@ -91,7 +91,7 @@ let
         let
           cutoffTime = builtins.currentTime - maxAge;
           allMeasurements = store.data.${category} or [ ];
-          filtered = builtins.filter (m: (builtins.fromString "int" m.timestamp) >= cutoffTime) allMeasurements;
+          filtered = builtins.filter (m: (builtins.fromJSON ("\"" + m.timestamp + "\"")) >= cutoffTime) allMeasurements;
         in
         store
         // {
