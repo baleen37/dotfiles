@@ -4,9 +4,9 @@
 # This test validates that git configuration maintains essential properties
 # regardless of user identity, platform differences, or configuration variations.
 #
-# VERSION: 2.1.0 (Task 3 - Helper Pattern Migration + Performance Optimization)
-# LAST UPDATED: 2025-01-14
-# OPTIMIZED: Reduced test data sets for better performance
+# VERSION: 3.0.0 (Refactored with common-assertions)
+# LAST UPDATED: 2025-01-31
+# REFACTORED: Using standardized assertion helpers for better maintainability
 
 {
   lib ? import <nixpkgs/lib>,
@@ -20,6 +20,7 @@
 let
   # Import test helpers with helper pattern
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
+  assertions = import ../lib/common-assertions.nix { inherit pkgs lib; };
 
   # OPTIMIZED: Reduced test users from 5 to 3 for better performance
   testUsers = [
@@ -76,57 +77,128 @@ in
 {
   platforms = ["any"];
   value = helpers.testSuite "property-based-git-config-test" [
-    # User identity validation tests (one per user)
-    (helpers.assertTest "user-identity-testuser" (validateUserIdentity (builtins.elemAt testUsers 0))
+    # ===== 사용자 정체성 검증 (assertions 사용) =====
+
+    # 각 사용자의 이름 타입 검증
+    (assertions.assertType "user-0-name-type" (builtins.elemAt testUsers 0).name "string")
+    (assertions.assertType "user-1-name-type" (builtins.elemAt testUsers 1).name "string")
+    (assertions.assertType "user-2-name-type" (builtins.elemAt testUsers 2).name "string")
+
+    # 각 사용자의 이메일 타입 검증
+    (assertions.assertType "user-0-email-type" (builtins.elemAt testUsers 0).email "string")
+    (assertions.assertType "user-1-email-type" (builtins.elemAt testUsers 1).email "string")
+    (assertions.assertType "user-2-email-type" (builtins.elemAt testUsers 2).email "string")
+
+    # 각 사용자의 이름이 비어있지 않은지 확인
+    (assertions.assertPositive "user-0-name-length" (builtins.stringLength (builtins.elemAt testUsers 0).name))
+    (assertions.assertPositive "user-1-name-length" (builtins.stringLength (builtins.elemAt testUsers 1).name))
+    (assertions.assertPositive "user-2-name-length" (builtins.stringLength (builtins.elemAt testUsers 2).name))
+
+    # 이메일 형식 검증 (정규식)
+    (assertions.assertStringMatches "user-0-email-format" (builtins.elemAt testUsers 0).email "^[^@]+@[^@]+\\.[^@]+$")
+    (assertions.assertStringMatches "user-1-email-format" (builtins.elemAt testUsers 1).email "^[^@]+@[^@]+\\.[^@]+$")
+    (assertions.assertStringMatches "user-2-email-format" (builtins.elemAt testUsers 2).email "^[^@]+@[^@]+\\.[^@]+$")
+
+    # 이메일에 @ 기호가 포함되어 있는지 확인
+    (assertions.assertStringContains "user-0-email-has-at" (builtins.elemAt testUsers 0).email "@")
+    (assertions.assertStringContains "user-1-email-has-at" (builtins.elemAt testUsers 1).email "@")
+    (assertions.assertStringContains "user-2-email-has-at" (builtins.elemAt testUsers 2).email "@")
+
+    # 사용자 정체성 속성 검증 (property-based)
+    (helpers.assertTest "user-identity-0-valid" (validateUserIdentity (builtins.elemAt testUsers 0))
       "Test user identity should be valid")
-
-    (helpers.assertTest "user-identity-alice" (validateUserIdentity (builtins.elemAt testUsers 1))
+    (helpers.assertTest "user-identity-1-valid" (validateUserIdentity (builtins.elemAt testUsers 1))
       "Alice user identity should be valid")
-
-    (helpers.assertTest "user-identity-bob" (validateUserIdentity (builtins.elemAt testUsers 2))
+    (helpers.assertTest "user-identity-2-valid" (validateUserIdentity (builtins.elemAt testUsers 2))
       "Bob user identity should be valid")
 
-    # Platform configuration tests
+    # ===== 플랫폼 설정 검증 =====
+
+    # Darwin 플랫폼 설정 검증
+    (assertions.assertAttrEquals "platform-0-name" (builtins.elemAt platformConfigs 0) "name" "darwin")
+    (assertions.assertAttrEquals "platform-0-autocrlf" (builtins.elemAt platformConfigs 0) "autocrlf" "input")
+    (assertions.assertAttrEquals "platform-0-editor" (builtins.elemAt platformConfigs 0) "editor" "vim")
+    (assertions.assertAttrEquals "platform-0-branch" (builtins.elemAt platformConfigs 0) "defaultBranch" "main")
+
+    # Linux 플랫폼 설정 검증
+    (assertions.assertAttrEquals "platform-1-name" (builtins.elemAt platformConfigs 1) "name" "linux")
+    (assertions.assertAttrEquals "platform-1-autocrlf" (builtins.elemAt platformConfigs 1) "autocrlf" "false")
+    (assertions.assertAttrEquals "platform-1-editor" (builtins.elemAt platformConfigs 1) "editor" "vim")
+    (assertions.assertAttrEquals "platform-1-branch" (builtins.elemAt platformConfigs 1) "defaultBranch" "main")
+
+    # 플랫폼 속성 검증 (property-based)
     (helpers.assertTest "platform-darwin-config" (validatePlatformConfig (builtins.elemAt platformConfigs 0))
       "Darwin platform config should be valid")
-
     (helpers.assertTest "platform-linux-config" (validatePlatformConfig (builtins.elemAt platformConfigs 1))
       "Linux platform config should be valid")
 
+    # ===== 컬렉션 검증 =====
+
+    # 사용자 목록 길이 검증
+    (assertions.assertListLength "test-users-count" testUsers 3 null)
+
+    # 플랫폼 설정 목록 길이 검증
+    (assertions.assertListLength "platform-configs-count" platformConfigs 2 null)
+
+    # 모든 사용자에게 필수 속성이 있는지 확인
+    (assertions.assertAll "users-have-required-attrs" null (
+      builtins.map (user:
+        builtins.hasAttr "name" user &&
+        builtins.hasAttr "email" user &&
+        builtins.hasAttr "username" user
+      ) testUsers
+    ))
+
+    # 모든 플랫폼 설정에 필수 속성이 있는지 확인
+    (assertions.assertAll "platforms-have-required-attrs" null (
+      builtins.map (platform:
+        builtins.hasAttr "name" platform &&
+        builtins.hasAttr "autocrlf" platform &&
+        builtins.hasAttr "editor" platform &&
+        builtins.hasAttr "defaultBranch" platform
+      ) platformConfigs
+    ))
+
+    # ===== 요약 테스트 =====
+
     # Comprehensive property test summary
     (pkgs.runCommand "property-based-git-config-summary" { } ''
-      echo "🎯 Property-Based Git Configuration Test Summary"
+      echo "=========================================="
+      echo "Property-Based Git Configuration Test Summary"
+      echo "=========================================="
       echo ""
-      echo "✅ User Identity Validation:"
-      echo "   • Tested ${toString (builtins.length testUsers)} generated test users"
-      echo "   • Validated name, email, and username formats"
-      echo "   • No personal data included - all generated test cases"
+      echo "Refactored with common-assertions (v3.0.0)"
       echo ""
-      echo "✅ Cross-Platform Configuration:"
-      echo "   • Tested ${toString (builtins.length platformConfigs)} platform configurations"
-      echo "   • Validated macOS (Darwin) and Linux compatibility"
-      echo "   • Confirmed consistent editor and branch naming"
+      echo "User Identity Validation:"
+      echo "  • Tested ${toString (builtins.length testUsers)} generated test users"
+      echo "  • Validated name, email, and username formats"
+      echo "  • No personal data included - all generated test cases"
       echo ""
-      echo "🏗️  Helper Pattern Benefits:"
-      echo "   • Migrated from complex bash scripting to clean Nix expressions"
-      echo "   • Individual test cases with detailed failure reporting"
-      echo "   • Composable property testing framework"
-      echo "   • No hardcoded personal data"
+      echo "Cross-Platform Configuration:"
+      echo "  • Tested ${toString (builtins.length platformConfigs)} platform configurations"
+      echo "  • Validated macOS (Darwin) and Linux compatibility"
+      echo "  • Confirmed consistent editor and branch naming"
       echo ""
-      echo "⚡ Performance Optimizations:"
-      echo "   • Reduced test users from 5 to 3 (40% reduction)"
-      echo "   • Simplified test structure for faster evaluation"
-      echo "   • Removed nested testSuite complexity"
-      echo "   • Direct assertTest calls for better performance"
+      echo "Benefits of Refactoring:"
+      echo "  • Using standardized assertion helpers"
+      echo "  • Better code maintainability and consistency"
+      echo "  • Reduced duplication across test files"
+      echo "  • Clearer test intent with named assertions"
       echo ""
-      echo "🧪 Property-Based Testing:"
-      echo "   • Tests invariants across diverse scenarios"
-      echo "   • Catches edge cases missed by example-based testing"
-      echo "   • Validates git configuration robustness"
+      echo "Performance Optimizations:"
+      echo "  • Reduced test users from 5 to 3 (40% reduction)"
+      echo "  • Simplified test structure for faster evaluation"
+      echo "  • Direct assertion calls for better performance"
+      echo ""
+      echo "Property-Based Testing:"
+      echo "  • Tests invariants across diverse scenarios"
+      echo "  • Catches edge cases missed by example-based testing"
+      echo "  • Validates git configuration robustness"
       echo ""
       echo "✅ All Property-Based Git Configuration Tests Passed!"
       echo "Git configuration invariants verified across all test scenarios"
-      echo "Test suite optimized for better performance"
+      echo "Test suite refactored with common-assertions for maintainability"
+      echo "=========================================="
 
       touch $out
     '')

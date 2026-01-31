@@ -74,3 +74,4 @@ __pycache__/
 # Planning documents
 coverage/
 .private-journal/
+.omc/state/

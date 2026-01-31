@@ -85,12 +85,79 @@ helpers.testSuite "starship-configuration" (
     (assertBoolSetting "directory-truncate-to-repo" starshipSettings.directory.truncate_to_repo false)
     (assertStringSetting "directory-style" starshipSettings.directory.style "cyan")
 
+  # Directory module advanced settings tests
+  (helpers.assertTest "starship-directory-use-logical-path"
+    (starshipSettings.directory.use_logical_path == false)
+    "Directory should use physical path not logical path")
+
+  (helpers.assertTest "starship-directory-truncation-symbol"
+    (starshipSettings.directory.truncation_symbol == ".../")
+    "Directory truncation symbol should be .../")
+
+  (helpers.assertTest "starship-directory-repo-root-format"
+    (lib.hasInfix "[$before_root_path]($before_repo_root_style)[$repo_root]($repo_root_style)"
+      starshipSettings.directory.repo_root_format)
+    "Directory repo_root_format should include before_root_path and repo_root")
+
+  (helpers.assertTest "starship-directory-before-repo-root-style"
+    (starshipSettings.directory.before_repo_root_style == "cyan")
+    "Directory before_repo_root_style should be cyan")
+
+  (helpers.assertTest "starship-directory-repo-root-style"
+    (starshipSettings.directory.repo_root_style == "bold cyan")
+    "Directory repo_root_style should be bold cyan")
+
     # Git branch module settings
     (assertStringSetting "git-branch-symbol" starshipSettings.git_branch.symbol "")
     (assertStringSetting "git-branch-style" starshipSettings.git_branch.style "bold purple")
 
     # Git status module settings
     (assertStringSetting "git-status-style" starshipSettings.git_status.style "bold yellow")
+
+  # Git status detailed format and symbols tests
+  (helpers.assertTest "starship-git-status-format"
+    (starshipSettings.git_status.format == "([$all_status$ahead_behind]($style) )")
+    "Git status format should include all_status and ahead_behind")
+
+  (helpers.assertTest "starship-git-status-conflicted-symbol"
+    (starshipSettings.git_status.conflicted == "=")
+    "Git status conflicted symbol should be =")
+
+  (helpers.assertTest "starship-git-status-ahead-symbol"
+    (lib.hasInfix "⇡" starshipSettings.git_status.ahead)
+    "Git status ahead symbol should be ⇡")
+
+  (helpers.assertTest "starship-git-status-behind-symbol"
+    (lib.hasInfix "⇣" starshipSettings.git_status.behind)
+    "Git status behind symbol should be ⇣")
+
+  (helpers.assertTest "starship-git-status-diverged-symbol"
+    (lib.hasInfix "⇕" starshipSettings.git_status.diverged)
+    "Git status diverged symbol should contain ⇕⇡⇣")
+
+  (helpers.assertTest "starship-git-status-untracked-symbol"
+    (lib.hasInfix "?" starshipSettings.git_status.untracked)
+    "Git status untracked symbol should be ?")
+
+  (helpers.assertTest "starship-git-status-stashed-symbol"
+    (lib.hasInfix "≡" starshipSettings.git_status.stashed)
+    "Git status stashed symbol should be ≡")
+
+  (helpers.assertTest "starship-git-status-modified-symbol"
+    (lib.hasInfix "!" starshipSettings.git_status.modified)
+    "Git status modified symbol should be !")
+
+  (helpers.assertTest "starship-git-status-staged-symbol"
+    (lib.hasInfix "+" starshipSettings.git_status.staged)
+    "Git status staged symbol should be +")
+
+  (helpers.assertTest "starship-git-status-renamed-symbol"
+    (starshipSettings.git_status.renamed == "»")
+    "Git status renamed symbol should be »")
+
+  (helpers.assertTest "starship-git-status-deleted-symbol"
+    (lib.hasInfix "✘" starshipSettings.git_status.deleted)
+    "Git status deleted symbol should be ✘")
 
     # Command duration module settings
     (assertStringSetting "cmd-duration-min-time" starshipSettings.cmd_duration.min_time 3000)
@@ -102,6 +169,15 @@ helpers.testSuite "starship-configuration" (
     (assertListSetting "python-detect-extensions" starshipSettings.python.detect_extensions [ ])
     (assertListSetting "python-detect-files" starshipSettings.python.detect_files [ ])
     (assertListSetting "python-detect-folders" starshipSettings.python.detect_folders [ ])
+
+  # Python module advanced settings tests
+  (helpers.assertTest "starship-python-pyenv-version-name-false"
+    (starshipSettings.python.pyenv_version_name == false)
+    "Python pyenv_version_name should be disabled")
+
+  (helpers.assertTest "starship-python-format-includes-virtualenv"
+    (lib.hasInfix "virtualenv" starshipSettings.python.format)
+    "Python format should include virtualenv variable")
 
     # Nix shell module settings
     (assertStringSetting "nix-shell-symbol" starshipSettings.nix_shell.symbol "nix")

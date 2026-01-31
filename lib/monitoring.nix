@@ -199,7 +199,7 @@ let
             trend =
               let
                 recentCount = lib.min 5 count;
-                recentMeasurements = builtins.sublist (count - recentCount) recentCount measurements;
+                recentMeasurements = lib.lists.sublist (count - recentCount) recentCount measurements;
                 recentSuccessRate =
                   if recentCount > 0 then
                     (builtins.length (builtins.filter (m: m.success) recentMeasurements)) / recentCount
@@ -490,12 +490,13 @@ let
           successAlerts =
             if analysis.summary.successRate < thresholds.successRate.min then
               [
-                monitoring.alerts.createAlert
-                "critical"
-                "reliability"
-                "Success rate below threshold"
-                analysis.summary.successRate
-                thresholds.successRate.min
+                (monitoring.alerts.createAlert
+                  "critical"
+                  "reliability"
+                  "Success rate below threshold"
+                  analysis.summary.successRate
+                  thresholds.successRate.min
+                )
               ]
             else
               [ ];
@@ -504,12 +505,13 @@ let
           performanceAlerts =
             if analysis.summary.avgDuration_ms > thresholds.duration.max then
               [
-                monitoring.alerts.createAlert
-                "warning"
-                "performance"
-                "Average duration exceeds threshold"
-                analysis.summary.avgDuration_ms
-                thresholds.duration.max
+                (monitoring.alerts.createAlert
+                  "warning"
+                  "performance"
+                  "Average duration exceeds threshold"
+                  analysis.summary.avgDuration_ms
+                  thresholds.duration.max
+                )
               ]
             else
               [ ];
@@ -518,12 +520,13 @@ let
           memoryAlerts =
             if analysis.summary.avgMemory_mb > thresholds.memory.max then
               [
-                monitoring.alerts.createAlert
-                "warning"
-                "memory"
-                "Average memory usage exceeds threshold"
-                analysis.summary.avgMemory_mb
-                thresholds.memory.max
+                (monitoring.alerts.createAlert
+                  "warning"
+                  "memory"
+                  "Average memory usage exceeds threshold"
+                  analysis.summary.avgMemory_mb
+                  thresholds.memory.max
+                )
               ]
             else
               [ ];
