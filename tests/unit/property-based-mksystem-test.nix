@@ -22,17 +22,7 @@ let
   # Import property testing framework
   propertyTesting = import ../lib/property-testing.nix { inherit lib pkgs; };
 
-  # Import mkSystem to test
-  mkSystem = import ../../lib/mksystem.nix { inherit inputs self; };
-
-  # Import test helpers
-  helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
-
-  # Platform detection
-  isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
-  isLinux = pkgs.stdenv.hostPlatform.isLinux;
-
-  # Mock inputs for testing
+  # Mock inputs for testing (must be defined before mkSystem import)
   mockInputs = let
     mockpkgs = import <nixpkgs> { };
   in {
@@ -79,6 +69,19 @@ let
       darwinModules.default = { };
     };
   };
+
+  # Import mkSystem to test with mock inputs
+  mkSystem = import ../../lib/mksystem.nix {
+    inputs = mockInputs;
+    inherit self;
+  };
+
+  # Import test helpers
+  helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
+
+  # Platform detection
+  isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
+  isLinux = pkgs.stdenv.hostPlatform.isLinux;
 
   # Test scenarios for mkSystem
   # Using actual machine names from the repository to avoid file not found errors
