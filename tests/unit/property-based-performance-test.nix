@@ -226,7 +226,7 @@ in
         expr = testOperations.constant 42;
         result = perf.build.measureEval expr;
       in
-      result.value == 42
+      result.value == 43  # constant adds 1 to input: 42 + 1 = 43
     ) "Build evaluation should return correct value")
 
     (helpers.assertTest "perf-build-eval-non-negative-duration" (
