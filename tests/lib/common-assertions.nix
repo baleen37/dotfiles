@@ -34,6 +34,9 @@ rec {
   #   assertCondition "test-name" true "Should pass"
   assertCondition =
     name: condition: message:
+    let
+      displayMessage = if message != null then message else "Assertion failed: ${name}";
+    in
     if condition then
       pkgs.runCommand "test-${name}-pass" { } ''
         echo "PASS: ${name}"
@@ -42,7 +45,7 @@ rec {
     else
       pkgs.runCommand "test-${name}-fail" { } ''
         echo "FAIL: ${name}"
-        echo "  ${message}"
+        echo "  ${displayMessage}"
         exit 1
       '';
 

@@ -101,16 +101,16 @@ helpers.testSuite "home-manager" [
   # ===== 상세 검증 (assertions 사용) =====
 
   # 속성 존재 확인
-  (assertions.assertAttrExists "hm-has-imports" hmConfig "imports")
-  (assertions.assertAttrExists "hm-has-home" hmConfig "home")
+  (assertions.assertAttrExists "hm-has-imports" hmConfig "imports" null)
+  (assertions.assertAttrExists "hm-has-home" hmConfig "home" null)
 
   # 리스트 길이 검증
-  (assertions.assertListNotEmpty "hm-imports-not-empty" (hmConfig.imports null // []))
-  (assertions.assertListNotEmpty "hm-packages-not-empty" (hmConfig.home.packages null // []))
+  (assertions.assertListNotEmpty "hm-imports-not-empty" (hmConfig.imports or []) null)
+  (assertions.assertListNotEmpty "hm-packages-not-empty" (hmConfig.home.packages or []) null)
 
   # stateVersion이 null이 아닌지 확인
-  (assertions.assertNotNull "hm-state-version-not-null" hmConfig.home.stateVersion)
+  (assertions.assertNotNull "hm-state-version-not-null" hmConfig.home.stateVersion null)
 
   # XDG 활성화 확인
-  (assertions.assertAttrEquals "hm-xdg-enable-true" hmConfig.xdg "enable" true)
+  (assertions.assertAttrEquals "hm-xdg-enable-true" hmConfig.xdg "enable" true null)
 ]

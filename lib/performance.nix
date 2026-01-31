@@ -252,7 +252,7 @@ let
         let
           len = builtins.length measurements;
           sorted = builtins.sort (a: b: a.duration_ms < b.duration_ms) measurements;
-          recent = builtins.sublist (lib.max 0 (len - 5)) 5 sorted; # Last 5 measurements
+          recent = lib.lists.sublist (lib.max 0 (len - 5)) 5 sorted; # Last 5 measurements
           recentAvg =
             if builtins.length recent > 0 then
               lib.foldl (acc: m: acc + m.duration_ms) 0 recent / builtins.length recent

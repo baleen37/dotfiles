@@ -29,79 +29,56 @@ in
 # Platform filtering - this test should only run on Darwin systems
 {
   platforms = ["darwin"];
-  value = helpers.testSuite "darwin" [
-  # ===== 기본 구조 검증 (assertions 사용) =====
+  value = helpers.testSuite "darwin" (
+    # ===== 기본 구조 검증 (assertions 사용) =====
 
-  # 시스템 설정 존재 확인
-  (assertions.assertAttrExists "darwin-has-system-settings" darwinConfig "system")
+    [
+      # 시스템 설정 존재 확인
+      (assertions.assertAttrExists "darwin-has-system-settings" darwinConfig "system" null)
 
-  # Homebrew 설정 존재 확인
-  (assertions.assertAttrExists "darwin-has-homebrew" darwinConfig "homebrew")
+      # Homebrew 설정 존재 확인
+      (assertions.assertAttrExists "darwin-has-homebrew" darwinConfig "homebrew" null)
 
-  # 성능 최적화 설정 존재 확인
-  (assertions.assertAttrPathExists "darwin-has-ns-global-domain" darwinConfig "system.defaults.NSGlobalDomain")
+      # 성능 최적화 설정 존재 확인
+      (assertions.assertAttrPathExists "darwin-has-ns-global-domain" darwinConfig "system.defaults.NSGlobalDomain" null)
 
-  # Dock 최적화 설정 존재 확인
-  (assertions.assertAttrPathExists "darwin-has-dock-settings" darwinConfig "system.defaults.dock")
+      # Dock 최적화 설정 존재 확인
+      (assertions.assertAttrPathExists "darwin-has-dock-settings" darwinConfig "system.defaults.dock" null)
 
-  # ===== Homebrew 설정 검증 =====
+      # ===== Homebrew 설정 검증 =====
 
-  # Homebrew 활성화 확인
-  (assertions.assertAttrEquals "homebrew-enabled" darwinConfig.homebrew "enable" true null)
+      # Homebrew 활성화 확인
+      (assertions.assertAttrEquals "homebrew-enabled" darwinConfig.homebrew "enable" true null)
 
-  # Homebrew casks 목록이 비어있지 않은지 확인
-  (assertions.assertListNotEmpty "homebrew-casks-not-empty" (darwinConfig.homebrew.casks or []))
+      # Homebrew casks 목록이 비어있지 않은지 확인
+      (assertions.assertListNotEmpty "homebrew-casks-not-empty" (darwinConfig.homebrew.casks or []) null)
 
-  # Homebrew brews 목록이 비어있지 않은지 확인
-  (assertions.assertListNotEmpty "homebrew-brews-not-empty" (darwinConfig.homebrew.brews or []))
+      # Homebrew brews 목록이 비어있지 않은지 확인
+      (assertions.assertListNotEmpty "homebrew-brews-not-empty" (darwinConfig.homebrew.brews or []) null)
 
-  # ===== 시스템 설정 검증 (darwin-helpers 사용) =====
+      # ===== 시스템 설정 검증 (darwin-helpers 사용) =====
 
-  # 앱 클린업 스크립트 구성 확인
-  (darwinHelpers.assertCleanupScriptConfigured darwinConfig)
+      # 앱 클린업 스크립트 구성 확인
+      (darwinHelpers.assertCleanupScriptConfigured darwinConfig)
 
-  # 문서 비활성화 확인 (빌드 속도 향상)
-  (darwinHelpers.assertDocumentationDisabled darwinConfig)
+      # 문서 비활성화 확인 (빌드 속도 향상)
+      (darwinHelpers.assertDocumentationDisabled darwinConfig)
 
-  # 시스템 기본 사용자 확인
-  (darwinHelpers.assertSystemPrimaryUser "baleen" darwinConfig)
+      # 시스템 기본 사용자 확인
+      (darwinHelpers.assertSystemPrimaryUser "baleen" darwinConfig)
 
-  # ===== 성능 최적화 검증 (darwin-helpers 사용) =====
+      # ===== Spaces 설정 검증 =====
 
-  # Level 1 최적화: UI 애니메이션 비활성화
-  (helpers.testSuite "darwin-optimizations-level1" (
-    darwinHelpers.assertDarwinOptimizationsLevel1 darwinConfig
-  ))
-
-  # Level 2 최적화: 메모리 관리
-  (helpers.testSuite "darwin-optimizations-level2" (
-    darwinHelpers.assertDarwinOptimizationsLevel2 darwinConfig
-  ))
-
-  # Level 3 최적화: 고급 UI 최적화
-  (helpers.testSuite "darwin-optimizations-level3" (
-    darwinHelpers.assertDarwinOptimizationsLevel3 darwinConfig
-  ))
-
-  # Dock 최적화 확인
-  (darwinHelpers.assertDockOptimizations darwinConfig)
-
-  # Finder 최적화 확인
-  (darwinHelpers.assertFinderOptimizations darwinConfig)
-
-  # Trackpad 최적화 확인
-  (darwinHelpers.assertTrackpadOptimizations darwinConfig)
-
-  # ===== 로그인 창 최적화 검증 =====
-
-  # 로그인 창 최적화 확인
-  (helpers.testSuite "darwin-login-optimizations" (
-    darwinHelpers.assertLoginWindowOptimizations darwinConfig
-  ))
-
-  # ===== Spaces 설정 검증 =====
-
-  # Spaces가 디스플레이 간 스패닝되지 않는지 확인
-  (darwinHelpers.assertSpacesNoSpanDisplays darwinConfig)
-];
+      # Spaces가 디스플레이 간 스패닝되지 않는지 확인
+      (darwinHelpers.assertSpacesNoSpanDisplays darwinConfig)
+    ]
+    # ===== 성능 최적화 검증 (darwin-helpers 사용) =====
+    ++ (darwinHelpers.assertDarwinOptimizationsLevel1 darwinConfig)
+    ++ (darwinHelpers.assertDarwinOptimizationsLevel2 darwinConfig)
+    ++ (darwinHelpers.assertDarwinOptimizationsLevel3 darwinConfig)
+    ++ (darwinHelpers.assertDockOptimizations darwinConfig)
+    ++ (darwinHelpers.assertFinderOptimizations darwinConfig)
+    ++ (darwinHelpers.assertTrackpadOptimizations darwinConfig)
+    ++ (darwinHelpers.assertLoginWindowOptimizations darwinConfig)
+  );
 }

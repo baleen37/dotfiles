@@ -121,7 +121,7 @@ in
         # Basic email validation: has @, has domain with dot
         hasAt = builtins.match ".*@.*" email != null;
         hasDomain = builtins.match ".*@.*\\..*" email != null;
-        noSpaces = !builtins.match ".* .*" email;
+        noSpaces = builtins.match ".* .*" email == null;
       in
       hasAt && hasDomain && noSpaces
     ) "User email should have valid format")

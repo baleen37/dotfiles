@@ -103,10 +103,10 @@ helpers.testSuite "git-configuration-test" [
   (assertions.assertAttrEquals "git-user-email-matches" gitSettings.user "email" userInfo.email null)
 
   # Git aliases 목록이 비어있지 않은지 확인
-  (assertions.assertListNotEmpty "git-aliases-not-empty" (builtins.attrNames (gitSettings.alias or {})))
+  (assertions.assertListNotEmpty "git-aliases-not-empty" (builtins.attrNames (gitSettings.alias or {})) null)
 
   # Git ignores 목록이 비어있지 않은지 확인
-  (assertions.assertListNotEmpty "git-ignores-not-empty" gitIgnores)
+  (assertions.assertListNotEmpty "git-ignores-not-empty" gitIgnores null)
 
   # Git core.editor가 vim인지 확인
   (assertions.assertAttrEquals "git-core-editor" gitSettings.core "editor" "vim" null)
