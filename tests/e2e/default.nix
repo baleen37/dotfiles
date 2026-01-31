@@ -4,10 +4,11 @@
 # 모든 e2e 테스트를 통합하고 실행
 
 {
-  lib ? import <nixpkgs/lib>,
-  pkgs ? import <nixpkgs> { },
-  system ? builtins.currentSystem,
-  self ? null,
+  lib,
+  pkgs,
+  system,
+  self,
+  inputs ? { },
 }:
 
 let
@@ -154,6 +155,27 @@ let
       ;
   };
 
+  # New E2E tests with helpers
+  completeSystemBootstrapTests = import ./complete-system-bootstrap-test.nix {
+    inherit
+      lib
+      pkgs
+      system
+      self
+      inputs
+      ;
+  };
+
+  crossPlatformValidationTests = import ./cross-platform-validation-test.nix {
+    inherit
+      lib
+      pkgs
+      system
+      self
+      inputs
+      ;
+  };
+
 in
 {
   # Individual test suites
@@ -173,6 +195,8 @@ in
     secretManagementTests
     packageManagementTests
     machineSpecificConfigTests
+    completeSystemBootstrapTests
+    crossPlatformValidationTests
     ;
 
   # Real-world scenario test runners
@@ -234,5 +258,13 @@ in
     "secret-management" = secretManagementTests;
     "package-management" = packageManagementTests;
     "machine-specific-config" = machineSpecificConfigTests;
+    "complete-system-bootstrap" = completeSystemBootstrapTests;
+    "cross-platform-validation" = crossPlatformValidationTests;
+  };
+
+  # New E2E tests with helpers (Priority 1)
+  enhanced-e2e-tests = {
+    "complete-system-bootstrap" = completeSystemBootstrapTests;
+    "cross-platform-validation" = crossPlatformValidationTests;
   };
 }

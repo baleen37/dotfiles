@@ -22,9 +22,8 @@ let
   # Helper to run statusline script with JSON input
   runStatusline =
     inputData:
-    pkgs.runCommand "statusline-test" { buildInputs = [ pkgs.jq ]; } ''
+    pkgs.runCommand "statusline-test" { nativeBuildInputs = [ pkgs.bash pkgs.jq ]; } ''
       echo '${inputData}' | bash ${statuslineScript} > $out 2>&1 || true
-      cat $out
     '';
 
   # Helper to extract context value from statusline output

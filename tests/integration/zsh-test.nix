@@ -15,6 +15,10 @@
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
 
+  # Platform detection
+  isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
+  isLinux = pkgs.stdenv.hostPlatform.isLinux;
+
   # Import zsh configuration
   zshConfig = import ../../users/shared/zsh.nix {
     inherit pkgs lib;
@@ -76,9 +80,22 @@ in
   (helpers.assertTest "alias-ga-exists" (hasAlias "ga") "alias 'ga' (git add) should exist")
   (helpers.assertTest "alias-gc-exists" (hasAlias "gc") "alias 'gc' (git commit) should exist")
   (helpers.assertTest "alias-gco-exists" (hasAlias "gco") "alias 'gco' (git checkout) should exist")
+  (helpers.assertTest "alias-gcp-exists" (hasAlias "gcp") "alias 'gcp' (git cherry-pick) should exist")
+  (helpers.assertTest "alias-gdiff-exists" (hasAlias "gdiff") "alias 'gdiff' (git diff) should exist")
   (helpers.assertTest "alias-gp-exists" (hasAlias "gp") "alias 'gp' (git push) should exist")
   (helpers.assertTest "alias-gs-exists" (hasAlias "gs") "alias 'gs' (git status) should exist")
+  (helpers.assertTest "alias-gt-exists" (hasAlias "gt") "alias 'gt' (git tag) should exist")
   (helpers.assertTest "alias-gl-exists" (hasAlias "gl") "alias 'gl' (git prettylog) should exist")
+
+  # Multi-level directory navigation aliases
+  (helpers.assertTest "alias-dot-dot-dot-exists" (hasAlias "...") "alias '...' (cd ../..) should exist")
+  (helpers.assertTest "alias-four-dots-exists" (hasAlias "....") "alias '....' (cd ../../..) should exist")
+  (helpers.assertTest "alias-five-dots-exists" (hasAlias ".....") "alias '.....' (cd ../../../..) should exist")
+  (helpers.assertTest "alias-six-dots-exists" (hasAlias "......") "alias '......' (cd ../../../../..) should exist")
+
+  # ls color alias
+  (helpers.assertTest "alias-ls-color" (hasAlias "ls")
+    "alias 'ls' should exist with --color=auto")
 
   # Utility aliases
   (helpers.assertTest "alias-la-exists" (hasAlias "la") "alias 'la' (ls -la) should exist")
@@ -159,6 +176,10 @@ in
   (helpers.assertTest "path-go-bin" (initContentHas "go/bin")
     "PATH should include go/bin directory")
 
+  # GEM_HOME PATH handling (conditional)
+  (helpers.assertTest "path-gem-home-conditional" (initContentHas "GEM_HOME")
+    "PATH should include GEM_HOME/bin when GEM_HOME is set")
+
   # Nix daemon initialization
   (helpers.assertTest "nix-daemon-init" (initContentHas "nix-daemon.sh")
     "Nix daemon should be initialized in initContent")
@@ -217,6 +238,42 @@ in
   # npm configuration
   (helpers.assertTest "npm-config-prefix" (initContentHas "NPM_CONFIG_PREFIX")
     "NPM_CONFIG_PREFIX should be set for global npm packages")
+
+  # GitHub token configuration
+  (helpers.assertTest "github-token-export" (initContentHas "GITHUB_TOKEN")
+    "GITHUB_TOKEN should be exported via gh auth token")
+
+  # 1Password SSH agent platform-specific detection tests (Darwin-only)
+  (helpers.assertTest "onepassword-group-containers" (
+    if isDarwin then
+      (initContentHas "Group Containers")
+    else
+      true # Skip on non-Darwin platforms
+  ) "_setup_1password_agent should check Group Containers on macOS")
+
+  (helpers.assertTest "onepassword-fallback-locations" (
+    if isDarwin then
+      (initContentHas ".1password/agent.sock")
+    else
+      true # Skip on non-Darwin platforms
+  ) "_setup_1password_agent should check fallback socket locations")
+
+  # ssh wrapper edge cases
+  (helpers.assertTest "ssh-wrapper-autossh-poll" (initContentHas "AUTOSSH_POLL")
+    "ssh wrapper should set AUTOSSH_POLL for autossh")
+
+  (helpers.assertTest "ssh-wrapper-first-poll" (initContentHas "AUTOSSH_FIRST_POLL")
+    "ssh wrapper should set AUTOSSH_FIRST_POLL for autossh")
+
+  (helpers.assertTest "ssh-wrapper-tcp-keepalive" (initContentHas "TCPKeepAlive")
+    "ssh wrapper should enable TCP keepalive")
+
+  # IntelliJ IDEA launcher environment preservation
+  (helpers.assertTest "idea-nohup-background" (initContentHas "nohup env")
+    "idea() should use nohup for background execution")
+
+  (helpers.assertTest "idea-disown" (initContentHas "disown")
+    "idea() should disown the background process")
 
   # SSH agent setup for GUI applications (macOS)
   (helpers.assertTest "ssh-agent-gui-function" (

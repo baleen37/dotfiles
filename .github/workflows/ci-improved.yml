@@ -1,0 +1,389 @@
+# Improved CI/CD Pipeline with Enhanced Reporting and Optimization
+name: CI Enhanced
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write  # For PR comments with test results
+
+env:
+  NIX_CONFIG: |
+    max-jobs = auto
+    cores = 0
+    substituters = https://cache.nixos.org https://nix-community.cachix.org
+    trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
+    fallback = true
+    narinfo-cache-negative-ttl = 0
+
+jobs:
+  # Path detection for smart test filtering
+  detect-changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      # Categories of changes
+      user-config: ${{ steps.changes.outputs.user-config }}
+      nix-files: ${{ steps.changes.outputs.nix-files }}
+      tests: ${{ steps.changes.outputs.tests }}
+      ci: ${{ steps.changes.outputs.ci }}
+      has-changes: ${{ steps.changes.outputs.has-changes }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed paths
+        id: changes
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+            BASE_SHA="origin/main"
+          else
+            # For push events, compare with previous commit
+            BASE_SHA="${{ github.event.before }}"
+          fi
+
+          echo "Comparing against: $BASE_SHA"
+
+          # Get list of changed files
+          CHANGED_FILES=$(git diff --name-only "$BASE_SHA" HEAD 2>/dev/null || echo "")
+
+          # Categorize changes
+          USER_CONFIGChanged=$(echo "$CHANGED_FILES" | grep -E '^(users/|lib/)' || true)
+          NIX_FILESChanged=$(echo "$CHANGED_FILES" | grep -E '\.nix$' || true)
+          TESTSChanged=$(echo "$CHANGED_FILES" | grep -E '^tests/' || true)
+          CIChanged=$(echo "$CHANGED_FILES" | grep -E '^\.github/' || true)
+
+          # Set outputs
+          if [ -n "$USER_CONFIGChanged" ]; then
+            echo "user-config=true" >> $GITHUB_OUTPUT
+          else
+            echo "user-config=false" >> $GITHUB_OUTPUT
+          fi
+
+          if [ -n "$NIX_FILESChanged" ]; then
+            echo "nix-files=true" >> $GITHUB_OUTPUT
+          else
+            echo "nix-files=false" >> $GITHUB_OUTPUT
+          fi
+
+          if [ -n "$TESTSChanged" ]; then
+            echo "tests=true" >> $GITHUB_OUTPUT
+          else
+            echo "tests=false" >> $GITHUB_OUTPUT
+          fi
+
+          if [ -n "$CIChanged" ]; then
+            echo "ci=true" >> $GITHUB_OUTPUT
+          else
+            echo "ci=false" >> $GITHUB_OUTPUT
+          fi
+
+          if [ -n "$CHANGED_FILES" ]; then
+            echo "has-changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "has-changes=false" >> $GITHUB_OUTPUT
+          fi
+
+          # Print summary
+          echo "::notice::Change Detection Summary:"
+          echo "::notice::  User Config: $([ -n "$USER_CONFIGChanged" ] && echo 'Yes' || echo 'No')"
+          echo "::notice::  Nix Files: $([ -n "$NIX_FILESChanged" ] && echo 'Yes' || echo 'No')"
+          echo "::notice::  Tests: $([ -n "$TESTSChanged" ] && echo 'Yes' || echo 'No')"
+          echo "::notice::  CI Config: $([ -n "$CIChanged" ] && echo 'Yes' || echo 'No')"
+          echo "::notice::"
+          echo "::notice::Changed files:"
+          echo "$CHANGED_FILES" | head -20 || echo "  (no changes)"
+
+  ci:
+    name: CI (${{ matrix.name }})
+    timeout-minutes: 60
+    needs: detect-changes
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Darwin
+            os: macos-15
+            arch: aarch64
+          - name: Linux x64
+            os: ubuntu-latest
+            arch: x86_64
+          - name: Linux ARM64
+            os: ubuntu-latest
+            arch: aarch64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Nix with cache
+        uses: ./.github/actions/setup-nix
+        with:
+          cache-mode: restore-only  # Restore cache without saving (saved in separate job)
+
+      - name: Install pre-commit
+        run: |
+          if command -v pre-commit &> /dev/null; then
+            echo "pre-commit already installed"
+          else
+            pip install pre-commit
+          fi
+
+      - name: Run pre-commit hooks
+        run: pre-commit run --all-files --show-diff-on-failure
+
+      - name: Run tests with detailed output
+        id: run-tests
+        env:
+          USER: ${{ needs.detect-changes.outputs.user-config == 'true' && 'ci' || 'testuser' }}
+          TEST_USER: testuser
+        run: |
+          # Create test results directory
+          mkdir -p test-results
+
+          # Run fast container tests with timing
+          echo "Starting fast container tests at $(date)"
+          START_TIME=$(date +%s)
+
+          if make test 2>&1 | tee test-results/fast-tests.log; then
+            END_TIME=$(date +%s)
+            DURATION=$((END_TIME - START_TIME))
+            echo "fast_tests_duration=${DURATION}" >> $GITHUB_OUTPUT
+            echo "fast_tests_status=passed" >> $GITHUB_OUTPUT
+            echo "::notice::Fast tests passed in ${DURATION}s"
+          else
+            END_TIME=$(date +%s)
+            DURATION=$((END_TIME - START_TIME))
+            echo "fast_tests_duration=${DURATION}" >> $GITHUB_OUTPUT
+            echo "fast_tests_status=failed" >> $GITHUB_OUTPUT
+            echo "::error::Fast tests failed after ${DURATION}s"
+            exit 1
+          fi
+
+      - name: Parse test results
+        if: always()
+        run: |
+          # Create JSON summary of test results
+          cat > test-results/summary.json << EOF
+          {
+            "platform": "${{ matrix.name }}",
+            "arch": "${{ matrix.arch }}",
+            "fast_tests_status": "${{ steps.run-tests.outputs.fast_tests_status }}",
+            "fast_tests_duration": "${{ steps.run-tests.outputs.fast_tests_duration }}",
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          }
+          EOF
+
+          # Print summary
+          echo "::notice::Test Summary for ${{ matrix.name }}:"
+          echo "::notice::  Status: ${{ steps.run-tests.outputs.fast_tests_status }}"
+          echo "::notice::  Duration: ${{ steps.run-tests.outputs.fast_tests_duration }}s"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.name }}
+          path: test-results/
+          retention-days: 30
+
+      - name: Full test suite (PR and main only)
+        if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+        id: run-full-tests
+        env:
+          USER: ci
+          TEST_USER: testuser
+        run: |
+          echo "Starting full test suite at $(date)"
+          START_TIME=$(date +%s)
+
+          if make test-all 2>&1 | tee test-results/full-tests.log; then
+            END_TIME=$(date +%s)
+            DURATION=$((END_TIME - START_TIME))
+            echo "full_tests_duration=${DURATION}" >> $GITHUB_OUTPUT
+            echo "full_tests_status=passed" >> $GITHUB_OUTPUT
+            echo "::notice::Full test suite passed in ${DURATION}s"
+          else
+            END_TIME=$(date +%s)
+            DURATION=$((END_TIME - START_TIME))
+            echo "full_tests_duration=${DURATION}" >> $GITHUB_OUTPUT
+            echo "full_tests_status=failed" >> $GITHUB_OUTPUT
+            echo "::error::Full test suite failed after ${DURATION}s"
+            exit 1
+          fi
+
+      - name: Test secrets backup
+        run: |
+          export USER=${USER:-ci}
+          echo "Testing secrets backup (dry-run)..."
+          make -n secrets/backup
+
+  # Separate job for cache upload to avoid interference with test execution
+  cache-upload:
+    name: Upload Nix Cache (${{ matrix.name }})
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+    needs: ci
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Darwin
+            os: macos-15
+            arch: aarch64
+          - name: Linux x64
+            os: ubuntu-latest
+            arch: x86_64
+          - name: Linux ARM64
+            os: ubuntu-latest
+            arch: aarch64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+
+      - name: Setup Nix with cache
+        uses: ./.github/actions/setup-nix
+        with:
+          cache-mode: full  # Save cache after upload
+
+      - name: Upload to Cachix
+        env:
+          USER: ${USER:-ci}
+          CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
+        continue-on-error: true
+        run: |
+          export USER=${USER:-ci}
+          echo "Uploading to Cachix..."
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            export NIXNAME=macbook-pro
+            nix build '.#darwinConfigurations.macbook-pro.system' --json \
+              | jq -r '.[].outputs | to_entries[].value' \
+              | cachix push baleen-nix || echo "Cache upload incomplete - continuing..."
+          else
+            if [ "${{ matrix.arch }}" = "x86_64" ]; then
+              nix build '.#nixosConfigurations.vm-x86_64-utm.config.system.build.toplevel' --json \
+                | jq -r '.[].outputs | to_entries[].value' \
+                | cachix push baleen-nix || echo "Cache upload incomplete"
+            else
+              nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel' --json \
+                | jq -r '.[].outputs | to_entries[].value' \
+                | cachix push baleen-nix || echo "Cache upload incomplete"
+            fi
+          fi
+
+  # Aggregate and report test results
+  test-report:
+    name: Test Report
+    if: always()
+    needs: [ci, detect-changes]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all test results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: test-results-*
+          path: all-results
+
+      - name: Generate test report
+        run: |
+          # Create markdown report
+          cat > test-report.md << 'REPORT'
+          # CI Test Report
+
+          ## Execution Summary
+          - **Workflow**: ${{ github.workflow }}
+          - **Event**: ${{ github.event_name }}
+          - **Branch**: ${{ github.ref_name }}
+          - **Commit**: ${{ github.sha }}
+          - **Triggered by**: ${{ github.actor }}
+
+          ## Change Detection
+          - User Config Changes: `${{ needs.detect-changes.outputs.user-config }}`
+          - Nix Files Changed: `${{ needs.detect-changes.outputs.nix-files }}`
+          - Tests Changed: `${{ needs.detect-changes.outputs.tests }}`
+          - CI Config Changed: `${{ needs.detect-changes.outputs.ci }}`
+
+          ## Test Results by Platform
+
+          REPORT
+
+          # Append results from each platform
+          for result_file in all-results/test-results-*/summary.json; do
+            if [ -f "$result_file" ]; then
+              echo "" >> test-report.md
+              echo "### $(jq -r '.platform' "$result_file")" >> test-report.md
+              echo "- **Status**: $(jq -r '.fast_tests_status' "$result_file")" >> test-report.md
+              echo "- **Duration**: $(jq -r '.fast_tests_duration' "$result_file")s" >> test-report.md
+              echo "- **Timestamp**: $(jq -r '.timestamp' "$result_file")" >> test-report.md
+            fi
+          done
+
+          # Add performance metrics section
+          cat >> test-report.md << 'REPORT'
+
+          ## Performance Metrics
+
+          This report helps identify performance regressions across platforms.
+          REPORT
+
+          echo "" >> test-report.md
+          echo "Generated at: $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> test-report.md
+
+      - name: Upload test report
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: test-report.md
+          retention-days: 90
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('test-report.md', 'utf8');
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('# CI Test Report')
+            );
+
+            if (botComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: report
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: report
+              });
+            }

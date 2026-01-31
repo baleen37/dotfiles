@@ -9,7 +9,8 @@
 
 let
   # Import existing performance frameworks
-  perf = import ./performance.nix { inherit lib pkgs; };
+  perfModule = import ./performance.nix { inherit lib pkgs; };
+  perf = perfModule.perf;
 
   baselines = import ./performance-baselines.nix { inherit lib pkgs; };
 
@@ -35,7 +36,7 @@ let
       addMeasurement =
         store: category: measurement:
         let
-          timestamp = toString builtins.currentTime;
+          timestamp = builtins.currentTime;
           existingData = store.data.${category} or [ ];
           newData = existingData ++ [
             {
@@ -68,7 +69,7 @@ let
               untilTime = if until != null then until else 999999999999999999;
             in
             builtins.filter (
-              m: (lib.trivial.importJSON (builtins.toJSON m.timestamp)) >= sinceTime && (lib.trivial.importJSON (builtins.toJSON m.timestamp)) <= untilTime
+              m: m.timestamp >= sinceTime && m.timestamp <= untilTime
             ) allMeasurements;
         in
         map (m: m.measurement) filtered;
@@ -79,7 +80,7 @@ let
         let
           allMeasurements = store.data.${category} or [ ];
           sorted = builtins.sort (
-            a: b: (lib.trivial.importJSON (builtins.toJSON a.timestamp)) > (lib.trivial.importJSON (builtins.toJSON b.timestamp))
+            a: b: a.timestamp > b.timestamp
           ) allMeasurements;
         in
         map (m: m.measurement) (lib.sublist 0 count sorted);
@@ -90,7 +91,7 @@ let
         let
           cutoffTime = builtins.currentTime - maxAge;
           allMeasurements = store.data.${category} or [ ];
-          filtered = builtins.filter (m: (lib.trivial.importJSON (builtins.toJSON m.timestamp)) >= cutoffTime) allMeasurements;
+          filtered = builtins.filter (m: m.timestamp >= cutoffTime) allMeasurements;
         in
         store
         // {
@@ -161,7 +162,8 @@ let
           durations = map (m: m.duration_ms) measurements;
           memories = map (m: m.memory_bytes) measurements;
 
-          successRate = if count > 0 then (builtins.length successful) / count else 0;
+          # Use floating-point division for success rate
+          successRate = if count > 0 then (builtins.length successful * 1.0) / count else 0.0;
           avgDuration =
             if builtins.length durations > 0 then
               (lib.foldl (acc: d: acc + d) 0 durations) / builtins.length durations
@@ -199,7 +201,7 @@ let
             trend =
               let
                 recentCount = lib.min 5 count;
-                recentMeasurements = builtins.sublist (count - recentCount) recentCount measurements;
+                recentMeasurements = lib.lists.sublist (count - recentCount) recentCount measurements;
                 recentSuccessRate =
                   if recentCount > 0 then
                     (builtins.length (builtins.filter (m: m.success) recentMeasurements)) / recentCount
@@ -490,12 +492,13 @@ let
           successAlerts =
             if analysis.summary.successRate < thresholds.successRate.min then
               [
-                monitoring.alerts.createAlert
-                "critical"
-                "reliability"
-                "Success rate below threshold"
-                analysis.summary.successRate
-                thresholds.successRate.min
+                (monitoring.alerts.createAlert
+                  "critical"
+                  "reliability"
+                  "Success rate below threshold"
+                  analysis.summary.successRate
+                  thresholds.successRate.min
+                )
               ]
             else
               [ ];
@@ -504,12 +507,13 @@ let
           performanceAlerts =
             if analysis.summary.avgDuration_ms > thresholds.duration.max then
               [
-                monitoring.alerts.createAlert
-                "warning"
-                "performance"
-                "Average duration exceeds threshold"
-                analysis.summary.avgDuration_ms
-                thresholds.duration.max
+                (monitoring.alerts.createAlert
+                  "warning"
+                  "performance"
+                  "Average duration exceeds threshold"
+                  analysis.summary.avgDuration_ms
+                  thresholds.duration.max
+                )
               ]
             else
               [ ];
@@ -518,12 +522,13 @@ let
           memoryAlerts =
             if analysis.summary.avgMemory_mb > thresholds.memory.max then
               [
-                monitoring.alerts.createAlert
-                "warning"
-                "memory"
-                "Average memory usage exceeds threshold"
-                analysis.summary.avgMemory_mb
-                thresholds.memory.max
+                (monitoring.alerts.createAlert
+                  "warning"
+                  "memory"
+                  "Average memory usage exceeds threshold"
+                  analysis.summary.avgMemory_mb
+                  thresholds.memory.max
+                )
               ]
             else
               [ ];
@@ -562,7 +567,7 @@ let
         let
           # Collect measurements from all categories
           allMeasurements = lib.foldl (
-            acc: cat: acc ++ (monitoring.storage.queryMeasurements store cat)
+            acc: cat: acc ++ (monitoring.storage.queryMeasurements store cat null null)
           ) [ ] categories;
 
           # Generate performance report using existing framework
@@ -572,7 +577,7 @@ let
           systemMetrics = lib.foldl (
             acc: cat:
             let
-              measurements = monitoring.storage.queryMeasurements store cat;
+              measurements = monitoring.storage.queryMeasurements store cat null null;
               aggregated = monitoring.metrics.aggregateMetrics measurements;
             in
             acc // { "${cat}" = aggregated; }
@@ -582,7 +587,7 @@ let
           allAlerts = lib.foldl (
             acc: cat:
             let
-              measurements = monitoring.storage.queryMeasurements store cat;
+              measurements = monitoring.storage.queryMeasurements store cat null null;
               categoryAlerts = monitoring.tests.analyzeTrends measurements;
             in
             acc ++ categoryAlerts.alerts
@@ -597,7 +602,7 @@ let
             measurements = {
               total = builtins.length allMeasurements;
               byCategory = lib.foldl (
-                acc: cat: acc // { "${cat}" = builtins.length (monitoring.storage.queryMeasurements store cat); }
+                acc: cat: acc // { "${cat}" = builtins.length (monitoring.storage.queryMeasurements store cat null null); }
               ) { } categories;
             };
             systemMetrics = systemMetrics;
