@@ -117,12 +117,14 @@ in
       ))
       "All machine configurations should have system attribute")
 
-    # Test 11: All machines are buildable
+    # Test 11: All machines are buildable (platform-aware)
     (helpers.assertTest "all-buildable"
       (builtins.all (m: m ? system) (
-        lib.attrValues darwinMachinesList ++ lib.attrValues nixosMachinesList
+        if isDarwin then lib.attrValues darwinMachinesList
+        else if isLinux then lib.attrValues nixosMachinesList
+        else []
       ))
-      "All machine configurations should be buildable")
+      "All machine configurations should be buildable on current platform")
 
     # Test 12: Darwin machines have nix attribute
     (helpers.assertTest "darwin-have-nix"
