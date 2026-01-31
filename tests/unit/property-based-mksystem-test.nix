@@ -225,7 +225,7 @@ in
           inherit (testScenario) system user darwin wsl;
         };
         # Find determinate Nix settings
-        hasCacheSettings = any (m: if builtins.isAttrs m then m ? determinateNix else false) (result.modules or [ ]);
+        hasCacheSettings = lib.any (m: if builtins.isAttrs m then m ? determinateNix else false) (result.modules or [ ]);
       in
       hasCacheSettings
     ) "Cache settings should be configured for Darwin")
@@ -237,7 +237,7 @@ in
           inherit (testScenario) system user darwin wsl;
         };
         # Find Nix settings
-        hasNixSettings = any (m: if builtins.isAttrs m then m ? nix else false) (result.modules or [ ]);
+        hasNixSettings = lib.any (m: if builtins.isAttrs m then m ? nix else false) (result.modules or [ ]);
       in
       hasNixSettings
     ) "Cache settings should be configured for Linux")
