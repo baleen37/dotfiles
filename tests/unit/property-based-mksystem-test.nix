@@ -35,7 +35,14 @@ let
       lib.darwinSystem = args: {
         inherit (args) system;
         modules = args.modules;
-        specialArgs = args.specialArgs or { };
+        # Merge defaults with any specialArgs provided by mkSystem
+        specialArgs = {
+          currentSystem = args.system or "x86_64-linux";
+          currentSystemName = "macbook-pro";
+          currentSystemUser = "testuser";
+          isDarwin = args.system != null && builtins.substring 0 6 args.system == "darwin";
+          isWSL = false;
+        } // (args.specialArgs or { });
       };
     };
     home-manager = {
