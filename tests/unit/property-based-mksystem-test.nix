@@ -32,7 +32,22 @@ let
   mockInputs = let
     mockpkgs = import <nixpkgs> { };
   in {
-    nixpkgs = mockpkgs;
+    nixpkgs = mockpkgs // {
+      lib = mockpkgs.lib // {
+        # Mock nixosSystem for Linux tests
+        nixosSystem = args: {
+          inherit (args) system;
+          modules = args.modules;
+          specialArgs = {
+            currentSystem = args.system or "x86_64-linux";
+            currentSystemName = "macbook-pro";
+            currentSystemUser = "testuser";
+            isDarwin = false;
+            isWSL = false;
+          } // (args.specialArgs or { });
+        };
+      };
+    };
     darwin = {
       lib.darwinSystem = args: {
         inherit (args) system;
@@ -46,18 +61,6 @@ let
           isWSL = false;
         } // (args.specialArgs or { });
       };
-    };
-    # Mock nixosSystem for Linux tests
-    lib.nixosSystem = args: {
-      inherit (args) system;
-      modules = args.modules;
-      specialArgs = {
-        currentSystem = args.system or "x86_64-linux";
-        currentSystemName = "macbook-pro";
-        currentSystemUser = "testuser";
-        isDarwin = false;
-        isWSL = false;
-      } // (args.specialArgs or { });
     };
     home-manager = {
       darwinModules.home-manager = {
