@@ -15,17 +15,19 @@ runs:
     - name: Install Nix
       uses: DeterminateSystems/nix-installer-action@c5a866b6ab867e88becbed4467b93592bce69f8a # v21
       with:
+        determinate: false
         extra-conf: |
           experimental-features = nix-command flakes
           accept-flake-config = true
-          trusted-users = root runner
+          trusted-users = root *
+          substituters = https://cache.nixos.org https://baleen-nix.cachix.org
+          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= baleen-nix.cachix.org-1:WkqY2zbtvHLYuLPQNML4Y0pJh4OqYY3X4LRNdvqNm8Y=
 
-    - name: Install cachix
-      uses: cachix/cachix-action@v14
-      with:
-        name: baleen-nix
-        authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
-        extraPullNames: baleen-nix
+    - name: Install cachix for pushing
+      shell: bash
+      run: |
+        nix-env --quiet -j8 -iA cachix -f https://cachix.org/api/v1/install
+        echo "${{ secrets.CACHIX_AUTH_TOKEN }}" | cachix authtoken --stdin
 
     - name: Get week number for cache rotation
       id: date
