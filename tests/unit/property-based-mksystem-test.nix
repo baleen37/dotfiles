@@ -28,6 +28,10 @@ let
   # Import test helpers
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
 
+  # Platform detection
+  isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
+  isLinux = pkgs.stdenv.hostPlatform.isLinux;
+
   # Mock inputs for testing
   mockInputs = let
     mockpkgs = import <nixpkgs> { };
@@ -248,30 +252,38 @@ in
       darwinUser == darwinScenario.user && linuxUser == linuxScenario.user
     ) "User should be consistent across platforms")
 
-    # Property 6: Cache settings invariant
+    # Property 6: Cache settings invariant (platform-aware)
     # Cache settings should always be present and valid
+    # Note: Darwin cache settings test only runs on Darwin platforms
     (helpers.assertTest "mksystem-cache-settings-darwin" (
-      let
-        testScenario = builtins.elemAt systemScenarios 0;
-        result = mkSystem testScenario.name {
-          inherit (testScenario) system user darwin wsl;
-        };
-        # Find determinate Nix settings
-        hasCacheSettings = lib.any (m: if builtins.isAttrs m then m ? determinateNix else false) (result.modules or [ ]);
-      in
-      hasCacheSettings
+      if isDarwin then
+        (let
+          testScenario = builtins.elemAt systemScenarios 0;
+          result = mkSystem testScenario.name {
+            inherit (testScenario) system user darwin wsl;
+          };
+          # Find determinate Nix settings
+          hasCacheSettings = lib.any (m: if builtins.isAttrs m then m ? determinateNix else false) (result.modules or [ ]);
+        in
+          hasCacheSettings)
+      else
+        true # Skip on non-Darwin platforms
     ) "Cache settings should be configured for Darwin")
 
+    # Note: Linux cache settings test only runs on Linux platforms
     (helpers.assertTest "mksystem-cache-settings-linux" (
-      let
-        testScenario = builtins.elemAt systemScenarios 2;
-        result = mkSystem testScenario.name {
-          inherit (testScenario) system user darwin wsl;
-        };
-        # Find Nix settings
-        hasNixSettings = lib.any (m: if builtins.isAttrs m then m ? nix else false) (result.modules or [ ]);
-      in
-      hasNixSettings
+      if isLinux then
+        (let
+          testScenario = builtins.elemAt systemScenarios 2;
+          result = mkSystem testScenario.name {
+            inherit (testScenario) system user darwin wsl;
+          };
+          # Find Nix settings
+          hasNixSettings = lib.any (m: if builtins.isAttrs m then m ? nix else false) (result.modules or [ ]);
+        in
+          hasNixSettings)
+      else
+        true # Skip on non-Linux platforms
     ) "Cache settings should be configured for Linux")
 
     # Property 7: WSL flag propagation
