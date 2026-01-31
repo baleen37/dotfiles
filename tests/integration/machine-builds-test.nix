@@ -119,7 +119,7 @@ in
 
     # Test 11: All machines are buildable (platform-aware)
     (helpers.assertTest "all-buildable"
-      (builtins.all (m: m ? system) (
+      (builtins.all (m: (m.config or {}) ? system) (
         if isDarwin then lib.attrValues darwinMachinesList
         else if isLinux then lib.attrValues nixosMachinesList
         else []
