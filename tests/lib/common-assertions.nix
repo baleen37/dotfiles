@@ -131,7 +131,7 @@ rec {
   assertAttrEquals =
     name: obj: attrName: expectedValue: message:
     let
-      actualValue = obj.${attrName} // null;
+      actualValue = if builtins.hasAttr attrName obj then obj.${attrName} else null;
       isEqual = actualValue == expectedValue;
       errorMessage =
         if message != null then
