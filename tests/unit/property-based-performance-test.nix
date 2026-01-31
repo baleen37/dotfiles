@@ -381,7 +381,6 @@ in
     (helpers.assertTest "perf-trend-degrading" (
       let
         measurements = [
-          
           { duration_ms = 80; }
           { duration_ms = 60; }
           { duration_ms = 40; }
