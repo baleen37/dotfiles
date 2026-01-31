@@ -36,7 +36,7 @@ let
       addMeasurement =
         store: category: measurement:
         let
-          timestamp = toString builtins.currentTime;
+          timestamp = builtins.currentTime;
           existingData = store.data.${category} or [ ];
           newData = existingData ++ [
             {
@@ -69,7 +69,7 @@ let
               untilTime = if until != null then until else 999999999999999999;
             in
             builtins.filter (
-              m: (builtins.fromJSON ("\"" + m.timestamp + "\"")) >= sinceTime && (builtins.fromJSON ("\"" + m.timestamp + "\"")) <= untilTime
+              m: m.timestamp >= sinceTime && m.timestamp <= untilTime
             ) allMeasurements;
         in
         map (m: m.measurement) filtered;
@@ -80,7 +80,7 @@ let
         let
           allMeasurements = store.data.${category} or [ ];
           sorted = builtins.sort (
-            a: b: (builtins.fromJSON ("\"" + a.timestamp + "\"")) > (builtins.fromJSON ("\"" + b.timestamp + "\""))
+            a: b: a.timestamp > b.timestamp
           ) allMeasurements;
         in
         map (m: m.measurement) (lib.sublist 0 count sorted);
@@ -91,7 +91,7 @@ let
         let
           cutoffTime = builtins.currentTime - maxAge;
           allMeasurements = store.data.${category} or [ ];
-          filtered = builtins.filter (m: (builtins.fromJSON ("\"" + m.timestamp + "\"")) >= cutoffTime) allMeasurements;
+          filtered = builtins.filter (m: m.timestamp >= cutoffTime) allMeasurements;
         in
         store
         // {
