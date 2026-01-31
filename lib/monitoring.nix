@@ -601,7 +601,7 @@ let
             measurements = {
               total = builtins.length allMeasurements;
               byCategory = lib.foldl (
-                acc: cat: acc // { "${cat}" = builtins.length (monitoring.storage.queryMeasurements store cat); }
+                acc: cat: acc // { "${cat}" = builtins.length (monitoring.storage.queryMeasurements store cat null null); }
               ) { } categories;
             };
             systemMetrics = systemMetrics;
