@@ -29,8 +29,10 @@ let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
 
   # Mock inputs for testing
-  mockInputs = {
-    nixpkgs = import <nixpkgs> { };
+  mockInputs = let
+    mockpkgs = import <nixpkgs> { };
+  in {
+    nixpkgs = mockpkgs;
     darwin = {
       lib.darwinSystem = args: {
         inherit (args) system;
@@ -44,6 +46,18 @@ let
           isWSL = false;
         } // (args.specialArgs or { });
       };
+    };
+    # Mock nixosSystem for Linux tests
+    lib.nixosSystem = args: {
+      inherit (args) system;
+      modules = args.modules;
+      specialArgs = {
+        currentSystem = args.system or "x86_64-linux";
+        currentSystemName = "macbook-pro";
+        currentSystemUser = "testuser";
+        isDarwin = false;
+        isWSL = false;
+      } // (args.specialArgs or { });
     };
     home-manager = {
       darwinModules.home-manager = {
