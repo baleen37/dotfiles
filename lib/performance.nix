@@ -219,12 +219,12 @@ let
         let
           timeRatio =
             if baseline.baseline.avgTime_ms > 0 then
-              measurement.duration_ms / baseline.baseline.avgTime_ms
+              measurement.duration_ms / (baseline.baseline.avgTime_ms * 1.0)
             else
               1.0;
           memoryRatio =
             if baseline.baseline.avgMemory_bytes > 0 then
-              measurement.memoryAfter / baseline.baseline.avgMemory_bytes
+              measurement.memoryAfter / (baseline.baseline.avgMemory_bytes * 1.0)
             else
               1.0;
           timeThreshold = thresholds.time or 2.0; # 2x slower threshold
