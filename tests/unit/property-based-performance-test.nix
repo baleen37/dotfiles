@@ -243,7 +243,7 @@ in
       let
         result = perf.build.measureConfigComplexity generateTestData.attrs;
       in
-      builtins.hasAttr "attributeCount" result.complexity
+      builtins.hasAttr "attributes" result.complexity
     ) "Complexity measurement should include attribute count")
 
     (helpers.assertTest "perf-complexity-has-size-bytes" (
