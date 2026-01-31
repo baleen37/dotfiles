@@ -80,29 +80,29 @@ in
     # ===== 사용자 정체성 검증 (assertions 사용) =====
 
     # 각 사용자의 이름 타입 검증
-    (assertions.assertType "user-0-name-type" (builtins.elemAt testUsers 0).name "string")
-    (assertions.assertType "user-1-name-type" (builtins.elemAt testUsers 1).name "string")
-    (assertions.assertType "user-2-name-type" (builtins.elemAt testUsers 2).name "string")
+    (assertions.assertType "user-0-name-type" (builtins.elemAt testUsers 0).name "string" null)
+    (assertions.assertType "user-1-name-type" (builtins.elemAt testUsers 1).name "string" null)
+    (assertions.assertType "user-2-name-type" (builtins.elemAt testUsers 2).name "string" null)
 
     # 각 사용자의 이메일 타입 검증
-    (assertions.assertType "user-0-email-type" (builtins.elemAt testUsers 0).email "string")
-    (assertions.assertType "user-1-email-type" (builtins.elemAt testUsers 1).email "string")
-    (assertions.assertType "user-2-email-type" (builtins.elemAt testUsers 2).email "string")
+    (assertions.assertType "user-0-email-type" (builtins.elemAt testUsers 0).email "string" null)
+    (assertions.assertType "user-1-email-type" (builtins.elemAt testUsers 1).email "string" null)
+    (assertions.assertType "user-2-email-type" (builtins.elemAt testUsers 2).email "string" null)
 
     # 각 사용자의 이름이 비어있지 않은지 확인
-    (assertions.assertPositive "user-0-name-length" (builtins.stringLength (builtins.elemAt testUsers 0).name))
-    (assertions.assertPositive "user-1-name-length" (builtins.stringLength (builtins.elemAt testUsers 1).name))
-    (assertions.assertPositive "user-2-name-length" (builtins.stringLength (builtins.elemAt testUsers 2).name))
+    (assertions.assertPositive "user-0-name-length" (builtins.stringLength (builtins.elemAt testUsers 0).name) null)
+    (assertions.assertPositive "user-1-name-length" (builtins.stringLength (builtins.elemAt testUsers 1).name) null)
+    (assertions.assertPositive "user-2-name-length" (builtins.stringLength (builtins.elemAt testUsers 2).name) null)
 
     # 이메일 형식 검증 (정규식)
-    (assertions.assertStringMatches "user-0-email-format" (builtins.elemAt testUsers 0).email "^[^@]+@[^@]+\\.[^@]+$")
-    (assertions.assertStringMatches "user-1-email-format" (builtins.elemAt testUsers 1).email "^[^@]+@[^@]+\\.[^@]+$")
-    (assertions.assertStringMatches "user-2-email-format" (builtins.elemAt testUsers 2).email "^[^@]+@[^@]+\\.[^@]+$")
+    (assertions.assertStringMatches "user-0-email-format" (builtins.elemAt testUsers 0).email "^[^@]+@[^@]+\\.[^@]+$" null)
+    (assertions.assertStringMatches "user-1-email-format" (builtins.elemAt testUsers 1).email "^[^@]+@[^@]+\\.[^@]+$" null)
+    (assertions.assertStringMatches "user-2-email-format" (builtins.elemAt testUsers 2).email "^[^@]+@[^@]+\\.[^@]+$" null)
 
     # 이메일에 @ 기호가 포함되어 있는지 확인
-    (assertions.assertStringContains "user-0-email-has-at" (builtins.elemAt testUsers 0).email "@")
-    (assertions.assertStringContains "user-1-email-has-at" (builtins.elemAt testUsers 1).email "@")
-    (assertions.assertStringContains "user-2-email-has-at" (builtins.elemAt testUsers 2).email "@")
+    (assertions.assertStringContains "user-0-email-has-at" (builtins.elemAt testUsers 0).email "@" null)
+    (assertions.assertStringContains "user-1-email-has-at" (builtins.elemAt testUsers 1).email "@" null)
+    (assertions.assertStringContains "user-2-email-has-at" (builtins.elemAt testUsers 2).email "@" null)
 
     # 사용자 정체성 속성 검증 (property-based)
     (helpers.assertTest "user-identity-0-valid" (validateUserIdentity (builtins.elemAt testUsers 0))
@@ -141,23 +141,23 @@ in
     (assertions.assertListLength "platform-configs-count" platformConfigs 2 null)
 
     # 모든 사용자에게 필수 속성이 있는지 확인
-    (assertions.assertAll "users-have-required-attrs" null (
+    (assertions.assertAll "users-have-required-attrs" (
       builtins.map (user:
         builtins.hasAttr "name" user &&
         builtins.hasAttr "email" user &&
         builtins.hasAttr "username" user
       ) testUsers
-    ))
+    ) null)
 
     # 모든 플랫폼 설정에 필수 속성이 있는지 확인
-    (assertions.assertAll "platforms-have-required-attrs" null (
+    (assertions.assertAll "platforms-have-required-attrs" (
       builtins.map (platform:
         builtins.hasAttr "name" platform &&
         builtins.hasAttr "autocrlf" platform &&
         builtins.hasAttr "editor" platform &&
         builtins.hasAttr "defaultBranch" platform
       ) platformConfigs
-    ))
+    ) null)
 
     # ===== 요약 테스트 =====
 
