@@ -178,9 +178,9 @@ in
           inherit (testScenario) system user darwin wsl;
         };
         modules = result.modules or [ ];
-        hasMachineModule = any (m: if builtins.isAttrs m then (m ? _file && m._file == "../machines/${testScenario.name}.nix") else false) modules;
-        hasUserConfig = any (m: if builtins.isAttrs m then (m ? _file && lib.hasInfix "users/shared" m._file) else false) modules;
-        hasHomeManager = any (m: if builtins.isAttrs m then (m ? _file || m ? home-manager) else false) modules;
+        hasMachineModule = lib.any (m: if builtins.isAttrs m then (m ? _file && m._file == "../machines/${testScenario.name}.nix") else false) modules;
+        hasUserConfig = lib.any (m: if builtins.isAttrs m then (m ? _file && lib.hasInfix "users/shared" m._file) else false) modules;
+        hasHomeManager = lib.any (m: if builtins.isAttrs m then (m ? _file || m ? home-manager) else false) modules;
       in
       hasMachineModule || hasUserConfig || hasHomeManager
     ) "Essential modules should be present")
