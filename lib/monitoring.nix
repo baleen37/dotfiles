@@ -162,7 +162,8 @@ let
           durations = map (m: m.duration_ms) measurements;
           memories = map (m: m.memory_bytes) measurements;
 
-          successRate = if count > 0 then (builtins.length successful) / count else 0;
+          # Use floating-point division for success rate
+          successRate = if count > 0 then (builtins.length successful * 1.0) / count else 0.0;
           avgDuration =
             if builtins.length durations > 0 then
               (lib.foldl (acc: d: acc + d) 0 durations) / builtins.length durations
