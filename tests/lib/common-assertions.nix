@@ -83,18 +83,18 @@ rec {
   assertAttrPathExists =
     name: obj: attrPath: message:
     let
-      pathParts = builtins.split "\\." attrPath;
+      pathParts = builtins.filter builtins.isString (builtins.split "\\." attrPath);
       hasPath = builtins.foldl' (
         acc: part:
-        if !acc then
-          false
-        else if builtins.isString part then
-          builtins.hasAttr part obj
-        else
+        if !acc.exists then
           acc
-      ) true pathParts;
+        else if builtins.hasAttr part acc.obj then
+          { exists = true; obj = acc.obj.${part}; }
+        else
+          { exists = false; obj = {}; }
+      ) { exists = true; inherit obj; } pathParts;
     in
-    assertCondition name (hasPath) (message);
+    assertCondition name (hasPath.exists) (message);
 
   # 다중 속성 존재 검증
   #
