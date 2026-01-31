@@ -46,11 +46,11 @@ let
 
   # Test data generators
   generateTestData = {
-    small = genList (x: x) 10;
-    medium = genList (x: x) 100;
-    large = genList (x: x) 1000;
-    nestedSmall = genList (i: genList (x: x) 5) 10;
-    nestedLarge = genList (i: genList (x: x) 20) 50;
+    small = builtins.genList (x: x) 10;
+    medium = builtins.genList (x: x) 100;
+    large = builtins.genList (x: x) 1000;
+    nestedSmall = builtins.genList (i: builtins.genList (x: x) 5) 10;
+    nestedLarge = builtins.genList (i: builtins.genList (x: x) 20) 50;
     string = "test string for performance measurement";
     attrs = {
       a = 1;

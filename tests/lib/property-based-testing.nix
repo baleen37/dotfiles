@@ -421,7 +421,7 @@ rec {
     # User configuration scenarios
     users =
       let
-        baseUsers = genList (i: {
+        baseUsers = builtins.genList (i: {
           identifier = "user-${toString i}";
           name = generateFullName i;
           email = generateEmail (generateUsername i);
@@ -433,7 +433,7 @@ rec {
     # System configuration scenarios
     systems =
       let
-        baseSystems = genList (i: {
+        baseSystems = builtins.genList (i: {
           identifier = "system-${toString i}";
           name = generateSystemName i;
           system = generateArchitecture i;
