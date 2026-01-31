@@ -115,16 +115,16 @@ in
     # ===== 플랫폼 설정 검증 =====
 
     # Darwin 플랫폼 설정 검증
-    (assertions.assertAttrEquals "platform-0-name" (builtins.elemAt platformConfigs 0) "name" "darwin")
-    (assertions.assertAttrEquals "platform-0-autocrlf" (builtins.elemAt platformConfigs 0) "autocrlf" "input")
-    (assertions.assertAttrEquals "platform-0-editor" (builtins.elemAt platformConfigs 0) "editor" "vim")
-    (assertions.assertAttrEquals "platform-0-branch" (builtins.elemAt platformConfigs 0) "defaultBranch" "main")
+    (assertions.assertAttrEquals "platform-0-name" (builtins.elemAt platformConfigs 0) "name" "darwin" null)
+    (assertions.assertAttrEquals "platform-0-autocrlf" (builtins.elemAt platformConfigs 0) "autocrlf" "input" null)
+    (assertions.assertAttrEquals "platform-0-editor" (builtins.elemAt platformConfigs 0) "editor" "vim" null)
+    (assertions.assertAttrEquals "platform-0-branch" (builtins.elemAt platformConfigs 0) "defaultBranch" "main" null)
 
     # Linux 플랫폼 설정 검증
-    (assertions.assertAttrEquals "platform-1-name" (builtins.elemAt platformConfigs 1) "name" "linux")
-    (assertions.assertAttrEquals "platform-1-autocrlf" (builtins.elemAt platformConfigs 1) "autocrlf" "false")
-    (assertions.assertAttrEquals "platform-1-editor" (builtins.elemAt platformConfigs 1) "editor" "vim")
-    (assertions.assertAttrEquals "platform-1-branch" (builtins.elemAt platformConfigs 1) "defaultBranch" "main")
+    (assertions.assertAttrEquals "platform-1-name" (builtins.elemAt platformConfigs 1) "name" "linux" null)
+    (assertions.assertAttrEquals "platform-1-autocrlf" (builtins.elemAt platformConfigs 1) "autocrlf" "false" null)
+    (assertions.assertAttrEquals "platform-1-editor" (builtins.elemAt platformConfigs 1) "editor" "vim" null)
+    (assertions.assertAttrEquals "platform-1-branch" (builtins.elemAt platformConfigs 1) "defaultBranch" "main" null)
 
     # 플랫폼 속성 검증 (property-based)
     (helpers.assertTest "platform-darwin-config" (validatePlatformConfig (builtins.elemAt platformConfigs 0))

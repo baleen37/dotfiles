@@ -91,16 +91,16 @@ helpers.testSuite "git-configuration-test" [
 
   # ===== 상세 검증 (assertions 사용) =====
   # Git 활성화 확인
-  (assertions.assertAttrEquals "git-enabled" gitConfig.programs.git "enable" true)
+  (assertions.assertAttrEquals "git-enabled" gitConfig.programs.git "enable" true null)
 
   # Git LFS 활성화 확인
-  (assertions.assertAttrEquals "git-lfs-enabled" gitConfig.programs.git.lfs "enable" true)
+  (assertions.assertAttrEquals "git-lfs-enabled" gitConfig.programs.git.lfs "enable" true null)
 
   # Git 사용자 이름이 userInfo와 일치하는지 확인
-  (assertions.assertAttrEquals "git-user-name-matches" gitSettings.user "name" userInfo.name)
+  (assertions.assertAttrEquals "git-user-name-matches" gitSettings.user "name" userInfo.name null)
 
   # Git 사용자 이메일이 userInfo와 일치하는지 확인
-  (assertions.assertAttrEquals "git-user-email-matches" gitSettings.user "email" userInfo.email)
+  (assertions.assertAttrEquals "git-user-email-matches" gitSettings.user "email" userInfo.email null)
 
   # Git aliases 목록이 비어있지 않은지 확인
   (assertions.assertListNotEmpty "git-aliases-not-empty" (builtins.attrNames (gitSettings.alias or {})))
@@ -109,28 +109,28 @@ helpers.testSuite "git-configuration-test" [
   (assertions.assertListNotEmpty "git-ignores-not-empty" gitIgnores)
 
   # Git core.editor가 vim인지 확인
-  (assertions.assertAttrEquals "git-core-editor" gitSettings.core "editor" "vim")
+  (assertions.assertAttrEquals "git-core-editor" gitSettings.core "editor" "vim" null)
 
   # Git core.autocrlf가 input인지 확인 (Darwin/Linux 호환)
-  (assertions.assertAttrEquals "git-core-autocrlf" gitSettings.core "autocrlf" "input")
+  (assertions.assertAttrEquals "git-core-autocrlf" gitSettings.core "autocrlf" "input" null)
 
   # Git init.defaultBranch가 main인지 확인
-  (assertions.assertAttrEquals "git-init-defaultBranch" gitSettings.init "defaultBranch" "main")
+  (assertions.assertAttrEquals "git-init-defaultBranch" gitSettings.init "defaultBranch" "main" null)
 
   # Git pull.rebase가 활성화되어 있는지 확인
-  (assertions.assertAttrEquals "git-pull-rebase" gitSettings.pull "rebase" true)
+  (assertions.assertAttrEquals "git-pull-rebase" gitSettings.pull "rebase" true null)
 
   # Git rebase.autoStash가 활성화되어 있는지 확인
-  (assertions.assertAttrEquals "git-rebase-autoStash" gitSettings.rebase "autoStash" true)
+  (assertions.assertAttrEquals "git-rebase-autoStash" gitSettings.rebase "autoStash" true null)
 
   # ===== 필수 별칭 검증 =====
 
-  (assertions.assertAttrEquals "git-alias-st" gitSettings.alias "st" "status")
-  (assertions.assertAttrEquals "git-alias-co" gitSettings.alias "co" "checkout")
-  (assertions.assertAttrEquals "git-alias-br" gitSettings.alias "br" "branch")
-  (assertions.assertAttrEquals "git-alias-ci" gitSettings.alias "ci" "commit")
-  (assertions.assertAttrEquals "git-alias-df" gitSettings.alias "df" "diff")
-  (assertions.assertAttrEquals "git-alias-lg" gitSettings.alias "lg" "log --graph --oneline --decorate --all")
+  (assertions.assertAttrEquals "git-alias-st" gitSettings.alias "st" "status" null)
+  (assertions.assertAttrEquals "git-alias-co" gitSettings.alias "co" "checkout" null)
+  (assertions.assertAttrEquals "git-alias-br" gitSettings.alias "br" "branch" null)
+  (assertions.assertAttrEquals "git-alias-ci" gitSettings.alias "ci" "commit" null)
+  (assertions.assertAttrEquals "git-alias-df" gitSettings.alias "df" "diff" null)
+  (assertions.assertAttrEquals "git-alias-lg" gitSettings.alias "lg" "log --graph --oneline --decorate --all" null)
 
   # ===== 필수 gitignore 패턴 검증 =====
 

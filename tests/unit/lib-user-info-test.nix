@@ -118,10 +118,10 @@ in
     # ===== 구체적인 값 검증 =====
 
     # 사용자 이름 검증
-    (assertions.assertAttrEquals "user-info-name-correct" userInfo "name" "Jiho Lee")
+    (assertions.assertAttrEquals "user-info-name-correct" userInfo "name" "Jiho Lee" null)
 
     # 이메일 주소 검증
-    (assertions.assertAttrEquals "user-info-email-correct" userInfo "email" "baleen37@gmail.com")
+    (assertions.assertAttrEquals "user-info-email-correct" userInfo "email" "baleen37@gmail.com" null)
 
     # ===== 속성 완전성 검증 =====
 

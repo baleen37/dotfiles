@@ -47,7 +47,7 @@ in
   # ===== Homebrew 설정 검증 =====
 
   # Homebrew 활성화 확인
-  (assertions.assertAttrEquals "homebrew-enabled" darwinConfig.homebrew "enable" true)
+  (assertions.assertAttrEquals "homebrew-enabled" darwinConfig.homebrew "enable" true null)
 
   # Homebrew casks 목록이 비어있지 않은지 확인
   (assertions.assertListNotEmpty "homebrew-casks-not-empty" (darwinConfig.homebrew.casks or []))
