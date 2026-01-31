@@ -15,6 +15,10 @@
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
 
+  # Platform detection
+  isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
+  isLinux = pkgs.stdenv.hostPlatform.isLinux;
+
   # Import zsh configuration
   zshConfig = import ../../users/shared/zsh.nix {
     inherit pkgs lib;
@@ -239,12 +243,20 @@ in
   (helpers.assertTest "github-token-export" (initContentHas "GITHUB_TOKEN")
     "GITHUB_TOKEN should be exported via gh auth token")
 
-  # 1Password SSH agent platform-specific detection tests
-  (helpers.assertTest "onepassword-group-containers" (initContentHas "Group Containers")
-    "_setup_1password_agent should check Group Containers on macOS")
+  # 1Password SSH agent platform-specific detection tests (Darwin-only)
+  (helpers.assertTest "onepassword-group-containers" (
+    if isDarwin then
+      (initContentHas "Group Containers")
+    else
+      true # Skip on non-Darwin platforms
+  ) "_setup_1password_agent should check Group Containers on macOS")
 
-  (helpers.assertTest "onepassword-fallback-locations" (initContentHas ".1password/agent.sock")
-    "_setup_1password_agent should check fallback socket locations")
+  (helpers.assertTest "onepassword-fallback-locations" (
+    if isDarwin then
+      (initContentHas ".1password/agent.sock")
+    else
+      true # Skip on non-Darwin platforms
+  ) "_setup_1password_agent should check fallback socket locations")
 
   # ssh wrapper edge cases
   (helpers.assertTest "ssh-wrapper-autossh-poll" (initContentHas "AUTOSSH_POLL")
