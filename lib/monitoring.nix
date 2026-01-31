@@ -566,7 +566,7 @@ let
         let
           # Collect measurements from all categories
           allMeasurements = lib.foldl (
-            acc: cat: acc ++ (monitoring.storage.queryMeasurements store cat)
+            acc: cat: acc ++ (monitoring.storage.queryMeasurements store cat null null)
           ) [ ] categories;
 
           # Generate performance report using existing framework
@@ -576,7 +576,7 @@ let
           systemMetrics = lib.foldl (
             acc: cat:
             let
-              measurements = monitoring.storage.queryMeasurements store cat;
+              measurements = monitoring.storage.queryMeasurements store cat null null;
               aggregated = monitoring.metrics.aggregateMetrics measurements;
             in
             acc // { "${cat}" = aggregated; }
@@ -586,7 +586,7 @@ let
           allAlerts = lib.foldl (
             acc: cat:
             let
-              measurements = monitoring.storage.queryMeasurements store cat;
+              measurements = monitoring.storage.queryMeasurements store cat null null;
               categoryAlerts = monitoring.tests.analyzeTrends measurements;
             in
             acc ++ categoryAlerts.alerts
