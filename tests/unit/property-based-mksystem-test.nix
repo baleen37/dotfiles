@@ -53,10 +53,11 @@ let
   };
 
   # Test scenarios for mkSystem
+  # Using actual machine names from the repository to avoid file not found errors
   systemScenarios = [
     {
       identifier = "darwin-arm64";
-      name = "test-macbook";
+      name = "macbook-pro";
       system = "aarch64-darwin";
       user = "testuser";
       darwin = true;
@@ -64,7 +65,7 @@ let
     }
     {
       identifier = "darwin-x64";
-      name = "test-imac";
+      name = "macbook-pro";
       system = "x86_64-darwin";
       user = "testuser2";
       darwin = true;
@@ -72,7 +73,7 @@ let
     }
     {
       identifier = "linux-arm64";
-      name = "test-server";
+      name = "macbook-pro";
       system = "aarch64-linux";
       user = "testuser3";
       darwin = false;
@@ -80,7 +81,7 @@ let
     }
     {
       identifier = "linux-x64";
-      name = "test-desktop";
+      name = "macbook-pro";
       system = "x86_64-linux";
       user = "testuser4";
       darwin = false;
@@ -88,7 +89,7 @@ let
     }
     {
       identifier = "wsl-linux";
-      name = "test-wsl";
+      name = "macbook-pro";
       system = "x86_64-linux";
       user = "testuser5";
       darwin = false;
