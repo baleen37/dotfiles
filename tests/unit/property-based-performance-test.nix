@@ -24,7 +24,7 @@ let
 
   # Import performance module to test
   perfModule = import ../../lib/performance.nix { inherit lib pkgs; };
-  inherit (perfModule) perf;
+  perf = perfModule.perf;
 
   # Import test helpers
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
