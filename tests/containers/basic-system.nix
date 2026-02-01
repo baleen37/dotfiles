@@ -4,6 +4,7 @@
 let
   # Use static test user for environment independence
   userName = "testuser";
+  commonPackages = import ../lib/fixtures/common-packages.nix { inherit pkgs; };
 in
 {
   name = "basic-system-test";
@@ -22,10 +23,7 @@ in
     services.openssh.enable = true;
 
     # Test packages
-    environment.systemPackages = with pkgs; [
-      git
-      vim
-    ];
+    environment.systemPackages = commonPackages.basicPackages;
   };
 
   testScript = ''
