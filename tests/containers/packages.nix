@@ -4,14 +4,8 @@
 let
   # Use static test user for environment independence
   userName = "testuser";
-  testPackages = with pkgs; [
-    git
-    vim
-    curl
-    wget
-    htop
-    jq
-  ];
+  commonPackages = import ../lib/fixtures/common-packages.nix { inherit pkgs; };
+  testPackages = commonPackages.devPackages;
 in
 {
   name = "packages-test";
