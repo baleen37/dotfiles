@@ -14,28 +14,8 @@
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
 
-  # Copy statusline script to Nix store
-  statuslineScript = pkgs.writeScript "statusline.sh" (
-    builtins.readFile ../../users/shared/.config/claude/statusline.sh
-  );
-
-  # Helper to run statusline script with JSON input
-  runStatusline =
-    inputData:
-    pkgs.runCommand "statusline-test" { nativeBuildInputs = [ pkgs.bash pkgs.jq ]; } ''
-      echo '${inputData}' | bash ${statuslineScript} > $out 2>&1 || true
-    '';
-
-  # Helper to extract context value from statusline output
-  extractCtxValue =
-    output:
-    let
-      match = builtins.match ".*Ctx: ([0-9.]+[kK]?).*" output;
-    in
-    if match == null then null else builtins.head match;
-
-  # Helper to check if output contains expected context
-  hasCtxValue = output: expected: (extractCtxValue output) == expected;
+  # Read statusline script content as text (not a derivation)
+  statuslineScriptContent = builtins.readFile ../../users/shared/.config/claude/statusline.sh;
 
   # Test data for different model formats
   testData = {
@@ -373,16 +353,33 @@ let
   # Create individual test for each data point
   createTest =
     testName: data:
-    helpers.assertTest testName (
-      let
-        # Run statusline with test input
-        result = builtins.tryEval (builtins.substring 0 500 (builtins.readFile (runStatusline data.input)));
-      in
+    pkgs.runCommand "statusline-test-${testName}" {
+      nativeBuildInputs = [ pkgs.bash pkgs.jq ];
+    } ''
+      # Write statusline script to a temporary file
+      script=$TMPDIR/statusline.sh
+      cat > $script <<'SCRIPT_END'
+      ${statuslineScriptContent}
+      SCRIPT_END
+      chmod +x $script
+
+      # Run statusline with test input
+      output=$(echo '${data.input}' | bash $script 2>&1 || true)
+
       # Check if output contains expected context value
-      result.success
-      && builtins.isString result.value
-      && builtins.match ".*Ctx:[[:space:]]*${lib.escapeRegex data.expectedCtx}.*" result.value != null
-    ) "${data.description}: expected 'Ctx: ${data.expectedCtx}'";
+      if echo "$output" | grep -q "Ctx:[[:space:]]*${lib.escapeRegex data.expectedCtx}"; then
+        echo "✅ ${testName}: PASS"
+        echo "  Expected Ctx: ${data.expectedCtx}"
+        touch $out
+      else
+        echo "❌ ${testName}: FAIL"
+        echo "  ${data.description}"
+        echo "  Expected Ctx: ${data.expectedCtx}"
+        echo "  Got output:"
+        echo "$output" | head -20
+        exit 1
+      fi
+    '';
 
 in
 {
