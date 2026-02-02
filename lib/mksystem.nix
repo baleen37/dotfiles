@@ -1,4 +1,8 @@
-{ inputs, self, overlays ? [] }:
+{
+  inputs,
+  self,
+  overlays ? [ ],
+}:
 
 name:
 {
@@ -21,13 +25,16 @@ let
   machineConfig = ../machines/${name}.nix;
 
   # Unified cache configuration for both Determinate Nix and traditional Nix
+  # Performance-first order: project cache (highest hit rate) -> community -> official fallback
   cacheSettings = {
     substituters = [
       "https://baleen-nix.cachix.org"
+      "https://nix-community.cachix.org"
       "https://cache.nixos.org/"
     ];
     trusted-public-keys = [
       "baleen-nix.cachix.org-1:awgC7Sut148An/CZ6TZA+wnUtJmJnOvl5NThGio9j5k="
+      "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
       "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
     ];
     trusted-users = [

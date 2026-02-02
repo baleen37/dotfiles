@@ -20,8 +20,8 @@ runs:
           experimental-features = nix-command flakes
           accept-flake-config = true
           trusted-users = root *
-          substituters = https://cache.nixos.org https://baleen-nix.cachix.org
-          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= baleen-nix.cachix.org-1:WkqY2zbtvHLYuLPQNML4Y0pJh4OqYY3X4LRNdvqNm8Y=
+          substituters = https://baleen-nix.cachix.org https://nix-community.cachix.org https://cache.nixos.org
+          trusted-public-keys = baleen-nix.cachix.org-1:awgC7Sut148An/CZ6TZA+wnUtJmJnOvl5NThGio9j5k= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
 
     - name: Install cachix for pushing
       shell: bash

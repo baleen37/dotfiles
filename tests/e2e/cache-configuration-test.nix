@@ -58,13 +58,15 @@ nixosTest {
             accept-flake-config = true
           '';
           settings = {
-            # Cache settings from lib/mksystem.nix
+            # Cache settings from lib/mksystem.nix - performance-first order
             substituters = [
               "https://baleen-nix.cachix.org"
+              "https://nix-community.cachix.org"
               "https://cache.nixos.org/"
             ];
             trusted-public-keys = [
               "baleen-nix.cachix.org-1:awgC7Sut148An/CZ6TZA+wnUtJmJnOvl5NThGio9j5k="
+              "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
               "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
             ];
             trusted-users = [
@@ -76,6 +78,7 @@ nixosTest {
             # Trust substituters to eliminate warnings
             trusted-substituters = [
               "https://baleen-nix.cachix.org"
+              "https://nix-community.cachix.org"
               "https://cache.nixos.org/"
             ];
           };
@@ -116,6 +119,7 @@ nixosTest {
 
     # Check that substituters are configured
     assert "baleen-nix.cachix.org" in config, "baleen-nix.cachix.org should be in substituters"
+    assert "nix-community.cachix.org" in config, "nix-community.cachix.org should be in substituters"
     assert "cache.nixos.org" in config, "cache.nixos.org should be in substituters"
     print("✅ Substituters configured correctly")
 
@@ -126,6 +130,7 @@ nixosTest {
     print(f"Trusted public keys: {keys_output}")
 
     assert "baleen-nix.cachix.org-1:awgC7Sut148An/CZ6TZA+wnUtJmJnOvl5NThGio9j5k=" in keys_output, "baleen-nix cachix key should be present"
+    assert "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=" in keys_output, "nix-community.cachix.org key should be present"
     assert "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=" in keys_output, "cache.nixos.org key should be present"
     print("✅ Trusted public keys configured correctly")
 
@@ -146,6 +151,7 @@ nixosTest {
     print(f"Trusted substituters: {substituters_output}")
 
     assert "baleen-nix.cachix.org" in substituters_output, "baleen-nix.cachix.org should be trusted"
+    assert "nix-community.cachix.org" in substituters_output, "nix-community.cachix.org should be trusted"
     assert "cache.nixos.org" in substituters_output, "cache.nixos.org should be trusted"
     print("✅ Trusted substituters configured correctly")
 
@@ -178,13 +184,16 @@ nixosTest {
       machineConfig = ../machines/${name}.nix;
 
       # Unified cache configuration for both Determinate Nix and traditional Nix
+      # Performance-first order: project cache (highest hit rate) -> community -> official fallback
       cacheSettings = {
         substituters = [
           "https://baleen-nix.cachix.org"
+          "https://nix-community.cachix.org"
           "https://cache.nixos.org/"
         ];
         trusted-public-keys = [
           "baleen-nix.cachix.org-1:awgC7Sut148An/CZ6TZA+wnUtJmJnOvl5NThGio9j5k="
+          "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
           "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
         ];
         trusted-users = [
@@ -321,6 +330,12 @@ nixosTest {
 
       # Check for baleen-nix.cachix.org
       hasBaleenCacheix = builtins.any (s: builtins.elem "https://baleen-nix.cachix.org" s) [
+        darwinCacheSettings.substituters
+        nixosCacheSettings.substituters
+      ];
+
+      # Check for nix-community.cachix.org
+      hasNixCommunityCache = builtins.any (s: builtins.elem "https://nix-community.cachix.org" s) [
         darwinCacheSettings.substituters
         nixosCacheSettings.substituters
       ];
@@ -604,6 +619,8 @@ nixosTest {
     print("="*60)
     print("\nValidated:")
     print("  ✓ Cachix integration (baleen-nix.cachix.org)")
+    print("  ✓ Community cache (nix-community.cachix.org)")
+    print("  ✓ Official cache (cache.nixos.org)")
     print("  ✓ Substituter configuration")
     print("  ✓ Trusted public keys")
     print("  ✓ Trusted users (root, user, @admin, @wheel)")
@@ -611,7 +628,7 @@ nixosTest {
     print("  ✓ Traditional Nix settings (Linux)")
     print("  ✓ make cache command functionality")
     print("  ✓ Cross-platform cache consistency")
-    print("  ✓ Substituter priority ordering")
+    print("  ✓ Substituter priority ordering (performance-first)")
     print("\nAll cache configurations are correct!")
   '';
 }
