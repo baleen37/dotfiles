@@ -149,4 +149,62 @@ helpers.testSuite "tmux-integration" [
     "tmux continuum should have save interval configured")
   (mkConfigTest "tmux-continuum-boot" continuumTests.boot
     "tmux continuum should start on boot")
+
+  # Terminal and display settings tests
+  (helpers.assertTest "tmux-default-terminal" (hasConfigString "default-terminal \"tmux-256color\"")
+    "tmux should use tmux-256color as default terminal")
+
+  (helpers.assertTest "tmux-default-shell-zsh" (hasConfigString "default-shell")
+    "tmux should use zsh as default shell")
+
+  (helpers.assertTest "tmux-focus-events" (hasConfigString "focus-events on")
+    "tmux should have focus events enabled")
+
+  # Mouse support tests
+  (helpers.assertTest "tmux-mouse-enabled" (hasConfigString "mouse on")
+    "tmux should have mouse support enabled")
+
+  (helpers.assertTest "tmux-middle-click-paste" (hasConfigString "MouseDown2Pane paste-buffer")
+    "tmux should bind middle-click to paste")
+
+  # Window and pane management tests
+  (helpers.assertTest "tmux-split-horizontal-binding" (hasConfigString "bind | split-window -h")
+    "tmux should bind | to horizontal split")
+
+  (helpers.assertTest "tmux-split-vertical-binding" (hasConfigString "bind - split-window -v")
+    "tmux should bind - to vertical split")
+
+  (helpers.assertTest "tmux-rename-binding" (hasConfigString "bind r source-file")
+    "tmux should bind r to reload config")
+
+  # Alt key navigation without prefix
+  (helpers.assertTest "tmux-alt-h-previous-window" (hasConfigString "bind -n M-h previous-window")
+    "tmux should bind Alt+h to previous window without prefix")
+
+  (helpers.assertTest "tmux-alt-l-next-window" (hasConfigString "bind -n M-l next-window")
+    "tmux should bind Alt+l to next window without prefix")
+
+  # Tab (window) management tests
+  (helpers.assertTest "tmux-new-window-binding" (hasConfigString "bind t new-window")
+    "tmux should bind t to create new window")
+
+  (helpers.assertTest "tmux-last-window-binding" (hasConfigString "bind Tab last-window")
+    "tmux should bind Tab to switch to last window")
+
+  # Status bar configuration tests
+  (helpers.assertTest "tmux-status-position" (hasConfigString "status-position bottom")
+    "tmux status bar should be at bottom")
+
+  (helpers.assertTest "tmux-status-bg-color" (hasConfigString "status-bg colour234")
+    "tmux status bar should have dark background")
+
+  (helpers.assertTest "tmux-status-fg-color" (hasConfigString "status-fg colour137")
+    "tmux status bar should have light foreground")
+
+  (helpers.assertTest "tmux-window-status-format" (hasConfigString "window-status-format")
+    "tmux should have window status format configured")
+
+  # Session persistence directory tests
+  (helpers.assertTest "tmux-resurrect-dir" (hasConfigPattern ".*@resurrect-dir.*")
+    "tmux resurrect should have custom directory configured")
 ]

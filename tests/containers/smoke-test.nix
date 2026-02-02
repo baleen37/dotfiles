@@ -4,8 +4,10 @@
 let
   # Use static test user for environment independence
   userName = "testuser";
+  commonPackages = import ../lib/fixtures/common-packages.nix { inherit pkgs; };
 
   # Core packages that should always be available and functional
+  # Extends base packages with additional tools
   corePackages = with pkgs; [
     git # Version control
     vim # Text editor

@@ -253,6 +253,23 @@
         }
       );
 
+      # E2E tests (only for Linux platforms where VMs can run)
+      e2e-tests =
+        let
+          system = "x86_64-linux";
+          pkgs = nixpkgs.legacyPackages.${system};
+          lib = nixpkgs.lib;
+        in
+        import ./tests/e2e {
+          inherit
+            pkgs
+            lib
+            system
+            self
+            inputs
+            ;
+        };
+
       # Development shell for nix-direnv
       devShells =
         nixpkgs.lib.genAttrs

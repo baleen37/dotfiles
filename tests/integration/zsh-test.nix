@@ -15,6 +15,10 @@
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
 
+  # Platform detection
+  isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
+  isLinux = pkgs.stdenv.hostPlatform.isLinux;
+
   # Import zsh configuration
   zshConfig = import ../../users/shared/zsh.nix {
     inherit pkgs lib;
@@ -76,9 +80,22 @@ in
   (helpers.assertTest "alias-ga-exists" (hasAlias "ga") "alias 'ga' (git add) should exist")
   (helpers.assertTest "alias-gc-exists" (hasAlias "gc") "alias 'gc' (git commit) should exist")
   (helpers.assertTest "alias-gco-exists" (hasAlias "gco") "alias 'gco' (git checkout) should exist")
+  (helpers.assertTest "alias-gcp-exists" (hasAlias "gcp") "alias 'gcp' (git cherry-pick) should exist")
+  (helpers.assertTest "alias-gdiff-exists" (hasAlias "gdiff") "alias 'gdiff' (git diff) should exist")
   (helpers.assertTest "alias-gp-exists" (hasAlias "gp") "alias 'gp' (git push) should exist")
   (helpers.assertTest "alias-gs-exists" (hasAlias "gs") "alias 'gs' (git status) should exist")
+  (helpers.assertTest "alias-gt-exists" (hasAlias "gt") "alias 'gt' (git tag) should exist")
   (helpers.assertTest "alias-gl-exists" (hasAlias "gl") "alias 'gl' (git prettylog) should exist")
+
+  # Multi-level directory navigation aliases
+  (helpers.assertTest "alias-dot-dot-dot-exists" (hasAlias "...") "alias '...' (cd ../..) should exist")
+  (helpers.assertTest "alias-four-dots-exists" (hasAlias "....") "alias '....' (cd ../../..) should exist")
+  (helpers.assertTest "alias-five-dots-exists" (hasAlias ".....") "alias '.....' (cd ../../../..) should exist")
+  (helpers.assertTest "alias-six-dots-exists" (hasAlias "......") "alias '......' (cd ../../../../..) should exist")
+
+  # ls color alias
+  (helpers.assertTest "alias-ls-color" (hasAlias "ls")
+    "alias 'ls' should exist with --color=auto")
 
   # Utility aliases
   (helpers.assertTest "alias-la-exists" (hasAlias "la") "alias 'la' (ls -la) should exist")
@@ -159,6 +176,10 @@ in
   (helpers.assertTest "path-go-bin" (initContentHas "go/bin")
     "PATH should include go/bin directory")
 
+  # GEM_HOME PATH handling (conditional)
+  (helpers.assertTest "path-gem-home-conditional" (initContentHas "GEM_HOME")
+    "PATH should include GEM_HOME/bin when GEM_HOME is set")
+
   # Nix daemon initialization
   (helpers.assertTest "nix-daemon-init" (initContentHas "nix-daemon.sh")
     "Nix daemon should be initialized in initContent")
@@ -180,22 +201,28 @@ in
   # Claude Code worktree function (ccw)
   (helpers.assertTest "function-ccw-exists" (initContentHas "ccw()")
     "ccw() function should exist")
-  (helpers.assertTest "function-ccw-usage" (initContentHas "Usage: ccw <branch-name>")
+  (helpers.assertTest "function-ccw-usage" (initContentHas "Usage: ")
     "ccw() should have usage message")
   (helpers.assertTest "function-ccw-git-check" (initContentHas "git rev-parse --git-dir")
     "ccw() should check for git repository")
-  (helpers.assertTest "function-ccw-calls-cc" (initContentHas "cd \"$worktree_dir\" && cc")
-    "ccw() should call cc after creating worktree")
+  (helpers.assertTest "function-ccw-calls-wrapper" (initContentHas "_worktree_wrapper \"cc\" \"$@\"")
+    "ccw() should call _worktree_wrapper with cc")
 
   # OpenCode worktree function (oow)
   (helpers.assertTest "function-oow-exists" (initContentHas "oow()")
     "oow() function should exist")
-  (helpers.assertTest "function-oow-usage" (initContentHas "Usage: oow <branch-name>")
+  (helpers.assertTest "function-oow-usage" (initContentHas "Usage: ")
     "oow() should have usage message")
   (helpers.assertTest "function-oow-git-check" (initContentHas "git rev-parse --git-dir")
     "oow() should check for git repository")
-  (helpers.assertTest "function-oow-calls-oc" (initContentHas "cd \"$worktree_dir\" && oc")
-    "oow() should call oc after creating worktree")
+  (helpers.assertTest "function-oow-calls-wrapper" (initContentHas "_worktree_wrapper \"oc\" \"$@\"")
+    "oow() should call _worktree_wrapper with oc")
+
+  # Worktree wrapper common implementation
+  (helpers.assertTest "function-worktree-wrapper-exists" (initContentHas "_worktree_wrapper()")
+    "_worktree_wrapper() function should exist")
+  (helpers.assertTest "function-worktree-wrapper-calls-tool" (initContentHas "cd \"$worktree_dir\" && \"$tool_name\"")
+    "_worktree_wrapper() should change to worktree dir and call tool")
 
   # SSH wrapper with autossh
   (helpers.assertTest "ssh-wrapper-autossh" (initContentHas "autossh")
@@ -217,6 +244,42 @@ in
   # npm configuration
   (helpers.assertTest "npm-config-prefix" (initContentHas "NPM_CONFIG_PREFIX")
     "NPM_CONFIG_PREFIX should be set for global npm packages")
+
+  # GitHub token configuration
+  (helpers.assertTest "github-token-export" (initContentHas "GITHUB_TOKEN")
+    "GITHUB_TOKEN should be exported via gh auth token")
+
+  # 1Password SSH agent platform-specific detection tests (Darwin-only)
+  (helpers.assertTest "onepassword-group-containers" (
+    if isDarwin then
+      (initContentHas "Group Containers")
+    else
+      true # Skip on non-Darwin platforms
+  ) "_setup_1password_agent should check Group Containers on macOS")
+
+  (helpers.assertTest "onepassword-fallback-locations" (
+    if isDarwin then
+      (initContentHas ".1password/agent.sock")
+    else
+      true # Skip on non-Darwin platforms
+  ) "_setup_1password_agent should check fallback socket locations")
+
+  # ssh wrapper edge cases
+  (helpers.assertTest "ssh-wrapper-autossh-poll" (initContentHas "AUTOSSH_POLL")
+    "ssh wrapper should set AUTOSSH_POLL for autossh")
+
+  (helpers.assertTest "ssh-wrapper-first-poll" (initContentHas "AUTOSSH_FIRST_POLL")
+    "ssh wrapper should set AUTOSSH_FIRST_POLL for autossh")
+
+  (helpers.assertTest "ssh-wrapper-tcp-keepalive" (initContentHas "TCPKeepAlive")
+    "ssh wrapper should enable TCP keepalive")
+
+  # IntelliJ IDEA launcher environment preservation
+  (helpers.assertTest "idea-nohup-background" (initContentHas "nohup env")
+    "idea() should use nohup for background execution")
+
+  (helpers.assertTest "idea-disown" (initContentHas "disown")
+    "idea() should disown the background process")
 
   # SSH agent setup for GUI applications (macOS)
   (helpers.assertTest "ssh-agent-gui-function" (

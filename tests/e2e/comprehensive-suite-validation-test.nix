@@ -19,6 +19,7 @@ let
       inherit system;
       inherit pkgs;
     });
+  commonPackages = import ../lib/fixtures/common-packages.nix { inherit pkgs; };
 
   # Helper to run commands and capture output
   runCommand = cmd: ''
@@ -68,13 +69,7 @@ nixosTest {
       };
 
       # Essential packages for testing
-      environment.systemPackages = with pkgs; [
-        git
-        vim
-        curl
-        jq
-        nix
-      ];
+      environment.systemPackages = commonPackages.e2eWithVim;
 
       # Enable sudo for test user
       security.sudo.wheelNeedsPassword = false;

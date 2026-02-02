@@ -28,6 +28,7 @@ let
       inherit system;
       inherit pkgs;
     });
+  commonPackages = import ../lib/fixtures/common-packages.nix { inherit pkgs; };
 
 in
 nixosTest {
@@ -87,14 +88,7 @@ nixosTest {
           shell = pkgs.bash;
         };
 
-        environment.systemPackages = with pkgs; [
-          git
-          curl
-          jq
-          nix
-          gnumake
-          cachix
-        ];
+        environment.systemPackages = commonPackages.e2eBasicPackages ++ [ pkgs.cachix ];
 
         security.sudo.wheelNeedsPassword = false;
 
