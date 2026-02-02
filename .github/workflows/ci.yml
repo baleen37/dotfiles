@@ -18,8 +18,8 @@ env:
   NIX_CONFIG: |
     max-jobs = auto
     cores = 0
-    substituters = https://cache.nixos.org https://nix-community.cachix.org https://baleen-nix.cachix.org
-    trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= baleen-nix.cachix.org-1:awgC7Sut148An/CZ6TZA+wnUtJmJnOvl5NThGio9j5k=
+    substituters = https://baleen-nix.cachix.org https://nix-community.cachix.org https://cache.nixos.org
+    trusted-public-keys = baleen-nix.cachix.org-1:awgC7Sut148An/CZ6TZA+wnUtJmJnOvl5NThGio9j5k= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
     narinfo-cache-negative-ttl = 0
 
 jobs:
