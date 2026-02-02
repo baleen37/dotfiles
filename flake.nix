@@ -2,12 +2,16 @@
   description = "baleen's dotfiles - Nix-based development environment";
 
   nixConfig = {
-    # Flake evaluation only - minimal trusted caches
+    # Flake evaluation caches
     substituters = [
       "https://cache.nixos.org/"
+      "https://nix-community.cachix.org"
+      "https://baleen-nix.cachix.org"
     ];
     trusted-public-keys = [
       "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+      "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+      "baleen-nix.cachix.org-1:awgC7Sut148An/CZ6TZA+wnUtJmJnOvl5NThGio9j5k="
     ];
     accept-flake-config = true;
   };
