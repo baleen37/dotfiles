@@ -263,9 +263,26 @@ in
       # Shared worktree wrapper for Claude Code and OpenCode
       # Usage: _worktree_wrapper <tool_name> <branch-name>
       _worktree_wrapper() {
-        local tool_name="$1"
+        # Enable alias expansion in this function
+        # Note: 'cc' and 'oc' are defined as shellAliases above, but zsh
+        # doesn't expand aliases in functions by default. We need to use
+        # the actual command directly.
+        local tool_command="$1"
         shift
         local branch_name="$1"
+
+        # Map tool alias to actual command
+        case "$tool_command" in
+          cc)
+            tool_command="ENABLE_LSP_TOOL=true claude --dangerously-skip-permissions"
+            ;;
+          oc)
+            tool_command="opencode"
+            ;;
+          *)
+            # If not a recognized alias, use as-is
+            ;;
+        esac
 
         # ANSI color codes
         local RED='\033[0;31m'
@@ -396,7 +413,7 @@ in
         fi
 
         _msg "$GREEN" "Worktree created: $worktree_dir"
-        cd "$worktree_dir" && "$tool_name"
+        cd "$worktree_dir" && eval "$tool_command"
       }
 
       # Claude Code Worktree - Create git worktree and launch Claude Code
