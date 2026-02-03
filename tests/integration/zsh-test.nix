@@ -221,7 +221,7 @@ in
   # Worktree wrapper common implementation
   (helpers.assertTest "function-worktree-wrapper-exists" (initContentHas "_worktree_wrapper()")
     "_worktree_wrapper() function should exist")
-  (helpers.assertTest "function-worktree-wrapper-calls-tool" (initContentHas "cd \"$worktree_dir\" && \"$tool_name\"")
+  (helpers.assertTest "function-worktree-wrapper-calls-tool" (initContentHas "cd \"$worktree_dir\" && eval \"$tool_command\"")
     "_worktree_wrapper() should change to worktree dir and call tool")
 
   # SSH wrapper with autossh
