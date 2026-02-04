@@ -87,6 +87,7 @@ in
       pre-commit
       vscode
       postman
+      lua-language-server
 
       # Nix tools
       nixfmt
