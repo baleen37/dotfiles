@@ -118,8 +118,12 @@ helpers.testSuite "tmux-integration" [
   # Plugin tests
   (mkPluginTest "vim-tmux-navigator" pluginTests.vimTmuxNavigator)
   (mkPluginTest "sensible" pluginTests.sensible)
-  (mkPluginTest "resurrect" pluginTests.resurrect)
-  (mkPluginTest "continuum" pluginTests.continuum)
+  (helpers.assertTest "tmux-no-resurrect-plugin"
+    (!pluginTests.resurrect)
+    "tmux should NOT have resurrect plugin (removed for minimalism)")
+  (helpers.assertTest "tmux-no-continuum-plugin"
+    (!pluginTests.continuum)
+    "tmux should NOT have continuum plugin (removed for minimalism)")
   (helpers.assertTest "tmux-no-yank-plugin"
     (!pluginTests.yank)
     "tmux should NOT have yank plugin (removed in Task 2)")
@@ -134,21 +138,21 @@ helpers.testSuite "tmux-integration" [
   (mkConfigTest "tmux-vi-begin-selection-binding" viModeTests.beginSelection
     "tmux should have begin-selection binding in vi copy mode")
 
-  # Resurrect settings tests
-  (mkConfigTest "tmux-resurrect-capture-pane-contents" resurrectTests.capturePane
-    "tmux resurrect should capture pane contents")
-  (mkConfigTest "tmux-resurrect-strategy-vim" resurrectTests.strategyVim
-    "tmux resurrect should have vim session strategy")
-  (mkConfigTest "tmux-resurrect-strategy-nvim" resurrectTests.strategyNvim
-    "tmux resurrect should have nvim session strategy")
+  # Verify resurrect settings are NOT present (removed for minimalism)
+  (helpers.assertTest "tmux-no-resurrect-capture-pane" (!resurrectTests.capturePane)
+    "tmux should NOT have resurrect capture-pane setting")
+  (helpers.assertTest "tmux-no-resurrect-strategy-vim" (!resurrectTests.strategyVim)
+    "tmux should NOT have resurrect vim strategy")
+  (helpers.assertTest "tmux-no-resurrect-strategy-nvim" (!resurrectTests.strategyNvim)
+    "tmux should NOT have resurrect nvim strategy")
 
-  # Continuum settings tests
-  (mkConfigTest "tmux-continuum-restore" continuumTests.restore
-    "tmux continuum should restore on start")
-  (mkConfigTest "tmux-continuum-save-interval" continuumTests.saveInterval
-    "tmux continuum should have save interval configured")
-  (mkConfigTest "tmux-continuum-boot" continuumTests.boot
-    "tmux continuum should start on boot")
+  # Verify continuum settings are NOT present (removed for minimalism)
+  (helpers.assertTest "tmux-no-continuum-restore" (!continuumTests.restore)
+    "tmux should NOT have continuum restore setting")
+  (helpers.assertTest "tmux-no-continuum-save-interval" (!continuumTests.saveInterval)
+    "tmux should NOT have continuum save interval")
+  (helpers.assertTest "tmux-no-continuum-boot" (!continuumTests.boot)
+    "tmux should NOT have continuum boot setting")
 
   # Terminal and display settings tests
   (helpers.assertTest "tmux-default-terminal" (hasConfigString "default-terminal \"tmux-256color\"")
@@ -184,12 +188,15 @@ helpers.testSuite "tmux-integration" [
   (helpers.assertTest "tmux-alt-l-next-window" (hasConfigString "bind -n M-l next-window")
     "tmux should bind Alt+l to next window without prefix")
 
-  # Tab (window) management tests
-  (helpers.assertTest "tmux-new-window-binding" (hasConfigString "bind t new-window")
-    "tmux should bind t to create new window")
+  # Oh My Tmux style bindings
+  (helpers.assertTest "tmux-vim-style-pane-navigation" (hasConfigString "bind h select-pane -L")
+    "tmux should bind h to select left pane")
 
-  (helpers.assertTest "tmux-last-window-binding" (hasConfigString "bind Tab last-window")
-    "tmux should bind Tab to switch to last window")
+  (helpers.assertTest "tmux-new-window-binding" (hasConfigString "bind c new-window")
+    "tmux should bind c to create new window")
+
+  (helpers.assertTest "tmux-prefix-ctrl-a" (hasConfigString "bind C-a send-prefix")
+    "tmux should bind C-a C-a to send prefix to application")
 
   # Status bar configuration tests
   (helpers.assertTest "tmux-status-position" (hasConfigString "status-position bottom")
@@ -204,7 +211,14 @@ helpers.testSuite "tmux-integration" [
   (helpers.assertTest "tmux-window-status-format" (hasConfigString "window-status-format")
     "tmux should have window status format configured")
 
-  # Session persistence directory tests
-  (helpers.assertTest "tmux-resurrect-dir" (hasConfigPattern ".*@resurrect-dir.*")
-    "tmux resurrect should have custom directory configured")
+  # OSC52 clipboard integration tests
+  (helpers.assertTest "tmux-osc52-clipboard" (hasConfigString "set -s set-clipboard external")
+    "tmux should have OSC52 clipboard integration enabled")
+
+  (helpers.assertTest "tmux-allow-passthrough" (hasConfigString "set -g allow-passthrough on")
+    "tmux should allow OSC52 passthrough")
+
+  # Verify no resurrect directory setting
+  (helpers.assertTest "tmux-no-resurrect-dir" (!hasConfigPattern ".*@resurrect-dir.*")
+    "tmux should NOT have resurrect directory configured")
 ]
