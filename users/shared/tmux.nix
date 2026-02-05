@@ -1,26 +1,30 @@
 # Tmux Terminal Multiplexer Configuration
 #
-# Standard Configuration with Enhanced Copy-Paste Support
+# Oh My Tmux Inspired Configuration
 #
 # Features:
-#   - Standard copy-paste: Mouse selection auto-copies to clipboard
-#   - Vi-style copy mode: v to select, y to copy
-#   - Cross-platform support: pbcopy (macOS), xclip (Linux)
-#   - Middle-click paste: MouseDown2Pane for quick paste
-#   - Session persistence: resurrect + continuum plugins
-#   - Vim integration: vim-tmux-navigator plugin
+#   - Ctrl-a prefix (screen-style)
+#   - Intuitive split bindings: | (vertical), - (horizontal)
+#   - Vim-style pane navigation: h/j/k/l
+#   - Vi-style copy mode with OSC52 clipboard support
+#   - Cross-platform: Works on macOS, Linux, and remote SSH
+#   - Seamless Vim integration: vim-tmux-navigator plugin
 #
 # Key Bindings:
-#   - Prefix: Ctrl+b
-#   - Copy mode: Prefix+[ or v in copy mode
-#   - Paste: Prefix+] or middle-click
-#   - Window split: | (horizontal), - (vertical)
-#   - Window navigate: Alt+h/l (no prefix needed)
+#   - Prefix: Ctrl+a
+#   - Split panes: Prefix+| (vertical), Prefix+- (horizontal)
+#   - Navigate panes: Prefix+h/j/k/l or Ctrl+h/j/k/l (with Vim)
+#   - New window: Prefix+c
+#   - Next/Prev window: Prefix+n/p
+#   - Select window: Prefix+0-9
+#   - Rename window: Prefix+,
+#   - Copy mode: Prefix+[
+#   - Paste: Prefix+]
 #
 # Copy Mode (vi-style):
 #   v: Begin selection
-#   y: Copy to system clipboard
-#   r: Rectangle toggle
+#   y: Copy to system clipboard (works over SSH via OSC52)
+#   Esc: Exit copy mode
 #   Movement: hjkl, w, b, 0, $, etc.
 #
 
@@ -42,28 +46,27 @@ in
     plugins = with pkgs.tmuxPlugins; [
       sensible
       vim-tmux-navigator
-      # yank  # Removed - Task 2: Remove Yank Plugin Dependency
-      resurrect
-      continuum
     ];
 
     terminal = "screen-256color";
-    prefix = "C-b";
+    prefix = "C-a";
     escapeTime = 0;
     historyLimit = 50000;
 
-    # Performance optimized tmux configuration
+    # Oh My Tmux inspired configuration
     extraConfig = ''
-      # Optimized base configuration
+      # ============================================================================
+      # Base configuration
+      # ============================================================================
       set -g default-terminal "tmux-256color"
       set -g default-shell ${pkgs.zsh}/bin/zsh
       set -g default-command "${pkgs.zsh}/bin/zsh -l"
       set -g focus-events on
 
-      # Enhanced terminal and display settings
+      # Terminal and display settings
       set-environment -g TERM screen-256color
       set -g mouse on
-      bind-key -n MouseDown2Pane paste-buffer  # Middle-click paste
+      bind-key -n MouseDown2Pane paste-buffer
       set -g base-index 1
       set -g pane-base-index 1
       set -g renumber-windows on
@@ -73,48 +76,88 @@ in
       set -g repeat-time 500
       set -g status-interval 1
 
-      # Session stability settings with standard clipboard synchronization
-      set -g set-clipboard on   # Enable external clipboard by default for automatic synchronization
+      # Session settings
       set -g remain-on-exit off
       set -g allow-rename off
       set -g destroy-unattached off
 
-      # Standard copy-paste configuration
+      # ============================================================================
+      # Prefix key bindings (Ctrl-a style)
+      # ============================================================================
+      # Send prefix through to application
+      bind C-a send-prefix
+
+      # Last window toggle
+      bind-key C-a last-window
+
+      # ============================================================================
+      # Pane management (Oh My Tmux style)
+      # ============================================================================
+      # Intuitive split bindings
+      bind | split-window -h -c "#{pane_current_path}"
+      bind - split-window -v -c "#{pane_current_path}"
+      unbind '"'
+      unbind %
+
+      # Vim-style pane navigation
+      bind h select-pane -L
+      bind j select-pane -D
+      bind k select-pane -U
+      bind l select-pane -R
+
+      # Pane resizing
+      bind -r H resize-pane -L 5
+      bind -r J resize-pane -D 5
+      bind -r K resize-pane -U 5
+      bind -r L resize-pane -R 5
+
+      # ============================================================================
+      # Window management
+      # ============================================================================
+      bind c new-window -c "#{pane_current_path}"
+      bind n next-window
+      bind p previous-window
+      bind , command-prompt "rename-window '%%'"
+
+      # Alt keys for window navigation without prefix
+      bind -n M-h previous-window
+      bind -n M-l next-window
+
+      # ============================================================================
+      # Copy mode with OSC52 support
+      # ============================================================================
       setw -g mode-keys vi
       bind [ copy-mode
       bind ] paste-buffer
+
+      # Vi-style copy mode bindings
       bind-key -T copy-mode-vi v send-keys -X begin-selection
-      bind-key -T copy-mode-vi Enter send-keys -X copy-selection-and-cancel
+      bind-key -T copy-mode-vi r send-keys -X rectangle-toggle
+      bind-key -T copy-mode-vi Escape send-keys -X cancel
 
-      # Cross-platform clipboard integration with copy-pipe-and-cancel
-      ${lib.optionalString isDarwin ''
-        # macOS: pbcopy/pbpaste integration
-        bind-key -T copy-mode-vi y send-keys -X copy-pipe-and-cancel "pbcopy"
-        bind-key C-c run "tmux save-buffer - | pbcopy"
-        bind-key C-v run "pbpaste | tmux load-buffer -"
-      ''}
-      ${lib.optionalString isLinux ''
-        # Linux: xclip integration with fallback
-        if command -v xclip >/dev/null 2>&1; then
-          bind-key -T copy-mode-vi y send-keys -X copy-pipe-and-cancel "xclip -in -selection clipboard"
-          bind-key C-c run "tmux save-buffer - | xclip -in -selection clipboard >/dev/null"
-          bind-key C-v run "xclip -out -selection clipboard | tmux load-buffer -"
-        fi
-      ''}
+      # OSC52 clipboard integration for remote SSH support
+      set -s set-clipboard external
+      set -g allow-passthrough on
+      set -as terminal-features ",*:RGB,clipboard"
+      set -ag terminal-overrides ",*:Ms=\\E]52;c%p1%.0s;%p2%s\\7"
 
+      # OSC52 copy bindings (works over SSH)
+      bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel "sh -c 'b64=\$(dd bs=1 count=100000 status=none | base64 | tr -d \"\\n\"); printf \"\\033]52;c;%s\\a\" \"\$b64\" > \"\$1\"' sh #{client_tty}"
+      bind -T copy-mode-vi Enter send-keys -X copy-pipe-and-cancel "sh -c 'b64=\$(dd bs=1 count=100000 status=none | base64 | tr -d \"\\n\"); printf \"\\033]52;c;%s\\a\" \"\$b64\" > \"\$1\"' sh #{client_tty}"
+      bind -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe-and-cancel "sh -c 'b64=\$(dd bs=1 count=100000 status=none | base64 | tr -d \"\\n\"); printf \"\\033]52;c;%s\\a\" \"\$b64\" > \"\$1\"' sh #{client_tty}"
 
-      # Optimized terminal capabilities with True Color support
+      # ============================================================================
+      # Terminal capabilities
+      # ============================================================================
       set -ga terminal-overrides ",*256col*:Tc,*:U8=0"
-
-      # Keyboard settings
       set-window-option -g xterm-keys on
       set-option -g extended-keys on
       set -as terminal-features 'xterm*:extkeys'
-
-      # Extended key input handling for modern terminals
       set -as terminal-overrides ',*:keys=\E[u'
 
-      # Status bar settings
+      # ============================================================================
+      # Status bar
+      # ============================================================================
       set -g status-position bottom
       set -g status-bg colour234
       set -g status-fg colour137
@@ -127,29 +170,10 @@ in
       setw -g window-status-current-format ' #I#[fg=colour250]:#[fg=colour255]#W#[fg=colour50]#F '
       setw -g window-status-format ' #I#[fg=colour237]:#[fg=colour250]#W#[fg=colour244]#F '
 
-      # Key bindings
-      bind | split-window -h
-      bind - split-window -v
-      bind r source-file ~/.tmux.conf \; display "Config reloaded!"
-
-      # Tab (window) management key bindings
-      bind t new-window
-      bind Tab last-window
-
-      # Alt keys for window navigation without prefix
-      bind -n M-h previous-window
-      bind -n M-l next-window
-
-      # Optimized session persistence
-      set -g @resurrect-capture-pane-contents 'on'
-      set -g @resurrect-strategy-vim 'session'
-      set -g @resurrect-strategy-nvim 'session'
-      set -g @continuum-restore 'on'
-      set -g @continuum-save-interval '15'
-      set -g @continuum-boot 'on'
-
-      # Additional performance optimizations
-      set -g @resurrect-dir "${homePath}/.config/tmux/resurrect"
+      # ============================================================================
+      # Misc
+      # ============================================================================
+      bind r source-file ~/.config/tmux/tmux.conf \; display "Config reloaded!"
     '';
   };
 }
