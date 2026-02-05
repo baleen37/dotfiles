@@ -1,3 +1,5 @@
+# tests/unit/tmux-configuration-test.nix
+# Tmux configuration unit tests for Oh My Tmux style
 {
   inputs,
   system,
@@ -9,8 +11,6 @@
 
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
-  assertHelpers = import ../lib/assertions.nix { inherit pkgs lib; };
-  constants = import ../lib/constants.nix { inherit pkgs lib; };
 
   # Mock config for testing tmux configuration
   mockConfig = {
@@ -23,69 +23,46 @@ let
     config = mockConfig;
   };
   tmuxConfig = tmuxModule.programs.tmux;
+
+  # Helper to check if config contains a string
+  hasConfigString = str: builtins.match ".*${str}.*" tmuxConfig.extraConfig != null;
 in
 {
   platforms = ["any"];
   value = helpers.testSuite "tmux-standard-configuration" [
-    # Task 2: Remove Yank Plugin Dependency
-    # Test that tmux has plugins configured
-    (helpers.assertTest "tmux-has-plugins"
-      (tmuxConfig.plugins != null && builtins.length tmuxConfig.plugins > 0)
-      "tmux should have plugins configured")
+    # Core Oh My Tmux configuration
+    (helpers.assertTest "tmux-prefix-is-ctrl-a"
+      (tmuxConfig.prefix == "C-a")
+      "tmux prefix should be Ctrl-a")
 
-    # Test the correct number of plugins after yank removal
-    (helpers.assertTest "tmux-has-four-plugins-after-removal"
-      (builtins.length tmuxConfig.plugins == 4)
-      "tmux should have 4 plugins after yank removal")
+    (helpers.assertTest "tmux-escape-time-is-zero"
+      (tmuxConfig.escapeTime == 0)
+      "tmux escape time should be 0")
 
-    # Task 3: Enable Standard Clipboard Synchronization
-    (helpers.assertTestWithDetails "tmux-enables-clipboard-synchronization"
-      "on"
-      (if builtins.match ".*set -g set-clipboard on.*" tmuxConfig.extraConfig != null then "on" else "off")
-      "tmux should enable automatic clipboard synchronization")
+    (helpers.assertTest "tmux-has-two-plugins"
+      (builtins.length tmuxConfig.plugins == 2)
+      "tmux should have 2 plugins (sensible, vim-tmux-navigator)")
 
-    # Task 4: Add Standard Copy Mode Key Bindings
-    (helpers.assertTest "tmux-has-standard-copy-bindings"
-      (builtins.substring 0 constants.tmuxMaxConfigReadLength tmuxConfig.extraConfig != "" &&
-       builtins.stringLength tmuxConfig.extraConfig > constants.tmuxMinConfigLength &&
-       builtins.match ".*copy-mode.*" tmuxConfig.extraConfig != null &&
-       builtins.match ".*paste-buffer.*" tmuxConfig.extraConfig != null &&
-       builtins.match ".*begin-selection.*" tmuxConfig.extraConfig != null)
-      "tmux should have standard copy mode key bindings")
+    # Oh My Tmux style bindings
+    (helpers.assertTest "tmux-split-vertical"
+      (hasConfigString "bind | split-window -h")
+      "tmux should bind | to vertical split")
 
-    # Task 5: Add Mouse Support for Paste
-    (assertHelpers.assertTestWithDetails "tmux-has-mouse-paste-support"
-      (builtins.match ".*bind-key -n MouseDown2Pane paste-buffer.*" tmuxConfig.extraConfig != null)
-      "tmux should support middle-click paste"
-      "enabled"
-      (if builtins.match ".*bind-key -n MouseDown2Pane paste-buffer.*" tmuxConfig.extraConfig != null then "enabled" else "disabled")
-      null
-      null)
+    (helpers.assertTest "tmux-vim-pane-navigation"
+      (hasConfigString "bind h select-pane -L")
+      "tmux should use vim-style pane navigation")
 
-    # Task 6: Implement Cross-Platform Clipboard Integration
-    (assertHelpers.assertTestWithDetails "tmux-has-copy-pipe-and-cancel-integration"
-      (builtins.match ".*copy-pipe-and-cancel.*pbcopy.*" tmuxConfig.extraConfig != null ||
-       builtins.match ".*copy-pipe-and-cancel.*xclip.*" tmuxConfig.extraConfig != null)
-      "tmux should have copy-pipe-and-cancel with platform-specific clipboard integration"
-      "copy-pipe-and-cancel present"
-      (if builtins.match ".*copy-pipe-and-cancel.*pbcopy.*" tmuxConfig.extraConfig != null then "macOS copy-pipe-and-cancel with pbcopy present"
-       else if builtins.match ".*copy-pipe-and-cancel.*xclip.*" tmuxConfig.extraConfig != null then "Linux copy-pipe-and-cancel with xclip present"
-       else "no copy-pipe-and-cancel integration")
-      null
-      null)
+    # OSC52 clipboard (cross-platform)
+    (helpers.assertTest "tmux-osc52-enabled"
+      (hasConfigString "set -s set-clipboard external")
+      "tmux should use OSC52 clipboard")
 
-    # Task 7: Clean Up Redundant Configuration
-    (assertHelpers.assertTestWithDetails "tmux-removes-redundant-buffer-commands"
-      (!(builtins.match ".*bind-key P paste-buffer.*" tmuxConfig.extraConfig != null) &&
-       !(builtins.match ".*bind-key b list-buffers.*" tmuxConfig.extraConfig != null) &&
-       !(builtins.match ".*bind-key B choose-buffer.*" tmuxConfig.extraConfig != null))
-      "tmux should remove redundant buffer management commands"
-      "clean configuration"
-      (if builtins.match ".*bind-key P paste-buffer.*" tmuxConfig.extraConfig != null then "has redundant P key binding"
-       else if builtins.match ".*bind-key b list-buffers.*" tmuxConfig.extraConfig != null then "has redundant b key binding"
-       else if builtins.match ".*bind-key B choose-buffer.*" tmuxConfig.extraConfig != null then "has redundant B key binding"
-       else "clean configuration")
-      null
-      null)
+    (helpers.assertTest "tmux-no-pbcopy"
+      (!hasConfigString "pbcopy")
+      "tmux should NOT use pbcopy")
+
+    (helpers.assertTest "tmux-no-xclip"
+      (!hasConfigString "xclip")
+      "tmux should NOT use xclip")
   ];
 }

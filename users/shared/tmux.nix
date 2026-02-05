@@ -84,11 +84,11 @@ in
       # ============================================================================
       # Prefix key bindings (Ctrl-a style)
       # ============================================================================
-      # Send prefix through to application
+      # Send prefix through to application (Ctrl-a Ctrl-a)
       bind C-a send-prefix
 
-      # Last window toggle
-      bind-key C-a last-window
+      # Last window toggle (Ctrl-a a)
+      bind a last-window
 
       # ============================================================================
       # Pane management (Oh My Tmux style)
