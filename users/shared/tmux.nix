@@ -138,8 +138,6 @@ in
       # OSC52 clipboard integration for remote SSH support
       set -s set-clipboard external
       set -g allow-passthrough on
-      set -as terminal-features ",*:RGB,clipboard"
-      set -ag terminal-overrides ",*:Ms=\\E]52;c%p1%.0s;%p2%s\\7"
 
       # OSC52 copy bindings (works over SSH)
       bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel "sh -c 'b64=\$(dd bs=1 count=100000 status=none | base64 | tr -d \"\\n\"); printf \"\\033]52;c;%s\\a\" \"\$b64\" > \"\$1\"' sh #{client_tty}"
