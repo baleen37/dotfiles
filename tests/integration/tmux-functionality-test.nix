@@ -39,60 +39,60 @@ let
     helpers.assertTest name condition message;
 
 in
-helpers.testSuite "tmux-integration" [
+{
   # ============================================================================
   # Core configuration - Oh My Tmux style
   # ============================================================================
-  (helpers.assertTest "tmux-prefix-is-ctrl-a"
+  tmux-prefix-is-ctrl-a = helpers.assertTest "tmux-prefix-is-ctrl-a"
     (tmuxConfig.prefix == "C-a")
-    "tmux prefix should be Ctrl-a (Oh My Tmux style)")
+    "tmux prefix should be Ctrl-a (Oh My Tmux style)";
 
-  (mkConfigTest "tmux-prefix-send-prefix"
+  tmux-prefix-send-prefix = mkConfigTest "tmux-prefix-send-prefix"
     (hasConfigString "bind C-a send-prefix")
-    "tmux should bind C-a C-a to send prefix to application")
+    "tmux should bind C-a C-a to send prefix to application";
 
-  (mkConfigTest "tmux-prefix-last-window"
+  tmux-prefix-last-window = mkConfigTest "tmux-prefix-last-window"
     (hasConfigString "bind a last-window")
-    "tmux should bind a to toggle last window")
+    "tmux should bind a to toggle last window";
 
-  (helpers.assertTest "tmux-has-two-plugins"
+  tmux-has-two-plugins = helpers.assertTest "tmux-has-two-plugins"
     (builtins.length tmuxConfig.plugins == 2)
-    "tmux should have 2 plugins: sensible, vim-tmux-navigator")
+    "tmux should have 2 plugins: sensible, vim-tmux-navigator";
 
   # ============================================================================
   # Oh My Tmux style key bindings
   # ============================================================================
-  (mkConfigTest "tmux-split-vertical"
+  tmux-split-vertical = mkConfigTest "tmux-split-vertical"
     (hasConfigString "bind | split-window -h")
-    "tmux should bind | to vertical split")
+    "tmux should bind | to vertical split";
 
-  (mkConfigTest "tmux-split-horizontal"
+  tmux-split-horizontal = mkConfigTest "tmux-split-horizontal"
     (hasConfigString "bind - split-window -v")
-    "tmux should bind - to horizontal split")
+    "tmux should bind - to horizontal split";
 
-  (mkConfigTest "tmux-vim-pane-navigation"
+  tmux-vim-pane-navigation = mkConfigTest "tmux-vim-pane-navigation"
     (hasConfigString "bind h select-pane -L")
-    "tmux should use vim-style pane navigation (hjkl)")
+    "tmux should use vim-style pane navigation (hjkl)";
 
   # ============================================================================
   # OSC52 clipboard integration (cross-platform, works over SSH)
   # ============================================================================
-  (mkConfigTest "tmux-osc52-clipboard"
+  tmux-osc52-clipboard = mkConfigTest "tmux-osc52-clipboard"
     (hasConfigString "set -s set-clipboard external")
-    "tmux should use OSC52 for cross-platform clipboard")
+    "tmux should use OSC52 for cross-platform clipboard";
 
-  (mkConfigTest "tmux-osc52-copy-bindings"
+  tmux-osc52-copy-bindings = mkConfigTest "tmux-osc52-copy-bindings"
     (hasConfigString "bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel")
-    "tmux should bind y/Enter to copy with OSC52")
+    "tmux should bind y/Enter to copy with OSC52";
 
   # ============================================================================
   # Negative tests - ensure old settings are NOT present
   # ============================================================================
-  (helpers.assertTest "tmux-no-pbcopy"
+  tmux-no-pbcopy = helpers.assertTest "tmux-no-pbcopy"
     (!hasConfigString "pbcopy")
-    "tmux should NOT use pbcopy (OSC52 instead)")
+    "tmux should NOT use pbcopy (OSC52 instead)";
 
-  (helpers.assertTest "tmux-no-xclip"
+  tmux-no-xclip = helpers.assertTest "tmux-no-xclip"
     (!hasConfigString "xclip")
-    "tmux should NOT use xclip (OSC52 instead)")
-]
+    "tmux should NOT use xclip (OSC52 instead)";
+}
