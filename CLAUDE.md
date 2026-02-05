@@ -341,7 +341,7 @@ The zsh configuration provides these shortcuts (defined in `users/shared/zsh.nix
 
 **Tmux** (users/shared/tmux.nix):
 
-- Prefix: Ctrl+b
+- Prefix: Ctrl+a
 - Vi-style copy mode with clipboard integration
 - Cross-platform: pbcopy (macOS), xclip (Linux)
 - Session persistence via resurrect/continuum plugins
