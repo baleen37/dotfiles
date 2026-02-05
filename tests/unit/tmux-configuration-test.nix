@@ -29,40 +29,40 @@ let
 in
 {
   platforms = ["any"];
-  value = helpers.testSuite "tmux-standard-configuration" [
+  value = {
     # Core Oh My Tmux configuration
-    (helpers.assertTest "tmux-prefix-is-ctrl-a"
+    tmux-prefix-is-ctrl-a = helpers.assertTest "tmux-prefix-is-ctrl-a"
       (tmuxConfig.prefix == "C-a")
-      "tmux prefix should be Ctrl-a")
+      "tmux prefix should be Ctrl-a";
 
-    (helpers.assertTest "tmux-escape-time-is-zero"
+    tmux-escape-time-is-zero = helpers.assertTest "tmux-escape-time-is-zero"
       (tmuxConfig.escapeTime == 0)
-      "tmux escape time should be 0")
+      "tmux escape time should be 0";
 
-    (helpers.assertTest "tmux-has-two-plugins"
+    tmux-has-two-plugins = helpers.assertTest "tmux-has-two-plugins"
       (builtins.length tmuxConfig.plugins == 2)
-      "tmux should have 2 plugins (sensible, vim-tmux-navigator)")
+      "tmux should have 2 plugins (sensible, vim-tmux-navigator)";
 
     # Oh My Tmux style bindings
-    (helpers.assertTest "tmux-split-vertical"
+    tmux-split-vertical = helpers.assertTest "tmux-split-vertical"
       (hasConfigString "bind | split-window -h")
-      "tmux should bind | to vertical split")
+      "tmux should bind | to vertical split";
 
-    (helpers.assertTest "tmux-vim-pane-navigation"
+    tmux-vim-pane-navigation = helpers.assertTest "tmux-vim-pane-navigation"
       (hasConfigString "bind h select-pane -L")
-      "tmux should use vim-style pane navigation")
+      "tmux should use vim-style pane navigation";
 
     # OSC52 clipboard (cross-platform)
-    (helpers.assertTest "tmux-osc52-enabled"
+    tmux-osc52-enabled = helpers.assertTest "tmux-osc52-enabled"
       (hasConfigString "set -s set-clipboard external")
-      "tmux should use OSC52 clipboard")
+      "tmux should use OSC52 clipboard";
 
-    (helpers.assertTest "tmux-no-pbcopy"
+    tmux-no-pbcopy = helpers.assertTest "tmux-no-pbcopy"
       (!hasConfigString "pbcopy")
-      "tmux should NOT use pbcopy")
+      "tmux should NOT use pbcopy";
 
-    (helpers.assertTest "tmux-no-xclip"
+    tmux-no-xclip = helpers.assertTest "tmux-no-xclip"
       (!hasConfigString "xclip")
-      "tmux should NOT use xclip")
-  ];
+      "tmux should NOT use xclip";
+  };
 }
