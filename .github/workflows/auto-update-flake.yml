@@ -13,218 +13,37 @@ concurrency:
 permissions:
   contents: write
   pull-requests: write
-  checks: read
-  actions: read
-
-env:
-  USER: ci
-  REPO: ${{ github.repository }}
 
 jobs:
-  update-dependencies:
+  update-flake-lock:
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    outputs:
-      has-changes: ${{ steps.check-changes.outputs.has-changes }}
-      pr-number: ${{ steps.create-pr.outputs.pr-number }}
 
     steps:
-      - name: Generate GitHub App Token
-        id: app-token
-        uses: actions/create-github-app-token@v2
-        with:
-          app-id: 2439184
-          private-key: ${{ secrets.APP_AUTO_UPDATE_KEY }}
-
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          token: ${{ steps.app-token.outputs.token }}
-          fetch-depth: 0
 
       - name: Setup Nix with cache
         uses: ./.github/actions/setup-nix
         with:
           cache-mode: restore-only
 
-      - name: Configure Git for updates
-        run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-
-      - name: Update flake inputs
-        id: update
-        run: |
-          echo "::group::Updating flake inputs"
-
-          # Store original lock file hash
-          ORIGINAL_HASH=$(sha256sum flake.lock | cut -d' ' -f1)
-          echo "original-hash=$ORIGINAL_HASH" >> $GITHUB_OUTPUT
-
-          # Update all inputs
-          if ! nix flake update --commit-lock-file; then
-            echo "::error::Failed to update flake inputs"
-            exit 1
-          fi
-
-          # Store new lock file hash
-          NEW_HASH=$(sha256sum flake.lock | cut -d' ' -f1)
-          echo "new-hash=$NEW_HASH" >> $GITHUB_OUTPUT
-
-          echo "::endgroup::"
-
-      - name: Validate flake after update
-        run: |
-          echo "::group::Validating flake structure"
-
-          if ! nix flake check --impure --no-build; then
-            echo "::error::Flake validation failed after update"
-            exit 1
-          fi
-
-          echo "::endgroup::"
-
-      - name: Check for changes
-        id: check-changes
-        run: |
-          if [ "${{ steps.update.outputs.original-hash }}" = "${{ steps.update.outputs.new-hash }}" ]; then
-            echo "has-changes=false" >> $GITHUB_OUTPUT
-            echo "::notice::No dependency updates available"
-          else
-            echo "has-changes=true" >> $GITHUB_OUTPUT
-            echo "::notice::Dependency updates found"
-          fi
-
-      - name: Create and push branch
-        if: steps.check-changes.outputs.has-changes == 'true'
-        id: create-branch
-        run: |
-          BRANCH_NAME="auto-update/flake-$(date +%Y%m%d-%H%M%S)"
-          echo "branch-name=$BRANCH_NAME" >> $GITHUB_OUTPUT
-
-          # Ensure we're up to date with main before creating branch
-          git fetch origin main
-          git rebase origin/main
-
-          git checkout -b "$BRANCH_NAME"
-          git push origin "$BRANCH_NAME"
-
-      - name: Generate dependency update summary
-        if: steps.check-changes.outputs.has-changes == 'true'
-        id: summary
-        run: |
-          echo "::group::Generating update summary"
-
-          # Create a summary of what changed
-          {
-            echo "## Dependency Update Summary"
-            echo ""
-            echo "The following dependencies have been updated:"
-            echo ""
-            git show --name-only --pretty=format:"" HEAD | grep -E "\.(nix|lock)$" | while read file; do
-              echo "- \`$file\`"
-            done
-            echo ""
-            echo "## Detailed Changes"
-            echo ""
-            echo "\`\`\`"
-            git show --stat HEAD
-            echo "\`\`\`"
-            echo ""
-            echo "## Test Plan"
-            echo "- [ ] Successful build on all platforms"
-            echo "- [ ] CI pipeline passes"
-            echo "- [ ] Smoke tests pass"
-            echo ""
-            echo "🤖 This PR was automatically generated. It will be auto-merged when CI tests pass."
-          } > pr_body.md
-
-          echo "::endgroup::"
-
-      - name: Create Pull Request
-        if: steps.check-changes.outputs.has-changes == 'true'
-        id: create-pr
-        env:
-          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
-        run: |
-          echo "::group::Creating Pull Request"
-
-          PR_URL=$(gh pr create \
-            --title "chore: automatic flake dependency update $(date +%Y-%m-%d)" \
-            --body-file pr_body.md \
-            --base main \
-            --head "${{ steps.create-branch.outputs.branch-name }}" \
-            --label "dependencies")
-
-          PR_NUMBER=$(echo "$PR_URL" | grep -o '[0-9]\+$')
-          echo "pr-number=$PR_NUMBER" >> $GITHUB_OUTPUT
-          echo "pr-url=$PR_URL" >> $GITHUB_OUTPUT
-
-          echo "::notice::Created PR #$PR_NUMBER: $PR_URL"
-          echo "::endgroup::"
-
-      - name: Close existing dependency PRs
-        if: steps.check-changes.outputs.has-changes == 'true'
-        env:
-          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
-        run: |
-          echo "::group::Closing existing dependency update PRs"
-
-          NEW_PR_NUMBER="${{ steps.create-pr.outputs.pr-number }}"
-
-          # Find all open PRs with dependencies label, excluding the newly created one
-          EXISTING_PRS=$(gh pr list --label "dependencies" --state open --json number --jq ".[] | select(.number != $NEW_PR_NUMBER) | .number")
-
-          if [ -n "$EXISTING_PRS" ]; then
-            echo "Found existing dependency PRs to close:"
-            for pr in $EXISTING_PRS; do
-              echo "  Closing PR #$pr"
-              gh pr close "$pr" --comment "Auto-closed: Branch was BEHIND main. See #$NEW_PR_NUMBER for latest update."
-            done
-          else
-            echo "No existing dependency PRs to close"
-          fi
-
-          echo "::endgroup::"
-
-  enable-auto-merge:
-    runs-on: ubuntu-latest
-    needs: update-dependencies
-    if: needs.update-dependencies.outputs.has-changes == 'true'
-    timeout-minutes: 10
-
-    steps:
-      - name: Generate GitHub App Token
-        id: app-token
-        uses: actions/create-github-app-token@v2
+      - name: Update flake.lock
+        uses: DeterminateSystems/update-flake-lock@main
         with:
-          app-id: 2439184
-          private-key: ${{ secrets.APP_AUTO_UPDATE_KEY }}
+          pr-title: "chore: automatic flake dependency update"
+          pr-labels: "dependencies"
+          pr-body: |
+            ## Dependency Update Summary
 
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          token: ${{ steps.app-token.outputs.token }}
+            This PR was automatically generated by [DeterminateSystems/update-flake-lock](https://github.com/DeterminateSystems/update-flake-lock).
 
-      - name: Enable GitHub auto-merge
-        env:
-          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
-          PR_NUMBER: ${{ needs.update-dependencies.outputs.pr-number }}
-        run: |
-          echo "::group::Enabling GitHub built-in auto-merge"
+            ## Test Plan
+            - [ ] Successful build on all platforms
+            - [ ] CI pipeline passes
+            - [ ] Smoke tests pass
 
-          echo "Enabling auto-merge for PR #$PR_NUMBER"
+            🤖 This PR will be auto-merged when all CI tests pass.
 
-          # Enable GitHub's built-in auto-merge - this will auto-merge when CI passes
-          gh pr merge "$PR_NUMBER" \
-            --auto \
-            --squash \
-            --repo "$REPO" \
-            --delete-branch || {
-            echo "::warning::Failed to enable auto-merge via CLI"
-            echo "::notice::PR will need manual merge or GitHub UI auto-merge"
-          }
-
-          echo "::notice::Auto-merge request sent for PR #$PR_NUMBER"
-          echo "::notice::PR will automatically merge when all CI checks pass"
-          echo "::endgroup::"
+          commit-msg: "chore: update flake.lock"
+          sign-commits: false
