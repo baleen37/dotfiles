@@ -297,6 +297,129 @@ function OverlayManager.cleanup()
 end
 
 -- ============================================================================
+-- MODAL MANAGEMENT
+-- ============================================================================
+
+local ModalManager = {}
+
+function ModalManager.create(message, emoji)
+  local screen = hs.screen.mainScreen()
+  local frame = screen:frame()
+
+  local width = 400
+  local height = 200
+  local centerX = (frame.w - width) / 2
+  local centerY = (frame.h - height) / 2
+
+  local canvas = hs.canvas.new({
+    x = centerX,
+    y = centerY,
+    w = width,
+    h = height
+  })
+
+  -- Background
+  canvas[1] = {
+    type = "rectangle",
+    fillColor = {red = 0, green = 0, blue = 0, alpha = 0},  -- Start transparent
+    roundedRectRadii = {xRadius = 12, yRadius = 12},
+    frame = {x = 0, y = 0, w = width, h = height}
+  }
+
+  -- Text
+  canvas[2] = {
+    type = "text",
+    text = emoji .. "\n" .. message,
+    textFont = "SF Pro Display",
+    textSize = 32,
+    textColor = {white = 1, alpha = 0},  -- Start transparent
+    textAlignment = "center",
+    frame = {x = 20, y = 40, w = 360, h = 120}
+  }
+
+  canvas:level(hs.drawing.windowLevels.modalPanel)
+  canvas:behavior(hs.drawing.windowBehaviors.canJoinAllSpaces)
+  canvas:show()
+
+  return canvas
+end
+
+function ModalManager.fadeIn(canvas, callback)
+  local currentAlpha = 0
+  local targetAlpha = 1
+  local fadeStep = 0.056  -- 1.0 / 18 frames ≈ 0.3s at 60fps
+
+  UI.modalFadeTimer = hs.timer.new(0.016, function()
+    currentAlpha = currentAlpha + fadeStep
+    if currentAlpha >= targetAlpha then
+      currentAlpha = targetAlpha
+      UI.modalFadeTimer:stop()
+      UI.modalFadeTimer = nil
+      if callback then callback() end
+    end
+
+    -- Update alpha for background and text
+    canvas[1].fillColor = {red = 0, green = 0, blue = 0, alpha = currentAlpha * 0.85}
+    canvas[2].textColor = {white = 1, alpha = currentAlpha}
+  end)
+
+  UI.modalFadeTimer:start()
+end
+
+function ModalManager.fadeOut(canvas, callback)
+  local currentAlpha = 1
+  local targetAlpha = 0
+  local fadeStep = 0.056
+
+  UI.modalFadeTimer = hs.timer.new(0.016, function()
+    currentAlpha = currentAlpha - fadeStep
+    if currentAlpha <= targetAlpha then
+      currentAlpha = targetAlpha
+      UI.modalFadeTimer:stop()
+      UI.modalFadeTimer = nil
+      if callback then callback() end
+    end
+
+    -- Update alpha for background and text
+    canvas[1].fillColor = {red = 0, green = 0, blue = 0, alpha = currentAlpha * 0.85}
+    canvas[2].textColor = {white = 1, alpha = currentAlpha}
+  end)
+
+  UI.modalFadeTimer:start()
+end
+
+function ModalManager.show(message, emoji, duration)
+  ModalManager.cleanup()
+
+  local canvas = ModalManager.create(message, emoji)
+  UI.modalCanvas = canvas
+
+  -- Fade in, wait, then fade out
+  ModalManager.fadeIn(canvas, function()
+    UI.modalTimer = hs.timer.doAfter(duration or 2, function()
+      ModalManager.fadeOut(canvas, function()
+        ModalManager.cleanup()
+      end)
+    end)
+  end)
+end
+
+function ModalManager.cleanup()
+  if UI.modalTimer then
+    UI.modalTimer:stop()
+    UI.modalTimer = nil
+  end
+  if UI.modalFadeTimer then
+    UI.modalFadeTimer:stop()
+    UI.modalFadeTimer = nil
+  end
+  if UI.modalCanvas then
+    UI.modalCanvas:delete()
+    UI.modalCanvas = nil
+  end
+end
+
+-- ============================================================================
 -- UI MANAGEMENT
 -- ============================================================================
 
