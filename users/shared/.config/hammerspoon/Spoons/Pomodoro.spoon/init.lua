@@ -62,6 +62,9 @@ local UI = {
   overlayCanvas = nil,
   dragTimer = nil,
   screenWatcher = nil,
+  modalCanvas = nil,
+  modalTimer = nil,
+  modalFadeTimer = nil,
 }
 
 -- Cache Management
