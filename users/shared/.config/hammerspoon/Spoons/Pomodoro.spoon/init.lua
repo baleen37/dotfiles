@@ -543,7 +543,7 @@ function TimerManager.startWorkSession()
     OverlayManager.create()
   end
 
-  showNotification("Pomodoro Started", "Work session begins!")
+  ModalManager.show("Work session begins!", "🍅", 2)
 
   -- Callback: onWorkStart
   if obj.config.onWorkStart then
@@ -562,7 +562,7 @@ function TimerManager.startBreakSession()
   State.timerRunning = true
 
   updateMenubarDisplay()
-  showNotification("Break Time!", "Take a 5-minute break")
+  ModalManager.show("25 minutes complete! Take a break", "🍅", 2)
 
   -- Callback: onBreakStart
   if obj.config.onBreakStart then
@@ -573,7 +573,7 @@ function TimerManager.startBreakSession()
     State.sessionsCompleted = State.sessionsCompleted + 1
     TimerManager.stop()
     saveCurrentStatistics()
-    showNotification("Session Complete!", "Great job! Ready for another?")
+    ModalManager.show("Session complete! Great job", "✅", 2)
 
     -- Callback: onComplete
     if obj.config.onComplete then
@@ -638,7 +638,7 @@ function FocusManager.handleFocusChange()
     end
   else
     if State.timerRunning then
-      showNotification("Pomodoro Stopped", "Focus mode changed")
+      ModalManager.show("Pomodoro session stopped", "⏹️", 2)
       saveCurrentStatistics()
       TimerManager.stop()
     end
@@ -659,7 +659,7 @@ function FocusManager.startMonitoring()
   -- Watch for Focus mode disabled
   UI.focusWatcherDisabled = hs.distributednotifications.new(function(name, object, userInfo)
     if State.timerRunning then
-      showNotification("Pomodoro Stopped", "Focus mode changed")
+      ModalManager.show("Pomodoro session stopped", "⏹️", 2)
       saveCurrentStatistics()
       TimerManager.stop()
     end
