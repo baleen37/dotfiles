@@ -174,7 +174,7 @@ function OverlayManager.create()
     text = "",
     textFont = "SF Pro Display",
     textSize = 48,
-    textColor = {white = 1, alpha = 0.2},
+    textColor = {red = 1, green = 0.4, blue = 0.4, alpha = 0.3},
     textAlignment = "right",
     trackMouseEnterExit = true,
     frame = {x = 0, y = 0, w = canvasWidth, h = canvasHeight}
@@ -189,9 +189,9 @@ function OverlayManager.create()
   -- Mouse event handlers for hover and dragging
   canvas:mouseCallback(function(c, event, id, x, y)
     if event == "mouseEnter" then
-      c[1].textColor = {white = 1, alpha = 1.0}
+      c[1].textColor = {red = 1, green = 0.4, blue = 0.4, alpha = 1.0}
     elseif event == "mouseExit" then
-      c[1].textColor = {white = 1, alpha = 0.2}
+      c[1].textColor = {red = 1, green = 0.4, blue = 0.4, alpha = 0.3}
     elseif event == "mouseDown" then
       State.isDragging = true
       State.dragStartPos = hs.mouse.getAbsolutePosition()
