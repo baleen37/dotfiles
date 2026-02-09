@@ -796,6 +796,9 @@ function obj:stop()
   -- Clean up overlay
   OverlayManager.cleanup()
 
+  -- Clean up modal
+  ModalManager.cleanup()
+
   -- Clear all caches and reset state
   invalidateStatisticsCache()
   Cache.dateString = nil
