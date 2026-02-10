@@ -130,6 +130,11 @@ in
         . /nix/var/nix/profiles/default/etc/profile.d/nix.sh
       fi
 
+      # Local overrides (not tracked in git)
+      if [[ -f ~/.zshrc.local ]]; then
+        . ~/.zshrc.local
+      fi
+
       # cc: Claude Code with LSP tool and permission skip
       cc() {
         ENABLE_LSP_TOOL=true command claude --dangerously-skip-permissions "$@"
