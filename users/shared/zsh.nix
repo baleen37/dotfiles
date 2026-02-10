@@ -96,8 +96,7 @@ in
       "....." = "cd ../../../..";
       "......" = "cd ../../../../..";
 
-      # Claude CLI shortcut with LSP tool enabled by default
-      cc = "ENABLE_LSP_TOOL=true claude --dangerously-skip-permissions";
+      # Claude CLI shortcuts are now functions in initContent (cc, zcc)
 
       # OpenCode CLI shortcut
       oc = "opencode";
@@ -130,6 +129,22 @@ in
         . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
         . /nix/var/nix/profiles/default/etc/profile.d/nix.sh
       fi
+
+      # Claude profile selector
+      _claude_with_profile() {
+        export CLAUDE_CONFIG_DIR="$1"
+        command claude "''${@:2}"
+      }
+
+      # cc: Personal profile (default) with LSP tool and permission skip
+      cc() {
+        ENABLE_LSP_TOOL=true _claude_with_profile "$HOME/.claude" --dangerously-skip-permissions "$@"
+      }
+
+      # ccz: zai profile (same options as cc)
+      ccz() {
+        ENABLE_LSP_TOOL=true _claude_with_profile "$HOME/.claude-zai" --dangerously-skip-permissions "$@"
+      }
 
       # PATH configuration - Global package managers
       export PATH=$HOME/.pnpm-packages/bin:$HOME/.pnpm-packages:$PATH
