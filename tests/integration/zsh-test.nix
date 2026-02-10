@@ -65,11 +65,15 @@ in
   (helpers.assertTest "zsh-fast-completion" (zshSettings.completionInit == "autoload -Uz compinit && compinit -C")
     "zsh should use fast completion (compinit -C)")
 
-  # Claude CLI aliases
-  (helpers.assertTest "alias-cc-exists" (hasAlias "cc") "alias 'cc' should exist")
-  (helpers.assertTest "alias-cc-value" (
-    aliasValueMatches "cc" "ENABLE_LSP_TOOL=true claude --dangerously-skip-permissions"
-  ) "alias 'cc' should enable LSP tool and skip permissions")
+  # Claude CLI functions (cc, ccz)
+  (helpers.assertTest "function-cc-exists" (initContentHas "cc()")
+    "cc() function should exist")
+  (helpers.assertTest "function-cc-lsp-tool" (initContentHas "ENABLE_LSP_TOOL=true")
+    "cc() function should enable LSP tool")
+  (helpers.assertTest "function-ccz-exists" (initContentHas "ccz()")
+    "ccz() function should exist")
+  (helpers.assertTest "function-ccz-zai-api" (initContentHas "api.z.ai/api/anthropic")
+    "ccz() function should use Z.ai API")
 
   (helpers.assertTest "alias-oc-exists" (hasAlias "oc") "alias 'oc' should exist")
   (helpers.assertTest "alias-oc-value" (

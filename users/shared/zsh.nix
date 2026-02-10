@@ -96,8 +96,7 @@ in
       "....." = "cd ../../../..";
       "......" = "cd ../../../../..";
 
-      # Claude CLI shortcut with LSP tool enabled by default
-      cc = "ENABLE_LSP_TOOL=true claude --dangerously-skip-permissions";
+      # Claude CLI shortcuts are now functions in initContent (cc, zcc)
 
       # OpenCode CLI shortcut
       oc = "opencode";
@@ -130,6 +129,28 @@ in
         . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
         . /nix/var/nix/profiles/default/etc/profile.d/nix.sh
       fi
+
+      # Local overrides (not tracked in git)
+      if [[ -f ~/.zshrc.local ]]; then
+        . ~/.zshrc.local
+      fi
+
+      # cc: Claude Code with LSP tool and permission skip
+      cc() {
+        ENABLE_LSP_TOOL=true command claude --dangerously-skip-permissions "$@"
+      }
+
+      # ccz: Claude Code with GLM API (z.ai)
+      # Models can be customized via env vars:
+      #   ZAI_CLAUDE_HAIKU_MODEL, ZAI_CLAUDE_SONNET_MODEL, ZAI_CLAUDE_OPUS_MODEL
+      ccz() {
+        ANTHROPIC_BASE_URL="https://api.z.ai/api/anthropic" \
+        ANTHROPIC_DEFAULT_HAIKU_MODEL="''${ZAI_CLAUDE_HAIKU_MODEL:-}" \
+        ANTHROPIC_DEFAULT_SONNET_MODEL="''${ZAI_CLAUDE_SONNET_MODEL:-}" \
+        ANTHROPIC_DEFAULT_OPUS_MODEL="''${ZAI_CLAUDE_OPUS_MODEL:-}" \
+        ANTHROPIC_AUTH_TOKEN="''${ZAI_CLAUDE_TOKEN:-}" \
+        ENABLE_LSP_TOOL=true command claude --dangerously-skip-permissions "$@"
+      }
 
       # PATH configuration - Global package managers
       export PATH=$HOME/.pnpm-packages/bin:$HOME/.pnpm-packages:$PATH
