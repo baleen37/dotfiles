@@ -130,20 +130,21 @@ in
         . /nix/var/nix/profiles/default/etc/profile.d/nix.sh
       fi
 
-      # Claude profile selector
-      _claude_with_profile() {
-        export CLAUDE_CONFIG_DIR="$1"
-        command claude "''${@:2}"
-      }
-
-      # cc: Personal profile (default) with LSP tool and permission skip
+      # cc: Claude Code with LSP tool and permission skip
       cc() {
-        ENABLE_LSP_TOOL=true _claude_with_profile "$HOME/.claude" --dangerously-skip-permissions "$@"
+        ENABLE_LSP_TOOL=true command claude --dangerously-skip-permissions "$@"
       }
 
-      # ccz: zai profile (same options as cc)
+      # ccz: Claude Code with GLM API (z.ai)
+      # Models can be customized via env vars:
+      #   ZAI_CLAUDE_HAIKU_MODEL, ZAI_CLAUDE_SONNET_MODEL, ZAI_CLAUDE_OPUS_MODEL
       ccz() {
-        ENABLE_LSP_TOOL=true _claude_with_profile "$HOME/.claude-zai" --dangerously-skip-permissions "$@"
+        ANTHROPIC_BASE_URL="https://api.z.ai/api/anthropic" \
+        ANTHROPIC_DEFAULT_HAIKU_MODEL="''${ZAI_CLAUDE_HAIKU_MODEL:-}" \
+        ANTHROPIC_DEFAULT_SONNET_MODEL="''${ZAI_CLAUDE_SONNET_MODEL:-}" \
+        ANTHROPIC_DEFAULT_OPUS_MODEL="''${ZAI_CLAUDE_OPUS_MODEL:-}" \
+        ANTHROPIC_AUTH_TOKEN="''${ZAI_CLAUDE_TOKEN:-}" \
+        ENABLE_LSP_TOOL=true command claude --dangerously-skip-permissions "$@"
       }
 
       # PATH configuration - Global package managers
