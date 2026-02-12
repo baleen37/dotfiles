@@ -281,48 +281,50 @@ in
       # Setup SSH agent for GUI applications (IntelliJ IDEA, etc.)
       setup_ssh_agent_for_gui
 
-      # Git Worktree wrapper - Create git worktree and launch AI tool
+      # Git Worktree wrapper - Create git worktree and optionally launch AI tool
       # Usage: gw <branch-name> [subcmd]
-      #   subcmd: cc (default), ccz, oc
+      #   subcmd: cc, ccz, oc (optional - if omitted, only cd to worktree)
       gw() {
         local branch_name="$1"
-        local subcmd="''${2:-cc}"
+        local subcmd="''${2:-}"
 
         # Validate arguments
         if [[ $# -eq 0 ]]; then
           echo "Usage: gw <branch-name> [subcmd]"
-          echo "  subcmd: cc (default), ccz, oc"
+          echo "  subcmd: cc, ccz, oc (optional - if omitted, only cd to worktree)"
           return 1
         fi
 
-        # Validate subcmd early
-        case "$subcmd" in
-          cc|ccz|oc)
-            ;;
-          *)
-            echo "Error: Unknown subcmd '$subcmd'. Use: cc, ccz, or oc" >&2
-            return 1
-            ;;
-        esac
+        # Validate subcmd early (only if provided)
+        if [[ -n "$subcmd" ]]; then
+          case "$subcmd" in
+            cc|ccz|oc)
+              ;;
+            *)
+              echo "Error: Unknown subcmd '$subcmd'. Use: cc, ccz, or oc" >&2
+              return 1
+              ;;
+          esac
 
-        # Map subcmd to tool command
-        local tool_command
-        case "$subcmd" in
-          cc)
-            tool_command="ENABLE_LSP_TOOL=true claude --dangerously-skip-permissions"
-            ;;
-          ccz)
-            tool_command="ANTHROPIC_BASE_URL=\"https://api.z.ai/api/anthropic\" \
-              ANTHROPIC_DEFAULT_HAIKU_MODEL=\"\''${ZAI_CLAUDE_HAIKU_MODEL:-}\" \
-              ANTHROPIC_DEFAULT_SONNET_MODEL=\"\''${ZAI_CLAUDE_SONNET_MODEL:-}\" \
-              ANTHROPIC_DEFAULT_OPUS_MODEL=\"\''${ZAI_CLAUDE_OPUS_MODEL:-}\" \
-              ANTHROPIC_AUTH_TOKEN=\"\''${ZAI_CLAUDE_TOKEN:-}\" \
-              ENABLE_LSP_TOOL=true command claude --dangerously-skip-permissions"
-            ;;
-          oc)
-            tool_command="opencode"
-            ;;
-        esac
+          # Map subcmd to tool command
+          local tool_command
+          case "$subcmd" in
+            cc)
+              tool_command="ENABLE_LSP_TOOL=true claude --dangerously-skip-permissions"
+              ;;
+            ccz)
+              tool_command="ANTHROPIC_BASE_URL=\"https://api.z.ai/api/anthropic\" \
+                ANTHROPIC_DEFAULT_HAIKU_MODEL=\"\''${ZAI_CLAUDE_HAIKU_MODEL:-}\" \
+                ANTHROPIC_DEFAULT_SONNET_MODEL=\"\''${ZAI_CLAUDE_SONNET_MODEL:-}\" \
+                ANTHROPIC_DEFAULT_OPUS_MODEL=\"\''${ZAI_CLAUDE_OPUS_MODEL:-}\" \
+                ANTHROPIC_AUTH_TOKEN=\"\''${ZAI_CLAUDE_TOKEN:-}\" \
+                ENABLE_LSP_TOOL=true command claude --dangerously-skip-permissions"
+              ;;
+            oc)
+              tool_command="opencode"
+              ;;
+          esac
+        fi
 
         # ANSI color codes
         local RED='\033[0;31m'
@@ -448,7 +450,11 @@ in
         fi
 
         _msg "$GREEN" "Worktree created: $worktree_dir"
-        cd "$worktree_dir" && eval "$tool_command"
+        if [[ -n "$subcmd" ]]; then
+          cd "$worktree_dir" && eval "$tool_command"
+        else
+          cd "$worktree_dir"
+        fi
       }
     '';
   };
