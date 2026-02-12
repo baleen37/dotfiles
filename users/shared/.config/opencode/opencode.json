@@ -3,7 +3,6 @@
   "permission": {
     "question": "ask"
   },
-  "plugin": ["opencode-antigravity-multi-auth@latest"],
   "mcp": {
     "context7": {
       "type": "local",
