@@ -10,9 +10,9 @@
 #   - IntelliJ IDEA launcher: Cross-platform installation path auto-detection
 #   - Claude CLI integration:
 #       - cc: Claude Code quick execution (skip permission checks)
-#       - ccw: Git worktree creation/switch + Claude execution
+#       - ccz: Claude Code with GLM API (z.ai)
 #       - oc: OpenCode quick execution
-#       - oow: Git worktree creation/switch + OpenCode execution
+#       - gw: Git worktree creation/switch + AI tool execution (cc/ccz/oc)
 #   - SSH wrapper: Auto-reconnection support via autossh
 #   - dotfiles auto-update: Background updates on shell startup
 #
@@ -281,27 +281,46 @@ in
       # Setup SSH agent for GUI applications (IntelliJ IDEA, etc.)
       setup_ssh_agent_for_gui
 
-      # Shared worktree wrapper for Claude Code and OpenCode
-      # Usage: _worktree_wrapper <tool_name> <branch-name>
-      _worktree_wrapper() {
-        # Enable alias expansion in this function
-        # Note: 'cc' and 'oc' are defined as shellAliases above, but zsh
-        # doesn't expand aliases in functions by default. We need to use
-        # the actual command directly.
-        local tool_command="$1"
-        shift
+      # Git Worktree wrapper - Create git worktree and launch AI tool
+      # Usage: gw <branch-name> [subcmd]
+      #   subcmd: cc (default), ccz, oc
+      gw() {
         local branch_name="$1"
+        local subcmd="''${2:-cc}"
 
-        # Map tool alias to actual command
-        case "$tool_command" in
+        # Validate arguments
+        if [[ $# -eq 0 ]]; then
+          echo "Usage: gw <branch-name> [subcmd]"
+          echo "  subcmd: cc (default), ccz, oc"
+          return 1
+        fi
+
+        # Validate subcmd early
+        case "$subcmd" in
+          cc|ccz|oc)
+            ;;
+          *)
+            echo "Error: Unknown subcmd '$subcmd'. Use: cc, ccz, or oc" >&2
+            return 1
+            ;;
+        esac
+
+        # Map subcmd to tool command
+        local tool_command
+        case "$subcmd" in
           cc)
             tool_command="ENABLE_LSP_TOOL=true claude --dangerously-skip-permissions"
             ;;
+          ccz)
+            tool_command="ANTHROPIC_BASE_URL=\"https://api.z.ai/api/anthropic\" \
+              ANTHROPIC_DEFAULT_HAIKU_MODEL=\"\''${ZAI_CLAUDE_HAIKU_MODEL:-}\" \
+              ANTHROPIC_DEFAULT_SONNET_MODEL=\"\''${ZAI_CLAUDE_SONNET_MODEL:-}\" \
+              ANTHROPIC_DEFAULT_OPUS_MODEL=\"\''${ZAI_CLAUDE_OPUS_MODEL:-}\" \
+              ANTHROPIC_AUTH_TOKEN=\"\''${ZAI_CLAUDE_TOKEN:-}\" \
+              ENABLE_LSP_TOOL=true command claude --dangerously-skip-permissions"
+            ;;
           oc)
             tool_command="opencode"
-            ;;
-          *)
-            # If not a recognized alias, use as-is
             ;;
         esac
 
@@ -351,7 +370,7 @@ in
         }
 
         # Helper: Create worktree with existing or new branch
-        # Outputs error messages to stdout on failure, returns exit code
+        # Outputs error messages to stderr on failure, returns exit code
         local _create_worktree() {
           local branch="$1"
           local worktree_dir="$2"
@@ -394,11 +413,6 @@ in
         }
 
         # Main logic
-        if [[ $# -eq 0 ]]; then
-          echo "Usage: ''${tool_name}w <branch-name>"
-          return 1
-        fi
-
         if ! git rev-parse --git-dir >/dev/null 2>&1; then
           _error "Not a git repository"
           return 1
@@ -428,25 +442,13 @@ in
             fi
           else
             _error "Failed to create worktree"
-            echo "$create_error"
+            echo "$create_error" >&2
             return 1
           fi
         fi
 
         _msg "$GREEN" "Worktree created: $worktree_dir"
         cd "$worktree_dir" && eval "$tool_command"
-      }
-
-      # Claude Code Worktree - Create git worktree and launch Claude Code
-      # Usage: ccw <branch-name>
-      ccw() {
-        _worktree_wrapper "cc" "$@"
-      }
-
-      # OpenCode Worktree - Create git worktree and launch OpenCode
-      # Usage: oow <branch-name>
-      oow() {
-        _worktree_wrapper "oc" "$@"
       }
     '';
   };
