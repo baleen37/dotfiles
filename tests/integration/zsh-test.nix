@@ -207,8 +207,8 @@ in
     "gw() function should exist")
   (helpers.assertTest "function-gw-usage" (initContentHas "Usage: gw <branch-name> [subcmd]")
     "gw() should have usage message with subcmd syntax")
-  (helpers.assertTest "function-gw-default-cc" (initContentHas "local subcmd=\"\${2:-cc}\"")
-    "gw() should default to cc subcmd")
+  (helpers.assertTest "function-gw-optional-subcmd" (initContentHas "local subcmd=\"\${2:-}\"")
+    "gw() should have optional subcmd parameter (defaults to empty)")
   (helpers.assertTest "function-gw-ccz-support" (initContentHas "ccz)")
     "gw() should support ccz subcmd")
   (helpers.assertTest "function-gw-subcmd-validation" (initContentHas "Unknown subcmd")
@@ -216,7 +216,7 @@ in
   (helpers.assertTest "function-gw-git-check" (initContentHas "git rev-parse --git-dir")
     "gw() should check for git repository")
   (helpers.assertTest "function-gw-calls-tool" (initContentHas "cd \"$worktree_dir\" && eval \"$tool_command\"")
-    "gw() should change to worktree dir and call tool")
+    "gw() should change to worktree dir and call tool when subcmd provided")
 
   # SSH wrapper with autossh
   (helpers.assertTest "ssh-wrapper-autossh" (initContentHas "autossh")

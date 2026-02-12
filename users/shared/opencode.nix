@@ -1,18 +1,28 @@
 # users/shared/opencode.nix
 # OpenCode configuration managed via Home Manager
+#
+# Pattern: Out-of-Store Symlinks (malob pattern)
+# - Config files are symlinked to git repo for live editing
+# - Changes apply immediately without `home-manager switch`
+# - Trade-off: Sacrifices Nix reproducibility for convenience
+#
+# Reference: https://github.com/malob/nix-config/blob/master/home/claude.nix
 
 {
+  config,
   pkgs,
   lib,
   ...
 }:
 
 {
-  home.file.".config/opencode/opencode.json" = {
-    source = ./.config/opencode/opencode.json;
-    force = true;
-  };
+  # Out-of-store symlink: points to git-tracked file for live editing
+  # This allows editing opencode.json without `home-manager switch`
+  # Based on malob's nix-config pattern (https://github.com/malob/nix-config)
+  home.file.".config/opencode/opencode.json".source =
+    config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/dotfiles/users/shared/.config/opencode/opencode.json";
 
+  # Superpowers installation via activation script
   home.activation.installSuperpowers = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     if [ -x "${pkgs.opencode}/bin/opencode" ]; then
       SUPERPOWERS_DIR=$HOME/.config/opencode/superpowers
