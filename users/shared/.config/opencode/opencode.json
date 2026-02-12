@@ -3,16 +3,15 @@
   "permission": {
     "question": "ask"
   },
-  "plugin": ["opencode-antigravity-multi-auth@latest"],
   "mcp": {
     "context7": {
       "type": "local",
-      "command": ["npx", "-y", "@modelcontextprotocol/server-context7"],
+      "command": ["npx", "-y", "@upstash/context7-mcp"],
       "enabled": true
     },
     "mgrep": {
       "type": "local",
-      "command": ["npx", "-y", "@modelcontextprotocol/server-mgrep"],
+      "command": ["npx", "-y", "@mixedbread/mgrep"],
       "enabled": true
     }
   }
