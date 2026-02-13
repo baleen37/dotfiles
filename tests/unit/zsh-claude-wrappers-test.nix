@@ -62,18 +62,18 @@ in
       (assertInitHas "cc-l-uses-haiku" "_cc_run haiku")
     ]
 
-    # 4. cco requires OPENAI_ env vars for all tiers (no silent fallback)
+    # 4. cco requires CCO_ env vars for all tiers (no silent fallback)
     ++ [
-      (assertInitHas "cco-requires-sonnet-env" "OPENAI_SONNET_MODEL:?Set")
-      (assertInitHas "cco-h-requires-env"      "OPENAI_OPUS_MODEL:?Set")
-      (assertInitHas "cco-l-requires-env"      "OPENAI_HAIKU_MODEL:?Set")
+      (assertInitHas "cco-requires-sonnet-env" "CCO_SONNET_MODEL:?Set")
+      (assertInitHas "cco-h-requires-env"      "CCO_OPUS_MODEL:?Set")
+      (assertInitHas "cco-l-requires-env"      "CCO_HAIKU_MODEL:?Set")
     ]
 
-    # 5. ccz requires ZAI_ env vars for all tiers (no silent fallback)
+    # 5. ccz requires CCZ_ env vars for all tiers (no silent fallback)
     ++ [
-      (assertInitHas "ccz-requires-sonnet-env" "ZAI_SONNET_MODEL:?Set")
-      (assertInitHas "ccz-h-requires-env"      "ZAI_OPUS_MODEL:?Set")
-      (assertInitHas "ccz-l-requires-env"      "ZAI_HAIKU_MODEL:?Set")
+      (assertInitHas "ccz-requires-sonnet-env" "CCZ_SONNET_MODEL:?Set")
+      (assertInitHas "ccz-h-requires-env"      "CCZ_OPUS_MODEL:?Set")
+      (assertInitHas "ccz-l-requires-env"      "CCZ_HAIKU_MODEL:?Set")
     ]
 
     # 6. _cc_run passes --model flag and common options
@@ -93,7 +93,7 @@ in
     # 8. ccz sets Z.ai-specific env vars
     ++ [
       (assertInitHas "ccz-base-url"   "https://api.z.ai/api/anthropic")
-      (assertInitHas "ccz-auth-token" "ZAI_TOKEN")
+      (assertInitHas "ccz-auth-token" "CCZ_TOKEN")
     ]
 
     # 9. gw supports all subcmds including cco
