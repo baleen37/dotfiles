@@ -10,9 +10,10 @@
 #   - IntelliJ IDEA launcher: Cross-platform installation path auto-detection
 #   - Claude CLI integration:
 #       - cc: Claude Code quick execution (skip permission checks)
-#       - ccz: Claude Code with GLM API (z.ai)
+#       - cco: Claude Code via OpenAI-compatible proxy
+#       - ccz: Claude Code via Z.ai GLM API
 #       - oc: OpenCode quick execution
-#       - gw: Git worktree creation/switch + AI tool execution (cc/ccz/oc)
+#       - gw: Git worktree creation/switch + AI tool execution (cc/cco/ccz/oc)
 #   - SSH wrapper: Auto-reconnection support via autossh
 #   - dotfiles auto-update: Background updates on shell startup
 #
@@ -96,7 +97,7 @@ in
       "....." = "cd ../../../..";
       "......" = "cd ../../../../..";
 
-      # Claude CLI shortcuts are now functions in initContent (cc, zcc)
+      # Claude CLI shortcuts are now functions in initContent (cc, cco, ccz)
 
       # OpenCode CLI shortcut
       oc = "opencode";
@@ -135,22 +136,58 @@ in
         . ~/.zshrc.local
       fi
 
-      # cc: Claude Code with LSP tool and permission skip
-      cc() {
-        ENABLE_LSP_TOOL=true command claude --dangerously-skip-permissions "$@"
+      # Claude Code wrappers
+      #   cc/cc-h/cc-l:   Anthropic API (sonnet/opus/haiku)
+      #   cco/cco-h/cco-l: OpenAI-compatible proxy
+      #   ccz/ccz-h/ccz-l: Z.ai GLM API
+      # Configure cco/ccz models in ~/.zshrc.local
+
+      # Internal helper - do not call directly
+      _cc_run() {
+        local model="$1"; shift
+        if [[ -n "$model" ]]; then
+          ENABLE_LSP_TOOL=true command claude --dangerously-skip-permissions --model "$model" "$@"
+        else
+          ENABLE_LSP_TOOL=true command claude --dangerously-skip-permissions "$@"
+        fi
       }
 
-      # ccz: Claude Code with GLM API (z.ai)
-      # Models can be customized via env vars:
-      #   ZAI_CLAUDE_HAIKU_MODEL, ZAI_CLAUDE_SONNET_MODEL, ZAI_CLAUDE_OPUS_MODEL
-      ccz() {
-        ANTHROPIC_BASE_URL="https://api.z.ai/api/anthropic" \
-        ANTHROPIC_DEFAULT_HAIKU_MODEL="''${ZAI_CLAUDE_HAIKU_MODEL:-}" \
-        ANTHROPIC_DEFAULT_SONNET_MODEL="''${ZAI_CLAUDE_SONNET_MODEL:-}" \
-        ANTHROPIC_DEFAULT_OPUS_MODEL="''${ZAI_CLAUDE_OPUS_MODEL:-}" \
-        ANTHROPIC_AUTH_TOKEN="''${ZAI_CLAUDE_TOKEN:-}" \
-        ENABLE_LSP_TOOL=true command claude --dangerously-skip-permissions "$@"
+      cc()    { _cc_run "" "$@"; }
+      cc-h()  { _cc_run opus "$@"; }
+      cc-l()  { _cc_run haiku "$@"; }
+
+      # cco: Configure in ~/.zshrc.local:
+      #   OPENAI_BASE_URL, OPENAI_AUTH_TOKEN
+      #   OPENAI_OPUS_MODEL, OPENAI_SONNET_MODEL, OPENAI_HAIKU_MODEL
+      _cco_run() {
+        local model="$1"; shift
+        ANTHROPIC_BASE_URL="''${OPENAI_BASE_URL:-http://127.0.0.1:8317}" \
+        ANTHROPIC_AUTH_TOKEN="''${OPENAI_AUTH_TOKEN:-sk-dummy}" \
+        ANTHROPIC_DEFAULT_OPUS_MODEL="''${OPENAI_OPUS_MODEL:-}" \
+        ANTHROPIC_DEFAULT_SONNET_MODEL="''${OPENAI_SONNET_MODEL:-}" \
+        ANTHROPIC_DEFAULT_HAIKU_MODEL="''${OPENAI_HAIKU_MODEL:-}" \
+        _cc_run "$model" "$@"
       }
+
+      cco()   { _cco_run "" "$@"; }
+      cco-h() { _cco_run "''${OPENAI_OPUS_MODEL:?Set OPENAI_OPUS_MODEL in ~/.zshrc.local}" "$@"; }
+      cco-l() { _cco_run "''${OPENAI_HAIKU_MODEL:?Set OPENAI_HAIKU_MODEL in ~/.zshrc.local}" "$@"; }
+
+      # ccz: Configure in ~/.zshrc.local:
+      #   ZAI_TOKEN, ZAI_HAIKU_MODEL, ZAI_SONNET_MODEL, ZAI_OPUS_MODEL
+      _ccz_run() {
+        local model="$1"; shift
+        ANTHROPIC_BASE_URL="https://api.z.ai/api/anthropic" \
+        ANTHROPIC_AUTH_TOKEN="''${ZAI_TOKEN:-}" \
+        ANTHROPIC_DEFAULT_HAIKU_MODEL="''${ZAI_HAIKU_MODEL:-}" \
+        ANTHROPIC_DEFAULT_SONNET_MODEL="''${ZAI_SONNET_MODEL:-}" \
+        ANTHROPIC_DEFAULT_OPUS_MODEL="''${ZAI_OPUS_MODEL:-}" \
+        _cc_run "$model" "$@"
+      }
+
+      ccz()   { _ccz_run "" "$@"; }
+      ccz-h() { _ccz_run "''${ZAI_OPUS_MODEL:?Set ZAI_OPUS_MODEL in ~/.zshrc.local}" "$@"; }
+      ccz-l() { _ccz_run "''${ZAI_HAIKU_MODEL:?Set ZAI_HAIKU_MODEL in ~/.zshrc.local}" "$@"; }
 
       # PATH configuration - Global package managers
       export PATH=$HOME/.pnpm-packages/bin:$HOME/.pnpm-packages:$PATH
@@ -291,16 +328,16 @@ in
         # Validate arguments
         if [[ $# -eq 0 ]]; then
           echo "Usage: gw <branch-name> [subcmd]"
-          echo "  subcmd: cc (default), ccz, oc"
+          echo "  subcmd: cc (default), cco, ccz, oc"
           return 1
         fi
 
         # Validate subcmd early
         case "$subcmd" in
-          cc|ccz|oc)
+          cc|cco|ccz|oc)
             ;;
           *)
-            echo "Error: Unknown subcmd '$subcmd'. Use: cc, ccz, or oc" >&2
+            echo "Error: Unknown subcmd '$subcmd'. Use: cc, cco, ccz, or oc" >&2
             return 1
             ;;
         esac
@@ -311,12 +348,20 @@ in
           cc)
             tool_command="ENABLE_LSP_TOOL=true claude --dangerously-skip-permissions"
             ;;
+          cco)
+            tool_command="ANTHROPIC_BASE_URL=\"\''${OPENAI_BASE_URL:-http://127.0.0.1:8317}\" \
+              ANTHROPIC_AUTH_TOKEN=\"\''${OPENAI_AUTH_TOKEN:-sk-dummy}\" \
+              ANTHROPIC_DEFAULT_OPUS_MODEL=\"\''${OPENAI_OPUS_MODEL:-}\" \
+              ANTHROPIC_DEFAULT_SONNET_MODEL=\"\''${OPENAI_SONNET_MODEL:-}\" \
+              ANTHROPIC_DEFAULT_HAIKU_MODEL=\"\''${OPENAI_HAIKU_MODEL:-}\" \
+              ENABLE_LSP_TOOL=true command claude --dangerously-skip-permissions"
+            ;;
           ccz)
             tool_command="ANTHROPIC_BASE_URL=\"https://api.z.ai/api/anthropic\" \
-              ANTHROPIC_DEFAULT_HAIKU_MODEL=\"\''${ZAI_CLAUDE_HAIKU_MODEL:-}\" \
-              ANTHROPIC_DEFAULT_SONNET_MODEL=\"\''${ZAI_CLAUDE_SONNET_MODEL:-}\" \
-              ANTHROPIC_DEFAULT_OPUS_MODEL=\"\''${ZAI_CLAUDE_OPUS_MODEL:-}\" \
-              ANTHROPIC_AUTH_TOKEN=\"\''${ZAI_CLAUDE_TOKEN:-}\" \
+              ANTHROPIC_AUTH_TOKEN=\"\''${ZAI_TOKEN:-}\" \
+              ANTHROPIC_DEFAULT_HAIKU_MODEL=\"\''${ZAI_HAIKU_MODEL:-}\" \
+              ANTHROPIC_DEFAULT_SONNET_MODEL=\"\''${ZAI_SONNET_MODEL:-}\" \
+              ANTHROPIC_DEFAULT_OPUS_MODEL=\"\''${ZAI_OPUS_MODEL:-}\" \
               ENABLE_LSP_TOOL=true command claude --dangerously-skip-permissions"
             ;;
           oc)
