@@ -12,7 +12,7 @@
     "mgrep": {
       "type": "local",
       "command": ["npx", "-y", "@mixedbread/mgrep"],
-      "enabled": true
+      "enabled": false
     }
   }
 }
