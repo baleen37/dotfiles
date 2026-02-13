@@ -157,37 +157,37 @@ in
       cc-l()  { _cc_run haiku "$@"; }
 
       # cco: Configure in ~/.zshrc.local:
-      #   OPENAI_BASE_URL, OPENAI_AUTH_TOKEN
-      #   OPENAI_OPUS_MODEL, OPENAI_SONNET_MODEL, OPENAI_HAIKU_MODEL
+      #   CCO_BASE_URL, CCO_AUTH_TOKEN
+      #   CCO_OPUS_MODEL, CCO_SONNET_MODEL, CCO_HAIKU_MODEL
       _cco_run() {
         local model="$1"; shift
-        ANTHROPIC_BASE_URL="''${OPENAI_BASE_URL:-http://127.0.0.1:8317}" \
-        ANTHROPIC_AUTH_TOKEN="''${OPENAI_AUTH_TOKEN:-sk-dummy}" \
-        ANTHROPIC_DEFAULT_OPUS_MODEL="''${OPENAI_OPUS_MODEL:-}" \
-        ANTHROPIC_DEFAULT_SONNET_MODEL="''${OPENAI_SONNET_MODEL:-}" \
-        ANTHROPIC_DEFAULT_HAIKU_MODEL="''${OPENAI_HAIKU_MODEL:-}" \
+        ANTHROPIC_BASE_URL="''${CCO_BASE_URL:-http://127.0.0.1:8317}" \
+        ANTHROPIC_AUTH_TOKEN="''${CCO_AUTH_TOKEN:-sk-dummy}" \
+        ANTHROPIC_DEFAULT_OPUS_MODEL="''${CCO_OPUS_MODEL:-}" \
+        ANTHROPIC_DEFAULT_SONNET_MODEL="''${CCO_SONNET_MODEL:-}" \
+        ANTHROPIC_DEFAULT_HAIKU_MODEL="''${CCO_HAIKU_MODEL:-}" \
         _cc_run "$model" "$@"
       }
 
-      cco()   { _cco_run "''${OPENAI_SONNET_MODEL:?Set OPENAI_SONNET_MODEL in ~/.zshrc.local}" "$@"; }
-      cco-h() { _cco_run "''${OPENAI_OPUS_MODEL:?Set OPENAI_OPUS_MODEL in ~/.zshrc.local}" "$@"; }
-      cco-l() { _cco_run "''${OPENAI_HAIKU_MODEL:?Set OPENAI_HAIKU_MODEL in ~/.zshrc.local}" "$@"; }
+      cco()   { _cco_run "''${CCO_SONNET_MODEL:?Set CCO_SONNET_MODEL in ~/.zshrc.local}" "$@"; }
+      cco-h() { _cco_run "''${CCO_OPUS_MODEL:?Set CCO_OPUS_MODEL in ~/.zshrc.local}" "$@"; }
+      cco-l() { _cco_run "''${CCO_HAIKU_MODEL:?Set CCO_HAIKU_MODEL in ~/.zshrc.local}" "$@"; }
 
       # ccz: Configure in ~/.zshrc.local:
-      #   ZAI_TOKEN, ZAI_HAIKU_MODEL, ZAI_SONNET_MODEL, ZAI_OPUS_MODEL
+      #   CCZ_TOKEN, CCZ_HAIKU_MODEL, CCZ_SONNET_MODEL, CCZ_OPUS_MODEL
       _ccz_run() {
         local model="$1"; shift
         ANTHROPIC_BASE_URL="https://api.z.ai/api/anthropic" \
-        ANTHROPIC_AUTH_TOKEN="''${ZAI_TOKEN:-}" \
-        ANTHROPIC_DEFAULT_HAIKU_MODEL="''${ZAI_HAIKU_MODEL:-}" \
-        ANTHROPIC_DEFAULT_SONNET_MODEL="''${ZAI_SONNET_MODEL:-}" \
-        ANTHROPIC_DEFAULT_OPUS_MODEL="''${ZAI_OPUS_MODEL:-}" \
+        ANTHROPIC_AUTH_TOKEN="''${CCZ_TOKEN:-}" \
+        ANTHROPIC_DEFAULT_HAIKU_MODEL="''${CCZ_HAIKU_MODEL:-}" \
+        ANTHROPIC_DEFAULT_SONNET_MODEL="''${CCZ_SONNET_MODEL:-}" \
+        ANTHROPIC_DEFAULT_OPUS_MODEL="''${CCZ_OPUS_MODEL:-}" \
         _cc_run "$model" "$@"
       }
 
-      ccz()   { _ccz_run "''${ZAI_SONNET_MODEL:?Set ZAI_SONNET_MODEL in ~/.zshrc.local}" "$@"; }
-      ccz-h() { _ccz_run "''${ZAI_OPUS_MODEL:?Set ZAI_OPUS_MODEL in ~/.zshrc.local}" "$@"; }
-      ccz-l() { _ccz_run "''${ZAI_HAIKU_MODEL:?Set ZAI_HAIKU_MODEL in ~/.zshrc.local}" "$@"; }
+      ccz()   { _ccz_run "''${CCZ_SONNET_MODEL:?Set CCZ_SONNET_MODEL in ~/.zshrc.local}" "$@"; }
+      ccz-h() { _ccz_run "''${CCZ_OPUS_MODEL:?Set CCZ_OPUS_MODEL in ~/.zshrc.local}" "$@"; }
+      ccz-l() { _ccz_run "''${CCZ_HAIKU_MODEL:?Set CCZ_HAIKU_MODEL in ~/.zshrc.local}" "$@"; }
 
       # PATH configuration - Global package managers
       export PATH=$HOME/.pnpm-packages/bin:$HOME/.pnpm-packages:$PATH
@@ -349,19 +349,19 @@ in
             tool_command="ENABLE_LSP_TOOL=true claude --dangerously-skip-permissions"
             ;;
           cco)
-            tool_command="ANTHROPIC_BASE_URL=\"\''${OPENAI_BASE_URL:-http://127.0.0.1:8317}\" \
-              ANTHROPIC_AUTH_TOKEN=\"\''${OPENAI_AUTH_TOKEN:-sk-dummy}\" \
-              ANTHROPIC_DEFAULT_OPUS_MODEL=\"\''${OPENAI_OPUS_MODEL:-}\" \
-              ANTHROPIC_DEFAULT_SONNET_MODEL=\"\''${OPENAI_SONNET_MODEL:-}\" \
-              ANTHROPIC_DEFAULT_HAIKU_MODEL=\"\''${OPENAI_HAIKU_MODEL:-}\" \
+            tool_command="ANTHROPIC_BASE_URL=\"\''${CCO_BASE_URL:-http://127.0.0.1:8317}\" \
+              ANTHROPIC_AUTH_TOKEN=\"\''${CCO_AUTH_TOKEN:-sk-dummy}\" \
+              ANTHROPIC_DEFAULT_OPUS_MODEL=\"\''${CCO_OPUS_MODEL:-}\" \
+              ANTHROPIC_DEFAULT_SONNET_MODEL=\"\''${CCO_SONNET_MODEL:-}\" \
+              ANTHROPIC_DEFAULT_HAIKU_MODEL=\"\''${CCO_HAIKU_MODEL:-}\" \
               ENABLE_LSP_TOOL=true command claude --dangerously-skip-permissions"
             ;;
           ccz)
             tool_command="ANTHROPIC_BASE_URL=\"https://api.z.ai/api/anthropic\" \
-              ANTHROPIC_AUTH_TOKEN=\"\''${ZAI_TOKEN:-}\" \
-              ANTHROPIC_DEFAULT_HAIKU_MODEL=\"\''${ZAI_HAIKU_MODEL:-}\" \
-              ANTHROPIC_DEFAULT_SONNET_MODEL=\"\''${ZAI_SONNET_MODEL:-}\" \
-              ANTHROPIC_DEFAULT_OPUS_MODEL=\"\''${ZAI_OPUS_MODEL:-}\" \
+              ANTHROPIC_AUTH_TOKEN=\"\''${CCZ_TOKEN:-}\" \
+              ANTHROPIC_DEFAULT_HAIKU_MODEL=\"\''${CCZ_HAIKU_MODEL:-}\" \
+              ANTHROPIC_DEFAULT_SONNET_MODEL=\"\''${CCZ_SONNET_MODEL:-}\" \
+              ANTHROPIC_DEFAULT_OPUS_MODEL=\"\''${CCZ_OPUS_MODEL:-}\" \
               ENABLE_LSP_TOOL=true command claude --dangerously-skip-permissions"
             ;;
           oc)
