@@ -62,16 +62,18 @@ in
       (assertInitHas "cc-l-uses-haiku" "_cc_run haiku")
     ]
 
-    # 4. cco reads models from OPENAI_ env vars with required check (no fallback)
+    # 4. cco requires OPENAI_ env vars for all tiers (no silent fallback)
     ++ [
-      (assertInitHas "cco-h-requires-env" "OPENAI_OPUS_MODEL:?Set")
-      (assertInitHas "cco-l-requires-env" "OPENAI_HAIKU_MODEL:?Set")
+      (assertInitHas "cco-requires-sonnet-env" "OPENAI_SONNET_MODEL:?Set")
+      (assertInitHas "cco-h-requires-env"      "OPENAI_OPUS_MODEL:?Set")
+      (assertInitHas "cco-l-requires-env"      "OPENAI_HAIKU_MODEL:?Set")
     ]
 
-    # 5. ccz reads models from ZAI_ env vars with required check (no fallback)
+    # 5. ccz requires ZAI_ env vars for all tiers (no silent fallback)
     ++ [
-      (assertInitHas "ccz-h-requires-env" "ZAI_OPUS_MODEL:?Set")
-      (assertInitHas "ccz-l-requires-env" "ZAI_HAIKU_MODEL:?Set")
+      (assertInitHas "ccz-requires-sonnet-env" "ZAI_SONNET_MODEL:?Set")
+      (assertInitHas "ccz-h-requires-env"      "ZAI_OPUS_MODEL:?Set")
+      (assertInitHas "ccz-l-requires-env"      "ZAI_HAIKU_MODEL:?Set")
     ]
 
     # 6. _cc_run passes --model flag and common options

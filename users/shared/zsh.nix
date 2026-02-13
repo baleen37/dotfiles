@@ -169,7 +169,7 @@ in
         _cc_run "$model" "$@"
       }
 
-      cco()   { _cco_run "" "$@"; }
+      cco()   { _cco_run "''${OPENAI_SONNET_MODEL:?Set OPENAI_SONNET_MODEL in ~/.zshrc.local}" "$@"; }
       cco-h() { _cco_run "''${OPENAI_OPUS_MODEL:?Set OPENAI_OPUS_MODEL in ~/.zshrc.local}" "$@"; }
       cco-l() { _cco_run "''${OPENAI_HAIKU_MODEL:?Set OPENAI_HAIKU_MODEL in ~/.zshrc.local}" "$@"; }
 
@@ -185,7 +185,7 @@ in
         _cc_run "$model" "$@"
       }
 
-      ccz()   { _ccz_run "" "$@"; }
+      ccz()   { _ccz_run "''${ZAI_SONNET_MODEL:?Set ZAI_SONNET_MODEL in ~/.zshrc.local}" "$@"; }
       ccz-h() { _ccz_run "''${ZAI_OPUS_MODEL:?Set ZAI_OPUS_MODEL in ~/.zshrc.local}" "$@"; }
       ccz-l() { _ccz_run "''${ZAI_HAIKU_MODEL:?Set ZAI_HAIKU_MODEL in ~/.zshrc.local}" "$@"; }
 
