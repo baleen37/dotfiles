@@ -41,6 +41,40 @@ let
   # Check readability of source files
   opencodeJsonReadable = builtins.tryEval (builtins.readFile opencodeJsonSource);
 
+  requiredAgentNames = [
+    "sisyphus"
+    "prometheus"
+    "oracle"
+    "librarian"
+    "explore"
+    "multimodal-looker"
+    "metis"
+    "momus"
+  ];
+
+  hasAgentDir = builtins.hasAttr ".config/opencode/agent" homeFiles;
+  hasAgentDirForceEnabled = getFileBoolAttr "force" ".config/opencode/agent";
+  hasAgentDirRecursiveEnabled = getFileBoolAttr "recursive" ".config/opencode/agent";
+
+  opencodeAgentDir = opencodeConfigDir + "/agent";
+
+  agentFileReadable =
+    agentName:
+    builtins.tryEval (builtins.readFile (opencodeAgentDir + "/${agentName}.md"));
+
+  makeAgentSourceTests =
+    agentName:
+    let
+      readableResult = agentFileReadable agentName;
+      hasContent = readableResult.success && builtins.stringLength readableResult.value > 0;
+    in
+    [
+      (helpers.assertTest "opencode-agent-${agentName}-source-readable" readableResult.success
+        "${agentName}.md source should be readable")
+      (helpers.assertTest "opencode-agent-${agentName}-source-has-content" hasContent
+        "${agentName}.md source should have content")
+    ];
+
   # Helper to create readable and has-content tests for a source
   makeSourceTests =
     name: readableResult:
@@ -73,4 +107,15 @@ helpers.testSuite "opencode" (
   ]
   # Behavioral tests for source files
   ++ (makeSourceTests "opencode-json" opencodeJsonReadable)
+  # Agent directory configuration tests
+  ++ [
+    (helpers.assertTest "opencode-agent-dir-configured" hasAgentDir
+      "opencode agent directory should be configured in home.file")
+    (helpers.assertTest "opencode-agent-dir-force-enabled" hasAgentDirForceEnabled
+      "opencode agent directory should have force=true")
+    (helpers.assertTest "opencode-agent-dir-recursive-enabled" hasAgentDirRecursiveEnabled
+      "opencode agent directory should have recursive=true")
+  ]
+  # Agent source file tests
+  ++ (lib.flatten (map makeAgentSourceTests requiredAgentNames))
 )

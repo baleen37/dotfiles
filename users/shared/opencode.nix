@@ -13,6 +13,12 @@
     force = true;
   };
 
+  home.file.".config/opencode/agent" = {
+    source = ./.config/opencode/agent;
+    recursive = true;
+    force = true;
+  };
+
   home.activation.installSuperpowers = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     if [ -x "${pkgs.opencode}/bin/opencode" ]; then
       SUPERPOWERS_DIR=$HOME/.config/opencode/superpowers
