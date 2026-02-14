@@ -34,6 +34,13 @@ else
 	NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 $(SUDO_NIX) run "nixpkgs#nixos-rebuild" -- switch --flake ".#${NIXNAME}"
 endif
 
+# Rebuild only Home Manager configuration (faster for user config changes)
+# Usage: make switch-home
+switch-home:
+	@echo "Rebuilding Home Manager configuration for $(USER)..."
+	@export USER=$${USER:-$(whoami)} && \
+	NIXPKGS_ALLOW_UNFREE=1 home-manager switch --impure --flake ".#$$USER"
+
 test:
 	@echo "Running dual-mode tests..."
 	@export USER=$${USER:-$(whoami)} && \
@@ -203,4 +210,4 @@ wsl:
 	 nix build ".#nixosConfigurations.wsl.config.system.build.installer"
 
 # Phony targets
-.PHONY: switch test test-integration test-all test-containers cache vm/bootstrap0 vm/bootstrap vm/copy vm/switch vm/secrets secrets/backup secrets/restore
+.PHONY: switch switch-home test test-integration test-all test-containers cache vm/bootstrap0 vm/bootstrap vm/copy vm/switch vm/secrets secrets/backup secrets/restore
