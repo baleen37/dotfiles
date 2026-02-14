@@ -42,14 +42,13 @@ let
   opencodeJsonReadable = builtins.tryEval (builtins.readFile opencodeJsonSource);
 
   requiredAgentNames = [
-    "sisyphus"
-    "prometheus"
-    "oracle"
+    "codemap"
+    "designer"
+    "explorer"
+    "fixer"
     "librarian"
-    "explore"
-    "multimodal-looker"
-    "metis"
-    "momus"
+    "oracle"
+    "orchestrator"
   ];
 
   hasAgentDir = builtins.hasAttr ".config/opencode/agent" homeFiles;
