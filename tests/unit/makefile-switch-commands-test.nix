@@ -54,7 +54,8 @@ pkgs.runCommand "makefile-switch-commands-test"
 
     # Test 3: build-switch should NOT use home-manager (check via switch dependency)
     # build-switch should use nix-darwin, not home-manager
-    if (grep -A 20 "^switch:" "$makefileSource" | grep -q "home-manager"); then
+    # Use awk to extract only the switch target (stop at next target or blank line)
+    if (awk '/^switch:/{p=1} p && /^[a-z-]+:/ && !/^switch:/{exit} p' "$makefileSource" | grep -q "home-manager"); then
       echo "❌ Test 3 FAIL: switch (used by build-switch) should not use home-manager on Darwin"
       exit 1
     else

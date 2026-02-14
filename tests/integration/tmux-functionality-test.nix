@@ -55,9 +55,9 @@ in
     (hasConfigString "bind a last-window")
     "tmux should bind a to toggle last window";
 
-  tmux-has-two-plugins = helpers.assertTest "tmux-has-two-plugins"
-    (builtins.length tmuxConfig.plugins == 2)
-    "tmux should have 2 plugins: sensible, vim-tmux-navigator";
+  tmux-has-zero-plugins = helpers.assertTest "tmux-has-zero-plugins"
+    (builtins.length tmuxConfig.plugins == 0)
+    "tmux should have 0 plugins (functionality provided via extraConfig)";
 
   # ============================================================================
   # Oh My Tmux style key bindings

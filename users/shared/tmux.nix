@@ -43,10 +43,7 @@ in
   programs.tmux = {
     enable = true;
 
-    plugins = with pkgs.tmuxPlugins; [
-      sensible
-      vim-tmux-navigator
-    ];
+    plugins = [ ];
 
     terminal = "screen-256color";
     prefix = "C-a";
