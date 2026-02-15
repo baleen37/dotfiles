@@ -8,15 +8,36 @@
 }:
 
 {
-  home.file.".config/opencode/opencode.json" = {
-    source = ./.config/opencode/opencode.json;
-    force = true;
+  # Generate opencode.json from Nix expression
+  xdg.configFile."opencode/opencode.json".text = builtins.toJSON {
+    "$schema" = "https://opencode.ai/config.json";
+    permission.question = "ask";
+    mcp = {
+      context7 = {
+        type = "local";
+        command = [
+          "npx"
+          "-y"
+          "@upstash/context7-mcp"
+        ];
+        enabled = true;
+      };
+      mgrep = {
+        type = "local";
+        command = [
+          "npx"
+          "-y"
+          "@mixedbread/mgrep"
+        ];
+        enabled = true;
+      };
+    };
   };
 
-  home.file.".config/opencode/agent" = {
+  # Symlink agent directory
+  xdg.configFile."opencode/agent" = {
     source = ./.config/opencode/agent;
     recursive = true;
-    force = true;
   };
 
   home.activation.installSuperpowers = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
