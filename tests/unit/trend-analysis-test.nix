@@ -14,8 +14,8 @@
 let
   # Import test helpers and frameworks
   helpers = import ../lib/test-helpers.nix { inherit lib pkgs; };
-  trendAnalysis = import ../../lib/trend-analysis.nix { inherit lib pkgs; };
-  baselines = import ../../lib/performance-baselines.nix { inherit lib pkgs; };
+  trendAnalysis = import ../lib/trend-analysis.nix { inherit lib pkgs; };
+  baselines = import ../lib/performance-baselines.nix { inherit lib pkgs; };
 
   # Get baseline for current system
   baseline = baselines.systemBaselines.${system} or baselines.systemBaselines."x86_64-linux";
