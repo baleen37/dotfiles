@@ -42,5 +42,12 @@
   "rejectedMcpServers": [],
   "feedbackSurveyState": {
     "lastShownTime": 1755225425616
+  },
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
+  "env": {
+    "ENABLE_TOOL_SEARCH": "true"
   }
 }

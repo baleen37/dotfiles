@@ -2,6 +2,7 @@
 #
 # Tests the Starship prompt configuration in users/shared/starship.nix
 # Verifies that the prompt is properly configured with minimal format and required modules.
+# This test ensures consistency across all platforms.
 {
   inputs,
   system,
