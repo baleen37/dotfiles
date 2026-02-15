@@ -106,6 +106,21 @@ YOU MUST WORK HARD to reduce code duplication, even if the refactoring takes ext
 - Never skip, evade, or disable a pre-commit hook.
 - NEVER use `git add -A` unless you've just done a `git status` - Don't add random test files to the repo.
 
+## Test-driven development (TDD)
+
+- FOR EVERY NEW FEATURE OR BUGFIX, YOU MUST follow Test Driven Development. See the test-driven-development skill for complete methodology.
+
+## Testing guidelines
+
+- ALL TEST FAILURES ARE YOUR RESPONSIBILITY, even if they're not your fault. The Broken Windows theory is real.
+- Reducing test coverage is worse than failing tests.
+- Never delete a test because it's failing. Instead, raise the issue with jito.
+- Tests MUST comprehensively cover ALL functionality.
+- YOU MUST NEVER write tests that "test" mocked behavior. If you notice tests that test mocked behavior instead of real logic, you MUST stop and warn jito about them.
+- YOU MUST NEVER implement mocks in end to end tests. We always use real data and real APIs.
+- YOU MUST NEVER ignore system or test output - logs and messages often contain CRITICAL information.
+- Test output MUST BE PRISTINE TO PASS. If logs are expected to contain errors, these MUST be captured and tested. If a test is intentionally triggering an error, we *must* capture and validate that the error output is as we expect.
+
 ## Systematic debugging
 
 YOU MUST ALWAYS find the root cause of any issue you are debugging.
