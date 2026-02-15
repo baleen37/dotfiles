@@ -46,5 +46,8 @@
   "attribution": {
     "commit": "",
     "pr": ""
+  },
+  "env": {
+    "ENABLE_TOOL_SEARCH": "true"
   }
 }
