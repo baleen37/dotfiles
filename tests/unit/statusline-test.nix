@@ -1,6 +1,6 @@
 # tests/unit/statusline-test.nix
 # Statusline context extraction logic tests
-# Tests transcript-based context calculation without fallback
+# Tests JSON input context_window.current_usage based calculation
 {
   inputs,
   system,
@@ -17,14 +17,10 @@ let
   # Read statusline script content as text (not a derivation)
   statuslineScriptContent = builtins.readFile ../../users/shared/.config/claude/statusline.sh;
 
-  # Helper to create a transcript JSONL file
-  createTranscript = messages:
-    builtins.concatStringsSep "\n" (map (msg: builtins.toJSON msg) messages);
-
-  # Test data for transcript-based context calculation (no fallback)
+  # Test data for JSON input context calculation
   testData = {
-    # No transcript path - no context display
-    no-transcript-path = {
+    # No context_window - no context display
+    no-context-window = {
       input = builtins.toJSON {
         hook_event_name = "Status";
         model = {
@@ -34,13 +30,12 @@ let
           current_dir = "/Users/test/dotfiles";
         };
       };
-      transcript = null;
       expectNoContext = true;
-      description = "No transcript_path - no context displayed";
+      description = "No context_window - no context displayed";
     };
 
-    # Transcript file not found - no context display
-    transcript-not-found = {
+    # No current_usage - no context display
+    no-current-usage = {
       input = builtins.toJSON {
         hook_event_name = "Status";
         model = {
@@ -49,15 +44,16 @@ let
         workspace = {
           current_dir = "/Users/test/dotfiles";
         };
-        transcript_path = "/nonexistent/transcript.jsonl";
+        context_window = {
+          context_window_size = 200000;
+        };
       };
-      transcript = null;
       expectNoContext = true;
-      description = "Transcript file not found - no context displayed";
+      description = "No current_usage - no context displayed";
     };
 
-    # Empty transcript file - no context display
-    empty-transcript = {
+    # Full usage - all token types
+    full-usage = {
       input = builtins.toJSON {
         hook_event_name = "Status";
         model = {
@@ -66,78 +62,17 @@ let
         workspace = {
           current_dir = "/Users/test/dotfiles";
         };
-        transcript_path = "/tmp/test-transcript.jsonl";
-      };
-      createEmptyTranscript = true;
-      expectNoContext = true;
-      description = "Empty transcript file - no context displayed";
-    };
-
-    # Single message - context from last message
-    single-message = {
-      input = builtins.toJSON {
-        hook_event_name = "Status";
-        model = {
-          display_name = "Sonnet 4.5";
-        };
-        workspace = {
-          current_dir = "/Users/test/dotfiles";
-        };
-        transcript_path = "/tmp/test-transcript.jsonl";
-      };
-      transcript = createTranscript [
-        {
-          message = {
-            usage = {
-              input_tokens = 15000;
-              cache_read_input_tokens = 3000;
-              cache_creation_input_tokens = 2000;
-            };
+        context_window = {
+          context_window_size = 200000;
+          current_usage = {
+            input_tokens = 15000;
+            cache_read_input_tokens = 3000;
+            cache_creation_input_tokens = 2000;
           };
-          isSidechain = false;
-          isApiErrorMessage = false;
-        }
-      ];
+        };
+      };
       expectedCtx = "20k";
-      description = "Single message - context from last (15000+3000+2000=20k)";
-    };
-
-    # Multiple messages - context from last
-    multiple-messages = {
-      input = builtins.toJSON {
-        hook_event_name = "Status";
-        model = {
-          display_name = "Sonnet 4.5";
-        };
-        workspace = {
-          current_dir = "/Users/test/dotfiles";
-        };
-        transcript_path = "/tmp/test-transcript.jsonl";
-      };
-      transcript = createTranscript [
-        {
-          message = {
-            usage = {
-              input_tokens = 15000;
-              cache_read_input_tokens = 3000;
-            };
-          };
-          isSidechain = false;
-          isApiErrorMessage = false;
-        }
-        {
-          message = {
-            usage = {
-              input_tokens = 70000;
-              cache_read_input_tokens = 10000;
-            };
-          };
-          isSidechain = false;
-          isApiErrorMessage = false;
-        }
-      ];
-      expectedCtx = "80k";
-      description = "Multiple messages - context from last (70000+10000=80k)";
+      description = "Full usage (15000+3000+2000=20k)";
     };
 
     # Large context
@@ -150,96 +85,17 @@ let
         workspace = {
           current_dir = "/Users/test/dotfiles";
         };
-        transcript_path = "/tmp/test-transcript.jsonl";
-      };
-      transcript = createTranscript [
-        {
-          message = {
-            usage = {
-              input_tokens = 180000;
-              cache_read_input_tokens = 5000;
-            };
+        context_window = {
+          context_window_size = 200000;
+          current_usage = {
+            input_tokens = 180000;
+            cache_read_input_tokens = 5000;
+            cache_creation_input_tokens = 0;
           };
-          isSidechain = false;
-          isApiErrorMessage = false;
-        }
-      ];
+        };
+      };
       expectedCtx = "185k";
       description = "Large context (180000+5000=185k)";
-    };
-
-    # Sidechain messages filtered
-    sidechain-filtered = {
-      input = builtins.toJSON {
-        hook_event_name = "Status";
-        model = {
-          display_name = "Sonnet 4.5";
-        };
-        workspace = {
-          current_dir = "/Users/test/dotfiles";
-        };
-        transcript_path = "/tmp/test-transcript.jsonl";
-      };
-      transcript = createTranscript [
-        {
-          message = {
-            usage = {
-              input_tokens = 50000;
-            };
-          };
-          isSidechain = false;
-          isApiErrorMessage = false;
-        }
-        {
-          # Sidechain - should be ignored
-          message = {
-            usage = {
-              input_tokens = 100000;
-            };
-          };
-          isSidechain = true;
-          isApiErrorMessage = false;
-        }
-      ];
-      expectedCtx = "50k";
-      description = "Sidechain filtered - uses non-sidechain (50k)";
-    };
-
-    # Error messages filtered
-    error-filtered = {
-      input = builtins.toJSON {
-        hook_event_name = "Status";
-        model = {
-          display_name = "Sonnet 4.5";
-        };
-        workspace = {
-          current_dir = "/Users/test/dotfiles";
-        };
-        transcript_path = "/tmp/test-transcript.jsonl";
-      };
-      transcript = createTranscript [
-        {
-          message = {
-            usage = {
-              input_tokens = 30000;
-            };
-          };
-          isSidechain = false;
-          isApiErrorMessage = false;
-        }
-        {
-          # Error - should be ignored
-          message = {
-            usage = {
-              input_tokens = 100000;
-            };
-          };
-          isSidechain = false;
-          isApiErrorMessage = true;
-        }
-      ];
-      expectedCtx = "30k";
-      description = "Error filtered - uses non-error (30k)";
     };
 
     # Small context - no k suffix
@@ -252,19 +108,15 @@ let
         workspace = {
           current_dir = "/Users/test/dotfiles";
         };
-        transcript_path = "/tmp/test-transcript.jsonl";
-      };
-      transcript = createTranscript [
-        {
-          message = {
-            usage = {
-              input_tokens = 500;
-            };
+        context_window = {
+          context_window_size = 200000;
+          current_usage = {
+            input_tokens = 500;
+            cache_read_input_tokens = 0;
+            cache_creation_input_tokens = 0;
           };
-          isSidechain = false;
-          isApiErrorMessage = false;
-        }
-      ];
+        };
+      };
       expectedCtx = "500";
       description = "Small context (500) - no k suffix";
     };
@@ -279,25 +131,19 @@ let
         workspace = {
           current_dir = "/Users/test/dotfiles";
         };
-        transcript_path = "/tmp/test-transcript.jsonl";
-      };
-      transcript = createTranscript [
-        {
-          message = {
-            usage = {
-              input_tokens = 30000;
-            };
+        context_window = {
+          context_window_size = 200000;
+          current_usage = {
+            input_tokens = 30000;
           };
-          isSidechain = false;
-          isApiErrorMessage = false;
-        }
-      ];
+        };
+      };
       expectedCtx = "30k";
       description = "Partial usage (only input_tokens) - 30k";
     };
 
-    # No valid messages - no context
-    no-valid-messages = {
+    # Zero tokens - no context
+    zero-tokens = {
       input = builtins.toJSON {
         hook_event_name = "Status";
         model = {
@@ -306,45 +152,17 @@ let
         workspace = {
           current_dir = "/Users/test/dotfiles";
         };
-        transcript_path = "/tmp/test-transcript.jsonl";
-      };
-      transcript = createTranscript [
-        {
-          # No usage field
-          message = { };
-          isSidechain = false;
-          isApiErrorMessage = false;
-        }
-      ];
-      expectNoContext = true;
-      description = "No valid messages with usage - no context";
-    };
-
-    # All sidechain - no context
-    all-sidechain = {
-      input = builtins.toJSON {
-        hook_event_name = "Status";
-        model = {
-          display_name = "Sonnet 4.5";
-        };
-        workspace = {
-          current_dir = "/Users/test/dotfiles";
-        };
-        transcript_path = "/tmp/test-transcript.jsonl";
-      };
-      transcript = createTranscript [
-        {
-          message = {
-            usage = {
-              input_tokens = 50000;
-            };
+        context_window = {
+          context_window_size = 200000;
+          current_usage = {
+            input_tokens = 0;
+            cache_read_input_tokens = 0;
+            cache_creation_input_tokens = 0;
           };
-          isSidechain = true;
-          isApiErrorMessage = false;
-        }
-      ];
+        };
+      };
       expectNoContext = true;
-      description = "All sidechain messages - no context";
+      description = "Zero tokens - no context";
     };
   };
 
@@ -360,23 +178,7 @@ let
       SCRIPT_END
       chmod +x $script
 
-      transcript_file=$TMPDIR/test-transcript.jsonl
-
-      ${lib.optionalString (data ? transcript && data.transcript != null && data.transcript != "") ''
-        cat > $transcript_file <<'TRANSCRIPT_END'
-        ${data.transcript}
-        TRANSCRIPT_END
-      ''}
-
-      ${lib.optionalString (data.createEmptyTranscript or false) ''
-        touch $transcript_file
-      ''}
-
-      if [[ -f $transcript_file ]]; then
-        input_json=$(echo '${data.input}' | jq --arg path "$transcript_file" '.transcript_path = $path')
-      else
-        input_json='${data.input}'
-      fi
+      input_json='${data.input}'
 
       output=$(echo "$input_json" | bash $script 2>&1 || true)
 

@@ -43,31 +43,17 @@ input=$(cat)
 
 # Extract data from JSON input using single jq call for performance
 # Use tab as IFS to handle spaces in model names correctly
-IFS=$'\t' read -r model_name current_dir transcript_path <<< "$(echo "$input" | jq -r '[
+IFS=$'\t' read -r model_name current_dir <<< "$(echo "$input" | jq -r '[
     .model.display_name // "Claude",
-    .workspace.current_dir // ".",
-    .transcript_path // ""
+    .workspace.current_dir // "."
 ] | @tsv')"
 
-# Calculate context from transcript
-# See: github.com/anthropics/claude-code/issues/13652
+# Calculate context from JSON input (accurate)
+# See: code.claude.com/docs/en/statusline
 ctx_display=""
-if [[ -n "$transcript_path" && -f "$transcript_path" ]]; then
-    # Get context from last message
-    context_length=$(jq -rs '
-        map(select(.message.usage and .isSidechain != true and .isApiErrorMessage != true)) |
-        if length > 0 then
-            (last | (
-                (.message.usage.input_tokens // 0) +
-                (.message.usage.cache_read_input_tokens // 0) +
-                (.message.usage.cache_creation_input_tokens // 0)
-            ))
-        else
-            0
-        end
-    ' < "$transcript_path" 2>/dev/null)
-
-    # Format context display as absolute value (e.g., "20k")
+usage=$(echo "$input" | jq '.context_window.current_usage // empty')
+if [[ -n "$usage" && "$usage" != "null" ]]; then
+    context_length=$(echo "$usage" | jq '.input_tokens + .cache_creation_input_tokens + .cache_read_input_tokens')
     if [[ -n "$context_length" && "$context_length" -gt 0 ]]; then
         if [[ "$context_length" -ge 1000 ]]; then
             ctx_k=$((context_length / 1000))
