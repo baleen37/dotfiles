@@ -43,55 +43,39 @@ input=$(cat)
 
 # Extract data from JSON input using single jq call for performance
 # Use tab as IFS to handle spaces in model names correctly
-IFS=$'\t' read -r model_name current_dir max_context transcript_path <<< "$(echo "$input" | jq -r '[
+IFS=$'\t' read -r model_name current_dir transcript_path <<< "$(echo "$input" | jq -r '[
     .model.display_name // "Claude",
     .workspace.current_dir // ".",
-    .context_window.context_window_size // 200000,
     .transcript_path // ""
 ] | @tsv')"
 
-# Calculate context percentage from transcript (more accurate than JSON totals)
+# Calculate context from transcript
 # See: github.com/anthropics/claude-code/issues/13652
+ctx_display=""
 if [[ -n "$transcript_path" && -f "$transcript_path" ]]; then
-    # Get baseline (system prompt + tools + memory) from first message
-    # and current context from last message
-    IFS=$'\t' read -r baseline context_length <<< "$(jq -rs '
+    # Get context from last message
+    context_length=$(jq -rs '
         map(select(.message.usage and .isSidechain != true and .isApiErrorMessage != true)) |
-        [(first | if . then
-            (.message.usage.input_tokens // 0) +
-            (.message.usage.cache_read_input_tokens // 0) +
-            (.message.usage.cache_creation_input_tokens // 0)
-        else 20000 end),
-        (last | if . then
-            (.message.usage.input_tokens // 0) +
-            (.message.usage.cache_read_input_tokens // 0) +
-            (.message.usage.cache_creation_input_tokens // 0)
-        else 0 end)] | @tsv
-    ' < "$transcript_path" 2>/dev/null)"
+        if length > 0 then
+            (last | (
+                (.message.usage.input_tokens // 0) +
+                (.message.usage.cache_read_input_tokens // 0) +
+                (.message.usage.cache_creation_input_tokens // 0)
+            ))
+        else
+            0
+        end
+    ' < "$transcript_path" 2>/dev/null)
 
-    # If no messages yet, use baseline estimate
-    if [[ -z "$baseline" || "$baseline" == "0" ]]; then
-        baseline=20000
+    # Format context display as absolute value (e.g., "20k")
+    if [[ -n "$context_length" && "$context_length" -gt 0 ]]; then
+        if [[ "$context_length" -ge 1000 ]]; then
+            ctx_k=$((context_length / 1000))
+            ctx_display="${ctx_k}k"
+        else
+            ctx_display="${context_length}"
+        fi
     fi
-    if [[ -z "$context_length" || "$context_length" == "0" ]]; then
-        context_length=$baseline
-        pct_prefix="~"
-    else
-        pct_prefix=""
-    fi
-else
-    # No transcript available - use baseline estimate
-    baseline=20000
-    context_length=$baseline
-    pct_prefix="~"
-fi
-
-# Format context display as absolute value (e.g., "20k", "~20k")
-if [[ "$context_length" -ge 1000 ]]; then
-    ctx_k=$((context_length / 1000))
-    ctx_display="${pct_prefix}${ctx_k}k"
-else
-    ctx_display="${pct_prefix}${context_length}"
 fi
 
 # Get current directory relative to home directory
@@ -260,8 +244,13 @@ if [[ -f "$current_dir/package.json" ]]; then
     fi
 fi
 
-# Build simple linear output - always show all components
-output_string="${BOLD}${BLUE}${model_name}${RESET} ${GRAY}│${RESET} ${CYAN}${ctx_display}${RESET} ${GRAY}│${RESET} ${PURPLE}${dir_display}${RESET}"
+# Build output string
+# Only show context if available
+if [[ -n "$ctx_display" ]]; then
+    output_string="${BOLD}${BLUE}${model_name}${RESET} ${GRAY}│${RESET} ${CYAN}${ctx_display}${RESET} ${GRAY}│${RESET} ${PURPLE}${dir_display}${RESET}"
+else
+    output_string="${BOLD}${BLUE}${model_name}${RESET} ${GRAY}│${RESET} ${PURPLE}${dir_display}${RESET}"
+fi
 
 # Add git info if available
 if [[ -n "$git_info" ]]; then
