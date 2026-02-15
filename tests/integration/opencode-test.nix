@@ -20,26 +20,28 @@ let
     config = { };
   };
 
-  # Extract home.file configuration
-  homeFiles = opencodeConfig.home.file;
+  # Extract configuration sections
+  homeFiles = opencodeConfig.home.file or { };
+  xdgConfigFiles = opencodeConfig.xdg.configFile or { };
 
-  # Test if opencode.json file is configured
-  hasOpencodeJson = builtins.hasAttr ".config/opencode/opencode.json" homeFiles;
+  # Test if opencode.json is configured via xdg.configFile
+  hasOpencodeJson = builtins.hasAttr "opencode/opencode.json" xdgConfigFiles;
 
-  # Generic helper to extract a boolean attribute from home.file configuration
-  # Usage: getFileBoolAttr "force" ".config/opencode/opencode.json" -> true/false
-  getFileBoolAttr = attrName: fileAttr:
-    builtins.hasAttr fileAttr homeFiles && homeFiles.${fileAttr}.${attrName} or false;
+  # Extract the generated JSON text
+  opencodeJsonText = xdgConfigFiles."opencode/opencode.json".text or "";
 
-  # Shorthand helpers for common attributes
-  hasForceEnabled = getFileBoolAttr "force";
-
-  # Source paths for behavioral tests
-  opencodeConfigDir = ../../users/shared/.config/opencode;
-  opencodeJsonSource = opencodeConfigDir + "/opencode.json";
-
-  # Check readability of source files
-  opencodeJsonReadable = builtins.tryEval (builtins.readFile opencodeJsonSource);
+  # Parse and validate JSON content
+  opencodeJsonParsed = builtins.tryEval (builtins.fromJSON opencodeJsonText);
+  hasValidJson = opencodeJsonParsed.success;
+  hasSchemaField =
+    opencodeJsonParsed.success
+    && builtins.hasAttr "$schema" opencodeJsonParsed.value;
+  hasPermissionConfig =
+    opencodeJsonParsed.success
+    && builtins.hasAttr "permission" opencodeJsonParsed.value;
+  hasMcpConfig =
+    opencodeJsonParsed.success
+    && builtins.hasAttr "mcp" opencodeJsonParsed.value;
 
   requiredAgentNames = [
     "codemap"
@@ -51,11 +53,13 @@ let
     "orchestrator"
   ];
 
-  hasAgentDir = builtins.hasAttr ".config/opencode/agent" homeFiles;
-  hasAgentDirForceEnabled = getFileBoolAttr "force" ".config/opencode/agent";
-  hasAgentDirRecursiveEnabled = getFileBoolAttr "recursive" ".config/opencode/agent";
+  # Agent directory tests
+  hasAgentDir = builtins.hasAttr "opencode/agent" xdgConfigFiles;
+  hasAgentDirRecursiveEnabled =
+    builtins.hasAttr "opencode/agent" xdgConfigFiles
+    && xdgConfigFiles."opencode/agent".recursive or false;
 
-  opencodeAgentDir = opencodeConfigDir + "/agent";
+  opencodeAgentDir = ../../users/shared/.config/opencode/agent;
 
   agentFileReadable =
     agentName:
@@ -74,44 +78,33 @@ let
         "${agentName}.md source should have content")
     ];
 
-  # Helper to create readable and has-content tests for a source
-  makeSourceTests =
-    name: readableResult:
-    let
-      hasContent = readableResult.success && builtins.stringLength readableResult.value > 0;
-    in
-    [
-      (helpers.assertTest "${name}-source-readable" readableResult.success
-        "${name} source should be readable")
-      (helpers.assertTest "${name}-source-has-content" hasContent
-        "${name} source should have content")
-    ];
-
 in
 helpers.testSuite "opencode" (
   [
-    # Test that home.file configuration exists
-    (helpers.assertTest "home-file-exists" (homeFiles != null)
-      "home.file should exist in opencode configuration")
+    # Test that xdg.configFile configuration exists
+    (helpers.assertTest "xdg-configfile-exists" (xdgConfigFiles != null)
+      "xdg.configFile should exist in opencode configuration")
   ]
   # Configuration tests
   ++ [
     (helpers.assertTest "opencode-json-configured" hasOpencodeJson
-      "opencode.json should be configured in home.file")
+      "opencode.json should be configured in xdg.configFile")
   ]
-  # Force attribute tests
+  # JSON content validation tests
   ++ [
-    (helpers.assertTest "opencode-json-force-enabled" (hasForceEnabled ".config/opencode/opencode.json")
-      "opencode.json should have force=true to overwrite existing files")
+    (helpers.assertTest "opencode-json-valid" hasValidJson
+      "opencode.json should contain valid JSON")
+    (helpers.assertTest "opencode-json-has-schema" hasSchemaField
+      "opencode.json should have $schema field")
+    (helpers.assertTest "opencode-json-has-permission" hasPermissionConfig
+      "opencode.json should have permission configuration")
+    (helpers.assertTest "opencode-json-has-mcp" hasMcpConfig
+      "opencode.json should have MCP configuration")
   ]
-  # Behavioral tests for source files
-  ++ (makeSourceTests "opencode-json" opencodeJsonReadable)
   # Agent directory configuration tests
   ++ [
     (helpers.assertTest "opencode-agent-dir-configured" hasAgentDir
-      "opencode agent directory should be configured in home.file")
-    (helpers.assertTest "opencode-agent-dir-force-enabled" hasAgentDirForceEnabled
-      "opencode agent directory should have force=true")
+      "opencode agent directory should be configured in xdg.configFile")
     (helpers.assertTest "opencode-agent-dir-recursive-enabled" hasAgentDirRecursiveEnabled
       "opencode agent directory should have recursive=true")
   ]
