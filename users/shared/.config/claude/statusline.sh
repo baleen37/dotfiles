@@ -27,44 +27,114 @@
 # ⬢  Node.js version
 # 🕐 Current time
 
-# Color codes for better visual separation
-readonly BLUE='\033[94m'      # Bright blue for model/main info
-readonly GREEN='\033[92m'     # Bright green for clean git status
-readonly YELLOW='\033[93m'    # Bright yellow for modified git status
-readonly RED='\033[91m'       # Bright red for conflicts/errors
-readonly PURPLE='\033[95m'    # Bright purple for directory
-readonly CYAN='\033[96m'      # Bright cyan for python venv
-readonly GRAY='\033[37m'      # Gray for separators
-readonly RESET='\033[0m'      # Reset colors
-readonly BOLD='\033[1m'       # Bold text
+# Color theme: gray, orange, blue, teal, green, lavender, rose, gold, slate, cyan
+# Preview colors with: bash scripts/color-preview.sh
+COLOR="blue"
 
-# Read JSON input from stdin
+# Color codes
+C_RESET='\033[0m'
+C_GRAY='\033[38;5;245m'  # explicit gray for default text
+case "$COLOR" in
+    orange)   C_ACCENT='\033[38;5;173m' ;;
+    blue)     C_ACCENT='\033[38;5;74m' ;;
+    teal)     C_ACCENT='\033[38;5;66m' ;;
+    green)    C_ACCENT='\033[38;5;71m' ;;
+    lavender) C_ACCENT='\033[38;5;139m' ;;
+    rose)     C_ACCENT='\033[38;5;132m' ;;
+    gold)     C_ACCENT='\033[38;5;136m' ;;
+    slate)    C_ACCENT='\033[38;5;60m' ;;
+    cyan)     C_ACCENT='\033[38;5;37m' ;;
+    *)        C_ACCENT="$C_GRAY" ;;  # gray: all same color
+esac
+
 input=$(cat)
 
-# Extract data from JSON input using single jq call for performance
-# Use tab as IFS to handle spaces in model names correctly
-IFS=$'\t' read -r model_name current_dir transcript_path <<< "$(echo "$input" | jq -r '[
-    .model.display_name // "Claude",
-    .workspace.current_dir // ".",
-    .transcript_path // ""
-] | @tsv')"
+# Extract model, directory, and cwd
+model=$(echo "$input" | jq -r '.model.display_name // .model.id // "?"')
+cwd=$(echo "$input" | jq -r '.cwd // empty')
+dir=$(basename "$cwd" 2>/dev/null || echo "?")
 
-# Calculate context from transcript
+# Get git branch, uncommitted file count, and sync status
+branch=""
+git_status=""
+if [[ -n "$cwd" && -d "$cwd" ]]; then
+    branch=$(git -C "$cwd" branch --show-current 2>/dev/null)
+    if [[ -n "$branch" ]]; then
+        # Count uncommitted files
+        file_count=$(git -C "$cwd" --no-optional-locks status --porcelain -uall 2>/dev/null | wc -l | tr -d ' ')
+
+        # Check sync status with upstream
+        sync_status=""
+        upstream=$(git -C "$cwd" rev-parse --abbrev-ref '@{upstream}' 2>/dev/null)
+        if [[ -n "$upstream" ]]; then
+            # Get last fetch time
+            fetch_head="$cwd/.git/FETCH_HEAD"
+            fetch_ago=""
+            if [[ -f "$fetch_head" ]]; then
+                fetch_time=$(stat -f %m "$fetch_head" 2>/dev/null || stat -c %Y "$fetch_head" 2>/dev/null)
+                if [[ -n "$fetch_time" ]]; then
+                    now=$(date +%s)
+                    diff=$((now - fetch_time))
+                    if [[ $diff -lt 60 ]]; then
+                        fetch_ago="<1m ago"
+                    elif [[ $diff -lt 3600 ]]; then
+                        fetch_ago="$((diff / 60))m ago"
+                    elif [[ $diff -lt 86400 ]]; then
+                        fetch_ago="$((diff / 3600))h ago"
+                    else
+                        fetch_ago="$((diff / 86400))d ago"
+                    fi
+                fi
+            fi
+
+            counts=$(git -C "$cwd" rev-list --left-right --count 'HEAD...@{upstream}' 2>/dev/null)
+            ahead=$(echo "$counts" | cut -f1)
+            behind=$(echo "$counts" | cut -f2)
+            if [[ "$ahead" -eq 0 && "$behind" -eq 0 ]]; then
+                if [[ -n "$fetch_ago" ]]; then
+                    sync_status="synced ${fetch_ago}"
+                else
+                    sync_status="synced"
+                fi
+            elif [[ "$ahead" -gt 0 && "$behind" -eq 0 ]]; then
+                sync_status="${ahead} ahead"
+            elif [[ "$ahead" -eq 0 && "$behind" -gt 0 ]]; then
+                sync_status="${behind} behind"
+            else
+                sync_status="${ahead} ahead, ${behind} behind"
+            fi
+        else
+            sync_status="no upstream"
+        fi
+
+        # Build git status string
+        if [[ "$file_count" -eq 0 ]]; then
+            git_status="(0 files uncommitted, ${sync_status})"
+        elif [[ "$file_count" -eq 1 ]]; then
+            # Show the actual filename when only one file is uncommitted
+            single_file=$(git -C "$cwd" --no-optional-locks status --porcelain -uall 2>/dev/null | head -1 | sed 's/^...//')
+            git_status="(${single_file} uncommitted, ${sync_status})"
+        else
+            git_status="(${file_count} files uncommitted, ${sync_status})"
+        fi
+    fi
+fi
+
+# Get transcript path for context calculation
+transcript_path=$(echo "$input" | jq -r '.transcript_path // empty')
+
+# Calculate context as absolute value (e.g., "20k")
 # See: github.com/anthropics/claude-code/issues/13652
 ctx_display=""
 if [[ -n "$transcript_path" && -f "$transcript_path" ]]; then
-    # Get context from last message
-    context_length=$(jq -rs '
+    context_length=$(jq -s '
         map(select(.message.usage and .isSidechain != true and .isApiErrorMessage != true)) |
-        if length > 0 then
-            (last | (
-                (.message.usage.input_tokens // 0) +
-                (.message.usage.cache_read_input_tokens // 0) +
-                (.message.usage.cache_creation_input_tokens // 0)
-            ))
-        else
-            0
-        end
+        last |
+        if . then
+            (.message.usage.input_tokens // 0) +
+            (.message.usage.cache_read_input_tokens // 0) +
+            (.message.usage.cache_creation_input_tokens // 0)
+        else 0 end
     ' < "$transcript_path" 2>/dev/null)
 
     # Format context display as absolute value (e.g., "20k")
@@ -78,194 +148,10 @@ if [[ -n "$transcript_path" && -f "$transcript_path" ]]; then
     fi
 fi
 
-# Get current directory relative to home directory
-if [[ "$current_dir" == "$HOME"* ]]; then
-    # Replace home path with ~ for display
-    dir_display="~${current_dir:${#HOME}}"
-else
-    # Keep full path if not under home directory
-    dir_display="$current_dir"
-fi
-# Get git status and worktree information with enhanced detection
-git_info=""
-git_dir=$(git -C "$current_dir" rev-parse --git-dir 2>/dev/null)
-if [[ -n "$git_dir" ]]; then
-    branch=$(git -C "$current_dir" branch --show-current 2>/dev/null)
+# Build output: Model | Dir | Branch (uncommitted) | Context
+output="${C_ACCENT}${model}${C_GRAY} | 📁${dir}"
+[[ -n "$branch" ]] && output+=" | 🔀${branch} ${git_status}"
+[[ -n "$ctx_display" ]] && output+=" | ${ctx_display}"
+output+="${C_RESET}"
 
-    # If no branch (detached HEAD), show short commit hash
-    if [[ -z "$branch" ]]; then
-        branch=$(git -C "$current_dir" rev-parse --short HEAD 2>/dev/null)
-        branch="detached:${branch}"
-    fi
-
-    # Enhanced worktree detection
-    worktree_info=""
-
-    # Check if we're in a worktree
-    if [[ "$git_dir" == *".git/worktrees/"* ]] || [[ -f "$git_dir/gitdir" ]]; then
-        worktree_name=$(basename "$current_dir")
-        # Only show worktree indicator if it adds information
-        # Don't show if branch name already contains the worktree info
-        if [[ "$worktree_name" =~ ^TOK ]] && [[ "$branch" != *"$worktree_name"* ]]; then
-            # For TOK worktrees, just show the tree emoji
-            worktree_info=" ${CYAN}🌳${RESET}"
-        elif [[ ! "$worktree_name" =~ ^TOK ]] && [[ "$branch" != "$worktree_name" ]]; then
-            # For other worktrees, just show tree emoji
-            worktree_info=" ${CYAN}🌳${RESET}"
-        fi
-    fi
-
-    if [[ -n "$branch" ]]; then
-        # Comprehensive git status check
-        # Git status format: XY filename
-        # X = status of staging area, Y = status of working tree
-        git_status=$(git --no-optional-locks -C "$current_dir" status --porcelain 2>/dev/null)
-
-        # Count different types of changes (handle empty status gracefully)
-        if [[ -n "$git_status" ]]; then
-            # Use awk for single-pass counting (avoids grep -c exit code issues)
-            read -r untracked modified staged conflicts <<< "$(echo "$git_status" | awk '
-                BEGIN {u=0; m=0; s=0; c=0}
-                /^\?\?/ {u++}
-                /^.M|^ M/ {m++}
-                /^[ADMR]/ {s++}
-                /^UU|^AA|^DD/ {c++}
-                END {print u, m, s, c}
-            ')"
-        else
-            untracked=0
-            modified=0
-            staged=0
-            conflicts=0
-        fi
-
-        # Debug output
-        if [[ "$DEBUG" == "1" ]]; then
-            echo "DEBUG: Git Status Raw:" >&2
-            echo "$git_status" >&2
-            echo "DEBUG: Counts - Staged:$staged Modified:$modified Untracked:$untracked Conflicts:$conflicts" >&2
-        fi
-
-        # Check for ahead/behind status with timeout to prevent hanging on slow repos
-        ahead_behind=""
-        upstream=$(git -C "$current_dir" rev-parse --abbrev-ref '@{u}' 2>/dev/null)
-        if [[ -n "$upstream" ]]; then
-            # Use timeout to prevent slow git operations from blocking status line
-            counts=$(timeout 0.5s git -C "$current_dir" rev-list --left-right --count '@{u}...HEAD' 2>/dev/null)
-            if [[ $? -eq 124 ]]; then
-                # Timeout occurred
-                ahead_behind=" ${GRAY}(checking...)${RESET}"
-            elif [[ -n "$counts" ]]; then
-                read -r ahead behind <<< "$counts"
-                if [[ "$ahead" -gt 0 ]] && [[ "$behind" -gt 0 ]]; then
-                    ahead_behind=" ${YELLOW}↕${ahead}/${behind}${RESET}"
-                elif [[ "$ahead" -gt 0 ]]; then
-                    ahead_behind=" ${GREEN}↑${ahead}${RESET}"
-                elif [[ "$behind" -gt 0 ]]; then
-                    ahead_behind=" ${YELLOW}↓${behind}${RESET}"
-                fi
-            fi
-        fi
-
-        # Check for open PRs using GitHub CLI if available
-        pr_info=""
-        if command -v gh >/dev/null 2>&1; then
-            # Only check for PRs if we're in a GitHub repo
-            remote_url=$(git -C "$current_dir" config --get remote.origin.url 2>/dev/null)
-            if [[ "$remote_url" == *"github.com"* ]]; then
-                # Quick PR check with timeout to prevent hanging
-                # gh has internal caching, so this is fast after first run
-                pr_number=$(timeout 0.5 gh pr view --json number -q .number 2>/dev/null || echo "")
-                if [[ -n "$pr_number" ]]; then
-                    pr_info=" ${CYAN}PR#${pr_number}${RESET}"
-                fi
-            fi
-        fi
-
-        # Get git diff stats for insertions/deletions
-        insertions=0
-        deletions=0
-        if [[ -n "$git_status" ]]; then
-            # Get diff stats using --numstat for accurate counts
-            diff_stats=$(git --no-optional-locks -C "$current_dir" diff --numstat 2>/dev/null)
-            if [[ -n "$diff_stats" ]]; then
-                insertions=$(echo "$diff_stats" | awk '{sum+=$1} END {print sum+0}')
-                deletions=$(echo "$diff_stats" | awk '{sum+=$2} END {print sum+0}')
-            fi
-
-            # Also check staged changes
-            staged_stats=$(git --no-optional-locks -C "$current_dir" diff --cached --numstat 2>/dev/null)
-            if [[ -n "$staged_stats" ]]; then
-                staged_insertions=$(echo "$staged_stats" | awk '{sum+=$1} END {print sum+0}')
-                staged_deletions=$(echo "$staged_stats" | awk '{sum+=$2} END {print sum+0}')
-                insertions=$((insertions + staged_insertions))
-                deletions=$((deletions + staged_deletions))
-            fi
-        fi
-
-        # Build git diff indicator (+X,-Y)
-        git_diff_indicator=""
-        if [[ "$insertions" -gt 0 ]] || [[ "$deletions" -gt 0 ]]; then
-            git_diff_indicator=" ${GRAY}│${RESET} ${GREEN}+${insertions}${RESET},${RED}-${deletions}${RESET}"
-        fi
-
-        # Set git color based on status (without icons)
-        if [[ "$conflicts" -gt 0 ]]; then
-            git_color="${RED}"
-        elif [[ -n "$git_status" ]]; then
-            git_color="${YELLOW}"
-        else
-            git_color="${GREEN}"
-        fi
-
-        # Construct git info string with separate sections (no icon)
-        git_branch_info="${git_color}${branch}${RESET}${worktree_info}${ahead_behind}${pr_info}"
-
-        # Always show branch and git diff indicator if present
-        git_info=" ${GRAY}│${RESET} ${git_branch_info}${git_diff_indicator}"
-    fi
-fi
-
-# Get Python virtual environment info
-venv_info=""
-if [[ -n "$VIRTUAL_ENV" ]]; then
-    venv_name=$(basename "$VIRTUAL_ENV")
-    venv_info=" ${GRAY}│${RESET} ${CYAN}🐍${venv_name}${RESET}"
-fi
-
-# Get Node.js version if in a Node project
-node_info=""
-if [[ -f "$current_dir/package.json" ]]; then
-    node_version=$(node --version 2>/dev/null | sed 's/v//')
-    if [[ -n "$node_version" ]]; then
-        # Truncate to major.minor version
-        node_version=${node_version%.*}
-        node_info=" ${GRAY}│${RESET} ${GREEN}⬢ ${node_version}${RESET}"
-    fi
-fi
-
-# Build output string
-# Only show context if available
-if [[ -n "$ctx_display" ]]; then
-    output_string="${BOLD}${BLUE}${model_name}${RESET} ${GRAY}│${RESET} ${CYAN}${ctx_display}${RESET} ${GRAY}│${RESET} ${PURPLE}${dir_display}${RESET}"
-else
-    output_string="${BOLD}${BLUE}${model_name}${RESET} ${GRAY}│${RESET} ${PURPLE}${dir_display}${RESET}"
-fi
-
-# Add git info if available
-if [[ -n "$git_info" ]]; then
-    output_string="${output_string}${git_info}"
-fi
-
-# Add venv info if available
-if [[ -n "$venv_info" ]]; then
-    output_string="${output_string}${venv_info}"
-fi
-
-# Add node info if available
-if [[ -n "$node_info" ]]; then
-    output_string="${output_string}${node_info}"
-fi
-
-# Output the complete string
-echo -e "$output_string"
+printf '%b\n' "$output"
