@@ -35,7 +35,11 @@
   programs.vim = {
     enable = true;
 
-    plugins = [ ];
+    plugins = with pkgs.vimPlugins; [
+      vim-airline
+      vim-airline-themes
+      vim-tmux-navigator
+    ];
 
     settings = {
       ignorecase = true;
