@@ -29,6 +29,9 @@ let
     "intellij-idea"
     "utm" # Virtual machine manager for macOS
 
+    # Fonts
+    "font-jetbrains-mono" # JetBrains Mono font for terminal
+
     # Communication Tools
     "discord"
     "notion"
