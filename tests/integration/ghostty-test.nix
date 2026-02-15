@@ -71,9 +71,13 @@ let
   ) "ghostty should symlink .config/ghostty directory")
 
   # Font configuration tests
-  (helpers.assertTest "ghostty-font-family-set" (hasConfigLine "font-family.*=.*Cascadia Code")
-    "Ghostty should have font-family set to Cascadia Code"
-  )
+  (helpers.assertTest "ghostty-font-family-jetbrains-set"
+    (hasConfigLine "font-family.*=.*JetBrains Mono")
+    "Ghostty should have JetBrains Mono as primary font")
+
+  (helpers.assertTest "ghostty-font-family-d2coding-set"
+    (hasConfigLine "font-family.*=.*D2Coding")
+    "Ghostty should have D2Coding as fallback font")
 
   (helpers.assertTest "ghostty-font-size-set" (hasConfigLine "font-size.*=.*14")
     "Ghostty should have font-size set to 14"

@@ -122,6 +122,7 @@ in
       # Fonts
       noto-fonts-cjk-sans
       cascadia-code
+      d2coding
 
       # Media tools
       ffmpeg
