@@ -48,8 +48,6 @@ Only pause to ask for confirmation when:
 - No abstractions for single-use code. No "flexibility" or "configurability" that wasn't requested.
 - No error handling for impossible scenarios.
 - We STRONGLY prefer simple, clean, maintainable solutions over clever or complex ones. Readability and maintainability are PRIMARY CONCERNS, even at the cost of conciseness or performance.
-- When it doesn't conflict with YAGNI, architect for extensibility and flexibility.
-
 Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
 
 ## Surgical changes
@@ -104,8 +102,8 @@ YOU MUST WORK HARD to reduce code duplication, even if the refactoring takes ext
 - YOU MUST STOP and ask how to handle uncommitted changes or untracked files when starting work. Suggest committing existing work first.
 - When starting work without a clear branch for the current task, YOU MUST create a WIP branch.
 - YOU MUST TRACK all non-trivial changes in git.
-- YOU MUST commit frequently throughout the development process, even if your high-level tasks are not yet done. Commit your journal entries.
-- NEVER SKIP, EVADE OR DISABLE A PRE-COMMIT HOOK
+- Commit frequently throughout the development process, even if your high-level tasks are not yet done.
+- Never skip, evade, or disable a pre-commit hook.
 - NEVER use `git add -A` unless you've just done a `git status` - Don't add random test files to the repo.
 
 ## Systematic debugging
