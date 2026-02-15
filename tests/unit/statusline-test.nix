@@ -1,6 +1,6 @@
 # tests/unit/statusline-test.nix
 # Statusline context extraction logic tests
-# Tests cross-model compatibility for glm-4.7 and Claude models
+# Tests transcript-based context calculation and formatting
 {
   inputs,
   system,
@@ -17,44 +17,15 @@ let
   # Read statusline script content as text (not a derivation)
   statuslineScriptContent = builtins.readFile ../../users/shared/.config/claude/statusline.sh;
 
-  # Test data for different model formats
+  # Helper to create a transcript JSONL file
+  # Each message has the format expected by statusline.sh
+  createTranscript = messages:
+    builtins.concatStringsSep "\n" (map (msg: builtins.toJSON msg) messages);
+
+  # Test data for the new transcript-based context calculation
   testData = {
-    # glm-4.7 format: no current_usage, uses total_input_tokens
-    glm-4-7-basic = {
-      input = builtins.toJSON {
-        hook_event_name = "Status";
-        model = {
-          display_name = "glm-4.7";
-        };
-        workspace = {
-          current_dir = "/Users/test/dotfiles";
-        };
-        context_window = {
-          total_input_tokens = 1000;
-          total_output_tokens = 100;
-        };
-      };
-      expectedCtx = "1.0k";
-      description = "glm-4.7 basic format with total_input_tokens";
-    };
-
-    # glm-4.7 format: no context_window at all (edge case)
-    glm-4-7-no-context = {
-      input = builtins.toJSON {
-        hook_event_name = "Status";
-        model = {
-          display_name = "glm-4.7";
-        };
-        workspace = {
-          current_dir = "/Users/test/dotfiles";
-        };
-      };
-      expectedCtx = "0";
-      description = "glm-4.7 with no context_window field";
-    };
-
-    # Claude model (Sonnet 4.5): uses current_usage
-    sonnet-4-5-current-usage = {
+    # No transcript path provided - should use baseline estimate
+    no-transcript-path = {
       input = builtins.toJSON {
         hook_event_name = "Status";
         model = {
@@ -64,213 +35,16 @@ let
           current_dir = "/Users/test/dotfiles";
         };
         context_window = {
-          current_usage = {
-            input_tokens = 1000;
-            output_tokens = 200;
-            cache_read_input_tokens = 400;
-            cache_creation_input_tokens = 200;
-          };
-        };
-      };
-      expectedCtx = "1.6k";
-      description = "Sonnet 4.5 with current_usage (1000+400+200=1600)";
-    };
-
-    # Claude model: current_usage with only input_tokens
-    sonnet-4-5-no-cache = {
-      input = builtins.toJSON {
-        hook_event_name = "Status";
-        model = {
-          display_name = "Sonnet 4.5";
-        };
-        workspace = {
-          current_dir = "/Users/test/dotfiles";
-        };
-        context_window = {
-          current_usage = {
-            input_tokens = 500;
-            output_tokens = 100;
-          };
-        };
-      };
-      expectedCtx = "500";
-      description = "Sonnet 4.5 with current_usage but no cache tokens";
-    };
-
-    # Fallback: current_usage is null, should use total_input_tokens
-    fallback-to-total = {
-      input = builtins.toJSON {
-        hook_event_name = "Status";
-        model = {
-          display_name = "Unknown Model";
-        };
-        workspace = {
-          current_dir = "/Users/test/dotfiles";
-        };
-        context_window = {
-          current_usage = null;
-          total_input_tokens = 2500;
-          total_output_tokens = 250;
-        };
-      };
-      expectedCtx = "2.5k";
-      description = "Fallback when current_usage is null";
-    };
-
-    # Large numbers: should format with k
-    large-tokens = {
-      input = builtins.toJSON {
-        hook_event_name = "Status";
-        model = {
-          display_name = "Sonnet 4.5";
-        };
-        workspace = {
-          current_dir = "/Users/test/dotfiles";
-        };
-        context_window = {
-          total_input_tokens = 18600;
-        };
-      };
-      expectedCtx = "18.6k";
-      description = "Large token count formatting (18.6k)";
-    };
-
-    # Very large numbers
-    very-large-tokens = {
-      input = builtins.toJSON {
-        hook_event_name = "Status";
-        model = {
-          display_name = "Sonnet 4.5";
-        };
-        workspace = {
-          current_dir = "/Users/test/dotfiles";
-        };
-        context_window = {
-          total_input_tokens = 128000;
-        };
-      };
-      expectedCtx = "128.0k";
-      description = "Very large token count (128k)";
-    };
-
-    # Edge case: empty current_usage object
-    empty-current-usage = {
-      input = builtins.toJSON {
-        hook_event_name = "Status";
-        model = {
-          display_name = "Some Model";
-        };
-        workspace = {
-          current_dir = "/Users/test/dotfiles";
-        };
-        context_window = {
-          current_usage = { };
-          total_input_tokens = 100;
-        };
-      };
-      expectedCtx = "100";
-      description = "Empty current_usage object falls back to total_input_tokens";
-    };
-
-    # glm-4.7: zero-filled current_usage (all fields are 0, but object exists)
-    glm-4-7-zero-current-usage = {
-      input = builtins.toJSON {
-        hook_event_name = "Status";
-        model = {
-          display_name = "glm-4.7";
-        };
-        workspace = {
-          current_dir = "/Users/test/dotfiles";
-        };
-        context_window = {
-          current_usage = {
-            input_tokens = 0;
-            cache_read_input_tokens = 0;
-            cache_creation_input_tokens = 0;
-          };
-          total_input_tokens = 5000;
-        };
-      };
-      expectedCtx = "5.0k";
-      description = "glm-4.7 with zero-filled current_usage falls back to total_input_tokens";
-    };
-
-    # Bug: Very large context values (1M+ tokens) should display with M suffix
-    # This test reproduces the reported bug and verifies M suffix formatting
-    large-context-1m-tokens = {
-      input = builtins.toJSON {
-        hook_event_name = "Status";
-        model = {
-          display_name = "Sonnet 4.5";
-        };
-        workspace = {
-          current_dir = "/Users/test/dotfiles";
-        };
-        context_window = {
-          total_input_tokens = 1560000;
-        };
-      };
-      expectedCtx = "1.6M";
-      description = "Large context (1.56M tokens) should display with M suffix";
-    };
-
-    # Additional large value test
-    large-context-2m-tokens = {
-      input = builtins.toJSON {
-        hook_event_name = "Status";
-        model = {
-          display_name = "Sonnet 4.5";
-        };
-        workspace = {
-          current_dir = "/Users/test/dotfiles";
-        };
-        context_window = {
-          total_input_tokens = 2500000;
-        };
-      };
-      expectedCtx = "2.5M";
-      description = "Large context (2.5M tokens) should display with M suffix";
-    };
-
-    # Edge case: exactly 1M tokens
-    exact-1m-tokens = {
-      input = builtins.toJSON {
-        hook_event_name = "Status";
-        model = {
-          display_name = "Sonnet 4.5";
-        };
-        workspace = {
-          current_dir = "/Users/test/dotfiles";
-        };
-        context_window = {
-          total_input_tokens = 1000000;
-        };
-      };
-      expectedCtx = "1.0M";
-      description = "Exactly 1M tokens should display as 1.0M";
-    };
-
-    # NEW: used_percentage fallback - basic case
-    used-percentage-fallback = {
-      input = builtins.toJSON {
-        hook_event_name = "Status";
-        model = {
-          display_name = "Sonnet 4.5";
-        };
-        workspace = {
-          current_dir = "/Users/test/dotfiles";
-        };
-        context_window = {
-          used_percentage = 25.5;
           context_window_size = 200000;
         };
       };
-      expectedCtx = "51.0k";
-      description = "used_percentage fallback: 25.5% of 200k = 51k tokens";
+      transcript = null;
+      expectedCtx = "~20k";
+      description = "No transcript_path - uses baseline estimate (~20k)";
     };
 
-    # NEW: used_percentage fallback - large value with M suffix
-    used-percentage-large = {
+    # Transcript path provided but file doesn't exist - fallback to baseline
+    transcript-not-found = {
       input = builtins.toJSON {
         hook_event_name = "Status";
         model = {
@@ -279,17 +53,19 @@ let
         workspace = {
           current_dir = "/Users/test/dotfiles";
         };
+        transcript_path = "/nonexistent/transcript.jsonl";
         context_window = {
-          used_percentage = 80;
-          context_window_size = 2000000;
+          context_window_size = 200000;
         };
       };
-      expectedCtx = "1.6M";
-      description = "used_percentage fallback: 80% of 2M = 1.6M tokens";
+      transcript = null;
+      expectedCtx = "~20k";
+      description = "Transcript file not found - fallback to baseline (~20k)";
     };
 
-    # NEW: used_percentage fallback - edge case null values
-    used-percentage-null = {
+    # Empty transcript file (file exists but has no valid JSON lines)
+    # Uses baseline estimate because jq can't parse empty content
+    empty-transcript = {
       input = builtins.toJSON {
         hook_event_name = "Status";
         model = {
@@ -298,17 +74,19 @@ let
         workspace = {
           current_dir = "/Users/test/dotfiles";
         };
+        transcript_path = "/tmp/test-transcript.jsonl";
         context_window = {
-          used_percentage = null;
-          context_window_size = null;
+          context_window_size = 200000;
         };
       };
-      expectedCtx = "0";
-      description = "used_percentage fallback: null values should default to 0";
+      # Empty file will cause jq to fail, falling back to baseline
+      createEmptyTranscript = true;
+      expectedCtx = "~20k";
+      description = "Empty transcript file - jq fails, uses baseline (~20k)";
     };
 
-    # NEW: used_percentage fallback - edge case 0 values
-    used-percentage-zero = {
+    # Single message in transcript (baseline only)
+    single-message = {
       input = builtins.toJSON {
         hook_event_name = "Status";
         model = {
@@ -317,36 +95,332 @@ let
         workspace = {
           current_dir = "/Users/test/dotfiles";
         };
+        transcript_path = "/tmp/test-transcript.jsonl";
         context_window = {
-          used_percentage = 0;
-          context_window_size = 0;
+          context_window_size = 200000;
         };
       };
-      expectedCtx = "0";
-      description = "used_percentage fallback: 0 values should result in 0";
+      transcript = createTranscript [
+        {
+          message = {
+            usage = {
+              input_tokens = 15000;
+              cache_read_input_tokens = 3000;
+              cache_creation_input_tokens = 2000;
+            };
+          };
+          isSidechain = false;
+          isApiErrorMessage = false;
+        }
+      ];
+      expectedCtx = "20k";
+      description = "Single message - baseline only (15000+3000+2000=20k)";
     };
 
-    # NEW: used_percentage fallback - full chain test
-    # When both current_usage and total_input_tokens are unavailable,
-    # used_percentage should be used as final fallback
-    used-percentage-full-chain = {
+    # Multiple messages - context grows
+    multiple-messages = {
       input = builtins.toJSON {
         hook_event_name = "Status";
         model = {
-          display_name = "Unknown Model";
+          display_name = "Sonnet 4.5";
+        };
+        workspace = {
+          current_dir = "/Users/test/dotfiles";
+        };
+        transcript_path = "/tmp/test-transcript.jsonl";
+        context_window = {
+          context_window_size = 200000;
+        };
+      };
+      transcript = createTranscript [
+        {
+          message = {
+            usage = {
+              input_tokens = 15000;
+              cache_read_input_tokens = 3000;
+              cache_creation_input_tokens = 2000;
+            };
+          };
+          isSidechain = false;
+          isApiErrorMessage = false;
+        }
+        {
+          message = {
+            usage = {
+              input_tokens = 45000;
+              cache_read_input_tokens = 5000;
+              cache_creation_input_tokens = 0;
+            };
+          };
+          isSidechain = false;
+          isApiErrorMessage = false;
+        }
+        {
+          message = {
+            usage = {
+              input_tokens = 70000;
+              cache_read_input_tokens = 10000;
+              cache_creation_input_tokens = 0;
+            };
+          };
+          isSidechain = false;
+          isApiErrorMessage = false;
+        }
+      ];
+      expectedCtx = "80k";
+      description = "Multiple messages - last message context (70000+10000=80k)";
+    };
+
+    # Large context (180k+)
+    large-context = {
+      input = builtins.toJSON {
+        hook_event_name = "Status";
+        model = {
+          display_name = "Sonnet 4.5";
+        };
+        workspace = {
+          current_dir = "/Users/test/dotfiles";
+        };
+        transcript_path = "/tmp/test-transcript.jsonl";
+        context_window = {
+          context_window_size = 200000;
+        };
+      };
+      transcript = createTranscript [
+        {
+          message = {
+            usage = {
+              input_tokens = 20000;
+              cache_read_input_tokens = 0;
+              cache_creation_input_tokens = 0;
+            };
+          };
+          isSidechain = false;
+          isApiErrorMessage = false;
+        }
+        {
+          message = {
+            usage = {
+              input_tokens = 180000;
+              cache_read_input_tokens = 5000;
+              cache_creation_input_tokens = 0;
+            };
+          };
+          isSidechain = false;
+          isApiErrorMessage = false;
+        }
+      ];
+      expectedCtx = "185k";
+      description = "Large context (180000+5000=185k)";
+    };
+
+    # Sidechain messages should be filtered out
+    sidechain-filtered = {
+      input = builtins.toJSON {
+        hook_event_name = "Status";
+        model = {
+          display_name = "Sonnet 4.5";
+        };
+        workspace = {
+          current_dir = "/Users/test/dotfiles";
+        };
+        transcript_path = "/tmp/test-transcript.jsonl";
+        context_window = {
+          context_window_size = 200000;
+        };
+      };
+      transcript = createTranscript [
+        {
+          message = {
+            usage = {
+              input_tokens = 20000;
+              cache_read_input_tokens = 0;
+              cache_creation_input_tokens = 0;
+            };
+          };
+          isSidechain = false;
+          isApiErrorMessage = false;
+        }
+        {
+          # This sidechain message should be ignored
+          message = {
+            usage = {
+              input_tokens = 100000;
+              cache_read_input_tokens = 0;
+              cache_creation_input_tokens = 0;
+            };
+          };
+          isSidechain = true;
+          isApiErrorMessage = false;
+        }
+        {
+          message = {
+            usage = {
+              input_tokens = 50000;
+              cache_read_input_tokens = 0;
+              cache_creation_input_tokens = 0;
+            };
+          };
+          isSidechain = false;
+          isApiErrorMessage = false;
+        }
+      ];
+      expectedCtx = "50k";
+      description = "Sidechain messages filtered - uses last non-sidechain (50k)";
+    };
+
+    # Error messages should be filtered out
+    error-filtered = {
+      input = builtins.toJSON {
+        hook_event_name = "Status";
+        model = {
+          display_name = "Sonnet 4.5";
+        };
+        workspace = {
+          current_dir = "/Users/test/dotfiles";
+        };
+        transcript_path = "/tmp/test-transcript.jsonl";
+        context_window = {
+          context_window_size = 200000;
+        };
+      };
+      transcript = createTranscript [
+        {
+          message = {
+            usage = {
+              input_tokens = 20000;
+              cache_read_input_tokens = 0;
+              cache_creation_input_tokens = 0;
+            };
+          };
+          isSidechain = false;
+          isApiErrorMessage = false;
+        }
+        {
+          # This error message should be ignored
+          message = {
+            usage = {
+              input_tokens = 100000;
+              cache_read_input_tokens = 0;
+              cache_creation_input_tokens = 0;
+            };
+          };
+          isSidechain = false;
+          isApiErrorMessage = true;
+        }
+      ];
+      expectedCtx = "20k";
+      description = "Error messages filtered - uses only valid message (20k)";
+    };
+
+    # Messages without usage info should be skipped
+    no-usage-skipped = {
+      input = builtins.toJSON {
+        hook_event_name = "Status";
+        model = {
+          display_name = "Sonnet 4.5";
+        };
+        workspace = {
+          current_dir = "/Users/test/dotfiles";
+        };
+        transcript_path = "/tmp/test-transcript.jsonl";
+        context_window = {
+          context_window_size = 200000;
+        };
+      };
+      transcript = createTranscript [
+        {
+          # No usage field - should be skipped
+          message = { };
+          isSidechain = false;
+          isApiErrorMessage = false;
+        }
+      ];
+      expectedCtx = "~20k";
+      description = "No valid messages with usage - fallback to baseline (~20k)";
+    };
+
+    # Model name display test
+    model-name-display = {
+      input = builtins.toJSON {
+        hook_event_name = "Status";
+        model = {
+          display_name = "Claude Opus 4.6";
         };
         workspace = {
           current_dir = "/Users/test/dotfiles";
         };
         context_window = {
-          current_usage = null;
-          total_input_tokens = null;
-          used_percentage = 50;
-          context_window_size = 100000;
+          context_window_size = 200000;
         };
       };
-      expectedCtx = "50.0k";
-      description = "Full fallback chain: null current_usage → null total_input_tokens → used_percentage";
+      transcript = null;
+      expectedModel = "Claude Opus 4.6";
+      expectedCtx = "~20k";
+      description = "Model name should be displayed correctly";
+    };
+
+    # Context formatting - values under 1000
+    small-context = {
+      input = builtins.toJSON {
+        hook_event_name = "Status";
+        model = {
+          display_name = "Sonnet 4.5";
+        };
+        workspace = {
+          current_dir = "/Users/test/dotfiles";
+        };
+        transcript_path = "/tmp/test-transcript.jsonl";
+        context_window = {
+          context_window_size = 200000;
+        };
+      };
+      transcript = createTranscript [
+        {
+          message = {
+            usage = {
+              input_tokens = 500;
+              cache_read_input_tokens = 0;
+              cache_creation_input_tokens = 0;
+            };
+          };
+          isSidechain = false;
+          isApiErrorMessage = false;
+        }
+      ];
+      expectedCtx = "500";
+      description = "Small context (500) - no k suffix";
+    };
+
+    # Partial usage fields - missing cache tokens
+    partial-usage = {
+      input = builtins.toJSON {
+        hook_event_name = "Status";
+        model = {
+          display_name = "Sonnet 4.5";
+        };
+        workspace = {
+          current_dir = "/Users/test/dotfiles";
+        };
+        transcript_path = "/tmp/test-transcript.jsonl";
+        context_window = {
+          context_window_size = 200000;
+        };
+      };
+      transcript = createTranscript [
+        {
+          message = {
+            usage = {
+              input_tokens = 30000;
+              # No cache fields
+            };
+          };
+          isSidechain = false;
+          isApiErrorMessage = false;
+        }
+      ];
+      expectedCtx = "30k";
+      description = "Partial usage (only input_tokens) - should work (30k)";
     };
   };
 
@@ -363,12 +437,34 @@ let
       SCRIPT_END
       chmod +x $script
 
+      # Create transcript file in TMPDIR (same sandbox location)
+      transcript_file=$TMPDIR/test-transcript.jsonl
+
+      ${lib.optionalString (data ? transcript && data.transcript != null && data.transcript != "") ''
+        cat > $transcript_file <<'TRANSCRIPT_END'
+        ${data.transcript}
+        TRANSCRIPT_END
+      ''}
+
+      ${lib.optionalString (data.createEmptyTranscript or false) ''
+        touch $transcript_file
+      ''}
+
+      # Update input JSON to use our transcript path
+      if [[ -f $transcript_file ]]; then
+        input_json=$(echo '${data.input}' | jq --arg path "$transcript_file" '.transcript_path = $path')
+      else
+        input_json='${data.input}'
+      fi
+
       # Run statusline with test input
-      output=$(echo '${data.input}' | bash $script 2>&1 || true)
+      output=$(echo "$input_json" | bash $script 2>&1 || true)
 
       # Check if output contains expected context value
-      if echo "$output" | grep -q "Ctx:[[:space:]]*${lib.escapeRegex data.expectedCtx}"; then
+      # The new format uses just the value (e.g., "20k" or "~20k") without "Ctx:" prefix
+      if echo "$output" | grep -qF '${data.expectedCtx}'; then
         echo "✅ ${testName}: PASS"
+        echo "  ${data.description}"
         echo "  Expected Ctx: ${data.expectedCtx}"
         touch $out
       else
