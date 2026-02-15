@@ -6,13 +6,21 @@
   "mcp": {
     "context7": {
       "type": "local",
-      "command": ["npx", "-y", "@upstash/context7-mcp"],
+      "command": [
+        "npx",
+        "-y",
+        "@upstash/context7-mcp"
+      ],
       "enabled": true
     },
     "mgrep": {
       "type": "local",
-      "command": ["npx", "-y", "@mixedbread/mgrep"],
-      "enabled": false
+      "command": [
+        "npx",
+        "-y",
+        "@mixedbread/mgrep"
+      ],
+      "enabled": true
     }
   }
 }
