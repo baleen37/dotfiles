@@ -23,7 +23,7 @@ let
   propertyTesting = import ../lib/property-testing.nix { inherit lib pkgs; };
 
   # Import performance module to test
-  perfModule = import ../../lib/performance.nix { inherit lib pkgs; };
+  perfModule = import ../lib/performance.nix { inherit lib pkgs; };
   perf = perfModule.perf;
 
   # Import test helpers

@@ -14,8 +14,8 @@
 let
   # Import test helpers and performance framework
   testHelpers = import ../lib/test-helpers.nix { inherit lib pkgs; };
-  perf = import ../../lib/performance.nix { inherit lib pkgs; };
-  baselines = import ../../lib/performance-baselines.nix { inherit lib pkgs; };
+  perf = import ../lib/performance.nix { inherit lib pkgs; };
+  baselines = import ../lib/performance-baselines.nix { inherit lib pkgs; };
 
   # Get current system baseline
   currentBaseline = baselines.getCurrentBaseline system;
