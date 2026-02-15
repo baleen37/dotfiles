@@ -34,64 +34,64 @@ readonly YELLOW='\033[93m'    # Bright yellow for modified git status
 readonly RED='\033[91m'       # Bright red for conflicts/errors
 readonly PURPLE='\033[95m'    # Bright purple for directory
 readonly CYAN='\033[96m'      # Bright cyan for python venv
-readonly WHITE='\033[97m'     # Bright white for time
-readonly GRAY='\033[37m' # Gray for separators
+readonly GRAY='\033[37m'      # Gray for separators
 readonly RESET='\033[0m'      # Reset colors
 readonly BOLD='\033[1m'       # Bold text
 
 # Read JSON input from stdin
 input=$(cat)
 
-# Extract data from JSON input using jq
-model_name=$(echo "$input" | jq -r '.model.display_name // "Claude"')
-current_dir=$(echo "$input" | jq -r '.workspace.current_dir // "."')
+# Extract data from JSON input using single jq call for performance
+# Use tab as IFS to handle spaces in model names correctly
+IFS=$'\t' read -r model_name current_dir max_context transcript_path <<< "$(echo "$input" | jq -r '[
+    .model.display_name // "Claude",
+    .workspace.current_dir // ".",
+    .context_window.context_window_size // 200000,
+    .transcript_path // ""
+] | @tsv')"
 
-# Extract context length from context_window
-# Try current_usage first (Claude models), fallback to total_input_tokens (glm-4.7 compatibility),
-# then fallback to used_percentage calculation (for third-party models with broken token reporting)
-# Use variable binding to avoid bash history expansion issues with != operator
-# Check for null or empty object ({}), or zero-filled current_usage (glm-4.7 returns 0s)
-context_length=$(
-    echo "$input" | jq -r '
-        .context_window.current_usage as $cu |
-        if $cu == null or ($cu | length) == 0 then
-            .context_window.total_input_tokens // 0
-        else
-            ((($cu.input_tokens // 0) + ($cu.cache_read_input_tokens // 0) + ($cu.cache_creation_input_tokens // 0))) as $sum |
-            if $sum == 0 then
-                .context_window.total_input_tokens // 0
-            else
-                $sum
-            end
-        end
-    ' 2>/dev/null
-)
+# Calculate context percentage from transcript (more accurate than JSON totals)
+# See: github.com/anthropics/claude-code/issues/13652
+if [[ -n "$transcript_path" && -f "$transcript_path" ]]; then
+    # Get baseline (system prompt + tools + memory) from first message
+    # and current context from last message
+    IFS=$'\t' read -r baseline context_length <<< "$(jq -rs '
+        map(select(.message.usage and .isSidechain != true and .isApiErrorMessage != true)) |
+        [(first | if . then
+            (.message.usage.input_tokens // 0) +
+            (.message.usage.cache_read_input_tokens // 0) +
+            (.message.usage.cache_creation_input_tokens // 0)
+        else 20000 end),
+        (last | if . then
+            (.message.usage.input_tokens // 0) +
+            (.message.usage.cache_read_input_tokens // 0) +
+            (.message.usage.cache_creation_input_tokens // 0)
+        else 0 end)] | @tsv
+    ' < "$transcript_path" 2>/dev/null)"
 
-# Final fallback: if context_length is still 0, try used_percentage * context_window_size / 100
-# This handles third-party models where current_usage and total_input_tokens are both 0 or null
-if [[ "$context_length" -eq 0 ]]; then
-    used_percentage=$(echo "$input" | jq -r '.context_window.used_percentage // empty' 2>/dev/null)
-    context_window_size=$(echo "$input" | jq -r '.context_window.context_window_size // empty' 2>/dev/null)
-
-    if [[ -n "$used_percentage" ]] && [[ "$used_percentage" != "null" ]] && \
-       [[ -n "$context_window_size" ]] && [[ "$context_window_size" != "null" ]]; then
-        # Calculate: context_length = (used_percentage / 100) * context_window_size
-        context_length=$(awk -v pct="$used_percentage" -v size="$context_window_size" \
-            'BEGIN {printf "%.0f", (pct / 100) * size}')
+    # If no messages yet, use baseline estimate
+    if [[ -z "$baseline" || "$baseline" == "0" ]]; then
+        baseline=20000
     fi
+    if [[ -z "$context_length" || "$context_length" == "0" ]]; then
+        context_length=$baseline
+        pct_prefix="~"
+    else
+        pct_prefix=""
+    fi
+else
+    # No transcript available - use baseline estimate
+    baseline=20000
+    context_length=$baseline
+    pct_prefix="~"
 fi
 
-# Format context length (e.g., 18.6k, 1.6M)
-# Ensure context_length is a valid number, default to 0 if empty/null
-: "${context_length:=0}"
-if [[ "$context_length" -ge 1000000 ]]; then
-    # Use M suffix for values >= 1M, show one decimal place
-    ctx_display=$(awk -v val="$context_length" 'BEGIN {printf "%.1fM", val/1000000}')
-elif [[ "$context_length" -ge 1000 ]]; then
-    # Use k suffix for values >= 1k, show one decimal place
-    ctx_display=$(awk -v val="$context_length" 'BEGIN {printf "%.1fk", val/1000}')
+# Format context display as absolute value (e.g., "20k", "~20k")
+if [[ "$context_length" -ge 1000 ]]; then
+    ctx_k=$((context_length / 1000))
+    ctx_display="${pct_prefix}${ctx_k}k"
 else
-    ctx_display="$context_length"
+    ctx_display="${pct_prefix}${context_length}"
 fi
 
 # Get current directory relative to home directory
@@ -162,19 +162,24 @@ if [[ -n "$git_dir" ]]; then
             echo "DEBUG: Counts - Staged:$staged Modified:$modified Untracked:$untracked Conflicts:$conflicts" >&2
         fi
 
-        # Check for ahead/behind status
+        # Check for ahead/behind status with timeout to prevent hanging on slow repos
         ahead_behind=""
         upstream=$(git -C "$current_dir" rev-parse --abbrev-ref '@{u}' 2>/dev/null)
         if [[ -n "$upstream" ]]; then
-            # Single command to get both ahead and behind counts
-            read -r ahead behind <<< "$(git -C "$current_dir" rev-list --left-right --count '@{u}...HEAD' 2>/dev/null)"
-
-            if [[ "$ahead" -gt 0 ]] && [[ "$behind" -gt 0 ]]; then
-                ahead_behind=" ${YELLOW}↕${ahead}/${behind}${RESET}"
-            elif [[ "$ahead" -gt 0 ]]; then
-                ahead_behind=" ${GREEN}↑${ahead}${RESET}"
-            elif [[ "$behind" -gt 0 ]]; then
-                ahead_behind=" ${YELLOW}↓${behind}${RESET}"
+            # Use timeout to prevent slow git operations from blocking status line
+            counts=$(timeout 0.5s git -C "$current_dir" rev-list --left-right --count '@{u}...HEAD' 2>/dev/null)
+            if [[ $? -eq 124 ]]; then
+                # Timeout occurred
+                ahead_behind=" ${GRAY}(checking...)${RESET}"
+            elif [[ -n "$counts" ]]; then
+                read -r ahead behind <<< "$counts"
+                if [[ "$ahead" -gt 0 ]] && [[ "$behind" -gt 0 ]]; then
+                    ahead_behind=" ${YELLOW}↕${ahead}/${behind}${RESET}"
+                elif [[ "$ahead" -gt 0 ]]; then
+                    ahead_behind=" ${GREEN}↑${ahead}${RESET}"
+                elif [[ "$behind" -gt 0 ]]; then
+                    ahead_behind=" ${YELLOW}↓${behind}${RESET}"
+                fi
             fi
         fi
 
@@ -255,11 +260,8 @@ if [[ -f "$current_dir/package.json" ]]; then
     fi
 fi
 
-# Get current time
-current_time="$(date '+%H:%M')"
-
 # Build simple linear output - always show all components
-output_string="${BOLD}${BLUE}${model_name}${RESET} ${GRAY}│${RESET} ${CYAN}Ctx: ${ctx_display}${RESET} ${GRAY}│${RESET} ${PURPLE}${dir_display}${RESET}"
+output_string="${BOLD}${BLUE}${model_name}${RESET} ${GRAY}│${RESET} ${CYAN}${ctx_display}${RESET} ${GRAY}│${RESET} ${PURPLE}${dir_display}${RESET}"
 
 # Add git info if available
 if [[ -n "$git_info" ]]; then
@@ -275,9 +277,6 @@ fi
 if [[ -n "$node_info" ]]; then
     output_string="${output_string}${node_info}"
 fi
-
-# Add time
-output_string="${output_string} ${GRAY}│${RESET} ${WHITE}${current_time}${RESET}"
 
 # Output the complete string
 echo -e "$output_string"
