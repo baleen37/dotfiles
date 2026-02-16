@@ -51,10 +51,8 @@ let
   spoonsContents = if spoonsDirUsable then spoonsDirResult.value else { };
   expectedSpoons = [
     "Hyper.spoon"
-    "Headspace.spoon"
     "HyperModal.spoon"
     "Pomodoro.spoon"
-    "FocusTracker.spoon"
   ];
   hasExpectedSpoons = lib.all (spoon: builtins.hasAttr spoon spoonsContents) expectedSpoons;
 
@@ -67,15 +65,12 @@ let
 
   # Spoon init.lua files
   pomodoroInit = hammerspoonDir + "/Spoons/Pomodoro.spoon/init.lua";
-  focustrackerInit = hammerspoonDir + "/Spoons/FocusTracker.spoon/init.lua";
   hyperInit = hammerspoonDir + "/Spoons/Hyper.spoon/init.lua";
 
   pomodoroInitResult = validateFile pomodoroInit;
-  focustrackerInitResult = validateFile focustrackerInit;
   hyperInitResult = validateFile hyperInit;
 
   pomodoroInitContent = if pomodoroInitResult.success then pomodoroInitResult.value else "";
-  focustrackerInitContent = if focustrackerInitResult.success then focustrackerInitResult.value else "";
   hyperInitContent = if hyperInitResult.success then hyperInitResult.value else "";
 
 in
@@ -106,7 +101,7 @@ in
       "All required items should exist (init.lua, configApplications.lua, Spoons)")
 
     (helpers.assertTest "expected-spoons-exist" hasExpectedSpoons
-      "All expected Spoons should exist (Hyper, Headspace, HyperModal, Pomodoro, FocusTracker)")
+      "All expected Spoons should exist (Hyper, HyperModal, Pomodoro)")
 
     (helpers.assertTest "directory-structure" structureValid
       "Directory structure should be correct and all components usable")
@@ -196,7 +191,7 @@ in
       "configApplications should define hyperKey bindings")
 
     # ========================================================================
-    # Section 4: Spoon Metadata Validation (6 tests)
+    # Section 4: Spoon Metadata Validation (4 tests)
     # ========================================================================
 
     # Pomodoro Spoon tests
@@ -207,15 +202,6 @@ in
     (helpers.assertTest "pomodoro-spoon-structure"
       (lib.hasInfix "return obj" pomodoroInitContent)
       "Pomodoro Spoon should return obj")
-
-    # FocusTracker Spoon tests
-    (helpers.assertTest "focustracker-spoon-metadata"
-      (lib.hasInfix "obj.name = \"FocusTracker\"" focustrackerInitContent)
-      "FocusTracker Spoon should define name metadata")
-
-    (helpers.assertTest "focustracker-spoon-structure"
-      (lib.hasInfix "return obj" focustrackerInitContent)
-      "FocusTracker Spoon should return obj")
 
     # Hyper Spoon tests
     (helpers.assertTest "hyper-spoon-metadata"

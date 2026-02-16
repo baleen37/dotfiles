@@ -189,6 +189,21 @@ in
       ccz-h() { _ccz_run "''${CCZ_OPUS_MODEL:?Set CCZ_OPUS_MODEL in ~/.zshrc.local}" "$@"; }
       ccz-l() { _ccz_run "''${CCZ_HAIKU_MODEL:?Set CCZ_HAIKU_MODEL in ~/.zshrc.local}" "$@"; }
 
+      # cck: Kimi API via OpenAI-compatible proxy
+      # Configure in ~/.zshrc.local:
+      #   CCK_BASE_URL, CCK_AUTH_TOKEN
+      #   CCK_HIGH_MODEL, CCK_LOW_MODEL
+      _cck_run() {
+        local model="$1"; shift
+        ANTHROPIC_BASE_URL="''${CCK_BASE_URL:-http://127.0.0.1:8317}" \
+        ANTHROPIC_AUTH_TOKEN="''${CCK_AUTH_TOKEN:-sk-dummy}" \
+        _cc_run "$model" "$@"
+      }
+
+      cck()   { _cck_run "''${CCK_MED_MODEL:-kimi-k2.5}" "$@"; }
+      cck-h() { _cck_run "''${CCK_HIGH_MODEL:-kimi-k2-thinking}" "$@"; }
+      cck-l() { _cck_run "''${CCK_LOW_MODEL:-kimi-k2}" "$@"; }
+
       # PATH configuration - Global package managers
       export PATH=$HOME/.pnpm-packages/bin:$HOME/.pnpm-packages:$PATH
       export PATH=$HOME/.npm-global/bin:$HOME/.npm-packages/bin:$HOME/bin:$PATH
