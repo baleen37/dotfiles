@@ -30,6 +30,7 @@ jobs:
 
       - name: Update flake.lock
         uses: DeterminateSystems/update-flake-lock@main
+        id: update-flake-lock
         with:
           token: ${{ secrets.FLAKE_LOCK_UPDATE_TOKEN }}
           pr-title: "chore: automatic flake dependency update"
@@ -48,3 +49,13 @@ jobs:
 
           commit-msg: "chore: update flake.lock"
           sign-commits: false
+
+      - name: Enable auto-merge
+        if: steps.update-flake-lock.outputs.pull-request-number != ''
+        run: |
+          gh pr merge ${{ steps.update-flake-lock.outputs.pull-request-number }} \
+            --auto \
+            --squash \
+            --delete-branch
+        env:
+          GH_TOKEN: ${{ secrets.FLAKE_LOCK_UPDATE_TOKEN }}
