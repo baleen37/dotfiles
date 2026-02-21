@@ -36,8 +36,7 @@
 }:
 
 let
-  inherit (pkgs.stdenv) isDarwin isLinux;
-  homePath = config.home.homeDirectory;
+  inherit (pkgs.stdenv) isDarwin;
 in
 {
   programs.tmux = {

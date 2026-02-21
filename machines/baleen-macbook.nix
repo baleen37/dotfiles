@@ -9,7 +9,6 @@
 let
   # Platform detection
   isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
-  isAarch64 = pkgs.stdenv.hostPlatform.isAarch64;
 
 in
 {
@@ -33,7 +32,7 @@ in
       { lib, pkgs, ... }:
       {
         # Enable x86_64 emulation on ARM Macs
-        boot.binfmt.emulatedSystems = lib.mkIf isAarch64 [ "x86_64-linux" ];
+        boot.binfmt.emulatedSystems = lib.mkIf pkgs.stdenv.hostPlatform.isAarch64 [ "x86_64-linux" ];
 
         # VM resources (conservative allocation for broad compatibility)
         virtualisation = {
