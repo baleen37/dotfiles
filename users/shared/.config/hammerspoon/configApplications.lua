@@ -1,117 +1,93 @@
 return {
   ['com.mitchellh.ghostty'] = {
     bundleID = 'com.mitchellh.ghostty',
-    hyperKey = 'i',
-    tags = {'coding'}
+    hyperKey = 'i'
   },
   ['com.brave.Browser'] = {
-    bundleID = 'com.brave.Browser',
-    tags = {'browsers'},
+    bundleID = 'com.brave.Browser'
   },
   ['org.mozilla.firefox'] = {
-    bundleID = 'org.mozilla.firefox',
-    tags = {'browsers'}
+    bundleID = 'org.mozilla.firefox'
   },
   ['com.apple.Safari'] = {
-    bundleID = 'com.apple.Safari',
-    tags = {'browsers'}
+    bundleID = 'com.apple.Safari'
   },
   ['com.google.Chrome'] = {
-    bundleID = 'com.google.Chrome',
-    tags = {'browsers'}
+    bundleID = 'com.google.Chrome'
   },
   ['com.kapeli.dashdoc'] = {
     bundleID = 'com.kapeli.dashdoc',
-    hyperKey = 'h',
-    tags = {'coding'}
+    hyperKey = 'h'
   },
   ['com.microsoft.teams2'] = {
-    bundleID = 'com.microsoft.teams2',
-    tags = {'communication', 'chat'}
+    bundleID = 'com.microsoft.teams2'
   },
   ['com.apple.mail'] = {
     bundleID = 'com.apple.mail',
-    hyperKey = 'e',
-    tags = {'communication', 'distraction'}
+    hyperKey = 'e'
   },
     ['com.apple.finder'] = {
     bundleID = 'com.apple.finder',
     hyperKey = 'f'
   },
   ['com.hnc.Discord'] = {
-    bundleID = 'com.hnc.Discord',
-    tags = {'distraction', 'chat'},
+    bundleID = 'com.hnc.Discord'
   },
   ['com.kakao.KakaoTalkMac'] = {
     bundleID = 'com.kakao.KakaoTalkMac',
-    hyperKey = 'k',
-    tags = {'communication', 'chat', 'personal'}
+    hyperKey = 'k'
   },
   ['com.tinyspeck.slackmacgap'] = {
-    bundleID = 'com.tinyspeck.slackmacgap',
-    tags = {'distraction', 'communication', 'chat'},
+    bundleID = 'com.tinyspeck.slackmacgap'
   },
   ['com.tapbots.Tweetbot3Mac'] = {
-    bundleID = 'com.tapbots.Tweetbot3Mac',
-    tags = {'distraction', 'socialmedia'},
+    bundleID = 'com.tapbots.Tweetbot3Mac'
   },
   ['com.culturedcode.ThingsMac'] = {
     bundleID = 'com.culturedcode.ThingsMac',
     hyperKey = 't',
-    tags = {'planning', 'review', 'tasks'},
-    whitelisted = true,
-    localBindings = {',', '.'},
+    localBindings = {',', '.'}
   },
     ['com.joehribar.toggl'] = {
     bundleID = 'com.joehribar.toggl'
   },
   ['notion.id'] = {
     bundleID = 'notion.id',
-    hyperKey = 'n',
-    tags = {'notes', 'planning', 'research'}
+    hyperKey = 'n'
   },
   ['com.ideasoncanvas.mindnode.macos'] = {
-    bundleID = 'com.ideasoncanvas.mindnode.macos',
-    tags = {'research'},
+    bundleID = 'com.ideasoncanvas.mindnode.macos'
   },
   ['com.apple.MobileSMS'] = {
-    bundleID = 'com.apple.MobileSMS',
-    tags = {'communication', 'distraction', 'personal'},
+    bundleID = 'com.apple.MobileSMS'
   },
   ['com.valvesoftware.steam'] = {
-    bundleID = 'com.valvesoftware.steam',
-    tags = {'distraction'}
+    bundleID = 'com.valvesoftware.steam'
   },
   ['net.battle.app'] = {
-    bundleID = 'net.battle.app',
-    tags = {'distraction'}
+    bundleID = 'net.battle.app'
   },
   ['com.spotify.client'] = {
     bundleID = 'com.spotify.client'
   },
   ['com.figma.Desktop'] = {
-    bundleID = 'com.figma.Desktop',
-    tags = {'design'},
+    bundleID = 'com.figma.Desktop'
   },
   ['com.reederapp.5.macOS'] = {
-    bundleID = 'com.reederapp.5.macOS',
-    tags = {'distraction'},
+    bundleID = 'com.reederapp.5.macOS'
   },
   ['md.obsidian'] = {
     bundleID = 'md.obsidian',
-    hyperKey = 'o',
-    tags = {'research', 'notes'},
+    hyperKey = 'o'
   },
   ['us.zoom.xos'] = {
     bundleID = 'us.zoom.xos',
   },
   ['org.whispersystems.signal-desktop'] = {
-    bundleID = 'org.whispersystems.signal-desktop',
-    tags = {'distraction', 'communication', 'personal'}
+    bundleID = 'org.whispersystems.signal-desktop'
   },
   ['ru.keepcoder.Telegram'] = {
-    bundleID = 'ru.keepcoder.Telegram',
-    tags = {'distraction', 'communication', 'personal'}
+    bundleID = 'ru.keepcoder.Telegram'
   },
   ['com.surteesstudios.Bartender'] = {
     bundleID = 'com.surteesstudios.Bartender',
@@ -121,8 +97,7 @@ return {
     bundleID = 'com.loom.desktop',
   },
   ['company.thebrowser.Browser'] = {
-    bundleID = 'company.thebrowser.Browser',
-    tags = {'browsers'}
+    bundleID = 'company.thebrowser.Browser'
   },
   ['com.dexterleng.Homerow'] = {
     bundleID = 'com.dexterleng.Homerow',
@@ -132,10 +107,6 @@ return {
     bundleID = 'com.flexibits.cardhop.mac',
     localBindings = {'u'}
   },
-  -- ['com.raycast.macos'] = {
-  --   bundleID = 'com.raycast.macos',
-  --   localBindings = {'c', 'n', 'space', "'"}
-  -- },
   ['com.superultra.Homerow'] = {
     bundleID = 'com.superultra.Homerow',
     localBindings = {'return', 'tab'}

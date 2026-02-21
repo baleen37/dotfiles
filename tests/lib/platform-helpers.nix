@@ -88,15 +88,12 @@ in
   # Automatically filters tests based on platform requirements
   mkPlatformTestSuite = name: tests:
     let
-      filterPlatformTests = tests:
-        lib.filterAttrs (name: test:
-          if builtins.hasAttr "platforms" test then
-            builtins.any isCurrentPlatform test.platforms
-          else
-            # If no platforms attribute, include test for all platforms
-            true
-        ) tests;
-      filteredTests = filterPlatformTests tests;
+      filteredTests = lib.filterAttrs (n: test:
+        if builtins.hasAttr "platforms" test then
+          builtins.any isCurrentPlatform test.platforms
+        else
+          true
+      ) tests;
       testList = lib.attrValues filteredTests;
     in
     if builtins.length testList > 0 then

@@ -5,8 +5,6 @@ hs.loadSpoon('Pomodoro')
 
 Config = {}
 Config.applications = require('configApplications')
-print('Config.applications = require("configApplications")')
-print('Config.applications = ', Config.applications)
 
 Hyper = spoon.Hyper
 
