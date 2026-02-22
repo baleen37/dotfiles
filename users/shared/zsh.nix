@@ -179,6 +179,11 @@ in
               model="$low_model"
               shift
               ;;
+            --)
+              shift
+              args+=("$@")
+              break
+              ;;
             *)
               args+=("$1")
               shift

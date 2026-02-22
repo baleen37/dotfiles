@@ -59,10 +59,15 @@ in
     ]
 
     # 3. cc supports model flags via _cc_parse_model_flags helper
+    #    and rewrites positional args for wrapper-specific flags
     ++ [
       (assertInitHas "cc-parse-model-flags" "_cc_parse_model_flags")
       (assertInitHas "cc-flag-high" "-h|--high")
       (assertInitHas "cc-flag-low" "-l|--low")
+      (assertInitHas "cc-parse-var-name" "local var_name")
+      (assertInitHas "cc-parse-args" "local args=()")
+      (assertInitHas "cc-parse-eval" "eval \"$(_cc_parse_model_flags")
+      (assertInitHas "cc-parse-set-positional" "set --")
     ]
 
     # 4. cco requires CCO_ env vars (no silent fallback)
