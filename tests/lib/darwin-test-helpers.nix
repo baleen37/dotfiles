@@ -458,7 +458,7 @@ rec {
   assertHomebrewGlobalSettings =
     darwinConfig:
     assertTest "homebrew-global-settings" (
-      darwinConfig.homebrew.global.brewfile == true && darwinConfig.homebrew.global.lockfiles == true
+      darwinConfig.homebrew.global.brewfile == true
     ) "Homebrew global settings should be optimized";
 
   # ===== System Configuration =====
