@@ -59,14 +59,15 @@ in
     ]
 
     # 3. cc supports model flags via _cc_parse_model_flags helper
-    #    and consumes wrapper-specific flags before passing args to claude
+    #    and rewrites positional args for wrapper-specific flags
     ++ [
       (assertInitHas "cc-parse-model-flags" "_cc_parse_model_flags")
       (assertInitHas "cc-flag-high" "-h|--high")
       (assertInitHas "cc-flag-low" "-l|--low")
-      (assertInitHas "cc-parse-consumed" "local consumed=")
-      (assertInitHas "cc-parse-split" "parsed%%|*")
-      (assertInitHas "cc-shift-consumed" "shift \"$consumed\"")
+      (assertInitHas "cc-parse-var-name" "local var_name")
+      (assertInitHas "cc-parse-args" "local args=()")
+      (assertInitHas "cc-parse-eval" "eval \"$(_cc_parse_model_flags")
+      (assertInitHas "cc-parse-set-positional" "set -- \"''${args[@]}\"")
     ]
 
     # 4. cco requires CCO_ env vars (no silent fallback)
