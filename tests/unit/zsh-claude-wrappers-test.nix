@@ -100,8 +100,8 @@ in
 
     # 9. cck sets Kimi-specific env vars
     ++ [
-      (assertInitHas "cck-base-url"   "https://api.moonshot.cn/v1")
-      (assertInitHas "cck-auth-token" "CCK_TOKEN")
+      (assertInitHas "cck-base-url"   "CCK_BASE_URL")
+      (assertInitHas "cck-auth-token" "CCK_AUTH_TOKEN")
     ]
 
     # 10. gw supports all subcmds including cco and cck
