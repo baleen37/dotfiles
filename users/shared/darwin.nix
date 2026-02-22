@@ -173,7 +173,6 @@ in
     # Enhances package management efficiency and dependency tracking
     global = {
       brewfile = true; # Enable Brewfile support for reproducible setups
-      lockfiles = true; # Use lockfiles for consistent dependency resolution
     };
 
     # Mac App Store Applications (Optimized Metadata)
