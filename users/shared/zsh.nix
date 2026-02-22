@@ -158,14 +158,16 @@ in
       }
 
       # Parse -h/--high and -l/--low model flags
-      # Usage: local model=$(_cc_parse_model_flags <default> <high> <low>)
-      # Outputs selected model to stdout and shifts consumed args
+      # Usage: eval "$(_cc_parse_model_flags <default> <high> <low> name args...)"
+      # Sets 'name' variable to selected model and removes consumed flags from args
       _cc_parse_model_flags() {
         local default_model="$1"
         local high_model="$2"
         local low_model="$3"
-        shift 3
+        local var_name="$4"
+        shift 4
         local model="$default_model"
+        local args=()
 
         while [[ $# -gt 0 ]]; do
           case "$1" in
@@ -177,24 +179,18 @@ in
               model="$low_model"
               shift
               ;;
-            --)
-              shift
-              break
-              ;;
-            -*)
-              break
-              ;;
             *)
-              break
+              args+=("$1")
+              shift
               ;;
           esac
         done
 
-        echo "$model"
+        echo "''${var_name}=\"''${model}\"; set -- \"''${args[@]}\""
       }
 
       cc() {
-        local model=$(_cc_parse_model_flags "" "opus" "haiku" "$@")
+        eval "$(_cc_parse_model_flags "" "opus" "haiku" model "$@")"
         _cc_run "$model" "$@"
       }
 
@@ -212,7 +208,7 @@ in
       }
 
       cco() {
-        local model=$(_cc_parse_model_flags "''${CCO_SONNET_MODEL:?Set CCO_SONNET_MODEL in ~/.zshrc.local}" "''${CCO_OPUS_MODEL:?Set CCO_OPUS_MODEL in ~/.zshrc.local}" "''${CCO_HAIKU_MODEL:?Set CCO_HAIKU_MODEL in ~/.zshrc.local}" "$@")
+        eval "$(_cc_parse_model_flags "''${CCO_SONNET_MODEL:?Set CCO_SONNET_MODEL in ~/.zshrc.local}" "''${CCO_OPUS_MODEL:?Set CCO_OPUS_MODEL in ~/.zshrc.local}" "''${CCO_HAIKU_MODEL:?Set CCO_HAIKU_MODEL in ~/.zshrc.local}" model "$@")"
         _cco_run "$model" "$@"
       }
 
@@ -229,7 +225,7 @@ in
       }
 
       ccz() {
-        local model=$(_cc_parse_model_flags "''${CCZ_SONNET_MODEL:?Set CCZ_SONNET_MODEL in ~/.zshrc.local}" "''${CCZ_OPUS_MODEL:?Set CCZ_OPUS_MODEL in ~/.zshrc.local}" "''${CCZ_HAIKU_MODEL:?Set CCZ_HAIKU_MODEL in ~/.zshrc.local}" "$@")
+        eval "$(_cc_parse_model_flags "''${CCZ_SONNET_MODEL:?Set CCZ_SONNET_MODEL in ~/.zshrc.local}" "''${CCZ_OPUS_MODEL:?Set CCZ_OPUS_MODEL in ~/.zshrc.local}" "''${CCZ_HAIKU_MODEL:?Set CCZ_HAIKU_MODEL in ~/.zshrc.local}" model "$@")"
         _ccz_run "$model" "$@"
       }
 
@@ -245,7 +241,7 @@ in
       }
 
       cck() {
-        local model=$(_cc_parse_model_flags "''${CCK_MED_MODEL:-kimi-k2.5}" "''${CCK_HIGH_MODEL:-kimi-k2-thinking}" "''${CCK_LOW_MODEL:-kimi-k2}" "$@")
+        eval "$(_cc_parse_model_flags "''${CCK_MED_MODEL:-kimi-k2.5}" "''${CCK_HIGH_MODEL:-kimi-k2-thinking}" "''${CCK_LOW_MODEL:-kimi-k2}" model "$@")"
         _cck_run "$model" "$@"
       }
 
