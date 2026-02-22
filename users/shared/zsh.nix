@@ -146,15 +146,40 @@ in
       _cc_run() {
         local model="$1"; shift
         if [[ -n "$model" ]]; then
-          ENABLE_LSP_TOOL=true command claude --dangerously-skip-permissions --model "$model" "$@"
+          command claude --dangerously-skip-permissions --model "$model" "$@"
         else
-          ENABLE_LSP_TOOL=true command claude --dangerously-skip-permissions "$@"
+          command claude --dangerously-skip-permissions "$@"
         fi
       }
 
-      cc()    { _cc_run "" "$@"; }
-      cc-h()  { _cc_run opus "$@"; }
-      cc-l()  { _cc_run haiku "$@"; }
+      cc() {
+        local model=""
+        # Parse options
+        while [[ $# -gt 0 ]]; do
+          case "$1" in
+            -h|--high)
+              model="opus"
+              shift
+              ;;
+            -l|--low)
+              model="haiku"
+              shift
+              ;;
+            --)
+              shift
+              break
+              ;;
+            -*)
+              # Pass through other options to claude
+              break
+              ;;
+            *)
+              break
+              ;;
+          esac
+        done
+        _cc_run "$model" "$@"
+      }
 
       # cco: Configure in ~/.zshrc.local:
       #   CCO_BASE_URL, CCO_AUTH_TOKEN
@@ -169,9 +194,32 @@ in
         _cc_run "$model" "$@"
       }
 
-      cco()   { _cco_run "''${CCO_SONNET_MODEL:?Set CCO_SONNET_MODEL in ~/.zshrc.local}" "$@"; }
-      cco-h() { _cco_run "''${CCO_OPUS_MODEL:?Set CCO_OPUS_MODEL in ~/.zshrc.local}" "$@"; }
-      cco-l() { _cco_run "''${CCO_HAIKU_MODEL:?Set CCO_HAIKU_MODEL in ~/.zshrc.local}" "$@"; }
+      cco() {
+        local model="''${CCO_SONNET_MODEL:?Set CCO_SONNET_MODEL in ~/.zshrc.local}"
+        while [[ $# -gt 0 ]]; do
+          case "$1" in
+            -h|--high)
+              model="''${CCO_OPUS_MODEL:?Set CCO_OPUS_MODEL in ~/.zshrc.local}"
+              shift
+              ;;
+            -l|--low)
+              model="''${CCO_HAIKU_MODEL:?Set CCO_HAIKU_MODEL in ~/.zshrc.local}"
+              shift
+              ;;
+            --)
+              shift
+              break
+              ;;
+            -*)
+              break
+              ;;
+            *)
+              break
+              ;;
+          esac
+        done
+        _cco_run "$model" "$@"
+      }
 
       # ccz: Configure in ~/.zshrc.local:
       #   CCZ_TOKEN, CCZ_HAIKU_MODEL, CCZ_SONNET_MODEL, CCZ_OPUS_MODEL
@@ -185,9 +233,32 @@ in
         _cc_run "$model" "$@"
       }
 
-      ccz()   { _ccz_run "''${CCZ_SONNET_MODEL:?Set CCZ_SONNET_MODEL in ~/.zshrc.local}" "$@"; }
-      ccz-h() { _ccz_run "''${CCZ_OPUS_MODEL:?Set CCZ_OPUS_MODEL in ~/.zshrc.local}" "$@"; }
-      ccz-l() { _ccz_run "''${CCZ_HAIKU_MODEL:?Set CCZ_HAIKU_MODEL in ~/.zshrc.local}" "$@"; }
+      ccz() {
+        local model="''${CCZ_SONNET_MODEL:?Set CCZ_SONNET_MODEL in ~/.zshrc.local}"
+        while [[ $# -gt 0 ]]; do
+          case "$1" in
+            -h|--high)
+              model="''${CCZ_OPUS_MODEL:?Set CCZ_OPUS_MODEL in ~/.zshrc.local}"
+              shift
+              ;;
+            -l|--low)
+              model="''${CCZ_HAIKU_MODEL:?Set CCZ_HAIKU_MODEL in ~/.zshrc.local}"
+              shift
+              ;;
+            --)
+              shift
+              break
+              ;;
+            -*)
+              break
+              ;;
+            *)
+              break
+              ;;
+          esac
+        done
+        _ccz_run "$model" "$@"
+      }
 
       # cck: Kimi API via OpenAI-compatible proxy
       # Configure in ~/.zshrc.local:
@@ -200,9 +271,32 @@ in
         _cc_run "$model" "$@"
       }
 
-      cck()   { _cck_run "''${CCK_MED_MODEL:-kimi-k2.5}" "$@"; }
-      cck-h() { _cck_run "''${CCK_HIGH_MODEL:-kimi-k2-thinking}" "$@"; }
-      cck-l() { _cck_run "''${CCK_LOW_MODEL:-kimi-k2}" "$@"; }
+      cck() {
+        local model="''${CCK_MED_MODEL:-kimi-k2.5}"
+        while [[ $# -gt 0 ]]; do
+          case "$1" in
+            -h|--high)
+              model="''${CCK_HIGH_MODEL:-kimi-k2-thinking}"
+              shift
+              ;;
+            -l|--low)
+              model="''${CCK_LOW_MODEL:-kimi-k2}"
+              shift
+              ;;
+            --)
+              shift
+              break
+              ;;
+            -*)
+              break
+              ;;
+            *)
+              break
+              ;;
+          esac
+        done
+        _cck_run "$model" "$@"
+      }
 
       # PATH configuration - Global package managers
       export PATH=$HOME/.pnpm-packages/bin:$HOME/.pnpm-packages:$PATH
@@ -361,7 +455,7 @@ in
         local tool_command
         case "$subcmd" in
           cc)
-            tool_command="ENABLE_LSP_TOOL=true claude --dangerously-skip-permissions"
+            tool_command="claude --dangerously-skip-permissions"
             ;;
           cco)
             tool_command="ANTHROPIC_BASE_URL=\"\''${CCO_BASE_URL:-http://127.0.0.1:8317}\" \
@@ -369,7 +463,7 @@ in
               ANTHROPIC_DEFAULT_OPUS_MODEL=\"\''${CCO_OPUS_MODEL:-}\" \
               ANTHROPIC_DEFAULT_SONNET_MODEL=\"\''${CCO_SONNET_MODEL:-}\" \
               ANTHROPIC_DEFAULT_HAIKU_MODEL=\"\''${CCO_HAIKU_MODEL:-}\" \
-              ENABLE_LSP_TOOL=true command claude --dangerously-skip-permissions"
+              command claude --dangerously-skip-permissions"
             ;;
           ccz)
             tool_command="ANTHROPIC_BASE_URL=\"https://api.z.ai/api/anthropic\" \
@@ -377,7 +471,7 @@ in
               ANTHROPIC_DEFAULT_HAIKU_MODEL=\"\''${CCZ_HAIKU_MODEL:-}\" \
               ANTHROPIC_DEFAULT_SONNET_MODEL=\"\''${CCZ_SONNET_MODEL:-}\" \
               ANTHROPIC_DEFAULT_OPUS_MODEL=\"\''${CCZ_OPUS_MODEL:-}\" \
-              ENABLE_LSP_TOOL=true command claude --dangerously-skip-permissions"
+              command claude --dangerously-skip-permissions"
             ;;
           oc)
             tool_command="opencode"
