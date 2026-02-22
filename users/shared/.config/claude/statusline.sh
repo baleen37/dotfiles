@@ -50,6 +50,7 @@ IFS=$'\t' read -r model_name current_dir <<< "$(echo "$input" | jq -r '[
 
 # Calculate context and cache info from JSON input
 # See: code.claude.com/docs/en/statusline
+# Note: current_usage fields are not in official docs but may be provided
 ctx_display=""
 usage=$(echo "$input" | jq '.context_window.current_usage // empty')
 if [[ -n "$usage" && "$usage" != "null" ]]; then
@@ -57,7 +58,7 @@ if [[ -n "$usage" && "$usage" != "null" ]]; then
     cache_read=$(echo "$usage" | jq '.cache_read_input_tokens // 0')
     cache_creation=$(echo "$usage" | jq '.cache_creation_input_tokens // 0')
 
-    # Total context
+    # Total context length
     context_length=$((input_tokens + cache_read + cache_creation))
     # Total cached tokens (both read from cache and newly cached)
     cached_total=$((cache_read + cache_creation))
@@ -75,12 +76,13 @@ if [[ -n "$usage" && "$usage" != "null" ]]; then
     # Build context display: "20k(C:5k)" format
     if [[ "$context_length" -gt 0 ]]; then
         ctx_fmt=$(format_tokens "$context_length")
-        ctx_display="${ctx_fmt}"
 
         # Add cache info if there are cached tokens
         if [[ "$cached_total" -gt 0 ]]; then
             cached_fmt=$(format_tokens "$cached_total")
-            ctx_display="${ctx_fmt}(${GREEN}C:${cached_fmt}${RESET})"
+            ctx_display="${ctx_fmt} ${CYAN}(C:${cached_fmt})${RESET}"
+        else
+            ctx_display="${ctx_fmt}"
         fi
     fi
 fi
