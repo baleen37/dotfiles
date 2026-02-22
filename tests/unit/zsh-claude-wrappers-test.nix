@@ -58,10 +58,11 @@ in
       (assertFnDefined "_cck_run")
     ]
 
-    # 3. cc supports model flags (-h/--high for opus, -l/--low for haiku)
+    # 3. cc supports model flags via _cc_parse_model_flags helper
     ++ [
-      (assertInitHas "cc-high-flag-opus"  ''model="opus"'')
-      (assertInitHas "cc-low-flag-haiku"  ''model="haiku"'')
+      (assertInitHas "cc-parse-model-flags" "_cc_parse_model_flags")
+      (assertInitHas "cc-flag-high" "-h|--high")
+      (assertInitHas "cc-flag-low" "-l|--low")
     ]
 
     # 4. cco requires CCO_ env vars (no silent fallback)
