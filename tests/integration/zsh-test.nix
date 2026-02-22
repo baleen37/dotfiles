@@ -68,8 +68,7 @@ in
   # Claude CLI functions (cc, ccz)
   (helpers.assertTest "function-cc-exists" (initContentHas "cc()")
     "cc() function should exist")
-  (helpers.assertTest "function-cc-lsp-tool" (initContentHas "ENABLE_LSP_TOOL=true")
-    "cc() function should enable LSP tool")
+  # LSP tool is now configured in settings.json, not in shell function
   (helpers.assertTest "function-ccz-exists" (initContentHas "ccz()")
     "ccz() function should exist")
   (helpers.assertTest "function-ccz-zai-api" (initContentHas "api.z.ai/api/anthropic")
