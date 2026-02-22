@@ -65,12 +65,17 @@ in
   (helpers.assertTest "zsh-fast-completion" (zshSettings.completionInit == "autoload -Uz compinit && compinit -C")
     "zsh should use fast completion (compinit -C)")
 
-  # Claude CLI functions (cc, ccz)
+  # Claude CLI functions (cc, cco, ccz, cck)
   (helpers.assertTest "function-cc-exists" (initContentHas "cc()")
     "cc() function should exist")
-  # LSP tool is now configured in settings.json, not in shell function
+  (helpers.assertTest "function-cco-exists" (initContentHas "cco()")
+    "cco() function should exist")
   (helpers.assertTest "function-ccz-exists" (initContentHas "ccz()")
     "ccz() function should exist")
+  (helpers.assertTest "function-cck-exists" (initContentHas "cck()")
+    "cck() function should exist")
+  (helpers.assertTest "function-cc-parse-model-flags" (initContentHas "_cc_parse_model_flags()")
+    "_cc_parse_model_flags() helper function should exist")
   (helpers.assertTest "function-ccz-zai-api" (initContentHas "api.z.ai/api/anthropic")
     "ccz() function should use Z.ai API")
 
