@@ -67,7 +67,7 @@ in
       (assertInitHas "cc-parse-var-name" "local var_name")
       (assertInitHas "cc-parse-args" "local args=()")
       (assertInitHas "cc-parse-eval" "eval \"$(_cc_parse_model_flags")
-      (assertInitHas "cc-parse-set-positional" "set -- \"''${args[@]}\"")
+      (assertInitHas "cc-parse-set-positional" "set --")
     ]
 
     # 4. cco requires CCO_ env vars (no silent fallback)
