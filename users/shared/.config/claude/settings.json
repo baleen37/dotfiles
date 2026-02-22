@@ -1,5 +1,13 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "env": {
+    "ENABLE_TOOL_SEARCH": "true",
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
   "permissions": {
     "allow": [
       "Bash",
@@ -37,17 +45,25 @@
     "type": "command",
     "command": "~/.claude/statusline.sh"
   },
+  "enabledPlugins": {
+    "superpowers@superpowers-marketplace": true,
+    "typescript-lsp@claude-plugins-official": false,
+    "csharp-lsp@claude-plugins-official": false,
+    "clangd-lsp@claude-plugins-official": false,
+    "kotlin-lsp@claude-plugins-official": false,
+    "lua-lsp@claude-plugins-official": true,
+    "pyright-lsp@claude-plugins-official": true,
+    "playwright@claude-plugins-official": true,
+    "atlassian@claude-plugins-official": true,
+    "everything-agent@everything-agent": true,
+    "memmem@baleen-marketplace": true,
+    "context7@claude-plugins-official": true
+  },
   "alwaysThinkingEnabled": false,
+  "skipDangerousModePermissionPrompt": true,
   "installMethod": "native",
   "rejectedMcpServers": [],
   "feedbackSurveyState": {
     "lastShownTime": 1755225425616
-  },
-  "attribution": {
-    "commit": "",
-    "pr": ""
-  },
-  "env": {
-    "ENABLE_TOOL_SEARCH": "true"
   }
 }
