@@ -125,7 +125,9 @@ in
     plugins = [ ];
 
     initContent = lib.mkAfter ''
-      # Nix daemon initialization
+      # =============================================================================
+      # Section: Nix daemon initialization
+      # =============================================================================
       if [[ -f /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]]; then
         . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
         . /nix/var/nix/profiles/default/etc/profile.d/nix.sh
@@ -136,11 +138,14 @@ in
         . ~/.zshrc.local
       fi
 
-      # Claude Code wrappers
+      # =============================================================================
+      # Section: Claude Code wrapper functions
+      # =============================================================================
       #   cc/cc-h/cc-l:   Anthropic API (sonnet/opus/haiku)
       #   cco/cco-h/cco-l: OpenAI-compatible proxy
       #   ccz/ccz-h/ccz-l: Z.ai GLM API
-      # Configure cco/ccz models in ~/.zshrc.local
+      #   cck:            Kimi API via OpenAI-compatible proxy
+      # Configure cco/ccz/cck models in ~/.zshrc.local
 
       # Internal helper - do not call directly
       _cc_run() {
@@ -152,17 +157,24 @@ in
         fi
       }
 
-      cc() {
-        local model=""
-        # Parse options
+      # Parse -h/--high and -l/--low model flags
+      # Usage: local model=$(_cc_parse_model_flags <default> <high> <low>)
+      # Outputs selected model to stdout and shifts consumed args
+      _cc_parse_model_flags() {
+        local default_model="$1"
+        local high_model="$2"
+        local low_model="$3"
+        shift 3
+        local model="$default_model"
+
         while [[ $# -gt 0 ]]; do
           case "$1" in
             -h|--high)
-              model="opus"
+              model="$high_model"
               shift
               ;;
             -l|--low)
-              model="haiku"
+              model="$low_model"
               shift
               ;;
             --)
@@ -170,7 +182,6 @@ in
               break
               ;;
             -*)
-              # Pass through other options to claude
               break
               ;;
             *)
@@ -178,6 +189,12 @@ in
               ;;
           esac
         done
+
+        echo "$model"
+      }
+
+      cc() {
+        local model=$(_cc_parse_model_flags "" "opus" "haiku" "$@")
         _cc_run "$model" "$@"
       }
 
@@ -195,29 +212,7 @@ in
       }
 
       cco() {
-        local model="''${CCO_SONNET_MODEL:?Set CCO_SONNET_MODEL in ~/.zshrc.local}"
-        while [[ $# -gt 0 ]]; do
-          case "$1" in
-            -h|--high)
-              model="''${CCO_OPUS_MODEL:?Set CCO_OPUS_MODEL in ~/.zshrc.local}"
-              shift
-              ;;
-            -l|--low)
-              model="''${CCO_HAIKU_MODEL:?Set CCO_HAIKU_MODEL in ~/.zshrc.local}"
-              shift
-              ;;
-            --)
-              shift
-              break
-              ;;
-            -*)
-              break
-              ;;
-            *)
-              break
-              ;;
-          esac
-        done
+        local model=$(_cc_parse_model_flags "''${CCO_SONNET_MODEL:?Set CCO_SONNET_MODEL in ~/.zshrc.local}" "''${CCO_OPUS_MODEL:?Set CCO_OPUS_MODEL in ~/.zshrc.local}" "''${CCO_HAIKU_MODEL:?Set CCO_HAIKU_MODEL in ~/.zshrc.local}" "$@")
         _cco_run "$model" "$@"
       }
 
@@ -234,29 +229,7 @@ in
       }
 
       ccz() {
-        local model="''${CCZ_SONNET_MODEL:?Set CCZ_SONNET_MODEL in ~/.zshrc.local}"
-        while [[ $# -gt 0 ]]; do
-          case "$1" in
-            -h|--high)
-              model="''${CCZ_OPUS_MODEL:?Set CCZ_OPUS_MODEL in ~/.zshrc.local}"
-              shift
-              ;;
-            -l|--low)
-              model="''${CCZ_HAIKU_MODEL:?Set CCZ_HAIKU_MODEL in ~/.zshrc.local}"
-              shift
-              ;;
-            --)
-              shift
-              break
-              ;;
-            -*)
-              break
-              ;;
-            *)
-              break
-              ;;
-          esac
-        done
+        local model=$(_cc_parse_model_flags "''${CCZ_SONNET_MODEL:?Set CCZ_SONNET_MODEL in ~/.zshrc.local}" "''${CCZ_OPUS_MODEL:?Set CCZ_OPUS_MODEL in ~/.zshrc.local}" "''${CCZ_HAIKU_MODEL:?Set CCZ_HAIKU_MODEL in ~/.zshrc.local}" "$@")
         _ccz_run "$model" "$@"
       }
 
@@ -272,32 +245,13 @@ in
       }
 
       cck() {
-        local model="''${CCK_MED_MODEL:-kimi-k2.5}"
-        while [[ $# -gt 0 ]]; do
-          case "$1" in
-            -h|--high)
-              model="''${CCK_HIGH_MODEL:-kimi-k2-thinking}"
-              shift
-              ;;
-            -l|--low)
-              model="''${CCK_LOW_MODEL:-kimi-k2}"
-              shift
-              ;;
-            --)
-              shift
-              break
-              ;;
-            -*)
-              break
-              ;;
-            *)
-              break
-              ;;
-          esac
-        done
+        local model=$(_cc_parse_model_flags "''${CCK_MED_MODEL:-kimi-k2.5}" "''${CCK_HIGH_MODEL:-kimi-k2-thinking}" "''${CCK_LOW_MODEL:-kimi-k2}" "$@")
         _cck_run "$model" "$@"
       }
 
+      # =============================================================================
+      # Section: Environment and PATH setup
+      # =============================================================================
       # PATH configuration - Global package managers
       export PATH=$HOME/.pnpm-packages/bin:$HOME/.pnpm-packages:$PATH
       export PATH=$HOME/.npm-global/bin:$HOME/.npm-packages/bin:$HOME/bin:$PATH
@@ -336,6 +290,9 @@ in
       # GitHub CLI token
       export GITHUB_TOKEN=$(gh auth token)
 
+      # =============================================================================
+      # Section: SSH agent setup
+      # =============================================================================
       # Optimized 1Password SSH agent detection with platform awareness
       _setup_1password_agent() {
         # Early exit if already configured
@@ -371,6 +328,9 @@ in
 
       _setup_1password_agent
 
+      # =============================================================================
+      # Section: Utility functions
+      # =============================================================================
       # nix shortcuts
       shell() {
           nix-shell '<nixpkgs>' -A "$1"
@@ -427,6 +387,28 @@ in
       # Setup SSH agent for GUI applications (IntelliJ IDEA, etc.)
       setup_ssh_agent_for_gui
 
+      # =============================================================================
+      # Section: Git worktree wrapper
+      # =============================================================================
+      # Build Claude environment prefix for gw() function
+      # Usage: _gw_build_claude_env <base_url> <auth_token> [opus_model] [sonnet_model] [haiku_model]
+      # Outputs: Complete environment prefix string for eval
+      _gw_build_claude_env() {
+        local base_url="$1"
+        local auth_token="$2"
+        local opus_model="''${3:-}"
+        local sonnet_model="''${4:-}"
+        local haiku_model="''${5:-}"
+
+        local env_prefix="ANTHROPIC_BASE_URL=\"$base_url\" ANTHROPIC_AUTH_TOKEN=\"$auth_token\""
+
+        [[ -n "$opus_model" ]] && env_prefix="$env_prefix ANTHROPIC_DEFAULT_OPUS_MODEL=\"$opus_model\""
+        [[ -n "$sonnet_model" ]] && env_prefix="$env_prefix ANTHROPIC_DEFAULT_SONNET_MODEL=\"$sonnet_model\""
+        [[ -n "$haiku_model" ]] && env_prefix="$env_prefix ANTHROPIC_DEFAULT_HAIKU_MODEL=\"$haiku_model\""
+
+        echo "$env_prefix command claude --dangerously-skip-permissions"
+      }
+
       # Git Worktree wrapper - Create git worktree and launch AI tool
       # Usage: gw <branch-name> [subcmd]
       #   subcmd: cc (default), ccz, oc
@@ -437,16 +419,16 @@ in
         # Validate arguments
         if [[ $# -eq 0 ]]; then
           echo "Usage: gw <branch-name> [subcmd]"
-          echo "  subcmd: cc (default), cco, ccz, oc"
+          echo "  subcmd: cc (default), cco, ccz, cck, oc"
           return 1
         fi
 
         # Validate subcmd early
         case "$subcmd" in
-          cc|cco|ccz|oc)
+          cc|cco|ccz|cck|oc)
             ;;
           *)
-            echo "Error: Unknown subcmd '$subcmd'. Use: cc, cco, ccz, or oc" >&2
+            echo "Error: Unknown subcmd '$subcmd'. Use: cc, cco, ccz, cck, or oc" >&2
             return 1
             ;;
         esac
@@ -458,20 +440,25 @@ in
             tool_command="claude --dangerously-skip-permissions"
             ;;
           cco)
-            tool_command="ANTHROPIC_BASE_URL=\"\''${CCO_BASE_URL:-http://127.0.0.1:8317}\" \
-              ANTHROPIC_AUTH_TOKEN=\"\''${CCO_AUTH_TOKEN:-sk-dummy}\" \
-              ANTHROPIC_DEFAULT_OPUS_MODEL=\"\''${CCO_OPUS_MODEL:-}\" \
-              ANTHROPIC_DEFAULT_SONNET_MODEL=\"\''${CCO_SONNET_MODEL:-}\" \
-              ANTHROPIC_DEFAULT_HAIKU_MODEL=\"\''${CCO_HAIKU_MODEL:-}\" \
-              command claude --dangerously-skip-permissions"
+            tool_command=$(_gw_build_claude_env \
+              "''${CCO_BASE_URL:-http://127.0.0.1:8317}" \
+              "''${CCO_AUTH_TOKEN:-sk-dummy}" \
+              "''${CCO_OPUS_MODEL:-}" \
+              "''${CCO_SONNET_MODEL:-}" \
+              "''${CCO_HAIKU_MODEL:-}")
             ;;
           ccz)
-            tool_command="ANTHROPIC_BASE_URL=\"https://api.z.ai/api/anthropic\" \
-              ANTHROPIC_AUTH_TOKEN=\"\''${CCZ_TOKEN:-}\" \
-              ANTHROPIC_DEFAULT_HAIKU_MODEL=\"\''${CCZ_HAIKU_MODEL:-}\" \
-              ANTHROPIC_DEFAULT_SONNET_MODEL=\"\''${CCZ_SONNET_MODEL:-}\" \
-              ANTHROPIC_DEFAULT_OPUS_MODEL=\"\''${CCZ_OPUS_MODEL:-}\" \
-              command claude --dangerously-skip-permissions"
+            tool_command=$(_gw_build_claude_env \
+              "https://api.z.ai/api/anthropic" \
+              "''${CCZ_TOKEN:-}" \
+              "''${CCZ_OPUS_MODEL:-}" \
+              "''${CCZ_SONNET_MODEL:-}" \
+              "''${CCZ_HAIKU_MODEL:-}")
+            ;;
+          cck)
+            tool_command=$(_gw_build_claude_env \
+              "''${CCK_BASE_URL:-http://127.0.0.1:8317}" \
+              "''${CCK_AUTH_TOKEN:-sk-dummy}")
             ;;
           oc)
             tool_command="opencode"
