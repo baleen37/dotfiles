@@ -48,18 +48,39 @@ IFS=$'\t' read -r model_name current_dir <<< "$(echo "$input" | jq -r '[
     .workspace.current_dir // "."
 ] | @tsv')"
 
-# Calculate context from JSON input (accurate)
+# Calculate context and cache info from JSON input
 # See: code.claude.com/docs/en/statusline
 ctx_display=""
 usage=$(echo "$input" | jq '.context_window.current_usage // empty')
 if [[ -n "$usage" && "$usage" != "null" ]]; then
-    context_length=$(echo "$usage" | jq '.input_tokens + .cache_creation_input_tokens + .cache_read_input_tokens')
-    if [[ -n "$context_length" && "$context_length" -gt 0 ]]; then
-        if [[ "$context_length" -ge 1000 ]]; then
-            ctx_k=$((context_length / 1000))
-            ctx_display="${ctx_k}k"
+    input_tokens=$(echo "$usage" | jq '.input_tokens // 0')
+    cache_read=$(echo "$usage" | jq '.cache_read_input_tokens // 0')
+    cache_creation=$(echo "$usage" | jq '.cache_creation_input_tokens // 0')
+
+    # Total context
+    context_length=$((input_tokens + cache_read + cache_creation))
+    # Total cached tokens (both read from cache and newly cached)
+    cached_total=$((cache_read + cache_creation))
+
+    # Format helper function
+    format_tokens() {
+        local val=$1
+        if [[ "$val" -ge 1000 ]]; then
+            echo "$((val / 1000))k"
         else
-            ctx_display="${context_length}"
+            echo "$val"
+        fi
+    }
+
+    # Build context display: "20k(C:5k)" format
+    if [[ "$context_length" -gt 0 ]]; then
+        ctx_fmt=$(format_tokens "$context_length")
+        ctx_display="${ctx_fmt}"
+
+        # Add cache info if there are cached tokens
+        if [[ "$cached_total" -gt 0 ]]; then
+            cached_fmt=$(format_tokens "$cached_total")
+            ctx_display="${ctx_fmt}(${GREEN}C:${cached_fmt}${RESET})"
         fi
     fi
 fi
