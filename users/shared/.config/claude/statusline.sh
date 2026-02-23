@@ -23,8 +23,6 @@
 #   ↕N/M Diverged from remote (yellow)
 #   PR#N Open pull request number (cyan)
 # 🌳 Git worktree indicator
-# 🐍 Python virtual environment
-# ⬢  Node.js version
 # 🕐 Current time
 
 # Color codes for better visual separation
@@ -60,8 +58,6 @@ if [[ -n "$usage" && "$usage" != "null" ]]; then
 
     # Total context length
     context_length=$((input_tokens + cache_read + cache_creation))
-    # Total cached tokens (both read from cache and newly cached)
-    cached_total=$((cache_read + cache_creation))
 
     # Format helper function
     format_tokens() {
@@ -73,17 +69,9 @@ if [[ -n "$usage" && "$usage" != "null" ]]; then
         fi
     }
 
-    # Build context display: "20k(C:5k)" format
+    # Build context display: "20k" format
     if [[ "$context_length" -gt 0 ]]; then
-        ctx_fmt=$(format_tokens "$context_length")
-
-        # Add cache info if there are cached tokens
-        if [[ "$cached_total" -gt 0 ]]; then
-            cached_fmt=$(format_tokens "$cached_total")
-            ctx_display="${ctx_fmt} ${CYAN}(C:${cached_fmt})${RESET}"
-        else
-            ctx_display="${ctx_fmt}"
-        fi
+        ctx_display=$(format_tokens "$context_length")
     fi
 fi
 
@@ -235,24 +223,6 @@ if [[ -n "$git_dir" ]]; then
     fi
 fi
 
-# Get Python virtual environment info
-venv_info=""
-if [[ -n "$VIRTUAL_ENV" ]]; then
-    venv_name=$(basename "$VIRTUAL_ENV")
-    venv_info=" ${GRAY}│${RESET} ${CYAN}🐍${venv_name}${RESET}"
-fi
-
-# Get Node.js version if in a Node project
-node_info=""
-if [[ -f "$current_dir/package.json" ]]; then
-    node_version=$(node --version 2>/dev/null | sed 's/v//')
-    if [[ -n "$node_version" ]]; then
-        # Truncate to major.minor version
-        node_version=${node_version%.*}
-        node_info=" ${GRAY}│${RESET} ${GREEN}⬢ ${node_version}${RESET}"
-    fi
-fi
-
 # Build output string
 # Only show context if available
 if [[ -n "$ctx_display" ]]; then
@@ -264,16 +234,6 @@ fi
 # Add git info if available
 if [[ -n "$git_info" ]]; then
     output_string="${output_string}${git_info}"
-fi
-
-# Add venv info if available
-if [[ -n "$venv_info" ]]; then
-    output_string="${output_string}${venv_info}"
-fi
-
-# Add node info if available
-if [[ -n "$node_info" ]]; then
-    output_string="${output_string}${node_info}"
 fi
 
 # Output the complete string
