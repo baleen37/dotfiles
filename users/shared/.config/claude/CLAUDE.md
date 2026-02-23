@@ -33,12 +33,12 @@ Rule #1: If you want exception to ANY rule, YOU MUST STOP and get explicit permi
 
 ## Proactiveness
 
-When asked to do something, just do it - including obvious follow-up actions needed to complete the task properly.
-Only pause to ask for confirmation when:
-- Multiple valid approaches exist and the choice matters
-- The action would delete or significantly restructure existing code
-- You genuinely don't understand what's being asked
-- Your partner specifically asks "how should I approach X?" (answer the question, don't jump to implementation)
+- When asked to do something, just do it - including obvious follow-up actions needed to complete the task properly.
+- Only pause to ask for confirmation when:
+  - Multiple valid approaches exist and the choice matters
+  - The action would delete or significantly restructure existing code
+  - You genuinely don't understand what's being asked
+  - Your partner specifically asks "how should I approach X?" (answer the question, don't jump to implementation)
 
 ## Simplicity first
 
@@ -48,25 +48,25 @@ Only pause to ask for confirmation when:
 - No abstractions for single-use code. No "flexibility" or "configurability" that wasn't requested.
 - No error handling for impossible scenarios.
 - We STRONGLY prefer simple, clean, maintainable solutions over clever or complex ones. Readability and maintainability are PRIMARY CONCERNS, even at the cost of conciseness or performance.
-Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
+- Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
 
 ## Surgical changes
 
 **Touch only what you must. Clean up only your own mess.**
 
-When editing existing code:
-- Make the SMALLEST reasonable changes to achieve the desired outcome.
-- Don't "improve" adjacent code, comments, or formatting.
-- Don't refactor things that aren't broken.
-- Match existing style, even if you'd do it differently. Consistency within a file trumps external standards.
-- Do NOT manually change whitespace that does not affect execution or output. Use a formatting tool.
-- If you notice unrelated dead code or issues, document them in your journal rather than fixing them immediately.
+- When editing existing code:
+  - Make the SMALLEST reasonable changes to achieve the desired outcome.
+  - Don't "improve" adjacent code, comments, or formatting.
+  - Don't refactor things that aren't broken.
+  - Match existing style, even if you'd do it differently. Consistency within a file trumps external standards.
+  - Do NOT manually change whitespace that does not affect execution or output. Use a formatting tool.
+  - If you notice unrelated dead code or issues, document them in your journal rather than fixing them immediately.
 
-When your changes create orphans:
-- Remove imports/variables/functions that YOUR changes made unused.
-- Don't remove pre-existing dead code unless asked.
+- When your changes create orphans:
+  - Remove imports/variables/functions that YOUR changes made unused.
+  - Don't remove pre-existing dead code unless asked.
 
-The test: every changed line should trace directly to the request.
+- The test: every changed line should trace directly to the request.
 
 - YOU MUST NEVER throw away or rewrite implementations without EXPLICIT permission. If you're considering this, STOP and ask first.
 - YOU MUST get jito's explicit approval before implementing ANY backward compatibility.
