@@ -13,7 +13,7 @@
 #       - cco: Claude Code via OpenAI-compatible proxy
 #       - ccz: Claude Code via Z.ai GLM API
 #       - oc: OpenCode quick execution
-#       - gw: Git worktree creation/switch + AI tool execution (cc/cco/ccz/oc)
+#       - gw: Git worktree creation/switch
 #   - SSH wrapper: Auto-reconnection support via autossh
 #   - dotfiles auto-update: Background updates on shell startup
 #
@@ -391,80 +391,16 @@ in
       # =============================================================================
       # Section: Git worktree wrapper
       # =============================================================================
-      # Build Claude environment prefix for gw() function
-      # Usage: _gw_build_claude_env <base_url> <auth_token> [opus_model] [sonnet_model] [haiku_model]
-      # Outputs: Complete environment prefix string for eval
-      _gw_build_claude_env() {
-        local base_url="$1"
-        local auth_token="$2"
-        local opus_model="''${3:-}"
-        local sonnet_model="''${4:-}"
-        local haiku_model="''${5:-}"
-
-        local env_prefix="ANTHROPIC_BASE_URL=\"$base_url\" ANTHROPIC_AUTH_TOKEN=\"$auth_token\""
-
-        [[ -n "$opus_model" ]] && env_prefix="$env_prefix ANTHROPIC_DEFAULT_OPUS_MODEL=\"$opus_model\""
-        [[ -n "$sonnet_model" ]] && env_prefix="$env_prefix ANTHROPIC_DEFAULT_SONNET_MODEL=\"$sonnet_model\""
-        [[ -n "$haiku_model" ]] && env_prefix="$env_prefix ANTHROPIC_DEFAULT_HAIKU_MODEL=\"$haiku_model\""
-
-        echo "$env_prefix command claude --dangerously-skip-permissions"
-      }
-
-      # Git Worktree wrapper - Create git worktree and launch AI tool
-      # Usage: gw <branch-name> [subcmd]
-      #   subcmd: cc (default), ccz, oc
+      # Git Worktree wrapper - Create git worktree and cd into it
+      # Usage: gw <branch-name>
       gw() {
         local branch_name="$1"
-        local subcmd="''${2:-cc}"
 
         # Validate arguments
         if [[ $# -eq 0 ]]; then
-          echo "Usage: gw <branch-name> [subcmd]"
-          echo "  subcmd: cc (default), cco, ccz, cck, oc"
+          echo "Usage: gw <branch-name>"
           return 1
         fi
-
-        # Validate subcmd early
-        case "$subcmd" in
-          cc|cco|ccz|cck|oc)
-            ;;
-          *)
-            echo "Error: Unknown subcmd '$subcmd'. Use: cc, cco, ccz, cck, or oc" >&2
-            return 1
-            ;;
-        esac
-
-        # Map subcmd to tool command
-        local tool_command
-        case "$subcmd" in
-          cc)
-            tool_command="claude --dangerously-skip-permissions"
-            ;;
-          cco)
-            tool_command=$(_gw_build_claude_env \
-              "''${CCO_BASE_URL:-http://127.0.0.1:8317}" \
-              "''${CCO_AUTH_TOKEN:-sk-dummy}" \
-              "''${CCO_OPUS_MODEL:-}" \
-              "''${CCO_SONNET_MODEL:-}" \
-              "''${CCO_HAIKU_MODEL:-}")
-            ;;
-          ccz)
-            tool_command=$(_gw_build_claude_env \
-              "https://api.z.ai/api/anthropic" \
-              "''${CCZ_TOKEN:-}" \
-              "''${CCZ_OPUS_MODEL:-}" \
-              "''${CCZ_SONNET_MODEL:-}" \
-              "''${CCZ_HAIKU_MODEL:-}")
-            ;;
-          cck)
-            tool_command=$(_gw_build_claude_env \
-              "''${CCK_BASE_URL:-http://127.0.0.1:8317}" \
-              "''${CCK_AUTH_TOKEN:-sk-dummy}")
-            ;;
-          oc)
-            tool_command="opencode"
-            ;;
-        esac
 
         # ANSI color codes
         local RED='\033[0;31m'
@@ -590,7 +526,7 @@ in
         fi
 
         _msg "$GREEN" "Worktree created: $worktree_dir"
-        cd "$worktree_dir" && eval "$tool_command"
+        cd "$worktree_dir"
       }
     '';
   };

@@ -109,9 +109,5 @@ in
       (assertInitHas "cck-auth-token" "CCK_AUTH_TOKEN")
     ]
 
-    # 10. gw supports all subcmds including cco and cck
-    ++ [
-      (assertInitHas "gw-cco-subcmd" "cc|cco|ccz|cck|oc")
-    ]
   );
 }
