@@ -15,12 +15,13 @@
 # Packages included:
 #   - Core utilities: wget, zip, tree, curl, jq, ripgrep, fzf
 #   - Development tools: nodejs, python3, uv, direnv, pre-commit
+#   - LSP servers: gopls, typescript-language-server, clang-tools, pyright
 #   - Nix tools: nixfmt, statix, deadnix
 #   - Cloud tools: act, gh, docker, awscli2
-#   - Security: yubikey-agent, keepassxc
-#   - SSH tools: autossh, mosh, teleport
+#   - Security: age, sops
+#   - SSH tools: mosh, teleport
 #   - Terminal: ghostty, htop, starship
-#   - Fonts: noto-fonts-cjk-sans, cascadia-code
+#   - Fonts: noto-fonts-cjk-sans, cascadia-code, d2coding
 #   - Media: ffmpeg
 #   - Databases: postgresql, sqlite, redis, mysql80
 #
@@ -87,7 +88,14 @@ in
       pre-commit
       vscode
       postman
+
+      # LSP servers
       lua-language-server
+      gopls
+      go
+      typescript-language-server
+      clang-tools
+      pyright
 
       # Nix tools
       nixfmt
