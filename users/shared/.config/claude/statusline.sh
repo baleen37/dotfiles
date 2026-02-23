@@ -46,34 +46,6 @@ IFS=$'\t' read -r model_name current_dir <<< "$(echo "$input" | jq -r '[
     .workspace.current_dir // "."
 ] | @tsv')"
 
-# Calculate context and cache info from JSON input
-# See: code.claude.com/docs/en/statusline
-# Note: current_usage fields are not in official docs but may be provided
-ctx_display=""
-usage=$(echo "$input" | jq '.context_window.current_usage // empty')
-if [[ -n "$usage" && "$usage" != "null" ]]; then
-    input_tokens=$(echo "$usage" | jq '.input_tokens // 0')
-    cache_read=$(echo "$usage" | jq '.cache_read_input_tokens // 0')
-    cache_creation=$(echo "$usage" | jq '.cache_creation_input_tokens // 0')
-
-    # Total context length
-    context_length=$((input_tokens + cache_read + cache_creation))
-
-    # Format helper function
-    format_tokens() {
-        local val=$1
-        if [[ "$val" -ge 1000 ]]; then
-            echo "$((val / 1000))k"
-        else
-            echo "$val"
-        fi
-    }
-
-    # Build context display: "20k" format
-    if [[ "$context_length" -gt 0 ]]; then
-        ctx_display=$(format_tokens "$context_length")
-    fi
-fi
 
 # Get current directory relative to home directory
 if [[ "$current_dir" == "$HOME"* ]]; then
@@ -251,12 +223,7 @@ if [[ -n "$git_dir" ]]; then
 fi
 
 # Build output string
-# Only show context if available
-if [[ -n "$ctx_display" ]]; then
-    output_string="${BOLD}${BLUE}${model_name}${RESET} ${GRAY}│${RESET} ${CYAN}${ctx_display}${RESET} ${GRAY}│${RESET} ${PURPLE}${dir_display}${RESET}"
-else
-    output_string="${BOLD}${BLUE}${model_name}${RESET} ${GRAY}│${RESET} ${PURPLE}${dir_display}${RESET}"
-fi
+output_string="${BOLD}${BLUE}${model_name}${RESET} ${GRAY}│${RESET} ${PURPLE}${dir_display}${RESET}"
 
 # Add git info if available
 if [[ -n "$git_info" ]]; then
