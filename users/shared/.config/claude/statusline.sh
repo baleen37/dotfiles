@@ -26,15 +26,15 @@
 # 🕐 Current time
 
 # Color codes for better visual separation
-readonly BLUE='\033[94m'      # Bright blue for model/main info
-readonly GREEN='\033[92m'     # Bright green for clean git status
-readonly YELLOW='\033[93m'    # Bright yellow for modified git status
-readonly RED='\033[91m'       # Bright red for conflicts/errors
-readonly PURPLE='\033[95m'    # Bright purple for directory
-readonly CYAN='\033[96m'      # Bright cyan for python venv
-readonly GRAY='\033[37m'      # Gray for separators
-readonly RESET='\033[0m'      # Reset colors
-readonly BOLD='\033[1m'       # Bold text
+readonly BLUE=$'\033[94m'      # Bright blue for model/main info
+readonly GREEN=$'\033[92m'     # Bright green for clean git status
+readonly YELLOW=$'\033[93m'    # Bright yellow for modified git status
+readonly RED=$'\033[91m'       # Bright red for conflicts/errors
+readonly PURPLE=$'\033[95m'    # Bright purple for directory
+readonly CYAN=$'\033[96m'      # Bright cyan for python venv
+readonly GRAY=$'\033[37m'      # Gray for separators
+readonly RESET=$'\033[0m'      # Reset colors
+readonly BOLD=$'\033[1m'       # Bold text
 
 # Read JSON input from stdin
 input=$(cat)
@@ -46,32 +46,28 @@ IFS=$'\t' read -r model_name current_dir <<< "$(echo "$input" | jq -r '[
     .workspace.current_dir // "."
 ] | @tsv')"
 
-# Calculate context and cache info from JSON input
+# Calculate context info from JSON input
 # See: code.claude.com/docs/en/statusline
-# Note: current_usage fields are not in official docs but may be provided
 ctx_display=""
-usage=$(echo "$input" | jq '.context_window.current_usage // empty')
-if [[ -n "$usage" && "$usage" != "null" ]]; then
-    input_tokens=$(echo "$usage" | jq '.input_tokens // 0')
-    cache_read=$(echo "$usage" | jq '.cache_read_input_tokens // 0')
-    cache_creation=$(echo "$usage" | jq '.cache_creation_input_tokens // 0')
-
-    # Total context length
-    context_length=$((input_tokens + cache_read + cache_creation))
-
-    # Format helper function
-    format_tokens() {
-        local val=$1
-        if [[ "$val" -ge 1000 ]]; then
-            echo "$((val / 1000))k"
+context_length=$(echo "$input" | jq -r '
+    .context_window.current_usage as $cu |
+    if $cu == null or ($cu | length) == 0 then
+        .context_window.total_input_tokens // 0
+    else
+        (($cu.input_tokens // 0) + ($cu.cache_read_input_tokens // 0) + ($cu.cache_creation_input_tokens // 0)) as $sum |
+        if $sum == 0 then
+            .context_window.total_input_tokens // 0
         else
-            echo "$val"
-        fi
-    }
+            $sum
+        end
+    end
+' 2>/dev/null)
 
-    # Build context display: "20k" format
-    if [[ "$context_length" -gt 0 ]]; then
-        ctx_display=$(format_tokens "$context_length")
+if [[ -n "$context_length" && "$context_length" -gt 0 ]]; then
+    if [[ "$context_length" -ge 1000 ]]; then
+        ctx_display="$((context_length / 1000))k"
+    else
+        ctx_display="$context_length"
     fi
 fi
 
@@ -178,9 +174,11 @@ if [[ -n "$git_dir" ]]; then
         fi
 
         # Make branch name a clickable OSC 8 hyperlink if we have a GitHub URL
+        ESC=$'\033'
+        ST="${ESC}\\"
         if [[ -n "$github_base_url" && "$branch" != detached:* ]]; then
             branch_url="${github_base_url}/tree/${branch}"
-            branch_link=$'\e]8;;'"${branch_url}"$'\e\\'"${branch}"$'\e]8;;\e\\'
+            branch_link="${ESC}]8;;${branch_url}${ST}${branch}${ESC}]8;;${ST}"
         else
             branch_link="${branch}"
         fi
@@ -196,10 +194,8 @@ if [[ -n "$git_dir" ]]; then
                     pr_number=$(echo "$pr_json" | jq -r '.number // empty')
                     pr_url=$(echo "$pr_json" | jq -r '.url // empty')
                     if [[ -n "$pr_number" && -n "$pr_url" ]]; then
-                        # OSC 8 hyperlink using $'\e' for literal ESC byte
-                        # RESET must also use literal ESC byte since pr_link contains real ESC bytes
-                        pr_link=$'\e]8;;'"${pr_url}"$'\e\\''PR#'"${pr_number}"$'\e]8;;\e\\'
-                        pr_info=" ${CYAN}${pr_link}"$'\033[0m'
+                        pr_link="${ESC}]8;;${pr_url}${ST}PR#${pr_number}${ESC}]8;;${ST}"
+                        pr_info=" ${CYAN}${pr_link}${RESET}"
                     fi
                 fi
             fi
@@ -264,4 +260,4 @@ if [[ -n "$git_info" ]]; then
 fi
 
 # Output the complete string
-echo -e "$output_string"
+printf '%s\n' "$output_string"
