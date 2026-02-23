@@ -46,6 +46,28 @@ IFS=$'\t' read -r model_name current_dir <<< "$(echo "$input" | jq -r '[
     .workspace.current_dir // "."
 ] | @tsv')"
 
+# Calculate context info from JSON input
+# See: code.claude.com/docs/en/statusline
+ctx_display=""
+usage=$(echo "$input" | jq '.context_window.current_usage // empty')
+if [[ -n "$usage" && "$usage" != "null" ]]; then
+    input_tokens=$(echo "$usage" | jq '.input_tokens // 0')
+
+    # Format helper function
+    format_tokens() {
+        local val=$1
+        if [[ "$val" -ge 1000 ]]; then
+            echo "$((val / 1000))k"
+        else
+            echo "$val"
+        fi
+    }
+
+    # Build context display: "20k" format
+    if [[ "$input_tokens" -gt 0 ]]; then
+        ctx_display=$(format_tokens "$input_tokens")
+    fi
+fi
 
 # Get current directory relative to home directory
 if [[ "$current_dir" == "$HOME"* ]]; then
@@ -223,7 +245,12 @@ if [[ -n "$git_dir" ]]; then
 fi
 
 # Build output string
-output_string="${BOLD}${BLUE}${model_name}${RESET} ${GRAY}│${RESET} ${PURPLE}${dir_display}${RESET}"
+# Only show context if available
+if [[ -n "$ctx_display" ]]; then
+    output_string="${BOLD}${BLUE}${model_name}${RESET} ${GRAY}│${RESET} ${CYAN}${ctx_display}${RESET} ${GRAY}│${RESET} ${PURPLE}${dir_display}${RESET}"
+else
+    output_string="${BOLD}${BLUE}${model_name}${RESET} ${GRAY}│${RESET} ${PURPLE}${dir_display}${RESET}"
+fi
 
 # Add git info if available
 if [[ -n "$git_info" ]]; then
