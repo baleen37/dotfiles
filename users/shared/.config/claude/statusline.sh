@@ -164,17 +164,43 @@ if [[ -n "$git_dir" ]]; then
             fi
         fi
 
+        # Build GitHub base URL from remote (used for branch and PR links)
+        github_base_url=""
+        remote_url=$(git -C "$current_dir" config --get remote.origin.url 2>/dev/null)
+        if [[ "$remote_url" == *"github.com"* ]]; then
+            # Normalize SSH (git@github.com:owner/repo.git) and HTTPS URLs to https://github.com/owner/repo
+            github_base_url=$(echo "$remote_url" | sed -E \
+                's|git@github\.com:|https://github.com/|;s|\.git$||;s|https://github\.com/(.+)\.git|\1|')
+            # Ensure it starts with https://
+            if [[ "$github_base_url" != https://* ]]; then
+                github_base_url="https://github.com/${github_base_url#https://github.com/}"
+            fi
+        fi
+
+        # Make branch name a clickable OSC 8 hyperlink if we have a GitHub URL
+        if [[ -n "$github_base_url" && "$branch" != detached:* ]]; then
+            branch_url="${github_base_url}/tree/${branch}"
+            branch_link=$'\e]8;;'"${branch_url}"$'\e\\'"${branch}"$'\e]8;;\e\\'
+        else
+            branch_link="${branch}"
+        fi
+
         # Check for open PRs using GitHub CLI if available
         pr_info=""
         if command -v gh >/dev/null 2>&1; then
-            # Only check for PRs if we're in a GitHub repo
-            remote_url=$(git -C "$current_dir" config --get remote.origin.url 2>/dev/null)
             if [[ "$remote_url" == *"github.com"* ]]; then
                 # Quick PR check with timeout to prevent hanging
                 # gh has internal caching, so this is fast after first run
-                pr_number=$(timeout 0.5 gh pr view --json number -q .number 2>/dev/null || echo "")
-                if [[ -n "$pr_number" ]]; then
-                    pr_info=" ${CYAN}PR#${pr_number}${RESET}"
+                pr_json=$(timeout 0.5 gh pr view --json number,url 2>/dev/null || echo "")
+                if [[ -n "$pr_json" ]]; then
+                    pr_number=$(echo "$pr_json" | jq -r '.number // empty')
+                    pr_url=$(echo "$pr_json" | jq -r '.url // empty')
+                    if [[ -n "$pr_number" && -n "$pr_url" ]]; then
+                        # OSC 8 hyperlink using $'\e' for literal ESC byte
+                        # RESET must also use literal ESC byte since pr_link contains real ESC bytes
+                        pr_link=$'\e]8;;'"${pr_url}"$'\e\\''PR#'"${pr_number}"$'\e]8;;\e\\'
+                        pr_info=" ${CYAN}${pr_link}"$'\033[0m'
+                    fi
                 fi
             fi
         fi
@@ -216,7 +242,8 @@ if [[ -n "$git_dir" ]]; then
         fi
 
         # Construct git info string with separate sections (no icon)
-        git_branch_info="${git_color}${branch}${RESET}${worktree_info}${ahead_behind}${pr_info}"
+        # branch_link may contain literal ESC bytes (OSC 8), so RESET uses $'\033[0m'
+        git_branch_info="${git_color}${branch_link}"$'\033[0m'"${worktree_info}${ahead_behind}${pr_info}"
 
         # Always show branch and git diff indicator if present
         git_info=" ${GRAY}│${RESET} ${git_branch_info}${git_diff_indicator}"
