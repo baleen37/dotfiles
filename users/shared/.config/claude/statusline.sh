@@ -49,23 +49,25 @@ IFS=$'\t' read -r model_name current_dir <<< "$(echo "$input" | jq -r '[
 # Calculate context info from JSON input
 # See: code.claude.com/docs/en/statusline
 ctx_display=""
-usage=$(echo "$input" | jq '.context_window.current_usage // empty')
-if [[ -n "$usage" && "$usage" != "null" ]]; then
-    input_tokens=$(echo "$usage" | jq '.input_tokens // 0')
-
-    # Format helper function
-    format_tokens() {
-        local val=$1
-        if [[ "$val" -ge 1000 ]]; then
-            echo "$((val / 1000))k"
+context_length=$(echo "$input" | jq -r '
+    .context_window.current_usage as $cu |
+    if $cu == null or ($cu | length) == 0 then
+        .context_window.total_input_tokens // 0
+    else
+        (($cu.input_tokens // 0) + ($cu.cache_read_input_tokens // 0) + ($cu.cache_creation_input_tokens // 0)) as $sum |
+        if $sum == 0 then
+            .context_window.total_input_tokens // 0
         else
-            echo "$val"
-        fi
-    }
+            $sum
+        end
+    end
+' 2>/dev/null)
 
-    # Build context display: "20k" format
-    if [[ "$input_tokens" -gt 0 ]]; then
-        ctx_display=$(format_tokens "$input_tokens")
+if [[ -n "$context_length" && "$context_length" -gt 0 ]]; then
+    if [[ "$context_length" -ge 1000 ]]; then
+        ctx_display="$((context_length / 1000))k"
+    else
+        ctx_display="$context_length"
     fi
 fi
 
