@@ -215,6 +215,8 @@ in
     "gw() should check for git repository")
   (helpers.assertTest "function-gw-cd" (initContentHas "cd \"$worktree_dir\"")
     "gw() should change to worktree dir")
+  (helpers.assertTest "function-gw-repo-root" (initContentHas "git worktree list | head -1")
+    "gw() should resolve worktree path from main repo root")
 
   # SSH wrapper with autossh
   (helpers.assertTest "ssh-wrapper-autossh" (initContentHas "autossh")
