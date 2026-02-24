@@ -423,8 +423,10 @@ in
         }
 
         # Helper: Sanitize branch name for directory (replace / with -)
+        # Prefix with zero-padded sequential number based on existing worktree count
         local _sanitize_branch() {
-          echo ".worktrees/''${1//\//-}"
+          local next_num=$(printf "%05d" $(( $(git worktree list | tail -n +2 | wc -l | tr -d ' ') + 1 )))
+          echo ".worktrees/''${next_num}-''${1//\//-}"
         }
 
         # Helper: Find base branch (main or master)
