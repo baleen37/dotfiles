@@ -28,7 +28,6 @@
 
 {
   pkgs,
-  lib,
   inputs,
   currentSystemUser,
   isDarwin ? pkgs.stdenv.isDarwin,
@@ -37,21 +36,18 @@
 
 {
   # Import all extracted tool configurations
-  imports =
-    [
-      ./git.nix
-      ./vim.nix
-      ./zsh.nix
-      ./starship.nix
-      ./tmux.nix
-      ./claude-code.nix
-      ./opencode.nix
-      ./ghostty.nix
-    ]
-    ++ lib.optionals isDarwin [
-      ./hammerspoon.nix
-      ./karabiner.nix
-    ];
+  imports = [
+    ./git.nix
+    ./vim.nix
+    ./zsh.nix
+    ./starship.nix
+    ./tmux.nix
+    ./claude-code.nix
+    ./opencode.nix
+    ./ghostty.nix
+    ./hammerspoon.nix
+    ./karabiner.nix
+  ];
 
   # Home Manager configuration
   # Username is dynamically resolved from flake.nix (supports both baleen and jito.hello)
