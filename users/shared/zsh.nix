@@ -424,9 +424,12 @@ in
 
         # Helper: Sanitize branch name for directory (replace / with -)
         # Prefix with zero-padded sequential number based on existing worktree count
+        # Always returns an absolute path based on the main worktree root so gw works
+        # correctly from inside a worktree (flat, not nested).
         local _sanitize_branch() {
+          local repo_root=$(git worktree list | head -1 | awk '{print $1}')
           local next_num=$(printf "%05d" $(( $(git worktree list | tail -n +2 | wc -l | tr -d ' ') + 1 )))
-          echo ".worktrees/''${next_num}-''${1//\//-}"
+          echo "''${repo_root}/.worktrees/''${next_num}-''${1//\//-}"
         }
 
         # Helper: Find base branch (main or master)
