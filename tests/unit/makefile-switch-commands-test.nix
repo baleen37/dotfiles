@@ -52,14 +52,14 @@ pkgs.runCommand "makefile-switch-commands-test"
       exit 1
     fi
 
-    # Test 3: build-switch should NOT use home-manager (check via switch dependency)
-    # build-switch should use nix-darwin, not home-manager
-    # Use awk to extract only the switch target (stop at next target or blank line)
-    if (awk '/^switch:/{p=1} p && /^[a-z-]+:/ && !/^switch:/{exit} p' "$makefileSource" | grep -q "home-manager"); then
-      echo "❌ Test 3 FAIL: switch (used by build-switch) should not use home-manager on Darwin"
+    # Test 3: Darwin branch of switch should NOT use home-manager
+    # Non-NixOS Linux branch may use home-manager, but Darwin must use nix-darwin
+    # Extract only the Darwin branch (switch: target up to the first "else")
+    if sed -n '/^switch:/,/^else/{/home-manager/p}' "$makefileSource" | grep -q "home-manager"; then
+      echo "❌ Test 3 FAIL: Darwin branch of switch should not use home-manager"
       exit 1
     else
-      echo "✅ Test 3 PASS: build-switch does not use home-manager on Darwin"
+      echo "✅ Test 3 PASS: Darwin branch of switch does not use home-manager"
     fi
 
     # Test 4: All switch commands should have USER variable handling

@@ -1,9 +1,9 @@
 # users/shared/hammerspoon.nix
 # Hammerspoon configuration
 
-{ ... }:
+{ lib, isDarwin, ... }:
 
-{
+lib.mkIf isDarwin {
   # Pattern: Tool-specific home directory (destination: ~/.hammerspoon/)
   # Hammerspoon requires configuration in ~/.hammerspoon/ (non-XDG)
   # Source organized in .config/ for consistency, symlinked to custom location

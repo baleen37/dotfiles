@@ -95,6 +95,7 @@ systemFunc {
         extraSpecialArgs = {
           inherit inputs self;
           currentSystemUser = user;
+          isDarwin = darwin;
         };
       };
 

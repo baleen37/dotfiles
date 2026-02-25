@@ -28,15 +28,12 @@
 
 {
   pkgs,
-  lib,
   inputs,
   currentSystemUser,
+  isDarwin ? pkgs.stdenv.isDarwin,
   ...
 }:
 
-let
-  inherit (pkgs.stdenv) isDarwin;
-in
 {
   # Import all extracted tool configurations
   imports = [
@@ -47,9 +44,9 @@ in
     ./tmux.nix
     ./claude-code.nix
     ./opencode.nix
+    ./ghostty.nix
     ./hammerspoon.nix
     ./karabiner.nix
-    ./ghostty.nix
   ];
 
   # Home Manager configuration
