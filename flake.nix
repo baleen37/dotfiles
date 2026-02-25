@@ -117,11 +117,29 @@
                 ./users/shared/home-manager.nix
               ];
             };
+          mkHomeConfigLinux =
+            userName: system:
+            home-manager.lib.homeManagerConfiguration {
+              pkgs = import nixpkgs {
+                inherit system;
+                config.allowUnfree = true;
+                overlays = overlays;
+              };
+              extraSpecialArgs = {
+                inherit inputs self;
+                currentSystemUser = userName;
+                isDarwin = false;
+              };
+              modules = [
+                ./users/shared/home-manager.nix
+              ];
+            };
         in
         {
           baleen = mkHomeConfig "baleen";
           "jito.hello" = mkHomeConfig "jito.hello";
           testuser = mkHomeConfig "testuser";
+          "baleen-linux" = mkHomeConfigLinux "baleen" "x86_64-linux";
         };
 
       # NixOS configurations
