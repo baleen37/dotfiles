@@ -166,6 +166,7 @@
                 extraSpecialArgs = {
                   inherit inputs self;
                   currentSystemUser = user;
+                  isDarwin = false;
                 };
               };
 
@@ -200,6 +201,7 @@
                 extraSpecialArgs = {
                   inherit inputs self;
                   currentSystemUser = user;
+                  isDarwin = false;
                 };
               };
 
