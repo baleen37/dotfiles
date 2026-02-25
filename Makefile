@@ -27,19 +27,26 @@ UNAME := $(shell uname)
 
 build-switch: switch
 
+IS_NIXOS := $(shell [ -f /etc/nixos/configuration.nix ] && echo true || echo false)
+
 switch:
 ifeq ($(UNAME), Darwin)
 	NIXPKGS_ALLOW_UNFREE=1 $(SUDO_NIX) run nix-darwin -- switch --flake ".#$(NIXNAME)"
-else
+else ifeq ($(IS_NIXOS), true)
 	NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 $(SUDO_NIX) run "nixpkgs#nixos-rebuild" -- switch --flake ".#${NIXNAME}"
+else
+	NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 $(NIX) run 'github:nix-community/home-manager' -- switch --impure --flake ".#${NIXNAME}"
 endif
 
 # Rebuild only Home Manager configuration (faster for user config changes)
 # Usage: make switch-home
 switch-home:
 	@echo "Rebuilding Home Manager configuration for $(USER)..."
-	@export USER=$${USER:-$(whoami)} && \
-	NIXPKGS_ALLOW_UNFREE=1 home-manager switch --impure --flake ".#$$USER"
+ifeq ($(UNAME), Darwin)
+	NIXPKGS_ALLOW_UNFREE=1 $(NIX) run 'github:nix-community/home-manager' -- switch --impure --flake ".#${USER}"
+else
+	NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 $(NIX) run 'github:nix-community/home-manager' -- switch --impure --flake ".#${NIXNAME}"
+endif
 
 test:
 	@echo "Running dual-mode tests..."

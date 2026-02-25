@@ -50,6 +50,7 @@ in
       };
       pull.rebase = true;
       rebase.autoStash = true;
+      credential.helper = "gh auth git-credential";
       alias = {
         st = "status";
         co = "checkout";

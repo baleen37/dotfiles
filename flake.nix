@@ -140,6 +140,7 @@
           "jito.hello" = mkHomeConfig "jito.hello";
           testuser = mkHomeConfig "testuser";
           "baleen-linux" = mkHomeConfigLinux "baleen" "x86_64-linux";
+          "baleen-dev-ubuntu" = mkHomeConfigLinux "baleen" "x86_64-linux";
         };
 
       # NixOS configurations
