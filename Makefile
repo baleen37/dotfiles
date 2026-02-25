@@ -24,10 +24,9 @@ SUDO_NIX := sudo -H env PATH=$$PATH $(NIX_PATH) --extra-experimental-features ni
 
 # We need to do some OS switching below.
 UNAME := $(shell uname)
+IS_NIXOS := $(shell [ -f /etc/nixos/configuration.nix ] && echo true || echo false)
 
 build-switch: switch
-
-IS_NIXOS := $(shell [ -f /etc/nixos/configuration.nix ] && echo true || echo false)
 
 switch:
 ifeq ($(UNAME), Darwin)
