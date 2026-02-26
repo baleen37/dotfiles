@@ -98,6 +98,9 @@
       # OpenCode CLI shortcut
       oc = "opencode";
 
+      # Codex CLI shortcut
+      cx = "codex --dangerously-bypass-approvals-and-sandbox";
+
       # Git aliases
       ga = "git add";
       gc = "git commit";
