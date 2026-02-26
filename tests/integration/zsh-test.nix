@@ -19,7 +19,7 @@ let
   isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
 
   # Import zsh configuration
-  zshConfig = import ../../users/shared/zsh.nix {
+  zshConfig = import ../../users/shared/zsh {
     inherit pkgs lib isDarwin;
     config = {
       home = {
