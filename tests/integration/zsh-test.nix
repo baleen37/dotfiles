@@ -1,6 +1,6 @@
 # Zsh Configuration Integration Test
 #
-# Tests the Zsh shell configuration in users/shared/zsh.nix
+# Tests the Zsh shell configuration in users/shared/zsh/
 # Verifies shell enablement, key aliases, fzf integration, history settings,
 # prompt configuration, direnv integration, and shell functions.
 {
