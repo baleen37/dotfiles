@@ -44,6 +44,13 @@ repos:
         exclude: ^tests/e2e/secret-management-test\.nix$
       - id: check-yaml
 
+  # Nix linting - dead code detection
+  - repo: https://github.com/astro/deadnix
+    rev: v1.3.1
+    hooks:
+      - id: deadnix
+        args: ['--no-lambda-pattern-names']
+
   # Makefile-managed checks (single source of truth)
   - repo: local
     hooks:

@@ -76,6 +76,9 @@ endif
 test-all: test test-integration
 	@echo "All tests completed successfully"
 
+format:
+	$(NIX) fmt
+
 # Optional: Attempt cross-platform container testing (experimental)
 # Note: This requires additional setup and may not work on all systems
 test-containers:
@@ -220,4 +223,4 @@ wsl:
 	 nix build ".#nixosConfigurations.wsl.config.system.build.installer"
 
 # Phony targets
-.PHONY: switch switch-home test test-integration test-all test-containers cache vm/bootstrap0 vm/bootstrap vm/copy vm/switch vm/secrets secrets/backup secrets/restore
+.PHONY: switch switch-home test test-integration test-all test-containers format cache vm/bootstrap0 vm/bootstrap vm/copy vm/switch vm/secrets secrets/backup secrets/restore

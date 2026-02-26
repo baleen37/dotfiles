@@ -46,13 +46,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Clear Nix store cache
-        shell: bash
-        run: |
-          echo "Clearing Nix store to avoid stale derivations..."
-          rm -rf ~/.cache/nix ~/.local/state/nix || true
-          echo "Nix store cache cleared"
-
       - name: Setup Nix with cache
         uses: ./.github/actions/setup-nix
 
