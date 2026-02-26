@@ -3,6 +3,9 @@
 
   nixConfig = {
     # Flake evaluation caches - performance-first order
+    # NOTE: These values are also defined in lib/cache-config.nix for system configuration.
+    # flake.nix nixConfig cannot import files (must be a top-level attribute set),
+    # so these are maintained separately. Keep in sync with lib/cache-config.nix.
     substituters = [
       "https://baleen-nix.cachix.org"
       "https://nix-community.cachix.org"
