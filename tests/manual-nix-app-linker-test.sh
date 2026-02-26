@@ -20,15 +20,26 @@ mkdir -p "$home_apps"
 mkdir -p "$nix_store"
 
 # Source the function
-source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../../lib/nix-app-linker.sh"
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../lib/nix-app-linker.sh"
 
-# Run and capture output
+# Test 1: First run should link apps (not show "No new apps")
 output=$(link_nix_apps "$home_apps" "$nix_store" "$profile_dir" 2>&1)
 
-# The bug: "No new apps to link" is printed even when apps ARE linked
 if echo "$output" | grep -q "No new apps to link"; then
-  echo "FAIL: Bug reproduced - counter not tracking new apps"
+  echo "FAIL: First run should link apps, but got 'No new apps to link'"
   exit 1
 else
-  echo "PASS: Counter correctly tracks new apps"
+  echo "PASS: First run correctly linked new apps"
+fi
+
+# Test 2: Second run should show "No new apps" (already linked)
+output2=$(link_nix_apps "$home_apps" "$nix_store" "$profile_dir" 2>&1)
+
+if echo "$output2" | grep -q "No new apps to link"; then
+  echo "PASS: Second run correctly reports no new apps (idempotent)"
+else
+  echo "FAIL: Second run should show 'No new apps to link' but didn't"
+  echo "Output was:"
+  echo "$output2"
+  exit 1
 fi
