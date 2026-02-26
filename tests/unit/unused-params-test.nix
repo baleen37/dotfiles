@@ -1,6 +1,6 @@
-# Unused parameter detection tests
+# Regression tests: verifies that previously removed parameters
+# have not been re-introduced in git.nix and vim.nix.
 #
-# Verifies that module files don't declare parameters they don't use.
 # Uses builtins.functionArgs to inspect actual parameter declarations,
 # preventing unnecessary coupling between modules and their callers.
 #
@@ -10,10 +10,10 @@
 {
   inputs,
   system,
-  pkgs ? import inputs.nixpkgs { inherit system; },
-  lib ? pkgs.lib,
+  pkgs,
+  lib,
   nixtest ? { },
-  self ? ./.,
+  self,
   ...
 }:
 
