@@ -26,15 +26,19 @@ SUDO_NIX := sudo -H env PATH=$$PATH $(NIX_PATH) --extra-experimental-features ni
 UNAME := $(shell uname)
 IS_NIXOS := $(shell [ -f /etc/nixos/configuration.nix ] && echo true || echo false)
 
+# Environment variables for Nix builds
+NIX_ENV := NIXPKGS_ALLOW_UNFREE=1
+NIX_ENV_FULL := NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1
+
 build-switch: switch
 
 switch:
 ifeq ($(UNAME), Darwin)
-	NIXPKGS_ALLOW_UNFREE=1 $(SUDO_NIX) run nix-darwin -- switch --flake ".#$(NIXNAME)"
+	$(NIX_ENV) $(SUDO_NIX) run nix-darwin -- switch --flake ".#$(NIXNAME)"
 else ifeq ($(IS_NIXOS), true)
-	NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 $(SUDO_NIX) run "nixpkgs#nixos-rebuild" -- switch --flake ".#${NIXNAME}"
+	$(NIX_ENV_FULL) $(SUDO_NIX) run "nixpkgs#nixos-rebuild" -- switch --flake ".#${NIXNAME}"
 else
-	NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 $(NIX) run 'github:nix-community/home-manager' -- switch --impure --flake ".#${NIXNAME}"
+	$(NIX_ENV_FULL) $(NIX) run 'github:nix-community/home-manager' -- switch --impure --flake ".#${NIXNAME}"
 endif
 
 # Rebuild only Home Manager configuration (faster for user config changes)
@@ -42,9 +46,9 @@ endif
 switch-home:
 	@echo "Rebuilding Home Manager configuration for $(USER)..."
 ifeq ($(UNAME), Darwin)
-	NIXPKGS_ALLOW_UNFREE=1 $(NIX) run 'github:nix-community/home-manager' -- switch --impure --flake ".#${USER}"
+	$(NIX_ENV) $(NIX) run 'github:nix-community/home-manager' -- switch --impure --flake ".#${USER}"
 else
-	NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 $(NIX) run 'github:nix-community/home-manager' -- switch --impure --flake ".#${NIXNAME}"
+	$(NIX_ENV_FULL) $(NIX) run 'github:nix-community/home-manager' -- switch --impure --flake ".#${NIXNAME}"
 endif
 
 test:
@@ -53,20 +57,20 @@ test:
 	if [ "$(UNAME)" = "Darwin" ]; then \
 		echo "macOS detected: Running validation mode (container tests require Linux)"; \
 		echo "Validating all test configurations without execution..."; \
-		NIXPKGS_ALLOW_UNFREE=1 $(NIX) flake check --no-build --impure --accept-flake-config --show-trace; \
+		$(NIX_ENV) $(NIX) flake check --no-build --impure --accept-flake-config --show-trace; \
 		echo "E2E tests will be validated in CI"; \
 		echo "Validation completed - Full container tests will run in CI"; \
 	else \
 		echo "Linux detected: Running full container test execution..."; \
-		NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 $(NIX) flake check --impure --accept-flake-config --show-trace; \
+		$(NIX_ENV_FULL) $(NIX) flake check --impure --accept-flake-config --show-trace; \
 	fi
 
 test-integration:
 	@echo "Running integration tests..."
 ifeq ($(UNAME), Darwin)
-	NIXPKGS_ALLOW_UNFREE=1 $(NIX) eval '.#checks.aarch64-darwin.smoke' --impure --accept-flake-config
+	$(NIX_ENV) $(NIX) eval '.#checks.aarch64-darwin.smoke' --impure --accept-flake-config
 else
-	NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 $(NIX) eval '.#checks.x86_64-linux.smoke' --impure --accept-flake-config
+	$(NIX_ENV_FULL) $(NIX) eval '.#checks.x86_64-linux.smoke' --impure --accept-flake-config
 endif
 
 test-all: test test-integration
@@ -81,7 +85,7 @@ test-containers:
 		echo "Cross-compilation detected - this may require additional setup"; \
 		echo "Consider running tests in a Linux VM or CI for reliable results"; \
 		echo "Attempting individual container test build..."; \
-		if NIXPKGS_ALLOW_UNFREE=1 $(NIX) build '.#checks.aarch64-darwin.basic' --impure --accept-flake-config --print-build-logs 2>/dev/null; then \
+		if $(NIX_ENV) $(NIX) build '.#checks.aarch64-darwin.basic' --impure --accept-flake-config --print-build-logs 2>/dev/null; then \
 			echo "Container test executed successfully"; \
 		else \
 			echo "Container test failed - this is expected on macOS without linux-builder"; \
@@ -90,7 +94,7 @@ test-containers:
 		fi; \
 	else \
 		echo "Linux environment - running full container tests..."; \
-		NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 $(NIX) build '.#checks.$(shell uname -m | sed 's/x86_64/x86_64/;s/arm64/aarch64/').basic' --impure --accept-flake-config --print-build-logs; \
+		$(NIX_ENV_FULL) $(NIX) build '.#checks.$(shell uname -m | sed 's/x86_64/x86_64/;s/arm64/aarch64/').basic' --impure --accept-flake-config --print-build-logs; \
 	fi
 
 # This builds the given configuration and pushes the results to the
