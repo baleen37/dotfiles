@@ -17,7 +17,6 @@ let
 
   # Platform detection
   isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
-  isLinux = pkgs.stdenv.hostPlatform.isLinux;
 
   # Import zsh configuration
   zshConfig = import ../../users/shared/zsh.nix {
