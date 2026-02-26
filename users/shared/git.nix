@@ -23,7 +23,7 @@
 #   - 프로젝트: issues/, specs/, plans/
 #
 
-{ pkgs, lib, ... }:
+{ ... }:
 
 let
   # User information from lib/user-info.nix

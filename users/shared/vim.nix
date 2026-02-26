@@ -24,12 +24,7 @@
 #   - Tab/Shift+Tab: Navigate buffers
 #
 
-{
-  pkgs,
-  lib,
-  config,
-  ...
-}:
+{ pkgs, ... }:
 
 {
   programs.vim = {
