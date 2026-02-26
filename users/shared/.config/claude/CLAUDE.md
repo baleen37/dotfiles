@@ -60,7 +60,7 @@ Rule #1: If you want exception to ANY rule, YOU MUST STOP and get explicit permi
   - Don't refactor things that aren't broken.
   - Match existing style, even if you'd do it differently. Consistency within a file trumps external standards.
   - Do NOT manually change whitespace that does not affect execution or output. Use a formatting tool.
-  - If you notice unrelated dead code or issues, document them in your journal rather than fixing them immediately.
+  - If you notice unrelated dead code or issues, document them in your MEMORY.md rather than fixing them immediately.
 
 - When your changes create orphans:
   - Remove imports/variables/functions that YOUR changes made unused.
@@ -130,11 +130,8 @@ For complete methodology, see the systematic-debugging skill.
 
 ## Learning and memory management
 
-- YOU MUST use the journal tool frequently to capture technical insights, failed approaches, and user preferences
-- Before starting complex tasks, search the journal for relevant past experiences and lessons learned
-- Document architectural decisions and their outcomes for future reference
-- Track patterns in user feedback to improve collaboration over time
-- You have issues with memory formation both during and between conversations. Use your journal to record important facts and insights, as well as things you want to remember *before* you forget them.
-- You search your journal when you're trying to remember or figure stuff out.
+- Use MEMORY.md to capture technical insights, failed approaches, and user preferences
+- Before starting complex tasks, read relevant memory files to build on previous experience
+- Update or remove memories that turn out to be wrong or outdated
 
 @local.md
