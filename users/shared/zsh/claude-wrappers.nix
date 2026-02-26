@@ -65,6 +65,7 @@
   #   CCO_OPUS_MODEL, CCO_SONNET_MODEL, CCO_HAIKU_MODEL
   _cco_run() {
     local model="$1"; shift
+    ENABLE_TOOL_SEARCH=false \
     ANTHROPIC_BASE_URL="''${CCO_BASE_URL:-http://127.0.0.1:8317}" \
     ANTHROPIC_AUTH_TOKEN="''${CCO_AUTH_TOKEN:-sk-dummy}" \
     ANTHROPIC_DEFAULT_OPUS_MODEL="''${CCO_OPUS_MODEL:-}" \
