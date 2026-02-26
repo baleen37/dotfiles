@@ -80,6 +80,42 @@
           envUser = builtins.getEnv "USER";
         in
         if envUser != "" && envUser != "root" then envUser else "baleen";
+
+      mkNixosVM =
+        name: system:
+        nixpkgs.lib.nixosSystem {
+          inherit system;
+          specialArgs = {
+            inherit inputs self;
+            currentSystem = system;
+            currentSystemName = name;
+            currentSystemUser = user;
+            isWSL = false;
+            isDarwin = false;
+          };
+          modules = [
+            ./machines/nixos/${name}.nix
+            inputs.home-manager.nixosModules.home-manager
+            {
+              home-manager = {
+                useGlobalPkgs = true;
+                useUserPackages = true;
+                users.${user} = import ./users/shared/home-manager.nix;
+                extraSpecialArgs = {
+                  inherit inputs self;
+                  currentSystemUser = user;
+                  isDarwin = false;
+                };
+              };
+
+              users.users.${user} = {
+                name = user;
+                home = "/home/${user}";
+                isNormalUser = true;
+              };
+            }
+          ];
+        };
     in
     {
       # macOS configuration
@@ -140,74 +176,8 @@
 
       # NixOS configurations
       nixosConfigurations = {
-        vm-aarch64-utm = nixpkgs.lib.nixosSystem {
-          system = "aarch64-linux";
-          specialArgs = {
-            inherit inputs self;
-            currentSystem = "aarch64-linux";
-            currentSystemName = "vm-aarch64-utm";
-            currentSystemUser = user;
-            isWSL = false;
-            isDarwin = false;
-          };
-          modules = [
-            ./machines/nixos/vm-aarch64-utm.nix
-            inputs.home-manager.nixosModules.home-manager
-            {
-              home-manager = {
-                useGlobalPkgs = true;
-                useUserPackages = true;
-                users.${user} = import ./users/shared/home-manager.nix;
-                extraSpecialArgs = {
-                  inherit inputs self;
-                  currentSystemUser = user;
-                  isDarwin = false;
-                };
-              };
-
-              # Set required user options with correct paths
-              users.users.${user} = {
-                name = user;
-                home = "/home/${user}";
-                isNormalUser = true;
-              };
-            }
-          ];
-        };
-
-        vm-x86_64-utm = nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
-          specialArgs = {
-            inherit inputs self;
-            currentSystem = "x86_64-linux";
-            currentSystemName = "vm-x86_64-utm";
-            currentSystemUser = user;
-            isWSL = false;
-            isDarwin = false;
-          };
-          modules = [
-            ./machines/nixos/vm-x86_64-utm.nix
-            inputs.home-manager.nixosModules.home-manager
-            {
-              home-manager = {
-                useGlobalPkgs = true;
-                useUserPackages = true;
-                users.${user} = import ./users/shared/home-manager.nix;
-                extraSpecialArgs = {
-                  inherit inputs self;
-                  currentSystemUser = user;
-                  isDarwin = false;
-                };
-              };
-
-              users.users.${user} = {
-                name = user;
-                home = "/home/${user}";
-                isNormalUser = true;
-              };
-            }
-          ];
-        };
+        vm-aarch64-utm = mkNixosVM "vm-aarch64-utm" "aarch64-linux";
+        vm-x86_64-utm = mkNixosVM "vm-x86_64-utm" "x86_64-linux";
       };
 
       # Test checks
