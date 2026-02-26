@@ -106,19 +106,10 @@
         let
           mkHomeConfig =
             userName:
-            home-manager.lib.homeManagerConfiguration {
-              pkgs = nixpkgs.legacyPackages.aarch64-darwin;
-              extraSpecialArgs = {
-                inherit inputs self;
-                currentSystemUser = userName;
-                isDarwin = true;
-              };
-              modules = [
-                ./users/shared/home-manager.nix
-              ];
-            };
-          mkHomeConfigLinux =
-            userName: system:
+            {
+              system ? "aarch64-darwin",
+              isDarwin ? true,
+            }:
             home-manager.lib.homeManagerConfiguration {
               pkgs = import nixpkgs {
                 inherit system;
@@ -126,9 +117,8 @@
                 overlays = overlays;
               };
               extraSpecialArgs = {
-                inherit inputs self;
+                inherit inputs self isDarwin;
                 currentSystemUser = userName;
-                isDarwin = false;
               };
               modules = [
                 ./users/shared/home-manager.nix
@@ -136,11 +126,17 @@
             };
         in
         {
-          baleen = mkHomeConfig "baleen";
-          "jito.hello" = mkHomeConfig "jito.hello";
-          testuser = mkHomeConfig "testuser";
-          "baleen-linux" = mkHomeConfigLinux "baleen" "x86_64-linux";
-          "baleen-dev-ubuntu" = mkHomeConfigLinux "baleen" "x86_64-linux";
+          baleen = mkHomeConfig "baleen" { };
+          "jito.hello" = mkHomeConfig "jito.hello" { };
+          testuser = mkHomeConfig "testuser" { };
+          "baleen-linux" = mkHomeConfig "baleen" {
+            system = "x86_64-linux";
+            isDarwin = false;
+          };
+          "baleen-dev-ubuntu" = mkHomeConfig "baleen" {
+            system = "x86_64-linux";
+            isDarwin = false;
+          };
         };
 
       # NixOS configurations
