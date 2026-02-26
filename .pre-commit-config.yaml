@@ -46,7 +46,7 @@ repos:
 
   # Nix linting - dead code detection
   - repo: https://github.com/astro/deadnix
-    rev: v1.2.1
+    rev: v1.3.1
     hooks:
       - id: deadnix
         args: ['--no-lambda-pattern-names']
