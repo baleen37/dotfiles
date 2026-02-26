@@ -97,7 +97,7 @@
         return 1
       fi
 
-      local existing_branch=$(git branch --list | sed 's/^[* ]*//' | grep -F "$branch/" | head -1)
+      local existing_branch=$(git branch --list | sed 's/^[* ]*//' | awk -v b="$branch/" 'index($0, b) == 1' | head -1)
       if [[ -z "$existing_branch" ]]; then
         return 1
       fi

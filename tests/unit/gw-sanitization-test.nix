@@ -1,6 +1,7 @@
 # tests/unit/gw-sanitization-test.nix
-# Verify gw _handle_ref_conflict uses fixed-string grep to avoid regex injection
-# from branch names containing metacharacters (+, ., *, etc.)
+# Verify gw _handle_ref_conflict does not use grep -E with branch variable
+# interpolation, which would allow regex injection from branch names
+# containing metacharacters (+, ., *, etc.)
 {
   inputs,
   system,
@@ -19,8 +20,8 @@ in
 {
   platforms = [ "any" ];
   value = helpers.testSuite "gw-sanitization" [
-    (helpers.assertTest "gw-grep-uses-fixed-strings"
-      (lib.hasInfix "grep -F" gwScript)
-      "gw _handle_ref_conflict should use grep -F for literal branch matching")
+    (helpers.assertTest "gw-no-regex-branch-matching"
+      (!(lib.hasInfix "grep -E" gwScript && lib.hasInfix "$branch/" gwScript))
+      "gw _handle_ref_conflict should not use grep -E with branch variable (regex injection risk)")
   ];
 }
