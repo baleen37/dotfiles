@@ -106,7 +106,7 @@ link_nix_apps() {
   # 4. 프로필에서 새로운 앱만 검색 (성능 최적화)
   if [ -d "$profile" ]; then
     local new_apps=0
-    find "$profile" -maxdepth 3 -name "*.app" -type d 2>/dev/null | while read -r app_path; do
+    while IFS= read -r -d '' app_path; do
       [ ! -d "$app_path" ] && continue
 
       local app_name=$(basename "$app_path")
@@ -123,7 +123,7 @@ link_nix_apps() {
       ln -sf "$app_path" "$home_apps/$app_name"
       echo "  ✅ $app_name linked"
       new_apps=$((new_apps + 1))
-    done
+    done < <(find "$profile" -maxdepth 3 -name "*.app" -type d -print0 2>/dev/null)
 
     [ $new_apps -eq 0 ] && echo "  ⚡ No new apps to link (all up-to-date)"
   fi

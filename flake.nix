@@ -21,7 +21,6 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
     # Claude Code - latest stable
     claude-code.url = "github:sadjow/claude-code-nix/main";
@@ -51,7 +50,6 @@
     {
       self,
       nixpkgs,
-      nixpkgs-unstable,
       darwin,
       home-manager,
       nixos-generators,
@@ -63,10 +61,8 @@
       # Overlays for unstable packages
       overlays = [
         (final: prev: {
-          unstable = import nixpkgs-unstable {
-            inherit (prev) system;
-            config.allowUnfree = true;
-          };
+          # unstable alias - nixpkgs already tracks nixpkgs-unstable
+          unstable = prev;
 
           # Claude Code - latest from flake input
           claude-code = claude-code.packages.${prev.system}.default;
