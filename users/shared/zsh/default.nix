@@ -147,14 +147,14 @@
       # Section: Environment and PATH setup
       # =============================================================================
       # PATH configuration - Global package managers
-      export PATH=$HOME/.pnpm-packages/bin:$HOME/.pnpm-packages:$PATH
-      export PATH=$HOME/.npm-global/bin:$HOME/.npm-packages/bin:$HOME/bin:$PATH
-      export PATH=$HOME/.local/share/bin:$PATH
-      export PATH=$HOME/.local/bin:$PATH
+      export PATH="$HOME/.pnpm-packages/bin:$HOME/.pnpm-packages:$PATH"
+      export PATH="$HOME/.npm-global/bin:$HOME/.npm-packages/bin:$HOME/bin:$PATH"
+      export PATH="$HOME/.local/share/bin:$PATH"
+      export PATH="$HOME/.local/bin:$PATH"
       # Cargo (Rust)
-      export PATH=$HOME/.cargo/bin:$PATH
+      export PATH="$HOME/.cargo/bin:$PATH"
       # Go
-      export PATH=$HOME/go/bin:$PATH
+      export PATH="$HOME/go/bin:$PATH"
       # Gem (Ruby) - only if GEM_HOME is set to user directory
       if [[ -n "$GEM_HOME" ]]; then
         export PATH=$GEM_HOME/bin:$PATH
