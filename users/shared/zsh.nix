@@ -27,12 +27,10 @@
   pkgs,
   lib,
   config,
+  isDarwin,
   ...
 }:
 
-let
-  inherit (pkgs.stdenv) isDarwin isLinux;
-in
 {
   programs.fzf = {
     enable = true;

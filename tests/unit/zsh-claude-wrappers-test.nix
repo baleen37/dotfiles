@@ -18,6 +18,7 @@ let
 
   zshConfig = import ../../users/shared/zsh.nix {
     inherit pkgs lib;
+    isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
     config = mockConfig.mkEmptyConfig;
   };
 

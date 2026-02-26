@@ -21,7 +21,7 @@ let
 
   # Import zsh configuration
   zshConfig = import ../../users/shared/zsh.nix {
-    inherit pkgs lib;
+    inherit pkgs lib isDarwin;
     config = {
       home = {
         homeDirectory = "/home/testuser";

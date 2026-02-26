@@ -35,9 +35,6 @@
   ...
 }:
 
-let
-  inherit (pkgs.stdenv) isDarwin;
-in
 {
   programs.tmux = {
     enable = true;
