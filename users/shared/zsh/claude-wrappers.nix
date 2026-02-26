@@ -6,6 +6,11 @@
 #   ccz/ccz-h/ccz-l: Z.ai GLM API
 #   cck:             Kimi API via OpenAI-compatible proxy
 # Configure cco/ccz/cck models in ~/.zshrc.local
+#
+# Note: ENABLE_TOOL_SEARCH must be set explicitly per wrapper because
+# settings.json env values override shell environment variables, making
+# wrapper-level overrides ineffective. cco disables it (causes defer_loading
+# errors with OpenAI-compatible proxies); cc and ccz explicitly enable it.
 
 ''
   # Internal helper - do not call directly
@@ -57,7 +62,7 @@
 
   cc() {
     eval "$(_cc_parse_model_flags "" "opus" "haiku" model "$@")"
-    _cc_run "$model" "$@"
+    ENABLE_TOOL_SEARCH=true _cc_run "$model" "$@"
   }
 
   # cco: Configure in ~/.zshrc.local:
@@ -83,6 +88,7 @@
   #   CCZ_TOKEN, CCZ_HAIKU_MODEL, CCZ_SONNET_MODEL, CCZ_OPUS_MODEL
   _ccz_run() {
     local model="$1"; shift
+    ENABLE_TOOL_SEARCH=true \
     ANTHROPIC_BASE_URL="https://api.z.ai/api/anthropic" \
     ANTHROPIC_AUTH_TOKEN="''${CCZ_TOKEN:-}" \
     ANTHROPIC_DEFAULT_HAIKU_MODEL="''${CCZ_HAIKU_MODEL:-}" \
