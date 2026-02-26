@@ -3,6 +3,9 @@
 
   nixConfig = {
     # Flake evaluation caches - performance-first order
+    # NOTE: These values are also defined in lib/cache-config.nix for system configuration.
+    # flake.nix nixConfig cannot import files (must be a top-level attribute set),
+    # so these are maintained separately. Keep in sync with lib/cache-config.nix.
     substituters = [
       "https://baleen-nix.cachix.org"
       "https://nix-community.cachix.org"
@@ -80,6 +83,42 @@
           envUser = builtins.getEnv "USER";
         in
         if envUser != "" && envUser != "root" then envUser else "baleen";
+
+      mkNixosVM =
+        name: system:
+        nixpkgs.lib.nixosSystem {
+          inherit system;
+          specialArgs = {
+            inherit inputs self;
+            currentSystem = system;
+            currentSystemName = name;
+            currentSystemUser = user;
+            isWSL = false;
+            isDarwin = false;
+          };
+          modules = [
+            ./machines/nixos/${name}.nix
+            inputs.home-manager.nixosModules.home-manager
+            {
+              home-manager = {
+                useGlobalPkgs = true;
+                useUserPackages = true;
+                users.${user} = import ./users/shared/home-manager.nix;
+                extraSpecialArgs = {
+                  inherit inputs self;
+                  currentSystemUser = user;
+                  isDarwin = false;
+                };
+              };
+
+              users.users.${user} = {
+                name = user;
+                home = "/home/${user}";
+                isNormalUser = true;
+              };
+            }
+          ];
+        };
     in
     {
       # macOS configuration
@@ -106,29 +145,18 @@
         let
           mkHomeConfig =
             userName:
-            home-manager.lib.homeManagerConfiguration {
-              pkgs = nixpkgs.legacyPackages.aarch64-darwin;
-              extraSpecialArgs = {
-                inherit inputs self;
-                currentSystemUser = userName;
-                isDarwin = true;
-              };
-              modules = [
-                ./users/shared/home-manager.nix
-              ];
-            };
-          mkHomeConfigLinux =
-            userName: system:
+            {
+              system ? "aarch64-darwin",
+              isDarwin ? true,
+            }:
             home-manager.lib.homeManagerConfiguration {
               pkgs = import nixpkgs {
-                inherit system;
+                inherit system overlays;
                 config.allowUnfree = true;
-                overlays = overlays;
               };
               extraSpecialArgs = {
-                inherit inputs self;
+                inherit inputs self isDarwin;
                 currentSystemUser = userName;
-                isDarwin = false;
               };
               modules = [
                 ./users/shared/home-manager.nix
@@ -136,83 +164,23 @@
             };
         in
         {
-          baleen = mkHomeConfig "baleen";
-          "jito.hello" = mkHomeConfig "jito.hello";
-          testuser = mkHomeConfig "testuser";
-          "baleen-linux" = mkHomeConfigLinux "baleen" "x86_64-linux";
-          "baleen-dev-ubuntu" = mkHomeConfigLinux "baleen" "x86_64-linux";
+          baleen = mkHomeConfig "baleen" { };
+          "jito.hello" = mkHomeConfig "jito.hello" { };
+          testuser = mkHomeConfig "testuser" { };
+          "baleen-linux" = mkHomeConfig "baleen" {
+            system = "x86_64-linux";
+            isDarwin = false;
+          };
+          "baleen-dev-ubuntu" = mkHomeConfig "baleen" {
+            system = "x86_64-linux";
+            isDarwin = false;
+          };
         };
 
       # NixOS configurations
       nixosConfigurations = {
-        vm-aarch64-utm = nixpkgs.lib.nixosSystem {
-          system = "aarch64-linux";
-          specialArgs = {
-            inherit inputs self;
-            currentSystem = "aarch64-linux";
-            currentSystemName = "vm-aarch64-utm";
-            currentSystemUser = user;
-            isWSL = false;
-            isDarwin = false;
-          };
-          modules = [
-            ./machines/nixos/vm-aarch64-utm.nix
-            inputs.home-manager.nixosModules.home-manager
-            {
-              home-manager = {
-                useGlobalPkgs = true;
-                useUserPackages = true;
-                users.${user} = import ./users/shared/home-manager.nix;
-                extraSpecialArgs = {
-                  inherit inputs self;
-                  currentSystemUser = user;
-                  isDarwin = false;
-                };
-              };
-
-              # Set required user options with correct paths
-              users.users.${user} = {
-                name = user;
-                home = "/home/${user}";
-                isNormalUser = true;
-              };
-            }
-          ];
-        };
-
-        vm-x86_64-utm = nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
-          specialArgs = {
-            inherit inputs self;
-            currentSystem = "x86_64-linux";
-            currentSystemName = "vm-x86_64-utm";
-            currentSystemUser = user;
-            isWSL = false;
-            isDarwin = false;
-          };
-          modules = [
-            ./machines/nixos/vm-x86_64-utm.nix
-            inputs.home-manager.nixosModules.home-manager
-            {
-              home-manager = {
-                useGlobalPkgs = true;
-                useUserPackages = true;
-                users.${user} = import ./users/shared/home-manager.nix;
-                extraSpecialArgs = {
-                  inherit inputs self;
-                  currentSystemUser = user;
-                  isDarwin = false;
-                };
-              };
-
-              users.users.${user} = {
-                name = user;
-                home = "/home/${user}";
-                isNormalUser = true;
-              };
-            }
-          ];
-        };
+        vm-aarch64-utm = mkNixosVM "vm-aarch64-utm" "aarch64-linux";
+        vm-x86_64-utm = mkNixosVM "vm-x86_64-utm" "x86_64-linux";
       };
 
       # Test checks

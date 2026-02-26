@@ -64,8 +64,8 @@ in
       ) hmConfig.imports) "User configuration should import vim.nix module")
 
       (helpers.assertTest "has-zsh-module" (builtins.any (
-        m: lib.hasSuffix "/users/shared/zsh.nix" (builtins.toString m)
-      ) hmConfig.imports) "User configuration should import zsh.nix module")
+        m: lib.hasSuffix "/users/shared/zsh" (builtins.toString m)
+      ) hmConfig.imports) "User configuration should import zsh module")
 
       (helpers.assertTest "has-claude-module" (builtins.any (
         m: lib.hasSuffix "/users/shared/claude-code.nix" (builtins.toString m)

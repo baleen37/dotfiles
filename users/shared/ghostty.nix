@@ -2,7 +2,7 @@
 # Ghostty terminal emulator configuration managed via Home Manager
 # Symlinks config files from dotfiles to ~/.config/ghostty
 
-{ pkgs, lib, ... }:
+{ pkgs, lib, isDarwin, ... }:
 
 {
   # Install Ghostty package
@@ -16,8 +16,8 @@
   # that SSH sessions originating from Ghostty work correctly on remote hosts.
   home.packages =
     with pkgs;
-    lib.optional pkgs.stdenv.hostPlatform.isDarwin ghostty-bin
-    ++ lib.optional (!pkgs.stdenv.hostPlatform.isDarwin) ghostty.terminfo;
+    lib.optional isDarwin ghostty-bin
+    ++ lib.optional (!isDarwin) ghostty.terminfo;
 
   # Make xterm-ghostty terminfo visible to ncurses-based programs (tmux, vim, etc.).
   # ncurses searches only a fixed set of paths by default:

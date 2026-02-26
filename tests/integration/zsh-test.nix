@@ -1,6 +1,6 @@
 # Zsh Configuration Integration Test
 #
-# Tests the Zsh shell configuration in users/shared/zsh.nix
+# Tests the Zsh shell configuration in users/shared/zsh/
 # Verifies shell enablement, key aliases, fzf integration, history settings,
 # prompt configuration, direnv integration, and shell functions.
 {
@@ -17,11 +17,10 @@ let
 
   # Platform detection
   isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
-  isLinux = pkgs.stdenv.hostPlatform.isLinux;
 
   # Import zsh configuration
-  zshConfig = import ../../users/shared/zsh.nix {
-    inherit pkgs lib;
+  zshConfig = import ../../users/shared/zsh {
+    inherit pkgs lib isDarwin;
     config = {
       home = {
         homeDirectory = "/home/testuser";

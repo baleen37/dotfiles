@@ -39,7 +39,7 @@
   imports = [
     ./git.nix
     ./vim.nix
-    ./zsh.nix
+    ./zsh
     ./starship.nix
     ./tmux.nix
     ./claude-code.nix
