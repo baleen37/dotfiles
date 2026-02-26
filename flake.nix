@@ -112,9 +112,8 @@
             }:
             home-manager.lib.homeManagerConfiguration {
               pkgs = import nixpkgs {
-                inherit system;
+                inherit system overlays;
                 config.allowUnfree = true;
-                overlays = overlays;
               };
               extraSpecialArgs = {
                 inherit inputs self isDarwin;
