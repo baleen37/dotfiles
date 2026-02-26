@@ -5,6 +5,11 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 STATUSLINE_SCRIPT="$SCRIPT_DIR/../users/shared/.config/claude/statusline.sh"
 
+# Track temp files for cleanup
+TEMP_FILES=()
+cleanup() { rm -f "${TEMP_FILES[@]}"; }
+trap cleanup EXIT
+
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -71,6 +76,7 @@ fi
 # Test 3: Script uses current_usage when available (preferred over transcript)
 echo -n "Test 3: Script uses current_usage from context_window... "
 temp_transcript=$(mktemp)
+TEMP_FILES+=("$temp_transcript")
 cat > "$temp_transcript" <<'EOF'
 {"message":{"usage":{"input_tokens":500,"cache_read_input_tokens":200,"cache_creation_input_tokens":100}},"isSidechain":false,"timestamp":"2025-12-01T10:00:00Z"}
 {"message":{"usage":{"input_tokens":1000,"cache_read_input_tokens":400,"cache_creation_input_tokens":200}},"isSidechain":false,"timestamp":"2025-12-01T10:01:00Z"}
@@ -103,21 +109,18 @@ if output=$(echo "$input" | bash "$STATUSLINE_SCRIPT" 2>&1); then
   else
     echo -e "${RED}✗ FAIL${NC} - Missing context info"
     echo "Output: $output"
-    rm "$temp_transcript"
     exit 1
   fi
 else
   echo -e "${RED}✗ FAIL${NC} - Script crashed"
   echo "Output: $output"
-  rm "$temp_transcript"
   exit 1
 fi
-
-rm "$temp_transcript"
 
 # Test 4: Script filters sidechain entries
 echo -n "Test 4: Script filters sidechain entries... "
 temp_transcript=$(mktemp)
+TEMP_FILES+=("$temp_transcript")
 cat > "$temp_transcript" <<'EOF'
 {"message":{"usage":{"input_tokens":9999,"cache_read_input_tokens":9999,"cache_creation_input_tokens":9999}},"isSidechain":true,"timestamp":"2025-12-01T10:00:00Z"}
 {"message":{"usage":{"input_tokens":1000,"cache_read_input_tokens":400,"cache_creation_input_tokens":200}},"isSidechain":false,"timestamp":"2025-12-01T10:01:00Z"}
@@ -140,15 +143,13 @@ if output=$(echo "$input" | bash "$STATUSLINE_SCRIPT" 2>&1); then
 else
   echo -e "${RED}✗ FAIL${NC} - Script crashed"
   echo "Output: $output"
-  rm "$temp_transcript"
   exit 1
 fi
-
-rm "$temp_transcript"
 
 # Test 5: Script handles empty transcript with real JSON format
 echo -n "Test 5: Script handles empty transcript... "
 temp_transcript=$(mktemp)
+TEMP_FILES+=("$temp_transcript")
 # Empty file
 
 input=$(cat <<EOF
@@ -171,11 +172,8 @@ if output=$(echo "$input" | bash "$STATUSLINE_SCRIPT" 2>&1); then
 else
   echo -e "${RED}✗ FAIL${NC} - Script crashed on empty transcript"
   echo "Output: $output"
-  rm "$temp_transcript"
   exit 1
 fi
-
-rm "$temp_transcript"
 
 # Test 6: used_percentage fallback - basic case (25.5% of 200k = 51k)
 echo -n "Test 6: used_percentage fallback (25.5% of 200k = 51k)... "
