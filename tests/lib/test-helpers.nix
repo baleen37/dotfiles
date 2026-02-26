@@ -387,6 +387,53 @@ rec {
     # Return test suite with all individual tests and summary
     testSuite "${testName}-property-tests" (individualTests ++ [ summaryTest ]);
 
+  # File content validation with diff support
+  # Compares two files at build time using diff
+  assertFileContent =
+    name: expectedPath: actualPath:
+    pkgs.runCommand "test-${name}" {
+      inherit expectedPath actualPath;
+    } ''
+      if diff -u "$expectedPath" "$actualPath" > /dev/null 2>&1; then
+        echo "PASS: ${name}"
+        touch $out
+      else
+        echo "FAIL: ${name}"
+        echo "  File content mismatch"
+        echo "  Expected: $expectedPath"
+        echo "  Actual: $actualPath"
+        echo ""
+        echo "Diff:"
+        diff -u "$expectedPath" "$actualPath" || true
+        exit 1
+      fi
+    '';
+
+  # Enhanced assertion with verbose error reporting including location info
+  # Parameters: name, condition, message, expected, actual, file, line
+  assertTestWithDetailsVerbose =
+    name: condition: message: expected: actual: file: line:
+    if condition then
+      pkgs.runCommand "test-${name}-pass" { } ''
+        echo "PASS: ${name}"
+        touch $out
+      ''
+    else
+      pkgs.runCommand "test-${name}-fail" { } ''
+        echo "FAIL: ${name}"
+        echo "  ${message}"
+        ${lib.optionalString (expected != null) ''
+        echo "  Expected: ${expected}"
+        ''}
+        ${lib.optionalString (actual != null) ''
+        echo "  Actual: ${actual}"
+        ''}
+        ${lib.optionalString (file != null) ''
+        echo "  Location: ${file}${lib.optionalString (line != null) ":${toString line}"}"
+        ''}
+        exit 1
+      '';
+
   # Backward compatibility alias for mkSimpleTest
   mkSimpleTest = mkTest;
 
