@@ -10,7 +10,7 @@
 # Note: ENABLE_TOOL_SEARCH must be set explicitly per wrapper because
 # settings.json env values override shell environment variables, making
 # wrapper-level overrides ineffective. cco disables it (causes defer_loading
-# errors with OpenAI-compatible proxies); cc and ccz explicitly enable it.
+# errors with OpenAI-compatible proxies); cc, ccz, cck explicitly enable it.
 
 ''
   # Internal helper - do not call directly
@@ -108,6 +108,7 @@
   #   CCK_HIGH_MODEL, CCK_LOW_MODEL
   _cck_run() {
     local model="$1"; shift
+    ENABLE_TOOL_SEARCH=true \
     ANTHROPIC_BASE_URL="''${CCK_BASE_URL:-http://127.0.0.1:8317}" \
     ANTHROPIC_AUTH_TOKEN="''${CCK_AUTH_TOKEN:-sk-dummy}" \
     _cc_run "$model" "$@"
