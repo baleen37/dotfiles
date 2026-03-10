@@ -159,7 +159,7 @@ in
     casks = homebrew-casks;
 
     # Development Services Configuration
-    brews = [ "JetBrains/utils/kotlin-lsp" ];
+    brews = [];
 
     # Performance Optimization: Selective Cleanup Strategy
     # Prevents unexpected interruptions during development while maintaining system hygiene
@@ -187,7 +187,7 @@ in
     # Extended Package Repository Access
     # Additional Homebrew taps for specialized packages and development tools
     # Note: homebrew/cask is now built into Homebrew by default (since 2023)
-    taps = [ "JetBrains/utils" ];
+    taps = [];
   };
 
   # ===== Keyboard Input Source Configuration Script =====
