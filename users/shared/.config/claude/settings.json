@@ -37,7 +37,6 @@
     "typescript-lsp@claude-plugins-official": false,
     "csharp-lsp@claude-plugins-official": false,
     "clangd-lsp@claude-plugins-official": false,
-    "kotlin-lsp@claude-plugins-official": false,
     "lua-lsp@claude-plugins-official": true,
     "pyright-lsp@claude-plugins-official": true,
     "playwright@claude-plugins-official": true,
