@@ -74,9 +74,6 @@ let
         "dist/"
         "build/"
         "target/"
-        "issues/"
-        "specs/"
-        "plans/"
       ];
     };
   };
@@ -129,9 +126,6 @@ let
     dist/
     build/
     target/
-    issues/
-    specs/
-    plans/
   '';
 
   # Simulate Home Manager file generation using the same logic it would use
@@ -182,9 +176,6 @@ let
     dist/
     build/
     target/
-    issues/
-    specs/
-    plans/
   '';
 
 in

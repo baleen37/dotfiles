@@ -67,9 +67,6 @@ let
     "dist/"
     "build/"
     "target/"
-    "issues/"
-    "specs/"
-    "plans/"
   ];
 
 in
