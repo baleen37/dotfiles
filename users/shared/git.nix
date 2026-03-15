@@ -20,7 +20,6 @@
 #   - 에디터: .vscode/, .idea/, *.swp
 #   - OS: .DS_Store, Thumbs.db
 #   - 개발: .direnv/, node_modules/, .env.local
-#   - 프로젝트: issues/, specs/, plans/
 #
 
 { ... }:
@@ -99,12 +98,6 @@ in
       "build/"
       "target/"
 
-      # Issues (local project management)
-      "issues/"
-
-      # Plan files (project planning)
-      "specs/"
-      "plans/"
     ];
   };
 }
