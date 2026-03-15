@@ -225,6 +225,12 @@
 
       _setup_1password_agent
 
+      # Add SSH key to agent if not already registered
+      if [[ -f ~/.ssh/id_ed25519 ]]; then
+        ssh-add -l 2>/dev/null | grep -q "$(ssh-keygen -lf ~/.ssh/id_ed25519 2>/dev/null | awk '{print $2}')" \
+          || ssh-add ~/.ssh/id_ed25519 2>/dev/null
+      fi
+
       # =============================================================================
       # Section: Utility functions
       # =============================================================================
