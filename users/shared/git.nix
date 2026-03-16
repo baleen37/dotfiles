@@ -92,6 +92,7 @@ in
 
       # Git worktrees
       ".worktrees/"
+      ".claude/worktrees/"
 
       # Build artifacts
       "dist/"
