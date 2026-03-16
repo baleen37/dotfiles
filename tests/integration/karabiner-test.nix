@@ -24,6 +24,7 @@ let
   # Import karabiner configuration with mocked dependencies
   karabinerModule = import ../../users/shared/karabiner.nix {
     inherit pkgs lib;
+    isDarwin = true;
     config = mockConfig;
   };
 
