@@ -19,6 +19,7 @@ let
   ghosttyConfigResult = builtins.tryEval (
     import ghosttyConfigFile {
       inherit pkgs lib;
+      isDarwin = true;
       config = { };
     }
   );
