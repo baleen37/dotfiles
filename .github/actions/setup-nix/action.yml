@@ -9,6 +9,10 @@ inputs:
     description: 'Cache mode: "full" (save and restore) or "restore-only" (restore only)'
     required: false
     default: 'full'
+  cachix-auth-token:
+    description: 'Cachix auth token for pushing to cache'
+    required: false
+    default: ''
 runs:
   using: 'composite'
   steps:
@@ -27,7 +31,7 @@ runs:
       shell: bash
       run: |
         nix-env --quiet -j8 -iA cachix -f https://cachix.org/api/v1/install
-        echo "${{ secrets.CACHIX_AUTH_TOKEN }}" | cachix authtoken --stdin
+        echo "${{ inputs.cachix-auth-token }}" | cachix authtoken --stdin
 
     - name: Get week number for cache rotation
       id: date
