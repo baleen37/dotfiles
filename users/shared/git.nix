@@ -84,6 +84,7 @@ in
       ".env.local"
       ".env.*.local"
       ".serena/"
+      ".playwright-cli/"
 
       # Temporary files
       "*.tmp"
