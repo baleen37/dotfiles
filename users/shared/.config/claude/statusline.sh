@@ -94,8 +94,8 @@ if [[ -n "$git_dir" ]]; then
         [[ -n "$mtime" ]] && (( $(date +%s) - mtime < cache_max_age ))
     }
 
-    if ! cache_is_fresh; then
-        # Build git info string and write to cache
+    refresh_cache() {
+        local branch
         branch=$(git -C "$current_dir" branch --show-current 2>/dev/null)
 
         if [[ -z "$branch" ]]; then
@@ -196,9 +196,23 @@ if [[ -n "$git_dir" ]]; then
         cached_git_info=" ${GRAY}│${RESET} ${git_branch_info}"
 
         printf '%s' "$cached_git_info" > "$cache_file"
-    fi
+    }
 
-    git_info=$(cat "$cache_file" 2>/dev/null)
+    lock_file="${cache_file}.lock"
+
+    if [[ -f "$cache_file" ]]; then
+        # Cache exists (possibly stale): show immediately, refresh in background if stale
+        git_info=$(cat "$cache_file")
+        if ! cache_is_fresh && [[ ! -f "$lock_file" ]]; then
+            touch "$lock_file"
+            ( refresh_cache; rm -f "$lock_file" ) &>/dev/null &
+            disown
+        fi
+    else
+        # No cache at all: must build synchronously
+        refresh_cache
+        git_info=$(cat "$cache_file" 2>/dev/null)
+    fi
 fi
 
 # Build output string
