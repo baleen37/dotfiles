@@ -203,9 +203,8 @@ if [[ -n "$git_dir" ]]; then
     if [[ -f "$cache_file" ]]; then
         # Cache exists (possibly stale): show immediately, refresh in background if stale
         git_info=$(cat "$cache_file")
-        if ! cache_is_fresh && [[ ! -f "$lock_file" ]]; then
-            touch "$lock_file"
-            ( refresh_cache; rm -f "$lock_file" ) &>/dev/null &
+        if ! cache_is_fresh && mkdir "$lock_file" 2>/dev/null; then
+            ( refresh_cache; rm -rf "$lock_file" ) &>/dev/null &
             disown
         fi
     else
