@@ -73,50 +73,51 @@ fi
 
 # Get current directory relative to home directory
 if [[ "$current_dir" == "$HOME"* ]]; then
-    # Replace home path with ~ for display
     dir_display="~${current_dir:${#HOME}}"
 else
-    # Keep full path if not under home directory
     dir_display="$current_dir"
 fi
-# Get git status and worktree information with enhanced detection
+
+# Git info with 5-second cache per directory
 git_info=""
 git_dir=$(git -C "$current_dir" rev-parse --git-dir 2>/dev/null)
 if [[ -n "$git_dir" ]]; then
-    branch=$(git -C "$current_dir" branch --show-current 2>/dev/null)
+    # Cache key based on directory
+    cache_key=$(echo "$current_dir" | tr '/' '_')
+    cache_file="/tmp/statusline-git-${cache_key}.cache"
+    cache_max_age=5
 
-    # If no branch (detached HEAD), show short commit hash
-    if [[ -z "$branch" ]]; then
-        branch=$(git -C "$current_dir" rev-parse --short HEAD 2>/dev/null)
-        branch="detached:${branch}"
-    fi
+    cache_is_fresh() {
+        [[ -f "$cache_file" ]] || return 1
+        local mtime
+        mtime=$(date -r "$cache_file" +%s 2>/dev/null || stat -c %Y "$cache_file" 2>/dev/null)
+        [[ -n "$mtime" ]] && (( $(date +%s) - mtime < cache_max_age ))
+    }
 
-    # Enhanced worktree detection
-    worktree_info=""
+    if ! cache_is_fresh; then
+        # Build git info string and write to cache
+        branch=$(git -C "$current_dir" branch --show-current 2>/dev/null)
 
-    # Check if we're in a worktree
-    if [[ "$git_dir" == *".git/worktrees/"* ]] || [[ -f "$git_dir/gitdir" ]]; then
-        worktree_name=$(basename "$current_dir")
-        # Only show worktree indicator if it adds information
-        # Don't show if branch name already contains the worktree info
-        if [[ "$worktree_name" =~ ^TOK ]] && [[ "$branch" != *"$worktree_name"* ]]; then
-            # For TOK worktrees, just show the tree emoji
-            worktree_info=" ${CYAN}🌳${RESET}"
-        elif [[ ! "$worktree_name" =~ ^TOK ]] && [[ "$branch" != "$worktree_name" ]]; then
-            # For other worktrees, just show tree emoji
-            worktree_info=" ${CYAN}🌳${RESET}"
+        if [[ -z "$branch" ]]; then
+            branch=$(git -C "$current_dir" rev-parse --short HEAD 2>/dev/null)
+            branch="detached:${branch}"
         fi
-    fi
 
-    if [[ -n "$branch" ]]; then
-        # Comprehensive git status check
-        # Git status format: XY filename
-        # X = status of staging area, Y = status of working tree
+        # Worktree detection
+        worktree_info=""
+        if [[ "$git_dir" == *".git/worktrees/"* ]] || [[ -f "$git_dir/gitdir" ]]; then
+            worktree_name=$(basename "$current_dir")
+            if [[ "$worktree_name" =~ ^TOK ]] && [[ "$branch" != *"$worktree_name"* ]]; then
+                worktree_info=" ${CYAN}🌳${RESET}"
+            elif [[ ! "$worktree_name" =~ ^TOK ]] && [[ "$branch" != "$worktree_name" ]]; then
+                worktree_info=" ${CYAN}🌳${RESET}"
+            fi
+        fi
+
+        # Git status
         git_status=$(git --no-optional-locks -C "$current_dir" status --porcelain 2>/dev/null)
 
-        # Count different types of changes (handle empty status gracefully)
         if [[ -n "$git_status" ]]; then
-            # Use awk for single-pass counting (avoids grep -c exit code issues)
             read -r untracked modified staged conflicts <<< "$(echo "$git_status" | awk '
                 BEGIN {u=0; m=0; s=0; c=0}
                 /^\?\?/ {u++}
@@ -126,27 +127,15 @@ if [[ -n "$git_dir" ]]; then
                 END {print u, m, s, c}
             ')"
         else
-            untracked=0
-            modified=0
-            staged=0
-            conflicts=0
+            untracked=0; modified=0; staged=0; conflicts=0
         fi
 
-        # Debug output
-        if [[ "$DEBUG" == "1" ]]; then
-            echo "DEBUG: Git Status Raw:" >&2
-            echo "$git_status" >&2
-            echo "DEBUG: Counts - Staged:$staged Modified:$modified Untracked:$untracked Conflicts:$conflicts" >&2
-        fi
-
-        # Check for ahead/behind status with timeout to prevent hanging on slow repos
+        # Ahead/behind
         ahead_behind=""
         upstream=$(git -C "$current_dir" rev-parse --abbrev-ref '@{u}' 2>/dev/null)
         if [[ -n "$upstream" ]]; then
-            # Use timeout to prevent slow git operations from blocking status line
             counts=$(timeout 0.5s git -C "$current_dir" rev-list --left-right --count '@{u}...HEAD' 2>/dev/null)
             if [[ $? -eq 124 ]]; then
-                # Timeout occurred
                 ahead_behind=" ${GRAY}(checking...)${RESET}"
             elif [[ -n "$counts" ]]; then
                 read -r ahead behind <<< "$counts"
@@ -160,22 +149,19 @@ if [[ -n "$git_dir" ]]; then
             fi
         fi
 
-        # Build GitHub base URL from remote (used for branch and PR links)
-        github_base_url=""
+        # GitHub URL and OSC 8 branch link
+        ESC=$'\033'
+        ST="${ESC}\\"
         remote_url=$(git -C "$current_dir" config --get remote.origin.url 2>/dev/null)
+        github_base_url=""
         if [[ "$remote_url" == *"github.com"* ]]; then
-            # Normalize SSH (git@github.com:owner/repo.git) and HTTPS URLs to https://github.com/owner/repo
             github_base_url=$(echo "$remote_url" | sed -E \
                 's|git@github\.com:|https://github.com/|;s|\.git$||;s|https://github\.com/(.+)\.git|\1|')
-            # Ensure it starts with https://
             if [[ "$github_base_url" != https://* ]]; then
                 github_base_url="https://github.com/${github_base_url#https://github.com/}"
             fi
         fi
 
-        # Make branch name a clickable OSC 8 hyperlink if we have a GitHub URL
-        ESC=$'\033'
-        ST="${ESC}\\"
         if [[ -n "$github_base_url" && "$branch" != detached:* ]]; then
             branch_url="${github_base_url}/tree/${branch}"
             branch_link="${ESC}]8;;${branch_url}${ST}${branch}${ESC}]8;;${ST}"
@@ -183,52 +169,21 @@ if [[ -n "$git_dir" ]]; then
             branch_link="${branch}"
         fi
 
-        # Check for open PRs using GitHub CLI if available
+        # PR info
         pr_info=""
-        if command -v gh >/dev/null 2>&1; then
-            if [[ "$remote_url" == *"github.com"* ]]; then
-                # Quick PR check with timeout to prevent hanging
-                # gh has internal caching, so this is fast after first run
-                pr_json=$(timeout 0.5 gh pr view --json number,url 2>/dev/null || echo "")
-                if [[ -n "$pr_json" ]]; then
-                    pr_number=$(echo "$pr_json" | jq -r '.number // empty')
-                    pr_url=$(echo "$pr_json" | jq -r '.url // empty')
-                    if [[ -n "$pr_number" && -n "$pr_url" ]]; then
-                        pr_link="${ESC}]8;;${pr_url}${ST}PR#${pr_number}${ESC}]8;;${ST}"
-                        pr_info=" ${CYAN}${pr_link}${RESET}"
-                    fi
+        if command -v gh >/dev/null 2>&1 && [[ "$remote_url" == *"github.com"* ]]; then
+            pr_json=$(timeout 0.5 gh pr view --json number,url 2>/dev/null || echo "")
+            if [[ -n "$pr_json" ]]; then
+                pr_number=$(echo "$pr_json" | jq -r '.number // empty')
+                pr_url=$(echo "$pr_json" | jq -r '.url // empty')
+                if [[ -n "$pr_number" && -n "$pr_url" ]]; then
+                    pr_link="${ESC}]8;;${pr_url}${ST}PR#${pr_number}${ESC}]8;;${ST}"
+                    pr_info=" ${CYAN}${pr_link}${RESET}"
                 fi
             fi
         fi
 
-        # Get git diff stats for insertions/deletions
-        insertions=0
-        deletions=0
-        if [[ -n "$git_status" ]]; then
-            # Get diff stats using --numstat for accurate counts
-            diff_stats=$(git --no-optional-locks -C "$current_dir" diff --numstat 2>/dev/null)
-            if [[ -n "$diff_stats" ]]; then
-                insertions=$(echo "$diff_stats" | awk '{sum+=$1} END {print sum+0}')
-                deletions=$(echo "$diff_stats" | awk '{sum+=$2} END {print sum+0}')
-            fi
-
-            # Also check staged changes
-            staged_stats=$(git --no-optional-locks -C "$current_dir" diff --cached --numstat 2>/dev/null)
-            if [[ -n "$staged_stats" ]]; then
-                staged_insertions=$(echo "$staged_stats" | awk '{sum+=$1} END {print sum+0}')
-                staged_deletions=$(echo "$staged_stats" | awk '{sum+=$2} END {print sum+0}')
-                insertions=$((insertions + staged_insertions))
-                deletions=$((deletions + staged_deletions))
-            fi
-        fi
-
-        # Build git diff indicator (+X,-Y)
-        git_diff_indicator=""
-        if [[ "$insertions" -gt 0 ]] || [[ "$deletions" -gt 0 ]]; then
-            git_diff_indicator=" ${GRAY}│${RESET} ${GREEN}+${insertions}${RESET},${RED}-${deletions}${RESET}"
-        fi
-
-        # Set git color based on status (without icons)
+        # Git color
         if [[ "$conflicts" -gt 0 ]]; then
             git_color="${RED}"
         elif [[ -n "$git_status" ]]; then
@@ -237,27 +192,24 @@ if [[ -n "$git_dir" ]]; then
             git_color="${GREEN}"
         fi
 
-        # Construct git info string with separate sections (no icon)
-        # branch_link may contain literal ESC bytes (OSC 8), so RESET uses $'\033[0m'
         git_branch_info="${git_color}${branch_link}"$'\033[0m'"${worktree_info}${ahead_behind}${pr_info}"
+        cached_git_info=" ${GRAY}│${RESET} ${git_branch_info}"
 
-        # Always show branch and git diff indicator if present
-        git_info=" ${GRAY}│${RESET} ${git_branch_info}${git_diff_indicator}"
+        printf '%s' "$cached_git_info" > "$cache_file"
     fi
+
+    git_info=$(cat "$cache_file" 2>/dev/null)
 fi
 
 # Build output string
-# Only show context if available
 if [[ -n "$ctx_display" ]]; then
     output_string="${BOLD}${BLUE}${model_name}${RESET} ${GRAY}│${RESET} ${CYAN}${ctx_display}${RESET} ${GRAY}│${RESET} ${PURPLE}${dir_display}${RESET}"
 else
     output_string="${BOLD}${BLUE}${model_name}${RESET} ${GRAY}│${RESET} ${PURPLE}${dir_display}${RESET}"
 fi
 
-# Add git info if available
 if [[ -n "$git_info" ]]; then
     output_string="${output_string}${git_info}"
 fi
 
-# Output the complete string
 printf '%s\n' "$output_string"
