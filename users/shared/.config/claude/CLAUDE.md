@@ -72,4 +72,8 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 - Before starting complex tasks, read relevant memory files to build on previous experience
 - Update or remove memories that turn out to be wrong or outdated
 
+## Language
+
+Always communicate in Korean.
+
 @local.md
