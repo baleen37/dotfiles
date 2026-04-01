@@ -57,7 +57,9 @@
       esac
     done
 
-    echo "''${var_name}=\"''${model}\"; set -- \"''${args[@]}\""
+    local quoted_args
+    quoted_args=$(printf '%q ' "''${args[@]}")
+    echo "''${var_name}=\"''${model}\"; set -- ''${quoted_args}"
   }
 
   cc() {
