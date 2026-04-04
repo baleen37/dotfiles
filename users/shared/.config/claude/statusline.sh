@@ -78,140 +78,108 @@ else
     dir_display="$current_dir"
 fi
 
-# Git info with 5-second cache per directory
+# Git info
 git_info=""
 git_dir=$(git -C "$current_dir" rev-parse --git-dir 2>/dev/null)
 if [[ -n "$git_dir" ]]; then
-    # Cache key based on directory
-    cache_key=$(echo "$current_dir" | tr '/' '_')
-    cache_file="/tmp/statusline-git-${cache_key}.cache"
-    cache_max_age=5
+    branch=$(git -C "$current_dir" branch --show-current 2>/dev/null)
 
-    cache_is_fresh() {
-        [[ -f "$cache_file" ]] || return 1
-        local mtime
-        mtime=$(date -r "$cache_file" +%s 2>/dev/null || stat -c %Y "$cache_file" 2>/dev/null)
-        [[ -n "$mtime" ]] && (( $(date +%s) - mtime < cache_max_age ))
-    }
-
-    refresh_cache() {
-        local branch
-        branch=$(git -C "$current_dir" branch --show-current 2>/dev/null)
-
-        if [[ -z "$branch" ]]; then
-            branch=$(git -C "$current_dir" rev-parse --short HEAD 2>/dev/null)
-            branch="detached:${branch}"
-        fi
-
-        # Worktree detection
-        worktree_info=""
-        if [[ "$git_dir" == *".git/worktrees/"* ]] || [[ -f "$git_dir/gitdir" ]]; then
-            worktree_name=$(basename "$current_dir")
-            if [[ "$worktree_name" =~ ^TOK ]] && [[ "$branch" != *"$worktree_name"* ]]; then
-                worktree_info=" ${CYAN}🌳${RESET}"
-            elif [[ ! "$worktree_name" =~ ^TOK ]] && [[ "$branch" != "$worktree_name" ]]; then
-                worktree_info=" ${CYAN}🌳${RESET}"
-            fi
-        fi
-
-        # Git status
-        git_status=$(git --no-optional-locks -C "$current_dir" status --porcelain 2>/dev/null)
-
-        if [[ -n "$git_status" ]]; then
-            read -r untracked modified staged conflicts <<< "$(echo "$git_status" | awk '
-                BEGIN {u=0; m=0; s=0; c=0}
-                /^\?\?/ {u++}
-                /^.M|^ M/ {m++}
-                /^[ADMR]/ {s++}
-                /^UU|^AA|^DD/ {c++}
-                END {print u, m, s, c}
-            ')"
-        else
-            untracked=0; modified=0; staged=0; conflicts=0
-        fi
-
-        # Ahead/behind
-        ahead_behind=""
-        upstream=$(git -C "$current_dir" rev-parse --abbrev-ref '@{u}' 2>/dev/null)
-        if [[ -n "$upstream" ]]; then
-            counts=$(timeout 0.5s git -C "$current_dir" rev-list --left-right --count '@{u}...HEAD' 2>/dev/null)
-            if [[ $? -eq 124 ]]; then
-                ahead_behind=" ${GRAY}(checking...)${RESET}"
-            elif [[ -n "$counts" ]]; then
-                read -r ahead behind <<< "$counts"
-                if [[ "$ahead" -gt 0 ]] && [[ "$behind" -gt 0 ]]; then
-                    ahead_behind=" ${YELLOW}↕${ahead}/${behind}${RESET}"
-                elif [[ "$ahead" -gt 0 ]]; then
-                    ahead_behind=" ${GREEN}↑${ahead}${RESET}"
-                elif [[ "$behind" -gt 0 ]]; then
-                    ahead_behind=" ${YELLOW}↓${behind}${RESET}"
-                fi
-            fi
-        fi
-
-        # GitHub URL and OSC 8 branch link
-        ESC=$'\033'
-        ST="${ESC}\\"
-        remote_url=$(git -C "$current_dir" config --get remote.origin.url 2>/dev/null)
-        github_base_url=""
-        if [[ "$remote_url" == *"github.com"* ]]; then
-            github_base_url=$(echo "$remote_url" | sed -E \
-                's|git@github\.com:|https://github.com/|;s|\.git$||;s|https://github\.com/(.+)\.git|\1|')
-            if [[ "$github_base_url" != https://* ]]; then
-                github_base_url="https://github.com/${github_base_url#https://github.com/}"
-            fi
-        fi
-
-        if [[ -n "$github_base_url" && "$branch" != detached:* ]]; then
-            branch_url="${github_base_url}/tree/${branch}"
-            branch_link="${ESC}]8;;${branch_url}${ST}${branch}${ESC}]8;;${ST}"
-        else
-            branch_link="${branch}"
-        fi
-
-        # PR info
-        pr_info=""
-        if command -v gh >/dev/null 2>&1 && [[ "$remote_url" == *"github.com"* ]]; then
-            pr_json=$(timeout 0.5 gh pr view --json number,url 2>/dev/null || echo "")
-            if [[ -n "$pr_json" ]]; then
-                pr_number=$(echo "$pr_json" | jq -r '.number // empty')
-                pr_url=$(echo "$pr_json" | jq -r '.url // empty')
-                if [[ -n "$pr_number" && -n "$pr_url" ]]; then
-                    pr_link="${ESC}]8;;${pr_url}${ST}PR#${pr_number}${ESC}]8;;${ST}"
-                    pr_info=" ${CYAN}${pr_link}${RESET}"
-                fi
-            fi
-        fi
-
-        # Git color
-        if [[ "$conflicts" -gt 0 ]]; then
-            git_color="${RED}"
-        elif [[ -n "$git_status" ]]; then
-            git_color="${YELLOW}"
-        else
-            git_color="${GREEN}"
-        fi
-
-        git_branch_info="${git_color}${branch_link}"$'\033[0m'"${worktree_info}${ahead_behind}${pr_info}"
-        cached_git_info=" ${GRAY}│${RESET} ${git_branch_info}"
-
-        printf '%s' "$cached_git_info" > "$cache_file"
-    }
-
-    lock_file="${cache_file}.lock"
-
-    if [[ -f "$cache_file" ]]; then
-        # Cache exists (possibly stale): show immediately, refresh in background if stale
-        git_info=$(cat "$cache_file")
-        if ! cache_is_fresh && mkdir "$lock_file" 2>/dev/null; then
-            ( refresh_cache; rm -rf "$lock_file" ) &>/dev/null &
-            disown
-        fi
-    else
-        # No cache at all: must build synchronously
-        refresh_cache
-        git_info=$(cat "$cache_file" 2>/dev/null)
+    if [[ -z "$branch" ]]; then
+        branch=$(git -C "$current_dir" rev-parse --short HEAD 2>/dev/null)
+        branch="detached:${branch}"
     fi
+
+    # Worktree detection
+    worktree_info=""
+    if [[ "$git_dir" == *".git/worktrees/"* ]] || [[ -f "$git_dir/gitdir" ]]; then
+        worktree_name=$(basename "$current_dir")
+        if [[ "$worktree_name" =~ ^TOK ]] && [[ "$branch" != *"$worktree_name"* ]]; then
+            worktree_info=" ${CYAN}🌳${RESET}"
+        elif [[ ! "$worktree_name" =~ ^TOK ]] && [[ "$branch" != "$worktree_name" ]]; then
+            worktree_info=" ${CYAN}🌳${RESET}"
+        fi
+    fi
+
+    # Git status
+    git_status=$(git --no-optional-locks -C "$current_dir" status --porcelain 2>/dev/null)
+
+    if [[ -n "$git_status" ]]; then
+        read -r untracked modified staged conflicts <<< "$(echo "$git_status" | awk '
+            BEGIN {u=0; m=0; s=0; c=0}
+            /^\?\?/ {u++}
+            /^.M|^ M/ {m++}
+            /^[ADMR]/ {s++}
+            /^UU|^AA|^DD/ {c++}
+            END {print u, m, s, c}
+        ')"
+    else
+        untracked=0; modified=0; staged=0; conflicts=0
+    fi
+
+    # Ahead/behind
+    ahead_behind=""
+    upstream=$(git -C "$current_dir" rev-parse --abbrev-ref '@{u}' 2>/dev/null)
+    if [[ -n "$upstream" ]]; then
+        counts=$(timeout 0.5s git -C "$current_dir" rev-list --left-right --count '@{u}...HEAD' 2>/dev/null)
+        if [[ $? -eq 124 ]]; then
+            ahead_behind=" ${GRAY}(checking...)${RESET}"
+        elif [[ -n "$counts" ]]; then
+            read -r ahead behind <<< "$counts"
+            if [[ "$ahead" -gt 0 ]] && [[ "$behind" -gt 0 ]]; then
+                ahead_behind=" ${YELLOW}↕${ahead}/${behind}${RESET}"
+            elif [[ "$ahead" -gt 0 ]]; then
+                ahead_behind=" ${GREEN}↑${ahead}${RESET}"
+            elif [[ "$behind" -gt 0 ]]; then
+                ahead_behind=" ${YELLOW}↓${behind}${RESET}"
+            fi
+        fi
+    fi
+
+    # GitHub URL and OSC 8 branch link
+    ESC=$'\033'
+    ST="${ESC}\\"
+    remote_url=$(git -C "$current_dir" config --get remote.origin.url 2>/dev/null)
+    github_base_url=""
+    if [[ "$remote_url" == *"github.com"* ]]; then
+        github_base_url=$(echo "$remote_url" | sed -E \
+            's|git@github\.com:|https://github.com/|;s|\.git$||;s|https://github\.com/(.+)\.git|\1|')
+        if [[ "$github_base_url" != https://* ]]; then
+            github_base_url="https://github.com/${github_base_url#https://github.com/}"
+        fi
+    fi
+
+    if [[ -n "$github_base_url" && "$branch" != detached:* ]]; then
+        branch_url="${github_base_url}/tree/${branch}"
+        branch_link="${ESC}]8;;${branch_url}${ST}${branch}${ESC}]8;;${ST}"
+    else
+        branch_link="${branch}"
+    fi
+
+    # PR info
+    pr_info=""
+    if command -v gh >/dev/null 2>&1 && [[ "$remote_url" == *"github.com"* ]]; then
+        pr_json=$(timeout 0.5 gh pr view --json number,url 2>/dev/null || echo "")
+        if [[ -n "$pr_json" ]]; then
+            pr_number=$(echo "$pr_json" | jq -r '.number // empty')
+            pr_url=$(echo "$pr_json" | jq -r '.url // empty')
+            if [[ -n "$pr_number" && -n "$pr_url" ]]; then
+                pr_link="${ESC}]8;;${pr_url}${ST}PR#${pr_number}${ESC}]8;;${ST}"
+                pr_info=" ${CYAN}${pr_link}${RESET}"
+            fi
+        fi
+    fi
+
+    # Git color
+    if [[ "$conflicts" -gt 0 ]]; then
+        git_color="${RED}"
+    elif [[ -n "$git_status" ]]; then
+        git_color="${YELLOW}"
+    else
+        git_color="${GREEN}"
+    fi
+
+    git_branch_info="${git_color}${branch_link}"$'\033[0m'"${worktree_info}${ahead_behind}${pr_info}"
+    git_info=" ${GRAY}│${RESET} ${git_branch_info}"
 fi
 
 # Build output string
