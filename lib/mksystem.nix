@@ -22,7 +22,9 @@ let
   # Actual username is dynamically set via currentSystemUser
   userHMConfig = ../users/shared/home-manager.nix;
   userOSConfig = ../users/shared/${osConfig};
-  machineConfig = ../machines/${name}.nix;
+  machineConfig = if darwin then ../machines/${name}.nix else ../machines/nixos/${name}.nix;
+
+  hmModule = if darwin then inputs.home-manager.darwinModules.home-manager else inputs.home-manager.nixosModules.home-manager;
 
   # Unified cache configuration for both Determinate Nix and traditional Nix
   cacheConfig = import ./cache-config.nix;
@@ -50,20 +52,20 @@ systemFunc {
 
   modules = [
     machineConfig
+  ]
+  ++ lib.optionals (builtins.pathExists userOSConfig) [
     userOSConfig
+  ]
+  ++ [
 
-    # Conditional Nix configuration for Determinate vs traditional setups
+    # Nix configuration
     (
       { lib, ... }:
       {
         # Traditional Nix settings (Linux systems)
-        nix.settings = lib.mkIf (!darwin) cacheSettings // {
-          # Trust substituters to eliminate "ignoring untrusted substituter" warnings
+        nix.settings = lib.mkIf (!darwin) (cacheSettings // {
           trusted-substituters = cacheSettings.substituters;
-        };
-
-        # Determinate Nix integration
-        determinateNix.customSettings = cacheSettings;
+        });
 
         # Let Determinate manage Nix on Darwin systems
         nix.enable = lib.mkIf darwin false;
@@ -73,10 +75,11 @@ systemFunc {
   ++ lib.optionals darwin [
     # Determinate Nix integration (Darwin systems only)
     inputs.determinate.darwinModules.default
+    { determinateNix.customSettings = cacheSettings; }
   ]
   ++ [
     # Home Manager integration
-    inputs.home-manager.darwinModules.home-manager
+    hmModule
     {
       home-manager = {
         useGlobalPkgs = true;
@@ -93,6 +96,8 @@ systemFunc {
       users.users.${user} = {
         name = user;
         home = if darwin then "/Users/${user}" else "/home/${user}";
+      } // lib.optionalAttrs (!darwin) {
+        isNormalUser = true;
       };
 
       # Set hostname for Darwin systems
