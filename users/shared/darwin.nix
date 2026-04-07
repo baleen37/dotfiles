@@ -159,7 +159,9 @@ in
     casks = homebrew-casks;
 
     # Development Services Configuration
-    brews = [];
+    brews = [
+      "im-select" # Switch input method from terminal (for Obsidian Vim IME control)
+    ];
 
     # Performance Optimization: Selective Cleanup Strategy
     # Prevents unexpected interruptions during development while maintaining system hygiene
@@ -187,7 +189,9 @@ in
     # Extended Package Repository Access
     # Additional Homebrew taps for specialized packages and development tools
     # Note: homebrew/cask is now built into Homebrew by default (since 2023)
-    taps = [];
+    taps = [
+      "daipeihust/tap" # im-select
+    ];
   };
 
   # ===== Keyboard Input Source Configuration Script =====
