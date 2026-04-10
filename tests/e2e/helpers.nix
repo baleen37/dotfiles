@@ -4,6 +4,7 @@
 
 {
   pkgs,
+  lib,
   platformSystem,
 }:
 
@@ -146,4 +147,59 @@
     # Home Manager 상태 버전
     stateVersion = "24.05";
   };
+
+  # Factory: resolve nixosTest function (replaces boilerplate in each E2E test)
+  mkNixosTest =
+    { nixpkgs, system }:
+    pkgs.testers.nixosTest or (import "${nixpkgs}/nixos/lib/testing-python.nix" {
+      inherit system;
+      inherit pkgs;
+    });
+
+  # Factory: base VM node configuration (common defaults for E2E tests)
+  mkBaseNode =
+    {
+      hostname,
+      extraConfig ? { },
+    }:
+    {
+      config,
+      pkgs,
+      ...
+    }:
+    lib.mkMerge [
+      {
+        system.stateVersion = "24.11";
+        networking.hostName = hostname;
+        networking.useDHCP = false;
+        networking.firewall.enable = false;
+        virtualisation.cores = 2;
+        virtualisation.memorySize = 2048;
+        virtualisation.diskSize = 4096;
+        nix = {
+          extraOptions = ''
+            experimental-features = nix-command flakes
+            accept-flake-config = true
+          '';
+          settings = {
+            substituters = [ "https://cache.nixos.org/" ];
+            trusted-public-keys = [ "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=" ];
+          };
+        };
+        users.users.testuser = {
+          isNormalUser = true;
+          password = "test";
+          extraGroups = [ "wheel" ];
+          shell = pkgs.bash;
+        };
+        environment.systemPackages = with pkgs; [
+          git
+          vim
+          curl
+          jq
+        ];
+        security.sudo.wheelNeedsPassword = false;
+      }
+      extraConfig
+    ];
 }
