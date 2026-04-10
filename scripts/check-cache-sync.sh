@@ -8,20 +8,21 @@ REPO_ROOT="$(git rev-parse --show-toplevel)"
 FLAKE="$REPO_ROOT/flake.nix"
 CACHE_CONFIG="$REPO_ROOT/lib/cache-config.nix"
 
-# Extract substituters from flake.nix (between nixConfig's substituters brackets)
-flake_substituters=$(sed -n '/nixConfig/,/accept-flake-config/{/substituters/,/\]/p}' "$FLAKE" \
-  | grep -o '"[^"]*"' | sort)
+# Extract substituters from flake.nix (within nixConfig block)
+# Uses awk for BSD/GNU sed compatibility
+flake_substituters=$(awk '/nixConfig/,/accept-flake-config/' "$FLAKE" \
+  | awk '/substituters/,/\]/' | grep -o '"[^"]*"' | sort)
 
 # Extract substituters from cache-config.nix
-cache_substituters=$(sed -n '/substituters/,/\]/p' "$CACHE_CONFIG" \
+cache_substituters=$(awk '/substituters/,/\]/' "$CACHE_CONFIG" \
   | grep -o '"[^"]*"' | sort)
 
-# Extract trusted-public-keys from flake.nix
-flake_keys=$(sed -n '/nixConfig/,/accept-flake-config/{/trusted-public-keys/,/\]/p}' "$FLAKE" \
-  | grep -o '"[^"]*"' | sort)
+# Extract trusted-public-keys from flake.nix (within nixConfig block)
+flake_keys=$(awk '/nixConfig/,/accept-flake-config/' "$FLAKE" \
+  | awk '/trusted-public-keys/,/\]/' | grep -o '"[^"]*"' | sort)
 
 # Extract trusted-public-keys from cache-config.nix
-cache_keys=$(sed -n '/trusted-public-keys/,/\]/p' "$CACHE_CONFIG" \
+cache_keys=$(awk '/trusted-public-keys/,/\]/' "$CACHE_CONFIG" \
   | grep -o '"[^"]*"' | sort)
 
 errors=0
