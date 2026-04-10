@@ -42,9 +42,10 @@ users/shared/
 - System integration: `nixpkgs.config`, `nix.enable`, `programs.zsh.enable`, `system.keyboard`, `system.primaryUser`, `system.stateVersion`, `environment.systemPackages`, `documentation.enable`
 
 **`darwin-homebrew.nix`** receives:
-- `darwin-packages` list (dockutil)
 - `homebrew-casks` list
 - `homebrew` attrset (enable, casks, brews, onActivation, global, masApps, taps)
+
+Note: `darwin-packages` (dockutil) stays in `darwin.nix` since it is a nix package used by `environment.systemPackages`, not a Homebrew concern.
 
 **`darwin-scripts.nix`** receives:
 - `system.activationScripts.configureKeyboard`
