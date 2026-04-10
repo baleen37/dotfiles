@@ -27,77 +27,25 @@
 }:
 
 let
-  # Import nixosTest - works in both flake and non-flake contexts
-  nixosTest =
-    pkgs.testers.nixosTest or (import "${nixpkgs}/nixos/lib/testing-python.nix" {
-      inherit system;
-      inherit pkgs;
-    });
+  e2eHelpers = import ./helpers.nix {
+    inherit pkgs lib;
+    platformSystem = { isDarwin = false; isLinux = true; };
+  };
+  nixosTest = e2eHelpers.mkNixosTest { inherit nixpkgs system; };
 
 in
 nixosTest {
   # Test name
   name = "my-e2e-test";
 
-  # Define the VM node(s)
-  nodes.machine =
-    { config, pkgs, ... }:
-    {
-      # Basic NixOS configuration
-      system.stateVersion = "24.11";
-
-      # Networking
-      networking.hostName = "test-machine";
-      networking.useDHCP = false;
-      networking.firewall.enable = false;
-
-      # VM resources
-      virtualisation.cores = 2;
-      virtualisation.memorySize = 2048;
-      virtualisation.diskSize = 4096;
-
-      # Nix configuration
-      nix = {
-        extraOptions = ''
-          experimental-features = nix-command flakes
-          accept-flake-config = true
-        '';
-        settings = {
-          substituters = [ "https://cache.nixos.org/" ];
-          trusted-public-keys = [ "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=" ];
-        };
-      };
-
-      # User setup
-      users.users.testuser = {
-        isNormalUser = true;
-        password = "test";
-        extraGroups = [ "wheel" ];
-        shell = pkgs.bash;
-      };
-
-      # System packages
-      environment.systemPackages = with pkgs; [
-        git
-        vim
-        curl
-        jq
-      ];
-
-      # Enable sudo without password for testing
-      security.sudo.wheelNeedsPassword = false;
-
-      # ===== CUSTOM CONFIGURATION =====
-      # Add your test-specific configuration here
-
-      # Example: Enable a service
-      # services.my-service.enable = true;
-
-      # Example: Install test packages
-      # environment.systemPackages = with pkgs; [
-      #   my-package
-      # ];
-    };
+  # Define the VM node(s) using factory
+  nodes.machine = e2eHelpers.mkBaseNode {
+    hostname = "test-machine";
+    # Add test-specific configuration:
+    # extraConfig = {
+    #   services.my-service.enable = true;
+    # };
+  };
 
   # Test script - Python-based test logic
   testScript = ''
@@ -118,18 +66,6 @@ nixosTest {
     # Verify user exists
     machine.succeed("id -u testuser")
 
-    # ===== CONFIGURATION TESTS =====
-
-    # Test that configuration was applied
-    # Example: Check if a service is running
-    # machine.succeed("systemctl is-active my-service")
-
-    # Example: Check if a file exists
-    # machine.succeed("test -f /etc/my-config.conf")
-
-    # Example: Check configuration content
-    # machine.succeed("grep 'expected-value' /etc/my-config.conf")
-
     # ===== USER SCENARIO TESTS =====
 
     # Test user can perform actions
@@ -138,20 +74,6 @@ nixosTest {
 
     # Test user home directory
     machine.succeed("su - testuser -c 'test -d /home/testuser'")
-
-    # ===== INTEGRATION TESTS =====
-
-    # Test workflows that span multiple components
-    # Example: Clone a repo and check out a file
-    # machine.succeed("su - testuser -c 'cd /tmp && git clone https://github.com/example/repo'")
-    # machine.succeed("su - testuser -c 'test -f /tmp/repo/README.md'")
-
-    # ===== PLATFORM-SPECIFIC TESTS =====
-
-    # Add platform-specific tests as needed
-    # Example: Test Darwin-specific features
-    # if subprocess.call(["uname", "-s"]) == "Darwin":
-    #     machine.succeed("brew --version")
 
     print("✅ All E2E tests passed!")
   '';
