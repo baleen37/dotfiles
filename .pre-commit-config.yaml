@@ -70,6 +70,13 @@ repos:
         stages: [pre-push]
         description: Run all tests including integration
 
+      - id: check-cache-sync
+        name: Check cache config sync
+        entry: scripts/check-cache-sync.sh
+        language: script
+        pass_filenames: false
+        files: '(flake\.nix|lib/cache-config\.nix)'
+
 # Global configuration
 default_install_hook_types: [pre-commit, pre-push]
 default_stages: [pre-commit]

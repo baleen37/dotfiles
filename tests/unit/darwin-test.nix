@@ -19,11 +19,16 @@ let
   darwinHelpers = import ../lib/darwin-test-helpers.nix { inherit pkgs lib helpers; };
   mockConfig = import ../lib/mock-config.nix { inherit pkgs lib; };
 
-  darwinConfig = import ../../users/shared/darwin.nix {
-    inherit pkgs lib;
-    config = mockConfig.mkEmptyConfig;
-    currentSystemUser = "baleen"; # Test with default user
-  };
+  darwinConfig = lib.recursiveUpdate
+    (lib.recursiveUpdate
+      (import ../../users/shared/darwin.nix {
+        inherit pkgs lib;
+        config = mockConfig.mkEmptyConfig;
+        currentSystemUser = "baleen"; # Test with default user
+      })
+      (import ../../users/shared/darwin-homebrew.nix { })
+    )
+    (import ../../users/shared/darwin-scripts.nix { });
 
 in
 # Platform filtering - this test should only run on Darwin systems

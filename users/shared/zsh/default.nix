@@ -140,29 +140,11 @@
       # =============================================================================
       # Section: Claude Code wrapper functions
       # =============================================================================
-      #   cc/cc-h/cc-l:   Anthropic API (sonnet/opus/haiku)
-      #   cco/cco-h/cco-l: OpenAI-compatible proxy
-      #   ccz/ccz-h/ccz-l: Z.ai GLM API
-      #   cck:            Kimi API via OpenAI-compatible proxy
-      # Configure cco/ccz/cck models in ~/.zshrc.local
       ${import ./claude-wrappers.nix}
       # =============================================================================
       # Section: Environment and PATH setup
       # =============================================================================
-      # PATH configuration - Global package managers
-      export PATH="$HOME/.pnpm-packages/bin:$HOME/.pnpm-packages:$PATH"
-      export PATH="$HOME/.npm-global/bin:$HOME/.npm-packages/bin:$HOME/bin:$PATH"
-      export PATH="$HOME/.local/share/bin:$PATH"
-      export PATH="$HOME/.local/bin:$PATH"
-      # Cargo (Rust)
-      export PATH="$HOME/.cargo/bin:$PATH"
-      # Go
-      export PATH="$HOME/go/bin:$PATH"
-      # Gem (Ruby) - only if GEM_HOME is set to user directory
-      if [[ -n "$GEM_HOME" ]]; then
-        export PATH=$GEM_HOME/bin:$PATH
-      fi
-
+      ${import ./env.nix}
       # Homebrew PATH configuration (macOS only)
       ${lib.optionalString isDarwin ''
         if [[ -d /opt/homebrew ]]; then
@@ -170,125 +152,15 @@
         fi
       ''}
 
-      # History configuration
-      export HISTIGNORE="pwd:ls:cd"
-
-      # Locale settings for UTF-8 support
-      export LANG="en_US.UTF-8"
-      export LC_ALL="en_US.UTF-8"
-
-      # Editor preferences
-      export EDITOR="vim"
-      export VISUAL="vim"
-
-      # npm configuration
-      export NPM_CONFIG_PREFIX="$HOME/.npm-global"
-
-      # GitHub CLI token
-      export GITHUB_TOKEN=$(gh auth token)
-
       # =============================================================================
       # Section: SSH agent setup
       # =============================================================================
-      # Optimized 1Password SSH agent detection with platform awareness
-      _setup_1password_agent() {
-        # Early exit if already configured
-        [[ -n "$${SSH_AUTH_SOCK:-}" ]] && [[ -S "$SSH_AUTH_SOCK" ]] && return 0
-
-        local socket_paths=()
-
-        # Platform-specific socket detection
-        ${lib.optionalString isDarwin ''
-          # macOS: Check Group Containers efficiently
-          for container in ~/Library/Group\ Containers/*.com.1password; do
-            [[ -d "$container" ]] && socket_paths+=("$container/t/agent.sock")
-          done 2>/dev/null
-        ''}
-
-        # Common cross-platform locations
-        socket_paths+=(
-          ~/.1password/agent.sock
-          /tmp/1password-ssh-agent.sock
-          ~/Library/Containers/com.1password.1password/Data/tmp/agent.sock
-        )
-
-        # Find first available socket
-        for sock in "$${socket_paths[@]}"; do
-          if [[ -S "$sock" ]]; then
-            export SSH_AUTH_SOCK="$sock"
-            return 0
-          fi
-        done
-
-        return 1
-      }
-
-      _setup_1password_agent
-
-      # Add SSH key to agent if not already registered
-      if [[ -f ~/.ssh/id_ed25519 ]]; then
-        ssh-add -l 2>/dev/null | grep -q "$(ssh-keygen -lf ~/.ssh/id_ed25519 2>/dev/null | awk '{print $2}')" \
-          || ssh-add ~/.ssh/id_ed25519 2>/dev/null
-      fi
+      ${import ./ssh-agent.nix { inherit isDarwin lib; }}
 
       # =============================================================================
       # Section: Utility functions
       # =============================================================================
-      # nix shortcuts
-      shell() {
-          nix-shell '<nixpkgs>' -A "$1"
-      }
-
-      # Enhanced SSH wrapper with intelligent reconnection
-      ssh() {
-        # Optimized connection wrapper with autossh fallback
-        if command -v autossh >/dev/null 2>&1; then
-          # Use autossh with optimized settings for reliability
-          AUTOSSH_POLL=60 AUTOSSH_FIRST_POLL=30 autossh -M 0 \
-            -o "ServerAliveInterval=30" \
-            -o "ServerAliveCountMax=3" \
-            "$@"
-        else
-          # Enhanced regular SSH with connection optimization
-          command ssh \
-            -o "ServerAliveInterval=60" \
-            -o "ServerAliveCountMax=3" \
-            -o "TCPKeepAlive=yes" \
-            "$@"
-        fi
-      }
-
-      # IntelliJ IDEA background launcher
-      # Runs IntelliJ IDEA in background to avoid blocking terminal
-      # Usage: idea [project-dir] [file-path]
-      idea() {
-        if command -v idea >/dev/null 2>&1; then
-          # Run IntelliJ IDEA in background, disown from shell
-          # Preserve SSH agent and other important environment variables
-          nohup env SSH_AUTH_SOCK="$SSH_AUTH_SOCK" SSH_AGENT_PID="$SSH_AGENT_PID" \
-            GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no" \
-            command idea "$@" >/dev/null 2>&1 &
-          disown %% 2>/dev/null || true
-          echo "\033[0;32mIntelliJ IDEA started in background with SSH agent integration\033[0m"
-        else
-          echo "\033[0;31mIntelliJ IDEA not found. Please install it first.\033[0m"
-          return 1
-        fi
-      }
-
-      # SSH agent setup for GUI applications (including IntelliJ IDEA)
-      # Ensures GUI apps can access SSH agent for Git operations
-      setup_ssh_agent_for_gui() {
-        if [[ -n "$SSH_AUTH_SOCK" && -S "$SSH_AUTH_SOCK" ]]; then
-          # Set SSH agent variables for GUI applications
-          launchctl setenv SSH_AUTH_SOCK "$SSH_AUTH_SOCK" 2>/dev/null || true
-          [[ -n "$SSH_AGENT_PID" ]] && launchctl setenv SSH_AGENT_PID "$SSH_AGENT_PID" 2>/dev/null || true
-          echo "SSH agent configured for GUI applications"
-        fi
-      }
-
-      # Setup SSH agent for GUI applications (IntelliJ IDEA, etc.)
-      setup_ssh_agent_for_gui
+      ${import ./functions.nix}
 
       # =============================================================================
       # Section: Git worktree wrapper
