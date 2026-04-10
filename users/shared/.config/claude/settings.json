@@ -50,18 +50,7 @@
   "skipDangerousModePermissionPrompt": true,
   "installMethod": "native",
   "rejectedMcpServers": [],
-  "hooks": {
-    "WorktreeCreate": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash -c 'INPUT=$(cat); NAME=$(echo \"$INPUT\" | jq -r .name); CWD=$(echo \"$INPUT\" | jq -r .cwd); DIR=\"$CWD/.worktrees/$NAME\"; git -C \"$CWD\" worktree add -b \"worktree/$NAME\" \"$DIR\" >&2 && echo \"$DIR\"'"
-          }
-        ]
-      }
-    ]
-  },
+  "hooks": {},
   "feedbackSurveyState": {
     "lastShownTime": 1755225425616
   }
