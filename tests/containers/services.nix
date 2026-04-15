@@ -34,7 +34,7 @@ in
     machine.wait_for_open_port(22)
 
     # Test Docker service (if available)
-    machine.wait_for_unit("docker.service", timeout=60)
+    machine.wait_for_unit("docker.service")
     machine.succeed("docker --version")
 
     print("✅ Services test passed")
