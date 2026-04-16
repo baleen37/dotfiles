@@ -1,7 +1,7 @@
 # Claude Code wrapper functions for Zsh
 #
 # Returns a pure string of shell code defining:
-#   cc/cc-h/cc-l:    Anthropic API (sonnet/opus/haiku)
+#   cc/cc-h/cc-l:    Anthropic API (Sonnet 4.6 / Opus 4.6 / Haiku 4.5)
 #   cco/cco-h/cco-l: OpenAI-compatible proxy
 #   ccz/ccz-h/ccz-l: Z.ai GLM API
 #   cck:             Kimi API via OpenAI-compatible proxy
@@ -63,7 +63,7 @@
   }
 
   cc() {
-    eval "$(_cc_parse_model_flags "" "opus" "haiku" model "$@")"
+    eval "$(_cc_parse_model_flags "claude-sonnet-4-6" "opus[1m]" "claude-haiku-4-5" model "$@")"
     ENABLE_TOOL_SEARCH=true _cc_run "$model" "$@"
   }
 
@@ -82,7 +82,7 @@
   }
 
   cco() {
-    eval "$(_cc_parse_model_flags "''${CCO_SONNET_MODEL:?Set CCO_SONNET_MODEL in ~/.zshrc.local}" "''${CCO_OPUS_MODEL:?Set CCO_OPUS_MODEL in ~/.zshrc.local}" "''${CCO_HAIKU_MODEL:?Set CCO_HAIKU_MODEL in ~/.zshrc.local}" model "$@")"
+    eval "$(_cc_parse_model_flags "''${CCO_SONNET_MODEL:-claude-sonnet-4-6}" "''${CCO_OPUS_MODEL:-claude-opus-4-6}" "''${CCO_HAIKU_MODEL:-claude-haiku-4-5}" model "$@")"
     _cco_run "$model" "$@"
   }
 
