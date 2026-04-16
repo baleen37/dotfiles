@@ -39,6 +39,17 @@ readonly BOLD=$'\033[1m'       # Bold text
 # Read JSON input from stdin
 input=$(cat)
 
+# Login indicator: show email local part (before @) in green
+login_indicator=""
+whoami_json=$(timeout 0.5 claude auth status 2>/dev/null || echo "")
+if [[ -n "$whoami_json" ]]; then
+    email=$(echo "$whoami_json" | jq -r '.email // empty')
+    if [[ -n "$email" ]]; then
+        email_local="${email%%@*}"
+        login_indicator="${GREEN}${email_local}${RESET} ${GRAY}│${RESET} "
+    fi
+fi
+
 # Extract data from JSON input using single jq call for performance
 # Use tab as IFS to handle spaces in model names correctly
 IFS=$'\t' read -r model_name current_dir <<< "$(echo "$input" | jq -r '[
@@ -184,9 +195,9 @@ fi
 
 # Build output string
 if [[ -n "$ctx_display" ]]; then
-    output_string="${BOLD}${BLUE}${model_name}${RESET} ${GRAY}│${RESET} ${CYAN}${ctx_display}${RESET} ${GRAY}│${RESET} ${PURPLE}${dir_display}${RESET}"
+    output_string="${login_indicator}${BOLD}${BLUE}${model_name}${RESET} ${GRAY}│${RESET} ${CYAN}${ctx_display}${RESET} ${GRAY}│${RESET} ${PURPLE}${dir_display}${RESET}"
 else
-    output_string="${BOLD}${BLUE}${model_name}${RESET} ${GRAY}│${RESET} ${PURPLE}${dir_display}${RESET}"
+    output_string="${login_indicator}${BOLD}${BLUE}${model_name}${RESET} ${GRAY}│${RESET} ${PURPLE}${dir_display}${RESET}"
 fi
 
 if [[ -n "$git_info" ]]; then
