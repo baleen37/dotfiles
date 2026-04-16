@@ -63,7 +63,7 @@ in
 
     # Development Services Configuration
     brews = [
-      "im-select" # Switch input method from terminal (for Obsidian Vim IME control)
+      "daipeihust/tap/im-select" # Switch input method from terminal (for Obsidian Vim IME control)
     ];
 
     # Performance Optimization: Selective Cleanup Strategy
