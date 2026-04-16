@@ -71,11 +71,11 @@ in
       (assertInitHas "cc-parse-set-positional" "set --")
     ]
 
-    # 4. cco requires CCO_ env vars (no silent fallback)
+    # 4. cco allows env overrides with built-in fallback values
     ++ [
-      (assertInitHas "cco-requires-sonnet-env" "CCO_SONNET_MODEL:?Set")
-      (assertInitHas "cco-high-requires-env"   "CCO_OPUS_MODEL:?Set")
-      (assertInitHas "cco-low-requires-env"    "CCO_HAIKU_MODEL:?Set")
+      (assertInitHas "cco-sonnet-env-override" "CCO_SONNET_MODEL:-")
+      (assertInitHas "cco-high-env-override"   "CCO_OPUS_MODEL:-")
+      (assertInitHas "cco-low-env-override"    "CCO_HAIKU_MODEL:-")
     ]
 
     # 5. ccz requires CCZ_ env vars (no silent fallback)
