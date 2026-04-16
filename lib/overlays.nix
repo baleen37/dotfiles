@@ -9,7 +9,7 @@
     unstable = prev;
 
     # Claude Code - latest from flake input
-    claude-code = inputs.claude-code.packages.${prev.system}.default;
+    claude-code = inputs.claude-code.packages.${prev.stdenv.hostPlatform.system}.default;
 
     # direnv - fix cgo build issue by removing linkmode=external
     direnv = prev.direnv.overrideAttrs (oldAttrs: {
