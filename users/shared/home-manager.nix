@@ -97,7 +97,7 @@
       pyright
 
       # Nix tools
-      nixfmt
+      nixfmt-rfc-style
       statix
       deadnix
       gnumake
