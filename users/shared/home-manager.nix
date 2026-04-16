@@ -24,7 +24,7 @@
 #   - Terminal: ghostty, htop, starship
 #   - Fonts: noto-fonts-cjk-sans, cascadia-code, d2coding
 #   - Media: ffmpeg
-#   - Databases: postgresql, sqlite, redis, mysql80
+#   - Databases: postgresql, sqlite, redis, mariadb.client
 #
 
 {
@@ -138,7 +138,7 @@
       postgresql
       sqlite
       redis
-      mysql80
+      mariadb.client
 
       # Productivity tools
       bc
