@@ -22,6 +22,12 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
+    # flake-parts - modular flake structure
+    flake-parts = {
+      url = "github:hercules-ci/flake-parts";
+      inputs.nixpkgs-lib.follows = "nixpkgs";
+    };
+
     # Claude Code - latest stable
     claude-code.url = "github:sadjow/claude-code-nix/main";
 
