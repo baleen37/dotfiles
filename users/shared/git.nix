@@ -35,6 +35,7 @@ in
     lfs = {
       enable = true;
     };
+    signing.format = "openpgp";
 
     settings = {
       user = {

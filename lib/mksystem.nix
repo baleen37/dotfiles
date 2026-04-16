@@ -39,8 +39,6 @@ let
 
 in
 systemFunc {
-  inherit system;
-
   specialArgs = {
     inherit inputs self;
     currentSystem = system;
@@ -51,6 +49,7 @@ systemFunc {
   };
 
   modules = [
+    { nixpkgs.hostPlatform = system; }
     machineConfig
   ]
   ++ lib.optionals (builtins.pathExists userOSConfig) [

@@ -30,10 +30,9 @@ let
       lib = mockpkgs.lib // {
         # Mock nixosSystem for Linux tests
         nixosSystem = args: {
-          inherit (args) system;
           modules = args.modules;
           specialArgs = {
-            currentSystem = args.system or "x86_64-linux";
+            currentSystem = "x86_64-linux";
             currentSystemName = "macbook-pro";
             currentSystemUser = "testuser";
             isDarwin = false;
@@ -44,14 +43,13 @@ let
     };
     darwin = {
       lib.darwinSystem = args: {
-        inherit (args) system;
         modules = args.modules;
         # Merge defaults with any specialArgs provided by mkSystem
         specialArgs = {
-          currentSystem = args.system or "x86_64-linux";
+          currentSystem = "aarch64-darwin";
           currentSystemName = "macbook-pro";
           currentSystemUser = "testuser";
-          isDarwin = args.system != null && builtins.substring 0 6 args.system == "darwin";
+          isDarwin = false;
           isWSL = false;
         } // (args.specialArgs or { });
       };
@@ -142,8 +140,8 @@ in
           inherit (testScenario) system user darwin wsl;
         };
       in
-      result ? system && result.system == testScenario.system
-    ) "Darwin systems should have correct system attribute")
+      result ? modules && result ? specialArgs
+    ) "Darwin systems should have modules and specialArgs")
 
     (helpers.assertTest "mksystem-linux-uses-nixos-system" (
       let
@@ -152,8 +150,8 @@ in
           inherit (testScenario) system user darwin wsl;
         };
       in
-      result ? system && result.system == testScenario.system
-    ) "Linux systems should have correct system attribute")
+      result ? modules && result ? specialArgs
+    ) "Linux systems should have modules and specialArgs")
 
     # Property 2: Special args invariant
     # All specialArgs should be present and correct
@@ -268,12 +266,12 @@ in
           };
           # With mock inputs, we can only verify the system was created
           # Actual cache settings require real flake inputs
-          hasSystem = result ? system && result.system == testScenario.system;
+          hasModules = result ? modules && result ? specialArgs;
         in
-          hasSystem)
+          hasModules)
       else
         true # Skip on non-Darwin platforms
-    ) "Darwin system should be created with correct system attribute")
+    ) "Darwin system should be created with modules and specialArgs")
 
     # Note: Linux cache settings test only runs on Linux platforms
     (helpers.assertTest "mksystem-cache-settings-linux" (
@@ -285,12 +283,12 @@ in
           };
           # With mock inputs, we can only verify the system was created
           # Actual cache settings require real flake inputs
-          hasSystem = result ? system && result.system == testScenario.system;
+          hasModules = result ? modules && result ? specialArgs;
         in
-          hasSystem)
+          hasModules)
       else
         true # Skip on non-Linux platforms
-    ) "Linux system should be created with correct system attribute")
+    ) "Linux system should be created with modules and specialArgs")
 
     # Property 7: WSL flag propagation
     # WSL flag should be correctly propagated
