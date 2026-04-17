@@ -5,7 +5,6 @@
 #   - Starship prompt: Fast, minimal, cross-shell prompt
 #   - 1Password SSH agent: Cross-platform socket auto-detection and connection
 #   - PATH management: npm, pnpm, local bin directories auto-add
-#   - IntelliJ IDEA launcher: Cross-platform installation path auto-detection
 #   - Claude CLI integration:
 #       - cc: Claude Code quick execution (skip permission checks)
 #       - cco: Claude Code via OpenAI-compatible proxy
