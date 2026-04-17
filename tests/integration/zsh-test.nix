@@ -202,8 +202,6 @@ in
     "shell() function for nix-shell should exist")
   (helpers.assertTest "function-ssh-wrapper" (initContentHas "ssh()")
     "ssh() wrapper function should exist")
-  (helpers.assertTest "function-idea-exists" (initContentHas "idea()")
-    "idea() function for IntelliJ launcher should exist")
 
   # Git Worktree function (gw)
   (helpers.assertTest "function-gw-exists" (initContentHas "gw()")
@@ -267,13 +265,6 @@ in
   (helpers.assertTest "ssh-wrapper-tcp-keepalive" (initContentHas "TCPKeepAlive")
     "ssh wrapper should enable TCP keepalive")
 
-  # IntelliJ IDEA launcher environment preservation
-  (helpers.assertTest "idea-nohup-background" (initContentHas "nohup env")
-    "idea() should use nohup for background execution")
-
-  (helpers.assertTest "idea-disown" (initContentHas "disown")
-    "idea() should disown the background process")
-
   # SSH agent setup for GUI applications (macOS)
   (helpers.assertTest "ssh-agent-gui-function" (
     !pkgs.stdenv.hostPlatform.isDarwin ||  # Skip on Linux, or check on Darwin
@@ -283,11 +274,5 @@ in
     !pkgs.stdenv.hostPlatform.isDarwin ||  # Skip on Linux, or check on Darwin
     initContentHas "launchctl setenv"
   ) "SSH agent should be configured for GUI apps via launchctl")
-
-  # IntelliJ IDEA launcher environment
-  (helpers.assertTest "idea-env-ssh-agent" (initContentHas "SSH_AUTH_SOCK=\"$SSH_AUTH_SOCK\"")
-    "idea() should preserve SSH_AUTH_SOCK environment variable")
-  (helpers.assertTest "idea-env-git-ssh" (initContentHas "GIT_SSH_COMMAND")
-    "idea() should preserve GIT_SSH_COMMAND environment variable")
   ];
 }

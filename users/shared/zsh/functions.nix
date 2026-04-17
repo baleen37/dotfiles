@@ -3,7 +3,6 @@
 # Provides:
 # - shell(): quick nix-shell access
 # - ssh(): enhanced SSH wrapper with autossh fallback
-# - idea(): IntelliJ IDEA background launcher
 # - setup_ssh_agent_for_gui(): SSH agent for GUI apps
 
 ''
@@ -31,25 +30,7 @@ ssh() {
   fi
 }
 
-# IntelliJ IDEA background launcher
-# Runs IntelliJ IDEA in background to avoid blocking terminal
-# Usage: idea [project-dir] [file-path]
-idea() {
-  if command -v idea >/dev/null 2>&1; then
-    # Run IntelliJ IDEA in background, disown from shell
-    # Preserve SSH agent and other important environment variables
-    nohup env SSH_AUTH_SOCK="$SSH_AUTH_SOCK" SSH_AGENT_PID="$SSH_AGENT_PID" \
-      GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no" \
-      command idea "$@" >/dev/null 2>&1 &
-    disown %% 2>/dev/null || true
-    echo "\033[0;32mIntelliJ IDEA started in background with SSH agent integration\033[0m"
-  else
-    echo "\033[0;31mIntelliJ IDEA not found. Please install it first.\033[0m"
-    return 1
-  fi
-}
-
-# SSH agent setup for GUI applications (including IntelliJ IDEA)
+# SSH agent setup for GUI applications
 # Ensures GUI apps can access SSH agent for Git operations
 setup_ssh_agent_for_gui() {
   if [[ -n "$SSH_AUTH_SOCK" && -S "$SSH_AUTH_SOCK" ]]; then
@@ -60,6 +41,6 @@ setup_ssh_agent_for_gui() {
   fi
 }
 
-# Setup SSH agent for GUI applications (IntelliJ IDEA, etc.)
+# Setup SSH agent for GUI applications
 setup_ssh_agent_for_gui
 ''

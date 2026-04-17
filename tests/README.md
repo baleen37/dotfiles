@@ -1283,7 +1283,6 @@ tmuxMaxConfigReadLength = 1000;        # 1K chars - validation limit
 
 ```nix
 masAppMagnet = 441258766;              # Magnet app ID
-masAppWireGuard = 1451685025;          # WireGuard app ID
 masAppKakaoTalk = 869223134;           # KakaoTalk app ID
 ```
 

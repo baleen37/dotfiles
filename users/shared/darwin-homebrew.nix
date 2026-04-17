@@ -11,7 +11,6 @@ let
     # Development Tools
     "datagrip" # Database IDE from JetBrains
     "ghostty" # GPU-accelerated terminal emulator
-    "intellij-idea"
     "utm" # Virtual machine manager for macOS
 
     # Fonts
@@ -85,7 +84,6 @@ in
     # IDs obtained via: nix shell nixpkgs#mas && mas search <app name>
     masApps = {
       "Magnet" = 441258766; # Window management tool with multi-monitor support
-      "WireGuard" = 1451685025; # Lightweight, secure VPN client
       "KakaoTalk" = 869223134; # Communication platform (if needed)
     };
 

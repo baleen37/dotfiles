@@ -279,12 +279,6 @@ rec {
   # Obtained via: mas search Magnet
   masAppMagnet = 441258766;
 
-  # WireGuard app ID
-  # Value: 1451685025
-  # Rationale: Lightweight, secure VPN client.
-  # Obtained via: mas search WireGuard
-  masAppWireGuard = 1451685025;
-
   # KakaoTalk app ID
   # Value: 869223134
   # Rationale: Communication platform.

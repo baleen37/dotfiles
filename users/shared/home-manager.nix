@@ -18,13 +18,13 @@
 #   - Development tools: nodejs, python3, uv, direnv, pre-commit
 #   - LSP servers: gopls, typescript-language-server, clang-tools, pyright
 #   - Nix tools: nixfmt, statix, deadnix
-#   - Cloud tools: act, gh, docker, awscli2
+#   - Cloud tools: act, gh, awscli2
 #   - Security: age, sops
 #   - SSH tools: mosh, teleport
 #   - Terminal: ghostty, htop, starship
 #   - Fonts: noto-fonts-cjk-sans, cascadia-code, d2coding
 #   - Media: ffmpeg
-#   - Databases: postgresql, sqlite, redis, mariadb.client
+#   - Databases: postgresql, sqlite
 #
 
 {
@@ -86,14 +86,12 @@
       direnv
       pre-commit
       vscode
-      postman
 
       # LSP servers
       lua-language-server
       gopls
       go
       typescript-language-server
-      clang-tools
       pyright
 
       # Nix tools
@@ -111,8 +109,6 @@
       # Cloud tools
       act
       gh
-      docker
-      docker-compose
       awscli2
 
       # Security tools
@@ -137,11 +133,6 @@
       # Database tools
       postgresql
       sqlite
-      redis
-      mariadb.client
-
-      # Productivity tools
-      bc
     ];
   };
 
