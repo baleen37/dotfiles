@@ -36,6 +36,12 @@ readonly GRAY=$'\033[37m'      # Gray for separators
 readonly RESET=$'\033[0m'      # Reset colors
 readonly BOLD=$'\033[1m'       # Bold text
 
+# Fallback for `timeout`: macOS has no built-in timeout and Claude Code's
+# shell snapshot PATH may omit coreutils on some accounts.
+if ! command -v timeout >/dev/null 2>&1; then
+    timeout() { shift; "$@"; }
+fi
+
 # Read JSON input from stdin
 input=$(cat)
 
