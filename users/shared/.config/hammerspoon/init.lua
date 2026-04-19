@@ -1,3 +1,5 @@
+require('hs.ipc')
+hs.allowAppleScript(true)
 hs.loadSpoon('Hyper')
 hs.loadSpoon('HyperModal')
 hs.loadSpoon('Pomodoro')
@@ -60,3 +62,18 @@ Pomodoro:init({
 
 -- Bind Hyper+P to toggle Pomodoro session
 Hyper:bind({}, 'p', function() Pomodoro:toggleSession() end)
+
+-- Warn when Secure Input gets enabled (1Password is the usual culprit).
+-- Why: Secure Input blocks Hammerspoon/Karabiner from receiving key events,
+-- silently breaking the Hyper key. Surface it instead of debugging blind.
+local secureInputTimer = hs.timer.new(2, function()
+  if hs.eventtap.isSecureInputEnabled() then
+    if not _G._secureInputWarned then
+      hs.alert.show("⚠️ Secure Input ON — close 1Password window", 3)
+      _G._secureInputWarned = true
+    end
+  else
+    _G._secureInputWarned = false
+  end
+end)
+secureInputTimer:start()
