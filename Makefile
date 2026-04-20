@@ -34,7 +34,7 @@ build-switch: switch
 
 switch:
 ifeq ($(UNAME), Darwin)
-	$(NIX_ENV) $(SUDO_NIX) run nix-darwin -- switch --flake ".#$(NIXNAME)"
+	$(NIX_ENV) sudo -H env PATH=$$PATH darwin-rebuild switch --flake ".#$(NIXNAME)"
 else ifeq ($(IS_NIXOS), true)
 	$(NIX_ENV_FULL) $(SUDO_NIX) run "nixpkgs#nixos-rebuild" -- switch --flake ".#${NIXNAME}"
 else
