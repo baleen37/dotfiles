@@ -34,21 +34,21 @@ pkgs.runCommand "makefile-switch-commands-test"
   ''
     echo "Testing Makefile switch commands (Option 3)"
 
-    # Test 1: build-switch should use nix-darwin on Darwin (via dependency on switch)
-    # build-switch depends on switch, and switch contains nix-darwin command
+    # Test 1: build-switch should use darwin-rebuild on Darwin (via dependency on switch)
+    # build-switch depends on switch, and switch contains darwin-rebuild command
     if (grep -A 5 "^build-switch:" "$makefileSource" | grep -q "switch") &&
-       (grep -A 20 "^switch:" "$makefileSource" | grep -q "nix-darwin"); then
-      echo "✅ Test 1 PASS: build-switch uses nix-darwin via dependency on switch"
+       (grep -A 20 "^switch:" "$makefileSource" | grep -q "darwin-rebuild"); then
+      echo "✅ Test 1 PASS: build-switch uses darwin-rebuild via dependency on switch"
     else
-      echo "❌ Test 1 FAIL: build-switch should depend on switch which uses nix-darwin"
+      echo "❌ Test 1 FAIL: build-switch should depend on switch which uses darwin-rebuild"
       exit 1
     fi
 
-    # Test 2: switch should use nix-darwin on Darwin
-    if grep -A 20 "^switch:" "$makefileSource" | grep -q "nix-darwin"; then
-      echo "✅ Test 2 PASS: switch uses nix-darwin"
+    # Test 2: switch should use darwin-rebuild on Darwin
+    if grep -A 20 "^switch:" "$makefileSource" | grep -q "darwin-rebuild"; then
+      echo "✅ Test 2 PASS: switch uses darwin-rebuild"
     else
-      echo "❌ Test 2 FAIL: switch should use nix-darwin"
+      echo "❌ Test 2 FAIL: switch should use darwin-rebuild"
       exit 1
     fi
 
