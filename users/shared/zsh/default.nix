@@ -87,6 +87,7 @@
 
     shellAliases = {
       # Multi-level directory navigation
+      ".." = "cd ..";
       "..." = "cd ../..";
       "...." = "cd ../../..";
       "....." = "cd ../../../..";
