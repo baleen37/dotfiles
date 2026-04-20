@@ -63,8 +63,7 @@
   }
 
   cc() {
-    eval "$(_cc_parse_model_flags "claude-sonnet-4-6" "opus[1m]" "claude-haiku-4-5" model "$@")"
-    ENABLE_TOOL_SEARCH=true _cc_run "$model" "$@"
+    ENABLE_TOOL_SEARCH=true command claude --dangerously-skip-permissions "$@"
   }
 
   # cco: Configure in ~/.zshrc.local:

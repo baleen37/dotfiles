@@ -34,6 +34,16 @@ nix build '.#checks.aarch64-darwin.basic' --impure  # Specific check
 make test-integration                                # Integration tests only
 ```
 
+### First-Time Bootstrap (macOS)
+
+`make switch` invokes `darwin-rebuild`, which only exists after nix-darwin has been installed. For a brand-new machine, bootstrap once with:
+
+```bash
+sudo nix run nix-darwin/master#darwin-rebuild -- switch --flake ".#$(hostname -s)"
+```
+
+After that succeeds, use `make switch` for all subsequent rebuilds.
+
 ### Platform-Specific Commands
 
 ```bash
