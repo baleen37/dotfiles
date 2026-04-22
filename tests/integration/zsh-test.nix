@@ -94,11 +94,16 @@ in
   (helpers.assertTest "alias-gt-exists" (hasAlias "gt") "alias 'gt' (git tag) should exist")
   (helpers.assertTest "alias-gl-exists" (hasAlias "gl") "alias 'gl' (git prettylog) should exist")
 
-  # Multi-level directory navigation aliases
-  (helpers.assertTest "alias-dot-dot-dot-exists" (hasAlias "...") "alias '...' (cd ../..) should exist")
-  (helpers.assertTest "alias-four-dots-exists" (hasAlias "....") "alias '....' (cd ../../..) should exist")
-  (helpers.assertTest "alias-five-dots-exists" (hasAlias ".....") "alias '.....' (cd ../../../..) should exist")
-  (helpers.assertTest "alias-six-dots-exists" (hasAlias "......") "alias '......' (cd ../../../../..) should exist")
+  # Multi-level directory navigation: "..." and longer are expanded by the
+  # rationalise-dot ZLE widget (see users/shared/zsh/functions.nix) so that
+  # tab completion works on `cd .../<TAB>`. Only ".." remains as a plain alias.
+  (helpers.assertTest "alias-dot-dot-exists" (hasAlias "..") "alias '..' (cd ..) should exist")
+  (helpers.assertTest "rationalise-dot-widget"
+    (initContentHas "rationalise-dot()")
+    "rationalise-dot ZLE widget should be defined in initContent")
+  (helpers.assertTest "rationalise-dot-bindkey"
+    (initContentHas "bindkey . rationalise-dot")
+    "rationalise-dot widget should be bound to '.'")
 
   # ls color alias
   (helpers.assertTest "alias-ls-color" (hasAlias "ls")

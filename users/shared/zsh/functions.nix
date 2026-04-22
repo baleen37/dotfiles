@@ -11,6 +11,22 @@ shell() {
     nix-shell '<nixpkgs>' -A "$1"
 }
 
+# rationalise-dot: when the user types a third (or later) consecutive "."
+# at the end of the buffer, expand it to "/..". This makes "..." expand to
+# "../..", "...." to "../../..", etc. — and because the expansion happens
+# inline in the buffer, tab-completion (e.g. `cd .../<TAB>`) works naturally.
+rationalise-dot() {
+  if [[ $LBUFFER = *.. ]]; then
+    LBUFFER+=/..
+  else
+    LBUFFER+=.
+  fi
+}
+zle -N rationalise-dot
+bindkey . rationalise-dot
+# Keep "." literal inside incremental search
+bindkey -M isearch . self-insert
+
 # Enhanced SSH wrapper with intelligent reconnection
 ssh() {
   # Optimized connection wrapper with autossh fallback
