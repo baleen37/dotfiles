@@ -1,18 +1,44 @@
 # Git Worktree wrapper for Zsh
 #
 # Returns a pure string of shell code defining the gw function.
-# Usage: gw <branch-name>
+# Usage: gw [branch-name]
 
 ''
   # Git Worktree wrapper - Create git worktree and cd into it
-  # Usage: gw <branch-name>
+  # Usage: gw [branch-name]  (generates a random name if omitted)
   gw() {
+    # Helper: Generate a random branch name like "snappy-greeting-bachman"
+    local _random_branch_name() {
+      local adjectives=(snappy brave calm clever eager fuzzy gentle happy jolly
+        keen lively mellow nimble proud quick silly swift witty zesty bold
+        bright chill cosmic cozy crisp daring dapper epic fancy fierce
+        glossy humble lucky mighty peppy plucky quirky royal sunny tidy)
+      local nouns=(greeting falcon otter panda harbor meadow canyon comet
+        lantern beacon cipher nebula pebble prairie quartz ripple summit
+        thicket tundra voyage willow anchor badger cactus dahlia ember
+        fjord glacier horizon iris juniper kettle lagoon mango)
+      local surnames=(bachman turing lovelace hopper knuth ritchie torvalds
+        dijkstra kernighan stallman carmack abramov hickey armstrong rossum
+        wall matz gosling stroustrup liskov hamilton feynman curie tesla
+        darwin newton galileo kepler hubble sagan)
+      local a=''${adjectives[RANDOM % ''${#adjectives[@]} + 1]}
+      local n=''${nouns[RANDOM % ''${#nouns[@]} + 1]}
+      local s=''${surnames[RANDOM % ''${#surnames[@]} + 1]}
+      echo "''${a}-''${n}-''${s}"
+    }
+
+    # Help flag
+    if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+      echo "Usage: gw <branch-name>"
+      echo "       gw               (generates a random name)"
+      return 0
+    fi
+
     local branch_name="$1"
 
-    # Validate arguments
+    # If no branch name provided, generate a random one
     if [[ $# -eq 0 ]]; then
-      echo "Usage: gw <branch-name>"
-      return 1
+      branch_name=$(_random_branch_name)
     fi
 
     # ANSI color codes
