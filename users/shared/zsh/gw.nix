@@ -114,6 +114,14 @@
       return $result
     }
 
+    # Helper: Handle "branch already used by another worktree" case
+    # Parses the path out of git's error and echoes it, so caller can cd there.
+    local _handle_existing_worktree() {
+      local error_output="$1"
+      local existing_path=$(echo "$error_output" | sed -n "s/.*already used by worktree at '\(.*\)'.*/\1/p" | head -1)
+      [[ -n "$existing_path" ]] && echo "$existing_path"
+    }
+
     # Helper: Handle hierarchical branch conflicts
     local _handle_ref_conflict() {
       local branch="$1"
@@ -152,6 +160,15 @@
 
     local create_error
     if ! create_error=$(_create_worktree "$branch_name" "$worktree_dir" "$base_branch"); then
+      # If branch is already checked out in another worktree, jump there.
+      local existing_worktree=$(_handle_existing_worktree "$create_error")
+      if [[ -n "$existing_worktree" ]]; then
+        _msg "$YELLOW" "Warning: branch '$branch_name' is already checked out at $existing_worktree"
+        _msg "$BLUE" "Switching to existing worktree instead."
+        cd "$existing_worktree"
+        return 0
+      fi
+
       # Try to handle hierarchical ref conflict
       local resolved_branch=$(_handle_ref_conflict "$branch_name" "$create_error")
       if [[ -n "$resolved_branch" ]]; then
