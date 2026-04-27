@@ -1,7 +1,6 @@
 return {
   ['com.mitchellh.ghostty'] = {
-    bundleID = 'com.mitchellh.ghostty',
-    hyperKey = 'i'
+    bundleID = 'com.mitchellh.ghostty'
   },
   ['com.brave.Browser'] = {
     bundleID = 'com.brave.Browser'
@@ -16,26 +15,22 @@ return {
     bundleID = 'com.google.Chrome'
   },
   ['com.kapeli.dashdoc'] = {
-    bundleID = 'com.kapeli.dashdoc',
-    hyperKey = 'h'
+    bundleID = 'com.kapeli.dashdoc'
   },
   ['com.microsoft.teams2'] = {
     bundleID = 'com.microsoft.teams2'
   },
   ['com.apple.mail'] = {
-    bundleID = 'com.apple.mail',
-    hyperKey = 'e'
+    bundleID = 'com.apple.mail'
   },
     ['com.apple.finder'] = {
-    bundleID = 'com.apple.finder',
-    hyperKey = 'f'
+    bundleID = 'com.apple.finder'
   },
   ['com.hnc.Discord'] = {
     bundleID = 'com.hnc.Discord'
   },
   ['com.kakao.KakaoTalkMac'] = {
-    bundleID = 'com.kakao.KakaoTalkMac',
-    hyperKey = 'k'
+    bundleID = 'com.kakao.KakaoTalkMac'
   },
   ['com.tinyspeck.slackmacgap'] = {
     bundleID = 'com.tinyspeck.slackmacgap'
@@ -45,15 +40,13 @@ return {
   },
   ['com.culturedcode.ThingsMac'] = {
     bundleID = 'com.culturedcode.ThingsMac',
-    hyperKey = 't',
     localBindings = {',', '.'}
   },
     ['com.joehribar.toggl'] = {
     bundleID = 'com.joehribar.toggl'
   },
   ['notion.id'] = {
-    bundleID = 'notion.id',
-    hyperKey = 'n'
+    bundleID = 'notion.id'
   },
   ['com.ideasoncanvas.mindnode.macos'] = {
     bundleID = 'com.ideasoncanvas.mindnode.macos'
@@ -77,8 +70,7 @@ return {
     bundleID = 'com.reederapp.5.macOS'
   },
   ['md.obsidian'] = {
-    bundleID = 'md.obsidian',
-    hyperKey = 'o'
+    bundleID = 'md.obsidian'
   },
   ['us.zoom.xos'] = {
     bundleID = 'us.zoom.xos',
