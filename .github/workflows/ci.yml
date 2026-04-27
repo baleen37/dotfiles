@@ -123,23 +123,28 @@ jobs:
         continue-on-error: true
         shell: bash
         run: |
-          set -uo pipefail
-          OUT=$(readlink -f result 2>/dev/null || echo "")
+          set +e
+          OUT=$(readlink -f result 2>/dev/null || true)
           if [ -z "$OUT" ]; then
             echo "::warning::./result not found — skipping cache hit-rate report"
             exit 0
           fi
+          echo "OUT=$OUT"
           TOTAL=$(nix path-info -r "$OUT" 2>/dev/null | wc -l | tr -d ' ')
+          echo "TOTAL=$TOTAL"
           # `nix path-info -r --store <url>` prints only paths present at that
-          # substituter on stdout (errors for missing paths go to stderr).
-          # HIT = paths reachable from the union of our substituters.
-          HIT=$( \
-            { \
-              nix path-info -r --store https://baleen-nix.cachix.org "$OUT" 2>/dev/null; \
-              nix path-info -r --store https://nix-community.cachix.org "$OUT" 2>/dev/null; \
-              nix path-info -r --store https://cache.nixos.org "$OUT" 2>/dev/null; \
-            } | sort -u | wc -l | tr -d ' ')
+          # substituter on stdout; exit code is non-zero when some paths are
+          # missing, which we tolerate via `|| true`.
+          HIT=$(
+            {
+              nix path-info -r --store https://baleen-nix.cachix.org "$OUT" 2>/dev/null || true
+              nix path-info -r --store https://nix-community.cachix.org "$OUT" 2>/dev/null || true
+              nix path-info -r --store https://cache.nixos.org "$OUT" 2>/dev/null || true
+            } | sort -u | wc -l | tr -d ' '
+          )
+          echo "HIT=$HIT"
           MISS=$(( TOTAL - HIT ))
+          [ "$MISS" -lt 0 ] && MISS=0
           {
             echo "### Cache hit-rate (${{ matrix.name }})"
             echo ""
