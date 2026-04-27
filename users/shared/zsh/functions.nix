@@ -11,21 +11,22 @@ shell() {
     nix-shell '<nixpkgs>' -A "$1"
 }
 
-# rationalise-dot: when the user types a third (or later) consecutive "."
-# at the end of the buffer, expand it to "/..". This makes "..." expand to
-# "../..", "...." to "../../..", etc. — and because the expansion happens
-# inline in the buffer, tab-completion (e.g. `cd .../<TAB>`) works naturally.
-rationalise-dot() {
-  if [[ $LBUFFER = *.. ]]; then
-    LBUFFER+=/..
+# Multi-dot cd: `cd ...` -> `cd ../..`, `cd ....` -> `cd ../../..`, etc.
+# Implemented as a function override (not a ZLE widget) so the typed form
+# (`cd ...`) is preserved in shell history instead of being rewritten.
+cd() {
+  if [[ $# -eq 1 && "$1" =~ ^\.\.\.+$ ]]; then
+    local dots="$1"
+    local target=""
+    local i
+    for (( i = 1; i < ''${#dots}; i++ )); do
+      target+="../"
+    done
+    builtin cd "$target"
   else
-    LBUFFER+=.
+    builtin cd "$@"
   fi
 }
-zle -N rationalise-dot
-bindkey . rationalise-dot
-# Keep "." literal inside incremental search
-bindkey -M isearch . self-insert
 
 # Enhanced SSH wrapper with intelligent reconnection
 ssh() {
