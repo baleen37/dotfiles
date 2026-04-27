@@ -18,7 +18,7 @@ env:
   NIX_CONFIG: |
     max-jobs = auto
     cores = 0
-    substituters = https://baleen-nix.cachix.org https://nix-community.cachix.org https://cache.nixos.org
+    substituters = https://baleen-nix.cachix.org https://nix-community.cachix.org https://cache.nixos.org/
     trusted-public-keys = baleen-nix.cachix.org-1:awgC7Sut148An/CZ6TZA+wnUtJmJnOvl5NThGio9j5k= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
     narinfo-cache-negative-ttl = 0
 
@@ -101,31 +101,65 @@ jobs:
           echo "Testing secrets backup (dry-run)..."
           make -n secrets/backup
 
+      - name: Build closure
+        if: matrix.name == 'Linux x64' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+        run: |
+          export USER=${USER:-ci}
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            export NIXNAME=macbook-pro
+            ATTR='.#darwinConfigurations.macbook-pro.system'
+          else
+            if [ "${{ matrix.arch }}" = "x86_64" ]; then
+              ATTR='.#nixosConfigurations.vm-x86_64-utm.config.system.build.toplevel'
+            else
+              ATTR='.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel'
+            fi
+          fi
+          echo "Building $ATTR ..."
+          nix build "$ATTR" --impure --out-link result --print-build-logs
+
+      - name: Cache hit-rate report
+        if: matrix.name == 'Linux x64' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          OUT=$(readlink -f result 2>/dev/null || true)
+          if [ -z "$OUT" ]; then
+            echo "::warning::./result not found — skipping cache hit-rate report"
+            exit 0
+          fi
+          echo "OUT=$OUT"
+          TOTAL=$(nix path-info -r "$OUT" 2>/dev/null | wc -l | tr -d ' ')
+          echo "TOTAL=$TOTAL"
+          # `nix path-info -r --store <url>` prints only paths present at that
+          # substituter on stdout; exit code is non-zero when some paths are
+          # missing, which we tolerate via `|| true`.
+          HIT=$(
+            {
+              nix path-info -r --store https://baleen-nix.cachix.org "$OUT" 2>/dev/null || true
+              nix path-info -r --store https://nix-community.cachix.org "$OUT" 2>/dev/null || true
+              nix path-info -r --store https://cache.nixos.org "$OUT" 2>/dev/null || true
+            } | sort -u | wc -l | tr -d ' '
+          )
+          echo "HIT=$HIT"
+          MISS=$(( TOTAL - HIT ))
+          [ "$MISS" -lt 0 ] && MISS=0
+          {
+            echo "### Cache hit-rate (${{ matrix.name }})"
+            echo ""
+            echo "- total closure paths: $TOTAL"
+            echo "- hit:  $HIT"
+            echo "- miss: $MISS"
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Upload to Cachix
         if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
         env:
-          USER: ${USER:-ci}
           CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
         continue-on-error: true
         run: |
-          export USER=${USER:-ci}
-          echo "Uploading to Cachix (continue-on-error enabled)..."
-          if [ "$RUNNER_OS" = "macOS" ]; then
-            export NIXNAME=macbook-pro
-            # Cache macOS build
-            nix build '.#darwinConfigurations.macbook-pro.system' --json \
-              | jq -r '.[].outputs | to_entries[].value' \
-              | cachix push baleen-nix || echo "⚠️ Cache upload incomplete - continuing..."
-          else
-            if [ "${{ matrix.arch }}" = "x86_64" ]; then
-              # Linux x64: x86_64-linux (native)
-              nix build '.#nixosConfigurations.vm-x86_64-utm.config.system.build.toplevel' --json \
-                | jq -r '.[].outputs | to_entries[].value' \
-                | cachix push baleen-nix || echo "Cache upload incomplete"
-            else
-              # Linux ARM64: aarch64-linux (native)
-              nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel' --json \
-                | jq -r '.[].outputs | to_entries[].value' \
-                | cachix push baleen-nix || echo "Cache upload incomplete"
-            fi
-          fi
+          OUT=$(readlink -f result)
+          echo "Pushing $OUT to Cachix ..."
+          nix path-info -r "$OUT" \
+            | cachix push baleen-nix || echo "⚠️ Cache upload incomplete - continuing..."
