@@ -66,6 +66,18 @@
     ENABLE_TOOL_SEARCH=true command claude --dangerously-skip-permissions "$@"
   }
 
+  cc-h() {
+    ENABLE_TOOL_SEARCH=true command claude --dangerously-skip-permissions --model claude-opus-4-7 "$@"
+  }
+
+  cc-m() {
+    ENABLE_TOOL_SEARCH=true command claude --dangerously-skip-permissions --model claude-sonnet-4-6 "$@"
+  }
+
+  cc-l() {
+    ENABLE_TOOL_SEARCH=true command claude --dangerously-skip-permissions --model claude-haiku-4-5 "$@"
+  }
+
   # cco: Configure in ~/.zshrc.local:
   #   CCO_BASE_URL, CCO_AUTH_TOKEN
   #   CCO_OPUS_MODEL, CCO_SONNET_MODEL, CCO_HAIKU_MODEL
