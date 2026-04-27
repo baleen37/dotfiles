@@ -90,6 +90,76 @@ let
   fileHasForce = homeManagerFileConfigured && builtins.hasAttr "force" karabinerFileConfig;
   fileForceEnabled = fileHasForce && karabinerFileConfig.force == true;
 
+  # Helper: complex_modifications structure
+  profileHasComplexModifications =
+    firstProfile != null && builtins.hasAttr "complex_modifications" firstProfile;
+  complexModifications =
+    if profileHasComplexModifications then firstProfile.complex_modifications else { };
+  complexHasRules = profileHasComplexModifications && builtins.hasAttr "rules" complexModifications;
+  complexRules = if complexHasRules then complexModifications.rules else [ ];
+  hasOneRule = builtins.length complexRules == 1;
+  firstRule = if hasOneRule then builtins.elemAt complexRules 0 else null;
+  ruleHasManipulators = firstRule != null && builtins.hasAttr "manipulators" firstRule;
+  manipulators = if ruleHasManipulators then firstRule.manipulators else [ ];
+  hasEightManipulators = builtins.length manipulators == 8;
+
+  # Helper: extract from-key for a manipulator
+  manipulatorFromKey =
+    m:
+    if builtins.hasAttr "from" m && builtins.hasAttr "key_code" m.from then m.from.key_code else null;
+
+  # Helper: extract bundle_identifier for a manipulator
+  manipulatorBundleId =
+    m:
+    let
+      to0 = if builtins.hasAttr "to" m && builtins.length m.to > 0 then builtins.elemAt m.to 0 else { };
+      sf = if builtins.hasAttr "software_function" to0 then to0.software_function else { };
+      oa = if builtins.hasAttr "open_application" sf then sf.open_application else { };
+    in
+    if builtins.hasAttr "bundle_identifier" oa then oa.bundle_identifier else null;
+
+  # Helper: extract mandatory modifiers
+  manipulatorMandatory =
+    m:
+    if
+      builtins.hasAttr "from" m
+      && builtins.hasAttr "modifiers" m.from
+      && builtins.hasAttr "mandatory" m.from.modifiers
+    then
+      m.from.modifiers.mandatory
+    else
+      [ ];
+
+  # Expected mappings (key → bundle_identifier)
+  expectedMappings = {
+    "i" = "com.mitchellh.ghostty";
+    "e" = "com.apple.mail";
+    "f" = "com.apple.finder";
+    "h" = "com.kapeli.dashdoc";
+    "k" = "com.kakao.KakaoTalkMac";
+    "n" = "notion.id";
+    "o" = "md.obsidian";
+    "t" = "com.culturedcode.ThingsMac";
+  };
+
+  # Build a key → manipulator lookup
+  manipulatorByKey = builtins.listToAttrs (
+    builtins.map (m: {
+      name = manipulatorFromKey m;
+      value = m;
+    }) manipulators
+  );
+
+  # Validation: every expected key has a manipulator with correct bundle_id and right_command modifier
+  allMappingsCorrect =
+    hasEightManipulators
+    && builtins.all (
+      key:
+      builtins.hasAttr key manipulatorByKey
+      && manipulatorBundleId manipulatorByKey.${key} == expectedMappings.${key}
+      && manipulatorMandatory manipulatorByKey.${key} == [ "right_command" ]
+    ) (builtins.attrNames expectedMappings);
+
 in
 {
   platforms = [ "darwin" ];
@@ -197,5 +267,25 @@ in
       && firstProfile != null
       && firstProfile.virtual_hid_keyboard.keyboard_type_v2 == "ansi"
     ) "karabiner keyboard_type_v2 should be set to ansi")
+
+    # complex_modifications 존재 확인
+    (helpers.assertTest "karabiner-has-complex-modifications" profileHasComplexModifications
+      "karabiner profile should have complex_modifications for Hyper app launchers"
+    )
+
+    # rules 배열에 정확히 1개 룰 (Hyper app launchers)
+    (helpers.assertTest "karabiner-complex-has-one-rule" hasOneRule
+      "karabiner complex_modifications should contain exactly one rule"
+    )
+
+    # 8개 manipulator
+    (helpers.assertTest "karabiner-complex-has-eight-manipulators" hasEightManipulators
+      "karabiner complex rule should contain 8 manipulators (i,e,f,h,k,n,o,t)"
+    )
+
+    # 모든 매핑이 키 → bundle_id가 일치하고 right_command modifier 사용
+    (helpers.assertTest "karabiner-complex-mappings-correct" allMappingsCorrect
+      "all 8 Hyper app launcher manipulators must map (key, right_command) → correct bundle_identifier"
+    )
   ];
 }
