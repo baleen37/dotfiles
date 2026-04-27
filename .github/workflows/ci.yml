@@ -131,11 +131,17 @@ jobs:
             echo "::warning::./result not found — skipping cache hit-rate report"
             exit 0
           fi
-          TOTAL=$(nix path-info -r "$OUT" | wc -l | tr -d ' ')
-          MISS=$(nix copy --to https://baleen-nix.cachix.org --dry-run "$OUT" 2>&1 \
-                 | grep -oE 'would copy [0-9]+' | grep -oE '[0-9]+' | head -1)
-          MISS=${MISS:-0}
-          HIT=$(( TOTAL - MISS ))
+          TOTAL=$(nix path-info -r "$OUT" 2>/dev/null | wc -l | tr -d ' ')
+          # `nix path-info -r --store <url>` prints only paths present at that
+          # substituter on stdout (errors for missing paths go to stderr).
+          # HIT = paths reachable from the union of our substituters.
+          HIT=$( \
+            { \
+              nix path-info -r --store https://baleen-nix.cachix.org "$OUT" 2>/dev/null; \
+              nix path-info -r --store https://nix-community.cachix.org "$OUT" 2>/dev/null; \
+              nix path-info -r --store https://cache.nixos.org "$OUT" 2>/dev/null; \
+            } | sort -u | wc -l | tr -d ' ')
+          MISS=$(( TOTAL - HIT ))
           {
             echo "### Cache hit-rate (${{ matrix.name }})"
             echo ""
