@@ -97,7 +97,10 @@
       oc = "opencode";
 
       # Codex CLI shortcut
-      cx = "codex --dangerously-bypass-approvals-and-sandbox";
+      co = "codex --dangerously-bypass-approvals-and-sandbox";
+      "co-l" = "codex --dangerously-bypass-approvals-and-sandbox -c model_reasoning_effort=low";
+      "co-m" = "codex --dangerously-bypass-approvals-and-sandbox -c model_reasoning_effort=medium";
+      "co-h" = "codex --dangerously-bypass-approvals-and-sandbox -c model_reasoning_effort=high";
 
       # Git aliases
       ga = "git add";
