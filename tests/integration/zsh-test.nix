@@ -94,16 +94,14 @@ in
   (helpers.assertTest "alias-gt-exists" (hasAlias "gt") "alias 'gt' (git tag) should exist")
   (helpers.assertTest "alias-gl-exists" (hasAlias "gl") "alias 'gl' (git prettylog) should exist")
 
-  # Multi-level directory navigation: "..." and longer are expanded by the
-  # rationalise-dot ZLE widget (see users/shared/zsh/functions.nix) so that
-  # tab completion works on `cd .../<TAB>`. Only ".." remains as a plain alias.
+  # Multi-level directory navigation: `cd ...`, `cd ....` etc. are handled
+  # by the cd function override (see users/shared/zsh/functions.nix). The
+  # function preserves the typed form in shell history. Only ".." remains
+  # as a plain alias.
   (helpers.assertTest "alias-dot-dot-exists" (hasAlias "..") "alias '..' (cd ..) should exist")
-  (helpers.assertTest "rationalise-dot-widget"
-    (initContentHas "rationalise-dot()")
-    "rationalise-dot ZLE widget should be defined in initContent")
-  (helpers.assertTest "rationalise-dot-bindkey"
-    (initContentHas "bindkey . rationalise-dot")
-    "rationalise-dot widget should be bound to '.'")
+  (helpers.assertTest "multidot-cd-fn"
+    (initContentHas "cd() {")
+    "multi-dot cd function should be defined in initContent")
 
   # ls color alias
   (helpers.assertTest "alias-ls-color" (hasAlias "ls")

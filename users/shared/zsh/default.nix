@@ -86,9 +86,8 @@
     completionInit = "autoload -Uz compinit && compinit -C";
 
     shellAliases = {
-      # Multi-level directory navigation: "..." -> "../.." expansion is
-      # handled by the rationalise-dot ZLE widget in functions.nix so that
-      # tab completion (e.g. `cd .../<tab>`) works naturally.
+      # Multi-level directory navigation: `cd ...`, `cd ....` etc. is
+      # handled by the cd function override in functions.nix.
       ".." = "cd ..";
 
       # Claude CLI shortcuts are now functions in initContent (cc, cco, ccz)
