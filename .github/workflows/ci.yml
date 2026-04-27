@@ -103,8 +103,6 @@ jobs:
 
       - name: Build closure
         if: always()
-        env:
-          USER: ${USER:-ci}
         run: |
           export USER=${USER:-ci}
           if [ "$RUNNER_OS" = "macOS" ]; then
