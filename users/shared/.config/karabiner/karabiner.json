@@ -3,6 +3,143 @@
     {
       "name": "Default profile",
       "selected": true,
+      "complex_modifications": {
+        "rules": [
+          {
+            "description": "Hyper (Right Command) app launchers — Secure Input immune",
+            "manipulators": [
+              {
+                "type": "basic",
+                "from": {
+                  "key_code": "i",
+                  "modifiers": { "mandatory": ["right_command"] }
+                },
+                "to": [
+                  {
+                    "software_function": {
+                      "open_application": {
+                        "bundle_identifier": "com.mitchellh.ghostty"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "from": {
+                  "key_code": "e",
+                  "modifiers": { "mandatory": ["right_command"] }
+                },
+                "to": [
+                  {
+                    "software_function": {
+                      "open_application": {
+                        "bundle_identifier": "com.apple.mail"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "from": {
+                  "key_code": "f",
+                  "modifiers": { "mandatory": ["right_command"] }
+                },
+                "to": [
+                  {
+                    "software_function": {
+                      "open_application": {
+                        "bundle_identifier": "com.apple.finder"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "from": {
+                  "key_code": "h",
+                  "modifiers": { "mandatory": ["right_command"] }
+                },
+                "to": [
+                  {
+                    "software_function": {
+                      "open_application": {
+                        "bundle_identifier": "com.kapeli.dashdoc"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "from": {
+                  "key_code": "k",
+                  "modifiers": { "mandatory": ["right_command"] }
+                },
+                "to": [
+                  {
+                    "software_function": {
+                      "open_application": {
+                        "bundle_identifier": "com.kakao.KakaoTalkMac"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "from": {
+                  "key_code": "n",
+                  "modifiers": { "mandatory": ["right_command"] }
+                },
+                "to": [
+                  {
+                    "software_function": {
+                      "open_application": {
+                        "bundle_identifier": "notion.id"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "from": {
+                  "key_code": "o",
+                  "modifiers": { "mandatory": ["right_command"] }
+                },
+                "to": [
+                  {
+                    "software_function": {
+                      "open_application": {
+                        "bundle_identifier": "md.obsidian"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "from": {
+                  "key_code": "t",
+                  "modifiers": { "mandatory": ["right_command"] }
+                },
+                "to": [
+                  {
+                    "software_function": {
+                      "open_application": {
+                        "bundle_identifier": "com.culturedcode.ThingsMac"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
       "simple_modifications": [
         {
           "from": {

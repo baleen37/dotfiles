@@ -2,7 +2,7 @@
 #
 # Returns a pure string of shell code defining:
 #   cc/cc-h/cc-l:    Anthropic API (Sonnet 4.6 / Opus 4.6 / Haiku 4.5)
-#   cco/cco-h/cco-l: OpenAI-compatible proxy
+#   cco/cco-h/cco-m/cco-l: OpenAI-compatible proxy
 #   ccz/ccz-h/ccz-l: Z.ai GLM API
 #   cck:             Kimi API via OpenAI-compatible proxy
 # Configure cco/ccz/cck models in ~/.zshrc.local
@@ -93,8 +93,20 @@
   }
 
   cco() {
-    eval "$(_cc_parse_model_flags "''${CCO_SONNET_MODEL:-claude-sonnet-4-6}" "''${CCO_OPUS_MODEL:-claude-opus-4-6}" "''${CCO_HAIKU_MODEL:-claude-haiku-4-5}" model "$@")"
+    eval "$(_cc_parse_model_flags "$CCO_SONNET_MODEL" "$CCO_OPUS_MODEL" "$CCO_HAIKU_MODEL" model "$@")"
     _cco_run "$model" "$@"
+  }
+
+  cco-h() {
+    _cco_run "$CCO_OPUS_MODEL" "$@"
+  }
+
+  cco-m() {
+    _cco_run "$CCO_SONNET_MODEL" "$@"
+  }
+
+  cco-l() {
+    _cco_run "$CCO_HAIKU_MODEL" "$@"
   }
 
   # ccz: Configure in ~/.zshrc.local:
