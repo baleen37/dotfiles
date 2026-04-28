@@ -19,7 +19,6 @@
       env = oldAttrs.env // {
         CGO_ENABLED = "1";
       };
-      doCheck = !prev.stdenv.hostPlatform.isDarwin;
       preBuild = ''
         # Remove -linkmode=external from the build flags
         substituteInPlace GNUmakefile \
