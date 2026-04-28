@@ -16,7 +16,9 @@
     # under Determinate Nix (sandbox=false) on macOS. Tests are upstream-validated
     # in CI; skipping locally is safe.
     direnv = prev.direnv.overrideAttrs (oldAttrs: {
-      env = oldAttrs.env // { CGO_ENABLED = "1"; };
+      env = oldAttrs.env // {
+        CGO_ENABLED = "1";
+      };
       preBuild = ''
         # Remove -linkmode=external from the build flags
         substituteInPlace GNUmakefile \
