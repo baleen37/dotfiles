@@ -36,9 +36,15 @@
 
     local branch_name="$1"
 
-    # If no branch name provided, generate a random one
+    # If no branch name provided, generate a random one.
+    # Retry a few times if the random name collides with an existing branch,
+    # since reusing an existing branch may also be checked out in another worktree.
     if [[ $# -eq 0 ]]; then
-      branch_name=$(_random_branch_name)
+      local _attempt
+      for _attempt in 1 2 3 4 5; do
+        branch_name=$(_random_branch_name)
+        git rev-parse --verify "$branch_name" >/dev/null 2>&1 || break
+      done
     fi
 
     # ANSI color codes
@@ -91,27 +97,21 @@
       return 0
     }
 
-    # Helper: Create worktree with existing or new branch
-    # Outputs error messages to stderr on failure, returns exit code
+    # Helper: Create worktree with existing or new branch.
+    # Echoes git's combined stdout+stderr so the caller can capture and parse it
+    # via $(...). Returns git's exit code.
     local _create_worktree() {
       local branch="$1"
       local worktree_dir="$2"
       local base_branch="$3"
-      local error_output
 
       if git rev-parse --verify "$branch" >/dev/null 2>&1; then
         _msg "$BLUE" "Branch '$branch' already exists. Using existing branch."
-        error_output=$(git worktree add "$worktree_dir" "$branch" 2>&1)
+        git worktree add "$worktree_dir" "$branch" 2>&1
       else
         _msg "$GREEN" "Creating new branch '$branch' (base: $base_branch)"
-        error_output=$(git worktree add -b "$branch" "$worktree_dir" "$base_branch" 2>&1)
+        git worktree add -b "$branch" "$worktree_dir" "$base_branch" 2>&1
       fi
-
-      local result=$?
-      if [[ $result -ne 0 ]]; then
-        echo "$error_output" >&2
-      fi
-      return $result
     }
 
     # Helper: Handle "branch already used by another worktree" case
