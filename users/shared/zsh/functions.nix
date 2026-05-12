@@ -15,7 +15,7 @@ shell() {
 # Implemented as a function override (not a ZLE widget) so the typed form
 # (`cd ...`) is preserved in shell history instead of being rewritten.
 cd() {
-  if [[ $# -eq 1 && "$1" =~ ^\.\.\.+$ ]]; then
+  if [[ $# -eq 1 && "$1" =~ "^\.{3,}$" ]]; then
     local dots="$1"
     local target=""
     local i

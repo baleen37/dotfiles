@@ -48,7 +48,7 @@ let
 
         cat > fn.zsh <<'EOF'
         cd() {
-          if [[ $# -eq 1 && "$1" =~ ^\.\.\.+$ ]]; then
+          if [[ $# -eq 1 && "$1" =~ "^\.{3,}$" ]]; then
             local dots="$1"
             local target=""
             local i
@@ -87,6 +87,20 @@ let
         got=$(run "a/b" "c")
         [[ "$got" = "$root/a/b/c" ]] || { echo "FAIL cd c: got '$got'"; exit 1; }
 
+        # Regression: arbitrary paths must NOT be treated as multi-dot.
+        # Previously, an unquoted `=~ ^\.\.\.+$` regex mis-matched paths
+        # like "/tmp" or "abc", causing them to be rewritten as `../../../`.
+        mkdir -p tmp_target abc_target
+        got=$(run "a/b/c/d/e" "$root/tmp_target")
+        [[ "$got" = "$root/tmp_target" ]] || { echo "FAIL cd /abs path: got '$got'"; exit 1; }
+
+        got=$(run "a/b/c" "../d_sibling" 2>/dev/null || true)
+        # Just ensure that a non-dot relative arg is passed through as-is
+        # (mkdir the target first so cd succeeds).
+        mkdir -p a/b/d_sibling
+        got=$(run "a/b/c" "../d_sibling")
+        [[ "$got" = "$root/a/b/d_sibling" ]] || { echo "FAIL cd ../sibling: got '$got'"; exit 1; }
+
         echo "runtime cd override behavior OK"
         touch $out
       '';
@@ -96,7 +110,7 @@ in
   platforms = [ "any" ];
   value = helpers.testSuite "zsh-multidot-cd" [
     (assertInitHas "fn-defined" "cd() {")
-    (assertInitHas "regex-check" ''"$1" =~ ^\.\.\.+$'')
+    (assertInitHas "regex-check" ''"$1" =~ "^\.{3,}$"'')
     (assertInitHas "builtin-cd" "builtin cd")
 
     (helpers.assertTest "zsh-multidot-no-triple-alias"
