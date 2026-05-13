@@ -16,16 +16,21 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: Register cross-arch binfmt handlers (Linux only)
-      if: runner.os == 'Linux'
+    - name: Register cross-arch binfmt handlers (Linux x86_64 only)
+      if: runner.os == 'Linux' && runner.arch == 'X64'
       shell: bash
       run: |
         # Linux ARM64 matrix entries run on x86_64 GitHub-hosted runners but build
         # aarch64-linux derivations. Without binfmt + qemu-user, every flake.lock
         # update that introduces an uncached aarch64-linux derivation breaks the
-        # Build closure step. tonistiigi/binfmt installs a persistent registration
-        # for all common targets and is itself ~5MB, so it's cheap on x86_64 runs.
-        docker run --privileged --rm tonistiigi/binfmt --install arm64
+        # Build closure step.
+        #
+        # tonistiigi/binfmt registers with the binfmt_misc F flag, so the kernel
+        # holds an open fd to qemu-aarch64 — sandboxed Nix builds reach it without
+        # needing extra-sandbox-paths. Image is pinned to a tagged release rather
+        # than :latest to keep CI reproducible (see docker/setup-qemu-action#110).
+        # Skipped automatically on native ARM runners (runner.arch == ARM64).
+        docker run --privileged --rm tonistiigi/binfmt:qemu-v10.2.1 --install arm64
 
     - name: Install Nix
       uses: DeterminateSystems/nix-installer-action@c5a866b6ab867e88becbed4467b93592bce69f8a # v21
