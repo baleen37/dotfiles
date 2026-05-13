@@ -24,7 +24,11 @@ let
   userOSConfig = ../users/shared/${osConfig};
   machineConfig = if darwin then ../machines/${name}.nix else ../machines/nixos/${name}.nix;
 
-  hmModule = if darwin then inputs.home-manager.darwinModules.home-manager else inputs.home-manager.nixosModules.home-manager;
+  hmModule =
+    if darwin then
+      inputs.home-manager.darwinModules.home-manager
+    else
+      inputs.home-manager.nixosModules.home-manager;
 
   # Unified cache configuration for both Determinate Nix and traditional Nix
   cacheConfig = import ./cache-config.nix;
@@ -62,9 +66,12 @@ systemFunc {
       { lib, ... }:
       {
         # Traditional Nix settings (Linux systems)
-        nix.settings = lib.mkIf (!darwin) (cacheSettings // {
-          trusted-substituters = cacheSettings.substituters;
-        });
+        nix.settings = lib.mkIf (!darwin) (
+          cacheSettings
+          // {
+            trusted-substituters = cacheSettings.substituters;
+          }
+        );
 
         # Let Determinate manage Nix on Darwin systems
         nix.enable = lib.mkIf darwin false;
@@ -95,7 +102,8 @@ systemFunc {
       users.users.${user} = {
         name = user;
         home = if darwin then "/Users/${user}" else "/home/${user}";
-      } // lib.optionalAttrs (!darwin) {
+      }
+      // lib.optionalAttrs (!darwin) {
         isNormalUser = true;
       };
 
