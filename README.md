@@ -39,7 +39,7 @@ git clone git@github.com:baleen37/dotfiles.git  # SSH
 cd dotfiles
 
 # 2. Initialize development environment
-export USER=$(whoami)  # Required for user-specific configurations
+export USER=$(whoami)  # Required for Nix commands (set automatically by direnv when entering the directory)
 make install-hooks     # Install pre-commit hooks for quality enforcement
 
 # 3. Build and validate system
@@ -96,8 +96,8 @@ claude /spawn "implement user authentication system"
 
 ```bash
 # Essential commands
-export USER=$(whoami)   # Always run this first
-make build             # Build everything
+export USER=$(whoami)   # Required for Nix commands (set automatically by direnv when entering the directory)
+nix build '.#darwinConfigurations.macbook-pro.system' --impure   # Build (substitute your machine)
 make switch            # Apply changes
 make test              # Run tests
 make format            # Auto-format (uses nix run .#format)
@@ -112,8 +112,8 @@ nix run .#format       # Direct Nix formatting (alternative)
 
 ```bash
 # Targeted builds
-make build-darwin   # macOS configurations (x86_64, aarch64)
-make build-linux    # NixOS configurations (x86_64, aarch64)
+nix build '.#darwinConfigurations.macbook-pro.system' --impure   # macOS
+nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel' --impure   # NixOS
 
 # Direct operations
 nix run .#build         # Build current platform
@@ -162,7 +162,7 @@ users/baleen/
 
 ### Environment Variables
 
-Required for all build operations:
+Required for Nix commands (set automatically by direnv when entering the directory):
 
 ```bash
 # Required user variable for dynamic resolution
@@ -259,22 +259,13 @@ This project includes NixOS VM management commands for development and testing e
 
 ### VM Setup Commands
 
+For NixOS VM workflows, build with:
+
 ```bash
-# Bootstrap a brand new NixOS VM (requires NIXADDR, NIXPORT, NIXUSER)
-make vm/bootstrap0
-
-# Complete VM setup with dotfiles configuration
-make vm/bootstrap
-
-# Copy configuration files to VM
-make vm/copy
-
-# Apply configuration changes on VM
-make vm/switch
-
-# Copy SSH keys and GPG keyring to VM
-make vm/secrets
+nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel' --impure
 ```
+
+See `machines/nixos/` for available VM configurations.
 
 ### VM Configuration
 
@@ -382,7 +373,7 @@ claude mcp list
 ```bash
 export USER=$(whoami)  # Ensure USER is set
 nix store gc            # Clear cache
-make build             # Retry
+nix build '.#darwinConfigurations.<your-machine>.system' --impure  # Retry
 ```
 
 **Permission issues:**

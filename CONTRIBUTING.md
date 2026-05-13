@@ -66,7 +66,7 @@ git merge feature/add-new-package
 make lint           # Code quality checks
 make test           # Fast container tests (2-5 seconds)
 make test-all       # Complete validation
-make build          # Full system build
+nix build '.#darwinConfigurations.macbook-pro.system' --impure  # Full system build
 
 # Test on target platform(s)
 nix run --impure .#build-switch  # Test system integration
@@ -80,7 +80,7 @@ nix run --impure .#build-switch  # Test system integration
 make lint      # pre-commit run --all-files
 make test      # Fast container tests (2-5 seconds)
 make test-all  # Complete validation
-make build     # build all NixOS/darwin configurations
+nix build '.#darwinConfigurations.macbook-pro.system' --impure  # build darwin configuration
 make test-all  # final validation after build
 ```
 
@@ -93,9 +93,9 @@ make test-all  # final validation after build
 ./scripts/test-all-local
 
 # Individual test categories
-make test-unit                    # Unit tests only
-make test-integration             # Integration tests only
-make test-e2e                     # End-to-end tests only (Linux only)
+nix flake check --impure          # All checks (auto-discovered tests)
+make test-integration             # Traditional integration tests
+nix build '.#checks.x86_64-linux.basic' --impure   # Single check (Linux containers)
 ```
 
 #### Testing on Multiple Platforms
@@ -214,7 +214,7 @@ print_error() {
 
    ```bash
    # Test on current platform
-   make build
+   nix build '.#darwinConfigurations.macbook-pro.system' --impure
 
    # Test specific platforms if needed
    nix build --impure .#darwinConfigurations.aarch64-darwin.system
@@ -390,7 +390,7 @@ nix build --impure --show-trace .#darwinConfigurations.aarch64-darwin.system
 
 ```bash
 # Check test framework status
-make test-status
+nix flake show --impure
 nix build --impure .#checks.$(nix eval --impure --expr 'builtins.currentSystem').framework_status
 ```
 
@@ -408,7 +408,7 @@ nix build --impure .#checks.$(nix eval --impure --expr 'builtins.currentSystem')
 1. **Complete the pre-commit workflow:**
 
    ```bash
-   make lint && make test && make test-all && make build && make test-all
+   make lint && make test && make test-all && nix build '.#darwinConfigurations.macbook-pro.system' --impure && make test-all
    ```
 
 2. **Run comprehensive local tests:**

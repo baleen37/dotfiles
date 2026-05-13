@@ -226,4 +226,13 @@ wsl:
 	 nix build ".#nixosConfigurations.wsl.config.system.build.installer"
 
 # Phony targets
-.PHONY: switch switch-home test test-integration test-all test-containers format cache vm/bootstrap0 vm/bootstrap vm/copy vm/switch vm/secrets secrets/backup secrets/restore
+.PHONY: switch switch-home test test-integration test-all test-containers format cache vm/bootstrap0 vm/bootstrap vm/copy vm/switch vm/secrets secrets/backup secrets/restore install-hooks lint update
+
+install-hooks:
+	pre-commit install --hook-type pre-commit --hook-type pre-push
+
+lint:
+	pre-commit run --all-files
+
+update:
+	nix flake update

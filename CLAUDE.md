@@ -10,10 +10,12 @@ Nix flakes-based dotfiles system providing reproducible development environments
 
 ### Environment Setup
 
-All build operations require the USER environment variable:
+All build operations require the USER environment variable. When working
+inside the project directory, direnv sets this automatically. For shells
+without direnv:
 
 ```bash
-export USER=$(whoami)  # Required before any Nix commands
+export USER=$(whoami)
 ```
 
 ### Common Operations
