@@ -33,12 +33,15 @@ jobs:
           - name: Darwin
             os: macos-15
             arch: aarch64
+            closure-attr: .#darwinConfigurations.macbook-pro.system
           - name: Linux x64
             os: ubuntu-latest
             arch: x86_64
+            closure-attr: .#nixosConfigurations.vm-x86_64-utm.config.system.build.toplevel
           - name: Linux ARM64
             os: ubuntu-24.04-arm
             arch: aarch64
+            closure-attr: .#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
@@ -103,18 +106,10 @@ jobs:
 
       - name: Build closure
         if: matrix.name == 'Linux x64' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+        env:
+          ATTR: ${{ matrix.closure-attr }}
         run: |
           export USER=${USER:-ci}
-          if [ "$RUNNER_OS" = "macOS" ]; then
-            export NIXNAME=macbook-pro
-            ATTR='.#darwinConfigurations.macbook-pro.system'
-          else
-            if [ "${{ matrix.arch }}" = "x86_64" ]; then
-              ATTR='.#nixosConfigurations.vm-x86_64-utm.config.system.build.toplevel'
-            else
-              ATTR='.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel'
-            fi
-          fi
           echo "Building $ATTR ..."
           nix build "$ATTR" --impure --out-link result --print-build-logs
 
