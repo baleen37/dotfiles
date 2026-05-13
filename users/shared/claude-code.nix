@@ -5,10 +5,4 @@
 # NOTE: commands, agents, skills, and hooks are now managed via external plugin:
 # https://github.com/baleen37/claude-plugins
 
-{
-  pkgs,
-  lib,
-  ...
-}:
-
-{ }
+_: { }
