@@ -2,7 +2,6 @@
 # Builds upon existing NixTest framework with additional assertions
 #
 # Core assertions live here. Specialized helpers are split into:
-# - test-helpers-darwin.nix: macOS system.defaults assertions
 # - test-helpers-property.nix: property-based testing
 # - test-helpers-advanced.nix: performance, file, git, plugin, import assertions
 {
@@ -80,9 +79,6 @@ let
     '';
 
   # Import sub-files, passing shared dependencies
-  darwinHelpers = import ./test-helpers-darwin.nix {
-    inherit pkgs lib assertTest testSuite;
-  };
   propertyHelpers = import ./test-helpers-property.nix {
     inherit pkgs lib assertTest testSuite;
   };
@@ -224,6 +220,5 @@ rec {
         exit 1
       '';
 }
-// darwinHelpers
 // propertyHelpers
 // advancedHelpers
