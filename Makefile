@@ -54,14 +54,17 @@ endif
 test:
 	@echo "Running dual-mode tests..."
 	@export USER=$${USER:-$(whoami)} && \
-	if [ "$(UNAME)" = "Darwin" ]; then \
-		echo "macOS detected: Running validation mode (container tests require Linux)"; \
+	if [ "$(UNAME)" = "Darwin" ] || [ ! -e /dev/kvm ]; then \
+		if [ "$(UNAME)" = "Darwin" ]; then \
+			echo "macOS detected: Running validation mode (container tests require Linux + KVM)"; \
+		else \
+			echo "Linux without KVM detected: Running validation mode (NixOS VM tests require /dev/kvm)"; \
+		fi; \
 		echo "Validating all test configurations without execution..."; \
 		$(NIX_ENV) $(NIX) flake check --no-build --impure --accept-flake-config --show-trace; \
-		echo "E2E tests will be validated in CI"; \
-		echo "Validation completed - Full container tests will run in CI"; \
+		echo "Validation completed - Full container tests run only where KVM is available"; \
 	else \
-		echo "Linux detected: Running full container test execution..."; \
+		echo "Linux with KVM detected: Running full container test execution..."; \
 		$(NIX_ENV_FULL) $(NIX) flake check --impure --accept-flake-config --show-trace; \
 	fi
 
