@@ -37,7 +37,7 @@ jobs:
             os: ubuntu-latest
             arch: x86_64
           - name: Linux ARM64
-            os: ubuntu-latest
+            os: ubuntu-24.04-arm
             arch: aarch64
     runs-on: ${{ matrix.os }}
     steps:
