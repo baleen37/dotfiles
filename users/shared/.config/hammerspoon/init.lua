@@ -5,35 +5,17 @@ hs.loadSpoon('HyperModal')
 hs.loadSpoon('Pomodoro')
 
 
-Config = {}
-Config.applications = require('configApplications')
-
 Hyper = spoon.Hyper
 
+-- F19 is emitted by Karabiner when right_command is held (see karabiner.nix).
+-- Karabiner intercepts app-launcher and local-binding keys directly for Secure
+-- Input immunity; Hammerspoon only handles modal/logic-heavy bindings below.
 Hyper:bindHotKeys({hyperKey = {{}, 'F19'}})
 
 -- provide the ability to override config per computer
 if (hs.fs.displayName('./localConfig.lua')) then
     require('localConfig')
 end
-
-
-hs.fnutils.each(Config.applications, function(appConfig)
-  if appConfig.hyperKey then
-    Hyper:bind({}, appConfig.hyperKey, function()
-        if hs.application.get(appConfig.bundleID) and hs.application.get(appConfig.bundleID):isFrontmost() then
-            hs.application.get(appConfig.bundleID):hide()
-        else
-            hs.application.launchOrFocusByBundleID(appConfig.bundleID)
-        end
-    end)
-  end
-  if appConfig.localBindings then
-    hs.fnutils.each(appConfig.localBindings, function(key)
-      Hyper:bindPassThrough(key, appConfig.bundleID)
-    end)
-  end
-end)
 
 HyperModal = spoon.HyperModal
 Hyper:bind({}, 'm', function() HyperModal:toggle() end)
