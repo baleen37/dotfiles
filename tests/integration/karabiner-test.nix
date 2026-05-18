@@ -1,6 +1,6 @@
 # tests/integration/karabiner-test.nix
 # Karabiner-Elements configuration integration tests
-# Tests that Karabiner keyboard customization is properly configured via Home Manager
+# Validates the Nix-generated karabiner.json (see users/shared/karabiner.nix)
 {
   lib ? import <nixpkgs/lib>,
   pkgs ? import <nixpkgs> { },
@@ -14,278 +14,164 @@
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
 
-  # Mock configuration for testing karabiner integration
-  mockConfig = {
-    home = {
-      homeDirectory = if pkgs.stdenv.isDarwin then "/Users/test" else "/home/test";
-    };
-  };
-
-  # Import karabiner configuration with mocked dependencies
-  karabinerModule = import ../../users/shared/karabiner.nix {
+  # Import karabiner module (mkIf-wrapped) and unwrap
+  karabinerRaw = import ../../users/shared/karabiner.nix {
     inherit pkgs lib;
     isDarwin = true;
-    config = mockConfig;
+    config = { home.homeDirectory = "/Users/test"; };
   };
+  karabinerModule =
+    if karabinerRaw ? _type && karabinerRaw._type == "if"
+    then karabinerRaw.content
+    else karabinerRaw;
 
-  # Test that karabiner config can be imported and is usable
   karabinerConfigUsable = karabinerModule ? home.file.".config/karabiner/karabiner.json";
-
-  # Get the karabiner file configuration
   karabinerFileConfig =
-    if karabinerConfigUsable then
-      karabinerModule.home.file.".config/karabiner/karabiner.json"
-    else
-      null;
+    if karabinerConfigUsable
+    then karabinerModule.home.file.".config/karabiner/karabiner.json"
+    else null;
 
-  # Read the source karabiner.json file
-  karabinerJsonPath = ../../users/shared/.config/karabiner/karabiner.json;
-  karabinerJsonReadResult = builtins.tryEval (builtins.readFile karabinerJsonPath);
-  karabinerJsonContent =
-    if karabinerJsonReadResult.success then karabinerJsonReadResult.value else "{}";
+  fileHasText = karabinerConfigUsable && builtins.hasAttr "text" karabinerFileConfig;
+  fileForceEnabled = karabinerConfigUsable
+    && builtins.hasAttr "force" karabinerFileConfig
+    && karabinerFileConfig.force == true;
 
-  # Parse JSON to validate structure
-  karabinerParsed = builtins.tryEval (builtins.fromJSON karabinerJsonContent);
-  karabinerJsonValid = karabinerParsed.success;
+  jsonContent = if fileHasText then karabinerFileConfig.text else "{}";
+  parsed = builtins.tryEval (builtins.fromJSON jsonContent);
+  jsonValid = parsed.success;
+  data = if jsonValid then parsed.value else { };
 
-  # Get parsed content
-  karabinerData = if karabinerJsonValid then karabinerParsed.value else { };
+  hasProfiles = jsonValid && builtins.hasAttr "profiles" data && builtins.length data.profiles > 0;
+  firstProfile = if hasProfiles then builtins.elemAt data.profiles 0 else null;
+  profileSelected = firstProfile != null && firstProfile.selected or false;
 
-  # Helper to check if profiles array exists and has at least one profile
-  hasProfiles =
-    karabinerJsonValid
-    && builtins.hasAttr "profiles" karabinerData
-    && builtins.length karabinerData.profiles > 0;
+  virtualHidAnsi = firstProfile != null
+    && firstProfile ? virtual_hid_keyboard.keyboard_type_v2
+    && firstProfile.virtual_hid_keyboard.keyboard_type_v2 == "ansi";
 
-  # Get first profile
-  firstProfile = if hasProfiles then builtins.elemAt karabinerData.profiles 0 else null;
+  rules = firstProfile.complex_modifications.rules or [ ];
+  hasOneRule = builtins.length rules == 1;
+  manipulators = if hasOneRule then (builtins.elemAt rules 0).manipulators else [ ];
 
-  # Helper to check profile structure
-  profileHasName = firstProfile != null && builtins.hasAttr "name" firstProfile;
-  profileHasSelected = firstProfile != null && builtins.hasAttr "selected" firstProfile;
-  profileHasSimpleModifications =
-    firstProfile != null && builtins.hasAttr "simple_modifications" firstProfile;
+  # Find the trigger manipulator: from.key_code == "right_command"
+  triggerCandidates = builtins.filter
+    (m: (m.from.key_code or null) == "right_command")
+    manipulators;
+  hasTrigger = builtins.length triggerCandidates == 1;
+  trigger = if hasTrigger then builtins.elemAt triggerCandidates 0 else null;
 
-  # Helper to check virtual_hid_keyboard structure
-  profileHasVirtualHid = firstProfile != null && builtins.hasAttr "virtual_hid_keyboard" firstProfile;
-  virtualHidHasKeyboardType =
-    profileHasVirtualHid && builtins.hasAttr "keyboard_type_v2" firstProfile.virtual_hid_keyboard;
+  triggerSetsHyper = trigger != null
+    && builtins.any
+      (e: (e.set_variable.name or null) == "hyper" && (e.set_variable.value or null) == 1)
+      trigger.to;
+  triggerEmitsF19 = trigger != null
+    && builtins.any (e: (e.key_code or null) == "f19") trigger.to;
+  triggerClearsHyper = trigger != null
+    && builtins.any
+      (e: (e.set_variable.name or null) == "hyper" && (e.set_variable.value or null) == 0)
+      (trigger.to_after_key_up or [ ]);
 
-  # Helper to check simple_modifications structure
-  simpleModifications =
-    if profileHasSimpleModifications then firstProfile.simple_modifications else [ ];
-  hasSimpleModifications = builtins.length simpleModifications > 0;
+  # App "open" manipulators: software_function.open_application + frontmost_application_unless
+  isAppOpen = m:
+    let to0 = if (m.to or [ ]) != [ ] then builtins.elemAt m.to 0 else { }; in
+    (to0 ? software_function.open_application.bundle_identifier);
+  appOpens = builtins.filter isAppOpen manipulators;
 
-  # Check first modification structure
-  firstModification = if hasSimpleModifications then builtins.elemAt simpleModifications 0 else null;
-  modificationHasFrom = firstModification != null && builtins.hasAttr "from" firstModification;
-  modificationHasTo = firstModification != null && builtins.hasAttr "to" firstModification;
-  modificationFromHasKeyCode =
-    modificationHasFrom && builtins.hasAttr "key_code" firstModification.from;
-  modificationToArray = modificationHasTo && builtins.typeOf firstModification.to == "list";
+  # App "hide" manipulators: shell_command osascript with frontmost_application_if
+  isAppHide = m:
+    let to0 = if (m.to or [ ]) != [ ] then builtins.elemAt m.to 0 else { }; in
+    (to0 ? shell_command)
+    && (builtins.match ".*osascript.*set visible.*to false.*" to0.shell_command != null);
+  appHides = builtins.filter isAppHide manipulators;
 
-  # Helper to check Home Manager file configuration
-  homeManagerFileConfigured = karabinerConfigUsable && karabinerFileConfig != null;
-  fileHasSource = homeManagerFileConfigured && builtins.hasAttr "source" karabinerFileConfig;
-  fileHasForce = homeManagerFileConfigured && builtins.hasAttr "force" karabinerFileConfig;
-  fileForceEnabled = fileHasForce && karabinerFileConfig.force == true;
+  appOpenMap = builtins.listToAttrs (builtins.map
+    (m: {
+      name = m.from.key_code;
+      value = (builtins.elemAt m.to 0).software_function.open_application.bundle_identifier;
+    })
+    appOpens);
 
-  # Helper: complex_modifications structure
-  profileHasComplexModifications =
-    firstProfile != null && builtins.hasAttr "complex_modifications" firstProfile;
-  complexModifications =
-    if profileHasComplexModifications then firstProfile.complex_modifications else { };
-  complexHasRules = profileHasComplexModifications && builtins.hasAttr "rules" complexModifications;
-  complexRules = if complexHasRules then complexModifications.rules else [ ];
-  hasOneRule = builtins.length complexRules == 1;
-  firstRule = if hasOneRule then builtins.elemAt complexRules 0 else null;
-  ruleHasManipulators = firstRule != null && builtins.hasAttr "manipulators" firstRule;
-  manipulators = if ruleHasManipulators then firstRule.manipulators else [ ];
-  hasEightManipulators = builtins.length manipulators == 8;
-
-  # Helper: extract from-key for a manipulator
-  manipulatorFromKey =
-    m:
-    if builtins.hasAttr "from" m && builtins.hasAttr "key_code" m.from then m.from.key_code else null;
-
-  # Helper: extract bundle_identifier for a manipulator
-  manipulatorBundleId =
-    m:
-    let
-      to0 = if builtins.hasAttr "to" m && builtins.length m.to > 0 then builtins.elemAt m.to 0 else { };
-      sf = if builtins.hasAttr "software_function" to0 then to0.software_function else { };
-      oa = if builtins.hasAttr "open_application" sf then sf.open_application else { };
-    in
-    if builtins.hasAttr "bundle_identifier" oa then oa.bundle_identifier else null;
-
-  # Helper: extract mandatory modifiers
-  manipulatorMandatory =
-    m:
-    if
-      builtins.hasAttr "from" m
-      && builtins.hasAttr "modifiers" m.from
-      && builtins.hasAttr "mandatory" m.from.modifiers
-    then
-      m.from.modifiers.mandatory
-    else
-      [ ];
-
-  # Expected mappings (key → bundle_identifier)
-  expectedMappings = {
-    "i" = "com.mitchellh.ghostty";
-    "e" = "com.apple.mail";
-    "f" = "com.apple.finder";
-    "h" = "com.kapeli.dashdoc";
-    "k" = "com.kakao.KakaoTalkMac";
-    "n" = "notion.id";
-    "o" = "md.obsidian";
-    "t" = "com.culturedcode.ThingsMac";
+  expectedAppLaunchers = {
+    i = "com.mitchellh.ghostty";
+    e = "com.apple.mail";
+    f = "com.apple.finder";
+    h = "com.kapeli.dashdoc";
+    k = "com.kakao.KakaoTalkMac";
+    n = "notion.id";
+    o = "md.obsidian";
+    t = "com.culturedcode.ThingsMac";
   };
 
-  # Build a key → manipulator lookup
-  manipulatorByKey = builtins.listToAttrs (
-    builtins.map (m: {
-      name = manipulatorFromKey m;
-      value = m;
-    }) manipulators
-  );
+  appOpensCorrect = builtins.all
+    (k: (appOpenMap.${k} or null) == expectedAppLaunchers.${k})
+    (builtins.attrNames expectedAppLaunchers);
 
-  # Validation: every expected key has a manipulator with correct bundle_id and right_command modifier
-  allMappingsCorrect =
-    hasEightManipulators
-    && builtins.all (
-      key:
-      builtins.hasAttr key manipulatorByKey
-      && manipulatorBundleId manipulatorByKey.${key} == expectedMappings.${key}
-      && manipulatorMandatory manipulatorByKey.${key} == [ "right_command" ]
-    ) (builtins.attrNames expectedMappings);
+  # 8 hide manipulators present, one per app key
+  hideKeys = builtins.map (m: m.from.key_code) appHides;
+  hideKeysCorrect = lib.sort builtins.lessThan hideKeys
+    == lib.sort builtins.lessThan (builtins.attrNames expectedAppLaunchers);
+
+  # Every open manipulator must be gated by hyper=1 AND frontmost_application_unless
+  hasFrontmostUnless = m: builtins.any
+    (c: (c.type or "") == "frontmost_application_unless")
+    (m.conditions or [ ]);
+  hasFrontmostIf = m: builtins.any
+    (c: (c.type or "") == "frontmost_application_if")
+    (m.conditions or [ ]);
+  hasHyperGate = m: builtins.any
+    (c: (c.type or "") == "variable_if" && (c.name or "") == "hyper" && (c.value or null) == 1)
+    (m.conditions or [ ]);
+
+  appOpensGated = builtins.all (m: hasHyperGate m && hasFrontmostUnless m) appOpens;
+  appHidesGated = builtins.all (m: hasHyperGate m && hasFrontmostIf m) appHides;
+
+  # Local bindings: to[0].modifiers contains the four mega-mods, no software_function
+  megaMods = [ "left_command" "left_control" "left_option" "left_shift" ];
+  isLocalBinding = m:
+    let to0 = if (m.to or [ ]) != [ ] then builtins.elemAt m.to 0 else { }; in
+    (to0 ? modifiers) && (to0.modifiers == megaMods);
+  localBindings = builtins.filter isLocalBinding manipulators;
+  localBindingKeys = builtins.map (m: m.from.key_code) localBindings;
+  expectedLocalKeys = [ "b" "comma" "l" "period" "return_or_enter" "tab" "u" ];
+  localBindingsPresent = lib.sort builtins.lessThan localBindingKeys == expectedLocalKeys;
 
 in
 {
   platforms = [ "darwin" ];
   value = helpers.testSuite "karabiner" [
-    # Test that karabiner.nix can be imported and is usable
     (helpers.assertTest "karabiner-config-usable" karabinerConfigUsable
-      "karabiner.nix should be importable and usable"
-    )
-
-    # Test that Home Manager file configuration exists
-    (helpers.assertTest "karabiner-home-manager-file" homeManagerFileConfigured
-      "karabiner should be configured via Home Manager home.file"
-    )
-
-    # Test that file has source attribute
-    (helpers.assertTest "karabiner-file-has-source" fileHasSource
-      "karabiner.json should have a source file reference"
-    )
-
-    # Test that force is enabled (important for Karabiner to pick up changes)
+      "karabiner.nix should expose home.file karabiner.json")
+    (helpers.assertTest "karabiner-file-has-text" fileHasText
+      "karabiner.json should be defined via text (Nix-generated)")
     (helpers.assertTest "karabiner-force-enabled" fileForceEnabled
-      "karabiner.json should have force=true to ensure Karabiner picks up changes"
-    )
-
-    # Test that karabiner.json is valid JSON
-    (helpers.assertTest "karabiner-json-valid" karabinerJsonValid "karabiner.json should be valid JSON")
-
-    # Test that profiles array exists
+      "karabiner.json should have force=true")
+    (helpers.assertTest "karabiner-json-valid" jsonValid
+      "generated karabiner.json must be valid JSON")
     (helpers.assertTest "karabiner-has-profiles" hasProfiles
-      "karabiner.json should have at least one profile"
-    )
-
-    # Test profile structure - has name
-    (helpers.assertTest "karabiner-profile-has-name" profileHasName
-      "karabiner profile should have a name attribute"
-    )
-
-    # Test profile structure - has selected
-    (helpers.assertTest "karabiner-profile-has-selected" profileHasSelected
-      "karabiner profile should have a selected attribute"
-    )
-
-    # Test profile structure - has simple_modifications
-    (helpers.assertTest "karabiner-profile-has-simple-modifications" profileHasSimpleModifications
-      "karabiner profile should have simple_modifications array"
-    )
-
-    # Test that simple_modifications is not empty
-    (helpers.assertTest "karabiner-has-modifications" hasSimpleModifications
-      "karabiner should have at least one key modification"
-    )
-
-    # Test modification structure - has from
-    (helpers.assertTest "karabiner-modification-has-from" modificationHasFrom
-      "karabiner modification should have 'from' attribute"
-    )
-
-    # Test modification structure - has to
-    (helpers.assertTest "karabiner-modification-has-to" modificationHasTo
-      "karabiner modification should have 'to' attribute"
-    )
-
-    # Test modification structure - from has key_code
-    (helpers.assertTest "karabiner-modification-from-has-keycode" modificationFromHasKeyCode
-      "karabiner modification 'from' should have 'key_code' attribute"
-    )
-
-    # Test modification structure - to is array
-    (helpers.assertTest "karabiner-modification-to-is-array" modificationToArray
-      "karabiner modification 'to' should be an array"
-    )
-
-    # Test virtual_hid_keyboard exists
-    (helpers.assertTest "karabiner-has-virtual-hid" profileHasVirtualHid
-      "karabiner profile should have virtual_hid_keyboard configuration"
-    )
-
-    # Test virtual_hid_keyboard has keyboard_type_v2
-    (helpers.assertTest "karabiner-virtual-hid-has-keyboard-type" virtualHidHasKeyboardType
-      "karabiner virtual_hid_keyboard should have keyboard_type_v2 attribute"
-    )
-
-    # Test specific modification: right_command -> f19
-    (helpers.assertTest "karabiner-right-command-remap" (
-      hasSimpleModifications
-      && firstModification != null
-      && modificationHasFrom
-      && modificationFromHasKeyCode
-      && firstModification.from.key_code == "right_command"
-    ) "karabiner should remap right_command key")
-
-    # Test that 'to' mapping exists for the modification
-    (helpers.assertTest "karabiner-modification-to-has-keycode" (
-      hasSimpleModifications
-      && firstModification != null
-      && modificationHasTo
-      && modificationToArray
-      && builtins.length firstModification.to > 0
-      && builtins.hasAttr "key_code" (builtins.elemAt firstModification.to 0)
-    ) "karabiner modification 'to' array should contain key_code mapping")
-
-    # Test keyboard_type_v2 is set to ansi
-    (helpers.assertTest "karabiner-keyboard-type-ansi" (
-      virtualHidHasKeyboardType
-      && firstProfile != null
-      && firstProfile.virtual_hid_keyboard.keyboard_type_v2 == "ansi"
-    ) "karabiner keyboard_type_v2 should be set to ansi")
-
-    # complex_modifications 존재 확인
-    (helpers.assertTest "karabiner-has-complex-modifications" profileHasComplexModifications
-      "karabiner profile should have complex_modifications for Hyper app launchers"
-    )
-
-    # rules 배열에 정확히 1개 룰 (Hyper app launchers)
-    (helpers.assertTest "karabiner-complex-has-one-rule" hasOneRule
-      "karabiner complex_modifications should contain exactly one rule"
-    )
-
-    # 8개 manipulator
-    (helpers.assertTest "karabiner-complex-has-eight-manipulators" hasEightManipulators
-      "karabiner complex rule should contain 8 manipulators (i,e,f,h,k,n,o,t)"
-    )
-
-    # 모든 매핑이 키 → bundle_id가 일치하고 right_command modifier 사용
-    (helpers.assertTest "karabiner-complex-mappings-correct" allMappingsCorrect
-      "all 8 Hyper app launcher manipulators must map (key, right_command) → correct bundle_identifier"
-    )
+      "config should contain at least one profile")
+    (helpers.assertTest "karabiner-profile-selected" profileSelected
+      "first profile must be selected")
+    (helpers.assertTest "karabiner-virtual-hid-ansi" virtualHidAnsi
+      "virtual_hid_keyboard.keyboard_type_v2 must be 'ansi'")
+    (helpers.assertTest "karabiner-single-rule" hasOneRule
+      "complex_modifications must have exactly one rule (the Hyper rule)")
+    (helpers.assertTest "karabiner-trigger-present" hasTrigger
+      "rule must contain exactly one right_command trigger manipulator")
+    (helpers.assertTest "karabiner-trigger-sets-hyper" triggerSetsHyper
+      "trigger 'to' must set variable hyper=1")
+    (helpers.assertTest "karabiner-trigger-emits-f19" triggerEmitsF19
+      "trigger 'to' must emit f19 for Hammerspoon modal")
+    (helpers.assertTest "karabiner-trigger-clears-hyper" triggerClearsHyper
+      "trigger 'to_after_key_up' must set hyper=0")
+    (helpers.assertTest "karabiner-app-opens-correct" appOpensCorrect
+      "all 8 app open manipulators must map to correct bundle_identifier")
+    (helpers.assertTest "karabiner-app-opens-gated" appOpensGated
+      "every open manipulator must require hyper=1 AND frontmost_application_unless")
+    (helpers.assertTest "karabiner-app-hides-keys" hideKeysCorrect
+      "all 8 app keys must have a corresponding hide manipulator")
+    (helpers.assertTest "karabiner-app-hides-gated" appHidesGated
+      "every hide manipulator must require hyper=1 AND frontmost_application_if")
+    (helpers.assertTest "karabiner-local-bindings-present" localBindingsPresent
+      "7 expected local-binding keys must emit mega-modifier chord")
   ];
 }

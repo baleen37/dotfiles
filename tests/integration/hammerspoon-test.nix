@@ -36,15 +36,13 @@ let
 
   # Validate required configuration files
   initLuaResult = validateFile (hammerspoonDir + "/init.lua");
-  configAppsResult = validateFile (hammerspoonDir + "/configApplications.lua");
   spoonsDirResult = validateDir (hammerspoonDir + "/Spoons");
 
   initLuaUsable = isFileUsable initLuaResult;
-  configAppsUsable = isFileUsable configAppsResult;
   spoonsDirUsable = isDirUsable spoonsDirResult;
 
   # Required top-level files and directories
-  requiredItems = [ "init.lua" "configApplications.lua" "Spoons" ];
+  requiredItems = [ "init.lua" "Spoons" ];
   hasRequiredItems = lib.all (item: builtins.hasAttr item hammerspoonDirContents) requiredItems;
 
   # Expected Spoons validation
@@ -57,11 +55,10 @@ let
   hasExpectedSpoons = lib.all (spoon: builtins.hasAttr spoon spoonsContents) expectedSpoons;
 
   # Overall structure integrity
-  structureValid = hammerspoonDirUsable && initLuaUsable && configAppsUsable && spoonsDirUsable;
+  structureValid = hammerspoonDirUsable && initLuaUsable && spoonsDirUsable;
 
   # Read file contents for validation
   initLuaContent = if initLuaUsable then initLuaResult.value else "";
-  configAppsContent = if configAppsUsable then configAppsResult.value else "";
 
   # Spoon init.lua files
   pomodoroInit = hammerspoonDir + "/Spoons/Pomodoro.spoon/init.lua";
@@ -89,16 +86,13 @@ in
     (helpers.assertTest "init-lua-usable" initLuaUsable
       "init.lua should be readable and have content")
 
-    (helpers.assertTest "config-apps-usable" configAppsUsable
-      "configApplications.lua should be readable and have content")
-
     # Spoons directory test
     (helpers.assertTest "spoons-dir-usable" spoonsDirUsable
       "Spoons directory should be readable and usable")
 
     # Structure validation tests
     (helpers.assertTest "required-items-exist" hasRequiredItems
-      "All required items should exist (init.lua, configApplications.lua, Spoons)")
+      "All required items should exist (init.lua, Spoons)")
 
     (helpers.assertTest "expected-spoons-exist" hasExpectedSpoons
       "All expected Spoons should exist (Hyper, HyperModal, Pomodoro)")
@@ -123,15 +117,6 @@ in
       (lib.hasInfix "hs.loadSpoon('Pomodoro')" initLuaContent)
       "init.lua should load Pomodoro Spoon")
 
-    # Config object tests
-    (helpers.assertTest "init-creates-config-object"
-      (lib.hasInfix "Config = {}" initLuaContent)
-      "init.lua should create Config object")
-
-    (helpers.assertTest "init-requires-config-apps"
-      (lib.hasInfix "Config.applications = require('configApplications')" initLuaContent)
-      "init.lua should require configApplications")
-
     # Hyper key binding tests
     (helpers.assertTest "init-hyper-hotkeys"
       (lib.hasInfix "Hyper:bindHotKeys" initLuaContent)
@@ -145,53 +130,13 @@ in
       (lib.hasInfix "Hyper:bind({}, 'p', function()" initLuaContent)
       "init.lua should bind Pomodoro toggle")
 
-    # App iteration test
-    (helpers.assertTest "init-app-iteration"
-      (lib.hasInfix "hs.fnutils.each(Config.applications" initLuaContent)
-      "init.lua should iterate over applications")
-
     # Local config support test
     (helpers.assertTest "init-local-config-support"
       (lib.hasInfix "require('localConfig')" initLuaContent)
       "init.lua should support local config override")
 
     # ========================================================================
-    # Section 3: configApplications.lua Content Validation (6 tests)
-    # ========================================================================
-
-    # Table structure test
-    (helpers.assertTest "config-apps-returns-table"
-      (lib.hasInfix "return {" configAppsContent)
-      "configApplications.lua should return a table")
-
-    # Core app configuration tests (representative apps)
-    (helpers.assertTest "config-apps-has-ghostty"
-      (lib.hasInfix "com.mitchellh.ghostty" configAppsContent)
-      "configApplications should include Ghostty terminal")
-
-    (helpers.assertTest "config-apps-has-things"
-      (lib.hasInfix "com.culturedcode.ThingsMac" configAppsContent)
-      "configApplications should include Things app")
-
-    (helpers.assertTest "config-apps-has-obsidian"
-      (lib.hasInfix "md.obsidian" configAppsContent)
-      "configApplications should include Obsidian")
-
-    (helpers.assertTest "config-apps-has-finder"
-      (lib.hasInfix "com.apple.finder" configAppsContent)
-      "configApplications should include Finder")
-
-    # Required field tests
-    (helpers.assertTest "config-apps-has-bundleid-field"
-      (lib.hasInfix "bundleID" configAppsContent)
-      "configApplications should define bundleID fields")
-
-    (helpers.assertTest "config-apps-has-hyperkey-field"
-      (lib.hasInfix "hyperKey" configAppsContent)
-      "configApplications should define hyperKey bindings")
-
-    # ========================================================================
-    # Section 4: Spoon Metadata Validation (4 tests)
+    # Section 3: Spoon Metadata Validation (4 tests)
     # ========================================================================
 
     # Pomodoro Spoon tests
