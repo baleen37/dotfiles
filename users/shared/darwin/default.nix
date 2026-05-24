@@ -23,8 +23,8 @@ let
 in
 {
   imports = [
-    ./darwin-homebrew.nix
-    ./darwin-scripts.nix
+    ./homebrew.nix
+    ./scripts.nix
   ];
 
   # ===== Core System Configuration =====

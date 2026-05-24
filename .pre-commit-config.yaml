@@ -13,7 +13,7 @@ repos:
             "--shell=bash",
             "--exclude=SC2155,SC2034,SC1090,SC2120",
           ]
-        exclude: ^users/shared/\.config/p10k\.zsh$
+        exclude: ^users/shared/programs/\.config/p10k\.zsh$
 
   # Shell script formatting
   - repo: https://github.com/scop/pre-commit-shfmt
@@ -21,7 +21,7 @@ repos:
     hooks:
       - id: shfmt
         args: ["-i", "2", "-ci", "-bn", "-sr"]
-        exclude: ^users/shared/\.config/p10k\.zsh$
+        exclude: ^users/shared/programs/\.config/p10k\.zsh$
 
   # Bash style checker
   - repo: https://github.com/openstack/bashate
@@ -29,7 +29,7 @@ repos:
     hooks:
       - id: bashate
         args: ["--ignore=E003,E006"]
-        exclude: ^users/shared/\.config/.*\.zsh$
+        exclude: ^users/shared/programs/\.config/.*\.zsh$
 
   # Fast file checks (pre-commit native)
   - repo: https://github.com/pre-commit/pre-commit-hooks

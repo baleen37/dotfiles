@@ -26,7 +26,7 @@ _:
 
 let
   # User information from lib/user-info.nix
-  userInfo = import ../../lib/user-info.nix;
+  userInfo = import ../../../lib/user-info.nix;
   inherit (userInfo) name email;
 in
 {

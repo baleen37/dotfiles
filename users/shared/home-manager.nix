@@ -38,17 +38,17 @@
 {
   # Import all extracted tool configurations
   imports = [
-    ./git.nix
-    ./vim.nix
-    ./zsh
-    ./starship.nix
-    ./tmux.nix
-    ./claude-code.nix
-    ./codex.nix
-    ./opencode.nix
-    ./ghostty.nix
-    ./hammerspoon.nix
-    ./karabiner.nix
+    ./programs/git.nix
+    ./programs/vim.nix
+    ./programs/zsh
+    ./programs/starship.nix
+    ./programs/tmux.nix
+    ./programs/claude-code.nix
+    ./programs/codex.nix
+    ./programs/opencode.nix
+    ./programs/ghostty.nix
+    ./programs/hammerspoon.nix
+    ./programs/karabiner.nix
   ];
 
   # Home Manager configuration
