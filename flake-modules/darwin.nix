@@ -1,16 +1,14 @@
-{ inputs, self, ... }:
+{
+  inputs,
+  self,
+  overlays,
+  resolveUser,
+  ...
+}:
 
 let
-  overlays = import ../lib/overlays.nix { inherit inputs; };
   mkSystem = import ../lib/mksystem.nix { inherit inputs self overlays; };
-
-  # Dynamic user resolution: get from environment variable, fallback to "baleen"
-  # Requires --impure flag for nix build/switch commands
-  user =
-    let
-      envUser = builtins.getEnv "USER";
-    in
-    if envUser != "" && envUser != "root" then envUser else "baleen";
+  user = resolveUser "baleen";
 in
 {
   flake.darwinConfigurations = {

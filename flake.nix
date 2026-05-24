@@ -68,6 +68,7 @@
       ];
 
       imports = [
+        ./flake-modules/args.nix
         ./flake-modules/darwin.nix
         ./flake-modules/nixos.nix
         ./flake-modules/home.nix
