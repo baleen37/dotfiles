@@ -37,10 +37,10 @@ test-git-command-execution =
 
 **Module Coverage**:
 
-- `users/shared/git.nix` - Git configuration logic
-- `users/shared/vim.nix` - Vim configuration generation
-- `users/shared/zsh.nix` - Shell configuration logic
-- `users/shared/darwin.nix` - macOS preference logic
+- `users/shared/programs/git.nix` - Git configuration logic
+- `users/shared/programs/vim.nix` - Vim configuration generation
+- `users/shared/programs/zsh.nix` - Shell configuration logic
+- `users/shared/darwin/default.nix` - macOS preference logic
 - `lib/mksystem.nix` - System factory functions
 
 **Mocking Strategy**:
@@ -82,7 +82,7 @@ test-home-manager-activation =
 # ❌ BAD: Test individual function behavior (should be unit test)
 test-git-alias-function =
   let
-    aliasFunction = import ../../users/shared/git.nix { inherit lib; };
+    aliasFunction = import ../../users/shared/programs/git.nix { inherit lib; };
   in
   # This should be in unit tests with mocks
 ```

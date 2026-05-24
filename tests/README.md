@@ -61,7 +61,7 @@ Tests that verify multiple components work together.
 }:
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
-  gitConfig = import ../../users/shared/git.nix {
+  gitConfig = import ../../users/shared/programs/git.nix {
     inherit pkgs lib;
     config = { };
   };
@@ -1622,14 +1622,14 @@ helpers.testSuite "other" [...]
 ```nix
 # Feature Configuration Test
 #
-# Tests the feature configuration in users/shared/feature.nix
+# Tests the feature configuration in users/shared/programs/feature.nix
 # Verifies that settings are properly configured.
 { inputs, system, pkgs, lib, self, nixtest ? {}, ... }:
 
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
 
-  featureConfig = import ../../users/shared/feature.nix {
+  featureConfig = import ../../users/shared/programs/feature.nix {
     inherit pkgs lib;
     config = { };
   };
@@ -1663,7 +1663,7 @@ All test files should follow this structure:
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
   # Import the code under test
-  myConfig = import ../../users/shared/my-feature.nix {
+  myConfig = import ../../users/shared/programs/my-feature.nix {
     inherit pkgs lib;
     config = { };
   };
@@ -1711,7 +1711,7 @@ For testing module interactions:
 }:
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
-  config = import ../../users/shared/my-config.nix {
+  config = import ../../users/shared/programs/my-config.nix {
     inherit pkgs lib;
     config = { };
   };

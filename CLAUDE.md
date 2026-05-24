@@ -83,15 +83,32 @@ All user configurations are in `users/shared/` using flat, tool-specific files:
 
 ```text
 users/shared/
-├── home-manager.nix   # Main entry point, imports all modules
-├── darwin.nix         # macOS system settings (Dock, Finder, Homebrew)
-├── git.nix           # Git configuration with aliases
-├── vim.nix           # Vim/Neovim setup
-├── zsh.nix           # Zsh shell configuration
-├── tmux.nix          # Terminal multiplexer
-├── starship.nix      # Shell prompt
-├── claude-code.nix   # Claude Code configuration
-└── .config/claude/   # Claude Code commands, skills, hooks
+├── home-manager.nix       # Main entry point, imports all modules
+├── darwin/                # macOS system settings
+│   ├── default.nix       # Dock, Finder, masApps, primary user
+│   ├── homebrew.nix      # Homebrew casks and brews
+│   └── scripts.nix       # App cleanup and helper scripts
+├── programs/             # Tool-specific configuration modules
+│   ├── git.nix          # Git configuration with aliases
+│   ├── vim.nix          # Vim/Neovim setup
+│   ├── zsh.nix          # Zsh shell configuration
+│   ├── tmux.nix         # Terminal multiplexer
+│   ├── starship.nix     # Shell prompt
+│   ├── claude-code.nix  # Claude Code configuration
+│   └── ...              # codex, opencode, ghostty, hammerspoon, karabiner
+├── packages/             # Categorized package lists
+│   ├── core.nix         # Core CLI utilities
+│   ├── dev.nix          # Development tools
+│   ├── lsp.nix          # Language servers
+│   ├── nix-tools.nix    # Nix tooling
+│   ├── cloud.nix        # Cloud CLIs
+│   ├── security.nix     # Security tools
+│   ├── ssh.nix          # SSH-related packages
+│   ├── media.nix        # Media tools
+│   ├── fonts.nix        # Fonts
+│   ├── databases.nix    # Database clients
+│   └── ai.nix           # AI tooling
+└── .config/claude/       # Claude Code commands, skills, hooks
 ```
 
 **Important**: The `currentSystemUser` variable contains the actual username. User info (name, email) is centralized in `lib/user-info.nix`.
@@ -153,13 +170,13 @@ This allows the same configuration to work for different users without hardcodin
 
 **User packages** (CLI tools, development utilities):
 
-- Add to `users/shared/home-manager.nix` in the `packages` list
-- Or create/modify specific tool configuration in `users/shared/*.nix`
+- Add to the appropriate category file in `users/shared/packages/` (e.g., `dev.nix` for development tools)
+- Or create/modify specific tool configuration in `users/shared/programs/*.nix`
 
 **System packages** (macOS GUI apps):
 
-- Add Homebrew casks to `users/shared/darwin.nix` in `homebrew-casks` list
-- Add Mac App Store apps to `masApps` in `users/shared/darwin.nix`
+- Add Homebrew casks to `users/shared/darwin/homebrew.nix` in `homebrew-casks` list
+- Add Mac App Store apps to `masApps` in `users/shared/darwin/default.nix`
 
 ### Adding New Users
 
@@ -208,7 +225,7 @@ pre-commit run --all-files  # Run all pre-commit hooks
 
 This system uses Determinate Nix installer on macOS:
 
-- `nix.enable = false` in darwin.nix (required for compatibility)
+- `nix.enable = false` in darwin/default.nix (required for compatibility)
 - Cache settings managed via `determinate-nix.customSettings`
 - All Nix configuration is in `/etc/nix/nix.custom.conf`
 
@@ -313,13 +330,15 @@ trusted-users = root @admin yourusername
 ### User Configuration
 
 - **users/shared/home-manager.nix**: Main user config entry point, imports all tool modules
-- **users/shared/darwin.nix**: macOS system settings (300+ lines: Dock, Finder, Homebrew, performance tweaks)
-- **users/shared/git.nix**: Git configuration with centralized user info from lib/user-info.nix
-- **users/shared/vim.nix**: Vim setup with airline, tmux-navigator, relative line numbers
-- **users/shared/zsh.nix**: Zsh environment with fzf, direnv, Claude/OpenCode aliases
-- **users/shared/tmux.nix**: Tmux config with vi-mode copy-paste, session persistence
-- **users/shared/starship.nix**: Minimal prompt configuration
-- **users/shared/claude-code.nix**: Claude Code commands/skills/hooks deployment
+- **users/shared/darwin/default.nix**: macOS system settings (Dock, Finder, masApps, performance tweaks)
+- **users/shared/darwin/homebrew.nix**: Homebrew casks and brews
+- **users/shared/darwin/scripts.nix**: App cleanup and helper scripts
+- **users/shared/programs/git.nix**: Git configuration with centralized user info from lib/user-info.nix
+- **users/shared/programs/vim.nix**: Vim setup with airline, tmux-navigator, relative line numbers
+- **users/shared/programs/zsh.nix**: Zsh environment with fzf, direnv, Claude/OpenCode aliases
+- **users/shared/programs/tmux.nix**: Tmux config with vi-mode copy-paste, session persistence
+- **users/shared/programs/starship.nix**: Minimal prompt configuration
+- **users/shared/programs/claude-code.nix**: Claude Code commands/skills/hooks deployment
 
 ### Testing and Quality
 
@@ -337,7 +356,7 @@ trusted-users = root @admin yourusername
 
 ### Shell Aliases and Shortcuts
 
-The zsh configuration provides these shortcuts (defined in `users/shared/zsh.nix`):
+The zsh configuration provides these shortcuts (defined in `users/shared/programs/zsh.nix`):
 
 - `cc`: Claude Code with permission checks disabled (`claude --dangerously-skip-permissions`)
 - `oc`: OpenCode shortcut
@@ -345,14 +364,14 @@ The zsh configuration provides these shortcuts (defined in `users/shared/zsh.nix
 
 ### Tool Configuration Highlights
 
-**Vim** (users/shared/vim.nix):
+**Vim** (users/shared/programs/vim.nix):
 
 - Leader key: `,` (comma)
 - Clipboard: `<Leader>,` paste, `<Leader>.` copy
 - Window navigation: Ctrl+h/j/k/l
 - Buffer navigation: Tab/Shift+Tab
 
-**Tmux** (users/shared/tmux.nix):
+**Tmux** (users/shared/programs/tmux.nix):
 
 - Prefix: Ctrl+a
 - Vi-style copy mode with clipboard integration
