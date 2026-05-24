@@ -292,73 +292,77 @@ rec {
         checkLFS = true;
         checkAliases = true;
         checkIgnores = true;
-      } // options;
+      }
+      // options;
 
       # Extract settings
       gitSettings = gitConfig.programs.git.settings or { };
       gitIgnores = gitConfig.programs.git.ignores or [ ];
 
       # Individual tests
-      tests = lib.optional (gitConfig.programs.git.enable or false) (
-        assertTest "${name}-git-enabled" true "Git should be enabled"
-      ) ++ lib.optional opts.checkUserInfo (
-        assertGitUserInfo "${name}-user-info" gitSettings userInfo
-      ) ++ lib.optional opts.checkLFS (
-        assertGitLFS "${name}-lfs" gitConfig.programs.git true
-      ) ++ [
-        # Core settings
-        (assertGitSettingsBulk "${name}-core" gitSettings.core {
-          editor = "vim";
-          autocrlf = "input";
-          excludesFile = "~/.gitignore_global";
-        })
-        # Init settings
-        (assertGitSettingsBulk "${name}-init" gitSettings.init {
-          defaultBranch = "main";
-        })
-        # Pull settings
-        (assertGitSettingsBulk "${name}-pull" gitSettings.pull {
-          rebase = true;
-        })
-        # Rebase settings
-        (assertGitSettingsBulk "${name}-rebase" gitSettings.rebase {
-          autoStash = true;
-        })
-      ] ++ lib.optional opts.checkAliases (
-        assertGitAliasesBulk "${name}-aliases" gitSettings.alias expectedAliases
-      ) ++ lib.optional opts.checkIgnores (
-        assertGitIgnorePatternsBulk "${name}-ignores" gitIgnores expectedIgnores
-      );
+      tests =
+        lib.optional (gitConfig.programs.git.enable or false) (
+          assertTest "${name}-git-enabled" true "Git should be enabled"
+        )
+        ++ lib.optional opts.checkUserInfo (assertGitUserInfo "${name}-user-info" gitSettings userInfo)
+        ++ lib.optional opts.checkLFS (assertGitLFS "${name}-lfs" gitConfig.programs.git true)
+        ++ [
+          # Core settings
+          (assertGitSettingsBulk "${name}-core" gitSettings.core {
+            editor = "vim";
+            autocrlf = "input";
+            excludesFile = "~/.gitignore_global";
+          })
+          # Init settings
+          (assertGitSettingsBulk "${name}-init" gitSettings.init {
+            defaultBranch = "main";
+          })
+          # Pull settings
+          (assertGitSettingsBulk "${name}-pull" gitSettings.pull {
+            rebase = true;
+          })
+          # Rebase settings
+          (assertGitSettingsBulk "${name}-rebase" gitSettings.rebase {
+            autoStash = true;
+          })
+        ]
+        ++ lib.optional opts.checkAliases (
+          assertGitAliasesBulk "${name}-aliases" gitSettings.alias expectedAliases
+        )
+        ++ lib.optional opts.checkIgnores (
+          assertGitIgnorePatternsBulk "${name}-ignores" gitIgnores expectedIgnores
+        );
 
       # Summary test
-      summaryTest = pkgs.runCommand "${name}-summary" { }
-        ''
-          echo "================================"
-          echo "✅ Git Configuration Test Suite: ${name}"
-          echo "================================"
-          echo ""
-          echo "✅ Git enabled: ${toString (gitConfig.programs.git.enable or false)}"
-          ${lib.optionalString opts.checkUserInfo ''
-            echo "✅ User info: ${gitSettings.user.name or "<not set>"} <${gitSettings.user.email or "<not set>"}>"
-          ''}
-          ${lib.optionalString opts.checkLFS ''
-            echo "✅ Git LFS: ${if gitConfig.programs.git.lfs.enable or false then "enabled" else "disabled"}"
-          ''}
-          echo "✅ Core settings: validated"
-          echo "✅ Init settings: validated"
-          echo "✅ Pull settings: validated"
-          echo "✅ Rebase settings: validated"
-          ${lib.optionalString opts.checkAliases ''
-            echo "✅ Aliases: ${toString (builtins.length (builtins.attrNames expectedAliases))} validated"
-          ''}
-          ${lib.optionalString opts.checkIgnores ''
-            echo "✅ Gitignore patterns: ${toString (builtins.length expectedIgnores)} validated"
-          ''}
-          echo ""
-          echo "✅ All Git configuration tests passed!"
-          echo "================================"
-          touch $out
-        '';
+      summaryTest = pkgs.runCommand "${name}-summary" { } ''
+        echo "================================"
+        echo "✅ Git Configuration Test Suite: ${name}"
+        echo "================================"
+        echo ""
+        echo "✅ Git enabled: ${toString (gitConfig.programs.git.enable or false)}"
+        ${lib.optionalString opts.checkUserInfo ''
+          echo "✅ User info: ${gitSettings.user.name or "<not set>"} <${
+            gitSettings.user.email or "<not set>"
+          }>"
+        ''}
+        ${lib.optionalString opts.checkLFS ''
+          echo "✅ Git LFS: ${if gitConfig.programs.git.lfs.enable or false then "enabled" else "disabled"}"
+        ''}
+        echo "✅ Core settings: validated"
+        echo "✅ Init settings: validated"
+        echo "✅ Pull settings: validated"
+        echo "✅ Rebase settings: validated"
+        ${lib.optionalString opts.checkAliases ''
+          echo "✅ Aliases: ${toString (builtins.length (builtins.attrNames expectedAliases))} validated"
+        ''}
+        ${lib.optionalString opts.checkIgnores ''
+          echo "✅ Gitignore patterns: ${toString (builtins.length expectedIgnores)} validated"
+        ''}
+        echo ""
+        echo "✅ All Git configuration tests passed!"
+        echo "================================"
+        touch $out
+      '';
     in
     testSuite "${name}-complete" (tests ++ [ summaryTest ]);
 
@@ -382,24 +386,35 @@ rec {
     name: aliasSettings: options:
     let
       opts = {
-        requiredAliases = [ "st" "ci" ];
-        dangerousPatterns = [ "rm -rf" "sudo " "chmod 777" "chown " "format " "fdisk" ];
-      } // options;
+        requiredAliases = [
+          "st"
+          "ci"
+        ];
+        dangerousPatterns = [
+          "rm -rf"
+          "sudo "
+          "chmod 777"
+          "chown "
+          "format "
+          "fdisk"
+        ];
+      }
+      // options;
 
       # Extract commands from aliases
       aliasCommands = builtins.attrValues aliasSettings;
 
       # Check for dangerous commands
-      hasDangerous = builtins.any (pattern:
-        builtins.any (cmd: lib.hasInfix pattern cmd) aliasCommands
+      hasDangerous = builtins.any (
+        pattern: builtins.any (cmd: lib.hasInfix pattern cmd) aliasCommands
       ) opts.dangerousPatterns;
 
       # Check for empty commands
       hasEmpty = builtins.any (cmd: cmd == "") aliasCommands;
 
       # Check for required aliases
-      hasRequired = builtins.all (aliasName:
-        builtins.hasAttr aliasName aliasSettings
+      hasRequired = builtins.all (
+        aliasName: builtins.hasAttr aliasName aliasSettings
       ) opts.requiredAliases;
 
       isSafe = !hasDangerous && !hasEmpty && hasRequired;
@@ -416,15 +431,34 @@ rec {
       pkgs.runCommand "test-${name}-fail" { } ''
         echo "❌ ${name}: FAIL"
         echo "  Git alias safety check failed"
-        ${if hasDangerous then ''
-          echo "  ⚠️  Found dangerous commands in aliases"
-        '' else ""}
-        ${if hasEmpty then ''
-          echo "  ⚠️  Found empty alias commands"
-        '' else ""}
-        ${if !hasRequired then ''
-          echo "  ⚠️  Missing required aliases: ${lib.concatStringsSep ", " (builtins.filter (n: !builtins.hasAttr n aliasSettings) opts.requiredAliases)}"
-        '' else ""}
+        ${
+          if hasDangerous then
+            ''
+              echo "  ⚠️  Found dangerous commands in aliases"
+            ''
+          else
+            ""
+        }
+        ${
+          if hasEmpty then
+            ''
+              echo "  ⚠️  Found empty alias commands"
+            ''
+          else
+            ""
+        }
+        ${
+          if !hasRequired then
+            ''
+              echo "  ⚠️  Missing required aliases: ${
+                lib.concatStringsSep ", " (
+                  builtins.filter (n: !builtins.hasAttr n aliasSettings) opts.requiredAliases
+                )
+              }"
+            ''
+          else
+            ""
+        }
         exit 1
       '';
 
@@ -447,7 +481,8 @@ rec {
       hasParentTraversal = builtins.any (p: lib.hasInfix "../" p) ignorePatterns;
 
       # Check each pattern is reasonable
-      allPatternsValid = builtins.all (pattern:
+      allPatternsValid = builtins.all (
+        pattern:
         let
           nonEmpty = builtins.stringLength pattern > 0;
           reasonableLength = builtins.stringLength pattern <= 200;
@@ -472,12 +507,22 @@ rec {
       pkgs.runCommand "test-${name}-fail" { } ''
         echo "❌ ${name}: FAIL"
         echo "  Git ignore pattern safety check failed"
-        ${if hasParentTraversal then ''
-          echo "  ⚠️  Found parent path traversal patterns (../)"
-        '' else ""}
-        ${if !allPatternsValid then ''
-          echo "  ⚠️  Some patterns are invalid or unsafe"
-        '' else ""}
+        ${
+          if hasParentTraversal then
+            ''
+              echo "  ⚠️  Found parent path traversal patterns (../)"
+            ''
+          else
+            ""
+        }
+        ${
+          if !allPatternsValid then
+            ''
+              echo "  ⚠️  Some patterns are invalid or unsafe"
+            ''
+          else
+            ""
+        }
         exit 1
       '';
 }

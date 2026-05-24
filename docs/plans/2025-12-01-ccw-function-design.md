@@ -13,26 +13,32 @@ ccw <branch-name>
 ## Behavior
 
 ### 1. Input Validation
+
 - 브랜치 이름이 제공되지 않으면 사용법 표시 후 종료
 
 ### 2. Git Repository Check
+
 - 현재 디렉토리가 git 저장소인지 확인
 - 저장소가 아니면 에러 메시지 표시 후 종료
 
 ### 3. Path Handling
+
 - Worktree 경로: `.worktrees/<branch-name>`
 - 브랜치 이름의 슬래시(`/`)를 하이픈(`-`)으로 치환
   - Example: `feature/jito/test` → `.worktrees/feature-jito-test`
 
 ### 4. Worktree Directory Conflict Check
+
 - `.worktrees/<sanitized-branch-name>` 디렉토리가 이미 존재하면 에러 표시 후 종료
 
 ### 5. Base Branch Detection
+
 - `main` 브랜치 존재 여부 확인
 - 없으면 `master` 브랜치 확인
 - 둘 다 없으면 에러 메시지 표시 후 종료
 
 ### 6. Worktree Creation
+
 - 브랜치가 이미 존재하는 경우:
   - 해당 브랜치로 worktree 생성
   - `git worktree add "$WORKTREE_DIR" "$branch_name"`
@@ -41,6 +47,7 @@ ccw <branch-name>
   - `git worktree add -b "$branch_name" "$WORKTREE_DIR" "$base_branch"`
 
 ### 7. Execution
+
 - Worktree 생성 성공 시:
   - 성공 메시지 표시
   - Worktree 디렉토리로 이동
@@ -52,18 +59,18 @@ ccw <branch-name>
 
 ### Error Messages
 
-| Condition | Message |
-|-----------|---------|
-| No branch name provided | `Usage: ccw <branch-name>` |
-| Not a git repository | `❌ Not a git repository` |
-| Worktree already exists | `❌ Worktree already exists: <path>` |
-| No main/master branch | `❌ No main or master branch found` |
-| Worktree creation failed | `❌ Failed to create worktree` |
+| Condition                | Message                              |
+| ------------------------ | ------------------------------------ |
+| No branch name provided  | `Usage: ccw <branch-name>`           |
+| Not a git repository     | `❌ Not a git repository`            |
+| Worktree already exists  | `❌ Worktree already exists: <path>` |
+| No main/master branch    | `❌ No main or master branch found`  |
+| Worktree creation failed | `❌ Failed to create worktree`       |
 
 ### Success Messages
 
-| Event | Message |
-|-------|---------|
+| Event            | Message                       |
+| ---------------- | ----------------------------- |
 | Worktree created | `✅ Worktree created: <path>` |
 
 ### Dependencies

@@ -1,20 +1,20 @@
-name: 'Setup Nix with Cache'
-description: 'Install Nix and setup caching'
+name: "Setup Nix with Cache"
+description: "Install Nix and setup caching"
 inputs:
   enable-kvm:
-    description: 'Enable KVM support (automatically enabled on Linux)'
+    description: "Enable KVM support (automatically enabled on Linux)"
     required: false
-    default: 'true'
+    default: "true"
   cache-mode:
     description: 'Cache mode: "full" (save and restore) or "restore-only" (restore only)'
     required: false
-    default: 'full'
+    default: "full"
   cachix-auth-token:
-    description: 'Cachix auth token for pushing to cache'
+    description: "Cachix auth token for pushing to cache"
     required: false
-    default: ''
+    default: ""
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: Install Nix
       uses: DeterminateSystems/nix-installer-action@c5a866b6ab867e88becbed4467b93592bce69f8a # v21

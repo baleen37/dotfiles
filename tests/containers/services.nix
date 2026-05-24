@@ -1,5 +1,5 @@
 # Services container test
-{ pkgs, lib, ... }:
+_:
 
 let
   # Use static test user for environment independence

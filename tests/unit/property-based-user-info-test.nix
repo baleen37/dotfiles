@@ -89,13 +89,13 @@ in
   value = helpers.testSuite "property-based-user-info-test" [
     # Property 1: Required attributes presence
     # All user info should have name and email
-    (helpers.assertTest "userinfo-has-name-attr" (
-      builtins.hasAttr "name" userInfo
-    ) "userInfo should have name attribute")
+    (helpers.assertTest "userinfo-has-name-attr" (builtins.hasAttr "name" userInfo)
+      "userInfo should have name attribute"
+    )
 
-    (helpers.assertTest "userinfo-has-email-attr" (
-      builtins.hasAttr "email" userInfo
-    ) "userInfo should have email attribute")
+    (helpers.assertTest "userinfo-has-email-attr" (builtins.hasAttr "email" userInfo)
+      "userInfo should have email attribute"
+    )
 
     # Property 2: Non-empty values invariant
     # Name and email should be non-empty strings
@@ -151,14 +151,14 @@ in
     # User info should equal itself
     (helpers.assertTest "userinfo-reflexivity-name" (
       let
-        name = userInfo.name;
+        inherit (userInfo) name;
       in
       name == name
     ) "User name should be reflexive")
 
     (helpers.assertTest "userinfo-reflexivity-email" (
       let
-        email = userInfo.email;
+        inherit (userInfo) email;
       in
       email == email
     ) "User email should be reflexive")
@@ -177,7 +177,7 @@ in
     # Email format should be unique per user (singleton pattern)
     (helpers.assertTest "userinfo-email-singleton" (
       let
-        email = userInfo.email;
+        inherit (userInfo) email;
         # This is a singleton module, so there should only be one email
         emailValid = builtins.stringLength email > 0 && builtins.match ".*@.*\\..*" email != null;
       in
@@ -188,7 +188,7 @@ in
     # Name should be consistent across reads
     (helpers.assertTest "userinfo-name-consistency" (
       let
-        name = userInfo.name;
+        inherit (userInfo) name;
         # Name should be the same every time we read it
         nameValid = builtins.isString name && builtins.stringLength name > 0;
       in
@@ -219,9 +219,7 @@ in
     (helpers.assertTest "userinfo-scenarios-name-format" (
       let
         # Check all scenario names are valid
-        allValidNames = builtins.all (
-          s: builtins.stringLength (s.name or "") > 0
-        ) userInfoScenarios;
+        allValidNames = builtins.all (s: builtins.stringLength (s.name or "") > 0) userInfoScenarios;
       in
       allValidNames
     ) "All scenario names should be non-empty")
@@ -250,7 +248,7 @@ in
     # Email domain should have valid TLD
     (helpers.assertTest "userinfo-domain-valid-tld" (
       let
-        email = userInfo.email;
+        inherit (userInfo) email;
         # Extract domain and check for valid TLD
         parts = builtins.split "@" email;
         domain = if builtins.length parts >= 2 then builtins.elemAt parts 2 else "";
@@ -263,7 +261,7 @@ in
     # Name and email shouldn't have extra whitespace
     (helpers.assertTest "userinfo-no-leading-ws-name" (
       let
-        name = userInfo.name;
+        inherit (userInfo) name;
         noLeading = !(builtins.match "^ .*" name != null);
       in
       noLeading
@@ -271,7 +269,7 @@ in
 
     (helpers.assertTest "userinfo-no-trailing-ws-name" (
       let
-        name = userInfo.name;
+        inherit (userInfo) name;
         noTrailing = !(builtins.match ".* $" name != null);
       in
       noTrailing
@@ -279,7 +277,7 @@ in
 
     (helpers.assertTest "userinfo-no-leading-ws-email" (
       let
-        email = userInfo.email;
+        inherit (userInfo) email;
         noLeading = !(builtins.match "^ .*" email != null);
       in
       noLeading
@@ -287,7 +285,7 @@ in
 
     (helpers.assertTest "userinfo-no-trailing-ws-email" (
       let
-        email = userInfo.email;
+        inherit (userInfo) email;
         noTrailing = !(builtins.match ".* $" email != null);
       in
       noTrailing
@@ -309,7 +307,9 @@ in
       echo "  Domain validation"
       echo "  Whitespace handling"
       echo ""
-      echo "Scenarios tested: ${toString (builtins.length userInfoScenarios + builtins.length edgeCaseScenarios)}"
+      echo "Scenarios tested: ${
+        toString (builtins.length userInfoScenarios + builtins.length edgeCaseScenarios)
+      }"
       echo "  - Standard users: ${toString (builtins.length userInfoScenarios)}"
       echo "  - Edge cases: ${toString (builtins.length edgeCaseScenarios)}"
       echo ""

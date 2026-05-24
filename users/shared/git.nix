@@ -22,7 +22,7 @@
 #   - 개발: .direnv/, node_modules/, .env.local
 #
 
-{ ... }:
+_:
 
 let
   # User information from lib/user-info.nix
@@ -39,8 +39,8 @@ in
 
     settings = {
       user = {
-        name = name;
-        email = email;
+        inherit name;
+        inherit email;
       };
       init.defaultBranch = "main";
       core = {

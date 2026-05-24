@@ -23,50 +23,54 @@ let
   propertyTesting = import ../lib/property-testing.nix { inherit lib pkgs; };
 
   # Mock inputs for testing (must be defined before mkSystem import)
-  mockInputs = let
-    mockpkgs = import <nixpkgs> { };
-  in {
-    nixpkgs = mockpkgs // {
-      lib = mockpkgs.lib // {
-        # Mock nixosSystem for Linux tests
-        nixosSystem = args: {
-          modules = args.modules;
+  mockInputs =
+    let
+      mockpkgs = import <nixpkgs> { };
+    in
+    {
+      nixpkgs = mockpkgs // {
+        lib = mockpkgs.lib // {
+          # Mock nixosSystem for Linux tests
+          nixosSystem = args: {
+            inherit (args) modules;
+            specialArgs = {
+              currentSystem = "x86_64-linux";
+              currentSystemName = "macbook-pro";
+              currentSystemUser = "testuser";
+              isDarwin = false;
+              isWSL = false;
+            }
+            // (args.specialArgs or { });
+          };
+        };
+      };
+      darwin = {
+        lib.darwinSystem = args: {
+          inherit (args) modules;
+          # Merge defaults with any specialArgs provided by mkSystem
           specialArgs = {
-            currentSystem = "x86_64-linux";
+            currentSystem = "aarch64-darwin";
             currentSystemName = "macbook-pro";
             currentSystemUser = "testuser";
             isDarwin = false;
             isWSL = false;
-          } // (args.specialArgs or { });
+          }
+          // (args.specialArgs or { });
         };
       };
-    };
-    darwin = {
-      lib.darwinSystem = args: {
-        modules = args.modules;
-        # Merge defaults with any specialArgs provided by mkSystem
-        specialArgs = {
-          currentSystem = "aarch64-darwin";
-          currentSystemName = "macbook-pro";
-          currentSystemUser = "testuser";
-          isDarwin = false;
-          isWSL = false;
-        } // (args.specialArgs or { });
-      };
-    };
-    home-manager = {
-      darwinModules.home-manager = {
-        home-manager = {
-          useGlobalPkgs = true;
-          useUserPackages = true;
-          users = { };
+      home-manager = {
+        darwinModules.home-manager = {
+          home-manager = {
+            useGlobalPkgs = true;
+            useUserPackages = true;
+            users = { };
+          };
         };
       };
+      determinate = {
+        darwinModules.default = { };
+      };
     };
-    determinate = {
-      darwinModules.default = { };
-    };
-  };
 
   # Import mkSystem to test with mock inputs
   mkSystem = import ../../lib/mksystem.nix {
@@ -137,7 +141,12 @@ in
       let
         testScenario = builtins.elemAt systemScenarios 0;
         result = mkSystem testScenario.name {
-          inherit (testScenario) system user darwin wsl;
+          inherit (testScenario)
+            system
+            user
+            darwin
+            wsl
+            ;
         };
       in
       result ? modules && result ? specialArgs
@@ -147,7 +156,12 @@ in
       let
         testScenario = builtins.elemAt systemScenarios 2;
         result = mkSystem testScenario.name {
-          inherit (testScenario) system user darwin wsl;
+          inherit (testScenario)
+            system
+            user
+            darwin
+            wsl
+            ;
         };
       in
       result ? modules && result ? specialArgs
@@ -159,7 +173,12 @@ in
       let
         testScenario = builtins.elemAt systemScenarios 0;
         result = mkSystem testScenario.name {
-          inherit (testScenario) system user darwin wsl;
+          inherit (testScenario)
+            system
+            user
+            darwin
+            wsl
+            ;
         };
         args = result.specialArgs or { };
       in
@@ -174,12 +193,18 @@ in
       let
         testScenario = builtins.elemAt systemScenarios 0;
         result = mkSystem testScenario.name {
-          inherit (testScenario) system user darwin wsl;
+          inherit (testScenario)
+            system
+            user
+            darwin
+            wsl
+            ;
         };
         args = result.specialArgs or { };
       in
       # If specialArgs are not provided (mock limitation), skip value checks
-      builtins.hasAttr "currentSystem" args -> (
+      builtins.hasAttr "currentSystem" args
+      -> (
         args.currentSystem == testScenario.system
         && args.currentSystemName == testScenario.name
         && args.currentSystemUser == testScenario.user
@@ -192,12 +217,18 @@ in
       let
         testScenario = builtins.elemAt systemScenarios 2;
         result = mkSystem testScenario.name {
-          inherit (testScenario) system user darwin wsl;
+          inherit (testScenario)
+            system
+            user
+            darwin
+            wsl
+            ;
         };
         args = result.specialArgs or { };
       in
       # If specialArgs are not provided (mock limitation), skip value checks
-      builtins.hasAttr "currentSystem" args -> (
+      builtins.hasAttr "currentSystem" args
+      -> (
         args.currentSystem == testScenario.system
         && args.currentSystemName == testScenario.name
         && args.currentSystemUser == testScenario.user
@@ -212,12 +243,27 @@ in
       let
         testScenario = builtins.elemAt systemScenarios 0;
         result = mkSystem testScenario.name {
-          inherit (testScenario) system user darwin wsl;
+          inherit (testScenario)
+            system
+            user
+            darwin
+            wsl
+            ;
         };
         modules = result.modules or [ ];
-        hasMachineModule = lib.any (m: if builtins.isAttrs m then (m ? _file && m._file == "../machines/${testScenario.name}.nix") else false) modules;
-        hasUserConfig = lib.any (m: if builtins.isAttrs m then (m ? _file && lib.hasInfix "users/shared" m._file) else false) modules;
-        hasHomeManager = lib.any (m: if builtins.isAttrs m then (m ? _file || m ? home-manager) else false) modules;
+        hasMachineModule = lib.any (
+          m:
+          if builtins.isAttrs m then
+            (m ? _file && m._file == "../machines/${testScenario.name}.nix")
+          else
+            false
+        ) modules;
+        hasUserConfig = lib.any (
+          m: if builtins.isAttrs m then (m ? _file && lib.hasInfix "users/shared" m._file) else false
+        ) modules;
+        hasHomeManager = lib.any (
+          m: if builtins.isAttrs m then (m ? _file || m ? home-manager) else false
+        ) modules;
       in
       hasMachineModule || hasUserConfig || hasHomeManager
     ) "Essential modules should be present")
@@ -228,7 +274,12 @@ in
       let
         testScenario = builtins.elemAt systemScenarios 0;
         baseResult = mkSystem testScenario.name {
-          inherit (testScenario) system user darwin wsl;
+          inherit (testScenario)
+            system
+            user
+            darwin
+            wsl
+            ;
         };
         baseModuleCount = builtins.length (baseResult.modules or [ ]);
       in
@@ -242,10 +293,20 @@ in
         darwinScenario = builtins.elemAt systemScenarios 0;
         linuxScenario = builtins.elemAt systemScenarios 2;
         darwinResult = mkSystem darwinScenario.name {
-          inherit (darwinScenario) system user darwin wsl;
+          inherit (darwinScenario)
+            system
+            user
+            darwin
+            wsl
+            ;
         };
         linuxResult = mkSystem linuxScenario.name {
-          inherit (linuxScenario) system user darwin wsl;
+          inherit (linuxScenario)
+            system
+            user
+            darwin
+            wsl
+            ;
         };
         darwinUser = (darwinResult.specialArgs or { }).currentSystemUser or "";
         linuxUser = (linuxResult.specialArgs or { }).currentSystemUser or "";
@@ -259,16 +320,23 @@ in
     # The actual module content depends on real inputs, not mocks
     (helpers.assertTest "mksystem-cache-settings-darwin" (
       if isDarwin then
-        (let
-          testScenario = builtins.elemAt systemScenarios 0;
-          result = mkSystem testScenario.name {
-            inherit (testScenario) system user darwin wsl;
-          };
-          # With mock inputs, we can only verify the system was created
-          # Actual cache settings require real flake inputs
-          hasModules = result ? modules && result ? specialArgs;
-        in
-          hasModules)
+        (
+          let
+            testScenario = builtins.elemAt systemScenarios 0;
+            result = mkSystem testScenario.name {
+              inherit (testScenario)
+                system
+                user
+                darwin
+                wsl
+                ;
+            };
+            # With mock inputs, we can only verify the system was created
+            # Actual cache settings require real flake inputs
+            hasModules = result ? modules && result ? specialArgs;
+          in
+          hasModules
+        )
       else
         true # Skip on non-Darwin platforms
     ) "Darwin system should be created with modules and specialArgs")
@@ -276,16 +344,23 @@ in
     # Note: Linux cache settings test only runs on Linux platforms
     (helpers.assertTest "mksystem-cache-settings-linux" (
       if isLinux then
-        (let
-          testScenario = builtins.elemAt systemScenarios 2;
-          result = mkSystem testScenario.name {
-            inherit (testScenario) system user darwin wsl;
-          };
-          # With mock inputs, we can only verify the system was created
-          # Actual cache settings require real flake inputs
-          hasModules = result ? modules && result ? specialArgs;
-        in
-          hasModules)
+        (
+          let
+            testScenario = builtins.elemAt systemScenarios 2;
+            result = mkSystem testScenario.name {
+              inherit (testScenario)
+                system
+                user
+                darwin
+                wsl
+                ;
+            };
+            # With mock inputs, we can only verify the system was created
+            # Actual cache settings require real flake inputs
+            hasModules = result ? modules && result ? specialArgs;
+          in
+          hasModules
+        )
       else
         true # Skip on non-Linux platforms
     ) "Linux system should be created with modules and specialArgs")
@@ -296,7 +371,12 @@ in
       let
         testScenario = builtins.elemAt systemScenarios 4; # WSL scenario
         result = mkSystem testScenario.name {
-          inherit (testScenario) system user darwin wsl;
+          inherit (testScenario)
+            system
+            user
+            darwin
+            wsl
+            ;
         };
         args = result.specialArgs or { };
       in
@@ -307,7 +387,12 @@ in
       let
         testScenario = builtins.elemAt systemScenarios 2; # Non-WSL scenario
         result = mkSystem testScenario.name {
-          inherit (testScenario) system user darwin wsl;
+          inherit (testScenario)
+            system
+            user
+            darwin
+            wsl
+            ;
         };
         args = result.specialArgs or { };
       in

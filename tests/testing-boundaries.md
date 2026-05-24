@@ -11,12 +11,14 @@ This document defines the boundaries and responsibilities for each level of test
 **Purpose**: Test individual modules and functions in isolation
 
 **Characteristics**:
+
 - Fast execution (< 5 seconds per test)
 - No external dependencies (use mocks/stubs)
 - Focus on business logic and configuration transformation
 - Test edge cases and error conditions
 
 **Examples**:
+
 ```nix
 # ✅ GOOD: Test git configuration transformation logic
 test-git-alias-expansion =
@@ -34,6 +36,7 @@ test-git-command-execution =
 ```
 
 **Module Coverage**:
+
 - `users/shared/git.nix` - Git configuration logic
 - `users/shared/vim.nix` - Vim configuration generation
 - `users/shared/zsh.nix` - Shell configuration logic
@@ -41,6 +44,7 @@ test-git-command-execution =
 - `lib/mksystem.nix` - System factory functions
 
 **Mocking Strategy**:
+
 - Mock external executables (git, vim, curl)
 - Mock file system operations
 - Mock system calls and platform detection
@@ -51,12 +55,14 @@ test-git-command-execution =
 **Purpose**: Test module interactions and real dependency behavior
 
 **Characteristics**:
+
 - Medium execution time (5-60 seconds)
 - Use real dependencies when possible
 - Test cross-module functionality
 - Validate configuration deployment
 
 **Examples**:
+
 ```nix
 # ✅ GOOD: Test home-manager applies configuration correctly
 test-home-manager-activation =
@@ -82,6 +88,7 @@ test-git-alias-function =
 ```
 
 **Test Coverage**:
+
 - Home Manager activation and file deployment
 - Cross-module configuration conflicts
 - System build process
@@ -93,12 +100,14 @@ test-git-alias-function =
 **Purpose**: Validate complete system functionality in real environment
 
 **Characteristics**:
+
 - Longer execution time (3-10 minutes)
 - Full system validation
 - Real user scenarios
 - Minimal test count (3-5 core scenarios)
 
 **Core Scenarios**:
+
 1. **System Build Success**
    - `nix build` completes without errors
    - All derivations build successfully
@@ -115,6 +124,7 @@ test-git-alias-function =
    - Development environment is functional
 
 **Examples**:
+
 ```nix
 # ✅ GOOD: Test complete user workflow
 test-user-development-workflow =
@@ -140,6 +150,7 @@ test-vim-syntax-highlighting =
 ## Anti-Patterns to Avoid
 
 ### 1. Structural Testing
+
 ```nix
 # ❌ ANTI-PATTERN: Testing file existence instead of behavior
 test-config-file-exists =
@@ -154,6 +165,7 @@ test-config-validation =
 ```
 
 ### 2. Boundary Blurring
+
 ```nix
 # ❌ ANTI-PATTERN: Unit test using external dependencies
 test-git-execution =
@@ -171,6 +183,7 @@ test-git-config-generation =
 ```
 
 ### 3. Over-testing in E2E
+
 ```nix
 # ❌ ANTI-PATTERN: Detailed module testing in E2E
 test-all-git-aliases =
@@ -184,6 +197,7 @@ test-git-workflow-completes =
 ## Mocking Guidelines
 
 ### Unit Tests: Mock Everything External
+
 ```nix
 # ✅ GOOD: Complete isolation
 test-git-function-with-mocks =
@@ -198,6 +212,7 @@ test-git-function-with-mocks =
 ```
 
 ### Integration Tests: Mock Slow/External Services Only
+
 ```nix
 # ✅ GOOD: Mock only network calls
 test-git-with-network-mock =
@@ -211,6 +226,7 @@ test-git-with-network-mock =
 ```
 
 ### E2E Tests: No Mocking
+
 ```nix
 # ✅ GOOD: Full system validation
 test-complete-workflow =
@@ -223,17 +239,20 @@ test-complete-workflow =
 ## Test Organization Rules
 
 ### File Placement
+
 - `tests/unit/*-test.nix` - Individual module tests
 - `tests/integration/*-test.nix` - Multi-module interaction tests
 - `tests/e2e/*-test.nix` - Complete system tests
 - `tests/lib/*.nix` - Test utilities and helpers
 
 ### Naming Conventions
+
 - Unit: `{module}-test.nix` (e.g., `git-test.nix`)
 - Integration: `{feature}-integration-test.nix` (e.g., `home-manager-integration-test.nix`)
 - E2E: `{scenario}-e2e-test.nix` (e.g., `development-workflow-e2e-test.nix`)
 
 ### Test Structure
+
 ```nix
 # Standard test structure
 {
@@ -264,18 +283,21 @@ pkgs.runCommand "test-results" { } ''
 ## Success Metrics
 
 ### Unit Test Success
+
 - All tests run in < 30 seconds total
 - 100% code coverage for business logic
 - Zero external dependencies
 - All edge cases covered
 
 ### Integration Test Success
+
 - Tests run in < 5 minutes total
 - Real dependency behavior validated
 - Cross-module interactions verified
 - No integration regressions
 
 ### E2E Test Success
+
 - Core scenarios complete in < 3 minutes
 - Real user workflows validated
 - System functionality verified
@@ -286,20 +308,24 @@ pkgs.runCommand "test-results" { } ''
 ### Implementation Results
 
 **Phase 1**: ✅ Document current test locations and responsibilities
+
 - Baseline analysis completed: 27 test files with 4 failing tests
 - Anti-pattern inventory identified: 24 pathExists occurrences, 19 mock dependencies
 
 **Phase 2**: ✅ Reorganize tests according to boundaries
+
 - Test boundary finalization completed
 - Clear unit/integration/E2E separation enforced
 - Test file consolidation: 27 → 21 files (22% reduction)
 
 **Phase 3**: ✅ Add missing test coverage
+
 - Property-based testing added for git and user management
 - Edge case testing enhanced
 - Cross-platform compatibility validation implemented
 
 **Phase 4**: ✅ Optimize performance and remove duplication
+
 - VM optimization completed: 7+ files → 1 optimized suite
 - Resource allocation reduced by 75%
 - Performance improvement: 46% faster execution
@@ -314,12 +340,14 @@ pkgs.runCommand "test-results" { } ''
 ## Refactoring Guidelines (Post-Implementation)
 
 ### Best Practices Established
+
 1. **Structural Testing Avoidance**: Focus on behavior over file existence
 2. **Mock Strategy**: Use mocks for isolation, not to hide complexity
 3. **Boundary Enforcement**: Clear separation between test levels
 4. **Performance Optimization**: Consolidate redundant tests and optimize resource usage
 
 ### Maintenance Guidelines
+
 - Maintain 100% test pass rate during changes
 - Preserve established boundaries and conventions
 - Use property-based testing for configuration validation

@@ -48,6 +48,7 @@
 ## Task 1: Split darwin.nix — Create darwin-homebrew.nix
 
 **Files:**
+
 - Create: `users/shared/darwin-homebrew.nix`
 
 - [ ] **Step 1: Create darwin-homebrew.nix**
@@ -166,6 +167,7 @@ git commit -m "refactor(darwin): extract homebrew config to darwin-homebrew.nix"
 ## Task 2: Split darwin.nix — Create darwin-scripts.nix
 
 **Files:**
+
 - Create: `users/shared/darwin-scripts.nix`
 
 - [ ] **Step 1: Create darwin-scripts.nix**
@@ -291,6 +293,7 @@ git commit -m "refactor(darwin): extract activation scripts to darwin-scripts.ni
 ## Task 3: Split darwin.nix — Update darwin.nix to import sub-files
 
 **Files:**
+
 - Modify: `users/shared/darwin.nix`
 
 - [ ] **Step 1: Update darwin.nix**
@@ -457,6 +460,7 @@ git commit -m "refactor(darwin): import split homebrew and scripts sub-files"
 ## Task 4: Split test-helpers.nix — Create test-helpers-darwin.nix
 
 **Files:**
+
 - Create: `tests/lib/test-helpers-darwin.nix`
 
 - [ ] **Step 1: Create test-helpers-darwin.nix**
@@ -637,6 +641,7 @@ git commit -m "refactor(tests): extract macOS assertions to test-helpers-darwin.
 ## Task 5: Split test-helpers.nix — Create test-helpers-property.nix
 
 **Files:**
+
 - Create: `tests/lib/test-helpers-property.nix`
 
 - [ ] **Step 1: Create test-helpers-property.nix**
@@ -779,6 +784,7 @@ git commit -m "refactor(tests): extract property testing to test-helpers-propert
 ## Task 6: Split test-helpers.nix — Create test-helpers-advanced.nix
 
 **Files:**
+
 - Create: `tests/lib/test-helpers-advanced.nix`
 
 - [ ] **Step 1: Create test-helpers-advanced.nix**
@@ -1471,6 +1477,7 @@ git commit -m "refactor(tests): extract advanced assertions to test-helpers-adva
 ## Task 7: Split test-helpers.nix — Update test-helpers.nix to import and re-export
 
 **Files:**
+
 - Modify: `tests/lib/test-helpers.nix`
 
 - [ ] **Step 1: Rewrite test-helpers.nix to keep core + re-export sub-files**
@@ -1727,6 +1734,7 @@ git commit -m "refactor(tests): slim test-helpers.nix to core + re-export sub-fi
 ## Task 8: Extract zsh env.nix
 
 **Files:**
+
 - Create: `users/shared/zsh/env.nix`
 
 - [ ] **Step 1: Create env.nix**
@@ -1790,6 +1798,7 @@ git commit -m "refactor(zsh): extract environment/PATH config to env.nix"
 ## Task 9: Extract zsh ssh-agent.nix
 
 **Files:**
+
 - Create: `users/shared/zsh/ssh-agent.nix`
 
 - [ ] **Step 1: Create ssh-agent.nix**
@@ -1860,6 +1869,7 @@ git commit -m "refactor(zsh): extract SSH agent setup to ssh-agent.nix"
 ## Task 10: Extract zsh functions.nix
 
 **Files:**
+
 - Create: `users/shared/zsh/functions.nix`
 
 - [ ] **Step 1: Create functions.nix**
@@ -1944,6 +1954,7 @@ git commit -m "refactor(zsh): extract utility functions to functions.nix"
 ## Task 11: Update zsh/default.nix to import extracted files
 
 **Files:**
+
 - Modify: `users/shared/zsh/default.nix`
 
 - [ ] **Step 1: Update default.nix**
@@ -2015,6 +2026,7 @@ git commit -m "refactor(zsh): replace inline sections with file imports"
 ## Task 12: Create cache sync verification script
 
 **Files:**
+
 - Create: `scripts/check-cache-sync.sh`
 
 - [ ] **Step 1: Create the script**
@@ -2093,6 +2105,7 @@ git commit -m "feat: add cache config sync verification script"
 ## Task 13: Add cache sync pre-commit hook
 
 **Files:**
+
 - Modify: `.pre-commit-config.yaml`
 
 - [ ] **Step 1: Add hook to the local repo section**
@@ -2100,12 +2113,12 @@ git commit -m "feat: add cache config sync verification script"
 Add the `check-cache-sync` hook to the existing `- repo: local` section in `.pre-commit-config.yaml`, right after the `test-all` hook (before the closing of that repo block):
 
 ```yaml
-      - id: check-cache-sync
-        name: Check cache config sync
-        entry: scripts/check-cache-sync.sh
-        language: script
-        pass_filenames: false
-        files: '(flake\.nix|lib/cache-config\.nix)'
+- id: check-cache-sync
+  name: Check cache config sync
+  entry: scripts/check-cache-sync.sh
+  language: script
+  pass_filenames: false
+  files: '(flake\.nix|lib/cache-config\.nix)'
 ```
 
 - [ ] **Step 2: Verify pre-commit config is valid**
@@ -2124,6 +2137,7 @@ git commit -m "feat: add pre-commit hook for cache config sync check"
 ## Task 14: Add E2E test factory functions to helpers.nix
 
 **Files:**
+
 - Modify: `tests/e2e/helpers.nix`
 
 - [ ] **Step 1: Add mkNixosTest and mkBaseNode to helpers.nix**
@@ -2211,6 +2225,7 @@ git commit -m "feat(tests): add mkNixosTest and mkBaseNode factories to E2E help
 ## Task 15: Migrate test-template.nix to use factories
 
 **Files:**
+
 - Modify: `tests/e2e/test-template.nix`
 
 - [ ] **Step 1: Update test-template.nix to use the factory functions**

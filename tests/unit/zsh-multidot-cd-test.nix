@@ -40,7 +40,10 @@ let
   runtimeTest =
     pkgs.runCommand "zsh-multidot-cd-runtime"
       {
-        nativeBuildInputs = [ pkgs.zsh pkgs.coreutils ];
+        nativeBuildInputs = [
+          pkgs.zsh
+          pkgs.coreutils
+        ];
       }
       ''
         mkdir -p a/b/c/d/e
@@ -113,17 +116,14 @@ in
     (assertInitHas "regex-check" ''"$1" =~ "^\.{3,}$"'')
     (assertInitHas "builtin-cd" "builtin cd")
 
-    (helpers.assertTest "zsh-multidot-no-triple-alias"
-      (!(builtins.hasAttr "..." aliases))
-      "shellAliases should not define '...' — the cd function handles it"
-    )
-    (helpers.assertTest "zsh-multidot-no-quad-alias"
-      (!(builtins.hasAttr "...." aliases))
-      "shellAliases should not define '....' — the cd function handles it"
-    )
+    (helpers.assertTest "zsh-multidot-no-triple-alias" (
+      !(builtins.hasAttr "..." aliases)
+    ) "shellAliases should not define '...' — the cd function handles it")
+    (helpers.assertTest "zsh-multidot-no-quad-alias" (
+      !(builtins.hasAttr "...." aliases)
+    ) "shellAliases should not define '....' — the cd function handles it")
 
-    (helpers.assertTest "zsh-multidot-runtime"
-      (builtins.pathExists runtimeTest)
+    (helpers.assertTest "zsh-multidot-runtime" (builtins.pathExists runtimeTest)
       "cd function runtime simulation failed"
     )
   ];

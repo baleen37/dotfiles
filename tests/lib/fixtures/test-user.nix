@@ -11,7 +11,7 @@
 # Usage:
 #   imports = [ ../lib/fixtures/test-user.nix ]
 
-{ pkgs, lib, ... }:
+{ pkgs, ... }:
 {
   users.users.testuser = {
     isNormalUser = true;

@@ -7,12 +7,14 @@
 ## 1. Goals & Non-goals
 
 ### Goals
+
 1. **가시성** — CI에서 빌드마다 캐시 hit/miss/적중률이 GitHub Actions Job Summary에 표시된다.
 2. **회귀 방지** — substituter / public key 설정이 4곳에서 어긋나거나 형식이 깨지면 CI에서 잡힌다.
 3. **운영 안전성** — hit-rate가 낮아도 CI는 실패하지 않는다 (경고 없음, 표시만). 무관한 PR이 캐시 변동으로 깨지지 않는다.
 4. **유지보수성** — 추가 의존성 없음 (`nix`, `bash`만). 코드는 "있어야만 하는 것"만.
 
 ### Non-goals (YAGNI)
+
 - 로컬 `make cache-report` 명령
 - hit-rate 시계열 저장 / 대시보드
 - `flake.nix` ↔ `lib/cache-config.nix` 자동 동기화 스크립트
@@ -21,20 +23,21 @@
 - 캐시 외 영역(zsh, direnv 등)의 캐싱
 
 ### Success criteria
+
 - CI Job Summary에 `Cache hit-rate (<matrix name>)` 섹션이 표시되고, total / hit / miss 수가 보인다.
 - `nix flake check --impure` 시 `cache-config-test`가 실행된다.
 - `lib/cache-config.nix`에서 substituter 하나를 임의로 삭제하면 테스트가 실패한다.
 
 ## 2. Current state
 
-| 항목 | 상태 |
-|---|---|
-| Substituter 3단 구성 (baleen-nix → nix-community → official) | ✅ `lib/cache-config.nix` |
-| CI Cachix push (main / tag) | ✅ `continue-on-error` |
-| CI 로컬 Nix store 캐시 | ✅ `actions/cache` + `flake.lock` 해시 키 |
-| 동일 substituter / key 설정이 4곳에 하드코딩 | ⚠️ `flake.nix nixConfig`, `lib/cache-config.nix`, `ci.yml env.NIX_CONFIG`, `setup-nix/action.yml extra-conf` |
-| 캐시 hit/miss 가시성 | ❌ |
-| 캐시 설정 회귀 방지 테스트 | ❌ |
+| 항목                                                         | 상태                                                                                                         |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| Substituter 3단 구성 (baleen-nix → nix-community → official) | ✅ `lib/cache-config.nix`                                                                                    |
+| CI Cachix push (main / tag)                                  | ✅ `continue-on-error`                                                                                       |
+| CI 로컬 Nix store 캐시                                       | ✅ `actions/cache` + `flake.lock` 해시 키                                                                    |
+| 동일 substituter / key 설정이 4곳에 하드코딩                 | ⚠️ `flake.nix nixConfig`, `lib/cache-config.nix`, `ci.yml env.NIX_CONFIG`, `setup-nix/action.yml extra-conf` |
+| 캐시 hit/miss 가시성                                         | ❌                                                                                                           |
+| 캐시 설정 회귀 방지 테스트                                   | ❌                                                                                                           |
 
 `flake.nix nixConfig`는 top-level attrset이므로 `import`가 불가능하다 → 4곳을 코드 레벨로 통합할 수 없다. 따라서 *일치성 검증*으로 대체한다.
 
@@ -70,6 +73,7 @@
 **파일**: `tests/unit/cache-config-test.nix` (신규)
 
 검증 항목:
+
 1. `lib/cache-config.nix`의 모든 `substituters`가 `flake.nix`에 등장
 2. 동일 항목이 `.github/workflows/ci.yml`에 등장
 3. 동일 항목이 `.github/actions/setup-nix/action.yml`에 등장
@@ -82,10 +86,12 @@
 `tests/default.nix`는 `tests/unit/*-test.nix`를 자동 발견하므로 추가 배선 없음.
 
 ### 거부한 대안
-- *YAML 파서로 ci.yml 파싱*: 정확하지만 외부 의존성. `hasInfix` 검사로 충분 (substituter URL은 unique).
-- *4개 파일을 한 nix 파일이 generate*: 자동 동기화. 메타프로그래밍 부채가 더 큼.
+
+- _YAML 파서로 ci.yml 파싱_: 정확하지만 외부 의존성. `hasInfix` 검사로 충분 (substituter URL은 unique).
+- _4개 파일을 한 nix 파일이 generate_: 자동 동기화. 메타프로그래밍 부채가 더 큼.
 
 ### 회귀 시나리오 (구현 후 수동 검증)
+
 - `lib/cache-config.nix`에서 `nix-community.cachix.org` 줄 삭제 → 일치성 테스트 3개 (flake / ci / setup-nix) 실패해야 함
 - public key 끝 `=` 제거 → 형식 검증 실패해야 함
 - substituter URL을 `http://`로 변경 → URL 검증 실패해야 함
@@ -95,9 +101,11 @@
 **파일**: `.github/workflows/ci.yml` (수정)
 
 ### 변경 1 — 기존 "Upload to Cachix" step
+
 `nix build` 호출에 `--out-link result` 를 추가해 `./result` 심볼릭 링크가 남도록 한다. push 동작에는 영향이 없다.
 
 ### 변경 2 — 신규 step "Cache hit-rate report"
+
 기존 `Upload to Cachix` step **직전**에 추가한다 (직전 push step의 `nix build`가 `./result`를 만들어 둔 직후 시점).
 
 ```yaml
@@ -125,12 +133,14 @@
 ```
 
 ### 설계 결정
+
 - **`continue-on-error: true`**: 측정 실패가 CI 빌드를 깨뜨리지 않는다.
 - **임계치 / 자동 경고 없음**: 숫자는 사람이 Job Summary에서 본다. false positive 부담 회피.
 - **`nix copy --dry-run` 출력 파싱**: nix major 버전이 문구를 바꾸면 MISS=0으로 폴백된다. summary에 total 숫자가 그대로 보여 이상함을 인지 가능 (조용한 실패 X).
 - **matrix attr 분기 없음**: 직전 push step에서 이미 만든 `./result`를 그대로 사용.
 
 ### 알려진 깨지기 쉬운 지점 (정직하게)
+
 1. `nix copy --dry-run` 출력 문구 변경 — Nix 메이저 업데이트 시 점검 필요.
 2. push step 변경 시 `--out-link result`가 사라지면 hit-rate step은 조용히 스킵된다 (Summary에 섹션이 안 찍힘).
 
@@ -164,8 +174,8 @@
 
 ## 8. 위험 및 완화
 
-| 위험 | 완화 |
-|---|---|
-| `nix copy --dry-run` 출력 포맷 변동 | `continue-on-error: true`. Summary에 MISS=0으로 표시되어 사람이 인지 |
-| matrix 별 `./result` 충돌 | 각 matrix는 독립 runner |
-| 일치성 테스트의 false positive (주석에 우연히 같은 URL) | 검증 목적은 "빠짐 방지"이므로 "있어서 통과"는 의도된 동작 |
+| 위험                                                    | 완화                                                                 |
+| ------------------------------------------------------- | -------------------------------------------------------------------- |
+| `nix copy --dry-run` 출력 포맷 변동                     | `continue-on-error: true`. Summary에 MISS=0으로 표시되어 사람이 인지 |
+| matrix 별 `./result` 충돌                               | 각 matrix는 독립 runner                                              |
+| 일치성 테스트의 false positive (주석에 우연히 같은 URL) | 검증 목적은 "빠짐 방지"이므로 "있어서 통과"는 의도된 동작            |

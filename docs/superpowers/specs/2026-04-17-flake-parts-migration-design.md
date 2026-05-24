@@ -224,6 +224,7 @@ in
 ### Drift Detection
 
 `scripts/check-cache-sync.sh`:
+
 - `nix eval`로 `lib/cache-config.nix`에서 substituters/keys 추출
 - flake.nix의 nixConfig 섹션을 파싱하여 비교
 - 불일치 시 exit 1 + diff 출력
@@ -232,11 +233,13 @@ in
 ### CI Cache Key Improvement
 
 변경 전:
+
 ```yaml
 key: nix-${{ runner.os }}-${{ hashFiles('**/flake.lock') }}-${{ week }}
 ```
 
 변경 후:
+
 ```yaml
 key: nix-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/flake.lock') }}
 restore-keys: |
@@ -275,13 +278,13 @@ IS_LINUX := $(filter Linux,$(UNAME))
 
 ## Known Gotchas (Researched)
 
-| Gotcha | Status | Mitigation |
-|--------|--------|------------|
-| home directory 이중 정의 | 기존 mksystem.nix에서 처리 중 | 마이그레이션 시 확인 |
-| homeManagerModules 병합 충돌 | 해당 없음 (미사용) | N/A |
-| flake-utils 혼용 | 해당 없음 (미사용) | N/A |
-| nixConfig은 mkFlake 외부 | 설계에 반영됨 | N/A |
-| inputs.self 접근 | 필요 시 모듈 인자로 전달 | 구현 시 확인 |
+| Gotcha                       | Status                        | Mitigation           |
+| ---------------------------- | ----------------------------- | -------------------- |
+| home directory 이중 정의     | 기존 mksystem.nix에서 처리 중 | 마이그레이션 시 확인 |
+| homeManagerModules 병합 충돌 | 해당 없음 (미사용)            | N/A                  |
+| flake-utils 혼용             | 해당 없음 (미사용)            | N/A                  |
+| nixConfig은 mkFlake 외부     | 설계에 반영됨                 | N/A                  |
+| inputs.self 접근             | 필요 시 모듈 인자로 전달      | 구현 시 확인         |
 
 ## Verification Plan
 

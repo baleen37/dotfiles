@@ -14,20 +14,20 @@
 
 ## File Inventory
 
-| File | Action |
-|---|---|
-| `Makefile` | Modify — add 3 targets (`install-hooks`, `lint`, `update`) |
-| `README.md` | Modify — replace 9+ fake make calls, soften USER export note |
-| `CONTRIBUTING.md` | Modify — replace 4+ fake make calls |
-| `CLAUDE.md` | Modify — soften "USER required" note |
-| `.envrc` | Modify — add USER fallback |
-| flake.nix, lib/mksystem.nix, flake-modules/{dev-shells,checks,packages}.nix, users/shared/{zsh/{env,functions,ssh-agent},ghostty}.nix | Modify via `make format` |
-| `tests/lib/test-helpers-darwin.nix` | Delete |
-| `tests/lib/test-helpers.nix` | Modify — remove the dead reference if any |
-| `users/shared/claude-code.nix` | Modify — `_: { }` |
-| `docs/testing-guide.md` | Delete (stale, lists non-existent file names) |
-| `tests/TESTING_GUIDE.md` | Keep as-is (Korean companion to README.md, distinct value) |
-| Anything linking to `docs/testing-guide.md` | Modify — repoint to `tests/README.md` |
+| File                                                                                                                                  | Action                                                       |
+| ------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| `Makefile`                                                                                                                            | Modify — add 3 targets (`install-hooks`, `lint`, `update`)   |
+| `README.md`                                                                                                                           | Modify — replace 9+ fake make calls, soften USER export note |
+| `CONTRIBUTING.md`                                                                                                                     | Modify — replace 4+ fake make calls                          |
+| `CLAUDE.md`                                                                                                                           | Modify — soften "USER required" note                         |
+| `.envrc`                                                                                                                              | Modify — add USER fallback                                   |
+| flake.nix, lib/mksystem.nix, flake-modules/{dev-shells,checks,packages}.nix, users/shared/{zsh/{env,functions,ssh-agent},ghostty}.nix | Modify via `make format`                                     |
+| `tests/lib/test-helpers-darwin.nix`                                                                                                   | Delete                                                       |
+| `tests/lib/test-helpers.nix`                                                                                                          | Modify — remove the dead reference if any                    |
+| `users/shared/claude-code.nix`                                                                                                        | Modify — `_: { }`                                            |
+| `docs/testing-guide.md`                                                                                                               | Delete (stale, lists non-existent file names)                |
+| `tests/TESTING_GUIDE.md`                                                                                                              | Keep as-is (Korean companion to README.md, distinct value)   |
+| Anything linking to `docs/testing-guide.md`                                                                                           | Modify — repoint to `tests/README.md`                        |
 
 ---
 
@@ -36,6 +36,7 @@
 ### Task 1: Add `install-hooks`, `lint`, `update` Makefile targets
 
 **Files:**
+
 - Modify: `Makefile`
 
 - [ ] **Step 1: Inspect current Makefile structure to choose insertion point**
@@ -70,6 +71,7 @@ If `.PHONY` exists, edit it to include the new names.
 - [ ] **Step 3: Verify each target is invocable**
 
 Run:
+
 ```bash
 make -n install-hooks
 make -n lint
@@ -99,9 +101,11 @@ matching what the docs promise."
 ### Task 2: Strip fake make targets from README.md
 
 **Files:**
+
 - Modify: `README.md`
 
 Fake targets referenced in README that DO NOT exist in Makefile (verified via `grep -E '^[a-z][a-z0-9_-]*:' Makefile`):
+
 - `make build` (lines 100, 217, 385)
 - `make build-darwin` (line 115)
 - `make build-linux` (line 116)
@@ -118,6 +122,7 @@ Read: `README.md` at lines 95-120, 215-280, 380-390. Identify each `make build*`
 For each occurrence of `make build` (not `build-switch`), replace with `nix build '.#darwinConfigurations.macbook-pro.system' --impure` (or the appropriate machine name from context). Use the Edit tool with surrounding context to disambiguate; do NOT use replace_all because the surrounding sentences differ.
 
 Example edit at README.md ~line 100:
+
 ```
 # Before:
 make build             # Build everything
@@ -126,7 +131,7 @@ make build             # Build everything
 nix build '.#darwinConfigurations.macbook-pro.system' --impure   # Build (substitute your machine)
 ```
 
-For the troubleshooting section (~line 385: "make build  # Retry"), use `nix build '.#darwinConfigurations.<your-machine>.system' --impure  # Retry`.
+For the troubleshooting section (~line 385: "make build # Retry"), use `nix build '.#darwinConfigurations.<your-machine>.system' --impure  # Retry`.
 
 - [ ] **Step 3: Replace `make build-darwin` and `make build-linux`**
 
@@ -165,6 +170,7 @@ See `machines/nixos/` for available VM configurations.
 - [ ] **Step 5: Soften the "USER export required" note**
 
 Find each "export USER=$(whoami)" in README.md (Bash check):
+
 ```bash
 grep -n 'export USER' README.md
 ```
@@ -176,11 +182,13 @@ Be surgical: only the explanatory comment changes, not the command itself — fi
 - [ ] **Step 6: Verify no fake targets remain**
 
 Run:
+
 ```bash
 grep -oE 'make [a-z0-9/_-]+' README.md | sort -u
 ```
 
 Expected output should be a subset of:
+
 ```
 make build-switch
 make cache
@@ -214,9 +222,11 @@ flake actually exposes. Soften the USER export note to mention direnv."
 ### Task 3: Strip fake make targets from CONTRIBUTING.md
 
 **Files:**
+
 - Modify: `CONTRIBUTING.md`
 
 Fake targets in CONTRIBUTING.md (verified):
+
 - `make build` (lines 69, 83, 217, 411)
 - `make test-unit` (line 96)
 - `make test-e2e` (line 98)
@@ -231,6 +241,7 @@ For each `make build` in CONTRIBUTING.md, substitute with `nix build '.#darwinCo
 - [ ] **Step 2: Handle `make test-unit`, `make test-e2e`, `make test-status`**
 
 At lines 96-98:
+
 ```
 # Before:
 make test-unit                    # Unit tests only
@@ -244,19 +255,23 @@ nix build '.#checks.x86_64-linux.basic' --impure   # Single check (Linux contain
 ```
 
 At line 393, replace `make test-status` with a real diagnostic invocation or remove the line if it has no real equivalent:
+
 ```bash
 grep -B2 -A2 'make test-status' CONTRIBUTING.md
 ```
+
 If the surrounding context promises a "test status" command that doesn't exist, replace with `nix flake show --impure` (the closest real diagnostic).
 
 - [ ] **Step 3: Verify**
 
 Run:
+
 ```bash
 grep -oE 'make [a-z0-9/_-]+' CONTRIBUTING.md | sort -u
 ```
 
 Expected subset (no `build`, `test-unit`, `test-e2e`, `test-status`):
+
 ```
 make format
 make install-hooks
@@ -284,11 +299,13 @@ that actually work."
 ### Task 4: Soften USER export note in CLAUDE.md
 
 **Files:**
+
 - Modify: `CLAUDE.md`
 
 - [ ] **Step 1: Find the note**
 
 Run:
+
 ```bash
 grep -n 'export USER\|USER environment' CLAUDE.md
 ```
@@ -298,6 +315,7 @@ The note lives near the "Environment Setup" section.
 - [ ] **Step 2: Update wording**
 
 Find the block (approximately):
+
 ```
 All build operations require the USER environment variable:
 
@@ -307,6 +325,7 @@ export USER=$(whoami)  # Required before any Nix commands
 ```
 
 Replace with:
+
 ```
 All build operations require the USER environment variable. When working
 inside the project directory, direnv sets this automatically. For shells
@@ -329,12 +348,14 @@ git commit -m "docs(claude): note direnv handles USER export automatically"
 ### Task 5: Auto-set USER in `.envrc`
 
 **Files:**
+
 - Modify: `.envrc`
 
 - [ ] **Step 1: Verify current contents**
 
 Run: `cat .envrc`
 Expected output:
+
 ```
 use flake
 ```
@@ -342,6 +363,7 @@ use flake
 - [ ] **Step 2: Edit `.envrc`**
 
 Replace contents with:
+
 ```
 export USER=${USER:-$(whoami)}
 use flake
@@ -352,6 +374,7 @@ The `${USER:-…}` form preserves explicit overrides; users who set USER manuall
 - [ ] **Step 3: Reload direnv and verify**
 
 Run:
+
 ```bash
 direnv reload
 echo "$USER"
@@ -376,6 +399,7 @@ for manual export in fresh shells."
 ### Task 6: Run `make format` and commit nixfmt baseline
 
 **Files:**
+
 - Modify: flake.nix, lib/mksystem.nix, flake-modules/dev-shells.nix, flake-modules/checks.nix, flake-modules/packages.nix, users/shared/zsh/env.nix, users/shared/zsh/functions.nix, users/shared/zsh/ssh-agent.nix, users/shared/ghostty.nix (any other file `make format` touches)
 
 - [ ] **Step 1: Confirm `make format` exists and uses the project formatter**
@@ -403,6 +427,7 @@ Expected: PASS (Linux) or validation mode succeeds (macOS).
 - [ ] **Step 5: Verify formatter is idempotent**
 
 Run:
+
 ```bash
 USER=$(whoami) make format
 git diff --quiet
@@ -427,12 +452,14 @@ No semantic changes — pure whitespace/layout."
 ### Task 7: Delete duplicate `tests/lib/test-helpers-darwin.nix`
 
 **Files:**
+
 - Delete: `tests/lib/test-helpers-darwin.nix`
 - Modify: `tests/lib/test-helpers.nix` (only if it references the deleted file)
 
 - [ ] **Step 1: Confirm zero usage**
 
 Run:
+
 ```bash
 grep -rn 'test-helpers-darwin' .
 ```
@@ -444,6 +471,7 @@ If a real import surfaces, STOP — the audit assumed zero usage; investigate be
 - [ ] **Step 2: Locate references to remove from `test-helpers.nix`**
 
 Run:
+
 ```bash
 grep -n 'test-helpers-darwin' tests/lib/test-helpers.nix
 ```
@@ -457,14 +485,17 @@ Run: `git rm tests/lib/test-helpers-darwin.nix`
 - [ ] **Step 4: Remove references from `test-helpers.nix` (if any)**
 
 For each reference found in Step 2, use Edit to remove the line(s). Typical patterns to remove:
+
 - `import ./test-helpers-darwin.nix { ... };`
 - A `darwinHelpers` let binding plus its `// darwinHelpers` merge
 - Comments mentioning the file
 
 After edits, verify with:
+
 ```bash
 grep -n 'test-helpers-darwin' tests/lib/test-helpers.nix
 ```
+
 Expected: empty.
 
 - [ ] **Step 5: Run tests**
@@ -488,6 +519,7 @@ lines), which remains the canonical source."
 ### Task 8: Remove false parameters from `users/shared/claude-code.nix`
 
 **Files:**
+
 - Modify: `users/shared/claude-code.nix`
 
 - [ ] **Step 1: Read the file**
@@ -514,6 +546,7 @@ If the file has any body content beyond `{ }` (top comments, etc.), keep them; o
 - [ ] **Step 3: Build the home configuration to confirm the import path still works**
 
 Run:
+
 ```bash
 USER=$(whoami) nix build '.#homeConfigurations."jito.hello".activationPackage' --impure --dry-run
 ```
@@ -540,6 +573,7 @@ parameters were a false signal of dependency on the module system."
 ### Task 9: Delete stale `docs/testing-guide.md` and repoint references
 
 **Files:**
+
 - Delete: `docs/testing-guide.md`
 - Modify: any markdown file linking to `docs/testing-guide.md`
 
@@ -548,6 +582,7 @@ parameters were a false signal of dependency on the module system."
 - [ ] **Step 1: Find every reference to `docs/testing-guide.md`**
 
 Run:
+
 ```bash
 grep -rln 'docs/testing-guide.md\|docs/testing-guide' . 2>/dev/null | grep -v '.git\|\.direnv\|\.worktrees'
 ```
@@ -557,6 +592,7 @@ Note the files that link to the doc.
 - [ ] **Step 2: Repoint each reference to `tests/README.md`**
 
 For each file found, use Edit to replace the path. Examples:
+
 - `[Testing Guide](docs/testing-guide.md)` → `[Testing Guide](tests/README.md)` (adjust relative path for the linking file's location)
 - Plain-text mentions: `docs/testing-guide.md` → `tests/README.md`
 
@@ -569,9 +605,11 @@ Run: `git rm docs/testing-guide.md`
 - [ ] **Step 4: Verify no broken links**
 
 Run:
+
 ```bash
 grep -rln 'docs/testing-guide' . 2>/dev/null | grep -v '.git\|\.direnv\|\.worktrees'
 ```
+
 Expected: empty.
 
 - [ ] **Step 5: Commit**
@@ -595,6 +633,7 @@ remains as its language companion."
 - [ ] **Step 1: Re-run all checks together**
 
 Run:
+
 ```bash
 USER=$(whoami) make test-all
 pre-commit run --all-files
@@ -605,18 +644,21 @@ Expected: both PASS. If `pre-commit` shows new format issues, run `make format` 
 - [ ] **Step 2: Verify branch ahead of main with clean tree**
 
 Run:
+
 ```bash
 git status
 git log main..HEAD --oneline
 ```
 
 Expected:
+
 - working tree clean
 - 9 commits on top of main: Tasks 1–9 each = 1 commit; Task 10 has no commit (verification only)
 
 - [ ] **Step 3: Spot-check each fake target is gone**
 
 Run:
+
 ```bash
 grep -oE 'make [a-z0-9/_-]+' README.md CONTRIBUTING.md | sort -u
 ```
@@ -626,6 +668,7 @@ Expected: every listed `make X` corresponds to a target that exists in `Makefile
 - [ ] **Step 4: Verify deleted files stay deleted**
 
 Run:
+
 ```bash
 test ! -f tests/lib/test-helpers-darwin.nix && echo "OK"
 test ! -f docs/testing-guide.md && echo "OK"

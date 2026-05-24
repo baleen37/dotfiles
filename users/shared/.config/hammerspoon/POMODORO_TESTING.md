@@ -44,6 +44,7 @@ open -a Hammerspoon
 ### 2.3 작업 세션 완료 테스트
 
 1. **25분 대기** (또는 테스트를 위해 코드에서 시간 단축):
+
    ```lua
    -- init.lua에서 임시로 시간 변경 (테스트용)
    local WORK_DURATION = 5  -- 5초로 변경
@@ -90,6 +91,7 @@ open -a Hammerspoon
 ### 4.1 통계 확인
 
 1. Hammerspoon Console에서 통계 확인:
+
    ```lua
    spoon.Pomodoro:getStatistics()
    ```
@@ -115,6 +117,7 @@ open -a Hammerspoon
 ### 5.1 핫키 설정
 
 init.lua에서 핫키 설정 주석 해제:
+
 ```lua
 -- 주석 제거
 Pomodoro:bindHotkeys({
@@ -157,6 +160,7 @@ spoon.Pomodoro:start()
 ## 7. 자동화된 테스트 스크립트
 
 작성된 테스트 스크립트 실행:
+
 ```bash
 cd ~/.hammerspoon
 /opt/homebrew/bin/lua test_pomodoro.lua

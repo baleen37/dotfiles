@@ -169,49 +169,59 @@ let
   # Create individual test
   createTest =
     testName: data:
-    pkgs.runCommand "statusline-test-${testName}" {
-      nativeBuildInputs = [ pkgs.bash pkgs.jq ];
-    } ''
-      script=$TMPDIR/statusline.sh
-      cat > $script <<'SCRIPT_END'
-      ${statuslineScriptContent}
-      SCRIPT_END
-      chmod +x $script
+    pkgs.runCommand "statusline-test-${testName}"
+      {
+        nativeBuildInputs = [
+          pkgs.bash
+          pkgs.jq
+        ];
+      }
+      ''
+        script=$TMPDIR/statusline.sh
+        cat > $script <<'SCRIPT_END'
+        ${statuslineScriptContent}
+        SCRIPT_END
+        chmod +x $script
 
-      input_json='${data.input}'
+        input_json='${data.input}'
 
-      output=$(echo "$input_json" | bash $script 2>&1 || true)
+        output=$(echo "$input_json" | bash $script 2>&1 || true)
 
-      ${if data.expectNoContext or false then ''
-        # Should NOT contain context (no number followed by k or space)
-        if echo "$output" | grep -qE '[0-9]+k'; then
-          echo "❌ ${testName}: FAIL"
-          echo "  ${data.description}"
-          echo "  Expected: no context"
-          echo "  Got output:"
-          echo "$output" | head -20
-          exit 1
-        else
-          echo "✅ ${testName}: PASS"
-          echo "  ${data.description}"
-          touch $out
-        fi
-      '' else ''
-        if echo "$output" | grep -qF '${data.expectedCtx}'; then
-          echo "✅ ${testName}: PASS"
-          echo "  ${data.description}"
-          echo "  Expected Ctx: ${data.expectedCtx}"
-          touch $out
-        else
-          echo "❌ ${testName}: FAIL"
-          echo "  ${data.description}"
-          echo "  Expected Ctx: ${data.expectedCtx}"
-          echo "  Got output:"
-          echo "$output" | head -20
-          exit 1
-        fi
-      ''}
-    '';
+        ${
+          if data.expectNoContext or false then
+            ''
+              # Should NOT contain context (no number followed by k or space)
+              if echo "$output" | grep -qE '[0-9]+k'; then
+                echo "❌ ${testName}: FAIL"
+                echo "  ${data.description}"
+                echo "  Expected: no context"
+                echo "  Got output:"
+                echo "$output" | head -20
+                exit 1
+              else
+                echo "✅ ${testName}: PASS"
+                echo "  ${data.description}"
+                touch $out
+              fi
+            ''
+          else
+            ''
+              if echo "$output" | grep -qF '${data.expectedCtx}'; then
+                echo "✅ ${testName}: PASS"
+                echo "  ${data.description}"
+                echo "  Expected Ctx: ${data.expectedCtx}"
+                touch $out
+              else
+                echo "❌ ${testName}: FAIL"
+                echo "  ${data.description}"
+                echo "  Expected Ctx: ${data.expectedCtx}"
+                echo "  Got output:"
+                echo "$output" | head -20
+                exit 1
+              fi
+            ''
+        }
+      '';
 
 in
 {

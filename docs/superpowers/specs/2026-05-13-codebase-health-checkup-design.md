@@ -101,11 +101,13 @@ _: { }
 #### 2.3 테스트 문서 통합
 
 현재 3개 파일이 같은 주제를 다룸:
+
 - `tests/README.md` (1890줄, 자동 발견 패턴 설명, 가장 최신)
 - `tests/TESTING_GUIDE.md` (585줄)
 - `docs/testing-guide.md` (475줄, 구식 파일명 나열)
 
 처리:
+
 - `tests/README.md`를 canonical source로 지정
 - `docs/testing-guide.md`는 삭제하고, `docs/` 안의 다른 문서에서 이 파일을 링크하는 곳을 `tests/README.md`로 갱신
 - `tests/TESTING_GUIDE.md`는 `tests/README.md`와 겹치는 내용은 제거하고 보완 정보만 남기거나 통합 후 삭제 (실제 내용 비교 후 작업 시 결정)

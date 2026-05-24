@@ -245,14 +245,14 @@ outputs = inputs@{ flake-parts, import-tree, ... }:
 
 ## 7. 위험과 완화
 
-| 위험 | 완화 |
-|---|---|
-| `mksystem.nix`의 `machineConfig` 경로 변경으로 빌드 깨짐 | 커밋 4에서 `machines/darwin/common.nix` 경로 수정과 함께 처리, `nix flake check`로 즉시 검증 |
-| `import-tree` 외부 입력 의존 | 떠오르는 표준이지만 새 의존성. 만약 비용이 더 크다고 판단되면 커밋 6은 롤백 가능 (앞 커밋들과 독립) |
-| `useGlobalPkgs` 변경 영향 | 이미 적용 상태(`lib/mksystem.nix:90`). 변경 없음 |
-| `myHome.packages.*.enable` 네이밍 충돌 | `myHome` 네임스페이스 사용으로 home-manager upstream 옵션과 충돌 회피 |
-| `make switch` 회귀로 머신 상태 오염 | PR 머지 직전 `--dry-run` 빌드 → 실제 `make switch` 순으로 자기 머신에서 검증 |
-| Cache config drift | `lib/cache-config.nix`가 SSOT임을 README와 주석에 명시. 자동화는 후속 작업 |
+| 위험                                                     | 완화                                                                                                |
+| -------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `mksystem.nix`의 `machineConfig` 경로 변경으로 빌드 깨짐 | 커밋 4에서 `machines/darwin/common.nix` 경로 수정과 함께 처리, `nix flake check`로 즉시 검증        |
+| `import-tree` 외부 입력 의존                             | 떠오르는 표준이지만 새 의존성. 만약 비용이 더 크다고 판단되면 커밋 6은 롤백 가능 (앞 커밋들과 독립) |
+| `useGlobalPkgs` 변경 영향                                | 이미 적용 상태(`lib/mksystem.nix:90`). 변경 없음                                                    |
+| `myHome.packages.*.enable` 네이밍 충돌                   | `myHome` 네임스페이스 사용으로 home-manager upstream 옵션과 충돌 회피                               |
+| `make switch` 회귀로 머신 상태 오염                      | PR 머지 직전 `--dry-run` 빌드 → 실제 `make switch` 순으로 자기 머신에서 검증                        |
+| Cache config drift                                       | `lib/cache-config.nix`가 SSOT임을 README와 주석에 명시. 자동화는 후속 작업                          |
 
 ## 8. 검증 체크리스트
 

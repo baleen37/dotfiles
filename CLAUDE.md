@@ -207,6 +207,7 @@ pre-commit run --all-files  # Run all pre-commit hooks
 ### Determinate Nix Integration
 
 This system uses Determinate Nix installer on macOS:
+
 - `nix.enable = false` in darwin.nix (required for compatibility)
 - Cache settings managed via `determinate-nix.customSettings`
 - All Nix configuration is in `/etc/nix/nix.custom.conf`

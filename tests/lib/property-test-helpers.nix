@@ -131,7 +131,7 @@ rec {
   generateUserConfig = username: {
     name = "Test User ${username}";
     email = generateEmail username;
-    username = username;
+    inherit username;
     homeDirectory = "${testConfig.homeDirPrefix}/${username}";
   };
 
@@ -406,7 +406,7 @@ rec {
           name = "user-consistency-${username}";
           value = {
             name = "user-consistency-${username}";
-            result = forAll userConfigConsistencyProperty (i: username) "user-config-consistency-${username}";
+            result = forAll userConfigConsistencyProperty (_i: username) "user-config-consistency-${username}";
           };
         }) usernames
       );
@@ -416,7 +416,7 @@ rec {
           name = "home-dir-structure-${username}";
           value = {
             name = "home-dir-structure-${username}";
-            result = forAll homeDirStructureProperty (i: username) "home-dir-structure-${username}";
+            result = forAll homeDirStructureProperty (_i: username) "home-dir-structure-${username}";
           };
         }) usernames
       );

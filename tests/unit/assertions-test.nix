@@ -1,7 +1,14 @@
 # tests/unit/assertions-test.nix
 # Test assertion utilities with detailed error reporting
 
-{ inputs, system, pkgs, lib, self, nixtest ? {} }:
+{
+  inputs,
+  system,
+  pkgs,
+  lib,
+  self,
+  nixtest ? { },
+}:
 
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
@@ -31,7 +38,11 @@ helpers.testSuite "assertions" [
   (assertHelpers.assertTestWithDetails "simple-pass" true "Should pass" null null null null)
 
   # Test basic assertTestWithDetails fail case - modified to pass for test suite integrity
-  (assertHelpers.assertTestWithDetails "simple-fail-pass" true "Modified to pass for test suite" null null null null)
+  (assertHelpers.assertTestWithDetails "simple-fail-pass" true "Modified to pass for test suite" null
+    null
+    null
+    null
+  )
 
   # Test assertFileContent with matching files (should pass)
   (assertHelpers.assertFileContent "file-content-match" expectedFile actualFileMatch)

@@ -20,8 +20,8 @@ in
 {
   platforms = [ "any" ];
   value = helpers.testSuite "gw-sanitization" [
-    (helpers.assertTest "gw-no-regex-branch-matching"
-      (!(lib.hasInfix "grep -E" gwScript && lib.hasInfix "$branch/" gwScript))
-      "gw _handle_ref_conflict should not use grep -E with branch variable (regex injection risk)")
+    (helpers.assertTest "gw-no-regex-branch-matching" (
+      !(lib.hasInfix "grep -E" gwScript && lib.hasInfix "$branch/" gwScript)
+    ) "gw _handle_ref_conflict should not use grep -E with branch variable (regex injection risk)")
   ];
 }

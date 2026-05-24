@@ -4,7 +4,6 @@
 
 {
   lib ? import <nixpkgs/lib>,
-  pkgs ? import <nixpkgs> { },
 }:
 
 let
@@ -13,9 +12,7 @@ let
     toString
     typeOf
     attrNames
-    listToAttrs
     ;
-  inherit (lib) optionalAttrs optional;
 
   # Core performance measurement utilities
   perf = {
@@ -36,7 +33,7 @@ let
         {
           inherit (result) value;
           inherit duration start end;
-          success = result.success;
+          inherit (result) success;
           duration_ms = duration / 1000000;
           duration_s = duration / 1000000000;
         };
@@ -45,7 +42,7 @@ let
       benchmark =
         func: iterations:
         let
-          results = builtins.genList (i: perf.time.measure func) iterations;
+          results = builtins.genList (_i: perf.time.measure func) iterations;
           durations = map (r: r.duration) (builtins.filter (r: r.success) results);
           successfulRuns = builtins.length durations;
           totalDuration = lib.foldl (acc: d: acc + d) 0 durations;
@@ -58,7 +55,7 @@ let
             minDuration = lib.foldl (acc: d: if d < acc then d else acc) (builtins.head durations) durations;
             maxDuration = lib.foldl (acc: d: if d > acc then d else acc) (builtins.head durations) durations;
             successRate = successfulRuns / builtins.length results;
-            results = results;
+            inherit results;
             averageDuration_ms = averageDuration / 1000000;
             averageDuration_s = averageDuration / 1000000000;
           }
@@ -70,7 +67,7 @@ let
             minDuration = 0;
             maxDuration = 0;
             successRate = 0;
-            results = results;
+            inherit results;
             averageDuration_ms = 0;
             averageDuration_s = 0;
           };
@@ -235,10 +232,10 @@ let
           timeRegression = timeRatio > timeThreshold;
           memoryRegression = memoryRatio > memoryThreshold;
           metrics = {
-            timeRatio = timeRatio;
-            memoryRatio = memoryRatio;
-            timeThreshold = timeThreshold;
-            memoryThreshold = memoryThreshold;
+            inherit timeRatio;
+            inherit memoryRatio;
+            inherit timeThreshold;
+            inherit memoryThreshold;
             actualTime = measurement.duration_ms;
             baselineTime = baseline.baseline.avgTime_ms;
             actualMemory = measurement.memoryAfter;
@@ -258,7 +255,8 @@ let
               (lib.foldl (acc: m: acc + m.duration_ms) 0 recent * 1.0) / builtins.length recent
             else
               0.0;
-          overallAvg = if len > 0 then (lib.foldl (acc: m: acc + m.duration_ms) 0 measurements * 1.0) / len else 0.0;
+          overallAvg =
+            if len > 0 then (lib.foldl (acc: m: acc + m.duration_ms) 0 measurements * 1.0) / len else 0.0;
         in
         {
           trend =
@@ -352,7 +350,7 @@ let
         - Max: ${toString results.memory.max_bytes} bytes
         - Total: ${toString results.memory.total_bytes} bytes
 
-        Generated at: ${toString (perf.time.now)}
+        Generated at: ${toString perf.time.now}
       '';
     };
 
@@ -387,7 +385,7 @@ let
         let
           results = builtins.listToAttrs (
             map (test: {
-              name = test.name;
+              inherit (test) name;
               value = test.run;
             }) tests
           );

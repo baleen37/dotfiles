@@ -66,7 +66,7 @@ rec {
   #   assertAttrExists "has-home" hmConfig "home" "home attribute should exist"
   assertAttrExists =
     name: obj: attrName: message:
-    assertCondition name (builtins.hasAttr attrName obj) (message);
+    assertCondition name (builtins.hasAttr attrName obj) message;
 
   # 속성 경로 존재 검증
   #
@@ -84,17 +84,30 @@ rec {
     name: obj: attrPath: message:
     let
       pathParts = builtins.filter builtins.isString (builtins.split "\\." attrPath);
-      hasPath = builtins.foldl' (
-        acc: part:
-        if !acc.exists then
-          acc
-        else if builtins.hasAttr part acc.obj then
-          { exists = true; obj = acc.obj.${part}; }
-        else
-          { exists = false; obj = {}; }
-      ) { exists = true; inherit obj; } pathParts;
+      hasPath =
+        builtins.foldl'
+          (
+            acc: part:
+            if !acc.exists then
+              acc
+            else if builtins.hasAttr part acc.obj then
+              {
+                exists = true;
+                obj = acc.obj.${part};
+              }
+            else
+              {
+                exists = false;
+                obj = { };
+              }
+          )
+          {
+            exists = true;
+            inherit obj;
+          }
+          pathParts;
     in
-    assertCondition name (hasPath.exists) (message);
+    assertCondition name hasPath.exists message;
 
   # 다중 속성 존재 검증
   #
@@ -202,7 +215,7 @@ rec {
   #   assertListNotEmpty "has-packages" config.packages
   assertListNotEmpty =
     name: list: message:
-    assertCondition name (builtins.length list > 0) (message);
+    assertCondition name (builtins.length list > 0) message;
 
   # 리스트 길이 검증
   #
@@ -243,7 +256,7 @@ rec {
   #   assertStringContains "has-email" userInfo.email "@"
   assertStringContains =
     name: str: substring: message:
-    assertCondition name (lib.hasInfix substring str) (message);
+    assertCondition name (lib.hasInfix substring str) message;
 
   # 문자열 접두사 검증
   #
@@ -257,7 +270,7 @@ rec {
   #   assertStringStartsWith "home-dir-darwin" homeDir "/Users/"
   assertStringStartsWith =
     name: str: prefix: message:
-    assertCondition name (lib.hasPrefix prefix str) (message);
+    assertCondition name (lib.hasPrefix prefix str) message;
 
   # 문자열 접미사 검증
   #
@@ -271,7 +284,7 @@ rec {
   #   assertStringEndsWith "config-file" file ".nix"
   assertStringEndsWith =
     name: str: suffix: message:
-    assertCondition name (lib.hasSuffix suffix str) (message);
+    assertCondition name (lib.hasSuffix suffix str) message;
 
   # 문자열 정규식 매칭 검증
   #
@@ -285,7 +298,7 @@ rec {
   #   assertStringMatches "email-format" email "^[^@]+@[^@]+\\.[^@]+$"
   assertStringMatches =
     name: str: pattern: message:
-    assertCondition name (builtins.match pattern str != null) (message);
+    assertCondition name (builtins.match pattern str != null) message;
 
   # ===== 타입 관련 assertions =====
 
@@ -322,7 +335,7 @@ rec {
   #   assertNotNull "username-not-null" userInfo.userName
   assertNotNull =
     name: value: message:
-    assertCondition name (value != null) (message);
+    assertCondition name (value != null) message;
 
   # ===== 값 범위 assertions =====
 
@@ -339,7 +352,7 @@ rec {
   #   assertInRange "port-number" port 1024 65535
   assertInRange =
     name: value: min: max: message:
-    assertCondition name (value >= min && value <= max) (message);
+    assertCondition name (value >= min && value <= max) message;
 
   # 양수 검증
   #
@@ -352,7 +365,7 @@ rec {
   #   assertPositive "package-count" packagesCount
   assertPositive =
     name: value: message:
-    assertCondition name (value > 0) (message);
+    assertCondition name (value > 0) message;
 
   # 음수가 아닌 값 검증
   #
@@ -365,7 +378,7 @@ rec {
   #   assertNonNegative "file-size" fileSize
   assertNonNegative =
     name: value: message:
-    assertCondition name (value >= 0) (message);
+    assertCondition name (value >= 0) message;
 
   # ===== 설정 완전성 assertions =====
 
@@ -441,7 +454,7 @@ rec {
     let
       allTrue = builtins.all (c: c) conditions;
     in
-    assertCondition name allTrue (message);
+    assertCondition name allTrue message;
 
   # OR 조건 검증
   #
@@ -463,7 +476,7 @@ rec {
     let
       anyTrue = builtins.any (c: c) conditions;
     in
-    assertCondition name anyTrue (message);
+    assertCondition name anyTrue message;
 
   # ===== 특수 목적 assertions =====
 

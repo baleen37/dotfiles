@@ -34,7 +34,7 @@ let
         '';
 
     suite =
-      name: tests:
+      name: _tests:
       pkgs.runCommand "test-suite-${name}" { } ''
         echo "Running test suite: ${name}"
         echo "✅ Test suite ${name}: All tests passed"
@@ -80,10 +80,21 @@ let
 
   # Import sub-files, passing shared dependencies
   propertyHelpers = import ./test-helpers-property.nix {
-    inherit pkgs lib assertTest testSuite;
+    inherit
+      pkgs
+      lib
+      assertTest
+      testSuite
+      ;
   };
   advancedHelpers = import ./test-helpers-advanced.nix {
-    inherit pkgs lib assertTest testSuite mkTest;
+    inherit
+      pkgs
+      lib
+      assertTest
+      testSuite
+      mkTest
+      ;
   };
 
 in
@@ -133,7 +144,7 @@ rec {
     additionalConfig:
     {
       home = {
-        username = testConfig.username;
+        inherit (testConfig) username;
         homeDirectory = getTestUserHome;
       }
       // (additionalConfig.home or { });

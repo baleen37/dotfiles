@@ -7,7 +7,12 @@ repos:
     rev: v0.10.0.1
     hooks:
       - id: shellcheck
-        args: ['--severity=warning', '--shell=bash', '--exclude=SC2155,SC2034,SC1090,SC2120']
+        args:
+          [
+            "--severity=warning",
+            "--shell=bash",
+            "--exclude=SC2155,SC2034,SC1090,SC2120",
+          ]
         exclude: ^users/shared/\.config/p10k\.zsh$
 
   # Shell script formatting
@@ -15,7 +20,7 @@ repos:
     rev: v3.12.0-2
     hooks:
       - id: shfmt
-        args: ['-i', '2', '-ci', '-bn', '-sr']
+        args: ["-i", "2", "-ci", "-bn", "-sr"]
         exclude: ^users/shared/\.config/p10k\.zsh$
 
   # Bash style checker
@@ -23,7 +28,7 @@ repos:
     rev: 2.1.1
     hooks:
       - id: bashate
-        args: ['--ignore=E003,E006']
+        args: ["--ignore=E003,E006"]
         exclude: ^users/shared/\.config/.*\.zsh$
 
   # Fast file checks (pre-commit native)
@@ -49,7 +54,7 @@ repos:
     rev: v1.3.1
     hooks:
       - id: deadnix
-        args: ['--no-lambda-pattern-names']
+        args: ["--no-lambda-pattern-names"]
 
   # Makefile-managed checks (single source of truth)
   - repo: local

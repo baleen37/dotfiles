@@ -5,16 +5,12 @@
 {
   lib ? import <nixpkgs/lib>,
   pkgs ? import <nixpkgs> { },
-  system ? builtins.currentSystem or "x86_64-linux",
-  self ? ./.,
-  inputs ? { },
   ...
-} @ args:
+}:
 
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
   assertions = import ../lib/common-assertions.nix { inherit pkgs lib; };
-  patterns = import ../lib/patterns.nix { inherit pkgs lib; helpers = helpers; };
   gitHelpers = import ../lib/git-test-helpers.nix {
     inherit pkgs lib;
     testHelpers = helpers;
@@ -34,40 +30,8 @@ let
   gitIgnores = gitConfig.programs.git.ignores;
 
   # Expected aliases
-  expectedAliases = {
-    st = "status";
-    co = "checkout";
-    br = "branch";
-    ci = "commit";
-    df = "diff";
-    lg = "log --graph --oneline --decorate --all";
-  };
 
   # Expected gitignore patterns
-  expectedIgnores = [
-    ".local/"
-    "*.swp"
-    "*.swo"
-    "*~"
-    ".vscode/"
-    ".idea/"
-    ".DS_Store"
-    "Thumbs.db"
-    "desktop.ini"
-    ".direnv/"
-    "result"
-    "result-*"
-    "node_modules/"
-    ".env.local"
-    ".env.*.local"
-    ".serena/"
-    "*.tmp"
-    "*.log"
-    ".cache/"
-    "dist/"
-    "build/"
-    "target/"
-  ];
 
 in
 # ===== 모든 테스트를 하나의 testSuite로 통합 =====
@@ -100,7 +64,9 @@ helpers.testSuite "git-configuration-test" [
   (assertions.assertAttrEquals "git-user-email-matches" gitSettings.user "email" userInfo.email null)
 
   # Git aliases 목록이 비어있지 않은지 확인
-  (assertions.assertListNotEmpty "git-aliases-not-empty" (builtins.attrNames (gitSettings.alias or {})) null)
+  (assertions.assertListNotEmpty "git-aliases-not-empty" (builtins.attrNames (
+    gitSettings.alias or { }
+  )) null)
 
   # Git ignores 목록이 비어있지 않은지 확인
   (assertions.assertListNotEmpty "git-ignores-not-empty" gitIgnores null)
@@ -127,7 +93,10 @@ helpers.testSuite "git-configuration-test" [
   (assertions.assertAttrEquals "git-alias-br" gitSettings.alias "br" "branch" null)
   (assertions.assertAttrEquals "git-alias-ci" gitSettings.alias "ci" "commit" null)
   (assertions.assertAttrEquals "git-alias-df" gitSettings.alias "df" "diff" null)
-  (assertions.assertAttrEquals "git-alias-lg" gitSettings.alias "lg" "log --graph --oneline --decorate --all" null)
+  (assertions.assertAttrEquals "git-alias-lg" gitSettings.alias "lg"
+    "log --graph --oneline --decorate --all"
+    null
+  )
 
   # ===== 필수 gitignore 패턴 검증 =====
 
@@ -141,8 +110,15 @@ helpers.testSuite "git-configuration-test" [
   # ===== Git alias 안전성 검증 =====
 
   (gitHelpers.assertGitAliasSafety "git-alias-safety" gitSettings.alias {
-    requiredAliases = [ "st" "ci" ];
-    dangerousPatterns = [ "rm -rf" "sudo " "chmod 777" ];
+    requiredAliases = [
+      "st"
+      "ci"
+    ];
+    dangerousPatterns = [
+      "rm -rf"
+      "sudo "
+      "chmod 777"
+    ];
   })
 
   # ===== Git ignore 패턴 안전성 검증 =====

@@ -12,6 +12,7 @@
 ### 1. Focus Mode 준비
 
 macOS 설정에서 여러 Focus Mode를 생성합니다:
+
 - **Work** - 업무용 Focus Mode
 - **Deep Work** - 깊은 집중용 Focus Mode
 - **Reading** - 독서용 Focus Mode
@@ -43,6 +44,7 @@ FocusTracker:init({
 **목표**: FocusTracker가 올바르게 로드되는지 확인
 
 **절차**:
+
 1. Hammerspoon 콘솔 열기 (`⌘ + ⌥ + 0`)
 2. `hs.reload()` 실행
 3. 콘솔 출력 확인
@@ -51,6 +53,7 @@ FocusTracker:init({
 4. 메뉴바에 "🔵 Ready" 아이콘이 표시되는지 확인
 
 **예상 결과**:
+
 - 메뉴바에 파란색 원 아이콘 표시
 - 아이콘에 마우스를 올리면 "Focus Tracker: Ready" 툴팁 표시
 
@@ -59,6 +62,7 @@ FocusTracker:init({
 **목표**: Focus Mode 활성화시 카운트다운 시작 확인
 
 **절차**:
+
 1. macOS Control Center 열기
 2. Focus Mode 중 하나 선택 (예: "Work")
 3. 다음 사항들 확인:
@@ -67,6 +71,7 @@ FocusTracker:init({
    - 1초 후 "🔵 0m 1s"로 업데이트됨
 
 **예상 결과**:
+
 - 시작 알림 표시
 - 메뉴바에 실시간 카운트업 표시
 - 초 단위로 정확한 업데이트
@@ -76,6 +81,7 @@ FocusTracker:init({
 **목표**: 메뉴바 표시가 정확하게 업데이트되는지 확인
 
 **절차**:
+
 1. Focus Mode 활성화된 상태에서 30초 이상 대기
 2. 메뉴바 표시 확인:
    - 30초 후: "🔵 0m 30s"
@@ -84,6 +90,7 @@ FocusTracker:init({
    - 2분 후: "🔵 2m 0s"
 
 **예상 결과**:
+
 - 초 단위로 부드러운 업데이트
 - 분/초 형식이 올바르게 표시
 - 아이콘이 일관되게 유지됨
@@ -93,6 +100,7 @@ FocusTracker:init({
 **목표**: 다른 Focus Mode로 전환 시 동작 확인
 
 **절차**:
+
 1. "Work" Focus Mode에서 1분 이상 실행
 2. "Deep Work" Focus Mode로 전환
 3. 확인 사항:
@@ -102,6 +110,7 @@ FocusTracker:init({
    - 카운트업이 계속됨
 
 **예상 결과**:
+
 - 전환 알림 표시
 - 시간 리셋되지 않고 계속 추적
 
@@ -110,6 +119,7 @@ FocusTracker:init({
 **목표**: Focus Mode 비활성화시 종료 알림 확인
 
 **절차**:
+
 1. Focus Mode를 2분 이상 실행
 2. Control Center에서 Focus Mode 끄기
 3. 확인 사항:
@@ -118,6 +128,7 @@ FocusTracker:init({
    - 정확한 시간이 표시됨
 
 **예상 결과**:
+
 - 정확한 집중 시간 알림
 - 메뉴바 초기 상태 복귀
 
@@ -126,6 +137,7 @@ FocusTracker:init({
 **목표**: 여러 Focus Mode를 순차적으로 사용할 때의 동작 확인
 
 **절차**:
+
 1. "Work" Focus Mode: 1분 실행
 2. "Reading" Focus Mode로 전환: 1분 실행
 3. "Meeting" Focus Mode로 전환: 30초 실행
@@ -136,6 +148,7 @@ FocusTracker:init({
    - 종료 시 마지막 Focus Mode의 총 시간 표시
 
 **예상 결과**:
+
 - 각 Focus Mode 독립 추적
 - 올바른 전환 동작
 
@@ -144,6 +157,7 @@ FocusTracker:init({
 **목표**: Pomodoro.spoon과 충돌 없이 동시 실행 확인
 
 **절차**:
+
 1. Hyper+P로 Pomodoro 세션 시작
 2. 1분 후 Focus Mode 활성화
 3. 확인 사항:
@@ -152,6 +166,7 @@ FocusTracker:init({
    - 알림이 서로 겹치지 않음
 
 **예상 결과**:
+
 - 두 Spoon 독립적으로 동작
 - 리소스 충돌 없음
 

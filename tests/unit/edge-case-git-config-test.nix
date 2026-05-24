@@ -93,8 +93,7 @@ let
         && builtins.stringLength alias <= 50
         && builtins.match "^[a-zA-Z0-9._-]+$" alias != null;
       commandValid =
-        builtins.stringLength command > 0
-        && builtins.stringLength command <= constants.gitMaxCommandLength;
+        builtins.stringLength command > 0 && builtins.stringLength command <= constants.gitMaxCommandLength;
     in
     aliasValid && commandValid;
 
@@ -149,7 +148,7 @@ let
     in
     lib.listToAttrs (
       map (a: {
-        name = a.name;
+        inherit (a) name;
         value = a.cmd;
       }) allAliases
     );
@@ -314,8 +313,7 @@ let
     name: email:
     let
       nameValid =
-        builtins.stringLength name > 0
-        && builtins.stringLength name <= constants.gitMaxNameLength;
+        builtins.stringLength name > 0 && builtins.stringLength name <= constants.gitMaxNameLength;
       emailValid =
         builtins.match ".*@.*\\..*" email != null
         && builtins.stringLength email >= constants.minEmailLength
@@ -564,7 +562,7 @@ let
     # Git alias edge cases
     git-alias-edge-cases = testHelpers.runTestList "git-alias-edge-cases" (
       map (testCase: {
-        name = testCase.name;
+        inherit (testCase) name;
         expected = testCase.shouldWork;
         actual = validateGitAlias testCase.alias testCase.command;
       }) testAliasEdgeCases
@@ -573,7 +571,7 @@ let
     # Git ignore pattern edge cases
     git-ignore-edge-cases = testHelpers.runTestList "git-ignore-edge-cases" (
       map (testCase: {
-        name = testCase.name;
+        inherit (testCase) name;
         expected = testCase.shouldWork;
         actual = validateGitIgnorePattern testCase.pattern;
       }) testGitIgnoreEdgeCases
@@ -582,7 +580,7 @@ let
     # User identity edge cases
     user-identity-edge-cases = testHelpers.runTestList "user-identity-edge-cases" (
       map (testCase: {
-        name = testCase.name;
+        inherit (testCase) name;
         expected = testCase.shouldWork;
         actual = validateUserIdentity testCase.userName testCase.email;
       }) testUserIdentityEdgeCases
@@ -600,7 +598,7 @@ let
     # Git configuration size limits
     git-config-size-limits = testHelpers.runTestList "git-config-size-limits" (
       map (testCase: {
-        name = testCase.name;
+        inherit (testCase) name;
         expected = testCase.shouldWork;
         actual = validateGitConfigSize testCase.config;
       }) testGitConfigSizeLimits
@@ -609,7 +607,7 @@ let
     # Integration edge cases
     integration-edge-cases = testHelpers.runTestList "integration-edge-cases" (
       map (testCase: {
-        name = testCase.name;
+        inherit (testCase) name;
         expected = testCase.shouldWork;
         actual = validateIntegrationConfig testCase.config;
       }) testIntegrationEdgeCases
@@ -618,7 +616,7 @@ let
     # Error recovery edge cases
     error-recovery-edge-cases = testHelpers.runTestList "error-recovery-edge-cases" (
       map (testCase: {
-        name = testCase.name;
+        inherit (testCase) name;
         expected = testCase.shouldRecover;
         actual = testErrorRecovery testCase.scenario;
       }) testErrorRecoveryEdgeCases

@@ -4,10 +4,6 @@
 {
   lib ? import <nixpkgs/lib>,
   pkgs ? import <nixpkgs> { },
-  system ? builtins.currentSystem or "x86_64-linux",
-  self ? ./.,
-  inputs ? { },
-  nixtest ? { },
   ...
 }:
 
@@ -42,7 +38,10 @@ let
   spoonsDirUsable = isDirUsable spoonsDirResult;
 
   # Required top-level files and directories
-  requiredItems = [ "init.lua" "Spoons" ];
+  requiredItems = [
+    "init.lua"
+    "Spoons"
+  ];
   hasRequiredItems = lib.all (item: builtins.hasAttr item hammerspoonDirContents) requiredItems;
 
   # Expected Spoons validation
@@ -72,7 +71,7 @@ let
 
 in
 {
-  platforms = ["darwin"];
+  platforms = [ "darwin" ];
   value = helpers.testSuite "hammerspoon" [
     # ========================================================================
     # Section 1: Directory and File Existence Tests (7 tests)
@@ -80,60 +79,68 @@ in
 
     # Directory usability tests
     (helpers.assertTest "hammerspoon-dir-usable" hammerspoonDirUsable
-      "Hammerspoon directory should be readable and usable")
+      "Hammerspoon directory should be readable and usable"
+    )
 
     # Configuration file content tests
-    (helpers.assertTest "init-lua-usable" initLuaUsable
-      "init.lua should be readable and have content")
+    (helpers.assertTest "init-lua-usable" initLuaUsable "init.lua should be readable and have content")
 
     # Spoons directory test
     (helpers.assertTest "spoons-dir-usable" spoonsDirUsable
-      "Spoons directory should be readable and usable")
+      "Spoons directory should be readable and usable"
+    )
 
     # Structure validation tests
     (helpers.assertTest "required-items-exist" hasRequiredItems
-      "All required items should exist (init.lua, Spoons)")
+      "All required items should exist (init.lua, Spoons)"
+    )
 
     (helpers.assertTest "expected-spoons-exist" hasExpectedSpoons
-      "All expected Spoons should exist (Hyper, HyperModal, Pomodoro)")
+      "All expected Spoons should exist (Hyper, HyperModal, Pomodoro)"
+    )
 
     (helpers.assertTest "directory-structure" structureValid
-      "Directory structure should be correct and all components usable")
+      "Directory structure should be correct and all components usable"
+    )
 
     # ========================================================================
     # Section 2: init.lua Content Validation (10 tests)
     # ========================================================================
 
     # Spoon loading tests
-    (helpers.assertTest "init-loads-hyper"
-      (lib.hasInfix "hs.loadSpoon('Hyper')" initLuaContent)
-      "init.lua should load Hyper Spoon")
+    (helpers.assertTest "init-loads-hyper" (lib.hasInfix "hs.loadSpoon('Hyper')" initLuaContent)
+      "init.lua should load Hyper Spoon"
+    )
 
     (helpers.assertTest "init-loads-hypermodal"
       (lib.hasInfix "hs.loadSpoon('HyperModal')" initLuaContent)
-      "init.lua should load HyperModal Spoon")
+      "init.lua should load HyperModal Spoon"
+    )
 
-    (helpers.assertTest "init-loads-pomodoro"
-      (lib.hasInfix "hs.loadSpoon('Pomodoro')" initLuaContent)
-      "init.lua should load Pomodoro Spoon")
+    (helpers.assertTest "init-loads-pomodoro" (lib.hasInfix "hs.loadSpoon('Pomodoro')" initLuaContent)
+      "init.lua should load Pomodoro Spoon"
+    )
 
     # Hyper key binding tests
-    (helpers.assertTest "init-hyper-hotkeys"
-      (lib.hasInfix "Hyper:bindHotKeys" initLuaContent)
-      "init.lua should bind Hyper hotkeys")
+    (helpers.assertTest "init-hyper-hotkeys" (lib.hasInfix "Hyper:bindHotKeys" initLuaContent)
+      "init.lua should bind Hyper hotkeys"
+    )
 
     (helpers.assertTest "init-hyper-modal-binding"
       (lib.hasInfix "Hyper:bind({}, 'm', function()" initLuaContent)
-      "init.lua should bind HyperModal toggle")
+      "init.lua should bind HyperModal toggle"
+    )
 
     (helpers.assertTest "init-pomodoro-binding"
       (lib.hasInfix "Hyper:bind({}, 'p', function()" initLuaContent)
-      "init.lua should bind Pomodoro toggle")
+      "init.lua should bind Pomodoro toggle"
+    )
 
     # Local config support test
     (helpers.assertTest "init-local-config-support"
       (lib.hasInfix "require('localConfig')" initLuaContent)
-      "init.lua should support local config override")
+      "init.lua should support local config override"
+    )
 
     # ========================================================================
     # Section 3: Spoon Metadata Validation (4 tests)
@@ -142,19 +149,20 @@ in
     # Pomodoro Spoon tests
     (helpers.assertTest "pomodoro-spoon-metadata"
       (lib.hasInfix "obj.name = \"Pomodoro\"" pomodoroInitContent)
-      "Pomodoro Spoon should define name metadata")
+      "Pomodoro Spoon should define name metadata"
+    )
 
-    (helpers.assertTest "pomodoro-spoon-structure"
-      (lib.hasInfix "return obj" pomodoroInitContent)
-      "Pomodoro Spoon should return obj")
+    (helpers.assertTest "pomodoro-spoon-structure" (lib.hasInfix "return obj" pomodoroInitContent)
+      "Pomodoro Spoon should return obj"
+    )
 
     # Hyper Spoon tests
-    (helpers.assertTest "hyper-spoon-metadata"
-      (lib.hasInfix "m.name = \"Hyper\"" hyperInitContent)
-      "Hyper Spoon should define name metadata")
+    (helpers.assertTest "hyper-spoon-metadata" (lib.hasInfix "m.name = \"Hyper\"" hyperInitContent)
+      "Hyper Spoon should define name metadata"
+    )
 
-    (helpers.assertTest "hyper-spoon-structure"
-      (lib.hasInfix "return m" hyperInitContent)
-      "Hyper Spoon should return m")
+    (helpers.assertTest "hyper-spoon-structure" (lib.hasInfix "return m" hyperInitContent)
+      "Hyper Spoon should return m"
+    )
   ];
 }

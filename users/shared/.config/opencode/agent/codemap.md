@@ -9,6 +9,7 @@ The `src/agents/` directory defines and configures the multi-agent orchestration
 ### Core Architecture
 
 **Agent Definition Interface**
+
 ```typescript
 interface AgentDefinition {
   name: string;
@@ -18,6 +19,7 @@ interface AgentDefinition {
 ```
 
 All agents follow a consistent factory pattern:
+
 - `createXAgent(model, customPrompt?, customAppendPrompt?)` → `AgentDefinition`
 - Custom prompts can fully replace or append to default prompts
 - Temperature varies by agent role (0.1-0.7) to balance precision vs creativity
@@ -25,9 +27,11 @@ All agents follow a consistent factory pattern:
 ### Agent Classification
 
 **Primary Agent**
+
 - **Orchestrator**: Central coordinator that delegates tasks to specialists
 
 **Subagents** (5 specialized agents)
+
 1. **Explorer** - Codebase navigation and search (temperature: 0.1)
 2. **Librarian** - Documentation and library research (temperature: 0.1)
 3. **Oracle** - Strategic technical advisor (temperature: 0.1)
@@ -37,29 +41,32 @@ All agents follow a consistent factory pattern:
 ### Configuration System
 
 **Override Application**
+
 - Model and temperature can be overridden per agent via user config
 - Fallback mechanism: Fixer inherits Librarian's model if not configured
 - Default models defined in `../config/DEFAULT_MODELS`
 
 **Permission System**
+
 - All agents get `question: 'allow'` by default
 - Skill permissions applied via `getSkillPermissionsForAgent()`
 - Nested permission structure: `{ question, skill: { ... } }`
 
 **Custom Prompts**
+
 - Loaded via `loadAgentPrompt(name)` from config
 - Supports full replacement or append mode
 - Applied after default prompt construction
 
 ### Agent Specialization Matrix
 
-| Agent | Primary Focus | Tools | Constraints | Temperature |
-|-------|--------------|-------|-------------|-------------|
-| Explorer | Codebase search | grep, glob, ast_grep_search | Read-only, parallel | 0.1 |
-| Librarian | External docs | context7, grep_app, websearch | Evidence-based | 0.1 |
-| Oracle | Architecture | Analysis tools | Read-only, advisory | 0.1 |
-| Designer | UI/UX | Tailwind, CSS | Visual excellence | 0.7 |
-| Fixer | Implementation | Edit/write tools | No research/delegation | 0.2 |
+| Agent     | Primary Focus   | Tools                         | Constraints            | Temperature |
+| --------- | --------------- | ----------------------------- | ---------------------- | ----------- |
+| Explorer  | Codebase search | grep, glob, ast_grep_search   | Read-only, parallel    | 0.1         |
+| Librarian | External docs   | context7, grep_app, websearch | Evidence-based         | 0.1         |
+| Oracle    | Architecture    | Analysis tools                | Read-only, advisory    | 0.1         |
+| Designer  | UI/UX           | Tailwind, CSS                 | Visual excellence      | 0.7         |
+| Fixer     | Implementation  | Edit/write tools              | No research/delegation | 0.2         |
 
 ## Flow
 
@@ -142,6 +149,7 @@ Verify (lsp_diagnostics, tests)
 ### Agent Interaction Patterns
 
 **Research → Implementation Chain**
+
 ```
 Orchestrator
     ↓ delegates to
@@ -151,6 +159,7 @@ Fixer (implement changes)
 ```
 
 **Advisory Pattern**
+
 ```
 Orchestrator
     ↓ delegates to
@@ -160,6 +169,7 @@ Orchestrator (implements or delegates to Fixer)
 ```
 
 **Design Pattern**
+
 ```
 Orchestrator
     ↓ delegates to
@@ -172,26 +182,31 @@ Designer (UI/UX implementation)
 ### Dependencies
 
 **External Dependencies**
+
 - `@opencode-ai/sdk` - Core agent configuration types (`AgentConfig`)
 - `@modelcontextprotocol/sdk` - MCP protocol (via config)
 
 **Internal Dependencies**
+
 - `../config` - Agent overrides, default models, MCP lists, custom prompts
 - `../cli/skills` - Skill permission system (`getSkillPermissionsForAgent`)
 
 ### Consumers
 
 **Direct Consumers**
+
 - `src/index.ts` - Main plugin entry point exports `getAgentConfigs()`
 - `src/cli/index.ts` - CLI entry point uses agent configurations
 
 **Indirect Consumers**
+
 - OpenCode SDK - Consumes agent configurations via `getAgentConfigs()`
 - MCP servers - Agents configured with specific MCP tool lists
 
 ### Configuration Integration
 
 **Agent Override Config**
+
 ```typescript
 interface AgentOverrideConfig {
   model?: string;
@@ -201,6 +216,7 @@ interface AgentOverrideConfig {
 ```
 
 **Plugin Config**
+
 ```typescript
 interface PluginConfig {
   agents?: {
@@ -213,6 +229,7 @@ interface PluginConfig {
 ### Skill System Integration
 
 Each agent gets skill-specific permissions:
+
 - Permissions loaded from `../cli/skills`
 - Applied via nested `skill` key in permissions object
 - Respects user-configured skill lists if provided
@@ -220,6 +237,7 @@ Each agent gets skill-specific permissions:
 ### MCP Integration
 
 Agents are configured with specific MCP tool lists:
+
 - `getAgentMcpList(agentName, config)` returns tool list
 - MCP tools enable agent capabilities (e.g., grep_app for Librarian)
 - Configured per agent based on role and needs
@@ -253,6 +271,7 @@ src/agents/
 ## Extension Points
 
 **Adding New Agents**
+
 1. Create `src/agents/newagent.ts` with `createNewAgent()` factory
 2. Add to `SUBAGENT_FACTORIES` in `index.ts`
 3. Add to `SUBAGENT_NAMES` in `../config`
@@ -261,6 +280,7 @@ src/agents/
 6. Add skill permissions in `../cli/skills`
 
 **Customizing Existing Agents**
+
 - Override model/temperature via plugin config
 - Replace or append to prompts via `loadAgentPrompt()`
 - Configure MCP tools via agent-mcps config

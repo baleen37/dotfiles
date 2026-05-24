@@ -18,7 +18,8 @@ let
   claudeDir = ../../users/shared/.config/claude;
 
   # Helper to safely read and parse JSON
-  readJson = path:
+  readJson =
+    path:
     let
       contentResult = builtins.tryEval (builtins.readFile path);
     in
@@ -51,14 +52,14 @@ let
     ) "CLAUDE.md is missing, too short, or lacks markdown structure";
 
     # Test 3: Configuration directory exists
-    config-dir-exists = helpers.assertTest "config-dir-exists" (
-      builtins.pathExists claudeDir
-    ) "Claude configuration directory does not exist";
+    config-dir-exists =
+      helpers.assertTest "config-dir-exists" (builtins.pathExists claudeDir)
+        "Claude configuration directory does not exist";
   };
 
 in
 # Aggregate all tests into a test suite
 {
-  platforms = ["any"];
+  platforms = [ "any" ];
   value = helpers.testSuite "claude-configuration-tests" (builtins.attrValues tests);
 }

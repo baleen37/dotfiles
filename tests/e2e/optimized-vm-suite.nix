@@ -21,12 +21,10 @@
   pkgs ? import inputs.nixpkgs { inherit system; },
   lib ? pkgs.lib,
   system ? builtins.currentSystem,
-  self,
 }:
 
 let
   # Import test framework and helpers
-  testHelpers = import ../lib/test-helpers.nix { inherit lib pkgs; };
 
   # Use nixosTest from pkgs (works in flake context)
   nixosTest =
@@ -36,13 +34,11 @@ let
     });
 
   # Platform detection for conditional testing
-  isLinux = lib.strings.hasSuffix "linux" system;
-  isDarwin = lib.strings.hasSuffix "darwin" system;
 
   # Optimized VM configuration - minimal but functional
   # Reduced from 4 cores/8GB RAM to 2 cores/2GB RAM for efficiency
   optimizedVmConfig =
-    { config, pkgs, ... }:
+    { pkgs, ... }:
     {
       # Minimal boot configuration for faster startup
       boot.loader.systemd-boot.enable = true;

@@ -6,21 +6,21 @@
 # These helpers eliminate repetitive assertNSGlobalDef calls and
 # provide semantic grouping of macOS optimization levels.
 {
-  pkgs,
-  lib,
   helpers,
   constants ? null,
 }:
 
 let
   # Import base helpers for assertTest
-  inherit (helpers) assertTest testSuite;
+  inherit (helpers) assertTest;
 
   # Use constants if provided, otherwise use hardcoded defaults
   darwinWindowResizeTime = if constants != null then constants.darwinWindowResizeTime else 0.1;
   darwinDockAutohideDelay = if constants != null then constants.darwinDockAutohideDelay else 0.0;
-  darwinDockAutohideTimeModifier = if constants != null then constants.darwinDockAutohideTimeModifier else 0.15;
-  darwinExposeAnimationDuration = if constants != null then constants.darwinExposeAnimationDuration else 0.2;
+  darwinDockAutohideTimeModifier =
+    if constants != null then constants.darwinDockAutohideTimeModifier else 0.15;
+  darwinExposeAnimationDuration =
+    if constants != null then constants.darwinExposeAnimationDuration else 0.2;
   darwinDockTileSize = if constants != null then constants.darwinDockTileSize else 48;
   darwinFontSmoothing = if constants != null then constants.darwinFontSmoothing else 1;
 in
@@ -41,7 +41,10 @@ rec {
   assertNSGlobalDefs =
     settings: darwinConfig:
     builtins.map (
-      setting: assertNSGlobalDef (builtins.elemAt setting 0) (builtins.elemAt setting 0) (builtins.elemAt setting 1) darwinConfig
+      setting:
+      assertNSGlobalDef (builtins.elemAt setting 0) (builtins.elemAt setting 0)
+        (builtins.elemAt setting 1)
+        darwinConfig
     ) settings;
 
   # ===== Login Window Settings =====
@@ -69,7 +72,10 @@ rec {
   assertDockSettings =
     settings: darwinConfig:
     builtins.map (
-      setting: assertDockSetting (builtins.elemAt setting 0) (builtins.elemAt setting 1) (builtins.elemAt setting 2) darwinConfig
+      setting:
+      assertDockSetting (builtins.elemAt setting 0) (builtins.elemAt setting 1)
+        (builtins.elemAt setting 2)
+        darwinConfig
     ) settings;
 
   # ===== Finder Settings =====
@@ -87,7 +93,10 @@ rec {
   assertFinderSettings =
     settings: darwinConfig:
     builtins.map (
-      setting: assertFinderSetting (builtins.elemAt setting 0) (builtins.elemAt setting 1) (builtins.elemAt setting 2) darwinConfig
+      setting:
+      assertFinderSetting (builtins.elemAt setting 0) (builtins.elemAt setting 1)
+        (builtins.elemAt setting 2)
+        darwinConfig
     ) settings;
 
   # ===== Trackpad Settings =====
@@ -105,7 +114,10 @@ rec {
   assertTrackpadSettings =
     settings: darwinConfig:
     builtins.map (
-      setting: assertTrackpadSetting (builtins.elemAt setting 0) (builtins.elemAt setting 1) (builtins.elemAt setting 2) darwinConfig
+      setting:
+      assertTrackpadSetting (builtins.elemAt setting 0) (builtins.elemAt setting 1)
+        (builtins.elemAt setting 2)
+        darwinConfig
     ) settings;
 
   # ===== macOS Optimization Level Helpers =====
@@ -129,53 +141,60 @@ rec {
   # Usage: assertDarwinOptimizationsLevel1 darwinConfig
   assertDarwinOptimizationsLevel1 =
     darwinConfig:
-    builtins.map (setting: assertNSGlobalDef (builtins.elemAt setting 0) (builtins.elemAt setting 1) (builtins.elemAt setting 2) darwinConfig) [
+    builtins.map
+      (
+        setting:
+        assertNSGlobalDef (builtins.elemAt setting 0) (builtins.elemAt setting 1)
+          (builtins.elemAt setting 2)
+          darwinConfig
+      )
       [
-        "window-animations-disabled"
-        "NSAutomaticWindowAnimationsEnabled"
-        false
-      ]
-      [
-        "window-resize-time-optimized"
-        "NSWindowResizeTime"
-        darwinWindowResizeTime
-      ]
-      [
-        "scroll-animation-disabled"
-        "NSScrollAnimationEnabled"
-        false
-      ]
-      [
-        "auto-capitalization-disabled"
-        "NSAutomaticCapitalizationEnabled"
-        false
-      ]
-      [
-        "spell-correction-disabled"
-        "NSAutomaticSpellingCorrectionEnabled"
-        false
-      ]
-      [
-        "smart-quotes-disabled"
-        "NSAutomaticQuoteSubstitutionEnabled"
-        false
-      ]
-      [
-        "smart-dashes-disabled"
-        "NSAutomaticDashSubstitutionEnabled"
-        false
-      ]
-      [
-        "auto-period-disabled"
-        "NSAutomaticPeriodSubstitutionEnabled"
-        false
-      ]
-      [
-        "press-and-hold-disabled"
-        "ApplePressAndHoldEnabled"
-        false
-      ]
-    ];
+        [
+          "window-animations-disabled"
+          "NSAutomaticWindowAnimationsEnabled"
+          false
+        ]
+        [
+          "window-resize-time-optimized"
+          "NSWindowResizeTime"
+          darwinWindowResizeTime
+        ]
+        [
+          "scroll-animation-disabled"
+          "NSScrollAnimationEnabled"
+          false
+        ]
+        [
+          "auto-capitalization-disabled"
+          "NSAutomaticCapitalizationEnabled"
+          false
+        ]
+        [
+          "spell-correction-disabled"
+          "NSAutomaticSpellingCorrectionEnabled"
+          false
+        ]
+        [
+          "smart-quotes-disabled"
+          "NSAutomaticQuoteSubstitutionEnabled"
+          false
+        ]
+        [
+          "smart-dashes-disabled"
+          "NSAutomaticDashSubstitutionEnabled"
+          false
+        ]
+        [
+          "auto-period-disabled"
+          "NSAutomaticPeriodSubstitutionEnabled"
+          false
+        ]
+        [
+          "press-and-hold-disabled"
+          "ApplePressAndHoldEnabled"
+          false
+        ]
+      ];
 
   # Level 2: Memory Management and Battery Efficiency
   #
@@ -189,18 +208,25 @@ rec {
   # Usage: assertDarwinOptimizationsLevel2 darwinConfig
   assertDarwinOptimizationsLevel2 =
     darwinConfig:
-    builtins.map (setting: assertNSGlobalDef (builtins.elemAt setting 0) (builtins.elemAt setting 1) (builtins.elemAt setting 2) darwinConfig) [
+    builtins.map
+      (
+        setting:
+        assertNSGlobalDef (builtins.elemAt setting 0) (builtins.elemAt setting 1)
+          (builtins.elemAt setting 2)
+          darwinConfig
+      )
       [
-        "auto-termination-enabled"
-        "NSDisableAutomaticTermination"
-        false
-      ]
-      [
-        "icloud-auto-save-disabled"
-        "NSDocumentSaveNewDocumentsToCloud"
-        false
-      ]
-    ];
+        [
+          "auto-termination-enabled"
+          "NSDisableAutomaticTermination"
+          false
+        ]
+        [
+          "icloud-auto-save-disabled"
+          "NSDocumentSaveNewDocumentsToCloud"
+          false
+        ]
+      ];
 
   # Level 3: Advanced UI Reduction Optimizations
   #
@@ -217,33 +243,40 @@ rec {
   # Usage: assertDarwinOptimizationsLevel3 darwinConfig
   assertDarwinOptimizationsLevel3 =
     darwinConfig:
-    builtins.map (setting: assertNSGlobalDef (builtins.elemAt setting 0) (builtins.elemAt setting 1) (builtins.elemAt setting 2) darwinConfig) [
+    builtins.map
+      (
+        setting:
+        assertNSGlobalDef (builtins.elemAt setting 0) (builtins.elemAt setting 1)
+          (builtins.elemAt setting 2)
+          darwinConfig
+      )
       [
-        "mouse-swipe-navigation-disabled"
-        "AppleEnableMouseSwipeNavigateWithScrolls"
-        false
-      ]
-      [
-        "swipe-navigation-disabled"
-        "AppleEnableSwipeNavigateWithScrolls"
-        false
-      ]
-      [
-        "font-smoothing-optimized"
-        "AppleFontSmoothing"
-        darwinFontSmoothing
-      ]
-      [
-        "save-dialogs-compact"
-        "NSNavPanelExpandedStateForSaveMode"
-        false
-      ]
-      [
-        "save-dialogs-compact-v2"
-        "NSNavPanelExpandedStateForSaveMode2"
-        false
-      ]
-    ];
+        [
+          "mouse-swipe-navigation-disabled"
+          "AppleEnableMouseSwipeNavigateWithScrolls"
+          false
+        ]
+        [
+          "swipe-navigation-disabled"
+          "AppleEnableSwipeNavigateWithScrolls"
+          false
+        ]
+        [
+          "font-smoothing-optimized"
+          "AppleFontSmoothing"
+          darwinFontSmoothing
+        ]
+        [
+          "save-dialogs-compact"
+          "NSNavPanelExpandedStateForSaveMode"
+          false
+        ]
+        [
+          "save-dialogs-compact-v2"
+          "NSNavPanelExpandedStateForSaveMode2"
+          false
+        ]
+      ];
 
   # All optimization levels combined
   #
@@ -265,18 +298,25 @@ rec {
   # Usage: assertLoginWindowOptimizations darwinConfig
   assertLoginWindowOptimizations =
     darwinConfig:
-    builtins.map (setting: assertLoginWindowSetting (builtins.elemAt setting 0) (builtins.elemAt setting 1) (builtins.elemAt setting 2) darwinConfig) [
+    builtins.map
+      (
+        setting:
+        assertLoginWindowSetting (builtins.elemAt setting 0) (builtins.elemAt setting 1)
+          (builtins.elemAt setting 2)
+          darwinConfig
+      )
       [
-        "showfullname-false"
-        "SHOWFULLNAME"
-        false
-      ]
-      [
-        "console-access-enabled"
-        "DisableConsoleAccess"
-        false
-      ]
-    ];
+        [
+          "showfullname-false"
+          "SHOWFULLNAME"
+          false
+        ]
+        [
+          "console-access-enabled"
+          "DisableConsoleAccess"
+          false
+        ]
+      ];
 
   # ===== Dock Optimization Helpers =====
 
@@ -430,9 +470,7 @@ rec {
   # Usage: assertHomebrewEnabled darwinConfig
   assertHomebrewEnabled =
     darwinConfig:
-    assertTest "homebrew-enabled" (
-      darwinConfig.homebrew.enable == true
-    ) "Homebrew should be enabled";
+    assertTest "homebrew-enabled" (darwinConfig.homebrew.enable == true) "Homebrew should be enabled";
 
   # Test Homebrew casks are configured
   #

@@ -31,7 +31,7 @@ in
 
     # NixOS VM configuration
     config =
-      { lib, pkgs, ... }:
+      { lib, ... }:
       {
         # Enable x86_64 emulation on ARM Macs
         boot.binfmt.emulatedSystems = lib.mkIf isAarch64 [ "x86_64-linux" ];

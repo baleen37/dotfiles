@@ -27,9 +27,6 @@ let
   inherit (baseHelpers)
     assertTest
     testSuite
-    assertHasAttr
-    assertContains
-    assertFileExists
     ;
 in
 
@@ -307,7 +304,7 @@ rec {
   testProgramEnabled =
     name: homeConfig: programName: expectedEnabled:
     let
-      isEnabled = (homeConfig.programs.${programName}.enable or false);
+      isEnabled = homeConfig.programs.${programName}.enable or false;
     in
     assertTest "${name}-${programName}-enabled" (
       isEnabled == expectedEnabled
@@ -344,9 +341,7 @@ rec {
 
       hasValue = actualValue != null && actualValue == expectedValue;
     in
-    assertTest "${name}-${builtins.replaceStrings [ "." ] [ "-" ] attrPath}" (
-      hasValue
-    ) "Config attribute ${attrPath} should be ${toString expectedValue}";
+    assertTest "${name}-${builtins.replaceStrings [ "." ] [ "-" ] attrPath}" hasValue "Config attribute ${attrPath} should be ${toString expectedValue}";
 
   # ===== 복합 테스트 패턴 =====
 

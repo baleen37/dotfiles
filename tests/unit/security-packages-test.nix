@@ -29,17 +29,17 @@ let
 
 in
 {
-  platforms = ["any"];
+  platforms = [ "any" ];
   value = helpers.testSuite "security-packages" [
     # Test that age is installed
-    (helpers.assertTest "age-installed" (
-      builtins.any (name: name == "age") packageNames
-    ) "age should be in home.packages")
+    (helpers.assertTest "age-installed" (builtins.any (
+      name: name == "age"
+    ) packageNames) "age should be in home.packages")
 
     # Test that sops is installed
-    (helpers.assertTest "sops-installed" (
-      builtins.any (name: name == "sops") packageNames
-    ) "sops should be in home.packages")
+    (helpers.assertTest "sops-installed" (builtins.any (
+      name: name == "sops"
+    ) packageNames) "sops should be in home.packages")
 
     # Test that git-crypt is NOT installed
     (helpers.assertTest "git-crypt-removed" (

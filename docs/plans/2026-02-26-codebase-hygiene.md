@@ -15,6 +15,7 @@
 The `find ... | while read` on line 109 runs the while loop in a subshell, so `new_apps` counter modifications are never visible to the parent shell. The `[ $new_apps -eq 0 ]` check on line 128 always sees 0.
 
 **Files:**
+
 - Modify: `lib/nix-app-linker.sh:106-129`
 
 **Step 1: Write a test script to reproduce the bug**
@@ -115,6 +116,7 @@ substitution (while read < <(find)) to keep the loop in the current shell."
 In `users/shared/zsh/gw.nix` line 100, `$branch` is interpolated directly into a grep regex pattern. Branch names containing regex metacharacters (`+`, `.`, `*`, etc.) will cause incorrect matches or errors.
 
 **Files:**
+
 - Modify: `users/shared/zsh/gw.nix:98-103`
 - Test: `tests/unit/gw-sanitization-test.nix` (new)
 
@@ -150,16 +152,19 @@ Expected: FAIL - grep currently uses `-E` (regex mode)
 In `users/shared/zsh/gw.nix`, replace line 100:
 
 Old:
+
 ```bash
       local existing_branch=$(git branch --list | grep -E "^\s+$branch/" | head -1 | sed 's/^[* ]*//')
 ```
 
 New:
+
 ```bash
       local existing_branch=$(git branch --list | sed 's/^[* ]*//' | grep -F "$branch/" | head -1)
 ```
 
 This change:
+
 1. Uses `grep -F` (fixed strings) instead of `grep -E` (extended regex) — no regex metacharacter injection
 2. Moves `sed` before `grep` so we strip leading whitespace/asterisks first, then do a simple prefix match
 
@@ -186,6 +191,7 @@ safe literal string matching."
 `test-hook.txt` and `test-hook2.txt` are pre-commit hook testing artifacts left in the repo root.
 
 **Files:**
+
 - Delete: `test-hook.txt`
 - Delete: `test-hook2.txt`
 
@@ -213,6 +219,7 @@ git commit -m "chore: remove leftover pre-commit hook test files"
 ## Task 4: Remove unused parameters in git.nix and vim.nix
 
 **Files:**
+
 - Modify: `users/shared/git.nix:26`
 - Modify: `users/shared/vim.nix:27-32`
 
@@ -248,11 +255,13 @@ Expected: FAIL
 **Step 3: Fix git.nix**
 
 Old (line 26):
+
 ```nix
 { pkgs, lib, ... }:
 ```
 
 New:
+
 ```nix
 { ... }:
 ```
@@ -260,6 +269,7 @@ New:
 **Step 4: Fix vim.nix**
 
 Old (lines 27-32):
+
 ```nix
 {
   pkgs,
@@ -270,6 +280,7 @@ Old (lines 27-32):
 ```
 
 New:
+
 ```nix
 { pkgs, ... }:
 ```
@@ -298,6 +309,7 @@ vim.nix: remove lib and config (only uses pkgs for vimPlugins)"
 CLAUDE.md and devShell shellHook reference `make format` but the target doesn't exist.
 
 **Files:**
+
 - Modify: `Makefile` (add target after line 76, update .PHONY on line 223)
 
 **Step 1: Verify the target is missing**
@@ -341,6 +353,7 @@ formatter (nixfmt-rfc-style)."
 If the test fails partway through, temporary files created by `mktemp` are leaked. Add a trap-based cleanup.
 
 **Files:**
+
 - Modify: `tests/manual-statusline-test.sh:1-7`
 
 **Step 1: Add trap cleanup**
@@ -348,6 +361,7 @@ If the test fails partway through, temporary files created by `mktemp` are leake
 After line 6 (`STATUSLINE_SCRIPT=...`), add a cleanup mechanism. Replace the individual `rm "$temp_transcript"` calls with a single trap:
 
 Add after line 6:
+
 ```bash
 # Track temp files for cleanup
 TEMP_FILES=()
@@ -356,6 +370,7 @@ trap cleanup EXIT
 ```
 
 Then change each `temp_transcript=$(mktemp)` to:
+
 ```bash
 temp_transcript=$(mktemp)
 TEMP_FILES+=("$temp_transcript")
@@ -385,11 +400,13 @@ to ensure cleanup regardless of exit path."
 Several PATH exports in `users/shared/zsh/default.nix` don't quote `$HOME`. While `$HOME` rarely contains spaces, consistent quoting is good practice.
 
 **Files:**
+
 - Modify: `users/shared/zsh/default.nix:150-157`
 
 **Step 1: Fix the unquoted PATH lines**
 
 Old (lines 150-157):
+
 ```bash
       export PATH=$HOME/.pnpm-packages/bin:$HOME/.pnpm-packages:$PATH
       export PATH=$HOME/.npm-global/bin:$HOME/.npm-packages/bin:$HOME/bin:$PATH
@@ -402,6 +419,7 @@ Old (lines 150-157):
 ```
 
 New:
+
 ```bash
       export PATH="$HOME/.pnpm-packages/bin:$HOME/.pnpm-packages:$PATH"
       export PATH="$HOME/.npm-global/bin:$HOME/.npm-packages/bin:$HOME/bin:$PATH"
@@ -435,6 +453,7 @@ issues in practice, consistent quoting is defensive best practice."
 `nixpkgs` and `nixpkgs-unstable` both point to `github:NixOS/nixpkgs/nixpkgs-unstable` — they track the exact same branch. The overlay creates `pkgs.unstable` from `nixpkgs-unstable`, but since both are identical, this is redundant.
 
 **Files:**
+
 - Modify: `flake.nix:22-24` (remove nixpkgs-unstable input)
 - Modify: `flake.nix:50-61` (remove from outputs args)
 - Modify: `flake.nix:64-73` (update overlay to use nixpkgs directly)
@@ -450,6 +469,7 @@ Expected: same commit hash for both.
 **Step 2: Update flake.nix**
 
 Remove line 24:
+
 ```nix
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 ```
@@ -457,6 +477,7 @@ Remove line 24:
 Remove `nixpkgs-unstable,` from outputs args (line 54).
 
 Update the overlay (lines 64-73):
+
 ```nix
       overlays = [
         (final: prev: {
@@ -498,6 +519,7 @@ since they're identical."
 `deadnix` and `statix` are in devShell but not automated. Add pre-commit hooks so they run automatically.
 
 **Files:**
+
 - Modify: `.pre-commit-config.yaml` (add nix hooks)
 
 **Step 1: Add nix linting hooks**
@@ -505,22 +527,22 @@ since they're identical."
 After the bashate entry (line 28), add:
 
 ```yaml
-  # Nix linting - dead code detection
-  - repo: https://github.com/astro/deadnix
-    rev: v1.2.1
-    hooks:
-      - id: deadnix
-        args: ['--no-lambda-pattern-names']
+# Nix linting - dead code detection
+- repo: https://github.com/astro/deadnix
+  rev: v1.2.1
+  hooks:
+    - id: deadnix
+      args: ["--no-lambda-pattern-names"]
 
-  # Nix linting - anti-pattern detection
-  - repo: local
-    hooks:
-      - id: statix
-        name: Statix (Nix anti-patterns)
-        entry: statix check
-        language: system
-        files: '\.nix$'
-        pass_filenames: false
+# Nix linting - anti-pattern detection
+- repo: local
+  hooks:
+    - id: statix
+      name: Statix (Nix anti-patterns)
+      entry: statix check
+      language: system
+      files: '\.nix$'
+      pass_filenames: false
 ```
 
 Note: `deadnix` has a pre-commit hook in its repo. `statix` doesn't, so we use a local hook that depends on it being in devShell.
@@ -557,18 +579,20 @@ Both tools were already in devShell but not automated."
 `ci.yml` lines 49-54 delete `~/.cache/nix` and `~/.local/state/nix` on every run, defeating the purpose of Nix caching and increasing build times.
 
 **Files:**
+
 - Modify: `.github/workflows/ci.yml:49-54` (remove the step)
 
 **Step 1: Remove the cache clearing step**
 
 Delete lines 49-54:
+
 ```yaml
-      - name: Clear Nix store cache
-        shell: bash
-        run: |
-          echo "Clearing Nix store to avoid stale derivations..."
-          rm -rf ~/.cache/nix ~/.local/state/nix || true
-          echo "Nix store cache cleared"
+- name: Clear Nix store cache
+  shell: bash
+  run: |
+    echo "Clearing Nix store to avoid stale derivations..."
+    rm -rf ~/.cache/nix ~/.local/state/nix || true
+    echo "Nix store cache cleared"
 ```
 
 **Step 2: Verify CI config is valid**

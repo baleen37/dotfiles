@@ -226,6 +226,7 @@ in
 - 설명적이고 명확한 이름 사용
 
 **좋은 예:**
+
 ```nix
 "git-user-info-correct"
 "vim-plugins-installed"
@@ -233,6 +234,7 @@ in
 ```
 
 **나쁜 예:**
+
 ```nix
 "test1"
 "check"
@@ -536,6 +538,7 @@ tests/e2e/complete-vm-bootstrap-test.nix
 **문제:** 잘못된 플랫폼 속성
 
 **해결:**
+
 ```nix
 {
   platforms = ["darwin"];  # macOS에서만 실행
@@ -580,6 +583,7 @@ in
 ---
 
 테스트 작성에 도움이 필요하면 기존 테스트 파일들을 참고하세요:
+
 - [tests/unit/lib-user-info-test.nix](./unit/lib-user-info-test.nix): 속성 검증 예제
 - [tests/integration/home-manager-test.nix](./integration/home-manager-test.nix): 모듈 테스트 예제
 - [tests/integration/git-configuration-test.nix](./integration/git-configuration-test.nix): Git 테스트 예제

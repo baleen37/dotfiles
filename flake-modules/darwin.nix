@@ -16,13 +16,13 @@ in
   flake.darwinConfigurations = {
     macbook-pro = mkSystem "macbook-pro" {
       system = "aarch64-darwin";
-      user = user;
+      inherit user;
       darwin = true;
     };
 
     baleen-macbook = mkSystem "baleen-macbook" {
       system = "aarch64-darwin";
-      user = user;
+      inherit user;
       darwin = true;
     };
 

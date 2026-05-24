@@ -54,7 +54,7 @@ in
   # - ["darwin"]: macOS only
   # - ["linux"]: Linux only
   # - ["darwin" "linux"]: Both macOS and Linux
-  platforms = ["any"];
+  platforms = [ "any" ];
 
   # ===== TEST SUITE =====
   # Return the test suite value
@@ -62,9 +62,7 @@ in
     # ===== BASIC ASSERTIONS =====
     # Use helpers.assertTest for simple conditions
 
-    (helpers.assertTest "basic-example" (
-      true  # Replace with actual test condition
-    ) "This test should pass")
+    (helpers.assertTest "basic-example" true "This test should pass")
 
     # ===== ATTRIBUTE TESTS =====
     # Use assertions.assertAttrExists to check attributes

@@ -163,7 +163,6 @@
       extraConfig ? { },
     }:
     {
-      config,
       pkgs,
       ...
     }:

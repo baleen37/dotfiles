@@ -29,11 +29,13 @@ Local commands can be added by creating the `commands/` directory and `.md` file
 ## Commands vs Skills
 
 **Commands** (`/command-name`): Quick, single-purpose actions
+
 - Fast execution, minimal context
 - Use for: commits, PRs, simple workflows
 - Example: `/commit-push-pr`
 
 **Skills** (invoked via Skill tool): Complex, multi-step workflows
+
 - Enforced methodology, review checkpoints
 - Use for: CI troubleshooting, PR creation, debugging
 - Example: `creating-pull-requests`

@@ -4,7 +4,7 @@
 # - Keyboard input source configuration (cmd+shift+space for Korean/English)
 # - Automated cleanup of unused default macOS applications
 
-{ ... }:
+_:
 
 {
   # Keyboard Input Source Configuration Script

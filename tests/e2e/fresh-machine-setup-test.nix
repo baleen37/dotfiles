@@ -12,9 +12,7 @@
 {
   pkgs ? import <nixpkgs> { },
   nixpkgs ? <nixpkgs>,
-  lib ? pkgs.lib,
   system ? builtins.currentSystem,
-  self ? null,
 }:
 
 let
@@ -26,23 +24,13 @@ let
     });
 
   # Helper to run commands and capture output
-  runCommand = cmd: ''
-    echo "🔧 Running: ${cmd}"
-    if ${cmd}; then
-      echo "✅ Command succeeded: ${cmd}"
-      return 0
-    else
-      echo "❌ Command failed: ${cmd}"
-      return 1
-    fi
-  '';
 
 in
 nixosTest {
   name = "fresh-machine-setup-test";
 
   nodes.machine =
-    { config, pkgs, ... }:
+    { pkgs, ... }:
     {
       # Minimal VM configuration - simulates fresh machine
       boot.loader.systemd-boot.enable = true;

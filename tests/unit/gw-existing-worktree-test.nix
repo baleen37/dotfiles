@@ -21,18 +21,22 @@ in
   value = helpers.testSuite "gw-existing-worktree" [
     (helpers.assertTest "gw-defines-existing-worktree-handler"
       (lib.hasInfix "_handle_existing_worktree" gwScript)
-      "gw should define _handle_existing_worktree helper")
+      "gw should define _handle_existing_worktree helper"
+    )
 
     (helpers.assertTest "gw-parses-existing-worktree-path"
       (lib.hasInfix "already used by worktree at" gwScript)
-      "gw should parse 'already used by worktree at <path>' from git error output")
+      "gw should parse 'already used by worktree at <path>' from git error output"
+    )
 
     (helpers.assertTest "gw-warns-on-existing-worktree"
       (lib.hasInfix "is already checked out at" gwScript)
-      "gw should print a warning when the branch is already checked out elsewhere")
+      "gw should print a warning when the branch is already checked out elsewhere"
+    )
 
     (helpers.assertTest "gw-cds-into-existing-worktree"
       (lib.hasInfix ''cd "$existing_worktree"'' gwScript)
-      "gw should cd into the existing worktree instead of failing")
+      "gw should cd into the existing worktree instead of failing"
+    )
   ];
 }

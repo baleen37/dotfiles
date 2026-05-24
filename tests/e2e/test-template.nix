@@ -22,14 +22,15 @@
   nixpkgs ? <nixpkgs>,
   lib ? pkgs.lib,
   system ? builtins.currentSystem,
-  self ? null,
-  inputs ? { },
 }:
 
 let
   e2eHelpers = import ./helpers.nix {
     inherit pkgs lib;
-    platformSystem = { isDarwin = false; isLinux = true; };
+    platformSystem = {
+      isDarwin = false;
+      isLinux = true;
+    };
   };
   nixosTest = e2eHelpers.mkNixosTest { inherit nixpkgs system; };
 

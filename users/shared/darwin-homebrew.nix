@@ -3,7 +3,7 @@
 # GUI applications and Mac App Store apps managed via Homebrew.
 # Casks, brews, taps, and MAS apps.
 
-{ ... }:
+_:
 
 let
   # Homebrew Cask definitions (GUI applications)

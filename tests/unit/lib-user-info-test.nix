@@ -19,12 +19,12 @@ let
 
 in
 {
-  platforms = ["any"];
+  platforms = [ "any" ];
   value = helpers.testSuite "user-info" [
     # ===== 구조 검증 =====
 
     # 필수 속성 존재 확인 (common-assertions 사용)
-    (assertions.assertAttrsExist "user-info-has-required-attributes" userInfo ["name" "email"] null)
+    (assertions.assertAttrsExist "user-info-has-required-attributes" userInfo [ "name" "email" ] null)
 
     # ===== 타입 검증 =====
 
@@ -51,7 +51,9 @@ in
     (assertions.assertStringContains "user-info-email-has-dot" userInfo.email "." null)
 
     # 이메일 형식 검증 (정규식)
-    (assertions.assertStringMatches "user-info-email-format" userInfo.email "^[^@]+@[^@]+\\.[^@]+$" null)
+    (assertions.assertStringMatches "user-info-email-format" userInfo.email "^[^@]+@[^@]+\\.[^@]+$"
+      null
+    )
 
     # 이메일 로컬 파트 검증 (@ 앞부분)
     (helpers.assertTest "user-info-email-local-part-non-empty" (
@@ -100,8 +102,15 @@ in
     # 이름에 공백만 있는 것이 아닌지 확인
     (helpers.assertTest "user-info-name-not-whitespace-only" (
       let
-        hasNonWhitespace = builtins.any (c: !lib.elem c [" " "\t" "\n" "\r"])
-          (lib.stringToCharacters userInfo.name);
+        hasNonWhitespace = builtins.any (
+          c:
+          !lib.elem c [
+            " "
+            "\t"
+            "\n"
+            "\r"
+          ]
+        ) (lib.stringToCharacters userInfo.name);
       in
       hasNonWhitespace
     ) "userInfo.name should not be whitespace only")
@@ -129,7 +138,10 @@ in
     (helpers.assertTest "user-info-only-expected-attrs" (
       let
         attrs = builtins.attrNames userInfo;
-        expectedAttrs = [ "name" "email" ];
+        expectedAttrs = [
+          "name"
+          "email"
+        ];
         unexpectedAttrs = builtins.filter (attr: !builtins.elem attr expectedAttrs) attrs;
       in
       builtins.length unexpectedAttrs == 0

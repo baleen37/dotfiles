@@ -31,13 +31,12 @@ rec {
   #
   # Example:
   #   mkHomeConfig "/Users/test"
-  mkHomeConfig = homeDirectory:
-    {
-      home = {
-        username = "testuser";
-        inherit homeDirectory;
-      };
+  mkHomeConfig = homeDirectory: {
+    home = {
+      username = "testuser";
+      inherit homeDirectory;
     };
+  };
 
   # Create a mock configuration for Darwin (macOS)
   #
@@ -48,13 +47,12 @@ rec {
   #
   # Example:
   #   mkDarwinHomeConfig "testuser"
-  mkDarwinHomeConfig = username:
-    {
-      home = {
-        inherit username;
-        homeDirectory = "/Users/${username}";
-      };
+  mkDarwinHomeConfig = username: {
+    home = {
+      inherit username;
+      homeDirectory = "/Users/${username}";
     };
+  };
 
   # Create a mock configuration for Linux
   #
@@ -65,13 +63,12 @@ rec {
   #
   # Example:
   #   mkLinuxHomeConfig "testuser"
-  mkLinuxHomeConfig = username:
-    {
-      home = {
-        inherit username;
-        homeDirectory = "/home/${username}";
-      };
+  mkLinuxHomeConfig = username: {
+    home = {
+      inherit username;
+      homeDirectory = "/home/${username}";
     };
+  };
 
   # Create a platform-aware mock configuration
   #
@@ -82,11 +79,8 @@ rec {
   #
   # Example:
   #   mkPlatformHomeConfig "testuser"
-  mkPlatformHomeConfig = username:
-    if pkgs.stdenv.isDarwin then
-      mkDarwinHomeConfig username
-    else
-      mkLinuxHomeConfig username;
+  mkPlatformHomeConfig =
+    username: if pkgs.stdenv.isDarwin then mkDarwinHomeConfig username else mkLinuxHomeConfig username;
 
   # Create a mock configuration with custom settings
   #
@@ -109,7 +103,7 @@ rec {
         };
       };
     in
-    lib.recursiveUpdate baseConfig (if extraConfig != null then extraConfig else {});
+    lib.recursiveUpdate baseConfig (if extraConfig != null then extraConfig else { });
 
   # Create a mock configuration with currentSystemUser
   #
@@ -120,7 +114,8 @@ rec {
   #
   # Example:
   #   mkSystemUserConfig "testuser"
-  mkSystemUserConfig = username:
+  mkSystemUserConfig =
+    username:
     let
       homeDir = if pkgs.stdenv.isDarwin then "/Users" else "/home";
     in
@@ -166,16 +161,15 @@ rec {
   #
   # Example:
   #   mkGitConfig "Test User" "test@example.com"
-  mkGitConfig = userName: userEmail:
-    {
-      programs = {
-        git = {
-          enable = true;
-          userName = if userName != null then userName else "Test User";
-          userEmail = if userEmail != null then userEmail else "test@example.com";
-        };
+  mkGitConfig = userName: userEmail: {
+    programs = {
+      git = {
+        enable = true;
+        userName = if userName != null then userName else "Test User";
+        userEmail = if userEmail != null then userEmail else "test@example.com";
       };
     };
+  };
 
   # Create a mock Vim configuration
   #
@@ -186,15 +180,14 @@ rec {
   #
   # Example:
   #   mkVimConfig [ pkgs.vimPlugins.vim-airline ]
-  mkVimConfig = plugins:
-    {
-      programs = {
-        vim = {
-          enable = true;
-          plugins = if plugins != null then plugins else [ ];
-        };
+  mkVimConfig = plugins: {
+    programs = {
+      vim = {
+        enable = true;
+        plugins = if plugins != null then plugins else [ ];
       };
     };
+  };
 
   # Create a mock Tmux configuration
   #
@@ -206,16 +199,15 @@ rec {
   #
   # Example:
   #   mkTmuxConfig [ pkgs.tmuxPlugins.sensible ] "set -g mode-keys vi"
-  mkTmuxConfig = plugins: extraConfig:
-    {
-      programs = {
-        tmux = {
-          enable = true;
-          plugins = if plugins != null then plugins else [ ];
-          inherit extraConfig;
-        };
+  mkTmuxConfig = plugins: extraConfig: {
+    programs = {
+      tmux = {
+        enable = true;
+        plugins = if plugins != null then plugins else [ ];
+        inherit extraConfig;
       };
     };
+  };
 
   # Create a mock Starship configuration
   #
@@ -227,17 +219,18 @@ rec {
   #
   # Example:
   #   mkStarshipConfig "$directory$git_branch" { username.disabled = true; }
-  mkStarshipConfig = format: settings:
-    {
-      programs = {
-        starship = {
-          enable = true;
-          settings = {
-            format = if format != null then format else "$directory$git_branch$git_status$nix_shell$python$character";
-          } // (if settings != null then settings else {});
-        };
+  mkStarshipConfig = format: settings: {
+    programs = {
+      starship = {
+        enable = true;
+        settings = {
+          format =
+            if format != null then format else "$directory$git_branch$git_status$nix_shell$python$character";
+        }
+        // (if settings != null then settings else { });
       };
     };
+  };
 
   # Create a mock Zsh configuration
   #
@@ -249,23 +242,23 @@ rec {
   #
   # Example:
   #   mkZshConfig true "export TEST_VAR=1"
-  mkZshConfig = enableIntegration: initExtra:
-    {
-      programs = {
-        zsh = {
-          enable = true;
-          enableGlobalCompInit = false;
-          autosuggestion.enable = true;
-          syntaxHighlighting.enable = true;
-          initExtra = if initExtra != null then initExtra else "";
-        } // (
-          if enableIntegration then
-            {
-              initExtraBeforeCompInit = "ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=240'";
-            }
-          else
-            {}
-        );
-      };
+  mkZshConfig = enableIntegration: initExtra: {
+    programs = {
+      zsh = {
+        enable = true;
+        enableGlobalCompInit = false;
+        autosuggestion.enable = true;
+        syntaxHighlighting.enable = true;
+        initExtra = if initExtra != null then initExtra else "";
+      }
+      // (
+        if enableIntegration then
+          {
+            initExtraBeforeCompInit = "ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=240'";
+          }
+        else
+          { }
+      );
     };
+  };
 }

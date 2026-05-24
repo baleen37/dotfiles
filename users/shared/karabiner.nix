@@ -18,14 +18,38 @@ let
   # `proc` is the AppleScript process name (sometimes different from bundle).
   # Discover via: osascript -e 'tell application "System Events" to get name of every application process'
   hyperApps = {
-    i = { bundle = "com.mitchellh.ghostty";        proc = "ghostty"; };
-    e = { bundle = "com.apple.mail";               proc = "Mail"; };
-    f = { bundle = "com.apple.finder";             proc = "Finder"; };
-    h = { bundle = "com.kapeli.dashdoc";           proc = "Dash"; };
-    k = { bundle = "com.kakao.KakaoTalkMac";       proc = "KakaoTalk"; };
-    n = { bundle = "notion.id";                    proc = "Notion"; };
-    o = { bundle = "md.obsidian";                  proc = "Obsidian"; };
-    t = { bundle = "com.culturedcode.ThingsMac";   proc = "Things3"; };
+    i = {
+      bundle = "com.mitchellh.ghostty";
+      proc = "ghostty";
+    };
+    e = {
+      bundle = "com.apple.mail";
+      proc = "Mail";
+    };
+    f = {
+      bundle = "com.apple.finder";
+      proc = "Finder";
+    };
+    h = {
+      bundle = "com.kapeli.dashdoc";
+      proc = "Dash";
+    };
+    k = {
+      bundle = "com.kakao.KakaoTalkMac";
+      proc = "KakaoTalk";
+    };
+    n = {
+      bundle = "notion.id";
+      proc = "Notion";
+    };
+    o = {
+      bundle = "md.obsidian";
+      proc = "Obsidian";
+    };
+    t = {
+      bundle = "com.culturedcode.ThingsMac";
+      proc = "Things3";
+    };
   };
 
   # key_code → bundle_identifier. Forward as mega-chord (cmd+ctrl+opt+shift+key)
@@ -42,7 +66,12 @@ let
   };
 
   hyperVar = "hyper";
-  megaMods = [ "left_command" "left_control" "left_option" "left_shift" ];
+  megaMods = [
+    "left_command"
+    "left_control"
+    "left_option"
+    "left_shift"
+  ];
 
   # right_command itself: set variable + emit F19 (for Hammerspoon modal).
   hyperTrigger = {
@@ -52,11 +81,21 @@ let
       modifiers.optional = [ "any" ];
     };
     to = [
-      { set_variable = { name = hyperVar; value = 1; }; }
+      {
+        set_variable = {
+          name = hyperVar;
+          value = 1;
+        };
+      }
       { key_code = "f19"; }
     ];
     to_after_key_up = [
-      { set_variable = { name = hyperVar; value = 0; }; }
+      {
+        set_variable = {
+          name = hyperVar;
+          value = 0;
+        };
+      }
     ];
   };
 
@@ -66,30 +105,42 @@ let
     type = "basic";
     from.key_code = key;
     conditions = [
-      { type = "variable_if"; name = hyperVar; value = 1; }
+      {
+        type = "variable_if";
+        name = hyperVar;
+        value = 1;
+      }
       {
         type = "frontmost_application_if";
         bundle_identifiers = [ "^${lib.escapeRegex app.bundle}$" ];
       }
     ];
-    to = [{
-      shell_command = ''osascript -e 'tell application "System Events" to set visible of process "${app.proc}" to false' '';
-    }];
+    to = [
+      {
+        shell_command = ''osascript -e 'tell application "System Events" to set visible of process "${app.proc}" to false' '';
+      }
+    ];
   };
 
   mkOpenManipulator = key: app: {
     type = "basic";
     from.key_code = key;
     conditions = [
-      { type = "variable_if"; name = hyperVar; value = 1; }
+      {
+        type = "variable_if";
+        name = hyperVar;
+        value = 1;
+      }
       {
         type = "frontmost_application_unless";
         bundle_identifiers = [ "^${lib.escapeRegex app.bundle}$" ];
       }
     ];
-    to = [{
-      software_function.open_application.bundle_identifier = app.bundle;
-    }];
+    to = [
+      {
+        software_function.open_application.bundle_identifier = app.bundle;
+      }
+    ];
   };
 
   mkAppToggle = key: app: [
@@ -100,8 +151,19 @@ let
   mkLocalBinding = key: _bundleId: {
     type = "basic";
     from.key_code = key;
-    conditions = [{ type = "variable_if"; name = hyperVar; value = 1; }];
-    to = [{ key_code = key; modifiers = megaMods; }];
+    conditions = [
+      {
+        type = "variable_if";
+        name = hyperVar;
+        value = 1;
+      }
+    ];
+    to = [
+      {
+        key_code = key;
+        modifiers = megaMods;
+      }
+    ];
   };
 
   appManipulators = lib.concatLists (lib.mapAttrsToList mkAppToggle hyperApps);
@@ -113,12 +175,14 @@ let
   };
 
   karabinerConfig = {
-    profiles = [{
-      name = "Default profile";
-      selected = true;
-      complex_modifications.rules = [ hyperRule ];
-      virtual_hid_keyboard.keyboard_type_v2 = "ansi";
-    }];
+    profiles = [
+      {
+        name = "Default profile";
+        selected = true;
+        complex_modifications.rules = [ hyperRule ];
+        virtual_hid_keyboard.keyboard_type_v2 = "ansi";
+      }
+    ];
   };
 
 in

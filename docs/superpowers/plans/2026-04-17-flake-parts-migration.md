@@ -12,19 +12,19 @@
 
 ## File Map
 
-| File | Action | Responsibility |
-|------|--------|---------------|
-| `flake.nix` | Rewrite | nixConfig + inputs + mkFlake call only |
-| `lib/overlays.nix` | Create | Overlay list (extracted from flake.nix let block) |
-| `flake-modules/darwin.nix` | Create | `flake.darwinConfigurations` |
-| `flake-modules/nixos.nix` | Create | `flake.nixosConfigurations` |
-| `flake-modules/home.nix` | Create | `flake.homeConfigurations` |
-| `flake-modules/checks.nix` | Create | `perSystem: checks` |
-| `flake-modules/dev-shells.nix` | Create | `perSystem: devShells + formatter` |
-| `flake-modules/packages.nix` | Create | `perSystem: packages` + `flake.e2e-tests` |
-| `.github/actions/setup-nix/action.yml` | Modify | Remove week rotation, add arch to cache key |
-| `.github/workflows/ci.yml` | Verify | No changes needed (env vars are independent) |
-| `Makefile` | Minor | No structural changes needed (already uses UNAME) |
+| File                                   | Action  | Responsibility                                    |
+| -------------------------------------- | ------- | ------------------------------------------------- |
+| `flake.nix`                            | Rewrite | nixConfig + inputs + mkFlake call only            |
+| `lib/overlays.nix`                     | Create  | Overlay list (extracted from flake.nix let block) |
+| `flake-modules/darwin.nix`             | Create  | `flake.darwinConfigurations`                      |
+| `flake-modules/nixos.nix`              | Create  | `flake.nixosConfigurations`                       |
+| `flake-modules/home.nix`               | Create  | `flake.homeConfigurations`                        |
+| `flake-modules/checks.nix`             | Create  | `perSystem: checks`                               |
+| `flake-modules/dev-shells.nix`         | Create  | `perSystem: devShells + formatter`                |
+| `flake-modules/packages.nix`           | Create  | `perSystem: packages` + `flake.e2e-tests`         |
+| `.github/actions/setup-nix/action.yml` | Modify  | Remove week rotation, add arch to cache key       |
+| `.github/workflows/ci.yml`             | Verify  | No changes needed (env vars are independent)      |
+| `Makefile`                             | Minor   | No structural changes needed (already uses UNAME) |
 
 **Unchanged files:** `lib/mksystem.nix`, `lib/cache-config.nix`, `lib/user-info.nix`, `scripts/check-cache-sync.sh`, `machines/`, `users/`, `tests/`, `.pre-commit-config.yaml`
 
@@ -33,6 +33,7 @@
 ### Task 1: Add flake-parts input
 
 **Files:**
+
 - Modify: `flake.nix:22-47` (inputs section)
 
 - [ ] **Step 1: Add flake-parts to inputs**
@@ -69,6 +70,7 @@ git commit -m "feat: add flake-parts input for upcoming migration"
 ### Task 2: Extract overlays to lib/overlays.nix
 
 **Files:**
+
 - Create: `lib/overlays.nix`
 - Modify: `flake.nix:60-82` (move overlays out, import from new file)
 
@@ -135,6 +137,7 @@ git commit -m "refactor: extract overlays to lib/overlays.nix"
 These files are created but NOT imported yet. The existing flake.nix continues to work.
 
 **Files:**
+
 - Create: `flake-modules/darwin.nix`
 - Create: `flake-modules/nixos.nix`
 - Create: `flake-modules/home.nix`
@@ -406,6 +409,7 @@ git commit -m "feat: create flake-modules for flake-parts migration (not yet wir
 This is the big switch. The entire outputs section changes.
 
 **Files:**
+
 - Modify: `flake.nix` (complete outputs rewrite)
 
 - [ ] **Step 1: Backup current flake.nix**
@@ -569,6 +573,7 @@ Rewrite flake.nix outputs to use flake-parts mkFlake.
 ### Task 5: CI cache key improvement
 
 **Files:**
+
 - Modify: `.github/actions/setup-nix/action.yml:36-82`
 
 - [ ] **Step 1: Remove week-based rotation, add arch**
@@ -578,6 +583,7 @@ In `.github/actions/setup-nix/action.yml`, replace the week step and cache keys:
 Remove the "Get week number" step (lines 36-39).
 
 Update all cache key references from:
+
 ```yaml
 key: nix-${{ runner.os }}-${{ hashFiles('**/flake.lock') }}-${{ steps.date.outputs.week }}-v3
 restore-keys: |
@@ -585,6 +591,7 @@ restore-keys: |
 ```
 
 To:
+
 ```yaml
 key: nix-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/flake.lock') }}-v4
 restore-keys: |
