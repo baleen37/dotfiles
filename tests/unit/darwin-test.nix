@@ -1,6 +1,6 @@
 # Darwin Configuration Test
 #
-# Tests the consolidated Darwin configuration in users/shared/darwin.nix
+# Tests the consolidated Darwin configuration in users/shared/darwin/
 # Verifies that system settings, Homebrew config, and performance optimizations are properly defined.
 {
   inputs,
@@ -24,12 +24,12 @@ let
 
   darwinConfig =
     lib.recursiveUpdate
-      (lib.recursiveUpdate (import ../../users/shared/darwin.nix {
+      (lib.recursiveUpdate (import ../../users/shared/darwin/default.nix {
         inherit pkgs lib;
         config = mockConfig.mkEmptyConfig;
         currentSystemUser = "baleen"; # Test with default user
-      }) (import ../../users/shared/darwin-homebrew.nix { }))
-      (import ../../users/shared/darwin-scripts.nix { });
+      }) (import ../../users/shared/darwin/homebrew.nix { }))
+      (import ../../users/shared/darwin/scripts.nix { });
 
 in
 # Platform filtering - this test should only run on Darwin systems

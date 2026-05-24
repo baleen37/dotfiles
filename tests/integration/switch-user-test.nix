@@ -59,23 +59,23 @@ in
       in
       helpers.testSuite "user-config-modules" [
         (helpers.assertTest "has-git-module" (builtins.any (
-          m: lib.hasSuffix "/users/shared/git.nix" (builtins.toString m)
+          m: lib.hasSuffix "/users/shared/programs/git.nix" (builtins.toString m)
         ) hmConfig.imports) "User configuration should import git.nix module")
 
         (helpers.assertTest "has-vim-module" (builtins.any (
-          m: lib.hasSuffix "/users/shared/vim.nix" (builtins.toString m)
+          m: lib.hasSuffix "/users/shared/programs/vim.nix" (builtins.toString m)
         ) hmConfig.imports) "User configuration should import vim.nix module")
 
         (helpers.assertTest "has-zsh-module" (builtins.any (
-          m: lib.hasSuffix "/users/shared/zsh" (builtins.toString m)
+          m: lib.hasSuffix "/users/shared/programs/zsh" (builtins.toString m)
         ) hmConfig.imports) "User configuration should import zsh module")
 
         (helpers.assertTest "has-claude-module" (builtins.any (
-          m: lib.hasSuffix "/users/shared/claude-code.nix" (builtins.toString m)
+          m: lib.hasSuffix "/users/shared/programs/claude-code.nix" (builtins.toString m)
         ) hmConfig.imports) "User configuration should import claude-code.nix module")
 
         (helpers.assertTest "has-tmux-module" (builtins.any (
-          m: lib.hasSuffix "/users/shared/tmux.nix" (builtins.toString m)
+          m: lib.hasSuffix "/users/shared/programs/tmux.nix" (builtins.toString m)
         ) hmConfig.imports) "User configuration should import tmux.nix module")
       ]
     )

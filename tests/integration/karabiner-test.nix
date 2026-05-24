@@ -11,7 +11,7 @@ let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
 
   # Import karabiner module (mkIf-wrapped) and unwrap
-  karabinerRaw = import ../../users/shared/karabiner.nix {
+  karabinerRaw = import ../../users/shared/programs/karabiner.nix {
     inherit pkgs lib;
     isDarwin = true;
     config = {

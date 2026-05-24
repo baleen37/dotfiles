@@ -12,7 +12,7 @@ let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
 
   # Import starship configuration
-  starshipConfig = import ../../users/shared/starship.nix {
+  starshipConfig = import ../../users/shared/programs/starship.nix {
     inherit pkgs lib;
     config = { };
   };

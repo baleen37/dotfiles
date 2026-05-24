@@ -15,7 +15,7 @@ let
   claudeHelpers = import (self + /tests/lib/claude-test-helpers.nix) { inherit pkgs lib helpers; };
 
   # Path to Claude configuration
-  claudeDir = ../../users/shared/.config/claude;
+  claudeDir = ../../users/shared/programs/.config/claude;
 
   # Helper to safely read and parse JSON
   readJson =

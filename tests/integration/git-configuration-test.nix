@@ -20,7 +20,7 @@ let
   userInfo = import ../../lib/user-info.nix;
 
   # Import git configuration
-  gitConfig = import ../../users/shared/git.nix {
+  gitConfig = import ../../users/shared/programs/git.nix {
     inherit pkgs lib;
     config = { };
   };

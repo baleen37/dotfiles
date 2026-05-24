@@ -15,7 +15,7 @@ let
   };
 
   # Behavioral test: try to import and use vim config
-  vimConfigFile = ../../users/shared/vim.nix;
+  vimConfigFile = ../../users/shared/programs/vim.nix;
   vimConfigResult = builtins.tryEval (
     import vimConfigFile {
       inherit pkgs lib;

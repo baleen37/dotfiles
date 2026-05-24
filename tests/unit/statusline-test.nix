@@ -15,7 +15,7 @@ let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
 
   # Read statusline script content as text (not a derivation)
-  statuslineScriptContent = builtins.readFile ../../users/shared/.config/claude/statusline.sh;
+  statuslineScriptContent = builtins.readFile ../../users/shared/programs/.config/claude/statusline.sh;
 
   # Test data for JSON input context calculation
   testData = {

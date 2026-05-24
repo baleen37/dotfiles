@@ -11,7 +11,7 @@ let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
 
   # Behavioral test: try to import ghostty config
-  ghosttyConfigFile = ../../users/shared/ghostty.nix;
+  ghosttyConfigFile = ../../users/shared/programs/ghostty.nix;
   ghosttyConfigResult = builtins.tryEval (
     import ghosttyConfigFile {
       inherit pkgs lib;
@@ -25,7 +25,7 @@ let
   ghosttyConfigUsable = ghosttyConfigResult.success;
 
   # Read the actual Ghostty config file content
-  ghosttyConfigPath = ../../users/shared/.config/ghostty/config;
+  ghosttyConfigPath = ../../users/shared/programs/.config/ghostty/config;
   ghosttyConfigContent = builtins.readFile ghosttyConfigPath;
 
   # Helper function to check if a config line exists

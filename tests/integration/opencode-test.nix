@@ -12,7 +12,7 @@ let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
 
   # Import opencode configuration
-  opencodeConfig = import ../../users/shared/opencode.nix {
+  opencodeConfig = import ../../users/shared/programs/opencode.nix {
     inherit pkgs lib;
     config = { };
   };
@@ -50,7 +50,7 @@ let
     builtins.hasAttr "opencode/agent" xdgConfigFiles
     && xdgConfigFiles."opencode/agent".recursive or false;
 
-  opencodeAgentDir = ../../users/shared/.config/opencode/agent;
+  opencodeAgentDir = ../../users/shared/programs/.config/opencode/agent;
 
   agentFileReadable =
     agentName: builtins.tryEval (builtins.readFile (opencodeAgentDir + "/${agentName}.md"));

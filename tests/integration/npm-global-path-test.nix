@@ -13,7 +13,7 @@ let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
 
   # Read the zsh environment configuration (PATH setup was extracted to env.nix)
-  zshConfigFile = builtins.readFile ../../users/shared/zsh/env.nix;
+  zshConfigFile = builtins.readFile ../../users/shared/programs/zsh/env.nix;
 
   # Check if npm-global/bin is mentioned in the configuration
   npmGlobalInConfig = lib.hasInfix "$HOME/.npm-global/bin" zshConfigFile;

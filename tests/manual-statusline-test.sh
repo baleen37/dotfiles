@@ -3,7 +3,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-STATUSLINE_SCRIPT="$SCRIPT_DIR/../users/shared/.config/claude/statusline.sh"
+STATUSLINE_SCRIPT="$SCRIPT_DIR/../users/shared/programs/.config/claude/statusline.sh"
 
 # Track temp files for cleanup
 TEMP_FILES=()

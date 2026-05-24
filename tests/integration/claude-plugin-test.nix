@@ -10,8 +10,8 @@ let
   # Import test helpers
 
   # Path to Claude configuration
-  claudeConfigDir = ../../users/shared/.config/claude;
-  claudeCodeNix = ../../users/shared/claude-code.nix;
+  claudeConfigDir = ../../users/shared/programs/.config/claude;
+  claudeCodeNix = ../../users/shared/programs/claude-code.nix;
 
   # Test prerequisites are available without complex function
   # Direct inline testing approach

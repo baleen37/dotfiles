@@ -26,7 +26,7 @@ let
       ;
   };
 
-  starshipConfig = import ../../users/shared/starship.nix {
+  starshipConfig = import ../../users/shared/programs/starship.nix {
     inherit pkgs lib;
     config = mockConfig.mkEmptyConfig;
   };

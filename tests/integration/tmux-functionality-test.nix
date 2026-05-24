@@ -24,7 +24,7 @@ let
   };
 
   # Import tmux configuration with mocked dependencies to test integration
-  tmuxModule = import ../../users/shared/tmux.nix {
+  tmuxModule = import ../../users/shared/programs/tmux.nix {
     inherit pkgs lib;
     config = mockConfig;
   };

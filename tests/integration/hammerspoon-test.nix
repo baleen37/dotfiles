@@ -11,7 +11,7 @@ let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
 
   # Path to Hammerspoon configuration
-  hammerspoonDir = ../../users/shared/.config/hammerspoon;
+  hammerspoonDir = ../../users/shared/programs/.config/hammerspoon;
 
   # Helper to validate file readability and content
   # Returns: { success = bool; value = content; }

@@ -3,8 +3,8 @@
 # Optimized macOS setup with:
 # - Performance optimizations (UI, input, memory)
 # - Developer-friendly interface (Dock, Finder, Trackpad)
-# - Homebrew integration for GUI apps (darwin-homebrew.nix)
-# - Automated app cleanup and keyboard config (darwin-scripts.nix)
+# - Homebrew integration for GUI apps (homebrew.nix)
+# - Automated app cleanup and keyboard config (scripts.nix)
 # - Korean keyboard support with cmd+shift+space
 
 {

@@ -14,7 +14,7 @@
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
 
-  gwScript = import ../../users/shared/zsh/gw.nix;
+  gwScript = import ../../users/shared/programs/zsh/gw.nix;
 in
 {
   platforms = [ "any" ];

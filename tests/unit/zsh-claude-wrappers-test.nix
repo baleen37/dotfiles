@@ -16,7 +16,7 @@ let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
   mockConfig = import ../lib/mock-config.nix { inherit pkgs lib; };
 
-  zshConfig = import ../../users/shared/zsh {
+  zshConfig = import ../../users/shared/programs/zsh {
     inherit pkgs lib;
     isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
     config = mockConfig.mkEmptyConfig;
