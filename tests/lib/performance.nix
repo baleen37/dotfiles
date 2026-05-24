@@ -4,6 +4,7 @@
 
 {
   lib ? import <nixpkgs/lib>,
+  ...
 }:
 
 let

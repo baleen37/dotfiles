@@ -7,6 +7,7 @@
   pkgs,
   lib,
   helpers ? import ../lib/test-helpers.nix { inherit pkgs lib; },
+  ...
 }:
 
 rec {

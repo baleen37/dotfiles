@@ -12,6 +12,7 @@
 {
   lib ? import <nixpkgs/lib>,
   pkgs ? import <nixpkgs> { },
+  ...
 }:
 
 let

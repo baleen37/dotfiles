@@ -9,6 +9,7 @@
   lib,
   assertTest,
   testSuite,
+  ...
 }:
 
 {

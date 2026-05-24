@@ -24,6 +24,7 @@
       isLinux = pkgs.stdenv.isLinux;
     };
   },
+  ...
 }:
 
 let

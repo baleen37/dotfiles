@@ -8,6 +8,7 @@
 {
   helpers,
   constants ? null,
+  ...
 }:
 
 let

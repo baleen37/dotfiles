@@ -19,6 +19,7 @@
   lib,
   # 기본 헬퍼 함수들 (test-helpers.nix에서 가져옴)
   helpers ? null,
+  ...
 }:
 
 let

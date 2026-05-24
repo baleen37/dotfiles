@@ -16,6 +16,7 @@
 
 {
   pkgs ? import <nixpkgs> { },
+  ...
 }:
 
 let

@@ -18,6 +18,7 @@
   lib,
   # Inherit test helpers for basic assertions
   testHelpers,
+  ...
 }:
 
 let

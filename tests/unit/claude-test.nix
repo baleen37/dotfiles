@@ -5,6 +5,7 @@
   lib ? import <nixpkgs/lib>,
   pkgs ? import <nixpkgs> { },
   self ? ./.,
+  ...
 }:
 
 let

@@ -13,6 +13,7 @@
   pkgs,
   lib,
   helpers ? import ./test-helpers.nix { inherit pkgs lib; },
+  ...
 }:
 
 rec {

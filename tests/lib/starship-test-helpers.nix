@@ -6,6 +6,7 @@
 {
   lib,
   helpers,
+  ...
 }:
 
 rec {

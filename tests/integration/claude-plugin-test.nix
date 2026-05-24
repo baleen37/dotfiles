@@ -3,6 +3,7 @@
 # Tests Claude Code settings and configuration management
 {
   pkgs ? import <nixpkgs> { },
+  ...
 }:
 
 let

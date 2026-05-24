@@ -15,6 +15,7 @@
       isDarwin = pkgs.stdenv.isDarwin;
     };
   },
+  ...
 }:
 
 let

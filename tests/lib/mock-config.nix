@@ -6,6 +6,7 @@
 {
   pkgs,
   lib,
+  ...
 }:
 
 rec {
