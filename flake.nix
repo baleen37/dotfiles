@@ -50,6 +50,11 @@
       url = "github:nix-community/nixos-generators";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    treefmt-nix = {
+      url = "github:numtide/treefmt-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -69,6 +74,7 @@
         ./flake-modules/checks.nix
         ./flake-modules/dev-shells.nix
         ./flake-modules/packages.nix
+        ./flake-modules/formatter.nix
       ];
     };
 }
