@@ -14,6 +14,11 @@
         prettier.enable = true;
       };
 
+      settings.global.excludes = [
+        # Bash heredoc inside indented Nix strings confuses nixfmt's parser.
+        "tests/e2e/tool-integration-test.nix"
+      ];
+
       settings.formatter = {
         shfmt.options = [
           "-i"
