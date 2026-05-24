@@ -1,14 +1,13 @@
 { inputs, self, ... }:
 
 let
-  nixpkgs = inputs.nixpkgs;
-  nixos-generators = inputs.nixos-generators;
+  inherit (inputs) nixpkgs;
+  inherit (inputs) nixos-generators;
 in
 {
   perSystem =
     {
       system,
-      pkgs,
       lib,
       ...
     }:
@@ -57,7 +56,7 @@ in
     let
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
-      lib = nixpkgs.lib;
+      inherit (nixpkgs) lib;
     in
     import ../tests/e2e {
       inherit

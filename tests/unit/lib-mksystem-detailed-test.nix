@@ -5,7 +5,6 @@
 {
   inputs,
   system,
-  nixtest ? { },
   pkgs ? import inputs.nixpkgs { inherit system; },
   lib ? pkgs.lib,
   self ? ./.,
@@ -21,34 +20,29 @@ let
   mkSystem = import ../../lib/mksystem.nix { inherit inputs self; };
 
   # Create a test system configuration
-  testSystem = mkSystem "test-machine" {
-    system = "x86_64-linux";
-    user = "testuser";
-    darwin = false;
-    wsl = false;
-  };
 
 in
 {
-  platforms = ["darwin"];
+  platforms = [ "darwin" ];
   value = {
     # Test 1: mkSystem accepts all required parameters
-    accepts-required-params = helpers.assertTest "mksystem-accepts-required-params" (
-      builtins.isFunction mkSystem
-    ) "mkSystem should be a function that accepts system parameters";
+    accepts-required-params =
+      helpers.assertTest "mksystem-accepts-required-params" (builtins.isFunction mkSystem)
+        "mkSystem should be a function that accepts system parameters";
 
     # Test 2: mkSystem with darwin=true returns darwinSystem
     darwin-system-creates-darwin-config = helpers.assertTest "mksystem-darwin-creates-darwin-config" (
       let
-        darwinSystem = if hasDarwinInputs then
-          mkSystem "darwin-test" {
-            system = "aarch64-darwin";
-            user = "testuser";
-            darwin = true;
-            wsl = false;
-          }
-        else
-          null;
+        darwinSystem =
+          if hasDarwinInputs then
+            mkSystem "darwin-test" {
+              system = "aarch64-darwin";
+              user = "testuser";
+              darwin = true;
+              wsl = false;
+            }
+          else
+            null;
         # Check that it's a valid configuration structure
         result = builtins.tryEval darwinSystem;
       in
@@ -125,7 +119,12 @@ in
     # Test 7: Trusted users includes root and specified user
     cache-settings-trusted-users = helpers.assertTest "mksystem-cache-settings-trusted-users" (
       let
-        trustedUsers = [ "root" "testuser" "@admin" "@wheel" ];
+        trustedUsers = [
+          "root"
+          "testuser"
+          "@admin"
+          "@wheel"
+        ];
       in
       builtins.elem "root" trustedUsers
       && builtins.elem "testuser" trustedUsers
@@ -134,19 +133,22 @@ in
     ) "Cache settings should include root, user, @admin, and @wheel in trusted users";
 
     # Test 8: SpecialArgs structure is correct
-    specialargs-structure = helpers.assertTest "mksystem-specialargs-structure" (
-      let
-        # The specialArgs should include currentSystem, currentSystemName, currentSystemUser
-        requiredArgs = [
-          "currentSystem"
-          "currentSystemName"
-          "currentSystemUser"
-          "isDarwin"
-          "isWSL"
-        ];
-      in
-      builtins.length requiredArgs == 5
-    ) "System should pass currentSystem, currentSystemName, currentSystemUser, isDarwin, and isWSL as specialArgs";
+    specialargs-structure =
+      helpers.assertTest "mksystem-specialargs-structure"
+        (
+          let
+            # The specialArgs should include currentSystem, currentSystemName, currentSystemUser
+            requiredArgs = [
+              "currentSystem"
+              "currentSystemName"
+              "currentSystemUser"
+              "isDarwin"
+              "isWSL"
+            ];
+          in
+          builtins.length requiredArgs == 5
+        )
+        "System should pass currentSystem, currentSystemName, currentSystemUser, isDarwin, and isWSL as specialArgs";
 
     # Test 9: Home Manager is integrated
     home-manager-integrated = helpers.assertTest "mksystem-home-manager-integrated" (
@@ -194,7 +196,12 @@ in
       let
         # The user parameter should be used in trusted-users
         testUser = "testuser";
-        trustedUsers = [ "root" testUser "@admin" "@wheel" ];
+        trustedUsers = [
+          "root"
+          testUser
+          "@admin"
+          "@wheel"
+        ];
       in
       builtins.elem testUser trustedUsers
     ) "User parameter should be included in trusted users";
@@ -214,13 +221,15 @@ in
         # mkSystem should accept overlays parameter
         mkSystemWithOverlays = import ../../lib/mksystem.nix {
           inherit inputs self;
-          overlays = [ (self: super: { }) ];
+          overlays = [ (_self: _super: { }) ];
         };
-        result = builtins.tryEval (mkSystemWithOverlays "test" {
-          system = "x86_64-linux";
-          user = "testuser";
-          darwin = false;
-        });
+        result = builtins.tryEval (
+          mkSystemWithOverlays "test" {
+            system = "x86_64-linux";
+            user = "testuser";
+            darwin = false;
+          }
+        );
       in
       result.success
     ) "mkSystem should accept and apply overlays parameter";
@@ -237,14 +246,15 @@ in
     # Test 16: isDarwin boolean is set correctly
     is-darwin-set = helpers.assertTest "mksystem-is-darwin-set" (
       let
-        darwinSystem = if hasDarwinInputs then
-          mkSystem "darwin-test" {
-            system = "aarch64-darwin";
-            user = "testuser";
-            darwin = true;
-          }
-        else
-          null;
+        darwinSystem =
+          if hasDarwinInputs then
+            mkSystem "darwin-test" {
+              system = "aarch64-darwin";
+              user = "testuser";
+              darwin = true;
+            }
+          else
+            null;
         linuxSystem = mkSystem "linux-test" {
           system = "x86_64-linux";
           user = "testuser";
@@ -265,14 +275,15 @@ in
           user = "user1";
           darwin = false;
         };
-        system2 = if hasDarwinInputs then
-          mkSystem "system2" {
-            system = "aarch64-darwin";
-            user = "user2";
-            darwin = true;
-          }
-        else
-          null;
+        system2 =
+          if hasDarwinInputs then
+            mkSystem "system2" {
+              system = "aarch64-darwin";
+              user = "user2";
+              darwin = true;
+            }
+          else
+            null;
         result1 = builtins.tryEval system1;
         result2 = builtins.tryEval system2;
       in
@@ -346,17 +357,20 @@ in
     ) "specialArgs.isDarwin should match the darwin parameter";
 
     # Test 24: Cache settings include trusted-substituters for Linux
-    cache-settings-trusted-substituters = helpers.assertTest "mksystem-cache-settings-trusted-substituters" (
-      let
-        # trusted-substituters should match substituters for Linux systems
-        substituters = [
-          "https://baleen-nix.cachix.org"
-          "https://cache.nixos.org/"
-        ];
-        trustedSubstituters = substituters;
-      in
-      builtins.length substituters == builtins.length trustedSubstituters
-    ) "Cache settings should include trusted-substituters matching substituters";
+    cache-settings-trusted-substituters =
+      helpers.assertTest "mksystem-cache-settings-trusted-substituters"
+        (
+          let
+            # trusted-substituters should match substituters for Linux systems
+            substituters = [
+              "https://baleen-nix.cachix.org"
+              "https://cache.nixos.org/"
+            ];
+            trustedSubstituters = substituters;
+          in
+          builtins.length substituters == builtins.length trustedSubstituters
+        )
+        "Cache settings should include trusted-substituters matching substituters";
 
     # Test 25: Determinate Nix customSettings is configured
     determinate-nix-custom-settings = helpers.assertTest "mksystem-determinate-nix-custom-settings" (
@@ -431,8 +445,7 @@ in
         testUser = "testuser";
         darwinHome = "/Users/" + testUser;
       in
-      builtins.stringLength darwinHome > 0
-      && builtins.substring 0 6 darwinHome == "/Users"
+      builtins.stringLength darwinHome > 0 && builtins.substring 0 6 darwinHome == "/Users"
     ) "User home directory on Darwin should be /Users/{user}";
 
     # Test 31: User home directory is set correctly for Linux
@@ -442,8 +455,7 @@ in
         testUser = "testuser";
         linuxHome = "/home/" + testUser;
       in
-      builtins.stringLength linuxHome > 0
-      && builtins.substring 0 5 linuxHome == "/home"
+      builtins.stringLength linuxHome > 0 && builtins.substring 0 5 linuxHome == "/home"
     ) "User home directory on Linux should be /home/{user}";
 
     # Test 32: Users.users.{user} is configured with name attribute
@@ -486,20 +498,23 @@ in
     nixpkgs-overlays-applied = helpers.assertTest "mksystem-nixpkgs-overlays-applied" (
       let
         # nixpkgs.overlays should be set from overlays parameter
-        testOverlays = [ (self: super: { }) ];
+        testOverlays = [ (_self: _super: { }) ];
         hasOverlays = builtins.length testOverlays >= 0;
       in
       hasOverlays
     ) "nixpkgs.overlays should be applied from overlays parameter";
 
     # Test 36: Darwin systems include determinate module
-    darwin-includes-determinate-module = helpers.assertTest "mksystem-darwin-includes-determinate-module" (
-      let
-        # Darwin systems should include inputs.determinate.darwinModules.default
-        hasDeterminateModule = inputs ? determinate;
-      in
-      hasDeterminateModule
-    ) "Darwin systems should include Determinate Nix module";
+    darwin-includes-determinate-module =
+      helpers.assertTest "mksystem-darwin-includes-determinate-module"
+        (
+          let
+            # Darwin systems should include inputs.determinate.darwinModules.default
+            hasDeterminateModule = inputs ? determinate;
+          in
+          hasDeterminateModule
+        )
+        "Darwin systems should include Determinate Nix module";
 
     # Test 37: Nix.enable is false for Darwin (Determinate manages it)
     darwin-nix-enable-false = helpers.assertTest "mksystem-darwin-nix-enable-false" (
@@ -539,37 +554,44 @@ in
     ) "Modules should include userOSConfig";
 
     # Test 41: Different system architectures are supported
-    system-architecture-aarch64-linux = helpers.assertTest "mksystem-system-architecture-aarch64-linux" (
-      let
-        # Test aarch64-linux system
-        aarch64System = mkSystem "aarch64-test" {
-          system = "aarch64-linux";
-          user = "testuser";
-          darwin = false;
-          wsl = false;
-        };
-        result = builtins.tryEval aarch64System;
-      in
-      result.success
-    ) "mkSystem should support aarch64-linux architecture";
+    system-architecture-aarch64-linux =
+      helpers.assertTest "mksystem-system-architecture-aarch64-linux"
+        (
+          let
+            # Test aarch64-linux system
+            aarch64System = mkSystem "aarch64-test" {
+              system = "aarch64-linux";
+              user = "testuser";
+              darwin = false;
+              wsl = false;
+            };
+            result = builtins.tryEval aarch64System;
+          in
+          result.success
+        )
+        "mkSystem should support aarch64-linux architecture";
 
     # Test 42: Different system architectures are supported
-    system-architecture-x86_64-darwin = helpers.assertTest "mksystem-system-architecture-x86_64-darwin" (
-      let
-        # Test x86_64-darwin system (if darwin inputs available)
-        darwinSystem = if hasDarwinInputs then
-          mkSystem "x86-darwin-test" {
-            system = "x86_64-darwin";
-            user = "testuser";
-            darwin = true;
-            wsl = false;
-          }
-        else
-          null;
-        result = builtins.tryEval darwinSystem;
-      in
-      !hasDarwinInputs || result.success
-    ) "mkSystem should support x86_64-darwin architecture";
+    system-architecture-x86_64-darwin =
+      helpers.assertTest "mksystem-system-architecture-x86_64-darwin"
+        (
+          let
+            # Test x86_64-darwin system (if darwin inputs available)
+            darwinSystem =
+              if hasDarwinInputs then
+                mkSystem "x86-darwin-test" {
+                  system = "x86_64-darwin";
+                  user = "testuser";
+                  darwin = true;
+                  wsl = false;
+                }
+              else
+                null;
+            result = builtins.tryEval darwinSystem;
+          in
+          !hasDarwinInputs || result.success
+        )
+        "mkSystem should support x86_64-darwin architecture";
 
     # Test 43: WSL system with NixOS
     wsl-nixos-system = helpers.assertTest "mksystem-wsl-nixos-system" (
@@ -605,7 +627,12 @@ in
     cache-trusted-users-groups = helpers.assertTest "mksystem-cache-trusted-users-groups" (
       let
         # trusted-users should include @admin and @wheel groups
-        trustedUsers = [ "root" "testuser" "@admin" "@wheel" ];
+        trustedUsers = [
+          "root"
+          "testuser"
+          "@admin"
+          "@wheel"
+        ];
         hasAdmin = builtins.elem "@admin" trustedUsers;
         hasWheel = builtins.elem "@wheel" trustedUsers;
       in
@@ -641,18 +668,21 @@ in
     ) "NixOS systems should use nixos.nix as user OS config";
 
     # Test 49: specialArgs are passed to both system and home-manager
-    specialargs-passed-to-home-manager = helpers.assertTest "mksystem-specialargs-passed-to-home-manager" (
-      let
-        # extraSpecialArgs in home-manager should include inputs and self
-        extraSpecialArgs = {
-          inherit inputs self;
-          currentSystemUser = "testuser";
-        };
-      in
-      builtins.hasAttr "inputs" extraSpecialArgs
-      && builtins.hasAttr "self" extraSpecialArgs
-      && builtins.hasAttr "currentSystemUser" extraSpecialArgs
-    ) "Home Manager extraSpecialArgs should include inputs, self, and currentSystemUser";
+    specialargs-passed-to-home-manager =
+      helpers.assertTest "mksystem-specialargs-passed-to-home-manager"
+        (
+          let
+            # extraSpecialArgs in home-manager should include inputs and self
+            extraSpecialArgs = {
+              inherit inputs self;
+              currentSystemUser = "testuser";
+            };
+          in
+          builtins.hasAttr "inputs" extraSpecialArgs
+          && builtins.hasAttr "self" extraSpecialArgs
+          && builtins.hasAttr "currentSystemUser" extraSpecialArgs
+        )
+        "Home Manager extraSpecialArgs should include inputs, self, and currentSystemUser";
 
     # Test 50: Multiple users can be configured independently
     multiple-users-independent = helpers.assertTest "mksystem-multiple-users-independent" (
@@ -693,11 +723,13 @@ in
           inherit inputs self;
           overlays = [ ];
         };
-        result = builtins.tryEval (mkSystemEmptyOverlays "test" {
-          system = "x86_64-linux";
-          user = "testuser";
-          darwin = false;
-        });
+        result = builtins.tryEval (
+          mkSystemEmptyOverlays "test" {
+            system = "x86_64-linux";
+            user = "testuser";
+            darwin = false;
+          }
+        );
       in
       result.success
     ) "mkSystem should handle empty overlays list";
@@ -729,8 +761,7 @@ in
         keysNotEmpty = builtins.length cacheSettings.trusted-public-keys > 0;
         usersNotEmpty = builtins.length cacheSettings.trusted-users > 0;
       in
-      hasSubstituters && hasKeys && hasUsers
-      && substitutersNotEmpty && keysNotEmpty && usersNotEmpty
+      hasSubstituters && hasKeys && hasUsers && substitutersNotEmpty && keysNotEmpty && usersNotEmpty
     ) "Cache settings should be complete with all required fields";
 
     # Test 54: SpecialArgs are all present and non-empty
@@ -738,8 +769,8 @@ in
       let
         # All specialArgs should be present
         requiredArgs = {
-          inputs = inputs;
-          self = self;
+          inherit inputs;
+          inherit self;
           currentSystem = "x86_64-linux";
           currentSystemName = "test";
           currentSystemUser = "testuser";
@@ -764,8 +795,7 @@ in
       let
         # Modules should be: [machineConfig, userOSConfig, conditionalNixModule, ...]
         baseModules = 2; # machineConfig + userOSConfig
-        nixModule = 1; # conditional Nix configuration module
-        darwinModule = if hasDarwinInputs then 1 else 0; # determinate module
+        nixModule = 1; # conditional Nix configuration module # determinate module
         homeManagerModule = 1; # home-manager integration
         expectedMinModules = baseModules + nixModule + homeManagerModule;
       in

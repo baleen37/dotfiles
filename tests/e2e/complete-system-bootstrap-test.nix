@@ -15,10 +15,7 @@
 {
   pkgs ? import <nixpkgs> { },
   nixpkgs ? <nixpkgs>,
-  lib ? pkgs.lib,
   system ? builtins.currentSystem or "x86_64-linux",
-  self ? null,
-  inputs ? { },
 }:
 
 let
@@ -30,8 +27,6 @@ let
     });
 
   # Import E2E helpers
-  e2eHelpers = import ../lib/e2e-helpers.nix { inherit pkgs lib; };
-  inherit (e2eHelpers) bootstrapWorkflow validateBootstrapWorkflow;
 
 in
 nixosTest {
@@ -40,7 +35,7 @@ nixosTest {
   nodes = {
     # Fresh machine (simulates clean NixOS install)
     fresh-machine =
-      { config, pkgs, ... }:
+      { pkgs, ... }:
       {
         # Standard VM config
         boot.loader.systemd-boot.enable = true;

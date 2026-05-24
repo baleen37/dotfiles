@@ -56,12 +56,14 @@ NSGlobalDomain = {
 ```
 
 **설명**:
+
 - `KeyRepeat = 1`: 키를 누르고 있을 때 문자 반복 간격을 최소화 (약 15ms)
 - `InitialKeyRepeat = 10`: 키를 누른 후 반복 시작까지의 지연을 최소화 (약 150ms)
 - `com.apple.trackpad.scaling = 3.0`: 트랙패드 커서 이동 속도를 최대로 설정
 - `com.apple.scrollwheel.scaling = 1.0`: 스크롤 속도를 최대로 설정 (-1로 변경하면 가속 비활성화)
 
 **기술적 근거**:
+
 - nix-darwin에서 `system.defaults.NSGlobalDomain`을 통해 모든 설정을 선언적으로 관리
 - `com.apple.trackpad.scaling`과 `com.apple.scrollwheel.scaling`은 NSGlobalDomain에서 직접 지원됨 ([출처](https://mynixos.com/nix-darwin/option/system.defaults.NSGlobalDomain.%22com.apple.trackpad.scaling%22))
 - activationScripts 대신 선언적 설정을 사용하여 재현성 향상
@@ -106,6 +108,7 @@ system.activationScripts.configureKeyboard = {
 ```
 
 **이유**:
+
 - `system.defaults.NSGlobalDomain`에서 이미 선언적으로 관리하므로 중복 제거
 - 입력 소스 전환 관련 코드는 nix-darwin에서 아직 선언적 방법이 없으므로 유지
 - 더 깔끔하고 일관된 구조
@@ -114,24 +117,26 @@ system.activationScripts.configureKeyboard = {
 
 ### 키보드
 
-| 항목 | 기존 (activationScripts) | 변경 후 | 개선율 |
-|------|-------------------------|---------|--------|
-| 초기 반복 지연 | 25 (약 375ms) | 10 (약 150ms) | 2.5배 빠름 |
-| 키 반복 간격 | 2 (약 30ms) | 1 (약 15ms) | 2배 빠름 |
+| 항목           | 기존 (activationScripts) | 변경 후       | 개선율     |
+| -------------- | ------------------------ | ------------- | ---------- |
+| 초기 반복 지연 | 25 (약 375ms)            | 10 (약 150ms) | 2.5배 빠름 |
+| 키 반복 간격   | 2 (약 30ms)              | 1 (약 15ms)   | 2배 빠름   |
 
 **효과**:
+
 - vim/emacs 같은 텍스트 에디터에서 hjkl 이동이 훨씬 빠름
 - 터미널 작업 시 빠른 입력 가능
 - 한글 타이핑 시에도 더 반응성 좋은 경험
 
 ### 트랙패드
 
-| 항목 | 기존 | 변경 후 |
-|------|------|---------|
+| 항목           | 기존            | 변경 후    |
+| -------------- | --------------- | ---------- |
 | 커서 이동 속도 | 기본값 (약 1.0) | 3.0 (최대) |
-| 스크롤 속도 | 기본값 | 1.0 (최대) |
+| 스크롤 속도    | 기본값          | 1.0 (최대) |
 
 **효과**:
+
 - 개발 중 빠른 화면 이동 가능
 - 긴 코드 파일 스크롤 시 효율적
 - 멀티 모니터 환경에서 커서 이동 개선
@@ -151,18 +156,21 @@ make switch
 너무 빠르다고 느껴질 경우 다음과 같이 조정 가능:
 
 **키보드**:
+
 ```nix
 KeyRepeat = 2;           # 1→2 (약간 느리게)
 InitialKeyRepeat = 15;   # 10→15 (초기 지연 증가)
 ```
 
 **트랙패드**:
+
 ```nix
 "com.apple.trackpad.scaling" = 2.5;      # 3.0→2.5
 "com.apple.scrollwheel.scaling" = 0.75;  # 1.0→0.75
 ```
 
 **스크롤 가속 비활성화**:
+
 ```nix
 "com.apple.scrollwheel.scaling" = -1;  # 가속 완전 제거
 ```

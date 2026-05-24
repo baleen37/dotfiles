@@ -21,15 +21,12 @@
   pkgs ? import inputs.nixpkgs { inherit system; },
   lib ? pkgs.lib,
   system ? builtins.currentSystem,
-  self,
 }:
 
 let
   # Import test framework and helpers
-  testHelpers = import ../lib/test-helpers.nix { inherit lib pkgs; };
 
   # Platform detection
-  isLinux = lib.strings.hasSuffix "linux" system;
   isDarwin = lib.strings.hasSuffix "darwin" system;
 
   # Target VM architecture based on current platform

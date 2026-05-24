@@ -3,10 +3,7 @@
 # This document defines the standard patterns for writing tests in this codebase.
 # All tests should follow these conventions for consistency and maintainability.
 
-{
-  lib,
-  pkgs,
-}:
+_:
 
 rec {
   # ==============================================================================

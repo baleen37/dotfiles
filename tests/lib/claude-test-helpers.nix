@@ -7,6 +7,7 @@
   pkgs,
   lib,
   helpers ? import ../lib/test-helpers.nix { inherit pkgs lib; },
+  ...
 }:
 
 rec {
@@ -34,11 +35,9 @@ rec {
   #
   # Example:
   #   hasForceEnabled homeFiles ".claude/commands"
-  hasForceEnabled = homeFiles: fileAttr:
-    if hasFileConfig homeFiles fileAttr then
-      homeFiles.${fileAttr}.force or false
-    else
-      false;
+  hasForceEnabled =
+    homeFiles: fileAttr:
+    if hasFileConfig homeFiles fileAttr then homeFiles.${fileAttr}.force or false else false;
 
   # Check if a directory is marked as recursive in home.file configuration
   #
@@ -51,11 +50,9 @@ rec {
   #
   # Example:
   #   isRecursive homeFiles ".claude/skills"
-  isRecursive = homeFiles: fileAttr:
-    if hasFileConfig homeFiles fileAttr then
-      homeFiles.${fileAttr}.recursive or false
-    else
-      false;
+  isRecursive =
+    homeFiles: fileAttr:
+    if hasFileConfig homeFiles fileAttr then homeFiles.${fileAttr}.recursive or false else false;
 
   # Check if a file is marked as executable in home.file configuration
   #
@@ -68,11 +65,9 @@ rec {
   #
   # Example:
   #   isExecutable homeFiles ".claude/statusline.sh"
-  isExecutable = homeFiles: fileAttr:
-    if hasFileConfig homeFiles fileAttr then
-      homeFiles.${fileAttr}.executable or false
-    else
-      false;
+  isExecutable =
+    homeFiles: fileAttr:
+    if hasFileConfig homeFiles fileAttr then homeFiles.${fileAttr}.executable or false else false;
 
   # Check if content has valid markdown structure
   #
@@ -84,9 +79,10 @@ rec {
   #
   # Example:
   #   hasMarkdownStructure "# My Document\n\nContent here"
-  hasMarkdownStructure = content:
-    (builtins.match ".*#.*" content != null) ||
-    (builtins.match ".*---.*description:.*" content != null);
+  hasMarkdownStructure =
+    content:
+    (builtins.match ".*#.*" content != null)
+    || (builtins.match ".*---.*description:.*" content != null);
 
   # Check if content has skill metadata (name and description)
   #
@@ -98,9 +94,9 @@ rec {
   #
   # Example:
   #   hasSkillMetadata "name: my-skill\ndescription: Does something"
-  hasSkillMetadata = content:
-    (builtins.match ".*name:.*" content != null) &&
-    (builtins.match ".*description:.*" content != null);
+  hasSkillMetadata =
+    content:
+    (builtins.match ".*name:.*" content != null) && (builtins.match ".*description:.*" content != null);
 
   # Assert that a Claude file is configured in home.file
   #
@@ -114,8 +110,10 @@ rec {
   #
   # Example:
   #   assertClaudeFileConfigured "commands-configured" homeFiles ".claude/commands"
-  assertClaudeFileConfigured = testName: homeFiles: fileAttr:
-    helpers.assertTest "${lib.strings.sanitizeDerivationName testName}-configured" (hasFileConfig homeFiles fileAttr)
+  assertClaudeFileConfigured =
+    testName: homeFiles: fileAttr:
+    helpers.assertTest "${lib.strings.sanitizeDerivationName testName}-configured"
+      (hasFileConfig homeFiles fileAttr)
       "${fileAttr} should be configured in home.file";
 
   # Assert that a Claude file has force enabled
@@ -130,8 +128,10 @@ rec {
   #
   # Example:
   #   assertClaudeFileForceEnabled "commands-force" homeFiles ".claude/commands"
-  assertClaudeFileForceEnabled = testName: homeFiles: fileAttr:
-    helpers.assertTest "${lib.strings.sanitizeDerivationName testName}-force-enabled" (hasForceEnabled homeFiles fileAttr)
+  assertClaudeFileForceEnabled =
+    testName: homeFiles: fileAttr:
+    helpers.assertTest "${lib.strings.sanitizeDerivationName testName}-force-enabled"
+      (hasForceEnabled homeFiles fileAttr)
       "${fileAttr} should have force=true to overwrite existing files";
 
   # Assert that a directory is recursive
@@ -146,8 +146,10 @@ rec {
   #
   # Example:
   #   assertClaudeDirRecursive "skills-recursive" homeFiles ".claude/skills"
-  assertClaudeDirRecursive = testName: homeFiles: fileAttr:
-    helpers.assertTest "${lib.strings.sanitizeDerivationName testName}-recursive" (isRecursive homeFiles fileAttr)
+  assertClaudeDirRecursive =
+    testName: homeFiles: fileAttr:
+    helpers.assertTest "${lib.strings.sanitizeDerivationName testName}-recursive"
+      (isRecursive homeFiles fileAttr)
       "${fileAttr} should be recursive to copy all contents";
 
   # Assert that a file is executable
@@ -162,8 +164,10 @@ rec {
   #
   # Example:
   #   assertClaudeFileExecutable "statusline-executable" homeFiles ".claude/statusline.sh"
-  assertClaudeFileExecutable = testName: homeFiles: fileAttr:
-    helpers.assertTest "${lib.strings.sanitizeDerivationName testName}-executable" (isExecutable homeFiles fileAttr)
+  assertClaudeFileExecutable =
+    testName: homeFiles: fileAttr:
+    helpers.assertTest "${lib.strings.sanitizeDerivationName testName}-executable"
+      (isExecutable homeFiles fileAttr)
       "${fileAttr} should be marked as executable";
 
   # Assert that content has valid markdown structure
@@ -178,12 +182,14 @@ rec {
   #
   # Example:
   #   assertClaudeMarkdown "claude-md-valid" content
-  assertClaudeMarkdown = testName: content: message:
+  assertClaudeMarkdown =
+    testName: content: message:
     let
       defaultMessage = "Content should have markdown structure (heading or YAML frontmatter)";
     in
-    helpers.assertTest testName (hasMarkdownStructure content)
-      (if message == null then defaultMessage else message);
+    helpers.assertTest testName (hasMarkdownStructure content) (
+      if message == null then defaultMessage else message
+    );
 
   # Assert that content has skill metadata
   #
@@ -196,7 +202,8 @@ rec {
   #
   # Example:
   #   assertClaudeSkillMetadata "skill-metadata-valid" content
-  assertClaudeSkillMetadata = testName: content:
+  assertClaudeSkillMetadata =
+    testName: content:
     helpers.assertTest testName (hasSkillMetadata content)
       "Content should have skill metadata (name and description fields)";
 
@@ -211,16 +218,18 @@ rec {
   #
   # Example:
   #   assertClaudeDirReadableAndHasFiles "commands" sourcePaths.commands
-  assertClaudeDirReadableAndHasFiles = testName: dirPath:
+  assertClaudeDirReadableAndHasFiles =
+    testName: dirPath:
     let
       dirReadable = builtins.tryEval (builtins.readDir dirPath);
     in
     [
       (helpers.assertTest "${testName}-dir-readable" dirReadable.success
-        "${testName} source directory should be readable")
-      (helpers.assertTest "${testName}-dir-has-files"
-        (dirReadable.success && builtins.length (builtins.attrNames dirReadable.value) > 0)
-        "${testName} source directory should contain files")
+        "${testName} source directory should be readable"
+      )
+      (helpers.assertTest "${testName}-dir-has-files" (
+        dirReadable.success && builtins.length (builtins.attrNames dirReadable.value) > 0
+      ) "${testName} source directory should contain files")
     ];
 
   # Assert that a file is readable and has content
@@ -234,16 +243,18 @@ rec {
   #
   # Example:
   #   assertClaudeFileReadableAndHasContent "statusline" sourcePaths.statusline
-  assertClaudeFileReadableAndHasContent = testName: filePath:
+  assertClaudeFileReadableAndHasContent =
+    testName: filePath:
     let
       fileReadable = builtins.tryEval (builtins.readFile filePath);
     in
     [
       (helpers.assertTest "${testName}-readable" fileReadable.success
-        "${testName} source file should be readable")
-      (helpers.assertTest "${testName}-has-content"
-        (fileReadable.success && builtins.stringLength fileReadable.value > 0)
-        "${testName} source file should have content")
+        "${testName} source file should be readable"
+      )
+      (helpers.assertTest "${testName}-has-content" (
+        fileReadable.success && builtins.stringLength fileReadable.value > 0
+      ) "${testName} source file should have content")
     ];
 
   # Assert that activation script exists in Home Manager configuration
@@ -258,7 +269,8 @@ rec {
   #
   # Example:
   #   assertClaudeActivationExists "settings-activation" activation "claudeSettings"
-  assertClaudeActivationExists = testName: activation: activationName:
+  assertClaudeActivationExists =
+    testName: activation: activationName:
     let
       activationSet = if activation == null then { } else activation;
     in
@@ -276,12 +288,11 @@ rec {
   #
   # Example:
   #   assertClaudeFilesConfigured [".claude/commands" ".claude/agents"] homeFiles
-  assertClaudeFilesConfigured = fileAttrs: homeFiles:
-    builtins.map (fileAttr:
-      assertClaudeFileConfigured
-        (lib.strings.sanitizeDerivationName fileAttr)
-        homeFiles
-        fileAttr
+  assertClaudeFilesConfigured =
+    fileAttrs: homeFiles:
+    builtins.map (
+      fileAttr:
+      assertClaudeFileConfigured (lib.strings.sanitizeDerivationName fileAttr) homeFiles fileAttr
     ) fileAttrs;
 
   # Bulk assertion helper for force enabled on multiple files
@@ -295,12 +306,11 @@ rec {
   #
   # Example:
   #   assertClaudeFilesForceEnabled [".claude/commands" ".claude/agents"] homeFiles
-  assertClaudeFilesForceEnabled = fileAttrs: homeFiles:
-    builtins.map (fileAttr:
-      assertClaudeFileForceEnabled
-        (lib.strings.sanitizeDerivationName fileAttr)
-        homeFiles
-        fileAttr
+  assertClaudeFilesForceEnabled =
+    fileAttrs: homeFiles:
+    builtins.map (
+      fileAttr:
+      assertClaudeFileForceEnabled (lib.strings.sanitizeDerivationName fileAttr) homeFiles fileAttr
     ) fileAttrs;
 
   # Bulk assertion helper for recursive directories
@@ -314,11 +324,9 @@ rec {
   #
   # Example:
   #   assertClaudeDirsRecursive [".claude/commands" ".claude/skills"] homeFiles
-  assertClaudeDirsRecursive = fileAttrs: homeFiles:
-    builtins.map (fileAttr:
-      assertClaudeDirRecursive
-        (lib.strings.sanitizeDerivationName fileAttr)
-        homeFiles
-        fileAttr
+  assertClaudeDirsRecursive =
+    fileAttrs: homeFiles:
+    builtins.map (
+      fileAttr: assertClaudeDirRecursive (lib.strings.sanitizeDerivationName fileAttr) homeFiles fileAttr
     ) fileAttrs;
 }

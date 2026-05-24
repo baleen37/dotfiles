@@ -13,7 +13,10 @@ let
   inherit (pkgs) lib;
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
   assertions = import ../lib/common-assertions.nix { inherit pkgs lib; };
-  patterns = import ../lib/patterns.nix { inherit pkgs lib; helpers = helpers; };
+  patterns = import ../lib/patterns.nix {
+    inherit pkgs lib;
+    inherit helpers;
+  };
 
   # Expected imports list
   expectedImports = [
@@ -105,8 +108,8 @@ helpers.testSuite "home-manager" [
   (assertions.assertAttrExists "hm-has-home" hmConfig "home" null)
 
   # 리스트 길이 검증
-  (assertions.assertListNotEmpty "hm-imports-not-empty" (hmConfig.imports or []) null)
-  (assertions.assertListNotEmpty "hm-packages-not-empty" (hmConfig.home.packages or []) null)
+  (assertions.assertListNotEmpty "hm-imports-not-empty" (hmConfig.imports or [ ]) null)
+  (assertions.assertListNotEmpty "hm-packages-not-empty" (hmConfig.home.packages or [ ]) null)
 
   # stateVersion이 null이 아닌지 확인
   (assertions.assertNotNull "hm-state-version-not-null" hmConfig.home.stateVersion null)

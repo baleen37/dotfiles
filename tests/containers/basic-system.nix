@@ -1,5 +1,5 @@
 # Basic NixOS system container test
-{ pkgs, lib, ... }:
+{ pkgs, ... }:
 
 let
   # Use static test user for environment independence

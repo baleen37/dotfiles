@@ -13,6 +13,7 @@
 ## Task 1: Add D2 Coding Font Package
 
 **Files:**
+
 - Modify: `users/shared/home-manager.nix:122-124`
 
 **Step 1: Add d2coding to packages list**
@@ -49,6 +50,7 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 ## Task 2: Configure Ghostty Font Fallback
 
 **Files:**
+
 - Modify: `users/shared/.config/ghostty/config:5`
 
 **Step 1: Add D2Coding fallback to font configuration**
@@ -67,6 +69,7 @@ font-size = 14
 Run: `cat users/shared/.config/ghostty/config | grep -A 2 "Font Configuration"`
 
 Expected output:
+
 ```
 # Font Configuration
 font-family = JetBrains Mono
@@ -95,6 +98,7 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 ## Task 3: Build and Apply Configuration
 
 **Files:**
+
 - None (build/deployment task)
 
 **Step 1: Build configuration**
@@ -114,6 +118,7 @@ Expected: Configuration applied, fonts installed to system
 Run: `fc-list | grep -i d2`
 
 Expected output (contains D2Coding entries):
+
 ```
 /nix/store/.../share/fonts/truetype/D2Coding.ttc: D2Coding:style=Regular
 /nix/store/.../share/fonts/truetype/D2Coding.ttc: D2Coding:style=Bold
@@ -124,6 +129,7 @@ Expected output (contains D2Coding entries):
 Run: `cat ~/.config/ghostty/config | grep font-family`
 
 Expected output:
+
 ```
 font-family = JetBrains Mono
 font-family = D2Coding
@@ -134,6 +140,7 @@ font-family = D2Coding
 ## Task 4: Runtime Verification
 
 **Files:**
+
 - None (manual testing task)
 
 **Step 1: Test font rendering**
@@ -148,6 +155,7 @@ font-family = D2Coding
 **Step 2: Test font fallback behavior**
 
 Type mixed content to verify fallback:
+
 ```
 English text
 한글 텍스트
@@ -155,6 +163,7 @@ Mixed English and 한글
 ```
 
 Verify:
+
 - English consistently uses JetBrains Mono
 - Korean consistently uses D2Coding
 - No rendering artifacts or spacing issues
@@ -162,6 +171,7 @@ Verify:
 **Step 3: Verify font metrics**
 
 Check that line height is consistent across font changes:
+
 ```
 aaaaaaaaaa
 가가가가가
@@ -175,6 +185,7 @@ Expected: All three lines should have same vertical spacing
 ## Task 5: Update Tests
 
 **Files:**
+
 - Modify: `tests/integration/ghostty-test.nix:74-75`
 
 **Step 1: Update font family test assertion**
@@ -222,6 +233,7 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 ## Task 6: Final Verification
 
 **Files:**
+
 - None (comprehensive verification task)
 
 **Step 1: Run full test suite**
@@ -245,6 +257,7 @@ Expected: All changes committed, working tree clean
 **Step 4: Document completion**
 
 Create summary of changes:
+
 - Added `d2coding` package to home-manager.nix
 - Configured Ghostty font fallback (JetBrains Mono → D2Coding)
 - Updated integration tests for font verification

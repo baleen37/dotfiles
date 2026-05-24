@@ -14,9 +14,7 @@
 {
   pkgs ? import <nixpkgs> { },
   nixpkgs ? <nixpkgs>,
-  lib ? pkgs.lib,
   system ? builtins.currentSystem or "x86_64-linux",
-  self ? null,
 }:
 
 let
@@ -28,10 +26,6 @@ let
     });
 
   # Mock lib/user-info.nix content
-  userInfo = {
-    name = "Jiho Lee";
-    email = "baleen37@gmail.com";
-  };
 
 in
 nixosTest {
@@ -40,7 +34,7 @@ nixosTest {
   nodes = {
     # Main test machine with multiple users
     machine =
-      { config, pkgs, ... }:
+      { pkgs, ... }:
       {
         # Standard VM config
         boot.loader.systemd-boot.enable = true;

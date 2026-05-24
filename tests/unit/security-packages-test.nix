@@ -10,36 +10,65 @@
   system,
   pkgs ? import inputs.nixpkgs { inherit system; },
   lib ? pkgs.lib,
-  nixtest ? { },
-  self ? ./.,
   ...
 }:
 
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
 
-  # Import home-manager configuration to test packages
-  hmConfig = import ../../users/shared/home-manager.nix {
-    inherit pkgs lib inputs;
-    currentSystemUser = "testuser";
+  # Inspect each category package module directly to collect its package list.
+  # Each module under users/shared/packages/ exposes `myHome.packages.<cat>.enable`
+  # (default true) and emits `home.packages` via `config = lib.mkIf cfg.enable {...}`.
+  # We invoke the body with the option enabled to extract the contributed package list.
+  categoryModules = [
+    "ai"
+    "cloud"
+    "core"
+    "databases"
+    "dev"
+    "fonts"
+    "lsp"
+    "media"
+    "nix-tools"
+    "security"
+    "ssh"
+  ];
+
+  # Declare the minimal `home.packages` option locally so evalModules can merge
+  # `home.packages = ...` from each category module without pulling in home-manager.
+  homeOptionsModule = {
+    options.home.packages = lib.mkOption {
+      type = lib.types.listOf lib.types.package;
+      default = [ ];
+    };
   };
 
-  # Extract package names from home.packages
-  packageNames = map (pkg: pkg.pname or pkg.name or "") hmConfig.home.packages;
+  evalCategory =
+    name:
+    (lib.evalModules {
+      modules = [
+        homeOptionsModule
+        (import (../../users/shared/packages + "/${name}.nix"))
+        { _module.args = { inherit pkgs; }; }
+      ];
+    }).config.home.packages;
+
+  allPackages = lib.concatMap evalCategory categoryModules;
+  packageNames = map (pkg: pkg.pname or pkg.name or "") allPackages;
 
 in
 {
-  platforms = ["any"];
+  platforms = [ "any" ];
   value = helpers.testSuite "security-packages" [
     # Test that age is installed
-    (helpers.assertTest "age-installed" (
-      builtins.any (name: name == "age") packageNames
-    ) "age should be in home.packages")
+    (helpers.assertTest "age-installed" (builtins.any (
+      name: name == "age"
+    ) packageNames) "age should be in home.packages")
 
     # Test that sops is installed
-    (helpers.assertTest "sops-installed" (
-      builtins.any (name: name == "sops") packageNames
-    ) "sops should be in home.packages")
+    (helpers.assertTest "sops-installed" (builtins.any (
+      name: name == "sops"
+    ) packageNames) "sops should be in home.packages")
 
     # Test that git-crypt is NOT installed
     (helpers.assertTest "git-crypt-removed" (

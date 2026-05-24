@@ -26,16 +26,16 @@ macOS의 Secure Input이 켜진 상태(예: Safari 비밀번호 필드 포커스
 
 `users/shared/.config/hammerspoon/configApplications.lua`의 `hyperKey` 필드 8개:
 
-| 키 | 앱 | Bundle ID |
-|----|-----|----------|
-| i | Ghostty | com.mitchellh.ghostty |
-| e | Mail | com.apple.mail |
-| f | Finder | com.apple.finder |
-| h | Dash | com.kapeli.dashdoc |
-| k | KakaoTalk | com.kakao.KakaoTalkMac |
-| n | Notion | notion.id |
-| o | Obsidian | md.obsidian |
-| t | Things | com.culturedcode.ThingsMac |
+| 키  | 앱        | Bundle ID                  |
+| --- | --------- | -------------------------- |
+| i   | Ghostty   | com.mitchellh.ghostty      |
+| e   | Mail      | com.apple.mail             |
+| f   | Finder    | com.apple.finder           |
+| h   | Dash      | com.kapeli.dashdoc         |
+| k   | KakaoTalk | com.kakao.KakaoTalkMac     |
+| n   | Notion    | notion.id                  |
+| o   | Obsidian  | md.obsidian                |
+| t   | Things    | com.culturedcode.ThingsMac |
 
 ### 유지 (Hammerspoon)
 
@@ -55,6 +55,7 @@ macOS의 Secure Input이 켜진 상태(예: Safari 비밀번호 필드 포커스
 ### 키 흐름
 
 **Hyper + 이관된 키 (i, e, f, h, k, n, o, t):**
+
 ```
 [Right Cmd + i 누름]
   ↓ Karabiner DriverKit (Secure Input 무관)
@@ -64,6 +65,7 @@ macOS의 Secure Input이 켜진 상태(예: Safari 비밀번호 필드 포커스
 ```
 
 **Hyper + 남은 키 (m, p, localBindings):**
+
 ```
 [Right Cmd 단독 또는 Right Cmd + 미매칭 키]
   ↓ Karabiner: complex 매칭 없음
@@ -78,9 +80,9 @@ macOS의 Secure Input이 켜진 상태(예: Safari 비밀번호 필드 포커스
 
 ### 파일 변경 위치
 
-| 파일 | 변경 |
-|------|------|
-| `users/shared/.config/karabiner/karabiner.json` | `complex_modifications` 추가 (8개 manipulator) |
+| 파일                                                      | 변경                                                                        |
+| --------------------------------------------------------- | --------------------------------------------------------------------------- |
+| `users/shared/.config/karabiner/karabiner.json`           | `complex_modifications` 추가 (8개 manipulator)                              |
 | `users/shared/.config/hammerspoon/configApplications.lua` | 이관된 8개 항목에서 `hyperKey` 필드 제거. `localBindings`/`bundleID`는 유지 |
 
 다른 파일은 손대지 않는다 (init.lua, hammerspoon.nix, karabiner.nix 등 모두 그대로).
@@ -90,21 +92,27 @@ macOS의 Secure Input이 켜진 상태(예: Safari 비밀번호 필드 포커스
 ### Karabiner JSON 변경
 
 기존:
+
 ```json
 {
-  "profiles": [{
-    "name": "Default profile",
-    "selected": true,
-    "simple_modifications": [
-      { "from": { "key_code": "right_command" },
-        "to": [{ "key_code": "f19" }] }
-    ],
-    "virtual_hid_keyboard": { "keyboard_type_v2": "ansi" }
-  }]
+  "profiles": [
+    {
+      "name": "Default profile",
+      "selected": true,
+      "simple_modifications": [
+        {
+          "from": { "key_code": "right_command" },
+          "to": [{ "key_code": "f19" }]
+        }
+      ],
+      "virtual_hid_keyboard": { "keyboard_type_v2": "ansi" }
+    }
+  ]
 }
 ```
 
 추가될 `complex_modifications` (예시 1개, 실제 8개):
+
 ```json
 "complex_modifications": {
   "rules": [{
@@ -133,6 +141,7 @@ macOS의 Secure Input이 켜진 상태(예: Safari 비밀번호 필드 포커스
 ### "frontmost면 hide" 토글 처리 — 의도적 단순화
 
 현재 Hammerspoon 동작 (configApplications.lua의 init.lua:23-29):
+
 ```lua
 if hs.application.get(bundleID):isFrontmost() then
     hs.application.get(bundleID):hide()
@@ -144,6 +153,7 @@ end
 Karabiner의 `software_function.open_application`은 launch/focus만 한다. Hide 동작은 이관 후 사라진다.
 
 **의도적 단순화 이유:**
+
 1. `frontmost_application_if` 조건 + osascript hide로 구현 가능하지만, JSON이 매핑마다 두 manipulator로 늘어나서 복잡해짐
 2. Hide 토글의 사용 빈도가 낮음 — 주 사용은 "앱으로 이동"
 3. 정 필요하면 후속 작업으로 추가 가능
@@ -168,6 +178,7 @@ Karabiner의 `software_function.open_application`은 launch/focus만 한다. Hid
 ```
 
 Things처럼 `localBindings`도 함께 가진 항목은 `hyperKey`만 제거:
+
 ```lua
 -- before
 ['com.culturedcode.ThingsMac'] = {
@@ -188,15 +199,18 @@ Things처럼 `localBindings`도 함께 가진 항목은 `hyperKey`만 제거:
 ## Trade-offs
 
 ### 받아들이는 손실
+
 - **Hide 토글 동작 손실** (위에서 설명한 단순화)
 - **Hyper+m, Hyper+p는 여전히 Secure Input에 영향받음** — 다만 사용 빈도가 낮음
 
 ### 얻는 이점
+
 - 자주 쓰는 8개 핫키가 Secure Input 환경에서도 동작
 - 일상의 99% 케이스에서 "왜 안 되지?" 디버깅 시간 제거
 - 두 도구의 책임 분리 명확화 (정적 실행 = Karabiner, 동적 로직 = Hammerspoon)
 
 ### 영향 받지 않는 것
+
 - 머슬 메모리 (모든 핫키 동일하게 동작)
 - localBindings (앱 컨텍스트별 바인딩)
 - HyperModal, Pomodoro

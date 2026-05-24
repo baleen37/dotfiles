@@ -4,10 +4,8 @@
 {
   lib ? import <nixpkgs/lib>,
   pkgs ? import <nixpkgs> { },
-  system ? builtins.currentSystem or "x86_64-linux",
-  nixtest ? { },
   self ? ./.,
-  inputs ? { },
+  ...
 }:
 
 let
@@ -15,10 +13,11 @@ let
   claudeHelpers = import (self + /tests/lib/claude-test-helpers.nix) { inherit pkgs lib helpers; };
 
   # Path to Claude configuration
-  claudeDir = ../../users/shared/.config/claude;
+  claudeDir = ../../users/shared/programs/.config/claude;
 
   # Helper to safely read and parse JSON
-  readJson = path:
+  readJson =
+    path:
     let
       contentResult = builtins.tryEval (builtins.readFile path);
     in
@@ -51,14 +50,14 @@ let
     ) "CLAUDE.md is missing, too short, or lacks markdown structure";
 
     # Test 3: Configuration directory exists
-    config-dir-exists = helpers.assertTest "config-dir-exists" (
-      builtins.pathExists claudeDir
-    ) "Claude configuration directory does not exist";
+    config-dir-exists =
+      helpers.assertTest "config-dir-exists" (builtins.pathExists claudeDir)
+        "Claude configuration directory does not exist";
   };
 
 in
 # Aggregate all tests into a test suite
 {
-  platforms = ["any"];
+  platforms = [ "any" ];
   value = helpers.testSuite "claude-configuration-tests" (builtins.attrValues tests);
 }

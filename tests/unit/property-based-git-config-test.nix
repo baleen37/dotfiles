@@ -11,10 +11,7 @@
 {
   lib ? import <nixpkgs/lib>,
   pkgs ? import <nixpkgs> { },
-  system ? builtins.currentSystem or "x86_64-linux",
-  nixtest ? { },
-  self ? ./.,
-  inputs ? { },
+  ...
 }:
 
 let
@@ -58,7 +55,8 @@ let
   ];
 
   # Property: User identity validation
-  validateUserIdentity = user:
+  validateUserIdentity =
+    user:
     let
       nameValid = builtins.match "^[A-Za-z ]+$" user.name != null;
       emailValid = builtins.match "^[^@]+@[^@]+\\.[^@]+$" user.email != null;
@@ -67,15 +65,16 @@ let
     nameValid && emailValid && usernameValid;
 
   # Property: Platform configuration validity
-  validatePlatformConfig = platform:
-    platform.autocrlf == (if platform.name == "darwin" then "input" else "false") &&
-    platform.editor == "vim" &&
-    platform.defaultBranch == "main";
+  validatePlatformConfig =
+    platform:
+    platform.autocrlf == (if platform.name == "darwin" then "input" else "false")
+    && platform.editor == "vim"
+    && platform.defaultBranch == "main";
 
 in
 # Optimized property test suite
 {
-  platforms = ["any"];
+  platforms = [ "any" ];
   value = helpers.testSuite "property-based-git-config-test" [
     # ===== 사용자 정체성 검증 (assertions 사용) =====
 
@@ -90,14 +89,26 @@ in
     (assertions.assertType "user-2-email-type" (builtins.elemAt testUsers 2).email "string" null)
 
     # 각 사용자의 이름이 비어있지 않은지 확인
-    (assertions.assertPositive "user-0-name-length" (builtins.stringLength (builtins.elemAt testUsers 0).name) null)
-    (assertions.assertPositive "user-1-name-length" (builtins.stringLength (builtins.elemAt testUsers 1).name) null)
-    (assertions.assertPositive "user-2-name-length" (builtins.stringLength (builtins.elemAt testUsers 2).name) null)
+    (assertions.assertPositive "user-0-name-length" (builtins.stringLength (builtins.elemAt testUsers 0)
+    .name) null)
+    (assertions.assertPositive "user-1-name-length" (builtins.stringLength (builtins.elemAt testUsers 1)
+    .name) null)
+    (assertions.assertPositive "user-2-name-length" (builtins.stringLength (builtins.elemAt testUsers 2)
+    .name) null)
 
     # 이메일 형식 검증 (정규식)
-    (assertions.assertStringMatches "user-0-email-format" (builtins.elemAt testUsers 0).email "^[^@]+@[^@]+\\.[^@]+$" null)
-    (assertions.assertStringMatches "user-1-email-format" (builtins.elemAt testUsers 1).email "^[^@]+@[^@]+\\.[^@]+$" null)
-    (assertions.assertStringMatches "user-2-email-format" (builtins.elemAt testUsers 2).email "^[^@]+@[^@]+\\.[^@]+$" null)
+    (assertions.assertStringMatches "user-0-email-format" (builtins.elemAt testUsers 0).email
+      "^[^@]+@[^@]+\\.[^@]+$"
+      null
+    )
+    (assertions.assertStringMatches "user-1-email-format" (builtins.elemAt testUsers 1).email
+      "^[^@]+@[^@]+\\.[^@]+$"
+      null
+    )
+    (assertions.assertStringMatches "user-2-email-format" (builtins.elemAt testUsers 2).email
+      "^[^@]+@[^@]+\\.[^@]+$"
+      null
+    )
 
     # 이메일에 @ 기호가 포함되어 있는지 확인
     (assertions.assertStringContains "user-0-email-has-at" (builtins.elemAt testUsers 0).email "@" null)
@@ -105,32 +116,57 @@ in
     (assertions.assertStringContains "user-2-email-has-at" (builtins.elemAt testUsers 2).email "@" null)
 
     # 사용자 정체성 속성 검증 (property-based)
-    (helpers.assertTest "user-identity-0-valid" (validateUserIdentity (builtins.elemAt testUsers 0))
-      "Test user identity should be valid")
-    (helpers.assertTest "user-identity-1-valid" (validateUserIdentity (builtins.elemAt testUsers 1))
-      "Alice user identity should be valid")
-    (helpers.assertTest "user-identity-2-valid" (validateUserIdentity (builtins.elemAt testUsers 2))
-      "Bob user identity should be valid")
+    (helpers.assertTest "user-identity-0-valid" (validateUserIdentity (
+      builtins.elemAt testUsers 0
+    )) "Test user identity should be valid")
+    (helpers.assertTest "user-identity-1-valid" (validateUserIdentity (
+      builtins.elemAt testUsers 1
+    )) "Alice user identity should be valid")
+    (helpers.assertTest "user-identity-2-valid" (validateUserIdentity (
+      builtins.elemAt testUsers 2
+    )) "Bob user identity should be valid")
 
     # ===== 플랫폼 설정 검증 =====
 
     # Darwin 플랫폼 설정 검증
-    (assertions.assertAttrEquals "platform-0-name" (builtins.elemAt platformConfigs 0) "name" "darwin" null)
-    (assertions.assertAttrEquals "platform-0-autocrlf" (builtins.elemAt platformConfigs 0) "autocrlf" "input" null)
-    (assertions.assertAttrEquals "platform-0-editor" (builtins.elemAt platformConfigs 0) "editor" "vim" null)
-    (assertions.assertAttrEquals "platform-0-branch" (builtins.elemAt platformConfigs 0) "defaultBranch" "main" null)
+    (assertions.assertAttrEquals "platform-0-name" (builtins.elemAt platformConfigs 0) "name" "darwin"
+      null
+    )
+    (assertions.assertAttrEquals "platform-0-autocrlf" (builtins.elemAt platformConfigs 0) "autocrlf"
+      "input"
+      null
+    )
+    (assertions.assertAttrEquals "platform-0-editor" (builtins.elemAt platformConfigs 0) "editor" "vim"
+      null
+    )
+    (assertions.assertAttrEquals "platform-0-branch" (builtins.elemAt platformConfigs 0) "defaultBranch"
+      "main"
+      null
+    )
 
     # Linux 플랫폼 설정 검증
-    (assertions.assertAttrEquals "platform-1-name" (builtins.elemAt platformConfigs 1) "name" "linux" null)
-    (assertions.assertAttrEquals "platform-1-autocrlf" (builtins.elemAt platformConfigs 1) "autocrlf" "false" null)
-    (assertions.assertAttrEquals "platform-1-editor" (builtins.elemAt platformConfigs 1) "editor" "vim" null)
-    (assertions.assertAttrEquals "platform-1-branch" (builtins.elemAt platformConfigs 1) "defaultBranch" "main" null)
+    (assertions.assertAttrEquals "platform-1-name" (builtins.elemAt platformConfigs 1) "name" "linux"
+      null
+    )
+    (assertions.assertAttrEquals "platform-1-autocrlf" (builtins.elemAt platformConfigs 1) "autocrlf"
+      "false"
+      null
+    )
+    (assertions.assertAttrEquals "platform-1-editor" (builtins.elemAt platformConfigs 1) "editor" "vim"
+      null
+    )
+    (assertions.assertAttrEquals "platform-1-branch" (builtins.elemAt platformConfigs 1) "defaultBranch"
+      "main"
+      null
+    )
 
     # 플랫폼 속성 검증 (property-based)
-    (helpers.assertTest "platform-darwin-config" (validatePlatformConfig (builtins.elemAt platformConfigs 0))
-      "Darwin platform config should be valid")
-    (helpers.assertTest "platform-linux-config" (validatePlatformConfig (builtins.elemAt platformConfigs 1))
-      "Linux platform config should be valid")
+    (helpers.assertTest "platform-darwin-config" (validatePlatformConfig (
+      builtins.elemAt platformConfigs 0
+    )) "Darwin platform config should be valid")
+    (helpers.assertTest "platform-linux-config" (validatePlatformConfig (
+      builtins.elemAt platformConfigs 1
+    )) "Linux platform config should be valid")
 
     # ===== 컬렉션 검증 =====
 
@@ -141,23 +177,19 @@ in
     (assertions.assertListLength "platform-configs-count" platformConfigs 2 null)
 
     # 모든 사용자에게 필수 속성이 있는지 확인
-    (assertions.assertAll "users-have-required-attrs" (
-      builtins.map (user:
-        builtins.hasAttr "name" user &&
-        builtins.hasAttr "email" user &&
-        builtins.hasAttr "username" user
-      ) testUsers
-    ) null)
+    (assertions.assertAll "users-have-required-attrs" (builtins.map (
+      user:
+      builtins.hasAttr "name" user && builtins.hasAttr "email" user && builtins.hasAttr "username" user
+    ) testUsers) null)
 
     # 모든 플랫폼 설정에 필수 속성이 있는지 확인
-    (assertions.assertAll "platforms-have-required-attrs" (
-      builtins.map (platform:
-        builtins.hasAttr "name" platform &&
-        builtins.hasAttr "autocrlf" platform &&
-        builtins.hasAttr "editor" platform &&
-        builtins.hasAttr "defaultBranch" platform
-      ) platformConfigs
-    ) null)
+    (assertions.assertAll "platforms-have-required-attrs" (builtins.map (
+      platform:
+      builtins.hasAttr "name" platform
+      && builtins.hasAttr "autocrlf" platform
+      && builtins.hasAttr "editor" platform
+      && builtins.hasAttr "defaultBranch" platform
+    ) platformConfigs) null)
 
     # ===== 요약 테스트 =====
 

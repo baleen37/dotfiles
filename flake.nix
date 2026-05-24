@@ -46,14 +46,21 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    import-tree.url = "github:vic/import-tree";
+
     nixos-generators = {
       url = "github:nix-community/nixos-generators";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    treefmt-nix = {
+      url = "github:numtide/treefmt-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
   outputs =
-    inputs@{ flake-parts, ... }:
+    inputs@{ flake-parts, import-tree, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } {
       systems = [
         "aarch64-darwin"
@@ -62,13 +69,6 @@
         "aarch64-linux"
       ];
 
-      imports = [
-        ./flake-modules/darwin.nix
-        ./flake-modules/nixos.nix
-        ./flake-modules/home.nix
-        ./flake-modules/checks.nix
-        ./flake-modules/dev-shells.nix
-        ./flake-modules/packages.nix
-      ];
+      imports = [ (import-tree ./flake-modules) ];
     };
 }

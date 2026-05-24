@@ -7,9 +7,7 @@
 {
   pkgs ? import <nixpkgs> { },
   nixpkgs ? <nixpkgs>,
-  lib ? pkgs.lib,
   system ? builtins.currentSystem,
-  self ? null,
 }:
 
 let
@@ -22,23 +20,13 @@ let
   commonPackages = import ../lib/fixtures/common-packages.nix { inherit pkgs; };
 
   # Helper to run commands and capture output
-  runCommand = cmd: ''
-    echo "🔧 Running: ${cmd}"
-    if ${cmd}; then
-      echo "✅ Command succeeded: ${cmd}"
-      return 0
-    else
-      echo "❌ Command failed: ${cmd}"
-      return 1
-    fi
-  '';
 
 in
 nixosTest {
   name = "comprehensive-test-suite-validation";
 
   nodes.machine =
-    { config, pkgs, ... }:
+    { pkgs, ... }:
     {
       # Basic VM configuration
       boot.loader.systemd-boot.enable = true;

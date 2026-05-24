@@ -16,9 +16,7 @@
 {
   pkgs ? import <nixpkgs> { },
   nixpkgs ? <nixpkgs>,
-  lib ? pkgs.lib,
   system ? builtins.currentSystem or "x86_64-linux",
-  self ? null,
 }:
 
 let
@@ -37,7 +35,7 @@ nixosTest {
   nodes = {
     # NixOS test machine
     nixos-machine =
-      { config, pkgs, ... }:
+      { pkgs, ... }:
       {
         # Standard NixOS VM config
         boot.loader.systemd-boot.enable = true;

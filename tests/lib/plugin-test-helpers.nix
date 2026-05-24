@@ -13,6 +13,7 @@
   pkgs,
   lib,
   helpers ? import ./test-helpers.nix { inherit pkgs lib; },
+  ...
 }:
 
 rec {
@@ -27,9 +28,7 @@ rec {
   #
   # Example:
   #   hasPluginByName vimConfig.programs.vim.plugins "vim-airline"
-  hasPluginByName =
-    plugins: pname:
-    builtins.any (plugin: plugin.pname or null == pname) plugins;
+  hasPluginByName = plugins: pname: builtins.any (plugin: plugin.pname or null == pname) plugins;
 
   # Check if a plugin exists by regex pattern
   #
@@ -57,9 +56,7 @@ rec {
   #
   # Example:
   #   hasConfigPattern vimConfig.programs.vim.extraConfig ".*set relativenumber.*"
-  hasConfigPattern =
-    config: pattern:
-    builtins.match pattern config != null;
+  hasConfigPattern = config: pattern: builtins.match pattern config != null;
 
   # Check if configuration contains a substring
   #
@@ -72,9 +69,7 @@ rec {
   #
   # Example:
   #   hasConfigString tmuxConfig.extraConfig "setw -g mode-keys vi"
-  hasConfigString =
-    config: str:
-    lib.hasInfix str config;
+  hasConfigString = config: str: lib.hasInfix str config;
 
   # Check if all configuration patterns are present
   #
@@ -91,8 +86,7 @@ rec {
   #     ".*set number.*"
   #   ]
   hasAllConfigPatterns =
-    config: patterns:
-    builtins.all (pattern: hasConfigPattern config pattern) patterns;
+    config: patterns: builtins.all (pattern: hasConfigPattern config pattern) patterns;
 
   # Check if all configuration strings are present
   #
@@ -108,9 +102,7 @@ rec {
   #     "setw -g mode-keys vi"
   #     "bind [ copy-mode"
   #   ]
-  hasAllConfigStrings =
-    config: strings:
-    builtins.all (str: hasConfigString config str) strings;
+  hasAllConfigStrings = config: strings: builtins.all (str: hasConfigString config str) strings;
 
   # Create a test assertion for plugin presence by name
   #
@@ -130,9 +122,7 @@ rec {
     let
       msg = if message == null then "Plugin '${pname}' should be present" else message;
     in
-    helpers.assertTest testName (
-      hasPluginByName plugins pname
-    ) msg;
+    helpers.assertTest testName (hasPluginByName plugins pname) msg;
 
   # Create a test assertion for plugin presence by pattern
   #
@@ -152,9 +142,7 @@ rec {
     let
       msg = if message == null then "Plugin matching pattern '${pattern}' should be present" else message;
     in
-    helpers.assertTest testName (
-      hasPluginByPattern plugins pattern
-    ) msg;
+    helpers.assertTest testName (hasPluginByPattern plugins pattern) msg;
 
   # Create a test assertion for configuration pattern
   #
@@ -174,9 +162,7 @@ rec {
     let
       msg = if message == null then "Configuration should contain pattern '${pattern}'" else message;
     in
-    helpers.assertTest testName (
-      hasConfigPattern config pattern
-    ) msg;
+    helpers.assertTest testName (hasConfigPattern config pattern) msg;
 
   # Create a test assertion for configuration string
   #
@@ -196,9 +182,7 @@ rec {
     let
       msg = if message == null then "Configuration should contain string '${str}'" else message;
     in
-    helpers.assertTest testName (
-      hasConfigString config str
-    ) msg;
+    helpers.assertTest testName (hasConfigString config str) msg;
 
   # Validate a list of plugins are all present
   #
@@ -289,9 +273,7 @@ rec {
     let
       msg = if message == null then "Plugin '${pname}' should NOT be present" else message;
     in
-    helpers.assertTest testName (
-      !(hasPluginByName plugins pname)
-    ) msg;
+    helpers.assertTest testName (!(hasPluginByName plugins pname)) msg;
 
   # Create a configuration test helper that makes testing config patterns easier
   #
@@ -310,29 +292,21 @@ rec {
   #     (vimConfigTests.hasPattern "relative-numbers" ".*set relativenumber.*")
   #     (vimConfigTests.hasString "leader-key" "let mapleader")
   #   ]
-  mkConfigTester =
-    namePrefix: config:
-    {
-      hasPattern =
-        testName: pattern:
-        assertConfigPattern "${namePrefix}-${testName}" config pattern;
+  mkConfigTester = namePrefix: config: {
+    hasPattern = testName: pattern: assertConfigPattern "${namePrefix}-${testName}" config pattern;
 
-      hasString =
-        testName: str:
-        assertConfigString "${namePrefix}-${testName}" config str;
+    hasString = testName: str: assertConfigString "${namePrefix}-${testName}" config str;
 
-      hasAllPatterns =
-        testName: patterns:
-        helpers.assertTest "${namePrefix}-${testName}" (
-          hasAllConfigPatterns config patterns
-        ) "Configuration should contain all patterns";
+    hasAllPatterns =
+      testName: patterns:
+      helpers.assertTest "${namePrefix}-${testName}" (hasAllConfigPatterns config patterns)
+        "Configuration should contain all patterns";
 
-      hasAllStrings =
-        testName: strings:
-        helpers.assertTest "${namePrefix}-${testName}" (
-          hasAllConfigStrings config strings
-        ) "Configuration should contain all strings";
-    };
+    hasAllStrings =
+      testName: strings:
+      helpers.assertTest "${namePrefix}-${testName}" (hasAllConfigStrings config strings)
+        "Configuration should contain all strings";
+  };
 
   # Create a plugin test helper that makes testing plugins easier
   #
@@ -351,16 +325,12 @@ rec {
   #     (vimPluginTests.hasPlugin "airline" "vim-airline")
   #     (vimPluginTests.hasPluginPattern "themes" ".*theme.*")
   #   ]
-  mkPluginTester =
-    namePrefix: plugins:
-    {
-      hasPlugin =
-        pname: assertPluginByName "${namePrefix}-${pname}" plugins pname;
+  mkPluginTester = namePrefix: plugins: {
+    hasPlugin = pname: assertPluginByName "${namePrefix}-${pname}" plugins pname;
 
-      hasPluginPattern =
-        pattern: assertPluginByPattern "${namePrefix}-pattern-${pattern}" plugins pattern;
+    hasPluginPattern =
+      pattern: assertPluginByPattern "${namePrefix}-pattern-${pattern}" plugins pattern;
 
-      notPresent =
-        pname: assertPluginNotPresent "${namePrefix}-no-${pname}" plugins pname;
-    };
+    notPresent = pname: assertPluginNotPresent "${namePrefix}-no-${pname}" plugins pname;
+  };
 }

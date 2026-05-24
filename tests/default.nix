@@ -7,7 +7,7 @@
 
 let
   pkgs = import inputs.nixpkgs { inherit system; };
-  lib = pkgs.lib;
+  inherit (pkgs) lib;
 
   # Import container tests - inline for now to avoid path issues
   containerTests = {
@@ -18,7 +18,7 @@ let
   };
 
   # Convert to nixosTest checks
-  containerChecks = builtins.mapAttrs (name: test: pkgs.testers.nixosTest test) containerTests;
+  containerChecks = builtins.mapAttrs (_name: test: pkgs.testers.nixosTest test) containerTests;
 
   # Automatic test discovery function (nixpkgs pattern)
   # Discovers all *-test.nix files in a directory and subdirectories
@@ -29,14 +29,17 @@ let
       # Filter for .nix files, excluding helpers, disabled/, and include subdirectories
       (lib.filterAttrs (
         name: type:
-        (type == "regular"
+        (
+          type == "regular"
           && lib.hasSuffix "-test.nix" name
           && name != "default.nix"
-          && name != "nixtest-template.nix")
+          && name != "nixtest-template.nix"
+        )
         || (type == "directory" && name != "disabled")
       ))
       # Process both files and directories
-      (lib.mapAttrs' (name: type:
+      (lib.mapAttrs' (
+        name: type:
         if type == "directory" then
           # Recursively discover tests in subdirectories
           {
@@ -48,21 +51,23 @@ let
           let
             filePath = dir + "/${name}";
             # Try to import the test file, but handle errors gracefully
-            testResult = builtins.tryEval (import filePath {
-              inherit
-                inputs
-                system
-                pkgs
-                lib
-                self
-                ;
-              inherit nixtest;
-            });
+            testResult = builtins.tryEval (
+              import filePath {
+                inherit
+                  inputs
+                  system
+                  pkgs
+                  lib
+                  self
+                  ;
+                inherit nixtest;
+              }
+            );
           in
           if testResult.success then
             {
               name = "${prefix}-${lib.removeSuffix "-test.nix" name}";
-              value = testResult.value;
+              inherit (testResult) value;
             }
           else
             # Create a failing test that clearly indicates the import problem
@@ -82,10 +87,12 @@ let
     ];
 
   # Flatten nested discovery results
-  flattenTests = tests:
+  flattenTests =
+    tests:
     lib.listToAttrs (
       lib.flatten (
-        lib.mapAttrsToList (name: value:
+        lib.mapAttrsToList (
+          name: value:
           if lib.isAttrs value && !builtins.hasAttr "name" value && !builtins.hasAttr "value" value then
             # This is a nested discovery result, flatten it
             lib.mapAttrsToList (subName: subValue: {
@@ -107,17 +114,18 @@ let
   platformHelpers = import ./lib/platform-helpers.nix { inherit pkgs lib; };
 
   # Import mksystem function for testing
-  mkSystem = import ../lib/mksystem.nix { inherit inputs self; };
 
   # Platform-specific test discovery function
-  discoverPlatformTests = dir: prefix:
+  discoverPlatformTests =
+    dir: prefix:
     let
       discoveredTests = discoverTests dir prefix;
       filteredTests = platformHelpers.filterPlatformTests discoveredTests;
       # Extract actual test values from platform-filtered tests
-      extractTestValues = tests:
-        lib.mapAttrs (name: test:
-          if builtins.hasAttr "value" test then test.value else test
+      extractTestValues =
+        _tests:
+        lib.mapAttrs (
+          _name: test: if builtins.hasAttr "value" test then test.value else test
         ) filteredTests;
     in
     extractTestValues filteredTests;
@@ -131,10 +139,17 @@ in
   '';
 }
 // containerChecks
-// flattenTests (discoverPlatformTests ./unit "unit") // (
+// flattenTests (discoverPlatformTests ./unit "unit")
+// (
   # Add the new mksystem tests explicitly by flattening the set
   import ./unit/functions/mksystem-factory-validation.nix {
-    inherit inputs system pkgs lib self;
+    inherit
+      inputs
+      system
+      pkgs
+      lib
+      self
+      ;
     inherit nixtest;
   }
 )

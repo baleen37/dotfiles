@@ -6,10 +6,6 @@
 {
   lib ? import <nixpkgs/lib>,
   pkgs ? import <nixpkgs> { },
-  system ? builtins.currentSystem or "x86_64-linux",
-  self ? ./.,
-  inputs ? { },
-  nixtest ? { },
   ...
 }:
 
@@ -17,7 +13,7 @@ let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
 
   # Read the zsh environment configuration (PATH setup was extracted to env.nix)
-  zshConfigFile = builtins.readFile ../../users/shared/zsh/env.nix;
+  zshConfigFile = builtins.readFile ../../users/shared/programs/zsh/env.nix;
 
   # Check if npm-global/bin is mentioned in the configuration
   npmGlobalInConfig = lib.hasInfix "$HOME/.npm-global/bin" zshConfigFile;
@@ -30,11 +26,11 @@ in
 helpers.testSuite "npm-global-path" [
   # Test that npm-global/bin is configured in the PATH
   (helpers.assertTest "npm-global-path-configured" npmGlobalInConfig
-    "npm-global/bin should be configured in zsh PATH")
+    "npm-global/bin should be configured in zsh PATH"
+  )
 
   # Test that npm is available in the system packages
-  (helpers.assertTest "npm-available" npmExists
-    "npm should be available in the system packages")
+  (helpers.assertTest "npm-available" npmExists "npm should be available in the system packages")
 
   # Test that the PATH configuration includes npm-global in the correct order
   (helpers.assertTest "path-order-correct" (
@@ -42,7 +38,6 @@ helpers.testSuite "npm-global-path" [
       pathLines = lib.splitString "\n" zshConfigFile;
       pathLineWithNpm = lib.findFirst (line: lib.hasInfix "npm-global" line) "" pathLines;
     in
-    lib.hasInfix "$HOME/.npm-global/bin" pathLineWithNpm &&
-    lib.hasInfix "$PATH" pathLineWithNpm
+    lib.hasInfix "$HOME/.npm-global/bin" pathLineWithNpm && lib.hasInfix "$PATH" pathLineWithNpm
   ) "PATH should include $HOME/.npm-global/bin before $PATH")
 ]

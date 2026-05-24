@@ -3,7 +3,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-STATUSLINE_SCRIPT="$SCRIPT_DIR/../users/shared/.config/claude/statusline.sh"
+STATUSLINE_SCRIPT="$SCRIPT_DIR/../users/shared/programs/.config/claude/statusline.sh"
 
 # Track temp files for cleanup
 TEMP_FILES=()
@@ -22,7 +22,8 @@ echo
 
 # Test 1: Script runs with real Claude Code JSON format (no current_usage)
 echo -n "Test 1: Script runs with real Claude Code JSON format... "
-input=$(cat <<EOF
+input=$(
+  cat << EOF
 {
   "hook_event_name": "Status",
   "model": {"display_name": "Sonnet 4.5"},
@@ -51,7 +52,8 @@ fi
 
 # Test 2: Script handles missing transcript file with real JSON format
 echo -n "Test 2: Script handles missing transcript file... "
-input=$(cat <<EOF
+input=$(
+  cat << EOF
 {
   "hook_event_name": "Status",
   "model": {"display_name": "Sonnet 4.5"},
@@ -77,12 +79,13 @@ fi
 echo -n "Test 3: Script uses current_usage from context_window... "
 temp_transcript=$(mktemp)
 TEMP_FILES+=("$temp_transcript")
-cat > "$temp_transcript" <<'EOF'
+cat > "$temp_transcript" << 'EOF'
 {"message":{"usage":{"input_tokens":500,"cache_read_input_tokens":200,"cache_creation_input_tokens":100}},"isSidechain":false,"timestamp":"2025-12-01T10:00:00Z"}
 {"message":{"usage":{"input_tokens":1000,"cache_read_input_tokens":400,"cache_creation_input_tokens":200}},"isSidechain":false,"timestamp":"2025-12-01T10:01:00Z"}
 EOF
 
-input=$(cat <<EOF
+input=$(
+  cat << EOF
 {
   "hook_event_name": "Status",
   "model": {"display_name": "Sonnet 4.5"},
@@ -121,12 +124,13 @@ fi
 echo -n "Test 4: Script filters sidechain entries... "
 temp_transcript=$(mktemp)
 TEMP_FILES+=("$temp_transcript")
-cat > "$temp_transcript" <<'EOF'
+cat > "$temp_transcript" << 'EOF'
 {"message":{"usage":{"input_tokens":9999,"cache_read_input_tokens":9999,"cache_creation_input_tokens":9999}},"isSidechain":true,"timestamp":"2025-12-01T10:00:00Z"}
 {"message":{"usage":{"input_tokens":1000,"cache_read_input_tokens":400,"cache_creation_input_tokens":200}},"isSidechain":false,"timestamp":"2025-12-01T10:01:00Z"}
 EOF
 
-input=$(cat <<EOF
+input=$(
+  cat << EOF
 {
   "model": {"display_name": "Sonnet 4.5"},
   "workspace": {"current_dir": "$PWD"},
@@ -152,7 +156,8 @@ temp_transcript=$(mktemp)
 TEMP_FILES+=("$temp_transcript")
 # Empty file
 
-input=$(cat <<EOF
+input=$(
+  cat << EOF
 {
   "hook_event_name": "Status",
   "model": {"display_name": "Sonnet 4.5"},
@@ -177,7 +182,8 @@ fi
 
 # Test 6: used_percentage fallback - basic case (25.5% of 200k = 51k)
 echo -n "Test 6: used_percentage fallback (25.5% of 200k = 51k)... "
-input=$(cat <<EOF
+input=$(
+  cat << EOF
 {
   "hook_event_name": "Status",
   "model": {"display_name": "Sonnet 4.5"},
@@ -207,7 +213,8 @@ fi
 
 # Test 7: used_percentage fallback - large value with M suffix (80% of 2M = 1.6M)
 echo -n "Test 7: used_percentage fallback (80% of 2M = 1.6M)... "
-input=$(cat <<EOF
+input=$(
+  cat << EOF
 {
   "hook_event_name": "Status",
   "model": {"display_name": "Sonnet 4.5"},
@@ -237,7 +244,8 @@ fi
 
 # Test 8: used_percentage fallback - null values should default to 0
 echo -n "Test 8: used_percentage fallback (null values)... "
-input=$(cat <<EOF
+input=$(
+  cat << EOF
 {
   "hook_event_name": "Status",
   "model": {"display_name": "Sonnet 4.5"},
@@ -267,7 +275,8 @@ fi
 
 # Test 9: used_percentage fallback - 0 values should result in 0
 echo -n "Test 9: used_percentage fallback (0 values)... "
-input=$(cat <<EOF
+input=$(
+  cat << EOF
 {
   "hook_event_name": "Status",
   "model": {"display_name": "Sonnet 4.5"},
@@ -297,7 +306,8 @@ fi
 
 # Test 10: used_percentage fallback - full chain test
 echo -n "Test 10: used_percentage fallback (full chain)... "
-input=$(cat <<EOF
+input=$(
+  cat << EOF
 {
   "hook_event_name": "Status",
   "model": {"display_name": "Unknown Model"},

@@ -7,24 +7,29 @@ repos:
     rev: v0.10.0.1
     hooks:
       - id: shellcheck
-        args: ['--severity=warning', '--shell=bash', '--exclude=SC2155,SC2034,SC1090,SC2120']
-        exclude: ^users/shared/\.config/p10k\.zsh$
+        args:
+          [
+            "--severity=warning",
+            "--shell=bash",
+            "--exclude=SC2155,SC2034,SC1090,SC2120",
+          ]
+        exclude: ^users/shared/programs/\.config/p10k\.zsh$
 
   # Shell script formatting
   - repo: https://github.com/scop/pre-commit-shfmt
     rev: v3.12.0-2
     hooks:
       - id: shfmt
-        args: ['-i', '2', '-ci', '-bn', '-sr']
-        exclude: ^users/shared/\.config/p10k\.zsh$
+        args: ["-i", "2", "-ci", "-bn", "-sr"]
+        exclude: ^users/shared/programs/\.config/p10k\.zsh$
 
   # Bash style checker
   - repo: https://github.com/openstack/bashate
     rev: 2.1.1
     hooks:
       - id: bashate
-        args: ['--ignore=E003,E006']
-        exclude: ^users/shared/\.config/.*\.zsh$
+        args: ["--ignore=E003,E006"]
+        exclude: ^users/shared/programs/\.config/.*\.zsh$
 
   # Fast file checks (pre-commit native)
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -49,7 +54,7 @@ repos:
     rev: v1.3.1
     hooks:
       - id: deadnix
-        args: ['--no-lambda-pattern-names']
+        args: ["--no-lambda-pattern-names"]
 
   # Makefile-managed checks (single source of truth)
   - repo: local

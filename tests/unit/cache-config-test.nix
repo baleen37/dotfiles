@@ -24,8 +24,7 @@ let
   # Examples:
   #   baleen-nix.cachix.org-1:awgC7Sut148An/CZ6TZA+wnUtJmJnOvl5NThGio9j5k=
   #   cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
-  keyOk =
-    key: builtins.match "[a-zA-Z0-9._-]+-[0-9]+:[A-Za-z0-9+/]{43}=" key != null;
+  keyOk = key: builtins.match "[a-zA-Z0-9._-]+-[0-9]+:[A-Za-z0-9+/]{43}=" key != null;
 
   subs = cacheConfig.substituters;
   keys = cacheConfig.trusted-public-keys;
@@ -48,8 +47,7 @@ in
       ".github/workflows/ci.yml NIX_CONFIG must contain every trusted-public-key from lib/cache-config.nix";
 
   setupNixHasAllSubstituters =
-    helpers.assertTest "setup-nix-has-all-substituters"
-      (containsAll setupNixYml subs)
+    helpers.assertTest "setup-nix-has-all-substituters" (containsAll setupNixYml subs)
       ".github/actions/setup-nix/action.yml extra-conf must contain every substituter from lib/cache-config.nix";
 
   setupNixHasAllKeys =

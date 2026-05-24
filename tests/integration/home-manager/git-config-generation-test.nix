@@ -4,7 +4,6 @@
 {
   inputs,
   system ? builtins.currentSystem or "x86_64-linux",
-  self,
   ...
 }:
 
@@ -25,7 +24,7 @@ let
   homeManagerConfig = {
     home = {
       username = testUser.name;
-      homeDirectory = testUser.homeDirectory;
+      inherit (testUser) homeDirectory;
       stateVersion = "24.11";
     };
 
@@ -79,54 +78,8 @@ let
   };
 
   # Expected git configuration content (what real Home Manager should generate)
-  expectedGitConfig = ''
-    [user]
-        name = testuser
-        email = test@example.com
-    [init]
-        defaultBranch = main
-    [core]
-        editor = vim
-        autocrlf = input
-        excludesFile = ~/.gitignore_global
-    [pull]
-        rebase = true
-    [rebase]
-        autoStash = true
-    [alias]
-        st = status
-        co = checkout
-        br = branch
-        ci = commit
-        df = diff
-        lg = log --graph --oneline --decorate --all
-  '';
 
   # Expected gitignore content
-  expectedGitignore = ''
-    .local/
-    *.swp
-    *.swo
-    *~
-    .vscode/
-    .idea/
-    .DS_Store
-    Thumbs.db
-    desktop.ini
-    .direnv/
-    result
-    result-*
-    node_modules/
-    .env.local
-    .env.*.local
-    .serena/
-    *.tmp
-    *.log
-    .cache/
-    dist/
-    build/
-    target/
-  '';
 
   # Simulate Home Manager file generation using the same logic it would use
   # This avoids the complexity of running Home Manager in a Nix derivation
@@ -336,28 +289,40 @@ helpers.testSuite "git-config-generation" [
 
   # Test: Home Manager configuration structure validation
   (assertHelpers.assertTestWithDetails "home-manager-config-structure-validation"
-    (builtins.hasAttr "programs" homeManagerConfig &&
-     builtins.hasAttr "git" homeManagerConfig.programs &&
-     homeManagerConfig.programs.git.enable == true)
+    (
+      builtins.hasAttr "programs" homeManagerConfig
+      && builtins.hasAttr "git" homeManagerConfig.programs
+      && homeManagerConfig.programs.git.enable == true
+    )
     "Home Manager configuration should have proper structure with programs.git.enable = true"
     "programs.git.enable = true"
-    (if builtins.hasAttr "programs" homeManagerConfig then
-       (if builtins.hasAttr "git" homeManagerConfig.programs then
-          toString homeManagerConfig.programs.git.enable
-        else "programs.git missing")
-     else "programs missing")
+    (
+      if builtins.hasAttr "programs" homeManagerConfig then
+        (
+          if builtins.hasAttr "git" homeManagerConfig.programs then
+            toString homeManagerConfig.programs.git.enable
+          else
+            "programs.git missing"
+        )
+      else
+        "programs missing"
+    )
     "/Users/jito.hello/dotfiles/tests/integration/home-manager/git-config-generation-test.nix"
-    85)
+    85
+  )
 
   # Test: User configuration validation
   (assertHelpers.assertTestWithDetails "git-user-config-validation"
-    (homeManagerConfig.programs.git.userName == testUser.name &&
-     homeManagerConfig.programs.git.userEmail == testUser.email)
+    (
+      homeManagerConfig.programs.git.userName == testUser.name
+      && homeManagerConfig.programs.git.userEmail == testUser.email
+    )
     "Git user configuration should be properly set"
     "userName = ${testUser.name}, userEmail = ${testUser.email}"
     "userName = ${toString homeManagerConfig.programs.git.userName}, userEmail = ${toString homeManagerConfig.programs.git.userEmail}"
     "/Users/jito.hello/dotfiles/tests/integration/home-manager/git-config-generation-test.nix"
-    95)
+    95
+  )
 
   # Test: LFS configuration validation
   (assertHelpers.assertTestWithDetails "git-lfs-config-validation"
@@ -366,35 +331,51 @@ helpers.testSuite "git-config-generation" [
     "lfs.enable = true"
     "lfs.enable = ${toString homeManagerConfig.programs.git.lfs.enable}"
     "/Users/jito.hello/dotfiles/tests/integration/home-manager/git-config-generation-test.nix"
-    100)
+    100
+  )
 
   # Test: Aliases configuration validation
   (assertHelpers.assertTestWithDetails "git-aliases-config-validation"
-    (builtins.hasAttr "alias" homeManagerConfig.programs.git.settings &&
-     builtins.hasAttr "st" homeManagerConfig.programs.git.settings.alias &&
-     homeManagerConfig.programs.git.settings.alias.st == "status")
+    (
+      builtins.hasAttr "alias" homeManagerConfig.programs.git.settings
+      && builtins.hasAttr "st" homeManagerConfig.programs.git.settings.alias
+      && homeManagerConfig.programs.git.settings.alias.st == "status"
+    )
     "Git aliases should be configured including 'st' for 'status'"
     "alias.st = status"
-    (if builtins.hasAttr "alias" homeManagerConfig.programs.git.settings then
-       (if builtins.hasAttr "st" homeManagerConfig.programs.git.settings.alias then
-          "alias.st = ${homeManagerConfig.programs.git.settings.alias.st}"
-        else "alias.st missing")
-     else "alias missing")
+    (
+      if builtins.hasAttr "alias" homeManagerConfig.programs.git.settings then
+        (
+          if builtins.hasAttr "st" homeManagerConfig.programs.git.settings.alias then
+            "alias.st = ${homeManagerConfig.programs.git.settings.alias.st}"
+          else
+            "alias.st missing"
+        )
+      else
+        "alias missing"
+    )
     "/Users/jito.hello/dotfiles/tests/integration/home-manager/git-config-generation-test.nix"
-    105)
+    105
+  )
 
   # Test: Git ignores list validation
   (assertHelpers.assertTestWithDetails "git-ignores-list-validation"
-    (builtins.hasAttr "ignores" homeManagerConfig.programs.git &&
-     builtins.length homeManagerConfig.programs.git.ignores > 0 &&
-     builtins.any (pattern: pattern == ".local/") homeManagerConfig.programs.git.ignores)
+    (
+      builtins.hasAttr "ignores" homeManagerConfig.programs.git
+      && builtins.length homeManagerConfig.programs.git.ignores > 0
+      && builtins.any (pattern: pattern == ".local/") homeManagerConfig.programs.git.ignores
+    )
     "Git ignores should be configured with expected patterns"
     "ignores contains .local/ pattern"
-    (if builtins.hasAttr "ignores" homeManagerConfig.programs.git then
-         "ignores length: ${toString (builtins.length homeManagerConfig.programs.git.ignores)}"
-       else "ignores missing")
+    (
+      if builtins.hasAttr "ignores" homeManagerConfig.programs.git then
+        "ignores length: ${toString (builtins.length homeManagerConfig.programs.git.ignores)}"
+      else
+        "ignores missing"
+    )
     "/Users/jito.hello/dotfiles/tests/integration/home-manager/git-config-generation-test.nix"
-    110)
+    110
+  )
 
   # Test: Default branch configuration validation
   (assertHelpers.assertTestWithDetails "git-default-branch-validation"
@@ -403,5 +384,6 @@ helpers.testSuite "git-config-generation" [
     "init.defaultBranch = main"
     "init.defaultBranch = ${toString homeManagerConfig.programs.git.settings.init.defaultBranch}"
     "/Users/jito.hello/dotfiles/tests/integration/home-manager/git-config-generation-test.nix"
-    115)
+    115
+  )
 ]

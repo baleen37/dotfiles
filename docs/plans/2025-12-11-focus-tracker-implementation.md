@@ -13,6 +13,7 @@
 ### Task 1: 디렉토리 및 기본 파일 생성
 
 **Files:**
+
 - Create: `users/shared/.config/hammerspoon/Spoons/FocusTracker.spoon/init.lua`
 - Create: `users/shared/.config/hammerspoon/Spoons/FocusTracker.spoon/docs.json`
 
@@ -39,6 +40,7 @@ git commit -m "feat: copy Pomodoro.spoon as FocusTracker.spoon base"
 ### Task 2: Metadata 업데이트
 
 **Files:**
+
 - Modify: `users/shared/.config/hammerspoon/Spoons/FocusTracker.spoon/init.lua:18-27`
 
 **Step 1: Metadata 변경**
@@ -75,6 +77,7 @@ git commit -m "feat: update FocusTracker metadata"
 ### Task 3: Config 구조 변경
 
 **Files:**
+
 - Modify: `users/shared/.config/hammerspoon/Spoons/FocusTracker.spoon/init.lua:29-40`
 
 **Step 1: Config 수정**
@@ -107,6 +110,7 @@ git commit -m "feat: simplify config to callback-only structure"
 ### Task 4: State 구조 변경
 
 **Files:**
+
 - Modify: `users/shared/.config/hammerspoon/Spoons/FocusTracker.spoon/init.lua:42-50`
 
 **Step 1: State 수정**
@@ -140,6 +144,7 @@ git commit -m "feat: update State structure for tracking focus mode"
 ### Task 5: Cache 및 통계 관련 코드 완전 제거
 
 **Files:**
+
 - Modify: `users/shared/.config/hammerspoon/Spoons/FocusTracker.spoon/init.lua`
 
 **Step 1: Cache 테이블 제거**
@@ -149,6 +154,7 @@ git commit -m "feat: update State structure for tracking focus mode"
 **Step 2: 통계 관련 함수 제거**
 
 다음 함수들을 완전히 삭제:
+
 - `getCurrentDateString()` (71-78줄)
 - `getCachedStatistics()` (99-106줄)
 - `invalidateStatisticsCache()` (108-111줄)
@@ -172,6 +178,7 @@ git commit -m "feat: remove cache and statistics tracking"
 ### Task 6: Utility 함수 정리
 
 **Files:**
+
 - Modify: `users/shared/.config/hammerspoon/Spoons/FocusTracker.spoon/init.lua`
 
 **Step 1: showNotification 함수 제거**
@@ -199,6 +206,7 @@ git commit -m "feat: remove showNotification, keep formatTime"
 ### Task 7: TimerManager - startTracking 구현
 
 **Files:**
+
 - Modify: `users/shared/.config/hammerspoon/Spoons/FocusTracker.spoon/init.lua`
 
 **Step 1: startWorkSession을 startTracking으로 교체**
@@ -248,6 +256,7 @@ git commit -m "feat: implement TimerManager.startTracking with count-up timer"
 ### Task 8: TimerManager - stopTracking 구현
 
 **Files:**
+
 - Modify: `users/shared/.config/hammerspoon/Spoons/FocusTracker.spoon/init.lua`
 
 **Step 1: stop을 stopTracking으로 교체**
@@ -290,6 +299,7 @@ git commit -m "feat: implement TimerManager.stopTracking with callback"
 ### Task 9: TimerManager - 불필요한 함수 제거
 
 **Files:**
+
 - Modify: `users/shared/.config/hammerspoon/Spoons/FocusTracker.spoon/init.lua`
 
 **Step 1: startBreakSession 함수 제거**
@@ -317,6 +327,7 @@ git commit -m "feat: remove unused TimerManager functions"
 ### Task 10: FocusManager - handleFocusChange 수정
 
 **Files:**
+
 - Modify: `users/shared/.config/hammerspoon/Spoons/FocusTracker.spoon/init.lua`
 
 **Step 1: handleFocusChange 함수 교체**
@@ -358,6 +369,7 @@ git commit -m "feat: update handleFocusChange to track all focus modes"
 ### Task 11: FocusManager - isPomodoroActive 제거 및 모니터링 단순화
 
 **Files:**
+
 - Modify: `users/shared/.config/hammerspoon/Spoons/FocusTracker.spoon/init.lua`
 
 **Step 1: isPomodoroActive 함수 제거**
@@ -411,6 +423,7 @@ git commit -m "feat: remove isPomodoroActive and simplify focus monitoring"
 ### Task 12: UI - updateMenubarDisplay 단순화
 
 **Files:**
+
 - Modify: `users/shared/.config/hammerspoon/Spoons/FocusTracker.spoon/init.lua`
 
 **Step 1: updateMenubarDisplay 함수 교체**
@@ -446,6 +459,7 @@ git commit -m "feat: simplify menubar display to show tracking status"
 ### Task 13: UI - buildMenuTable 제거
 
 **Files:**
+
 - Modify: `users/shared/.config/hammerspoon/Spoons/FocusTracker.spoon/init.lua`
 
 **Step 1: buildMenuTable 함수 제거**
@@ -469,6 +483,7 @@ git commit -m "feat: remove buildMenuTable (no menu needed)"
 ### Task 14: obj:init() 함수 단순화
 
 **Files:**
+
 - Modify: `users/shared/.config/hammerspoon/Spoons/FocusTracker.spoon/init.lua`
 
 **Step 1: init() 함수의 doc comment 수정**
@@ -519,6 +534,7 @@ git commit -m "docs: update init() documentation"
 ### Task 15: obj:start() 함수 수정
 
 **Files:**
+
 - Modify: `users/shared/.config/hammerspoon/Spoons/FocusTracker.spoon/init.lua`
 
 **Step 1: start() 함수 교체**
@@ -578,6 +594,7 @@ git commit -m "feat: simplify start() to remove menu and statistics"
 ### Task 16: obj:stop() 함수 수정
 
 **Files:**
+
 - Modify: `users/shared/.config/hammerspoon/Spoons/FocusTracker.spoon/init.lua`
 
 **Step 1: stop() 함수 교체**
@@ -628,6 +645,7 @@ git commit -m "feat: simplify stop() to remove statistics handling"
 ### Task 17: 불필요한 공개 API 제거
 
 **Files:**
+
 - Modify: `users/shared/.config/hammerspoon/Spoons/FocusTracker.spoon/init.lua`
 
 **Step 1: 다음 함수들 제거**
@@ -658,6 +676,7 @@ git commit -m "feat: remove unnecessary public APIs"
 ### Task 18: docs.json 생성
 
 **Files:**
+
 - Modify: `users/shared/.config/hammerspoon/Spoons/FocusTracker.spoon/docs.json`
 
 **Step 1: docs.json 내용 작성**
@@ -678,9 +697,7 @@ git commit -m "feat: remove unnecessary public APIs"
           "   * onFocusStart - Function called when Focus Mode starts: function(focusModeName) (optional)",
           "   * onFocusEnd - Function called when Focus Mode ends: function(focusModeName, durationInSeconds) (optional)"
         ],
-        "returns": [
-          " * The FocusTracker object"
-        ],
+        "returns": [" * The FocusTracker object"],
         "signature": "FocusTracker:init(config)",
         "stripped_doc": "Initializes the FocusTracker Spoon with custom configuration\nParameters:\nReturns:\nNotes:",
         "type": "Method"
@@ -691,9 +708,7 @@ git commit -m "feat: remove unnecessary public APIs"
         "doc": "Starts the FocusTracker Spoon and initializes all watchers and timers\n\nReturns:\n * The FocusTracker object",
         "name": "start",
         "parameters": [],
-        "returns": [
-          " * The FocusTracker object"
-        ],
+        "returns": [" * The FocusTracker object"],
         "signature": "FocusTracker:start()",
         "stripped_doc": "Starts the FocusTracker Spoon and initializes all watchers and timers\nReturns:",
         "type": "Method"
@@ -704,9 +719,7 @@ git commit -m "feat: remove unnecessary public APIs"
         "doc": "Stops the FocusTracker Spoon and cleans up resources\n\nReturns:\n * The FocusTracker object",
         "name": "stop",
         "parameters": [],
-        "returns": [
-          " * The FocusTracker object"
-        ],
+        "returns": [" * The FocusTracker object"],
         "signature": "FocusTracker:stop()",
         "stripped_doc": "Stops the FocusTracker Spoon and cleans up resources\nReturns:",
         "type": "Method"
@@ -738,6 +751,7 @@ git commit -m "docs: create FocusTracker API documentation"
 ### Task 19: 수동 테스트 - Hammerspoon 설정
 
 **Files:**
+
 - Read: `users/shared/.config/hammerspoon/init.lua`
 
 **Step 1: init.lua 확인**
@@ -776,6 +790,7 @@ spoon.FocusTracker:init({
 **Step 3: 테스트 계획 문서화**
 
 다음 테스트 시나리오 준비:
+
 1. Hammerspoon 재로드
 2. Focus Mode 켜기 → "🔵 Deep Work" 알림 확인
 3. Menubar에 "🔵 0:05" 같은 카운터 확인
@@ -794,11 +809,12 @@ git commit -m "docs: prepare manual testing procedure"
 ### Task 20: 최종 검증 및 README 업데이트 (선택사항)
 
 **Files:**
+
 - Create: `users/shared/.config/hammerspoon/Spoons/FocusTracker.spoon/README.md` (선택사항)
 
 **Step 1: README 작성 (선택사항)**
 
-```markdown
+````markdown
 # FocusTracker.spoon
 
 FocusTracker는 macOS의 모든 Focus Mode를 추적하고 집중 시간을 실시간으로 표시하는 Hammerspoon Spoon입니다.
@@ -842,6 +858,7 @@ spoon.FocusTracker:init({
   end
 }):start()
 ```
+````
 
 ## API
 
@@ -852,14 +869,15 @@ spoon.FocusTracker:init({
 ## License
 
 MIT
-```
+
+````
 
 **Step 2: Commit (선택사항)**
 
 ```bash
 git add users/shared/.config/hammerspoon/Spoons/FocusTracker.spoon/README.md
 git commit -m "docs: add FocusTracker README"
-```
+````
 
 ---
 

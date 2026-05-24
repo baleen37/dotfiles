@@ -22,7 +22,7 @@ link_nix_apps() {
     echo "  ✅ WezTerm.app already linked (skipping search)"
   else
     # WezTerm 검색 (Applications 폴더에서 우선 검색)
-    local wezterm_path=$(find "$nix_store" -maxdepth 3 -name "WezTerm.app" -path "*/Applications/*" -type d 2>/dev/null | head -1)
+    local wezterm_path=$(find "$nix_store" -maxdepth 3 -name "WezTerm.app" -path "*/Applications/*" -type d 2> /dev/null | head -1)
     if [ -n "$wezterm_path" ]; then
       rm -f "$home_apps/WezTerm.app"
       ln -sf "$wezterm_path" "$home_apps/WezTerm.app"
@@ -44,13 +44,13 @@ link_nix_apps() {
 
     # 이미 전용 처리된 앱들 제외 (빠른 검사)
     case "$app_name" in
-    "WezTerm.app")
-      continue
-      ;;
+      "WezTerm.app")
+        continue
+        ;;
     esac
 
     discovered_apps+=("$app_path")
-  done < <(find "$nix_store" -maxdepth 3 -path "*/Applications/*.app" -type d -print0 2>/dev/null)
+  done < <(find "$nix_store" -maxdepth 3 -path "*/Applications/*.app" -type d -print0 2> /dev/null)
 
   # 2단계: 특별한 패턴의 앱들 검색 (Qt 도구 등)
   while IFS= read -r -d '' app_path; do
@@ -58,13 +58,13 @@ link_nix_apps() {
 
     # 개발 도구나 시스템 유틸리티는 제외
     case "$app_name" in
-    "qml.app" | "Assistant.app" | "Designer.app" | "Linguist.app" | "pixeltool.app" | "qdbusviewer.app")
-      continue
-      ;;
+      "qml.app" | "Assistant.app" | "Designer.app" | "Linguist.app" | "pixeltool.app" | "qdbusviewer.app")
+        continue
+        ;;
     esac
 
     discovered_apps+=("$app_path")
-  done < <(find "$nix_store" -maxdepth 4 -name "*.app" -path "*/bin/*" -type d -print0 2>/dev/null)
+  done < <(find "$nix_store" -maxdepth 4 -name "*.app" -path "*/bin/*" -type d -print0 2> /dev/null)
 
   # 발견된 앱들을 링크
   for app_path in "${discovered_apps[@]}"; do
@@ -123,7 +123,7 @@ link_nix_apps() {
       ln -sf "$app_path" "$home_apps/$app_name"
       echo "  ✅ $app_name linked"
       new_apps=$((new_apps + 1))
-    done < <(find "$profile" -maxdepth 3 -name "*.app" -type d -print0 2>/dev/null)
+    done < <(find "$profile" -maxdepth 3 -name "*.app" -type d -print0 2> /dev/null)
 
     [ $new_apps -eq 0 ] && echo "  ⚡ No new apps to link (all up-to-date)"
   fi

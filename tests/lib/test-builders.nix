@@ -11,7 +11,13 @@
 # Usage:
 #   import ../lib/test-builders.nix { inherit pkgs lib system nixpkgs; }
 
-{ lib, pkgs, system ? builtins.currentSystem or "x86_64-linux", nixpkgs ? <nixpkgs>, ... }:
+{
+  lib,
+  pkgs,
+  system ? builtins.currentSystem or "x86_64-linux",
+  nixpkgs ? <nixpkgs>,
+  ...
+}:
 let
   # Use nixosTest from pkgs (works in flake context)
   nixosTest =
@@ -29,28 +35,30 @@ rec {
   #   extraPackages: Additional packages to install
   #   testScriptBody: Python test script body (without start_all/shutdown)
   mkBasicTest =
-    { testName
-    , extraConfig ? { }
-    , extraPackages ? [ ]
-    , testScriptBody
-    , hostname ? "test-vm"
+    {
+      testName,
+      extraConfig ? { },
+      extraPackages ? [ ],
+      testScriptBody,
+      hostname ? "test-vm",
     }:
     nixosTest {
       name = testName;
       nodes.machine =
-        { config, pkgs, ... }:
+        { ... }:
         {
           imports = [
             ../fixtures/basic-system.nix
-            ({ ... }: { networking.hostName = hostname; })
+            (_: {
+              networking.hostName = hostname;
+            })
           ];
 
           # Apply extra config
           config = lib.mkIf (extraConfig != { }) extraConfig;
 
           # Add extra packages
-          environment.systemPackages =
-            lib.optionals (extraPackages != [ ]) extraPackages;
+          environment.systemPackages = lib.optionals (extraPackages != [ ]) extraPackages;
         };
 
       testScript = ''
@@ -68,14 +76,15 @@ rec {
   #   userConfig: User-specific configuration to test
   #   testScriptBody: Python test script body
   mkUserTest =
-    { testName
-    , userConfig ? { }
-    , testScriptBody
+    {
+      testName,
+      userConfig ? { },
+      testScriptBody,
     }:
     nixosTest {
       name = testName;
       nodes.machine =
-        { config, pkgs, ... }:
+        { ... }:
         {
           imports = [
             ../fixtures/basic-system.nix
@@ -100,16 +109,17 @@ rec {
   #   targetConfig: Target machine config
   #   testScriptBody: Python test script body
   mkDualMachineTest =
-    { testName
-    , sourceConfig ? { }
-    , targetConfig ? { }
-    , testScriptBody
+    {
+      testName,
+      sourceConfig ? { },
+      targetConfig ? { },
+      testScriptBody,
     }:
     nixosTest {
       name = testName;
       nodes = {
         source-machine =
-          { config, pkgs, ... }:
+          { ... }:
           {
             imports = [
               ../fixtures/basic-system.nix
@@ -119,7 +129,7 @@ rec {
             networking.hostName = "source-machine";
           };
         target-machine =
-          { config, pkgs, ... }:
+          { ... }:
           {
             imports = [
               ../fixtures/basic-system.nix
@@ -148,14 +158,15 @@ rec {
   #   devPackages: Extra development packages
   #   testScriptBody: Python test script body
   mkDeveloperTest =
-    { testName
-    , devPackages ? [ ]
-    , testScriptBody
+    {
+      testName,
+      devPackages ? [ ],
+      testScriptBody,
     }:
     nixosTest {
       name = testName;
       nodes.machine =
-        { config, pkgs, ... }:
+        { pkgs, ... }:
         {
           imports = [
             ../fixtures/basic-system.nix
@@ -171,8 +182,7 @@ rec {
 
           # Development packages
           environment.systemPackages =
-            import ../fixtures/common-packages.nix { inherit pkgs; }.comprehensivePackages
-            ++ devPackages;
+            import ../fixtures/common-packages.nix { inherit pkgs; }.comprehensivePackages ++ devPackages;
 
           # Docker support
           virtualisation.docker = {
@@ -196,13 +206,14 @@ rec {
   #   testName: Name of the test
   #   testScriptBody: Python test script body
   mkCrossPlatformTest =
-    { testName
-    , testScriptBody
+    {
+      testName,
+      testScriptBody,
     }:
     nixosTest {
       name = testName;
       nodes.machine =
-        { config, pkgs, ... }:
+        { pkgs, ... }:
         {
           imports = [
             ../fixtures/basic-system.nix
@@ -211,7 +222,9 @@ rec {
           networking.hostName = "cross-platform-test";
 
           # Import E2E helpers
-          environment.systemPackages = import ../fixtures/common-packages.nix { inherit pkgs; }.e2eBasicPackages;
+          environment.systemPackages =
+            import ../fixtures/common-packages.nix
+              { inherit pkgs; }.e2eBasicPackages;
         };
 
       testScript = ''

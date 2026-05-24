@@ -11,15 +11,11 @@
 {
   lib ? import <nixpkgs/lib>,
   pkgs ? import <nixpkgs> { },
-  system ? builtins.currentSystem or "x86_64-linux",
-  nixtest ? { },
-  self ? ./.,
-  inputs ? { },
+  ...
 }:
 
 let
   # Import property testing helpers
-  propertyTestHelpers = import ../lib/property-test-helpers.nix { inherit pkgs lib; };
 
   # OPTIMIZED: Reduced test users from 4 to 2
   testUsers = [

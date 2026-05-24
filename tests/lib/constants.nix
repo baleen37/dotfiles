@@ -3,10 +3,7 @@
 # Centralized magic numbers used across tests.
 # Each constant includes documentation explaining why it has its specific value.
 
-{
-  pkgs,
-  lib,
-}:
+_:
 
 rec {
   # ===== Darwin Performance Constants =====

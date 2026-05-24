@@ -12,7 +12,7 @@
 # Usage:
 #   imports = [ ../lib/fixtures/basic-system.nix ]
 
-{ pkgs, lib, ... }:
+{ pkgs, ... }:
 {
   # Standard VM config
   boot.loader.systemd-boot.enable = true;

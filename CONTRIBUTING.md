@@ -425,24 +425,29 @@ nix build --impure .#checks.$(nix eval --impure --expr 'builtins.currentSystem')
 
 ```markdown
 ## Description
+
 Brief description of changes
 
 ## Type of Change
+
 - [ ] Bug fix
 - [ ] New feature
 - [ ] Documentation update
 - [ ] Refactoring
 
 ## Testing
+
 - [ ] Local tests pass (`./scripts/test-all-local`)
 - [ ] Pre-commit workflow complete
 - [ ] Tested on target platforms: [list platforms]
 
 ## Documentation
+
 - [ ] Documentation updated
 - [ ] Breaking changes documented
 
 ## Additional Notes
+
 Any additional information, considerations, or context
 ```
 

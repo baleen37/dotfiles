@@ -14,8 +14,8 @@
   pkgs,
   lib,
   assertTest,
-  testSuite,
   mkTest,
+  ...
 }:
 
 {
@@ -68,23 +68,25 @@
   # File content validation with diff support
   assertFileContent =
     name: expectedPath: actualPath:
-    pkgs.runCommand "test-${name}" {
-      inherit expectedPath actualPath;
-    } ''
-      if diff -u "$expectedPath" "$actualPath" > /dev/null 2>&1; then
-        echo "PASS: ${name}"
-        touch $out
-      else
-        echo "FAIL: ${name}"
-        echo "  File content mismatch"
-        echo "  Expected: $expectedPath"
-        echo "  Actual: $actualPath"
-        echo ""
-        echo "Diff:"
-        diff -u "$expectedPath" "$actualPath" || true
-        exit 1
-      fi
-    '';
+    pkgs.runCommand "test-${name}"
+      {
+        inherit expectedPath actualPath;
+      }
+      ''
+        if diff -u "$expectedPath" "$actualPath" > /dev/null 2>&1; then
+          echo "PASS: ${name}"
+          touch $out
+        else
+          echo "FAIL: ${name}"
+          echo "  File content mismatch"
+          echo "  Expected: $expectedPath"
+          echo "  Actual: $actualPath"
+          echo ""
+          echo "Diff:"
+          diff -u "$expectedPath" "$actualPath" || true
+          exit 1
+        fi
+      '';
 
   # Enhanced assertion with verbose error reporting including location info
   assertTestWithDetailsVerbose =
@@ -99,13 +101,13 @@
         echo "FAIL: ${name}"
         echo "  ${message}"
         ${lib.optionalString (expected != null) ''
-        echo "  Expected: ${expected}"
+          echo "  Expected: ${expected}"
         ''}
         ${lib.optionalString (actual != null) ''
-        echo "  Actual: ${actual}"
+          echo "  Actual: ${actual}"
         ''}
         ${lib.optionalString (file != null) ''
-        echo "  Location: ${file}${lib.optionalString (line != null) ":${toString line}"}"
+          echo "  Location: ${file}${lib.optionalString (line != null) ":${toString line}"}"
         ''}
         exit 1
       '';
@@ -430,27 +432,42 @@
       pkgs.runCommand "test-${name}-pass" { } ''
         echo "✅ ${name}: PASS"
         echo "  All ${toString (builtins.length expectedPlugins)} expected plugins present"
-        ${if options.allowExtra then "" else ''
-          echo "  No unexpected plugins found"
-        ''}
+        ${
+          if options.allowExtra then
+            ""
+          else
+            ''
+              echo "  No unexpected plugins found"
+            ''
+        }
         touch $out
       ''
     else
       pkgs.runCommand "test-${name}-fail" { } ''
         echo "❌ ${name}: FAIL"
-        ${if !allPresent then ''
-          echo "  Missing plugins:"
-          ${lib.concatMapStringsSep "\n" (result: ''
-            echo "    ${result.plugin}"
-          '') missing}
-        '' else ""}
-        ${if hasUnexpected then ''
-          echo ""
-          echo "  Unexpected plugins found:"
-          ${lib.concatMapStringsSep "\n" (p: ''
-            echo "    ${p}"
-          '') unexpected}
-        '' else ""}
+        ${
+          if !allPresent then
+            ''
+              echo "  Missing plugins:"
+              ${lib.concatMapStringsSep "\n" (result: ''
+                echo "    ${result.plugin}"
+              '') missing}
+            ''
+          else
+            ""
+        }
+        ${
+          if hasUnexpected then
+            ''
+              echo ""
+              echo "  Unexpected plugins found:"
+              ${lib.concatMapStringsSep "\n" (p: ''
+                echo "    ${p}"
+              '') unexpected}
+            ''
+          else
+            ""
+        }
         exit 1
       '';
 
@@ -461,10 +478,12 @@
       normalizePaths =
         paths:
         if builtins.typeOf paths == "list" then
-          builtins.listToAttrs (builtins.map (p: {
-            name = p;
-            value = true;
-          }) paths)
+          builtins.listToAttrs (
+            builtins.map (p: {
+              name = p;
+              value = true;
+            }) paths
+          )
         else
           paths;
 
@@ -480,10 +499,7 @@
               "${derivationOrPath}/${relPath}";
 
           readResult = builtins.tryEval (
-            if builtins.typeOf derivationOrPath == "set" then
-              builtins.readFile fullPath
-            else
-              "mock-success"
+            if builtins.typeOf derivationOrPath == "set" then builtins.readFile fullPath else "mock-success"
           );
 
           isReadable = readResult.success;
@@ -497,14 +513,6 @@
               null;
 
           typeMatches = true;
-
-          executableExpected =
-            if options == true then
-              false
-            else if builtins.typeOf options == "set" then
-              options.executable or false
-            else
-              false;
 
           executableMatches = true;
         in
@@ -541,10 +549,13 @@
 
       unreadablePaths = builtins.filter (r: !r.readable) results;
       typeMismatches = builtins.filter (r: r.readable && !r.typeMatches) results;
-      executableMismatches = builtins.filter (r: r.readable && r.typeMatches && !r.executableMatches) results;
+      executableMismatches = builtins.filter (
+        r: r.readable && r.typeMatches && !r.executableMatches
+      ) results;
 
       allValid =
-        builtins.length unreadablePaths == 0 && builtins.length typeMismatches == 0
+        builtins.length unreadablePaths == 0
+        && builtins.length typeMismatches == 0
         && builtins.length executableMismatches == 0;
     in
     if allValid then
@@ -557,20 +568,30 @@
       pkgs.runCommand "test-${name}-fail" { } ''
         echo "❌ ${name}: FAIL"
         echo "  File system validation failed"
-        ${if builtins.length unreadablePaths > 0 then ''
-          echo ""
-          echo "  Unreadable paths:"
-          ${lib.concatMapStringsSep "\n" (r: ''
-            echo "    ${r.path}"
-          '') unreadablePaths}
-        '' else ""}
-        ${if builtins.length typeMismatches > 0 then ''
-          echo ""
-          echo "  Type mismatches:"
-          ${lib.concatMapStringsSep "\n" (r: ''
-            echo "    ${r.path} (expected type: ${r.expectedType})"
-          '') typeMismatches}
-        '' else ""}
+        ${
+          if builtins.length unreadablePaths > 0 then
+            ''
+              echo ""
+              echo "  Unreadable paths:"
+              ${lib.concatMapStringsSep "\n" (r: ''
+                echo "    ${r.path}"
+              '') unreadablePaths}
+            ''
+          else
+            ""
+        }
+        ${
+          if builtins.length typeMismatches > 0 then
+            ''
+              echo ""
+              echo "  Type mismatches:"
+              ${lib.concatMapStringsSep "\n" (r: ''
+                echo "    ${r.path} (expected type: ${r.expectedType})"
+              '') typeMismatches}
+            ''
+          else
+            ""
+        }
         exit 1
       '';
 
@@ -624,11 +645,7 @@
             else
               false;
 
-          matchesInValues =
-            if spec.matchType == "regex" then
-              false
-            else
-              false;
+          matchesInValues = if spec.matchType == "regex" then false else false;
 
           isPresent = inDirectImports || inConfigKeys || matchesInValues;
         in

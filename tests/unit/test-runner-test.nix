@@ -1,12 +1,15 @@
 # tests/unit/test-runner-test.nix
 # Tests test runner functionality with filtering and performance monitoring
 
-{ inputs, system, pkgs, lib, self, nixtest ? {} }:
+{
+  pkgs,
+  lib,
+  ...
+}:
 
 let
-  helpers = import ../lib/assertions.nix { inherit pkgs lib; };
   runner = import ../lib/test-runner.nix { inherit pkgs lib; };
-  mkTestSuite = runner.mkTestSuite;
+  inherit (runner) mkTestSuite;
 
   mockTests = {
     "test-pass" = pkgs.writeShellScript "test-pass" ''
@@ -20,6 +23,6 @@ let
   };
 in
 {
-  testRunnerBasic = mkTestSuite "mock-suite" mockTests {};
+  testRunnerBasic = mkTestSuite "mock-suite" mockTests { };
   testRunnerFiltered = mkTestSuite "filtered-suite" mockTests { filter = "pass"; };
 }

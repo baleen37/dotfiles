@@ -7,8 +7,6 @@
   system,
   pkgs ? import inputs.nixpkgs { inherit system; },
   lib ? pkgs.lib,
-  nixtest ? { },
-  self ? ./.,
   ...
 }:
 
@@ -16,7 +14,7 @@ let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
   mockConfig = import ../lib/mock-config.nix { inherit pkgs lib; };
 
-  zshConfig = import ../../users/shared/zsh {
+  zshConfig = import ../../users/shared/programs/zsh {
     inherit pkgs lib;
     isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
     config = mockConfig.mkEmptyConfig;
@@ -33,15 +31,15 @@ let
   ];
 
   # Helper: check function definition exists
-  assertFnDefined = name:
-    helpers.assertTest "zsh-fn-${name}-defined"
-      (lib.hasInfix "${name}()" initContent)
+  assertFnDefined =
+    name:
+    helpers.assertTest "zsh-fn-${name}-defined" (lib.hasInfix "${name}()" initContent)
       "Function ${name}() not found in zsh initContent";
 
   # Helper: check string present in initContent
-  assertInitHas = name: needle:
-    helpers.assertTest "zsh-init-${name}"
-      (lib.hasInfix needle initContent)
+  assertInitHas =
+    name: needle:
+    helpers.assertTest "zsh-init-${name}" (lib.hasInfix needle initContent)
       "${needle} not found in zsh initContent";
 
 in
@@ -74,15 +72,15 @@ in
     # 4. cco allows env overrides with built-in fallback values
     ++ [
       (assertInitHas "cco-sonnet-env-override" "CCO_SONNET_MODEL:-")
-      (assertInitHas "cco-high-env-override"   "CCO_OPUS_MODEL:-")
-      (assertInitHas "cco-low-env-override"    "CCO_HAIKU_MODEL:-")
+      (assertInitHas "cco-high-env-override" "CCO_OPUS_MODEL:-")
+      (assertInitHas "cco-low-env-override" "CCO_HAIKU_MODEL:-")
     ]
 
     # 5. ccz requires CCZ_ env vars (no silent fallback)
     ++ [
       (assertInitHas "ccz-requires-sonnet-env" "CCZ_SONNET_MODEL:?Set")
-      (assertInitHas "ccz-high-requires-env"   "CCZ_OPUS_MODEL:?Set")
-      (assertInitHas "ccz-low-requires-env"    "CCZ_HAIKU_MODEL:?Set")
+      (assertInitHas "ccz-high-requires-env" "CCZ_OPUS_MODEL:?Set")
+      (assertInitHas "ccz-low-requires-env" "CCZ_HAIKU_MODEL:?Set")
     ]
 
     # 6. _cc_run passes --model flag and common options
@@ -93,20 +91,20 @@ in
 
     # 7. cco sets ANTHROPIC env vars for OpenAI-compatible proxy
     ++ [
-      (assertInitHas "cco-base-url"    "ANTHROPIC_BASE_URL")
-      (assertInitHas "cco-auth-token"  "ANTHROPIC_AUTH_TOKEN")
+      (assertInitHas "cco-base-url" "ANTHROPIC_BASE_URL")
+      (assertInitHas "cco-auth-token" "ANTHROPIC_AUTH_TOKEN")
       (assertInitHas "cco-default-url" "http://127.0.0.1:8317")
     ]
 
     # 8. ccz sets Z.ai-specific env vars
     ++ [
-      (assertInitHas "ccz-base-url"   "https://api.z.ai/api/anthropic")
+      (assertInitHas "ccz-base-url" "https://api.z.ai/api/anthropic")
       (assertInitHas "ccz-auth-token" "CCZ_TOKEN")
     ]
 
     # 9. cck sets Kimi-specific env vars
     ++ [
-      (assertInitHas "cck-base-url"   "CCK_BASE_URL")
+      (assertInitHas "cck-base-url" "CCK_BASE_URL")
       (assertInitHas "cck-auth-token" "CCK_AUTH_TOKEN")
     ]
 

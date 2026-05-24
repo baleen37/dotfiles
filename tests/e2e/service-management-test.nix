@@ -14,9 +14,7 @@
 {
   pkgs ? import <nixpkgs> { },
   nixpkgs ? <nixpkgs>,
-  lib ? pkgs.lib,
   system ? builtins.currentSystem or "x86_64-linux",
-  self ? null,
 }:
 
 let
@@ -34,7 +32,7 @@ nixosTest {
   nodes = {
     # Main test machine with various services
     machine =
-      { config, pkgs, ... }:
+      { pkgs, ... }:
       {
         # Standard VM config
         boot.loader.systemd-boot.enable = true;
@@ -74,7 +72,10 @@ nixosTest {
         users.users.testuser = {
           isNormalUser = true;
           password = "test";
-          extraGroups = [ "wheel" "docker" ];
+          extraGroups = [
+            "wheel"
+            "docker"
+          ];
           shell = pkgs.bash;
         };
 

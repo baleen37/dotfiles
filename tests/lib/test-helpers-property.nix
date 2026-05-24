@@ -9,6 +9,7 @@
   lib,
   assertTest,
   testSuite,
+  ...
 }:
 
 {
@@ -18,7 +19,7 @@
     name: property: testValues:
     let
       testResults = builtins.map (value: {
-        value = value;
+        inherit value;
         result = builtins.tryEval (property value);
       }) testValues;
 
@@ -62,8 +63,8 @@
 
       combinations = generateCombinations testValueSets;
       testResults = builtins.map (values: {
-        values = values;
-        result = builtins.tryEval (builtins.foldl' (acc: v: acc v) property values);
+        inherit values;
+        result = builtins.tryEval (builtins.foldl' (acc: acc) property values);
       }) combinations;
 
       allPassed = builtins.all (test: test.result.success) testResults;

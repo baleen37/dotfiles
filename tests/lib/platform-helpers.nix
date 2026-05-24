@@ -39,26 +39,36 @@
 let
   # Check if current platform matches a given platform
   # Helper for conditional test execution
-  isCurrentPlatform = platform:
-    if platform == "any" then true
-    else if platform == "darwin" then pkgs.stdenv.hostPlatform.isDarwin
-    else if platform == "linux" then pkgs.stdenv.hostPlatform.isLinux
-    else if platform == "unknown" then (!pkgs.stdenv.hostPlatform.isDarwin && !pkgs.stdenv.hostPlatform.isLinux)
-    else false;
+  isCurrentPlatform =
+    platform:
+    if platform == "any" then
+      true
+    else if platform == "darwin" then
+      pkgs.stdenv.hostPlatform.isDarwin
+    else if platform == "linux" then
+      pkgs.stdenv.hostPlatform.isLinux
+    else if platform == "unknown" then
+      (!pkgs.stdenv.hostPlatform.isDarwin && !pkgs.stdenv.hostPlatform.isLinux)
+    else
+      false;
 
   # Get current platform identifier
   # Returns standardized platform string for current system
   getCurrentPlatform =
-    if pkgs.stdenv.hostPlatform.isDarwin then "darwin"
-    else if pkgs.stdenv.hostPlatform.isLinux then "linux"
-    else "unknown";
+    if pkgs.stdenv.hostPlatform.isDarwin then
+      "darwin"
+    else if pkgs.stdenv.hostPlatform.isLinux then
+      "linux"
+    else
+      "unknown";
 
 in
 {
   # Platform-aware test inclusion
   # Creates a conditional test that only runs on the specified platform
   # Parameters: platform (string), test (derivation)
-  mkPlatformTest = platform: test:
+  mkPlatformTest =
+    platform: test:
     if isCurrentPlatform platform then
       test
     else
@@ -72,8 +82,10 @@ in
   # Platform-specific test filtering
   # Filters tests based on platform requirements in test attributes
   # Tests can have a `platforms` attribute with list of supported platforms
-  filterPlatformTests = tests:
-    lib.filterAttrs (name: test:
+  filterPlatformTests =
+    tests:
+    lib.filterAttrs (
+      _name: test:
       if builtins.hasAttr "platforms" test then
         builtins.any isCurrentPlatform test.platforms
       else
@@ -86,13 +98,12 @@ in
 
   # Create a platform-aware test suite
   # Automatically filters tests based on platform requirements
-  mkPlatformTestSuite = name: tests:
+  mkPlatformTestSuite =
+    name: tests:
     let
-      filteredTests = lib.filterAttrs (n: test:
-        if builtins.hasAttr "platforms" test then
-          builtins.any isCurrentPlatform test.platforms
-        else
-          true
+      filteredTests = lib.filterAttrs (
+        _n: test:
+        if builtins.hasAttr "platforms" test then builtins.any isCurrentPlatform test.platforms else true
       ) tests;
       testList = lib.attrValues filteredTests;
     in

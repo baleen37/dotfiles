@@ -2,7 +2,11 @@
 #
 # Tests platform helper utilities for conditional test inclusion
 # Verifies that platform detection and filtering functions work correctly.
-{ inputs, system, pkgs, lib, self, nixtest ? {}, ... }:
+{
+  pkgs,
+  lib,
+  ...
+}:
 
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
@@ -12,22 +16,23 @@ let
   currentPlatform = platformHelpers.getCurrentPlatform;
 in
 {
-  platforms = ["any"];
+  platforms = [ "any" ];
   value = helpers.testSuite "platform-helpers" [
     # Test mkPlatformTest function availability
-    (helpers.assertTest "mkPlatformTest-available" (
-      builtins.isFunction platformHelpers.mkPlatformTest
-    ) "mkPlatformTest should be available")
+    (helpers.assertTest "mkPlatformTest-available" (builtins.isFunction platformHelpers.mkPlatformTest)
+      "mkPlatformTest should be available"
+    )
 
     # Test filterPlatformTests function availability
-    (helpers.assertTest "filterPlatformTests-available" (
-      builtins.isFunction platformHelpers.filterPlatformTests
-    ) "filterPlatformTests should be available")
+    (helpers.assertTest "filterPlatformTests-available"
+      (builtins.isFunction platformHelpers.filterPlatformTests)
+      "filterPlatformTests should be available"
+    )
 
     # Test getCurrentPlatform value availability
-    (helpers.assertTest "getCurrentPlatform-available" (
-      builtins.isString currentPlatform
-    ) "getCurrentPlatform should return a string")
+    (helpers.assertTest "getCurrentPlatform-available" (builtins.isString currentPlatform)
+      "getCurrentPlatform should return a string"
+    )
 
     # Test platform detection returns valid value
     (helpers.assertTest "platform-detection-valid" (
@@ -35,13 +40,15 @@ in
     ) "Platform detection should return a valid value")
 
     # Test isCurrentPlatform helper availability
-    (helpers.assertTest "isCurrentPlatform-available" (
-      builtins.isFunction platformHelpers.isCurrentPlatform
-    ) "isCurrentPlatform should be available")
+    (helpers.assertTest "isCurrentPlatform-available"
+      (builtins.isFunction platformHelpers.isCurrentPlatform)
+      "isCurrentPlatform should be available"
+    )
 
     # Test mkPlatformTestSuite helper availability
-    (helpers.assertTest "mkPlatformTestSuite-available" (
-      builtins.isFunction platformHelpers.mkPlatformTestSuite
-    ) "mkPlatformTestSuite should be available")
+    (helpers.assertTest "mkPlatformTestSuite-available"
+      (builtins.isFunction platformHelpers.mkPlatformTestSuite)
+      "mkPlatformTestSuite should be available"
+    )
   ];
 }

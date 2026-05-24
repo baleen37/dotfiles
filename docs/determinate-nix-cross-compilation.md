@@ -24,6 +24,7 @@ The recommended approach for Determinate Nix users is standard Nix distributed b
    - User in `trusted-users` configuration
 
 2. **SSH Configuration**:
+
 ```bash
 # SSH key setup
 ssh-keygen -t ed25519 -C "determinate-nix-builder"
@@ -36,12 +37,14 @@ ssh user@remote-builder "nix --version"
 #### Configuration
 
 **Option A: Command Line (Temporary)**
+
 ```bash
 export NIX_REMOTE_SYSTEMS="aarch64-linux=user@remote-builder x86_64-linux=user@remote-builder"
 nix build --impure --expr '(with import <nixpkgs> { system = "aarch64-linux"; }; hello)'
 ```
 
 **Option B: Configuration File (Permanent)**
+
 ```bash
 # Create ~/.config/nix/machines
 mkdir -p ~/.config/nix
@@ -52,6 +55,7 @@ EOF
 ```
 
 **Option C: Environment Variables**
+
 ```bash
 # Add to shell profile (zsh, bash)
 export NIX_REMOTE_SYSTEMS="aarch64-linux=user@remote-builder x86_64-linux=user@remote-builder"
@@ -85,21 +89,21 @@ jobs:
   build-aarch64:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Install Nix
-      uses: DeterminateSystems/nix-installer-action@v4
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v4
 
-    - name: Setup Magic Nix Cache
-      uses: DeterminateSystems/magic-nix-cache-action@v2
+      - name: Setup Magic Nix Cache
+        uses: DeterminateSystems/magic-nix-cache-action@v2
 
-    - name: Build aarch64-linux
-      run: |
-        nix build --impure --system aarch64-linux .#packages.aarch64-linux.hello
+      - name: Build aarch64-linux
+        run: |
+          nix build --impure --system aarch64-linux .#packages.aarch64-linux.hello
 
-    - name: Build x86_64-linux
-      run: |
-        nix build --impure --system x86_64-linux .#packages.x86_64-linux.hello
+      - name: Build x86_64-linux
+        run: |
+          nix build --impure --system x86_64-linux .#packages.x86_64-linux.hello
 ```
 
 #### Determinate FlakeHub Integration
@@ -199,24 +203,26 @@ echo "x86_64-linux ssh://lima-nix-builder@${VM_IP} 4 1 big-parallel" >> ~/.confi
 
 ## Performance Comparison
 
-| Approach | Setup Complexity | Build Speed | Cost | Maintenance |
-|----------|------------------|-------------|------|-------------|
-| nix-darwin linux-builder | Low | Medium | Free | Medium |
-| Determinate + Remote Builder | Medium | Fast | Variable | Medium |
-| GitHub Actions | Low | Medium | Free tier | Low |
-| QEMU Emulation | Low | Slow | Free | Low |
-| Local VM + Lima | Medium | Fast | Free | High |
+| Approach                     | Setup Complexity | Build Speed | Cost      | Maintenance |
+| ---------------------------- | ---------------- | ----------- | --------- | ----------- |
+| nix-darwin linux-builder     | Low              | Medium      | Free      | Medium      |
+| Determinate + Remote Builder | Medium           | Fast        | Variable  | Medium      |
+| GitHub Actions               | Low              | Medium      | Free tier | Low         |
+| QEMU Emulation               | Low              | Slow        | Free      | Low         |
+| Local VM + Lima              | Medium           | Fast        | Free      | High        |
 
 ## Migration Path from nix-darwin linux-builder
 
 If you want to switch back to nix-darwin managed Nix for linux-builder support:
 
 1. **Remove Determinate Nix**:
+
 ```bash
 sudo /nix/nix-installer uninstall
 ```
 
 2. **Enable nix-darwin Nix management**:
+
 ```nix
 # users/shared/darwin.nix
 nix = {
@@ -226,8 +232,9 @@ nix = {
 ```
 
 3. **Linux builder will auto-activate**:
+
 ```bash
-# The existing configuration in machines/macbook-pro.nix will activate
+# The existing configuration in machines/darwin/common.nix will activate
 make switch
 ```
 
@@ -236,6 +243,7 @@ make switch
 ### Common Issues
 
 **SSH Connection Errors**:
+
 ```bash
 # Test SSH connectivity
 ssh -v user@remote-builder "nix --version"
@@ -245,12 +253,14 @@ ssh user@remote-builder "cat ~/.ssh/authorized_keys"
 ```
 
 **Permission Errors**:
+
 ```bash
 # Ensure user is in trusted-users
 ssh remote-builder "sudo usermod -aG nixbld \$(whoami)"
 ```
 
 **Build Failures**:
+
 ```bash
 # Check system features
 nix show-config | grep system-features
@@ -272,6 +282,7 @@ sudo sysctl -w vm.cs_force_kill=1
 Determinate Nix doesn't provide built-in cross-compilation tools, but standard Nix distributed builds offer a robust solution. The main trade-off is losing the convenience of nix-darwin's linux-builder, but gaining Determinate's installation and management benefits.
 
 For most users, the recommended approach is:
+
 1. Use GitHub Actions for CI/CD builds
 2. Set up a dedicated remote builder for local development
 3. Leverage binary caches to avoid unnecessary rebuilding

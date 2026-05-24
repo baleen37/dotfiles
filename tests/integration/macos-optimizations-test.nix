@@ -27,13 +27,20 @@ let
   inherit (pkgs) lib;
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
   constants = import ../lib/constants.nix { inherit pkgs lib; };
-  darwinHelpers = import ../lib/darwin-test-helpers.nix { inherit pkgs lib helpers constants; };
+  darwinHelpers = import ../lib/darwin-test-helpers.nix {
+    inherit
+      pkgs
+      lib
+      helpers
+      constants
+      ;
+  };
 
   # Import the darwin configuration to test against
   # darwin.nix uses NixOS module imports, so sub-files must be merged manually
-  darwinConfig = lib.recursiveUpdate
-    (lib.recursiveUpdate
-      (import ../../users/shared/darwin.nix {
+  darwinConfig =
+    lib.recursiveUpdate
+      (lib.recursiveUpdate (import ../../users/shared/darwin/default.nix {
         inherit pkgs lib;
         config = {
           home = {
@@ -41,11 +48,9 @@ let
           };
         };
         currentSystemUser = "testuser";
-        inputs = inputs;
-      })
-      (import ../../users/shared/darwin-homebrew.nix { })
-    )
-    (import ../../users/shared/darwin-scripts.nix { });
+        inherit inputs;
+      }) (import ../../users/shared/darwin/homebrew.nix { }))
+      (import ../../users/shared/darwin/scripts.nix { });
 
 in
 if pkgs.stdenv.isDarwin then

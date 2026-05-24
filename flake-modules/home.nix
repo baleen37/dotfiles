@@ -1,9 +1,13 @@
-{ inputs, self, ... }:
+{
+  inputs,
+  self,
+  overlays,
+  ...
+}:
 
 let
-  nixpkgs = inputs.nixpkgs;
-  home-manager = inputs.home-manager;
-  overlays = import ../lib/overlays.nix { inherit inputs; };
+  inherit (inputs) nixpkgs;
+  inherit (inputs) home-manager;
 
   mkHomeConfig =
     userName:

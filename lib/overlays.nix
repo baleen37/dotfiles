@@ -4,7 +4,7 @@
 { inputs }:
 
 [
-  (final: prev: {
+  (_final: prev: {
     # unstable alias - nixpkgs already tracks nixpkgs-unstable
     unstable = prev;
 

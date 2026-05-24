@@ -4,10 +4,9 @@
 # Reduces duplication across starship-related test files.
 
 {
-  pkgs,
   lib,
   helpers,
-  constants,
+  ...
 }:
 
 rec {
@@ -17,7 +16,8 @@ rec {
   #   config: The starship configuration to test
   #
   # Returns: An assertion that passes if Starship is enabled
-  assertStarshipEnabled = config:
+  assertStarshipEnabled =
+    config:
     helpers.assertTest "starship-enabled" (
       config.programs.starship.enable == true
     ) "Starship should be enabled";
@@ -28,7 +28,8 @@ rec {
   #   config: The starship configuration to test
   #
   # Returns: An assertion that passes if Zsh integration is enabled
-  assertStarshipZshIntegration = config:
+  assertStarshipZshIntegration =
+    config:
     helpers.assertTest "starship-zsh-integration" (
       config.programs.starship.enableZshIntegration == true
     ) "Starship should have Zsh integration enabled";
@@ -39,7 +40,8 @@ rec {
   #   config: The starship configuration to test
   #
   # Returns: An assertion that passes if settings exist
-  assertStarshipHasSettings = config:
+  assertStarshipHasSettings =
+    config:
     helpers.assertTest "starship-has-settings" (
       config.programs.starship ? settings
     ) "Starship should have settings configured";
@@ -52,13 +54,14 @@ rec {
   #   testName: Optional custom test name (defaults to "starship-format-has-{module}")
   #
   # Returns: An assertion that passes if the format contains the module
-  assertStarshipFormatHasModule = config: moduleName: testName:
+  assertStarshipFormatHasModule =
+    config: moduleName: testName:
     let
-      name = if testName == null then "starship-format-has-${lib.removePrefix "$" moduleName}" else testName;
+      name =
+        if testName == null then "starship-format-has-${lib.removePrefix "$" moduleName}" else testName;
     in
-    helpers.assertTest name (
-      lib.hasInfix moduleName config.programs.starship.settings.format
-    ) "Starship format should include ${moduleName} module";
+    helpers.assertTest name (lib.hasInfix moduleName config.programs.starship.settings.format)
+      "Starship format should include ${moduleName} module";
 
   # Assert that Starship right format is configured correctly
   #
@@ -67,7 +70,8 @@ rec {
   #   expectedFormat: Expected right format (defaults to "$cmd_duration")
   #
   # Returns: An assertion that passes if right format matches
-  assertStarshipRightFormat = config: expectedFormat:
+  assertStarshipRightFormat =
+    config: expectedFormat:
     helpers.assertTest "starship-right-format" (
       config.programs.starship.settings.right_format == expectedFormat
     ) "Starship right format should be '${expectedFormat}'";
@@ -79,7 +83,8 @@ rec {
   #   expectedTimeout: Expected timeout in milliseconds (defaults to constants.starshipCommandTimeout)
   #
   # Returns: An assertion that passes if timeout matches
-  assertStarshipCommandTimeout = config: expectedTimeout:
+  assertStarshipCommandTimeout =
+    config: expectedTimeout:
     helpers.assertTest "starship-command-timeout" (
       config.programs.starship.settings.command_timeout == expectedTimeout
     ) "Starship command timeout should be ${toString expectedTimeout}ms";
@@ -91,7 +96,8 @@ rec {
   #   expectedTimeout: Expected timeout in seconds (defaults to constants.starshipScanTimeout)
   #
   # Returns: An assertion that passes if scan timeout matches
-  assertStarshipScanTimeout = config: expectedTimeout:
+  assertStarshipScanTimeout =
+    config: expectedTimeout:
     helpers.assertTest "starship-scan-timeout" (
       config.programs.starship.settings.scan_timeout == expectedTimeout
     ) "Starship scan timeout should be ${toString expectedTimeout}";
@@ -103,7 +109,8 @@ rec {
   #   expectedMinTime: Expected min_time in milliseconds (defaults to constants.starshipCmdDurationMinTime)
   #
   # Returns: An assertion that passes if min_time matches
-  assertStarshipCmdDurationMinTime = config: expectedMinTime:
+  assertStarshipCmdDurationMinTime =
+    config: expectedMinTime:
     helpers.assertTest "starship-cmd-duration-min-time" (
       config.programs.starship.settings.cmd_duration.min_time == expectedMinTime
     ) "Starship cmd_duration min_time should be ${toString expectedMinTime}ms";
@@ -115,7 +122,8 @@ rec {
   #   moduleName: The module name (e.g., "username", "hostname")
   #
   # Returns: An assertion that passes if the module is disabled
-  assertStarshipModuleDisabled = config: moduleName:
+  assertStarshipModuleDisabled =
+    config: moduleName:
     helpers.assertTest "starship-${moduleName}-disabled" (
       config.programs.starship.settings.${moduleName}.disabled == true
     ) "Starship ${moduleName} module should be disabled";
@@ -127,7 +135,8 @@ rec {
   #   expectedLength: Expected truncation length (defaults to constants.starshipDirectoryTruncationLength)
   #
   # Returns: An assertion that passes if truncation length matches
-  assertStarshipDirectoryTruncation = config: expectedLength:
+  assertStarshipDirectoryTruncation =
+    config: expectedLength:
     helpers.assertTest "starship-directory-truncation" (
       config.programs.starship.settings.directory.truncation_length == expectedLength
     ) "Starship directory truncation_length should be ${toString expectedLength}";
@@ -140,8 +149,9 @@ rec {
   #   expectedSymbol: Expected symbol value
   #
   # Returns: An assertion that passes if symbol matches
-  assertStarshipModuleSymbol = config: moduleName: expectedSymbol:
-    helpers.assertTest "starship-${lib.replaceStrings ["_"] ["-"] moduleName}-symbol" (
+  assertStarshipModuleSymbol =
+    config: moduleName: expectedSymbol:
+    helpers.assertTest "starship-${lib.replaceStrings [ "_" ] [ "-" ] moduleName}-symbol" (
       config.programs.starship.settings.${moduleName}.symbol == expectedSymbol
     ) "Starship ${moduleName} symbol should be '${expectedSymbol}'";
 
@@ -153,8 +163,9 @@ rec {
   #   expectedSymbol: Expected symbol (e.g., "[➜](bold green)")
   #
   # Returns: An assertion that passes if symbol matches
-  assertStarshipCharacterSymbol = config: symbolType: expectedSymbol:
-    helpers.assertTest "starship-${lib.replaceStrings ["_"] ["-"] symbolType}" (
+  assertStarshipCharacterSymbol =
+    config: symbolType: expectedSymbol:
+    helpers.assertTest "starship-${lib.replaceStrings [ "_" ] [ "-" ] symbolType}" (
       config.programs.starship.settings.character.${symbolType} == expectedSymbol
     ) "Starship ${symbolType} should be '${expectedSymbol}'";
 
@@ -165,6 +176,7 @@ rec {
   #   requiredModules: List of required module names (e.g., ["$directory" "$git_branch"])
   #
   # Returns: A list of assertions for all required modules
-  assertStarshipFormatHasAllModules = config: requiredModules:
+  assertStarshipFormatHasAllModules =
+    config: requiredModules:
     map (module: assertStarshipFormatHasModule config module null) requiredModules;
 }

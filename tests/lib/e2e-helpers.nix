@@ -19,6 +19,7 @@
       isLinux = pkgs.stdenv.isLinux;
     };
   },
+  ...
 }:
 
 rec {
@@ -163,18 +164,16 @@ rec {
   # 부트스트랩 워크플로우 검증
   validateBootstrapWorkflow =
     name:
-    assertTest name (
-      builtins.all (s: builtins.hasAttr s bootstrapWorkflow) [
-        "partitioning"
-        "filesystems"
-        "mounting"
-        "generateConfig"
-        "installNixOS"
-        "copyDotfiles"
-        "switchConfig"
-        "copySecrets"
-      ]
-    ) "Bootstrap workflow incomplete";
+    assertTest name (builtins.all (s: builtins.hasAttr s bootstrapWorkflow) [
+      "partitioning"
+      "filesystems"
+      "mounting"
+      "generateConfig"
+      "installNixOS"
+      "copyDotfiles"
+      "switchConfig"
+      "copySecrets"
+    ]) "Bootstrap workflow incomplete";
 
   # ===== 크로스 플랫폼 헬퍼 =====
 
@@ -193,16 +192,16 @@ rec {
 
   # 플랫폼별 설정 파일 경로
   getPlatformConfigPath =
-    configName: darwinSubPath: linuxSubPath:
-    getPlatformPath
-      (if darwinSubPath != null then "/Users/${testConfig.username}/${darwinSubPath}" else null)
-      (if linuxSubPath != null then "/home/${testConfig.username}/${linuxSubPath}" else null);
+    _configName: darwinSubPath: linuxSubPath:
+    getPlatformPath (
+      if darwinSubPath != null then "/Users/${testConfig.username}/${darwinSubPath}" else null
+    ) (if linuxSubPath != null then "/home/${testConfig.username}/${linuxSubPath}" else null);
 
   # ===== 시스템 팩토리 검증 헬퍼 =====
 
   # mkSystem 함수 출력 검증
   validateMkSystemOutput =
-    name: systemConfig: expectedType:
+    name: systemConfig: _expectedType:
     assertTest name (
       builtins.hasAttr "systemFunc" systemConfig
       && builtins.hasAttr "specialArgs" systemConfig
@@ -212,9 +211,9 @@ rec {
   # specialArgs 검증
   validateSpecialArgs =
     name: specialArgs: requiredArgs:
-    assertTest name (
-      builtins.all (arg: builtins.hasAttr arg specialArgs) requiredArgs
-    ) "Missing required specialArgs";
+    assertTest name (builtins.all (
+      arg: builtins.hasAttr arg specialArgs
+    ) requiredArgs) "Missing required specialArgs";
 
   # ===== 테스트 결과 보고서 생성 =====
 
@@ -242,16 +241,14 @@ rec {
   # Makefile 타겟 존재 검증
   assertMakefileTarget =
     name: makefileContent: targetName:
-    assertTest name (
-      lib.hasInfix "${targetName}:" makefileContent
-    ) "Makefile target ${targetName} not found";
+    assertTest name (lib.hasInfix "${targetName}:" makefileContent)
+      "Makefile target ${targetName} not found";
 
   # Makefile 타겟 의존성 검증
   assertMakefileDependency =
     name: makefileContent: targetName: dependency:
-    assertTest name (
-      lib.hasInfix dependency makefileContent
-    ) "Makefile target ${targetName} missing dependency ${dependency}";
+    assertTest name (lib.hasInfix dependency makefileContent)
+      "Makefile target ${targetName} missing dependency ${dependency}";
 
   # ===== SSH/네트워크 헬퍼 =====
 
@@ -337,8 +334,7 @@ rec {
   validateHomePackages =
     name: packages:
     assertTest name (
-      builtins.length packages > 0
-      && builtins.all (p: p != null) packages
+      builtins.length packages > 0 && builtins.all (p: p != null) packages
     ) "Home packages list is empty or contains null values";
 
   # ===== NixOS 설정 헬퍼 =====
@@ -356,7 +352,11 @@ rec {
     name: module:
     assertTest name (
       builtins.isAttrs module
-      && (builtins.hasAttr "imports" module || builtins.hasAttr "config" module || builtins.hasAttr "options" module)
+      && (
+        builtins.hasAttr "imports" module
+        || builtins.hasAttr "config" module
+        || builtins.hasAttr "options" module
+      )
     ) "Invalid NixOS module structure";
 
   # ===== Darwin 설정 헬퍼 =====
@@ -371,8 +371,7 @@ rec {
   validateDarwinConfig =
     name: config:
     assertTest name (
-      builtins.hasAttr "system" config
-      && builtins.hasAttr "nix" config
+      builtins.hasAttr "system" config && builtins.hasAttr "nix" config
     ) "Invalid Darwin configuration";
 
   # ===== 테스트 결과 집계 =====
@@ -428,12 +427,18 @@ rec {
     '';
 
   # 테스트 환경 정보 수집
-  collectTestEnvironment =
-    pkgs.runCommand "e2e-test-env" { } ''
-      echo "Test Environment Information:"
-      echo "System: ${pkgs.stdenv.system}"
-      echo "Platform: ${if pkgs.stdenv.isDarwin then "Darwin" else if pkgs.stdenv.isLinux then "Linux" else "Unknown"}"
-      echo "Nix version: ${pkgs.nix.version}"
-      touch $out
-    '';
+  collectTestEnvironment = pkgs.runCommand "e2e-test-env" { } ''
+    echo "Test Environment Information:"
+    echo "System: ${pkgs.stdenv.system}"
+    echo "Platform: ${
+      if pkgs.stdenv.isDarwin then
+        "Darwin"
+      else if pkgs.stdenv.isLinux then
+        "Linux"
+      else
+        "Unknown"
+    }"
+    echo "Nix version: ${pkgs.nix.version}"
+    touch $out
+  '';
 }

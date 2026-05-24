@@ -11,8 +11,6 @@
   system,
   pkgs ? import inputs.nixpkgs { inherit system; },
   lib ? pkgs.lib,
-  nixtest ? { },
-  self ? ./.,
   ...
 }:
 
@@ -20,7 +18,7 @@ let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
   mockConfig = import ../lib/mock-config.nix { inherit pkgs lib; };
 
-  zshConfig = import ../../users/shared/zsh {
+  zshConfig = import ../../users/shared/programs/zsh {
     inherit pkgs lib;
     isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
     config = mockConfig.mkEmptyConfig;
@@ -40,7 +38,10 @@ let
   runtimeTest =
     pkgs.runCommand "zsh-multidot-cd-runtime"
       {
-        nativeBuildInputs = [ pkgs.zsh pkgs.coreutils ];
+        nativeBuildInputs = [
+          pkgs.zsh
+          pkgs.coreutils
+        ];
       }
       ''
         mkdir -p a/b/c/d/e
@@ -113,17 +114,14 @@ in
     (assertInitHas "regex-check" ''"$1" =~ "^\.{3,}$"'')
     (assertInitHas "builtin-cd" "builtin cd")
 
-    (helpers.assertTest "zsh-multidot-no-triple-alias"
-      (!(builtins.hasAttr "..." aliases))
-      "shellAliases should not define '...' — the cd function handles it"
-    )
-    (helpers.assertTest "zsh-multidot-no-quad-alias"
-      (!(builtins.hasAttr "...." aliases))
-      "shellAliases should not define '....' — the cd function handles it"
-    )
+    (helpers.assertTest "zsh-multidot-no-triple-alias" (
+      !(builtins.hasAttr "..." aliases)
+    ) "shellAliases should not define '...' — the cd function handles it")
+    (helpers.assertTest "zsh-multidot-no-quad-alias" (
+      !(builtins.hasAttr "...." aliases)
+    ) "shellAliases should not define '....' — the cd function handles it")
 
-    (helpers.assertTest "zsh-multidot-runtime"
-      (builtins.pathExists runtimeTest)
+    (helpers.assertTest "zsh-multidot-runtime" (builtins.pathExists runtimeTest)
       "cd function runtime simulation failed"
     )
   ];

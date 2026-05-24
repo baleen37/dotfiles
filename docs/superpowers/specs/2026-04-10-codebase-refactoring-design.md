@@ -21,6 +21,7 @@ Out of scope: `p10k.zsh`, existing separated files (`darwin-test-helpers.nix`, `
 ### Current State
 
 `users/shared/darwin.nix` (338 lines) contains three distinct concerns:
+
 - macOS system defaults (NSGlobalDomain, dock, finder, trackpad, spaces, loginwindow)
 - Homebrew configuration (casks, brews, masApps, taps, onActivation)
 - Activation scripts (keyboard input source, app cleanup)
@@ -37,17 +38,20 @@ users/shared/
 ### Design
 
 **`darwin.nix`** retains:
+
 - `imports = [ ./darwin-homebrew.nix ./darwin-scripts.nix ]`
 - `system.defaults` (NSGlobalDomain, dock, finder, trackpad, spaces, CustomUserPreferences, loginwindow)
 - System integration: `nixpkgs.config`, `nix.enable`, `programs.zsh.enable`, `system.keyboard`, `system.primaryUser`, `system.stateVersion`, `environment.systemPackages`, `documentation.enable`
 
 **`darwin-homebrew.nix`** receives:
+
 - `homebrew-casks` list
 - `homebrew` attrset (enable, casks, brews, onActivation, global, masApps, taps)
 
 Note: `darwin-packages` (dockutil) stays in `darwin.nix` since it is a nix package used by `environment.systemPackages`, not a Homebrew concern.
 
 **`darwin-scripts.nix`** receives:
+
 - `system.activationScripts.configureKeyboard`
 - `system.activationScripts.cleanupMacOSApps`
 
@@ -60,6 +64,7 @@ External code imports only `darwin.nix`, which re-exports everything via `import
 ### Current State
 
 `tests/lib/test-helpers.nix` (1,272 lines) contains:
+
 - Core assertions (~180 lines): assertTest, assertFileExists, assertHasAttr, assertContains, assertBuilds, testSuite, mkTest, assertTestWithDetails, assertTestWithDetailsVerbose, assertFileContent, getUserHomeDir, getTestUserHome, createTestUserConfig, runIfPlatform, runTestList
 - macOS-specific assertions (~160 lines): assertNSGlobalDef(s), assertDockSetting(s), assertFinderSetting(s), assertTrackpadSetting(s), assertLoginWindowSetting, assertSettings, assertPatterns, assertAliases
 - Property testing (~120 lines): propertyTest, multiParamPropertyTest, forAllCases
@@ -151,6 +156,7 @@ Add a pre-commit hook that extracts and compares the values:
 **`scripts/check-cache-sync.sh`**: Parses both files for substituters and trusted-public-keys, compares them, exits non-zero on mismatch.
 
 **`.pre-commit-config.yaml`** addition:
+
 ```yaml
 - repo: local
   hooks:
@@ -166,6 +172,7 @@ Add a pre-commit hook that extracts and compares the values:
 ### Current State
 
 Each E2E test file repeats:
+
 - `nixosTest` initialization (3-5 lines)
 - Base VM node configuration (networking, virtualisation, user setup, sudo — ~15-20 lines)
 

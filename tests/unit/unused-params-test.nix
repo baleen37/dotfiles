@@ -8,20 +8,16 @@
 #   - git.nix: should only use `...` (no pkgs, no lib)
 #   - vim.nix: should only use `pkgs` and `...` (no lib, no config)
 {
-  inputs,
-  system,
   pkgs,
   lib,
-  nixtest ? { },
-  self,
   ...
 }:
 
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
 
-  gitNixFn = import ../../users/shared/git.nix;
-  vimNixFn = import ../../users/shared/vim.nix;
+  gitNixFn = import ../../users/shared/programs/git.nix;
+  vimNixFn = import ../../users/shared/programs/vim.nix;
 
   gitArgs = builtins.functionArgs gitNixFn;
   vimArgs = builtins.functionArgs vimNixFn;

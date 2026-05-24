@@ -11,9 +11,7 @@
 {
   pkgs ? import <nixpkgs> { },
   nixpkgs ? <nixpkgs>,
-  lib ? pkgs.lib,
   system ? builtins.currentSystem,
-  self ? null,
 }:
 
 let
@@ -240,7 +238,7 @@ nixosTest {
   name = "build-switch-test";
 
   nodes.machine =
-    { config, pkgs, ... }:
+    { pkgs, ... }:
     {
       # Standard VM config
       boot.loader.systemd-boot.enable = true;

@@ -12,19 +12,15 @@
 {
   lib ? import <nixpkgs/lib>,
   pkgs ? import <nixpkgs> { },
-  system ? builtins.currentSystem or "x86_64-linux",
-  self ? ./.,
-  inputs ? { },
-  nixtest ? { },
+  ...
 }:
 
 let
   # Import property testing framework
-  propertyTesting = import ../lib/property-testing.nix { inherit lib pkgs; };
 
   # Import performance module to test
   perfModule = import ../lib/performance.nix { inherit lib pkgs; };
-  perf = perfModule.perf;
+  inherit (perfModule) perf;
 
   # Import test helpers
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
@@ -52,8 +48,8 @@ let
     small = builtins.genList (x: x) 10;
     medium = builtins.genList (x: x) 100;
     large = builtins.genList (x: x) 1000;
-    nestedSmall = builtins.genList (i: builtins.genList (x: x) 5) 10;
-    nestedLarge = builtins.genList (i: builtins.genList (x: x) 20) 50;
+    nestedSmall = builtins.genList (_i: builtins.genList (x: x) 5) 10;
+    nestedLarge = builtins.genList (_i: builtins.genList (x: x) 20) 50;
     string = "test string for performance measurement";
     attrs = {
       a = 1;
@@ -65,38 +61,6 @@ let
   };
 
   # Test scenarios for performance testing
-  perfScenarios = [
-    {
-      identifier = "constant-operation";
-      operation = testOperations.constant;
-      input = 42;
-      expectedComplexity = "constant";
-    }
-    {
-      identifier = "linear-small";
-      operation = testOperations.linear;
-      input = generateTestData.small;
-      expectedComplexity = "linear";
-    }
-    {
-      identifier = "linear-medium";
-      operation = testOperations.linear;
-      input = generateTestData.medium;
-      expectedComplexity = "linear";
-    }
-    {
-      identifier = "string-operation";
-      operation = testOperations.stringOp;
-      input = generateTestData.string;
-      expectedComplexity = "constant";
-    }
-    {
-      identifier = "attr-operation";
-      operation = testOperations.attrOp;
-      input = generateTestData.attrs;
-      expectedComplexity = "constant";
-    }
-  ];
 
 in
 # Property-based test suite
@@ -181,14 +145,23 @@ in
 
     (helpers.assertTest "perf-memory-list-non-negative" (
       let
-        size = perf.memory.estimateSize [ 1 2 3 4 5 ];
+        size = perf.memory.estimateSize [
+          1
+          2
+          3
+          4
+          5
+        ];
       in
       size >= 0
     ) "Memory estimate for list should be non-negative")
 
     (helpers.assertTest "perf-memory-set-non-negative" (
       let
-        size = perf.memory.estimateSize { a = 1; b = 2; };
+        size = perf.memory.estimateSize {
+          a = 1;
+          b = 2;
+        };
       in
       size >= 0
     ) "Memory estimate for set should be non-negative")
@@ -226,7 +199,7 @@ in
         expr = testOperations.constant 42;
         result = perf.build.measureEval expr;
       in
-      result.value == 43  # constant adds 1 to input: 42 + 1 = 43
+      result.value == 43 # constant adds 1 to input: 42 + 1 = 43
     ) "Build evaluation should return correct value")
 
     (helpers.assertTest "perf-build-eval-non-negative-duration" (
@@ -288,9 +261,18 @@ in
     (helpers.assertTest "perf-baseline-valid-average" (
       let
         measurements = [
-          { duration_ms = 100; memoryAfter = 1000; }
-          { duration_ms = 120; memoryAfter = 1100; }
-          { duration_ms = 110; memoryAfter = 1050; }
+          {
+            duration_ms = 100;
+            memoryAfter = 1000;
+          }
+          {
+            duration_ms = 120;
+            memoryAfter = 1100;
+          }
+          {
+            duration_ms = 110;
+            memoryAfter = 1050;
+          }
         ];
         result = perf.regression.createBaseline "test" measurements;
       in
@@ -300,9 +282,18 @@ in
     (helpers.assertTest "perf-baseline-valid-max" (
       let
         measurements = [
-          { duration_ms = 100; memoryAfter = 1000; }
-          { duration_ms = 120; memoryAfter = 1100; }
-          { duration_ms = 110; memoryAfter = 1050; }
+          {
+            duration_ms = 100;
+            memoryAfter = 1000;
+          }
+          {
+            duration_ms = 120;
+            memoryAfter = 1100;
+          }
+          {
+            duration_ms = 110;
+            memoryAfter = 1050;
+          }
         ];
         result = perf.regression.createBaseline "test" measurements;
       in
@@ -406,9 +397,21 @@ in
     (helpers.assertTest "perf-summary-total-count" (
       let
         measurements = [
-          { duration_ms = 100; memoryAfter = 1000; success = true; }
-          { duration_ms = 120; memoryAfter = 1100; success = true; }
-          { duration_ms = 110; memoryAfter = 1050; success = true; }
+          {
+            duration_ms = 100;
+            memoryAfter = 1000;
+            success = true;
+          }
+          {
+            duration_ms = 120;
+            memoryAfter = 1100;
+            success = true;
+          }
+          {
+            duration_ms = 110;
+            memoryAfter = 1050;
+            success = true;
+          }
         ];
         result = perf.report.summary measurements;
       in
@@ -418,9 +421,21 @@ in
     (helpers.assertTest "perf-summary-success-rate" (
       let
         measurements = [
-          { duration_ms = 100; memoryAfter = 1000; success = true; }
-          { duration_ms = 120; memoryAfter = 1100; success = true; }
-          { duration_ms = 110; memoryAfter = 1050; success = false; }
+          {
+            duration_ms = 100;
+            memoryAfter = 1000;
+            success = true;
+          }
+          {
+            duration_ms = 120;
+            memoryAfter = 1100;
+            success = true;
+          }
+          {
+            duration_ms = 110;
+            memoryAfter = 1050;
+            success = false;
+          }
         ];
         result = perf.report.summary measurements;
       in
@@ -430,9 +445,21 @@ in
     (helpers.assertTest "perf-summary-avg-time" (
       let
         measurements = [
-          { duration_ms = 100; memoryAfter = 1000; success = true; }
-          { duration_ms = 120; memoryAfter = 1100; success = true; }
-          { duration_ms = 110; memoryAfter = 1050; success = true; }
+          {
+            duration_ms = 100;
+            memoryAfter = 1000;
+            success = true;
+          }
+          {
+            duration_ms = 120;
+            memoryAfter = 1100;
+            success = true;
+          }
+          {
+            duration_ms = 110;
+            memoryAfter = 1050;
+            success = true;
+          }
         ];
         result = perf.report.summary measurements;
       in

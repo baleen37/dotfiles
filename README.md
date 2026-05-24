@@ -241,6 +241,7 @@ The project uses declarative Nix solutions for development tooling:
 ## Testing
 
 **Fast NixOS Container Tests (2-5 seconds):**
+
 ```bash
 make test             # Fast container-based configuration validation
 make test-integration # Traditional integration tests
@@ -248,6 +249,7 @@ make test-all         # Complete test suite
 ```
 
 **Container Test Coverage:**
+
 - Basic system functionality validation
 - User configuration testing
 - Services verification (SSH, Docker)
@@ -270,6 +272,7 @@ See `machines/nixos/` for available VM configurations.
 ### VM Configuration
 
 The VM management system supports:
+
 - SSH-based deployment and management
 - Automated NixOS installation
 - Configuration synchronization

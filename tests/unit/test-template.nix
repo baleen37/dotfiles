@@ -21,8 +21,6 @@
   # Standard parameters - all test files should include these
   pkgs ? import inputs.nixpkgs { inherit system; },
   lib ? pkgs.lib,
-  self ? ./.,
-  nixtest ? { },
   ...
 }:
 
@@ -31,8 +29,6 @@ let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
 
   # Import additional helper libraries as needed
-  assertions = import ../lib/common-assertions.nix { inherit pkgs lib; };
-  patterns = import ../lib/patterns.nix { inherit pkgs lib; };
 
   # ===== TEST DATA SETUP =====
   # Define test data and fixtures here
@@ -54,7 +50,7 @@ in
   # - ["darwin"]: macOS only
   # - ["linux"]: Linux only
   # - ["darwin" "linux"]: Both macOS and Linux
-  platforms = ["any"];
+  platforms = [ "any" ];
 
   # ===== TEST SUITE =====
   # Return the test suite value
@@ -62,9 +58,7 @@ in
     # ===== BASIC ASSERTIONS =====
     # Use helpers.assertTest for simple conditions
 
-    (helpers.assertTest "basic-example" (
-      true  # Replace with actual test condition
-    ) "This test should pass")
+    (helpers.assertTest "basic-example" true "This test should pass")
 
     # ===== ATTRIBUTE TESTS =====
     # Use assertions.assertAttrExists to check attributes
