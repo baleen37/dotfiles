@@ -69,8 +69,8 @@
 
       imports = [
         ./flake-modules/args.nix
-        ./flake-modules/darwin.nix
-        ./flake-modules/nixos.nix
+        ./flake-modules/hosts.nix
+        ./flake-modules/systems.nix
         ./flake-modules/home.nix
         ./flake-modules/checks.nix
         ./flake-modules/dev-shells.nix
