@@ -15,9 +15,7 @@
 # - Makefile:362에서 nix run을 직접 사용하여 experimental-features 누락
 
 {
-  lib ? import <nixpkgs/lib>,
   pkgs ? import <nixpkgs> { },
-  system ? builtins.currentSystem or "x86_64-linux",
 }:
 
 let
