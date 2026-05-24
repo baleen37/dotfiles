@@ -234,7 +234,7 @@ nix = {
 3. **Linux builder will auto-activate**:
 
 ```bash
-# The existing configuration in machines/macbook-pro.nix will activate
+# The existing configuration in machines/darwin/common.nix will activate
 make switch
 ```
 

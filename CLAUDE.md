@@ -223,7 +223,7 @@ macOS configuration includes:
 
 ### Linux Builder
 
-`machines/macbook-pro.nix` includes a Linux builder configuration for cross-platform testing, but it's disabled when using Determinate Nix (requires `nix.enable = true`).
+`machines/darwin/common.nix` includes a Linux builder configuration for cross-platform testing, but it's disabled when using Determinate Nix (requires `nix.enable = true`).
 
 ## CI/CD
 

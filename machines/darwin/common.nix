@@ -1,4 +1,4 @@
-# machines/darwin-common.nix
+# machines/darwin/common.nix
 {
   pkgs,
   lib,
