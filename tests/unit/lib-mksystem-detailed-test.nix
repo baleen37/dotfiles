@@ -5,7 +5,6 @@
 {
   inputs,
   system,
-  nixtest ? { },
   pkgs ? import inputs.nixpkgs { inherit system; },
   lib ? pkgs.lib,
   self ? ./.,
@@ -21,12 +20,6 @@ let
   mkSystem = import ../../lib/mksystem.nix { inherit inputs self; };
 
   # Create a test system configuration
-  testSystem = mkSystem "test-machine" {
-    system = "x86_64-linux";
-    user = "testuser";
-    darwin = false;
-    wsl = false;
-  };
 
 in
 {
@@ -228,7 +221,7 @@ in
         # mkSystem should accept overlays parameter
         mkSystemWithOverlays = import ../../lib/mksystem.nix {
           inherit inputs self;
-          overlays = [ (self: super: { }) ];
+          overlays = [ (_self: _super: { }) ];
         };
         result = builtins.tryEval (
           mkSystemWithOverlays "test" {
@@ -505,7 +498,7 @@ in
     nixpkgs-overlays-applied = helpers.assertTest "mksystem-nixpkgs-overlays-applied" (
       let
         # nixpkgs.overlays should be set from overlays parameter
-        testOverlays = [ (self: super: { }) ];
+        testOverlays = [ (_self: _super: { }) ];
         hasOverlays = builtins.length testOverlays >= 0;
       in
       hasOverlays
@@ -802,8 +795,7 @@ in
       let
         # Modules should be: [machineConfig, userOSConfig, conditionalNixModule, ...]
         baseModules = 2; # machineConfig + userOSConfig
-        nixModule = 1; # conditional Nix configuration module
-        darwinModule = if hasDarwinInputs then 1 else 0; # determinate module
+        nixModule = 1; # conditional Nix configuration module # determinate module
         homeManagerModule = 1; # home-manager integration
         expectedMinModules = baseModules + nixModule + homeManagerModule;
       in

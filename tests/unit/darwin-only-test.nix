@@ -1,12 +1,8 @@
 # tests/unit/darwin-only-test.nix
 # Darwin-specific test to verify platform filtering works
 {
-  inputs,
-  system,
   pkgs,
   lib,
-  self,
-  nixtest ? { },
 }:
 
 let

@@ -15,7 +15,6 @@
 {
   pkgs ? import <nixpkgs> { },
   nixpkgs ? <nixpkgs>,
-  lib ? pkgs.lib,
   system ? builtins.currentSystem or "x86_64-linux",
 }:
 

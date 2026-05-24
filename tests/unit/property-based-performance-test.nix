@@ -12,15 +12,10 @@
 {
   lib ? import <nixpkgs/lib>,
   pkgs ? import <nixpkgs> { },
-  system ? builtins.currentSystem or "x86_64-linux",
-  self ? ./.,
-  inputs ? { },
-  nixtest ? { },
 }:
 
 let
   # Import property testing framework
-  propertyTesting = import ../lib/property-testing.nix { inherit lib pkgs; };
 
   # Import performance module to test
   perfModule = import ../lib/performance.nix { inherit lib pkgs; };
@@ -52,8 +47,8 @@ let
     small = builtins.genList (x: x) 10;
     medium = builtins.genList (x: x) 100;
     large = builtins.genList (x: x) 1000;
-    nestedSmall = builtins.genList (i: builtins.genList (x: x) 5) 10;
-    nestedLarge = builtins.genList (i: builtins.genList (x: x) 20) 50;
+    nestedSmall = builtins.genList (_i: builtins.genList (x: x) 5) 10;
+    nestedLarge = builtins.genList (_i: builtins.genList (x: x) 20) 50;
     string = "test string for performance measurement";
     attrs = {
       a = 1;
@@ -65,38 +60,6 @@ let
   };
 
   # Test scenarios for performance testing
-  perfScenarios = [
-    {
-      identifier = "constant-operation";
-      operation = testOperations.constant;
-      input = 42;
-      expectedComplexity = "constant";
-    }
-    {
-      identifier = "linear-small";
-      operation = testOperations.linear;
-      input = generateTestData.small;
-      expectedComplexity = "linear";
-    }
-    {
-      identifier = "linear-medium";
-      operation = testOperations.linear;
-      input = generateTestData.medium;
-      expectedComplexity = "linear";
-    }
-    {
-      identifier = "string-operation";
-      operation = testOperations.stringOp;
-      input = generateTestData.string;
-      expectedComplexity = "constant";
-    }
-    {
-      identifier = "attr-operation";
-      operation = testOperations.attrOp;
-      input = generateTestData.attrs;
-      expectedComplexity = "constant";
-    }
-  ];
 
 in
 # Property-based test suite

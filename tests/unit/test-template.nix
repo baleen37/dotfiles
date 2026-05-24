@@ -21,8 +21,6 @@
   # Standard parameters - all test files should include these
   pkgs ? import inputs.nixpkgs { inherit system; },
   lib ? pkgs.lib,
-  self ? ./.,
-  nixtest ? { },
   ...
 }:
 
@@ -31,8 +29,6 @@ let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
 
   # Import additional helper libraries as needed
-  assertions = import ../lib/common-assertions.nix { inherit pkgs lib; };
-  patterns = import ../lib/patterns.nix { inherit pkgs lib; };
 
   # ===== TEST DATA SETUP =====
   # Define test data and fixtures here

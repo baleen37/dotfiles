@@ -3,12 +3,8 @@
 # Tests platform helper utilities for conditional test inclusion
 # Verifies that platform detection and filtering functions work correctly.
 {
-  inputs,
-  system,
   pkgs,
   lib,
-  self,
-  nixtest ? { },
   ...
 }:
 

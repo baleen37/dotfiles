@@ -7,18 +7,12 @@
   system,
   pkgs ? import inputs.nixpkgs { inherit system; },
   lib ? pkgs.lib,
-  nixtest ? { },
-  self ? ./.,
   ...
 }:
 
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
   assertions = import ../lib/common-assertions.nix { inherit pkgs lib; };
-  patterns = import ../lib/patterns.nix {
-    inherit pkgs lib;
-    inherit helpers;
-  };
   darwinHelpers = import ../lib/darwin-test-helpers.nix { inherit pkgs lib helpers; };
   mockConfig = import ../lib/mock-config.nix { inherit pkgs lib; };
 

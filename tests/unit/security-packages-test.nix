@@ -10,8 +10,6 @@
   system,
   pkgs ? import inputs.nixpkgs { inherit system; },
   lib ? pkgs.lib,
-  nixtest ? { },
-  self ? ./.,
   ...
 }:
 

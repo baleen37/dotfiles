@@ -5,7 +5,6 @@
   system,
   pkgs ? import inputs.nixpkgs { inherit system; },
   lib ? pkgs.lib,
-  nixtest ? { },
   self ? ./.,
   ...
 }:
@@ -25,7 +24,6 @@ let
   };
 
   # File location for enhanced error reporting
-  currentFile = toString (builtins.baseNameOf (toString ./.));
 in
 {
   # Enhanced test suite with detailed error reporting and proper aggregation

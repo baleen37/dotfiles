@@ -21,7 +21,6 @@
 #
 
 {
-  pkgs,
   lib,
   config,
   isDarwin,

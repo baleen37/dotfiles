@@ -14,13 +14,10 @@
   pkgs ? import <nixpkgs> { },
   system ? builtins.currentSystem or "x86_64-linux",
   self ? ./.,
-  inputs ? { },
-  nixtest ? { },
 }:
 
 let
   # Import property testing framework
-  propertyTesting = import ../lib/property-testing.nix { inherit lib pkgs; };
 
   # Mock inputs for testing (must be defined before mkSystem import)
   mockInputs =

@@ -1,6 +1,5 @@
 {
   pkgs,
-  inputs,
   currentSystemUser,
   isDarwin ? pkgs.stdenv.isDarwin,
   ...

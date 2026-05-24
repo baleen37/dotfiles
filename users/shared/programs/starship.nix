@@ -2,8 +2,6 @@
 # Minimal and compact prompt inspired by Pure
 
 {
-  config,
-  pkgs,
   lib,
   ...
 }:

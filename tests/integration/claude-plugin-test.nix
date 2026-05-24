@@ -2,7 +2,6 @@
 # Claude Code configuration tests
 # Tests Claude Code settings and configuration management
 {
-  lib ? import <nixpkgs/lib>,
   pkgs ? import <nixpkgs> { },
 }:
 

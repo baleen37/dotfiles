@@ -8,12 +8,8 @@
 #   - git.nix: should only use `...` (no pkgs, no lib)
 #   - vim.nix: should only use `pkgs` and `...` (no lib, no config)
 {
-  inputs,
-  system,
   pkgs,
   lib,
-  nixtest ? { },
-  self,
   ...
 }:
 

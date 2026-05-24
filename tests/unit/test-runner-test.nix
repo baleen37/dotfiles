@@ -2,16 +2,11 @@
 # Tests test runner functionality with filtering and performance monitoring
 
 {
-  inputs,
-  system,
   pkgs,
   lib,
-  self,
-  nixtest ? { },
 }:
 
 let
-  helpers = import ../lib/assertions.nix { inherit pkgs lib; };
   runner = import ../lib/test-runner.nix { inherit pkgs lib; };
   inherit (runner) mkTestSuite;
 

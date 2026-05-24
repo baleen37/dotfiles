@@ -2,12 +2,8 @@
 # Test assertion utilities with detailed error reporting
 
 {
-  inputs,
-  system,
   pkgs,
   lib,
-  self,
-  nixtest ? { },
 }:
 
 let
@@ -24,12 +20,6 @@ let
   actualFileMatch = pkgs.writeText "actual-match.txt" ''
     Hello World
     This is test content
-    Line 3
-  '';
-
-  actualFileMismatch = pkgs.writeText "actual-mismatch.txt" ''
-    Hello World
-    This is different content
     Line 3
   '';
 in

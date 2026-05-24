@@ -19,7 +19,6 @@
 {
   inputs,
   pkgs ? import inputs.nixpkgs { inherit system; },
-  lib ? pkgs.lib,
   system ? builtins.currentSystem,
 }:
 

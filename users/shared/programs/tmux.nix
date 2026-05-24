@@ -30,8 +30,6 @@
 
 {
   pkgs,
-  lib,
-  config,
   ...
 }:
 

@@ -3,12 +3,8 @@
 # Unit tests for lib/user-info.nix centralized user information
 # Tests user identity consistency across all configurations
 {
-  inputs,
-  system,
-  nixtest ? { },
   pkgs,
   lib,
-  self,
   ...
 }:
 

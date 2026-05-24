@@ -9,8 +9,6 @@
 
 {
   pkgs,
-  lib,
-  config,
   currentSystemUser,
   ...
 }:

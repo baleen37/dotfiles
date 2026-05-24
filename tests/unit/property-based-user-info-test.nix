@@ -12,15 +12,10 @@
 {
   lib ? import <nixpkgs/lib>,
   pkgs ? import <nixpkgs> { },
-  system ? builtins.currentSystem or "x86_64-linux",
-  self ? ./.,
-  inputs ? { },
-  nixtest ? { },
 }:
 
 let
   # Import property testing framework
-  propertyTesting = import ../lib/property-testing.nix { inherit lib pkgs; };
 
   # Import user-info module to test
   userInfo = import ../../lib/user-info.nix;

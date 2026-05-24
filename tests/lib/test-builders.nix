@@ -49,12 +49,9 @@ rec {
         {
           imports = [
             ../fixtures/basic-system.nix
-            (
-              _:
-              {
-                networking.hostName = hostname;
-              }
-            )
+            (_: {
+              networking.hostName = hostname;
+            })
           ];
 
           # Apply extra config

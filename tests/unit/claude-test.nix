@@ -4,10 +4,7 @@
 {
   lib ? import <nixpkgs/lib>,
   pkgs ? import <nixpkgs> { },
-  system ? builtins.currentSystem or "x86_64-linux",
-  nixtest ? { },
   self ? ./.,
-  inputs ? { },
 }:
 
 let

@@ -341,7 +341,9 @@ rec {
 
       hasValue = actualValue != null && actualValue == expectedValue;
     in
-    assertTest "${name}-${builtins.replaceStrings [ "." ] [ "-" ] attrPath}" hasValue "Config attribute ${attrPath} should be ${toString expectedValue}";
+    assertTest "${name}-${
+      builtins.replaceStrings [ "." ] [ "-" ] attrPath
+    }" hasValue "Config attribute ${attrPath} should be ${toString expectedValue}";
 
   # ===== 복합 테스트 패턴 =====
 
