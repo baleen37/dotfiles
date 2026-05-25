@@ -2,13 +2,20 @@
 # OpenCode configuration managed via Home Manager
 
 {
-  pkgs,
+  config,
   lib,
+  pkgs,
   ...
 }:
 
+let
+  cfg = config.modules.programs.opencode;
+in
 {
-  # Generate opencode.json from Nix expression
+  options.modules.programs.opencode.enable = lib.mkEnableOption "OpenCode CLI configuration";
+
+  config = lib.mkIf cfg.enable {
+    # Generate opencode.json from Nix expression
   xdg.configFile."opencode/opencode.json".text = builtins.toJSON {
     "$schema" = "https://opencode.ai/config.json";
     permission.question = "ask";
@@ -55,4 +62,5 @@
       run ln -sf "$SUPERPOWERS_DIR/skills" ~/.config/opencode/skills/superpowers
     fi
   '';
+  };
 }
