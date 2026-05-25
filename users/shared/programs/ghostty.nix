@@ -6,12 +6,12 @@
   config,
   pkgs,
   lib,
-  isDarwin,
   ...
 }:
 
 let
   cfg = config.modules.programs.ghostty;
+  isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
 in
 {
   options.modules.programs.ghostty.enable = lib.mkEnableOption "Ghostty terminal configuration";
