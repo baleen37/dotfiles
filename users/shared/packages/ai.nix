@@ -5,12 +5,10 @@
   ...
 }:
 let
-  cfg = config.myHome.packages.ai;
+  cfg = config.modules.packages.ai;
 in
 {
-  options.myHome.packages.ai.enable = lib.mkEnableOption "AI/CLI tools" // {
-    default = true;
-  };
+  options.modules.packages.ai.enable = lib.mkEnableOption "AI/CLI tools";
 
   config = lib.mkIf cfg.enable {
     home.packages = with pkgs; [
