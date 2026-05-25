@@ -2,12 +2,19 @@
 # Minimal and compact prompt inspired by Pure
 
 {
+  config,
   lib,
   ...
 }:
 
+let
+  cfg = config.modules.programs.starship;
+in
 {
-  programs.starship = {
+  options.modules.programs.starship.enable = lib.mkEnableOption "Starship prompt configuration";
+
+  config = lib.mkIf cfg.enable {
+    programs.starship = {
     enable = true;
     enableZshIntegration = true;
 
@@ -111,6 +118,7 @@
       docker_context.disabled = true;
       aws.disabled = true;
       gcloud.disabled = true;
+    };
     };
   };
 }
