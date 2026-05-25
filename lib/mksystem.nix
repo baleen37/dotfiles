@@ -10,6 +10,7 @@ name:
   user,
   darwin ? false,
   wsl ? false,
+  homeModules ? { },
 }:
 
 let
@@ -91,7 +92,10 @@ systemFunc {
       home-manager = {
         useGlobalPkgs = true;
         useUserPackages = true;
-        users.${user} = import userHMConfig;
+        users.${user} = lib.mkMerge [
+          (import userHMConfig)
+          homeModules
+        ];
         extraSpecialArgs = {
           inherit inputs self;
           currentSystemUser = user;
