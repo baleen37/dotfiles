@@ -2,12 +2,19 @@
 # Codex configuration managed via Home Manager
 
 {
+  config,
   lib,
   ...
 }:
 
+let
+  cfg = config.modules.programs.codex;
+in
 {
-  # Share the same instruction file used by Claude via symlink.
+  options.modules.programs.codex.enable = lib.mkEnableOption "Codex CLI configuration";
+
+  config = lib.mkIf cfg.enable {
+    # Share the same instruction file used by Claude via symlink.
   home.file.".codex/AGENTS.md" = {
     source = ./.config/claude/CLAUDE.md;
     force = true;
@@ -21,4 +28,5 @@
       run chmod 644 ~/.codex/config.toml
     fi
   '';
+  };
 }
