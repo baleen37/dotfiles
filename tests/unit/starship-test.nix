@@ -24,10 +24,11 @@ let
       ;
   };
 
-  starshipConfig = import ../../users/shared/programs/starship.nix {
+  starshipModule = import ../../users/shared/programs/starship.nix {
     inherit pkgs lib;
-    config = mockConfig.mkEmptyConfig;
+    config = mockConfig.mkEmptyConfig // { modules.programs.starship.enable = true; };
   };
+  starshipConfig = starshipModule.config.content;
 
   requiredModules = [
     "$directory"

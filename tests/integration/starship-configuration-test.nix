@@ -11,11 +11,13 @@
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
 
-  # Import starship configuration
-  starshipConfig = import ../../users/shared/programs/starship.nix {
+  # Import starship module and extract config body via .content
+  # (lib.mkIf true {...}).content unwraps the conditional when enable=true
+  starshipModule = import ../../users/shared/programs/starship.nix {
     inherit pkgs lib;
-    config = { };
+    config = { modules.programs.starship.enable = true; };
   };
+  starshipConfig = starshipModule.config.content;
 
   # Extract starship settings
   starshipSettings = starshipConfig.programs.starship.settings;

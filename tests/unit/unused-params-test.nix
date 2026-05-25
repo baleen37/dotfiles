@@ -1,12 +1,12 @@
 # Regression tests: verifies that previously removed parameters
-# have not been re-introduced in git.nix and vim.nix.
+# have not been re-introduced unnecessarily in git.nix and vim.nix.
 #
 # Uses builtins.functionArgs to inspect actual parameter declarations,
 # preventing unnecessary coupling between modules and their callers.
 #
 # Checked modules:
-#   - git.nix: should only use `...` (no pkgs, no lib)
-#   - vim.nix: should only use `pkgs` and `...` (no lib, no config)
+#   - git.nix: should use `config` and `lib` (for modules.programs.git option), no pkgs
+#   - vim.nix: should use `config`, `lib`, and `pkgs` (for pkgs.vimPlugins)
 {
   pkgs,
   lib,
@@ -30,20 +30,25 @@ in
       !(builtins.hasAttr "pkgs" gitArgs)
     ) "git.nix should not declare unused pkgs parameter")
 
-    # git.nix should not declare lib (it imports user-info.nix directly)
-    (helpers.assertTest "git-nix-no-unused-lib" (
-      !(builtins.hasAttr "lib" gitArgs)
-    ) "git.nix should not declare unused lib parameter")
+    # git.nix SHOULD declare lib (used for mkEnableOption / mkIf)
+    (helpers.assertTest "git-nix-has-lib" (
+      builtins.hasAttr "lib" gitArgs
+    ) "git.nix should declare lib parameter (used for modules option)")
 
-    # vim.nix should not declare lib (it doesn't use it)
-    (helpers.assertTest "vim-nix-no-unused-lib" (
-      !(builtins.hasAttr "lib" vimArgs)
-    ) "vim.nix should not declare unused lib parameter")
+    # git.nix SHOULD declare config (used for modules.programs.git.enable)
+    (helpers.assertTest "git-nix-has-config" (
+      builtins.hasAttr "config" gitArgs
+    ) "git.nix should declare config parameter (used for modules option)")
 
-    # vim.nix should not declare config (it doesn't use it)
-    (helpers.assertTest "vim-nix-no-unused-config" (
-      !(builtins.hasAttr "config" vimArgs)
-    ) "vim.nix should not declare unused config parameter")
+    # vim.nix SHOULD declare lib (used for mkEnableOption / mkIf)
+    (helpers.assertTest "vim-nix-has-lib" (
+      builtins.hasAttr "lib" vimArgs
+    ) "vim.nix should declare lib parameter (used for modules option)")
+
+    # vim.nix SHOULD declare config (used for modules.programs.vim.enable)
+    (helpers.assertTest "vim-nix-has-config" (
+      builtins.hasAttr "config" vimArgs
+    ) "vim.nix should declare config parameter (used for modules option)")
 
     # vim.nix SHOULD still declare pkgs (it uses pkgs.vimPlugins)
     (helpers.assertTest "vim-nix-keeps-pkgs" (builtins.hasAttr "pkgs" vimArgs)

@@ -18,17 +18,19 @@ let
 
   # Mock configuration for testing tmux integration
   mockConfig = {
+    modules.programs.tmux.enable = true;
     home = {
       homeDirectory = if pkgs.stdenv.isDarwin then "/Users/test" else "/home/test";
     };
   };
 
-  # Import tmux configuration with mocked dependencies to test integration
+  # Import tmux module and extract the config body via .content
+  # (lib.mkIf true {...}).content unwraps the conditional when enable=true
   tmuxModule = import ../../users/shared/programs/tmux.nix {
     inherit pkgs lib;
     config = mockConfig;
   };
-  tmuxConfig = tmuxModule.programs.tmux;
+  tmuxConfig = tmuxModule.config.content.programs.tmux;
 
   # Helper function to check if config contains a string
   hasConfigString = str: pluginHelpers.hasConfigString tmuxConfig.extraConfig str;
