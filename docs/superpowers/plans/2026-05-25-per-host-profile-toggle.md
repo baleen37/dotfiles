@@ -16,12 +16,12 @@
 
 ## 파일 구조
 
-| 경로 | 책임 | 변경 종류 |
-|---|---|---|
-| `lib/mksystem.nix` | `homeModules` 인자 받아 home-manager.users에 mkMerge | 수정 |
-| `flake-modules/systems.nix` | host의 `homeModules`를 mksystem으로 전달 | 수정 |
-| `flake-modules/hosts.nix` | `kakaostyle-jito`에 `homeModules` 블록 추가 (예시) | 수정 |
-| `tests/unit/host-overrides-test.nix` | host의 homeModules가 머신 derivation에 반영되는지 검증 | 신규 |
+| 경로                                 | 책임                                                   | 변경 종류 |
+| ------------------------------------ | ------------------------------------------------------ | --------- |
+| `lib/mksystem.nix`                   | `homeModules` 인자 받아 home-manager.users에 mkMerge   | 수정      |
+| `flake-modules/systems.nix`          | host의 `homeModules`를 mksystem으로 전달               | 수정      |
+| `flake-modules/hosts.nix`            | `kakaostyle-jito`에 `homeModules` 블록 추가 (예시)     | 수정      |
+| `tests/unit/host-overrides-test.nix` | host의 homeModules가 머신 derivation에 반영되는지 검증 | 신규      |
 
 ### Task 1: mksystem.nix에 homeModules 인자 추가
 
@@ -32,7 +32,9 @@
 ```bash
 sed -n '1,25p' lib/mksystem.nix
 ```
+
 Expected:
+
 ```nix
 {
   inputs,
@@ -52,6 +54,7 @@ name:
 ```bash
 grep -n "users\.\${user}" lib/mksystem.nix
 ```
+
 Expected: home-manager 통합 블록의 라인 번호.
 
 - [ ] **Step 2: 인자에 `homeModules ? { }` 추가**
@@ -72,6 +75,7 @@ name:
 `lib/mksystem.nix`의 home-manager 블록 (대략 91~100줄)에서:
 
 기존:
+
 ```nix
 home-manager = {
   useGlobalPkgs = true;
@@ -86,6 +90,7 @@ home-manager = {
 ```
 
 변경 후:
+
 ```nix
 home-manager = {
   useGlobalPkgs = true;
@@ -107,6 +112,7 @@ home-manager = {
 ```bash
 git diff lib/mksystem.nix
 ```
+
 Expected: 정확히 3개 부분 변경 — 인자 1줄 추가, `users.${user} = import ...` → `lib.mkMerge [...]` 4줄.
 
 - [ ] **Step 5: 평가 sanity — homeModules=빈 채로 빌드 통과**
@@ -115,6 +121,7 @@ Expected: 정확히 3개 부분 변경 — 인자 1줄 추가, `users.${user} = 
 export USER=$(whoami)
 nix flake check --impure 2>&1 | tail -15
 ```
+
 Expected: error 없음.
 
 - [ ] **Step 6: Commit**
@@ -133,11 +140,13 @@ git commit -m "feat(mksystem): accept homeModules arg and merge into home-manage
 ```bash
 cat flake-modules/systems.nix
 ```
+
 Expected: `mkDarwin`과 `mkNixos` 함수 정의.
 
 - [ ] **Step 2: 두 함수 모두 `homeModules` 전달**
 
 기존:
+
 ```nix
 mkDarwin =
   name: h:
@@ -154,6 +163,7 @@ mkNixos =
 ```
 
 변경 후:
+
 ```nix
 mkDarwin =
   name: h:
@@ -177,6 +187,7 @@ mkNixos =
 export USER=$(whoami)
 nix flake check --impure 2>&1 | tail -15
 ```
+
 Expected: error 없음.
 
 - [ ] **Step 4: Commit**
@@ -195,11 +206,13 @@ git commit -m "feat(systems): forward host.homeModules to mksystem"
 ```bash
 cat flake-modules/hosts.nix
 ```
+
 Expected: 5개 호스트 정의.
 
 - [ ] **Step 2: `kakaostyle-jito`에 `homeModules` 블록 추가**
 
 기존:
+
 ```nix
 kakaostyle-jito = {
   system = "aarch64-darwin";
@@ -209,6 +222,7 @@ kakaostyle-jito = {
 ```
 
 변경 후:
+
 ```nix
 kakaostyle-jito = {
   system = "aarch64-darwin";
@@ -228,18 +242,21 @@ kakaostyle-jito = {
 export USER=$(whoami)
 nix build '.#darwinConfigurations.kakaostyle-jito.system' --impure --no-link 2>&1 | tail -10
 ```
+
 Expected: 빌드 성공.
 
 ```bash
 # kakaostyle-jito의 home.file 평가에서 .hammerspoon 키 부재 확인
 nix eval '.#darwinConfigurations.kakaostyle-jito.config.home-manager.users."jito.hello".home.file' --impure --apply 'f: f ? ".hammerspoon"' 2>&1 | tail -3
 ```
+
 Expected: `false`.
 
 ```bash
 # macbook-pro에서는 .hammerspoon 존재 확인
 nix eval '.#darwinConfigurations.macbook-pro.config.home-manager.users.baleen.home.file' --impure --apply 'f: f ? ".hammerspoon"' 2>&1 | tail -3
 ```
+
 Expected: `true`.
 
 > 위 eval 명령이 home-manager 노출 경로 차이로 실패할 수 있다. 대안: 빌드한 toplevel을 inspect — `nix-store -q --references $(nix build '.#darwinConfigurations.kakaostyle-jito.system' --impure --no-link --print-out-paths) | grep hammerspoon` 결과가 비어 있는지.
@@ -307,6 +324,7 @@ in
 export USER=$(whoami)
 nix build '.#checks.aarch64-darwin.host-overrides' --impure 2>&1 | tail -10
 ```
+
 Expected: 빌드 성공.
 
 > Linux runner나 다른 system에서는 darwin 머신 평가가 불가능할 수 있음. 그 경우 테스트가 자기 system에 맞춰 skip 처리되어야 함 — `tests/lib/platform-helpers.nix` 패턴 참조해 darwin-only로 등록.
@@ -335,6 +353,7 @@ for h in vm-aarch64-utm vm-x86_64-utm; do
   nix build ".#nixosConfigurations.$h.config.system.build.toplevel" --impure --no-link 2>&1 | tail -3
 done
 ```
+
 Expected: 5개 모두 성공.
 
 - [ ] **Step 2: 회귀 없는지 — macbook-pro에서 hammerspoon, karabiner 모두 존재**
@@ -344,6 +363,7 @@ export USER=$(whoami)
 nix eval '.#darwinConfigurations.macbook-pro.config.home-manager.users.baleen.modules.programs.hammerspoon.enable' --impure
 nix eval '.#darwinConfigurations.macbook-pro.config.home-manager.users.baleen.modules.programs.karabiner.enable' --impure
 ```
+
 Expected: 둘 다 `true`.
 
 - [ ] **Step 3: kakaostyle-jito에서 둘 다 disabled 확인**
@@ -352,6 +372,7 @@ Expected: 둘 다 `true`.
 nix eval '.#darwinConfigurations.kakaostyle-jito.config.home-manager.users."jito.hello".modules.programs.hammerspoon.enable' --impure
 nix eval '.#darwinConfigurations.kakaostyle-jito.config.home-manager.users."jito.hello".modules.programs.karabiner.enable' --impure
 ```
+
 Expected: 둘 다 `false`.
 
 - [ ] **Step 4: make test 통과**
@@ -359,6 +380,7 @@ Expected: 둘 다 `false`.
 ```bash
 make test
 ```
+
 Expected: pass.
 
 - [ ] **Step 5: PR 준비**
@@ -366,6 +388,7 @@ Expected: pass.
 ```bash
 git log --oneline -8
 ```
+
 Expected: 4~5개 커밋. PR 생성은 별도 명령.
 
 ---
@@ -373,6 +396,7 @@ Expected: 4~5개 커밋. PR 생성은 별도 명령.
 ## Self-Review
 
 **Spec coverage:**
+
 - `homeModules` 인자 추가 ✓ (Task 1)
 - `systems.nix` 전달 ✓ (Task 2)
 - 예시 host에 토글 적용 ✓ (Task 3)
@@ -384,6 +408,7 @@ Expected: 4~5개 커밋. PR 생성은 별도 명령.
 **Type 일관성:** `homeModules`라는 이름이 Task 1, 2, 3, 4 전반에서 동일하게 사용됨. ✓
 
 **알려진 위험:**
+
 1. Task 3/4의 eval 경로(`config.home-manager.users.<user>.modules.programs.*`)가 home-manager의 useUserPackages/useGlobalPkgs 조합에서 실제로 노출되는지는 빌드해 봐야 안다. eval이 실패하면 derivation grep 폴백.
 2. Task 4 unit test가 darwin-only 머신을 평가해야 하는데, Linux CI runner에서는 평가 자체가 안 될 수 있음. platform-helpers.nix로 darwin-only 등록 필요.
 3. Sub-project 1이 완료되지 않은 채로 실행하면 `modules.programs.*` 옵션이 존재하지 않아 Task 3에서 eval 에러. 반드시 Sub-project 1 PR 머지 후 실행.

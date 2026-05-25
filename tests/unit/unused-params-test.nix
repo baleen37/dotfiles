@@ -31,24 +31,24 @@ in
     ) "git.nix should not declare unused pkgs parameter")
 
     # git.nix SHOULD declare lib (used for mkEnableOption / mkIf)
-    (helpers.assertTest "git-nix-has-lib" (
-      builtins.hasAttr "lib" gitArgs
-    ) "git.nix should declare lib parameter (used for modules option)")
+    (helpers.assertTest "git-nix-has-lib" (builtins.hasAttr "lib" gitArgs)
+      "git.nix should declare lib parameter (used for modules option)"
+    )
 
     # git.nix SHOULD declare config (used for modules.programs.git.enable)
-    (helpers.assertTest "git-nix-has-config" (
-      builtins.hasAttr "config" gitArgs
-    ) "git.nix should declare config parameter (used for modules option)")
+    (helpers.assertTest "git-nix-has-config" (builtins.hasAttr "config" gitArgs)
+      "git.nix should declare config parameter (used for modules option)"
+    )
 
     # vim.nix SHOULD declare lib (used for mkEnableOption / mkIf)
-    (helpers.assertTest "vim-nix-has-lib" (
-      builtins.hasAttr "lib" vimArgs
-    ) "vim.nix should declare lib parameter (used for modules option)")
+    (helpers.assertTest "vim-nix-has-lib" (builtins.hasAttr "lib" vimArgs)
+      "vim.nix should declare lib parameter (used for modules option)"
+    )
 
     # vim.nix SHOULD declare config (used for modules.programs.vim.enable)
-    (helpers.assertTest "vim-nix-has-config" (
-      builtins.hasAttr "config" vimArgs
-    ) "vim.nix should declare config parameter (used for modules option)")
+    (helpers.assertTest "vim-nix-has-config" (builtins.hasAttr "config" vimArgs)
+      "vim.nix should declare config parameter (used for modules option)"
+    )
 
     # vim.nix SHOULD still declare pkgs (it uses pkgs.vimPlugins)
     (helpers.assertTest "vim-nix-keeps-pkgs" (builtins.hasAttr "pkgs" vimArgs)

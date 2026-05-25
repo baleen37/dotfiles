@@ -23,7 +23,9 @@ let
   # (lib.mkIf true {...}).content unwraps the conditional when enable=true
   gitModule = import ../../users/shared/programs/git.nix {
     inherit pkgs lib;
-    config = { modules.programs.git.enable = true; };
+    config = {
+      modules.programs.git.enable = true;
+    };
   };
   gitConfig = gitModule.config.content;
 

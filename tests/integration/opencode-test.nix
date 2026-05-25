@@ -15,7 +15,9 @@ let
   # (lib.mkIf true {...}).content unwraps the conditional when enable=true
   opencodeModule = import ../../users/shared/programs/opencode.nix {
     inherit pkgs lib;
-    config = { modules.programs.opencode.enable = true; };
+    config = {
+      modules.programs.opencode.enable = true;
+    };
   };
   opencodeConfig = opencodeModule.config.content;
 

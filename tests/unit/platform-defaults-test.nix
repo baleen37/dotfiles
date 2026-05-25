@@ -22,7 +22,9 @@ let
     pkgs
     // {
       stdenv = pkgs.stdenv // {
-        hostPlatform = pkgs.stdenv.hostPlatform // { inherit isDarwin; };
+        hostPlatform = pkgs.stdenv.hostPlatform // {
+          inherit isDarwin;
+        };
       };
     };
 
@@ -50,20 +52,20 @@ in
 {
   platforms = [ "any" ];
   value = {
-    hammerspoon-enabled-on-darwin = helpers.assertTest "hammerspoon default=true on Darwin"
-      (hammerspoonOnDarwin.modules.programs.hammerspoon.enable == true)
-      "Hammerspoon module must default to enable=true on Darwin";
+    hammerspoon-enabled-on-darwin = helpers.assertTest "hammerspoon default=true on Darwin" (
+      hammerspoonOnDarwin.modules.programs.hammerspoon.enable == true
+    ) "Hammerspoon module must default to enable=true on Darwin";
 
-    hammerspoon-disabled-on-linux = helpers.assertTest "hammerspoon default=false on Linux"
-      (hammerspoonOnLinux.modules.programs.hammerspoon.enable == false)
-      "Hammerspoon module must default to enable=false on non-Darwin";
+    hammerspoon-disabled-on-linux = helpers.assertTest "hammerspoon default=false on Linux" (
+      hammerspoonOnLinux.modules.programs.hammerspoon.enable == false
+    ) "Hammerspoon module must default to enable=false on non-Darwin";
 
-    karabiner-enabled-on-darwin = helpers.assertTest "karabiner default=true on Darwin"
-      (karabinerOnDarwin.modules.programs.karabiner.enable == true)
-      "Karabiner module must default to enable=true on Darwin";
+    karabiner-enabled-on-darwin = helpers.assertTest "karabiner default=true on Darwin" (
+      karabinerOnDarwin.modules.programs.karabiner.enable == true
+    ) "Karabiner module must default to enable=true on Darwin";
 
-    karabiner-disabled-on-linux = helpers.assertTest "karabiner default=false on Linux"
-      (karabinerOnLinux.modules.programs.karabiner.enable == false)
-      "Karabiner module must default to enable=false on non-Darwin";
+    karabiner-disabled-on-linux = helpers.assertTest "karabiner default=false on Linux" (
+      karabinerOnLinux.modules.programs.karabiner.enable == false
+    ) "Karabiner module must default to enable=false on non-Darwin";
   };
 }

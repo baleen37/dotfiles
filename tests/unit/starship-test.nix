@@ -26,7 +26,9 @@ let
 
   starshipModule = import ../../users/shared/programs/starship.nix {
     inherit pkgs lib;
-    config = mockConfig.mkEmptyConfig // { modules.programs.starship.enable = true; };
+    config = mockConfig.mkEmptyConfig // {
+      modules.programs.starship.enable = true;
+    };
   };
   starshipConfig = starshipModule.config.content;
 

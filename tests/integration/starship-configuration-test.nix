@@ -15,7 +15,9 @@ let
   # (lib.mkIf true {...}).content unwraps the conditional when enable=true
   starshipModule = import ../../users/shared/programs/starship.nix {
     inherit pkgs lib;
-    config = { modules.programs.starship.enable = true; };
+    config = {
+      modules.programs.starship.enable = true;
+    };
   };
   starshipConfig = starshipModule.config.content;
 

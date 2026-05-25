@@ -73,28 +73,25 @@ let
 
   programModulePath =
     name:
-    if name == "zsh" then
-      ../../users/shared/programs/zsh
-    else
-      ../../users/shared/programs/${name}.nix;
+    if name == "zsh" then ../../users/shared/programs/zsh else ../../users/shared/programs/${name}.nix;
 
   packageModulePath = name: ../../users/shared/packages/${name}.nix;
 
   programTests = lib.listToAttrs (
     map (n: {
       name = "program-${n}-has-enable";
-      value = helpers.assertTest "modules.programs.${n}.enable" (
-        hasEnableOption "programs" n (programModulePath n)
-      ) "Module users/shared/programs/${n}.nix must declare options.modules.programs.${n}.enable";
+      value = helpers.assertTest "modules.programs.${n}.enable" (hasEnableOption "programs" n (
+        programModulePath n
+      )) "Module users/shared/programs/${n}.nix must declare options.modules.programs.${n}.enable";
     }) programNames
   );
 
   packageTests = lib.listToAttrs (
     map (n: {
       name = "package-${n}-has-enable";
-      value = helpers.assertTest "modules.packages.${n}.enable" (
-        hasEnableOption "packages" n (packageModulePath n)
-      ) "Module users/shared/packages/${n}.nix must declare options.modules.packages.${n}.enable";
+      value = helpers.assertTest "modules.packages.${n}.enable" (hasEnableOption "packages" n (
+        packageModulePath n
+      )) "Module users/shared/packages/${n}.nix must declare options.modules.packages.${n}.enable";
     }) packageNames
   );
 

@@ -21,7 +21,9 @@ let
   vimModuleResult = builtins.tryEval (
     import vimConfigFile {
       inherit pkgs lib;
-      config = { modules.programs.vim.enable = true; };
+      config = {
+        modules.programs.vim.enable = true;
+      };
     }
   );
 
