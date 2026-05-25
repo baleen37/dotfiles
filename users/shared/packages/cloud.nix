@@ -5,12 +5,10 @@
   ...
 }:
 let
-  cfg = config.myHome.packages.cloud;
+  cfg = config.modules.packages.cloud;
 in
 {
-  options.myHome.packages.cloud.enable = lib.mkEnableOption "cloud tools" // {
-    default = true;
-  };
+  options.modules.packages.cloud.enable = lib.mkEnableOption "cloud tools";
 
   config = lib.mkIf cfg.enable {
     home.packages = with pkgs; [

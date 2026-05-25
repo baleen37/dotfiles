@@ -173,6 +173,12 @@ This allows the same configuration to work for different users without hardcodin
 - Add to the appropriate category file in `users/shared/packages/` (e.g., `dev.nix` for development tools)
 - Or create/modify specific tool configuration in `users/shared/programs/*.nix`
 
+**Module enable pattern** (`modules.programs.<name>`, `modules.packages.<name>`):
+
+- Every program and package category exposes an `enable` option. `lib.mkEnableOption` defaults to `false`; activation happens explicitly in `users/shared/home-manager.nix`.
+- Platform-conditional modules (`hammerspoon`, `karabiner`) set `default = pkgs.stdenv.hostPlatform.isDarwin` in the module itself — do **not** list them in the home-manager.nix enable block; let the module default own the decision.
+- To disable a module on a specific machine, add it to that host's `homeModules` in `flake-modules/hosts.nix` (e.g., `modules.programs.hammerspoon.enable = false;`).
+
 **System packages** (macOS GUI apps):
 
 - Add Homebrew casks to `users/shared/darwin/homebrew.nix` in `homebrew-casks` list

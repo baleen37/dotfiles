@@ -11,11 +11,15 @@
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
 
-  # Import opencode configuration
-  opencodeConfig = import ../../users/shared/programs/opencode.nix {
+  # Import opencode module and extract config body via .content
+  # (lib.mkIf true {...}).content unwraps the conditional when enable=true
+  opencodeModule = import ../../users/shared/programs/opencode.nix {
     inherit pkgs lib;
-    config = { };
+    config = {
+      modules.programs.opencode.enable = true;
+    };
   };
+  opencodeConfig = opencodeModule.config.content;
 
   # Extract configuration sections
   xdgConfigFiles = opencodeConfig.xdg.configFile or { };

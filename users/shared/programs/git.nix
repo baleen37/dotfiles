@@ -22,85 +22,90 @@
 #   - 개발: .direnv/, node_modules/, .env.local
 #
 
-_:
+{ config, lib, ... }:
 
 let
   # User information from lib/user-info.nix
   userInfo = import ../../../lib/user-info.nix;
   inherit (userInfo) name email;
+  cfg = config.modules.programs.git;
 in
 {
-  programs.git = {
-    enable = true;
-    lfs = {
+  options.modules.programs.git.enable = lib.mkEnableOption "Git configuration";
+
+  config = lib.mkIf cfg.enable {
+    programs.git = {
       enable = true;
+      lfs = {
+        enable = true;
+      };
+      signing.format = "openpgp";
+
+      settings = {
+        user = {
+          inherit name;
+          inherit email;
+        };
+        init.defaultBranch = "main";
+        core = {
+          editor = "vim";
+          autocrlf = "input";
+          excludesFile = "~/.gitignore_global";
+        };
+        pull.rebase = true;
+        rebase.autoStash = true;
+        credential.helper = "!gh auth git-credential";
+        alias = {
+          st = "status";
+          co = "checkout";
+          br = "branch";
+          ci = "commit";
+          df = "diff";
+          lg = "log --graph --oneline --decorate --all";
+        };
+      };
+
+      ignores = [
+        # Local files
+        ".local/"
+
+        # Editor files
+        "*.swp"
+        "*.swo"
+        "*~"
+        ".vscode/"
+        ".idea/"
+
+        # OS files
+        ".DS_Store"
+        "Thumbs.db"
+        "desktop.ini"
+
+        # Development files
+        ".direnv/"
+        "result"
+        "result-*"
+        "node_modules/"
+        ".env.local"
+        ".env.*.local"
+        ".serena/"
+        ".playwright-cli/"
+
+        # Temporary files
+        "*.tmp"
+        "*.log"
+        ".cache/"
+
+        # Git worktrees
+        ".worktrees/"
+        ".claude/worktrees/"
+
+        # Build artifacts
+        "dist/"
+        "build/"
+        "target/"
+
+      ];
     };
-    signing.format = "openpgp";
-
-    settings = {
-      user = {
-        inherit name;
-        inherit email;
-      };
-      init.defaultBranch = "main";
-      core = {
-        editor = "vim";
-        autocrlf = "input";
-        excludesFile = "~/.gitignore_global";
-      };
-      pull.rebase = true;
-      rebase.autoStash = true;
-      credential.helper = "!gh auth git-credential";
-      alias = {
-        st = "status";
-        co = "checkout";
-        br = "branch";
-        ci = "commit";
-        df = "diff";
-        lg = "log --graph --oneline --decorate --all";
-      };
-    };
-
-    ignores = [
-      # Local files
-      ".local/"
-
-      # Editor files
-      "*.swp"
-      "*.swo"
-      "*~"
-      ".vscode/"
-      ".idea/"
-
-      # OS files
-      ".DS_Store"
-      "Thumbs.db"
-      "desktop.ini"
-
-      # Development files
-      ".direnv/"
-      "result"
-      "result-*"
-      "node_modules/"
-      ".env.local"
-      ".env.*.local"
-      ".serena/"
-      ".playwright-cli/"
-
-      # Temporary files
-      "*.tmp"
-      "*.log"
-      ".cache/"
-
-      # Git worktrees
-      ".worktrees/"
-      ".claude/worktrees/"
-
-      # Build artifacts
-      "dist/"
-      "build/"
-      "target/"
-
-    ];
   };
 }

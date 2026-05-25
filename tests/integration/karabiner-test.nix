@@ -10,16 +10,16 @@
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
 
-  # Import karabiner module (mkIf-wrapped) and unwrap
+  # Import karabiner module (options/config-wrapped) and extract config body
   karabinerRaw = import ../../users/shared/programs/karabiner.nix {
     inherit pkgs lib;
-    isDarwin = true;
     config = {
+      modules.programs.karabiner.enable = true;
       home.homeDirectory = "/Users/test";
     };
   };
-  karabinerModule =
-    if karabinerRaw ? _type && karabinerRaw._type == "if" then karabinerRaw.content else karabinerRaw;
+  # karabinerRaw.config is lib.mkIf true {...}, so .content unwraps it
+  karabinerModule = karabinerRaw.config.content;
 
   karabinerConfigUsable = karabinerModule ? home.file.".config/karabiner/karabiner.json";
   karabinerFileConfig =

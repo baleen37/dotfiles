@@ -17,9 +17,9 @@ let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
 
   # Inspect each category package module directly to collect its package list.
-  # Each module under users/shared/packages/ exposes `myHome.packages.<cat>.enable`
-  # (default true) and emits `home.packages` via `config = lib.mkIf cfg.enable {...}`.
-  # We invoke the body with the option enabled to extract the contributed package list.
+  # Each module under users/shared/packages/ exposes `modules.packages.<cat>.enable`
+  # (default false) and emits `home.packages` via `config = lib.mkIf cfg.enable {...}`.
+  # We invoke the body with the option explicitly enabled to extract the contributed package list.
   categoryModules = [
     "ai"
     "cloud"
@@ -34,8 +34,8 @@ let
     "ssh"
   ];
 
-  # Declare the minimal `home.packages` option locally so evalModules can merge
-  # `home.packages = ...` from each category module without pulling in home-manager.
+  # Declare the minimal options locally so evalModules can merge contributions
+  # from each category module without pulling in home-manager.
   homeOptionsModule = {
     options.home.packages = lib.mkOption {
       type = lib.types.listOf lib.types.package;
@@ -50,6 +50,8 @@ let
         homeOptionsModule
         (import (../../users/shared/packages + "/${name}.nix"))
         { _module.args = { inherit pkgs; }; }
+        # Explicitly enable the module (default=false since myHome→modules rename)
+        { config.modules.packages.${name}.enable = true; }
       ];
     }).config.home.packages;
 

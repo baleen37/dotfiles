@@ -5,12 +5,10 @@
   ...
 }:
 let
-  cfg = config.myHome.packages.ssh;
+  cfg = config.modules.packages.ssh;
 in
 {
-  options.myHome.packages.ssh.enable = lib.mkEnableOption "SSH tools" // {
-    default = true;
-  };
+  options.modules.packages.ssh.enable = lib.mkEnableOption "SSH tools";
 
   config = lib.mkIf cfg.enable {
     home.packages = with pkgs; [

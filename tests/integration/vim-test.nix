@@ -15,17 +15,22 @@ let
   };
 
   # Behavioral test: try to import and use vim config
+  # Import vim module and extract config body via .content
+  # (lib.mkIf true {...}).content unwraps the conditional when enable=true
   vimConfigFile = ../../users/shared/programs/vim.nix;
-  vimConfigResult = builtins.tryEval (
+  vimModuleResult = builtins.tryEval (
     import vimConfigFile {
       inherit pkgs lib;
-      config = { };
+      config = {
+        modules.programs.vim.enable = true;
+      };
     }
   );
 
   # Test if vim config can be imported and is usable
-  vimConfig = if vimConfigResult.success then vimConfigResult.value else { };
-  vimConfigUsable = vimConfigResult.success;
+  vimModule = if vimModuleResult.success then vimModuleResult.value else { };
+  vimConfigUsable = vimModuleResult.success;
+  vimConfig = if vimConfigUsable then vimModule.config.content else { };
 
   # Helper function to check if a plugin exists by pname (with vimConfigUsable guard)
   hasPluginByName =

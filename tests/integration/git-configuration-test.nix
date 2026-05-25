@@ -19,11 +19,15 @@ let
   # Import user info from lib/user-info.nix
   userInfo = import ../../lib/user-info.nix;
 
-  # Import git configuration
-  gitConfig = import ../../users/shared/programs/git.nix {
+  # Import git module and extract config body via .content
+  # (lib.mkIf true {...}).content unwraps the conditional when enable=true
+  gitModule = import ../../users/shared/programs/git.nix {
     inherit pkgs lib;
-    config = { };
+    config = {
+      modules.programs.git.enable = true;
+    };
   };
+  gitConfig = gitModule.config.content;
 
   # Extract git settings
   gitSettings = gitConfig.programs.git.settings;

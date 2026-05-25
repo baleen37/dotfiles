@@ -15,24 +15,27 @@ let
   # Platform detection
   isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
 
-  # Import zsh configuration
-  zshConfig = import ../../users/shared/programs/zsh {
+  # Import zsh module and extract config body via .content
+  # (lib.mkIf true {...}).content unwraps the conditional when enable=true
+  zshModule = import ../../users/shared/programs/zsh {
     inherit pkgs lib isDarwin;
     config = {
+      modules.programs.zsh.enable = true;
       home = {
         homeDirectory = "/home/testuser";
       };
     };
   };
+  zshConfigBody = zshModule.config.content;
 
   # Extract zsh settings
-  zshSettings = zshConfig.programs.zsh;
+  zshSettings = zshConfigBody.programs.zsh;
   shellAliases = zshSettings.shellAliases or { };
   initContent = zshSettings.initContent.content or "";
 
   # Extract fzf and direnv settings
-  fzfSettings = zshConfig.programs.fzf or { };
-  direnvSettings = zshConfig.programs.direnv or { };
+  fzfSettings = zshConfigBody.programs.fzf or { };
+  direnvSettings = zshConfigBody.programs.direnv or { };
 
   # Helper to check if an alias exists
   hasAlias = aliasName: builtins.hasAttr aliasName shellAliases;
@@ -152,10 +155,10 @@ in
 
     # Direnv auto-allow configuration
     (helpers.assertTest "direnv-config-exists" (builtins.hasAttr "direnv/direnv.toml" (
-      zshConfig.xdg.configFile or { }
+      zshConfigBody.xdg.configFile or { }
     )) "direnv config file should be configured")
     (helpers.assertTest "direnv-whitelist-home" (lib.hasInfix "whitelist" (
-      zshConfig.xdg.configFile."direnv/direnv.toml".text or ""
+      zshConfigBody.xdg.configFile."direnv/direnv.toml".text or ""
     )) "direnv should whitelist home directory")
 
     # History configuration in initContent

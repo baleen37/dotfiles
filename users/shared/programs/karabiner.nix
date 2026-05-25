@@ -11,9 +11,16 @@
 #       target app's own shortcut handler picks it up.
 #   Unintercepted keys pass through to Hammerspoon as F19+key (HyperModal,
 #   Pomodoro, etc.).
-{ lib, isDarwin, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
+  cfg = config.modules.programs.karabiner;
+
   # App definitions: key → { bundle = bundleId; proc = processName; }
   # `proc` is the AppleScript process name (sometimes different from bundle).
   # Discover via: osascript -e 'tell application "System Events" to get name of every application process'
@@ -186,9 +193,15 @@ let
   };
 
 in
-lib.mkIf isDarwin {
-  home.file.".config/karabiner/karabiner.json" = {
-    text = builtins.toJSON karabinerConfig;
-    force = true;
+{
+  options.modules.programs.karabiner.enable = lib.mkEnableOption "Karabiner-Elements (macOS)" // {
+    default = pkgs.stdenv.hostPlatform.isDarwin;
+  };
+
+  config = lib.mkIf cfg.enable {
+    home.file.".config/karabiner/karabiner.json" = {
+      text = builtins.toJSON karabinerConfig;
+      force = true;
+    };
   };
 }

@@ -16,12 +16,17 @@ let
     import ghosttyConfigFile {
       inherit pkgs lib;
       isDarwin = true;
-      config = { };
+      config = {
+        modules.programs.ghostty.enable = true;
+      };
     }
   );
 
   # Test if ghostty config can be imported and is usable
-  ghosttyConfig = if ghosttyConfigResult.success then ghosttyConfigResult.value else { };
+  # ghosttyConfigResult.value is { options = ...; config = lib.mkIf true {...}; }
+  # Extract the inner config body via .config.content
+  ghosttyRaw = if ghosttyConfigResult.success then ghosttyConfigResult.value else { };
+  ghosttyConfig = if ghosttyConfigResult.success then ghosttyRaw.config.content else { };
   ghosttyConfigUsable = ghosttyConfigResult.success;
 
   # Read the actual Ghostty config file content

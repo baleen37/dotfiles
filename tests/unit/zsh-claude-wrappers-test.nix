@@ -14,13 +14,19 @@ let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
   mockConfig = import ../lib/mock-config.nix { inherit pkgs lib; };
 
-  zshConfig = import ../../users/shared/programs/zsh {
+  zshModule = import ../../users/shared/programs/zsh {
     inherit pkgs lib;
     isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
-    config = mockConfig.mkEmptyConfig;
+    config = mockConfig.mkEmptyConfig // {
+      modules.programs.zsh.enable = true;
+      home = {
+        homeDirectory = "/home/testuser";
+      };
+    };
   };
+  zshConfigBody = zshModule.config.content;
 
-  initContent = zshConfig.programs.zsh.initContent.content or "";
+  initContent = zshConfigBody.programs.zsh.initContent.content or "";
 
   # Main wrapper functions that must be defined (model variants now use flags)
   expectedFunctions = [

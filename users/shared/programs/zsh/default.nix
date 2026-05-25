@@ -27,144 +27,151 @@
   ...
 }:
 
+let
+  cfg = config.modules.programs.zsh;
+in
 {
-  programs.fzf = {
-    enable = true;
-    enableZshIntegration = true;
+  options.modules.programs.zsh.enable = lib.mkEnableOption "Zsh shell environment";
 
-    # Default options for better UX
-    defaultOptions = [
-      "--height 40%"
-      "--layout=reverse"
-      "--border"
-      "--inline-info"
-      "--preview 'bat --style=numbers --color=always --line-range :500 {}'"
-      "--preview-window 'right:50%:wrap'"
-      "--bind 'ctrl-/:toggle-preview'"
-      "--color=fg:#d0d0d0,bg:#121212,hl:#5f87af"
-      "--color=fg+:#d0d0d0,bg+:#262626,hl+:#5fd7ff"
-      "--color=info:#afaf87,prompt:#d7005f,pointer:#af5fff"
-      "--color=marker:#87ff00,spinner:#af5fff,header:#87afaf"
-    ];
+  config = lib.mkIf cfg.enable {
+    programs.fzf = {
+      enable = true;
+      enableZshIntegration = true;
 
-    # File search command (Ctrl+T)
-    fileWidgetCommand = "fd --type f --hidden --follow --exclude .git";
-    fileWidgetOptions = [
-      "--preview 'bat --style=numbers --color=always --line-range :500 {}'"
-    ];
+      # Default options for better UX
+      defaultOptions = [
+        "--height 40%"
+        "--layout=reverse"
+        "--border"
+        "--inline-info"
+        "--preview 'bat --style=numbers --color=always --line-range :500 {}'"
+        "--preview-window 'right:50%:wrap'"
+        "--bind 'ctrl-/:toggle-preview'"
+        "--color=fg:#d0d0d0,bg:#121212,hl:#5f87af"
+        "--color=fg+:#d0d0d0,bg+:#262626,hl+:#5fd7ff"
+        "--color=info:#afaf87,prompt:#d7005f,pointer:#af5fff"
+        "--color=marker:#87ff00,spinner:#af5fff,header:#87afaf"
+      ];
 
-    # Directory search command (Alt+C)
-    changeDirWidgetCommand = "fd --type d --hidden --follow --exclude .git";
-    changeDirWidgetOptions = [
-      "--preview 'tree -C {} | head -200'"
-    ];
-  };
+      # File search command (Ctrl+T)
+      fileWidgetCommand = "fd --type f --hidden --follow --exclude .git";
+      fileWidgetOptions = [
+        "--preview 'bat --style=numbers --color=always --line-range :500 {}'"
+      ];
 
-  programs.direnv = {
-    enable = true;
-    enableZshIntegration = true;
-    nix-direnv.enable = true;
-  };
-
-  # Direnv auto-allow configuration
-  # Automatically trust all .envrc files in the user's home directory
-  # This eliminates the need to manually run `direnv allow` for each project
-  xdg.configFile."direnv/direnv.toml".text = ''
-    [whitelist]
-    prefix = [ "${config.home.homeDirectory}/" ]
-  '';
-
-  programs.zsh = {
-    enable = true;
-    autocd = false;
-    dotDir = config.home.homeDirectory;
-
-    # Skip compaudit security checks for 40x faster startup (2.3s -> 0.06s)
-    # Safe in Nix environment where all paths are immutable
-    enableCompletion = true;
-    completionInit = "autoload -Uz compinit && compinit -C";
-
-    shellAliases = {
-      # Multi-level directory navigation: `cd ...`, `cd ....` etc. is
-      # handled by the cd function override in functions.nix.
-      ".." = "cd ..";
-
-      # Claude CLI shortcuts are now functions in initContent (cc, cco, ccz)
-
-      # OpenCode CLI shortcut
-      oc = "opencode";
-
-      # Codex CLI shortcut
-      co = "codex --dangerously-bypass-approvals-and-sandbox";
-      "co-l" = "codex --dangerously-bypass-approvals-and-sandbox -c model_reasoning_effort=low";
-      "co-m" = "codex --dangerously-bypass-approvals-and-sandbox -c model_reasoning_effort=medium";
-      "co-h" = "codex --dangerously-bypass-approvals-and-sandbox -c model_reasoning_effort=high";
-
-      # Git aliases
-      ga = "git add";
-      gc = "git commit";
-      gco = "git checkout";
-      gcp = "git cherry-pick";
-      gdiff = "git diff";
-      gl = "git prettylog";
-      gp = "git push";
-      gs = "git status";
-      gt = "git tag";
-
-      # Use difftastic for syntax-aware diffing
-      diff = "difft";
-
-      # Always color ls and group directories
-      ls = "ls --color=auto";
-
-      la = "ls -la --color=auto";
+      # Directory search command (Alt+C)
+      changeDirWidgetCommand = "fd --type d --hidden --follow --exclude .git";
+      changeDirWidgetOptions = [
+        "--preview 'tree -C {} | head -200'"
+      ];
     };
 
-    plugins = [ ];
+    programs.direnv = {
+      enable = true;
+      enableZshIntegration = true;
+      nix-direnv.enable = true;
+    };
 
-    initContent = lib.mkAfter ''
-      # =============================================================================
-      # Section: Nix daemon initialization
-      # =============================================================================
-      if [[ -f /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]]; then
-        . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
-        . /nix/var/nix/profiles/default/etc/profile.d/nix.sh
-      fi
-
-      # Local overrides (not tracked in git)
-      if [[ -f ~/.zshrc.local ]]; then
-        . ~/.zshrc.local
-      fi
-
-      # =============================================================================
-      # Section: Claude Code wrapper functions
-      # =============================================================================
-      ${import ./claude-wrappers.nix}
-      # =============================================================================
-      # Section: Environment and PATH setup
-      # =============================================================================
-      ${import ./env.nix}
-      # Homebrew PATH configuration (macOS only)
-      ${lib.optionalString isDarwin ''
-        if [[ -d /opt/homebrew ]]; then
-          export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
-        fi
-      ''}
-
-      # =============================================================================
-      # Section: SSH agent setup
-      # =============================================================================
-      ${import ./ssh-agent.nix { inherit isDarwin lib; }}
-
-      # =============================================================================
-      # Section: Utility functions
-      # =============================================================================
-      ${import ./functions.nix}
-
-      # =============================================================================
-      # Section: Git worktree wrapper
-      # =============================================================================
-      ${import ./gw.nix}
+    # Direnv auto-allow configuration
+    # Automatically trust all .envrc files in the user's home directory
+    # This eliminates the need to manually run `direnv allow` for each project
+    xdg.configFile."direnv/direnv.toml".text = ''
+      [whitelist]
+      prefix = [ "${config.home.homeDirectory}/" ]
     '';
+
+    programs.zsh = {
+      enable = true;
+      autocd = false;
+      dotDir = config.home.homeDirectory;
+
+      # Skip compaudit security checks for 40x faster startup (2.3s -> 0.06s)
+      # Safe in Nix environment where all paths are immutable
+      enableCompletion = true;
+      completionInit = "autoload -Uz compinit && compinit -C";
+
+      shellAliases = {
+        # Multi-level directory navigation: `cd ...`, `cd ....` etc. is
+        # handled by the cd function override in functions.nix.
+        ".." = "cd ..";
+
+        # Claude CLI shortcuts are now functions in initContent (cc, cco, ccz)
+
+        # OpenCode CLI shortcut
+        oc = "opencode";
+
+        # Codex CLI shortcut
+        co = "codex --dangerously-bypass-approvals-and-sandbox";
+        "co-l" = "codex --dangerously-bypass-approvals-and-sandbox -c model_reasoning_effort=low";
+        "co-m" = "codex --dangerously-bypass-approvals-and-sandbox -c model_reasoning_effort=medium";
+        "co-h" = "codex --dangerously-bypass-approvals-and-sandbox -c model_reasoning_effort=high";
+
+        # Git aliases
+        ga = "git add";
+        gc = "git commit";
+        gco = "git checkout";
+        gcp = "git cherry-pick";
+        gdiff = "git diff";
+        gl = "git prettylog";
+        gp = "git push";
+        gs = "git status";
+        gt = "git tag";
+
+        # Use difftastic for syntax-aware diffing
+        diff = "difft";
+
+        # Always color ls and group directories
+        ls = "ls --color=auto";
+
+        la = "ls -la --color=auto";
+      };
+
+      plugins = [ ];
+
+      initContent = lib.mkAfter ''
+        # =============================================================================
+        # Section: Nix daemon initialization
+        # =============================================================================
+        if [[ -f /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]]; then
+          . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+          . /nix/var/nix/profiles/default/etc/profile.d/nix.sh
+        fi
+
+        # Local overrides (not tracked in git)
+        if [[ -f ~/.zshrc.local ]]; then
+          . ~/.zshrc.local
+        fi
+
+        # =============================================================================
+        # Section: Claude Code wrapper functions
+        # =============================================================================
+        ${import ./claude-wrappers.nix}
+        # =============================================================================
+        # Section: Environment and PATH setup
+        # =============================================================================
+        ${import ./env.nix}
+        # Homebrew PATH configuration (macOS only)
+        ${lib.optionalString isDarwin ''
+          if [[ -d /opt/homebrew ]]; then
+            export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
+          fi
+        ''}
+
+        # =============================================================================
+        # Section: SSH agent setup
+        # =============================================================================
+        ${import ./ssh-agent.nix { inherit isDarwin lib; }}
+
+        # =============================================================================
+        # Section: Utility functions
+        # =============================================================================
+        ${import ./functions.nix}
+
+        # =============================================================================
+        # Section: Git worktree wrapper
+        # =============================================================================
+        ${import ./gw.nix}
+      '';
+    };
   };
 }

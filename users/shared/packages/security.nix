@@ -5,12 +5,10 @@
   ...
 }:
 let
-  cfg = config.myHome.packages.security;
+  cfg = config.modules.packages.security;
 in
 {
-  options.myHome.packages.security.enable = lib.mkEnableOption "security tools" // {
-    default = true;
-  };
+  options.modules.packages.security.enable = lib.mkEnableOption "security tools";
 
   config = lib.mkIf cfg.enable {
     home.packages = with pkgs; [
