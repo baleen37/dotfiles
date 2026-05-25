@@ -5,12 +5,10 @@
   ...
 }:
 let
-  cfg = config.myHome.packages.nix-tools;
+  cfg = config.modules.packages.nix-tools;
 in
 {
-  options.myHome.packages.nix-tools.enable = lib.mkEnableOption "Nix tools" // {
-    default = true;
-  };
+  options.modules.packages.nix-tools.enable = lib.mkEnableOption "Nix tools";
 
   config = lib.mkIf cfg.enable {
     home.packages = with pkgs; [
