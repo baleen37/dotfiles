@@ -20,7 +20,7 @@
     ./programs/hammerspoon.nix
     ./programs/karabiner.nix
 
-    # Package categories (enable-flag pattern; all default to true)
+    # Package categories — modules.packages.<name>.enable
     ./packages/core.nix
     ./packages/dev.nix
     ./packages/lsp.nix
@@ -34,7 +34,7 @@
     ./packages/ai.nix
   ];
 
-  # Enable all package categories (default=false in module, explicitly enabled here)
+  # All package categories are enabled for this configuration
   modules.packages = {
     core.enable = true;
     dev.enable = true;
