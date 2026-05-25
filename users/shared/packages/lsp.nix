@@ -5,12 +5,10 @@
   ...
 }:
 let
-  cfg = config.myHome.packages.lsp;
+  cfg = config.modules.packages.lsp;
 in
 {
-  options.myHome.packages.lsp.enable = lib.mkEnableOption "LSP servers" // {
-    default = true;
-  };
+  options.modules.packages.lsp.enable = lib.mkEnableOption "LSP servers";
 
   config = lib.mkIf cfg.enable {
     home.packages = with pkgs; [
