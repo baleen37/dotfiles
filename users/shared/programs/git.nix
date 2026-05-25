@@ -35,77 +35,77 @@ in
 
   config = lib.mkIf cfg.enable {
     programs.git = {
-    enable = true;
-    lfs = {
       enable = true;
-    };
-    signing.format = "openpgp";
-
-    settings = {
-      user = {
-        inherit name;
-        inherit email;
+      lfs = {
+        enable = true;
       };
-      init.defaultBranch = "main";
-      core = {
-        editor = "vim";
-        autocrlf = "input";
-        excludesFile = "~/.gitignore_global";
+      signing.format = "openpgp";
+
+      settings = {
+        user = {
+          inherit name;
+          inherit email;
+        };
+        init.defaultBranch = "main";
+        core = {
+          editor = "vim";
+          autocrlf = "input";
+          excludesFile = "~/.gitignore_global";
+        };
+        pull.rebase = true;
+        rebase.autoStash = true;
+        credential.helper = "!gh auth git-credential";
+        alias = {
+          st = "status";
+          co = "checkout";
+          br = "branch";
+          ci = "commit";
+          df = "diff";
+          lg = "log --graph --oneline --decorate --all";
+        };
       };
-      pull.rebase = true;
-      rebase.autoStash = true;
-      credential.helper = "!gh auth git-credential";
-      alias = {
-        st = "status";
-        co = "checkout";
-        br = "branch";
-        ci = "commit";
-        df = "diff";
-        lg = "log --graph --oneline --decorate --all";
-      };
-    };
 
-    ignores = [
-      # Local files
-      ".local/"
+      ignores = [
+        # Local files
+        ".local/"
 
-      # Editor files
-      "*.swp"
-      "*.swo"
-      "*~"
-      ".vscode/"
-      ".idea/"
+        # Editor files
+        "*.swp"
+        "*.swo"
+        "*~"
+        ".vscode/"
+        ".idea/"
 
-      # OS files
-      ".DS_Store"
-      "Thumbs.db"
-      "desktop.ini"
+        # OS files
+        ".DS_Store"
+        "Thumbs.db"
+        "desktop.ini"
 
-      # Development files
-      ".direnv/"
-      "result"
-      "result-*"
-      "node_modules/"
-      ".env.local"
-      ".env.*.local"
-      ".serena/"
-      ".playwright-cli/"
+        # Development files
+        ".direnv/"
+        "result"
+        "result-*"
+        "node_modules/"
+        ".env.local"
+        ".env.*.local"
+        ".serena/"
+        ".playwright-cli/"
 
-      # Temporary files
-      "*.tmp"
-      "*.log"
-      ".cache/"
+        # Temporary files
+        "*.tmp"
+        "*.log"
+        ".cache/"
 
-      # Git worktrees
-      ".worktrees/"
-      ".claude/worktrees/"
+        # Git worktrees
+        ".worktrees/"
+        ".claude/worktrees/"
 
-      # Build artifacts
-      "dist/"
-      "build/"
-      "target/"
+        # Build artifacts
+        "dist/"
+        "build/"
+        "target/"
 
-    ];
+      ];
     };
   };
 }
