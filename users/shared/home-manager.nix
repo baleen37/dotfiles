@@ -34,6 +34,21 @@
     ./packages/ai.nix
   ];
 
+  # Enable all package categories (default=false in module, explicitly enabled here)
+  modules.packages = {
+    core.enable = true;
+    dev.enable = true;
+    lsp.enable = true;
+    nix-tools.enable = true;
+    cloud.enable = true;
+    security.enable = true;
+    ssh.enable = true;
+    media.enable = true;
+    fonts.enable = true;
+    databases.enable = true;
+    ai.enable = true;
+  };
+
   home = {
     username = currentSystemUser;
     homeDirectory = if isDarwin then "/Users/${currentSystemUser}" else "/home/${currentSystemUser}";
