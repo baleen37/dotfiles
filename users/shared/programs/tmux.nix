@@ -29,12 +29,20 @@
 #
 
 {
+  config,
+  lib,
   pkgs,
   ...
 }:
 
+let
+  cfg = config.modules.programs.tmux;
+in
 {
-  programs.tmux = {
+  options.modules.programs.tmux.enable = lib.mkEnableOption "Tmux multiplexer configuration";
+
+  config = lib.mkIf cfg.enable {
+    programs.tmux = {
     enable = true;
 
     plugins = [ ];
@@ -164,5 +172,6 @@
       # ============================================================================
       bind r source-file ~/.config/tmux/tmux.conf \; display "Config reloaded!"
     '';
+    };
   };
 }
