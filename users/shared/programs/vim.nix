@@ -24,10 +24,16 @@
 #   - Tab/Shift+Tab: Navigate buffers
 #
 
-{ pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
+let
+  cfg = config.modules.programs.vim;
+in
 {
-  programs.vim = {
+  options.modules.programs.vim.enable = lib.mkEnableOption "Vim editor configuration";
+
+  config = lib.mkIf cfg.enable {
+    programs.vim = {
     enable = true;
 
     plugins = with pkgs.vimPlugins; [
@@ -129,5 +135,6 @@
       "" Like a boss, sudo AFTER opening the file to write
       cmap w!! w !sudo tee % >/dev/null
     '';
+    };
   };
 }
