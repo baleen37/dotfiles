@@ -5,12 +5,10 @@
   ...
 }:
 let
-  cfg = config.myHome.packages.core;
+  cfg = config.modules.packages.core;
 in
 {
-  options.myHome.packages.core.enable = lib.mkEnableOption "core utilities" // {
-    default = true;
-  };
+  options.modules.packages.core.enable = lib.mkEnableOption "core utilities";
 
   config = lib.mkIf cfg.enable {
     home.packages = with pkgs; [
