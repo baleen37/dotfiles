@@ -17,12 +17,14 @@ let
     mkSystem name {
       inherit (h) system user;
       darwin = true;
+      homeModules = h.homeModules or { };
     };
 
   mkNixos =
     name: h:
     mkSystem name {
       inherit (h) system user;
+      homeModules = h.homeModules or { };
     };
 in
 {
