@@ -22,15 +22,19 @@
 #   - 개발: .direnv/, node_modules/, .env.local
 #
 
-_:
+{ config, lib, ... }:
 
 let
   # User information from lib/user-info.nix
   userInfo = import ../../../lib/user-info.nix;
   inherit (userInfo) name email;
+  cfg = config.modules.programs.git;
 in
 {
-  programs.git = {
+  options.modules.programs.git.enable = lib.mkEnableOption "Git configuration";
+
+  config = lib.mkIf cfg.enable {
+    programs.git = {
     enable = true;
     lfs = {
       enable = true;
@@ -102,5 +106,6 @@ in
       "target/"
 
     ];
+    };
   };
 }
