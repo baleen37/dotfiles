@@ -1,7 +1,7 @@
 {
   pkgs,
   currentSystemUser,
-  isDarwin ? pkgs.stdenv.isDarwin,
+  isDarwin ? pkgs.stdenv.hostPlatform.isDarwin,
   ...
 }:
 
