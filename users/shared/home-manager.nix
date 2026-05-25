@@ -34,6 +34,22 @@
     ./packages/ai.nix
   ];
 
+  # Programs — modules.programs.<name>.enable.
+  # hammerspoon and karabiner default to pkgs.stdenv.hostPlatform.isDarwin in
+  # their own modules; intentionally not listed here so the platform default
+  # owns the decision.
+  modules.programs = {
+    git.enable = true;
+    vim.enable = true;
+    zsh.enable = true;
+    tmux.enable = true;
+    starship.enable = true;
+    claude-code.enable = true;
+    codex.enable = true;
+    opencode.enable = true;
+    ghostty.enable = true;
+  };
+
   # All package categories are enabled for this configuration
   modules.packages = {
     core.enable = true;
