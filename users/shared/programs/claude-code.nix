@@ -5,4 +5,13 @@
 # NOTE: commands, agents, skills, and hooks are now managed via external plugin:
 # https://github.com/baleen37/claude-plugins
 
-_: { }
+{ config, lib, ... }:
+
+let
+  cfg = config.modules.programs.claude-code;
+in
+{
+  options.modules.programs.claude-code.enable = lib.mkEnableOption "Claude Code configuration";
+
+  config = lib.mkIf cfg.enable { };
+}
