@@ -39,6 +39,6 @@
   # npm configuration
   export NPM_CONFIG_PREFIX="$HOME/.npm-global"
 
-  # GitHub CLI token
-  export GITHUB_TOKEN=$(gh auth token)
+  # GitHub CLI token (silent if not authenticated, e.g. on remote SSH hosts)
+  export GITHUB_TOKEN=$(gh auth token 2>/dev/null || true)
 ''
