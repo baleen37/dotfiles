@@ -342,7 +342,7 @@ trusted-users = root @admin yourusername
 - **users/shared/programs/git.nix**: Git configuration with centralized user info from lib/user-info.nix
 - **users/shared/programs/vim.nix**: Vim setup with airline, tmux-navigator, relative line numbers
 - **users/shared/programs/zsh.nix**: Zsh environment with fzf, direnv, Claude/OpenCode aliases
-- **users/shared/programs/tmux.nix**: Tmux config with vi-mode copy-paste, session persistence
+- **users/shared/programs/tmux.nix**: Tmux config with vi-mode copy-paste, OSC52 clipboard
 - **users/shared/programs/starship.nix**: Minimal prompt configuration
 - **users/shared/programs/claude-code.nix**: Claude Code commands/skills/hooks deployment
 
@@ -380,9 +380,8 @@ The zsh configuration provides these shortcuts (defined in `users/shared/program
 **Tmux** (users/shared/programs/tmux.nix):
 
 - Prefix: Ctrl+a
-- Vi-style copy mode with clipboard integration
-- Cross-platform: pbcopy (macOS), xclip (Linux)
-- Session persistence via resurrect/continuum plugins
+- Vi-style copy mode with tmux-native OSC52 clipboard (works over SSH)
+- Cross-platform: OSC52 (no pbcopy/xclip dependency)
 
 **Fzf** (in zsh.nix):
 

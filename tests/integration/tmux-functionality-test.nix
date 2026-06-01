@@ -76,6 +76,10 @@ in
     mkConfigTest "tmux-vim-pane-navigation" (hasConfigString "bind h select-pane -L")
       "tmux should use vim-style pane navigation (hjkl)";
 
+  tmux-set-titles =
+    mkConfigTest "tmux-set-titles" (hasConfigString "set -g set-titles on")
+      "tmux should propagate session/window to the terminal title (Ghostty tab identification)";
+
   # ============================================================================
   # OSC52 clipboard integration (cross-platform, works over SSH)
   # ============================================================================

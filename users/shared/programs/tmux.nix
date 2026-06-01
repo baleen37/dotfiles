@@ -60,7 +60,7 @@ in
         # ============================================================================
         # default-terminal is emitted by programs.tmux.terminal = "tmux-256color"
         set -g default-shell ${pkgs.zsh}/bin/zsh
-        set -g default-command "${pkgs.zsh}/bin/zsh -l"
+        # default-command left unset: tmux runs default-shell as a login shell
         set -g focus-events on
 
         # Terminal and display settings
@@ -79,6 +79,12 @@ in
         set -g remain-on-exit off
         set -g allow-rename off
         set -g destroy-unattached off
+
+        # Propagate session/window to the Ghostty tab/window title so multiple
+        # tabs are distinguishable. Complements allow-rename off: apps can't
+        # hijack the name via OSC, but tmux itself sets the outer title.
+        set -g set-titles on
+        set -g set-titles-string "#S  #I:#W"
 
         # ============================================================================
         # Prefix key bindings (Ctrl-a style)
