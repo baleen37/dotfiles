@@ -17,6 +17,7 @@
     ./programs/codex.nix
     ./programs/opencode.nix
     ./programs/ghostty.nix
+    ./programs/ssh.nix
     ./programs/hammerspoon.nix
     ./programs/karabiner.nix
 
@@ -48,6 +49,7 @@
     codex.enable = true;
     opencode.enable = true;
     ghostty.enable = true;
+    ssh.enable = true;
   };
 
   # All package categories are enabled for this configuration
