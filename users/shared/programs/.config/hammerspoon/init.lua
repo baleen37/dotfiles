@@ -1,7 +1,6 @@
 require('hs.ipc')
 hs.allowAppleScript(true)
 hs.loadSpoon('Hyper')
-hs.loadSpoon('HyperModal')
 hs.loadSpoon('Pomodoro')
 
 
@@ -9,21 +8,13 @@ Hyper = spoon.Hyper
 
 -- F19 is emitted by Karabiner when right_command is held (see karabiner.nix).
 -- Karabiner intercepts app-launcher and local-binding keys directly for Secure
--- Input immunity; Hammerspoon only handles modal/logic-heavy bindings below.
+-- Input immunity; Hammerspoon only handles logic-heavy bindings below.
 Hyper:bindHotKeys({hyperKey = {{}, 'F19'}})
 
 -- provide the ability to override config per computer
 if (hs.fs.displayName('./localConfig.lua')) then
     require('localConfig')
 end
-
-HyperModal = spoon.HyperModal
-Hyper:bind({}, 'm', function() HyperModal:toggle() end)
-
--- HyperModal with basic bindings
-HyperModal
- :start()
- :bind('', ";", function() hs.urlevent.openURL("raycast://extensions/raycast/system/toggle-system-appearance") end)
 
 -- Initialize Pomodoro Spoon
 Pomodoro = spoon.Pomodoro
