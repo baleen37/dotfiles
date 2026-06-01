@@ -53,6 +53,10 @@ let
       bundle = "md.obsidian";
       proc = "Obsidian";
     };
+    s = {
+      bundle = "com.tinyspeck.slackmacgap";
+      proc = "Slack";
+    };
     t = {
       bundle = "com.culturedcode.ThingsMac";
       proc = "Things3";
