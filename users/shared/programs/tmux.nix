@@ -6,7 +6,8 @@
 #   - Ctrl-a prefix (screen-style)
 #   - Intuitive split bindings: | (vertical), - (horizontal)
 #   - Vim-style pane navigation: h/j/k/l
-#   - Vi-style copy mode with OSC52 clipboard support
+#   - Vi-style copy mode with tmux-native OSC52 clipboard support
+#   - Truecolor (RGB) + undercurl inherited from xterm-ghostty terminfo
 #   - Cross-platform: Works on macOS, Linux, and remote SSH
 #   - Seamless Vim integration: vim-tmux-navigator plugin
 #
@@ -47,7 +48,7 @@ in
 
       plugins = [ ];
 
-      terminal = "screen-256color";
+      terminal = "tmux-256color";
       prefix = "C-a";
       escapeTime = 0;
       historyLimit = 50000;
@@ -57,13 +58,12 @@ in
         # ============================================================================
         # Base configuration
         # ============================================================================
-        set -g default-terminal "tmux-256color"
+        # default-terminal is emitted by programs.tmux.terminal = "tmux-256color"
         set -g default-shell ${pkgs.zsh}/bin/zsh
         set -g default-command "${pkgs.zsh}/bin/zsh -l"
         set -g focus-events on
 
         # Terminal and display settings
-        set-environment -g TERM screen-256color
         set -g mouse on
         bind-key -n MouseDown2Pane paste-buffer
         set -g base-index 1
@@ -73,7 +73,7 @@ in
         # Performance optimizations
         set -g display-time 2000
         set -g repeat-time 500
-        set -g status-interval 1
+        set -g status-interval 5
 
         # Session settings
         set -g remain-on-exit off
@@ -134,23 +134,34 @@ in
         bind-key -T copy-mode-vi r send-keys -X rectangle-toggle
         bind-key -T copy-mode-vi Escape send-keys -X cancel
 
-        # OSC52 clipboard integration for remote SSH support
-        set -s set-clipboard external
+        # OSC52 clipboard integration. The xterm-ghostty terminfo carries the Ms
+        # capability, so tmux emits OSC52 itself on copy — no manual printf hack
+        # needed. 'on' (vs 'external') also lets apps inside tmux (Neovim/agent
+        # OSC52 yank) populate the clipboard. allow-passthrough keeps DCS-wrapped
+        # OSC52 from coding agents (Claude Code, etc.) working through tmux.
+        set -s set-clipboard on
         set -g allow-passthrough on
 
-        # OSC52 copy bindings (works over SSH)
-        bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel "sh -c 'b64=\$(dd bs=1 count=100000 status=none | base64 | tr -d \"\\n\"); printf \"\\033]52;c;%s\\a\" \"\$b64\" > \"\$1\"' sh #{client_tty}"
-        bind -T copy-mode-vi Enter send-keys -X copy-pipe-and-cancel "sh -c 'b64=\$(dd bs=1 count=100000 status=none | base64 | tr -d \"\\n\"); printf \"\\033]52;c;%s\\a\" \"\$b64\" > \"\$1\"' sh #{client_tty}"
-        bind -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe-and-cancel "sh -c 'b64=\$(dd bs=1 count=100000 status=none | base64 | tr -d \"\\n\"); printf \"\\033]52;c;%s\\a\" \"\$b64\" > \"\$1\"' sh #{client_tty}"
+        # Copy to system clipboard via tmux-native OSC52 (works over SSH).
+        bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel
+        bind -T copy-mode-vi Enter send-keys -X copy-pipe-and-cancel
+        bind -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe-and-cancel
 
         # ============================================================================
         # Terminal capabilities
         # ============================================================================
-        set -ga terminal-overrides ",*256col*:Tc,*:U8=0"
-        set-window-option -g xterm-keys on
+        # Truecolor (RGB). terminal-features matches the OUTER terminal's TERM,
+        # which is xterm-ghostty under Ghostty. The xterm-ghostty terminfo also
+        # already advertises Smulx/Setulc (undercurl) and Ss/Se (cursor shape),
+        # so no manual terminal-overrides are needed for those.
+        set -as terminal-features ',xterm-ghostty:RGB'
+
+        # Extended keys (CSI u). Ghostty speaks the CSI-u encoding; tmux 3.6
+        # defaults extended-keys-format to xterm form, so set csi-u explicitly
+        # for modifier combos (e.g. Shift+Enter) to reach apps inside tmux.
         set-option -g extended-keys on
-        set -as terminal-features 'xterm*:extkeys'
-        set -as terminal-overrides ',*:keys=\E[u'
+        set-option -s extended-keys-format csi-u
+        set -as terminal-features ',xterm-ghostty:extkeys'
 
         # ============================================================================
         # Status bar
@@ -161,7 +172,7 @@ in
         set -g status-left-length 20
         set -g status-right-length 50
         set -g status-left '#[fg=colour233,bg=colour241,bold] #S '
-        set -g status-right '#[fg=colour233,bg=colour241,bold] %d/%m #[fg=colour233,bg=colour245,bold] %H:%M:%S '
+        set -g status-right '#[fg=colour233,bg=colour241,bold] %d/%m #[fg=colour233,bg=colour245,bold] %H:%M '
 
         # Window status display
         setw -g window-status-current-format ' #I#[fg=colour250]:#[fg=colour255]#W#[fg=colour50]#F '
