@@ -15,7 +15,7 @@ window-padding-y = 10
 
 # Shell Integration
 shell-integration = true
-shell-integration-features = cursor,sudo,title
+shell-integration-features = no-cursor,sudo,title
 
 # Option key as Alt for terminal keybindings (opt+t for Claude Code think toggle)
 macos-option-as-alt=left
