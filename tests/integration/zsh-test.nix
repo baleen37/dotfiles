@@ -216,8 +216,8 @@ in
     (helpers.assertTest "function-shell-exists" (initContentHas "shell()")
       "shell() function for nix-shell should exist"
     )
-    (helpers.assertTest "function-ssh-wrapper" (initContentHas "ssh()")
-      "ssh() wrapper function should exist"
+    (helpers.assertTest "alias-assh-exists" (initContentHas "alias assh=")
+      "assh alias for autossh should exist (plain ssh is delegated to Ghostty's wrapper)"
     )
 
     # Git Worktree function (gw)
@@ -281,10 +281,6 @@ in
 
     (helpers.assertTest "ssh-wrapper-first-poll" (initContentHas "AUTOSSH_FIRST_POLL")
       "ssh wrapper should set AUTOSSH_FIRST_POLL for autossh"
-    )
-
-    (helpers.assertTest "ssh-wrapper-tcp-keepalive" (initContentHas "TCPKeepAlive")
-      "ssh wrapper should enable TCP keepalive"
     )
 
     # SSH agent setup for GUI applications (macOS)

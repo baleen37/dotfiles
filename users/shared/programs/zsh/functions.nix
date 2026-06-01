@@ -2,8 +2,14 @@
 #
 # Provides:
 # - shell(): quick nix-shell access
-# - ssh(): enhanced SSH wrapper with autossh fallback
+# - cd(): multi-dot cd shortcut
+# - assh: autossh alias for long-lived connections
 # - setup_ssh_agent_for_gui(): SSH agent for GUI apps
+#
+# Note: ssh() is intentionally NOT overridden. Ghostty's shell-integration
+# installs its own ssh() to upload xterm-ghostty terminfo to remote hosts;
+# wrapping ssh here would shadow that. Keepalive options live in ~/.ssh/config
+# (programs.ssh module).
 
 ''
   # nix shortcuts
@@ -28,24 +34,10 @@
     fi
   }
 
-  # Enhanced SSH wrapper with intelligent reconnection
-  ssh() {
-    # Optimized connection wrapper with autossh fallback
-    if command -v autossh >/dev/null 2>&1; then
-      # Use autossh with optimized settings for reliability
-      AUTOSSH_POLL=60 AUTOSSH_FIRST_POLL=30 autossh -M 0 \
-        -o "ServerAliveInterval=30" \
-        -o "ServerAliveCountMax=3" \
-        "$@"
-    else
-      # Enhanced regular SSH with connection optimization
-      command ssh \
-        -o "ServerAliveInterval=60" \
-        -o "ServerAliveCountMax=3" \
-        -o "TCPKeepAlive=yes" \
-        "$@"
-    fi
-  }
+  # autossh for long-lived connections that need auto-reconnect.
+  # Plain `ssh` goes through Ghostty's shell-integration wrapper which
+  # uploads ghostty terminfo to the remote — don't shadow it.
+  alias assh='AUTOSSH_POLL=60 AUTOSSH_FIRST_POLL=30 autossh -M 0 -o ServerAliveInterval=30 -o ServerAliveCountMax=3'
 
   # SSH agent setup for GUI applications
   # Ensures GUI apps can access SSH agent for Git operations
