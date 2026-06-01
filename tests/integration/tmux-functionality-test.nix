@@ -80,8 +80,8 @@ in
   # OSC52 clipboard integration (cross-platform, works over SSH)
   # ============================================================================
   tmux-osc52-clipboard =
-    mkConfigTest "tmux-osc52-clipboard" (hasConfigString "set -s set-clipboard external")
-      "tmux should use OSC52 for cross-platform clipboard";
+    mkConfigTest "tmux-osc52-clipboard" (hasConfigString "set -s set-clipboard on")
+      "tmux should use OSC52 for cross-platform clipboard (on: also accepts inner-app yanks)";
 
   tmux-osc52-copy-bindings =
     mkConfigTest "tmux-osc52-copy-bindings"
