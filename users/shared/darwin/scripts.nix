@@ -3,10 +3,28 @@
 # System activation scripts for:
 # - Keyboard input source configuration (cmd+shift+space for Korean/English)
 # - Automated cleanup of unused default macOS applications
+# - Remote Login (SSH) enablement
 
 _:
 
 {
+  # Remote Login (SSH) Activation Script
+  # Enables macOS Remote Login so the machine accepts incoming SSH connections.
+  # nix-darwin has no dedicated option for this, so we toggle it via systemsetup.
+  # Idempotent: only flips the setting when it is currently off.
+  system.activationScripts.enableRemoteLogin = {
+    text = ''
+      echo "Enabling Remote Login (SSH)..." >&2
+
+      if /usr/sbin/systemsetup -getremotelogin 2>/dev/null | grep -q "On"; then
+        echo "  ✓  Remote Login already enabled" >&2
+      else
+        /usr/sbin/systemsetup -setremotelogin -f on >&2
+        echo "  Remote Login enabled" >&2
+      fi
+    '';
+  };
+
   # Keyboard Input Source Configuration Script
   # Configures cmd+shift+space for Korean/English input source switching
   system.activationScripts.configureKeyboard = {

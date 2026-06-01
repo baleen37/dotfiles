@@ -11,7 +11,7 @@
   # Optimized 1Password SSH agent detection with platform awareness
   _setup_1password_agent() {
     # Early exit if already configured
-    [[ -n "$${SSH_AUTH_SOCK:-}" ]] && [[ -S "$SSH_AUTH_SOCK" ]] && return 0
+    [[ -n "''${SSH_AUTH_SOCK:-}" ]] && [[ -S "$SSH_AUTH_SOCK" ]] && return 0
 
     local socket_paths=()
 
@@ -31,7 +31,7 @@
     )
 
     # Find first available socket
-    for sock in "$${socket_paths[@]}"; do
+    for sock in "''${socket_paths[@]}"; do
       if [[ -S "$sock" ]]; then
         export SSH_AUTH_SOCK="$sock"
         return 0
