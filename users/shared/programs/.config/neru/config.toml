@@ -9,7 +9,7 @@
 [general]
 excluded_apps = []                           # Bundle IDs to ignore (e.g. "com.apple.Terminal")
 kb_layout_to_use = ""                        # Force a keyboard layout InputSourceID (empty = auto)
-passthrough_unbounded_keys = false           # Let unbound Cmd/Ctrl/Alt shortcuts reach macOS
+passthrough_unbounded_keys = true            # Let unbound Cmd/Ctrl/Alt shortcuts reach macOS
 should_exit_after_passthrough = false        # Exit the current mode after a shortcut is passed through
 passthrough_unbounded_keys_blacklist = []    # Shortcuts to still consume when passthrough is on
 hide_overlay_in_screen_share = false         # Hide overlay from screen sharing apps
@@ -100,7 +100,7 @@ visible_check_enabled = false
 "Right" = "action move_mouse_relative --dx=10 --dy=0"
 
 [hints.additional_ax_support]
-enable = false                              # Enable enhanced AX for Electron/Chromium/Firefox/WebKit apps
+enable = true                               # Enable enhanced AX for Electron/Chromium/Firefox/WebKit apps
 additional_electron_bundles = []
 additional_chromium_bundles = []
 additional_firefox_bundles = []
@@ -270,6 +270,8 @@ invert_scroll = false                       # Invert scroll direction (for tools
 "l" = "action scroll_right"
 "gg" = "action go_top"
 "Shift+G" = "action go_bottom"
+"Ctrl+U" = "action page_up"
+"Ctrl+D" = "action page_down"
 "u" = "action page_up"
 "PageUp" = "action page_up"
 "d" = "action page_down"
@@ -293,7 +295,7 @@ enabled = true
 text = "Scroll"
 
 [mode_indicator.hints]
-enabled = false
+enabled = true
 text = "Hints"
 
 [mode_indicator.grid]
