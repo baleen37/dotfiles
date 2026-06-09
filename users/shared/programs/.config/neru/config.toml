@@ -35,11 +35,9 @@ text = "#E8EEFF"
 # Hotkeys
 # See https://github.com/y3owk1n/neru/blob/main/docs/CONFIGURATION.md#hotkeys
 # See https://github.com/y3owk1n/neru/blob/main/docs/CLI.md
+# Modes are triggered via CLI from Hammerspoon's Neru leader (Hyper+, then
+# f/s/g/c) — see hammerspoon/init.lua. No global hotkeys needed here.
 [hotkeys]
-"Cmd+Ctrl+Alt+Shift+F" = "hints"   # Hyper+F (right_command+F via Karabiner mega-chord)
-"Primary+Shift+G" = "grid"
-"Primary+Shift+C" = "recursive_grid"
-"Primary+Shift+S" = "scroll"
 
 # Hint mode
 # See https://github.com/y3owk1n/neru/blob/main/docs/CONFIGURATION.md#hints
@@ -295,7 +293,7 @@ enabled = true
 text = "Scroll"
 
 [mode_indicator.hints]
-enabled = true
+enabled = false
 text = "Hints"
 
 [mode_indicator.grid]
@@ -303,7 +301,7 @@ enabled = false
 text = "Grid"
 
 [mode_indicator.recursive_grid]
-enabled = false
+enabled = true
 text = "Recursive Grid"
 
 [mode_indicator.ui]
