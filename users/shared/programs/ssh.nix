@@ -20,11 +20,22 @@ in
     programs.ssh = {
       enable = true;
       includes = [ "~/.orbstack/ssh/config" ];
-      matchBlocks."*" = {
-        serverAliveInterval = 60;
-        serverAliveCountMax = 3;
-        extraOptions = {
-          TCPKeepAlive = "yes";
+      matchBlocks = {
+        "*" = {
+          serverAliveInterval = 60;
+          serverAliveCountMax = 3;
+          extraOptions = {
+            TCPKeepAlive = "yes";
+          };
+        };
+        "github.com" = {
+          hostname = "github.com";
+          user = "git";
+          identityFile = "~/.ssh/id_ed25519_github";
+          identitiesOnly = true;
+          extraOptions = {
+            StrictHostKeyChecking = "no";
+          };
         };
       };
     };
