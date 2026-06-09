@@ -36,22 +36,6 @@ Pomodoro:init({
 -- Bind Hyper+P to toggle Pomodoro session
 Hyper:bind({}, 'p', function() Pomodoro:toggleSession() end)
 
--- Neru leader: Hyper+, enters a sub-modal that waits for one key to pick a
--- Neru navigation mode. Triggered via CLI so config.toml needs no [hotkeys].
---   Hyper+, then  f → hints   s → scroll   g → grid   c → recursive grid
--- Esc (or any other key) cancels.
-local neru = "/opt/homebrew/bin/neru"
-local neruModal = hs.hotkey.modal.new()
-local neruModes = { f = "hints", s = "scroll", g = "grid", c = "recursive_grid" }
-for key, mode in pairs(neruModes) do
-  neruModal:bind({}, key, function()
-    neruModal:exit()
-    hs.task.new(neru, nil, { mode }):start()
-  end)
-end
-neruModal:bind({}, 'escape', function() neruModal:exit() end)
-Hyper:bind({}, ',', function() neruModal:enter() end)
-
 -- Warn when Secure Input gets enabled (1Password is the usual culprit).
 -- Why: Secure Input blocks Hammerspoon/Karabiner from receiving key events,
 -- silently breaking the Hyper key. Surface it instead of debugging blind.
