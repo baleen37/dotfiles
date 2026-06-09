@@ -20,6 +20,7 @@
     ./programs/ssh.nix
     ./programs/hammerspoon.nix
     ./programs/karabiner.nix
+    ./programs/neru.nix
 
     # Package categories — modules.packages.<name>.enable
     ./packages/core.nix
