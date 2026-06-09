@@ -33,10 +33,6 @@ let
       bundle = "com.apple.mail";
       proc = "Mail";
     };
-    f = {
-      bundle = "com.apple.finder";
-      proc = "Finder";
-    };
     h = {
       bundle = "com.kapeli.dashdoc";
       proc = "Dash";
@@ -70,6 +66,7 @@ let
     comma = "com.culturedcode.ThingsMac";
     period = "com.culturedcode.ThingsMac";
     b = "com.surteesstudios.Bartender";
+    f = "com.y3owk1n.neru"; # Hyper+F → mega-chord; Neru activation key in config.toml
     l = "com.dexterleng.Homerow";
     u = "com.flexibits.cardhop.mac";
     return_or_enter = "com.superultra.Homerow";
