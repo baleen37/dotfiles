@@ -62,14 +62,12 @@ let
   # key_code → bundle_identifier. Forward as mega-chord (cmd+ctrl+opt+shift+key)
   # so the app's own global shortcut handler triggers. Replaces Hammerspoon's
   # bindPassThrough — moved here for Secure Input immunity.
-  # Note: comma is intentionally NOT bound here. It passes through to
-  # Hammerspoon (F19+comma) as the Neru leader — see hammerspoon/init.lua.
+  # Hyper+L forwards the mega-chord to Neru, which maps it to hints in
+  # config.toml [hotkeys]; the mode then stays active hands-free until Escape.
   hyperLocal = {
     b = "com.surteesstudios.Bartender";
-    l = "com.dexterleng.Homerow";
+    l = "com.y3owk1n.neru"; # Neru hints
     u = "com.flexibits.cardhop.mac";
-    return_or_enter = "com.superultra.Homerow";
-    tab = "com.superultra.Homerow";
   };
 
   hyperVar = "hyper";

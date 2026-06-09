@@ -35,9 +35,10 @@ text = "#E8EEFF"
 # Hotkeys
 # See https://github.com/y3owk1n/neru/blob/main/docs/CONFIGURATION.md#hotkeys
 # See https://github.com/y3owk1n/neru/blob/main/docs/CLI.md
-# Modes are triggered via CLI from Hammerspoon's Neru leader (Hyper+, then
-# f/s/g/c) — see hammerspoon/init.lua. No global hotkeys needed here.
+# Hyper+L (right_command+L) → Karabiner forwards the mega-chord below; Neru
+# opens hints and stays active hands-free until Escape. See karabiner.nix.
 [hotkeys]
+"Cmd+Ctrl+Alt+Shift+L" = "hints"
 
 # Hint mode
 # See https://github.com/y3owk1n/neru/blob/main/docs/CONFIGURATION.md#hints
