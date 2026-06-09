@@ -293,11 +293,11 @@ enabled = true
 text = "Scroll"
 
 [mode_indicator.hints]
-enabled = false
+enabled = true
 text = "Hints"
 
 [mode_indicator.grid]
-enabled = false
+enabled = true
 text = "Grid"
 
 [mode_indicator.recursive_grid]
