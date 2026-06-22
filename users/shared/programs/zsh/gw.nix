@@ -68,17 +68,13 @@
     }
 
     # Helper: Sanitize branch name for directory (replace / with -)
-    # Prefix with zero-padded number = (highest existing number in .worktrees) + 1.
-    # Counting worktrees would collide after a middle entry is deleted, so we
-    # scan the actual directory names for the max numeric prefix instead.
+    # Prefix with today's YYMMDD date for readable, chronological worktree names.
     # Always returns an absolute path based on the main worktree root so gw works
     # correctly from inside a worktree (flat, not nested).
     local _sanitize_branch() {
       local repo_root=$(git worktree list | head -1 | awk '{print $1}')
-      local max_num=$(ls "''${repo_root}/.worktrees" 2>/dev/null \
-        | grep -oE '^[0-9]+' | sort -n | tail -1)
-      local next_num=$(printf "%05d" $(( ''${max_num:-0} + 1 )))
-      echo "''${repo_root}/.worktrees/''${next_num}-''${1//\//-}"
+      local date_prefix=$(date +%y%m%d)
+      echo "''${repo_root}/.worktrees/''${date_prefix}-''${1//\//-}"
     }
 
     # Helper: Find base branch (main or master)
