@@ -42,6 +42,7 @@ runs:
           ~/.local/state/nix
         key: nix-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/flake.lock') }}-v4
         restore-keys: |
+          nix-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/flake.lock') }}-v4-
           nix-${{ runner.os }}-${{ runner.arch }}-
       continue-on-error: true
 
@@ -54,6 +55,7 @@ runs:
           ~/.local/state/nix
         key: nix-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/flake.lock') }}-v4
         restore-keys: |
+          nix-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/flake.lock') }}-v4-
           nix-${{ runner.os }}-${{ runner.arch }}-
       continue-on-error: true
 
@@ -64,13 +66,3 @@ runs:
         echo "  - Cache mode: ${{ inputs.cache-mode }}"
         echo "  - Cache key: nix-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/flake.lock') }}-v4"
         echo "  - Flake.lock hash: ${{ hashFiles('**/flake.lock') }}"
-
-    - name: Save Nix cache (full mode only)
-      if: inputs.cache-mode == 'full' && always()
-      uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
-      continue-on-error: true
-      with:
-        path: |
-          ~/.cache/nix
-          ~/.local/state/nix
-        key: nix-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/flake.lock') }}-v4
