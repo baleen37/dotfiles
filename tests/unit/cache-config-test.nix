@@ -71,19 +71,16 @@ in
     helpers.assertTest "setup-nix-has-all-keys" (containsAll setupNixYml keys)
       ".github/actions/setup-nix/action.yml extra-conf must contain every trusted-public-key from lib/cache-config.nix";
 
-  setupNixDoesNotSaveBeforeWorkload =
-    helpers.assertTest "setup-nix-does-not-save-before-workload" (!(lib.hasInfix "actions/cache/save" setupNixYml))
-      ".github/actions/setup-nix/action.yml must not save cache before CI workload runs";
+  setupNixDoesNotSaveBeforeWorkload = helpers.assertTest "setup-nix-does-not-save-before-workload" (
+    !(lib.hasInfix "actions/cache/save" setupNixYml)
+  ) ".github/actions/setup-nix/action.yml must not save cache before CI workload runs";
 
-  ciSavesCacheAfterBuild =
-    helpers.assertTest "ci-saves-cache-after-build"
-      (
-        buildClosureLine != -1
-        && saveCacheLine > buildClosureLine
-        && lib.hasInfix "actions/cache/save" ciYml
-        && lib.hasInfix "if: always()" ciYml
-      )
-      ".github/workflows/ci.yml must save Nix cache after the build/test workload";
+  ciSavesCacheAfterBuild = helpers.assertTest "ci-saves-cache-after-build" (
+    buildClosureLine != -1
+    && saveCacheLine > buildClosureLine
+    && lib.hasInfix "actions/cache/save" ciYml
+    && lib.hasInfix "if: always()" ciYml
+  ) ".github/workflows/ci.yml must save Nix cache after the build/test workload";
 
   allUrlsAreHttps =
     helpers.assertTest "substituter-urls-are-https" (lib.all urlOk subs)
