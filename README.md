@@ -64,6 +64,12 @@ trusted-users = root @admin baleen
 # Restart terminal to apply changes
 ```
 
+### Nix Cache Behavior
+
+Local builds are accelerated by binary substituters, especially `https://baleen-nix.cachix.org`, `https://nix-community.cachix.org`, and `https://cache.nixos.org/`. When CI pushes a built closure to Cachix on `main` or tags, local `nix build` and `make switch` can download matching store paths instead of rebuilding them.
+
+GitHub `actions/cache` is CI-only. It can speed repeated workflow runs on GitHub-hosted runners, but it does not make local macOS builds faster. Do not store credentials in cached paths.
+
 Done! You now have 50+ development tools and complete AI assistance ready.
 
 ### Claude Code Setup (Optional but Recommended)
