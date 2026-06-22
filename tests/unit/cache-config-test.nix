@@ -18,6 +18,20 @@ let
 
   containsAll = haystack: needles: lib.all (n: lib.hasInfix n haystack) needles;
 
+  findLineIndex =
+    pred: lines:
+    let
+      go =
+        index: remaining:
+        if remaining == [ ] then
+          -1
+        else if pred (builtins.head remaining) then
+          index
+        else
+          go (index + 1) (builtins.tail remaining);
+    in
+    go 0 lines;
+
   urlOk = url: lib.hasPrefix "https://" url;
 
   # Cachix public key format: <name>-<digit>+:<43 base64 chars>=
@@ -28,6 +42,9 @@ let
 
   subs = cacheConfig.substituters;
   keys = cacheConfig.trusted-public-keys;
+  ciLines = lib.splitString "\n" ciYml;
+  buildClosureLine = findLineIndex (line: lib.hasInfix "name: Build closure" line) ciLines;
+  saveCacheLine = findLineIndex (line: lib.hasInfix "name: Save Nix cache" line) ciLines;
 in
 {
   flakeNixHasAllSubstituters =
@@ -53,6 +70,20 @@ in
   setupNixHasAllKeys =
     helpers.assertTest "setup-nix-has-all-keys" (containsAll setupNixYml keys)
       ".github/actions/setup-nix/action.yml extra-conf must contain every trusted-public-key from lib/cache-config.nix";
+
+  setupNixDoesNotSaveBeforeWorkload =
+    helpers.assertTest "setup-nix-does-not-save-before-workload" (!(lib.hasInfix "actions/cache/save" setupNixYml))
+      ".github/actions/setup-nix/action.yml must not save cache before CI workload runs";
+
+  ciSavesCacheAfterBuild =
+    helpers.assertTest "ci-saves-cache-after-build"
+      (
+        buildClosureLine != -1
+        && saveCacheLine > buildClosureLine
+        && lib.hasInfix "actions/cache/save" ciYml
+        && lib.hasInfix "if: always()" ciYml
+      )
+      ".github/workflows/ci.yml must save Nix cache after the build/test workload";
 
   allUrlsAreHttps =
     helpers.assertTest "substituter-urls-are-https" (lib.all urlOk subs)
