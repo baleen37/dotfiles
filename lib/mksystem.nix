@@ -74,6 +74,11 @@ systemFunc {
             trusted-substituters = cacheSettings.substituters;
           }
         );
+        nix.gc = lib.mkIf (!darwin) {
+          automatic = true;
+          dates = "daily";
+          options = "--delete-older-than 7d";
+        };
 
         # Let Determinate manage Nix on Darwin systems
         nix.enable = lib.mkIf darwin false;
@@ -83,7 +88,12 @@ systemFunc {
   ++ lib.optionals darwin [
     # Determinate Nix integration (Darwin systems only)
     inputs.determinate.darwinModules.default
-    { determinateNix.customSettings = cacheSettings; }
+    {
+      determinateNix = {
+        customSettings = cacheSettings;
+        determinateNixd.garbageCollector.strategy = "automatic";
+      };
+    }
   ]
   ++ [
     # Home Manager integration
