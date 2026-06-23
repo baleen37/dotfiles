@@ -19,23 +19,28 @@ in
   config = lib.mkIf cfg.enable {
     programs.ssh = {
       enable = true;
+      enableDefaultConfig = false;
       includes = [ "~/.orbstack/ssh/config" ];
-      matchBlocks = {
+      settings = {
         "*" = {
-          serverAliveInterval = 60;
-          serverAliveCountMax = 3;
-          extraOptions = {
-            TCPKeepAlive = "yes";
-          };
+          AddKeysToAgent = "no";
+          Compression = false;
+          ControlMaster = "no";
+          ControlPath = "~/.ssh/master-%r@%n:%p";
+          ControlPersist = "no";
+          ForwardAgent = false;
+          HashKnownHosts = false;
+          ServerAliveCountMax = 3;
+          ServerAliveInterval = 60;
+          TCPKeepAlive = "yes";
+          UserKnownHostsFile = "~/.ssh/known_hosts";
         };
         "github.com" = {
-          hostname = "github.com";
-          user = "git";
-          identityFile = "~/.ssh/id_ed25519_github";
-          identitiesOnly = true;
-          extraOptions = {
-            StrictHostKeyChecking = "no";
-          };
+          HostName = "github.com";
+          IdentitiesOnly = true;
+          IdentityFile = "~/.ssh/id_ed25519_github";
+          StrictHostKeyChecking = "no";
+          User = "git";
         };
       };
     };

@@ -1,7 +1,6 @@
 # tests/unit/gw-numbering-test.nix
-# Verify gw _sanitize_branch numbers worktrees by scanning the max existing
-# numeric prefix in .worktrees, not by counting `git worktree list` entries.
-# Counting collides after a middle worktree is deleted.
+# Verify gw _sanitize_branch prefixes worktree directories with today's YYMMDD
+# date instead of a monotonically increasing numeric counter.
 {
   inputs,
   system,
@@ -17,18 +16,18 @@ let
 in
 {
   platforms = [ "any" ];
-  value = helpers.testSuite "gw-numbering" [
-    (helpers.assertTest "gw-scans-worktrees-dir-for-max-num"
-      (lib.hasInfix ''ls "''${repo_root}/.worktrees"'' gwScript)
-      "gw _sanitize_branch should list .worktrees to find the max number"
+  value = helpers.testSuite "gw-date-prefix" [
+    (helpers.assertTest "gw-uses-yymmdd-date-prefix" (lib.hasInfix "date +%y%m%d" gwScript)
+      "gw _sanitize_branch should prefix worktree directories with today's YYMMDD date"
     )
 
-    (helpers.assertTest "gw-extracts-numeric-prefix" (lib.hasInfix "grep -oE '^[0-9]+'" gwScript)
-      "gw _sanitize_branch should extract the leading numeric prefix from directory names"
+    (helpers.assertTest "gw-builds-date-title-worktree-path"
+      (lib.hasInfix ''"''${repo_root}/.worktrees/''${date_prefix}-''${1//\//-}"'' gwScript)
+      "gw _sanitize_branch should build .worktrees/YYMMDD-title paths"
     )
 
-    (helpers.assertTest "gw-does-not-count-worktree-list" (
-      !(lib.hasInfix "git worktree list | tail -n +2 | wc -l" gwScript)
-    ) "gw _sanitize_branch should not number by `git worktree list` count (collides after deletion)")
+    (helpers.assertTest "gw-does-not-scan-numeric-prefixes" (
+      !(lib.hasInfix "grep -oE '^[0-9]+'" gwScript)
+    ) "gw _sanitize_branch should not scan existing numeric prefixes")
   ];
 }
