@@ -398,6 +398,41 @@ in
       && builtins.hasAttr "trusted-users" customSettings
     ) "determinateNix.customSettings should be configured with cache settings";
 
+    determinate-nix-gc-automatic = helpers.assertTest "mksystem-determinate-nix-gc-automatic" (
+      let
+        darwinSystem =
+          if hasDarwinInputs then
+            mkSystem "darwin-gc-test" {
+              system = "aarch64-darwin";
+              user = "testuser";
+              darwin = true;
+              wsl = false;
+            }
+          else
+            null;
+        result = builtins.tryEval darwinSystem.config.determinateNix.determinateNixd.garbageCollector.strategy;
+      in
+      hasDarwinInputs && result.success && result.value == "automatic"
+    ) "Determinate Nixd should manage garbage collection automatically on Darwin";
+
+    nixos-gc-short-retention = helpers.assertTest "mksystem-nixos-gc-short-retention" (
+      let
+        nixosSystem = mkSystem "vm-x86_64-utm" {
+          system = "x86_64-linux";
+          user = "testuser";
+          darwin = false;
+          wsl = false;
+        };
+        gcConfig = nixosSystem.config.nix.gc;
+        result = builtins.tryEval (
+          gcConfig.automatic
+          && builtins.elem "daily" gcConfig.dates
+          && gcConfig.options == "--delete-older-than 7d"
+        );
+      in
+      result.success && result.value
+    ) "NixOS garbage collection should run daily with 7 day retention";
+
     # Test 26: Home Manager useGlobalPkgs is set to true
     home-manager-use-global-pkgs = helpers.assertTest "mksystem-home-manager-use-global-pkgs" (
       let
