@@ -24,13 +24,27 @@
       "Task",
       "mcp__context7__*"
     ],
-    "deny": []
+    "deny": ["Workflow"],
+    "defaultMode": "auto",
+    "additionalDirectories": ["~/.claude/handoff/"]
   },
-  "model": "sonnet",
   "enableAllProjectMcpServers": true,
+  "hooks": {
+    "WorktreeCreate": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/setup-worktree.sh"
+          }
+        ]
+      }
+    ]
+  },
   "statusLine": {
     "type": "command",
-    "command": "~/.claude/statusline.sh"
+    "command": "bash ~/.claude/statusline.sh"
   },
   "enabledPlugins": {
     "superpowers@superpowers-marketplace": true,
@@ -39,18 +53,47 @@
     "clangd-lsp@claude-plugins-official": false,
     "lua-lsp@claude-plugins-official": true,
     "pyright-lsp@claude-plugins-official": true,
-    "playwright@claude-plugins-official": true,
     "atlassian@claude-plugins-official": true,
-    "everything-agent@everything-agent": true,
-    "memmem@baleen-marketplace": true,
     "context7@claude-plugins-official": true,
-    "slack@claude-plugins-official": true
+    "slack@claude-plugins-official": true,
+    "ks-amplitude@search-claude-code-plugins": true,
+    "ks-databricks@search-claude-code-plugins": true,
+    "ks-git-guard@search-claude-code-plugins": true,
+    "ks-grafana@search-claude-code-plugins": true,
+    "ks-onboarding@search-claude-code-plugins": true,
+    "ks-opensearch@search-claude-code-plugins": true,
+    "gopls-lsp@claude-plugins-official": true,
+    "rust-analyzer-lsp@claude-plugins-official": true,
+    "jdtls-lsp@claude-plugins-official": true,
+    "php-lsp@claude-plugins-official": true,
+    "swift-lsp@claude-plugins-official": true,
+    "kotlin-lsp@claude-plugins-official": true,
+    "ruby-lsp@claude-plugins-official": true,
+    "elixir-ls-lsp@claude-plugins-official": true,
+    "superpowers@claude-plugins-official": true,
+    "ks-langfuse@search-claude-code-plugins": true,
+    "ks-internal@search-claude-code-plugins": true,
+    "notion@claude-plugins-official": true,
+    "autoresearch@baleen-marketplace": true,
+    "jira@baleen-marketplace": true,
+    "me@baleen-marketplace": true,
+    "memmem@baleen-marketplace": true,
+    "private-journal-mcp@baleen-marketplace": true
+  },
+  "extraKnownMarketplaces": {
+    "search-claude-code-plugins": {
+      "source": {
+        "source": "github",
+        "repo": "croquiscom/search-claude-code-plugins"
+      }
+    }
   },
   "alwaysThinkingEnabled": false,
+  "tui": "default",
   "skipDangerousModePermissionPrompt": true,
+  "skipAutoPermissionPrompt": true,
   "installMethod": "native",
   "rejectedMcpServers": [],
-  "hooks": {},
   "feedbackSurveyState": {
     "lastShownTime": 1755225425616
   }

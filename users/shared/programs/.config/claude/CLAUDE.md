@@ -71,11 +71,18 @@ For multi-step tasks, state a brief plan:
 
 Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
 
-## Learning and memory management
+## Learning and Memory Management
 
-- Use MEMORY.md to capture technical insights, failed approaches, and user preferences
-- Before starting complex tasks, read relevant memory files to build on previous experience
-- Update or remove memories that turn out to be wrong or outdated
+- YOU MUST use the journal tool frequently to capture technical insights, failed approaches, and user preferences
+- Before starting complex tasks, search the journal for relevant past experiences and lessons learned
+- Document architectural decisions and their outcomes for future reference
+- Track patterns in user feedback to improve collaboration over time
+- When you notice something that should be fixed but is unrelated to your current task, document it in your journal rather than fixing it immediately
+
+## Recalling past context
+
+- When you don't understand the context of the current task, use the `memmem:search-conversation` skill to search past conversation history
+- Use it when the user references prior work, when intent is hard to infer from code alone, or when you're stuck
 
 ## Language
 
