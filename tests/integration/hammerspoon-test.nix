@@ -145,21 +145,15 @@ in
       "Pomodoro Spoon should return obj"
     )
 
-    (helpers.assertTest "pomodoro-activates-focus-shortcut"
-      (
-        lib.hasInfix "function activatePomodoroFocus()" pomodoroInitContent
-        && lib.hasInfix "/usr/bin/shortcuts run" pomodoroInitContent
-      )
-      "Pomodoro Spoon should run the Pomodoro Shortcut to enable macOS Focus"
-    )
+    (helpers.assertTest "pomodoro-activates-focus-shortcut" (
+      lib.hasInfix "function activatePomodoroFocus()" pomodoroInitContent
+      && lib.hasInfix "/usr/bin/shortcuts run" pomodoroInitContent
+    ) "Pomodoro Spoon should run the Pomodoro Shortcut to enable macOS Focus")
 
-    (helpers.assertTest "pomodoro-work-session-enables-focus"
-      (
-        lib.hasInfix "function TimerManager.startWorkSession()" pomodoroInitContent
-        && lib.hasInfix "activatePomodoroFocus()" pomodoroInitContent
-      )
-      "Starting a Pomodoro work session should enable macOS Focus"
-    )
+    (helpers.assertTest "pomodoro-work-session-enables-focus" (
+      lib.hasInfix "function TimerManager.startWorkSession()" pomodoroInitContent
+      && lib.hasInfix "activatePomodoroFocus()" pomodoroInitContent
+    ) "Starting a Pomodoro work session should enable macOS Focus")
 
     # Hyper Spoon tests
     (helpers.assertTest "hyper-spoon-metadata" (lib.hasInfix "m.name = \"Hyper\"" hyperInitContent)
