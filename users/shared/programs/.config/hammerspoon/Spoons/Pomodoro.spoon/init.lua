@@ -93,6 +93,19 @@ local function formatTime(seconds)
   return string.format("%02d:%02d", minutes, secs)
 end
 
+local function shellQuote(value)
+  return "'" .. tostring(value):gsub("'", "'\\''") .. "'"
+end
+
+local function activatePomodoroFocus()
+  local command = "/usr/bin/shortcuts run " .. shellQuote(obj.config.focusMode)
+  local _, ok = hs.execute(command, true)
+  if not ok then
+    hs.alert.show("Pomodoro Focus Shortcut 실행 실패", 2)
+  end
+  return ok
+end
+
 -- ============================================================================
 -- CACHE MANAGEMENT
 -- ============================================================================
@@ -527,6 +540,7 @@ function TimerManager.startWorkSession()
   State.timerRunning = true
   State.sessionStartTime = os.time()
 
+  activatePomodoroFocus()
   updateMenubarDisplay()
 
   -- Create overlay if not exists
