@@ -73,15 +73,14 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 ## Learning and Memory Management
 
-- YOU MUST use the journal tool frequently to capture technical insights, failed approaches, and user preferences
-- Before starting complex tasks, search the journal for relevant past experiences and lessons learned
-- Document architectural decisions and their outcomes for future reference
-- Track patterns in user feedback to improve collaboration over time
-- When you notice something that should be fixed but is unrelated to your current task, document it in your journal rather than fixing it immediately
+- Use `write_journal` from `private-journal-mcp` for durable technical insights, failed approaches, user preferences, project decisions, and notable observations.
+- Before complex or unfamiliar tasks, use `search_journal`, `list_journal`, and `read_journal` to look for relevant prior lessons.
+- Do not write journal entries for trivial lookups or one-off answers unless they reveal a durable preference or reusable lesson.
+- When you notice something that should be fixed but is unrelated to your current task, document it with `write_journal` rather than fixing it immediately.
 
 ## Recalling past context
 
-- When you don't understand the context of the current task, use the `memmem:search-conversation` skill to search past conversation history
+- When you don't understand the context of the current task, use the `memmem` `remembering-conversations` skill to search past conversation history.
 - Use it when the user references prior work, when intent is hard to infer from code alone, or when you're stuck
 
 ## Language
