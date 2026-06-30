@@ -79,6 +79,25 @@ in
 
       # Spaces가 디스플레이 간 스패닝되지 않는지 확인
       (darwinHelpers.assertSpacesNoSpanDisplays darwinConfig)
+
+      # One-finger lookup 설정이 Nix로 유지되는지 확인
+      (helpers.assertTest "trackpad-force-click-lookup-enabled" (
+        darwinConfig.system.defaults.CustomUserPreferences."NSGlobalDomain"."com.apple.trackpad.forceClick"
+        == true
+      ) "Trackpad force click lookup should be enabled")
+
+      (helpers.assertTest "trackpad-force-click-not-suppressed" (
+        darwinConfig.system.defaults.CustomUserPreferences."com.apple.AppleMultitouchTrackpad".ForceSuppressed
+        == 0
+      ) "Trackpad force click should not be suppressed")
+
+      (helpers.assertTest "trackpad-three-finger-lookup-disabled" (
+        darwinConfig.system.defaults.CustomUserPreferences."com.apple.AppleMultitouchTrackpad".TrackpadThreeFingerTapGesture
+        == 0
+        &&
+          darwinConfig.system.defaults.CustomUserPreferences."com.apple.driver.AppleBluetoothMultitouch.trackpad".TrackpadThreeFingerTapGesture
+          == 0
+      ) "Three-finger lookup should be disabled")
     ]
     # ===== 성능 최적화 검증 (darwin-helpers 사용) =====
     ++ (darwinHelpers.assertDarwinOptimizationsLevel1 darwinConfig)

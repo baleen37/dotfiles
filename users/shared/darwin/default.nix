@@ -96,6 +96,16 @@ in
     CustomUserPreferences = {
       "NSGlobalDomain" = {
         "com.apple.scrollwheel.scaling" = 1.0; # 스크롤 속도 (최대값, -1은 가속 비활성화)
+        "com.apple.trackpad.forceClick" = true; # Enable one-finger force click lookup
+      };
+
+      "com.apple.AppleMultitouchTrackpad" = {
+        ForceSuppressed = 0; # Enable force click
+        TrackpadThreeFingerTapGesture = 0; # Disable three-finger lookup
+      };
+
+      "com.apple.driver.AppleBluetoothMultitouch.trackpad" = {
+        TrackpadThreeFingerTapGesture = 0; # Disable three-finger lookup
       };
     };
   };
