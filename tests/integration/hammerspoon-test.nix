@@ -48,7 +48,6 @@ let
   spoonsContents = if spoonsDirUsable then spoonsDirResult.value else { };
   expectedSpoons = [
     "Hyper.spoon"
-    "HyperModal.spoon"
     "Pomodoro.spoon"
   ];
   hasExpectedSpoons = lib.all (spoon: builtins.hasAttr spoon spoonsContents) expectedSpoons;
@@ -104,17 +103,12 @@ in
     )
 
     # ========================================================================
-    # Section 2: init.lua Content Validation (10 tests)
+    # Section 2: init.lua Content Validation
     # ========================================================================
 
     # Spoon loading tests
     (helpers.assertTest "init-loads-hyper" (lib.hasInfix "hs.loadSpoon('Hyper')" initLuaContent)
       "init.lua should load Hyper Spoon"
-    )
-
-    (helpers.assertTest "init-loads-hypermodal"
-      (lib.hasInfix "hs.loadSpoon('HyperModal')" initLuaContent)
-      "init.lua should load HyperModal Spoon"
     )
 
     (helpers.assertTest "init-loads-pomodoro" (lib.hasInfix "hs.loadSpoon('Pomodoro')" initLuaContent)
@@ -124,11 +118,6 @@ in
     # Hyper key binding tests
     (helpers.assertTest "init-hyper-hotkeys" (lib.hasInfix "Hyper:bindHotKeys" initLuaContent)
       "init.lua should bind Hyper hotkeys"
-    )
-
-    (helpers.assertTest "init-hyper-modal-binding"
-      (lib.hasInfix "Hyper:bind({}, 'm', function()" initLuaContent)
-      "init.lua should bind HyperModal toggle"
     )
 
     (helpers.assertTest "init-pomodoro-binding"
@@ -154,6 +143,22 @@ in
 
     (helpers.assertTest "pomodoro-spoon-structure" (lib.hasInfix "return obj" pomodoroInitContent)
       "Pomodoro Spoon should return obj"
+    )
+
+    (helpers.assertTest "pomodoro-activates-focus-shortcut"
+      (
+        lib.hasInfix "function activatePomodoroFocus()" pomodoroInitContent
+        && lib.hasInfix "/usr/bin/shortcuts run" pomodoroInitContent
+      )
+      "Pomodoro Spoon should run the Pomodoro Shortcut to enable macOS Focus"
+    )
+
+    (helpers.assertTest "pomodoro-work-session-enables-focus"
+      (
+        lib.hasInfix "function TimerManager.startWorkSession()" pomodoroInitContent
+        && lib.hasInfix "activatePomodoroFocus()" pomodoroInitContent
+      )
+      "Starting a Pomodoro work session should enable macOS Focus"
     )
 
     # Hyper Spoon tests
