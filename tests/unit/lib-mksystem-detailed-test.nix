@@ -159,6 +159,34 @@ in
       hasHomeManager
     ) "System configuration should integrate Home Manager";
 
+    home-manager-backup-extension = helpers.assertTest "mksystem-home-manager-backup-extension" (
+      let
+        nixosSystem = mkSystem "vm-x86_64-utm" {
+          system = "x86_64-linux";
+          user = "testuser";
+          darwin = false;
+          wsl = false;
+        };
+        darwinSystem =
+          if hasDarwinInputs then
+            mkSystem "darwin-backup-test" {
+              system = "aarch64-darwin";
+              user = "testuser";
+              darwin = true;
+              wsl = false;
+            }
+          else
+            null;
+        nixosResult = builtins.tryEval nixosSystem.config.home-manager.backupFileExtension;
+        darwinResult = builtins.tryEval darwinSystem.config.home-manager.backupFileExtension;
+      in
+      nixosResult.success
+      && nixosResult.value == "backup"
+      && hasDarwinInputs
+      && darwinResult.success
+      && darwinResult.value == "backup"
+    ) "Home Manager module integration should back up colliding files with .backup";
+
     # Test 10: Determinate Nix integration for Darwin
     determinate-nix-darwin = helpers.assertTest "mksystem-determinate-nix-darwin" (
       let

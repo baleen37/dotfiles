@@ -102,6 +102,7 @@ systemFunc {
       home-manager = {
         useGlobalPkgs = true;
         useUserPackages = true;
+        backupFileExtension = "backup";
         users.${user} = lib.mkMerge [
           (import userHMConfig)
           homeModules
