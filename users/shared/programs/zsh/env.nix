@@ -5,7 +5,6 @@
 # - Locale: en_US.UTF-8
 # - Editor: vim
 # - npm config
-# - GitHub CLI token
 
 # Note: isDarwin is not available here since this is a raw string import.
 # Homebrew PATH is handled inline via the isDarwin conditional in default.nix.
@@ -39,6 +38,4 @@
   # npm configuration
   export NPM_CONFIG_PREFIX="$HOME/.npm-global"
 
-  # GitHub CLI token (silent if not authenticated, e.g. on remote SSH hosts)
-  export GITHUB_TOKEN=$(gh auth token 2>/dev/null || true)
 ''
