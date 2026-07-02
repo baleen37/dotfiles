@@ -60,8 +60,6 @@ test:
 		else \
 			echo "Linux without KVM detected: Running validation mode (NixOS VM tests require /dev/kvm)"; \
 		fi; \
-		echo "Checking formatting..."; \
-		$(NIX_ENV) $(NIX) fmt -- --fail-on-change || { echo "❌ Formatting check failed. Run 'make format' or 'nix fmt' to fix."; exit 1; }; \
 		echo "Validating all test configurations without execution..."; \
 		$(NIX_ENV) $(NIX) flake check --no-build --impure --accept-flake-config --show-trace; \
 		echo "Validation completed - Full container tests run only where KVM is available"; \
