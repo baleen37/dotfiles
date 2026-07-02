@@ -261,9 +261,9 @@ in
     )
 
     # GitHub token configuration
-    (helpers.assertTest "github-token-export" (initContentHas "GITHUB_TOKEN")
-      "GITHUB_TOKEN should be exported via gh auth token"
-    )
+    (helpers.assertTest "github-token-not-exported" (
+      !initContentHas "GITHUB_TOKEN"
+    ) "GITHUB_TOKEN should not be exported from shell init")
 
     # 1Password SSH agent platform-specific detection tests (Darwin-only)
     (helpers.assertTest "onepassword-group-containers" (
