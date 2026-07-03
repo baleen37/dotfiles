@@ -167,6 +167,12 @@ in
       && lib.hasInfix "function obj:syncFromFocus(" pomodoroInitContent
     ) "Pomodoro Spoon should reconcile timer state from Focus start time")
 
+    (helpers.assertTest "pomodoro-focus-info-with-start-time" (
+      lib.hasInfix "function FocusManager.getCurrentFocusInfo()" pomodoroInitContent
+      && lib.hasInfix "assertionStartDateTimestamp" pomodoroInitContent
+      && lib.hasInfix "978307200" pomodoroInitContent
+    ) "Pomodoro Spoon should read the Focus start timestamp")
+
     # Hyper Spoon tests
     (helpers.assertTest "hyper-spoon-metadata" (lib.hasInfix "m.name = \"Hyper\"" hyperInitContent)
       "Hyper Spoon should define name metadata"

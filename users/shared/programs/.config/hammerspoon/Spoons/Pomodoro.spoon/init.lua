@@ -634,7 +634,9 @@ end
 
 local FocusManager = {}
 
-function FocusManager.getCurrentFocusMode()
+local FOCUS_COCOA_EPOCH_OFFSET = 978307200 -- seconds between 1970-01-01 and 2001-01-01
+
+function FocusManager.getCurrentFocusInfo()
   local script = [[
     (function() {
       const app = Application.currentApplication();
@@ -642,20 +644,24 @@ function FocusManager.getCurrentFocusMode()
 
       function getJSON(path) {
         const fullPath = path.replace(/^~/, app.pathTo('home folder'));
-        const contents = app.read(fullPath);
-        return JSON.parse(contents);
+        return JSON.parse(app.read(fullPath));
       }
 
       try {
-        const assert = getJSON("~/Library/DoNotDisturb/DB/Assertions.json").data[0].storeAssertionRecords;
+        const assertions = getJSON("~/Library/DoNotDisturb/DB/Assertions.json").data[0].storeAssertionRecords;
         const config = getJSON("~/Library/DoNotDisturb/DB/ModeConfigurations.json").data[0].modeConfigurations;
 
-        if (assert && assert.length > 0) {
-          const modeid = assert[0].assertionDetails.assertionDetailsModeIdentifier;
-          return config[modeid].mode.name;
+        if (!assertions || assertions.length === 0) {
+          return null;
         }
 
-        return null;
+        const record = assertions[0];
+        const modeid = record.assertionDetails.assertionDetailsModeIdentifier;
+        const name = config[modeid] ? config[modeid].mode.name : null;
+        if (!name) {
+          return null;
+        }
+        return JSON.stringify({ name: name, startTimestamp: record.assertionStartDateTimestamp });
       } catch (e) {
         return null;
       }
@@ -663,10 +669,26 @@ function FocusManager.getCurrentFocusMode()
   ]]
 
   local ok, result = hs.osascript.javascript(script)
-  if ok and result then
-    return result
+  if not ok or not result then
+    return nil
   end
-  return nil
+
+  local decoded = hs.json.decode(result)
+  if not decoded or not decoded.name then
+    return nil
+  end
+
+  local startTime = nil
+  if decoded.startTimestamp then
+    startTime = math.floor(decoded.startTimestamp + FOCUS_COCOA_EPOCH_OFFSET)
+  end
+
+  return { name = decoded.name, startTime = startTime }
+end
+
+function FocusManager.getCurrentFocusMode()
+  local info = FocusManager.getCurrentFocusInfo()
+  return info and info.name or nil
 end
 
 function FocusManager.isPomodoroActive()
@@ -928,6 +950,16 @@ end
 function obj:syncFromFocus(startTime)
   TimerManager.syncFromFocus(startTime)
   return self
+end
+
+--- Pomodoro:currentFocusInfo() -> table or nil
+--- Method
+--- Returns the current macOS Focus mode info, or nil if none is active.
+---
+--- Returns:
+---  * A table `{ name = <string>, startTime = <unix seconds or nil> }`, or nil
+function obj:currentFocusInfo()
+  return FocusManager.getCurrentFocusInfo()
 end
 
 --- Pomodoro:isRunning() -> boolean
