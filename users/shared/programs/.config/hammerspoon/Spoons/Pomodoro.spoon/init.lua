@@ -697,11 +697,12 @@ function FocusManager.isPomodoroActive()
 end
 
 function FocusManager.handleFocusChange()
-  local hasPomodoro = FocusManager.isPomodoroActive()
+  local info = FocusManager.getCurrentFocusInfo()
+  local hasPomodoro = info ~= nil and info.name == obj.config.focusMode
 
   if hasPomodoro then
     if not State.timerRunning then
-      TimerManager.startWorkSession()
+      TimerManager.syncFromFocus(info.startTime)
     end
   else
     if State.timerRunning then
@@ -713,23 +714,14 @@ function FocusManager.handleFocusChange()
 end
 
 function FocusManager.startMonitoring()
-  -- Watch for Focus mode enabled
-  UI.focusWatcherEnabled = hs.distributednotifications.new(function(name, object, userInfo)
-    if FocusManager.isPomodoroActive() then
-      if not State.timerRunning then
-        TimerManager.startWorkSession()
-      end
-    end
+  -- Focus mode enabled/disabled 모두 현재 focus를 다시 읽어 상태를 재조정한다.
+  UI.focusWatcherEnabled = hs.distributednotifications.new(function()
+    FocusManager.handleFocusChange()
   end, "_NSDoNotDisturbEnabledNotification")
   UI.focusWatcherEnabled:start()
 
-  -- Watch for Focus mode disabled
-  UI.focusWatcherDisabled = hs.distributednotifications.new(function(name, object, userInfo)
-    if State.timerRunning then
-      ModalManager.show("Pomodoro session stopped", "⏹️", 2)
-      saveCurrentStatistics()
-      TimerManager.stop()
-    end
+  UI.focusWatcherDisabled = hs.distributednotifications.new(function()
+    FocusManager.handleFocusChange()
   end, "_NSDoNotDisturbDisabledNotification")
   UI.focusWatcherDisabled:start()
 
