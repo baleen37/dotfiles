@@ -532,15 +532,26 @@ function TimerManager.createCallback(onComplete)
   end
 end
 
-function TimerManager.startWorkSession()
+function TimerManager.completeSession()
+  State.sessionsCompleted = State.sessionsCompleted + 1
+  TimerManager.stop()
+  saveCurrentStatistics()
+  ModalManager.show("Session complete! Great job", "✅", 2)
+
+  -- Callback: onComplete
+  if obj.config.onComplete then
+    obj.config.onComplete()
+  end
+end
+
+function TimerManager.runWork(timeLeft, sessionStartTime)
   TimerManager.cleanup()
 
   State.isBreak = false
-  State.timeLeft = obj.config.workDuration
+  State.timeLeft = timeLeft
   State.timerRunning = true
-  State.sessionStartTime = os.time()
+  State.sessionStartTime = sessionStartTime
 
-  activatePomodoroFocus()
   updateMenubarDisplay()
 
   -- Create overlay if not exists
@@ -548,44 +559,44 @@ function TimerManager.startWorkSession()
     OverlayManager.create()
   end
 
+  UI.countdownTimer = hs.timer.new(1, TimerManager.createCallback(TimerManager.startBreakSession))
+  UI.countdownTimer:start()
+end
+
+function TimerManager.runBreak(timeLeft)
+  TimerManager.cleanup()
+
+  State.isBreak = true
+  State.timeLeft = timeLeft
+  State.timerRunning = true
+
+  updateMenubarDisplay()
+
+  UI.countdownTimer = hs.timer.new(1, TimerManager.createCallback(TimerManager.completeSession))
+  UI.countdownTimer:start()
+end
+
+function TimerManager.startWorkSession()
+  activatePomodoroFocus()
+  TimerManager.runWork(obj.config.workDuration, os.time())
+
   ModalManager.show("Work session begins!", "🍅", 2)
 
   -- Callback: onWorkStart
   if obj.config.onWorkStart then
     obj.config.onWorkStart()
   end
-
-  UI.countdownTimer = hs.timer.new(1, TimerManager.createCallback(TimerManager.startBreakSession))
-  UI.countdownTimer:start()
 end
 
 function TimerManager.startBreakSession()
-  TimerManager.cleanup()
+  TimerManager.runBreak(obj.config.breakDuration)
 
-  State.isBreak = true
-  State.timeLeft = obj.config.breakDuration
-  State.timerRunning = true
-
-  updateMenubarDisplay()
   ModalManager.show("25 minutes complete! Take a break", "🍅", 2)
 
   -- Callback: onBreakStart
   if obj.config.onBreakStart then
     obj.config.onBreakStart()
   end
-
-  UI.countdownTimer = hs.timer.new(1, TimerManager.createCallback(function()
-    State.sessionsCompleted = State.sessionsCompleted + 1
-    TimerManager.stop()
-    saveCurrentStatistics()
-    ModalManager.show("Session complete! Great job", "✅", 2)
-
-    -- Callback: onComplete
-    if obj.config.onComplete then
-      obj.config.onComplete()
-    end
-  end))
-  UI.countdownTimer:start()
 end
 
 -- ============================================================================

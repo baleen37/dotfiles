@@ -155,6 +155,12 @@ in
       && lib.hasInfix "activatePomodoroFocus()" pomodoroInitContent
     ) "Starting a Pomodoro work session should enable macOS Focus")
 
+    (helpers.assertTest "pomodoro-timer-helpers-extracted" (
+      lib.hasInfix "function TimerManager.completeSession()" pomodoroInitContent
+      && lib.hasInfix "function TimerManager.runWork(" pomodoroInitContent
+      && lib.hasInfix "function TimerManager.runBreak(" pomodoroInitContent
+    ) "Pomodoro Spoon should expose reusable timer helpers")
+
     # Hyper Spoon tests
     (helpers.assertTest "hyper-spoon-metadata" (lib.hasInfix "m.name = \"Hyper\"" hyperInitContent)
       "Hyper Spoon should define name metadata"
