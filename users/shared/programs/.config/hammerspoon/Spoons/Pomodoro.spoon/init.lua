@@ -93,6 +93,20 @@ local function formatTime(seconds)
   return string.format("%02d:%02d", minutes, secs)
 end
 
+-- Decide the pomodoro phase from elapsed seconds since Focus started.
+-- Returns { stage = "work" | "break" | "complete", timeLeft = <seconds> }.
+local function computeSyncPlan(elapsed, workDuration, breakDuration)
+  if elapsed < 0 then
+    elapsed = 0
+  end
+  if elapsed < workDuration then
+    return { stage = "work", timeLeft = workDuration - elapsed }
+  elseif elapsed < workDuration + breakDuration then
+    return { stage = "break", timeLeft = workDuration + breakDuration - elapsed }
+  end
+  return { stage = "complete", timeLeft = 0 }
+end
+
 local function shellQuote(value)
   return "'" .. tostring(value):gsub("'", "'\\''") .. "'"
 end
@@ -599,6 +613,21 @@ function TimerManager.startBreakSession()
   end
 end
 
+function TimerManager.syncFromFocus(startTime)
+  local elapsed = os.time() - (startTime or os.time())
+  local plan = computeSyncPlan(elapsed, obj.config.workDuration, obj.config.breakDuration)
+
+  if plan.stage == "work" then
+    TimerManager.runWork(plan.timeLeft, startTime)
+  elseif plan.stage == "break" then
+    TimerManager.runBreak(plan.timeLeft)
+  else
+    -- 사이클이 이미 끝남: 러닝 상태 해제 + 통계 저장(완료 카운트는 올리지 않음)
+    TimerManager.stop()
+    saveCurrentStatistics()
+  end
+end
+
 -- ============================================================================
 -- FOCUS MODE DETECTION
 -- ============================================================================
@@ -884,6 +913,21 @@ function obj:toggleSession()
     TimerManager.startWorkSession()
     return true
   end
+end
+
+--- Pomodoro:syncFromFocus(startTime) -> Pomodoro
+--- Method
+--- Reconcile the timer to a Focus mode start time (Unix seconds).
+--- Picks work/break/complete from elapsed time. Does NOT enable Focus.
+---
+--- Parameters:
+---  * startTime - Unix timestamp (seconds) when the Focus mode started
+---
+--- Returns:
+---  * The Pomodoro object
+function obj:syncFromFocus(startTime)
+  TimerManager.syncFromFocus(startTime)
+  return self
 end
 
 --- Pomodoro:isRunning() -> boolean

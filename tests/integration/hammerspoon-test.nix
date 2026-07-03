@@ -161,6 +161,12 @@ in
       && lib.hasInfix "function TimerManager.runBreak(" pomodoroInitContent
     ) "Pomodoro Spoon should expose reusable timer helpers")
 
+    (helpers.assertTest "pomodoro-sync-from-focus" (
+      lib.hasInfix "local function computeSyncPlan(" pomodoroInitContent
+      && lib.hasInfix "function TimerManager.syncFromFocus(" pomodoroInitContent
+      && lib.hasInfix "function obj:syncFromFocus(" pomodoroInitContent
+    ) "Pomodoro Spoon should reconcile timer state from Focus start time")
+
     # Hyper Spoon tests
     (helpers.assertTest "hyper-spoon-metadata" (lib.hasInfix "m.name = \"Hyper\"" hyperInitContent)
       "Hyper Spoon should define name metadata"
