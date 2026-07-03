@@ -54,16 +54,20 @@ in
       ];
 
       # File search command (Ctrl+T)
-      fileWidgetCommand = "fd --type f --hidden --follow --exclude .git";
-      fileWidgetOptions = [
-        "--preview 'bat --style=numbers --color=always --line-range :500 {}'"
-      ];
+      fileWidget = {
+        command = "fd --type f --hidden --follow --exclude .git";
+        options = [
+          "--preview 'bat --style=numbers --color=always --line-range :500 {}'"
+        ];
+      };
 
       # Directory search command (Alt+C)
-      changeDirWidgetCommand = "fd --type d --hidden --follow --exclude .git";
-      changeDirWidgetOptions = [
-        "--preview 'tree -C {} | head -200'"
-      ];
+      changeDirWidget = {
+        command = "fd --type d --hidden --follow --exclude .git";
+        options = [
+          "--preview 'tree -C {} | head -200'"
+        ];
+      };
     };
 
     programs.direnv = {
