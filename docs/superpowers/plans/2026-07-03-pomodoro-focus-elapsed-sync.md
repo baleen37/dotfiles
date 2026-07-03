@@ -39,10 +39,12 @@
 ## Task 1: 타이머 구동 로직을 재사용 헬퍼로 추출 (동작 변경 없음)
 
 **Files:**
+
 - Modify: `users/shared/programs/.config/hammerspoon/Spoons/Pomodoro.spoon/init.lua:535-589`
 - Test: `tests/integration/hammerspoon-test.nix`
 
 **Interfaces:**
+
 - Produces:
   - `TimerManager.completeSession()` — 세션 완료 처리(카운트++, stop, 통계저장, 모달, onComplete).
   - `TimerManager.runWork(timeLeft, sessionStartTime)` — 작업 카운트다운 시작(완료 시 startBreakSession).
@@ -55,6 +57,7 @@
 `init.lua`의 535–589행(아래 원본)을 통째로 교체한다.
 
 원본(참고):
+
 ```lua
 function TimerManager.startWorkSession()
   TimerManager.cleanup()
@@ -114,6 +117,7 @@ end
 ```
 
 교체 후:
+
 ```lua
 function TimerManager.completeSession()
   State.sessionsCompleted = State.sessionsCompleted + 1
@@ -186,14 +190,18 @@ end
 - [ ] **Step 2: 런타임 재적재 후 사용자 시작 경로 동작 확인 (회귀 없음)**
 
 Run:
+
 ```bash
 hs -c 'hs.reload()' && sleep 1
 hs -c 'spoon.Pomodoro:toggleSession(); return string.format("run=%s break=%s left=%d", tostring(spoon.Pomodoro:isRunning()), tostring(spoon.Pomodoro:isBreak()), spoon.Pomodoro:getTimeLeft())'
 ```
+
 Expected: `run=true break=false left=1500` (± 1). 이후 정리:
+
 ```bash
 hs -c 'spoon.Pomodoro:toggleSession(); return tostring(spoon.Pomodoro:isRunning())'
 ```
+
 Expected: `false`
 
 > 주의: `toggleSession()`은 `startWorkSession`→`activatePomodoroFocus()`로 실제 Focus 단축키를 실행한다. 테스트 후 Focus가 켜졌으면 수동으로 꺼둔다.
@@ -201,6 +209,7 @@ Expected: `false`
 - [ ] **Step 3: content assertion 추가**
 
 `tests/integration/hammerspoon-test.nix`의 Section 3 마지막 assertion(163-165행의 `hyper-spoon-structure`) **앞**에 다음을 추가:
+
 ```nix
     (helpers.assertTest "pomodoro-timer-helpers-extracted" (
       lib.hasInfix "function TimerManager.completeSession()" pomodoroInitContent
@@ -227,10 +236,12 @@ git commit -m "refactor(pomodoro): extract reusable timer helpers"
 ## Task 2: 순수 보정 계산 + `syncFromFocus` 진입점
 
 **Files:**
+
 - Modify: `users/shared/programs/.config/hammerspoon/Spoons/Pomodoro.spoon/init.lua` (유틸 영역 ~94행, TimerManager 영역, obj 메서드 영역)
 - Test: `tests/integration/hammerspoon-test.nix`
 
 **Interfaces:**
+
 - Consumes: `TimerManager.runWork`, `TimerManager.runBreak`, `TimerManager.stop`, `saveCurrentStatistics`, `obj.config.workDuration/breakDuration` (Task 1).
 - Produces:
   - `computeSyncPlan(elapsed, workDuration, breakDuration) -> { stage = "work"|"break"|"complete", timeLeft = number }` (파일 로컬 순수 함수).
@@ -240,6 +251,7 @@ git commit -m "refactor(pomodoro): extract reusable timer helpers"
 - [ ] **Step 1: 순수 함수 `computeSyncPlan` 추가**
 
 `init.lua`의 `formatTime` 함수(90-94행) **바로 뒤**, `shellQuote`(96행) **앞**에 추가:
+
 ```lua
 -- Decide the pomodoro phase from elapsed seconds since Focus started.
 -- Returns { stage = "work" | "break" | "complete", timeLeft = <seconds> }.
@@ -259,6 +271,7 @@ end
 - [ ] **Step 2: `TimerManager.syncFromFocus` 추가**
 
 Task 1에서 만든 `TimerManager.startBreakSession` 함수 정의 **바로 뒤**에 추가:
+
 ```lua
 function TimerManager.syncFromFocus(startTime)
   local elapsed = os.time() - (startTime or os.time())
@@ -279,6 +292,7 @@ end
 - [ ] **Step 3: 공개 메서드 `obj:syncFromFocus` 추가**
 
 `obj:toggleSession()` 함수 정의(868-876행) **바로 뒤**에 추가:
+
 ```lua
 --- Pomodoro:syncFromFocus(startTime) -> Pomodoro
 --- Method
@@ -299,23 +313,30 @@ end
 - [ ] **Step 4: 런타임 경계 검증**
 
 Run:
+
 ```bash
 hs -c 'hs.reload()' && sleep 1
 hs -c 'spoon.Pomodoro:syncFromFocus(os.time() - 60); return string.format("run=%s break=%s left=%d", tostring(spoon.Pomodoro:isRunning()), tostring(spoon.Pomodoro:isBreak()), spoon.Pomodoro:getTimeLeft())'
 ```
+
 Expected: `run=true break=false left=1440` (±2)
+
 ```bash
 hs -c 'spoon.Pomodoro:syncFromFocus(os.time() - 26*60); return string.format("run=%s break=%s left=%d", tostring(spoon.Pomodoro:isRunning()), tostring(spoon.Pomodoro:isBreak()), spoon.Pomodoro:getTimeLeft())'
 ```
+
 Expected: `run=true break=true left=240` (±2)
+
 ```bash
 hs -c 'spoon.Pomodoro:syncFromFocus(os.time() - 31*60); return string.format("run=%s left=%d", tostring(spoon.Pomodoro:isRunning()), spoon.Pomodoro:getTimeLeft())'
 ```
+
 Expected: `run=false left=0`
 
 - [ ] **Step 5: content assertion 추가**
 
 Task 1에서 추가한 `pomodoro-timer-helpers-extracted` assertion **뒤**에 추가:
+
 ```nix
     (helpers.assertTest "pomodoro-sync-from-focus" (
       lib.hasInfix "local function computeSyncPlan(" pomodoroInitContent
@@ -342,10 +363,12 @@ git commit -m "feat(pomodoro): reconcile timer from focus start time"
 ## Task 3: Focus 시작시각을 포함한 감지 (`getCurrentFocusInfo`)
 
 **Files:**
+
 - Modify: `users/shared/programs/.config/hammerspoon/Spoons/Pomodoro.spoon/init.lua:597-630` (getCurrentFocusMode), obj 메서드 영역
 - Test: `tests/integration/hammerspoon-test.nix`
 
 **Interfaces:**
+
 - Produces:
   - `FocusManager.getCurrentFocusInfo() -> { name = string, startTime = number|nil } | nil` — 현재 활성 Focus의 이름과 Unix 시작시각.
   - `FocusManager.getCurrentFocusMode() -> string|nil` — `getCurrentFocusInfo().name` 래퍼(기존 인터페이스 유지).
@@ -354,6 +377,7 @@ git commit -m "feat(pomodoro): reconcile timer from focus start time"
 - [ ] **Step 1: `getCurrentFocusMode`(597-630)를 `getCurrentFocusInfo` + 래퍼로 교체**
 
 `init.lua` 597–630행(원본 `function FocusManager.getCurrentFocusMode() ... end`)을 아래로 교체:
+
 ```lua
 local FOCUS_COCOA_EPOCH_OFFSET = 978307200 -- seconds between 1970-01-01 and 2001-01-01
 
@@ -418,6 +442,7 @@ end
 - [ ] **Step 2: 공개 introspection 메서드 `obj:currentFocusInfo` 추가**
 
 Task 2에서 추가한 `obj:syncFromFocus` 정의 **바로 뒤**에 추가:
+
 ```lua
 --- Pomodoro:currentFocusInfo() -> table or nil
 --- Method
@@ -433,21 +458,26 @@ end
 - [ ] **Step 3: 런타임 검증 (실제 Focus 필요)**
 
 먼저 Pomodoro Focus를 켠다(예: `hs -c 'hs.execute("/usr/bin/shortcuts run Pomodoro", true)'` 또는 수동). 그런 다음:
+
 ```bash
 hs -c 'hs.reload()' && sleep 1
 hs -c 'local i = spoon.Pomodoro:currentFocusInfo(); if not i then return "nil" end; return string.format("name=%s startAgo=%ds", tostring(i.name), i.startTime and (os.time() - i.startTime) or -1)'
 ```
+
 Expected: `name=Pomodoro startAgo=<0 이상 초, 방금 켰다면 한 자리~두 자리 초>`
 
 Focus를 끈 상태에서:
+
 ```bash
 hs -c 'return spoon.Pomodoro:currentFocusInfo() == nil and "nil-ok" or "unexpected"'
 ```
+
 Expected: `nil-ok`
 
 - [ ] **Step 4: content assertion 추가**
 
 Task 2의 `pomodoro-sync-from-focus` assertion **뒤**에 추가:
+
 ```nix
     (helpers.assertTest "pomodoro-focus-info-with-start-time" (
       lib.hasInfix "function FocusManager.getCurrentFocusInfo()" pomodoroInitContent
@@ -474,15 +504,18 @@ git commit -m "feat(pomodoro): read focus start timestamp for reconciliation"
 ## Task 4: 감지→보정 배선 + 워쳐 통일
 
 **Files:**
+
 - Modify: `users/shared/programs/.config/hammerspoon/Spoons/Pomodoro.spoon/init.lua:637-675` (handleFocusChange, startMonitoring)
 - Test: `tests/integration/hammerspoon-test.nix`
 
 **Interfaces:**
+
 - Consumes: `FocusManager.getCurrentFocusInfo` (Task 3), `TimerManager.syncFromFocus` (Task 2), `obj.config.focusMode`.
 
 - [ ] **Step 1: `handleFocusChange`(637-651)를 보정 기반으로 교체**
 
 `init.lua` 637–651행(원본 `function FocusManager.handleFocusChange() ... end`)을 아래로 교체:
+
 ```lua
 function FocusManager.handleFocusChange()
   local info = FocusManager.getCurrentFocusInfo()
@@ -505,6 +538,7 @@ end
 - [ ] **Step 2: `startMonitoring`(653-675)의 두 워쳐를 `handleFocusChange` 호출로 통일**
 
 `init.lua` 653–675행(원본 `function FocusManager.startMonitoring() ... end`)을 아래로 교체:
+
 ```lua
 function FocusManager.startMonitoring()
   -- Focus mode enabled/disabled 모두 현재 focus를 다시 읽어 상태를 재조정한다.
@@ -525,21 +559,26 @@ end
 - [ ] **Step 3: 통합 런타임 검증 (실제 Focus 토글)**
 
 Pomodoro Focus를 켜고 잠깐(예: 30초 이상) 둔 뒤:
+
 ```bash
 hs -c 'hs.reload()' && sleep 1
 hs -c 'return string.format("run=%s break=%s left=%d", tostring(spoon.Pomodoro:isRunning()), tostring(spoon.Pomodoro:isBreak()), spoon.Pomodoro:getTimeLeft())'
 ```
+
 Expected: `run=true break=false left=<1500에서 경과초를 뺀 값>` (부팅 경로 `start()`가 자동 보정)
 
 Focus를 끈다(수동 또는 `hs -c 'hs.execute("/usr/bin/shortcuts run Pomodoro", true)'`로 토글 off). 몇 초 후:
+
 ```bash
 hs -c 'return tostring(spoon.Pomodoro:isRunning())'
 ```
+
 Expected: `false`
 
 - [ ] **Step 4: content assertion 추가**
 
 Task 3의 `pomodoro-focus-info-with-start-time` assertion **뒤**에 추가:
+
 ```nix
     (helpers.assertTest "pomodoro-focus-change-reconciles" (
       lib.hasInfix "TimerManager.syncFromFocus(info.startTime)" pomodoroInitContent

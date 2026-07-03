@@ -32,11 +32,11 @@
 
 `elapsed = os.time() - unixStart` (nil/음수면 0으로 방어)
 
-| 조건 | 동작 | timeLeft |
-|---|---|---|
-| `elapsed < workDuration` (25분) | 작업 세션 | `workDuration - elapsed` |
-| `workDuration ≤ elapsed < workDuration+breakDuration` (25~30분) | 휴식 세션 | `(workDuration+breakDuration) - elapsed` |
-| `elapsed ≥ workDuration+breakDuration` (≥30분) | 완료 처리 | 타이머 미가동(idle) + 통계 저장, **완료 카운트 증가 없음** |
+| 조건                                                            | 동작      | timeLeft                                                   |
+| --------------------------------------------------------------- | --------- | ---------------------------------------------------------- |
+| `elapsed < workDuration` (25분)                                 | 작업 세션 | `workDuration - elapsed`                                   |
+| `workDuration ≤ elapsed < workDuration+breakDuration` (25~30분) | 휴식 세션 | `(workDuration+breakDuration) - elapsed`                   |
+| `elapsed ≥ workDuration+breakDuration` (≥30분)                  | 완료 처리 | 타이머 미가동(idle) + 통계 저장, **완료 카운트 증가 없음** |
 
 > 완료 카운트를 올리지 않는 이유: 이 경로는 주로 부팅/리로드 시 재동기화 상황이라,
 > 카운트를 올리면 리로드마다 통계가 부풀 수 있다. 기존 통계만 저장한다.
@@ -44,6 +44,7 @@
 ## 설계
 
 ### 1. 감지 소스 확장 — `FocusManager`
+
 - 신규 `getCurrentFocusInfo()` → `{ name = <string>, startTime = <unix seconds> }` 또는 `nil`.
   - `storeAssertionRecords`에서 **해석된 이름이 `config.focusMode`와 일치하는 레코드**를
     찾아 그 `assertionStartDateTimestamp`를 사용 (기존 `[0]` 고정보다 견고).
@@ -52,6 +53,7 @@
   `isPomodoroActive()`는 변경 없음.
 
 ### 2. 보정 로직 — `TimerManager.syncFromFocus(startTime)`
+
 - 위 보정 규칙에 따라 stage(work/break/complete)와 `timeLeft`를 계산.
 - 작업/휴식이면 `sessionStartTime = startTime`으로 두고 해당 카운트다운 타이머를 시작.
 - 완료면 러닝 상태 해제 + `saveCurrentStatistics()`.
@@ -60,6 +62,7 @@
   낮은 수준 헬퍼(예: 초기 `timeLeft`/`isBreak`/`sessionStartTime`을 받는 함수)로 정리.
 
 ### 3. 감지→보정 배선 + 워쳐 단순화 — `FocusManager`
+
 - `handleFocusChange()`:
   - pomodoro 활성 & `!State.timerRunning` → `getCurrentFocusInfo()`로 startTime을 얻어
     `TimerManager.syncFromFocus(startTime)`.
@@ -69,6 +72,7 @@
   잠재 버그도 함께 해소된다.
 
 ### 4. 사용자 시작 경로 유지
+
 - `TimerManager.startWorkSession()`은 **사용자 시작 전용**으로 남긴다:
   `activatePomodoroFocus()` 호출 + 지금부터 `workDuration`.
 - 진입점: `toggleSession()`(Hyper+P), `bindHotkeys`의 start, 메뉴바 Start.
