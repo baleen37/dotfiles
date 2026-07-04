@@ -38,9 +38,9 @@ function obj:frontmostAppUsesVimImeGuard()
   return bundleID and self.bundleIDs[bundleID] == true
 end
 
-local function hasOnlyModifiers(flags, allowed)
+local function hasExactModifiers(flags, required)
   for _, name in ipairs({'cmd', 'alt', 'shift', 'ctrl', 'fn'}) do
-    if flags[name] and not allowed[name] then
+    if (flags[name] == true) ~= (required[name] == true) then
       return false
     end
   end
@@ -48,11 +48,11 @@ local function hasOnlyModifiers(flags, allowed)
 end
 
 local function isPlainEscape(event)
-  return event:getKeyCode() == 53 and hasOnlyModifiers(event:getFlags(), {})
+  return event:getKeyCode() == 53 and hasExactModifiers(event:getFlags(), {})
 end
 
 local function isCtrlLeftBracket(event)
-  return event:getKeyCode() == 33 and hasOnlyModifiers(event:getFlags(), {ctrl = true})
+  return event:getKeyCode() == 33 and hasExactModifiers(event:getFlags(), {ctrl = true})
 end
 
 function obj:hasPendingVimEscape()

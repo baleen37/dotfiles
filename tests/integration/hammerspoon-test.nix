@@ -196,6 +196,13 @@ in
       "Vim IME guard should handle Ctrl-[ through a plain Escape replay"
     )
 
+    (helpers.assertTest "vim-ime-guard-spoon-requires-exact-modifiers"
+      (lib.hasInfix "local function hasExactModifiers(flags, required)" vimImeGuardInitContent
+        && lib.hasInfix "(flags[name] == true) ~= (required[name] == true)" vimImeGuardInitContent
+        && lib.hasInfix "hasExactModifiers(event:getFlags(), {ctrl = true})" vimImeGuardInitContent)
+      "Vim IME guard should not treat plain [ as Ctrl-["
+    )
+
     # ========================================================================
     # Section 3: Spoon Metadata Validation (4 tests)
     # ========================================================================
