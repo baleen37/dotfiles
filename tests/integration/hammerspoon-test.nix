@@ -155,6 +155,29 @@ in
       && lib.hasInfix "activatePomodoroFocus()" pomodoroInitContent
     ) "Starting a Pomodoro work session should enable macOS Focus")
 
+    (helpers.assertTest "pomodoro-timer-helpers-extracted" (
+      lib.hasInfix "function TimerManager.completeSession()" pomodoroInitContent
+      && lib.hasInfix "function TimerManager.runWork(" pomodoroInitContent
+      && lib.hasInfix "function TimerManager.runBreak(" pomodoroInitContent
+    ) "Pomodoro Spoon should expose reusable timer helpers")
+
+    (helpers.assertTest "pomodoro-sync-from-focus" (
+      lib.hasInfix "local function computeSyncPlan(" pomodoroInitContent
+      && lib.hasInfix "function TimerManager.syncFromFocus(" pomodoroInitContent
+      && lib.hasInfix "function obj:syncFromFocus(" pomodoroInitContent
+    ) "Pomodoro Spoon should reconcile timer state from Focus start time")
+
+    (helpers.assertTest "pomodoro-focus-info-with-start-time" (
+      lib.hasInfix "function FocusManager.getCurrentFocusInfo()" pomodoroInitContent
+      && lib.hasInfix "assertionStartDateTimestamp" pomodoroInitContent
+      && lib.hasInfix "978307200" pomodoroInitContent
+    ) "Pomodoro Spoon should read the Focus start timestamp")
+
+    (helpers.assertTest "pomodoro-focus-change-reconciles" (
+      lib.hasInfix "TimerManager.syncFromFocus(info.startTime)" pomodoroInitContent
+      && lib.hasInfix "FocusManager.handleFocusChange()" pomodoroInitContent
+    ) "Focus change should reconcile timer via handleFocusChange")
+
     # Hyper Spoon tests
     (helpers.assertTest "hyper-spoon-metadata" (lib.hasInfix "m.name = \"Hyper\"" hyperInitContent)
       "Hyper Spoon should define name metadata"

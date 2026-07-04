@@ -136,12 +136,12 @@ in
 
     # Fzf file widget
     (helpers.assertTest "fzf-file-widget-fd" (lib.hasInfix "fd --type f" (
-      fzfSettings.fileWidgetCommand or ""
+      fzfSettings.fileWidget.command or ""
     )) "fzf file widget should use fd")
 
     # Fzf directory widget
     (helpers.assertTest "fzf-cd-widget-fd" (lib.hasInfix "fd --type d" (
-      fzfSettings.changeDirWidgetCommand or ""
+      fzfSettings.changeDirWidget.command or ""
     )) "fzf cd widget should use fd for directories")
 
     # Direnv integration
