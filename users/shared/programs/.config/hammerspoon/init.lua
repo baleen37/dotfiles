@@ -2,6 +2,7 @@ require('hs.ipc')
 hs.allowAppleScript(true)
 hs.loadSpoon('Hyper')
 hs.loadSpoon('Pomodoro')
+hs.loadSpoon('VimImeGuard')
 
 
 Hyper = spoon.Hyper
@@ -10,6 +11,14 @@ Hyper = spoon.Hyper
 -- Karabiner intercepts app-launcher and local-binding keys directly for Secure
 -- Input immunity; Hammerspoon only handles logic-heavy bindings below.
 Hyper:bindHotKeys({hyperKey = {{}, 'F19'}})
+
+VimImeGuard = spoon.VimImeGuard
+VimImeGuard:init({
+  bundleIDs = {
+    ['md.obsidian'] = true,
+  },
+})
+VimImeGuard:start()
 
 -- provide the ability to override config per computer
 if (hs.fs.displayName('./localConfig.lua')) then

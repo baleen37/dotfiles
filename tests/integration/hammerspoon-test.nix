@@ -49,6 +49,7 @@ let
   expectedSpoons = [
     "Hyper.spoon"
     "Pomodoro.spoon"
+    "VimImeGuard.spoon"
   ];
   hasExpectedSpoons = lib.all (spoon: builtins.hasAttr spoon spoonsContents) expectedSpoons;
 
@@ -61,12 +62,15 @@ let
   # Spoon init.lua files
   pomodoroInit = hammerspoonDir + "/Spoons/Pomodoro.spoon/init.lua";
   hyperInit = hammerspoonDir + "/Spoons/Hyper.spoon/init.lua";
+  vimImeGuardInit = hammerspoonDir + "/Spoons/VimImeGuard.spoon/init.lua";
 
   pomodoroInitResult = validateFile pomodoroInit;
   hyperInitResult = validateFile hyperInit;
+  vimImeGuardInitResult = validateFile vimImeGuardInit;
 
   pomodoroInitContent = if pomodoroInitResult.success then pomodoroInitResult.value else "";
   hyperInitContent = if hyperInitResult.success then hyperInitResult.value else "";
+  vimImeGuardInitContent = if vimImeGuardInitResult.success then vimImeGuardInitResult.value else "";
 
 in
 {
@@ -87,6 +91,10 @@ in
     # Spoons directory test
     (helpers.assertTest "spoons-dir-usable" spoonsDirUsable
       "Spoons directory should be readable and usable"
+    )
+
+    (helpers.assertTest "vim-ime-guard-spoon-usable" (isFileUsable vimImeGuardInitResult)
+      "Vim IME guard Spoon should be readable and have content"
     )
 
     # Structure validation tests
@@ -115,6 +123,11 @@ in
       "init.lua should load Pomodoro Spoon"
     )
 
+    (helpers.assertTest "init-loads-vim-ime-guard"
+      (lib.hasInfix "hs.loadSpoon('VimImeGuard')" initLuaContent)
+      "init.lua should load VimImeGuard Spoon"
+    )
+
     # Hyper key binding tests
     (helpers.assertTest "init-hyper-hotkeys" (lib.hasInfix "Hyper:bindHotKeys" initLuaContent)
       "init.lua should bind Hyper hotkeys"
@@ -130,6 +143,56 @@ in
       (lib.hasInfix "require('localConfig')" initLuaContent)
       "init.lua should support local config override"
     )
+
+    # Vim IME guard tests
+    (helpers.assertTest "init-starts-vim-ime-guard" (lib.hasInfix "VimImeGuard:start()" initLuaContent)
+      "init.lua should start VimImeGuard Spoon"
+    )
+
+    (helpers.assertTest "init-configures-vim-ime-guard-for-obsidian" (
+      lib.hasInfix "bundleIDs = {" initLuaContent && lib.hasInfix "['md.obsidian'] = true" initLuaContent
+    ) "init.lua should configure VimImeGuard for Obsidian")
+
+    (helpers.assertTest "vim-ime-guard-spoon-metadata"
+      (lib.hasInfix "obj.name = \"VimImeGuard\"" vimImeGuardInitContent)
+      "VimImeGuard Spoon should define name metadata"
+    )
+
+    (helpers.assertTest "vim-ime-guard-spoon-eventtap"
+      (lib.hasInfix "self.vimEscapeTap = hs.eventtap.new" vimImeGuardInitContent)
+      "VimImeGuard Spoon should register an eventtap"
+    )
+
+    (helpers.assertTest "vim-ime-guard-spoon-uses-configured-apps"
+      (lib.hasInfix "self.bundleIDs[bundleID] == true" vimImeGuardInitContent)
+      "VimImeGuard Spoon should use configured bundle IDs"
+    )
+
+    (helpers.assertTest "vim-ime-guard-spoon-switches-abc" (
+      lib.hasInfix "hs.keycodes.currentSourceID(self.inputEnglish)" vimImeGuardInitContent
+      && lib.hasInfix "com.apple.keylayout.ABC" vimImeGuardInitContent
+    ) "Vim IME guard should switch to ABC before sending Escape")
+
+    (helpers.assertTest "vim-ime-guard-spoon-pending-switch" (
+      lib.hasInfix "vimEscapePendingUntil" vimImeGuardInitContent
+      && lib.hasInfix "hasPendingVimEscape()" vimImeGuardInitContent
+    ) "Vim IME guard should protect rapid keys after Escape")
+
+    (helpers.assertTest "vim-ime-guard-spoon-delayed-replay" (
+      lib.hasInfix "obj.vimEscapeReplayDelay = 0.01" vimImeGuardInitContent
+      && lib.hasInfix "self:scheduleVimEscape({}, 'escape', self.vimEscapeReplayDelay)" vimImeGuardInitContent
+    ) "Vim IME guard should replay Escape after Korean composition clears")
+
+    (helpers.assertTest "vim-ime-guard-spoon-ctrl-bracket" (
+      lib.hasInfix "obj.vimEscapeCtrlReplayDelay = 0" vimImeGuardInitContent
+      && lib.hasInfix "self:scheduleVimEscape({}, 'escape', self.vimEscapeCtrlReplayDelay)" vimImeGuardInitContent
+    ) "Vim IME guard should handle Ctrl-[ through a plain Escape replay")
+
+    (helpers.assertTest "vim-ime-guard-spoon-requires-exact-modifiers" (
+      lib.hasInfix "local function hasExactModifiers(flags, required)" vimImeGuardInitContent
+      && lib.hasInfix "(flags[name] == true) ~= (required[name] == true)" vimImeGuardInitContent
+      && lib.hasInfix "hasExactModifiers(event:getFlags(), {ctrl = true})" vimImeGuardInitContent
+    ) "Vim IME guard should not treat plain [ as Ctrl-[")
 
     # ========================================================================
     # Section 3: Spoon Metadata Validation (4 tests)
