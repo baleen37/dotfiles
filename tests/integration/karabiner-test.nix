@@ -52,6 +52,9 @@ let
   hasOneRule = builtins.length rules == 1;
   manipulators = if hasOneRule then (builtins.elemAt rules 0).manipulators else [ ];
 
+  simpleModifications = firstProfile.simple_modifications or [ ];
+  hasNoSimpleModifications = simpleModifications == [ ];
+
   # Find the trigger manipulator: from.key_code == "right_command"
   triggerCandidates = builtins.filter (m: (m.from.key_code or null) == "right_command") manipulators;
   hasTrigger = builtins.length triggerCandidates == 1;
@@ -98,9 +101,9 @@ let
   expectedAppLaunchers = {
     i = "com.mitchellh.ghostty";
     e = "com.apple.mail";
-    f = "com.apple.finder";
     h = "com.kapeli.dashdoc";
     k = "com.kakao.KakaoTalkMac";
+    m = "com.tinyspeck.slackmacgap";
     n = "notion.id";
     o = "md.obsidian";
     t = "com.culturedcode.ThingsMac";
@@ -116,7 +119,7 @@ let
     lib.sort builtins.lessThan hideKeys
     == lib.sort builtins.lessThan (builtins.attrNames expectedAppLaunchers);
 
-  # Every open manipulator must be gated by hyper=1 AND frontmost_application_unless
+  # Every open manipulator must be gated by hyper=1 AND frontmost_application_unless.
   hasFrontmostUnless =
     m: builtins.any (c: (c.type or "") == "frontmost_application_unless") (m.conditions or [ ]);
   hasFrontmostIf =
@@ -127,8 +130,11 @@ let
       c: (c.type or "") == "variable_if" && (c.name or "") == "hyper" && (c.value or null) == 1
     ) (m.conditions or [ ]);
 
+  acceptsHeldModifiers = m: builtins.elem "any" (m.from.modifiers.optional or [ ]);
   appOpensGated = builtins.all (m: hasHyperGate m && hasFrontmostUnless m) appOpens;
   appHidesGated = builtins.all (m: hasHyperGate m && hasFrontmostIf m) appHides;
+  appOpensAcceptHeldModifiers = builtins.all acceptsHeldModifiers appOpens;
+  appHidesAcceptHeldModifiers = builtins.all acceptsHeldModifiers appHides;
 
   # Local bindings: to[0].modifiers contains the four mega-mods, no software_function
   megaMods = [
@@ -147,14 +153,12 @@ let
   localBindingKeys = builtins.map (m: m.from.key_code) localBindings;
   expectedLocalKeys = [
     "b"
-    "comma"
     "l"
-    "period"
-    "return_or_enter"
-    "tab"
     "u"
   ];
   localBindingsPresent = lib.sort builtins.lessThan localBindingKeys == expectedLocalKeys;
+  localBindingsAcceptHeldModifiers = builtins.all acceptsHeldModifiers localBindings;
+  localBindingsGated = builtins.all hasHyperGate localBindings;
 
 in
 {
@@ -180,6 +184,9 @@ in
     (helpers.assertTest "karabiner-single-rule" hasOneRule
       "complex_modifications must have exactly one rule (the Hyper rule)"
     )
+    (helpers.assertTest "karabiner-no-simple-modifications" hasNoSimpleModifications
+      "simple_modifications must stay empty because Karabiner applies simple modifications before complex modifications"
+    )
     (helpers.assertTest "karabiner-trigger-present" hasTrigger
       "rule must contain exactly one right_command trigger manipulator"
     )
@@ -198,14 +205,27 @@ in
     (helpers.assertTest "karabiner-app-opens-gated" appOpensGated
       "every open manipulator must require hyper=1 AND frontmost_application_unless"
     )
+    (helpers.assertTest "karabiner-app-opens-accept-held-modifiers" appOpensAcceptHeldModifiers
+      "every open manipulator must accept held right_command so Hyper+key does not leak as Cmd+key"
+    )
     (helpers.assertTest "karabiner-app-hides-keys" hideKeysCorrect
       "all 8 app keys must have a corresponding hide manipulator"
     )
     (helpers.assertTest "karabiner-app-hides-gated" appHidesGated
       "every hide manipulator must require hyper=1 AND frontmost_application_if"
     )
+    (helpers.assertTest "karabiner-app-hides-accept-held-modifiers" appHidesAcceptHeldModifiers
+      "every hide manipulator must accept held right_command so Hyper+key does not leak as Cmd+key"
+    )
     (helpers.assertTest "karabiner-local-bindings-present" localBindingsPresent
-      "7 expected local-binding keys must emit mega-modifier chord"
+      "3 expected local-binding keys must emit mega-modifier chord"
+    )
+    (helpers.assertTest "karabiner-local-bindings-accept-held-modifiers"
+      localBindingsAcceptHeldModifiers
+      "every local binding must accept held right_command so Hyper+key does not leak as Cmd+key"
+    )
+    (helpers.assertTest "karabiner-local-bindings-gated" localBindingsGated
+      "every local binding must require hyper=1"
     )
   ];
 }

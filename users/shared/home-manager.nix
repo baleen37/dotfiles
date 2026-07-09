@@ -75,4 +75,6 @@
   };
 
   xdg.enable = true;
+
+  manual.manpages.enable = false;
 }
