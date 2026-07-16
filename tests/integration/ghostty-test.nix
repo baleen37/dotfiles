@@ -104,6 +104,10 @@ let
       "Ghostty should have shell-integration-features set to cursor,sudo,title"
     )
 
+    (helpers.assertTest "ghostty-terminal-type-xterm-256color" (hasConfigLine "term.*=.*xterm-256color")
+      "Ghostty should report xterm-256color for every shell"
+    )
+
     # macOS-specific keybinding test (Option key as Alt)
     (helpers.assertTest "ghostty-macos-option-as-alt" (hasConfigLine "macos-option-as-alt.*=.*left")
       "Ghostty should have macos-option-as-alt set to left for Claude Code compatibility"
