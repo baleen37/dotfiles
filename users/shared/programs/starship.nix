@@ -26,11 +26,11 @@ in
 
         # Custom format (module order) - minimal
         format = lib.concatStrings [
+          "$username"
           "$directory"
           "$git_branch"
           "$git_status"
           "$python"
-          "$nix_shell"
           "$character"
         ];
 
@@ -97,15 +97,14 @@ in
           detect_folders = [ ];
         };
 
-        # Nix shell
-        nix_shell = {
-          format = "[$symbol]($style) ";
-          symbol = "nix";
-          style = "bold blue";
+        # Username
+        username = {
+          disabled = false;
+          show_always = true;
+          format = "[$user]($style) ";
         };
 
         # Disable unnecessary modules for performance
-        username.disabled = true;
         hostname.disabled = true;
         time.disabled = true;
         package.disabled = true;

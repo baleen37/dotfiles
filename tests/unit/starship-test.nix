@@ -33,11 +33,11 @@ let
   starshipConfig = starshipModule.config.content;
 
   requiredModules = [
+    "$username"
     "$directory"
     "$git_branch"
     "$git_status"
     "$python"
-    "$nix_shell"
   ];
 
 in
@@ -62,8 +62,25 @@ in
       (starshipHelpers.assertStarshipScanTimeout starshipConfig constants.starshipScanTimeout)
       (starshipHelpers.assertStarshipCmdDurationMinTime starshipConfig constants.starshipCmdDurationMinTime)
 
+      # Username
+      (helpers.assertTest "starship-format-starts-with-username"
+        (lib.hasPrefix "$username$directory" starshipConfig.programs.starship.settings.format)
+        "Starship format should start with the username module"
+      )
+      (helpers.assertTest "starship-format-excludes-nix-shell" (
+        !(lib.hasInfix "$nix_shell" starshipConfig.programs.starship.settings.format)
+      ) "Starship format should not include the nix_shell module")
+      (helpers.assertTest "starship-username-enabled" (
+        (starshipConfig.programs.starship.settings.username.disabled or true) == false
+      ) "Starship username module should be enabled")
+      (helpers.assertTest "starship-username-always-visible" (
+        (starshipConfig.programs.starship.settings.username.show_always or false) == true
+      ) "Starship username should always be visible")
+      (helpers.assertTest "starship-username-format" (
+        (starshipConfig.programs.starship.settings.username.format or "") == "[$user]($style) "
+      ) "Starship username should have a compact format")
+
       # Disabled modules
-      (starshipHelpers.assertStarshipModuleDisabled starshipConfig "username")
       (starshipHelpers.assertStarshipModuleDisabled starshipConfig "hostname")
 
       # Directory configuration
@@ -71,7 +88,6 @@ in
 
       # Module symbols
       (starshipHelpers.assertStarshipModuleSymbol starshipConfig "git_branch" "")
-      (starshipHelpers.assertStarshipModuleSymbol starshipConfig "nix_shell" "nix")
 
       # Character symbols
       (starshipHelpers.assertStarshipCharacterSymbol starshipConfig "success_symbol" "[➜](bold green)")
