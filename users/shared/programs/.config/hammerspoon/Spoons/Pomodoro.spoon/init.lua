@@ -93,6 +93,20 @@ local function formatTime(seconds)
   return string.format("%02d:%02d", minutes, secs)
 end
 
+-- Decide the pomodoro phase from elapsed seconds since Focus started.
+-- Returns { stage = "work" | "break" | "complete", timeLeft = <seconds> }.
+local function computeSyncPlan(elapsed, workDuration, breakDuration)
+  if elapsed < 0 then
+    elapsed = 0
+  end
+  if elapsed < workDuration then
+    return { stage = "work", timeLeft = workDuration - elapsed }
+  elseif elapsed < workDuration + breakDuration then
+    return { stage = "break", timeLeft = workDuration + breakDuration - elapsed }
+  end
+  return { stage = "complete", timeLeft = 0 }
+end
+
 local function shellQuote(value)
   return "'" .. tostring(value):gsub("'", "'\\''") .. "'"
 end
@@ -532,15 +546,26 @@ function TimerManager.createCallback(onComplete)
   end
 end
 
-function TimerManager.startWorkSession()
+function TimerManager.completeSession()
+  State.sessionsCompleted = State.sessionsCompleted + 1
+  TimerManager.stop()
+  saveCurrentStatistics()
+  ModalManager.show("Session complete! Great job", "✅", 2)
+
+  -- Callback: onComplete
+  if obj.config.onComplete then
+    obj.config.onComplete()
+  end
+end
+
+function TimerManager.runWork(timeLeft, sessionStartTime)
   TimerManager.cleanup()
 
   State.isBreak = false
-  State.timeLeft = obj.config.workDuration
+  State.timeLeft = timeLeft
   State.timerRunning = true
-  State.sessionStartTime = os.time()
+  State.sessionStartTime = sessionStartTime
 
-  activatePomodoroFocus()
   updateMenubarDisplay()
 
   -- Create overlay if not exists
@@ -548,44 +573,59 @@ function TimerManager.startWorkSession()
     OverlayManager.create()
   end
 
+  UI.countdownTimer = hs.timer.new(1, TimerManager.createCallback(TimerManager.startBreakSession))
+  UI.countdownTimer:start()
+end
+
+function TimerManager.runBreak(timeLeft)
+  TimerManager.cleanup()
+
+  State.isBreak = true
+  State.timeLeft = timeLeft
+  State.timerRunning = true
+
+  updateMenubarDisplay()
+
+  UI.countdownTimer = hs.timer.new(1, TimerManager.createCallback(TimerManager.completeSession))
+  UI.countdownTimer:start()
+end
+
+function TimerManager.startWorkSession()
+  activatePomodoroFocus()
+  TimerManager.runWork(obj.config.workDuration, os.time())
+
   ModalManager.show("Work session begins!", "🍅", 2)
 
   -- Callback: onWorkStart
   if obj.config.onWorkStart then
     obj.config.onWorkStart()
   end
-
-  UI.countdownTimer = hs.timer.new(1, TimerManager.createCallback(TimerManager.startBreakSession))
-  UI.countdownTimer:start()
 end
 
 function TimerManager.startBreakSession()
-  TimerManager.cleanup()
+  TimerManager.runBreak(obj.config.breakDuration)
 
-  State.isBreak = true
-  State.timeLeft = obj.config.breakDuration
-  State.timerRunning = true
-
-  updateMenubarDisplay()
   ModalManager.show("25 minutes complete! Take a break", "🍅", 2)
 
   -- Callback: onBreakStart
   if obj.config.onBreakStart then
     obj.config.onBreakStart()
   end
+end
 
-  UI.countdownTimer = hs.timer.new(1, TimerManager.createCallback(function()
-    State.sessionsCompleted = State.sessionsCompleted + 1
+function TimerManager.syncFromFocus(startTime)
+  local elapsed = os.time() - (startTime or os.time())
+  local plan = computeSyncPlan(elapsed, obj.config.workDuration, obj.config.breakDuration)
+
+  if plan.stage == "work" then
+    TimerManager.runWork(plan.timeLeft, startTime)
+  elseif plan.stage == "break" then
+    TimerManager.runBreak(plan.timeLeft)
+  else
+    -- 사이클이 이미 끝남: 러닝 상태 해제 + 통계 저장(완료 카운트는 올리지 않음)
     TimerManager.stop()
     saveCurrentStatistics()
-    ModalManager.show("Session complete! Great job", "✅", 2)
-
-    -- Callback: onComplete
-    if obj.config.onComplete then
-      obj.config.onComplete()
-    end
-  end))
-  UI.countdownTimer:start()
+  end
 end
 
 -- ============================================================================
@@ -594,7 +634,9 @@ end
 
 local FocusManager = {}
 
-function FocusManager.getCurrentFocusMode()
+local FOCUS_COCOA_EPOCH_OFFSET = 978307200 -- seconds between 1970-01-01 and 2001-01-01
+
+function FocusManager.getCurrentFocusInfo()
   local script = [[
     (function() {
       const app = Application.currentApplication();
@@ -602,20 +644,24 @@ function FocusManager.getCurrentFocusMode()
 
       function getJSON(path) {
         const fullPath = path.replace(/^~/, app.pathTo('home folder'));
-        const contents = app.read(fullPath);
-        return JSON.parse(contents);
+        return JSON.parse(app.read(fullPath));
       }
 
       try {
-        const assert = getJSON("~/Library/DoNotDisturb/DB/Assertions.json").data[0].storeAssertionRecords;
+        const assertions = getJSON("~/Library/DoNotDisturb/DB/Assertions.json").data[0].storeAssertionRecords;
         const config = getJSON("~/Library/DoNotDisturb/DB/ModeConfigurations.json").data[0].modeConfigurations;
 
-        if (assert && assert.length > 0) {
-          const modeid = assert[0].assertionDetails.assertionDetailsModeIdentifier;
-          return config[modeid].mode.name;
+        if (!assertions || assertions.length === 0) {
+          return null;
         }
 
-        return null;
+        const record = assertions[0];
+        const modeid = record.assertionDetails.assertionDetailsModeIdentifier;
+        const name = config[modeid] ? config[modeid].mode.name : null;
+        if (!name) {
+          return null;
+        }
+        return JSON.stringify({ name: name, startTimestamp: record.assertionStartDateTimestamp });
       } catch (e) {
         return null;
       }
@@ -623,10 +669,26 @@ function FocusManager.getCurrentFocusMode()
   ]]
 
   local ok, result = hs.osascript.javascript(script)
-  if ok and result then
-    return result
+  if not ok or not result then
+    return nil
   end
-  return nil
+
+  local decoded = hs.json.decode(result)
+  if not decoded or not decoded.name then
+    return nil
+  end
+
+  local startTime = nil
+  if decoded.startTimestamp then
+    startTime = math.floor(decoded.startTimestamp + FOCUS_COCOA_EPOCH_OFFSET)
+  end
+
+  return { name = decoded.name, startTime = startTime }
+end
+
+function FocusManager.getCurrentFocusMode()
+  local info = FocusManager.getCurrentFocusInfo()
+  return info and info.name or nil
 end
 
 function FocusManager.isPomodoroActive()
@@ -635,11 +697,12 @@ function FocusManager.isPomodoroActive()
 end
 
 function FocusManager.handleFocusChange()
-  local hasPomodoro = FocusManager.isPomodoroActive()
+  local info = FocusManager.getCurrentFocusInfo()
+  local hasPomodoro = info ~= nil and info.name == obj.config.focusMode
 
   if hasPomodoro then
     if not State.timerRunning then
-      TimerManager.startWorkSession()
+      TimerManager.syncFromFocus(info.startTime)
     end
   else
     if State.timerRunning then
@@ -651,23 +714,14 @@ function FocusManager.handleFocusChange()
 end
 
 function FocusManager.startMonitoring()
-  -- Watch for Focus mode enabled
-  UI.focusWatcherEnabled = hs.distributednotifications.new(function(name, object, userInfo)
-    if FocusManager.isPomodoroActive() then
-      if not State.timerRunning then
-        TimerManager.startWorkSession()
-      end
-    end
+  -- Focus mode enabled/disabled 모두 현재 focus를 다시 읽어 상태를 재조정한다.
+  UI.focusWatcherEnabled = hs.distributednotifications.new(function()
+    FocusManager.handleFocusChange()
   end, "_NSDoNotDisturbEnabledNotification")
   UI.focusWatcherEnabled:start()
 
-  -- Watch for Focus mode disabled
-  UI.focusWatcherDisabled = hs.distributednotifications.new(function(name, object, userInfo)
-    if State.timerRunning then
-      ModalManager.show("Pomodoro session stopped", "⏹️", 2)
-      saveCurrentStatistics()
-      TimerManager.stop()
-    end
+  UI.focusWatcherDisabled = hs.distributednotifications.new(function()
+    FocusManager.handleFocusChange()
   end, "_NSDoNotDisturbDisabledNotification")
   UI.focusWatcherDisabled:start()
 
@@ -873,6 +927,31 @@ function obj:toggleSession()
     TimerManager.startWorkSession()
     return true
   end
+end
+
+--- Pomodoro:syncFromFocus(startTime) -> Pomodoro
+--- Method
+--- Reconcile the timer to a Focus mode start time (Unix seconds).
+--- Picks work/break/complete from elapsed time. Does NOT enable Focus.
+---
+--- Parameters:
+---  * startTime - Unix timestamp (seconds) when the Focus mode started
+---
+--- Returns:
+---  * The Pomodoro object
+function obj:syncFromFocus(startTime)
+  TimerManager.syncFromFocus(startTime)
+  return self
+end
+
+--- Pomodoro:currentFocusInfo() -> table or nil
+--- Method
+--- Returns the current macOS Focus mode info, or nil if none is active.
+---
+--- Returns:
+---  * A table `{ name = <string>, startTime = <unix seconds or nil> }`, or nil
+function obj:currentFocusInfo()
+  return FocusManager.getCurrentFocusInfo()
 end
 
 --- Pomodoro:isRunning() -> boolean

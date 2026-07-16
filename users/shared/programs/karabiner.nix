@@ -9,8 +9,9 @@
 #       Otherwise → software_function.open_application (launch/focus).
 #     - Local bindings: forward as mega-chord (cmd+ctrl+opt+shift+key) so
 #       target app's own shortcut handler picks it up.
-#   Unintercepted keys pass through to Hammerspoon as F19+key (HyperModal,
-#   Pomodoro, etc.).
+#   Keep this in complex_modifications. Karabiner applies simple_modifications
+#   before complex_modifications, so simple right_command → F19 would prevent
+#   right_command+key app launchers from matching.
 {
   config,
   lib,
@@ -70,13 +71,14 @@ let
     u = "com.flexibits.cardhop.mac";
   };
 
-  hyperVar = "hyper";
   megaMods = [
     "left_command"
     "left_control"
     "left_option"
     "left_shift"
   ];
+
+  hyperVar = "hyper";
 
   # right_command itself: set variable + emit F19 (for Hammerspoon modal).
   hyperTrigger = {
@@ -108,7 +110,10 @@ let
   # `^` and `$` anchor the bundle id regex (frontmost_application_if uses regex).
   mkHideManipulator = key: app: {
     type = "basic";
-    from.key_code = key;
+    from = {
+      key_code = key;
+      modifiers.optional = [ "any" ];
+    };
     conditions = [
       {
         type = "variable_if";
@@ -129,7 +134,10 @@ let
 
   mkOpenManipulator = key: app: {
     type = "basic";
-    from.key_code = key;
+    from = {
+      key_code = key;
+      modifiers.optional = [ "any" ];
+    };
     conditions = [
       {
         type = "variable_if";
@@ -155,7 +163,10 @@ let
 
   mkLocalBinding = key: _bundleId: {
     type = "basic";
-    from.key_code = key;
+    from = {
+      key_code = key;
+      modifiers.optional = [ "any" ];
+    };
     conditions = [
       {
         type = "variable_if";
@@ -175,7 +186,7 @@ let
   localManipulators = lib.mapAttrsToList mkLocalBinding hyperLocal;
 
   hyperRule = {
-    description = "Hyper key: right_command → F19 + hyper var, Secure Input-immune app toggles and local bindings";
+    description = "Hyper key: Secure Input-immune app toggles and local bindings";
     manipulators = [ hyperTrigger ] ++ appManipulators ++ localManipulators;
   };
 
