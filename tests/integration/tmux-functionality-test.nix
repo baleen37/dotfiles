@@ -80,6 +80,11 @@ in
     mkConfigTest "tmux-set-titles" (hasConfigString "set -g set-titles on")
       "tmux should propagate session/window to the terminal title (Ghostty tab identification)";
 
+  tmux-mosh-truecolor =
+    mkConfigTest "tmux-mosh-truecolor"
+      (hasConfigString "set -as terminal-features ',xterm-256color:RGB'")
+      "tmux should preserve truecolor when mosh presents xterm-256color";
+
   # ============================================================================
   # OSC52 clipboard integration (cross-platform, works over SSH)
   # ============================================================================
