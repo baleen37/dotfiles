@@ -1,6 +1,9 @@
 # Ghostty Terminal Configuration
 # Managed via Nix Home Manager
 
+# Terminal Compatibility
+term = xterm-256color
+
 # Font Configuration
 font-family = JetBrains Mono
 font-family = D2Coding
