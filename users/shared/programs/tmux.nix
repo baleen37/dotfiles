@@ -162,6 +162,10 @@ in
         # so no manual terminal-overrides are needed for those.
         set -as terminal-features ',xterm-ghostty:RGB'
 
+        # Mosh 1.4 preserves truecolor and exports COLORTERM=truecolor, but its
+        # outer terminal is xterm-256color rather than xterm-ghostty.
+        set -as terminal-features ',xterm-256color:RGB'
+
         # Extended keys (CSI u). Ghostty speaks the CSI-u encoding; tmux 3.6
         # defaults extended-keys-format to xterm form, so set csi-u explicitly
         # for modifier combos (e.g. Shift+Enter) to reach apps inside tmux.
