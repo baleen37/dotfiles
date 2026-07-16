@@ -20,10 +20,12 @@
 ### Task 1: Declare and test mosh truecolor support
 
 **Files:**
+
 - Modify: `tests/integration/tmux-functionality-test.nix`
 - Modify: `users/shared/programs/tmux.nix`
 
 **Interfaces:**
+
 - Consumes: `programs.tmux.extraConfig` from the shared Home Manager module.
 - Produces: `terminal-features` entry `xterm-256color:RGB` for mosh-facing tmux clients.
 
@@ -86,10 +88,12 @@ git commit -m "fix(tmux): preserve truecolor over mosh"
 ### Task 2: Activate and verify on baleen-macbook
 
 **Files:**
+
 - Read: `flake-modules/home.nix`
 - Runtime target: `baleen@baleens-macbook.ojos-in.ts.net`
 
 **Interfaces:**
+
 - Consumes: `homeConfigurations.baleen.activationPackage` produced by the flake.
 - Produces: active remote tmux config whose fresh mosh client includes `RGB`.
 
