@@ -77,12 +77,15 @@ helpers.testSuite "starship-configuration" (
     (assertStringSetting "right-format" starshipSettings.right_format "$cmd_duration")
 
     # Format module checks
+    (assertFormatHasModule "username")
     (assertFormatHasModule "directory")
     (assertFormatHasModule "git_branch")
     (assertFormatHasModule "git_status")
     (assertFormatHasModule "python")
-    (assertFormatHasModule "nix_shell")
     (assertFormatHasModule "character")
+    (helpers.assertTest "starship-format-excludes-nix-shell" (
+      !(formatContains "nix_shell")
+    ) "Starship format should not include nix_shell module")
 
     # Directory module settings
     (assertStringSetting "directory-truncation-length" starshipSettings.directory.truncation_length 3)
@@ -192,9 +195,10 @@ helpers.testSuite "starship-configuration" (
       "Python format should include virtualenv variable"
     )
 
-    # Nix shell module settings
-    (assertStringSetting "nix-shell-symbol" starshipSettings.nix_shell.symbol "nix")
-    (assertStringSetting "nix-shell-style" starshipSettings.nix_shell.style "bold blue")
+    # Username module settings
+    (assertBoolSetting "username-enabled" starshipSettings.username.disabled false)
+    (assertBoolSetting "username-always-visible" starshipSettings.username.show_always true)
+    (assertStringSetting "username-format" starshipSettings.username.format "[$user]($style) ")
 
     # Character module settings
     (assertStringSetting "success-symbol" starshipSettings.character.success_symbol "[➜](bold green)")
@@ -203,7 +207,6 @@ helpers.testSuite "starship-configuration" (
 
   # Disabled modules
   ++ (map assertModuleDisabled [
-    "username"
     "hostname"
     "time"
     "package"
