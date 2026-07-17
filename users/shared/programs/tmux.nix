@@ -1,7 +1,5 @@
 # Tmux Terminal Multiplexer Configuration
 #
-# Oh My Tmux Inspired Configuration
-#
 # Features:
 #   - Ctrl-a prefix (screen-style)
 #   - Intuitive split bindings: | (vertical), - (horizontal)
@@ -46,25 +44,27 @@ in
     programs.tmux = {
       enable = true;
 
-      plugins = [ ];
+      plugins = [ pkgs.tmuxPlugins.vim-tmux-navigator ];
 
       terminal = "tmux-256color";
       prefix = "C-a";
       escapeTime = 0;
       historyLimit = 50000;
+      keyMode = "vi";
+      mouse = true;
+      focusEvents = true;
 
-      # Oh My Tmux inspired configuration
       extraConfig = ''
         # ============================================================================
         # Base configuration
         # ============================================================================
         # default-terminal is emitted by programs.tmux.terminal = "tmux-256color"
+        # mouse, focus-events, mode-keys/status-keys are emitted by the
+        # corresponding programs.tmux options (mouse, focusEvents, keyMode)
         set -g default-shell ${pkgs.zsh}/bin/zsh
         # default-command left unset: tmux runs default-shell as a login shell
-        set -g focus-events on
 
         # Terminal and display settings
-        set -g mouse on
         bind-key -n MouseDown2Pane paste-buffer
         set -g base-index 1
         set -g pane-base-index 1
@@ -96,7 +96,7 @@ in
         bind a last-window
 
         # ============================================================================
-        # Pane management (Oh My Tmux style)
+        # Pane management
         # ============================================================================
         # Intuitive split bindings
         bind | split-window -h -c "#{pane_current_path}"
@@ -131,7 +131,6 @@ in
         # ============================================================================
         # Copy mode with OSC52 support
         # ============================================================================
-        setw -g mode-keys vi
         bind [ copy-mode
         bind ] paste-buffer
 
