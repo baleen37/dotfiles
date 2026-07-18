@@ -62,15 +62,15 @@ in
   ) "tmux should have 0 plugins (functionality provided via extraConfig)";
 
   # ============================================================================
-  # Oh My Tmux style key bindings
+  # Key bindings
   # ============================================================================
   tmux-split-vertical =
-    mkConfigTest "tmux-split-vertical" (hasConfigString "bind | split-window -h")
-      "tmux should bind | to vertical split";
+    mkConfigTest "tmux-split-vertical" (hasConfigString "bind % split-window -h")
+      "tmux should keep default % vertical split (with current pane path)";
 
   tmux-split-horizontal =
-    mkConfigTest "tmux-split-horizontal" (hasConfigString "bind - split-window -v")
-      "tmux should bind - to horizontal split";
+    mkConfigTest "tmux-split-horizontal" (hasConfigString "bind '\"' split-window -v")
+      "tmux should keep default \" horizontal split (with current pane path)";
 
   tmux-vim-pane-navigation =
     mkConfigTest "tmux-vim-pane-navigation" (hasConfigString "bind h select-pane -L")
