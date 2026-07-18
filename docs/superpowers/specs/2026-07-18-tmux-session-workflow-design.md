@@ -43,11 +43,11 @@
 
 - **`ts <경로>`**: 경로 → 세션명 계산 → `tmux new-session -A -d -s <name> -c <path>`
   후, `$TMUX` 안이면 `switch-client -t <name>`, 밖이면 `attach -t <name>`
-- **`ts` (인자 없음, 피커 모드)**: fzf로 다음 목록을 표시하고 선택 시 위 로직 실행
-  - 살아있는 세션 (`tmux ls`, 최근 attach 순, `●` 마커)
-  - 후보 디렉토리: `~/dotfiles`, `~/dev/*`, 그리고 각각의 `.worktrees/*`
-    (`~/dev/*/.worktrees/*`, `~/dotfiles/.worktrees/*`)
-  - 이미 세션이 있는 디렉토리는 후보에서 제거(중복 방지)
+- **`ts` (인자 없음, 피커 모드)**: 살아있는 세션 목록(`tmux ls`, 최근 attach 순)을
+  fzf로 표시하고, 선택한 세션으로 전환/attach
+- **비스코프(추후 확장점)**: 디렉토리 후보 검색은 이번에 넣지 않는다. 새 세션은
+  `gw`(워크트리) 또는 `ts <경로>`(예: `ts .`)로 만든다. 나중에 필요해지면 피커
+  목록에 디렉토리 소스(검색 루트 또는 zoxide) 한 줄을 추가하는 구조로 둔다
 - 의존성: tmux, fzf (둘 다 기존 설치분). runtimeInputs로 명시
 
 배치: `users/shared/programs/tmux.nix` 안에서 정의 (tmux 전용 부품이므로 동일
@@ -99,8 +99,8 @@ Host <원격호스트>
   - extraConfig에 `bind f display-popup` 포함 단언
   - `ts` 스크립트가 home.packages에 포함되는지 단언
 - 수동 검증 (`make switch` 후):
-  1. `prefix+f` → 목록에서 레포 선택 → 새 세션 생성 확인
-  2. 같은 항목 재선택 → 기존 세션 attach(전환) 확인
+  1. 레포 디렉토리에서 `ts .` → 레포명 세션 생성 확인, 재실행 시 기존 세션 전환 확인
+  2. `prefix+f` → 세션 목록 fzf 표시, 선택 시 해당 세션으로 전환 확인
   3. tmux 안에서 `gw` → 워크트리 전용 세션으로 자동 전환 확인
   4. tmux 밖에서 `gw` → 기존처럼 cd만 되는지 확인
 
