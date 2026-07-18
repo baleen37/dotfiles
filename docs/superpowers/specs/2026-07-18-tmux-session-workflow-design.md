@@ -43,28 +43,16 @@
 
 - **`ts <경로>`**: 경로 → 세션명 계산 → `tmux new-session -A -d -s <name> -c <path>`
   후, `$TMUX` 안이면 `switch-client -t <name>`, 밖이면 `attach -t <name>`
-- **`ts` (인자 없음, 피커 모드)**: 살아있는 세션 목록(`tmux ls`, 최근 attach 순)을
-  fzf로 표시하고, 선택한 세션으로 전환/attach
-- **비스코프(추후 확장점)**: 디렉토리 후보 검색은 이번에 넣지 않는다. 새 세션은
-  `gw`(워크트리) 또는 `ts <경로>`(예: `ts .`)로 만든다. 나중에 필요해지면 피커
-  목록에 디렉토리 소스(검색 루트 또는 zoxide) 한 줄을 추가하는 구조로 둔다
-- 의존성: tmux, fzf (둘 다 기존 설치분). runtimeInputs로 명시
+- 인자 없이 실행하면 usage 출력 (피커 모드 없음)
+- **비스코프(추후 확장점)**: 피커/디렉토리 검색은 넣지 않는다. 세션 간 전환은
+  tmux 내장 `prefix+s`(choose-tree)를 사용한다. 새 세션은 `gw`(워크트리) 또는
+  `ts <경로>`(예: `ts .`)로 만든다
+- 의존성: tmux (기존 설치분). runtimeInputs로 명시
 
 배치: `users/shared/programs/tmux.nix` 안에서 정의 (tmux 전용 부품이므로 동일
 모듈에 둠. 파일이 과도하게 커지면 `tmux/` 하위 분리는 후속 판단)
 
-### 2. tmux 바인딩
-
-`extraConfig`에 추가:
-
-```tmux
-bind f display-popup -E -w 70% -h 60% ts
-```
-
-- `prefix+f`로 어디서든 피커 popup (tmux ≥3.2, 현재 3.7b)
-- 세션 kill 바인딩은 페인포인트가 아니므로 미포함 (YAGNI)
-
-### 3. gw 연동 (`users/shared/programs/zsh/gw.nix`)
+### 2. gw 연동 (`users/shared/programs/zsh/gw.nix`)
 
 워크트리 생성/전환 성공 후 마지막 단계:
 
@@ -73,7 +61,7 @@ bind f display-popup -E -w 70% -h 60% ts
 - tmux 밖이거나 `ts`가 없으면 → 기존처럼 `cd` (동작 보존)
 - 기존 워크트리로 전환하는 분기(`_handle_existing_worktree`)에도 동일 적용
 
-### 4. SSH/mosh 자동 attach (`users/shared/programs/ssh.nix`)
+### 3. SSH/mosh 자동 attach (`users/shared/programs/ssh.nix`)
 
 전역 강제가 아닌 호스트별 옵트인 패턴:
 
@@ -90,28 +78,26 @@ Host <원격호스트>
 ## 에러 처리
 
 - `ts <경로>`: 경로가 디렉토리가 아니면 에러 메시지 후 종료 1
-- 피커에서 ESC(선택 취소): 아무 것도 하지 않고 종료 0
 - tmux 서버가 없을 때 `ts` 단독 실행: `new-session -A`가 서버를 시작하므로 정상 동작
 
 ## 테스트 / 검증
 
 - 통합 테스트 (`tests/integration/tmux-functionality-test.nix` 기존 패턴):
-  - extraConfig에 `bind f display-popup` 포함 단언
   - `ts` 스크립트가 home.packages에 포함되는지 단언
 - 수동 검증 (`make switch` 후):
   1. 레포 디렉토리에서 `ts .` → 레포명 세션 생성 확인, 재실행 시 기존 세션 전환 확인
-  2. `prefix+f` → 세션 목록 fzf 표시, 선택 시 해당 세션으로 전환 확인
-  3. tmux 안에서 `gw` → 워크트리 전용 세션으로 자동 전환 확인
-  4. tmux 밖에서 `gw` → 기존처럼 cd만 되는지 확인
+  2. tmux 안에서 `gw` → 워크트리 전용 세션으로 자동 전환 확인
+  3. tmux 밖에서 `gw` → 기존처럼 cd만 되는지 확인
+  4. `prefix+s`(내장 choose-tree)로 세션 간 전환 확인
 
 ## 변경 파일 목록
 
 | 파일 | 변경 |
 |---|---|
-| `users/shared/programs/tmux.nix` | `ts` 스크립트 정의 + `bind f` 바인딩 |
+| `users/shared/programs/tmux.nix` | `ts` 스크립트 정의 (home.packages) |
 | `users/shared/programs/zsh/gw.nix` | 말미에 tmux 연동 분기 (3~5줄) |
 | `users/shared/programs/ssh.nix` | 옵트인 RemoteCommand 패턴 (호스트는 추후 지정) |
-| `tests/integration/tmux-functionality-test.nix` | 바인딩/패키지 단언 추가 |
+| `tests/integration/tmux-functionality-test.nix` | `ts` 패키지 단언 추가 |
 
 ## 비채택 대안
 
