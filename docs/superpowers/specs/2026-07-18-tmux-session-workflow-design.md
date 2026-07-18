@@ -75,10 +75,10 @@ Host <원격호스트>
 
 ## 변경 파일 목록
 
-| 파일 | 변경 |
-|---|---|
-| `users/shared/programs/zsh/gw.nix` | 말미에 tmux 세션 생성/전환 분기 |
-| `users/shared/programs/ssh.nix` | 옵트인 RemoteCommand 패턴 (호스트는 추후 지정) |
+| 파일                               | 변경                                           |
+| ---------------------------------- | ---------------------------------------------- |
+| `users/shared/programs/zsh/gw.nix` | 말미에 tmux 세션 생성/전환 분기                |
+| `users/shared/programs/ssh.nix`    | 옵트인 RemoteCommand 패턴 (호스트는 추후 지정) |
 
 ## 비채택 대안
 
