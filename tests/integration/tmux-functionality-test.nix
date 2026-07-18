@@ -72,10 +72,9 @@ in
     mkConfigTest "tmux-split-horizontal" (hasConfigString "bind - split-window -v")
       "tmux should bind - to a top/bottom split with the current pane path";
 
-  tmux-default-split-bindings-unbound =
-    mkConfigTest "tmux-default-split-bindings-unbound"
-      (hasConfigString "unbind '%'" && hasConfigString "unbind '\"'")
-      "tmux should unbind the default % and double-quote split keys";
+  tmux-default-split-bindings-unbound = mkConfigTest "tmux-default-split-bindings-unbound" (
+    hasConfigString "unbind '%'" && hasConfigString "unbind '\"'"
+  ) "tmux should unbind the default % and double-quote split keys";
 
   tmux-vim-pane-navigation =
     mkConfigTest "tmux-vim-pane-navigation" (hasConfigString "bind h select-pane -L")
