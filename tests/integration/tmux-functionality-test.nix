@@ -1,5 +1,5 @@
 # tests/integration/tmux-functionality.nix
-# Tmux configuration integration tests for Oh My Tmux style
+# Tmux configuration integration tests
 # Tests that tmux is properly integrated with home manager
 {
   inputs,
@@ -43,11 +43,11 @@ let
 in
 {
   # ============================================================================
-  # Core configuration - Oh My Tmux style
+  # Core configuration
   # ============================================================================
   tmux-prefix-is-ctrl-a = helpers.assertTest "tmux-prefix-is-ctrl-a" (
     tmuxConfig.prefix == "C-a"
-  ) "tmux prefix should be Ctrl-a (Oh My Tmux style)";
+  ) "tmux prefix should be Ctrl-a (screen-style)";
 
   tmux-prefix-send-prefix =
     mkConfigTest "tmux-prefix-send-prefix" (hasConfigString "bind C-a send-prefix")
@@ -57,20 +57,21 @@ in
     mkConfigTest "tmux-prefix-last-window" (hasConfigString "bind a last-window")
       "tmux should bind a to toggle last window";
 
-  tmux-has-zero-plugins = helpers.assertTest "tmux-has-zero-plugins" (
-    builtins.length tmuxConfig.plugins == 0
-  ) "tmux should have 0 plugins (functionality provided via extraConfig)";
+  tmux-has-vim-navigator-plugin = helpers.assertTest "tmux-has-vim-navigator-plugin" (lib.any
+    (p: lib.hasInfix "vim-tmux-navigator" (p.pname or p.plugin.pname or ""))
+    tmuxConfig.plugins
+  ) "tmux should load vim-tmux-navigator (pairs with the vim plugin for C-h/j/k/l navigation)";
 
   # ============================================================================
-  # Oh My Tmux style key bindings
+  # Key bindings
   # ============================================================================
   tmux-split-vertical =
-    mkConfigTest "tmux-split-vertical" (hasConfigString "bind | split-window -h")
-      "tmux should bind | to vertical split";
+    mkConfigTest "tmux-split-vertical" (hasConfigString "bind % split-window -h")
+      "tmux should keep the default % vertical split with current pane path";
 
   tmux-split-horizontal =
-    mkConfigTest "tmux-split-horizontal" (hasConfigString "bind - split-window -v")
-      "tmux should bind - to horizontal split";
+    mkConfigTest "tmux-split-horizontal" (hasConfigString "bind '\"' split-window -v")
+      "tmux should keep the default \" horizontal split with current pane path";
 
   tmux-vim-pane-navigation =
     mkConfigTest "tmux-vim-pane-navigation" (hasConfigString "bind h select-pane -L")
