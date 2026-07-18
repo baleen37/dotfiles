@@ -4,7 +4,7 @@
 #
 # Features:
 #   - Ctrl-a prefix (screen-style)
-#   - Intuitive split bindings: | (vertical), - (horizontal)
+#   - Default split bindings: % (vertical), " (horizontal)
 #   - Vim-style pane navigation: h/j/k/l
 #   - Vi-style copy mode with tmux-native OSC52 clipboard support
 #   - Truecolor (RGB) + undercurl inherited from xterm-ghostty terminfo
@@ -13,7 +13,7 @@
 #
 # Key Bindings:
 #   - Prefix: Ctrl+a
-#   - Split panes: Prefix+| (vertical), Prefix+- (horizontal)
+#   - Split panes: Prefix+% (vertical), Prefix+" (horizontal)
 #   - Navigate panes: Prefix+h/j/k/l or Ctrl+h/j/k/l (with Vim)
 #   - New window: Prefix+c
 #   - Next/Prev window: Prefix+n/p
@@ -80,11 +80,12 @@ in
         set -g allow-rename off
         set -g destroy-unattached off
 
-        # Propagate session/window to the Ghostty tab/window title so multiple
-        # tabs are distinguishable. Complements allow-rename off: apps can't
-        # hijack the name via OSC, but tmux itself sets the outer title.
+        # Propagate session + active pane title to the Ghostty tab/window title.
+        # Complements allow-rename off: that only blocks window-name renames;
+        # pane titles (OSC 2) still flow, which is how coding agents (Claude
+        # Code etc.) report their status (spinner = working, ✳ = waiting).
         set -g set-titles on
-        set -g set-titles-string "#S  #I:#W"
+        set -g set-titles-string "#S  #{?#{!=:#{pane_title},#{host}},#{pane_title},#I:#W}"
 
         # ============================================================================
         # Prefix key bindings (Ctrl-a style)
@@ -96,13 +97,11 @@ in
         bind a last-window
 
         # ============================================================================
-        # Pane management (Oh My Tmux style)
+        # Pane management
         # ============================================================================
-        # Intuitive split bindings
-        bind | split-window -h -c "#{pane_current_path}"
-        bind - split-window -v -c "#{pane_current_path}"
-        unbind '"'
-        unbind %
+        # Default split bindings (% and "), but keep the current pane's path
+        bind % split-window -h -c "#{pane_current_path}"
+        bind '"' split-window -v -c "#{pane_current_path}"
 
         # Vim-style pane navigation
         bind h select-pane -L
@@ -184,9 +183,12 @@ in
         set -g status-left '#[fg=colour233,bg=colour241,bold] #S '
         set -g status-right '#[fg=colour233,bg=colour241,bold] %d/%m #[fg=colour233,bg=colour245,bold] %H:%M '
 
-        # Window status display
-        setw -g window-status-current-format ' #I#[fg=colour250]:#[fg=colour255]#W#[fg=colour50]#F '
-        setw -g window-status-format ' #I#[fg=colour237]:#[fg=colour250]#W#[fg=colour244]#F '
+        # Window status display. Shows the active pane's title (agent status:
+        # spinner = working, ✳ = waiting) when a program sets one via OSC 2;
+        # falls back to the window name when the title is the default (#{host}).
+        # Truncated to 30 chars to keep the window list readable.
+        setw -g window-status-current-format ' #I#[fg=colour250]:#[fg=colour255]#{?#{!=:#{pane_title},#{host}},#{=/30/…:pane_title},#W}#[fg=colour50]#F '
+        setw -g window-status-format ' #I#[fg=colour237]:#[fg=colour250]#{?#{!=:#{pane_title},#{host}},#{=/30/…:pane_title},#W}#[fg=colour244]#F '
 
         # ============================================================================
         # Misc
