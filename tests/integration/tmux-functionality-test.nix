@@ -31,6 +31,7 @@ let
     config = mockConfig;
   };
   tmuxConfig = tmuxModule.config.content.programs.tmux;
+  seshConfig = tmuxModule.config.content.programs.sesh or { };
 
   # Helper function to check if config contains a string
   hasConfigString = str: pluginHelpers.hasConfigString tmuxConfig.extraConfig str;
@@ -79,6 +80,13 @@ in
   # ============================================================================
   # Key bindings
   # ============================================================================
+  tmux-sesh-enabled = helpers.assertTest "tmux-sesh-enabled" (seshConfig.enable or false
+  ) "tmux should enable sesh through Home Manager";
+
+  tmux-sesh-key-is-uppercase-t = helpers.assertTest "tmux-sesh-key-is-uppercase-t" (
+    (seshConfig.tmuxKey or null) == "T"
+  ) "sesh should use prefix+T and preserve tmux prefix+t clock mode";
+
   tmux-split-vertical =
     mkConfigTest "tmux-split-vertical" (hasConfigString "bind | split-window -h")
       "tmux should bind | to a left/right split with the current pane path";

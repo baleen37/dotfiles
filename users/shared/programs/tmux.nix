@@ -43,6 +43,11 @@ in
   options.modules.programs.tmux.enable = lib.mkEnableOption "Tmux multiplexer configuration";
 
   config = lib.mkIf cfg.enable {
+    programs.sesh = {
+      enable = true;
+      tmuxKey = "T";
+    };
+
     programs.tmux = {
       enable = true;
 
