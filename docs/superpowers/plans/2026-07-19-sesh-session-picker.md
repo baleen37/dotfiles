@@ -22,10 +22,12 @@
 ### Task 1: Zoxide와 fzf tmux 통합
 
 **Files:**
+
 - Modify: `tests/integration/zsh-test.nix:36-38,118-123`
 - Modify: `users/shared/programs/zsh/default.nix:37-73`
 
 **Interfaces:**
+
 - Consumes: 기존 `programs.fzf`와 Home Manager의 `programs.zoxide` 옵션
 - Produces: `programs.fzf.tmux.enableShellIntegration = true`, `programs.zoxide.enable = true`, `programs.zoxide.enableZshIntegration = true`
 
@@ -119,10 +121,12 @@ Expected: 테스트와 설정 네 파일 중 이 task의 두 파일만 포함한
 ### Task 2: Home Manager sesh tmux 피커
 
 **Files:**
+
 - Modify: `tests/integration/tmux-functionality-test.nix:27-41,79-82`
 - Modify: `users/shared/programs/tmux.nix:45-46`
 
 **Interfaces:**
+
 - Consumes: Task 1의 fzf tmux integration, Home Manager `programs.sesh` 모듈
 - Produces: `programs.sesh.enable = true`, `programs.sesh.tmuxKey = "T"`, Home Manager가 생성하는 `prefix+T` picker
 
@@ -230,9 +234,11 @@ Expected: 이 task의 설정과 테스트 두 파일만 포함한 커밋이 생�
 ### Task 3: Home Manager 적용과 실제 키 검증
 
 **Files:**
+
 - Verify: generated Home Manager profile and `~/.config/tmux/tmux.conf`
 
 **Interfaces:**
+
 - Consumes: Task 1과 Task 2에서 커밋한 선언형 설정
 - Produces: 현재 머신에 설치된 sesh/zoxide/fzf와 실제 tmux prefix key table 증거
 
