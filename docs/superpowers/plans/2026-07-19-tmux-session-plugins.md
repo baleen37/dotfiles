@@ -117,7 +117,7 @@ Run:
 
 ```bash
 git diff --check
-nix fmt -- --check users/shared/programs/tmux.nix tests/integration/tmux-functionality-test.nix
+nix fmt -- --fail-on-change users/shared/programs/tmux.nix tests/integration/tmux-functionality-test.nix
 git add users/shared/programs/tmux.nix tests/integration/tmux-functionality-test.nix
 git commit -m "feat(tmux): add session persistence plugins"
 ```
