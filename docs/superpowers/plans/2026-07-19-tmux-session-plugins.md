@@ -20,10 +20,12 @@
 ### Task 1: Tmux 세션 플러그인 구성
 
 **Files:**
+
 - Modify: `tests/integration/tmux-functionality-test.nix`
 - Modify: `users/shared/programs/tmux.nix`
 
 **Interfaces:**
+
 - Consumes: Home Manager의 `programs.tmux.plugins` 목록과 `extraConfig` 문자열
 - Produces: 세 플러그인의 로딩 및 Continuum 자동 복원 설정
 
