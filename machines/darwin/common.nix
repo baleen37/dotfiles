@@ -3,6 +3,8 @@
   pkgs,
   lib,
   config,
+  currentSystemName,
+  currentSystemUser,
   ...
 }:
 
@@ -65,6 +67,10 @@ in
   programs = {
     zsh.enable = true;
   };
+
+  security.sudo.extraConfig = lib.mkIf (currentSystemName == "kakaostyle-jito") ''
+    ${currentSystemUser} ALL = (root) NOPASSWD: /run/current-system/sw/bin/darwin-rebuild ^switch --flake \.\#kakaostyle-jito$
+  '';
 
   # System state version
   system.stateVersion = 5;

@@ -32,7 +32,7 @@ pkgs.runCommand "makefile-switch-commands-test"
     # Test 1: build-switch should use darwin-rebuild on Darwin (via dependency on switch)
     # build-switch depends on switch, and switch contains darwin-rebuild command
     if (grep -A 5 "^build-switch:" "$makefileSource" | grep -q "switch") &&
-       (grep -A 20 "^switch:" "$makefileSource" | grep -q "darwin-rebuild"); then
+       (grep -A 20 "^switch:" "$makefileSource" | grep -q "DARWIN_REBUILD"); then
       echo "✅ Test 1 PASS: build-switch uses darwin-rebuild via dependency on switch"
     else
       echo "❌ Test 1 FAIL: build-switch should depend on switch which uses darwin-rebuild"
@@ -40,7 +40,7 @@ pkgs.runCommand "makefile-switch-commands-test"
     fi
 
     # Test 2: switch should use darwin-rebuild on Darwin
-    if grep -A 20 "^switch:" "$makefileSource" | grep -q "darwin-rebuild"; then
+    if grep -A 20 "^switch:" "$makefileSource" | grep -q "DARWIN_REBUILD"; then
       echo "✅ Test 2 PASS: switch uses darwin-rebuild"
     else
       echo "❌ Test 2 FAIL: switch should use darwin-rebuild"
@@ -73,6 +73,23 @@ pkgs.runCommand "makefile-switch-commands-test"
     else
       echo "❌ Test 5 FAIL: switch should be in .PHONY"
       exit 1
+    fi
+
+    # Test 6: Darwin switch must invoke the root-managed binary directly.
+    if grep -q '^DARWIN_REBUILD := /run/current-system/sw/bin/darwin-rebuild$' "$makefileSource" &&
+       sed -n '/^switch:/,/^else/{p}' "$makefileSource" | grep -q 'sudo -H $(DARWIN_REBUILD) switch --flake ".#$(NIXNAME)"'; then
+      echo "✅ Test 6 PASS: Darwin switch matches the sudoers allowlist"
+    else
+      echo "❌ Test 6 FAIL: Darwin switch must use the allowlisted absolute darwin-rebuild path"
+      exit 1
+    fi
+
+    # Test 7: Darwin switch must not authorize sudo through env.
+    if sed -n '/^switch:/,/^else/{p}' "$makefileSource" | grep -q 'sudo -H env'; then
+      echo "❌ Test 7 FAIL: Darwin switch must not sudo /usr/bin/env"
+      exit 1
+    else
+      echo "✅ Test 7 PASS: Darwin switch does not sudo /usr/bin/env"
     fi
 
     echo ""

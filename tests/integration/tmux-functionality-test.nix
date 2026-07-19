@@ -57,9 +57,24 @@ in
     mkConfigTest "tmux-prefix-last-window" (hasConfigString "bind a last-window")
       "tmux should bind a to toggle last window";
 
-  tmux-has-zero-plugins = helpers.assertTest "tmux-has-zero-plugins" (
-    builtins.length tmuxConfig.plugins == 0
-  ) "tmux should have 0 plugins (functionality provided via extraConfig)";
+  tmux-has-resurrect-plugin =
+    helpers.assertTest "tmux-has-resurrect-plugin"
+      (pluginHelpers.hasPluginByName tmuxConfig.plugins "tmuxplugin-resurrect")
+      "tmux should load tmux-resurrect through Home Manager";
+
+  tmux-has-continuum-plugin =
+    helpers.assertTest "tmux-has-continuum-plugin"
+      (pluginHelpers.hasPluginByName tmuxConfig.plugins "tmuxplugin-continuum")
+      "tmux should load tmux-continuum through Home Manager";
+
+  tmux-has-vim-navigator-plugin =
+    helpers.assertTest "tmux-has-vim-navigator-plugin"
+      (pluginHelpers.hasPluginByName tmuxConfig.plugins "tmuxplugin-vim-tmux-navigator")
+      "tmux should load vim-tmux-navigator through Home Manager";
+
+  tmux-continuum-auto-restore =
+    mkConfigTest "tmux-continuum-auto-restore" (hasConfigString "set -g @continuum-restore 'on'")
+      "tmux continuum should restore saved sessions automatically";
 
   # ============================================================================
   # Key bindings

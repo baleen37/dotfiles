@@ -46,7 +46,11 @@ in
     programs.tmux = {
       enable = true;
 
-      plugins = [ ];
+      plugins = with pkgs.tmuxPlugins; [
+        resurrect
+        continuum
+        vim-tmux-navigator
+      ];
 
       terminal = "tmux-256color";
       prefix = "C-a";
@@ -79,6 +83,9 @@ in
         set -g remain-on-exit off
         set -g allow-rename off
         set -g destroy-unattached off
+
+        # Restore the most recently saved session when tmux starts.
+        set -g @continuum-restore 'on'
 
         # Propagate session + active pane title to the Ghostty tab/window title.
         # Complements allow-rename off: that only blocks window-name renames;
