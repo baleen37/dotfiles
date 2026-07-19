@@ -33,8 +33,9 @@ let
   shellAliases = zshSettings.shellAliases or { };
   initContent = zshSettings.initContent.content or "";
 
-  # Extract fzf and direnv settings
+  # Extract fzf, zoxide, and direnv settings
   fzfSettings = zshConfigBody.programs.fzf or { };
+  zoxideSettings = zshConfigBody.programs.zoxide or { };
   direnvSettings = zshConfigBody.programs.direnv or { };
 
   # Helper to check if an alias exists
@@ -120,6 +121,11 @@ in
     (helpers.assertTest "fzf-zsh-integration" fzfSettings.enableZshIntegration
       "fzf zsh integration should be enabled"
     )
+    (helpers.assertTest "fzf-tmux-integration" (fzfSettings.tmux.enableShellIntegration or false
+    ) "fzf tmux shell integration should be enabled for sesh")
+    (helpers.assertTest "zoxide-enabled" (zoxideSettings.enable or false) "zoxide should be enabled")
+    (helpers.assertTest "zoxide-zsh-integration" (zoxideSettings.enableZshIntegration or false
+    ) "zoxide zsh integration should be enabled")
 
     # Fzf default options
     (helpers.assertTest "fzf-height-option" (lib.any (opt: lib.hasInfix "--height 40%" opt) (
