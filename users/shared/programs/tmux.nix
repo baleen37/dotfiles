@@ -53,7 +53,14 @@ in
 
       plugins = with pkgs.tmuxPlugins; [
         resurrect
-        continuum
+        {
+          plugin = continuum;
+          extraConfig = ''
+            # Configure Continuum before it starts and extends status-right.
+            set -g @continuum-restore 'on'
+            set -g status-right '#[fg=colour233,bg=colour241,bold] %d/%m #[fg=colour233,bg=colour245,bold] %H:%M '
+          '';
+        }
         vim-tmux-navigator
       ];
 
@@ -88,9 +95,6 @@ in
         set -g remain-on-exit off
         set -g allow-rename off
         set -g destroy-unattached off
-
-        # Restore the most recently saved session when tmux starts.
-        set -g @continuum-restore 'on'
 
         # Propagate session + active pane title to the Ghostty tab/window title.
         # Complements allow-rename off: that only blocks window-name renames;
@@ -195,7 +199,6 @@ in
         set -g status-left-length 20
         set -g status-right-length 50
         set -g status-left '#[fg=colour233,bg=colour241,bold] #S '
-        set -g status-right '#[fg=colour233,bg=colour241,bold] %d/%m #[fg=colour233,bg=colour245,bold] %H:%M '
 
         # Window status display. Shows the active pane's title (agent status:
         # spinner = working, ✳ = waiting) when a program sets one via OSC 2;

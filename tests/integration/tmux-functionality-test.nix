@@ -33,6 +33,30 @@ let
   tmuxConfig = tmuxModule.config.content.programs.tmux;
   seshConfig = tmuxModule.config.content.programs.sesh or { };
 
+  pluginPackage = plugin: plugin.plugin or plugin;
+  pluginName = plugin: (pluginPackage plugin).pname or null;
+  continuumPlugin = lib.findFirst (
+    plugin: pluginName plugin == "tmuxplugin-continuum"
+  ) null tmuxConfig.plugins;
+
+  homeConfig = inputs.home-manager.lib.homeManagerConfiguration {
+    inherit pkgs;
+    modules = [
+      ../../users/shared/programs/tmux.nix
+      {
+        modules.programs.tmux.enable = true;
+        programs.fzf.tmux.enableShellIntegration = true;
+        home = {
+          username = "test";
+          homeDirectory = if pkgs.stdenv.isDarwin then "/Users/test" else "/home/test";
+          stateVersion = "24.11";
+        };
+      }
+    ];
+  };
+  generatedTmuxConfig = homeConfig.config.xdg.configFile."tmux/tmux.conf".text;
+  generatedTmuxConfigFile = pkgs.writeText "tmux.conf" generatedTmuxConfig;
+
   # Helper function to check if config contains a string
   hasConfigString = str: pluginHelpers.hasConfigString tmuxConfig.extraConfig str;
 
@@ -63,19 +87,44 @@ in
       (pluginHelpers.hasPluginByName tmuxConfig.plugins "tmuxplugin-resurrect")
       "tmux should load tmux-resurrect through Home Manager";
 
-  tmux-has-continuum-plugin =
-    helpers.assertTest "tmux-has-continuum-plugin"
-      (pluginHelpers.hasPluginByName tmuxConfig.plugins "tmuxplugin-continuum")
-      "tmux should load tmux-continuum through Home Manager";
+  tmux-has-continuum-plugin = helpers.assertTest "tmux-has-continuum-plugin" (
+    continuumPlugin != null
+  ) "tmux should load tmux-continuum through Home Manager";
 
   tmux-has-vim-navigator-plugin =
     helpers.assertTest "tmux-has-vim-navigator-plugin"
       (pluginHelpers.hasPluginByName tmuxConfig.plugins "tmuxplugin-vim-tmux-navigator")
       "tmux should load vim-tmux-navigator through Home Manager";
 
-  tmux-continuum-auto-restore =
-    mkConfigTest "tmux-continuum-auto-restore" (hasConfigString "set -g @continuum-restore 'on'")
-      "tmux continuum should restore saved sessions automatically";
+  tmux-plugin-order = helpers.assertTest "tmux-plugin-order" (
+    builtins.map pluginName tmuxConfig.plugins == [
+      "tmuxplugin-resurrect"
+      "tmuxplugin-continuum"
+      "tmuxplugin-vim-tmux-navigator"
+    ]
+  ) "tmux should load resurrect, continuum, then vim-tmux-navigator";
+
+  tmux-continuum-auto-restore = mkConfigTest "tmux-continuum-auto-restore" (
+    pluginHelpers.hasConfigString
+    (continuumPlugin.extraConfig or "")
+    "set -g @continuum-restore 'on'"
+  ) "tmux continuum should restore saved sessions automatically";
+
+  tmux-continuum-config-order = pkgs.runCommand "tmux-continuum-config-order" { } ''
+    continuum_line="$(${pkgs.gnugrep}/bin/grep -nF 'tmuxplugin-continuum' ${generatedTmuxConfigFile} | ${pkgs.coreutils}/bin/tail -n 1 | cut -d: -f1)"
+    restore_line="$(${pkgs.gnugrep}/bin/grep -nF "set -g @continuum-restore 'on'" ${generatedTmuxConfigFile} | cut -d: -f1)"
+    status_right_line="$(${pkgs.gnugrep}/bin/grep -nF "set -g status-right '#[fg=colour233,bg=colour241,bold] %d/%m #[fg=colour233,bg=colour245,bold] %H:%M '" ${generatedTmuxConfigFile} | cut -d: -f1)"
+
+    echo "continuum-line=$continuum_line"
+    echo "continuum-restore-line=$restore_line"
+    echo "status-right-line=$status_right_line"
+    test "$(${pkgs.gnugrep}/bin/grep -cF "set -g @continuum-restore 'on'" ${generatedTmuxConfigFile})" -eq 1
+    test "$(${pkgs.gnugrep}/bin/grep -cF "set -g status-right " ${generatedTmuxConfigFile})" -eq 1
+    test "$restore_line" -lt "$continuum_line"
+    test "$status_right_line" -lt "$continuum_line"
+
+    touch "$out"
+  '';
 
   # ============================================================================
   # Key bindings
