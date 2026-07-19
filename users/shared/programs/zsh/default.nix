@@ -37,6 +37,7 @@ in
     programs.fzf = {
       enable = true;
       enableZshIntegration = true;
+      tmux.enableShellIntegration = true;
 
       # Default options for better UX
       defaultOptions = [
@@ -68,6 +69,11 @@ in
           "--preview 'tree -C {} | head -200'"
         ];
       };
+    };
+
+    programs.zoxide = {
+      enable = true;
+      enableZshIntegration = true;
     };
 
     programs.direnv = {
