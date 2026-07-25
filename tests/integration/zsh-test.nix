@@ -228,7 +228,7 @@ in
 
     # Git Worktree function (gw)
     (helpers.assertTest "function-gw-exists" (initContentHas "gw()") "gw() function should exist")
-    (helpers.assertTest "function-gw-usage" (initContentHas "Usage: gw <branch-name>")
+    (helpers.assertTest "function-gw-usage" (initContentHas "Usage: gw [branch-name]")
       "gw() should have usage message"
     )
     (helpers.assertTest "function-gw-git-check" (initContentHas "git rev-parse --git-dir")
