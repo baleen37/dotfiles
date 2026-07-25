@@ -1,11 +1,13 @@
 # Git Worktree wrapper for Zsh
 #
 # Returns a pure string of shell code defining the gw function.
-# Usage: gw [branch-name]
+# Usage: gw [branch-name] | gw ls | gw rm <path>
 
 ''
   # Git Worktree wrapper - Create git worktree and cd into it
   # Usage: gw [branch-name]  (generates a random name if omitted)
+  #        gw ls             (list worktrees left on this machine, all repos)
+  #        gw rm <path>      (remove worktree + background nix store gc)
   gw() {
     # Helper: Generate a random branch name like "snappy-greeting-bachman"
     local _random_branch_name() {
@@ -27,12 +29,52 @@
       echo "''${a}-''${n}-''${s}"
     }
 
-    # Help flag
-    if [[ "$1" == "-h" || "$1" == "--help" ]]; then
-      echo "Usage: gw <branch-name>"
-      echo "       gw               (generates a random name)"
-      return 0
-    fi
+    # Subcommands. Note: "ls" and "rm" are reserved and cannot be used as
+    # branch names via gw.
+    case "$1" in
+      -h | --help)
+        echo "Usage: gw [branch-name]    Create worktree and cd into it (random name if omitted)"
+        echo "       gw ls               List worktrees left on this machine (all repos)"
+        echo "       gw rm <path> [...]  Remove worktree, then run nix store gc in background"
+        return 0
+        ;;
+      ls)
+        # List worktrees left on this machine, not just this repo's.
+        # Every direnv-entered worktree registers a nix-direnv gc-root
+        # symlink under /nix/var/nix/gcroots/auto pointing into its
+        # .direnv/, so those targets serve as a machine-wide index.
+        # Single readlink invocation over all roots — forking readlink per
+        # symlink takes ~5s with hundreds of roots.
+        local _gc_target _wt_dir
+        readlink /nix/var/nix/gcroots/auto/*(N@) 2>/dev/null | while IFS= read -r _gc_target; do
+          [[ "$_gc_target" == */.worktrees/*/.direnv/* ]] || continue
+          echo "''${_gc_target%/.direnv/*}"
+        done | sort -u | while IFS= read -r _wt_dir; do
+          if [[ -d "$_wt_dir" ]]; then
+            echo "$_wt_dir"
+          else
+            echo "$_wt_dir (removed, gc pending)"
+          fi
+        done
+        return 0
+        ;;
+      rm)
+        shift
+        if [[ $# -eq 0 ]]; then
+          echo "Usage: gw rm <worktree-path> [--force]" >&2
+          return 1
+        fi
+        # Removing the worktree alone leaves nix-direnv gc-roots behind
+        # (/nix/var/nix/gcroots/per-user/ -> .direnv/flake-profile-*), so
+        # pair it with a GC run. GC can take minutes, so it runs detached
+        # in the background. nix store gc only collects unrooted paths,
+        # keeping system generations intact for rollback.
+        git worktree remove "$@" || return 1
+        (nix store gc >/dev/null 2>&1 &)
+        echo "Worktree removed. nix store gc running in background." >&2
+        return 0
+        ;;
+    esac
 
     local branch_name="$1"
 
@@ -188,5 +230,11 @@
 
     _msg "$GREEN" "Worktree created: $worktree_dir"
     cd "$worktree_dir"
+
+    # Opportunistic cleanup: reclaim store space left behind by previously
+    # removed worktrees. Detached background run, so it never blocks the
+    # new worktree. Concurrent GC is safe — live builds and devshells are
+    # protected by temp roots.
+    (nix store gc >/dev/null 2>&1 &)
   }
 ''
