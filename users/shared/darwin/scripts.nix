@@ -1,124 +1,93 @@
 # macOS Activation Scripts
 #
 # System activation scripts for:
-# - Keyboard input source configuration (cmd+shift+space for Korean/English)
-# - Automated cleanup of unused default macOS applications
 # - Remote Login (SSH) enablement
+# - Automated cleanup of unused default macOS applications
+#
+# Everything lives under `system.activationScripts.postActivation.text` on
+# purpose. nix-darwin assembles the activation script from a fixed list of
+# segments (preActivation, extraActivation, defaults, homebrew, postActivation,
+# ...) in modules/system/activation-scripts.nix, so a custom attribute name like
+# `system.activationScripts.enableRemoteLogin` type-checks and evaluates but is
+# never spliced into the script that actually runs -- it silently does nothing.
+# These scripts sat unused that way until this was noticed.
+#
+# The whole segment runs under `set -e` and `set -o pipefail`, and nix-darwin has
+# no per-segment failure isolation (unlike the NixOS activation script, which
+# wraps each one in a trap). A non-zero exit here aborts the rest of the switch,
+# including the homebrew and launchd segments, so keep failures contained: guard
+# with `if`, and use `|| true` on best-effort side effects.
 
 _:
 
 {
-  # Remote Login (SSH) Activation Script
-  # Enables macOS Remote Login so the machine accepts incoming SSH connections.
-  # nix-darwin has no dedicated option for this, so we toggle it via systemsetup.
-  # Idempotent: only flips the setting when it is currently off.
-  system.activationScripts.enableRemoteLogin = {
-    text = ''
-      echo "Enabling Remote Login (SSH)..." >&2
+  system.activationScripts.postActivation.text = ''
+    # Remote Login (SSH)
+    # Enables macOS Remote Login so the machine accepts incoming SSH connections.
+    # nix-darwin has no dedicated option for this, so we toggle it via systemsetup.
+    # Idempotent: only flips the setting when it is currently off.
+    echo "Enabling Remote Login (SSH)..." >&2
 
-      if /usr/sbin/systemsetup -getremotelogin 2>/dev/null | grep -q "On"; then
-        echo "  ✓  Remote Login already enabled" >&2
-      else
-        /usr/sbin/systemsetup -setremotelogin -f on >&2
-        echo "  Remote Login enabled" >&2
-      fi
-    '';
-  };
+    if /usr/sbin/systemsetup -getremotelogin 2>/dev/null | grep -q "On"; then
+      echo "  ✓  Remote Login already enabled" >&2
+    else
+      /usr/sbin/systemsetup -setremotelogin -f on >&2
+      echo "  Remote Login enabled" >&2
+    fi
 
-  # Keyboard Input Source Configuration Script
-  # Configures cmd+shift+space for Korean/English input source switching
-  system.activationScripts.configureKeyboard = {
-    text = ''
-      echo "Configuring keyboard input sources..." >&2
+    # macOS App Cleanup
+    # Automated storage optimization through removal of unused default macOS applications
+    # Saves 6-8GB of storage space and reduces system resource consumption
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
+    echo "Removing unused macOS default apps..." >&2
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
 
-      sleep 2
+    # 제거할 앱 목록
+    apps=(
+      "GarageBand.app"
+      "iMovie.app"
+      "TV.app"
+      "Podcasts.app"
+      "News.app"
+      "Stocks.app"
+      "Freeform.app"
+    )
 
-      # Note: KeyRepeat and InitialKeyRepeat are now managed in system.defaults.NSGlobalDomain
+    removed_count=0
+    skipped_count=0
 
-      # cmd+shift+space for input source switching (hotkey 60)
-      /usr/bin/defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 60 '{
-          enabled = 1;
-          value = {
-              type = standard;
-              parameters = (49, 1048576, 131072);  # space(49), cmd, shift
-          };
-      }'
+    for app in "''${apps[@]}"; do
+      app_path="/Applications/$app"
 
-      # control+space as backup hotkey (61)
-      /usr/bin/defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 61 '{
-          enabled = 1;
-          value = {
-              type = standard;
-              parameters = (49, 262144, 0, 0);        # space, control
-          };
-      }'
+      if [ -e "$app_path" ]; then
+        echo "  Removing: $app" >&2
 
-      # Enable language indicator for visual feedback
-      /usr/bin/defaults write kCFPreferencesAnyApplication TSMLanguageIndicatorEnabled -bool true
-
-      # Restart system services to apply changes
-      if pgrep -x "SystemUIServer" > /dev/null; then
-          killall SystemUIServer 2>/dev/null || true
-      fi
-      if pgrep -x "ControlCenter" > /dev/null; then
-          killall ControlCenter 2>/dev/null || true
-      fi
-
-      echo "Keyboard configuration complete!" >&2
-    '';
-  };
-
-  # macOS App Cleanup Activation Script
-  # Automated storage optimization through removal of unused default macOS applications
-  # Saves 6-8GB of storage space and reduces system resource consumption
-  system.activationScripts.cleanupMacOSApps = {
-    text = ''
-      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
-      echo "Removing unused macOS default apps..." >&2
-      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
-
-      # 제거할 앱 목록
-      apps=(
-        "GarageBand.app"
-        "iMovie.app"
-        "TV.app"
-        "Podcasts.app"
-        "News.app"
-        "Stocks.app"
-        "Freeform.app"
-      )
-
-      removed_count=0
-      skipped_count=0
-
-      for app in "''${apps[@]}"; do
-        app_path="/Applications/$app"
-
-        if [ -e "$app_path" ]; then
-          echo "  Removing: $app" >&2
-
-          # sudo 없이 제거 시도 (사용자 설치 앱)
-          if rm -rf "$app_path" 2>/dev/null; then
-            removed_count=$((removed_count + 1))
-          else
-            # sudo로 재시도 (시스템 앱)
-            if sudo rm -rf "$app_path" 2>/dev/null; then
-              removed_count=$((removed_count + 1))
-            else
-              echo "     Failed to remove (SIP protected): $app" >&2
-              skipped_count=$((skipped_count + 1))
-            fi
-          fi
+        # activation already runs as root, so no sudo needed; SIP still wins
+        if rm -rf "$app_path" 2>/dev/null; then
+          removed_count=$((removed_count + 1))
         else
-          echo "  ✓  Already removed: $app" >&2
+          echo "     Failed to remove (SIP protected): $app" >&2
+          skipped_count=$((skipped_count + 1))
         fi
-      done
+      else
+        echo "  ✓  Already removed: $app" >&2
+      fi
+    done
 
-      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
-      echo "Cleanup complete!" >&2
-      echo "   - Removed: $removed_count apps" >&2
-      echo "   - Skipped: $skipped_count apps (protected)" >&2
-      echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
-    '';
-  };
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
+    echo "Cleanup complete!" >&2
+    echo "   - Removed: $removed_count apps" >&2
+    echo "   - Skipped: $skipped_count apps (protected)" >&2
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
+  '';
+
+  # Keyboard input source configuration is deliberately absent.
+  #
+  # It used to live here as `system.activationScripts.configureKeyboard`, which
+  # never ran for the reason described above. Moving it into postActivation would
+  # start it running, and its hotkey payload is wrong: it wrote
+  # `parameters = (49, 1048576, 131072)` for hotkey 60, while the working value
+  # on this machine is `(32, 49, 1179648)` -- character, keycode, modifiers, in
+  # that order. Enabling it as-written would break cmd+shift+space input
+  # switching, which already works, so it was dropped rather than resurrected.
 }

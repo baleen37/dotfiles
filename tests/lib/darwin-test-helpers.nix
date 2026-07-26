@@ -522,14 +522,21 @@ rec {
 
   # ===== App Cleanup Script =====
 
-  # Test app cleanup activation script is configured
+  # Test app cleanup lands in a segment nix-darwin actually runs
+  #
+  # Asserts on postActivation's text rather than on the presence of some
+  # attribute. nix-darwin splices only a fixed set of segment names into the
+  # script it runs, so a custom `system.activationScripts.<name>` evaluates fine
+  # while never executing -- and an attribute-presence check passes in exactly
+  # that case, which is how this script stayed dead for as long as it did.
   #
   # Usage: assertCleanupScriptConfigured darwinConfig
   assertCleanupScriptConfigured =
     darwinConfig:
     assertTest "cleanup-script-configured" (
-      darwinConfig.system.activationScripts ? cleanupMacOSApps
-    ) "App cleanup activation script should be configured";
+      builtins.match ".*GarageBand\\.app.*" darwinConfig.system.activationScripts.postActivation.text
+      != null
+    ) "App cleanup should live in the postActivation segment so it actually runs";
 
   # ===== Comprehensive Darwin Configuration Test Suite =====
 
