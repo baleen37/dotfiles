@@ -10,7 +10,7 @@
 #       - cco: Claude Code via OpenAI-compatible proxy
 #       - ccz: Claude Code via Z.ai GLM API
 #       - oc: OpenCode quick execution
-#       - gw: Git worktree creation/switch
+#       - wt: Git worktree creation/switch
 #   - SSH wrapper: Auto-reconnection support via autossh
 #   - dotfiles auto-update: Background updates on shell startup
 #
@@ -185,7 +185,7 @@ in
         # =============================================================================
         # Section: Git worktree wrapper
         # =============================================================================
-        ${import ./gw.nix}
+        ${import ./wt.nix}
       '';
     };
   };

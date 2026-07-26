@@ -19,7 +19,7 @@
 - `nix store gc`는 항상 분리된 백그라운드 서브셸로 실행한다: `(nix store gc >/dev/null 2>&1 &)`
 - `nix-collect-garbage -d`는 절대 쓰지 않는다 (시스템 세대를 지워 롤백을 깨뜨린다)
 - 테스트 파일은 `tests/unit/*-test.nix`로 자동 발견되며, 체크 이름은 `unit-<파일명에서 -test 제외>`가 된다
-- **함수 정의 순서가 중요하다.** zsh에서 `local _helper() { ... }`는 그 줄이 *실행될 때* 정의된다. `case` 블록 안에서 호출하는 헬퍼는 반드시 `case`보다 **위**에 정의해야 한다. 아래에 두면 `command not found`로 죽는다. (기존 `gw`의 `ls`/`rm`이 헬퍼를 안 써서 드러나지 않았던 제약이다.)
+- **함수 정의 순서가 중요하다.** zsh에서 `local _helper() { ... }`는 그 줄이 _실행될 때_ 정의된다. `case` 블록 안에서 호출하는 헬퍼는 반드시 `case`보다 **위**에 정의해야 한다. 아래에 두면 `command not found`로 죽는다. (기존 `gw`의 `ls`/`rm`이 헬퍼를 안 써서 드러나지 않았던 제약이다.)
 - 모든 커밋 전 `make format` 통과 필요 (pre-commit 훅이 `nixfmt-rfc-style`을 강제)
 - 빌드 명령에는 `--impure`가 필요하다 (`USER` 환경변수 의존)
 
@@ -30,6 +30,7 @@
 기능 변경 없이 이름만 바꾼다. 이 태스크가 끝나면 `wt`가 기존 `gw`와 동일하게 동작해야 한다.
 
 **Files:**
+
 - Rename: `users/shared/programs/zsh/gw.nix` → `users/shared/programs/zsh/wt.nix`
 - Modify: `users/shared/programs/zsh/default.nix:13` (주석), `:186-188` (섹션 주석 + import)
 - Modify: `CLAUDE.md:369`
@@ -40,6 +41,7 @@
 - Rename: `tests/unit/gw-random-collision-test.nix` → `tests/unit/wt-random-collision-test.nix`
 
 **Interfaces:**
+
 - Consumes: 없음 (첫 태스크)
 - Produces: `users/shared/programs/zsh/wt.nix` — 인자 없이 `import`하면 셸 코드 문자열을 반환. 함수명 `wt`. 내부 헬퍼 `_random_branch_name`, `_msg`, `_error`, `_sanitize_branch`, `_find_base_branch`, `_check_worktree_exists`, `_create_worktree`, `_handle_existing_worktree`, `_handle_ref_conflict`.
 
@@ -191,10 +193,12 @@ Pure rename, no behavior change."
 정리 경로를 만든다. 현재 `.worktrees/`에 70개 2.0G가 쌓였고 그중 20개는 머지+클린 상태다.
 
 **Files:**
+
 - Modify: `users/shared/programs/zsh/wt.nix`
 - Create: `tests/unit/wt-prune-test.nix`
 
 **Interfaces:**
+
 - Consumes: Task 1의 `wt.nix` (함수 `wt`, 헬퍼 `_msg`/`_error`/`_find_base_branch`)
 - Produces: `wt.nix` 안에 셸 헬퍼 `_classify_worktree <path>` — `safe`/`stale`/`keep` 중 하나를 stdout에 출력. `prune` case 분기.
 
@@ -460,10 +464,12 @@ per removal."
 인자 없는 `wt`가 피커를 띄우게 한다.
 
 **Files:**
+
 - Modify: `users/shared/programs/zsh/wt.nix`
 - Create: `tests/unit/wt-picker-test.nix`
 
 **Interfaces:**
+
 - Consumes: Task 1의 `wt.nix`, Task 2의 `prune` 분기
 - Produces: `wt.nix` 안에 셸 헬퍼 `_pick_worktree` — fzf로 선택된 워크트리 절대경로를 stdout에 출력하고, 취소 시 빈 문자열. 인자 없는 `wt` 호출이 이를 사용.
 
@@ -672,11 +678,13 @@ sees worktrees that have been entered via direnv at least once."
 `settings.json`이 참조하는 `~/.claude/setup-worktree.sh`가 저장소에 없어 새 머신에서 훅이 깨진다. 게다가 현재 머신의 사본은 구식 `00000-` 규칙을 쓴다.
 
 **Files:**
+
 - Create: `users/shared/programs/.config/claude/setup-worktree.sh`
 - Modify: `users/shared/programs/claude-code.nix:27`
 - Create: `tests/unit/wt-hook-consistency-test.nix`
 
 **Interfaces:**
+
 - Consumes: Task 1의 `wt.nix` (경로 규칙의 기준)
 - Produces: `users/shared/programs/.config/claude/setup-worktree.sh` — stdin으로 `{name, cwd}` JSON을 받아 워크트리를 만들고 경로를 stdout에 출력하는 bash 스크립트.
 
@@ -850,6 +858,7 @@ copies together with a test."
 **Files:** 없음 (검증 및 실행)
 
 **Interfaces:**
+
 - Consumes: Task 1-4 전부
 
 - [ ] **Step 1: 설정 적용**
@@ -943,10 +952,10 @@ Expected: 2.0G보다 유의미하게 작다.
 
 ## 검증 요약
 
-| 단계 | 명령 | 기대 |
-|---|---|---|
-| 포맷 | `make format` | 통과 |
-| 전체 테스트 | `nix flake check --impure` | `unit-wt-*` 8개 통과 |
-| 잔여 gw | `grep -rn '\bgw\b' --include='*.nix' --include='*.md' . \| grep -v '\.worktrees/\|docs/superpowers'` | 출력 없음 |
-| 적용 | `make switch` | 성공 |
-| 동작 | `wt -h`, `wt`, `wt prune` | 스펙대로 |
+| 단계        | 명령                                                                                                 | 기대                 |
+| ----------- | ---------------------------------------------------------------------------------------------------- | -------------------- |
+| 포맷        | `make format`                                                                                        | 통과                 |
+| 전체 테스트 | `nix flake check --impure`                                                                           | `unit-wt-*` 8개 통과 |
+| 잔여 gw     | `grep -rn '\bgw\b' --include='*.nix' --include='*.md' . \| grep -v '\.worktrees/\|docs/superpowers'` | 출력 없음            |
+| 적용        | `make switch`                                                                                        | 성공                 |
+| 동작        | `wt -h`, `wt`, `wt prune`                                                                            | 스펙대로             |

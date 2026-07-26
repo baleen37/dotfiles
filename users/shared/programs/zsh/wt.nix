@@ -1,14 +1,14 @@
 # Git Worktree wrapper for Zsh
 #
-# Returns a pure string of shell code defining the gw function.
-# Usage: gw [branch-name] | gw ls | gw rm <path>
+# Returns a pure string of shell code defining the wt function.
+# Usage: wt [branch-name] | wt ls | wt rm <path>
 
 ''
   # Git Worktree wrapper - Create git worktree and cd into it
-  # Usage: gw [branch-name]  (generates a random name if omitted)
-  #        gw ls             (list worktrees left on this machine, all repos)
-  #        gw rm <path>      (remove worktree + background nix store gc)
-  gw() {
+  # Usage: wt [branch-name]  (generates a random name if omitted)
+  #        wt ls             (list worktrees left on this machine, all repos)
+  #        wt rm <path>      (remove worktree + background nix store gc)
+  wt() {
     # Helper: Generate a random branch name like "snappy-greeting-bachman"
     local _random_branch_name() {
       local adjectives=(snappy brave calm clever eager fuzzy gentle happy jolly
@@ -30,12 +30,12 @@
     }
 
     # Subcommands. Note: "ls" and "rm" are reserved and cannot be used as
-    # branch names via gw.
+    # branch names via wt.
     case "$1" in
       -h | --help)
-        echo "Usage: gw [branch-name]    Create worktree and cd into it (random name if omitted)"
-        echo "       gw ls               List worktrees left on this machine (all repos)"
-        echo "       gw rm <path> [...]  Remove worktree, then run nix store gc in background"
+        echo "Usage: wt [branch-name]    Create worktree and cd into it (random name if omitted)"
+        echo "       wt ls               List worktrees left on this machine (all repos)"
+        echo "       wt rm <path> [...]  Remove worktree, then run nix store gc in background"
         return 0
         ;;
       ls)
@@ -61,7 +61,7 @@
       rm)
         shift
         if [[ $# -eq 0 ]]; then
-          echo "Usage: gw rm <worktree-path> [--force]" >&2
+          echo "Usage: wt rm <worktree-path> [--force]" >&2
           return 1
         fi
         # Removing the worktree alone leaves nix-direnv gc-roots behind
@@ -111,7 +111,7 @@
 
     # Helper: Sanitize branch name for directory (replace / with -)
     # Prefix with today's YYMMDD date for readable, chronological worktree names.
-    # Always returns an absolute path based on the main worktree root so gw works
+    # Always returns an absolute path based on the main worktree root so wt works
     # correctly from inside a worktree (flat, not nested).
     local _sanitize_branch() {
       local repo_root=$(git worktree list | head -1 | awk '{print $1}')
