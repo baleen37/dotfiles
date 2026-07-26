@@ -38,20 +38,4 @@
   # npm configuration
   export NPM_CONFIG_PREFIX="$HOME/.npm-global"
 
-  # Claude Code authentication
-  #
-  # On macOS Claude Code otherwise keeps its credentials in the login keychain,
-  # which is locked in SSH sessions until a GUI login unlocks it -- and it
-  # relocks on sleep, not just on reboot. This token outranks the keychain in
-  # Claude Code's auth precedence, so SSH sessions never need it unlocked.
-  #
-  # Not in this repo: it is a live credential. Issue with `claude setup-token`
-  # (needs a browser, so run it on a machine with a GUI) and install with:
-  #   claude setup-token | tail -1 > ~/.config/claude/token
-  #   chmod 600 ~/.config/claude/token
-  # Valid for one year; reissue the same way when it expires.
-  if [[ -r "$HOME/.config/claude/token" ]]; then
-    export CLAUDE_CODE_OAUTH_TOKEN="$(<"$HOME/.config/claude/token")"
-  fi
-
 ''
