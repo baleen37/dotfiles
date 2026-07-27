@@ -29,13 +29,60 @@
       echo "''${a}-''${n}-''${s}"
     }
 
-    # Subcommands. Note: "ls" and "rm" are reserved and cannot be used as
-    # branch names via wt.
+    # Helper: Classify a worktree for pruning.
+    # Echoes one of: safe | stale | keep
+    #   safe  - merged into the base branch and has no uncommitted changes
+    #   stale - unmerged, clean, and untouched for 30+ days
+    #   keep  - has uncommitted changes, or is where we are standing right now
+    local _classify_worktree() {
+      local wt_path="$1"
+      local base="$2"
+      local main_root="$3"
+
+      # Never touch the main worktree or the one we are standing in.
+      local here=$(pwd -P)
+      local target=$(cd "$wt_path" 2>/dev/null && pwd -P)
+      if [[ -z "$target" || "$target" == "$main_root" || "$target" == "$here" ]]; then
+        echo "keep"
+        return 0
+      fi
+
+      # Uncommitted work always wins.
+      if [[ -n $(git -C "$wt_path" status --porcelain 2>/dev/null) ]]; then
+        echo "keep"
+        return 0
+      fi
+
+      local branch=$(git -C "$wt_path" rev-parse --abbrev-ref HEAD 2>/dev/null)
+      if [[ -z "$branch" || "$branch" == "HEAD" ]]; then
+        echo "keep"
+        return 0
+      fi
+
+      # Merged into base => safe to drop.
+      if [[ -n $(git -C "$main_root" branch --merged "$base" --list "$branch" 2>/dev/null) ]]; then
+        echo "safe"
+        return 0
+      fi
+
+      # Unmerged but untouched for 30+ days => stale.
+      if [[ -z $(find "$wt_path" -maxdepth 0 -mtime -30 2>/dev/null) ]]; then
+        echo "stale"
+        return 0
+      fi
+
+      echo "keep"
+    }
+
+    # Subcommands. Note: "ls", "rm", and "prune" are reserved and cannot be
+    # used as branch names via wt.
     case "$1" in
       -h | --help)
         echo "Usage: wt [branch-name]    Create worktree and cd into it (random name if omitted)"
         echo "       wt ls               List worktrees left on this machine (all repos)"
         echo "       wt rm <path> [...]  Remove worktree, then run nix store gc in background"
+        echo "       wt prune [--stale] [--yes]"
+        echo "                           Remove merged+clean worktrees (dry-run by default)"
         return 0
         ;;
       ls)
@@ -73,6 +120,88 @@
         (nix store gc >/dev/null 2>&1 &)
         echo "Worktree removed. nix store gc running in background." >&2
         return 0
+        ;;
+      prune)
+        shift
+        local include_stale=0 confirmed=0 arg
+        for arg in "$@"; do
+          case "$arg" in
+            --stale) include_stale=1 ;;
+            --yes | -y) confirmed=1 ;;
+            *)
+              echo "Unknown option: $arg" >&2
+              echo "Usage: wt prune [--stale] [--yes]" >&2
+              return 1
+              ;;
+          esac
+        done
+
+        local _main_root=$(git worktree list 2>/dev/null | head -1 | awk '{print $1}')
+        if [[ -z "$_main_root" ]]; then
+          echo "Not a git repository" >&2
+          return 1
+        fi
+
+        local _base
+        if git -C "$_main_root" rev-parse --verify main >/dev/null 2>&1; then
+          _base="main"
+        elif git -C "$_main_root" rev-parse --verify master >/dev/null 2>&1; then
+          _base="master"
+        else
+          echo "No main or master branch found" >&2
+          return 1
+        fi
+
+        # Collect targets. git worktree list's first line is the main worktree.
+        local _wt _class
+        local -a _safe _stale
+        while IFS= read -r _wt; do
+          [[ -n "$_wt" ]] || continue
+          _class=$(_classify_worktree "$_wt" "$_base" "$_main_root")
+          case "$_class" in
+            safe) _safe+=("$_wt") ;;
+            stale) _stale+=("$_wt") ;;
+          esac
+        done < <(git worktree list | tail -n +2 | awk '{print $1}')
+
+        local -a _targets
+        _targets=("''${_safe[@]}")
+        if [[ $include_stale -eq 1 ]]; then
+          _targets+=("''${_stale[@]}")
+        fi
+
+        if [[ ''${#_targets[@]} -eq 0 ]]; then
+          echo "Nothing to prune."
+          [[ ''${#_stale[@]} -gt 0 ]] &&
+            echo "(''${#_stale[@]} stale worktree(s) available with --stale)"
+          return 0
+        fi
+
+        echo "merged + clean (safe):    ''${#_safe[@]}"
+        echo "old + unmerged (stale):   ''${#_stale[@]}$([[ $include_stale -eq 1 ]] && echo " (included)")"
+        echo ""
+        printf '%s\n' "''${_targets[@]}"
+        echo ""
+
+        if [[ $confirmed -ne 1 ]]; then
+          echo "Dry run. Re-run with --yes to remove ''${#_targets[@]} worktree(s)."
+          return 0
+        fi
+
+        local _failed=0
+        for _wt in "''${_targets[@]}"; do
+          if git worktree remove "$_wt"; then
+            echo "removed: $_wt"
+          else
+            echo "failed:  $_wt" >&2
+            _failed=1
+          fi
+        done
+
+        # One GC for the whole batch, not one per removal.
+        (nix store gc >/dev/null 2>&1 &)
+        echo "nix store gc running in background." >&2
+        return $_failed
         ;;
     esac
 
