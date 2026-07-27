@@ -282,7 +282,7 @@
     # Always returns an absolute path based on the main worktree root so wt works
     # correctly from inside a worktree (flat, not nested).
     local _sanitize_branch() {
-      local repo_root=$(git worktree list | head -1 | awk '{print $1}')
+      local repo_root=$(git worktree list --porcelain | sed -n 's/^worktree //p' | head -1)
       local date_prefix=$(date +%y%m%d)
       echo "''${repo_root}/.worktrees/''${date_prefix}-''${1//\//-}"
     }

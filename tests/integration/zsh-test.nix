@@ -238,7 +238,8 @@ in
     (helpers.assertTest "function-wt-cd" (initContentHas "cd \"$worktree_dir\"")
       "wt() should change to worktree dir"
     )
-    (helpers.assertTest "function-wt-repo-root" (initContentHas "git worktree list | head -1")
+    (helpers.assertTest "function-wt-repo-root"
+      (initContentHas "git worktree list --porcelain | sed -n 's/^worktree //p' | head -1")
       "wt() should resolve worktree path from main repo root"
     )
 
