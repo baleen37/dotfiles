@@ -120,7 +120,8 @@
           --header='enter: cd   esc: cancel' \
           --height='60%' \
           --reverse \
-          --cycle) || return 0
+          --cycle \
+          --no-preview) || return 0
       [[ -n "$line" ]] && echo "$line" | cut -f2
     }
 

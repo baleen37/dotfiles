@@ -27,9 +27,16 @@ in
       "wt picker should enumerate the current repo's worktrees"
     )
 
-    (helpers.assertTest "wt-picker-has-no-preview" (
-      !(lib.hasInfix "--preview" wtScript)
-    ) "wt picker should not open a preview pane")
+    # FZF_DEFAULT_OPTS carries a `--preview 'bat ... {}'` for file pickers, and
+    # {} here is a worktree row rather than a filename, so the pane has to be
+    # turned off explicitly rather than merely left unset.
+    (helpers.assertTest "wt-picker-disables-preview" (lib.hasInfix "--no-preview" wtScript)
+      "wt picker should pass --no-preview to override the global FZF_DEFAULT_OPTS preview"
+    )
+
+    (helpers.assertTest "wt-picker-sets-no-preview-command" (
+      !(lib.hasInfix "--preview=" wtScript) && !(lib.hasInfix "--preview '" wtScript)
+    ) "wt picker should not define a preview command of its own")
 
     (helpers.assertTest "wt-picker-shows-relative-paths" (lib.hasInfix ''-v root="$root"'' wtScript)
       "wt picker should shorten paths against the main root so rows stay readable"
