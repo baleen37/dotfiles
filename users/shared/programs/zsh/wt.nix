@@ -84,13 +84,16 @@
     # been entered via direnv at least once.
     local _pick_worktree() {
       local line
-      line=$(git worktree list |
-        awk '{path=$1; branch=$3; gsub(/[][]/, "", branch); printf "%-40s %s\n", branch, path}' |
+      line=$(git worktree list --porcelain |
+        awk '/^worktree /{p=substr($0,10)}
+             /^branch /{b=substr($0,8); sub("refs/heads/", "", b); printf "%-40s\t%s\n", b, p}
+             /^detached$/{printf "%-40s\t%s\n", "(detached)", p}' |
         fzf --no-multi \
+          --delimiter='\t' \
           --prompt='worktree> ' \
-          --preview='git -C {2} log --oneline -5 2>/dev/null; echo; git -C {2} status -s 2>/dev/null' \
+          --preview='git -C "{2}" log --oneline -5 2>/dev/null; echo; git -C "{2}" status -s 2>/dev/null' \
           --preview-window='right:50%:wrap') || return 0
-      [[ -n "$line" ]] && echo "''${line##* }"
+      [[ -n "$line" ]] && echo "$line" | cut -f2
     }
 
     # Subcommands. Note: "ls", "rm", "new", and "prune" are reserved and
