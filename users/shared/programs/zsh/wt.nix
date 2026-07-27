@@ -1,13 +1,18 @@
 # Git Worktree wrapper for Zsh
 #
 # Returns a pure string of shell code defining the wt function.
-# Usage: wt [branch-name] | wt ls | wt rm <path>
+# Usage: wt                  | wt <branch-name> | wt new | wt ls
+#        wt rm <path> [...]  | wt prune [--stale] [--yes]
 
 ''
-  # Git Worktree wrapper - Create git worktree and cd into it
-  # Usage: wt [branch-name]  (generates a random name if omitted)
-  #        wt ls             (list worktrees left on this machine, all repos)
-  #        wt rm <path>      (remove worktree + background nix store gc)
+  # Git Worktree wrapper
+  # Usage: wt                  Pick a worktree with fzf and cd into it
+  #        wt <branch-name>    Create worktree and cd into it
+  #        wt new              Create a randomly named worktree
+  #        wt ls               List worktrees left on this machine (all repos)
+  #        wt rm <path> [...]  Remove worktree, then run nix store gc in background
+  #        wt prune [--stale] [--yes]
+  #                            Remove merged+clean worktrees (dry-run by default)
   wt() {
     local _wt_random=0
 
@@ -57,6 +62,13 @@
 
       local branch=$(git -C "$wt_path" rev-parse --abbrev-ref HEAD 2>/dev/null)
       if [[ -z "$branch" || "$branch" == "HEAD" ]]; then
+        echo "keep"
+        return 0
+      fi
+
+      # A worktree checked out on the base branch itself is never safe to
+      # drop, even though "merged into base" is trivially true for it.
+      if [[ "$branch" == "$base" ]]; then
         echo "keep"
         return 0
       fi
@@ -179,13 +191,14 @@
 
         # Collect targets. git worktree list's first line is the main worktree.
         local _wt _class
-        local -a _safe _stale
+        local -a _safe _stale _keep
         while IFS= read -r _wt; do
           [[ -n "$_wt" ]] || continue
           _class=$(_classify_worktree "$_wt" "$_base" "$_main_root")
           case "$_class" in
             safe) _safe+=("$_wt") ;;
             stale) _stale+=("$_wt") ;;
+            keep) _keep+=("$_wt") ;;
           esac
         done < <(git worktree list --porcelain | sed -n 's/^worktree //p' | tail -n +2)
 
@@ -194,6 +207,29 @@
         if [[ $include_stale -eq 1 ]]; then
           _targets+=("''${_stale[@]}")
         fi
+
+        # git worktree remove deletes the target directory recursively, so a
+        # target that is an ancestor directory of a kept worktree (e.g. a
+        # nested worktree under <target>/.worktrees/) would take the kept
+        # worktree's uncommitted work down with it. Drop those targets and
+        # say why.
+        local -a _filtered_targets
+        local _k _is_ancestor
+        for _wt in "''${_targets[@]}"; do
+          _is_ancestor=0
+          for _k in "''${_keep[@]}"; do
+            if [[ "$_k" == "$_wt"/* ]]; then
+              _is_ancestor=1
+              break
+            fi
+          done
+          if [[ $_is_ancestor -eq 1 ]]; then
+            echo "skipped (protects nested worktree): $_wt"
+          else
+            _filtered_targets+=("$_wt")
+          fi
+        done
+        _targets=("''${_filtered_targets[@]}")
 
         if [[ ''${#_targets[@]} -eq 0 ]]; then
           echo "Nothing to prune."

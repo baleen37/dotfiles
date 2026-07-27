@@ -36,9 +36,10 @@ in
     (helpers.assertTest "wt-rm-runs-gc-in-background" (lib.hasInfix "(nix store gc" wtScript)
       "wt rm should run nix store gc in a detached background subshell"
     )
-    (helpers.assertTest "wt-create-runs-gc-in-background" (
-      builtins.length (lib.splitString "(nix store gc" wtScript) >= 3
-    ) "wt create path should also trigger background nix store gc (two call sites: create + rm)")
+    (helpers.assertTest "wt-create-runs-gc-in-background"
+      (builtins.length (lib.splitString "(nix store gc" wtScript) >= 4)
+      "wt create path should also trigger background nix store gc (three call sites: rm + prune + create)"
+    )
     (helpers.assertTest "wt-rm-avoids-collect-garbage-d" (
       !(lib.hasInfix "nix-collect-garbage -d" wtScript)
     ) "wt rm should not use nix-collect-garbage -d (deletes system generations, breaks rollback)")
