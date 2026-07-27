@@ -75,6 +75,11 @@ in
       # 시스템 기본 사용자 확인
       (darwinHelpers.assertSystemPrimaryUser "baleen" darwinConfig)
 
+      # FileVault disables the regular autoLoginUser path.
+      (helpers.assertTest "login-window-auto-login-disabled" (
+        !(builtins.hasAttr "autoLoginUser" darwinConfig.system.defaults.loginwindow)
+      ) "loginwindow.autoLoginUser should not be configured")
+
       # ===== Spaces 설정 검증 =====
 
       # Spaces가 디스플레이 간 스패닝되지 않는지 확인

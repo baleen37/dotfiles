@@ -114,30 +114,6 @@ in
   system.defaults.loginwindow = {
     SHOWFULLNAME = false; # Compact login prompt
     DisableConsoleAccess = false; # Maintain console access
-
-    # Auto login on boot so the GUI session comes up unattended.
-    #
-    # macOS unlocks the login keychain as part of a GUI login. Without one, a
-    # headless reboot leaves the keychain locked and every incoming SSH session
-    # hits the unlock prompt in zsh/keychain-unlock.nix. Auto login restores the
-    # normal unlock path instead of stashing the keychain password anywhere.
-    #
-    # nix-darwin only writes this plist key; it never touches /etc/kcpassword,
-    # which is what actually makes auto login happen. That file holds the login
-    # password, so it cannot live in this repo -- create it once with:
-    #
-    #   sudo sysadminctl -autologin set -userName <user>   # prompts for password
-    #
-    # Omit -password so the password is never in shell history. Verify with
-    # `sysadminctl -autologin status`. Without that file this setting is inert
-    # (the machine still shows the login window).
-    #
-    # Caveat: the GUI login only unlocks the keychain when the account password
-    # and the login keychain password match. They diverge if the account
-    # password was changed in a way that left the old keychain behind (macOS
-    # renames it to login_renamed_N.keychain-db). Re-sync with
-    # `security set-keychain-password ~/Library/Keychains/login.keychain-db`.
-    autoLoginUser = currentSystemUser;
   };
 
   # ===== System Integration Configuration =====

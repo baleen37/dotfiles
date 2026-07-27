@@ -26,7 +26,14 @@ let
   zshConfigBody = zshModule.config.content;
 
   aliases = zshConfigBody.programs.zsh.shellAliases or { };
-  claudeWrapper = import ../../users/shared/programs/zsh/claude-wrappers.nix;
+  claudeWrapper = import ../../users/shared/programs/zsh/claude-wrappers.nix {
+    inherit lib;
+    isDarwin = false;
+  };
+  darwinClaudeWrapper = import ../../users/shared/programs/zsh/claude-wrappers.nix {
+    inherit lib;
+    isDarwin = true;
+  };
 
   runtimeTest =
     pkgs.runCommand "zsh-ai-cli-shortcuts-runtime"
@@ -113,12 +120,100 @@ let
         touch "$out"
       '';
 
+  darwinKeychainRuntimeTest =
+    pkgs.runCommand "zsh-claude-keychain-runtime"
+      {
+        nativeBuildInputs = [
+          pkgs.zsh
+          pkgs.coreutils
+        ];
+      }
+      ''
+        mkdir -p bin home/Library/Keychains
+
+        cat > bin/claude <<'EOF'
+        #!/bin/sh
+        printf '%s\n' "$@" > "$CLAUDE_ARGS"
+        EOF
+
+        cat > bin/security <<'EOF'
+        #!/bin/sh
+        printf '%s\n' "$*" >> "$SECURITY_LOG"
+        case "$1" in
+          show-keychain-info)
+            test -e "$KEYCHAIN_UNLOCKED"
+            ;;
+          unlock-keychain)
+            test -z "$SECURITY_UNLOCK_FAIL" || exit 1
+            touch "$KEYCHAIN_UNLOCKED"
+            ;;
+          set-keychain-settings)
+            ;;
+          *)
+            exit 2
+            ;;
+        esac
+        EOF
+
+        chmod +x bin/claude bin/security
+
+        cat > shortcuts.zsh <<'EOF'
+        ${darwinClaudeWrapper}
+        EOF
+
+        PATH="$PWD/bin:$PATH" \
+        HOME="$PWD/home" \
+        CLAUDE_ARGS="$PWD/claude.args" \
+        SECURITY_LOG="$PWD/security.log" \
+        KEYCHAIN_UNLOCKED="$PWD/keychain-unlocked" \
+        zsh -f <<'EOF'
+        source ./shortcuts.zsh
+
+        # Loading the shell configuration must not touch the keychain.
+        test ! -e "$SECURITY_LOG"
+
+        # Local Claude usage must not touch the SSH-only keychain path.
+        cc
+        test ! -e "$SECURITY_LOG"
+
+        # The first SSH invocation unlocks the keychain and clears its timeout.
+        export SSH_CONNECTION="client 1234 server 22"
+        cc -m opus
+        keychain="$HOME/Library/Keychains/login.keychain-db"
+        printf '%s\n' \
+          "show-keychain-info $keychain" \
+          "unlock-keychain $keychain" \
+          "set-keychain-settings $keychain" > expected-security.log
+        diff -u expected-security.log "$SECURITY_LOG"
+
+        # Later invocations only check that the keychain remains unlocked.
+        cc
+        printf '%s\n' \
+          "show-keychain-info $keychain" >> expected-security.log
+        diff -u expected-security.log "$SECURITY_LOG"
+
+        # A failed unlock must not start Claude.
+        rm -f "$KEYCHAIN_UNLOCKED" "$CLAUDE_ARGS"
+        export SECURITY_UNLOCK_FAIL=1
+        if cc; then
+          print -u2 -- "cc succeeded after a failed keychain unlock"
+          exit 1
+        fi
+        test ! -e "$CLAUDE_ARGS"
+        EOF
+
+        touch "$out"
+      '';
+
 in
 {
   platforms = [ "any" ];
   value = helpers.testSuite "zsh-ai-cli-shortcuts" [
     (helpers.assertTest "zsh-ai-cli-runtime" (builtins.pathExists runtimeTest)
       "cc/co/oc runtime behavior failed"
+    )
+    (helpers.assertTest "zsh-claude-keychain-runtime" (builtins.pathExists darwinKeychainRuntimeTest)
+      "Claude keychain lazy-unlock behavior failed"
     )
   ];
 }
