@@ -94,34 +94,65 @@
     # Scoped to the current repo rather than the machine-wide `wt ls`, which
     # indexes nix-direnv gc-roots and therefore only sees worktrees that have
     # been entered via direnv at least once.
-    # Lines are "<branch>  <path relative to main root>\t<absolute path>".
-    # Every worktree shares the main root as a prefix, so showing it on every
-    # row would push the part that actually distinguishes them off-screen. The
-    # absolute path rides along in a trailing tab-separated field, which fzf
-    # hides via --with-nth but cut recovers for the cd.
+    # Rows are "<branch>  <path relative to main root>  <age>\t<absolute path>",
+    # sorted most-recently-committed first.
+    #
+    # Every worktree shares the main root as a prefix, so printing it on every
+    # row would push the distinguishing part off-screen. The absolute path rides
+    # in a trailing tab-separated field that --with-nth hides and cut recovers
+    # for the cd.
+    #
+    # Age comes from the branch's last commit, not the directory mtime: build
+    # output and direnv keep touching the directory long after the work stops,
+    # so mtime says "recent" for worktrees nobody has actually worked in. One
+    # for-each-ref call covers every branch (~0.03s), which per-worktree
+    # `git log` calls would not.
     local _pick_worktree() {
       local line root
       root=$(git worktree list --porcelain | sed -n 's/^worktree //p' | head -1)
-      line=$(git worktree list --porcelain |
-        awk -v root="$root" '
+      line=$(
+        {
+          git for-each-ref --format='T %(refname:short) %(committerdate:unix)' refs/heads
+          git worktree list --porcelain
+        } |
+          awk -v root="$root" -v now="$(date +%s)" '
+          function age(ts,   s, d) {
+            if (ts == "") return "-"
+            s = now - ts
+            d = int(s / 86400)
+            if (d >= 365) return int(d / 365) "y"
+            if (d >= 30) return int(d / 30) "mo"
+            if (d >= 7) return int(d / 7) "w"
+            if (d >= 1) return d "d"
+            if (s >= 3600) return int(s / 3600) "h"
+            if (s >= 60) return int(s / 60) "m"
+            return "now"
+          }
+          function emit(label, ts) {
+            printf "%-36s  %-50s %5s\t%s\t%s\n", label, d, age(ts), p, (ts == "" ? 0 : ts)
+          }
+          $1 == "T" {seen[$2] = $3; next}
           /^worktree /{
             p = substr($0, 10)
             d = p
             if (p == root) d = "."
             else if (index(p, root "/") == 1) d = substr(p, length(root) + 2)
           }
-          /^branch /{b = substr($0, 8); sub("refs/heads/", "", b); printf "%-38s  %s\t%s\n", b, d, p}
-          /^detached$/{printf "%-38s  %s\t%s\n", "(detached)", d, p}
-          /^bare$/{printf "%-38s  %s\t%s\n", "(bare)", d, p}' |
-        fzf --no-multi \
-          --delimiter='\t' \
-          --with-nth=1 \
-          --prompt='worktree> ' \
-          --header='enter: cd   esc: cancel' \
-          --height='60%' \
-          --reverse \
-          --cycle \
-          --no-preview) || return 0
+          /^branch /{b = substr($0, 8); sub("refs/heads/", "", b); emit(b, seen[b])}
+          /^detached$/{emit("(detached)", "")}
+          /^bare$/{emit("(bare)", "")}' |
+          sort -t"$(printf '\t')" -k3,3nr |
+          cut -f1,2 |
+          fzf --no-multi \
+            --delimiter='\t' \
+            --with-nth=1 \
+            --prompt='worktree> ' \
+            --header='enter: cd   esc: cancel' \
+            --height='60%' \
+            --reverse \
+            --cycle \
+            --no-preview
+      ) || return 0
       [[ -n "$line" ]] && echo "$line" | cut -f2
     }
 
