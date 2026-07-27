@@ -46,6 +46,21 @@ in
       "wt picker should hide the trailing absolute-path field it uses for the cd"
     )
 
+    (helpers.assertTest "wt-picker-sorts-by-recency" (lib.hasInfix "-k3,3nr" wtScript)
+      "wt picker should list the most recently committed worktrees first"
+    )
+
+    # Directory mtime keeps moving from build output and direnv long after the
+    # work stops, so it reports "recent" for worktrees nobody has touched.
+    (helpers.assertTest "wt-picker-ages-by-commit-date" (lib.hasInfix "%(committerdate:unix)" wtScript)
+      "wt picker should age rows by last commit date rather than directory mtime"
+    )
+
+    (helpers.assertTest "wt-picker-reads-all-branch-dates-at-once"
+      (lib.hasInfix "git for-each-ref" wtScript)
+      "wt picker should batch branch dates into one for-each-ref, not a git call per worktree"
+    )
+
     (helpers.assertTest "wt-new-subcommand" (lib.hasInfix "new)" wtScript)
       "wt new should create a randomly named worktree"
     )
