@@ -20,6 +20,10 @@ in
 {
   platforms = [ "any" ];
   value = helpers.testSuite "wt-subcommands" [
+    (helpers.assertTest "wt-help-subcommand" (lib.hasInfix "help | -h | --help)" wtScript)
+      "wt should accept a bare `help` word alongside -h/--help"
+    )
+
     (helpers.assertTest "wt-ls-subcommand" (lib.hasInfix "ls)" wtScript)
       "wt should handle an ls subcommand"
     )

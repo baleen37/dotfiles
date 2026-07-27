@@ -27,8 +27,16 @@ in
       "wt picker should enumerate the current repo's worktrees"
     )
 
-    (helpers.assertTest "wt-picker-has-preview" (lib.hasInfix "--preview" wtScript)
-      "wt picker should show a preview of each worktree"
+    (helpers.assertTest "wt-picker-has-no-preview" (
+      !(lib.hasInfix "--preview" wtScript)
+    ) "wt picker should not open a preview pane")
+
+    (helpers.assertTest "wt-picker-shows-relative-paths" (lib.hasInfix ''-v root="$root"'' wtScript)
+      "wt picker should shorten paths against the main root so rows stay readable"
+    )
+
+    (helpers.assertTest "wt-picker-hides-absolute-path-column" (lib.hasInfix "--with-nth=1" wtScript)
+      "wt picker should hide the trailing absolute-path field it uses for the cd"
     )
 
     (helpers.assertTest "wt-new-subcommand" (lib.hasInfix "new)" wtScript)

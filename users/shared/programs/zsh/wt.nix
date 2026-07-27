@@ -94,25 +94,40 @@
     # Scoped to the current repo rather than the machine-wide `wt ls`, which
     # indexes nix-direnv gc-roots and therefore only sees worktrees that have
     # been entered via direnv at least once.
+    # Lines are "<branch>  <path relative to main root>\t<absolute path>".
+    # Every worktree shares the main root as a prefix, so showing it on every
+    # row would push the part that actually distinguishes them off-screen. The
+    # absolute path rides along in a trailing tab-separated field, which fzf
+    # hides via --with-nth but cut recovers for the cd.
     local _pick_worktree() {
-      local line
+      local line root
+      root=$(git worktree list --porcelain | sed -n 's/^worktree //p' | head -1)
       line=$(git worktree list --porcelain |
-        awk '/^worktree /{p=substr($0,10)}
-             /^branch /{b=substr($0,8); sub("refs/heads/", "", b); printf "%-40s\t%s\n", b, p}
-             /^detached$/{printf "%-40s\t%s\n", "(detached)", p}
-             /^bare$/{printf "%-40s\t%s\n", "(bare)", p}' |
+        awk -v root="$root" '
+          /^worktree /{
+            p = substr($0, 10)
+            d = p
+            if (p == root) d = "."
+            else if (index(p, root "/") == 1) d = substr(p, length(root) + 2)
+          }
+          /^branch /{b = substr($0, 8); sub("refs/heads/", "", b); printf "%-38s  %s\t%s\n", b, d, p}
+          /^detached$/{printf "%-38s  %s\t%s\n", "(detached)", d, p}
+          /^bare$/{printf "%-38s  %s\t%s\n", "(bare)", d, p}' |
         fzf --no-multi \
           --delimiter='\t' \
+          --with-nth=1 \
           --prompt='worktree> ' \
-          --preview='git -C "{2}" log --oneline -5 2>/dev/null; echo; git -C "{2}" status -s 2>/dev/null' \
-          --preview-window='right:50%:wrap') || return 0
+          --header='enter: cd   esc: cancel' \
+          --height='60%' \
+          --reverse \
+          --cycle) || return 0
       [[ -n "$line" ]] && echo "$line" | cut -f2
     }
 
-    # Subcommands. Note: "ls", "rm", "new", and "prune" are reserved and
-    # cannot be used as branch names via wt.
+    # Subcommands. Note: "help", "ls", "rm", "new", and "prune" are reserved
+    # and cannot be used as branch names via wt.
     case "$1" in
-      -h | --help)
+      help | -h | --help)
         echo "Usage: wt                  Pick a worktree with fzf and cd into it"
         echo "       wt <branch-name>    Create worktree and cd into it"
         echo "       wt new              Create a randomly named worktree"
