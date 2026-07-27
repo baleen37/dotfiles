@@ -1,7 +1,6 @@
-# Zsh Claude Code wrapper function tests
+# Zsh AI CLI shortcut tests
 #
-# Tests that cc/cco/ccz/cck wrapper functions with model flags
-# are properly defined in zsh initContent with correct model mappings.
+# Verifies the retained cc/co/oc commands under a real Zsh with fake CLIs.
 {
   inputs,
   system,
@@ -26,93 +25,100 @@ let
   };
   zshConfigBody = zshModule.config.content;
 
-  initContent = zshConfigBody.programs.zsh.initContent.content or "";
+  aliases = zshConfigBody.programs.zsh.shellAliases or { };
+  claudeWrapper = import ../../users/shared/programs/zsh/claude-wrappers.nix;
 
-  # Main wrapper functions that must be defined (model variants now use flags)
-  expectedFunctions = [
-    "cc"
-    "cco"
-    "ccz"
-    "cck"
-  ];
+  runtimeTest =
+    pkgs.runCommand "zsh-ai-cli-shortcuts-runtime"
+      {
+        nativeBuildInputs = [
+          pkgs.zsh
+          pkgs.coreutils
+        ];
+      }
+      ''
+        mkdir -p bin
 
-  # Helper: check function definition exists
-  assertFnDefined =
-    name:
-    helpers.assertTest "zsh-fn-${name}-defined" (lib.hasInfix "${name}()" initContent)
-      "Function ${name}() not found in zsh initContent";
+        cat > bin/claude <<'EOF'
+        #!/bin/sh
+        printf '%s\n' "$@" > "$CLAUDE_ARGS"
+        EOF
 
-  # Helper: check string present in initContent
-  assertInitHas =
-    name: needle:
-    helpers.assertTest "zsh-init-${name}" (lib.hasInfix needle initContent)
-      "${needle} not found in zsh initContent";
+        cat > bin/codex <<'EOF'
+        #!/bin/sh
+        printf '%s\n' "$@" > "$CODEX_ARGS"
+        EOF
+
+        cat > bin/opencode <<'EOF'
+        #!/bin/sh
+        printf '%s\n' "$@" > "$OPENCODE_ARGS"
+        EOF
+
+        chmod +x bin/claude bin/codex bin/opencode
+
+        cat > shortcuts.zsh <<'EOF'
+        ${claudeWrapper}
+        alias co=${lib.escapeShellArg aliases.co}
+        alias oc=${lib.escapeShellArg aliases.oc}
+        EOF
+
+        PATH="$PWD/bin:$PATH" \
+        CLAUDE_ARGS="$PWD/claude.args" \
+        CODEX_ARGS="$PWD/codex.args" \
+        OPENCODE_ARGS="$PWD/opencode.args" \
+        zsh -f <<'EOF'
+        source ./shortcuts.zsh
+
+        cc -m opus
+        printf '%s\n' \
+          --dangerously-skip-permissions \
+          -m \
+          opus > expected-claude.args
+        diff -u expected-claude.args "$CLAUDE_ARGS"
+
+        cc
+        printf '%s\n' \
+          --dangerously-skip-permissions > expected-claude.args
+        diff -u expected-claude.args "$CLAUDE_ARGS"
+
+        co -m gpt-5.6-sol
+        printf '%s\n' \
+          --dangerously-bypass-approvals-and-sandbox \
+          -m \
+          gpt-5.6-sol > expected-codex.args
+        diff -u expected-codex.args "$CODEX_ARGS"
+
+        co
+        printf '%s\n' \
+          --dangerously-bypass-approvals-and-sandbox > expected-codex.args
+        diff -u expected-codex.args "$CODEX_ARGS"
+
+        oc run
+        printf '%s\n' run > expected-opencode.args
+        diff -u expected-opencode.args "$OPENCODE_ARGS"
+
+        for name in \
+          _cc_run _cc_parse_model_flags \
+          cc-h cc-m cc-l \
+          cco cco-h cco-m cco-l \
+          ccz cck \
+          co-h co-m co-l; do
+          if whence -w "$name" >/dev/null 2>&1; then
+            print -u2 -- "unexpected AI CLI command: $name"
+            exit 1
+          fi
+        done
+        EOF
+
+        touch "$out"
+      '';
 
 in
 {
   platforms = [ "any" ];
-  value = helpers.testSuite "zsh-claude-wrappers" (
-    # 1. Main wrapper functions are defined
-    (map assertFnDefined expectedFunctions)
-
-    # 2. Internal helpers are defined
-    ++ [
-      (assertFnDefined "_cc_run")
-      (assertFnDefined "_cco_run")
-      (assertFnDefined "_ccz_run")
-      (assertFnDefined "_cck_run")
-    ]
-
-    # 3. cc supports model flags via _cc_parse_model_flags helper
-    #    and rewrites positional args for wrapper-specific flags
-    ++ [
-      (assertInitHas "cc-parse-model-flags" "_cc_parse_model_flags")
-      (assertInitHas "cc-flag-high" "-h|--high")
-      (assertInitHas "cc-flag-low" "-l|--low")
-      (assertInitHas "cc-parse-var-name" "local var_name")
-      (assertInitHas "cc-parse-args" "local args=()")
-      (assertInitHas "cc-parse-eval" "eval \"$(_cc_parse_model_flags")
-      (assertInitHas "cc-parse-set-positional" "set --")
-    ]
-
-    # 4. cco allows env overrides with built-in fallback values
-    ++ [
-      (assertInitHas "cco-sonnet-env-override" "CCO_SONNET_MODEL:-")
-      (assertInitHas "cco-high-env-override" "CCO_OPUS_MODEL:-")
-      (assertInitHas "cco-low-env-override" "CCO_HAIKU_MODEL:-")
-    ]
-
-    # 5. ccz requires CCZ_ env vars (no silent fallback)
-    ++ [
-      (assertInitHas "ccz-requires-sonnet-env" "CCZ_SONNET_MODEL:?Set")
-      (assertInitHas "ccz-high-requires-env" "CCZ_OPUS_MODEL:?Set")
-      (assertInitHas "ccz-low-requires-env" "CCZ_HAIKU_MODEL:?Set")
-    ]
-
-    # 6. _cc_run passes --model flag and common options
-    ++ [
-      (assertInitHas "cc-run-model-flag" "--model \"$model\"")
-      (assertInitHas "cc-run-skip-perms" "--dangerously-skip-permissions")
-    ]
-
-    # 7. cco sets ANTHROPIC env vars for OpenAI-compatible proxy
-    ++ [
-      (assertInitHas "cco-base-url" "ANTHROPIC_BASE_URL")
-      (assertInitHas "cco-auth-token" "ANTHROPIC_AUTH_TOKEN")
-      (assertInitHas "cco-default-url" "http://127.0.0.1:8317")
-    ]
-
-    # 8. ccz sets Z.ai-specific env vars
-    ++ [
-      (assertInitHas "ccz-base-url" "https://api.z.ai/api/anthropic")
-      (assertInitHas "ccz-auth-token" "CCZ_TOKEN")
-    ]
-
-    # 9. cck sets Kimi-specific env vars
-    ++ [
-      (assertInitHas "cck-base-url" "CCK_BASE_URL")
-      (assertInitHas "cck-auth-token" "CCK_AUTH_TOKEN")
-    ]
-
-  );
+  value = helpers.testSuite "zsh-ai-cli-shortcuts" [
+    (helpers.assertTest "zsh-ai-cli-runtime" (builtins.pathExists runtimeTest)
+      "cc/co/oc runtime behavior failed"
+    )
+  ];
 }

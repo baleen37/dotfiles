@@ -68,18 +68,13 @@ in
       zshSettings.completionInit == "autoload -Uz compinit && compinit -C"
     ) "zsh should use fast completion (compinit -C)")
 
-    # Claude CLI functions (cc, cco, ccz, cck)
+    # AI CLI shortcuts (cc, co, oc)
     (helpers.assertTest "function-cc-exists" (initContentHas "cc()") "cc() function should exist")
-    (helpers.assertTest "function-cco-exists" (initContentHas "cco()") "cco() function should exist")
-    (helpers.assertTest "function-ccz-exists" (initContentHas "ccz()") "ccz() function should exist")
-    (helpers.assertTest "function-cck-exists" (initContentHas "cck()") "cck() function should exist")
-    (helpers.assertTest "function-cc-parse-model-flags" (initContentHas "_cc_parse_model_flags()")
-      "_cc_parse_model_flags() helper function should exist"
+    (helpers.assertTest "alias-co-exists" (hasAlias "co") "alias 'co' should exist")
+    (helpers.assertTest "alias-co-value"
+      (aliasValueMatches "co" "codex --dangerously-bypass-approvals-and-sandbox")
+      "alias 'co' should point to codex with permission bypass"
     )
-    (helpers.assertTest "function-ccz-zai-api" (initContentHas "api.z.ai/api/anthropic")
-      "ccz() function should use Z.ai API"
-    )
-
     (helpers.assertTest "alias-oc-exists" (hasAlias "oc") "alias 'oc' should exist")
     (helpers.assertTest "alias-oc-value" (aliasValueMatches "oc" "opencode")
       "alias 'oc' should point to opencode"
