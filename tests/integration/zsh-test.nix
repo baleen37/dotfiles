@@ -228,7 +228,8 @@ in
 
     # Git Worktree function (wt)
     (helpers.assertTest "function-wt-exists" (initContentHas "wt()") "wt() function should exist")
-    (helpers.assertTest "function-wt-usage" (initContentHas "Usage: wt [branch-name]")
+    (helpers.assertTest "function-wt-usage"
+      (initContentHas "Usage: wt                  Pick a worktree with fzf and cd into it")
       "wt() should have usage message"
     )
     (helpers.assertTest "function-wt-git-check" (initContentHas "git rev-parse --git-dir")

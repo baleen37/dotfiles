@@ -9,6 +9,8 @@
   #        wt ls             (list worktrees left on this machine, all repos)
   #        wt rm <path>      (remove worktree + background nix store gc)
   wt() {
+    local _wt_random=0
+
     # Helper: Generate a random branch name like "snappy-greeting-bachman"
     local _random_branch_name() {
       local adjectives=(snappy brave calm clever eager fuzzy gentle happy jolly
@@ -74,11 +76,30 @@
       echo "keep"
     }
 
-    # Subcommands. Note: "ls", "rm", and "prune" are reserved and cannot be
-    # used as branch names via wt.
+    # Helper: fzf picker over this repo's worktrees.
+    # Echoes the chosen absolute path, or nothing if cancelled.
+    #
+    # Scoped to the current repo rather than the machine-wide `wt ls`, which
+    # indexes nix-direnv gc-roots and therefore only sees worktrees that have
+    # been entered via direnv at least once.
+    local _pick_worktree() {
+      local line
+      line=$(git worktree list |
+        awk '{path=$1; branch=$3; gsub(/[][]/, "", branch); printf "%-40s %s\n", branch, path}' |
+        fzf --no-multi \
+          --prompt='worktree> ' \
+          --preview='git -C {2} log --oneline -5 2>/dev/null; echo; git -C {2} status -s 2>/dev/null' \
+          --preview-window='right:50%:wrap') || return 0
+      [[ -n "$line" ]] && echo "''${line##* }"
+    }
+
+    # Subcommands. Note: "ls", "rm", "new", and "prune" are reserved and
+    # cannot be used as branch names via wt.
     case "$1" in
       -h | --help)
-        echo "Usage: wt [branch-name]    Create worktree and cd into it (random name if omitted)"
+        echo "Usage: wt                  Pick a worktree with fzf and cd into it"
+        echo "       wt <branch-name>    Create worktree and cd into it"
+        echo "       wt new              Create a randomly named worktree"
         echo "       wt ls               List worktrees left on this machine (all repos)"
         echo "       wt rm <path> [...]  Remove worktree, then run nix store gc in background"
         echo "       wt prune [--stale] [--yes]"
@@ -203,14 +224,28 @@
         echo "nix store gc running in background." >&2
         return $_failed
         ;;
+      new)
+        _wt_random=1
+        ;;
     esac
+
+    # Bare `wt` opens the picker. Creating now lives behind `wt new` or an
+    # explicit name, since with dozens of worktrees around, finding one is the
+    # more common need.
+    if [[ $# -eq 0 ]]; then
+      if ! git rev-parse --git-dir >/dev/null 2>&1; then
+        echo "Not a git repository" >&2
+        return 1
+      fi
+      local _picked=$(_pick_worktree)
+      [[ -n "$_picked" ]] && cd "$_picked"
+      return 0
+    fi
 
     local branch_name="$1"
 
-    # If no branch name provided, generate a random one.
-    # Retry a few times if the random name collides with an existing branch,
-    # since reusing an existing branch may also be checked out in another worktree.
-    if [[ $# -eq 0 ]]; then
+    # Set by the `new` subcommand below.
+    if [[ $_wt_random -eq 1 ]]; then
       local _attempt
       for _attempt in 1 2 3 4 5; do
         branch_name=$(_random_branch_name)
