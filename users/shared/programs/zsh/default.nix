@@ -7,8 +7,6 @@
 #   - PATH management: npm, pnpm, local bin directories auto-add
 #   - Claude CLI integration:
 #       - cc: Claude Code quick execution (skip permission checks)
-#       - cco: Claude Code via OpenAI-compatible proxy
-#       - ccz: Claude Code via Z.ai GLM API
 #       - oc: OpenCode quick execution
 #       - gw: Git worktree creation/switch
 #   - SSH wrapper: Auto-reconnection support via autossh
@@ -105,16 +103,13 @@ in
         # handled by the cd function override in functions.nix.
         ".." = "cd ..";
 
-        # Claude CLI shortcuts are now functions in initContent (cc, cco, ccz)
+        # Claude CLI shortcut is defined in initContent (cc)
 
         # OpenCode CLI shortcut
         oc = "opencode";
 
         # Codex CLI shortcut
         co = "codex --dangerously-bypass-approvals-and-sandbox";
-        "co-l" = "codex --dangerously-bypass-approvals-and-sandbox -c model_reasoning_effort=low";
-        "co-m" = "codex --dangerously-bypass-approvals-and-sandbox -c model_reasoning_effort=medium";
-        "co-h" = "codex --dangerously-bypass-approvals-and-sandbox -c model_reasoning_effort=high";
 
         # Git aliases
         ga = "git add";
