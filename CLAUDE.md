@@ -366,7 +366,7 @@ The zsh configuration provides these shortcuts (defined in `users/shared/program
 
 - `cc`: Claude Code with permission checks disabled (`claude --dangerously-skip-permissions`)
 - `oc`: OpenCode shortcut
-- `gw`: Git worktree creation (creates branch + worktree, cd into it)
+- `wt`: Git worktree management (fzf picker, create, list, prune)
 
 ### Tool Configuration Highlights
 

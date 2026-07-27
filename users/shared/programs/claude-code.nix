@@ -24,13 +24,14 @@ in
   config = lib.mkIf cfg.enable {
     home.activation.claudeConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       run mkdir -p ~/.claude
-      for f in CLAUDE.md local.md settings.json statusline.sh; do
+      for f in CLAUDE.md local.md settings.json statusline.sh setup-worktree.sh; do
         if [ ! -f ~/.claude/"$f" ]; then
           run cp ${src}/"$f" ~/.claude/"$f"
           run chmod u+w ~/.claude/"$f"
         fi
       done
       run chmod +x ~/.claude/statusline.sh
+      run chmod +x ~/.claude/setup-worktree.sh
     '';
   };
 }

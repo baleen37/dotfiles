@@ -8,7 +8,7 @@
 #   - Claude CLI integration:
 #       - cc: Claude Code quick execution (skip permission checks)
 #       - oc: OpenCode quick execution
-#       - gw: Git worktree creation/switch
+#       - wt: Git worktree creation/switch
 #   - SSH wrapper: Auto-reconnection support via autossh
 #   - dotfiles auto-update: Background updates on shell startup
 #
@@ -180,7 +180,7 @@ in
         # =============================================================================
         # Section: Git worktree wrapper
         # =============================================================================
-        ${import ./gw.nix}
+        ${import ./wt.nix}
       '';
     };
   };

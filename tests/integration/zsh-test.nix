@@ -221,19 +221,21 @@ in
       "assh alias for autossh should exist (plain ssh is delegated to Ghostty's wrapper)"
     )
 
-    # Git Worktree function (gw)
-    (helpers.assertTest "function-gw-exists" (initContentHas "gw()") "gw() function should exist")
-    (helpers.assertTest "function-gw-usage" (initContentHas "Usage: gw [branch-name]")
-      "gw() should have usage message"
+    # Git Worktree function (wt)
+    (helpers.assertTest "function-wt-exists" (initContentHas "wt()") "wt() function should exist")
+    (helpers.assertTest "function-wt-usage"
+      (initContentHas "Usage: wt                  Pick a worktree with fzf and cd into it")
+      "wt() should have usage message"
     )
-    (helpers.assertTest "function-gw-git-check" (initContentHas "git rev-parse --git-dir")
-      "gw() should check for git repository"
+    (helpers.assertTest "function-wt-git-check" (initContentHas "git rev-parse --git-dir")
+      "wt() should check for git repository"
     )
-    (helpers.assertTest "function-gw-cd" (initContentHas "cd \"$worktree_dir\"")
-      "gw() should change to worktree dir"
+    (helpers.assertTest "function-wt-cd" (initContentHas "cd \"$worktree_dir\"")
+      "wt() should change to worktree dir"
     )
-    (helpers.assertTest "function-gw-repo-root" (initContentHas "git worktree list | head -1")
-      "gw() should resolve worktree path from main repo root"
+    (helpers.assertTest "function-wt-repo-root"
+      (initContentHas "git worktree list --porcelain | sed -n 's/^worktree //p' | head -1")
+      "wt() should resolve worktree path from main repo root"
     )
 
     # SSH wrapper with autossh
