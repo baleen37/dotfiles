@@ -87,7 +87,8 @@
       line=$(git worktree list --porcelain |
         awk '/^worktree /{p=substr($0,10)}
              /^branch /{b=substr($0,8); sub("refs/heads/", "", b); printf "%-40s\t%s\n", b, p}
-             /^detached$/{printf "%-40s\t%s\n", "(detached)", p}' |
+             /^detached$/{printf "%-40s\t%s\n", "(detached)", p}
+             /^bare$/{printf "%-40s\t%s\n", "(bare)", p}' |
         fzf --no-multi \
           --delimiter='\t' \
           --prompt='worktree> ' \
