@@ -136,7 +136,7 @@
           esac
         done
 
-        local _main_root=$(git worktree list 2>/dev/null | head -1 | awk '{print $1}')
+        local _main_root=$(git worktree list --porcelain 2>/dev/null | sed -n 's/^worktree //p' | head -1)
         if [[ -z "$_main_root" ]]; then
           echo "Not a git repository" >&2
           return 1
@@ -162,7 +162,7 @@
             safe) _safe+=("$_wt") ;;
             stale) _stale+=("$_wt") ;;
           esac
-        done < <(git worktree list | tail -n +2 | awk '{print $1}')
+        done < <(git worktree list --porcelain | sed -n 's/^worktree //p' | tail -n +2)
 
         local -a _targets
         _targets=("''${_safe[@]}")
