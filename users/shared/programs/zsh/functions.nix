@@ -6,9 +6,9 @@
 # - assh: autossh alias for long-lived connections
 # - setup_ssh_agent_for_gui(): SSH agent for GUI apps
 #
-# Note: ssh() is intentionally NOT overridden. Ghostty's shell-integration
-# installs its own ssh() to upload xterm-ghostty terminfo to remote hosts;
-# wrapping ssh here would shadow that. Keepalive options live in ~/.ssh/config
+# Note: ssh() is intentionally NOT overridden. Ghostty's shell integration
+# installs its own ssh() to use xterm-256color for remote hosts; wrapping ssh
+# here would shadow that. Keepalive options live in ~/.ssh/config
 # (programs.ssh module).
 
 ''
@@ -36,7 +36,7 @@
 
   # autossh for long-lived connections that need auto-reconnect.
   # Plain `ssh` goes through Ghostty's shell-integration wrapper which
-  # uploads ghostty terminfo to the remote — don't shadow it.
+  # uses xterm-256color on the remote — don't shadow it.
   alias assh='AUTOSSH_POLL=60 AUTOSSH_FIRST_POLL=30 autossh -M 0 -o ServerAliveInterval=30 -o ServerAliveCountMax=3'
 
   # SSH agent setup for GUI applications

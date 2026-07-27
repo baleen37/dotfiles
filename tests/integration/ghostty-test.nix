@@ -36,6 +36,9 @@ let
   # Helper function to check if a config line exists
   hasConfigLine = pattern: builtins.match ".*${pattern}.*" ghosttyConfigContent != null;
 
+  # Helper function to check if a config line does not exist
+  lacksConfigLine = pattern: builtins.match ".*${pattern}.*" ghosttyConfigContent == null;
+
   # Helper function to check if multiple config lines exist (all must match)
   hasAllConfigLines = patterns: builtins.all hasConfigLine patterns;
 
@@ -99,10 +102,10 @@ let
       "Ghostty should have shell-integration enabled"
     )
 
-    (helpers.assertTest "ghostty-shell-integration-features"
-      (hasConfigLine "shell-integration-features.*=.*cursor,sudo,title")
-      "Ghostty should have shell-integration-features set to cursor,sudo,title"
-    )
+    (helpers.assertTest "ghostty-shell-integration-features" (
+      hasConfigLine "shell-integration-features.*=.*no-cursor,sudo,title,ssh-env"
+      && lacksConfigLine "ssh-terminfo"
+    ) "Ghostty should use ssh-env without ssh-terminfo so remote TERM stays xterm-256color")
 
     (helpers.assertTest "ghostty-terminal-type-xterm-256color" (hasConfigLine "term.*=.*xterm-256color")
       "Ghostty should report xterm-256color for every shell"
