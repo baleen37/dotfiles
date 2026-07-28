@@ -14,6 +14,7 @@ let
 
   # Path to Claude configuration
   claudeDir = ../../users/shared/programs/.config/claude;
+  claudeCodeModule = builtins.readFile ../../users/shared/programs/claude-code.nix;
 
   # Helper to safely read and parse JSON
   readJson =
@@ -53,6 +54,12 @@ let
     config-dir-exists =
       helpers.assertTest "config-dir-exists" (builtins.pathExists claudeDir)
         "Claude configuration directory does not exist";
+
+    # CLAUDE.md is the declarative instruction source and must refresh on every switch.
+    claude-md-refreshes-on-switch =
+      helpers.assertTest "claude-md-refreshes-on-switch"
+        (lib.hasInfix "run cp \${src}/CLAUDE.md ~/.claude/CLAUDE.md" claudeCodeModule)
+        "CLAUDE.md should overwrite the existing ~/.claude/CLAUDE.md during activation";
   };
 
 in
