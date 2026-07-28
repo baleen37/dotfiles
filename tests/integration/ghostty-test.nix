@@ -57,6 +57,10 @@ let
       && builtins.hasAttr "packages" ghosttyConfig.home
     ) "ghostty config should have home.packages")
 
+    (helpers.assertTest "ghostty-does-not-override-terminfo-dirs" (
+      ghosttyConfigUsable && !(ghosttyConfig.home.sessionVariables or { } ? TERMINFO_DIRS)
+    ) "Ghostty should use the standard terminal database lookup path")
+
     # Test that home.file exists for config symlink
     (helpers.assertTest "ghostty-has-file-config" (
       ghosttyConfigUsable
