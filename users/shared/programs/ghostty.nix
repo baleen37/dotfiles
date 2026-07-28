@@ -19,9 +19,7 @@ in
   config = lib.mkIf cfg.enable {
     # Install Ghostty from the official macOS binary package. Ghostty is configured
     # to use the standard xterm-256color terminal type.
-    home.packages =
-      with pkgs;
-      lib.optional isDarwin ghostty-bin;
+    home.packages = with pkgs; lib.optional isDarwin ghostty-bin;
 
     # Symlink Ghostty configuration
     # Pattern: XDG-compliant location (destination: ~/.config/ghostty/)
