@@ -57,9 +57,17 @@ let
   generatedTmuxConfig = homeConfig.config.xdg.configFile."tmux/tmux.conf".text;
   generatedTmuxConfigFile = pkgs.writeText "tmux.conf" generatedTmuxConfig;
   agentStatusSummarySource = toString ../../users/shared/programs + "/tmux-agent-status-summary.sh";
+  expectedAgentStatusGlyph = "#{?#{==:#{@agent_status},running},●,#{?#{==:#{@agent_status},needs_input},▲,#{?#{==:#{@agent_status},ready},○,#{?#{==:#{@agent_status},error},✕,}}}}";
   fakeAgentStatusTmux = pkgs.writeShellScriptBin "tmux" ''
     if [ "$1" = "list-panes" ]; then
       printf '%s\n' running ready running needs_input error unknown ""
+      exit 0
+    fi
+    exit 1
+  '';
+  emptyAgentStatusTmux = pkgs.writeShellScriptBin "tmux" ''
+    if [ "$1" = "list-panes" ]; then
+      printf '%s\n' "" unknown ""
       exit 0
     fi
     exit 1
@@ -122,7 +130,7 @@ in
   ) "tmux continuum should restore saved sessions automatically";
 
   tmux-continuum-config-order = pkgs.runCommand "tmux-continuum-config-order" { } ''
-    continuum_load_line="$(${pkgs.gnugrep}/bin/grep -nF 'run-shell ' ${generatedTmuxConfigFile} | ${pkgs.gnugrep}/bin/grep -F 'tmuxplugin-continuum' | cut -d: -f1)"
+    continuum_load_line="$(${pkgs.gnugrep}/bin/grep -nF 'run-shell ' ${generatedTmuxConfigFile} | ${pkgs.gnugrep}/bin/grep -F 'tmuxplugin-continuum' | ${pkgs.coreutils}/bin/tail -n 1 | cut -d: -f1)"
     restore_line="$(${pkgs.gnugrep}/bin/grep -nF "set -g @continuum-restore 'on'" ${generatedTmuxConfigFile} | cut -d: -f1)"
     status_right_line="$(${pkgs.gnugrep}/bin/grep -nE '^set -g status-right ' ${generatedTmuxConfigFile} | cut -d: -f1)"
 
@@ -141,7 +149,13 @@ in
     output="$(PATH=${fakeAgentStatusTmux}/bin ${pkgs.bash}/bin/bash ${agentStatusSummarySource})"
     test "$output" = '●2 ▲1 ○1 ✕1'
 
+    output="$(PATH=${emptyAgentStatusTmux}/bin ${pkgs.bash}/bin/bash ${agentStatusSummarySource})"
+    test -z "$output"
+
     output="$(PATH=${failingAgentStatusTmux}/bin ${pkgs.bash}/bin/bash ${agentStatusSummarySource})"
+    test -z "$output"
+
+    output="$(PATH=${pkgs.coreutils}/bin ${pkgs.bash}/bin/bash ${agentStatusSummarySource})"
     test -z "$output"
 
     touch "$out"
@@ -150,11 +164,11 @@ in
   tmux-agent-status-window-format = pkgs.runCommand "tmux-agent-status-window-format" { } ''
     current_format="$(${pkgs.gnugrep}/bin/grep -F "window-status-current-format" ${generatedTmuxConfigFile})"
     inactive_format="$(${pkgs.gnugrep}/bin/grep -F "window-status-format" ${generatedTmuxConfigFile})"
-    continuum_load_line="$(${pkgs.gnugrep}/bin/grep -nF 'run-shell ' ${generatedTmuxConfigFile} | ${pkgs.gnugrep}/bin/grep -F 'tmuxplugin-continuum' | cut -d: -f1)"
+    continuum_load_line="$(${pkgs.gnugrep}/bin/grep -nF 'run-shell ' ${generatedTmuxConfigFile} | ${pkgs.gnugrep}/bin/grep -F 'tmuxplugin-continuum' | ${pkgs.coreutils}/bin/tail -n 1 | cut -d: -f1)"
     status_right_line="$(${pkgs.gnugrep}/bin/grep -nE '^set -g status-right ' ${generatedTmuxConfigFile} | cut -d: -f1)"
 
-    printf '%s\n' "$current_format" | ${pkgs.gnugrep}/bin/grep -F '#{@agent_status}'
-    printf '%s\n' "$inactive_format" | ${pkgs.gnugrep}/bin/grep -F '#{@agent_status}'
+    printf '%s\n' "$current_format" | ${pkgs.gnugrep}/bin/grep -F '#I${expectedAgentStatusGlyph}'
+    printf '%s\n' "$inactive_format" | ${pkgs.gnugrep}/bin/grep -F '#I${expectedAgentStatusGlyph}'
     printf '%s\n' "$current_format" | ${pkgs.gnugrep}/bin/grep -F '#{pane_title}'
     printf '%s\n' "$inactive_format" | ${pkgs.gnugrep}/bin/grep -F '#{pane_title}'
     printf '%s\n' "$current_format" | ${pkgs.gnugrep}/bin/grep -F '#W'
@@ -164,6 +178,29 @@ in
     ${pkgs.gnugrep}/bin/grep -F '%H:%M' ${generatedTmuxConfigFile}
     test "$(${pkgs.gnugrep}/bin/grep -cE '^set -g status-right ' ${generatedTmuxConfigFile})" -eq 1
     test "$status_right_line" -lt "$continuum_load_line"
+
+    export HOME="$TMPDIR"
+    export LC_ALL=en_US.UTF-8
+    export TMUX_TMPDIR="$TMPDIR"
+    tmux_test() {
+      ${pkgs.tmux}/bin/tmux -f /dev/null -L agent-status-test "$@"
+    }
+    trap 'tmux_test kill-server 2>/dev/null || true' EXIT
+    tmux_test new-session -d -s agent-status-test '${pkgs.coreutils}/bin/sleep 60'
+    pane_id="$(tmux_test display-message -p '#{pane_id}')"
+    agent_status_glyph='${expectedAgentStatusGlyph}'
+
+    for mapping in running:● needs_input:▲ ready:○ error:✕ unknown:; do
+      state="''${mapping%%:*}"
+      expected="''${mapping#*:}"
+      tmux_test set-option -p -t "$pane_id" @agent_status "$state"
+      actual="$(tmux_test display-message -p -t "$pane_id" "$agent_status_glyph")"
+      test "$actual" = "$expected"
+    done
+
+    tmux_test set-option -pu -t "$pane_id" @agent_status
+    actual="$(tmux_test display-message -p -t "$pane_id" "$agent_status_glyph")"
+    test -z "$actual"
 
     touch "$out"
   '';

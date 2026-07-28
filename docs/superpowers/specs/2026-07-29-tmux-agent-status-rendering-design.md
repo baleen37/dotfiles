@@ -54,7 +54,7 @@ Home Manager는 스크립트를 `pkgs.writeShellApplication`으로 패키징한�
 
 요약 command는 Continuum plugin의 `extraConfig` 안 기존 `status-right` 앞부분에
 추가한다. 이 설정은 Continuum이 로드되기 전에 존재해야 하며, 이후 Continuum이
-자신의 saver 정보를 append하는 기존 동작을 유지한다.
+기존 `status-right`를 확장하는 동작을 유지한다.
 
 ## 저장소 경계
 
