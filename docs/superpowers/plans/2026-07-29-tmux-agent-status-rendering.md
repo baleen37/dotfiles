@@ -24,11 +24,13 @@
 ### Task 1: Add semantic agent status rendering and aggregation
 
 **Files:**
+
 - Create: `users/shared/programs/tmux-agent-status-summary.sh`
 - Modify: `users/shared/programs/tmux.nix`
 - Modify: `tests/integration/tmux-functionality-test.nix`
 
 **Interfaces:**
+
 - Consumes: `tmux list-panes -a -F '#{@agent_status}'`.
 - Produces: a compact summary string and window-list glyphs.
 

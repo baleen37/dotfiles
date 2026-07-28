@@ -18,13 +18,13 @@ bstack `me` 플러그인이 tmux pane option으로 기록한 agent 상태를 Her
 dotfiles는 pane-local tmux user option `@agent_status`만 소비한다. 허용 값은 다음
 다섯 가지다.
 
-| 값 | 표시 | 의미 |
-| --- | --- | --- |
-| `running` | `●` | agent가 turn을 처리 중 |
-| `needs_input` | `▲` | 권한 승인이나 사용자 입력 대기 |
-| `ready` | `○` | 다음 입력을 받을 수 있음 |
-| `error` | `✕` | provider가 보고한 실패 |
-| 값 없음 | 표시 없음 | agent 상태를 알 수 없음 |
+| 값            | 표시      | 의미                           |
+| ------------- | --------- | ------------------------------ |
+| `running`     | `●`       | agent가 turn을 처리 중         |
+| `needs_input` | `▲`       | 권한 승인이나 사용자 입력 대기 |
+| `ready`       | `○`       | 다음 입력을 받을 수 있음       |
+| `error`       | `✕`       | provider가 보고한 실패         |
+| 값 없음       | 표시 없음 | agent 상태를 알 수 없음        |
 
 이번 bstack 공용 hook은 Claude와 Codex가 함께 제공하는 이벤트만 사용하므로
 `error`를 아직 쓰지 않는다. dotfiles는 이후 provider adapter가 `error`를
