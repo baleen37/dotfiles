@@ -56,6 +56,17 @@ let
   };
   generatedTmuxConfig = homeConfig.config.xdg.configFile."tmux/tmux.conf".text;
   generatedTmuxConfigFile = pkgs.writeText "tmux.conf" generatedTmuxConfig;
+  agentStatusSummarySource = toString ../../users/shared/programs + "/tmux-agent-status-summary.sh";
+  fakeAgentStatusTmux = pkgs.writeShellScriptBin "tmux" ''
+    if [ "$1" = "list-panes" ]; then
+      printf '%s\n' running ready running needs_input error unknown ""
+      exit 0
+    fi
+    exit 1
+  '';
+  failingAgentStatusTmux = pkgs.writeShellScriptBin "tmux" ''
+    exit 1
+  '';
 
   # Helper function to check if config contains a string
   hasConfigString = str: pluginHelpers.hasConfigString tmuxConfig.extraConfig str;
@@ -111,17 +122,48 @@ in
   ) "tmux continuum should restore saved sessions automatically";
 
   tmux-continuum-config-order = pkgs.runCommand "tmux-continuum-config-order" { } ''
-    continuum_line="$(${pkgs.gnugrep}/bin/grep -nF 'tmuxplugin-continuum' ${generatedTmuxConfigFile} | ${pkgs.coreutils}/bin/tail -n 1 | cut -d: -f1)"
+    continuum_load_line="$(${pkgs.gnugrep}/bin/grep -nF 'run-shell ' ${generatedTmuxConfigFile} | ${pkgs.gnugrep}/bin/grep -F 'tmuxplugin-continuum' | cut -d: -f1)"
     restore_line="$(${pkgs.gnugrep}/bin/grep -nF "set -g @continuum-restore 'on'" ${generatedTmuxConfigFile} | cut -d: -f1)"
-    status_right_line="$(${pkgs.gnugrep}/bin/grep -nF "set -g status-right '#[fg=colour233,bg=colour241,bold] %d/%m #[fg=colour233,bg=colour245,bold] %H:%M '" ${generatedTmuxConfigFile} | cut -d: -f1)"
+    status_right_line="$(${pkgs.gnugrep}/bin/grep -nE '^set -g status-right ' ${generatedTmuxConfigFile} | cut -d: -f1)"
 
-    echo "continuum-line=$continuum_line"
+    echo "continuum-load-line=$continuum_load_line"
     echo "continuum-restore-line=$restore_line"
     echo "status-right-line=$status_right_line"
     test "$(${pkgs.gnugrep}/bin/grep -cF "set -g @continuum-restore 'on'" ${generatedTmuxConfigFile})" -eq 1
-    test "$(${pkgs.gnugrep}/bin/grep -cF "set -g status-right " ${generatedTmuxConfigFile})" -eq 1
-    test "$restore_line" -lt "$continuum_line"
-    test "$status_right_line" -lt "$continuum_line"
+    test "$(${pkgs.gnugrep}/bin/grep -cE '^set -g status-right ' ${generatedTmuxConfigFile})" -eq 1
+    test "$restore_line" -lt "$continuum_load_line"
+    test "$status_right_line" -lt "$continuum_load_line"
+
+    touch "$out"
+  '';
+
+  tmux-agent-status-summary = pkgs.runCommand "tmux-agent-status-summary" { } ''
+    output="$(PATH=${fakeAgentStatusTmux}/bin ${pkgs.bash}/bin/bash ${agentStatusSummarySource})"
+    test "$output" = '●2 ▲1 ○1 ✕1'
+
+    output="$(PATH=${failingAgentStatusTmux}/bin ${pkgs.bash}/bin/bash ${agentStatusSummarySource})"
+    test -z "$output"
+
+    touch "$out"
+  '';
+
+  tmux-agent-status-window-format = pkgs.runCommand "tmux-agent-status-window-format" { } ''
+    current_format="$(${pkgs.gnugrep}/bin/grep -F "window-status-current-format" ${generatedTmuxConfigFile})"
+    inactive_format="$(${pkgs.gnugrep}/bin/grep -F "window-status-format" ${generatedTmuxConfigFile})"
+    continuum_load_line="$(${pkgs.gnugrep}/bin/grep -nF 'run-shell ' ${generatedTmuxConfigFile} | ${pkgs.gnugrep}/bin/grep -F 'tmuxplugin-continuum' | cut -d: -f1)"
+    status_right_line="$(${pkgs.gnugrep}/bin/grep -nE '^set -g status-right ' ${generatedTmuxConfigFile} | cut -d: -f1)"
+
+    printf '%s\n' "$current_format" | ${pkgs.gnugrep}/bin/grep -F '#{@agent_status}'
+    printf '%s\n' "$inactive_format" | ${pkgs.gnugrep}/bin/grep -F '#{@agent_status}'
+    printf '%s\n' "$current_format" | ${pkgs.gnugrep}/bin/grep -F '#{pane_title}'
+    printf '%s\n' "$inactive_format" | ${pkgs.gnugrep}/bin/grep -F '#{pane_title}'
+    printf '%s\n' "$current_format" | ${pkgs.gnugrep}/bin/grep -F '#W'
+    printf '%s\n' "$inactive_format" | ${pkgs.gnugrep}/bin/grep -F '#W'
+    ${pkgs.gnugrep}/bin/grep -F 'tmux-agent-status-summary' ${generatedTmuxConfigFile}
+    ${pkgs.gnugrep}/bin/grep -F '%d/%m' ${generatedTmuxConfigFile}
+    ${pkgs.gnugrep}/bin/grep -F '%H:%M' ${generatedTmuxConfigFile}
+    test "$(${pkgs.gnugrep}/bin/grep -cE '^set -g status-right ' ${generatedTmuxConfigFile})" -eq 1
+    test "$status_right_line" -lt "$continuum_load_line"
 
     touch "$out"
   '';
