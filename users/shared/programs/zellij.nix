@@ -13,7 +13,7 @@
 # Key Bindings (prefix = Ctrl+a):
 #   - Prefix:             Ctrl+a (Ctrl+b also works, Zellij's own default)
 #   - Send literal C-a:   Prefix+Ctrl+a
-#   - Split panes:        Prefix+| (left/right), Prefix+- (top/bottom)
+#   - Split panes:        Prefix+% (left/right), Prefix+" (top/bottom)
 #   - Navigate panes:     Prefix+h/j/k/l or Alt+arrows
 #   - Resize panes:       Prefix+H/J/K/L
 #   - New tab:            Prefix+c
@@ -138,11 +138,9 @@ in
                 // tmux.nix: bind C-a send-prefix. 1 is the byte Ctrl-a sends.
                 bind "Ctrl a" { Write 1; SwitchToMode "Normal"; }
 
-                // tmux.nix: bind | split-window -h / bind - split-window -v.
-                // Zellij always opens a new pane in the focused pane's cwd,
-                // which is what -c "#{pane_current_path}" is for in tmux.
-                bind "|" { NewPane "Right"; SwitchToMode "Normal"; }
-                bind "-" { NewPane "Down"; SwitchToMode "Normal"; }
+                // Splits are left alone: Zellij's tmux mode already binds % to a
+                // left/right split and the double-quote key to a top/bottom one,
+                // matching tmux's own defaults.
 
                 // tmux.nix: bind -r H/J/K/L resize-pane. Staying in tmux mode
                 // instead of returning to Normal gives the repeatable -r feel.

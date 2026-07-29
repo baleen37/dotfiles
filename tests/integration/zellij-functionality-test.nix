@@ -64,8 +64,6 @@ let
   # Kept out of the assertion list so no line runs past the formatter's width.
   prefixBinding = ''bind "Ctrl a" { SwitchToMode "Tmux"; }'';
   sendPrefixBinding = ''bind "Ctrl a" { Write 1; SwitchToMode "Normal"; }'';
-  splitRightBinding = ''bind "|" { NewPane "Right"; SwitchToMode "Normal"; }'';
-  splitDownBinding = ''bind "-" { NewPane "Down"; SwitchToMode "Normal"; }'';
   lastTabBinding = ''bind "a" { ToggleTab; SwitchToMode "Normal"; }'';
 
   tabBindingAssertions = map (
@@ -123,8 +121,6 @@ in
 
       # tmux-shaped keybindings
       (assertGenerated "send-prefix" sendPrefixBinding)
-      (assertGenerated "split-right" splitRightBinding)
-      (assertGenerated "split-down" splitDownBinding)
       (assertGenerated "resize-left" ''bind "H" { Resize "Increase Left"; }'')
       (assertGenerated "resize-right" ''bind "L" { Resize "Increase Right"; }'')
       (assertGenerated "last-tab" lastTabBinding)
@@ -138,6 +134,12 @@ in
       (helpers.assertTest "zellij-keeps-defaults" (
         !(lib.hasInfix "clear-defaults" generatedConfig)
       ) "Keybinds should extend Zellij's defaults, not clear them")
+
+      # Splits stay on Zellij's tmux-mode defaults (% and "), so the module
+      # must not bind NewPane at all.
+      (helpers.assertTest "zellij-default-splits" (
+        !(lib.hasInfix "NewPane" generatedConfig)
+      ) "Splits should be left at Zellij's defaults, not rebound")
 
       # A malformed keybinds block stops Zellij from starting at all, so check
       # the generated KDL is at least brace-balanced.
