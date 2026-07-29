@@ -6,10 +6,12 @@
 # https://github.com/baleen37/claude-plugins
 #
 # CLAUDE.md is copied on every switch so its declarative guidance stays in sync.
-# The remaining files are real, writable files rather than read-only store
+# Runtime-mutated files are real, writable files rather than read-only store
 # symlinks, because Claude Code mutates them at runtime (e.g.
 # feedbackSurveyState and plugin toggles). They are only copied when absent so
-# local edits and runtime writes are preserved across rebuilds.
+# local edits and runtime writes are preserved across rebuilds. The worktree
+# hook is declarative and is refreshed on every switch so its path rule stays
+# synchronized with wt.
 
 { config, lib, ... }:
 
@@ -25,12 +27,14 @@ in
       run mkdir -p ~/.claude
       run cp ${src}/CLAUDE.md ~/.claude/CLAUDE.md
       run chmod u+w ~/.claude/CLAUDE.md
-      for f in local.md settings.json statusline.sh setup-worktree.sh; do
+      for f in local.md settings.json statusline.sh; do
         if [ ! -f ~/.claude/"$f" ]; then
           run cp ${src}/"$f" ~/.claude/"$f"
           run chmod u+w ~/.claude/"$f"
         fi
       done
+      run cp ${src}/setup-worktree.sh ~/.claude/setup-worktree.sh
+      run chmod u+w ~/.claude/setup-worktree.sh
       run chmod +x ~/.claude/statusline.sh
       run chmod +x ~/.claude/setup-worktree.sh
     '';

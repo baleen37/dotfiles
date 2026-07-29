@@ -178,7 +178,7 @@
         # symlink takes ~5s with hundreds of roots.
         local _gc_target _wt_dir
         readlink /nix/var/nix/gcroots/auto/*(N@) 2>/dev/null | while IFS= read -r _gc_target; do
-          [[ "$_gc_target" == */.worktrees/*/.direnv/* ]] || continue
+          [[ "$_gc_target" == "$HOME"/worktrees/*/*/.direnv/* ]] || continue
           echo "''${_gc_target%/.direnv/*}"
         done | sort -u | while IFS= read -r _wt_dir; do
           if [[ -d "$_wt_dir" ]]; then
@@ -361,13 +361,13 @@
     }
 
     # Helper: Sanitize branch name for directory (replace / with -)
-    # Prefix with today's YYMMDD date for readable, chronological worktree names.
-    # Always returns an absolute path based on the main worktree root so wt works
-    # correctly from inside a worktree (flat, not nested).
+    # Place worktrees in a shared home directory, grouped by repository.
+    # Always resolve the repository name from the main worktree so wt works
+    # correctly from inside a worktree.
     local _sanitize_branch() {
       local repo_root=$(git worktree list --porcelain | sed -n 's/^worktree //p' | head -1)
-      local date_prefix=$(date +%y%m%d)
-      echo "''${repo_root}/.worktrees/''${date_prefix}-''${1//\//-}"
+      local repo_name=$(basename "$repo_root")
+      echo "''${HOME}/worktrees/''${repo_name}/''${1//\//-}"
     }
 
     # Helper: Find base branch (main or master)
@@ -444,6 +444,7 @@
     local worktree_dir=$(_sanitize_branch "$branch_name")
 
     _check_worktree_exists "$worktree_dir" || return 1
+    mkdir -p "$(dirname "$worktree_dir")"
 
     local base_branch=$(_find_base_branch)
     if [[ -z "$base_branch" ]]; then
