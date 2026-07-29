@@ -2,7 +2,7 @@
 # WorktreeCreate hook: create the worktree where wt() would put it.
 #
 # Mirrors the path rule in users/shared/programs/zsh/wt.nix:
-#   <repo_root>/.worktrees/<YYMMDD>-<branch with / replaced by ->
+#   $HOME/worktrees/<repo>/<branch with / replaced by ->
 # The hook runs under bash and cannot call the zsh wt function, so the rule
 # lives in two places; tests/unit/wt-hook-consistency-test.nix pins them
 # together.
@@ -29,10 +29,10 @@ fi
 # nest a new one underneath it.
 REPO_ROOT=$(git -C "$CWD" worktree list --porcelain | sed -n 's/^worktree //p' | head -1)
 
-DATE_PREFIX=$(date +%y%m%d)
-DIR="$REPO_ROOT/.worktrees/${DATE_PREFIX}-${NAME//\//-}"
+REPO_NAME=$(basename "$REPO_ROOT")
+DIR="$HOME/worktrees/$REPO_NAME/${NAME//\//-}"
 
-mkdir -p "$REPO_ROOT/.worktrees"
+mkdir -p "$(dirname "$DIR")"
 
 if git -C "$CWD" rev-parse --verify main > /dev/null 2>&1; then
   BASE="main"

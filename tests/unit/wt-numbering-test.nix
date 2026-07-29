@@ -1,6 +1,5 @@
 # tests/unit/wt-numbering-test.nix
-# Verify wt _sanitize_branch prefixes worktree directories with today's YYMMDD
-# date instead of a monotonically increasing numeric counter.
+# Verify wt _sanitize_branch places worktrees in the shared home worktree root.
 {
   inputs,
   system,
@@ -16,18 +15,15 @@ let
 in
 {
   platforms = [ "any" ];
-  value = helpers.testSuite "wt-date-prefix" [
-    (helpers.assertTest "wt-uses-yymmdd-date-prefix" (lib.hasInfix "date +%y%m%d" wtScript)
-      "wt _sanitize_branch should prefix worktree directories with today's YYMMDD date"
-    )
+  value = helpers.testSuite "wt-worktree-path" [
+    (helpers.assertTest "wt-builds-shared-worktree-path" (
+      lib.hasInfix "worktrees/" wtScript
+      && lib.hasInfix "repo_name" wtScript
+      && lib.hasInfix "1//\\//-" wtScript
+    ) "wt _sanitize_branch should build ~/worktrees/<repo>/<branch> paths")
 
-    (helpers.assertTest "wt-builds-date-title-worktree-path"
-      (lib.hasInfix ''"''${repo_root}/.worktrees/''${date_prefix}-''${1//\//-}"'' wtScript)
-      "wt _sanitize_branch should build .worktrees/YYMMDD-title paths"
+    (helpers.assertTest "wt-derives-repo-name" (lib.hasInfix "basename \"$repo_root\"" wtScript)
+      "wt should use the main repository directory name in the worktree path"
     )
-
-    (helpers.assertTest "wt-does-not-scan-numeric-prefixes" (
-      !(lib.hasInfix "grep -oE '^[0-9]+'" wtScript)
-    ) "wt _sanitize_branch should not scan existing numeric prefixes")
   ];
 }
