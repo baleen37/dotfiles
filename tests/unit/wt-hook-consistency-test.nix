@@ -1,8 +1,7 @@
 # tests/unit/wt-hook-consistency-test.nix
 # The Claude Code WorktreeCreate hook runs under bash and cannot call the zsh
 # `wt` function, so the path rule is necessarily written twice. Pin both copies
-# to the same rule here — they drifted apart once already (the hook was still
-# on the old 00000- numbering after wt moved to YYMMDD-).
+# to the same rule here.
 {
   inputs,
   system,
@@ -20,21 +19,17 @@ in
 {
   platforms = [ "any" ];
   value = helpers.testSuite "wt-hook-consistency" [
-    (helpers.assertTest "hook-uses-worktrees-dir" (lib.hasInfix ".worktrees" hookScript)
-      "hook should place worktrees under .worktrees/"
+    (helpers.assertTest "hook-uses-shared-worktrees-dir" (lib.hasInfix "$HOME/worktrees" hookScript)
+      "hook should place worktrees under ~/worktrees/"
     )
 
-    (helpers.assertTest "hook-uses-date-prefix" (lib.hasInfix "date +%y%m%d" hookScript)
-      "hook should use the same YYMMDD prefix as wt"
+    (helpers.assertTest "hook-uses-repo-name" (lib.hasInfix "basename \"$REPO_ROOT\"" hookScript)
+      "hook should include the repository name in the worktree path"
     )
 
-    (helpers.assertTest "wt-uses-date-prefix" (lib.hasInfix "date +%y%m%d" wtScript)
-      "wt should use a YYMMDD prefix (the rule the hook mirrors)"
+    (helpers.assertTest "wt-uses-shared-worktrees-dir" (lib.hasInfix "\${HOME}/worktrees" wtScript)
+      "wt should use the same shared worktree root as the hook"
     )
-
-    (helpers.assertTest "hook-drops-numeric-prefix" (
-      !(lib.hasInfix "%05d" hookScript)
-    ) "hook should not use the old zero-padded numeric prefix")
 
     (helpers.assertTest "hook-resolves-main-root" (lib.hasInfix "worktree list" hookScript)
       "hook should resolve the main worktree root so it never nests worktrees"

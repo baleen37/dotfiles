@@ -43,6 +43,11 @@ in
     }
   ) "Herdr should use the selected tmux-compatible bindings";
 
+  herdr-config-uses-shared-worktree-root =
+    helpers.assertTest "herdr-config-uses-shared-worktree-root"
+      (parsedConfig ? worktrees && parsedConfig.worktrees.directory == "~/worktrees")
+      "Herdr should create worktrees under ~/worktrees";
+
   herdr-config-valid = pkgs.runCommand "herdr-config-valid" { } ''
     export HOME="$TMPDIR"
     export HERDR_CONFIG_PATH=${herdrConfigFile}

@@ -38,5 +38,10 @@ in
       (lib.hasInfix "run cp \${src}/CLAUDE.md ~/.claude/CLAUDE.md" claudeCodeModule)
       "claude-code.nix should overwrite ~/.claude/CLAUDE.md during activation"
     )
+
+    (helpers.assertTest "worktree-hook-refreshes-on-switch"
+      (lib.hasInfix "run cp \${src}/setup-worktree.sh ~/.claude/setup-worktree.sh" claudeCodeModule)
+      "claude-code.nix should refresh the declarative worktree hook during activation"
+    )
   ];
 }
