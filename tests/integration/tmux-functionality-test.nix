@@ -56,7 +56,7 @@ let
   };
   generatedTmuxConfig = homeConfig.config.xdg.configFile."tmux/tmux.conf".text;
   generatedTmuxConfigFile = pkgs.writeText "tmux.conf" generatedTmuxConfig;
-  agentStatusSummarySource = toString ../../users/shared/programs + "/tmux-agent-status-summary.sh";
+  agentStatusSummarySource = ../../users/shared/programs/tmux-agent-status-summary.sh;
   expectedAgentStatusGlyph = "#{?#{==:#{@agent_status},running},●,#{?#{==:#{@agent_status},needs_input},▲,#{?#{==:#{@agent_status},ready},○,#{?#{==:#{@agent_status},error},✕,}}}}";
   fakeAgentStatusTmux = pkgs.writeShellScriptBin "tmux" ''
     if [ "$1" = "list-panes" ]; then
