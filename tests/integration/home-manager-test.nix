@@ -31,9 +31,16 @@ let
   hmConfig = mkConfig "baleen";
   hmConfigJito = mkConfig "jito.hello";
 
+  homeDirBaleen = hmConfig.home.homeDirectory;
+  homeDirJito = hmConfigJito.home.homeDirectory;
+
   importedPaths = map builtins.toString hmConfig.imports;
   importsModule =
-    relativePath: lib.any (path: lib.hasSuffix "/users/shared/${relativePath}" path) importedPaths;
+    relativePath:
+    let
+      suffix = "/users/shared/${relativePath}";
+    in
+    lib.any (path: lib.hasSuffix suffix path) importedPaths;
 
   expectedModules = [
     "programs/git.nix"
@@ -68,8 +75,7 @@ in
       ) "home.username must come from currentSystemUser")
 
       (helpers.assertTest "home-directory-follows-current-system-user" (
-        hmConfig.home.homeDirectory == "/Users/baleen"
-        && hmConfigJito.home.homeDirectory == "/Users/jito.hello"
+        homeDirBaleen == "/Users/baleen" && homeDirJito == "/Users/jito.hello"
       ) "home.homeDirectory must be derived from currentSystemUser")
 
       (helpers.assertTest "state-version-is-pinned" (

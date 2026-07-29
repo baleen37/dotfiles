@@ -21,6 +21,20 @@ let
   darwinHosts = inputs.self.darwinConfigurations;
   nixosHosts = inputs.self.nixosConfigurations;
 
+  darwinNames = builtins.attrNames darwinHosts;
+  nixosNames = builtins.attrNames nixosHosts;
+
+  expectedDarwin = [
+    "baleen-macbook"
+    "kakaostyle-jito"
+    "macbook-pro"
+  ];
+  expectedNixos = [
+    "vm-aarch64-utm"
+    "vm-x86_64-utm"
+  ];
+  hostsAreDeclared = darwinNames == expectedDarwin && nixosNames == expectedNixos;
+
   allHosts = hosts: predicate: lib.all (host: predicate host.config) (lib.attrValues hosts);
 
 in
@@ -29,17 +43,9 @@ in
   value = helpers.testSuite "machine-builds" [
     # Guards against a host silently vanishing from the flake, e.g. a typo in a
     # hosts.nix `class` value dropping it from both mapAttrs calls.
-    (helpers.assertTest "every-host-is-declared" (
-      builtins.attrNames darwinHosts == [
-        "baleen-macbook"
-        "kakaostyle-jito"
-        "macbook-pro"
-      ]
-      && builtins.attrNames nixosHosts == [
-        "vm-aarch64-utm"
-        "vm-x86_64-utm"
-      ]
-    ) "flake-modules/hosts.nix should expose exactly the known Darwin and NixOS hosts")
+    (helpers.assertTest "every-host-is-declared" hostsAreDeclared
+      "flake-modules/hosts.nix should expose exactly the known Darwin and NixOS hosts"
+    )
 
     (helpers.assertTest "darwin-hosts-set-state-version" (
       allHosts darwinHosts (c: (c.system.stateVersion or null) != null)

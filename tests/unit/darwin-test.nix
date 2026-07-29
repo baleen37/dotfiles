@@ -43,7 +43,18 @@ let
 
   customPrefs = darwinConfig.system.defaults.CustomUserPreferences;
   multitouch = customPrefs."com.apple.AppleMultitouchTrackpad";
-  btTrackpad = customPrefs."com.apple.driver.AppleBluetoothMultitouch.trackpad";
+  bluetooth = customPrefs."com.apple.driver.AppleBluetoothMultitouch.trackpad";
+
+  # Bound rather than inlined so each condition below stays a single short line:
+  # nixfmt reflows multi-line operator chains, and the threshold at which it joins
+  # or splits them is not worth guessing at.
+  homebrewCasks = darwinConfig.homebrew.casks;
+  forceClick = customPrefs.NSGlobalDomain."com.apple.trackpad.forceClick";
+  tapGesture = multitouch.TrackpadThreeFingerTapGesture;
+  btTapGesture = bluetooth.TrackpadThreeFingerTapGesture;
+
+  forceClickUsable = forceClick == true && multitouch.ForceSuppressed == 0;
+  threeFingerTapOff = tapGesture == 0 && btTapGesture == 0;
 
 in
 {
@@ -63,7 +74,7 @@ in
       # Homebrew supplies the GUI apps; an empty cask list means a switch would
       # silently uninstall all of them.
       (assertions.assertAttrEquals "homebrew-enabled" darwinConfig.homebrew "enable" true null)
-      (assertions.assertListNotEmpty "homebrew-casks-not-empty" darwinConfig.homebrew.casks null)
+      (assertions.assertListNotEmpty "homebrew-casks-not-empty" homebrewCasks null)
 
       # FileVault makes loginwindow.autoLoginUser a no-op, so it must stay unset
       # rather than be set to something misleading.
@@ -74,15 +85,13 @@ in
       # One-finger force-click lookup is only reachable through
       # CustomUserPreferences, and three-finger tap has to be off or both
       # gestures fight over the same tap.
-      (helpers.assertTest "trackpad-force-click-lookup-enabled" (
-        customPrefs.NSGlobalDomain."com.apple.trackpad.forceClick" == true
-        && multitouch.ForceSuppressed == 0
-      ) "Force click lookup should be enabled and not suppressed")
+      (helpers.assertTest "trackpad-force-click-lookup-enabled" forceClickUsable
+        "Force click lookup should be enabled and not suppressed"
+      )
 
-      (helpers.assertTest "trackpad-three-finger-lookup-disabled" (
-        multitouch.TrackpadThreeFingerTapGesture == 0
-        && btTrackpad.TrackpadThreeFingerTapGesture == 0
-      ) "Three-finger tap lookup should be disabled for both trackpad drivers")
+      (helpers.assertTest "trackpad-three-finger-lookup-disabled" threeFingerTapOff
+        "Three-finger tap lookup should be disabled for both trackpad drivers"
+      )
     ]
   );
 }

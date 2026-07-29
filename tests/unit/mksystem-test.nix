@@ -18,6 +18,8 @@ let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
   cacheConfig = import ../../lib/cache-config.nix;
   nixos = self.nixosConfigurations.vm-x86_64-utm.config;
+  trustedUsers = nixos.nix.settings.trusted-users;
+  trustedSubs = nixos.nix.settings.trusted-substituters;
 
   # Read defensively: if a field were renamed upstream, a throw here would turn a
   # readable assertion failure into an evaluation error for the whole check.
@@ -49,15 +51,13 @@ in
     )) "NixOS GC should keep a 7 day retention window; got ${gcReport}")
 
     (helpers.assertTest "nixos-trusts-the-host-user" (
-      lib.elem "root" nixos.nix.settings.trusted-users
-      && lib.elem "@wheel" nixos.nix.settings.trusted-users
+      lib.elem "root" trustedUsers && lib.elem "@wheel" trustedUsers
     ) "NixOS nix.settings.trusted-users must include root and @wheel so the cache is usable")
 
     # Without this a non-root `nix build` silently ignores the caches and
     # rebuilds the world.
-    (helpers.assertTest "cache-substituters-are-trusted" (lib.all
-      (url: lib.elem url nixos.nix.settings.trusted-substituters)
-      cacheConfig.substituters
+    (helpers.assertTest "cache-substituters-are-trusted" (
+      lib.all (url: lib.elem url trustedSubs) cacheConfig.substituters
     ) "every substituter from lib/cache-config.nix must also be a trusted-substituter")
   ];
 }

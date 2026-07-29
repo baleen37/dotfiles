@@ -12,7 +12,7 @@
 
 rec {
   # Plugins are derivations; `pname` is the upstream name (e.g. "vim-airline").
-  hasPluginByName = plugins: pname: builtins.any (plugin: (plugin.pname or null) == pname) plugins;
+  hasPluginByName = plugins: pname: builtins.any (p: (p.pname or null) == pname) plugins;
 
   hasConfigPattern = config: pattern: builtins.match pattern config != null;
 
