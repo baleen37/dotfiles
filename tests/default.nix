@@ -82,7 +82,9 @@ let
         let
           name = "${prefix}-${lib.removeSuffix "-test.nix" entry}";
         in
-        { ${name} = importTest name (dir + "/${entry}"); }
+        {
+          ${name} = importTest name (dir + "/${entry}");
+        }
       else
         { }
     ) (builtins.readDir dir);

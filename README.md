@@ -131,19 +131,19 @@ make test-build         # Build every unit + integration assertion
 
 ### Platform Capability Matrix
 
-| Make target           | macOS (Intel) | macOS (ARM) | NixOS (x86_64) | NixOS (ARM64) |
-| --------------------- | :-----------: | :---------: | :------------: | :-----------: |
-| **Core Operations**   |               |             |                |               |
-| switch                |      ✅       |     ✅      |       ✅       |      ✅       |
-| switch-home           |      ✅       |     ✅      |       ✅       |      ✅       |
-| format                |      ✅       |     ✅      |       ✅       |      ✅       |
-| **Testing**           |               |             |                |               |
-| test                  |      ✅       |     ✅      |       ✅       |      ✅       |
-| test-build            |      ✅       |     ✅      |       ✅       |      ✅       |
-| test-containers       |      ❌¹      |     ❌¹     |      ✅²       |      ✅²      |
-| **Secrets**           |               |             |                |               |
-| secrets/backup        |      ✅       |     ✅      |       ✅       |      ✅       |
-| secrets/restore       |      ✅       |     ✅      |       ✅       |      ✅       |
+| Make target         | macOS (Intel) | macOS (ARM) | NixOS (x86_64) | NixOS (ARM64) |
+| ------------------- | :-----------: | :---------: | :------------: | :-----------: |
+| **Core Operations** |               |             |                |               |
+| switch              |      ✅       |     ✅      |       ✅       |      ✅       |
+| switch-home         |      ✅       |     ✅      |       ✅       |      ✅       |
+| format              |      ✅       |     ✅      |       ✅       |      ✅       |
+| **Testing**         |               |             |                |               |
+| test                |      ✅       |     ✅      |       ✅       |      ✅       |
+| test-build          |      ✅       |     ✅      |       ✅       |      ✅       |
+| test-containers     |      ❌¹      |     ❌¹     |      ✅²       |      ✅²      |
+| **Secrets**         |               |             |                |               |
+| secrets/backup      |      ✅       |     ✅      |       ✅       |      ✅       |
+| secrets/restore     |      ✅       |     ✅      |       ✅       |      ✅       |
 
 ¹ NixOS VM tests need a Linux builder; Determinate Nix disables the macOS
 linux-builder, so run them in CI or a Linux VM.

@@ -34,8 +34,9 @@ in
 
     # CLAUDE.md is the declarative instruction source, so activation has to
     # overwrite whatever is already in ~/.claude instead of skipping it.
-    (helpers.assertTest "claude-md-refreshes-on-switch" (
-      lib.hasInfix "run cp \${src}/CLAUDE.md ~/.claude/CLAUDE.md" claudeCodeModule
-    ) "claude-code.nix should overwrite ~/.claude/CLAUDE.md during activation")
+    (helpers.assertTest "claude-md-refreshes-on-switch"
+      (lib.hasInfix "run cp \${src}/CLAUDE.md ~/.claude/CLAUDE.md" claudeCodeModule)
+      "claude-code.nix should overwrite ~/.claude/CLAUDE.md during activation"
+    )
   ];
 }

@@ -33,8 +33,8 @@ in
     ) "flake-modules/home.nix should expose a homeConfiguration for every supported user")
 
     # Forcing activationPackage is what actually evaluates the module tree.
-    (helpers.assertTest "every-user-has-an-activation-package" (
-      lib.all (cfg: cfg ? activationPackage) (lib.attrValues homeConfigs)
-    ) "each homeConfiguration must evaluate to an activation package for `make switch-home`")
+    (helpers.assertTest "every-user-has-an-activation-package" (lib.all (cfg: cfg ? activationPackage) (
+      lib.attrValues homeConfigs
+    )) "each homeConfiguration must evaluate to an activation package for `make switch-home`")
   ];
 }

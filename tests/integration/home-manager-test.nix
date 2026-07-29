@@ -93,10 +93,9 @@ in
         !(hmConfig.modules.programs ? hammerspoon) && !(hmConfig.modules.programs ? karabiner)
       ) "hammerspoon/karabiner must be left to their module-level platform default")
 
-      (helpers.assertTest "every-package-category-enabled" (
-        lib.all (category: hmConfig.modules.packages.${category}.enable) (
-          builtins.attrNames hmConfig.modules.packages
-        )
+      (helpers.assertTest "every-package-category-enabled" (lib.all
+        (category: hmConfig.modules.packages.${category}.enable)
+        (builtins.attrNames hmConfig.modules.packages)
       ) "every package category listed in home-manager.nix should be enabled")
     ]
     ++ map (

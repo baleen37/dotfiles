@@ -29,8 +29,9 @@ let
       let
         actual = lib.attrByPath [ "system" "defaults" domain key ] null darwinConfig;
       in
-      helpers.assertTest "${domain}-${key}" (actual == expected)
-        "system.defaults.${domain}.${key} should be ${pretty expected}, got ${pretty actual}"
+      helpers.assertTest "${domain}-${key}" (
+        actual == expected
+      ) "system.defaults.${domain}.${key} should be ${pretty expected}, got ${pretty actual}"
     ) settings;
 in
 {
@@ -95,13 +96,15 @@ in
 
   assertSystemPrimaryUser =
     expectedUser: darwinConfig:
-    helpers.assertTest "system-primary-user" (darwinConfig.system.primaryUser == expectedUser)
-      "system.primaryUser should follow currentSystemUser (${expectedUser})";
+    helpers.assertTest "system-primary-user" (
+      darwinConfig.system.primaryUser == expectedUser
+    ) "system.primaryUser should follow currentSystemUser (${expectedUser})";
 
   assertDocumentationDisabled =
     darwinConfig:
-    helpers.assertTest "documentation-disabled" (darwinConfig.documentation.enable == false)
-      "documentation.enable should stay false; building man pages dominates switch time";
+    helpers.assertTest "documentation-disabled" (
+      darwinConfig.documentation.enable == false
+    ) "documentation.enable should stay false; building man pages dominates switch time";
 
   # Asserts on postActivation's text rather than on the presence of an attribute.
   # nix-darwin splices only a fixed set of segment names into the script it runs,
@@ -110,7 +113,7 @@ in
   # which is how this script stayed dead for as long as it did.
   assertCleanupScriptConfigured =
     darwinConfig:
-    helpers.assertTest "cleanup-script-in-post-activation" (
-      lib.hasInfix "GarageBand.app" darwinConfig.system.activationScripts.postActivation.text
-    ) "App cleanup must live in the postActivation segment so nix-darwin actually runs it";
+    helpers.assertTest "cleanup-script-in-post-activation"
+      (lib.hasInfix "GarageBand.app" darwinConfig.system.activationScripts.postActivation.text)
+      "App cleanup must live in the postActivation segment so nix-darwin actually runs it";
 }

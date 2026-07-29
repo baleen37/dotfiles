@@ -98,7 +98,7 @@ nix build '.#checks.x86_64-linux.unit-mksystem' --impure   # A single check
 ```
 
 `make test` falls back to `nix flake check --no-build` wherever the container
-tests cannot run, and `--no-build` only *evaluates* checks — a false assertion is
+tests cannot run, and `--no-build` only _evaluates_ checks — a false assertion is
 never built and never fails. Use `make test-build` to actually run assertions.
 
 #### Testing on Multiple Platforms

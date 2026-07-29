@@ -21,13 +21,13 @@ in
 {
   platforms = [ "darwin" ];
   value = helpers.testSuite "mksystem-darwin" [
-    (helpers.assertTest "determinate-collects-garbage" (gcStrategy == "automatic")
-      "Determinate Nixd must own GC on Darwin; nix.gc is inert while nix.enable = false"
-    )
+    (helpers.assertTest "determinate-collects-garbage" (
+      gcStrategy == "automatic"
+    ) "Determinate Nixd must own GC on Darwin; nix.gc is inert while nix.enable = false")
 
-    (helpers.assertTest "nix-daemon-left-to-determinate" (darwin.nix.enable == false)
-      "nix.enable must stay false on Darwin so nix-darwin does not fight Determinate"
-    )
+    (helpers.assertTest "nix-daemon-left-to-determinate" (
+      darwin.nix.enable == false
+    ) "nix.enable must stay false on Darwin so nix-darwin does not fight Determinate")
 
     (helpers.assertTest "determinate-gets-cache-settings" (
       determinate.customSettings.substituters == cacheConfig.substituters

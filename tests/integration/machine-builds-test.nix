@@ -47,24 +47,24 @@ in
       "flake-modules/hosts.nix should expose exactly the known Darwin and NixOS hosts"
     )
 
-    (helpers.assertTest "darwin-hosts-set-state-version" (
-      allHosts darwinHosts (c: (c.system.stateVersion or null) != null)
-    ) "every Darwin host needs system.stateVersion; activation fails without it")
+    (helpers.assertTest "darwin-hosts-set-state-version" (allHosts darwinHosts (
+      c: (c.system.stateVersion or null) != null
+    )) "every Darwin host needs system.stateVersion; activation fails without it")
 
-    (helpers.assertTest "darwin-hosts-install-system-packages" (
-      allHosts darwinHosts (c: builtins.length c.environment.systemPackages > 0)
-    ) "every Darwin host should end up with system packages")
+    (helpers.assertTest "darwin-hosts-install-system-packages" (allHosts darwinHosts (
+      c: builtins.length c.environment.systemPackages > 0
+    )) "every Darwin host should end up with system packages")
 
-    (helpers.assertTest "darwin-hosts-load-home-manager" (
-      allHosts darwinHosts (c: builtins.attrNames c.home-manager.users != [ ])
-    ) "every Darwin host should configure at least one Home Manager user")
+    (helpers.assertTest "darwin-hosts-load-home-manager" (allHosts darwinHosts (
+      c: builtins.attrNames c.home-manager.users != [ ]
+    )) "every Darwin host should configure at least one Home Manager user")
 
-    (helpers.assertTest "nixos-hosts-set-state-version" (
-      allHosts nixosHosts (c: (c.system.stateVersion or null) != null)
-    ) "every NixOS host needs system.stateVersion; activation fails without it")
+    (helpers.assertTest "nixos-hosts-set-state-version" (allHosts nixosHosts (
+      c: (c.system.stateVersion or null) != null
+    )) "every NixOS host needs system.stateVersion; activation fails without it")
 
-    (helpers.assertTest "nixos-hosts-set-hostname" (
-      allHosts nixosHosts (c: (c.networking.hostName or "") != "")
-    ) "every NixOS host should set networking.hostName")
+    (helpers.assertTest "nixos-hosts-set-hostname" (allHosts nixosHosts (
+      c: (c.networking.hostName or "") != ""
+    )) "every NixOS host should set networking.hostName")
   ];
 }

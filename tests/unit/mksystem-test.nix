@@ -56,8 +56,8 @@ in
 
     # Without this a non-root `nix build` silently ignores the caches and
     # rebuilds the world.
-    (helpers.assertTest "cache-substituters-are-trusted" (
-      lib.all (url: lib.elem url trustedSubs) cacheConfig.substituters
+    (helpers.assertTest "cache-substituters-are-trusted" (lib.all (url: lib.elem url trustedSubs)
+      cacheConfig.substituters
     ) "every substituter from lib/cache-config.nix must also be a trusted-substituter")
   ];
 }
