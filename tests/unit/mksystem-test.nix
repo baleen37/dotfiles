@@ -41,13 +41,12 @@ in
     # and configure nix.gc itself only on NixOS. Split per field, and report the
     # value that was actually merged — the schedule is a string the NixOS module
     # is free to reshape, so "it disagrees" is not a useful failure message.
-    (helpers.assertTest "nixos-gc-is-automatic" (gc.automatic or false)
-      "NixOS hosts should garbage collect automatically; got ${gcReport}"
-    )
+    (helpers.assertTest "nixos-gc-is-automatic" (gc.automatic or false
+    ) "NixOS hosts should garbage collect automatically; got ${gcReport}")
 
-    (helpers.assertTest "nixos-gc-retains-7-days" (
-      lib.hasInfix "--delete-older-than 7d" (gc.options or "")
-    ) "NixOS GC should keep a 7 day retention window; got ${gcReport}")
+    (helpers.assertTest "nixos-gc-retains-7-days" (lib.hasInfix "--delete-older-than 7d" (
+      gc.options or ""
+    )) "NixOS GC should keep a 7 day retention window; got ${gcReport}")
 
     (helpers.assertTest "nixos-trusts-the-host-user" (
       lib.elem "root" nixos.nix.settings.trusted-users
@@ -56,8 +55,9 @@ in
 
     # Without this a non-root `nix build` silently ignores the caches and
     # rebuilds the world.
-    (helpers.assertTest "cache-substituters-are-trusted" (
-      lib.all (url: lib.elem url nixos.nix.settings.trusted-substituters) cacheConfig.substituters
+    (helpers.assertTest "cache-substituters-are-trusted" (lib.all
+      (url: lib.elem url nixos.nix.settings.trusted-substituters)
+      cacheConfig.substituters
     ) "every substituter from lib/cache-config.nix must also be a trusted-substituter")
   ];
 }

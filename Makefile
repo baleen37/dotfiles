@@ -101,7 +101,7 @@ test-containers:
 	if [ "$(UNAME)" = "Darwin" ] || [ ! -e /dev/kvm ]; then \
 		echo "Container tests need Linux + /dev/kvm; run them in CI or a Linux VM."; \
 		exit 1; \
-	fi
+	fi; \
 	$(NIX_ENV_FULL) $(NIX) build \
 		".#checks.$(NIX_SYSTEM).container-smoke" \
 		".#checks.$(NIX_SYSTEM).container-basic" \
