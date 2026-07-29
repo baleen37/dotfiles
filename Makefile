@@ -71,8 +71,19 @@ test:
 		echo "Validation completed - Full container tests run only where KVM is available"; \
 	else \
 		echo "Linux with KVM detected: Running full container test execution..."; \
-		$(NIX_ENV_FULL) $(NIX) flake check --impure --accept-flake-config --show-trace; \
+		$(NIX_ENV_FULL) $(NIX) flake check --impure --accept-flake-config --show-trace \
+			|| { $(MAKE) --no-print-directory fmt-diff; exit 1; }; \
 	fi
+
+# `nix flake check` truncates a failing check's log to its last 25 lines. treefmt
+# emits one diff covering every unformatted file, so that truncation hides all but
+# the last file's hunks — which makes a formatting failure very hard to act on.
+# Build the treefmt check alone with --print-build-logs to get the whole diff.
+fmt-diff:
+	@echo "--- full treefmt diff (nix flake check only shows its last 25 lines) ---"
+	@export USER=$${USER:-$(whoami)} && \
+	$(NIX_ENV) $(NIX) build ".#checks.$(NIX_SYSTEM).treefmt" \
+		--impure --accept-flake-config --print-build-logs --no-link 2>&1 || true
 
 # Build every unit and integration assertion. `make test` falls back to
 # --no-build wherever container tests cannot run, and --no-build only evaluates
@@ -232,7 +243,7 @@ wsl:
 	 nix build ".#nixosConfigurations.wsl.config.system.build.installer"
 
 # Phony targets
-.PHONY: build-switch switch switch-home test test-build test-all test-containers format cache vm/bootstrap0 vm/bootstrap vm/copy vm/switch vm/secrets secrets/backup secrets/restore install-hooks lint update
+.PHONY: build-switch switch switch-home test test-build test-all test-containers fmt-diff format cache vm/bootstrap0 vm/bootstrap vm/copy vm/switch vm/secrets secrets/backup secrets/restore install-hooks lint update
 
 install-hooks:
 	pre-commit install --hook-type pre-commit --hook-type pre-push
