@@ -4,7 +4,7 @@
 #
 # Features:
 #   - Ctrl-a prefix (screen-style)
-#   - Intuitive split bindings: | (left/right), - (top/bottom)
+#   - Default split bindings: % (left/right), " (top/bottom), kept at the current path
 #   - Vim-style pane navigation: h/j/k/l
 #   - Vi-style copy mode with tmux-native OSC52 clipboard support
 #   - Truecolor (RGB) + undercurl inherited from xterm-ghostty terminfo
@@ -13,7 +13,7 @@
 #
 # Key Bindings:
 #   - Prefix: Ctrl+a
-#   - Split panes: Prefix+| (left/right), Prefix+- (top/bottom)
+#   - Split panes: Prefix+% (left/right), Prefix+" (top/bottom)
 #   - Navigate panes: Prefix+h/j/k/l or Ctrl+h/j/k/l (with Vim)
 #   - New window: Prefix+c
 #   - Next/Prev window: Prefix+n/p
@@ -121,11 +121,11 @@ in
         # ============================================================================
         # Pane management
         # ============================================================================
-        # Intuitive split bindings, keeping the current pane's path
-        bind | split-window -h -c "#{pane_current_path}"
-        bind - split-window -v -c "#{pane_current_path}"
-        unbind '%'
-        unbind '"'
+        # Default split keys (% left/right, " top/bottom), re-bound only to
+        # carry the current pane's path over — tmux 1.9+ otherwise starts a new
+        # pane in the directory the session was created in.
+        bind '%' split-window -h -c "#{pane_current_path}"
+        bind '"' split-window -v -c "#{pane_current_path}"
 
         # Vim-style pane navigation
         bind h select-pane -L

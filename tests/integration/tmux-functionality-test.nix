@@ -216,16 +216,18 @@ in
   ) "sesh should use prefix+T and preserve tmux prefix+t clock mode";
 
   tmux-split-vertical =
-    mkConfigTest "tmux-split-vertical" (hasConfigString "bind | split-window -h")
-      "tmux should bind | to a left/right split with the current pane path";
+    mkConfigTest "tmux-split-vertical"
+      (hasConfigString "bind '%' split-window -h -c \"#{pane_current_path}\"")
+      "tmux should keep % for a left/right split, at the current pane path";
 
   tmux-split-horizontal =
-    mkConfigTest "tmux-split-horizontal" (hasConfigString "bind - split-window -v")
-      "tmux should bind - to a top/bottom split with the current pane path";
+    mkConfigTest "tmux-split-horizontal"
+      (hasConfigString "bind '\"' split-window -v -c \"#{pane_current_path}\"")
+      "tmux should keep the double-quote key for a top/bottom split, at the current pane path";
 
-  tmux-default-split-bindings-unbound = mkConfigTest "tmux-default-split-bindings-unbound" (
-    hasConfigString "unbind '%'" && hasConfigString "unbind '\"'"
-  ) "tmux should unbind the default % and double-quote split keys";
+  tmux-default-split-bindings-kept = mkConfigTest "tmux-default-split-bindings-kept" (
+    !(hasConfigString "unbind '%'") && !(hasConfigString "unbind '\"'")
+  ) "tmux should leave the default % and double-quote split keys bound";
 
   tmux-vim-pane-navigation =
     mkConfigTest "tmux-vim-pane-navigation" (hasConfigString "bind h select-pane -L")
