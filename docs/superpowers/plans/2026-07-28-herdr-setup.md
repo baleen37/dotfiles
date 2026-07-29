@@ -22,11 +22,13 @@
 ### Task 1: Declarative Herdr module
 
 **Files:**
+
 - Create: `tests/integration/herdr-test.nix`
 - Create: `users/shared/programs/herdr.nix`
 - Modify: `users/shared/home-manager.nix`
 
 **Interfaces:**
+
 - Consumes: `pkgs.herdr`, Home Manager's `home.packages` and `xdg.configFile` options.
 - Produces: `modules.programs.herdr.enable` and the managed `herdr/config.toml`.
 
@@ -63,6 +65,7 @@ let
 
   config = homeConfig.config;
   herdrConfig = config.xdg.configFile."herdr/config.toml".text;
+  parsedConfig = builtins.fromTOML herdrConfig;
   herdrConfigFile = pkgs.writeText "herdr-config.toml" herdrConfig;
 in
 {
@@ -71,10 +74,12 @@ in
   ) "Herdr should be installed through Home Manager";
 
   herdr-config-contains-tmux-bindings = helpers.assertTest "herdr-config-contains-tmux-bindings" (
-    lib.hasInfix ''prefix = "ctrl+a"'' herdrConfig
-    && lib.hasInfix ''detach = "prefix+d"'' herdrConfig
-    && lib.hasInfix ''split_vertical = "prefix+|"'' herdrConfig
-    && lib.hasInfix ''split_horizontal = "prefix+minus"'' herdrConfig
+    parsedConfig.keys == {
+      prefix = "ctrl+a";
+      detach = "prefix+d";
+      split_vertical = "prefix+|";
+      split_horizontal = "prefix+minus";
+    }
   ) "Herdr should use the selected tmux-compatible bindings";
 
   herdr-config-valid = pkgs.runCommand "herdr-config-valid" { } ''
@@ -92,7 +97,11 @@ Run:
 
 ```bash
 git add tests/integration/herdr-test.nix
-nix build '.#checks.aarch64-darwin.integration-herdr' --impure --accept-flake-config --show-trace
+nix build \
+  '.#checks.aarch64-darwin.integration-herdr-herdr-package-installed' \
+  '.#checks.aarch64-darwin.integration-herdr-herdr-config-contains-tmux-bindings' \
+  '.#checks.aarch64-darwin.integration-herdr-herdr-config-valid' \
+  --impure --accept-flake-config --show-trace
 ```
 
 Staging the new test makes it visible to flake source filtering. Expected:
@@ -145,7 +154,11 @@ Run:
 
 ```bash
 nix fmt
-nix build '.#checks.aarch64-darwin.integration-herdr' --impure --accept-flake-config --show-trace
+nix build \
+  '.#checks.aarch64-darwin.integration-herdr-herdr-package-installed' \
+  '.#checks.aarch64-darwin.integration-herdr-herdr-config-contains-tmux-bindings' \
+  '.#checks.aarch64-darwin.integration-herdr-herdr-config-valid' \
+  --impure --accept-flake-config --show-trace
 git diff --check
 ```
 
@@ -162,10 +175,12 @@ git commit -m "feat(herdr): add tmux-compatible home-manager setup"
 ### Task 2: Build, apply, and migrate the current machine
 
 **Files:**
+
 - Verify only: `flake.nix`, `flake.lock`
 - Runtime target: `~/.config/herdr/config.toml`
 
 **Interfaces:**
+
 - Consumes: the Home Manager module from Task 1 and the `macbook-pro` nix-darwin configuration.
 - Produces: a Nix-managed `herdr` command on the current Mac with no Homebrew shadow copy.
 
