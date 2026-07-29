@@ -13,6 +13,8 @@
     ./programs/zsh
     ./programs/starship.nix
     ./programs/tmux.nix
+    ./programs/zellij.nix
+    ./programs/herdr.nix
     ./programs/claude-code.nix
     ./programs/codex.nix
     ./programs/opencode.nix
@@ -45,6 +47,8 @@
     vim.enable = true;
     zsh.enable = true;
     tmux.enable = true;
+    zellij.enable = true;
+    herdr.enable = true;
     starship.enable = true;
     claude-code.enable = true;
     codex.enable = true;
