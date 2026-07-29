@@ -391,7 +391,7 @@ The zsh configuration provides these shortcuts (defined in `users/shared/program
 - Ctrl+a enters Zellij's built-in `tmux` mode, so `Ctrl+a <key>` acts as a tmux prefix chord
 - tmux bindings carried over: h/j/k/l focus, H/J/K/L resize, 1-9 tabs, `a` last tab, `T` session picker
 - Splits stay on Zellij's tmux-mode defaults (`%` left/right, `"` top/bottom), matching tmux
-- A Zellij *tab* stands in for a tmux *window*; the compact layout puts a single status line at the bottom
+- A Zellij _tab_ stands in for a tmux _window_; the compact layout puts a single status line at the bottom
 - OSC52 clipboard (no `copy_command`), 50000-line scrollback — both matched to tmux.nix
 - Shell auto-start is deliberately off, so Zellij never launches itself inside a tmux pane
 
