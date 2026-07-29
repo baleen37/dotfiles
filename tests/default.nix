@@ -1,4 +1,20 @@
 # tests/default.nix
+#
+# Builds flake `checks` from the test tree.
+#
+#   tests/unit/*-test.nix          fast, evaluate configuration in isolation
+#   tests/integration/*-test.nix   evaluate configurations against each other
+#   tests/containers/*.nix         NixOS VM tests, Linux + KVM only
+#
+# Unit and integration tests are discovered automatically: drop in a
+# `<feature>-test.nix` and it becomes `checks.<system>.{unit,integration}-<feature>`.
+#
+# A test file evaluates to one of:
+#   - a derivation                          -> one check
+#   - an attribute set of derivations       -> one check per attribute
+#   - { platforms = [...]; value = <above>; }  -> the above, skipped off-platform
+#
+# See lib/platform-helpers.nix for the `platforms` metadata.
 {
   inputs,
   system,
@@ -9,150 +25,94 @@ let
   pkgs = import inputs.nixpkgs { inherit system; };
   inherit (pkgs) lib;
 
-  # Import container tests - inline for now to avoid path issues
-  containerTests = {
-    "container-smoke" = import ./containers/smoke-test.nix { inherit pkgs lib; };
-    basic = import ./containers/basic-system.nix { inherit pkgs lib; };
-    services = import ./containers/services.nix { inherit pkgs lib; };
-    packages = import ./containers/packages.nix { inherit pkgs lib; };
-  };
-
-  # Convert to nixosTest checks
-  containerChecks = builtins.mapAttrs (_name: test: pkgs.testers.nixosTest test) containerTests;
-
-  # Automatic test discovery function (nixpkgs pattern)
-  # Discovers all *-test.nix files in a directory and subdirectories
-  # Excludes disabled/ directory and its contents
-  discoverTests =
-    dir: prefix:
-    lib.pipe (builtins.readDir dir) [
-      # Filter for .nix files, excluding helpers, disabled/, and include subdirectories
-      (lib.filterAttrs (
-        name: type:
-        (
-          type == "regular"
-          && lib.hasSuffix "-test.nix" name
-          && name != "default.nix"
-          && name != "nixtest-template.nix"
-        )
-        || (type == "directory" && name != "disabled")
-      ))
-      # Process both files and directories
-      (lib.mapAttrs' (
-        name: type:
-        if type == "directory" then
-          # Recursively discover tests in subdirectories
-          {
-            name = "${prefix}-${name}";
-            value = discoverTests (dir + "/${name}") "${prefix}-${name}";
-          }
-        else
-          # Import test file with safe error handling
-          let
-            filePath = dir + "/${name}";
-            # Try to import the test file, but handle errors gracefully
-            testResult = builtins.tryEval (
-              import filePath {
-                inherit
-                  inputs
-                  system
-                  pkgs
-                  lib
-                  self
-                  ;
-                inherit nixtest;
-              }
-            );
-          in
-          if testResult.success then
-            {
-              name = "${prefix}-${lib.removeSuffix "-test.nix" name}";
-              inherit (testResult) value;
-            }
-          else
-            # Create a failing test that clearly indicates the import problem
-            {
-              name = "${prefix}-${lib.removeSuffix "-test.nix" name}-import-failed";
-              value = pkgs.runCommand "test-import-failed-${name}" { } ''
-                echo "❌ TEST IMPORT FAILED: ${name}"
-                echo "📁 Path: ${filePath}"
-                echo "🚨 Error: ${testResult.value}"
-                echo ""
-                echo "This is likely a cross-platform compatibility issue or missing dependency."
-                echo "The test file may be trying to import platform-specific code."
-                exit 1
-              '';
-            }
-      ))
-    ];
-
-  # Flatten nested discovery results
-  flattenTests =
-    tests:
-    lib.listToAttrs (
-      lib.flatten (
-        lib.mapAttrsToList (
-          name: value:
-          if lib.isAttrs value && !builtins.hasAttr "name" value && !builtins.hasAttr "value" value then
-            # This is a nested discovery result, flatten it
-            lib.mapAttrsToList (subName: subValue: {
-              inherit subName;
-              name = "${name}-${subName}";
-              value = subValue;
-            }) (flattenTests value)
-          else
-            # This is a direct test
-            { inherit name value; }
-        ) tests
-      )
-    );
-
-  # Import existing NixTest framework
-  nixtest = import ./unit/nixtest-template.nix { inherit pkgs lib; };
-
-  # Import platform helpers for platform-aware test discovery
   platformHelpers = import ./lib/platform-helpers.nix { inherit pkgs lib; };
 
-  # Import mksystem function for testing
+  containerTests = {
+    container-smoke = import ./containers/smoke-test.nix { inherit pkgs lib; };
+    container-basic = import ./containers/basic-system.nix { inherit pkgs lib; };
+    container-services = import ./containers/services.nix { inherit pkgs lib; };
+    container-packages = import ./containers/packages.nix { inherit pkgs lib; };
+  };
 
-  # Platform-specific test discovery function
-  discoverPlatformTests =
-    dir: prefix:
+  # An import failure becomes a failing check rather than aborting the whole
+  # evaluation, so one broken file does not hide the state of every other test.
+  importTest =
+    name: path:
     let
-      discoveredTests = discoverTests dir prefix;
-      filteredTests = platformHelpers.filterPlatformTests discoveredTests;
-      # Extract actual test values from platform-filtered tests
-      extractTestValues =
-        _tests:
-        lib.mapAttrs (
-          _name: test: if builtins.hasAttr "value" test then test.value else test
-        ) filteredTests;
+      result = builtins.tryEval (
+        import path {
+          inherit
+            inputs
+            system
+            pkgs
+            lib
+            self
+            ;
+        }
+      );
     in
-    extractTestValues filteredTests;
+    if result.success then
+      result.value
+    else
+      pkgs.runCommand "test-import-failed-${name}" { } ''
+        echo "❌ TEST IMPORT FAILED: ${name}"
+        echo "   ${toString path}"
+        echo "   Usually a missing argument or a platform-specific import."
+        exit 1
+      '';
+
+  # `checks` must be a flat name -> derivation map, so a test that groups several
+  # derivations in an attribute set is expanded into `<test>-<assertion>` entries.
+  flatten =
+    name: test:
+    if lib.isDerivation test then
+      { ${name} = test; }
+    else
+      lib.concatMapAttrs (subName: subTest: flatten "${name}-${subName}" subTest) test;
+
+  # Discovers `*-test.nix` in `dir` and its subdirectories, keyed
+  # `<prefix>-<feature>`; subdirectories extend the prefix with their name.
+  discoverTests =
+    prefix: dir:
+    lib.concatMapAttrs (
+      entry: type:
+      if type == "directory" then
+        discoverTests "${prefix}-${entry}" (dir + "/${entry}")
+      else if lib.hasSuffix "-test.nix" entry then
+        let
+          name = "${prefix}-${lib.removeSuffix "-test.nix" entry}";
+        in
+        {
+          ${name} = importTest name (dir + "/${entry}");
+        }
+      else
+        { }
+    ) (builtins.readDir dir);
+
+  # Only the `platforms` wrapper carries a `value`; unwrap that shape alone, so an
+  # attribute set of derivations that happens to contain a `value` attribute is
+  # left intact.
+  unwrap = test: if test ? platforms then test.value else test;
+
+  platformTests =
+    prefix: dir:
+    lib.concatMapAttrs (name: test: flatten name (unwrap test)) (
+      platformHelpers.filterPlatformTests (discoverTests prefix dir)
+    );
+
+  assertionChecks = platformTests "unit" ./unit // platformTests "integration" ./integration;
 
 in
-{
-  # Smoke test (explicit - it's special)
-  smoke = pkgs.runCommand "smoke-test" { } ''
-    echo "✅ Test infrastructure ready - automatic discovery enabled"
+lib.mapAttrs (_name: pkgs.testers.nixosTest) containerTests
+// assertionChecks
+// {
+  # `nix flake check --no-build` only *evaluates* checks, so a false assertion is
+  # never noticed — and container tests make dropping --no-build impossible off
+  # Linux+KVM. This aggregate is buildable on every platform, which is what
+  # `make test-build` uses to actually run the assertions.
+  all-assertions = pkgs.runCommand "all-assertions" { } ''
+    ${lib.concatMapStringsSep "\n" (check: "cat ${check}") (lib.attrValues assertionChecks)}
+    echo "✅ ${toString (builtins.length (lib.attrNames assertionChecks))} assertion checks passed"
     touch $out
   '';
 }
-// containerChecks
-// flattenTests (discoverPlatformTests ./unit "unit")
-// (
-  # Add the new mksystem tests explicitly by flattening the set
-  import ./unit/functions/mksystem-factory-validation.nix {
-    inherit
-      inputs
-      system
-      pkgs
-      lib
-      self
-      ;
-    inherit nixtest;
-  }
-)
-// flattenTests (discoverPlatformTests ./integration "integration")
-# E2E tests are heavy VM tests - exclude from automatic discovery
-# They are available individually via nix eval on the specific test files

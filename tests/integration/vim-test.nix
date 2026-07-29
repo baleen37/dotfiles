@@ -9,10 +9,7 @@
 
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
-  pluginHelpers = import ../lib/plugin-test-helpers.nix {
-    inherit pkgs lib;
-    inherit helpers;
-  };
+  pluginHelpers = import ../lib/plugin-test-helpers.nix { inherit lib; };
 
   # Behavioral test: try to import and use vim config
   # Import vim module and extract config body via .content

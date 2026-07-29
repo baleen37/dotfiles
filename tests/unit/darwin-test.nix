@@ -1,7 +1,13 @@
-# Darwin Configuration Test
+# tests/unit/darwin-test.nix
 #
-# Tests the consolidated Darwin configuration in users/shared/darwin/
-# Verifies that system settings, Homebrew config, and performance optimizations are properly defined.
+# Covers users/shared/darwin/{default,homebrew,scripts}.nix.
+#
+# default.nix declares its siblings via `imports`, which only the module system
+# expands, so the three files are merged by hand here — that is why the config
+# below is a plain attribute set rather than an evaluated configuration.
+#
+# Values that were deliberately tuned live in tests/lib/constants.nix; the
+# grouped `system.defaults` assertions are in tests/lib/darwin-test-helpers.nix.
 {
   inputs,
   system,
@@ -13,104 +19,79 @@
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
   assertions = import ../lib/common-assertions.nix { inherit pkgs lib; };
-  darwinHelpers = import ../lib/darwin-test-helpers.nix { inherit pkgs lib helpers; };
+  constants = import ../lib/constants.nix { inherit pkgs lib; };
+  darwinHelpers = import ../lib/darwin-test-helpers.nix {
+    inherit
+      pkgs
+      lib
+      helpers
+      constants
+      ;
+  };
   mockConfig = import ../lib/mock-config.nix { inherit pkgs lib; };
+
+  testUser = "baleen";
 
   darwinConfig =
     lib.recursiveUpdate
       (lib.recursiveUpdate (import ../../users/shared/darwin/default.nix {
         inherit pkgs lib;
         config = mockConfig.mkEmptyConfig;
-        currentSystemUser = "baleen"; # Test with default user
+        currentSystemUser = testUser;
       }) (import ../../users/shared/darwin/homebrew.nix { }))
       (import ../../users/shared/darwin/scripts.nix { });
 
+  customPrefs = darwinConfig.system.defaults.CustomUserPreferences;
+  multitouch = customPrefs."com.apple.AppleMultitouchTrackpad";
+  bluetooth = customPrefs."com.apple.driver.AppleBluetoothMultitouch.trackpad";
+
+  # Bound rather than inlined so each condition below stays a single short line:
+  # nixfmt reflows multi-line operator chains, and the threshold at which it joins
+  # or splits them is not worth guessing at.
+  homebrewCasks = darwinConfig.homebrew.casks;
+  forceClick = customPrefs.NSGlobalDomain."com.apple.trackpad.forceClick";
+  tapGesture = multitouch.TrackpadThreeFingerTapGesture;
+  btTapGesture = bluetooth.TrackpadThreeFingerTapGesture;
+
+  forceClickUsable = forceClick == true && multitouch.ForceSuppressed == 0;
+  threeFingerTapOff = tapGesture == 0 && btTapGesture == 0;
+
 in
-# Platform filtering - this test should only run on Darwin systems
 {
   platforms = [ "darwin" ];
   value = helpers.testSuite "darwin" (
-    # ===== 기본 구조 검증 (assertions 사용) =====
-
-    [
-      # 시스템 설정 존재 확인
-      (assertions.assertAttrExists "darwin-has-system-settings" darwinConfig "system" null)
-
-      # Homebrew 설정 존재 확인
-      (assertions.assertAttrExists "darwin-has-homebrew" darwinConfig "homebrew" null)
-
-      # 성능 최적화 설정 존재 확인
-      (assertions.assertAttrPathExists "darwin-has-ns-global-domain" darwinConfig
-        "system.defaults.NSGlobalDomain"
-        null
-      )
-
-      # Dock 최적화 설정 존재 확인
-      (assertions.assertAttrPathExists "darwin-has-dock-settings" darwinConfig "system.defaults.dock"
-        null
-      )
-
-      # ===== Homebrew 설정 검증 =====
-
-      # Homebrew 활성화 확인
-      (assertions.assertAttrEquals "homebrew-enabled" darwinConfig.homebrew "enable" true null)
-
-      # Homebrew casks 목록이 비어있지 않은지 확인
-      (assertions.assertListNotEmpty "homebrew-casks-not-empty" (darwinConfig.homebrew.casks or [ ]) null)
-
-      # Homebrew brews 목록은 mockConfig에서 비어있을 수 있음 (조건부 설정)
-      # 실제 시스템에서는 brews가 추가됨
-      (helpers.assertTest "homebrew-brews-is-list" (builtins.isList (
-        darwinConfig.homebrew.brews or [ ]
-      )) "homebrew.brews should be a list")
-
-      # ===== 시스템 설정 검증 (darwin-helpers 사용) =====
-
-      # 앱 클린업 스크립트 구성 확인
+    darwinHelpers.assertGlobalDomainDefaults darwinConfig
+    ++ darwinHelpers.assertDockDefaults darwinConfig
+    ++ darwinHelpers.assertFinderDefaults darwinConfig
+    ++ darwinHelpers.assertTrackpadDefaults darwinConfig
+    ++ darwinHelpers.assertLoginWindowDefaults darwinConfig
+    ++ darwinHelpers.assertSpacesDefaults darwinConfig
+    ++ [
+      (darwinHelpers.assertSystemPrimaryUser testUser darwinConfig)
+      (darwinHelpers.assertDocumentationDisabled darwinConfig)
       (darwinHelpers.assertCleanupScriptConfigured darwinConfig)
 
-      # 문서 비활성화 확인 (빌드 속도 향상)
-      (darwinHelpers.assertDocumentationDisabled darwinConfig)
+      # Homebrew supplies the GUI apps; an empty cask list means a switch would
+      # silently uninstall all of them.
+      (assertions.assertAttrEquals "homebrew-enabled" darwinConfig.homebrew "enable" true null)
+      (assertions.assertListNotEmpty "homebrew-casks-not-empty" homebrewCasks null)
 
-      # 시스템 기본 사용자 확인
-      (darwinHelpers.assertSystemPrimaryUser "baleen" darwinConfig)
+      # FileVault makes loginwindow.autoLoginUser a no-op, so it must stay unset
+      # rather than be set to something misleading.
+      (helpers.assertTest "login-window-auto-login-unset" (
+        !(darwinConfig.system.defaults.loginwindow ? autoLoginUser)
+      ) "loginwindow.autoLoginUser should not be configured; FileVault ignores it")
 
-      # FileVault disables the regular autoLoginUser path.
-      (helpers.assertTest "login-window-auto-login-disabled" (
-        !(builtins.hasAttr "autoLoginUser" darwinConfig.system.defaults.loginwindow)
-      ) "loginwindow.autoLoginUser should not be configured")
+      # One-finger force-click lookup is only reachable through
+      # CustomUserPreferences, and three-finger tap has to be off or both
+      # gestures fight over the same tap.
+      (helpers.assertTest "trackpad-force-click-lookup-enabled" forceClickUsable
+        "Force click lookup should be enabled and not suppressed"
+      )
 
-      # ===== Spaces 설정 검증 =====
-
-      # Spaces가 디스플레이 간 스패닝되지 않는지 확인
-      (darwinHelpers.assertSpacesNoSpanDisplays darwinConfig)
-
-      # One-finger lookup 설정이 Nix로 유지되는지 확인
-      (helpers.assertTest "trackpad-force-click-lookup-enabled" (
-        darwinConfig.system.defaults.CustomUserPreferences."NSGlobalDomain"."com.apple.trackpad.forceClick"
-        == true
-      ) "Trackpad force click lookup should be enabled")
-
-      (helpers.assertTest "trackpad-force-click-not-suppressed" (
-        darwinConfig.system.defaults.CustomUserPreferences."com.apple.AppleMultitouchTrackpad".ForceSuppressed
-        == 0
-      ) "Trackpad force click should not be suppressed")
-
-      (helpers.assertTest "trackpad-three-finger-lookup-disabled" (
-        darwinConfig.system.defaults.CustomUserPreferences."com.apple.AppleMultitouchTrackpad".TrackpadThreeFingerTapGesture
-        == 0
-        &&
-          darwinConfig.system.defaults.CustomUserPreferences."com.apple.driver.AppleBluetoothMultitouch.trackpad".TrackpadThreeFingerTapGesture
-          == 0
-      ) "Three-finger lookup should be disabled")
+      (helpers.assertTest "trackpad-three-finger-lookup-disabled" threeFingerTapOff
+        "Three-finger tap lookup should be disabled for both trackpad drivers"
+      )
     ]
-    # ===== 성능 최적화 검증 (darwin-helpers 사용) =====
-    ++ (darwinHelpers.assertDarwinOptimizationsLevel1 darwinConfig)
-    ++ (darwinHelpers.assertDarwinOptimizationsLevel2 darwinConfig)
-    ++ (darwinHelpers.assertDarwinOptimizationsLevel3 darwinConfig)
-    ++ (darwinHelpers.assertDockOptimizations darwinConfig)
-    ++ (darwinHelpers.assertFinderOptimizations darwinConfig)
-    ++ (darwinHelpers.assertTrackpadOptimizations darwinConfig)
-    ++ (darwinHelpers.assertLoginWindowOptimizations darwinConfig)
   );
 }

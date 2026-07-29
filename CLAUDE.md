@@ -22,19 +22,24 @@ export USER=$(whoami)
 
 ```bash
 # Core workflow
-make test              # Fast container tests (2-5 seconds, Linux only - validation mode on macOS)
-make test-all          # Full test suite including integration tests
+make test              # Evaluate all checks (see caveat below)
+make test-build        # Actually build every unit + integration assertion
 make switch            # Build and apply configuration (uses sudo internally)
 make format            # Format all Nix files
 
 # Build operations
-nix run --impure .#build-switch  # Build and switch in one step
-nix flake check --impure         # Run all checks
+nix flake check --impure         # Evaluate all checks directly
 
 # Testing
-nix build '.#checks.aarch64-darwin.basic' --impure  # Specific check
-make test-integration                                # Integration tests only
+nix build '.#checks.aarch64-darwin.unit-darwin-sudo' --impure  # Specific check
+make test-containers                                           # NixOS VM tests (Linux + KVM)
 ```
+
+**Caveat**: container tests need Linux and `/dev/kvm`. Without them `make test`
+falls back to `nix flake check --no-build`, which only evaluates checks — a false
+assertion is never built and so never fails. `make test-build` builds the
+`all-assertions` aggregate, which excludes the container VMs and therefore works
+on any platform.
 
 ### First-Time Bootstrap (macOS)
 
@@ -116,54 +121,66 @@ users/shared/
 
 ### Machine Configurations
 
-Machine-specific hardware and system settings:
+Hosts are declared in `flake-modules/hosts.nix` (system, class, user, optional
+`homeModules` overrides); `flake-modules/systems.nix` turns each entry into a
+darwinConfiguration or nixosConfiguration via `lib/mksystem.nix`.
+
+Hardware and system settings live under `machines/`:
 
 ```text
 machines/
-├── macbook-pro.nix        # Primary macOS machine (includes linux-builder)
-├── baleen-macbook.nix     # Secondary macOS machine
-├── kakaostyle-jito.nix    # Work machine (jito.hello user)
+├── darwin/
+│   └── common.nix              # Shared by every Darwin host
 └── nixos/
-    ├── vm-aarch64-utm.nix # ARM64 NixOS VM
-    └── vm-shared.nix      # Shared NixOS settings
+    ├── vm-aarch64-utm.nix      # ARM64 NixOS VM
+    ├── vm-x86_64-utm.nix       # x86_64 NixOS VM
+    ├── vm-shared.nix           # Shared NixOS settings
+    └── hardware/vm-utm.nix     # virtio profile shared by both VMs
 ```
+
+Darwin hosts all share `machines/darwin/common.nix`; per-host differences are
+expressed in `hosts.nix` rather than in a per-machine file. NixOS hosts keep one
+file each, named after the host — `mkSystem` resolves
+`machines/nixos/<name>.nix` from the host name.
 
 ### Testing Framework
 
-TDD-based testing with automatic test discovery:
+Every check is a derivation that builds iff an assertion holds. See
+`tests/README.md` for the full contract.
 
 ```text
 tests/
-├── default.nix                    # Test orchestration and discovery
-├── unit/                          # Fast unit tests (automatic discovery)
-│   └── *-test.nix                # Auto-discovered tests
-├── integration/                   # Integration tests (automatic discovery)
-│   └── *-test.nix
-├── containers/                    # NixOS container tests (Linux only)
-│   ├── basic-system.nix
-│   ├── services.nix
-│   └── packages.nix
-├── e2e/                          # End-to-end tests (manual, heavy)
-│   └── *.nix
-└── lib/                          # Test utilities
-    ├── platform-helpers.nix     # Platform-aware test filtering
-    ├── test-helpers.nix
-    └── assertions.nix
+├── default.nix                # Discovery -> flake checks
+├── unit/*-test.nix            # One module or library, auto-discovered
+├── integration/*-test.nix     # Configurations against each other, auto-discovered
+├── containers/*.nix           # NixOS VM tests (Linux + KVM), wired up explicitly
+└── lib/                       # Shared assertions and fixtures
+    ├── test-helpers.nix       # assertTest, testSuite
+    ├── common-assertions.nix  # assertions with generated failure messages
+    ├── platform-helpers.nix   # `platforms` metadata filtering
+    ├── constants.nix          # values shared by a module and its test
+    └── mock-config.nix        # minimal `config` for direct module imports
 ```
 
-**Container Tests**: Only run on Linux. On macOS, `make test` runs validation mode (config check without execution). Full container tests run in CI.
+**Container Tests**: Linux + `/dev/kvm` only. Elsewhere `make test` degrades to
+`--no-build`, which does not run assertions — use `make test-build` for that.
 
 ### Dynamic User Resolution
 
-The flake supports multiple users via environment variable:
+The flake supports multiple users via environment variable. `resolveUser` in
+`flake-modules/args.nix` supplies the fallback used by `flake-modules/hosts.nix`:
 
 ```nix
-# flake.nix
-user = let envUser = builtins.getEnv "USER";
-       in if envUser != "" && envUser != "root" then envUser else "baleen";
+resolveUser =
+  fallback:
+  let
+    env = builtins.getEnv "USER";
+  in
+  if env != "" && env != "root" then env else fallback;
 ```
 
-This allows the same configuration to work for different users without hardcoding usernames.
+This allows the same configuration to work for different users without hardcoding
+usernames. Reading the environment is why every command needs `--impure`.
 
 ## Development Guidelines
 
@@ -191,38 +208,46 @@ This allows the same configuration to work for different users without hardcodin
 
    ```bash
    export USER=newusername
-   nix run --impure .#build-switch
+   make switch
    ```
 
-2. For permanent machine configuration, add to `flake.nix`:
+2. For permanent machine configuration, add an entry to `flake.hosts` in
+   `flake-modules/hosts.nix`; `hosts.nix` is the only place a host is declared,
+   and `flake-modules/systems.nix` turns each entry into a
+   darwinConfiguration or nixosConfiguration by its `class`:
 
    ```nix
-   darwinConfigurations.newmachine = mkSystem "newmachine" {
+   newmachine = {
      system = "aarch64-darwin";
+     class = "darwin";
      user = "newusername";
-     darwin = true;
    };
    ```
+
+   Note that `unit-machine-builds` asserts the exact host list, so it needs
+   updating alongside.
 
 ### Adding Tests
 
 **Unit/Integration tests** (automatic discovery):
 
-- Create `*-test.nix` in `tests/unit/` or `tests/integration/`
-- Use test helpers from `tests/lib/test-helpers.nix`
-- Tests are automatically discovered and run
+- Create `<feature>-test.nix` in `tests/unit/` or `tests/integration/`
+- Use `assertTest`/`testSuite` from `tests/lib/test-helpers.nix`
+- The file becomes `checks.<system>.{unit,integration}-<feature>`
+- Read `tests/README.md#what-belongs-in-a-test` first — an assertion over values
+  the test itself defined covers nothing
 
 **Container tests** (manual):
 
 - Add to `tests/containers/`
-- Import in `tests/default.nix` containerTests
-- Run with `make test` (Linux) or CI
+- Register it in `containerTests` in `tests/default.nix`
+- Run with `make test-containers` (Linux + KVM) or CI
 
 ### Formatting and Linting
 
 ```bash
-make format           # Format with nixfmt-rfc-style
-nix run .#format     # Direct formatter invocation
+make format           # Format with nixfmt-rfc-style (wraps nix fmt)
+nix fmt               # Direct formatter invocation
 pre-commit run --all-files  # Run all pre-commit hooks
 ```
 
@@ -303,12 +328,12 @@ Machine files should be minimal - only hardware-specific settings. User preferen
 ```bash
 export USER=$(whoami)  # Ensure USER is set
 nix store gc            # Clear cache if needed
-make build             # Retry build
+make switch            # Retry
 ```
 
 ### Container Tests Failing on macOS
 
-This is expected - container tests require Linux. Use `make test` for validation mode or run in CI.
+This is expected — container tests require Linux and `/dev/kvm`. Use `make test-build` to run the unit and integration assertions locally, and leave the VM tests to CI.
 
 ### Pre-commit Hook Failures
 
@@ -350,9 +375,11 @@ trusted-users = root @admin yourusername
 
 ### Testing and Quality
 
-- **tests/default.nix**: Test orchestration, automatic discovery of `*-test.nix` files
-- **tests/lib/test-helpers.nix**: Test assertion framework (assertTest, assertFileExists, assertHasAttr)
-- **tests/lib/platform-helpers.nix**: Platform-aware test filtering for cross-platform support
+- **tests/README.md**: Test contract, helper inventory, and what is worth asserting
+- **tests/default.nix**: Discovery of `*-test.nix` files into flake checks
+- **tests/lib/test-helpers.nix**: `assertTest` and `testSuite`
+- **tests/lib/common-assertions.nix**: Assertions with generated failure messages
+- **tests/lib/platform-helpers.nix**: `platforms` metadata filtering
 - **.pre-commit-config.yaml**: Quality enforcement hooks (shellcheck, shfmt, tests)
 
 ### Continuous Integration
@@ -403,7 +430,7 @@ The zsh configuration provides these shortcuts (defined in `users/shared/program
 
 ### Test Writing Guidelines
 
-Use test helpers from `tests/lib/test-helpers.nix`:
+Full contract in `tests/README.md`. The short version:
 
 ```nix
 { pkgs, lib, ... }:
@@ -411,18 +438,26 @@ let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
 in
 {
-  myTest = helpers.assertTest "feature-works"
-    (someCondition == expectedValue)
-    "Feature should work correctly";
+  platforms = [ "any" ];             # or ["darwin"] / ["linux"]; omit for all
+  value = helpers.testSuite "my-feature" [
+    (helpers.assertTest "some-invariant" someCondition
+      "why this matters, and what breaks when it does not hold"
+    )
+  ];
 }
 ```
 
-Available assertions:
+- `tests/lib/test-helpers.nix`: `assertTest name condition message`,
+  `testSuite name tests`
+- `tests/lib/common-assertions.nix`: `assertAttrEquals`, `assertAttrExists`,
+  `assertAttrPathExists`, `assertListContains`, `assertListNotEmpty`,
+  `assertNotNull`, `assertCondition` — each takes a trailing `message`, `null`
+  for the generated one
 
-- `assertTest name condition message`: Basic assertion
-- `assertFileExists name derivation path`: File readability check
-- `assertHasAttr name attrName set`: Attribute existence
-- `assertStringContains name haystack needle`: String content check
+Assert things that can break silently — a value duplicated in two files, a
+setting whose loss you would not notice for weeks, a configuration that must keep
+evaluating. Do not assert over values the test itself defines: it always passes
+and covers nothing.
 
 ## References
 

@@ -1,98 +1,68 @@
-# Makefile Switch Commands Test
+# tests/unit/makefile-switch-commands-test.nix
 #
-# Tests for Makefile switch command behavior
+# The Darwin `switch` recipe is coupled to two things outside the Makefile:
 #
-# Test Coverage:
-# - build-switch uses nix-darwin via dependency on switch (not home-manager)
-# - switch uses nix-darwin
-# - build-switch and switch do not use home-manager on Darwin
-# - All commands have proper USER variable handling
-# - switch is in .PHONY
-
+#   - the sudoers rule in users/shared/darwin (see darwin-sudo-test.nix), which
+#     allowlists one exact command line. Any drift here turns a passwordless
+#     switch into a password prompt, or worse, widens the rule.
+#   - the experimental-features flags on $(NIX); without them every nix
+#     invocation fails with "experimental Nix feature 'nix-command' is disabled".
+#
+# Both are string-level contracts, so they are checked as strings.
 {
   pkgs ? import <nixpkgs> { },
   ...
 }:
 
-let
-  makefilePath = ../../Makefile;
-
-in
 pkgs.runCommand "makefile-switch-commands-test"
   {
     buildInputs = [
-      pkgs.gnumake
       pkgs.gnugrep
+      pkgs.gnused
     ];
-    makefileSource = makefilePath;
+    makefileSource = ../../Makefile;
   }
   ''
-    echo "Testing Makefile switch commands (Option 3)"
-
-    # Test 1: build-switch should use darwin-rebuild on Darwin (via dependency on switch)
-    # build-switch depends on switch, and switch contains darwin-rebuild command
-    if (grep -A 5 "^build-switch:" "$makefileSource" | grep -q "switch") &&
-       (grep -A 20 "^switch:" "$makefileSource" | grep -q "DARWIN_REBUILD"); then
-      echo "✅ Test 1 PASS: build-switch uses darwin-rebuild via dependency on switch"
-    else
-      echo "❌ Test 1 FAIL: build-switch should depend on switch which uses darwin-rebuild"
+    fail() {
+      echo "❌ $1"
       exit 1
+    }
+
+    darwinSwitch=$(sed -n '/^switch:/,/^else/p' "$makefileSource")
+
+    # $(NIX) must carry the experimental feature flags.
+    grep '^NIX :=' "$makefileSource" | grep -q 'experimental-features.*nix-command' \
+      || fail "NIX must be defined with --extra-experimental-features nix-command"
+    grep '^NIX :=' "$makefileSource" | grep -q 'experimental-features.*flakes' \
+      || fail "NIX must be defined with --extra-experimental-features flakes"
+
+    # Darwin switches through nix-darwin, never home-manager.
+    if echo "$darwinSwitch" | grep -q 'home-manager'; then
+      fail "the Darwin branch of switch must use darwin-rebuild, not home-manager"
     fi
 
-    # Test 2: switch should use darwin-rebuild on Darwin
-    if grep -A 20 "^switch:" "$makefileSource" | grep -q "DARWIN_REBUILD"; then
-      echo "✅ Test 2 PASS: switch uses darwin-rebuild"
-    else
-      echo "❌ Test 2 FAIL: switch should use darwin-rebuild"
-      exit 1
+    # The invocation has to match the sudoers allowlist byte for byte. Strip the
+    # recipe tab and match the whole line: a substring match would also accept an
+    # extra argument, which falls outside the rule and starts prompting for a
+    # password.
+    grep -q '^DARWIN_REBUILD := /run/current-system/sw/bin/darwin-rebuild$' "$makefileSource" \
+      || fail "DARWIN_REBUILD must be the absolute allowlisted darwin-rebuild path"
+    echo "$darwinSwitch" | sed 's/^\t*//' \
+      | grep -qxF '$(NIX_ENV) sudo -H $(DARWIN_REBUILD) switch --flake ".#$(NIXNAME)"' \
+      || fail "Darwin switch must invoke exactly the command the sudoers rule allows"
+
+    # Allowlisting /usr/bin/env would let any command through sudo.
+    if echo "$darwinSwitch" | grep -q 'sudo -H env'; then
+      fail "Darwin switch must not sudo /usr/bin/env"
     fi
 
-    # Test 3: Darwin branch of switch should NOT use home-manager
-    # Non-NixOS Linux branch may use home-manager, but Darwin must use nix-darwin
-    # Extract only the Darwin branch (switch: target up to the first "else")
-    if sed -n '/^switch:/,/^else/{/home-manager/p}' "$makefileSource" | grep -q "home-manager"; then
-      echo "❌ Test 3 FAIL: Darwin branch of switch should not use home-manager"
-      exit 1
-    else
-      echo "✅ Test 3 PASS: Darwin branch of switch does not use home-manager"
-    fi
+    # build-switch is only an alias; it must not grow its own recipe.
+    grep -q '^build-switch: switch$' "$makefileSource" \
+      || fail "build-switch should stay an alias for switch"
 
-    # Test 4: All switch commands should have USER variable handling
-    for cmd in "switch" "build-switch"; do
-      if grep -A 15 "^$cmd:" "$makefileSource" | grep -q "USER"; then
-        echo "✅ Test 4.$cmd PASS: $cmd has USER variable handling"
-      else
-        echo "❌ Test 4.$cmd FAIL: $cmd missing USER variable handling"
-        exit 1
-      fi
-    done
+    grep '^\.PHONY:' "$makefileSource" | grep -q 'switch' \
+      || fail "switch must be declared .PHONY"
 
-    # Test 5: switch should be in .PHONY (build-switch is not in .PHONY by design)
-    if grep "^\.PHONY:" "$makefileSource" | grep -q "switch"; then
-      echo "✅ Test 5 PASS: switch is in .PHONY"
-    else
-      echo "❌ Test 5 FAIL: switch should be in .PHONY"
-      exit 1
-    fi
-
-    # Test 6: Darwin switch must invoke the root-managed binary directly.
-    if grep -q '^DARWIN_REBUILD := /run/current-system/sw/bin/darwin-rebuild$' "$makefileSource" &&
-       sed -n '/^switch:/,/^else/{p}' "$makefileSource" | grep -q 'sudo -H $(DARWIN_REBUILD) switch --flake ".#$(NIXNAME)"'; then
-      echo "✅ Test 6 PASS: Darwin switch matches the sudoers allowlist"
-    else
-      echo "❌ Test 6 FAIL: Darwin switch must use the allowlisted absolute darwin-rebuild path"
-      exit 1
-    fi
-
-    # Test 7: Darwin switch must not authorize sudo through env.
-    if sed -n '/^switch:/,/^else/{p}' "$makefileSource" | grep -q 'sudo -H env'; then
-      echo "❌ Test 7 FAIL: Darwin switch must not sudo /usr/bin/env"
-      exit 1
-    else
-      echo "✅ Test 7 PASS: Darwin switch does not sudo /usr/bin/env"
-    fi
-
-    echo ""
-    echo "All tests passed! ✨"
+    echo "✅ Makefile switch contracts hold"
     touch $out
   ''

@@ -9,7 +9,7 @@ Modern Nix flakes-based dotfiles providing reproducible cross-platform developme
 - **RFC-Compliant Architecture**: Follows RFC 166 formatting and RFC 145 documentation standards
 - **Cross-Platform Excellence**: Native support for macOS (Intel + Apple Silicon) and NixOS (x86_64 + ARM64)
 - **AI-First Development**: Deep Claude Code integration with 20+ specialized commands and MCP servers
-- **Fast Container Testing**: NixOS container-based validation in 2-5 seconds (vs previous minutes)
+- **Assertions as Derivations**: every check is a Nix build, so `nix flake check` is the whole test runner
 - **Zero-Config Deployment**: Reproducible environments with flake-based dependency management
 - **Production Monitoring**: Real-time build performance and resource usage tracking
 
@@ -43,11 +43,11 @@ export USER=$(whoami)  # Required for Nix commands (set automatically by direnv 
 make install-hooks     # Install pre-commit hooks for quality enforcement
 
 # 3. Build and validate system
-make test             # Fast container tests (2-5 seconds)
-make test-all         # Complete validation (~30 seconds)
+make test             # Evaluate all checks
+make test-build       # Build every unit + integration assertion
 
 # 4. Deploy system configuration
-nix run --impure .#build-switch  # Apply configuration (requires sudo)
+make switch                      # Apply configuration (requires sudo)
 ```
 
 ### Post-Installation Setup (macOS)
@@ -105,13 +105,13 @@ claude /spawn "implement user authentication system"
 export USER=$(whoami)   # Required for Nix commands (set automatically by direnv when entering the directory)
 nix build '.#darwinConfigurations.macbook-pro.system' --impure   # Build (substitute your machine)
 make switch            # Apply changes
-make test              # Run tests
-make format            # Auto-format (uses nix run .#format)
+make test-build        # Run the assertions
+make format            # Auto-format (wraps nix fmt)
 
 # Quick operations
-make test              # Fast container tests (2-5 seconds)
-nix run .#build-switch # Build and apply together
-nix run .#format       # Direct Nix formatting (alternative)
+make test-build        # Build every unit + integration assertion
+make switch            # Build and apply together
+nix fmt                # Direct Nix formatting (alternative)
 ```
 
 ### Platform-Specific Operations
@@ -122,32 +122,35 @@ nix build '.#darwinConfigurations.macbook-pro.system' --impure   # macOS
 nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel' --impure   # NixOS
 
 # Direct operations
-nix run .#build         # Build current platform
-nix run .#build-switch  # Build and apply with sudo handling
-nix run .#test          # Run platform-appropriate test suite
+make switch             # Build and apply with sudo handling
+make test               # Evaluate all checks
+make test-build         # Build every unit + integration assertion
 ```
 
 **Supported Platforms**: macOS (Intel/ARM) and NixOS (x86_64/ARM64)
 
 ### Platform Capability Matrix
 
-| Operation             | macOS (Intel) | macOS (ARM) | NixOS (x86_64) | NixOS (ARM64) |
-| --------------------- | :-----------: | :---------: | :------------: | :-----------: |
-| **Core Operations**   |               |             |                |               |
-| build                 |      ✅       |     ✅      |       ✅       |      ✅       |
-| build-switch          |      ✅       |     ✅      |       ✅       |      ✅       |
-| apply                 |      ✅       |     ✅      |       ✅       |      ✅       |
-| rollback              |      ✅       |     ✅      |       ❌       |      ❌       |
-| **Testing Framework** |               |             |                |               |
-| test                  |      ✅       |     ✅      |       ✅       |      ✅       |
-| test-unit             |      ✅       |     ✅      |      ❌¹       |      ❌¹      |
-| test-integration      |      ✅       |     ✅      |      ❌¹       |      ❌¹      |
-| test-e2e              |      ✅       |     ✅      |      ❌¹       |      ❌¹      |
-| **Development Tools** |               |             |                |               |
-| setup-dev             |      ✅       |     ✅      |       ✅       |      ✅       |
-| SSH key management    |      ✅       |     ✅      |       ✅       |      ✅       |
+| Make target         | macOS (Intel) | macOS (ARM) | NixOS (x86_64) | NixOS (ARM64) |
+| ------------------- | :-----------: | :---------: | :------------: | :-----------: |
+| **Core Operations** |               |             |                |               |
+| switch              |      ✅       |     ✅      |       ✅       |      ✅       |
+| switch-home         |      ✅       |     ✅      |       ✅       |      ✅       |
+| format              |      ✅       |     ✅      |       ✅       |      ✅       |
+| **Testing**         |               |             |                |               |
+| test                |      ✅       |     ✅      |       ✅       |      ✅       |
+| test-build          |      ✅       |     ✅      |       ✅       |      ✅       |
+| test-containers     |      ❌¹      |     ❌¹     |      ✅²       |      ✅²      |
+| **Secrets**         |               |             |                |               |
+| secrets/backup      |      ✅       |     ✅      |       ✅       |      ✅       |
+| secrets/restore     |      ✅       |     ✅      |       ✅       |      ✅       |
 
-¹ Linux systems use consolidated testing approach due to platform limitations
+¹ NixOS VM tests need a Linux builder; Determinate Nix disables the macOS
+linux-builder, so run them in CI or a Linux VM.
+² Requires `/dev/kvm`. Where it is missing, `make test` degrades to
+`nix flake check --no-build`, which evaluates checks without running assertions.
+`make test-build` runs the unit and integration assertions on any platform, but it
+deliberately excludes the NixOS VM tests — those need `make test-containers` or CI.
 
 ## Configuration
 
@@ -156,13 +159,15 @@ This system follows evantravers' minimalist approach with user-centric configura
 ### User Configuration Structure
 
 ```bash
-users/baleen/
-├── home-manager.nix    # Main user configuration
-├── darwin.nix         # macOS-specific settings
-├── git.nix           # Git configuration
-├── vim.nix           # Vim/Neovim setup
-├── zsh.nix           # Zsh shell configuration
-├── tmux.nix          # Terminal multiplexer
+users/shared/
+├── home-manager.nix    # Main user configuration, imports everything below
+├── darwin/            # macOS-specific settings
+├── programs/          # One file (or directory) per tool
+│   ├── git.nix
+│   ├── vim.nix
+│   ├── zsh/
+│   └── tmux.nix
+├── packages/          # Categorised package lists
 └── .config/claude/   # Claude Code configuration
 ```
 
@@ -183,37 +188,31 @@ For detailed configuration options, see [Configuration Guide](docs/CONFIGURATION
 
 ```text
 dotfiles/
-├── flake.nix           # Entry point
+├── flake.nix           # Inputs; outputs are assembled by flake-modules/
+├── flake-modules/      # hosts, systems, home, checks, packages, formatter
 ├── lib/
 │   ├── mksystem.nix    # System factory
-│   └── tests.nix       # Test utilities
-├── machines/
-│   └── macbook-pro.nix # Machine config
-├── users/baleen/       # User-centric structure
-│   ├── home-manager.nix
-│   ├── darwin.nix
-│   ├── git.nix
-│   ├── vim.nix
-│   ├── zsh.nix
-│   ├── tmux.nix
-│   └── .config/claude/ # Claude Code config
-└── tests/              # TDD test suite
-    ├── unit/
-    ├── integration/
-    └── smoke/
+│   ├── cache-config.nix
+│   ├── overlays.nix
+│   └── user-info.nix   # Single source of truth for git identity
+├── machines/           # Hardware and system settings
+│   ├── darwin/common.nix
+│   └── nixos/
+├── users/shared/       # User configuration (see above)
+└── tests/              # unit/, integration/, containers/, lib/
 ```
 
 ## Commands
 
 ```bash
 # Build current system
-nix build .#darwinConfigurations.macbook-pro.system
+nix build '.#darwinConfigurations.macbook-pro.system' --impure
 
 # Run tests
-nix flake check
+make test-build
 
 # Switch to new config
-darwin-rebuild switch --flake .#macbook-pro
+make switch
 ```
 
 ### evantravers Architecture
@@ -221,17 +220,17 @@ darwin-rebuild switch --flake .#macbook-pro
 The system follows evantravers' minimalist user-centric architecture:
 
 1. **System Factory** (`lib/mksystem.nix`) provides a unified interface for building systems
-2. **User Configuration** (`users/baleen/`) contains all user-specific settings in flat files
+2. **User Configuration** (`users/shared/`) contains all user-specific settings in flat files
 3. **Machine Definitions** (`machines/`) define hardware-specific configurations
 4. **Test Framework** (`tests/`) provides comprehensive TDD-based validation
 
 ## Customization
 
-Add packages by editing individual tool files in `users/baleen/` (e.g., `git.nix`, `vim.nix`) or modify `users/baleen/home-manager.nix` for package collections.
+Add packages to the matching category in `users/shared/packages/` (e.g. `dev.nix`), or configure a tool in `users/shared/programs/`.
 
 ## Structure
 
-- `users/baleen/` - User-centric configuration files (one file per tool)
+- `users/shared/` - User-centric configuration files (one file per tool)
 - `lib/mksystem.nix` - System factory following evantravers pattern
 - `machines/` - Machine-specific system configurations
 - `tests/` - TDD-based test framework with helpers
@@ -240,18 +239,19 @@ Add packages by editing individual tool files in `users/baleen/` (e.g., `git.nix
 
 The project uses declarative Nix solutions for development tooling:
 
-- **Formatting**: `lib/formatters.nix` provides `nix run .#format` (invoked via `make format`)
+- **Formatting**: `flake-modules/formatter.nix` wires up treefmt (invoked via `make format`)
 - **Testing**: Native `nix flake check` for validation
-- **Building**: Flake apps for reproducible builds
+- **Building**: `make switch` wraps darwin-rebuild / nixos-rebuild / home-manager
 
 ## Testing
 
-**Fast NixOS Container Tests (2-5 seconds):**
+Every check is a Nix derivation that builds if an assertion holds. See
+[tests/README.md](tests/README.md) for the contract and helper inventory.
 
 ```bash
-make test             # Fast container-based configuration validation
-make test-integration # Traditional integration tests
-make test-all         # Complete test suite
+make test             # Evaluate all checks
+make test-build       # Build every unit + integration assertion
+make test-containers  # NixOS VM tests (Linux + /dev/kvm)
 ```
 
 **Container Test Coverage:**
@@ -388,15 +388,15 @@ nix build '.#darwinConfigurations.<your-machine>.system' --impure  # Retry
 **Permission issues:**
 
 ```bash
-sudo nix run --impure .#build-switch
+make switch
 ```
 
 See [docs/TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md) for more solutions.
 
 ## Next Steps
 
-1. Run `nix flake show` to see all configurations
-2. Add packages in `users/baleen/home-manager.nix` or individual tool files
+1. Run `USER=$(whoami) nix flake show --impure` to see all configurations
+2. Add packages in `users/shared/packages/<category>.nix` or a tool module
 3. Check [CONTRIBUTING.md](./CONTRIBUTING.md) for development
 
 ---

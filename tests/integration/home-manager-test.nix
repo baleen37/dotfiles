@@ -1,7 +1,14 @@
 # tests/integration/home-manager-test.nix
 #
-# Tests the Home Manager configuration in users/shared/home-manager.nix
-# Verifies imports, currentSystemUser usage, dynamic home directory configuration, and XDG settings.
+# Covers users/shared/home-manager.nix, the entry point every host shares.
+#
+# It is imported raw rather than evaluated, so `imports` here is a list of Nix
+# *paths* — comparing against "./git.nix" silently never matches, which is why
+# these assertions go through toString and a suffix check.
+#
+# Package contents are deliberately not asserted here: home.packages is
+# contributed by the imported category modules and only exists after the module
+# system merges them (see unit/security-packages-test.nix).
 {
   inputs,
   system,
@@ -12,108 +19,89 @@ let
   pkgs = import inputs.nixpkgs { inherit system; };
   inherit (pkgs) lib;
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
-  assertions = import ../lib/common-assertions.nix { inherit pkgs lib; };
-  patterns = import ../lib/patterns.nix {
-    inherit pkgs lib;
-    inherit helpers;
-  };
 
-  # Expected imports list
-  expectedImports = [
-    "./git.nix"
-    "./vim.nix"
-    "./zsh"
-    "./starship.nix"
-    "./tmux.nix"
-    "./claude-code.nix"
-    "./opencode.nix"
-    "./hammerspoon.nix"
-    "./karabiner.nix"
-    "./ghostty.nix"
+  mkConfig =
+    user:
+    import ../../users/shared/home-manager.nix {
+      inherit pkgs lib inputs;
+      currentSystemUser = user;
+      isDarwin = true;
+    };
+
+  hmConfig = mkConfig "baleen";
+  hmConfigJito = mkConfig "jito.hello";
+
+  homeDirBaleen = hmConfig.home.homeDirectory;
+  homeDirJito = hmConfigJito.home.homeDirectory;
+
+  importedPaths = map builtins.toString hmConfig.imports;
+  importsModule =
+    relativePath:
+    let
+      suffix = "/users/shared/${relativePath}";
+    in
+    lib.any (path: lib.hasSuffix suffix path) importedPaths;
+
+  expectedModules = [
+    "programs/git.nix"
+    "programs/vim.nix"
+    "programs/zsh"
+    "programs/starship.nix"
+    "programs/tmux.nix"
+    "programs/claude-code.nix"
+    "programs/codex.nix"
+    "programs/opencode.nix"
+    "programs/ghostty.nix"
+    "programs/ssh.nix"
+    "programs/hammerspoon.nix"
+    "programs/karabiner.nix"
+    "packages/core.nix"
+    "packages/dev.nix"
+    "packages/security.nix"
+    "packages/ai.nix"
   ];
 
-  # Expected packages
-  expectedPackages = [
-    "claude-code"
-    "opencode"
-    "git"
-    "vim"
-  ];
-
-  # Test with default user (baleen)
-  hmConfig = import ../../users/shared/home-manager.nix {
-    inherit pkgs lib inputs;
-    currentSystemUser = "baleen";
-    config = {
-      home = {
-        homeDirectory = "/Users/baleen";
-      };
-    };
-  };
-
-  # Test with alternative user (jito.hello)
-  hmConfigJito = import ../../users/shared/home-manager.nix {
-    inherit pkgs lib inputs;
-    currentSystemUser = "jito.hello";
-    config = {
-      home = {
-        homeDirectory = "/Users/jito.hello";
-      };
-    };
-  };
+  slug = lib.stringAsChars (c: if builtins.match "[a-zA-Z0-9]" c != null then c else "-");
 
 in
-helpers.testSuite "home-manager" [
-  # ===== 기본 구조 검증 =====
+{
+  platforms = [ "any" ];
+  value = helpers.testSuite "home-manager" (
+    [
+      # The point of the currentSystemUser indirection: nothing is hardcoded to
+      # one username, including the home directory.
+      (helpers.assertTest "username-follows-current-system-user" (
+        hmConfig.home.username == "baleen" && hmConfigJito.home.username == "jito.hello"
+      ) "home.username must come from currentSystemUser")
 
-  # 설정 구조 검증 (patterns 사용)
-  (patterns.testBasicHomeConfig "hm-basic-structure" hmConfig {
-    checkHome = true;
-    checkXDG = true;
-    checkStateVersion = true;
-    checkPackages = true;
-  })
+      (helpers.assertTest "home-directory-follows-current-system-user" (
+        homeDirBaleen == "/Users/baleen" && homeDirJito == "/Users/jito.hello"
+      ) "home.homeDirectory must be derived from currentSystemUser")
 
-  # ===== 사용자 설정 검증 =====
+      (helpers.assertTest "state-version-is-pinned" (
+        hmConfig.home.stateVersion == "24.11"
+      ) "home.stateVersion must stay pinned; bumping it silently changes defaults")
 
-  # 사용자 이름 검증 (patterns 사용)
-  (patterns.testUsername "hm-username-baleen" hmConfig "baleen")
-  (patterns.testUsername "hm-username-jito" hmConfigJito "jito.hello")
+      (helpers.assertTest "xdg-enabled" hmConfig.xdg.enable
+        "xdg.enable must be true; several modules write into XDG paths"
+      )
 
-  # 홈 디렉토리 검증 (patterns 사용)
-  (patterns.testHomeDirectory "hm-home-dir-baleen" hmConfig "/Users/baleen")
-  (patterns.testHomeDirectory "hm-home-dir-jito" hmConfigJito "/Users/jito.hello")
+      # hammerspoon and karabiner are imported unconditionally and gated by their
+      # own platform defaults (see unit/platform-defaults-test.nix), so they must
+      # not appear in this enable block.
+      (helpers.assertTest "platform-gated-modules-not-force-enabled" (
+        !(hmConfig.modules.programs ? hammerspoon) && !(hmConfig.modules.programs ? karabiner)
+      ) "hammerspoon/karabiner must be left to their module-level platform default")
 
-  # XDG 활성화 검증 (patterns 사용)
-  (patterns.testXDGEnabled "hm-xdg-enabled" hmConfig true)
-
-  # ===== 모듈 임포트 검증 =====
-
-  # 모든 예상 모듈이 임포트되었는지 확인 (patterns 사용)
-  (helpers.testSuite "hm-module-imports" (
-    builtins.attrValues (patterns.testModuleImports "tool-modules" hmConfig expectedImports)
-  ))
-
-  # ===== 패키지 설치 검증 =====
-
-  # 필수 패키지가 설치되었는지 확인 (patterns 사용)
-  (helpers.testSuite "hm-package-installation" (
-    builtins.attrValues (patterns.testPackagesInstalled "essential-packages" hmConfig expectedPackages)
-  ))
-
-  # ===== 상세 검증 (assertions 사용) =====
-
-  # 속성 존재 확인
-  (assertions.assertAttrExists "hm-has-imports" hmConfig "imports" null)
-  (assertions.assertAttrExists "hm-has-home" hmConfig "home" null)
-
-  # 리스트 길이 검증
-  (assertions.assertListNotEmpty "hm-imports-not-empty" (hmConfig.imports or [ ]) null)
-  (assertions.assertListNotEmpty "hm-packages-not-empty" (hmConfig.home.packages or [ ]) null)
-
-  # stateVersion이 null이 아닌지 확인
-  (assertions.assertNotNull "hm-state-version-not-null" hmConfig.home.stateVersion null)
-
-  # XDG 활성화 확인
-  (assertions.assertAttrEquals "hm-xdg-enable-true" hmConfig.xdg "enable" true null)
-]
+      (helpers.assertTest "every-package-category-enabled" (lib.all
+        (category: hmConfig.modules.packages.${category}.enable)
+        (builtins.attrNames hmConfig.modules.packages)
+      ) "every package category listed in home-manager.nix should be enabled")
+    ]
+    ++ map (
+      modulePath:
+      helpers.assertTest "imports-${slug modulePath}" (importsModule modulePath)
+        "users/shared/home-manager.nix should import ${modulePath}"
+    ) expectedModules
+  );
+}

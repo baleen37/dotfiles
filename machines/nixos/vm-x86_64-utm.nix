@@ -3,7 +3,7 @@
 }:
 {
   imports = [
-    ./hardware/vm-x86_64-utm.nix
+    ./hardware/vm-utm.nix
     ./vm-shared.nix
   ];
 
