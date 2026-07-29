@@ -79,21 +79,21 @@ in
   platforms = [ "any" ];
   value = helpers.testSuite "zellij-functionality" (
     [
-      (helpers.assertTest "zellij-enabled" (zellijConfig.enable == true)
-        "Zellij should be enabled when modules.programs.zellij.enable is set"
-      )
+      (helpers.assertTest "zellij-enabled" (
+        zellijConfig.enable == true
+      ) "Zellij should be enabled when modules.programs.zellij.enable is set")
 
       # Shell auto-start must stay off: home-manager's integration launches
       # Zellij from every interactive shell, including shells inside tmux panes.
-      (helpers.assertTest "zellij-no-zsh-autostart" (zellijConfig.enableZshIntegration == false)
-        "Zellij zsh integration must stay disabled to avoid auto-starting inside tmux"
-      )
-      (helpers.assertTest "zellij-no-bash-autostart" (zellijConfig.enableBashIntegration == false)
-        "Zellij bash integration must stay disabled to avoid auto-starting inside tmux"
-      )
-      (helpers.assertTest "zellij-no-fish-autostart" (zellijConfig.enableFishIntegration == false)
-        "Zellij fish integration must stay disabled to avoid auto-starting inside tmux"
-      )
+      (helpers.assertTest "zellij-no-zsh-autostart" (
+        zellijConfig.enableZshIntegration == false
+      ) "Zellij zsh integration must stay disabled to avoid auto-starting inside tmux")
+      (helpers.assertTest "zellij-no-bash-autostart" (
+        zellijConfig.enableBashIntegration == false
+      ) "Zellij bash integration must stay disabled to avoid auto-starting inside tmux")
+      (helpers.assertTest "zellij-no-fish-autostart" (
+        zellijConfig.enableFishIntegration == false
+      ) "Zellij fish integration must stay disabled to avoid auto-starting inside tmux")
 
       # Parity with tmux.nix — these settings mirror a tmux option directly.
       (helpers.assertTest "zellij-prefix-matches-tmux" (

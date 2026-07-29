@@ -215,13 +215,15 @@ in
     (seshConfig.tmuxKey or null) == "T"
   ) "sesh should use prefix+T and preserve tmux prefix+t clock mode";
 
-  tmux-split-vertical = mkConfigTest "tmux-split-vertical" (
-    hasConfigString "bind '%' split-window -h -c \"#{pane_current_path}\""
-  ) "tmux should keep % for a left/right split, at the current pane path";
+  tmux-split-vertical =
+    mkConfigTest "tmux-split-vertical"
+      (hasConfigString "bind '%' split-window -h -c \"#{pane_current_path}\"")
+      "tmux should keep % for a left/right split, at the current pane path";
 
-  tmux-split-horizontal = mkConfigTest "tmux-split-horizontal" (
-    hasConfigString "bind '\"' split-window -v -c \"#{pane_current_path}\""
-  ) "tmux should keep the double-quote key for a top/bottom split, at the current pane path";
+  tmux-split-horizontal =
+    mkConfigTest "tmux-split-horizontal"
+      (hasConfigString "bind '\"' split-window -v -c \"#{pane_current_path}\"")
+      "tmux should keep the double-quote key for a top/bottom split, at the current pane path";
 
   tmux-default-split-bindings-kept = mkConfigTest "tmux-default-split-bindings-kept" (
     !(hasConfigString "unbind '%'") && !(hasConfigString "unbind '\"'")
