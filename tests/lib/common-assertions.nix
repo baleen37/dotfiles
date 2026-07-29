@@ -14,6 +14,12 @@
   ...
 }:
 
+let
+  # Not toString: it renders `true` as "1" and `false`/`null` as "", which is
+  # useless in exactly the boolean comparisons these assertions are used for, and
+  # it throws outright on lists and attribute sets.
+  pretty = lib.generators.toPretty { multiline = false; };
+in
 rec {
   # Base primitive: like test-helpers.assertTest but with a nullable message.
   assertCondition =
@@ -59,13 +65,13 @@ rec {
       if message != null then
         message
       else
-        "Attribute '${attrName}' should be ${toString expectedValue}, got ${toString actualValue}"
+        "Attribute '${attrName}' should be ${pretty expectedValue}, got ${pretty actualValue}"
     );
 
   assertListContains =
     name: list: element: message:
     assertCondition name (builtins.elem element list) (
-      if message != null then message else "List should contain '${toString element}'"
+      if message != null then message else "List should contain ${pretty element}"
     );
 
   assertListNotEmpty =

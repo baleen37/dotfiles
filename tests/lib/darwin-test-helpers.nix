@@ -17,12 +17,20 @@ let
   pretty = lib.generators.toPretty { multiline = false; };
 
   # settings :: { <preference key> = <expected value>; }
+  #
+  # Read through attrByPath rather than `config.system.defaults.<domain>.<key>`:
+  # a dropped setting is the regression this exists to catch, and a direct
+  # lookup would abort evaluation with `attribute missing` instead of failing the
+  # assertion with a message.
   assertDefaults =
     domain: settings: darwinConfig:
     lib.mapAttrsToList (
       key: expected:
-      helpers.assertTest "${domain}-${key}" (darwinConfig.system.defaults.${domain}.${key} == expected)
-        "system.defaults.${domain}.${key} should be ${pretty expected}"
+      let
+        actual = lib.attrByPath [ "system" "defaults" domain key ] null darwinConfig;
+      in
+      helpers.assertTest "${domain}-${key}" (actual == expected)
+        "system.defaults.${domain}.${key} should be ${pretty expected}, got ${pretty actual}"
     ) settings;
 in
 {

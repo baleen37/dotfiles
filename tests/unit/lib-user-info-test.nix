@@ -15,6 +15,14 @@
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
   userInfo = import ../../lib/user-info.nix;
+
+  surroundingWhitespace = [
+    " "
+    "\t"
+    "\n"
+    "\r"
+  ];
+  isPadded = s: lib.any (c: lib.hasPrefix c s || lib.hasSuffix c s) surroundingWhitespace;
 in
 {
   platforms = [ "any" ];
@@ -24,7 +32,7 @@ in
     ) "user-info.email must be a single well-formed address; it is baked into every commit")
 
     (helpers.assertTest "name-is-trimmed-and-non-empty" (
-      userInfo.name != "" && !(lib.hasPrefix " " userInfo.name) && !(lib.hasSuffix " " userInfo.name)
+      userInfo.name != "" && !(isPadded userInfo.name)
     ) "user-info.name must be non-empty with no surrounding whitespace")
 
     (helpers.assertTest "exports-exactly-name-and-email" (

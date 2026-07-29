@@ -41,10 +41,14 @@ pkgs.runCommand "makefile-switch-commands-test"
       fail "the Darwin branch of switch must use darwin-rebuild, not home-manager"
     fi
 
-    # The invocation has to match the sudoers allowlist byte for byte.
+    # The invocation has to match the sudoers allowlist byte for byte. Strip the
+    # recipe tab and match the whole line: a substring match would also accept an
+    # extra argument, which falls outside the rule and starts prompting for a
+    # password.
     grep -q '^DARWIN_REBUILD := /run/current-system/sw/bin/darwin-rebuild$' "$makefileSource" \
       || fail "DARWIN_REBUILD must be the absolute allowlisted darwin-rebuild path"
-    echo "$darwinSwitch" | grep -qF 'sudo -H $(DARWIN_REBUILD) switch --flake ".#$(NIXNAME)"' \
+    echo "$darwinSwitch" | sed 's/^\t*//' \
+      | grep -qxF '$(NIX_ENV) sudo -H $(DARWIN_REBUILD) switch --flake ".#$(NIXNAME)"' \
       || fail "Darwin switch must invoke exactly the command the sudoers rule allows"
 
     # Allowlisting /usr/bin/env would let any command through sudo.

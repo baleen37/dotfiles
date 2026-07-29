@@ -32,6 +32,6 @@ in
 
     (helpers.assertTest "home-manager-backs-up-collisions" (
       darwin.home-manager.backupFileExtension == "backup"
-    ) "home-manager.backupFileExtension must be set so a first switch cannot abort on existing dotfiles")
+    ) "home-manager needs a backup extension or the first switch aborts on existing files")
   ];
 }

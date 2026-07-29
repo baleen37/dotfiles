@@ -42,6 +42,8 @@ let
       (import ../../users/shared/darwin/scripts.nix { });
 
   customPrefs = darwinConfig.system.defaults.CustomUserPreferences;
+  multitouch = customPrefs."com.apple.AppleMultitouchTrackpad";
+  btTrackpad = customPrefs."com.apple.driver.AppleBluetoothMultitouch.trackpad";
 
 in
 {
@@ -74,14 +76,13 @@ in
       # gestures fight over the same tap.
       (helpers.assertTest "trackpad-force-click-lookup-enabled" (
         customPrefs.NSGlobalDomain."com.apple.trackpad.forceClick" == true
-        && customPrefs."com.apple.AppleMultitouchTrackpad".ForceSuppressed == 0
+        && multitouch.ForceSuppressed == 0
       ) "Force click lookup should be enabled and not suppressed")
 
       (helpers.assertTest "trackpad-three-finger-lookup-disabled" (
-        customPrefs."com.apple.AppleMultitouchTrackpad".TrackpadThreeFingerTapGesture == 0
-        && customPrefs."com.apple.driver.AppleBluetoothMultitouch.trackpad".TrackpadThreeFingerTapGesture
-          == 0
-      ) "Three-finger tap lookup should be disabled for both the trackpad and Bluetooth drivers")
+        multitouch.TrackpadThreeFingerTapGesture == 0
+        && btTrackpad.TrackpadThreeFingerTapGesture == 0
+      ) "Three-finger tap lookup should be disabled for both trackpad drivers")
     ]
   );
 }

@@ -35,7 +35,7 @@ in
     # without a backup extension the first switch aborts instead of moving them.
     (helpers.assertTest "home-manager-backs-up-collisions" (
       nixos.home-manager.backupFileExtension == "backup"
-    ) "home-manager.backupFileExtension must be set so a first switch cannot abort on existing dotfiles")
+    ) "home-manager needs a backup extension or the first switch aborts on existing files")
 
     # Determinate manages Nix on Darwin, so mksystem must hand GC to it there
     # and configure nix.gc itself only on NixOS. Split per field, and report the

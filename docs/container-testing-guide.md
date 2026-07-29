@@ -199,7 +199,7 @@ in {
 # Check which users are being created
 export USER=$(whoami)
 export TEST_USER=debuguser
-nix build '.#checks.x86_64-linux.basic' --show-trace
+nix build '.#checks.x86_64-linux.container-basic' --impure --show-trace
 
 # Test locally with CI-like environment
 export GITHUB_ACTIONS=true

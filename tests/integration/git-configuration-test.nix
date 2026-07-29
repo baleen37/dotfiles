@@ -71,7 +71,8 @@ helpers.testSuite "git-configuration" (
     (assertions.assertAttrEquals "git-rebase-autostash" gitSettings.rebase "autoStash" true null)
   ]
   ++ lib.mapAttrsToList (
-    alias: command: assertions.assertAttrEquals "git-alias-${alias}" gitSettings.alias alias command null
+    alias: command:
+    assertions.assertAttrEquals "git-alias-${alias}" gitSettings.alias alias command null
   ) expectedAliases
   ++ map (
     pattern: assertions.assertListContains "gitignore-has-${slug pattern}" gitIgnores pattern null

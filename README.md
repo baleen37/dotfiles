@@ -148,8 +148,9 @@ make test-build         # Build every unit + integration assertion
 ¹ NixOS VM tests need a Linux builder; Determinate Nix disables the macOS
 linux-builder, so run them in CI or a Linux VM.
 ² Requires `/dev/kvm`. Where it is missing, `make test` degrades to
-`nix flake check --no-build`, which evaluates checks without running assertions —
-`make test-build` runs them on any platform.
+`nix flake check --no-build`, which evaluates checks without running assertions.
+`make test-build` runs the unit and integration assertions on any platform, but it
+deliberately excludes the NixOS VM tests — those need `make test-containers` or CI.
 
 ## Configuration
 
@@ -394,7 +395,7 @@ See [docs/TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md) for more solutions.
 
 ## Next Steps
 
-1. Run `nix flake show` to see all configurations
+1. Run `USER=$(whoami) nix flake show --impure` to see all configurations
 2. Add packages in `users/shared/packages/<category>.nix` or a tool module
 3. Check [CONTRIBUTING.md](./CONTRIBUTING.md) for development
 

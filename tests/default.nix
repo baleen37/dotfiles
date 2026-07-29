@@ -87,9 +87,14 @@ let
         { }
     ) (builtins.readDir dir);
 
+  # Only the `platforms` wrapper carries a `value`; unwrap that shape alone, so an
+  # attribute set of derivations that happens to contain a `value` attribute is
+  # left intact.
+  unwrap = test: if test ? platforms then test.value else test;
+
   platformTests =
     prefix: dir:
-    lib.concatMapAttrs (name: test: flatten name (test.value or test)) (
+    lib.concatMapAttrs (name: test: flatten name (unwrap test)) (
       platformHelpers.filterPlatformTests (discoverTests prefix dir)
     );
 

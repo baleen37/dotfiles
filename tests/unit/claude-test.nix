@@ -15,7 +15,8 @@ let
   claudeDir = ../../users/shared/programs/.config/claude;
   claudeCodeModule = builtins.readFile ../../users/shared/programs/claude-code.nix;
 
-  settings = builtins.tryEval (builtins.fromJSON (builtins.readFile (claudeDir + "/settings.json")));
+  settingsPath = claudeDir + "/settings.json";
+  settings = builtins.tryEval (builtins.fromJSON (builtins.readFile settingsPath));
   claudeMd = builtins.readFile (claudeDir + "/CLAUDE.md");
 in
 {
