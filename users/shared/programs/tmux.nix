@@ -38,6 +38,12 @@
 
 let
   cfg = config.modules.programs.tmux;
+  agentStatusSummary = pkgs.writeShellApplication {
+    name = "tmux-agent-status-summary";
+    runtimeInputs = [ pkgs.tmux ];
+    text = builtins.readFile ./tmux-agent-status-summary.sh;
+  };
+  agentStatusGlyph = "#{?#{==:#{@agent_status},running},●,#{?#{==:#{@agent_status},needs_input},▲,#{?#{==:#{@agent_status},ready},○,#{?#{==:#{@agent_status},error},✕,}}}}";
 in
 {
   options.modules.programs.tmux.enable = lib.mkEnableOption "Tmux multiplexer configuration";
@@ -58,7 +64,7 @@ in
           extraConfig = ''
             # Configure Continuum before it starts and extends status-right.
             set -g @continuum-restore 'on'
-            set -g status-right '#[fg=colour233,bg=colour241,bold] %d/%m #[fg=colour233,bg=colour245,bold] %H:%M '
+            set -g status-right '#(${agentStatusSummary}/bin/tmux-agent-status-summary) #[fg=colour233,bg=colour241,bold] %d/%m #[fg=colour233,bg=colour245,bold] %H:%M '
           '';
         }
         vim-tmux-navigator
@@ -204,8 +210,8 @@ in
         # spinner = working, ✳ = waiting) when a program sets one via OSC 2;
         # falls back to the window name when the title is the default (#{host}).
         # Truncated to 30 chars to keep the window list readable.
-        setw -g window-status-current-format ' #I#[fg=colour250]:#[fg=colour255]#{?#{!=:#{pane_title},#{host}},#{=/30/…:pane_title},#W}#[fg=colour50]#F '
-        setw -g window-status-format ' #I#[fg=colour237]:#[fg=colour250]#{?#{!=:#{pane_title},#{host}},#{=/30/…:pane_title},#W}#[fg=colour244]#F '
+        setw -g window-status-current-format ' #I${agentStatusGlyph}#[fg=colour250]:#[fg=colour255]#{?#{!=:#{pane_title},#{host}},#{=/30/…:pane_title},#W}#[fg=colour50]#F '
+        setw -g window-status-format ' #I${agentStatusGlyph}#[fg=colour237]:#[fg=colour250]#{?#{!=:#{pane_title},#{host}},#{=/30/…:pane_title},#W}#[fg=colour244]#F '
 
         # ============================================================================
         # Misc
