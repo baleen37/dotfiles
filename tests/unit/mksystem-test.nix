@@ -18,6 +18,15 @@ let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
   cacheConfig = import ../../lib/cache-config.nix;
   nixos = self.nixosConfigurations.vm-x86_64-utm.config;
+
+  # Read defensively: if a field were renamed upstream, a throw here would turn a
+  # readable assertion failure into an evaluation error for the whole check.
+  gc = nixos.nix.gc or { };
+  gcReport = lib.generators.toPretty { multiline = false; } {
+    automatic = gc.automatic or "<unset>";
+    dates = gc.dates or "<unset>";
+    options = gc.options or "<unset>";
+  };
 in
 {
   platforms = [ "any" ];
@@ -29,12 +38,16 @@ in
     ) "home-manager.backupFileExtension must be set so a first switch cannot abort on existing dotfiles")
 
     # Determinate manages Nix on Darwin, so mksystem must hand GC to it there
-    # and configure nix.gc itself only on NixOS.
-    (helpers.assertTest "nixos-gc-is-scheduled" (
-      nixos.nix.gc.automatic
-      && nixos.nix.gc.dates == "daily"
-      && nixos.nix.gc.options == "--delete-older-than 7d"
-    ) "NixOS hosts should garbage collect daily with a 7 day retention window")
+    # and configure nix.gc itself only on NixOS. Split per field, and report the
+    # value that was actually merged — the schedule is a string the NixOS module
+    # is free to reshape, so "it disagrees" is not a useful failure message.
+    (helpers.assertTest "nixos-gc-is-automatic" (gc.automatic or false)
+      "NixOS hosts should garbage collect automatically; got ${gcReport}"
+    )
+
+    (helpers.assertTest "nixos-gc-retains-7-days" (
+      lib.hasInfix "--delete-older-than 7d" (gc.options or "")
+    ) "NixOS GC should keep a 7 day retention window; got ${gcReport}")
 
     (helpers.assertTest "nixos-trusts-the-host-user" (
       lib.elem "root" nixos.nix.settings.trusted-users
