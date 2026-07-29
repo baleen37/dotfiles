@@ -27,6 +27,11 @@ SUDO_NIX := sudo -H env PATH=$$PATH $(NIX_PATH) --extra-experimental-features ni
 UNAME := $(shell uname)
 IS_NIXOS := $(shell [ -f /etc/nixos/configuration.nix ] && echo true || echo false)
 
+# Nix system double for flake attribute paths, e.g. aarch64-darwin.
+NIX_ARCH := $(shell uname -m | sed 's/^arm64$$/aarch64/')
+NIX_OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
+NIX_SYSTEM := $(NIX_ARCH)-$(NIX_OS)
+
 # Environment variables for Nix builds
 NIX_ENV := NIXPKGS_ALLOW_UNFREE=1
 NIX_ENV_FULL := NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1
@@ -69,40 +74,40 @@ test:
 		$(NIX_ENV_FULL) $(NIX) flake check --impure --accept-flake-config --show-trace; \
 	fi
 
-test-integration:
-	@echo "Running integration tests..."
-ifeq ($(UNAME), Darwin)
-	$(NIX_ENV) $(NIX) eval '.#checks.aarch64-darwin.smoke' --impure --accept-flake-config
-else
-	$(NIX_ENV_FULL) $(NIX) eval '.#checks.x86_64-linux.smoke' --impure --accept-flake-config
-endif
+# Build every unit and integration assertion. `make test` falls back to
+# --no-build wherever container tests cannot run, and --no-build only evaluates
+# checks, so a false assertion goes unnoticed there. The all-assertions
+# aggregate excludes the container VMs and therefore builds on any platform.
+test-build:
+	@echo "Building all unit and integration assertions..."
+	@export USER=$${USER:-$(whoami)} && \
+	$(NIX_ENV_FULL) $(NIX) build ".#checks.$(NIX_SYSTEM).all-assertions" \
+		--impure --accept-flake-config --print-build-logs --no-link
 
-test-all: test test-integration
+# Kept as the name CI and the pre-push hook call. It deliberately does NOT
+# depend on test-build: `make test-build` would build assertions that CI has
+# never built before, so flipping it on is a separate, deliberate change.
+test-all: test
 	@echo "All tests completed successfully"
 
 format:
 	$(NIX) fmt
 
-# Optional: Attempt cross-platform container testing (experimental)
-# Note: This requires additional setup and may not work on all systems
+# NixOS VM tests. These need a Linux builder with /dev/kvm; on macOS they only
+# work through a linux-builder, which Determinate Nix disables (see
+# machines/darwin/common.nix), so this is expected to fail there.
 test-containers:
-	@echo "Attempting container test execution (experimental)..."
 	@export USER=$${USER:-$(whoami)} && \
-	if [ "$(UNAME)" = "Darwin" ]; then \
-		echo "Cross-compilation detected - this may require additional setup"; \
-		echo "Consider running tests in a Linux VM or CI for reliable results"; \
-		echo "Attempting individual container test build..."; \
-		if $(NIX_ENV) $(NIX) build '.#checks.aarch64-darwin.basic' --impure --accept-flake-config --print-build-logs 2>/dev/null; then \
-			echo "Container test executed successfully"; \
-		else \
-			echo "Container test failed - this is expected on macOS without linux-builder"; \
-			echo "Use 'make test' for validation mode or run tests in Linux environment"; \
-			exit 1; \
-		fi; \
-	else \
-		echo "Linux environment - running full container tests..."; \
-		$(NIX_ENV_FULL) $(NIX) build '.#checks.$(shell uname -m | sed 's/x86_64/x86_64/;s/arm64/aarch64/').basic' --impure --accept-flake-config --print-build-logs; \
+	if [ "$(UNAME)" = "Darwin" ] || [ ! -e /dev/kvm ]; then \
+		echo "Container tests need Linux + /dev/kvm; run them in CI or a Linux VM."; \
+		exit 1; \
 	fi
+	$(NIX_ENV_FULL) $(NIX) build \
+		".#checks.$(NIX_SYSTEM).container-smoke" \
+		".#checks.$(NIX_SYSTEM).container-basic" \
+		".#checks.$(NIX_SYSTEM).container-services" \
+		".#checks.$(NIX_SYSTEM).container-packages" \
+		--impure --accept-flake-config --print-build-logs --no-link
 
 # This builds the given configuration and pushes the results to the
 # cache. This does not alter the current running system. This requires
@@ -227,7 +232,7 @@ wsl:
 	 nix build ".#nixosConfigurations.wsl.config.system.build.installer"
 
 # Phony targets
-.PHONY: switch switch-home test test-integration test-all test-containers format cache vm/bootstrap0 vm/bootstrap vm/copy vm/switch vm/secrets secrets/backup secrets/restore install-hooks lint update
+.PHONY: build-switch switch switch-home test test-build test-all test-containers format cache vm/bootstrap0 vm/bootstrap vm/copy vm/switch vm/secrets secrets/backup secrets/restore install-hooks lint update
 
 install-hooks:
 	pre-commit install --hook-type pre-commit --hook-type pre-push

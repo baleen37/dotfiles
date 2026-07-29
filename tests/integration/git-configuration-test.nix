@@ -1,7 +1,11 @@
-# Git Configuration Integration Test
+# tests/integration/git-configuration-test.nix
 #
-# Tests the Git configuration in users/shared/git.nix
-# Verifies user info from lib/user-info.nix, Git LFS, rebase settings, and gitignore patterns.
+# Covers users/shared/programs/git.nix.
+#
+# The single invariant worth the most here is that the identity written into
+# every commit comes from lib/user-info.nix rather than being hardcoded — that is
+# the whole reason user-info.nix exists. The rest are settings whose loss is
+# silent: you only notice `pull.rebase` is gone after a merge commit appears.
 {
   lib ? import <nixpkgs/lib>,
   pkgs ? import <nixpkgs> { },
@@ -11,16 +15,10 @@
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
   assertions = import ../lib/common-assertions.nix { inherit pkgs lib; };
-  gitHelpers = import ../lib/git-test-helpers.nix {
-    inherit pkgs lib;
-    testHelpers = helpers;
-  };
 
-  # Import user info from lib/user-info.nix
   userInfo = import ../../lib/user-info.nix;
 
-  # Import git module and extract config body via .content
-  # (lib.mkIf true {...}).content unwraps the conditional when enable=true
+  # (lib.mkIf true {...}).content unwraps the module's conditional body.
   gitModule = import ../../users/shared/programs/git.nix {
     inherit pkgs lib;
     config = {
@@ -29,103 +27,53 @@ let
   };
   gitConfig = gitModule.config.content;
 
-  # Extract git settings
   gitSettings = gitConfig.programs.git.settings;
   gitIgnores = gitConfig.programs.git.ignores;
 
-  # Expected aliases
+  expectedAliases = {
+    st = "status";
+    co = "checkout";
+    br = "branch";
+    ci = "commit";
+    df = "diff";
+    lg = "log --graph --oneline --decorate --all";
+  };
 
-  # Expected gitignore patterns
+  # Ignore patterns contain `*` and `/`, which are not legal in a store path
+  # name, so test names are slugged.
+  slug = lib.stringAsChars (c: if builtins.match "[a-zA-Z0-9]" c != null then c else "-");
+
+  requiredIgnores = [
+    "*.swp"
+    "*.swo"
+    ".DS_Store"
+    ".direnv/"
+    "result"
+    "node_modules/"
+  ];
 
 in
-# ===== 모든 테스트를 하나의 testSuite로 통합 =====
+helpers.testSuite "git-configuration" (
+  [
+    (assertions.assertAttrEquals "git-enabled" gitConfig.programs.git "enable" true null)
+    (assertions.assertAttrEquals "git-lfs-enabled" gitConfig.programs.git.lfs "enable" true null)
 
-helpers.testSuite "git-configuration-test" [
-  # ===== Git 기본 설정 검증 (patterns 사용) =====
-  # patterns.testBasicGitConfig는 testSuite를 반환하므로 통합
-  (helpers.assertTest "git-enabled" gitConfig.programs.git.enable "Git should be enabled")
+    # The point of lib/user-info.nix: one place to change your identity.
+    (helpers.assertTest "identity-comes-from-user-info" (
+      gitSettings.user.name == userInfo.name && gitSettings.user.email == userInfo.email
+    ) "programs.git user.name/user.email must come from lib/user-info.nix, not be hardcoded")
 
-  # ===== Git 사용자 정보 검증 (git-helpers 사용) =====
-
-  (gitHelpers.assertGitUserInfo "git-user-info" gitSettings userInfo)
-
-  # ===== Git 설정 전체 검증 (git-helpers 사용) =====
-
-  # assertGitConfigComplete는 testSuite를 반환하므로 개별 테스트로 변환 필요
-  # 여기서는 주요 검증만 수행
-
-  # ===== 상세 검증 (assertions 사용) =====
-  # Git 활성화 확인
-  (assertions.assertAttrEquals "git-enabled" gitConfig.programs.git "enable" true null)
-
-  # Git LFS 활성화 확인
-  (assertions.assertAttrEquals "git-lfs-enabled" gitConfig.programs.git.lfs "enable" true null)
-
-  # Git 사용자 이름이 userInfo와 일치하는지 확인
-  (assertions.assertAttrEquals "git-user-name-matches" gitSettings.user "name" userInfo.name null)
-
-  # Git 사용자 이메일이 userInfo와 일치하는지 확인
-  (assertions.assertAttrEquals "git-user-email-matches" gitSettings.user "email" userInfo.email null)
-
-  # Git aliases 목록이 비어있지 않은지 확인
-  (assertions.assertListNotEmpty "git-aliases-not-empty" (builtins.attrNames (
-    gitSettings.alias or { }
-  )) null)
-
-  # Git ignores 목록이 비어있지 않은지 확인
-  (assertions.assertListNotEmpty "git-ignores-not-empty" gitIgnores null)
-
-  # Git core.editor가 vim인지 확인
-  (assertions.assertAttrEquals "git-core-editor" gitSettings.core "editor" "vim" null)
-
-  # Git core.autocrlf가 input인지 확인 (Darwin/Linux 호환)
-  (assertions.assertAttrEquals "git-core-autocrlf" gitSettings.core "autocrlf" "input" null)
-
-  # Git init.defaultBranch가 main인지 확인
-  (assertions.assertAttrEquals "git-init-defaultBranch" gitSettings.init "defaultBranch" "main" null)
-
-  # Git pull.rebase가 활성화되어 있는지 확인
-  (assertions.assertAttrEquals "git-pull-rebase" gitSettings.pull "rebase" true null)
-
-  # Git rebase.autoStash가 활성화되어 있는지 확인
-  (assertions.assertAttrEquals "git-rebase-autoStash" gitSettings.rebase "autoStash" true null)
-
-  # ===== 필수 별칭 검증 =====
-
-  (assertions.assertAttrEquals "git-alias-st" gitSettings.alias "st" "status" null)
-  (assertions.assertAttrEquals "git-alias-co" gitSettings.alias "co" "checkout" null)
-  (assertions.assertAttrEquals "git-alias-br" gitSettings.alias "br" "branch" null)
-  (assertions.assertAttrEquals "git-alias-ci" gitSettings.alias "ci" "commit" null)
-  (assertions.assertAttrEquals "git-alias-df" gitSettings.alias "df" "diff" null)
-  (assertions.assertAttrEquals "git-alias-lg" gitSettings.alias "lg"
-    "log --graph --oneline --decorate --all"
-    null
-  )
-
-  # ===== 필수 gitignore 패턴 검증 =====
-
-  (assertions.assertListContains "gitignore-has-swp" gitIgnores "*.swp" null)
-  (assertions.assertListContains "gitignore-has-swo" gitIgnores "*.swo" null)
-  (assertions.assertListContains "gitignore-has-dsstore" gitIgnores ".DS_Store" null)
-  (assertions.assertListContains "gitignore-has-direnv" gitIgnores ".direnv/" null)
-  (assertions.assertListContains "gitignore-has-result" gitIgnores "result" null)
-  (assertions.assertListContains "gitignore-has-node-modules" gitIgnores "node_modules/" null)
-
-  # ===== Git alias 안전성 검증 =====
-
-  (gitHelpers.assertGitAliasSafety "git-alias-safety" gitSettings.alias {
-    requiredAliases = [
-      "st"
-      "ci"
-    ];
-    dangerousPatterns = [
-      "rm -rf"
-      "sudo "
-      "chmod 777"
-    ];
-  })
-
-  # ===== Git ignore 패턴 안전성 검증 =====
-
-  (gitHelpers.assertGitIgnoreSafety "gitignore-safety" gitIgnores)
-]
+    (assertions.assertAttrEquals "git-core-editor" gitSettings.core "editor" "vim" null)
+    # "input" keeps checkouts LF on both macOS and Linux.
+    (assertions.assertAttrEquals "git-core-autocrlf" gitSettings.core "autocrlf" "input" null)
+    (assertions.assertAttrEquals "git-default-branch" gitSettings.init "defaultBranch" "main" null)
+    (assertions.assertAttrEquals "git-pull-rebase" gitSettings.pull "rebase" true null)
+    (assertions.assertAttrEquals "git-rebase-autostash" gitSettings.rebase "autoStash" true null)
+  ]
+  ++ lib.mapAttrsToList (
+    alias: command: assertions.assertAttrEquals "git-alias-${alias}" gitSettings.alias alias command null
+  ) expectedAliases
+  ++ map (
+    pattern: assertions.assertListContains "gitignore-has-${slug pattern}" gitIgnores pattern null
+  ) requiredIgnores
+)

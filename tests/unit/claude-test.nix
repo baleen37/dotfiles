@@ -1,70 +1,40 @@
 # tests/unit/claude-test.nix
-# Claude Code configuration behavioral tests
-# Tests that Claude configuration is valid and functional
+#
+# Covers the payload users/shared/programs/claude-code.nix deploys into
+# ~/.claude. The files are read at eval time, so a malformed settings.json or a
+# CLAUDE.md that got truncated fails here rather than at activation.
 {
   lib ? import <nixpkgs/lib>,
   pkgs ? import <nixpkgs> { },
-  self ? ./.,
   ...
 }:
 
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
-  claudeHelpers = import (self + /tests/lib/claude-test-helpers.nix) { inherit pkgs lib helpers; };
 
-  # Path to Claude configuration
   claudeDir = ../../users/shared/programs/.config/claude;
   claudeCodeModule = builtins.readFile ../../users/shared/programs/claude-code.nix;
 
-  # Helper to safely read and parse JSON
-  readJson =
-    path:
-    let
-      contentResult = builtins.tryEval (builtins.readFile path);
-    in
-    if contentResult.success then
-      builtins.tryEval (builtins.fromJSON contentResult.value)
-    else
-      { success = false; };
-
-  # Individual test assertions using helpers.assertTest
-  tests = {
-    # Test 1: settings.json can be parsed and contains expected fields
-    settings-json-valid = helpers.assertTest "settings-json-valid" (
-      let
-        settingsPath = claudeDir + "/settings.json";
-        jsonResult = readJson settingsPath;
-        hasContent = jsonResult.success && (builtins.length (builtins.attrNames jsonResult.value) > 0);
-      in
-      hasContent
-    ) "settings.json is missing or empty";
-
-    # Test 2: CLAUDE.md exists and has meaningful content
-    claude-md-content = helpers.assertTest "claude-md-content" (
-      let
-        claudeMdPath = claudeDir + "/CLAUDE.md";
-        readResult = builtins.tryEval (builtins.readFile claudeMdPath);
-        hasContent = readResult.success && builtins.stringLength readResult.value > 100;
-        hasStructure = if hasContent then claudeHelpers.hasMarkdownStructure readResult.value else false;
-      in
-      hasContent && hasStructure
-    ) "CLAUDE.md is missing, too short, or lacks markdown structure";
-
-    # Test 3: Configuration directory exists
-    config-dir-exists =
-      helpers.assertTest "config-dir-exists" (builtins.pathExists claudeDir)
-        "Claude configuration directory does not exist";
-
-    # CLAUDE.md is the declarative instruction source and must refresh on every switch.
-    claude-md-refreshes-on-switch =
-      helpers.assertTest "claude-md-refreshes-on-switch"
-        (lib.hasInfix "run cp \${src}/CLAUDE.md ~/.claude/CLAUDE.md" claudeCodeModule)
-        "CLAUDE.md should overwrite the existing ~/.claude/CLAUDE.md during activation";
-  };
-
+  settings = builtins.tryEval (builtins.fromJSON (builtins.readFile (claudeDir + "/settings.json")));
+  claudeMd = builtins.readFile (claudeDir + "/CLAUDE.md");
 in
-# Aggregate all tests into a test suite
 {
   platforms = [ "any" ];
-  value = helpers.testSuite "claude-configuration-tests" (builtins.attrValues tests);
+  value = helpers.testSuite "claude" [
+    (helpers.assertTest "settings-json-parses" (
+      settings.success && builtins.attrNames settings.value != [ ]
+    ) "users/shared/programs/.config/claude/settings.json must be non-empty valid JSON")
+
+    # A heading means the file survived generation; a stub would fail the length
+    # check and a stray plain-text file would fail this one.
+    (helpers.assertTest "claude-md-has-content" (
+      builtins.stringLength claudeMd > 100 && lib.hasInfix "#" claudeMd
+    ) "CLAUDE.md must carry real markdown content, not a stub")
+
+    # CLAUDE.md is the declarative instruction source, so activation has to
+    # overwrite whatever is already in ~/.claude instead of skipping it.
+    (helpers.assertTest "claude-md-refreshes-on-switch" (
+      lib.hasInfix "run cp \${src}/CLAUDE.md ~/.claude/CLAUDE.md" claudeCodeModule
+    ) "claude-code.nix should overwrite ~/.claude/CLAUDE.md during activation")
+  ];
 }

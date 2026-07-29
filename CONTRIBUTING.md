@@ -24,8 +24,8 @@ cd dotfiles
 
 # Set up the development environment
 export USER=$(whoami)
-make test     # Fast container tests (2-5 seconds)
-make test-all # Complete validation
+make test       # Evaluate all checks
+make test-build # Build every unit + integration assertion
 make lint     # Check code quality
 ```
 
@@ -54,7 +54,7 @@ git merge feature/add-new-package
 
 - [ ] Create a descriptive branch name
 - [ ] Ensure `USER` environment variable is set
-- [ ] Run `make test` to verify baseline functionality
+- [ ] Run `make test-build` to verify baseline functionality
 
 #### 2. Development Loop
 
@@ -64,12 +64,12 @@ git merge feature/add-new-package
 
 # Test your changes
 make lint           # Code quality checks
-make test           # Fast container tests (2-5 seconds)
-make test-all       # Complete validation
+make test           # Evaluate all checks
+make test-build     # Build every unit + integration assertion
 nix build '.#darwinConfigurations.macbook-pro.system' --impure  # Full system build
 
 # Test on target platform(s)
-nix run --impure .#build-switch  # Test system integration
+make switch                      # Test system integration
 ```
 
 #### 3. Pre-Commit Workflow
@@ -78,10 +78,10 @@ nix run --impure .#build-switch  # Test system integration
 
 ```bash
 make lint      # pre-commit run --all-files
-make test      # Fast container tests (2-5 seconds)
-make test-all  # Complete validation
+make test       # Evaluate all checks
+make test-build # Build every unit + integration assertion
 nix build '.#darwinConfigurations.macbook-pro.system' --impure  # build darwin configuration
-make test-all  # final validation after build
+make test-build # final validation after build
 ```
 
 ### Testing Strategy
@@ -89,14 +89,17 @@ make test-all  # final validation after build
 #### Local Testing
 
 ```bash
-# Comprehensive local testing (matches CI)
-./scripts/test-all-local
+make test                         # Evaluate all checks (matches CI)
+make test-build                   # Build every unit + integration assertion
+make test-containers              # NixOS VM tests (Linux + /dev/kvm)
 
-# Individual test categories
-nix flake check --impure          # All checks (auto-discovered tests)
-make test-integration             # Traditional integration tests
-nix build '.#checks.x86_64-linux.basic' --impure   # Single check (Linux containers)
+nix flake check --impure          # All checks, directly
+nix build '.#checks.x86_64-linux.unit-mksystem' --impure   # A single check
 ```
+
+`make test` falls back to `nix flake check --no-build` wherever the container
+tests cannot run, and `--no-build` only *evaluates* checks — a false assertion is
+never built and never fails. Use `make test-build` to actually run assertions.
 
 #### Testing on Multiple Platforms
 
@@ -229,52 +232,53 @@ Follow the hierarchical test structure and use consistent helper patterns:
 
 ```bash
 tests/
-├── unit/           # Individual function/module tests
-├── integration/    # Module interaction tests
-├── e2e/           # Complete workflow tests
-├── performance/   # Build time and resource tests
-└── lib/           # Test helpers and utilities
+├── unit/           # One module or library, evaluated in isolation
+├── integration/    # Configurations evaluated against each other
+├── containers/     # NixOS VM tests (Linux + KVM)
+└── lib/            # Shared assertions and fixtures
 ```
 
 **Use the consistent test helper framework:**
 
 ```nix
-# tests/unit/my-feature-unit.nix
-{ pkgs, lib }:
+# tests/unit/my-feature-test.nix -> checks.<system>.unit-my-feature
+{ pkgs, lib, ... }:
 
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
-
-  # Test your feature logic
-  featureWorks = true;  # Your actual test condition
+  subject = import ../../users/shared/programs/my-feature.nix {
+    inherit pkgs lib;
+    config.modules.programs.my-feature.enable = true;
+  };
 in
-helpers.testSuite "my-feature" [
-  (helpers.assertTest "feature-enabled" featureWorks
-    "My feature should be enabled")
-]
+{
+  platforms = [ "any" ];   # or ["darwin"] / ["linux"]
+  value = helpers.testSuite "my-feature" [
+    (helpers.assertTest "some-invariant" (subject.config.content.programs.my-feature.enable)
+      "why this matters, and what breaks when it does not hold"
+    )
+  ];
+}
 ```
+
+Assert over the module's real output, never over values the test defines itself —
+`let x = true; in x` passes forever and covers nothing.
 
 #### Test Helper Functions
 
-The project provides a comprehensive test helper framework in `tests/lib/test-helpers.nix`:
+`tests/lib/test-helpers.nix`:
 
-- **`helpers.testSuite`**: Create consistent test suites
-- **`helpers.assertTest`**: Simple assertions with clear messages
-- **`helpers.assertTestWithDetails`**: Enhanced assertions showing expected/actual values
-- **`helpers.assertFileExists`**: Test file existence
-- **`helpers.assertHasAttr`**: Test attribute presence
-- **Property testing helpers**: Test invariants across scenarios
+- **`helpers.assertTest name condition message`**: fails the build when false
+- **`helpers.testSuite name tests`**: aggregates assertions into one check
 
-#### Test Categories
-
-- **Unit Tests**: Test individual components in isolation
-- **Integration Tests**: Test module interactions and dependencies
-- **E2E Tests**: Test complete workflows and system behavior
-- **Performance Tests**: Monitor build times and resource usage
+`tests/lib/common-assertions.nix` adds assertions that generate their own failure
+text (`assertAttrEquals`, `assertAttrPathExists`, `assertListContains`, ...); each
+takes a trailing `message`, `null` for the generated one.
 
 #### Detailed Testing Guidelines
 
-For comprehensive testing strategies, edge cases, and property testing examples, see `tests/README.md`.
+`tests/README.md` covers the full test contract, the `platforms` metadata, and
+what is and is not worth asserting.
 
 ### Documentation
 
@@ -363,7 +367,7 @@ When adding new global commands:
 ```bash
 # Always ensure USER is set
 export USER=$(whoami)
-nix run --impure .#build
+make switch
 ```
 
 **Flake lock conflicts:**
@@ -389,16 +393,12 @@ nix build --impure --show-trace .#darwinConfigurations.aarch64-darwin.system
 **Test discovery issues:**
 
 ```bash
-# Check test framework status
+# List every discovered check
 nix flake show --impure
-nix build --impure .#checks.$(nix eval --impure --expr 'builtins.currentSystem').framework_status
-```
 
-**Claude configuration tests:**
-
-```bash
-# Test Claude config preservation
-nix build --impure .#checks.$(nix eval --impure --expr 'builtins.currentSystem').claude_config_copy_unit
+# A test file that fails to import shows up as a failing check named after it;
+# build it to see the reason
+nix build --impure '.#checks.aarch64-darwin.unit-claude'
 ```
 
 ## 📋 Pull Request Process
@@ -408,13 +408,13 @@ nix build --impure .#checks.$(nix eval --impure --expr 'builtins.currentSystem')
 1. **Complete the pre-commit workflow:**
 
    ```bash
-   make lint && make test && make test-all && nix build '.#darwinConfigurations.macbook-pro.system' --impure && make test-all
+   make lint && make test-build && nix build '.#darwinConfigurations.macbook-pro.system' --impure
    ```
 
 2. **Run comprehensive local tests:**
 
    ```bash
-   ./scripts/test-all-local
+   make test && make test-build
    ```
 
 3. **Update documentation** if needed
@@ -437,7 +437,7 @@ Brief description of changes
 
 ## Testing
 
-- [ ] Local tests pass (`./scripts/test-all-local`)
+- [ ] Local tests pass (`make test-build`)
 - [ ] Pre-commit workflow complete
 - [ ] Tested on target platforms: [list platforms]
 

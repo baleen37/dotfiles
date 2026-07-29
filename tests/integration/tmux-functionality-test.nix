@@ -11,10 +11,7 @@
 
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
-  pluginHelpers = import ../lib/plugin-test-helpers.nix {
-    inherit pkgs lib;
-    inherit helpers;
-  };
+  pluginHelpers = import ../lib/plugin-test-helpers.nix { inherit lib; };
 
   # Mock configuration for testing tmux integration
   mockConfig = {

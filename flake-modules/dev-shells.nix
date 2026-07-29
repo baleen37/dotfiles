@@ -28,10 +28,10 @@ _:
         shellHook = ''
           echo "Dotfiles development environment loaded"
           echo "Available commands:"
-          echo "  make format    - Format all files"
-          echo "  make test      - Run tests"
-          echo "  make build     - Build current platform"
-          echo "  make switch    - Apply configuration changes"
+          echo "  make format     - Format all files"
+          echo "  make test       - Evaluate all checks"
+          echo "  make test-build - Build every unit + integration assertion"
+          echo "  make switch     - Build and apply configuration changes"
         '';
       };
     };
