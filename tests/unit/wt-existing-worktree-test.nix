@@ -36,5 +36,27 @@ in
       (lib.hasInfix ''cd "$existing_worktree"'' wtScript)
       "wt should cd into the existing worktree instead of failing"
     )
+
+    (helpers.assertTest "wt-detects-herdr-pane" (lib.hasInfix ''[[ "''${HERDR_ENV:-}" == "1"'' wtScript)
+      "wt should detect a Herdr-managed pane before invoking Herdr"
+    )
+
+    (helpers.assertTest "wt-captures-herdr-workspace" (lib.hasInfix "HERDR_WORKSPACE_ID:-" wtScript)
+      "wt should capture the parent Herdr workspace id"
+    )
+
+    (helpers.assertTest "wt-opens-worktree-through-herdr" (lib.hasInfix "herdr worktree open" wtScript)
+      "wt should open the created worktree through Herdr"
+    )
+
+    (helpers.assertTest "wt-passes-parent-workspace"
+      (lib.hasInfix ''--workspace "$herdr_workspace"'' wtScript)
+      "wt should pass the parent workspace to Herdr"
+    )
+
+    (helpers.assertTest "wt-opens-herdr-before-cd"
+      (lib.hasInfix ''--path "$worktree_dir" --focus'' wtScript)
+      "wt should open the Herdr worktree before changing the shell directory"
+    )
   ];
 }
