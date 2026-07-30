@@ -15,6 +15,7 @@
   #                            Remove merged+clean worktrees (dry-run by default)
   wt() {
     local _wt_random=0
+    local herdr_workspace="''${HERDR_WORKSPACE_ID:-}"
 
     # Helper: Generate a random branch name like "snappy-greeting-bachman"
     local _random_branch_name() {
@@ -360,6 +361,14 @@
       return 1
     }
 
+    # Open a Git worktree in Herdr while the current workspace is still the
+    # parent repository workspace. Herdr's linked-worktree actions reject a
+    # request made after the shell has already cd-ed into the new checkout.
+    local _open_in_herdr() {
+      local worktree_dir="$1"
+      herdr worktree open --workspace "$herdr_workspace" --path "$worktree_dir" --focus >/dev/null 2>&1
+    }
+
     # Helper: Sanitize branch name for directory (replace / with -)
     # Place worktrees in a shared home directory, grouped by repository.
     # Always resolve the repository name from the main worktree so wt works
@@ -459,7 +468,11 @@
       if [[ -n "$existing_worktree" ]]; then
         _msg "$YELLOW" "Warning: branch '$branch_name' is already checked out at $existing_worktree"
         _msg "$BLUE" "Switching to existing worktree instead."
-        cd "$existing_worktree"
+        if [[ "''${HERDR_ENV:-}" == "1" && -n "$herdr_workspace" ]]; then
+          _open_in_herdr "$existing_worktree" || return 1
+        else
+          cd "$existing_worktree"
+        fi
         return 0
       fi
 
@@ -481,7 +494,14 @@
     fi
 
     _msg "$GREEN" "Worktree created: $worktree_dir"
-    cd "$worktree_dir"
+    if [[ "''${HERDR_ENV:-}" == "1" && -n "$herdr_workspace" ]]; then
+      _open_in_herdr "$worktree_dir" || {
+        _error "Failed to open worktree in Herdr"
+        return 1
+      }
+    else
+      cd "$worktree_dir"
+    fi
 
     # Opportunistic cleanup: reclaim store space left behind by previously
     # removed worktrees. Detached background run, so it never blocks the
