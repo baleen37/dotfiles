@@ -153,7 +153,6 @@ let
   localBindingKeys = builtins.map (m: m.from.key_code) localBindings;
   expectedLocalKeys = [
     "b"
-    "l"
     "u"
   ];
   localBindingsPresent = lib.sort builtins.lessThan localBindingKeys == expectedLocalKeys;

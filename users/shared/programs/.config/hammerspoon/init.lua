@@ -7,6 +7,14 @@ hs.loadSpoon('VimImeGuard')
 
 Hyper = spoon.Hyper
 
+-- Alt-Tab replacement: hold Option, tap Tab to cycle windows (not just apps),
+-- release Option to focus the selected one. Bound to real modifier keys
+-- because hs.window.switcher finalizes on modifier release, unlike the F19
+-- Hyper modal below.
+windowSwitcher = hs.window.switcher.new(hs.window.filter.new())
+hs.hotkey.bind('alt', 'tab', function() windowSwitcher:next() end)
+hs.hotkey.bind('alt-shift', 'tab', function() windowSwitcher:previous() end)
+
 -- F19 is emitted by Karabiner when right_command is held (see karabiner.nix).
 -- Karabiner intercepts app-launcher and local-binding keys directly for Secure
 -- Input immunity; Hammerspoon only handles logic-heavy bindings below.
