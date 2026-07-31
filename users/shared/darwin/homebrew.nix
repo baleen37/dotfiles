@@ -25,10 +25,8 @@ let
     "obsidian"
 
     # Utility Tools
-    "alt-tab"
     "claude"
     "karabiner-elements" # Key remapping and modification tool
-    "y3owk1n/tap/neru" # Free, open-source keyboard navigation (Homerow alternative)
     "orbstack" # Docker and Linux VM management
     "tailscale-app" # VPN mesh network with GUI
     "teleport-connect" # Teleport GUI client for secure infrastructure access
@@ -40,7 +38,6 @@ let
     "anki"
 
     # Productivity Tools
-    "alfred"
     "raycast"
 
     # Password Management
@@ -93,7 +90,6 @@ in
     # Note: homebrew/cask is now built into Homebrew by default (since 2023)
     taps = [
       "daipeihust/tap" # im-select
-      "y3owk1n/tap" # neru
     ];
   };
 }
