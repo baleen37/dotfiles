@@ -9,9 +9,7 @@ let
   # Homebrew Cask definitions (GUI applications)
   homebrew-casks = [
     # Development Tools
-    "datagrip" # Database IDE from JetBrains
     "ghostty" # GPU-accelerated terminal emulator
-    "utm" # Virtual machine manager for macOS
 
     # Fonts
     "font-jetbrains-mono" # JetBrains Mono font for terminal
