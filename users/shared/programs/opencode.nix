@@ -29,22 +29,7 @@ in
           ];
           enabled = true;
         };
-        mgrep = {
-          type = "local";
-          command = [
-            "npx"
-            "-y"
-            "@mixedbread/mgrep"
-          ];
-          enabled = true;
-        };
       };
-    };
-
-    # Symlink agent directory
-    xdg.configFile."opencode/agent" = {
-      source = ./.config/opencode/agent;
-      recursive = true;
     };
 
     home.activation.installSuperpowers = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
