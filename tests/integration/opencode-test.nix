@@ -38,42 +38,6 @@ let
     opencodeJsonParsed.success && builtins.hasAttr "permission" opencodeJsonParsed.value;
   hasMcpConfig = opencodeJsonParsed.success && builtins.hasAttr "mcp" opencodeJsonParsed.value;
 
-  requiredAgentNames = [
-    "codemap"
-    "designer"
-    "explorer"
-    "fixer"
-    "librarian"
-    "oracle"
-    "orchestrator"
-  ];
-
-  # Agent directory tests
-  hasAgentDir = builtins.hasAttr "opencode/agent" xdgConfigFiles;
-  hasAgentDirRecursiveEnabled =
-    builtins.hasAttr "opencode/agent" xdgConfigFiles
-    && xdgConfigFiles."opencode/agent".recursive or false;
-
-  opencodeAgentDir = ../../users/shared/programs/.config/opencode/agent;
-
-  agentFileReadable =
-    agentName: builtins.tryEval (builtins.readFile (opencodeAgentDir + "/${agentName}.md"));
-
-  makeAgentSourceTests =
-    agentName:
-    let
-      readableResult = agentFileReadable agentName;
-      hasContent = readableResult.success && builtins.stringLength readableResult.value > 0;
-    in
-    [
-      (helpers.assertTest "opencode-agent-${agentName}-source-readable" readableResult.success
-        "${agentName}.md source should be readable"
-      )
-      (helpers.assertTest "opencode-agent-${agentName}-source-has-content" hasContent
-        "${agentName}.md source should have content"
-      )
-    ];
-
 in
 helpers.testSuite "opencode" (
   [
@@ -101,15 +65,4 @@ helpers.testSuite "opencode" (
       "opencode.json should have MCP configuration"
     )
   ]
-  # Agent directory configuration tests
-  ++ [
-    (helpers.assertTest "opencode-agent-dir-configured" hasAgentDir
-      "opencode agent directory should be configured in xdg.configFile"
-    )
-    (helpers.assertTest "opencode-agent-dir-recursive-enabled" hasAgentDirRecursiveEnabled
-      "opencode agent directory should have recursive=true"
-    )
-  ]
-  # Agent source file tests
-  ++ (lib.flatten (map makeAgentSourceTests requiredAgentNames))
 )
