@@ -43,8 +43,9 @@ in
       sessionVars.DOCKER_CONTEXT == "orbstack"
     ) "DOCKER_CONTEXT should pin to orbstack so docker always targets OrbStack")
 
-    (helpers.assertTest "docker-program-completion-enabled" (
-      lib.hasInfix "docker completion zsh" zshInit
-    ) "zsh init should source docker CLI completion")
+    (helpers.assertTest "docker-program-completion-enabled"
+      (lib.hasInfix "docker completion zsh" zshInit)
+      "zsh init should source docker CLI completion"
+    )
   ];
 }
