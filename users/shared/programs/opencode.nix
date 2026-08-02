@@ -18,7 +18,7 @@ in
     # Generate opencode.json from Nix expression
     xdg.configFile."opencode/opencode.json".text = builtins.toJSON {
       "$schema" = "https://opencode.ai/config.json";
-      permission.question = "ask";
+      permission = "allow";
       mcp = {
         context7 = {
           type = "local";
