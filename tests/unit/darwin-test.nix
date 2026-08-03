@@ -49,6 +49,8 @@ let
   # nixfmt reflows multi-line operator chains, and the threshold at which it joins
   # or splits them is not worth guessing at.
   homebrewCasks = darwinConfig.homebrew.casks;
+  preActivationText = (darwinConfig.system.activationScripts.preActivation or { text = ""; }).text;
+  homebrewExtraConfig = darwinConfig.homebrew.extraConfig;
   forceClick = customPrefs.NSGlobalDomain."com.apple.trackpad.forceClick";
   tapGesture = multitouch.TrackpadThreeFingerTapGesture;
   btTapGesture = bluetooth.TrackpadThreeFingerTapGesture;
@@ -75,6 +77,21 @@ in
       # silently uninstall all of them.
       (assertions.assertAttrEquals "homebrew-enabled" darwinConfig.homebrew "enable" true null)
       (assertions.assertListNotEmpty "homebrew-casks-not-empty" homebrewCasks null)
+
+      (helpers.assertTest "spotlight-indexing-for-mas" (
+        lib.hasInfix "/usr/bin/mdutil -E -i on /" preActivationText
+        && lib.hasInfix "/usr/bin/mdimport" preActivationText
+        && lib.hasInfix "/Applications/KakaoTalk.app" preActivationText
+        && lib.hasInfix "/Applications/Magnet.app" preActivationText
+      ) "Activation should enable Spotlight and index the configured MAS apps")
+
+      (helpers.assertTest "mas-existing-app-skip-configured" (
+        lib.hasInfix "HOMEBREW_BUNDLE_MAS_SKIP" homebrewExtraConfig
+        && lib.hasInfix "Applications/KakaoTalk.app" homebrewExtraConfig
+        && lib.hasInfix "Applications/Magnet.app" homebrewExtraConfig
+        && lib.hasInfix "869223134" homebrewExtraConfig
+        && lib.hasInfix "441258766" homebrewExtraConfig
+      ) "Existing App Store apps should be skipped while Spotlight is unavailable")
 
       # FileVault makes loginwindow.autoLoginUser a no-op, so it must stay unset
       # rather than be set to something misleading.

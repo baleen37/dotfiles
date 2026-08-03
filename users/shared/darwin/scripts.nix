@@ -21,6 +21,26 @@
 _:
 
 {
+  # mas uses Spotlight metadata to find installed Mac App Store apps. Keep the
+  # index enabled for the root volume and import the configured apps when their
+  # Adam ID is not available yet.
+  system.activationScripts.preActivation.text = ''
+    spotlight_status=$(/usr/bin/mdutil -s / 2>/dev/null || true)
+    if echo "$spotlight_status" | grep -qi "disabled"; then
+      echo "Enabling Spotlight indexing for App Store app detection..." >&2
+      /usr/bin/mdutil -E -i on / >&2 || true
+    fi
+
+    for app in \
+      "/Applications/KakaoTalk.app" \
+      "/Applications/Magnet.app"; do
+      adam_id=$(/usr/bin/mdls -raw -name kMDItemAppStoreAdamID "$app" 2>/dev/null || true)
+      if [ -d "$app" ] && { [ -z "$adam_id" ] || [ "$adam_id" = "(null)" ]; }; then
+        /usr/bin/mdimport "$app" 2>/dev/null || true
+      fi
+    done
+  '';
+
   system.activationScripts.postActivation.text = ''
     # Remote Login (SSH)
     # Enables macOS Remote Login so the machine accepts incoming SSH connections.
