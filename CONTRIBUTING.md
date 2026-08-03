@@ -407,7 +407,9 @@ nix build '.#checks.aarch64-darwin.unit-claude'
 1. **Complete the pre-commit workflow:**
 
    ```bash
-   make lint && make test-build && nix build '.#darwinConfigurations.macbook-pro.system'
+   nix flake check --no-build --all-systems --show-trace
+   nix build '.#darwinConfigurations.macbook-pro.system'
+   nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel'
    ```
 
 2. **Run comprehensive local tests:**

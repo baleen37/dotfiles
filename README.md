@@ -211,15 +211,23 @@ dotfiles/
 ## Commands
 
 ```bash
-# Build current system
+# Evaluate every supported system
+nix flake check --no-build --all-systems --show-trace
+
+# Build representative configuration closures without activation
 nix build '.#darwinConfigurations.macbook-pro.system'
+nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel'
 
-# Run tests
-make test-build
-
-# Switch to new config
-make switch
+# Activate a standalone Home Manager profile
+make switch-home HM_USER=jito.hello
 ```
+
+### System Activation
+
+`make switch` activates the current host's system configuration. It is an
+explicit operating procedure, not part of the default development or PR
+workflow; run it only on the intended host after the relevant build and
+verification steps.
 
 ### evantravers Architecture
 
@@ -343,11 +351,9 @@ Built-in AI development assistance with 20+ specialized commands and MCP server 
 
 ### Setup
 
-```bash
-make switch     # Apply configuration
-# Restart Claude Code
-# Try: /help
-```
+After applying the appropriate standalone Home Manager profile, restart Claude
+Code and run `/help`. System activation, when required, follows the explicit
+operating procedure above rather than the default development workflow.
 
 ### MCP Servers
 
