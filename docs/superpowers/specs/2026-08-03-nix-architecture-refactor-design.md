@@ -212,15 +212,15 @@ Nix 공식 문서는 `trusted-users`가 사실상 root 권한에 해당한다고
 
 ## 8. 위험과 완화
 
-| 위험 | 완화 |
-| --- | --- |
-| Intel Mac 사용자가 실제로 존재함 | 지원 제거를 반영하기 전에 현재 호스트 목록과 CI matrix에서 확인하고, 필요하면 별도 26.05 입력 설계로 분기 |
-| 사용자 고정으로 기존 `make switch`가 다른 사용자에게 적용됨 | 호스트별 user assertion과 `HM_USER` standalone 경로를 함께 검증 |
-| typed option이 flake-parts 고정점과 충돌함 | 최소 host metadata fixture를 먼저 평가하고, 실패 시 `_module.args` 내부 전달로 축소 |
-| perSystem pkgs가 system pkgs와 달라짐 | standalone/devShell/checks부터 적용하고 결과 비교 후 system으로 확대 |
-| trusted-users 축소로 cache 사용이 깨짐 | 변경 전후 non-root build와 `trusted-substituters` smoke test 수행 |
-| native VM 전환으로 `test-vm` 계약이 깨짐 | 기존 `nix run .#test-vm`을 전환 전후 실행해 동일한 SSH/포트 계약 확인 |
-| 문서와 운영 명령이 어긋남 | `rg -- '--impure|builtins.getEnv|x86_64-darwin'` 기반 정합성 검사 추가 |
+| 위험                                                        | 완화                                                                                                      |
+| ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | --------------- | ------------------------------------- |
+| Intel Mac 사용자가 실제로 존재함                            | 지원 제거를 반영하기 전에 현재 호스트 목록과 CI matrix에서 확인하고, 필요하면 별도 26.05 입력 설계로 분기 |
+| 사용자 고정으로 기존 `make switch`가 다른 사용자에게 적용됨 | 호스트별 user assertion과 `HM_USER` standalone 경로를 함께 검증                                           |
+| typed option이 flake-parts 고정점과 충돌함                  | 최소 host metadata fixture를 먼저 평가하고, 실패 시 `_module.args` 내부 전달로 축소                       |
+| perSystem pkgs가 system pkgs와 달라짐                       | standalone/devShell/checks부터 적용하고 결과 비교 후 system으로 확대                                      |
+| trusted-users 축소로 cache 사용이 깨짐                      | 변경 전후 non-root build와 `trusted-substituters` smoke test 수행                                         |
+| native VM 전환으로 `test-vm` 계약이 깨짐                    | 기존 `nix run .#test-vm`을 전환 전후 실행해 동일한 SSH/포트 계약 확인                                     |
+| 문서와 운영 명령이 어긋남                                   | `rg -- '--impure                                                                                          | builtins.getEnv | x86_64-darwin'` 기반 정합성 검사 추가 |
 
 ## 9. 승인 후 다음 단계
 

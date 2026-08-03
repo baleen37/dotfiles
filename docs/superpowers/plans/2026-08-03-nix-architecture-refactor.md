@@ -38,7 +38,7 @@
 
 - [ ] Step 1: evaluation-boundary-test.nix에 실패 assertion 작성
 
-~~~nix
+```nix
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
   flakeSource = builtins.readFile ../../flake.nix;
@@ -62,55 +62,55 @@ in
       "workflow does not inject USER")
   ];
 }
-~~~
+```
 
 makefile-switch-commands-test.nix에는 HM_USER ?=, .#$(HM_USER), --impure 부재를 검사한다.
 
 - [ ] Step 2: 현재 실패 확인
 
-~~~bash
+```bash
 nix build '.#checks.aarch64-darwin.unit-evaluation-boundary' --no-link
 nix build '.#checks.aarch64-darwin.unit-makefile-switch-commands' --no-link
-~~~
+```
 
 - [ ] Step 3: 최소 구현
 
 flake.nix systems를 다음으로 바꾼다.
 
-~~~nix
+```nix
 systems = [
   "aarch64-darwin"
   "x86_64-linux"
   "aarch64-linux"
 ];
-~~~
+```
 
 .envrc는 use flake만 유지한다. args.nix에서 resolveUser와 builtins.getEnv 사용을 제거한다. Makefile에 다음을 추가하고 switch-home의 Darwin/Linux profile 선택을 모두 HM_USER로 바꾼다.
 
-~~~make
+```make
 HM_USER ?= $(shell id -un 2>/dev/null || whoami)
-~~~
+```
 
 switch, switch-home, test, fmt-diff, test-build, test-containers에서 flake 평가에 쓰이는 --impure와 export USER를 제거한다. CI의 USER export와 closure build --impure도 제거한다. 현재 README, CONTRIBUTING, CLAUDE, tests/README의 USER 전제와 Intel Darwin 표기를 갱신한다.
 
 - [ ] Step 4: 검증
 
-~~~bash
+```bash
 nix build '.#checks.aarch64-darwin.unit-evaluation-boundary' --no-link
 nix build '.#checks.aarch64-darwin.unit-makefile-switch-commands' --no-link
 env -u USER nix flake check --no-build --all-systems --show-trace
 make -n switch-home HM_USER=jito.hello
 make -n switch-home HM_USER=baleen
-~~~
+```
 
 Expected: 세 systems가 평가되고 dry-run에 --impure와 USER injection이 없다.
 
 - [ ] Step 5: 커밋
 
-~~~bash
+```bash
 git add flake.nix .envrc Makefile .github/workflows/ci.yml README.md CONTRIBUTING.md CLAUDE.md tests/README.md tests/unit/evaluation-boundary-test.nix tests/unit/makefile-switch-commands-test.nix
 git commit -m "refactor: make flake evaluation pure"
-~~~
+```
 
 ## Task 2: Typed internal host metadata
 
@@ -122,7 +122,7 @@ git commit -m "refactor: make flake evaluation pure"
 
 lib.evalModules로 hosts.nix를 평가하고 다음 summary가 정확히 일치하는지 검사한다.
 
-~~~nix
+```nix
 {
   macbook-pro = { system = "aarch64-darwin"; class = "darwin"; user = "baleen"; };
   baleen-macbook = { system = "aarch64-darwin"; class = "darwin"; user = "baleen"; };
@@ -130,21 +130,21 @@ lib.evalModules로 hosts.nix를 평가하고 다음 summary가 정확히 일치�
   vm-aarch64-utm = { system = "aarch64-linux"; class = "nixos"; user = "baleen"; };
   vm-x86_64-utm = { system = "x86_64-linux"; class = "nixos"; user = "baleen"; };
 }
-~~~
+```
 
 또한 모든 machineModules가 non-empty이고 x86_64-darwin이 없는지 검사한다.
 
 - [ ] Step 2: 실패 확인
 
-~~~bash
+```bash
 nix build '.#checks.aarch64-darwin.unit-host-metadata' --no-link
-~~~
+```
 
 - [ ] Step 3: schema와 host 선언 구현
 
 hosts.nix의 핵심 schema는 다음과 같다.
 
-~~~nix
+```nix
 hostType = lib.types.submodule {
   options = {
     system = lib.mkOption {
@@ -170,7 +170,7 @@ options.dotfiles.hosts = lib.mkOption {
   type = lib.types.attrsOf hostType;
   default = { };
 };
-~~~
+```
 
 각 host의 machineModules에는 Darwin common.nix 또는 대응하는 NixOS VM module을 명시한다. resolveUser와 flake.hosts를 제거한다. systems.nix는 config.dotfiles.hosts를 class로 filter하고 mksystem에 homeModules와 machineModules를 전달한다. mksystem의 machineConfig filename inference를 제거하고 전달된 machineModules를 module list에 넣는다.
 
@@ -180,14 +180,14 @@ machine-builds-test.nix에서 Darwin output users가 baleen, baleen, jito.hello�
 
 - [ ] Step 5: 검증과 커밋
 
-~~~bash
+```bash
 nix build '.#checks.aarch64-darwin.unit-host-metadata' --no-link
 nix build '.#checks.aarch64-darwin.integration-machine-builds' --no-link
 env -u USER nix eval '.#darwinConfigurations.kakaostyle-jito.config.home-manager.users' --apply builtins.attrNames --json
 nix flake show --all-systems
 git add flake-modules/args.nix flake-modules/hosts.nix flake-modules/systems.nix lib/mksystem.nix tests/unit/host-metadata-test.nix tests/integration/machine-builds-test.nix README.md CLAUDE.md
 git commit -m "refactor: make host metadata typed and internal"
-~~~
+```
 
 Expected: unknown flake output hosts 경고가 없고 user mapping이 고정된다.
 
@@ -199,25 +199,25 @@ Expected: unknown flake output hosts 경고가 없고 user mapping이 고정된�
 
 homeConfigurations.baleen.activationPackage가 평가되고, overlays로 import한 expected pkgs에 claude-code가 존재하는지 검사한다.
 
-~~~nix
+```nix
 overlayPkgs = import inputs.nixpkgs {
   system = pkgs.stdenv.hostPlatform.system;
   overlays = import ../../lib/overlays.nix { inherit inputs; };
   config.allowUnfree = true;
 };
-~~~
+```
 
 - [ ] Step 2: 실패 확인
 
-~~~bash
+```bash
 nix build '.#checks.aarch64-darwin.unit-per-system-pkgs' --no-link
-~~~
+```
 
 - [ ] Step 3: implementation
 
 args.nix perSystem을 다음으로 구성한다.
 
-~~~nix
+```nix
 perSystem = { system, ... }: {
   _module.args = {
     inherit overlays;
@@ -227,20 +227,20 @@ perSystem = { system, ... }: {
     };
   };
 };
-~~~
+```
 
 home.nix의 mkHomeConfig는 withSystem system ({ pkgs, ... }: homeManagerConfiguration { inherit pkgs; ... }) 형태로 바꾼다. 네 profile 이름과 currentSystemUser, isDarwin, shared home module은 유지한다. readOnlyPkgs는 도입하지 않는다.
 
 - [ ] Step 4: 검증과 커밋
 
-~~~bash
+```bash
 nix build '.#checks.aarch64-darwin.unit-per-system-pkgs' --no-link
 nix build '.#checks.aarch64-darwin.integration-home-configurations' --no-link
 env -u USER nix build '.#homeConfigurations."jito.hello".activationPackage' --no-link
 env -u USER nix build '.#homeConfigurations.baleen-linux.activationPackage' --no-link
 git add flake-modules/args.nix flake-modules/home.nix tests/unit/per-system-pkgs-test.nix tests/integration/home-configurations-test.nix
 git commit -m "refactor: centralize per-system nixpkgs"
-~~~
+```
 
 ## Task 4: Formatter cleanup과 native NixOS VM
 
@@ -252,23 +252,23 @@ nixos-generators input 부재, packages.nix의 config.system.build.vm 존재, de
 
 - [ ] Step 2: 실패 확인
 
-~~~bash
+```bash
 nix build '.#checks.aarch64-darwin.unit-test-vm-package' --no-link
-~~~
+```
 
 - [ ] Step 3: native VM 구현
 
 flake.nix에서 nixos-generators input을 제거하고 nix flake lock을 실행한다. dev-shells에서 두 formatter package를 제거한다. packages.nix는 기존 VM overrides와 machine module에 다음 module을 추가한다.
 
-~~~nix
+```nix
 ({ modulesPath, ... }: {
   imports = [ (modulesPath + "/virtualisation/qemu-vm.nix") ];
 })
-~~~
+```
 
 Linux-only package는 다음 output을 사용한다. machineModule은 기존의 system별 VM module path를 계산한다.
 
-~~~nix
+```nix
 mkTestVm = system:
   let
     qemuVmModule = { modulesPath, ... }: {
@@ -285,11 +285,11 @@ mkTestVm = system:
     inherit system;
     modules = [ qemuVmModule machineModule vmOverrides ];
   }).config.system.build.vm;
-~~~
+```
 
 - [ ] Step 4: 검증과 커밋
 
-~~~bash
+```bash
 nix flake lock
 nix build '.#checks.aarch64-darwin.unit-test-vm-package' --no-link
 nix fmt -- --ci
@@ -297,7 +297,7 @@ nix eval '.#packages.x86_64-linux.test-vm.name'
 nix eval '.#packages.aarch64-linux.test-vm.name'
 git add flake.nix flake.lock flake-modules/dev-shells.nix flake-modules/packages.nix tests/unit/test-vm-package-test.nix README.md CLAUDE.md
 git commit -m "refactor: use native nixos vm build"
-~~~
+```
 
 Linux + KVM에서만 nix run .#test-vm을 실행하고 testuser port 2222 계약을 기록한다.
 
@@ -307,7 +307,7 @@ Linux + KVM에서만 nix run .#test-vm을 실행하고 testuser port 2222 계약
 
 - [ ] Step 1: read-only preflight
 
-~~~bash
+```bash
 id -un
 id -Gn
 nix show-config | rg '^(trusted-users|trusted-substituters|substituters|trusted-public-keys)'
@@ -315,7 +315,7 @@ nix store ping --store 'https://baleen-nix.cachix.org'
 nix store ping --store 'https://cache.nixos.org'
 env -u USER nix eval '.#nixosConfigurations.vm-x86_64-utm.config.nix.settings.trusted-users' --json
 env -u USER nix eval '.#nixosConfigurations.vm-x86_64-utm.config.nix.settings.trusted-substituters' --json
-~~~
+```
 
 daemon은 변경하지 않고 결과를 기록한다.
 
@@ -331,23 +331,23 @@ accept-flake-config = true를 flake 전역에서 제거한다. cache를 의도�
 
 preflight와 non-root smoke가 통과한 경우에만 mksystem의 cacheSettings를 다음으로 좁힌다.
 
-~~~nix
+```nix
 cacheSettings = cacheConfig // {
   trusted-users = [ "root" ];
 };
-~~~
+```
 
 필요성이 증명된 특정 user만 예외로 유지하고 @admin/@wheel은 복구하지 않는다. smoke가 실패하면 현행 권한을 유지하고 실패 원인을 handoff에 기록한다.
 
 - [ ] Step 5: 검증과 커밋
 
-~~~bash
+```bash
 env -u USER nix build '.#packages.x86_64-linux.test-vm' --no-link --accept-flake-config
 env -u USER nix build '.#checks.aarch64-darwin.unit-cache-config' --no-link --accept-flake-config
 env -u USER nix eval '.#nixosConfigurations.vm-x86_64-utm.config.nix.settings.trusted-users' --json
 git add flake.nix lib/mksystem.nix .github/workflows/ci.yml .github/actions/setup-nix/action.yml tests/unit/cache-config-test.nix
 git commit -m "refactor: narrow nix cache privilege policy"
-~~~
+```
 
 ## Task 6: 문서와 matrix 정합성
 
@@ -355,12 +355,12 @@ git commit -m "refactor: narrow nix cache privilege policy"
 
 - [ ] Step 1: canonical commands 갱신
 
-~~~bash
+```bash
 nix flake check --no-build --all-systems --show-trace
 nix build '.#darwinConfigurations.macbook-pro.system'
 nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel'
 make switch-home HM_USER=jito.hello
-~~~
+```
 
 HM_USER는 standalone profile selector, dotfiles.hosts는 host system user declaration으로 설명한다.
 
@@ -368,12 +368,12 @@ HM_USER는 standalone profile selector, dotfiles.hosts는 host system user decla
 
 - [ ] Step 3: scan과 커밋
 
-~~~bash
+```bash
 rg -n 'x86_64-darwin|builtins\.getEnv|resolveUser|flake\.hosts|nixfmt-rfc-style|nixos-generators' README.md CONTRIBUTING.md CLAUDE.md tests .envrc Makefile .github flake.nix flake-modules lib
 rg -n -- '--impure' README.md CONTRIBUTING.md CLAUDE.md tests/README.md .envrc Makefile .github flake.nix flake-modules lib
 git add README.md CONTRIBUTING.md CLAUDE.md tests/README.md .github/workflows/ci.yml
 git commit -m "docs: document pure nix workflows"
-~~~
+```
 
 Expected: current source/docs에서 금지된 항목이 없다.
 
@@ -381,24 +381,24 @@ Expected: current source/docs에서 금지된 항목이 없다.
 
 - [ ] Step 1: format/diff
 
-~~~bash
+```bash
 nix fmt -- --ci
 git diff --check
 git status --short
-~~~
+```
 
 - [ ] Step 2: all-system pure evaluation
 
-~~~bash
+```bash
 env -u USER nix flake check --no-build --all-systems --accept-flake-config --show-trace
 env -u USER nix flake show --all-systems --accept-flake-config
-~~~
+```
 
 Expected: 세 systems 평가, x86_64-darwin 부재, unknown flake output hosts 부재, deprecated warning 부재.
 
 - [ ] Step 3: preserved outputs
 
-~~~bash
+```bash
 for host in macbook-pro baleen-macbook kakaostyle-jito; do
   env -u USER nix build ".#darwinConfigurations.$host.system" --no-link --accept-flake-config
 done
@@ -409,27 +409,27 @@ for profile in baleen jito.hello testuser; do
   env -u USER nix build ".#homeConfigurations.\"$profile\".activationPackage" --no-link --accept-flake-config
 done
 env -u USER nix build '.#homeConfigurations.baleen-linux.activationPackage' --no-link --accept-flake-config
-~~~
+```
 
 Expected: Darwin 3개, NixOS 2개, Home Manager 4개가 평가된다.
 
 - [ ] Step 4: Make boundary
 
-~~~bash
+```bash
 make -n switch-home HM_USER=jito.hello
 make -n switch-home HM_USER=baleen
 make -n test-build
 make -n fmt-diff
-~~~
+```
 
 Expected: generated Nix commands에 --impure와 export USER가 없다. VM runtime은 Linux + KVM에서만 실행한다.
 
 - [ ] Step 5: final evidence
 
-~~~bash
+```bash
 git log --oneline -7
 git status --short
 nix flake check --no-build --all-systems --show-trace
-~~~
+```
 
 CI evaluation, repository build evaluation, VM runtime smoke, cache privilege smoke를 별도 evidence layer로 보고한다. live Darwin activation은 이 작업에서 검증했다고 주장하지 않는다.
