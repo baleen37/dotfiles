@@ -83,6 +83,16 @@ in
       "KakaoTalk" = 869223134; # Communication platform (if needed)
     };
 
+    # mas discovers installed App Store apps through Spotlight. Keep existing
+    # apps out of `brew bundle` while Spotlight is being enabled or rebuilt.
+    extraConfig = ''
+      masSkip = [
+        ("869223134" if File.directory?("/Applications/KakaoTalk.app")),
+        ("441258766" if File.directory?("/Applications/Magnet.app")),
+      ].compact
+      ENV["HOMEBREW_BUNDLE_MAS_SKIP"] = [ENV["HOMEBREW_BUNDLE_MAS_SKIP"], *masSkip].compact.join(" ")
+    '';
+
     # Extended Package Repository Access
     # Additional Homebrew taps for specialized packages and development tools
     # Note: homebrew/cask is now built into Homebrew by default (since 2023)
