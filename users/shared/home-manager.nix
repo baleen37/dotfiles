@@ -20,9 +20,9 @@
     ./programs/opencode.nix
     ./programs/ghostty.nix
     ./programs/ssh.nix
+    ./programs/docker.nix
     ./programs/hammerspoon.nix
     ./programs/karabiner.nix
-    ./programs/neru.nix
 
     # Package categories — modules.packages.<name>.enable
     ./packages/core.nix
@@ -55,6 +55,7 @@
     opencode.enable = true;
     ghostty.enable = true;
     ssh.enable = true;
+    docker.enable = true;
   };
 
   # All package categories are enabled for this configuration

@@ -18,7 +18,7 @@ in
     # Generate opencode.json from Nix expression
     xdg.configFile."opencode/opencode.json".text = builtins.toJSON {
       "$schema" = "https://opencode.ai/config.json";
-      permission.question = "ask";
+      permission = "allow";
       mcp = {
         context7 = {
           type = "local";
@@ -29,22 +29,7 @@ in
           ];
           enabled = true;
         };
-        mgrep = {
-          type = "local";
-          command = [
-            "npx"
-            "-y"
-            "@mixedbread/mgrep"
-          ];
-          enabled = true;
-        };
       };
-    };
-
-    # Symlink agent directory
-    xdg.configFile."opencode/agent" = {
-      source = ./.config/opencode/agent;
-      recursive = true;
     };
 
     home.activation.installSuperpowers = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
