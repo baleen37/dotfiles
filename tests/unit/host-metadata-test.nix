@@ -38,6 +38,16 @@ let
       user = "baleen";
     };
   };
+
+  machineModules = lib.mapAttrs (_: host: host.machineModules) hostConfig;
+
+  expectedMachineModules = {
+    macbook-pro = [ ../../machines/darwin/common.nix ];
+    baleen-macbook = [ ../../machines/darwin/common.nix ];
+    kakaostyle-jito = [ ../../machines/darwin/common.nix ];
+    vm-aarch64-utm = [ ../../machines/nixos/vm-aarch64-utm.nix ];
+    vm-x86_64-utm = [ ../../machines/nixos/vm-x86_64-utm.nix ];
+  };
 in
 {
   platforms = [ "any" ];
@@ -46,9 +56,9 @@ in
       hostSummary == expectedSummary
     ) "hosts.nix should declare the expected typed host summary")
 
-    (helpers.assertTest "machine-modules-present" (lib.all (host: host.machineModules != [ ]) (
-      lib.attrValues hostConfig
-    )) "every host should explicitly declare machineModules")
+    (helpers.assertTest "machine-module-paths" (
+      machineModules == expectedMachineModules
+    ) "every host should declare exactly its expected machineModules")
 
     (helpers.assertTest "intel-darwin-absent" (
       !(lib.any (host: host.system == "x86_64-darwin") (lib.attrValues hostConfig))
