@@ -46,47 +46,69 @@ let
   buildClosureLine = findLineIndex (line: lib.hasInfix "name: Build closure" line) ciLines;
   saveCacheLine = findLineIndex (line: lib.hasInfix "name: Save Nix cache" line) ciLines;
 in
-{
-  flakeNixHasAllSubstituters =
-    helpers.assertTest "flake-nix-has-all-substituters" (containsAll flakeNix subs)
-      "flake.nix nixConfig must contain every substituter from lib/cache-config.nix";
+helpers.testSuite "cache-config" [
+  (helpers.assertTest "cache-config-contains-only-public-data" (
+    !(builtins.hasAttr "trusted-users" cacheConfig)
+    && !(builtins.hasAttr "trusted-substituters" cacheConfig)
+  ) "lib/cache-config.nix must not define daemon privilege policy")
 
-  flakeNixHasAllKeys =
-    helpers.assertTest "flake-nix-has-all-keys" (containsAll flakeNix keys)
-      "flake.nix nixConfig must contain every trusted-public-key from lib/cache-config.nix";
+  (helpers.assertTest "flake-nix-uses-literal-nix-config" (
+    lib.hasInfix "nixConfig = {" flakeNix && !(lib.hasInfix "nixConfig = import" flakeNix)
+  ) "flake.nix nixConfig must remain a literal top-level attribute set")
 
-  ciYmlHasAllSubstituters =
-    helpers.assertTest "ci-yml-has-all-substituters" (containsAll ciYml subs)
-      ".github/workflows/ci.yml NIX_CONFIG must contain every substituter from lib/cache-config.nix";
+  (helpers.assertTest "flake-nix-does-not-auto-accept-config" (
+    !(lib.hasInfix "accept-flake-config = true" flakeNix)
+  ) "flake.nix must not globally enable accept-flake-config")
 
-  ciYmlHasAllKeys =
-    helpers.assertTest "ci-yml-has-all-keys" (containsAll ciYml keys)
-      ".github/workflows/ci.yml NIX_CONFIG must contain every trusted-public-key from lib/cache-config.nix";
+  (helpers.assertTest "setup-nix-does-not-auto-accept-config" (
+    !(lib.hasInfix "accept-flake-config = true" setupNixYml)
+  ) ".github/actions/setup-nix/action.yml must not globally enable accept-flake-config")
 
-  setupNixHasAllSubstituters =
-    helpers.assertTest "setup-nix-has-all-substituters" (containsAll setupNixYml subs)
-      ".github/actions/setup-nix/action.yml extra-conf must contain every substituter from lib/cache-config.nix";
+  (helpers.assertTest "ci-build-explicitly-accepts-flake-config"
+    (lib.hasInfix "nix build \"$ATTR\" --out-link result --print-build-logs --accept-flake-config" ciYml)
+    "cache-using CI builds must explicitly pass --accept-flake-config"
+  )
 
-  setupNixHasAllKeys =
-    helpers.assertTest "setup-nix-has-all-keys" (containsAll setupNixYml keys)
-      ".github/actions/setup-nix/action.yml extra-conf must contain every trusted-public-key from lib/cache-config.nix";
+  (helpers.assertTest "flake-nix-has-all-substituters" (containsAll flakeNix subs)
+    "flake.nix nixConfig must contain every substituter from lib/cache-config.nix"
+  )
 
-  setupNixDoesNotSaveBeforeWorkload = helpers.assertTest "setup-nix-does-not-save-before-workload" (
+  (helpers.assertTest "flake-nix-has-all-keys" (containsAll flakeNix keys)
+    "flake.nix nixConfig must contain every trusted-public-key from lib/cache-config.nix"
+  )
+
+  (helpers.assertTest "ci-yml-has-all-substituters" (containsAll ciYml subs)
+    ".github/workflows/ci.yml NIX_CONFIG must contain every substituter from lib/cache-config.nix"
+  )
+
+  (helpers.assertTest "ci-yml-has-all-keys" (containsAll ciYml keys)
+    ".github/workflows/ci.yml NIX_CONFIG must contain every trusted-public-key from lib/cache-config.nix"
+  )
+
+  (helpers.assertTest "setup-nix-has-all-substituters" (containsAll setupNixYml subs)
+    ".github/actions/setup-nix/action.yml extra-conf must contain every substituter from lib/cache-config.nix"
+  )
+
+  (helpers.assertTest "setup-nix-has-all-keys" (containsAll setupNixYml keys)
+    ".github/actions/setup-nix/action.yml extra-conf must contain every trusted-public-key from lib/cache-config.nix"
+  )
+
+  (helpers.assertTest "setup-nix-does-not-save-before-workload" (
     !(lib.hasInfix "actions/cache/save" setupNixYml)
-  ) ".github/actions/setup-nix/action.yml must not save cache before CI workload runs";
+  ) ".github/actions/setup-nix/action.yml must not save cache before CI workload runs")
 
-  ciSavesCacheAfterBuild = helpers.assertTest "ci-saves-cache-after-build" (
+  (helpers.assertTest "ci-saves-cache-after-build" (
     buildClosureLine != -1
     && saveCacheLine > buildClosureLine
     && lib.hasInfix "actions/cache/save" ciYml
     && lib.hasInfix "if: always()" ciYml
-  ) ".github/workflows/ci.yml must save Nix cache after the build/test workload";
+  ) ".github/workflows/ci.yml must save Nix cache after the build/test workload")
 
-  allUrlsAreHttps =
-    helpers.assertTest "substituter-urls-are-https" (lib.all urlOk subs)
-      "every substituter URL must start with https://";
+  (helpers.assertTest "substituter-urls-are-https" (lib.all urlOk subs)
+    "every substituter URL must start with https://"
+  )
 
-  allKeysHaveValidFormat =
-    helpers.assertTest "public-keys-have-valid-format" (lib.all keyOk keys)
-      "every trusted-public-key must match <name>-<digit>:<43-base64>=";
-}
+  (helpers.assertTest "public-keys-have-valid-format" (lib.all keyOk keys)
+    "every trusted-public-key must match <name>-<digit>:<43-base64>="
+  )
+]

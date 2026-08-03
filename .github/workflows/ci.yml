@@ -105,7 +105,7 @@ jobs:
           ATTR: ${{ matrix.closure-attr }}
         run: |
           echo "Building $ATTR ..."
-          nix build "$ATTR" --out-link result --print-build-logs
+          nix build "$ATTR" --out-link result --print-build-logs --accept-flake-config
 
       - name: Cache hit-rate report
         if: matrix.name == 'Linux x64' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
