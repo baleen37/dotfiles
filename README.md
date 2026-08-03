@@ -7,7 +7,7 @@ Modern Nix flakes-based dotfiles providing reproducible cross-platform developme
 ## Why This System?
 
 - **RFC-Compliant Architecture**: Follows RFC 166 formatting and RFC 145 documentation standards
-- **Cross-Platform Excellence**: Native support for Apple Silicon macOS and NixOS (x86_64 + ARM64)
+- **Cross-Platform Excellence**: Native support for `aarch64-darwin`, `x86_64-linux`, and `aarch64-linux`
 - **AI-First Development**: Deep Claude Code integration with 20+ specialized commands and MCP servers
 - **Assertions as Derivations**: every check is a Nix build, so `nix flake check` is the whole test runner
 - **Zero-Config Deployment**: Reproducible environments with flake-based dependency management
@@ -41,12 +41,15 @@ cd dotfiles
 # 2. Initialize development environment
 make install-hooks     # Install pre-commit hooks for quality enforcement
 
-# 3. Build and validate system
-make test             # Evaluate all checks
-make test-build       # Build every unit + integration assertion
+# 3. Evaluate every supported system
+nix flake check --no-build --all-systems --show-trace
 
-# 4. Deploy system configuration
-make switch                      # Apply configuration (requires sudo)
+# 4. Build a Darwin or NixOS configuration without activating it
+nix build '.#darwinConfigurations.macbook-pro.system'
+nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel'
+
+# 5. Activate a standalone Home Manager profile
+make switch-home HM_USER=jito.hello
 ```
 
 ### Post-Installation Setup (macOS)
@@ -100,52 +103,52 @@ claude /spawn "implement user authentication system"
 ## Daily Usage
 
 ```bash
-# Essential commands
-nix build '.#darwinConfigurations.macbook-pro.system'   # Build (substitute your machine)
-make switch            # Apply changes
-make test-build        # Run the assertions
-make format            # Auto-format (wraps nix fmt)
+# Evaluate the full platform matrix
+nix flake check --no-build --all-systems --show-trace
 
-# Quick operations
-make test-build        # Build every unit + integration assertion
-make switch            # Build and apply together
-nix fmt                # Direct Nix formatting (alternative)
+# Build configuration closures without activation
+nix build '.#darwinConfigurations.macbook-pro.system'
+nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel'
+
+# Activate a standalone Home Manager profile
+make switch-home HM_USER=jito.hello
+
+# Format source files
+make format
 ```
 
 ### Platform-Specific Operations
 
 ```bash
-# Targeted builds
-nix build '.#darwinConfigurations.macbook-pro.system'   # macOS
-nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel'   # NixOS
+# Darwin aarch64-darwin
+nix build '.#darwinConfigurations.macbook-pro.system'
 
-# Direct operations
-make switch             # Build and apply with sudo handling
-make test               # Evaluate all checks
-make test-build         # Build every unit + integration assertion
+# NixOS aarch64-linux
+nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel'
 
 # Disposable NixOS VM smoke test (Linux + KVM only)
 nix run .#test-vm
 ssh testuser@localhost -p 2222  # password: test
 ```
 
-**Supported Platforms**: macOS (Apple Silicon) and NixOS (x86_64/ARM64)
+**Supported platforms**: Darwin `aarch64-darwin`; NixOS `x86_64-linux` and
+`aarch64-linux`.
 
 ### Platform Capability Matrix
 
-| Make target         | macOS (Apple Silicon) | NixOS (x86_64) | NixOS (ARM64) |
-| ------------------- | :-------------------: | :------------: | :-----------: |
-| **Core Operations** |                       |                |               |
-| switch              |          ✅           |       ✅       |      ✅       |
-| switch-home         |          ✅           |       ✅       |      ✅       |
-| format              |          ✅           |       ✅       |      ✅       |
-| **Testing**         |                       |                |               |
-| test                |          ✅           |       ✅       |      ✅       |
-| test-build          |          ✅           |       ✅       |      ✅       |
-| test-containers     |          ❌¹          |      ✅²       |      ✅²      |
-| **Secrets**         |                       |                |               |
-| secrets/backup      |          ✅           |       ✅       |      ✅       |
-| secrets/restore     |          ✅           |       ✅       |      ✅       |
+| Make target         | Darwin (`aarch64-darwin`) | NixOS (`x86_64-linux`) | NixOS (`aarch64-linux`) |
+| ------------------- | :-----------------------: | :--------------------: | :---------------------: |
+| **Core Operations** |                           |                        |                         |
+| switch              |            ✅             |           ✅           |           ✅            |
+| switch-home         |            ✅             |           ✅           |           ✅            |
+| format              |            ✅             |           ✅           |           ✅            |
+| **Testing**         |                           |                        |                         |
+| test                |            ✅             |           ✅           |           ✅            |
+| test-build          |            ✅             |           ✅           |           ✅            |
+| test-containers     |            ❌¹            |          ✅²           |           ✅²           |
+| **Secrets**         |                           |                        |                         |
+| secrets/backup      |            ✅             |           ✅           |           ✅            |
+| secrets/restore     |            ✅             |           ✅           |           ✅            |
 
 ¹ NixOS VM tests need a Linux builder; Determinate Nix disables the macOS
 linux-builder, so run them in CI or a Linux VM.
@@ -175,8 +178,9 @@ users/shared/
 
 ### Home Manager Profile Selection
 
-Flake evaluation is pure. `make switch-home` selects its standalone Home Manager
-profile with `HM_USER`, which defaults to the current shell user:
+Flake evaluation is pure. `HM_USER` is only a standalone Home Manager profile
+selector, defaulting to the current shell user. It does not declare a host's
+system user:
 
 ```bash
 make switch-home HM_USER=jito.hello
@@ -229,7 +233,8 @@ The system follows evantravers' minimalist user-centric architecture:
 Host metadata is internal to the flake: `flake-modules/hosts.nix` declares typed
 `dotfiles.hosts` entries with their platform, class, explicit system user, and
 machine modules. `flake-modules/systems.nix` turns them into Darwin and NixOS
-outputs.
+outputs. The host `user` field declares the system user; it is separate from
+the standalone `HM_USER` profile selector.
 
 ## Customization
 
@@ -302,9 +307,9 @@ export NIXUSER=root            # SSH user (default: root)
 
 ### Platform Support
 
-- ✅ macOS (Apple Silicon)
-- ✅ Linux (x86_64/aarch64)
-- ✅ Windows (via WSL2)
+- ✅ Darwin `aarch64-darwin`
+- ✅ NixOS `x86_64-linux`
+- ✅ NixOS `aarch64-linux`
 
 ## Updates
 
