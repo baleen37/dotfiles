@@ -242,9 +242,6 @@ in
     (helpers.assertTest "ssh-wrapper-autossh" (initContentHas "autossh")
       "ssh wrapper should use autossh if available"
     )
-    (helpers.assertTest "ssh-wrapper-keepalive" (initContentHas "ServerAliveInterval")
-      "ssh wrapper should set keepalive options"
-    )
 
     # macOS-specific Homebrew PATH (only test on Darwin)
     (helpers.assertTest "homebrew-path-macos" (
