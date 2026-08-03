@@ -7,8 +7,6 @@ _:
       devShells.default = pkgs.mkShell {
         packages = with pkgs; [
           # Core Nix tooling
-          nixfmt-rfc-style
-          alejandra
           deadnix
           statix
 

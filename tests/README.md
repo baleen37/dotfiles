@@ -4,10 +4,14 @@ Every check is a Nix derivation that builds if an assertion holds and fails if i
 does not. There is no test runner: `nix flake check` builds them.
 
 ```bash
+nix flake check --no-build --all-systems --show-trace  # evaluate every supported system
 make test            # evaluate all checks; build them where the platform allows
 make test-build      # build every unit + integration assertion (any platform)
 make test-containers # NixOS VM tests; needs Linux + /dev/kvm
 ```
+
+The supported systems are Darwin `aarch64-darwin` and NixOS `x86_64-linux` /
+`aarch64-linux`. CI evaluates this same matrix.
 
 > **`make test` does not necessarily run assertions.** Container tests need Linux
 > and `/dev/kvm`, so without them `make test` falls back to
@@ -18,8 +22,8 @@ make test-containers # NixOS VM tests; needs Linux + /dev/kvm
 Run one check directly:
 
 ```bash
-nix build '.#checks.aarch64-darwin.unit-darwin-sudo' --impure
-nix build '.#checks.x86_64-linux.integration-home-manager' --impure
+nix build '.#checks.aarch64-darwin.unit-darwin-sudo'
+nix build '.#checks.x86_64-linux.integration-home-manager'
 ```
 
 ## Layout

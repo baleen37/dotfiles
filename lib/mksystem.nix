@@ -11,6 +11,7 @@ name:
   darwin ? false,
   wsl ? false,
   homeModules ? { },
+  machineModules ? [ ],
 }:
 
 let
@@ -21,10 +22,6 @@ let
   # Actual username is dynamically set via currentSystemUser
   userHMConfig = ../users/shared/home-manager.nix;
   userOSConfig = if darwin then ../users/shared/darwin else ../users/shared/nixos.nix;
-
-  # darwin: 모든 호스트가 공유 common 모듈을 사용 (호스트별 차이는 hosts.nix에서 표현)
-  # nixos: 호스트별 .nix 파일 유지
-  machineConfig = if darwin then ../machines/darwin/common.nix else ../machines/nixos/${name}.nix;
 
   hmModule =
     if darwin then
@@ -56,8 +53,8 @@ systemFunc {
 
   modules = [
     { nixpkgs.hostPlatform = system; }
-    machineConfig
   ]
+  ++ machineModules
   ++ lib.optionals (builtins.pathExists userOSConfig) [
     userOSConfig
   ]

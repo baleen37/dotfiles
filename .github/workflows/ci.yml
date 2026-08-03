@@ -30,15 +30,15 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: Darwin
+          - name: Darwin aarch64-darwin
             os: macos-15
             arch: aarch64
             closure-attr: .#darwinConfigurations.macbook-pro.system
-          - name: Linux x64
+          - name: NixOS x86_64-linux
             os: ubuntu-latest
             arch: x86_64
             closure-attr: .#nixosConfigurations.vm-x86_64-utm.config.system.build.toplevel
-          - name: Linux ARM64
+          - name: NixOS aarch64-linux
             os: ubuntu-24.04-arm
             arch: aarch64
             closure-attr: .#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel
@@ -68,11 +68,9 @@ jobs:
       - name: Fast container tests
         continue-on-error: false
         run: |
-          export USER=${USER:-ci}
           export TEST_USER=${TEST_USER:-testuser}  # Ensure consistent test user
           echo "Running fast container tests with static test user..."
           echo "Environment info:"
-          echo "  - USER: $USER"
           echo "  - TEST_USER: $TEST_USER"
           echo "  - RUNNER_OS: $RUNNER_OS"
           make test || {
@@ -85,11 +83,9 @@ jobs:
         if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
         continue-on-error: false
         run: |
-          export USER=${USER:-ci}
           export TEST_USER=${TEST_USER:-testuser}  # Ensure consistent test user
           echo "Running full test suite with static test user..."
           echo "Environment info:"
-          echo "  - USER: $USER"
           echo "  - TEST_USER: $TEST_USER"
           echo "  - RUNNER_OS: $RUNNER_OS"
           make test-all || {
@@ -100,21 +96,19 @@ jobs:
 
       - name: Test secrets backup
         run: |
-          export USER=${USER:-ci}
           echo "Testing secrets backup (dry-run)..."
           make -n secrets/backup
 
       - name: Build closure
-        if: matrix.name == 'Linux x64' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+        if: matrix.name == 'NixOS x86_64-linux' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
         env:
           ATTR: ${{ matrix.closure-attr }}
         run: |
-          export USER=${USER:-ci}
           echo "Building $ATTR ..."
-          nix build "$ATTR" --impure --out-link result --print-build-logs
+          nix build "$ATTR" --out-link result --print-build-logs --accept-flake-config
 
       - name: Cache hit-rate report
-        if: matrix.name == 'Linux x64' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+        if: matrix.name == 'NixOS x86_64-linux' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
         continue-on-error: true
         shell: bash
         run: |

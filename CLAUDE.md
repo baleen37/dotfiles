@@ -4,35 +4,28 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Nix flakes-based dotfiles system providing reproducible development environments for macOS and NixOS. Uses the evantravers user-centric architecture pattern with dynamic user resolution and comprehensive TDD testing.
+Nix flakes-based dotfiles system providing reproducible development environments for macOS and NixOS. Uses the evantravers user-centric architecture pattern and comprehensive TDD testing.
 
 ## Essential Commands
 
 ### Environment Setup
 
-All build operations require the USER environment variable. When working
-inside the project directory, direnv sets this automatically. For shells
-without direnv:
-
-```bash
-export USER=$(whoami)
-```
+Flake evaluation is pure and requires no user environment variable. `HM_USER`
+only selects a standalone Home Manager profile; typed `dotfiles.hosts` entries
+declare permanent host system users.
 
 ### Common Operations
 
 ```bash
-# Core workflow
-make test              # Evaluate all checks (see caveat below)
-make test-build        # Actually build every unit + integration assertion
-make switch            # Build and apply configuration (uses sudo internally)
-make format            # Format all Nix files
+# Evaluate the full platform matrix
+nix flake check --no-build --all-systems --show-trace
 
-# Build operations
-nix flake check --impure         # Evaluate all checks directly
+# Build configuration closures without activation
+nix build '.#darwinConfigurations.macbook-pro.system'
+nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel'
 
-# Testing
-nix build '.#checks.aarch64-darwin.unit-darwin-sudo' --impure  # Specific check
-make test-containers                                           # NixOS VM tests (Linux + KVM)
+# Activate a standalone Home Manager profile
+make switch-home HM_USER=jito.hello
 ```
 
 **Caveat**: container tests need Linux and `/dev/kvm`. Without them `make test`
@@ -41,26 +34,18 @@ assertion is never built and so never fails. `make test-build` builds the
 `all-assertions` aggregate, which excludes the container VMs and therefore works
 on any platform.
 
-### First-Time Bootstrap (macOS)
-
-`make switch` invokes `darwin-rebuild`, which only exists after nix-darwin has been installed. For a brand-new machine, bootstrap once with:
-
-```bash
-sudo nix run nix-darwin/master#darwin-rebuild -- switch --flake ".#$(hostname -s)"
-```
-
-After that succeeds, use `make switch` for all subsequent rebuilds.
-
 ### Platform-Specific Commands
 
 ```bash
-# macOS
-darwin-rebuild switch --flake .#macbook-pro
+# Darwin aarch64-darwin
 nix build '.#darwinConfigurations.macbook-pro.system'
 
-# NixOS
-nixos-rebuild switch --flake .#vm-aarch64-utm
+# NixOS aarch64-linux
 nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel'
+
+# Disposable VM smoke test (Linux + KVM only)
+nix run .#test-vm
+ssh testuser@localhost -p 2222  # password: test
 ```
 
 ## Architecture
@@ -69,7 +54,7 @@ nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel'
 
 The `mkSystem` function provides unified system creation:
 
-- Takes `name`, `system`, `user`, `darwin`, and `wsl` parameters
+- Takes `name`, `system`, `user`, `darwin`, and host modules
 - Returns darwinSystem or nixosSystem based on platform
 - Handles Home Manager integration automatically
 - Manages cache configuration for both traditional Nix and Determinate Nix
@@ -77,10 +62,7 @@ The `mkSystem` function provides unified system creation:
 Key specialArgs passed to all modules:
 
 - `currentSystemUser`: The actual username (e.g., "baleen" or "jito.hello")
-- `currentSystem`: Platform architecture (e.g., "aarch64-darwin")
-- `currentSystemName`: Machine name (e.g., "macbook-pro")
 - `isDarwin`: Boolean for platform-specific logic
-- `isWSL`: Boolean for WSL-specific logic
 
 ### User Configuration Structure
 
@@ -121,9 +103,15 @@ users/shared/
 
 ### Machine Configurations
 
-Hosts are declared in `flake-modules/hosts.nix` (system, class, user, optional
-`homeModules` overrides); `flake-modules/systems.nix` turns each entry into a
+Hosts are declared through the typed internal `dotfiles.hosts` option in
+`flake-modules/hosts.nix` (`system`, `class`, `user`, optional `homeModules`,
+and required per-host `machineModules`); `flake-modules/systems.nix` turns each entry into a
 darwinConfiguration or nixosConfiguration via `lib/mksystem.nix`.
+
+The only supported systems are Darwin `aarch64-darwin` and NixOS
+`x86_64-linux` / `aarch64-linux`. `dotfiles.hosts.<name>.user` is the host system
+user declaration. `HM_USER` is separate and only selects a standalone Home
+Manager profile.
 
 Hardware and system settings live under `machines/`:
 
@@ -138,10 +126,9 @@ machines/
     └── hardware/vm-utm.nix     # virtio profile shared by both VMs
 ```
 
-Darwin hosts all share `machines/darwin/common.nix`; per-host differences are
-expressed in `hosts.nix` rather than in a per-machine file. NixOS hosts keep one
-file each, named after the host — `mkSystem` resolves
-`machines/nixos/<name>.nix` from the host name.
+Darwin hosts all list `machines/darwin/common.nix` explicitly; per-host
+differences are expressed in `hosts.nix` rather than in a per-machine file.
+NixOS hosts explicitly list their corresponding module under `machines/nixos/`.
 
 ### Testing Framework
 
@@ -165,22 +152,11 @@ tests/
 **Container Tests**: Linux + `/dev/kvm` only. Elsewhere `make test` degrades to
 `--no-build`, which does not run assertions — use `make test-build` for that.
 
-### Dynamic User Resolution
+### User Selection
 
-The flake supports multiple users via environment variable. `resolveUser` in
-`flake-modules/args.nix` supplies the fallback used by `flake-modules/hosts.nix`:
-
-```nix
-resolveUser =
-  fallback:
-  let
-    env = builtins.getEnv "USER";
-  in
-  if env != "" && env != "root" then env else fallback;
-```
-
-This allows the same configuration to work for different users without hardcoding
-usernames. Reading the environment is why every command needs `--impure`.
+Host users are declared by `dotfiles.hosts.<name>.user`. Standalone Home Manager
+profiles use `HM_USER`, for example `make switch-home HM_USER=jito.hello`; it
+does not change host metadata.
 
 ## Development Guidelines
 
@@ -204,14 +180,7 @@ usernames. Reading the environment is why every command needs `--impure`.
 
 ### Adding New Users
 
-1. No code changes needed - use environment variable:
-
-   ```bash
-   export USER=newusername
-   make switch
-   ```
-
-2. For permanent machine configuration, add an entry to `flake.hosts` in
+1. For permanent machine configuration, add an entry to `dotfiles.hosts` in
    `flake-modules/hosts.nix`; `hosts.nix` is the only place a host is declared,
    and `flake-modules/systems.nix` turns each entry into a
    darwinConfiguration or nixosConfiguration by its `class`:
@@ -221,10 +190,11 @@ usernames. Reading the environment is why every command needs `--impure`.
      system = "aarch64-darwin";
      class = "darwin";
      user = "newusername";
+     machineModules = [ ../machines/darwin/common.nix ];
    };
    ```
 
-   Note that `unit-machine-builds` asserts the exact host list, so it needs
+   Note that `integration-machine-builds` asserts the exact host list, so it needs
    updating alongside.
 
 ### Adding Tests
@@ -246,7 +216,7 @@ usernames. Reading the environment is why every command needs `--impure`.
 ### Formatting and Linting
 
 ```bash
-make format           # Format with nixfmt-rfc-style (wraps nix fmt)
+make format           # Format with the repository treefmt config (wraps nix fmt)
 nix fmt               # Direct formatter invocation
 pre-commit run --all-files  # Run all pre-commit hooks
 ```
@@ -278,7 +248,8 @@ macOS configuration includes:
 
 GitHub Actions workflow (`.github/workflows/ci.yml`):
 
-- Runs on: macOS-15 (ARM), Ubuntu (x64 + ARM64)
+- Runs on: Darwin `aarch64-darwin` (macOS-15), NixOS `x86_64-linux` (Ubuntu),
+  and NixOS `aarch64-linux` (Ubuntu ARM64)
 - Pre-commit hooks validation
 - Fast container tests (Linux) or validation mode (macOS)
 - Full test suite on PRs and main branch
@@ -287,7 +258,6 @@ GitHub Actions workflow (`.github/workflows/ci.yml`):
 Required environment variables in CI:
 
 ```bash
-export USER=${USER:-ci}
 export TEST_USER=${TEST_USER:-testuser}
 ```
 
@@ -326,7 +296,6 @@ Machine files should be minimal - only hardware-specific settings. User preferen
 ### Build Failures
 
 ```bash
-export USER=$(whoami)  # Ensure USER is set
 nix store gc            # Clear cache if needed
 make switch            # Retry
 ```

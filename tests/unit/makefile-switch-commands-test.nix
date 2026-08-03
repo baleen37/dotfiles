@@ -63,6 +63,17 @@ pkgs.runCommand "makefile-switch-commands-test"
     grep '^\.PHONY:' "$makefileSource" | grep -q 'switch' \
       || fail "switch must be declared .PHONY"
 
+    grep -q '^HM_USER ?= \$(shell id -un 2>/dev/null || whoami)$' "$makefileSource" \
+      || fail "HM_USER must default to the current user"
+
+    switchHome=$(sed -n '/^switch-home:/,/^test:/p' "$makefileSource")
+    echo "$switchHome" | grep -q '\.#\$(HM_USER)' \
+      || fail "switch-home must select Home Manager profiles with HM_USER"
+
+    if grep -q -- '--impure' "$makefileSource"; then
+      fail "Makefile must evaluate flakes purely"
+    fi
+
     echo "✅ Makefile switch contracts hold"
     touch $out
   ''

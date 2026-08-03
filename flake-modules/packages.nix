@@ -1,7 +1,7 @@
 { inputs, ... }:
 
 let
-  inherit (inputs) nixos-generators;
+  lib = inputs.nixpkgs.lib;
 
   # Disposable VM for manual smoke-testing a NixOS config.
   #   nix run .#test-vm   (ssh testuser@localhost -p 2222, password "test")
@@ -37,26 +37,37 @@ let
     };
     security.sudo.wheelNeedsPassword = false;
   };
+
+  mkTestVm =
+    system:
+    let
+      qemuVmModule =
+        { modulesPath, ... }:
+        {
+          imports = [ (modulesPath + "/virtualisation/qemu-vm.nix") ];
+        };
+      machineModule = builtins.toPath (
+        (toString ../machines/nixos) + "/vm-" + lib.head (lib.splitString "-" system) + "-utm.nix"
+      );
+    in
+    (inputs.nixpkgs.lib.nixosSystem {
+      inherit system;
+      modules = [
+        qemuVmModule
+        machineModule
+        vmOverrides
+      ];
+    }).config.system.build.vm;
 in
 {
   perSystem =
     {
       system,
-      lib,
       ...
     }:
     {
       packages = lib.optionalAttrs (lib.hasSuffix "-linux" system) {
-        test-vm = nixos-generators.nixosGenerate {
-          inherit system;
-          format = "vm-nogui";
-          modules = [
-            # Match the guest config to the host arch instead of always
-            # building the aarch64 machine.
-            ../machines/nixos/vm-${lib.head (lib.splitString "-" system)}-utm.nix
-            vmOverrides
-          ];
-        };
+        test-vm = mkTestVm system;
       };
     };
 }

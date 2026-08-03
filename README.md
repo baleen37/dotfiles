@@ -7,7 +7,7 @@ Modern Nix flakes-based dotfiles providing reproducible cross-platform developme
 ## Why This System?
 
 - **RFC-Compliant Architecture**: Follows RFC 166 formatting and RFC 145 documentation standards
-- **Cross-Platform Excellence**: Native support for macOS (Intel + Apple Silicon) and NixOS (x86_64 + ARM64)
+- **Cross-Platform Excellence**: Native support for `aarch64-darwin`, `x86_64-linux`, and `aarch64-linux`
 - **AI-First Development**: Deep Claude Code integration with 20+ specialized commands and MCP servers
 - **Assertions as Derivations**: every check is a Nix build, so `nix flake check` is the whole test runner
 - **Zero-Config Deployment**: Reproducible environments with flake-based dependency management
@@ -39,15 +39,17 @@ git clone git@github.com:baleen37/dotfiles.git  # SSH
 cd dotfiles
 
 # 2. Initialize development environment
-export USER=$(whoami)  # Required for Nix commands (set automatically by direnv when entering the directory)
 make install-hooks     # Install pre-commit hooks for quality enforcement
 
-# 3. Build and validate system
-make test             # Evaluate all checks
-make test-build       # Build every unit + integration assertion
+# 3. Evaluate every supported system
+nix flake check --no-build --all-systems --show-trace
 
-# 4. Deploy system configuration
-make switch                      # Apply configuration (requires sudo)
+# 4. Build a Darwin or NixOS configuration without activating it
+nix build '.#darwinConfigurations.macbook-pro.system'
+nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel'
+
+# 5. Activate a standalone Home Manager profile
+make switch-home HM_USER=jito.hello
 ```
 
 ### Post-Installation Setup (macOS)
@@ -101,49 +103,52 @@ claude /spawn "implement user authentication system"
 ## Daily Usage
 
 ```bash
-# Essential commands
-export USER=$(whoami)   # Required for Nix commands (set automatically by direnv when entering the directory)
-nix build '.#darwinConfigurations.macbook-pro.system' --impure   # Build (substitute your machine)
-make switch            # Apply changes
-make test-build        # Run the assertions
-make format            # Auto-format (wraps nix fmt)
+# Evaluate the full platform matrix
+nix flake check --no-build --all-systems --show-trace
 
-# Quick operations
-make test-build        # Build every unit + integration assertion
-make switch            # Build and apply together
-nix fmt                # Direct Nix formatting (alternative)
+# Build configuration closures without activation
+nix build '.#darwinConfigurations.macbook-pro.system'
+nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel'
+
+# Activate a standalone Home Manager profile
+make switch-home HM_USER=jito.hello
+
+# Format source files
+make format
 ```
 
 ### Platform-Specific Operations
 
 ```bash
-# Targeted builds
-nix build '.#darwinConfigurations.macbook-pro.system' --impure   # macOS
-nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel' --impure   # NixOS
+# Darwin aarch64-darwin
+nix build '.#darwinConfigurations.macbook-pro.system'
 
-# Direct operations
-make switch             # Build and apply with sudo handling
-make test               # Evaluate all checks
-make test-build         # Build every unit + integration assertion
+# NixOS aarch64-linux
+nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel'
+
+# Disposable NixOS VM smoke test (Linux + KVM only)
+nix run .#test-vm
+ssh testuser@localhost -p 2222  # password: test
 ```
 
-**Supported Platforms**: macOS (Intel/ARM) and NixOS (x86_64/ARM64)
+**Supported platforms**: Darwin `aarch64-darwin`; NixOS `x86_64-linux` and
+`aarch64-linux`.
 
 ### Platform Capability Matrix
 
-| Make target         | macOS (Intel) | macOS (ARM) | NixOS (x86_64) | NixOS (ARM64) |
-| ------------------- | :-----------: | :---------: | :------------: | :-----------: |
-| **Core Operations** |               |             |                |               |
-| switch              |      ✅       |     ✅      |       ✅       |      ✅       |
-| switch-home         |      ✅       |     ✅      |       ✅       |      ✅       |
-| format              |      ✅       |     ✅      |       ✅       |      ✅       |
-| **Testing**         |               |             |                |               |
-| test                |      ✅       |     ✅      |       ✅       |      ✅       |
-| test-build          |      ✅       |     ✅      |       ✅       |      ✅       |
-| test-containers     |      ❌¹      |     ❌¹     |      ✅²       |      ✅²      |
-| **Secrets**         |               |             |                |               |
-| secrets/backup      |      ✅       |     ✅      |       ✅       |      ✅       |
-| secrets/restore     |      ✅       |     ✅      |       ✅       |      ✅       |
+| Make target         | Darwin (`aarch64-darwin`) | NixOS (`x86_64-linux`) | NixOS (`aarch64-linux`) |
+| ------------------- | :-----------------------: | :--------------------: | :---------------------: |
+| **Core Operations** |                           |                        |                         |
+| switch              |            ✅             |           ✅           |           ✅            |
+| switch-home         |            ✅             |           ✅           |           ✅            |
+| format              |            ✅             |           ✅           |           ✅            |
+| **Testing**         |                           |                        |                         |
+| test                |            ✅             |           ✅           |           ✅            |
+| test-build          |            ✅             |           ✅           |           ✅            |
+| test-containers     |            ❌¹            |          ✅²           |           ✅²           |
+| **Secrets**         |                           |                        |                         |
+| secrets/backup      |            ✅             |           ✅           |           ✅            |
+| secrets/restore     |            ✅             |           ✅           |           ✅            |
 
 ¹ NixOS VM tests need a Linux builder; Determinate Nix disables the macOS
 linux-builder, so run them in CI or a Linux VM.
@@ -171,13 +176,14 @@ users/shared/
 └── .config/claude/   # Claude Code configuration
 ```
 
-### Environment Variables
+### Home Manager Profile Selection
 
-Required for Nix commands (set automatically by direnv when entering the directory):
+Flake evaluation is pure. `HM_USER` is only a standalone Home Manager profile
+selector, defaulting to the current shell user. It does not declare a host's
+system user:
 
 ```bash
-# Required user variable for dynamic resolution
-export USER=$(whoami)
+make switch-home HM_USER=jito.hello
 ```
 
 For detailed configuration options, see [Configuration Guide](docs/CONFIGURATION.md).
@@ -205,15 +211,23 @@ dotfiles/
 ## Commands
 
 ```bash
-# Build current system
-nix build '.#darwinConfigurations.macbook-pro.system' --impure
+# Evaluate every supported system
+nix flake check --no-build --all-systems --show-trace
 
-# Run tests
-make test-build
+# Build representative configuration closures without activation
+nix build '.#darwinConfigurations.macbook-pro.system'
+nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel'
 
-# Switch to new config
-make switch
+# Activate a standalone Home Manager profile
+make switch-home HM_USER=jito.hello
 ```
+
+### System Activation
+
+`make switch` activates the current host's system configuration. It is an
+explicit operating procedure, not part of the default development or PR
+workflow; run it only on the intended host after the relevant build and
+verification steps.
 
 ### evantravers Architecture
 
@@ -223,6 +237,12 @@ The system follows evantravers' minimalist user-centric architecture:
 2. **User Configuration** (`users/shared/`) contains all user-specific settings in flat files
 3. **Machine Definitions** (`machines/`) define hardware-specific configurations
 4. **Test Framework** (`tests/`) provides comprehensive TDD-based validation
+
+Host metadata is internal to the flake: `flake-modules/hosts.nix` declares typed
+`dotfiles.hosts` entries with their platform, class, explicit system user, and
+machine modules. `flake-modules/systems.nix` turns them into Darwin and NixOS
+outputs. The host `user` field declares the system user; it is separate from
+the standalone `HM_USER` profile selector.
 
 ## Customization
 
@@ -270,7 +290,7 @@ This project includes NixOS VM management commands for development and testing e
 For NixOS VM workflows, build with:
 
 ```bash
-nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel' --impure
+nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel'
 ```
 
 See `machines/nixos/` for available VM configurations.
@@ -295,9 +315,9 @@ export NIXUSER=root            # SSH user (default: root)
 
 ### Platform Support
 
-- ✅ macOS (Intel/ARM)
-- ✅ Linux (x86_64/aarch64)
-- ✅ Windows (via WSL2)
+- ✅ Darwin `aarch64-darwin`
+- ✅ NixOS `x86_64-linux`
+- ✅ NixOS `aarch64-linux`
 
 ## Updates
 
@@ -331,11 +351,9 @@ Built-in AI development assistance with 20+ specialized commands and MCP server 
 
 ### Setup
 
-```bash
-make switch     # Apply configuration
-# Restart Claude Code
-# Try: /help
-```
+After applying the appropriate standalone Home Manager profile, restart Claude
+Code and run `/help`. System activation, when required, follows the explicit
+operating procedure above rather than the default development workflow.
 
 ### MCP Servers
 
@@ -380,9 +398,8 @@ claude mcp list
 **Build failures:**
 
 ```bash
-export USER=$(whoami)  # Ensure USER is set
 nix store gc            # Clear cache
-nix build '.#darwinConfigurations.<your-machine>.system' --impure  # Retry
+nix build '.#darwinConfigurations.<your-machine>.system'  # Retry
 ```
 
 **Permission issues:**
@@ -395,7 +412,7 @@ See [docs/TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md) for more solutions.
 
 ## Next Steps
 
-1. Run `USER=$(whoami) nix flake show --impure` to see all configurations
+1. Run `nix flake show --all-systems` to see all configurations
 2. Add packages in `users/shared/packages/<category>.nix` or a tool module
 3. Check [CONTRIBUTING.md](./CONTRIBUTING.md) for development
 

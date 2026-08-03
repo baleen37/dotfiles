@@ -8,6 +8,7 @@ MAKEFILE_DIR := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 
 # The name of the nixosConfiguration in the flake
 NIXNAME ?= $(shell hostname -s 2>/dev/null || hostname | cut -d. -f1)
+HM_USER ?= $(shell id -un 2>/dev/null || whoami)
 
 # SSH options that are used. These aren't meant to be overridden but are
 # reused a lot so we just store them up here.
@@ -44,34 +45,33 @@ ifeq ($(UNAME), Darwin)
 else ifeq ($(IS_NIXOS), true)
 	$(NIX_ENV_FULL) $(SUDO_NIX) run "nixpkgs#nixos-rebuild" -- switch --flake ".#${NIXNAME}"
 else
-	$(NIX_ENV_FULL) $(NIX) run 'github:nix-community/home-manager' -- switch --impure --flake ".#${NIXNAME}"
+	$(NIX_ENV_FULL) $(NIX) run 'github:nix-community/home-manager' -- switch --flake ".#${NIXNAME}"
 endif
 
 # Rebuild only Home Manager configuration (faster for user config changes)
 # Usage: make switch-home
 switch-home:
-	@echo "Rebuilding Home Manager configuration for $(USER)..."
+	@echo "Rebuilding Home Manager configuration for $(HM_USER)..."
 ifeq ($(UNAME), Darwin)
-	$(NIX_ENV) $(NIX) run 'github:nix-community/home-manager' -- switch --impure --flake ".#${USER}"
+	$(NIX_ENV) $(NIX) run 'github:nix-community/home-manager' -- switch --flake ".#$(HM_USER)"
 else
-	$(NIX_ENV_FULL) $(NIX) run 'github:nix-community/home-manager' -- switch --impure --flake ".#${NIXNAME}"
+	$(NIX_ENV_FULL) $(NIX) run 'github:nix-community/home-manager' -- switch --flake ".#$(HM_USER)"
 endif
 
 test:
 	@echo "Running dual-mode tests..."
-	@export USER=$${USER:-$(whoami)} && \
-	if [ "$(UNAME)" = "Darwin" ] || [ ! -e /dev/kvm ]; then \
+	@if [ "$(UNAME)" = "Darwin" ] || [ ! -e /dev/kvm ]; then \
 		if [ "$(UNAME)" = "Darwin" ]; then \
 			echo "macOS detected: Running validation mode (container tests require Linux + KVM)"; \
 		else \
 			echo "Linux without KVM detected: Running validation mode (NixOS VM tests require /dev/kvm)"; \
 		fi; \
 		echo "Validating all test configurations without execution..."; \
-		$(NIX_ENV) $(NIX) flake check --no-build --impure --accept-flake-config --show-trace; \
+		$(NIX_ENV) $(NIX) flake check --no-build --accept-flake-config --show-trace; \
 		echo "Validation completed - Full container tests run only where KVM is available"; \
 	else \
 		echo "Linux with KVM detected: Running full container test execution..."; \
-		$(NIX_ENV_FULL) $(NIX) flake check --impure --accept-flake-config --show-trace \
+		$(NIX_ENV_FULL) $(NIX) flake check --accept-flake-config --show-trace \
 			|| { $(MAKE) --no-print-directory fmt-diff; exit 1; }; \
 	fi
 
@@ -81,9 +81,8 @@ test:
 # Build the treefmt check alone with --print-build-logs to get the whole diff.
 fmt-diff:
 	@echo "--- full treefmt diff (nix flake check only shows its last 25 lines) ---"
-	@export USER=$${USER:-$(whoami)} && \
 	$(NIX_ENV) $(NIX) build ".#checks.$(NIX_SYSTEM).treefmt" \
-		--impure --accept-flake-config --print-build-logs --no-link 2>&1 || true
+		--accept-flake-config --print-build-logs --no-link 2>&1 || true
 
 # Build every unit and integration assertion. `make test` falls back to
 # --no-build wherever container tests cannot run, and --no-build only evaluates
@@ -91,9 +90,8 @@ fmt-diff:
 # aggregate excludes the container VMs and therefore builds on any platform.
 test-build:
 	@echo "Building all unit and integration assertions..."
-	@export USER=$${USER:-$(whoami)} && \
 	$(NIX_ENV_FULL) $(NIX) build ".#checks.$(NIX_SYSTEM).all-assertions" \
-		--impure --accept-flake-config --print-build-logs --no-link
+		--accept-flake-config --print-build-logs --no-link
 
 # Kept as the name CI and the pre-push hook call. It deliberately does NOT
 # depend on test-build: `make test-build` would build assertions that CI has
@@ -108,8 +106,7 @@ format:
 # work through a linux-builder, which Determinate Nix disables (see
 # machines/darwin/common.nix), so this is expected to fail there.
 test-containers:
-	@export USER=$${USER:-$(whoami)} && \
-	if [ "$(UNAME)" = "Darwin" ] || [ ! -e /dev/kvm ]; then \
+	@if [ "$(UNAME)" = "Darwin" ] || [ ! -e /dev/kvm ]; then \
 		echo "Container tests need Linux + /dev/kvm; run them in CI or a Linux VM."; \
 		exit 1; \
 	fi; \
@@ -118,18 +115,18 @@ test-containers:
 		".#checks.$(NIX_SYSTEM).container-basic" \
 		".#checks.$(NIX_SYSTEM).container-services" \
 		".#checks.$(NIX_SYSTEM).container-packages" \
-		--impure --accept-flake-config --print-build-logs --no-link
+		--accept-flake-config --print-build-logs --no-link
 
 # This builds the given configuration and pushes the results to the
 # cache. This does not alter the current running system. This requires
 # cachix authentication to be configured out of band.
 cache:
 ifeq ($(UNAME), Darwin)
-	nix build '.#darwinConfigurations.$(NIXNAME).system' --json \
+	nix build '.#darwinConfigurations.$(NIXNAME).system' --accept-flake-config --json \
 		| jq -r '.[].outputs | to_entries[].value' \
 		| cachix push baleen-nix
 else
-	nix build '.#nixosConfigurations.$(NIXNAME).config.system.build.toplevel' --json \
+	nix build '.#nixosConfigurations.$(NIXNAME).config.system.build.toplevel' --accept-flake-config --json \
 		| jq -r '.[].outputs | to_entries[].value' \
 		| cachix push baleen-nix
 endif
