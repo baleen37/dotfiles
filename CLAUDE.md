@@ -116,8 +116,9 @@ users/shared/
 
 ### Machine Configurations
 
-Hosts are declared in `flake-modules/hosts.nix` (system, class, user, optional
-`homeModules` overrides); `flake-modules/systems.nix` turns each entry into a
+Hosts are declared through the typed internal `dotfiles.hosts` option in
+`flake-modules/hosts.nix` (`system`, `class`, `user`, optional `homeModules`,
+and required per-host `machineModules`); `flake-modules/systems.nix` turns each entry into a
 darwinConfiguration or nixosConfiguration via `lib/mksystem.nix`.
 
 Hardware and system settings live under `machines/`:
@@ -133,10 +134,9 @@ machines/
     └── hardware/vm-utm.nix     # virtio profile shared by both VMs
 ```
 
-Darwin hosts all share `machines/darwin/common.nix`; per-host differences are
-expressed in `hosts.nix` rather than in a per-machine file. NixOS hosts keep one
-file each, named after the host — `mkSystem` resolves
-`machines/nixos/<name>.nix` from the host name.
+Darwin hosts all list `machines/darwin/common.nix` explicitly; per-host
+differences are expressed in `hosts.nix` rather than in a per-machine file.
+NixOS hosts explicitly list their corresponding module under `machines/nixos/`.
 
 ### Testing Framework
 
@@ -187,7 +187,7 @@ Host users are declared by host metadata. Standalone Home Manager profiles use
 
 ### Adding New Users
 
-1. For permanent machine configuration, add an entry to `flake.hosts` in
+1. For permanent machine configuration, add an entry to `dotfiles.hosts` in
    `flake-modules/hosts.nix`; `hosts.nix` is the only place a host is declared,
    and `flake-modules/systems.nix` turns each entry into a
    darwinConfiguration or nixosConfiguration by its `class`:
@@ -197,10 +197,11 @@ Host users are declared by host metadata. Standalone Home Manager profiles use
      system = "aarch64-darwin";
      class = "darwin";
      user = "newusername";
+     machineModules = [ ../machines/darwin/common.nix ];
    };
    ```
 
-   Note that `unit-machine-builds` asserts the exact host list, so it needs
+   Note that `integration-machine-builds` asserts the exact host list, so it needs
    updating alongside.
 
 ### Adding Tests

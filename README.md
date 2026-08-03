@@ -222,6 +222,11 @@ The system follows evantravers' minimalist user-centric architecture:
 3. **Machine Definitions** (`machines/`) define hardware-specific configurations
 4. **Test Framework** (`tests/`) provides comprehensive TDD-based validation
 
+Host metadata is internal to the flake: `flake-modules/hosts.nix` declares typed
+`dotfiles.hosts` entries with their platform, class, explicit system user, and
+machine modules. `flake-modules/systems.nix` turns them into Darwin and NixOS
+outputs.
+
 ## Customization
 
 Add packages to the matching category in `users/shared/packages/` (e.g. `dev.nix`), or configure a tool in `users/shared/programs/`.

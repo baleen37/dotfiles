@@ -35,6 +35,19 @@ let
   ];
   hostsAreDeclared = darwinNames == expectedDarwin && nixosNames == expectedNixos;
 
+  darwinUsers = lib.mapAttrs (_: host: builtins.attrNames host.config.home-manager.users) darwinHosts;
+  nixosUsers = lib.mapAttrs (_: host: builtins.attrNames host.config.home-manager.users) nixosHosts;
+
+  expectedDarwinUsers = {
+    baleen-macbook = [ "baleen" ];
+    kakaostyle-jito = [ "jito.hello" ];
+    macbook-pro = [ "baleen" ];
+  };
+  expectedNixosUsers = {
+    vm-aarch64-utm = [ "baleen" ];
+    vm-x86_64-utm = [ "baleen" ];
+  };
+
   allHosts = hosts: predicate: lib.all (host: predicate host.config) (lib.attrValues hosts);
 
 in
@@ -46,6 +59,10 @@ in
     (helpers.assertTest "every-host-is-declared" hostsAreDeclared
       "flake-modules/hosts.nix should expose exactly the known Darwin and NixOS hosts"
     )
+
+    (helpers.assertTest "output-users-match-host-metadata" (
+      darwinUsers == expectedDarwinUsers && nixosUsers == expectedNixosUsers
+    ) "Darwin and NixOS outputs should retain the explicit host user mapping")
 
     (helpers.assertTest "darwin-hosts-set-state-version" (allHosts darwinHosts (
       c: (c.system.stateVersion or null) != null
