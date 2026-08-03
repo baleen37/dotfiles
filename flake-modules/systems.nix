@@ -10,21 +10,21 @@
 let
   mkSystem = import ../lib/mksystem.nix { inherit inputs self overlays; };
 
-  hostsByClass = cls: lib.filterAttrs (_: h: h.class == cls) config.flake.hosts;
+  hostsByClass = cls: lib.filterAttrs (_: h: h.class == cls) config.dotfiles.hosts;
 
   mkDarwin =
     name: h:
     mkSystem name {
       inherit (h) system user;
       darwin = true;
-      homeModules = h.homeModules or { };
+      inherit (h) homeModules machineModules;
     };
 
   mkNixos =
     name: h:
     mkSystem name {
       inherit (h) system user;
-      homeModules = h.homeModules or { };
+      inherit (h) homeModules machineModules;
     };
 in
 {

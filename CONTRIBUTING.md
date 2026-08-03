@@ -22,11 +22,12 @@ Before contributing, ensure you have:
 git clone https://github.com/<your-username>/dotfiles.git
 cd dotfiles
 
-# Set up the development environment
-export USER=$(whoami)
-make test       # Evaluate all checks
-make test-build # Build every unit + integration assertion
-make lint     # Check code quality
+# Evaluate the complete supported platform matrix
+nix flake check --no-build --all-systems --show-trace
+
+# Build representative configuration closures without activation
+nix build '.#darwinConfigurations.macbook-pro.system'
+nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel'
 ```
 
 ## 🛠️ Development Workflow
@@ -53,8 +54,7 @@ git merge feature/add-new-package
 #### 1. Pre-Development Checklist
 
 - [ ] Create a descriptive branch name
-- [ ] Ensure `USER` environment variable is set
-- [ ] Run `make test-build` to verify baseline functionality
+- [ ] Run `nix flake check --no-build --all-systems --show-trace` to evaluate the baseline matrix
 
 #### 2. Development Loop
 
@@ -62,14 +62,15 @@ git merge feature/add-new-package
 # Make your changes
 # ...
 
-# Test your changes
-make lint           # Code quality checks
-make test           # Evaluate all checks
-make test-build     # Build every unit + integration assertion
-nix build '.#darwinConfigurations.macbook-pro.system' --impure  # Full system build
+# Evaluate all supported systems
+nix flake check --no-build --all-systems --show-trace
 
-# Test on target platform(s)
-make switch                      # Test system integration
+# Build affected configuration closures without activation
+nix build '.#darwinConfigurations.macbook-pro.system'
+nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel'
+
+# Activate a standalone Home Manager profile when that is the intended target
+make switch-home HM_USER=jito.hello
 ```
 
 #### 3. Pre-Commit Workflow
@@ -77,11 +78,10 @@ make switch                      # Test system integration
 **Always run these commands in order before committing:**
 
 ```bash
-make lint      # pre-commit run --all-files
-make test       # Evaluate all checks
-make test-build # Build every unit + integration assertion
-nix build '.#darwinConfigurations.macbook-pro.system' --impure  # build darwin configuration
-make test-build # final validation after build
+nix flake check --no-build --all-systems --show-trace
+nix build '.#darwinConfigurations.macbook-pro.system'
+nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel'
+make switch-home HM_USER=jito.hello
 ```
 
 ### Testing Strategy
@@ -89,12 +89,11 @@ make test-build # final validation after build
 #### Local Testing
 
 ```bash
-make test                         # Evaluate all checks (matches CI)
-make test-build                   # Build every unit + integration assertion
-make test-containers              # NixOS VM tests (Linux + /dev/kvm)
-
-nix flake check --impure          # All checks, directly
-nix build '.#checks.x86_64-linux.unit-mksystem' --impure   # A single check
+nix flake check --no-build --all-systems --show-trace  # Evaluate all checks
+nix build '.#darwinConfigurations.macbook-pro.system'
+nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel'
+make switch-home HM_USER=jito.hello
+nix build '.#checks.x86_64-linux.unit-mksystem'   # A single check
 ```
 
 `make test` falls back to `nix flake check --no-build` wherever the container
@@ -103,10 +102,13 @@ never built and never fails. Use `make test-build` to actually run assertions.
 
 #### Testing on Multiple Platforms
 
-If your changes affect multiple platforms, test on:
+The current platform matrix is:
 
-- **macOS**: x86_64-darwin, aarch64-darwin
-- **NixOS**: x86_64-linux, aarch64-linux
+- **Darwin**: `aarch64-darwin`
+- **NixOS**: `x86_64-linux`, `aarch64-linux`
+
+`HM_USER` selects a standalone Home Manager profile. Permanent host system users
+are declared by the `user` field in typed `dotfiles.hosts` entries.
 
 ## 📝 Contribution Guidelines
 
@@ -114,7 +116,7 @@ If your changes affect multiple platforms, test on:
 
 #### Nix Code
 
-- **Consistent formatting**: Use `nixpkgs-fmt` (automatically applied via pre-commit)
+- **Consistent formatting**: Use `nix fmt` (the flake formatter runs treefmt)
 - **Clear attribute names**: Use descriptive, semantic naming
 - **Documentation**: Add comments for complex logic
 - **Platform compatibility**: Test on all supported platforms
@@ -168,15 +170,14 @@ print_error() {
 #### Adding New Packages
 
 1. **Determine the appropriate location:**
-   - `modules/shared/packages.nix`: Cross-platform packages
-   - `modules/darwin/packages.nix`: macOS-specific packages
-   - `modules/nixos/packages.nix`: NixOS-specific packages
-   - `modules/darwin/casks.nix`: Homebrew casks
+   - `users/shared/packages/<category>.nix`: shared package categories
+   - `users/shared/programs/<tool>.nix`: tool-specific Home Manager configuration
+   - `users/shared/darwin/homebrew.nix`: Darwin Homebrew packages and casks
 
 2. **Follow the existing pattern:**
 
    ```nix
-   # modules/shared/packages.nix
+   # users/shared/packages/dev.nix
    { pkgs }:
 
    with pkgs; [
@@ -192,7 +193,7 @@ print_error() {
 1. **Create the module file:**
 
    ```nix
-   # modules/shared/my-new-module.nix
+   # users/shared/programs/my-new-module.nix
    { config, pkgs, lib, ... }:
 
    {
@@ -207,7 +208,7 @@ print_error() {
 2. **Import in appropriate locations:**
 
    ```nix
-   # In host configuration or parent module
+   # In users/shared/home-manager.nix or the appropriate parent module
    imports = [
      ./modules/shared/my-new-module.nix
    ];
@@ -217,11 +218,11 @@ print_error() {
 
    ```bash
    # Test on current platform
-   nix build '.#darwinConfigurations.macbook-pro.system' --impure
+   nix build '.#darwinConfigurations.macbook-pro.system'
 
    # Test specific platforms if needed
-   nix build --impure .#darwinConfigurations.aarch64-darwin.system
-   nix build --impure .#nixosConfigurations.x86_64-linux.config.system.build.toplevel
+   nix build .#darwinConfigurations.macbook-pro.system
+   nix build .#nixosConfigurations.vm-x86_64-utm.config.system.build.toplevel
    ```
 
 ### Testing Contributions
@@ -365,8 +366,6 @@ When adding new global commands:
 **Environment variable issues:**
 
 ```bash
-# Always ensure USER is set
-export USER=$(whoami)
 make switch
 ```
 
@@ -385,7 +384,7 @@ nix flake lock --update-input nixpkgs
 nix store gc
 
 # Rebuild with detailed traces
-nix build --impure --show-trace .#darwinConfigurations.aarch64-darwin.system
+nix build --show-trace .#darwinConfigurations.macbook-pro.system
 ```
 
 ### Testing Failures
@@ -394,11 +393,11 @@ nix build --impure --show-trace .#darwinConfigurations.aarch64-darwin.system
 
 ```bash
 # List every discovered check
-nix flake show --impure
+nix flake show --all-systems
 
 # A test file that fails to import shows up as a failing check named after it;
 # build it to see the reason
-nix build --impure '.#checks.aarch64-darwin.unit-claude'
+nix build '.#checks.aarch64-darwin.unit-claude'
 ```
 
 ## 📋 Pull Request Process
@@ -408,7 +407,9 @@ nix build --impure '.#checks.aarch64-darwin.unit-claude'
 1. **Complete the pre-commit workflow:**
 
    ```bash
-   make lint && make test-build && nix build '.#darwinConfigurations.macbook-pro.system' --impure
+   nix flake check --no-build --all-systems --show-trace
+   nix build '.#darwinConfigurations.macbook-pro.system'
+   nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel'
    ```
 
 2. **Run comprehensive local tests:**
