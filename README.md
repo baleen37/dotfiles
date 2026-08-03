@@ -123,6 +123,10 @@ nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel'   
 make switch             # Build and apply with sudo handling
 make test               # Evaluate all checks
 make test-build         # Build every unit + integration assertion
+
+# Disposable NixOS VM smoke test (Linux + KVM only)
+nix run .#test-vm
+ssh testuser@localhost -p 2222  # password: test
 ```
 
 **Supported Platforms**: macOS (Apple Silicon) and NixOS (x86_64/ARM64)

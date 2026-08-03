@@ -56,6 +56,10 @@ nix build '.#darwinConfigurations.macbook-pro.system'
 # NixOS
 nixos-rebuild switch --flake .#vm-aarch64-utm
 nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel'
+
+# Disposable VM smoke test (Linux + KVM only)
+nix run .#test-vm
+ssh testuser@localhost -p 2222  # password: test
 ```
 
 ## Architecture
@@ -223,7 +227,7 @@ Host users are declared by host metadata. Standalone Home Manager profiles use
 ### Formatting and Linting
 
 ```bash
-make format           # Format with nixfmt-rfc-style (wraps nix fmt)
+make format           # Format with the repository treefmt config (wraps nix fmt)
 nix fmt               # Direct formatter invocation
 pre-commit run --all-files  # Run all pre-commit hooks
 ```
