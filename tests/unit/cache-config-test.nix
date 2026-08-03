@@ -15,6 +15,8 @@ let
   flakeNix = builtins.readFile ../../flake.nix;
   ciYml = builtins.readFile ../../.github/workflows/ci.yml;
   setupNixYml = builtins.readFile ../../.github/actions/setup-nix/action.yml;
+  makefile = builtins.readFile ../../Makefile;
+  envrc = builtins.readFile ../../.envrc;
 
   containsAll = haystack: needles: lib.all (n: lib.hasInfix n haystack) needles;
 
@@ -45,6 +47,52 @@ let
   ciLines = lib.splitString "\n" ciYml;
   buildClosureLine = findLineIndex (line: lib.hasInfix "name: Build closure" line) ciLines;
   saveCacheLine = findLineIndex (line: lib.hasInfix "name: Save Nix cache" line) ciLines;
+
+  cacheSyncStopsAtNixConfig =
+    pkgs.runCommand "cache-sync-stops-at-nix-config"
+      {
+        nativeBuildInputs = [
+          pkgs.gitMinimal
+          pkgs.gawk
+          pkgs.gnugrep
+          pkgs.coreutils
+        ];
+      }
+      ''
+        fixture="$TMPDIR/cache-sync-fixture"
+        mkdir -p "$fixture/lib" "$fixture/scripts"
+        cp ${../../scripts/check-cache-sync.sh} "$fixture/scripts/check-cache-sync.sh"
+
+        cat > "$fixture/flake.nix" <<'EOF'
+        {
+          nixConfig = {
+            substituters = [ "https://expected.example" ];
+            trusted-public-keys = [ "expected.example-1:expected" ];
+          };
+
+          unrelated = {
+            substituters = [ "https://outside.example" ];
+            trusted-public-keys = [ "outside.example-1:outside" ];
+          };
+        }
+        EOF
+
+        cat > "$fixture/lib/cache-config.nix" <<'EOF'
+        {
+          substituters = [ "https://expected.example" ];
+          trusted-public-keys = [ "expected.example-1:expected" ];
+        }
+        EOF
+
+        cd "$fixture"
+        git init --quiet
+        output=$(bash scripts/check-cache-sync.sh 2>&1) || {
+          printf '%s\n' "$output"
+          exit 1
+        }
+        test "$output" = "Cache config is in sync."
+        touch "$out"
+      '';
 in
 helpers.testSuite "cache-config" [
   (helpers.assertTest "cache-config-contains-only-public-data" (
@@ -68,6 +116,22 @@ helpers.testSuite "cache-config" [
     (lib.hasInfix "nix build \"$ATTR\" --out-link result --print-build-logs --accept-flake-config" ciYml)
     "cache-using CI builds must explicitly pass --accept-flake-config"
   )
+
+  (helpers.assertTest "make-cache-darwin-explicitly-accepts-flake-config"
+    (lib.hasInfix "nix build '.#darwinConfigurations.$(NIXNAME).system' --accept-flake-config --json" makefile)
+    "the Darwin make cache build must explicitly pass --accept-flake-config"
+  )
+
+  (helpers.assertTest "make-cache-linux-explicitly-accepts-flake-config"
+    (lib.hasInfix "nix build '.#nixosConfigurations.$(NIXNAME).config.system.build.toplevel' --accept-flake-config --json" makefile)
+    "the Linux make cache build must explicitly pass --accept-flake-config"
+  )
+
+  (helpers.assertTest "envrc-does-not-accept-flake-config" (
+    !(lib.hasInfix "accept-flake-config" envrc)
+  ) ".envrc must not opt into flake cache configuration")
+
+  cacheSyncStopsAtNixConfig
 
   (helpers.assertTest "flake-nix-has-all-substituters" (containsAll flakeNix subs)
     "flake.nix nixConfig must contain every substituter from lib/cache-config.nix"

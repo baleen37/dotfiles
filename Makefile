@@ -122,11 +122,11 @@ test-containers:
 # cachix authentication to be configured out of band.
 cache:
 ifeq ($(UNAME), Darwin)
-	nix build '.#darwinConfigurations.$(NIXNAME).system' --json \
+	nix build '.#darwinConfigurations.$(NIXNAME).system' --accept-flake-config --json \
 		| jq -r '.[].outputs | to_entries[].value' \
 		| cachix push baleen-nix
 else
-	nix build '.#nixosConfigurations.$(NIXNAME).config.system.build.toplevel' --json \
+	nix build '.#nixosConfigurations.$(NIXNAME).config.system.build.toplevel' --accept-flake-config --json \
 		| jq -r '.[].outputs | to_entries[].value' \
 		| cachix push baleen-nix
 endif
