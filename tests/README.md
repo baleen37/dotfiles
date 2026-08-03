@@ -18,8 +18,8 @@ make test-containers # NixOS VM tests; needs Linux + /dev/kvm
 Run one check directly:
 
 ```bash
-nix build '.#checks.aarch64-darwin.unit-darwin-sudo' --impure
-nix build '.#checks.x86_64-linux.integration-home-manager' --impure
+nix build '.#checks.aarch64-darwin.unit-darwin-sudo'
+nix build '.#checks.x86_64-linux.integration-home-manager'
 ```
 
 ## Layout

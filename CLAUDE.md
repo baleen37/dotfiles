@@ -4,19 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Nix flakes-based dotfiles system providing reproducible development environments for macOS and NixOS. Uses the evantravers user-centric architecture pattern with dynamic user resolution and comprehensive TDD testing.
+Nix flakes-based dotfiles system providing reproducible development environments for macOS and NixOS. Uses the evantravers user-centric architecture pattern and comprehensive TDD testing.
 
 ## Essential Commands
 
 ### Environment Setup
 
-All build operations require the USER environment variable. When working
-inside the project directory, direnv sets this automatically. For shells
-without direnv:
-
-```bash
-export USER=$(whoami)
-```
+Flake evaluation is pure and requires no user environment variable. Use
+`make switch-home HM_USER=<profile>` to select a standalone Home Manager profile.
 
 ### Common Operations
 
@@ -28,10 +23,10 @@ make switch            # Build and apply configuration (uses sudo internally)
 make format            # Format all Nix files
 
 # Build operations
-nix flake check --impure         # Evaluate all checks directly
+nix flake check --no-build --all-systems --show-trace  # Evaluate all checks
 
 # Testing
-nix build '.#checks.aarch64-darwin.unit-darwin-sudo' --impure  # Specific check
+nix build '.#checks.aarch64-darwin.unit-darwin-sudo'  # Specific check
 make test-containers                                           # NixOS VM tests (Linux + KVM)
 ```
 
@@ -165,22 +160,10 @@ tests/
 **Container Tests**: Linux + `/dev/kvm` only. Elsewhere `make test` degrades to
 `--no-build`, which does not run assertions — use `make test-build` for that.
 
-### Dynamic User Resolution
+### User Selection
 
-The flake supports multiple users via environment variable. `resolveUser` in
-`flake-modules/args.nix` supplies the fallback used by `flake-modules/hosts.nix`:
-
-```nix
-resolveUser =
-  fallback:
-  let
-    env = builtins.getEnv "USER";
-  in
-  if env != "" && env != "root" then env else fallback;
-```
-
-This allows the same configuration to work for different users without hardcoding
-usernames. Reading the environment is why every command needs `--impure`.
+Host users are declared by host metadata. Standalone Home Manager profiles use
+`HM_USER`, for example `make switch-home HM_USER=jito.hello`.
 
 ## Development Guidelines
 
@@ -204,14 +187,7 @@ usernames. Reading the environment is why every command needs `--impure`.
 
 ### Adding New Users
 
-1. No code changes needed - use environment variable:
-
-   ```bash
-   export USER=newusername
-   make switch
-   ```
-
-2. For permanent machine configuration, add an entry to `flake.hosts` in
+1. For permanent machine configuration, add an entry to `flake.hosts` in
    `flake-modules/hosts.nix`; `hosts.nix` is the only place a host is declared,
    and `flake-modules/systems.nix` turns each entry into a
    darwinConfiguration or nixosConfiguration by its `class`:
@@ -287,7 +263,6 @@ GitHub Actions workflow (`.github/workflows/ci.yml`):
 Required environment variables in CI:
 
 ```bash
-export USER=${USER:-ci}
 export TEST_USER=${TEST_USER:-testuser}
 ```
 
@@ -326,7 +301,6 @@ Machine files should be minimal - only hardware-specific settings. User preferen
 ### Build Failures
 
 ```bash
-export USER=$(whoami)  # Ensure USER is set
 nix store gc            # Clear cache if needed
 make switch            # Retry
 ```

@@ -7,7 +7,7 @@ Modern Nix flakes-based dotfiles providing reproducible cross-platform developme
 ## Why This System?
 
 - **RFC-Compliant Architecture**: Follows RFC 166 formatting and RFC 145 documentation standards
-- **Cross-Platform Excellence**: Native support for macOS (Intel + Apple Silicon) and NixOS (x86_64 + ARM64)
+- **Cross-Platform Excellence**: Native support for Apple Silicon macOS and NixOS (x86_64 + ARM64)
 - **AI-First Development**: Deep Claude Code integration with 20+ specialized commands and MCP servers
 - **Assertions as Derivations**: every check is a Nix build, so `nix flake check` is the whole test runner
 - **Zero-Config Deployment**: Reproducible environments with flake-based dependency management
@@ -39,7 +39,6 @@ git clone git@github.com:baleen37/dotfiles.git  # SSH
 cd dotfiles
 
 # 2. Initialize development environment
-export USER=$(whoami)  # Required for Nix commands (set automatically by direnv when entering the directory)
 make install-hooks     # Install pre-commit hooks for quality enforcement
 
 # 3. Build and validate system
@@ -102,8 +101,7 @@ claude /spawn "implement user authentication system"
 
 ```bash
 # Essential commands
-export USER=$(whoami)   # Required for Nix commands (set automatically by direnv when entering the directory)
-nix build '.#darwinConfigurations.macbook-pro.system' --impure   # Build (substitute your machine)
+nix build '.#darwinConfigurations.macbook-pro.system'   # Build (substitute your machine)
 make switch            # Apply changes
 make test-build        # Run the assertions
 make format            # Auto-format (wraps nix fmt)
@@ -118,8 +116,8 @@ nix fmt                # Direct Nix formatting (alternative)
 
 ```bash
 # Targeted builds
-nix build '.#darwinConfigurations.macbook-pro.system' --impure   # macOS
-nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel' --impure   # NixOS
+nix build '.#darwinConfigurations.macbook-pro.system'   # macOS
+nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel'   # NixOS
 
 # Direct operations
 make switch             # Build and apply with sudo handling
@@ -127,23 +125,23 @@ make test               # Evaluate all checks
 make test-build         # Build every unit + integration assertion
 ```
 
-**Supported Platforms**: macOS (Intel/ARM) and NixOS (x86_64/ARM64)
+**Supported Platforms**: macOS (Apple Silicon) and NixOS (x86_64/ARM64)
 
 ### Platform Capability Matrix
 
-| Make target         | macOS (Intel) | macOS (ARM) | NixOS (x86_64) | NixOS (ARM64) |
-| ------------------- | :-----------: | :---------: | :------------: | :-----------: |
-| **Core Operations** |               |             |                |               |
-| switch              |      ✅       |     ✅      |       ✅       |      ✅       |
-| switch-home         |      ✅       |     ✅      |       ✅       |      ✅       |
-| format              |      ✅       |     ✅      |       ✅       |      ✅       |
-| **Testing**         |               |             |                |               |
-| test                |      ✅       |     ✅      |       ✅       |      ✅       |
-| test-build          |      ✅       |     ✅      |       ✅       |      ✅       |
-| test-containers     |      ❌¹      |     ❌¹     |      ✅²       |      ✅²      |
-| **Secrets**         |               |             |                |               |
-| secrets/backup      |      ✅       |     ✅      |       ✅       |      ✅       |
-| secrets/restore     |      ✅       |     ✅      |       ✅       |      ✅       |
+| Make target         | macOS (Apple Silicon) | NixOS (x86_64) | NixOS (ARM64) |
+| ------------------- | :-------------------: | :------------: | :-----------: |
+| **Core Operations** |                       |                |               |
+| switch              |          ✅           |       ✅       |      ✅       |
+| switch-home         |          ✅           |       ✅       |      ✅       |
+| format              |          ✅           |       ✅       |      ✅       |
+| **Testing**         |                       |                |               |
+| test                |          ✅           |       ✅       |      ✅       |
+| test-build          |          ✅           |       ✅       |      ✅       |
+| test-containers     |          ❌¹          |      ✅²       |      ✅²      |
+| **Secrets**         |                       |                |               |
+| secrets/backup      |          ✅           |       ✅       |      ✅       |
+| secrets/restore     |          ✅           |       ✅       |      ✅       |
 
 ¹ NixOS VM tests need a Linux builder; Determinate Nix disables the macOS
 linux-builder, so run them in CI or a Linux VM.
@@ -171,13 +169,13 @@ users/shared/
 └── .config/claude/   # Claude Code configuration
 ```
 
-### Environment Variables
+### Home Manager Profile Selection
 
-Required for Nix commands (set automatically by direnv when entering the directory):
+Flake evaluation is pure. `make switch-home` selects its standalone Home Manager
+profile with `HM_USER`, which defaults to the current shell user:
 
 ```bash
-# Required user variable for dynamic resolution
-export USER=$(whoami)
+make switch-home HM_USER=jito.hello
 ```
 
 For detailed configuration options, see [Configuration Guide](docs/CONFIGURATION.md).
@@ -206,7 +204,7 @@ dotfiles/
 
 ```bash
 # Build current system
-nix build '.#darwinConfigurations.macbook-pro.system' --impure
+nix build '.#darwinConfigurations.macbook-pro.system'
 
 # Run tests
 make test-build
@@ -270,7 +268,7 @@ This project includes NixOS VM management commands for development and testing e
 For NixOS VM workflows, build with:
 
 ```bash
-nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel' --impure
+nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel'
 ```
 
 See `machines/nixos/` for available VM configurations.
@@ -295,7 +293,7 @@ export NIXUSER=root            # SSH user (default: root)
 
 ### Platform Support
 
-- ✅ macOS (Intel/ARM)
+- ✅ macOS (Apple Silicon)
 - ✅ Linux (x86_64/aarch64)
 - ✅ Windows (via WSL2)
 
@@ -380,9 +378,8 @@ claude mcp list
 **Build failures:**
 
 ```bash
-export USER=$(whoami)  # Ensure USER is set
 nix store gc            # Clear cache
-nix build '.#darwinConfigurations.<your-machine>.system' --impure  # Retry
+nix build '.#darwinConfigurations.<your-machine>.system'  # Retry
 ```
 
 **Permission issues:**
@@ -395,7 +392,7 @@ See [docs/TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md) for more solutions.
 
 ## Next Steps
 
-1. Run `USER=$(whoami) nix flake show --impure` to see all configurations
+1. Run `nix flake show --all-systems` to see all configurations
 2. Add packages in `users/shared/packages/<category>.nix` or a tool module
 3. Check [CONTRIBUTING.md](./CONTRIBUTING.md) for development
 

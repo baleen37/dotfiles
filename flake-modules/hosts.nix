@@ -1,15 +1,15 @@
-{ resolveUser, ... }:
+_:
 {
   flake.hosts = {
     macbook-pro = {
       system = "aarch64-darwin";
       class = "darwin";
-      user = resolveUser "baleen";
+      user = "baleen";
     };
     baleen-macbook = {
       system = "aarch64-darwin";
       class = "darwin";
-      user = resolveUser "baleen";
+      user = "baleen";
     };
     kakaostyle-jito = {
       system = "aarch64-darwin";
@@ -19,12 +19,12 @@
     vm-aarch64-utm = {
       system = "aarch64-linux";
       class = "nixos";
-      user = resolveUser "baleen";
+      user = "baleen";
     };
     vm-x86_64-utm = {
       system = "x86_64-linux";
       class = "nixos";
-      user = resolveUser "baleen";
+      user = "baleen";
     };
   };
 }

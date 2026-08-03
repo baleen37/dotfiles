@@ -23,7 +23,6 @@ git clone https://github.com/<your-username>/dotfiles.git
 cd dotfiles
 
 # Set up the development environment
-export USER=$(whoami)
 make test       # Evaluate all checks
 make test-build # Build every unit + integration assertion
 make lint     # Check code quality
@@ -53,7 +52,6 @@ git merge feature/add-new-package
 #### 1. Pre-Development Checklist
 
 - [ ] Create a descriptive branch name
-- [ ] Ensure `USER` environment variable is set
 - [ ] Run `make test-build` to verify baseline functionality
 
 #### 2. Development Loop
@@ -66,7 +64,7 @@ git merge feature/add-new-package
 make lint           # Code quality checks
 make test           # Evaluate all checks
 make test-build     # Build every unit + integration assertion
-nix build '.#darwinConfigurations.macbook-pro.system' --impure  # Full system build
+nix build '.#darwinConfigurations.macbook-pro.system'  # Full system build
 
 # Test on target platform(s)
 make switch                      # Test system integration
@@ -80,7 +78,7 @@ make switch                      # Test system integration
 make lint      # pre-commit run --all-files
 make test       # Evaluate all checks
 make test-build # Build every unit + integration assertion
-nix build '.#darwinConfigurations.macbook-pro.system' --impure  # build darwin configuration
+nix build '.#darwinConfigurations.macbook-pro.system'  # build darwin configuration
 make test-build # final validation after build
 ```
 
@@ -93,8 +91,8 @@ make test                         # Evaluate all checks (matches CI)
 make test-build                   # Build every unit + integration assertion
 make test-containers              # NixOS VM tests (Linux + /dev/kvm)
 
-nix flake check --impure          # All checks, directly
-nix build '.#checks.x86_64-linux.unit-mksystem' --impure   # A single check
+nix flake check --no-build --all-systems --show-trace  # Evaluate all checks
+nix build '.#checks.x86_64-linux.unit-mksystem'   # A single check
 ```
 
 `make test` falls back to `nix flake check --no-build` wherever the container
@@ -105,7 +103,7 @@ never built and never fails. Use `make test-build` to actually run assertions.
 
 If your changes affect multiple platforms, test on:
 
-- **macOS**: x86_64-darwin, aarch64-darwin
+- **macOS**: aarch64-darwin
 - **NixOS**: x86_64-linux, aarch64-linux
 
 ## 📝 Contribution Guidelines
@@ -217,11 +215,11 @@ print_error() {
 
    ```bash
    # Test on current platform
-   nix build '.#darwinConfigurations.macbook-pro.system' --impure
+   nix build '.#darwinConfigurations.macbook-pro.system'
 
    # Test specific platforms if needed
-   nix build --impure .#darwinConfigurations.aarch64-darwin.system
-   nix build --impure .#nixosConfigurations.x86_64-linux.config.system.build.toplevel
+   nix build .#darwinConfigurations.macbook-pro.system
+   nix build .#nixosConfigurations.vm-x86_64-utm.config.system.build.toplevel
    ```
 
 ### Testing Contributions
@@ -365,8 +363,6 @@ When adding new global commands:
 **Environment variable issues:**
 
 ```bash
-# Always ensure USER is set
-export USER=$(whoami)
 make switch
 ```
 
@@ -385,7 +381,7 @@ nix flake lock --update-input nixpkgs
 nix store gc
 
 # Rebuild with detailed traces
-nix build --impure --show-trace .#darwinConfigurations.aarch64-darwin.system
+nix build --show-trace .#darwinConfigurations.macbook-pro.system
 ```
 
 ### Testing Failures
@@ -394,11 +390,11 @@ nix build --impure --show-trace .#darwinConfigurations.aarch64-darwin.system
 
 ```bash
 # List every discovered check
-nix flake show --impure
+nix flake show --all-systems
 
 # A test file that fails to import shows up as a failing check named after it;
 # build it to see the reason
-nix build --impure '.#checks.aarch64-darwin.unit-claude'
+nix build '.#checks.aarch64-darwin.unit-claude'
 ```
 
 ## 📋 Pull Request Process
@@ -408,7 +404,7 @@ nix build --impure '.#checks.aarch64-darwin.unit-claude'
 1. **Complete the pre-commit workflow:**
 
    ```bash
-   make lint && make test-build && nix build '.#darwinConfigurations.macbook-pro.system' --impure
+   make lint && make test-build && nix build '.#darwinConfigurations.macbook-pro.system'
    ```
 
 2. **Run comprehensive local tests:**
