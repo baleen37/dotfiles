@@ -8,6 +8,9 @@ model_reasoning_effort = "high"
 [sandbox_workspace_write]
 network_access = true
 
+[features]
+tool_search_always_defer_mcp_tools = true
+
 [projects."/Users/jito.hello/dev/wooto/infra"]
 trust_level = "trusted"
 
@@ -42,3 +45,12 @@ status_line = [
     "git-branch",
     "context-remaining",
 ]
+
+[plugins."private-journal-mcp@baleen-marketplace"]
+enabled = true
+
+[plugins."private-journal-mcp@baleen-marketplace".mcp_servers.private-journal]
+enabled_tools = ["search_journal", "read_journal", "list_journal", "write_journal"]
+
+[plugins."slack@openai-curated-remote"]
+enabled = false
