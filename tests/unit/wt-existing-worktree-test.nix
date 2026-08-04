@@ -58,5 +58,25 @@ in
       (lib.hasInfix ''--path "$worktree_dir" --focus'' wtScript)
       "wt should open the Herdr worktree before changing the shell directory"
     )
+
+    (helpers.assertTest "wt-resolves-herdr-source-workspace" (
+      lib.hasInfix ''herdr worktree list --workspace "$herdr_workspace"'' wtScript
+      && lib.hasInfix "source_workspace_id" wtScript
+    ) "wt should resolve the repository parent workspace from Herdr's worktree source")
+
+    (helpers.assertTest "wt-resolves-herdr-before-creation"
+      (lib.hasInfix "_resolve_herdr_workspace || return 1" wtScript)
+      "wt should resolve the Herdr parent before creating a Git worktree"
+    )
+
+    (helpers.assertTest "wt-rolls-back-checkout-after-herdr-failure"
+      (lib.hasInfix ''git worktree remove --force "$worktree_dir"'' wtScript)
+      "wt should remove a newly created checkout when Herdr open fails"
+    )
+
+    (helpers.assertTest "wt-rolls-back-new-branch-after-herdr-failure"
+      (lib.hasInfix ''git branch -D "$branch_name"'' wtScript)
+      "wt should remove a newly created branch when Herdr open fails"
+    )
   ];
 }
