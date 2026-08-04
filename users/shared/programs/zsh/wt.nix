@@ -341,6 +341,11 @@
       done
     fi
 
+    local branch_existed=0
+    if git rev-parse --verify "refs/heads/$branch_name" >/dev/null 2>&1; then
+      branch_existed=1
+    fi
+
     # ANSI color codes
     local RED='\033[0;31m'
     local GREEN='\033[0;32m'
@@ -359,6 +364,19 @@
     local _error() {
       _msg "$RED" "$@"
       return 1
+    }
+
+    # Resolve the repository parent workspace. Herdr panes expose the current
+    # workspace ID, which is a linked-worktree workspace when wt runs there.
+    local _resolve_herdr_workspace() {
+      local source_workspace
+      source_workspace=$(herdr worktree list --workspace "$herdr_workspace" 2>/dev/null |
+        sed -n 's/.*"source_workspace_id":"\([^"]*\)".*/\1/p')
+      if [[ -z "$source_workspace" ]]; then
+        _error "Failed to resolve Herdr parent workspace"
+        return 1
+      fi
+      herdr_workspace="$source_workspace"
     }
 
     # Open a Git worktree in Herdr while the current workspace is still the
@@ -450,6 +468,10 @@
       return 1
     fi
 
+    if [[ "''${HERDR_ENV:-}" == "1" && -n "$herdr_workspace" ]]; then
+      _resolve_herdr_workspace || return 1
+    fi
+
     local worktree_dir=$(_sanitize_branch "$branch_name")
 
     _check_worktree_exists "$worktree_dir" || return 1
@@ -479,6 +501,8 @@
       # Try to handle hierarchical ref conflict
       local resolved_branch=$(_handle_ref_conflict "$branch_name" "$create_error")
       if [[ -n "$resolved_branch" ]]; then
+        branch_name="$resolved_branch"
+        branch_existed=1
         worktree_dir=$(_sanitize_branch "$resolved_branch")
         _check_worktree_exists "$worktree_dir" || return 1
 
@@ -496,6 +520,10 @@
     _msg "$GREEN" "Worktree created: $worktree_dir"
     if [[ "''${HERDR_ENV:-}" == "1" && -n "$herdr_workspace" ]]; then
       _open_in_herdr "$worktree_dir" || {
+        git worktree remove --force "$worktree_dir" >/dev/null 2>&1 || true
+        if [[ "$branch_existed" -eq 0 ]]; then
+          git branch -D "$branch_name" >/dev/null 2>&1 || true
+        fi
         _error "Failed to open worktree in Herdr"
         return 1
       }
