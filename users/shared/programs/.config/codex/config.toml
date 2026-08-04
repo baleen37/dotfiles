@@ -54,3 +54,6 @@ enabled_tools = ["search_journal", "read_journal", "list_journal", "write_journa
 
 [plugins."slack@openai-curated-remote"]
 enabled = false
+
+[plugins."knowledge-base@baleen-marketplace"]
+enabled = false
