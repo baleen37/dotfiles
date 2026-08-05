@@ -4,6 +4,7 @@
 # - Performance optimizations (UI, input, memory)
 # - Developer-friendly interface (Dock, Finder, Trackpad)
 # - Homebrew integration for GUI apps (homebrew.nix)
+# - Closed-lid wake while on AC power (power.nix)
 # - Automated app cleanup and keyboard config (scripts.nix)
 # - Korean keyboard support with cmd+shift+space
 
@@ -22,6 +23,7 @@ in
 {
   imports = [
     ./homebrew.nix
+    ./power.nix
     ./scripts.nix
   ];
 
