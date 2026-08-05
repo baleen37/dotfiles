@@ -81,6 +81,7 @@ in
     masApps = {
       "Magnet" = 441258766; # Window management tool with multi-monitor support
       "KakaoTalk" = 869223134; # Communication platform (if needed)
+      "Amphetamine" = 937984704; # Keeps the machine awake with the lid closed
     };
 
     # mas discovers installed App Store apps through Spotlight. Keep existing
@@ -89,6 +90,7 @@ in
       masSkip = [
         ("869223134" if File.directory?("/Applications/KakaoTalk.app")),
         ("441258766" if File.directory?("/Applications/Magnet.app")),
+        ("937984704" if File.directory?("/Applications/Amphetamine.app")),
       ].compact
       ENV["HOMEBREW_BUNDLE_MAS_SKIP"] = [ENV["HOMEBREW_BUNDLE_MAS_SKIP"], *masSkip].compact.join(" ")
     '';
