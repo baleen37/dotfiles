@@ -408,6 +408,42 @@
       fi
     }
 
+    # Helper: Find the worktree where the base branch is checked out.
+    local _find_base_worktree() {
+      local base_branch="$1"
+      git worktree list --porcelain |
+        awk -v branch="refs/heads/$base_branch" '
+          /^worktree / { path = substr($0, 10) }
+          /^branch / && $2 == branch { print path; exit }
+        '
+    }
+
+    # Helper: Update the base branch before creating a new branch.
+    local _update_base_branch() {
+      local base_branch="$1"
+      local base_root=$(_find_base_worktree "$base_branch")
+
+      if [[ -z "$base_root" ]]; then
+        _error "Base branch is not checked out: $base_branch"
+        return 1
+      fi
+
+      if [[ -n $(git -C "$base_root" status --porcelain 2>/dev/null) ]]; then
+        _error "Base worktree has uncommitted changes: $base_root"
+        return 1
+      fi
+
+      _msg "$BLUE" "Updating base branch '$base_branch'..."
+      if ! git -C "$base_root" fetch origin; then
+        _error "Failed to fetch origin"
+        return 1
+      fi
+      if ! git -C "$base_root" pull --ff-only origin "$base_branch"; then
+        _error "Failed to fast-forward '$base_branch'"
+        return 1
+      fi
+    }
+
     # Helper: Check if worktree directory exists
     local _check_worktree_exists() {
       if [[ -d "$1" ]]; then
@@ -481,6 +517,10 @@
     if [[ -z "$base_branch" ]]; then
       _error "No main or master branch found"
       return 1
+    fi
+
+    if [[ "$branch_existed" -eq 0 ]]; then
+      _update_base_branch "$base_branch" || return 1
     fi
 
     local create_error
