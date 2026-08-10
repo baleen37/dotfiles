@@ -179,7 +179,7 @@
         # symlink takes ~5s with hundreds of roots.
         local _gc_target _wt_dir
         readlink /nix/var/nix/gcroots/auto/*(N@) 2>/dev/null | while IFS= read -r _gc_target; do
-          [[ "$_gc_target" == "$HOME"/worktrees/*/*/.direnv/* ]] || continue
+          [[ "$_gc_target" == */.worktrees/*/.direnv/* ]] || continue
           echo "''${_gc_target%/.direnv/*}"
         done | sort -u | while IFS= read -r _wt_dir; do
           if [[ -d "$_wt_dir" ]]; then
@@ -379,22 +379,21 @@
       herdr_workspace="$source_workspace"
     }
 
-    # Open a Git worktree in Herdr while the current workspace is still the
-    # parent repository workspace. Herdr's linked-worktree actions reject a
-    # request made after the shell has already cd-ed into the new checkout.
+    # Open an existing Git worktree in Herdr while the current workspace is
+    # still the parent repository workspace. Herdr's linked-worktree actions
+    # reject a request made after the shell has already cd-ed into the checkout.
     local _open_in_herdr() {
       local worktree_dir="$1"
       herdr worktree open --workspace "$herdr_workspace" --path "$worktree_dir" --focus >/dev/null 2>&1
     }
 
     # Helper: Sanitize branch name for directory (replace / with -)
-    # Place worktrees in a shared home directory, grouped by repository.
-    # Always resolve the repository name from the main worktree so wt works
-    # correctly from inside a worktree.
+    # Place worktrees in the repository-local .worktrees directory.
+    # Always resolve the main worktree so wt works correctly from inside a
+    # linked worktree without nesting another .worktrees directory.
     local _sanitize_branch() {
       local repo_root=$(git worktree list --porcelain | sed -n 's/^worktree //p' | head -1)
-      local repo_name=$(basename "$repo_root")
-      echo "''${HOME}/worktrees/''${repo_name}/''${1//\//-}"
+      echo "''${repo_root}/.worktrees/''${1//\//-}"
     }
 
     # Helper: Find base branch (main or master)
@@ -461,7 +460,20 @@
       local worktree_dir="$2"
       local base_branch="$3"
 
-      if git rev-parse --verify "$branch" >/dev/null 2>&1; then
+      if [[ "''${HERDR_ENV:-}" == "1" && -n "$herdr_workspace" ]]; then
+        if git rev-parse --verify "$branch" >/dev/null 2>&1; then
+          _msg "$BLUE" "Branch '$branch' already exists. Using existing branch through Herdr."
+        else
+          _msg "$GREEN" "Creating new branch '$branch' through Herdr (base: $base_branch)"
+        fi
+        herdr worktree create \
+          --workspace "$herdr_workspace" \
+          --branch "$branch" \
+          --base "$base_branch" \
+          --path "$worktree_dir" \
+          --focus \
+          2>&1
+      elif git rev-parse --verify "$branch" >/dev/null 2>&1; then
         _msg "$BLUE" "Branch '$branch' already exists. Using existing branch."
         git worktree add "$worktree_dir" "$branch" 2>&1
       else
@@ -546,11 +558,17 @@
         worktree_dir=$(_sanitize_branch "$resolved_branch")
         _check_worktree_exists "$worktree_dir" || return 1
 
-        if ! git worktree add "$worktree_dir" "$resolved_branch" >/dev/null 2>&1; then
+        local resolved_error
+        if ! resolved_error=$(_create_worktree "$resolved_branch" "$worktree_dir" "$base_branch"); then
           _error "Failed to create worktree"
+          echo "$resolved_error" >&2
           return 1
         fi
       else
+        if [[ "''${HERDR_ENV:-}" == "1" && -n "$herdr_workspace" && "$branch_existed" -eq 0 && "$create_error" == *'"code":"worktree_open_failed"'* ]]; then
+          git worktree remove --force "$worktree_dir" >/dev/null 2>&1 || true
+          git branch -D "$branch_name" >/dev/null 2>&1 || true
+        fi
         _error "Failed to create worktree"
         echo "$create_error" >&2
         return 1
@@ -559,14 +577,7 @@
 
     _msg "$GREEN" "Worktree created: $worktree_dir"
     if [[ "''${HERDR_ENV:-}" == "1" && -n "$herdr_workspace" ]]; then
-      _open_in_herdr "$worktree_dir" || {
-        git worktree remove --force "$worktree_dir" >/dev/null 2>&1 || true
-        if [[ "$branch_existed" -eq 0 ]]; then
-          git branch -D "$branch_name" >/dev/null 2>&1 || true
-        fi
-        _error "Failed to open worktree in Herdr"
-        return 1
-      }
+      :
     else
       cd "$worktree_dir"
     fi

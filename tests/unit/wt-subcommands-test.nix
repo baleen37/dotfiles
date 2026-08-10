@@ -31,9 +31,10 @@ in
       (lib.hasInfix "/nix/var/nix/gcroots/auto" wtScript)
       "wt ls should list worktrees machine-wide via nix-direnv gc-roots, not just the current repo"
     )
-    (helpers.assertTest "wt-ls-scans-shared-worktree-root" (lib.hasInfix (
-      ''"'' + "$HOME" + ''"/worktrees/*/*/.direnv/*''
-    ) wtScript) "wt ls should recognize worktrees under ~/worktrees/<repo>/<branch>")
+    (helpers.assertTest "wt-ls-scans-repository-worktree-roots"
+      (lib.hasInfix ''"$_gc_target" == */.worktrees/*/.direnv/*'' wtScript)
+      "wt ls should recognize worktrees under any repository's .worktrees directory"
+    )
     (helpers.assertTest "wt-rm-subcommand" (lib.hasInfix "rm)" wtScript)
       "wt should handle an rm subcommand"
     )

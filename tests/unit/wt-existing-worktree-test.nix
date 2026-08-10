@@ -45,18 +45,25 @@ in
       "wt should capture the parent Herdr workspace id"
     )
 
-    (helpers.assertTest "wt-opens-worktree-through-herdr" (lib.hasInfix "herdr worktree open" wtScript)
-      "wt should open the created worktree through Herdr"
+    (helpers.assertTest "wt-opens-existing-worktree-through-herdr"
+      (lib.hasInfix "herdr worktree open" wtScript)
+      "wt should open an already existing worktree through Herdr"
     )
+
+    (helpers.assertTest "wt-creates-worktree-through-herdr" (
+      lib.hasInfix "herdr worktree create" wtScript
+      && lib.hasInfix ''--branch "$branch"'' wtScript
+      && lib.hasInfix ''--base "$base_branch"'' wtScript
+    ) "wt should create a new worktree through Herdr when running in a Herdr pane")
 
     (helpers.assertTest "wt-passes-parent-workspace"
       (lib.hasInfix ''--workspace "$herdr_workspace"'' wtScript)
       "wt should pass the parent workspace to Herdr"
     )
 
-    (helpers.assertTest "wt-opens-herdr-before-cd"
+    (helpers.assertTest "wt-passes-path-to-herdr-create"
       (lib.hasInfix ''--path "$worktree_dir" --focus'' wtScript)
-      "wt should open the Herdr worktree before changing the shell directory"
+      "wt should pass the explicit worktree path to Herdr"
     )
 
     (helpers.assertTest "wt-resolves-herdr-source-workspace" (

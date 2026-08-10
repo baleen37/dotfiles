@@ -19,16 +19,13 @@ in
 {
   platforms = [ "any" ];
   value = helpers.testSuite "wt-hook-consistency" [
-    (helpers.assertTest "hook-uses-shared-worktrees-dir" (lib.hasInfix "$HOME/worktrees" hookScript)
-      "hook should place worktrees under ~/worktrees/"
+    (helpers.assertTest "hook-uses-repository-worktrees-dir"
+      (lib.hasInfix "$REPO_ROOT/.worktrees/" hookScript)
+      "hook should place worktrees under <repo>/.worktrees/"
     )
 
-    (helpers.assertTest "hook-uses-repo-name" (lib.hasInfix "basename \"$REPO_ROOT\"" hookScript)
-      "hook should include the repository name in the worktree path"
-    )
-
-    (helpers.assertTest "wt-uses-shared-worktrees-dir" (lib.hasInfix "\${HOME}/worktrees" wtScript)
-      "wt should use the same shared worktree root as the hook"
+    (helpers.assertTest "wt-uses-repository-worktrees-dir" (lib.hasInfix ".worktrees/" wtScript)
+      "wt should use the same repository-local worktree root as the hook"
     )
 
     (helpers.assertTest "hook-resolves-main-root" (lib.hasInfix "worktree list" hookScript)
