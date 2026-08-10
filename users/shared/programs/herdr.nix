@@ -21,9 +21,6 @@ in
       channel = "stable"
       version_check = false
 
-      [worktrees]
-      directory = "~/worktrees"
-
       [keys]
       prefix = "ctrl+a"
       detach = "prefix+d"

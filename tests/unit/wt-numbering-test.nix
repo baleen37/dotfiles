@@ -1,5 +1,5 @@
 # tests/unit/wt-numbering-test.nix
-# Verify wt _sanitize_branch places worktrees in the shared home worktree root.
+# Verify wt _sanitize_branch places worktrees in the repository-local .worktrees root.
 {
   inputs,
   system,
@@ -16,14 +16,15 @@ in
 {
   platforms = [ "any" ];
   value = helpers.testSuite "wt-worktree-path" [
-    (helpers.assertTest "wt-builds-shared-worktree-path" (
-      lib.hasInfix "worktrees/" wtScript
-      && lib.hasInfix "repo_name" wtScript
+    (helpers.assertTest "wt-builds-repository-worktree-path" (
+      lib.hasInfix ".worktrees/" wtScript
+      && lib.hasInfix "repo_root" wtScript
       && lib.hasInfix "1//\\//-" wtScript
-    ) "wt _sanitize_branch should build ~/worktrees/<repo>/<branch> paths")
+    ) "wt _sanitize_branch should build <repo>/.worktrees/<branch> paths")
 
-    (helpers.assertTest "wt-derives-repo-name" (lib.hasInfix "basename \"$repo_root\"" wtScript)
-      "wt should use the main repository directory name in the worktree path"
+    (helpers.assertTest "wt-resolves-main-repository-root"
+      (lib.hasInfix "git worktree list --porcelain" wtScript)
+      "wt should use the main repository root in the worktree path"
     )
   ];
 }
