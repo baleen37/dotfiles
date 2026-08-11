@@ -31,13 +31,11 @@ _:
       /usr/bin/mdutil -E -i on / >&2 || true
     fi
 
-    for app in \
-      "/Applications/KakaoTalk.app"; do
-      adam_id=$(/usr/bin/mdls -raw -name kMDItemAppStoreAdamID "$app" 2>/dev/null || true)
-      if [ -d "$app" ] && { [ -z "$adam_id" ] || [ "$adam_id" = "(null)" ]; }; then
-        /usr/bin/mdimport "$app" 2>/dev/null || true
-      fi
-    done
+    app="/Applications/KakaoTalk.app"
+    adam_id=$(/usr/bin/mdls -raw -name kMDItemAppStoreAdamID "$app" 2>/dev/null || true)
+    if [ -d "$app" ] && { [ -z "$adam_id" ] || [ "$adam_id" = "(null)" ]; }; then
+      /usr/bin/mdimport "$app" 2>/dev/null || true
+    fi
   '';
 
   system.activationScripts.postActivation.text = ''

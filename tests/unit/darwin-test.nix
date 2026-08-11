@@ -95,6 +95,10 @@ in
         && lib.hasInfix "/Applications/KakaoTalk.app" preActivationText
       ) "Activation should enable Spotlight and index the configured MAS apps")
 
+      (helpers.assertTest "spotlight-single-app-has-no-loop" (
+        !(lib.hasInfix "for app in" preActivationText)
+      ) "A single configured MAS app should not use a single-iteration loop")
+
       (helpers.assertTest "mas-existing-app-skip-configured" (
         lib.hasInfix "HOMEBREW_BUNDLE_MAS_SKIP" homebrewExtraConfig
         && lib.hasInfix "Applications/KakaoTalk.app" homebrewExtraConfig
