@@ -25,6 +25,7 @@ let
     # Utility Tools
     "claude"
     "karabiner-elements" # Key remapping and modification tool
+    "Sanyam-G/switch/switch" # Keyboard-driven window switcher
     "orbstack" # Docker and Linux VM management
     "tailscale-app" # VPN mesh network with GUI
     "teleport-connect" # Teleport GUI client for secure infrastructure access
@@ -79,7 +80,6 @@ in
     # Carefully selected apps for development productivity and system management
     # IDs obtained via: nix shell nixpkgs#mas && mas search <app name>
     masApps = {
-      "Magnet" = 441258766; # Window management tool with multi-monitor support
       "KakaoTalk" = 869223134; # Communication platform (if needed)
     };
 
@@ -88,7 +88,6 @@ in
     extraConfig = ''
       masSkip = [
         ("869223134" if File.directory?("/Applications/KakaoTalk.app")),
-        ("441258766" if File.directory?("/Applications/Magnet.app")),
       ].compact
       ENV["HOMEBREW_BUNDLE_MAS_SKIP"] = [ENV["HOMEBREW_BUNDLE_MAS_SKIP"], *masSkip].compact.join(" ")
     '';
@@ -98,6 +97,7 @@ in
     # Note: homebrew/cask is now built into Homebrew by default (since 2023)
     taps = [
       "daipeihust/tap" # im-select
+      "Sanyam-G/switch" # switch window switcher
     ];
   };
 }

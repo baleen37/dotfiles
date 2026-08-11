@@ -76,9 +76,11 @@ in
 
     programs.direnv = {
       enable = true;
-      enableZshIntegration = true;
+      enableZshIntegration = false;
       nix-direnv.enable = true;
     };
+
+    programs.direnv-instant.enable = true;
 
     # Direnv auto-allow configuration
     # Automatically trust all .envrc files in the user's home directory

@@ -45,6 +45,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    direnv-instant = {
+      url = "github:Mic92/direnv-instant/5656a76b19fef6d1cd14b392ff508f15fa7fb086";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     import-tree.url = "github:vic/import-tree";
 
     treefmt-nix = {
