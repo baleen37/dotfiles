@@ -37,6 +37,7 @@ let
   fzfSettings = zshConfigBody.programs.fzf or { };
   zoxideSettings = zshConfigBody.programs.zoxide or { };
   direnvSettings = zshConfigBody.programs.direnv or { };
+  direnvInstantSettings = zshConfigBody.programs.direnv-instant or { };
 
   # Helper to check if an alias exists
   hasAlias = aliasName: builtins.hasAttr aliasName shellAliases;
@@ -147,11 +148,14 @@ in
 
     # Direnv integration
     (helpers.assertTest "direnv-enabled" direnvSettings.enable "direnv should be enabled")
-    (helpers.assertTest "direnv-zsh-integration" direnvSettings.enableZshIntegration
-      "direnv zsh integration should be enabled"
+    (helpers.assertTest "direnv-zsh-integration-disabled" (!direnvSettings.enableZshIntegration)
+      "normal direnv zsh integration should be disabled when direnv-instant is enabled"
     )
     (helpers.assertTest "direnv-nix-integration" direnvSettings.nix-direnv.enable
       "direnv nix-direnv should be enabled"
+    )
+    (helpers.assertTest "direnv-instant-enabled" direnvInstantSettings.enable
+      "direnv-instant should be enabled"
     )
 
     # Direnv auto-allow configuration

@@ -1,12 +1,15 @@
 {
   pkgs,
   currentSystemUser,
+  inputs,
   isDarwin ? pkgs.stdenv.hostPlatform.isDarwin,
   ...
 }:
 
 {
   imports = [
+    inputs.direnv-instant.homeModules.direnv-instant
+
     # Tool configurations (programs)
     ./programs/git.nix
     ./programs/vim.nix
