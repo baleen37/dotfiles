@@ -32,8 +32,7 @@ _:
     fi
 
     for app in \
-      "/Applications/KakaoTalk.app" \
-      "/Applications/Magnet.app"; do
+      "/Applications/KakaoTalk.app"; do
       adam_id=$(/usr/bin/mdls -raw -name kMDItemAppStoreAdamID "$app" 2>/dev/null || true)
       if [ -d "$app" ] && { [ -z "$adam_id" ] || [ "$adam_id" = "(null)" ]; }; then
         /usr/bin/mdimport "$app" 2>/dev/null || true

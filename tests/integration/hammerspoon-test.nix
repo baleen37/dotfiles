@@ -133,6 +133,27 @@ in
       "init.lua should bind Hyper hotkeys"
     )
 
+    (helpers.assertTest "init-window-management-hotkeys" (
+      lib.hasInfix "local windowHotkeyMods = { 'cmd', 'ctrl', 'shift' }" initLuaContent
+      && lib.hasInfix "moveWindowHorizontally(windowUnits.left, 'west')" initLuaContent
+      && lib.hasInfix "moveWindowHorizontally(windowUnits.right, 'east')" initLuaContent
+      && lib.hasInfix "moveWindowToUnit(windowUnits.leftTwoThirds)" initLuaContent
+      && lib.hasInfix "moveWindowToUnit(windowUnits.rightTwoThirds)" initLuaContent
+      && lib.hasInfix "hs.hotkey.bind({ 'alt', 'ctrl' }, 'return'" initLuaContent
+      && lib.hasInfix "moveWindowToUnit(windowUnits.fill)" initLuaContent
+    ) "init.lua should provide the configured Hammerspoon window-management hotkeys")
+
+    (helpers.assertTest "init-window-management-moves-between-screens" (
+      lib.hasInfix "screen:toWest(nil, true)" initLuaContent
+      && lib.hasInfix "screen:toEast(nil, true)" initLuaContent
+      && lib.hasInfix "window:moveToScreen(nextScreen" initLuaContent
+    ) "repeated horizontal tiling should move the window to an adjacent display")
+
+    (helpers.assertTest "init-does-not-register-old-alt-tab-switcher"
+      (!(lib.hasInfix "hs.window.switcher" initLuaContent))
+      "init.lua should leave Cmd-Tab window switching to Switch"
+    )
+
     (helpers.assertTest "init-pomodoro-binding"
       (lib.hasInfix "Hyper:bind({}, 'p', function()" initLuaContent)
       "init.lua should bind Pomodoro toggle"
