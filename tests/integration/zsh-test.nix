@@ -148,9 +148,9 @@ in
 
     # Direnv integration
     (helpers.assertTest "direnv-enabled" direnvSettings.enable "direnv should be enabled")
-    (helpers.assertTest "direnv-zsh-integration-disabled" (!direnvSettings.enableZshIntegration)
-      "normal direnv zsh integration should be disabled when direnv-instant is enabled"
-    )
+    (helpers.assertTest "direnv-zsh-integration-disabled" (
+      !direnvSettings.enableZshIntegration
+    ) "normal direnv zsh integration should be disabled when direnv-instant is enabled")
     (helpers.assertTest "direnv-nix-integration" direnvSettings.nix-direnv.enable
       "direnv nix-direnv should be enabled"
     )

@@ -149,10 +149,9 @@ in
       && lib.hasInfix "window:moveToScreen(nextScreen" initLuaContent
     ) "repeated horizontal tiling should move the window to an adjacent display")
 
-    (helpers.assertTest "init-does-not-register-old-alt-tab-switcher"
-      (!(lib.hasInfix "hs.window.switcher" initLuaContent))
-      "init.lua should leave Cmd-Tab window switching to Switch"
-    )
+    (helpers.assertTest "init-does-not-register-old-alt-tab-switcher" (
+      !(lib.hasInfix "hs.window.switcher" initLuaContent)
+    ) "init.lua should leave Cmd-Tab window switching to Switch")
 
     (helpers.assertTest "init-pomodoro-binding"
       (lib.hasInfix "Hyper:bind({}, 'p', function()" initLuaContent)

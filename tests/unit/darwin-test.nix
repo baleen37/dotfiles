@@ -80,8 +80,7 @@ in
       (assertions.assertListNotEmpty "homebrew-casks-not-empty" homebrewCasks null)
 
       (helpers.assertTest "switch-cask-configured" (
-        lib.elem "Sanyam-G/switch/switch" homebrewCasks
-        && lib.elem "Sanyam-G/switch" homebrewTaps
+        lib.elem "Sanyam-G/switch/switch" homebrewCasks && lib.elem "Sanyam-G/switch" homebrewTaps
       ) "Switch should be installed from its Homebrew tap")
 
       (helpers.assertTest "magnet-not-configured" (
