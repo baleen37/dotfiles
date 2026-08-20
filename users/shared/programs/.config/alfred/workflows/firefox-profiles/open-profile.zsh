@@ -15,8 +15,8 @@ launch_firefox() {
 if (( $# == 0 )); then
   launch_firefox --no-remote --ProfileManager
 elif (( $# == 1 )); then
-  launch_firefox --no-remote -P "$1"
+  launch_firefox --no-remote --profile "$1"
 else
-  print -u2 -- "expected zero or one Firefox profile name"
+  print -u2 -- "expected zero or one Firefox profile path"
   exit 2
 fi

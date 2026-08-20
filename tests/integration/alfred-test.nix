@@ -26,6 +26,8 @@ let
   firefoxWorkflowExists = builtins.pathExists firefoxWorkflowPath;
   infoExists = builtins.pathExists infoPath;
   infoText = if infoExists then builtins.readFile infoPath else "";
+  openScriptText =
+    if builtins.pathExists openScriptPath then builtins.readFile openScriptPath else "";
   workflowEntries =
     if workflowsExist then builtins.attrNames (builtins.readDir workflowsPath) else [ ];
 
@@ -67,10 +69,71 @@ let
   syncedFiles = if syncedEvaluation.success then syncedHome.config.home.file else { };
   syncedWorkflowTarget = "Synced/Alfred.alfredpreferences/workflows/firefox-profiles";
 
+  profileListBehaviorTest = pkgs.runCommand "test-alfred-profile-list" { } ''
+    set -euo pipefail
+
+    test_home="$TMPDIR/home"
+    firefox_data="$test_home/Library/Application Support/Firefox"
+    mkdir -p "$firefox_data/Profile Groups" \
+      "$firefox_data/Profiles/Work Profile" \
+      "$firefox_data/Profiles/personal"
+
+    cat > "$firefox_data/profiles.ini" <<'EOF'
+    [General]
+    Version=2
+
+    [Profile0]
+    Name=default-release
+    IsRelative=1
+    Path=Profiles/Work Profile
+    StoreID=4ec43ac3
+    EOF
+
+    "${pkgs.sqlite}/bin/sqlite3" "$firefox_data/Profile Groups/4ec43ac3.sqlite" <<'SQL'
+    CREATE TABLE Profiles (
+      id INTEGER PRIMARY KEY,
+      path TEXT NOT NULL,
+      name TEXT NOT NULL
+    );
+    INSERT INTO Profiles VALUES
+      (1, 'Profiles/Work Profile', 'work'),
+      (2, 'Profiles/personal', 'personal');
+    SQL
+
+    output="$(HOME="$test_home" FF_SQLITE3_BINARY="${pkgs.sqlite}/bin/sqlite3" ${pkgs.zsh}/bin/zsh ${listScriptPath})"
+    printf '%s\n' "$output"
+    grep -Fq '"title":"work"' <<<"$output"
+    grep -Fq '"title":"personal"' <<<"$output"
+    grep -Fq "\"arg\":\"$firefox_data/Profiles/Work Profile\"" <<<"$output"
+    ! grep -Fq 'default-release' <<<"$output"
+
+    legacy_home="$TMPDIR/legacy-home"
+    legacy_data="$legacy_home/Library/Application Support/Firefox"
+    mkdir -p "$legacy_data/Profiles/legacy"
+    cat > "$legacy_data/profiles.ini" <<'EOF'
+    [General]
+    Version=2
+
+    [Profile0]
+    Name=legacy profile
+    IsRelative=1
+    Path=Profiles/legacy
+    StoreID=missing
+    EOF
+
+    legacy_output="$(HOME="$legacy_home" FF_SQLITE3_BINARY="${pkgs.sqlite}/bin/sqlite3" ${pkgs.zsh}/bin/zsh ${listScriptPath})"
+    printf '%s\n' "$legacy_output"
+    grep -Fq '"title":"legacy profile"' <<<"$legacy_output"
+
+    touch "$out"
+  '';
+
 in
 {
   platforms = [ "darwin" ];
   value = helpers.testSuite "alfred" [
+    profileListBehaviorTest
+
     (helpers.assertTest "alfred-module-exists" moduleExists
       "users/shared/programs/alfred.nix must exist"
     )
@@ -82,6 +145,10 @@ in
     (helpers.assertTest "workflow-scripts-exist" (
       builtins.pathExists listScriptPath && builtins.pathExists openScriptPath
     ) "the Firefox Alfred workflow must contain both executable scripts")
+
+    (helpers.assertTest "open-script-uses-profile-path" (
+      lib.hasInfix "--no-remote" openScriptText && lib.hasInfix "--profile" openScriptText
+    ) "the launcher must pass the selected profile path to Firefox")
 
     (helpers.assertTest "info-plist-has-script-filter" (
       lib.hasInfix "alfred.workflow.input.scriptfilter" infoText

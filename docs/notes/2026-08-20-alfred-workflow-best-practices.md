@@ -3,7 +3,7 @@
 ## 범위와 결론
 
 이 노트는 Alfred에서 Firefox 프로필을 나열하고 선택한 프로필을 실행하는
-workflow를 선언적으로 배치하기 전의 조사 결과다. 구현은 포함하지 않는다.
+workflow를 선언적으로 배치하기 위한 조사 결과와 구현 후 정정 사항을 기록한다.
 외부 근거는 Alfred, Home Manager, Mozilla가 소유한 문서 또는 Mozilla의 Firefox
 소스만 사용했다.
 
@@ -13,9 +13,9 @@ workflow를 선언적으로 배치하기 전의 조사 결과다. 구현은 포�
 - Script Filter는 JSON `items`를 내보내고, 선택 행의 `arg`만 Run Script에 넘긴다.
 - Home Manager는 workflow 하나의 디렉터리만 재귀적으로 링크한다. Alfred 전역
   설정과 `prefs.plist`는 선언하지 않는다.
-- `profiles.ini`의 프로필 열거는 화면상의 섹션 위치나 이름 정렬이 아니라
-  Firefox가 읽는 연속 `Profile0`, `Profile1`, … 순서로 한다. 프로필이 없으면
-  Profile Manager를 열어 사용자가 복구할 수 있게 한다.
+- Firefox의 새 selectable profile 데이터는 `profiles.ini`의 `StoreID`로 연결된
+  `Profile Groups/<StoreID>.sqlite`에서 읽고, 구형 Firefox에서는 `profiles.ini`로
+  fallback한다. 프로필이 없으면 Profile Manager를 열어 사용자가 복구할 수 있게 한다.
 
 ## 1. Script Filter에서 Run Script로의 최소 연결
 
@@ -43,9 +43,9 @@ Filter는 keyword로 실행되고 JSON `items` 배열을 반환한다. 각 행�
 Alfred 업그레이드 뒤에는 UI에서 다시 열어 연결과 debugger 출력을 확인한다.
 
 Script Filter가 한 번에 전체 목록을 반환하고 Alfred가 필터링하게 할 수 있다.
-목록이 작고 정적인 프로필 선택에는 불필요한 재실행을 줄이는 선택지다. 반대로
-실행할 때마다 `profiles.ini`를 읽는 설계라면 입력 변경 중 느린 스크립트를
-중단하는 queue mode와 queue delay도 검토한다.
+목록이 작고 동기 조회가 짧은 프로필 선택에는 적합하다. 이 workflow는 실행할 때마다
+profile source를 읽되, 새 Firefox 형식에서는 `/usr/bin/sqlite3`로 한 번의
+read-only SELECT만 수행하고 별도의 DB 라이브러리나 Nix 패키지를 추가하지 않는다.
 
 근거:
 
@@ -86,7 +86,30 @@ side effect를 붙이지 않고, 필요 시 별도 명시적 검증 단계로 �
 
 - [Home Manager `home.file` options](https://home-manager.dev/manual/23.05/options.html#opt-home.file._name_.recursive): HOME 상대 target, source, directory의 재귀 링크 의미, recursive일 때의 `onChange` 실행 규칙.
 
-## 3. `profiles.ini` 읽기와 빈 목록 fallback
+## 3. Firefox 프로필 source 읽기와 빈 목록 fallback
+
+### 새 selectable profile 데이터
+
+Firefox의 새 profile management는 표시 이름과 실제 profile 경로를
+`Profile Groups/<StoreID>.sqlite`의 `Profiles` 테이블에 저장한다. `profiles.ini`의
+profile section에 있는 `StoreID`가 이 database 이름을 결정한다. 따라서
+`profiles.ini`의 `Name`만 읽으면 Firefox에서 사용자가 지정한 `work`, `personal` 같은
+이름을 놓칠 수 있다.
+
+workflow는 다음의 좁은 read-only 경계를 사용한다.
+
+1. Firefox data directory의 `profiles.ini`에서 첫 `StoreID`를 찾는다.
+2. `Profile Groups/<StoreID>.sqlite`가 있고 `/usr/bin/sqlite3`를 사용할 수 있으면
+   `SELECT name, path FROM Profiles ...`를 한 번 실행한다.
+3. DB의 `name`은 Alfred `title`, DB의 `path`는 data directory 기준 실제 경로로
+   변환해 Alfred `arg`로 사용한다.
+4. DB가 없거나 조회에 실패하면 구형 `profiles.ini` parser로 fallback한다.
+
+SQLite는 읽기 전용으로 열고, DB 파일을 쓰거나 migration하지 않는다. profile path에
+공백이 있어도 JSON escaping 후 argv 하나로 전달하므로 shell word splitting이
+발생하지 않는다. 실행 가능한 directory가 없는 행은 표시하지 않는다.
+
+### 구형 `profiles.ini` fallback
 
 ### Firefox와 같은 순서로 열거하기
 
@@ -109,21 +132,28 @@ Firefox의 현재 profile service는 `Profile0`부터 숫자를 증가시키며 
 Firefox가 의미를 부여하는 번호 순서와 표시 이름을 보존한다는 뜻이다. workflow는
 읽기 전용이어야 하며 `profiles.ini`를 갱신하거나 정렬해서는 안 된다.
 
+### 실행 인자
+
+새 selectable profile은 이름이 legacy `profiles.ini`에 없을 수 있으므로 `-P <name>`
+대신 `--profile <path>`를 사용한다. `--no-remote`와 함께 직접 Firefox binary에
+전달해 별도 인스턴스를 실행한다. Firefox 자체 selectable profile launcher도
+동일하게 실제 profile path를 `--profile`로 전달한다.
+
 ### 빈 목록과 Profile Manager
 
 실행 가능한 프로필이 0개이면 Script Filter는 실패시키거나 빈 화면을 내지 말고
 "Profile Manager 열기"라는 유효한 단일 item을 반환한다. 이 item의 Run Script는
-macOS Firefox binary에 `-P`를 전달해 Profile Manager를 연다.
+macOS Firefox binary에 `--ProfileManager`를 전달해 Profile Manager를 연다.
 
 Mozilla의 macOS 안내는 다음 명령을 제시한다.
 
 ```text
-/Applications/Firefox.app/Contents/MacOS/firefox -P
+/Applications/Firefox.app/Contents/MacOS/firefox --ProfileManager
 ```
 
 운영상 주의점은 다음과 같다.
 
-- `-P` fallback은 새 profile을 자동 생성하는 동작이 아니라 사용자가 만들고
+- `--ProfileManager` fallback은 새 profile을 자동 생성하는 동작이 아니라 사용자가 만들고
   고치고 선택할 수 있는 UI를 여는 복구 경로여야 한다.
 - Mozilla는 Profile Manager를 열기 전에 Firefox를 종료하라고 안내한다. 이미
   실행 중인 Firefox가 있으면 manager가 보이지 않을 수 있으므로, fallback의
@@ -134,7 +164,9 @@ Mozilla의 macOS 안내는 다음 명령을 제시한다.
 
 근거:
 
-- [Mozilla Firefox profile service source](https://searchfox.org/firefox-main/source/toolkit/profile/nsToolkitProfileService.cpp): `Profile0`, `Profile1`, … 연속 열거, 필수 `IsRelative`/`Path`/`Name` 처리, default가 없을 때 Profile Manager를 요청하는 동작.
+- [Mozilla Firefox profile datastore source](https://searchfox.org/firefox-main/source/toolkit/profile/ProfilesDatastoreService.sys.mjs): `Profile Groups/<StoreID>.sqlite`와 `Profiles` table.
+- [Mozilla Firefox selectable profile source](https://searchfox.org/firefox-main/source/browser/components/profiles/SelectableProfileService.sys.mjs): profile path를 `--profile`로 넘기는 launch 방식.
+- [Mozilla Firefox profile service source](https://searchfox.org/firefox-main/source/toolkit/profile/nsToolkitProfileService.cpp): legacy `Profile0`, `Profile1`, … 연속 열거, 필수 `IsRelative`/`Path`/`Name` 처리.
 - [Mozilla Firefox Profile Manager guide](https://support.mozilla.org/en-US/kb/profile-manager-create-remove-switch-firefox-profiles): 프로필 데이터가 application과 분리됨, macOS의 `firefox -P`, Firefox 종료 필요성, 실행 중인 Firefox 때문에 manager가 보이지 않을 수 있다는 주의.
 
 ## 구현 재개 전 확인 목록
@@ -144,6 +176,7 @@ Mozilla의 macOS 안내는 다음 명령을 제시한다.
 2. workflow source 디렉터리에 external script와 실행 권한이 포함되는지 확인한다.
 3. Home Manager target이 정확히 workflow UUID 한 개이며 `prefs.plist`와 상위
    preferences 디렉터리를 건드리지 않는지 확인한다.
-4. fixture에 `Profile0`, 중간 `Install…`, `Profile1`을 넣어 번호 순서가 유지되는지,
-   `Name`의 내부 공백이 표시되는지, 빈 목록에서 `-P` fallback item이 나오는지
-   검증한다.
+4. fixture에 SQLite `work`, `personal` profile과 공백이 있는 path를 넣어 이름과
+   path argv가 보존되는지 검증한다.
+5. StoreID/SQLite가 없는 구형 fixture에서 `profiles.ini` fallback이 동작하는지,
+   빈 목록에서 `--ProfileManager` fallback item이 나오는지 검증한다.
