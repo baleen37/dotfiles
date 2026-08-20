@@ -10,6 +10,7 @@ let
   expectedRule = ''jito.hello ALL = (root) NOPASSWD: /run/current-system/sw/bin/darwin-rebuild ^switch --flake \.\#kakaostyle-jito$'';
   jitoSudo = self.darwinConfigurations.kakaostyle-jito.config.security.sudo.extraConfig;
   macbookSudo = self.darwinConfigurations.macbook-pro.config.security.sudo.extraConfig;
+  jitoPam = self.darwinConfigurations.kakaostyle-jito.config.security.pam.services.sudo_local;
 in
 {
   platforms = [ "darwin" ];
@@ -25,5 +26,15 @@ in
     no-unrestricted-passwordless-sudo = helpers.assertTest "no unrestricted passwordless sudo" (
       !lib.hasInfix "NOPASSWD: ALL" jitoSudo
     ) "kakaostyle-jito should not allow unrestricted passwordless sudo";
+
+    # A password prompt is unanswerable from a non-interactive shell, so sudo
+    # has to have an authentication path that does not need a terminal.
+    sudo-accepts-touch-id =
+      helpers.assertTest "sudo accepts touch id" jitoPam.touchIdAuth
+        "sudo should accept Touch ID so non-interactive shells are not blocked on a password prompt";
+
+    touch-id-works-in-multiplexers =
+      helpers.assertTest "touch id works in multiplexers" jitoPam.reattach
+        "Touch ID for sudo should reattach so it keeps working inside zellij sessions";
   };
 }

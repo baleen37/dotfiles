@@ -72,6 +72,14 @@ in
     ${currentSystemUser} ALL = (root) NOPASSWD: /run/current-system/sw/bin/darwin-rebuild ^switch --flake \.\#kakaostyle-jito$
   '';
 
+  # Touch ID for sudo. Non-interactive shells (Claude Code, scripts) cannot
+  # answer a password prompt at all; Touch ID gives them a path that works.
+  # `reattach` keeps it working inside multiplexer sessions such as zellij.
+  security.pam.services.sudo_local = {
+    touchIdAuth = true;
+    reattach = true;
+  };
+
   # System state version
   system.stateVersion = 5;
 
