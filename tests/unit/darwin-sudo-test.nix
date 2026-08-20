@@ -35,6 +35,6 @@ in
 
     touch-id-works-in-multiplexers =
       helpers.assertTest "touch id works in multiplexers" jitoPam.reattach
-        "Touch ID for sudo should reattach so it keeps working inside zellij sessions";
+        "Touch ID for sudo should reattach so it keeps working inside tmux sessions";
   };
 }
