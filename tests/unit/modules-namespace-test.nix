@@ -48,7 +48,6 @@ let
     "vim"
     "zsh"
     "tmux"
-    "zellij"
     "starship"
     "claude-code"
     "codex"

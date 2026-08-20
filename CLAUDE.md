@@ -80,7 +80,6 @@ users/shared/
 │   ├── vim.nix          # Vim/Neovim setup
 │   ├── zsh.nix          # Zsh shell configuration
 │   ├── tmux.nix         # Terminal multiplexer
-│   ├── zellij.nix       # Zellij multiplexer, tmux-shaped keybindings
 │   ├── starship.nix     # Shell prompt
 │   ├── claude-code.nix  # Claude Code configuration
 │   └── ...              # codex, opencode, ghostty, hammerspoon, karabiner
@@ -338,7 +337,6 @@ trusted-users = root @admin yourusername
 - **users/shared/programs/vim.nix**: Vim setup with airline, tmux-navigator, relative line numbers
 - **users/shared/programs/zsh.nix**: Zsh environment with fzf, direnv, Claude/OpenCode aliases
 - **users/shared/programs/tmux.nix**: Tmux config with vi-mode copy-paste, OSC52 clipboard
-- **users/shared/programs/zellij.nix**: Zellij config mirroring tmux.nix (Ctrl+a prefix chords via Zellij's tmux mode)
 - **users/shared/programs/starship.nix**: Minimal prompt configuration
 - **users/shared/programs/claude-code.nix**: Claude Code commands/skills/hooks deployment
 
@@ -381,15 +379,6 @@ The zsh configuration provides these shortcuts (defined in `users/shared/program
 - Splits use tmux's default keys (`%` left/right, `"` top/bottom), re-bound only to keep the current pane's path
 - Vi-style copy mode with tmux-native OSC52 clipboard (works over SSH)
 - Cross-platform: OSC52 (no pbcopy/xclip dependency)
-
-**Zellij** (users/shared/programs/zellij.nix):
-
-- Ctrl+a enters Zellij's built-in `tmux` mode, so `Ctrl+a <key>` acts as a tmux prefix chord
-- tmux bindings carried over: h/j/k/l focus, H/J/K/L resize, 1-9 tabs, `a` last tab, `T` session picker
-- Splits stay on Zellij's tmux-mode defaults (`%` left/right, `"` top/bottom), matching tmux
-- A Zellij _tab_ stands in for a tmux _window_; the compact layout puts a single status line at the bottom
-- OSC52 clipboard (no `copy_command`), 50000-line scrollback — both matched to tmux.nix
-- Shell auto-start is deliberately off, so Zellij never launches itself inside a tmux pane
 
 **Fzf** (in zsh.nix):
 

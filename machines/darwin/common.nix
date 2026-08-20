@@ -74,7 +74,7 @@ in
 
   # Touch ID for sudo. Non-interactive shells (Claude Code, scripts) cannot
   # answer a password prompt at all; Touch ID gives them a path that works.
-  # `reattach` keeps it working inside multiplexer sessions such as zellij.
+  # `reattach` keeps it working inside tmux sessions.
   security.pam.services.sudo_local = {
     touchIdAuth = true;
     reattach = true;
