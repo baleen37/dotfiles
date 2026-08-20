@@ -53,6 +53,7 @@ let
     "codex"
     "opencode"
     "ghostty"
+    "alfred"
     "hammerspoon"
     "karabiner"
   ];
