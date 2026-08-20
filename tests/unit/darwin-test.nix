@@ -79,6 +79,14 @@ in
       (assertions.assertAttrEquals "homebrew-enabled" darwinConfig.homebrew "enable" true null)
       (assertions.assertListNotEmpty "homebrew-casks-not-empty" homebrewCasks null)
 
+      (helpers.assertTest "alfred-cask-configured" (lib.elem "alfred" homebrewCasks)
+        "Alfred should be installed as the launcher"
+      )
+
+      (helpers.assertTest "raycast-cask-not-configured" (
+        !(lib.elem "raycast" homebrewCasks)
+      ) "Raycast should not be managed after switching to Alfred")
+
       (helpers.assertTest "switch-cask-configured" (
         lib.elem "Sanyam-G/switch/switch" homebrewCasks && lib.elem "Sanyam-G/switch" homebrewTaps
       ) "Switch should be installed from its Homebrew tap")

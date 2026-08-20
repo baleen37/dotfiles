@@ -47,6 +47,8 @@ let
   hammerspoonOnLinux = evalModuleConfig ../../users/shared/programs/hammerspoon.nix false;
   karabinerOnDarwin = evalModuleConfig ../../users/shared/programs/karabiner.nix true;
   karabinerOnLinux = evalModuleConfig ../../users/shared/programs/karabiner.nix false;
+  alfredOnDarwin = evalModuleConfig ../../users/shared/programs/alfred.nix true;
+  alfredOnLinux = evalModuleConfig ../../users/shared/programs/alfred.nix false;
 
 in
 {
@@ -67,5 +69,13 @@ in
     karabiner-disabled-on-linux = helpers.assertTest "karabiner default=false on Linux" (
       karabinerOnLinux.modules.programs.karabiner.enable == false
     ) "Karabiner module must default to enable=false on non-Darwin";
+
+    alfred-enabled-on-darwin = helpers.assertTest "alfred default=true on Darwin" (
+      alfredOnDarwin.modules.programs.alfred.enable == true
+    ) "Alfred module must default to enable=true on Darwin";
+
+    alfred-disabled-on-linux = helpers.assertTest "alfred default=false on Linux" (
+      alfredOnLinux.modules.programs.alfred.enable == false
+    ) "Alfred module must default to enable=false on non-Darwin";
   };
 }
