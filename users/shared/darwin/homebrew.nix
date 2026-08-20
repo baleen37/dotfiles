@@ -10,6 +10,7 @@ let
   homebrew-casks = [
     # Development Tools
     "ghostty" # GPU-accelerated terminal emulator
+    "visual-studio-code" # Code editor (not via nix: store-path launches stamp com.apple.macl and block GC)
 
     # Fonts
     "font-jetbrains-mono" # JetBrains Mono font for terminal
