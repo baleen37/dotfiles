@@ -14,7 +14,7 @@ in
     home.packages = with pkgs; [
       claude-code
       opencode
-      gemini-cli
+      antigravity-cli
     ];
   };
 }
