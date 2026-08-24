@@ -43,6 +43,7 @@ let
     lib.any (path: lib.hasSuffix suffix path) importedPaths;
 
   expectedModules = [
+    "darwin/vscode-launchservices.nix"
     "programs/git.nix"
     "programs/vim.nix"
     "programs/zsh"

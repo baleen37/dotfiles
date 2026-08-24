@@ -39,6 +39,16 @@ let
   devPackageNames = map (pkg: pkg.pname or pkg.name or "") devPackages;
   hasNixVscode = builtins.any (name: name == "vscode") devPackageNames;
 
+  darwinSystemPackages =
+    self.darwinConfigurations.kakaostyle-jito.config.home-manager.users."jito.hello".home.packages;
+  darwinSystemPackageNames = map (pkg: pkg.pname or pkg.name or "") darwinSystemPackages;
+  standaloneHomePackages = self.homeConfigurations."jito.hello".config.home.packages;
+  standaloneHomePackageNames = map (pkg: pkg.pname or pkg.name or "") standaloneHomePackages;
+  hasDarwinSystemVscode = builtins.any (name: name == "vscode") darwinSystemPackageNames;
+  hasStandaloneHomeVscode = builtins.any (name: name == "vscode") standaloneHomePackageNames;
+  standaloneActivation =
+    self.homeConfigurations."jito.hello".config.home.activation.vscodeLaunchServices;
+
   # nix-darwin normalises `homebrew.casks` entries into attrsets, so compare names.
   caskNames = map (cask: cask.name) self.darwinConfigurations.kakaostyle-jito.config.homebrew.casks;
 in
@@ -52,5 +62,21 @@ in
     vscode-from-homebrew-cask =
       helpers.assertTest "vscode from homebrew cask" (builtins.elem "visual-studio-code" caskNames)
         "VS Code should be installed via the visual-studio-code Homebrew cask on Darwin";
+
+    vscode-not-in-darwin-system-home-packages =
+      helpers.assertTest "vscode not in Darwin system Home Manager packages" (!hasDarwinSystemVscode)
+        "Darwin system Home Manager must not add VS Code from the nix store";
+
+    vscode-not-in-standalone-home-packages =
+      helpers.assertTest "vscode not in standalone Home Manager packages" (!hasStandaloneHomeVscode)
+        "standalone make switch-home Home Manager must not add VS Code from the nix store";
+
+    vscode-launchservices-standalone-activation =
+      helpers.assertTest "VS Code LaunchServices repair in standalone activation"
+        (
+          lib.hasInfix "vscode-launchservices.sh" standaloneActivation.data
+          && lib.hasInfix "repair" standaloneActivation.data
+        )
+        "standalone Home Manager activation must run the shared VS Code LaunchServices repair adapter";
   };
 }

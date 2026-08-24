@@ -70,6 +70,15 @@ pkgs.runCommand "makefile-switch-commands-test"
     echo "$switchHome" | grep -q '\.#\$(HM_USER)' \
       || fail "switch-home must select Home Manager profiles with HM_USER"
 
+    echo "$switchHome" | grep -q 'Homebrew' \
+      || fail "switch-home must document that Homebrew is handled only by make switch"
+    if echo "$switchHome" | grep -Eiq '(^|[[:space:]])brew([[:space:]]|$)|darwin-rebuild'; then
+      fail "switch-home must not install Homebrew or run Darwin system activation"
+    fi
+
+    echo "$darwinSwitch" | grep -q 'audit-darwin-vscode' \
+      || fail "make switch must audit VS Code LaunchServices after Darwin activation"
+
     if grep -q -- '--impure' "$makefileSource"; then
       fail "Makefile must evaluate flakes purely"
     fi

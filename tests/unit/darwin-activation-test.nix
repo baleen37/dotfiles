@@ -32,6 +32,11 @@ in
       helpers.assertTest "app cleanup script runs" (lib.hasInfix "GarageBand.app" activation.script.text)
         "App cleanup should be spliced into the assembled activation script";
 
+    vscode-launchservices-repair-runs =
+      helpers.assertTest "VS Code LaunchServices repair runs"
+        (lib.hasInfix "vscode-launchservices.sh" activation.script.text)
+        "Darwin activation should run the shared VS Code LaunchServices repair adapter";
+
     # The regression itself: a segment name nix-darwin does not know about.
     no-orphaned-custom-segments = helpers.assertTest "no orphaned custom activation segments" (
       !(activation ? enableRemoteLogin)
