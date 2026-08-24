@@ -8,6 +8,7 @@ lsregister="${VSCODE_LSREGISTER:-/System/Library/Frameworks/CoreServices.framewo
 mdimport="${VSCODE_MDIMPORT:-/usr/bin/mdimport}"
 osascript="${VSCODE_OSASCRIPT:-/usr/bin/osascript}"
 plutil="${VSCODE_PLUTIL:-/usr/bin/plutil}"
+awk="${VSCODE_AWK:-/usr/bin/awk}"
 
 fail() {
   echo "vscode-launchservices: $*" >&2
@@ -33,7 +34,7 @@ bundle_paths() {
   launchservices_dump="$("$lsregister" -dump 2> /dev/null)" \
     || fail "cannot read LaunchServices database"
 
-  printf '%s\n' "$launchservices_dump" | awk -v expected_id="$bundle_id" '
+  printf '%s\n' "$launchservices_dump" | "$awk" -v expected_id="$bundle_id" '
     /^path:[[:space:]]+/ {
       path = $0
       sub(/^[^:]*:[[:space:]]*/, "", path)
@@ -51,7 +52,7 @@ bundle_paths() {
 }
 
 nix_bundle_paths_from() {
-  printf '%s\n' "$1" | awk '/^\/nix\/store\/.*\/Visual Studio Code[.]app$/ { print }'
+  printf '%s\n' "$1" | "$awk" '/^\/nix\/store\/.*\/Visual Studio Code[.]app$/ { print }'
 }
 
 nix_bundle_paths() {

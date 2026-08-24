@@ -98,6 +98,13 @@ let
           export VSCODE_MDIMPORT="$fake_bin/mdimport"
           export VSCODE_OSASCRIPT="$fake_bin/osascript"
           export VSCODE_CANONICAL_APP="$app"
+          export VSCODE_AWK="${pkgs.gawk}/bin/awk"
+          export PATH="$fake_bin:${pkgs.coreutils}/bin:${pkgs.gnugrep}/bin:${pkgs.gnused}/bin:${pkgs.diffutils}/bin:${pkgs.bash}/bin"
+
+          if command -v awk > /dev/null 2>&1; then
+            echo "test PATH unexpectedly contains awk" >&2
+            exit 1
+          fi
 
           ${pkgs.bash}/bin/bash ${scriptPath} audit > "$test_root/audit-before" || test "$?" -eq 1
           grep -Fq 'representative=/nix/store/fake-vscode/Applications/Visual Studio Code.app' \
