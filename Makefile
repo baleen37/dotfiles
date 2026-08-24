@@ -42,6 +42,7 @@ build-switch: switch
 switch:
 ifeq ($(UNAME), Darwin)
 	$(NIX_ENV) sudo -H $(DARWIN_REBUILD) switch --flake ".#$(NIXNAME)"
+	$(MAKE) audit-darwin-vscode
 else ifeq ($(IS_NIXOS), true)
 	$(NIX_ENV_FULL) $(SUDO_NIX) run "nixpkgs#nixos-rebuild" -- switch --flake ".#${NIXNAME}"
 else
@@ -49,13 +50,25 @@ else
 endif
 
 # Rebuild only Home Manager configuration (faster for user config changes)
+# This target does not install Homebrew casks; full `make switch` owns that path.
 # Usage: make switch-home
 switch-home:
 	@echo "Rebuilding Home Manager configuration for $(HM_USER)..."
 ifeq ($(UNAME), Darwin)
 	$(NIX_ENV) $(NIX) run 'github:nix-community/home-manager' -- switch --flake ".#$(HM_USER)"
+	$(MAKE) audit-darwin-vscode
 else
 	$(NIX_ENV_FULL) $(NIX) run 'github:nix-community/home-manager' -- switch --flake ".#$(HM_USER)"
+endif
+
+# Inspect the LaunchServices owner of the Homebrew-managed VS Code app without
+# changing app bundles, Home Manager generations, or Nix profiles.
+audit-darwin-vscode:
+ifeq ($(UNAME), Darwin)
+	@/bin/sh "$(MAKEFILE_DIR)/users/shared/darwin/vscode-launchservices.sh" audit
+else
+	@echo "audit-darwin-vscode is only supported on Darwin" >&2
+	@exit 1
 endif
 
 test:
@@ -240,7 +253,7 @@ wsl:
 	 nix build ".#nixosConfigurations.wsl.config.system.build.installer"
 
 # Phony targets
-.PHONY: build-switch switch switch-home test test-build test-all test-containers fmt-diff format cache vm/bootstrap0 vm/bootstrap vm/copy vm/switch vm/secrets secrets/backup secrets/restore install-hooks lint update
+.PHONY: build-switch switch switch-home audit-darwin-vscode test test-build test-all test-containers fmt-diff format cache vm/bootstrap0 vm/bootstrap vm/copy vm/switch vm/secrets secrets/backup secrets/restore install-hooks lint update
 
 install-hooks:
 	pre-commit install --hook-type pre-commit --hook-type pre-push

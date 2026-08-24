@@ -10,6 +10,9 @@
   imports = [
     inputs.direnv-instant.homeModules.direnv-instant
 
+    # Darwin GUI ownership and LaunchServices repair.
+    ./darwin/vscode-launchservices.nix
+
     # Tool configurations (programs)
     ./programs/git.nix
     ./programs/vim.nix
