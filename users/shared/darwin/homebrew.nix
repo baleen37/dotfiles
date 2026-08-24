@@ -38,7 +38,7 @@ let
     "anki"
 
     # Productivity Tools
-    "alfred"
+    "raycast"
 
     # Password Management
     "1password"

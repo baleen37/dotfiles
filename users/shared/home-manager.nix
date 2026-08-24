@@ -25,7 +25,6 @@
     ./programs/opencode.nix
     ./programs/ghostty.nix
     ./programs/ssh.nix
-    ./programs/alfred.nix
     ./programs/docker.nix
     ./programs/hammerspoon.nix
     ./programs/karabiner.nix
@@ -45,9 +44,9 @@
   ];
 
   # Programs — modules.programs.<name>.enable.
-  # Alfred, hammerspoon, and karabiner default to
-  # pkgs.stdenv.hostPlatform.isDarwin in their own modules; intentionally not
-  # listed here so the platform default owns the decision.
+  # hammerspoon and karabiner default to pkgs.stdenv.hostPlatform.isDarwin in
+  # their own modules; intentionally not listed here so the platform default
+  # owns the decision.
   modules.programs = {
     git.enable = true;
     vim.enable = true;
