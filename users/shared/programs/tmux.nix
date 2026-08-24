@@ -166,10 +166,10 @@ in
         # OSC52 clipboard integration. The xterm-ghostty terminfo carries the Ms
         # capability, so tmux emits OSC52 itself on copy — no manual printf hack
         # needed. 'on' (vs 'external') also lets apps inside tmux (Neovim/agent
-        # OSC52 yank) populate the clipboard. allow-passthrough keeps DCS-wrapped
-        # OSC52 from coding agents (Claude Code, etc.) working through tmux.
+        # OSC52 yank) populate the clipboard. Keep raw DCS passthrough disabled so
+        # terminal state changes from pane applications cannot leak to Ghostty.
         set -s set-clipboard on
-        set -g allow-passthrough on
+        set -g allow-passthrough off
 
         # Copy to system clipboard via tmux-native OSC52 (works over SSH).
         bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel

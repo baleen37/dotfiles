@@ -251,6 +251,10 @@ in
       (hasConfigString "bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel")
       "tmux should bind y/Enter to copy with OSC52";
 
+  tmux-no-terminal-passthrough =
+    mkConfigTest "tmux-no-terminal-passthrough" (hasConfigString "set -g allow-passthrough off")
+      "tmux should block raw terminal passthrough so disconnected SSH apps cannot leak terminal state";
+
   # ============================================================================
   # Negative tests - ensure old settings are NOT present
   # ============================================================================
