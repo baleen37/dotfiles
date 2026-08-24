@@ -1,6 +1,6 @@
 # platform-defaults-test.nix
-# Verifies that hammerspoon and karabiner default to enable=true on Darwin
-# and enable=false on non-Darwin platforms.
+# Verifies that hammerspoon and karabiner default to enable=true on Darwin and
+# enable=false on non-Darwin platforms.
 #
 # Strategy: mock pkgs with overridden stdenv.hostPlatform.isDarwin to simulate
 # both platforms, then evalModules the modules and check .config.modules.*
@@ -47,9 +47,6 @@ let
   hammerspoonOnLinux = evalModuleConfig ../../users/shared/programs/hammerspoon.nix false;
   karabinerOnDarwin = evalModuleConfig ../../users/shared/programs/karabiner.nix true;
   karabinerOnLinux = evalModuleConfig ../../users/shared/programs/karabiner.nix false;
-  alfredOnDarwin = evalModuleConfig ../../users/shared/programs/alfred.nix true;
-  alfredOnLinux = evalModuleConfig ../../users/shared/programs/alfred.nix false;
-
 in
 {
   platforms = [ "any" ];
@@ -70,12 +67,5 @@ in
       karabinerOnLinux.modules.programs.karabiner.enable == false
     ) "Karabiner module must default to enable=false on non-Darwin";
 
-    alfred-enabled-on-darwin = helpers.assertTest "alfred default=true on Darwin" (
-      alfredOnDarwin.modules.programs.alfred.enable == true
-    ) "Alfred module must default to enable=true on Darwin";
-
-    alfred-disabled-on-linux = helpers.assertTest "alfred default=false on Linux" (
-      alfredOnLinux.modules.programs.alfred.enable == false
-    ) "Alfred module must default to enable=false on non-Darwin";
   };
 }

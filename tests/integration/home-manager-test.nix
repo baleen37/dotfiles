@@ -54,7 +54,6 @@ let
     "programs/opencode.nix"
     "programs/ghostty.nix"
     "programs/ssh.nix"
-    "programs/alfred.nix"
     "programs/hammerspoon.nix"
     "programs/karabiner.nix"
     "packages/core.nix"
@@ -88,14 +87,12 @@ in
         "xdg.enable must be true; several modules write into XDG paths"
       )
 
-      # Alfred, hammerspoon, and karabiner are imported unconditionally and gated
-      # by their own platform defaults (see unit/platform-defaults-test.nix), so
-      # they must not appear in this enable block.
+      # Hammerspoon and karabiner are imported unconditionally and gated by their
+      # own platform defaults (see unit/platform-defaults-test.nix), so they must
+      # not appear in this enable block.
       (helpers.assertTest "platform-gated-modules-not-force-enabled" (
-        !(hmConfig.modules.programs ? alfred)
-        && !(hmConfig.modules.programs ? hammerspoon)
-        && !(hmConfig.modules.programs ? karabiner)
-      ) "alfred/hammerspoon/karabiner must be left to their module-level platform default")
+        !(hmConfig.modules.programs ? hammerspoon) && !(hmConfig.modules.programs ? karabiner)
+      ) "hammerspoon/karabiner must be left to their module-level platform default")
 
       (helpers.assertTest "every-package-category-enabled" (lib.all
         (category: hmConfig.modules.packages.${category}.enable)
