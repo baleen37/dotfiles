@@ -53,6 +53,7 @@ let
     "programs/codex.nix"
     "programs/opencode.nix"
     "programs/ghostty.nix"
+    "programs/raycast.nix"
     "programs/ssh.nix"
     "programs/hammerspoon.nix"
     "programs/karabiner.nix"
