@@ -1,4 +1,4 @@
-# Raycast Script Command configuration
+# Raycast Script Command and Extension configuration
 
 {
   config,
@@ -21,5 +21,6 @@ in
       recursive = true;
       force = true;
     };
+
   };
 }

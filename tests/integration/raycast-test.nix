@@ -24,6 +24,21 @@ let
   scriptPath = ../../users/shared/programs/.config/raycast/script-commands/firefox-profile.sh;
   scriptExists = builtins.pathExists scriptPath;
   script = if scriptExists then builtins.readFile scriptPath else "";
+  extensionPath = ../../users/shared/programs/.config/raycast/extensions/firefox-profile;
+  extensionPackagePath = extensionPath + "/package.json";
+  extensionSourcePath = extensionPath + "/src/choose-profile.tsx";
+  extensionExists = builtins.pathExists extensionPath;
+  extensionPackageResult =
+    if builtins.pathExists extensionPackagePath then
+      builtins.tryEval (builtins.fromJSON (builtins.readFile extensionPackagePath))
+    else
+      {
+        success = false;
+        value = { };
+      };
+  extensionPackage = if extensionPackageResult.success then extensionPackageResult.value else { };
+  extensionSource =
+    if builtins.pathExists extensionSourcePath then builtins.readFile extensionSourcePath else "";
 
   has = needle: lib.hasInfix needle script;
 
@@ -99,6 +114,20 @@ in
     (helpers.assertTest "home-file-force" (
       moduleResult.success && homeFiles.".config/raycast/script-commands".force or false
     ) "Raycast Script Commands should use a force symlink")
+
+    (helpers.assertTest "extension-exists" extensionExists "Firefox profile chooser Extension should exist")
+
+    (helpers.assertTest "extension-manifest" (
+      extensionPackageResult.success
+      && (extensionPackage.name or null) == "firefox-profile"
+      && lib.hasInfix ''"choose-profile"'' (builtins.readFile extensionPackagePath)
+    ) "Firefox profile chooser Extension should declare its command")
+
+    (helpers.assertTest "extension-reads-live-profiles" (
+      lib.hasInfix "Profile Groups" extensionSource
+      && lib.hasInfix "sqlite3" extensionSource
+      && lib.hasInfix "List" extensionSource
+    ) "Firefox profile chooser should build a dynamic List from Firefox profile data")
 
     (helpers.assertTest "script-exists" scriptExists "Firefox Raycast Script Command should exist")
 
