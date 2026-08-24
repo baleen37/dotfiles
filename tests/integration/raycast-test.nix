@@ -68,7 +68,7 @@ let
         export FF_SQLITE3_BINARY="${pkgs.sqlite}/bin/sqlite3"
         export FF_NOHUP_BINARY="${pkgs.coreutils}/bin/nohup"
 
-        ${pkgs.zsh}/bin/zsh ${scriptPath} Work
+        ${pkgs.zsh}/bin/zsh ${scriptPath} work
         sleep 1
         grep -Fx -- '--no-remote' "$capture"
         grep -Fx -- '--profile' "$capture"

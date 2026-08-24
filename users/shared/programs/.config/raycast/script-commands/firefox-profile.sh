@@ -20,6 +20,7 @@ firefox_binary=${FF_FIREFOX_BINARY:-/Applications/Firefox.app/Contents/MacOS/fir
 sqlite_binary=${FF_SQLITE3_BINARY:-/usr/bin/sqlite3}
 nohup_binary=${FF_NOHUP_BINARY:-/usr/bin/nohup}
 profile_name=${1:-}
+profile_name_lower=${profile_name:l}
 profiles_ini="$firefox_data_dir/profiles.ini"
 
 [[ -x $firefox_binary ]] || {
@@ -92,7 +93,7 @@ find_group_profile() {
   ) || return 1
 
   while IFS=$'\t' read -r name relative_path; do
-    [[ $name == "$profile_name" && -n $relative_path ]] || continue
+    [[ ${name:l} == "$profile_name_lower" && -n $relative_path ]] || continue
     path=$(resolve_path "$relative_path")
     [[ -d $path ]] || return 1
     print -r -- "$path"
@@ -114,7 +115,7 @@ find_legacy_profile() {
     path=${profile_paths[$profile_section]-}
     is_relative=${profile_is_relative[$profile_section]-}
 
-    if [[ $name == "$profile_name" && -n $path ]]; then
+    if [[ ${name:l} == "$profile_name_lower" && -n $path ]]; then
       [[ $is_relative == 1 ]] && path=$(resolve_path "$path")
       [[ $path == /* && -d $path ]] || return 1
       print -r -- "$path"
