@@ -115,7 +115,9 @@ in
       moduleResult.success && homeFiles.".config/raycast/script-commands".force or false
     ) "Raycast Script Commands should use a force symlink")
 
-    (helpers.assertTest "extension-exists" extensionExists "Firefox profile chooser Extension should exist")
+    (helpers.assertTest "extension-exists" extensionExists
+      "Firefox profile chooser Extension should exist"
+    )
 
     (helpers.assertTest "extension-manifest" (
       extensionPackageResult.success
