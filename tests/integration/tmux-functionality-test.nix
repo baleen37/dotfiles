@@ -39,16 +39,28 @@ let
   homeConfig = inputs.home-manager.lib.homeManagerConfiguration {
     inherit pkgs;
     modules = [
+      inputs.direnv-instant.homeModules.direnv-instant
       ../../users/shared/programs/tmux.nix
-      {
-        modules.programs.tmux.enable = true;
-        programs.fzf.tmux.enableShellIntegration = true;
-        home = {
-          username = "test";
-          homeDirectory = if pkgs.stdenv.isDarwin then "/Users/test" else "/home/test";
-          stateVersion = "24.11";
-        };
-      }
+      (
+        { config, ... }:
+        {
+          modules.programs.tmux.enable = true;
+          programs.direnv-instant.enable = true;
+          programs.direnv-instant.package =
+            inputs.direnv-instant.packages.${system}.default.overrideAttrs
+              (old: {
+                nativeCheckInputs = map (
+                  input: if (input.pname or null) == "tmux" then config.programs.tmux.package else input
+                ) old.nativeCheckInputs;
+              });
+          programs.fzf.tmux.enableShellIntegration = true;
+          home = {
+            username = "test";
+            homeDirectory = if pkgs.stdenv.isDarwin then "/Users/test" else "/home/test";
+            stateVersion = "24.11";
+          };
+        }
+      )
     ];
   };
   generatedTmuxConfig = homeConfig.config.xdg.configFile."tmux/tmux.conf".text;
@@ -89,6 +101,19 @@ in
   tmux-prefix-is-ctrl-a = helpers.assertTest "tmux-prefix-is-ctrl-a" (
     tmuxConfig.prefix == "C-a"
   ) "tmux prefix should be Ctrl-a (Oh My Tmux style)";
+
+  tmux-darwin-configure-flag = helpers.assertTest "tmux-darwin-configure-flag" (
+    !pkgs.stdenv.isDarwin
+    || lib.elem "--disable-jemalloc" homeConfig.config.programs.tmux.package.configureFlags
+  ) "Darwin tmux should explicitly choose the non-jemalloc build";
+
+  direnv-instant-darwin-tmux-configure-flag =
+    helpers.assertTest "direnv-instant-darwin-tmux-configure-flag"
+      (
+        !pkgs.stdenv.isDarwin
+        || lib.elem homeConfig.config.programs.tmux.package homeConfig.config.programs.direnv-instant.package.nativeBuildInputs
+      )
+      "Darwin direnv-instant should use the configured tmux package";
 
   tmux-prefix-send-prefix =
     mkConfigTest "tmux-prefix-send-prefix" (hasConfigString "bind C-a send-prefix")
@@ -180,7 +205,7 @@ in
     export LC_ALL=en_US.UTF-8
     export TMUX_TMPDIR="$TMPDIR"
     tmux_test() {
-      ${pkgs.tmux}/bin/tmux -f /dev/null -L agent-status-test "$@"
+      ${homeConfig.config.programs.tmux.package}/bin/tmux -f /dev/null -L agent-status-test "$@"
     }
     trap 'tmux_test kill-server 2>/dev/null || true' EXIT
     tmux_test new-session -d -s agent-status-test '${pkgs.coreutils}/bin/sleep 60'
