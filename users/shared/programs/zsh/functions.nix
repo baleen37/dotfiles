@@ -14,6 +14,16 @@
 # (programs.ssh module).
 
 ''
+  # Clear mouse-tracking modes left behind when a remote full-screen app exits
+  # without cleanup (for example, after an SSH connection reset).
+  _reset_terminal_mouse_tracking() {
+    [[ -t 1 ]] || return 0
+    printf '\e[?1000l\e[?1002l\e[?1003l\e[?1006l\e[?1015l'
+  }
+
+  autoload -Uz add-zsh-hook
+  add-zsh-hook precmd _reset_terminal_mouse_tracking
+
   # nix shortcuts
   shell() {
       nix-shell '<nixpkgs>' -A "$1"

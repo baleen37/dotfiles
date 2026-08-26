@@ -217,6 +217,17 @@ in
       "SSH_AUTH_SOCK should be configured for 1Password"
     )
 
+    # Recover terminal mouse tracking after an ungraceful SSH disconnect.
+    (helpers.assertTest "ssh-disconnect-mouse-reset" (initContentHasAll [
+      "_reset_terminal_mouse_tracking"
+      "add-zsh-hook precmd _reset_terminal_mouse_tracking"
+      "1000l"
+      "1002l"
+      "1003l"
+      "1006l"
+      "1015l"
+    ]) "zsh should clear terminal mouse tracking before showing a prompt")
+
     # Shell functions
     (helpers.assertTest "function-shell-exists" (initContentHas "shell()")
       "shell() function for nix-shell should exist"
