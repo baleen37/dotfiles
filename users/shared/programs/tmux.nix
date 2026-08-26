@@ -38,9 +38,13 @@
 
 let
   cfg = config.modules.programs.tmux;
+  tmuxPackage = pkgs.tmux.overrideAttrs (old: {
+    configureFlags =
+      (old.configureFlags or [ ]) ++ lib.optional pkgs.stdenv.hostPlatform.isDarwin "--disable-jemalloc";
+  });
   agentStatusSummary = pkgs.writeShellApplication {
     name = "tmux-agent-status-summary";
-    runtimeInputs = [ pkgs.tmux ];
+    runtimeInputs = [ tmuxPackage ];
     text = builtins.readFile ./tmux-agent-status-summary.sh;
   };
   agentStatusGlyph = "#{?#{==:#{@agent_status},running},●,#{?#{==:#{@agent_status},needs_input},▲,#{?#{==:#{@agent_status},ready},○,#{?#{==:#{@agent_status},error},✕,}}}}";
@@ -56,6 +60,7 @@ in
 
     programs.tmux = {
       enable = true;
+      package = tmuxPackage;
 
       plugins = with pkgs.tmuxPlugins; [
         resurrect
