@@ -1,4 +1,4 @@
-# Raycast Script Command and Extension configuration
+# Raycast Script Command configuration
 
 {
   config,
@@ -35,14 +35,14 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    home.file.".config/raycast/script-commands" = {
-      source = ./.config/raycast/script-commands;
-      recursive = true;
+    home.file.".config/raycast/firefox-profile-launcher.zsh" = {
+      source = ./.config/raycast/firefox-profile-launcher.zsh;
+      executable = true;
       force = true;
     };
 
-    home.file.".config/raycast/firefox-profile-launcher.zsh" = {
-      source = ./.config/raycast/firefox-profile-launcher.zsh;
+    home.file.".config/raycast/generate-firefox-profile-command.zsh" = {
+      source = ./.config/raycast/generate-firefox-profile-command.zsh;
       executable = true;
       force = true;
     };
@@ -52,5 +52,11 @@ in
       executable = true;
       force = true;
     };
+
+    home.activation.raycastFirefoxProfileCommand = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      run mkdir -p "$HOME/.config/raycast/script-commands"
+      run ${pkgs.zsh}/bin/zsh ${./.config/raycast/generate-firefox-profile-command.zsh} \
+        "$HOME/.config/raycast/script-commands/firefox-profile.sh"
+    '';
   };
 }

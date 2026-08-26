@@ -9,10 +9,20 @@
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
 
+  testLib = lib // {
+    hm = {
+      dag.entryAfter = dependencies: body: {
+        after = dependencies;
+        data = body;
+      };
+    };
+  };
+
   modulePath = ../../users/shared/programs/raycast.nix;
   moduleResult = builtins.tryEval (
     import modulePath {
-      inherit pkgs lib;
+      inherit pkgs;
+      lib = testLib;
       config = {
         modules.programs.raycast.enable = true;
       };
@@ -21,32 +31,18 @@ let
   module = if moduleResult.success then moduleResult.value else { };
   raycastConfig = if moduleResult.success then module.config.content else { };
   homeFiles = raycastConfig.home.file or { };
-  scriptPath = ../../users/shared/programs/.config/raycast/script-commands/firefox-profile.sh;
-  scriptExists = builtins.pathExists scriptPath;
-  script = if scriptExists then builtins.readFile scriptPath else "";
-  launcherPath = ../../users/shared/programs/.config/raycast/firefox-profile-launcher.zsh;
+  activation = raycastConfig.home.activation or { };
+  launcherPath = "${../../users/shared/programs/.config/raycast}/firefox-profile-launcher.zsh";
+  generatorPath = "${../../users/shared/programs/.config/raycast}/generate-firefox-profile-command.zsh";
+  helperPath = "${../../users/shared/programs/.config/raycast}/firefox-profile-activate.swift";
   launcherExists = builtins.pathExists launcherPath;
-  launcher = if launcherExists then builtins.readFile launcherPath else "";
-  helperPath = ../../users/shared/programs/.config/raycast/firefox-profile-activate.swift;
+  generatorExists = builtins.pathExists generatorPath;
   helperExists = builtins.pathExists helperPath;
+  launcher = if launcherExists then builtins.readFile launcherPath else "";
+  generator = if generatorExists then builtins.readFile generatorPath else "";
   helper = if helperExists then builtins.readFile helperPath else "";
-  extensionPath = ../../users/shared/programs/.config/raycast/extensions/firefox-profile;
-  extensionPackagePath = extensionPath + "/package.json";
-  extensionSourcePath = extensionPath + "/src/choose-profile.tsx";
-  extensionExists = builtins.pathExists extensionPath;
-  extensionPackageResult =
-    if builtins.pathExists extensionPackagePath then
-      builtins.tryEval (builtins.fromJSON (builtins.readFile extensionPackagePath))
-    else
-      {
-        success = false;
-        value = { };
-      };
-  extensionPackage = if extensionPackageResult.success then extensionPackageResult.value else { };
-  extensionSource =
-    if builtins.pathExists extensionSourcePath then builtins.readFile extensionSourcePath else "";
-
-  has = needle: lib.hasInfix needle script;
+  helperHomeFile = homeFiles.".config/raycast/firefox-profile-activate" or { };
+  helperSource = helperHomeFile.source or null;
 
   runtimeCheck =
     pkgs.runCommand "raycast-firefox-profile-runtime"
@@ -58,6 +54,7 @@ let
       }
       ''
         set -euo pipefail
+        test -x "${helperSource}"
 
         firefox_data_dir="$TMPDIR/firefox"
         mkdir -p "$firefox_data_dir/Profile Groups" "$firefox_data_dir/Profiles/work"
@@ -76,74 +73,141 @@ let
         SQL
 
         capture="$TMPDIR/firefox-args"
-        open_capture="$TMPDIR/open-args"
         fake_firefox="$TMPDIR/firefox-bin"
-        fake_open="$TMPDIR/open-bin"
         cat > "$fake_firefox" <<'EOF'
         #!/bin/sh
         printf '%s\n' "$@" >> "$CAPTURE"
-        EOF
-        cat > "$fake_open" <<'EOF'
-        #!/bin/sh
-        printf '%s\n' "$@" > "$OPEN_CAPTURE"
+        if [ -n "''${FAKE_FIREFOX_DELAY:-}" ]; then
+          sleep "$FAKE_FIREFOX_DELAY"
+          printf '%s\n' done >> "$CAPTURE"
+        fi
         EOF
         chmod +x "$fake_firefox"
-        chmod +x "$fake_open"
 
         export CAPTURE="$capture"
-        export OPEN_CAPTURE="$open_capture"
         export FF_FIREFOX_DATA_DIR="$firefox_data_dir"
         export FF_FIREFOX_BINARY="$fake_firefox"
-        export FF_OPEN_BINARY="$fake_open"
         export FF_SQLITE3_BINARY="${pkgs.sqlite}/bin/sqlite3"
         export FF_NOHUP_BINARY="${pkgs.coreutils}/bin/nohup"
-        export FF_FIREFOX_LAUNCHER="${launcherPath}"
 
         focus_args="$TMPDIR/focus-args"
-        fake_ps="$TMPDIR/ps-bin"
+        lsof_called="$TMPDIR/lsof-called"
+        ps_profile_path="$firefox_data_dir/Profiles/work"
         fake_lsof="$TMPDIR/lsof-bin"
+        fake_ps="$TMPDIR/ps-bin"
         fake_activate="$TMPDIR/activate-bin"
-        cat > "$fake_ps" <<'EOF'
-        #!/bin/sh
-        printf '%s\n' "5151 /Applications/Firefox.app/Contents/MacOS/firefox --profile $PS_PROFILE_PATH"
-        EOF
         cat > "$fake_lsof" <<'EOF'
         #!/bin/sh
-        exit 1
+        printf '%s\n' 4242
         EOF
+        chmod +x "$fake_lsof"
+        cat > "$fake_ps" <<'EOF'
+        #!/bin/sh
+        printf '%s\n' "6161 /Applications/Firefox.app/Contents/MacOS/plugin-container --profile $PS_PROFILE_PATH"
+        printf '%s\n' "5151 /Applications/Firefox.app/Contents/MacOS/firefox --profile $PS_PROFILE_PATH"
+        EOF
+        chmod +x "$fake_ps"
         cat > "$fake_activate" <<'EOF'
         #!/bin/sh
         printf '%s\n' "$@" > "$FOCUS_ARGS"
         EOF
-        chmod +x "$fake_ps" "$fake_lsof" "$fake_activate"
-        export PS_PROFILE_PATH="$firefox_data_dir/Profiles/work"
+        chmod +x "$fake_activate"
+
+        export PS_PROFILE_PATH="$ps_profile_path"
         export FF_PS_BINARY="$fake_ps"
         export FF_LSOF_BINARY="$fake_lsof"
         export FF_FIREFOX_ACTIVATE_BINARY="$fake_activate"
         export FOCUS_ARGS="$focus_args"
-
-        ${pkgs.zsh}/bin/zsh ${scriptPath} work
+        : > "$lsof_called"
+        cat > "$fake_lsof" <<EOF
+        #!/bin/sh
+        printf '%s\n' called > "$lsof_called"
+        exit 1
+        EOF
+        chmod +x "$fake_lsof"
+        : > "$capture"
+        ${pkgs.zsh}/bin/zsh ${launcherPath} wOrK > "$TMPDIR/fast-output" 2>&1
         test ! -s "$capture"
         grep -Fx -- '5151' "$focus_args"
+        test ! -s "$lsof_called"
+        unset FF_PS_BINARY FF_LSOF_BINARY FF_FIREFOX_ACTIVATE_BINARY PS_PROFILE_PATH FOCUS_ARGS
 
-        cat > "$fake_ps" <<'EOF'
+        export FF_LSOF_BINARY="$fake_lsof"
+        export FF_FIREFOX_ACTIVATE_BINARY="$fake_activate"
+        export FOCUS_ARGS="$focus_args"
+        cat > "$fake_lsof" <<'EOF'
+        #!/bin/sh
+        printf '%s\n' 4242
+        EOF
+        chmod +x "$fake_lsof"
+        touch "$firefox_data_dir/Profiles/work/.parentlock"
+        : > "$capture"
+        ${pkgs.zsh}/bin/zsh ${launcherPath} Work > "$TMPDIR/focus-output" 2>&1
+        test ! -s "$capture"
+        grep -Fx -- '4242' "$focus_args"
+        unset FF_LSOF_BINARY FF_FIREFOX_ACTIVATE_BINARY FOCUS_ARGS
+        rm -f "$firefox_data_dir/Profiles/work/.parentlock"
+
+        ${pkgs.zsh}/bin/zsh ${launcherPath} Work
+        sleep 1
+        ! grep -Fx -- '--no-remote' "$capture"
+        grep -Fx -- '--profile' "$capture"
+        grep -Fx -- "$firefox_data_dir/Profiles/work" "$capture"
+
+        export FAKE_FIREFOX_DELAY=1
+        : > "$capture"
+        launcher_output="$TMPDIR/launcher-output"
+        ${pkgs.zsh}/bin/zsh ${launcherPath} Work > "$launcher_output" 2>&1 &
+        launcher_pid=$!
+        for attempt in $(seq 1 50); do
+          if grep -F -- "Opened Firefox profile: Work" "$launcher_output" > /dev/null 2>&1; then
+            break
+          fi
+          sleep 0.02
+        done
+        grep -F -- "Opened Firefox profile: Work" "$launcher_output"
+        wait "$launcher_pid"
+        for attempt in $(seq 1 100); do
+          if grep -Fx -- done "$capture" > /dev/null 2>&1; then
+            break
+          fi
+          sleep 0.02
+        done
+        grep -Fx -- done "$capture"
+        unset FAKE_FIREFOX_DELAY
+
+        generated="$TMPDIR/firefox-profile-generated.sh"
+        export FF_FIREFOX_LAUNCHER="${launcherPath}"
+        ${pkgs.zsh}/bin/zsh ${generatorPath} "$generated"
+        test -x "$generated"
+        grep -F -- '@raycast.argument1' "$generated"
+        test "$(grep -c '^# @raycast.argument1 ' "$generated")" -eq 1
+        grep -F -- '"title": "Work", "value": "'$firefox_data_dir'/Profiles/work"' "$generated"
+        ! grep -F -- 'Profile Manager' "$generated"
+        ! grep -F -- '__profile_manager__' "$generated"
+
+        sqlite_fail="$TMPDIR/sqlite-fail"
+        ps_fail="$TMPDIR/ps-fail"
+        cat > "$sqlite_fail" <<'EOF'
         #!/bin/sh
         exit 1
         EOF
-        chmod +x "$fake_ps"
+        cat > "$ps_fail" <<'EOF'
+        #!/bin/sh
+        exit 1
+        EOF
+        chmod +x "$sqlite_fail" "$ps_fail"
         : > "$capture"
-        ${pkgs.zsh}/bin/zsh ${scriptPath} work
+        export FF_SQLITE3_BINARY="$sqlite_fail"
+        export FF_PS_BINARY="$ps_fail"
+        export FF_FIREFOX_DATA_DIR="$TMPDIR/missing-firefox-data"
+        ${pkgs.zsh}/bin/zsh ${launcherPath} "$firefox_data_dir/Profiles/work"
         for attempt in $(seq 1 50); do
           [[ -s "$capture" ]] && break
           sleep 0.02
         done
         grep -Fx -- '--profile' "$capture"
         grep -Fx -- "$firefox_data_dir/Profiles/work" "$capture"
-
-        : > "$capture"
-        ${pkgs.zsh}/bin/zsh ${scriptPath}
-        grep -Fx -- '-a' "$open_capture"
-        grep -Fx -- 'Firefox' "$open_capture"
 
         touch "$out"
       '';
@@ -154,118 +218,73 @@ in
   value = helpers.testSuite "raycast" [
     (helpers.assertTest "module-importable" moduleResult.success "raycast.nix should be importable")
 
-    (helpers.assertTest "home-file-configured" (
-      moduleResult.success && builtins.hasAttr ".config/raycast/script-commands" homeFiles
-    ) "Raycast Script Commands should be linked from Home Manager")
-
-    (helpers.assertTest "home-file-recursive" (
-      moduleResult.success && homeFiles.".config/raycast/script-commands".recursive or false
-    ) "Raycast Script Commands should be managed recursively")
-
-    (helpers.assertTest "home-file-force" (
-      moduleResult.success && homeFiles.".config/raycast/script-commands".force or false
-    ) "Raycast Script Commands should use a force symlink")
-
     (helpers.assertTest "launcher-file-configured" (
       moduleResult.success && builtins.hasAttr ".config/raycast/firefox-profile-launcher.zsh" homeFiles
     ) "Firefox profile launcher should be linked from Home Manager")
 
-    (helpers.assertTest "focus-helper-configured" (
-      moduleResult.success && builtins.hasAttr ".config/raycast/firefox-profile-activate" homeFiles
-    ) "Firefox native focus helper should be linked from Home Manager")
+    (helpers.assertTest "generator-file-configured" (
+      moduleResult.success
+      && builtins.hasAttr ".config/raycast/generate-firefox-profile-command.zsh" homeFiles
+    ) "Firefox profile dropdown generator should be linked from Home Manager")
 
-    (helpers.assertTest "extension-exists" extensionExists
-      "Firefox profile chooser Extension should exist"
+    (helpers.assertTest "focus-helper-file-configured" (
+      moduleResult.success && builtins.hasAttr ".config/raycast/firefox-profile-activate" homeFiles
+    ) "Firefox native activation helper should be linked from Home Manager")
+
+    (helpers.assertTest "activation-configured" (
+      moduleResult.success
+      && builtins.hasAttr "raycastFirefoxProfileCommand" activation
+      && lib.hasInfix "generate-firefox-profile-command" activation.raycastFirefoxProfileCommand.data
+    ) "Home Manager should regenerate the Raycast dropdown")
+
+    (helpers.assertTest "launcher-exists" launcherExists "Firefox profile launcher should exist")
+
+    (helpers.assertTest "generator-exists" generatorExists "Firefox dropdown generator should exist")
+
+    (helpers.assertTest "focus-helper-exists" helperExists
+      "Firefox native activation helper should exist"
     )
 
-    (helpers.assertTest "extension-manifest" (
-      extensionPackageResult.success
-      && (extensionPackage.name or null) == "firefox-profile"
-      && lib.hasInfix ''"choose-profile"'' (builtins.readFile extensionPackagePath)
-    ) "Firefox profile chooser Extension should declare its command")
-
-    (helpers.assertTest "extension-uses-launcher-profile-contract" (
-      lib.hasInfix "--list-paths" extensionSource
-      && lib.hasInfix "firefox-profile-launcher.zsh" extensionSource
-      && lib.hasInfix "List" extensionSource
-      && !(lib.hasInfix "Profile Groups" extensionSource)
-      && !(lib.hasInfix "sqlite3" extensionSource)
-    ) "Firefox profile chooser should use the launcher's live profile contract")
-
-    (helpers.assertTest "extension-opens-default-profile" (
-      lib.hasInfix "Open Default Firefox" extensionSource
-      && lib.hasInfix "openDefaultProfile" extensionSource
-    ) "Firefox profile chooser should expose the Firefox default profile")
-
-    (helpers.assertTest "extension-does-not-open-profile-manager" (
-      !(lib.hasInfix "Profile Manager" extensionSource)
-      && !(lib.hasInfix "openProfileManager" extensionSource)
-      && !(lib.hasInfix "ProfileManager" extensionSource)
-    ) "Firefox profile chooser should not expose Profile Manager in the quick switcher")
-
-    (helpers.assertTest "extension-launches-by-path" (
-      lib.hasInfix "runProfileScript([profile.path])" extensionSource
-    ) "Firefox profile chooser should launch the selected resolved path")
-
-    (helpers.assertTest "extension-uses-use-promise" (
-      lib.hasInfix "usePromise" extensionSource
-      && lib.hasInfix "@raycast/utils" extensionSource
-    ) "Firefox profile chooser should use Raycast async state management")
-
-    (helpers.assertTest "extension-can-refresh-profiles" (
-      lib.hasInfix "Refresh Profiles" extensionSource
-      && lib.hasInfix "revalidate" extensionSource
-    ) "Firefox profile chooser should refresh its live profile list")
-
-    (helpers.assertTest "extension-reports-launch-errors" (
-      lib.hasInfix "Could not open Firefox profile" extensionSource
-    ) "Firefox profile chooser should report launch failures")
-
-    (helpers.assertTest "script-exists" scriptExists "Firefox Raycast Script Command should exist")
-
-    (helpers.assertTest "script-has-raycast-metadata" (
-      has "@raycast.schemaVersion 1"
-      && has "@raycast.title Firefox Profile"
-      && has "@raycast.mode silent"
-      && has "@raycast.argument1"
-    ) "Firefox Script Command should declare Raycast metadata")
-
-    (helpers.assertTest "launcher-reads-profile-groups" (
-      lib.hasInfix "Profile Groups" launcher
+    (helpers.assertTest "launcher-lists-profiles" (
+      lib.hasInfix "--list" launcher
+      && lib.hasInfix "Profile Groups" launcher
       && lib.hasInfix "sqlite3" launcher
-      && lib.hasInfix "-readonly" launcher
-      && lib.hasInfix "SELECT name, path FROM Profiles" launcher
-    ) "Firefox profile launcher should read selectable profiles from SQLite")
+    ) "Firefox profile launcher should expose profile names for generation")
 
-    (helpers.assertTest "script-delegates-profile-launch" (
-      has "FF_FIREFOX_LAUNCHER"
-      && has "firefox-profile-launcher.zsh"
-      && has "optional"
-      && has "FF_OPEN_BINARY"
-      && !(has "--ProfileManager")
-    ) "Firefox Script Command should delegate profile launch and open normal Firefox")
+    (helpers.assertTest "launcher-reuses-firefox" (
+      lib.hasInfix "--profile" launcher
+      && !(lib.hasInfix "--no-remote" launcher)
+      && !(lib.hasInfix "--new-instance" launcher)
+      && !(lib.hasInfix "ProfileManager" launcher)
+      && !(lib.hasInfix "__profile_manager__" launcher)
+      && lib.hasInfix "ps" launcher
+      && lib.hasInfix "lsof" launcher
+      && lib.hasInfix "firefox-profile-activate" launcher
+    ) "Firefox launcher should reuse an existing profile process")
 
     (helpers.assertTest "launcher-detaches-new-profile" (
       lib.hasInfix "FF_NOHUP_BINARY" launcher
       && lib.hasInfix "nohup_binary" launcher
       && lib.hasInfix "2>&1 &" launcher
-    ) "Firefox profile launcher should not block on a new Firefox process")
+    ) "Firefox launcher should not wait for a new Firefox process")
 
-    (helpers.assertTest "launcher-focuses-existing-profile" (
-      lib.hasInfix "firefox-profile-activate" launcher
-      && lib.hasInfix "profile_pid_from_ps" launcher
-      && lib.hasInfix "profile_pid_from_lsof" launcher
-      && !(lib.hasInfix "--no-remote" launcher)
-    ) "Firefox profile launcher should focus an existing profile process")
+    (helpers.assertTest "generator-has-dropdown" (
+      lib.hasInfix "@raycast.argument1" generator
+      && lib.hasInfix "dropdown" generator
+      && lib.hasInfix "--list-paths" generator
+      && !(lib.hasInfix "Profile Manager" generator)
+      && !(lib.hasInfix "__profile_manager__" generator)
+    ) "Generated Firefox command should use a dropdown argument")
 
-    (helpers.assertTest "focus-helper-uses-cooperative-activation" (
-      !(lib.hasInfix "activateIgnoringOtherApps" helper)
+    (helpers.assertTest "focus-helper-uses-native-activation" (
+      lib.hasInfix "NSRunningApplication" helper
       && lib.hasInfix "activateAllWindows" helper
-    ) "Firefox native focus helper should avoid deprecated focus stealing")
+      && !(lib.hasInfix "activateIgnoringOtherApps" helper)
+    ) "Native helper should activate the Firefox process directly")
 
-    (helpers.assertTest "script-does-not-manage-alfred" (
-      !(lib.hasInfix "alfred" (lib.toLower script))
-    ) "Raycast Script Command should not retain Alfred references")
+    (helpers.assertTest "focus-helper-built" (
+      moduleResult.success && helperSource != null
+    ) "Home Manager should build the native Firefox activation helper")
 
     runtimeCheck
   ];
