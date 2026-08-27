@@ -44,13 +44,13 @@ Home Manager 평가
 
 이 흐름의 각 경계는 다음과 같다.
 
-| 대상 | 생성/사용 방식 | lifecycle 성격 |
-| --- | --- | --- |
-| Starship binary | Home Manager의 `home.packages`에 `cfg.package`를 추가 | Nix store의 immutable한 package 경로 |
-| Starship config | `settings`가 비어 있지 않으면 `home.file.${cfg.configPath}`로 생성 | 생성된 store 파일을 사용자 경로에 materialize |
-| `.zshrc` | `programs.zsh.initContent`가 `home.file."${dotDirRel}/.zshrc".text`가 됨 | Home Manager 세대의 생성 파일이며, switch 때 사용자 링크가 새 세대를 가리킴 |
-| zsh integration | `lib.getExe cfg.package`가 들어간 `eval` 문자열 | PATH lookup을 매 prompt마다 수행하는 안정 wrapper가 아니라 세대별 직접 경로 |
-| prompt runtime | Starship init 소스의 `PROMPT`/`RPROMPT` command substitution | 현재 zsh 프로세스가 초기화 때 가진 경로를 계속 사용 |
+| 대상            | 생성/사용 방식                                                           | lifecycle 성격                                                              |
+| --------------- | ------------------------------------------------------------------------ | --------------------------------------------------------------------------- |
+| Starship binary | Home Manager의 `home.packages`에 `cfg.package`를 추가                    | Nix store의 immutable한 package 경로                                        |
+| Starship config | `settings`가 비어 있지 않으면 `home.file.${cfg.configPath}`로 생성       | 생성된 store 파일을 사용자 경로에 materialize                               |
+| `.zshrc`        | `programs.zsh.initContent`가 `home.file."${dotDirRel}/.zshrc".text`가 됨 | Home Manager 세대의 생성 파일이며, switch 때 사용자 링크가 새 세대를 가리킴 |
+| zsh integration | `lib.getExe cfg.package`가 들어간 `eval` 문자열                          | PATH lookup을 매 prompt마다 수행하는 안정 wrapper가 아니라 세대별 직접 경로 |
+| prompt runtime  | Starship init 소스의 `PROMPT`/`RPROMPT` command substitution             | 현재 zsh 프로세스가 초기화 때 가진 경로를 계속 사용                         |
 
 근거는 다음 공식 소스에 있다.
 
@@ -81,13 +81,13 @@ Home Manager 평가
 
 공식 문서가 Starship용 사용자 wrapper를 별도 권장하는 것은 아니다. 아래 비교는 Nix profile의 공식 안정 링크와 Starship의 공식 path resolution 동작을 바탕으로 한 설계 선택이다.
 
-| 선택지 | 장점 | 단점/위험 | 현재 저장소 판단 |
-| --- | --- | --- | --- |
-| Home Manager 기본 direct store path | package와 init script가 같은 세대에 고정됨. 재현성, rollback, Home Manager 경계가 명확함. 추가 파일 없음 | switch 후 장기 실행 shell은 old path를 유지함. old 세대가 GC되면 prompt 실행 실패 가능 | 일반 환경의 기본값 |
-| Home Manager-managed `~/.local/bin/starship` link | prompt가 세대별 store 경로 대신 사용자 경로를 호출하고, switch 때 link target이 현재 package로 바뀜. 현재 profile 위치 차이를 피함 | 공식 built-in integration 대신 작은 custom zsh seam이 필요함. 기존에 이미 로드된 shell은 한 번 refresh해야 함 | **현재 저장소에 적용** |
-| `~/.nix-profile/bin/starship` 같은 profile-backed stable path를 사용하는 symlink | 사용자-facing 경로가 안정적이고 profile 전환을 따라감. Nix profile 세대가 GC root가 됨 | 현재 Home Manager option은 direct `lib.getExe`를 생성하므로 별도 zsh init 설계가 필요함. init 시 PATH에서 stable entry가 실제로 선택되는지 검증 필요 | hot update 요구가 있을 때 검토 |
-| stable user wrapper가 매번 현재 profile로 dispatch | 기존 shell의 prompt가 stable wrapper를 호출하면 profile 전환을 따라갈 수 있음. fallback/진단을 넣을 수 있음 | 매 prompt마다 wrapper overhead가 추가됨. old init script와 new binary가 섞일 수 있음. quoting, recursion, Home Manager ownership, profile 위치를 직접 관리해야 함 | 요구가 명확할 때만 별도 설계 |
-| switch 뒤 `exec zsh -l` 또는 새 terminal | 구현 변경 없이 새 `.zshrc`와 현재 경로를 적용함. 프로세스 상태가 깨끗함 | 사용자가 세션을 refresh해야 함. 자동 hot update는 아님 | **현재 운영 절차로 권장** |
+| 선택지                                                                           | 장점                                                                                                                               | 단점/위험                                                                                                                                                         | 현재 저장소 판단               |
+| -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
+| Home Manager 기본 direct store path                                              | package와 init script가 같은 세대에 고정됨. 재현성, rollback, Home Manager 경계가 명확함. 추가 파일 없음                           | switch 후 장기 실행 shell은 old path를 유지함. old 세대가 GC되면 prompt 실행 실패 가능                                                                            | 일반 환경의 기본값             |
+| Home Manager-managed `~/.local/bin/starship` link                                | prompt가 세대별 store 경로 대신 사용자 경로를 호출하고, switch 때 link target이 현재 package로 바뀜. 현재 profile 위치 차이를 피함 | 공식 built-in integration 대신 작은 custom zsh seam이 필요함. 기존에 이미 로드된 shell은 한 번 refresh해야 함                                                     | **현재 저장소에 적용**         |
+| `~/.nix-profile/bin/starship` 같은 profile-backed stable path를 사용하는 symlink | 사용자-facing 경로가 안정적이고 profile 전환을 따라감. Nix profile 세대가 GC root가 됨                                             | 현재 Home Manager option은 direct `lib.getExe`를 생성하므로 별도 zsh init 설계가 필요함. init 시 PATH에서 stable entry가 실제로 선택되는지 검증 필요              | hot update 요구가 있을 때 검토 |
+| stable user wrapper가 매번 현재 profile로 dispatch                               | 기존 shell의 prompt가 stable wrapper를 호출하면 profile 전환을 따라갈 수 있음. fallback/진단을 넣을 수 있음                        | 매 prompt마다 wrapper overhead가 추가됨. old init script와 new binary가 섞일 수 있음. quoting, recursion, Home Manager ownership, profile 위치를 직접 관리해야 함 | 요구가 명확할 때만 별도 설계   |
+| switch 뒤 `exec zsh -l` 또는 새 terminal                                         | 구현 변경 없이 새 `.zshrc`와 현재 경로를 적용함. 프로세스 상태가 깨끗함                                                            | 사용자가 세션을 refresh해야 함. 자동 hot update는 아님                                                                                                            | **현재 운영 절차로 권장**      |
 
 ### stable path를 선택할 때의 조건
 
@@ -120,13 +120,13 @@ Home Manager도 현재 세대의 GC root를 activation에서 생성하는 경로
 
 zsh 공식 매뉴얼의 기본 순서는 다음과 같다. `ZDOTDIR`이 unset이면 `HOME`이 사용된다.
 
-| 파일 | 읽히는 조건 | 이 문제와의 관계 |
-| --- | --- | --- |
-| `/etc/zshenv`, `$ZDOTDIR/.zshenv` | 모든 zsh 실행. 단, `RCS`가 꺼지거나 `zsh -f`이면 사용자 startup 파일이 생략됨 | 환경과 매우 이른 초기화. Starship prompt를 두기에는 범위가 넓음 |
-| `/etc/zprofile`, `$ZDOTDIR/.zprofile` | login shell | login 환경. interactive 여부와 별개 |
-| `/etc/zshrc`, `$ZDOTDIR/.zshrc` | interactive shell | Home Manager Starship integration이 들어가는 위치 |
-| `/etc/zlogin`, `$ZDOTDIR/.zlogin` | login shell, `.zshrc` 뒤 | login 전용 후처리 |
-| `$ZDOTDIR/.zlogout`, `/etc/zlogout` | login shell 종료 시 | `exec`로 다른 프로세스로 교체하면 읽히지 않음 |
+| 파일                                  | 읽히는 조건                                                                   | 이 문제와의 관계                                                |
+| ------------------------------------- | ----------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| `/etc/zshenv`, `$ZDOTDIR/.zshenv`     | 모든 zsh 실행. 단, `RCS`가 꺼지거나 `zsh -f`이면 사용자 startup 파일이 생략됨 | 환경과 매우 이른 초기화. Starship prompt를 두기에는 범위가 넓음 |
+| `/etc/zprofile`, `$ZDOTDIR/.zprofile` | login shell                                                                   | login 환경. interactive 여부와 별개                             |
+| `/etc/zshrc`, `$ZDOTDIR/.zshrc`       | interactive shell                                                             | Home Manager Starship integration이 들어가는 위치               |
+| `/etc/zlogin`, `$ZDOTDIR/.zlogin`     | login shell, `.zshrc` 뒤                                                      | login 전용 후처리                                               |
+| `$ZDOTDIR/.zlogout`, `/etc/zlogout`   | login shell 종료 시                                                           | `exec`로 다른 프로세스로 교체하면 읽히지 않음                   |
 
 Home Manager zsh module도 `envExtra`를 `.zshenv`, `profileExtra`를 `.zprofile`, `initContent`를 `.zshrc`, `loginExtra`를 `.zlogin`, `logoutExtra`를 `.zlogout`에 연결한다. 현재 고정 소스는 마지막에 `programs.zsh.initContent`를 `.zshrc`의 `text`로 넣는다. [Home Manager zsh startup option 정의](https://github.com/nix-community/home-manager/blob/6840c9a8f50722944eb106ce8bb237c138584f2a/modules/programs/zsh/default.nix#L316-L365), [Home Manager zsh 파일 생성](https://github.com/nix-community/home-manager/blob/6840c9a8f50722944eb106ce8bb237c138584f2a/modules/programs/zsh/default.nix#L518-L578), [Home Manager `.zshrc` materialization](https://github.com/nix-community/home-manager/blob/6840c9a8f50722944eb106ce8bb237c138584f2a/modules/programs/zsh/default.nix#L700-L712)
 
