@@ -96,7 +96,7 @@ claude /spawn "implement user authentication system"
 
 - **50+ tools**: git, vim, docker, nodejs, python, and more
 - **GUI apps**: 34+ macOS applications via Homebrew
-- **Global commands**: `bl` for project setup and utilities
+- **Global commands**: `bl` for Baleen utilities and safe cleanup
 - **Auto-updates**: Keeps everything current automatically
 - **Testing**: Built-in quality assurance
 
@@ -329,13 +329,12 @@ nix flake update       # Update flake inputs
 Configuration changes are automatically backed up with conflict resolution.
 
 ```bash
-# Install global command system
-./scripts/install-setup-dev
-
-# Available commands
-bl setup-dev <project>    # Initialize Nix development environment
-bl list                   # Show available commands
+# Baleen toolkit commands are installed by Home Manager
 bl --help                 # Usage information
+bl list                   # Show available commands
+bl gc stats               # Show cache, disk, and stale worktree sizes
+bl gc --dry-run           # Show cleanup plan without deleting
+bl gc                     # Confirm and clean regenerable development data
 ```
 
 ### Performance Optimization
