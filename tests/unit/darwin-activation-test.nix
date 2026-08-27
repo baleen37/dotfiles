@@ -37,6 +37,11 @@ in
         (lib.hasInfix "vscode-launchservices.sh" activation.script.text)
         "Darwin activation should run the shared VS Code LaunchServices repair adapter";
 
+    bluetooth-remote-wake-disabled-runs =
+      helpers.assertTest "bluetooth remote wake disable runs"
+        (lib.hasInfix "RemoteWakeEnabled" activation.script.text)
+        "Bluetooth remote wake must be disabled during activation, or paired input devices wake the machine from clamshell sleep on battery";
+
     # The regression itself: a segment name nix-darwin does not know about.
     no-orphaned-custom-segments = helpers.assertTest "no orphaned custom activation segments" (
       !(activation ? enableRemoteLogin)
