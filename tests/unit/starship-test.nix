@@ -47,7 +47,7 @@ in
     [
       # Core configuration
       (starshipHelpers.assertStarshipEnabled starshipConfig)
-      (starshipHelpers.assertStarshipZshIntegration starshipConfig)
+      (starshipHelpers.assertStarshipBuiltinZshIntegrationDisabled starshipConfig)
       (starshipHelpers.assertStarshipHasSettings starshipConfig)
 
       # Format validation - use helper to check all required modules at once
