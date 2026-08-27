@@ -22,17 +22,18 @@ rec {
       config.programs.starship.enable == true
     ) "Starship should be enabled";
 
-  # Assert that Starship Zsh integration is enabled
+  # Assert that Home Manager's built-in Zsh integration is disabled so the
+  # module can initialize Starship through the stable user path.
   #
   # Parameters:
   #   config: The starship configuration to test
   #
-  # Returns: An assertion that passes if Zsh integration is enabled
-  assertStarshipZshIntegration =
+  # Returns: An assertion that passes if the built-in integration is disabled
+  assertStarshipBuiltinZshIntegrationDisabled =
     config:
     helpers.assertTest "starship-zsh-integration" (
-      config.programs.starship.enableZshIntegration == true
-    ) "Starship should have Zsh integration enabled";
+      config.programs.starship.enableZshIntegration == false
+    ) "Home Manager's built-in Starship Zsh integration should be disabled";
 
   # Assert that Starship settings are configured
   #

@@ -4,19 +4,24 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }:
 
 let
   cfg = config.modules.programs.starship;
+  starshipPackage = pkgs.starship;
 in
 {
   options.modules.programs.starship.enable = lib.mkEnableOption "Starship prompt configuration";
 
   config = lib.mkIf cfg.enable {
+    home.file.".local/bin/starship".source = "${starshipPackage}/bin/starship";
+
     programs.starship = {
       enable = true;
-      enableZshIntegration = true;
+      package = starshipPackage;
+      enableZshIntegration = false;
 
       settings = {
         # Basic settings
@@ -119,5 +124,11 @@ in
         gcloud.disabled = true;
       };
     };
+
+    programs.zsh.initContent = lib.mkAfter ''
+      if [[ $TERM != "dumb" ]] && [[ -x "$HOME/.local/bin/starship" ]]; then
+        eval "$("$HOME/.local/bin/starship" init zsh)"
+      fi
+    '';
   };
 }
