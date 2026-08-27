@@ -3,15 +3,14 @@
 # bl - Baleen's small, safety-first command toolkit.
 #
 # `bl gc` intentionally limits itself to regenerable development data. Git
-# worktrees are handled separately and only clean worktrees with at least
-# three days of inactivity are eligible.
+# Worktrees under the home directory are handled separately and only clean
+# worktrees with at least three days of inactivity are eligible.
 
 set -uo pipefail
 
 readonly STALE_WORKTREE_SECONDS=259200
 
 WORKTREE_AVAILABLE=0
-MAIN_WORKTREE=""
 CURRENT_WORKTREE=""
 WORKTREE_ALL_PATHS=()
 WORKTREE_CANDIDATE_PATHS=()
@@ -56,7 +55,8 @@ Usage: bl gc [stats|--dry-run|help]
 
 Safe boundaries:
   - Nix store GC removes unreachable paths only.
-  - Worktree cleanup considers clean worktrees inactive for at least 3 days.
+  - Worktree cleanup scans linked worktrees under the home directory and
+    considers only clean worktrees inactive for at least 3 days.
   - Running worktrees, dirty worktrees, and the current/main worktree stay.
   - Docker cleanup never removes running containers or named volumes.
   - Docker image cleanup keeps the default dangling-image scope.
@@ -199,7 +199,6 @@ directory_size() {
 }
 
 reset_worktree_inventory() {
-  MAIN_WORKTREE=""
   CURRENT_WORKTREE=""
   WORKTREE_ALL_PATHS=()
   WORKTREE_CANDIDATE_PATHS=()
@@ -219,16 +218,10 @@ record_worktree() {
   target=$(canonical_path "$path" || true)
   [[ -n $target ]] || return 0
 
-  if [[ -z $MAIN_WORKTREE ]]; then
-    MAIN_WORKTREE="$target"
-  fi
   WORKTREE_ALL_PATHS+=("$target")
 
-  # The base, current, detached, bare, and unrecognizable worktrees are
-  # protected because they cannot be safely identified as disposable.
-  if [[ $target == "$MAIN_WORKTREE" ]]; then
-    return 0
-  fi
+  # The current, detached, bare, and unrecognizable worktrees are protected
+  # because they cannot be safely identified as disposable.
   if [[ $target == "$CURRENT_WORKTREE" ]]; then
     return 0
   fi
@@ -256,59 +249,93 @@ record_worktree() {
   WORKTREE_CANDIDATE_SIZES+=("$(directory_size "$target")")
 }
 
+absolute_git_path() {
+  local base="$1"
+  local path="$2"
+
+  if [[ $path == /* ]]; then
+    canonical_path "$path"
+  else
+    canonical_path "$base/$path"
+  fi
+}
+
+worktree_git_dir() {
+  local path="$1"
+  local git_dir
+
+  git_dir=$(git -C "$path" rev-parse --git-dir 2> /dev/null) || return 1
+  absolute_git_path "$path" "$git_dir"
+}
+
+worktree_common_dir() {
+  local path="$1"
+  local common_dir
+
+  common_dir=$(git -C "$path" rev-parse --git-common-dir 2> /dev/null) || return 1
+  absolute_git_path "$path" "$common_dir"
+}
+
+worktree_branch() {
+  local path="$1"
+  local branch
+
+  branch=$(git -C "$path" symbolic-ref --quiet --short HEAD 2> /dev/null || true)
+  if [[ -n $branch ]]; then
+    printf '%s\n' "$branch"
+  else
+    printf '(detached)\n'
+  fi
+}
+
 collect_worktrees() {
-  local repo_root field path branch locked
+  local home_root repo_root git_file path target git_dir common_dir branch locked
 
   reset_worktree_inventory
   command_exists git || return 1
-  repo_root=$(git rev-parse --show-toplevel 2> /dev/null) || return 1
-  CURRENT_WORKTREE=$(canonical_path "$repo_root" || true)
-  [[ -n $CURRENT_WORKTREE ]] || return 1
+  command_exists find || return 1
+  home_root=$(canonical_path "$HOME" || true)
+  [[ -n $home_root ]] || return 1
 
-  path=""
-  branch=""
-  locked=0
-  while IFS= read -r -d '' field; do
-    if [[ -z $field ]]; then
-      if [[ -n $path ]]; then
-        record_worktree "$path" "$branch" "$locked"
-        path=""
-        branch=""
-        locked=0
-      fi
+  CURRENT_WORKTREE=""
+  if repo_root=$(git rev-parse --show-toplevel 2> /dev/null); then
+    CURRENT_WORKTREE=$(canonical_path "$repo_root" || true)
+  fi
+
+  while IFS= read -r -d '' git_file; do
+    path="${git_file%/.git}"
+    target=$(canonical_path "$path" || true)
+    [[ -n $target ]] || continue
+    case "$target" in
+      "$home_root" | "$home_root"/*) ;;
+      *) continue ;;
+    esac
+
+    git_dir=$(worktree_git_dir "$target" || true)
+    common_dir=$(worktree_common_dir "$target" || true)
+    if [[ -z $git_dir || -z $common_dir || $git_dir == "$common_dir" ]]; then
       continue
     fi
 
-    case "$field" in
-      worktree\ *)
-        if [[ -n $path ]]; then
-          record_worktree "$path" "$branch" "$locked"
-        fi
-        path="${field#worktree }"
-        branch=""
-        locked=0
-        ;;
-      branch\ *) branch="${field#branch refs/heads/}" ;;
-      detached) branch="(detached)" ;;
-      bare) branch="(bare)" ;;
-      locked | locked\ *) locked=1 ;;
-    esac
+    branch=$(worktree_branch "$target")
+    locked=0
+    if [[ -e "$git_dir/locked" ]]; then
+      locked=1
+    fi
+    record_worktree "$target" "$branch" "$locked"
   done < <(
-    git worktree list --porcelain -z 2> /dev/null
+    find "$home_root" -type d -name .git -prune -o \
+      -type f -name .git -print0 2> /dev/null
   )
 
-  if [[ -n $path ]]; then
-    record_worktree "$path" "$branch" "$locked"
-  fi
-
-  [[ -n $MAIN_WORKTREE ]]
+  return 0
 }
 
 print_worktree_stats() {
   local index
 
   if ((WORKTREE_AVAILABLE == 0)); then
-    printf 'Worktrees: not in a Git repository (skipped)\n'
+    printf 'Worktrees: home scan unavailable (skipped)\n'
     return 0
   fi
 
@@ -356,7 +383,8 @@ print_gc_plan() {
 Planned cleanup:
   - Homebrew cleanup, package-manager caches, Gradle caches, and Xcode DerivedData
   - Nix unreachable store paths after cache/worktree cleanup
-  - Clean worktrees inactive for at least 3 days, after a separate confirmation
+  - Clean linked worktrees under the home directory inactive for at least 3 days,
+    after a separate confirmation
   - Docker stopped containers, dangling images, and builder cache, after a separate confirmation
 EOF
 }
@@ -457,13 +485,14 @@ prepare_worktree_targets() {
 }
 
 remove_stale_worktrees() {
-  local target failed
+  local target common_dir failed
 
   prepare_worktree_targets
   WORKTREE_REMOVED_COUNT=0
   failed=0
   for target in "${WORKTREE_REMOVAL_TARGETS[@]}"; do
-    if git worktree remove "$target"; then
+    common_dir=$(worktree_common_dir "$target" || true)
+    if [[ -n $common_dir ]] && git --git-dir="$common_dir" worktree remove "$target"; then
       printf '  removed worktree: %s\n' "$target"
       WORKTREE_REMOVED_COUNT=$((WORKTREE_REMOVED_COUNT + 1))
     else

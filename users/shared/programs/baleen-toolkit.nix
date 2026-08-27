@@ -21,6 +21,7 @@ let
       bash
       coreutils
       gawk
+      findutils
       gnused
       git
     ];

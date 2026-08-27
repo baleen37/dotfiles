@@ -1,7 +1,8 @@
 # Baleen toolkit CLI tests.
 #
-# The runtime fixture exercises `bl gc --dry-run` against a real Git repository
-# with a worktree whose filesystem and HEAD activity are older than three days.
+# The runtime fixture exercises `bl gc --dry-run` against two real Git
+# repositories under HOME, including worktrees whose filesystem and HEAD
+# activity are older than three days.
 {
   inputs,
   system,
@@ -49,6 +50,7 @@ let
           pkgs.coreutils
           pkgs.gawk
           pkgs.git
+          pkgs.findutils
           pkgs.gnugrep
           pkgs.gnused
         ];
@@ -57,7 +59,7 @@ let
         set -eu
         export HOME="$PWD/home"
         export GIT_CONFIG_NOSYSTEM=1
-        export PATH="${pkgs.bash}/bin:${pkgs.coreutils}/bin:${pkgs.gawk}/bin:${pkgs.gnugrep}/bin:${pkgs.gnused}/bin:${pkgs.git}/bin"
+        export PATH="${pkgs.bash}/bin:${pkgs.coreutils}/bin:${pkgs.gawk}/bin:${pkgs.findutils}/bin:${pkgs.gnugrep}/bin:${pkgs.gnused}/bin:${pkgs.git}/bin"
 
         # Avoid scanning the host Nix store while testing output formatting.
         # Git worktree discovery and age classification still use real Git.
@@ -106,20 +108,40 @@ let
         touch -t 200001010000 "$PWD/.worktrees/locked"
         touch "$PWD/.worktrees/dirty/untracked"
 
+        mkdir -p "$HOME/other-project"
+        cd "$HOME/other-project"
+        git init -q
+        git config user.email test@example.com
+        git config user.name Test
+        touch tracked
+        git add tracked
+        GIT_AUTHOR_DATE="2000-01-01T00:00:00Z" \
+          GIT_COMMITTER_DATE="2000-01-01T00:00:00Z" \
+          git commit -qm initial
+        mkdir -p "$HOME/other-worktrees"
+        git worktree add -q -b external-stale "$HOME/other-worktrees/external-stale"
+        touch -t 200001010000 "$HOME/other-worktrees/external-stale"
+
+        cd "$HOME"
+
         bash "${scriptPath}" gc --dry-run > output
         grep -q "stale" output
+        grep -q "external-stale" output
         grep -q ">= 3 days" output
         if grep -q "locked" output; then
           exit 1
         fi
-        test -d "$PWD/.worktrees/stale"
+        test -d "$HOME/project/.worktrees/stale"
 
         printf 'n\ny\n' | bash "${scriptPath}" gc > cleanup-output
         grep -q "removed worktree" cleanup-output
-        test ! -d "$PWD/.worktrees/stale"
-        test -d "$PWD/.worktrees/dirty"
-        test -d "$PWD/.worktrees/fresh"
-        test -d "$PWD/.worktrees/locked"
+        test ! -d "$HOME/project/.worktrees/stale"
+        test ! -d "$HOME/other-worktrees/external-stale"
+        test -d "$HOME/project/.worktrees/dirty"
+        test -d "$HOME/project/.worktrees/fresh"
+        test -d "$HOME/project/.worktrees/locked"
+        test -d "$HOME/project/.git"
+        test -d "$HOME/other-project/.git"
 
         touch "$out"
       '';
@@ -144,17 +166,21 @@ in
     (assertScriptHas "gc-command" "gc")
     (assertScriptHas "stats" "stats")
     (assertScriptHas "dry-run" "--dry-run")
-    (assertScriptHas "worktree-removal" "git worktree remove")
+    (assertScriptHas "worktree-removal" "worktree remove")
     (assertScriptHas "three-day-threshold" "259200")
-    (assertScriptHas "nul-safe-worktree-list" "git worktree list --porcelain -z")
     (assertScriptHas "locked-worktree-protection" "locked")
     (assertScriptHas "portable-stat" "stat -c %Y")
+    (assertScriptHas "home-worktree-discovery" "find")
+    (assertScriptHas "nul-safe-home-scan" "-print0")
     (assertScriptHas "disk-summary" "df -Pk")
     (helpers.assertTest "best-effort-shell-options" (
       lib.hasInfix "bashOptions = [" module
       && lib.hasInfix ''"nounset"'' module
       && lib.hasInfix ''"pipefail"'' module
     ) "the packaged CLI should not inherit errexit over best-effort cleanup")
+    (helpers.assertTest "findutils-runtime-input" (lib.hasInfix "findutils" module)
+      "the packaged CLI should include findutils for home worktree discovery"
+    )
     (helpers.assertTest "does-not-prune-docker-volumes" (
       !(lib.hasInfix "docker volume prune" script)
     ) "bl gc must preserve Docker named volumes")
