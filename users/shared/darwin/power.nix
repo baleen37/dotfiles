@@ -16,6 +16,13 @@
 # reacts in about a second rather than within a poll window. It also prints the
 # current state right after registering, which is what performs the initial
 # reconcile at load.
+#
+# Separately, Bluetooth input devices wake the machine from clamshell sleep on
+# battery. A paired trackpad nudged in a bag produced a 45s-wake / 10s-sleep
+# DarkWake loop ("due to ... wifibt ... bluetooth-pcie" in `pmset -g log`),
+# which drains the battery while the lid is shut. `RemoteWakeEnabled` is the
+# system-wide switch behind Settings > General > Sharing > Advanced, and
+# nix-darwin has no option for it, so it is written directly below.
 
 _:
 
@@ -53,4 +60,21 @@ _:
       StandardErrorPath = "/var/log/lid-awake-on-ac.log";
     };
   };
+
+  # Stop Bluetooth peripherals from waking the machine with the lid closed.
+  # The key is absent until it has been written once, so `read` failing is the
+  # unset case and is treated as "not yet disabled".
+  system.activationScripts.postActivation.text = ''
+    echo "Disabling Bluetooth remote wake..." >&2
+
+    bt_plist=/Library/Preferences/com.apple.Bluetooth
+    bt_wake=$(/usr/bin/defaults read "$bt_plist" RemoteWakeEnabled 2>/dev/null || echo 1)
+
+    if [ "$bt_wake" = "0" ]; then
+      echo "  ✓  Bluetooth remote wake already disabled" >&2
+    else
+      /usr/bin/defaults write "$bt_plist" RemoteWakeEnabled -bool false >&2 || true
+      echo "  Bluetooth remote wake disabled" >&2
+    fi
+  '';
 }
