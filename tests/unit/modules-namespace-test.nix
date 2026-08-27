@@ -1,5 +1,5 @@
 # modules-namespace-test.nix
-# Verifies that all 22 program/package modules declare their enable option
+# Verifies that all 23 program/package modules declare their enable option
 # under modules.programs.<name>.enable or modules.packages.<name>.enable.
 #
 # Strategy: lib.evalModules with _module.check = false to allow home-manager
@@ -52,6 +52,7 @@ let
     "claude-code"
     "codex"
     "opencode"
+    "baleen-toolkit"
     "ghostty"
     "raycast"
     "hammerspoon"

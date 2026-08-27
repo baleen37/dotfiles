@@ -35,6 +35,7 @@ in
     ./programs/claude-code.nix
     ./programs/codex.nix
     ./programs/opencode.nix
+    ./programs/baleen-toolkit.nix
     ./programs/ghostty.nix
     ./programs/raycast.nix
     ./programs/ssh.nix
@@ -70,6 +71,7 @@ in
     claude-code.enable = true;
     codex.enable = true;
     opencode.enable = true;
+    baleen-toolkit.enable = true;
     ghostty.enable = true;
     ssh.enable = true;
     docker.enable = true;
