@@ -12,6 +12,6 @@ guard CommandLine.arguments.count == 2,
   fail("usage: firefox-profile-activate <pid>")
 }
 
-guard application.activate(options: [.activateIgnoringOtherApps, .activateAllWindows]) else {
+guard application.activate(options: [.activateAllWindows]) else {
   fail("could not activate Firefox process: \(pid)")
 }
