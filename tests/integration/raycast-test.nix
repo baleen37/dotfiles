@@ -57,7 +57,7 @@ let
         test -x "${helperSource}"
 
         firefox_data_dir="$TMPDIR/firefox"
-        mkdir -p "$firefox_data_dir/Profile Groups" "$firefox_data_dir/Profiles/work"
+        mkdir -p "$firefox_data_dir/Profile Groups" "$firefox_data_dir/Profiles/personal" "$firefox_data_dir/Profiles/work"
 
         cat > "$firefox_data_dir/profiles.ini" <<'EOF'
         [Profile0]
@@ -69,7 +69,8 @@ let
 
         ${pkgs.sqlite}/bin/sqlite3 "$firefox_data_dir/Profile Groups/test-store.sqlite" <<'SQL'
         CREATE TABLE Profiles (id INTEGER PRIMARY KEY, name TEXT NOT NULL, path TEXT NOT NULL);
-        INSERT INTO Profiles VALUES (1, 'Work', 'Profiles/work');
+        INSERT INTO Profiles VALUES (1, 'Personal', 'Profiles/personal');
+        INSERT INTO Profiles VALUES (2, 'Work', 'Profiles/work');
         SQL
 
         capture="$TMPDIR/firefox-args"
@@ -88,11 +89,13 @@ let
         export FF_FIREFOX_DATA_DIR="$firefox_data_dir"
         export FF_FIREFOX_BINARY="$fake_firefox"
         export FF_SQLITE3_BINARY="${pkgs.sqlite}/bin/sqlite3"
+        export FF_NOHUP_BINARY="${pkgs.coreutils}/bin/nohup"
 
         focus_args="$TMPDIR/focus-args"
         lsof_called="$TMPDIR/lsof-called"
         ps_profile_path="$firefox_data_dir/Profiles/work"
         fake_lsof="$TMPDIR/lsof-bin"
+        fake_pgrep="$TMPDIR/pgrep-bin"
         fake_ps="$TMPDIR/ps-bin"
         fake_activate="$TMPDIR/activate-bin"
         cat > "$fake_lsof" <<'EOF'
@@ -100,8 +103,17 @@ let
         printf '%s\n' 4242
         EOF
         chmod +x "$fake_lsof"
+        cat > "$fake_pgrep" <<'EOF'
+        #!/bin/sh
+        printf '%s\n' 5151
+        EOF
+        chmod +x "$fake_pgrep"
         cat > "$fake_ps" <<'EOF'
         #!/bin/sh
+        if [ "''${1:-}" = -p ]; then
+          printf '%s\n' "$PS_VALIDATE_COMMAND"
+          exit 0
+        fi
         printf '%s\n' "6161 /Applications/Firefox.app/Contents/MacOS/plugin-container --profile $PS_PROFILE_PATH"
         printf '%s\n' "5151 /Applications/Firefox.app/Contents/MacOS/firefox --profile $PS_PROFILE_PATH"
         EOF
@@ -113,6 +125,7 @@ let
         chmod +x "$fake_activate"
 
         export PS_PROFILE_PATH="$ps_profile_path"
+        export FF_PGREP_BINARY="$fake_pgrep"
         export FF_PS_BINARY="$fake_ps"
         export FF_LSOF_BINARY="$fake_lsof"
         export FF_FIREFOX_ACTIVATE_BINARY="$fake_activate"
@@ -125,7 +138,28 @@ let
         EOF
         chmod +x "$fake_lsof"
         : > "$capture"
-        ${pkgs.zsh}/bin/zsh ${launcherPath} Work > "$TMPDIR/fast-output" 2>&1
+        export PS_VALIDATE_COMMAND="$fake_firefox --profile $firefox_data_dir/Profiles/personal"
+        PS_PROFILE_PATH="$firefox_data_dir/Profiles/work" \
+          ${pkgs.zsh}/bin/zsh ${launcherPath} pErSoNaL > "$TMPDIR/case-output" 2>&1
+        test ! -s "$capture"
+        grep -Fx -- '5151' "$focus_args"
+        test ! -s "$lsof_called"
+
+        cat > "$fake_pgrep" <<'EOF'
+        #!/bin/sh
+        printf '%s\n' 6060
+        EOF
+        chmod +x "$fake_pgrep"
+        export PS_VALIDATE_COMMAND="/usr/bin/pgrep -f -- $fake_firefox --profile $firefox_data_dir/Profiles/work"
+        : > "$capture"
+        ${pkgs.zsh}/bin/zsh ${launcherPath} wOrK > "$TMPDIR/invalid-pid-output" 2>&1
+        test ! -s "$capture"
+        grep -Fx -- '5151' "$focus_args"
+        test ! -s "$lsof_called"
+        unset FF_PGREP_BINARY
+
+        : > "$capture"
+        ${pkgs.zsh}/bin/zsh ${launcherPath} wOrK > "$TMPDIR/fast-output" 2>&1
         test ! -s "$capture"
         grep -Fx -- '5151' "$focus_args"
         test ! -s "$lsof_called"
@@ -155,11 +189,23 @@ let
 
         export FAKE_FIREFOX_DELAY=1
         : > "$capture"
-        ${pkgs.zsh}/bin/zsh ${launcherPath} Work > "$TMPDIR/launcher-output" 2>&1 &
+        launcher_output="$TMPDIR/launcher-output"
+        ${pkgs.zsh}/bin/zsh ${launcherPath} Work > "$launcher_output" 2>&1 &
         launcher_pid=$!
-        sleep 0.2
-        ! grep -Fx -- done "$capture"
+        for attempt in $(seq 1 50); do
+          if grep -F -- "Opened Firefox profile: Work" "$launcher_output" > /dev/null 2>&1; then
+            break
+          fi
+          sleep 0.02
+        done
+        grep -F -- "Opened Firefox profile: Work" "$launcher_output"
         wait "$launcher_pid"
+        for attempt in $(seq 1 100); do
+          if grep -Fx -- done "$capture" > /dev/null 2>&1; then
+            break
+          fi
+          sleep 0.02
+        done
         grep -Fx -- done "$capture"
         unset FAKE_FIREFOX_DELAY
 
@@ -189,6 +235,10 @@ let
         export FF_PS_BINARY="$ps_fail"
         export FF_FIREFOX_DATA_DIR="$TMPDIR/missing-firefox-data"
         ${pkgs.zsh}/bin/zsh ${launcherPath} "$firefox_data_dir/Profiles/work"
+        for attempt in $(seq 1 50); do
+          [[ -s "$capture" ]] && break
+          sleep 0.02
+        done
         grep -Fx -- '--profile' "$capture"
         grep -Fx -- "$firefox_data_dir/Profiles/work" "$capture"
 
@@ -245,6 +295,16 @@ in
       && lib.hasInfix "firefox-profile-activate" launcher
     ) "Firefox launcher should reuse an existing profile process")
 
+    (helpers.assertTest "launcher-uses-fast-process-lookup" (
+      lib.hasInfix "FF_PGREP_BINARY" launcher && lib.hasInfix "pgrep" launcher
+    ) "Firefox launcher should use the fast process lookup path")
+
+    (helpers.assertTest "launcher-detaches-new-profile" (
+      lib.hasInfix "FF_NOHUP_BINARY" launcher
+      && lib.hasInfix "nohup_binary" launcher
+      && lib.hasInfix "2>&1 &" launcher
+    ) "Firefox launcher should not wait for a new Firefox process")
+
     (helpers.assertTest "generator-has-dropdown" (
       lib.hasInfix "@raycast.argument1" generator
       && lib.hasInfix "dropdown" generator
@@ -254,7 +314,9 @@ in
     ) "Generated Firefox command should use a dropdown argument")
 
     (helpers.assertTest "focus-helper-uses-native-activation" (
-      lib.hasInfix "NSRunningApplication" helper && lib.hasInfix "activate(options:" helper
+      lib.hasInfix "NSRunningApplication" helper
+      && lib.hasInfix "activateAllWindows" helper
+      && !(lib.hasInfix "activateIgnoringOtherApps" helper)
     ) "Native helper should activate the Firefox process directly")
 
     (helpers.assertTest "focus-helper-built" (
