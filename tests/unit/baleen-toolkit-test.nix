@@ -64,7 +64,8 @@ let
         # Avoid scanning the host Nix store while testing output formatting.
         # Git worktree discovery and age classification still use real Git.
         mkdir -p fake-bin
-        cat > fake-bin/du <<'EOF'
+        fake_bin="$PWD/fake-bin"
+        cat > "$fake_bin/du" <<'EOF'
         #!/bin/sh
         path=""
         for argument in "$@"; do
@@ -73,10 +74,15 @@ let
             *) path="$argument" ;;
           esac
         done
+        if [ "$path" = "/nix/store" ]; then
+          printf 'du-start\n' >> "$GC_PHASE_LOG"
+          sleep 1
+          printf 'du-end\n' >> "$GC_PHASE_LOG"
+        fi
         printf '1K %s\n' "$path"
         EOF
-        chmod +x fake-bin/du
-        cat > fake-bin/stat <<'EOF'
+        chmod +x "$fake_bin/du"
+        cat > "$fake_bin/stat" <<'EOF'
         #!/bin/sh
         case "$1" in
           -c) exec "${pkgs.coreutils}/bin/stat" "$@" ;;
@@ -84,8 +90,8 @@ let
           *) exit 1 ;;
         esac
         EOF
-        chmod +x fake-bin/stat
-        export PATH="$PWD/fake-bin:$PATH"
+        chmod +x "$fake_bin/stat"
+        export PATH="$fake_bin:$PATH"
 
         mkdir -p "$HOME/project"
         cd "$HOME/project"
@@ -122,12 +128,59 @@ let
         git worktree add -q -b external-stale "$HOME/other-worktrees/external-stale"
         touch -t 200001010000 "$HOME/other-worktrees/external-stale"
 
+        export GIT_METADATA_LOG="$PWD/git-metadata.log"
+        export GC_PHASE_LOG="$PWD/gc-phase.log"
+        export REAL_GIT="${pkgs.git}/bin/git"
+        export REAL_FIND="${pkgs.findutils}/bin/find"
+        : > "$GIT_METADATA_LOG"
+        : > "$GC_PHASE_LOG"
+        cat > "$fake_bin/find" <<'EOF'
+        #!/bin/sh
+        printf 'find-start\n' >> "$GC_PHASE_LOG"
+        sleep 1
+        printf 'find-end\n' >> "$GC_PHASE_LOG"
+        exec "$REAL_FIND" "$@"
+        EOF
+        chmod +x "$fake_bin/find"
+        cat > "$fake_bin/git" <<'EOF'
+        #!/bin/sh
+        if [ "$1" = "-C" ] && [ "$3" = "rev-parse" ]; then
+          case "$4" in
+            --git-dir)
+              if [ "$5" = "--git-common-dir" ]; then
+                printf 'combined\n' >> "$GIT_METADATA_LOG"
+              else
+                printf 'git-dir\n' >> "$GIT_METADATA_LOG"
+              fi
+              ;;
+            --git-common-dir) printf 'common-dir\n' >> "$GIT_METADATA_LOG" ;;
+          esac
+        fi
+        if [ "$1" = "-C" ] && [ "$3" = "symbolic-ref" ]; then
+          printf 'symbolic-ref\n' >> "$GIT_METADATA_LOG"
+        fi
+        exec "$REAL_GIT" "$@"
+        EOF
+        chmod +x "$fake_bin/git"
+
         cd "$HOME"
 
         bash "${scriptPath}" gc --dry-run > output
         grep -q "stale" output
         grep -q "external-stale" output
         grep -q ">= 3 days" output
+        combined_count=$(grep -c '^combined$' "$GIT_METADATA_LOG" || true)
+        legacy_count=$(grep -c -E '^(git-dir|common-dir)$' "$GIT_METADATA_LOG" || true)
+        branch_count=$(grep -c '^symbolic-ref$' "$GIT_METADATA_LOG" || true)
+        du_start=$(grep -n '^du-start$' "$GC_PHASE_LOG" | cut -d: -f1)
+        du_end=$(grep -n '^du-end$' "$GC_PHASE_LOG" | cut -d: -f1)
+        find_start=$(grep -n '^find-start$' "$GC_PHASE_LOG" | cut -d: -f1)
+        find_end=$(grep -n '^find-end$' "$GC_PHASE_LOG" | cut -d: -f1)
+        test "$combined_count" -eq 5
+        test "$legacy_count" -eq 0
+        test "$branch_count" -eq 0
+        test "$du_start" -lt "$find_end"
+        test "$find_start" -lt "$du_end"
         if grep -q "locked" output; then
           exit 1
         fi
