@@ -158,18 +158,18 @@ file_mtime() {
 
 worktree_age_seconds() {
   local path="$1"
-  local directory_time commit_time last_activity now
+  local now="${2:-}"
+  local directory_time commit_time last_activity
 
   directory_time=$(file_mtime "$path") || return 1
   commit_time=$(git -C "$path" log -1 --format=%ct HEAD 2> /dev/null) || return 1
-  [[ $directory_time =~ ^[0-9]+$ && $commit_time =~ ^[0-9]+$ ]] || return 1
+  [[ $directory_time =~ ^[0-9]+$ && $commit_time =~ ^[0-9]+$ && $now =~ ^[0-9]+$ ]] || return 1
 
   last_activity="$directory_time"
   if ((commit_time > last_activity)); then
     last_activity="$commit_time"
   fi
 
-  now=$(date +%s)
   if ((now > last_activity)); then
     printf '%s\n' "$((now - last_activity))"
   else
@@ -213,16 +213,16 @@ record_worktree() {
   local path="$1"
   local branch="$2"
   local locked="$3"
-  local target age
+  local now="${4:-}"
+  local age
 
-  target=$(canonical_path "$path" || true)
-  [[ -n $target ]] || return 0
+  [[ -n $path ]] || return 0
 
-  WORKTREE_ALL_PATHS+=("$target")
+  WORKTREE_ALL_PATHS+=("$path")
 
   # The current, detached, bare, and unrecognizable worktrees are protected
   # because they cannot be safely identified as disposable.
-  if [[ $target == "$CURRENT_WORKTREE" ]]; then
+  if [[ $path == "$CURRENT_WORKTREE" ]]; then
     return 0
   fi
   if [[ $locked == 1 ]]; then
@@ -234,19 +234,19 @@ record_worktree() {
       ;;
   esac
 
-  if [[ -n "$(git -C "$target" status --porcelain 2> /dev/null)" ]]; then
+  if [[ -n "$(git -C "$path" status --porcelain 2> /dev/null)" ]]; then
     return 0
   fi
 
-  age=$(worktree_age_seconds "$target" || true)
+  age=$(worktree_age_seconds "$path" "$now" || true)
   if [[ ! $age =~ ^[0-9]+$ || $age -lt $STALE_WORKTREE_SECONDS ]]; then
     return 0
   fi
 
-  WORKTREE_CANDIDATE_PATHS+=("$target")
+  WORKTREE_CANDIDATE_PATHS+=("$path")
   WORKTREE_CANDIDATE_BRANCHES+=("$branch")
   WORKTREE_CANDIDATE_AGES+=("$age")
-  WORKTREE_CANDIDATE_SIZES+=("$(directory_size "$target")")
+  WORKTREE_CANDIDATE_SIZES+=("$(directory_size "$path")")
 }
 
 absolute_git_path() {
@@ -260,14 +260,6 @@ absolute_git_path() {
   fi
 }
 
-worktree_git_dir() {
-  local path="$1"
-  local git_dir
-
-  git_dir=$(git -C "$path" rev-parse --git-dir 2> /dev/null) || return 1
-  absolute_git_path "$path" "$git_dir"
-}
-
 worktree_common_dir() {
   local path="$1"
   local common_dir
@@ -276,20 +268,38 @@ worktree_common_dir() {
   absolute_git_path "$path" "$common_dir"
 }
 
-worktree_branch() {
+worktree_git_metadata() {
   local path="$1"
-  local branch
+  local metadata git_dir common_dir
 
-  branch=$(git -C "$path" symbolic-ref --quiet --short HEAD 2> /dev/null || true)
-  if [[ -n $branch ]]; then
-    printf '%s\n' "$branch"
-  else
-    printf '(detached)\n'
+  metadata=$(git -C "$path" rev-parse --git-dir --git-common-dir 2> /dev/null) || return 1
+  [[ $metadata == *$'\n'* ]] || return 1
+
+  git_dir=${metadata%%$'\n'*}
+  common_dir=${metadata#*$'\n'}
+  [[ -n $git_dir && -n $common_dir && $common_dir != *$'\n'* ]] || return 1
+
+  git_dir=$(absolute_git_path "$path" "$git_dir") || return 1
+  common_dir=$(absolute_git_path "$path" "$common_dir") || return 1
+  printf '%s\n%s\n' "$git_dir" "$common_dir"
+}
+
+worktree_branch() {
+  local git_dir="$1"
+  local head_ref=""
+
+  if [[ -r "$git_dir/HEAD" ]]; then
+    head_ref=$(< "$git_dir/HEAD")
   fi
+
+  case "$head_ref" in
+    "ref: refs/heads/"*) printf '%s\n' "${head_ref#ref: refs/heads/}" ;;
+    *) printf '(detached)\n' ;;
+  esac
 }
 
 collect_worktrees() {
-  local home_root repo_root git_file path target git_dir common_dir branch locked
+  local home_root repo_root git_file path target metadata git_dir common_dir branch locked now
 
   reset_worktree_inventory
   command_exists git || return 1
@@ -301,6 +311,7 @@ collect_worktrees() {
   if repo_root=$(git rev-parse --show-toplevel 2> /dev/null); then
     CURRENT_WORKTREE=$(canonical_path "$repo_root" || true)
   fi
+  now=$(date +%s)
 
   while IFS= read -r -d '' git_file; do
     path="${git_file%/.git}"
@@ -311,18 +322,22 @@ collect_worktrees() {
       *) continue ;;
     esac
 
-    git_dir=$(worktree_git_dir "$target" || true)
-    common_dir=$(worktree_common_dir "$target" || true)
+    metadata=$(worktree_git_metadata "$target" || true)
+    if [[ $metadata != *$'\n'* ]]; then
+      continue
+    fi
+    git_dir=${metadata%%$'\n'*}
+    common_dir=${metadata#*$'\n'}
     if [[ -z $git_dir || -z $common_dir || $git_dir == "$common_dir" ]]; then
       continue
     fi
 
-    branch=$(worktree_branch "$target")
+    branch=$(worktree_branch "$git_dir")
     locked=0
     if [[ -e "$git_dir/locked" ]]; then
       locked=1
     fi
-    record_worktree "$target" "$branch" "$locked"
+    record_worktree "$target" "$branch" "$locked" "$now"
   done < <(
     find "$home_root" -type d -name .git -prune -o \
       -type f -name .git -print0 2> /dev/null
@@ -363,15 +378,39 @@ print_docker_stats() {
 }
 
 show_gc_stats() {
+  local stats_dir stats_file stats_pid
+
   print_disk_status
   printf '\n'
-  print_cache_stats
-  printf '\n'
+
+  # Cache stats and worktree discovery both scan the filesystem. Compute cache
+  # stats concurrently, then print them in the original order.
+  stats_dir=$(mktemp -d "${TMPDIR:-/tmp}/bl-gc.XXXXXX" 2> /dev/null || true)
+  if [[ -n $stats_dir ]]; then
+    stats_file="$stats_dir/cache-stats"
+    print_cache_stats > "$stats_file" &
+    stats_pid=$!
+  else
+    stats_file=""
+    stats_pid=""
+  fi
+
   if collect_worktrees; then
     WORKTREE_AVAILABLE=1
   else
     WORKTREE_AVAILABLE=0
   fi
+
+  if [[ -n $stats_pid ]]; then
+    wait "$stats_pid" || true
+    cat "$stats_file"
+    rm -f "$stats_file"
+    rmdir "$stats_dir"
+  else
+    print_cache_stats
+  fi
+
+  printf '\n'
   print_worktree_stats
   printf '\n'
   print_docker_stats
