@@ -6,10 +6,13 @@ firefox_data_dir=${FF_FIREFOX_DATA_DIR:-${HOME}/Library/Application Support/Fire
 firefox_binary=${FF_FIREFOX_BINARY:-/Applications/Firefox.app/Contents/MacOS/firefox}
 sqlite_binary=${FF_SQLITE3_BINARY:-/usr/bin/sqlite3}
 lsof_binary=${FF_LSOF_BINARY:-/usr/sbin/lsof}
+pgrep_binary=${FF_PGREP_BINARY:-/usr/bin/pgrep}
 ps_binary=${FF_PS_BINARY:-/bin/ps}
 activate_binary=${FF_FIREFOX_ACTIVATE_BINARY:-${HOME}/.config/raycast/firefox-profile-activate}
+nohup_binary=${FF_NOHUP_BINARY:-/usr/bin/nohup}
 profile_selector=${1:?profile name or path is required}
 profile_name=$profile_selector
+profile_name_lower=${profile_name:l}
 profiles_ini="$firefox_data_dir/profiles.ini"
 
 typeset -A profile_is_relative profile_paths profile_names
@@ -159,7 +162,7 @@ find_group_profile() {
   rows=$(group_rows) || return 1
 
   while IFS=$'\t' read -r name relative_path; do
-    [[ $name == "$profile_name" && -n $relative_path ]] || continue
+    [[ ${name:l} == "$profile_name_lower" && -n $relative_path ]] || continue
     path=$(resolve_path "$relative_path")
     [[ -d $path ]] || return 1
     print -r -- "$path"
@@ -181,7 +184,7 @@ find_legacy_profile() {
     path=${profile_paths[$profile_section]-}
     is_relative=${profile_is_relative[$profile_section]-}
 
-    if [[ $name == "$profile_name" && -n $path ]]; then
+    if [[ ${name:l} == "$profile_name_lower" && -n $path ]]; then
       [[ $is_relative == 1 ]] && path=$(resolve_path "$path")
       [[ $path == /* && -d $path ]] || return 1
       print -r -- "$path"
@@ -190,6 +193,20 @@ find_legacy_profile() {
 
     ((index += 1))
   done
+
+  return 1
+}
+
+profile_pid_from_pgrep() {
+  local profile_path=$1 candidate process_command
+  [[ -x $pgrep_binary && -x $ps_binary ]] || return 1
+
+  while IFS= read -r candidate; do
+    process_command=$("$ps_binary" -p "$candidate" -o command= 2> /dev/null) || continue
+    [[ $process_command == "$firefox_binary --profile $profile_path"* ]] || continue
+    print -r -- "$candidate"
+    return 0
+  done < <("$pgrep_binary" -f -- "$firefox_binary --profile $profile_path" 2> /dev/null)
 
   return 1
 }
@@ -241,7 +258,12 @@ fi
 }
 
 launch_firefox() {
-  "$firefox_binary" "$@" > /dev/null 2>&1
+  [[ -x $nohup_binary ]] || {
+    print -u2 -- "nohup binary not found: $nohup_binary"
+    return 1
+  }
+
+  "$nohup_binary" "$firefox_binary" "$@" > /dev/null 2>&1 &
 }
 
 if [[ $profile_selector == /* && -d $profile_selector ]]; then
@@ -255,7 +277,10 @@ else
   }
 fi
 
-profile_pid=$(profile_pid_from_ps "$profile_path") || profile_pid=""
+profile_pid=$(profile_pid_from_pgrep "$profile_path") || profile_pid=""
+if [[ -z $profile_pid ]]; then
+  profile_pid=$(profile_pid_from_ps "$profile_path") || profile_pid=""
+fi
 if [[ -z $profile_pid ]]; then
   profile_pid=$(profile_pid_from_lsof "$profile_path") || profile_pid=""
 fi

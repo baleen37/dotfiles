@@ -44,6 +44,7 @@ let
 
   expectedModules = [
     "darwin/vscode-launchservices.nix"
+    "darwin/keyboard-input.nix"
     "programs/git.nix"
     "programs/vim.nix"
     "programs/zsh"

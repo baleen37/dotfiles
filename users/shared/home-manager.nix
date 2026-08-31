@@ -24,6 +24,7 @@ in
 
     # Darwin GUI ownership and LaunchServices repair.
     ./darwin/vscode-launchservices.nix
+    ./darwin/keyboard-input.nix
 
     # Tool configurations (programs)
     ./programs/git.nix
