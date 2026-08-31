@@ -102,13 +102,6 @@ _:
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
   '';
 
-  # Keyboard input source configuration is deliberately absent.
-  #
-  # It used to live here as `system.activationScripts.configureKeyboard`, which
-  # never ran for the reason described above. Moving it into postActivation would
-  # start it running, and its hotkey payload is wrong: it wrote
-  # `parameters = (49, 1048576, 131072)` for hotkey 60, while the working value
-  # on this machine is `(32, 49, 1179648)` -- character, keycode, modifiers, in
-  # that order. Enabling it as-written would break cmd+shift+space input
-  # switching, which already works, so it was dropped rather than resurrected.
+  # Keyboard input source configuration lives in the Darwin Home Manager module
+  # at `darwin/keyboard-input.nix`, where activation runs as the target user.
 }
