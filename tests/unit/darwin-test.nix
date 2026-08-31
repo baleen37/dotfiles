@@ -83,6 +83,14 @@ in
         "Raycast should be installed as the launcher"
       )
 
+      (helpers.assertTest "neru-cask-configured" (lib.elem "y3owk1n/tap/neru" homebrewCasks)
+        "Neru should be installed from its Homebrew tap"
+      )
+
+      (helpers.assertTest "neru-tap-configured" (lib.elem "y3owk1n/tap" homebrewTaps)
+        "Neru's Homebrew tap should be configured"
+      )
+
       (helpers.assertTest "switch-cask-configured" (
         lib.elem "Sanyam-G/switch/switch" homebrewCasks && lib.elem "Sanyam-G/switch" homebrewTaps
       ) "Switch should be installed from its Homebrew tap")

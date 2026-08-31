@@ -1,5 +1,5 @@
 # platform-defaults-test.nix
-# Verifies that hammerspoon and karabiner default to enable=true on Darwin and
+# Verifies that Darwin-only GUI tools default to enable=true on Darwin and
 # enable=false on non-Darwin platforms.
 #
 # Strategy: mock pkgs with overridden stdenv.hostPlatform.isDarwin to simulate
@@ -47,6 +47,8 @@ let
   hammerspoonOnLinux = evalModuleConfig ../../users/shared/programs/hammerspoon.nix false;
   karabinerOnDarwin = evalModuleConfig ../../users/shared/programs/karabiner.nix true;
   karabinerOnLinux = evalModuleConfig ../../users/shared/programs/karabiner.nix false;
+  neruOnDarwin = evalModuleConfig ../../users/shared/programs/neru.nix true;
+  neruOnLinux = evalModuleConfig ../../users/shared/programs/neru.nix false;
 in
 {
   platforms = [ "any" ];
@@ -66,6 +68,14 @@ in
     karabiner-disabled-on-linux = helpers.assertTest "karabiner default=false on Linux" (
       karabinerOnLinux.modules.programs.karabiner.enable == false
     ) "Karabiner module must default to enable=false on non-Darwin";
+
+    neru-enabled-on-darwin = helpers.assertTest "neru default=true on Darwin" (
+      neruOnDarwin.modules.programs.neru.enable == true
+    ) "Neru module must default to enable=true on Darwin";
+
+    neru-disabled-on-linux = helpers.assertTest "neru default=false on Linux" (
+      neruOnLinux.modules.programs.neru.enable == false
+    ) "Neru module must default to enable=false on non-Darwin";
 
   };
 }
