@@ -57,6 +57,7 @@ let
     "programs/ssh.nix"
     "programs/hammerspoon.nix"
     "programs/karabiner.nix"
+    "programs/neru.nix"
     "packages/core.nix"
     "packages/dev.nix"
     "packages/security.nix"
