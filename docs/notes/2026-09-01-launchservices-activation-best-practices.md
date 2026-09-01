@@ -122,16 +122,16 @@ Spotlight `mdimport`는 현재 script의 부수적인 metadata refresh다. Launc
 
 아래 표의 “조사 시 baseline”은 이번 장애를 재현한 당시 구현을 뜻한다. “현재 적용 결과”는 이 조사 후 적용한 P0 변경을 뜻한다. P1/P2 항목은 아직 후속 과제로 남겨 두었다.
 
-| 위치 | 현재 구현 | 문제 | 권장 방향 |
-| --- | --- | --- | --- |
-| [scripts.nix](../../users/shared/darwin/scripts.nix) | 조사 시 root `postActivation`이 `/bin/sh ... repair`를 직접 실행 | root session의 AppleScript 결과를 canonical 판정에 사용하고, 실패하면 `set -e` 경로가 전체 switch를 중단시킨다. | 적용 완료. 이 호출을 제거하고 system activation은 system-level 작업만 담당한다. |
-| [vscode-launchservices.nix](../../users/shared/darwin/vscode-launchservices.nix#L9-L12) | Home Manager `home.activation`에서 `writeBoundary` 이후 script 실행 | target user activation이라는 위치는 맞지만, mutating command가 Home Manager의 `run`/`DRY_RUN` 계약을 직접 따르지 않는다. | user activation의 단일 소유자로 유지하고, side effect를 `run`으로 감싸며 context와 결과를 명시한다. |
-| [representative_app](../../users/shared/darwin/vscode-launchservices.sh#L63-L65) | `osascript` stderr와 exit status를 버리고 빈 문자열 반환 | 세션 접근 실패, 잘못된 script, 실제 앱 미탐색을 같은 `none`으로 합친다. | exit status와 stderr를 보존해 `deferred`와 `error`를 구분한다. |
-| [audit](../../users/shared/darwin/vscode-launchservices.sh#L67-L100) | AppleScript가 고른 한 경로가 canonical과 완전히 같아야 통과 | 한 경로 조회는 중복 앱 전체 정책을 검증하지 못한다. | user context에서 후보를 열거하고 canonical/stale 정책을 별도로 판정한다. |
-| [bundle_paths](../../users/shared/darwin/vscode-launchservices.sh#L33-L60) | private `lsregister -dump`를 `awk`로 파싱 | private 출력·경로 의존성이 있고 root dump를 user 상태로 오해할 수 있다. | 당장은 adapter로 격리하고, 새 helper에서는 공개 API를 우선한다. |
-| [repair](../../users/shared/darwin/vscode-launchservices.sh#L103-L119) | 매 실행마다 canonical에 `-f`, `mdimport` 실행 후 audit | 최종 state는 중복되지 않아도 write side effect는 매번 반복된다. | audit-first, 필요한 경우에만 mutate, 두 번째 실행은 no-op이 되게 한다. |
-| [현재 integration test](../../tests/integration/vscode-launchservices-test.nix#L45-L160) | fake `lsregister`/`mdimport`/`osascript`로 stale Nix path와 bundle ID를 검사하고, unavailable AppleScript에서 `representative=unavailable`을 기대한다. | root/user bootstrap, GUI domain, `DRY_RUN`, duplicate candidate를 모델링하지 않는다. | 적용 완료. unavailable lookup fixture를 추가하고 focused integration build가 통과했다. 나머지 context fixture는 후속 과제다. |
-| [현재 Darwin activation test](../../tests/unit/darwin-activation-test.nix#L36-L46) | root source에 repair가 없고 Home Manager user activation에 repair가 있기를 기대한다. | assembled system activation과 중첩된 Home Manager activation을 모두 검증하는 범위는 제한적이다. | 적용 완료. “root direct repair 없음”과 “user activation에 repair 있음” assertion이 통과했다. |
+| 위치                                                                                     | 현재 구현                                                                                                                                              | 문제                                                                                                                     | 권장 방향                                                                                                                    |
+| ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| [scripts.nix](../../users/shared/darwin/scripts.nix)                                     | 조사 시 root `postActivation`이 `/bin/sh ... repair`를 직접 실행                                                                                       | root session의 AppleScript 결과를 canonical 판정에 사용하고, 실패하면 `set -e` 경로가 전체 switch를 중단시킨다.          | 적용 완료. 이 호출을 제거하고 system activation은 system-level 작업만 담당한다.                                              |
+| [vscode-launchservices.nix](../../users/shared/darwin/vscode-launchservices.nix#L9-L12)  | Home Manager `home.activation`에서 `writeBoundary` 이후 script 실행                                                                                    | target user activation이라는 위치는 맞지만, mutating command가 Home Manager의 `run`/`DRY_RUN` 계약을 직접 따르지 않는다. | user activation의 단일 소유자로 유지하고, side effect를 `run`으로 감싸며 context와 결과를 명시한다.                          |
+| [representative_app](../../users/shared/darwin/vscode-launchservices.sh#L63-L65)         | `osascript` stderr와 exit status를 버리고 빈 문자열 반환                                                                                               | 세션 접근 실패, 잘못된 script, 실제 앱 미탐색을 같은 `none`으로 합친다.                                                  | exit status와 stderr를 보존해 `deferred`와 `error`를 구분한다.                                                               |
+| [audit](../../users/shared/darwin/vscode-launchservices.sh#L67-L100)                     | AppleScript가 고른 한 경로가 canonical과 완전히 같아야 통과                                                                                            | 한 경로 조회는 중복 앱 전체 정책을 검증하지 못한다.                                                                      | user context에서 후보를 열거하고 canonical/stale 정책을 별도로 판정한다.                                                     |
+| [bundle_paths](../../users/shared/darwin/vscode-launchservices.sh#L33-L60)               | private `lsregister -dump`를 `awk`로 파싱                                                                                                              | private 출력·경로 의존성이 있고 root dump를 user 상태로 오해할 수 있다.                                                  | 당장은 adapter로 격리하고, 새 helper에서는 공개 API를 우선한다.                                                              |
+| [repair](../../users/shared/darwin/vscode-launchservices.sh#L103-L119)                   | 매 실행마다 canonical에 `-f`, `mdimport` 실행 후 audit                                                                                                 | 최종 state는 중복되지 않아도 write side effect는 매번 반복된다.                                                          | audit-first, 필요한 경우에만 mutate, 두 번째 실행은 no-op이 되게 한다.                                                       |
+| [현재 integration test](../../tests/integration/vscode-launchservices-test.nix#L45-L160) | fake `lsregister`/`mdimport`/`osascript`로 stale Nix path와 bundle ID를 검사하고, unavailable AppleScript에서 `representative=unavailable`을 기대한다. | root/user bootstrap, GUI domain, `DRY_RUN`, duplicate candidate를 모델링하지 않는다.                                     | 적용 완료. unavailable lookup fixture를 추가하고 focused integration build가 통과했다. 나머지 context fixture는 후속 과제다. |
+| [현재 Darwin activation test](../../tests/unit/darwin-activation-test.nix#L36-L46)       | root source에 repair가 없고 Home Manager user activation에 repair가 있기를 기대한다.                                                                   | assembled system activation과 중첩된 Home Manager activation을 모두 검증하는 범위는 제한적이다.                          | 적용 완료. “root direct repair 없음”과 “user activation에 repair 있음” assertion이 통과했다.                                 |
 
 현재 Home Manager 위치의 장점은 `writeBoundary` 이후라는 점이다. Home Manager 공식 source는 activation entry를 DAG로 정렬하고, side effect는 `writeBoundary` 이후에 두며, entry가 멱등적이어야 하고 `DRY_RUN`을 존중해야 한다고 설명한다. activation script 자체도 `set -eu`, `pipefail`, target `HOME`/`USER` sanity check를 사용한다. [Home Manager activation semantics](https://github.com/nix-community/home-manager/blob/99c9ec63390f1d8c14d95d9e8b17cc29cfbd4e11/modules/home-environment.nix#L2874-L2963), [Home Manager activation script context](https://github.com/nix-community/home-manager/blob/99c9ec63390f1d8c14d95d9e8b17cc29cfbd4e11/modules/home-environment.nix#L3398-L3554), [Home Manager activation manual](https://nix-community.github.io/home-manager/internals/activation.html)
 
@@ -183,12 +183,12 @@ system activation 자체가 사용자별 repair를 완료해야 한다는 별도
 
 권장 결과 분류는 다음과 같다.
 
-| 결과 | 의미 | system root activation에서 |
-| --- | --- | --- |
-| `ok` | audit 통과, mutation 없음 | 성공 |
-| `repaired` | 정확한 stale path만 제거하고 canonical을 등록한 뒤 audit 통과 | 성공 |
-| `deferred` | target GUI/login context가 없음, 또는 예상된 세션 부재 | 이유를 로그하고 성공. user login 때 재시도 |
-| `error` | canonical 없음/Bundle ID 불일치, tool/API 실패, mutation 실패, postcondition 실패 | 명확한 원인과 함께 실패 |
+| 결과       | 의미                                                                              | system root activation에서                 |
+| ---------- | --------------------------------------------------------------------------------- | ------------------------------------------ |
+| `ok`       | audit 통과, mutation 없음                                                         | 성공                                       |
+| `repaired` | 정확한 stale path만 제거하고 canonical을 등록한 뒤 audit 통과                     | 성공                                       |
+| `deferred` | target GUI/login context가 없음, 또는 예상된 세션 부재                            | 이유를 로그하고 성공. user login 때 재시도 |
+| `error`    | canonical 없음/Bundle ID 불일치, tool/API 실패, mutation 실패, postcondition 실패 | 명확한 원인과 함께 실패                    |
 
 `deferred`는 system activation이 사용자 GUI 상태를 소유하지 않을 때만 허용한다. target user activation에서 이미 GUI context가 있다고 판단했는데 AppleScript가 실패하면 `error`로 올려 context 문제를 숨기지 않는다. `mdimport` 같은 보조 refresh 실패를 허용할지 여부도 별도 정책으로 정하고, LaunchServices의 핵심 invariant와 한 command로 묶지 않는다.
 
@@ -249,12 +249,12 @@ sudo -n -u <user> --set-home /usr/bin/osascript -e 'POSIX path of (path to appli
 
 ## 우선순위
 
-| 우선순위 | 조치 | 이유 |
-| --- | --- | --- |
-| P0 | root `postActivation`의 직접 repair 호출 제거, user activation 단일 소유권 확립 | 현재 장애의 root/GUI 경계 위반과 중복 실행을 없앤다. |
-| P0 | AppleScript 오류 status 보존, `ok/repaired/deferred/error` 분류 | 세션 부재와 실제 invariant 위반을 구분한다. |
-| P1 | `run`/`DRY_RUN`, audit-first, second-run no-op 보장 | nix-darwin/Home Manager의 activation 계약을 따른다. |
-| P1 | context-aware fake regression과 GUI/headless live check 추가 | 현재 테스트가 재현하지 못하는 root regression을 고정한다. |
-| P2 | private `lsregister` parser를 공개 `NSWorkspace` 기반 helper로 교체 | macOS 내부 command의 경로와 출력 형식 의존성을 줄인다. |
+| 우선순위 | 조치                                                                            | 이유                                                      |
+| -------- | ------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| P0       | root `postActivation`의 직접 repair 호출 제거, user activation 단일 소유권 확립 | 현재 장애의 root/GUI 경계 위반과 중복 실행을 없앤다.      |
+| P0       | AppleScript 오류 status 보존, `ok/repaired/deferred/error` 분류                 | 세션 부재와 실제 invariant 위반을 구분한다.               |
+| P1       | `run`/`DRY_RUN`, audit-first, second-run no-op 보장                             | nix-darwin/Home Manager의 activation 계약을 따른다.       |
+| P1       | context-aware fake regression과 GUI/headless live check 추가                    | 현재 테스트가 재현하지 못하는 root regression을 고정한다. |
+| P2       | private `lsregister` parser를 공개 `NSWorkspace` 기반 helper로 교체             | macOS 내부 command의 경로와 출력 형식 의존성을 줄인다.    |
 
 P0 source/test 수정과 GUI 로그인 상태의 실제 `make switch` 검증까지 이 문서와 함께 적용했다. `make test` 전체 wrapper의 오류 전파 개선, headless `deferred` 경로, `DRY_RUN`·duplicate candidate·no-op side-effect 검증, 공개 `NSWorkspace` 기반 helper 전환은 P1/P2 후속 과제다.
