@@ -43,11 +43,15 @@ in
       ssh.enableDefaultConfig == false
     ) "SSH default compatibility config should be disabled and copied explicitly")
 
+    # Interval x CountMax is how long a silent connection survives. A remote job
+    # that prints nothing until it finishes generates no traffic, so too short a
+    # window lets a NAT/firewall reap the session mid-run. Assert the product,
+    # not just the presence of the directives.
     (helpers.assertTest "ssh-program-keepalive-setting" (
-      ssh.settings."*".data.ServerAliveInterval == 60
-      && ssh.settings."*".data.ServerAliveCountMax == 3
+      ssh.settings."*".data.ServerAliveInterval * ssh.settings."*".data.ServerAliveCountMax >= 300
+      && ssh.settings."*".data.ServerAliveInterval <= 30
       && ssh.settings."*".data.TCPKeepAlive == "yes"
-    ) "SSH default host settings should keep explicit keepalive directives")
+    ) "SSH keepalive must tolerate at least 5 minutes of silence, probing at most every 30s")
 
     (helpers.assertTest "ssh-program-github-setting" (
       ssh.settings."github.com".data.HostName == "github.com"
@@ -60,7 +64,7 @@ in
       && lib.hasInfix "Host github.com" configText
       && lib.hasInfix "StrictHostKeyChecking no" configText
       && lib.hasInfix "Host *" configText
-      && lib.hasInfix "ServerAliveInterval 60" configText
+      && lib.hasInfix "ServerAliveInterval 15" configText
       && lib.hasInfix "TCPKeepAlive yes" configText
     ) "Generated ~/.ssh/config should keep the existing behavior")
   ];

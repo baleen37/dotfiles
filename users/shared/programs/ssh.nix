@@ -30,8 +30,11 @@ in
           ControlPersist = "no";
           ForwardAgent = false;
           HashKnownHosts = false;
-          ServerAliveCountMax = 3;
-          ServerAliveInterval = 60;
+          # 15s x 20 = 5min. The previous 60s x 3 gave only 3 minutes, which a
+          # quiet long-running remote job (no output until completion) could
+          # not outlast once a NAT/firewall dropped the idle connection.
+          ServerAliveCountMax = 20;
+          ServerAliveInterval = 15;
           TCPKeepAlive = "yes";
           UserKnownHostsFile = "~/.ssh/known_hosts";
         };

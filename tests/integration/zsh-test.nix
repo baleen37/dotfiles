@@ -217,16 +217,26 @@ in
       "SSH_AUTH_SOCK should be configured for 1Password"
     )
 
-    # Recover terminal mouse tracking after an ungraceful SSH disconnect.
-    (helpers.assertTest "ssh-disconnect-mouse-reset" (initContentHasAll [
-      "_reset_terminal_mouse_tracking"
-      "add-zsh-hook precmd _reset_terminal_mouse_tracking"
+    # Recover terminal input modes after an ungraceful SSH disconnect. A remote
+    # TUI killed by a dropped connection never runs its teardown, so the local
+    # terminal stays in whatever mode it left behind. Mouse tracking leaks click
+    # escapes; the kitty keyboard protocol leaks key reports, which surface as
+    # stray `1;1:3u` while typing.
+    (helpers.assertTest "ssh-disconnect-input-mode-reset" (initContentHasAll [
+      "_reset_terminal_input_modes"
+      "add-zsh-hook precmd _reset_terminal_input_modes"
       "1000l"
       "1002l"
       "1003l"
       "1006l"
       "1015l"
-    ]) "zsh should clear terminal mouse tracking before showing a prompt")
+      # Kitty keyboard protocol: pop the stack, then reset flags outright
+      # (mode 3) since a crashed program may never have pushed.
+      "[<u"
+      "[0;3u"
+      # Bracketed paste
+      "2004l"
+    ]) "zsh should clear mouse tracking and keyboard protocol state before showing a prompt")
 
     # Shell functions
     (helpers.assertTest "function-shell-exists" (initContentHas "shell()")
