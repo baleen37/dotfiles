@@ -18,9 +18,11 @@
   # cleanup (for example, after an SSH connection reset).
   #
   # Mouse tracking: \e[?1000l..\e[?1015l
-  # Kitty keyboard protocol: \e[<u pops the flag stack, and \e[0;3u resets the
-  #   flags outright (mode 3 = reset bits) because a crashed program may never
-  #   have pushed, leaving nothing to pop. Without this the terminal keeps
+  # Kitty keyboard protocol: \e[<u pops the flag stack, and \e[=0;1u clears the
+  #   flags outright because a crashed program may never have pushed, leaving
+  #   nothing to pop. Flag updates take the form `CSI = flags ; mode u`; mode 1
+  #   sets every set bit and resets every unset one, so flags=0 disables all of
+  #   them, including bits kitty may add later. Without this the terminal keeps
   #   reporting keys as escape sequences and typing emits stray `1;1:3u`.
   # Bracketed paste: \e[?2004l
   #
@@ -28,7 +30,7 @@
   # remote programs that still exit uncleanly.
   _reset_terminal_input_modes() {
     [[ -t 1 ]] || return 0
-    printf '\e[?1000l\e[?1002l\e[?1003l\e[?1006l\e[?1015l\e[<u\e[0;3u\e[?2004l'
+    printf '\e[?1000l\e[?1002l\e[?1003l\e[?1006l\e[?1015l\e[<u\e[=0;1u\e[?2004l'
   }
 
   autoload -Uz add-zsh-hook

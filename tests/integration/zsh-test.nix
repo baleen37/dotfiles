@@ -230,10 +230,11 @@ in
       "1003l"
       "1006l"
       "1015l"
-      # Kitty keyboard protocol: pop the stack, then reset flags outright
-      # (mode 3) since a crashed program may never have pushed.
+      # Kitty keyboard protocol: pop the stack, then clear the flags outright
+      # since a crashed program may never have pushed. `CSI = 0 ; 1 u` uses
+      # mode 1, which resets every unset bit, so flags=0 disables all of them.
       "[<u"
-      "[0;3u"
+      "[=0;1u"
       # Bracketed paste
       "2004l"
     ]) "zsh should clear mouse tracking and keyboard protocol state before showing a prompt")
