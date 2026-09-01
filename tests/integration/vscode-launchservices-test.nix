@@ -132,6 +132,21 @@ let
           test -e "$app/Contents/Info.plist"
           test -e "$profile"
 
+          cat > "$fake_bin/osascript-unavailable" <<'EOF'
+          #!/bin/sh
+          echo "Application isn't running (-600)" >&2
+          exit 1
+          EOF
+          chmod +x "$fake_bin/osascript-unavailable"
+          export VSCODE_OSASCRIPT="$fake_bin/osascript-unavailable"
+          if ${pkgs.bash}/bin/bash ${scriptPath} audit > "$test_root/audit-without-gui" 2>&1; then
+            :
+          else
+            echo "audit unexpectedly failed when representative lookup was unavailable" >&2
+            exit 1
+          fi
+          grep -Fq 'representative=unavailable' "$test_root/audit-without-gui"
+
           sed 's/com.microsoft.VSCode/com.example.Wrong/' "$app/Contents/Info.plist" \
             > "$app/Contents/Info.plist.wrong"
           mv "$app/Contents/Info.plist.wrong" "$app/Contents/Info.plist"

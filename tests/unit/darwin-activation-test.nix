@@ -19,6 +19,8 @@
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
   activation = self.darwinConfigurations.kakaostyle-jito.config.system.activationScripts;
+  systemActivationSource = builtins.readFile ../../users/shared/darwin/scripts.nix;
+  userActivation = self.homeConfigurations."jito.hello".config.home.activation.vscodeLaunchServices;
 in
 {
   platforms = [ "darwin" ];
@@ -32,10 +34,13 @@ in
       helpers.assertTest "app cleanup script runs" (lib.hasInfix "GarageBand.app" activation.script.text)
         "App cleanup should be spliced into the assembled activation script";
 
-    vscode-launchservices-repair-runs =
-      helpers.assertTest "VS Code LaunchServices repair runs"
-        (lib.hasInfix "vscode-launchservices.sh" activation.script.text)
-        "Darwin activation should run the shared VS Code LaunchServices repair adapter";
+    vscode-launchservices-repair-is-user-scoped =
+      helpers.assertTest "VS Code LaunchServices repair is user-scoped"
+        (
+          !(lib.hasInfix "vscode-launchservices.sh" systemActivationSource)
+          && lib.hasInfix "vscode-launchservices.sh" userActivation.data
+        )
+        "LaunchServices repair must stay in Home Manager user activation, not run directly from the root system activation";
 
     bluetooth-remote-wake-disabled-runs =
       helpers.assertTest "bluetooth remote wake disable runs"
