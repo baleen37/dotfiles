@@ -2,7 +2,13 @@
 # Managed via Nix Home Manager
 
 # Terminal Compatibility
-term = xterm-256color
+# Report Ghostty's real terminfo. Reporting xterm-256color instead made the
+# terminal lie about its capabilities: applications read terminfo and concluded
+# CSI u was unsupported, while Ghostty still answered runtime capability
+# queries affirmatively. Setup and teardown then disagreed, so an abnormally
+# terminated remote TUI left keyboard-protocol state behind (stray `1;1:3u`).
+# ssh-terminfo below installs this entry on remote hosts.
+term = xterm-ghostty
 
 # Font Configuration
 font-family = JetBrains Mono
@@ -18,12 +24,11 @@ window-padding-y = 10
 
 # Shell Integration
 shell-integration = true
-shell-integration-features = no-cursor,sudo,title,ssh-env
+shell-integration-features = no-cursor,sudo,title,ssh-env,ssh-terminfo
 
 # Option key as Alt for terminal keybindings (opt+t for Claude Code think toggle)
 macos-option-as-alt=left
 
 # Keybindings for Claude Code compatibility
-# Claude Code doesn't support modern keyboard protocols (CSI u, modifyOtherKeys)
 keybind = shift+enter=text:\n
 keybind = ctrl+left_bracket=text:\x1b
