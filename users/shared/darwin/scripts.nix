@@ -39,10 +39,6 @@ _:
   '';
 
   system.activationScripts.postActivation.text = ''
-    # Homebrew runs before postActivation. Reconcile LaunchServices after the
-    # cask has installed the canonical app in /Applications.
-    /bin/sh ${./vscode-launchservices.sh} repair
-
     # Remote Login (SSH)
     # Enables macOS Remote Login so the machine accepts incoming SSH connections.
     # nix-darwin has no dedicated option for this, so we toggle it via systemsetup.
