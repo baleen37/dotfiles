@@ -29,6 +29,7 @@ in
       initLua = ''
         vim.g.mapleader = " "
         vim.g.maplocalleader = ","
+        vim.o.ignorecase = true
         vim.cmd([==[${builtins.readFile ./vim-common.vim}]==])
 
         vim.keymap.set("n", "<leader>ff", function()

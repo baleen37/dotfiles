@@ -47,6 +47,10 @@ in
         vim-tmux-navigator
       ];
 
+      settings = {
+        ignorecase = true;
+      };
+
       extraConfig = builtins.readFile ./vim-common.vim;
     };
   };
