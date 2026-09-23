@@ -28,6 +28,7 @@ in
 
     # Tool configurations (programs)
     ./programs/git.nix
+    ./programs/neovim.nix
     ./programs/vim.nix
     ./programs/zsh
     ./programs/starship.nix
@@ -65,6 +66,7 @@ in
   # owns the decision.
   modules.programs = {
     git.enable = true;
+    neovim.enable = true;
     vim.enable = true;
     zsh.enable = true;
     tmux.enable = true;
