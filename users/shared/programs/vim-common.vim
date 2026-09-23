@@ -17,7 +17,11 @@ endif
 set nowrap
 set ruler
 set backspace=indent,eol,start
-set clipboard=autoselect
+if has('nvim')
+  set clipboard=unnamedplus
+else
+  set clipboard=autoselect
+endif
 
 " Dir stuff
 set nobackup
