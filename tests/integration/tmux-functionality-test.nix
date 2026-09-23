@@ -147,8 +147,8 @@ in
 
   tmux-continuum-auto-restore = mkConfigTest "tmux-continuum-auto-restore" (
     pluginHelpers.hasConfigString
-    (continuumPlugin.extraConfig or "")
-    "set -g @continuum-restore 'on'"
+      (continuumPlugin.extraConfig or "")
+      "set -g @continuum-restore 'on'"
   ) "tmux continuum should restore saved sessions automatically";
 
   tmux-continuum-config-order = pkgs.runCommand "tmux-continuum-config-order" { } ''
