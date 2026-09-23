@@ -75,6 +75,11 @@ in
       description = "new worktree (wt)"
       width = "80%"
       height = "60%"
+
+      [[keys.command]]
+      key = "cmd+r"
+      type = "plugin_action"
+      command = "persiyanov.reviewr.toggle"
     '';
   };
 }
