@@ -101,6 +101,9 @@ in
       completionInit = "autoload -Uz compinit && compinit -C";
 
       shellAliases = {
+        vi = "nvim";
+        vim = "nvim";
+
         # Multi-level directory navigation: `cd ...`, `cd ....` etc. is
         # handled by the cd function override in functions.nix.
         ".." = "cd ..";
