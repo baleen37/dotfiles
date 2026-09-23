@@ -58,6 +58,9 @@ in
       channel = "stable"
       version_check = false
 
+      [experimental]
+      allow_nested = true
+
       [keys]
       prefix = "ctrl+a"
       detach = "prefix+d"
