@@ -68,6 +68,7 @@ in
       ignores = [
         # Local files
         ".local/"
+        ".bstack/"
 
         # Editor files
         "*.swp"
