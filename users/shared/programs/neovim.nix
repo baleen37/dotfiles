@@ -44,7 +44,7 @@ in
         vim.o.ignorecase = true
         vim.cmd([==[${builtins.readFile ./vim-common.vim}]==])
 
-        vim.g.airline_theme = "minimalist"
+        vim.g.airline_theme = "term"
         vim.g.airline_powerline_fonts = 0
         vim.o.showmode = false
 
