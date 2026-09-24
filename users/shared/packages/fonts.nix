@@ -15,6 +15,7 @@ in
       noto-fonts-cjk-sans
       cascadia-code
       d2coding
+      nerd-fonts.symbols-only
     ];
   };
 }

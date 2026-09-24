@@ -12,11 +12,13 @@ let
     configureFlags =
       (old.configureFlags or [ ]) ++ lib.optional pkgs.stdenv.hostPlatform.isDarwin "--disable-jemalloc";
   });
-  direnvInstantPackage = inputs.direnv-instant.packages.${pkgs.system}.default.overrideAttrs (old: {
-    nativeCheckInputs = map (
-      input: if (input.pname or null) == "tmux" then tmuxPackage else input
-    ) old.nativeCheckInputs;
-  });
+  direnvInstantPackage =
+    inputs.direnv-instant.packages.${pkgs.stdenv.hostPlatform.system}.default.overrideAttrs
+      (old: {
+        nativeCheckInputs = map (
+          input: if (input.pname or null) == "tmux" then tmuxPackage else input
+        ) old.nativeCheckInputs;
+      });
 in
 {
   imports = [
