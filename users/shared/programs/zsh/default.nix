@@ -19,6 +19,8 @@
 #
 
 {
+  inputs,
+  pkgs,
   lib,
   config,
   isDarwin,
@@ -32,6 +34,8 @@ in
   options.modules.programs.zsh.enable = lib.mkEnableOption "Zsh shell environment";
 
   config = lib.mkIf cfg.enable {
+    home.packages = [ inputs.worktree.packages.${pkgs.system}.default ];
+
     programs.fzf = {
       enable = true;
       enableZshIntegration = true;
@@ -180,7 +184,7 @@ in
         # =============================================================================
         # Section: Git worktree wrapper
         # =============================================================================
-        ${import ./wt.nix}
+        eval "$(command wt config shell init zsh)"
       '';
     };
   };

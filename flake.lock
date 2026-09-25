@@ -366,7 +366,8 @@
         "home-manager": "home-manager",
         "import-tree": "import-tree",
         "nixpkgs": "nixpkgs_3",
-        "treefmt-nix": "treefmt-nix_2"
+        "treefmt-nix": "treefmt-nix_2",
+        "worktree": "worktree"
       }
     },
     "systems": {
@@ -422,6 +423,27 @@
       "original": {
         "owner": "numtide",
         "repo": "treefmt-nix",
+        "type": "github"
+      }
+    },
+    "worktree": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1790316620,
+        "narHash": "sha256-2uotUd2621qB6r4UWOoOLvmah5EwbOY4Px33CG9sUSY=",
+        "owner": "baleen37",
+        "repo": "worktree",
+        "rev": "32870b23f29bf80c086f4a6ab6e2c285b2c8b3d6",
+        "type": "github"
+      },
+      "original": {
+        "owner": "baleen37",
+        "ref": "main",
+        "repo": "worktree",
         "type": "github"
       }
     }

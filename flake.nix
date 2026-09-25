@@ -56,6 +56,11 @@
       url = "github:numtide/treefmt-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    worktree = {
+      url = "github:baleen37/worktree/main";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =

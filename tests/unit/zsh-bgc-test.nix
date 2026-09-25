@@ -12,7 +12,7 @@ let
   mockConfig = import ../lib/mock-config.nix { inherit pkgs lib; };
 
   zshModule = import ../../users/shared/programs/zsh {
-    inherit pkgs lib;
+    inherit inputs pkgs lib;
     isDarwin = true;
     config = mockConfig.mkEmptyConfig // {
       modules.programs.zsh.enable = true;

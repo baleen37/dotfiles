@@ -13,7 +13,8 @@
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
 
-  wtScript = import ../../users/shared/programs/zsh/wt.nix;
+  worktreeSource = builtins.readFile "${inputs.worktree.outPath}/src/worktree.rs";
+  gitSource = builtins.readFile "${inputs.worktree.outPath}/src/git.rs";
   hookScript = builtins.readFile ../../users/shared/programs/.config/claude/setup-worktree.sh;
 in
 {
@@ -24,12 +25,14 @@ in
       "hook should place worktrees under <repo>/.worktrees/"
     )
 
-    (helpers.assertTest "wt-uses-repository-worktrees-dir" (lib.hasInfix ".worktrees/" wtScript)
+    (helpers.assertTest "wt-uses-repository-worktrees-dir"
+      (lib.hasInfix ".join(\".worktrees\")" worktreeSource)
       "wt should use the same repository-local worktree root as the hook"
     )
 
-    (helpers.assertTest "hook-resolves-main-root" (lib.hasInfix "worktree list" hookScript)
-      "hook should resolve the main worktree root so it never nests worktrees"
+    (helpers.assertTest "wt-resolves-main-root"
+      (lib.hasInfix ''&["worktree", "list", "--porcelain"]'' gitSource)
+      "wt should resolve the main worktree root so it never nests worktrees"
     )
 
     (helpers.assertTest "hook-has-shebang" (lib.hasPrefix "#!" hookScript)

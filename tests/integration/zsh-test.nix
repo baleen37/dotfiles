@@ -4,6 +4,8 @@
 # Verifies shell enablement, key aliases, fzf integration, history settings,
 # prompt configuration, direnv integration, and shell functions.
 {
+  inputs,
+  system,
   lib ? import <nixpkgs/lib>,
   pkgs ? import <nixpkgs> { },
   ...
@@ -18,7 +20,12 @@ let
   # Import zsh module and extract config body via .content
   # (lib.mkIf true {...}).content unwraps the conditional when enable=true
   zshModule = import ../../users/shared/programs/zsh {
-    inherit pkgs lib isDarwin;
+    inherit
+      inputs
+      pkgs
+      lib
+      isDarwin
+      ;
     config = {
       modules.programs.zsh.enable = true;
       home = {
@@ -30,6 +37,8 @@ let
 
   # Extract zsh settings
   zshSettings = zshConfigBody.programs.zsh;
+  worktreePackage = inputs.worktree.packages.${system}.default;
+  homePackages = zshConfigBody.home.packages or [ ];
   shellAliases = zshSettings.shellAliases or { };
   initContent = zshSettings.initContent.content or "";
 
@@ -247,21 +256,13 @@ in
       "assh alias for autossh should exist (plain ssh is delegated to Ghostty's wrapper)"
     )
 
-    # Git Worktree function (wt)
-    (helpers.assertTest "function-wt-exists" (initContentHas "wt()") "wt() function should exist")
-    (helpers.assertTest "function-wt-usage"
-      (initContentHas "Usage: wt                  Pick a worktree with fzf and cd into it")
-      "wt() should have usage message"
+    # Rust worktree CLI shell integration
+    (helpers.assertTest "wt-package-installed-by-zsh-module" (lib.elem worktreePackage homePackages)
+      "enabling the zsh module should install the worktree flake package"
     )
-    (helpers.assertTest "function-wt-git-check" (initContentHas "git rev-parse --git-dir")
-      "wt() should check for git repository"
-    )
-    (helpers.assertTest "function-wt-cd" (initContentHas "cd \"$worktree_dir\"")
-      "wt() should change to worktree dir"
-    )
-    (helpers.assertTest "function-wt-repo-root"
-      (initContentHas "git worktree list --porcelain | sed -n 's/^worktree //p' | head -1")
-      "wt() should resolve worktree path from main repo root"
+    (helpers.assertTest "wt-loads-rust-shell-integration"
+      (initContentHas "eval \"$(command wt config shell init zsh)\"")
+      "zsh should load the Rust wt shell integration"
     )
 
     # SSH wrapper with autossh
