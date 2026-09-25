@@ -25,6 +25,11 @@ in
       "hook should place worktrees under <repo>/.worktrees/"
     )
 
+    (helpers.assertTest "hook-resolves-main-root"
+      (lib.hasInfix "REPO_ROOT=$(git -C \"$CWD\" worktree list --porcelain | sed -n 's/^worktree //p' | head -1)" hookScript)
+      "hook should resolve the main worktree root so it never nests worktrees"
+    )
+
     (helpers.assertTest "wt-uses-repository-worktrees-dir"
       (lib.hasInfix ".join(\".worktrees\")" worktreeSource)
       "wt should use the same repository-local worktree root as the hook"
