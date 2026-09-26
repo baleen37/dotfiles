@@ -59,14 +59,27 @@ helpers.testSuite "neovim-markdown-preview" [
     "nvim-treesitter should include markdown and markdown_inline parsers"
   )
 
-  (helpers.assertTest "render-markdown-disabled-by-default"
-    (pluginHelpers.hasConfigString initLua "require(\"render-markdown\").setup({ enabled = false })")
-    "in-buffer Markdown rendering should start disabled"
-  )
+  (helpers.assertTest "render-markdown-disabled-by-default" (
+    pluginHelpers.hasConfigString initLua "require(\"render-markdown\").setup({"
+    && pluginHelpers.hasConfigString initLua "enabled = false,"
+  ) "in-buffer Markdown rendering should start disabled")
+
+  (helpers.assertTest "render-markdown-wrap-options" (
+    pluginHelpers.hasConfigString initLua "win_options = {"
+    && pluginHelpers.hasConfigString initLua "wrap = { default = vim.wo.wrap, rendered = true }"
+    && pluginHelpers.hasConfigString initLua "linebreak = { default = vim.wo.linebreak, rendered = true }"
+    && pluginHelpers.hasConfigString initLua "breakindent = { default = vim.wo.breakindent, rendered = true }"
+  ) "rendered Markdown should enable soft wrapping and restore existing window options")
+
+  (helpers.assertTest "render-markdown-window-options-restored" (
+    pluginHelpers.hasConfigString initLua "clear = function(context)"
+    && pluginHelpers.hasConfigString initLua "vim.fn.win_findbuf(buffer)"
+    && pluginHelpers.hasConfigString initLua "vim.wo[win][name] = value"
+  ) "render-markdown should restore each window's original soft-wrap options")
 
   (helpers.assertTest "render-markdown-toggle-binding" (
     pluginHelpers.hasConfigString initLua "<leader>mr"
-    && pluginHelpers.hasConfigString initLua "RenderMarkdown buf_toggle"
+    && pluginHelpers.hasConfigString initLua "require(\"render-markdown\").buf_toggle()"
   ) "<leader>mr should toggle Markdown rendering for the current buffer")
 
   (helpers.assertTest "markdown-preview-toggle-binding" (
