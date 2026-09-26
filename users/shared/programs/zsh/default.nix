@@ -29,12 +29,13 @@
 
 let
   cfg = config.modules.programs.zsh;
+  worktreePackage = inputs.worktree.packages.${pkgs.system}.default;
 in
 {
   options.modules.programs.zsh.enable = lib.mkEnableOption "Zsh shell environment";
 
   config = lib.mkIf cfg.enable {
-    home.packages = [ inputs.worktree.packages.${pkgs.system}.default ];
+    home.packages = [ worktreePackage ];
 
     programs.fzf = {
       enable = true;
@@ -184,7 +185,15 @@ in
         # =============================================================================
         # Section: Git worktree wrapper
         # =============================================================================
-        eval "$(command wt config shell init zsh)"
+        eval "$(${worktreePackage}/bin/wt config shell init zsh)"
+        functions[_wt_generated]="$functions[wt]"
+        wt() {
+          local -a wt_original_path
+          wt_original_path=("''${path[@]}")
+          local -a path
+          path=("${worktreePackage}/bin" "''${wt_original_path[@]}")
+          _wt_generated "$@"
+        }
       '';
     };
   };
