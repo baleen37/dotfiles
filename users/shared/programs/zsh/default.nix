@@ -185,7 +185,15 @@ in
         # =============================================================================
         # Section: Git worktree wrapper
         # =============================================================================
-        eval "$(${worktreePackage}/bin/wt config shell init zsh)"
+        _wt_init() {
+          local -a wt_original_path
+          wt_original_path=("''${path[@]}")
+          local -a path
+          path=("${worktreePackage}/bin" "''${wt_original_path[@]}")
+          eval "$(command wt config shell init zsh)"
+        }
+        _wt_init
+        unfunction _wt_init
         functions[_wt_generated]="$functions[wt]"
         wt() {
           local -a wt_original_path
