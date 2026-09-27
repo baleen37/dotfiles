@@ -81,6 +81,10 @@ in
           hide_root_node = true,
           window = {
             width = 32,
+            mappings = {
+              ["h"] = "close_node",
+              ["l"] = "open",
+            },
           },
         })
 
