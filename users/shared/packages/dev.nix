@@ -16,6 +16,7 @@ in
       [
         nodejs_22
         bun
+        go
         python3
         python3Packages.pipx
         virtualenv

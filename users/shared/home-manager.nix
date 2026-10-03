@@ -51,7 +51,6 @@ in
     # Package categories — modules.packages.<name>.enable
     ./packages/core.nix
     ./packages/dev.nix
-    ./packages/lsp.nix
     ./packages/nix-tools.nix
     ./packages/cloud.nix
     ./packages/security.nix
@@ -87,7 +86,6 @@ in
   modules.packages = {
     core.enable = true;
     dev.enable = true;
-    lsp.enable = true;
     nix-tools.enable = true;
     cloud.enable = true;
     security.enable = true;

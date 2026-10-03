@@ -63,7 +63,6 @@ let
   packageNames = [
     "core"
     "dev"
-    "lsp"
     "nix-tools"
     "cloud"
     "security"

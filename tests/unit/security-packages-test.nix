@@ -27,7 +27,6 @@ let
     "databases"
     "dev"
     "fonts"
-    "lsp"
     "media"
     "nix-tools"
     "security"
