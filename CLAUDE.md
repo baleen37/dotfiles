@@ -78,23 +78,23 @@ users/shared/
 ├── programs/             # Tool-specific configuration modules
 │   ├── git.nix          # Git configuration with aliases
 │   ├── vim.nix          # Vim/Neovim setup
-│   ├── zsh.nix          # Zsh shell configuration
+│   ├── zsh/             # Zsh configuration (default.nix, claude-wrappers.nix, ...)
 │   ├── tmux.nix         # Terminal multiplexer
 │   ├── starship.nix     # Shell prompt
 │   ├── claude-code.nix  # Claude Code configuration
+│   ├── .config/claude/  # CLAUDE.md, settings, statusline deployed to ~/.claude
 │   └── ...              # codex, opencode, ghostty, hammerspoon, karabiner
-├── packages/             # Categorized package lists
-│   ├── core.nix         # Core CLI utilities
-│   ├── dev.nix          # Development tools
-│   ├── nix-tools.nix    # Nix tooling
-│   ├── cloud.nix        # Cloud CLIs
-│   ├── security.nix     # Security tools
-│   ├── ssh.nix          # SSH-related packages
-│   ├── media.nix        # Media tools
-│   ├── fonts.nix        # Fonts
-│   ├── databases.nix    # Database clients
-│   └── ai.nix           # AI tooling
-└── .config/claude/       # Claude Code commands, skills, hooks
+└── packages/             # Categorized package lists
+    ├── core.nix         # Core CLI utilities
+    ├── dev.nix          # Development tools
+    ├── nix-tools.nix    # Nix tooling
+    ├── cloud.nix        # Cloud CLIs
+    ├── security.nix     # Security tools
+    ├── ssh.nix          # SSH-related packages
+    ├── media.nix        # Media tools
+    ├── fonts.nix        # Fonts
+    ├── databases.nix    # Database clients
+    └── ai.nix           # AI tooling
 ```
 
 **Important**: The `currentSystemUser` variable contains the actual username. User info (name, email) is centralized in `lib/user-info.nix`.
@@ -334,10 +334,10 @@ trusted-users = root @admin yourusername
 - **users/shared/darwin/scripts.nix**: App cleanup and helper scripts
 - **users/shared/programs/git.nix**: Git configuration with centralized user info from lib/user-info.nix
 - **users/shared/programs/vim.nix**: Vim setup with airline, tmux-navigator, relative line numbers
-- **users/shared/programs/zsh.nix**: Zsh environment with fzf, direnv, Claude/OpenCode aliases
+- **users/shared/programs/zsh/**: Zsh environment with fzf, direnv, Claude/OpenCode aliases
 - **users/shared/programs/tmux.nix**: Tmux config with vi-mode copy-paste, OSC52 clipboard
 - **users/shared/programs/starship.nix**: Minimal prompt configuration
-- **users/shared/programs/claude-code.nix**: Claude Code commands/skills/hooks deployment
+- **users/shared/programs/claude-code.nix**: Deploys CLAUDE.md, settings, statusline, and worktree hook to ~/.claude (commands/skills/hooks come from an external plugin)
 
 ### Testing and Quality
 
@@ -357,7 +357,7 @@ trusted-users = root @admin yourusername
 
 ### Shell Aliases and Shortcuts
 
-The zsh configuration provides these shortcuts (defined in `users/shared/programs/zsh.nix`):
+The zsh configuration provides these shortcuts (defined in `users/shared/programs/zsh/`):
 
 - `cc`: Claude Code with permission checks disabled (`claude --dangerously-skip-permissions`)
 - `oc`: OpenCode shortcut
@@ -367,7 +367,8 @@ The zsh configuration provides these shortcuts (defined in `users/shared/program
 
 **Vim** (users/shared/programs/vim.nix):
 
-- Leader key: `,` (comma)
+- Leader key: Space
+- LocalLeader: `,` (comma)
 - Clipboard: `<Leader>,` paste, `<Leader>.` copy
 - Window navigation: Ctrl+h/j/k/l
 - Buffer navigation: Tab/Shift+Tab
@@ -379,7 +380,7 @@ The zsh configuration provides these shortcuts (defined in `users/shared/program
 - Vi-style copy mode with tmux-native OSC52 clipboard (works over SSH)
 - Cross-platform: OSC52 (no pbcopy/xclip dependency)
 
-**Fzf** (in zsh.nix):
+**Fzf** (in `zsh/default.nix`):
 
 - Ctrl+R: Command history search
 - Ctrl+T: File search with bat preview
