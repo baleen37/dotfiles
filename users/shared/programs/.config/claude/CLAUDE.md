@@ -55,13 +55,7 @@ Transform tasks into verifiable goals:
 - "Fix the bug" → "Write a test that reproduces it, then make it pass"
 - "Refactor X" → "Ensure tests pass before and after"
 
-For multi-step tasks, state a brief plan:
-
-```
-1. [Step] → verify: [check]
-2. [Step] → verify: [check]
-3. [Step] → verify: [check]
-```
+For multi-step tasks, give each step a check that proves it worked (e.g. "→ verify: test passes").
 
 Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
 

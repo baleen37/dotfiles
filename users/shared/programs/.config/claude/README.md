@@ -1,6 +1,6 @@
 # Claude Code Configuration
 
-This directory contains Claude Code commands, skills, and hooks for dotfiles development.
+This directory contains the Claude Code configuration deployed to `~/.claude` (CLAUDE.md, settings, statusline).
 
 ## Structure
 
