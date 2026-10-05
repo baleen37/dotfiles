@@ -86,7 +86,6 @@ users/shared/
 ├── packages/             # Categorized package lists
 │   ├── core.nix         # Core CLI utilities
 │   ├── dev.nix          # Development tools
-│   ├── lsp.nix          # Language servers
 │   ├── nix-tools.nix    # Nix tooling
 │   ├── cloud.nix        # Cloud CLIs
 │   ├── security.nix     # Security tools
