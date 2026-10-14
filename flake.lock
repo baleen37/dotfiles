@@ -451,11 +451,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1791339781,
-        "narHash": "sha256-jENzQOgA+IiU9pa2C8LbToR0cCD9vhYro2SsjZ9Zc4U=",
+        "lastModified": 1791956373,
+        "narHash": "sha256-gyZNagmLyEq/wLVs9EgvjGOFm9bqZxQrPByDv5nWFoM=",
         "owner": "baleen37",
         "repo": "worktree",
-        "rev": "f6faf7056d1c9e450b61d63c51e11d11f7c46ee2",
+        "rev": "355c475acea75f90057313034f958d0d48805c11",
         "type": "github"
       },
       "original": {
