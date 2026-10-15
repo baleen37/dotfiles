@@ -20,10 +20,8 @@ in
     pkgs.runCommand "wt-hook-consistency"
       {
         nativeBuildInputs = [
-          pkgs.bash
           pkgs.git
           pkgs.jq
-          pkgs.coreutils
         ];
       }
       ''
@@ -33,6 +31,10 @@ in
         git config --global user.name test
         git config --global user.email test@example.com
         git config --global init.defaultBranch main
+        # Real setups ignore .worktrees/ globally (programs/git.nix); without it
+        # wt sees the hook's checkouts as a dirty base worktree.
+        echo .worktrees/ > "$HOME/.gitignore_global"
+        git config --global core.excludesFile "$HOME/.gitignore_global"
         unset HERDR_ENV HERDR_WORKSPACE_ID
 
         fail() { echo "FAIL: $*" >&2; exit 1; }
@@ -43,8 +45,6 @@ in
         repo="$TMPDIR/repo"
         git -C "$repo" commit -q --allow-empty -m init
         git -C "$repo" push -q origin main
-        # As in real repos: otherwise wt sees the untracked dir as a dirty base.
-        echo .worktrees/ >> "$repo/.git/info/exclude"
 
         # Placement: <main root>/.worktrees/<branch with / -> ->
         got=$(hook feat/hook "$repo")

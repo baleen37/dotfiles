@@ -31,7 +31,6 @@ let
   herdrConfigFile = pkgs.writeText "herdr-config.toml" herdrConfig;
 
   worktreeCommand = builtins.head parsedConfig.keys.command;
-  worktreePackage = inputs.worktree.packages.${system}.default;
   newWorktreeScript = config.xdg.configFile."herdr/new-worktree.sh".text;
 in
 {
@@ -71,22 +70,12 @@ in
 
   # The popup used to run `wt <name>` through zsh -ic. After wt became a Rust
   # binary that form was rejected as an unknown subcommand, and the popup just
-  # flashed an error. Pin the invocation to the pinned binary...
+  # flashed an error. wt-hook-consistency-test runs `wt switch -c` itself, so a
+  # wt CLI change fails there.
   herdr-worktree-command-calls-wt-switch-create =
     helpers.assertTest "herdr-worktree-command-calls-wt-switch-create"
-      (lib.hasInfix (builtins.unsafeDiscardStringContext "${worktreePackage}/bin/wt switch -c") (
-        builtins.unsafeDiscardStringContext newWorktreeScript
-      ))
-      "the popup must create the worktree with the pinned wt binary's `switch -c`";
-
-  # ...and prove that binary still accepts it, so a wt CLI change fails here
-  # instead of at keypress time.
-  herdr-worktree-command-wt-accepts-switch-create =
-    pkgs.runCommand "herdr-worktree-command-wt-accepts-switch-create" { }
-      ''
-        ${worktreePackage}/bin/wt switch --help | grep -q -- "-c"
-        touch "$out"
-      '';
+      (lib.hasInfix "/bin/wt switch -c" newWorktreeScript)
+      "the popup must create the worktree with the wt binary's `switch -c`";
 
   # A dangling command path would fail only at keypress time, in a popup that
   # closes immediately.

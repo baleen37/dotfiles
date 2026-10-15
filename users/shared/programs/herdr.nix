@@ -48,10 +48,7 @@ in
         # The binary, not the zsh wrapper: in Herdr, wt opens the new workspace
         # itself, so there is no calling shell to cd. An empty name lets wt pick
         # a random one.
-        if [[ -n $name ]]; then
-          exec ${worktreePackage}/bin/wt switch -c "$name"
-        fi
-        exec ${worktreePackage}/bin/wt switch -c
+        exec ${worktreePackage}/bin/wt switch -c ''${name:+"$name"}
       '';
     };
 

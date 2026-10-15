@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# WorktreeCreate hook: create the worktree where wt() would put it.
+# WorktreeCreate hook: create the worktree where `wt switch -c` would put it.
 #
 # Mirrors wt's path rule:
 #   <repo_root>/.worktrees/<branch with / replaced by ->
