@@ -79,20 +79,11 @@ jobs:
             exit 1
           }
 
-      - name: Full test suite
+      # `make test` above only evaluates checks on runners without KVM (Darwin,
+      # ARM64), so build the assertions to actually run them everywhere.
+      - name: Build assertions
         if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
-        continue-on-error: false
-        run: |
-          export TEST_USER=${TEST_USER:-testuser}  # Ensure consistent test user
-          echo "Running full test suite with static test user..."
-          echo "Environment info:"
-          echo "  - TEST_USER: $TEST_USER"
-          echo "  - RUNNER_OS: $RUNNER_OS"
-          make test-all || {
-            echo "❌ Full test suite failed"
-            echo "This may be due to cache service issues, not code problems"
-            exit 1
-          }
+        run: make test-build
 
       - name: Test secrets backup
         run: |
