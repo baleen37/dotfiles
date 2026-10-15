@@ -205,7 +205,7 @@ let
 in
 {
   platforms = [ "any" ];
-  value = helpers.testSuite "baleen-toolkit" [
+  value.suite = helpers.testSuite "baleen-toolkit" [
     (helpers.assertTest "script-exists" scriptExists "the Baleen toolkit script should exist")
     (helpers.assertTest "module-exists" moduleExists
       "the Baleen toolkit Home Manager module should exist"
@@ -243,8 +243,7 @@ in
     (helpers.assertTest "does-not-delete-nix-generations" (
       !(lib.hasInfix "nix-collect-garbage -d" script)
     ) "bl gc must not delete Nix profiles or generations")
-    (helpers.assertTest "runtime-dry-run" (builtins.pathExists runtimeTest)
-      "bl gc --dry-run should list a clean worktree older than three days"
-    )
   ];
+  # bl gc --dry-run should list a clean worktree older than three days.
+  value.runtime = runtimeTest;
 }
