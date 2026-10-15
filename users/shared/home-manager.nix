@@ -2,24 +2,10 @@
   pkgs,
   currentSystemUser,
   inputs,
-  lib,
   isDarwin ? pkgs.stdenv.hostPlatform.isDarwin,
   ...
 }:
 
-let
-  tmuxPackage = pkgs.tmux.overrideAttrs (old: {
-    configureFlags =
-      (old.configureFlags or [ ]) ++ lib.optional pkgs.stdenv.hostPlatform.isDarwin "--disable-jemalloc";
-  });
-  direnvInstantPackage =
-    inputs.direnv-instant.packages.${pkgs.stdenv.hostPlatform.system}.default.overrideAttrs
-      (old: {
-        nativeCheckInputs = map (
-          input: if (input.pname or null) == "tmux" then tmuxPackage else input
-        ) old.nativeCheckInputs;
-      });
-in
 {
   imports = [
     inputs.direnv-instant.homeModules.direnv-instant
@@ -95,8 +81,6 @@ in
     databases.enable = true;
     ai.enable = true;
   };
-
-  programs.direnv-instant.package = direnvInstantPackage;
 
   home = {
     username = currentSystemUser;
