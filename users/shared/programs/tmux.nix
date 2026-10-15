@@ -31,8 +31,10 @@
 
 {
   config,
+  options,
   lib,
   pkgs,
+  inputs,
   ...
 }:
 
@@ -44,7 +46,7 @@ let
   });
   agentStatusSummary = pkgs.writeShellApplication {
     name = "tmux-agent-status-summary";
-    runtimeInputs = [ tmuxPackage ];
+    runtimeInputs = [ config.programs.tmux.package ];
     text = builtins.readFile ./tmux-agent-status-summary.sh;
   };
   agentStatusGlyph = "#{?#{==:#{@agent_status},running},●,#{?#{==:#{@agent_status},needs_input},▲,#{?#{==:#{@agent_status},ready},○,#{?#{==:#{@agent_status},error},✕,}}}}";
@@ -52,177 +54,192 @@ in
 {
   options.modules.programs.tmux.enable = lib.mkEnableOption "Tmux multiplexer configuration";
 
-  config = lib.mkIf cfg.enable {
-    programs.sesh = {
-      enable = true;
-      tmuxKey = "T";
-    };
+  config = lib.mkIf cfg.enable (
+    lib.mkMerge [
+      # direnv-instant runs tmux in its check phase. Swap in this module's tmux
+      # so Darwin builds the same non-jemalloc tmux instead of a second one.
+      (lib.optionalAttrs (options ? programs.direnv-instant) {
+        programs.direnv-instant.package =
+          inputs.direnv-instant.packages.${pkgs.stdenv.hostPlatform.system}.default.overrideAttrs
+            (old: {
+              nativeCheckInputs = map (
+                input: if (input.pname or null) == "tmux" then config.programs.tmux.package else input
+              ) old.nativeCheckInputs;
+            });
+      })
+      {
+        programs.sesh = {
+          enable = true;
+          tmuxKey = "T";
+        };
 
-    programs.tmux = {
-      enable = true;
-      package = tmuxPackage;
+        programs.tmux = {
+          enable = true;
+          package = tmuxPackage;
 
-      plugins = with pkgs.tmuxPlugins; [
-        resurrect
-        {
-          plugin = continuum;
+          plugins = with pkgs.tmuxPlugins; [
+            resurrect
+            {
+              plugin = continuum;
+              extraConfig = ''
+                # Configure Continuum before it starts and extends status-right.
+                set -g @continuum-restore 'on'
+                set -g status-right '#(${agentStatusSummary}/bin/tmux-agent-status-summary) #[fg=colour233,bg=colour241,bold] %d/%m #[fg=colour233,bg=colour245,bold] %H:%M '
+              '';
+            }
+            vim-tmux-navigator
+          ];
+
+          terminal = "tmux-256color";
+          prefix = "C-a";
+          escapeTime = 0;
+          historyLimit = 50000;
+
+          # Oh My Tmux inspired configuration
           extraConfig = ''
-            # Configure Continuum before it starts and extends status-right.
-            set -g @continuum-restore 'on'
-            set -g status-right '#(${agentStatusSummary}/bin/tmux-agent-status-summary) #[fg=colour233,bg=colour241,bold] %d/%m #[fg=colour233,bg=colour245,bold] %H:%M '
+            # ============================================================================
+            # Base configuration
+            # ============================================================================
+            # default-terminal is emitted by programs.tmux.terminal = "tmux-256color"
+            set -g default-shell ${pkgs.zsh}/bin/zsh
+            # default-command left unset: tmux runs default-shell as a login shell
+            set -g focus-events on
+
+            # Terminal and display settings
+            set -g mouse on
+            bind-key -n MouseDown2Pane paste-buffer
+            set -g base-index 1
+            set -g pane-base-index 1
+            set -g renumber-windows on
+
+            # Performance optimizations
+            set -g display-time 2000
+            set -g repeat-time 500
+            set -g status-interval 5
+
+            # Session settings
+            set -g remain-on-exit off
+            set -g allow-rename off
+            set -g destroy-unattached off
+
+            # Propagate session + active pane title to the Ghostty tab/window title.
+            # Complements allow-rename off: that only blocks window-name renames;
+            # pane titles (OSC 2) still flow, which is how coding agents (Claude
+            # Code etc.) report their status (spinner = working, ✳ = waiting).
+            set -g set-titles on
+            set -g set-titles-string "#S  #{?#{!=:#{pane_title},#{host}},#{pane_title},#I:#W}"
+
+            # ============================================================================
+            # Prefix key bindings (Ctrl-a style)
+            # ============================================================================
+            # Send prefix through to application (Ctrl-a Ctrl-a)
+            bind C-a send-prefix
+
+            # Last window toggle (Ctrl-a a)
+            bind a last-window
+
+            # ============================================================================
+            # Pane management
+            # ============================================================================
+            # Default split keys (% left/right, " top/bottom), re-bound only to
+            # carry the current pane's path over — tmux 1.9+ otherwise starts a new
+            # pane in the directory the session was created in.
+            bind '%' split-window -h -c "#{pane_current_path}"
+            bind '"' split-window -v -c "#{pane_current_path}"
+
+            # Vim-style pane navigation
+            bind h select-pane -L
+            bind j select-pane -D
+            bind k select-pane -U
+            bind l select-pane -R
+
+            # Pane resizing
+            bind -r H resize-pane -L 5
+            bind -r J resize-pane -D 5
+            bind -r K resize-pane -U 5
+            bind -r L resize-pane -R 5
+
+            # ============================================================================
+            # Window management
+            # ============================================================================
+            bind c new-window -c "#{pane_current_path}"
+            bind n next-window
+            bind p previous-window
+            bind , command-prompt "rename-window '%%'"
+
+            # Alt keys for window navigation without prefix
+            bind -n M-h previous-window
+            bind -n M-l next-window
+
+            # ============================================================================
+            # Copy mode with OSC52 support
+            # ============================================================================
+            setw -g mode-keys vi
+            bind [ copy-mode
+            bind ] paste-buffer
+
+            # Vi-style copy mode bindings
+            bind-key -T copy-mode-vi v send-keys -X begin-selection
+            bind-key -T copy-mode-vi r send-keys -X rectangle-toggle
+            bind-key -T copy-mode-vi Escape send-keys -X cancel
+
+            # OSC52 clipboard integration. The xterm-ghostty terminfo carries the Ms
+            # capability, so tmux emits OSC52 itself on copy — no manual printf hack
+            # needed. 'on' (vs 'external') also lets apps inside tmux (Neovim/agent
+            # OSC52 yank) populate the clipboard. Keep raw DCS passthrough disabled so
+            # terminal state changes from pane applications cannot leak to Ghostty.
+            set -s set-clipboard on
+            set -g allow-passthrough off
+
+            # Copy to system clipboard via tmux-native OSC52 (works over SSH).
+            bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel
+            bind -T copy-mode-vi Enter send-keys -X copy-pipe-and-cancel
+            bind -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe-and-cancel
+
+            # ============================================================================
+            # Terminal capabilities
+            # ============================================================================
+            # Truecolor (RGB). terminal-features matches the OUTER terminal's TERM,
+            # which is xterm-ghostty under Ghostty. The xterm-ghostty terminfo also
+            # already advertises Smulx/Setulc (undercurl) and Ss/Se (cursor shape),
+            # so no manual terminal-overrides are needed for those.
+            set -as terminal-features ',xterm-ghostty:RGB'
+
+            # Mosh 1.4 preserves truecolor and exports COLORTERM=truecolor, but its
+            # outer terminal is xterm-256color rather than xterm-ghostty.
+            set -as terminal-features ',xterm-256color:RGB'
+
+            # Extended keys (CSI u). Ghostty speaks the CSI-u encoding; tmux 3.6
+            # defaults extended-keys-format to xterm form, so set csi-u explicitly
+            # for modifier combos (e.g. Shift+Enter) to reach apps inside tmux.
+            set-option -g extended-keys on
+            set-option -s extended-keys-format csi-u
+            set -as terminal-features ',xterm-ghostty:extkeys'
+
+            # ============================================================================
+            # Status bar
+            # ============================================================================
+            set -g status-position bottom
+            set -g status-bg colour234
+            set -g status-fg colour137
+            set -g status-left-length 20
+            set -g status-right-length 50
+            set -g status-left '#[fg=colour233,bg=colour241,bold] #S '
+
+            # Window status display. Shows the active pane's title (agent status:
+            # spinner = working, ✳ = waiting) when a program sets one via OSC 2;
+            # falls back to the window name when the title is the default (#{host}).
+            # Truncated to 30 chars to keep the window list readable.
+            setw -g window-status-current-format ' #I${agentStatusGlyph}#[fg=colour250]:#[fg=colour255]#{?#{!=:#{pane_title},#{host}},#{=/30/…:pane_title},#W}#[fg=colour50]#F '
+            setw -g window-status-format ' #I${agentStatusGlyph}#[fg=colour237]:#[fg=colour250]#{?#{!=:#{pane_title},#{host}},#{=/30/…:pane_title},#W}#[fg=colour244]#F '
+
+            # ============================================================================
+            # Misc
+            # ============================================================================
+            bind r source-file ~/.config/tmux/tmux.conf \; display "Config reloaded!"
           '';
-        }
-        vim-tmux-navigator
-      ];
-
-      terminal = "tmux-256color";
-      prefix = "C-a";
-      escapeTime = 0;
-      historyLimit = 50000;
-
-      # Oh My Tmux inspired configuration
-      extraConfig = ''
-        # ============================================================================
-        # Base configuration
-        # ============================================================================
-        # default-terminal is emitted by programs.tmux.terminal = "tmux-256color"
-        set -g default-shell ${pkgs.zsh}/bin/zsh
-        # default-command left unset: tmux runs default-shell as a login shell
-        set -g focus-events on
-
-        # Terminal and display settings
-        set -g mouse on
-        bind-key -n MouseDown2Pane paste-buffer
-        set -g base-index 1
-        set -g pane-base-index 1
-        set -g renumber-windows on
-
-        # Performance optimizations
-        set -g display-time 2000
-        set -g repeat-time 500
-        set -g status-interval 5
-
-        # Session settings
-        set -g remain-on-exit off
-        set -g allow-rename off
-        set -g destroy-unattached off
-
-        # Propagate session + active pane title to the Ghostty tab/window title.
-        # Complements allow-rename off: that only blocks window-name renames;
-        # pane titles (OSC 2) still flow, which is how coding agents (Claude
-        # Code etc.) report their status (spinner = working, ✳ = waiting).
-        set -g set-titles on
-        set -g set-titles-string "#S  #{?#{!=:#{pane_title},#{host}},#{pane_title},#I:#W}"
-
-        # ============================================================================
-        # Prefix key bindings (Ctrl-a style)
-        # ============================================================================
-        # Send prefix through to application (Ctrl-a Ctrl-a)
-        bind C-a send-prefix
-
-        # Last window toggle (Ctrl-a a)
-        bind a last-window
-
-        # ============================================================================
-        # Pane management
-        # ============================================================================
-        # Default split keys (% left/right, " top/bottom), re-bound only to
-        # carry the current pane's path over — tmux 1.9+ otherwise starts a new
-        # pane in the directory the session was created in.
-        bind '%' split-window -h -c "#{pane_current_path}"
-        bind '"' split-window -v -c "#{pane_current_path}"
-
-        # Vim-style pane navigation
-        bind h select-pane -L
-        bind j select-pane -D
-        bind k select-pane -U
-        bind l select-pane -R
-
-        # Pane resizing
-        bind -r H resize-pane -L 5
-        bind -r J resize-pane -D 5
-        bind -r K resize-pane -U 5
-        bind -r L resize-pane -R 5
-
-        # ============================================================================
-        # Window management
-        # ============================================================================
-        bind c new-window -c "#{pane_current_path}"
-        bind n next-window
-        bind p previous-window
-        bind , command-prompt "rename-window '%%'"
-
-        # Alt keys for window navigation without prefix
-        bind -n M-h previous-window
-        bind -n M-l next-window
-
-        # ============================================================================
-        # Copy mode with OSC52 support
-        # ============================================================================
-        setw -g mode-keys vi
-        bind [ copy-mode
-        bind ] paste-buffer
-
-        # Vi-style copy mode bindings
-        bind-key -T copy-mode-vi v send-keys -X begin-selection
-        bind-key -T copy-mode-vi r send-keys -X rectangle-toggle
-        bind-key -T copy-mode-vi Escape send-keys -X cancel
-
-        # OSC52 clipboard integration. The xterm-ghostty terminfo carries the Ms
-        # capability, so tmux emits OSC52 itself on copy — no manual printf hack
-        # needed. 'on' (vs 'external') also lets apps inside tmux (Neovim/agent
-        # OSC52 yank) populate the clipboard. Keep raw DCS passthrough disabled so
-        # terminal state changes from pane applications cannot leak to Ghostty.
-        set -s set-clipboard on
-        set -g allow-passthrough off
-
-        # Copy to system clipboard via tmux-native OSC52 (works over SSH).
-        bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel
-        bind -T copy-mode-vi Enter send-keys -X copy-pipe-and-cancel
-        bind -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe-and-cancel
-
-        # ============================================================================
-        # Terminal capabilities
-        # ============================================================================
-        # Truecolor (RGB). terminal-features matches the OUTER terminal's TERM,
-        # which is xterm-ghostty under Ghostty. The xterm-ghostty terminfo also
-        # already advertises Smulx/Setulc (undercurl) and Ss/Se (cursor shape),
-        # so no manual terminal-overrides are needed for those.
-        set -as terminal-features ',xterm-ghostty:RGB'
-
-        # Mosh 1.4 preserves truecolor and exports COLORTERM=truecolor, but its
-        # outer terminal is xterm-256color rather than xterm-ghostty.
-        set -as terminal-features ',xterm-256color:RGB'
-
-        # Extended keys (CSI u). Ghostty speaks the CSI-u encoding; tmux 3.6
-        # defaults extended-keys-format to xterm form, so set csi-u explicitly
-        # for modifier combos (e.g. Shift+Enter) to reach apps inside tmux.
-        set-option -g extended-keys on
-        set-option -s extended-keys-format csi-u
-        set -as terminal-features ',xterm-ghostty:extkeys'
-
-        # ============================================================================
-        # Status bar
-        # ============================================================================
-        set -g status-position bottom
-        set -g status-bg colour234
-        set -g status-fg colour137
-        set -g status-left-length 20
-        set -g status-right-length 50
-        set -g status-left '#[fg=colour233,bg=colour241,bold] #S '
-
-        # Window status display. Shows the active pane's title (agent status:
-        # spinner = working, ✳ = waiting) when a program sets one via OSC 2;
-        # falls back to the window name when the title is the default (#{host}).
-        # Truncated to 30 chars to keep the window list readable.
-        setw -g window-status-current-format ' #I${agentStatusGlyph}#[fg=colour250]:#[fg=colour255]#{?#{!=:#{pane_title},#{host}},#{=/30/…:pane_title},#W}#[fg=colour50]#F '
-        setw -g window-status-format ' #I${agentStatusGlyph}#[fg=colour237]:#[fg=colour250]#{?#{!=:#{pane_title},#{host}},#{=/30/…:pane_title},#W}#[fg=colour244]#F '
-
-        # ============================================================================
-        # Misc
-        # ============================================================================
-        bind r source-file ~/.config/tmux/tmux.conf \; display "Config reloaded!"
-      '';
-    };
-  };
+        };
+      }
+    ]
+  );
 }

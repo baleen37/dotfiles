@@ -1,9 +1,9 @@
 # tests/unit/darwin-test.nix
 #
-# Covers users/shared/darwin/{default,homebrew,scripts}.nix.
+# Covers users/shared/darwin/{default,homebrew}.nix.
 #
 # default.nix declares its siblings via `imports`, which only the module system
-# expands, so the three files are merged by hand here — that is why the config
+# expands, so the files are merged by hand here — that is why the config
 # below is a plain attribute set rather than an evaluated configuration.
 #
 # Values that were deliberately tuned live in tests/lib/constants.nix; the
@@ -32,14 +32,11 @@ let
 
   testUser = "baleen";
 
-  darwinConfig =
-    lib.recursiveUpdate
-      (lib.recursiveUpdate (import ../../users/shared/darwin/default.nix {
-        inherit pkgs lib;
-        config = mockConfig.mkEmptyConfig;
-        currentSystemUser = testUser;
-      }) (import ../../users/shared/darwin/homebrew.nix { }))
-      (import ../../users/shared/darwin/scripts.nix { });
+  darwinConfig = lib.recursiveUpdate (import ../../users/shared/darwin/default.nix {
+    inherit pkgs lib;
+    config = mockConfig.mkEmptyConfig;
+    currentSystemUser = testUser;
+  }) (import ../../users/shared/darwin/homebrew.nix { });
 
   customPrefs = darwinConfig.system.defaults.CustomUserPreferences;
   multitouch = customPrefs."com.apple.AppleMultitouchTrackpad";
@@ -50,7 +47,6 @@ let
   # or splits them is not worth guessing at.
   homebrewCasks = darwinConfig.homebrew.casks;
   homebrewTaps = darwinConfig.homebrew.taps;
-  preActivationText = (darwinConfig.system.activationScripts.preActivation or { text = ""; }).text;
   homebrewExtraConfig = darwinConfig.homebrew.extraConfig;
   forceClick = customPrefs.NSGlobalDomain."com.apple.trackpad.forceClick";
   tapGesture = multitouch.TrackpadThreeFingerTapGesture;
@@ -72,7 +68,6 @@ in
     ++ [
       (darwinHelpers.assertSystemPrimaryUser testUser darwinConfig)
       (darwinHelpers.assertDocumentationDisabled darwinConfig)
-      (darwinHelpers.assertCleanupScriptConfigured darwinConfig)
 
       # Homebrew supplies the GUI apps; an empty cask list means a switch would
       # silently uninstall all of them.
@@ -96,20 +91,8 @@ in
       ) "Switch should be installed from its Homebrew tap")
 
       (helpers.assertTest "magnet-not-configured" (
-        !(darwinConfig.homebrew.masApps ? Magnet)
-        && !(lib.hasInfix "Magnet.app" preActivationText)
-        && !(lib.hasInfix "441258766" homebrewExtraConfig)
+        !(darwinConfig.homebrew.masApps ? Magnet) && !(lib.hasInfix "441258766" homebrewExtraConfig)
       ) "Magnet should not be managed after switching to Hammerspoon")
-
-      (helpers.assertTest "spotlight-indexing-for-mas" (
-        lib.hasInfix "/usr/bin/mdutil -E -i on /" preActivationText
-        && lib.hasInfix "/usr/bin/mdimport" preActivationText
-        && lib.hasInfix "/Applications/KakaoTalk.app" preActivationText
-      ) "Activation should enable Spotlight and index the configured MAS apps")
-
-      (helpers.assertTest "spotlight-single-app-has-no-loop" (
-        !(lib.hasInfix "for app in" preActivationText)
-      ) "A single configured MAS app should not use a single-iteration loop")
 
       (helpers.assertTest "mas-existing-app-skip-configured" (
         lib.hasInfix "HOMEBREW_BUNDLE_MAS_SKIP" homebrewExtraConfig

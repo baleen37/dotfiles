@@ -20,19 +20,23 @@ let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
   activation = self.darwinConfigurations.kakaostyle-jito.config.system.activationScripts;
   systemActivationSource = builtins.readFile ../../users/shared/darwin/scripts.nix;
+  # hasInfix rejects a needle that carries store-path context.
+  activationScript = builtins.unsafeDiscardStringContext "${../../users/shared/darwin/activation.sh}";
   userActivation = self.homeConfigurations."jito.hello".config.home.activation.vscodeLaunchServices;
 in
 {
   platforms = [ "darwin" ];
   value = {
-    remote-login-runs =
-      helpers.assertTest "remote login script runs"
-        (lib.hasInfix "systemsetup -setremotelogin" activation.script.text)
-        "Remote Login enablement should be spliced into the assembled activation script";
-
-    app-cleanup-runs =
-      helpers.assertTest "app cleanup script runs" (lib.hasInfix "GarageBand.app" activation.script.text)
-        "App cleanup should be spliced into the assembled activation script";
+    # Behaviour is tested in tests/integration/darwin-activation-script-test.nix;
+    # this only proves each subcommand is spliced into the script that runs.
+    activation-script-runs = helpers.assertTest "activation script runs" (lib.all
+      (cmd: lib.hasInfix "${activationScript} ${cmd}" activation.script.text)
+      [
+        "spotlight"
+        "remote-login"
+        "app-cleanup"
+      ]
+    ) "Spotlight, Remote Login and app cleanup must be spliced into the assembled activation script";
 
     vscode-launchservices-repair-is-user-scoped =
       helpers.assertTest "VS Code LaunchServices repair is user-scoped"
