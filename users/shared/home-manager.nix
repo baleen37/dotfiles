@@ -1,5 +1,6 @@
 {
   pkgs,
+  lib,
   currentSystemUser,
   inputs,
   isDarwin ? pkgs.stdenv.hostPlatform.isDarwin,
