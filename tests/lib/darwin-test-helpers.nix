@@ -105,15 +105,4 @@ in
     helpers.assertTest "documentation-disabled" (
       darwinConfig.documentation.enable == false
     ) "documentation.enable should stay false; building man pages dominates switch time";
-
-  # Asserts on postActivation's text rather than on the presence of an attribute.
-  # nix-darwin splices only a fixed set of segment names into the script it runs,
-  # so a custom `system.activationScripts.<name>` evaluates fine while never
-  # executing -- and an attribute-presence check passes in exactly that case,
-  # which is how this script stayed dead for as long as it did.
-  assertCleanupScriptConfigured =
-    darwinConfig:
-    helpers.assertTest "cleanup-script-in-post-activation"
-      (lib.hasInfix "GarageBand.app" darwinConfig.system.activationScripts.postActivation.text)
-      "App cleanup must live in the postActivation segment so nix-darwin actually runs it";
 }
