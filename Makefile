@@ -94,9 +94,8 @@ test-build:
 	$(NIX_ENV_FULL) $(NIX) build ".#checks.$(NIX_SYSTEM).all-assertions" \
 		--accept-flake-config --print-build-logs --no-link
 
-# Kept as the name CI and the pre-push hook call. It deliberately does NOT
-# depend on test-build: `make test-build` would build assertions that CI has
-# never built before, so flipping it on is a separate, deliberate change.
+# Kept as the name the pre-push hook calls. CI runs `make test-build` as its
+# own step, so this stays evaluation-only off Linux+KVM to keep pushes fast.
 test-all: test
 	@echo "All tests completed successfully"
 

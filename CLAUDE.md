@@ -252,7 +252,7 @@ GitHub Actions workflow (`.github/workflows/ci.yml`):
   and NixOS `aarch64-linux` (Ubuntu ARM64)
 - Pre-commit hooks validation
 - Fast container tests (Linux) or validation mode (macOS)
-- Full test suite on PRs and main branch
+- Builds every unit and integration assertion (`make test-build`) on PRs and main
 - Cachix upload for successful builds
 
 Required environment variables in CI:
