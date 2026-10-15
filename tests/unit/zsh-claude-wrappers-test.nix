@@ -10,7 +10,6 @@
 }:
 
 let
-  helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
   mockConfig = import ../lib/mock-config.nix { inherit pkgs lib; };
 
   zshModule = import ../../users/shared/programs/zsh {
@@ -208,12 +207,10 @@ let
 in
 {
   platforms = [ "any" ];
-  value = helpers.testSuite "zsh-ai-cli-shortcuts" [
-    (helpers.assertTest "zsh-ai-cli-runtime" (builtins.pathExists runtimeTest)
-      "cc/co/oc runtime behavior failed"
-    )
-    (helpers.assertTest "zsh-claude-keychain-runtime" (builtins.pathExists darwinKeychainRuntimeTest)
-      "Claude keychain lazy-unlock behavior failed"
-    )
-  ];
+  value = {
+    # cc/co/oc runtime behavior
+    runtime = runtimeTest;
+    # Claude keychain lazy-unlock behavior
+    keychain-runtime = darwinKeychainRuntimeTest;
+  };
 }
