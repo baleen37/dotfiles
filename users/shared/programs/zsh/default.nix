@@ -32,7 +32,9 @@ let
   worktreePackage = inputs.worktree.packages.${pkgs.system}.default;
 in
 {
-  options.modules.programs.zsh.enable = lib.mkEnableOption "Zsh shell environment";
+  options.modules.programs.zsh.enable = lib.mkEnableOption "Zsh shell environment" // {
+    default = true;
+  };
 
   config = lib.mkIf cfg.enable {
     home.packages = [ worktreePackage ];
@@ -143,7 +145,8 @@ in
 
       plugins = [ ];
 
-      initContent = lib.mkAfter ''
+      # After docker completion (1500) and starship init (1510); see starship.nix.
+      initContent = lib.mkOrder 1520 ''
         # =============================================================================
         # Section: Nix daemon initialization
         # =============================================================================

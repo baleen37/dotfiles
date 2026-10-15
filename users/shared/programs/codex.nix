@@ -12,7 +12,9 @@ let
   cfg = config.modules.programs.codex;
 in
 {
-  options.modules.programs.codex.enable = lib.mkEnableOption "Codex CLI configuration";
+  options.modules.programs.codex.enable = lib.mkEnableOption "Codex CLI configuration" // {
+    default = true;
+  };
 
   config = lib.mkIf cfg.enable {
     home.packages = [ pkgs.codex ];

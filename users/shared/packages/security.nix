@@ -8,7 +8,9 @@ let
   cfg = config.modules.packages.security;
 in
 {
-  options.modules.packages.security.enable = lib.mkEnableOption "security tools";
+  options.modules.packages.security.enable = lib.mkEnableOption "security tools" // {
+    default = true;
+  };
 
   config = lib.mkIf cfg.enable {
     home.packages = with pkgs; [

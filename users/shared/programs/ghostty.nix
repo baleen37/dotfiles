@@ -14,7 +14,9 @@ let
   isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
 in
 {
-  options.modules.programs.ghostty.enable = lib.mkEnableOption "Ghostty terminal configuration";
+  options.modules.programs.ghostty.enable = lib.mkEnableOption "Ghostty terminal configuration" // {
+    default = true;
+  };
 
   config = lib.mkIf cfg.enable {
     # Install Ghostty from the official macOS binary package. Ghostty is configured

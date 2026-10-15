@@ -12,7 +12,9 @@ let
   cfg = config.modules.programs.opencode;
 in
 {
-  options.modules.programs.opencode.enable = lib.mkEnableOption "OpenCode CLI configuration";
+  options.modules.programs.opencode.enable = lib.mkEnableOption "OpenCode CLI configuration" // {
+    default = true;
+  };
 
   config = lib.mkIf cfg.enable {
     # Generate opencode.json from Nix expression
