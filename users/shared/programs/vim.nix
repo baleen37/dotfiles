@@ -35,7 +35,9 @@ let
   cfg = config.modules.programs.vim;
 in
 {
-  options.modules.programs.vim.enable = lib.mkEnableOption "Vim editor configuration";
+  options.modules.programs.vim.enable = lib.mkEnableOption "Vim editor configuration" // {
+    default = true;
+  };
 
   config = lib.mkIf cfg.enable {
     programs.vim = {

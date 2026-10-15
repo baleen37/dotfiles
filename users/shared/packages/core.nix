@@ -8,7 +8,9 @@ let
   cfg = config.modules.packages.core;
 in
 {
-  options.modules.packages.core.enable = lib.mkEnableOption "core utilities";
+  options.modules.packages.core.enable = lib.mkEnableOption "core utilities" // {
+    default = true;
+  };
 
   config = lib.mkIf cfg.enable {
     home.packages = with pkgs; [

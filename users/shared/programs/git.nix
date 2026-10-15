@@ -31,7 +31,9 @@ let
   cfg = config.modules.programs.git;
 in
 {
-  options.modules.programs.git.enable = lib.mkEnableOption "Git configuration";
+  options.modules.programs.git.enable = lib.mkEnableOption "Git configuration" // {
+    default = true;
+  };
 
   config = lib.mkIf cfg.enable {
     programs.git = {

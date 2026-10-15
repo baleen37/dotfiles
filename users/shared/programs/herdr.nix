@@ -25,7 +25,9 @@ let
   newWorktreePath = "${config.xdg.configHome}/herdr/new-worktree.sh";
 in
 {
-  options.modules.programs.herdr.enable = lib.mkEnableOption "Herdr terminal workspace manager";
+  options.modules.programs.herdr.enable = lib.mkEnableOption "Herdr terminal workspace manager" // {
+    default = true;
+  };
 
   config = lib.mkIf cfg.enable {
     home.packages = [ pkgs.herdr ];

@@ -13,74 +13,15 @@
     # Darwin GUI ownership and LaunchServices repair.
     ./darwin/vscode-launchservices.nix
     ./darwin/keyboard-input.nix
-
-    # Tool configurations (programs)
-    ./programs/git.nix
-    ./programs/neovim.nix
-    ./programs/vim.nix
-    ./programs/zsh
-    ./programs/starship.nix
-    ./programs/tmux.nix
-    ./programs/herdr.nix
-    ./programs/claude-code.nix
-    ./programs/codex.nix
-    ./programs/opencode.nix
-    ./programs/baleen-toolkit.nix
-    ./programs/ghostty.nix
-    ./programs/raycast.nix
-    ./programs/ssh.nix
-    ./programs/docker.nix
-    ./programs/hammerspoon.nix
-    ./programs/karabiner.nix
-    ./programs/neru.nix
-
-    # Package categories — modules.packages.<name>.enable
-    ./packages/core.nix
-    ./packages/dev.nix
-    ./packages/nix-tools.nix
-    ./packages/cloud.nix
-    ./packages/security.nix
-    ./packages/ssh.nix
-    ./packages/media.nix
-    ./packages/fonts.nix
-    ./packages/databases.nix
-    ./packages/ai.nix
-  ];
-
-  # Programs — modules.programs.<name>.enable.
-  # hammerspoon and karabiner default to pkgs.stdenv.hostPlatform.isDarwin in
-  # their own modules; intentionally not listed here so the platform default
-  # owns the decision.
-  modules.programs = {
-    git.enable = true;
-    neovim.enable = true;
-    vim.enable = true;
-    zsh.enable = true;
-    tmux.enable = true;
-    herdr.enable = true;
-    starship.enable = true;
-    claude-code.enable = true;
-    codex.enable = true;
-    opencode.enable = true;
-    baleen-toolkit.enable = true;
-    ghostty.enable = true;
-    ssh.enable = true;
-    docker.enable = true;
-  };
-
-  # All package categories are enabled for this configuration
-  modules.packages = {
-    core.enable = true;
-    dev.enable = true;
-    nix-tools.enable = true;
-    cloud.enable = true;
-    security.enable = true;
-    ssh.enable = true;
-    media.enable = true;
-    fonts.enable = true;
-    databases.enable = true;
-    ai.enable = true;
-  };
+  ]
+  # Every module under programs/ and packages/, each enabled by its own option
+  # default (see lib/home-modules.nix).
+  ++ (
+    let
+      discovered = import ../../lib/home-modules.nix { inherit lib; };
+    in
+    builtins.attrValues discovered.programs ++ builtins.attrValues discovered.packages
+  );
 
   home = {
     username = currentSystemUser;

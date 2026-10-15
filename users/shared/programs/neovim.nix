@@ -9,7 +9,9 @@ let
   cfg = config.modules.programs.neovim;
 in
 {
-  options.modules.programs.neovim.enable = lib.mkEnableOption "Neovim editor configuration";
+  options.modules.programs.neovim.enable = lib.mkEnableOption "Neovim editor configuration" // {
+    default = true;
+  };
 
   config = lib.mkIf cfg.enable {
     programs.neovim = {

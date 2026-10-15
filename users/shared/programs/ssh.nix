@@ -14,7 +14,9 @@ let
   cfg = config.modules.programs.ssh;
 in
 {
-  options.modules.programs.ssh.enable = lib.mkEnableOption "SSH client config";
+  options.modules.programs.ssh.enable = lib.mkEnableOption "SSH client config" // {
+    default = true;
+  };
 
   config = lib.mkIf cfg.enable {
     programs.ssh = {

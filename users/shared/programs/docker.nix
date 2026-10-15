@@ -13,7 +13,9 @@ let
   cfg = config.modules.programs.docker;
 in
 {
-  options.modules.programs.docker.enable = lib.mkEnableOption "Docker CLI context and completion";
+  options.modules.programs.docker.enable = lib.mkEnableOption "Docker CLI context and completion" // {
+    default = true;
+  };
 
   config = lib.mkIf cfg.enable {
     home.sessionVariables.DOCKER_CONTEXT = "orbstack";

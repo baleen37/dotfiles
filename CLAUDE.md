@@ -70,7 +70,7 @@ All user configurations are in `users/shared/` using flat, tool-specific files:
 
 ```text
 users/shared/
-├── home-manager.nix       # Main entry point, imports all modules
+├── home-manager.nix       # Main entry point; programs/ and packages/ are discovered by lib/home-modules.nix
 ├── darwin/                # macOS system settings
 │   ├── default.nix       # Dock, Finder, masApps, primary user
 │   ├── homebrew.nix      # Homebrew casks and brews
@@ -164,11 +164,13 @@ does not change host metadata.
 
 - Add to the appropriate category file in `users/shared/packages/` (e.g., `dev.nix` for development tools)
 - Or create/modify specific tool configuration in `users/shared/programs/*.nix`
+- A new `<name>.nix` (or `<name>/default.nix`) under `programs/` or `packages/` is imported automatically by `lib/home-modules.nix`; do not edit `home-manager.nix`
 
 **Module enable pattern** (`modules.programs.<name>`, `modules.packages.<name>`):
 
-- Every program and package category exposes an `enable` option. `lib.mkEnableOption` defaults to `false`; activation happens explicitly in `users/shared/home-manager.nix`.
-- Platform-conditional modules (`hammerspoon`, `karabiner`) set `default = pkgs.stdenv.hostPlatform.isDarwin` in the module itself — do **not** list them in the home-manager.nix enable block; let the module default own the decision.
+- Every discovered module declares `options.modules.<category>.<name>.enable`, named after its file, with `lib.mkEnableOption "..." // { default = true; }`. `home-manager.nix` sets no enable flags; `unit-platform-defaults` fails on a bare `mkEnableOption` (default `false`).
+- Darwin-only modules (`hammerspoon`, `karabiner`, `neru`, `raycast`) use `default = pkgs.stdenv.hostPlatform.isDarwin` instead; add new ones to `darwinOnly` in `tests/unit/platform-defaults-test.nix`.
+- Helper `.nix` files a module imports belong inside that module's directory (as in `zsh/`), not at the top of `programs/` or `packages/`.
 - To disable a module on a specific machine, add it to that host's `homeModules` in `flake-modules/hosts.nix` (e.g., `modules.programs.hammerspoon.enable = false;`).
 
 **System packages** (macOS GUI apps):
