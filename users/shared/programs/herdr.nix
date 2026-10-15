@@ -1,4 +1,5 @@
 {
+  inputs,
   config,
   lib,
   pkgs,
@@ -7,6 +8,7 @@
 
 let
   cfg = config.modules.programs.herdr;
+  worktreePackage = inputs.worktree.packages.${pkgs.system}.default;
 
   # Herdr's built-in New worktree action puts checkouts under
   # ~/.herdr/worktrees/<repo>/<slug>, which wt does not use, so the key runs wt
@@ -43,11 +45,10 @@ in
         printf 'branch (empty = random): '
         read -r name || exit 0
 
-        # wt is a zsh function from zshrc, and Herdr runs commands via /bin/sh.
-        # The branch name goes in as a positional argument, never interpolated
-        # into the command string: a name like 'a;rm -rf x' would otherwise be
-        # re-parsed by zsh as a second command.
-        exec ${pkgs.zsh}/bin/zsh -ic 'wt "$1"' wt "''${name:-new}"
+        # The binary, not the zsh wrapper: in Herdr, wt opens the new workspace
+        # itself, so there is no calling shell to cd. An empty name lets wt pick
+        # a random one.
+        exec ${worktreePackage}/bin/wt switch -c ''${name:+"$name"}
       '';
     };
 

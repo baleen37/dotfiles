@@ -11,6 +11,7 @@ let
 
   homeConfig = inputs.home-manager.lib.homeManagerConfiguration {
     inherit pkgs;
+    extraSpecialArgs = { inherit inputs; };
     modules = [
       ../../users/shared/programs/herdr.nix
       {
@@ -64,21 +65,17 @@ in
       (
         lib.hasInfix "HERDR_ENV=1" newWorktreeScript
         && lib.hasInfix "HERDR_WORKSPACE_ID=\"\${HERDR_ACTIVE_WORKSPACE_ID" newWorktreeScript
-        # wt is a zsh function; Herdr runs commands through /bin/sh.
-        && lib.hasInfix "zsh -ic" newWorktreeScript
       )
       "the popup script must bridge HERDR_ACTIVE_WORKSPACE_ID before calling wt";
 
-  # The branch name is attacker-adjacent only in the sense that a stray ';' or
-  # '$(...)' in a typed name would be re-parsed by zsh. Passing it positionally
-  # is what keeps 'a;echo x' one branch name instead of two commands.
-  herdr-worktree-command-passes-branch-positionally =
-    helpers.assertTest "herdr-worktree-command-passes-branch-positionally"
-      (
-        lib.hasInfix "zsh -ic 'wt \"$1\"' wt" newWorktreeScript
-        && !(lib.hasInfix "\"wt \${name" newWorktreeScript)
-      )
-      "the branch name must reach wt as a positional argument, not interpolated into the command string";
+  # The popup used to run `wt <name>` through zsh -ic. After wt became a Rust
+  # binary that form was rejected as an unknown subcommand, and the popup just
+  # flashed an error. wt-hook-consistency-test runs `wt switch -c` itself, so a
+  # wt CLI change fails there.
+  herdr-worktree-command-calls-wt-switch-create =
+    helpers.assertTest "herdr-worktree-command-calls-wt-switch-create"
+      (lib.hasInfix "/bin/wt switch -c" newWorktreeScript)
+      "the popup must create the worktree with the wt binary's `switch -c`";
 
   # A dangling command path would fail only at keypress time, in a popup that
   # closes immediately.
