@@ -65,6 +65,11 @@ in
       if ! ${pkgs.herdr}/bin/herdr plugin list 2>/dev/null | grep -qF 'local:${herdrSimPackage}]'; then
         run ${pkgs.herdr}/bin/herdr plugin unlink baleen37.herdr-sim >/dev/null 2>&1 || true
         run ${pkgs.herdr}/bin/herdr plugin link ${herdrSimPackage} >/dev/null || true
+        # Linking runs no startup hook; without this pass panes keep the old
+        # version's tokens until their next turn ends.
+        run env HERDR_PLUGIN_EVENT=startup HERDR_BIN_PATH=${pkgs.herdr}/bin/herdr \
+          HERDR_PLUGIN_STATE_DIR="$HOME/.local/state/herdr/plugins/baleen37.herdr-sim" \
+          ${herdrSimPackage}/bin/herdr-sim || true
       fi
     '';
 
