@@ -65,6 +65,11 @@ in
       if ! ${pkgs.herdr}/bin/herdr plugin list 2>/dev/null | grep -qF 'local:${herdrSimPackage}]'; then
         run ${pkgs.herdr}/bin/herdr plugin unlink baleen37.herdr-sim >/dev/null 2>&1 || true
         run ${pkgs.herdr}/bin/herdr plugin link ${herdrSimPackage} >/dev/null || true
+        # Linking runs no startup hook; without this pass panes keep the old
+        # version's tokens until their next turn ends.
+        run env HERDR_PLUGIN_EVENT=startup HERDR_BIN_PATH=${pkgs.herdr}/bin/herdr \
+          HERDR_PLUGIN_STATE_DIR="$HOME/.local/state/herdr/plugins/baleen37.herdr-sim" \
+          ${herdrSimPackage}/bin/herdr-sim || true
       fi
     '';
 
@@ -87,21 +92,19 @@ in
       [ui.sidebar.agents]
       row_gap = 0
       rows = [
-        # Project and worktree headers (herdr-sim sets them on the first agent
-        # of each group), then the agent: logo and title, branch and PR.
-        [{ token = "$tree_project", bold = true }],
-        [{ token = "$tree_worktree", dim = true }],
-        ["state_icon", "$heading"],
-        [{ token = "$branch", dim = true }, { token = "machine", fg = "#89b4fa", rules = [{ equals = "Local", hide = true }] }, { token = "$pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", dim = true }] }],
+        # Orca-style tree from herdr-sim: project, then a branch header per
+        # checkout ("│" above a project's later checkouts keeps them at one
+        # indent), then each agent's logo and title, then its age and PR.
+        [{ token = "$tree_project", fg = "#cdd6f4", bold = true, rules = [{ equals = "│", fg = "#585b70", bold = false }] }],
+        [{ token = "$tree_worktree", fg = "#89b4fa" }],
+        ["state_icon", { token = "$heading", fg = "#cdd6f4" }],
+        [{ token = "$age", dim = true }, { token = "machine", fg = "#89b4fa", rules = [{ equals = "Local", hide = true }] }, { token = "$pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", dim = true }] }],
       ]
 
-      # A Space is its project and the logos of the agents running there, then
-      # a branch row: its branch and the PR herdr-sim found for it. $pr is one
-      # icon for the state that most needs attention plus the total count when
-      # there are several, like Claude Code; colour it by that icon.
+      # Spaces stay close to Herdr's own: name, then branch and its PR.
       [ui.sidebar.spaces]
       rows = [
-        ["state_icon", { token = "$project", bold = true }, { token = "$agent_claude", fg = "#d97757" }, { token = "$agent_codex", fg = "#cdd6f4" }],
+        ["state_icon", "workspace"],
         ["branch", "git_status", { token = "$pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", dim = true }] }],
       ]
 
