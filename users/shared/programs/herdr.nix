@@ -67,7 +67,11 @@ in
         run ${pkgs.herdr}/bin/herdr plugin link ${herdrSimPackage} >/dev/null || true
         # Linking runs no startup hook; without this pass panes keep the old
         # version's tokens until their next turn ends.
-        run env HERDR_PLUGIN_EVENT=startup HERDR_BIN_PATH=${pkgs.herdr}/bin/herdr \
+        # Outside a pane there is no git or gh on PATH (needed for projects,
+        # branches and PR states) and no HERDR_SOCKET_PATH (activity order).
+        run env PATH="${pkgs.git}/bin:${pkgs.gh}/bin:$PATH" \
+          HERDR_PLUGIN_EVENT=startup HERDR_BIN_PATH=${pkgs.herdr}/bin/herdr \
+          HERDR_SOCKET_PATH="${config.xdg.configHome}/herdr/herdr.sock" \
           HERDR_PLUGIN_STATE_DIR="$HOME/.local/state/herdr/plugins/baleen37.herdr-sim" \
           ${herdrSimPackage}/bin/herdr-sim || true
       fi
@@ -99,12 +103,12 @@ in
         [{ token = "$age", dim = true }, { token = "machine", fg = "#89b4fa", rules = [{ equals = "Local", hide = true }] }, { token = "$pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", dim = true }] }],
       ]
 
-      # Spaces: project and its agents' logos, then branch, uncommitted diff,
-      # CI and PR of that branch.
+      # Spaces use the same header as the Agents list (project + branch) and
+      # the logos of their agents, then ahead/behind, uncommitted diff, CI, PR.
       [ui.sidebar.spaces]
       rows = [
-        ["state_icon", { token = "$project", bold = true }, { token = "$agent_claude", fg = "#d97757" }, { token = "$agent_codex", fg = "#cdd6f4" }],
-        ["branch", "git_status", { token = "$diff", dim = true }, { token = "$ci", rules = [{ starts_with = "\uF42E", fg = "#a6e3a1" }, { starts_with = "\uF467", fg = "#f38ba8" }, { starts_with = "\uF444", fg = "#f9e2af" }] }, { token = "$pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", dim = true }] }],
+        ["state_icon", { token = "$tree_header", fg = "#cdd6f4", bold = true }, { token = "$agent_claude", fg = "#d97757" }, { token = "$agent_codex", fg = "#cdd6f4" }],
+        ["git_status", { token = "$diff", dim = true }, { token = "$ci", rules = [{ starts_with = "\uF42E", fg = "#a6e3a1" }, { starts_with = "\uF467", fg = "#f38ba8" }, { starts_with = "\uF444", fg = "#f9e2af" }] }, { token = "$pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", dim = true }] }],
       ]
 
       [keys]
