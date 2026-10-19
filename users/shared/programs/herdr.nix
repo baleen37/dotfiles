@@ -79,9 +79,9 @@ in
       allow_nested = true
 
       # Agents that need you first: blocked, then done (kept until viewed),
-      # then working. Each agent is its project (the repository, not the herdr
-      # workspace name), machine (remote only) and PR icon, then its logo
-      # (Claude orange, Codex plain) and session title.
+      # then working. Each agent is its logo and session title, then its
+      # project (the repository, not the herdr workspace name), machine
+      # (remote only) and PR icon.
       [ui]
       agent_panel_sort = "priority"
       sidebar_width = 38
@@ -89,10 +89,10 @@ in
       [ui.sidebar.agents]
       row_gap = 0
       rows = [
-        ["state_icon", { token = "$project", bold = true }, { token = "machine", fg = "#89b4fa", rules = [{ equals = "Local", hide = true }] }, { token = "$pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", dim = true }] }],
-        # The logo replaces a "Claude Code" title on a session Claude Code has
-        # not titled yet, so that title is hidden.
-        [{ token = "$agent_icon", fg = "#d97757", rules = [{ equals = "\uEC81", fg = "#cdd6f4" }] }, { token = "terminal_title_stripped", rules = [{ equals = "Claude Code", hide = true }] }],
+        # Like a line in Claude Code's session list: logo and title in one
+        # herdr-sim token, since herdr puts " · " between tokens.
+        ["state_icon", "$heading"],
+        [{ token = "$project", dim = true }, { token = "machine", fg = "#89b4fa", rules = [{ equals = "Local", hide = true }] }, { token = "$pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", dim = true }] }],
       ]
 
       # A Space is its project and the logos of the agents running there, then
