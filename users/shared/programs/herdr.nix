@@ -63,7 +63,7 @@ in
     # after an update needs relinking; an unchanged one is left alone.
     home.activation.herdrLinkHerdrSim = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
       if ! ${pkgs.herdr}/bin/herdr plugin list 2>/dev/null | grep -qF 'local:${herdrSimPackage}]'; then
-        ${pkgs.herdr}/bin/herdr plugin unlink baleen37.herdr-sim >/dev/null 2>&1 || true
+        run ${pkgs.herdr}/bin/herdr plugin unlink baleen37.herdr-sim >/dev/null 2>&1 || true
         run ${pkgs.herdr}/bin/herdr plugin link ${herdrSimPackage} >/dev/null || true
       fi
     '';
