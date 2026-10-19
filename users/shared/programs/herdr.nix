@@ -79,8 +79,9 @@ in
       allow_nested = true
 
       # Agents that need you first: blocked, then done (kept until viewed),
-      # then working. Each agent is its logo (Claude orange, Codex plain),
-      # machine (remote only), project and PR icons, then its session title.
+      # then working. Each agent is its project (the repository, not the herdr
+      # workspace name), machine (remote only) and PR icon, then its logo
+      # (Claude orange, Codex plain) and session title.
       [ui]
       agent_panel_sort = "priority"
       sidebar_width = 38
@@ -88,18 +89,19 @@ in
       [ui.sidebar.agents]
       row_gap = 0
       rows = [
-        ["state_icon", { token = "$agent_icon", fg = "#d97757", rules = [{ equals = "\uEC81", fg = "#cdd6f4" }] }, { token = "machine", fg = "#89b4fa", rules = [{ equals = "Local", hide = true }] }, { token = "workspace", bold = true }, { token = "$pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", dim = true }] }],
-        # A session Claude Code has not titled yet just says "Claude Code",
-        # which the logo already shows.
-        [{ token = "terminal_title_stripped", rules = [{ equals = "Claude Code", hide = true }] }],
+        ["state_icon", { token = "$project", bold = true }, { token = "machine", fg = "#89b4fa", rules = [{ equals = "Local", hide = true }] }, { token = "$pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", dim = true }] }],
+        # The logo replaces a "Claude Code" title on a session Claude Code has
+        # not titled yet, so that title is hidden.
+        [{ token = "$agent_icon", fg = "#d97757", rules = [{ equals = "\uEC81", fg = "#cdd6f4" }] }, { token = "terminal_title_stripped", rules = [{ equals = "Claude Code", hide = true }] }],
       ]
 
-      # A Space is a branch row: its branch, then the PR herdr-sim found for it.
-      # $pr is one icon for the state that most needs attention plus the total
-      # count when there are several, like Claude Code; colour it by that icon.
+      # A Space is its project and the logos of the agents running there, then
+      # a branch row: its branch and the PR herdr-sim found for it. $pr is one
+      # icon for the state that most needs attention plus the total count when
+      # there are several, like Claude Code; colour it by that icon.
       [ui.sidebar.spaces]
       rows = [
-        ["state_icon", "workspace"],
+        ["state_icon", { token = "$project", bold = true }, { token = "$agent_claude", fg = "#d97757" }, { token = "$agent_codex", fg = "#cdd6f4" }],
         ["branch", "git_status", { token = "$pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", dim = true }] }],
       ]
 

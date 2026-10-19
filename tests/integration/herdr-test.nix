@@ -88,22 +88,19 @@ in
     helpers.assertTest "herdr-config-does-not-set-worktree-root" (!(parsedConfig ? worktrees))
       "Herdr config should not maintain a global worktree root";
 
-  # The sidebar rows read tokens herdr-sim writes. If the plugin renames one,
-  # its row silently renders nothing.
+  # The sidebar rows read tokens herdr-sim writes; its README's token table is
+  # the list. If the plugin renames one, its row silently renders nothing.
   herdr-sidebar-uses-herdr-sim-tokens =
     let
       rowTokens = map (t: if builtins.isAttrs t then t.token else t) (
         lib.flatten (parsedConfig.ui.sidebar.agents.rows ++ parsedConfig.ui.sidebar.spaces.rows)
       );
-      pluginSource = builtins.readFile "${inputs.herdr-sim}/src/lib.rs";
+      customTokens = builtins.filter (lib.hasPrefix "$") rowTokens;
+      pluginTokens = builtins.readFile "${inputs.herdr-sim}/README.md";
     in
-    helpers.assertTest "herdr-sidebar-uses-herdr-sim-tokens" (lib.all
-      (name: builtins.elem ("$" + name) rowTokens && lib.hasInfix "\"${name}\"" pluginSource)
-      [
-        "pr"
-        "agent_icon"
-      ]
-    ) "sidebar rows must reference the pr_* tokens herdr-sim reports";
+    helpers.assertTest "herdr-sidebar-uses-herdr-sim-tokens" (
+      customTokens != [ ] && lib.all (t: lib.hasInfix ("`" + t + "`") pluginTokens) customTokens
+    ) "every $token in the sidebar rows must be one herdr-sim reports (its README token table)";
 
   # The Codex colour rule matches herdr-sim's cod-openai glyph. Written as a
   # "\\uEC81" escape inside a Nix '' string it reaches TOML doubled and
@@ -111,7 +108,7 @@ in
   herdr-agent-icon-rule-matches-codex-glyph =
     let
       iconEntry = lib.findFirst (t: builtins.isAttrs t && t.token == "$agent_icon") null (
-        builtins.head parsedConfig.ui.sidebar.agents.rows
+        lib.flatten parsedConfig.ui.sidebar.agents.rows
       );
     in
     helpers.assertTest "herdr-agent-icon-rule-matches-codex-glyph" (
