@@ -96,11 +96,15 @@ in
       [ui.sidebar.agents]
       row_gap = 0
       rows = [
-        # From herdr-sim: one header per checkout, then each agent (split-tab
-        # mark, logo and title), then its age, machine (remote only) and PR.
-        [{ token = "$tree_header", fg = "#cdd6f4", bold = true }],
-        [{ token = "$tree_split", dim = true }, "state_icon", { token = "$heading", fg = "#cdd6f4" }],
-        [{ token = "$age", dim = true }, { token = "machine", fg = "#89b4fa", rules = [{ equals = "Local", hide = true }] }, { token = "$pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", dim = true }] }],
+        # Orca's project > worktree > session, from herdr-sim: the project once
+        # ("│" above its later checkouts keeps every card at one indent), a card
+        # per checkout with its branch and that branch's PR, then each session:
+        # logo and title coloured by state as in herdr-radar, then its age and
+        # machine (remote only).
+        [{ token = "$tree_project", fg = "#cdd6f4", bold = true, rules = [{ equals = "│", fg = "#585b70", bold = false }] }],
+        [{ token = "$tree_worktree", fg = "#89b4fa" }, { token = "$tree_pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", dim = true }] }],
+        [{ token = "$tree_split", dim = true }, "state_icon", { token = "$heading_working", fg = "#fab387", bold = true }, { token = "$heading_blocked", fg = "#f38ba8", bold = true }, { token = "$heading_done", fg = "#a6e3a1" }, { token = "$heading_idle_fresh", fg = "#cdd6f4" }, { token = "$heading_idle", fg = "#a6adc8" }, { token = "$heading_idle_stale", fg = "#6c7086" }, { token = "$heading_unknown", fg = "#cba6f7" }],
+        [{ token = "$age", dim = true }, { token = "machine", fg = "#89b4fa", rules = [{ equals = "Local", hide = true }] }],
       ]
 
       # Spaces use the same header as the Agents list (project + branch) and
