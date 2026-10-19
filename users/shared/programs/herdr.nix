@@ -92,6 +92,12 @@ in
       [ui]
       agent_panel_sort = "spaces"
       sidebar_width = 38
+      # A distinct symbol per agent state instead of coloured dots.
+      status_indicators = "symbols"
+
+      # Finished / needs-input popups through the macOS notification service.
+      [ui.toast]
+      delivery = "system"
 
       [ui.sidebar.agents]
       row_gap = 0
@@ -140,6 +146,13 @@ in
       key = "cmd+r"
       type = "plugin_action"
       command = "persiyanov.reviewr.toggle"
+
+      # herdr-sim's Changes panel: the focused session's PRs, on the right.
+      [[keys.command]]
+      key = "cmd+p"
+      type = "plugin_action"
+      command = "baleen37.herdr-sim.toggle-changes"
+      description = "changes panel on/off"
     '';
   };
 }
