@@ -97,9 +97,10 @@ in
       row_gap = 0
       rows = [
         # From herdr-sim: one header per checkout, then each agent (split-tab
-        # mark, logo and title), then its age, machine (remote only) and PR.
-        [{ token = "$tree_header", fg = "#cdd6f4", bold = true }],
-        [{ token = "$tree_split", dim = true }, "state_icon", { token = "$heading", fg = "#cdd6f4" }],
+        # mark, logo and title coloured by state as in herdr-radar), then its
+        # age, machine (remote only) and PR.
+        [{ token = "$tree_header", fg = "#9399b2", bold = true }],
+        [{ token = "$tree_split", dim = true }, "state_icon", { token = "$heading_working", fg = "#fab387", bold = true }, { token = "$heading_blocked", fg = "#f38ba8", bold = true }, { token = "$heading_done", fg = "#a6e3a1" }, { token = "$heading_idle_fresh", fg = "#cdd6f4" }, { token = "$heading_idle", fg = "#a6adc8" }, { token = "$heading_idle_stale", fg = "#6c7086" }, { token = "$heading_unknown", fg = "#cba6f7" }],
         [{ token = "$age", dim = true }, { token = "machine", fg = "#89b4fa", rules = [{ equals = "Local", hide = true }] }, { token = "$pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", dim = true }] }],
       ]
 
@@ -107,7 +108,7 @@ in
       # the logos of their agents, then ahead/behind, uncommitted diff, CI, PR.
       [ui.sidebar.spaces]
       rows = [
-        ["state_icon", { token = "$tree_header", fg = "#cdd6f4", bold = true }, { token = "$agent_claude", fg = "#d97757" }, { token = "$agent_codex", fg = "#cdd6f4" }],
+        ["state_icon", { token = "$tree_header", fg = "#9399b2", bold = true }, { token = "$agent_claude", fg = "#d97757" }, { token = "$agent_codex", fg = "#cdd6f4" }],
         ["git_status", { token = "$diff", dim = true }, { token = "$ci", rules = [{ starts_with = "\uF42E", fg = "#a6e3a1" }, { starts_with = "\uF467", fg = "#f38ba8" }, { starts_with = "\uF444", fg = "#f9e2af" }] }, { token = "$pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", dim = true }] }],
       ]
 
