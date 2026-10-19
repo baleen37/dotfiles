@@ -94,11 +94,11 @@ in
       rows = [
         # Orca-style tree from herdr-sim: project, then a branch header per
         # checkout ("│" above a project's later checkouts keeps them at one
-        # indent), then each agent's logo and title, then its PR.
+        # indent), then each agent's logo and title, then its age and PR.
         [{ token = "$tree_project", fg = "#cdd6f4", bold = true, rules = [{ equals = "│", fg = "#585b70", bold = false }] }],
         [{ token = "$tree_worktree", fg = "#89b4fa" }],
         ["state_icon", { token = "$heading", fg = "#cdd6f4" }],
-        [{ token = "machine", fg = "#89b4fa", rules = [{ equals = "Local", hide = true }] }, { token = "$pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", dim = true }] }],
+        [{ token = "$age", dim = true }, { token = "machine", fg = "#89b4fa", rules = [{ equals = "Local", hide = true }] }, { token = "$pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", dim = true }] }],
       ]
 
       # Spaces stay close to Herdr's own: name, then branch and its PR.
