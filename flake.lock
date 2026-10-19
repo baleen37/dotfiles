@@ -473,11 +473,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1792036163,
-        "narHash": "sha256-q1apWRYwhZxGpINGzWlhDZQkEaj+maFGIk4sxZwig0Q=",
+        "lastModified": 1792295558,
+        "narHash": "sha256-zWgXUkgtgmMdXH/gqv4AJX8oVk7MTlLAAZ7bBgYOH/Y=",
         "owner": "baleen37",
         "repo": "worktree",
-        "rev": "fc6d449dcc9ada26a9be09a9e9c6a1a7712c9a0a",
+        "rev": "61a5f56a29d7acbda4d6a68c12dac8de2b0263f9",
         "type": "github"
       },
       "original": {
