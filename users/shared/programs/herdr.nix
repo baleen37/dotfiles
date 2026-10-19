@@ -92,18 +92,19 @@ in
       [ui.sidebar.agents]
       row_gap = 0
       rows = [
-        # One header per checkout (project + branch, from herdr-sim), then each
-        # agent: logo and title, then its age, machine (remote only) and PR.
+        # From herdr-sim: one header per checkout, then each agent (split-tab
+        # mark, logo and title), then its age, machine (remote only) and PR.
         [{ token = "$tree_header", fg = "#cdd6f4", bold = true }],
-        ["state_icon", { token = "$heading", fg = "#cdd6f4" }],
+        [{ token = "$tree_split", dim = true }, "state_icon", { token = "$heading", fg = "#cdd6f4" }],
         [{ token = "$age", dim = true }, { token = "machine", fg = "#89b4fa", rules = [{ equals = "Local", hide = true }] }, { token = "$pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", dim = true }] }],
       ]
 
-      # Spaces stay close to Herdr's own: name, then branch and its PR.
+      # Spaces: project and its agents' logos, then branch, uncommitted diff,
+      # CI and PR of that branch.
       [ui.sidebar.spaces]
       rows = [
-        ["state_icon", "workspace"],
-        ["branch", "git_status", { token = "$pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", dim = true }] }],
+        ["state_icon", { token = "$project", bold = true }, { token = "$agent_claude", fg = "#d97757" }, { token = "$agent_codex", fg = "#cdd6f4" }],
+        ["branch", "git_status", { token = "$diff", dim = true }, { token = "$ci", rules = [{ starts_with = "\uF42E", fg = "#a6e3a1" }, { starts_with = "\uF467", fg = "#f38ba8" }, { starts_with = "\uF444", fg = "#f9e2af" }] }, { token = "$pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", dim = true }] }],
       ]
 
       [keys]
@@ -120,6 +121,13 @@ in
       description = "new worktree (wt)"
       width = "80%"
       height = "60%"
+
+      # herdr-sim orders agents by activity; this flips back to Herdr's order.
+      [[keys.command]]
+      key = "prefix+a"
+      type = "plugin_action"
+      command = "baleen37.herdr-sim.toggle-order"
+      description = "agents: activity order on/off"
 
       [[keys.command]]
       key = "cmd+r"
