@@ -61,6 +61,11 @@
       url = "github:baleen37/worktree/main";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    herdr-sim = {
+      url = "github:baleen37/herdr-sim/main";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =

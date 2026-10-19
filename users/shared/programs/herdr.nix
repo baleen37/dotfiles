@@ -23,6 +23,11 @@ let
   # config.toml cannot reference a store path, so the script is deployed to a
   # fixed path under the Herdr config directory instead of pkgs.writeShellScript.
   newWorktreePath = "${config.xdg.configHome}/herdr/new-worktree.sh";
+
+  # herdr-sim sets $pr_open / $pr_merged / $pr_closed on each Claude or Codex
+  # pane from the PRs its session touched; the sidebar rows below render them
+  # as coloured icons. Its package output is the plugin root.
+  herdrSimPackage = inputs.herdr-sim.packages.${pkgs.system}.default;
 in
 {
   options.modules.programs.herdr.enable = lib.mkEnableOption "Herdr terminal workspace manager" // {
@@ -54,6 +59,15 @@ in
       '';
     };
 
+    # Herdr records a linked plugin by its resolved path, so a new store path
+    # after an update needs relinking; an unchanged one is left alone.
+    home.activation.herdrLinkHerdrSim = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+      if ! ${pkgs.herdr}/bin/herdr plugin list 2>/dev/null | grep -qF 'local:${herdrSimPackage}]'; then
+        run ${pkgs.herdr}/bin/herdr plugin unlink baleen37.herdr-sim >/dev/null 2>&1 || true
+        run ${pkgs.herdr}/bin/herdr plugin link ${herdrSimPackage} >/dev/null || true
+      fi
+    '';
+
     xdg.configFile."herdr/config.toml".text = ''
       onboarding = false
 
@@ -63,6 +77,19 @@ in
 
       [experimental]
       allow_nested = true
+
+      # Agents that need you first: blocked, then done (kept until viewed),
+      # then working. Each agent is project + PR icons, then its session title.
+      [ui]
+      agent_panel_sort = "priority"
+      sidebar_width = 38
+
+      [ui.sidebar.agents]
+      row_gap = 0
+      rows = [
+        ["state_icon", { token = "workspace", bold = true }, { token = "$pr_open", fg = "#a6e3a1" }, { token = "$pr_merged", fg = "#cba6f7" }, { token = "$pr_closed", dim = true }],
+        ["terminal_title_stripped"],
+      ]
 
       [keys]
       prefix = "ctrl+a"
