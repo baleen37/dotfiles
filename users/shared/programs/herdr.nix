@@ -78,21 +78,21 @@ in
       [experimental]
       allow_nested = true
 
-      # Agents that need you first: blocked, then done (kept until viewed),
-      # then working. Each agent is its logo and session title, then its
-      # project (the repository, not the herdr workspace name), machine
-      # (remote only) and PR icon.
+      # Agents in Space order, so herdr-sim's project/worktree headers group
+      # them as a tree.
       [ui]
-      agent_panel_sort = "priority"
+      agent_panel_sort = "spaces"
       sidebar_width = 38
 
       [ui.sidebar.agents]
       row_gap = 0
       rows = [
-        # Like a line in Claude Code's session list: logo and title in one
-        # herdr-sim token, since herdr puts " · " between tokens.
+        # Project and worktree headers (herdr-sim sets them on the first agent
+        # of each group), then the agent: logo and title, branch and PR.
+        [{ token = "$tree_project", bold = true }],
+        [{ token = "$tree_worktree", dim = true }],
         ["state_icon", "$heading"],
-        [{ token = "$project", dim = true }, { token = "machine", fg = "#89b4fa", rules = [{ equals = "Local", hide = true }] }, { token = "$pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", dim = true }] }],
+        [{ token = "$branch", dim = true }, { token = "machine", fg = "#89b4fa", rules = [{ equals = "Local", hide = true }] }, { token = "$pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", dim = true }] }],
       ]
 
       # A Space is its project and the logos of the agents running there, then
