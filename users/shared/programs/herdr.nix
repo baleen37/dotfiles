@@ -79,8 +79,8 @@ in
       allow_nested = true
 
       # Agents that need you first: blocked, then done (kept until viewed),
-      # then working. Each agent is machine (remote only) + project + PR icons,
-      # then its session title.
+      # then working. Each agent is its logo (Claude orange, Codex plain),
+      # machine (remote only), project and PR icons, then its session title.
       [ui]
       agent_panel_sort = "priority"
       sidebar_width = 38
@@ -88,7 +88,7 @@ in
       [ui.sidebar.agents]
       row_gap = 0
       rows = [
-        ["state_icon", { token = "machine", fg = "#89b4fa", rules = [{ equals = "Local", hide = true }] }, { token = "workspace", bold = true }, { token = "$pr_open", fg = "#a6e3a1" }, { token = "$pr_merged", fg = "#cba6f7" }, { token = "$pr_closed", dim = true }],
+        ["state_icon", { token = "$agent_icon", fg = "#d97757", rules = [{ equals = "\uEC81", fg = "#cdd6f4" }] }, { token = "machine", fg = "#89b4fa", rules = [{ equals = "Local", hide = true }] }, { token = "workspace", bold = true }, { token = "$pr_open", fg = "#a6e3a1" }, { token = "$pr_merged", fg = "#cba6f7" }, { token = "$pr_closed", dim = true }],
         ["terminal_title_stripped"],
       ]
 

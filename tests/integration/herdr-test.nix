@@ -103,8 +103,22 @@ in
         "pr_open"
         "pr_merged"
         "pr_closed"
+        "agent_icon"
       ]
     ) "sidebar rows must reference the pr_* tokens herdr-sim reports";
+
+  # The Codex colour rule matches herdr-sim's cod-openai glyph. Written as a
+  # "\\uEC81" escape inside a Nix '' string it reaches TOML doubled and
+  # matches the literal text instead, so Codex logos turn Claude orange.
+  herdr-agent-icon-rule-matches-codex-glyph =
+    let
+      iconEntry = lib.findFirst (
+        t: builtins.isAttrs t && t.token == "$agent_icon"
+      ) null (builtins.head parsedConfig.ui.sidebar.agents.rows);
+    in
+    helpers.assertTest "herdr-agent-icon-rule-matches-codex-glyph" (
+      iconEntry != null && (builtins.head iconEntry.rules).equals == builtins.fromJSON "\"\\uec81\""
+    ) "the $agent_icon rule must compare against the U+EC81 glyph, not escaped text";
 
   herdr-config-valid = pkgs.runCommand "herdr-config-valid" { } ''
     export HOME="$TMPDIR"
