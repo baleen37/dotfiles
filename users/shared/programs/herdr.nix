@@ -92,6 +92,13 @@ in
         ["terminal_title_stripped"],
       ]
 
+      # A Space is a branch row: its branch, then the PR herdr-sim found for it.
+      [ui.sidebar.spaces]
+      rows = [
+        ["state_icon", "workspace"],
+        ["branch", "git_status", { token = "$pr_open", fg = "#a6e3a1" }, { token = "$pr_merged", fg = "#cba6f7" }, { token = "$pr_closed", dim = true }],
+      ]
+
       [keys]
       prefix = "ctrl+a"
       detach = "prefix+d"
