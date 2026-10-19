@@ -67,7 +67,10 @@ in
         run ${pkgs.herdr}/bin/herdr plugin link ${herdrSimPackage} >/dev/null || true
         # Linking runs no startup hook; without this pass panes keep the old
         # version's tokens until their next turn ends.
-        run env HERDR_PLUGIN_EVENT=startup HERDR_BIN_PATH=${pkgs.herdr}/bin/herdr \
+        # Activation's PATH has neither git nor gh, which the pass needs for
+        # projects, branches and PR states.
+        run env PATH="${pkgs.git}/bin:${pkgs.gh}/bin:$PATH" \
+          HERDR_PLUGIN_EVENT=startup HERDR_BIN_PATH=${pkgs.herdr}/bin/herdr \
           HERDR_PLUGIN_STATE_DIR="$HOME/.local/state/herdr/plugins/baleen37.herdr-sim" \
           ${herdrSimPackage}/bin/herdr-sim || true
       fi
