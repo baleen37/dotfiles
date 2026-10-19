@@ -89,7 +89,9 @@ in
       row_gap = 0
       rows = [
         ["state_icon", { token = "$agent_icon", fg = "#d97757", rules = [{ equals = "\uEC81", fg = "#cdd6f4" }] }, { token = "machine", fg = "#89b4fa", rules = [{ equals = "Local", hide = true }] }, { token = "workspace", bold = true }, { token = "$pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", dim = true }] }],
-        ["terminal_title_stripped"],
+        # A session Claude Code has not titled yet just says "Claude Code",
+        # which the logo already shows.
+        [{ token = "terminal_title_stripped", rules = [{ equals = "Claude Code", hide = true }] }],
       ]
 
       # A Space is a branch row: its branch, then the PR herdr-sim found for it.
