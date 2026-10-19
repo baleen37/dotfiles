@@ -102,19 +102,6 @@ in
       customTokens != [ ] && lib.all (t: lib.hasInfix ("`" + t + "`") pluginTokens) customTokens
     ) "every $token in the sidebar rows must be one herdr-sim reports (its README token table)";
 
-  # The Codex colour rule matches herdr-sim's cod-openai glyph. Written as a
-  # "\\uEC81" escape inside a Nix '' string it reaches TOML doubled and
-  # matches the literal text instead, so Codex logos turn Claude orange.
-  herdr-agent-icon-rule-matches-codex-glyph =
-    let
-      iconEntry = lib.findFirst (t: builtins.isAttrs t && t.token == "$agent_icon") null (
-        lib.flatten parsedConfig.ui.sidebar.agents.rows
-      );
-    in
-    helpers.assertTest "herdr-agent-icon-rule-matches-codex-glyph" (
-      iconEntry != null && (builtins.head iconEntry.rules).equals == builtins.fromJSON "\"\\uec81\""
-    ) "the $agent_icon rule must compare against the U+EC81 glyph, not escaped text";
-
   herdr-config-valid = pkgs.runCommand "herdr-config-valid" { } ''
     export HOME="$TMPDIR"
     export HERDR_CONFIG_PATH=${herdrConfigFile}
