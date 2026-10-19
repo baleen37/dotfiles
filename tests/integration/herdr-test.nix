@@ -93,7 +93,7 @@ in
   herdr-sidebar-uses-herdr-sim-tokens =
     let
       rowTokens = map (t: if builtins.isAttrs t then t.token else t) (
-        lib.flatten parsedConfig.ui.sidebar.agents.rows
+        lib.flatten (parsedConfig.ui.sidebar.agents.rows ++ parsedConfig.ui.sidebar.spaces.rows)
       );
       pluginSource = builtins.readFile "${inputs.herdr-sim}/src/lib.rs";
     in
