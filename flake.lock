@@ -239,6 +239,27 @@
         "url": "https://flakehub.com/f/cachix/git-hooks.nix/0.1.941"
       }
     },
+    "herdr-sim": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1792383147,
+        "narHash": "sha256-5z1xMbdrhDko65LJ4pMpBwBZde2z9LxHXZoxFnkYUSU=",
+        "owner": "baleen37",
+        "repo": "herdr-sim",
+        "rev": "f64132759e4beadb79a582266d02ce017746384f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "baleen37",
+        "ref": "main",
+        "repo": "herdr-sim",
+        "type": "github"
+      }
+    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -381,6 +402,7 @@
         "determinate": "determinate",
         "direnv-instant": "direnv-instant",
         "flake-parts": "flake-parts_3",
+        "herdr-sim": "herdr-sim",
         "home-manager": "home-manager",
         "import-tree": "import-tree",
         "nixpkgs": "nixpkgs_3",

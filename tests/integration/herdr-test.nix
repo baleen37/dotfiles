@@ -88,6 +88,24 @@ in
     helpers.assertTest "herdr-config-does-not-set-worktree-root" (!(parsedConfig ? worktrees))
       "Herdr config should not maintain a global worktree root";
 
+  # The sidebar rows read tokens herdr-sim writes. If the plugin renames one,
+  # its row silently renders nothing.
+  herdr-sidebar-uses-herdr-sim-tokens =
+    let
+      rowTokens = map (t: if builtins.isAttrs t then t.token else t) (
+        lib.flatten parsedConfig.ui.sidebar.agents.rows
+      );
+      pluginSource = builtins.readFile "${inputs.herdr-sim}/src/lib.rs";
+    in
+    helpers.assertTest "herdr-sidebar-uses-herdr-sim-tokens" (lib.all
+      (name: builtins.elem ("$" + name) rowTokens && lib.hasInfix "\"${name}\"" pluginSource)
+      [
+        "pr_open"
+        "pr_merged"
+        "pr_closed"
+      ]
+    ) "sidebar rows must reference the pr_* tokens herdr-sim reports";
+
   herdr-config-valid = pkgs.runCommand "herdr-config-valid" { } ''
     export HOME="$TMPDIR"
     export HERDR_CONFIG_PATH=${herdrConfigFile}
