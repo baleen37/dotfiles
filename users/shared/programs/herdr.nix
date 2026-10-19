@@ -88,15 +88,17 @@ in
       [ui.sidebar.agents]
       row_gap = 0
       rows = [
-        ["state_icon", { token = "$agent_icon", fg = "#d97757", rules = [{ equals = "\uEC81", fg = "#cdd6f4" }] }, { token = "machine", fg = "#89b4fa", rules = [{ equals = "Local", hide = true }] }, { token = "workspace", bold = true }, { token = "$pr_open", fg = "#a6e3a1" }, { token = "$pr_merged", fg = "#cba6f7" }, { token = "$pr_closed", dim = true }],
+        ["state_icon", { token = "$agent_icon", fg = "#d97757", rules = [{ equals = "\uEC81", fg = "#cdd6f4" }] }, { token = "machine", fg = "#89b4fa", rules = [{ equals = "Local", hide = true }] }, { token = "workspace", bold = true }, { token = "$pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", dim = true }] }],
         ["terminal_title_stripped"],
       ]
 
       # A Space is a branch row: its branch, then the PR herdr-sim found for it.
+      # $pr is one icon for the state that most needs attention plus the total
+      # count when there are several, like Claude Code; colour it by that icon.
       [ui.sidebar.spaces]
       rows = [
         ["state_icon", "workspace"],
-        ["branch", "git_status", { token = "$pr_open", fg = "#a6e3a1" }, { token = "$pr_merged", fg = "#cba6f7" }, { token = "$pr_closed", dim = true }],
+        ["branch", "git_status", { token = "$pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", dim = true }] }],
       ]
 
       [keys]

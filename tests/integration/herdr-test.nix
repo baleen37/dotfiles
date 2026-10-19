@@ -100,9 +100,7 @@ in
     helpers.assertTest "herdr-sidebar-uses-herdr-sim-tokens" (lib.all
       (name: builtins.elem ("$" + name) rowTokens && lib.hasInfix "\"${name}\"" pluginSource)
       [
-        "pr_open"
-        "pr_merged"
-        "pr_closed"
+        "pr"
         "agent_icon"
       ]
     ) "sidebar rows must reference the pr_* tokens herdr-sim reports";
@@ -112,9 +110,9 @@ in
   # matches the literal text instead, so Codex logos turn Claude orange.
   herdr-agent-icon-rule-matches-codex-glyph =
     let
-      iconEntry = lib.findFirst (
-        t: builtins.isAttrs t && t.token == "$agent_icon"
-      ) null (builtins.head parsedConfig.ui.sidebar.agents.rows);
+      iconEntry = lib.findFirst (t: builtins.isAttrs t && t.token == "$agent_icon") null (
+        builtins.head parsedConfig.ui.sidebar.agents.rows
+      );
     in
     helpers.assertTest "herdr-agent-icon-rule-matches-codex-glyph" (
       iconEntry != null && (builtins.head iconEntry.rules).equals == builtins.fromJSON "\"\\uec81\""
