@@ -24,9 +24,8 @@ let
   # fixed path under the Herdr config directory instead of pkgs.writeShellScript.
   newWorktreePath = "${config.xdg.configHome}/herdr/new-worktree.sh";
 
-  # herdr-sim sets $pr_open / $pr_merged / $pr_closed on each Claude or Codex
-  # pane from the PRs its session touched; the sidebar rows below render them
-  # as coloured icons. Its package output is the plugin root.
+  # herdr-sim reports per-pane PR, title, branch and project tokens. Its
+  # package output is the plugin root.
   herdrSimPackage = inputs.herdr-sim.packages.${pkgs.system}.default;
 in
 {
@@ -68,7 +67,31 @@ in
       fi
     '';
 
-    xdg.configFile."herdr/config.toml".text = ''
+    # herdr-radar (sidebar groups, logos, state colours) writes its own managed
+    # blocks into config.toml, so that file must be writable. Nix owns only
+    # config.base.toml; activation copies it over config.toml, then lets radar
+    # add its blocks back. Radar owns [ui.sidebar.*] and [theme.custom], so the
+    # base must not define them.
+    home.activation.herdrConfig = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+      herdr_dir="${config.xdg.configHome}/herdr"
+      run rm -f "$herdr_dir/config.toml"
+      run cp "$herdr_dir/config.base.toml" "$herdr_dir/config.toml"
+      run chmod u+w "$herdr_dir/config.toml"
+    '';
+
+    home.activation.herdrRadar = lib.hm.dag.entryAfter [ "herdrConfig" "herdrLinkHerdrSim" ] ''
+      herdr=${pkgs.herdr}/bin/herdr
+      if ! $herdr plugin list 2>/dev/null | grep -q 'hhdebb.herdr-radar'; then
+        # The install clones from GitHub; activation's PATH has no git.
+        run env PATH="${pkgs.git}/bin:$PATH" $herdr plugin install hhdebb/herdr-radar --yes >/dev/null || true
+      fi
+      # Needs a running server; when there is none, radar configures itself at
+      # the next server start.
+      run $herdr plugin action invoke hhdebb.herdr-radar.configure >/dev/null 2>&1 || true
+      run $herdr plugin action invoke hhdebb.herdr-radar.state-start >/dev/null 2>&1 || true
+    '';
+
+    xdg.configFile."herdr/config.base.toml".text = ''
       onboarding = false
 
       [update]
@@ -78,32 +101,10 @@ in
       [experimental]
       allow_nested = true
 
-      # Agents that need you first: blocked, then done (kept until viewed),
-      # then working. Each agent is its logo and session title, then its
-      # project (the repository, not the herdr workspace name), machine
-      # (remote only) and PR icon.
+      # Radar attaches its sidebar and tab-bar blocks under [ui].
       [ui]
       agent_panel_sort = "priority"
       sidebar_width = 38
-
-      [ui.sidebar.agents]
-      row_gap = 0
-      rows = [
-        # Like a line in Claude Code's session list: logo and title in one
-        # herdr-sim token, since herdr puts " · " between tokens.
-        ["state_icon", "$heading"],
-        [{ token = "$project", dim = true }, { token = "machine", fg = "#89b4fa", rules = [{ equals = "Local", hide = true }] }, { token = "$pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", dim = true }] }],
-      ]
-
-      # A Space is its project and the logos of the agents running there, then
-      # a branch row: its branch and the PR herdr-sim found for it. $pr is one
-      # icon for the state that most needs attention plus the total count when
-      # there are several, like Claude Code; colour it by that icon.
-      [ui.sidebar.spaces]
-      rows = [
-        ["state_icon", { token = "$project", bold = true }, { token = "$agent_claude", fg = "#d97757" }, { token = "$agent_codex", fg = "#cdd6f4" }],
-        ["branch", "git_status", { token = "$pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", dim = true }] }],
-      ]
 
       [keys]
       prefix = "ctrl+a"

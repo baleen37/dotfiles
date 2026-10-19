@@ -26,7 +26,7 @@ let
   };
 
   inherit (homeConfig) config;
-  herdrConfig = config.xdg.configFile."herdr/config.toml".text;
+  herdrConfig = config.xdg.configFile."herdr/config.base.toml".text;
   parsedConfig = builtins.fromTOML herdrConfig;
   herdrConfigFile = pkgs.writeText "herdr-config.toml" herdrConfig;
 
@@ -88,19 +88,12 @@ in
     helpers.assertTest "herdr-config-does-not-set-worktree-root" (!(parsedConfig ? worktrees))
       "Herdr config should not maintain a global worktree root";
 
-  # The sidebar rows read tokens herdr-sim writes; its README's token table is
-  # the list. If the plugin renames one, its row silently renders nothing.
-  herdr-sidebar-uses-herdr-sim-tokens =
-    let
-      rowTokens = map (t: if builtins.isAttrs t then t.token else t) (
-        lib.flatten (parsedConfig.ui.sidebar.agents.rows ++ parsedConfig.ui.sidebar.spaces.rows)
-      );
-      customTokens = builtins.filter (lib.hasPrefix "$") rowTokens;
-      pluginTokens = builtins.readFile "${inputs.herdr-sim}/README.md";
-    in
-    helpers.assertTest "herdr-sidebar-uses-herdr-sim-tokens" (
-      customTokens != [ ] && lib.all (t: lib.hasInfix ("`" + t + "`") pluginTokens) customTokens
-    ) "every $token in the sidebar rows must be one herdr-sim reports (its README token table)";
+  # Radar refuses to write its blocks over tables the base already has, and
+  # needs [ui] to attach them to.
+  herdr-base-leaves-sidebar-and-theme-to-radar =
+    helpers.assertTest "herdr-base-leaves-sidebar-and-theme-to-radar"
+      (parsedConfig ? ui && !(parsedConfig.ui ? sidebar) && !(parsedConfig ? theme))
+      "config.base.toml must have [ui] but no [ui.sidebar.*] or [theme] tables";
 
   herdr-config-valid = pkgs.runCommand "herdr-config-valid" { } ''
     export HOME="$TMPDIR"
