@@ -27,9 +27,11 @@ in
         pre-commit
         gnumake
         cmake
-        # Diff viewers for reviewing agent changes: hunk (also GitHub PRs)
-        # and delta, lazygit's diff renderer.
+        # Diff viewers for reviewing agent changes: hunk (also GitHub PRs),
+        # diffnav (a file list over delta, fed any diff), and delta, lazygit's
+        # diff renderer.
         hunk
+        diffnav
         delta
       ]
       # On Darwin, VS Code comes from the `visual-studio-code` Homebrew cask.
