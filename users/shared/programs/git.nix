@@ -36,6 +36,12 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    # lazygit, its diffs rendered by delta.
+    programs.lazygit = {
+      enable = true;
+      settings.git.diffRenderers = [ { command = "delta --dark --paging=never"; } ];
+    };
+
     programs.git = {
       enable = true;
       lfs = {

@@ -27,6 +27,10 @@ in
         pre-commit
         gnumake
         cmake
+        # Diff viewers for reviewing agent changes: hunk (also GitHub PRs)
+        # and delta, lazygit's diff renderer.
+        hunk
+        delta
       ]
       # On Darwin, VS Code comes from the `visual-studio-code` Homebrew cask.
       # A nix store copy is opened from its store path, so macOS stamps
