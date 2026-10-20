@@ -42,6 +42,9 @@ in
   config = lib.mkIf cfg.enable {
     programs.vim = {
       enable = true;
+      # Terminal vim only: the default GTK GUI build of vim-full no longer
+      # builds on Darwin with this nixpkgs, and gvim is not used.
+      packageConfigurable = pkgs.vim-full.override { guiSupport = "none"; };
 
       plugins = with pkgs.vimPlugins; [
         vim-airline
