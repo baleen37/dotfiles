@@ -272,7 +272,7 @@ this repository.
 `users/shared/programs/herdr.nix` links the
 [herdr-sim](https://github.com/baleen37/herdr-sim) plugin pinned in
 `flake.lock`. It adds project, branch, and PR tokens to the Agents and Spaces
-lists, and a Changes panel that `cmd+p` opens and closes. To develop the plugin
+lists, and a Changes panel that `cmd+shift+c` opens and closes. To develop the plugin
 locally, run `herdr plugin link ~/dev/herdr-sim`. Switches leave a link outside
 the Nix store in place. Unlink it to go back to the pinned version.
 
