@@ -114,10 +114,11 @@ in
       row_gap = 0
       rows = [
         # One header per checkout from herdr-sim: project, branch and that
-        # branch's PR on one line, then each session on one line: logo and
-        # title coloured by state as in herdr-radar, and its machine when remote.
+        # branch's PR on one line, then each session on one line: state mark,
+        # logo and title (all from herdr-sim, so a session without a header
+        # row lines up too) coloured by state, and its machine when remote.
         [{ token = "$tree_header", fg = "#cdd6f4", bold = true }, { token = "$tree_pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", dim = true }] }],
-        [{ token = "$tree_split", dim = true }, "state_icon", { token = "$heading_working", fg = "#fab387", bold = true }, { token = "$heading_blocked", fg = "#f38ba8", bold = true }, { token = "$heading_done", fg = "#a6e3a1" }, { token = "$heading_idle_fresh", fg = "#cdd6f4" }, { token = "$heading_idle", fg = "#a6adc8" }, { token = "$heading_idle_stale", fg = "#6c7086" }, { token = "$heading_unknown", fg = "#cba6f7" }, { token = "machine", fg = "#89b4fa", rules = [{ equals = "Local", hide = true }] }],
+        [{ token = "$tree_split", dim = true }, { token = "$heading_working", fg = "#fab387", bold = true }, { token = "$heading_blocked", fg = "#f38ba8", bold = true }, { token = "$heading_done", fg = "#a6e3a1" }, { token = "$heading_idle_fresh", fg = "#cdd6f4" }, { token = "$heading_idle", fg = "#a6adc8" }, { token = "$heading_idle_stale", fg = "#6c7086" }, { token = "$heading_unknown", fg = "#cba6f7" }, { token = "machine", fg = "#89b4fa", rules = [{ equals = "Local", hide = true }] }],
       ]
 
       # Spaces use the same header as the Agents list (project + branch), then
