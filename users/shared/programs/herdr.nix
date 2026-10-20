@@ -110,8 +110,9 @@ in
       [ui.toast]
       delivery = "system"
 
-      # Agents as herdr-radar draws them: project, then each branch with its
-      # PR, then one row per session — the logo in its vendor's colour, the
+      # Agents as herdr-radar draws them: project, its main checkout's
+      # sessions, then each worktree's branch with its PR over its sessions;
+      # one row per session — the logo in its vendor's colour, the
       # state mark and title in the state's — and a blank row between
       # projects. A project or branch whose sessions all went stale fades,
       # and a stale session dims whole.
@@ -121,6 +122,16 @@ in
         [{ token = "$tree_group_project", fg = "#cdd6f4", bold = true }, { token = "$tree_group_project_stale", fg = "#6c7086", bold = true }],
         [{ token = "$tree_group", fg = "#9399b2" }, { token = "$tree_group_stale", fg = "#585b70" }, { token = "$tree_pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", dim = true }] }],
         [{ token = "$icon_claude", fg = "#d97757" }, { token = "$icon_codex", fg = "#cdd6f4" }, { token = "$icon_stale", fg = "#585b70" }, { token = "$label_working", fg = "#fab387", bold = true }, { token = "$label_blocked", fg = "#f38ba8", bold = true }, { token = "$label_done", fg = "#a6e3a1" }, { token = "$label_idle_fresh", fg = "#cdd6f4" }, { token = "$label_idle", fg = "#a6adc8" }, { token = "$label_idle_stale", fg = "#585b70" }, { token = "$label_unknown", fg = "#cba6f7" }, { token = "machine", fg = "#89b4fa", rules = [{ equals = "Local", hide = true }] }],
+        [{ token = "$tree_gap" }],
+      ]
+
+      # The same rows for Claude, its working title in Claude's coral as
+      # herdr-radar wears a vendor's colour; anything else stays peach.
+      [ui.sidebar.agents.rows_by_agent]
+      claude = [
+        [{ token = "$tree_group_project", fg = "#cdd6f4", bold = true }, { token = "$tree_group_project_stale", fg = "#6c7086", bold = true }],
+        [{ token = "$tree_group", fg = "#9399b2" }, { token = "$tree_group_stale", fg = "#585b70" }, { token = "$tree_pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", dim = true }] }],
+        [{ token = "$icon_claude", fg = "#d97757" }, { token = "$icon_codex", fg = "#cdd6f4" }, { token = "$icon_stale", fg = "#585b70" }, { token = "$label_working", fg = "#d97757", bold = true }, { token = "$label_blocked", fg = "#f38ba8", bold = true }, { token = "$label_done", fg = "#a6e3a1" }, { token = "$label_idle_fresh", fg = "#cdd6f4" }, { token = "$label_idle", fg = "#a6adc8" }, { token = "$label_idle_stale", fg = "#585b70" }, { token = "$label_unknown", fg = "#cba6f7" }, { token = "machine", fg = "#89b4fa", rules = [{ equals = "Local", hide = true }] }],
         [{ token = "$tree_gap" }],
       ]
 

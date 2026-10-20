@@ -246,11 +246,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1792492358,
-        "narHash": "sha256-RZ3Jm9af5MMMMDHvK6Lch2vOD2k2eoy1HFIZR+pjclE=",
+        "lastModified": 1792493473,
+        "narHash": "sha256-cyhoNIQKuSn33o5dF/SaIwK9/YesJ4Ed9AOYFrM9T1A=",
         "owner": "baleen37",
         "repo": "herdr-sim",
-        "rev": "2beca330ca4f870d346c683a08d3d1e9ba5e6b41",
+        "rev": "0bd11cbcf6c57006514dbd702d39ed0d47f8dcfb",
         "type": "github"
       },
       "original": {
