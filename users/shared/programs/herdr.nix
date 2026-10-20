@@ -103,6 +103,8 @@ in
       sidebar_width = 38
       # A distinct symbol per agent state instead of coloured dots.
       status_indicators = "symbols"
+      # prefix+c opens a tab at once, with a generated name.
+      prompt_new_tab_name = false
 
       # Finished / needs-input popups through the macOS notification service.
       [ui.toast]
