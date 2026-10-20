@@ -19,10 +19,12 @@
   inputs,
   system,
   self,
+  # The flake's own pkgs (flake-modules/args.nix), overlays included, so tests
+  # see the same packages the configurations use.
+  pkgs,
 }:
 
 let
-  pkgs = import inputs.nixpkgs { inherit system; };
   inherit (pkgs) lib;
 
   platformHelpers = import ./lib/platform-helpers.nix { inherit pkgs lib; };

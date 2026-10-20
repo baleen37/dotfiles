@@ -61,13 +61,14 @@ nix_bundle_paths() {
 }
 
 representative_app() {
-  "$osascript" -e 'POSIX path of (path to application id "com.microsoft.VSCode")' 2> /dev/null || true
+  "$osascript" -e 'POSIX path of (path to application id "com.microsoft.VSCode")' 2> /dev/null
 }
 
 audit() {
   validate_canonical_app
 
-  representative="$(representative_app)"
+  representative_status=0
+  representative="$(representative_app)" || representative_status=$?
   representative="${representative%/}"
   paths="$(bundle_paths)"
   nix_paths="$(nix_bundle_paths_from "$paths")"
@@ -81,10 +82,10 @@ audit() {
   printf 'canonical=%s\n' "$canonical_app"
   printf 'canonical_bundle_id=%s\n' "$bundle_id"
   printf 'canonical_registered=%s\n' "$canonical_registered"
-  if [ -n "$representative" ]; then
+  if [ "$representative_status" -eq 0 ] && [ -n "$representative" ]; then
     printf 'representative=%s\n' "$representative"
   else
-    printf 'representative=none\n'
+    printf 'representative=unavailable\n'
   fi
   if [ -n "$nix_paths" ]; then
     printf '%s\n' "$nix_paths" | sed 's/^/nix_registered=/'
@@ -92,8 +93,6 @@ audit() {
     printf 'nix_registered=none\n'
   fi
 
-  [ "$representative" = "$canonical_app" ] \
-    || fail "LaunchServices representative is not the canonical app"
   [ "$canonical_registered" = yes ] \
     || fail "canonical app is not registered with LaunchServices"
   [ -z "$nix_paths" ] \

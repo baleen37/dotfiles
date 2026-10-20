@@ -8,7 +8,9 @@ let
   cfg = config.modules.packages.dev;
 in
 {
-  options.modules.packages.dev.enable = lib.mkEnableOption "development tools";
+  options.modules.packages.dev.enable = lib.mkEnableOption "development tools" // {
+    default = true;
+  };
 
   config = lib.mkIf cfg.enable {
     home.packages =
@@ -16,6 +18,7 @@ in
       [
         nodejs_22
         bun
+        go
         python3
         python3Packages.pipx
         virtualenv

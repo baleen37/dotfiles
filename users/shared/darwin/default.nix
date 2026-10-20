@@ -6,7 +6,7 @@
 # - Homebrew integration for GUI apps (homebrew.nix)
 # - Closed-lid wake while on AC power (power.nix)
 # - Automated app cleanup and keyboard config (scripts.nix)
-# - Korean keyboard support with cmd+shift+space
+# - Korean keyboard support with ctrl+space
 
 {
   pkgs,

@@ -19,7 +19,7 @@ let
   mockConfig = import ../lib/mock-config.nix { inherit pkgs lib; };
 
   zshModule = import ../../users/shared/programs/zsh {
-    inherit pkgs lib;
+    inherit inputs pkgs lib;
     isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
     config = mockConfig.mkEmptyConfig // {
       modules.programs.zsh.enable = true;
@@ -115,7 +115,7 @@ let
 in
 {
   platforms = [ "any" ];
-  value = helpers.testSuite "zsh-multidot-cd" [
+  value.suite = helpers.testSuite "zsh-multidot-cd" [
     (assertInitHas "fn-defined" "cd() {")
     (assertInitHas "regex-check" ''"$1" =~ "^\.{3,}$"'')
     (assertInitHas "builtin-cd" "builtin cd")
@@ -126,9 +126,7 @@ in
     (helpers.assertTest "zsh-multidot-no-quad-alias" (
       !(builtins.hasAttr "...." aliases)
     ) "shellAliases should not define '....' — the cd function handles it")
-
-    (helpers.assertTest "zsh-multidot-runtime" (builtins.pathExists runtimeTest)
-      "cd function runtime simulation failed"
-    )
   ];
+  # cd function runtime simulation
+  value.runtime = runtimeTest;
 }

@@ -19,23 +19,37 @@
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
   activation = self.darwinConfigurations.kakaostyle-jito.config.system.activationScripts;
+  systemActivationSource = builtins.readFile ../../users/shared/darwin/scripts.nix;
+  # hasInfix rejects a needle that carries store-path context.
+  activationScript = builtins.unsafeDiscardStringContext "${../../users/shared/darwin/activation.sh}";
+  userActivation = self.homeConfigurations."jito.hello".config.home.activation.vscodeLaunchServices;
 in
 {
   platforms = [ "darwin" ];
   value = {
-    remote-login-runs =
-      helpers.assertTest "remote login script runs"
-        (lib.hasInfix "systemsetup -setremotelogin" activation.script.text)
-        "Remote Login enablement should be spliced into the assembled activation script";
+    # Behaviour is tested in tests/integration/darwin-activation-script-test.nix;
+    # this only proves each subcommand is spliced into the script that runs.
+    activation-script-runs = helpers.assertTest "activation script runs" (lib.all
+      (cmd: lib.hasInfix "${activationScript} ${cmd}" activation.script.text)
+      [
+        "spotlight"
+        "remote-login"
+        "app-cleanup"
+      ]
+    ) "Spotlight, Remote Login and app cleanup must be spliced into the assembled activation script";
 
-    app-cleanup-runs =
-      helpers.assertTest "app cleanup script runs" (lib.hasInfix "GarageBand.app" activation.script.text)
-        "App cleanup should be spliced into the assembled activation script";
+    vscode-launchservices-repair-is-user-scoped =
+      helpers.assertTest "VS Code LaunchServices repair is user-scoped"
+        (
+          !(lib.hasInfix "vscode-launchservices.sh" systemActivationSource)
+          && lib.hasInfix "vscode-launchservices.sh" userActivation.data
+        )
+        "LaunchServices repair must stay in Home Manager user activation, not run directly from the root system activation";
 
-    vscode-launchservices-repair-runs =
-      helpers.assertTest "VS Code LaunchServices repair runs"
-        (lib.hasInfix "vscode-launchservices.sh" activation.script.text)
-        "Darwin activation should run the shared VS Code LaunchServices repair adapter";
+    bluetooth-remote-wake-disabled-runs =
+      helpers.assertTest "bluetooth remote wake disable runs"
+        (lib.hasInfix "RemoteWakeEnabled" activation.script.text)
+        "Bluetooth remote wake must be disabled during activation, or paired input devices wake the machine from clamshell sleep on battery";
 
     # The regression itself: a segment name nix-darwin does not know about.
     no-orphaned-custom-segments = helpers.assertTest "no orphaned custom activation segments" (

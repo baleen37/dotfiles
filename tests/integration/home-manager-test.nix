@@ -2,13 +2,11 @@
 #
 # Covers users/shared/home-manager.nix, the entry point every host shares.
 #
-# It is imported raw rather than evaluated, so `imports` here is a list of Nix
-# *paths* — comparing against "./git.nix" silently never matches, which is why
-# these assertions go through toString and a suffix check.
-#
-# Package contents are deliberately not asserted here: home.packages is
-# contributed by the imported category modules and only exists after the module
-# system merges them (see unit/security-packages-test.nix).
+# Identity settings are read from a raw import of the file. Module wiring is
+# read from the merged configuration of real hosts: home-manager.nix imports
+# whatever lib/home-modules.nix discovers and sets no enable flags, so the
+# merged config is the only place a module that failed to load, or one turned
+# off by a stray definition, shows up.
 {
   inputs,
   system,
@@ -34,76 +32,76 @@ let
   homeDirBaleen = hmConfig.home.homeDirectory;
   homeDirJito = hmConfigJito.home.homeDirectory;
 
-  importedPaths = map builtins.toString hmConfig.imports;
-  importsModule =
-    relativePath:
-    let
-      suffix = "/users/shared/${relativePath}";
-    in
-    lib.any (path: lib.hasSuffix suffix path) importedPaths;
+  homeModules = import ../../lib/home-modules.nix { inherit lib; };
 
-  expectedModules = [
-    "darwin/vscode-launchservices.nix"
-    "programs/git.nix"
-    "programs/vim.nix"
-    "programs/zsh"
-    "programs/starship.nix"
-    "programs/tmux.nix"
-    "programs/claude-code.nix"
-    "programs/codex.nix"
-    "programs/opencode.nix"
-    "programs/ghostty.nix"
-    "programs/raycast.nix"
-    "programs/ssh.nix"
-    "programs/hammerspoon.nix"
-    "programs/karabiner.nix"
-    "packages/core.nix"
-    "packages/dev.nix"
-    "packages/security.nix"
-    "packages/ai.nix"
-  ];
+  hmUsers = host: builtins.attrValues host.config.home-manager.users;
+  darwinUsers = hmUsers inputs.self.darwinConfigurations.macbook-pro;
+  nixosUsers = hmUsers inputs.self.nixosConfigurations.vm-aarch64-utm;
 
-  slug = lib.stringAsChars (c: if builtins.match "[a-zA-Z0-9]" c != null then c else "-");
+  # attrNames is sorted, so this compares the declared module set exactly.
+  importsEveryModule =
+    category: users:
+    users != [ ]
+    && lib.all (
+      u: builtins.attrNames u.modules.${category} == builtins.attrNames homeModules.${category}
+    ) users;
+
+  enablesEvery =
+    category: users:
+    lib.all (u: lib.all (m: m.enable) (builtins.attrValues u.modules.${category})) users;
 
 in
 {
   platforms = [ "any" ];
-  value = helpers.testSuite "home-manager" (
-    [
-      # The point of the currentSystemUser indirection: nothing is hardcoded to
-      # one username, including the home directory.
-      (helpers.assertTest "username-follows-current-system-user" (
-        hmConfig.home.username == "baleen" && hmConfigJito.home.username == "jito.hello"
-      ) "home.username must come from currentSystemUser")
+  value = helpers.testSuite "home-manager" [
+    # The point of the currentSystemUser indirection: nothing is hardcoded to
+    # one username, including the home directory.
+    (helpers.assertTest "username-follows-current-system-user" (
+      hmConfig.home.username == "baleen" && hmConfigJito.home.username == "jito.hello"
+    ) "home.username must come from currentSystemUser")
 
-      (helpers.assertTest "home-directory-follows-current-system-user" (
-        homeDirBaleen == "/Users/baleen" && homeDirJito == "/Users/jito.hello"
-      ) "home.homeDirectory must be derived from currentSystemUser")
+    (helpers.assertTest "home-directory-follows-current-system-user" (
+      homeDirBaleen == "/Users/baleen" && homeDirJito == "/Users/jito.hello"
+    ) "home.homeDirectory must be derived from currentSystemUser")
 
-      (helpers.assertTest "state-version-is-pinned" (
-        hmConfig.home.stateVersion == "24.11"
-      ) "home.stateVersion must stay pinned; bumping it silently changes defaults")
+    (helpers.assertTest "state-version-is-pinned" (
+      hmConfig.home.stateVersion == "24.11"
+    ) "home.stateVersion must stay pinned; bumping it silently changes defaults")
 
-      (helpers.assertTest "xdg-enabled" hmConfig.xdg.enable
-        "xdg.enable must be true; several modules write into XDG paths"
-      )
+    (helpers.assertTest "xdg-enabled" hmConfig.xdg.enable
+      "xdg.enable must be true; several modules write into XDG paths"
+    )
 
-      # Hammerspoon and karabiner are imported unconditionally and gated by their
-      # own platform defaults (see unit/platform-defaults-test.nix), so they must
-      # not appear in this enable block.
-      (helpers.assertTest "platform-gated-modules-not-force-enabled" (
-        !(hmConfig.modules.programs ? hammerspoon) && !(hmConfig.modules.programs ? karabiner)
-      ) "hammerspoon/karabiner must be left to their module-level platform default")
+    # Enabling is owned by each module's option default (see
+    # unit/platform-defaults-test.nix); an enable block here would override it.
+    (helpers.assertTest "sets-no-enable-flags" (
+      !(hmConfig ? modules)
+    ) "home-manager.nix must not set modules.*; each module's enable default owns the decision")
 
-      (helpers.assertTest "every-package-category-enabled" (lib.all
-        (category: hmConfig.modules.packages.${category}.enable)
-        (builtins.attrNames hmConfig.modules.packages)
-      ) "every package category listed in home-manager.nix should be enabled")
-    ]
-    ++ map (
-      modulePath:
-      helpers.assertTest "imports-${slug modulePath}" (importsModule modulePath)
-        "users/shared/home-manager.nix should import ${modulePath}"
-    ) expectedModules
-  );
+    (helpers.assertTest "darwin-imports-every-program" (importsEveryModule "programs" darwinUsers)
+      "macbook-pro Home Manager config must declare exactly the modules under users/shared/programs"
+    )
+
+    (helpers.assertTest "darwin-imports-every-package-category"
+      (importsEveryModule "packages" darwinUsers)
+      "macbook-pro Home Manager config must declare exactly the modules under users/shared/packages"
+    )
+
+    (helpers.assertTest "nixos-imports-every-program" (importsEveryModule "programs" nixosUsers)
+      "vm-aarch64-utm Home Manager config must declare exactly the modules under users/shared/programs"
+    )
+
+    (helpers.assertTest "nixos-imports-every-package-category"
+      (importsEveryModule "packages" nixosUsers)
+      "vm-aarch64-utm Home Manager config must declare exactly the modules under users/shared/packages"
+    )
+
+    (helpers.assertTest "darwin-enables-every-module" (
+      enablesEvery "programs" darwinUsers && enablesEvery "packages" darwinUsers
+    ) "every program and package category should be enabled on macbook-pro")
+
+    (helpers.assertTest "nixos-enables-every-package-category" (enablesEvery "packages" nixosUsers)
+      "every package category should be enabled on vm-aarch64-utm"
+    )
+  ];
 }

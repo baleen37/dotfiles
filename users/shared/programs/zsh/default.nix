@@ -19,6 +19,7 @@
 #
 
 {
+  pkgs,
   lib,
   config,
   isDarwin,
@@ -27,11 +28,16 @@
 
 let
   cfg = config.modules.programs.zsh;
+  worktreePackage = pkgs.worktree;
 in
 {
-  options.modules.programs.zsh.enable = lib.mkEnableOption "Zsh shell environment";
+  options.modules.programs.zsh.enable = lib.mkEnableOption "Zsh shell environment" // {
+    default = true;
+  };
 
   config = lib.mkIf cfg.enable {
+    home.packages = [ worktreePackage ];
+
     programs.fzf = {
       enable = true;
       enableZshIntegration = true;
@@ -101,6 +107,9 @@ in
       completionInit = "autoload -Uz compinit && compinit -C";
 
       shellAliases = {
+        vi = "nvim";
+        vim = "nvim";
+
         # Multi-level directory navigation: `cd ...`, `cd ....` etc. is
         # handled by the cd function override in functions.nix.
         ".." = "cd ..";
@@ -135,7 +144,8 @@ in
 
       plugins = [ ];
 
-      initContent = lib.mkAfter ''
+      # After docker completion (1500) and starship init (1510); see starship.nix.
+      initContent = lib.mkOrder 1520 ''
         # =============================================================================
         # Section: Nix daemon initialization
         # =============================================================================
@@ -177,7 +187,23 @@ in
         # =============================================================================
         # Section: Git worktree wrapper
         # =============================================================================
-        ${import ./wt.nix}
+        _wt_init() {
+          local -a wt_original_path
+          wt_original_path=("''${path[@]}")
+          local -a path
+          path=("${worktreePackage}/bin" "''${wt_original_path[@]}")
+          eval "$(command wt config shell init zsh)"
+        }
+        _wt_init
+        unfunction _wt_init
+        functions[_wt_generated]="$functions[wt]"
+        wt() {
+          local -a wt_original_path
+          wt_original_path=("''${path[@]}")
+          local -a path
+          path=("${worktreePackage}/bin" "''${wt_original_path[@]}")
+          _wt_generated "$@"
+        }
       '';
     };
   };

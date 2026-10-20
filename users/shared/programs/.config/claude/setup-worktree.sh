@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# WorktreeCreate hook: create the worktree where wt() would put it.
+# WorktreeCreate hook: create the worktree where `wt switch -c` would put it.
 #
-# Mirrors the path rule in users/shared/programs/zsh/wt.nix:
+# Mirrors wt's path rule:
 #   <repo_root>/.worktrees/<branch with / replaced by ->
-# The hook runs under bash and cannot call the zsh wt function, so the rule
-# lives in two places; tests/unit/wt-hook-consistency-test.nix pins them
-# together.
+# It does not call `wt switch -c`, which fetches origin, pulls the base branch
+# and refuses a dirty base worktree. tests/unit/wt-hook-consistency-test.nix
+# runs both and requires the same placement.
 #
 # Input:  JSON on stdin, { "name": "...", "cwd": "..." }
 # Output: the worktree path on stdout

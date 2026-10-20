@@ -18,97 +18,21 @@
 # including the homebrew and launchd segments, so keep failures contained: guard
 # with `if`, and use `|| true` on best-effort side effects.
 
-_:
+{ pkgs, ... }:
 
 {
-  # mas uses Spotlight metadata to find installed Mac App Store apps. Keep the
-  # index enabled for the root volume and import the configured apps when their
-  # Adam ID is not available yet.
+  # The bash lives in ./activation.sh so its behaviour is testable against stub
+  # binaries (tests/integration/darwin-activation-script-test.nix). A non-zero
+  # exit still propagates and aborts the switch, as it did when inlined.
   system.activationScripts.preActivation.text = ''
-    spotlight_status=$(/usr/bin/mdutil -s / 2>/dev/null || true)
-    if echo "$spotlight_status" | grep -qi "disabled"; then
-      echo "Enabling Spotlight indexing for App Store app detection..." >&2
-      /usr/bin/mdutil -E -i on / >&2 || true
-    fi
-
-    app="/Applications/KakaoTalk.app"
-    adam_id=$(/usr/bin/mdls -raw -name kMDItemAppStoreAdamID "$app" 2>/dev/null || true)
-    if [ -d "$app" ] && { [ -z "$adam_id" ] || [ "$adam_id" = "(null)" ]; }; then
-      /usr/bin/mdimport "$app" 2>/dev/null || true
-    fi
+    ${pkgs.bash}/bin/bash ${./activation.sh} spotlight
   '';
 
   system.activationScripts.postActivation.text = ''
-    # Homebrew runs before postActivation. Reconcile LaunchServices after the
-    # cask has installed the canonical app in /Applications.
-    /bin/sh ${./vscode-launchservices.sh} repair
-
-    # Remote Login (SSH)
-    # Enables macOS Remote Login so the machine accepts incoming SSH connections.
-    # nix-darwin has no dedicated option for this, so we toggle it via systemsetup.
-    # Idempotent: only flips the setting when it is currently off.
-    echo "Enabling Remote Login (SSH)..." >&2
-
-    if /usr/sbin/systemsetup -getremotelogin 2>/dev/null | grep -q "On"; then
-      echo "  ✓  Remote Login already enabled" >&2
-    else
-      /usr/sbin/systemsetup -setremotelogin -f on >&2
-      echo "  Remote Login enabled" >&2
-    fi
-
-    # macOS App Cleanup
-    # Automated storage optimization through removal of unused default macOS applications
-    # Saves 6-8GB of storage space and reduces system resource consumption
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
-    echo "Removing unused macOS default apps..." >&2
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
-
-    # 제거할 앱 목록
-    apps=(
-      "GarageBand.app"
-      "iMovie.app"
-      "TV.app"
-      "Podcasts.app"
-      "News.app"
-      "Stocks.app"
-      "Freeform.app"
-    )
-
-    removed_count=0
-    skipped_count=0
-
-    for app in "''${apps[@]}"; do
-      app_path="/Applications/$app"
-
-      if [ -e "$app_path" ]; then
-        echo "  Removing: $app" >&2
-
-        # activation already runs as root, so no sudo needed; SIP still wins
-        if rm -rf "$app_path" 2>/dev/null; then
-          removed_count=$((removed_count + 1))
-        else
-          echo "     Failed to remove (SIP protected): $app" >&2
-          skipped_count=$((skipped_count + 1))
-        fi
-      else
-        echo "  ✓  Already removed: $app" >&2
-      fi
-    done
-
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
-    echo "Cleanup complete!" >&2
-    echo "   - Removed: $removed_count apps" >&2
-    echo "   - Skipped: $skipped_count apps (protected)" >&2
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
+    ${pkgs.bash}/bin/bash ${./activation.sh} remote-login
+    ${pkgs.bash}/bin/bash ${./activation.sh} app-cleanup
   '';
 
-  # Keyboard input source configuration is deliberately absent.
-  #
-  # It used to live here as `system.activationScripts.configureKeyboard`, which
-  # never ran for the reason described above. Moving it into postActivation would
-  # start it running, and its hotkey payload is wrong: it wrote
-  # `parameters = (49, 1048576, 131072)` for hotkey 60, while the working value
-  # on this machine is `(32, 49, 1179648)` -- character, keycode, modifiers, in
-  # that order. Enabling it as-written would break cmd+shift+space input
-  # switching, which already works, so it was dropped rather than resurrected.
+  # Keyboard input source configuration lives in the Darwin Home Manager module
+  # at `darwin/keyboard-input.nix`, where activation runs as the target user.
 }

@@ -86,12 +86,12 @@ helpers.testSuite "vim" [
     "vim should have relative line numbers enabled"
   )
 
-  (helpers.assertTest "vim-leader-key-comma" (hasConfigPattern ".*let mapleader=\",\".*")
-    "vim leader key should be set to comma"
+  (helpers.assertTest "vim-leader-key-space" (hasConfigPattern ".*let mapleader=\" \".*")
+    "vim leader key should be set to space"
   )
 
-  (helpers.assertTest "vim-local-leader-key-space" (hasConfigPattern ".*let maplocalleader=\" \".*")
-    "vim local leader key should be set to space"
+  (helpers.assertTest "vim-local-leader-key-comma" (hasConfigPattern ".*let maplocalleader=\",\".*")
+    "vim local leader key should be set to comma"
   )
 
   (helpers.assertTest "vim-clipboard-paste-binding" (hasConfigPattern ".*nnoremap <Leader>,.*")

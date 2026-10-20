@@ -217,7 +217,7 @@ in
       "every hide manipulator must accept held right_command so Hyper+key does not leak as Cmd+key"
     )
     (helpers.assertTest "karabiner-local-bindings-present" localBindingsPresent
-      "3 expected local-binding keys must emit mega-modifier chord"
+      "2 expected local-binding keys must emit mega-modifier chord"
     )
     (helpers.assertTest "karabiner-local-bindings-accept-held-modifiers"
       localBindingsAcceptHeldModifiers

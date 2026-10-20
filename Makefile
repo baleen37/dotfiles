@@ -42,7 +42,6 @@ build-switch: switch
 switch:
 ifeq ($(UNAME), Darwin)
 	$(NIX_ENV) sudo -H $(DARWIN_REBUILD) switch --flake ".#$(NIXNAME)"
-	$(MAKE) audit-darwin-vscode
 else ifeq ($(IS_NIXOS), true)
 	$(NIX_ENV_FULL) $(SUDO_NIX) run "nixpkgs#nixos-rebuild" -- switch --flake ".#${NIXNAME}"
 else
@@ -56,19 +55,8 @@ switch-home:
 	@echo "Rebuilding Home Manager configuration for $(HM_USER)..."
 ifeq ($(UNAME), Darwin)
 	$(NIX_ENV) $(NIX) run 'github:nix-community/home-manager' -- switch --flake ".#$(HM_USER)"
-	$(MAKE) audit-darwin-vscode
 else
 	$(NIX_ENV_FULL) $(NIX) run 'github:nix-community/home-manager' -- switch --flake ".#$(HM_USER)"
-endif
-
-# Inspect the LaunchServices owner of the Homebrew-managed VS Code app without
-# changing app bundles, Home Manager generations, or Nix profiles.
-audit-darwin-vscode:
-ifeq ($(UNAME), Darwin)
-	@/bin/sh "$(MAKEFILE_DIR)/users/shared/darwin/vscode-launchservices.sh" audit
-else
-	@echo "audit-darwin-vscode is only supported on Darwin" >&2
-	@exit 1
 endif
 
 test:
@@ -106,9 +94,8 @@ test-build:
 	$(NIX_ENV_FULL) $(NIX) build ".#checks.$(NIX_SYSTEM).all-assertions" \
 		--accept-flake-config --print-build-logs --no-link
 
-# Kept as the name CI and the pre-push hook call. It deliberately does NOT
-# depend on test-build: `make test-build` would build assertions that CI has
-# never built before, so flipping it on is a separate, deliberate change.
+# Kept as the name the pre-push hook calls. CI runs `make test-build` as its
+# own step, so this stays evaluation-only off Linux+KVM to keep pushes fast.
 test-all: test
 	@echo "All tests completed successfully"
 
@@ -253,7 +240,7 @@ wsl:
 	 nix build ".#nixosConfigurations.wsl.config.system.build.installer"
 
 # Phony targets
-.PHONY: build-switch switch switch-home audit-darwin-vscode test test-build test-all test-containers fmt-diff format cache vm/bootstrap0 vm/bootstrap vm/copy vm/switch vm/secrets secrets/backup secrets/restore install-hooks lint update
+.PHONY: build-switch switch switch-home test test-build test-all test-containers fmt-diff format cache vm/bootstrap0 vm/bootstrap vm/copy vm/switch vm/secrets secrets/backup secrets/restore install-hooks lint update
 
 install-hooks:
 	pre-commit install --hook-type pre-commit --hook-type pre-push

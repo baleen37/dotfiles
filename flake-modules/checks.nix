@@ -2,8 +2,15 @@
 
 {
   perSystem =
-    { system, ... }:
+    { system, pkgs, ... }:
     {
-      checks = import ../tests { inherit system inputs self; };
+      checks = import ../tests {
+        inherit
+          system
+          inputs
+          self
+          pkgs
+          ;
+      };
     };
 }

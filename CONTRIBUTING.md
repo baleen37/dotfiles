@@ -344,19 +344,19 @@ When adding new global commands:
 1. **Install the system:**
 
    ```bash
-   ./scripts/install-setup-dev
+   make switch-home
    ```
 
 2. **Test command integration:**
 
    ```bash
    bl list
-   bl setup-dev test-project
+   bl gc --dry-run
    ```
 
 3. **Follow naming conventions:**
    - Use descriptive command names
-   - Include help text (`--help` flag)
+   - Include help text (`bl --help` and subcommand help)
    - Handle error cases gracefully
 
 ## 🚨 Common Issues and Solutions

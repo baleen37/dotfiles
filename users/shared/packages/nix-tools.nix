@@ -8,7 +8,9 @@ let
   cfg = config.modules.packages.nix-tools;
 in
 {
-  options.modules.packages.nix-tools.enable = lib.mkEnableOption "Nix tools";
+  options.modules.packages.nix-tools.enable = lib.mkEnableOption "Nix tools" // {
+    default = true;
+  };
 
   config = lib.mkIf cfg.enable {
     home.packages = with pkgs; [

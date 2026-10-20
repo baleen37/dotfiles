@@ -23,6 +23,46 @@ let
 
   # Extract starship settings
   starshipSettings = starshipConfig.programs.starship.settings;
+  starshipZshInit = lib.attrByPath [ "programs" "zsh" "initContent" "content" ] "" starshipConfig;
+  starshipStablePath = lib.attrByPath [
+    "home"
+    "file"
+    ".local/bin/starship"
+    "source"
+  ] null starshipConfig;
+  runtimeInitScript = pkgs.writeText "starship-stable-zsh-init" ''
+    ${starshipZshInit}
+    print -r -- "$PROMPT"
+  '';
+  runtimeSmoke = pkgs.runCommand "test-starship-stable-zsh-runtime" { } ''
+    testHome="$TMPDIR/home"
+    mkdir -p "$testHome/.local/bin"
+    ln -s "${pkgs.starship}/bin/starship" "$testHome/.local/bin/starship"
+
+    prompt="$({
+      HOME="$testHome" \
+        PATH="$testHome/.local/bin:/usr/bin:/bin" \
+        TERM=xterm-256color \
+        ${pkgs.zsh}/bin/zsh -df < "${runtimeInitScript}"
+    })"
+
+    case "$prompt" in
+      *"$testHome/.local/bin/starship prompt"*) ;;
+      *)
+        echo "Starship prompt did not use the stable executable path" >&2
+        exit 1
+        ;;
+    esac
+
+    case "$prompt" in
+      *"/nix/store/"*)
+        echo "Starship prompt embedded a Nix store path" >&2
+        exit 1
+        ;;
+    esac
+
+    touch "$out"
+  '';
 
   # Test helper to check if module is disabled
   isModuleDisabled = moduleName: starshipSettings.${moduleName}.disabled or false == true;
@@ -70,7 +110,18 @@ helpers.testSuite "starship-configuration" (
   [
     # Basic starship configuration
     (assertBoolSetting "enabled" starshipConfig.programs.starship.enable true)
-    (assertBoolSetting "zsh-integration" starshipConfig.programs.starship.enableZshIntegration true)
+    (assertBoolSetting "zsh-integration" starshipConfig.programs.starship.enableZshIntegration false)
+    (helpers.assertTest "starship-zsh-uses-stable-path"
+      (lib.hasInfix "$HOME/.local/bin/starship" starshipZshInit)
+      "Starship Zsh initialization should use the stable user path"
+    )
+    (helpers.assertTest "starship-zsh-has-no-store-path" (
+      !(lib.hasInfix "/nix/store/" starshipZshInit)
+    ) "Starship Zsh initialization should not embed a Nix store path")
+    (helpers.assertTest "starship-stable-path-target" (
+      starshipStablePath == "${pkgs.starship}/bin/starship"
+    ) "The stable Starship path should target the configured package")
+    runtimeSmoke
     (assertBoolSetting "add-newline" starshipSettings.add_newline true)
     (assertStringSetting "command-timeout" starshipSettings.command_timeout 1000)
     (assertStringSetting "scan-timeout" starshipSettings.scan_timeout 30)

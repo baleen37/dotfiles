@@ -106,14 +106,20 @@ let
       "Ghostty should have shell-integration enabled"
     )
 
-    (helpers.assertTest "ghostty-shell-integration-features" (
-      hasConfigLine "shell-integration-features.*=.*no-cursor,sudo,title,ssh-env"
-      && lacksConfigLine "ssh-terminfo"
-    ) "Ghostty should use ssh-env without ssh-terminfo so remote TERM stays xterm-256color")
-
-    (helpers.assertTest "ghostty-terminal-type-xterm-256color" (hasConfigLine "term.*=.*xterm-256color")
-      "Ghostty should report xterm-256color for every shell"
+    (helpers.assertTest "ghostty-shell-integration-features"
+      (hasConfigLine "shell-integration-features.*=.*no-cursor,sudo,title,ssh-env,ssh-terminfo")
+      "Ghostty must keep ssh-terminfo so remote hosts get the xterm-ghostty entry that term= advertises"
     )
+
+    # term must match Ghostty's real terminfo. Advertising xterm-256color made
+    # applications read terminfo and conclude CSI u was unsupported while
+    # Ghostty still answered runtime capability queries affirmatively; setup and
+    # teardown disagreed, so an abnormally terminated remote TUI left keyboard
+    # protocol state behind. tmux.nix also keys terminal-features off
+    # xterm-ghostty, and those settings go dead under any other value.
+    (helpers.assertTest "ghostty-terminal-type-xterm-ghostty" (
+      hasConfigLine "term.*=.*xterm-ghostty" && lacksConfigLine "term = xterm-256color"
+    ) "Ghostty must report its real terminfo so capability negotiation and teardown agree")
 
     # macOS-specific keybinding test (Option key as Alt)
     (helpers.assertTest "ghostty-macos-option-as-alt" (hasConfigLine "macos-option-as-alt.*=.*left")

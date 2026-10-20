@@ -1,96 +1,28 @@
 {
   pkgs,
+  lib,
   currentSystemUser,
   inputs,
-  lib,
   isDarwin ? pkgs.stdenv.hostPlatform.isDarwin,
   ...
 }:
 
-let
-  tmuxPackage = pkgs.tmux.overrideAttrs (old: {
-    configureFlags =
-      (old.configureFlags or [ ]) ++ lib.optional pkgs.stdenv.hostPlatform.isDarwin "--disable-jemalloc";
-  });
-  direnvInstantPackage = inputs.direnv-instant.packages.${pkgs.system}.default.overrideAttrs (old: {
-    nativeCheckInputs = map (
-      input: if (input.pname or null) == "tmux" then tmuxPackage else input
-    ) old.nativeCheckInputs;
-  });
-in
 {
   imports = [
     inputs.direnv-instant.homeModules.direnv-instant
 
     # Darwin GUI ownership and LaunchServices repair.
     ./darwin/vscode-launchservices.nix
-
-    # Tool configurations (programs)
-    ./programs/git.nix
-    ./programs/vim.nix
-    ./programs/zsh
-    ./programs/starship.nix
-    ./programs/tmux.nix
-    ./programs/herdr.nix
-    ./programs/claude-code.nix
-    ./programs/codex.nix
-    ./programs/opencode.nix
-    ./programs/ghostty.nix
-    ./programs/raycast.nix
-    ./programs/ssh.nix
-    ./programs/docker.nix
-    ./programs/hammerspoon.nix
-    ./programs/karabiner.nix
-
-    # Package categories — modules.packages.<name>.enable
-    ./packages/core.nix
-    ./packages/dev.nix
-    ./packages/lsp.nix
-    ./packages/nix-tools.nix
-    ./packages/cloud.nix
-    ./packages/security.nix
-    ./packages/ssh.nix
-    ./packages/media.nix
-    ./packages/fonts.nix
-    ./packages/databases.nix
-    ./packages/ai.nix
-  ];
-
-  # Programs — modules.programs.<name>.enable.
-  # hammerspoon and karabiner default to pkgs.stdenv.hostPlatform.isDarwin in
-  # their own modules; intentionally not listed here so the platform default
-  # owns the decision.
-  modules.programs = {
-    git.enable = true;
-    vim.enable = true;
-    zsh.enable = true;
-    tmux.enable = true;
-    herdr.enable = true;
-    starship.enable = true;
-    claude-code.enable = true;
-    codex.enable = true;
-    opencode.enable = true;
-    ghostty.enable = true;
-    ssh.enable = true;
-    docker.enable = true;
-  };
-
-  # All package categories are enabled for this configuration
-  modules.packages = {
-    core.enable = true;
-    dev.enable = true;
-    lsp.enable = true;
-    nix-tools.enable = true;
-    cloud.enable = true;
-    security.enable = true;
-    ssh.enable = true;
-    media.enable = true;
-    fonts.enable = true;
-    databases.enable = true;
-    ai.enable = true;
-  };
-
-  programs.direnv-instant.package = direnvInstantPackage;
+    ./darwin/keyboard-input.nix
+  ]
+  # Every module under programs/ and packages/, each enabled by its own option
+  # default (see lib/home-modules.nix).
+  ++ (
+    let
+      discovered = import ../../lib/home-modules.nix { inherit lib; };
+    in
+    builtins.attrValues discovered.programs ++ builtins.attrValues discovered.packages
+  );
 
   home = {
     username = currentSystemUser;

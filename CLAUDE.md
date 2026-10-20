@@ -70,7 +70,7 @@ All user configurations are in `users/shared/` using flat, tool-specific files:
 
 ```text
 users/shared/
-├── home-manager.nix       # Main entry point, imports all modules
+├── home-manager.nix       # Main entry point; programs/ and packages/ are discovered by lib/home-modules.nix
 ├── darwin/                # macOS system settings
 │   ├── default.nix       # Dock, Finder, masApps, primary user
 │   ├── homebrew.nix      # Homebrew casks and brews
@@ -78,24 +78,23 @@ users/shared/
 ├── programs/             # Tool-specific configuration modules
 │   ├── git.nix          # Git configuration with aliases
 │   ├── vim.nix          # Vim/Neovim setup
-│   ├── zsh.nix          # Zsh shell configuration
+│   ├── zsh/             # Zsh configuration (default.nix, claude-wrappers.nix, ...)
 │   ├── tmux.nix         # Terminal multiplexer
 │   ├── starship.nix     # Shell prompt
 │   ├── claude-code.nix  # Claude Code configuration
+│   ├── .config/claude/  # CLAUDE.md, settings, statusline deployed to ~/.claude
 │   └── ...              # codex, opencode, ghostty, hammerspoon, karabiner
-├── packages/             # Categorized package lists
-│   ├── core.nix         # Core CLI utilities
-│   ├── dev.nix          # Development tools
-│   ├── lsp.nix          # Language servers
-│   ├── nix-tools.nix    # Nix tooling
-│   ├── cloud.nix        # Cloud CLIs
-│   ├── security.nix     # Security tools
-│   ├── ssh.nix          # SSH-related packages
-│   ├── media.nix        # Media tools
-│   ├── fonts.nix        # Fonts
-│   ├── databases.nix    # Database clients
-│   └── ai.nix           # AI tooling
-└── .config/claude/       # Claude Code commands, skills, hooks
+└── packages/             # Categorized package lists
+    ├── core.nix         # Core CLI utilities
+    ├── dev.nix          # Development tools
+    ├── nix-tools.nix    # Nix tooling
+    ├── cloud.nix        # Cloud CLIs
+    ├── security.nix     # Security tools
+    ├── ssh.nix          # SSH-related packages
+    ├── media.nix        # Media tools
+    ├── fonts.nix        # Fonts
+    ├── databases.nix    # Database clients
+    └── ai.nix           # AI tooling
 ```
 
 **Important**: The `currentSystemUser` variable contains the actual username. User info (name, email) is centralized in `lib/user-info.nix`.
@@ -165,11 +164,13 @@ does not change host metadata.
 
 - Add to the appropriate category file in `users/shared/packages/` (e.g., `dev.nix` for development tools)
 - Or create/modify specific tool configuration in `users/shared/programs/*.nix`
+- A new `<name>.nix` (or `<name>/default.nix`) under `programs/` or `packages/` is imported automatically by `lib/home-modules.nix`; do not edit `home-manager.nix`
 
 **Module enable pattern** (`modules.programs.<name>`, `modules.packages.<name>`):
 
-- Every program and package category exposes an `enable` option. `lib.mkEnableOption` defaults to `false`; activation happens explicitly in `users/shared/home-manager.nix`.
-- Platform-conditional modules (`hammerspoon`, `karabiner`) set `default = pkgs.stdenv.hostPlatform.isDarwin` in the module itself — do **not** list them in the home-manager.nix enable block; let the module default own the decision.
+- Every discovered module declares `options.modules.<category>.<name>.enable`, named after its file, with `lib.mkEnableOption "..." // { default = true; }`. `home-manager.nix` sets no enable flags; `unit-platform-defaults` fails on a bare `mkEnableOption` (default `false`).
+- Darwin-only modules (`hammerspoon`, `karabiner`, `neru`, `raycast`) use `default = pkgs.stdenv.hostPlatform.isDarwin` instead; add new ones to `darwinOnly` in `tests/unit/platform-defaults-test.nix`.
+- Helper `.nix` files a module imports belong inside that module's directory (as in `zsh/`), not at the top of `programs/` or `packages/`.
 - To disable a module on a specific machine, add it to that host's `homeModules` in `flake-modules/hosts.nix` (e.g., `modules.programs.hammerspoon.enable = false;`).
 
 **System packages** (macOS GUI apps):
@@ -251,7 +252,7 @@ GitHub Actions workflow (`.github/workflows/ci.yml`):
   and NixOS `aarch64-linux` (Ubuntu ARM64)
 - Pre-commit hooks validation
 - Fast container tests (Linux) or validation mode (macOS)
-- Full test suite on PRs and main branch
+- Builds every unit and integration assertion (`make test-build`) on PRs and main
 - Cachix upload for successful builds
 
 Required environment variables in CI:
@@ -335,10 +336,10 @@ trusted-users = root @admin yourusername
 - **users/shared/darwin/scripts.nix**: App cleanup and helper scripts
 - **users/shared/programs/git.nix**: Git configuration with centralized user info from lib/user-info.nix
 - **users/shared/programs/vim.nix**: Vim setup with airline, tmux-navigator, relative line numbers
-- **users/shared/programs/zsh.nix**: Zsh environment with fzf, direnv, Claude/OpenCode aliases
+- **users/shared/programs/zsh/**: Zsh environment with fzf, direnv, Claude/OpenCode aliases
 - **users/shared/programs/tmux.nix**: Tmux config with vi-mode copy-paste, OSC52 clipboard
 - **users/shared/programs/starship.nix**: Minimal prompt configuration
-- **users/shared/programs/claude-code.nix**: Claude Code commands/skills/hooks deployment
+- **users/shared/programs/claude-code.nix**: Deploys CLAUDE.md, settings, statusline, and worktree hook to ~/.claude (commands/skills/hooks come from an external plugin)
 
 ### Testing and Quality
 
@@ -358,7 +359,7 @@ trusted-users = root @admin yourusername
 
 ### Shell Aliases and Shortcuts
 
-The zsh configuration provides these shortcuts (defined in `users/shared/programs/zsh.nix`):
+The zsh configuration provides these shortcuts (defined in `users/shared/programs/zsh/`):
 
 - `cc`: Claude Code with permission checks disabled (`claude --dangerously-skip-permissions`)
 - `oc`: OpenCode shortcut
@@ -368,7 +369,8 @@ The zsh configuration provides these shortcuts (defined in `users/shared/program
 
 **Vim** (users/shared/programs/vim.nix):
 
-- Leader key: `,` (comma)
+- Leader key: Space
+- LocalLeader: `,` (comma)
 - Clipboard: `<Leader>,` paste, `<Leader>.` copy
 - Window navigation: Ctrl+h/j/k/l
 - Buffer navigation: Tab/Shift+Tab
@@ -380,7 +382,7 @@ The zsh configuration provides these shortcuts (defined in `users/shared/program
 - Vi-style copy mode with tmux-native OSC52 clipboard (works over SSH)
 - Cross-platform: OSC52 (no pbcopy/xclip dependency)
 
-**Fzf** (in zsh.nix):
+**Fzf** (in `zsh/default.nix`):
 
 - Ctrl+R: Command history search
 - Ctrl+T: File search with bat preview

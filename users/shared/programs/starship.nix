@@ -4,19 +4,26 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }:
 
 let
   cfg = config.modules.programs.starship;
+  starshipPackage = pkgs.starship;
 in
 {
-  options.modules.programs.starship.enable = lib.mkEnableOption "Starship prompt configuration";
+  options.modules.programs.starship.enable = lib.mkEnableOption "Starship prompt configuration" // {
+    default = true;
+  };
 
   config = lib.mkIf cfg.enable {
+    home.file.".local/bin/starship".source = "${starshipPackage}/bin/starship";
+
     programs.starship = {
       enable = true;
-      enableZshIntegration = true;
+      package = starshipPackage;
+      enableZshIntegration = false;
 
       settings = {
         # Basic settings
@@ -119,5 +126,13 @@ in
         gcloud.disabled = true;
       };
     };
+
+    # Pinned after docker's mkAfter (1500) and before the zsh module body (1520):
+    # modules are imported alphabetically, so equal orders would reorder .zshrc.
+    programs.zsh.initContent = lib.mkOrder 1510 ''
+      if [[ $TERM != "dumb" ]] && [[ -x "$HOME/.local/bin/starship" ]]; then
+        eval "$("$HOME/.local/bin/starship" init zsh)"
+      fi
+    '';
   };
 }

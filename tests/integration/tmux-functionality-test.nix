@@ -1,6 +1,9 @@
-# tests/integration/tmux-functionality.nix
-# Tmux configuration integration tests for Oh My Tmux style
-# Tests that tmux is properly integrated with home manager
+# tests/integration/tmux-functionality-test.nix
+#
+# Loads the tmux.conf that Home Manager generates from users/shared/programs/tmux.nix
+# into a live, isolated tmux server and asserts what the server reports
+# (show-options, list-keys, display-message) rather than the text of the config.
+# A line tmux rejects fails the test, and a setting is only seen if tmux applies it.
 {
   inputs,
   system,
@@ -11,62 +14,31 @@
 
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
-  pluginHelpers = import ../lib/plugin-test-helpers.nix { inherit lib; };
-
-  # Mock configuration for testing tmux integration
-  mockConfig = {
-    modules.programs.tmux.enable = true;
-    home = {
-      homeDirectory = if pkgs.stdenv.isDarwin then "/Users/test" else "/home/test";
-    };
-  };
-
-  # Import tmux module and extract the config body via .content
-  # (lib.mkIf true {...}).content unwraps the conditional when enable=true
-  tmuxModule = import ../../users/shared/programs/tmux.nix {
-    inherit pkgs lib;
-    config = mockConfig;
-  };
-  tmuxConfig = tmuxModule.config.content.programs.tmux;
-  seshConfig = tmuxModule.config.content.programs.sesh or { };
-
-  pluginPackage = plugin: plugin.plugin or plugin;
-  pluginName = plugin: (pluginPackage plugin).pname or null;
-  continuumPlugin = lib.findFirst (
-    plugin: pluginName plugin == "tmuxplugin-continuum"
-  ) null tmuxConfig.plugins;
 
   homeConfig = inputs.home-manager.lib.homeManagerConfiguration {
     inherit pkgs;
+    extraSpecialArgs = { inherit inputs; };
     modules = [
       inputs.direnv-instant.homeModules.direnv-instant
       ../../users/shared/programs/tmux.nix
-      (
-        { config, ... }:
-        {
-          modules.programs.tmux.enable = true;
-          programs.direnv-instant.enable = true;
-          programs.direnv-instant.package =
-            inputs.direnv-instant.packages.${system}.default.overrideAttrs
-              (old: {
-                nativeCheckInputs = map (
-                  input: if (input.pname or null) == "tmux" then config.programs.tmux.package else input
-                ) old.nativeCheckInputs;
-              });
-          programs.fzf.tmux.enableShellIntegration = true;
-          home = {
-            username = "test";
-            homeDirectory = if pkgs.stdenv.isDarwin then "/Users/test" else "/home/test";
-            stateVersion = "24.11";
-          };
-        }
-      )
+      {
+        modules.programs.tmux.enable = true;
+        programs.direnv-instant.enable = true;
+        # Home Manager's sesh module asserts this whenever its tmux key is set.
+        programs.fzf.tmux.enableShellIntegration = true;
+        home = {
+          username = "test";
+          homeDirectory = if pkgs.stdenv.hostPlatform.isDarwin then "/Users/test" else "/home/test";
+          stateVersion = "24.11";
+        };
+      }
     ];
   };
-  generatedTmuxConfig = homeConfig.config.xdg.configFile."tmux/tmux.conf".text;
-  generatedTmuxConfigFile = pkgs.writeText "tmux.conf" generatedTmuxConfig;
+  hm = homeConfig.config;
+  tmuxPackage = hm.programs.tmux.package;
+  tmuxConf = hm.xdg.configFile."tmux/tmux.conf".source;
+
   agentStatusSummarySource = ../../users/shared/programs/tmux-agent-status-summary.sh;
-  expectedAgentStatusGlyph = "#{?#{==:#{@agent_status},running},●,#{?#{==:#{@agent_status},needs_input},▲,#{?#{==:#{@agent_status},ready},○,#{?#{==:#{@agent_status},error},✕,}}}}";
   fakeAgentStatusTmux = pkgs.writeShellScriptBin "tmux" ''
     if [ "$1" = "list-panes" ]; then
       printf '%s\n' running ready running needs_input error unknown ""
@@ -84,89 +56,23 @@ let
   failingAgentStatusTmux = pkgs.writeShellScriptBin "tmux" ''
     exit 1
   '';
-
-  # Helper function to check if config contains a string
-  hasConfigString = str: pluginHelpers.hasConfigString tmuxConfig.extraConfig str;
-
-  # Helper to create config setting test
-  mkConfigTest =
-    name: condition: message:
-    helpers.assertTest name condition message;
-
 in
 {
   # ============================================================================
-  # Core configuration - Oh My Tmux style
+  # Package wiring — not visible to a running server
   # ============================================================================
-  tmux-prefix-is-ctrl-a = helpers.assertTest "tmux-prefix-is-ctrl-a" (
-    tmuxConfig.prefix == "C-a"
-  ) "tmux prefix should be Ctrl-a (Oh My Tmux style)";
-
   tmux-darwin-configure-flag = helpers.assertTest "tmux-darwin-configure-flag" (
-    !pkgs.stdenv.isDarwin
-    || lib.elem "--disable-jemalloc" homeConfig.config.programs.tmux.package.configureFlags
+    !pkgs.stdenv.hostPlatform.isDarwin || lib.elem "--disable-jemalloc" tmuxPackage.configureFlags
   ) "Darwin tmux should explicitly choose the non-jemalloc build";
 
-  direnv-instant-darwin-tmux-configure-flag =
-    helpers.assertTest "direnv-instant-darwin-tmux-configure-flag"
-      (
-        !pkgs.stdenv.isDarwin
-        || lib.elem homeConfig.config.programs.tmux.package homeConfig.config.programs.direnv-instant.package.nativeBuildInputs
-      )
-      "Darwin direnv-instant should use the configured tmux package";
+  direnv-instant-tmux-package =
+    helpers.assertTest "direnv-instant-tmux-package"
+      (lib.elem tmuxPackage hm.programs.direnv-instant.package.nativeBuildInputs)
+      "direnv-instant should check against tmux.nix's tmux package, not build a second tmux";
 
-  tmux-prefix-send-prefix =
-    mkConfigTest "tmux-prefix-send-prefix" (hasConfigString "bind C-a send-prefix")
-      "tmux should bind C-a C-a to send prefix to application";
-
-  tmux-prefix-last-window =
-    mkConfigTest "tmux-prefix-last-window" (hasConfigString "bind a last-window")
-      "tmux should bind a to toggle last window";
-
-  tmux-has-resurrect-plugin =
-    helpers.assertTest "tmux-has-resurrect-plugin"
-      (pluginHelpers.hasPluginByName tmuxConfig.plugins "tmuxplugin-resurrect")
-      "tmux should load tmux-resurrect through Home Manager";
-
-  tmux-has-continuum-plugin = helpers.assertTest "tmux-has-continuum-plugin" (
-    continuumPlugin != null
-  ) "tmux should load tmux-continuum through Home Manager";
-
-  tmux-has-vim-navigator-plugin =
-    helpers.assertTest "tmux-has-vim-navigator-plugin"
-      (pluginHelpers.hasPluginByName tmuxConfig.plugins "tmuxplugin-vim-tmux-navigator")
-      "tmux should load vim-tmux-navigator through Home Manager";
-
-  tmux-plugin-order = helpers.assertTest "tmux-plugin-order" (
-    builtins.map pluginName tmuxConfig.plugins == [
-      "tmuxplugin-resurrect"
-      "tmuxplugin-continuum"
-      "tmuxplugin-vim-tmux-navigator"
-    ]
-  ) "tmux should load resurrect, continuum, then vim-tmux-navigator";
-
-  tmux-continuum-auto-restore = mkConfigTest "tmux-continuum-auto-restore" (
-    pluginHelpers.hasConfigString
-    (continuumPlugin.extraConfig or "")
-    "set -g @continuum-restore 'on'"
-  ) "tmux continuum should restore saved sessions automatically";
-
-  tmux-continuum-config-order = pkgs.runCommand "tmux-continuum-config-order" { } ''
-    continuum_load_line="$(${pkgs.gnugrep}/bin/grep -nF 'run-shell ' ${generatedTmuxConfigFile} | ${pkgs.gnugrep}/bin/grep -F 'tmuxplugin-continuum' | ${pkgs.coreutils}/bin/tail -n 1 | cut -d: -f1)"
-    restore_line="$(${pkgs.gnugrep}/bin/grep -nF "set -g @continuum-restore 'on'" ${generatedTmuxConfigFile} | cut -d: -f1)"
-    status_right_line="$(${pkgs.gnugrep}/bin/grep -nE '^set -g status-right ' ${generatedTmuxConfigFile} | cut -d: -f1)"
-
-    echo "continuum-load-line=$continuum_load_line"
-    echo "continuum-restore-line=$restore_line"
-    echo "status-right-line=$status_right_line"
-    test "$(${pkgs.gnugrep}/bin/grep -cF "set -g @continuum-restore 'on'" ${generatedTmuxConfigFile})" -eq 1
-    test "$(${pkgs.gnugrep}/bin/grep -cE '^set -g status-right ' ${generatedTmuxConfigFile})" -eq 1
-    test "$restore_line" -lt "$continuum_load_line"
-    test "$status_right_line" -lt "$continuum_load_line"
-
-    touch "$out"
-  '';
-
+  # ============================================================================
+  # Status-bar helper script, against fake tmux binaries for the failure modes
+  # ============================================================================
   tmux-agent-status-summary = pkgs.runCommand "tmux-agent-status-summary" { } ''
     output="$(PATH=${fakeAgentStatusTmux}/bin ${pkgs.bash}/bin/bash ${agentStatusSummarySource})"
     test "$output" = '●2 ▲1 ○1 ✕1'
@@ -183,111 +89,139 @@ in
     touch "$out"
   '';
 
-  tmux-agent-status-window-format = pkgs.runCommand "tmux-agent-status-window-format" { } ''
-    current_format="$(${pkgs.gnugrep}/bin/grep -F "window-status-current-format" ${generatedTmuxConfigFile})"
-    inactive_format="$(${pkgs.gnugrep}/bin/grep -F "window-status-format" ${generatedTmuxConfigFile})"
-    continuum_load_line="$(${pkgs.gnugrep}/bin/grep -nF 'run-shell ' ${generatedTmuxConfigFile} | ${pkgs.gnugrep}/bin/grep -F 'tmuxplugin-continuum' | ${pkgs.coreutils}/bin/tail -n 1 | cut -d: -f1)"
-    status_right_line="$(${pkgs.gnugrep}/bin/grep -nE '^set -g status-right ' ${generatedTmuxConfigFile} | cut -d: -f1)"
-
-    printf '%s\n' "$current_format" | ${pkgs.gnugrep}/bin/grep -F '#I${expectedAgentStatusGlyph}'
-    printf '%s\n' "$inactive_format" | ${pkgs.gnugrep}/bin/grep -F '#I${expectedAgentStatusGlyph}'
-    printf '%s\n' "$current_format" | ${pkgs.gnugrep}/bin/grep -F '#{pane_title}'
-    printf '%s\n' "$inactive_format" | ${pkgs.gnugrep}/bin/grep -F '#{pane_title}'
-    printf '%s\n' "$current_format" | ${pkgs.gnugrep}/bin/grep -F '#W'
-    printf '%s\n' "$inactive_format" | ${pkgs.gnugrep}/bin/grep -F '#W'
-    ${pkgs.gnugrep}/bin/grep -F 'tmux-agent-status-summary' ${generatedTmuxConfigFile}
-    ${pkgs.gnugrep}/bin/grep -F '%d/%m' ${generatedTmuxConfigFile}
-    ${pkgs.gnugrep}/bin/grep -F '%H:%M' ${generatedTmuxConfigFile}
-    test "$(${pkgs.gnugrep}/bin/grep -cE '^set -g status-right ' ${generatedTmuxConfigFile})" -eq 1
-    test "$status_right_line" -lt "$continuum_load_line"
-
-    export HOME="$TMPDIR"
-    export LC_ALL=en_US.UTF-8
-    export TMUX_TMPDIR="$TMPDIR"
-    tmux_test() {
-      ${homeConfig.config.programs.tmux.package}/bin/tmux -f /dev/null -L agent-status-test "$@"
-    }
-    trap 'tmux_test kill-server 2>/dev/null || true' EXIT
-    tmux_test new-session -d -s agent-status-test '${pkgs.coreutils}/bin/sleep 60'
-    pane_id="$(tmux_test display-message -p '#{pane_id}')"
-    agent_status_glyph='${expectedAgentStatusGlyph}'
-
-    for mapping in running:● needs_input:▲ ready:○ error:✕ unknown:; do
-      state="''${mapping%%:*}"
-      expected="''${mapping#*:}"
-      tmux_test set-option -p -t "$pane_id" @agent_status "$state"
-      actual="$(tmux_test display-message -p -t "$pane_id" "$agent_status_glyph")"
-      test "$actual" = "$expected"
-    done
-
-    tmux_test set-option -pu -t "$pane_id" @agent_status
-    actual="$(tmux_test display-message -p -t "$pane_id" "$agent_status_glyph")"
-    test -z "$actual"
-
-    touch "$out"
-  '';
-
   # ============================================================================
-  # Key bindings
+  # The generated tmux.conf, loaded into a live server
   # ============================================================================
-  tmux-sesh-enabled = helpers.assertTest "tmux-sesh-enabled" (seshConfig.enable or false
-  ) "tmux should enable sesh through Home Manager";
+  tmux-live-config =
+    pkgs.runCommand "tmux-live-config"
+      {
+        nativeBuildInputs = [
+          tmuxPackage
+          pkgs.bash
+          pkgs.coreutils
+          pkgs.gnugrep
+          pkgs.gnused
+        ];
+      }
+      ''
+        export HOME="$TMPDIR"
+        export LC_ALL=${if pkgs.stdenv.hostPlatform.isDarwin then "en_US.UTF-8" else "C.UTF-8"}
+        export TMUX_TMPDIR="$TMPDIR"
+        unset TMUX
 
-  tmux-sesh-key-is-uppercase-t = helpers.assertTest "tmux-sesh-key-is-uppercase-t" (
-    (seshConfig.tmuxKey or null) == "T"
-  ) "sesh should use prefix+T and preserve tmux prefix+t clock mode";
+        t() { tmux -u -L tmux-live-config "$@"; }
+        fail() { echo "FAIL: $*" >&2; exit 1; }
+        expect_eq() { # name actual expected
+          [ "$2" = "$3" ] || fail "$1: expected [$3], got [$2]"
+        }
+        expect_has() { # name haystack needle
+          case "$2" in *"$3"*) ;; *) fail "$1: [$2] does not contain [$3]" ;; esac
+        }
+        # table key -> the command bound to it, or "" when unbound. The key is
+        # spelled as list-keys prints it (e.g. '\"'). `list-keys -T table key`
+        # prints nothing on tmux 3.7, hence filtering the whole table.
+        key() {
+          t list-keys -T "$1" | K="$2" awk '
+            { i = ($2 == "-r") ? 5 : 4 }
+            $i == ENVIRON["K"] {
+              sub(/^bind-key +(-r +)?-T +[^ ]+ +[^ ]+ +/, ""); print; exit
+            }'
+        }
+        trap 't kill-server 2>/dev/null || true' EXIT
 
-  tmux-split-vertical =
-    mkConfigTest "tmux-split-vertical"
-      (hasConfigString "bind '%' split-window -h -c \"#{pane_current_path}\"")
-      "tmux should keep % for a left/right split, at the current pane path";
+        # The plugin scripts start with `#!/usr/bin/env bash`, which the Linux
+        # build sandbox does not have, so they run from shebang-patched copies.
+        # Only the plugin paths in the config change.
+        conf="$TMPDIR/tmux.conf"
+        cp ${tmuxConf} "$conf"
+        chmod u+w "$conf"
+        mkdir "$TMPDIR/plugins"
+        for plugin in $(grep -oE '${builtins.storeDir}/[^/ ]+-tmuxplugin-[^/ ]+' "$conf" | sort -u); do
+          copy="$TMPDIR/plugins/$(basename "$plugin")"
+          cp -r "$plugin" "$copy"
+          chmod -R u+w "$copy"
+          patchShebangs "$copy" > /dev/null
+          sed -i "s|$plugin|$copy|g" "$conf"
+        done
 
-  tmux-split-horizontal =
-    mkConfigTest "tmux-split-horizontal"
-      (hasConfigString "bind '\"' split-window -v -c \"#{pane_current_path}\"")
-      "tmux should keep the double-quote key for a top/bottom split, at the current pane path";
+        # `tmux -f` defers config errors to the first attached client and still
+        # exits 0, so start bare and source the config: source-file exits
+        # non-zero and prints the offending line when tmux rejects anything.
+        t -f /dev/null new-session -d -s live '${pkgs.coreutils}/bin/sleep 300'
+        if ! errors="$(t source-file "$conf" 2>&1)" || [ -n "$errors" ]; then
+          fail "tmux rejected the generated config: $errors"
+        fi
 
-  tmux-default-split-bindings-kept = mkConfigTest "tmux-default-split-bindings-kept" (
-    !(hasConfigString "unbind '%'") && !(hasConfigString "unbind '\"'")
-  ) "tmux should leave the default % and double-quote split keys bound";
+        opt() { t show-options -gv "$1"; }
+        expect_eq prefix "$(opt prefix)" C-a
+        expect_eq set-titles "$(opt set-titles)" on
+        expect_eq allow-passthrough "$(opt allow-passthrough)" off
+        expect_eq set-clipboard "$(t show-options -sv set-clipboard)" on
+        expect_eq mode-keys "$(t show-window-options -gv mode-keys)" vi
 
-  tmux-vim-pane-navigation =
-    mkConfigTest "tmux-vim-pane-navigation" (hasConfigString "bind h select-pane -L")
-      "tmux should use vim-style pane navigation (hjkl)";
+        features="$(t show-options -sv terminal-features)"
+        expect_has ghostty-truecolor "$features" 'xterm-ghostty:RGB'
+        expect_has mosh-truecolor "$features" 'xterm-256color:RGB'
 
-  tmux-set-titles =
-    mkConfigTest "tmux-set-titles" (hasConfigString "set -g set-titles on")
-      "tmux should propagate session/window to the terminal title (Ghostty tab identification)";
+        # Prefix table: our bindings, plus the defaults tmux.nix keeps.
+        expect_eq send-prefix "$(key prefix C-a)" send-prefix
+        expect_eq last-window "$(key prefix a)" last-window
+        expect_eq split-left-right "$(key prefix '\%')" 'split-window -h -c "#{pane_current_path}"'
+        expect_eq split-top-bottom "$(key prefix '\"')" 'split-window -v -c "#{pane_current_path}"'
+        expect_eq pane-left "$(key prefix h)" 'select-pane -L'
+        expect_eq pane-down "$(key prefix j)" 'select-pane -D'
+        expect_eq pane-up "$(key prefix k)" 'select-pane -U'
+        expect_eq pane-right "$(key prefix l)" 'select-pane -R'
+        expect_has sesh-on-T "$(key prefix T)" sesh
+        expect_eq clock-mode-kept "$(key prefix t)" clock-mode
 
-  tmux-mosh-truecolor =
-    mkConfigTest "tmux-mosh-truecolor"
-      (hasConfigString "set -as terminal-features ',xterm-256color:RGB'")
-      "tmux should preserve truecolor when mosh presents xterm-256color";
+        # Copy mode yanks through tmux's own OSC52, never an external clipboard tool.
+        expect_eq copy-y "$(key copy-mode-vi y)" 'send-keys -X copy-pipe-and-cancel'
+        expect_eq copy-enter "$(key copy-mode-vi Enter)" 'send-keys -X copy-pipe-and-cancel'
+        expect_eq copy-command "$(opt copy-command)" ""
+        all_keys="$(t list-keys)"
+        for tool in pbcopy xclip xsel wl-copy; do
+          case "$all_keys" in *"$tool"*) fail "a binding shells out to $tool instead of OSC52" ;; esac
+        done
 
-  # ============================================================================
-  # OSC52 clipboard integration (cross-platform, works over SSH)
-  # ============================================================================
-  tmux-osc52-clipboard =
-    mkConfigTest "tmux-osc52-clipboard" (hasConfigString "set -s set-clipboard on")
-      "tmux should use OSC52 for cross-platform clipboard (on: also accepts inner-app yanks)";
+        # Plugins actually loaded: each one leaves something only it would set.
+        expect_has resurrect-save "$(key prefix C-s)" resurrect
+        expect_has vim-tmux-navigator "$(key root C-h)" 'select-pane -L'
+        expect_eq continuum-restore "$(opt @continuum-restore)" on
+        # continuum appends its autosave hook to status-right when it loads, so
+        # this only holds if status-right was set before continuum ran.
+        status_right="$(opt status-right)"
+        expect_has continuum-autosave "$status_right" continuum_save
+        expect_has agent-summary "$status_right" tmux-agent-status-summary
 
-  tmux-osc52-copy-bindings =
-    mkConfigTest "tmux-osc52-copy-bindings"
-      (hasConfigString "bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel")
-      "tmux should bind y/Enter to copy with OSC52";
+        # The status-right helper, run as configured, against this server.
+        # A session created after the config, so base-index 1 applies to it.
+        t new-session -d -s agents '${pkgs.coreutils}/bin/sleep 300'
+        pane="$(t display-message -p -t agents '#{pane_id}')"
+        export TMUX="$(t display-message -p '#{socket_path}'),$(t display-message -p '#{pid}'),0"
+        summary_cmd="$(printf '%s\n' "$status_right" | grep -oE '#\([^)]*tmux-agent-status-summary\)' | sed -E 's/^#\(//; s/\)$//')"
+        [ -n "$summary_cmd" ] || fail "status-right has no #(…tmux-agent-status-summary) job"
+        expect_eq summary-empty "$($summary_cmd)" ""
+        t set-option -p -t "$pane" @agent_status needs_input
+        expect_eq summary-needs-input "$($summary_cmd)" '▲1'
 
-  tmux-no-terminal-passthrough =
-    mkConfigTest "tmux-no-terminal-passthrough" (hasConfigString "set -g allow-passthrough off")
-      "tmux should block raw terminal passthrough so disconnected SSH apps cannot leak terminal state";
+        # Window list: the agent glyph sits right after the index, and the pane
+        # title replaces the window name once a program sets one.
+        win() { t display-message -p -t "$pane" "#{E:$1}"; }
+        for fmt in window-status-format window-status-current-format; do
+          for mapping in running:● needs_input:▲ ready:○ error:✕ unknown:; do
+            t set-option -p -t "$pane" @agent_status "''${mapping%%:*}"
+            expect_has "$fmt-''${mapping%%:*}" "$(win "$fmt")" " 1''${mapping#*:}#["
+          done
+          t set-option -pu -t "$pane" @agent_status
+          expect_has "$fmt-unset" "$(win "$fmt")" ' 1#['
 
-  # ============================================================================
-  # Negative tests - ensure old settings are NOT present
-  # ============================================================================
-  tmux-no-pbcopy = helpers.assertTest "tmux-no-pbcopy" (
-    !hasConfigString "pbcopy"
-  ) "tmux should NOT use pbcopy (OSC52 instead)";
+          t select-pane -t "$pane" -T agent-title
+          expect_has "$fmt-pane-title" "$(win "$fmt")" ']agent-title#['
+          t select-pane -t "$pane" -T "$(t display-message -p '#{host}')"
+          expect_has "$fmt-window-name-fallback" "$(win "$fmt")" "]$(t display-message -p -t "$pane" '#W')#["
+        done
 
-  tmux-no-xclip = helpers.assertTest "tmux-no-xclip" (
-    !hasConfigString "xclip"
-  ) "tmux should NOT use xclip (OSC52 instead)";
+        touch "$out"
+      '';
 }

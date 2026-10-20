@@ -6,6 +6,7 @@ firefox_data_dir=${FF_FIREFOX_DATA_DIR:-${HOME}/Library/Application Support/Fire
 firefox_binary=${FF_FIREFOX_BINARY:-/Applications/Firefox.app/Contents/MacOS/firefox}
 sqlite_binary=${FF_SQLITE3_BINARY:-/usr/bin/sqlite3}
 lsof_binary=${FF_LSOF_BINARY:-/usr/sbin/lsof}
+pgrep_binary=${FF_PGREP_BINARY:-/usr/bin/pgrep}
 ps_binary=${FF_PS_BINARY:-/bin/ps}
 activate_binary=${FF_FIREFOX_ACTIVATE_BINARY:-${HOME}/.config/raycast/firefox-profile-activate}
 nohup_binary=${FF_NOHUP_BINARY:-/usr/bin/nohup}
@@ -196,6 +197,20 @@ find_legacy_profile() {
   return 1
 }
 
+profile_pid_from_pgrep() {
+  local profile_path=$1 candidate process_command
+  [[ -x $pgrep_binary && -x $ps_binary ]] || return 1
+
+  while IFS= read -r candidate; do
+    process_command=$("$ps_binary" -p "$candidate" -o command= 2> /dev/null) || continue
+    [[ $process_command == "$firefox_binary --profile $profile_path"* ]] || continue
+    print -r -- "$candidate"
+    return 0
+  done < <("$pgrep_binary" -f -- "$firefox_binary --profile $profile_path" 2> /dev/null)
+
+  return 1
+}
+
 profile_pid_from_ps() {
   local profile_path=$1
   [[ -x $ps_binary ]] || return 1
@@ -262,7 +277,10 @@ else
   }
 fi
 
-profile_pid=$(profile_pid_from_ps "$profile_path") || profile_pid=""
+profile_pid=$(profile_pid_from_pgrep "$profile_path") || profile_pid=""
+if [[ -z $profile_pid ]]; then
+  profile_pid=$(profile_pid_from_ps "$profile_path") || profile_pid=""
+fi
 if [[ -z $profile_pid ]]; then
   profile_pid=$(profile_pid_from_lsof "$profile_path") || profile_pid=""
 fi

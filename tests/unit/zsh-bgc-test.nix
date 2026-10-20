@@ -1,4 +1,4 @@
-# Darwin bgc cache cleanup command tests
+# Darwin bgc compatibility wrapper tests
 {
   inputs,
   system,
@@ -12,7 +12,7 @@ let
   mockConfig = import ../lib/mock-config.nix { inherit pkgs lib; };
 
   zshModule = import ../../users/shared/programs/zsh {
-    inherit pkgs lib;
+    inherit inputs pkgs lib;
     isDarwin = true;
     config = mockConfig.mkEmptyConfig // {
       modules.programs.zsh.enable = true;
@@ -32,9 +32,7 @@ in
   platforms = [ "darwin" ];
   value = helpers.testSuite "zsh-bgc" [
     (assertInitHas "function" "bgc() {")
-    (assertInitHas "stats" "bgc stats")
-    (assertInitHas "dry-run" "--dry-run")
-    (assertInitHas "docker-confirmation" "Docker cleanup")
+    (assertInitHas "delegates-to-bl" "bl gc")
     (helpers.assertTest "zsh-bgc-preserves-gc-alias" (
       aliases.gc == "git commit"
     ) "the existing gc git alias must remain unchanged")
