@@ -96,11 +96,10 @@ in
       [experimental]
       allow_nested = true
 
-      # Agents in Space order, so herdr-sim's project/worktree headers group
-      # them as a tree.
       [ui]
-      # Sessions that need you first (asking, finished), then the rest.
-      agent_panel_sort = "priority"
+      # Space order, so herdr-sim's tree headers sit over their sessions
+      # when its activity order (prefix+a) is off.
+      agent_panel_sort = "spaces"
       sidebar_width = 38
       # A distinct symbol per agent state instead of coloured dots.
       status_indicators = "symbols"
@@ -111,15 +110,18 @@ in
       [ui.toast]
       delivery = "system"
 
-      # Agents answer "what": two rows per session — state mark, logo and
-      # title from herdr-sim, coloured by state; under it, quietly, its
-      # project and branch.
-      # Where it runs (branch, changes, PR) is the Spaces list's job.
+      # Agents as herdr-radar draws them: project, then each branch with its
+      # PR, then one row per session — the logo in its vendor's colour, the
+      # state mark and title in the state's — and a blank row between
+      # projects. A project or branch whose sessions all went stale fades,
+      # and a stale session dims whole.
       [ui.sidebar.agents]
       row_gap = 0
       rows = [
-        [{ token = "$heading_working", fg = "#fab387", bold = true }, { token = "$heading_blocked", fg = "#f38ba8", bold = true }, { token = "$heading_done", fg = "#a6e3a1" }, { token = "$heading_idle_fresh", fg = "#cdd6f4" }, { token = "$heading_idle", fg = "#bac2de" }, { token = "$heading_idle_stale", fg = "#a6adc8" }, { token = "$heading_unknown", fg = "#cba6f7" }, { token = "machine", fg = "#89b4fa", rules = [{ equals = "Local", hide = true }] }],
-        [{ token = "$project", fg = "#7f849c" }, { token = "$branch", fg = "#6c7086" }],
+        [{ token = "$tree_group_project", fg = "#cdd6f4", bold = true }, { token = "$tree_group_project_stale", fg = "#6c7086", bold = true }],
+        [{ token = "$tree_group", fg = "#9399b2" }, { token = "$tree_group_stale", fg = "#585b70" }, { token = "$tree_pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", dim = true }] }],
+        [{ token = "$icon_claude", fg = "#d97757" }, { token = "$icon_codex", fg = "#cdd6f4" }, { token = "$icon_stale", fg = "#585b70" }, { token = "$label_working", fg = "#fab387", bold = true }, { token = "$label_blocked", fg = "#f38ba8", bold = true }, { token = "$label_done", fg = "#a6e3a1" }, { token = "$label_idle_fresh", fg = "#cdd6f4" }, { token = "$label_idle", fg = "#a6adc8" }, { token = "$label_idle_stale", fg = "#585b70" }, { token = "$label_unknown", fg = "#cba6f7" }, { token = "machine", fg = "#89b4fa", rules = [{ equals = "Local", hide = true }] }],
+        [{ token = "$tree_gap" }],
       ]
 
       # Spaces answer "where": project and branch, then ahead/behind,
