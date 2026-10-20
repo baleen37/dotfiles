@@ -62,7 +62,16 @@ in
     # Herdr records a linked plugin by its resolved path, so a new store path
     # after an update needs relinking; an unchanged one is left alone.
     home.activation.herdrLinkHerdrSim = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
-      if ! ${pkgs.herdr}/bin/herdr plugin list 2>/dev/null | grep -qF 'local:${herdrSimPackage}]'; then
+      herdrSimLink=$(${pkgs.herdr}/bin/herdr plugin list 2>/dev/null | grep -F 'baleen37.herdr-sim' || true)
+      case "$herdrSimLink" in
+        *"local:${herdrSimPackage}]"*) ;;
+        *local:/nix/store/*) herdrSimRelink=1 ;;
+        # A link outside the store is a dev checkout
+        # (`herdr plugin link ~/dev/herdr-sim`): leave it to its developer.
+        *local:*) ;;
+        *) herdrSimRelink=1 ;;
+      esac
+      if [ -n "''${herdrSimRelink:-}" ]; then
         run ${pkgs.herdr}/bin/herdr plugin unlink baleen37.herdr-sim >/dev/null 2>&1 || true
         run ${pkgs.herdr}/bin/herdr plugin link ${herdrSimPackage} >/dev/null || true
         # Linking runs no startup hook; without this pass panes keep the old
