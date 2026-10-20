@@ -111,13 +111,15 @@ in
       [ui.toast]
       delivery = "system"
 
-      # Agents answer "what": one row per session — state mark, logo and
-      # title from herdr-sim, coloured by state — then its project, quiet.
+      # Agents answer "what": two rows per session — state mark, logo and
+      # title from herdr-sim, coloured by state; under it, quietly, its
+      # project and branch.
       # Where it runs (branch, changes, PR) is the Spaces list's job.
       [ui.sidebar.agents]
       row_gap = 0
       rows = [
-        [{ token = "$heading_working", fg = "#fab387", bold = true }, { token = "$heading_blocked", fg = "#f38ba8", bold = true }, { token = "$heading_done", fg = "#a6e3a1" }, { token = "$heading_idle_fresh", fg = "#cdd6f4" }, { token = "$heading_idle", fg = "#bac2de" }, { token = "$heading_idle_stale", fg = "#a6adc8" }, { token = "$heading_unknown", fg = "#cba6f7" }, { token = "$project", fg = "#7f849c" }, { token = "machine", fg = "#89b4fa", rules = [{ equals = "Local", hide = true }] }],
+        [{ token = "$heading_working", fg = "#fab387", bold = true }, { token = "$heading_blocked", fg = "#f38ba8", bold = true }, { token = "$heading_done", fg = "#a6e3a1" }, { token = "$heading_idle_fresh", fg = "#cdd6f4" }, { token = "$heading_idle", fg = "#bac2de" }, { token = "$heading_idle_stale", fg = "#a6adc8" }, { token = "$heading_unknown", fg = "#cba6f7" }, { token = "machine", fg = "#89b4fa", rules = [{ equals = "Local", hide = true }] }],
+        [{ token = "$project", fg = "#7f849c" }, { token = "$branch", fg = "#6c7086" }],
       ]
 
       # Spaces answer "where": project and branch, then ahead/behind,
