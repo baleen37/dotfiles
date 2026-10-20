@@ -99,7 +99,8 @@ in
       # Agents in Space order, so herdr-sim's project/worktree headers group
       # them as a tree.
       [ui]
-      agent_panel_sort = "spaces"
+      # Sessions that need you first (asking, finished), then the rest.
+      agent_panel_sort = "priority"
       sidebar_width = 38
       # A distinct symbol per agent state instead of coloured dots.
       status_indicators = "symbols"
@@ -110,24 +111,22 @@ in
       [ui.toast]
       delivery = "system"
 
+      # Agents answer "what": two rows per session — state mark, logo and
+      # title from herdr-sim, coloured by state; under it, quietly, its
+      # project and branch.
+      # Where it runs (branch, changes, PR) is the Spaces list's job.
       [ui.sidebar.agents]
       row_gap = 0
       rows = [
-        # Checkout headers stay quiet (overlay grey) so the sessions under them
-        # stand out; idle titles stay readable, stale ones only a step dimmer.
-        # One header per checkout from herdr-sim: project, branch and that
-        # branch's PR on one line, then each session on one line: state mark,
-        # logo and title (all from herdr-sim, so a session without a header
-        # row lines up too) coloured by state, and its machine when remote.
-        [{ token = "$tree_header", fg = "#9399b2" }, { token = "$tree_pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", dim = true }] }],
-        [{ token = "$tree_split", dim = true }, { token = "$heading_working", fg = "#fab387", bold = true }, { token = "$heading_blocked", fg = "#f38ba8", bold = true }, { token = "$heading_done", fg = "#a6e3a1" }, { token = "$heading_idle_fresh", fg = "#cdd6f4" }, { token = "$heading_idle", fg = "#bac2de" }, { token = "$heading_idle_stale", fg = "#a6adc8" }, { token = "$heading_unknown", fg = "#cba6f7" }, { token = "machine", fg = "#89b4fa", rules = [{ equals = "Local", hide = true }] }],
+        [{ token = "$heading_working", fg = "#fab387", bold = true }, { token = "$heading_blocked", fg = "#f38ba8", bold = true }, { token = "$heading_done", fg = "#a6e3a1" }, { token = "$heading_idle_fresh", fg = "#cdd6f4" }, { token = "$heading_idle", fg = "#bac2de" }, { token = "$heading_idle_stale", fg = "#a6adc8" }, { token = "$heading_unknown", fg = "#cba6f7" }, { token = "machine", fg = "#89b4fa", rules = [{ equals = "Local", hide = true }] }],
+        [{ token = "$project", fg = "#7f849c" }, { token = "$branch", fg = "#6c7086" }],
       ]
 
-      # Spaces use the same header as the Agents list (project + branch), then
-      # ahead/behind, uncommitted diff, CI, PR.
+      # Spaces answer "where": project and branch, then ahead/behind,
+      # uncommitted diff, CI, PR. A Space with no agent is dimmed.
       [ui.sidebar.spaces]
       rows = [
-        ["state_icon", { token = "$tree_header", fg = "#cdd6f4", bold = true }],
+        ["state_icon", { token = "$tree_header", fg = "#cdd6f4", bold = true }, { token = "$tree_header_idle", fg = "#6c7086" }],
         ["git_status", { token = "$diff", dim = true }, { token = "$ci", rules = [{ starts_with = "\uF42E", fg = "#a6e3a1" }, { starts_with = "\uF467", fg = "#f38ba8" }, { starts_with = "\uF444", fg = "#f9e2af" }] }, { token = "$pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", dim = true }] }],
       ]
 
