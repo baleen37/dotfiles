@@ -5,7 +5,6 @@
 # prompt configuration, direnv integration, and shell functions.
 {
   inputs,
-  system,
   lib ? import <nixpkgs/lib>,
   pkgs ? import <nixpkgs> { },
   ...
@@ -37,7 +36,7 @@ let
 
   # Extract zsh settings
   zshSettings = zshConfigBody.programs.zsh;
-  worktreePackage = inputs.worktree.packages.${system}.default;
+  worktreePackage = pkgs.worktree;
   homePackages = zshConfigBody.home.packages or [ ];
   shellAliases = zshSettings.shellAliases or { };
   initContent = zshSettings.initContent.content or "";

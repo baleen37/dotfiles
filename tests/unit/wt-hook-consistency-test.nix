@@ -6,13 +6,16 @@
 {
   inputs,
   system,
-  pkgs ? import inputs.nixpkgs { inherit system; },
+  pkgs ? import inputs.nixpkgs {
+    inherit system;
+    overlays = [ inputs.worktree.overlays.default ];
+  },
   ...
 }:
 
 let
   hook = ../../users/shared/programs/.config/claude/setup-worktree.sh;
-  worktreePackage = inputs.worktree.packages.${system}.default;
+  worktreePackage = pkgs.worktree;
 in
 {
   platforms = [ "any" ];
