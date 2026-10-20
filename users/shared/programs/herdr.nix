@@ -110,18 +110,18 @@ in
       [ui.toast]
       delivery = "system"
 
-      # Agents as herdr-radar draws them: project, its main checkout's
-      # sessions, then each worktree's branch with its PR over its sessions;
-      # one row per session — the logo in its vendor's colour, the
-      # state mark and title in the state's — and a blank row between
-      # projects. A project or branch whose sessions all went stale fades,
-      # and a stale session dims whole; idle titles cool with time
-      # (herdr-radar's dark tiers), and a working one has a spinner.
+      # Agents as herdr-radar draws them: a group per workspace (its
+      # worktrees under it, the repo on a row of its own when its checkout
+      # has no session), one row per session — the logo in its vendor's
+      # colour, the state mark and title in the state's — and a blank row
+      # after each group. A group whose sessions all went stale fades, a
+      # stale session dims whole, idle titles cool with time (herdr-radar's
+      # dark tiers); a working title spins, a question pulses.
       [ui.sidebar.agents]
       row_gap = 0
       rows = [
-        [{ token = "$tree_group_project", fg = "#a8abbd", bold = true }, { token = "$tree_group_project_stale", fg = "#8b8e9c", bold = true }],
-        [{ token = "$tree_group", fg = "#a8abbd", bold = true }, { token = "$tree_group_stale", fg = "#8b8e9c", bold = true }, { token = "$tree_pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", dim = true }] }],
+        [{ token = "$tree_group_parent", fg = "#8b8e9c", bold = true }],
+        [{ token = "$tree_group", fg = "#a8abbd", bold = true }, { token = "$tree_group_stale", fg = "#8b8e9c", bold = true }],
         [{ token = "$icon_claude", fg = "#d97757" }, { token = "$icon_codex", fg = "#cdd6f4" }, { token = "$icon_stale", fg = "#8b8e9c" }, { token = "$label_working", fg = "#fab387", bold = true }, { token = "$label_blocked", fg = "#f38ba8", bold = true }, { token = "$label_done", fg = "#a6e3a1" }, { token = "$label_idle_fresh", fg = "#95bba2" }, { token = "$label_idle", fg = "#a99e92" }, { token = "$label_idle_stale", fg = "#8b8e9c" }, { token = "$label_unknown", fg = "#cba6f7" }, { token = "machine", fg = "#89b4fa", rules = [{ equals = "Local", hide = true }] }],
         [{ token = "$tree_gap" }],
       ]
@@ -130,19 +130,20 @@ in
       # herdr-radar wears a vendor's colour; anything else stays peach.
       [ui.sidebar.agents.rows_by_agent]
       claude = [
-        [{ token = "$tree_group_project", fg = "#a8abbd", bold = true }, { token = "$tree_group_project_stale", fg = "#8b8e9c", bold = true }],
-        [{ token = "$tree_group", fg = "#a8abbd", bold = true }, { token = "$tree_group_stale", fg = "#8b8e9c", bold = true }, { token = "$tree_pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", dim = true }] }],
+        [{ token = "$tree_group_parent", fg = "#8b8e9c", bold = true }],
+        [{ token = "$tree_group", fg = "#a8abbd", bold = true }, { token = "$tree_group_stale", fg = "#8b8e9c", bold = true }],
         [{ token = "$icon_claude", fg = "#d97757" }, { token = "$icon_codex", fg = "#cdd6f4" }, { token = "$icon_stale", fg = "#8b8e9c" }, { token = "$label_working", fg = "#d97757", bold = true }, { token = "$label_blocked", fg = "#f38ba8", bold = true }, { token = "$label_done", fg = "#a6e3a1" }, { token = "$label_idle_fresh", fg = "#95bba2" }, { token = "$label_idle", fg = "#a99e92" }, { token = "$label_idle_stale", fg = "#8b8e9c" }, { token = "$label_unknown", fg = "#cba6f7" }, { token = "machine", fg = "#89b4fa", rules = [{ equals = "Local", hide = true }] }],
         [{ token = "$tree_gap" }],
       ]
 
-      # Spaces answer "where": project and branch behind the state of their
-      # agents, marked and coloured as in the Agents list (dimmed with none),
-      # then ahead/behind, uncommitted diff, CI, PR; a closed PR is hidden.
+      # Spaces as herdr-radar draws them: the state's mark and the
+      # workspace's name, coloured as in the Agents list (dimmed with no
+      # agent), then the logo and name of each agent there and its PR.
       [ui.sidebar.spaces]
+      row_gap = 0
       rows = [
         [{ token = "$header_working", fg = "#fab387", bold = true }, { token = "$header_blocked", fg = "#f38ba8", bold = true }, { token = "$header_done", fg = "#a6e3a1", bold = true }, { token = "$header_idle", fg = "#cdd6f4", bold = true }, { token = "$header_unknown", fg = "#cba6f7", bold = true }, { token = "$header_none", fg = "#6c7086" }],
-        ["git_status", { token = "$diff", dim = true }, { token = "$ci", rules = [{ starts_with = "\uF42E", fg = "#a6e3a1" }, { starts_with = "\uF467", fg = "#f38ba8" }, { starts_with = "\uF444", fg = "#f9e2af" }] }, { token = "$pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", hide = true }] }],
+        [{ token = "$agent_claude", fg = "#d97757" }, { token = "$agent_codex", fg = "#cdd6f4" }, { token = "$pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", hide = true }] }],
       ]
 
       [keys]
