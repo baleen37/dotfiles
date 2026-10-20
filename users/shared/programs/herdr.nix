@@ -113,21 +113,18 @@ in
       [ui.sidebar.agents]
       row_gap = 0
       rows = [
-        # Orca's project > worktree > session, from herdr-sim: the project once
-        # ("│" above its later checkouts keeps every card at one indent), a card
-        # per checkout with its branch and that branch's PR, then each session on
-        # one line: logo and title coloured by state as in herdr-radar, and its
-        # machine when remote.
-        [{ token = "$tree_project", fg = "#cdd6f4", bold = true, rules = [{ equals = "│", fg = "#585b70", bold = false }] }],
-        [{ token = "$tree_worktree", fg = "#89b4fa" }, { token = "$tree_pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", dim = true }] }],
+        # One header per checkout from herdr-sim: project, branch and that
+        # branch's PR on one line, then each session on one line: logo and
+        # title coloured by state as in herdr-radar, and its machine when remote.
+        [{ token = "$tree_header", fg = "#cdd6f4", bold = true }, { token = "$tree_pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", dim = true }] }],
         [{ token = "$tree_split", dim = true }, "state_icon", { token = "$heading_working", fg = "#fab387", bold = true }, { token = "$heading_blocked", fg = "#f38ba8", bold = true }, { token = "$heading_done", fg = "#a6e3a1" }, { token = "$heading_idle_fresh", fg = "#cdd6f4" }, { token = "$heading_idle", fg = "#a6adc8" }, { token = "$heading_idle_stale", fg = "#6c7086" }, { token = "$heading_unknown", fg = "#cba6f7" }, { token = "machine", fg = "#89b4fa", rules = [{ equals = "Local", hide = true }] }],
       ]
 
-      # Spaces use the same header as the Agents list (project + branch) and
-      # the logos of their agents, then ahead/behind, uncommitted diff, CI, PR.
+      # Spaces use the same header as the Agents list (project + branch), then
+      # ahead/behind, uncommitted diff, CI, PR.
       [ui.sidebar.spaces]
       rows = [
-        ["state_icon", { token = "$tree_header", fg = "#cdd6f4", bold = true }, { token = "$agent_claude", fg = "#d97757" }, { token = "$agent_codex", fg = "#cdd6f4" }],
+        ["state_icon", { token = "$tree_header", fg = "#cdd6f4", bold = true }],
         ["git_status", { token = "$diff", dim = true }, { token = "$ci", rules = [{ starts_with = "\uF42E", fg = "#a6e3a1" }, { starts_with = "\uF467", fg = "#f38ba8" }, { starts_with = "\uF444", fg = "#f9e2af" }] }, { token = "$pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", dim = true }] }],
       ]
 
