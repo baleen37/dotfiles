@@ -27,4 +27,7 @@
       doCheck = false;
     });
   })
+
+  # wt - pkgs.worktree from the flake input
+  inputs.worktree.overlays.default
 ]

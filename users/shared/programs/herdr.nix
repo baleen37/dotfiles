@@ -8,7 +8,7 @@
 
 let
   cfg = config.modules.programs.herdr;
-  worktreePackage = inputs.worktree.packages.${pkgs.system}.default;
+  worktreePackage = pkgs.worktree;
 
   # Herdr's built-in New worktree action puts checkouts under
   # ~/.herdr/worktrees/<repo>/<slug>, which wt does not use, so the key runs wt

@@ -19,7 +19,6 @@
 #
 
 {
-  inputs,
   pkgs,
   lib,
   config,
@@ -29,7 +28,7 @@
 
 let
   cfg = config.modules.programs.zsh;
-  worktreePackage = inputs.worktree.packages.${pkgs.system}.default;
+  worktreePackage = pkgs.worktree;
 in
 {
   options.modules.programs.zsh.enable = lib.mkEnableOption "Zsh shell environment" // {
