@@ -160,7 +160,7 @@ in
 
       # herdr-sim's Changes panel: the focused session's PRs, on the right.
       [[keys.command]]
-      key = "cmd+p"
+      key = "cmd+shift+c"
       type = "plugin_action"
       command = "baleen37.herdr-sim.toggle-changes"
       description = "changes panel on/off"
