@@ -9,5 +9,5 @@
 {
   # User identity
   name = "Jiho Lee";
-  email = "baleen37@gmail.com";
+  email = "git@baleen.me";
 }
