@@ -12,6 +12,9 @@
 
   wsl.enable = true;
   wsl.defaultUser = currentSystemUser;
+  # Keep Windows dirs (/mnt/c/Program Files/...) out of PATH: nothing here calls
+  # Windows binaries, and their spaces break scripts that pass PATH around.
+  wsl.interop.includePath = false;
 
   # `make switch` picks the flake output by `hostname -s`.
   networking.hostName = currentSystemName;
