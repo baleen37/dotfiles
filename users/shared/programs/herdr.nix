@@ -121,7 +121,7 @@ in
       row_gap = 0
       rows = [
         [{ token = "$tree_group_parent", fg = "#8b8e9c", bold = true }],
-        [{ token = "$tree_group", fg = "#a8abbd", bold = true }, { token = "$tree_group_stale", fg = "#8b8e9c", bold = true }],
+        [{ token = "$tree_group", fg = "#a8abbd", bold = true }, { token = "$tree_group_stale", fg = "#8b8e9c", bold = true }, { token = "$group_pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", dim = true }] }],
         [{ token = "$label_working", fg = "#fab387", bold = true }, { token = "$label_blocked", fg = "#f38ba8", bold = true }, { token = "$label_done", fg = "#a6e3a1" }, { token = "$label_idle_fresh", fg = "#95bba2" }, { token = "$label_idle", fg = "#a99e92" }, { token = "$label_idle_stale", fg = "#8b8e9c" }, { token = "$label_unknown", fg = "#cba6f7" }, { token = "machine", fg = "#89b4fa", rules = [{ equals = "Local", hide = true }] }],
         [{ token = "$tree_gap" }],
       ]
@@ -131,7 +131,7 @@ in
       [ui.sidebar.agents.rows_by_agent]
       claude = [
         [{ token = "$tree_group_parent", fg = "#8b8e9c", bold = true }],
-        [{ token = "$tree_group", fg = "#a8abbd", bold = true }, { token = "$tree_group_stale", fg = "#8b8e9c", bold = true }],
+        [{ token = "$tree_group", fg = "#a8abbd", bold = true }, { token = "$tree_group_stale", fg = "#8b8e9c", bold = true }, { token = "$group_pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", dim = true }] }],
         [{ token = "$label_working", fg = "#d97757", bold = true }, { token = "$label_blocked", fg = "#f38ba8", bold = true }, { token = "$label_done", fg = "#a6e3a1" }, { token = "$label_idle_fresh", fg = "#95bba2" }, { token = "$label_idle", fg = "#a99e92" }, { token = "$label_idle_stale", fg = "#8b8e9c" }, { token = "$label_unknown", fg = "#cba6f7" }, { token = "machine", fg = "#89b4fa", rules = [{ equals = "Local", hide = true }] }],
         [{ token = "$tree_gap" }],
       ]
@@ -143,8 +143,8 @@ in
       [ui.sidebar.spaces]
       row_gap = 0
       rows = [
-        [{ token = "$header_working", fg = "#fab387", bold = true }, { token = "$header_blocked", fg = "#f38ba8", bold = true }, { token = "$header_done", fg = "#a6e3a1", bold = true }, { token = "$header_idle", fg = "#cdd6f4", bold = true }, { token = "$header_unknown", fg = "#cba6f7", bold = true }, { token = "$header_none", fg = "#6c7086" }],
-        [{ token = "$space_title", fg = "#a8abbd" }, { token = "$space_age", dim = true }, { token = "$ci", rules = [{ starts_with = "\uF42E", fg = "#a6e3a1" }, { starts_with = "\uF467", fg = "#f38ba8" }, { starts_with = "\uF444", fg = "#f9e2af" }] }, { token = "$pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", hide = true }] }],
+        [{ token = "$header_working", fg = "#fab387", bold = true }, { token = "$header_blocked", fg = "#f38ba8", bold = true }, { token = "$header_done", fg = "#a6e3a1", bold = true }, { token = "$header_idle", fg = "#cdd6f4", bold = true }, { token = "$header_unknown", fg = "#cba6f7", bold = true }, { token = "$header_none", fg = "#6c7086" }, { token = "$space_pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", dim = true }] }],
+        [{ token = "$space_title_working", fg = "#fab387" }, { token = "$space_title", fg = "#a8abbd" }, { token = "$space_age", dim = true }, { token = "$ci", rules = [{ starts_with = "\uF42E", fg = "#a6e3a1" }, { starts_with = "\uF467", fg = "#f38ba8" }, { starts_with = "\uF444", fg = "#f9e2af" }] }, { token = "$pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", hide = true }] }],
       ]
 
       [keys]
@@ -155,6 +155,22 @@ in
       split_vertical = "prefix+|"
       split_horizontal = "prefix+minus"
       new_worktree = ""
+      # Vim keys for workspaces: j/k (or the arrows) in navigate mode (prefix+w), where the
+      # panes move to ctrl+h/j/k/l; and prefix+ctrl+j/k to the next/previous
+      # workspace from anywhere, or alt+j/k with no prefix as tmux's `bind -n M-`
+      # (Ghostty sends left option as alt); prefix+h/j/k/l stay on panes. Tabs
+      # take ctrl+alt+[ / ], since alt+[ opens an escape sequence and alt+p is
+      # Claude Code's model picker.
+      navigate_workspace_down = ["j", "down"]
+      navigate_workspace_up = ["k", "up"]
+      navigate_pane_left = "ctrl+h"
+      navigate_pane_down = "ctrl+j"
+      navigate_pane_up = "ctrl+k"
+      navigate_pane_right = "ctrl+l"
+      next_workspace = ["prefix+ctrl+j", "alt+j"]
+      previous_workspace = ["prefix+ctrl+k", "alt+k"]
+      next_tab = ["prefix+n", "ctrl+alt+]"]
+      previous_tab = ["prefix+p", "ctrl+alt+["]
 
       [[keys.command]]
       key = "prefix+shift+g"
