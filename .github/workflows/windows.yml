@@ -35,7 +35,7 @@ jobs:
         shell: pwsh
         run: |
           Install-Module Microsoft.WinGet.Client -RequiredVersion 1.29.380 -Force -Scope CurrentUser -Repository PSGallery
-          Repair-WinGetPackageManager -Version v1.29.380 -AllUsers -Force
+          Repair-WinGetPackageManager -Version v1.29.380 -Force
           winget --version
 
       - name: Validate configuration
