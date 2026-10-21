@@ -2,8 +2,8 @@
 # Hammerspoon configuration integrity tests
 # Tests that all Hammerspoon config files are present and valid
 {
-  lib ? import <nixpkgs/lib>,
-  pkgs ? import <nixpkgs> { },
+  lib,
+  pkgs,
   ...
 }:
 

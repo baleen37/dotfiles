@@ -1,8 +1,8 @@
 # Raycast Script Command integration tests
 # Verifies the declarative Home Manager link and Firefox profile command.
 {
-  lib ? import <nixpkgs/lib>,
-  pkgs ? import <nixpkgs> { },
+  lib,
+  pkgs,
   ...
 }:
 

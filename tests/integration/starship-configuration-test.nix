@@ -3,8 +3,8 @@
 # Tests the Starship prompt configuration in users/shared/starship.nix
 # Verifies minimal format, required modules, and disabled modules.
 {
-  lib ? import <nixpkgs/lib>,
-  pkgs ? import <nixpkgs> { },
+  lib,
+  pkgs,
   ...
 }:
 

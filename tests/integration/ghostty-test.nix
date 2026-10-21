@@ -2,8 +2,8 @@
 # Ghostty terminal emulator configuration tests
 # Validates terminal settings, font configuration, theme, and keybindings
 {
-  lib ? import <nixpkgs/lib>,
-  pkgs ? import <nixpkgs> { },
+  lib,
+  pkgs,
   ...
 }:
 
