@@ -155,6 +155,22 @@ in
       split_vertical = "prefix+|"
       split_horizontal = "prefix+minus"
       new_worktree = ""
+      # Vim keys for workspaces: j/k in navigate mode (prefix+w), where the
+      # panes move to ctrl+h/j/k/l; and prefix+ctrl+j/k to the next/previous
+      # workspace from anywhere, or alt+j/k with no prefix as tmux's `bind -n M-`
+      # (Ghostty sends left option as alt); prefix+h/j/k/l stay on panes. Tabs
+      # take ctrl+alt+[ / ], since alt+[ opens an escape sequence and alt+p is
+      # Claude Code's model picker.
+      navigate_workspace_down = "j"
+      navigate_workspace_up = "k"
+      navigate_pane_left = "ctrl+h"
+      navigate_pane_down = "ctrl+j"
+      navigate_pane_up = "ctrl+k"
+      navigate_pane_right = "ctrl+l"
+      next_workspace = ["prefix+ctrl+j", "alt+j"]
+      previous_workspace = ["prefix+ctrl+k", "alt+k"]
+      next_tab = ["prefix+n", "ctrl+alt+]"]
+      previous_tab = ["prefix+p", "ctrl+alt+["]
 
       [[keys.command]]
       key = "prefix+shift+g"
