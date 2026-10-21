@@ -15,6 +15,5 @@ in
 
   _module.args = {
     inherit overlays;
-    cacheConfig = import ../lib/cache-config.nix;
   };
 }
