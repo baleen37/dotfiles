@@ -25,7 +25,7 @@ NH := /run/current-system/sw/bin/nh
 
 # For sudo commands, we need the full path or preserved PATH
 # Use -H flag to set HOME to target user's home directory and avoid warnings
-SUDO_NIX := sudo -H env PATH=$$PATH $(NIX_PATH) --extra-experimental-features nix-command --extra-experimental-features flakes
+SUDO_NIX := sudo -H env PATH="$$PATH" $(NIX_PATH) --extra-experimental-features nix-command --extra-experimental-features flakes
 
 # We need to do some OS switching below.
 UNAME := $(shell uname)
@@ -231,7 +231,7 @@ vm/copy:
 # have to run vm/copy before.
 vm/switch:
 	ssh $(SSH_OPTIONS) -p$(NIXPORT) $(NIXUSER)@$(NIXADDR) " \
-		sudo env PATH=$$PATH nix --extra-experimental-features nix-command --extra-experimental-features flakes run --inputs-from /nix-config \"nixpkgs#nixos-rebuild\" -- switch --flake \"/nix-config#${NIXNAME}\" \
+		sudo env PATH=\"\$$PATH\" nix --extra-experimental-features nix-command --extra-experimental-features flakes run --inputs-from /nix-config \"nixpkgs#nixos-rebuild\" -- switch --flake \"/nix-config#${NIXNAME}\" \
 	"
 
 # Build the NixOS-WSL tarball (nixos.wsl in the current directory)
