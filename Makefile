@@ -234,10 +234,10 @@ vm/switch:
 		sudo env PATH=$$PATH nix --extra-experimental-features nix-command --extra-experimental-features flakes run --inputs-from /nix-config \"nixpkgs#nixos-rebuild\" -- switch --flake \"/nix-config#${NIXNAME}\" \
 	"
 
-# Build a WSL installer
+# Build the NixOS-WSL tarball (nixos.wsl in the current directory)
 .PHONY: wsl
 wsl:
-	 nix build ".#nixosConfigurations.wsl.config.system.build.installer"
+	$(SUDO_NIX) run ".#nixosConfigurations.wsl.config.system.build.tarballBuilder"
 
 # Phony targets
 .PHONY: build-switch switch switch-home test test-build test-all test-containers fmt-diff format cache vm/bootstrap0 vm/bootstrap vm/copy vm/switch vm/secrets secrets/backup secrets/restore install-hooks lint update

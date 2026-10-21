@@ -1,0 +1,93 @@
+# yaml-language-server: $schema=https://aka.ms/configuration-dsc-schema/0.2
+#
+# Windows side of the dotfiles: GUI apps and the WSL2 platform. Nix does not run
+# on Windows, so this is the Windows counterpart of users/shared/darwin/homebrew.nix.
+#
+#   winget configure validate -f windows/configuration.winget   # static check
+#   winget configure test -f windows/configuration.winget       # diff against this machine
+#   winget configure -f windows/configuration.winget            # apply (admin terminal)
+#
+# WSL: the Microsoft.WSL package below installs WSL itself; `wsl --install` enables the
+# Windows features it needs (reboot once). PSDscResources/WindowsOptionalFeature is not used
+# because it fails under winget's DSC host with "Class not registered" (seen on Windows 11 26200).
+properties:
+  configurationVersion: 0.2.0
+  resources:
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: wsl
+      directives:
+        description: Install WSL
+        securityContext: elevated
+      settings:
+        id: Microsoft.WSL
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: vscode
+      directives:
+        description: Install Visual Studio Code
+      settings:
+        id: Microsoft.VisualStudioCode
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: windowsTerminal
+      directives:
+        description: Install Windows Terminal
+      settings:
+        id: Microsoft.WindowsTerminal
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: discord
+      directives:
+        description: Install Discord
+      settings:
+        id: Discord.Discord
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: onePassword
+      directives:
+        description: Install 1Password
+      settings:
+        id: AgileBits.1Password
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: chrome
+      directives:
+        description: Install Google Chrome
+      settings:
+        id: Google.Chrome
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: firefox
+      directives:
+        description: Install Firefox
+      settings:
+        id: Mozilla.Firefox
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: tailscale
+      directives:
+        description: Install Tailscale
+      settings:
+        id: Tailscale.Tailscale
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: claude
+      directives:
+        description: Install Claude
+      settings:
+        id: Anthropic.Claude
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: kakaotalk
+      directives:
+        description: Install KakaoTalk
+      settings:
+        id: Kakao.KakaoTalk
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: codex
+      directives:
+        description: Install Codex CLI
+      settings:
+        id: OpenAI.Codex
+        source: winget

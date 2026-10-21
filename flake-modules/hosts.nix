@@ -66,5 +66,11 @@ in
       user = "baleen";
       machineModules = [ ../machines/nixos/vm-x86_64-utm.nix ];
     };
+    wsl = {
+      system = "x86_64-linux";
+      class = "nixos";
+      user = "baleen";
+      machineModules = [ ../machines/nixos/wsl.nix ];
+    };
   };
 }

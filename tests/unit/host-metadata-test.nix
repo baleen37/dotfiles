@@ -37,6 +37,11 @@ let
       class = "nixos";
       user = "baleen";
     };
+    wsl = {
+      system = "x86_64-linux";
+      class = "nixos";
+      user = "baleen";
+    };
   };
 
   machineModules = lib.mapAttrs (_: host: host.machineModules) hostConfig;
@@ -47,6 +52,7 @@ let
     kakaostyle-jito = [ ../../machines/darwin/common.nix ];
     vm-aarch64-utm = [ ../../machines/nixos/vm-aarch64-utm.nix ];
     vm-x86_64-utm = [ ../../machines/nixos/vm-x86_64-utm.nix ];
+    wsl = [ ../../machines/nixos/wsl.nix ];
   };
 in
 {
