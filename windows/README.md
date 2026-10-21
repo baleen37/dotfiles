@@ -20,6 +20,10 @@ Nix does not run natively on Windows, so a Windows PC is set up in two layers:
 
    Reboot once afterwards; the WSL features only take effect after a restart.
 
+   To let the Macs ssh in, run `windows\bootstrap-ssh.ps1` in an elevated
+   PowerShell. It installs sshd and authorizes the keys from
+   https://github.com/baleen37.keys; re-run it after changing keys on GitHub.
+
 2. **Install the NixOS-WSL distro.** Build the tarball on any `x86_64-linux`
    machine with Nix (`make wsl` writes `nixos.wsl` to the current directory), or
    download `nixos.wsl` from the

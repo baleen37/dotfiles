@@ -1,5 +1,17 @@
 {
   "nodes": {
+    "baleen37-keys": {
+      "flake": false,
+      "locked": {
+        "narHash": "sha256-c5Pj0m2Sz6dEJgU6uS0eOHK2pfhzO4NPe1uhZ4/EGj8=",
+        "type": "file",
+        "url": "https://github.com/baleen37.keys"
+      },
+      "original": {
+        "type": "file",
+        "url": "https://github.com/baleen37.keys"
+      }
+    },
     "bdwgc": {
       "flake": false,
       "locked": {
@@ -421,6 +433,7 @@
     },
     "root": {
       "inputs": {
+        "baleen37-keys": "baleen37-keys",
         "claude-code": "claude-code",
         "darwin": "darwin",
         "determinate": "determinate",

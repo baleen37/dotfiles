@@ -109,6 +109,8 @@ systemFunc {
       }
       // lib.optionalAttrs (!darwin) {
         isNormalUser = true;
+        # The Macs' keys as published on GitHub, pinned by flake.lock.
+        openssh.authorizedKeys.keyFiles = [ inputs.baleen37-keys ];
       };
 
       # Set hostname for Darwin systems

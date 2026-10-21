@@ -108,6 +108,20 @@ in
       c.wsl.enable && builtins.attrNames c.home-manager.users == [ c.wsl.defaultUser ]
     ) "the wsl host must enable NixOS-WSL with wsl.defaultUser equal to its Home Manager user")
 
+    # Losing the key list only shows up as "Permission denied (publickey)" the
+    # next time someone tries to ssh into the host.
+    (helpers.assertTest "nixos-host-users-authorize-github-keys" (allHosts nixosHosts (
+      c:
+      let
+        keys = toString inputs.baleen37-keys;
+        hostUsers = builtins.attrNames c.home-manager.users;
+      in
+      hostUsers != [ ]
+      && lib.all (
+        u: lib.elem keys (map toString c.users.users.${u}.openssh.authorizedKeys.keyFiles)
+      ) hostUsers
+    )) "every NixOS host user must authorize the baleen37-keys input (github.com/baleen37.keys)")
+
     (helpers.assertTest "every-host-allows-unfree"
       (
         allHosts darwinHosts (c: c.nixpkgs.config.allowUnfree)
