@@ -15,14 +15,6 @@ repos:
           ]
         exclude: ^users/shared/programs/\.config/p10k\.zsh$
 
-  # Shell script formatting
-  - repo: https://github.com/scop/pre-commit-shfmt
-    rev: v3.12.0-2
-    hooks:
-      - id: shfmt
-        args: ["-i", "2", "-ci", "-bn", "-sr"]
-        exclude: ^users/shared/programs/\.config/p10k\.zsh$
-
   # Bash style checker
   - repo: https://github.com/openstack/bashate
     rev: 2.1.1
@@ -47,13 +39,6 @@ repos:
         args: [--maxkb=1000]
       - id: detect-private-key
       - id: check-yaml
-
-  # Nix linting - dead code detection
-  - repo: https://github.com/astro/deadnix
-    rev: v1.3.1
-    hooks:
-      - id: deadnix
-        args: ["--no-lambda-pattern-names"]
 
   # Makefile-managed checks (single source of truth)
   - repo: local

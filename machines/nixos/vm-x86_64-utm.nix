@@ -11,5 +11,4 @@
 
   services.spice-vdagentd.enable = true;
 
-  nixpkgs.config.allowUnfree = true;
 }

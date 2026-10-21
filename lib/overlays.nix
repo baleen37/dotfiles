@@ -5,9 +5,6 @@
 
 [
   (_final: prev: {
-    # unstable alias - nixpkgs already tracks nixpkgs-unstable
-    unstable = prev;
-
     # Claude Code - latest from flake input
     claude-code = inputs.claude-code.packages.${prev.stdenv.hostPlatform.system}.default;
 
