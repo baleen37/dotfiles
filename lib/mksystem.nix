@@ -73,6 +73,16 @@ systemFunc {
       }
     )
   ]
+  ++ lib.optionals (!darwin) [
+    # Home Manager configures zsh; NixOS still logs users into bash by default.
+    (
+      { pkgs, ... }:
+      {
+        programs.zsh.enable = true;
+        users.users.${user}.shell = pkgs.zsh;
+      }
+    )
+  ]
   ++ lib.optionals darwin [
     # Determinate Nix integration (Darwin systems only)
     inputs.determinate.darwinModules.default
