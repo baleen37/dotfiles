@@ -115,5 +115,12 @@ in
       )
       "lib/mksystem.nix must set nixpkgs.config.allowUnfree for every host; unfree packages fail to evaluate without it"
     )
+
+    # Home Manager configures zsh, but NixOS logs users into bash unless the
+    # system says otherwise; nothing fails, the shell just looks unconfigured.
+    (helpers.assertTest "nixos-host-users-log-into-zsh" (allHosts nixosHosts (
+      c:
+      lib.all (u: lib.getName c.users.users.${u}.shell == "zsh") (builtins.attrNames c.home-manager.users)
+    )) "every NixOS host user must have zsh as login shell (lib/mksystem.nix)")
   ];
 }
