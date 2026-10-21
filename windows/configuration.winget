@@ -22,60 +22,11 @@ properties:
         id: Microsoft.WSL
         source: winget
     - resource: Microsoft.WinGet.DSC/WinGetPackage
-      id: vscode
-      directives:
-        description: Install Visual Studio Code
-      settings:
-        id: Microsoft.VisualStudioCode
-        source: winget
-    - resource: Microsoft.WinGet.DSC/WinGetPackage
-      id: windowsTerminal
-      directives:
-        description: Install Windows Terminal
-      settings:
-        id: Microsoft.WindowsTerminal
-        source: winget
-    - resource: Microsoft.WinGet.DSC/WinGetPackage
-      id: slack
-      directives:
-        description: Install Slack
-      settings:
-        id: SlackTechnologies.Slack
-        source: winget
-    - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: discord
       directives:
         description: Install Discord
       settings:
         id: Discord.Discord
-        source: winget
-    - resource: Microsoft.WinGet.DSC/WinGetPackage
-      id: notion
-      directives:
-        description: Install Notion
-      settings:
-        id: Notion.Notion
-        source: winget
-    - resource: Microsoft.WinGet.DSC/WinGetPackage
-      id: obsidian
-      directives:
-        description: Install Obsidian
-      settings:
-        id: Obsidian.Obsidian
-        source: winget
-    - resource: Microsoft.WinGet.DSC/WinGetPackage
-      id: zoom
-      directives:
-        description: Install Zoom
-      settings:
-        id: Zoom.Zoom
-        source: winget
-    - resource: Microsoft.WinGet.DSC/WinGetPackage
-      id: telegram
-      directives:
-        description: Install Telegram
-      settings:
-        id: Telegram.TelegramDesktop
         source: winget
     - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: onePassword
@@ -99,32 +50,11 @@ properties:
         id: Mozilla.Firefox
         source: winget
     - resource: Microsoft.WinGet.DSC/WinGetPackage
-      id: brave
-      directives:
-        description: Install Brave
-      settings:
-        id: Brave.Brave
-        source: winget
-    - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: tailscale
       directives:
         description: Install Tailscale
       settings:
         id: Tailscale.Tailscale
-        source: winget
-    - resource: Microsoft.WinGet.DSC/WinGetPackage
-      id: vlc
-      directives:
-        description: Install VLC
-      settings:
-        id: VideoLAN.VLC
-        source: winget
-    - resource: Microsoft.WinGet.DSC/WinGetPackage
-      id: anki
-      directives:
-        description: Install Anki
-      settings:
-        id: Anki.Anki
         source: winget
     - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: claude
@@ -134,9 +64,16 @@ properties:
         id: Anthropic.Claude
         source: winget
     - resource: Microsoft.WinGet.DSC/WinGetPackage
-      id: jetbrainsMono
+      id: kakaotalk
       directives:
-        description: Install JetBrains Mono (Nerd Font build; winget has no plain JetBrains Mono package)
+        description: Install KakaoTalk
       settings:
-        id: DEVCOM.JetBrainsMonoNerdFont
+        id: Kakao.KakaoTalk
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: codex
+      directives:
+        description: Install Codex CLI
+      settings:
+        id: OpenAI.Codex
         source: winget
