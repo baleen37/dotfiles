@@ -1,0 +1,45 @@
+name: Windows
+
+# Static check of the winget configuration. Nothing is installed from it: the
+# job only asks winget whether the file is a valid configuration.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "windows/**"
+      - ".github/workflows/windows.yml"
+  pull_request:
+    paths:
+      - "windows/**"
+      - ".github/workflows/windows.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: winget configure validate
+    runs-on: windows-2025
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+
+      # GitHub-hosted Windows Server images do not ship winget.
+      - name: Install winget
+        shell: pwsh
+        run: |
+          Install-Module Microsoft.WinGet.Client -RequiredVersion 1.29.380 -Force -Scope CurrentUser -Repository PSGallery
+          Repair-WinGetPackageManager -Version v1.29.380 -Force
+          winget --version
+
+      - name: Validate configuration
+        shell: pwsh
+        run: |
+          winget configure validate --file windows/configuration.winget --disable-interactivity --verbose-logs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

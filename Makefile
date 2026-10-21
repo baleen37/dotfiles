@@ -36,20 +36,16 @@ NIX_ARCH := $(shell uname -m | sed 's/^arm64$$/aarch64/')
 NIX_OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
 NIX_SYSTEM := $(NIX_ARCH)-$(NIX_OS)
 
-# Environment variables for Nix builds
-NIX_ENV := NIXPKGS_ALLOW_UNFREE=1
-NIX_ENV_FULL := NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1
-
 build-switch: switch
 
 switch:
 ifeq ($(UNAME), Darwin)
-	$(NIX_ENV) sudo -H $(DARWIN_REBUILD) switch --flake ".#$(NIXNAME)"
+	sudo -H $(DARWIN_REBUILD) switch --flake ".#$(NIXNAME)"
 	sudo -H $(NH) clean all --keep 3
 else ifeq ($(IS_NIXOS), true)
-	$(NIX_ENV_FULL) $(SUDO_NIX) run "nixpkgs#nixos-rebuild" -- switch --flake ".#${NIXNAME}"
+	$(SUDO_NIX) run --inputs-from . "nixpkgs#nixos-rebuild" -- switch --flake ".#${NIXNAME}"
 else
-	$(NIX_ENV_FULL) $(NIX) run 'github:nix-community/home-manager' -- switch --flake ".#${NIXNAME}"
+	$(NIX) run --inputs-from . home-manager -- switch --flake ".#${NIXNAME}"
 endif
 
 # Rebuild only Home Manager configuration (faster for user config changes)
@@ -58,9 +54,9 @@ endif
 switch-home:
 	@echo "Rebuilding Home Manager configuration for $(HM_USER)..."
 ifeq ($(UNAME), Darwin)
-	$(NIX_ENV) $(NIX) run 'github:nix-community/home-manager' -- switch --flake ".#$(HM_USER)"
+	$(NIX) run --inputs-from . home-manager -- switch --flake ".#$(HM_USER)"
 else
-	$(NIX_ENV_FULL) $(NIX) run 'github:nix-community/home-manager' -- switch --flake ".#$(HM_USER)"
+	$(NIX) run --inputs-from . home-manager -- switch --flake ".#$(HM_USER)"
 endif
 
 test:
@@ -72,11 +68,11 @@ test:
 			echo "Linux without KVM detected: Running validation mode (NixOS VM tests require /dev/kvm)"; \
 		fi; \
 		echo "Validating all test configurations without execution..."; \
-		$(NIX_ENV) $(NIX) flake check --no-build --accept-flake-config --show-trace; \
+		$(NIX) flake check --no-build --accept-flake-config --show-trace; \
 		echo "Validation completed - Full container tests run only where KVM is available"; \
 	else \
 		echo "Linux with KVM detected: Running full container test execution..."; \
-		$(NIX_ENV_FULL) $(NIX) flake check --accept-flake-config --show-trace \
+		$(NIX) flake check --accept-flake-config --show-trace \
 			|| { $(MAKE) --no-print-directory fmt-diff; exit 1; }; \
 	fi
 
@@ -86,7 +82,7 @@ test:
 # Build the treefmt check alone with --print-build-logs to get the whole diff.
 fmt-diff:
 	@echo "--- full treefmt diff (nix flake check only shows its last 25 lines) ---"
-	$(NIX_ENV) $(NIX) build ".#checks.$(NIX_SYSTEM).treefmt" \
+	$(NIX) build ".#checks.$(NIX_SYSTEM).treefmt" \
 		--accept-flake-config --print-build-logs --no-link 2>&1 || true
 
 # Build every unit and integration assertion. `make test` falls back to
@@ -95,7 +91,7 @@ fmt-diff:
 # aggregate excludes the container VMs and therefore builds on any platform.
 test-build:
 	@echo "Building all unit and integration assertions..."
-	$(NIX_ENV_FULL) $(NIX) build ".#checks.$(NIX_SYSTEM).all-assertions" \
+	$(NIX) build ".#checks.$(NIX_SYSTEM).all-assertions" \
 		--accept-flake-config --print-build-logs --no-link
 
 # Kept as the name the pre-push hook calls. CI runs `make test-build` as its
@@ -114,7 +110,7 @@ test-containers:
 		echo "Container tests need Linux + /dev/kvm; run them in CI or a Linux VM."; \
 		exit 1; \
 	fi; \
-	$(NIX_ENV_FULL) $(NIX) build \
+	$(NIX) build \
 		".#checks.$(NIX_SYSTEM).container-smoke" \
 		".#checks.$(NIX_SYSTEM).container-basic" \
 		".#checks.$(NIX_SYSTEM).container-services" \
@@ -187,8 +183,8 @@ vm/bootstrap0:
 		sed --in-place '/system\.stateVersion = .*/a \
 			nix.package = pkgs.nixVersions.latest;\n \
 			nix.extraOptions = \"experimental-features = nix-command flakes\";\n \
-			nix.settings.substituters = [\"https://mitchellh-nixos-config.cachix.org\"];\n \
-			nix.settings.trusted-public-keys = [\"mitchellh-nixos-config.cachix.org-1:bjEbXJyLrL1HZZHBbO4QALnI5faYZppzkU4D2s0G8RQ=\"];\n \
+			nix.settings.substituters = [\"https://baleen-nix.cachix.org\" \"https://nix-community.cachix.org\" \"https://cache.nixos.org/\"];\n \
+			nix.settings.trusted-public-keys = [\"baleen-nix.cachix.org-1:awgC7Sut148An/CZ6TZA+wnUtJmJnOvl5NThGio9j5k=\" \"nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=\" \"cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=\"];\n \
   			services.openssh.enable = true;\n \
 			services.openssh.settings.PasswordAuthentication = true;\n \
 			services.openssh.settings.PermitRootLogin = \"yes\";\n \
@@ -235,13 +231,13 @@ vm/copy:
 # have to run vm/copy before.
 vm/switch:
 	ssh $(SSH_OPTIONS) -p$(NIXPORT) $(NIXUSER)@$(NIXADDR) " \
-		sudo env PATH=$$PATH NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 nix --extra-experimental-features nix-command --extra-experimental-features flakes run \"nixpkgs#nixos-rebuild\" -- switch --flake \"/nix-config#${NIXNAME}\" \
+		sudo env PATH=$$PATH nix --extra-experimental-features nix-command --extra-experimental-features flakes run --inputs-from /nix-config \"nixpkgs#nixos-rebuild\" -- switch --flake \"/nix-config#${NIXNAME}\" \
 	"
 
-# Build a WSL installer
+# Build the NixOS-WSL tarball (nixos.wsl in the current directory)
 .PHONY: wsl
 wsl:
-	 nix build ".#nixosConfigurations.wsl.config.system.build.installer"
+	$(SUDO_NIX) run ".#nixosConfigurations.wsl.config.system.build.tarballBuilder"
 
 # Phony targets
 .PHONY: build-switch switch switch-home test test-build test-all test-containers fmt-diff format cache vm/bootstrap0 vm/bootstrap vm/copy vm/switch vm/secrets secrets/backup secrets/restore install-hooks lint update

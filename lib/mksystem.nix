@@ -9,7 +9,6 @@ name:
   system,
   user,
   darwin ? false,
-  wsl ? false,
   homeModules ? { },
   machineModules ? [ ],
 }:
@@ -45,7 +44,6 @@ systemFunc {
     inherit inputs self;
     currentSystemName = name;
     currentSystemUser = user;
-    isWSL = wsl;
     isDarwin = darwin;
   };
 

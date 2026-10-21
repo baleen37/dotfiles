@@ -28,10 +28,18 @@
     };
 
     # Claude Code - latest stable
-    claude-code.url = "github:sadjow/claude-code-nix/main";
+    claude-code = {
+      url = "github:sadjow/claude-code-nix/main";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     darwin = {
-      url = "github:LnL7/nix-darwin";
+      url = "github:nix-darwin/nix-darwin";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    nixos-wsl = {
+      url = "github:nix-community/NixOS-WSL/main";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 

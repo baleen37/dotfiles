@@ -33,6 +33,7 @@ let
   expectedNixos = [
     "vm-aarch64-utm"
     "vm-x86_64-utm"
+    "wsl"
   ];
   hostsAreDeclared = darwinNames == expectedDarwin && nixosNames == expectedNixos;
 
@@ -47,6 +48,7 @@ let
   expectedNixosUsers = {
     vm-aarch64-utm = [ "baleen" ];
     vm-x86_64-utm = [ "baleen" ];
+    wsl = [ "baleen" ];
   };
 
   userInfo = import ../../lib/user-info.nix;
@@ -96,6 +98,15 @@ in
     (helpers.assertTest "nixos-hosts-set-hostname" (allHosts nixosHosts (
       c: (c.networking.hostName or "") != ""
     )) "every NixOS host should set networking.hostName")
+
+    # NixOS-WSL logs in as wsl.defaultUser. If it drifts from the Home Manager
+    # user, the distro boots into an account with none of users/shared applied.
+    (helpers.assertTest "wsl-default-user-is-host-user" (
+      let
+        c = nixosHosts.wsl.config;
+      in
+      c.wsl.enable && builtins.attrNames c.home-manager.users == [ c.wsl.defaultUser ]
+    ) "the wsl host must enable NixOS-WSL with wsl.defaultUser equal to its Home Manager user")
 
     (helpers.assertTest "every-host-allows-unfree"
       (

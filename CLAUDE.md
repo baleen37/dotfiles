@@ -107,7 +107,9 @@ and required per-host `machineModules`); `flake-modules/systems.nix` turns each 
 darwinConfiguration or nixosConfiguration via `lib/mksystem.nix`.
 
 The only supported systems are Darwin `aarch64-darwin` and NixOS
-`x86_64-linux` / `aarch64-linux`. `dotfiles.hosts.<name>.user` is the host system
+`x86_64-linux` / `aarch64-linux`. Windows is covered by the `wsl` NixOS host
+(NixOS-WSL inside WSL2) plus `windows/configuration.winget` for GUI apps, which
+lives outside Nix (see `windows/README.md`). `dotfiles.hosts.<name>.user` is the host system
 user declaration. `HM_USER` is separate and only selects a standalone Home
 Manager profile.
 
@@ -120,7 +122,8 @@ machines/
 └── nixos/
     ├── vm-aarch64-utm.nix      # ARM64 NixOS VM
     ├── vm-x86_64-utm.nix       # x86_64 NixOS VM
-    ├── vm-shared.nix           # Shared NixOS settings
+    ├── vm-shared.nix           # Shared NixOS settings (VMs only)
+    ├── wsl.nix                 # NixOS-WSL host; does not import vm-shared.nix
     └── hardware/vm-utm.nix     # virtio profile shared by both VMs
 ```
 
