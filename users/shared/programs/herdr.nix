@@ -138,15 +138,18 @@ in
 
       # Spaces as herdr-radar draws them: the state's mark and the
       # workspace's name, coloured as in the Agents list (dimmed with no
-      # agent), then the title of the session behind that state and its PR.
+      # agent), then the title and age of the session behind that state,
+      # its CI and its PR.
       [ui.sidebar.spaces]
       row_gap = 0
       rows = [
         [{ token = "$header_working", fg = "#fab387", bold = true }, { token = "$header_blocked", fg = "#f38ba8", bold = true }, { token = "$header_done", fg = "#a6e3a1", bold = true }, { token = "$header_idle", fg = "#cdd6f4", bold = true }, { token = "$header_unknown", fg = "#cba6f7", bold = true }, { token = "$header_none", fg = "#6c7086" }],
-        [{ token = "$space_title", fg = "#a8abbd" }, { token = "$pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", hide = true }] }],
+        [{ token = "$space_title", fg = "#a8abbd" }, { token = "$space_age", dim = true }, { token = "$ci", rules = [{ starts_with = "\uF42E", fg = "#a6e3a1" }, { starts_with = "\uF467", fg = "#f38ba8" }, { starts_with = "\uF444", fg = "#f9e2af" }] }, { token = "$pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", hide = true }] }],
       ]
 
       [keys]
+      # prefix+a moves focus to the next agent in the Agents list.
+      next_agent = "prefix+a"
       prefix = "ctrl+a"
       detach = "prefix+d"
       split_vertical = "prefix+|"
