@@ -74,6 +74,14 @@
       url = "github:baleen37/herdr-sim/main";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # SSH public keys every NixOS host authorizes (lib/mksystem.nix). Locked like
+    # any other input so evaluation stays pure; `nix flake update baleen37-keys`
+    # (or Renovate lock maintenance) picks up keys added or removed on GitHub.
+    baleen37-keys = {
+      url = "file+https://github.com/baleen37.keys";
+      flake = false;
+    };
   };
 
   outputs =
