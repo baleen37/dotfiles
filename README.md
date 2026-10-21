@@ -8,7 +8,7 @@ runner.
 ## Highlights
 
 - **Three platforms**: Darwin `aarch64-darwin`; NixOS `x86_64-linux` and `aarch64-linux`
-- **Windows**: NixOS-WSL (`wsl` host) inside WSL2, plus GUI apps from `winget configure` — see [windows/README.md](windows/README.md)
+- **Windows**: NixOS-WSL (`wsl` host) inside WSL2, plus GUI apps from `winget configure` — see [machines/windows/README.md](machines/windows/README.md)
 - **Typed host declarations**: every machine is one entry in `flake-modules/hosts.nix`
 - **One user configuration**: `users/shared/` is shared by every host and Home Manager profile
 - **Assertions as derivations**: unit, integration, and NixOS VM tests all run through `nix flake check`
@@ -153,13 +153,13 @@ dotfiles/
 │   └── user-info.nix    # Single source of truth for name and email
 ├── machines/
 │   ├── darwin/common.nix  # Shared by every Darwin host
-│   └── nixos/             # vm-aarch64-utm, vm-x86_64-utm, vm-shared, wsl, hardware/
+│   ├── nixos/             # vm-aarch64-utm, vm-x86_64-utm, vm-shared, wsl, hardware/
+│   └── windows/           # winget configuration for the Windows side (not Nix)
 ├── users/shared/
 │   ├── home-manager.nix   # Home Manager entry point
 │   ├── darwin/            # macOS system settings, Homebrew casks, scripts
 │   ├── programs/          # One file (or directory) per tool; .config/ holds raw config files
 │   └── packages/          # Categorized package lists (core, dev, cloud, ai, ...)
-├── windows/             # winget configuration for the Windows side (not Nix)
 └── tests/               # unit/, integration/, containers/, lib/
 ```
 

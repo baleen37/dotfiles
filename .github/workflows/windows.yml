@@ -6,11 +6,11 @@ on:
   push:
     branches: [main]
     paths:
-      - "windows/**"
+      - "machines/windows/**"
       - ".github/workflows/windows.yml"
   pull_request:
     paths:
-      - "windows/**"
+      - "machines/windows/**"
       - ".github/workflows/windows.yml"
   workflow_dispatch:
 
@@ -41,5 +41,5 @@ jobs:
       - name: Validate configuration
         shell: pwsh
         run: |
-          winget configure validate --file windows/configuration.winget --disable-interactivity --verbose-logs
+          winget configure validate --file machines/windows/configuration.winget --disable-interactivity --verbose-logs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

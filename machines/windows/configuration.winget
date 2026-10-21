@@ -3,9 +3,9 @@
 # Windows side of the dotfiles: GUI apps and the WSL2 platform. Nix does not run
 # on Windows, so this is the Windows counterpart of users/shared/darwin/homebrew.nix.
 #
-#   winget configure validate -f windows/configuration.winget   # static check
-#   winget configure test -f windows/configuration.winget       # diff against this machine
-#   winget configure -f windows/configuration.winget            # apply (admin terminal)
+#   winget configure validate -f machines/windows/configuration.winget   # static check
+#   winget configure test -f machines/windows/configuration.winget       # diff against this machine
+#   winget configure -f machines/windows/configuration.winget            # apply (admin terminal)
 #
 # WSL: the Microsoft.WSL package below installs WSL itself; `wsl --install` enables the
 # Windows features it needs (reboot once). PSDscResources/WindowsOptionalFeature is not used

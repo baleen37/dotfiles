@@ -108,8 +108,8 @@ darwinConfiguration or nixosConfiguration via `lib/mksystem.nix`.
 
 The only supported systems are Darwin `aarch64-darwin` and NixOS
 `x86_64-linux` / `aarch64-linux`. Windows is covered by the `wsl` NixOS host
-(NixOS-WSL inside WSL2) plus `windows/configuration.winget` for GUI apps, which
-lives outside Nix (see `windows/README.md`). `dotfiles.hosts.<name>.user` is the host system
+(NixOS-WSL inside WSL2) plus `machines/windows/configuration.winget` for GUI apps, which
+lives outside Nix (see `machines/windows/README.md`). `dotfiles.hosts.<name>.user` is the host system
 user declaration. `HM_USER` is separate and only selects a standalone Home
 Manager profile.
 
@@ -119,12 +119,13 @@ Hardware and system settings live under `machines/`:
 machines/
 ├── darwin/
 │   └── common.nix              # Shared by every Darwin host
-└── nixos/
-    ├── vm-aarch64-utm.nix      # ARM64 NixOS VM
-    ├── vm-x86_64-utm.nix       # x86_64 NixOS VM
-    ├── vm-shared.nix           # Shared NixOS settings (VMs only)
-    ├── wsl.nix                 # NixOS-WSL host; does not import vm-shared.nix
-    └── hardware/vm-utm.nix     # virtio profile shared by both VMs
+├── nixos/
+│   ├── vm-aarch64-utm.nix      # ARM64 NixOS VM
+│   ├── vm-x86_64-utm.nix       # x86_64 NixOS VM
+│   ├── vm-shared.nix           # Shared NixOS settings (VMs only)
+│   ├── wsl.nix                 # NixOS-WSL host; does not import vm-shared.nix
+│   └── hardware/vm-utm.nix     # virtio profile shared by both VMs
+└── windows/                    # Windows side, outside Nix: winget config, SSH bootstrap
 ```
 
 Darwin hosts all list `machines/darwin/common.nix` explicitly; per-host

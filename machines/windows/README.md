@@ -14,14 +14,14 @@ Nix does not run natively on Windows, so a Windows PC is set up in two layers:
    copy of this repository:
 
    ```powershell
-   winget configure test -f windows\configuration.winget   # what would change
-   winget configure -f windows\configuration.winget
+   winget configure test -f machines\windows\configuration.winget   # what would change
+   winget configure -f machines\windows\configuration.winget
    ```
 
    On a PC that never ran WSL, run `wsl --install --no-distribution` once and
    reboot; it enables the Windows features WSL2 needs.
 
-   To let the Macs ssh in, run `windows\bootstrap-ssh.ps1` in an elevated
+   To let the Macs ssh in, run `machines\windows\bootstrap-ssh.ps1` in an elevated
    PowerShell. It installs sshd and authorizes the keys from
    https://github.com/baleen37.keys; re-run it after changing keys on GitHub.
 
@@ -59,4 +59,4 @@ Nix does not run natively on Windows, so a Windows PC is set up in two layers:
 ## Validating changes
 
 `.github/workflows/windows.yml` runs `winget configure validate` on every change
-under `windows/`. It does not install anything.
+under `machines/windows/`. It does not install anything.
