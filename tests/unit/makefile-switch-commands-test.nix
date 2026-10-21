@@ -10,7 +10,7 @@
 #
 # Both are string-level contracts, so they are checked as strings.
 {
-  pkgs ? import <nixpkgs> { },
+  pkgs,
   ...
 }:
 

@@ -5,8 +5,8 @@
 # prompt configuration, direnv integration, and shell functions.
 {
   inputs,
-  lib ? import <nixpkgs/lib>,
-  pkgs ? import <nixpkgs> { },
+  lib,
+  pkgs,
   ...
 }:
 
@@ -249,7 +249,7 @@ in
 
     # Shell functions
     (helpers.assertTest "function-shell-exists" (initContentHas "shell()")
-      "shell() function for nix-shell should exist"
+      "shell() function for nix shell should exist"
     )
     (helpers.assertTest "alias-assh-exists" (initContentHas "alias assh=")
       "assh alias for autossh should exist (plain ssh is delegated to Ghostty's wrapper)"

@@ -23,6 +23,5 @@
   # Many packages in nixpkgs don't officially mark aarch64-linux as supported,
   # even though they work perfectly fine. This setting allows us to use these
   # packages in the VM despite their unsupported status in the package metadata.
-  nixpkgs.config.allowUnfree = true;
   nixpkgs.config.allowUnsupportedSystem = true;
 }

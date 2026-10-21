@@ -21,7 +21,6 @@ let
   # Use shared user configuration directory (users/shared)
   # Actual username is dynamically set via currentSystemUser
   userHMConfig = ../users/shared/home-manager.nix;
-  userOSConfig = if darwin then ../users/shared/darwin else ../users/shared/nixos.nix;
 
   hmModule =
     if darwin then
@@ -44,7 +43,6 @@ in
 systemFunc {
   specialArgs = {
     inherit inputs self;
-    currentSystem = system;
     currentSystemName = name;
     currentSystemUser = user;
     isWSL = wsl;
@@ -55,9 +53,7 @@ systemFunc {
     { nixpkgs.hostPlatform = system; }
   ]
   ++ machineModules
-  ++ lib.optionals (builtins.pathExists userOSConfig) [
-    userOSConfig
-  ]
+  ++ lib.optionals darwin [ ../users/shared/darwin ]
   ++ [
 
     # Nix configuration
@@ -122,6 +118,10 @@ systemFunc {
 
       # Apply overlays
       nixpkgs.overlays = overlays;
+
+      # The only unfree switch for system builds (darwin and NixOS); perSystem
+      # pkgs get theirs from flake-modules/args.nix.
+      nixpkgs.config.allowUnfree = true;
     }
   ];
 }

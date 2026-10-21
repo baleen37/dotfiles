@@ -2,8 +2,8 @@
 # Karabiner-Elements configuration integration tests
 # Validates the Nix-generated karabiner.json (see users/shared/karabiner.nix)
 {
-  lib ? import <nixpkgs/lib>,
-  pkgs ? import <nixpkgs> { },
+  lib,
+  pkgs,
   ...
 }:
 
