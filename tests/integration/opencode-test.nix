@@ -3,8 +3,8 @@
 # Tests the OpenCode configuration in users/shared/opencode.nix
 # Verifies opencode.json configuration.
 {
-  lib ? import <nixpkgs/lib>,
-  pkgs ? import <nixpkgs> { },
+  lib,
+  pkgs,
   ...
 }:
 

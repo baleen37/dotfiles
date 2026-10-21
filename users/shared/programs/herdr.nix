@@ -27,7 +27,7 @@ let
   # herdr-sim sets $pr_open / $pr_merged / $pr_closed on each Claude or Codex
   # pane from the PRs its session touched; the sidebar rows below render them
   # as coloured icons. Its package output is the plugin root.
-  herdrSimPackage = inputs.herdr-sim.packages.${pkgs.system}.default;
+  herdrSimPackage = inputs.herdr-sim.packages.${pkgs.stdenv.hostPlatform.system}.default;
 in
 {
   options.modules.programs.herdr.enable = lib.mkEnableOption "Herdr terminal workspace manager" // {

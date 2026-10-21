@@ -2,8 +2,8 @@
 # Vim configuration extraction tests
 # Tests that vim config is properly extracted from modules/ to users/shared/vim.nix
 {
-  lib ? import <nixpkgs/lib>,
-  pkgs ? import <nixpkgs> { },
+  lib,
+  pkgs,
   ...
 }:
 

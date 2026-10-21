@@ -1,8 +1,8 @@
 # Neru configuration integration tests
 # Validates the Home Manager file mapping and the version-controlled TOML.
 {
-  lib ? import <nixpkgs/lib>,
-  pkgs ? import <nixpkgs> { },
+  lib,
+  pkgs,
   ...
 }:
 
