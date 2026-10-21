@@ -3,7 +3,7 @@
 # Utility shell functions for Zsh
 #
 # Provides:
-# - shell(): quick nix-shell access
+# - shell(): quick nix shell access
 # - cd(): multi-dot cd shortcut
 # - assh: autossh alias for long-lived connections
 # - setup_ssh_agent_for_gui(): SSH agent for GUI apps
@@ -38,7 +38,7 @@
 
   # nix shortcuts
   shell() {
-      nix-shell '<nixpkgs>' -A "$1"
+      nix shell nixpkgs#"$1"
   }
 
   # Multi-dot cd: `cd ...` -> `cd ../..`, `cd ....` -> `cd ../../..`, etc.

@@ -6,7 +6,8 @@
 # this check instead of failing someone's `make switch`.
 #
 # Beyond evaluating, only settings that are easy to lose silently are asserted:
-# stateVersion (activation fails without it) and hostName on NixOS.
+# stateVersion (activation fails without it), hostName on NixOS, and
+# allowUnfree (set once in lib/mksystem.nix; losing it breaks unfree packages).
 {
   inputs,
   system,
@@ -48,6 +49,12 @@ let
     vm-x86_64-utm = [ "baleen" ];
   };
 
+  userInfo = import ../../lib/user-info.nix;
+  # Every Home Manager user's git email on every host, as a flat list.
+  gitEmails = lib.concatMap (
+    host: map (u: u.programs.git.settings.user.email) (lib.attrValues host.config.home-manager.users)
+  ) (lib.attrValues darwinHosts ++ lib.attrValues nixosHosts);
+
   allHosts = hosts: predicate: lib.all (host: predicate host.config) (lib.attrValues hosts);
 
 in
@@ -63,6 +70,12 @@ in
     (helpers.assertTest "output-users-match-host-metadata" (
       darwinUsers == expectedDarwinUsers && nixosUsers == expectedNixosUsers
     ) "Darwin and NixOS outputs should retain the explicit host user mapping")
+
+    # A per-host override of the commit email goes unnoticed until a pushed
+    # commit shows up under the wrong account.
+    (helpers.assertTest "every-host-commits-as-user-info-email" (
+      gitEmails != [ ] && lib.all (e: e == userInfo.email) gitEmails
+    ) "every host's Home Manager git email must be lib/user-info.nix email")
 
     (helpers.assertTest "darwin-hosts-set-state-version" (allHosts darwinHosts (
       c: (c.system.stateVersion or null) != null
@@ -83,5 +96,13 @@ in
     (helpers.assertTest "nixos-hosts-set-hostname" (allHosts nixosHosts (
       c: (c.networking.hostName or "") != ""
     )) "every NixOS host should set networking.hostName")
+
+    (helpers.assertTest "every-host-allows-unfree"
+      (
+        allHosts darwinHosts (c: c.nixpkgs.config.allowUnfree)
+        && allHosts nixosHosts (c: c.nixpkgs.config.allowUnfree)
+      )
+      "lib/mksystem.nix must set nixpkgs.config.allowUnfree for every host; unfree packages fail to evaluate without it"
+    )
   ];
 }

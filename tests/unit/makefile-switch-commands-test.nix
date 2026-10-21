@@ -10,7 +10,7 @@
 #
 # Both are string-level contracts, so they are checked as strings.
 {
-  pkgs ? import <nixpkgs> { },
+  pkgs,
   ...
 }:
 
@@ -48,7 +48,7 @@ pkgs.runCommand "makefile-switch-commands-test"
     grep -q '^DARWIN_REBUILD := /run/current-system/sw/bin/darwin-rebuild$' "$makefileSource" \
       || fail "DARWIN_REBUILD must be the absolute allowlisted darwin-rebuild path"
     echo "$darwinSwitch" | sed 's/^\t*//' \
-      | grep -qxF '$(NIX_ENV) sudo -H $(DARWIN_REBUILD) switch --flake ".#$(NIXNAME)"' \
+      | grep -qxF 'sudo -H $(DARWIN_REBUILD) switch --flake ".#$(NIXNAME)"' \
       || fail "Darwin switch must invoke exactly the command the sudoers rule allows"
 
     # Expiring generations after the switch is what lets GC free old closures;
@@ -96,6 +96,25 @@ pkgs.runCommand "makefile-switch-commands-test"
 
     if grep -q -- '--impure' "$makefileSource"; then
       fail "Makefile must evaluate flakes purely"
+    fi
+
+    # NIXPKGS_ALLOW_* is only read under --impure, so setting it is dead weight
+    # that suggests unfree packages are enabled here rather than in nixpkgs.config.
+    if grep -q 'NIXPKGS_ALLOW_' "$makefileSource"; then
+      fail "Makefile must not set NIXPKGS_ALLOW_* (ignored without --impure)"
+    fi
+
+    # `nix run` on a bare flake reference resolves the registry or the branch tip,
+    # not flake.lock: home-manager and nixos-rebuild would silently drift from
+    # the versions the configuration was built and tested against.
+    if grep -q 'github:nix-community/home-manager' "$makefileSource"; then
+      fail "Makefile must run home-manager from flake.lock, not github:nix-community/home-manager"
+    fi
+    unpinned=$(grep -E '[[:space:]]run[[:space:]].*(nixpkgs#|home-manager)' "$makefileSource" \
+      | grep -v -- '--inputs-from' || true)
+    if [ -n "$unpinned" ]; then
+      echo "$unpinned"
+      fail "every nix run of nixpkgs#/home-manager must pass --inputs-from to use flake.lock"
     fi
 
     echo "✅ Makefile switch contracts hold"

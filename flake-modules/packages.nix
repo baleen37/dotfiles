@@ -46,9 +46,7 @@ let
         {
           imports = [ (modulesPath + "/virtualisation/qemu-vm.nix") ];
         };
-      machineModule = builtins.toPath (
-        (toString ../machines/nixos) + "/vm-" + lib.head (lib.splitString "-" system) + "-utm.nix"
-      );
+      machineModule = ../machines/nixos + "/vm-${lib.head (lib.splitString "-" system)}-utm.nix";
     in
     (inputs.nixpkgs.lib.nixosSystem {
       inherit system;

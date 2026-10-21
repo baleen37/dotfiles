@@ -240,10 +240,6 @@ macOS configuration includes:
 - Maximum trackpad speed
 - Automated cleanup of unused default apps (GarageBand, iMovie, etc.)
 
-### Linux Builder
-
-`machines/darwin/common.nix` includes a Linux builder configuration for cross-platform testing, but it's disabled when using Determinate Nix (requires `nix.enable = true`).
-
 ## CI/CD
 
 GitHub Actions workflow (`.github/workflows/ci.yml`):
@@ -348,7 +344,7 @@ trusted-users = root @admin yourusername
 - **tests/lib/test-helpers.nix**: `assertTest` and `testSuite`
 - **tests/lib/common-assertions.nix**: Assertions with generated failure messages
 - **tests/lib/platform-helpers.nix**: `platforms` metadata filtering
-- **.pre-commit-config.yaml**: Quality enforcement hooks (shellcheck, shfmt, tests)
+- **.pre-commit-config.yaml**: Quality enforcement hooks (shellcheck, bashate, tests; shfmt and deadnix run via treefmt)
 
 ### Continuous Integration
 
