@@ -61,6 +61,8 @@ in
   # Minimal system-level settings
   environment.systemPackages = with pkgs; [
     home-manager
+    # `make switch` runs `nh clean all` after every switch.
+    nh
   ];
 
   # Enable essential programs
@@ -70,6 +72,7 @@ in
 
   security.sudo.extraConfig = lib.mkIf (currentSystemName == "kakaostyle-jito") ''
     ${currentSystemUser} ALL = (root) NOPASSWD: /run/current-system/sw/bin/darwin-rebuild ^switch --flake \.\#kakaostyle-jito$
+    ${currentSystemUser} ALL = (root) NOPASSWD: /run/current-system/sw/bin/nh ^clean all --keep 3$
   '';
 
   # Touch ID for sudo. Non-interactive shells (Claude Code, scripts) cannot

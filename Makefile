@@ -19,6 +19,9 @@ SSH_OPTIONS=-o PubkeyAuthentication=no -o UserKnownHostsFile=/dev/null -o Strict
 NIX_PATH := $(shell which nix 2>/dev/null || echo "nix")
 NIX := $(NIX_PATH) --extra-experimental-features nix-command --extra-experimental-features flakes
 DARWIN_REBUILD := /run/current-system/sw/bin/darwin-rebuild
+# `make switch` runs `nh clean all` afterwards: GC cannot free a closure an old
+# generation still references, so expiring them is what reclaims the space.
+NH := /run/current-system/sw/bin/nh
 
 # For sudo commands, we need the full path or preserved PATH
 # Use -H flag to set HOME to target user's home directory and avoid warnings
@@ -42,6 +45,7 @@ build-switch: switch
 switch:
 ifeq ($(UNAME), Darwin)
 	$(NIX_ENV) sudo -H $(DARWIN_REBUILD) switch --flake ".#$(NIXNAME)"
+	sudo -H $(NH) clean all --keep 3
 else ifeq ($(IS_NIXOS), true)
 	$(NIX_ENV_FULL) $(SUDO_NIX) run "nixpkgs#nixos-rebuild" -- switch --flake ".#${NIXNAME}"
 else
