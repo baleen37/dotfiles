@@ -8,6 +8,7 @@
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
   expectedRule = ''jito.hello ALL = (root) NOPASSWD: /run/current-system/sw/bin/darwin-rebuild ^switch --flake \.\#kakaostyle-jito$'';
+  expectedNhRule = "jito.hello ALL = (root) NOPASSWD: /run/current-system/sw/bin/nh ^clean all --keep 3$";
   jitoSudo = self.darwinConfigurations.kakaostyle-jito.config.security.sudo.extraConfig;
   macbookSudo = self.darwinConfigurations.macbook-pro.config.security.sudo.extraConfig;
   jitoPam = self.darwinConfigurations.kakaostyle-jito.config.security.pam.services.sudo_local;
@@ -18,6 +19,10 @@ in
     kakaostyle-switch-is-passwordless =
       helpers.assertTest "kakaostyle switch is passwordless" (lib.hasInfix expectedRule jitoSudo)
         "kakaostyle-jito should allow only its exact darwin-rebuild switch command without a password";
+
+    kakaostyle-nh-clean-is-passwordless =
+      helpers.assertTest "kakaostyle nh clean is passwordless" (lib.hasInfix expectedNhRule jitoSudo)
+        "make switch runs this exact nh clean after switching; drift from the Makefile turns it into a password prompt";
 
     other-host-switch-needs-password = helpers.assertTest "other host switch needs password" (
       !lib.hasInfix "NOPASSWD" macbookSudo
