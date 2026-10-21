@@ -7,31 +7,14 @@
 #   winget configure test -f windows/configuration.winget       # diff against this machine
 #   winget configure -f windows/configuration.winget            # apply (admin terminal)
 #
-# Enabling the WSL features needs a reboot before `wsl --install` can use them.
+# WSL: the Microsoft.WSL package below installs WSL itself; `wsl --install` enables the
+# Windows features it needs (reboot once). PSDscResources/WindowsOptionalFeature is not used
+# because it fails under winget's DSC host with "Class not registered" (seen on Windows 11 26200).
 properties:
   configurationVersion: 0.2.0
   resources:
-    - resource: PSDscResources/WindowsOptionalFeature
-      id: wslFeature
-      directives:
-        description: Enable the Windows Subsystem for Linux feature
-        securityContext: elevated
-      settings:
-        Name: Microsoft-Windows-Subsystem-Linux
-        Ensure: Present
-    - resource: PSDscResources/WindowsOptionalFeature
-      id: vmPlatformFeature
-      directives:
-        description: Enable Virtual Machine Platform (required by WSL2)
-        securityContext: elevated
-      settings:
-        Name: VirtualMachinePlatform
-        Ensure: Present
     - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: wsl
-      dependsOn:
-        - wslFeature
-        - vmPlatformFeature
       directives:
         description: Install WSL
         securityContext: elevated

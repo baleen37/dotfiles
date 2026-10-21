@@ -18,7 +18,8 @@ Nix does not run natively on Windows, so a Windows PC is set up in two layers:
    winget configure -f windows\configuration.winget
    ```
 
-   Reboot once afterwards; the WSL features only take effect after a restart.
+   On a PC that never ran WSL, run `wsl --install --no-distribution` once and
+   reboot; it enables the Windows features WSL2 needs.
 
 2. **Install the NixOS-WSL distro.** Build the tarball on any `x86_64-linux`
    machine with Nix (`make wsl` writes `nixos.wsl` to the current directory), or
