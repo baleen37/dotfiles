@@ -18,7 +18,8 @@ Nix does not run natively on Windows, so a Windows PC is set up in two layers:
    winget configure -f windows\configuration.winget
    ```
 
-   Reboot once afterwards; the WSL features only take effect after a restart.
+   On a PC that never ran WSL, run `wsl --install --no-distribution` once and
+   reboot; it enables the Windows features WSL2 needs.
 
    To let the Macs ssh in, run `windows\bootstrap-ssh.ps1` in an elevated
    PowerShell. It installs sshd and authorizes the keys from
