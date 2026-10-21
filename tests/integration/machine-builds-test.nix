@@ -6,7 +6,8 @@
 # this check instead of failing someone's `make switch`.
 #
 # Beyond evaluating, only settings that are easy to lose silently are asserted:
-# stateVersion (activation fails without it) and hostName on NixOS.
+# stateVersion (activation fails without it), hostName on NixOS, and
+# allowUnfree (set once in lib/mksystem.nix; losing it breaks unfree packages).
 {
   inputs,
   system,
@@ -83,5 +84,13 @@ in
     (helpers.assertTest "nixos-hosts-set-hostname" (allHosts nixosHosts (
       c: (c.networking.hostName or "") != ""
     )) "every NixOS host should set networking.hostName")
+
+    (helpers.assertTest "every-host-allows-unfree"
+      (
+        allHosts darwinHosts (c: c.nixpkgs.config.allowUnfree)
+        && allHosts nixosHosts (c: c.nixpkgs.config.allowUnfree)
+      )
+      "lib/mksystem.nix must set nixpkgs.config.allowUnfree for every host; unfree packages fail to evaluate without it"
+    )
   ];
 }
