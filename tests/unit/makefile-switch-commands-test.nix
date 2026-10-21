@@ -117,6 +117,11 @@ pkgs.runCommand "makefile-switch-commands-test"
       fail "every nix run of nixpkgs#/home-manager must pass --inputs-from to use flake.lock"
     fi
 
+    # Under WSL, PATH includes Windows dirs like /mnt/c/Program Files/...; an
+    # unquoted $$PATH splits at the space and env tries to run "Files/...".
+    grep '^SUDO_NIX :=' "$makefileSource" | grep -qF 'PATH="$$PATH"' \
+      || fail "SUDO_NIX must quote PATH (env PATH=\"\$\$PATH\") so paths with spaces survive"
+
     echo "✅ Makefile switch contracts hold"
     touch $out
   ''
