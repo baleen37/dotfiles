@@ -103,8 +103,8 @@ format:
 	$(NIX) fmt
 
 # NixOS VM tests. These need a Linux builder with /dev/kvm; on macOS they only
-# work through a linux-builder, which Determinate Nix disables (see
-# machines/darwin/common.nix), so this is expected to fail there.
+# work through a linux-builder, which Determinate Nix disables, so this is
+# expected to fail there.
 test-containers:
 	@if [ "$(UNAME)" = "Darwin" ] || [ ! -e /dev/kvm ]; then \
 		echo "Container tests need Linux + /dev/kvm; run them in CI or a Linux VM."; \

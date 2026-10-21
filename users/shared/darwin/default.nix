@@ -120,17 +120,6 @@ in
 
   # ===== System Integration Configuration =====
 
-  # Package Management Configuration
-  nixpkgs.config.allowUnfree = true;
-
-  # Determinate Nix Integration
-  nix = {
-    enable = false; # Required for Determinate compatibility and to prevent conflicts
-  };
-
-  # Shell Environment Configuration
-  programs.zsh.enable = true;
-
   # Keyboard Configuration
   system.keyboard = {
     enableKeyMapping = true;
@@ -140,7 +129,6 @@ in
   system = {
     primaryUser = currentSystemUser; # Dynamic user resolution for multi-environment support
     checks.verifyNixPath = false; # Disable NIX_PATH verification for cleaner builds
-    stateVersion = 5; # Updated to current nix-darwin version for compatibility
   };
 
   # Package Installation

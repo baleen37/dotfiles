@@ -18,7 +18,7 @@ let
         modules.programs.herdr.enable = true;
         home = {
           username = "test";
-          homeDirectory = if pkgs.stdenv.isDarwin then "/Users/test" else "/home/test";
+          homeDirectory = if pkgs.stdenv.hostPlatform.isDarwin then "/Users/test" else "/home/test";
           stateVersion = "24.11";
         };
       }

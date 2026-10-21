@@ -7,8 +7,8 @@
 # the whole reason user-info.nix exists. The rest are settings whose loss is
 # silent: you only notice `pull.rebase` is gone after a merge commit appears.
 {
-  lib ? import <nixpkgs/lib>,
-  pkgs ? import <nixpkgs> { },
+  lib,
+  pkgs,
   ...
 }:
 

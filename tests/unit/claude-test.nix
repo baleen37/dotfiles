@@ -4,8 +4,8 @@
 # ~/.claude. The files are read at eval time, so a malformed settings.json or a
 # CLAUDE.md that got truncated fails here rather than at activation.
 {
-  lib ? import <nixpkgs/lib>,
-  pkgs ? import <nixpkgs> { },
+  lib,
+  pkgs,
   ...
 }:
 

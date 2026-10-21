@@ -4,8 +4,8 @@
 # Validates that ~/.npm-global/bin is included in the PATH
 #
 {
-  lib ? import <nixpkgs/lib>,
-  pkgs ? import <nixpkgs> { },
+  lib,
+  pkgs,
   ...
 }:
 
