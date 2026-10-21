@@ -76,9 +76,6 @@ systemFunc {
           dates = "daily";
           options = "--delete-older-than 7d";
         };
-
-        # Let Determinate manage Nix on Darwin systems
-        nix.enable = lib.mkIf darwin false;
       }
     )
   ]
