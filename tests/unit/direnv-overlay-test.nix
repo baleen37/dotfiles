@@ -15,5 +15,10 @@ let
   };
 in
 helpers.assertTest "direnv-checks-disabled-on-darwin"
-  (if overlaidPkgs.stdenv.isDarwin then overlaidPkgs.direnv.drvAttrs.doCheck == false else true)
+  (
+    if overlaidPkgs.stdenv.hostPlatform.isDarwin then
+      overlaidPkgs.direnv.drvAttrs.doCheck == false
+    else
+      true
+  )
   "direnv checks should be disabled on Darwin because upstream shell tests hang during system builds"

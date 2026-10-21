@@ -7,6 +7,20 @@ let
   makeSource = builtins.readFile ../../Makefile;
   envrcSource = builtins.readFile ../../.envrc;
   ciSource = builtins.readFile ../../.github/workflows/ci.yml;
+
+  # Every .nix file the flake evaluates. docs/ holds historical plans, not code.
+  nixSources =
+    lib.concatMap (dir: lib.filter (lib.hasSuffix ".nix") (lib.filesystem.listFilesRecursive dir))
+      [
+        ../../flake-modules
+        ../../lib
+        ../../machines
+        ../../tests
+        ../../users
+      ];
+  # Split so this file does not match itself.
+  channelLookup = "<" + "nixpkgs";
+  channelLookups = lib.filter (file: lib.hasInfix channelLookup (builtins.readFile file)) nixSources;
 in
 {
   platforms = [ "any" ];
@@ -22,5 +36,8 @@ in
       && !(lib.hasInfix "export USER=" envrcSource)
       && !(lib.hasInfix "export USER=" ciSource)
     ) "workflow does not inject USER")
+    (helpers.assertTest "no-channel-lookup" (
+      channelLookups == [ ]
+    ) "channel lookups resolve through NIX_PATH, bypassing flake.lock: ${toString channelLookups}")
   ];
 }

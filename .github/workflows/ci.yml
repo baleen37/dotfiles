@@ -46,8 +46,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Nix with cache
         uses: ./.github/actions/setup-nix
@@ -62,7 +60,17 @@ jobs:
             pip install pre-commit
           fi
 
+      - name: Cache pre-commit environments
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        continue-on-error: true
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.pre-commit-config.yaml') }}
+
+      # The `test` hook is `make test`, which the next step runs anyway.
       - name: Run pre-commit hooks
+        env:
+          SKIP: test,test-all
         run: pre-commit run --all-files
 
       - name: Fast container tests
@@ -83,7 +91,16 @@ jobs:
       # ARM64), so build the assertions to actually run them everywhere.
       - name: Build assertions
         if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
-        run: make test-build
+        env:
+          PUSH_TO_CACHIX: ${{ github.ref == 'refs/heads/main' }}
+        run: |
+          # On main, push everything the assertion build produces so the next
+          # run substitutes it instead of rebuilding. PRs have no push token.
+          if [ "$PUSH_TO_CACHIX" = "true" ]; then
+            cachix watch-exec baleen-nix -- make test-build
+          else
+            make test-build
+          fi
 
       - name: Test secrets backup
         run: |
