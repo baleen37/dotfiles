@@ -119,8 +119,9 @@ pkgs.runCommand "makefile-switch-commands-test"
 
     # Under WSL, PATH includes Windows dirs like /mnt/c/Program Files/...; an
     # unquoted $$PATH splits at the space and env tries to run "Files/...".
-    grep '^SUDO_NIX :=' "$makefileSource" | grep -qF 'PATH="$$PATH"' \
-      || fail "SUDO_NIX must quote PATH (env PATH=\"\$\$PATH\") so paths with spaces survive"
+    if grep -nF 'PATH=$$PATH' "$makefileSource"; then
+      fail "quote every PATH=\$\$PATH in the Makefile so paths with spaces survive"
+    fi
 
     echo "✅ Makefile switch contracts hold"
     touch $out
