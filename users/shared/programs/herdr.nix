@@ -98,7 +98,7 @@ in
 
       [ui]
       # Space order, so herdr-sim's tree headers sit over their sessions
-      # when its activity order (prefix+a) is off.
+      # when its activity order is off.
       agent_panel_sort = "spaces"
       sidebar_width = 38
       # A distinct symbol per agent state instead of coloured dots.
@@ -112,8 +112,8 @@ in
 
       # Agents as herdr-radar draws them: a group per workspace (its
       # worktrees under it, the repo on a row of its own when its checkout
-      # has no session), one row per session — the logo in its vendor's
-      # colour, the state mark and title in the state's — and a blank row
+      # has no session), one row per session — the state mark and title in
+      # the state's colour, no logo — and a blank row
       # after each group. A group whose sessions all went stale fades, a
       # stale session dims whole, idle titles cool with time (herdr-radar's
       # dark tiers); a working title spins, a question pulses.
@@ -122,7 +122,7 @@ in
       rows = [
         [{ token = "$tree_group_parent", fg = "#8b8e9c", bold = true }],
         [{ token = "$tree_group", fg = "#a8abbd", bold = true }, { token = "$tree_group_stale", fg = "#8b8e9c", bold = true }],
-        [{ token = "$icon_claude", fg = "#d97757" }, { token = "$icon_codex", fg = "#cdd6f4" }, { token = "$icon_stale", fg = "#8b8e9c" }, { token = "$label_working", fg = "#fab387", bold = true }, { token = "$label_blocked", fg = "#f38ba8", bold = true }, { token = "$label_done", fg = "#a6e3a1" }, { token = "$label_idle_fresh", fg = "#95bba2" }, { token = "$label_idle", fg = "#a99e92" }, { token = "$label_idle_stale", fg = "#8b8e9c" }, { token = "$label_unknown", fg = "#cba6f7" }, { token = "machine", fg = "#89b4fa", rules = [{ equals = "Local", hide = true }] }],
+        [{ token = "$label_working", fg = "#fab387", bold = true }, { token = "$label_blocked", fg = "#f38ba8", bold = true }, { token = "$label_done", fg = "#a6e3a1" }, { token = "$label_idle_fresh", fg = "#95bba2" }, { token = "$label_idle", fg = "#a99e92" }, { token = "$label_idle_stale", fg = "#8b8e9c" }, { token = "$label_unknown", fg = "#cba6f7" }, { token = "machine", fg = "#89b4fa", rules = [{ equals = "Local", hide = true }] }],
         [{ token = "$tree_gap" }],
       ]
 
@@ -132,18 +132,18 @@ in
       claude = [
         [{ token = "$tree_group_parent", fg = "#8b8e9c", bold = true }],
         [{ token = "$tree_group", fg = "#a8abbd", bold = true }, { token = "$tree_group_stale", fg = "#8b8e9c", bold = true }],
-        [{ token = "$icon_claude", fg = "#d97757" }, { token = "$icon_codex", fg = "#cdd6f4" }, { token = "$icon_stale", fg = "#8b8e9c" }, { token = "$label_working", fg = "#d97757", bold = true }, { token = "$label_blocked", fg = "#f38ba8", bold = true }, { token = "$label_done", fg = "#a6e3a1" }, { token = "$label_idle_fresh", fg = "#95bba2" }, { token = "$label_idle", fg = "#a99e92" }, { token = "$label_idle_stale", fg = "#8b8e9c" }, { token = "$label_unknown", fg = "#cba6f7" }, { token = "machine", fg = "#89b4fa", rules = [{ equals = "Local", hide = true }] }],
+        [{ token = "$label_working", fg = "#d97757", bold = true }, { token = "$label_blocked", fg = "#f38ba8", bold = true }, { token = "$label_done", fg = "#a6e3a1" }, { token = "$label_idle_fresh", fg = "#95bba2" }, { token = "$label_idle", fg = "#a99e92" }, { token = "$label_idle_stale", fg = "#8b8e9c" }, { token = "$label_unknown", fg = "#cba6f7" }, { token = "machine", fg = "#89b4fa", rules = [{ equals = "Local", hide = true }] }],
         [{ token = "$tree_gap" }],
       ]
 
       # Spaces as herdr-radar draws them: the state's mark and the
       # workspace's name, coloured as in the Agents list (dimmed with no
-      # agent), then the logo and name of each agent there and its PR.
+      # agent), then the title of the session behind that state and its PR.
       [ui.sidebar.spaces]
       row_gap = 0
       rows = [
         [{ token = "$header_working", fg = "#fab387", bold = true }, { token = "$header_blocked", fg = "#f38ba8", bold = true }, { token = "$header_done", fg = "#a6e3a1", bold = true }, { token = "$header_idle", fg = "#cdd6f4", bold = true }, { token = "$header_unknown", fg = "#cba6f7", bold = true }, { token = "$header_none", fg = "#6c7086" }],
-        [{ token = "$agent_claude", fg = "#d97757" }, { token = "$agent_codex", fg = "#cdd6f4" }, { token = "$pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", hide = true }] }],
+        [{ token = "$space_title", fg = "#a8abbd" }, { token = "$pr", rules = [{ starts_with = "\uF407", fg = "#a6e3a1" }, { starts_with = "\uF419", fg = "#cba6f7" }, { starts_with = "\uF4DC", hide = true }] }],
       ]
 
       [keys]
@@ -160,13 +160,6 @@ in
       description = "new worktree (wt)"
       width = "80%"
       height = "60%"
-
-      # herdr-sim orders agents by activity; this flips back to Herdr's order.
-      [[keys.command]]
-      key = "prefix+a"
-      type = "plugin_action"
-      command = "baleen37.herdr-sim.toggle-order"
-      description = "agents: activity order on/off"
 
       [[keys.command]]
       key = "cmd+r"
