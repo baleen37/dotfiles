@@ -23,13 +23,16 @@ let
   instantPrompt = lib.findFirst (
     part: lib.hasInfix "p10k-instant-prompt" part.content
   ) null initParts;
-  themeLoad = lib.findFirst (part: lib.hasInfix "powerlevel10k.zsh-theme" part.content) null initParts;
+  themeLoad = lib.findFirst (
+    part: lib.hasInfix "powerlevel10k.zsh-theme" part.content
+  ) null initParts;
 
   # Home Manager's compinit order (programs/zsh: mkOrder 570).
   compinitOrder = 570;
 
   # Load the theme and config in a real interactive zsh. Rendering the prompt
   # needs a TTY and gitstatusd, so check that the config overrides applied.
+  # -d skips /etc/zshrc, which on unsandboxed Darwin builders is the host's.
   runtimeSmoke =
     pkgs.runCommand "test-powerlevel10k-runtime"
       {
@@ -44,7 +47,7 @@ let
         cat > $HOME/.zshrc <<'EOF'
         ${themeLoad.content}
         EOF
-        prompt=$(zsh -i -c '(( $+functions[p10k] )) && print -r -- "$POWERLEVEL9K_PROMPT_CHAR_OK_VIINS_CONTENT_EXPANSION"' 2>$TMPDIR/err)
+        prompt=$(zsh -d -i -c '(( $+functions[p10k] )) && print -r -- "$POWERLEVEL9K_PROMPT_CHAR_OK_VIINS_CONTENT_EXPANSION"' 2>$TMPDIR/err)
         if [[ -s $TMPDIR/err ]]; then
           cat $TMPDIR/err >&2
           exit 1
