@@ -70,12 +70,11 @@
       # Set SSH agent variables for GUI applications
       launchctl setenv SSH_AUTH_SOCK "$SSH_AUTH_SOCK" 2>/dev/null || true
       [[ -n "$SSH_AGENT_PID" ]] && launchctl setenv SSH_AGENT_PID "$SSH_AGENT_PID" 2>/dev/null || true
-      echo "SSH agent configured for GUI applications"
     fi
   }
 
-  # Setup SSH agent for GUI applications
-  setup_ssh_agent_for_gui
+  # Setup SSH agent for GUI applications (backgrounded: launchctl is slow)
+  setup_ssh_agent_for_gui &!
 
   ${lib.optionalString isDarwin ''
     # Compatibility name for the former macOS-only cache command.

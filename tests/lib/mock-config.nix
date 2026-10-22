@@ -6,7 +6,7 @@
 # Modules that read `config.home.*` need those attributes to exist; anything a
 # specific test cares about is layered on top at the call site, e.g.
 #
-#   config = mockConfig.mkEmptyConfig // { modules.programs.starship.enable = true; };
+#   config = mockConfig.mkEmptyConfig // { modules.programs.powerlevel10k.enable = true; };
 
 _:
 

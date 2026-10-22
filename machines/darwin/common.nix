@@ -16,8 +16,12 @@
   ];
 
   # Enable essential programs
-  programs = {
-    zsh.enable = true;
+  programs.zsh = {
+    enable = true;
+    # Home Manager's .zshrc runs compinit and sets the prompt; doing both here
+    # too ran compinit twice and loaded a prompt theme that is then replaced.
+    enableGlobalCompInit = false;
+    promptInit = "";
   };
 
   security.sudo.extraConfig = lib.mkIf (currentSystemName == "kakaostyle-jito") ''

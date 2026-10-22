@@ -2,7 +2,7 @@
 #
 # Features:
 #   - fzf integration: Fuzzy finder with Ctrl+R (history), Ctrl+T (files), Alt+C (dirs)
-#   - Starship prompt: Fast, minimal, cross-shell prompt
+#   - Powerlevel10k prompt: instant prompt, async git status
 #   - 1Password SSH agent: Cross-platform socket auto-detection and connection
 #   - PATH management: npm, pnpm, local bin directories auto-add
 #   - Claude CLI integration:
@@ -19,6 +19,7 @@
 #
 
 {
+  inputs,
   pkgs,
   lib,
   config,
@@ -29,6 +30,16 @@
 let
   cfg = config.modules.programs.zsh;
   worktreePackage = pkgs.worktree;
+  # Shell init scripts are generated at build time, so shell startup does not
+  # fork each tool just to print the same script again.
+  wtShellInit = pkgs.runCommand "wt-zsh-init" { } ''
+    ${worktreePackage}/bin/wt config shell init zsh > $out
+  '';
+  zoxideShellInit = pkgs.runCommand "zoxide-zsh-init" { } ''
+    ${pkgs.zoxide}/bin/zoxide init zsh > $out
+  '';
+  # `direnv-instant hook zsh` prints this file verbatim (include_str!).
+  direnvInstantHook = "${inputs.direnv-instant}/hooks/zsh.sh";
 in
 {
   options.modules.programs.zsh.enable = lib.mkEnableOption "Zsh shell environment" // {
@@ -77,7 +88,8 @@ in
 
     programs.zoxide = {
       enable = true;
-      enableZshIntegration = true;
+      # Sourced from a build-time script in initContent below.
+      enableZshIntegration = false;
     };
 
     programs.direnv = {
@@ -86,7 +98,11 @@ in
       nix-direnv.enable = true;
     };
 
-    programs.direnv-instant.enable = true;
+    programs.direnv-instant = {
+      enable = true;
+      # Hooked up in initContent below, with a fast path outside .envrc trees.
+      enableZshIntegration = false;
+    };
 
     # Direnv auto-allow configuration
     # Automatically trust all .envrc files in the user's home directory
@@ -144,7 +160,7 @@ in
 
       plugins = [ ];
 
-      # After docker completion (1500) and starship init (1510); see starship.nix.
+      # After docker completion (1500) and powerlevel10k (1510); see powerlevel10k.nix.
       initContent = lib.mkOrder 1520 ''
         # =============================================================================
         # Section: Nix daemon initialization
@@ -185,17 +201,34 @@ in
         ${import ./functions.nix { inherit isDarwin lib; }}
 
         # =============================================================================
+        # Section: zoxide and direnv
+        # =============================================================================
+        source ${zoxideShellInit}
+
+        # direnv-instant runs `direnv export` on every prompt, three processes
+        # each time. Outside any .envrc tree with nothing loaded there is nothing
+        # to export, so skip it there.
+        typeset -g __DIRENV_INSTANT_HOOKED=1
+        source ${direnvInstantHook}
+        _direnv_hook_fast() {
+          if [[ -z $DIRENV_DIR && -z $__DIRENV_INSTANT_CURRENT_DIR ]]; then
+            local dir=$PWD
+            until [[ -e $dir/.envrc ]]; do
+              [[ $dir == / ]] && return
+              dir=''${dir:h}
+            done
+          fi
+          _direnv_hook
+        }
+        add-zsh-hook precmd _direnv_hook_fast
+        add-zsh-hook chpwd _direnv_hook_fast
+        add-zsh-hook zshexit _direnv_exit_cleanup
+        _direnv_hook_fast
+
+        # =============================================================================
         # Section: Git worktree wrapper
         # =============================================================================
-        _wt_init() {
-          local -a wt_original_path
-          wt_original_path=("''${path[@]}")
-          local -a path
-          path=("${worktreePackage}/bin" "''${wt_original_path[@]}")
-          eval "$(command wt config shell init zsh)"
-        }
-        _wt_init
-        unfunction _wt_init
+        source ${wtShellInit}
         functions[_wt_generated]="$functions[wt]"
         wt() {
           local -a wt_original_path
