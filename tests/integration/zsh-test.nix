@@ -128,8 +128,9 @@ in
     (helpers.assertTest "fzf-tmux-integration" (fzfSettings.tmux.enableShellIntegration or false
     ) "fzf tmux shell integration should be enabled for sesh")
     (helpers.assertTest "zoxide-enabled" (zoxideSettings.enable or false) "zoxide should be enabled")
-    (helpers.assertTest "zoxide-zsh-integration" (zoxideSettings.enableZshIntegration or false
-    ) "zoxide zsh integration should be enabled")
+    (helpers.assertTest "zoxide-zsh-integration" (initContentHas "zoxide-zsh-init")
+      "zsh should source the zoxide integration generated at build time"
+    )
 
     # Fzf default options
     (helpers.assertTest "fzf-height-option" (lib.any (opt: lib.hasInfix "--height 40%" opt) (
@@ -259,10 +260,15 @@ in
     (helpers.assertTest "wt-package-installed-by-zsh-module" (lib.elem worktreePackage homePackages)
       "enabling the zsh module should install the worktree flake package"
     )
-    (helpers.assertTest "wt-loads-rust-shell-integration"
-      (initContentHas "eval \"$(command wt config shell init zsh)\"")
-      "zsh should load the Rust wt shell integration"
+    (helpers.assertTest "wt-loads-rust-shell-integration" (initContentHas "wt-zsh-init")
+      "zsh should source the Rust wt shell integration generated at build time"
     )
+
+    # The zsh module pre-sets this guard to register its own fast-path hook;
+    # if upstream renames it, the stock hook would also register and run.
+    (helpers.assertTest "direnv-instant-hook-guard" (lib.hasInfix "__DIRENV_INSTANT_HOOKED" (
+      builtins.readFile "${inputs.direnv-instant}/hooks/zsh.sh"
+    )) "direnv-instant zsh hook should still be guarded by __DIRENV_INSTANT_HOOKED")
 
     # SSH wrapper with autossh
     (helpers.assertTest "ssh-wrapper-autossh" (initContentHas "autossh")

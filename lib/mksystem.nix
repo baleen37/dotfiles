@@ -78,7 +78,12 @@ systemFunc {
     (
       { pkgs, ... }:
       {
-        programs.zsh.enable = true;
+        programs.zsh = {
+          enable = true;
+          # See machines/darwin/common.nix: Home Manager's .zshrc owns both.
+          enableGlobalCompInit = false;
+          promptInit = "";
+        };
         users.users.${user}.shell = pkgs.zsh;
       }
     )

@@ -24,8 +24,16 @@ in
       # =============================================================================
       # Section: Docker CLI completion
       # =============================================================================
-      if command -v docker >/dev/null 2>&1; then
-        docker completion zsh 2>/dev/null | source /dev/stdin
+      # docker comes from OrbStack, outside Nix, so the completion script is
+      # cached on first use and regenerated when the docker binary changes.
+      if (( $+commands[docker] )); then
+        _docker_completion="''${XDG_CACHE_HOME:-$HOME/.cache}/zsh/_docker"
+        if [[ ! -s $_docker_completion || $commands[docker] -nt $_docker_completion ]]; then
+          mkdir -p "''${_docker_completion:h}"
+          docker completion zsh >| "$_docker_completion" 2>/dev/null
+        fi
+        source "$_docker_completion"
+        unset _docker_completion
       fi
     '';
   };

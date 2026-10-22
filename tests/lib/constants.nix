@@ -30,18 +30,4 @@ _:
 
   # AppleFontSmoothing: 0 off, 1 reduced, 2 full (default), 3 heavy.
   darwinFontSmoothing = 1;
-
-  # ===== Starship (users/shared/programs/starship.nix) =====
-
-  # command_timeout, ms. The 500 default is too tight for some dev tools.
-  starshipCommandTimeout = 1000;
-
-  # scan_timeout, ms. Keeps the prompt from hanging in large trees.
-  starshipScanTimeout = 30;
-
-  # cmd_duration.min_time, ms. Below 2000 this is visual noise.
-  starshipCmdDurationMinTime = 3000;
-
-  # directory.truncation_length, path segments.
-  starshipDirectoryTruncationLength = 3;
 }
