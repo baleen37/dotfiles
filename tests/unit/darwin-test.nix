@@ -32,11 +32,19 @@ let
 
   testUser = "baleen";
 
-  darwinConfig = lib.recursiveUpdate (import ../../users/shared/darwin/default.nix {
-    inherit pkgs lib;
-    config = mockConfig.mkEmptyConfig;
-    currentSystemUser = testUser;
-  }) (import ../../users/shared/darwin/homebrew.nix { });
+  darwinConfig =
+    lib.recursiveUpdate
+      (import ../../users/shared/darwin/default.nix {
+        inherit pkgs lib;
+        config = mockConfig.mkEmptyConfig;
+        currentSystemUser = testUser;
+      })
+      (
+        import ../../users/shared/darwin/homebrew.nix {
+          inherit lib;
+          config = mockConfig.mkEmptyConfig;
+        }
+      );
 
   customPrefs = darwinConfig.system.defaults.CustomUserPreferences;
   multitouch = customPrefs."com.apple.AppleMultitouchTrackpad";
