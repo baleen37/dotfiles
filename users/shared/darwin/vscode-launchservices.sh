@@ -55,22 +55,23 @@ nix_bundle_paths_from() {
   printf '%s\n' "$1" | "$awk" '/^\/nix\/store\/.*\/Visual Studio Code[.]app$/ { print }'
 }
 
-nix_bundle_paths() {
-  paths="$(bundle_paths)" || return 1
-  nix_bundle_paths_from "$paths"
-}
-
 representative_app() {
   "$osascript" -e 'POSIX path of (path to application id "com.microsoft.VSCode")' 2> /dev/null
 }
 
+# $1, when given, is a LaunchServices dump the caller already knows is current;
+# `lsregister -dump` takes seconds, so repair passes one in rather than dump twice.
 audit() {
   validate_canonical_app
 
   representative_status=0
   representative="$(representative_app)" || representative_status=$?
   representative="${representative%/}"
-  paths="$(bundle_paths)"
+  if [ "$#" -gt 0 ]; then
+    paths="$1"
+  else
+    paths="$(bundle_paths)"
+  fi
   nix_paths="$(nix_bundle_paths_from "$paths")"
 
   if printf '%s\n' "$paths" | grep -Fqx "$canonical_app"; then
@@ -102,7 +103,8 @@ audit() {
 repair() {
   validate_canonical_app
 
-  nix_paths="$(nix_bundle_paths)"
+  paths="$(bundle_paths)"
+  nix_paths="$(nix_bundle_paths_from "$paths")"
   if [ -n "$nix_paths" ]; then
     printf '%s\n' "$nix_paths" | while IFS= read -r path; do
       echo "vscode-launchservices: unregistering $path" >&2
@@ -115,7 +117,13 @@ repair() {
   echo "vscode-launchservices: refreshing Spotlight metadata for $canonical_app" >&2
   "$mdimport" -i "$canonical_app"
 
-  audit
+  # Already healthy: registering the canonical app again left the database as
+  # dumped, so audit that dump instead of taking a second one.
+  if [ -z "$nix_paths" ] && printf '%s\n' "$paths" | grep -Fqx "$canonical_app"; then
+    audit "$paths"
+  else
+    audit
+  fi
 }
 
 case "${1:-}" in
