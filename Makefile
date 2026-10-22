@@ -21,7 +21,9 @@ NIX := $(NIX_PATH) --extra-experimental-features nix-command --extra-experimenta
 DARWIN_REBUILD := /run/current-system/sw/bin/darwin-rebuild
 # `make switch` runs `nh clean all` afterwards: GC cannot free a closure an old
 # generation still references, so expiring them is what reclaims the space.
+# It runs in the background so the switch returns without waiting on a full GC.
 NH := /run/current-system/sw/bin/nh
+NH_CLEAN_LOG := $(HOME)/Library/Logs/nh-clean.log
 
 # For sudo commands, we need the full path or preserved PATH
 # Use -H flag to set HOME to target user's home directory and avoid warnings
@@ -29,7 +31,9 @@ SUDO_NIX := sudo -H env PATH="$$PATH" $(NIX_PATH) --extra-experimental-features 
 
 # We need to do some OS switching below.
 UNAME := $(shell uname)
-IS_NIXOS := $(shell [ -f /etc/nixos/configuration.nix ] && echo true || echo false)
+# /etc/NIXOS is the marker every NixOS system carries; /etc/nixos/configuration.nix
+# is absent on hosts that were installed from a flake.
+IS_NIXOS := $(shell [ -e /etc/NIXOS ] && echo true || echo false)
 
 # Nix system double for flake attribute paths, e.g. aarch64-darwin.
 NIX_ARCH := $(shell uname -m | sed 's/^arm64$$/aarch64/')
@@ -41,11 +45,16 @@ build-switch: switch
 switch:
 ifeq ($(UNAME), Darwin)
 	sudo -H $(DARWIN_REBUILD) switch --flake ".#$(NIXNAME)"
-	sudo -H $(NH) clean all --keep 3
+# -n: a background job cannot answer a password prompt. The sudoers rule on
+# kakaostyle-jito, or the timestamp darwin-rebuild just cached, covers it.
+	@nohup sudo -n -H $(NH) clean all --keep 3 >"$(NH_CLEAN_LOG)" 2>&1 &
+	@echo "nh clean running in background; log: $(NH_CLEAN_LOG)"
 else ifeq ($(IS_NIXOS), true)
-	$(SUDO_NIX) run --inputs-from . "nixpkgs#nixos-rebuild" -- switch --flake ".#${NIXNAME}"
+# --sudo evaluates and builds as the user and escalates only for activation.
+	$(NIX) run --inputs-from . "nixpkgs#nixos-rebuild" -- switch --sudo --flake ".#${NIXNAME}"
 else
-	$(NIX) run --inputs-from . home-manager -- switch --flake ".#${NIXNAME}"
+# homeConfigurations are keyed by user, not hostname.
+	$(NIX) run --inputs-from . home-manager -- switch --flake ".#$(HM_USER)"
 endif
 
 # Rebuild only Home Manager configuration (faster for user config changes)
