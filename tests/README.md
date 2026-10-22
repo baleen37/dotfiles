@@ -90,7 +90,7 @@ Each takes a trailing `message`; pass `null` for the generated one:
 `assertAttrEquals`, `assertListContains`, `assertListNotEmpty`, `assertNotNull`.
 
 Domain helpers: `lib/darwin-test-helpers.nix` (grouped `system.defaults`
-assertions), `lib/starship-test-helpers.nix`, `lib/plugin-test-helpers.nix`
+assertions), `lib/plugin-test-helpers.nix`
 (vim/tmux plugin and config-text predicates).
 
 Fixtures: `lib/mock-config.nix` (a minimal `config` argument for modules imported

@@ -80,7 +80,7 @@ users/shared/
 │   ├── vim.nix          # Vim/Neovim setup
 │   ├── zsh/             # Zsh configuration (default.nix, claude-wrappers.nix, ...)
 │   ├── tmux.nix         # Terminal multiplexer
-│   ├── starship.nix     # Shell prompt
+│   ├── powerlevel10k.nix # Shell prompt
 │   ├── claude-code.nix  # Claude Code configuration
 │   ├── .config/claude/  # CLAUDE.md, settings, statusline deployed to ~/.claude
 │   └── ...              # codex, opencode, ghostty, hammerspoon, karabiner
@@ -338,7 +338,7 @@ trusted-users = root @admin yourusername
 - **users/shared/programs/vim.nix**: Vim setup with airline, tmux-navigator, relative line numbers
 - **users/shared/programs/zsh/**: Zsh environment with fzf, direnv, Claude/OpenCode aliases
 - **users/shared/programs/tmux.nix**: Tmux config with vi-mode copy-paste, OSC52 clipboard
-- **users/shared/programs/starship.nix**: Minimal prompt configuration
+- **users/shared/programs/powerlevel10k.nix**: Prompt (Pure preset, instant prompt)
 - **users/shared/programs/claude-code.nix**: Deploys CLAUDE.md, settings, statusline, and worktree hook to ~/.claude (commands/skills/hooks come from an external plugin)
 
 ### Testing and Quality

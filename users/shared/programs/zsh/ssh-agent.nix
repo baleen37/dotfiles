@@ -43,9 +43,12 @@
 
   _setup_1password_agent
 
-  # Add SSH key to agent if not already registered
+  # Add SSH key to agent if not already registered. Backgrounded: the check
+  # forks four processes, and nothing at startup waits on the key.
   if [[ -f ~/.ssh/id_ed25519 ]]; then
-    ssh-add -l 2>/dev/null | grep -q "$(ssh-keygen -lf ~/.ssh/id_ed25519 2>/dev/null | awk '{print $2}')" \
-      || ssh-add ~/.ssh/id_ed25519 2>/dev/null
+    {
+      ssh-add -l 2>/dev/null | grep -q "$(ssh-keygen -lf ~/.ssh/id_ed25519 2>/dev/null | awk '{print $2}')" \
+        || ssh-add ~/.ssh/id_ed25519 2>/dev/null
+    } &!
   fi
 ''
