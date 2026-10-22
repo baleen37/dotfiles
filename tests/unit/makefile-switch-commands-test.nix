@@ -52,11 +52,12 @@ pkgs.runCommand "makefile-switch-commands-test"
       || fail "Darwin switch must invoke exactly the command the sudoers rule allows"
 
     # Expiring generations after the switch is what lets GC free old closures;
-    # the line also has to match the nh sudoers rule byte for byte.
+    # the arguments also have to match the nh sudoers rule byte for byte. It runs
+    # in the background with -n, since a detached job cannot answer a prompt.
     grep -q '^NH := /run/current-system/sw/bin/nh$' "$makefileSource" \
       || fail "NH must be the absolute allowlisted nh path"
     echo "$darwinSwitch" | sed 's/^\t*//' \
-      | grep -qxF 'sudo -H $(NH) clean all --keep 3' \
+      | grep -qxF '@nohup sudo -n -H $(NH) clean all --keep 3 >"$(NH_CLEAN_LOG)" 2>&1 &' \
       || fail "Darwin switch must run exactly the nh clean the sudoers rule allows"
 
     # Allowlisting /usr/bin/env would let any command through sudo.
