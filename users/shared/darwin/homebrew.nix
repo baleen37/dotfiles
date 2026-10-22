@@ -3,9 +3,15 @@
 # GUI applications and Mac App Store apps managed via Homebrew.
 # Casks, brews, taps, and MAS apps.
 
-_:
+{ config, lib, ... }:
 
 let
+  cfg = config.homebrew;
+  bundleCmd = cfg.onActivation.brewBundleCmd { onlyCheck = false; };
+  # The command embeds the Brewfile's store path and every flag, so its hash
+  # changes whenever there is anything new for `brew bundle` to do.
+  bundleKey = builtins.hashString "sha256" bundleCmd;
+  bundleStamp = "${config.users.users.${cfg.user}.home}/.cache/nix-darwin/brew-bundle";
   # Homebrew Cask definitions (GUI applications)
   homebrew-casks = [
     # Development Tools
@@ -103,4 +109,23 @@ in
       "Sanyam-G/switch" # switch window switcher
     ];
   };
+
+  # nix-darwin runs `brew bundle` on every activation, which costs 5-15s even
+  # when nothing changed. Skip it while the bundle command is the one last
+  # applied. Removing the stamp forces a run, e.g. after uninstalling an app by
+  # hand. Replaces nix-darwin's script, so keep it in step with
+  # system.activationScripts.homebrew in nix-darwin's modules/homebrew.nix.
+  system.activationScripts.homebrew.text = lib.mkForce ''
+    # Homebrew Bundle
+    echo >&2 "Homebrew bundle..."
+    if [ ! -f "${cfg.prefix}/bin/brew" ]; then
+      echo -e "\e[1;31merror: Homebrew is not installed, skipping...\e[0m" >&2
+    elif [ "$(cat '${bundleStamp}' 2>/dev/null)" = '${bundleKey}' ]; then
+      echo >&2 "Brewfile unchanged, skipping (rm ${bundleStamp} to force)"
+    else
+      ${bundleCmd}
+      sudo --user=${lib.escapeShellArg cfg.user} --set-home \
+        sh -c 'mkdir -p "$(dirname "$1")" && printf "%s\n" "$2" > "$1"' _ '${bundleStamp}' '${bundleKey}'
+    fi
+  '';
 }
