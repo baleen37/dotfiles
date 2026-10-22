@@ -54,6 +54,7 @@ let
           log="$VSCODE_TEST_LOG"
           case "$1" in
             -dump)
+              printf 'dump\n' >> "$log"
               while IFS= read -r path; do
                 printf 'path: %s\nidentifier: com.microsoft.VSCode\n' "$path"
               done < "$state"
@@ -125,6 +126,12 @@ let
           ${pkgs.bash}/bin/bash ${scriptPath} repair
           cmp -s "$test_root/state-after-first-repair" "$state"
           test "$(grep -Fc 'unregister /nix/store/fake-vscode/Applications/Visual Studio Code.app' "$log")" -eq 1
+
+          # A repair that finds nothing to fix dumps LaunchServices once, not twice.
+          dumps_before=$(grep -Fcx dump "$log")
+          ${pkgs.bash}/bin/bash ${scriptPath} repair > "$test_root/repair-healthy"
+          test "$(( $(grep -Fcx dump "$log") - dumps_before ))" -eq 1
+          grep -Fq 'nix_registered=none' "$test_root/repair-healthy"
 
           ${pkgs.bash}/bin/bash ${scriptPath} audit > "$test_root/audit-after"
           grep -Fq "representative=$app" "$test_root/audit-after"
