@@ -24,7 +24,6 @@ let
   darwinOnly = [
     "hammerspoon"
     "karabiner"
-    "neru"
     "raycast"
   ];
 
