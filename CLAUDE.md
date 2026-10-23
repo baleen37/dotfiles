@@ -173,7 +173,7 @@ does not change host metadata.
 **Module enable pattern** (`modules.programs.<name>`, `modules.packages.<name>`):
 
 - Every discovered module declares `options.modules.<category>.<name>.enable`, named after its file, with `lib.mkEnableOption "..." // { default = true; }`. `home-manager.nix` sets no enable flags; `unit-platform-defaults` fails on a bare `mkEnableOption` (default `false`).
-- Darwin-only modules (`hammerspoon`, `karabiner`, `neru`, `raycast`) use `default = pkgs.stdenv.hostPlatform.isDarwin` instead; add new ones to `darwinOnly` in `tests/unit/platform-defaults-test.nix`.
+- Darwin-only modules (`hammerspoon`, `karabiner`, `raycast`) use `default = pkgs.stdenv.hostPlatform.isDarwin` instead; add new ones to `darwinOnly` in `tests/unit/platform-defaults-test.nix`.
 - Helper `.nix` files a module imports belong inside that module's directory (as in `zsh/`), not at the top of `programs/` or `packages/`.
 - To disable a module on a specific machine, add it to that host's `homeModules` in `flake-modules/hosts.nix` (e.g., `modules.programs.hammerspoon.enable = false;`).
 
