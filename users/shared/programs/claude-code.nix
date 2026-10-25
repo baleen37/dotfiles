@@ -10,8 +10,8 @@
 # symlinks, because Claude Code mutates them at runtime (e.g.
 # feedbackSurveyState and plugin toggles). They are only copied when absent so
 # local edits and runtime writes are preserved across rebuilds. The worktree
-# hook is declarative and is refreshed on every switch so its path rule stays
-# synchronized with wt.
+# hooks are declarative and are refreshed on every switch so their path rule
+# stays synchronized with wt.
 
 { config, lib, ... }:
 
@@ -37,8 +37,11 @@ in
       done
       run cp ${src}/setup-worktree.sh ~/.claude/setup-worktree.sh
       run chmod u+w ~/.claude/setup-worktree.sh
+      run cp ${src}/remove-worktree.sh ~/.claude/remove-worktree.sh
+      run chmod u+w ~/.claude/remove-worktree.sh
       run chmod +x ~/.claude/statusline.sh
       run chmod +x ~/.claude/setup-worktree.sh
+      run chmod +x ~/.claude/remove-worktree.sh
     '';
   };
 }

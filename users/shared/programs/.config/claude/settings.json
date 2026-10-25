@@ -40,6 +40,17 @@
           }
         ]
       }
+    ],
+    "WorktreeRemove": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/remove-worktree.sh"
+          }
+        ]
+      }
     ]
   },
   "statusLine": {
