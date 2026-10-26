@@ -159,14 +159,20 @@ end
 
 local OverlayManager = {}
 
+local OVERLAY_IDLE_ALPHA = 0.75
+local OVERLAY_COLORS = {
+  work = {red = 1, green = 0.42, blue = 0.35, alpha = 1},
+  break_ = {red = 0.35, green = 0.85, blue = 0.55, alpha = 1},
+}
+
 function OverlayManager.create()
   OverlayManager.cleanup()
 
   local screen = hs.screen.mainScreen()
   local frame = screen:frame()
 
-  local canvasWidth = 200
-  local canvasHeight = 60
+  local canvasWidth = 132
+  local canvasHeight = 44
   local padding = 20
 
   -- Load saved position or use default
@@ -187,17 +193,34 @@ function OverlayManager.create()
     h = canvasHeight
   })
 
+  -- Dark pill keeps the countdown readable on any background
   canvas[1] = {
-    type = "text",
-    text = "",
-    textFont = "SF Pro Display",
-    textSize = 48,
-    textColor = {red = 1, green = 0.4, blue = 0.4, alpha = 0.3},
-    textAlignment = "right",
+    type = "rectangle",
+    fillColor = {white = 0, alpha = 0.6},
+    roundedRectRadii = {xRadius = 10, yRadius = 10},
     trackMouseEnterExit = true,
     frame = {x = 0, y = 0, w = canvasWidth, h = canvasHeight}
   }
 
+  -- Monospaced digits so the text does not jitter every second
+  canvas[2] = {
+    type = "text",
+    text = "",
+    textFont = "Menlo-Bold",
+    textSize = 26,
+    textColor = OVERLAY_COLORS.work,
+    textAlignment = "center",
+    frame = {x = 0, y = 4, w = canvasWidth, h = canvasHeight - 8}
+  }
+
+  -- Progress bar along the bottom edge
+  canvas[3] = {
+    type = "rectangle",
+    fillColor = OVERLAY_COLORS.work,
+    frame = {x = 10, y = canvasHeight - 5, w = 0, h = 3}
+  }
+
+  canvas:alpha(OVERLAY_IDLE_ALPHA)
   canvas:level(hs.drawing.windowLevels.floating)
   canvas:behavior({
     hs.drawing.windowBehaviors.canJoinAllSpaces,
@@ -207,9 +230,9 @@ function OverlayManager.create()
   -- Mouse event handlers for hover and dragging
   canvas:mouseCallback(function(c, event, id, x, y)
     if event == "mouseEnter" then
-      c[1].textColor = {red = 1, green = 0.4, blue = 0.4, alpha = 1.0}
+      c:alpha(1.0)
     elseif event == "mouseExit" then
-      c[1].textColor = {red = 1, green = 0.4, blue = 0.4, alpha = 0.3}
+      c:alpha(OVERLAY_IDLE_ALPHA)
     elseif event == "mouseDown" then
       State.isDragging = true
       State.dragStartPos = hs.mouse.getAbsolutePosition()
@@ -237,7 +260,17 @@ function OverlayManager.update()
   if not UI.overlayCanvas then return end
 
   if State.timerRunning then
-    UI.overlayCanvas[1].text = formatTime(State.timeLeft)
+    local color = State.isBreak and OVERLAY_COLORS.break_ or OVERLAY_COLORS.work
+    local total = State.isBreak and obj.config.breakDuration or obj.config.workDuration
+    local progress = math.max(0, math.min(1, 1 - State.timeLeft / total))
+    local canvasFrame = UI.overlayCanvas:frame()
+
+    UI.overlayCanvas[2].text = formatTime(State.timeLeft)
+    UI.overlayCanvas[2].textColor = color
+    UI.overlayCanvas[3].fillColor = color
+    UI.overlayCanvas[3].frame = {
+      x = 10, y = canvasFrame.h - 5, w = (canvasFrame.w - 20) * progress, h = 3
+    }
     UI.overlayCanvas:show()
   else
     UI.overlayCanvas:hide()
@@ -445,7 +478,7 @@ local function updateMenubarDisplay()
   if not UI.menubarItem then return end
 
   if not State.timerRunning then
-    UI.menubarItem:setTitle("🍅 Ready")
+    UI.menubarItem:setTitle("🍅")
   else
     local emoji = State.isBreak and "☕" or "🍅"
     UI.menubarItem:setTitle(emoji .. " " .. formatTime(State.timeLeft))
