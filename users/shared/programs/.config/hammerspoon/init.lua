@@ -107,24 +107,8 @@ end
 -- Initialize Pomodoro Spoon
 Pomodoro = spoon.Pomodoro
 
--- Push to iPhone (and Apple Watch) via ntfy. The topic works like a password,
--- so it lives in hs.settings instead of this repo:
---   hs.settings.set("pomodoro.ntfyTopic", "<topic>")
--- Priority 4 maps to an iOS Time Sensitive alert, which breaks through the Pomodoro Focus.
-local function notifyPhone(message)
-  local topic = hs.settings.get("pomodoro.ntfyTopic")
-  if not topic then return end
-  hs.http.asyncPost("https://ntfy.sh/" .. topic, message, { Title = "Pomodoro", Priority = "4" }, function() end)
-end
-
 -- Start/break/complete already show the Spoon's centered modal; only stop needs an alert.
 Pomodoro:init({
-  onBreakStart = function()
-    notifyPhone("🍅 25 min done, take a 5 min break")
-  end,
-  onComplete = function()
-    notifyPhone("✅ Session complete")
-  end,
   onStopped = function()
     hs.alert.show("⏹️ Pomodoro 세션 중지됨", 2)
   end
