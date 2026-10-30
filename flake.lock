@@ -511,11 +511,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1792455043,
-        "narHash": "sha256-Y2S14ZrOh1+JdtWXqGCxghKLw3aClPF+J50DsaeMfYw=",
+        "lastModified": 1792567655,
+        "narHash": "sha256-Hfaq0QfdJ3d+V2K3nsRtGgynsf6DNQjNctOEKKcXKcw=",
         "owner": "baleen37",
         "repo": "worktree",
-        "rev": "b03597134e9cf6bb909807f7a288d52c839b6138",
+        "rev": "7fafe0240b9782c37ffd80a9ca4a81b9b0b1ac46",
         "type": "github"
       },
       "original": {
