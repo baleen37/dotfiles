@@ -31,5 +31,15 @@ in
       recursive = true;
       force = true;
     };
+
+    # macOS /bin/zsh (system ncurses) reads TERMINFO_DIRS only once at startup,
+    # so the nix-darwin/Home Manager TERMINFO_DIRS export arrives too late. A
+    # shell started without Ghostty's TERMINFO (e.g. a herdr pane) then fails
+    # with "can't find terminal definition for xterm-ghostty". ~/.terminfo is in
+    # ncurses' built-in search path, so it resolves from the first lookup.
+    home.file.".terminfo" = lib.mkIf isDarwin {
+      source = "${pkgs.ghostty-bin.terminfo}/share/terminfo";
+      recursive = true;
+    };
   };
 }
