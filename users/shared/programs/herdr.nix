@@ -148,8 +148,11 @@ in
       ]
 
       [keys]
-      # prefix+a moves focus to the next agent in the Agents list.
-      next_agent = "prefix+a"
+      # prefix+a or alt+] moves focus to the next agent in the Agents list,
+      # alt+[ to the previous one. herdr pushes the kitty keyboard protocol,
+      # so Ghostty sends alt+[ as its own key, not the ESC [ that starts CSI.
+      next_agent = ["prefix+a", "alt+]"]
+      previous_agent = "alt+["
       prefix = "ctrl+a"
       detach = "prefix+d"
       split_vertical = "prefix+|"

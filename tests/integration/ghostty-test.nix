@@ -61,6 +61,11 @@ let
       ghosttyConfigUsable && !(ghosttyConfig.home.sessionVariables or { } ? TERMINFO_DIRS)
     ) "Ghostty should use the standard terminal database lookup path")
 
+    (helpers.assertTest "ghostty-terminfo-in-home" (
+      ghosttyConfigUsable
+      && ghosttyConfig.home.file.".terminfo".condition == pkgs.stdenv.hostPlatform.isDarwin
+    ) "macOS /bin/zsh ignores TERMINFO_DIRS set after startup; ~/.terminfo must carry xterm-ghostty")
+
     # Test that home.file exists for config symlink
     (helpers.assertTest "ghostty-has-file-config" (
       ghosttyConfigUsable

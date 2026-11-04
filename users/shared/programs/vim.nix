@@ -44,7 +44,12 @@ in
       enable = true;
       # Terminal vim only: the default GTK GUI build of vim-full no longer
       # builds on Darwin with this nixpkgs, and gvim is not used.
-      packageConfigurable = pkgs.vim-full.override { guiSupport = "none"; };
+      # darwinSupport restores +clipboard on macOS, which the GUI build used to
+      # provide; without it `set clipboard=autoselect` fails with E474.
+      packageConfigurable = pkgs.vim-full.override {
+        guiSupport = "none";
+        darwinSupport = pkgs.stdenv.hostPlatform.isDarwin;
+      };
 
       plugins = with pkgs.vimPlugins; [
         vim-airline
