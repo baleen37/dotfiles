@@ -99,7 +99,7 @@ let
   );
 
   expectedAppLaunchers = {
-    i = "com.mitchellh.ghostty";
+    i = "dev.herdr.app";
     e = "com.apple.mail";
     h = "com.kapeli.dashdoc";
     k = "com.kakao.KakaoTalkMac";

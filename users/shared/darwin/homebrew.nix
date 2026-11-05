@@ -1,7 +1,7 @@
 # Homebrew Configuration
 #
 # GUI applications and Mac App Store apps managed via Homebrew.
-# Casks, brews, taps, and MAS apps.
+# Casks, taps, and MAS apps.
 
 { config, lib, ... }:
 
@@ -15,7 +15,7 @@ let
   # Homebrew Cask definitions (GUI applications)
   homebrew-casks = [
     # Development Tools
-    "ghostty" # GPU-accelerated terminal emulator
+    "herdr-app" # Herdr desktop app for terminals and coding agents
     "visual-studio-code" # Code editor (not via nix: store-path launches stamp com.apple.macl and block GC)
 
     # Fonts
@@ -103,10 +103,13 @@ in
       echo -e "\e[1;31merror: Homebrew is not installed, skipping...\e[0m" >&2
     elif [ "$(cat '${bundleStamp}' 2>/dev/null)" = '${bundleKey}' ]; then
       echo >&2 "Brewfile unchanged, skipping (rm ${bundleStamp} to force)"
-    else
-      ${bundleCmd}
+    elif ${bundleCmd}; then
       sudo --user=${lib.escapeShellArg cfg.user} --set-home \
         sh -c 'mkdir -p "$(dirname "$1")" && printf "%s\n" "$2" > "$1"' _ '${bundleStamp}' '${bundleKey}'
+    else
+      # Under `set -e` a failed bundle (e.g. masApps while signed out of the App
+      # Store) would abort the rest of activation; no stamp, so the next switch retries.
+      echo -e "\e[1;33mwarning: brew bundle failed, continuing (it is retried on the next switch)\e[0m" >&2
     fi
   '';
 }
