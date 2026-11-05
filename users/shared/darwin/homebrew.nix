@@ -87,7 +87,11 @@ in
     # Additional Homebrew taps for specialized packages and development tools
     # Note: homebrew/cask is now built into Homebrew by default (since 2023)
     taps = [
-      "Sanyam-G/switch" # switch window switcher
+      # switch window switcher. Homebrew 6 ignores casks from an untrusted tap.
+      {
+        name = "Sanyam-G/switch";
+        trusted = true;
+      }
     ];
   };
 

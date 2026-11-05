@@ -87,8 +87,9 @@ in
       )
 
       (helpers.assertTest "switch-cask-configured" (
-        lib.elem "Sanyam-G/switch/switch" homebrewCasks && lib.elem "Sanyam-G/switch" homebrewTaps
-      ) "Switch should be installed from its Homebrew tap")
+        lib.elem "Sanyam-G/switch/switch" homebrewCasks
+        && lib.any (t: (t.name or t) == "Sanyam-G/switch" && (t.trusted or false)) homebrewTaps
+      ) "Switch should be installed from its Homebrew tap, trusted so Homebrew 6 loads the cask")
 
       (helpers.assertTest "magnet-not-configured" (
         !(darwinConfig.homebrew.masApps ? Magnet) && !(lib.hasInfix "441258766" homebrewExtraConfig)
