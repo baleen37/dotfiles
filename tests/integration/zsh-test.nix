@@ -249,7 +249,7 @@ in
       "shell() function for nix shell should exist"
     )
     (helpers.assertTest "alias-assh-exists" (initContentHas "alias assh=")
-      "assh alias for autossh should exist (plain ssh is delegated to Ghostty's wrapper)"
+      "assh alias for autossh should exist"
     )
 
     # Rust worktree CLI shell integration

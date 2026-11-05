@@ -8,10 +8,7 @@
 # - assh: autossh alias for long-lived connections
 # - setup_ssh_agent_for_gui(): SSH agent for GUI apps
 #
-# Note: ssh() is intentionally NOT overridden. Ghostty's shell integration
-# installs its own ssh() that ships xterm-ghostty terminfo to remote hosts
-# (ssh-terminfo); wrapping ssh here would shadow that. Keepalive options live
-# in ~/.ssh/config (programs.ssh module).
+# Keepalive options for plain ssh live in ~/.ssh/config (programs.ssh module).
 
 ''
   # Clear input modes left behind when a remote full-screen app exits without
@@ -25,9 +22,6 @@
   #   them, including bits kitty may add later. Without this the terminal keeps
   #   reporting keys as escape sequences and typing emits stray `1;1:3u`.
   # Bracketed paste: \e[?2004l
-  #
-  # term = xterm-ghostty is the actual fix; this hook is the safety net for
-  # remote programs that still exit uncleanly.
   _reset_terminal_input_modes() {
     [[ -t 1 ]] || return 0
     printf '\e[?1000l\e[?1002l\e[?1003l\e[?1006l\e[?1015l\e[<u\e[=0;1u\e[?2004l'
@@ -59,8 +53,6 @@
   }
 
   # autossh for long-lived connections that need auto-reconnect.
-  # Plain `ssh` goes through Ghostty's shell-integration wrapper which
-  # installs xterm-ghostty terminfo on the remote — don't shadow it.
   alias assh='AUTOSSH_POLL=60 AUTOSSH_FIRST_POLL=30 autossh -M 0 -o ServerAliveInterval=30 -o ServerAliveCountMax=3'
 
   # SSH agent setup for GUI applications

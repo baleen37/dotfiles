@@ -7,7 +7,7 @@
 #   - Default split bindings: % (left/right), " (top/bottom), kept at the current path
 #   - Vim-style pane navigation: h/j/k/l
 #   - Vi-style copy mode with tmux-native OSC52 clipboard support
-#   - Truecolor (RGB) + undercurl inherited from xterm-ghostty terminfo
+#   - Truecolor (RGB) and extended keys for the xterm-256color outer terminal
 #   - Cross-platform: Works on macOS, Linux, and remote SSH
 #   - Seamless Vim integration: vim-tmux-navigator plugin
 #
@@ -124,7 +124,7 @@ in
             set -g allow-rename off
             set -g destroy-unattached off
 
-            # Propagate session + active pane title to the Ghostty tab/window title.
+            # Propagate session + active pane title to the outer terminal's title.
             # Complements allow-rename off: that only blocks window-name renames;
             # pane titles (OSC 2) still flow, which is how coding agents (Claude
             # Code etc.) report their status (spinner = working, ✳ = waiting).
@@ -185,11 +185,11 @@ in
             bind-key -T copy-mode-vi r send-keys -X rectangle-toggle
             bind-key -T copy-mode-vi Escape send-keys -X cancel
 
-            # OSC52 clipboard integration. The xterm-ghostty terminfo carries the Ms
-            # capability, so tmux emits OSC52 itself on copy — no manual printf hack
-            # needed. 'on' (vs 'external') also lets apps inside tmux (Neovim/agent
+            # OSC52 clipboard integration. tmux's built-in xterm* terminal-features
+            # include clipboard, so tmux emits OSC52 itself on copy — no manual printf
+            # hack needed. 'on' (vs 'external') also lets apps inside tmux (Neovim/agent
             # OSC52 yank) populate the clipboard. Keep raw DCS passthrough disabled so
-            # terminal state changes from pane applications cannot leak to Ghostty.
+            # terminal state changes from pane applications cannot leak outside tmux.
             set -s set-clipboard on
             set -g allow-passthrough off
 
@@ -201,22 +201,17 @@ in
             # ============================================================================
             # Terminal capabilities
             # ============================================================================
-            # Truecolor (RGB). terminal-features matches the OUTER terminal's TERM,
-            # which is xterm-ghostty under Ghostty. The xterm-ghostty terminfo also
-            # already advertises Smulx/Setulc (undercurl) and Ss/Se (cursor shape),
-            # so no manual terminal-overrides are needed for those.
-            set -as terminal-features ',xterm-ghostty:RGB'
-
-            # Mosh 1.4 preserves truecolor and exports COLORTERM=truecolor, but its
-            # outer terminal is xterm-256color rather than xterm-ghostty.
+            # Truecolor (RGB). terminal-features matches the OUTER terminal's TERM:
+            # xterm-256color under Herdr and under Mosh 1.4, both of which carry
+            # truecolor even though the terminfo entry does not say so.
             set -as terminal-features ',xterm-256color:RGB'
 
-            # Extended keys (CSI u). Ghostty speaks the CSI-u encoding; tmux 3.6
-            # defaults extended-keys-format to xterm form, so set csi-u explicitly
-            # for modifier combos (e.g. Shift+Enter) to reach apps inside tmux.
+            # Extended keys (CSI u). tmux 3.6 defaults extended-keys-format to xterm
+            # form, so set csi-u explicitly for modifier combos (e.g. Shift+Enter) to
+            # reach apps inside tmux.
             set-option -g extended-keys on
             set-option -s extended-keys-format csi-u
-            set -as terminal-features ',xterm-ghostty:extkeys'
+            set -as terminal-features ',xterm-256color:extkeys'
 
             # ============================================================================
             # Status bar
