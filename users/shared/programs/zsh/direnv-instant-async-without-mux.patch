@@ -1,0 +1,85 @@
+From 3f10698c2cf74dbd7dbeb188856abff99586959c Mon Sep 17 00:00:00 2001
+From: Jiho Lee <jito.hello@kakaostyle.com>
+Date: Thu, 5 Nov 2026 15:19:43 +0900
+Subject: [PATCH] start: opt into the daemon without a multiplexer
+
+DIRENV_INSTANT_ASYNC_WITHOUT_MUX=1 makes start use the daemon even when no
+multiplexer is detected, so the prompt never waits on direnv. The daemon
+already handles a missing multiplexer by not opening a watch pane.
+---
+ src/commands/start.rs        |  6 +++--
+ tests/no_mux_async_opt_in.rs | 46 ++++++++++++++++++++++++++++++++++++
+ 2 files changed, 50 insertions(+), 2 deletions(-)
+ create mode 100644 tests/no_mux_async_opt_in.rs
+
+diff --git a/src/commands/start.rs b/src/commands/start.rs
+index 8f5bd0e..dc38192 100644
+--- a/src/commands/start.rs
++++ b/src/commands/start.rs
+@@ -49,8 +49,10 @@ pub fn run() {
+         &envrc_dir.display().to_string(),
+     );
+
+-    // If not in a multiplexer, just run direnv synchronously
+-    if Multiplexer::detect().is_none() {
++    // If not in a multiplexer, just run direnv synchronously, unless the
++    // user opted into the daemon anyway (it then never opens a watch pane).
++    let async_without_mux = env::var("DIRENV_INSTANT_ASYNC_WITHOUT_MUX").is_ok_and(|x| x == "1");
++    if Multiplexer::detect().is_none() && !async_without_mux {
+         run_direnv_sync(direnv, shell, true);
+         return;
+     }
+diff --git a/tests/no_mux_async_opt_in.rs b/tests/no_mux_async_opt_in.rs
+new file mode 100644
+index 0000000..480a752
+--- /dev/null
++++ b/tests/no_mux_async_opt_in.rs
+@@ -0,0 +1,46 @@
++//! With `DIRENV_INSTANT_ASYNC_WITHOUT_MUX=1`, `start` uses the daemon even
++//! when no multiplexer is detected, so the prompt does not wait on direnv.
++
++mod common;
++use common::*;
++use std::fs;
++use std::path::PathBuf;
++use std::time::{Duration, Instant};
++
++#[test]
++fn no_mux_async_opt_in_returns_immediately() {
++    let sb = Sandbox::new("sleep 2\nexport NO_MUX_ASYNC=success\n").unwrap();
++    let sink = SignalSink::new().unwrap();
++    let mut env = sb.base_env();
++    env.insert("DIRENV_INSTANT_ASYNC_WITHOUT_MUX".into(), "1".into());
++    env.insert(
++        "DIRENV_INSTANT_SHELL_PID".into(),
++        sink.pid().to_string().into(),
++    );
++
++    let t0 = Instant::now();
++    let out = sb.run(&["start"], &env).unwrap();
++    let elapsed = t0.elapsed();
++
++    assert!(
++        out.status.success(),
++        "{}",
++        String::from_utf8_lossy(&out.stderr)
++    );
++    assert!(
++        elapsed.as_secs_f64() < 1.5,
++        "blocked on direnv: {elapsed:?}"
++    );
++
++    let exports = parse_exports(&String::from_utf8_lossy(&out.stdout));
++    let env_file = PathBuf::from(&exports["__DIRENV_INSTANT_ENV_FILE"]);
++    assert!(
++        wait_for_file(&env_file, Duration::from_secs(30)),
++        "env file not created"
++    );
++    assert!(
++        fs::read_to_string(&env_file)
++            .unwrap()
++            .contains("NO_MUX_ASYNC")
++    );
++}
+--
+2.56.0
