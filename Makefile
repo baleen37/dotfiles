@@ -19,6 +19,10 @@ SSH_OPTIONS=-o PubkeyAuthentication=no -o UserKnownHostsFile=/dev/null -o Strict
 NIX_PATH := $(shell which nix 2>/dev/null || echo "nix")
 NIX := $(NIX_PATH) --extra-experimental-features nix-command --extra-experimental-features flakes
 DARWIN_REBUILD := /run/current-system/sw/bin/darwin-rebuild
+# A host declared only in the gitignored flake-modules/hosts.local.nix (written
+# by install.sh) is invisible to a git flake reference, so read the directory
+# directly while that file exists.
+DARWIN_FLAKE := $(if $(wildcard $(MAKEFILE_DIR)/flake-modules/hosts.local.nix),path:$(MAKEFILE_DIR),.)
 # `make switch` runs `nh clean all` afterwards: GC cannot free a closure an old
 # generation still references, so expiring them is what reclaims the space.
 # It runs in the background so the switch returns without waiting on a full GC.
@@ -44,7 +48,7 @@ build-switch: switch
 
 switch:
 ifeq ($(UNAME), Darwin)
-	sudo -H $(DARWIN_REBUILD) switch --flake ".#$(NIXNAME)"
+	sudo -H env NIX_CONFIG='accept-flake-config = true' $(DARWIN_REBUILD) switch --flake "$(DARWIN_FLAKE)#$(NIXNAME)"
 # -n: a background job cannot answer a password prompt. The sudoers rule on
 # kakaostyle-jito, or the timestamp darwin-rebuild just cached, covers it.
 	@nohup sudo -n -H $(NH) clean all --keep 3 >"$(NH_CLEAN_LOG)" 2>&1 &
@@ -131,7 +135,7 @@ test-containers:
 # cachix authentication to be configured out of band.
 cache:
 ifeq ($(UNAME), Darwin)
-	nix build '.#darwinConfigurations.$(NIXNAME).system' --accept-flake-config --json \
+	nix build '$(DARWIN_FLAKE)#darwinConfigurations.$(NIXNAME).system' --accept-flake-config --json \
 		| jq -r '.[].outputs | to_entries[].value' \
 		| cachix push baleen-nix
 else

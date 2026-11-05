@@ -24,6 +24,22 @@ runner.
 
 ### Installation
 
+On a fresh machine, one command does everything below that is needed
+(Xcode CLT, Determinate Nix, Homebrew, host registration, first activation):
+
+```bash
+./install.sh            # host name defaults to `hostname -s`
+./install.sh my-host    # or pick one explicitly
+```
+
+If the host is not in `flake-modules/hosts.nix`, it is written for the current
+user to `flake-modules/hosts.local.nix`, which is gitignored: no tracked file
+changes, nothing to commit. The Makefile reads the flake through `path:` while
+that file exists. Nix and Homebrew installers are pinned by version and
+SHA256 and verified before they run. Afterwards plain `make` works.
+
+Manual steps:
+
 ```bash
 # 1. Clone
 git clone git@github.com:baleen37/dotfiles.git  # or https://github.com/baleen37/dotfiles.git

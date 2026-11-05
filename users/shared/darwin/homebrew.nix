@@ -24,7 +24,6 @@ let
     # Communication Tools
     "notion"
     "slack"
-    "zoom"
     "obsidian"
 
     # Utility Tools
@@ -33,9 +32,6 @@ let
     "Sanyam-G/switch/switch" # Keyboard-driven window switcher
     "orbstack" # Docker and Linux VM management
     "tailscale-app" # VPN mesh network with GUI
-
-    # Entertainment Tools
-    "vlc"
 
     # Productivity Tools
     "raycast"
@@ -56,11 +52,6 @@ in
   homebrew = {
     enable = true;
     casks = homebrew-casks;
-
-    # Development Services Configuration
-    brews = [
-      "daipeihust/tap/im-select" # Switch input method from terminal (for Obsidian Vim IME control)
-    ];
 
     # Performance Optimization: Selective Cleanup Strategy
     # Prevents unexpected interruptions during development while maintaining system hygiene
@@ -96,7 +87,6 @@ in
     # Additional Homebrew taps for specialized packages and development tools
     # Note: homebrew/cask is now built into Homebrew by default (since 2023)
     taps = [
-      "daipeihust/tap" # im-select
       "Sanyam-G/switch" # switch window switcher
     ];
   };
