@@ -27,8 +27,8 @@ let
   # Discover via: osascript -e 'tell application "System Events" to get name of every application process'
   hyperApps = {
     i = {
-      bundle = "com.mitchellh.ghostty";
-      proc = "ghostty";
+      bundle = "dev.herdr.app";
+      proc = "Herdr";
     };
     e = {
       bundle = "com.apple.mail";

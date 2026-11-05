@@ -9,7 +9,6 @@ applications_dir="${DARWIN_ACTIVATION_APPLICATIONS_DIR:-/Applications}"
 mdutil="${DARWIN_ACTIVATION_MDUTIL:-/usr/bin/mdutil}"
 mdls="${DARWIN_ACTIVATION_MDLS:-/usr/bin/mdls}"
 mdimport="${DARWIN_ACTIVATION_MDIMPORT:-/usr/bin/mdimport}"
-systemsetup="${DARWIN_ACTIVATION_SYSTEMSETUP:-/usr/sbin/systemsetup}"
 
 fail() {
   echo "darwin-activation: $*" >&2
@@ -30,20 +29,6 @@ spotlight() {
   adam_id=$("$mdls" -raw -name kMDItemAppStoreAdamID "$app" 2> /dev/null || true)
   if [ -d "$app" ] && { [ -z "$adam_id" ] || [ "$adam_id" = "(null)" ]; }; then
     "$mdimport" "$app" 2> /dev/null || true
-  fi
-}
-
-# Enables macOS Remote Login so the machine accepts incoming SSH connections.
-# nix-darwin has no dedicated option for this, so we toggle it via systemsetup.
-# Idempotent: only flips the setting when it is currently off.
-remote_login() {
-  echo "Enabling Remote Login (SSH)..." >&2
-
-  if "$systemsetup" -getremotelogin 2> /dev/null | grep -q "On"; then
-    echo "  ✓  Remote Login already enabled" >&2
-  else
-    "$systemsetup" -setremotelogin -f on >&2
-    echo "  Remote Login enabled" >&2
   fi
 }
 
@@ -97,13 +82,10 @@ case "${1:-}" in
   spotlight)
     spotlight
     ;;
-  remote-login)
-    remote_login
-    ;;
   app-cleanup)
     app_cleanup
     ;;
   *)
-    fail "usage: $0 {spotlight|remote-login|app-cleanup}"
+    fail "usage: $0 {spotlight|app-cleanup}"
     ;;
 esac

@@ -1,5 +1,5 @@
 # Darwin activation is tested with fake tools so the check never touches the
-# host's Spotlight index, Remote Login setting, or installed applications. The
+# host's Spotlight index or installed applications. The
 # script is plain bash, so it runs on Linux builders too.
 {
   pkgs,
@@ -52,14 +52,6 @@ let
           printf 'mdimport %s\n' "$*" >> "$DARWIN_TEST_LOG"
           EOF
 
-          cat > "$fake_bin/systemsetup" <<'EOF'
-          #!/bin/sh
-          set -eu
-          printf 'systemsetup %s\n' "$*" >> "$DARWIN_TEST_LOG"
-          if [ "$1" = -getremotelogin ]; then
-            printf 'Remote Login: %s\n' "$DARWIN_TEST_REMOTE_LOGIN"
-          fi
-          EOF
           chmod +x "$fake_bin"/*
 
           export DARWIN_TEST_LOG="$log"
@@ -67,7 +59,6 @@ let
           export DARWIN_ACTIVATION_MDUTIL="$fake_bin/mdutil"
           export DARWIN_ACTIVATION_MDLS="$fake_bin/mdls"
           export DARWIN_ACTIVATION_MDIMPORT="$fake_bin/mdimport"
-          export DARWIN_ACTIVATION_SYSTEMSETUP="$fake_bin/systemsetup"
           export PATH="${pkgs.coreutils}/bin:${pkgs.gnugrep}/bin"
 
           # `! cmd` never trips `set -e`, so negative assertions need an explicit exit.
@@ -103,29 +94,6 @@ let
           export DARWIN_TEST_ADAM_ID=""
           run spotlight
           refute grep -q '^mdimport ' "$log"
-
-          # Remote Login off: turn it on.
-          export DARWIN_TEST_REMOTE_LOGIN=Off
-          run remote-login
-          grep -Fqx 'systemsetup -setremotelogin -f on' "$log"
-
-          # Remote Login already on: leave it alone.
-          export DARWIN_TEST_REMOTE_LOGIN=On
-          run remote-login
-          grep -Fqx 'systemsetup -getremotelogin' "$log"
-          refute grep -Fq -- '-setremotelogin' "$log"
-          grep -Fq 'Remote Login already enabled' "$test_root/stderr"
-
-          # A failing systemsetup must abort, as the inline segment did under set -e.
-          cat > "$fake_bin/systemsetup-broken" <<'EOF'
-          #!/bin/sh
-          exit 3
-          EOF
-          chmod +x "$fake_bin/systemsetup-broken"
-          if DARWIN_ACTIVATION_SYSTEMSETUP="$fake_bin/systemsetup-broken" run remote-login; then
-            echo "remote-login unexpectedly succeeded when systemsetup failed" >&2
-            exit 1
-          fi
 
           # App cleanup removes listed apps, keeps unlisted ones, and counts a
           # removal it cannot complete (SIP) as skipped instead of failing.

@@ -1,6 +1,6 @@
 # Zsh AI CLI shortcut tests
 #
-# Verifies the retained cc/co/oc commands under a real Zsh with fake CLIs.
+# Verifies the retained cc/co commands under a real Zsh with fake CLIs.
 {
   inputs,
   system,
@@ -55,23 +55,16 @@ let
         printf '%s\n' "$@" > "$CODEX_ARGS"
         EOF
 
-        cat > bin/opencode <<'EOF'
-        #!/bin/sh
-        printf '%s\n' "$@" > "$OPENCODE_ARGS"
-        EOF
-
-        chmod +x bin/claude bin/codex bin/opencode
+        chmod +x bin/claude bin/codex
 
         cat > shortcuts.zsh <<'EOF'
         ${claudeWrapper}
         alias co=${lib.escapeShellArg aliases.co}
-        alias oc=${lib.escapeShellArg aliases.oc}
         EOF
 
         PATH="$PWD/bin:$PATH" \
         CLAUDE_ARGS="$PWD/claude.args" \
         CODEX_ARGS="$PWD/codex.args" \
-        OPENCODE_ARGS="$PWD/opencode.args" \
         zsh -f <<'EOF'
         source ./shortcuts.zsh
 
@@ -98,10 +91,6 @@ let
         printf '%s\n' \
           --dangerously-bypass-approvals-and-sandbox > expected-codex.args
         diff -u expected-codex.args "$CODEX_ARGS"
-
-        oc run
-        printf '%s\n' run > expected-opencode.args
-        diff -u expected-opencode.args "$OPENCODE_ARGS"
 
         for name in \
           _cc_run _cc_parse_model_flags \
@@ -208,7 +197,7 @@ in
 {
   platforms = [ "any" ];
   value = {
-    # cc/co/oc runtime behavior
+    # cc/co runtime behavior
     runtime = runtimeTest;
     # Claude keychain lazy-unlock behavior
     keychain-runtime = darwinKeychainRuntimeTest;

@@ -47,8 +47,12 @@ pkgs.runCommand "makefile-switch-commands-test"
     # password.
     grep -q '^DARWIN_REBUILD := /run/current-system/sw/bin/darwin-rebuild$' "$makefileSource" \
       || fail "DARWIN_REBUILD must be the absolute allowlisted darwin-rebuild path"
+    # DARWIN_FLAKE is `.` unless install.sh wrote hosts.local.nix, so on an
+    # allowlisted host this expands to the rule's `.#<host>`.
+    grep -qF 'DARWIN_FLAKE := $(if $(wildcard $(MAKEFILE_DIR)/flake-modules/hosts.local.nix),path:$(MAKEFILE_DIR),.)' "$makefileSource" \
+      || fail "DARWIN_FLAKE must fall back to . so the switch matches the sudoers rule"
     echo "$darwinSwitch" | sed 's/^\t*//' \
-      | grep -qxF 'sudo -H $(DARWIN_REBUILD) switch --flake ".#$(NIXNAME)"' \
+      | grep -qxF 'sudo -H $(DARWIN_REBUILD) switch --flake "$(DARWIN_FLAKE)#$(NIXNAME)"' \
       || fail "Darwin switch must invoke exactly the command the sudoers rule allows"
 
     # Expiring generations after the switch is what lets GC free old closures;

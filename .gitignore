@@ -2,6 +2,9 @@
 result
 result-*
 
+# Machine-local host written by install.sh
+flake-modules/hosts.local.nix
+
 # Nix direnv
 .direnv/
 
