@@ -48,7 +48,7 @@ build-switch: switch
 
 switch:
 ifeq ($(UNAME), Darwin)
-	sudo -H env NIX_CONFIG='accept-flake-config = true' $(DARWIN_REBUILD) switch --flake "$(DARWIN_FLAKE)#$(NIXNAME)"
+	sudo -H $(DARWIN_REBUILD) switch --flake "$(DARWIN_FLAKE)#$(NIXNAME)"
 # -n: a background job cannot answer a password prompt. The sudoers rule on
 # kakaostyle-jito, or the timestamp darwin-rebuild just cached, covers it.
 	@nohup sudo -n -H $(NH) clean all --keep 3 >"$(NH_CLEAN_LOG)" 2>&1 &

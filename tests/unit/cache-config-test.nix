@@ -118,7 +118,7 @@ helpers.testSuite "cache-config" [
   )
 
   (helpers.assertTest "make-cache-darwin-explicitly-accepts-flake-config"
-    (lib.hasInfix "nix build '.#darwinConfigurations.$(NIXNAME).system' --accept-flake-config --json" makefile)
+    (lib.hasInfix "nix build '$(DARWIN_FLAKE)#darwinConfigurations.$(NIXNAME).system' --accept-flake-config --json" makefile)
     "the Darwin make cache build must explicitly pass --accept-flake-config"
   )
 
