@@ -77,16 +77,12 @@ in
       zshSettings.completionInit == "autoload -Uz compinit && compinit -C"
     ) "zsh should use fast completion (compinit -C)")
 
-    # AI CLI shortcuts (cc, co, oc)
+    # AI CLI shortcuts (cc, co)
     (helpers.assertTest "function-cc-exists" (initContentHas "cc()") "cc() function should exist")
     (helpers.assertTest "alias-co-exists" (hasAlias "co") "alias 'co' should exist")
     (helpers.assertTest "alias-co-value"
       (aliasValueMatches "co" "codex --dangerously-bypass-approvals-and-sandbox")
       "alias 'co' should point to codex with permission bypass"
-    )
-    (helpers.assertTest "alias-oc-exists" (hasAlias "oc") "alias 'oc' should exist")
-    (helpers.assertTest "alias-oc-value" (aliasValueMatches "oc" "opencode")
-      "alias 'oc' should point to opencode"
     )
 
     # Git aliases

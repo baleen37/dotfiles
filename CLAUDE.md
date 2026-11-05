@@ -83,7 +83,7 @@ users/shared/
 │   ├── powerlevel10k.nix # Shell prompt
 │   ├── claude-code.nix  # Claude Code configuration
 │   ├── .config/claude/  # CLAUDE.md, settings, statusline deployed to ~/.claude
-│   └── ...              # codex, opencode, ghostty, hammerspoon, karabiner
+│   └── ...              # codex, hammerspoon, karabiner
 └── packages/             # Categorized package lists
     ├── core.nix         # Core CLI utilities
     ├── dev.nix          # Development tools
@@ -336,7 +336,7 @@ trusted-users = root @admin yourusername
 - **users/shared/darwin/scripts.nix**: App cleanup and helper scripts
 - **users/shared/programs/git.nix**: Git configuration with centralized user info from lib/user-info.nix
 - **users/shared/programs/vim.nix**: Vim setup with airline, tmux-navigator, relative line numbers
-- **users/shared/programs/zsh/**: Zsh environment with fzf, direnv, Claude/OpenCode aliases
+- **users/shared/programs/zsh/**: Zsh environment with fzf, direnv, Claude/Codex aliases
 - **users/shared/programs/tmux.nix**: Tmux config with vi-mode copy-paste, OSC52 clipboard
 - **users/shared/programs/powerlevel10k.nix**: Prompt (Pure preset, instant prompt)
 - **users/shared/programs/claude-code.nix**: Deploys CLAUDE.md, settings, statusline, and worktree hook to ~/.claude (commands/skills/hooks come from an external plugin)
@@ -362,7 +362,6 @@ trusted-users = root @admin yourusername
 The zsh configuration provides these shortcuts (defined in `users/shared/programs/zsh/`):
 
 - `cc`: Claude Code with permission checks disabled (`claude --dangerously-skip-permissions`)
-- `oc`: OpenCode shortcut
 - `wt`: Git worktree management (fzf picker, create, list, prune)
 
 ### Tool Configuration Highlights

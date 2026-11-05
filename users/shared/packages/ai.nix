@@ -15,7 +15,6 @@ in
   config = lib.mkIf cfg.enable {
     home.packages = with pkgs; [
       claude-code
-      opencode
       antigravity-cli
     ];
   };
