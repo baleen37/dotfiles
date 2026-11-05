@@ -39,10 +39,10 @@ in
 
     # services.openssh.enable turns Remote Login on through launchctl; a
     # custom name or a missing option would leave SSH silently off.
-    remote-login-enabled = helpers.assertTest "Remote Login enabled" (lib.hasInfix
-      "launchctl bootstrap system /System/Library/LaunchDaemons/ssh.plist"
-      activation.script.text
-    ) "services.openssh.enable must put the launchctl Remote Login step into the activation script";
+    remote-login-enabled =
+      helpers.assertTest "Remote Login enabled"
+        (lib.hasInfix "launchctl bootstrap system /System/Library/LaunchDaemons/ssh.plist" activation.script.text)
+        "services.openssh.enable must put the launchctl Remote Login step into the activation script";
 
     vscode-launchservices-repair-is-user-scoped =
       helpers.assertTest "VS Code LaunchServices repair is user-scoped"
