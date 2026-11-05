@@ -58,7 +58,6 @@
     "command": "bash ~/.claude/statusline.sh"
   },
   "enabledPlugins": {
-    "superpowers@superpowers-marketplace": true,
     "atlassian@claude-plugins-official": true,
     "context7@claude-plugins-official": true,
     "slack@claude-plugins-official": true,
@@ -68,7 +67,6 @@
     "ks-grafana@search-claude-code-plugins": true,
     "ks-onboarding@search-claude-code-plugins": true,
     "ks-opensearch@search-claude-code-plugins": true,
-    "superpowers@claude-plugins-official": true,
     "ks-langfuse@search-claude-code-plugins": true,
     "ks-internal@search-claude-code-plugins": true,
     "notion@claude-plugins-official": true,
