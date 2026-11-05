@@ -150,7 +150,7 @@ in
       [keys]
       # prefix+a or alt+] moves focus to the next agent in the Agents list,
       # alt+[ to the previous one. herdr pushes the kitty keyboard protocol,
-      # so Ghostty sends alt+[ as its own key, not the ESC [ that starts CSI.
+      # so the terminal sends alt+[ as its own key, not the ESC [ that starts CSI.
       next_agent = ["prefix+a", "alt+]"]
       previous_agent = "alt+["
       prefix = "ctrl+a"
@@ -161,7 +161,7 @@ in
       # Vim keys for workspaces: j/k (or the arrows) in navigate mode (prefix+w), where the
       # panes move to ctrl+h/j/k/l; and prefix+ctrl+j/k to the next/previous
       # workspace from anywhere, or alt+j/k with no prefix as tmux's `bind -n M-`
-      # (Ghostty sends left option as alt); prefix+h/j/k/l stay on panes. Tabs
+      # (the terminal must send left option as alt); prefix+h/j/k/l stay on panes. Tabs
       # take ctrl+alt+[ / ], since alt+[ opens an escape sequence and alt+p is
       # Claude Code's model picker.
       navigate_workspace_down = ["j", "down"]

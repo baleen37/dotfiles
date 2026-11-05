@@ -1,8 +1,7 @@
 # SSH client configuration
 #
 # Manages ~/.ssh/config via home-manager so connection keepalive applies
-# uniformly to every host (including invocations through Ghostty's
-# ssh-env wrapper). The OrbStack include is preserved at the top.
+# uniformly to every host. The OrbStack include is preserved at the top.
 
 {
   config,

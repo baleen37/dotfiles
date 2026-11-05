@@ -160,8 +160,8 @@ in
         expect_eq mode-keys "$(t show-window-options -gv mode-keys)" vi
 
         features="$(t show-options -sv terminal-features)"
-        expect_has ghostty-truecolor "$features" 'xterm-ghostty:RGB'
-        expect_has mosh-truecolor "$features" 'xterm-256color:RGB'
+        expect_has truecolor "$features" 'xterm-256color:RGB'
+        expect_has extkeys "$features" 'xterm-256color:extkeys'
 
         # Prefix table: our bindings, plus the defaults tmux.nix keeps.
         expect_eq send-prefix "$(key prefix C-a)" send-prefix
