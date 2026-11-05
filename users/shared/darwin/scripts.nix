@@ -1,7 +1,6 @@
 # macOS Activation Scripts
 #
 # System activation scripts for:
-# - Remote Login (SSH) enablement
 # - Automated cleanup of unused default macOS applications
 #
 # Everything lives under `system.activationScripts.postActivation.text` on
@@ -29,7 +28,6 @@
   '';
 
   system.activationScripts.postActivation.text = ''
-    ${pkgs.bash}/bin/bash ${./activation.sh} remote-login
     ${pkgs.bash}/bin/bash ${./activation.sh} app-cleanup
   '';
 
