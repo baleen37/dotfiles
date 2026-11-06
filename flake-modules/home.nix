@@ -12,14 +12,14 @@ let
     userName:
     {
       system ? "aarch64-darwin",
-      isDarwin ? true,
     }:
     withSystem system (
       { pkgs, ... }:
       home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
         extraSpecialArgs = {
-          inherit inputs self isDarwin;
+          inherit inputs self;
+          isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
           currentSystemUser = userName;
         };
         modules = [
@@ -33,9 +33,6 @@ in
     baleen = mkHomeConfig "baleen" { };
     "jito.hello" = mkHomeConfig "jito.hello" { };
     testuser = mkHomeConfig "testuser" { };
-    "baleen-linux" = mkHomeConfig "baleen" {
-      system = "x86_64-linux";
-      isDarwin = false;
-    };
+    "baleen-linux" = mkHomeConfig "baleen" { system = "x86_64-linux"; };
   };
 }
