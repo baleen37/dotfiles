@@ -7,7 +7,7 @@
 
 | 순위 | 작업                                                                                | 위치                                      | 예상 시간 |
 | :--- | :---------------------------------------------------------------------------------- | :---------------------------------------- | :-------- |
-| 1    | `trusted-users`에서 `@admin`과 `@wheel` 제거                                        | `lib/mksystem.nix:33-38`                  | 15분      |
+| 1    | ~~`trusted-users`에서 `@admin`과 `@wheel` 제거~~ 완료 (PR #1579)                    | `lib/mksystem.nix:33-38`                  | 15분      |
 | 2    | Makefile의 `--accept-flake-config` 필요 여부 재검토 (아래 2절 주의 참고)            | `Makefile:84-142`                         | 30분      |
 | 3    | VM의 `extraOptions`를 `nix.settings`로 옮기고 기본값과 같은 `keep-derivations` 삭제 | `machines/nixos/vm-shared.nix:35-41`      | 20분      |
 | 4    | Renovate lock automerge보다 CI required check가 먼저 걸리는지 확인                  | `renovate.json`, GitHub branch protection | 10분      |
@@ -41,18 +41,20 @@
 
 **레포 현황**
 
-- `lib/mksystem.nix:33-38`: `trusted-users`가 `root`, `user`, `@admin`, `@wheel`이다. Darwin에서는 같은 값이 `determinateNix.customSettings`로 들어간다.
+- `lib/mksystem.nix:33-38`: 조사 시점에는 `trusted-users`가 `root`, `user`, `@admin`, `@wheel`이었다. PR #1579에서 `root`와 `user`만 남겼다. Darwin에서는 같은 값이 `determinateNix.customSettings`로 들어간다.
 - `lib/mksystem.nix:65`: Linux는 `trusted-substituters = substituters`다.
 - `flake.nix:4-19`: `nixConfig`가 `lib/cache-config.nix`와 같은 캐시를 중복으로 선언한다.
 - Makefile: 빌드와 체크 7곳에 `--accept-flake-config`가 있다.
 - `install.sh:148-153`: 첫 활성화 전 부트스트랩에서 `accept-flake-config`를 켠다.
 
-**판정**: 어긋남.
+**판정**: trusted-users는 PR #1579에서 해결했다. `--accept-flake-config`는 아직 검토가 필요하다.
 
 **권장**
 
-1. `trusted-users`를 `[ "root" user ]`로 줄인다. `@admin`이 있으면 macOS 관리자 계정 전원이 root와 같은 권한을 얻는다.
+1. (완료) `trusted-users`를 `[ "root" user ]`로 줄였다. `@admin`이 있으면 macOS 관리자 계정 전원이 root와 같은 권한을 얻는다.
+   - 이미 실행 중인 nix-daemon은 재시작하기 전까지 이전 설정을 쓸 수 있다. `make switch` 뒤에 다른 관리자 계정으로 신뢰 여부를 확인한다. (추론)
 2. `trusted-substituters`는 효과가 없어 보인다. 같은 목록이 이미 전역 `substituters`에 들어 있기 때문이다. 지워도 되지만 우선순위는 낮다. (추론)
+   - 지운다면 `tests/unit/mksystem-test.nix`의 `cache-substituters-are-trusted` 테스트도 함께 고쳐야 한다. 이 테스트는 모든 캐시 URL이 `trusted-substituters`에 있어야 통과한다.
 3. Makefile의 `--accept-flake-config`
    - 활성화가 끝난 호스트에서는 시스템 nix.conf에 이미 캐시가 있으므로 필요 없다.
    - **주의**: CI 러너의 nix.conf에는 이 캐시가 없을 수 있다. 플래그를 빼기 전에 `.github/actions/setup-nix`가 substituter를 따로 넣어 주는지 확인한다. (추론)
@@ -76,7 +78,7 @@
 **권장**
 
 - `strategy = "automatic"`은 기본값이라 지워도 동작이 같다. 의도를 드러내려고 남겨 두는 것도 괜찮다.
-- `customSettings`의 trusted-users도 2절과 같이 줄인다.
+- `customSettings`의 trusted-users는 2절과 같이 PR #1579에서 줄였다.
 
 ## 4. GC와 스토어 최적화
 
