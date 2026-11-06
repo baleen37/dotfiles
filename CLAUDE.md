@@ -316,7 +316,7 @@ make format                 # Auto-format Nix files
 Add your user to trusted users in `/etc/nix/nix.custom.conf`:
 
 ```text
-trusted-users = root @admin yourusername
+trusted-users = root yourusername
 ```
 
 ## Key Configuration Files

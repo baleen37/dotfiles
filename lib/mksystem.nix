@@ -30,11 +30,11 @@ let
   # Unified cache configuration for both Determinate Nix and traditional Nix
   cacheConfig = import ./cache-config.nix;
   cacheSettings = cacheConfig // {
+    # A trusted user is root-equivalent (nix.conf manual), so trust only the
+    # host user instead of every member of @admin / @wheel.
     trusted-users = [
       "root"
       user
-      "@admin"
-      "@wheel"
     ];
   };
 
