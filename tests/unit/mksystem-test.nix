@@ -51,8 +51,13 @@ in
     )) "NixOS GC should keep a 7 day retention window; got ${gcReport}")
 
     (helpers.assertTest "nixos-trusts-the-host-user" (
-      lib.elem "root" trustedUsers && lib.elem "@wheel" trustedUsers
-    ) "NixOS nix.settings.trusted-users must include root and @wheel so the cache is usable")
+      lib.elem "root" trustedUsers && lib.elem "baleen" trustedUsers
+    ) "NixOS nix.settings.trusted-users must include root and the host user so the cache is usable")
+
+    # A trusted user is root-equivalent; a group entry hands that to every member.
+    (helpers.assertTest "nixos-trusts-no-groups" (
+      !lib.any (lib.hasPrefix "@") trustedUsers
+    ) "NixOS nix.settings.trusted-users must not trust whole groups; got ${toString trustedUsers}")
 
     # Without this a non-root `nix build` silently ignores the caches and
     # rebuilds the world.

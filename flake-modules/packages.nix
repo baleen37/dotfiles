@@ -48,7 +48,7 @@ let
         };
       machineModule = ../machines/nixos + "/vm-${lib.head (lib.splitString "-" system)}-utm.nix";
     in
-    (inputs.nixpkgs.lib.nixosSystem {
+    (lib.nixosSystem {
       inherit system;
       modules = [
         qemuVmModule

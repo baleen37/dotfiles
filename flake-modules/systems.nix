@@ -12,22 +12,19 @@ let
 
   hostsByClass = cls: lib.filterAttrs (_: h: h.class == cls) config.dotfiles.hosts;
 
-  mkDarwin =
+  mkHost =
     name: h:
     mkSystem name {
-      inherit (h) system user;
-      darwin = true;
-      inherit (h) homeModules machineModules;
-    };
-
-  mkNixos =
-    name: h:
-    mkSystem name {
-      inherit (h) system user;
-      inherit (h) homeModules machineModules;
+      inherit (h)
+        system
+        user
+        homeModules
+        machineModules
+        ;
+      darwin = h.class == "darwin";
     };
 in
 {
-  flake.darwinConfigurations = lib.mapAttrs mkDarwin (hostsByClass "darwin");
-  flake.nixosConfigurations = lib.mapAttrs mkNixos (hostsByClass "nixos");
+  flake.darwinConfigurations = lib.mapAttrs mkHost (hostsByClass "darwin");
+  flake.nixosConfigurations = lib.mapAttrs mkHost (hostsByClass "nixos");
 }

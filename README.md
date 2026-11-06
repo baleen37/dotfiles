@@ -80,7 +80,7 @@ With **Determinate Nix**, add your user as a trusted user to avoid cache warning
 sudo vi /etc/nix/nix.custom.conf
 
 # Add this line (replace 'baleen' with your username):
-trusted-users = root @admin baleen
+trusted-users = root baleen
 
 # Restart the terminal to apply
 ```

@@ -30,11 +30,11 @@ let
   # Unified cache configuration for both Determinate Nix and traditional Nix
   cacheConfig = import ./cache-config.nix;
   cacheSettings = cacheConfig // {
+    # A trusted user is root-equivalent (nix.conf manual), so trust only the
+    # host user instead of every member of @admin / @wheel.
     trusted-users = [
       "root"
       user
-      "@admin"
-      "@wheel"
     ];
   };
 
@@ -119,7 +119,6 @@ systemFunc {
 
       # Set required home-manager options
       users.users.${user} = {
-        name = user;
         home = if darwin then "/Users/${user}" else "/home/${user}";
       }
       // lib.optionalAttrs (!darwin) {
@@ -128,8 +127,9 @@ systemFunc {
         openssh.authorizedKeys.keyFiles = [ inputs.baleen37-keys ];
       };
 
-      # Set hostname for Darwin systems
-      networking.hostName = lib.mkIf darwin name;
+      # `make switch` picks the flake output by `hostname -s`; a machine module
+      # may still override it (vm-shared.nix uses "dev").
+      networking.hostName = lib.mkDefault name;
 
       # Apply overlays
       nixpkgs.overlays = overlays;
