@@ -24,7 +24,6 @@ let
   darwinOnly = [
     "hammerspoon"
     "karabiner"
-    "raycast"
   ];
 
   # Override isDarwin in pkgs to simulate Darwin vs Linux
