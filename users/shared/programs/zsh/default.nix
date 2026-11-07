@@ -101,6 +101,25 @@ in
       enable = true;
       # Hooked up in initContent below, with a fast path outside .envrc trees.
       enableZshIntegration = false;
+      package =
+        inputs.direnv-instant.packages.${pkgs.stdenv.hostPlatform.system}.default.overrideAttrs
+          (old: {
+            # Outside a multiplexer (e.g. Herdr app panes) upstream runs direnv
+            # synchronously, so the first prompt waits on `nix print-dev-env`.
+            # The patch adds an opt-in to use the daemon there too; drop it once
+            # https://github.com/Mic92/direnv-instant/issues/147 lands upstream.
+            patches = (old.patches or [ ]) ++ [ ./direnv-instant-async-without-mux.patch ];
+            nativeBuildInputs = old.nativeBuildInputs ++ [ pkgs.makeWrapper ];
+            postFixup = (old.postFixup or "") + ''
+              wrapProgram $out/bin/direnv-instant --set-default DIRENV_INSTANT_ASYNC_WITHOUT_MUX 1
+            '';
+            # direnv-instant runs tmux in its check phase. Swap in the tmux
+            # module's tmux so Darwin builds the same non-jemalloc tmux instead
+            # of a second one.
+            nativeCheckInputs = map (
+              input: if (input.pname or null) == "tmux" then config.programs.tmux.package else input
+            ) old.nativeCheckInputs;
+          });
     };
 
     # Direnv auto-allow configuration
