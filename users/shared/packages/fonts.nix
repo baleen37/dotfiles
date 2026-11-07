@@ -8,9 +8,7 @@ let
   cfg = config.modules.packages.fonts;
 in
 {
-  options.modules.packages.fonts.enable = lib.mkEnableOption "fonts" // {
-    default = true;
-  };
+  options.modules.packages.fonts.enable = lib.mkEnableOption "fonts";
 
   config = lib.mkIf cfg.enable {
     home.packages = with pkgs; [

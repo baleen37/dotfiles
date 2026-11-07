@@ -14,9 +14,7 @@ let
   cfg = config.modules.programs.yarn;
 in
 {
-  options.modules.programs.yarn.enable = lib.mkEnableOption "Yarn user configuration" // {
-    default = true;
-  };
+  options.modules.programs.yarn.enable = lib.mkEnableOption "Yarn user configuration";
 
   config = lib.mkIf cfg.enable {
     home.file.".yarnrc.yml".text = ''

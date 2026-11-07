@@ -47,9 +47,9 @@ let
   machineModules = lib.mapAttrs (_: host: host.machineModules) hostConfig;
 
   expectedMachineModules = {
-    macbook-pro = [ ../../machines/darwin/common.nix ];
-    baleen-macbook = [ ../../machines/darwin/common.nix ];
-    kakaostyle-jito = [ ../../machines/darwin/common.nix ];
+    macbook-pro = [ ../../machines/darwin/macbook-pro.nix ];
+    baleen-macbook = [ ../../machines/darwin/baleen-macbook.nix ];
+    kakaostyle-jito = [ ../../machines/darwin/kakaostyle-jito.nix ];
     vm-aarch64-utm = [ ../../machines/nixos/vm-aarch64-utm.nix ];
     vm-x86_64-utm = [ ../../machines/nixos/vm-x86_64-utm.nix ];
     wsl = [ ../../machines/nixos/wsl.nix ];

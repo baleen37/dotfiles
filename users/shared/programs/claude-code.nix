@@ -20,9 +20,7 @@ let
   src = ./.config/claude;
 in
 {
-  options.modules.programs.claude-code.enable = lib.mkEnableOption "Claude Code configuration" // {
-    default = true;
-  };
+  options.modules.programs.claude-code.enable = lib.mkEnableOption "Claude Code configuration";
 
   config = lib.mkIf cfg.enable {
     home.activation.claudeConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''

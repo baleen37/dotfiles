@@ -41,9 +41,7 @@ let
   direnvInstantHook = "${inputs.direnv-instant}/hooks/zsh.sh";
 in
 {
-  options.modules.programs.zsh.enable = lib.mkEnableOption "Zsh shell environment" // {
-    default = true;
-  };
+  options.modules.programs.zsh.enable = lib.mkEnableOption "Zsh shell environment";
 
   config = lib.mkIf cfg.enable {
     home.packages = [ worktreePackage ];

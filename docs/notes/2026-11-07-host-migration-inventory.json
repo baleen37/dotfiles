@@ -1,0 +1,1459 @@
+{
+  "hosts": {
+    "darwin": {
+      "baleen-macbook": "1f51e82b61",
+      "baleens-MacBook-Pro": "1f51e82b61",
+      "kakaostyle-jito": "bf904e3c38",
+      "macbook-pro": "1f51e82b61"
+    },
+    "homes": {
+      "baleen": "5f94789b1c",
+      "baleen-linux": "5dfbf2829a",
+      "jito.hello": "5f94789b1c",
+      "testuser": "5f94789b1c"
+    },
+    "nixos": {
+      "vm-aarch64-utm": "1b96615532",
+      "vm-x86_64-utm": "1b96615532",
+      "wsl": "94ff9de978"
+    }
+  },
+  "configurations": {
+    "1f51e82b61": {
+      "brews": [],
+      "casks": [
+        {
+          "args": null,
+          "brewfileLine": "cask \"herdr-app\", trusted: true",
+          "greedy": null,
+          "name": "herdr-app",
+          "postinstall": null,
+          "trusted": true
+        },
+        {
+          "args": null,
+          "brewfileLine": "cask \"visual-studio-code\", trusted: true",
+          "greedy": null,
+          "name": "visual-studio-code",
+          "postinstall": null,
+          "trusted": true
+        },
+        {
+          "args": null,
+          "brewfileLine": "cask \"font-jetbrains-mono\", trusted: true",
+          "greedy": null,
+          "name": "font-jetbrains-mono",
+          "postinstall": null,
+          "trusted": true
+        },
+        {
+          "args": null,
+          "brewfileLine": "cask \"notion\", trusted: true",
+          "greedy": null,
+          "name": "notion",
+          "postinstall": null,
+          "trusted": true
+        },
+        {
+          "args": null,
+          "brewfileLine": "cask \"slack\", trusted: true",
+          "greedy": null,
+          "name": "slack",
+          "postinstall": null,
+          "trusted": true
+        },
+        {
+          "args": null,
+          "brewfileLine": "cask \"obsidian\", trusted: true",
+          "greedy": null,
+          "name": "obsidian",
+          "postinstall": null,
+          "trusted": true
+        },
+        {
+          "args": null,
+          "brewfileLine": "cask \"claude\", trusted: true",
+          "greedy": null,
+          "name": "claude",
+          "postinstall": null,
+          "trusted": true
+        },
+        {
+          "args": null,
+          "brewfileLine": "cask \"karabiner-elements\", trusted: true",
+          "greedy": null,
+          "name": "karabiner-elements",
+          "postinstall": null,
+          "trusted": true
+        },
+        {
+          "args": null,
+          "brewfileLine": "cask \"Sanyam-G/switch/switch\", trusted: true",
+          "greedy": null,
+          "name": "Sanyam-G/switch/switch",
+          "postinstall": null,
+          "trusted": true
+        },
+        {
+          "args": null,
+          "brewfileLine": "cask \"orbstack\", trusted: true",
+          "greedy": null,
+          "name": "orbstack",
+          "postinstall": null,
+          "trusted": true
+        },
+        {
+          "args": null,
+          "brewfileLine": "cask \"rustdesk\", trusted: true",
+          "greedy": null,
+          "name": "rustdesk",
+          "postinstall": null,
+          "trusted": true
+        },
+        {
+          "args": null,
+          "brewfileLine": "cask \"tailscale-app\", trusted: true",
+          "greedy": null,
+          "name": "tailscale-app",
+          "postinstall": null,
+          "trusted": true
+        },
+        {
+          "args": null,
+          "brewfileLine": "cask \"raycast\", trusted: true",
+          "greedy": null,
+          "name": "raycast",
+          "postinstall": null,
+          "trusted": true
+        },
+        {
+          "args": null,
+          "brewfileLine": "cask \"1password\", trusted: true",
+          "greedy": null,
+          "name": "1password",
+          "postinstall": null,
+          "trusted": true
+        },
+        {
+          "args": null,
+          "brewfileLine": "cask \"1password-cli\", trusted: true",
+          "greedy": null,
+          "name": "1password-cli",
+          "postinstall": null,
+          "trusted": true
+        },
+        {
+          "args": null,
+          "brewfileLine": "cask \"google-chrome\", trusted: true",
+          "greedy": null,
+          "name": "google-chrome",
+          "postinstall": null,
+          "trusted": true
+        },
+        {
+          "args": null,
+          "brewfileLine": "cask \"brave-browser\", trusted: true",
+          "greedy": null,
+          "name": "brave-browser",
+          "postinstall": null,
+          "trusted": true
+        },
+        {
+          "args": null,
+          "brewfileLine": "cask \"hammerspoon\", trusted: true",
+          "greedy": null,
+          "name": "hammerspoon",
+          "postinstall": null,
+          "trusted": true
+        }
+      ],
+      "masApps": {
+        "1Password for Safari": 1569813296,
+        "KakaoTalk": 869223134
+      },
+      "packages": [
+        "bash-interactive-5.3p20",
+        "darwin-option",
+        "darwin-rebuild",
+        "darwin-uninstaller",
+        "darwin-version",
+        "dockutil-3.1.3",
+        "home-manager-0-unstable-2026-08-06",
+        "nh-4.4.2",
+        "nix-zsh-completions-0.5.1-unstable-2025-12-12",
+        "texinfo-interactive-7.3",
+        "zsh-5.9.2"
+      ],
+      "sudo": "\n# Keep terminfo database for root and %admin.\nDefaults:root,%admin env_keep+=TERMINFO_DIRS\nDefaults:root,%admin env_keep+=TERMINFO\n",
+      "taps": [
+        {
+          "brewfileLine": "tap \"Sanyam-G/switch\", trusted: true",
+          "clone_target": null,
+          "force_auto_update": null,
+          "name": "Sanyam-G/switch",
+          "trusted": true
+        }
+      ],
+      "user": {
+        "modules": {
+          "packages": {
+            "ai": {
+              "enable": true
+            },
+            "cloud": {
+              "enable": true
+            },
+            "core": {
+              "enable": true
+            },
+            "databases": {
+              "enable": true
+            },
+            "dev": {
+              "enable": true
+            },
+            "fonts": {
+              "enable": true
+            },
+            "media": {
+              "enable": true
+            },
+            "nix-tools": {
+              "enable": true
+            },
+            "security": {
+              "enable": true
+            },
+            "ssh": {
+              "enable": true
+            }
+          },
+          "programs": {
+            "baleen-toolkit": {
+              "enable": true
+            },
+            "claude-code": {
+              "enable": true
+            },
+            "codex": {
+              "enable": true
+            },
+            "docker": {
+              "enable": true
+            },
+            "git": {
+              "enable": true
+            },
+            "hammerspoon": {
+              "enable": true
+            },
+            "herdr": {
+              "enable": true
+            },
+            "karabiner": {
+              "enable": true
+            },
+            "neovim": {
+              "enable": true
+            },
+            "powerlevel10k": {
+              "enable": true
+            },
+            "rustdesk": {
+              "enable": true
+            },
+            "ssh": {
+              "enable": true
+            },
+            "terraform": {
+              "enable": true
+            },
+            "tmux": {
+              "enable": true
+            },
+            "vim": {
+              "enable": true
+            },
+            "yarn": {
+              "enable": true
+            },
+            "zsh": {
+              "enable": true
+            }
+          }
+        },
+        "packages": [
+          "act-0.2.89",
+          "age-1.3.2",
+          "antigravity-cli-1.4.1",
+          "awscli2-2.36.31",
+          "bat-0.26.1",
+          "bl",
+          "bun-1.4.2",
+          "cascadia-code-2407.24",
+          "claude-code-2.1.305",
+          "cmake-4.4.4",
+          "codex-0.163.0",
+          "curl-8.22.0-bin",
+          "d2codingfont-1.4.0",
+          "deadnix-1.3.2",
+          "direnv-2.38.2",
+          "direnv-instant-wrapped",
+          "eza-0.23.5",
+          "fd-10.5.0",
+          "ffmpeg-9.0.2-bin",
+          "fzf-0.74.5",
+          "gh-2.102.0",
+          "git-2.56.0",
+          "git-lfs-3.8.0",
+          "gnumake-4.4.1",
+          "go-1.26.9",
+          "herdr-0.9.5",
+          "hm-session-vars.sh",
+          "htop-3.5.3",
+          "jq-1.8.2-bin",
+          "man-db-2.13.1",
+          "mosh-1.4.0",
+          "neovim-0.12.6",
+          "nerd-fonts-symbols-only-3.5.0",
+          "nix-zsh-completions-0.5.1-unstable-2025-12-12",
+          "nixfmt-1.5.0",
+          "nodejs-22.23.3",
+          "noto-fonts-cjk-sans-2.004",
+          "postgresql-18.6",
+          "pre-commit-4.7.0",
+          "python3-3.14.8",
+          "python3.14-pipx-1.16.6",
+          "python3.14-virtualenv-21.6.1",
+          "ripgrep-15.2.0",
+          "sesh-2.33.0",
+          "sops-3.13.3",
+          "sqlite-3.53.3-bin",
+          "sshpass-1.10",
+          "statix-0.5.8-unstable-2026-07-17",
+          "teleport-18.10.0",
+          "tmux-3.8",
+          "tree-2.3.2",
+          "unzip-6.0",
+          "uv-0.13.1",
+          "vim",
+          "wget-1.25.0",
+          "worktree-cli-0.1.10",
+          "zip-3.0",
+          "zoxide-0.10.0",
+          "zsh-5.9.2"
+        ]
+      }
+    },
+    "bf904e3c38": {
+      "brews": [],
+      "casks": [
+        {
+          "args": null,
+          "brewfileLine": "cask \"herdr-app\", trusted: true",
+          "greedy": null,
+          "name": "herdr-app",
+          "postinstall": null,
+          "trusted": true
+        },
+        {
+          "args": null,
+          "brewfileLine": "cask \"visual-studio-code\", trusted: true",
+          "greedy": null,
+          "name": "visual-studio-code",
+          "postinstall": null,
+          "trusted": true
+        },
+        {
+          "args": null,
+          "brewfileLine": "cask \"font-jetbrains-mono\", trusted: true",
+          "greedy": null,
+          "name": "font-jetbrains-mono",
+          "postinstall": null,
+          "trusted": true
+        },
+        {
+          "args": null,
+          "brewfileLine": "cask \"notion\", trusted: true",
+          "greedy": null,
+          "name": "notion",
+          "postinstall": null,
+          "trusted": true
+        },
+        {
+          "args": null,
+          "brewfileLine": "cask \"slack\", trusted: true",
+          "greedy": null,
+          "name": "slack",
+          "postinstall": null,
+          "trusted": true
+        },
+        {
+          "args": null,
+          "brewfileLine": "cask \"obsidian\", trusted: true",
+          "greedy": null,
+          "name": "obsidian",
+          "postinstall": null,
+          "trusted": true
+        },
+        {
+          "args": null,
+          "brewfileLine": "cask \"claude\", trusted: true",
+          "greedy": null,
+          "name": "claude",
+          "postinstall": null,
+          "trusted": true
+        },
+        {
+          "args": null,
+          "brewfileLine": "cask \"karabiner-elements\", trusted: true",
+          "greedy": null,
+          "name": "karabiner-elements",
+          "postinstall": null,
+          "trusted": true
+        },
+        {
+          "args": null,
+          "brewfileLine": "cask \"Sanyam-G/switch/switch\", trusted: true",
+          "greedy": null,
+          "name": "Sanyam-G/switch/switch",
+          "postinstall": null,
+          "trusted": true
+        },
+        {
+          "args": null,
+          "brewfileLine": "cask \"orbstack\", trusted: true",
+          "greedy": null,
+          "name": "orbstack",
+          "postinstall": null,
+          "trusted": true
+        },
+        {
+          "args": null,
+          "brewfileLine": "cask \"rustdesk\", trusted: true",
+          "greedy": null,
+          "name": "rustdesk",
+          "postinstall": null,
+          "trusted": true
+        },
+        {
+          "args": null,
+          "brewfileLine": "cask \"tailscale-app\", trusted: true",
+          "greedy": null,
+          "name": "tailscale-app",
+          "postinstall": null,
+          "trusted": true
+        },
+        {
+          "args": null,
+          "brewfileLine": "cask \"raycast\", trusted: true",
+          "greedy": null,
+          "name": "raycast",
+          "postinstall": null,
+          "trusted": true
+        },
+        {
+          "args": null,
+          "brewfileLine": "cask \"1password\", trusted: true",
+          "greedy": null,
+          "name": "1password",
+          "postinstall": null,
+          "trusted": true
+        },
+        {
+          "args": null,
+          "brewfileLine": "cask \"1password-cli\", trusted: true",
+          "greedy": null,
+          "name": "1password-cli",
+          "postinstall": null,
+          "trusted": true
+        },
+        {
+          "args": null,
+          "brewfileLine": "cask \"google-chrome\", trusted: true",
+          "greedy": null,
+          "name": "google-chrome",
+          "postinstall": null,
+          "trusted": true
+        },
+        {
+          "args": null,
+          "brewfileLine": "cask \"brave-browser\", trusted: true",
+          "greedy": null,
+          "name": "brave-browser",
+          "postinstall": null,
+          "trusted": true
+        },
+        {
+          "args": null,
+          "brewfileLine": "cask \"hammerspoon\", trusted: true",
+          "greedy": null,
+          "name": "hammerspoon",
+          "postinstall": null,
+          "trusted": true
+        }
+      ],
+      "masApps": {
+        "1Password for Safari": 1569813296,
+        "KakaoTalk": 869223134
+      },
+      "packages": [
+        "bash-interactive-5.3p20",
+        "darwin-option",
+        "darwin-rebuild",
+        "darwin-uninstaller",
+        "darwin-version",
+        "dockutil-3.1.3",
+        "home-manager-0-unstable-2026-08-06",
+        "nh-4.4.2",
+        "nix-zsh-completions-0.5.1-unstable-2025-12-12",
+        "texinfo-interactive-7.3",
+        "zsh-5.9.2"
+      ],
+      "sudo": "\n# Keep terminfo database for root and %admin.\nDefaults:root,%admin env_keep+=TERMINFO_DIRS\nDefaults:root,%admin env_keep+=TERMINFO\n\njito.hello ALL = (root) NOPASSWD: /run/current-system/sw/bin/darwin-rebuild ^switch --flake \\.\\#kakaostyle-jito$\njito.hello ALL = (root) NOPASSWD: /run/current-system/sw/bin/nh ^clean all --keep 3$\n",
+      "taps": [
+        {
+          "brewfileLine": "tap \"Sanyam-G/switch\", trusted: true",
+          "clone_target": null,
+          "force_auto_update": null,
+          "name": "Sanyam-G/switch",
+          "trusted": true
+        }
+      ],
+      "user": {
+        "modules": {
+          "packages": {
+            "ai": {
+              "enable": true
+            },
+            "cloud": {
+              "enable": true
+            },
+            "core": {
+              "enable": true
+            },
+            "databases": {
+              "enable": true
+            },
+            "dev": {
+              "enable": true
+            },
+            "fonts": {
+              "enable": true
+            },
+            "media": {
+              "enable": true
+            },
+            "nix-tools": {
+              "enable": true
+            },
+            "security": {
+              "enable": true
+            },
+            "ssh": {
+              "enable": true
+            }
+          },
+          "programs": {
+            "baleen-toolkit": {
+              "enable": true
+            },
+            "claude-code": {
+              "enable": true
+            },
+            "codex": {
+              "enable": true
+            },
+            "docker": {
+              "enable": true
+            },
+            "git": {
+              "enable": true
+            },
+            "hammerspoon": {
+              "enable": true
+            },
+            "herdr": {
+              "enable": true
+            },
+            "karabiner": {
+              "enable": true
+            },
+            "neovim": {
+              "enable": true
+            },
+            "powerlevel10k": {
+              "enable": true
+            },
+            "rustdesk": {
+              "enable": true
+            },
+            "ssh": {
+              "enable": true
+            },
+            "terraform": {
+              "enable": true
+            },
+            "tmux": {
+              "enable": true
+            },
+            "vim": {
+              "enable": true
+            },
+            "yarn": {
+              "enable": true
+            },
+            "zsh": {
+              "enable": true
+            }
+          }
+        },
+        "packages": [
+          "act-0.2.89",
+          "age-1.3.2",
+          "antigravity-cli-1.4.1",
+          "awscli2-2.36.31",
+          "bat-0.26.1",
+          "bl",
+          "bun-1.4.2",
+          "cascadia-code-2407.24",
+          "claude-code-2.1.305",
+          "cmake-4.4.4",
+          "codex-0.163.0",
+          "curl-8.22.0-bin",
+          "d2codingfont-1.4.0",
+          "deadnix-1.3.2",
+          "direnv-2.38.2",
+          "direnv-instant-wrapped",
+          "eza-0.23.5",
+          "fd-10.5.0",
+          "ffmpeg-9.0.2-bin",
+          "fzf-0.74.5",
+          "gh-2.102.0",
+          "git-2.56.0",
+          "git-lfs-3.8.0",
+          "gnumake-4.4.1",
+          "go-1.26.9",
+          "herdr-0.9.5",
+          "hm-session-vars.sh",
+          "htop-3.5.3",
+          "jq-1.8.2-bin",
+          "man-db-2.13.1",
+          "mosh-1.4.0",
+          "neovim-0.12.6",
+          "nerd-fonts-symbols-only-3.5.0",
+          "nix-zsh-completions-0.5.1-unstable-2025-12-12",
+          "nixfmt-1.5.0",
+          "nodejs-22.23.3",
+          "noto-fonts-cjk-sans-2.004",
+          "postgresql-18.6",
+          "pre-commit-4.7.0",
+          "python3-3.14.8",
+          "python3.14-pipx-1.16.6",
+          "python3.14-virtualenv-21.6.1",
+          "ripgrep-15.2.0",
+          "sesh-2.33.0",
+          "sops-3.13.3",
+          "sqlite-3.53.3-bin",
+          "sshpass-1.10",
+          "statix-0.5.8-unstable-2026-07-17",
+          "teleport-18.10.0",
+          "tmux-3.8",
+          "tree-2.3.2",
+          "unzip-6.0",
+          "uv-0.13.1",
+          "vim",
+          "wget-1.25.0",
+          "worktree-cli-0.1.10",
+          "zip-3.0",
+          "zoxide-0.10.0",
+          "zsh-5.9.2"
+        ]
+      }
+    },
+    "5f94789b1c": {
+      "modules": {
+        "packages": {
+          "ai": {
+            "enable": true
+          },
+          "cloud": {
+            "enable": true
+          },
+          "core": {
+            "enable": true
+          },
+          "databases": {
+            "enable": true
+          },
+          "dev": {
+            "enable": true
+          },
+          "fonts": {
+            "enable": true
+          },
+          "media": {
+            "enable": true
+          },
+          "nix-tools": {
+            "enable": true
+          },
+          "security": {
+            "enable": true
+          },
+          "ssh": {
+            "enable": true
+          }
+        },
+        "programs": {
+          "baleen-toolkit": {
+            "enable": true
+          },
+          "claude-code": {
+            "enable": true
+          },
+          "codex": {
+            "enable": true
+          },
+          "docker": {
+            "enable": true
+          },
+          "git": {
+            "enable": true
+          },
+          "hammerspoon": {
+            "enable": true
+          },
+          "herdr": {
+            "enable": true
+          },
+          "karabiner": {
+            "enable": true
+          },
+          "neovim": {
+            "enable": true
+          },
+          "powerlevel10k": {
+            "enable": true
+          },
+          "rustdesk": {
+            "enable": true
+          },
+          "ssh": {
+            "enable": true
+          },
+          "terraform": {
+            "enable": true
+          },
+          "tmux": {
+            "enable": true
+          },
+          "vim": {
+            "enable": true
+          },
+          "yarn": {
+            "enable": true
+          },
+          "zsh": {
+            "enable": true
+          }
+        }
+      },
+      "packages": [
+        "act-0.2.89",
+        "age-1.3.2",
+        "antigravity-cli-1.4.1",
+        "awscli2-2.36.31",
+        "bat-0.26.1",
+        "bl",
+        "bun-1.4.2",
+        "cascadia-code-2407.24",
+        "claude-code-2.1.305",
+        "cmake-4.4.4",
+        "codex-0.163.0",
+        "curl-8.22.0-bin",
+        "d2codingfont-1.4.0",
+        "deadnix-1.3.2",
+        "direnv-2.38.2",
+        "direnv-instant-wrapped",
+        "eza-0.23.5",
+        "fd-10.5.0",
+        "ffmpeg-9.0.2-bin",
+        "fzf-0.74.5",
+        "gh-2.102.0",
+        "git-2.56.0",
+        "git-lfs-3.8.0",
+        "gnumake-4.4.1",
+        "go-1.26.9",
+        "herdr-0.9.5",
+        "hm-session-vars.sh",
+        "htop-3.5.3",
+        "jq-1.8.2-bin",
+        "man-db-2.13.1",
+        "mosh-1.4.0",
+        "neovim-0.12.6",
+        "nerd-fonts-symbols-only-3.5.0",
+        "nix-zsh-completions-0.5.1-unstable-2025-12-12",
+        "nixfmt-1.5.0",
+        "nodejs-22.23.3",
+        "noto-fonts-cjk-sans-2.004",
+        "postgresql-18.6",
+        "pre-commit-4.7.0",
+        "python3-3.14.8",
+        "python3.14-pipx-1.16.6",
+        "python3.14-virtualenv-21.6.1",
+        "ripgrep-15.2.0",
+        "sesh-2.33.0",
+        "sops-3.13.3",
+        "sqlite-3.53.3-bin",
+        "sshpass-1.10",
+        "statix-0.5.8-unstable-2026-07-17",
+        "teleport-18.10.0",
+        "tmux-3.8",
+        "tree-2.3.2",
+        "unzip-6.0",
+        "uv-0.13.1",
+        "vim",
+        "wget-1.25.0",
+        "worktree-cli-0.1.10",
+        "zip-3.0",
+        "zoxide-0.10.0",
+        "zsh-5.9.2"
+      ]
+    },
+    "5dfbf2829a": {
+      "modules": {
+        "packages": {
+          "ai": {
+            "enable": true
+          },
+          "cloud": {
+            "enable": true
+          },
+          "core": {
+            "enable": true
+          },
+          "databases": {
+            "enable": true
+          },
+          "dev": {
+            "enable": true
+          },
+          "fonts": {
+            "enable": true
+          },
+          "media": {
+            "enable": true
+          },
+          "nix-tools": {
+            "enable": true
+          },
+          "security": {
+            "enable": true
+          },
+          "ssh": {
+            "enable": true
+          }
+        },
+        "programs": {
+          "baleen-toolkit": {
+            "enable": true
+          },
+          "claude-code": {
+            "enable": true
+          },
+          "codex": {
+            "enable": true
+          },
+          "docker": {
+            "enable": true
+          },
+          "git": {
+            "enable": true
+          },
+          "hammerspoon": {
+            "enable": false
+          },
+          "herdr": {
+            "enable": true
+          },
+          "karabiner": {
+            "enable": false
+          },
+          "neovim": {
+            "enable": true
+          },
+          "powerlevel10k": {
+            "enable": true
+          },
+          "rustdesk": {
+            "enable": false
+          },
+          "ssh": {
+            "enable": true
+          },
+          "terraform": {
+            "enable": true
+          },
+          "tmux": {
+            "enable": true
+          },
+          "vim": {
+            "enable": true
+          },
+          "yarn": {
+            "enable": true
+          },
+          "zsh": {
+            "enable": true
+          }
+        }
+      },
+      "packages": [
+        "act-0.2.89",
+        "age-1.3.2",
+        "antigravity-cli-1.4.1",
+        "awscli2-2.36.31",
+        "bat-0.26.1",
+        "bl",
+        "bun-1.4.2",
+        "cascadia-code-2407.24",
+        "claude-code-2.1.305",
+        "cmake-4.4.4",
+        "codex-0.163.0",
+        "curl-8.22.0-bin",
+        "d2codingfont-1.4.0",
+        "deadnix-1.3.2",
+        "direnv-2.38.2",
+        "direnv-instant-wrapped",
+        "dummy-xdg-mime-dirs1",
+        "dummy-xdg-mime-dirs2",
+        "eza-0.23.5",
+        "fd-10.5.0",
+        "ffmpeg-9.0.2-bin",
+        "fzf-0.74.5",
+        "gh-2.102.0",
+        "git-2.56.0",
+        "git-lfs-3.8.0",
+        "gnumake-4.4.1",
+        "go-1.26.9",
+        "herdr-0.9.5",
+        "hm-session-vars.sh",
+        "htop-3.5.3",
+        "jq-1.8.2-bin",
+        "man-db-2.13.1",
+        "mosh-1.4.0",
+        "neovim-0.12.6",
+        "nerd-fonts-symbols-only-3.5.0",
+        "nix-zsh-completions-0.5.1-unstable-2025-12-12",
+        "nixfmt-1.5.0",
+        "nodejs-22.23.3",
+        "noto-fonts-cjk-sans-2.004",
+        "postgresql-18.6",
+        "pre-commit-4.7.0",
+        "python3-3.14.8",
+        "python3.14-pipx-1.16.6",
+        "python3.14-virtualenv-21.6.1",
+        "ripgrep-15.2.0",
+        "sesh-2.33.0",
+        "shared-mime-info-2.5.1",
+        "sops-3.13.3",
+        "sqlite-3.53.3-bin",
+        "sshpass-1.10",
+        "statix-0.5.8-unstable-2026-07-17",
+        "teleport-18.10.0",
+        "tmux-3.8",
+        "tree-2.3.2",
+        "unzip-6.0",
+        "uv-0.13.1",
+        "vim",
+        "vscode-1.142.0",
+        "wget-1.25.0",
+        "worktree-cli-0.1.10",
+        "zip-3.0",
+        "zoxide-0.10.0",
+        "zsh-5.9.2"
+      ]
+    },
+    "1b96615532": {
+      "packages": [
+        "X11-fonts",
+        "acl-2.4.0-bin",
+        "attr-2.6.0-bin",
+        "bash-interactive-5.3p20",
+        "bcache-tools-1.1",
+        "bind-9.20.29-host",
+        "bzip2-1.0.8-bin",
+        "cachix-1.12.1-bin",
+        "coreutils-full-9.12",
+        "cpio-2.15",
+        "curl-8.22.0-bin",
+        "dbus-1.16.2",
+        "dbus-broker-37",
+        "dhcpcd-10.3.2",
+        "diffutils-3.12",
+        "docker-29.9.1",
+        "dosfstools-4.2",
+        "e2fsprogs-1.47.4-bin",
+        "findutils-4.11.0",
+        "fontconfig-2.18.3-bin",
+        "gawk-5.4.1",
+        "getconf-glibc-2.44-57",
+        "getent-glibc-2.44-57",
+        "glibc-2.44-57",
+        "glibc-locales-2.44-57",
+        "gnugrep-3.12",
+        "gnumake-4.4.1",
+        "gnused-4.10",
+        "gnutar-1.35",
+        "gzip-1.15",
+        "hicolor-icon-theme-0.18",
+        "hostname-hostname-debian-3.25",
+        "iproute2-7.2.0",
+        "iputils-20250605",
+        "kbd-2.9.0",
+        "kexec-tools-2.0.32",
+        "killall-psmisc-23.7",
+        "kmod-31",
+        "less-710",
+        "libcap-2.78",
+        "libressl-4.3.2-nc",
+        "linux-pam-1.7.2",
+        "lvm2-2.03.41",
+        "man-db-2.13.1",
+        "mkpasswd-5.6.6",
+        "mtools-4.0.49",
+        "nano-9.2",
+        "ncurses-6.6",
+        "nix-2.35.3",
+        "nix-bash-completions-0.6.8",
+        "nix-info",
+        "nix-zsh-completions-0.5.1-unstable-2025-12-12",
+        "nixos-build-vms",
+        "nixos-configuration-reference-manpage",
+        "nixos-enter",
+        "nixos-generate-config",
+        "nixos-help",
+        "nixos-install",
+        "nixos-manual-html",
+        "nixos-option-26.11",
+        "nixos-rebuild-ng-26.11",
+        "nixos-version",
+        "openresolv-3.17.4",
+        "openssh-10.6p1",
+        "patch-2.8",
+        "perl-5.42.3",
+        "procps-4.0.7",
+        "rsync-3.5.0",
+        "shadow-4.20.3",
+        "shadow-4.20.3-su",
+        "shared-mime-info-2.5.1",
+        "sound-theme-freedesktop-0.8",
+        "spice-vdagent-0.23.0",
+        "strace-7.2",
+        "sudo-1.9.17p2",
+        "systemd-262",
+        "texinfo-interactive-7.3",
+        "time-1.10",
+        "util-linux-2.42.4-bin",
+        "which-2.25",
+        "xclip-0.13",
+        "xrandr-auto",
+        "xz-5.8.4-bin",
+        "zsh-5.9.2",
+        "zstd-1.5.7-bin"
+      ],
+      "user": {
+        "modules": {
+          "packages": {
+            "ai": {
+              "enable": true
+            },
+            "cloud": {
+              "enable": true
+            },
+            "core": {
+              "enable": true
+            },
+            "databases": {
+              "enable": true
+            },
+            "dev": {
+              "enable": true
+            },
+            "fonts": {
+              "enable": true
+            },
+            "media": {
+              "enable": true
+            },
+            "nix-tools": {
+              "enable": true
+            },
+            "security": {
+              "enable": true
+            },
+            "ssh": {
+              "enable": true
+            }
+          },
+          "programs": {
+            "baleen-toolkit": {
+              "enable": true
+            },
+            "claude-code": {
+              "enable": true
+            },
+            "codex": {
+              "enable": true
+            },
+            "docker": {
+              "enable": true
+            },
+            "git": {
+              "enable": true
+            },
+            "hammerspoon": {
+              "enable": false
+            },
+            "herdr": {
+              "enable": true
+            },
+            "karabiner": {
+              "enable": false
+            },
+            "neovim": {
+              "enable": true
+            },
+            "powerlevel10k": {
+              "enable": true
+            },
+            "rustdesk": {
+              "enable": false
+            },
+            "ssh": {
+              "enable": true
+            },
+            "terraform": {
+              "enable": true
+            },
+            "tmux": {
+              "enable": true
+            },
+            "vim": {
+              "enable": true
+            },
+            "yarn": {
+              "enable": true
+            },
+            "zsh": {
+              "enable": true
+            }
+          }
+        },
+        "packages": [
+          "act-0.2.89",
+          "age-1.3.2",
+          "antigravity-cli-1.4.1",
+          "awscli2-2.36.31",
+          "bat-0.26.1",
+          "bl",
+          "bun-1.4.2",
+          "cascadia-code-2407.24",
+          "claude-code-2.1.305",
+          "cmake-4.4.4",
+          "codex-0.163.0",
+          "curl-8.22.0-bin",
+          "d2codingfont-1.4.0",
+          "deadnix-1.3.2",
+          "direnv-2.38.2",
+          "direnv-instant-wrapped",
+          "dummy-fc-dir1",
+          "dummy-fc-dir2",
+          "dummy-xdg-mime-dirs1",
+          "dummy-xdg-mime-dirs2",
+          "eza-0.23.5",
+          "fd-10.5.0",
+          "ffmpeg-9.0.2-bin",
+          "fzf-0.74.5",
+          "gh-2.102.0",
+          "git-2.56.0",
+          "git-lfs-3.8.0",
+          "gnumake-4.4.1",
+          "go-1.26.9",
+          "herdr-0.9.5",
+          "hm-session-vars.sh",
+          "htop-3.5.3",
+          "jq-1.8.2-bin",
+          "man-db-2.13.1",
+          "mosh-1.4.0",
+          "neovim-0.12.6",
+          "nerd-fonts-symbols-only-3.5.0",
+          "nix-zsh-completions-0.5.1-unstable-2025-12-12",
+          "nixfmt-1.5.0",
+          "nodejs-22.23.3",
+          "noto-fonts-cjk-sans-2.004",
+          "postgresql-18.6",
+          "pre-commit-4.7.0",
+          "python3-3.14.8",
+          "python3.14-pipx-1.16.6",
+          "python3.14-virtualenv-21.6.1",
+          "ripgrep-15.2.0",
+          "sesh-2.33.0",
+          "shared-mime-info-2.5.1",
+          "sops-3.13.3",
+          "sqlite-3.53.3-bin",
+          "sshpass-1.10",
+          "statix-0.5.8-unstable-2026-07-17",
+          "teleport-18.10.0",
+          "tmux-3.8",
+          "tree-2.3.2",
+          "unzip-6.0",
+          "uv-0.13.1",
+          "vim",
+          "vscode-1.142.0",
+          "wget-1.25.0",
+          "worktree-cli-0.1.10",
+          "zip-3.0",
+          "zoxide-0.10.0",
+          "zsh-5.9.2"
+        ]
+      }
+    },
+    "94ff9de978": {
+      "packages": [
+        "acl-2.4.0-bin",
+        "attr-2.6.0-bin",
+        "bash-interactive-5.3p20",
+        "bcache-tools-1.1",
+        "bind-9.20.29-host",
+        "bzip2-1.0.8-bin",
+        "coreutils-full-9.12",
+        "cpio-2.15",
+        "curl-8.22.0-bin",
+        "dbus-1.16.2",
+        "dbus-broker-37",
+        "diffutils-3.12",
+        "dosfstools-4.2",
+        "findutils-4.11.0",
+        "fontconfig-2.18.3-bin",
+        "gawk-5.4.1",
+        "getconf-glibc-2.44-57",
+        "getent-glibc-2.44-57",
+        "glibc-2.44-57",
+        "glibc-locales-2.44-57",
+        "gnugrep-3.12",
+        "gnused-4.10",
+        "gnutar-1.35",
+        "gzip-1.15",
+        "hicolor-icon-theme-0.18",
+        "hostname-hostname-debian-3.25",
+        "iproute2-7.2.0",
+        "iptables-1.8.13",
+        "iputils-20250605",
+        "kexec-tools-2.0.32",
+        "less-710",
+        "libcap-2.78",
+        "libressl-4.3.2-nc",
+        "linux-pam-1.7.2",
+        "lvm2-2.03.41",
+        "man-db-2.13.1",
+        "mkpasswd-5.6.6",
+        "nano-9.2",
+        "ncurses-6.6",
+        "nix-2.34.9",
+        "nix-bash-completions-0.6.8",
+        "nix-info",
+        "nix-zsh-completions-0.5.1-unstable-2025-12-12",
+        "nixos-build-vms",
+        "nixos-configuration-reference-manpage",
+        "nixos-enter",
+        "nixos-firewall-tool-26.11",
+        "nixos-generate-config",
+        "nixos-help",
+        "nixos-install",
+        "nixos-manual-html",
+        "nixos-option-26.11",
+        "nixos-rebuild-ng-26.11",
+        "nixos-version",
+        "nixos-wsl-version",
+        "nixos-wsl-welcome",
+        "openssh-10.6p1",
+        "patch-2.8",
+        "perl-5.42.3",
+        "procps-4.0.7",
+        "rsync-3.5.0",
+        "shadow-4.20.3",
+        "shadow-4.20.3-su",
+        "shared-mime-info-2.5.1",
+        "sound-theme-freedesktop-0.8",
+        "strace-7.2",
+        "sudo-1.9.17p2",
+        "systemd-262",
+        "texinfo-interactive-7.3",
+        "time-1.10",
+        "util-linux-2.42.4-bin",
+        "which-2.25",
+        "xz-5.8.4-bin",
+        "zsh-5.9.2",
+        "zstd-1.5.7-bin"
+      ],
+      "user": {
+        "modules": {
+          "packages": {
+            "ai": {
+              "enable": true
+            },
+            "cloud": {
+              "enable": true
+            },
+            "core": {
+              "enable": true
+            },
+            "databases": {
+              "enable": true
+            },
+            "dev": {
+              "enable": true
+            },
+            "fonts": {
+              "enable": true
+            },
+            "media": {
+              "enable": true
+            },
+            "nix-tools": {
+              "enable": true
+            },
+            "security": {
+              "enable": true
+            },
+            "ssh": {
+              "enable": true
+            }
+          },
+          "programs": {
+            "baleen-toolkit": {
+              "enable": true
+            },
+            "claude-code": {
+              "enable": true
+            },
+            "codex": {
+              "enable": true
+            },
+            "docker": {
+              "enable": true
+            },
+            "git": {
+              "enable": true
+            },
+            "hammerspoon": {
+              "enable": false
+            },
+            "herdr": {
+              "enable": true
+            },
+            "karabiner": {
+              "enable": false
+            },
+            "neovim": {
+              "enable": true
+            },
+            "powerlevel10k": {
+              "enable": true
+            },
+            "rustdesk": {
+              "enable": false
+            },
+            "ssh": {
+              "enable": true
+            },
+            "terraform": {
+              "enable": true
+            },
+            "tmux": {
+              "enable": true
+            },
+            "vim": {
+              "enable": true
+            },
+            "yarn": {
+              "enable": true
+            },
+            "zsh": {
+              "enable": true
+            }
+          }
+        },
+        "packages": [
+          "act-0.2.89",
+          "age-1.3.2",
+          "antigravity-cli-1.4.1",
+          "awscli2-2.36.31",
+          "bat-0.26.1",
+          "bl",
+          "bun-1.4.2",
+          "cascadia-code-2407.24",
+          "claude-code-2.1.305",
+          "cmake-4.4.4",
+          "codex-0.163.0",
+          "curl-8.22.0-bin",
+          "d2codingfont-1.4.0",
+          "deadnix-1.3.2",
+          "direnv-2.38.2",
+          "direnv-instant-wrapped",
+          "dummy-fc-dir1",
+          "dummy-fc-dir2",
+          "dummy-xdg-mime-dirs1",
+          "dummy-xdg-mime-dirs2",
+          "eza-0.23.5",
+          "fd-10.5.0",
+          "ffmpeg-9.0.2-bin",
+          "fzf-0.74.5",
+          "gh-2.102.0",
+          "git-2.56.0",
+          "git-lfs-3.8.0",
+          "gnumake-4.4.1",
+          "go-1.26.9",
+          "herdr-0.9.5",
+          "hm-session-vars.sh",
+          "htop-3.5.3",
+          "jq-1.8.2-bin",
+          "man-db-2.13.1",
+          "mosh-1.4.0",
+          "neovim-0.12.6",
+          "nerd-fonts-symbols-only-3.5.0",
+          "nix-zsh-completions-0.5.1-unstable-2025-12-12",
+          "nixfmt-1.5.0",
+          "nodejs-22.23.3",
+          "noto-fonts-cjk-sans-2.004",
+          "postgresql-18.6",
+          "pre-commit-4.7.0",
+          "python3-3.14.8",
+          "python3.14-pipx-1.16.6",
+          "python3.14-virtualenv-21.6.1",
+          "ripgrep-15.2.0",
+          "sesh-2.33.0",
+          "shared-mime-info-2.5.1",
+          "sops-3.13.3",
+          "sqlite-3.53.3-bin",
+          "sshpass-1.10",
+          "statix-0.5.8-unstable-2026-07-17",
+          "teleport-18.10.0",
+          "tmux-3.8",
+          "tree-2.3.2",
+          "unzip-6.0",
+          "uv-0.13.1",
+          "vim",
+          "vscode-1.142.0",
+          "wget-1.25.0",
+          "worktree-cli-0.1.10",
+          "zip-3.0",
+          "zoxide-0.10.0",
+          "zsh-5.9.2"
+        ]
+      }
+    }
+  }
+}

@@ -15,6 +15,7 @@ let
 
   hmConfig = import ../../users/shared/home-manager.nix {
     inherit pkgs lib inputs;
+    config = { };
     currentSystemUser = "baleen";
   };
 in

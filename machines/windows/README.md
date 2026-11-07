@@ -43,15 +43,16 @@ Nix does not run natively on Windows, so a Windows PC is set up in two layers:
    ```sh
    nix-shell -p git --run 'git clone https://github.com/baleen37/dotfiles ~/dotfiles'
    cd ~/dotfiles
-   nix-shell -p gnumake --run 'make switch NIXNAME=wsl'
+   ./bootstrap.sh wsl --skip-secrets
+   ./switch.sh wsl
    ```
 
-   The hostname becomes `wsl`, so later runs are plain `make switch`.
+   The hostname becomes `wsl`, so later runs are plain `./switch.sh`.
 
    From a release tarball the login user changes from `nixos` to `baleen`, and
    NixOS-WSL requires `boot` instead of `switch` for that
    ([how-to](https://nix-community.github.io/NixOS-WSL/how-to/change-username.html)).
-   Replace the `make switch` line with
+   Replace the `./switch.sh` line with
    `sudo env NIX_CONFIG='experimental-features = nix-command flakes' nixos-rebuild boot --flake .#wsl`,
    then in PowerShell run `wsl -t NixOS`, `wsl -d NixOS --user root exit`,
    `wsl -t NixOS`, and open the distro again.

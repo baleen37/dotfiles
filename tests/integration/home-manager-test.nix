@@ -22,6 +22,7 @@ let
     user:
     import ../../users/shared/home-manager.nix {
       inherit pkgs lib inputs;
+      config = { };
       currentSystemUser = user;
       isDarwin = true;
     };

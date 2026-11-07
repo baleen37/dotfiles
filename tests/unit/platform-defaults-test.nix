@@ -1,12 +1,4 @@
-# platform-defaults-test.nix
-# home-manager.nix sets no enable flags: every discovered module is on because
-# its own option defaults to true. A new module declared with a bare
-# lib.mkEnableOption (default false) would be imported and silently do nothing,
-# so this checks every module's default on both platforms. Darwin-only GUI
-# tools default to pkgs.stdenv.hostPlatform.isDarwin instead.
-#
-# Strategy: mock pkgs with overridden stdenv.hostPlatform.isDarwin to simulate
-# both platforms, then evalModules each module and read .config.modules.*
+# Optional modules stay off on both platforms; Git and SSH are baseline.
 
 {
   inputs,
@@ -19,12 +11,6 @@
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
   homeModules = import ../../lib/home-modules.nix { inherit lib; };
-
-  # Programs that must stay off on Linux. Everything else defaults to true.
-  darwinOnly = [
-    "hammerspoon"
-    "karabiner"
-  ];
 
   # Override isDarwin in pkgs to simulate Darwin vs Linux
   mockPkgs =
@@ -60,15 +46,20 @@ let
       lib.mapAttrsToList (
         name: modulePath:
         let
-          onLinux = category != "programs" || !(builtins.elem name darwinOnly);
+          enabled =
+            category == "programs"
+            && builtins.elem name [
+              "git"
+              "ssh"
+            ];
         in
         [
-          (helpers.assertTest "${category}-${name}-darwin" (enableDefault category name modulePath true)
-            "modules.${category}.${name}.enable must default to true on Darwin; home-manager.nix sets no enable flags"
-          )
+          (helpers.assertTest "${category}-${name}-darwin" (
+            enableDefault category name modulePath true == enabled
+          ) "modules.${category}.${name}.enable must use the minimal baseline on Darwin")
           (helpers.assertTest "${category}-${name}-linux" (
-            enableDefault category name modulePath false == onLinux
-          ) "modules.${category}.${name}.enable must default to ${lib.boolToString onLinux} on non-Darwin")
+            enableDefault category name modulePath false == enabled
+          ) "modules.${category}.${name}.enable must default to ${lib.boolToString enabled} on non-Darwin")
         ]
       ) homeModules.${category}
     );
@@ -76,12 +67,7 @@ in
 {
   platforms = [ "any" ];
   value = helpers.testSuite "platform-defaults" (
-    testsFor "programs"
-    ++ testsFor "packages"
-    ++ [
-      (helpers.assertTest "darwin-only-list-is-current" (lib.all (
-        name: homeModules.programs ? ${name}
-      ) darwinOnly) "every name in darwinOnly must be a module under users/shared/programs")
-    ]
+    testsFor "programs" ++ testsFor "packages"
+
   );
 }

@@ -51,7 +51,6 @@ systemFunc {
     { nixpkgs.hostPlatform = system; }
   ]
   ++ machineModules
-  ++ lib.optionals darwin [ ../users/shared/darwin ]
   ++ [
 
     # Nix configuration

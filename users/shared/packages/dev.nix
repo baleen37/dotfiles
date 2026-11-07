@@ -8,9 +8,7 @@ let
   cfg = config.modules.packages.dev;
 in
 {
-  options.modules.packages.dev.enable = lib.mkEnableOption "development tools" // {
-    default = true;
-  };
+  options.modules.packages.dev.enable = lib.mkEnableOption "development tools";
 
   config = lib.mkIf cfg.enable {
     home.packages =

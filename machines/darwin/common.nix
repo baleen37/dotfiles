@@ -1,9 +1,6 @@
 # machines/darwin/common.nix
 {
   pkgs,
-  lib,
-  currentSystemName,
-  currentSystemUser,
   ...
 }:
 
@@ -27,11 +24,6 @@
   # Remote Login (SSH). nix-darwin turns it on with launchctl, not
   # `systemsetup -setremotelogin`, which needs Full Disk Access.
   services.openssh.enable = true;
-
-  security.sudo.extraConfig = lib.mkIf (currentSystemName == "kakaostyle-jito") ''
-    ${currentSystemUser} ALL = (root) NOPASSWD: /run/current-system/sw/bin/darwin-rebuild ^switch --flake \.\#kakaostyle-jito$
-    ${currentSystemUser} ALL = (root) NOPASSWD: /run/current-system/sw/bin/nh ^clean all --keep 3$
-  '';
 
   # Touch ID for sudo. Non-interactive shells (Claude Code, scripts) cannot
   # answer a password prompt at all; Touch ID gives them a path that works.

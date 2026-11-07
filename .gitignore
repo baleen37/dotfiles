@@ -78,3 +78,8 @@ __pycache__/
 coverage/
 .private-journal/
 .omc/state/
+
+# Bootstrap identities and unencrypted legacy backups must never enter Git.
+backup.tar.gz
+keys.txt
+.age-key.*
