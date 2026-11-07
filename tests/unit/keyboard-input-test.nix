@@ -29,5 +29,16 @@ in
       helpers.assertTest "keyboard input uses Ctrl+Space"
         (lib.hasInfix "parameters = (32, 49, 262144);" activationText)
         "input source switching must use Ctrl+Space parameters";
+
+    activation-reserves-command-space = helpers.assertTest "Spotlight shortcut disabled for Raycast" (
+      lib.hasInfix "AppleSymbolicHotKeys -dict-add 64 '<dict>" activationText
+      && lib.hasInfix "<key>enabled</key><false/>" activationText
+      && lib.hasInfix "<integer>1048576</integer>" activationText
+    ) "Cmd+Space must be reserved for Raycast without replacing other macOS shortcuts";
+
+    activation-reloads-shortcuts =
+      helpers.assertTest "reload macOS keyboard shortcuts"
+        (lib.hasInfix "run /System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings -u" activationText)
+        "defaults writes must be reloaded so Spotlight releases Cmd+Space without logging out";
   };
 }

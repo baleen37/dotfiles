@@ -71,6 +71,7 @@ in
     # Carefully selected apps for development productivity and system management
     # IDs obtained via: nix shell nixpkgs#mas && mas search <app name>
     masApps = {
+      "1Password for Safari" = 1569813296;
       "KakaoTalk" = 869223134; # Communication platform (if needed)
     };
 
@@ -78,6 +79,7 @@ in
     # apps out of `brew bundle` while Spotlight is being enabled or rebuilt.
     extraConfig = ''
       masSkip = [
+        ("1569813296" if File.directory?("/Applications/1Password for Safari.app")),
         ("869223134" if File.directory?("/Applications/KakaoTalk.app")),
       ].compact
       ENV["HOMEBREW_BUNDLE_MAS_SKIP"] = [ENV["HOMEBREW_BUNDLE_MAS_SKIP"], *masSkip].compact.join(" ")

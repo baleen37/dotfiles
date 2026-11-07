@@ -23,6 +23,7 @@ in
 {
   imports = [
     ./homebrew.nix
+    ./raycast.nix
     ./power.nix
     ./scripts.nix
   ];

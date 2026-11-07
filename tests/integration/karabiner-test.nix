@@ -49,8 +49,9 @@ let
     && firstProfile.virtual_hid_keyboard.keyboard_type_v2 == "ansi";
 
   rules = firstProfile.complex_modifications.rules or [ ];
-  hasOneRule = builtins.length rules == 1;
-  manipulators = if hasOneRule then (builtins.elemAt rules 0).manipulators else [ ];
+  hasTwoRules = builtins.length rules == 2;
+  manipulators = if rules != [ ] then (builtins.elemAt rules 0).manipulators else [ ];
+  launcherManipulators = lib.concatMap (r: r.manipulators or [ ]) (lib.drop 1 rules);
 
   simpleModifications = firstProfile.simple_modifications or [ ];
   hasNoSimpleModifications = simpleModifications == [ ];
@@ -180,9 +181,19 @@ in
     (helpers.assertTest "karabiner-virtual-hid-ansi" virtualHidAnsi
       "virtual_hid_keyboard.keyboard_type_v2 must be 'ansi'"
     )
-    (helpers.assertTest "karabiner-single-rule" hasOneRule
-      "complex_modifications must have exactly one rule (the Hyper rule)"
+    (helpers.assertTest "karabiner-hyper-and-launcher-rules" hasTwoRules
+      "complex_modifications must contain the Hyper and Raycast launcher rules"
     )
+    (helpers.assertTest "karabiner-raycast-command-space" (
+      builtins.length launcherManipulators == 1
+      && lib.any (
+        m:
+        m.from.key_code == "spacebar"
+        && m.from.modifiers.mandatory == [ "command" ]
+        && m.from.modifiers.optional == [ "caps_lock" ]
+        && (builtins.head m.to).software_function.open_application.bundle_identifier == "com.raycast.macos"
+      ) launcherManipulators
+    ) "Cmd+Space must open Raycast without consuming combinations with extra modifiers")
     (helpers.assertTest "karabiner-no-simple-modifications" hasNoSimpleModifications
       "simple_modifications must stay empty because Karabiner applies simple modifications before complex modifications"
     )

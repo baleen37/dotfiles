@@ -24,8 +24,9 @@ runner.
 
 ### Installation
 
-On a fresh machine, one command does everything below that is needed
-(Xcode CLT, Determinate Nix, Homebrew, host registration, first activation):
+On a fresh machine, one command checks prerequisites, explains the installation
+plan, and guides the required setup (Xcode CLT, Determinate Nix, Homebrew,
+host registration, first activation). Run it interactively in a terminal:
 
 ```bash
 ./install.sh            # host name defaults to `hostname -s`
@@ -36,7 +37,21 @@ If the host is not in `flake-modules/hosts.nix`, it is written for the current
 user to `flake-modules/hosts.local.nix`, which is gitignored: no tracked file
 changes, nothing to commit. The Makefile reads the flake through `path:` while
 that file exists. Nix and Homebrew installers are pinned by version and
-SHA256 and verified before they run. Afterwards plain `make` works.
+SHA256 and verified before they run. Both macOS and Linux use the official
+Determinate shell installer automatically; no manual package download is needed.
+Enter your administrator password when prompted. Determinate recommends its GUI
+package for macOS, but this bootstrap uses the supported CLI path to keep setup
+in the terminal.
+The script reports existing Nix Store volumes from interrupted installations and
+links to official recovery instructions; it does not delete them automatically.
+Administrator authentication is requested upfront and refreshed while the script
+runs, then the remaining installation steps continue automatically. macOS Command
+Line Tools still require completing Apple's dialog, but no terminal confirmation
+is needed afterwards. Nix installer output is saved to a private temporary log
+whose path is printed, including on failure. Full Disk Access is not
+required upfront; diagnose any permission failure before changing that setting.
+Configure individual apps' permissions (such as Hammerspoon Accessibility) after
+installation. Afterwards plain `make` works.
 
 Manual steps:
 

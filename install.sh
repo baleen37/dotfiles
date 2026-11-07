@@ -14,7 +14,7 @@
 # file changes. The Makefile reads the flake through `path:` while that file
 # exists, because a git flake reference cannot see ignored files.
 #
-# Third-party installers are pinned and verified before they run. To bump one:
+# Installers are pinned and verified before they run. To bump an installer:
 # update the version/commit in its URL, then set the hash to the output of
 #   curl -sSfL <url> | shasum -a 256
 
@@ -40,7 +40,31 @@ die() {
 HOST=${1:-${NIXNAME:-$(hostname -s)}}
 OS=$(uname -s)
 TMP_DIR=$(mktemp -d)
-trap 'rm -rf "$TMP_DIR"' EXIT
+SUDO_KEEPALIVE_PID=
+NEEDS_SUDO=false
+cleanup() {
+  if [ -n "$SUDO_KEEPALIVE_PID" ]; then
+    kill "$SUDO_KEEPALIVE_PID" 2> /dev/null || true
+    wait "$SUDO_KEEPALIVE_PID" 2> /dev/null || true
+  fi
+  rm -rf "$TMP_DIR"
+}
+trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+
+authorize_install() {
+  log "Authenticate once before installation (sudo access is refreshed until this script exits)"
+  sudo -v || die "administrator authentication failed; nothing has been installed"
+  (
+    while kill -0 "$$" 2> /dev/null; do
+      sudo -n -v 2> /dev/null || exit
+      sleep 45 &
+      wait "$!"
+    done
+  ) &
+  SUDO_KEEPALIVE_PID=$!
+}
 
 # fetch_verified <url> <sha256>: download to a temp file, refuse to return it
 # unless the hash matches. Callers run the file only after this succeeds.
@@ -66,10 +90,67 @@ nix_cmd() {
   nix --extra-experimental-features 'nix-command flakes' "$@"
 }
 
+preflight() {
+  local cmd answer
+  case "$OS" in
+    Darwin)
+      [ "$(uname -m)" = arm64 ] || die "this repository supports Apple Silicon Macs only"
+      ;;
+    Linux) ;;
+    *) die "unsupported OS: $OS" ;;
+  esac
+  for cmd in curl shasum make; do
+    command -v "$cmd" > /dev/null 2>&1 || die "required command missing: $cmd"
+  done
+  [[ $HOST =~ ^[a-zA-Z0-9][a-zA-Z0-9._-]*$ ]] || die "invalid host name: $HOST"
+  [ -w "$REPO_DIR" ] || die "repository must be writable: $REPO_DIR"
+  load_nix
+  if [ "$OS" = Darwin ] || [ -e /etc/NIXOS ] || ! command -v nix > /dev/null 2>&1; then
+    NEEDS_SUDO=true
+    command -v sudo > /dev/null 2>&1 || die "required command missing: sudo"
+  fi
+  log "Preflight: $OS / $(uname -m), user $(id -un), host $HOST"
+  if command -v nix > /dev/null 2>&1; then
+    nix --version
+  else
+    log "Nix is not installed or not available on PATH"
+  fi
+  if [ "$OS" = Darwin ]; then
+    xcode-select -p > /dev/null 2>&1 || log "Xcode Command Line Tools will require a GUI installation"
+    [ ! -x /opt/homebrew/bin/brew ] || log "Homebrew is already installed"
+    if ! command -v nix > /dev/null 2>&1 && diskutil info 'Nix Store' > /dev/null 2>&1; then
+      log "Found a Nix Store volume without a usable Nix installation (possibly an interrupted install)."
+      printf '%s\n' 'If Nix installation cannot recover, follow:' \
+        'https://docs.determinate.systems/troubleshooting/installation-failed-macos/' \
+        'Existing volumes and Keychain entries will not be deleted by this script.'
+    fi
+    printf '%s\n' \
+      'Plan: install missing CLT, Nix (official shell installer), and Homebrew; register this host; activate nix-darwin.' \
+      'Nix creates an APFS store volume. First activation backs up conflicting /etc files' \
+      'to *.before-nix-darwin and applies the repository system and user configuration.' \
+      'Administrator authentication happens before installation and is refreshed during this run.' \
+      'Full Disk Access is not a blanket prerequisite. If a permission error occurs,' \
+      'review the error before enabling it for the terminal app running this script.' \
+      'macOS app permissions cannot be approved in bulk; individual apps request them separately.'
+  else
+    printf '%s\n' 'Plan: install Nix if missing, then run make switch for this system/user.'
+  fi
+  [ -t 0 ] || die "run interactively in a terminal to review installation and authenticate"
+  read -r -p 'Continue with this plan? [y/N] ' answer
+  case "$answer" in
+    y | Y | yes | YES) ;;
+    *)
+      log "Cancelled before installation"
+      exit 0
+      ;;
+  esac
+}
+
 install_clt() {
   xcode-select -p > /dev/null 2>&1 && return 0
   log "Installing Xcode Command Line Tools (finish the GUI dialog)"
   xcode-select --install > /dev/null 2>&1 || true
+  log "Waiting for Command Line Tools; cancel this script with Ctrl-C if the GUI installation is cancelled"
   until xcode-select -p > /dev/null 2>&1; do
     sleep 5
   done
@@ -78,10 +159,25 @@ install_clt() {
 install_nix() {
   load_nix
   command -v nix > /dev/null 2>&1 && return 0
+  if [ "$OS" = Darwin ] && [ ! -d /nix ] \
+    && sudo -n grep -qx 'nix' /etc/synthetic.conf 2> /dev/null; then
+    die "macOS has registered /nix but has not created it. Restart this Mac, then re-run ./install.sh. Repeating the installer before reboot will fail to mount Nix Store."
+  fi
   log "Installing Determinate Nix"
-  local installer
+  local installer install_log
   installer=$(fetch_verified "$NIX_INSTALLER_URL" "$NIX_INSTALLER_SHA256")
-  sh "$installer" install --no-confirm
+  install_log=$(mktemp "${TMPDIR:-/tmp}/dotfiles-nix-install.XXXXXX")
+  log "Nix installation log: $install_log"
+  if ! sh "$installer" install --no-confirm 2>&1 | tee "$install_log"; then
+    if [ "$OS" = Darwin ]; then
+      printf '%s\n' \
+        'For macOS mount/permission errors, review the original error above.' \
+        'Full Disk Access may be needed for the terminal app running this script;' \
+        'enable it only if indicated, then restart the terminal and re-run ./install.sh.' \
+        'Recovery: https://docs.determinate.systems/troubleshooting/installation-failed-macos/' >&2
+    fi
+    die "Nix installation failed; full log saved to $install_log"
+  fi
   load_nix
   command -v nix > /dev/null 2>&1 || die "nix not on PATH after install; open a new terminal and re-run ./install.sh"
 }
@@ -132,18 +228,16 @@ move_etc_aside() {
 }
 
 darwin_install() {
-  install_clt
   install_nix
   install_brew
   ensure_local_host
 
   if [ -x /run/current-system/sw/bin/darwin-rebuild ]; then
     log "nix-darwin already active; running make switch"
-    exec make -C "$REPO_DIR" switch NIXNAME="$HOST"
+    make -C "$REPO_DIR" switch NIXNAME="$HOST"
+    return
   fi
 
-  log "Requesting sudo (cached for the activation steps)"
-  sudo -v
   move_etc_aside
   # accept-flake-config: until the first activation the flake's nixConfig is
   # not trusted, so without it Nix prompts and, on "no", ignores the binary
@@ -157,11 +251,20 @@ darwin_install() {
   log "Done. Open a new terminal; from now on just run: make"
 }
 
+preflight
+if [ "$NEEDS_SUDO" = true ]; then
+  authorize_install
+fi
+# Finish required GUI setup first, then continue without another Enter prompt.
+if [ "$OS" = Darwin ]; then
+  install_clt
+fi
+
 case "$OS" in
   Darwin) darwin_install ;;
   Linux)
     install_nix
-    exec make -C "$REPO_DIR" switch NIXNAME="$HOST"
+    make -C "$REPO_DIR" switch NIXNAME="$HOST"
     ;;
   *) die "unsupported OS: $OS" ;;
 esac
