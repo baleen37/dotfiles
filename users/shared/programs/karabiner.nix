@@ -192,7 +192,27 @@ let
       {
         name = "Default profile";
         selected = true;
-        complex_modifications.rules = [ hyperRule ];
+        complex_modifications.rules = [
+          hyperRule
+          {
+            description = "Cmd+Space: open Raycast";
+            manipulators = [
+              {
+                type = "basic";
+                from = {
+                  key_code = "spacebar";
+                  modifiers = {
+                    mandatory = [ "command" ];
+                    optional = [ "caps_lock" ];
+                  };
+                };
+                to = [
+                  { software_function.open_application.bundle_identifier = "com.raycast.macos"; }
+                ];
+              }
+            ];
+          }
+        ];
         virtual_hid_keyboard.keyboard_type_v2 = "ansi";
       }
     ];
