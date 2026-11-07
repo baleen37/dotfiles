@@ -16,6 +16,7 @@ let
   ciYml = builtins.readFile ../../.github/workflows/ci.yml;
   setupNixYml = builtins.readFile ../../.github/actions/setup-nix/action.yml;
   makefile = builtins.readFile ../../Makefile;
+  setupScript = builtins.readFile ../../scripts/lib/setup.sh;
   envrc = builtins.readFile ../../.envrc;
 
   containsAll = haystack: needles: lib.all (n: lib.hasInfix n haystack) needles;
@@ -118,8 +119,12 @@ helpers.testSuite "cache-config" [
   )
 
   (helpers.assertTest "make-cache-darwin-explicitly-accepts-flake-config"
-    (lib.hasInfix "nix build '$(DARWIN_FLAKE)#darwinConfigurations.$(NIXNAME).system' --accept-flake-config --json" makefile)
-    "the Darwin make cache build must explicitly pass --accept-flake-config"
+    (
+      lib.hasInfix "source scripts/lib/setup.sh; HOME_ONLY=false; setup_context" makefile
+      && lib.hasInfix "nix_cmd build \"$$FLAKE_REF#darwinConfigurations." makefile
+      && lib.hasInfix "nix --extra-experimental-features 'nix-command flakes' --accept-flake-config" setupScript
+    )
+    "the Darwin cache build must use the filtered source and explicitly accept flake config through nix_cmd"
   )
 
   (helpers.assertTest "make-cache-linux-explicitly-accepts-flake-config"

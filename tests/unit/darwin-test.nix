@@ -9,6 +9,7 @@
 # Values that were deliberately tuned live in tests/lib/constants.nix; the
 # grouped `system.defaults` assertions are in tests/lib/darwin-test-helpers.nix.
 {
+  self,
   inputs,
   system,
   pkgs ? import inputs.nixpkgs { inherit system; },
@@ -53,8 +54,8 @@ let
   # Bound rather than inlined so each condition below stays a single short line:
   # nixfmt reflows multi-line operator chains, and the threshold at which it joins
   # or splits them is not worth guessing at.
-  homebrewCasks = darwinConfig.homebrew.casks;
-  homebrewTaps = darwinConfig.homebrew.taps;
+  homebrewCasks = map (c: c.name) self.darwinConfigurations.macbook-pro.config.homebrew.casks;
+  homebrewTaps = self.darwinConfigurations.macbook-pro.config.homebrew.taps;
   homebrewExtraConfig = darwinConfig.homebrew.extraConfig;
   forceClick = customPrefs.NSGlobalDomain."com.apple.trackpad.forceClick";
   tapGesture = multitouch.TrackpadThreeFingerTapGesture;
@@ -92,7 +93,8 @@ in
       ) "Switch should be installed from its Homebrew tap, trusted so Homebrew 6 loads the cask")
 
       (helpers.assertTest "magnet-not-configured" (
-        !(darwinConfig.homebrew.masApps ? Magnet) && !(lib.hasInfix "441258766" homebrewExtraConfig)
+        !(self.darwinConfigurations.macbook-pro.config.homebrew.masApps ? Magnet)
+        && !(lib.hasInfix "441258766" homebrewExtraConfig)
       ) "Magnet should not be managed after switching to Hammerspoon")
 
       (helpers.assertTest "mas-existing-app-skip-configured" (

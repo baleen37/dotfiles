@@ -24,40 +24,83 @@ runner.
 
 ### Installation
 
-On a fresh machine, one command checks prerequisites, explains the installation
-plan, and guides the required setup (Xcode CLT, Determinate Nix, Homebrew,
-host registration, first activation). Run it interactively in a terminal:
+Prepare the machine first, then apply its configuration separately:
 
 ```bash
-./install.sh            # host name defaults to `hostname -s`
-./install.sh my-host    # or pick one explicitly
+./bootstrap.sh
+./switch.sh
 ```
 
-If the host is not in `flake-modules/hosts.nix`, it is written for the current
-user to `flake-modules/hosts.local.nix`, which is gitignored: no tracked file
-changes, nothing to commit. The Makefile reads the flake through `path:` while
-that file exists. Nix and Homebrew installers are pinned by version and
-SHA256 and verified before they run. Both macOS and Linux use the official
-Determinate shell installer automatically; no manual package download is needed.
-Enter your administrator password when prompted. Determinate recommends its GUI
-package for macOS, but this bootstrap uses the supported CLI path to keep setup
-in the terminal.
-The script reports existing Nix Store volumes from interrupted installations and
-links to official recovery instructions; it does not delete them automatically.
-Administrator authentication is requested upfront and refreshed while the script
-runs, then the remaining installation steps continue automatically. macOS Command
-Line Tools still require completing Apple's dialog, but no terminal confirmation
-is needed afterwards. Nix installer output is saved to a private temporary log
-whose path is printed, including on failure. Full Disk Access is not
-required upfront; diagnose any permission failure before changing that setting.
-Configure individual apps' permissions (such as Hammerspoon Accessibility) after
-installation. Afterwards plain `make` works.
+`bootstrap.sh [host]` installs missing CLT and Nix, builds the pinned bootstrap
+packages, and prepares 1Password CLI without installing or opening the desktop
+app. It enables CLI desktop integration for this run with the official
+`OP_BIOMETRIC_UNLOCK_ENABLED=true` environment variable and tries existing
+authentication first. It does not change the app's persistent preferences.
+With desktop integration enabled, approve access when 1Password asks; no manual
+account registration is needed. If authentication is unavailable, bootstrap
+falls back to terminal-only `op account add` and `op signin`. Have your sign-in
+address, email, Secret Key and account password ready for that fallback.
+Set `OP_BIOMETRIC_UNLOCK_ENABLED=false` to use only terminal authentication.
+Existing sessions or `OP_SERVICE_ACCOUNT_TOKEN` can authenticate without a GUI.
+The default identity is stored in the `Private` vault's `dotfiles/sops` Secure
+Note. Its fields are:
+
+| Field           | Type      | Contents                                            |
+| --------------- | --------- | --------------------------------------------------- |
+| `age-key`       | Concealed | Existing age private key, restored into `keys.txt`  |
+| `age-recipient` | Text      | Public `age1…` recipient used to encrypt SOPS files |
+
+Bootstrap reads `age-key` with `op read`, using vault/item IDs so renaming the
+item does not break restoration. Override the reference with `--age-key-ref` or
+`DOTFILES_AGE_KEY_REF`; never pass the private key itself. The original document
+is preserved as `dotfiles/sops (attachment)`. Existing hosts still install their
+selected 1Password desktop app during `switch.sh`.
+
+The existing age identity is fetched into a private temporary file, validated,
+and installed at `~/.config/sops/age/keys.txt` with mode `0600`. A nonempty existing
+identity is checked and preserved. Empty, invalid or symlinked identities fail
+without replacement. Declared SOPS files must decrypt before bootstrap reports
+secret readiness. When no secrets have been declared, bootstrap validates only
+the identity and says so; it does not claim that personal secrets were restored.
+
+For tools without secret restoration, use `./bootstrap.sh --skip-secrets`.
+Unknown Macs are registered minimally in the ignored
+`flake-modules/hosts.local.nix`. Other selected GUI applications still use
+Homebrew; bootstrap prepares it only when the chosen host enables Homebrew.
+Every script evaluates a temporary source snapshot containing Git-tracked and
+unignored files, plus the explicitly allowed `flake-modules/hosts.local.nix`.
+Ignored keys, plaintext backups and private directories are excluded before Nix
+can copy the source to the store. Symlinks are preserved rather than followed.
+A Git checkout is required, and the snapshot is removed when the script exits.
+Both installer downloads retain pinned hashes. Bootstrap never activates the
+full system or imports GPG keys. A failed stage exits nonzero; rerun the same
+command after resolving the error.
+
+Before a macOS system installation, bootstrap and switch check App Management
+permission when the selected host manages GUI apps. If permission is denied or
+cannot be checked, they open **System Settings > Privacy & Security > App
+Management** and stop before building or activating the system. Allow the app
+hosting the terminal (for example Herdr Core), quit and reopen it, then rerun the
+same command. `sudo` does not replace this consent. Build-only, standalone Home
+Manager, Linux and minimal hosts without GUI apps skip this requirement. On a
+fresh Mac, bootstrap installs CLT/Nix first so it can evaluate the host's needs.
+App-specific permissions such as Accessibility are granted to those apps when
+they run; the installation check does not claim they are ready.
+See [ADR 0001](docs/adr/0001-macos-permission-preflight.md) for the decision and
+limits of the read-only macOS query.
+
+`switch.sh [host]` checks the selected user's secrets before activation. It
+supports the first nix-darwin activation, subsequent Darwin/NixOS switches, and
+standalone Home Manager (`HM_USER=jito.hello ./switch.sh --home`).
+`./switch.sh --build` builds without activating. Neither switch mode fetches a
+key from 1Password. Legacy `./switch.sh` / `make switch-home` delegate to these
+scripts. Initial administrator and 1Password authentication remain interactive.
 
 Manual steps:
 
 ```bash
 # 1. Clone
-git clone git@github.com:baleen37/dotfiles.git  # or https://github.com/baleen37/dotfiles.git
+git clone https://github.com/baleen37/dotfiles.git
 cd dotfiles
 
 # 2. Install pre-commit and pre-push hooks
@@ -71,10 +114,10 @@ nix build '.#darwinConfigurations.macbook-pro.system'
 nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel'
 
 # 5a. Activate a standalone Home Manager profile
-make switch-home HM_USER=jito.hello
+HM_USER=jito.hello ./switch.sh --home
 
 # 5b. Or activate the full system for this host (see "System Activation")
-make switch
+./switch.sh
 ```
 
 ### Hosts and Profiles
@@ -95,22 +138,22 @@ With **Determinate Nix**, add your user as a trusted user to avoid cache warning
 sudo vi /etc/nix/nix.custom.conf
 
 # Add this line (replace 'baleen' with your username):
-trusted-users = root baleen
+trusted-users = root @admin baleen
 
 # Restart the terminal to apply
 ```
 
 ### Nix Cache Behavior
 
-Local builds are accelerated by binary substituters, especially `https://baleen-nix.cachix.org`, `https://nix-community.cachix.org`, and `https://cache.nixos.org/`. When CI pushes a built closure to Cachix on `main` or tags, local `nix build` and `make switch` can download matching store paths instead of rebuilding them.
+Local builds are accelerated by binary substituters, especially `https://baleen-nix.cachix.org`, `https://nix-community.cachix.org`, and `https://cache.nixos.org/`. When CI pushes a built closure to Cachix on `main` or tags, local `nix build` and `./switch.sh` can download matching store paths instead of rebuilding them.
 
 GitHub `actions/cache` is CI-only. It can speed repeated workflow runs on GitHub-hosted runners, but it does not make local macOS builds faster. Do not store credentials in cached paths.
 
 ## Daily Usage
 
 ```bash
-make switch-home HM_USER=jito.hello  # Apply user configuration only (no Homebrew casks)
-make switch                          # Apply the full system for this host
+HM_USER=jito.hello ./switch.sh --home  # Apply user configuration only (no Homebrew casks)
+./switch.sh                          # Apply the full system for this host
 make format                          # Format with treefmt (nix fmt)
 make lint                            # Run all pre-commit hooks
 make update                          # Update flake inputs (nix flake update)
@@ -118,7 +161,7 @@ make update                          # Update flake inputs (nix flake update)
 
 ### System Activation
 
-`make switch` activates the system configuration named after the current
+`./switch.sh` activates the system configuration named after the current
 hostname (override with `NIXNAME=<host>`): `darwin-rebuild` on macOS,
 `nixos-rebuild` on NixOS. It is an explicit operating procedure, not part of the
 default development or PR workflow; run it only on the intended host after the
@@ -132,7 +175,7 @@ not declare a host's system user; that is the `user` field of the host entry in
 `flake-modules/hosts.nix`.
 
 ```bash
-make switch-home HM_USER=jito.hello
+HM_USER=jito.hello ./switch.sh --home
 ```
 
 ### Platform Capability Matrix
@@ -148,8 +191,6 @@ make switch-home HM_USER=jito.hello
 | test-build          |            ✅             |           ✅           |           ✅            |
 | test-containers     |            ❌¹            |          ✅²           |           ✅²           |
 | **Secrets**         |                           |                        |                         |
-| secrets/backup      |            ✅             |           ✅           |           ✅            |
-| secrets/restore     |            ✅             |           ✅           |           ✅            |
 
 ¹ NixOS VM tests need a Linux builder; Determinate Nix disables the macOS
 linux-builder, so run them in CI or a Linux VM.
@@ -158,8 +199,39 @@ linux-builder, so run them in CI or a Linux VM.
 `make test-build` runs the unit and integration assertions on any platform, but it
 deliberately excludes the NixOS VM tests — those need `make test-containers` or CI.
 
-`secrets/backup` and `secrets/restore` move `~/.ssh` and `~/.gnupg` to a new
-machine through `backup.tar.gz` at the repository root.
+### SOPS secrets
+
+Declare real encrypted files in the appropriate machine's Home Manager module:
+
+```nix
+home-manager.users.${currentSystemUser} = {
+  sops.defaultSopsFile = ../../secrets/personal.yaml;
+  sops.secrets.github-ssh = {
+    path = "/Users/${currentSystemUser}/.ssh/id_ed25519_github";
+    mode = "0600";
+  };
+  sops.secrets.api-token = { }; # Point the consuming app to this file path.
+  sops.secrets.gpg-export = { };
+  modules.secrets.gpgImports = [ "gpg-export" ];
+};
+```
+
+Use the actual home directory on Linux. The example file above is not shipped:
+provide your recipient public key and encrypted contents before enabling it.
+Use `.sops.yaml` recipients and `sops updatekeys` when adding recipients. Never
+commit the private identity, exported plaintext keys or token values.
+
+Secrets install synchronously before dependent Home Manager files are linked.
+GPG imports run only after that installation succeeds, preserve the existing
+keyring, and are repeatable. Exported GPG keys are supported; ownertrust is not
+automatically changed. The normal SOPS login service also restores runtime
+secret files after login. Real SSH/GPG authentication still needs verification
+with your actual services; synthetic fixture tests do not prove that.
+
+The older `make secrets/backup` and `make secrets/restore` tar targets remain for
+compatibility only. They are not used by bootstrap or switch and do not include
+the age identity. No new real backup or encrypted personal secret is fabricated
+by these scripts.
 
 ## Architecture
 
@@ -203,8 +275,9 @@ dotfiles/
 3. `lib/mksystem.nix` builds a `darwinSystem` or `nixosSystem` and wires in
    Home Manager with `users/shared/home-manager.nix`.
 4. `lib/home-modules.nix` imports every module under `users/shared/programs/`
-   and `users/shared/packages/`. Each is enabled by default through
-   `modules.<category>.<name>.enable` (Darwin-only modules default to macOS only).
+   and `users/shared/packages/`. Optional features default to off. Machine files select
+   `modules.<category>.<name>.enable` under `home-manager.users.${currentSystemUser}`.
+   New hosts receive Zsh, Git, the SSH client and age.
 
 ## Customization
 
@@ -213,11 +286,14 @@ dotfiles/
 `users/shared/programs/<name>.nix`. New files there are imported automatically;
 do not edit `home-manager.nix`.
 
-**Add a macOS app**: Homebrew casks go in `users/shared/darwin/homebrew.nix`;
-Mac App Store apps go in `masApps` in `users/shared/darwin/default.nix`.
+**Add a macOS app**: edit `homebrew.casks` or `homebrew.masApps` in
+`machines/darwin/<host>.nix`. Shared implementations stay in `users/shared/`.
 
-**Disable a module on one host**: set it in that host's `homeModules`, for
-example `modules.programs.hammerspoon.enable = false;`.
+**Disable a module on one host**: edit its machine file, for example
+`home-manager.users.${currentSystemUser}.modules.programs.hammerspoon.enable = false;`.
+The Mac files also tie Hammerspoon, Karabiner, RustDesk, Herdr and VS Code casks
+to their feature switches. Standalone Home Manager selections live in
+`flake-modules/home.nix`; `HM_USER` still selects the output.
 
 **Add a host**: add an entry to `dotfiles.hosts` in `flake-modules/hosts.nix`,
 then update the expected host list in `tests/integration/machine-builds-test.nix`.
@@ -227,9 +303,23 @@ newmachine = {
   system = "aarch64-darwin";
   class = "darwin";
   user = "newusername";
-  machineModules = [ ../machines/darwin/common.nix ];
+  machineModules = [ ../machines/darwin/newmachine.nix ];
 };
 ```
+
+Create `machines/darwin/newmachine.nix` with the minimal system import:
+
+```nix
+{ ... }:
+{
+  imports = [ ./common.nix ];
+}
+```
+
+Import `../../users/shared/darwin` to select the shared macOS preferences,
+power daemon and cleanup scripts, then declare apps and user features in this
+machine file. Bootstrap registers only the minimal `common.nix` import;
+`--skip-secrets` prepares the machine without restoring a key.
 
 **Add a test**: create `tests/unit/<feature>-test.nix` or
 `tests/integration/<feature>-test.nix`; it becomes

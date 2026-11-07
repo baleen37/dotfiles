@@ -15,6 +15,7 @@ let
     inherit pkgs lib;
     config = {
       modules.programs.karabiner.enable = true;
+      modules.darwin.keyboard-input.reserveCommandSpace = true;
       home.homeDirectory = "/Users/test";
     };
   };

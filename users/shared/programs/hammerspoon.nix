@@ -4,7 +4,6 @@
 {
   config,
   lib,
-  pkgs,
   ...
 }:
 
@@ -12,9 +11,7 @@ let
   cfg = config.modules.programs.hammerspoon;
 in
 {
-  options.modules.programs.hammerspoon.enable = lib.mkEnableOption "Hammerspoon (macOS)" // {
-    default = pkgs.stdenv.hostPlatform.isDarwin;
-  };
+  options.modules.programs.hammerspoon.enable = lib.mkEnableOption "Hammerspoon (macOS)";
 
   config = lib.mkIf cfg.enable {
     # Pattern: Tool-specific home directory (destination: ~/.hammerspoon/)

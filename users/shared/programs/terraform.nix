@@ -15,9 +15,7 @@ let
   pluginCacheDir = "${config.home.homeDirectory}/.terraform.d/plugin-cache";
 in
 {
-  options.modules.programs.terraform.enable = lib.mkEnableOption "Terraform CLI configuration" // {
-    default = true;
-  };
+  options.modules.programs.terraform.enable = lib.mkEnableOption "Terraform CLI configuration";
 
   config = lib.mkIf cfg.enable {
     home.file.".terraformrc".text = ''

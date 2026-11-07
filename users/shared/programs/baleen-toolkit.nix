@@ -29,9 +29,7 @@ let
   };
 in
 {
-  options.modules.programs.baleen-toolkit.enable = lib.mkEnableOption "Baleen toolkit CLI" // {
-    default = true;
-  };
+  options.modules.programs.baleen-toolkit.enable = lib.mkEnableOption "Baleen toolkit CLI";
 
   config = lib.mkIf cfg.enable {
     home.packages = [ bl ];
