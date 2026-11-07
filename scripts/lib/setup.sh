@@ -10,7 +10,9 @@ load_nix() {
   command -v nix > /dev/null 2>&1 && return 0
   local file
   for file in /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh "$HOME/.nix-profile/etc/profile.d/nix.sh"; do
-    if [ -r "$file" ]; then . "$file"; fi
+    if [ -r "$file" ]; then
+      . "$file"
+    fi
     command -v nix > /dev/null 2>&1 && return 0
   done
   return 0

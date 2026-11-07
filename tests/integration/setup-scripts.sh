@@ -5,7 +5,9 @@ repo=$1
 workspace=$(mktemp -d)
 cleanup() {
   local status=$?
-  if [ "$status" -ne 0 ] && [ -f "$workspace/output" ]; then cat "$workspace/output" >&2; fi
+  if [ "$status" -ne 0 ] && [ -f "$workspace/output" ]; then
+    cat "$workspace/output" >&2
+  fi
   rm -rf "$workspace"
   exit "$status"
 }

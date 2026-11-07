@@ -210,7 +210,9 @@ if [ "$OS" = Darwin ]; then
   install_clt
 fi
 install_nix
-if [ "$OS" = Darwin ] && [ "$HOME_ONLY" = false ]; then ensure_local_host; fi
+if [ "$OS" = Darwin ] && [ "$HOME_ONLY" = false ]; then
+  ensure_local_host
+fi
 check_macos_permissions
 build_tools
 select_configuration

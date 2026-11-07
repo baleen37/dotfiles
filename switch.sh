@@ -30,7 +30,9 @@ export PATH="$TOOLS/bin:$PATH"
 select_configuration
 check_macos_permissions
 # This runs before any system or Home Manager activation.
-if [ "$BUILD_ONLY" = false ]; then secrets_check; fi
+if [ "$BUILD_ONLY" = false ]; then
+  secrets_check
+fi
 
 if [ "$HOME_ONLY" = true ]; then
   activation=$(nix_cmd build "$FLAKE_REF#homeConfigurations.\"$HM_USER\".activationPackage" \
