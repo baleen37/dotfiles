@@ -14,6 +14,21 @@ Flake evaluation is pure and requires no user environment variable. `HM_USER`
 only selects a standalone Home Manager profile; typed `dotfiles.hosts` entries
 declare permanent host system users.
 
+### Bootstrap and activation
+
+Use `./bootstrap.sh [host]` to prepare tools and the existing age identity, then
+`./switch.sh [host]` to apply. They are separate stages; bootstrap never switches
+the full host. `--age-key-ref` accepts only a 1Password reference, not key material.
+Use `--skip-secrets` for preparation without restoration and `switch.sh --build`
+for build-only verification. Standalone HM uses `switch.sh --home` and `HM_USER`.
+
+User secrets are declared with sops-nix under the selected Home Manager config.
+Private keys and decrypted data stay outside Nix evaluation and the store.
+`modules.secrets.gpgImports` lists declared SOPS secret names containing exported
+GPG keys. SOPS installs synchronously before linking dependent home files; GPG
+imports run after successful decryption. No actual personal secrets are supplied
+in this repository until the user provides recipients and encrypted files.
+
 ### Common Operations
 
 ```bash
@@ -25,7 +40,7 @@ nix build '.#darwinConfigurations.macbook-pro.system'
 nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel'
 
 # Activate a standalone Home Manager profile
-make switch-home HM_USER=jito.hello
+HM_USER=jito.hello ./switch.sh --home
 ```
 
 **Caveat**: container tests need Linux and `/dev/kvm`. Without them `make test`
@@ -128,8 +143,8 @@ machines/
 └── windows/                    # Windows side, outside Nix: winget config, SSH bootstrap
 ```
 
-Darwin hosts all list `machines/darwin/common.nix` explicitly; per-host
-differences are expressed in `hosts.nix` rather than in a per-machine file.
+Darwin hosts each register `machines/darwin/<host>.nix`. Machine files import
+`common.nix` and select apps, macOS settings and Home Manager features.
 NixOS hosts explicitly list their corresponding module under `machines/nixos/`.
 
 ### Testing Framework
@@ -157,7 +172,7 @@ tests/
 ### User Selection
 
 Host users are declared by `dotfiles.hosts.<name>.user`. Standalone Home Manager
-profiles use `HM_USER`, for example `make switch-home HM_USER=jito.hello`; it
+profiles use `HM_USER`, for example `HM_USER=jito.hello ./switch.sh --home`; it
 does not change host metadata.
 
 ## Development Guidelines
@@ -172,15 +187,16 @@ does not change host metadata.
 
 **Module enable pattern** (`modules.programs.<name>`, `modules.packages.<name>`):
 
-- Every discovered module declares `options.modules.<category>.<name>.enable`, named after its file, with `lib.mkEnableOption "..." // { default = true; }`. `home-manager.nix` sets no enable flags; `unit-platform-defaults` fails on a bare `mkEnableOption` (default `false`).
-- Darwin-only modules (`hammerspoon`, `karabiner`) use `default = pkgs.stdenv.hostPlatform.isDarwin` instead; add new ones to `darwinOnly` in `tests/unit/platform-defaults-test.nix`.
-- Helper `.nix` files a module imports belong inside that module's directory (as in `zsh/`), not at the top of `programs/` or `packages/`.
-- To disable a module on a specific machine, add it to that host's `homeModules` in `flake-modules/hosts.nix` (e.g., `modules.programs.hammerspoon.enable = false;`).
+- Optional modules use `lib.mkEnableOption` with a false default. Git and SSH remain enabled; the shared Home Manager entry point provides basic Zsh and age.
+- Select user features in `machines/<platform>/<host>.nix` under `home-manager.users.${currentSystemUser}.modules`.
+- Helpers imported by a module belong inside its directory.
+- Standalone Home Manager outputs explicitly select existing features in `flake-modules/home.nix`; retain `HM_USER` selection.
 
-**System packages** (macOS GUI apps):
+**macOS apps and automation**:
 
-- Add Homebrew casks to `users/shared/darwin/homebrew.nix` in `homebrew-casks` list
-- Add Mac App Store apps to `masApps` in `users/shared/darwin/default.nix`
+- Declare casks and App Store apps in each Mac's machine file.
+- Keep implementations in `users/shared/`; import shared Darwin preferences, power and cleanup modules only for hosts that select them.
+- Tie app configuration and activation to feature selection. A new host using only `machines/darwin/common.nix` must have no GUI apps or personal automation.
 
 ### Adding New Users
 
@@ -194,7 +210,7 @@ does not change host metadata.
      system = "aarch64-darwin";
      class = "darwin";
      user = "newusername";
-     machineModules = [ ../machines/darwin/common.nix ];
+     machineModules = [ ../machines/darwin/newmachine.nix ];
    };
    ```
 
@@ -289,7 +305,7 @@ export TEST_USER=${TEST_USER:-testuser}
 
 ### Adding Machine-Specific Settings
 
-Machine files should be minimal - only hardware-specific settings. User preferences go in `users/shared/`.
+Machine files select apps, settings and user features. Shared implementations and option declarations stay in `users/shared/`.
 
 ## Troubleshooting
 
@@ -297,7 +313,7 @@ Machine files should be minimal - only hardware-specific settings. User preferen
 
 ```bash
 nix store gc            # Clear cache if needed
-make switch            # Retry
+./switch.sh            # Retry
 ```
 
 ### Container Tests Failing on macOS
@@ -316,7 +332,7 @@ make format                 # Auto-format Nix files
 Add your user to trusted users in `/etc/nix/nix.custom.conf`:
 
 ```text
-trusted-users = root yourusername
+trusted-users = root @admin yourusername
 ```
 
 ## Key Configuration Files
@@ -426,3 +442,17 @@ and covers nothing.
 - **.pre-commit-config.yaml**: Quality enforcement hooks
 - **tests/default.nix**: Test discovery and orchestration
 - **CONTRIBUTING.md**: Detailed development guidelines and workflow
+
+## Agent skills
+
+### Issue tracker
+
+이슈·스펙 작업 전 `docs/agents/issue-tracker.md`를 읽는다.
+
+### Triage labels
+
+이슈 분류 전 `docs/agents/triage-labels.md`를 읽는다.
+
+### Domain docs
+
+코드 탐색과 설계 작업 전 `docs/agents/domain.md`를 읽는다.

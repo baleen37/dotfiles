@@ -1,4 +1,5 @@
 {
+  config,
   pkgs,
   lib,
   currentSystemUser,
@@ -10,6 +11,8 @@
 {
   imports = [
     inputs.direnv-instant.homeModules.direnv-instant
+    inputs.sops-nix.homeManagerModules.sops
+    ./secrets.nix
 
     # Darwin GUI ownership and LaunchServices repair.
     ./darwin/vscode-launchservices.nix
@@ -29,6 +32,10 @@
     homeDirectory = if isDarwin then "/Users/${currentSystemUser}" else "/home/${currentSystemUser}";
     stateVersion = "24.11";
   };
+
+  # New hosts get a shell and encryption without selecting optional tools.
+  programs.zsh.enable = lib.mkDefault true;
+  home.packages = lib.mkIf (!config.modules.packages.security.enable) [ pkgs.age ];
 
   xdg.enable = true;
 

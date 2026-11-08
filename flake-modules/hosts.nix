@@ -40,19 +40,19 @@ in
       system = "aarch64-darwin";
       class = "darwin";
       user = "baleen";
-      machineModules = [ ../machines/darwin/common.nix ];
+      machineModules = [ ../machines/darwin/macbook-pro.nix ];
     };
     baleen-macbook = {
       system = "aarch64-darwin";
       class = "darwin";
       user = "baleen";
-      machineModules = [ ../machines/darwin/common.nix ];
+      machineModules = [ ../machines/darwin/baleen-macbook.nix ];
     };
     kakaostyle-jito = {
       system = "aarch64-darwin";
       class = "darwin";
       user = "jito.hello";
-      machineModules = [ ../machines/darwin/common.nix ];
+      machineModules = [ ../machines/darwin/kakaostyle-jito.nix ];
     };
     vm-aarch64-utm = {
       system = "aarch64-linux";

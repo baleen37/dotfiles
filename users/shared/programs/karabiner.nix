@@ -15,7 +15,6 @@
 {
   config,
   lib,
-  pkgs,
   ...
 }:
 
@@ -194,6 +193,8 @@ let
         selected = true;
         complex_modifications.rules = [
           hyperRule
+        ]
+        ++ lib.optionals config.modules.darwin.keyboard-input.reserveCommandSpace [
           {
             description = "Cmd+Space: open Raycast";
             manipulators = [
@@ -220,9 +221,7 @@ let
 
 in
 {
-  options.modules.programs.karabiner.enable = lib.mkEnableOption "Karabiner-Elements (macOS)" // {
-    default = pkgs.stdenv.hostPlatform.isDarwin;
-  };
+  options.modules.programs.karabiner.enable = lib.mkEnableOption "Karabiner-Elements (macOS)";
 
   config = lib.mkIf cfg.enable {
     home.file.".config/karabiner/karabiner.json" = {

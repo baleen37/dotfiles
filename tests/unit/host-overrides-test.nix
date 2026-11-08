@@ -41,18 +41,18 @@ let
       machineModules = [ ../../machines/darwin/common.nix ];
     }).config.home-manager.users.${probeUser}.modules.programs.hammerspoon.enable;
 
-  overridden = hammerspoonEnabledWith { modules.programs.hammerspoon.enable = false; };
+  overridden = hammerspoonEnabledWith { modules.programs.hammerspoon.enable = true; };
   default = hammerspoonEnabledWith { };
 in
 {
   platforms = [ "darwin" ];
   value = {
     home-modules-override-reaches-config = helpers.assertTest "homeModules override reaches config" (
-      overridden == false
-    ) "host.homeModules must override modules.programs.hammerspoon.enable to false";
+      overridden == true
+    ) "host.homeModules must override modules.programs.hammerspoon.enable to true";
 
     no-override-keeps-module-default =
-      helpers.assertTest "no override keeps module default" (default == true)
-        "a host without homeModules must keep the module default (hammerspoon defaults to true on Darwin)";
+      helpers.assertTest "no override keeps module default" (default == false)
+        "a host without homeModules must keep the module default (hammerspoon defaults to false on Darwin)";
   };
 }

@@ -41,10 +41,7 @@ let
 in
 {
   options.modules.programs.powerlevel10k.enable =
-    lib.mkEnableOption "Powerlevel10k prompt configuration"
-    // {
-      default = true;
-    };
+    lib.mkEnableOption "Powerlevel10k prompt configuration";
 
   config = lib.mkIf cfg.enable {
     programs.zsh.initContent = lib.mkMerge [

@@ -18,17 +18,6 @@ SSH_OPTIONS=-o PubkeyAuthentication=no -o UserKnownHostsFile=/dev/null -o Strict
 # For CI environments, use full path to nix binary when available
 NIX_PATH := $(shell which nix 2>/dev/null || echo "nix")
 NIX := $(NIX_PATH) --extra-experimental-features nix-command --extra-experimental-features flakes
-DARWIN_REBUILD := /run/current-system/sw/bin/darwin-rebuild
-# A host declared only in the gitignored flake-modules/hosts.local.nix (written
-# by install.sh) is invisible to a git flake reference, so read the directory
-# directly while that file exists.
-DARWIN_FLAKE := $(if $(wildcard $(MAKEFILE_DIR)/flake-modules/hosts.local.nix),path:$(MAKEFILE_DIR),.)
-# `make switch` runs `nh clean all` afterwards: GC cannot free a closure an old
-# generation still references, so expiring them is what reclaims the space.
-# It runs in the background so the switch returns without waiting on a full GC.
-NH := /run/current-system/sw/bin/nh
-NH_CLEAN_LOG := $(HOME)/Library/Logs/nh-clean.log
-
 # For sudo commands, we need the full path or preserved PATH
 # Use -H flag to set HOME to target user's home directory and avoid warnings
 SUDO_NIX := sudo -H env PATH="$$PATH" $(NIX_PATH) --extra-experimental-features nix-command --extra-experimental-features flakes
@@ -47,30 +36,10 @@ NIX_SYSTEM := $(NIX_ARCH)-$(NIX_OS)
 build-switch: switch
 
 switch:
-ifeq ($(UNAME), Darwin)
-	sudo -H $(DARWIN_REBUILD) switch --flake "$(DARWIN_FLAKE)#$(NIXNAME)"
-# -n: a background job cannot answer a password prompt. The sudoers rule on
-# kakaostyle-jito, or the timestamp darwin-rebuild just cached, covers it.
-	@nohup sudo -n -H $(NH) clean all --keep 3 >"$(NH_CLEAN_LOG)" 2>&1 &
-	@echo "nh clean running in background; log: $(NH_CLEAN_LOG)"
-else ifeq ($(IS_NIXOS), true)
-# --sudo evaluates and builds as the user and escalates only for activation.
-	$(NIX) run --inputs-from . "nixpkgs#nixos-rebuild" -- switch --sudo --flake ".#${NIXNAME}"
-else
-# homeConfigurations are keyed by user, not hostname.
-	$(NIX) run --inputs-from . home-manager -- switch --flake ".#$(HM_USER)"
-endif
+	./switch.sh "$(NIXNAME)"
 
-# Rebuild only Home Manager configuration (faster for user config changes)
-# This target does not install Homebrew casks; full `make switch` owns that path.
-# Usage: make switch-home
 switch-home:
-	@echo "Rebuilding Home Manager configuration for $(HM_USER)..."
-ifeq ($(UNAME), Darwin)
-	$(NIX) run --inputs-from . home-manager -- switch --flake ".#$(HM_USER)"
-else
-	$(NIX) run --inputs-from . home-manager -- switch --flake ".#$(HM_USER)"
-endif
+	HM_USER="$(HM_USER)" ./switch.sh --home
 
 test:
 	@echo "Running dual-mode tests..."
@@ -135,9 +104,11 @@ test-containers:
 # cachix authentication to be configured out of band.
 cache:
 ifeq ($(UNAME), Darwin)
-	nix build '$(DARWIN_FLAKE)#darwinConfigurations.$(NIXNAME).system' --accept-flake-config --json \
-		| jq -r '.[].outputs | to_entries[].value' \
-		| cachix push baleen-nix
+	HOST="$(NIXNAME)" bash -euo pipefail -c '\
+		source scripts/lib/setup.sh; HOME_ONLY=false; setup_context; \
+		nix_cmd build "$$FLAKE_REF#darwinConfigurations.\"$$HOST\".system" --json \
+		| jq -r ".[].outputs | to_entries[].value" \
+		| cachix push baleen-nix'
 else
 	nix build '.#nixosConfigurations.$(NIXNAME).config.system.build.toplevel' --accept-flake-config --json \
 		| jq -r '.[].outputs | to_entries[].value' \

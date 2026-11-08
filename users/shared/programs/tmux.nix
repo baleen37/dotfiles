@@ -52,9 +52,7 @@ let
   agentStatusGlyph = "#{?#{==:#{@agent_status},running},●,#{?#{==:#{@agent_status},needs_input},▲,#{?#{==:#{@agent_status},ready},○,#{?#{==:#{@agent_status},error},✕,}}}}";
 in
 {
-  options.modules.programs.tmux.enable = lib.mkEnableOption "Tmux multiplexer configuration" // {
-    default = true;
-  };
+  options.modules.programs.tmux.enable = lib.mkEnableOption "Tmux multiplexer configuration";
 
   config = lib.mkIf cfg.enable (
     lib.mkMerge [

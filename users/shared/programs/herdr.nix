@@ -30,9 +30,7 @@ let
   herdrSimPackage = inputs.herdr-sim.packages.${pkgs.stdenv.hostPlatform.system}.default;
 in
 {
-  options.modules.programs.herdr.enable = lib.mkEnableOption "Herdr terminal workspace manager" // {
-    default = true;
-  };
+  options.modules.programs.herdr.enable = lib.mkEnableOption "Herdr terminal workspace manager";
 
   config = lib.mkIf cfg.enable {
     home.packages = [ pkgs.herdr ];

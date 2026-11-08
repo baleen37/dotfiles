@@ -8,9 +8,7 @@ let
   cfg = config.modules.packages.databases;
 in
 {
-  options.modules.packages.databases.enable = lib.mkEnableOption "database tools" // {
-    default = true;
-  };
+  options.modules.packages.databases.enable = lib.mkEnableOption "database tools";
 
   config = lib.mkIf cfg.enable {
     home.packages = with pkgs; [

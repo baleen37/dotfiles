@@ -50,6 +50,7 @@ let
     in
     (lib.nixosSystem {
       inherit system;
+      specialArgs.currentSystemUser = "testuser";
       modules = [
         qemuVmModule
         machineModule
@@ -61,10 +62,24 @@ in
   perSystem =
     {
       system,
+      pkgs,
       ...
     }:
     {
-      packages = lib.optionalAttrs (lib.hasSuffix "-linux" system) {
+      packages = {
+        bootstrap-tools = pkgs.buildEnv {
+          name = "dotfiles-bootstrap-tools";
+          paths = with pkgs; [
+            coreutils
+            jq
+            git
+            age
+            sops
+            _1password-cli
+          ];
+        };
+      }
+      // lib.optionalAttrs (lib.hasSuffix "-linux" system) {
         test-vm = mkTestVm system;
       };
     };
