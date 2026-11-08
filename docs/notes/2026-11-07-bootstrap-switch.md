@@ -17,10 +17,8 @@ Nix 설치·플랫폼 명령과 인증 서비스를 대체한 격리 환경에�
 비대화형·미인증 실행은 설치 완료로 보고하지 않고 종료 코드 1로 중단했다.
 실제 개인 금고 인증과 개인 키 복원은 실행하지 않았다.
 
-
 공식 근거: [CLI 수동 로그인](https://developer.1password.com/docs/cli/sign-in-manually/),
 [환경 변수](https://developer.1password.com/docs/cli/environment-variables/).
-
 
 ## 실제 GUI 인증 확인
 

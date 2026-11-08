@@ -15,7 +15,7 @@ trap cleanup EXIT
 mkdir -p "$workspace/repo/scripts/lib" "$workspace/tools/bin" "$workspace/bin"
 cp "$repo/bootstrap.sh" "$repo/switch.sh" "$workspace/repo/"
 cp "$repo/scripts/lib/setup.sh" "$repo/scripts/lib/macos-app-management.js" "$workspace/repo/scripts/lib/"
-for command in age-keygen sops jq; do
+for command in age-keygen sops jq ln; do
   ln -s "$(command -v "$command")" "$workspace/tools/bin/$command"
 done
 # Use an actual Git index: source filtering is part of the public CLI contract.
@@ -32,17 +32,22 @@ ln -s keys.txt "$workspace/repo/ignored-target-link"
 export NIXNAME=test-host
 export TEST_TOOLS="$workspace/tools" TEST_STATE="$workspace"
 export PATH="$workspace/bin:$PATH"
-cat > "$workspace/bin/uname" << 'STUB'
-#!/usr/bin/env bash
+stub_shell=$(command -v bash)
+write_stub() {
+  {
+    printf '#!%s\n' "$stub_shell"
+    cat
+  } > "$1"
+  chmod +x "$1"
+}
+write_stub "$workspace/bin/uname" << 'STUB'
 if [ "${1:-}" = -m ]; then echo x86_64; else echo Linux; fi
 STUB
-cat > "$workspace/bin/id" << 'STUB'
-#!/usr/bin/env bash
+write_stub "$workspace/bin/id" << 'STUB'
 if [ "$1" = -u ]; then echo 1000; else echo testuser; fi
 STUB
 cp "$workspace/bin/id" "$workspace/tools/bin/id"
-cat > "$workspace/bin/nix" << 'STUB'
-#!/usr/bin/env bash
+write_stub "$workspace/bin/nix" << 'STUB'
 set -euo pipefail
 printf '%s\n' "$*" >> "$TEST_STATE/nix.log"
 for arg in "$@"; do
@@ -63,7 +68,16 @@ if [[ "$*" == *'bootstrap-tools'* ]]; then
     shift
   done
 elif [[ "$*" == *'programs._1password-gui.enable'* ]]; then echo "${TEST_APP_MANAGEMENT_REQUIRED:-true}"
-elif [[ "$*" == *'homebrew.enable'* ]]; then echo false
+elif [[ "$*" == *'homebrew.enable'* ]]; then
+  [ "${TEST_HOMEBREW_EVAL_FAIL:-0}" = 0 ] || exit 23
+  echo false
+elif [[ "$*" == *'builtins.hasAttr'* ]]; then echo true
+elif [[ "$*" == *'#homeConfigurations --apply'* ]]; then echo testuser-linux
+elif [[ "$*" == *'.pkgs.stdenv.hostPlatform.system'* ]]; then
+  if [ -n "${TEST_HOME_SYSTEM:-}" ]; then echo "$TEST_HOME_SYSTEM"
+  elif [ "$(uname -s)" = Darwin ]; then echo aarch64-darwin
+  else echo x86_64-linux
+  fi
 elif [[ "$*" == *'home.username'* ]]; then echo testuser
 elif [[ "$*" == *'sops.age.keyFile'* ]]; then echo "$HOME/.config/sops/age/keys.txt"
 elif [[ "$*" == *'modules.secrets.preflight'* ]]; then echo "$TEST_TOOLS"
@@ -72,8 +86,7 @@ elif [[ "$*" == *'.system'* ]]; then echo "$TEST_STATE/system"
 else echo 'unexpected nix invocation' >&2; exit 19
 fi
 STUB
-cat > "$workspace/tools/bin/op" << 'STUB'
-#!/usr/bin/env bash
+write_stub "$workspace/tools/bin/op" << 'STUB'
 set -euo pipefail
 if [ "$1" = --version ]; then echo 'test-op'; exit 0; fi
 [ "${TEST_OP_FAIL:-0}" = 0 ] || exit 17
@@ -82,14 +95,18 @@ if [ "$1" = --version ]; then echo 'test-op'; exit 0; fi
 while [ "$#" -gt 0 ]; do
   if [ "$1" = --out-file ]; then
     if [ "${TEST_EMPTY_KEY:-0}" = 1 ]; then : > "$2"; else cp "$TEST_IDENTITY" "$2"; fi
+    case "${TEST_KEY_RACE:-}" in
+      directory) mkdir "$HOME/.config/sops/age/keys.txt" ;;
+      symlink) ln -s "$TEST_STATE" "$HOME/.config/sops/age/keys.txt" ;;
+      file) printf 'competing identity\n' > "$HOME/.config/sops/age/keys.txt" ;;
+    esac
     exit 0
   fi
   shift
 done
 exit 19
 STUB
-cat > "$workspace/tools/bin/dotfiles-secrets-check" << 'STUB'
-#!/usr/bin/env bash
+write_stub "$workspace/tools/bin/dotfiles-secrets-check" << 'STUB'
 set -euo pipefail
 key=${1:-$HOME/.config/sops/age/keys.txt}
 [ -s "$key" ] || { echo 'run ./bootstrap.sh' >&2; exit 1; }
@@ -97,8 +114,7 @@ age-keygen -y "$key" >/dev/null
 SOPS_AGE_KEY_FILE="$key" SOPS_GPG_EXEC=false sops --decrypt "$TEST_STATE/secret.yaml" >/dev/null
 STUB
 mkdir -p "$workspace/activation"
-cat > "$workspace/activation/activate" << 'STUB'
-#!/usr/bin/env bash
+write_stub "$workspace/activation/activate" << 'STUB'
 touch "$TEST_STATE/activated"
 STUB
 chmod +x "$workspace/bin/"* "$workspace/tools/bin/id" "$workspace/tools/bin/op" "$workspace/tools/bin/dotfiles-secrets-check" "$workspace/activation/activate"
@@ -144,6 +160,23 @@ export TEST_IDENTITY="$workspace/wrong-identity"
 expect_failure bash ./bootstrap.sh --home --age-key-ref op://test/identity/key
 [ ! -e "$HOME/.config/sops/age/keys.txt" ]
 export TEST_IDENTITY="$workspace/identity"
+# A competing directory, symlink or file must never become a successful restore.
+for race in directory symlink file; do
+  export TEST_KEY_RACE=$race
+  expect_failure bash ./bootstrap.sh --home --age-key-ref op://test/identity/key
+  grep -q 'age key destination now exists' "$workspace/output"
+  [ -z "$(find "$HOME" -name '.age-key.*' -print)" ]
+  [ -z "$(find "$workspace" -maxdepth 1 -name '.age-key.*' -print)" ]
+  if [ "$race" = directory ]; then
+    rmdir "$HOME/.config/sops/age/keys.txt"
+  else
+    if [ "$race" = file ]; then
+      grep -qx 'competing identity' "$HOME/.config/sops/age/keys.txt"
+    fi
+    rm "$HOME/.config/sops/age/keys.txt"
+  fi
+done
+unset TEST_KEY_RACE
 bash ./bootstrap.sh --home --age-key-ref op://test/identity/key > "$workspace/output" 2>&1
 [ ! -e "$workspace/activated" ]
 cmp "$workspace/identity" "$HOME/.config/sops/age/keys.txt"
@@ -157,6 +190,20 @@ bash ./switch.sh --home --build > "$workspace/output" 2>&1
 bash ./switch.sh --home > "$workspace/output" 2>&1
 [ -f "$workspace/activated" ]
 rm "$workspace/activated"
+# Standalone defaults must follow the platform, not just the login name.
+unset HM_USER
+: > "$workspace/nix.log"
+bash ./bootstrap.sh --skip-secrets > "$workspace/output" 2>&1
+bash ./switch.sh --home --build > "$workspace/output" 2>&1
+grep -q 'homeConfigurations\."testuser-linux"\.activationPackage' "$workspace/nix.log"
+export HM_USER=testuser TEST_HOME_SYSTEM=aarch64-darwin
+: > "$workspace/nix.log"
+expect_failure bash ./bootstrap.sh --home --skip-secrets
+grep -q 'targets aarch64-darwin' "$workspace/output"
+expect_failure bash ./switch.sh --home --build
+grep -q 'targets aarch64-darwin' "$workspace/output"
+! grep -q 'activationPackage' "$workspace/nix.log"
+unset TEST_HOME_SYSTEM
 printf 'invalid\n' > "$HOME/.config/sops/age/keys.txt"
 expect_failure bash ./bootstrap.sh --home
 expect_failure bash ./switch.sh --home
@@ -169,26 +216,49 @@ expect_failure bash ./bootstrap.sh --unknown
 expect_failure bash ./switch.sh --age-key-ref op://test/identity/key
 # Drive the Darwin system branch while sudo is a recording-only double.
 cp "$workspace/identity" "$HOME/.config/sops/age/keys.txt"
-cat > "$workspace/bin/uname" << 'STUB'
-#!/usr/bin/env bash
+write_stub "$workspace/bin/uname" << 'STUB'
 if [ "${1:-}" = -m ]; then echo arm64; else echo Darwin; fi
 STUB
-cat > "$workspace/bin/sudo" << 'STUB'
-#!/usr/bin/env bash
+write_stub "$workspace/bin/sudo" << 'STUB'
 printf '%s\n' "$*" >> "$TEST_STATE/sudo.log"
+[ "${TEST_SUDO_FAIL:-0}" = 0 ] || exit 1
+if [ "${TEST_SUDO_EXECUTE:-0}" = 1 ]; then
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      -v) exit 0 ;;
+      -H | -n) shift ;;
+      *) exec "$@" ;;
+    esac
+  done
+fi
 STUB
-cat > "$workspace/bin/osascript" << 'STUB'
-#!/usr/bin/env bash
+write_stub "$workspace/bin/osascript" << 'STUB'
 printf '%s\n' "$*" >> "$TEST_STATE/permissions.log"
 [ "${TEST_PERMISSION_STATUS:-granted}" != error ] || exit 9
 printf '%s\n' "${TEST_PERMISSION_STATUS:-granted}"
 STUB
-cat > "$workspace/bin/open" << 'STUB'
-#!/usr/bin/env bash
+write_stub "$workspace/bin/open" << 'STUB'
 printf '%s\n' "$*" >> "$TEST_STATE/settings.log"
 [ "${TEST_SETTINGS_FAIL:-0}" = 0 ]
 STUB
 chmod +x "$workspace/bin/"*
+write_stub "$workspace/bin/xcode-select" << 'STUB'
+[ "$1" = -p ] && [ "${TEST_CLT_MISSING:-0}" = 0 ]
+STUB
+chmod +x "$workspace/bin/xcode-select"
+# With prerequisites installed, repeated bootstrap must never request sudo.
+export TEST_APP_MANAGEMENT_REQUIRED=false
+bash ./bootstrap.sh test-host > "$workspace/output" 2>&1
+[ ! -e "$workspace/sudo.log" ]
+cmp "$workspace/identity" "$HOME/.config/sops/age/keys.txt"
+# A genuinely missing prerequisite still requires authentication before install.
+export TEST_CLT_MISSING=1 TEST_SUDO_FAIL=1
+expect_failure bash ./bootstrap.sh test-host --skip-secrets
+grep -q 'administrator authentication failed' "$workspace/output"
+grep -q -- '-v' "$workspace/sudo.log"
+rm "$workspace/sudo.log"
+export TEST_CLT_MISSING=0 TEST_SUDO_FAIL=0
+export TEST_APP_MANAGEMENT_REQUIRED=true
 # Required macOS consent is checked before any build, secret read or sudo.
 for status in denied unknown error; do
   export TEST_PERMISSION_STATUS=$status
@@ -228,6 +298,59 @@ bash ./switch.sh test-host > "$workspace/output" 2>&1
 grep -q 'darwin-rebuild.*switch --flake' "$workspace/sudo.log"
 [ ! -e "$workspace/activated" ]
 [ ! -e "$(cat "$workspace/source-path")" ]
+# Evaluation failures must not be mistaken for a disabled Homebrew module.
+rm "$workspace/sudo.log"
+export TEST_HOMEBREW_EVAL_FAIL=1
+expect_failure bash ./bootstrap.sh test-host --skip-secrets
+grep -q 'cannot evaluate Homebrew requirements' "$workspace/output"
+expect_failure bash ./switch.sh test-host
+grep -q 'cannot evaluate Homebrew requirements' "$workspace/output"
+[ ! -e "$workspace/sudo.log" ]
+export TEST_HOMEBREW_EVAL_FAIL=0
+# First installation must restore only its own backups if activation fails.
+cp switch.sh "$workspace/switch.saved"
+chmod u+w switch.sh
+sed -e "s@/run/current-system@$workspace/run/current-system@g" \
+  -e "s@/etc/@$workspace/etc/@g" \
+  -e "s@/bin/bash -s@$stub_shell -s@g" "$workspace/switch.saved" > switch.sh
+mkdir -p "$workspace/etc/nix" "$workspace/system/sw/bin"
+for file in bashrc zshrc zprofile nix/nix.custom.conf; do
+  printf 'original %s\n' "$file" > "$workspace/etc/$file"
+done
+printf 'pre-existing backup\n' > "$workspace/etc/zprofile.before-nix-darwin"
+write_stub "$workspace/system/sw/bin/darwin-rebuild" << 'STUB'
+[ "${TEST_ACTIVATION_FAIL:-0}" = 0 ] || exit 42
+STUB
+chmod +x "$workspace/system/sw/bin/darwin-rebuild"
+export TEST_SUDO_EXECUTE=1 TEST_ACTIVATION_FAIL=1
+: > "$workspace/sudo.log"
+expect_failure bash ./switch.sh test-host
+[ "$(wc -l < "$workspace/sudo.log" | tr -d ' ')" = 1 ]
+for file in bashrc zshrc zprofile nix/nix.custom.conf; do
+  grep -qx "original $file" "$workspace/etc/$file"
+done
+grep -qx 'pre-existing backup' "$workspace/etc/zprofile.before-nix-darwin"
+for file in bashrc zshrc nix/nix.custom.conf; do
+  [ ! -e "$workspace/etc/$file.before-nix-darwin" ]
+done
+# Existing backups can leave the rollback list empty, including on Bash 3.2.
+for file in bashrc zshrc nix/nix.custom.conf; do
+  cp "$workspace/etc/$file" "$workspace/etc/$file.before-nix-darwin"
+done
+expect_failure bash ./switch.sh test-host
+! grep -q 'unbound variable' "$workspace/output"
+[ ! -e "$(cat "$workspace/source-path")" ]
+# A successful activation retains backups instead of rolling back.
+for file in bashrc zshrc zprofile nix/nix.custom.conf; do
+  rm "$workspace/etc/$file.before-nix-darwin"
+done
+export TEST_ACTIVATION_FAIL=0
+bash ./switch.sh test-host > "$workspace/output" 2>&1
+for file in bashrc zshrc zprofile nix/nix.custom.conf; do
+  grep -qx "original $file" "$workspace/etc/$file.before-nix-darwin"
+done
+export TEST_SUDO_EXECUTE=0
+cp "$workspace/switch.saved" switch.sh
 # The ignored exception may not point at an arbitrary private file.
 mv "$workspace/repo/flake-modules/hosts.local.nix" "$workspace/registry.saved"
 ln -s "$workspace/identity" "$workspace/repo/flake-modules/hosts.local.nix"

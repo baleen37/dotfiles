@@ -48,7 +48,9 @@ elif [ "$OS" = Darwin ]; then
     log "System build finished; not activated."
     exit 0
   fi
-  if [ "$(nix_cmd eval --json "$FLAKE_REF#$SYSTEM_ATTR.config.homebrew.enable")" = true ]; then
+  homebrew_enabled=$(nix_cmd eval --json "$FLAKE_REF#$SYSTEM_ATTR.config.homebrew.enable") \
+    || die 'cannot evaluate Homebrew requirements; no system activation started'
+  if [ "$homebrew_enabled" = true ]; then
     [ -x /opt/homebrew/bin/brew ] || die 'Homebrew required by selected apps: run ./bootstrap.sh'
   fi
   if [ -x /run/current-system/sw/bin/darwin-rebuild ]; then
@@ -62,13 +64,35 @@ elif [ "$OS" = Darwin ]; then
   else
     # Build as the user before moving conflicting stock /etc files aside.
     system=$(nix_cmd build "$FLAKE_REF#$SYSTEM_ATTR.system" --no-link --print-out-paths)
-    sudo -v
-    for file in /etc/bashrc /etc/zshrc /etc/zprofile /etc/nix/nix.custom.conf; do
-      if [ -f "$file" ] && [ ! -L "$file" ] && [ ! -e "$file.before-nix-darwin" ]; then
-        sudo mv "$file" "$file.before-nix-darwin"
+    # Keep rollback in the authenticated process, independent of sudo expiry.
+    sudo -H /bin/bash -s -- "$system" "$FLAKE_REF#$HOST" << 'ACTIVATE'
+set -euo pipefail
+moved_files=()
+restore_etc() {
+  local status=$? file
+  if [ "$status" -ne 0 ] && [ -n "${moved_files[*]:-}" ]; then
+    for file in "${moved_files[@]}"; do
+      if [ ! -e "$file" ] && [ ! -L "$file" ] && [ -f "$file.before-nix-darwin" ]; then
+        mv "$file.before-nix-darwin" "$file" \
+          || printf 'error: could not restore %s; original remains at %s.before-nix-darwin\n' "$file" "$file" >&2
       fi
     done
-    sudo -H "$system/sw/bin/darwin-rebuild" switch --flake "$FLAKE_REF#$HOST"
+  fi
+  return "$status"
+}
+trap restore_etc EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+for file in /etc/bashrc /etc/zshrc /etc/zprofile /etc/nix/nix.custom.conf; do
+  if [ -f "$file" ] && [ ! -L "$file" ] \
+    && [ ! -e "$file.before-nix-darwin" ] && [ ! -L "$file.before-nix-darwin" ]; then
+    moved_files+=("$file")
+    mv "$file" "$file.before-nix-darwin"
+  fi
+done
+"$1/sw/bin/darwin-rebuild" switch --flake "$2"
+moved_files=()
+ACTIVATE
   fi
   if [ -x /run/current-system/sw/bin/nh ]; then
     mkdir -p "$HOME/Library/Logs"

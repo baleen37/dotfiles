@@ -2,8 +2,8 @@
 
 Nix flakes-based dotfiles that build reproducible macOS (nix-darwin) and NixOS
 systems, plus standalone Home Manager profiles, from one shared user
-configuration. Every test is a Nix derivation, so `nix flake check` is the test
-runner.
+configuration. Tests are Nix derivations: `make test-build` executes unit and integration
+checks; NixOS VM tests require Linux with KVM.
 
 ## Highlights
 
@@ -16,132 +16,98 @@ runner.
 
 ## Quick Start
 
-### Prerequisites
-
-- **Nix** with flakes enabled ([Determinate Nix Installer](https://install.determinate.systems/) recommended on macOS)
-- **Git**
-- **pre-commit** (for contributing)
-
-### Installation
-
-Prepare the machine first, then apply its configuration separately:
-
 ```bash
+git clone https://github.com/baleen37/dotfiles.git
+cd dotfiles
 ./bootstrap.sh
 ./switch.sh
 ```
 
-`bootstrap.sh [host]` installs missing CLT and Nix, builds the pinned bootstrap
-packages, and prepares 1Password CLI without installing or opening the desktop
-app. It enables CLI desktop integration for this run with the official
-`OP_BIOMETRIC_UNLOCK_ENABLED=true` environment variable and tries existing
-authentication first. It does not change the app's persistent preferences.
-With desktop integration enabled, approve access when 1Password asks; no manual
-account registration is needed. If authentication is unavailable, bootstrap
-falls back to terminal-only `op account add` and `op signin`. Have your sign-in
-address, email, Secret Key and account password ready for that fallback.
-Set `OP_BIOMETRIC_UNLOCK_ENABLED=false` to use only terminal authentication.
-Existing sessions or `OP_SERVICE_ACCOUNT_TOKEN` can authenticate without a GUI.
-The default identity is stored in the `Private` vault's `dotfiles/sops` Secure
-Note. Its fields are:
+Run these commands as your normal user. You need Git and administrator access;
+bootstrap installs missing Xcode Command Line Tools, Determinate Nix and the
+selected host's Homebrew prerequisites. Installer downloads are hash-verified.
+Apple's CLT dialog and initial authentication may require your input.
 
-| Field           | Type      | Contents                                            |
-| --------------- | --------- | --------------------------------------------------- |
-| `age-key`       | Concealed | Existing age private key, restored into `keys.txt`  |
-| `age-recipient` | Text      | Public `age1…` recipient used to encrypt SOPS files |
+| Command                                 | What it does                                                           |
+| --------------------------------------- | ---------------------------------------------------------------------- |
+| `./bootstrap.sh`                        | Prepare tools and the existing age identity; never activate the system |
+| `./switch.sh --build`                   | Build the selected system without activating it                        |
+| `./switch.sh`                           | Check secrets and apply the selected configuration                     |
+| `./bootstrap.sh --skip-secrets`         | Prepare tools without restoring an identity                            |
+| `HM_USER=jito.hello ./switch.sh --home` | Apply a standalone Home Manager profile                                |
 
-Bootstrap reads `age-key` with `op read`, using vault/item IDs so renaming the
-item does not break restoration. Override the reference with `--age-key-ref` or
-`DOTFILES_AGE_KEY_REF`; never pass the private key itself. The original document
-is preserved as `dotfiles/sops (attachment)`. Existing hosts still install their
-selected 1Password desktop app during `switch.sh`.
+Both scripts default to `hostname -s`; pass a host name explicitly when needed,
+for example `./switch.sh macbook-pro`. `NIXNAME` also overrides the default.
+Unknown Macs receive a minimal registration in the ignored
+`flake-modules/hosts.local.nix`: Zsh, Git, the SSH client and age, without GUI apps
+or optional development tools. Select additional features in a machine file.
 
-The existing age identity is fetched into a private temporary file, validated,
-and installed at `~/.config/sops/age/keys.txt` with mode `0600`. A nonempty existing
-identity is checked and preserved. Empty, invalid or symlinked identities fail
-without replacement. Declared SOPS files must decrypt before bootstrap reports
-secret readiness. When no secrets have been declared, bootstrap validates only
-the identity and says so; it does not claim that personal secrets were restored.
+### 1Password and secret preparation
 
-For tools without secret restoration, use `./bootstrap.sh --skip-secrets`.
-Unknown Macs are registered minimally in the ignored
-`flake-modules/hosts.local.nix`. Other selected GUI applications still use
-Homebrew; bootstrap prepares it only when the chosen host enables Homebrew.
-Every script evaluates a temporary source snapshot containing Git-tracked and
-unignored files, plus the explicitly allowed `flake-modules/hosts.local.nix`.
-Ignored keys, plaintext backups and private directories are excluded before Nix
-can copy the source to the store. Symlinks are preserved rather than followed.
-A Git checkout is required, and the snapshot is removed when the script exits.
-Both installer downloads retain pinned hashes. Bootstrap never activates the
-full system or imports GPG keys. A failed stage exits nonzero; rerun the same
-command after resolving the error.
+Bootstrap prepares the pinned 1Password CLI without installing or opening the
+desktop app. Existing hosts install their selected desktop app during switch.
 
-Before a macOS system installation, bootstrap and switch check App Management
-permission when the selected host manages GUI apps. If permission is denied or
-cannot be checked, they open **System Settings > Privacy & Security > App
-Management** and stop before building or activating the system. Allow the app
-hosting the terminal (for example Herdr Core), quit and reopen it, then rerun the
-same command. `sudo` does not replace this consent. Build-only, standalone Home
-Manager, Linux and minimal hosts without GUI apps skip this requirement. On a
-fresh Mac, bootstrap installs CLT/Nix first so it can evaluate the host's needs.
-App-specific permissions such as Accessibility are granted to those apps when
-they run; the installation check does not claim they are ready.
-See [ADR 0001](docs/adr/0001-macos-permission-preflight.md) for the decision and
-limits of the read-only macOS query.
+1. Bootstrap validates and preserves an existing age identity if present.
+2. Otherwise, it reuses 1Password desktop authentication when available. Approve
+   the access request. If unavailable, it falls back to terminal `op account add`
+   and `op signin`; have your sign-in address, email, Secret Key and password ready.
+3. It reads `Private / dotfiles/sops / age-key`, validates the identity, and
+   installs it at `~/.config/sops/age/keys.txt` with mode `0600`.
+4. It checks decryption of declared SOPS files before reporting readiness.
 
-`switch.sh [host]` checks the selected user's secrets before activation. It
-supports the first nix-darwin activation, subsequent Darwin/NixOS switches, and
-standalone Home Manager (`HM_USER=jito.hello ./switch.sh --home`).
-`./switch.sh --build` builds without activating. Neither switch mode fetches a
-key from 1Password. Legacy `./switch.sh` / `make switch-home` delegate to these
-scripts. Initial administrator and 1Password authentication remain interactive.
+| Secure Note field | Type      | Contents                                |
+| ----------------- | --------- | --------------------------------------- |
+| `age-key`         | Concealed | Existing age private key                |
+| `age-recipient`   | Text      | Public `age1…` recipient for encryption |
 
-Manual steps:
+The default reference uses vault/item IDs so renaming the note is safe. Override
+it with `--age-key-ref op://vault/item/field` or `DOTFILES_AGE_KEY_REF`; never pass
+key material as an argument. Set `OP_BIOMETRIC_UNLOCK_ENABLED=false` for terminal
+authentication only. Existing CLI sessions or `OP_SERVICE_ACCOUNT_TOKEN` also work.
 
-```bash
-# 1. Clone
-git clone https://github.com/baleen37/dotfiles.git
-cd dotfiles
+Invalid, empty or symlinked identities fail without replacement. No personal
+SOPS secrets are currently declared: `No secrets declared for this configuration`
+is expected and does not mean personal SSH/GPG keys were restored. Switch never
+fetches keys from 1Password. See [SOPS secrets](#sops-secrets) to declare them.
 
-# 2. Install pre-commit and pre-push hooks
-make install-hooks
+### macOS permissions
 
-# 3. Evaluate every supported system
-nix flake check --no-build --all-systems --show-trace
+For hosts managing GUI apps, bootstrap and switch check **System Settings >
+Privacy & Security > App Management**. If denied or unavailable, they open that
+pane and stop. Allow the app hosting the terminal (for example Herdr Core), quit
+and reopen it, then rerun the command. `sudo` does not grant this consent.
 
-# 4. Build a configuration without activating it
-nix build '.#darwinConfigurations.macbook-pro.system'
-nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel'
+Build-only, standalone Home Manager and minimal hosts without GUI apps skip this
+check. On a fresh Mac, the check waits until Nix can evaluate the host. Grant
+app-specific permissions, such as Hammerspoon Accessibility, when needed.
+See [ADR 0001](docs/adr/0001-macos-permission-preflight.md).
 
-# 5a. Activate a standalone Home Manager profile
-HM_USER=jito.hello ./switch.sh --home
+### Repeated runs without a sudo password
 
-# 5b. Or activate the full system for this host (see "System Activation")
-./switch.sh
-```
+Bootstrap requests administrator authentication only when CLT, Nix or Homebrew
+actually needs installation. Re-running it with those prerequisites installed
+does not request sudo authentication; 1Password authentication is separate.
 
-### Hosts and Profiles
+The `macbook-pro.nix` machine configuration allows passwordless sudo for its
+selected host's `darwin-rebuild switch` and `nh clean all --keep 3`. This includes
+local host registrations and the filtered temporary source used by `switch.sh`.
+Apply once interactively with `./switch.sh` to install the sudo rules; that first
+application still needs administrator authentication. Other hosts keep their
+existing policies. See [ADR 0003](docs/adr/0003-passwordless-repeat-bootstrap-and-switch.md).
 
-| Output                              | Names                                              |
-| ----------------------------------- | -------------------------------------------------- |
-| `darwinConfigurations` (aarch64)    | `macbook-pro`, `baleen-macbook`, `kakaostyle-jito` |
-| `nixosConfigurations`               | `vm-aarch64-utm`, `vm-x86_64-utm`, `wsl`           |
-| `homeConfigurations` (Home Manager) | `baleen`, `jito.hello`, `testuser`, `baleen-linux` |
+### Hosts and profiles
 
-Run `nix flake show --all-systems` for the full list of outputs.
+| Output                                    | Names                                              |
+| ----------------------------------------- | -------------------------------------------------- |
+| `darwinConfigurations` (`aarch64-darwin`) | `macbook-pro`, `baleen-macbook`, `kakaostyle-jito` |
+| `nixosConfigurations`                     | `vm-aarch64-utm`, `vm-x86_64-utm`, `wsl`           |
+| `homeConfigurations`                      | `baleen`, `jito.hello`, `testuser`, `baleen-linux` |
 
-### Post-Installation Setup (macOS)
-
-With **Determinate Nix**, add your user as a trusted user to avoid cache warnings:
-
-```bash
-sudo vi /etc/nix/nix.custom.conf
-
-# Add this line (replace 'baleen' with your username):
-trusted-users = root @admin baleen
-
-# Restart the terminal to apply
-```
+Host users are declared in `flake-modules/hosts.nix`. `HM_USER` selects only a
+standalone Home Manager output; it does not change a host's system user.
+Without `HM_USER`, standalone mode selects the unique profile matching the login
+user and platform. An explicit profile for a different platform is rejected.
+For Windows/WSL installation, follow [the platform guide](machines/windows/README.md).
 
 ### Nix Cache Behavior
 
@@ -159,25 +125,6 @@ make lint                            # Run all pre-commit hooks
 make update                          # Update flake inputs (nix flake update)
 ```
 
-### System Activation
-
-`./switch.sh` activates the system configuration named after the current
-hostname (override with `NIXNAME=<host>`): `darwin-rebuild` on macOS,
-`nixos-rebuild` on NixOS. It is an explicit operating procedure, not part of the
-default development or PR workflow; run it only on the intended host after the
-relevant build and verification steps.
-
-### Home Manager Profile Selection
-
-Flake evaluation is pure. `HM_USER` only selects a standalone Home Manager
-profile from `homeConfigurations`, defaulting to the current shell user. It does
-not declare a host's system user; that is the `user` field of the host entry in
-`flake-modules/hosts.nix`.
-
-```bash
-HM_USER=jito.hello ./switch.sh --home
-```
-
 ### Platform Capability Matrix
 
 | Make target         | Darwin (`aarch64-darwin`) | NixOS (`x86_64-linux`) | NixOS (`aarch64-linux`) |
@@ -190,7 +137,6 @@ HM_USER=jito.hello ./switch.sh --home
 | test                |            ✅             |           ✅           |           ✅            |
 | test-build          |            ✅             |           ✅           |           ✅            |
 | test-containers     |            ❌¹            |          ✅²           |           ✅²           |
-| **Secrets**         |                           |                        |                         |
 
 ¹ NixOS VM tests need a Linux builder; Determinate Nix disables the macOS
 linux-builder, so run them in CI or a Linux VM.
@@ -255,7 +201,11 @@ dotfiles/
 │   ├── overlays.nix
 │   └── user-info.nix    # Single source of truth for name and email
 ├── machines/
-│   ├── darwin/common.nix  # Shared by every Darwin host
+│   ├── darwin/
+│   │   ├── common.nix         # Minimal shared system and 1Password downgrade guard
+│   │   ├── macbook-pro.nix    # Per-host apps and user features
+│   │   ├── baleen-macbook.nix
+│   │   └── kakaostyle-jito.nix
 │   ├── nixos/             # vm-aarch64-utm, vm-x86_64-utm, vm-shared, wsl, hardware/
 │   └── windows/           # winget configuration for the Windows side (not Nix)
 ├── users/shared/
@@ -265,6 +215,14 @@ dotfiles/
 │   └── packages/          # Categorized package lists (core, dev, cloud, ai, ...)
 └── tests/               # unit/, integration/, containers/, lib/
 ```
+
+### Source and secrets boundary
+
+Bootstrap and switch evaluate a temporary snapshot of Git-tracked and unignored
+files, plus the explicitly allowed `flake-modules/hosts.local.nix`. Ignored keys
+and plaintext backups are excluded before Nix copies source into the store.
+Symlinks are preserved; the snapshot is removed on exit. Keep private data
+outside the repository and never track it.
 
 ### How a Host Is Built
 
@@ -328,7 +286,8 @@ machine file. Bootstrap registers only the minimal `common.nix` import;
 
 ## Testing
 
-Every check is a Nix derivation that builds if an assertion holds. See
+Every check is a Nix derivation that builds if an assertion holds. For development,
+install pre-commit and run `make install-hooks` once. See
 [tests/README.md](tests/README.md) for the contract and helper inventory.
 
 ```bash
@@ -408,12 +367,19 @@ the Nix store in place. Unlink it to go back to the pinned version.
 
 ## Troubleshooting
 
-**Build failures:**
+**1Password will not start after a switch:** a downgraded app may be unable to
+read a database written by a newer version (`UnknownSchema` in the app log).
+The Darwin package is pinned in `lib/overlays.nix`; activation refuses to replace
+a newer installed version with an older one. Update the package version, download
+URL and hash together, build it, then apply with `./switch.sh`. Preserve the
+existing vault data; deleting it does not resolve the version mismatch.
 
-```bash
-nix store gc                                           # Clear unused store paths
-nix build '.#darwinConfigurations.<your-host>.system'  # Retry
-```
+**direnv reports a missing profile:** allow cache regeneration to finish. An
+`interrupted by the user` message means it was cancelled. Rerun `direnv reload`;
+a successful later entry reports `Using cached dev shell`.
+
+**Build failures:** fix the reported evaluation or build error, then retry
+`./switch.sh --build`. Use `--home --build` for a standalone profile.
 
 **Formatting failure in `make test`**: run `make format`, or `make fmt-diff` to
 see the full treefmt diff.

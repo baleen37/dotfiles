@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  currentSystemName,
   currentSystemUser,
   ...
 }:
@@ -12,6 +13,12 @@
 
   programs._1password.enable = true;
   programs._1password-gui.enable = true;
+
+  # switch.sh uses a filtered snapshot for local hosts and untracked modules.
+  security.sudo.extraConfig = ''
+    ${currentSystemUser} ALL = (root) NOPASSWD: /run/current-system/sw/bin/darwin-rebuild ^switch --flake (\.|path:/tmp/dotfiles-source\.[A-Za-z0-9]+/source)\#${lib.escapeRegex currentSystemName}$
+    ${currentSystemUser} ALL = (root) NOPASSWD: /run/current-system/sw/bin/nh ^clean all --keep 3$
+  '';
 
   homebrew.casks =
     lib.filter

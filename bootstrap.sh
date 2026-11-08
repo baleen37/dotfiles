@@ -54,6 +54,7 @@ trap cleanup EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 authorize_install() {
+  [ -z "$SUDO_KEEPALIVE_PID" ] || return 0
   log "Authenticate once before installation (sudo access is refreshed until this script exits)"
   sudo -v || die "administrator authentication failed; nothing has been installed"
   (
@@ -79,6 +80,7 @@ fetch_verified() {
 
 install_clt() {
   xcode-select -p > /dev/null 2>&1 && return 0
+  authorize_install
   log "Installing Xcode Command Line Tools (finish the GUI dialog)"
   xcode-select --install > /dev/null 2>&1 || true
   log "Waiting for Command Line Tools; cancel this script with Ctrl-C if the GUI installation is cancelled"
@@ -90,6 +92,9 @@ install_clt() {
 install_nix() {
   load_nix
   command -v nix > /dev/null 2>&1 && return 0
+  if [ "$OS" = Darwin ]; then
+    authorize_install
+  fi
   if [ "$OS" = Darwin ] && [ ! -d /nix ] \
     && sudo -n grep -qx 'nix' /etc/synthetic.conf 2> /dev/null; then
     die "macOS has registered /nix but has not created it. Restart this Mac, then re-run ./bootstrap.sh. Repeating the installer before reboot will fail to mount Nix Store."
@@ -115,6 +120,7 @@ install_nix() {
 
 install_brew() {
   [ -x /opt/homebrew/bin/brew ] && return 0
+  authorize_install
   log "Installing Homebrew (nix-darwin's homebrew module needs it)"
   local installer
   installer=$(fetch_verified "$BREW_INSTALLER_URL" "$BREW_INSTALLER_SHA256")
@@ -199,14 +205,13 @@ prepare_identity() {
   secrets_check "$KEY_TEMP"
   # Hard-link on the same filesystem: atomically create without overwriting a
   # key installed by another process while the user was authenticating.
-  ln "$KEY_TEMP" "$key_file" || die "age key destination now exists; it was not replaced"
+  "$TOOLS/bin/ln" -T "$KEY_TEMP" "$key_file" || die "age key destination now exists; it was not replaced"
   rm -f "$KEY_TEMP"
   KEY_TEMP=
   log "Age key supplied and validated."
 }
 
 if [ "$OS" = Darwin ]; then
-  authorize_install
   install_clt
 fi
 install_nix
@@ -218,8 +223,12 @@ build_tools
 select_configuration
 if [ "$OS" = Darwin ]; then
   # Existing machine selections still use Homebrew for other GUI applications.
-  if [ "$HOME_ONLY" = false ] && [ "$(nix_cmd eval --json "$FLAKE_REF#$SYSTEM_ATTR.config.homebrew.enable")" = true ]; then
-    install_brew
+  if [ "$HOME_ONLY" = false ]; then
+    homebrew_enabled=$(nix_cmd eval --json "$FLAKE_REF#$SYSTEM_ATTR.config.homebrew.enable") \
+      || die 'cannot evaluate Homebrew requirements; no Homebrew installation started'
+    if [ "$homebrew_enabled" = true ]; then
+      install_brew
+    fi
   fi
 fi
 if [ "$SKIP_SECRETS" = true ]; then

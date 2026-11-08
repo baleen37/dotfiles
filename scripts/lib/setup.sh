@@ -21,7 +21,7 @@ cleanup_flake() {
   [ -z "${SOURCE_DIR:-}" ] || rm -rf "$SOURCE_DIR"
 }
 prepare_flake() {
-  local file source
+  local file source destination
   if [ -z "$SOURCE_DIR" ]; then
     git rev-parse --show-toplevel > /dev/null 2>&1 || die 'a Git checkout is required to safely select flake files'
     SOURCE_DIR=$(mktemp -d /tmp/dotfiles-source.XXXXXX)
@@ -32,9 +32,10 @@ prepare_flake() {
     git ls-files -z --cached --others --exclude-standard > "$SOURCE_DIR/files" || die 'cannot select flake files'
     while IFS= read -r -d '' file; do
       [ -e "$file" ] || [ -L "$file" ] || continue
-      mkdir -p "$(dirname "$source/$file")"
+      destination="$source/$file"
+      mkdir -p "${destination%/*}"
       # Preserve symlinks; following one could copy an ignored private target.
-      cp -Pp "./$file" "$source/$file"
+      cp -Pp "./$file" "$destination"
     done < "$SOURCE_DIR/files"
   fi
   source="$SOURCE_DIR/source"
@@ -111,21 +112,36 @@ build_tools() {
   export PATH="$TOOLS/bin:$PATH"
 }
 select_configuration() {
+  local current_user configured_user configured_system
+  current_user=$(id -un)
   if [ "$HOME_ONLY" = true ] || { [ "$OS" = Linux ] && [ ! -e /etc/NIXOS ]; }; then
     HOME_ONLY=true
-    HM_USER=${HM_USER:-$(id -un)}
+    if [ -z "${HM_USER:-}" ]; then
+      HM_USER=$(nix_cmd eval --raw "$FLAKE_REF#homeConfigurations" --apply "
+        homes: let
+          matches = builtins.filter (name:
+            let h = builtins.getAttr name homes; in
+            h.config.home.username == \"$current_user\" &&
+            h.pkgs.stdenv.hostPlatform.system == \"$NIX_SYSTEM\"
+          ) (builtins.attrNames homes);
+        in if builtins.length matches == 1 then builtins.head matches
+        else throw \"set HM_USER to a matching Home Manager profile\"
+      ") || die "no unique Home Manager profile for $current_user on $NIX_SYSTEM; set HM_USER"
+    fi
     [[ $HM_USER =~ ^[a-zA-Z0-9][a-zA-Z0-9._-]*$ ]] || die "invalid HM_USER"
+    configured_system=$(nix_cmd eval --raw "$FLAKE_REF#homeConfigurations.\"$HM_USER\".pkgs.stdenv.hostPlatform.system")
+    [ "$configured_system" = "$NIX_SYSTEM" ] \
+      || die "Home Manager profile '$HM_USER' targets $configured_system; this machine is $NIX_SYSTEM"
     HOME_ATTR="homeConfigurations.\"$HM_USER\".config"
     SYSTEM_ATTR=
   else
     if [ "$OS" = Darwin ]; then
       SYSTEM_ATTR="darwinConfigurations.\"$HOST\""
     else SYSTEM_ATTR="nixosConfigurations.\"$HOST\""; fi
-    HOME_ATTR="$SYSTEM_ATTR.config.home-manager.users.\"$(id -un)\""
+    HOME_ATTR="$SYSTEM_ATTR.config.home-manager.users.\"$current_user\""
   fi
-  local configured_user
   configured_user=$(nix_cmd eval --raw "$FLAKE_REF#$HOME_ATTR.home.username")
-  [ "$configured_user" = "$(id -un)" ] || die "configuration belongs to another user: $configured_user"
+  [ "$configured_user" = "$current_user" ] || die "configuration belongs to another user: $configured_user"
 }
 secrets_check() {
   local check
