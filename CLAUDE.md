@@ -442,3 +442,17 @@ and covers nothing.
 - **.pre-commit-config.yaml**: Quality enforcement hooks
 - **tests/default.nix**: Test discovery and orchestration
 - **CONTRIBUTING.md**: Detailed development guidelines and workflow
+
+## Agent skills
+
+### Issue tracker
+
+이슈·스펙 작업 전 `docs/agents/issue-tracker.md`를 읽는다.
+
+### Triage labels
+
+이슈 분류 전 `docs/agents/triage-labels.md`를 읽는다.
+
+### Domain docs
+
+코드 탐색과 설계 작업 전 `docs/agents/domain.md`를 읽는다.
