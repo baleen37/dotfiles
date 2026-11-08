@@ -95,7 +95,8 @@ assertions), `lib/plugin-test-helpers.nix`
 
 Fixtures: `lib/mock-config.nix` (a minimal `config` argument for modules imported
 outside the module system), `lib/constants.nix` (values shared between a module
-and the test asserting it), `lib/fixtures/common-packages.nix`.
+and the test asserting it), `lib/hosts.nix` (the evaluated `dotfiles.hosts`
+table), `lib/fixtures/common-packages.nix`.
 
 ## What belongs in a test
 

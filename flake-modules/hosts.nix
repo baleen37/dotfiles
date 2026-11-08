@@ -26,6 +26,13 @@ let
         type = lib.types.listOf lib.types.raw;
         default = [ ];
       };
+      # Syncthing device ID (public, not a secret); `make syncthing-id` writes
+      # it. Every Mac runs Syncthing and peers with each host that has one;
+      # see users/shared/programs/syncthing.nix.
+      syncthingId = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default = null;
+      };
     };
   };
 in
@@ -52,6 +59,7 @@ in
       system = "aarch64-darwin";
       class = "darwin";
       user = "jito.hello";
+      syncthingId = "FAMY2R3-2T2E6RX-UU5H37L-ZGQ5NNV-YG367MA-2VF5G4U-VFHYL4C-USPF3Q6";
       machineModules = [ ../machines/darwin/kakaostyle-jito.nix ];
     };
     vm-aarch64-utm = {

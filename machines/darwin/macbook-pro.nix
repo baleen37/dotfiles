@@ -94,6 +94,7 @@
     modules.programs.powerlevel10k.enable = true;
     modules.programs.rustdesk.enable = true;
     modules.programs.ssh.enable = true;
+    modules.programs.syncthing.enable = true;
     modules.programs.terraform.enable = true;
     modules.programs.tmux.enable = true;
     modules.programs.vim.enable = true;

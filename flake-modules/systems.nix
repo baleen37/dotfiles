@@ -10,6 +10,10 @@
 let
   mkSystem = import ../lib/mksystem.nix { inherit inputs self overlays; };
 
+  syncthingPeers = lib.mapAttrs (_: h: h.syncthingId) (
+    lib.filterAttrs (_: h: h.syncthingId != null) config.dotfiles.hosts
+  );
+
   hostsByClass = cls: lib.filterAttrs (_: h: h.class == cls) config.dotfiles.hosts;
 
   mkHost =
@@ -18,9 +22,12 @@ let
       inherit (h)
         system
         user
-        homeModules
         machineModules
         ;
+      homeModules = lib.mkMerge [
+        h.homeModules
+        { modules.programs.syncthing.peers = syncthingPeers; }
+      ];
       darwin = h.class == "darwin";
     };
 in

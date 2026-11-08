@@ -217,6 +217,12 @@ does not change host metadata.
    Note that `integration-machine-builds` asserts the exact host list, so it needs
    updating alongside.
 
+2. Macs that set `modules.programs.syncthing.enable` in their machine file sync
+   `~/wiki` (`users/shared/programs/syncthing.nix`). To pair a new one, run `make syncthing-id` on it (writes `syncthingId` into
+   its `hosts.nix` entry), commit, `make switch` on each Mac, then add the device
+   on the hub's web UI. Devices and folders added in a Mac's web UI are removed
+   on the next switch.
+
 ### Adding Tests
 
 **Unit/Integration tests** (automatic discovery):
