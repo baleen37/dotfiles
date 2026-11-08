@@ -2,10 +2,7 @@
 
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
-  hostConfig =
-    (lib.evalModules {
-      modules = [ ../../flake-modules/hosts.nix ];
-    }).config.dotfiles.hosts;
+  hostConfig = import ../lib/hosts.nix { inherit lib; };
 
   hostSummary = lib.mapAttrs (_: host: {
     inherit (host) system class user;
