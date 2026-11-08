@@ -216,6 +216,13 @@ expect_failure bash ./bootstrap.sh --unknown
 expect_failure bash ./switch.sh --age-key-ref op://test/identity/key
 # Drive the Darwin system branch while sudo is a recording-only double.
 cp "$workspace/identity" "$HOME/.config/sops/age/keys.txt"
+cp switch.sh "$workspace/switch.platform-saved"
+chmod u+w switch.sh
+sed "s@/run/current-system@$workspace/current-system@g" "$workspace/switch.platform-saved" > switch.sh
+mkdir -p "$workspace/current-system/sw/bin"
+write_stub "$workspace/current-system/sw/bin/darwin-rebuild" << 'STUB'
+exit 0
+STUB
 write_stub "$workspace/bin/uname" << 'STUB'
 if [ "${1:-}" = -m ]; then echo arm64; else echo Darwin; fi
 STUB
@@ -310,7 +317,7 @@ export TEST_HOMEBREW_EVAL_FAIL=0
 # First installation must restore only its own backups if activation fails.
 cp switch.sh "$workspace/switch.saved"
 chmod u+w switch.sh
-sed -e "s@/run/current-system@$workspace/run/current-system@g" \
+sed -e "s@$workspace/current-system@$workspace/absent-system@g" \
   -e "s@/etc/@$workspace/etc/@g" \
   -e "s@/bin/bash -s@$stub_shell -s@g" "$workspace/switch.saved" > switch.sh
 mkdir -p "$workspace/etc/nix" "$workspace/system/sw/bin"
