@@ -9,7 +9,7 @@ checks; NixOS VM tests require Linux with KVM.
 
 - **Host platforms**: macOS `aarch64-darwin` and NixOS-WSL `x86_64-linux`; shared checks and tools also support `aarch64-linux`
 - **Windows**: NixOS-WSL (`wsl` host) inside WSL2, plus GUI apps from `winget configure` — see [machines/windows/README.md](machines/windows/README.md)
-- **Native remote access**: `./switch.sh` uses Nix/Homebrew on macOS and APT on Debian, then applies shared sops-backed policy — see [docs/remote-access.md](docs/remote-access.md)
+- **Native remote access**: bootstrap prepares APT packages on Debian; `./switch.sh` applies Nix/Homebrew on macOS and shared sops-backed policy — see [docs/remote-access.md](docs/remote-access.md)
 - **Typed host declarations**: every machine is one entry in `flake-modules/hosts.nix`
 - **One user configuration**: `users/shared/` is shared by every host and Home Manager profile
 - **Assertions as derivations**: unit, integration, and NixOS VM tests all run through `nix flake check`
@@ -80,6 +80,10 @@ installing packages, retrieving keys or applying services.
 
 ### macOS permissions
 
+The read-only `dotfiles.setup` options in `lib/setup-requirements.nix` derive
+Homebrew and App Management requirements from each host configuration.
+Bootstrap and switch consume these values.
+
 For hosts managing GUI apps, bootstrap and switch check **System Settings >
 Privacy & Security > App Management**. If denied or unavailable, they open that
 pane and stop. Allow the app hosting the terminal (for example Herdr Core), quit
@@ -92,7 +96,7 @@ See [ADR 0001](docs/adr/0001-macos-permission-preflight.md).
 
 ### Repeated runs without a sudo password
 
-Bootstrap requests administrator authentication only when CLT, Nix or Homebrew
+On macOS, bootstrap requests administrator authentication only when CLT, Nix or Homebrew
 actually needs installation. Re-running it with those prerequisites installed
 does not request sudo authentication; 1Password authentication is separate.
 
@@ -188,6 +192,8 @@ by these scripts.
 
 ## Architecture
 
+The package and overlay layout follows [Misterio77’s standard template](https://github.com/Misterio77/nix-starter-configs/tree/main/standard). Existing flake-parts, host, and user modules remain in place.
+
 ### Directory Structure
 
 ```text
@@ -198,15 +204,16 @@ dotfiles/
 │   ├── systems.nix      # hosts -> darwinConfigurations / nixosConfigurations
 │   ├── home.nix         # Standalone homeConfigurations
 │   ├── checks.nix       # tests/ -> flake checks
-│   ├── packages.nix     # Bootstrap tool package
+│   ├── packages.nix     # Exports packages from pkgs/
 │   ├── dev-shells.nix   # nix develop shell
 │   └── formatter.nix    # treefmt (nixfmt, statix, deadnix, shfmt, prettier)
 ├── lib/
 │   ├── mksystem.nix     # System factory (Darwin or NixOS + Home Manager)
 │   ├── home-modules.nix # Auto-discovers users/shared/{programs,packages}
 │   ├── cache-config.nix
-│   ├── overlays.nix
 │   └── user-info.nix    # Single source of truth for name and email
+├── overlays/default.nix # Named additions, modifications, and worktree overlays
+├── pkgs/default.nix     # Custom package definitions
 ├── machines/
 │   ├── darwin/
 │   │   ├── common.nix         # Minimal shared system and 1Password downgrade guard
@@ -228,7 +235,9 @@ dotfiles/
 Bootstrap and switch evaluate a temporary snapshot of Git-tracked and unignored
 files, plus the explicitly allowed `flake-modules/hosts.local.nix`. Ignored keys
 and plaintext backups are excluded before Nix copies source into the store.
-Symlinks are preserved; the snapshot is removed on exit. Keep private data
+Darwin activation runs from that same snapshot using `--flake .#<host>`, preserving
+the existing sudo command rules. Symlinks are preserved; the snapshot is removed
+on exit. Keep private data
 outside the repository and never track it.
 
 ### How a Host Is Built
@@ -354,7 +363,7 @@ the Nix store in place. Unlink it to go back to the pinned version.
 
 **1Password will not start after a switch:** a downgraded app may be unable to
 read a database written by a newer version (`UnknownSchema` in the app log).
-The Darwin package is pinned in `lib/overlays.nix`; activation refuses to replace
+The Darwin package is pinned in `overlays/default.nix`; activation refuses to replace
 a newer installed version with an older one. Update the package version, download
 URL and hash together, build it, then apply with `./switch.sh`. Preserve the
 existing vault data; deleting it does not resolve the version mismatch.

@@ -48,6 +48,7 @@ systemFunc {
   };
 
   modules = [
+    ./setup-requirements.nix
     { nixpkgs.hostPlatform = system; }
   ]
   ++ machineModules

@@ -14,7 +14,7 @@ cleanup() {
 trap cleanup EXIT
 mkdir -p "$workspace/repo/scripts/lib" "$workspace/tools/bin" "$workspace/bin"
 cp "$repo/bootstrap.sh" "$repo/switch.sh" "$workspace/repo/"
-cp "$repo/scripts/lib/setup.sh" "$repo/scripts/lib/macos-app-management.js" "$workspace/repo/scripts/lib/"
+cp "$repo/scripts/lib/setup.sh" "$repo/scripts/lib/macos-app-management.js" "$repo/scripts/lib/flake-source.sh" "$repo/scripts/lib/identity.py" "$workspace/repo/scripts/lib/"
 for command in age-keygen sops jq ln; do
   ln -s "$(command -v "$command")" "$workspace/tools/bin/$command"
 done
@@ -70,8 +70,8 @@ if [[ "$*" == *'bootstrap-tools'* ]]; then
     if [ "$1" = --out-link ]; then ln -sfn "$TEST_TOOLS" "$2"; break; fi
     shift
   done
-elif [[ "$*" == *'programs._1password-gui.enable'* ]]; then echo "${TEST_APP_MANAGEMENT_REQUIRED:-true}"
-elif [[ "$*" == *'homebrew.enable'* ]]; then
+elif [[ "$*" == *'dotfiles.setup.appManagementRequired'* ]]; then echo "${TEST_APP_MANAGEMENT_REQUIRED:-true}"
+elif [[ "$*" == *'dotfiles.setup.homebrewRequired'* ]]; then
   [ "${TEST_HOMEBREW_EVAL_FAIL:-0}" = 0 ] || exit 23
   echo false
 elif [[ "$*" == *'builtins.hasAttr'* ]]; then echo true
@@ -83,7 +83,12 @@ elif [[ "$*" == *'.pkgs.stdenv.hostPlatform.system'* ]]; then
   fi
 elif [[ "$*" == *'home.username'* ]]; then echo testuser
 elif [[ "$*" == *'sops.age.keyFile'* ]]; then echo "$HOME/.config/sops/age/keys.txt"
-elif [[ "$*" == *'modules.secrets.preflight'* ]]; then echo "$TEST_TOOLS"
+elif [[ "$*" == *'modules.secrets.prepareIdentity'* ]]; then echo "$TEST_TOOLS"
+elif [[ "$*" == *'modules.secrets.preflight'* ]]; then
+  if [ "${TEST_SOURCE_MUTATION:-0}" = 1 ]; then
+    printf 'changed after preflight\n' > "$TEST_STATE/repo/new-module.nix"
+  fi
+  echo "$TEST_TOOLS"
 elif [[ "$*" == *'activationPackage'* ]]; then echo "$TEST_STATE/activation"
 elif [[ "$*" == *'.system'* ]]; then echo "$TEST_STATE/system"
 else echo 'unexpected nix invocation' >&2; exit 19
@@ -116,6 +121,11 @@ key=${1:-$HOME/.config/sops/age/keys.txt}
 age-keygen -y "$key" >/dev/null
 SOPS_AGE_KEY_FILE="$key" SOPS_GPG_EXEC=false sops --decrypt "$TEST_STATE/secret.yaml" >/dev/null
 STUB
+write_stub "$workspace/tools/bin/dotfiles-identity-prepare" << 'STUB'
+exec python3 "$TEST_STATE/repo/scripts/lib/identity.py" prepare \
+  "$HOME/.config/sops/age/keys.txt" "$DOTFILES_AGE_KEY_REF" \
+  "$TEST_TOOLS/bin/dotfiles-secrets-check"
+STUB
 mkdir -p "$workspace/activation"
 write_stub "$workspace/activation/activate" << 'STUB'
 touch "$TEST_STATE/activated"
@@ -136,7 +146,7 @@ expect_failure() {
   fi
 }
 # A missing bootstrap must not reach activation.
-expect_failure bash ./switch.sh --home
+expect_failure bash ./switch.sh
 [ ! -e "$workspace/activated" ]
 # Dependency installation failure and a missing op never report readiness.
 export TEST_BUILD_FAIL=1
@@ -188,28 +198,33 @@ cmp "$workspace/identity" "$HOME/.config/sops/age/keys.txt"
 export TEST_OP_FAIL=1
 bash ./bootstrap.sh > "$workspace/output" 2>&1
 cmp "$workspace/identity" "$HOME/.config/sops/age/keys.txt"
-bash ./switch.sh --home --check > "$workspace/output" 2>&1
+bash ./switch.sh --build > "$workspace/output" 2>&1
 [ ! -e "$workspace/activated" ]
-bash ./switch.sh --home > "$workspace/output" 2>&1
+bash ./switch.sh > "$workspace/output" 2>&1
 [ -f "$workspace/activated" ]
 rm "$workspace/activated"
+# Build-only is keyless; normal switch still refuses a missing identity.
+mv "$HOME/.config/sops/age/keys.txt" "$workspace/key.saved"
+bash ./switch.sh --build > "$workspace/output" 2>&1
+expect_failure bash ./switch.sh
+mv "$workspace/key.saved" "$HOME/.config/sops/age/keys.txt"
 # Standalone defaults must follow the platform, not just the login name.
 unset HM_USER
 : > "$workspace/nix.log"
 bash ./bootstrap.sh > "$workspace/output" 2>&1
-bash ./switch.sh --home --build > "$workspace/output" 2>&1
+bash ./switch.sh --build > "$workspace/output" 2>&1
 grep -q 'homeConfigurations\."testuser-linux"\.activationPackage' "$workspace/nix.log"
 export HM_USER=testuser TEST_HOME_SYSTEM=aarch64-darwin
 : > "$workspace/nix.log"
 expect_failure bash ./bootstrap.sh
 grep -q 'targets aarch64-darwin' "$workspace/output"
-expect_failure bash ./switch.sh --home --build
+expect_failure bash ./switch.sh --build
 grep -q 'targets aarch64-darwin' "$workspace/output"
 ! grep -q 'activationPackage' "$workspace/nix.log"
 unset TEST_HOME_SYSTEM
 printf 'invalid\n' > "$HOME/.config/sops/age/keys.txt"
 expect_failure bash ./bootstrap.sh
-expect_failure bash ./switch.sh --home
+expect_failure bash ./switch.sh
 [ ! -e "$workspace/activated" ]
 expect_failure bash ./bootstrap.sh --unknown
 expect_failure bash ./switch.sh --age-key-ref op://test/identity/key
@@ -218,6 +233,8 @@ cp "$workspace/identity" "$HOME/.config/sops/age/keys.txt"
 cp switch.sh "$workspace/switch.platform-saved"
 chmod u+w switch.sh
 sed "s@/run/current-system@$workspace/current-system@g" "$workspace/switch.platform-saved" > switch.sh
+chmod u+w scripts/lib/flake-source.sh
+sed "s@/run/current-system@$workspace/current-system@g" "$repo/scripts/lib/flake-source.sh" > scripts/lib/flake-source.sh
 mkdir -p "$workspace/current-system/sw/bin"
 write_stub "$workspace/current-system/sw/bin/darwin-rebuild" << 'STUB'
 exit 0
@@ -228,6 +245,12 @@ STUB
 write_stub "$workspace/bin/sudo" << 'STUB'
 printf '%s\n' "$*" >> "$TEST_STATE/sudo.log"
 [ "${TEST_SUDO_FAIL:-0}" = 0 ] || exit 1
+if [[ "$*" = *darwin-rebuild* ]]; then
+  [ "$(pwd -P)" = "$(cat "$TEST_STATE/source-path")" ]
+  if [ "${TEST_SOURCE_MUTATION:-0}" = 1 ]; then
+    cmp "$TEST_STATE/expected-module" new-module.nix
+  fi
+fi
 if [ "${TEST_SUDO_EXECUTE:-0}" = 1 ]; then
   while [ "$#" -gt 0 ]; do
     case "$1" in
@@ -269,7 +292,7 @@ export TEST_APP_MANAGEMENT_REQUIRED=true
 for status in denied unknown error; do
   export TEST_PERMISSION_STATUS=$status
   : > "$workspace/nix.log"
-  expect_failure bash ./switch.sh test-host
+  expect_failure bash ./switch.sh
   grep -q 'macOS permission preflight incomplete' "$workspace/output"
   grep -q 'Privacy_AppBundles' "$workspace/settings.log"
   [ ! -e "$workspace/sudo.log" ]
@@ -278,7 +301,7 @@ for status in denied unknown error; do
 done
 # A settings-launch failure must retain the manual instructions and stop.
 export TEST_SETTINGS_FAIL=1
-expect_failure bash ./switch.sh test-host
+expect_failure bash ./switch.sh
 grep -q 'Could not open System Settings' "$workspace/output"
 grep -q 'Privacy_AppBundles' "$workspace/output"
 [ ! -e "$workspace/sudo.log" ]
@@ -295,25 +318,31 @@ touch "$TEST_STATE/remote-applied"
 [ "${TEST_REMOTE_FAIL:-0}" = 0 ]
 STUB
 rm "$workspace/permissions.log" "$workspace/settings.log"
-bash ./switch.sh test-host --build > "$workspace/output" 2>&1
-bash ./switch.sh --home --build > "$workspace/output" 2>&1
+bash ./switch.sh --build > "$workspace/output" 2>&1
 [ ! -e "$workspace/remote-applied" ]
 [ ! -e "$workspace/permissions.log" ]
 [ ! -e "$workspace/settings.log" ]
 export TEST_APP_MANAGEMENT_REQUIRED=false
-bash ./switch.sh test-host > "$workspace/output" 2>&1
+bash ./switch.sh > "$workspace/output" 2>&1
 [ ! -e "$workspace/permissions.log" ]
 [ ! -e "$workspace/settings.log" ]
 rm "$workspace/sudo.log"
 export TEST_APP_MANAGEMENT_REQUIRED=true TEST_PERMISSION_STATUS=granted
-bash ./switch.sh test-host > "$workspace/output" 2>&1
+bash ./switch.sh > "$workspace/output" 2>&1
 grep -q 'darwin-rebuild.*switch --flake' "$workspace/sudo.log"
 [ -e "$workspace/remote-applied" ]
 [ ! -e "$workspace/activated" ]
 [ ! -e "$(cat "$workspace/source-path")" ]
+# Changing the checkout after preflight cannot change the activated source.
+cp new-module.nix "$workspace/expected-module"
+export TEST_SOURCE_MUTATION=1
+bash ./switch.sh > "$workspace/output" 2>&1
+grep -qx 'changed after preflight' new-module.nix
+cp "$workspace/expected-module" new-module.nix
+unset TEST_SOURCE_MUTATION
 # App settings must finish before the CLI reports a successful switch.
 export TEST_REMOTE_FAIL=1
-expect_failure bash ./switch.sh test-host
+expect_failure bash ./switch.sh
 ! grep -q 'Configuration applied successfully' "$workspace/output"
 export TEST_REMOTE_FAIL=0
 # Evaluation failures must not be mistaken for a disabled Homebrew module.
@@ -321,7 +350,7 @@ rm "$workspace/sudo.log"
 export TEST_HOMEBREW_EVAL_FAIL=1
 expect_failure bash ./bootstrap.sh
 grep -q 'cannot evaluate Homebrew requirements' "$workspace/output"
-expect_failure bash ./switch.sh test-host
+expect_failure bash ./switch.sh
 grep -q 'cannot evaluate Homebrew requirements' "$workspace/output"
 [ ! -e "$workspace/sudo.log" ]
 export TEST_HOMEBREW_EVAL_FAIL=0
@@ -342,7 +371,7 @@ STUB
 chmod +x "$workspace/system/sw/bin/darwin-rebuild"
 export TEST_SUDO_EXECUTE=1 TEST_ACTIVATION_FAIL=1
 : > "$workspace/sudo.log"
-expect_failure bash ./switch.sh test-host
+expect_failure bash ./switch.sh
 [ "$(wc -l < "$workspace/sudo.log" | tr -d ' ')" = 1 ]
 for file in bashrc zshrc zprofile nix/nix.custom.conf; do
   grep -qx "original $file" "$workspace/etc/$file"
@@ -355,7 +384,7 @@ done
 for file in bashrc zshrc nix/nix.custom.conf; do
   cp "$workspace/etc/$file" "$workspace/etc/$file.before-nix-darwin"
 done
-expect_failure bash ./switch.sh test-host
+expect_failure bash ./switch.sh
 ! grep -q 'unbound variable' "$workspace/output"
 [ ! -e "$(cat "$workspace/source-path")" ]
 # A successful activation retains backups instead of rolling back.
@@ -363,7 +392,7 @@ for file in bashrc zshrc zprofile nix/nix.custom.conf; do
   rm "$workspace/etc/$file.before-nix-darwin"
 done
 export TEST_ACTIVATION_FAIL=0
-bash ./switch.sh test-host > "$workspace/output" 2>&1
+bash ./switch.sh > "$workspace/output" 2>&1
 for file in bashrc zshrc zprofile nix/nix.custom.conf; do
   grep -qx "original $file" "$workspace/etc/$file.before-nix-darwin"
 done
@@ -372,6 +401,6 @@ cp "$workspace/switch.saved" switch.sh
 # The ignored exception may not point at an arbitrary private file.
 mv "$workspace/repo/flake-modules/hosts.local.nix" "$workspace/registry.saved"
 ln -s "$workspace/identity" "$workspace/repo/flake-modules/hosts.local.nix"
-expect_failure bash ./switch.sh --home --build
+expect_failure bash ./switch.sh --build
 grep -q 'local host registry must be a regular file' "$workspace/output"
 echo 'PASS: bootstrap/switch secrets, filtered source, cleanup, build-only and permission scenarios'

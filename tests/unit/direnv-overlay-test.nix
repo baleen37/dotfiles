@@ -8,7 +8,11 @@
 
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
-  overlays = import ../../lib/overlays.nix { inherit inputs; };
+  overlays = with (import ../../overlays { inherit inputs; }); [
+    additions
+    modifications
+    worktree
+  ];
   overlaidPkgs = import inputs.nixpkgs {
     inherit system overlays;
     config.allowUnfree = true;

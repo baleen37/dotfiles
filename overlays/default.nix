@@ -1,10 +1,9 @@
-# lib/overlays.nix
-# Centralized overlay definitions
-# Extracted from flake.nix for reuse across flake-modules
 { inputs }:
 
-[
-  (_final: prev: {
+{
+  additions = final: _prev: import ../pkgs final;
+
+  modifications = _final: prev: {
     # Claude Code - latest from flake input
     claude-code = inputs.claude-code.packages.${prev.stdenv.hostPlatform.system}.default;
 
@@ -36,8 +35,8 @@
       '';
       doCheck = false;
     });
-  })
+  };
 
   # wt - pkgs.worktree from the flake input
-  inputs.worktree.overlays.default
-]
+  worktree = inputs.worktree.overlays.default;
+}

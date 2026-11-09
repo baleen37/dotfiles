@@ -3,7 +3,6 @@ MAKEFILE_DIR := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 
 # The name of the nixosConfiguration in the flake
 NIXNAME ?= $(shell hostname -s 2>/dev/null || hostname | cut -d. -f1)
-HM_USER ?= $(shell id -un 2>/dev/null || whoami)
 
 # Nix command with experimental features
 # For CI environments, use full path to nix binary when available
@@ -27,10 +26,7 @@ NIX_SYSTEM := $(NIX_ARCH)-$(NIX_OS)
 build-switch: switch
 
 switch:
-	./switch.sh "$(NIXNAME)"
-
-switch-home:
-	HM_USER="$(HM_USER)" ./switch.sh --home
+	./switch.sh
 
 # Register this Mac's public Syncthing device ID in the host registry.
 syncthing-id:
@@ -142,7 +138,7 @@ wsl:
 	$(SUDO_NIX) run ".#nixosConfigurations.wsl.config.system.build.tarballBuilder"
 
 # Phony targets
-.PHONY: build-switch switch switch-home syncthing-id test test-build test-all test-containers fmt-diff format cache secrets/backup secrets/restore install-hooks lint update
+.PHONY: build-switch switch syncthing-id test test-build test-all test-containers fmt-diff format cache secrets/backup secrets/restore install-hooks lint update
 
 install-hooks:
 	pre-commit install --hook-type pre-commit --hook-type pre-push

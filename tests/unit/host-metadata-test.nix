@@ -19,6 +19,11 @@ let
       class = "darwin";
       user = "baleen";
     };
+    baleen-m2-pro = {
+      system = "aarch64-darwin";
+      class = "darwin";
+      user = "baleen";
+    };
     kakaostyle-jito = {
       system = "aarch64-darwin";
       class = "darwin";
@@ -36,6 +41,7 @@ let
   expectedMachineModules = {
     macbook-pro = [ ../../machines/darwin/macbook-pro.nix ];
     baleen-macbook = [ ../../machines/darwin/baleen-macbook.nix ];
+    baleen-m2-pro = [ ../../machines/darwin/macbook-pro.nix ];
     kakaostyle-jito = [ ../../machines/darwin/kakaostyle-jito.nix ];
     wsl = [ ../../machines/nixos/wsl.nix ];
   };
