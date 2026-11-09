@@ -49,11 +49,6 @@
   # "error switching console mode" on boot.
   boot.loader.systemd-boot.consoleMode = "0";
 
-  # Define your hostname.
-  # Note: Hardcoded for simplicity in current use case. Could be parameterized
-  # if needed for multiple VM configurations in the future.
-  networking.hostName = "dev";
-
   # Set your time zone.
   # Note: Hardcoded for West Coast development workflow. Could be parameterized
   # if needed for different geographical regions.

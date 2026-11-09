@@ -28,16 +28,17 @@ bootstrap installs missing Xcode Command Line Tools, Determinate Nix and the
 selected host's Homebrew prerequisites. Installer downloads are hash-verified.
 Apple's CLT dialog and initial authentication may require your input.
 
-| Command                                 | What it does                                                           |
-| --------------------------------------- | ---------------------------------------------------------------------- |
-| `./bootstrap.sh`                        | Prepare tools and the existing age identity; never activate the system |
-| `./switch.sh --build`                   | Build the selected system without activating it                        |
-| `./switch.sh`                           | Check secrets and apply the selected configuration                     |
-| `./bootstrap.sh --skip-secrets`         | Prepare tools without restoring an identity                            |
-| `HM_USER=jito.hello ./switch.sh --home` | Apply a standalone Home Manager profile                                |
+| Command                            | What it does                                                           |
+| ---------------------------------- | ---------------------------------------------------------------------- |
+| `./bootstrap.sh`                   | Prepare tools and the existing age identity; never activate the system |
+| `./switch.sh --build`              | Build without activation; on Debian, validate declarations only        |
+| `./switch.sh`                      | Check secrets and apply the selected configuration                     |
+| `HM_USER=baleen-linux ./switch.sh` | Select a standalone profile on Linux outside NixOS and Debian          |
 
-Both scripts default to `hostname -s`; pass a host name explicitly when needed,
-for example `./switch.sh macbook-pro`. `NIXNAME` also overrides the default.
+Both scripts select the local host with `hostname -s`; host arguments and
+`NIXNAME` overrides are not supported for local bootstrap or switch.
+Every normal switch requires a valid age identity, even without declared secrets.
+Build-only verification skips identity and decryption checks.
 Unknown Macs receive a minimal registration in the ignored
 `flake-modules/hosts.local.nix`: Zsh, Git, the SSH client and age, without GUI apps
 or optional development tools. Select additional features in a machine file.
@@ -61,14 +62,20 @@ desktop app. Existing hosts install their selected desktop app during switch.
 | `age-recipient`   | Text      | Public `age1…` recipient for encryption |
 
 The default reference uses vault/item IDs so renaming the note is safe. Override
-it with `--age-key-ref op://vault/item/field` or `DOTFILES_AGE_KEY_REF`; never pass
+it with `DOTFILES_AGE_KEY_REF=op://vault/item/field`; never pass
 key material as an argument. Set `OP_BIOMETRIC_UNLOCK_ENABLED=false` for terminal
 authentication only. Existing CLI sessions or `OP_SERVICE_ACCOUNT_TOKEN` also work.
 
 Invalid, empty or symlinked identities fail without replacement. No personal
 SOPS secrets are currently declared: `No secrets declared for this configuration`
 is expected and does not mean personal SSH/GPG keys were restored. Switch never
-fetches keys from 1Password. See [SOPS secrets](#sops-secrets) to declare them.
+fetches keys from 1Password. A valid identity is still required when no secrets
+are declared. See [SOPS secrets](#sops-secrets) to declare them.
+
+On Debian, bootstrap installs native prerequisites and prepares the identity;
+switch applies remote-access secrets and services. `SOPS_AGE_KEY_FILE` selects
+the Debian identity path. `./switch.sh --build` validates the declaration without
+installing packages, retrieving keys or applying services.
 
 ### macOS permissions
 
@@ -105,7 +112,8 @@ existing policies. See [ADR 0003](docs/adr/0003-passwordless-repeat-bootstrap-an
 
 Host users are declared in `flake-modules/hosts.nix`. `HM_USER` selects only a
 standalone Home Manager output; it does not change a host's system user.
-Without `HM_USER`, standalone mode selects the unique profile matching the login
+On Linux outside NixOS and Debian, standalone mode is selected automatically.
+Without `HM_USER`, it selects the unique profile matching the login
 user and platform. An explicit profile for a different platform is rejected.
 For Windows/WSL installation, follow [the platform guide](machines/windows/README.md).
 
@@ -118,7 +126,6 @@ GitHub `actions/cache` is CI-only. It can speed repeated workflow runs on GitHub
 ## Daily Usage
 
 ```bash
-HM_USER=jito.hello ./switch.sh --home  # Apply user configuration only (no Homebrew casks)
 ./switch.sh                          # Apply the full system for this host
 make format                          # Format with treefmt (nix fmt)
 make lint                            # Run all pre-commit hooks
@@ -131,7 +138,6 @@ make update                          # Update flake inputs (nix flake update)
 | ------------------- | :-----------------------: | :--------------------: | :---------------------: |
 | **Core Operations** |                           |                        |                         |
 | switch              |            ✅             |           ✅           |           ✅            |
-| switch-home         |            ✅             |           ✅           |           ✅            |
 | format              |            ✅             |           ✅           |           ✅            |
 | **Testing**         |                           |                        |                         |
 | test                |            ✅             |           ✅           |           ✅            |
@@ -276,8 +282,8 @@ Create `machines/darwin/newmachine.nix` with the minimal system import:
 
 Import `../../users/shared/darwin` to select the shared macOS preferences,
 power daemon and cleanup scripts, then declare apps and user features in this
-machine file. Bootstrap registers only the minimal `common.nix` import;
-`--skip-secrets` prepares the machine without restoring a key.
+machine file. Bootstrap registers only the minimal `common.nix` import and
+prepares a valid age identity before reporting readiness.
 
 **Add a test**: create `tests/unit/<feature>-test.nix` or
 `tests/integration/<feature>-test.nix`; it becomes
@@ -379,7 +385,8 @@ existing vault data; deleting it does not resolve the version mismatch.
 a successful later entry reports `Using cached dev shell`.
 
 **Build failures:** fix the reported evaluation or build error, then retry
-`./switch.sh --build`. Use `--home --build` for a standalone profile.
+`./switch.sh --build`. On Linux outside NixOS and Debian this builds the selected
+standalone Home Manager profile; use `HM_USER` to select a different matching profile.
 
 **Formatting failure in `make test`**: run `make format`, or `make fmt-diff` to
 see the full treefmt diff.

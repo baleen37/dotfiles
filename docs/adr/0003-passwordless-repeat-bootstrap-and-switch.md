@@ -4,6 +4,9 @@
 - 날짜: 2026-11-08
 - 결정·운영 책임자: dotfiles 관리자
 
+검증 기록의 CLI 옵션은 당시 기준이다. 현재 실행 방법과 키 요구는
+[ADR 0004](0004-local-bootstrap-switch-contract.md)를 따른다.
+
 ## 배경과 결정
 
 기존 bootstrap은 이미 도구가 설치된 Mac에서도 시작 시 `sudo -v`를 실행했다.

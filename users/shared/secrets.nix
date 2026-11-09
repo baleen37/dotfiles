@@ -20,16 +20,21 @@ let
       pkgs.age
       pkgs.sops
     ];
-    text =
+    text = ''
+      key_file="''${1:-${config.sops.age.keyFile}}"
+      [ -f "$key_file" ] && [ ! -L "$key_file" ] && [ -s "$key_file" ] || {
+        echo "Missing or invalid age key: run ./bootstrap.sh" >&2
+        exit 1
+      }
+      age-keygen -y "$key_file" >/dev/null
+    ''
+    + (
       if !enabled then
         ''
           echo "No secrets declared for this configuration."
         ''
       else
         ''
-          key_file="''${1:-${config.sops.age.keyFile}}"
-          [ -s "$key_file" ] || { echo "Missing age key: run ./bootstrap.sh" >&2; exit 1; }
-          age-keygen -y "$key_file" >/dev/null
           unset SOPS_AGE_KEY SOPS_AGE_KEY_CMD SOPS_AGE_SSH_PRIVATE_KEY_CMD
           export SOPS_AGE_KEY_FILE="$key_file"
           export SOPS_AGE_SSH_PRIVATE_KEY_FILE=/dev/null
@@ -38,7 +43,8 @@ let
             sops --decrypt --input-type ${lib.escapeShellArg s.format} ${lib.escapeShellArg (toString s.file)} >/dev/null
           '') encryptedFiles}
           echo "Declared secrets decrypt successfully."
-        '';
+        ''
+    );
   };
   # Run the same upstream installer synchronously; the default HM Darwin hook
   # only starts launchd and can return before any secret has been written.

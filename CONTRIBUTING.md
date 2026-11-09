@@ -69,8 +69,8 @@ nix flake check --no-build --all-systems --show-trace
 nix build '.#darwinConfigurations.macbook-pro.system'
 nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel'
 
-# Activate a standalone Home Manager profile when that is the intended target
-make switch-home HM_USER=jito.hello
+# Apply the local configuration when activation is intended
+./switch.sh
 ```
 
 #### 3. Pre-Commit Workflow
@@ -81,7 +81,7 @@ make switch-home HM_USER=jito.hello
 nix flake check --no-build --all-systems --show-trace
 nix build '.#darwinConfigurations.macbook-pro.system'
 nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel'
-make switch-home HM_USER=jito.hello
+nix build '.#homeConfigurations."jito.hello".activationPackage'
 ```
 
 ### Testing Strategy
@@ -92,7 +92,7 @@ make switch-home HM_USER=jito.hello
 nix flake check --no-build --all-systems --show-trace  # Evaluate all checks
 nix build '.#darwinConfigurations.macbook-pro.system'
 nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel'
-make switch-home HM_USER=jito.hello
+nix build '.#homeConfigurations."jito.hello".activationPackage'
 nix build '.#checks.x86_64-linux.unit-mksystem'   # A single check
 ```
 
@@ -344,7 +344,7 @@ When adding new global commands:
 1. **Install the system:**
 
    ```bash
-   make switch-home
+   ./switch.sh
    ```
 
 2. **Test command integration:**

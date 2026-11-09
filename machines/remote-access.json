@@ -1,0 +1,59 @@
+{
+  "ageKeyRef": "op://vwt2ko2iqk466x7vo2rb46bl5e/djrgof76gd5luaqr63vasbowlu/age-key",
+  "rustdesk": {
+    "version": "1.5.1",
+    "options": {
+      "whitelist": "100.64.0.0/10,fd7a:115c:a1e0::/48",
+      "verification-method": "use-permanent-password",
+      "approve-mode": "password",
+      "direct-server": "Y"
+    }
+  },
+  "debian": {
+    "packages": [
+      "ca-certificates",
+      "python3",
+      "age"
+    ],
+    "tailscaleKeyring": {
+      "url": "https://pkgs.tailscale.com/stable/debian/trixie.noarmor.gpg",
+      "sha256": "3e03dacf222698c60b8e2f990b809ca1b3e104de127767864284e6c228f1fb39"
+    },
+    "assets": {
+      "amd64": {
+        "rustdesk": {
+          "url": "https://github.com/rustdesk/rustdesk/releases/download/1.5.1/rustdesk-1.5.1-x86_64.deb",
+          "sha256": "b5d682ad90cb7571ecbdbf26eef58d3c4514e726a74ef6d08ce3f0b114ef0bd9"
+        },
+        "sops": {
+          "url": "https://github.com/getsops/sops/releases/download/v3.13.3/sops_3.13.3_amd64.deb",
+          "sha256": "927c45f2ccb5b1c9acb1e80c7befaea0672c721fd3f222697a51e0a7081e3f3b"
+        },
+        "op": {
+          "url": "https://cache.agilebits.com/dist/1P/op2/pkg/v2.42.0/op_linux_amd64_v2.42.0.zip",
+          "sha256": "261fe3844a43e7e83a3d85e8a9f36411729436a1d3add1dc7dd46cbbceebe9e5"
+        }
+      },
+      "arm64": {
+        "rustdesk": {
+          "url": "https://github.com/rustdesk/rustdesk/releases/download/1.5.1/rustdesk-1.5.1-aarch64.deb",
+          "sha256": "d1471ed916dc21e3ae3965f936c51944e1f2635a6d521fcc4663486696018465"
+        },
+        "sops": {
+          "url": "https://github.com/getsops/sops/releases/download/v3.13.3/sops_3.13.3_arm64.deb",
+          "sha256": "21cf1ee8860bb9c2a0b09ac97901b41ca9f95734f3402ea358e31e296e6be823"
+        },
+        "op": {
+          "url": "https://cache.agilebits.com/dist/1P/op2/pkg/v2.42.0/op_linux_arm64_v2.42.0.zip",
+          "sha256": "e56c379fabafb393ce699258e484694abe464870fb41f35ce1b5c3f17868ba61"
+        }
+      }
+    },
+    "sopsVersion": "3.13.3"
+  },
+  "tailscale": {
+    "tags": [
+      "tag:infra"
+    ]
+  }
+}

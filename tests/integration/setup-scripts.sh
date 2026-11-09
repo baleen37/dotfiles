@@ -29,7 +29,14 @@ printf 'synthetic private data\n' > "$workspace/repo/private/token"
 printf '{ ... }: {}\n' > "$workspace/repo/flake-modules/hosts.local.nix"
 printf '{ ... }: {}\n' > "$workspace/repo/new-module.nix"
 ln -s keys.txt "$workspace/repo/ignored-target-link"
-export NIXNAME=test-host
+# Isolate platform detection from the test runner's distribution.
+printf 'ID=ubuntu\n' > "$workspace/os-release"
+for script in bootstrap.sh switch.sh scripts/lib/setup.sh; do
+  chmod u+w "$workspace/repo/$script"
+  sed "s@/etc/os-release@$workspace/os-release@g" "$workspace/repo/$script" > "$workspace/platform-script"
+  cat "$workspace/platform-script" > "$workspace/repo/$script"
+done
+export NIXNAME=ignored-host
 export TEST_TOOLS="$workspace/tools" TEST_STATE="$workspace"
 export PATH="$workspace/bin:$PATH"
 stub_shell=$(command -v bash)
@@ -42,6 +49,9 @@ write_stub() {
 }
 write_stub "$workspace/bin/uname" << 'STUB'
 if [ "${1:-}" = -m ]; then echo x86_64; else echo Linux; fi
+STUB
+write_stub "$workspace/bin/hostname" << 'STUB'
+echo test-host
 STUB
 write_stub "$workspace/bin/id" << 'STUB'
 if [ "$1" = -u ]; then echo 1000; else echo testuser; fi
@@ -71,7 +81,7 @@ elif [[ "$*" == *'programs._1password-gui.enable'* ]]; then echo "${TEST_APP_MAN
 elif [[ "$*" == *'homebrew.enable'* ]]; then
   [ "${TEST_HOMEBREW_EVAL_FAIL:-0}" = 0 ] || exit 23
   echo false
-elif [[ "$*" == *'builtins.hasAttr'* ]]; then echo true
+elif [[ "$*" == *'builtins.hasAttr'* ]]; then echo "${TEST_HOST_DECLARED:-true}"
 elif [[ "$*" == *'#homeConfigurations --apply'* ]]; then echo testuser-linux
 elif [[ "$*" == *'.pkgs.stdenv.hostPlatform.system'* ]]; then
   if [ -n "${TEST_HOME_SYSTEM:-}" ]; then echo "$TEST_HOME_SYSTEM"
@@ -133,37 +143,37 @@ expect_failure() {
   fi
 }
 # A missing bootstrap must not reach activation.
-expect_failure bash ./switch.sh --home
+expect_failure bash ./switch.sh
 [ ! -e "$workspace/activated" ]
 # Dependency installation failure and a missing op never report readiness.
 export TEST_BUILD_FAIL=1
-expect_failure bash ./bootstrap.sh --home --skip-secrets
+expect_failure bash ./bootstrap.sh
 [ ! -e "$HOME/.config/sops/age/keys.txt" ]
 export TEST_BUILD_FAIL=0
 mv "$workspace/tools/bin/op" "$workspace/tools/bin/op.disabled"
-expect_failure bash ./bootstrap.sh --home --age-key-ref op://test/identity/key
+expect_failure bash ./bootstrap.sh
 [ ! -e "$HOME/.config/sops/age/keys.txt" ]
 mv "$workspace/tools/bin/op.disabled" "$workspace/tools/bin/op"
 export TEST_EMPTY_KEY=1
-expect_failure bash ./bootstrap.sh --home --age-key-ref op://test/identity/key
+expect_failure bash ./bootstrap.sh
 [ ! -e "$HOME/.config/sops/age/keys.txt" ]
 export TEST_EMPTY_KEY=0
 # Failed op reads never leave an apparently installed key.
 export TEST_OP_FAIL=1
-expect_failure bash ./bootstrap.sh --home --age-key-ref op://test/identity/key
+expect_failure bash ./bootstrap.sh
 [ ! -e "$HOME/.config/sops/age/keys.txt" ]
 [ -z "$(find "$HOME" -name '.age-key.*' -print)" ]
 export TEST_OP_FAIL=0
 # A syntactically valid key for the wrong recipient must also fail.
 age-keygen -o "$workspace/wrong-identity" 2> /dev/null
 export TEST_IDENTITY="$workspace/wrong-identity"
-expect_failure bash ./bootstrap.sh --home --age-key-ref op://test/identity/key
+expect_failure bash ./bootstrap.sh
 [ ! -e "$HOME/.config/sops/age/keys.txt" ]
 export TEST_IDENTITY="$workspace/identity"
 # A competing directory, symlink or file must never become a successful restore.
 for race in directory symlink file; do
   export TEST_KEY_RACE=$race
-  expect_failure bash ./bootstrap.sh --home --age-key-ref op://test/identity/key
+  expect_failure bash ./bootstrap.sh
   grep -q 'age key destination now exists' "$workspace/output"
   [ -z "$(find "$HOME" -name '.age-key.*' -print)" ]
   [ -z "$(find "$workspace" -maxdepth 1 -name '.age-key.*' -print)" ]
@@ -177,43 +187,66 @@ for race in directory symlink file; do
   fi
 done
 unset TEST_KEY_RACE
-bash ./bootstrap.sh --home --age-key-ref op://test/identity/key > "$workspace/output" 2>&1
+bash ./bootstrap.sh > "$workspace/output" 2>&1
 [ ! -e "$workspace/activated" ]
 cmp "$workspace/identity" "$HOME/.config/sops/age/keys.txt"
 [ "$(stat -c %a "$HOME/.config/sops/age/keys.txt" 2> /dev/null || stat -f %Lp "$HOME/.config/sops/age/keys.txt")" = 600 ]
 # Existing valid keys work even when op is unavailable; they are never replaced.
 export TEST_OP_FAIL=1
-bash ./bootstrap.sh --home > "$workspace/output" 2>&1
+bash ./bootstrap.sh > "$workspace/output" 2>&1
 cmp "$workspace/identity" "$HOME/.config/sops/age/keys.txt"
-bash ./switch.sh --home --build > "$workspace/output" 2>&1
+bash ./switch.sh --build > "$workspace/output" 2>&1
 [ ! -e "$workspace/activated" ]
-bash ./switch.sh --home > "$workspace/output" 2>&1
+bash ./switch.sh > "$workspace/output" 2>&1
 [ -f "$workspace/activated" ]
 rm "$workspace/activated"
 # Standalone defaults must follow the platform, not just the login name.
 unset HM_USER
 : > "$workspace/nix.log"
-bash ./bootstrap.sh --skip-secrets > "$workspace/output" 2>&1
-bash ./switch.sh --home --build > "$workspace/output" 2>&1
+bash ./bootstrap.sh > "$workspace/output" 2>&1
+bash ./switch.sh --build > "$workspace/output" 2>&1
 grep -q 'homeConfigurations\."testuser-linux"\.activationPackage' "$workspace/nix.log"
 export HM_USER=testuser TEST_HOME_SYSTEM=aarch64-darwin
 : > "$workspace/nix.log"
-expect_failure bash ./bootstrap.sh --home --skip-secrets
+expect_failure bash ./bootstrap.sh
 grep -q 'targets aarch64-darwin' "$workspace/output"
-expect_failure bash ./switch.sh --home --build
+expect_failure bash ./switch.sh --build
 grep -q 'targets aarch64-darwin' "$workspace/output"
 ! grep -q 'activationPackage' "$workspace/nix.log"
 unset TEST_HOME_SYSTEM
 printf 'invalid\n' > "$HOME/.config/sops/age/keys.txt"
-expect_failure bash ./bootstrap.sh --home
-expect_failure bash ./switch.sh --home
+expect_failure bash ./bootstrap.sh
+expect_failure bash ./switch.sh
 [ ! -e "$workspace/activated" ]
-# Explicit skip prepares tools but cannot bypass switch readiness checks.
-bash ./bootstrap.sh --home --skip-secrets > "$workspace/output" 2>&1
-expect_failure bash ./switch.sh --home
+# Removed CLI inputs must fail before configuration selection or activation.
+: > "$workspace/nix.log"
+for arg in --unknown --help --home --skip-secrets --age-key-ref test-host; do
+  expect_failure bash ./bootstrap.sh "$arg"
+done
+for arg in --unknown --help --home --check --skip-secrets --age-key-ref test-host; do
+  expect_failure bash ./switch.sh "$arg"
+done
+expect_failure bash ./switch.sh --build --build
+[ ! -s "$workspace/nix.log" ]
+# Build-only must work without a usable age key.
+rm "$HOME/.config/sops/age/keys.txt"
+bash ./switch.sh --build > "$workspace/output" 2>&1
 [ ! -e "$workspace/activated" ]
-expect_failure bash ./bootstrap.sh --unknown
-expect_failure bash ./switch.sh --age-key-ref op://test/identity/key
+! grep -q 'ignored-host' "$workspace/nix.log"
+# Debian public commands must select the matching internal stage, without Nix.
+mkdir -p "$workspace/repo/machines/debian"
+write_stub "$workspace/repo/machines/debian/apply.sh" << 'STUB'
+printf '%s\n' "$*" >> "$TEST_STATE/debian-stages"
+STUB
+printf 'ID=debian\n' > "$workspace/os-release"
+: > "$workspace/nix.log"
+bash ./bootstrap.sh
+bash ./switch.sh
+bash ./switch.sh --build
+printf 'bootstrap\nswitch\n--build\n' > "$workspace/expected-stages"
+cmp "$workspace/expected-stages" "$workspace/debian-stages"
+[ ! -s "$workspace/nix.log" ]
+printf 'ID=ubuntu\n' > "$workspace/os-release"
 # Drive the Darwin system branch while sudo is a recording-only double.
 cp "$workspace/identity" "$HOME/.config/sops/age/keys.txt"
 cp switch.sh "$workspace/switch.platform-saved"
@@ -255,12 +288,16 @@ STUB
 chmod +x "$workspace/bin/xcode-select"
 # With prerequisites installed, repeated bootstrap must never request sudo.
 export TEST_APP_MANAGEMENT_REQUIRED=false
-bash ./bootstrap.sh test-host > "$workspace/output" 2>&1
+export TEST_HOST_DECLARED=false
+expect_failure bash ./switch.sh --build
+grep -q 'not registered in flake-modules/hosts.nix' "$workspace/output"
+unset TEST_HOST_DECLARED
+bash ./bootstrap.sh > "$workspace/output" 2>&1
 [ ! -e "$workspace/sudo.log" ]
 cmp "$workspace/identity" "$HOME/.config/sops/age/keys.txt"
 # A genuinely missing prerequisite still requires authentication before install.
 export TEST_CLT_MISSING=1 TEST_SUDO_FAIL=1
-expect_failure bash ./bootstrap.sh test-host --skip-secrets
+expect_failure bash ./bootstrap.sh
 grep -q 'administrator authentication failed' "$workspace/output"
 grep -q -- '-v' "$workspace/sudo.log"
 rm "$workspace/sudo.log"
@@ -270,7 +307,7 @@ export TEST_APP_MANAGEMENT_REQUIRED=true
 for status in denied unknown error; do
   export TEST_PERMISSION_STATUS=$status
   : > "$workspace/nix.log"
-  expect_failure bash ./switch.sh test-host
+  expect_failure bash ./switch.sh
   grep -q 'macOS permission preflight incomplete' "$workspace/output"
   grep -q 'Privacy_AppBundles' "$workspace/settings.log"
   [ ! -e "$workspace/sudo.log" ]
@@ -279,38 +316,37 @@ for status in denied unknown error; do
 done
 # A settings-launch failure must retain the manual instructions and stop.
 export TEST_SETTINGS_FAIL=1
-expect_failure bash ./switch.sh test-host
+expect_failure bash ./switch.sh
 grep -q 'Could not open System Settings' "$workspace/output"
 grep -q 'Privacy_AppBundles' "$workspace/output"
 [ ! -e "$workspace/sudo.log" ]
 export TEST_SETTINGS_FAIL=0
 # Bootstrap checks an existing Nix host before sudo, CLT or downloads.
 : > "$workspace/nix.log"
-expect_failure bash ./bootstrap.sh test-host --skip-secrets
+expect_failure bash ./bootstrap.sh
 [ ! -e "$workspace/sudo.log" ]
 ! grep -q ' build ' "$workspace/nix.log"
-# Build-only, standalone HM and minimal hosts need no app-management consent.
+# Build-only and minimal hosts need no app-management consent.
 rm "$workspace/permissions.log" "$workspace/settings.log"
-bash ./switch.sh test-host --build > "$workspace/output" 2>&1
-bash ./switch.sh --home --build > "$workspace/output" 2>&1
+bash ./switch.sh --build > "$workspace/output" 2>&1
 [ ! -e "$workspace/permissions.log" ]
 [ ! -e "$workspace/settings.log" ]
 export TEST_APP_MANAGEMENT_REQUIRED=false
-bash ./switch.sh test-host > "$workspace/output" 2>&1
+bash ./switch.sh > "$workspace/output" 2>&1
 [ ! -e "$workspace/permissions.log" ]
 [ ! -e "$workspace/settings.log" ]
 rm "$workspace/sudo.log"
 export TEST_APP_MANAGEMENT_REQUIRED=true TEST_PERMISSION_STATUS=granted
-bash ./switch.sh test-host > "$workspace/output" 2>&1
+bash ./switch.sh > "$workspace/output" 2>&1
 grep -q 'darwin-rebuild.*switch --flake' "$workspace/sudo.log"
 [ ! -e "$workspace/activated" ]
 [ ! -e "$(cat "$workspace/source-path")" ]
 # Evaluation failures must not be mistaken for a disabled Homebrew module.
 rm "$workspace/sudo.log"
 export TEST_HOMEBREW_EVAL_FAIL=1
-expect_failure bash ./bootstrap.sh test-host --skip-secrets
+expect_failure bash ./bootstrap.sh
 grep -q 'cannot evaluate Homebrew requirements' "$workspace/output"
-expect_failure bash ./switch.sh test-host
+expect_failure bash ./switch.sh
 grep -q 'cannot evaluate Homebrew requirements' "$workspace/output"
 [ ! -e "$workspace/sudo.log" ]
 export TEST_HOMEBREW_EVAL_FAIL=0
@@ -331,7 +367,7 @@ STUB
 chmod +x "$workspace/system/sw/bin/darwin-rebuild"
 export TEST_SUDO_EXECUTE=1 TEST_ACTIVATION_FAIL=1
 : > "$workspace/sudo.log"
-expect_failure bash ./switch.sh test-host
+expect_failure bash ./switch.sh
 [ "$(wc -l < "$workspace/sudo.log" | tr -d ' ')" = 1 ]
 for file in bashrc zshrc zprofile nix/nix.custom.conf; do
   grep -qx "original $file" "$workspace/etc/$file"
@@ -344,7 +380,7 @@ done
 for file in bashrc zshrc nix/nix.custom.conf; do
   cp "$workspace/etc/$file" "$workspace/etc/$file.before-nix-darwin"
 done
-expect_failure bash ./switch.sh test-host
+expect_failure bash ./switch.sh
 ! grep -q 'unbound variable' "$workspace/output"
 [ ! -e "$(cat "$workspace/source-path")" ]
 # A successful activation retains backups instead of rolling back.
@@ -352,7 +388,7 @@ for file in bashrc zshrc zprofile nix/nix.custom.conf; do
   rm "$workspace/etc/$file.before-nix-darwin"
 done
 export TEST_ACTIVATION_FAIL=0
-bash ./switch.sh test-host > "$workspace/output" 2>&1
+bash ./switch.sh > "$workspace/output" 2>&1
 for file in bashrc zshrc zprofile nix/nix.custom.conf; do
   grep -qx "original $file" "$workspace/etc/$file.before-nix-darwin"
 done
@@ -361,6 +397,6 @@ cp "$workspace/switch.saved" switch.sh
 # The ignored exception may not point at an arbitrary private file.
 mv "$workspace/repo/flake-modules/hosts.local.nix" "$workspace/registry.saved"
 ln -s "$workspace/identity" "$workspace/repo/flake-modules/hosts.local.nix"
-expect_failure bash ./switch.sh --home --build
+expect_failure bash ./switch.sh --build
 grep -q 'local host registry must be a regular file' "$workspace/output"
 echo 'PASS: bootstrap/switch secrets, filtered source, cleanup, build-only and permission scenarios'

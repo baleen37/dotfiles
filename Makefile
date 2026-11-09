@@ -8,7 +8,6 @@ MAKEFILE_DIR := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 
 # The name of the nixosConfiguration in the flake
 NIXNAME ?= $(shell hostname -s 2>/dev/null || hostname | cut -d. -f1)
-HM_USER ?= $(shell id -un 2>/dev/null || whoami)
 
 # SSH options that are used. These aren't meant to be overridden but are
 # reused a lot so we just store them up here.
@@ -36,10 +35,7 @@ NIX_SYSTEM := $(NIX_ARCH)-$(NIX_OS)
 build-switch: switch
 
 switch:
-	./switch.sh "$(NIXNAME)"
-
-switch-home:
-	HM_USER="$(HM_USER)" ./switch.sh --home
+	./switch.sh
 
 # Write this Mac's Syncthing device ID into its flake-modules/hosts.nix entry.
 syncthing-id:
@@ -228,7 +224,7 @@ wsl:
 	$(SUDO_NIX) run ".#nixosConfigurations.wsl.config.system.build.tarballBuilder"
 
 # Phony targets
-.PHONY: build-switch switch switch-home syncthing-id test test-build test-all test-containers fmt-diff format cache vm/bootstrap0 vm/bootstrap vm/copy vm/switch vm/secrets secrets/backup secrets/restore install-hooks lint update
+.PHONY: build-switch switch syncthing-id test test-build test-all test-containers fmt-diff format cache vm/bootstrap0 vm/bootstrap vm/copy vm/switch vm/secrets secrets/backup secrets/restore install-hooks lint update
 
 install-hooks:
 	pre-commit install --hook-type pre-commit --hook-type pre-push

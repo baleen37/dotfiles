@@ -6,6 +6,13 @@ die() {
   exit 1
 }
 nix_cmd() { nix --extra-experimental-features 'nix-command flakes' --accept-flake-config "$@"; }
+# NixOS always keeps its system backend, including when hosted inside WSL.
+is_debian() {
+  [ "$(uname -s)" = Linux ] && [ ! -e /etc/NIXOS ] && [ -r /etc/os-release ] && (
+    . /etc/os-release
+    [ "${ID:-}" = debian ]
+  )
+}
 load_nix() {
   command -v nix > /dev/null 2>&1 && return 0
   local file
@@ -49,10 +56,11 @@ prepare_flake() {
   FLAKE_REF="path:$source"
 }
 setup_context() {
+  HOME_ONLY=false
   [ "$(id -u)" -ne 0 ] || die "run as your normal user; sudo is requested only where needed"
   REPO_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
   cd "$REPO_DIR" || die "cannot enter repository"
-  HOST=${HOST:-${NIXNAME:-$(hostname -s)}}
+  HOST=$(hostname -s)
   [[ $HOST =~ ^[a-zA-Z0-9][a-zA-Z0-9._-]*$ ]] || die "invalid host name: $HOST"
   OS=$(uname -s)
   case "$OS/$(uname -m)" in
@@ -139,6 +147,13 @@ select_configuration() {
       SYSTEM_ATTR="darwinConfigurations.\"$HOST\""
     else SYSTEM_ATTR="nixosConfigurations.\"$HOST\""; fi
     HOME_ATTR="$SYSTEM_ATTR.config.home-manager.users.\"$current_user\""
+  fi
+  if [ "$HOME_ONLY" = false ]; then
+    local registry declared
+    if [ "$OS" = Darwin ]; then registry=darwinConfigurations; else registry=nixosConfigurations; fi
+    declared=$(nix_cmd eval --json "$FLAKE_REF#$registry" \
+      --apply "hosts: builtins.hasAttr \"$HOST\" hosts")
+    [ "$declared" = true ] || die "host '$HOST' is not registered in flake-modules/hosts.nix; register it before running ./bootstrap.sh"
   fi
   configured_user=$(nix_cmd eval --raw "$FLAKE_REF#$HOME_ATTR.home.username")
   [ "$configured_user" = "$current_user" ] || die "configuration belongs to another user: $configured_user"
