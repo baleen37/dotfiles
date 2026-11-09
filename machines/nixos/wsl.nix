@@ -1,6 +1,5 @@
 # NixOS inside WSL2 on Windows. Boot, networking, and the login user come from
-# NixOS-WSL, so this does not import vm-shared.nix (bootloader and DHCP there
-# are VM-only).
+# NixOS-WSL.
 {
   inputs,
   currentSystemUser,

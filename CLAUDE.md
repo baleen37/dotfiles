@@ -42,7 +42,7 @@ nix flake check --no-build --all-systems --show-trace
 
 # Build configuration closures without activation
 nix build '.#darwinConfigurations.macbook-pro.system'
-nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel'
+nix build '.#nixosConfigurations.wsl.config.system.build.toplevel'
 
 # Activate a standalone Home Manager profile on Linux outside NixOS and Debian
 HM_USER=baleen-linux ./switch.sh
@@ -60,12 +60,9 @@ on any platform.
 # Darwin aarch64-darwin
 nix build '.#darwinConfigurations.macbook-pro.system'
 
-# NixOS aarch64-linux
-nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel'
+# NixOS-WSL x86_64-linux
+nix build '.#nixosConfigurations.wsl.config.system.build.toplevel'
 
-# Disposable VM smoke test (Linux + KVM only)
-nix run .#test-vm
-ssh testuser@localhost -p 2222  # password: test
 ```
 
 ## Architecture
@@ -140,11 +137,7 @@ machines/
 ├── darwin/
 │   └── common.nix              # Shared by every Darwin host
 ├── nixos/
-│   ├── vm-aarch64-utm.nix      # ARM64 NixOS VM
-│   ├── vm-x86_64-utm.nix       # x86_64 NixOS VM
-│   ├── vm-shared.nix           # Shared NixOS settings (VMs only)
-│   ├── wsl.nix                 # NixOS-WSL host; does not import vm-shared.nix
-│   └── hardware/vm-utm.nix     # virtio profile shared by both VMs
+│   └── wsl.nix                 # NixOS-WSL host
 └── windows/                    # Windows side, outside Nix: winget config, SSH bootstrap
 ```
 
@@ -276,8 +269,8 @@ macOS configuration includes:
 
 GitHub Actions workflow (`.github/workflows/ci.yml`):
 
-- Runs on: Darwin `aarch64-darwin` (macOS-15), NixOS `x86_64-linux` (Ubuntu),
-  and NixOS `aarch64-linux` (Ubuntu ARM64)
+- Runs on: Darwin `aarch64-darwin` (macOS-15), NixOS-WSL `x86_64-linux` (Ubuntu),
+  and shared tools/checks on `aarch64-linux` (Ubuntu ARM64)
 - Pre-commit hooks validation
 - Fast container tests (Linux) or validation mode (macOS)
 - Builds every unit and integration assertion (`make test-build`) on PRs and main

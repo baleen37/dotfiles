@@ -62,18 +62,6 @@ in
       syncthingId = "FAMY2R3-2T2E6RX-UU5H37L-ZGQ5NNV-YG367MA-2VF5G4U-VFHYL4C-USPF3Q6";
       machineModules = [ ../machines/darwin/kakaostyle-jito.nix ];
     };
-    vm-aarch64-utm = {
-      system = "aarch64-linux";
-      class = "nixos";
-      user = "baleen";
-      machineModules = [ ../machines/nixos/vm-aarch64-utm.nix ];
-    };
-    vm-x86_64-utm = {
-      system = "x86_64-linux";
-      class = "nixos";
-      user = "baleen";
-      machineModules = [ ../machines/nixos/vm-x86_64-utm.nix ];
-    };
     wsl = {
       system = "x86_64-linux";
       class = "nixos";

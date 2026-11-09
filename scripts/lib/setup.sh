@@ -42,7 +42,7 @@ prepare_flake() {
     while IFS= read -r -d '' file; do
       [ -e "$file" ] || [ -L "$file" ] || continue
       destination="$source/$file"
-      mkdir -p "${destination%/*}"
+      [ -d "${destination%/*}" ] || mkdir -p "${destination%/*}"
       # Preserve symlinks; following one could copy an ignored private target.
       cp -Pp "./$file" "$destination"
     done < "$SOURCE_DIR/files"
@@ -58,11 +58,11 @@ prepare_flake() {
   FLAKE_REF="path:$source"
 }
 setup_context() {
-  HOME_ONLY=false
+  HOME_ONLY=${HOME_ONLY:-false}
   [ "$(id -u)" -ne 0 ] || die "run as your normal user; sudo is requested only where needed"
   REPO_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
   cd "$REPO_DIR" || die "cannot enter repository"
-  HOST=$(hostname -s)
+  HOST=${HOST:-$(hostname -s)}
   [[ $HOST =~ ^[a-zA-Z0-9][a-zA-Z0-9._-]*$ ]] || die "invalid host name: $HOST"
   OS=$(uname -s)
   case "$OS/$(uname -m)" in
@@ -145,18 +145,14 @@ select_configuration() {
     HOME_ATTR="homeConfigurations.\"$HM_USER\".config"
     SYSTEM_ATTR=
   else
-    if [ "$OS" = Darwin ]; then
-      SYSTEM_ATTR="darwinConfigurations.\"$HOST\""
-    else SYSTEM_ATTR="nixosConfigurations.\"$HOST\""; fi
-    HOME_ATTR="$SYSTEM_ATTR.config.home-manager.users.\"$current_user\""
-  fi
-  if [ "$HOME_ONLY" = false ]; then
     local registry declared
     if [ "$OS" = Darwin ]; then
       registry=darwinConfigurations
     else
       registry=nixosConfigurations
     fi
+    SYSTEM_ATTR="$registry.\"$HOST\""
+    HOME_ATTR="$SYSTEM_ATTR.config.home-manager.users.\"$current_user\""
     declared=$(nix_cmd eval --json "$FLAKE_REF#$registry" \
       --apply "hosts: builtins.hasAttr \"$HOST\" hosts")
     [ "$declared" = true ] || die "host '$HOST' is not registered in flake-modules/hosts.nix; register it before running ./bootstrap.sh"

@@ -126,7 +126,8 @@ systemFunc {
         openssh.authorizedKeys.keyFiles = [ inputs.baleen37-keys ];
       };
 
-      # Local setup selects the flake output by `hostname -s`.
+      # `make switch` picks the flake output by `hostname -s`; a machine module
+      # may still override it.
       networking.hostName = lib.mkDefault name;
 
       # Apply overlays
