@@ -9,10 +9,8 @@ let
 
   # Always-on hub outside Nix. Devices that are not Nix hosts (iPhone, Windows)
   # pair with it from its own web UI and reach the Macs through it, so they are
-  # not listed here.
-  hub = {
-    syncthing-hub = "KEWS4JZ-4QJIPYT-3A55JT3-CI6AAXC-N3APKNM-EOXYU3N-TW447PN-6WGGKQY";
-  };
+  # not listed here. Debian hosts read the same file in machines/debian/apply.py.
+  inherit (lib.importJSON ../../../machines/syncthing.json) hub;
 
   # Includes this host's own ID: Syncthing treats it as the local device.
   devices = hub // cfg.peers;
