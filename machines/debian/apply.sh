@@ -20,7 +20,9 @@ if ! command -v python3 > /dev/null; then
     exit 1
   fi
   privileged=()
-  if [ "$EUID" -ne 0 ]; then privileged=(sudo); fi
+  if [ "$EUID" -ne 0 ]; then
+    privileged=(sudo)
+  fi
   "${privileged[@]}" apt-get update
   "${privileged[@]}" apt-get install -y python3 ca-certificates
 fi

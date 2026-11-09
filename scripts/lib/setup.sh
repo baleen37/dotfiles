@@ -150,7 +150,11 @@ select_configuration() {
   fi
   if [ "$HOME_ONLY" = false ]; then
     local registry declared
-    if [ "$OS" = Darwin ]; then registry=darwinConfigurations; else registry=nixosConfigurations; fi
+    if [ "$OS" = Darwin ]; then
+      registry=darwinConfigurations
+    else
+      registry=nixosConfigurations
+    fi
     declared=$(nix_cmd eval --json "$FLAKE_REF#$registry" \
       --apply "hosts: builtins.hasAttr \"$HOST\" hosts")
     [ "$declared" = true ] || die "host '$HOST' is not registered in flake-modules/hosts.nix; register it before running ./bootstrap.sh"
