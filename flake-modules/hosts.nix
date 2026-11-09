@@ -55,6 +55,13 @@ in
       user = "baleen";
       machineModules = [ ../machines/darwin/baleen-macbook.nix ];
     };
+    baleen-m2-pro = {
+      system = "aarch64-darwin";
+      class = "darwin";
+      user = "baleen";
+      syncthingId = "GRWLSDU-LQVUNLV-C6YZATS-6MCXPTI-OAJW77W-CYGVSCE-XAA2MB3-F335OAW";
+      machineModules = [ ../machines/darwin/macbook-pro.nix ];
+    };
     kakaostyle-jito = {
       system = "aarch64-darwin";
       class = "darwin";

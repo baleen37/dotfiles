@@ -26,6 +26,7 @@ let
   nixosNames = builtins.attrNames nixosHosts;
 
   expectedDarwin = [
+    "baleen-m2-pro"
     "baleen-macbook"
     "kakaostyle-jito"
     "macbook-pro"
@@ -39,6 +40,7 @@ let
   nixosUsers = lib.mapAttrs (_: host: builtins.attrNames host.config.home-manager.users) nixosHosts;
 
   expectedDarwinUsers = {
+    baleen-m2-pro = [ "baleen" ];
     baleen-macbook = [ "baleen" ];
     kakaostyle-jito = [ "jito.hello" ];
     macbook-pro = [ "baleen" ];
