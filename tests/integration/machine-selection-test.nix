@@ -9,7 +9,11 @@ let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
   mkSystem = import ../../lib/mksystem.nix {
     inherit inputs self;
-    overlays = import ../../lib/overlays.nix { inherit inputs; };
+    overlays = with self.overlays; [
+      additions
+      modifications
+      worktree
+    ];
   };
   minimal =
     (mkSystem "minimal-probe" {

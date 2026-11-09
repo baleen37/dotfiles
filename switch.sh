@@ -2,55 +2,8 @@
 # Apply the selected host through its Nix or Debian native backend.
 set -euo pipefail
 set +x
-# Debian native setup runs before Nix bootstrap checks; --home keeps the existing
-# standalone Home Manager path. NixOS continues through the Nix system backend.
-home_only=false
-for argument in "$@"; do
-  case "$argument" in
-    --home) home_only=true ;;
-    --help | -h)
-      echo 'Usage: ./switch.sh [host] [--home] [--build | --check]'
-      echo 'macOS/NixOS: Nix switch; --build/--check builds without activation.'
-      echo 'Debian: native packages and app settings; --build/--check prints the declaration.'
-      echo 'Debian identity options: --age-key-file PATH, --age-key-ref op://vault/item/field'
-      echo 'HM_USER selects standalone Home Manager with --home.'
-      exit 0
-      ;;
-  esac
-done
-if [ "$home_only" = false ] && [ "$(uname -s)" = Linux ] && [ -f /etc/os-release ]; then
-  debian_id=$(
-    . /etc/os-release
-    printf '%s' "$ID"
-  )
-  if [ "$debian_id" = debian ]; then
-    args=()
-    for argument in "$@"; do
-      if [ "$argument" = --build ]; then
-        args+=(--check)
-      else
-        args+=("$argument")
-      fi
-    done
-    exec "$(dirname "${BASH_SOURCE[0]}")/machines/debian/apply.sh" "${args[@]}"
-  fi
-fi
 source "$(dirname "${BASH_SOURCE[0]}")/scripts/lib/setup.sh"
-HOST=
-HOME_ONLY=false
-BUILD_ONLY=false
-while [ "$#" -gt 0 ]; do
-  case "$1" in
-    --home) HOME_ONLY=true ;;
-    --build | --check) BUILD_ONLY=true ;;
-    -*) die "unknown option: $1" ;;
-    *)
-      [ -z "$HOST" ] || die 'only one host may be supplied'
-      HOST=$1
-      ;;
-  esac
-  shift
-done
+setup_request switch "$@"
 setup_context
 command -v nix > /dev/null 2>&1 || die 'run ./bootstrap.sh first'
 [ -x "$TOOLS_LINK/bin/sops" ] || die 'bootstrap tools missing: run ./bootstrap.sh first'
@@ -63,7 +16,7 @@ if [ "$BUILD_ONLY" = false ]; then
   secrets_check
 fi
 
-if [ "$HOME_ONLY" = true ]; then
+if [ -z "$SYSTEM_ATTR" ]; then
   activation=$(nix_cmd build "$FLAKE_REF#homeConfigurations.\"$HM_USER\".activationPackage" \
     --no-link --print-out-paths)
   if [ "$BUILD_ONLY" = true ]; then
@@ -81,19 +34,13 @@ elif [ "$BUILD_ONLY" = true ]; then
   log "System build finished; not activated."
   exit 0
 elif [ "$OS" = Darwin ]; then
-  homebrew_enabled=$(nix_cmd eval --json "$FLAKE_REF#$SYSTEM_ATTR.config.homebrew.enable") \
+  homebrew_enabled=$(nix_cmd eval --json "$FLAKE_REF#$SYSTEM_ATTR.config.dotfiles.setup.homebrewRequired") \
     || die 'cannot evaluate Homebrew requirements; no system activation started'
   if [ "$homebrew_enabled" = true ]; then
     [ -x /opt/homebrew/bin/brew ] || die 'Homebrew required by selected apps: run ./bootstrap.sh'
   fi
   if [ -x /run/current-system/sw/bin/darwin-rebuild ]; then
-    # Preserve the exact work-host sudoers allowlist when no local registration
-    # is needed; other sources use the filtered snapshot, never the raw directory.
-    darwin_ref=.
-    if [ -f flake-modules/hosts.local.nix ] || [ -n "$(git ls-files --others --exclude-standard)" ]; then
-      darwin_ref="$FLAKE_REF"
-    fi
-    sudo -H /run/current-system/sw/bin/darwin-rebuild switch --flake "$darwin_ref#$HOST"
+    activate_darwin
   else
     # Build as the user before moving conflicting stock /etc files aside.
     system=$(nix_cmd build "$FLAKE_REF#$SYSTEM_ATTR.system" --no-link --print-out-paths)

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Sourced by bootstrap.sh and switch.sh.
+source "$(dirname "${BASH_SOURCE[0]}")/flake-source.sh"
 log() { printf '==> %s\n' "$*"; }
 die() {
   printf 'error: %s\n' "$*" >&2
@@ -13,6 +14,22 @@ is_debian() {
     [ "${ID:-}" = debian ]
   )
 }
+# Parse the public contract before dispatching to a platform adapter.
+setup_request() {
+  local mode=$1 repo
+  shift
+  BUILD_ONLY=false
+  if [ "$mode" = switch ] && [ "$#" -eq 1 ] && [ "$1" = --build ]; then
+    BUILD_ONLY=true
+  elif [ "$#" -ne 0 ]; then
+    die "Usage: ./$mode.sh$([ "$mode" != switch ] || printf ' [--build]')"
+  fi
+  [ "$(id -u)" -ne 0 ] || die 'run as your normal user; sudo is requested only where needed'
+  if is_debian; then
+    repo=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
+    exec "$repo/machines/debian/apply.sh" "$mode" "$@"
+  fi
+}
 load_nix() {
   command -v nix > /dev/null 2>&1 && return 0
   local file
@@ -24,45 +41,10 @@ load_nix() {
   done
   return 0
 }
-cleanup_flake() {
-  [ -z "${SOURCE_DIR:-}" ] || rm -rf "$SOURCE_DIR"
-}
-prepare_flake() {
-  local file source destination
-  if [ -z "$SOURCE_DIR" ]; then
-    git rev-parse --show-toplevel > /dev/null 2>&1 || die 'a Git checkout is required to safely select flake files'
-    # Resolve symlinks: macOS /tmp -> private/tmp, and Nix rejects a path:
-    # flake whose path goes through a symlink.
-    SOURCE_DIR=$(cd "$(mktemp -d /tmp/dotfiles-source.XXXXXX)" && pwd -P)
-    trap cleanup_flake EXIT
-    source="$SOURCE_DIR/source"
-    mkdir "$source"
-    # Enumerate before copying: a Git failure must never produce a partial source.
-    git ls-files -z --cached --others --exclude-standard > "$SOURCE_DIR/files" || die 'cannot select flake files'
-    while IFS= read -r -d '' file; do
-      [ -e "$file" ] || [ -L "$file" ] || continue
-      destination="$source/$file"
-      [ -d "${destination%/*}" ] || mkdir -p "${destination%/*}"
-      # Preserve symlinks; following one could copy an ignored private target.
-      cp -Pp "./$file" "$destination"
-    done < "$SOURCE_DIR/files"
-  fi
-  source="$SOURCE_DIR/source"
-  # The only intentionally ignored input. Never admit other ignored files.
-  file=flake-modules/hosts.local.nix
-  if [ -e "$file" ] || [ -L "$file" ]; then
-    [ -f "$file" ] && [ ! -L "$file" ] || die 'local host registry must be a regular file'
-    mkdir -p "$source/flake-modules"
-    cp -p "$file" "$source/$file"
-  fi
-  FLAKE_REF="path:$source"
-}
 setup_context() {
-  HOME_ONLY=${HOME_ONLY:-false}
-  [ "$(id -u)" -ne 0 ] || die "run as your normal user; sudo is requested only where needed"
   REPO_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
   cd "$REPO_DIR" || die "cannot enter repository"
-  HOST=${HOST:-$(hostname -s)}
+  HOST=$(hostname -s)
   [[ $HOST =~ ^[a-zA-Z0-9][a-zA-Z0-9._-]*$ ]] || die "invalid host name: $HOST"
   OS=$(uname -s)
   case "$OS/$(uname -m)" in
@@ -71,14 +53,13 @@ setup_context() {
     Linux/x86_64) NIX_SYSTEM=x86_64-linux ;;
     *) die "unsupported platform: $OS/$(uname -m)" ;;
   esac
-  SOURCE_DIR=
   prepare_flake
   TOOLS_LINK="${XDG_CACHE_HOME:-$HOME/.cache}/dotfiles/bootstrap-tools"
   load_nix
   MACOS_PERMISSIONS_CHECKED=false
 }
 check_macos_permissions() {
-  [ "$OS" = Darwin ] && [ "$HOME_ONLY" = false ] && [ "${BUILD_ONLY:-false}" = false ] || return 0
+  [ "$OS" = Darwin ] && [ "${BUILD_ONLY:-false}" = false ] || return 0
   [ "$MACOS_PERMISSIONS_CHECKED" = false ] || return 0
   # A fresh bootstrap can determine the selected host only after Nix is installed.
   if ! command -v nix > /dev/null 2>&1; then
@@ -88,9 +69,7 @@ check_macos_permissions() {
   local required status settings_url
   required=$(nix_cmd eval --json "$FLAKE_REF#darwinConfigurations" --apply "
     hosts: if builtins.hasAttr \"$HOST\" hosts then
-      let c = hosts.\"$HOST\".config; in
-      c.programs._1password-gui.enable ||
-        (c.homebrew.enable && (c.homebrew.casks != [] || c.homebrew.masApps != {}))
+      hosts.\"$HOST\".config.dotfiles.setup.appManagementRequired
     else false
   ") || die "cannot determine macOS permission requirements; no installation started"
   if [ "$required" = false ]; then
@@ -124,8 +103,7 @@ build_tools() {
 select_configuration() {
   local current_user configured_user configured_system
   current_user=$(id -un)
-  if [ "$HOME_ONLY" = true ] || { [ "$OS" = Linux ] && [ ! -e /etc/NIXOS ]; }; then
-    HOME_ONLY=true
+  if [ "$OS" = Linux ] && [ ! -e /etc/NIXOS ]; then
     if [ -z "${HM_USER:-}" ]; then
       HM_USER=$(nix_cmd eval --raw "$FLAKE_REF#homeConfigurations" --apply "
         homes: let

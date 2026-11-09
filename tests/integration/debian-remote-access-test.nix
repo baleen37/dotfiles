@@ -10,6 +10,6 @@ pkgs.runCommand "debian-remote-access-integration"
   ''
     export PYTHONDONTWRITEBYTECODE=1
     python3 ${./debian-remote-access.py} ${../..}
-    bash ${../..}/machines/debian/apply.sh --check
+    bash ${../..}/machines/debian/apply.sh switch --build
     touch "$out"
   ''

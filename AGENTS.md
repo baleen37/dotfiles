@@ -2,9 +2,15 @@
 
 ## 프로젝트 구조와 모듈 배치
 
-이 저장소는 Nix flakes로 macOS, NixOS 및 독립 Home Manager 환경을 관리합니다. `flake.nix`가 진입점이며, `flake-modules/`는 호스트 선언과 flake 출력을 구성합니다. `lib/`에는 시스템 생성과 모듈 탐색 같은 공통 로직이 있습니다.
+구조 참고 기준은 [Misterio77/nix-starter-configs의 standard](https://github.com/Misterio77/nix-starter-configs/tree/main/standard)입니다. **flake-parts는 유지**하며, 기존 호스트·사용자 구성에 필요한 부분만 반영합니다.
 
-호스트별 설정은 `machines/`, 공유 사용자 설정은 `users/shared/`에 둡니다. 도구 설정은 `programs/`, 패키지 목록은 `packages/` 아래에 배치합니다. 이 두 디렉터리의 `<name>.nix` 또는 `<name>/default.nix`는 자동으로 발견됩니다. 도구별 설정 자산은 해당 프로그램 디렉터리에 함께 둡니다. 운영 스크립트는 `scripts/`, 설계 기록은 `docs/`, 테스트는 `tests/`에 있습니다.
+- `flake.nix`는 입력과 지원 플랫폼을 선언하고, `flake-modules/`가 flake-parts로 호스트 선언과 출력을 구성합니다. `lib/`에는 시스템 생성과 모듈 탐색 같은 공통 로직을 둡니다.
+- `pkgs/default.nix`는 커스텀 패키지를 정의하고, `flake-modules/packages.nix`가 패키지 출력으로 연결합니다. 사용자에게 설치할 패키지 목록은 `users/shared/packages/`에 둡니다.
+- `overlays/default.nix`는 `additions`, `modifications`, `worktree`를 이름으로 공개합니다. 적용 순서는 이 순서대로 명시하며, `flake-modules/args.nix`에서 개발용 패키지와 시스템 구성에 전달합니다.
+- 호스트별 설정과 기능 선택은 `machines/`, 공유 사용자 설정은 `users/shared/`에 둡니다. `users/shared/programs/`와 `users/shared/packages/`의 `<name>.nix` 또는 `<name>/default.nix`는 자동으로 발견됩니다. 도구별 설정 자산은 해당 프로그램 디렉터리에 함께 둡니다.
+- 운영 스크립트는 `scripts/`, 설계 기록은 `docs/`, 테스트는 `tests/`에 둡니다. 설정 정책과 패키지·의존성 선언은 Nix가 소유하고, 스크립트는 준비·빌드·적용 실행을 담당합니다.
+
+`modules/nixos/`와 `modules/home-manager/` 공개 출력은 다른 저장소에서 재사용할 모듈이 실제로 필요할 때 추가합니다. 템플릿과 이름만 맞추기 위한 디렉터리 이동이나 빈 구조는 추가하지 않습니다.
 
 ## 빌드·테스트·개발 명령
 

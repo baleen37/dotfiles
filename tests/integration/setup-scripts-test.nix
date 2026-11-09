@@ -13,7 +13,7 @@ pkgs.runCommand "setup-script-scenarios"
     ];
   }
   ''
-    shellcheck --severity=warning -e SC1091,SC1090 ${../../bootstrap.sh} ${../../switch.sh} ${../../scripts/lib/setup.sh} ${../../machines/debian/apply.sh}
+    shellcheck --severity=warning -e SC1091,SC1090 ${../../bootstrap.sh} ${../../switch.sh} ${../../scripts/lib/setup.sh} ${../../scripts/lib/flake-source.sh} ${../../machines/debian/apply.sh}
     bash ${./setup-scripts.sh} ${../..}
     DOTFILES_TEST_REPO=${../..} python3 ${./debian-setup.py}
     touch "$out"

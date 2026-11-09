@@ -20,7 +20,11 @@
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
 
-  overlays = import ../../lib/overlays.nix { inherit inputs; };
+  overlays = with (import ../../overlays { inherit inputs; }); [
+    additions
+    modifications
+    worktree
+  ];
 
   # `self` is only used for flake-level references that this configuration does
   # not reach, so the probe host does not need one.

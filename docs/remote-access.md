@@ -5,8 +5,9 @@ macOS·Debian에서 같은 호스트 측 진입점을 실행한다.
 ```bash
 ssh user@host
 cd ~/dotfiles
-./switch.sh --check   # 활성화 없는 빌드·선언 확인
-./switch.sh           # 대상 호스트에서 설치·설정 적용
+./bootstrap.sh       # 도구와 기존 identity 준비
+./switch.sh --build   # 활성화 없는 빌드·선언 검증
+./switch.sh           # 대상 호스트에서 구성 적용
 ```
 
 로컬 터미널에서도 같은 `switch.sh`를 실행한다. SSH·Ansible은 접속·체크아웃 배포·실행만
@@ -33,8 +34,8 @@ OAuth에는 `ephemeral=false&preauthorized=true`를 지정해 지속적으로 �
 | ---------------------- | ----------------------------- | ------------------------------------------- |
 | macOS 기반·사용자 환경 | Nix·nix-darwin·Home Manager   | 기존 `switch.sh`                            |
 | macOS GUI 앱           | Nix에 선언한 Homebrew cask    | RustDesk·Tailscale 설치                     |
-| Debian 사용자 환경     | 기존 standalone Home Manager  | 기존 bootstrap·`switch.sh --home` 유지      |
-| Debian 네이티브 앱     | APT·검증된 `.deb`             | `machines/debian/apply.sh`                  |
+| Debian 사용자 환경     | 기존 standalone Home Manager  | 기존 사용자 환경 유지                       |
+| Debian 네이티브 앱     | APT·검증된 `.deb`             | bootstrap에서 설치, switch에서 적용         |
 | 공통 원격 접속 정책    | `machines/remote-access.json` | `scripts/lib/remote_access.py`로 한 번 적용 |
 
 Debian의 Nix 사용자 환경과 네이티브 앱 설치는 서로 덮어쓰지 않는다. 이번 `switch.sh`는
@@ -79,8 +80,8 @@ macOS 화면 녹화·손쉬운 사용 권한과 최초 VPN 확장 승인은 별�
 
 ## 검증 범위
 
-`--check`는 macOS에서 활성화 없는 Nix 빌드, Debian에서 선언 출력만 수행한다.
-실제 상태 이탈 감사는 아니다. `--check`는 자격증명을 발급하거나 기기를 등록하지 않는다.
+`--build`는 macOS에서 활성화 없는 Nix 빌드, Debian에서 선언만 검증한다.
+실제 상태 이탈 감사는 아니다. `--build`는 자격증명을 발급하거나 기기를 등록하지 않는다.
 
 Debian 12 ARM64의 격리 OrbStack와 실제 사용 중인 `debian-dev-pve4`의 Debian 13
 amd64에서 검증했다. 실제 호스트에는 SSH로 접속해 기존 Nix 환경을 유지한 채 대상의
