@@ -1,5 +1,8 @@
 # Bootstrap / switch 분리
 
+이 문서는 당시 구현·검증 기록이다. CLI 옵션과 키 정책의 현재 기준은
+[ADR 0004](../adr/0004-local-bootstrap-switch-contract.md)를 따른다.
+
 ## 후속 변경: GUI 없는 인증
 
 부트스트랩 도구에서 1Password GUI와 앱 복사 단계를 제거했다. 현재 흐름은

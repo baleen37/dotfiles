@@ -16,11 +16,16 @@ declare permanent host system users.
 
 ### Bootstrap and activation
 
-Use `./bootstrap.sh [host]` to prepare tools and the existing age identity, then
-`./switch.sh [host]` to apply. They are separate stages; bootstrap never switches
-the full host. `--age-key-ref` accepts only a 1Password reference, not key material.
-Use `--skip-secrets` for preparation without restoration and `switch.sh --build`
-for build-only verification. Standalone HM uses `switch.sh --home` and `HM_USER`.
+Use `./bootstrap.sh` to prepare tools and the existing age identity, then
+`./switch.sh` to apply. Both select the local host with `hostname -s`; host
+arguments and local `NIXNAME` overrides are unsupported. Bootstrap never activates
+the host. `DOTFILES_AGE_KEY_REF` overrides the 1Password reference, never key material.
+Every normal switch requires a valid identity, even without declared secrets;
+`./switch.sh --build` skips identity and decryption checks without activation.
+Linux outside NixOS and Debian automatically uses standalone Home Manager;
+`HM_USER` selects its profile. Debian bootstrap prepares native packages and the
+identity; switch applies secrets and services without retrieving keys. Debian
+`--build` validates declarations only; `SOPS_AGE_KEY_FILE` selects its identity path.
 
 User secrets are declared with sops-nix under the selected Home Manager config.
 Private keys and decrypted data stay outside Nix evaluation and the store.
@@ -39,8 +44,8 @@ nix flake check --no-build --all-systems --show-trace
 nix build '.#darwinConfigurations.macbook-pro.system'
 nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel'
 
-# Activate a standalone Home Manager profile
-HM_USER=jito.hello ./switch.sh --home
+# Activate a standalone Home Manager profile on Linux outside NixOS and Debian
+HM_USER=baleen-linux ./switch.sh
 ```
 
 **Caveat**: container tests need Linux and `/dev/kvm`. Without them `make test`
@@ -172,7 +177,8 @@ tests/
 ### User Selection
 
 Host users are declared by `dotfiles.hosts.<name>.user`. Standalone Home Manager
-profiles use `HM_USER`, for example `HM_USER=jito.hello ./switch.sh --home`; it
+profiles on Linux outside NixOS and Debian use `HM_USER`, for example
+`HM_USER=baleen-linux ./switch.sh`; it
 does not change host metadata.
 
 ## Development Guidelines

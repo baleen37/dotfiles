@@ -51,6 +51,18 @@ let
     ];
   };
   inherit (probe) config;
+  emptyProbe = inputs.home-manager.lib.homeManagerConfiguration {
+    inherit pkgs;
+    modules = [
+      inputs.sops-nix.homeManagerModules.sops
+      ../../users/shared/secrets.nix
+      {
+        home.username = "fixture";
+        home.homeDirectory = "/tmp/dotfiles-sops-fixture";
+        home.stateVersion = "24.11";
+      }
+    ];
+  };
   gpgImport =
     lib.replaceStrings [ "/tmp/dotfiles-sops-fixture/gpg.asc" ] [ "$PWD/restored.asc" ]
       config.home.activation.importSecretGpgKeys.data;
@@ -63,8 +75,22 @@ pkgs.runCommand "sops-secrets-integration"
       pkgs.gnupg
     ];
     preflight = config.modules.secrets.preflight;
+    emptyPreflight = emptyProbe.config.modules.secrets.preflight;
   }
   ''
+    # Even a configuration with no declared secrets requires a valid identity.
+    if "$emptyPreflight/bin/dotfiles-secrets-check" "$PWD/missing-identity"; then
+      echo "missing identity unexpectedly passed empty configuration" >&2; exit 1
+    fi
+    printf 'not-an-age-key\n' > invalid-identity
+    if "$emptyPreflight/bin/dotfiles-secrets-check" "$PWD/invalid-identity"; then
+      echo "invalid identity unexpectedly passed empty configuration" >&2; exit 1
+    fi
+    ln -s ${fixture}/identity linked-identity
+    if "$emptyPreflight/bin/dotfiles-secrets-check" "$PWD/linked-identity"; then
+      echo "symlinked identity unexpectedly passed empty configuration" >&2; exit 1
+    fi
+    "$emptyPreflight/bin/dotfiles-secrets-check" ${fixture}/identity
     "$preflight/bin/dotfiles-secrets-check" ${fixture}/identity
     if "$preflight/bin/dotfiles-secrets-check" ${fixture}/wrong-identity; then
       echo "wrong age identity unexpectedly decrypted the fixture" >&2; exit 1

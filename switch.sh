@@ -1,27 +1,20 @@
 #!/usr/bin/env bash
-# Apply only after bootstrap; never downloads a private key or authenticates op.
+# Apply the selected host through its Nix or Debian native backend.
 set -euo pipefail
 set +x
 source "$(dirname "${BASH_SOURCE[0]}")/scripts/lib/setup.sh"
-HOST=
-HOME_ONLY=false
 BUILD_ONLY=false
-while [ "$#" -gt 0 ]; do
-  case "$1" in
-    --help | -h)
-      echo 'Usage: ./switch.sh [host] [--home] [--build]  (HM_USER selects standalone Home Manager)'
-      exit 0
-      ;;
-    --home) HOME_ONLY=true ;;
-    --build) BUILD_ONLY=true ;;
-    -*) die "unknown option: $1" ;;
-    *)
-      [ -z "$HOST" ] || die 'only one host may be supplied'
-      HOST=$1
-      ;;
-  esac
-  shift
-done
+if [ "$#" -eq 1 ] && [ "$1" = --build ]; then
+  BUILD_ONLY=true
+elif [ "$#" -ne 0 ]; then
+  die 'Usage: ./switch.sh [--build]'
+fi
+if is_debian; then
+  if [ "$BUILD_ONLY" = true ]; then
+    exec "$(dirname "${BASH_SOURCE[0]}")/machines/debian/apply.sh" --build
+  fi
+  exec "$(dirname "${BASH_SOURCE[0]}")/machines/debian/apply.sh" switch
+fi
 setup_context
 command -v nix > /dev/null 2>&1 || die 'run ./bootstrap.sh first'
 [ -x "$TOOLS_LINK/bin/sops" ] || die 'bootstrap tools missing: run ./bootstrap.sh first'
@@ -93,6 +86,10 @@ done
 "$1/sw/bin/darwin-rebuild" switch --flake "$2"
 moved_files=()
 ACTIVATE
+  fi
+  # Nix/Homebrew and user launch agents are ready before one-shot app settings.
+  if [ -x /run/current-system/sw/bin/dotfiles-remote-apply ]; then
+    /run/current-system/sw/bin/dotfiles-remote-apply
   fi
   if [ -x /run/current-system/sw/bin/nh ]; then
     mkdir -p "$HOME/Library/Logs"
