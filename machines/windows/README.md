@@ -43,11 +43,14 @@ Nix does not run natively on Windows, so a Windows PC is set up in two layers:
    ```sh
    nix-shell -p git --run 'git clone https://github.com/baleen37/dotfiles ~/dotfiles'
    cd ~/dotfiles
-   ./bootstrap.sh wsl --skip-secrets
-   ./switch.sh wsl
+   sudo hostname wsl
+   ./bootstrap.sh
+   ./switch.sh
    ```
 
-   The hostname becomes `wsl`, so later runs are plain `./switch.sh`.
+   Set the running hostname before bootstrap: both commands select `hostname -s`.
+   Bootstrap prepares the age identity through 1Password; switch requires it and
+   never retrieves keys. The applied configuration keeps the hostname `wsl`.
 
    From a release tarball the login user changes from `nixos` to `baleen`, and
    NixOS-WSL requires `boot` instead of `switch` for that

@@ -126,8 +126,7 @@ systemFunc {
         openssh.authorizedKeys.keyFiles = [ inputs.baleen37-keys ];
       };
 
-      # `make switch` picks the flake output by `hostname -s`; a machine module
-      # may still override it (vm-shared.nix uses "dev").
+      # Local setup selects the flake output by `hostname -s`.
       networking.hostName = lib.mkDefault name;
 
       # Apply overlays

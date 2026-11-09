@@ -3,33 +3,12 @@
 set -euo pipefail
 set +x
 source "$(dirname "${BASH_SOURCE[0]}")/scripts/lib/setup.sh"
-HOST=
-HOME_ONLY=false
-SKIP_SECRETS=false
+[ "$#" -eq 0 ] || die 'Usage: ./bootstrap.sh'
+if is_debian; then
+  exec "$(dirname "${BASH_SOURCE[0]}")/machines/debian/apply.sh" bootstrap
+fi
 # Private / dotfiles/sops / age-key; IDs keep renames from breaking bootstrap.
 AGE_KEY_REF=${DOTFILES_AGE_KEY_REF:-op://vwt2ko2iqk466x7vo2rb46bl5e/djrgof76gd5luaqr63vasbowlu/age-key}
-while [ "$#" -gt 0 ]; do
-  case "$1" in
-    --help | -h)
-      echo "Usage: ./bootstrap.sh [host] [--home] [--age-key-ref op://vault/item/field] [--skip-secrets]"
-      echo "Default age identity: Private / dotfiles/sops / age-key (override with --age-key-ref)"
-      exit 0
-      ;;
-    --home) HOME_ONLY=true ;;
-    --skip-secrets) SKIP_SECRETS=true ;;
-    --age-key-ref)
-      [ "$#" -ge 2 ] || die "--age-key-ref needs a reference"
-      AGE_KEY_REF=$2
-      shift
-      ;;
-    -*) die "unknown option: $1" ;;
-    *)
-      [ -z "$HOST" ] || die "only one host may be supplied"
-      HOST=$1
-      ;;
-  esac
-  shift
-done
 [[ $AGE_KEY_REF == op://* ]] || die "expected an op:// reference, never the private key itself"
 setup_context
 check_macos_permissions
@@ -159,7 +138,7 @@ EOF
 prepare_identity() {
   local key_file
   key_file=$(nix_cmd eval --raw "$FLAKE_REF#$HOME_ATTR.sops.age.keyFile")
-  if [ -e "$key_file" ]; then
+  if [ -e "$key_file" ] || [ -L "$key_file" ]; then
     [ -f "$key_file" ] && [ ! -L "$key_file" ] && [ -s "$key_file" ] || die "existing age key is empty, a symlink, or not a file: $key_file"
     "$TOOLS/bin/age-keygen" -y "$key_file" > /dev/null || die "existing age key is invalid; it was not replaced"
     secrets_check "$key_file"
@@ -215,7 +194,7 @@ if [ "$OS" = Darwin ]; then
   install_clt
 fi
 install_nix
-if [ "$OS" = Darwin ] && [ "$HOME_ONLY" = false ]; then
+if [ "$OS" = Darwin ]; then
   ensure_local_host
 fi
 check_macos_permissions
@@ -223,21 +202,11 @@ build_tools
 select_configuration
 if [ "$OS" = Darwin ]; then
   # Existing machine selections still use Homebrew for other GUI applications.
-  if [ "$HOME_ONLY" = false ]; then
-    homebrew_enabled=$(nix_cmd eval --json "$FLAKE_REF#$SYSTEM_ATTR.config.homebrew.enable") \
-      || die 'cannot evaluate Homebrew requirements; no Homebrew installation started'
-    if [ "$homebrew_enabled" = true ]; then
-      install_brew
-    fi
+  homebrew_enabled=$(nix_cmd eval --json "$FLAKE_REF#$SYSTEM_ATTR.config.homebrew.enable") \
+    || die 'cannot evaluate Homebrew requirements; no Homebrew installation started'
+  if [ "$homebrew_enabled" = true ]; then
+    install_brew
   fi
 fi
-if [ "$SKIP_SECRETS" = true ]; then
-  log 'Tools ready; secret restoration explicitly skipped.'
-else
-  prepare_identity
-fi
-if [ "$HOME_ONLY" = true ]; then
-  log "Bootstrap finished. Apply separately: HM_USER=$HM_USER ./switch.sh --home"
-else
-  log "Bootstrap finished. Apply separately: ./switch.sh $HOST"
-fi
+prepare_identity
+log "Bootstrap finished. Apply separately: ./switch.sh"

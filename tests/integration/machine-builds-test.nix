@@ -95,9 +95,9 @@ in
       c: (c.system.stateVersion or null) != null
     )) "every NixOS host needs system.stateVersion; activation fails without it")
 
-    (helpers.assertTest "nixos-hosts-set-hostname" (allHosts nixosHosts (
-      c: (c.networking.hostName or "") != ""
-    )) "every NixOS host should set networking.hostName")
+    (helpers.assertTest "nixos-hosts-set-hostname" (lib.all (matches: matches) (
+      lib.mapAttrsToList (name: host: host.config.networking.hostName == name) nixosHosts
+    )) "every NixOS hostname must match its output for automatic local selection")
 
     # NixOS-WSL logs in as wsl.defaultUser. If it drifts from the Home Manager
     # user, the distro boots into an account with none of users/shared applied.

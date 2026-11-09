@@ -9,10 +9,12 @@ pkgs.runCommand "setup-script-scenarios"
       pkgs.jq
       pkgs.git
       pkgs.shellcheck
+      pkgs.python3
     ];
   }
   ''
-    shellcheck --severity=warning -e SC1091,SC1090 ${../../bootstrap.sh} ${../../switch.sh} ${../../scripts/lib/setup.sh}
+    shellcheck --severity=warning -e SC1091,SC1090 ${../../bootstrap.sh} ${../../switch.sh} ${../../scripts/lib/setup.sh} ${../../machines/debian/apply.sh}
     bash ${./setup-scripts.sh} ${../..}
+    DOTFILES_TEST_REPO=${../..} python3 ${./debian-setup.py}
     touch "$out"
   ''
