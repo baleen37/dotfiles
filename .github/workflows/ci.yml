@@ -34,14 +34,14 @@ jobs:
             os: macos-15
             arch: aarch64
             closure-attr: .#darwinConfigurations.macbook-pro.system
-          - name: NixOS x86_64-linux
+          - name: NixOS-WSL x86_64-linux
             os: ubuntu-latest
             arch: x86_64
-            closure-attr: .#nixosConfigurations.vm-x86_64-utm.config.system.build.toplevel
-          - name: NixOS aarch64-linux
+            closure-attr: .#nixosConfigurations.wsl.config.system.build.toplevel
+          - name: Linux tools aarch64-linux
             os: ubuntu-24.04-arm
             arch: aarch64
-            closure-attr: .#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel
+            closure-attr: .#packages.aarch64-linux.bootstrap-tools
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout

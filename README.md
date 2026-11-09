@@ -7,8 +7,9 @@ checks; NixOS VM tests require Linux with KVM.
 
 ## Highlights
 
-- **Three platforms**: Darwin `aarch64-darwin`; NixOS `x86_64-linux` and `aarch64-linux`
+- **Host platforms**: macOS `aarch64-darwin` and NixOS-WSL `x86_64-linux`; shared checks and tools also support `aarch64-linux`
 - **Windows**: NixOS-WSL (`wsl` host) inside WSL2, plus GUI apps from `winget configure` — see [machines/windows/README.md](machines/windows/README.md)
+- **Native remote access**: `./switch.sh` uses Nix/Homebrew on macOS and APT on Debian, then applies shared sops-backed policy — see [docs/remote-access.md](docs/remote-access.md)
 - **Typed host declarations**: every machine is one entry in `flake-modules/hosts.nix`
 - **One user configuration**: `users/shared/` is shared by every host and Home Manager profile
 - **Assertions as derivations**: unit, integration, and NixOS VM tests all run through `nix flake check`
@@ -107,7 +108,7 @@ existing policies. See [ADR 0003](docs/adr/0003-passwordless-repeat-bootstrap-an
 | Output                                    | Names                                              |
 | ----------------------------------------- | -------------------------------------------------- |
 | `darwinConfigurations` (`aarch64-darwin`) | `macbook-pro`, `baleen-macbook`, `kakaostyle-jito` |
-| `nixosConfigurations`                     | `vm-aarch64-utm`, `vm-x86_64-utm`, `wsl`           |
+| `nixosConfigurations`                     | `wsl`                                              |
 | `homeConfigurations`                      | `baleen`, `jito.hello`, `testuser`, `baleen-linux` |
 
 Host users are declared in `flake-modules/hosts.nix`. `HM_USER` selects only a
@@ -197,7 +198,7 @@ dotfiles/
 │   ├── systems.nix      # hosts -> darwinConfigurations / nixosConfigurations
 │   ├── home.nix         # Standalone homeConfigurations
 │   ├── checks.nix       # tests/ -> flake checks
-│   ├── packages.nix     # test-vm and other packages
+│   ├── packages.nix     # Bootstrap tool package
 │   ├── dev-shells.nix   # nix develop shell
 │   └── formatter.nix    # treefmt (nixfmt, statix, deadnix, shfmt, prettier)
 ├── lib/
@@ -212,7 +213,7 @@ dotfiles/
 │   │   ├── macbook-pro.nix    # Per-host apps and user features
 │   │   ├── baleen-macbook.nix
 │   │   └── kakaostyle-jito.nix
-│   ├── nixos/             # vm-aarch64-utm, vm-x86_64-utm, vm-shared, wsl, hardware/
+│   ├── nixos/             # NixOS-WSL host
 │   └── windows/           # winget configuration for the Windows side (not Nix)
 ├── users/shared/
 │   ├── home-manager.nix   # Home Manager entry point
@@ -306,30 +307,8 @@ The NixOS VM tests live in `tests/containers/` (smoke, basic system, services,
 packages) and are registered explicitly in `tests/default.nix`.
 
 CI (`.github/workflows/ci.yml`) runs pre-commit, `make test-build`, and a closure
-build on Darwin `aarch64-darwin`, NixOS `x86_64-linux`, and NixOS
-`aarch64-linux`, then pushes successful builds to Cachix.
-
-## NixOS VMs
-
-```bash
-# Build a VM configuration
-nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel'
-
-# Disposable VM smoke test (Linux + KVM only)
-nix run .#test-vm
-ssh testuser@localhost -p 2222  # password: test
-```
-
-To install onto a VM over SSH, the Makefile provides `vm/bootstrap0`,
-`vm/bootstrap`, `vm/copy`, `vm/switch`, and `vm/secrets`. They read these
-variables:
-
-```bash
-export NIXADDR=192.168.64.2    # VM IP address (required)
-export NIXPORT=22              # SSH port (default: 22)
-export NIXUSER=root            # SSH user (default: root)
-export NIXNAME=vm-aarch64-utm  # nixosConfiguration to switch to (default: hostname)
-```
+build on Darwin `aarch64-darwin` and NixOS-WSL `x86_64-linux`, plus bootstrap
+tools on `aarch64-linux`, then pushes successful builds to Cachix.
 
 ## Baleen Toolkit
 

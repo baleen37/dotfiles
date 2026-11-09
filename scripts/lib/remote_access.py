@@ -168,16 +168,15 @@ def main():
     tailscale.add_argument("auth_key_file")
     tailscale.add_argument("policy_file", type=Path)
     args = parser.parse_args()
+    if args.mode != "tailscale" and os.geteuid() != 0:
+        raise RuntimeError("Remote-access configuration requires administrator privileges")
     if args.mode == "tailscale":
         policy = json.loads(args.policy_file.read_text())
         configure_tailscale(args.binary, args.hostname, args.auth_key_file, policy["tailscale"]["tags"])
+    elif args.mode == "darwin":
+        configure_darwin(args.user, args.password_file, args.policy_file)
     else:
-        if os.geteuid() != 0:
-            raise RuntimeError("Remote-access configuration requires administrator privileges")
-        if args.mode == "darwin":
-            configure_darwin(args.user, args.password_file, args.policy_file)
-        else:
-            configure_debian(args.policy_file, args.encrypted_file, args.identity)
+        configure_debian(args.policy_file, args.encrypted_file, args.identity)
     print("Remote-access configuration verified.")
 
 

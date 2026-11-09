@@ -26,6 +26,7 @@ in
     ./raycast.nix
     ./power.nix
     ./scripts.nix
+    ./remote-access.nix
   ];
 
   # ===== Core System Configuration =====

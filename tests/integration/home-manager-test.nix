@@ -37,7 +37,7 @@ let
 
   hmUsers = host: builtins.attrValues host.config.home-manager.users;
   darwinUsers = hmUsers inputs.self.darwinConfigurations.macbook-pro;
-  nixosUsers = hmUsers inputs.self.nixosConfigurations.vm-aarch64-utm;
+  nixosUsers = hmUsers inputs.self.nixosConfigurations.wsl;
 
   # attrNames is sorted, so this compares the declared module set exactly.
   importsEveryModule =
@@ -89,12 +89,12 @@ in
     )
 
     (helpers.assertTest "nixos-imports-every-program" (importsEveryModule "programs" nixosUsers)
-      "vm-aarch64-utm Home Manager config must declare exactly the modules under users/shared/programs"
+      "wsl Home Manager config must declare exactly the modules under users/shared/programs"
     )
 
     (helpers.assertTest "nixos-imports-every-package-category"
       (importsEveryModule "packages" nixosUsers)
-      "vm-aarch64-utm Home Manager config must declare exactly the modules under users/shared/packages"
+      "wsl Home Manager config must declare exactly the modules under users/shared/packages"
     )
 
     (helpers.assertTest "darwin-enables-every-module" (
@@ -102,7 +102,7 @@ in
     ) "every program and package category should be enabled on macbook-pro")
 
     (helpers.assertTest "nixos-enables-every-package-category" (enablesEvery "packages" nixosUsers)
-      "every package category should be enabled on vm-aarch64-utm"
+      "every package category should be enabled on wsl"
     )
   ];
 }

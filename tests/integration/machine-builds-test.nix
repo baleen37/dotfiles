@@ -31,8 +31,6 @@ let
     "macbook-pro"
   ];
   expectedNixos = [
-    "vm-aarch64-utm"
-    "vm-x86_64-utm"
     "wsl"
   ];
   hostsAreDeclared = darwinNames == expectedDarwin && nixosNames == expectedNixos;
@@ -46,8 +44,6 @@ let
     macbook-pro = [ "baleen" ];
   };
   expectedNixosUsers = {
-    vm-aarch64-utm = [ "baleen" ];
-    vm-x86_64-utm = [ "baleen" ];
     wsl = [ "baleen" ];
   };
 

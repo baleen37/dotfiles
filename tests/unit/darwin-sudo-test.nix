@@ -56,11 +56,19 @@ in
         '';
 
     other-host-switch-needs-password = helpers.assertTest "other host switch needs password" (
-      !lib.hasInfix "NOPASSWD" otherMacSudo
+      !lib.hasInfix "NOPASSWD: /run/current-system/sw/bin/darwin-rebuild" otherMacSudo
     ) "baleen-macbook should not inherit macbook-pro's passwordless switch rule";
 
+    other-host-passwordless-scope = helpers.assertTest "other host passwordless scope" (
+      lib.filter (lib.hasInfix "NOPASSWD") (lib.splitString "\n" otherMacSudo) == [
+        ''baleen ALL = (root) NOPASSWD: /run/current-system/sw/bin/dotfiles-remote-configure ""''
+      ]
+    ) "baleen-macbook may only invoke its fixed remote-access helper without arguments";
+
     no-unrestricted-passwordless-sudo = helpers.assertTest "no unrestricted passwordless sudo" (
-      !lib.hasInfix "NOPASSWD: ALL" jitoSudo && !lib.hasInfix "NOPASSWD: ALL" macbookSudo
+      !lib.hasInfix "NOPASSWD: ALL" jitoSudo
+      && !lib.hasInfix "NOPASSWD: ALL" macbookSudo
+      && !lib.hasInfix "NOPASSWD: ALL" otherMacSudo
     ) "Darwin hosts should not allow unrestricted passwordless sudo";
 
     # A password prompt is unanswerable from a non-interactive shell, so sudo

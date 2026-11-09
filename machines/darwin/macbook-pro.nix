@@ -21,22 +21,11 @@
   '';
 
   homebrew.casks =
-    lib.filter
-      (
-        name:
-        if name == "hammerspoon" then
-          config.home-manager.users.${currentSystemUser}.modules.programs.hammerspoon.enable
-        else if name == "karabiner-elements" then
-          config.home-manager.users.${currentSystemUser}.modules.programs.karabiner.enable
-        else if name == "rustdesk" then
-          config.home-manager.users.${currentSystemUser}.modules.programs.rustdesk.enable
-        else if name == "herdr-app" then
-          config.home-manager.users.${currentSystemUser}.modules.programs.herdr.enable
-        else if name == "visual-studio-code" then
-          config.home-manager.users.${currentSystemUser}.modules.darwin.vscode.enable
-        else
-          true
-      )
+    import ../../lib/filter-darwin-casks.nix
+      {
+        inherit lib;
+        modules = config.home-manager.users.${currentSystemUser}.modules;
+      }
       [
         # Development Tools
         "herdr-app" # Herdr desktop app for terminals and coding agents
@@ -93,6 +82,7 @@
     modules.programs.neovim.enable = true;
     modules.programs.powerlevel10k.enable = true;
     modules.programs.rustdesk.enable = true;
+    modules.programs.tailscale.enable = true;
     modules.programs.ssh.enable = true;
     modules.programs.syncthing.enable = true;
     modules.programs.terraform.enable = true;

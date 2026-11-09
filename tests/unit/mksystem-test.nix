@@ -17,7 +17,7 @@
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
   cacheConfig = import ../../lib/cache-config.nix;
-  nixos = self.nixosConfigurations.vm-x86_64-utm.config;
+  nixos = self.nixosConfigurations.wsl.config;
   trustedUsers = nixos.nix.settings.trusted-users;
   trustedSubs = nixos.nix.settings.trusted-substituters;
 
