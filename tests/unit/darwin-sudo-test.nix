@@ -27,7 +27,7 @@ in
 
     macbook-switch-is-passwordless = helpers.assertTest "macbook switch is passwordless" (
       lib.hasInfix "NOPASSWD: /run/current-system/sw/bin/darwin-rebuild" macbookSudo
-      && lib.hasInfix "path:/tmp/dotfiles-source" macbookSudo
+      && lib.hasInfix "path:(/private)?/tmp/dotfiles-source" macbookSudo
     ) "macbook-pro must allow switch with the filtered snapshot used for local host registration";
 
     macbook-switch-arguments-are-restricted =
@@ -37,7 +37,8 @@ in
           test -n "$pattern"
           for args in \
             'switch --flake .#macbook-pro' \
-            'switch --flake path:/tmp/dotfiles-source.A1b2C3/source#macbook-pro'; do
+            'switch --flake path:/tmp/dotfiles-source.A1b2C3/source#macbook-pro' \
+            'switch --flake path:/private/tmp/dotfiles-source.A1b2C3/source#macbook-pro'; do
             printf '%s\n' "$args" | grep -Eq "$pattern"
           done
           for args in \
