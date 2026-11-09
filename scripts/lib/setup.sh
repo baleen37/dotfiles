@@ -24,7 +24,9 @@ prepare_flake() {
   local file source destination
   if [ -z "$SOURCE_DIR" ]; then
     git rev-parse --show-toplevel > /dev/null 2>&1 || die 'a Git checkout is required to safely select flake files'
-    SOURCE_DIR=$(mktemp -d /tmp/dotfiles-source.XXXXXX)
+    # Resolve symlinks: macOS /tmp -> private/tmp, and Nix rejects a path:
+    # flake whose path goes through a symlink.
+    SOURCE_DIR=$(cd "$(mktemp -d /tmp/dotfiles-source.XXXXXX)" && pwd -P)
     trap cleanup_flake EXIT
     source="$SOURCE_DIR/source"
     mkdir "$source"

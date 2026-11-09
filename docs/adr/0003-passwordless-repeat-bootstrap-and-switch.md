@@ -19,7 +19,7 @@ bootstrap은 관리자 작업이 실제 필요한 설치 경로에서만 인증�
 선택하여 `baleens-MacBook-Pro` 같은 로컬 등록도 같은 머신 모듈을 사용한다.
 
 - `/run/current-system/sw/bin/darwin-rebuild switch --flake <source>#<host>`:
-  source는 `.` 또는 `path:/tmp/dotfiles-source.<영숫자>/source`만 허용하고,
+  source는 `.` 또는 `path:(/private)?/tmp/dotfiles-source.<영숫자>/source`만 허용하고,
   호스트는 해당 flake 출력 이름과 정확히 일치해야 한다. 추가 인자는 허용하지 않는다.
 - `/run/current-system/sw/bin/nh clean all --keep 3`: 이 인자 조합만 허용한다.
 
