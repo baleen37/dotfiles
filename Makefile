@@ -32,6 +32,10 @@ switch:
 switch-home:
 	HM_USER="$(HM_USER)" ./switch.sh --home
 
+# Register this Mac's public Syncthing device ID in the host registry.
+syncthing-id:
+	@$(NIX) shell --inputs-from . nixpkgs\#syncthing -c bash scripts/syncthing-register.sh "$(NIXNAME)"
+
 test:
 	@echo "Running dual-mode tests..."
 	@if [ "$(UNAME)" = "Darwin" ] || [ ! -e /dev/kvm ]; then \
@@ -138,7 +142,7 @@ wsl:
 	$(SUDO_NIX) run ".#nixosConfigurations.wsl.config.system.build.tarballBuilder"
 
 # Phony targets
-.PHONY: build-switch switch switch-home test test-build test-all test-containers fmt-diff format cache secrets/backup secrets/restore install-hooks lint update
+.PHONY: build-switch switch switch-home syncthing-id test test-build test-all test-containers fmt-diff format cache secrets/backup secrets/restore install-hooks lint update
 
 install-hooks:
 	pre-commit install --hook-type pre-commit --hook-type pre-push

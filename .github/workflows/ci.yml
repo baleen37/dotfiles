@@ -93,7 +93,7 @@ jobs:
       # `make test` above only evaluates checks on runners without KVM (Darwin,
       # ARM64), so build the assertions to actually run them everywhere.
       - name: Build assertions
-        if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+        if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
         env:
           PUSH_TO_CACHIX: ${{ github.ref == 'refs/heads/main' }}
         run: |
@@ -111,7 +111,7 @@ jobs:
           make -n secrets/backup
 
       - name: Build closure
-        if: matrix.name == 'NixOS x86_64-linux' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+        if: matrix.check-name == 'NixOS x86_64-linux' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
         env:
           ATTR: ${{ matrix.closure-attr }}
         run: |
@@ -119,7 +119,7 @@ jobs:
           nix build "$ATTR" --out-link result --print-build-logs --accept-flake-config
 
       - name: Cache hit-rate report
-        if: matrix.name == 'NixOS x86_64-linux' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+        if: matrix.check-name == 'NixOS x86_64-linux' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
         continue-on-error: true
         shell: bash
         run: |

@@ -60,10 +60,8 @@ in
     ) "baleen-macbook should not inherit macbook-pro's passwordless switch rule";
 
     other-host-passwordless-scope = helpers.assertTest "other host passwordless scope" (
-      lib.filter (lib.hasInfix "NOPASSWD") (lib.splitString "\n" otherMacSudo) == [
-        ''baleen ALL = (root) NOPASSWD: /run/current-system/sw/bin/dotfiles-remote-configure ""''
-      ]
-    ) "baleen-macbook may only invoke its fixed remote-access helper without arguments";
+      !lib.hasInfix "NOPASSWD" otherMacSudo
+    ) "baleen-macbook must require administrator authentication for remote-access configuration";
 
     no-unrestricted-passwordless-sudo = helpers.assertTest "no unrestricted passwordless sudo" (
       !lib.hasInfix "NOPASSWD: ALL" jitoSudo

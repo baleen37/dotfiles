@@ -26,7 +26,7 @@ let
     text = ''
       [ "$#" -eq 0 ] || { echo 'This command takes no arguments.' >&2; exit 2; }
       ${lib.optionalString rustdeskEnabled ''
-        /usr/bin/sudo -n -H -- /run/current-system/sw/bin/dotfiles-remote-configure
+        /usr/bin/sudo -H -- /run/current-system/sw/bin/dotfiles-remote-configure
       ''}
       ${lib.optionalString tailscale.enable ''
         ${pkgs.python3}/bin/python3 ${driver} tailscale \
@@ -42,10 +42,5 @@ in
 {
   config = lib.mkIf (rustdeskEnabled || tailscale.enable) {
     environment.systemPackages = [ apply ] ++ lib.optional rustdeskEnabled configure;
-    # The fixed, root-owned helper accepts no arguments and uses only this host's
-    # declared secret path and policy. Remote triggers need no broad sudo grant.
-    security.sudo.extraConfig = lib.mkIf rustdeskEnabled ''
-      ${currentSystemUser} ALL = (root) NOPASSWD: /run/current-system/sw/bin/dotfiles-remote-configure ""
-    '';
   };
 }

@@ -33,9 +33,9 @@ identity를 별도 root 디렉터리에 복사하지 않는다.
 키만 `/run`의 root 전용 임시 디렉터리에 기록한 뒤 성공·실패 모두 제거한다.
 RustDesk 공식 CLI의 프로세스 인자에는 적용 순간 비밀번호가 포함된다. 명령 출력은 숨긴다.
 
-신규 Tailscale 가입에는 공유 sops 파일의 `tailscale-auth-key`가 필요하다. 현재 이 항목이
-없으므로 미가입 기기는 실패를 반환한다. 키를 준비하거나 최초 로그인을 완료한 뒤 같은
-명령을 다시 실행한다. 기존 로그인·중지 상태·기기 ID는 보존한다.
+신규 Tailscale 가입에는 공유 sops 파일의 `tailscale-auth-key`를 사용한다. 가입 전용
+OAuth secret과 `tag:infra`가 선언되어 있다. 자격증명을 사용할 수 없거나 기기 승인이
+대기 중이면 실패를 반환한다. 기존 로그인·중지 상태·기기 ID는 보존한다.
 
 ```bash
 systemctl status rustdesk tailscaled

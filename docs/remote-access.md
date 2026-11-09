@@ -45,8 +45,8 @@ Debian 네이티브 영역을 담당하고 기존 Nix 기반은 그대로 유지
 
 macOS는 `switch.sh`가 Nix·Homebrew와 사용자 launch agent를 적용한 뒤
 `dotfiles-remote-apply`를 한 번 실행한다. RustDesk 관리자 설정은 현재 시스템 프로필의
-고정된 `dotfiles-remote-configure`로만 수행하며, 해당 호스트 사용자에게 인자 없는 호출만
-sudo로 허용한다. 일반 root 셸이나 임의 Python 명령을 허용하는 규칙은 추가하지 않는다.
+고정된 `dotfiles-remote-configure`로 수행하며 일반 sudo 관리자 인증을 요구한다.
+사용자 소유 앱과 시크릿 경로를 읽으므로 비밀번호 없는 sudo 예외는 추가하지 않는다.
 RustDesk 사용자 서버 준비는 최대 10초 기다린 뒤 실패를 반환한다.
 
 Debian은 APT로 설치·버전을 관리하고 RustDesk·Tailscale 자체 서비스만 부팅 시 시작한다.

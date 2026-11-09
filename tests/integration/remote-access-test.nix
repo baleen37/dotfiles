@@ -19,7 +19,7 @@ assert lib.all
     && !(c.launchd.daemons ? dotfiles-rustdesk)
     && !(home.launchd.agents ? tailscale-config)
     && lib.any (p: p.name == "dotfiles-remote-apply") c.environment.systemPackages
-    && lib.hasInfix ''/run/current-system/sw/bin/dotfiles-remote-configure ""'' c.security.sudo.extraConfig
+    && !(lib.hasInfix "NOPASSWD: /run/current-system/sw/bin/dotfiles-remote-configure" c.security.sudo.extraConfig)
   )
   [
     "macbook-pro"
