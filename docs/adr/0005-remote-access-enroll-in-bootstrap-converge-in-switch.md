@@ -6,10 +6,10 @@
 원격 접속 설정을 성격대로 나눈다. 기기당 한 번 하는 등록은 bootstrap이, 매번 맞춰 둘 설정은
 switch의 시스템 활성화가 맡는다. 별도 `dotfiles-remote-apply` 단계는 없앤다.
 
-| 할 일 | 성격 | 맡는 곳 |
-|---|---|---|
-| age identity 받기 | 한 번 | bootstrap |
-| Tailscale 설치·가입 | 한 번 | bootstrap |
+| 할 일                  | 성격                 | 맡는 곳                       |
+| ---------------------- | -------------------- | ----------------------------- |
+| age identity 받기      | 한 번                | bootstrap                     |
+| Tailscale 설치·가입    | 한 번                | bootstrap                     |
 | RustDesk 비밀번호·옵션 | 반복, 바뀔 때만 변경 | switch의 시스템 활성화 (root) |
 
 원격 기기도 SSH로 들어가 같은 `./bootstrap.sh`와 `./switch.sh`를 실행한다. 별도 원격 설치 명령은
