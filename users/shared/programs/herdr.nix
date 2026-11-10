@@ -34,6 +34,8 @@ in
 
   config = lib.mkIf cfg.enable {
     home.packages = [ pkgs.herdr ];
+    # Herdr Core's installer uses this directory; SSH shells need it too.
+    home.sessionPath = [ "${config.home.homeDirectory}/.local/bin" ];
 
     xdg.configFile."herdr/new-worktree.sh" = {
       executable = true;
