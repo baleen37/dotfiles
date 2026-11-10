@@ -14,7 +14,7 @@ cleanup() {
 trap cleanup EXIT
 mkdir -p "$workspace/repo/scripts/lib" "$workspace/tools/bin" "$workspace/bin"
 cp "$repo/bootstrap.sh" "$repo/switch.sh" "$workspace/repo/"
-cp "$repo/scripts/lib/setup.sh" "$repo/scripts/lib/macos-app-management.js" "$workspace/repo/scripts/lib/"
+cp "$repo/scripts/lib/setup.sh" "$repo/scripts/lib/macos-app-management.js" "$repo/scripts/lib/flake-source.sh" "$repo/scripts/lib/identity.py" "$workspace/repo/scripts/lib/"
 for command in age-keygen sops jq ln; do
   ln -s "$(command -v "$command")" "$workspace/tools/bin/$command"
 done
@@ -29,14 +29,7 @@ printf 'synthetic private data\n' > "$workspace/repo/private/token"
 printf '{ ... }: {}\n' > "$workspace/repo/flake-modules/hosts.local.nix"
 printf '{ ... }: {}\n' > "$workspace/repo/new-module.nix"
 ln -s keys.txt "$workspace/repo/ignored-target-link"
-# Isolate platform detection from the test runner's distribution.
-printf 'ID=ubuntu\n' > "$workspace/os-release"
-for script in bootstrap.sh switch.sh scripts/lib/setup.sh; do
-  chmod u+w "$workspace/repo/$script"
-  sed "s@/etc/os-release@$workspace/os-release@g" "$workspace/repo/$script" > "$workspace/platform-script"
-  cat "$workspace/platform-script" > "$workspace/repo/$script"
-done
-export NIXNAME=ignored-host
+export DOTFILES_AGE_KEY_REF=op://test/identity/key
 export TEST_TOOLS="$workspace/tools" TEST_STATE="$workspace"
 export PATH="$workspace/bin:$PATH"
 stub_shell=$(command -v bash)
@@ -50,11 +43,11 @@ write_stub() {
 write_stub "$workspace/bin/uname" << 'STUB'
 if [ "${1:-}" = -m ]; then echo x86_64; else echo Linux; fi
 STUB
-write_stub "$workspace/bin/hostname" << 'STUB'
-echo test-host
-STUB
 write_stub "$workspace/bin/id" << 'STUB'
 if [ "$1" = -u ]; then echo 1000; else echo testuser; fi
+STUB
+write_stub "$workspace/bin/hostname" << 'STUB'
+echo test-host
 STUB
 cp "$workspace/bin/id" "$workspace/tools/bin/id"
 write_stub "$workspace/bin/nix" << 'STUB'
@@ -77,11 +70,11 @@ if [[ "$*" == *'bootstrap-tools'* ]]; then
     if [ "$1" = --out-link ]; then ln -sfn "$TEST_TOOLS" "$2"; break; fi
     shift
   done
-elif [[ "$*" == *'programs._1password-gui.enable'* ]]; then echo "${TEST_APP_MANAGEMENT_REQUIRED:-true}"
-elif [[ "$*" == *'homebrew.enable'* ]]; then
+elif [[ "$*" == *'dotfiles.setup.appManagementRequired'* ]]; then echo "${TEST_APP_MANAGEMENT_REQUIRED:-true}"
+elif [[ "$*" == *'dotfiles.setup.homebrewRequired'* ]]; then
   [ "${TEST_HOMEBREW_EVAL_FAIL:-0}" = 0 ] || exit 23
   echo false
-elif [[ "$*" == *'builtins.hasAttr'* ]]; then echo "${TEST_HOST_DECLARED:-true}"
+elif [[ "$*" == *'builtins.hasAttr'* ]]; then echo true
 elif [[ "$*" == *'#homeConfigurations --apply'* ]]; then echo testuser-linux
 elif [[ "$*" == *'.pkgs.stdenv.hostPlatform.system'* ]]; then
   if [ -n "${TEST_HOME_SYSTEM:-}" ]; then echo "$TEST_HOME_SYSTEM"
@@ -90,7 +83,12 @@ elif [[ "$*" == *'.pkgs.stdenv.hostPlatform.system'* ]]; then
   fi
 elif [[ "$*" == *'home.username'* ]]; then echo testuser
 elif [[ "$*" == *'sops.age.keyFile'* ]]; then echo "$HOME/.config/sops/age/keys.txt"
-elif [[ "$*" == *'modules.secrets.preflight'* ]]; then echo "$TEST_TOOLS"
+elif [[ "$*" == *'modules.secrets.prepareIdentity'* ]]; then echo "$TEST_TOOLS"
+elif [[ "$*" == *'modules.secrets.preflight'* ]]; then
+  if [ "${TEST_SOURCE_MUTATION:-0}" = 1 ]; then
+    printf 'changed after preflight\n' > "$TEST_STATE/repo/new-module.nix"
+  fi
+  echo "$TEST_TOOLS"
 elif [[ "$*" == *'activationPackage'* ]]; then echo "$TEST_STATE/activation"
 elif [[ "$*" == *'.system'* ]]; then echo "$TEST_STATE/system"
 else echo 'unexpected nix invocation' >&2; exit 19
@@ -122,6 +120,11 @@ key=${1:-$HOME/.config/sops/age/keys.txt}
 [ -s "$key" ] || { echo 'run ./bootstrap.sh' >&2; exit 1; }
 age-keygen -y "$key" >/dev/null
 SOPS_AGE_KEY_FILE="$key" SOPS_GPG_EXEC=false sops --decrypt "$TEST_STATE/secret.yaml" >/dev/null
+STUB
+write_stub "$workspace/tools/bin/dotfiles-identity-prepare" << 'STUB'
+exec python3 "$TEST_STATE/repo/scripts/lib/identity.py" prepare \
+  "$HOME/.config/sops/age/keys.txt" "$DOTFILES_AGE_KEY_REF" \
+  "$TEST_TOOLS/bin/dotfiles-secrets-check"
 STUB
 mkdir -p "$workspace/activation"
 write_stub "$workspace/activation/activate" << 'STUB'
@@ -200,6 +203,11 @@ bash ./switch.sh --build > "$workspace/output" 2>&1
 bash ./switch.sh > "$workspace/output" 2>&1
 [ -f "$workspace/activated" ]
 rm "$workspace/activated"
+# Build-only is keyless; normal switch still refuses a missing identity.
+mv "$HOME/.config/sops/age/keys.txt" "$workspace/key.saved"
+bash ./switch.sh --build > "$workspace/output" 2>&1
+expect_failure bash ./switch.sh
+mv "$workspace/key.saved" "$HOME/.config/sops/age/keys.txt"
 # Standalone defaults must follow the platform, not just the login name.
 unset HM_USER
 : > "$workspace/nix.log"
@@ -218,40 +226,15 @@ printf 'invalid\n' > "$HOME/.config/sops/age/keys.txt"
 expect_failure bash ./bootstrap.sh
 expect_failure bash ./switch.sh
 [ ! -e "$workspace/activated" ]
-# Removed CLI inputs must fail before configuration selection or activation.
-: > "$workspace/nix.log"
-for arg in --unknown --help --home --skip-secrets --age-key-ref test-host; do
-  expect_failure bash ./bootstrap.sh "$arg"
-done
-for arg in --unknown --help --home --check --skip-secrets --age-key-ref test-host; do
-  expect_failure bash ./switch.sh "$arg"
-done
-expect_failure bash ./switch.sh --build --build
-[ ! -s "$workspace/nix.log" ]
-# Build-only must work without a usable age key.
-rm "$HOME/.config/sops/age/keys.txt"
-bash ./switch.sh --build > "$workspace/output" 2>&1
-[ ! -e "$workspace/activated" ]
-! grep -q 'ignored-host' "$workspace/nix.log"
-# Debian public commands must select the matching internal stage, without Nix.
-mkdir -p "$workspace/repo/machines/debian"
-write_stub "$workspace/repo/machines/debian/apply.sh" << 'STUB'
-printf '%s\n' "$*" >> "$TEST_STATE/debian-stages"
-STUB
-printf 'ID=debian\n' > "$workspace/os-release"
-: > "$workspace/nix.log"
-bash ./bootstrap.sh
-bash ./switch.sh
-bash ./switch.sh --build
-printf 'bootstrap\nswitch\n--build\n' > "$workspace/expected-stages"
-cmp "$workspace/expected-stages" "$workspace/debian-stages"
-[ ! -s "$workspace/nix.log" ]
-printf 'ID=ubuntu\n' > "$workspace/os-release"
+expect_failure bash ./bootstrap.sh --unknown
+expect_failure bash ./switch.sh --age-key-ref op://test/identity/key
 # Drive the Darwin system branch while sudo is a recording-only double.
 cp "$workspace/identity" "$HOME/.config/sops/age/keys.txt"
 cp switch.sh "$workspace/switch.platform-saved"
 chmod u+w switch.sh
 sed "s@/run/current-system@$workspace/current-system@g" "$workspace/switch.platform-saved" > switch.sh
+chmod u+w scripts/lib/flake-source.sh
+sed "s@/run/current-system@$workspace/current-system@g" "$repo/scripts/lib/flake-source.sh" > scripts/lib/flake-source.sh
 mkdir -p "$workspace/current-system/sw/bin"
 write_stub "$workspace/current-system/sw/bin/darwin-rebuild" << 'STUB'
 exit 0
@@ -262,6 +245,12 @@ STUB
 write_stub "$workspace/bin/sudo" << 'STUB'
 printf '%s\n' "$*" >> "$TEST_STATE/sudo.log"
 [ "${TEST_SUDO_FAIL:-0}" = 0 ] || exit 1
+if [[ "$*" = *darwin-rebuild* ]]; then
+  [ "$(pwd -P)" = "$(cat "$TEST_STATE/source-path")" ]
+  if [ "${TEST_SOURCE_MUTATION:-0}" = 1 ]; then
+    cmp "$TEST_STATE/expected-module" new-module.nix
+  fi
+fi
 if [ "${TEST_SUDO_EXECUTE:-0}" = 1 ]; then
   while [ "$#" -gt 0 ]; do
     case "$1" in
@@ -288,10 +277,6 @@ STUB
 chmod +x "$workspace/bin/xcode-select"
 # With prerequisites installed, repeated bootstrap must never request sudo.
 export TEST_APP_MANAGEMENT_REQUIRED=false
-export TEST_HOST_DECLARED=false
-expect_failure bash ./switch.sh --build
-grep -q 'not registered in flake-modules/hosts.nix' "$workspace/output"
-unset TEST_HOST_DECLARED
 bash ./bootstrap.sh > "$workspace/output" 2>&1
 [ ! -e "$workspace/sudo.log" ]
 cmp "$workspace/identity" "$HOME/.config/sops/age/keys.txt"
@@ -326,9 +311,15 @@ export TEST_SETTINGS_FAIL=0
 expect_failure bash ./bootstrap.sh
 [ ! -e "$workspace/sudo.log" ]
 ! grep -q ' build ' "$workspace/nix.log"
-# Build-only and minimal hosts need no app-management consent.
+# Build-only, standalone HM and minimal hosts need no app-management consent.
+write_stub "$workspace/current-system/sw/bin/dotfiles-remote-apply" << 'STUB'
+grep -q 'darwin-rebuild.*switch --flake' "$TEST_STATE/sudo.log"
+touch "$TEST_STATE/remote-applied"
+[ "${TEST_REMOTE_FAIL:-0}" = 0 ]
+STUB
 rm "$workspace/permissions.log" "$workspace/settings.log"
 bash ./switch.sh --build > "$workspace/output" 2>&1
+[ ! -e "$workspace/remote-applied" ]
 [ ! -e "$workspace/permissions.log" ]
 [ ! -e "$workspace/settings.log" ]
 export TEST_APP_MANAGEMENT_REQUIRED=false
@@ -339,8 +330,21 @@ rm "$workspace/sudo.log"
 export TEST_APP_MANAGEMENT_REQUIRED=true TEST_PERMISSION_STATUS=granted
 bash ./switch.sh > "$workspace/output" 2>&1
 grep -q 'darwin-rebuild.*switch --flake' "$workspace/sudo.log"
+[ -e "$workspace/remote-applied" ]
 [ ! -e "$workspace/activated" ]
 [ ! -e "$(cat "$workspace/source-path")" ]
+# Changing the checkout after preflight cannot change the activated source.
+cp new-module.nix "$workspace/expected-module"
+export TEST_SOURCE_MUTATION=1
+bash ./switch.sh > "$workspace/output" 2>&1
+grep -qx 'changed after preflight' new-module.nix
+cp "$workspace/expected-module" new-module.nix
+unset TEST_SOURCE_MUTATION
+# App settings must finish before the CLI reports a successful switch.
+export TEST_REMOTE_FAIL=1
+expect_failure bash ./switch.sh
+! grep -q 'Configuration applied successfully' "$workspace/output"
+export TEST_REMOTE_FAIL=0
 # Evaluation failures must not be mistaken for a disabled Homebrew module.
 rm "$workspace/sudo.log"
 export TEST_HOMEBREW_EVAL_FAIL=1

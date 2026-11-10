@@ -162,14 +162,6 @@ helpers.testSuite "cache-config" [
     ".github/actions/setup-nix/action.yml extra-conf must contain every trusted-public-key from lib/cache-config.nix"
   )
 
-  # vm/bootstrap0 writes substituters into a fresh VM's configuration.nix. A
-  # foreign cache key there means trusting someone else's signatures as root.
-  (helpers.assertTest "makefile-bootstrap-trusts-only-own-caches" (
-    containsAll makefile subs
-    && containsAll makefile keys
-    && !(lib.hasInfix "mitchellh-nixos-config" makefile)
-  ) "Makefile vm/bootstrap0 must use exactly the substituters/keys from lib/cache-config.nix")
-
   # Piping an unpinned install script into nix-env runs whatever that URL
   # serves today; the action is pinned by commit SHA like every other action.
   (helpers.assertTest "setup-nix-installs-cachix-via-pinned-action"

@@ -7,8 +7,9 @@ checks; NixOS VM tests require Linux with KVM.
 
 ## Highlights
 
-- **Three platforms**: Darwin `aarch64-darwin`; NixOS `x86_64-linux` and `aarch64-linux`
+- **Host platforms**: macOS `aarch64-darwin` and NixOS-WSL `x86_64-linux`; shared checks and tools also support `aarch64-linux`
 - **Windows**: NixOS-WSL (`wsl` host) inside WSL2, plus GUI apps from `winget configure` — see [machines/windows/README.md](machines/windows/README.md)
+- **Native remote access**: bootstrap prepares APT packages on Debian; `./switch.sh` applies Nix/Homebrew on macOS and shared sops-backed policy — see [docs/remote-access.md](docs/remote-access.md)
 - **Typed host declarations**: every machine is one entry in `flake-modules/hosts.nix`
 - **One user configuration**: `users/shared/` is shared by every host and Home Manager profile
 - **Assertions as derivations**: unit, integration, and NixOS VM tests all run through `nix flake check`
@@ -79,6 +80,10 @@ installing packages, retrieving keys or applying services.
 
 ### macOS permissions
 
+The read-only `dotfiles.setup` options in `lib/setup-requirements.nix` derive
+Homebrew and App Management requirements from each host configuration.
+Bootstrap and switch consume these values.
+
 For hosts managing GUI apps, bootstrap and switch check **System Settings >
 Privacy & Security > App Management**. If denied or unavailable, they open that
 pane and stop. Allow the app hosting the terminal (for example Herdr Core), quit
@@ -91,7 +96,7 @@ See [ADR 0001](docs/adr/0001-macos-permission-preflight.md).
 
 ### Repeated runs without a sudo password
 
-Bootstrap requests administrator authentication only when CLT, Nix or Homebrew
+On macOS, bootstrap requests administrator authentication only when CLT, Nix or Homebrew
 actually needs installation. Re-running it with those prerequisites installed
 does not request sudo authentication; 1Password authentication is separate.
 
@@ -107,7 +112,7 @@ existing policies. See [ADR 0003](docs/adr/0003-passwordless-repeat-bootstrap-an
 | Output                                    | Names                                              |
 | ----------------------------------------- | -------------------------------------------------- |
 | `darwinConfigurations` (`aarch64-darwin`) | `macbook-pro`, `baleen-macbook`, `kakaostyle-jito` |
-| `nixosConfigurations`                     | `vm-aarch64-utm`, `vm-x86_64-utm`, `wsl`           |
+| `nixosConfigurations`                     | `wsl`                                              |
 | `homeConfigurations`                      | `baleen`, `jito.hello`, `testuser`, `baleen-linux` |
 
 Host users are declared in `flake-modules/hosts.nix`. `HM_USER` selects only a
@@ -187,6 +192,8 @@ by these scripts.
 
 ## Architecture
 
+The package and overlay layout follows [Misterio77’s standard template](https://github.com/Misterio77/nix-starter-configs/tree/main/standard). Existing flake-parts, host, and user modules remain in place.
+
 ### Directory Structure
 
 ```text
@@ -197,22 +204,23 @@ dotfiles/
 │   ├── systems.nix      # hosts -> darwinConfigurations / nixosConfigurations
 │   ├── home.nix         # Standalone homeConfigurations
 │   ├── checks.nix       # tests/ -> flake checks
-│   ├── packages.nix     # test-vm and other packages
+│   ├── packages.nix     # Exports packages from pkgs/
 │   ├── dev-shells.nix   # nix develop shell
 │   └── formatter.nix    # treefmt (nixfmt, statix, deadnix, shfmt, prettier)
 ├── lib/
 │   ├── mksystem.nix     # System factory (Darwin or NixOS + Home Manager)
 │   ├── home-modules.nix # Auto-discovers users/shared/{programs,packages}
 │   ├── cache-config.nix
-│   ├── overlays.nix
 │   └── user-info.nix    # Single source of truth for name and email
+├── overlays/default.nix # Named additions, modifications, and worktree overlays
+├── pkgs/default.nix     # Custom package definitions
 ├── machines/
 │   ├── darwin/
 │   │   ├── common.nix         # Minimal shared system and 1Password downgrade guard
 │   │   ├── macbook-pro.nix    # Per-host apps and user features
 │   │   ├── baleen-macbook.nix
 │   │   └── kakaostyle-jito.nix
-│   ├── nixos/             # vm-aarch64-utm, vm-x86_64-utm, vm-shared, wsl, hardware/
+│   ├── nixos/             # NixOS-WSL host
 │   └── windows/           # winget configuration for the Windows side (not Nix)
 ├── users/shared/
 │   ├── home-manager.nix   # Home Manager entry point
@@ -227,7 +235,9 @@ dotfiles/
 Bootstrap and switch evaluate a temporary snapshot of Git-tracked and unignored
 files, plus the explicitly allowed `flake-modules/hosts.local.nix`. Ignored keys
 and plaintext backups are excluded before Nix copies source into the store.
-Symlinks are preserved; the snapshot is removed on exit. Keep private data
+Darwin activation runs from that same snapshot using `--flake .#<host>`, preserving
+the existing sudo command rules. Symlinks are preserved; the snapshot is removed
+on exit. Keep private data
 outside the repository and never track it.
 
 ### How a Host Is Built
@@ -306,30 +316,8 @@ The NixOS VM tests live in `tests/containers/` (smoke, basic system, services,
 packages) and are registered explicitly in `tests/default.nix`.
 
 CI (`.github/workflows/ci.yml`) runs pre-commit, `make test-build`, and a closure
-build on Darwin `aarch64-darwin`, NixOS `x86_64-linux`, and NixOS
-`aarch64-linux`, then pushes successful builds to Cachix.
-
-## NixOS VMs
-
-```bash
-# Build a VM configuration
-nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel'
-
-# Disposable VM smoke test (Linux + KVM only)
-nix run .#test-vm
-ssh testuser@localhost -p 2222  # password: test
-```
-
-To install onto a VM over SSH, the Makefile provides `vm/bootstrap0`,
-`vm/bootstrap`, `vm/copy`, `vm/switch`, and `vm/secrets`. They read these
-variables:
-
-```bash
-export NIXADDR=192.168.64.2    # VM IP address (required)
-export NIXPORT=22              # SSH port (default: 22)
-export NIXUSER=root            # SSH user (default: root)
-export NIXNAME=vm-aarch64-utm  # nixosConfiguration to switch to (default: hostname)
-```
+build on Darwin `aarch64-darwin` and NixOS-WSL `x86_64-linux`, plus bootstrap
+tools on `aarch64-linux`, then pushes successful builds to Cachix.
 
 ## Baleen Toolkit
 
@@ -373,7 +361,7 @@ gates the `herdr-app` cask on macOS.
 
 **1Password will not start after a switch:** a downgraded app may be unable to
 read a database written by a newer version (`UnknownSchema` in the app log).
-The Darwin package is pinned in `lib/overlays.nix`; activation refuses to replace
+The Darwin package is pinned in `overlays/default.nix`; activation refuses to replace
 a newer installed version with an older one. Update the package version, download
 URL and hash together, build it, then apply with `./switch.sh`. Preserve the
 existing vault data; deleting it does not resolve the version mismatch.

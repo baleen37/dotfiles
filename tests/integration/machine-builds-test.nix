@@ -26,13 +26,12 @@ let
   nixosNames = builtins.attrNames nixosHosts;
 
   expectedDarwin = [
+    "baleen-m2-pro"
     "baleen-macbook"
     "kakaostyle-jito"
     "macbook-pro"
   ];
   expectedNixos = [
-    "vm-aarch64-utm"
-    "vm-x86_64-utm"
     "wsl"
   ];
   hostsAreDeclared = darwinNames == expectedDarwin && nixosNames == expectedNixos;
@@ -41,13 +40,12 @@ let
   nixosUsers = lib.mapAttrs (_: host: builtins.attrNames host.config.home-manager.users) nixosHosts;
 
   expectedDarwinUsers = {
+    baleen-m2-pro = [ "baleen" ];
     baleen-macbook = [ "baleen" ];
     kakaostyle-jito = [ "jito.hello" ];
     macbook-pro = [ "baleen" ];
   };
   expectedNixosUsers = {
-    vm-aarch64-utm = [ "baleen" ];
-    vm-x86_64-utm = [ "baleen" ];
     wsl = [ "baleen" ];
   };
 

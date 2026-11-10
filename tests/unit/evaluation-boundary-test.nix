@@ -15,6 +15,8 @@ let
         ../../flake-modules
         ../../lib
         ../../machines
+        ../../overlays
+        ../../pkgs
         ../../tests
         ../../users
       ];

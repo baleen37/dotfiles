@@ -55,24 +55,19 @@ in
       user = "baleen";
       machineModules = [ ../machines/darwin/baleen-macbook.nix ];
     };
+    baleen-m2-pro = {
+      system = "aarch64-darwin";
+      class = "darwin";
+      user = "baleen";
+      syncthingId = "GRWLSDU-LQVUNLV-C6YZATS-6MCXPTI-OAJW77W-CYGVSCE-XAA2MB3-F335OAW";
+      machineModules = [ ../machines/darwin/macbook-pro.nix ];
+    };
     kakaostyle-jito = {
       system = "aarch64-darwin";
       class = "darwin";
       user = "jito.hello";
       syncthingId = "FAMY2R3-2T2E6RX-UU5H37L-ZGQ5NNV-YG367MA-2VF5G4U-VFHYL4C-USPF3Q6";
       machineModules = [ ../machines/darwin/kakaostyle-jito.nix ];
-    };
-    vm-aarch64-utm = {
-      system = "aarch64-linux";
-      class = "nixos";
-      user = "baleen";
-      machineModules = [ ../machines/nixos/vm-aarch64-utm.nix ];
-    };
-    vm-x86_64-utm = {
-      system = "x86_64-linux";
-      class = "nixos";
-      user = "baleen";
-      machineModules = [ ../machines/nixos/vm-x86_64-utm.nix ];
     };
     wsl = {
       system = "x86_64-linux";

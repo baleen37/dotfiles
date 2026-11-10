@@ -9,7 +9,11 @@ let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
   mkSystem = import ../../lib/mksystem.nix {
     inherit inputs self;
-    overlays = import ../../lib/overlays.nix { inherit inputs; };
+    overlays = with self.overlays; [
+      additions
+      modifications
+      worktree
+    ];
   };
   minimal =
     (mkSystem "minimal-probe" {
@@ -27,6 +31,7 @@ let
             programs.hammerspoon.enable = lib.mkForce false;
             programs.karabiner.enable = lib.mkForce false;
             programs.rustdesk.enable = lib.mkForce false;
+            programs.tailscale.enable = lib.mkForce false;
             darwin.vscode.enable = lib.mkForce false;
             darwin.keyboard-input.enable = lib.mkForce false;
           };
@@ -73,11 +78,16 @@ in
           "hammerspoon"
           "karabiner-elements"
           "rustdesk"
+          "tailscale-app"
           "visual-studio-code"
         ]
       ) disabled.homebrew.casks)
       && !(disabledHome.home.file ? ".config/karabiner/karabiner.json")
       && !(disabledHome.home.activation ? keyboardInputSource)
+      && !(disabled.launchd.daemons ? dotfiles-rustdesk)
+      && !(disabledHome.sops.secrets ? rustdesk-password)
+      && !(disabledHome.launchd.agents ? tailscale-config)
+      && !(lib.any (p: p.name == "dotfiles-remote-apply") disabled.environment.systemPackages)
       && !(disabledHome.home.activation ? vscodeLaunchServices)
       && !(withoutApps.system.defaults.CustomUserPreferences ? "com.raycast.macos")
       && !(lib.hasInfix "AppleSymbolicHotKeys -dict-add 64" withoutApps.home-manager.users.baleen.home.activation.keyboardInputSource.data)

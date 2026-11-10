@@ -27,7 +27,7 @@ nix flake check --no-build --all-systems --show-trace
 
 # Build representative configuration closures without activation
 nix build '.#darwinConfigurations.macbook-pro.system'
-nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel'
+nix build '.#nixosConfigurations.wsl.config.system.build.toplevel'
 ```
 
 ## 🛠️ Development Workflow
@@ -67,10 +67,10 @@ nix flake check --no-build --all-systems --show-trace
 
 # Build affected configuration closures without activation
 nix build '.#darwinConfigurations.macbook-pro.system'
-nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel'
+nix build '.#nixosConfigurations.wsl.config.system.build.toplevel'
 
-# Apply the local configuration when activation is intended
-./switch.sh
+# Activate a standalone Home Manager profile when that is the intended target
+make switch-home HM_USER=jito.hello
 ```
 
 #### 3. Pre-Commit Workflow
@@ -80,8 +80,8 @@ nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel'
 ```bash
 nix flake check --no-build --all-systems --show-trace
 nix build '.#darwinConfigurations.macbook-pro.system'
-nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel'
-nix build '.#homeConfigurations."jito.hello".activationPackage'
+nix build '.#nixosConfigurations.wsl.config.system.build.toplevel'
+make switch-home HM_USER=jito.hello
 ```
 
 ### Testing Strategy
@@ -91,8 +91,8 @@ nix build '.#homeConfigurations."jito.hello".activationPackage'
 ```bash
 nix flake check --no-build --all-systems --show-trace  # Evaluate all checks
 nix build '.#darwinConfigurations.macbook-pro.system'
-nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel'
-nix build '.#homeConfigurations."jito.hello".activationPackage'
+nix build '.#nixosConfigurations.wsl.config.system.build.toplevel'
+make switch-home HM_USER=jito.hello
 nix build '.#checks.x86_64-linux.unit-mksystem'   # A single check
 ```
 
@@ -222,7 +222,7 @@ print_error() {
 
    # Test specific platforms if needed
    nix build .#darwinConfigurations.macbook-pro.system
-   nix build .#nixosConfigurations.vm-x86_64-utm.config.system.build.toplevel
+   nix build .#nixosConfigurations.wsl.config.system.build.toplevel
    ```
 
 ### Testing Contributions
@@ -344,7 +344,7 @@ When adding new global commands:
 1. **Install the system:**
 
    ```bash
-   ./switch.sh
+   make switch-home
    ```
 
 2. **Test command integration:**
@@ -409,7 +409,7 @@ nix build '.#checks.aarch64-darwin.unit-claude'
    ```bash
    nix flake check --no-build --all-systems --show-trace
    nix build '.#darwinConfigurations.macbook-pro.system'
-   nix build '.#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel'
+   nix build '.#nixosConfigurations.wsl.config.system.build.toplevel'
    ```
 
 2. **Run comprehensive local tests:**

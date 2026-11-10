@@ -3,13 +3,7 @@
 set -euo pipefail
 set +x
 source "$(dirname "${BASH_SOURCE[0]}")/scripts/lib/setup.sh"
-[ "$#" -eq 0 ] || die 'Usage: ./bootstrap.sh'
-if is_debian; then
-  exec "$(dirname "${BASH_SOURCE[0]}")/machines/debian/apply.sh" bootstrap
-fi
-# Private / dotfiles/sops / age-key; IDs keep renames from breaking bootstrap.
-AGE_KEY_REF=${DOTFILES_AGE_KEY_REF:-op://vwt2ko2iqk466x7vo2rb46bl5e/djrgof76gd5luaqr63vasbowlu/age-key}
-[[ $AGE_KEY_REF == op://* ]] || die "expected an op:// reference, never the private key itself"
+setup_request bootstrap "$@"
 setup_context
 check_macos_permissions
 NIX_INSTALLER_URL=https://install.determinate.systems/nix/tag/v3.24.1
@@ -18,14 +12,12 @@ BREW_INSTALLER_URL=https://raw.githubusercontent.com/Homebrew/install/959bdd7281
 BREW_INSTALLER_SHA256=5f333bbe53bc490e51e7ccb1df8779b3dd6ee73a1a7379efda216edb08ccb148
 
 TMP_DIR=$(mktemp -d)
-KEY_TEMP=
 SUDO_KEEPALIVE_PID=
 cleanup() {
   if [ -n "$SUDO_KEEPALIVE_PID" ]; then
     kill "$SUDO_KEEPALIVE_PID" 2> /dev/null || true
     wait "$SUDO_KEEPALIVE_PID" 2> /dev/null || true
   fi
-  [ -z "$KEY_TEMP" ] || rm -f "$KEY_TEMP"
   rm -rf "$TMP_DIR"
   cleanup_flake
 }
@@ -135,61 +127,6 @@ EOF
   host_declared || die "host '$HOST' still not evaluable; check $file and rerun bootstrap"
 }
 
-prepare_identity() {
-  local key_file
-  key_file=$(nix_cmd eval --raw "$FLAKE_REF#$HOME_ATTR.sops.age.keyFile")
-  if [ -e "$key_file" ] || [ -L "$key_file" ]; then
-    [ -f "$key_file" ] && [ ! -L "$key_file" ] && [ -s "$key_file" ] || die "existing age key is empty, a symlink, or not a file: $key_file"
-    "$TOOLS/bin/age-keygen" -y "$key_file" > /dev/null || die "existing age key is invalid; it was not replaced"
-    secrets_check "$key_file"
-    chmod 600 "$key_file"
-    log "Existing age key validated; preserved."
-    return
-  fi
-  local op_bin="$TOOLS/bin/op" accounts
-  # Enable app integration for this run; fall back to terminal authentication.
-  # An explicit false still supports machines without a desktop app.
-  export OP_BIOMETRIC_UNLOCK_ENABLED=${OP_BIOMETRIC_UNLOCK_ENABLED:-true}
-  "$op_bin" --version > /dev/null || die "1Password CLI cannot run"
-  if ! "$op_bin" whoami > /dev/null 2>&1 \
-    && [ "$OP_BIOMETRIC_UNLOCK_ENABLED" = true ]; then
-    # whoami only reports state; signin requests desktop authorization.
-    "$op_bin" signin > /dev/null || log 'Desktop authentication unavailable; trying terminal authentication.'
-  fi
-  if ! "$op_bin" whoami > /dev/null 2>&1; then
-    export OP_BIOMETRIC_UNLOCK_ENABLED=false
-    if ! "$op_bin" whoami > /dev/null 2>&1; then
-      [ -t 0 ] || die "1Password CLI authentication required; rerun bootstrap in a terminal"
-      accounts=$("$op_bin" account list --format=json) || die "cannot list 1Password CLI accounts"
-      if [ "$(printf '%s' "$accounts" | "$TOOLS/bin/jq" 'length')" -eq 0 ]; then
-        log 'Add your 1Password account in this terminal (address, email, Secret Key and account password).'
-        "$op_bin" account add || die "1Password account registration failed"
-      fi
-      OP_SESSION=$("$op_bin" signin --raw) || die "1Password CLI sign-in failed"
-      [ -n "$OP_SESSION" ] || die "1Password CLI returned an empty session"
-      export OP_SESSION
-      "$op_bin" whoami > /dev/null || die "1Password CLI authentication failed"
-    fi
-  fi
-  (
-    umask 077
-    mkdir -p "$(dirname "$key_file")"
-  )
-  chmod 700 "$(dirname "$key_file")"
-  KEY_TEMP=$(mktemp "$(dirname "$key_file")/.age-key.XXXXXX")
-  chmod 600 "$KEY_TEMP"
-  "$op_bin" read "$AGE_KEY_REF" --out-file "$KEY_TEMP" --file-mode 0600 --force || die "1Password key read failed; rerun bootstrap after authentication"
-  [ -s "$KEY_TEMP" ] || die "1Password returned an empty key"
-  "$TOOLS/bin/age-keygen" -y "$KEY_TEMP" > /dev/null || die "1Password item is not a valid age identity"
-  secrets_check "$KEY_TEMP"
-  # Hard-link on the same filesystem: atomically create without overwriting a
-  # key installed by another process while the user was authenticating.
-  "$TOOLS/bin/ln" -T "$KEY_TEMP" "$key_file" || die "age key destination now exists; it was not replaced"
-  rm -f "$KEY_TEMP"
-  KEY_TEMP=
-  log "Age key supplied and validated."
-}
-
 if [ "$OS" = Darwin ]; then
   install_clt
 fi
@@ -202,11 +139,13 @@ build_tools
 select_configuration
 if [ "$OS" = Darwin ]; then
   # Existing machine selections still use Homebrew for other GUI applications.
-  homebrew_enabled=$(nix_cmd eval --json "$FLAKE_REF#$SYSTEM_ATTR.config.homebrew.enable") \
+  homebrew_enabled=$(nix_cmd eval --json "$FLAKE_REF#$SYSTEM_ATTR.config.dotfiles.setup.homebrewRequired") \
     || die 'cannot evaluate Homebrew requirements; no Homebrew installation started'
   if [ "$homebrew_enabled" = true ]; then
     install_brew
   fi
 fi
-prepare_identity
+identity=$(nix_cmd build "$FLAKE_REF#$HOME_ATTR.modules.secrets.prepareIdentity" \
+  --no-link --print-out-paths)
+"$identity/bin/dotfiles-identity-prepare"
 log "Bootstrap finished. Apply separately: ./switch.sh"

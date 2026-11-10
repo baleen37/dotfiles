@@ -21,6 +21,11 @@ in
   options.modules.programs.rustdesk.enable = lib.mkEnableOption "RustDesk (macOS)";
 
   config = lib.mkIf cfg.enable {
+    sops.secrets.rustdesk-password = {
+      sopsFile = ../../../secrets/remote-access.json;
+      format = "json";
+    };
+
     # RustDesk writes these files itself; seed writable defaults only once.
     home.activation.rustdeskConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       run mkdir -p ${lib.escapeShellArg configDir}
@@ -35,7 +40,10 @@ in
     launchd.agents.rustdesk = {
       enable = true;
       config = {
-        ProgramArguments = [ "/Applications/RustDesk.app/Contents/MacOS/RustDesk" ];
+        ProgramArguments = [
+          "/Applications/RustDesk.app/Contents/MacOS/RustDesk"
+          "--server"
+        ];
         RunAtLoad = true;
         ProcessType = "Interactive";
       };

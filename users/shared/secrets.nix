@@ -7,6 +7,17 @@
 }:
 let
   cfg = config.modules.secrets;
+  identity = pkgs.writeShellApplication {
+    name = "dotfiles-identity";
+    runtimeInputs = [
+      pkgs.age
+      pkgs._1password-cli
+    ];
+    text = ''
+      exec ${pkgs.python3}/bin/python3 ${../../scripts/lib/identity.py} "$@"
+    '';
+  };
+  remotePolicy = builtins.fromJSON (builtins.readFile ../../machines/remote-access.json);
   enabled = config.sops.secrets != { };
   encryptedFiles = lib.unique (
     map (s: {
@@ -17,16 +28,12 @@ let
   preflight = pkgs.writeShellApplication {
     name = "dotfiles-secrets-check";
     runtimeInputs = [
-      pkgs.age
+      identity
       pkgs.sops
     ];
     text = ''
       key_file="''${1:-${config.sops.age.keyFile}}"
-      [ -f "$key_file" ] && [ ! -L "$key_file" ] && [ -s "$key_file" ] || {
-        echo "Missing or invalid age key: run ./bootstrap.sh" >&2
-        exit 1
-      }
-      age-keygen -y "$key_file" >/dev/null
+      dotfiles-identity check "$key_file"
     ''
     + (
       if !enabled then
@@ -40,11 +47,20 @@ let
           export SOPS_AGE_SSH_PRIVATE_KEY_FILE=/dev/null
           export SOPS_GPG_EXEC=false
           ${lib.concatMapStringsSep "\n" (s: ''
-            sops --decrypt --input-type ${lib.escapeShellArg s.format} ${lib.escapeShellArg (toString s.file)} >/dev/null
+            sops --decrypt --input-type ${lib.escapeShellArg s.format} ${lib.escapeShellArg "${s.file}"} >/dev/null
           '') encryptedFiles}
           echo "Declared secrets decrypt successfully."
         ''
     );
+  };
+  prepareIdentity = pkgs.writeShellApplication {
+    name = "dotfiles-identity-prepare";
+    runtimeInputs = [ identity ];
+    text = ''
+      exec dotfiles-identity prepare ${lib.escapeShellArg config.sops.age.keyFile} \
+        "''${DOTFILES_AGE_KEY_REF:-${remotePolicy.ageKeyRef}}" \
+        ${preflight}/bin/dotfiles-secrets-check
+    '';
   };
   # Run the same upstream installer synchronously; the default HM Darwin hook
   # only starts launchd and can return before any secret has been written.
@@ -56,6 +72,12 @@ let
 in
 {
   options.modules.secrets = {
+    prepareIdentity = lib.mkOption {
+      type = lib.types.package;
+      readOnly = true;
+      default = prepareIdentity;
+      description = "Prepare and verify this configuration's age identity without activation.";
+    };
     gpgImports = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       default = [ ];

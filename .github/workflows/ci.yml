@@ -24,24 +24,27 @@ env:
 
 jobs:
   ci:
-    name: CI (${{ matrix.name }})
+    name: CI (${{ matrix.check-name }})
     timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
         include:
           - name: Darwin aarch64-darwin
+            check-name: Darwin aarch64-darwin
             os: macos-15
             arch: aarch64
             closure-attr: .#darwinConfigurations.macbook-pro.system
-          - name: NixOS x86_64-linux
+          - name: NixOS-WSL x86_64-linux
+            check-name: NixOS x86_64-linux
             os: ubuntu-latest
             arch: x86_64
-            closure-attr: .#nixosConfigurations.vm-x86_64-utm.config.system.build.toplevel
-          - name: NixOS aarch64-linux
+            closure-attr: .#nixosConfigurations.wsl.config.system.build.toplevel
+          - name: Linux tools aarch64-linux
+            check-name: NixOS aarch64-linux
             os: ubuntu-24.04-arm
             arch: aarch64
-            closure-attr: .#nixosConfigurations.vm-aarch64-utm.config.system.build.toplevel
+            closure-attr: .#packages.aarch64-linux.bootstrap-tools
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
@@ -90,7 +93,7 @@ jobs:
       # `make test` above only evaluates checks on runners without KVM (Darwin,
       # ARM64), so build the assertions to actually run them everywhere.
       - name: Build assertions
-        if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+        if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
         env:
           PUSH_TO_CACHIX: ${{ github.ref == 'refs/heads/main' }}
         run: |
@@ -108,7 +111,7 @@ jobs:
           make -n secrets/backup
 
       - name: Build closure
-        if: matrix.name == 'NixOS x86_64-linux' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+        if: matrix.check-name == 'NixOS x86_64-linux' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
         env:
           ATTR: ${{ matrix.closure-attr }}
         run: |
@@ -116,7 +119,7 @@ jobs:
           nix build "$ATTR" --out-link result --print-build-logs --accept-flake-config
 
       - name: Cache hit-rate report
-        if: matrix.name == 'NixOS x86_64-linux' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+        if: matrix.check-name == 'NixOS x86_64-linux' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
         continue-on-error: true
         shell: bash
         run: |
