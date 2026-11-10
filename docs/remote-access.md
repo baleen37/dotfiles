@@ -44,11 +44,11 @@ Debian 네이티브 영역을 담당하고 기존 Nix 기반은 그대로 유지
 
 ## 설치와 앱 설정
 
-macOS의 `switch.sh`는 원격 접속 설정을 적용하지 않는다. 처음 설정하거나 정책·비밀 값이
-바뀌었을 때 `dotfiles-remote-apply`를 직접 한 번 실행한다. RustDesk 관리자 설정은 현재 시스템 프로필의
-고정된 `dotfiles-remote-configure`로 수행하며 일반 sudo 관리자 인증을 요구한다.
-사용자 소유 앱과 시크릿 경로를 읽으므로 비밀번호 없는 sudo 예외는 추가하지 않는다.
-RustDesk 사용자 서버 준비는 최대 10초 기다린 뒤 실패를 반환한다.
+macOS는 [ADR 0005](adr/0005-remote-access-enroll-in-bootstrap-converge-in-switch.md)를
+따른다. Tailscale 가입은 기기당 한 번 `bootstrap.sh`가 한다. RustDesk 비밀번호·옵션은
+`switch.sh`의 시스템 활성화(root, Home Manager 다음)가 매번 맞춘다. 별도 sudo 단계는 없다.
+RustDesk 사용자 서버를 최대 10초 기다리고, GUI 로그인 전이라 준비되지 않으면 경고만 남기고
+switch를 계속한다. 로그인 후 `switch.sh`를 다시 실행하면 적용된다.
 
 Debian은 APT로 설치·버전을 관리하고 RustDesk·Tailscale 자체 서비스만 부팅 시 시작한다.
 별도 설정 타이머·복호화 서비스·적용기 복사본은 설치하지 않는다. 더 높은 설치 버전은
@@ -69,13 +69,14 @@ Debian은 APT로 설치·버전을 관리하고 RustDesk·Tailscale 자체 서�
 비밀번호를 프로세스 인자로 전달하므로 그 순간의 인자 노출까지 제거한 구성은 아니다.
 
 Tailscale은 기존 로그인과 기기 identity를 보존한다. 사용자 의도로 중지한 세션도 강제로
-다시 연결하지 않는다. 신규 가입 자격증명은 macOS에서 sops-nix가 복호화한 파일을 사용하고,
-Debian에서는 적용 중에만 root 전용 임시 파일을 만들어 사용한 뒤 삭제한다. 자격증명이
+다시 연결하지 않는다. 신규 가입 자격증명은 macOS에서 bootstrap이, Debian에서는 switch가 기존 identity로
+복호화해 적용 중에만 전용 임시 파일로 쓰고 삭제한다. 자격증명이
 없거나 회수됐거나 기기 승인이 대기 중이면 적용이 실패로 끝난다. 성공했다고 보고하지 않는다.
 
-macOS 화면 녹화·손쉬운 사용 권한과 최초 VPN 확장 승인은 별도다. macOS RustDesk 설정은
-선택된 사용자가 GUI에 로그인한 상태에서 적용한다. 권한·가입 준비 후 같은 `switch.sh`를
-다시 실행하면 된다. 앱을 부팅·로그인 시 실행하는 것과 설정을 주기적으로 재적용하는 것은
+macOS 화면 녹화·손쉬운 사용 권한과 최초 VPN 확장 승인은 별도다. 새 Mac은 bootstrap 때
+Tailscale 앱이 아직 없어 가입을 건너뛴다. `switch.sh` 후 Tailscale을 한 번 열어 승인하고
+`bootstrap.sh`를 다시 실행하면 가입한다. RustDesk 설정은 선택된 사용자가 GUI에 로그인한
+상태에서 `switch.sh`가 적용한다. 앱을 부팅·로그인 시 실행하는 것과 설정을 주기적으로 재적용하는 것은
 구분한다.
 
 ## 검증 범위

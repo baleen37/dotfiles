@@ -148,4 +148,10 @@ fi
 identity=$(nix_cmd build "$FLAKE_REF#$HOME_ATTR.modules.secrets.prepareIdentity" \
   --no-link --print-out-paths)
 "$identity/bin/dotfiles-identity-prepare"
+if [ "$OS" = Darwin ]; then
+  # Joining the tailnet is a once-per-Mac step; switch never does it (docs/adr/0005).
+  enroll=$(nix_cmd build "$FLAKE_REF#$SYSTEM_ATTR.config.dotfiles.setup.tailscaleEnroll" \
+    --no-link --print-out-paths)
+  "$enroll/bin/dotfiles-tailscale-enroll"
+fi
 log "Bootstrap finished. Apply separately: ./switch.sh"

@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   isDarwin,
   ...
 }:
@@ -15,6 +16,16 @@
       type = lib.types.bool;
       readOnly = true;
       description = "Whether the selected host installs apps requiring macOS App Management consent.";
+    };
+    tailscaleEnroll = lib.mkOption {
+      type = lib.types.package;
+      default = pkgs.writeTextFile {
+        name = "no-tailscale-enroll";
+        destination = "/bin/dotfiles-tailscale-enroll";
+        executable = true;
+        text = "#!/bin/sh\n";
+      };
+      description = "Joins this host to the tailnet once; bootstrap.sh runs it, switch never does.";
     };
   };
 

@@ -13,13 +13,22 @@ assert lib.all
     in
     home.modules.programs.tailscale.enable
     && home.sops.secrets.rustdesk-password.format == "json"
-    && home.sops.secrets.tailscale-auth-key.format == "json"
-    && home.modules.programs.tailscale.authKeyFile == home.sops.secrets.tailscale-auth-key.path
+    # Enrollment reads the shared sops file in bootstrap; no decrypted copy in HM.
+    && !(home.sops.secrets ? tailscale-auth-key)
+    && c.dotfiles.setup.tailscaleEnroll.name == "dotfiles-tailscale-enroll"
     && builtins.elem "--server" home.launchd.agents.rustdesk.config.ProgramArguments
     && !(c.launchd.daemons ? dotfiles-rustdesk)
     && !(home.launchd.agents ? tailscale-config)
-    && lib.any (p: p.name == "dotfiles-remote-apply") c.environment.systemPackages
-    && !(lib.hasInfix "NOPASSWD: /run/current-system/sw/bin/dotfiles-remote-configure" c.security.sudo.extraConfig)
+    # RustDesk converges in root activation, after Home Manager decrypts the password.
+    && (
+      let
+        text = c.system.activationScripts.postActivation.text;
+        after = lib.splitString "Activating home-manager configuration" text;
+      in
+      builtins.length after == 2 && lib.hasInfix "remote_access.py darwin" (builtins.elemAt after 1)
+    )
+    && !(lib.any (p: p.name == "dotfiles-remote-apply") c.environment.systemPackages)
+    && !(lib.hasInfix "dotfiles-remote-configure" c.security.sudo.extraConfig)
   )
   [
     "macbook-pro"
@@ -37,24 +46,5 @@ pkgs.runCommand "remote-access-integration"
       export PYTHONDONTWRITEBYTECODE=1
       python3 ${./remote-access.py} ${../../scripts/lib/remote_access.py} ${../../machines/remote-access.json} ${../../users/shared/programs/tailscale-remote.py}
       bash ${./switch-entrypoint.sh} ${../..}
-    ${lib.optionalString pkgs.stdenv.hostPlatform.isDarwin (
-      lib.concatMapStringsSep "\n"
-        (name: ''
-          status=0
-          ${
-            lib.getExe (
-              lib.findFirst (
-                p: p.name == name
-              ) (throw "missing ${name}") self.darwinConfigurations.macbook-pro.config.environment.systemPackages
-            )
-          } unexpected-argument > output 2>&1 || status=$?
-          [ "$status" -eq 2 ]
-          grep -q 'takes no arguments' output
-        '')
-        [
-          "dotfiles-remote-configure"
-          "dotfiles-remote-apply"
-        ]
-    )}
       touch "$out"
   ''
