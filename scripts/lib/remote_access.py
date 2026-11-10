@@ -135,9 +135,14 @@ def configure_debian(policy_file, encrypted_file, identity):
     if not isinstance(password, str) or not password:
         raise RuntimeError("RustDesk password is missing")
     configure_rustdesk(RUSTDESK, password, STATE / "rustdesk-state", options)
+
+
+def enroll_debian(policy_file, encrypted_file, identity):
+    # apply.sh bootstrap runs this once per host; switch never touches the tailnet login.
+    secrets = decrypt(encrypted_file, identity)
     enroll_tailscale(
         TAILSCALE, socket.gethostname().split(".")[0].lower(),
-        secrets.get("tailscale-auth-key"), policy["tailscale"]["tags"], RUNTIME,
+        secrets.get("tailscale-auth-key"), json.loads(policy_file.read_text())["tailscale"]["tags"], RUNTIME,
     )
 
 
@@ -182,6 +187,10 @@ def main():
     debian.add_argument("policy_file", type=Path)
     debian.add_argument("encrypted_file", type=Path)
     debian.add_argument("identity", type=Path)
+    debian_enroll = modes.add_parser("debian-enroll")
+    debian_enroll.add_argument("policy_file", type=Path)
+    debian_enroll.add_argument("encrypted_file", type=Path)
+    debian_enroll.add_argument("identity", type=Path)
     enroll = modes.add_parser("enroll")
     enroll.add_argument("binary")
     enroll.add_argument("hostname")
@@ -193,6 +202,8 @@ def main():
         raise RuntimeError("Remote-access configuration requires administrator privileges")
     if args.mode == "enroll":
         enroll_darwin(args.binary, args.hostname, args.encrypted_file, args.identity, args.policy_file)
+    elif args.mode == "debian-enroll":
+        enroll_debian(args.policy_file, args.encrypted_file, args.identity)
     elif args.mode == "darwin":
         configure_darwin(args.user, args.password_file, args.policy_file)
     else:

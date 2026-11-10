@@ -128,7 +128,22 @@ def bootstrap(config, key_file, key_ref):
     with preserve_service_startup():
         install(config, key_file)
     identity.prepare(key_file, key_ref, check_secrets)
+    # Joining the tailnet is a once-per-host step (docs/adr/0005); it needs tailscaled running.
+    root(["systemctl", "enable", "--now", "tailscaled.service"])
+    remote_access("debian-enroll", key_file, "Tailscale enrollment failed")
     print("Bootstrap finished. Apply separately: ./switch.sh")
+
+
+def remote_access(mode, key_file, failure):
+    # This CLI suppresses secrets itself; preserve its actionable diagnostics.
+    command = [
+        sys.executable, str(REPO / "scripts/lib/remote_access.py"), mode,
+        str(REPO / "machines/remote-access.json"),
+        str(REPO / "secrets/remote-access.json"), str(key_file.resolve()),
+    ]
+    result = subprocess.run(command if os.geteuid() == 0 else ["sudo", "--", *command])
+    if result.returncode:
+        raise RuntimeError(failure)
 
 
 def check_secrets(key_file):
@@ -141,15 +156,7 @@ def check_secrets(key_file):
 def apply(key_file):
     identity.check(key_file, check_secrets)
     root(["systemctl", "enable", "--now", "tailscaled.service", "rustdesk.service"])
-    # This CLI suppresses secrets itself; preserve its actionable diagnostics.
-    command = [
-        sys.executable, str(REPO / "scripts/lib/remote_access.py"), "debian",
-        str(REPO / "machines/remote-access.json"),
-        str(REPO / "secrets/remote-access.json"), str(key_file.resolve()),
-    ]
-    result = subprocess.run(command if os.geteuid() == 0 else ["sudo", "--", *command])
-    if result.returncode:
-        raise RuntimeError("Remote-access configuration failed")
+    remote_access("debian", key_file, "Remote-access configuration failed")
     print("Remote access applied. Device IDs and existing Tailscale sessions were preserved.")
 
 
