@@ -84,6 +84,7 @@ elif [[ "$*" == *'.pkgs.stdenv.hostPlatform.system'* ]]; then
 elif [[ "$*" == *'home.username'* ]]; then echo testuser
 elif [[ "$*" == *'sops.age.keyFile'* ]]; then echo "$HOME/.config/sops/age/keys.txt"
 elif [[ "$*" == *'modules.secrets.prepareIdentity'* ]]; then echo "$TEST_TOOLS"
+elif [[ "$*" == *'dotfiles.setup.tailscaleEnroll'* ]]; then echo "$TEST_TOOLS"
 elif [[ "$*" == *'modules.secrets.preflight'* ]]; then
   if [ "${TEST_SOURCE_MUTATION:-0}" = 1 ]; then
     printf 'changed after preflight\n' > "$TEST_STATE/repo/new-module.nix"
@@ -126,11 +127,14 @@ exec python3 "$TEST_STATE/repo/scripts/lib/identity.py" prepare \
   "$HOME/.config/sops/age/keys.txt" "$DOTFILES_AGE_KEY_REF" \
   "$TEST_TOOLS/bin/dotfiles-secrets-check"
 STUB
+write_stub "$workspace/tools/bin/dotfiles-tailscale-enroll" << 'STUB'
+touch "$TEST_STATE/tailscale-enrolled"
+STUB
 mkdir -p "$workspace/activation"
 write_stub "$workspace/activation/activate" << 'STUB'
 touch "$TEST_STATE/activated"
 STUB
-chmod +x "$workspace/bin/"* "$workspace/tools/bin/id" "$workspace/tools/bin/op" "$workspace/tools/bin/dotfiles-secrets-check" "$workspace/activation/activate"
+chmod +x "$workspace/bin/"* "$workspace/tools/bin/id" "$workspace/tools/bin/op" "$workspace/tools/bin/dotfiles-secrets-check" "$workspace/tools/bin/dotfiles-tailscale-enroll" "$workspace/activation/activate"
 age-keygen -o "$workspace/identity" 2> /dev/null
 recipient=$(age-keygen -y "$workspace/identity")
 printf 'token: synthetic-value\n' > "$workspace/plain.yaml"
@@ -277,9 +281,13 @@ STUB
 chmod +x "$workspace/bin/xcode-select"
 # With prerequisites installed, repeated bootstrap must never request sudo.
 export TEST_APP_MANAGEMENT_REQUIRED=false
+rm -f "$workspace/tailscale-enrolled"
 bash ./bootstrap.sh > "$workspace/output" 2>&1
 [ ! -e "$workspace/sudo.log" ]
 cmp "$workspace/identity" "$HOME/.config/sops/age/keys.txt"
+# A Mac joins the tailnet in bootstrap, once per machine (docs/adr/0005).
+[ -e "$workspace/tailscale-enrolled" ]
+rm "$workspace/tailscale-enrolled"
 # A genuinely missing prerequisite still requires authentication before install.
 export TEST_CLT_MISSING=1 TEST_SUDO_FAIL=1
 expect_failure bash ./bootstrap.sh
@@ -312,12 +320,8 @@ expect_failure bash ./bootstrap.sh
 [ ! -e "$workspace/sudo.log" ]
 ! grep -q ' build ' "$workspace/nix.log"
 # Build-only, standalone HM and minimal hosts need no app-management consent.
-write_stub "$workspace/current-system/sw/bin/dotfiles-remote-apply" << 'STUB'
-touch "$TEST_STATE/remote-applied"
-STUB
 rm "$workspace/permissions.log" "$workspace/settings.log"
 bash ./switch.sh --build > "$workspace/output" 2>&1
-[ ! -e "$workspace/remote-applied" ]
 [ ! -e "$workspace/permissions.log" ]
 [ ! -e "$workspace/settings.log" ]
 export TEST_APP_MANAGEMENT_REQUIRED=false
@@ -328,8 +332,8 @@ rm "$workspace/sudo.log"
 export TEST_APP_MANAGEMENT_REQUIRED=true TEST_PERMISSION_STATUS=granted
 bash ./switch.sh > "$workspace/output" 2>&1
 grep -q 'darwin-rebuild.*switch --flake' "$workspace/sudo.log"
-# Remote-access settings ask for sudo; switch leaves them to dotfiles-remote-apply.
-[ ! -e "$workspace/remote-applied" ]
+# Switch never joins the tailnet; that stays in bootstrap.
+[ ! -e "$workspace/tailscale-enrolled" ]
 [ ! -e "$workspace/activated" ]
 [ ! -e "$(cat "$workspace/source-path")" ]
 # Changing the checkout after preflight cannot change the activated source.

@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import pwd
+import shutil
 import socket
 import subprocess
 import sys
@@ -13,7 +14,7 @@ import tempfile
 import time
 
 
-SOPS = "/usr/bin/sops"
+SOPS = shutil.which("sops") or "/usr/bin/sops"
 RUSTDESK = "/usr/bin/rustdesk"
 TAILSCALE = "/usr/bin/tailscale"
 STATE = Path("/var/lib/dotfiles-remote")
@@ -69,10 +70,10 @@ def configure_tailscale(binary, hostname, auth_key_file, tags=()):
         raise RuntimeError("Tailscale status failed")
     if state == "NeedsLogin":
         if not auth_key_file or not Path(auth_key_file).is_file():
-            raise RuntimeError("Tailscale enrollment requires a declared authKeyFile")
+            raise RuntimeError("Tailscale enrollment requires tailscale-auth-key in the shared secrets")
         credential = Path(auth_key_file).read_text().strip()
         if not credential:
-            raise RuntimeError("Tailscale authKeyFile is empty")
+            raise RuntimeError("Tailscale auth key is empty")
         if credential.startswith("tskey-client-") and not tags:
             raise RuntimeError("Tailscale OAuth enrollment requires declared device tags")
         args = [binary, "up", f"--auth-key=file:{auth_key_file}", "--timeout=15s"]
@@ -101,7 +102,7 @@ def configure_tailscale(binary, hostname, auth_key_file, tags=()):
     # Never force a stopped session online or replace an existing account.
 
 
-def configure_debian(policy_file, encrypted_file, identity):
+def decrypt(encrypted_file, identity):
     env = dict(os.environ, SOPS_AGE_KEY_FILE=str(identity))
     env.pop("SOPS_AGE_KEY", None)
     env.pop("SOPS_AGE_KEY_CMD", None)
@@ -111,23 +112,42 @@ def configure_debian(policy_file, encrypted_file, identity):
     )
     if result.returncode:
         raise RuntimeError("Sops decryption failed")
-    secrets = json.loads(result.stdout)
-    policy = json.loads(policy_file.read_text())
-    options = policy["rustdesk"]["options"]
-    password = secrets.get("rustdesk-password")
-    if not isinstance(password, str) or not password:
-        raise RuntimeError("RustDesk password is missing")
-    configure_rustdesk(RUSTDESK, password, STATE / "rustdesk-state", options)
-    auth_key = secrets.get("tailscale-auth-key")
+    return json.loads(result.stdout)
+
+
+def enroll_tailscale(binary, hostname, auth_key, tags, runtime=None):
     # Only the enrollment CLI needs a temporary file. The password stays in memory.
-    with tempfile.TemporaryDirectory(prefix="dotfiles-remote-", dir=RUNTIME) as directory:
+    with tempfile.TemporaryDirectory(prefix="dotfiles-remote-", dir=runtime) as directory:
         auth_file = ""
         if auth_key:
             key_file = Path(directory) / "auth-key"
             key_file.write_text(auth_key)
             key_file.chmod(0o600)
             auth_file = str(key_file)
-        configure_tailscale(TAILSCALE, socket.gethostname().split(".")[0].lower(), auth_file, policy["tailscale"]["tags"])
+        configure_tailscale(binary, hostname, auth_file, tags)
+
+
+def configure_debian(policy_file, encrypted_file, identity):
+    secrets = decrypt(encrypted_file, identity)
+    policy = json.loads(policy_file.read_text())
+    options = policy["rustdesk"]["options"]
+    password = secrets.get("rustdesk-password")
+    if not isinstance(password, str) or not password:
+        raise RuntimeError("RustDesk password is missing")
+    configure_rustdesk(RUSTDESK, password, STATE / "rustdesk-state", options)
+    enroll_tailscale(
+        TAILSCALE, socket.gethostname().split(".")[0].lower(),
+        secrets.get("tailscale-auth-key"), policy["tailscale"]["tags"], RUNTIME,
+    )
+
+
+def enroll_darwin(binary, hostname, encrypted_file, identity, policy_file):
+    # bootstrap.sh runs this once per Mac; switch never touches the tailnet login.
+    if not Path(binary).is_file():
+        raise RuntimeError("Tailscale app is not installed; run ./switch.sh, open Tailscale once, then rerun ./bootstrap.sh")
+    secrets = decrypt(encrypted_file, identity)
+    tags = json.loads(policy_file.read_text())["tailscale"]["tags"]
+    enroll_tailscale(binary, hostname, secrets.get("tailscale-auth-key"), tags)
 
 
 def configure_darwin(user, password_file, policy_file):
@@ -146,7 +166,7 @@ def configure_darwin(user, password_file, policy_file):
             break
         time.sleep(0.5)
     else:
-        raise RuntimeError("RustDesk user server is not ready; rerun switch.sh after login")
+        raise RuntimeError("RustDesk user server is not ready; log in to the desktop and rerun ./switch.sh")
     options = json.loads(policy_file.read_text())["rustdesk"]["options"]
     configure_rustdesk(binary, password_file.read_text(), Path(f"/var/db/dotfiles-rustdesk/{user}"), options)
 
@@ -162,17 +182,17 @@ def main():
     debian.add_argument("policy_file", type=Path)
     debian.add_argument("encrypted_file", type=Path)
     debian.add_argument("identity", type=Path)
-    tailscale = modes.add_parser("tailscale")
-    tailscale.add_argument("binary")
-    tailscale.add_argument("hostname")
-    tailscale.add_argument("auth_key_file")
-    tailscale.add_argument("policy_file", type=Path)
+    enroll = modes.add_parser("enroll")
+    enroll.add_argument("binary")
+    enroll.add_argument("hostname")
+    enroll.add_argument("encrypted_file", type=Path)
+    enroll.add_argument("identity", type=Path)
+    enroll.add_argument("policy_file", type=Path)
     args = parser.parse_args()
-    if args.mode != "tailscale" and os.geteuid() != 0:
+    if args.mode != "enroll" and os.geteuid() != 0:
         raise RuntimeError("Remote-access configuration requires administrator privileges")
-    if args.mode == "tailscale":
-        policy = json.loads(args.policy_file.read_text())
-        configure_tailscale(args.binary, args.hostname, args.auth_key_file, policy["tailscale"]["tags"])
+    if args.mode == "enroll":
+        enroll_darwin(args.binary, args.hostname, args.encrypted_file, args.identity, args.policy_file)
     elif args.mode == "darwin":
         configure_darwin(args.user, args.password_file, args.policy_file)
     else:

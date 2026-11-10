@@ -87,7 +87,8 @@ in
       && !(disabled.launchd.daemons ? dotfiles-rustdesk)
       && !(disabledHome.sops.secrets ? rustdesk-password)
       && !(disabledHome.launchd.agents ? tailscale-config)
-      && !(lib.any (p: p.name == "dotfiles-remote-apply") disabled.environment.systemPackages)
+      && !(lib.hasInfix "remote_access.py" disabled.system.activationScripts.postActivation.text)
+      && disabled.dotfiles.setup.tailscaleEnroll.name != "dotfiles-tailscale-enroll"
       && !(disabledHome.home.activation ? vscodeLaunchServices)
       && !(withoutApps.system.defaults.CustomUserPreferences ? "com.raycast.macos")
       && !(lib.hasInfix "AppleSymbolicHotKeys -dict-add 64" withoutApps.home-manager.users.baleen.home.activation.keyboardInputSource.data)

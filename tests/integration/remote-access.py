@@ -119,6 +119,27 @@ class RemoteAccessTest(unittest.TestCase):
                 common.configure_tailscale("tailscale", "mac", "/missing")
             self.assertEqual(cli.call_count, 1)
 
+    def test_bootstrap_enrollment_needs_the_app_and_leaves_no_key_file(self):
+        policy = Path(sys.argv[2])
+        with self.assertRaises(RuntimeError), patch.object(common, "decrypt") as decrypt:
+            common.enroll_darwin("/missing/Tailscale", "mac", Path("secrets"), Path("key"), policy)
+        decrypt.assert_not_called()
+        seen = []
+
+        def configure(binary, hostname, auth_file, tags):
+            seen.append(Path(auth_file))
+            self.assertEqual(Path(auth_file).read_text(), "synthetic-auth-key")
+            self.assertEqual(Path(auth_file).stat().st_mode & 0o777, 0o600)
+            self.assertEqual(tags, ["tag:infra"])
+
+        with tempfile.TemporaryDirectory() as directory:
+            app = Path(directory) / "Tailscale"
+            app.touch()
+            with patch.object(common, "decrypt", return_value={"tailscale-auth-key": "synthetic-auth-key"}), patch.object(common, "configure_tailscale", side_effect=configure):
+                common.enroll_darwin(str(app), "mac", Path("secrets"), Path("key"), policy)
+        self.assertEqual(len(seen), 1)
+        self.assertFalse(seen[0].exists())
+
     def test_unknown_peer_does_not_launch_rustdesk(self):
         with patch.object(remote.Path, "is_file", return_value=True), patch.object(remote.subprocess, "run", return_value=subprocess.CompletedProcess([], 0, '{"BackendState":"Running","Peer":{}}')), patch.object(remote.subprocess, "Popen") as launch, patch.object(sys, "argv", ["dotfiles-remote", "unknown"]):
             with self.assertRaises(ValueError):
