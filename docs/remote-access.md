@@ -69,8 +69,8 @@ Debian은 APT로 설치·버전을 관리하고 RustDesk·Tailscale 자체 서�
 비밀번호를 프로세스 인자로 전달하므로 그 순간의 인자 노출까지 제거한 구성은 아니다.
 
 Tailscale은 기존 로그인과 기기 identity를 보존한다. 사용자 의도로 중지한 세션도 강제로
-다시 연결하지 않는다. 신규 가입 자격증명은 macOS에서 bootstrap이, Debian에서는 switch가 기존 identity로
-복호화해 적용 중에만 전용 임시 파일로 쓰고 삭제한다. 자격증명이
+다시 연결하지 않는다. 신규 가입은 macOS·Debian 모두 bootstrap이 기존 identity로 복호화해 가입 중에만 전용
+임시 파일로 쓰고 삭제한다. switch는 가입하지 않는다. 자격증명이
 없거나 회수됐거나 기기 승인이 대기 중이면 적용이 실패로 끝난다. 성공했다고 보고하지 않는다.
 
 macOS 화면 녹화·손쉬운 사용 권한과 최초 VPN 확장 승인은 별도다. 새 Mac은 bootstrap 때

@@ -83,6 +83,8 @@ print(json.dumps({'BackendState': 'Running', 'Self': {'HostName': 'debian-test'}
             with patch.multiple(driver, STATE=state, RUNTIME=runtime, SOPS=shutil.which("sops"), RUSTDESK=str(binary), TAILSCALE=str(tailscale)), patch.object(driver.socket, "gethostname", return_value="debian-test"):
                 driver.configure_debian(root / "configuration.json", root / "secrets.json", identity)
                 driver.configure_debian(root / "configuration.json", root / "secrets.json", identity)
+                # The tailscale double fails on anything but a status query.
+                driver.enroll_debian(root / "configuration.json", root / "secrets.json", identity)
                 applied = json.loads(binary.with_suffix(".json").read_text())
                 self.assertEqual(applied["passwordCalls"], 1)
                 self.assertEqual(applied["options"]["direct-server"], "Y")

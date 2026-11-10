@@ -24,8 +24,9 @@ APT로 RustDesk·Tailscale·sops·age를 설치한다. 필요한 버전이 이�
 `.deb`를 다시 다운로드하지 않으며, 높은 버전은 내리지 않는다. 버전·SHA-256·공통 접속
 정책은 `machines/remote-access.json`에 선언한다. Tailscale은 공식 서명된 stable APT
 저장소를 사용한다. 서비스의 자동 시작·재시작은 설치 단계에서 억제한다. 신규 서비스는 비활성 상태로
-준비하고, 기존 서비스의 실행 상태와 시작 정책은 보존한다. switch가 두 서비스를
-활성화하고 시작한다.
+준비하고, 기존 서비스의 실행 상태와 시작 정책은 보존한다. 설치가 끝나면 bootstrap이
+`tailscaled`를 활성화하고 tailnet에 한 번 가입한다. switch는 RustDesk를 활성화하고 설정을
+맞추며 Tailscale 가입은 하지 않는다([ADR 0005](../../docs/adr/0005-remote-access-enroll-in-bootstrap-converge-in-switch.md)).
 
 기존 `~/.config/sops/age/keys.txt` 또는 `SOPS_AGE_KEY_FILE`의 identity를 사용한다.
 bootstrap은 키가 없으면 고정된 1Password CLI를 설치하고 기존 `dotfiles/sops` 항목에서 복원한다.
@@ -37,7 +38,7 @@ identity를 별도 root 디렉터리에 복사하지 않는다.
 키만 `/run`의 root 전용 임시 디렉터리에 기록한 뒤 성공·실패 모두 제거한다.
 RustDesk 공식 CLI의 프로세스 인자에는 적용 순간 비밀번호가 포함된다. 명령 출력은 숨긴다.
 
-신규 Tailscale 가입에는 공유 sops 파일의 `tailscale-auth-key`를 사용한다. 가입 전용
+신규 Tailscale 가입은 bootstrap에서 공유 sops 파일의 `tailscale-auth-key`를 사용한다. 가입 전용
 OAuth secret과 `tag:infra`가 선언되어 있다. 자격증명을 사용할 수 없거나 기기 승인이
 대기 중이면 실패를 반환한다. 기존 로그인·중지 상태·기기 ID는 보존한다.
 

@@ -75,9 +75,9 @@ esac''')
         source.write_text(source.read_text().replace('/etc/os-release', str(self.root / 'os-release')))
         (self.root / "scripts/lib/remote_access.py").write_text(
             "import os, pathlib, sys\n"
-            "assert sys.argv[1] == 'debian'\n"
+            "assert sys.argv[1] in ('debian', 'debian-enroll')\n"
             "assert pathlib.Path(sys.argv[-1]).is_file()\n"
-            "pathlib.Path(os.environ['FIXTURE'], 'remote-applied').touch()\n"
+            "pathlib.Path(os.environ['FIXTURE'], 'remote-' + sys.argv[1]).touch()\n"
             "sys.exit(int(os.environ.get('REMOTE_FAILURE', '0')))\n"
         )
 
@@ -122,13 +122,18 @@ esac''')
         self.assertEqual(self.key.stat().st_mode & 0o777, 0o600)
         self.assertEqual(list(self.key.parent.iterdir()), [self.key])
         calls = (self.root / "calls").read_text()
-        self.assertNotIn("enable --now", calls)
-        for unit in ("rustdesk.service", "tailscaled.service"):
-            self.assertEqual((self.root / f"{unit}.state").read_text().strip(), "disabled")
-        self.assertFalse((self.root / "remote-applied").exists())
+        # Bootstrap joins the tailnet (docs/adr/0005); RustDesk waits for switch.
+        enables = [line for line in calls.splitlines() if "enable --now" in line]
+        self.assertEqual(enables, ["systemctl enable --now tailscaled.service"])
+        self.assertEqual((self.root / "tailscaled.service.state").read_text().strip(), "enabled")
+        self.assertEqual((self.root / "rustdesk.service.state").read_text().strip(), "disabled")
+        self.assertTrue((self.root / "remote-debian-enroll").exists())
+        self.assertFalse((self.root / "remote-debian").exists())
         (self.root / "calls").unlink()
+        (self.root / "remote-debian-enroll").unlink()
         self.cli("switch")
-        self.assertTrue((self.root / "remote-applied").exists())
+        self.assertTrue((self.root / "remote-debian").exists())
+        self.assertFalse((self.root / "remote-debian-enroll").exists())
         self.assertNotIn("apt-get", (self.root / "calls").read_text())
         self.bootstrap()
         self.assertEqual(self.key.read_bytes(), self.original.read_bytes())
@@ -141,7 +146,8 @@ esac''')
         self.cli("switch", success=False)
         self.bootstrap(success=False)
         self.assertEqual(self.key.read_text(), "invalid")
-        self.assertFalse((self.root / "remote-applied").exists())
+        self.assertFalse((self.root / "remote-debian").exists())
+        self.assertFalse((self.root / "remote-debian-enroll").exists())
 
     def test_bootstrap_preserves_enabled_services(self):
         self.existing_key()
@@ -175,6 +181,7 @@ esac''')
         self.existing_key()
         self.env["REMOTE_FAILURE"] = "23"
         self.cli("switch", success=False)
+        self.bootstrap(success=False)
         for arguments in (("--check",), ("switch", "--age-key-file", str(self.key)), ("bootstrap", "--build")):
             self.cli(*arguments, success=False)
 
