@@ -20,7 +20,8 @@ class DebianStages(unittest.TestCase):
         self.root = Path(self.directory.name)
         for name in ("machines/debian", "scripts/lib", "secrets", "bin", "home"):
             (self.root / name).mkdir(parents=True)
-        for name in ("machines/debian/apply.py", "machines/debian/apply.sh", "scripts/lib/identity.py"):
+        for name in ("machines/debian/apply.py", "machines/debian/apply.sh", "machines/syncthing.json",
+                     "scripts/lib/identity.py"):
             shutil.copy2(REPO / name, self.root / name)
         self.key = self.root / "home/.config/sops/age/keys.txt"
         self.original = self.root / "original"
@@ -58,6 +59,13 @@ printf 'apt-get %s\\n' "$*" >> "$FIXTURE/calls"
 ''')
         self.stub("sudo", '[ "$1" != -- ] || shift; exec "$@"')
         self.stub("install", 'printf "install %s\\n" "$*" >> "$FIXTURE/calls"')
+        self.stub("syncthing", '''
+printf 'syncthing %s\\n' "$*" >> "$FIXTURE/calls"
+case "$*" in
+ "cli show system") echo '{"myID": "SYNTHETIC-ID"}' ;;
+ "cli config folders list") echo "${WIKI_FOLDER:-}" ;;
+ "cli config folders wiki path get") echo "${WIKI_PATH:-}" ;;
+esac''')
         self.stub("op", '''
 case "$1" in
  --version | whoami) exit 0 ;;
@@ -131,10 +139,17 @@ esac''')
         self.assertFalse((self.root / "remote-debian").exists())
         (self.root / "calls").unlink()
         (self.root / "remote-debian-enroll").unlink()
-        self.cli("switch")
+        result = self.cli("switch")
         self.assertTrue((self.root / "remote-debian").exists())
         self.assertFalse((self.root / "remote-debian-enroll").exists())
-        self.assertNotIn("apt-get", (self.root / "calls").read_text())
+        calls = (self.root / "calls").read_text()
+        self.assertNotIn("apt-get", calls)
+        hub = json.loads((REPO / "machines/syncthing.json").read_text())["hub"]
+        self.assertIn("enable --now syncthing@", calls)
+        self.assertIn("folders add --id wiki", calls)
+        for device in hub.values():
+            self.assertIn(f"folders wiki devices add --device-id {device}", calls)
+        self.assertIn("SYNTHETIC-ID", result.stdout)
         self.bootstrap()
         self.assertEqual(self.key.read_bytes(), self.original.read_bytes())
 
@@ -176,6 +191,12 @@ esac''')
         self.assertIn("destination now exists", result.stderr)
         self.assertEqual(self.key.read_text(), "competing\n")
         self.assertEqual(list(self.key.parent.iterdir()), [self.key])
+
+    def test_wiki_folder_pointing_elsewhere_is_not_shared(self):
+        self.existing_key()
+        self.env.update(WIKI_FOLDER="wiki", WIKI_PATH="/elsewhere")
+        self.cli("switch", success=False)
+        self.assertNotIn("folders wiki devices add", (self.root / "calls").read_text())
 
     def test_remote_failure_is_propagated_and_old_options_are_rejected(self):
         self.existing_key()
