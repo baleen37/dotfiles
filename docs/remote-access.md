@@ -44,8 +44,8 @@ Debian 네이티브 영역을 담당하고 기존 Nix 기반은 그대로 유지
 
 ## 설치와 앱 설정
 
-macOS는 `switch.sh`가 Nix·Homebrew와 사용자 launch agent를 적용한 뒤
-`dotfiles-remote-apply`를 한 번 실행한다. RustDesk 관리자 설정은 현재 시스템 프로필의
+macOS의 `switch.sh`는 원격 접속 설정을 적용하지 않는다. 처음 설정하거나 정책·비밀 값이
+바뀌었을 때 `dotfiles-remote-apply`를 직접 한 번 실행한다. RustDesk 관리자 설정은 현재 시스템 프로필의
 고정된 `dotfiles-remote-configure`로 수행하며 일반 sudo 관리자 인증을 요구한다.
 사용자 소유 앱과 시크릿 경로를 읽으므로 비밀번호 없는 sudo 예외는 추가하지 않는다.
 RustDesk 사용자 서버 준비는 최대 10초 기다린 뒤 실패를 반환한다.

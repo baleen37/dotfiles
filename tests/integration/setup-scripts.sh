@@ -313,9 +313,7 @@ expect_failure bash ./bootstrap.sh
 ! grep -q ' build ' "$workspace/nix.log"
 # Build-only, standalone HM and minimal hosts need no app-management consent.
 write_stub "$workspace/current-system/sw/bin/dotfiles-remote-apply" << 'STUB'
-grep -q 'darwin-rebuild.*switch --flake' "$TEST_STATE/sudo.log"
 touch "$TEST_STATE/remote-applied"
-[ "${TEST_REMOTE_FAIL:-0}" = 0 ]
 STUB
 rm "$workspace/permissions.log" "$workspace/settings.log"
 bash ./switch.sh --build > "$workspace/output" 2>&1
@@ -330,7 +328,8 @@ rm "$workspace/sudo.log"
 export TEST_APP_MANAGEMENT_REQUIRED=true TEST_PERMISSION_STATUS=granted
 bash ./switch.sh > "$workspace/output" 2>&1
 grep -q 'darwin-rebuild.*switch --flake' "$workspace/sudo.log"
-[ -e "$workspace/remote-applied" ]
+# Remote-access settings ask for sudo; switch leaves them to dotfiles-remote-apply.
+[ ! -e "$workspace/remote-applied" ]
 [ ! -e "$workspace/activated" ]
 [ ! -e "$(cat "$workspace/source-path")" ]
 # Changing the checkout after preflight cannot change the activated source.
@@ -340,11 +339,6 @@ bash ./switch.sh > "$workspace/output" 2>&1
 grep -qx 'changed after preflight' new-module.nix
 cp "$workspace/expected-module" new-module.nix
 unset TEST_SOURCE_MUTATION
-# App settings must finish before the CLI reports a successful switch.
-export TEST_REMOTE_FAIL=1
-expect_failure bash ./switch.sh
-! grep -q 'Configuration applied successfully' "$workspace/output"
-export TEST_REMOTE_FAIL=0
 # Evaluation failures must not be mistaken for a disabled Homebrew module.
 rm "$workspace/sudo.log"
 export TEST_HOMEBREW_EVAL_FAIL=1
