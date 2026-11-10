@@ -59,3 +59,10 @@ RustDesk의 설정용 사용자 `--server`가 준비된 데스크톱 세션이 �
 
 실제 Debian 12·13 ARM64의 서비스·권한 검증 결과는
 [네이티브 검증 기록](../../docs/notes/2026-11-09-debian-native-verification.md)에 있다.
+
+## ~/wiki 동기화
+
+switch는 Syncthing으로 `~/wiki`를 허브(`machines/syncthing.json`)와만 공유하고, 마지막에
+이 기기의 ID를 출력한다. 그 ID를 허브의 기기 목록에 추가해야 동기화가 시작된다.
+이 기능 이전에 준비한 호스트는 switch 전에 `./bootstrap.sh`를 다시 실행해 `syncthing`을 설치한다.
+기존 `wiki` 폴더가 `~/wiki`가 아닌 경로를 가리키면 공유하지 않고 실패한다.

@@ -61,7 +61,11 @@ printf 'apt-get %s\\n' "$*" >> "$FIXTURE/calls"
         self.stub("install", 'printf "install %s\\n" "$*" >> "$FIXTURE/calls"')
         self.stub("syncthing", '''
 printf 'syncthing %s\\n' "$*" >> "$FIXTURE/calls"
-if [ "$*" = "cli show system" ]; then echo '{"myID": "SYNTHETIC-ID"}'; fi''')
+case "$*" in
+ "cli show system") echo '{"myID": "SYNTHETIC-ID"}' ;;
+ "cli config folders list") echo "${WIKI_FOLDER:-}" ;;
+ "cli config folders wiki path get") echo "${WIKI_PATH:-}" ;;
+esac''')
         self.stub("op", '''
 case "$1" in
  --version | whoami) exit 0 ;;
@@ -187,6 +191,12 @@ esac''')
         self.assertIn("destination now exists", result.stderr)
         self.assertEqual(self.key.read_text(), "competing\n")
         self.assertEqual(list(self.key.parent.iterdir()), [self.key])
+
+    def test_wiki_folder_pointing_elsewhere_is_not_shared(self):
+        self.existing_key()
+        self.env.update(WIKI_FOLDER="wiki", WIKI_PATH="/elsewhere")
+        self.cli("switch", success=False)
+        self.assertNotIn("folders wiki devices add", (self.root / "calls").read_text())
 
     def test_remote_failure_is_propagated_and_old_options_are_rejected(self):
         self.existing_key()

@@ -166,6 +166,8 @@ def apply(key_file):
 def sync_wiki():
     # Share ~/wiki with the always-on hub only; other devices reach this one through it.
     hub = json.loads((REPO / "machines/syncthing.json").read_text())["hub"]
+    if not shutil.which("syncthing"):
+        raise RuntimeError("Syncthing is missing: run ./bootstrap.sh")
     root(["systemctl", "enable", "--now", f"syncthing@{getpass.getuser()}.service"])
     for _ in range(30):
         if subprocess.run(["syncthing", "cli", "show", "system"], capture_output=True).returncode == 0:
@@ -180,8 +182,12 @@ def sync_wiki():
     for name, device in hub.items():
         if device not in config("devices", "list").split():
             config("devices", "add", "--device-id", device, "--name", name)
+    wiki = str(Path.home() / "wiki")
     if "wiki" not in config("folders", "list").split():
-        config("folders", "add", "--id", "wiki", "--label", "wiki", "--path", str(Path.home() / "wiki"))
+        config("folders", "add", "--id", "wiki", "--label", "wiki", "--path", wiki)
+    elif config("folders", "wiki", "path", "get") != wiki:
+        # Sharing a folder that points elsewhere would sync the wrong directory.
+        raise RuntimeError(f"Syncthing folder 'wiki' does not point to {wiki}")
     for device in hub.values():
         if device not in config("folders", "wiki", "devices", "list").split():
             config("folders", "wiki", "devices", "add", "--device-id", device)
