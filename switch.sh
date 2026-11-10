@@ -74,10 +74,6 @@ done
 moved_files=()
 ACTIVATE
   fi
-  # Nix/Homebrew and user launch agents are ready before one-shot app settings.
-  if [ -x /run/current-system/sw/bin/dotfiles-remote-apply ]; then
-    /run/current-system/sw/bin/dotfiles-remote-apply
-  fi
   if [ -x /run/current-system/sw/bin/nh ]; then
     mkdir -p "$HOME/Library/Logs"
     nohup sudo -n -H /run/current-system/sw/bin/nh clean all --keep 3 \
