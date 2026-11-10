@@ -8,17 +8,12 @@ switch의 시스템 활성화가 맡는다. 별도 `dotfiles-remote-apply` 단�
 
 | 할 일 | 성격 | 맡는 곳 |
 |---|---|---|
-| age identity 받기 | 한 번 | bootstrap (원격이면 `remote-setup`이 내 Mac에서 복사) |
+| age identity 받기 | 한 번 | bootstrap |
 | Tailscale 설치·가입 | 한 번 | bootstrap |
 | RustDesk 비밀번호·옵션 | 반복, 바뀔 때만 변경 | switch의 시스템 활성화 (root) |
 
-원격 기기는 내 Mac에서 명령 하나로 들인다.
-
-```text
-remote-setup <ssh-target>
-  내 Mac의 age identity를 대상 기기로 복사
-  ssh -t <ssh-target> './bootstrap.sh && ./switch.sh'
-```
+원격 기기도 SSH로 들어가 같은 `./bootstrap.sh`와 `./switch.sh`를 실행한다. 별도 원격 설치 명령은
+만들지 않는다.
 
 이유: 반복 실행은 사람 입력 없이 끝나야 하고, 한 번만 필요한 일은 등록 단계에 둔다.
 RustDesk 설정을 sudo 별도 단계로 두면 switch마다 암호를 물었다. 활성화는 이미 root로,
