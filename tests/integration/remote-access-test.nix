@@ -43,8 +43,8 @@ pkgs.runCommand "remote-access-integration"
     ];
   }
   ''
-      export PYTHONDONTWRITEBYTECODE=1
-      python3 ${./remote-access.py} ${../../scripts/lib/remote_access.py} ${../../machines/remote-access.json} ${../../users/shared/programs/tailscale-remote.py}
-      bash ${./switch-entrypoint.sh} ${../..}
-      touch "$out"
+    export PYTHONDONTWRITEBYTECODE=1
+    python3 ${./remote-access.py} ${../../scripts/lib/remote_access.py} ${../../machines/remote-access.json} ${../../users/shared/programs/tailscale-remote.py}
+    bash ${./switch-entrypoint.sh} ${../..}
+    touch "$out"
   ''
