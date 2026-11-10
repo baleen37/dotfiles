@@ -355,14 +355,12 @@ Commands, agents, skills, and hooks come from the external plugin
 [baleen37/claude-plugins](https://github.com/baleen37/claude-plugins), not from
 this repository.
 
-## Herdr Sidebar
+## Herdr
 
-`users/shared/programs/herdr.nix` links the
-[herdr-sim](https://github.com/baleen37/herdr-sim) plugin pinned in
-`flake.lock`. It adds project, branch, and PR tokens to the Agents and Spaces
-lists, and a Changes panel that `cmd+shift+c` opens and closes. To develop the plugin
-locally, run `herdr plugin link ~/dev/herdr-sim`. Switches leave a link outside
-the Nix store in place. Unlink it to go back to the pinned version.
+Only the Herdr desktop app is used. `users/shared/programs/herdr.nix` installs the
+[herdr-sim](https://github.com/baleen37/herdr-sim) build pinned in `flake.lock`
+on PATH, where the app's herdr-sim mods (Changes panel, PR icons) run it, and
+gates the `herdr-app` cask on macOS.
 
 ## Documentation
 
