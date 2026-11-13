@@ -31,10 +31,8 @@
 
 {
   config,
-  options,
   lib,
   pkgs,
-  inputs,
   ...
 }:
 
@@ -56,17 +54,6 @@ in
 
   config = lib.mkIf cfg.enable (
     lib.mkMerge [
-      # direnv-instant runs tmux in its check phase. Swap in this module's tmux
-      # so Darwin builds the same non-jemalloc tmux instead of a second one.
-      (lib.optionalAttrs (options ? programs.direnv-instant) {
-        programs.direnv-instant.package =
-          inputs.direnv-instant.packages.${pkgs.stdenv.hostPlatform.system}.default.overrideAttrs
-            (old: {
-              nativeCheckInputs = map (
-                input: if (input.pname or null) == "tmux" then config.programs.tmux.package else input
-              ) old.nativeCheckInputs;
-            });
-      })
       {
         programs.sesh = {
           enable = true;
