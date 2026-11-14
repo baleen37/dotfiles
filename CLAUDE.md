@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Nix flakes-based dotfiles system providing reproducible development environments for macOS and NixOS. Uses the evantravers user-centric architecture pattern and comprehensive TDD testing.
+Nix flakes-based dotfiles system providing reproducible development environments for macOS and NixOS. Uses mitchellh-style machine, user OS, and Home Manager composition while retaining flake-parts.
 
 ## Essential Commands
 
@@ -42,7 +42,7 @@ nix flake check --no-build --all-systems --show-trace
 
 # Build configuration closures without activation
 nix build '.#darwinConfigurations.macbook-pro.system'
-nix build '.#nixosConfigurations.wsl.config.system.build.toplevel'
+nix build '.#homeConfigurations.baleen-linux.activationPackage'
 
 # Activate a standalone Home Manager profile on Linux outside NixOS and Debian
 HM_USER=baleen-linux ./switch.sh
@@ -60,8 +60,8 @@ on any platform.
 # Darwin aarch64-darwin
 nix build '.#darwinConfigurations.macbook-pro.system'
 
-# NixOS-WSL x86_64-linux
-nix build '.#nixosConfigurations.wsl.config.system.build.toplevel'
+# Standalone Linux Home Manager x86_64-linux
+nix build '.#homeConfigurations.baleen-linux.activationPackage'
 
 ```
 
@@ -74,7 +74,7 @@ The `mkSystem` function provides unified system creation:
 - Takes `name`, `system`, `user`, `darwin`, and host modules
 - Returns darwinSystem or nixosSystem based on platform
 - Handles Home Manager integration automatically
-- Manages cache configuration for both traditional Nix and Determinate Nix
+- Imports `users/shared/darwin.nix` or `users/shared/nixos.nix` for platform policy and caches
 
 Key specialArgs passed to all modules:
 
@@ -88,10 +88,12 @@ All user configurations are in `users/shared/` using flat, tool-specific files:
 ```text
 users/shared/
 ├── home-manager.nix       # Main entry point; programs/ and packages/ are discovered by lib/home-modules.nix
-├── darwin/                # macOS system settings
-│   ├── default.nix       # Dock, Finder, masApps, primary user
-│   ├── homebrew.nix      # Homebrew casks and brews
-│   └── scripts.nix       # App cleanup and helper scripts
+├── darwin.nix             # macOS system policy (Determinate Nix, caches)
+├── nixos.nix              # NixOS system policy (Nix, GC, login shell)
+├── development.nix        # Explicit shared development-tool selection
+├── darwin/
+│   ├── system/            # Optional OS preferences, Homebrew and activation
+│   └── home/              # HM input and LaunchServices configuration
 ├── programs/             # Tool-specific configuration modules
 │   ├── git.nix          # Git configuration with aliases
 │   ├── vim.nix          # Vim/Neovim setup
@@ -123,10 +125,11 @@ Hosts are declared through the typed internal `dotfiles.hosts` option in
 and required per-host `machineModules`); `flake-modules/systems.nix` turns each entry into a
 darwinConfiguration or nixosConfiguration via `lib/mksystem.nix`.
 
-The only supported systems are Darwin `aarch64-darwin` and NixOS
-`x86_64-linux` / `aarch64-linux`. Windows is covered by the `wsl` NixOS host
-(NixOS-WSL inside WSL2) plus `machines/windows/configuration.winget` for GUI apps, which
-lives outside Nix (see `machines/windows/README.md`). `dotfiles.hosts.<name>.user` is the host system
+Registered system hosts are Darwin `aarch64-darwin`. Standalone Home Manager
+supports `x86_64-linux`; shared checks and tools also support `aarch64-linux`.
+Debian uses native APT and systemd integration under `machines/debian/`.
+Windows uses `machines/windows/configuration.winget` for native apps outside Nix
+(see `machines/windows/README.md`). `dotfiles.hosts.<name>.user` is the host system
 user declaration. `HM_USER` is separate and only selects a standalone Home
 Manager profile.
 
@@ -136,14 +139,13 @@ Hardware and system settings live under `machines/`:
 machines/
 ├── darwin/
 │   └── common.nix              # Shared by every Darwin host
-├── nixos/
-│   └── wsl.nix                 # NixOS-WSL host
+├── debian/                     # Native APT and systemd integration
 └── windows/                    # Windows side, outside Nix: winget config, SSH bootstrap
 ```
 
 Darwin hosts each register `machines/darwin/<host>.nix`. Machine files import
 `common.nix` and select apps, macOS settings and Home Manager features.
-NixOS hosts explicitly list their corresponding module under `machines/nixos/`.
+The NixOS system factory remains available, with no registered NixOS hosts.
 
 ### Testing Framework
 
@@ -253,7 +255,7 @@ pre-commit run --all-files  # Run all pre-commit hooks
 This system uses Determinate Nix installer on macOS:
 
 - `nix.enable = false` is forced by the Determinate nix-darwin module (`determinateNix.enable` defaults to true)
-- Cache settings managed via `determinateNix.customSettings` in `lib/mksystem.nix`
+- Cache settings managed via `determinateNix.customSettings` in `users/shared/darwin.nix`
 - All Nix configuration is in `/etc/nix/nix.custom.conf`
 
 ### Performance Optimizations
@@ -269,7 +271,7 @@ macOS configuration includes:
 
 GitHub Actions workflow (`.github/workflows/ci.yml`):
 
-- Runs on: Darwin `aarch64-darwin` (macOS-15), NixOS-WSL `x86_64-linux` (Ubuntu),
+- Runs on: Darwin `aarch64-darwin` (macOS-15), standalone Home Manager `x86_64-linux` (Ubuntu),
   and shared tools/checks on `aarch64-linux` (Ubuntu ARM64)
 - Pre-commit hooks validation
 - Fast container tests (Linux) or validation mode (macOS)
@@ -352,9 +354,9 @@ trusted-users = root @admin yourusername
 ### User Configuration
 
 - **users/shared/home-manager.nix**: Main user config entry point, imports all tool modules
-- **users/shared/darwin/default.nix**: macOS system settings (Dock, Finder, masApps, performance tweaks)
-- **users/shared/darwin/homebrew.nix**: Homebrew casks and brews
-- **users/shared/darwin/scripts.nix**: App cleanup and helper scripts
+- **users/shared/darwin/system/default.nix**: Optional macOS settings (Dock, Finder, performance tweaks)
+- **users/shared/darwin/system/homebrew.nix**: Shared Homebrew implementation; app selection stays in machines
+- **users/shared/darwin/system/scripts.nix**: App cleanup and helper scripts
 - **users/shared/programs/git.nix**: Git configuration with centralized user info from lib/user-info.nix
 - **users/shared/programs/vim.nix**: Vim setup with airline, tmux-navigator, relative line numbers
 - **users/shared/programs/zsh/**: Zsh environment with fzf, direnv, Claude/Codex aliases

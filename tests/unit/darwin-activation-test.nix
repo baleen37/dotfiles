@@ -19,9 +19,11 @@
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
   activation = self.darwinConfigurations.kakaostyle-jito.config.system.activationScripts;
-  systemActivationSource = builtins.readFile ../../users/shared/darwin/scripts.nix;
+  systemActivationSource = builtins.readFile ../../users/shared/darwin/system/scripts.nix;
   # hasInfix rejects a needle that carries store-path context.
-  activationScript = builtins.unsafeDiscardStringContext "${../../users/shared/darwin/activation.sh}";
+  activationScript = builtins.unsafeDiscardStringContext "${
+    ../../users/shared/darwin/system/activation.sh
+  }";
   userActivation = self.homeConfigurations."jito.hello".config.home.activation.vscodeLaunchServices;
 in
 {

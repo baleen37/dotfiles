@@ -26,16 +26,6 @@ runs:
           substituters = https://baleen-nix.cachix.org https://nix-community.cachix.org https://cache.nixos.org/
           trusted-public-keys = baleen-nix.cachix.org-1:awgC7Sut148An/CZ6TZA+wnUtJmJnOvl5NThGio9j5k= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
 
-    # Installs and authenticates cachix only. Substituters come from extra-conf
-    # above, and ci.yml pushes the built closure itself on main.
-    - name: Install cachix for pushing
-      uses: cachix/cachix-action@38b082610b782e7e93e209c35fd730d399dee866 # v17
-      with:
-        name: baleen-nix
-        authToken: ${{ inputs.cachix-auth-token }}
-        skipPush: true
-        skipAddingSubstituter: true
-
     - name: Restore Nix cache (full mode)
       if: inputs.cache-mode == 'full'
       uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
@@ -61,6 +51,16 @@ runs:
           nix-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/flake.lock') }}-v4-
           nix-${{ runner.os }}-${{ runner.arch }}-
       continue-on-error: true
+
+    # Restore user profile state before installing Cachix so a cached profile
+    # cannot replace the freshly installed CLI. ci.yml pushes closures on main.
+    - name: Install cachix for pushing
+      uses: cachix/cachix-action@38b082610b782e7e93e209c35fd730d399dee866 # v17
+      with:
+        name: baleen-nix
+        authToken: ${{ inputs.cachix-auth-token }}
+        skipPush: true
+        skipAddingSubstituter: true
 
     - name: Cache status check
       shell: bash

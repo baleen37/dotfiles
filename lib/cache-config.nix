@@ -2,7 +2,7 @@
 # Single source of truth for substituters and public keys
 #
 # Used by:
-# - lib/mksystem.nix cacheSettings (system nix.settings)
+# - users/shared/{darwin,nixos}.nix (platform Nix settings)
 # - flake.nix nixConfig duplicates these values (cannot import, must be top-level attrset)
 #
 # Performance-first order: project cache (highest hit rate) -> community -> official fallback

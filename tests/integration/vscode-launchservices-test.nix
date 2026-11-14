@@ -8,13 +8,13 @@
 
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
-  scriptPath = ../../users/shared/darwin/vscode-launchservices.sh;
+  scriptPath = ../../users/shared/darwin/home/vscode-launchservices.sh;
   scriptExists = builtins.pathExists scriptPath;
 
   behaviorTest =
     if !scriptExists then
       helpers.assertTest "vscode-launchservices-script-exists" false
-        "users/shared/darwin/vscode-launchservices.sh must exist"
+        "users/shared/darwin/home/vscode-launchservices.sh must exist"
     else
       pkgs.runCommand "test-vscode-launchservices-behavior"
         {

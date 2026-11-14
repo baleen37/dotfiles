@@ -1,6 +1,6 @@
 # tests/lib/darwin-test-helpers.nix
 #
-# Assertions over `system.defaults` in users/shared/darwin/default.nix.
+# Assertions over `system.defaults` in users/shared/darwin/system/default.nix.
 #
 # Settings are declared as attribute sets keyed by the real macOS preference
 # key, so the test name is derived from the key rather than tracked alongside it.

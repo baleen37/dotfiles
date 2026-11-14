@@ -17,8 +17,8 @@ let
   inherit (inputs.nixpkgs) lib;
   systemFunc = if darwin then inputs.darwin.lib.darwinSystem else lib.nixosSystem;
 
-  # Use shared user configuration directory (users/shared)
-  # Actual username is dynamically set via currentSystemUser
+  # Compose machine, user OS policy and user Home Manager configuration.
+  userOSConfig = if darwin then ../users/shared/darwin.nix else ../users/shared/nixos.nix;
   userHMConfig = ../users/shared/home-manager.nix;
 
   hmModule =
@@ -26,17 +26,6 @@ let
       inputs.home-manager.darwinModules.home-manager
     else
       inputs.home-manager.nixosModules.home-manager;
-
-  # Unified cache configuration for both Determinate Nix and traditional Nix
-  cacheConfig = import ./cache-config.nix;
-  cacheSettings = cacheConfig // {
-    # A trusted user is root-equivalent (nix.conf manual), so trust only the
-    # host user instead of every member of @admin / @wheel.
-    trusted-users = [
-      "root"
-      user
-    ];
-  };
 
 in
 systemFunc {
@@ -53,52 +42,7 @@ systemFunc {
   ]
   ++ machineModules
   ++ [
-
-    # Nix configuration
-    (
-      { lib, ... }:
-      {
-        # Traditional Nix settings (Linux systems)
-        nix.settings = lib.mkIf (!darwin) (
-          cacheSettings
-          // {
-            trusted-substituters = cacheSettings.substituters;
-          }
-        );
-        nix.gc = lib.mkIf (!darwin) {
-          automatic = true;
-          dates = "daily";
-          options = "--delete-older-than 7d";
-        };
-      }
-    )
-  ]
-  ++ lib.optionals (!darwin) [
-    # Home Manager configures zsh; NixOS still logs users into bash by default.
-    (
-      { pkgs, ... }:
-      {
-        programs.zsh = {
-          enable = true;
-          # See machines/darwin/common.nix: Home Manager's .zshrc owns both.
-          enableGlobalCompInit = false;
-          promptInit = "";
-        };
-        users.users.${user}.shell = pkgs.zsh;
-      }
-    )
-  ]
-  ++ lib.optionals darwin [
-    # Determinate Nix integration (Darwin systems only)
-    inputs.determinate.darwinModules.default
-    {
-      determinateNix = {
-        customSettings = cacheSettings;
-        determinateNixd.garbageCollector.strategy = "automatic";
-      };
-    }
-  ]
-  ++ [
+    userOSConfig
     # Home Manager integration
     hmModule
     {

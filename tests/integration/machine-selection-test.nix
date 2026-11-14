@@ -32,6 +32,7 @@ let
             programs.karabiner.enable = lib.mkForce false;
             programs.rustdesk.enable = lib.mkForce false;
             programs.tailscale.enable = lib.mkForce false;
+            programs.terraform.enable = lib.mkForce false;
             darwin.vscode.enable = lib.mkForce false;
             darwin.keyboard-input.enable = lib.mkForce false;
           };
@@ -109,8 +110,13 @@ in
       && launchesRaycast self.darwinConfigurations.macbook-pro.config
     ) "removing Raycast must remove its Cmd+Space mapping while preserving Karabiner")
     (helpers.assertTest "host-isolation" (
-      self.darwinConfigurations.baleen-macbook.config.home-manager.users.baleen.modules.programs.hammerspoon.enable
+      !(disabledHome.home.file ? ".terraformrc")
+      && !(disabledHome.home.activation ? terraformPluginCache)
+      && self.darwinConfigurations.baleen-macbook.config.home-manager.users.baleen.modules.programs.hammerspoon.enable
+      && self.darwinConfigurations.baleen-macbook.config.home-manager.users.baleen.home.file
+        ? ".terraformrc"
+      && self.homeConfigurations.baleen.config.home.file ? ".terraformrc"
       && self.darwinConfigurations.baleen-macbook.config.homebrew.casks != [ ]
-    ) "changing one host must not alter another host")
+    ) "disabling a shared development feature must remove its effects only on the selected host")
   ];
 }

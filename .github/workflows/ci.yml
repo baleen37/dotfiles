@@ -35,11 +35,12 @@ jobs:
             os: macos-15
             arch: aarch64
             closure-attr: .#darwinConfigurations.macbook-pro.system
-          - name: NixOS-WSL x86_64-linux
+          - name: Linux Home Manager x86_64-linux
+            # Preserve existing required-check names in branch protection.
             check-name: NixOS x86_64-linux
             os: ubuntu-latest
             arch: x86_64
-            closure-attr: .#nixosConfigurations.wsl.config.system.build.toplevel
+            closure-attr: .#homeConfigurations.baleen-linux.activationPackage
           - name: Linux tools aarch64-linux
             check-name: NixOS aarch64-linux
             os: ubuntu-24.04-arm

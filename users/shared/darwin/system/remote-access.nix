@@ -12,14 +12,14 @@ let
   home = config.home-manager.users.${currentSystemUser};
   rustdeskEnabled = home.modules.programs.rustdesk.enable;
   python = "${pkgs.python3}/bin/python3";
-  driver = ../../../scripts/lib/remote_access.py;
-  policy = ../../../machines/remote-access.json;
+  driver = ../../../../scripts/lib/remote_access.py;
+  policy = ../../../../machines/remote-access.json;
   enroll = pkgs.writeShellApplication {
     name = "dotfiles-tailscale-enroll";
     runtimeInputs = [ pkgs.sops ];
     text = ''
       ${python} ${driver} enroll /Applications/Tailscale.app/Contents/MacOS/Tailscale \
-        ${lib.escapeShellArg (lib.toLower currentSystemName)} ${../../../secrets/remote-access.json} \
+        ${lib.escapeShellArg (lib.toLower currentSystemName)} ${../../../../secrets/remote-access.json} \
         ${lib.escapeShellArg home.sops.age.keyFile} ${policy} \
         || echo 'Tailscale enrollment skipped; follow the message above, then rerun ./bootstrap.sh.' >&2
     '';

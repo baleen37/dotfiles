@@ -68,11 +68,18 @@ def preserve_service_startup():
 
 
 def download(asset, destination):
-    with urllib.request.urlopen(asset["url"], timeout=60) as response:
-        data = response.read()
-    if hashlib.sha256(data).hexdigest() != asset["sha256"]:
-        raise RuntimeError("Installer checksum mismatch")
-    destination.write_bytes(data)
+    digest = hashlib.sha256()
+    with tempfile.TemporaryFile() as staged:
+        with urllib.request.urlopen(asset["url"], timeout=60) as response:
+            while chunk := response.read(1024 * 1024):
+                digest.update(chunk)
+                staged.write(chunk)
+        if digest.hexdigest() != asset["sha256"]:
+            raise RuntimeError("Installer checksum mismatch")
+        # Preserve the destination until verification succeeds, including its mode.
+        staged.seek(0)
+        with destination.open("wb") as target:
+            shutil.copyfileobj(staged, target)
 
 
 def install(config, key_file):

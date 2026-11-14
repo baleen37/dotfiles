@@ -1,14 +1,14 @@
 # Nix Dotfiles
 
-Nix flakes-based dotfiles that build reproducible macOS (nix-darwin) and NixOS
-systems, plus standalone Home Manager profiles, from one shared user
-configuration. Tests are Nix derivations: `make test-build` executes unit and integration
-checks; NixOS VM tests require Linux with KVM.
+Nix flakes-based dotfiles for macOS (nix-darwin) and standalone Linux Home
+Manager profiles, with native Debian and Windows integration. Tests are Nix
+derivations: `make test-build` executes unit and integration checks; NixOS VM
+tests require Linux with KVM.
 
 ## Highlights
 
-- **Host platforms**: macOS `aarch64-darwin` and NixOS-WSL `x86_64-linux`; shared checks and tools also support `aarch64-linux`
-- **Windows**: NixOS-WSL (`wsl` host) inside WSL2, plus GUI apps from `winget configure` — see [machines/windows/README.md](machines/windows/README.md)
+- **Host platforms**: macOS `aarch64-darwin`, standalone Linux Home Manager `x86_64-linux`, and native Debian; shared checks and tools also support `aarch64-linux`
+- **Windows**: native apps from `winget configure` — see [machines/windows/README.md](machines/windows/README.md)
 - **Native remote access**: bootstrap prepares APT packages on Debian; `./switch.sh` applies Nix/Homebrew on macOS and shared sops-backed policy — see [docs/remote-access.md](docs/remote-access.md)
 - **Typed host declarations**: every machine is one entry in `flake-modules/hosts.nix`
 - **One user configuration**: `users/shared/` is shared by every host and Home Manager profile
@@ -109,18 +109,17 @@ existing policies. See [ADR 0003](docs/adr/0003-passwordless-repeat-bootstrap-an
 
 ### Hosts and profiles
 
-| Output                                    | Names                                              |
-| ----------------------------------------- | -------------------------------------------------- |
-| `darwinConfigurations` (`aarch64-darwin`) | `macbook-pro`, `baleen-macbook`, `kakaostyle-jito` |
-| `nixosConfigurations`                     | `wsl`                                              |
-| `homeConfigurations`                      | `baleen`, `jito.hello`, `testuser`, `baleen-linux` |
+| Output                                    | Names                                                               |
+| ----------------------------------------- | ------------------------------------------------------------------- |
+| `darwinConfigurations` (`aarch64-darwin`) | `macbook-pro`, `baleen-macbook`, `baleen-m2-pro`, `kakaostyle-jito` |
+| `homeConfigurations`                      | `baleen`, `jito.hello`, `testuser`, `baleen-linux`                  |
 
 Host users are declared in `flake-modules/hosts.nix`. `HM_USER` selects only a
 standalone Home Manager output; it does not change a host's system user.
 On Linux outside NixOS and Debian, standalone mode is selected automatically.
 Without `HM_USER`, it selects the unique profile matching the login
 user and platform. An explicit profile for a different platform is rejected.
-For Windows/WSL installation, follow [the platform guide](machines/windows/README.md).
+For Windows installation, follow [the platform guide](machines/windows/README.md).
 
 ### Nix Cache Behavior
 
@@ -139,10 +138,10 @@ make update                          # Update flake inputs (nix flake update)
 
 ### Platform Capability Matrix
 
-| Make target         | Darwin (`aarch64-darwin`) | NixOS (`x86_64-linux`) | NixOS (`aarch64-linux`) |
+| Make target         | Darwin (`aarch64-darwin`) | Linux (`x86_64-linux`) | Linux (`aarch64-linux`) |
 | ------------------- | :-----------------------: | :--------------------: | :---------------------: |
 | **Core Operations** |                           |                        |                         |
-| switch              |            ✅             |           ✅           |           ✅            |
+| switch              |            ✅             |           ✅           |           ❌            |
 | format              |            ✅             |           ✅           |           ✅            |
 | **Testing**         |                           |                        |                         |
 | test                |            ✅             |           ✅           |           ✅            |
@@ -192,7 +191,12 @@ by these scripts.
 
 ## Architecture
 
-The package and overlay layout follows [Misterio77’s standard template](https://github.com/Misterio77/nix-starter-configs/tree/main/standard). Existing flake-parts, host, and user modules remain in place.
+System composition follows [mitchellh/nixos-config](https://github.com/mitchellh/nixos-config): a machine module, a user OS module, and a Home Manager module. Flake-parts continues to assemble the outputs, and the package/overlay layout retains [Misterio77’s standard template](https://github.com/Misterio77/nix-starter-configs/tree/main/standard):
+
+- Define custom packages in `pkgs/` and named overlays in `overlays/`.
+- Assemble flake outputs in `flake-modules/`; keep shared configuration logic in `lib/`.
+- Select host-specific features in `machines/` and keep shared user configuration in `users/shared/`.
+- Add public `modules/nixos/` or `modules/home-manager/` outputs only when another repository needs reusable modules. Do not add empty directories or move files solely to match the template.
 
 ### Directory Structure
 
@@ -220,11 +224,16 @@ dotfiles/
 │   │   ├── macbook-pro.nix    # Per-host apps and user features
 │   │   ├── baleen-macbook.nix
 │   │   └── kakaostyle-jito.nix
-│   ├── nixos/             # NixOS-WSL host
+│   ├── debian/            # Native Debian preparation and service application
 │   └── windows/           # winget configuration for the Windows side (not Nix)
 ├── users/shared/
 │   ├── home-manager.nix   # Home Manager entry point
-│   ├── darwin/            # macOS system settings, Homebrew casks, scripts
+│   ├── darwin.nix         # macOS system policy (Determinate Nix and caches)
+│   ├── nixos.nix          # NixOS system policy (Nix, GC, login shell)
+│   ├── development.nix    # Explicit shared development-tool selection
+│   ├── darwin/
+│   │   ├── system/       # Optional macOS preferences, Homebrew and activation
+│   │   └── home/         # macOS Home Manager input and LaunchServices settings
 │   ├── programs/          # One file (or directory) per tool; .config/ holds raw config files
 │   └── packages/          # Categorized package lists (core, dev, cloud, ai, ...)
 └── tests/               # unit/, integration/, containers/, lib/
@@ -246,12 +255,16 @@ outside the repository and never track it.
    (`darwin` or `nixos`), system `user`, `machineModules`, and optional
    `homeModules` overrides.
 2. `flake-modules/systems.nix` passes each entry to `lib/mksystem.nix`.
-3. `lib/mksystem.nix` builds a `darwinSystem` or `nixosSystem` and wires in
-   Home Manager with `users/shared/home-manager.nix`.
+3. `lib/mksystem.nix` combines machine modules, `users/shared/darwin.nix` or
+   `users/shared/nixos.nix`, and Home Manager with `users/shared/home-manager.nix`.
 4. `lib/home-modules.nix` imports every module under `users/shared/programs/`
    and `users/shared/packages/`. Optional features default to off. Machine files select
    `modules.<category>.<name>.enable` under `home-manager.users.${currentSystemUser}`.
    New hosts receive Zsh, Git, the SSH client and age.
+
+Development hosts explicitly import `users/shared/development.nix` into their
+Home Manager configuration. Standalone Home Manager profiles use the same
+selection; machine-specific apps and extra features stay in machine files.
 
 ## Customization
 
@@ -290,7 +303,7 @@ Create `machines/darwin/newmachine.nix` with the minimal system import:
 }
 ```
 
-Import `../../users/shared/darwin` to select the shared macOS preferences,
+Import `../../users/shared/darwin/system` to select the shared macOS preferences,
 power daemon and cleanup scripts, then declare apps and user features in this
 machine file. Bootstrap registers only the minimal `common.nix` import and
 prepares a valid age identity before reporting readiness.
@@ -316,8 +329,8 @@ The NixOS VM tests live in `tests/containers/` (smoke, basic system, services,
 packages) and are registered explicitly in `tests/default.nix`.
 
 CI (`.github/workflows/ci.yml`) runs pre-commit, `make test-build`, and a closure
-build on Darwin `aarch64-darwin` and NixOS-WSL `x86_64-linux`, plus bootstrap
-tools on `aarch64-linux`, then pushes successful builds to Cachix.
+build on Darwin `aarch64-darwin` and standalone Home Manager `x86_64-linux`,
+plus bootstrap tools on `aarch64-linux`, then pushes successful builds to Cachix.
 
 ## Baleen Toolkit
 
@@ -382,4 +395,4 @@ leave the VM tests to CI.
 
 ---
 
-_Nix flakes + evantravers pattern for declarative, reproducible environments._
+_Nix flakes + flake-parts, with mitchellh-style system composition and a standard package/overlay layout._

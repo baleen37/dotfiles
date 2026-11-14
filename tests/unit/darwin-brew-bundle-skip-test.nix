@@ -1,5 +1,5 @@
 # Guards the stamp that lets activation skip an unchanged `brew bundle`
-# (users/shared/darwin/homebrew.nix).
+# (users/shared/darwin/system/homebrew.nix).
 #
 # Both ways it can break are silent: if the replaced script stops running
 # nix-darwin's bundle command, new casks never install; if the stamp key stops
