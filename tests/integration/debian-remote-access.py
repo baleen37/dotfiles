@@ -1,5 +1,6 @@
 import hashlib
 import importlib.util
+import io
 import json
 import os
 from pathlib import Path
@@ -26,18 +27,36 @@ driver = load("driver", REPO / "scripts/lib/remote_access.py")
 
 
 class DebianRemoteAccessTest(unittest.TestCase):
+    def test_download_reads_in_bounded_chunks(self):
+        payload = b"x" * (2 * 1024 * 1024) + b"last chunk"
+
+        class BoundedResponse(io.BytesIO):
+            def read(self, size=-1):
+                if not 0 < size <= 1024 * 1024:
+                    raise AssertionError("download must read at most 1 MiB at a time")
+                return super().read(size)
+
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / "installer"
+            asset = {"url": "https://example.invalid/installer", "sha256": hashlib.sha256(payload).hexdigest()}
+            with patch.object(installer.urllib.request, "urlopen", return_value=BoundedResponse(payload)):
+                installer.download(asset, target)
+            self.assertEqual(target.read_bytes(), payload)
+
     def test_checksum_failure_preserves_existing_file(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             source, target = root / "source", root / "target"
             source.write_text("untrusted-installer")
             target.write_text("existing-binary")
+            target.chmod(0o640)
             with self.assertRaises(RuntimeError):
                 installer.download({"url": source.as_uri(), "sha256": "0" * 64}, target)
             self.assertEqual(target.read_text(), "existing-binary")
             digest = hashlib.sha256(source.read_bytes()).hexdigest()
             installer.download({"url": source.as_uri(), "sha256": digest}, target)
             self.assertEqual(target.read_bytes(), source.read_bytes())
+            self.assertEqual(target.stat().st_mode & 0o777, 0o640)
 
     def test_decryption_to_service_commands_repeat_apply_and_failure(self):
         with tempfile.TemporaryDirectory() as directory:
