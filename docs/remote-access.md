@@ -39,8 +39,8 @@ OAuth에는 `ephemeral=false&preauthorized=true`를 지정해 지속적으로 �
 | 공통 원격 접속 정책    | `machines/remote-access.json` | `scripts/lib/remote_access.py`로 한 번 적용 |
 
 Debian의 Nix 사용자 환경과 네이티브 앱 설치는 서로 덮어쓰지 않는다. 이번 `switch.sh`는
-Debian 네이티브 영역을 담당하고 기존 Nix 기반은 그대로 유지한다. Windows·WSL 기존 구성은
-변경하지 않으며, UTM 호스트는 제거했다. 별도 RustDesk 서버는 설치하지 않는다.
+Debian 네이티브 영역을 담당하고 기존 Nix 기반은 그대로 유지한다. Windows 네이티브 앱은
+`winget configure`로 별도 관리한다. 별도 RustDesk 서버는 설치하지 않는다.
 
 ## 설치와 앱 설정
 

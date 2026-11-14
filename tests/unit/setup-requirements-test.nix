@@ -30,7 +30,7 @@ let
     }
   ];
   password = requirements [ { programs._1password-gui.enable = true; } ];
-  nixos = self.nixosConfigurations.wsl.config.dotfiles.setup;
+  nixos = (import ../lib/nixos-fixture.nix { inherit inputs self; }).config.dotfiles.setup;
   overridden =
     builtins.tryEval
       (requirements [ { dotfiles.setup.appManagementRequired = false; } ]).appManagementRequired;

@@ -1,26 +1,15 @@
 # yaml-language-server: $schema=https://aka.ms/configuration-dsc-schema/0.2
 #
-# Windows side of the dotfiles: GUI apps and the WSL2 platform. Nix does not run
-# on Windows, so this is the Windows counterpart of users/shared/darwin/homebrew.nix.
+# Windows side of the dotfiles: native apps. Nix does not run
+# on Windows, so this is the Windows counterpart of the Darwin machine app lists.
 #
 #   winget configure validate -f machines/windows/configuration.winget   # static check
 #   winget configure test -f machines/windows/configuration.winget       # diff against this machine
 #   winget configure -f machines/windows/configuration.winget            # apply (admin terminal)
 #
-# WSL: the Microsoft.WSL package below installs WSL itself; `wsl --install` enables the
-# Windows features it needs (reboot once). PSDscResources/WindowsOptionalFeature is not used
-# because it fails under winget's DSC host with "Class not registered" (seen on Windows 11 26200).
 properties:
   configurationVersion: 0.2.0
   resources:
-    - resource: Microsoft.WinGet.DSC/WinGetPackage
-      id: wsl
-      directives:
-        description: Install WSL
-        securityContext: elevated
-      settings:
-        id: Microsoft.WSL
-        source: winget
     - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: vscode
       directives:

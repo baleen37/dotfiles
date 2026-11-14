@@ -4,10 +4,10 @@
 # source alone: what the module list actually resolves to after the NixOS /
 # nix-darwin module system has merged everything.
 #
-# Assertions go through self.nixosConfigurations / self.darwinConfigurations
-# rather than calling mkSystem with synthetic host names, so what is checked is
-# the configuration a machine really gets.
+# A test-only NixOS fixture exercises the shared system factory even when no
+# NixOS machines are registered for deployment.
 {
+  inputs,
   pkgs,
   lib,
   self,
@@ -17,7 +17,7 @@
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
   cacheConfig = import ../../lib/cache-config.nix;
-  nixos = self.nixosConfigurations.wsl.config;
+  nixos = (import ../lib/nixos-fixture.nix { inherit inputs self; }).config;
   trustedUsers = nixos.nix.settings.trusted-users;
   trustedSubs = nixos.nix.settings.trusted-substituters;
 
@@ -51,7 +51,7 @@ in
     )) "NixOS GC should keep a 7 day retention window; got ${gcReport}")
 
     (helpers.assertTest "nixos-trusts-the-host-user" (
-      lib.elem "root" trustedUsers && lib.elem "baleen" trustedUsers
+      lib.elem "root" trustedUsers && lib.elem "testuser" trustedUsers
     ) "NixOS nix.settings.trusted-users must include root and the host user so the cache is usable")
 
     # A trusted user is root-equivalent; a group entry hands that to every member.

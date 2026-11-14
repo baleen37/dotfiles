@@ -7,7 +7,7 @@ die() {
   exit 1
 }
 nix_cmd() { nix --extra-experimental-features 'nix-command flakes' --accept-flake-config "$@"; }
-# NixOS always keeps its system backend, including when hosted inside WSL.
+# NixOS always keeps its system backend.
 is_debian() {
   [ "$(uname -s)" = Linux ] && [ ! -e /etc/NIXOS ] && [ -r /etc/os-release ] && (
     . /etc/os-release

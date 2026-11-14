@@ -37,7 +37,7 @@ let
 
   hmUsers = host: builtins.attrValues host.config.home-manager.users;
   darwinUsers = hmUsers inputs.self.darwinConfigurations.macbook-pro;
-  nixosUsers = hmUsers inputs.self.nixosConfigurations.wsl;
+  linuxUsers = [ inputs.self.homeConfigurations.baleen-linux.config ];
 
   # attrNames is sorted, so this compares the declared module set exactly.
   importsEveryModule =
@@ -88,21 +88,21 @@ in
       "macbook-pro Home Manager config must declare exactly the modules under users/shared/packages"
     )
 
-    (helpers.assertTest "nixos-imports-every-program" (importsEveryModule "programs" nixosUsers)
-      "wsl Home Manager config must declare exactly the modules under users/shared/programs"
+    (helpers.assertTest "linux-imports-every-program" (importsEveryModule "programs" linuxUsers)
+      "Linux Home Manager config must declare exactly the modules under users/shared/programs"
     )
 
-    (helpers.assertTest "nixos-imports-every-package-category"
-      (importsEveryModule "packages" nixosUsers)
-      "wsl Home Manager config must declare exactly the modules under users/shared/packages"
+    (helpers.assertTest "linux-imports-every-package-category"
+      (importsEveryModule "packages" linuxUsers)
+      "Linux Home Manager config must declare exactly the modules under users/shared/packages"
     )
 
     (helpers.assertTest "darwin-enables-every-module" (
       enablesEvery "programs" darwinUsers && enablesEvery "packages" darwinUsers
     ) "every program and package category should be enabled on macbook-pro")
 
-    (helpers.assertTest "nixos-enables-every-package-category" (enablesEvery "packages" nixosUsers)
-      "every package category should be enabled on wsl"
+    (helpers.assertTest "linux-enables-every-package-category" (enablesEvery "packages" linuxUsers)
+      "every package category should be enabled on the Linux Home Manager profile"
     )
   ];
 }

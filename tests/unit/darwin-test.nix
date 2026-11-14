@@ -1,6 +1,6 @@
 # tests/unit/darwin-test.nix
 #
-# Covers users/shared/darwin/{default,homebrew}.nix.
+# Covers users/shared/darwin/system/{default,homebrew}.nix.
 #
 # default.nix declares its siblings via `imports`, which only the module system
 # expands, so the files are merged by hand here — that is why the config
@@ -35,13 +35,13 @@ let
 
   darwinConfig =
     lib.recursiveUpdate
-      (import ../../users/shared/darwin/default.nix {
+      (import ../../users/shared/darwin/system/default.nix {
         inherit pkgs lib;
         config = mockConfig.mkEmptyConfig;
         currentSystemUser = testUser;
       })
       (
-        import ../../users/shared/darwin/homebrew.nix {
+        import ../../users/shared/darwin/system/homebrew.nix {
           inherit lib;
           config = mockConfig.mkEmptyConfig;
         }

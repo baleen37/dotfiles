@@ -29,11 +29,6 @@ let
       class = "darwin";
       user = "jito.hello";
     };
-    wsl = {
-      system = "x86_64-linux";
-      class = "nixos";
-      user = "baleen";
-    };
   };
 
   machineModules = lib.mapAttrs (_: host: host.machineModules) hostConfig;
@@ -43,7 +38,6 @@ let
     baleen-macbook = [ ../../machines/darwin/baleen-macbook.nix ];
     baleen-m2-pro = [ ../../machines/darwin/macbook-pro.nix ];
     kakaostyle-jito = [ ../../machines/darwin/kakaostyle-jito.nix ];
-    wsl = [ ../../machines/nixos/wsl.nix ];
   };
 in
 {

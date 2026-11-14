@@ -1,4 +1,4 @@
-# Guards the closed-lid-on-AC daemon in users/shared/darwin/power.nix.
+# Guards the closed-lid-on-AC daemon in users/shared/darwin/system/power.nix.
 #
 # Every part of it fails silently: a daemon with no RunAtLoad is installed but
 # never runs, and a script that stops gating on the power source

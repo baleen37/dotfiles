@@ -21,6 +21,13 @@ let
 
   darwinHosts = inputs.self.darwinConfigurations;
   nixosHosts = inputs.self.nixosConfigurations;
+  # Keep the NixOS composition checks meaningful without a deployed NixOS host.
+  nixosTestHosts = nixosHosts // {
+    nixos-probe = import ../lib/nixos-fixture.nix {
+      inherit inputs;
+      inherit (inputs) self;
+    };
+  };
 
   darwinNames = builtins.attrNames darwinHosts;
   nixosNames = builtins.attrNames nixosHosts;
@@ -31,9 +38,7 @@ let
     "kakaostyle-jito"
     "macbook-pro"
   ];
-  expectedNixos = [
-    "wsl"
-  ];
+  expectedNixos = [ ];
   hostsAreDeclared = darwinNames == expectedDarwin && nixosNames == expectedNixos;
 
   darwinUsers = lib.mapAttrs (_: host: builtins.attrNames host.config.home-manager.users) darwinHosts;
@@ -45,9 +50,7 @@ let
     kakaostyle-jito = [ "jito.hello" ];
     macbook-pro = [ "baleen" ];
   };
-  expectedNixosUsers = {
-    wsl = [ "baleen" ];
-  };
+  expectedNixosUsers = { };
 
   userInfo = import ../../lib/user-info.nix;
   # Every Home Manager user's git email on every host, as a flat list.
@@ -89,26 +92,17 @@ in
       c: builtins.attrNames c.home-manager.users != [ ]
     )) "every Darwin host should configure at least one Home Manager user")
 
-    (helpers.assertTest "nixos-hosts-set-state-version" (allHosts nixosHosts (
+    (helpers.assertTest "nixos-hosts-set-state-version" (allHosts nixosTestHosts (
       c: (c.system.stateVersion or null) != null
     )) "every NixOS host needs system.stateVersion; activation fails without it")
 
     (helpers.assertTest "nixos-hosts-set-hostname" (lib.all (matches: matches) (
-      lib.mapAttrsToList (name: host: host.config.networking.hostName == name) nixosHosts
+      lib.mapAttrsToList (name: host: host.config.networking.hostName == name) nixosTestHosts
     )) "every NixOS hostname must match its output for automatic local selection")
-
-    # NixOS-WSL logs in as wsl.defaultUser. If it drifts from the Home Manager
-    # user, the distro boots into an account with none of users/shared applied.
-    (helpers.assertTest "wsl-default-user-is-host-user" (
-      let
-        c = nixosHosts.wsl.config;
-      in
-      c.wsl.enable && builtins.attrNames c.home-manager.users == [ c.wsl.defaultUser ]
-    ) "the wsl host must enable NixOS-WSL with wsl.defaultUser equal to its Home Manager user")
 
     # Losing the key list only shows up as "Permission denied (publickey)" the
     # next time someone tries to ssh into the host.
-    (helpers.assertTest "nixos-host-users-authorize-github-keys" (allHosts nixosHosts (
+    (helpers.assertTest "nixos-host-users-authorize-github-keys" (allHosts nixosTestHosts (
       c:
       let
         keys = toString inputs.baleen37-keys;
@@ -123,14 +117,14 @@ in
     (helpers.assertTest "every-host-allows-unfree"
       (
         allHosts darwinHosts (c: c.nixpkgs.config.allowUnfree)
-        && allHosts nixosHosts (c: c.nixpkgs.config.allowUnfree)
+        && allHosts nixosTestHosts (c: c.nixpkgs.config.allowUnfree)
       )
       "lib/mksystem.nix must set nixpkgs.config.allowUnfree for every host; unfree packages fail to evaluate without it"
     )
 
     # Home Manager configures zsh, but NixOS logs users into bash unless the
     # system says otherwise; nothing fails, the shell just looks unconfigured.
-    (helpers.assertTest "nixos-host-users-log-into-zsh" (allHosts nixosHosts (
+    (helpers.assertTest "nixos-host-users-log-into-zsh" (allHosts nixosTestHosts (
       c:
       lib.all (u: lib.getName c.users.users.${u}.shell == "zsh") (builtins.attrNames c.home-manager.users)
     )) "every NixOS host user must have zsh as login shell (lib/mksystem.nix)")

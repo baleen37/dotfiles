@@ -10,7 +10,7 @@
 _:
 
 {
-  # ===== Darwin performance defaults (users/shared/darwin/default.nix) =====
+  # ===== Darwin performance defaults (users/shared/darwin/system/default.nix) =====
 
   # NSWindowResizeTime, seconds. macOS defaults to ~0.2; below 0.05 the
   # animation glitches.

@@ -9,13 +9,13 @@
 
 let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
-  scriptPath = ../../users/shared/darwin/activation.sh;
+  scriptPath = ../../users/shared/darwin/system/activation.sh;
   scriptExists = builtins.pathExists scriptPath;
 
   behaviorTest =
     if !scriptExists then
       helpers.assertTest "darwin-activation-script-exists" false
-        "users/shared/darwin/activation.sh must exist"
+        "users/shared/darwin/system/activation.sh must exist"
     else
       pkgs.runCommand "test-darwin-activation-script-behavior"
         {

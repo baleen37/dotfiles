@@ -32,5 +32,5 @@
   '';
 
   # Keyboard input source configuration lives in the Darwin Home Manager module
-  # at `darwin/keyboard-input.nix`, where activation runs as the target user.
+  # at `darwin/home/keyboard-input.nix`, where activation runs as the target user.
 }

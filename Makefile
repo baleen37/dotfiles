@@ -8,9 +8,6 @@ NIXNAME ?= $(shell hostname -s 2>/dev/null || hostname | cut -d. -f1)
 # For CI environments, use full path to nix binary when available
 NIX_PATH := $(shell which nix 2>/dev/null || echo "nix")
 NIX := $(NIX_PATH) --extra-experimental-features nix-command --extra-experimental-features flakes
-# For sudo commands, we need the full path or preserved PATH
-# Use -H flag to set HOME to target user's home directory and avoid warnings
-SUDO_NIX := sudo -H env PATH="$$PATH" $(NIX_PATH) --extra-experimental-features nix-command --extra-experimental-features flakes
 
 # We need to do some OS switching below.
 UNAME := $(shell uname)
@@ -131,11 +128,6 @@ secrets/restore:
 	chmod 700 $(HOME)/.ssh $(HOME)/.gnupg
 	chmod 600 $(HOME)/.ssh/* || true
 	chmod 700 $(HOME)/.gnupg/* || true
-
-# Build the NixOS-WSL tarball (nixos.wsl in the current directory)
-.PHONY: wsl
-wsl:
-	$(SUDO_NIX) run ".#nixosConfigurations.wsl.config.system.build.tarballBuilder"
 
 # Phony targets
 .PHONY: build-switch switch syncthing-id test test-build test-all test-containers fmt-diff format cache secrets/backup secrets/restore install-hooks lint update

@@ -27,7 +27,7 @@ nix flake check --no-build --all-systems --show-trace
 
 # Build representative configuration closures without activation
 nix build '.#darwinConfigurations.macbook-pro.system'
-nix build '.#nixosConfigurations.wsl.config.system.build.toplevel'
+nix build '.#homeConfigurations.baleen-linux.activationPackage'
 ```
 
 ## 🛠️ Development Workflow
@@ -67,10 +67,10 @@ nix flake check --no-build --all-systems --show-trace
 
 # Build affected configuration closures without activation
 nix build '.#darwinConfigurations.macbook-pro.system'
-nix build '.#nixosConfigurations.wsl.config.system.build.toplevel'
+nix build '.#homeConfigurations.baleen-linux.activationPackage'
 
-# Activate a standalone Home Manager profile when that is the intended target
-make switch-home HM_USER=jito.hello
+# Build a standalone Home Manager profile without activation
+nix build '.#homeConfigurations."jito.hello".activationPackage'
 ```
 
 #### 3. Pre-Commit Workflow
@@ -80,8 +80,8 @@ make switch-home HM_USER=jito.hello
 ```bash
 nix flake check --no-build --all-systems --show-trace
 nix build '.#darwinConfigurations.macbook-pro.system'
-nix build '.#nixosConfigurations.wsl.config.system.build.toplevel'
-make switch-home HM_USER=jito.hello
+nix build '.#homeConfigurations.baleen-linux.activationPackage'
+nix build '.#homeConfigurations."jito.hello".activationPackage'
 ```
 
 ### Testing Strategy
@@ -91,8 +91,8 @@ make switch-home HM_USER=jito.hello
 ```bash
 nix flake check --no-build --all-systems --show-trace  # Evaluate all checks
 nix build '.#darwinConfigurations.macbook-pro.system'
-nix build '.#nixosConfigurations.wsl.config.system.build.toplevel'
-make switch-home HM_USER=jito.hello
+nix build '.#homeConfigurations.baleen-linux.activationPackage'
+nix build '.#homeConfigurations."jito.hello".activationPackage'
 nix build '.#checks.x86_64-linux.unit-mksystem'   # A single check
 ```
 
@@ -105,7 +105,8 @@ never built and never fails. Use `make test-build` to actually run assertions.
 The current platform matrix is:
 
 - **Darwin**: `aarch64-darwin`
-- **NixOS**: `x86_64-linux`, `aarch64-linux`
+- **Linux**: standalone Home Manager on `x86_64-linux`; shared tools and checks on
+  `x86_64-linux` and `aarch64-linux`
 
 `HM_USER` selects a standalone Home Manager profile. Permanent host system users
 are declared by the `user` field in typed `dotfiles.hosts` entries.
@@ -172,7 +173,8 @@ print_error() {
 1. **Determine the appropriate location:**
    - `users/shared/packages/<category>.nix`: shared package categories
    - `users/shared/programs/<tool>.nix`: tool-specific Home Manager configuration
-   - `users/shared/darwin/homebrew.nix`: Darwin Homebrew packages and casks
+   - `machines/darwin/<host>.nix`: host-specific Homebrew packages and casks
+   - `users/shared/darwin/system/homebrew.nix`: shared Homebrew implementation
 
 2. **Follow the existing pattern:**
 
@@ -222,7 +224,7 @@ print_error() {
 
    # Test specific platforms if needed
    nix build .#darwinConfigurations.macbook-pro.system
-   nix build .#nixosConfigurations.wsl.config.system.build.toplevel
+   nix build .#homeConfigurations.baleen-linux.activationPackage
    ```
 
 ### Testing Contributions
@@ -344,7 +346,7 @@ When adding new global commands:
 1. **Install the system:**
 
    ```bash
-   make switch-home
+   ./switch.sh
    ```
 
 2. **Test command integration:**
@@ -409,7 +411,7 @@ nix build '.#checks.aarch64-darwin.unit-claude'
    ```bash
    nix flake check --no-build --all-systems --show-trace
    nix build '.#darwinConfigurations.macbook-pro.system'
-   nix build '.#nixosConfigurations.wsl.config.system.build.toplevel'
+   nix build '.#homeConfigurations.baleen-linux.activationPackage'
    ```
 
 2. **Run comprehensive local tests:**
