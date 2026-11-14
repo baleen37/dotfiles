@@ -3,7 +3,7 @@
   "rustdesk": {
     "version": "1.5.1",
     "options": {
-      "whitelist": "100.64.0.0/10,fd7a:115c:a1e0::/48",
+      "whitelist": "100.64.0.0/10,fd7a:115c:a1e0::/48,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16",
       "verification-method": "use-permanent-password",
       "approve-mode": "password",
       "direct-server": "Y"
