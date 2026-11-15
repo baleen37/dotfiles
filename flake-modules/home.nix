@@ -29,6 +29,7 @@ let
           ../users/shared/home-manager.nix
           ../users/shared/development.nix
           {
+            modules.packages.chrome.enable = system == "x86_64-linux";
             modules.programs.hammerspoon.enable = isDarwin;
             modules.programs.karabiner.enable = isDarwin;
             modules.programs.rustdesk.enable = isDarwin;

@@ -37,5 +37,17 @@ in
       (cfg: cfg.activationPackage.drvPath != "")
       (lib.attrValues homeConfigs)
     ) "each standalone homeConfiguration must evaluate an activation derivation")
+
+    (helpers.assertTest "chrome-is-selected-only-for-linux" (
+      let
+        hasChrome = cfg: lib.any (p: (p.pname or "") == "google-chrome") cfg.config.home.packages;
+      in
+      hasChrome homeConfigs.baleen-linux
+      && lib.all (name: !hasChrome homeConfigs.${name}) [
+        "baleen"
+        "jito.hello"
+        "testuser"
+      ]
+    ) "Chrome should be installed by the Linux profile without changing macOS profiles")
   ];
 }

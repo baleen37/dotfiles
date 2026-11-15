@@ -25,7 +25,7 @@ Nix flakes와 Git을 준비하고 다음 명령을 사용하세요.
 | `make test-build`                                       | 현재 플랫폼의 단위·통합 assertion 빌드 |
 | `./switch.sh --build`                                   | 호스트 설정을 활성화 없이 빌드         |
 
-`./bootstrap.sh`는 도구와 기존 age identity를 준비하고, `./switch.sh`는 시스템에 설정을 적용합니다. 호스트는 `hostname -s`로 선택하며 호스트 인자와 `--home`은 지원하지 않습니다. NixOS·Debian 외 Linux에서는 독립 Home Manager를 자동 선택하며 `HM_USER`로 프로필을 지정합니다. 적용 명령은 실제 사용자 환경을 변경하므로 `./switch.sh --build` 검증과 구분하세요.
+`./bootstrap.sh`는 도구와 기존 age identity를 준비하고, `./switch.sh`는 시스템에 설정을 적용합니다. 호스트는 `hostname -s`로 선택하며 호스트 인자와 `--home`은 지원하지 않습니다. NixOS 외 Linux에서는 독립 Home Manager를 자동 선택하며 `HM_USER`로 프로필을 지정합니다. Debian에서는 Home Manager 적용 후 네이티브 원격 접속 설정을 적용합니다. 적용 명령은 실제 사용자 환경을 변경하므로 `./switch.sh --build` 검증과 구분하세요.
 
 ## 코드 스타일과 이름 규칙
 

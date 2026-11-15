@@ -1,7 +1,9 @@
 # Debian 네이티브 원격 접속
 
-Debian 12·13의 amd64·arm64 호스트에서 실행한다. 기존 Nix·standalone Home Manager
-사용자 환경은 유지하고 네이티브 앱·서비스만 적용한다.
+Debian 12·13의 amd64·arm64 호스트에서 실행한다. Nix·standalone Home Manager로
+사용자 환경을 관리하고, 원격 접속 앱·서비스는 APT로 관리한다. 현재 제공하는 Linux
+Home Manager 프로필은 `baleen-linux`(amd64)이며 Chrome을 포함한다. 다른 사용자·아키텍처는
+일치하는 `homeConfigurations`를 먼저 선언해야 한다.
 
 ```bash
 ./bootstrap.sh
@@ -9,7 +11,10 @@ Debian 12·13의 amd64·arm64 호스트에서 실행한다. 기존 Nix·standalo
 ./switch.sh
 ```
 
-준비는 패키지 설치와 identity 복원만 수행하고, 적용은 시크릿 검증과 서비스 설정만 수행한다.
+bootstrap은 Nix·Home Manager 준비 도구, APT 패키지와 identity를 준비한다.
+switch는 Home Manager를 적용한 뒤 네이티브 원격 접속과 동기화를 설정한다.
+`--build`는 Home Manager를 빌드하고 네이티브 선언을 검증하며 환경을 활성화하지 않는다.
+Chrome은 Home Manager 선언으로 관리하므로 별도의 `nix profile install`은 필요하지 않다.
 필요한 명령에만 sudo를 사용한다. 기존 identity 경로는 환경 변수로 지정한다.
 
 ```bash
@@ -47,7 +52,7 @@ systemctl status rustdesk tailscaled
 ```
 
 설정은 apply 때 한 번 수행한다. 별도 재설정 타이머·적용 서비스·적용기 배포는 없다.
-`--build`는 선언 검증이며 실제 서비스 상태 점검은 아니다. RustDesk 화면 제어에는
+`--build`는 실제 서비스 상태 점검은 아니다. RustDesk 화면 제어에는
 그래픽 세션이 필요하고 Wayland·로그인 화면 제어에는 제약이 있다. 가상 화면을 만들거나
 디스플레이 서버를 바꾸지 않는다. 출처:
 [RustDesk Linux](https://rustdesk.com/docs/en/client/linux/),

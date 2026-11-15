@@ -32,9 +32,9 @@ Apple's CLT dialog and initial authentication may require your input.
 | Command                            | What it does                                                           |
 | ---------------------------------- | ---------------------------------------------------------------------- |
 | `./bootstrap.sh`                   | Prepare tools and the existing age identity; never activate the system |
-| `./switch.sh --build`              | Build without activation; on Debian, validate declarations only        |
+| `./switch.sh --build`              | Build without activation; also validate Debian native declarations     |
 | `./switch.sh`                      | Check secrets and apply the selected configuration                     |
-| `HM_USER=baleen-linux ./switch.sh` | Select a standalone profile on Linux outside NixOS and Debian          |
+| `HM_USER=baleen-linux ./switch.sh` | Select a standalone profile on Linux outside NixOS                     |
 
 Both scripts select the local host with `hostname -s`; host arguments and
 `NIXNAME` overrides are not supported for local bootstrap or switch.
@@ -73,10 +73,11 @@ is expected and does not mean personal SSH/GPG keys were restored. Switch never
 fetches keys from 1Password. A valid identity is still required when no secrets
 are declared. See [SOPS secrets](#sops-secrets) to declare them.
 
-On Debian, bootstrap installs native prerequisites and prepares the identity;
-switch applies remote-access secrets and services. `SOPS_AGE_KEY_FILE` selects
-the Debian identity path. `./switch.sh --build` validates the declaration without
-installing packages, retrieving keys or applying services.
+On Debian, bootstrap prepares Nix tools, native prerequisites and the identity;
+switch applies Home Manager followed by remote-access secrets and services.
+The `baleen-linux` profile includes Chrome. `SOPS_AGE_KEY_FILE` selects the Debian
+identity path. `./switch.sh --build` builds Home Manager and validates the native
+declaration without activating the environment, retrieving keys or applying services.
 
 ### macOS permissions
 
@@ -116,7 +117,7 @@ existing policies. See [ADR 0003](docs/adr/0003-passwordless-repeat-bootstrap-an
 
 Host users are declared in `flake-modules/hosts.nix`. `HM_USER` selects only a
 standalone Home Manager output; it does not change a host's system user.
-On Linux outside NixOS and Debian, standalone mode is selected automatically.
+On Linux outside NixOS, standalone mode is selected automatically.
 Without `HM_USER`, it selects the unique profile matching the login
 user and platform. An explicit profile for a different platform is rejected.
 For Windows installation, follow [the platform guide](machines/windows/README.md).
@@ -384,7 +385,7 @@ existing vault data; deleting it does not resolve the version mismatch.
 a successful later entry reports `Using cached dev shell`.
 
 **Build failures:** fix the reported evaluation or build error, then retry
-`./switch.sh --build`. On Linux outside NixOS and Debian this builds the selected
+`./switch.sh --build`. On Linux outside NixOS this builds the selected
 standalone Home Manager profile; use `HM_USER` to select a different matching profile.
 
 **Formatting failure in `make test`**: run `make format`, or `make fmt-diff` to

@@ -15,6 +15,10 @@ trap cleanup EXIT
 mkdir -p "$workspace/repo/scripts/lib" "$workspace/tools/bin" "$workspace/bin"
 cp "$repo/bootstrap.sh" "$repo/switch.sh" "$workspace/repo/"
 cp "$repo/scripts/lib/setup.sh" "$repo/scripts/lib/macos-app-management.js" "$repo/scripts/lib/flake-source.sh" "$repo/scripts/lib/identity.py" "$workspace/repo/scripts/lib/"
+# Select the platform independently of the machine running these scenarios.
+printf 'ID=test\n' > "$workspace/os-release"
+chmod u+w "$workspace/repo/scripts/lib/setup.sh"
+sed "s@/etc/os-release@$workspace/os-release@g" "$repo/scripts/lib/setup.sh" > "$workspace/repo/scripts/lib/setup.sh"
 for command in age-keygen sops jq ln; do
   ln -s "$(command -v "$command")" "$workspace/tools/bin/$command"
 done
@@ -232,6 +236,38 @@ expect_failure bash ./switch.sh
 [ ! -e "$workspace/activated" ]
 expect_failure bash ./bootstrap.sh --unknown
 expect_failure bash ./switch.sh --age-key-ref op://test/identity/key
+# Debian must run both backends, while --build must activate neither.
+cp "$workspace/identity" "$HOME/.config/sops/age/keys.txt"
+mkdir -p machines/debian
+write_stub machines/debian/apply.sh << 'STUB'
+set -euo pipefail
+printf '%s\n' "$*" >> "$TEST_STATE/debian.log"
+[ "${TEST_DEBIAN_FAIL:-}" != "$*" ] || exit 23
+if [ "$*" = switch ]; then
+  [ -f "$TEST_STATE/activated" ]
+fi
+STUB
+printf 'ID=debian\n' > "$workspace/os-release"
+bash ./bootstrap.sh > "$workspace/output" 2>&1
+grep -qx bootstrap "$workspace/debian.log"
+[ ! -e "$workspace/activated" ]
+: > "$workspace/debian.log"
+: > "$workspace/nix.log"
+bash ./switch.sh --build > "$workspace/output" 2>&1
+grep -qx 'switch --build' "$workspace/debian.log"
+grep -q 'activationPackage' "$workspace/nix.log"
+[ ! -e "$workspace/activated" ]
+bash ./switch.sh > "$workspace/output" 2>&1
+[ -f "$workspace/activated" ]
+grep -qx switch "$workspace/debian.log"
+rm "$workspace/activated"
+export TEST_DEBIAN_FAIL='switch --build'
+: > "$workspace/nix.log"
+expect_failure bash ./switch.sh
+[ ! -e "$workspace/activated" ]
+! grep -q 'activationPackage' "$workspace/nix.log"
+unset TEST_DEBIAN_FAIL
+printf 'ID=test\n' > "$workspace/os-release"
 # Drive the Darwin system branch while sudo is a recording-only double.
 cp "$workspace/identity" "$HOME/.config/sops/age/keys.txt"
 cp switch.sh "$workspace/switch.platform-saved"
