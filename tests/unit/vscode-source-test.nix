@@ -69,7 +69,7 @@ in
 
     vscode-not-in-standalone-home-packages =
       helpers.assertTest "vscode not in standalone Home Manager packages" (!hasStandaloneHomeVscode)
-        "standalone make switch-home Home Manager must not add VS Code from the nix store";
+        "standalone Home Manager must not add VS Code from the nix store";
 
     vscode-launchservices-standalone-activation =
       helpers.assertTest "VS Code LaunchServices repair in standalone activation"

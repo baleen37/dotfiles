@@ -53,6 +53,11 @@ STUB
 write_stub "$workspace/bin/hostname" << 'STUB'
 echo test-host
 STUB
+write_stub "$workspace/bin/just" << 'STUB'
+touch "$TEST_STATE/just-called"
+echo 'bootstrap/switch must not depend on just' >&2
+exit 97
+STUB
 cp "$workspace/bin/id" "$workspace/tools/bin/id"
 write_stub "$workspace/bin/nix" << 'STUB'
 set -euo pipefail
@@ -198,6 +203,56 @@ for race in directory symlink file; do
   fi
 done
 unset TEST_KEY_RACE
+# Fresh installation and first activation must work with neither nix nor just
+# initially on PATH. Only the external installer is replaced; the real public
+# entrypoints still perform download verification, tool preparation and checks.
+cp bootstrap.sh "$workspace/bootstrap.saved"
+cp scripts/lib/setup.sh "$workspace/setup.saved"
+mkdir -p "$workspace/cold-bin" "$workspace/cold-tmp"
+cp "$workspace/bin/nix" "$workspace/nix-template"
+write_stub "$workspace/installer.sh" << 'STUB'
+set -eu
+[ "$*" = 'install --no-confirm' ]
+cp "$TEST_STATE/nix-template" "$TEST_STATE/cold-bin/nix"
+touch "$TEST_STATE/nix-installed"
+STUB
+digest=$(sha256sum "$workspace/installer.sh" | cut -d' ' -f1)
+chmod u+w bootstrap.sh scripts/lib/setup.sh
+sed "s/^NIX_INSTALLER_SHA256=.*/NIX_INSTALLER_SHA256=$digest/" "$workspace/bootstrap.saved" > bootstrap.sh
+sed "s@/nix/var/nix/profiles/default@$workspace/absent-nix-profile@g" "$workspace/setup.saved" > scripts/lib/setup.sh
+for command in bash sh dirname basename mktemp mkdir cp chmod rm git cut tee touch ln python3 sha256sum uname id hostname; do
+  ln -s "$(command -v "$command")" "$workspace/cold-bin/$command"
+done
+write_stub "$workspace/cold-bin/curl" << 'STUB'
+set -eu
+while [ "$#" -gt 0 ]; do
+  if [ "$1" = -o ]; then cp "$TEST_STATE/installer.sh" "$2"; exit 0; fi
+  shift
+done
+exit 1
+STUB
+write_stub "$workspace/cold-bin/shasum" << 'STUB'
+set -eu
+[ "$1" = -a ] && [ "$2" = 256 ]
+sha256sum "$3"
+STUB
+(
+  export PATH="$workspace/cold-bin" TMPDIR="$workspace/cold-tmp"
+  ! command -v nix
+  ! command -v just
+  bash ./bootstrap.sh > "$workspace/output" 2>&1
+  [ -f "$workspace/nix-installed" ]
+  [ ! -e "$workspace/activated" ]
+  ! command -v just
+  bash ./switch.sh --build > "$workspace/output" 2>&1
+  [ ! -e "$workspace/activated" ]
+  bash ./switch.sh > "$workspace/output" 2>&1
+  [ -f "$workspace/activated" ]
+  ! command -v just
+)
+rm "$workspace/activated"
+cp "$workspace/bootstrap.saved" bootstrap.sh
+cp "$workspace/setup.saved" scripts/lib/setup.sh
 bash ./bootstrap.sh > "$workspace/output" 2>&1
 [ ! -e "$workspace/activated" ]
 cmp "$workspace/identity" "$HOME/.config/sops/age/keys.txt"
@@ -236,6 +291,11 @@ expect_failure bash ./switch.sh
 [ ! -e "$workspace/activated" ]
 expect_failure bash ./bootstrap.sh --unknown
 expect_failure bash ./switch.sh --age-key-ref op://test/identity/key
+for script in bootstrap switch; do
+  for argument in --home --check --age-key-file --help macbook-pro ''; do
+    expect_failure bash "./$script.sh" "$argument"
+  done
+done
 # Debian must run both backends, while --build must activate neither.
 cp "$workspace/identity" "$HOME/.config/sops/age/keys.txt"
 mkdir -p machines/debian
@@ -243,6 +303,14 @@ write_stub machines/debian/apply.sh << 'STUB'
 set -euo pipefail
 printf '%s\n' "$*" >> "$TEST_STATE/debian.log"
 [ "${TEST_DEBIAN_FAIL:-}" != "$*" ] || exit 23
+source_root=$(cd "$(dirname "$0")/../.." && pwd -P)
+[ "$source_root" = "$(cat "$TEST_STATE/source-path")" ]
+if [ "${TEST_SOURCE_MUTATION:-0}" = 1 ]; then
+  cmp "$TEST_STATE/expected-module" "$source_root/new-module.nix"
+fi
+if [ "$*" = check ]; then
+  [ ! -e "$TEST_STATE/activated" ]
+fi
 if [ "$*" = switch ]; then
   [ -f "$TEST_STATE/activated" ]
 fi
@@ -266,7 +334,28 @@ export TEST_DEBIAN_FAIL='switch --build'
 expect_failure bash ./switch.sh
 [ ! -e "$workspace/activated" ]
 ! grep -q 'activationPackage' "$workspace/nix.log"
+# Native readiness failure must happen before a Home Manager build/activation.
+export TEST_DEBIAN_FAIL=check
+: > "$workspace/nix.log"
+expect_failure bash ./switch.sh
+[ ! -e "$workspace/activated" ]
+! grep -q 'activationPackage' "$workspace/nix.log"
+# An activation failure cannot roll back HM; the report must say what completed.
+export TEST_DEBIAN_FAIL=switch
+expect_failure bash ./switch.sh
+[ -f "$workspace/activated" ]
+grep -q 'Home Manager completed, but Debian native activation failed' "$workspace/output"
+rm "$workspace/activated"
 unset TEST_DEBIAN_FAIL
+# Edits during HM preflight must not change native code/declarations.
+cp new-module.nix "$workspace/expected-module"
+export TEST_SOURCE_MUTATION=1
+bash ./switch.sh > "$workspace/output" 2>&1
+[ -f "$workspace/activated" ]
+grep -qx 'changed after preflight' new-module.nix
+rm "$workspace/activated"
+cp "$workspace/expected-module" new-module.nix
+unset TEST_SOURCE_MUTATION
 printf 'ID=test\n' > "$workspace/os-release"
 # Drive the Darwin system branch while sudo is a recording-only double.
 cp "$workspace/identity" "$HOME/.config/sops/age/keys.txt"
@@ -437,4 +526,5 @@ mv "$workspace/repo/flake-modules/hosts.local.nix" "$workspace/registry.saved"
 ln -s "$workspace/identity" "$workspace/repo/flake-modules/hosts.local.nix"
 expect_failure bash ./switch.sh --build
 grep -q 'local host registry must be a regular file' "$workspace/output"
-echo 'PASS: bootstrap/switch secrets, filtered source, cleanup, build-only and permission scenarios'
+[ ! -e "$workspace/just-called" ]
+echo 'PASS: bootstrap/switch without just, fresh Nix preparation, secrets, filtered source, cleanup, build-only and permission scenarios'

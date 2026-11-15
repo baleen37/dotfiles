@@ -22,10 +22,18 @@ arguments and local `NIXNAME` overrides are unsupported. Bootstrap never activat
 the host. `DOTFILES_AGE_KEY_REF` overrides the 1Password reference, never key material.
 Every normal switch requires a valid identity, even without declared secrets;
 `./switch.sh --build` skips identity and decryption checks without activation.
-Linux outside NixOS and Debian automatically uses standalone Home Manager;
-`HM_USER` selects its profile. Debian bootstrap prepares native packages and the
-identity; switch applies secrets and services without retrieving keys. Debian
-`--build` validates declarations only; `SOPS_AGE_KEY_FILE` selects its identity path.
+Linux outside NixOS automatically uses standalone Home Manager;
+`HM_USER` selects its profile. Debian bootstrap prepares both Nix and native
+prerequisites plus the identity. Switch checks both backends before Home Manager
+activation, then applies native services from the same filtered source. Debian
+`--build` builds Home Manager and validates native declarations without keys or
+activation; `SOPS_AGE_KEY_FILE` selects the native identity path.
+
+On a fresh machine, run `bash ./bootstrap.sh` and then `bash ./switch.sh`.
+Neither entrypoint requires just, and bootstrap does not activate a profile or
+add just to the caller's PATH. Use just after activating a development profile
+and opening a new login shell, or inside `nix develop` once Nix is available.
+Minimal hosts keep the shell entrypoints; they do not select development tools.
 
 User secrets are declared with sops-nix under the selected Home Manager config.
 Private keys and decrypted data stay outside Nix evaluation and the store.
@@ -44,15 +52,14 @@ nix flake check --no-build --all-systems --show-trace
 nix build '.#darwinConfigurations.macbook-pro.system'
 nix build '.#homeConfigurations.baleen-linux.activationPackage'
 
-# Activate a standalone Home Manager profile on Linux outside NixOS and Debian
+# Activate a standalone Home Manager profile on Linux outside NixOS
 HM_USER=baleen-linux ./switch.sh
 ```
 
-**Caveat**: container tests need Linux and `/dev/kvm`. Without them `make test`
-falls back to `nix flake check --no-build`, which only evaluates checks — a false
-assertion is never built and so never fails. `make test-build` builds the
-`all-assertions` aggregate, which excludes the container VMs and therefore works
-on any platform.
+**Verification**: `just check` evaluates every supported platform. `just test`
+executes the current platform's unit and integration assertions, even without
+KVM. `just test-build` aliases `test`; `just test-all` runs `check` and `test`.
+Only `just test-containers` requires Linux and usable `/dev/kvm`.
 
 ### Platform-Specific Commands
 
@@ -166,13 +173,13 @@ tests/
     └── mock-config.nix        # minimal `config` for direct module imports
 ```
 
-**Container Tests**: Linux + `/dev/kvm` only. Elsewhere `make test` degrades to
-`--no-build`, which does not run assertions — use `make test-build` for that.
+**VM tests**: Linux + usable `/dev/kvm` only. `just test` always executes assertions;
+`just check` is evaluation-only, and neither implicitly boots VMs.
 
 ### User Selection
 
 Host users are declared by `dotfiles.hosts.<name>.user`. Standalone Home Manager
-profiles on Linux outside NixOS and Debian use `HM_USER`, for example
+profiles on Linux outside NixOS use `HM_USER`, for example
 `HM_USER=baleen-linux ./switch.sh`; it
 does not change host metadata.
 
@@ -219,8 +226,8 @@ does not change host metadata.
    updating alongside.
 
 2. Macs that set `modules.programs.syncthing.enable` in their machine file sync
-   `~/wiki` (`users/shared/programs/syncthing.nix`). To pair a new one, run `make syncthing-id` on it (writes `syncthingId` into
-   its `hosts.nix` entry), commit, `make switch` on each Mac, then add the device
+   `~/wiki` (`users/shared/programs/syncthing.nix`). To pair a new one, run `just syncthing-id` on it (writes `syncthingId` into
+   its `hosts.nix` entry), commit, `just switch` on each Mac, then add the device
    on the hub's web UI. Devices and folders added in a Mac's web UI are removed
    on the next switch.
 
@@ -238,12 +245,12 @@ does not change host metadata.
 
 - Add to `tests/containers/`
 - Register it in `containerTests` in `tests/default.nix`
-- Run with `make test-containers` (Linux + KVM) or CI
+- Run with `just test-containers` (Linux + KVM) or CI
 
 ### Formatting and Linting
 
 ```bash
-make format           # Format with the repository treefmt config (wraps nix fmt)
+just format           # Format with the repository treefmt config (wraps nix fmt)
 nix fmt               # Direct formatter invocation
 pre-commit run --all-files  # Run all pre-commit hooks
 ```
@@ -274,15 +281,11 @@ GitHub Actions workflow (`.github/workflows/ci.yml`):
 - Runs on: Darwin `aarch64-darwin` (macOS-15), standalone Home Manager `x86_64-linux` (Ubuntu),
   and shared tools/checks on `aarch64-linux` (Ubuntu ARM64)
 - Pre-commit hooks validation
-- Fast container tests (Linux) or validation mode (macOS)
-- Builds every unit and integration assertion (`make test-build`) on PRs and main
+- Explicit platform evaluation, assertion builds, and VM tests where KVM is usable
+- Builds every unit and integration assertion (`just test-build`) on PRs and main
 - Cachix upload for successful builds
 
-Required environment variables in CI:
-
-```bash
-export TEST_USER=${TEST_USER:-testuser}
-```
+CI VM fixtures declare static test users; shell user variables do not select a deployment profile.
 
 ## Common Patterns
 
@@ -325,13 +328,13 @@ nix store gc            # Clear cache if needed
 
 ### Container Tests Failing on macOS
 
-This is expected — container tests require Linux and `/dev/kvm`. Use `make test-build` to run the unit and integration assertions locally, and leave the VM tests to CI.
+This is expected — container tests require Linux and `/dev/kvm`. Use `just test-build` to run the unit and integration assertions locally, and leave the VM tests to CI.
 
 ### Pre-commit Hook Failures
 
 ```bash
 pre-commit run --all-files  # Run all hooks
-make format                 # Auto-format Nix files
+just format                 # Auto-format Nix files
 ```
 
 ### Cache Warnings
@@ -349,7 +352,7 @@ trusted-users = root @admin yourusername
 - **flake.nix**: Entry point, defines all system configurations and package outputs
 - **lib/mksystem.nix**: System factory function, core abstraction for building Darwin/NixOS systems
 - **lib/user-info.nix**: Centralized user identity (name, email) - single source of truth
-- **Makefile**: High-level commands, CI integration, and cross-platform build orchestration
+- **justfile**: High-level commands, CI integration, and cross-platform build orchestration
 
 ### User Configuration
 
@@ -445,7 +448,7 @@ and covers nothing.
 
 - **flake.nix**: Entry point, defines all configurations
 - **lib/mksystem.nix**: System factory, core abstraction
-- **Makefile**: High-level commands and CI integration
+- **justfile**: High-level commands and CI integration
 - **.pre-commit-config.yaml**: Quality enforcement hooks
 - **tests/default.nix**: Test discovery and orchestration
 - **CONTRIBUTING.md**: Detailed development guidelines and workflow

@@ -5,19 +5,21 @@ does not. There is no test runner: `nix flake check` builds them.
 
 ```bash
 nix flake check --no-build --all-systems --show-trace  # evaluate every supported system
-make test            # evaluate all checks; build them where the platform allows
-make test-build      # build every unit + integration assertion (any platform)
-make test-containers # NixOS VM tests; needs Linux + /dev/kvm
+just check           # evaluate every supported platform without executing checks
+just test            # build every unit + integration assertion (no KVM needed)
+just test-build      # alias for just test
+just test-all        # check + test, not VM tests
+just test-containers # NixOS VM tests; needs Linux + /dev/kvm
 ```
 
 The supported systems are Darwin `aarch64-darwin` and NixOS `x86_64-linux` /
 `aarch64-linux`. CI evaluates this same matrix.
 
-> **`make test` does not necessarily run assertions.** Container tests need Linux
-> and `/dev/kvm`, so without them `make test` falls back to
-> `nix flake check --no-build`, which only _evaluates_ checks. A false assertion
-> produces a derivation that is never built, and therefore never fails. Use
-> `make test-build` to actually run them.
+`just test` always executes assertions. `just check` is evaluation-only: false
+build-time assertions cannot fail until built. `just test-containers` is explicit
+and rejects platforms without readable and writable Linux KVM. The runner uses a
+filtered source snapshot including new, unignored modules but excludes personal
+`hosts.local.nix`; activation still includes that local registry.
 
 Run one check directly:
 
@@ -113,7 +115,7 @@ Worth asserting:
   `pull.rebase` or a missing `stateVersion`;
 - forcing a configuration to evaluate at all — reaching into `.config` expands
   the whole module tree, so a broken machine file fails here instead of during
-  `make switch`.
+  `just switch`.
 
 Not worth asserting:
 

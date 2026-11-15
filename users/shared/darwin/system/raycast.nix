@@ -1,4 +1,4 @@
-# Edit the values here, then run `make switch` and restart Raycast.
+# Edit the values here, then run `just switch` and restart Raycast.
 # Preserves the values observed in Raycast 2.11.1.0.
 # These are internal preference keys; recheck them after Raycast updates.
 # Hotkeys, aliases and extensions remain managed in the Raycast app.

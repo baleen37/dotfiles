@@ -26,7 +26,7 @@ let
         type = lib.types.listOf lib.types.raw;
         default = [ ];
       };
-      # Syncthing device ID (public, not a secret); `make syncthing-id` writes
+      # Syncthing device ID (public, not a secret); `just syncthing-id` writes
       # it. Every Mac runs Syncthing and peers with each host that has one;
       # see users/shared/programs/syncthing.nix.
       syncthingId = lib.mkOption {

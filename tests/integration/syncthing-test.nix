@@ -30,6 +30,15 @@ in
 {
   platforms = [ "any" ];
   value = helpers.testSuite "syncthing" [
+    (helpers.assertTest "macs-use-shared-wiki-policy" (lib.all (
+      name:
+      let
+        declared = (lib.importJSON ../../machines/syncthing.json).wiki;
+        actual = (syncthingOf name).settings.folders.wiki;
+      in
+      actual.path == declared.path && actual.ignorePatterns == declared.ignorePatterns
+    ) macs) "Mac and Debian must consume the same declared wiki path and ignore rules")
+
     (helpers.assertTest "macs-run-syncthing" (lib.all (
       name: (syncthingOf name).enable
     ) macs) "every Darwin host must enable services.syncthing")

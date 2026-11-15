@@ -3,7 +3,7 @@
 # Every host declared in flake-modules/hosts.nix must evaluate. That is most of
 # the value here: reaching into `.config` forces the module tree, so a broken
 # machine file, a bad option name, or a merge conflict between modules fails
-# this check instead of failing someone's `make switch`.
+# this check instead of failing someone's `just switch`.
 #
 # Beyond evaluating, only settings that are easy to lose silently are asserted:
 # stateVersion (activation fails without it), hostName on NixOS, and

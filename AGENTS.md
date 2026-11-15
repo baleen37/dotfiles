@@ -17,21 +17,25 @@
 
 Nix flakes와 Git을 준비하고 다음 명령을 사용하세요.
 
+최초 설치는 `bash ./bootstrap.sh`, 첫 적용은 `bash ./switch.sh`로 실행합니다.
+두 스크립트는 just에 의존하지 않습니다. bootstrap 직후 just가 PATH에 있다고 가정하지
+마세요. 개발 프로필 적용 후 새 로그인 셸이나 `nix develop`에서 just를 사용합니다.
+
 | 명령                                                    | 용도                                   |
 | ------------------------------------------------------- | -------------------------------------- |
 | `nix develop`                                           | 저장소 개발 도구가 포함된 셸 실행      |
-| `make install-hooks`                                    | pre-commit 및 pre-push 훅 설치         |
+| `just install-hooks`                                    | pre-commit 및 pre-push 훅 설치         |
 | `nix flake check --no-build --all-systems --show-trace` | 지원 플랫폼 전체 평가                  |
-| `make test-build`                                       | 현재 플랫폼의 단위·통합 assertion 빌드 |
+| `just test-build`                                       | 현재 플랫폼의 단위·통합 assertion 빌드 |
 | `./switch.sh --build`                                   | 호스트 설정을 활성화 없이 빌드         |
 
 `./bootstrap.sh`는 도구와 기존 age identity를 준비하고, `./switch.sh`는 시스템에 설정을 적용합니다. 호스트는 `hostname -s`로 선택하며 호스트 인자와 `--home`은 지원하지 않습니다. NixOS 외 Linux에서는 독립 Home Manager를 자동 선택하며 `HM_USER`로 프로필을 지정합니다. Debian에서는 Home Manager 적용 후 네이티브 원격 접속 설정을 적용합니다. 적용 명령은 실제 사용자 환경을 변경하므로 `./switch.sh --build` 검증과 구분하세요.
 
 ## 코드 스타일과 이름 규칙
 
-`.editorconfig`를 따르세요. Nix·셸·YAML·JSON은 공백 2칸, Python은 4칸, Makefile 레시피는 탭을 사용합니다. UTF-8, LF, 파일 끝 개행을 유지하세요.
+`.editorconfig`를 따르세요. Nix·셸·YAML·JSON은 공백 2칸, Python은 4칸, justfile 레시피는 공백 4칸을 사용합니다. UTF-8, LF, 파일 끝 개행을 유지하세요.
 
-`make format`은 treefmt를 통해 nixfmt, statix, deadnix, shfmt, Prettier를 실행합니다. `make lint`는 ShellCheck와 bashate를 포함한 pre-commit 검사를 실행합니다. 파일명은 기존의 설명적인 소문자·하이픈 패턴을 따르세요. 공유 구현은 `users/shared/`에, 호스트별 기능 선택은 머신 모듈에 둡니다.
+`just format`은 treefmt를 통해 nixfmt, statix, deadnix, shfmt, Prettier를 실행합니다. `just lint`는 ShellCheck와 bashate를 포함한 pre-commit 검사를 실행합니다. 파일명은 기존의 설명적인 소문자·하이픈 패턴을 따르세요. 공유 구현은 `users/shared/`에, 호스트별 기능 선택은 머신 모듈에 둡니다.
 
 ## 테스트 작성 지침
 
@@ -39,7 +43,7 @@ Nix flakes와 Git을 준비하고 다음 명령을 사용하세요.
 
 실제 모듈의 동작과 설정 간 불변조건을 검증하세요. 테스트 안에서 정의한 값만 재확인하는 assertion은 피하세요. 상세 계약은 `tests/README.md`를 확인하세요. 수치형 커버리지 기준은 지정되어 있지 않습니다.
 
-`make test`는 Linux와 `/dev/kvm`이 없으면 평가만 수행합니다. assertion 실행은 `make test-build`로 확인하세요. VM 테스트는 Linux와 KVM에서 `make test-containers`로 실행합니다.
+`just check`는 전체 플랫폼을 평가만 하고, `just test`는 KVM 유무와 관계없이 현재 플랫폼의 단위·통합 assertion을 실제 빌드합니다. `just test-build`는 `test`의 별칭입니다. VM 테스트는 Linux와 KVM에서 `just test-containers`로 명시적으로 실행합니다.
 
 ## 커밋과 Pull Request
 

@@ -6,10 +6,15 @@ Home Manager 프로필은 `baleen-linux`(amd64)이며 Chrome을 포함한다. �
 일치하는 `homeConfigurations`를 먼저 선언해야 한다.
 
 ```bash
-./bootstrap.sh
-./switch.sh --build
-./switch.sh
+bash ./bootstrap.sh
+bash ./switch.sh --build
+bash ./switch.sh
 ```
+
+최초 준비와 첫 적용에는 `just`가 필요하지 않다. Nix가 없어도 bootstrap이 준비한다.
+bootstrap은 Home Manager를 활성화하지 않으므로 직후에 `just`가 설치됐다고 가정하지 않는다.
+개발 프로필을 처음 적용한 뒤 새 로그인 셸에서 `just`를 사용하거나,
+Nix가 준비된 뒤 `nix develop --command just --list`로 개발 셸의 runner를 사용한다.
 
 bootstrap은 Nix·Home Manager 준비 도구, APT 패키지와 identity를 준비한다.
 switch는 Home Manager를 적용한 뒤 네이티브 원격 접속과 동기화를 설정한다.
@@ -71,3 +76,22 @@ switch는 Syncthing으로 `~/wiki`를 허브(`machines/syncthing.json`)와만 �
 이 기기의 ID를 출력한다. 그 ID를 허브의 기기 목록에 추가해야 동기화가 시작된다.
 이 기능 이전에 준비한 호스트는 switch 전에 `./bootstrap.sh`를 다시 실행해 `syncthing`을 설치한다.
 기존 `wiki` 폴더가 `~/wiki`가 아닌 경로를 가리키면 공유하지 않고 실패한다.
+
+## 실행 책임과 안전 경계
+
+`apply.py`는 준비·읽기 전용 사전검사·적용 순서를 조율한다. `packages.py`는 APT와
+검증된 다운로드·서비스 시작 정책 보존, `syncthing.py`는 wiki 동기화를 맡는다.
+루트 bootstrap/switch는 이 실행기와 정책 파일을 원본 저장소가 아닌 같은 실행
+스냅샷에서 읽는다. 정상 switch의 네이티브 사전검사가 실패하면 HM 활성화도 시작하지
+않으며, HM 완료 후 서비스 적용이 실패하면 부분 적용 상태와 재실행 방법을 표시한다.
+
+사용자 개발 도구는 Nix/HM이, root·systemd가 사용하는 네이티브 서비스와 준비 도구는
+APT가 소유한다. 따라서 age·sops·Python의 사용자용/시스템용 설치는 의도적으로
+공존한다. 이번 리팩토링은 시스템 의존성을 Nix 사용자 프로필에 의존하도록 바꾸거나
+기존 APT 패키지를 제거하지 않는다.
+
+wiki 경로와 제외 규칙은 `machines/syncthing.json`을 Mac과 공유한다. Debian은
+기존 장치·폴더와 수동 `.stignore` 규칙을 삭제하지 않으며, 관리 블록의 제외 규칙을
+앞에 두어 `.git`·Obsidian 작업공간 파일이 수동 포함 규칙으로 다시 공유되지 않게 한다.
+관리 파일이 심볼릭 링크이거나 관리 블록이 잘못됐으면 덮어쓰지 않고 중단한다.
+이 제외 규칙 보완은 Debian의 의도적인 정책 변경이며 실제 적용은 다음 switch 때 수행된다.

@@ -47,9 +47,23 @@ let
       u: builtins.attrNames u.modules.${category} == builtins.attrNames homeModules.${category}
     ) users;
 
-  enablesEvery =
-    category: users:
-    lib.all (u: lib.all (m: m.enable) (builtins.attrValues u.modules.${category})) users;
+  # Check that the shared selection reaches real outputs; optional categories
+  # added for one platform must not become mandatory on every other platform.
+  development = (import ../../users/shared/development.nix { }).modules;
+  enablesDevelopment =
+    users:
+    lib.all (
+      u:
+      lib.all
+        (
+          category:
+          lib.all (name: u.modules.${category}.${name}.enable) (builtins.attrNames development.${category})
+        )
+        [
+          "programs"
+          "packages"
+        ]
+    ) users;
 
 in
 {
@@ -97,19 +111,12 @@ in
       "Linux Home Manager config must declare exactly the modules under users/shared/packages"
     )
 
-    (helpers.assertTest "darwin-enables-supported-modules" (
-      enablesEvery "programs" darwinUsers
-      && lib.all (
-        u:
-        !u.modules.packages.chrome.enable
-        && lib.all (m: m.enable) (
-          builtins.attrValues (builtins.removeAttrs u.modules.packages [ "chrome" ])
-        )
-      ) darwinUsers
-    ) "macbook-pro should enable every program and package category except Linux-only Chrome")
+    (helpers.assertTest "darwin-selects-shared-development" (enablesDevelopment darwinUsers)
+      "the Mac development composition must apply every shared development selection"
+    )
 
-    (helpers.assertTest "linux-enables-every-package-category" (enablesEvery "packages" linuxUsers)
-      "every package category should be enabled on the Linux Home Manager profile"
+    (helpers.assertTest "linux-selects-shared-development" (enablesDevelopment linuxUsers)
+      "standalone Linux must apply every shared development selection"
     )
   ];
 }

@@ -20,7 +20,8 @@ class DebianStages(unittest.TestCase):
         self.root = Path(self.directory.name)
         for name in ("machines/debian", "scripts/lib", "secrets", "bin", "home"):
             (self.root / name).mkdir(parents=True)
-        for name in ("machines/debian/apply.py", "machines/debian/apply.sh", "machines/syncthing.json",
+        for name in ("machines/debian/apply.py", "machines/debian/apply.sh",
+                     "machines/debian/packages.py", "machines/debian/syncthing.py", "machines/syncthing.json",
                      "scripts/lib/identity.py"):
             shutil.copy2(REPO / name, self.root / name)
         self.key = self.root / "home/.config/sops/age/keys.txt"
@@ -37,6 +38,9 @@ class DebianStages(unittest.TestCase):
         self.policy.write_text(json.dumps(config))
         self.env = dict(os.environ, HOME=str(self.root / "home"), SOPS_AGE_KEY_FILE=str(self.key),
                         PATH=f"{self.root / 'bin'}:{os.environ['PATH']}", FIXTURE=str(self.root))
+        self.env.pop("PYTHONDONTWRITEBYTECODE", None)
+        self.stub("rustdesk", 'exit 0')
+        self.stub("tailscale", 'exit 0')
         self.stub("dpkg", 'if [ "$1" = --print-architecture ]; then echo amd64; fi')
         self.stub("dpkg-query", 'echo "installed 999.0"')
         self.stub("systemctl", '''
@@ -77,7 +81,7 @@ case "$1" in
  *) exit 1 ;;
 esac''')
         # Use a synthetic OS declaration while executing the real installer CLI.
-        source = self.root / "machines/debian/apply.py"
+        source = self.root / "machines/debian/packages.py"
         (self.root / "os-release").write_text("ID=debian\nVERSION_CODENAME=bookworm\n")
         source.chmod(source.stat().st_mode | 0o200)
         source.write_text(source.read_text().replace('/etc/os-release', str(self.root / 'os-release')))
@@ -113,12 +117,16 @@ esac''')
             "url": keyring.as_uri(), "sha256": hashlib.sha256(keyring.read_bytes()).hexdigest(),
         }
         self.policy.write_text(json.dumps(config))
-        return self.cli("bootstrap", success=success)
+        try:
+            return self.cli("bootstrap", success=success)
+        finally:
+            self.policy.write_text((REPO / "machines/remote-access.json").read_text())
 
     def test_build_needs_no_key_and_changes_nothing(self):
         self.cli("switch", "--build")
         self.assertFalse((self.root / "calls").exists())
         self.assertFalse(self.key.exists())
+        self.assertFalse((self.root / "machines/debian/__pycache__").exists())
         config = json.loads(self.policy.read_text())
         config["debian"]["assets"]["amd64"]["sops"]["sha256"] = "bad"
         self.policy.write_text(json.dumps(config))
@@ -150,6 +158,11 @@ esac''')
         for device in hub.values():
             self.assertIn(f"folders wiki devices add --device-id {device}", calls)
         self.assertIn("SYNTHETIC-ID", result.stdout)
+        ignores = self.root / "home/wiki/.stignore"
+        self.assertIn("/.git", ignores.read_text())
+        first = ignores.read_bytes()
+        self.cli("switch")
+        self.assertEqual(ignores.read_bytes(), first)
         self.bootstrap()
         self.assertEqual(self.key.read_bytes(), self.original.read_bytes())
 
@@ -197,6 +210,56 @@ esac''')
         self.env.update(WIKI_FOLDER="wiki", WIKI_PATH="/elsewhere")
         self.cli("switch", success=False)
         self.assertNotIn("folders wiki devices add", (self.root / "calls").read_text())
+
+    def test_preflight_never_activates_and_checks_native_secret(self):
+        self.cli("check", success=False)
+        self.assertFalse((self.root / "calls").exists() and "enable --now" in (self.root / "calls").read_text())
+        self.existing_key()
+        self.cli("check")
+        self.assertNotIn("enable --now", (self.root / "calls").read_text())
+        self.assertFalse((self.root / "home/wiki").exists())
+        (self.root / "secrets/remote-access.json").write_text("not encrypted")
+        self.cli("check", success=False)
+        self.assertNotIn("enable --now", (self.root / "calls").read_text())
+
+    def test_manual_ignores_are_preserved_and_shared_excludes_take_precedence(self):
+        self.existing_key()
+        folder = self.root / "home/wiki"
+        folder.mkdir()
+        ignores = folder / ".stignore"
+        ignores.write_text("!/.git/keep\n/manual\n")
+        self.cli("switch")
+        content = ignores.read_text()
+        self.assertIn("!/.git/keep\n/manual\n", content)
+        self.assertLess(content.index("/.git\n"), content.index("!/.git/keep"))
+        self.cli("switch")
+        self.assertEqual(ignores.read_text(), content)
+
+    def test_escape_directive_and_manual_rules_survive_repeated_apply(self):
+        self.existing_key()
+        folder = self.root / "home/wiki"
+        folder.mkdir()
+        ignores = folder / ".stignore"
+        ignores.write_text("#escape=|\n/manual\n")
+        self.cli("switch")
+        first = ignores.read_text()
+        self.assertTrue(first.startswith("#escape=|\n"))
+        self.assertIn("/manual\n", first)
+        self.cli("switch")
+        self.assertEqual(ignores.read_text(), first)
+        ignores.write_text("// BEGIN dotfiles managed ignores\n/manual\n")
+        result = self.cli("check", success=False)
+        self.assertIn("Malformed managed", result.stderr)
+        self.assertEqual(ignores.read_text(), "// BEGIN dotfiles managed ignores\n/manual\n")
+
+    def test_invalid_ignore_target_blocks_before_service_activation(self):
+        self.existing_key()
+        folder = self.root / "home/wiki"
+        folder.mkdir()
+        (folder / ".stignore").symlink_to(self.original)
+        self.cli("check", success=False)
+        self.assertNotIn("enable --now", (self.root / "calls").read_text())
+        self.assertTrue((folder / ".stignore").is_symlink())
 
     def test_remote_failure_is_propagated_and_old_options_are_rejected(self):
         self.existing_key()

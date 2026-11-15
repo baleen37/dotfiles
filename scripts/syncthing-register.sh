@@ -29,4 +29,4 @@ awk -v host="$host" -v id="$id" '
 mv "$hosts.tmp" "$hosts"
 
 echo "$host: syncthingId = $id"
-echo "Next: commit, make switch, then add the device on the hub (see CLAUDE.md)."
+echo "Next: commit, just switch, then add the device on the hub (see CLAUDE.md)."

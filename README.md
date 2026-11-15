@@ -2,7 +2,7 @@
 
 Nix flakes-based dotfiles for macOS (nix-darwin) and standalone Linux Home
 Manager profiles, with native Debian and Windows integration. Tests are Nix
-derivations: `make test-build` executes unit and integration checks; NixOS VM
+derivations: `just test-build` executes unit and integration checks; NixOS VM
 tests require Linux with KVM.
 
 ## Highlights
@@ -20,9 +20,15 @@ tests require Linux with KVM.
 ```bash
 git clone https://github.com/baleen37/dotfiles.git
 cd dotfiles
-./bootstrap.sh
-./switch.sh
+bash ./bootstrap.sh
+bash ./switch.sh --build  # Optional: verify without activating
+bash ./switch.sh          # First activation also works without just
 ```
+
+Neither Nix nor `just` needs to be installed before bootstrap. Both public
+scripts are independent of the task runner; **do not start a fresh machine with
+`just bootstrap`**. Bootstrap prepares prerequisites but does not activate Home
+Manager, so it does not make `just` available in your current shell.
 
 Run these commands as your normal user. You need Git and administrator access;
 bootstrap installs missing Xcode Command Line Tools, Determinate Nix and the
@@ -128,18 +134,32 @@ Local builds are accelerated by binary substituters, especially `https://baleen-
 
 GitHub `actions/cache` is CI-only. It can speed repeated workflow runs on GitHub-hosted runners, but it does not make local macOS builds faster. Do not store credentials in cached paths.
 
+## Task runner
+
+Use `just` instead of Make. It is included in `nix develop` and the shared
+Home Manager development packages. On an existing checkout, `nix develop`
+provides the locked runner without changing the host configuration. Initial
+setup and first activation use `bash ./bootstrap.sh` and `bash ./switch.sh`;
+neither calls or requires `just`. After applying a development profile, open a
+new login shell to use its installed runner. Minimal hosts do not install the
+development packages: use `nix develop --command just --list` there, or keep
+using the shell entrypoints. `just bootstrap` is only a convenience for an
+environment where the runner is already available.
+Run `just` to list recipes. `just build` delegates to `./switch.sh --build`,
+and `just switch` performs activation. There is no Makefile compatibility layer.
+
 ## Daily Usage
 
 ```bash
 ./switch.sh                          # Apply the full system for this host
-make format                          # Format with treefmt (nix fmt)
-make lint                            # Run all pre-commit hooks
-make update                          # Update flake inputs (nix flake update)
+just format                          # Format with treefmt (nix fmt)
+just lint                            # Run all pre-commit hooks
+just update                          # Update flake inputs (nix flake update)
 ```
 
 ### Platform Capability Matrix
 
-| Make target         | Darwin (`aarch64-darwin`) | Linux (`x86_64-linux`) | Linux (`aarch64-linux`) |
+| Just recipe         | Darwin (`aarch64-darwin`) | Linux (`x86_64-linux`) | Linux (`aarch64-linux`) |
 | ------------------- | :-----------------------: | :--------------------: | :---------------------: |
 | **Core Operations** |                           |                        |                         |
 | switch              |            ✅             |           ✅           |           ❌            |
@@ -151,10 +171,9 @@ make update                          # Update flake inputs (nix flake update)
 
 ¹ NixOS VM tests need a Linux builder; Determinate Nix disables the macOS
 linux-builder, so run them in CI or a Linux VM.
-² Requires `/dev/kvm`. Where it is missing, `make test` degrades to
-`nix flake check --no-build`, which evaluates checks without running assertions.
-`make test-build` runs the unit and integration assertions on any platform, but it
-deliberately excludes the NixOS VM tests — those need `make test-containers` or CI.
+² VM execution requires readable and writable Linux `/dev/kvm`. `just test`
+always runs local unit and integration assertions, while `just check` only
+evaluates the platform matrix. VM tests are separate: `just test-containers`.
 
 ### SOPS secrets
 
@@ -185,7 +204,7 @@ automatically changed. The normal SOPS login service also restores runtime
 secret files after login. Real SSH/GPG authentication still needs verification
 with your actual services; synthetic fixture tests do not prove that.
 
-The older `make secrets/backup` and `make secrets/restore` tar targets remain for
+The older `just secrets-backup` and `just secrets-restore` tar targets remain for
 compatibility only. They are not used by bootstrap or switch and do not include
 the age identity. No new real backup or encrypted personal secret is fabricated
 by these scripts.
@@ -203,6 +222,7 @@ System composition follows [mitchellh/nixos-config](https://github.com/mitchellh
 
 ```text
 dotfiles/
+├── justfile             # Public task runner (CI and local development)
 ├── flake.nix            # Inputs; outputs are assembled by flake-modules/
 ├── flake-modules/
 │   ├── hosts.nix        # Typed dotfiles.hosts entries (the only place a host is declared)
@@ -245,6 +265,7 @@ dotfiles/
 Bootstrap and switch evaluate a temporary snapshot of Git-tracked and unignored
 files, plus the explicitly allowed `flake-modules/hosts.local.nix`. Ignored keys
 and plaintext backups are excluded before Nix copies source into the store.
+Debian validation, readiness checks and native activation also read that snapshot.
 Darwin activation runs from that same snapshot using `--flake .#<host>`, preserving
 the existing sudo command rules. Symlinks are preserved; the snapshot is removed
 on exit. Keep private data
@@ -317,19 +338,21 @@ prepares a valid age identity before reporting readiness.
 ## Testing
 
 Every check is a Nix derivation that builds if an assertion holds. For development,
-install pre-commit and run `make install-hooks` once. See
+install pre-commit and run `just install-hooks` once. See
 [tests/README.md](tests/README.md) for the contract and helper inventory.
 
 ```bash
-make test             # Linux + KVM: build all checks; elsewhere: evaluate only (--no-build)
-make test-build       # Build every unit + integration assertion (any platform)
-make test-containers  # NixOS VM tests (Linux + /dev/kvm)
+just check            # Evaluate every supported platform; no assertion execution
+just test             # Execute local unit and integration assertions (no KVM needed)
+just test-all         # Evaluate all platforms and execute local assertions
+just test-build       # Alias for just test
+just test-containers  # NixOS VM tests (Linux + /dev/kvm)
 ```
 
 The NixOS VM tests live in `tests/containers/` (smoke, basic system, services,
 packages) and are registered explicitly in `tests/default.nix`.
 
-CI (`.github/workflows/ci.yml`) runs pre-commit, `make test-build`, and a closure
+CI (`.github/workflows/ci.yml`) runs pre-commit, `just test-build`, and a closure
 build on Darwin `aarch64-darwin` and standalone Home Manager `x86_64-linux`,
 plus bootstrap tools on `aarch64-linux`, then pushes successful builds to Cachix.
 
@@ -388,12 +411,25 @@ a successful later entry reports `Using cached dev shell`.
 `./switch.sh --build`. On Linux outside NixOS this builds the selected
 standalone Home Manager profile; use `HM_USER` to select a different matching profile.
 
-**Formatting failure in `make test`**: run `make format`, or `make fmt-diff` to
+**Formatting failure in `just test`**: run `just format`, or `just fmt-diff` to
 see the full treefmt diff.
 
-**Container tests fail on macOS**: expected. Use `make test-build` locally and
+**Container tests fail on macOS**: expected. Use `just test-build` locally and
 leave the VM tests to CI.
 
 ---
 
 _Nix flakes + flake-parts, with mitchellh-style system composition and a standard package/overlay layout._
+
+### Staged Debian activation
+
+Normal switch checks both the Home Manager identity and native remote-access
+secrets/tools before activating Home Manager. Native services are applied only
+after Home Manager succeeds. If a later stage fails, the error identifies what
+completed; there is no cross-backend transaction or automatic rollback. Fix the
+reported problem and rerun switch. `--build` reads no identity and changes no services.
+
+Mac development hosts import `machines/darwin/development.nix`; minimal hosts
+continue to import `common.nix` alone. Managed GUI apps are derived from their
+feature flags in `users/shared/darwin/system/apps.nix`, rather than duplicating
+app names in every host. Per-host sudo policies remain in each machine file.

@@ -108,10 +108,8 @@ in
 lib.mapAttrs (_name: pkgs.testers.nixosTest) containerTests
 // assertionChecks
 // {
-  # `nix flake check --no-build` only *evaluates* checks, so a false assertion is
-  # never noticed — and container tests make dropping --no-build impossible off
-  # Linux+KVM. This aggregate is buildable on every platform, which is what
-  # `make test-build` uses to actually run the assertions.
+  # Evaluation alone does not execute build-time assertions. `just test` builds
+  # this aggregate on every platform, independently of the explicit VM recipes.
   all-assertions = pkgs.runCommand "all-assertions" { } ''
     ${lib.concatMapStringsSep "\n" (check: "cat ${check}") (lib.attrValues assertionChecks)}
     echo "✅ ${toString (builtins.length (lib.attrNames assertionChecks))} assertion checks passed"

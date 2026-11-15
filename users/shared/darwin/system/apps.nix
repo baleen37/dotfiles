@@ -1,6 +1,12 @@
-{ lib, modules }:
+{
+  config,
+  lib,
+  currentSystemUser,
+  ...
+}:
 let
-  enabled = {
+  modules = config.home-manager.users.${currentSystemUser}.modules;
+  apps = {
     hammerspoon = modules.programs.hammerspoon.enable;
     karabiner-elements = modules.programs.karabiner.enable;
     tailscale-app = modules.programs.tailscale.enable;
@@ -9,4 +15,6 @@ let
     visual-studio-code = modules.darwin.vscode.enable;
   };
 in
-lib.filter (name: enabled.${name} or true)
+{
+  homebrew.casks = builtins.attrNames (lib.filterAttrs (_: enabled: enabled) apps);
+}

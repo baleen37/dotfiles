@@ -1,5 +1,5 @@
-# Pre-commit configuration - delegates to Makefile for consistency
-# All linting/formatting logic is managed in Makefile
+# Pre-commit configuration - delegates to justfile for consistency
+# All linting/formatting logic is managed in justfile
 
 repos:
   # Shell script linting
@@ -40,24 +40,24 @@ repos:
       - id: detect-private-key
       - id: check-yaml
 
-  # Makefile-managed checks (single source of truth)
+  # justfile-managed checks (single source of truth)
   - repo: local
     hooks:
       - id: test
-        name: Fast Tests
-        entry: make test
+        name: Evaluate configurations
+        entry: just check
         language: system
         pass_filenames: false
         stages: [pre-commit]
-        description: Run fast container tests
+        description: Evaluate the platform matrix without running VMs
 
       - id: test-all
         name: All Tests
-        entry: make test-all
+        entry: just test-all
         language: system
         pass_filenames: false
         stages: [pre-push]
-        description: Run all tests including integration
+        description: Evaluate all platforms and execute unit and integration assertions
 
       - id: check-cache-sync
         name: Check cache config sync

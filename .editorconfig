@@ -35,9 +35,10 @@ indent_style = space
 indent_size = 2
 trim_trailing_whitespace = false  # Preserve trailing spaces for line breaks
 
-# Makefile
-[Makefile]
-indent_style = tab
+# Just recipes
+[justfile]
+indent_style = space
+indent_size = 4
 
 # Python files
 [*.py]
