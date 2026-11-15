@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Apply the selected host through its Nix or Debian native backend.
+# Apply Nix configuration and, on Debian, native remote-access settings.
 set -euo pipefail
 set +x
 source "$(dirname "${BASH_SOURCE[0]}")/scripts/lib/setup.sh"
@@ -11,9 +11,12 @@ TOOLS=$(cd "$TOOLS_LINK" && pwd -P)
 export PATH="$TOOLS/bin:$PATH"
 select_configuration
 check_macos_permissions
+if is_debian; then
+  "$REPO_DIR/machines/debian/apply.sh" switch --build
+fi
 # This runs before any system or Home Manager activation.
 if [ "$BUILD_ONLY" = false ]; then
-  secrets_check
+  secrets_check "${SOPS_AGE_KEY_FILE:-}"
 fi
 
 if [ -z "$SYSTEM_ATTR" ]; then
@@ -83,5 +86,8 @@ ACTIVATE
 else
   nix_cmd run --inputs-from "$FLAKE_REF" nixpkgs#nixos-rebuild -- \
     switch --sudo --flake "$FLAKE_REF#$HOST"
+fi
+if is_debian; then
+  "$REPO_DIR/machines/debian/apply.sh" switch
 fi
 log 'Configuration applied successfully.'

@@ -145,9 +145,14 @@ if [ "$OS" = Darwin ]; then
     install_brew
   fi
 fi
-identity=$(nix_cmd build "$FLAKE_REF#$HOME_ATTR.modules.secrets.prepareIdentity" \
-  --no-link --print-out-paths)
-"$identity/bin/dotfiles-identity-prepare"
+if is_debian; then
+  "$REPO_DIR/machines/debian/apply.sh" bootstrap
+  secrets_check "${SOPS_AGE_KEY_FILE:-}"
+else
+  identity=$(nix_cmd build "$FLAKE_REF#$HOME_ATTR.modules.secrets.prepareIdentity" \
+    --no-link --print-out-paths)
+  "$identity/bin/dotfiles-identity-prepare"
+fi
 if [ "$OS" = Darwin ]; then
   # Joining the tailnet is a once-per-Mac step; switch never does it (docs/adr/0005).
   enroll=$(nix_cmd build "$FLAKE_REF#$SYSTEM_ATTR.config.dotfiles.setup.tailscaleEnroll" \

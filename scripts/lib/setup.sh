@@ -14,9 +14,9 @@ is_debian() {
     [ "${ID:-}" = debian ]
   )
 }
-# Parse the public contract before dispatching to a platform adapter.
+# Validate the public CLI contract before preparing a configuration.
 setup_request() {
-  local mode=$1 repo
+  local mode=$1
   shift
   BUILD_ONLY=false
   if [ "$mode" = switch ] && [ "$#" -eq 1 ] && [ "$1" = --build ]; then
@@ -25,10 +25,6 @@ setup_request() {
     die "Usage: ./$mode.sh$([ "$mode" != switch ] || printf ' [--build]')"
   fi
   [ "$(id -u)" -ne 0 ] || die 'run as your normal user; sudo is requested only where needed'
-  if is_debian; then
-    repo=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
-    exec "$repo/machines/debian/apply.sh" "$mode" "$@"
-  fi
 }
 load_nix() {
   command -v nix > /dev/null 2>&1 && return 0
