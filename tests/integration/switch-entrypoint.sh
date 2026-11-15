@@ -7,7 +7,7 @@ mkdir -p "$fixture/repo/machines/debian" "$fixture/repo/scripts/lib" "$fixture/b
 cp "$repo/switch.sh" "$repo/bootstrap.sh" "$fixture/repo/"
 sed "s@/etc/os-release@$fixture/os-release@g" "$repo/scripts/lib/setup.sh" > "$fixture/repo/scripts/lib/setup.sh"
 cp "$repo/scripts/lib/flake-source.sh" "$fixture/repo/scripts/lib/"
-# Stop at Nix initialization; Debian must dispatch before this sentinel.
+# Every platform now prepares Nix before native activation can start.
 echo 'setup_context() { echo nix-backend; exit 29; }' >> "$fixture/repo/scripts/lib/setup.sh"
 export SWITCH_LOG="$fixture/calls" SWITCH_OS=Linux
 shell=$(command -v bash)
@@ -27,21 +27,20 @@ for script in bootstrap switch; do
   status=0
   bash "$fixture/repo/$script.sh" --home > "$fixture/output" 2>&1 || status=$?
   [ "$status" -ne 0 ] && [ ! -e "$SWITCH_LOG" ]
-  bash "$fixture/repo/$script.sh"
-  grep -qx "$script" "$SWITCH_LOG"
-  rm "$SWITCH_LOG"
+  status=0
+  bash "$fixture/repo/$script.sh" > "$fixture/output" || status=$?
+  [ "$status" -eq 29 ] && [ ! -e "$SWITCH_LOG" ]
+  grep -qx nix-backend "$fixture/output"
 done
-bash "$fixture/repo/switch.sh" --build
-[ "$(cat "$SWITCH_LOG")" = "$(printf 'switch\n--build')" ]
+status=0
+bash "$fixture/repo/switch.sh" --build > "$fixture/output" || status=$?
+[ "$status" -eq 29 ] && [ ! -e "$SWITCH_LOG" ]
+grep -qx nix-backend "$fixture/output"
 for argument in --check --age-key-file --help macbook-pro ''; do
   status=0
   bash "$fixture/repo/switch.sh" "$argument" > "$fixture/output" 2>&1 || status=$?
   [ "$status" -ne 0 ]
 done
-export SWITCH_FAILURE=23
-status=0
-bash "$fixture/repo/switch.sh" || status=$?
-[ "$status" -eq 23 ]
 printf 'ID=nixos\n' > "$fixture/os-release"
 for platform in Linux Darwin; do
   export SWITCH_OS=$platform
@@ -50,4 +49,4 @@ for platform in Linux Darwin; do
   [ "$status" -eq 29 ]
   grep -qx nix-backend "$fixture/output"
 done
-echo 'PASS: public setup contract selects adapters, rejects old arguments and propagates failures.'
+echo 'PASS: public setup contract prepares Nix on Debian and rejects old arguments before setup.'
