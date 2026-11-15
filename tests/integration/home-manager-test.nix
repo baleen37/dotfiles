@@ -97,9 +97,16 @@ in
       "Linux Home Manager config must declare exactly the modules under users/shared/packages"
     )
 
-    (helpers.assertTest "darwin-enables-every-module" (
-      enablesEvery "programs" darwinUsers && enablesEvery "packages" darwinUsers
-    ) "every program and package category should be enabled on macbook-pro")
+    (helpers.assertTest "darwin-enables-supported-modules" (
+      enablesEvery "programs" darwinUsers
+      && lib.all (
+        u:
+        !u.modules.packages.chrome.enable
+        && lib.all (m: m.enable) (
+          builtins.attrValues (builtins.removeAttrs u.modules.packages [ "chrome" ])
+        )
+      ) darwinUsers
+    ) "macbook-pro should enable every program and package category except Linux-only Chrome")
 
     (helpers.assertTest "linux-enables-every-package-category" (enablesEvery "packages" linuxUsers)
       "every package category should be enabled on the Linux Home Manager profile"
