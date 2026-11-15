@@ -22,6 +22,7 @@ let
 in
 {
   imports = [
+    ./apps.nix
     ./homebrew.nix
     ./raycast.nix
     ./power.nix

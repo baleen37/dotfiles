@@ -96,9 +96,9 @@ nix build '.#homeConfigurations."jito.hello".activationPackage'
 nix build '.#checks.x86_64-linux.unit-mksystem'   # A single check
 ```
 
-`make test` falls back to `nix flake check --no-build` wherever the container
-tests cannot run, and `--no-build` only _evaluates_ checks — a false assertion is
-never built and never fails. Use `make test-build` to actually run assertions.
+`just check` evaluates the full platform matrix without executing checks.
+`just test` always builds unit and integration assertions; `just test-build`
+is an alias. Run VM tests explicitly with `just test-containers`.
 
 #### Testing on Multiple Platforms
 
@@ -368,7 +368,7 @@ When adding new global commands:
 **Environment variable issues:**
 
 ```bash
-make switch
+just switch
 ```
 
 **Flake lock conflicts:**
@@ -417,7 +417,7 @@ nix build '.#checks.aarch64-darwin.unit-claude'
 2. **Run comprehensive local tests:**
 
    ```bash
-   make test && make test-build
+   just check && just test
    ```
 
 3. **Update documentation** if needed
@@ -440,7 +440,7 @@ Brief description of changes
 
 ## Testing
 
-- [ ] Local tests pass (`make test-build`)
+- [ ] Local tests pass (`just test-build`)
 - [ ] Pre-commit workflow complete
 - [ ] Tested on target platforms: [list platforms]
 

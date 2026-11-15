@@ -235,7 +235,7 @@ nix = {
 
 ```bash
 # The existing configuration in machines/darwin/common.nix will activate
-make switch
+just switch
 ```
 
 ## Troubleshooting

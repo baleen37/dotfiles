@@ -140,3 +140,8 @@ secrets_check() {
     --no-link --print-out-paths)
   "$check/bin/dotfiles-secrets-check" "$@"
 }
+
+# Native execution reads code and declarations from this run's fixed source.
+debian_native() {
+  "$SOURCE_DIR/source/machines/debian/apply.sh" "$@"
+}

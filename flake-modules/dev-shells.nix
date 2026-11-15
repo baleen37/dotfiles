@@ -12,6 +12,8 @@ _:
 
           # Development utilities
           git
+          just
+          pre-commit
           jq
           yq
 
@@ -26,10 +28,10 @@ _:
         shellHook = ''
           echo "Dotfiles development environment loaded"
           echo "Available commands:"
-          echo "  make format     - Format all files"
-          echo "  make test       - Evaluate all checks"
-          echo "  make test-build - Build every unit + integration assertion"
-          echo "  make switch     - Build and apply configuration changes"
+          echo "  just format     - Format all files"
+          echo "  just test       - Execute unit and integration assertions"
+          echo "  just test-build - Build every unit + integration assertion"
+          echo "  just switch     - Build and apply configuration changes"
         '';
       };
     };

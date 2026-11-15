@@ -12,11 +12,14 @@ export PATH="$TOOLS/bin:$PATH"
 select_configuration
 check_macos_permissions
 if is_debian; then
-  "$REPO_DIR/machines/debian/apply.sh" switch --build
+  debian_native switch --build
 fi
 # This runs before any system or Home Manager activation.
 if [ "$BUILD_ONLY" = false ]; then
   secrets_check "${SOPS_AGE_KEY_FILE:-}"
+  if is_debian; then
+    debian_native check
+  fi
 fi
 
 if [ -z "$SYSTEM_ATTR" ]; then
@@ -26,7 +29,10 @@ if [ -z "$SYSTEM_ATTR" ]; then
     log "Built: $activation"
     exit 0
   fi
-  "$activation/activate"
+  if ! "$activation/activate"; then
+    die 'Home Manager activation failed; it may be partially applied. Debian native activation was not started.'
+  fi
+  log 'Home Manager activation completed.'
 elif [ "$BUILD_ONLY" = true ]; then
   if [ "$OS" = Darwin ]; then
     build_attr="$SYSTEM_ATTR.system"
@@ -88,6 +94,9 @@ else
     switch --sudo --flake "$FLAKE_REF#$HOST"
 fi
 if is_debian; then
-  "$REPO_DIR/machines/debian/apply.sh" switch
+  if ! debian_native switch; then
+    die 'Home Manager completed, but Debian native activation failed and may be partial. Fix the error and rerun ./switch.sh; no automatic rollback was attempted.'
+  fi
+  log 'Debian native activation completed.'
 fi
 log 'Configuration applied successfully.'

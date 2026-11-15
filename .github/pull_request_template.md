@@ -17,10 +17,10 @@
 
 <!-- 테스트 방법을 체크리스트로 작성해주세요 -->
 
-- [ ] `make lint` 통과
-- [ ] `make test` 통과 (2-5초)
-- [ ] `make test-all` 통과
-- [ ] `make build` 통과
+- [ ] `just lint` 통과
+- [ ] `just check` 전체 플랫폼 평가 통과
+- [ ] `just test` 단위·통합 assertion 실행 통과
+- [ ] `just build` 비활성화 빌드 통과 (대상 플랫폼 명시)
 - [ ] 로컬에서 수동 테스트 완료
 - [ ] 관련 플랫폼에서 테스트 완료
 

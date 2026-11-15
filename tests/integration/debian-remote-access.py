@@ -22,7 +22,7 @@ def load(name, path):
     return module
 
 
-installer = load("installer", REPO / "machines/debian/apply.py")
+installer = load("installer", REPO / "machines/debian/packages.py")
 driver = load("driver", REPO / "scripts/lib/remote_access.py")
 
 

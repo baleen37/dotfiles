@@ -1,6 +1,6 @@
 # ADR 0004: 로컬 설치·적용 명령과 키 요구를 단순화한다
 
-- 상태: 채택
+- 상태: 대체됨: [ADR 0006](0006-shared-source-and-debian-staged-activation.md)
 - 날짜: 2026-11-09
 - 결정·운영 책임자: dotfiles 관리자
 - 대체 범위: ADR 0002의 CLI 옵션과 시크릿 검사 정책

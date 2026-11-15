@@ -23,7 +23,7 @@
   # Minimal system-level settings
   environment.systemPackages = with pkgs; [
     home-manager
-    # `make switch` runs `nh clean all` after every switch.
+    # `just switch` runs `nh clean all` after every switch.
     nh
   ];
 

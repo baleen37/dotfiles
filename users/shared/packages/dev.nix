@@ -24,6 +24,7 @@ in
         direnv
         pre-commit
         gnumake
+        just
         cmake
       ]
       # On Darwin, VS Code comes from the `visual-studio-code` Homebrew cask.

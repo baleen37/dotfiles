@@ -23,7 +23,7 @@ in
 
     kakaostyle-nh-clean-is-passwordless =
       helpers.assertTest "kakaostyle nh clean is passwordless" (lib.hasInfix expectedNhRule jitoSudo)
-        "make switch runs this exact nh clean after switching; drift from the Makefile turns it into a password prompt";
+        "just switch runs this exact nh clean after switching; drift from switch.sh turns it into a password prompt";
 
     macbook-switch-is-passwordless = helpers.assertTest "macbook switch is passwordless" (
       lib.hasInfix "NOPASSWD: /run/current-system/sw/bin/darwin-rebuild" macbookSudo

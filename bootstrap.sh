@@ -146,7 +146,7 @@ if [ "$OS" = Darwin ]; then
   fi
 fi
 if is_debian; then
-  "$REPO_DIR/machines/debian/apply.sh" bootstrap
+  debian_native bootstrap
   secrets_check "${SOPS_AGE_KEY_FILE:-}"
 else
   identity=$(nix_cmd build "$FLAKE_REF#$HOME_ATTR.modules.secrets.prepareIdentity" \

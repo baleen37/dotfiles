@@ -1,5 +1,15 @@
 {
   "hub": {
     "syncthing-hub": "KEWS4JZ-4QJIPYT-3A55JT3-CI6AAXC-N3APKNM-EOXYU3N-TW447PN-6WGGKQY"
+  },
+  "wiki": {
+    "path": "~/wiki",
+    "ignorePatterns": [
+      "/.obsidian/workspace*.json",
+      "/.obsidian_desktop/workspace*.json",
+      "/.trash",
+      ".DS_Store",
+      "/.git"
+    ]
   }
 }

@@ -4,7 +4,7 @@ let
   helpers = import ../lib/test-helpers.nix { inherit pkgs lib; };
   flakeSource = builtins.readFile ../../flake.nix;
   argsSource = builtins.readFile ../../flake-modules/args.nix;
-  makeSource = builtins.readFile ../../Makefile;
+  justSource = builtins.readFile ../../justfile;
   envrcSource = builtins.readFile ../../.envrc;
   ciSource = builtins.readFile ../../.github/workflows/ci.yml;
 
@@ -34,7 +34,7 @@ in
       !(lib.hasInfix "builtins.getEnv" flakeSource) && !(lib.hasInfix "builtins.getEnv" argsSource)
     ) "flake is pure")
     (helpers.assertTest "no-user-injection" (
-      !(lib.hasInfix "export USER=" makeSource)
+      !(lib.hasInfix "export USER=" justSource)
       && !(lib.hasInfix "export USER=" envrcSource)
       && !(lib.hasInfix "export USER=" ciSource)
     ) "workflow does not inject USER")
