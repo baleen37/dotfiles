@@ -14,18 +14,22 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: write
-  pull-requests: write
-  actions: write
+  contents: read
 
 jobs:
   update:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      GH_TOKEN: ${{ github.token }}
+      # A PAT, not GITHUB_TOKEN: a GITHUB_TOKEN PR waits for approval before CI
+      # runs, and CI started any other way does not count toward the PR's
+      # required checks. Every run calls the API with it, so an expired token
+      # fails here rather than at the next release.
+      GH_TOKEN: ${{ secrets.FLAKE_LOCK_UPDATE_TOKEN }}
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+        with:
+          token: ${{ secrets.FLAKE_LOCK_UPDATE_TOKEN }}
 
       - name: Find a newer release
         id: check
@@ -61,7 +65,4 @@ jobs:
           git push origin "$BRANCH"
           gh pr create --head "$BRANCH" --title "chore(herdr): bump herdr-sim to ${LATEST#v}" \
             --body "herdr-sim $CURRENT → $LATEST: https://github.com/baleen37/herdr-sim/releases/tag/$LATEST"
-          # Pushes made with GITHUB_TOKEN start no workflows; a dispatch does, and
-          # its checks on the branch head satisfy the required CI checks.
-          gh workflow run ci.yml --ref "$BRANCH"
           gh pr merge "$BRANCH" --auto --squash --delete-branch
