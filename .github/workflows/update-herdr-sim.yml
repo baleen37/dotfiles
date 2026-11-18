@@ -1,0 +1,67 @@
+name: Update herdr-sim
+
+# flake.nix pins herdr-sim to a release tag. When baleen37/herdr-sim publishes
+# a newer release, open a PR moving the pin and lock to it, and auto-merge it
+# once CI passes. `just switch` then installs it.
+
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+
+      - name: Find a newer release
+        id: check
+        run: |
+          latest=$(gh api repos/baleen37/herdr-sim/releases/latest --jq .tag_name)
+          current=$(grep -oE 'github:baleen37/herdr-sim/[^"]+' flake.nix | cut -d/ -f3)
+          branch="chore/herdr-sim-$latest"
+          echo "latest=$latest current=$current"
+          if [ "$latest" = "$current" ] || git ls-remote --exit-code origin "refs/heads/$branch" >/dev/null; then
+            echo "update=false" >> "$GITHUB_OUTPUT"
+          else
+            { echo "update=true"; echo "latest=$latest"; echo "current=$current"; echo "branch=$branch"; } >> "$GITHUB_OUTPUT"
+          fi
+
+      - if: steps.check.outputs.update == 'true'
+        uses: ./.github/actions/setup-nix
+        with:
+          cache-mode: restore-only
+
+      - name: Open an auto-merging PR
+        if: steps.check.outputs.update == 'true'
+        env:
+          LATEST: ${{ steps.check.outputs.latest }}
+          CURRENT: ${{ steps.check.outputs.current }}
+          BRANCH: ${{ steps.check.outputs.branch }}
+        run: |
+          sed -i "s|github:baleen37/herdr-sim/$CURRENT\"|github:baleen37/herdr-sim/$LATEST\"|" flake.nix
+          nix flake update herdr-sim
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$BRANCH"
+          git commit -am "chore(herdr): bump herdr-sim to ${LATEST#v}"
+          git push origin "$BRANCH"
+          gh pr create --head "$BRANCH" --title "chore(herdr): bump herdr-sim to ${LATEST#v}" \
+            --body "herdr-sim $CURRENT → $LATEST: https://github.com/baleen37/herdr-sim/releases/tag/$LATEST"
+          # Pushes made with GITHUB_TOKEN start no workflows; a dispatch does, and
+          # its checks on the branch head satisfy the required CI checks.
+          gh workflow run ci.yml --ref "$BRANCH"
+          gh pr merge "$BRANCH" --auto --squash --delete-branch
