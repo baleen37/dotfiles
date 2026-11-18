@@ -71,7 +71,7 @@
     };
 
     herdr-sim = {
-      url = "github:baleen37/herdr-sim/main";
+      url = "github:baleen37/herdr-sim/v0.44.0";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 

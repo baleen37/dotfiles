@@ -269,7 +269,7 @@
       },
       "original": {
         "owner": "baleen37",
-        "ref": "main",
+        "ref": "v0.44.0",
         "repo": "herdr-sim",
         "type": "github"
       }
