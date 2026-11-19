@@ -132,6 +132,9 @@ in
         # Codex CLI shortcut
         co = "codex --dangerously-bypass-approvals-and-sandbox";
 
+        # OpenCode CLI shortcut
+        oc = "opencode";
+
         # Git aliases
         ga = "git add";
         gc = "git commit";
