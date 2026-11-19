@@ -18,6 +18,7 @@ _: {
   modules.programs.git.enable = true;
   modules.programs.herdr.enable = true;
   modules.programs.neovim.enable = true;
+  modules.programs.opencode.enable = true;
   modules.programs.powerlevel10k.enable = true;
   modules.programs.ssh.enable = true;
   modules.programs.terraform.enable = true;

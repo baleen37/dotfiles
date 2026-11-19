@@ -14,7 +14,6 @@ in
     home.packages = with pkgs; [
       claude-code
       antigravity-cli
-      opencode
     ];
   };
 }
