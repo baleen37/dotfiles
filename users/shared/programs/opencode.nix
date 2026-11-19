@@ -21,7 +21,10 @@ in
       enable = true;
       mutableSettings = true;
       # OpenCode 2.x reads `plugins`; 1.x used `plugin`.
-      settings.plugins = [ "skills@git+https://github.com/baleen37/skills.git" ];
+      settings.plugins = [
+        "skills@git+https://github.com/baleen37/skills.git"
+        "superpowers@git+https://github.com/obra/superpowers.git"
+      ];
     };
   };
 }
