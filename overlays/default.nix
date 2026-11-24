@@ -7,14 +7,14 @@
     # Claude Code - latest from flake input
     claude-code = inputs.claude-code.packages.${prev.stdenv.hostPlatform.system}.default;
 
-    # 8.12.40 cannot read the schema written by 8.12.44 on existing Macs.
+    # 8.12.40 cannot read the schema written by 8.12.46 on existing Macs.
     _1password-gui =
       if prev.stdenv.hostPlatform.isDarwin then
         prev._1password-gui.overrideAttrs {
-          version = "8.12.44";
+          version = "8.12.46";
           src = prev.fetchurl {
-            url = "https://downloads.1password.com/mac/1Password-8.12.44-aarch64.zip";
-            hash = "sha256-mySxRkv0N4DwThr6+LB0LyFjypTbiwYgBZ56BaJJj6E=";
+            url = "https://downloads.1password.com/mac/1Password-8.12.46-aarch64.zip";
+            hash = "sha256-f0TuyualJAl0i6Xta5TWs4OUn2KOLMzT0eR5j6MEYfw=";
           };
         }
       else
