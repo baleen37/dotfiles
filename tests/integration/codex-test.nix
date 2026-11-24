@@ -29,7 +29,7 @@ let
   inherit (homeConfig) config;
 in
 {
-  codex-package-installed =
-    helpers.assertTest "codex-package-installed" (builtins.elem pkgs.codex config.home.packages)
-      "Codex should be installed through Home Manager";
+  codex-package-not-from-nixpkgs =
+    helpers.assertTest "codex-package-not-from-nixpkgs" (!(builtins.elem pkgs.codex config.home.packages))
+      "Codex is installed from npm, not through Home Manager";
 }
