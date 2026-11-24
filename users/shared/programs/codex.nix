@@ -4,7 +4,6 @@
 {
   config,
   lib,
-  pkgs,
   ...
 }:
 
@@ -15,7 +14,8 @@ in
   options.modules.programs.codex.enable = lib.mkEnableOption "Codex CLI configuration";
 
   config = lib.mkIf cfg.enable {
-    home.packages = [ pkgs.codex ];
+    # The codex binary comes from npm (~/.npm-global), not nixpkgs: nixpkgs lags
+    # upstream releases. This module only manages Codex configuration.
 
     # Share Claude's instruction file: AGENTS.md -> live ~/.claude/CLAUDE.md
     # (the writable copy managed by claude-code.nix), so both tools read the
