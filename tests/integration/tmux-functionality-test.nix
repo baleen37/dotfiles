@@ -17,13 +17,17 @@ let
 
   homeConfig = inputs.home-manager.lib.homeManagerConfiguration {
     inherit pkgs;
-    extraSpecialArgs = { inherit inputs; };
+    extraSpecialArgs = {
+      inherit inputs;
+      isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
+    };
     modules = [
       inputs.direnv-instant.homeModules.direnv-instant
       ../../users/shared/programs/tmux.nix
+      # Owns the direnv-instant package override that swaps in tmux.nix's tmux.
+      ../../users/shared/programs/zsh
       {
         modules.programs.tmux.enable = true;
-        programs.direnv-instant.enable = true;
         # Home Manager's sesh module asserts this whenever its tmux key is set.
         programs.fzf.tmux.enableShellIntegration = true;
         home = {
