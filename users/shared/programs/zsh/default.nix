@@ -37,6 +37,9 @@ let
   zoxideShellInit = pkgs.runCommand "zoxide-zsh-init" { } ''
     ${pkgs.zoxide}/bin/zoxide init zsh > $out
   '';
+  miseShellInit = pkgs.runCommand "mise-zsh-init" { } ''
+    ${pkgs.mise}/bin/mise activate zsh > $out
+  '';
   # `direnv-instant hook zsh` prints this file verbatim (include_str!).
   direnvInstantHook = "${inputs.direnv-instant}/hooks/zsh.sh";
 in
@@ -84,6 +87,12 @@ in
     };
 
     programs.zoxide = {
+      enable = true;
+      # Sourced from a build-time script in initContent below.
+      enableZshIntegration = false;
+    };
+
+    programs.mise = {
       enable = true;
       # Sourced from a build-time script in initContent below.
       enableZshIntegration = false;
@@ -221,6 +230,11 @@ in
         add-zsh-hook chpwd _direnv_hook_fast
         add-zsh-hook zshexit _direnv_exit_cleanup
         _direnv_hook_fast
+
+        # =============================================================================
+        # Section: mise
+        # =============================================================================
+        source ${miseShellInit}
 
         # =============================================================================
         # Section: Git worktree wrapper
